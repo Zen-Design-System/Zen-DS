@@ -5,7 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, figmaOptions, groupsFromFigma, holds, isCodeProp, isSetValue, placedProps, propGroupsOf } from "./propGroups.ts";
+import { codeOnlyProps, entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, figmaOptions, groupsFromFigma, holds, isCodeProp, isSetValue, placedProps, propGroupsOf } from "./propGroups.ts";
 import { FIGMA_PROPS } from "./figmaProps.generated.ts";
 import { normalizeScale } from "../../../components/_shared/scale.ts";
 import { inheritedProps } from "./inheritedProps.ts";
@@ -102,6 +102,9 @@ for (const [name, entry] of Object.entries(FIGMA_PROPS)) {
   // Code properties hold what only code reads; content and state stay with Figma's rows (user, 2026-10-17).
   check("code props: HTML element, type, links, ids, aria, handlers", ["as", "type", "href", "id", "aria-label", "data-e2e", "onClick"].map(isCodeProp), [true, true, true, true, true, true, true]);
   check("content and state are not code", ["title", "value", "label", "src", "disabled", "open", "name", "items", "online"].map(isCodeProp), [false, false, false, false, false, false, false, false, false]);
+  // The Code tab's Properties: what no group places, not a boolean's own value, and only code reads.
+  const coded = { own: ["level", "type"], after: [], toggles: [{ prop: "onClick", label: "Action" }], nested: [] };
+  check("code-only props: unplaced code props, never a placed one or a boolean's", codeOnlyProps(coded, ["level", "type", "href", "onClick", "title", "aria-label"]), ["href", "aria-label"]);
 
   // Nested layers (GĐ4 M1): an Input's Label and Help-Text groups, each while its text is set.
   const input = groupsFromFigma(FIGMA_PROPS.InputField);

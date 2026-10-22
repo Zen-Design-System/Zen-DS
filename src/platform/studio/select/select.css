@@ -50,6 +50,20 @@
 .studio-selection__spacing-hit { position: absolute; z-index: 1; top: 0; left: 0; box-sizing: border-box; cursor: default; pointer-events: auto; touch-action: none; }
 .studio-selection__spacing-hit[data-editable="true"] { cursor: pointer; }
 .studio-selection__spacing-anchor { position: absolute; top: 0; left: 0; pointer-events: none; }
+/* An auto layout frame's (Stack, Grid) gap or padding drags as Figma's handles (SpacingLayer, spacingDrag.ts): hovered
+   or dragged it turns Figma's pink (Support/Pink) with a short handle at its centre, the resize cursor on it, and its pill
+   pink below the handle (Support/Pink/Solid + Content/On-Colors). While dragging, the cover keeps the cursor everywhere. */
+.studio-selection__spacing-hit[data-drag="x"],
+.studio-selection__spacing-cover[data-axis="x"] { cursor: ew-resize; }
+.studio-selection__spacing-hit[data-drag="y"],
+.studio-selection__spacing-cover[data-axis="y"] { cursor: ns-resize; }
+.studio-selection__spacing-cover { position: absolute; z-index: 4; inset: 0; pointer-events: auto; touch-action: none; }
+.studio-selection__padding[data-drag][data-hover="true"] { background: var(--zen-color-background-support-pink-subtle); box-shadow: inset 0 0 0 1px var(--zen-color-border-support-pink-subtle); visibility: visible; }
+.studio-selection__gap[data-drag][data-hover="true"] { background-color: var(--zen-color-background-support-pink-subtle); background-image: repeating-linear-gradient(-45deg, var(--zen-color-border-support-pink-solid) 0 1px, transparent 1px 6px); opacity: 1; visibility: visible; }
+.studio-selection__spacing-handle { position: absolute; z-index: 2; top: 0; left: 0; border-radius: var(--zen-corner-radius-rounded, 999px); background: var(--zen-color-background-support-pink-solid); pointer-events: none; }
+.studio-selection__spacing-handle[data-axis="x"] { width: 2px; height: 12px; }
+.studio-selection__spacing-handle[data-axis="y"] { width: 12px; height: 2px; }
+.studio-selection__spacing-label[data-drag] { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); translate: 0 calc(50% + var(--zen-spacing-gap-xsmall, 8px)); background: var(--zen-color-background-support-pink-solid); color: var(--zen-color-content-on-colors); }
 /* Same pill as the name tag (Info/Solid/Pressed + Content/Inverse/Strongest: 8.1:1 light, 14:1 dark). */
 .studio-selection__spacing-label {
   position: absolute;

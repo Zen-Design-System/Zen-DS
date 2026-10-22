@@ -77,6 +77,15 @@ function originOf(container: HTMLElement): Point {
   return { x, y };
 }
 
+/** A client point as a place on the board (board frame px, where a frame's corner goes); null off a builder board. */
+export function boardPlaceAt(point: Point): FramePlace | null {
+  const container = document.querySelector<HTMLElement>(FRAMES);
+  if (!container) return null;
+  const origin = originOf(container);
+  const at = toWorld(point);
+  return { x: Math.round(at.x - origin.x), y: Math.round(at.y - origin.y) };
+}
+
 const framesIn = (container: HTMLElement) => Array.from(container.children).filter((child): child is HTMLElement => child instanceof HTMLElement && Boolean(child.dataset.studioFrame));
 const boxOf = (element: HTMLElement): FrameBox => ({ x: element.offsetLeft, y: element.offsetTop, width: element.offsetWidth, height: element.offsetHeight });
 const keysOf = (event: { shiftKey: boolean; altKey: boolean; metaKey: boolean; ctrlKey: boolean }): Keys => ({ shift: event.shiftKey, alt: event.altKey, mod: event.metaKey || event.ctrlKey });
@@ -344,9 +353,9 @@ export function pressFrame(event: PointerEvent, frameId: string, onClick?: () =>
 /* ── the Frame tool: draw a Screen ───────────────────────────────────────────────────────────────────────────── */
 
 /** A drawn Screen's device: the narrowest whose layout its width reads as (a phone up to 600, a tablet up to 1024). */
-const deviceFor = (width: number) => (width < 600 ? "phone" : width < 1024 ? "tablet" : "desktop");
-const FRAME_MIN = 100;
-const FRAME_MAX = 4096;
+export const deviceFor = (width: number) => (width < 600 ? "phone" : width < 1024 ? "tablet" : "desktop");
+export const FRAME_MIN = 100;
+export const FRAME_MAX = 4096;
 /** Figma's frame made by a click without a preset. */
 const FRAME_CLICK = { width: 100, height: 100 };
 

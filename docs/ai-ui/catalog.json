@@ -7500,7 +7500,7 @@
       ],
       "avoid": [
         "Non-blocking feedback → Toast.",
-        "Long forms → a page or Side Panel.",
+        "A data-entry form (two or more fields) → ModalForm on desktop and tablet, BottomSheet on a phone; a long form → a page.",
         "Hints → Tooltip/Popover."
       ],
       "description": "Figma Modal/Dialog (841:17177): Theme × Device.",
@@ -12476,7 +12476,7 @@
       ],
       "avoid": [
         "Non-blocking feedback → Toast.",
-        "Long forms → a page or Side Panel.",
+        "A data-entry form (two or more fields) → ModalForm on desktop and tablet, BottomSheet on a phone; a long form → a page.",
         "Hints → Tooltip/Popover."
       ],
       "description": "Figma Modal/Forms (841:17182): a Container (radius Modal-Radius, Background/Container, 1px Container/Border, Effect/Container) with Header (Heading/2 + caption), Body (Main-Content",
@@ -14761,6 +14761,946 @@
         "state (not for a generated UI)",
         "className (not for a generated UI)",
         "overrides (not for a generated UI)"
+      ]
+    },
+    "ScheduleDayPlanner": {
+      "name": "ScheduleDayPlanner",
+      "slug": "schedule",
+      "folder": "Schedule",
+      "status": "stable",
+      "import": "import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner, ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard } from \"@zen-ds/react\";",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "use": [
+        "Shift planning, room and equipment booking, team leave: ScheduleResourceGrid (scale hours for a day, days for a week).",
+        "Event programmes, a delivery route, a day of visits: ScheduleItinerary.",
+        "Booking a meeting or an appointment: ScheduleSlotPicker, with the confirm action in the page or sheet footer.",
+        "A person's day on a phone or in a side panel: ScheduleDayPlanner."
+      ],
+      "avoid": [
+        "One person's week of hours → CalendarTimeGrid.",
+        "Unrelated events in date order → CalendarAgenda.",
+        "Any time of day in a form → DatePicker with timePicker.",
+        "Tasks across weeks → a Gantt (Timeline, not in code yet)."
+      ],
+      "description": "Figma `Schedule/Day-Planner` (16143:1439): a person's day — the month as a Heading/3 title with a selector (Button/Icon-Main Small Tertiary, Gap/XSmall), a Calendar/Week-Strip Styl",
+      "props": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScheduleCardData"
+          },
+          "default": [],
+          "description": "The cards (any days); the planner shows the selected day's."
+        },
+        "value": {
+          "$ref": "#/$defs/CalendarDateInput",
+          "x-nullable": true,
+          "description": "The selected day (controlled)."
+        },
+        "defaultValue": {
+          "$ref": "#/$defs/CalendarDateInput",
+          "x-nullable": true,
+          "description": "The selected day at first (uncontrolled)."
+        },
+        "onValueChange": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "day",
+              "type": "Date",
+              "json": true
+            }
+          ],
+          "description": "Called with the day picked on the week strip."
+        },
+        "title": {
+          "x-kind": "node",
+          "description": "Figma Title: the month (\"September 2026\")."
+        },
+        "titleLevel": {
+          "enum": [
+            2,
+            3,
+            4
+          ],
+          "default": 2,
+          "description": "Heading level of the title (default 2)."
+        },
+        "onMonthClick": {
+          "x-kind": "action",
+          "params": [],
+          "description": "The month selector beside the title (Button/Icon-Main Small Tertiary): open your month picker."
+        },
+        "startHour": {
+          "type": "number",
+          "default": 9,
+          "description": "First hour on the rail (default 9)."
+        },
+        "endHour": {
+          "type": "number",
+          "default": 18,
+          "description": "Last hour on the rail (default 18)."
+        },
+        "now": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The current time: the current hour's label is Now (on today)."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (420, a side panel) or `mobile` (a phone screen)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [
+        {
+          "prop": "value",
+          "handler": "onValueChange",
+          "auto": true,
+          "initial": "defaultValue"
+        }
+      ],
+      "excluded": [
+        "onCardMenu ((card: ScheduleCardData, target: HTMLEle)",
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "ScheduleEventCard": {
+      "name": "ScheduleEventCard",
+      "slug": "schedule",
+      "folder": "Schedule",
+      "status": "stable",
+      "import": "import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner, ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard } from \"@zen-ds/react\";",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "use": [
+        "Shift planning, room and equipment booking, team leave: ScheduleResourceGrid (scale hours for a day, days for a week).",
+        "Event programmes, a delivery route, a day of visits: ScheduleItinerary.",
+        "Booking a meeting or an appointment: ScheduleSlotPicker, with the confirm action in the page or sheet footer.",
+        "A person's day on a phone or in a side panel: ScheduleDayPlanner."
+      ],
+      "avoid": [
+        "One person's week of hours → CalendarTimeGrid.",
+        "Unrelated events in date order → CalendarAgenda.",
+        "Any time of day in a form → DatePicker with timePicker.",
+        "Tasks across weeks → a Gantt (Timeline, not in code yet)."
+      ],
+      "description": "Figma `.Primitives/Schedule/Event-Card` (16143:817): an event as a card on the day planner — a Border box (`Color/Background/Surface/Default`, 1px `Color/Border/Neutral/Pale/Defaul",
+      "props": {
+        "title": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Title (two lines, truncated)."
+        },
+        "status": {
+          "x-kind": "node",
+          "description": "Figma Status, in words (\"Done\", \"In progress\", \"Upcoming\"): Light; colour stays on the rule."
+        },
+        "time": {
+          "x-kind": "node",
+          "description": "Figma Time (\"13:00 – 16:00\"), after the clock icon."
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink",
+            "neutral"
+          ],
+          "default": "brand",
+          "description": "Figma Color: the rule's hue (default brand; `neutral` for personal blocks)."
+        },
+        "attendees": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "type": "string"
+              },
+              "alt": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          },
+          "description": "Figma Attendees: AvatarStack items (Small, Subtle, up to 3)."
+        },
+        "note": {
+          "x-kind": "node",
+          "description": "Figma Note + Note-Text: a Surface/Alt box under the meta."
+        },
+        "onMenuClick": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "event",
+              "type": "MouseEventHandler<HTMLButtonElement>",
+              "json": false
+            }
+          ],
+          "description": "Figma Menu: the ⋮ (Button/Icon-Flat Small Secondary in a 20px wrapper, the Card Sub-Action)."
+        },
+        "menuLabel": {
+          "type": "string",
+          "description": "The ⋮ button's accessible name."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "ScheduleHourLabel": {
+      "name": "ScheduleHourLabel",
+      "slug": "schedule",
+      "folder": "Schedule",
+      "status": "stable",
+      "import": "import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner, ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard } from \"@zen-ds/react\";",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "use": [
+        "Shift planning, room and equipment booking, team leave: ScheduleResourceGrid (scale hours for a day, days for a week).",
+        "Event programmes, a delivery route, a day of visits: ScheduleItinerary.",
+        "Booking a meeting or an appointment: ScheduleSlotPicker, with the confirm action in the page or sheet footer.",
+        "A person's day on a phone or in a side panel: ScheduleDayPlanner."
+      ],
+      "avoid": [
+        "One person's week of hours → CalendarTimeGrid.",
+        "Unrelated events in date order → CalendarAgenda.",
+        "Any time of day in a form → DatePicker with timePicker.",
+        "Tasks across weeks → a Gantt (Timeline, not in code yet)."
+      ],
+      "description": "Figma `.Primitives/Schedule/Hour-Label` (16143:488): an hour on the day planner's rail — Padding 3XSmall · XSmall, Corner-Radius/Rounded, Caption/Medium Neutral/Light; Now on `Colo",
+      "props": {
+        "hour": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Hour (\"13:00\")."
+        },
+        "now": {
+          "type": "boolean",
+          "default": false,
+          "description": "Figma State=Now: the current hour — an Accent Flat pill, Caption/Bold Accent/Strongest."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
+    "ScheduleItinerary": {
+      "name": "ScheduleItinerary",
+      "slug": "schedule",
+      "folder": "Schedule",
+      "status": "stable",
+      "import": "import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner, ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard } from \"@zen-ds/react\";",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "use": [
+        "Shift planning, room and equipment booking, team leave: ScheduleResourceGrid (scale hours for a day, days for a week).",
+        "Event programmes, a delivery route, a day of visits: ScheduleItinerary.",
+        "Booking a meeting or an appointment: ScheduleSlotPicker, with the confirm action in the page or sheet footer.",
+        "A person's day on a phone or in a side panel: ScheduleDayPlanner."
+      ],
+      "avoid": [
+        "One person's week of hours → CalendarTimeGrid.",
+        "Unrelated events in date order → CalendarAgenda.",
+        "Any time of day in a form → DatePicker with timePicker.",
+        "Tasks across weeks → a Gantt (Timeline, not in code yet)."
+      ],
+      "description": "Figma `Schedule/Itinerary` (16135:13820): a day's programme — a Body/Small/Bold kicker (Neutral/Light) over `.Primitives/Schedule/Itinerary-Item` stops, Gap/XSmall; stops that ende",
+      "props": {
+        "stops": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScheduleStopData"
+          },
+          "x-required": true,
+          "description": "The stops, in order."
+        },
+        "title": {
+          "x-kind": "node",
+          "description": "Figma Kicker: the day and the plan's name (\"Wed, Sep 30 · Design Day\")."
+        },
+        "now": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The current time: stops that ended are Past, the running one Now, the rest Upcoming."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (640) or `mobile` (358); the stops are the same."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "ScheduleItineraryItem": {
+      "name": "ScheduleItineraryItem",
+      "slug": "schedule",
+      "folder": "Schedule",
+      "status": "stable",
+      "import": "import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner, ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard } from \"@zen-ds/react\";",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "use": [
+        "Shift planning, room and equipment booking, team leave: ScheduleResourceGrid (scale hours for a day, days for a week).",
+        "Event programmes, a delivery route, a day of visits: ScheduleItinerary.",
+        "Booking a meeting or an appointment: ScheduleSlotPicker, with the confirm action in the page or sheet footer.",
+        "A person's day on a phone or in a side panel: ScheduleDayPlanner."
+      ],
+      "avoid": [
+        "One person's week of hours → CalendarTimeGrid.",
+        "Unrelated events in date order → CalendarAgenda.",
+        "Any time of day in a form → DatePicker with timePicker.",
+        "Tasks across weeks → a Gantt (Timeline, not in code yet)."
+      ],
+      "description": "Figma `.Primitives/Schedule/Itinerary-Item` (16133:1131): one stop of a timed plan.",
+      "props": {
+        "start": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Start (\"13:00\")."
+        },
+        "duration": {
+          "x-kind": "node",
+          "description": "Figma Duration (\"90 min\")."
+        },
+        "title": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Title."
+        },
+        "meta": {
+          "x-kind": "node",
+          "description": "Figma Meta: place · who (\"Room 2 · Linh Tran\")."
+        },
+        "status": {
+          "enum": [
+            "past",
+            "now",
+            "upcoming"
+          ],
+          "default": "upcoming",
+          "description": "Figma Status: `past` (Accent dot and rail, quiet text), `now` (Accent ring and a Now badge) or `upcoming` (a hollow neutral dot)."
+        },
+        "connector": {
+          "type": "boolean",
+          "default": true,
+          "description": "Figma Connector: the rail down to the next stop (off on the last one)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "ScheduleResource": {
+      "name": "ScheduleResource",
+      "slug": "schedule",
+      "folder": "Schedule",
+      "status": "stable",
+      "import": "import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner, ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard } from \"@zen-ds/react\";",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "use": [
+        "Shift planning, room and equipment booking, team leave: ScheduleResourceGrid (scale hours for a day, days for a week).",
+        "Event programmes, a delivery route, a day of visits: ScheduleItinerary.",
+        "Booking a meeting or an appointment: ScheduleSlotPicker, with the confirm action in the page or sheet footer.",
+        "A person's day on a phone or in a side panel: ScheduleDayPlanner."
+      ],
+      "avoid": [
+        "One person's week of hours → CalendarTimeGrid.",
+        "Unrelated events in date order → CalendarAgenda.",
+        "Any time of day in a form → DatePicker with timePicker.",
+        "Tasks across weeks → a Gantt (Timeline, not in code yet)."
+      ],
+      "description": "Figma `.Primitives/Schedule/Resource` (16133:1070): the row header of Schedule/Resource-Grid.",
+      "props": {
+        "name": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Name (\"Alex Duong\"; on mobile a short name, \"Alex\")."
+        },
+        "meta": {
+          "x-kind": "node",
+          "description": "Figma Meta: a role or a capacity (\"Designer\", \"8 seats\")."
+        },
+        "type": {
+          "enum": [
+            "person",
+            "room"
+          ],
+          "default": "person",
+          "description": "Figma Type: `person` (an Avatar Small with initials or a photo) or `room` (a Dock-Icon Small, Neutral Subtle, building icon: any resource — a room, a vehicle, a device)."
+        },
+        "avatarSrc": {
+          "type": "string",
+          "description": "Person: the photo."
+        },
+        "avatarTheme": {
+          "enum": [
+            "accent",
+            "blue",
+            "brown",
+            "crimson",
+            "cyan",
+            "green",
+            "indigo",
+            "neutral",
+            "orange",
+            "pink",
+            "plum",
+            "purple",
+            "red",
+            "teal",
+            "violet",
+            "yellow",
+            "sky",
+            "mint",
+            "bronze",
+            "golden"
+          ],
+          "default": "violet",
+          "description": "Person: the initials' theme (Figma exposes it on the Avatar)."
+        },
+        "icon": {
+          "type": "string",
+          "x-kind": "icon",
+          "default": "icon-building-02-line",
+          "description": "Room: the icon (default `icon-building-02-line`)."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop",
+          "description": "Figma Device: `desktop` (200 wide: name and meta) or `mobile` (64 wide: the avatar over a short name)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "ScheduleResourceGrid": {
+      "name": "ScheduleResourceGrid",
+      "slug": "schedule",
+      "folder": "Schedule",
+      "status": "stable",
+      "import": "import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner, ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard } from \"@zen-ds/react\";",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "use": [
+        "Shift planning, room and equipment booking, team leave: ScheduleResourceGrid (scale hours for a day, days for a week).",
+        "Event programmes, a delivery route, a day of visits: ScheduleItinerary.",
+        "Booking a meeting or an appointment: ScheduleSlotPicker, with the confirm action in the page or sheet footer.",
+        "A person's day on a phone or in a side panel: ScheduleDayPlanner."
+      ],
+      "avoid": [
+        "One person's week of hours → CalendarTimeGrid.",
+        "Unrelated events in date order → CalendarAgenda.",
+        "Any time of day in a form → DatePicker with timePicker.",
+        "Tasks across weeks → a Gantt (Timeline, not in code yet)."
+      ],
+      "description": "Figma `Schedule/Resource-Grid` (16135:145822): a resource timeline.",
+      "props": {
+        "resources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScheduleResourceData"
+          },
+          "x-required": true,
+          "description": "The rows: people and rooms, in order."
+        },
+        "bookings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScheduleBookingData"
+          },
+          "default": [],
+          "description": "The bookings, shifts and leave on them (by `resourceId`)."
+        },
+        "scale": {
+          "enum": [
+            "hours",
+            "days"
+          ],
+          "default": "hours",
+          "description": "Figma Scale: `hours` (one day, a column per hour) or `days` (one week, Monday first)."
+        },
+        "date": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day shown (Hours) or any day of the week shown (Days)."
+        },
+        "startHour": {
+          "type": "number",
+          "default": 9,
+          "description": "First hour of the Hours scale (default 9)."
+        },
+        "endHour": {
+          "type": "number",
+          "default": 17,
+          "description": "Hour the Hours scale ends at (default 17: eight working hours)."
+        },
+        "now": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The current time: the vertical now line while it is inside the range."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today (the Days scale writes it in Accent)."
+        },
+        "resourcesLabel": {
+          "x-kind": "node",
+          "description": "The header of the resource column (default the locale's \"Team & rooms\"; \"Team\" on a phone)."
+        },
+        "selectedBookingId": {
+          "type": "string",
+          "x-nullable": true,
+          "default": null,
+          "description": "The booking whose details are open: its bar shows State=Selected."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (200px resource column, the whole scale visible) or `mobile` (64px column, four hours or three days visible: the track scrolls sideways and opens at the cur"
+        },
+        "aria-label": {
+          "type": "string",
+          "description": "Names the grid (default: \"Team & rooms\" and the period)."
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "onBookingClick ((booking: ScheduleBookingData, target: H)",
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "ScheduleSlot": {
+      "name": "ScheduleSlot",
+      "slug": "schedule",
+      "folder": "Schedule",
+      "status": "stable",
+      "import": "import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner, ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard } from \"@zen-ds/react\";",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "use": [
+        "Shift planning, room and equipment booking, team leave: ScheduleResourceGrid (scale hours for a day, days for a week).",
+        "Event programmes, a delivery route, a day of visits: ScheduleItinerary.",
+        "Booking a meeting or an appointment: ScheduleSlotPicker, with the confirm action in the page or sheet footer.",
+        "A person's day on a phone or in a side panel: ScheduleDayPlanner."
+      ],
+      "avoid": [
+        "One person's week of hours → CalendarTimeGrid.",
+        "Unrelated events in date order → CalendarAgenda.",
+        "Any time of day in a form → DatePicker with timePicker.",
+        "Tasks across weeks → a Gantt (Timeline, not in code yet)."
+      ],
+      "description": "Figma `.Primitives/Schedule/Slot` (16133:1087): one bookable time, a radio of the picker's single-choice group, in the Date-Picker day's colours: `--zen-date-picker-item-background",
+      "props": {
+        "time": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Time (\"10:30\")."
+        },
+        "size": {
+          "enum": [
+            "md",
+            "sm",
+            "medium",
+            "small"
+          ],
+          "default": "md",
+          "description": "Figma Size: `md` (Select-Item Medium height; phones and the main picker, default) or `sm`."
+        },
+        "checked": {
+          "type": "boolean",
+          "description": "Figma State=Selected: the chosen time (`checked` of its radio)."
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Figma State=Disabled: taken or past — struck through, never hidden, so the day keeps its rhythm."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        },
+        "readOnly": {
+          "type": "boolean",
+          "x-html": true
+        },
+        "required": {
+          "type": "boolean",
+          "x-html": true
+        },
+        "placeholder": {
+          "type": "string",
+          "x-html": true
+        },
+        "name": {
+          "type": "string",
+          "x-html": true
+        },
+        "autoComplete": {
+          "type": "string",
+          "x-html": true
+        },
+        "inputMode": {
+          "enum": [
+            "none",
+            "text",
+            "decimal",
+            "numeric",
+            "tel",
+            "search",
+            "email",
+            "url"
+          ],
+          "x-html": true
+        },
+        "maxLength": {
+          "type": "number",
+          "x-html": true
+        },
+        "min": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "x-html": true
+        },
+        "max": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "x-html": true
+        },
+        "step": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
+    "ScheduleSlotPicker": {
+      "name": "ScheduleSlotPicker",
+      "slug": "schedule",
+      "folder": "Schedule",
+      "status": "stable",
+      "import": "import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner, ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard } from \"@zen-ds/react\";",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "use": [
+        "Shift planning, room and equipment booking, team leave: ScheduleResourceGrid (scale hours for a day, days for a week).",
+        "Event programmes, a delivery route, a day of visits: ScheduleItinerary.",
+        "Booking a meeting or an appointment: ScheduleSlotPicker, with the confirm action in the page or sheet footer.",
+        "A person's day on a phone or in a side panel: ScheduleDayPlanner."
+      ],
+      "avoid": [
+        "One person's week of hours → CalendarTimeGrid.",
+        "Unrelated events in date order → CalendarAgenda.",
+        "Any time of day in a form → DatePicker with timePicker.",
+        "Tasks across weeks → a Gantt (Timeline, not in code yet)."
+      ],
+      "description": "Figma `Schedule/Slot-Picker` (16135:14046): a booking picker, one `.Primitives/Schedule/Slot` chosen at a time (a radio group).",
+      "props": {
+        "slots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ScheduleSlotData"
+          },
+          "x-required": true,
+          "description": "The bookable times (any days); a day shows its slots in time order."
+        },
+        "days": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CalendarDateInput"
+          },
+          "description": "The days to offer (desktop columns, the phone's week strip)."
+        },
+        "value": {
+          "type": "string",
+          "x-nullable": true,
+          "description": "The chosen slot's id (controlled)."
+        },
+        "defaultValue": {
+          "type": "string",
+          "x-nullable": true,
+          "default": null,
+          "description": "The chosen slot at first (uncontrolled)."
+        },
+        "onValueChange": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "id",
+              "type": "string",
+              "json": true
+            },
+            {
+              "name": "slot",
+              "type": "ScheduleSlotData",
+              "json": true
+            }
+          ],
+          "description": "Called with the slot the person picks."
+        },
+        "day": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Phone: the day the slots show (controlled)."
+        },
+        "onDayChange": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "day",
+              "type": "Date",
+              "json": true
+            }
+          ],
+          "description": "Phone: called with the day picked on the week strip."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today (\"Today\" in Accent)."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (day columns) or `mobile` (a week strip, then Morning / Afternoon groups of three per row, 44px touch targets)."
+        },
+        "aria-label": {
+          "type": "string",
+          "description": "Names the times (default the locale's \"Available times\")."
+        },
+        "name": {
+          "type": "string",
+          "description": "The radios' group name (default a generated one)."
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [
+        {
+          "prop": "value",
+          "handler": "onValueChange",
+          "auto": true,
+          "initial": "defaultValue"
+        },
+        {
+          "prop": "day",
+          "handler": "onDayChange"
+        }
+      ],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
       ]
     },
     "Search": {
@@ -19273,6 +20213,662 @@
         "ref (not for a generated UI)"
       ]
     },
+    "TimelineActivity": {
+      "name": "TimelineActivity",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `Timeline/Activity` (16131:1311): an activity feed — day kickers (Body/Small/Bold, Neutral/Light: \"Today\", \"Yesterday\", then the date) over `Timeline/Item` rows, kicker → ite",
+      "props": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TimelineEntryData"
+          },
+          "x-required": true,
+          "description": "The entries (any order): shown newest first, grouped by day."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today (\"Today\", \"Yesterday\" kickers)."
+        },
+        "size": {
+          "enum": [
+            "md",
+            "sm",
+            "medium",
+            "small"
+          ],
+          "default": "md",
+          "description": "Item size: `md` (default) or `sm` (a compact log)."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (640) or `mobile` (358); the items are the same."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "TimelineGantt": {
+      "name": "TimelineGantt",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `Timeline/Gantt` (16136:859): a Border box (`Color/Background/Surface/Default`, 1px Pale, Corner-Radius/Base, clipped) — a 40px header (\"Tasks\" and the week starts, Caption/M",
+      "props": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TimelineGroupData"
+          },
+          "x-required": true,
+          "description": "The plan: groups of tasks."
+        },
+        "start": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "First day of the scale (rounded to its Monday)."
+        },
+        "weeks": {
+          "type": "number",
+          "default": 9,
+          "description": "How many weeks the scale shows (default 9)."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today: the vertical now line."
+        },
+        "defaultCollapsed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Groups collapsed at first (by id)."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (240px task column, the whole scale) or `mobile` (128px column, three weeks visible; the track scrolls and opens at today, else the plan's start)."
+        },
+        "aria-label": {
+          "type": "string",
+          "description": "Names the plan (default the locale's \"Tasks\")."
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "onTaskClick ((task: TimelineTaskData, target: HTMLEle)",
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "TimelineGanttBar": {
+      "name": "TimelineGanttBar",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `.Primitives/Timeline/Gantt-Bar` (16130:77), 28px high.",
+      "props": {
+        "title": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Title (inside a task, beside a milestone; a summary shows none)."
+        },
+        "kind": {
+          "enum": [
+            "task",
+            "summary",
+            "milestone"
+          ],
+          "default": "task",
+          "description": "Figma Kind: `task` (Subtle hue with a Solid leading rule, the title inside), `summary` (a group's span: an 8px Neutral bar) or `milestone` (an Accent diamond with the title beside"
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ],
+          "default": "brand",
+          "description": "Figma Color for tasks: the workstream (default brand)."
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "default": false,
+          "description": "Hide a milestone's title (the phone Gantt shows it in the task column only)."
+        },
+        "onClick": {
+          "x-kind": "action",
+          "params": [
+            {
+              "name": "event",
+              "type": "MouseEventHandler<HTMLButtonElement>",
+              "json": false
+            }
+          ],
+          "description": "Pressing the bar (open the task)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        },
+        "disabled": {
+          "type": "boolean",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
+    "TimelineGanttLabel": {
+      "name": "TimelineGanttLabel",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `.Primitives/Timeline/Gantt-Label` (16130:90): a 44px row of the Gantt's task column with a Pale rule below — Group: Padding 0 · Small, Gap/XSmall, icon-chevron-down-line, Bo",
+      "props": {
+        "name": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Name."
+        },
+        "level": {
+          "enum": [
+            "group",
+            "task"
+          ],
+          "default": "task",
+          "description": "Figma Level: `group` (a chevron and Body/Small/Bold; collapses its tasks) or `task` (indented 32, Body/Small/Regular, the assignee)."
+        },
+        "assignee": {
+          "type": "object",
+          "properties": {
+            "src": {
+              "type": "string"
+            },
+            "alt": {
+              "type": "string"
+            }
+          },
+          "required": [],
+          "additionalProperties": false,
+          "description": "Figma Assignee (task): the person, as an Avatar XSmall."
+        },
+        "expanded": {
+          "type": "boolean",
+          "default": true,
+          "description": "Group: whether its tasks show (the chevron points down)."
+        },
+        "onToggle": {
+          "x-kind": "action",
+          "params": [],
+          "description": "Group: show or hide its tasks."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
+    "TimelineItem": {
+      "name": "TimelineItem",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `Timeline/Item` (16131:1090): one entry of an activity history — a 24px rail (the marker, then a 2px Border/Neutral/Subtle connector, Gap/2XSmall), then the body (Padding-top",
+      "props": {
+        "actor": {
+          "x-kind": "node",
+          "description": "The actor, in Body/Small/Bold (\"Maya Chen\")."
+        },
+        "title": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "What happened, after the actor (\" approved your leave request\")."
+        },
+        "time": {
+          "x-kind": "node",
+          "description": "Figma Time (\"10:42\")."
+        },
+        "description": {
+          "x-kind": "node",
+          "description": "Figma Description + Detail: one line of detail (\"Annual leave · Oct 12 – Oct 16\")."
+        },
+        "attachment": {
+          "x-kind": "node",
+          "description": "Figma Attachment + Attachment-Slot: a comment, a file, a change."
+        },
+        "connector": {
+          "type": "boolean",
+          "default": true,
+          "description": "Figma Connector: the rail down to the next item (off on a group's last item)."
+        },
+        "size": {
+          "enum": [
+            "md",
+            "sm",
+            "medium",
+            "small"
+          ],
+          "default": "md",
+          "description": "Figma Size: `md` (24px marker, Large after each item, default) or `sm` (Small after; a Dot marker suits it)."
+        },
+        "marker": {
+          "$ref": "#/$defs/TimelineMarkerData",
+          "description": "The marker (Kind = Figma Type, Tone, icon, avatar)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "TimelineMarker": {
+      "name": "TimelineMarker",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `.Primitives/Timeline/Marker` (16130:55): the marker on a timeline rail, Image-Size/XSmall (24px).",
+      "props": {
+        "type": {
+          "enum": [
+            "dot",
+            "icon",
+            "avatar"
+          ],
+          "default": "dot",
+          "description": "Figma Type: `dot` (10px; Neutral is hollow), `icon` (Dock-Icon XSmall, Subtle) or `avatar` (Avatar XSmall, one initial)."
+        },
+        "tone": {
+          "enum": [
+            "neutral",
+            "accent",
+            "positive",
+            "warning",
+            "negative"
+          ],
+          "default": "neutral",
+          "description": "Figma Tone (status, not decoration)."
+        },
+        "icon": {
+          "type": "string",
+          "x-kind": "icon",
+          "description": "Type=Icon: the icon (default the tone's: edit, message, check, clock, flag)."
+        },
+        "avatarName": {
+          "type": "string",
+          "default": "",
+          "description": "Type=Avatar: the person's name (its initial) and photo."
+        },
+        "avatarSrc": {
+          "type": "string"
+        },
+        "avatarTheme": {
+          "enum": [
+            "accent",
+            "blue",
+            "brown",
+            "crimson",
+            "cyan",
+            "green",
+            "indigo",
+            "neutral",
+            "orange",
+            "pink",
+            "plum",
+            "purple",
+            "red",
+            "teal",
+            "violet",
+            "yellow",
+            "sky",
+            "mint",
+            "bronze",
+            "golden"
+          ],
+          "default": "teal",
+          "description": "Type=Avatar without a photo: the initial's theme (default teal)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "overrides (not for a generated UI)",
+        "ref (not for a generated UI)"
+      ]
+    },
+    "TimelineMilestone": {
+      "name": "TimelineMilestone",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `.Primitives/Timeline/Milestone` (16130:147): one dated milestone.",
+      "props": {
+        "date": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Date (\"Sep 25\")."
+        },
+        "title": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "Figma Title (\"Design sign-off\")."
+        },
+        "description": {
+          "x-kind": "node",
+          "description": "Figma Description: one line of detail (shown on the Current milestone)."
+        },
+        "status": {
+          "enum": [
+            "done",
+            "current",
+            "upcoming"
+          ],
+          "default": "upcoming",
+          "description": "Figma Status: `done` (Accent dot and connector), `current` (Accent ring, Accent date, bold title) or `upcoming` (a hollow neutral dot)."
+        },
+        "orientation": {
+          "enum": [
+            "horizontal",
+            "vertical"
+          ],
+          "default": "horizontal",
+          "description": "Figma Orientation: `horizontal` (marker and connector above the text; desktop) or `vertical` (the rail on the left; phones)."
+        },
+        "connector": {
+          "type": "boolean",
+          "default": true,
+          "description": "Figma Connector (off on the last milestone)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
+    "TimelineMilestones": {
+      "name": "TimelineMilestones",
+      "slug": "timeline",
+      "folder": "Timeline",
+      "status": "stable",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "description": "Figma `Timeline/Milestones` (16132:777): a row (desktop, Horizontal) or a column (phone, Vertical) of `.Primitives/Timeline/Milestone` — Done ones in Accent, exactly one Current (w",
+      "props": {
+        "milestones": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TimelineMilestoneData"
+          },
+          "x-required": true,
+          "description": "The milestones, in date order."
+        },
+        "today": {
+          "anyOf": [
+            {
+              "type": "string",
+              "x-kind": "date"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "The day treated as today: milestones before it are Done, the first on or after it is Current, the rest Upcoming."
+        },
+        "currentId": {
+          "type": "string",
+          "description": "The Current milestone by id, when it is not the date's (a late phase)."
+        },
+        "device": {
+          "enum": [
+            "desktop",
+            "mobile"
+          ],
+          "description": "Figma Device: `desktop` (a row; items share the width) or `mobile` (a column)."
+        },
+        "aria-label": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "x-html": true
+        },
+        "aria-describedby": {
+          "type": "string",
+          "x-html": true
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
+      ]
+    },
     "Toast": {
       "name": "Toast",
       "slug": "toast",
@@ -20869,6 +22465,46 @@
         "calendar/selected-needs-handler"
       ]
     },
+    "schedule": {
+      "title": "Schedule",
+      "file": "docs/guidelines/schedule.md",
+      "do": [
+        "Keep the confirm action (\"Book 10:00\") in the page or sheet footer, enabled once a time is chosen.",
+        "Keep taken or past times in place (disabled, struck through) so the day keeps its rhythm.",
+        "Pass `now` (and `today`) when your app's clock is not the device's, so Past / Now and the now line agree with your data.",
+        "Give bars real start and end dates: a bar past the visible range scrolls with the track."
+      ],
+      "dont": [
+        "Don't hide taken slots: people then cannot tell a full day from an empty one.",
+        "Don't use a Slot-Picker for filters or scopes: that is Chip advanced.",
+        "Don't put several Now stops in an itinerary: one stop runs at a time.",
+        "Don't stack many overlapping events in a Day-Planner: use CalendarTimeGrid, which splits the column."
+      ],
+      "rules": [
+        "interaction/no-noop-handler",
+        "schedule/slot-picker-confirm",
+        "schedule/selected-needs-handler"
+      ]
+    },
+    "timeline": {
+      "title": "Timeline",
+      "file": "docs/guidelines/timeline.md",
+      "do": [
+        "Use an Avatar marker when a person acted, an Icon when the system did, a Dot in compact logs.",
+        "Let the tone carry status: Positive approved, Negative rejected, Warning waiting, Accent the newest or current.",
+        "Name the Gantt after the plan (aria-label) so its table reads as more than \"Tasks\".",
+        "Keep bars on their real dates: the track scrolls; never squeeze a bar to fit."
+      ],
+      "dont": [
+        "Don't colour markers for decoration: tone is status.",
+        "Don't use Milestones or the Gantt for a form the user steps through: use Stepper.",
+        "Don't mark more than one milestone Current."
+      ],
+      "rules": [
+        "interaction/no-noop-handler",
+        "timeline/gantt-names-plan"
+      ]
+    },
     "tooltip": {
       "title": "Tooltip",
       "file": "docs/guidelines/tooltip.md",
@@ -20974,8 +22610,9 @@
       "title": "Modal & Dialog",
       "file": "docs/guidelines/dialog.md",
       "do": [
-        "Use ModalForm for 3–8 field create/edit flows; keep Dialog for confirmations.",
-        "Use actionsDirection=\"vertical\" when the choices deserve equal weight or labels are long.",
+        "Use Dialog for a notice or a quick confirm, with one field at most (type the name to delete). A data-entry form, two or more fields, opens in a ModalForm on desktop and tablet (harness: dialog/form-uses-modal-form) and in a BottomSheet on a phone (harness: modal-form/not-on-phone).",
+        "Use actionsDirection=\"vertical\" on a Dialog when the choices deserve equal weight or labels are long; a ModalForm keeps its actions in a row (harness: modal-form/actions-horizontal).",
+        "Keep a ModalForm's side column (side) no taller than the form, a summary or an illustration, so the actions sit under the fields with no empty band; longer side content belongs in the form.",
         "Phrase the title as the question (\"Delete “Marketing site”?\") and repeat the verb in the primary action.",
         "Use theme negative + level danger for irreversible actions; give Cancel initial focus with `secondaryAction={{ label: \"Cancel\", autoFocus: true }}` (otherwise the primary action takes it).",
         "Require typing the name for high-impact deletes.",
@@ -20991,6 +22628,7 @@
         "Don't use a dialog for information the user can ignore.",
         "Don't hide the only way out (always Escape or a cancel action).",
         "Don't open a dialog from a dialog (harness: dialog/no-nested).",
+        "Don't put a form in a Dialog, and don't open a ModalForm on a phone.",
         "Don't open a dialog on page load without a user action.",
         "Don't rely on the browser's required bubbles in a ModalForm. They are off by default; noValidate={false} only when you deliberately hand validation to the browser."
       ],
@@ -20998,6 +22636,8 @@
         "dialog/needs-title",
         "dialog/negative-uses-danger",
         "dialog/no-nested",
+        "dialog/form-uses-modal-form",
+        "modal-form/actions-horizontal",
         "api/deprecated-prop",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
@@ -21777,6 +23417,7 @@
       "file": "docs/guidelines/bottom-sheet.md",
       "do": [
         "Keep one task per sheet and one primary action.",
+        "On a phone, open a form in a BottomSheet (its title, the fields, the actions in its footer), never in a ModalForm (harness: modal-form/not-on-phone).",
         "Let the user drag, tap the scrim or press Escape to dismiss.",
         "For a single choice, fill the sheet with List + ListItem: the picked row is `selected` (Active/Neutral/Subtle) with a trailing check, and picking closes the sheet. The Action type's `selectedId` row (Accent/Subtle) is Figma's state, not the house pattern for choices (user, 2026-09-30).",
         "Lists inside the sheet use List/ListItem (the sheet sets --zen-list-inset: 0).",
@@ -21791,6 +23432,7 @@
         "Don't nest a <Form> inside a BottomSheet that has onSubmit, and don't submit from primaryAction.onClick; pass form.handleSubmit to onSubmit instead."
       ],
       "rules": [
+        "modal-form/not-on-phone",
         "segmented/control-bar-full-width",
         "bottom-sheet/action-needs-items",
         "bottom-sheet/choice-uses-list-item",
@@ -23554,6 +25196,183 @@
       ],
       "additionalProperties": false
     },
+    "ScheduleBookingData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "resourceId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ]
+        },
+        "time": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "resourceId",
+        "title",
+        "start",
+        "end"
+      ],
+      "additionalProperties": false
+    },
+    "ScheduleCardData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink",
+            "neutral"
+          ]
+        },
+        "status": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "attendees": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "type": "string"
+              },
+              "alt": {
+                "type": "string"
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "start",
+        "end"
+      ],
+      "additionalProperties": false
+    },
+    "ScheduleResourceData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "shortName": {
+          "type": "string"
+        },
+        "meta": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "person",
+            "room"
+          ]
+        },
+        "avatarSrc": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "additionalProperties": false
+    },
+    "ScheduleSlotData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "disabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "start"
+      ],
+      "additionalProperties": false
+    },
+    "ScheduleStopData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "meta": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "start",
+        "end"
+      ],
+      "additionalProperties": false
+    },
     "SegmentedOption": {
       "type": "object",
       "properties": {
@@ -24063,6 +25882,145 @@
       },
       "required": [
         "id"
+      ],
+      "additionalProperties": false
+    },
+    "TimelineEntryData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "at": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "actor": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "attachment": {
+          "x-kind": "node"
+        },
+        "marker": {
+          "$ref": "#/$defs/TimelineMarkerData"
+        }
+      },
+      "required": [
+        "id",
+        "at",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "TimelineGroupData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TimelineTaskData"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "tasks"
+      ],
+      "additionalProperties": false
+    },
+    "TimelineMarkerData": {
+      "type": "object",
+      "properties": {
+        "kind": {}
+      },
+      "required": [],
+      "additionalProperties": true
+    },
+    "TimelineMilestoneData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "date": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "date",
+        "title"
+      ],
+      "additionalProperties": false
+    },
+    "TimelineTaskData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "end": {
+          "$ref": "#/$defs/CalendarDateInput"
+        },
+        "kind": {
+          "enum": [
+            "task",
+            "milestone"
+          ]
+        },
+        "color": {
+          "enum": [
+            "brand",
+            "blue",
+            "violet",
+            "teal",
+            "green",
+            "orange",
+            "pink"
+          ]
+        },
+        "assignee": {
+          "type": "object",
+          "properties": {
+            "src": {
+              "type": "string"
+            },
+            "alt": {
+              "type": "string"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "start"
       ],
       "additionalProperties": false
     },

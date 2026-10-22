@@ -265,6 +265,11 @@ Slots (`slots.mjs`; spec docs/research/studio-slots-spec-2026-10-03.md "Source o
   `moved: { loc }` (`inserted` for a copy); the snippet is not synced (reason given). Test: `node tools/studio/arrange.selftest.mjs`.
   `replace: <loc>` (with `copy`): the copy takes that child's place and the child goes (⇧⌘R paste to replace; its
   imports left unused go too).
+  `slot: <name>` with `parent` a page's own instance (`<Use>`; F7c, `slot-fill.mjs`): into what that instance puts in
+  its main's slot (`slots={{ Content: … }}`), before / after one of those layers or at `index`; while it puts nothing
+  there, the main's own layers of the slot are kept and `index` counts among them. One layer is written `<X />`, several
+  `<>…</>`. A layer of a slot moves out (or to another place in it) as a child does; the slot's last layer takes its
+  entry away. `pasteCode` takes `slot` and `index` on the `<Use>` the same way (an Assets drop); `many` refuses a slot.
 - `pasteCode { code, before?, after?, replace? }` (⌘V of code from another file, after a cut, or text from elsewhere;
   `arrange.mjs`), on the element it goes into (same placing and refusals as `moveTo`): `code` is one JSX element (no
   fragment, no `data-zen-src`); a name it reads must exist where it lands (`bindingOf`), else be a Zen component (joins

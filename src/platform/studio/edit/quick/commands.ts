@@ -17,6 +17,8 @@ import type { StudioSelection } from "../../types";
 import { stepLayer, type NodeSelection } from "../arrange";
 import { clipboardActions, clipboardShortcuts } from "../clipboard";
 import { copyAsPng, copyAsPngShortcut, copyAsSvg } from "../copyAs";
+import type { SameKind } from "../matchModel";
+import { SAME_LABELS, selectAllWithSame, selectMatchingLayers, selectMatchingShortcut } from "../selectMatching";
 import { duplicateLayers, removeLayers, stepLayers } from "../multi";
 import { toggleIgnoreAutoLayout } from "../ignoreAutoLayout";
 import { multiSelection, selectedLayers } from "../../select/multiSelection";
@@ -108,6 +110,9 @@ export function commands(): Command[] {
     { id: "select-child", group: "Selection", label: "Select children", shortcut: "Enter", disabled: layerOff, run: () => press({ key: "Enter", code: "Enter" }) },
     { id: "select-next", group: "Selection", label: "Select next sibling", shortcut: "Tab", disabled: layerOff, run: () => press({ key: "Tab", code: "Tab" }) },
     { id: "select-prev", group: "Selection", label: "Select previous sibling", shortcut: "⇧Tab", disabled: layerOff, run: () => press({ key: "Tab", code: "Tab", shiftKey: true }) },
+    // Figma's Select matching layers and Select all with same ›, on a page you made (edit/selectMatching.ts).
+    { id: "select-matching", group: "Selection", label: "Select matching layers", shortcut: selectMatchingShortcut, keywords: "same twin copies frames multi edit", disabled: !state.localPage ? "Works on a page you made" : layerOff, run: () => { selectMatchingLayers(); } },
+    ...(Object.keys(SAME_LABELS) as SameKind[]).map((kind): Command => ({ id: `select-same-${kind}`, group: "Selection", label: `Select all with same ${SAME_LABELS[kind].toLowerCase()}`, keywords: "matching similar", disabled: !state.localPage ? "Works on a page you made" : layerOff, run: () => { selectAllWithSame(kind); } })),
     { id: "deselect", group: "Selection", label: "Deselect", keywords: "clear selection none", disabled: selection ? undefined : "Nothing is selected", run: () => studioStore.setState({ selection: null }) },
     { id: "zoom-in", group: "View", label: "Zoom in", shortcut: `${modKey}+`, run: zoomIn },
     { id: "zoom-out", group: "View", label: "Zoom out", shortcut: `${modKey}−`, run: zoomOut },

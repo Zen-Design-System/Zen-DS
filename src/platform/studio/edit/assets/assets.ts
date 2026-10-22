@@ -10,7 +10,7 @@ import { builderCode, type PaletteContext, type PaletteItem } from "../../slots/
 import type { ContentSlot } from "../../slots/registry";
 import { canEdit, flushStudioStore, studioStore } from "../../store";
 import type { EditOp, StateDecl, StudioSelection } from "../../types";
-import type { DropTarget, NodeSelection } from "../arrange";
+import { placeOf, type DropTarget, type NodeSelection } from "../arrange";
 import { insertCode, notRecommended } from "../clipboard";
 import { dropTargetAt, kidsOf, publishDragView, type DropContext } from "../drag";
 import { floatingCode } from "../autoLayoutPlan";
@@ -197,9 +197,7 @@ export async function dropAsset(item: Insertable, target: DropTarget, free?: { x
   if (written === null) { fail(item.refusal); return; }
   const code = free ? floatingCode(written, item.root, free.x, free.y) : written;
   const state = stateFor(item, at.file);
-  const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code, ...(state?.length ? { state: state.map((entry) => ({ ...entry })) } : {}) };
-  if (target.before) op.before = parseSrc(target.before)?.loc;
-  else if (target.after) op.after = parseSrc(target.after)?.loc;
+  const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code, ...(state?.length ? { state: state.map((entry) => ({ ...entry })) } : {}), ...placeOf(target) };
   const before = renderedNow(canvasApi.getWorldElement());
   // The host's rules judge a drop as they judge a click (a Card in a Card, a control in a clickable card): it still lands.
   const host = findBySrc(canvasApi.getWorldElement() ?? document.body, target.parentSrc)[0];
@@ -285,7 +283,7 @@ async function dropBar(item: Insertable, bar: BarTarget) {
  */
 type FreeDrop = { x: number; y: number; guides: Array<{ x: number; y: number; w: number; h: number }> };
 function freeDropAt(target: DropTarget, pointer: { x: number; y: number }, noSnap: boolean): FreeDrop | null {
-  if (target.parentName !== "Box") return null;
+  if (target.parentName !== "Box" || target.slot) return null;
   const host = findBySrc(canvasApi.getWorldElement() ?? document.body, target.parentSrc)[0]?.hosts[0];
   if (!(host instanceof HTMLElement) || !host.matches(".zen-box")) return null;
   const kids = Array.from(host.children).filter((child): child is HTMLElement => child instanceof HTMLElement);
@@ -312,7 +310,7 @@ function freeDropAt(target: DropTarget, pointer: { x: number; y: number }, noSna
 
 /* ── dragging an asset onto the canvas ───────────────────────────────────────────────────────────────────────────── */
 
-const NOTHING: DropContext = { hosts: [], frame: undefined, parentHost: null, origin: null, layerSrc: null, copy: false };
+const NOTHING: DropContext = { hosts: [], frame: undefined, parentHost: null, origin: null, layerSrc: null, copy: false, slots: true };
 
 type Drag = { item: Insertable; start: { x: number; y: number }; dragging: boolean; target: DropTarget | null; refusal: string | null; swap: ReturnType<typeof picturedAt>; bar: BarTarget | null; free: FreeDrop | null };
 let drag: Drag | null = null;
@@ -381,6 +379,7 @@ function onMove(event: PointerEvent) {
     pointer,
     label: current.refusal ?? current.item.label,
     tone: current.refusal ? "negative" : "info",
+    slot: target?.slot ?? null,
   });
 }
 

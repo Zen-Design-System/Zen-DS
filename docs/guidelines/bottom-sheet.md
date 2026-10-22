@@ -81,6 +81,7 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 
 ## ✅ Do
 - Keep one task per sheet and one primary action.
+- On a phone, open a form in a BottomSheet (its title, the fields, the actions in its footer), never in a ModalForm (harness: modal-form/not-on-phone).
 - Let the user drag, tap the scrim or press Escape to dismiss.
 - For a single choice, fill the sheet with List + ListItem: the picked row is `selected` (Active/Neutral/Subtle) with a trailing check, and picking closes the sheet. The Action type's `selectedId` row (Accent/Subtle) is Figma's state, not the house pattern for choices (user, 2026-09-30).
 - Lists inside the sheet use List/ListItem (the sheet sets --zen-list-inset: 0).
@@ -105,6 +106,7 @@ type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `modal-form/not-on-phone` | error | On a phone a form opens in a BottomSheet, never a ModalForm (Figma's Modal/Forms has no Mobile device). A phone is a PlatformPhone frame or a Studio Screen with device="phone". | `zen-allow-modal-form-phone: <reason>` |
 | `segmented/control-bar-full-width` | warn | On mobile, a Segmented in a Top Navigation control bar or a Bottom Sheet spans the container with equal items (fullWidth). | `zen-allow-segmented-hug: <reason>` |
 | `bottom-sheet/action-needs-items` | error | An Action bottom sheet lists its actions in `items`. | `zen-allow-sheet-items: <reason>` |
 | `bottom-sheet/choice-uses-list-item` | warn | Picking one value in a sheet (Sort by, a time zone) is a Modal sheet holding a List of ListItem rows with the current one `selected` (the house rule the templates follow), not an Action sheet with `selectedId`: Action items are commands. | `zen-allow-sheet-choice: <reason>` |

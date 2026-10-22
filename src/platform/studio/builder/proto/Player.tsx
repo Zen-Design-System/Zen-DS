@@ -15,30 +15,22 @@ import { usePageTree } from "../usePageTree";
 import { useUploadsVersion } from "../assets/uploads";
 import { duoStatusOf, safeAreasOf } from "./DeviceBars";
 import { CLICKABLE, itemElement, layerElements } from "./protoDom";
-import { protoSourcesOf } from "./protoModel";
+import { overlayTitleOf, protoSourcesOf } from "./protoModel";
 import { literal, PlayScreens, usePlayFlow } from "./playFlow";
+import { isPlaying, PLAY_PREFIX, stopPlay } from "./playStart";
 import { DEVICE_WIDTH, PageOsContext, pageOsOf, ProtoContext, SimulatedDeviceContext, type PageDevice } from "./runtime";
 import { useCanvasPreview } from "../../project/activeProject";
+
+export { isPlaying, PLAY_PREFIX, playStartOf, startPlay, stopPlay } from "./playStart";
 
 /*
  * Play (Studio builder GĐ2 M3, spec docs/research/studio-builder-pages-spec-2026-10-06.md §3 2d): the page runs full
  * screen from its first Screen (or the one named), and its proto actions are live (playFlow.tsx: navigate, open, close,
  * back, toast, link). ⌥⌘↵ (Figma's Present) starts it on a builder page, R restarts, Esc leaves. Play is Present's layer
- * under the name `presenting: "play:<screen>"`, so the Studio behind it is inert and its shortcuts wait, as for Present.
- * Open on phone (device/OpenOnPhone.tsx) plays the same page on a phone's own browser.
+ * under the name `presenting: "play:<start>"` (playStart.ts), so the Studio behind it is inert and its shortcuts wait,
+ * as for Present. Present from a selected Overlay frame opens it over the Screen that opens it, or alone, where closing
+ * it leaves Play (playFlow.tsx). Open on phone (device/OpenOnPhone.tsx) plays the same page on a phone's own browser.
  */
-
-export const PLAY_PREFIX = "play:";
-export const isPlaying = (presenting: string | null | undefined) => Boolean(presenting?.startsWith(PLAY_PREFIX));
-
-/** Starts Play on the open builder page (at `screen`, else its first Screen). */
-export function startPlay(screen?: string | null) {
-  const state = studioStore.getState();
-  if (!state.localPage) return;
-  studioStore.setState({ presenting: `${PLAY_PREFIX}${screen ?? ""}` });
-}
-
-export const stopPlay = () => { if (isPlaying(studioStore.getState().presenting)) studioStore.setState({ presenting: null }); };
 
 /** How long the hotspot hints stay (their fade is in builder.css). */
 const HINT_MS = 900;
@@ -61,8 +53,9 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const tree = usePageTree(page?.text);
   // Uploaded photos show once they have loaded.
   useUploadsVersion();
-  const flow = usePlayFlow(tree, start);
-  const { screen, current, history, overlay, setOverlay, actions, restart } = flow;
+  const exit = useCallback(() => stopPlay(), []);
+  const flow = usePlayFlow(tree, start, { onLeave: exit });
+  const { screen, base, alone, presentedNode, current, history, overlay, overlayNode, closeOverlay, actions, restart } = flow;
   const layerRef = useRef<HTMLDivElement>(null);
   // Preview modes change here and in Present only (the toolbar has none): Play's own, light/dark included, over the
   // canvas modes. They change the page being played, never the Studio's UI (its bar keeps the chrome modes).
@@ -110,8 +103,6 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
     if (boxes.length) setHints({ key: Date.now(), boxes });
   };
 
-  const exit = useCallback(() => stopPlay(), []);
-
   useEffect(() => {
     layerRef.current?.focus({ preventScroll: true });
     const root = document.documentElement;
@@ -128,7 +119,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
         // An open overlay (Dialog, Menu…) takes Escape first; one the Overlay places (a Card…) closes. Open on phone's
         // dialog sits in the chrome's portal, outside the layer.
         if (layerRef.current?.querySelector(presentEscapeOwners) || document.querySelector(".studio-open-phone")) return;
-        if (layerRef.current?.querySelector(".studio-player__overlay")) { event.preventDefault(); setOverlay(null); return; }
+        if (layerRef.current?.querySelector(".studio-player__overlay")) { event.preventDefault(); closeOverlay(); return; }
         event.preventDefault();
         exit();
       } else if (event.key.toLowerCase() === "r" && !event.shiftKey) {
@@ -145,13 +136,14 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
       window.history.replaceState(window.history.state, "", back);
       requestAnimationFrame(() => { if (!studioStore.getState().presenting) canvasApi.getViewportElement()?.focus({ preventScroll: true }); });
     };
-  }, [exit, restart, setOverlay, start]);
+  }, [closeOverlay, exit, restart, start]);
 
-  const device = (screen ? (literal(screen, "device") as PageDevice | undefined) : undefined) ?? "desktop";
+  // The Screen's device (the presented Overlay alone: its blank screen's, the page's first Screen's).
+  const device = (base ? (literal(base, "device") as PageDevice | undefined) : undefined) ?? "desktop";
   const os = pageOsOf(tree?.header);
   // The device simulator (presentViewport.tsx): the Screen plays on the shown device, which takes its type, layout and
   // bars (SimulatedDeviceContext); a typed size keeps the Screen's own.
-  const drawnOn = screen ? deviceOfScreen(device, literal(screen, "layout") as string | undefined, literal(screen, "width"), literal(screen, "height"), os) : undefined;
+  const drawnOn = base ? deviceOfScreen(device, literal(base, "layout") as string | undefined, literal(base, "width"), literal(base, "height"), os) : undefined;
   const shown = viewport ?? deviceViewport(drawnOn);
   const shownDevice = viewportDevice(shown);
   const fit = useViewportFit(shown, stageRef, bezelOf(shownDevice, framed), shownDevice?.radius);
@@ -160,14 +152,14 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const duo = duoStatusOf((shownDevice ?? drawnOn)?.bars);
   const overlaySafe = barsDevice === "desktop" ? null : safeAreasOf(shownDevice ? deviceOs(shownDevice) : duo ? "ios" : os, barsDevice, duo);
   const title = page?.title ?? id;
-  const screenTitle = screen ? String(literal(screen, "title") ?? current) : "";
+  const screenTitle = screen ? String(literal(screen, "title") ?? current) : alone && presentedNode ? overlayTitleOf(presentedNode) ?? String(literal(presentedNode, "id") ?? "") : "";
 
   return (
     <div ref={layerRef} className="studio-present studio-player" role="dialog" aria-label={`${title}, playing`} tabIndex={-1} data-device={device} {...previewAttributes(modes, brand)}>
       <PresentBar title={screenTitle && screenTitle !== title ? `${title} · ${screenTitle}` : title} theme={modes.theme} onToggleTheme={() => setMode("theme", modes.theme === "dark" ? "light" : "dark")} modes={modes} onModeChange={setMode} onExit={exit} modesScope="while playing"
         viewport={shown} onViewportChange={setViewport} viewportScale={fit.scale} autoWidth={DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop} framed={framed} onFramedChange={setFramed}
         leading={<>
-          <IconButton appearance="flat" level="primary" size="sm" aria-label="Back" icon={<Icon name="icon-chevron-left-line-medium" />} disabled={!history.length && !overlay} onClick={() => actions.back()} />
+          <IconButton appearance="flat" level="primary" size="sm" aria-label="Back" icon={<Icon name="icon-chevron-left-line-medium" />} disabled={!history.length && (!overlayNode || alone)} onClick={() => actions.back()} />
           <IconButton appearance="flat" level="primary" size="sm" aria-label="Restart" aria-keyshortcuts="R" tooltip="Restart (R)" icon={<Icon name="icon-refresh-ccw-01-line" />} onClick={restart} />
           <OpenOnPhone page={id} title={title} text={page?.text} start={current || null} modes={modes} brand={brand} />
         </>} />
