@@ -193,13 +193,21 @@ const projectFile = (ctx) => path.join(ctx.root, path.dirname(pagesDirOf(ctx.ser
 let libraryMade = null;
 /** A page of the project "E2E Libraries" (written to the server's projects folder) with the walk page's Button. */
 async function libraryPage(ctx) {
+  const { page } = await ctx.studio();
   if (!libraryMade) {
+    // The project and both its pages written to the server's folders, then one Sync with the folder takes them in (no
+    // New page flow: a page of a project opens the project's home, which that flow does not expect).
     fs.mkdirSync(path.dirname(projectFile(ctx)), { recursive: true });
     fs.writeFileSync(projectFile(ctx), JSON.stringify({ format: 1, id: LIBRARY_PROJECT, name: "E2E Libraries", createdAt: Date.now(), updatedAt: Date.now() }));
-    const text = (title) => seedText(title).replace(/^\/\/ @zen-page (\{.*\})$/m, (_, json) => `// @zen-page ${JSON.stringify({ ...JSON.parse(json), project: LIBRARY_PROJECT })}`);
-    libraryMade = (await seededPage(ctx, text, new RegExp(`"project":"${LIBRARY_PROJECT}"`))).id;
+    const dir = path.join(ctx.root, pagesDirOf(ctx.server.port));
+    const walk = seedText("E2E Libraries walk").replace(/^\/\/ @zen-page (\{.*\})$/m, (_, json) => `// @zen-page ${JSON.stringify({ ...JSON.parse(json), project: LIBRARY_PROJECT })}`);
+    fs.writeFileSync(path.join(dir, `${LIBRARY_PROJECT}-walk.zen.tsx`), walk);
+    fs.writeFileSync(path.join(dir, `${LIBRARY_PROJECT}-promo.zen.tsx`), promoText("E2E Libraries promo"));
+    await mineOption(page, /^Sync with the folder/);
+    await until(async () => /"project":"e2e-libraries"/.test((await pageText(page, `${LIBRARY_PROJECT}-walk`)) ?? "") && /<Component id="promo"/.test((await pageText(page, `${LIBRARY_PROJECT}-promo`)) ?? ""), { timeout: 15_000, message: "both project pages in the browser" });
+    libraryMade = `${LIBRARY_PROJECT}-walk`;
+    promoMade = { id: `${LIBRARY_PROJECT}-promo`, title: "E2E Libraries promo" };
   }
-  const { page } = await ctx.studio();
   if (!page.url().includes(encodeURIComponent(`local:${libraryMade}`))) {
     await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${libraryMade}`)}`, { waitUntil: "domcontentloaded" });
     await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
@@ -244,11 +252,6 @@ const promoText = (title, words = "Promo") => [
 let promoMade = null;
 /** The project's two pages: the walk page (`id`) open, and the page holding Promo (`promo`, its title `promoTitle`). */
 async function projectPages(ctx) {
-  await libraryPage(ctx);
-  if (!promoMade) {
-    const seeded = await seededPage(ctx, (title) => promoText(title), /<Component id="promo"/);
-    promoMade = { id: seeded.id, title: seeded.name };
-  }
   const { page, id } = await libraryPage(ctx);
   return { page, id, promo: promoMade.id, promoTitle: promoMade.title };
 }
