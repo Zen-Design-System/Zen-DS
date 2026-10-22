@@ -104,7 +104,7 @@ export function PrototypePanel() {
           <Text tone="base" textStyle="Body/Small/Regular">Select a layer, then drag its ⊕ onto a screen.</Text>
         </InspectorSection>
       )}
-      {scrolls ? <ScrollBehavior key={scrolls.loc} node={scrolls} file={file} disabled={!editable} /> : null}
+      {scrolls ? <ScrollBehavior key={`scroll:${scrolls.loc}`} node={scrolls} file={file} disabled={!editable} /> : null}
     </div>
   );
 }

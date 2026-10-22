@@ -4873,8 +4873,7 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     async run(ctx) {
       const { page, id } = await stickyPage(ctx);
       return restoring(page, id, async () => {
-        await clickNamed(page, id, "Box");
-        await until(async () => /Box|Dock/.test(await selectedName(page)), { message: "the dock Box selected" });
+        await selectDock(page, id);
         const designRows = await right(page).locator(".studio-inspector__row[data-prop]").evaluateAll((all) => all.map((row) => row.getAttribute("data-prop")));
         if (designRows.some((prop) => prop.split(" ").includes("sticky"))) throw new Error(`the Design tab lists sticky: ${designRows.join(", ")}`);
         await page.locator("#studio-right").getByRole("tab", { name: "Prototype" }).click();
@@ -4882,8 +4881,7 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
         await panel.waitFor({ state: "visible", timeout: 5000 });
         const section = panel.locator(".studio-inspector__section").filter({ has: page.locator("h3", { hasText: /^Scroll behavior$/ }) });
         await section.waitFor({ state: "visible", timeout: 5000 });
-        await section.getByRole("button", { name: "Position when scrolling" }).click();
-        await page.getByRole("option", { name: "Stick to bottom", exact: true }).click();
+        await stickTo(page, section, "Stick to bottom");
         await written(page, id, /<Box padding="md" sticky="bottom">/, "the Box sticks to the bottom");
         await expectPanelFits(page, "Scroll behavior");
         const dock = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Box"]`).first();
@@ -4903,11 +4901,10 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     async run(ctx) {
       const { page, id } = await stickyPage(ctx);
       return restoring(page, id, async () => {
-        await clickNamed(page, id, "Box");
+        await selectDock(page, id);
         await page.locator("#studio-right").getByRole("tab", { name: "Prototype" }).click();
         const section = page.locator('[data-e2e="prototype-panel"] .studio-inspector__section').filter({ has: page.locator("h3", { hasText: /^Scroll behavior$/ }) });
-        await section.getByRole("button", { name: "Position when scrolling" }).click();
-        await page.getByRole("option", { name: "Stick to bottom", exact: true }).click();
+        await stickTo(page, section, "Stick to bottom");
         await written(page, id, /sticky="bottom"/, "the Box sticks to the bottom");
         await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
         await page.locator(".studio-viewport").focus();
@@ -5491,6 +5488,22 @@ const stickyText = (title) => {
   return grow(text, "Stack", '<Box padding="md">\n<Text>Dock</Text>\n</Box>');
 };
 let stickyMade = null;
+/** Picks `option` in Prototype › Scroll behavior's Position select (its row's button, as pickOption opens a select). */
+async function stickTo(page, section, option) {
+  await section.locator('[data-prop="scroll:sticky"] button').first().click();
+  await page.getByRole("option", { name: option, exact: true }).click();
+}
+/** Selects the dock Box: a click on its padding, then Escape up (Figma's Esc) until the panel's code name is Box (a
+ *  frame's panel heads it Frame and keeps the code name in its title, FW-142). */
+async function selectDock(page, id) {
+  await clickNamed(page, id, "Box");
+  const codeName = () => right(page).locator("h2").first().getAttribute("title", { timeout: 1000 }).catch(() => null);
+  for (let up = 0; up < 4 && (await codeName()) !== "Box"; up += 1) {
+    await page.keyboard.press("Escape");
+    await sleep(300);
+  }
+  await until(async () => (await codeName()) === "Box", { message: `the dock Box selected (panel: ${await selectedName(page)})` });
+}
 async function stickyPage(ctx) {
   const { page } = await ctx.studio();
   if (!stickyMade) {
