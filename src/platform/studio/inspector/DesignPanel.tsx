@@ -684,7 +684,7 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   // An instance's `of` is its component (ComponentSection), not a loose attribute.
   // An instance's `of`, `variant` and `props`, a set's own props and a layer's component property bindings are the
   // component blocks' (ComponentSection), not loose attributes.
-  const componentOwned = (attr: string) => (name === "Use" && ["of", "overrides", "variant", "props"].includes(attr)) || (name === "ComponentSet" && ["id", "name", "properties", "description", "link"].includes(attr)) || /^data-prop-(text|visible|swap|slot)$/.test(attr);
+  const componentOwned = (attr: string) => (name === "Use" && ["of", "page", "overrides", "variant", "props"].includes(attr)) || (name === "ComponentSet" && ["id", "name", "properties", "description", "link"].includes(attr)) || /^data-prop-(text|visible|swap|slot)$/.test(attr);
   const otherAttributes = (element?.attributes ?? []).filter((attr): attr is SourceAttr => attr.kind !== "spread" && !documented.has(attr.name) && !isSkippedProp(attr.name) && !componentOwned(attr.name));
   const spreads = (element?.attributes ?? []).filter((attr) => attr.kind === "spread");
   const texts = (element?.children ?? []).flatMap((child) => (child.kind === "text" && child.value.trim() ? [child] : []));

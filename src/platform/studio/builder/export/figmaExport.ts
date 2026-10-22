@@ -14,6 +14,7 @@ import { DATA_SLOTS } from "../../slots/dataSlots";
 import { assetBlob } from "../assets/uploads";
 import { keepFigmaExport } from "../store/pageStore";
 import { resolveMedia } from "../library/media";
+import { projectPageTexts } from "../../project/projectLibrary";
 
 /*
  * Export › Figma (core rebuild Q4, spec docs/research/studio-figma-push-spec-2026-10-12.md §3.2): a page as the
@@ -71,7 +72,9 @@ export async function exportFigma({ id, title, text, doc, frame }: { id: string;
   const shown = framed ?? doc;
   const source = shown ? printPage(shown, { ids: true }) : text;
   // With the library's keys the plugin binds the frame in any file that uses the published Zen library, not only Zen's.
-  const { pkg, notes } = figmaPackage(source, { mapping: repoMapping(), nestedLayers: NESTED_LAYERS, page: { id, title }, libraryKeys: libraryKeys as LibraryKeyTable });
+  // The project's other pages: an instance of one of their components goes as its main's layers (figma-push.mjs).
+  const pages = source.includes("page=") ? await projectPageTexts(id, source) : {};
+  const { pkg, notes } = figmaPackage(source, { mapping: repoMapping(), nestedLayers: NESTED_LAYERS, page: { id, title }, libraryKeys: libraryKeys as LibraryKeyTable, pages });
   if (!pkg) return { error: notes.join("; ") || "The page has no Screen to export" };
   if (frame) pkg.page.frame = frame;
   // Only a page with its document has keys that stay put (its element ids): its export is kept for Update from Figma.

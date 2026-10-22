@@ -46,6 +46,9 @@ const indentBy = (code, pad) => code.split("\n").map((line) => (line ? `${pad}${
 
 export function relayoutCode(text, range, plan) {
   const source = String(text).slice(range.start, range.end).replace(/\r\n|\r/g, "\n");
+  // Nothing to change (⌥⌘B Detach writes a main's layer as it is): the element at column 0, whatever it holds (a Text's
+  // words too).
+  if (!Object.keys(plan ?? {}).length) return dedent(String(text), range.start, source);
   const root = parseExpression(source, { plugins: ["jsx", "typescript"] });
   if (root.type !== "JSXElement") throw new Error("relayout: not one JSX element");
   const layers = [];

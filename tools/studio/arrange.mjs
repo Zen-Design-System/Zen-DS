@@ -286,6 +286,8 @@ function slotTarget(ctx, h, use, op, names, usePath) {
   if (op.replace !== undefined && op.replace !== null) h.refuse("`replace` does not go with `slot`");
   const useName = jsxName(use.openingElement.name);
   if (useName !== "Use") h.refuse(`\`slot\` goes with an instance of the page's own component (<Use>), not <${useName}>`);
+  // An instance of another page's component (`page`, Libraries' project components): this page cannot read its slots.
+  if (use.openingElement.attributes.some((attr) => attr.type === "JSXAttribute" && attr.name?.name === "page")) h.refuse("Its main is on another page: slots take drops on this page's components (⌥⌘B detaches it)");
   const shown = shownMain(ctx.ast, use);
   if (!shown) h.refuse("The instance names no component of this page");
   if (!declaresSlot(shown.owner, op.slot)) h.refuse(`${shown.name} has no slot ${op.slot}`);

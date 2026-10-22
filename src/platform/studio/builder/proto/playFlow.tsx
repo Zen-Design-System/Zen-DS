@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useToast, type ToastOptions } from "../../../../components/Toast";
-import { componentsOf, renderNode, type PageNode, type PageTree } from "../render/renderPage";
+import { componentsOf, renderNode, type LocalComponents, type PageNode, type PageTree } from "../render/renderPage";
 import { frameMotion, motionProps } from "./playMotion";
 import { DEFAULT_DELAY, openerOf, optionsOf, OVERLAY_START, type ProtoOptions } from "./protoModel";
 import { placesItself } from "./protoTriggers";
@@ -130,9 +130,10 @@ export type PlayFlow = ReturnType<typeof usePlayFlow>;
  * The flow drawn: the current Screen (and the one leaving, under or over it), then the open overlay. `file` names the
  * page's nodes (layers, hotspots); `overlaySafe`: the bars an overlay the Overlay places keeps clear of.
  */
-export function PlayScreens({ flow, file, overlaySafe }: { flow: PlayFlow; file: string; overlaySafe?: { top: number | string; bottom: number | string } | null }) {
+export function PlayScreens({ flow, file, overlaySafe, library }: { flow: PlayFlow; file: string; overlaySafe?: { top: number | string; bottom: number | string } | null; library?: ReadonlyMap<string, LocalComponents> }) {
   const { tree, screen, blank, alone, currentKey, overlay, closeOverlay, leaving, leavingNode, entering, endLeaving, overlayNode, actions } = flow;
-  const ctx = { file, mock: tree?.mock ?? {}, proto: actions, components: componentsOf(tree?.board ?? null) };
+  // `library`: the project's pages' components (Libraries' project components), as the canvas draws their instances.
+  const ctx = { file, mock: tree?.mock ?? {}, proto: actions, components: componentsOf(tree?.board ?? null), library };
   const overlayChild = overlayNode?.children.find((child): child is PageNode => child.kind === "element");
   const safe = (value: number | string) => (typeof value === "number" ? `${value}px` : value);
   const blankSize = (prop: string) => { const value = blank ? literal(blank, prop) : undefined; return typeof value === "number" ? value : undefined; };

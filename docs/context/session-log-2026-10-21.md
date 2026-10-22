@@ -767,7 +767,7 @@ Spec card `docs/research/studio-libraries-spec-2026-10-22.md`. Phase 1 built:
 - Zen off: Assets keeps Photos (Components / Icons and their search results go), Assets' ⇧I finds photos only; the pages
   keep drawing. Theme off: `withProject` gives Zen's modes (data-brand zen).
 - E2E FW-197 (Zen switch), FW-198 (theme switch) on a project written to the E2E server's projects folder; wait for a slot.
-- Phase 2 (project components across pages) waits for the user's pick of the model (live link or publish + update).
+- Phase 2: the user picked **A, the live link** (2026-10-22); built on `zen/feat/studio-project-components-20261022`.
 
 
 ## Schedule in code + Studio (session "Calendar", tier L; user: "xong gate thì làm tiếp Schedule")
@@ -933,3 +933,47 @@ Two gaps of the re-measure §2a "Menus" (the user opened one session per remaini
 - Gate (2026-10-22, main be387faf merged in, `qa --isolated --files=…`): first run Studio E2E 337 / 338, ST-03 (the
   dimmed Flip, above); after the fix ST-03/04/05 3 / 0 and PASS, Studio E2E 338 / 0 (1514 s).
   `studio:e2e --only=figma --rows=FW-150…154,FW-36,FW-41,FW-120` 8 / 0 (40 s).
+
+## Project components across pages (Session C, Libraries phase 2) — tier L, branch `zen/feat/studio-project-components-20261022`
+User: "A, liên kết sống". Map of the same-page assumptions from an Explore pass; each fixed at its owner:
+- Dialect: `<Use page>` (shape checks only: a page id, a component id, literal variant / props / overrides, slot
+  layers); `page` in USE_PROPS. Selftest +4 (58).
+- Render: `RenderContext.library` (every project page's `componentsOf` by page id) and `scope`; a `<Use page>` draws
+  from that page's map, its main's nested instances resolve there, the cycle guard names the page, the render cache env
+  takes `libraryKey`; the instance root carries `data-zen-instance-page`. `project/projectLibrary.ts` (parsed once per
+  text, the same object while unchanged) feeds BuilderBoard, Play and the HTML export.
+- Assets › Project components (`<Use of page>`), the Libraries dialog's "<project> components" switch.
+- Editor: mainsOf counts only this page's instances; mainOfInstance / instanceAt read the main's page; the Instance
+  section and the part panel resolve there; Go to main opens the page and selects the main; ⌥⌘B writes the main's
+  layers with `page` on its nested instances (`tools/studio/use-page.mjs` withUsePage, selftest 5); Push changes writes
+  to the main's page, then clears the instance (two edits); Delete on a main used elsewhere is refused and names the
+  pages (`usesElsewhere`); a slot drop on such an instance says why it is refused.
+- Figma push: the instance goes as its main's layers with a note (`pages` option, keys stay this page's; selftest
+  +3, 363); React export: a comment naming the page.
+- E2E FW-199…201 (ids asked of Giám sát for 200+), waiting for a slot.
+- Assets' search and ⇧I list the project's components too (first, as Figma lists the file's own;
+  `edit/assets/projectAssets.ts`). Not yet: a real cross-page instance in Figma (it waits for pushing several pages
+  together). E2E ids FW-200…204 are C's (Giám sát, 2026-10-22).
+- A's read-only review (9 items), all fixed here: layer-meta selftest words; figma-push pushes another page's main in
+  its own page's scope (`onPage`, `pageId`; a `<Use page=self>` goes the local way; selftest with an id clash, 365);
+  Open on phone carries the project's page texts (`SharedPage.id/pages`, device-share limits, selftest 43) and PlayScreens
+  takes a `library` prop (playFlow no longer imports the page store); detach drops a `page` naming the page it lands on
+  and mainsOf counts such an instance as its own; a `<Use page>` whose main is gone draws "Missing component"; Push
+  changes across pages names the main's page in its status; Assets re-render once the engine loads; the instance chain
+  names the open page; Go to main says when the main never shows and stops when something else is picked.
+- A's second pass: the push stops at a loop of components across pages (`drawing` set, a note; selftest 366); a
+  missing main (its page in the Trash) gives "This instance's main component is missing" instead of an unhandled
+  rejection (mainOfInstance catches, instanceAt `missing`); Open on phone and the push send only the pages the page's
+  instances reach (`projectPageTexts(id, from)`).
+- A's optional parity item, done while waiting for the slot: Assets / ⇧I / a drag refuse a project component inside a
+  main of this page it holds, through any page (`holdsComponent` in projectLibrary.ts, Insertable `refuseIn`), with
+  "<X> holds <Main>: a component can't go inside itself"; E2E FW-202. Phase 2 merged with main a2143e36 (6151b4a0).
+- Phase 2 gate (21:2x, main 032d8fbd merged): Build-QA PASS, Studio E2E 338/338 in 4 shards (#212). Figma rows: FW-199
+  and FW-200 ✓; FW-201 found a bug in every Detach: a main whose layer is a Text failed in relayoutCode ("The frame holds
+  text of its own"), same page or not. An empty plan now writes the element as it is (relayout selftest 10). FW-202's
+  ⌘-click now goes through the mouse at the main's place (a locator click met the canvas layers).
+- Rows (22:39–22:43, slot after A): the Libraries rows now seed their project's two pages through the folder in one sync
+  (the New page flow met the project's home). FW-201 showed ⌥⌘O does nothing for Libraries while a layer is selected:
+  there the key is Figma's Outline stroke (edit/figmaKeys.ts, the walk's row); Libraries takes it with nothing selected,
+  as Keyboard shortcuts now says, and E2E opens it with Assets' book button. FW-197…202: 6/6 ✓.
+

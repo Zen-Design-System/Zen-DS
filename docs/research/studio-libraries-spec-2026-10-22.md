@@ -40,3 +40,19 @@ E2E rows FW-197…199 (the progress session's allocation).
 ## Not in this step
 Libraries outside the project (another project's components), styles / variables libraries beyond the theme,
 publishing to Figma as a team library.
+
+## Phase 2 — project components, live (the user's pick, 2026-10-22: "A, liên kết sống")
+- **Dialect:** `<Use of="card-1" page="<page id>" />` — `page` names another page of the project; `of` a component
+  there. A page alone cannot see the other page, so `parsePage` checks the shape only (`page` a page id, `of` a
+  component id, no children); variant / props / overrides are checked where both pages are known (the editor).
+- **Render:** the project's pages' components by page (`library`, each page's `componentsOf`, parsed once per text);
+  a `<Use page>` draws from that page's map, and its main's own nested instances resolve in that page (the drawing
+  context's `components` becomes that page's); the cycle guard and the render cache's env name the page too, so an edit
+  on the main's page redraws every page's instances. Canvas, Play and the HTML export take the same library.
+- **Assets:** "Project components" under Local components while the project's components library is on, by page, each
+  a set tile or a lone main; a click or drag inserts `<Use of page>`. Off: hidden; instances already placed still draw.
+- **Editor:** the instance's main is read on its own page (Inspector's Instance section: variant, properties, Reset,
+  Swap among that page's components; overrides on a layer inside); Go to main component opens that page and selects
+  the main; Detach writes the main's layers in place; Delete on a main that other pages use is refused and names them.
+- **Figma:** push draws a cross-page instance as its main's layers (detached) with a note; pull and React export keep
+  today's notes ("not on this page"). A real cross-page instance in Figma waits for pushing several pages at once.

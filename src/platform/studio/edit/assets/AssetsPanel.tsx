@@ -14,6 +14,7 @@ import { PALETTE, PALETTE_GROUPS, type PaletteItem } from "../../slots/palette";
 import { useStudio } from "../../store";
 import { announceEditStatus, subscribeStudioWrites } from "../../api";
 import { pageFile } from "../../builder/store/pageStore";
+import { projectInsertable, useProjectComponents, type ProjectAsset } from "./projectAssets";
 import { mainsOf, setsOf } from "../localComponents";
 import { openLibraries, useLibraries } from "../../project/libraries";
 import { modKey } from "../../shell/modKey";
@@ -173,6 +174,39 @@ function LocalComponents() {
   );
 }
 
+/** Figma's Assets › the file's components on its other pages: this project's, under the page's own (Libraries ⌥⌘O
+ *  turns them off). A click or a drag places an instance that follows its main. */
+function ProjectComponents() {
+  const assets = useProjectComponents();
+  if (!assets.length) return null;
+  return (
+    <>
+      <p className={`studio-assets__kicker ${typographyStyles["Caption/Medium"]}`}>Project components</p>
+      <ProjectComponentList assets={assets} />
+    </>
+  );
+}
+
+function ProjectComponentList({ assets }: { assets: ProjectAsset[] }) {
+  return (
+    <>
+      <ul className="studio-assets__list" aria-label="Project components">
+        {assets.map((asset) => (
+          <li key={`${asset.page}/${asset.id}`}>
+            <button type="button" className="studio-assets__library studio-assets__local" aria-label={`${asset.name}, ${asset.variants === null ? "component" : "component set"} on ${asset.pageTitle}`} title={`${asset.name} · on ${asset.pageTitle} · click or drag for an instance that follows it`} {...pressProps(projectInsertable(asset))}>
+              <span className="studio-assets__library-icon" data-component="main"><Icon name="icon-diamond-line" size="sm" decorative /></span>
+              <span className="studio-assets__library-text">
+                <span className={`studio-assets__name ${typographyStyles["Body/Small/Medium"]}`}>{asset.name}</span>
+                <span className={`studio-assets__source ${typographyStyles["Caption/Regular"]}`}>{asset.variants === null ? asset.pageTitle : `${asset.pageTitle} · ${asset.variants} variant${asset.variants === 1 ? "" : "s"}`}</span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
 function Libraries({ onOpen }: { onOpen: (library: Library) => void }) {
   const uploads = useUploads();
   // Zen turned off in Libraries (⌥⌘O): its components and icons leave Assets.
@@ -185,6 +219,7 @@ function Libraries({ onOpen }: { onOpen: (library: Library) => void }) {
   return (
     <div className="studio-assets__scroll">
       <LocalComponents />
+      <ProjectComponents />
       <p className={`studio-assets__kicker ${typographyStyles["Caption/Medium"]}`}>Libraries</p>
       <ul className="studio-assets__list" aria-label="Libraries">
         {LIBRARIES.filter((entry) => zen || entry.id === "photos").map((entry) => {
@@ -218,9 +253,16 @@ function AllResults({ query, view, onOpen, onClear }: { query: string; view: Vie
   const photos = useMemo(() => searchLibraryPhotos(query), [query]);
   const words = query.trim().toLowerCase();
   const mine = uploads.filter((upload) => `${upload.name} ${altOf(upload.name)}`.toLowerCase().includes(words));
-  if (!components.length && !glyphs.length && !photos.length && !mine.length) return <div className="studio-assets__scroll"><Empty what="assets" onClear={onClear} /></div>;
+  // The project's other pages' components (Libraries' project components), by their name or their page's.
+  const project = useProjectComponents().filter((asset) => `${asset.name} ${asset.pageTitle}`.toLowerCase().includes(words));
+  if (!project.length && !components.length && !glyphs.length && !photos.length && !mine.length) return <div className="studio-assets__scroll"><Empty what="assets" onClear={onClear} /></div>;
   return (
     <div className="studio-assets__scroll">
+      {project.length ? (
+        <ResultSection title="Project components" count={project.length}>
+          <ProjectComponentList assets={project} />
+        </ResultSection>
+      ) : null}
       {components.length ? (
         <ResultSection title="Components" count={components.length} onAll={() => onOpen("components")}>
           <ComponentItems items={components.slice(0, PEEK.components)} view={view} showGroup />
@@ -257,13 +299,13 @@ function AllResults({ query, view, onOpen, onClear }: { query: string; view: Vie
   );
 }
 
-function ResultSection({ title, count, onAll, children }: { title: string; count: number; onAll: () => void; children: ReactNode }) {
+function ResultSection({ title, count, onAll, children }: { title: string; count: number; onAll?: () => void; children: ReactNode }) {
   return (
     <section className="studio-assets__section" aria-label={title}>
       <div className="studio-assets__bar">
         <p className={`studio-assets__label ${typographyStyles["Caption/Medium"]}`}>{title} · {count}</p>
         {/* zen-allow-compact-button: a link-like action on a 24px section label in a dense tool panel (Figma's "See all") */}
-        <Button appearance="flat" level="primary" size="xs" onClick={onAll}>See all</Button>
+        {onAll ? <Button appearance="flat" level="primary" size="xs" onClick={onAll}>See all</Button> : null}
       </div>
       {children}
     </section>

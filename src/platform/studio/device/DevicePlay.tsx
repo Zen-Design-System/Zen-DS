@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ZenProvider, type ZenBrand } from "../../../components/Provider";
 import { Text } from "../../../components/Text";
 import { ToastProvider } from "../../../components/Toast";
 import { rememberUploads } from "../builder/assets/uploads";
 import { PlayScreens, usePlayFlow } from "../builder/proto/playFlow";
 import { PageOsContext, pageOsOf, ProtoContext, RealDeviceContext } from "../builder/proto/runtime";
-import type { PageTree } from "../builder/render/renderPage";
+import { componentsOf, type LocalComponents, type PageTree } from "../builder/render/renderPage";
+import { engineNow, zenComponents } from "../builder/engine";
 import { usePageTree } from "../builder/usePageTree";
 import { photoBlob, readSharedPage, type SharedPage } from "./sharedPage";
 import "./device.css";
@@ -52,26 +53,41 @@ export function DevicePlay() {
   return <DevicePage page={shared} />;
 }
 
+/** The project's pages' components the share carries, by page id (this page's too), for their instances. */
+function useSharedLibrary(page: SharedPage, tree: PageTree | null): ReadonlyMap<string, LocalComponents> | undefined {
+  return useMemo(() => {
+    const engine = engineNow();
+    if (!engine || !tree || !page.pages) return undefined;
+    const library = new Map<string, LocalComponents>();
+    if (page.id) library.set(page.id, componentsOf(tree.board ?? null));
+    for (const [id, text] of Object.entries(page.pages)) {
+      try { library.set(id, componentsOf((engine.parsePage(text, { components: new Set(zenComponents) }) as unknown as PageTree).board ?? null)); } catch { /* a page that does not parse lends nothing */ }
+    }
+    return library;
+  }, [page, tree]);
+}
+
 function DevicePage({ page }: { page: SharedPage }) {
   const tree = usePageTree(page.text);
+  const library = useSharedLibrary(page, tree);
   const { modes } = page;
   return (
     <ZenProvider className="studio-device-play" brand={page.brand as ZenBrand} theme={modes.theme} componentTheme={modes.componentTheme} density={modes.density} radius={modes.radius} emphasis={modes.emphasis} contrast={modes.contrast} typography={modes.typography}>
       <ToastProvider placement="bottom-center">
-        <DeviceFlow tree={tree} start={page.start} />
+        <DeviceFlow tree={tree} start={page.start} library={library} />
       </ToastProvider>
     </ZenProvider>
   );
 }
 
-function DeviceFlow({ tree, start }: { tree: PageTree | null; start: string | null }) {
+function DeviceFlow({ tree, start, library }: { tree: PageTree | null; start: string | null; library?: ReadonlyMap<string, LocalComponents> }) {
   const flow = usePlayFlow(tree, start);
   return (
     <ProtoContext value={flow.actions}>
       <PageOsContext value={pageOsOf(tree?.header)}>
         <RealDeviceContext value>
           <div className="studio-device-play__page" data-screen-id={flow.current}>
-            <PlayScreens flow={flow} file="local:shared.zen.tsx" overlaySafe={REAL_SAFE} />
+            <PlayScreens flow={flow} file="local:shared.zen.tsx" overlaySafe={REAL_SAFE} library={library} />
           </div>
         </RealDeviceContext>
       </PageOsContext>

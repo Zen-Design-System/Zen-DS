@@ -21,6 +21,10 @@ const MAX_SHARES = 20;
 const MAX_TEXT = 2 * 1024 * 1024;
 const MAX_THEME_CSS = 256 * 1024;
 const MAX_UPLOAD_DATA = 6 * 1024 * 1024;
+/** The project's other pages a share carries (their components' instances draw on the phone). */
+const MAX_PAGES = 100;
+const MAX_PAGES_TEXT = 4 * 1024 * 1024;
+const PAGE_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const COOKIE = "zen-device";
 const TOKEN = /^[\w-]{16,64}$/;
 /** What the device page loads, beside the share's own route (the page engine and renderer read tools/studio modules). */
@@ -70,7 +74,12 @@ export function sharePayload(body) {
     photos.push({ id: upload.id, name: string(upload.name, upload.id), type: upload.type, data: upload.data });
   }
   const modes = body.modes && typeof body.modes === "object" && !Array.isArray(body.modes) ? Object.fromEntries(Object.entries(body.modes).filter(([, value]) => typeof value === "string")) : {};
-  return { title: string(body.title, "Untitled"), text, start: typeof body.start === "string" && body.start ? body.start : null, modes, brand: string(body.brand, "zen"), themeCss, uploads: photos };
+  const id = typeof body.id === "string" && PAGE_ID.test(body.id) ? body.id : null;
+  const given = body.pages && typeof body.pages === "object" && !Array.isArray(body.pages) ? Object.entries(body.pages) : [];
+  if (given.length > MAX_PAGES || given.some(([page, value]) => !PAGE_ID.test(page) || typeof value !== "string")) return new Error(`pages is up to ${MAX_PAGES} page ids → their text`);
+  if (given.reduce((sum, [, value]) => sum + value.length, 0) > MAX_PAGES_TEXT) return new Error("The project's pages are too large to share (over 4 MB)");
+  const pages = Object.fromEntries(given);
+  return { title: string(body.title, "Untitled"), text, start: typeof body.start === "string" && body.start ? body.start : null, modes, brand: string(body.brand, "zen"), themeCss, uploads: photos, ...(id ? { id } : {}), ...(given.length ? { pages } : {}) };
 }
 
 /** This machine's IPv4 addresses a phone on the same network can reach: Wi-Fi and Ethernet first, virtual adapters last. */

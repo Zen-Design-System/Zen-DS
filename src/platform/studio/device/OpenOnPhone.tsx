@@ -10,6 +10,7 @@ import { useActiveProject } from "../project/activeProject";
 import type { StudioPreviewSettings } from "../types";
 import { sharePage, type ShareResult } from "./share";
 import "./device.css";
+import { projectPageTexts } from "../project/projectLibrary";
 
 /*
  * Open on phone (user, 2026-10-21: Play on a real phone, "Tương tác (Play)"): Play's bar shares the page with the dev
@@ -32,7 +33,9 @@ export function OpenOnPhone({ page, title, text, start, modes, brand }: Props) {
     setState({ status: "sharing" });
     setCopied(false);
     const themeCss = project ? projectThemeCss(project.id, project.theme, { name: project.name }) : "";
-    setState(await sharePage({ title, text, start, modes, brand, themeCss }));
+    // Instances of the project's other pages' components (Libraries' project components) draw on the phone too.
+    const pages = text.includes("page=") ? await projectPageTexts(page, text) : {};
+    setState(await sharePage({ title, text, start, modes, brand, themeCss, id: page, pages }));
   };
   const link = "ok" in state && state.ok ? state.urls[0] ?? null : null;
   const copy = (value: string) => { void navigator.clipboard?.writeText(value).then(() => setCopied(true), () => setCopied(false)); };

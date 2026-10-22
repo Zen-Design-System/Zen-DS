@@ -20,6 +20,7 @@ import { literal, PlayScreens, usePlayFlow } from "./playFlow";
 import { isPlaying, PLAY_PREFIX, stopPlay } from "./playStart";
 import { DEVICE_WIDTH, PageOsContext, pageOsOf, ProtoContext, SimulatedDeviceContext, type PageDevice } from "./runtime";
 import { useCanvasPreview } from "../../project/activeProject";
+import { libraryOf } from "../../project/projectLibrary";
 
 export { isPlaying, PLAY_PREFIX, playStartOf, startPlay, stopPlay } from "./playStart";
 
@@ -173,7 +174,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
             <DeviceFrame device={shownDevice} fit={fit} part="body" />
             <div ref={deviceRef} onPointerDownCapture={showHotspots} className="studio-player__device" style={fit.boxStyle ?? { width: `min(${DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}px, 100%)` }} data-viewport={fit.mode} data-zen-overlay-root="" data-screen-id={current} data-overlay={overlay?.id} data-hover-overlay={overlay?.hover || undefined}>
               <SimulatedDeviceContext value={shownDevice ?? null}>
-              <PlayScreens flow={flow} file={pageFile(id)} overlaySafe={overlaySafe} />
+              <PlayScreens flow={flow} file={pageFile(id)} overlaySafe={overlaySafe} library={libraryOf(id)} />
               {hints ? (
                 <div key={hints.key} className="studio-player__hotspots" aria-hidden="true">
                   {hints.boxes.map((hint, index) => <span key={index} className="studio-player__hotspot" style={{ transform: `translate(${hint.x}px, ${hint.y}px)`, width: hint.width, height: hint.height, borderRadius: hint.radius }} />)}

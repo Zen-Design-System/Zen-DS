@@ -6,7 +6,7 @@ import path from "node:path";
 import { newPageText } from "../../dialect.mjs";
 import { codeOfItem, grow } from "../../dnd-engine.mjs";
 import { inspectorRow, openAssetLibrary, openCodeProperties, selectedSrc, showDesignTab, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
-import { clickNamed, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
+import { clickNamed, mineOption, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
 import { pagesDirOf } from "../lib/server.mjs";
 
 /** A new page of the Studio space titled `title` (its name). */
@@ -192,13 +192,21 @@ const projectFile = (ctx) => path.join(ctx.root, path.dirname(pagesDirOf(ctx.ser
 let libraryMade = null;
 /** A page of the project "E2E Libraries" (written to the server's projects folder) with the walk page's Button. */
 async function libraryPage(ctx) {
+  const { page } = await ctx.studio();
   if (!libraryMade) {
+    // The project and both its pages written to the server's folders, then one Sync with the folder takes them in (no
+    // New page flow: a page of a project opens the project's home, which that flow does not expect).
     fs.mkdirSync(path.dirname(projectFile(ctx)), { recursive: true });
     fs.writeFileSync(projectFile(ctx), JSON.stringify({ format: 1, id: LIBRARY_PROJECT, name: "E2E Libraries", createdAt: Date.now(), updatedAt: Date.now() }));
-    const text = (title) => seedText(title).replace(/^\/\/ @zen-page (\{.*\})$/m, (_, json) => `// @zen-page ${JSON.stringify({ ...JSON.parse(json), project: LIBRARY_PROJECT })}`);
-    libraryMade = (await seededPage(ctx, text, new RegExp(`"project":"${LIBRARY_PROJECT}"`))).id;
+    const dir = path.join(ctx.root, pagesDirOf(ctx.server.port));
+    const walk = seedText("E2E Libraries walk").replace(/^\/\/ @zen-page (\{.*\})$/m, (_, json) => `// @zen-page ${JSON.stringify({ ...JSON.parse(json), project: LIBRARY_PROJECT })}`);
+    fs.writeFileSync(path.join(dir, `${LIBRARY_PROJECT}-walk.zen.tsx`), walk);
+    fs.writeFileSync(path.join(dir, `${LIBRARY_PROJECT}-promo.zen.tsx`), promoText("E2E Libraries promo"));
+    await mineOption(page, /^Sync with the folder/);
+    await until(async () => /"project":"e2e-libraries"/.test((await pageText(page, `${LIBRARY_PROJECT}-walk`)) ?? "") && /<Component id="promo"/.test((await pageText(page, `${LIBRARY_PROJECT}-promo`)) ?? ""), { timeout: 15_000, message: "both project pages in the browser" });
+    libraryMade = `${LIBRARY_PROJECT}-walk`;
+    promoMade = { id: `${LIBRARY_PROJECT}-promo`, title: "E2E Libraries promo" };
   }
-  const { page } = await ctx.studio();
   if (!page.url().includes(encodeURIComponent(`local:${libraryMade}`))) {
     await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${libraryMade}`)}`, { waitUntil: "domcontentloaded" });
     await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
@@ -206,10 +214,11 @@ async function libraryPage(ctx) {
   await until(async () => (await page.locator(".studio-world").getAttribute("data-brand")) === `p-${LIBRARY_PROJECT}`, { timeout: 10_000, message: "the page draws in its project's theme" });
   return { page, id: libraryMade };
 }
-/** ⌥⌘O, the switch `name` set to `on`, Done; then project.json says so. */
+/** Assets' book button (⌥⌘O is Outline stroke while a layer is selected), the switch `name` set to `on`, Done; then
+ *  project.json says so. */
 async function setLibrary(ctx, page, name, key, on) {
-  await page.locator(".studio-viewport").focus();
-  await page.keyboard.press("ControlOrMeta+Alt+KeyO");
+  await showLeftTab(page, "assets");
+  await page.locator(".studio-assets__search").getByRole("button", { name: "Libraries" }).click();
   const dialog = page.getByRole("dialog", { name: "Libraries" });
   await dialog.waitFor({ state: "visible", timeout: 5000 });
   const toggle = dialog.getByRole("switch", { name });
@@ -217,6 +226,43 @@ async function setLibrary(ctx, page, name, key, on) {
   await until(async () => JSON.parse(fs.readFileSync(projectFile(ctx), "utf8")).libraries?.[key] === on, { message: `project.json libraries.${key} ${on}` });
   await dialog.getByRole("button", { name: "Done" }).click();
   await dialog.waitFor({ state: "hidden", timeout: 5000 });
+}
+
+/** The project's second page: a main component Promo (a Text "Promo"), the walk page's project. */
+const promoText = (title, words = "Promo") => [
+  `// @zen-page ${JSON.stringify({ format: 1, title, project: LIBRARY_PROJECT })}`,
+  'import { Board, Component, Screen } from "@zen-ds/react/builder";',
+  'import { Stack, Text } from "@zen-ds/react";',
+  "",
+  "export const mock = {};",
+  "",
+  "export default function Page() {",
+  "  return (",
+  "    <Board>",
+  `      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop">`,
+  '        <Stack gap="xl" padding="xl">',
+  `          <Component id="promo" name="Promo"><Text>${words}</Text></Component>`,
+  "        </Stack>",
+  "      </Screen>",
+  "    </Board>",
+  "  );",
+  "}",
+  "",
+].join("\n");
+let promoMade = null;
+/** The project's two pages: the walk page (`id`) open, and the page holding Promo (`promo`, its title `promoTitle`). */
+async function projectPages(ctx) {
+  const { page, id } = await libraryPage(ctx);
+  return { page, id, promo: promoMade.id, promoTitle: promoMade.title };
+}
+/** Assets › Project components › Promo, clicked with the frame in view: `<Use of="promo" page>` on the walk page. */
+async function placePromo(page, id, promo) {
+  await showLeftTab(page, "assets");
+  await page.getByRole("button", { name: new RegExp("^Promo, component on ") }).click();
+  await until(async () => new RegExp(`<Use of="promo" page="${promo}" />`).test((await pageText(page, id)) ?? ""), { message: "the instance on the page" });
+  const instance = page.locator(`[data-zen-instance="promo"][data-zen-instance-page="${promo}"]`).first();
+  await instance.waitFor({ state: "attached", timeout: 10_000 });
+  return instance;
 }
 
 /** Zooms out so the walk page's frame and room around it show (⇧1, then one zoom-out step). */
@@ -1763,6 +1809,13 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await libraryPage(ctx);
       try {
+        // ⌥⌘O with nothing selected opens it (with a layer selected the key is Outline stroke).
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+Alt+KeyO");
+        const shortcut = page.getByRole("dialog", { name: "Libraries" });
+        await shortcut.waitFor({ state: "visible", timeout: 5000 });
+        await shortcut.getByRole("button", { name: "Done" }).click();
+        await shortcut.waitFor({ state: "hidden", timeout: 5000 });
         await showLeftTab(page, "assets");
         const libraries = page.locator('[aria-label="Libraries"].studio-assets__list');
         await libraries.getByRole("button", { name: "Components" }).waitFor({ state: "visible", timeout: 5000 });
@@ -1794,6 +1847,103 @@ export const rows = [
         return `theme off → data-brand zen · on → p-${LIBRARY_PROJECT}`;
       } finally {
         await setLibrary(ctx, page, "E2E Libraries theme", "theme", true).catch(() => undefined);
+      }
+    },
+  },
+  {
+    id: "FW-199", feature: "Assets › Project components lists a main of the project's other page; a click places <Use of page> that draws it; an edit of the main on its page shows in the instance (a live link)", wp: "Libraries phase 2 2026-10-22", timeout: 90_000,
+    async run(ctx) {
+      const { page, id, promo, promoTitle } = await projectPages(ctx);
+      return restoring(page, id, async () => {
+        const instance = await placePromo(page, id, promo);
+        await until(async () => (await instance.innerText()).includes("Promo"), { message: "the instance draws Promo" });
+        // The main changes on its page (the folder, as another tab would): the instance follows it.
+        fs.writeFileSync(path.join(ctx.root, pagesDirOf(ctx.server.port), `${promo}.zen.tsx`), promoText(promoTitle, "Promo, now on sale"));
+        await mineOption(page, /^Sync with the folder/);
+        await until(async () => (await instance.innerText()).includes("Promo, now on sale"), { timeout: 15_000, message: "the instance shows the main's new words" });
+        fs.writeFileSync(path.join(ctx.root, pagesDirOf(ctx.server.port), `${promo}.zen.tsx`), promoText(promoTitle));
+        await mineOption(page, /^Sync with the folder/);
+        return `Assets › Project components › Promo → <Use of="promo" page="${promo}" /> · main edited on its page → the instance shows it`;
+      });
+    },
+  },
+  {
+    id: "FW-200", feature: "On an instance of another page's main: Go to main component opens that page with the main selected; Delete on that main is refused and names the page that uses it", wp: "Libraries phase 2 2026-10-22", timeout: 90_000,
+    async run(ctx) {
+      const { page, id, promo } = await projectPages(ctx);
+      return restoring(page, id, async () => {
+        await placePromo(page, id, promo);
+        await clickNamed(page, id, "Use");
+        await until(async () => (await selectedName(page)) === "Promo", { message: "the instance selected" });
+        await right(page).getByRole("button", { name: "Go to main component" }).click();
+        await until(async () => page.url().includes(encodeURIComponent(`local:${promo}`)), { timeout: 15_000, message: "the main's page open" });
+        await until(async () => (await selectedSrc(page)).some((src) => src.startsWith(`local:${promo}.zen.tsx:`)), { timeout: 15_000, message: "the main selected there" });
+        const before = (await pageText(page, promo)) ?? "";
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Delete");
+        await until(async () => /has instances on /.test(await statusText(page)), { message: "Delete refused, naming the page" });
+        if (((await pageText(page, promo)) ?? "") !== before) throw new Error("the main was deleted");
+        const said = await statusText(page);
+        await libraryPage(ctx);
+        return `Go to main component → ${promo}, Promo selected · Delete → "${said.trim()}"`;
+      });
+    },
+  },
+  {
+    id: "FW-201", feature: "⌥⌘B on an instance of another page's main writes its layers in place (they stop following it); Libraries' project components off hides the Assets section", wp: "Libraries phase 2 2026-10-22", timeout: 90_000,
+    async run(ctx) {
+      const { page, id, promo } = await projectPages(ctx);
+      try {
+        return await restoring(page, id, async () => {
+          await placePromo(page, id, promo);
+          await clickNamed(page, id, "Use");
+          await until(async () => (await selectedName(page)) === "Promo", { message: "the instance selected" });
+          await page.locator(".studio-viewport").focus();
+          await page.keyboard.press("ControlOrMeta+Alt+KeyB");
+          await until(async () => { const text = (await pageText(page, id)) ?? ""; return !/<Use of="promo"/.test(text) && /<Text>Promo<\/Text>/.test(text); }, { message: "the main's layers in place" });
+          await setLibrary(ctx, page, "E2E Libraries components", "components", false);
+          await showLeftTab(page, "assets");
+          await until(async () => (await page.getByRole("list", { name: "Project components" }).count()) === 0, { message: "Project components hidden" });
+          await setLibrary(ctx, page, "E2E Libraries components", "components", true);
+          await page.getByRole("list", { name: "Project components" }).waitFor({ state: "visible", timeout: 5000 });
+          return "⌥⌘B → <Text>Promo</Text> in place · components off → no Project components · on → back";
+        });
+      } finally {
+        await setLibrary(ctx, page, "E2E Libraries components", "components", true).catch(() => undefined);
+      }
+    },
+  },
+  {
+    id: "FW-202", feature: "A project component that holds this page's main can't go inside that main (Figma: a component can't go inside itself); the page stays as it was", wp: "Libraries phase 2 2026-10-22", timeout: 90_000,
+    async run(ctx) {
+      const { page, id, promo } = await projectPages(ctx);
+      const dir = path.join(ctx.root, pagesDirOf(ctx.server.port));
+      const own = path.join(dir, `${id}.zen.tsx`), other = path.join(dir, `${promo}.zen.tsx`);
+      const [ownBefore, otherBefore] = [fs.readFileSync(own, "utf8"), fs.readFileSync(other, "utf8")];
+      try {
+        // This page's main Hero, and Promo on the other page holding an instance of it.
+        fs.writeFileSync(own, ownBefore.replace(/import \{ Board, /, "import { Board, Component, ").replace(/(<Stack[^>]*>)/, `$1\n          <Component id="hero" name="Hero"><Stack gap="sm"><Text>Hero</Text></Stack></Component>`));
+        fs.writeFileSync(other, otherBefore.replace("import { Board, Component, Screen }", "import { Board, Component, Screen, Use }").replace('<Component id="promo" name="Promo"><Text>Promo</Text></Component>', `<Component id="promo" name="Promo"><Stack><Text>Promo</Text><Use of="hero" page="${id}" /></Stack></Component>`));
+        await mineOption(page, /^Sync with the folder/);
+        await until(async () => /<Component id="hero"/.test((await pageText(page, id)) ?? ""), { timeout: 15_000, message: "Hero on the page" });
+        const hero = page.locator('[data-zen-main="hero"]').first();
+        await hero.waitFor({ state: "visible", timeout: 10_000 });
+        // ⌘-click on the canvas at its place (the canvas layers over it take a locator click).
+        const box = await hero.boundingBox();
+        await page.keyboard.down("ControlOrMeta");
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+        await page.keyboard.up("ControlOrMeta");
+        await until(async () => (await selectedName(page)) !== "", { message: "a layer of Hero selected" });
+        const before = (await pageText(page, id)) ?? "";
+        await showLeftTab(page, "assets");
+        await page.getByRole("button", { name: new RegExp("^Promo, component on ") }).click();
+        await until(async () => /can't go inside itself/.test(await statusText(page)), { message: "refused: a component can't go inside itself" });
+        if (((await pageText(page, id)) ?? "") !== before) throw new Error("the instance went in anyway");
+        return `Promo (holds Hero) into Hero → "${(await statusText(page)).split(" | ").find((line) => /inside itself/.test(line))}" · page unchanged`;
+      } finally {
+        fs.writeFileSync(own, ownBefore);
+        fs.writeFileSync(other, otherBefore);
+        await mineOption(page, /^Sync with the folder/).catch(() => undefined);
       }
     },
   },

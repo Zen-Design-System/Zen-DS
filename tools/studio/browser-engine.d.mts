@@ -52,6 +52,8 @@ export function editDoc(doc: PageDoc, text: string, request: { file: string; loc
 export function floatAt(code: string, at: { x: number; y: number }): string;
 
 /** Figma's Add / Remove auto layout as one element's new code (relayout.mjs). */
+/** Another page's main written into this page: each `<Use>` in it without a `page` names that page (use-page.mjs). */
+export function withUsePage(code: string, page: string, options?: { own?: string }): string;
 export function relayoutCode(text: string, range: { start: number; end: number }, plan: {
   tag?: string;
   set?: Record<string, string | number | true | { code: string } | undefined>;

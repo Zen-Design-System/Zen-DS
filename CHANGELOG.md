@@ -349,7 +349,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   never in the page's code, and are not sent to Figma.
 - Zen Studio: Libraries (⌥⌘O, the book button in Assets, or ⌘K › Libraries): switches for what a project's pages use,
   saved in the project. Zen off takes Zen's components and icons out of Assets; the project's theme off draws its pages
-  in Zen's own theme.
+  in Zen's own theme; the project's components off hides the other pages' components from Assets.
+- Zen Studio: a project's pages share their components, as the pages of a Figma file do. Assets › Project components
+  lists the components made (⌥⌘K) on the project's other pages; an instance of one follows its main, so an edit there
+  shows on every page. Go to main component opens its page, ⌥⌘B detaches it, Push changes writes to its page (⌘Z on
+  that page takes it back), and a main that other pages use cannot be deleted until they let it go. An instance whose
+  main is gone (its page in the Trash or out of the project) shows "Missing component" until the main is back. As in
+  Figma, a component can't go inside itself through another page (Assets says which one holds it). Open on phone draws
+  these instances too. Sent to Figma as its layers for now.
 - Studio → Figma (Import from Studio): a Grid inside a Grid cell stretches to its row as in CSS, so a row's cards match its
   tallest (the Dashboard's metric pairs came out at their own heights); the direct paste keeps it at its own height.
 - Zen Studio: ⌥-drag, ⌘D and ⌘C ⌘V of a Section copy it with the frames and Sections it holds, in one ⌘Z, as Figma does
