@@ -539,6 +539,9 @@ export const Bad = () => <>
   <EmptyState title="No files yet" primaryAction={{ label: "Upload file", onClick: upload }} secondaryAction={{ label: "Import from Figma" }} />
   {/* expect: interaction/action-without-handler */}
   <div><Card theme="border"><Button appearance="flat" level="primary" size="sm">Duplicate</Button></Card></div>
+  {/* A URL's "//" is no line comment: the tag after it is still checked. */}
+  {/* expect: interaction/action-without-handler */}
+  <Text>Guide at https://zen.design/start <Button size="sm">Open guide</Button></Text>
   {/* expect: interaction/action-without-handler */}
   <Sidebar sections={sections} onItemClick={go} footer={<button type="button"><Icon name="icon-trash-line" /><span>Trash</span></button>} />
   {/* expect: interaction/action-without-handler */}
