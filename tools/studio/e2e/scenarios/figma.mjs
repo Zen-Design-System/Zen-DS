@@ -1633,7 +1633,7 @@ export const rows = [
     },
   },
   {
-    id: "FW-193", feature: "C (Comment): a click on the frame opens a new comment there; the name once, Enter posts; its pin's corner is the place, the right panel lists it, the page file stays as it was", wp: "Comment tool 2026-10-22",
+    id: "FW-193", feature: "C (Comment): a click on the frame opens a new comment there; the name once, Enter posts; its pin's corner is the place, the right panel lists it, the page file stays as it was", wp: "Comment tool 2026-10-22", timeout: 60_000,
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
       return commenting(page, async () => {
@@ -1651,7 +1651,7 @@ export const rows = [
     },
   },
   {
-    id: "FW-194", feature: "A reply joins the thread (\"1 reply\" in the list); Resolve closes it and hides its pin; Show resolved shows it again; Reopen", wp: "Comment tool 2026-10-22",
+    id: "FW-194", feature: "A reply joins the thread (\"1 reply\" in the list); Resolve closes it and hides its pin; Show resolved shows it again; Reopen", wp: "Comment tool 2026-10-22", timeout: 60_000,
     async run(ctx) {
       const { page } = await walkPage(ctx);
       return commenting(page, async () => {
@@ -1676,7 +1676,7 @@ export const rows = [
     },
   },
   {
-    id: "FW-195", feature: "Comments are kept beside the page: <page>.comments.json next to its .zen.tsx; after a reload the pin is back", wp: "Comment tool 2026-10-22",
+    id: "FW-195", feature: "Comments are kept beside the page: <page>.comments.json next to its .zen.tsx; after a reload the pin is back", wp: "Comment tool 2026-10-22", timeout: 60_000,
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
       return commenting(page, async () => {
@@ -1694,7 +1694,7 @@ export const rows = [
     },
   },
   {
-    id: "FW-196", feature: "A pin on a frame keeps its place in it when the canvas zooms; Esc closes the thread, Esc again is Move; the pins show only with the Comment tool", wp: "Comment tool 2026-10-22",
+    id: "FW-196", feature: "A pin on a frame keeps its place in it when the canvas zooms; Esc closes the thread, Esc again is Move; the pins show only with the Comment tool", wp: "Comment tool 2026-10-22", timeout: 60_000,
     async run(ctx) {
       const { page } = await walkPage(ctx);
       return commenting(page, async () => {
