@@ -5,7 +5,7 @@
 Branch zen/fix/shape-examples-coverage-20261023 from main e07ae5ae. BACKLOG "P3 · Shape examples: coverage (2026-10-17,
 gate ④)": the page had 9 examples and no states, edge cases, phone or keyboard / a11y example.
 - `src/platform/examples/pages/shape.tsx` (now `keepOnHotUpdate`, as example-patterns §8), three examples:
-  - **A seat map with labelled marks** (states + keyboard / a11y): each seat a labelled ellipse (role img), its
+  - **A seat map with labelled marks** (states + keyboard / a11y): four seats, each a labelled ellipse (role img), its
     number aria-hidden; Segmented buttons pick the seat, taken seats disabled there and drawn as outlines (form and
     words, not colour alone); a role="status" line.
   - **Arc and star at the edge of their range**: Sweep 0 % (nothing drawn, the box kept), Ratio 96 %, a 16-tip star

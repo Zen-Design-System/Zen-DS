@@ -62,14 +62,12 @@ function TourTip() {
   );
 }
 
-/** The Phin & Co tasting table on Saturday, Nov 2: six seats around it, two already taken. */
+/** The Phin & Co tasting table on Saturday, Nov 2: four seats around it, one already taken. */
 const seats = [
-  { id: "1", x: 76, y: 6, taken: false },
-  { id: "2", x: 116, y: 6, taken: true },
-  { id: "3", x: 156, y: 6, taken: false },
-  { id: "4", x: 76, y: 110, taken: false },
-  { id: "5", x: 116, y: 110, taken: true },
-  { id: "6", x: 156, y: 110, taken: false },
+  { id: "1", x: 92, y: 6, taken: false },
+  { id: "2", x: 140, y: 6, taken: true },
+  { id: "3", x: 92, y: 110, taken: false },
+  { id: "4", x: 140, y: 110, taken: false },
 ];
 type SeatState = "free" | "taken" | "yours";
 /** Free seats are filled, taken ones only outlined, yours Accent: the form differs, not only the hue. */
@@ -81,7 +79,7 @@ const seatPaint = {
 
 /** A seat map whose marks carry names: each seat is a labelled Shape, the seats are picked with real buttons. */
 function SeatPicker() {
-  const [mine, setMine] = useState("3");
+  const [mine, setMine] = useState("1");
   const stateOf = (seat: (typeof seats)[number]): SeatState => (seat.taken ? "taken" : seat.id === mine ? "yours" : "free");
   return (
     <Stack gap="md">
@@ -147,7 +145,7 @@ function OnboardingPhone() {
       footer={<ActionBar position="static"
         primaryAction={last ? { label: "Start collecting", onClick: finish } : { label: "Next", onClick: () => setStep(step + 1) }}
         secondaryAction={last ? undefined : { label: "Skip", onClick: () => setStep(tour.length - 1) }} />}>
-      <Stack gap="2xl" padding="lg" align="center">
+      <Stack gap="xl" padding="lg" align="center" justify="center" height="fill">
         <TourArt step={step} />
         <Stack gap="xs" align="center">
           <Text role="status" textStyle="Body/Small/Medium" tone="light">{step + 1} of {tour.length}</Text>
@@ -367,8 +365,8 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "A seat map with labelled marks",
-    description: "Each seat is a Shape with a label (role img: \"Seat 3, your seat\"), so a screen reader hears the map; the number on it is hidden as a duplicate. Seats are picked with Segmented buttons (Tab, then Enter or Space); taken seats are disabled there and drawn as outlines, so the state shows in form and words, not colour alone. The status line announces the choice.",
-    code: `const [mine, setMine] = useState("3");
+    description: "Each seat is a Shape with a label (role img: \"Seat 1, your seat\"), so a screen reader hears the map; the number on it is hidden as a duplicate. Seats are picked with Segmented buttons (Tab, then Enter or Space); taken seats are disabled there and drawn as outlines, so the state shows in form and words, not colour alone. The status line announces the choice.",
+    code: `const [mine, setMine] = useState("1");
 const paint = {
   free: { fill: "positive-subtle", stroke: "none", tone: "positive-strongest" },
   taken: { fill: "none", stroke: "neutral-subtle", tone: "light" },
@@ -442,7 +440,7 @@ const last = step === tour.length - 1;
   footer={<ActionBar position="static"
     primaryAction={last ? { label: "Start collecting", onClick: finish } : { label: "Next", onClick: () => setStep(step + 1) }}
     secondaryAction={last ? undefined : { label: "Skip", onClick: () => setStep(tour.length - 1) }} />}>
-  <Stack gap="2xl" padding="lg" align="center">
+  <Stack gap="xl" padding="lg" align="center" justify="center" height="fill">
     <Box width={240} height={200}>
       {/* step 1: a ring segment, an inner arc and a centre dot */}
       <Shape type="ellipse" position="absolute" insetLeft={40} insetTop={20} width={160} height={160} arcStart={135} arcSweep={75} arcRatio={82} fill="accent-solid" />
