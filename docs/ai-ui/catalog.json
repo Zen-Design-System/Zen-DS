@@ -749,7 +749,7 @@
             "media"
           ],
           "default": "bar",
-          "description": "Figma Pattern/AppShell/Mobile Top, the mobile structure (under 1024px: phones and iPad portrait): - `bar` (default): the TopNavigation on Surface/Alt over the page."
+          "description": "Figma Pattern/AppShell/Mobile Top, the mobile structure (under 1024px: phones and iPad portrait): - `bar` (default): the TopNavigation over the page, on the canvas's twin surface:"
         },
         "band": {
           "enum": [
@@ -5008,7 +5008,7 @@
             "label"
           ],
           "additionalProperties": false,
-          "description": "Figma Trailing-Actions when the field is empty (a 👍 \"Send a like\" by default)."
+          "description": "Figma Trailing-Actions when the field is empty: by default a 👍 \"Send a like\" that sends \"👍\" through `onSend`."
         },
         "device": {
           "enum": [
