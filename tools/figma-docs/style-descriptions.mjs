@@ -54,6 +54,14 @@ export function describeStyle(kind, name) {
   }
   if (kind === "PAINT") {
     const nth = { Primary: 1, Secondary: 2, Tertiary: 3, Quaternary: 4, Quinary: 5, Senary: 6, Septenary: 7 };
+    // The On-Color styles are bound to alpha variables (user 2026-10-23 kept the 2026-10-14 rebind): a bound colour's
+    // paint opacity is ignored on nodes, so the tone is the variable's own alpha.
+    const onColor = {
+      Primary: "the first series, and the Accent line, dots and fade: Content/On-Colors (white)",
+      Secondary: "the second series: Content/Neutral/Light (black at 49% in Light)",
+      Tertiary: "tracks, rest bars and the third series: Border/Neutral/Subtle/Pressed (black at 18% in Light)",
+    };
+    if (name.startsWith("Color Chart Sector/On-Color/")) return `Chart marks on a Card Theme=Solid (colour) background, ${onColor[name.split("/")[2]] || ""}. Use them instead of the Color Chart Sector palette, whose Primary is the brand colour itself. The tone comes from the variable's own alpha; a paint opacity on the style is ignored.`;
     if (name.startsWith("Color Chart Sector/")) return `Chart series colour ${nth[name.split("/")[1]] || ""}: give series these colours in order (Primary first). Chart marks keep their colours; never repaint them by hand.`;
     if (name.startsWith("Avatars/")) return "A sample avatar photo for mockups (Avatar Theme=Photo). Product screens show the person's real photo or initials.";
     if (name.startsWith("Gradients/Border/")) return `The gradient stroke of glass controls over ${name.includes("White") ? "white" : "black"} overlays.`;

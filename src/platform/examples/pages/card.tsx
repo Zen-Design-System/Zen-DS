@@ -323,34 +323,37 @@ function WorkspacePlan() {
         {plans.map((plan) => {
           const titleId = `${baseId}-${plan.id}`;
           return (
-            <Card key={plan.id} as="section" theme="default" selected={plan.id === current} aria-labelledby={titleId} className="px-card-plan">
-              <Stack gap="md" className="px-card-grow">
-                <Stack gap="xs">
-                  {/* Every title row keeps the Badge's height, so the prices line up across the row of cards. */}
-                  <Stack direction="row" gap="2xs" align="center" className="px-card-plan__title">
-                    <Heading level={4} id={titleId} textStyle="Heading/Subheading">{plan.name}</Heading>
-                    {plan.id === recommended ? <Badge theme="accent" background="subtle">Recommended</Badge> : null}
-                  </Stack>
-                  <Text textStyle="Body/Small/Regular" tone="base">{plan.summary}</Text>
-                </Stack>
-                <Stack gap="xs">
-                  <Stack direction="row" gap="2xs" align="baseline">
-                    <Text as="span" textStyle="Heading/2">{price(plan) ? formatMoney(price(plan)) : "Free"}</Text>
-                    {price(plan) ? <Text as="span" textStyle="Body/Small/Regular" tone="base">{`per seat ${per}`}</Text> : null}
-                  </Stack>
-                  <Text as="span" textStyle="Caption/Regular" tone="light">
-                    {plan.id === current ? `Your plan · ${plural(seats, "seat")}` : !price(plan) ? "No card needed" : `Billed ${period}`}
-                  </Text>
-                </Stack>
-                <Stack as="ul" gap="xs" aria-label={`${plan.name} includes`}>
-                  {planDetails[plan.id].features.map((feature) => (
-                    <Stack as="li" key={feature} direction="row" gap="2xs">
-                      <Icon name="icon-check-line" size="sm" decorative />
-                      <Text as="span" textStyle="Body/Small/Regular">{feature}</Text>
+            <Card key={plan.id} as="section" theme="default" selected={plan.id === current} aria-labelledby={titleId}>
+              {/* The plan fills the card (Content-Slot column) and spaces its CTA to the foot, level across the row. */}
+              <Stack gap="md" height="fill" justify="between">
+                <Stack gap="md">
+                  <Stack gap="xs">
+                    {/* Every title row keeps the Badge's height, so the prices line up across the row of cards. */}
+                    <Stack direction="row" gap="2xs" align="center" className="px-card-plan__title">
+                      <Heading level={4} id={titleId} textStyle="Heading/Subheading">{plan.name}</Heading>
+                      {plan.id === recommended ? <Badge theme="accent" background="subtle">Recommended</Badge> : null}
                     </Stack>
-                  ))}
+                    <Text textStyle="Body/Small/Regular" tone="base">{plan.summary}</Text>
+                  </Stack>
+                  <Stack gap="xs">
+                    <Stack direction="row" gap="2xs" align="baseline">
+                      <Text as="span" textStyle="Heading/2">{price(plan) ? formatMoney(price(plan)) : "Free"}</Text>
+                      {price(plan) ? <Text as="span" textStyle="Body/Small/Regular" tone="base">{`per seat ${per}`}</Text> : null}
+                    </Stack>
+                    <Text as="span" textStyle="Caption/Regular" tone="light">
+                      {plan.id === current ? `Your plan · ${plural(seats, "seat")}` : !price(plan) ? "No card needed" : `Billed ${period}`}
+                    </Text>
+                  </Stack>
+                  <Stack as="ul" gap="xs" aria-label={`${plan.name} includes`}>
+                    {planDetails[plan.id].features.map((feature) => (
+                      <Stack as="li" key={feature} direction="row" gap="2xs">
+                        <Icon name="icon-check-line" size="sm" decorative />
+                        <Text as="span" textStyle="Body/Small/Regular">{feature}</Text>
+                      </Stack>
+                    ))}
+                  </Stack>
                 </Stack>
-                <Stack className="px-card-plan__cta">{cta(plan)}</Stack>
+                <Stack>{cta(plan)}</Stack>
               </Stack>
             </Card>
           );

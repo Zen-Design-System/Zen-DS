@@ -1010,15 +1010,6 @@
 .pe-order-summary dt { color: var(--zen-color-content-neutral-light, #6b6b6b); font: inherit; }
 .pe-order-summary dd { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; }
 .pe-order-summary > div:last-child dt, .pe-order-summary > div:last-child dd { color: var(--zen-color-content-neutral-strongest, #111); font-weight: var(--zen-emphasis-font-weight-bold, 600); }
-/* Pricing plans: equal-height cards, the CTA pinned to the bottom of each. */
-.pe-plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
-.pe-plan-grid > .zen-card > .zen-card__content { flex: 1 1 auto; }
-.pe-plan-grid .pe-plan { flex: 1 1 auto; }
-.pe-plan { display: grid; width: 100%; grid-template-rows: auto auto auto 1fr auto; gap: var(--zen-spacing-gap-small, 12px); }
-.pe-plan__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
-.pe-checklist { display: grid; align-content: start; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; }
-.pe-checklist li { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.pe-checklist .zen-icon { flex: 0 0 auto; color: var(--zen-color-content-positive-base, #2e7d32); }
 /* Grouped list sections. */
 .pe-list-groups { display: grid; width: 100%; gap: var(--zen-spacing-gap-large, 24px); }
 .pe-list-group { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); }

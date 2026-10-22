@@ -371,9 +371,9 @@ function TemplateGallery() {
       {/* As many 240px columns as fit, with no breakpoints; every card stretches to the tallest in its row. */}
       <Grid as="ul" minColumnWidth={240} gap="md" aria-label="Project templates">
         {shown.map((template) => (
-          <Card as="li" key={template.id} theme="default" className="px-layout-template">
-            {/* Two groups lg apart, pushed to the top and bottom: the footers line up across the row. */}
-            <Stack gap="lg" justify="between" className="px-layout-template-body">
+          <Card as="li" key={template.id} theme="default">
+            {/* Two groups lg apart, pushed to the top and bottom of the stretched card: the footers line up across the row. */}
+            <Stack gap="lg" justify="between" height="fill">
               <Stack gap="md">
                 <DockIcon icon={template.icon} theme={template.theme} background="subtle" />
                 <Stack gap="xs">
@@ -467,7 +467,7 @@ function ClientInvoices() {
         <Text textStyle="Body/Small/Regular" tone="base">Saola Outdoor · Brand refresh</Text>
       </Stack>}
       footer={<Text textStyle="Caption/Regular" tone="light">Synced with Payments 2 minutes ago</Text>}>
-      <Stack justify={created ? "start" : "center"} className="px-layout-cover-body">
+      <Stack justify={created ? "start" : "center"} height="fill">
         {created ? (
           <List aria-labelledby={titleId}>
             <ListItem title={saolaDraft.number} caption={`${formatMoney(saolaDraft.amount)} · Due ${formatDate(saolaDraft.due)}`}
@@ -973,10 +973,9 @@ function SettingsSection({ id, title, description, children }) {
   </Stack>
   <Grid as="ul" minColumnWidth={240} gap="md" aria-label="Project templates">
     {shown.map((template) => (
-      // .equal-height > .zen-card__content and .equal-height-body { flex: 1 1 auto }: the content fills the stretched card.
-      <Card as="li" key={template.id} theme="default" className="equal-height">
-        {/* Two groups lg apart, pushed to the top and the bottom */}
-        <Stack gap="lg" justify="between" className="equal-height-body">
+      <Card as="li" key={template.id} theme="default">
+        {/* Fill height: the content takes the stretched card; two groups lg apart, pushed to the top and the bottom */}
+        <Stack gap="lg" justify="between" height="fill">
           <Stack gap="md">
             <DockIcon icon={template.icon} theme={template.theme} background="subtle" />
             <Stack gap="xs">
@@ -1029,14 +1028,14 @@ function SettingsSection({ id, title, description, children }) {
     title: "Centred in a panel",
     description: "A panel of fixed height: the header stays at the top, the footnote at the bottom, and the middle Stack grows, so an empty state sits in the optical centre. Create invoice puts the draft at the top of the list instead; the toast's Undo brings the empty state back.",
     render: () => <ClientInvoices />,
-    code: `{/* .cover { min-height: 26rem }; the ListBox body grows by itself, .grow { flex: 1 1 auto } */}
+    code: `{/* .cover { min-height: 26rem }: the ListBox body grows by itself, and the Fill-height Stack grows with it */}
 <ListBox as="section" className="cover" aria-labelledby="invoices"
   header={<Stack gap="xs">
     <Heading level={4} id="invoices" textStyle="Heading/Subheading">Invoices</Heading>
     <Text textStyle="Body/Small/Regular" tone="base">Saola Outdoor · Brand refresh</Text>
   </Stack>}
   footer={<Text textStyle="Caption/Regular" tone="light">Synced with Payments 2 minutes ago</Text>}>
-  <Stack justify={invoices.length ? "start" : "center"} className="grow">
+  <Stack justify={invoices.length ? "start" : "center"} height="fill">
     {invoices.length ? <List aria-labelledby="invoices">…</List> : (
       <EmptyState size="sm" headingLevel={5} compactTitle title="No invoices yet"
         primaryAction={{ label: "Create invoice", onClick: create }} icon="icon-receipt-line">
