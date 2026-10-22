@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { generateExpectedPalette } from "./zen-ramp.generated.mjs";
-import { RAMPS, SECTOR_NAMES, SUPPORT_FAMILIES, defaultProjectTheme, projectBaseValues, normalizeProject, projectIdFor, projectModes, projectPalettes, projectThemeCss, tintedNeutralAnchor } from "./project-theme.mjs";
+import { RAMPS, SECTOR_NAMES, SUPPORT_FAMILIES, defaultLibraries, defaultProjectTheme, normalizeLibraries, projectBaseValues, normalizeProject, projectIdFor, projectModes, projectPalettes, projectThemeCss, tintedNeutralAnchor } from "./project-theme.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const collection = (file) => Object.values(JSON.parse(fs.readFileSync(path.join(root, "tokens/source/figma", file), "utf8")))[0];
@@ -76,6 +76,10 @@ ok(() => assert.equal(normalizeProject({ id: "acme", name: "  " }).project, null
   ok(() => assert.equal(project.theme.chart.length, 5), "five chart slots");
   ok(() => assert.equal(errors.length, 2), `two replaced values (${errors.join("; ")})`);
 }
+// 6a. Libraries: on unless project.json says false; an old project (none written) uses all three.
+ok(() => assert.deepEqual(normalizeProject({ id: "acme", name: "Acme" }).project.libraries, defaultLibraries()), "an old project uses every library");
+ok(() => assert.deepEqual(normalizeLibraries({ zen: false, theme: "no", extra: false }), { zen: false, components: true, theme: true }), "only false turns one off");
+ok(() => assert.deepEqual(normalizeLibraries(null), { zen: true, components: true, theme: true }), "no value: all on");
 ok(() => assert.deepEqual(projectModes(defaultProjectTheme()), { componentTheme: "brand-s1", density: "compact", radius: "rounded", typography: "dashboard", emphasis: "medium" }), "modes");
 
 // 6b. The project's Figma values: the default theme gives exactly the Zen mode's Base Colors (Project) values.

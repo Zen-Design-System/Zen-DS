@@ -71,6 +71,10 @@ export interface PageMirror {
   readAsset?(id: string): Promise<Blob | null>;
   /** Moves a photo out of the folder's assets/ to its trash (never deletes): a photo removed in Assets › Photos. */
   trashAsset?(id: string): Promise<void>;
+  /** A page's comments beside it (`<id>.comments.json`, comments/commentStore.ts); null when it has none. */
+  readComments?(id: string): Promise<unknown | null>;
+  /** Writes a page's comments beside it. */
+  writeComments?(id: string, comments: unknown): Promise<void>;
 }
 
 /** Where the pages are kept, for the Pages panel. */

@@ -89,13 +89,17 @@ so on the status line.
 Up since 2026-10-18 (29): ⇧S (Section) (❌ → ✅) · ⇧P (Pencil) (❌ → ✅) · ⇧⌘K (Place image/video) (❌ → ✅) · ⌘K (Actions) (❌ → ✅) · ⌘F (Find and replace) (❌ → ✅) · ⇧R (Rulers) (❌ → ✅) · ⌃G (Show layout guides) (❌ → ✅) · ⌘Y (Outlines) (❌ → ✅) · N (Next frame) (❌ → ✅) · P (Pen) (🟡 → ✅) · ⌘/ (Actions) (🟡 → ✅) · Enter (Select children) (🟡 → ✅) · ⌘A with nothing selected (Select all) (❌ → ✅) · ⇧H (Flip horizontal) (❌ → ✅) · ⇧V (Flip vertical) (❌ → ✅) · ⌃⌥T (Tidy up) (❌ → ✅) · ⌃⌥H (Distribute horizontal spacing) (❌ → ✅) · Delete (nothing selected after) (🟡 → ✅) · ⌥⌘C ⌥⌘V (Copy / Paste properties) (🟡 → ✅) · ⌘G (Group selection) (❌ → ✅) · ⇧⌘G (Ungroup / Remove frame) (❌ → ✅) · ⌃⌘M (Use as mask) (❌ → ✅) · ⌘E (Flatten) (❌ → ✅) · ⌥⌘O (Outline stroke) on a Line (❌ → ✅) · ⇧⌘L (Lock) (❌ → ✅) · ⌘R (Rename) (❌ → ✅) · ⇧⌘C (Copy as PNG) (❌ → ✅) · A frame (free Box) (🟡 → ✅) · An auto layout frame (Stack) (🟡 → ✅).
 
 What is still not Figma's:
-- **Missing, and the status line says so:** C (Comment). ⌥⌘A (Select matching layers) was built on 2026-10-22, with
-  Select all with same ›. It matches as Figma does, minus Studio's page-wide name numbers (`edit/matchModel.ts`, E2E
-  FW-175…179). K (Scale) since 2026-10-21 (Session C, the user's pick): K, the toolbar's Scale, the right panel's
-  factor and anchor, corner drags; px values scale, Zen token steps stay and the status line names them (user's
-  choice, not Figma's: a text keeps its style).
+- **The four keys still missing on 2026-10-21 are built** (only I, Pick color, still says "not yet"):
+  ⌥⌘A (Select matching layers) on 2026-10-22, with Select all with same ›. It matches as Figma does, minus Studio's
+  page-wide name numbers (`edit/matchModel.ts`, E2E FW-175…179).
+  K (Scale) since 2026-10-21 (Session C, the user's pick): K, the toolbar's Scale, the right panel's factor and anchor,
+  corner drags; px values scale, Zen token steps stay and the status line names them (user's choice, not Figma's: a
+  text keeps its style).
   S (Slice) since 2026-10-22 (Session C, the user's pick): the Frame menu's Slice and S draw an export area over the
   board; its panel exports the area under it (Figma's 1x PNG first); Layers lists it; not pushed to Figma yet.
+  C (Comment) since 2026-10-22 (Session C, the user's pick): pins on the canvas (on a frame or the board), the thread
+  popover (reply, Resolve, Delete), the right panel's list with Show resolved; kept beside the page file
+  (`<page>.comments.json`), name typed once per browser, Viewers comment, the author or an Admin deletes; no Figma sync.
 - **Detach instance on a Button:** kept on purpose (user, 2026-10-03: an interactive component stops working when
   detached).
 - **Menus:**
@@ -115,6 +119,35 @@ Found on the way (not graded rows):
   the frame around it (Figma clicks a line within a few px), and the walk reached it by Tab or by Enter on its frame.
   Fixed in the same change: a band 4 screen px either side takes the click (`select/select.css`, E2E FW-132).
 - **The group's panel heading reads "Box".** Layers says "Group 1", and Figma's header says "Group".
+
+### 2b. The walk a third time (2026-10-22, 5b027db1 = `main` 6f894b5e + Scale, Slice, Comment, Libraries #206–#209)
+
+The same 76 actions, the same walk page and server. One change to the walk: ⌥⌘A (K-34) matches layers in *other*
+frames, so its setup first copies the frame (its title, ⌘D) and then picks the Rectangle, as a person would. The row
+reads the status line ("Selected 2 matching layers") as well as the selection.
+
+| Group | 2026-10-18 ✅ / 🟡 / ❌ | 2026-10-21 ✅ / 🟡 / ❌ | 2026-10-22 ✅ / 🟡 / ❌ | Still 🟡 now |
+| --- | --- | --- | --- | --- |
+| Tools (26) | 12 / 2 / 12 | 23 / 0 / 3 | 26 / 0 / 0 | — |
+| Selection (8) | 5 / 1 / 2 | 7 / 0 / 1 | 8 / 0 / 0 | — |
+| Transform (12) | 8 / 0 / 4 | 12 / 0 / 0 | 12 / 0 / 0 | — |
+| Structure (19) | 8 / 3 / 8 | 18 / 1 / 0 | 18 / 1 / 0 | 🟡 ⌥⌘B (Detach instance) on a Button |
+| Text (3) | 3 / 0 / 0 | 3 / 0 / 0 | 3 / 0 / 0 | — |
+| Menus (3) | 0 / 3 / 0 | 0 / 3 / 0 | 3 / 0 / 0 | — |
+| Right panel (5) | 0 / 5 / 0 | 2 / 3 / 0 | 2 / 3 / 0 | 🟡 A Button (instance); 🟡 A Card (instance); 🟡 A text |
+| **All (76)** | **36 / 14 / 26** | **65 / 7 / 4** | **72 / 4 / 0** | |
+
+Up since 2026-10-21 (7): K (Scale) (❌ → ✅, #206) · S (Slice) (❌ → ✅, #207) · C (Comment) (❌ → ✅, #208) ·
+⌥⌘A (Select matching layers) (❌ → ✅, #205) · Right-click a shape (🟡 → ✅: Flip horizontal / vertical, #204) ·
+Right-click a Button (instance) (🟡 → ✅: Go to main component, Reset all changes) · Right-click the empty canvas
+(🟡 → ✅: Paste here, #204).
+
+What is still not Figma's (4):
+- **Detach instance on a Button:** kept on purpose (user, 2026-10-03: an interactive component stops working when
+  detached).
+- **Right panel, Content:** a Button, a Card and a text edit their words in a **Content** section. The user's decision
+  (2026-10-22): those rows move into the instance's properties, as Figma's text properties, and the Content section
+  goes; session B builds it (`docs/research/studio-instance-panel-parity-spec-2026-10-21.md`).
 
 ## 3. UX writing (every UI string of the design page)
 
@@ -280,6 +313,11 @@ The hands-on walk (§2a) reads 65 ✅ · 7 🟡 · 4 ❌ of 76; on 2026-10-18 it
 (§6) finishes 14 / 14 tasks in Figma's 40 steps, with no refusal. What is left is listed in §2a and §6 and
 in BACKLOG P1.
 
+**Status (2026-10-22):** with Select matching layers (#205), the menus (#204) and Scale, Slice, Comment and Libraries
+(#206–#209), the hands-on walk (§2b) reads 72 ✅ · 4 🟡 · 0 ❌ of 76. Every Figma key and menu of the walk works; the
+four 🟡 are Detach on a Button (kept on purpose) and the panel's Content section (moving into the instance's properties,
+session B). The first-ten-minutes walk is unchanged: 14 / 14 tasks in Figma's 40 steps, no refusal.
+
 **F1 · Layers like Figma (M).** Names (decision 4) with Figma's auto names and icons (Frame #, auto layout icons,
 Group, Component ◇ purple, Instance ◇, Text T, Image, Section); top of the list = front; rename (double-click,
 ⌘R, batch); Lock ⇧⌘L (canvas skips locked layers, Layers padlock on hover); row right-click = the canvas menu;
@@ -379,5 +417,8 @@ F7 / F9 are the longest. Parallel agents only for F2, F5, F7, F9 (tier L), one a
      ⇧-clicks were plain clicks. Studio's ⇧-click adds a layer, as the hands-on walk's K-31 shows.
    - **Click on a group (+1), the script's:** its own Esc after each task selected the parent. A click on a grouped
      layer selects the group and a double-click goes in, as in Figma.
+
+   **2026-10-22** (5b027db1, with Scale, Slice, Comment and Libraries): the same 14 tasks again read 14 / 14 in 40
+   steps (Figma 40), with no refusal.
 
 4. Engine matrices (`npm run studio:dnd`) extended per phase (group / ungroup, multi-move, text runs, vector paths).

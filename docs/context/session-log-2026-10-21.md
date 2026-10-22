@@ -738,6 +738,32 @@ Session C (2026-10-22): Slice first, then Comment (beside the page file, no Figm
 - Push: a note ("Slices (export areas of the board): not pushed"); SLICE in Figma is a follow-up.
 - Selftests: dialect 54 (+6), doc, push, sections; tsc; style guard. E2E FW-190…192 wait for a slot.
 
+## Figma's Comment tool C (Session C) — tier M, branch `zen/feat/studio-comments-20261022` (on the Slice branch)
+User's picks (2026-10-22): stored beside the page file, no Figma sync; the name typed once; rights as Figma's (a
+Viewer comments, the author or an Admin deletes). Spec card: `docs/research/studio-comments-spec-2026-10-22.md`.
+- Model `tools/studio/page-comments.mjs` (threads, replies, resolve, tombstoned deletes, `mergeComments`: the later
+  change wins, a delete wins a tie); selftest 8 ✓.
+- Storage: `pages-folder.mjs` read/writeComments (`<id>.comments.json`, validated, 1 MB, atomic; trash takes it too),
+  the dev server's GET `/pages/comments` and POST `/pages/comments-write`, both mirrors (`devMirror`, a linked folder),
+  IndexedDB `comments:<page>`; `comments/commentStore.ts` joins the two on open and on window focus, tells other tabs.
+- UI `comments/`: CommentsLayer (pins in screen space, a canvas press pins a new comment on the frame on top or the
+  board, Esc closes then Move), CommentPopover (thread, reply, Resolve/Reopen, Delete comment/thread, name once),
+  CommentsPanel (right panel while C is on: newest first, Show resolved, "Its frame was deleted"), comments.css.
+- Wiring: tool `comment`, C in StudioApp, the toolbar after Image (a page you made), ⌘K, the status line, Keyboard
+  shortcuts; C out of figmaNotYet and FW-05's list.
+- Checks: tsc, words lint, style guard, page-comments + pages-folder selftests. E2E FW-193…196 wait for a slot.
+
+## Figma's Libraries ⌥⌘O (Session C) — tier M, branch `zen/feat/studio-libraries-20261022` (on the Comment branch)
+Spec card `docs/research/studio-libraries-spec-2026-10-22.md`. Phase 1 built:
+- `project.json` `libraries: { zen, components, theme }` (normalizeLibraries: on unless false; old projects all on),
+  `updateProject(…, { libraries })`, `project/libraries.ts` (useLibraries, librariesNow, the open state).
+- `project/LibrariesDialog.tsx` (ModalForm: Zen Design System and "<project> theme" Toggles, Admin only, Drafts: Zen
+  fixed on); ⌥⌘O, Assets' book button, ⌘K › Libraries, Keyboard shortcuts.
+- Zen off: Assets keeps Photos (Components / Icons and their search results go), Assets' ⇧I finds photos only; the pages
+  keep drawing. Theme off: `withProject` gives Zen's modes (data-brand zen).
+- E2E FW-197 (Zen switch), FW-198 (theme switch) on a project written to the E2E server's projects folder; wait for a slot.
+- Phase 2 (project components across pages) waits for the user's pick of the model (live link or publish + update).
+
 
 ## Schedule in code + Studio (session "Calendar", tier L; user: "xong gate thì làm tiếp Schedule")
 
