@@ -20,6 +20,7 @@ import { connectMirror, needsReconnect, run, SETTINGS, syncMirror, type PageMirr
 const DEV = import.meta.env.DEV;
 const FOLDER_KEY = "folder";
 const SUFFIX = ".zen.tsx";
+const COMMENTS_SUFFIX = ".comments.json";
 
 /* File System Access, as far as the Studio uses it (lib.dom lacks the iteration and permission parts). */
 type Permission = "granted" | "denied" | "prompt";
@@ -59,6 +60,9 @@ function devMirror(dir: string): PageMirror {
       return bytes ? new Blob([bytes as BlobPart], { type }) : null;
     },
     trashAsset: (id) => studioApi.pageAssetWrite("trash", id),
+    // A page's comments beside it (GET /pages/comments, POST /pages/comments-write; comments/commentStore.ts).
+    readComments: (id) => studioApi.pageComments(id),
+    writeComments: (id, comments) => studioApi.pageCommentsWrite(id, comments),
   };
 }
 
@@ -91,6 +95,20 @@ function folderMirror(handle: DirHandle): PageMirror {
       const file = await handle.getFileHandle(`${id}${SUFFIX}`, { create: true });
       const out = await file.createWritable();
       await out.write(text);
+      await out.close();
+    },
+    // A page's comments beside it in the folder (`<id>.comments.json`; comments/commentStore.ts).
+    async readComments(id) {
+      try {
+        const file = await (await handle.getFileHandle(`${id}${COMMENTS_SUFFIX}`)).getFile();
+        return file.size > 1024 * 1024 ? null : JSON.parse(await file.text());
+      } catch {
+        return null;
+      }
+    },
+    async writeComments(id, comments) {
+      const out = await (await handle.getFileHandle(`${id}${COMMENTS_SUFFIX}`, { create: true })).createWritable();
+      await out.write(`${JSON.stringify(comments, null, 2)}\n`);
       await out.close();
     },
     async trash(id) {
