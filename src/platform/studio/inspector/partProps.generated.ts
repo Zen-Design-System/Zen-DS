@@ -84,6 +84,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   "ChartCard": {
     "Card": {
       "color": "color",
+      "spacing": "spacing",
       "surface": "surface",
       "theme": "theme"
     },
@@ -483,7 +484,8 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     "Card": {
       "overrides": "overrides",
       "spacing": "spacing",
-      "subAction": "subAction"
+      "subAction": "subAction",
+      "surface": "surface"
     },
     "CategoryBar": {
       "animate": "animate",
