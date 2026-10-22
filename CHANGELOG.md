@@ -20,6 +20,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Figma contracts: the 14 chart sets and Chart/Chart-Card are captured (`docs/figma-contracts/chart-*.json`), and seven
   older contracts are re-read from the live file (Avatar/Single and Badge / Badge-Counter now list Sky, Mint, Bronze and
   Golden, which the code already has) (2026-10-23).
+- ChatComposer: the default quick action (👍 "Send a like", when an app passes no `quickAction`) sends "👍" through
+  `onSend`; it was a button that did nothing (2026-10-23).
+- AppShell: on a phone the Bar's TopNavigation takes the canvas's twin, as Figma pairs them: Alt on the default canvas
+  (as before), Default on `canvas="alt"` (it was Alt, a grey bar on a white page), and Default repainted Surface/Flat on
+  `canvas="flat"` (2026-10-23).
 - **Docs platform and the HR Tasks template:** every task's and project's status is a BadgeStatus (its ring and
   colour come from the step; the label stays the data's word): To do / In progress / In review / Done, and projects'
   Planning → to do, Active → in progress with the project's real progress, On hold → blocked, Completed → done
