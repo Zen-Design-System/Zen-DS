@@ -55,6 +55,9 @@
   --zen-style-gradients-border-glass-black-overlay-fill: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(0, 0, 0, 0.07) 50%, rgba(255, 255, 255, 0.04) 100%);
   --zen-style-tool-canvas-fill: linear-gradient(var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)), var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)));
   --zen-style-background-canvas-liquid-glass-fill: linear-gradient(rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.03)), linear-gradient(var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)), var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)));
+  --zen-style-color-chart-sector-on-color-primary-fill: var(--zen-color-content-on-colors, rgba(255, 255, 255, 1));
+  --zen-style-color-chart-sector-on-color-secondary-fill: var(--zen-color-content-neutral-light, rgba(0, 0, 0, 0.4863));
+  --zen-style-color-chart-sector-on-color-tertiary-fill: var(--zen-color-border-neutral-subtle-pressed, rgba(1, 1, 1, 0.1843));
 }
 
 /* Glass-Floating: the GLASS effect is drawn by useLiquidGlass (glass-styles.ts); CSS keeps its shadows. */
@@ -188,5 +191,17 @@
 
 .zen-fill-background-canvas-liquid-glass {
   background: linear-gradient(rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.03)), linear-gradient(var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)), var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)));
+}
+
+.zen-fill-color-chart-sector-on-color-primary {
+  background: var(--zen-style-color-chart-sector-on-color-primary-fill);
+}
+
+.zen-fill-color-chart-sector-on-color-secondary {
+  background: var(--zen-style-color-chart-sector-on-color-secondary-fill);
+}
+
+.zen-fill-color-chart-sector-on-color-tertiary {
+  background: var(--zen-style-color-chart-sector-on-color-tertiary-fill);
 }
 
