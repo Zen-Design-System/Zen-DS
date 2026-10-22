@@ -710,6 +710,108 @@ async function oneUndo(page, id, before) {
   await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
 }
 
+/* ── Present from an Overlay frame (Figma presents any frame) ─────────────────────────────────────────────────────── */
+
+/** Two phone Screens (Files opens a Dialog and a Card; Deleted goes back) and three Overlays: the Dialog, the Card the
+ *  Overlay places (top right, dimmed), and a Bottom Sheet no Screen opens. */
+const presentOverlayText = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { BottomSheet, Button, Card, Dialog, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="home" title="Files" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text>Report.pdf</Text>
+          <Button level="primary" onClick={proto.open("confirm")}>Delete</Button>
+          <Button level="secondary" onClick={proto.open("tip")}>Show tip</Button>
+        </Stack>
+      </Screen>
+      <Screen id="done" title="Deleted" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text>The file is in the trash.</Text>
+          <Button level="primary" onClick={proto.back()}>Undo</Button>
+        </Stack>
+      </Screen>
+      <Overlay id="confirm">
+        <Dialog title="Delete the file?" description="It goes to the trash." primaryAction={{ label: "Move to trash", onClick: proto.navigate("done") }} secondaryAction={{ label: "Cancel", onClick: proto.close() }} />
+      </Overlay>
+      <Overlay id="tip" position="top-right" background>
+        <Card>
+          <Text>Tip: swipe a file to delete it.</Text>
+        </Card>
+      </Overlay>
+      <Overlay id="about">
+        <BottomSheet title="About this app" primaryAction={{ label: "Done", onClick: proto.close() }}>
+          <Text tone="base">Version 1.0</Text>
+        </BottomSheet>
+      </Overlay>
+    </Board>
+  );
+}
+`;
+let presentMade = null;
+async function presentOverlayPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!presentMade) {
+    const seeded = await seededPage(ctx, presentOverlayText, /id="about"/);
+    presentMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${presentMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${presentMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  // The whole board in view: a row clicks its layers where they are drawn.
+  await page.keyboard.press("Shift+Digit1");
+  await sleep(400);
+  return { page, id: presentMade };
+}
+const player = (page) => page.locator(".studio-player");
+const playerDevice = (page) => player(page).locator(".studio-player__device");
+/** Selects a frame by its Layers row (an Overlay's frame too), then gives the canvas the keys. */
+async function selectFrameRow(page, frameId) {
+  await showLeftTab(page, "layers");
+  await page.locator(`[data-layer-id="frame:${frameId}"]`).click();
+  await until(async () => (await page.locator(`[data-studio-frame="${frameId}"]`).getAttribute("data-selected")) === "true", { message: `${frameId} selected` });
+  await page.locator(".studio-viewport").focus();
+}
+/** What Play shows: its Screen, its open Overlay, its device and its size, and whether the device frame is drawn. */
+const playShows = (page) => playerDevice(page).evaluate((device) => ({
+  screen: device.getAttribute("data-screen-id"),
+  overlay: device.getAttribute("data-overlay"),
+  device: device.closest(".studio-player").getAttribute("data-device"),
+  size: `${device.offsetWidth}×${device.offsetHeight}`,
+  framed: Boolean(device.parentElement.querySelector(".studio-device-frame")),
+}));
+/** Presses ⌥⌘↵ and waits for Play. */
+async function presentKey(page) {
+  await page.keyboard.press("ControlOrMeta+Alt+Enter");
+  await player(page).waitFor({ state: "visible", timeout: 10_000 });
+}
+/** Esc until Play has gone, `times` presses at most (each one is asserted). */
+async function leavePlay(page, times = 1) {
+  for (let press = 1; press <= times; press += 1) {
+    await page.keyboard.press("Escape");
+    if (press < times) await sleep(300);
+  }
+  await player(page).waitFor({ state: "hidden", timeout: 5000 });
+}
+/** How Play from the Files Screen shows (the size and chrome a presented Overlay must keep). */
+async function homePlay(page) {
+  await selectFrameRow(page, "screen:home");
+  await presentKey(page);
+  await until(async () => (await playShows(page)).screen === "home", { message: "Play on Files" });
+  const shows = await playShows(page);
+  await leavePlay(page);
+  return shows;
+}
+
 /** Before a row's retry (run.mjs): the pages this module made are forgotten, so the retry seeds them again from scratch
  *  (the runner removes the files the first try added). */
 export function forgetPages() {
@@ -720,6 +822,7 @@ export function forgetPages() {
   setsMade = null;
   spacingMade = null;
   slotsMade = null;
+  presentMade = null;
 }
 
 /* ── F7c (an instance's slot from the canvas) helpers ────────────────────────────────────────────────────────────── */
@@ -4026,6 +4129,137 @@ export const rows = [
       await sleep(400);
       if ((await pageText(page, id)) !== before) throw new Error("a drag on the free frame's padding wrote something");
       return `Grid "${pill}" → gap="lg", one ⌘Z · Escape: ${preview} → ${after}, nothing written · free frame: no handles, nothing written`;
+    },
+  },
+  {
+    id: "FW-170", feature: "⌥⌘↵ on a selected Overlay frame (a Dialog) presents it as Figma presents a frame: open at once over the Screen that opens it, on that Screen's device, size and device frame; a reload keeps it; Esc closes the Dialog onto the Screen, a second Esc leaves", wp: "present overlay 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await presentOverlayPage(ctx);
+      const home = await homePlay(page);
+      await selectFrameRow(page, "overlay:confirm");
+      await presentKey(page);
+      const dialog = player(page).getByRole("dialog", { name: "Delete the file?" });
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      const shows = await playShows(page);
+      if (shows.screen !== "home" || shows.overlay !== "confirm") throw new Error(`Play shows "${shows.screen}" with ${shows.overlay}, not Files with the Dialog`);
+      if (shows.device !== home.device || shows.size !== home.size || shows.framed !== home.framed) throw new Error(`the Overlay plays on ${shows.device} ${shows.size}${shows.framed ? " framed" : ""}, Files on ${home.device} ${home.size}${home.framed ? " framed" : ""}`);
+      const start = new URL(page.url()).searchParams.get("play");
+      if (start !== "overlay:confirm") throw new Error(`the address says play=${start}`);
+      await page.reload();
+      await dialog.waitFor({ state: "visible", timeout: 20_000 });
+      await page.keyboard.press("Escape");
+      await until(async () => (await dialog.count()) === 0, { message: "Esc closes the Dialog" });
+      const after = await playShows(page);
+      if (after.screen !== "home" || after.overlay) throw new Error(`after Esc Play shows "${after.screen}" with ${after.overlay}`);
+      await leavePlay(page);
+      return `Files on ${home.device} ${home.size}${home.framed ? " framed" : ""} · ⌥⌘↵ on the Dialog → Files + Dialog, same device · reload keeps it · Esc → Files · Esc → out`;
+    },
+  },
+  {
+    id: "FW-171", feature: "Present from the Prototype tab on an Overlay selected in Flow: its interactions run (Move to trash goes to Deleted, Back returns to Files), R restarts on the Overlay over Files, Cancel (its close action) closes it onto Files", wp: "present overlay 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await presentOverlayPage(ctx);
+      await page.locator("#studio-right").getByRole("tab", { name: "Prototype" }).click();
+      const panel = page.locator('[data-e2e="prototype-panel"]');
+      await panel.waitFor({ state: "visible", timeout: 5000 });
+      await panel.locator('[data-frame="overlay:confirm"] button.studio-inspector__item').click();
+      await until(async () => (await page.locator('[data-studio-frame="overlay:confirm"]').getAttribute("data-selected")) === "true", { message: "the Overlay selected from Flow" });
+      await panel.getByRole("button", { name: "Present", exact: true }).click();
+      await player(page).waitFor({ state: "visible", timeout: 10_000 });
+      const dialog = player(page).getByRole("dialog", { name: "Delete the file?" });
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      await dialog.getByRole("button", { name: "Move to trash" }).click();
+      await until(async () => (await playShows(page)).screen === "done" && (await dialog.count()) === 0, { message: "Move to trash → Deleted" });
+      await player(page).getByRole("button", { name: "Back", exact: true }).click();
+      await until(async () => { const shows = await playShows(page); return shows.screen === "home" && !shows.overlay; }, { message: "Back → Files, the Dialog closed" });
+      await page.keyboard.press("r");
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      if ((await playShows(page)).screen !== "home") throw new Error("R restarted on another Screen than Files");
+      await dialog.getByRole("button", { name: "Cancel" }).click();
+      await until(async () => (await dialog.count()) === 0, { message: "Cancel closes the Dialog" });
+      if ((await playShows(page)).screen !== "home") throw new Error("Cancel left Files");
+      await leavePlay(page);
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      return "Flow › Dialog › Present → Files + Dialog · Move to trash → Deleted · Back → Files · R → the Dialog again · Cancel → Files · Esc → out";
+    },
+  },
+  {
+    id: "FW-172", feature: "An Overlay no Screen opens (a Bottom Sheet) presents alone from the Design tab's Present: over a blank screen of the page's device, size and device frame, named in the bar, Back off; its close action (Done) leaves Present, and so does one Esc", wp: "present overlay 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await presentOverlayPage(ctx);
+      const home = await homePlay(page);
+      await selectFrameRow(page, "overlay:about");
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      await page.locator("#studio-right").getByRole("button", { name: "Present", exact: true }).click();
+      await player(page).waitFor({ state: "visible", timeout: 10_000 });
+      const sheet = player(page).getByRole("dialog", { name: "About this app" });
+      await sheet.waitFor({ state: "visible", timeout: 5000 });
+      const shows = await playShows(page);
+      if (shows.screen || shows.overlay !== "about") throw new Error(`Play shows "${shows.screen}" with ${shows.overlay}, not the Sheet alone`);
+      if (shows.device !== home.device || shows.size !== home.size || shows.framed !== home.framed) throw new Error(`the Sheet plays on ${shows.device} ${shows.size}${shows.framed ? " framed" : ""}, Files on ${home.device} ${home.size}${home.framed ? " framed" : ""}`);
+      const blank = await player(page).locator(".studio-player__screen[data-blank] .studio-builder-screen").getAttribute("data-device", { timeout: 2000 }).catch(() => null);
+      if (blank !== "phone") throw new Error(`under the Sheet: ${blank ?? "no blank screen"}, not a blank phone screen`);
+      if (!(await player(page).innerText()).includes("· About this app")) throw new Error("the bar does not name the Sheet");
+      if (!(await player(page).getByRole("button", { name: "Back", exact: true }).isDisabled())) throw new Error("Back is on with nothing to go back to");
+      await sheet.getByRole("button", { name: "Done" }).click();
+      await player(page).waitFor({ state: "hidden", timeout: 5000 });
+      await page.locator(".studio-viewport").focus();
+      await presentKey(page);
+      await sheet.waitFor({ state: "visible", timeout: 5000 });
+      await leavePlay(page);
+      return `the Sheet alone on a blank ${shows.device} ${shows.size}${shows.framed ? " framed" : ""} · Done → out · ⌥⌘↵ · Esc → out`;
+    },
+  },
+  {
+    id: "FW-173", feature: "⌘K › Present on an Overlay the Overlay places (a Card, top right, dimmed) opens it over the Screen that opens it at once (no animation); a press outside closes it onto the Screen; Esc leaves", wp: "present overlay 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await presentOverlayPage(ctx);
+      await selectFrameRow(page, "overlay:tip");
+      await page.keyboard.press("ControlOrMeta+KeyK");
+      const actions = page.getByRole("dialog", { name: "Actions" });
+      await actions.waitFor({ state: "visible", timeout: 5000 });
+      await actions.getByLabel("Search actions").fill("Present");
+      await actions.locator(".studio-quick__option", { has: page.locator(".studio-quick__label", { hasText: /^Present$/ }) }).first().click();
+      await player(page).waitFor({ state: "visible", timeout: 10_000 });
+      const layer = player(page).locator('.studio-player__overlay[data-position="top-right"][data-background="true"]');
+      await layer.waitFor({ state: "visible", timeout: 5000 });
+      if (!(await layer.innerText()).includes("Tip: swipe a file to delete it.")) throw new Error("the Card is not in the overlay");
+      if (await layer.locator(".studio-player__overlay-content[data-motion]").count()) throw new Error("the presented Card animates in");
+      const shows = await playShows(page);
+      if (shows.screen !== "home" || shows.overlay !== "tip") throw new Error(`Play shows "${shows.screen}" with ${shows.overlay}, not Files with the Card`);
+      const box = await layer.boundingBox();
+      await page.mouse.click(box.x + 24, box.y + box.height - 24);
+      await until(async () => !(await playShows(page)).overlay, { message: "a press outside closes the Card" });
+      if ((await playShows(page)).screen !== "home") throw new Error("the press outside left Files");
+      await leavePlay(page);
+      return "⌘K › Present → Files + the Card top right, dimmed, no animation · press outside → Files · Esc → out";
+    },
+  },
+  {
+    id: "FW-174", feature: "Normal frames present as before: ⌥⌘↵ on a layer in a Screen plays from that Screen with no Overlay; the Prototype tab's Present on a Screen frame plays from it; the Design tab's Present on a Screen frame still presents the frame", wp: "present overlay 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await presentOverlayPage(ctx);
+      await clickNamed(page, id, "Button", 2);
+      await until(async () => (await selectedName(page)) === "Button", { message: "the Undo Button selected" });
+      await page.locator(".studio-viewport").focus();
+      await presentKey(page);
+      await until(async () => (await playShows(page)).screen === "done", { message: "Play on Deleted" });
+      if ((await playShows(page)).overlay || (await playerDevice(page).locator('[role="dialog"]').count())) throw new Error("an Overlay opened from a Screen's layer");
+      await leavePlay(page);
+      await selectFrameRow(page, "screen:home");
+      await page.locator("#studio-right").getByRole("tab", { name: "Prototype" }).click();
+      await page.locator('[data-e2e="prototype-panel"]').getByRole("button", { name: "Present", exact: true }).click();
+      await player(page).waitFor({ state: "visible", timeout: 10_000 });
+      await until(async () => { const shows = await playShows(page); return shows.screen === "home" && !shows.overlay; }, { message: "Play on Files, no Overlay" });
+      await leavePlay(page);
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      await page.locator("#studio-right").getByRole("button", { name: "Present", exact: true }).click();
+      const present = page.locator(".studio-present");
+      await present.waitFor({ state: "visible", timeout: 5000 });
+      if (await player(page).count()) throw new Error("the Design tab's Present on a Screen frame started Play");
+      await page.keyboard.press("Escape");
+      await present.waitFor({ state: "hidden", timeout: 5000 });
+      return "⌥⌘↵ on Undo → Deleted, no Overlay · Prototype › Present on Files → Files · Design › Present on Files → the frame presented";
     },
   },
 ];

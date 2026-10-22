@@ -234,6 +234,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
     conformance test keeps that list exact.
   - The Design panel heads a frame "Frame" and a group "Group", as Figma; the code name shows on hover, and Layers keep
     it.
+- Zen Studio presents an Overlay frame as Figma presents any frame: with a Dialog, Bottom Sheet, Side Panel or Card
+  Overlay selected, ⌥⌘↵, the Present buttons (Prototype and Design tabs), the canvas menu and ⌘K › Present open it at
+  once over the Screen that opens it, on that Screen's device, size and device frame; its interactions run, and closing
+  it (Esc, its close action, a press outside) goes on from that Screen. An Overlay no Screen opens shows over a blank
+  screen of the page's device, and closing it leaves Present. A reload keeps it (`?play=overlay:<id>`).
 - Design principles for AI-generated UI, as skill references (principles for judgement, not rules or checks):
   `skills/zen-component-usage/references/design-principles.md` (colour meaning and balance, lead and supporting
   hues, fill-to-content pairing by step, APCA, dark mode, data colours, hierarchy and composition) and
@@ -1122,6 +1127,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Dialog, ModalForm, BottomSheet and modal SidePanel: a modal in an inert part of the page no longer takes Escape
+  and Tab from the one in use, even when it opened last. Zen Studio draws Overlay frames open on its canvas, and
+  after a reload into Present from an Overlay, the canvas's copy took the Escape of the Dialog being presented.
 - Zen Studio: Layers lists the Main component's variants also when the page opens straight on them (their rows
   were sometimes empty).
 - Zen Studio: a page you just made opens on Layers, as a new Figma file does, instead of on the Pages list.
