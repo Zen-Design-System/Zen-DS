@@ -91,6 +91,18 @@ async function deleteMessage(text: string) {
   await userEvent.click(option);
 }
 
+describe("ChatComposer: the default quick action sends a like", () => {
+  it("sends 👍 through onSend when the app sets no quickAction, on both devices", async () => {
+    for (const device of ["mobile", "desktop"] as const) {
+      const onSend = vi.fn();
+      const screen = await render(<ZenProvider><ChatComposer device={device} onSend={onSend} /></ZenProvider>);
+      await screen.getByRole("button", { name: "Send a like" }).click();
+      expect(onSend).toHaveBeenCalledWith("👍");
+      await screen.unmount();
+    }
+  });
+});
+
 describe("useChatDemo: Delete acts at once and offers Undo", () => {
   it("removes the message, focuses the next one, and Undo in the toast puts it back", async () => {
     const screen = await render(<ZenProvider><DemoChat /></ZenProvider>);

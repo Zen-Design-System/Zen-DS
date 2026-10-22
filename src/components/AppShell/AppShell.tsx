@@ -83,7 +83,8 @@ export interface AppShellProps extends Omit<HTMLAttributes<HTMLDivElement>, "chi
   canvas?: "default" | "alt" | "flat";
   /**
    * Figma Pattern/AppShell/Mobile Top, the mobile structure (under 1024px: phones and iPad portrait):
-   * - `bar` (default): the TopNavigation on Surface/Alt over the page.
+   * - `bar` (default): the TopNavigation over the page, on the canvas's twin surface: Surface/Alt on the default canvas,
+   *   Surface/Default on `canvas="alt"`, Surface/Flat on `canvas="flat"`.
    * - `band`: a Support/Brand/Subtle band with the TopNavigation (transparent) and the `hero`, then the page.
    * - `band-sheet`: the band fills the screen and the page rises over it as a sheet with 3XLarge top corners.
    * - `media`: a `backdrop` (photo, video, map) behind a liquid-overlay TopNavigation, the page as a sheet over it.
@@ -146,7 +147,13 @@ const DRAWER_SHELL = { drawer: true };
 /** The patterns that keep the Sidebar beside the page; the others put the header across the top. */
 const SIDEBAR_PATTERNS = new Set<AppShellPattern>(["sidebar", "list-detail", "grid"]);
 /** Figma's TopNavigation type for each mobile Top, when the screen's own TopNavigation sets none. */
-const TOP_NAV_TYPE: Record<AppShellMobileTop, TopNavigationProps["type"]> = { bar: "alt", band: "transparent", "band-sheet": "transparent", media: "liquid-overlay" };
+const TOP_NAV_TYPE: Record<Exclude<AppShellMobileTop, "bar">, TopNavigationProps["type"]> = { band: "transparent", "band-sheet": "transparent", media: "liquid-overlay" };
+/**
+ * The Bar's TopNavigation takes the canvas's twin (Figma theme pairing, Theme-01…08; screen-rules §1): Canvas/Default ↔
+ * Surface/Alt (Type=Alt), Canvas/Alt ↔ Surface/Default (Type=Default), Canvas/Flat ↔ Surface/Flat, which Top-Navigation
+ * has no type for: a Default bar, repainted Surface/Flat in app-shell.css, as Figma screens override it by variable.
+ */
+const BAR_TYPE: Record<NonNullable<AppShellProps["canvas"]>, TopNavigationProps["type"]> = { default: "alt", alt: "default", flat: "default" };
 
 /**
  * An element's border-box size on one axis in CSS px, kept current by a ResizeObserver: 0 without the element; a hidden
@@ -417,7 +424,7 @@ export function AppShell({
     // Pattern/AppShell/Mobile: Top (Bar · Band · Band-Sheet · Media) over the Body, then the Bottom (Tab-Bar · Floating ·
     // Actions); the TopNavigation takes Figma's type for the Top unless it sets its own.
     const topNav = isValidElement<TopNavigationProps>(topNavigation) && topNavigation.props.type === undefined
-      ? cloneElement(topNavigation as ReactElement<TopNavigationProps>, { type: band === "accent" && (mobileTop === "band" || mobileTop === "band-sheet") ? "transparent-on-color" : TOP_NAV_TYPE[mobileTop] })
+      ? cloneElement(topNavigation as ReactElement<TopNavigationProps>, { type: band === "accent" && (mobileTop === "band" || mobileTop === "band-sheet") ? "transparent-on-color" : mobileTop === "bar" ? BAR_TYPE[canvas] : TOP_NAV_TYPE[mobileTop] })
       : topNavigation;
     const top = topNav ? <div className="zen-app-shell__top-nav">{nest.slot(topNav)}</div> : null;
     const body = <main ref={mainRef} id={mainId} className="zen-app-shell__body" tabIndex={-1}>{nest.slot(children)}</main>;
