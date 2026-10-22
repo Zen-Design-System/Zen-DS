@@ -24,6 +24,7 @@ import { InspectorRow, NoInlineLabel, useInlineLabel } from "./Section";
 import { numberRange, type NumberRange } from "./numberRanges";
 import { toneWarning } from "./toneRules";
 import { paletteFor, tonePalette, type SwatchPalette } from "./palettes";
+import { requestPickColor } from "../edit/pickColorRequest";
 import { RowSelectField } from "./rowFields";
 import { hexOf, nearestColors, parseHex, type Rgb } from "./controls/colorMatch";
 import { openVariables } from "../variables/variablesState";
@@ -632,6 +633,11 @@ export function SwatchControl({ label, value, fallback, disabled, onSet, options
             ))}
             <PopoverItem label="Create variable…" caption="Local variables" leading={<Icon name="icon-hexagon-01-line" size="sm" decorative />} onSelect={createVariable} />
           </div>
+        ) : null}
+        {/* Figma's eyedropper in its colour picker: this row's colour from a colour on the canvas (edit/pickColor.ts). */}
+        {!query.trim() ? (
+          <PopoverItem label="Pick color" caption="From the canvas" leading={<Icon name="icon-dropper-line" size="sm" decorative />}
+            onSelect={() => { close(); requestPickColor({ label, palette, options, onPick: (option) => { if (matched === undefined || palette.resolve(option) !== palette.resolve(matched)) onSet(option); } }); }} />
         ) : null}
         {groups.map(({ name, members }) => (
           <div key={name} role="group" aria-labelledby={`${listId}-${name}`} className="studio-type-control__group">

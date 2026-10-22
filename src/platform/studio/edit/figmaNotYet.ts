@@ -23,7 +23,6 @@ export const FIGMA_NOT_YET: readonly NotYet[] = [
   { code: "KeyK", keys: {}, name: "Scale" },
   { code: "KeyS", keys: {}, name: "Slice" },
   { code: "KeyC", keys: {}, name: "Comment" },
-  { code: "KeyI", keys: {}, name: "Pick color" },
 ];
 
 /** Whether the modifiers of `event` are exactly `keys` on this platform. */

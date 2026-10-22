@@ -52,6 +52,7 @@ import { openQuickActions } from "./edit/quick/state";
 import { useViewKeys } from "./canvas/viewKeys";
 import { useFindKey } from "./edit/FindPanel";
 import { useFigmaNotYet } from "./edit/figmaNotYet";
+import { startPickColor } from "./edit/pickColor";
 import { useLockKeys } from "./edit/lock";
 import { useRenameKeys } from "./edit/rename";
 import { BatchRenameDialog } from "./shell/BatchRenameDialog";
@@ -581,7 +582,8 @@ export function StudioApp() {
       }
       if (key === "v") studioStore.setState({ tool: "select" });
       else if (key === "h") studioStore.setState({ tool: "hand" });
-      else if (key === "i") studioStore.setState({ tool: "interact" });
+      // I: Figma's Pick color on a page you made (edit/pickColor.ts); Interact on an example page.
+      else if (key === "i") { if (state.localPage) startPickColor(); else studioStore.setState({ tool: "interact" }); }
       // Figma's A is the Frame tool too (on a page you made; elsewhere the Stack placement tool); T places text.
       else if (key === "a") studioStore.setState({ tool: state.localPage ? "frame" : "stack" });
       else if (key === "t") studioStore.setState({ tool: "text" });

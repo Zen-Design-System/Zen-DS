@@ -49,6 +49,25 @@ and the Figma tools; land smoothing first). Spec card §1 (same file as smoothin
 - Checks: gradient selftest 49, push 366, pull 119, native 138, appearance model 33, studio:selftest, tsc, style,
   usage, guidelines, ai-ui, compile-api, plugin npm test. E2E FW-181/182 pass (run alone, 2 rows).
 
+## Session B · Pick color (I) (tier M; parity ❌, user decision in session B: the layer's token, then the pixel)
+
+Branch zen/feat/studio-pick-color-20261022, stacked on the gradient branch (land smoothing → gradient → this).
+- edit/pickColorModel.ts (pure, selftest 10): what a pick paints (Shape fill · frame surface · a text-tone component's
+  tone; nothing on a Button), chooseOption (the layer's own variable when the target's palette has it, else the nearest
+  colour of that palette), pickOps (a fill or surface also takes a gradient's place, Figma's solid).
+- edit/pickColor.ts: I (page you made) arms it like the placement tools (capture listeners, crosshair, the drag tag names
+  the colour, the layer under the pointer outlined); a click reads the paint at the point (an SVG fill, a text's colour,
+  the first visible background; a picture or gradient → the browser's EyeDropper on that click, Chromium) and writes all
+  selected layers in one edit (setOwnPropsOnLayers); Esc, a press on the panels, another tool or page stops it.
+  edit/pickColorRequest.ts lets SwatchControl's new "Pick color" row (every colour list) start it for that row without
+  the Inspector importing the canvas code (madge: it had added a PropField ↔ pickColor cycle).
+- I left FIGMA_NOT_YET; StudioApp's I is Interact only on example pages; Quick actions › Pick color (I), Keyboard
+  shortcuts › Tools.
+- E2E FW-183…186 (pick onto a Shape, a frame exact and nearest, Esc / no selection / Quick actions, a colour row's
+  pick); FW-05's list lost I. The EyeDropper path has no E2E (the browser's own picker). My slip: I ran FW-05 +
+  FW-183…186 beside C's gate (check and run in one command); told C. FW-184's helper was fixed afterwards by reading
+  the code (layers chosen by data-name), to re-run in my gate turn.
+
 ## Select matching layers ⌥⌘A + Select all with same › (Session A, branch `zen/feat/studio-select-matching-20261022`)
 
 The user's ask, relayed by the progress session: "điều phối cho session nhận scope chưa ai nhận đi". ⌥⌘A was one of

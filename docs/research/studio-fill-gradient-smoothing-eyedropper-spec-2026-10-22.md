@@ -96,6 +96,8 @@ Like Figma: linear, radial, angular and diamond, with stops that are colour vari
 - A click picks a colour for the selected layers' fill (or the fill or stroke row being edited). Esc cancels.
 - I comes out of FIGMA_NOT_YET.
 - On builder pages, Interact stays on I.
+- Built (2026-10-22): edit/pickColor.ts; every colour list (SwatchControl) has Pick color for its own row; a picture's
+  pixel comes from the browser's EyeDropper (Chromium), opened by the same click.
 
 **Plan decision 1**
 - A picked colour snaps to the nearest colour variable, and the row shows its pill.

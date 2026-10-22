@@ -33,6 +33,7 @@ import { combineAsVariants, createComponentOfLayers, createComponents } from "..
 import { booleanSelection, flattenSelection, outlineStrokeSelection } from "../pathOps";
 import { maskSelection } from "../groupLayers";
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../autoLayout";
+import { startPickColor } from "../pickColor";
 
 /*
  * Every Studio action for Quick actions (⌘/, Figma's), with its shortcut and, when it cannot run now, why. Actions
@@ -67,6 +68,8 @@ export function commands(): Command[] {
     { id: "wrap-section", group: "Edit", label: "Wrap in new section", keywords: "section group frames", disabled: !state.localPage || !frameId || !/^(screen|overlay):/.test(frameId) || selection?.kind !== "frame" ? "Select a frame on a page you made" : !canEdit(state) ? "View only" : undefined, run: () => { if (state.localPage && frameId) void wrapInSection(state.localPage, selectedFrames().length ? selectedFrames() : [frameId]); } },
     // Zen's own tool (Figma has none): try the components where they are drawn, an Overlay frame's form included. On a
     // page you made it is here only (no toolbar button; I is Figma's Pick color there).
+    // Figma's Pick color (I), on a page you made: the selected layers' fill from a colour on the canvas (edit/pickColor.ts).
+    { id: "pick-color", group: "Tools", label: "Pick color", shortcut: state.localPage ? "I" : undefined, keywords: "eyedropper dropper sample colour fill", disabled: !state.localPage ? "Works on a page you made" : editOff, run: () => { startPickColor(); } },
     { id: "tool-interact", group: "Tools", label: "Interact", shortcut: state.localPage ? undefined : "I", keywords: "preview play use try examples components", run: () => studioStore.setState({ tool: "interact" }) },
     { id: "edit-text", group: "Edit", label: "Edit text", shortcut: "Enter", keywords: "type content copy", disabled: editOff, run: () => { if (!startTextEditOnSelection()) press({ key: "Enter", code: "Enter" }); } },
     { id: "copy", group: "Edit", label: "Copy", shortcut: clipboardShortcuts.copy, disabled: layerOff, run: () => { if (node) void clipboardActions.copy(node); } },
