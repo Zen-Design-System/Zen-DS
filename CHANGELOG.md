@@ -237,6 +237,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   area, then Export it (1x PNG to start; PNG, JPG or SVG at any scale) as a picture of the frames under it. A slice
   draws its dashed outline only, so a click inside it still selects what is under it; it is renamed, moved, resized,
   copied and deleted as a frame is, and Layers lists it. Not sent to Figma yet.
+- Zen Studio: Figma's Comment tool (C, or Comment in the toolbar) on a page you made: click the canvas to pin a
+  comment there (on a frame it stays at its place in the frame), reply, resolve and reopen, delete your own (an Admin
+  deletes any); the right panel lists the page's threads ("Show resolved" adds the resolved ones). You give your name
+  once; a Viewer comments too. Comments are kept beside the page file (`<page>.comments.json` in the pages folder),
+  never in the page's code, and are not sent to Figma.
 - Studio → Figma (Import from Studio): a Grid inside a Grid cell stretches to its row as in CSS, so a row's cards match its
   tallest (the Dashboard's metric pairs came out at their own heights); the direct paste keeps it at its own height.
 - Zen Studio: ⌥-drag, ⌘D and ⌘C ⌘V of a Section copy it with the frames and Sections it holds, in one ⌘Z, as Figma does
