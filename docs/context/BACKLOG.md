@@ -10,10 +10,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · Project components as real instances in Figma (2026-10-22, Session C, Libraries phase 2; needs a multi-page push):**
   a `<Use page>` is pushed as its main's layers with a note, because a push sends one page. A real INSTANCE needs the main's
   page pushed with it (several pages at once) and the importer to link them. Pointer: `tools/studio/figma-push.mjs` `pages`.
-- **P2 · Workflow steps still drawn as themed Badges (2026-10-21, BadgeStatus in code; multi-file migration):** other
-  platform pages and the HR templates show a task's step as `Badge theme={taskStatusTheme[…]}`; the new rule
-  `badge/workflow-status-uses-badge-status` flags new ones only. Move them to `<BadgeStatus>` (and Figma instances to
-  Badge-Status). Pointer: `grep -rn taskStatusTheme src/platform`.
+- **P3 · Figma instances of a workflow step still drawn as themed Badges (2026-10-21; code done 2026-10-23):** the
+  code side moved to BadgeStatus (platform examples, the app-layer AppShell playground, the HR Tasks template); Figma
+  screens that show a task's or project's step with a themed Badge instance still need swapping to Badge-Status. Waits
+  for the user: a write to the Zen Figma file.
 - **P3 · PropertyField ↔ Figma gaps (2026-10-21):** a People / Labels cell pushes one person and two tags (the
   Property-Value variants hold that many), and `BadgeStatus progress` is not pushed (Progress-Icon's arc is set by hand in
   Figma). Pointer: `tools/studio/figma-property.mjs`.

@@ -4,6 +4,7 @@ import { ActionBar } from "../../../components/ActionBar";
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge, BadgeCounter } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button, IconButton } from "../../../components/Button";
@@ -32,7 +33,7 @@ import { platformMedia } from "../../PlatformMedia";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import {
   activity, daysFromToday, files, formatBytes, formatDate, formatDay, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, invoices, leaveBalance, leaveRequests, leaveStatusTheme,
-  me, people, projectById, projectStatusTheme, studio, tasks, taskStatusTheme, type InvoiceStatus, type LeaveRequest, type Person, type PersonId, type ProjectStatus, type StudioFile, type TaskStatus,
+  me, people, projectById, projectStep, studio, tasks, taskStep, type InvoiceStatus, type LeaveRequest, type Person, type PersonId, type ProjectStatus, type StudioFile, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
@@ -100,12 +101,12 @@ const loyaltyTasks: TaskRow[] = [
 // On a phone the assignee joins the task's caption, so no fixed-width column is cut (backlog batch 6b).
 const phoneTaskColumns: TableColumn<TaskRow>[] = [
   { id: "task", header: "Task", cell: (row) => <TableText bold caption={`${row.key} · ${people[row.assignee].name}`}>{row.title}</TableText> },
-  { id: "status", header: "Status", cell: (row) => <Badge theme={taskStatusTheme[row.status]} background="subtle">{row.status}</Badge> },
+  { id: "status", header: "Status", cell: (row) => <BadgeStatus status={taskStep[row.status]}>{row.status}</BadgeStatus> },
 ];
 const taskColumns: TableColumn<TaskRow>[] = [
   { id: "task", header: "Task", cell: (row) => <TableText bold caption={row.key}>{row.title}</TableText> },
   { id: "assignee", header: "Assignee", width: "200px", cell: (row) => <TableMedia bold={false} media={<Avatar size="xs" {...avatarOf(people[row.assignee])} />}>{people[row.assignee].name}</TableMedia> },
-  { id: "status", header: "Status", width: "140px", cell: (row) => <Badge theme={taskStatusTheme[row.status]} background="subtle">{row.status}</Badge> },
+  { id: "status", header: "Status", width: "140px", cell: (row) => <BadgeStatus status={taskStep[row.status]}>{row.status}</BadgeStatus> },
   { id: "due", header: "Due", width: "140px", cell: (row) => <TableText>{formatDate(row.due)}</TableText> },
 ];
 
@@ -142,7 +143,7 @@ function PageActionsExample() {
               <PageHeader
                 eyebrow={loyalty.client}
                 title={loyalty.name}
-                meta={<Badge theme={projectStatusTheme[status]} background="subtle">{status}</Badge>}
+                meta={<BadgeStatus status={projectStep[status]}>{status}</BadgeStatus>}
                 description={`Points, rewards and checkout for the Phin & Co coffee app. Launch is due ${formatDate(loyalty.due)}.`}
                 actions={<>
                   <Button level="tertiary" startIcon="icon-share-01-line" onClick={() => setDialog("share")}>Share</Button>

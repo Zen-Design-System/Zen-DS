@@ -8,6 +8,7 @@ import { ActionBar } from "../../../components/ActionBar";
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar, AvatarStack, type AvatarSize } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { Button, IconButton } from "../../../components/Button";
 import { Chip } from "../../../components/Chip";
 import { DescriptionList } from "../../../components/DescriptionList";
@@ -33,7 +34,7 @@ import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import {
   TODAY, daysFromToday, files, formatBytes, formatDate, formatDue, formatMoney, formatRange, formatRelative, initials,
-  invoiceStatusTheme, me, people, projectById, projectStatusTheme, projects, studio, taskStatusTheme, tasks,
+  invoiceStatusTheme, me, people, projectById, projectProgress, projectStep, projects, studio, taskStep, tasks,
   type InvoiceStatus, type Person, type PersonId, type Project, type StudioFile, type TaskStatus,
 } from "../data";
 import { keepOnHotUpdate } from "../../hotData";
@@ -163,7 +164,7 @@ const projectColumns: TableColumn<Project>[] = [
   { id: "lead", header: "Lead", width: "170px", cell: (project) => <TableMedia bold={false} media={<PersonAvatar person={people[project.lead]} size="xs" />}>{people[project.lead].name}</TableMedia> },
   { id: "due", header: "Due", width: "140px", cell: (project) => <TableText>{formatDate(project.due)}</TableText> },
   { id: "progress", header: "Progress", width: "160px", cell: (project) => <ProgressBar className="px-table-progress" value={project.progress} label aria-label={`${project.name} progress`} /> },
-  { id: "status", header: "Status", width: "120px", cell: (project) => <TableBadges><Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge></TableBadges> },
+  { id: "status", header: "Status", width: "120px", cell: (project) => <TableBadges><BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus></TableBadges> },
   // A passive chevron says the row opens; the row itself is the target.
   { id: "open", header: <VisuallyHidden>Open</VisuallyHidden>, align: "right", width: "56px", cell: () => <Icon name="icon-chevron-right-line" size="base" decorative /> },
 ];
@@ -172,7 +173,7 @@ function ProjectDetail({ project }: { project: Project }) {
   const internal = project.budget === 0;
   return (
     <DescriptionList items={[
-      { id: "status", term: "Status", description: <Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge> },
+      { id: "status", term: "Status", description: <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus> },
       { id: "lead", term: "Lead", description: people[project.lead].name },
       { id: "team", term: "Team", description: <AvatarStack max={4} items={project.members.map((id) => { const person = people[id]; return person.photo ? { theme: "photo" as const, src: person.photo, alt: person.name } : { theme: person.theme, alt: person.name, children: initials(person.name) }; })} /> },
       { id: "dates", term: "Dates", description: formatRange(project.start, project.due) },
@@ -304,7 +305,7 @@ function EditInPlaceExample() {
     { id: "assignee", header: "Assignee", width: "180px", cell: (row) => <TableMedia bold={false} media={<PersonAvatar person={people[row.assignee]} size="xs" />}>{people[row.assignee].name}</TableMedia>,
       edit: { type: "select", value: (row) => row.assignee, disabled: done, options: loyaltyTeam.map((id) => ({ value: id, label: people[id].name })),
         onCommit: (row, value) => update(row.id, { assignee: value as PersonId }) } },
-    { id: "status", header: "Status", width: "150px", cell: (row) => <TableBadges><Badge theme={taskStatusTheme[row.status]} background="subtle">{row.status}</Badge></TableBadges>,
+    { id: "status", header: "Status", width: "150px", cell: (row) => <TableBadges><BadgeStatus status={taskStep[row.status]}>{row.status}</BadgeStatus></TableBadges>,
       edit: { type: "select", value: (row) => row.status, options: taskStatuses.map((status) => ({ value: status, label: status })),
         onCommit: (row, value) => {
           if (value === row.status) return;
@@ -326,7 +327,7 @@ function EditInPlaceExample() {
         title={opened?.title ?? ""} description={opened ? `${opened.key} · Loyalty app` : undefined}>
         {opened ? (
           <DescriptionList items={[
-            { id: "status", term: "Status", description: <Badge theme={taskStatusTheme[opened.status]} background="subtle">{opened.status}</Badge> },
+            { id: "status", term: "Status", description: <BadgeStatus status={taskStep[opened.status]}>{opened.status}</BadgeStatus> },
             { id: "assignee", term: "Assignee", description: people[opened.assignee].name },
             { id: "estimate", term: "Estimate", description: plural(opened.estimate, "hour") },
             { id: "labels", term: "Labels", description: opened.labels.join(", ") || "None" },

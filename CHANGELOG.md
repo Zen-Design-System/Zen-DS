@@ -17,6 +17,13 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- **Docs platform and the HR Tasks template:** every task's and project's status is a BadgeStatus (its ring and
+  colour come from the step; the label stays the data's word): To do / In progress / In review / Done, and projects'
+  Planning → to do, Active → in progress with the project's real progress, On hold → blocked, Completed → done
+  (`taskStep`, `projectStep`, `projectProgress` in the examples data). Leave and expense statuses stay Badges
+  (2026-10-23).
+- Usage harness: `app-shell/pattern-parts` reads only the shell's own props, so a part's content (a header's
+  `BadgeStatus progress`) no longer counts as the shell's `progress` (2026-10-23).
 - Zen Studio: copying a Section onto its own place (⌘D, ⌥-drag) no longer overflows the page's stack: of two
   Sections the same size the one written first holds the other, as documented, never both each other. The Studio E2E
   report (and the gate's) now names the row and the stack of every Vite error, so a page error that fails no row is
