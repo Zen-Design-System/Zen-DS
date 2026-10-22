@@ -1622,7 +1622,9 @@ export const rows = [
         await page.locator(".studio-viewport").focus();
         await page.keyboard.press("Delete");
         await until(async () => { const text = (await pageText(page, id)) ?? ""; return !/<Slice /.test(text) && /<Button/.test(text) && /<Screen id="screen-1"/.test(text); }, { message: "Delete takes the slice alone" });
-        if (((await pageText(page, id)) ?? "") !== before) throw new Error("Delete changed more than the slice");
+        // Drawing it pinned the frames in the same step (their x / y stay): the page is the drawn one less the slice.
+        const bare = (text) => text.replace(/<Slice [^>]*\/>/g, "").replace(/\s+/g, " ");
+        if (bare((await pageText(page, id)) ?? "") !== bare(drawn)) throw new Error("Delete changed more than the slice");
         await page.keyboard.press("ControlOrMeta+KeyZ");
         await until(async () => (await pageText(page, id)) === drawn, { message: "⌘Z brings it back" });
         await undoTo(page, id, before, 3);
