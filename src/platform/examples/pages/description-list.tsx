@@ -7,6 +7,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type FormEvent } from "react";
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { Button, IconButton } from "../../../components/Button";
@@ -34,8 +35,8 @@ import type { PlatformPage } from "../../PlatformExamples";
 import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { PreviewAppFrame, StudioLogo } from "../../PlatformFrames";
 import {
-  TODAY, activity, daysFromToday, formatDate, formatMoney, formatRange, formatRelative, invoiceStatusTheme, me, people, projects, projectStatusTheme, studio,
-  taskStatusTheme, type InvoiceStatus, type PersonId, type TaskStatus,
+  TODAY, activity, daysFromToday, formatDate, formatMoney, formatRange, formatRelative, invoiceStatusTheme, me, people, projects, projectProgress, projectStep, studio,
+  taskStep, type InvoiceStatus, type PersonId, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -376,7 +377,7 @@ function ProjectPanels() {
       : <SkeletonText lines={1} className="px-description-list-skeleton" />,
   });
   const rows = (project: ProjectRow): DescriptionListItem[] => [
-    { id: "status", term: "Status", description: <Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge> },
+    { id: "status", term: "Status", description: <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus> },
     { id: "lead", term: "Lead", description: people[project.lead].name },
     { id: "dates", term: "Dates", description: formatRange(project.start, project.due) },
     { id: "budget", term: "Budget", description: project.budget ? formatMoney(project.budget) : "None" },
@@ -435,7 +436,7 @@ function ProjectPanels() {
                     <ListItem key={project.id} data-project={project.id} title={project.name} selected={project.id === openId}
                       caption={(compact ? [project.status, project.client] : [project.client, people[project.lead].name]).join(" · ")}
                       leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" />}
-                      trailing={compact ? undefined : <Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>}
+                      trailing={compact ? undefined : <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>}
                       onClick={() => open(project.id)} />
                   ))}
                 </List>
@@ -496,7 +497,7 @@ function TaskPage() {
           <Stack gap="md">
             <Heading level={4} id={detailsId} textStyle="Heading/Subheading">Details</Heading>
             <DescriptionList items={[
-              { id: "status", term: "Status", description: <Badge theme={taskStatusTheme[status]} background="subtle">{status}</Badge> },
+              { id: "status", term: "Status", description: <BadgeStatus status={taskStep[status]}>{status}</BadgeStatus> },
               { id: "assignee", term: "Assignee", description: people.ava.name },
               { id: "reporter", term: "Reporter", description: people.alex.name },
               { id: "project", term: "Project", description: "Online banking redesign · Lumen Bank" },
@@ -826,7 +827,7 @@ const retry = () => { titleRef.current?.focus(); load(opened.id); };
       <Heading level={4} id="details" textStyle="Heading/Subheading">Details</Heading>
       {/* Narrower than stackBelow (280px by default): each term sits above its value. */}
       <DescriptionList items={[
-        { term: "Status", description: <Badge theme={taskStatusTheme[status]} background="subtle">{status}</Badge> },
+        { term: "Status", description: <BadgeStatus status={taskStep[status]}>{status}</BadgeStatus> },
         { term: "Assignee", description: "Ava Chen" },
         { term: "Project", description: "Online banking redesign · Lumen Bank" },
         finished ? { term: "Finished", description: formatRelative(finished) } : { term: "Due", description: "Oct 3, 2026" },

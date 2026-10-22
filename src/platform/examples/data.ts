@@ -4,6 +4,7 @@
    this module is read-only. A page that needs another domain (a shop checkout, a bank) keeps that data in its own file. */
 import type { AvatarTheme } from "../../components/Avatar";
 import type { BadgeTheme } from "../../components/Badge";
+import type { BadgeStatusValue } from "../../components/BadgeStatus";
 import type { DockIconTheme } from "../../components/DockIcon";
 import type { IconName } from "../../components/Icon";
 import photoAlex from "../../templates/hr/assets/account-photo.jpg";
@@ -148,9 +149,13 @@ export const activity: Activity[] = [
   { id: "a6", actor: "mai", verb: "marked as paid", object: "INV-2026-0141", at: daysFromToday(-8, 15, 30) },
 ];
 
+// ——— Workflow step → BadgeStatus (a task's and a project's step; the label stays the data's word) ————————————
+export const taskStep: Record<TaskStatus, BadgeStatusValue> = { "To do": "to-do", "In progress": "in-progress", "In review": "in-review", Done: "done" };
+export const projectStep: Record<ProjectStatus, BadgeStatusValue> = { Planning: "to-do", Active: "in-progress", "On hold": "blocked", Completed: "done" };
+/** An Active project's ring shows its real progress; the other steps draw their own (to do empty, done full). */
+export const projectProgress = (project: { status: ProjectStatus; progress?: number }) => (project.status === "Active" ? project.progress : undefined);
+
 // ——— Status → Badge theme (one vocabulary per domain, always a Badge) ——————————————————————
-export const taskStatusTheme: Record<TaskStatus, BadgeTheme> = { "To do": "neutral", "In progress": "blue", "In review": "purple", Done: "green" };
-export const projectStatusTheme: Record<ProjectStatus, BadgeTheme> = { Planning: "neutral", Active: "blue", "On hold": "orange", Completed: "green" };
 export const invoiceStatusTheme: Record<InvoiceStatus, BadgeTheme> = { Draft: "neutral", Sent: "blue", Paid: "green", Overdue: "red" };
 export const priorityTheme: Record<Priority, BadgeTheme> = { Low: "neutral", Medium: "yellow", High: "orange", Urgent: "red" };
 

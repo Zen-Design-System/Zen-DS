@@ -6,6 +6,7 @@ import { createContext, forwardRef, useContext, useId, useRef, useState, type An
 import { ActionBar } from "../../../components/ActionBar";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { Card } from "../../../components/Card";
 import { Chip } from "../../../components/Chip";
 import { DescriptionList } from "../../../components/DescriptionList";
@@ -24,7 +25,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
   activity, daysFromToday, formatDue, formatRange, formatRelative, initials, leaveRequests, leaveStatusTheme, people, priorityTheme, projectById,
-  taskStatusTheme, tasks, type PersonId, type Task,
+  taskStep, tasks, type PersonId, type Task,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -179,7 +180,7 @@ const taskRow = (task: Task, open: (task: Task) => void) => {
 const taskDetails = (task: Task) => [
   { term: "Assignee", description: people[task.assignee].name },
   { term: "Due", description: formatDue(task.due) },
-  { term: "Status", description: <Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge> },
+  { term: "Status", description: <BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus> },
   { term: "Priority", description: <Badge theme={priorityTheme[task.priority]} background="subtle">{task.priority}</Badge> },
 ];
 

@@ -7,7 +7,7 @@
  * - Money is USD. Tables and details show it whole (formatMoney), charts and KPI tiles may shorten it ({ compact }).
  * - Status vocabularies are fixed per domain and always render as a Badge with the theme from its map.
  */
-import type { AvatarTheme, BadgeTheme, DockIconTheme, FlagName, IconName, TextTone } from "@zen-ds/react";
+import type { AvatarTheme, BadgeStatusValue, BadgeTheme, DockIconTheme, FlagName, IconName, TextTone } from "@zen-ds/react";
 import accountPhoto from "./assets/account-photo.jpg";
 import workspaceLogo from "./assets/workspace-logo.png";
 
@@ -493,6 +493,8 @@ export const spaceList: Space[] = Object.values(spaces);
 export const taskStatuses = ["To do", "In progress", "In review", "Done"] as const;
 export type TaskStatus = (typeof taskStatuses)[number];
 export const taskStatusTheme: Record<TaskStatus, BadgeTheme> = { "To do": "neutral", "In progress": "blue", "In review": "yellow", Done: "green" };
+/** A task's workflow step as a BadgeStatus (the step picks the ring and the colour; the label stays the status word). */
+export const taskStep: Record<TaskStatus, BadgeStatusValue> = { "To do": "to-do", "In progress": "in-progress", "In review": "in-review", Done: "done" };
 /** How far along each status is, for a ProgressCircle status mark (0 · 25 · 50 · 100). */
 export const taskStatusProgress: Record<TaskStatus, number> = { "To do": 0, "In progress": 25, "In review": 50, Done: 100 };
 
