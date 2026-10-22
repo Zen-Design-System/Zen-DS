@@ -227,6 +227,34 @@ async function selectShapes(page, id, indexes) {
   }
   await until(async () => (await selectedSrc(page)).length === indexes.length || (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === indexes.length - 1, { message: `${indexes.length} shapes selected` });
 }
+/** Right-clicks the middle of `box` (a point: width and height 0) and returns the menu that opens. */
+async function menuOn(page, box) {
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
+  const menu = page.getByRole("menu").last();
+  await menu.waitFor({ state: "visible", timeout: 5000 });
+  return menu;
+}
+/** The menu's items in order: their text (label and shortcut) and whether they are dimmed. */
+const menuItems = (menu) => menu.getByRole("menuitem").evaluateAll((items) => items.map((item) => ({ text: item.innerText.replace(/\s+/g, " ").trim(), disabled: item.getAttribute("aria-disabled") === "true" || item.hasAttribute("disabled") || item.hasAttribute("data-disabled") })));
+/** A fresh load (the Studio forgets what it copied) with an empty system clipboard: nothing to paste. */
+async function forgetClipboard(page) {
+  await page.evaluate(() => navigator.clipboard.writeText("")).catch(() => undefined);
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+  await sleep(500);
+}
+/**
+ * A spot on the empty canvas right of the clip page's frame (room around it first), and `board(x, y)`: that spot on
+ * the board in px, given the frame's own written X / Y.
+ */
+async function emptySpot(page) {
+  await roomAround(page);
+  const element = page.locator('[data-studio-frame="screen:screen-1"]');
+  const frame = await element.boundingBox();
+  const zoom = frame.width / (await element.evaluate((node) => node.offsetWidth));
+  const spot = { x: frame.x + frame.width + 120, y: frame.y + 40 };
+  return { ...spot, board: (x, y) => ({ x: Math.round((x ?? 0) + (spot.x - frame.x) / zoom), y: Math.round((y ?? 0) + (spot.y - frame.y) / zoom) }) };
+}
 /** Each Shape's written X / Y in page order: [{ type, x, y }]. */
 const shapesIn = (text) => [...text.matchAll(/<Shape type="(\w+)"[^>]*?insetLeft=\{(-?\d+)\}[^>]*?insetTop=\{(-?\d+)\}/g)].map((match) => ({ type: match[1], x: Number(match[2]), y: Number(match[3]) }));
 
@@ -3263,6 +3291,124 @@ export const rows = [
         await undoTo(clip.page, clip.id, before, 4).catch(() => undefined);
       }
       return "Stack → Frame (title Stack) · ⌘G → Group";
+    },
+  },
+  {
+    id: "FW-150", feature: "A shape's layer menu has Flip horizontal ⇧H and Flip vertical ⇧V right after Lock (Figma's place); Flip horizontal writes flip=\"horizontal\", one ⌘Z takes it back", wp: "re-measure §2a menus 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 0);
+      const menu = await menuOn(page, await clipShape(page, id, 0).boundingBox());
+      const items = await menuItems(menu);
+      const at = items.findIndex((item) => /^Lock\b/.test(item.text));
+      const flips = items.slice(at + 1, at + 3).map((item) => item.text);
+      if (at < 0 || !/^Flip horizontal ⇧H$/.test(flips[0] ?? "") || !/^Flip vertical ⇧V$/.test(flips[1] ?? "")) throw new Error(`after Lock: ${flips.join(" | ")} (menu: ${items.map((item) => item.text).join(" | ")})`);
+      if (items[at + 1].disabled || items[at + 2].disabled) throw new Error("Flip is dimmed on a shape");
+      await menu.getByRole("menuitem", { name: /^Flip horizontal/ }).click();
+      await written(page, id, /<Shape type="rectangle"[^>]*flip="horizontal"/, "flip=\"horizontal\" on the rectangle");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z: no flip" });
+      return "… Lock · Flip horizontal ⇧H · Flip vertical ⇧V … → flip=\"horizontal\" → one ⌘Z";
+    },
+  },
+  {
+    id: "FW-151", feature: "Flip vertical in the menu of two floating shapes flips both and mirrors their places across their box, one ⌘Z", wp: "re-measure §2a menus 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      const menu = await menuOn(page, await clipShape(page, id, 1).boundingBox());
+      await menu.getByRole("menuitem", { name: /^Flip vertical/ }).click();
+      // Rectangle Y 20 H 60, ellipse Y 40 H 60: their box is Y 20…100, so they trade places (Y 40, Y 20).
+      await until(async () => { const text = (await pageText(page, id)) ?? ""; const shapes = shapeTags(text); return (text.match(/flip="vertical"/g) ?? []).length === 2 && shapes[0].y === 40 && shapes[1].y === 20; }, { message: "both flipped, the rectangle at Y 40, the ellipse at Y 20" }).catch(async (error) => { throw new Error(`${error.message} (${shapeTags((await pageText(page, id)) ?? "").map((shape) => shape.y).join(", ")})`); });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z: both back" });
+      return "two shapes → Flip vertical → flipped, Y 40 · Y 20 → one ⌘Z";
+    },
+  },
+  {
+id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shapes flip (as Flatten shows on shapes only), so a component's long menu stays in the window", wp: "re-measure §2a menus 2026-10-21",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await clickNamed(page, id, "Button");
+      await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+      const menu = await menuOn(page, await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).first().boundingBox());
+      const items = await menuItems(menu);
+      await page.keyboard.press("Escape");
+      if (!items.some((item) => /^Lock\b/.test(item.text))) throw new Error(`no Lock (menu: ${items.map((item) => item.text).join(" | ")})`);
+      const flips = items.filter((item) => /^Flip /.test(item.text));
+      if (flips.length) throw new Error(`a Button's menu offers ${flips.map((item) => item.text).join(", ")}`);
+      return `${items.length} items, no Flip`;
+    },
+  },
+  {
+    id: "FW-153", feature: "Right-click the empty canvas: Paste here, dimmed with nothing copied; after ⌘C on a shape it makes a frame of its size with its corner at the pointer, the shape at X 0 Y 0 inside, selected; one ⌘Z", wp: "re-measure §2a menus 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      let { page, id } = await clipPage(ctx);
+      await forgetClipboard(page);
+      ({ page, id } = await clipPage(ctx));
+      const before = (await pageText(page, id)) ?? "";
+      let spot = await emptySpot(page);
+      let menu = await menuOn(page, { x: spot.x, y: spot.y, width: 0, height: 0 });
+      const first = (await menuItems(menu))[0];
+      await page.keyboard.press("Escape");
+      if (first?.text !== "Paste here" || !first.disabled) throw new Error(`nothing copied: the menu starts ${first?.text} (${first?.disabled ? "dimmed" : "on"})`);
+      await selectShape(page, id, 0);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyC");
+      await until(async () => /Copied/i.test(await statusText(page)), { timeout: 3000, message: '"Copied"' });
+      await deselect(page);
+      spot = await emptySpot(page);
+      menu = await menuOn(page, { x: spot.x, y: spot.y, width: 0, height: 0 });
+      const paste = menu.getByRole("menuitem", { name: /^Paste here/ });
+      await until(async () => !(await paste.isDisabled()), { timeout: 3000, message: "Paste here on" });
+      await paste.click();
+      await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a new frame" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const frame = boardTag(text, "Screen", "screen-2");
+      const inside = text.slice(text.indexOf('<Screen id="screen-2"'), text.indexOf("</Screen>", text.indexOf('<Screen id="screen-2"')));
+      const shape = shapeTags(inside)[0];
+      const want = spot.board(numberAttr(boardTag(text, "Screen", "screen-1"), "x"), numberAttr(boardTag(text, "Screen", "screen-1"), "y"));
+      const problems = [
+        !/title="Frame 2"/.test(frame) && "not named Frame 2",
+        (numberAttr(frame, "width") !== 100 || numberAttr(frame, "height") !== 100) && `${numberAttr(frame, "width")} × ${numberAttr(frame, "height")} (want 100 × 100: an 80 × 60 shape, a frame is 100 at least)`,
+        (Math.abs(numberAttr(frame, "x") - want.x) > 3 || Math.abs(numberAttr(frame, "y") - want.y) > 3) && `at ${numberAttr(frame, "x")}, ${numberAttr(frame, "y")} (pointer ${want.x}, ${want.y})`,
+        (shape?.type !== "rectangle" || shape.x !== 0 || shape.y !== 0) && `inside: ${shape?.type} at ${shape?.x}, ${shape?.y}`,
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').getAttribute("data-selected")) === "true", { message: "the new frame selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z: the frame gone (the row's pin with it)" });
+      return `dimmed · ⌘C → Paste here → Frame 2 at ${numberAttr(frame, "x")}, ${numberAttr(frame, "y")}, 100 × 100, the rectangle at 0, 0 → one ⌘Z`;
+    },
+  },
+  {
+    id: "FW-154", feature: "⌘C on a frame, then Paste here on the empty canvas: a copy of the frame with its corner at the pointer, selected; one ⌘Z", wp: "re-measure §2a menus 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectFrame(page, "screen:screen-1");
+      await page.locator(".studio-viewport").focus();
+      await until(async () => { await page.keyboard.press("ControlOrMeta+KeyC"); await sleep(400); return /Copied frame/.test(await statusText(page)); }, { timeout: 8000, message: '"Copied frame"' });
+      await deselect(page);
+      const spot = await emptySpot(page);
+      const menu = await menuOn(page, { x: spot.x, y: spot.y, width: 0, height: 0 });
+      await menu.getByRole("menuitem", { name: /^Paste here/ }).click();
+      await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a copy of the frame" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const copy = boardTag(text, "Screen", "screen-2");
+      const want = spot.board(numberAttr(boardTag(text, "Screen", "screen-1"), "x"), numberAttr(boardTag(text, "Screen", "screen-1"), "y"));
+      if (Math.abs(numberAttr(copy, "x") - want.x) > 3 || Math.abs(numberAttr(copy, "y") - want.y) > 3) throw new Error(`the copy at ${numberAttr(copy, "x")}, ${numberAttr(copy, "y")} (pointer ${want.x}, ${want.y})`);
+      if (!/<Shape\b/.test(text.slice(text.indexOf('<Screen id="screen-2"')))) throw new Error("the copy holds no shapes");
+      await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').getAttribute("data-selected")) === "true", { message: "the copy selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z: the copy gone (the row's pin with it)" });
+      return `⌘C on the frame → Paste here → its copy at ${numberAttr(copy, "x")}, ${numberAttr(copy, "y")} → one ⌘Z`;
     },
   },
   {
