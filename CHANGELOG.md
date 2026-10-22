@@ -31,6 +31,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   60), drawn with CSS `corner-shape: superellipse(…)` where the browser has it (Chromium) and plain rounded corners
   elsewhere. Zen Studio sets it beside the independent corners and round-trips it with Figma's `cornerSmoothing`
   (push, pull, native paste, plugin `studio-import` ef17610).
+- Gradient fills (Figma's Linear, Radial, Angular and Diamond paints): Box, Stack, Grid and Shape take `gradient`
+  (`{ type, angle?, stops: [{ color, at }] }`), each stop a paint slug (a colour variable, the whole fill palette), over the
+  fill colour (a Shape then has none unless given) and under an image fill; diamond is drawn as four linear quadrants.
+  Zen Studio's Fill › Gradient sets the type, the angle and the stops on a gradient bar (a press adds one, a handle drags
+  or takes ← →, Delete removes it), and round-trips them with Figma's gradient paints bound to variables (push, pull,
+  native paste, plugin `studio-import` 9c54e40).
 - Zen Studio: the Design tab shows only Figma's sections; what only code reads (an HTML element, Scroll, a button's
   type, ids, aria-* and the attributes no API lists) moved from the closed "Code properties" section to the Code tab's
   Properties, above the layer's code, edited there the same way (2026-10-21, parity plan §3a; E2E FW-165…169).

@@ -43,7 +43,7 @@ Generated from the TypeScript source; full JSON in `docs/api/shape.json`.
 ### Shape
 Zen Shape: Figma's native shapes (Rectangle, Ellipse with its arc, Line, Arrow, Polygon, Star, and the Pen's Vector) for illustrations, marks and decoration drawn in Zen Studio. Not a Figma library component: it maps to Figma's own nodes (RECTANGLE, ELLIPSE with arcData, LINE, REGULAR_POLYGON, STAR, VECTOR) on export and import. Colours are Zen tokens only (`fill` from Color/Background, `stroke` from Color/Border); the rectangle's radius takes the Corner-Radius tokens. It sizes and places like a layout primitive: `width` / `height` (px or fill) and Figma's position props (in a free frame: `position="absolute"` with px insets).
 
-Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, CornerSmoothingProps, ImageFillProps`.
+Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, CornerSmoothingProps, ImageFillProps, GradientFillProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -70,13 +70,14 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProp
 | `imageFit` | `"fill" \| "fit" \| "crop" \| "tile"` | — | How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows, `fit` shows the whole picture, `crop` the part `imageCrop` names, stretched to the layer, `tile` repeats it at `imageScale`. |
 | `imageCrop` | `{ x: number; y: number; width: number; height: number }` | — | With `imageFit="crop"`: the part of the picture shown, in percent of it, e.g. { x: 10, y: 0, width: 80, height: 100 }. Unset: as `fill`. |
 | `imageScale` | `number` | — | With `imageFit="tile"`: each tile's size in percent of the picture's own size (Figma's tile scale). Default 100. |
+| `gradient` | `ZenGradient` | — | A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as a Shape's `fill`): it paints over the layer's fill colour (a Shape then has none unless `fill` is given) and under an image fill. Diamond is drawn as four linear quadrants (CSS has none). |
 | `type` | `"rectangle" \| "ellipse" \| "line" \| "arrow" \| "polygon" \| "star" \| "vector" \| "boolean"` | `"rectangle"` | The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc), `line` (LINE: `width` is its length, `rotation` its angle, no height), `arrow` (a LINE with Figma's "Line arrow" end cap), `polygon` (REGULAR_POLYGON, `pointCount` corners), `star` (STAR, `pointCount` tips, `starRatio`) and `vector` (VECTOR: the path `d` in its `viewBox`, as the Pen draws it) and `boolean` (BOOLEAN_OPERATION: its shapes, the children, combined by `operation`; Zen Studio writes the result as `d`). |
 | `operation` | `"union" \| "subtract" \| "intersect" \| "exclude"` | — | A boolean group's operation (`type="boolean"`): `union` (default), `subtract`, `intersect` or `exclude`, as Figma's. |
 | `children` | `ReactNode` | — | A boolean group's shapes (`type="boolean"`): placed at their X / Y inside it, not drawn themselves; their combined outline is. |
 | `d` | `string` | — | A vector's path (`type="vector"`): SVG path data in absolute M / L / C / Q / Z commands only (what Figma's vectorPaths take), in the coordinates of `viewBox`. Zen Studio's Pen and Pencil write it. |
 | `viewBox` | `string` | — | The box a vector's `d` is written in ("minX minY width height"); the path stretches from it to the shape's size, as Figma scales a vector. Default: the path's own bounds. |
 | `fillRule` | `"nonzero" \| "evenodd"` | — | How a vector's overlapping sub-paths fill (Figma's winding rule): `nonzero` (default) or `evenodd` (holes). |
-| `fill` | `ShapeFill` | — | Fill: a Color/Background token by its path ("neutral-subtle", "accent-solid", "surface", "support-blue-soft"; list in `shapeFills`), or "none". Default: Background/Support/Neutral/Soft, Figma's light grey; a line, arrow or vector has none, and a shape with an `image` has none unless it is given (the colour then shows around a `fit` picture). |
+| `fill` | `ShapeFill` | — | Fill: a Color/Background token by its path ("neutral-subtle", "accent-solid", "surface", "support-blue-soft"; list in `shapeFills`), or "none". Default: Background/Support/Neutral/Soft, Figma's light grey; a line, arrow or vector has none, and a shape with an `image` or a `gradient` has none unless it is given (the colour then shows around a `fit` picture, or through a gradient's transparent stops). |
 | `stroke` | `ShapeStroke` | — | Stroke: a Color/Border token by its path ("neutral-solid", "accent-subtle", "support-teal-solid"; `shapeStrokes`), or "none" (default; a line, arrow or vector takes Border/Neutral/Solid). |
 | `strokeWeight` | `number` | `1` | Stroke weight in px (Figma strokeWeight). Default 1. |
 | `strokeAlign` | `"inside" \| "center" \| "outside"` | — | Where the stroke sits on the edge: `inside` (default, as Figma's shapes), `center` (a line's and a vector's) or `outside`. |
@@ -97,8 +98,11 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProp
 Object shapes the props above refer to.
 
 ```ts
+interface GradientStop { color: Exclude<ShapeFill, "none">; at: number; }
+type GradientType = "linear" | "radial" | "angular" | "diamond"
 type ShapeFill = (typeof shapeFills)[number]
 type ShapeStroke = (typeof shapeStrokes)[number]
+interface ZenGradient { type: GradientType; angle?: number; stops: GradientStop[]; }
 type ZenMargin = "margin-comfortable" | "margin-compact"
 type ZenPadding = "none" | ZenScaleInput | "4xl" | ZenMargin
 type ZenScale = "3xs" | "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl"

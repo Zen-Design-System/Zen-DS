@@ -29,6 +29,40 @@ Branch zen/feat/studio-corner-smoothing-20261022. Spec card: docs/research/studi
 - Checks: push selftest +3 (363), pull 114, native +2 (133), compile 77, studio:selftest, tsc, usage, ai-ui, style,
   guidelines, compile-api, plugin npm test. E2E FW-180 (needs the gate slot).
 
+## Session B · Fill gradient (tier M; parity ❌, user decisions in session B: whole fill palette, diamond as 4 linear quadrants)
+
+Branch zen/feat/studio-fill-gradient-20261022, stacked on the corner-smoothing branch (they share Layout/Shape/appearance
+and the Figma tools; land smoothing first). Spec card §1 (same file as smoothing).
+- Library: `gradient` in _shared/gradient.ts (gradientLayers: linear-gradient(angle) · radial-gradient(closest-side) ·
+  conic-gradient(from angle) · diamond = 4 quadrant linear-gradients with stops at half; svgGradient for SVG shapes,
+  linear or radial). Frames: `data-gradient` + `--zen-gradient*` layers over the surface, under an image (layout.css).
+  Shape: a rectangle's own layers, an SVG shape's `<linearGradient>`/`<radialGradient>`; a Shape with a gradient has no
+  fill colour unless given (as with an image). Exported from Shape's index (gradientTypes, ZenGradient…).
+- Figma: tools/studio/figma-gradient.mjs. gradientTransform from the CSS angle in the layer's w × h (linear: through
+  the centre, as long as the box's projection; angular: turned about the centre from 3 o'clock; radial and diamond
+  identity), back to the angle (and a note when the handles were moved), stops ↔ Color/Background variables (a raw or
+  foreign stop is noted and left out). Push `gradientFill` on frames and shapes; reader READ_GRADIENT_FILL (async
+  variableName); native paste writes kiwi `stops` + `stopsVar` (alias) + `transform`, the same orientation as the
+  Plugin API's gradientTransform (checked against Figma's own copies in native-pack: Bottom-Navigation's stroke,
+  Area's fill bound to Accent/Solid); plugin 9c54e40 binds each stop through its `boundVariables`
+  (setBoundVariableForPaint takes solid paints only, measured) and sets a linear transform again once the page is laid
+  out (settleGradients: a hugging frame grows after its look).
+- Live (Zen file, QA page, frame removed): the plugin's own functions on real layers: 5 paints, stops bound, the hug
+  frame's transform settled (0.366 → 0.552 at 141 × 66); read back and pulled: all five gradients equal, no notes;
+  Figma draws them as the CSS does (45° pink bottom-left → blue top-right, angular seam at 200°). Native paste not
+  pasted live (scripted pastes unreliable, memory).
+- Studio: Fill › Gradient (GradientFillRow.tsx): type (PropField, − in its icon column), angle (linear, angular), the
+  gradient bar (role=slider handles: drag, ← → / ⇧ 10, Home / End, Delete; a press on the bar adds a stop), the selected
+  stop's place (− removes it, a gradient keeps two) and its colour (SwatchControl, whole fill palette). A shape's colour
+  becomes the first stop (Figma's paint type); a frame's fill stays under it (keeps Zen's shadow-on-Surface rule).
+  The first layout (one row per stop) failed panelFits (long variable names cut, fields off the grid): replaced by the
+  bar and one selected stop. − on a shape's gradient writes fill="none" (Figma's −), never the default grey back.
+- Fixed on the way: frameLookProps' `else if (node.fill)` note fired for every frame with a surface since F8a; the frame
+  read takes only SOLID fills. Smoothing branch: its position selftest still listed the radius props without
+  cornerSmoothing (fixed there, 50e42099).
+- Checks: gradient selftest 49, push 366, pull 119, native 138, appearance model 33, studio:selftest, tsc, style,
+  usage, guidelines, ai-ui, compile-api, plugin npm test. E2E FW-181/182 pass (run alone, 2 rows).
+
 ## Select matching layers ⌥⌘A + Select all with same › (Session A, branch `zen/feat/studio-select-matching-20261022`)
 
 The user's ask, relayed by the progress session: "điều phối cho session nhận scope chưa ai nhận đi". ⌥⌘A was one of

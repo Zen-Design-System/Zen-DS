@@ -10,6 +10,7 @@ import { PropField } from "../inspector/PropField";
 import type { Literal, PropSpec, PropValue } from "../inspector/propSchema";
 import { InspectorSection } from "../inspector/Section";
 import type { EditOp } from "../types";
+import { GradientFillRow } from "./GradientFillRow";
 import { ImageFillRow } from "./ImageFillRow";
 import "./appearance.css";
 
@@ -22,7 +23,7 @@ import "./appearance.css";
  */
 
 /** The props these sections show, so DesignPanel keeps them out of Properties. */
-export const shapePropNames: readonly string[] = ["type", "fill", "image", "imageFit", "imageCrop", "imageScale", "stroke", "strokeWeight", "strokeAlign", "arcStart", "arcSweep", "arcRatio", "pointCount", "starRatio", "opacity", "blendMode", "radius", ...CORNERS, "d", "viewBox", "fillRule"];
+export const shapePropNames: readonly string[] = ["type", "fill", "gradient", "image", "imageFit", "imageCrop", "imageScale", "stroke", "strokeWeight", "strokeAlign", "arcStart", "arcSweep", "arcRatio", "pointCount", "starRatio", "opacity", "blendMode", "radius", ...CORNERS, "d", "viewBox", "fillRule"];
 
 /** A field's leading mark, an icon as Figma's (it is also what the pointer scrubs). */
 const mark = (name: IconName) => <Icon name={name} size="sm" decorative />;
@@ -86,7 +87,8 @@ export function ShapeSections({ api, specs, host }: { api: FieldApi; specs: Prop
       </InspectorSection>
       {line ? null : (
         <InspectorSection title="Fill">
-          {field("fill", "Fill", vector || api.valueFor("image").state !== "unset" ? "none" : DEFAULT_SHAPE_FILL)}
+          {field("fill", "Fill", vector || api.valueFor("image").state !== "unset" || api.valueFor("gradient").state !== "unset" ? "none" : DEFAULT_SHAPE_FILL)}
+          <GradientFillRow api={api} specs={specs} shapeFill={vector ? "none" : DEFAULT_SHAPE_FILL} />
           <ImageFillRow api={api} specs={specs} host={host} />
         </InspectorSection>
       )}

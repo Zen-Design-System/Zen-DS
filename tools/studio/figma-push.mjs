@@ -27,6 +27,7 @@ import { PROPERTY_TYPE as PROPERTY_CELL_TYPE, propertyValueFigma } from "./figma
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { textSegments } from "./text-runs.mjs";
+import { gradientFillOf } from "./figma-gradient.mjs";
 import { imageFillOf } from "./figma-image.mjs";
 import { arcData, fitVectorPath, normalizeArc, parseVectorPath, parseViewBox, STAR_RATIO, vectorBounds } from "../../src/components/Shape/geometry.ts";
 import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL, shapeFillTokens, shapeStrokeTokens } from "../../src/components/Shape/paint.ts";
@@ -660,7 +661,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // An image fill (F8, figma-image.mjs): the importer's IMAGE paint over the colour; a shape with one has no colour unless given.
     const picture = line ? null : imageFillOf(code, element);
     if (picture) images.add(picture.src);
-    const fill = code.fill ?? (line || vector || picture ? "none" : DEFAULT_SHAPE_FILL);
+    // A gradient fill (figma-gradient.mjs): the importer's gradient paint over the colour, under the picture.
+    const gradient = line ? null : gradientFillOf(element);
+    const fill = code.fill ?? (line || vector || picture || gradient ? "none" : DEFAULT_SHAPE_FILL);
     const stroke = code.stroke ?? (line || vector ? DEFAULT_LINE_STROKE : "none");
     const width = typeof code.width === "number" ? code.width : SHAPE_DEFAULT_SIZE;
     const height = line ? 0 : typeof code.height === "number" ? code.height : SHAPE_DEFAULT_SIZE;
@@ -671,6 +674,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     return {
       type: SHAPE_NODE[kind], shape: true, ...(id ? { id } : {}), name: SHAPE_LABEL[kind],
       ...(fill !== "none" && shapeFillTokens[fill] ? { fill: shapeFillTokens[fill] } : {}),
+      ...(gradient ? { gradientFill: gradient } : {}),
       ...(picture ? { imageFill: picture } : {}),
       ...(stroke !== "none" && shapeStrokeTokens[stroke] ? { stroke: shapeStrokeTokens[stroke], strokeWeight: weight, strokeAlign: line ? "CENTER" : { center: "CENTER", outside: "OUTSIDE", inside: "INSIDE" }[code.strokeAlign] ?? (vector ? "CENTER" : "INSIDE") } : {}),
       // A vector: its path in the node's px (Figma's vectorPaths), stretched from its viewBox to its size.
@@ -1453,6 +1457,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // An image fill (F8, figma-image.mjs) over the frame's fill.
     const picture = imageFillOf(code, element);
     if (picture) { look.imageFill = picture; images.add(picture.src); }
+    // A gradient fill (figma-gradient.mjs) over the fill, under the picture.
+    const gradient = gradientFillOf(element);
+    if (gradient) look.gradientFill = gradient;
     const stroke = FRAME_STROKE[code.border];
     if (stroke) {
       look.stroke = stroke;
@@ -1559,9 +1566,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       // wide, 2026-10-16). It fills; one with a surface keeps hugging (its background would spread).
       const holdsWrap = !row && !own.width && wrapsText(node);
       const wide = (fillW && !oneLine) || shareW || holdsWrap || (node.type === "TEXT" && !row && !node.autoWidth) || (row && child.name === "Divider");
-      // A frame of a px width / height keeps it (CSS: a set width wins over a column's stretch).
-      const ownW = node.type === "FRAME" && node.fixedWidth !== undefined;
-      const ownH = node.type === "FRAME" && node.fixedHeight !== undefined;
+      // A frame or a shape of a px width / height keeps it (CSS: a set width wins over a column's stretch; a rectangle of
+      // width 200 pasted 1392 wide, 2026-10-22).
+      const ownW = (node.type === "FRAME" || node.shape) && node.fixedWidth !== undefined;
+      const ownH = (node.type === "FRAME" || node.shape) && node.fixedHeight !== undefined;
       return { ...node, ...(wide && !ownW ? { fillW: true } : {}), ...((fillH || shareH) && !ownH ? { fillH: true } : {}) };
     }).filter(Boolean);
     if (grid && !fit) {

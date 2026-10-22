@@ -79,6 +79,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `imageFit` | `"fill" \| "fit" \| "crop" \| "tile"` | — | How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows, `fit` shows the whole picture, `crop` the part `imageCrop` names, stretched to the layer, `tile` repeats it at `imageScale`. |
 | `imageCrop` | `{ x: number; y: number; width: number; height: number }` | — | With `imageFit="crop"`: the part of the picture shown, in percent of it, e.g. { x: 10, y: 0, width: 80, height: 100 }. Unset: as `fill`. |
 | `imageScale` | `number` | — | With `imageFit="tile"`: each tile's size in percent of the picture's own size (Figma's tile scale). Default 100. |
+| `gradient` | `ZenGradient` | — | A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as a Shape's `fill`): it paints over the layer's fill colour (a Shape then has none unless `fill` is given) and under an image fill. Diamond is drawn as four linear quadrants (CSS has none). |
 | `surface` | `"none" \| "surface" \| "surface-alt" \| "subtle" \| "pale" \| "canvas"` | `"none"` | Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable. `surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` (Background/Neutral) for wells. `canvas` (Background/Canvas/Default) is the page itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). Default none. |
 | `border` | `"none" \| "pale" \| "subtle"` | `"none"` | Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale` (Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md). Inside the frame, as Figma's Inside stroke. Default none. |
 | `borderWeight` | `number` | — | Stroke weight in px (Figma strokeWeight), read with `border`. Default 1. |
@@ -135,6 +136,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `imageFit` | `"fill" \| "fit" \| "crop" \| "tile"` | — | How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows, `fit` shows the whole picture, `crop` the part `imageCrop` names, stretched to the layer, `tile` repeats it at `imageScale`. |
 | `imageCrop` | `{ x: number; y: number; width: number; height: number }` | — | With `imageFit="crop"`: the part of the picture shown, in percent of it, e.g. { x: 10, y: 0, width: 80, height: 100 }. Unset: as `fill`. |
 | `imageScale` | `number` | — | With `imageFit="tile"`: each tile's size in percent of the picture's own size (Figma's tile scale). Default 100. |
+| `gradient` | `ZenGradient` | — | A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as a Shape's `fill`): it paints over the layer's fill colour (a Shape then has none unless `fill` is given) and under an image fill. Diamond is drawn as four linear quadrants (CSS has none). |
 | `surface` | `"none" \| "surface" \| "surface-alt" \| "subtle" \| "pale" \| "canvas"` | `"none"` | Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable. `surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` (Background/Neutral) for wells. `canvas` (Background/Canvas/Default) is the page itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). Default none. |
 | `border` | `"none" \| "pale" \| "subtle"` | `"none"` | Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale` (Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md). Inside the frame, as Figma's Inside stroke. Default none. |
 | `borderWeight` | `number` | — | Stroke weight in px (Figma strokeWeight), read with `border`. Default 1. |
@@ -191,6 +193,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `imageFit` | `"fill" \| "fit" \| "crop" \| "tile"` | — | How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows, `fit` shows the whole picture, `crop` the part `imageCrop` names, stretched to the layer, `tile` repeats it at `imageScale`. |
 | `imageCrop` | `{ x: number; y: number; width: number; height: number }` | — | With `imageFit="crop"`: the part of the picture shown, in percent of it, e.g. { x: 10, y: 0, width: 80, height: 100 }. Unset: as `fill`. |
 | `imageScale` | `number` | — | With `imageFit="tile"`: each tile's size in percent of the picture's own size (Figma's tile scale). Default 100. |
+| `gradient` | `ZenGradient` | — | A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as a Shape's `fill`): it paints over the layer's fill colour (a Shape then has none unless `fill` is given) and under an image fill. Diamond is drawn as four linear quadrants (CSS has none). |
 | `surface` | `"none" \| "surface" \| "surface-alt" \| "subtle" \| "pale" \| "canvas"` | `"none"` | Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable. `surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt) canvas, `subtle` / `pale` (Background/Neutral) for wells. `canvas` (Background/Canvas/Default) is the page itself: only for a whole screen or page area drawn inside something else (an app screen in a preview), never for a card. Never Flat (navigation) or Container (modals and sheets use Dialog / BottomSheet). Default none. |
 | `border` | `"none" \| "pale" \| "subtle"` | `"none"` | Stroke: a closed border, `subtle` (Border/Neutral/Subtle/Default) when the frame is actionable, `pale` (Border/Neutral/Pale/Default) when it is static (docs/guidelines/borders.md). Inside the frame, as Figma's Inside stroke. Default none. |
 | `borderWeight` | `number` | — | Stroke weight in px (Figma strokeWeight), read with `border`. Default 1. |
@@ -228,7 +231,11 @@ Also accepts `HTMLAttributes<HTMLElement>`.
 Object shapes the props above refer to.
 
 ```ts
+interface GradientStop { color: Exclude<ShapeFill, "none">; at: number; }
+type GradientType = "linear" | "radial" | "angular" | "diamond"
 type GridTracks = number | string
+type ShapeFill = (typeof shapeFills)[number]
+interface ZenGradient { type: GradientType; angle?: number; stops: GradientStop[]; }
 type ZenMargin = "margin-comfortable" | "margin-compact"
 type ZenPadding = "none" | ZenScaleInput | "4xl" | ZenMargin
 type ZenScale = "3xs" | "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl"

@@ -25,6 +25,7 @@ import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma, subActionFromFigma
 import { propertyValueElement } from "./figma-property.mjs";
 import { runsFromSegments } from "./text-runs.mjs";
 import { instanceLayerPaths } from "./instance-paths.mjs";
+import { gradientFillProps, READ_GRADIENT_FILL } from "./figma-gradient.mjs";
 import { imageFillProps, READ_IMAGE_FILL } from "./figma-image.mjs";
 import { zenBlendOf } from "./blend-modes.mjs";
 import { takesInstanceLook } from "./instance-look.mjs";
@@ -64,6 +65,7 @@ figma.skipInvisibleInstanceChildren = false;
 const layerKey = ${layerKey.toString()};
 const variableName = async (id) => { if (!id) return null; const v = await figma.variables.getVariableByIdAsync(id); return v ? v.name : null; };
 ${READ_IMAGE_FILL}
+${READ_GRADIENT_FILL}
 // Figma's arrow (⇧L, and the push's arrow): a VECTOR of two vertices on one level, one straight segment, a NONE start
 // and an arrow cap at its end (its copy of a drawn arrow, 2026-10-20). Read behind \`in\` (Figma throws on a property a
 // node type lacks).
@@ -619,7 +621,7 @@ const readFrame = async (node, root = false) => {
       radius: typeof own("cornerRadius") === "number" ? node.cornerRadius : null, radiusVar: await variableName(radiusBinding),
       // Corner smoothing (0–1), when set.
       ...(typeof own("cornerSmoothing") === "number" && node.cornerSmoothing > 0 ? { smoothing: node.cornerSmoothing } : {}),
-      rotation: turn, ...(mirrored ? { flip: "horizontal" } : {}), opacity: node.opacity, imageFill: readImageFill(node),
+      rotation: turn, ...(mirrored ? { flip: "horizontal" } : {}), opacity: node.opacity, imageFill: readImageFill(node), gradientFill: await readGradientFill(node),
       // Its layer blend (Appearance › blend mode): Normal is a shape's default.
       ...("blendMode" in node && typeof node.blendMode === "string" && node.blendMode !== "NORMAL" ? { blendMode: node.blendMode } : {}),
       // A vector's own paths; a boolean group's result (its fill geometry: Figma combined its shapes, F9b).
@@ -677,12 +679,15 @@ const readFrame = async (node, root = false) => {
   if (!root && own("clipsContent") === true) out.clip = true;
   // Overflow scrolling (Stack / Box scroll) and a background bound to a colour variable (a Box's surface).
   if (!root && own("overflowDirection") && node.overflowDirection !== "NONE") out.scroll = node.overflowDirection;
-  const paint = !root && Array.isArray(own("fills")) ? node.fills.find((fill) => fill.visible !== false) : null;
+  const paint = !root && Array.isArray(own("fills")) ? node.fills.find((fill) => fill.visible !== false && fill.type === "SOLID") : null;
   const fill = paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null;
   if (fill) out.fill = fill;
   // An image fill (F8, figma-image.mjs): the picture back by its Studio src.
   const imageFill = !root ? readImageFill(node) : null;
   if (imageFill) out.imageFill = imageFill;
+  // A gradient fill (figma-gradient.mjs): its type, transform and stops' variables.
+  const gradientFill = !root ? await readGradientFill(node) : null;
+  if (gradientFill) out.gradientFill = gradientFill;
   // Its stroke (variable, weight per side, dash), corners and their variables, effect style, opacity, rotation and
   // mirror: one Zen frame (figma-push frameLook, the other way). The page frame itself is the Screen.
   if (!root) {
@@ -1848,7 +1853,11 @@ function shapeElement(node, ctx) {
   const picture = line ? { props: {}, note: null } : imageFillProps(shape.imageFill, literal);
   Object.assign(props, picture.props);
   if (picture.note) ctx.notes.push(`${where}: ${picture.note}`);
-  paint("fill", line ? null : shape.fill, FILL_OF, line || (vector && !boolean) || shape.imageFill ? "none" : DEFAULT_SHAPE_FILL);
+  // A gradient fill (figma-gradient.mjs): its stops back on their colour variables; a shape with one has no colour unless given.
+  const graded = line ? { props: {}, notes: [] } : gradientFillProps(shape.gradientFill, literal);
+  Object.assign(props, graded.props);
+  for (const note of graded.notes) ctx.notes.push(`${where}: ${note}`);
+  paint("fill", line ? null : shape.fill, FILL_OF, line || (vector && !boolean) || shape.imageFill || graded.props.gradient ? "none" : DEFAULT_SHAPE_FILL);
   paint("stroke", shape.stroke, STROKE_OF, line || (vector && !boolean) ? DEFAULT_LINE_STROKE : "none");
   if (shape.stroke && shape.strokeWeight !== 1) props.strokeWeight = literal(round2(shape.strokeWeight));
   if (shape.stroke && !line && shape.strokeAlign && shape.strokeAlign !== (vector && !boolean ? "CENTER" : "INSIDE")) props.strokeAlign = literal(shape.strokeAlign.toLowerCase());
@@ -2518,11 +2527,15 @@ function frameLookProps(node, ctx) {
   const where = `Frame "${node.name}"`;
   const surface = SURFACE_OF[String(node.fill ?? "").replace(/^Color\//, "")];
   if (surface) props.surface = literal(surface);
+  else if (node.fill) ctx.notes.push(`${where}: its fill ${node.fill} is no Zen background layer (surface · surface-alt · subtle · pale · canvas); left without a fill`);
   // An image fill (F8, figma-image.mjs) over the fill.
   const picture = imageFillProps(node.imageFill, literal);
   Object.assign(props, picture.props);
   if (picture.note) ctx.notes.push(`${where}: ${picture.note}`);
-  else if (node.fill) ctx.notes.push(`${where}: its fill ${node.fill} is no Zen background layer (surface · surface-alt · subtle · pale · canvas); left without a fill`);
+  // A gradient fill (figma-gradient.mjs) over the fill, under the picture.
+  const graded = gradientFillProps(node.gradientFill, literal);
+  Object.assign(props, graded.props);
+  for (const note of graded.notes) ctx.notes.push(`${where}: ${note}`);
   if (node.stroke) {
     const border = BORDER_OF[String(node.stroke).replace(/^Color\//, "")];
     // The read gives a weight per side; the push's own JSON (the round trip) its weight and one side.

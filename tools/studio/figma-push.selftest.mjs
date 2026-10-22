@@ -2204,6 +2204,37 @@ export default function Page() {
   check("image fill: the pictures' bytes are asked for", [...(images ?? [])].sort(), ["zen-asset:bridge-1a2b3c4d.webp", "zen-media:site-cafe"]);
 }
 
+// Gradient fills (figma-gradient.mjs): a Shape's and a frame's gradient go up as `gradientFill` (Figma's type, the CSS
+// angle, stops on their colour variables); a Shape with one has no colour unless it is given.
+{
+  const gradientsPage = `// @zen-page {"format":1,"title":"Gradients"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Shape, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Gradients" device="desktop">
+        <Stack gap="lg">
+          <Shape gradient={{ type: "linear", angle: 45, stops: [{ color: "accent-solid", at: 0 }, { color: "info-solid", at: 100 }] }} width={200} height={100} />
+          <Shape type="ellipse" fill="neutral-subtle" gradient={{ type: "diamond", stops: [{ color: "accent-solid", at: 20 }, { color: "no-such", at: 50 }, { color: "info-solid", at: 100 }] }} width={80} height={80} />
+          <Box gradient={{ type: "angular", angle: 180, stops: [{ color: "accent-solid", at: 0 }, { color: "info-solid", at: 100 }] }} width={300} height={120} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(gradientsPage);
+  const [linear, diamond, angular] = frame.children;
+  const stops = [{ position: 0, color: "Color/Background/Accent/Solid/Default" }, { position: 1, color: "Color/Background/Info/Solid/Default" }];
+  check("gradient: a Shape's linear, no colour", [linear.gradientFill, linear.fill], [{ type: "GRADIENT_LINEAR", angle: 45, stops }, undefined]);
+  check("gradient: a diamond over a given colour; an unknown stop left out", [diamond.gradientFill, Boolean(diamond.fill)], [{ type: "GRADIENT_DIAMOND", stops: [{ position: 0.2, color: stops[0].color }, stops[1]] }, true]);
+  check("gradient: a frame's angular", angular.gradientFill, { type: "GRADIENT_ANGULAR", angle: 180, stops });
+}
+
 // F4 fix (A found it in the live Zen file, 2026-10-19): a free frame (a Box of a px size whose layers all float) is
 // Figma's frame without auto layout, layoutMode NONE; pulled back it is the same Box, its layers at their X / Y.
 {
@@ -2320,6 +2351,8 @@ export default function Page() {
   const { frame } = push(page);
   const [squircle, box, rect, round] = frame.children;
   check("cornerSmoothing: Figma's 0–1 on frames and a rectangle; none where the page gives none", [squircle.cornerSmoothing, box.cornerSmoothing, rect.cornerSmoothing, round.cornerSmoothing ?? 0], [0.6, 1, 0.6, 0]);
+  // CSS: a set width wins over a column's stretch, so the shape keeps it (a 200-wide rectangle pasted 1392 wide, 2026-10-22).
+  check("a rectangle of a set width keeps it in a stretching column", [rect.fixedWidth, Boolean(rect.fillW), Boolean(rect.fillH)], [80, false, false]);
   const back = pageFromFigma(frame, { mapping }).text;
   check("round trip: a frame's cornerSmoothing comes back in %", [back.includes('radius="lg" cornerSmoothing={60}'), back.includes("cornerSmoothing={100}")], [true, true]);
   // The read's shapes: a rectangle's smoothing under `shape`.

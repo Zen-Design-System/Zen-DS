@@ -12,6 +12,7 @@
 import { cornerRadiusValue, type CornerRadiusProps, type CornerSmoothingProps } from "../_shared/corners";
 import type { ZenCornerRadius } from "../_shared/scale";
 import { imageFillPropNames, type ImageFillProps } from "../_shared/image-fill";
+import { gradientPropNames, gradientStyle, type GradientFillProps } from "../_shared/gradient";
 
 /** The background layers a frame may paint (docs/guidelines/background-layers.md). */
 export const boxSurfaces = ["none", "surface", "surface-alt", "subtle", "pale", "canvas"] as const;
@@ -36,7 +37,7 @@ export type FrameFlip = (typeof frameFlips)[number];
 export const zenBlendModes = ["pass-through", "normal", "darken", "multiply", "plus-darker", "color-burn", "lighten", "screen", "plus-lighter", "color-dodge", "overlay", "soft-light", "hard-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"] as const;
 export type ZenBlendMode = (typeof zenBlendModes)[number];
 
-export interface FrameAppearanceProps extends CornerRadiusProps, CornerSmoothingProps, ImageFillProps {
+export interface FrameAppearanceProps extends CornerRadiusProps, CornerSmoothingProps, ImageFillProps, GradientFillProps {
   /**
    * Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable.
    * `surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt)
@@ -80,7 +81,7 @@ export interface FrameTransformProps {
 }
 
 /** Prop names the Studio's Appearance, Fill and Stroke sections own (filtered out of Properties). */
-export const frameAppearancePropNames: ReadonlySet<string> = new Set(["surface", "border", "borderWeight", "borderSides", "borderStyle", "opacity", "blendMode", ...imageFillPropNames]);
+export const frameAppearancePropNames: ReadonlySet<string> = new Set(["surface", "border", "borderWeight", "borderSides", "borderStyle", "opacity", "blendMode", ...imageFillPropNames, ...gradientPropNames]);
 
 type Attributes = Record<`data-${string}`, string | undefined>;
 type Vars = Record<`--${string}`, string | undefined>;
@@ -88,15 +89,18 @@ type Vars = Record<`--${string}`, string | undefined>;
 const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 
 /** Data attributes and custom properties for the fill, stroke, opacity, blend, rotation and flip; nothing for unset props. */
-export function frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, opacity, blendMode, rotation, flip }: Omit<FrameAppearanceProps, "radius" | keyof CornerRadiusProps | keyof CornerSmoothingProps> & FrameTransformProps): { attributes: Attributes; vars: Vars } {
+export function frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, gradient, opacity, blendMode, rotation, flip }: Omit<FrameAppearanceProps, "radius" | keyof CornerRadiusProps | keyof CornerSmoothingProps> & FrameTransformProps): { attributes: Attributes; vars: Vars } {
   const stroked = border !== undefined && border !== "none";
   // Pass through is the frame's default: nothing to draw.
   const blend = blendMode && blendMode !== "pass-through" && (zenBlendModes as readonly string[]).includes(blendMode) ? blendMode : undefined;
   const weight = stroked && finite(borderWeight) && borderWeight >= 0 && borderWeight !== 1 ? borderWeight : undefined;
   const shown = finite(opacity) && opacity < 100 ? Math.max(0, opacity) : undefined;
   const turned = finite(rotation) && rotation % 360 !== 0 ? rotation : undefined;
+  // A gradient fill (gradient.ts): its layers over the surface colour, under an image fill.
+  const painted = gradientStyle(gradient);
   return {
     attributes: {
+      ...painted.attributes,
       "data-surface": surface && surface !== "none" ? surface : undefined,
       "data-border": stroked ? border : undefined,
       "data-border-weight": weight !== undefined ? "true" : undefined,
@@ -108,6 +112,7 @@ export function frameAppearance({ surface, border, borderWeight, borderSides, bo
       "data-flip": flip && (frameFlips as readonly string[]).includes(flip) ? flip : undefined,
     },
     vars: {
+      ...painted.vars,
       "--zen-layout-border-weight": weight !== undefined ? `${weight}px` : undefined,
       "--zen-layout-opacity": shown !== undefined ? String(shown / 100) : undefined,
       "--zen-layout-blend": blend,
