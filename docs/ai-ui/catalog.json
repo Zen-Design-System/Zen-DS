@@ -4979,7 +4979,7 @@
             "label"
           ],
           "additionalProperties": false,
-          "description": "Figma Trailing-Actions when the field is empty (a 👍 \"Send a like\" by default)."
+          "description": "Figma Trailing-Actions when the field is empty: by default a 👍 \"Send a like\" that sends \"👍\" through `onSend`."
         },
         "device": {
           "enum": [

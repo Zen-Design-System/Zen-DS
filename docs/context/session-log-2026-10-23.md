@@ -87,4 +87,7 @@ Top-Navigation type; Figma screens override by variable).
   "Navigation surfaces missing"). Found, owner B: figma-push draws a mobile AppShell's TopNavigation with its own
   `type` (default when unset), not the Bar type AppShell picks, so on the default canvas Figma gets Default where code
   draws Alt (told Giám sát / B).
-- Static: tsc, guidelines, ai-ui, style, usage, mcp, studio selftests. Browser test and gate wait for the slot.
+- Slot (after the BadgeStatus PR #234): app-shell.test.tsx 41/41; gate (app-shell, templates, accordion, action-bar,
+  sidebar) PASS, vitest 81/81, with one new warning: deadclick on app-shell@1512 B2 "Send a like". Owner fix:
+  ChatComposer's default quick action had no onClick (dead wherever an app keeps the default); it now sends "👍" through
+  onSend, as the chat page's own quickAction does. Test in chat.test.tsx (both devices); docs regenerated.
