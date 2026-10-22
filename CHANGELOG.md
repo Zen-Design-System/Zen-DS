@@ -17,6 +17,13 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio ↔ Figma: AppShellHeader arrives as Figma's Header/AppShell with its `theme` and `density` (Border & Divider
+  is Small-only in Figma: a Medium one goes as Small, with a note), on its own or swapped into the master layout, its
+  leading · center · actions in Top-Elements, `main` in Main-Element and `sections` in Sections (emptied when there are
+  none), and reads back, also from a placed master. The collapse toggle is the header's or the Side-Bar's Collapse Button
+  (`collapse="sidebar"`); a short page's main column starts at the top (plugin `studio-import` bf300bc, `edits.counter`);
+  a PageHeader's childTitle and description show their Header-Text layers; the read keeps a nested variant change (a
+  first crumb at Level Master).
 - Corner smoothing (Figma's squircle corners): Box, Stack, Grid and rectangle Shapes take `cornerSmoothing` (0–100 %, iOS
   60), drawn with CSS `corner-shape: superellipse(…)` where the browser has it (Chromium) and plain rounded corners
   elsewhere. Zen Studio sets it beside the independent corners and round-trips it with Figma's `cornerSmoothing`
@@ -53,6 +60,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   E4, E7 keep their rhythm as one section each. The Figma audit no longer reads a heading over its own paragraph as a
   lone title, a floating bar's own scrim as a painted gradient, or a Large Indicator Tab-Bar's even bleed out of a
   header row as an overflow.
+- Zen Studio ↔ Figma: a Card's (and MetricCard's) `subAction` is Figma's ⋮ Sub-Action with its icon (the button's
+  Leading-Icon-Src), and Figma's Sub-Action shown reads back as `subAction` with the built-in "More actions" label (Figma
+  has no words for it; a different label is noted on push). Since Figma wraps the button in a Sub-Action › Wrapper
+  frame, the plugin's nested paths go through wrapper frames (`studio-import` 833ea0e) and the pull maps the read's
+  "Button" back to "Sub-Action". A Card or ListBox `width` goes to Figma as its Fixed width and comes back.
+- Zen Studio: Figma's Primitives/Dashboard/Header no longer has Child-Heading (Header-Text is a slot whose Child and
+  SubHeading show by their own visibility), so the Studio panel and Main component drop its toggle; the props read and
+  the dashboard-header contract follow the live file.
 - Zen Studio places and round-trips `BadgeStatus` and `PropertyField` (2026-10-21): Assets items (Badge status, Property
   field, Task properties), Figma-named properties (Badge-Status Status/Size; Property-Field Label, Icon, Action), and the
   Figma push/pull — a row's cell is the nested Property-Value's Type, State and content (figma-property.mjs); contract,
@@ -813,6 +828,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   chart with room for a row); Studio E2E PT-11 plays an AppShell page and checks the Sidebar sticks while the page scrolls.
 
 ### Changed
+- The Bottom Sheet playground's Action example now shows commands (Share, Duplicate, Rename, Archive on a project) and
+  no selected item. It used to show a single choice, sort order, with `selectedId`; per the guideline a choice is a
+  Modal sheet with a List. The harness rule `bottom-sheet/choice-uses-list-item` now reads `selectedId` strictly:
+  as a prohibition, it no longer fires on a code sample's `${…}`. (A gate finding on main since 2026-10-08, fixed at
+  its owner.)
 - Studio → Figma: copy a frame straight into Figma (2026-10-16, user: "copy trực tiếp frame vào figma … tự bind lại
   component, style và variables"): ⌘C on a frame (or its Screen layer; menu Copy for Figma) also carries the frame's
   Figma export, which ⌘V in the Zen plugin places on the page you have open. Exports carry the library's keys
