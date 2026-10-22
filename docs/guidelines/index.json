@@ -943,6 +943,7 @@
         "removable/needs-handler",
         "badge-counter/cap",
         "flag/no-emoji-flag",
+        "theme/on-solid-content",
         "badge/count-uses-counter",
         "badge/workflow-status-uses-badge-status",
         "badge/count-text-uses-counter",
@@ -2962,7 +2963,7 @@
         "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"flat-border\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Default cards only, which is what a Canvas/Alt page takes anyway.",
         "Put colour on a box by the page's Canvas: theme=\"subtle\" and a color on the grey Canvas/Default (Pale fades into it), theme=\"pale\" on a white Canvas/Alt or Canvas/Flat page (any of the nine hues, content stays neutral), e.g. a card per project or client (harness card/pale-on-canvas-default).",
         "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) or accent suits one time-sensitive figure.",
-        "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read the fill's own family by themselves (content follows the fill, user 2026-10-17): Content/Inverse/* on Neutral, Content/On-Colors on Brand, Cyan and Orange, Content/On-Brights on Yellow, Content/On-Accent on Accent. MetricTrend and a MetricCard tile's Dock-Icon follow too (Inverse on Neutral, On-Color on the others). Pick Button appearance=\"overlay\" level=\"inverse\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero).",
+        "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read the fill's own family by themselves (content follows the fill, user 2026-10-17): Content/Inverse/* on Neutral, Content/On-Colors on Brand, Cyan and Orange, Content/On-Brights on Yellow, Content/On-Accent on Accent. MetricTrend and a MetricCard tile's Dock-Icon follow too (Inverse on Neutral, On-Color on the others). Pick Button appearance=\"overlay\" level=\"inverse\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero), and a Badge or DockIcon theme=\"inverse\" on Solid Neutral, theme=\"on-color\" on Accent and the hues; keep text in a neutral tone (or the family's own), never a colour tone (harness theme/on-solid-content).",
         "On Brand, Cyan, Orange and Accent the white On-Colors text measures about 3:1: keep what you write there short and large (the number, a title), and put long or small text on another card.",
         "Pricing plans: Default cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan)."
       ],
@@ -2987,6 +2988,7 @@
         "theme/box-on-canvas",
         "theme/mixed-elevation",
         "theme/mixed-boxes",
+        "theme/on-solid-content",
         "card/spacing-by-count",
         "api/deprecated-prop",
         "api/overrides-studio-only",
@@ -3038,6 +3040,7 @@
       ],
       "rules": [
         "flag/no-emoji-flag",
+        "theme/on-solid-content",
         "dock-icon/emoji-needs-glyph",
         "icon/unknown-name",
         "interaction/no-noop-handler"
@@ -4064,6 +4067,7 @@
         "Don't pass size names from other components (\"small\", \"medium\"); any other string reaches CSS and the SVG falls back to its intrinsic size (harness: icon/size-token)."
       ],
       "rules": [
+        "theme/on-solid-content",
         "icon/unknown-name",
         "icon/size-token",
         "interaction/no-noop-handler"
@@ -5146,6 +5150,7 @@
         "text-run/inside-text",
         "flag/no-emoji-flag",
         "content/lights-no-light-text",
+        "theme/on-solid-content",
         "heading/h1-is-heading-1",
         "heading/title-not-light",
         "table/title-heading-4",

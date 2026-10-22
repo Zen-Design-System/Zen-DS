@@ -61,6 +61,7 @@ type IconSize = "2xs" | "xs" | "sm" | "base" | "md" | "lg" | "xl" | "2xl" | "3xl
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `theme/on-solid-content` | error | Content on a Card theme="solid" takes the fill's family (Figma audit theme/on-solid-content): on Neutral/Solid a Badge or DockIcon is theme="inverse", on Accent and the colour solids theme="on-color"; text and icons keep a neutral tone (the card re-points it to Inverse, On-Accent, On-Brights or On-Colors) or that family's own tone, never a colour tone. | `zen-allow-on-solid-content: <reason>` |
 | `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |
 | `icon/size-token` | error | Icon size is a size token (2xs · xs · sm · base · md · lg · xl · 2xl · 3xl) or a number of pixels; any other string is passed to CSS and the SVG falls back to its intrinsic size. | `zen-allow-icon-size: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |

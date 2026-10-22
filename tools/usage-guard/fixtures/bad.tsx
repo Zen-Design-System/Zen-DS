@@ -234,6 +234,12 @@ export const Bad = () => <>
   <AppShell canvas="flat" sidebar={<Sidebar background="alt" sections={sections} />}><Card theme="flat-border">Hours</Card></AppShell>
   {/* expect: theme/navigation-surface */}
   <PlatformPhone label="Inbox" canvas="surface" header={<TopNavigation type="alt" title="Inbox" />}><ListBox theme="border">Rows</ListBox></PlatformPhone>
+  {/* expect: theme/on-solid-content */}
+  <div><Card theme="solid" color="neutral"><Badge theme="on-color">+13%</Badge></Card></div>
+  {/* expect: theme/on-solid-content */}
+  <div><Card theme="solid" color="brand"><DockIcon icon="icon-coins-line" /></Card></div>
+  {/* expect: theme/on-solid-content */}
+  <div><Card theme="solid" color="orange"><Text tone="positive-base">Paid</Text></Card></div>
   {/* On a phone (card/spacing-by-count judges PlatformPhone frames and BottomSheets only). */}
   {/* expect: card/spacing-by-count */}
   <PlatformPhone label="Home"><Grid columns={3} gap="md"><Card>Inside</Card><Card spacing="small">Humidity</Card><Card spacing="small">kWh today</Card></Grid></PlatformPhone>

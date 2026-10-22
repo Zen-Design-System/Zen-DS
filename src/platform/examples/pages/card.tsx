@@ -576,7 +576,7 @@ function QuarterWidgets() {
             <Stack gap="xs" align="start">
               <Heading level={4} id={invoicedId} textStyle="Heading/Subheading">Invoiced in Q3</Heading>
               <Text as="span" textStyle="Heading/2">{formatMoney(amounts.invoiced)}</Text>
-              <Badge theme="on-color" background="solid" size="sm" leading="icon-arrow-circle-up-solid">{`${percentChange(q3Invoiced, total(q2, "invoiced"))} vs. Q2`}</Badge>
+              <Badge theme="inverse" background="solid" size="sm" leading="icon-arrow-circle-up-solid">{`${percentChange(q3Invoiced, total(q2, "invoiced"))} vs. Q2`}</Badge>
             </Stack>
             <LineChart aria-label="Invoiced per month, July to September 2026" data={q3.map((month) => ({ label: month.label, value: month.invoiced }))}
               format={formatCompactMoney} height={120} />
@@ -887,7 +887,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {
     title: "One widget stands out",
     wide: true,
-    description: "Widgets in a row share one theme (Flat on Canvas/Default) and at most one stands out with theme=\"solid\". Solid Neutral is the dark widget: its text, chart and ⋮ read Content/Inverse by themselves, and its button takes the Inverse level.",
+    description: "Widgets in a row share one theme (Flat on Canvas/Default) and at most one stands out with theme=\"solid\". Solid Neutral is the dark widget: its text, chart and ⋮ read Content/Inverse by themselves, and its button and trend badge take the Inverse level (theme/on-solid-content).",
     render: () => <QuarterWidgets />,
     code: `{/* The row shares one theme; the widget that matters most stands out (one Solid per row). */}
 <Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
@@ -896,7 +896,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       <Stack gap="xs" align="start">
         <Heading level={4} id={invoicedId} textStyle="Heading/Subheading">Invoiced in Q3</Heading>
         <Text as="span" textStyle="Heading/2">{formatMoney(amounts.invoiced)}</Text>
-        <Badge theme="on-color" background="solid" size="sm" leading="icon-arrow-circle-up-solid">+13% vs. Q2</Badge>
+        <Badge theme="inverse" background="solid" size="sm" leading="icon-arrow-circle-up-solid">+13% vs. Q2</Badge>
       </Stack>
       <LineChart aria-label="Invoiced per month, July to September 2026" data={q3Points} format={formatCompactMoney} height={120} />
       <Stack align="start">

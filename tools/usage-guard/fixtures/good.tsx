@@ -140,6 +140,8 @@ export const Good = () => <>
   <PlatformPhone label="Inbox" canvas="surface" header={<TopNavigation type="default" title="Inbox" />}><Card theme="border"><Text>Balance</Text></Card></PlatformPhone>
   <PlatformPhone label="Inbox" header={<TopNavigation type="alt" title="Inbox" />}><Card theme="default"><Text>Balance</Text></Card></PlatformPhone>
   <ZenProvider theme="dark"><AppShell sidebar={null}><Card theme="default"><Text>Revenue</Text></Card></AppShell></ZenProvider>
+  <div><Card theme="solid" color="neutral"><Text tone="light">Invoiced</Text><Badge theme="inverse">+13%</Badge><DockIcon icon="icon-coins-line" theme="inverse" /></Card></div>
+  <div><Card theme="solid" color="brand"><Text>Payout</Text><Badge theme="on-color">Paid</Badge><Badge theme="green">New</Badge><Text tone="on-colors">Due today</Text></Card></div>
   {/* PlatformPhone canvas="surface" is the white screen (Surface/Default, the colour of Canvas/Alt); "alt" paints Surface/Alt. */}
   <PlatformPhone label="Budget" canvas="surface"><MetricCard theme="pale" color="green" label="Saved" value="$1,240" /></PlatformPhone>
   <div><Card theme="solid" color="neutral"><Text>Invoiced this year</Text></Card></div>

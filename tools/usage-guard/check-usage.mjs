@@ -201,12 +201,14 @@ const OVERLAYS = ["Dialog", "ModalForm", "SidePanel", "BottomSheet"];
 const BOX_TAGS = ["Card", "ListBox", "MetricCard", "ChartCard", ...OVERLAYS];
 /** The nearest enclosing box or overlay of the element at `start` (children or a prop={…} of it), or null. Tags in
  *  another template string (a code sample) and self-closing tags that end before `start` don't count. */
-const nearestBox = (src, start, tags = BOX_TAGS) => {
+const nearestBox = (src, start, tags = BOX_TAGS) => nearestBoxOpening(src, start, tags)?.tag ?? null;
+/** The nearest enclosing box or overlay (see nearestBox) with where its opening tag starts: { tag, index }, or null. */
+const nearestBoxOpening = (src, start, tags = BOX_TAGS) => {
   const sameString = (i) => ((src.slice(i, start).match(/(?<!\\)`/g) ?? []).length) % 2 === 0;
   const stack = [];
   for (const m of src.slice(0, start).matchAll(new RegExp(`<(/?)(${tags.join("|")})\\b`, "g"))) {
     if (!sameString(m.index)) continue;
-    if (m[1]) { const at = stack.lastIndexOf(m[2]); if (at >= 0) stack.length = at; continue; }
+    if (m[1]) { const at = stack.findLastIndex((open) => open.tag === m[2]); if (at >= 0) stack.length = at; continue; }
     if (/[\w$)\]]/.test(src[m.index - 1] ?? "")) continue; // a type argument (Array<Card>), not a tag; text may end before a closing tag
     let i = m.index + m[0].length, depth = 0, quote = null;
     for (; i < src.length; i++) {
@@ -219,7 +221,7 @@ const nearestBox = (src, start, tags = BOX_TAGS) => {
       if (c === "{") depth += 1; else if (c === "}") depth -= 1; else if (c === ">" && depth === 0) break;
     }
     if (src[i - 1] === "/" && i < start) continue; // self-closing, ended before the element
-    stack.push(m[2]);
+    stack.push({ tag: m[2], index: m.index });
   }
   return stack.at(-1) ?? null;
 };
@@ -379,6 +381,48 @@ const navigationSurfaceFinding = (tag, attrs, src, start, end) => {
   if (!fill || canvas === "flat" || fill === NAV_TWIN[canvas]) return false;
   const want = type.startsWith("compact") ? (canvas === "default" ? "compact-alt" : "compact") : canvas === "default" ? "alt" : "default";
   return `is ${fill} (type="${type}"${literal(own, "type") ? "" : ", the default"}) on a ${CANVAS_NAME[canvas]} page — the top bar matches the canvas (${NAV_TWIN[canvas]}): type="${want}".`;
+};
+
+/** Content on a Solid fill takes the fill's family (Figma audit theme/on-solid-content, screen-rules §1; user
+ *  2026-10-17): `chip` is the Badge / DockIcon theme there, `tones` the Text, Heading and Icon tones that read it (the
+ *  card re-points the neutral levels, so those stay right too). */
+const SOLID_FAMILIES = {
+  neutral: { fill: "Background/Neutral/Solid", family: "Content/Inverse/*", chip: "inverse", tones: ["inverse", "inverse-strongest", "inverse-base", "inverse-light"] },
+  accent: { fill: "Background/Accent/Solid", family: "Content/On-Accent", chip: "on-color", tones: ["on-accent"] },
+  yellow: { fill: "Support/Yellow/Solid", family: "Content/On-Brights", chip: "on-color", tones: ["on-brights"] },
+  hue: { fill: "Support/<Color>/Solid", family: "Content/On-Colors", chip: "on-color", tones: ["on-colors"] },
+};
+const NEUTRAL_TONES = ["strongest", "base", "light", "primary", "secondary", "tertiary", "neutral-strongest", "neutral-base", "neutral-light", "inherit", "disabled"];
+/** The family of the theme="solid" Card the element at `start` sits right in (nearest box), or null. */
+const solidCardFamily = (src, start) => {
+  const box = nearestBoxOpening(src, start);
+  if (box?.tag !== "Card") return null;
+  const close = tagClose(src, box.index + 5);
+  if (close < 0) return null;
+  const attrs = src.slice(box.index + 5, close);
+  const own = topLevel(attrs);
+  if (opaque(attrs) || literal(own, "theme") !== "solid" || (has(own, "color") && literal(own, "color") === undefined)) return null;
+  const color = literal(own, "color") ?? "neutral";
+  // A colour Figma draws no Solid for renders as Solid Neutral (card/solid-color).
+  const key = ["brand", "cyan", "orange"].includes(color) ? "hue" : ["accent", "yellow"].includes(color) ? color : "neutral";
+  return { ...SOLID_FAMILIES[key], color: key === "hue" ? color : key };
+};
+/** theme/on-solid-content: a Badge / DockIcon theme or a content tone outside the Solid card's family. */
+const onSolidContentFinding = (tag, attrs, src, start, end) => {
+  if (inCodeSample(src, end) || opaque(attrs)) return false;
+  const family = solidCardFamily(src, start);
+  if (!family) return false;
+  const own = topLevel(attrs);
+  const fill = family.fill.replace("<Color>", (family.color[0] ?? "").toUpperCase() + family.color.slice(1));
+  if (tag === "Badge" || tag === "DockIcon") {
+    if (["theme", "color"].some((name) => has(own, name) && literal(own, name) === undefined)) return false;
+    const theme = literal(own, "theme") ?? (tag === "Badge" ? literal(own, "color") : undefined) ?? "neutral";
+    const wrong = family.chip === "inverse" ? ["on-color", "neutral"] : ["inverse", "neutral"];
+    return wrong.includes(theme) && `is theme="${theme}"${literal(own, "theme") || literal(own, "color") ? "" : " (the default)"} on a ${fill} card — use theme="${family.chip}" (${family.chip === "inverse" ? "its Inverse chip" : "the white On-Color chip"} reads on that fill).`;
+  }
+  const tone = literal(own, "tone");
+  if (!tone || NEUTRAL_TONES.includes(tone) || family.tones.includes(tone)) return false;
+  return `is tone="${tone}" on a ${fill} card — content there takes ${family.family}: a neutral tone (the card re-points it)${family.tones.length ? ` or tone="${family.tones.at(-1) === "inverse-light" ? "inverse-base" : family.tones[0]}"` : ""}; a colour tone does not read on that fill.`;
 };
 
 /** Regions of a page where an Empty State is Small (empty-state/small-in-box): widgets, lists, panels and overlays. */
@@ -1569,6 +1613,9 @@ export const rules = [
   { id: "theme/navigation-surface", components: ["Sidebar", "TopNavigation"], severity: "error", allow: "navigation-surface", guideline: "docs/guidelines/background-layers.md",
     summary: "Bars match the Canvas (Figma audit theme/navigation-surface): no fill or the canvas's twin Surface (Canvas/Default ↔ Surface/Alt, Canvas/Alt ↔ Surface/Default, Canvas/Flat ↔ Surface/Flat); only on Canvas/Default may the Sidebar be a Surface/Default panel. Judges a Sidebar in an AppShell and a TopNavigation with a solid fill (default, alt, compact, compact-alt) on an AppShell or PlatformPhone page.",
     check: ({ tag, attrs, src, start, end }) => navigationSurfaceFinding(tag, attrs, src, start, end) },
+  { id: "theme/on-solid-content", components: ["Badge", "DockIcon", "Text", "Heading", "Icon"], severity: "error", allow: "on-solid-content", guideline: "docs/guidelines/card.md",
+    summary: "Content on a Card theme=\"solid\" takes the fill's family (Figma audit theme/on-solid-content): on Neutral/Solid a Badge or DockIcon is theme=\"inverse\", on Accent and the colour solids theme=\"on-color\"; text and icons keep a neutral tone (the card re-points it to Inverse, On-Accent, On-Brights or On-Colors) or that family's own tone, never a colour tone.",
+    check: ({ tag, attrs, src, start, end }) => onSolidContentFinding(tag, attrs, src, start, end) },
   { id: "card/spacing-by-count", components: ["Card", "MetricCard"], severity: "warn", allow: "card-spacing", guideline: "docs/guidelines/card.md",
     summary: "On a phone (a PlatformPhone frame or a BottomSheet), three or more cards side by side (a row or grid of stats, a list of choices) take spacing=\"small\" (Card-padding-small, Corner-Radius/Large); one or two keep Spacing=Medium, the default. Desktop cards keep Medium and are not judged. MetricCard counts as a card (type=\"tile\" is Small by default). User rule 2026-10-17, mobile only.",
     check: ({ attrs, src, start, children }) => cardSpacingFinding(attrs, src, start, children) },
