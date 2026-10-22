@@ -41,7 +41,7 @@ const listeners = new Set<() => void>();
 /** The hidden layers of a page's tree (BuilderBoard, in the render that shows that text). */
 export function setHiddenLayers(file: string, tree: { board: PageNode | null } | null) {
   const list: HiddenLayer[] = [];
-  const frames = tree?.board?.children.filter((child): child is PageNode => child.kind === "element" && child.name !== "Section") ?? [];
+  const frames = tree?.board?.children.filter((child): child is PageNode => child.kind === "element" && child.name !== "Section" && child.name !== "Slice") ?? [];
   for (const frame of frames) {
     const literal = (name: string) => { const value = frame.props[name]; return value?.kind === "literal" ? value.value : undefined; };
     const id = String(literal("id") ?? "untitled");

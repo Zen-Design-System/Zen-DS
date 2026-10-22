@@ -555,7 +555,7 @@ const phoneTabs = [
   { id: "projects", label: "Projects", icon: "icon-folder-line", selectedIcon: "icon-folder-solid" },
 ] satisfies { id: PhoneTab; label: string; icon: IconName; selectedIcon: IconName }[];
 
-/** A phone section: rows in a Flat box on the grey Canvas, under a Heading/Subheading. */
+/** A phone section: rows in a Default box on the grey Canvas, under a Heading/Subheading. */
 function PhoneSection({ label, children }: { label: string; children: ReactNode }) {
   const id = useId();
   return (

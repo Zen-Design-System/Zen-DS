@@ -269,7 +269,7 @@ function DraftInvoiceExample() {
   };
 
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={480} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={480} alignSelf="center">
       <Stack gap="md">
         <Stack direction="row" justify="between" align="start" gap="sm">
           <Stack gap="xs">
@@ -365,7 +365,7 @@ function YourWorkExample() {
   );
 
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={480} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={480} alignSelf="center">
       <Stack gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Your work</Heading>
         {/* The tabs as TabItem children (Figma's Item-List slot); an items array works the same. */}
@@ -570,7 +570,7 @@ function ClientSectionsExample() {
   const icon = (name: IconName) => <DockIcon icon={name} theme="neutral" background="subtle" size="medium" />;
 
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={340} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={340} alignSelf="center">
       <Stack gap="md">
         <Stack direction="row" gap="sm" align="center">
           <Avatar size="medium" shape="square" theme="blue" alt="">LB</Avatar>
@@ -676,9 +676,9 @@ function WorkspaceTopNavExample() {
         {panel("home", (
           <Stack gap="md">
             <Grid columns="repeat(auto-fit, minmax(min(100%, 200px), 1fr))" gap="md">
-              <MetricCard label="Active projects" value={`${activeProjects.length}`} icon="icon-folder-line" iconTheme="blue" theme="flat" />
-              <MetricCard label="Unpaid invoices" value={formatMoney(unpaidTotal)} icon="icon-receipt-line" iconTheme="orange" theme="flat" />
-              <MetricCard label="Your open tasks" value={`${myOpenTasks.length}`} icon="icon-check-square-line" iconTheme="green" theme="flat" />
+              <MetricCard label="Active projects" value={`${activeProjects.length}`} icon="icon-folder-line" iconTheme="blue" theme="default" />
+              <MetricCard label="Unpaid invoices" value={formatMoney(unpaidTotal)} icon="icon-receipt-line" iconTheme="orange" theme="default" />
+              <MetricCard label="Your open tasks" value={`${myOpenTasks.length}`} icon="icon-check-square-line" iconTheme="green" theme="default" />
             </Grid>
             <Grid columns="minmax(0, 1fr) minmax(0, 1fr)" stackBelow={720} gap="md" align="start">
               <ListBox as="section" aria-labelledby={homeTasksId} header={<Heading level={2} id={homeTasksId} textStyle="Heading/Subheading">Your tasks</Heading>}>
@@ -706,7 +706,7 @@ function WorkspaceTopNavExample() {
             {/* The active projects as flat cards, as many 280px columns as fit: each with its progress and its next date. */}
             <Grid as="ul" minColumnWidth={280} gap="md" aria-label="Active projects">
               {activeProjects.map((p) => (
-                <Card as="li" key={p.id} theme="flat">
+                <Card as="li" key={p.id} theme="default">
                   <Stack gap="md">
                     <Stack direction="row" gap="sm" align="center">
                       <DockIcon icon={p.icon} theme={p.theme} background="subtle" size="medium" />
@@ -743,9 +743,9 @@ function WorkspaceTopNavExample() {
         {panel("invoices", (
           <Stack gap="xl">
             <Grid columns="repeat(auto-fit, minmax(min(100%, 200px), 1fr))" gap="md">
-              <MetricCard label="Outstanding" value={formatMoney(unpaidTotal)} icon="icon-hourglass-line" iconTheme="blue" theme="flat" />
-              <MetricCard label="Overdue" value={formatMoney(overdueTotal)} icon="icon-alert-triangle-line" iconTheme="red" theme="flat" />
-              <MetricCard label="Paid this quarter" value={formatMoney(paidTotal)} icon="icon-check-circle-line" iconTheme="green" theme="flat" />
+              <MetricCard label="Outstanding" value={formatMoney(unpaidTotal)} icon="icon-hourglass-line" iconTheme="blue" theme="default" />
+              <MetricCard label="Overdue" value={formatMoney(overdueTotal)} icon="icon-alert-triangle-line" iconTheme="red" theme="default" />
+              <MetricCard label="Paid this quarter" value={formatMoney(paidTotal)} icon="icon-check-circle-line" iconTheme="green" theme="default" />
             </Grid>
             <Stack as="section" gap="md" aria-labelledby={unpaidId}>
               <Heading level={2} id={unpaidId} textStyle="Heading/4">Waiting for payment</Heading>

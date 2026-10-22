@@ -41,7 +41,7 @@ check("warnings: blur on an opaque fill", effectWarnings({ effectStyle: "Effect/
 check("no warnings when it renders", [effectWarnings({ effectStyle: "Shadow/Bottom/Level-1", surface: "surface" }).length, effectWarnings({ effectStyle: "Effect/Overlay", surface: "pale" }).length, effectWarnings({}).length], [0, 0, 0]);
 check("card themes: shadow, blur, none; defaults per card; not a card", [
   cardThemeEffect("Card", undefined), cardThemeEffect("MetricCard", "semi-pale"), cardThemeEffect("ChartCard", undefined), cardThemeEffect("Card", "border"), cardThemeEffect("Box", "shadow"),
-], [{ theme: "shadow", style: "Shadow/Bottom/Level-1" }, { theme: "semi-pale", style: "Effect/Overlay" }, { theme: "flat", style: null }, { theme: "border", style: null }, null]);
+], [{ theme: "shadow", style: "Shadow/Bottom/Level-1" }, { theme: "semi-pale", style: "Effect/Overlay" }, { theme: "default", style: null }, { theme: "border", style: null }, null]);
 // Effect settings: the layers of the real manifest, in Figma order.
 const manifest = JSON.parse(fs.readFileSync(new URL("../../../styles/generated/style-manifest.json", import.meta.url), "utf8"));
 const manifestStyle = (name) => (manifest.effectStyles ?? []).find((style) => style.name === name);

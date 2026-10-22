@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { focusScaleField } from "./draw/scaleTool";
 import { createComponent, createComponentOfLayers, createInstance, deleteMain, detachInstance, mainOfSelection } from "./edit/localComponents";
 import { addAutoLayoutToSelection, removeAutoLayoutFromSelection } from "./edit/autoLayout";
 import { ZenPortalProvider } from "../../components/Portal";
@@ -500,12 +501,12 @@ export function StudioApp() {
           && target.getAttribute("aria-expanded") !== "true");
         const here = !target || target === document.body || target.matches(".studio-viewport") || inspectorControl
           || Boolean(row && row === target && (row.getAttribute("data-kind") === "node" || row.getAttribute("data-kind") === "part") && row.getAttribute("aria-selected") === "true");
-        // A selected Screen or Overlay of a page you made goes as one edit (Figma deletes a selected frame), also from its
+        // A selected Screen, Overlay, Section or Slice of a page you made goes as one edit (Figma deletes a selected frame), also from its
         // name on the canvas (a button the click focused) or its selected row in Layers.
         const onFrame = here || Boolean(target?.closest(".studio-frame-label[data-selected='true']"))
           || Boolean(row && row === target && row.getAttribute("data-kind") === "frame" && row.getAttribute("aria-selected") === "true");
         if (!doc && !event.repeat && !event.shiftKey && onFrame && state.tool === "select" && selection?.kind === "frame" && state.localPage
-          && /^(screen|overlay|section):/.test(selection.frameId) && canEdit(state)) {
+          && /^(screen|overlay|section|slice):/.test(selection.frameId) && canEdit(state)) {
           event.preventDefault();
           // Every selected frame in one edit (F2c's several frames); a Section goes with its frames (⌘⌫ keeps them: the
           // ⌘ keys above).
@@ -582,6 +583,9 @@ export function StudioApp() {
       }
       if (key === "v") studioStore.setState({ tool: "select" });
       else if (key === "h") studioStore.setState({ tool: "hand" });
+      // K: Figma's Scale tool, on a page you made (draw/ScalePanel.tsx); K again puts the focus in its factor.
+      // The key's own letter never lands in the factor, which takes the focus while it is down.
+      else if (key === "k" && state.localPage) { event.preventDefault(); if (state.tool === "scale") focusScaleField(); else studioStore.setState({ tool: "scale" }); }
       // I: Figma's Pick color on a page you made (edit/pickColor.ts); Interact on an example page.
       else if (key === "i") { if (state.localPage) startPickColor(); else studioStore.setState({ tool: "interact" }); }
       // Figma's A is the Frame tool too (on a page you made; elsewhere the Stack placement tool); T places text.
@@ -591,6 +595,8 @@ export function StudioApp() {
       else if (key === "n" && state.localPage) stepFrame(1);
       // Figma's shape tools, on a page you made (draw/drawTool.ts): R rectangle, O ellipse, L line (⇧L arrow, above).
       else if ((key === "r" || key === "o" || key === "l") && state.localPage) studioStore.setState({ tool: key === "r" ? "rectangle" : key === "o" ? "ellipse" : "line" });
+      // S: Figma's Slice tool, on a page you made (builder/SliceFrame.tsx; ⇧S is the Section tool, above).
+      else if (key === "s" && state.localPage) studioStore.setState({ tool: "slice" });
       // P: Figma's Pen, on a page you made (draw/penTool.ts).
       else if (key === "p" && state.localPage) studioStore.setState({ tool: "pen" });
       else if (key === "f") {

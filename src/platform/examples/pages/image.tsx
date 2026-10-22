@@ -70,7 +70,7 @@ function Moodboard() {
     stripRef.current?.querySelectorAll<HTMLElement>("button")[next]?.focus();
   };
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId}>
+    <Card as="section" theme="default" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Moodboard for the outdoor range</Heading>
@@ -118,7 +118,7 @@ function RecapPhotos() {
     timers.current.push(window.setTimeout(() => setSecond(oldQuarter.src), 1200));
   };
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId}>
+    <Card as="section" theme="default" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Heading ref={titleRef} level={4} id={titleId} tabIndex={-1} textStyle="Heading/Subheading">Book Fair recap</Heading>
@@ -433,7 +433,7 @@ function CutOutMascot() {
   return (
     <Grid columns={{ mobile: 1, desktop: "repeat(2, minmax(0, 1fr))" }} gap="md" maxWidth={640}>
       {[{ frame: true, caption: "Default frame: a pale square around the cut-out" }, { frame: false, caption: "frame={false}: the mascot on the card itself" }].map((item) => (
-        <Card key={String(item.frame)} theme="flat" as="section" aria-label={item.caption}>
+        <Card key={String(item.frame)} theme="default" as="section" aria-label={item.caption}>
           <Stack gap="sm" align="center">
             <Stack width={160}>
               <Image src={mascot.src} alt={mascot.alt} ratio="1:1" fit="contain" frame={item.frame} radius="none" />

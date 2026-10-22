@@ -163,19 +163,20 @@ const NOT_DRAWN = new Set(["VisuallyHidden"]);
 const SURFACES = new Set(["Card", "ChartCard", "MetricCard", "Accordion", "SidePanel", "Dialog", "ModalForm", "BottomSheet", "Popover", "ListBox"]);
 /** Figma Card's Solid colours (15480:87472–87496); Pale and Subtle have all nine (no Accent). */
 const CARD_SOLID_COLORS = new Set(["Neutral", "Brand", "Cyan", "Yellow", "Orange"]);
-/** Figma Card's Surface per Theme (Card 6643:51021: Alt on Flat and Border, Flat on Border); the others draw Default. */
-const CARD_SURFACES = { Flat: new Set(["Default", "Alt"]), Border: new Set(["Default", "Alt", "Flat"]) };
+/** Figma Card's Surface per Theme (Card 6643:51021: Alt on Default and Border); the others draw Default (Flat-Border, renamed
+ *  from Border × Surface=Flat on 2026-10-21, keeps its own Surface/Flat fill). */
+const CARD_SURFACES = { Default: new Set(["Default", "Alt"]), Border: new Set(["Default", "Alt"]) };
 /**
  * A Card's Theme × Color × Surface × Active as a variant Figma has (Card 6643:51021), drawn as the code draws it: Color
  * only on Pale, Subtle and Solid (Card.tsx ignores it elsewhere; a Pale or Subtle Accent is Neutral), a Solid hue Figma lacks as Solid Neutral, Shadow on Surface/Alt
- * as Flat on Surface/Alt (Card.tsx drops the shadow there), a Surface the theme does not take as Default (Card.tsx
- * ignores Flat off Border; Pale, On-Container and Solid keep their own fill), and Active=Yes only on a Neutral card (the
+ * as Default on Surface/Alt (Card.tsx drops the shadow there), a Surface the theme does not take as Default (Pale,
+ * Subtle, Flat-Border, On-Container and Solid keep their own fill), and Active=Yes only on a Neutral card (the
  * code's selected look is the Surface fill with no hue; Solid has no Active=Yes).
  */
 function cardVariant(props, notes, where) {
   if (props.Theme === "Shadow" && props.Surface === "Alt") {
-    notes.push(`${where}: Shadow on Surface/Alt draws as Flat on Surface/Alt (no shadow on Surface-Alt): Theme Flat`);
-    props.Theme = "Flat";
+    notes.push(`${where}: Shadow on Surface/Alt draws as Default on Surface/Alt (no shadow on Surface-Alt): Theme Default`);
+    props.Theme = "Default";
   }
   if ("Surface" in props && props.Surface !== "Default" && !CARD_SURFACES[props.Theme]?.has(props.Surface)) {
     notes.push(`${where}: Figma has no ${props.Theme} card on Surface ${props.Surface} (the code ignores it): Surface Default`);
@@ -196,6 +197,19 @@ function cardVariant(props, notes, where) {
     notes.push(`${where}: Figma has no selected Solid card: Active No`);
     props.Active = "No";
   } else if (props.Active === "Yes" && "Color" in props) props.Color = "Neutral";
+  return props;
+}
+/**
+ * A List-Box's Theme × Color × Surface as a variant Figma has (Component/List-Box 14922:75297), drawn as the code draws
+ * it: Color only on Pale (ListBox ignores it elsewhere), Surface=Alt only on Default and Border (the others keep their
+ * own fill).
+ */
+function listBoxVariant(props, notes, where) {
+  if ("Color" in props && props.Theme !== "Pale") props.Color = "Neutral";
+  if ("Surface" in props && props.Surface !== "Default" && props.Theme !== "Default" && props.Theme !== "Border") {
+    notes.push(`${where}: Figma has no ${props.Theme} List-Box on Surface ${props.Surface} (the code ignores it): Surface Default`);
+    props.Surface = "Default";
+  }
   return props;
 }
 /** Side-Bar/Master/Workspace names its panel's slots Child-… (Master-… are its workspace column's): figma-pull maps them back. */
@@ -428,6 +442,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   // Sections (F4) are areas of the Studio board; the push sends one Screen.
   const sections = boardElements.filter((child) => child.name === "Section").length;
   if (sections) notes.push(`${sections} Section${sections > 1 ? "s" : ""} (areas of the board): not pushed`);
+  const slices = boardElements.filter((child) => child.name === "Slice").length;
+  if (slices) notes.push(`${slices} Slice${slices > 1 ? "s" : ""} (export areas of the board): not pushed`);
   /** Code-only components drawn as a frame of their layers (or as their text), by name: one note each at the end. */
   const framed = new Map();
   const countFramed = (name) => framed.set(name, (framed.get(name) ?? 0) + 1);
@@ -1004,7 +1020,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     const drawing = chartNode(chart, header, null);
     if (!drawing) return null;
     if (chart.id) drawing.key = chart.id;
-    return cardAround(drawing, code.theme ?? "flat", id, title || "ChartCard", code.color, code.surface);
+    return cardAround(drawing, code.theme ?? "default", id, title || "ChartCard", code.color, code.surface);
   }
 
   /**
@@ -1962,6 +1978,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
     // ListBox is as tall as its rows (Figma's List-Box starts at its sample's fixed height, in its Container-Slot frame
     // and its Body-Slot too).
     if (element.name === "ListBox") {
+      listBoxVariant(node.props, notes, where);
       node.hugH = true;
       node.hugLayers = [{ name: "Container-Slot", h: true }];
     }

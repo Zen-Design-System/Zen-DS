@@ -23,6 +23,7 @@ import { copyText, exampleOf, frameKind, frameLabel, isBuilderFrame } from "./fr
 import { FrameGeometry } from "../builder/FrameGeometry";
 import { LayoutGuidePanel } from "../canvas/LayoutGuidePanel";
 import { SectionPanel } from "../builder/SectionPanel";
+import { SlicePanel } from "../builder/SlicePanel";
 import { InspectorFields, InspectorRow, InspectorSection } from "./Section";
 import { RowSelectField } from "./rowFields";
 import { SlotHost, useSlotFilled } from "./SlotHost";
@@ -275,6 +276,7 @@ function ScreenSection({ frameId }: { frameId: string }) {
 export function FramePanel({ frameId, controlsSlot }: { frameId: string; controlsSlot: HTMLElement }) {
   // A Section of a page you made (F4, Session C): its own panel (name, X / Y / W / H).
   if (frameId.startsWith("section:")) return <SectionPanel frameId={frameId} />;
+  if (frameId.startsWith("slice:")) return <SlicePanel frameId={frameId} />;
   return <FramePanelBody frameId={frameId} controlsSlot={controlsSlot} />;
 }
 

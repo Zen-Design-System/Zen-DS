@@ -116,8 +116,8 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
       const world = frameRects.current.get(frame.id);
       return world ? [{ frame, rect: screen(world) }] : [];
     });
-    // A Section is the board under its frames: a name or toolbar over one is not hidden by it.
-    const hitsFrame = (box: Rect, except?: string) => placed.some(({ frame, rect }) => frame.id !== except && frame.kind !== "section" && overlaps(box, rect));
+    // A Section is the board under its frames, a Slice an outline over them: a name or toolbar over one is not hidden by it.
+    const hitsFrame = (box: Rect, except?: string) => placed.some(({ frame, rect }) => frame.id !== except && frame.kind !== "section" && frame.kind !== "slice" && overlaps(box, rect));
     const onCanvas = (box: Rect) => box.x >= minX && box.y >= minY && box.x + box.width <= maxX && box.y + box.height <= maxY;
     const visible = (rect: Rect) => rect.x < maxX && rect.x + rect.width > minX && rect.y < maxY && rect.y + rect.height > minY;
     // 1. Frame labels.
@@ -145,7 +145,8 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
       }
       const box = { x: rect.x, y: rect.y - LABEL_GAP - size.height, width: Math.min(size.width, rect.width), height: size.height };
       const selected = elements.current.get(`label:${frame.id}`)?.dataset.selected === "true";
-      let hidden = rect.width < 32 || (!selected && hitsFrame(box, frame.id));
+      // A Slice's name shows over a frame too (it is drawn over frames: its name is how the canvas selects it).
+      let hidden = rect.width < 32 || (!selected && frame.kind !== "slice" && hitsFrame(box, frame.id));
       if (selected) {
         // Across: from the frame's left edge, but never left of the canvas or past the frame's visible right end.
         box.x = Math.max(minX + EDGE, Math.min(Math.max(rect.x, minX + EDGE), Math.min(rect.x + rect.width, maxX - EDGE) - box.width));
@@ -437,9 +438,9 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
           its view width. */}
       {frames.filter((frame) => !isBuilderFrame(frame.id) && frameSelected && selectedFrame === frame.id).map((frame) => <FrameEdge key={frame.id} frame={frame} setRef={trackEdge(frame.id)} />)}
       {/* A locked frame (edit/lock.ts) shows no handles: it changes in the right panel only, as in Figma. */}
-      {localPage && editable && frameSelected && selectedFrame && /^(screen|section):/.test(selectedFrame) && !isLockedFrame(pageFile(localPage), selectedFrame) ? <FrameHandles key={selectedFrame} frameId={selectedFrame} localPage={localPage} /> : null}
-      {/* A Section has its name only (Figma's): no toolbar. */}
-      {frames.filter((frame) => frame.kind !== "section" && (toolbarFor.has(frame.id) || draftedFrames.includes(frame))).map((frame) => (
+      {localPage && editable && frameSelected && selectedFrame && /^(screen|section|slice):/.test(selectedFrame) && !isLockedFrame(pageFile(localPage), selectedFrame) ? <FrameHandles key={selectedFrame} frameId={selectedFrame} localPage={localPage} /> : null}
+      {/* A Section and a Slice have their name only (Figma's): no toolbar. */}
+      {frames.filter((frame) => frame.kind !== "section" && frame.kind !== "slice" && (toolbarFor.has(frame.id) || draftedFrames.includes(frame))).map((frame) => (
         <FrameToolbar
           key={frame.id}
           frame={frame}

@@ -27,7 +27,7 @@ const rooms = [
 function WelcomeCard() {
   const { toast } = useToast();
   return (
-    <Card theme="flat">
+    <Card theme="default">
       <Stack direction="row" gap="lg" align="center" wrap>
         <Stack gap="xs" width="fill" minWidth={200}>
           <Heading level={3} textStyle="Heading/4">Welcome to {studio.name}</Heading>
@@ -60,7 +60,7 @@ export const examples: ExampleDef[] = [
   {
     title: "Welcome card art",
     description: "Decoration drawn in a free frame beside the copy: a ring, a half pie and a star at their X / Y, in Accent and Support colours. They are decorative, so they carry no label.",
-    code: `<Card theme="flat">
+    code: `<Card theme="default">
   <Stack direction="row" gap="lg" align="center" wrap>
     <Stack gap="xs" width="fill" minWidth={200}>
       <Heading level={3} textStyle="Heading/4">Welcome to ${studio.name}</Heading>
@@ -140,7 +140,7 @@ export const examples: ExampleDef[] = [
   {
     title: "Promo star on a menu item",
     description: "A Star behind the discount on the Phin & Co menu: decoration on a Subtle fill under Strongest text, so the price stays readable and the star carries no meaning on its own.",
-    code: `<Card theme="flat">
+    code: `<Card theme="default">
   <Stack direction="row" gap="md" align="center">
     <Stack width={64} height={64} align="center" justify="center">
       <Shape type="star" position="absolute" pointCount={12} starRatio={80} width="fill" height="fill" fill="support-yellow-subtle" />
@@ -153,7 +153,7 @@ export const examples: ExampleDef[] = [
   </Stack>
 </Card>`,
     render: () => (
-      <Card theme="flat">
+      <Card theme="default">
         <Stack direction="row" gap="md" align="center">
           <Stack width={64} height={64} align="center" justify="center">
             <Shape type="star" position="absolute" pointCount={12} starRatio={80} width="fill" height="fill" fill="support-yellow-subtle" />

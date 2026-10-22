@@ -107,7 +107,7 @@ function DueDateExample() {
     setDue("");
   };
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={create} gap="md">
         <Heading level={4} textStyle="Heading/Subheading">New task</Heading>
         <InputField label="Task" value={task} error={errors.task} onValueChange={(next) => { setTask(next); setErrors((e) => ({ ...e, task: undefined })); }} />
@@ -152,7 +152,7 @@ function TimeOffExample() {
   const over = days - LEAVE_BALANCE;
   return (
     // One surface: the inline calendar (it has no popover surface of its own) beside the request it builds, lg apart.
-    <Card theme="flat">
+    <Card theme="default">
       <Stack direction="row" wrap gap="lg" align="start" className="px-date-picker-split">
         <DatePicker today={TODAY} calendar={twoMonths ? "dual" : "single"} selectionMode="range" minDate={TODAY}
           month={month} onMonthChange={setMonth}
@@ -269,7 +269,7 @@ function ContractDatesExample() {
     toast({ type: "positive", title: "Contract saved" });
   };
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={save} gap="md">
         {/* The person is a List row: it has no side padding of its own, so its text lines up with the fields. */}
         <List aria-label="Employee">
@@ -311,7 +311,7 @@ function BirthdayExample() {
     if (!problem) toast({ type: "positive", title: "Details saved" });
   };
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={save} gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Personal details</Heading>
         <InputField label="Legal name" defaultValue="Phạm Thị Em" />
@@ -517,7 +517,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     code: `const [due, setDue] = useState("10/05/2026");
 const date = parseDate(due); // "MM/DD/YYYY" → Date | null
 
-<Card theme="flat">
+<Card theme="default">
   <Form onSubmit={createTask} gap="md">
     <Heading level={4} textStyle="Heading/Subheading">New task</Heading>
     <InputField label="Task" value={task} error={errors.task} onValueChange={setTask} />
@@ -552,7 +552,7 @@ const [error, setError] = useState<string>();
 const [month, setMonth] = useState(september);
 const days = range?.end ? workingDays(range.start, range.end) : 0;
 
-<Card theme="flat">
+<Card theme="default">
   <Stack direction="row" wrap gap="lg" align="start">
     {/* Inline: no onOpenChange or anchorRef, so no popover surface. calendar="single" where two months don't fit. */}
     <DatePicker today={today} calendar="dual" selectionMode="range" minDate={today}

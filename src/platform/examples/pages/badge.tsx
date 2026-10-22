@@ -105,7 +105,7 @@ function InvoiceStatus() {
   };
   return (
     // Secondary actions live in the card's Sub-Action menu; the action that moves the invoice on sits at the bottom.
-    <Card as="section" theme="flat" aria-labelledby={titleId}
+    <Card as="section" theme="default" aria-labelledby={titleId}
       subAction={
         <Menu align="end" trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label={`Actions for ${overdue.number}`} />}
           items={[
@@ -229,7 +229,7 @@ function RemovableLabels() {
     setQuery("");
   };
   return (
-    <Card theme="flat">
+    <Card theme="default">
       <Stack gap="md" align="stretch">
         <Stack gap="xs" align="stretch">
           <Heading level={4} textStyle="Heading/Subheading">{task.title}</Heading>
@@ -550,7 +550,7 @@ const caption = (task) => \`\${task.key} · \${task.status === "Done" ? finished
     render: () => <InvoiceStatus />,
     code: `const theme = { Draft: "neutral", Sent: "blue", Paid: "green", Overdue: "red" };
 
-<Card as="section" theme="flat" aria-labelledby={titleId}
+<Card as="section" theme="default" aria-labelledby={titleId}
   subAction={<Menu align="end"
     trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label="Actions for INV-2026-0139" />}
     items={[

@@ -81,7 +81,7 @@ export async function setFrameBoxes(localPage: string, changes: ReadonlyMap<stri
     const to = { x: change?.x ?? place.x, y: change?.y ?? place.y };
     if (!same(frame.place, to)) ops.push(...placeOps(to));
     if (change && frame.kind !== "overlay") {
-      const limits = frame.kind === "section" ? { min: 100, max: 40000 } : { min: 100, max: 4096 };
+      const limits = frame.kind === "section" ? { min: 100, max: 40000 } : frame.kind === "slice" ? { min: 1, max: 40000 } : { min: 100, max: 4096 };
       for (const name of ["width", "height"] as const) {
         const value = change[name];
         if (value !== undefined) ops.push(number(name, Math.min(limits.max, Math.max(limits.min, value))));
@@ -140,13 +140,13 @@ export async function copyFrame(localPage: string, frameId: string, at: FramePla
     const own = frameOf(original).place ?? { x: 0, y: 0 };
     return copySection(localPage, frameId, at ? { dx: at.x - own.x, dy: at.y - own.y } : null, { ...options, label: options.label?.replace("frame", "section") });
   }
-  const kind = original.name === "Overlay" ? "overlay" : "screen";
+  const kind = original.name === "Overlay" ? "overlay" : original.name === "Slice" ? "slice" : "screen";
   const id = engine.freeFrameId(kind, board.nodes.map((node) => String(literalOf(node, "id") ?? "")));
   const place = at ?? (index >= 0 ? besidePlace(board, index, options.heights ?? new Map()) : placeFrames([...board.frames, { width: 0, place: null }]).at(-1)!);
   const where = { id, x: Math.round(place.x), y: Math.round(place.y) };
   const state = literalOf(original, "state");
   const newFrame = `${kind}:${id}${typeof state === "string" ? `:${state}` : ""}`;
-  const label = options.label ?? (kind === "overlay" ? "Duplicate overlay" : "Duplicate screen");
+  const label = options.label ?? (kind === "overlay" ? "Duplicate overlay" : kind === "slice" ? "Duplicate slice" : "Duplicate screen");
   // Frames still in the row are pinned first (the same undo step: joinPin).
   const pinned = board.frames.some((frame) => !frame.place) ? { text: board.text, hash: board.hash } : null;
   if (pinned && !(await pinRow(localPage))) return null;
@@ -197,7 +197,7 @@ export async function copySection(localPage: string, sectionId: string, offset: 
   const frames: string[] = [];
   let copied = "";
   for (const part of parts) {
-    const kind = part.node.name === "Section" ? "section" : part.node.name === "Overlay" ? "overlay" : "screen";
+    const kind = part.node.name === "Section" ? "section" : part.node.name === "Slice" ? "slice" : part.node.name === "Overlay" ? "overlay" : "screen";
     const id = engine.freeFrameId(kind, taken);
     taken.push(id);
     if (!copied) copied = `section:${id}`;
@@ -212,6 +212,15 @@ export async function copySection(localPage: string, sectionId: string, offset: 
   if (!response.ok) return null;
   selectFrameWhenShown(copied, (frameId) => studioStore.setState({ selection: { kind: "frame", frameId } }));
   return copied;
+}
+
+/** A frame of the board as the source writes it: its file, loc and tag, and where it is (the row's place if unplaced). */
+export async function frameNodeOf(localPage: string, frameId: string): Promise<{ file: string; loc: string; name: string; place: FramePlace; width: number } | null> {
+  const board = await readBoard(localPage);
+  const index = board ? board.frames.findIndex((frame) => frame.id === frameId) : -1;
+  if (!board || index < 0) return null;
+  const frame = board.frames[index];
+  return { file: board.file, loc: frame.loc, name: board.nodes[index].name, place: frame.place ?? board.places[index], width: frame.width };
 }
 
 /** A frame copied from the page it is on (⌘C): its element, and its code without its place for the system clipboard. */

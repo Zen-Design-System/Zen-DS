@@ -110,7 +110,7 @@ export default function Page() {
           <Stack direction="row" justify="between">
             <Button appearance="flat" startIcon="icon-plus-line">New project</Button>
           </Stack>
-          <Card theme="flat">
+          <Card theme="default">
             <Text>Loyalty app</Text>
           </Card>
         </Stack>

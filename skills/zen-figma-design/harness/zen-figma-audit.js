@@ -531,7 +531,8 @@ async function checkThemePairingOf(root) {
     if (kind === "Solid" || kind === "Solid Neutral") continue; // a highlight widget, one per row (Card rules)
     // Subtle is the colour box of Canvas/Default (user rule 2026-10-17); on a white page it is a stand-out widget.
     if (kind === "Subtle" && canvas !== "Default") continue;
-    const family = kind === "Pale" || kind === "Subtle" ? kind : border ? "Border" : "Flat";
+    // Card / List-Box Theme names (renamed 2026-10-21): the plain box is Default, Surface/Flat in a Pale border Flat-Border.
+    const family = kind === "Pale" || kind === "Subtle" ? kind : border ? (kind === "Surface/Flat" ? "Flat-Border" : "Border") : "Default";
     families.add(family);
     const allowed = {
       Default: kind === "Surface/Default" || kind === "Subtle",
@@ -539,7 +540,7 @@ async function checkThemePairingOf(root) {
       Flat: kind === "Pale" || (kind === "Surface/Flat" && border),
     }[canvas];
     if (!allowed) {
-      const fix = { Default: kind === "Pale" ? "Theme=Subtle (Support/<Hue>/Subtle): a Pale box fades into the grey canvas" : "Surface/Default (Theme Flat, Shadow or Border), or Theme=Subtle for colour", Alt: "Pale, Surface=Alt, or Theme=Border on Surface/Default", Flat: "Pale or Theme=Border with Surface=Flat" }[canvas];
+      const fix = { Default: kind === "Pale" ? "Theme=Subtle (Support/<Hue>/Subtle): a Pale box fades into the grey canvas" : "Surface/Default (Theme Default, Shadow or Border), or Theme=Subtle for colour", Alt: "Pale, Surface=Alt, or Theme=Border on Surface/Default", Flat: "Theme=Flat-Border (Surface/Flat in a Pale border) or Pale" }[canvas];
       report("theme/box-on-canvas", ERROR, box, `${kind}${border ? " with a border" : ""} on Canvas/${canvas}: use ${fix}`);
     }
   }

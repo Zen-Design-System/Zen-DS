@@ -253,7 +253,7 @@ function IntegrationsExample() {
   }, [calendar]);
   const calendarCaption = calendar === "connecting" ? "Connecting to Google Calendar…" : calendar === "on" ? `Due dates go to ${me.email}` : "Due dates of your tasks show up in your calendar";
   return (
-    <Card theme="flat">
+    <Card theme="default">
       <Stack gap="md">
         <Stack direction="row" gap="md" align="center">
           <DockIcon icon="icon-calendar-line" theme="blue" background="subtle" size="medium" />
@@ -392,7 +392,7 @@ function FocusModeExample() {
         topNavigation={<TopNavigation type="compact-alt" title="Focus" scrollRef={screenRef}
           leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => notHere("Settings") }} />}
       >
-        <Card theme="flat">
+        <Card theme="default">
           <FormFieldset kind="toggle" legend="Focus" hideLegend>
             <Toggle size="xl" icon="icon-moon-01-line" label="Do not disturb" bold
               caption={quiet
@@ -403,7 +403,7 @@ function FocusModeExample() {
         </Card>
         <Stack as="section" gap="xs" aria-labelledby={autoId}>
           <Box paddingX="lg"><Heading level={2} id={autoId} textStyle="Body/Small/Bold" tone="light">Turn on automatically</Heading></Box>
-          <Card theme="flat">
+          <Card theme="default">
             <FormFieldset kind="toggle" legend="Turn on automatically" hideLegend>
               <Toggle size="lg" label="Weeknights" caption="10:00 pm – 7:00 am, Monday to Friday" checked={weeknights} onCheckedChange={setWeeknights} />
               <Toggle size="lg" label="During client workshops" caption="Calendar events with “Workshop” in the title" checked={workshops} onCheckedChange={setWorkshops} />
@@ -573,7 +573,7 @@ const connect = async () => {
     topNavigation={<TopNavigation type="compact-alt" title="Focus" scrollRef={screenRef}
       leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToSettings }} />}
   >
-    <Card theme="flat">
+    <Card theme="default">
       <FormFieldset kind="toggle" legend="Focus" hideLegend>
         <Toggle size="xl" icon="icon-moon-01-line" label="Do not disturb" bold
           caption={quiet ? "Calls and alerts stay silent until 7:00 am, except from 3 people" : "Calls and alerts come through"}
@@ -582,7 +582,7 @@ const connect = async () => {
     </Card>
     <Stack as="section" gap="xs" aria-labelledby="auto">
       <Box paddingX="lg"><Heading level={2} id="auto" textStyle="Body/Small/Bold" tone="light">Turn on automatically</Heading></Box>
-      <Card theme="flat">
+      <Card theme="default">
         <FormFieldset kind="toggle" legend="Turn on automatically" hideLegend>
           <Toggle size="lg" label="Weeknights" caption="10:00 pm – 7:00 am, Monday to Friday" checked={weeknights} onCheckedChange={setWeeknights} />
         </FormFieldset>

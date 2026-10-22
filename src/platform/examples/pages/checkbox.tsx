@@ -102,7 +102,7 @@ function ExportSectionsExample() {
     toast({ title: "Q3 report exported", children: plural(picked.length, "section") });
   };
   return (
-    <Card theme="flat">
+    <Card theme="default">
       <Form onSubmit={submit}>
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Q3 2026 studio report</Heading>
@@ -144,7 +144,7 @@ function ConfirmTimesheetExample() {
   const withdraw = () => { setSubmitted(false); form.reset(); };
   // The whole card is the form: its groups (header, hours, confirmation, actions) take the Form's gap.
   return (
-    <Card theme="flat">
+    <Card theme="default">
       <Form form={form}>
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Timesheet</Heading>
@@ -197,7 +197,7 @@ function RolePermissionsExample() {
   const dirty = Object.keys(saved).some((id) => draft[id] !== saved[id]);
   const save = () => { setSaved(draft); toast({ title: "Designer role saved" }); };
   return (
-    <Card theme="flat">
+    <Card theme="default">
       <Form onSubmit={save}>
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Designer</Heading>

@@ -99,7 +99,7 @@ function SlotBookingExample() {
   const [slot, setSlot] = useState<string | null>(null);
   const time = slot ? new Date(slot).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : null;
   return (
-    <Card theme="flat">
+    <Card theme="default">
       <Stack gap="md">
         <Heading level={3} textStyle="Heading/Subheading">Book a design review</Heading>
         <ScheduleSlotPicker slots={slots} today={TODAY} value={slot} onValueChange={setSlot} aria-label="Review times" />

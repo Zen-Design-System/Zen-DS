@@ -26,6 +26,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved; F0–F10 shipped by 2026-10-20,
   HANDOFF):** `docs/research/studio-figma-design-parity-2026-10-18.md`. Left: an instance's data-name stays in the page
   (its Figma name is its component's or carries content, which pull reads as such).
+- **P2 · Figma's native clipboard path misses a frame's look (2026-10-19, Studio F5a; no owner session):** figma-push and
+  the Zen plugin's importer carry a frame's fill on Stack / Grid, stroke + sides + dash, radii, effectStyle, opacity,
+  rotation and flip (spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md` §4);
+  `tools/studio/figma-native.mjs` / `native-pack.mjs` (⌘C → ⌘V in Figma) do not map them yet (a layer's blend mode goes
+  since 2026-10-20, Session C). Giám sát raises it with the user.
 - **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
   (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
@@ -42,11 +47,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a
   variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
   frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
-- **P3 · Card Spacing=XSmall follow-ups (2026-10-20, AppShell session):**
-  - The 40 XSmall variants and `Card-padding-xsmall` are in Figma, code and the Studio props.
-  - Still to do: `docs/figma-contracts/native-pack.json` has no XSmall Card. It needs a probe-frame rebuild
-    (`node tools/studio/native-pack.mjs --help`), so a direct paste of an xs Card notes "no variant"; the plugin import
-    works.
 - **P3 · AppShellHeader `theme` / `density` to and from Figma (2026-10-21, Session B; waits for the user):** since #179 the
   header takes `theme="border-divider"` and `density="small"` (Figma Header/AppShell 16783:71068 Theme × Density), but
   the push still draws an AppShell's header as Dashboard header rows in the master layout, so either look arrives in
@@ -61,6 +61,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   slot content, overrides inside nested instances and of Zen components in a main since 2026-10-20; layers into a slot
   from the canvas since 2026-10-21 (F7c). Open, a question for the user: should the React export inline an instance
   whose overrides no property takes (now a comment)? Pointer: `docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md` §5.
+- **P3 · ai-ui dead click on the phone composer's slot chip (2026-10-22, card-themes gate; user: "không phải ưu tiên giai
+  đoạn này"):** behaviour probe ⚠ [deadclick] ai-ui@1512 "Composed while typing, on a phone": the "Gia" people chip shows
+  no visible effect. LiveTypingExample renders SlotChips with `interactive={!showForm}`, so once the form shows the chip is
+  passive yet still a button.zen-chip; make it a non-button there or give it an effect. `src/platform/examples/pages/ai-ui.tsx`.
 - **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 9 examples (vectors and the ticket stub since 2026-10-19); not covered yet: states,
   edge cases (a 0 % sweep, a thin star), a phone example and keyboard / a11y (a labelled mark). Pointer:
   `src/platform/examples/pages/shape.tsx`.

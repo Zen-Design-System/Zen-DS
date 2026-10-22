@@ -16,10 +16,12 @@ export const literalOf = (node: PageNode, prop: string) => { const value = node.
  * `width`: a drawn Screen's own width, else its device's; `height`: a Section's (a Screen grows to its content past its
  * own). `loc`: the frame's element in the page text.
  */
-export type PageFrame = { id: string; label: string; width: number; height?: number; kind: "screen" | "overlay" | "section"; device: PageDevice; place: { x: number; y: number } | null; loc: string };
+export type PageFrame = { id: string; label: string; width: number; height?: number; kind: "screen" | "overlay" | "section" | "slice"; device: PageDevice; place: { x: number; y: number } | null; loc: string };
 
 /** Whether a Board child is a Section (Figma's section: drawn behind the frames, never a frame of the flow). */
 export const isSectionNode = (node: PageNode) => node.name === "Section";
+/** Whether a Board child is a Slice (Figma's slice: an area exported as a picture, drawn above the frames, never a frame of the flow). */
+export const isSliceNode = (node: PageNode) => node.name === "Slice";
 
 const numberOf = (node: PageNode, prop: string) => { const value = literalOf(node, prop); return typeof value === "number" && Number.isFinite(value) ? value : undefined; };
 
@@ -31,6 +33,7 @@ export function frameOf(node: PageNode): PageFrame {
   const place = x !== undefined && y !== undefined ? { x, y } : null;
   // Named by the person (data-name), else by what it shows (its Dialog's title, a Card's first text), as the Prototype tab
   // lists it; else by its id.
+  if (node.name === "Slice") return { id: `slice:${id}`, label: givenNameOf(node) ?? String(literalOf(node, "title") ?? id), width: numberOf(node, "width") ?? 100, height: numberOf(node, "height") ?? 100, kind: "slice", device: "desktop", place: place ?? { x: 0, y: 0 }, loc: node.loc };
   if (node.name === "Section") return { id: `section:${id}`, label: givenNameOf(node) ?? String(literalOf(node, "title") ?? id), width: numberOf(node, "width") ?? 100, height: numberOf(node, "height") ?? 100, kind: "section", device: "desktop", place: place ?? { x: 0, y: 0 }, loc: node.loc };
   if (node.name === "Overlay") return { id: `overlay:${id}`, label: givenNameOf(node) ?? overlayTitleOf(node) ?? `Overlay · ${id}`, width: DEVICE_WIDTH.desktop / 2, kind: "overlay", device: "desktop", place, loc: node.loc };
   const state = literalOf(node, "state");

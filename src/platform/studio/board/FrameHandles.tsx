@@ -46,9 +46,9 @@ function sizeStyles(element: HTMLElement) {
   };
 }
 
-/** The live size of a frame being resized: a Screen through its frame width and least height, a Section by its box. */
+/** The live size of a frame being resized: a Screen through its frame width and least height, a Section or Slice by its box. */
 function showSize(element: HTMLElement, width: number, height: number) {
-  if (element.dataset.kind === "section") {
+  if (element.dataset.kind === "section" || element.dataset.kind === "slice") {
     element.style.width = `${width}px`;
     element.style.height = `${height}px`;
     return;
@@ -188,10 +188,11 @@ export function FrameHandles({ frameId, localPage }: { frameId: string; localPag
       apply();
       clearGuides();
       const section = element.dataset.kind === "section";
+      const slice = element.dataset.kind === "slice";
       // Only what the drag changed is written (a width drag leaves a Screen's height to its content).
       const change = Object.fromEntries((["x", "y", "width", "height"] as const).filter((name) => box[name] !== start[name]).map((name) => [name, box[name]]));
       if (!Object.keys(change).length) { restore(); return; }
-      void setFrameBoxes(localPage, new Map([[frameId, change]]), section ? "Resize section" : "Resize frame").then((ok) => { if (!ok) restore(); });
+      void setFrameBoxes(localPage, new Map([[frameId, change]]), section ? "Resize section" : slice ? "Resize slice" : "Resize frame").then((ok) => { if (!ok) restore(); });
     };
     const onMove = (move: PointerEvent) => {
       if (move.pointerId !== pointerId) return;
