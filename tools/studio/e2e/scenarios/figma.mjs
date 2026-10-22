@@ -50,9 +50,8 @@ async function selectBody(page, id) {
 }
 
 /** The Figma keys Zen Studio has no feature for yet (edit/figmaNotYet.ts): each says so and nothing else happens. */
-const NOT_YET = [
-  ["KeyI", "Pick color"],
-];
+// None left since Comment (C) and Pick color (I) were built (2026-10-22); the row still checks the tab and the tool.
+const NOT_YET = [];
 
 
 /* ── F1 (Layers like Figma) helpers ─────────────────────────────────────────────────────────────────────────────── */
@@ -4668,6 +4667,208 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   {
+    id: "FW-183", feature: "Pick color (I) on a selected Shape: the pointer names the colour it would pick; a click on another layer gives the Shape that layer's own variable (fill=\"info-solid\"), one edit, and Move is back; ⌘Z takes it back", wp: "Pick color 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await pickPage(ctx);
+      return restoring(page, id, async () => {
+        const target = await pickLayer(page, id, "Plain");
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("KeyI");
+        await until(async () => /Pick color/.test(await statusText(page)), { message: "Pick color on" });
+        const source = await middleOf(page, id, "Source");
+        await page.mouse.move(source.x, source.y, { steps: 4 });
+        await until(async () => /Info \/ Solid/.test((await page.locator(".studio-drag__label").allInnerTexts().catch(() => [])).join(" ")), { message: "the tag beside the pointer names Info / Solid" });
+        await page.mouse.click(source.x, source.y);
+        await until(async () => /fill="info-solid"/.test(await target()), { message: "the selected Shape takes Info/Solid" });
+        if ((await pressedTool(page)) !== "Move") throw new Error("not back to Move");
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => !/fill=/.test(await target()), { message: "⌘Z: its own fill again" });
+        return "I → click Info/Solid → fill=\"info-solid\" → ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-184", feature: "Pick color on a frame takes the picked layer's surface exactly (a Pale Box → surface=\"pale\"); from a colour its surfaces lack (Info/Solid) it takes the nearest surface and says so; several selected layers change in one edit", wp: "Pick color 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await pickPage(ctx);
+      return restoring(page, id, async () => {
+        const boxTag = await pickLayer(page, id, "Target");
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("KeyI");
+        const pale = await middleOf(page, id, "Pale");
+        await page.mouse.click(pale.x, pale.y);
+        await until(async () => /surface="pale"/.test(await boxTag()), { message: "surface=\"pale\" (exact)" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("KeyI");
+        const info = await middleOf(page, id, "Source");
+        await page.mouse.click(info.x, info.y);
+        await until(async () => /nearest variable/.test(await statusText(page)) && /surface="(surface|surface-alt|subtle|pale|canvas)"/.test(await boxTag()), { message: "the nearest surface, said" });
+        return `${(await boxTag()).match(/surface="[^"]+"/)?.[0]} · ${await statusText(page)}`;
+      });
+    },
+  },
+  {
+    id: "FW-185", feature: "Pick color: with nothing selected I says to select a layer first; Esc stops it (a click then selects as before); Quick actions lists Pick color with I", wp: "Pick color 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await pickPage(ctx);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("KeyI");
+      await until(async () => /select one first/.test(await statusText(page)), { message: "nothing selected: said" });
+      await pickLayer(page, id, "Plain");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("KeyI");
+      await until(async () => /Pick color/.test(await statusText(page)), { message: "on" });
+      await page.keyboard.press("Escape");
+      await until(async () => /Pick color stopped/.test(await statusText(page)), { message: "Esc stops it" });
+      if (await page.locator(".studio-viewport[data-studio-picking]").count()) throw new Error("still picking");
+      await page.keyboard.press("ControlOrMeta+KeyK");
+      const actions = page.getByRole("dialog", { name: "Actions" });
+      await actions.waitFor({ state: "visible", timeout: 5000 });
+      await actions.getByLabel("Search actions").fill("pick color");
+      const row = actions.getByRole("option", { name: /Pick color/ }).first();
+      await row.waitFor({ state: "visible", timeout: 5000 });
+      const text = await row.innerText();
+      await page.keyboard.press("Escape");
+      if (!/\bI\b/.test(text)) throw new Error(`Quick actions row: ${text}`);
+      return "nothing selected → said · Esc → stopped · Quick actions › Pick color I";
+    },
+  },
+  {
+    id: "FW-186", feature: "A colour list's Pick color (the Fill row's swatch list) gives that row the colour picked on the canvas: the selected Shape's fill becomes the picked layer's variable; one ⌘Z", wp: "Pick color 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await pickPage(ctx);
+      return restoring(page, id, async () => {
+        const target = await pickLayer(page, id, "Plain");
+        const fill = right(page).locator('[data-prop="fill"]').first();
+        await fill.getByRole("combobox").or(fill.getByRole("button")).first().click();
+        await page.getByRole("option", { name: /^Pick color/ }).click();
+        await until(async () => /Pick color for Fill/.test(await statusText(page)), { message: "Pick color for the Fill row" });
+        const source = await middleOf(page, id, "Source");
+        await page.mouse.click(source.x, source.y);
+        await until(async () => /fill="info-solid"/.test(await target()), { message: "the Fill row takes Info/Solid" });
+        return await target();
+      });
+    },
+  },
+  {
+    id: "FW-181", feature: "Fill › Gradient on a rectangle: Linear makes its colour the first stop, fading to Neutral/Flat (fill prop gone), the canvas paints a linear-gradient; angle 45 writes angle: 45; + adds a stop in the widest gap, selected; its colour picks a variable from the fill palette; → moves its handle 1 %; the rows sit on the panel's grid; one ⌘Z each", wp: "Fill gradient 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      return restoring(page, id, async () => {
+        await selectShapes(page, id, [0]);
+        const tag = async () => ((await pageText(page, id)) ?? "").match(/<Shape type="rectangle"[^\n]*\/>/)?.[0] ?? "";
+        await chooseGradient(page, "Linear");
+        await until(async () => /gradient=\{\{ type: "linear", stops: \[\{ color: "[a-z-]+", at: 0 \}, \{ color: "neutral-flat", at: 100 \}\] \}\}/.test(await tag()), { message: "a linear gradient fading to Neutral/Flat" });
+        const shape = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).first();
+        await until(async () => (await shape.getAttribute("data-gradient")) === "linear" && /linear-gradient/.test(await shape.evaluate((node) => getComputedStyle(node).backgroundImage)), { message: "the canvas paints the gradient" });
+        await typeNumber(page, "Gradient angle", 45);
+        await until(async () => /gradient=\{\{ type: "linear", angle: 45,/.test(await tag()), { message: "angle: 45" });
+        await press(page, "Add gradient stop");
+        await until(async () => (await tag()).match(/\{ color: /g)?.length === 3 && /at: 50 \}\] \}\}/.test(await tag()), { message: "a third stop at 50%" });
+        await pickStopColor(page, "info-solid", /^Info \/ Solid/);
+        await until(async () => /\{ color: "info-solid", at: 50 \}/.test(await tag()), { message: "the new stop on Info/Solid" });
+        await shot(page, "fw-181-gradient");
+        await expectPanelFits(page, "the gradient rows");
+        await right(page).getByRole("slider", { name: "Stop 3" }).focus();
+        await page.keyboard.press("ArrowRight");
+        await until(async () => /\{ color: "info-solid", at: 51 \}/.test(await tag()), { message: "→ moves it to 51%" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => /\{ color: "info-solid", at: 50 \}/.test(await tag()), { message: "one ⌘Z: 50% again" });
+        return (await tag()).match(/gradient=\{\{[^}]*\}[^]*?\] \}\}/)?.[0] ?? await tag();
+      });
+    },
+  },
+  {
+    id: "FW-182", feature: "Fill › Gradient: Diamond keeps the stops (no angle row), the canvas paints four quadrants; a press on the bar adds a stop there; − removes the selected stop and a gradient keeps two; − on the gradient leaves the rectangle unfilled (fill=\"none\"), as Figma's −", wp: "Fill gradient 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      return restoring(page, id, async () => {
+        await selectShapes(page, id, [0]);
+        const tag = async () => ((await pageText(page, id)) ?? "").match(/<Shape type="rectangle"[^\n]*\/>/)?.[0] ?? "";
+        await chooseGradient(page, "Linear");
+        await until(async () => /type: "linear"/.test(await tag()), { message: "linear" });
+        await chooseGradient(page, "Diamond");
+        await until(async () => /gradient=\{\{ type: "diamond", stops: /.test(await tag()), { message: "diamond, its stops kept" });
+        if (await right(page).getByRole("spinbutton", { name: "Gradient angle", exact: true }).count()) throw new Error("a diamond shows an angle");
+        const shape = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).first();
+        await until(async () => (await shape.evaluate((node) => getComputedStyle(node).backgroundImage)).split("linear-gradient(").length - 1 === 4, { message: "four quadrants on the canvas" });
+        const bar = await right(page).getByRole("group", { name: "Gradient stops" }).boundingBox();
+        await page.mouse.click(bar.x + bar.width * 0.25, bar.y + 3);
+        await until(async () => (await tag()).match(/\{ color: /g)?.length === 3 && /at: 2[3-7] \}\] \}\}/.test(await tag()), { message: "a stop where the bar was pressed (about 25%)" });
+        await right(page).getByRole("button", { name: /^Remove stop/ }).click();
+        await until(async () => (await tag()).match(/\{ color: /g)?.length === 2, { message: "two stops" });
+        if (await right(page).getByRole("button", { name: /^Remove stop/ }).count()) throw new Error("a two-stop gradient offers − on a stop");
+        await press(page, "Remove gradient");
+        await until(async () => !/gradient=/.test(await tag()) && /fill="none"/.test(await tag()), { message: "no gradient, unfilled" });
+        return await tag();
+      });
+    },
+  },
+  {
+    id: "FW-205", feature: "A Button's words are its Text property in the Properties block (after Figma's own properties), no Content section; typing there writes its children; ⌘Z takes it back", wp: "Content into properties 2026-10-22", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await contentPage(ctx);
+      return restoring(page, id, async () => {
+        await clickNamed(page, id, "Button");
+        await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+        const titles = await sections(page);
+        if (titles.includes("Content")) throw new Error(`a Content section: ${titles.join(", ")}`);
+        const properties = right(page).locator(".studio-inspector__section").filter({ has: page.locator("h3", { hasText: /^Properties$/ }) }).first();
+        const text = properties.locator('[data-prop~="children"]').getByRole("textbox", { name: "Text", exact: true });
+        await text.waitFor({ state: "visible", timeout: 5000 });
+        if ((await text.inputValue()) !== "Save") throw new Error(`the Text property reads ${await text.inputValue()}`);
+        await expectPanelFits(page, "the Button's Properties");
+        await typeText(page, "Text", "Store");
+        await written(page, id, />Store<\/Button>/, "the Button's children → Store");
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await written(page, id, />Save<\/Button>/, "⌘Z: Save again");
+        return `sections ${titles.join(" · ")} · Text Save → Store → ⌘Z`;
+      });
+    },
+  },
+  {
+    id: "FW-206", feature: "A component without Figma properties (Link) shows one Properties block in its prop order, as Figma's instance panel: no Content / State / Actions sections, its words a Text row where `children` sits (after Visited)", wp: "Content into properties 2026-10-22", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await contentPage(ctx);
+      await clickNamed(page, id, "Link");
+      await until(async () => /Link/i.test(await selectedName(page)), { message: "the Link selected" });
+      const titles = await sections(page);
+      const grouped = titles.filter((title) => ["Content", "State", "Actions", "More"].includes(title));
+      if (grouped.length || !titles.includes("Properties")) throw new Error(`sections ${titles.join(", ")}`);
+      const rows = await right(page).locator(".studio-inspector__section").filter({ has: page.locator("h3", { hasText: /^Properties$/ }) }).first()
+        .locator(".studio-inspector__row[data-prop]").evaluateAll((all) => all.map((row) => row.getAttribute("data-prop")));
+      const at = (name) => rows.findIndex((prop) => prop.split(" ").includes(name));
+      if (at("children") < 0 || at("visited") < 0 || at("children") < at("visited")) throw new Error(`rows ${rows.join(", ")}`);
+      await expectPanelFits(page, "the Link's Properties");
+      return `sections ${titles.join(" · ")} · rows ${rows.join(", ")}`;
+    },
+  },
+  {
+    id: "FW-207", feature: "A text layer (Text) keeps its words in a Text row first in Typography (user 2026-10-22), no Content section; typing there writes them", wp: "Content into properties 2026-10-22", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await contentPage(ctx);
+      return restoring(page, id, async () => {
+        // The page's second Text (its first is the starter's "Start building here").
+        await clickNamed(page, id, "Text", 1);
+        await until(async () => /Text|Hello/.test(await selectedName(page)), { message: "the Text selected" });
+        const titles = await sections(page);
+        if (titles.includes("Content") || titles.includes("Properties")) throw new Error(`sections ${titles.join(", ")}`);
+        const typography = right(page).locator(".studio-inspector__section").filter({ has: page.locator("h3", { hasText: /^Typography$/ }) }).first();
+        const first = await typography.locator(".studio-inspector__row[data-prop]").first().getAttribute("data-prop");
+        if (!first?.split(" ").includes("children")) throw new Error(`Typography starts with ${first}`);
+        await expectPanelFits(page, "the Text's Typography");
+        await typeText(page, "Text", "Hi there");
+        await written(page, id, />Hi there<\/Text>/, "the Text's words → Hi there");
+        return `sections ${titles.join(" · ")} · Typography starts with Text`;
+      });
+    },
+  },
+  {
     id: "FW-165", feature: "A Zen instance's Design tab has no Code properties (Figma's sections only); its HTML button type is on the Code tab's Properties, where typing submit writes type=\"submit\"; ⌘Z takes it back", wp: "§3a Properties 2026-10-21", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
@@ -5152,4 +5353,87 @@ async function sameFromMenu(page, id, frameId, index, item, name = "Shape", { on
   const list = page.getByRole("menu", { name: "Select all with same" });
   await step(list.waitFor({ state: "visible", timeout: 5000 }), "the Select all with same list");
   await step(list.getByRole("menuitem", { name: new RegExp(`^${item}`) }).click({ timeout: 5000 }), item);
+}
+
+/** Fill › Gradient's type set to `label` (its PropField row: a select, or a Segmented when the options fit). */
+async function chooseGradient(page, label) {
+  const row = page.locator('#studio-right [data-prop="gradient-fill"] [data-prop="gradientType"]').first();
+  await row.waitFor({ state: "visible", timeout: 8000 });
+  const segmented = row.locator(".zen-segmented");
+  if (await segmented.count()) { await segmented.getByRole("button", { name: label, exact: true }).click(); return; }
+  await row.getByRole("combobox", { name: /Gradient/ }).or(row.getByRole("button", { name: /Gradient/ })).first().click();
+  await page.getByRole("option", { name: label, exact: true }).click();
+}
+/** The selected stop's color picked by searching `query`, the option named like `name`. */
+async function pickStopColor(page, query, name) {
+  await right(page).getByRole("combobox", { name: "Stop color" }).or(right(page).getByRole("button", { name: "Stop color" })).first().click();
+  const search = page.getByPlaceholder("Search colors");
+  await search.waitFor({ state: "visible", timeout: 5000 });
+  await search.fill(query);
+  await page.getByRole("option", { name }).first().click();
+}
+
+/** A phone page with a free frame: an Info/Solid Shape (the colour to pick), a plain Shape, a Pale Box and a Target Box. */
+const pickText = (title) => {
+  const text = newPageText({ title, device: "phone", chrome: true });
+  return grow(text, "Stack", '<Box width={358} height={200}>\n<Shape data-name="Source" type="rectangle" fill="info-solid" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} />\n<Shape data-name="Plain" type="rectangle" position="absolute" insetLeft={120} insetTop={20} width={80} height={60} />\n<Box data-name="Pale" surface="pale" position="absolute" insetLeft={20} insetTop={110} width={80} height={60} />\n<Box data-name="Target" position="absolute" insetLeft={220} insetTop={110} width={80} height={60} />\n</Box>');
+};
+let pickMade = null;
+async function pickPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!pickMade) {
+    const seeded = await seededPage(ctx, pickText, /data-name="Target"/);
+    pickMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${pickMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${pickMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  return { page, id: pickMade };
+}
+/** The pick page's layer named `name` (its data-name) on the canvas. */
+const named = (page, id, name) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-name="${name}"]`).first();
+/** The middle of the pick page's layer `name`. */
+async function middleOf(page, id, name) {
+  const box = await named(page, id, name).boundingBox();
+  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+}
+/** ⌘-clicks the pick page's layer `name` (Figma's deep select) until Layers shows it selected; a reader of its tag. */
+async function pickLayer(page, id, name) {
+  const src = await named(page, id, name).getAttribute("data-zen-src");
+  const at = await middleOf(page, id, name);
+  await page.keyboard.down("ControlOrMeta");
+  await page.mouse.click(at.x, at.y);
+  await page.keyboard.up("ControlOrMeta");
+  // The selection is read from Layers: a row before may have left the left panel on Pages.
+  await showLeftTab(page, "layers");
+  await until(async () => (await selectedSrc(page)).some((selected) => Boolean(selected) && src?.replace(/#\d+$/, "") === selected), { message: `${name} selected` });
+  return async () => ((await pageText(page, id)) ?? "").match(new RegExp(`<(?:Shape|Box) data-name="${name}"[^\\n]*?/?>`))?.[0] ?? "";
+}
+
+/** A phone page with a Button, a Link (no Figma properties) and a Text (the Content-into-properties rows). */
+const contentText = (title) => {
+  let text = newPageText({ title, device: "phone", chrome: true });
+  text = grow(text, "Stack", '<Button level="primary">Save</Button>');
+  text = grow(text, "Stack", '<Link href="#docs">Docs</Link>');
+  return grow(text, "Stack", "<Text>Hello there</Text>");
+};
+let contentMade = null;
+async function contentPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!contentMade) {
+    const seeded = await seededPage(ctx, contentText, /Hello there/);
+    contentMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${contentMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${contentMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  return { page, id: contentMade };
 }

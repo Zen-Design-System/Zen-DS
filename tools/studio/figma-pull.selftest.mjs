@@ -313,6 +313,28 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("image fill: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
 }
 
+// Gradient fills as figmaReadCode reads them (figma-gradient.mjs): a shape's and a frame's gradient come back as the
+// gradient prop (the angle from its transform and size); a raw-colour stop is noted; the shape stays colourless.
+{
+  const accent = "Color/Background/Accent/Solid/Default", info = "Color/Background/Info/Solid/Default";
+  const at = { pw: 400, ph: 300, cx: "MIN", cy: "MIN", free: true };
+  const frame = {
+    type: "FRAME", name: "Gradients", width: 400, height: 300, layout: null,
+    children: [
+      { type: "RECTANGLE", name: "Dawn", shape: { w: 200, h: 100, fill: null, stroke: null, strokeWeight: 1, rotation: 0, opacity: 1, gradientFill: { type: "GRADIENT_LINEAR", transform: [[2 / 3, -1 / 3, 1 / 3], [1 / 3, 2 / 3, 0]], stops: [{ position: 0, color: accent }, { position: 1, color: info }], width: 200, height: 100 } }, absolute: { x: 10, y: 10, w: 200, h: 100, ...at } },
+      { type: "ELLIPSE", name: "Raw", shape: { w: 80, h: 80, fill: null, stroke: null, strokeWeight: 1, rotation: 0, opacity: 1, gradientFill: { type: "GRADIENT_RADIAL", transform: [[1, 0, 0], [0, 1, 0]], stops: [{ position: 0, color: accent }, { position: 0.5, color: null }, { position: 1, color: info }], width: 80, height: 80 } }, absolute: { x: 220, y: 10, w: 80, h: 80, ...at } },
+      { type: "FRAME", name: "Hero", width: 300, height: 120, fill: "Color/Background/Surface/Default", layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, gradientFill: { type: "GRADIENT_ANGULAR", transform: [[0, 1, 0], [-1, 0, 1]], stops: [{ position: 0, color: accent }, { position: 1, color: info }], width: 300, height: 120 }, children: [{ type: "TEXT", name: "Title", characters: "Hello" }] },
+    ],
+  };
+  const pulled = pageFromFigma(frame, { mapping });
+  const lines = pulled.text.split("\n");
+  ok("gradient: a shape's linear comes back at its angle, no fill colour", lines.some((line) => line.includes('<Shape type="rectangle"') && line.includes('gradient={{ type: "linear", angle: 45, stops: [{ color: "accent-solid", at: 0 }, { color: "info-solid", at: 100 }] }}') && !/ fill=/.test(line)));
+  ok("gradient: a raw-colour stop is left out and noted", pulled.notes.some((note) => /"Raw": its gradient stop on a raw colour/.test(note)) && lines.some((line) => /type="ellipse"/.test(line) && line.includes('gradient={{ type: "radial", stops: [{ color: "accent-solid", at: 0 }, { color: "info-solid", at: 100 }] }}')));
+  ok("gradient: a frame's angular over its surface (a Box)", /<Box [^>]*surface="surface"[^>]* gradient=\{\{ type: "angular", angle: 180,/.test(pulled.text));
+  check("gradient: a frame with a surface has no fill note", pulled.notes.filter((note) => /"Hero"/.test(note)), []);
+  check("gradient: the page passes the dialect", validateDialect(pulled.text), []);
+}
+
 // F9: a Figma VECTOR comes back as Shape type="vector" (its vectorPaths in its box, its winding rule, a centred stroke
 // left out as the default); a path Zen cannot read is left out with a note.
 {

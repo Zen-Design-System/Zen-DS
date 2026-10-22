@@ -7,6 +7,7 @@
  * differ from it. Effects: one Figma effect style per Box (`effectStyle`); drop shadows only on the Surface fill, the
  * background blur only on a translucent fill (Subtle, Pale).
  */
+import type { GradientStop, GradientType, ZenGradient } from "../../../components/_shared/gradient";
 import type { EditOp } from "../types";
 
 /** Corner-Radius steps (px in the default radius mode): none · 2xs 2 · xs 4 · sm 8 · md 12 · lg 16 · xl 20 · 2xl 24 · 3xl 28 · full. */
@@ -144,3 +145,82 @@ export function effectWarnings(v: { effectStyle?: string; surface?: string; bord
   if (style.kind === "shadow" && v.border && v.border !== "none") out.push({ text: "A shadowed surface takes no border (elevation follows the Sidebar).", fix: [removeProp("border")], fixLabel: "Remove border" });
   return out;
 }
+
+/*
+ * Fill › Gradient (spec docs/research/studio-fill-gradient-smoothing-eyedropper-spec-2026-10-22.md §1): the `gradient`
+ * prop (_shared/gradient.ts) as the Fill section edits it. Its stops are paint slugs (the whole fill palette: user
+ * 2026-10-22); a new gradient fades its first colour to Neutral/Flat (transparent), as Figma's new gradient fades the
+ * fill's colour to 0 % alpha.
+ */
+export const GRADIENT_TYPES: readonly GradientType[] = ["linear", "radial", "angular", "diamond"];
+export const gradientLabels: Readonly<Record<GradientType, string>> = { linear: "Linear", radial: "Radial", angular: "Angular", diamond: "Diamond" };
+/** The angle a type starts at when none is written (gradient.ts: linear down, angular from 3 o'clock); null: no angle. */
+export const gradientAngleDefault = (type: GradientType): number | null => (type === "linear" ? 180 : type === "angular" ? 90 : null);
+const FADE_TO = "neutral-flat";
+
+const stopOf = (stop: unknown): GradientStop | null => {
+  const item = stop as { color?: unknown; at?: unknown } | null;
+  return item && typeof item.color === "string" ? { color: item.color as GradientStop["color"], at: typeof item.at === "number" && Number.isFinite(item.at) ? item.at : 0 } : null;
+};
+
+/** The gradient a value holds: what the element renders with (`live`), else its code read as data; null without one. */
+export function gradientOf(value: { state: string; live?: unknown; expression?: string }): ZenGradient | null {
+  let data: unknown = value.state === "bound" || value.state === "spread" ? value.live : undefined;
+  if ((data === undefined || data === null) && value.state === "bound" && value.expression) {
+    try { data = JSON.parse(value.expression.replace(/([{,]\s*)([A-Za-z_]\w*)\s*:/g, '$1"$2":').replace(/,(\s*[}\]])/g, "$1")); } catch { data = null; }
+  }
+  const item = data as { type?: unknown; angle?: unknown; stops?: unknown } | null;
+  if (!item || typeof item !== "object" || !GRADIENT_TYPES.includes(item.type as GradientType) || !Array.isArray(item.stops)) return null;
+  const stops = item.stops.map(stopOf).filter((stop): stop is GradientStop => stop !== null);
+  return { type: item.type as GradientType, ...(typeof item.angle === "number" && Number.isFinite(item.angle) ? { angle: item.angle } : {}), stops };
+}
+
+/** The gradient as the code writes it (`{ type: "linear", angle: 45, stops: [{ color: "accent-solid", at: 0 }, …] }`). */
+export function gradientCode(gradient: ZenGradient): string {
+  const fallback = gradientAngleDefault(gradient.type);
+  const angle = fallback !== null && typeof gradient.angle === "number" && gradient.angle !== fallback ? `, angle: ${gradient.angle}` : "";
+  const stops = gradient.stops.map((stop) => `{ color: "${stop.color}", at: ${stop.at} }`).join(", ");
+  return `{ type: "${gradient.type}"${angle}, stops: [${stops}] }`;
+}
+
+/** The ops that write a gradient (an expression prop). */
+export const gradientOps = (gradient: ZenGradient): EditOp[] => [{ op: "setProp", name: "gradient", value: { kind: "expression", code: gradientCode(gradient) } }];
+
+/** A new gradient of a type: its colour (a shape's fill, else Accent, the screen's lead colour) fading to transparent. */
+export function startGradient(type: GradientType, color: string | undefined): ZenGradient {
+  const from = color && color !== "none" && color !== FADE_TO ? color : "accent-solid";
+  return { type, stops: [{ color: from as GradientStop["color"], at: 0 }, { color: FADE_TO, at: 100 }] };
+}
+
+/** Another type, the stops kept; an angle only where the new type takes one. */
+export function retypeGradient(gradient: ZenGradient, type: GradientType): ZenGradient {
+  const keepsAngle = gradientAngleDefault(type) !== null && gradientAngleDefault(gradient.type) !== null;
+  return { type, ...(keepsAngle && typeof gradient.angle === "number" ? { angle: gradient.angle } : {}), stops: gradient.stops };
+}
+
+/** The middle of the widest gap between two stops (the first of equal ones): where + adds one (Figma's bar click). */
+export function widestGapAt(gradient: ZenGradient): number {
+  const stops = [...gradient.stops].sort((a, b) => a.at - b.at);
+  if (stops.length < 2) return 50;
+  let gap = 0;
+  for (let index = 1; index < stops.length - 1; index += 1) if (stops[index + 1].at - stops[index].at > stops[gap + 1].at - stops[gap].at) gap = index;
+  return Math.round((stops[gap].at + stops[gap + 1].at) / 2);
+}
+
+/** A stop added at `at`, in the colour of the stop before that place (else the first), after the written ones. */
+export function addGradientStop(gradient: ZenGradient, at = widestGapAt(gradient)): ZenGradient {
+  const place = Math.min(100, Math.max(0, Math.round(at)));
+  const sorted = [...gradient.stops].sort((a, b) => a.at - b.at);
+  const before = [...sorted].reverse().find((stop) => stop.at <= place) ?? sorted[0];
+  return { ...gradient, stops: [...gradient.stops, { color: before?.color ?? "accent-solid", at: place }] };
+}
+
+/** A stop taken away; a gradient keeps two. */
+export const removeGradientStop = (gradient: ZenGradient, index: number): ZenGradient =>
+  (gradient.stops.length <= 2 ? gradient : { ...gradient, stops: gradient.stops.filter((_, at) => at !== index) });
+
+/** A stop's colour or place changed (its place 0–100, whole percent). */
+export function setGradientStop(gradient: ZenGradient, index: number, change: Partial<GradientStop>): ZenGradient {
+  return { ...gradient, stops: gradient.stops.map((stop, at) => (at === index ? { ...stop, ...change, ...(typeof change.at === "number" ? { at: Math.min(100, Math.max(0, Math.round(change.at))) } : {}) } : stop)) };
+}
+

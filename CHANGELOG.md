@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio's Design panel has no Content section, as Figma's: an instance's words are its Text property in its
+  Properties block, a text layer's a Text row first in Typography; a component without Figma properties shows one
+  Properties block in its prop order instead of Appearance / Content / Icon / State / Actions groups (2026-10-22).
 - Zen Studio ↔ Figma: AppShellHeader arrives as Figma's Header/AppShell with its `theme` and `density` (Border & Divider
   is Small-only in Figma: a Medium one goes as Small, with a note), on its own or swapped into the master layout, its
   leading · center · actions in Top-Elements, `main` in Main-Element and `sections` in Sections (emptied when there are
@@ -28,6 +31,17 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   60), drawn with CSS `corner-shape: superellipse(…)` where the browser has it (Chromium) and plain rounded corners
   elsewhere. Zen Studio sets it beside the independent corners and round-trips it with Figma's `cornerSmoothing`
   (push, pull, native paste, plugin `studio-import` ef17610).
+- Gradient fills (Figma's Linear, Radial, Angular and Diamond paints): Box, Stack, Grid and Shape take `gradient`
+  (`{ type, angle?, stops: [{ color, at }] }`), each stop a paint slug (a colour variable, the whole fill palette), over the
+  fill colour (a Shape then has none unless given) and under an image fill; diamond is drawn as four linear quadrants.
+  Zen Studio's Fill › Gradient sets the type, the angle and the stops on a gradient bar (a press adds one, a handle drags
+  or takes ← →, Delete removes it), and round-trips them with Figma's gradient paints bound to variables (push, pull,
+  native paste, plugin `studio-import` 9c54e40).
+- Zen Studio: Pick color (I, Figma's eyedropper) on a page you made: a click on the canvas paints the selected layers'
+  fill (a Shape's fill, a frame's surface, a text's tone) with the picked layer's own colour variable, or the nearest
+  variable of the target's palette (said), in one edit; a picture's pixel comes from the browser's eyedropper (Chromium).
+  Every colour list has Pick color too, for its own row; Quick actions and Keyboard shortcuts list it. I is no longer a
+  "not in Zen Studio yet" key.
 - Zen Studio: the Design tab shows only Figma's sections; what only code reads (an HTML element, Scroll, a button's
   type, ids, aria-* and the attributes no API lists) moved from the closed "Code properties" section to the Code tab's
   Properties, above the layer's code, edited there the same way (2026-10-21, parity plan §3a; E2E FW-165…169).

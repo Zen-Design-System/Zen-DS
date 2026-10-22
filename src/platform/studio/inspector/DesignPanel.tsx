@@ -16,7 +16,7 @@ import { canvasApi } from "../canvas/viewport";
 import { studioDrafts } from "../sourceDrafts";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { EditOp, EditValue, SourceAttr, SourceElement, StudioNodeRef } from "../types";
-import { childHits, findBySrc, isTransparentName, onSourceUpdate, rectOf, selectHit, selectionInstances, type FiberHit } from "../select/picker";
+import { findBySrc, onSourceUpdate, selectionInstances, type FiberHit } from "../select/picker";
 import { noteEditTarget, sameSelectedElement } from "../select/remap";
 import { navigate } from "../shell/navigation";
 import { RemoveAction, SlotsSection } from "../slots";
@@ -51,11 +51,10 @@ import { ValueCell } from "./PartPanel";
 import { BoundValue, PropField, TextControl, TypographyControl } from "./PropField";
 import { TextResize } from "../edit/TextResize";
 import {
-  attributeSpec, componentSlug, dataEditable, isLayoutProp, isSkippedProp, kindLabel, layoutComponents, literalOf, nodeKind, propLabel, propSpecs, requiredProps, textComponents, textProps, valueOf,
+  attributeSpec, componentSchema, componentSlug, dataEditable, isLayoutProp, isSkippedProp, kindLabel, layoutComponents, literalOf, nodeKind, propLabel, propSpecs, requiredProps, textComponents, textProps, valueOf,
   type Literal, type PropSpec, type PropValue,
 } from "./propSchema";
-import { InspectorItem, InspectorRow, InspectorSection } from "./Section";
-import { autoGroups, labelInGroup } from "./autoGroups";
+import { InspectorRow, InspectorSection } from "./Section";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { hasSizing, SizingSection, sizingPropNames } from "./SizingSection";
 import { InstanceSizeGroup, useInstanceSizing } from "./InstanceSizeGroup";
@@ -96,27 +95,6 @@ function selectedHit(selection: NodeSelection): FiberHit | null {
 function sourceHost(selection: NodeSelection): HTMLElement | null {
   const hosts = (selectedHit(selection)?.hosts ?? []).filter((node): node is HTMLElement => node instanceof HTMLElement);
   return hosts.find((node) => srcAttr(node) === selection.src) ?? hosts[0] ?? null;
-}
-
-/** Selects a child element of the selection by its source location (searches a few annotated levels down). */
-function selectChild(selection: NodeSelection, childSrc: string) {
-  const world = canvasApi.getWorldElement();
-  if (!world) return;
-  let level = selectedHit(selection) ? [selectedHit(selection)!] : [];
-  let found: FiberHit | null = null;
-  for (let depth = 0; depth < 6 && level.length && !found; depth++) {
-    const next = level.flatMap((hit) => childHits(hit));
-    found = next.find((hit) => hit.src === childSrc) ?? null;
-    level = next;
-  }
-  found ??= findBySrc(world, childSrc)[0] ?? null;
-  if (!found) {
-    inspectorStatus.set("neutral", "That element is not rendered right now");
-    return;
-  }
-  selectHit(found, world);
-  const rect = rectOf(found.hosts);
-  if (rect) canvasApi.ensureVisible(rect);
 }
 
 /** The address of a docs page in this Studio (?page=<slug>), so ⌘/Ctrl-click opens it in a new tab. */
@@ -203,7 +181,7 @@ function useStyleDetails(style: string | null | undefined, host: HTMLElement | n
   };
 }
 
-function TextSection({ kind, name, element, specs, api, rendered, send, relevant, onFocusProp, host }: {
+function TextSection({ kind, name, element, specs, api, rendered, send, relevant, onFocusProp, host, textRows = null }: {
   kind: TextKind;
   name: string;
   element: SourceElement;
@@ -215,6 +193,8 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
   relevant: { name: string; value: string; note?: string } | null;
   onFocusProp: (prop: string) => void;
   host: HTMLElement | null;
+  /** A text layer's words (its Text row, first): DesignPanel's childText. */
+  textRows?: ReactNode;
 }) {
   const keys = element.typography;
   // The style the text renders with: the written one, else what the canvas measures.
@@ -242,6 +222,7 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
   if (kind === "text") {
     return (
       <InspectorSection title="Typography" actions={details.action}>
+        {textRows}
         {/* The text's colour is its Fill (Figma), a section of its own (DesignPanel). */}
         {[...specs].filter((spec) => spec.name !== "tone").sort((a, b) => textRank(a.name) - textRank(b.name)).map((spec) => (
           <Field
@@ -264,6 +245,7 @@ function TextSection({ kind, name, element, specs, api, rendered, send, relevant
   if (kind === "class") {
     return (
       <InspectorSection title="Typography" actions={details.action}>
+        {textRows}
         {classRows ?? (
           <InspectorRow name="textStyle" label="Style" isDefault hint={renderedStyle(rendered) ? `Inherited: ${renderedStyle(rendered)}` : undefined}>
             <TypographyControl
@@ -698,8 +680,6 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
     return attr?.shape && !(spec.name in overrides) ? [{ spec, shape: attr.shape, ...(attr.shapeVia ? { via: attr.shapeVia } : {}) }] : [];
   });
   const shapedNames = new Set(shapedProps.map((entry) => entry.spec.name));
-  // A component whose JSX children are a content slot lists them in the Slots section, not again under Content.
-  const childrenInSlots = Boolean(slotOf(name, "children"));
   const documented = new Set(specs.map((spec) => spec.name));
   // An instance's `of` is its component (ComponentSection), not a loose attribute.
   // An instance's `of`, `variant` and `props`, a set's own props and a layer's component property bindings are the
@@ -709,12 +689,33 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   const spreads = (element?.attributes ?? []).filter((attr) => attr.kind === "spread");
   const texts = (element?.children ?? []).flatMap((child) => (child.kind === "text" && child.value.trim() ? [child] : []));
   const expressions = (element?.children ?? []).flatMap((child) => (child.kind === "expression" ? [child] : []));
-  // Docs scaffolding (ComponentPreview, PlaygroundControls…) is not a layer: not offered as a child to select.
-  const childElements = childrenInSlots ? [] : (element?.children ?? []).flatMap((child) => (child.kind === "element" && !isTransparentName(child.name) ? [child] : []));
   const isComponent = /^[A-Z]/.test(name) || name.includes(".");
   const line = parsed?.line ?? 0;
   const file = parsed?.file ?? "";
   const firstText = texts[0]?.index;
+  // The words written as the element's children (<Button>Save</Button>): Figma's Text property of an instance, in its
+  // Properties block; on a text layer the Text row first in Typography (user 2026-10-22: no Content section of its own,
+  // a text layer keeps a Text field). Words the code computes ({item.name}) show as bound.
+  const childText = texts.length || expressions.length ? (
+    <>
+      {texts.map((child, position) => (
+        <InspectorRow key={child.index} name="children" label={texts.length > 1 ? `Text ${position + 1}` : "Text"}>
+          <TextControl
+            label={texts.length > 1 ? `Text ${position + 1}` : "Text"}
+            value={child.value.trim()}
+            fallback={undefined}
+            disabled={api.disabled}
+            multiline={child.value.trim().length > 48 || child.value.trim().includes("\n")}
+            autoFocusToken={child.index === firstText ? focusToken : 0}
+            onSet={(next) => send([{ op: "setText", index: child.index, value: String(next) }], `${name} text → ${display(String(next))}`, {})}
+          />
+        </InspectorRow>
+      ))}
+      {expressions.map((child, index) => <InspectorRow key={`expression-${index}`} name="children" label="Text"><BoundValue expression={child.raw.replace(/^\{|\}$/g, "")} /></InspectorRow>)}
+    </>
+  ) : null;
+  // A text layer (a Text, a Heading, an HTML element) shows its words in Typography; an instance, as a Text property.
+  const textInTypography = !isComponent || isText;
   // Text: Text/Heading props; a host element's (or a className's) text style; or the component prop that sets it.
   const sourceText = texts.length > 0;
   const hostText = !isComponent && (hostTextTags.has(name) ? rendered.holdsText || sourceText : rendered.directText || sourceText);
@@ -757,6 +758,7 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
       relevant={relevant}
       onFocusProp={focusProp}
       host={sourceHost(selection)}
+      textRows={textInTypography ? childText : null}
     />
   ) : null;
   // A text layer's colour is its Fill (Figma UI3): the tone, a section after Typography.
@@ -876,39 +878,46 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   // A frame, text or shape has no Figma properties: what the code adds (HTML element, Scroll, Html for…) is on the Code
   // tab (user, 2026-10-17: less developer language).
   const codeOnlyKind = !groups && (kind === "primitive" || kind === "shape");
+  // An instance's words go where its component lists `children` (Figma's Text property in its place): in a Properties block
+  // without Figma groups, before the first prop the API lists after it; with Figma groups, after Figma's own properties.
+  const instanceText = textInTypography ? null : childText;
+  const apiOrder = (componentSchema(name)?.props ?? []).map((prop) => prop.name);
+  const blockSpecs = propertySpecs.filter((spec) => !shapedNames.has(spec.name));
+  const textAt = apiOrder.includes("children") ? blockSpecs.findIndex((spec) => apiOrder.indexOf(spec.name) > apiOrder.indexOf("children")) : -1;
+  const propertyRow = (spec: PropSpec) => {
+    const label = propLabel(spec.name, name);
+    // A content slot's prop is a layer to show or hide (Figma's boolean), never free text: on puts real content in it
+    // (PageHeader Breadcrumbs: a Breadcrumbs, user 2026-10-10), edited in the Slots section below.
+    if (spec.editor.kind === "node" && element && slotOf(name, spec.name)) {
+      // A slot this state never draws has no switch (it would write content nothing shows).
+      if (!isSlotActive(slotOf(name, spec.name)!, hostPropsOf(element.attributes))) return null;
+      const value = api.valueFor(spec.name);
+      return <ToggleRow key={spec.name} toggle={{ prop: spec.name, label, on: { kind: "slot" } }} on={value.state !== "unset"} value={value} api={api} selection={selection} element={element} />;
+    }
+    // A prop that draws nothing in this state (LineChart Show legend without Compare) says why.
+    const idle = idleNotes(name, spec.name, renderedProps ?? {});
+    return <Field key={spec.name} spec={spec} api={api} component={name} label={label} hint={idle.length ? idle.join(" ") : undefined} />;
+  };
   const propertyBlocks = (
     <>
       {element && propertySpecs.length && groups ? (
-        <GroupedProperties groups={groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} nested={nested} />
-      ) : element && propertySpecs.length && !codeOnlyKind ? (
-        // Properties in titled groups with a divider between them (autoGroups.ts), then one section per object or array
-        // prop (Trend, items), titled with its name; an object's fields need no header of their own there.
+        <GroupedProperties groups={groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} nested={nested} text={instanceText} />
+      ) : element && (blockSpecs.length || instanceText) && !codeOnlyKind ? (
+        // One Properties block in the component's prop order, as Figma's instance panel (user 2026-10-22, replacing the
+        // titled groups of 2026-10-06), then one section per object or array prop (Trend, items), titled with its name.
         <>
-          {autoGroups(propertySpecs.filter((spec) => !shapedNames.has(spec.name))).map((group, index) => (
-            <InspectorSection key={group.id} title={group.title} note={index === 0 ? propertiesNote : undefined}>
-              {group.specs.map((spec) => {
-                const label = labelInGroup(propLabel(spec.name, name), group);
-                // A content slot's prop is a layer to show or hide (Figma's boolean), never free text: on puts real content
-                // in it (PageHeader Breadcrumbs: a Breadcrumbs, user 2026-10-10), edited in the Slots section below.
-                if (spec.editor.kind === "node" && slotOf(name, spec.name)) {
-                  // A slot this state never draws has no switch (it would write content nothing shows).
-                  if (!isSlotActive(slotOf(name, spec.name)!, hostPropsOf(element.attributes))) return null;
-                  const value = api.valueFor(spec.name);
-                  return <ToggleRow key={spec.name} toggle={{ prop: spec.name, label, on: { kind: "slot" } }} on={value.state !== "unset"} value={value} api={api} selection={selection} element={element} />;
-                }
-                // A prop that draws nothing in this state (LineChart Show legend without Compare) says why.
-                const idle = idleNotes(name, spec.name, renderedProps ?? {});
-                return <Field key={spec.name} spec={spec} api={api} component={name} label={label} hint={idle.length ? idle.join(" ") : undefined} />;
-              })}
-            </InspectorSection>
-          ))}
+          <InspectorSection title="Properties" note={propertiesNote}>
+            {textAt < 0 ? blockSpecs.map(propertyRow) : blockSpecs.slice(0, textAt).map(propertyRow)}
+            {instanceText}
+            {textAt < 0 ? null : blockSpecs.slice(textAt).map(propertyRow)}
+          </InspectorSection>
           {shapedProps.map((entry) => (
             <InspectorSection key={entry.spec.name} title={propLabel(entry.spec.name, name)}>
               <ObjectProperties component={name} props={[entry]} api={api} selection={selection} only={entry.shape.type === "object" ? { prop: entry.spec.name } : undefined} />
             </InspectorSection>
           ))}
         </>
-      ) : null}
+      ) : element && instanceText ? <InspectorSection title="Properties">{instanceText}</InspectorSection> : null}
 
       {/* Figma nested instances: the booleans of the Zen components written in this element's props. */}
       {element && !groups ? <NestedProperties element={element} api={api} nested={nested} /> : null}
@@ -1070,39 +1079,6 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
       {element && (name === "Card" || name === "MetricCard" || name === "ChartCard") ? <CardEffectsSection api={api} component={name} /> : null}
 
       {instanceFirst ? null : propertyBlocks}
-
-      {element && (texts.length || expressions.length || childElements.length) ? (
-        <InspectorSection title="Content">
-          {texts.map((child, position) => (
-            <InspectorRow key={child.index} label={texts.length > 1 ? `Text ${position + 1}` : "Text"}>
-              <TextControl
-                label={texts.length > 1 ? `Text ${position + 1}` : "Text"}
-                value={child.value.trim()}
-                fallback={undefined}
-                disabled={api.disabled}
-                multiline={child.value.trim().length > 48 || child.value.trim().includes("\n")}
-                autoFocusToken={child.index === firstText ? focusToken : 0}
-                onSet={(next) => send([{ op: "setText", index: child.index, value: String(next) }], `${name} text → ${display(String(next))}`, {})}
-              />
-            </InspectorRow>
-          ))}
-          {expressions.map((child, index) => <InspectorRow key={`expression-${index}`} label="Value"><BoundValue expression={child.raw.replace(/^\{|\}$/g, "")} /></InspectorRow>)}
-          {childElements.length ? (
-            <ul aria-label="Layers" className="studio-inspector__items">
-              {childElements.map((child) => (
-                <InspectorItem
-                  key={child.loc}
-                  icon={<Icon name={/^[A-Z]/.test(child.name) ? "icon-cube-line" : "icon-code-02-line"} size={16} />}
-                  component={/^[A-Z]/.test(child.name)}
-                  name={child.name}
-                  meta={`Line ${child.loc.split(":")[0]}`}
-                  onClick={() => selectChild(selection, `${element.file}:${child.loc}`)}
-                />
-              ))}
-            </ul>
-          ) : null}
-        </InspectorSection>
-      ) : null}
 
       {/* Figma UI3 ends the Design tab with Export: the layer as PNG, JPG or SVG at a scale. */}
       {element ? <ExportSection src={selection.src} layer={layerName(name, headProps)} host={sourceHost(selection)} /> : null}

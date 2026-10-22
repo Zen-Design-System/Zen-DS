@@ -1,5 +1,19 @@
 # Session log 2026-10-22
 
+## Session B · Content into the instance's properties (tier S; user's call relayed by the progress session, 2026-10-22)
+
+Branch zen/feat/studio-content-props-20261022. The walk's §2a: a Button, Card and text had a **Content** section
+Figma has no counterpart for. User decisions in session B: a text layer keeps a Text field (first row of Typography);
+the 58 components without Figma properties lose the 2026-10-06 groups for one Properties block in prop order.
+- DesignPanel: the Content section, its child-layer list and selectChild are gone. `childText` (the JSX children's
+  words, a computed one as bound) goes to the Properties block of an instance (GroupedProperties `text`, after Figma's
+  own rows; else at `children`'s place in the API order) or first in a text layer's Typography (TextSection
+  `textRows`). An instance with words but no property block gets a Properties section of its own.
+- inspector/autoGroups.ts deleted. The double-click fallback (focus-content) focuses the moved Text row.
+- Gate (20:48–21:11, main 032d8fbd): **PASS**, Studio E2E 338/338 in 3 shards. `--only=figma` 173/174: FW-206 could
+  not find its InputLabel on the canvas (InputLabel spreads no props onto its DOM, so no data-zen-src): the row now uses a
+  Link (no Figma properties, 6 rows, `children` after Visited). FW-205…207 then 3/3.
+
 ## Session B · Corner smoothing (tier M; parity ❌, user decisions in session B: CSS corner-shape)
 
 Branch zen/feat/studio-corner-smoothing-20261022. Spec card: docs/research/studio-fill-gradient-smoothing-eyedropper-spec-2026-10-22.md
@@ -14,6 +28,59 @@ Branch zen/feat/studio-corner-smoothing-20261022. Spec card: docs/research/studi
   Figma keeps 0.6 as 0.6000000238 (float32), pulled back as 60.
 - Checks: push selftest +3 (363), pull 114, native +2 (133), compile 77, studio:selftest, tsc, usage, ai-ui, style,
   guidelines, compile-api, plugin npm test. E2E FW-180 (needs the gate slot).
+
+## Session B · Fill gradient (tier M; parity ❌, user decisions in session B: whole fill palette, diamond as 4 linear quadrants)
+
+Branch zen/feat/studio-fill-gradient-20261022, stacked on the corner-smoothing branch (they share Layout/Shape/appearance
+and the Figma tools; land smoothing first). Spec card §1 (same file as smoothing).
+- Library: `gradient` in _shared/gradient.ts (gradientLayers: linear-gradient(angle) · radial-gradient(closest-side) ·
+  conic-gradient(from angle) · diamond = 4 quadrant linear-gradients with stops at half; svgGradient for SVG shapes,
+  linear or radial). Frames: `data-gradient` + `--zen-gradient*` layers over the surface, under an image (layout.css).
+  Shape: a rectangle's own layers, an SVG shape's `<linearGradient>`/`<radialGradient>`; a Shape with a gradient has no
+  fill colour unless given (as with an image). Exported from Shape's index (gradientTypes, ZenGradient…).
+- Figma: tools/studio/figma-gradient.mjs. gradientTransform from the CSS angle in the layer's w × h (linear: through
+  the centre, as long as the box's projection; angular: turned about the centre from 3 o'clock; radial and diamond
+  identity), back to the angle (and a note when the handles were moved), stops ↔ Color/Background variables (a raw or
+  foreign stop is noted and left out). Push `gradientFill` on frames and shapes; reader READ_GRADIENT_FILL (async
+  variableName); native paste writes kiwi `stops` + `stopsVar` (alias) + `transform`, the same orientation as the
+  Plugin API's gradientTransform (checked against Figma's own copies in native-pack: Bottom-Navigation's stroke,
+  Area's fill bound to Accent/Solid); plugin 9c54e40 binds each stop through its `boundVariables`
+  (setBoundVariableForPaint takes solid paints only, measured) and sets a linear transform again once the page is laid
+  out (settleGradients: a hugging frame grows after its look).
+- Live (Zen file, QA page, frame removed): the plugin's own functions on real layers: 5 paints, stops bound, the hug
+  frame's transform settled (0.366 → 0.552 at 141 × 66); read back and pulled: all five gradients equal, no notes;
+  Figma draws them as the CSS does (45° pink bottom-left → blue top-right, angular seam at 200°). Native paste not
+  pasted live (scripted pastes unreliable, memory).
+- Studio: Fill › Gradient (GradientFillRow.tsx): type (PropField, − in its icon column), angle (linear, angular), the
+  gradient bar (role=slider handles: drag, ← → / ⇧ 10, Home / End, Delete; a press on the bar adds a stop), the selected
+  stop's place (− removes it, a gradient keeps two) and its colour (SwatchControl, whole fill palette). A shape's colour
+  becomes the first stop (Figma's paint type); a frame's fill stays under it (keeps Zen's shadow-on-Surface rule).
+  The first layout (one row per stop) failed panelFits (long variable names cut, fields off the grid): replaced by the
+  bar and one selected stop. − on a shape's gradient writes fill="none" (Figma's −), never the default grey back.
+- Fixed on the way: frameLookProps' `else if (node.fill)` note fired for every frame with a surface since F8a; the frame
+  read takes only SOLID fills. Smoothing branch: its position selftest still listed the radius props without
+  cornerSmoothing (fixed there, 50e42099).
+- Checks: gradient selftest 49, push 366, pull 119, native 138, appearance model 33, studio:selftest, tsc, style,
+  usage, guidelines, ai-ui, compile-api, plugin npm test. E2E FW-181/182 pass (run alone, 2 rows).
+
+## Session B · Pick color (I) (tier M; parity ❌, user decision in session B: the layer's token, then the pixel)
+
+Branch zen/feat/studio-pick-color-20261022, stacked on the gradient branch (land smoothing → gradient → this).
+- edit/pickColorModel.ts (pure, selftest 10): what a pick paints (Shape fill · frame surface · a text-tone component's
+  tone; nothing on a Button), chooseOption (the layer's own variable when the target's palette has it, else the nearest
+  colour of that palette), pickOps (a fill or surface also takes a gradient's place, Figma's solid).
+- edit/pickColor.ts: I (page you made) arms it like the placement tools (capture listeners, crosshair, the drag tag names
+  the colour, the layer under the pointer outlined); a click reads the paint at the point (an SVG fill, a text's colour,
+  the first visible background; a picture or gradient → the browser's EyeDropper on that click, Chromium) and writes all
+  selected layers in one edit (setOwnPropsOnLayers); Esc, a press on the panels, another tool or page stops it.
+  edit/pickColorRequest.ts lets SwatchControl's new "Pick color" row (every colour list) start it for that row without
+  the Inspector importing the canvas code (madge: it had added a PropField ↔ pickColor cycle).
+- I left FIGMA_NOT_YET; StudioApp's I is Interact only on example pages; Quick actions › Pick color (I), Keyboard
+  shortcuts › Tools.
+- E2E FW-183…186 (pick onto a Shape, a frame exact and nearest, Esc / no selection / Quick actions, a colour row's
+  pick); FW-05's list lost I. The EyeDropper path has no E2E (the browser's own picker). My slip: I ran FW-05 +
+  FW-183…186 beside C's gate (check and run in one command); told C. FW-184's helper was fixed afterwards by reading
+  the code (layers chosen by data-name), to re-run in my gate turn.
 
 ## Select matching layers ⌥⌘A + Select all with same › (Session A, branch `zen/feat/studio-select-matching-20261022`)
 
@@ -115,6 +182,29 @@ E2E steps ran 3163–3377 s against that cap: the limit was sent to `npm`, not t
   shows, `SlotChips` drew the read-only people/place values as Chips with no handler (a `<button>` that does nothing;
   seen in the appshell and card-themes gates too). The chip guideline says a read-only label is a Tag: they are Tags
   now. Scoped gate `--only=ai-ui`: PASS, behaviour 0 warnings. Its BACKLOG P3 line (from #210) is removed.
+
+## Session A — B's corner smoothing → gradient → Pick color stack landed (20:00–21:00)
+
+- **Taken over from B** at the user's request ("giao cho session khác xử corner smoothing, gradient, Pick color (B)").
+- **Main merged in, bottom-up:** a8a0bf23, then 032d8fbd (#213, #214). Conflicts:
+  - the studio:selftest chain: both sides kept;
+  - figma-push DRAWN_PARTS: main's line, with smoothingOf below it;
+  - toolbar, Shortcuts, figmaNotYet, FW-05: Comment (C) and Pick color (I) both built, so the not-yet lists are empty;
+  - CHANGELOG and BACKLOG: both sides kept.
+- **Gate PASS** on Pick color (ab48e6e6): Studio E2E 338/0 in 8 shards, 9 pages.
+- **Found by FW-180's first run:** Corner smoothing never showed on frames, because FRAME_LOOK lacked `cornerSmoothing`.
+  Fixed on the smoothing branch.
+- **FW-186:** `pickLayer` read the selection from Layers while the left panel was on Pages. The helper now shows Layers
+  first.
+- **After the fixes:** FW-05 and FW-180…186 pass 8/8; tsc, studio:selftest and the CI quick steps are green.
+- **PRs:** #215 smoothing → main, #216 gradient → #215, #217 Pick color → #216. Auto-fix is on.
+- **Live paste test (user's go, ~21:30):** a frame with linear, radial and angular gradients plus a hugging linear Stack
+  (`cornerSmoothing={60}`) was ⌘V'd into the Zen file's QA page through Figma's direct paste. All four landed with
+  every stop bound to its variable (Accent/Solid, Info/Solid), smoothing 0.6 and radius 16. It also showed a Shape of
+  width 200 or 80 pasted 1392 wide, an old bug on main: the push let a column's stretch give a shape `fillW`. Fixed on
+  the smoothing branch (figma-push `ownW`/`ownH` cover shapes, plus a selftest); the decoded clipboard now carries
+  200 / 80 with no STRETCH. No second paste: by then the user was working in another Figma file. The test frame was
+  removed (no node left on any page) and the clipboard put back as it was (empty). BACKLOG's gradient-paste P3 is closed.
 
 ## AppShell session · BACKLOG: two items already done (tier XS, docs only)
 

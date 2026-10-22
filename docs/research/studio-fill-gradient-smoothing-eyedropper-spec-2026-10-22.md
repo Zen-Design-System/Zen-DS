@@ -49,7 +49,8 @@ Like Figma: linear, radial, angular and diamond, with stops that are colour vari
 - A `gradient` prop on Box, Stack, Grid and Shape: `{ type, angle?, stops: [{ color, at }] }`.
   - `color` is a paint slug.
   - `at` is 0–100.
-- It is one fill: a gradient replaces the solid fill, and an image paints over it, as Figma stacks them.
+- It is one paint over the fill colour, and an image paints over it, as Figma stacks them. Built (2026-10-22): a
+  Shape's colour becomes the gradient (Figma's paint type), a frame keeps its surface under it (Zen's shadow needs it).
 - CSS:
   - linear-gradient for linear;
   - radial-gradient for radial;
@@ -59,7 +60,9 @@ Like Figma: linear, radial, angular and diamond, with stops that are colour vari
 
 **Studio**
 - Figma's Fill row type picker (Solid · Linear · Radial · Angular · Diamond).
-- A stop bar: add a stop, move it, pick its variable (SwatchControl), and the angle.
+- A stop bar: add a stop, move it, pick its variable (SwatchControl), and the angle. Built as Figma's gradient editor:
+  the bar with a handle per stop, then the selected stop's place and colour (one stop row per stop did not fit the
+  panel grid: long variable names were cut).
 
 **Figma**
 - Push: `GRADIENT_*` paints with `gradientStops` bound to variables, and a `gradientTransform` from the angle.
@@ -93,6 +96,8 @@ Like Figma: linear, radial, angular and diamond, with stops that are colour vari
 - A click picks a colour for the selected layers' fill (or the fill or stroke row being edited). Esc cancels.
 - I comes out of FIGMA_NOT_YET.
 - On builder pages, Interact stays on I.
+- Built (2026-10-22): edit/pickColor.ts; every colour list (SwatchControl) has Pick color for its own row; a picture's
+  pixel comes from the browser's EyeDropper (Chromium), opened by the same click.
 
 **Plan decision 1**
 - A picked colour snaps to the nearest colour variable, and the row shows its pill.

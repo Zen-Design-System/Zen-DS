@@ -3,6 +3,7 @@ import { frameFlips, zenBlendModes, type FrameFlip, type ZenBlendMode } from "..
 import { layoutPosition, type LayoutPositionProps } from "../Layout/position";
 import { layoutSizing, withSizingVars, type LayoutSizingProps } from "../Layout/sizing";
 import { cornerRadiusValue, cornerSmoothingStyle, type CornerRadiusProps, type CornerSmoothingProps } from "../_shared/corners";
+import { gradientLayers, gradientStyle, svgGradient, type GradientFillProps } from "../_shared/gradient";
 import { useMergedRefs } from "../_shared/merge-refs";
 import type { ZenCornerRadius } from "../_shared/scale";
 import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
@@ -25,7 +26,7 @@ export type ShapeBooleanOperation = (typeof shapeBooleanOperations)[number];
 /** Figma's default size for a shape placed with a click (100 × 100). */
 export const SHAPE_DEFAULT_SIZE = 100;
 
-export interface ShapeProps extends Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, CornerSmoothingProps, ImageFillProps {
+export interface ShapeProps extends Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, CornerSmoothingProps, ImageFillProps, GradientFillProps {
   /**
    * The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc),
    * `line` (LINE: `width` is its length, `rotation` its angle, no height), `arrow` (a LINE with Figma's "Line arrow" end
@@ -50,7 +51,8 @@ export interface ShapeProps extends Omit<HTMLAttributes<HTMLDivElement>, "childr
   /**
    * Fill: a Color/Background token by its path ("neutral-subtle", "accent-solid", "surface", "support-blue-soft"; list in
    * `shapeFills`), or "none". Default: Background/Support/Neutral/Soft, Figma's light grey; a line, arrow or vector has none,
-   * and a shape with an `image` has none unless it is given (the colour then shows around a `fit` picture).
+   * and a shape with an `image` or a `gradient` has none unless it is given (the colour then shows around a `fit` picture,
+   * or through a gradient's transparent stops).
    */
   fill?: ShapeFill;
   /** Stroke: a Color/Border token by its path ("neutral-solid", "accent-subtle", "support-teal-solid"; `shapeStrokes`), or "none" (default; a line, arrow or vector takes Border/Neutral/Solid). */
@@ -137,6 +139,7 @@ export function Shape({
   radiusBottomRight,
   radiusBottomLeft,
   cornerSmoothing,
+  gradient,
   arcStart,
   arcSweep,
   arcRatio,
@@ -183,8 +186,10 @@ export function Shape({
   const boolean = kind === "boolean";
   // An image fill (Figma's Image paint) over the fill colour; a line has none.
   const picture = useImageFill(line ? {} : { image, imageFit, imageCrop, imageScale });
-  // Figma's Pen draws a stroke and no fill, centred on the path (as a line).
-  const fillColor = fillPaint(fill ?? (line || (vector && !boolean) || picture.mode ? "none" : DEFAULT_SHAPE_FILL));
+  // A gradient fill (gradient.ts) over the fill colour, under the picture; a line has none.
+  const graded = !line && Boolean(gradientLayers(gradient));
+  // Figma's Pen draws a stroke and no fill, centred on the path (as a line). A picture or a gradient: no colour unless given.
+  const fillColor = fillPaint(fill ?? (line || (vector && !boolean) || picture.mode || graded ? "none" : DEFAULT_SHAPE_FILL));
   const strokeColor = strokePaint(stroke ?? (line || (vector && !boolean) ? DEFAULT_LINE_STROKE : "none"));
   const weight = finite(strokeWeight) ? Math.max(0, strokeWeight) : 1;
   const align: ShapeStrokeAlign = line ? "center" : strokeAlign && (shapeStrokeAligns as readonly string[]).includes(strokeAlign) ? strokeAlign : vector && !boolean ? "center" : "inside";
@@ -203,6 +208,8 @@ export function Shape({
     scale: flip === "horizontal" ? "-1 1" : flip === "vertical" ? "1 -1" : flip === "both" ? "-1 -1" : undefined,
     ...(kind === "rectangle" ? picture.vars : {}),
     ...(kind === "rectangle" ? cornerSmoothingStyle(cornerSmoothing).vars : {}),
+    // A gradient fill (gradient.ts): the rectangle's own background layers; an SVG shape paints it below.
+    ...(kind === "rectangle" ? gradientStyle(gradient).vars : {}),
   };
   const shown = Object.fromEntries(Object.entries(vars).filter(([, value]) => value !== undefined)) as CSSProperties;
   const a11y = label ? { role: "img", "aria-label": label } : { "aria-hidden": true as const };
@@ -223,6 +230,8 @@ export function Shape({
     const stroked = Boolean(strokeColor && weight);
     // The picture as a pattern the path fills (Fill, Fit, Crop, Tile: _shared/image-fill.ts).
     const pattern = picture.mode && image ? imagePattern({ imageFit, imageCrop, imageScale }, w, h, picture.picture) : null;
+    // A gradient fill: an SVG gradient in the shape's box (linear, else radial: SVG has no angular or diamond paint).
+    const painted = line ? null : svgGradient(gradient);
     if (line) {
       const pad = Math.max(weight, kind === "arrow" ? Math.max(6, weight * 4) * 0.75 + weight : weight) + 1;
       drawing = (
@@ -257,7 +266,21 @@ export function Shape({
               </pattern>
             </defs>
           ) : null}
+          {painted ? (
+            <defs>
+              {painted.kind === "linear" ? (
+                <linearGradient id={`${id}-gradient`} x1={painted.x1} y1={painted.y1} x2={painted.x2} y2={painted.y2}>
+                  {painted.stops.map((stop, index) => <stop key={index} offset={`${stop.at}%`} style={{ stopColor: stop.paint }} />)}
+                </linearGradient>
+              ) : (
+                <radialGradient id={`${id}-gradient`} cx={0.5} cy={0.5} r={0.5}>
+                  {painted.stops.map((stop, index) => <stop key={index} offset={`${stop.at}%`} style={{ stopColor: stop.paint }} />)}
+                </radialGradient>
+              )}
+            </defs>
+          ) : null}
           {d && fillColor ? <path d={d} fill="var(--zen-shape-fill)" fillRule={evenOdd} /> : null}
+          {d && painted ? <path d={d} fill={`url(#${id}-gradient)`} fillRule={evenOdd} /> : null}
           {d && pattern ? <path d={d} fill={`url(#${id}-image)`} fillRule={evenOdd} /> : null}
           {d && stroked ? (
             <path
@@ -283,6 +306,7 @@ export function Shape({
       className={["zen-shape", className].filter(Boolean).join(" ")}
       data-type={kind}
       {...(kind === "rectangle" ? cornerSmoothingStyle(cornerSmoothing).attributes : {})}
+      {...(kind === "rectangle" ? gradientStyle(gradient).attributes : {})}
       data-flip={flip && (frameFlips as readonly string[]).includes(flip) ? flip : undefined}
       data-stroke-align={strokeColor && weight ? align : undefined}
       {...(kind === "rectangle" ? picture.attributes : {})}
