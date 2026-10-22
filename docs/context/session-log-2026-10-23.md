@@ -19,3 +19,7 @@ gate ④)": the page had 9 examples and no states, edge cases, phone or keyboard
   tag after "https://" still caught in bad.tsx. usage:check 0 warnings.
 - Static: tsc, usage:selftest, usage:check, style:check, guidelines:check, ai-ui:check, ai-kit:check, mcp:selftest,
   tokens:check: all exit 0.
+- Gate (Giám sát's slot, `--isolated --only=shape`): run 1 FAIL — at 320 the seat map (264 + a 6-item Segmented)
+  overflowed; warnings: Segmented 6 items (keep 2–5), the onboarding's gap 2xl (40, off the ladder here). Fixed: four
+  seats in a 240 frame, gap xl, the onboarding content centred in the screen (height fill). Run 3 **PASS** (0 ✗, 0 ⚠);
+  contact sheets 390 / 1512 looked at.
