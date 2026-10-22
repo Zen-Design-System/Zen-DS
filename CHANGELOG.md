@@ -21,6 +21,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Global Colors' Zen-High-Contrast mode under Increase Contrast — with `.zenSystemContext()` / `with(colorScheme:contrast:)`
   / `with(traits:)` in Swift and `ZenContext.fromMediaQuery` / `withSystem` in Dart, plus `ZenContext.highContrast`; the
   test vectors cover the high-contrast mode (1218 vectors, from 830) (2026-10-23).
+- ChatComposer: the default quick action (👍 "Send a like", when an app passes no `quickAction`) sends "👍" through
+  `onSend`; it was a button that did nothing (2026-10-23).
+- AppShell: on a phone the Bar's TopNavigation takes the canvas's twin, as Figma pairs them: Alt on the default canvas
+  (as before), Default on `canvas="alt"` (it was Alt, a grey bar on a white page), and Default repainted Surface/Flat on
+  `canvas="flat"` (2026-10-23).
 - **Docs platform and the HR Tasks template:** every task's and project's status is a BadgeStatus (its ring and
   colour come from the step; the label stays the data's word): To do / In progress / In review / Done, and projects'
   Planning → to do, Active → in progress with the project's real progress, On hold → blocked, Completed → done

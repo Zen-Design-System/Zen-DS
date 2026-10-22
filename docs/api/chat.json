@@ -248,7 +248,7 @@
           "type": "{ icon: IconName | ReactElement; label: string; onClick?: () => void }",
           "required": false,
           "default": null,
-          "description": "Figma Trailing-Actions when the field is empty (a 👍 \"Send a like\" by default). While typing it becomes Send. `icon`: an icon name or an element.",
+          "description": "Figma Trailing-Actions when the field is empty: by default a 👍 \"Send a like\" that sends \"👍\" through `onSend`. While typing it becomes Send. `icon`: an icon name or an element.",
           "deprecated": null
         },
         {
