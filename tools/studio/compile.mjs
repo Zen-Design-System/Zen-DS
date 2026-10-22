@@ -337,6 +337,9 @@ function generatedDefault(entry, layer, ctx) {
 }
 
 function instanceCall(node, ctx, indent = "", generatedValues = null) {
+  // An instance of another page's component (Libraries' project components): that page's code exports it, not this one.
+  const page = literalOf(node, "page");
+  if (typeof page === "string") return `{/* ${String(literalOf(node, "of") ?? "")}: a component of page ${page} (export that page for its code) */}`;
   const resolved = resolveInstance(ctx.page, node, ctx.model);
   const local = resolved ? ctx.locals?.get(resolved.set?.id ?? resolved.main.id) : null;
   if (!resolved || !local) return "{null}";

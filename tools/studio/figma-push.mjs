@@ -404,7 +404,7 @@ function fragmentsAsRows(doc) {
   return { ...doc, board: doc.board ? node(doc.board) : doc.board };
 }
 
-export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) {
+export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages = {} } = {}) {
   const notes = [];
   const read = docFromText(text, newId ? { newId } : {});
   const { errors } = read;
@@ -444,6 +444,17 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   collect(doc.board);
   // The page's components and sets (dialect.mjs): a variant's name and values, a set's properties, an instance's values.
   const localModel = { mains: localComponents(doc.board), sets: componentSets(doc.board) };
+  /** The project's other pages (`pages`: id → text), read once each, for `<Use page>` (Libraries' project components). */
+  const otherPages = new Map();
+  const otherPage = (page) => {
+    if (!otherPages.has(page)) {
+      const board = typeof pages[page] === "string" ? docFromText(pages[page]).doc?.board : null;
+      otherPages.set(page, board ? { board, model: { mains: localComponents(board), sets: componentSets(board) } } : null);
+    }
+    return otherPages.get(page);
+  };
+  /** A layer tree made from another page's nodes keeps no ids of that page (they would meet this page's keys). */
+  const withoutKeys = (node) => { if (!node || typeof node !== "object") return node; delete node.id; delete node.key; for (const child of node.children ?? []) withoutKeys(child); return node; };
   /** Figma's component property types by the page's (dialect.mjs COMPONENT_PROPERTY_TYPES). */
   const PROPERTY_TYPE = { text: "TEXT", boolean: "BOOLEAN", swap: "INSTANCE_SWAP", slot: "SLOT" };
   const figmaProperties = (properties) => properties.map((property) => ({ name: property.name, type: PROPERTY_TYPE[property.type], ...(property.default !== undefined ? { default: property.default } : {}), ...(property.preferred ? { preferred: property.preferred } : {}) }));
@@ -510,6 +521,19 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       const named = main?.set ? { name: variantName(main.variant), variant: main.variant } : { name: String(code.name ?? code.id ?? "Component"), ...(main?.properties.length ? { properties: figmaProperties(main.properties) } : {}) };
       // The main hugs its layer (Figma's component frame around one layer); the layer keeps its own sizing inside.
       node = { type: "COMPONENT", local: String(code.id ?? ""), ...named, ...(typeof code.description === "string" ? { description: code.description } : {}), ...(typeof code.link === "string" ? { link: code.link } : {}), ...(id ? { id } : {}), layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: inner ? [inner] : [], hugW: true, hugH: true };
+    } else if (element.name === "Use" && element.props.page?.kind === "literal") {
+      // An instance of another page's component (Libraries' project components, a live link): a push sends one page, so
+      // its main's layers go in its place, named after it.
+      const home = String(element.props.page.value);
+      const other = otherPage(home);
+      const resolved = other ? resolveInstance(other.board, element, other.model) : null;
+      const main = resolved ? other.model.mains.find((entry) => entry.id === resolved.main.id) : null;
+      const root = main?.node.children.find((child) => child.kind === "element");
+      if (!root) { notes.push(`An instance of ${String(code.of ?? "")} on page ${home} is not pushed: that page's component is not here`); return null; }
+      node = withoutKeys(convert(root, parent));
+      if (!node) return null;
+      node.name = resolved.set?.name ?? resolved.main.name;
+      notes.push(`${node.name} (a component of page ${home}): pushed as its layers, without its instance changes`);
     } else if (element.name === "Use") {
       // An instance of a set or a main, with its variant values and its property values (setProperties in the importer).
       const resolved = resolveInstance(doc.board, element, localModel);
@@ -2229,8 +2253,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
  * `libraryKeys` (docs/figma-contracts/library-keys.json) it also carries `library`, the keys of the sets, icons, styles
  * and variable collections it uses, so the plugin imports them from the published library in a file other than Zen's.
  */
-export function figmaPackage(text, { mapping, nestedLayers = {}, page = {}, newId, libraryKeys } = {}) {
-  const { frame, notes, images } = figmaFromPage(text, { mapping, nestedLayers, newId });
+export function figmaPackage(text, { mapping, nestedLayers = {}, page = {}, newId, libraryKeys, pages } = {}) {
+  const { frame, notes, images } = figmaFromPage(text, { mapping, nestedLayers, newId, pages });
   if (!frame) return { pkg: null, notes, images: [] };
   // A frame with nothing in it would import as an empty frame: say why instead.
   if (!frame.children?.length) return { pkg: null, notes: [`nothing on the page has a place in Figma${notes.length ? ` (${notes.join("; ")})` : ""}`], images: [] };

@@ -1272,6 +1272,32 @@ export default function Chips() {
   check("main: its link, a slot and a swap property", [panelNode.link, panelNode.properties], ["https://zen.example/panel", [{ name: "Content", type: "SLOT" }, { name: "Icon", type: "INSTANCE_SWAP", default: "icon-star-01-line" }]]);
   check("main: the slot layer and the swapped icon", [panelNode.children[0]?.slot, find(panelNode, (node) => node.propRefs?.mainComponent)?.propRefs], ["Content", { mainComponent: "Icon" }]);
   check("round trip: sets, mains, bound layers and instances come back", shape(pageFromFigma(push(chips).frame, { mapping }).text), shape(chips));
+  // Libraries' project components: an instance of another page's component goes as its main's layers, named after it.
+  {
+    const usesChips = `// @zen-page {"format":1,"title":"Uses chips","project":"acme"}
+import { Board, Screen, Use } from "@zen-ds/react/builder";
+import { Stack } from "@zen-ds/react";
+
+export default function UsesChips() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Uses chips" device="desktop">
+        <Stack gap="lg" padding="xl">
+          <Use of="chip" page="chips" variant={{ Size: "Small" }} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+    const pushed = figmaFromPage(usesChips, { mapping, pages: { chips } });
+    const [layer] = pushed.frame.children;
+    // Its layers are keyed under the instance's own key (this page's), never by the other page's ids.
+    const keys = []; const walk = (node) => { if (!node || typeof node !== "object") return; for (const [name, value] of Object.entries(node)) { if (name === "key") keys.push(value); walk(value); } }; walk(layer);
+    check("project component: its main's layers, named after its set, keyed as this page's", [layer?.type, layer?.name, keys.length > 0 && keys.every((key) => String(key).startsWith(String(layer?.key)))], ["FRAME", "Chip", true]);
+    check("project component: a note says so", pushed.notes.some((note) => /component of page chips/.test(note)), true);
+    check("project component: without that page, a note", figmaFromPage(usesChips, { mapping }).notes.some((note) => /is not pushed/.test(note)), true);
+  }
   // F7b: an instance's overrides of its main's layers, by the child indices that reach them in the drawn main.
   const overriddenPage = chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="chip" overrides={{ Text: { children: "Hi", tone: "accent" }, Icon: { hidden: true } }} />');
   const overridden = push(overriddenPage);

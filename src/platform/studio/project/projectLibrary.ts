@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { engineNow, zenComponents } from "../builder/engine";
 import { componentsOf, libraryKey, type LocalComponents, type PageNode } from "../builder/render/renderPage";
 import { headerProject } from "../builder/store/pageModel";
-import { cachedPage, usePages } from "../builder/store/pageStore";
+import { cachedPage, getPage, listPages, usePages } from "../builder/store/pageStore";
 
 /*
  * Libraries' project components, a live link (the user's pick, 2026-10-22; spec docs/research/studio-libraries-spec-
@@ -63,4 +63,17 @@ export function useProjectLibrary(pageId: string | null, own: LocalComponents): 
   if (last.current?.key !== key) last.current = { key, library };
   libraries.set(pageId, last.current.library);
   return last.current.library;
+}
+
+/** The texts of the other pages of `pageId`'s project by id (the Figma push draws their components' instances). */
+export async function projectPageTexts(pageId: string): Promise<Record<string, string>> {
+  const project = projectOfPage(pageId) ?? headerProject((await getPage(pageId))?.text ?? "");
+  if (!project) return {};
+  const out: Record<string, string> = {};
+  for (const meta of await listPages()) {
+    if (meta.id === pageId) continue;
+    const text = cachedPage(meta.id)?.text ?? (await getPage(meta.id))?.text;
+    if (text && headerProject(text) === project) out[meta.id] = text;
+  }
+  return out;
 }
