@@ -1395,10 +1395,10 @@ export default function UsesChips() {
 `;
     const pushed = figmaFromPage(usesChips, { mapping, pages: { chips } });
     const [layer] = pushed.frame.children;
-    // Its layers are keyed under the instance's own key (this page's), never by the other page's ids.
-    const keys = []; const walk = (node) => { if (!node || typeof node !== "object") return; for (const [name, value] of Object.entries(node)) { if (name === "key") keys.push(value); walk(value); } }; walk(layer);
-    check("project component: its main's layers, named after its set, keyed as this page's", [layer?.type, layer?.name, keys.length > 0 && keys.every((key) => String(key).startsWith(String(layer?.key)))], ["FRAME", "Chip", true]);
-    check("project component: a note says so", pushed.notes.some((note) => /component of page chips/.test(note)), true);
+    const [chipEntry] = pushed.components ?? [];
+    check("project component: a linked INSTANCE of the other page's set, its variant", [layer?.type, layer?.local, layer?.page, layer?.name, layer?.variant], ["INSTANCE", "chip", "chips", "Chip", { Size: "Small" }]);
+    check("project component: its set's definition goes with the package, keyed as its page keys it", [pushed.components?.length, chipEntry?.page, chipEntry?.title, chipEntry?.local, chipEntry?.spec?.type, chipEntry?.spec?.page, chipEntry?.spec?.children?.map((variant) => [variant.name, variant.page]), Boolean(chipEntry?.spec?.key)], [1, "chips", "Chips", "chip", "COMPONENT_SET", "chips", [["Size=Small", "chips"], ["Size=Large", "chips"]], true]);
+    check("project component: figmaPackage carries it", figmaPackage(usesChips, { mapping, pages: { chips }, page: { id: "uses-chips" } }).pkg.components?.map((entry) => `${entry.page}/${entry.local}`), ["chips/chip"]);
     check("project component: without that page, a note", figmaFromPage(usesChips, { mapping }).notes.some((note) => /is not pushed/.test(note)), true);
     // Its main's own instances resolve on its page, even when this page has a component of the same id (A's review).
     const page = (title, body) => `// @zen-page {"format":1,"title":"${title}"}
@@ -1420,17 +1420,22 @@ export default function Page() {
     const cards = page("Cards", '<Component id="tag" name="Tag"><Text>Tag</Text></Component>\n          <Component id="card" name="Card"><Stack><Text>Card</Text><Use of="tag" /></Stack></Component>');
     const clash = page("Uses", '<Component id="tag" name="Other tag"><Text>Other</Text></Component>\n          <Use of="card" page="cards" />\n          <Use of="tag" page="uses" />');
     const clashPush = figmaFromPage(clash, { mapping, pages: { cards }, pageId: "uses" });
-    const named = []; const names = (node) => { if (!node || typeof node !== "object") return; if (typeof node.name === "string") named.push(node.name); for (const child of node.children ?? []) names(child); };
     const [, cardLayer, ownTag] = clashPush.frame.children;
-    names(cardLayer);
-    check("project component: a nested instance of its own page, not this page's same id", [cardLayer?.name, named.includes("Tag"), named.includes("Other tag")], ["Card", true, false]);
+    const byKey = new Map((clashPush.components ?? []).map((entry) => [`${entry.page}/${entry.local}`, entry]));
+    const nestedTag = (byKey.get("cards/card")?.spec?.children?.[0]?.children ?? []).find((node) => node.type === "INSTANCE");
+    check("project component: a nested instance names its own page; that page's component comes too, not this page's same id", [cardLayer?.type, cardLayer?.page, nestedTag?.local, nestedTag?.page, [...byKey.keys()].sort(), byKey.get("cards/tag")?.spec?.name], ["INSTANCE", "cards", "tag", "cards", ["cards/card", "cards/tag"], "Tag"]);
     check("project component: <Use page> naming this page is its own instance", [ownTag?.type, ownTag?.local], ["INSTANCE", "tag"]);
     // Two pages whose components hold each other (A's second review): the push stops at the loop and says so.
     const loopA = page("A", '<Component id="hero" name="Hero"><Stack><Text>Hero</Text><Use of="card" page="b" /></Stack></Component>');
     const loopB = page("B", '<Component id="card" name="Card"><Stack><Text>Card</Text><Use of="hero" page="a" /></Stack></Component>');
     let looped = null;
     try { looped = figmaFromPage(page("C", '<Use of="card" page="b" />'), { mapping, pages: { a: loopA, b: loopB }, pageId: "c" }); } catch (error) { looped = { error: String(error) }; }
-    check("project component: a loop across pages is pushed once round and noted", [looped?.error ?? null, looped?.frame?.children?.[0]?.name, (looped?.notes ?? []).some((note) => /sits inside itself/.test(note))], [null, "Card", true]);
+    // The pushing page's own component, held by another page's: an instance of the one in the frame, nothing extra.
+    const heldBack = figmaFromPage(loopA.replace("</Component>", "</Component>\n          <Use of=\"card\" page=\"b\" />"), { mapping, pages: { b: loopB }, pageId: "a" });
+    const heldHero = (heldBack.components ?? [])[0]?.spec?.children?.[0]?.children?.find((node) => node.type === "INSTANCE");
+    check("project component: one holding the pushing page's own component links to the frame's", [(heldBack.components ?? []).map((entry) => `${entry.page}/${entry.local}`), heldHero?.local, heldHero?.page], [["b/card"], "hero", "a"]);
+    const loopNames = (looped?.components ?? []).map((entry) => `${entry.page}/${entry.local}`).sort();
+    check("project component: a loop across pages stops at the component inside itself, noted", [looped?.error ?? null, looped?.frame?.children?.[0]?.type, loopNames, (looped?.notes ?? []).some((note) => /sits inside itself/.test(note))], [null, "INSTANCE", ["a/hero", "b/card"], true]);
   }
   // F7b: an instance's overrides of its main's layers, by the child indices that reach them in the drawn main.
   const overriddenPage = chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="chip" overrides={{ Text: { children: "Hi", tone: "accent" }, Icon: { hidden: true } }} />');
