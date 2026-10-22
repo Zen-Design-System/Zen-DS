@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { newPageText } from "../../dialect.mjs";
 import { codeOfItem, grow } from "../../dnd-engine.mjs";
-import { inspectorRow, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { inspectorRow, openAssetLibrary, openCodeProperties, selectedSrc, showDesignTab, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
 
 /** A new page of the Studio space titled `title` (its name). */
@@ -227,6 +227,34 @@ async function selectShapes(page, id, indexes) {
   }
   await until(async () => (await selectedSrc(page)).length === indexes.length || (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === indexes.length - 1, { message: `${indexes.length} shapes selected` });
 }
+/** Right-clicks the middle of `box` (a point: width and height 0) and returns the menu that opens. */
+async function menuOn(page, box) {
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
+  const menu = page.getByRole("menu").last();
+  await menu.waitFor({ state: "visible", timeout: 5000 });
+  return menu;
+}
+/** The menu's items in order: their text (label and shortcut) and whether they are dimmed. */
+const menuItems = (menu) => menu.getByRole("menuitem").evaluateAll((items) => items.map((item) => ({ text: item.innerText.replace(/\s+/g, " ").trim(), disabled: item.getAttribute("aria-disabled") === "true" || item.hasAttribute("disabled") || item.hasAttribute("data-disabled") })));
+/** A fresh load (the Studio forgets what it copied) with an empty system clipboard: nothing to paste. */
+async function forgetClipboard(page) {
+  await page.evaluate(() => navigator.clipboard.writeText("")).catch(() => undefined);
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+  await sleep(500);
+}
+/**
+ * A spot on the empty canvas right of the clip page's frame (room around it first), and `board(x, y)`: that spot on
+ * the board in px, given the frame's own written X / Y.
+ */
+async function emptySpot(page) {
+  await roomAround(page);
+  const element = page.locator('[data-studio-frame="screen:screen-1"]');
+  const frame = await element.boundingBox();
+  const zoom = frame.width / (await element.evaluate((node) => node.offsetWidth));
+  const spot = { x: frame.x + frame.width + 120, y: frame.y + 40 };
+  return { ...spot, board: (x, y) => ({ x: Math.round((x ?? 0) + (spot.x - frame.x) / zoom), y: Math.round((y ?? 0) + (spot.y - frame.y) / zoom) }) };
+}
 /** Each Shape's written X / Y in page order: [{ type, x, y }]. */
 const shapesIn = (text) => [...text.matchAll(/<Shape type="(\w+)"[^>]*?insetLeft=\{(-?\d+)\}[^>]*?insetTop=\{(-?\d+)\}/g)].map((match) => ({ type: match[1], x: Number(match[2]), y: Number(match[3]) }));
 
@@ -414,6 +442,44 @@ async function shot(page, name) {
 /** Section titles of the Design tab, in order. */
 const sections = async (page) => (await right(page).locator("h3").allInnerTexts()).map((text) => text.trim());
 
+/* ── Code properties on the Code tab (§3a "code-only ones on the Code tab") helpers ──────────────────────────────── */
+
+/** The Code tab's Properties (CodeProperties.tsx): the selected layer's code-only rows. */
+const codeProperties = (page) => right(page).locator('[data-e2e="code-properties"]');
+/** The Design tab shows only Figma's sections: no Code properties block or heading, none of `props`' rows. Returns its
+ *  section titles. */
+async function noCodeOnDesign(page, props) {
+  const headings = await sections(page);
+  if (headings.includes("Code properties")) throw new Error(`a Code properties section on the Design tab (${headings.join(", ")})`);
+  if (await codeProperties(page).count()) throw new Error("code properties on the Design tab");
+  const shown = [];
+  for (const prop of props) if (await inspectorRow(page, prop).count()) shown.push(prop);
+  if (shown.length) throw new Error(`code-only rows on the Design tab: ${shown.join(", ")}`);
+  return headings;
+}
+/** Runs `work` on the Code tab (its Properties shown), then shows the Design tab again: the tab persists across rows. */
+async function onCodeTab(page, work) {
+  await openCodeProperties(page);
+  try {
+    return await work();
+  } finally {
+    await showDesignTab(page).catch(() => undefined);
+  }
+}
+/** Types into the text field of the Inspector row `data-prop="prop"` and commits it (Enter). */
+async function typeInRow(page, prop, value) {
+  const field = inspectorRow(page, prop).locator("input, textarea").first();
+  await field.click();
+  await field.fill(value);
+  await field.press("Enter");
+}
+/** ⌘Z on the canvas until `pattern` is gone from the page's code. */
+async function undoUntilGone(page, id, pattern, message) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("ControlOrMeta+KeyZ");
+  await written(page, id, pattern, message, true);
+}
+
 /* ── F7 (components: sets, variants, properties) helpers ─────────────────────────────────────────────────────────── */
 
 /** A page with two lone mains side by side (Tag small, Tag large), a Chip set of two variants with a text and a boolean
@@ -582,6 +648,198 @@ async function typeText(page, name, value, index = 0) {
   await field.press("Enter");
 }
 
+/* ── Gap / padding drag (Figma's auto layout handles) helpers ──────────────────────────────────────────────────────── */
+
+/**
+ * A phone page with a row Stack (gap Small, paddingX Large 20, paddingY XLarge 24), a 2-column Grid and a free frame
+ * (Box). The paddings are thick enough that each area's centre lies clear of the resize strip on the frame's edge
+ * (ResizeLayer STRIP, 4 screen px inside the edge) at the canvas's fit zoom.
+ */
+const spacingText = (title) => {
+  let text = newPageText({ title, device: "phone", chrome: true });
+  text = grow(text, "Stack", '<Stack direction="row" gap="sm" paddingX="lg" paddingY="xl">\n<Shape type="rectangle" width={60} height={40} />\n<Shape type="ellipse" width={60} height={40} />\n</Stack>');
+  text = grow(text, "Stack", '<Grid columns={2} gap="sm" padding="sm">\n<Shape type="rectangle" width={60} height={40} />\n<Shape type="star" width={40} height={40} />\n</Grid>');
+  return grow(text, "Stack", '<Box width={200} height={64} padding="lg">\n<Shape type="ellipse" position="absolute" insetLeft={20} insetTop={12} width={40} height={40} />\n</Box>');
+};
+let spacingMade = null;
+async function spacingPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!spacingMade) {
+    const seeded = await seededPage(ctx, spacingText, /<Box width=\{200\} height=\{64\}/);
+    spacingMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${spacingMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${spacingMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  return { page, id: spacingMade };
+}
+/** The spacing page's innermost `name` layout (the one holding Shapes). */
+const layoutOf = (page, id, name) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="${name}"]`).filter({ has: page.locator('[data-zen-name="Shape"]') }).last();
+const shapeBox = (page, id, index) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).nth(index).boundingBox();
+/** Selects the layout holding Shape `shape` (⌘-click the Shape, Esc to its parent, as Figma's Select parent). */
+async function selectLayout(page, id, name, shape) {
+  await selectShape(page, id, shape);
+  await page.keyboard.press("Escape");
+  const want = await layoutOf(page, id, name).boundingBox();
+  await until(async () => {
+    const box = await page.locator('.studio-selection__outline[data-kind="selected"]').first().boundingBox().catch(() => null);
+    return box && Math.abs(box.x - want.x) < 3 && Math.abs(box.width - want.width) < 3 ? box : null;
+  }, { message: `the ${name} selected` });
+  await until(async () => (await page.locator(".studio-selection__spacing-hit").count()) > 0, { message: `the ${name}'s spacing areas` });
+  await sleep(300);
+  return want;
+}
+/** The draggable spacing areas on the canvas: axis and box (screen px). */
+const dragAreas = (page) => page.locator(".studio-selection__spacing-hit[data-drag]").evaluateAll((nodes) => nodes.map((node) => {
+  const r = node.getBoundingClientRect();
+  return { axis: node.getAttribute("data-drag"), x: r.x, y: r.y, width: r.width, height: r.height, cx: r.x + r.width / 2, cy: r.y + r.height / 2 };
+}));
+/** The spacing hit area on `side` of the selection (the outermost along it): its box and centre (screen px). */
+async function sideArea(page, side) {
+  const areas = await page.locator(".studio-selection__spacing-hit").evaluateAll((nodes) => nodes.map((node) => {
+    const r = node.getBoundingClientRect();
+    return { axis: node.getAttribute("data-drag"), x: r.x, y: r.y, width: r.width, height: r.height, cx: r.x + r.width / 2, cy: r.y + r.height / 2 };
+  }));
+  const by = { left: (a) => a.x, right: (a) => -(a.x + a.width), top: (a) => a.y, bottom: (a) => -(a.y + a.height) }[side];
+  const along = side === "left" || side === "right" ? (a) => a.height >= a.width : (a) => a.width > a.height;
+  const area = areas.filter(along).sort((a, b) => by(a) - by(b))[0];
+  if (!area) throw new Error(`no ${side} spacing area on the canvas`);
+  return area;
+}
+const spacingPill = async (page) => (await page.locator(".studio-selection__spacing-label").allInnerTexts()).join(" | ");
+/** How many padding / gap tints are pink (hovered or set by the drag). */
+const pinkTints = (page, kind) => page.locator(`.studio-selection__${kind}[data-drag][data-hover="true"]`).count();
+/** Presses at `from`, drags by `dx` / `dy` screen px in steps (`keys` held from before the press), runs `during` before the release. */
+async function dragSpacing(page, from, { dx = 0, dy = 0, keys = [], during } = {}) {
+  await page.mouse.move(from.x, from.y);
+  for (const key of keys) await page.keyboard.down(key);
+  await page.mouse.down();
+  let seen;
+  try {
+    for (let step = 1; step <= 6; step++) { await page.mouse.move(from.x + (dx * step) / 6, from.y + (dy * step) / 6); await sleep(30); }
+    await sleep(250);
+    seen = during ? await during() : undefined;
+  } finally {
+    await page.mouse.up();
+    for (const key of [...keys].reverse()) await page.keyboard.up(key);
+  }
+  return seen;
+}
+/** The open tag of the spacing page's first `<name …` whose text matches `marker`. */
+const tagWith = (text, name, marker) => [...text.matchAll(new RegExp(`<${name}\\b[^>]*>`, "g"))].map(([tag]) => tag).find((tag) => marker.test(tag)) ?? "";
+/** One ⌘Z puts the page back to `before` (the drag was one write). */
+async function oneUndo(page, id, before) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("ControlOrMeta+KeyZ");
+  await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+}
+
+/* ── Present from an Overlay frame (Figma presents any frame) ─────────────────────────────────────────────────────── */
+
+/** Two phone Screens (Files opens a Dialog and a Card; Deleted goes back) and three Overlays: the Dialog, the Card the
+ *  Overlay places (top right, dimmed), and a Bottom Sheet no Screen opens. */
+const presentOverlayText = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { BottomSheet, Button, Card, Dialog, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="home" title="Files" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text>Report.pdf</Text>
+          <Button level="primary" onClick={proto.open("confirm")}>Delete</Button>
+          <Button level="secondary" onClick={proto.open("tip")}>Show tip</Button>
+        </Stack>
+      </Screen>
+      <Screen id="done" title="Deleted" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text>The file is in the trash.</Text>
+          <Button level="primary" onClick={proto.back()}>Undo</Button>
+        </Stack>
+      </Screen>
+      <Overlay id="confirm">
+        <Dialog title="Delete the file?" description="It goes to the trash." primaryAction={{ label: "Move to trash", onClick: proto.navigate("done") }} secondaryAction={{ label: "Cancel", onClick: proto.close() }} />
+      </Overlay>
+      <Overlay id="tip" position="top-right" background>
+        <Card>
+          <Text>Tip: swipe a file to delete it.</Text>
+        </Card>
+      </Overlay>
+      <Overlay id="about">
+        <BottomSheet title="About this app" primaryAction={{ label: "Done", onClick: proto.close() }}>
+          <Text tone="base">Version 1.0</Text>
+        </BottomSheet>
+      </Overlay>
+    </Board>
+  );
+}
+`;
+let presentMade = null;
+async function presentOverlayPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!presentMade) {
+    const seeded = await seededPage(ctx, presentOverlayText, /id="about"/);
+    presentMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${presentMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${presentMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  // The whole board in view: a row clicks its layers where they are drawn.
+  await page.keyboard.press("Shift+Digit1");
+  await sleep(400);
+  return { page, id: presentMade };
+}
+const player = (page) => page.locator(".studio-player");
+const playerDevice = (page) => player(page).locator(".studio-player__device");
+/** Selects a frame by its Layers row (an Overlay's frame too), then gives the canvas the keys. */
+async function selectFrameRow(page, frameId) {
+  await showLeftTab(page, "layers");
+  await page.locator(`[data-layer-id="frame:${frameId}"]`).click();
+  await until(async () => (await page.locator(`[data-studio-frame="${frameId}"]`).getAttribute("data-selected")) === "true", { message: `${frameId} selected` });
+  await page.locator(".studio-viewport").focus();
+}
+/** What Play shows: its Screen, its open Overlay, its device and its size, and whether the device frame is drawn. */
+const playShows = (page) => playerDevice(page).evaluate((device) => ({
+  screen: device.getAttribute("data-screen-id"),
+  overlay: device.getAttribute("data-overlay"),
+  device: device.closest(".studio-player").getAttribute("data-device"),
+  size: `${device.offsetWidth}×${device.offsetHeight}`,
+  framed: Boolean(device.parentElement.querySelector(".studio-device-frame")),
+}));
+/** Presses ⌥⌘↵ and waits for Play. */
+async function presentKey(page) {
+  await page.keyboard.press("ControlOrMeta+Alt+Enter");
+  await player(page).waitFor({ state: "visible", timeout: 10_000 });
+}
+/** Esc until Play has gone, `times` presses at most (each one is asserted). */
+async function leavePlay(page, times = 1) {
+  for (let press = 1; press <= times; press += 1) {
+    await page.keyboard.press("Escape");
+    if (press < times) await sleep(300);
+  }
+  await player(page).waitFor({ state: "hidden", timeout: 5000 });
+}
+/** How Play from the Files Screen shows (the size and chrome a presented Overlay must keep). */
+async function homePlay(page) {
+  await selectFrameRow(page, "screen:home");
+  await presentKey(page);
+  await until(async () => (await playShows(page)).screen === "home", { message: "Play on Files" });
+  const shows = await playShows(page);
+  await leavePlay(page);
+  return shows;
+}
+
 /** Before a row's retry (run.mjs): the pages this module made are forgotten, so the retry seeds them again from scratch
  *  (the runner removes the files the first try added). */
 export function forgetPages() {
@@ -590,6 +848,111 @@ export function forgetPages() {
   shapesMade = null;
   twoMade = null;
   setsMade = null;
+  spacingMade = null;
+  slotsMade = null;
+  presentMade = null;
+}
+
+/* ── F7c (an instance's slot from the canvas) helpers ────────────────────────────────────────────────────────────── */
+
+/** A page with a Panel main whose Content slot shows "Empty" until an instance puts layers there, an instance that puts
+ *  none, one that puts two (Filled, Second), and a row of two loose layers to drag in. */
+const slotsText = (title) => [
+  `// @zen-page {"format":1,"title":${JSON.stringify(title)}}`,
+  'import { Board, Component, Screen, Use } from "@zen-ds/react/builder";',
+  'import { Badge, Stack, Text } from "@zen-ds/react";',
+  "",
+  "export const mock = {};",
+  "",
+  "export default function Page() {",
+  "  return (",
+  "    <Board>",
+  `      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop">`,
+  '        <Stack gap="xl" padding="xl">',
+  '          <Component id="panel" name="Panel" properties={{ Content: { type: "slot" } }}>',
+  '            <Stack gap="sm" padding="lg" surface="subtle" width={320}>',
+  "              <Text>Panel</Text>",
+  '              <Stack data-prop-slot="Content" gap="lg" padding="lg" border="subtle">',
+  "                <Text>Empty</Text>",
+  "              </Stack>",
+  "            </Stack>",
+  "          </Component>",
+  '          <Stack direction="row" gap="xl" align="start">',
+  '            <Use of="panel" />',
+  '            <Use of="panel" slots={{ Content: <>',
+  "              <Text>Filled</Text>",
+  "              <Text>Second</Text>",
+  "            </> }} />",
+  "          </Stack>",
+  '          <Stack direction="row" gap="md">',
+  "            <Badge>Loose</Badge>",
+  "            <Text>Spare</Text>",
+  "          </Stack>",
+  "        </Stack>",
+  "      </Screen>",
+  "    </Board>",
+  "  );",
+  "}",
+  "",
+].join("\n");
+let slotsMade = null;
+async function slotsPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!slotsMade) {
+    const seeded = await seededPage(ctx, slotsText, /data-prop-slot="Content"/);
+    slotsMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${slotsMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${slotsMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await showLeftTab(page, "layers");
+  await deselect(page);
+  return { page, id: slotsMade };
+}
+/** The n-th Panel instance of the slots page (0: puts nothing in its slot, 1: Filled and Second) and its slot. */
+const panelAt = (page, id, n) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-instance="panel"]`).nth(n);
+const slotOf = (page, id, n) => panelAt(page, id, n).locator('[data-zen-slot="Content"]').first();
+/** The main's slot layer as written: untouched by every row. */
+const MAIN_SLOT = /<Stack data-prop-slot="Content" gap="lg" padding="lg" border="subtle">\s*<Text>Empty<\/Text>\s*<\/Stack>/;
+/** A text layer of the slots page by its words (`n`: which one with those words). */
+const wordsOn = (page, id, words, n = 0) => page.locator(`[data-studio-frame="screen:screen-1"]`).getByText(words, { exact: true }).nth(n);
+/**
+ * A drag in small steps from `from` to `to` (screen px; ⌥ held with `copy`); answers what the overlay draws just before
+ * the drop (the slot's outline and its tag, the insertion line). With ZEN_E2E_SHOTS, `shotName` saves the canvas then.
+ */
+async function slotDrag(page, from, to, { copy = false, shotName = null } = {}) {
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  if (copy) await page.keyboard.down("Alt");
+  try {
+    for (let step = 1; step <= 12; step += 1) {
+      await page.mouse.move(from.x + ((to.x - from.x) * step) / 12, from.y + ((to.y - from.y) * step) / 12);
+      await sleep(16);
+    }
+    await sleep(150);
+    if (process.env.ZEN_E2E_SHOTS && shotName) await page.locator(".studio-viewport").screenshot({ path: `${process.env.ZEN_E2E_SHOTS}/${shotName}.png` }).catch(() => {});
+    return await page.evaluate(() => {
+      const into = document.querySelector(".studio-drag__into");
+      return {
+        slot: into?.getAttribute("data-slot") === "true",
+        tag: into?.querySelector(".studio-drag__slot-tag")?.textContent ?? null,
+        line: Boolean(document.querySelector(".studio-drag__line")),
+        label: document.querySelector(".studio-drag__label")?.textContent?.trim() ?? null,
+        outline: into ? getComputedStyle(into).boxShadow : null,
+      };
+    });
+  } finally {
+    await page.mouse.up();
+    if (copy) await page.keyboard.up("Alt");
+  }
+}
+const middle = (box) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
+/** Selects a layer as Figma's ⌘-click does (the deepest layer: one in an instance's slot, one in a row), then checks it:
+ *  a press on it then drags that layer. */
+async function selectDeep(page, layer, name) {
+  await deepInto(page, layer);
+  await until(async () => (await selectedName(page)) === name, { message: `${name} selected` }).catch(async (error) => { throw new Error(`${error.message} · selected ${await selectedName(page)}`); });
 }
 
 export const rows = [
@@ -2931,6 +3294,124 @@ export const rows = [
     },
   },
   {
+    id: "FW-150", feature: "A shape's layer menu has Flip horizontal ⇧H and Flip vertical ⇧V right after Lock (Figma's place); Flip horizontal writes flip=\"horizontal\", one ⌘Z takes it back", wp: "re-measure §2a menus 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShape(page, id, 0);
+      const menu = await menuOn(page, await clipShape(page, id, 0).boundingBox());
+      const items = await menuItems(menu);
+      const at = items.findIndex((item) => /^Lock\b/.test(item.text));
+      const flips = items.slice(at + 1, at + 3).map((item) => item.text);
+      if (at < 0 || !/^Flip horizontal ⇧H$/.test(flips[0] ?? "") || !/^Flip vertical ⇧V$/.test(flips[1] ?? "")) throw new Error(`after Lock: ${flips.join(" | ")} (menu: ${items.map((item) => item.text).join(" | ")})`);
+      if (items[at + 1].disabled || items[at + 2].disabled) throw new Error("Flip is dimmed on a shape");
+      await menu.getByRole("menuitem", { name: /^Flip horizontal/ }).click();
+      await written(page, id, /<Shape type="rectangle"[^>]*flip="horizontal"/, "flip=\"horizontal\" on the rectangle");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z: no flip" });
+      return "… Lock · Flip horizontal ⇧H · Flip vertical ⇧V … → flip=\"horizontal\" → one ⌘Z";
+    },
+  },
+  {
+    id: "FW-151", feature: "Flip vertical in the menu of two floating shapes flips both and mirrors their places across their box, one ⌘Z", wp: "re-measure §2a menus 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectShapes(page, id, [0, 1]);
+      const menu = await menuOn(page, await clipShape(page, id, 1).boundingBox());
+      await menu.getByRole("menuitem", { name: /^Flip vertical/ }).click();
+      // Rectangle Y 20 H 60, ellipse Y 40 H 60: their box is Y 20…100, so they trade places (Y 40, Y 20).
+      await until(async () => { const text = (await pageText(page, id)) ?? ""; const shapes = shapeTags(text); return (text.match(/flip="vertical"/g) ?? []).length === 2 && shapes[0].y === 40 && shapes[1].y === 20; }, { message: "both flipped, the rectangle at Y 40, the ellipse at Y 20" }).catch(async (error) => { throw new Error(`${error.message} (${shapeTags((await pageText(page, id)) ?? "").map((shape) => shape.y).join(", ")})`); });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z: both back" });
+      return "two shapes → Flip vertical → flipped, Y 40 · Y 20 → one ⌘Z";
+    },
+  },
+  {
+id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shapes flip (as Flatten shows on shapes only), so a component's long menu stays in the window", wp: "re-measure §2a menus 2026-10-21",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await clickNamed(page, id, "Button");
+      await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+      const menu = await menuOn(page, await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).first().boundingBox());
+      const items = await menuItems(menu);
+      await page.keyboard.press("Escape");
+      if (!items.some((item) => /^Lock\b/.test(item.text))) throw new Error(`no Lock (menu: ${items.map((item) => item.text).join(" | ")})`);
+      const flips = items.filter((item) => /^Flip /.test(item.text));
+      if (flips.length) throw new Error(`a Button's menu offers ${flips.map((item) => item.text).join(", ")}`);
+      return `${items.length} items, no Flip`;
+    },
+  },
+  {
+    id: "FW-153", feature: "Right-click the empty canvas: Paste here, dimmed with nothing copied; after ⌘C on a shape it makes a frame of its size with its corner at the pointer, the shape at X 0 Y 0 inside, selected; one ⌘Z", wp: "re-measure §2a menus 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      let { page, id } = await clipPage(ctx);
+      await forgetClipboard(page);
+      ({ page, id } = await clipPage(ctx));
+      const before = (await pageText(page, id)) ?? "";
+      let spot = await emptySpot(page);
+      let menu = await menuOn(page, { x: spot.x, y: spot.y, width: 0, height: 0 });
+      const first = (await menuItems(menu))[0];
+      await page.keyboard.press("Escape");
+      if (first?.text !== "Paste here" || !first.disabled) throw new Error(`nothing copied: the menu starts ${first?.text} (${first?.disabled ? "dimmed" : "on"})`);
+      await selectShape(page, id, 0);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyC");
+      await until(async () => /Copied/i.test(await statusText(page)), { timeout: 3000, message: '"Copied"' });
+      await deselect(page);
+      spot = await emptySpot(page);
+      menu = await menuOn(page, { x: spot.x, y: spot.y, width: 0, height: 0 });
+      const paste = menu.getByRole("menuitem", { name: /^Paste here/ });
+      await until(async () => !(await paste.isDisabled()), { timeout: 3000, message: "Paste here on" });
+      await paste.click();
+      await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a new frame" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const frame = boardTag(text, "Screen", "screen-2");
+      const inside = text.slice(text.indexOf('<Screen id="screen-2"'), text.indexOf("</Screen>", text.indexOf('<Screen id="screen-2"')));
+      const shape = shapeTags(inside)[0];
+      const want = spot.board(numberAttr(boardTag(text, "Screen", "screen-1"), "x"), numberAttr(boardTag(text, "Screen", "screen-1"), "y"));
+      const problems = [
+        !/title="Frame 2"/.test(frame) && "not named Frame 2",
+        (numberAttr(frame, "width") !== 100 || numberAttr(frame, "height") !== 100) && `${numberAttr(frame, "width")} × ${numberAttr(frame, "height")} (want 100 × 100: an 80 × 60 shape, a frame is 100 at least)`,
+        (Math.abs(numberAttr(frame, "x") - want.x) > 3 || Math.abs(numberAttr(frame, "y") - want.y) > 3) && `at ${numberAttr(frame, "x")}, ${numberAttr(frame, "y")} (pointer ${want.x}, ${want.y})`,
+        (shape?.type !== "rectangle" || shape.x !== 0 || shape.y !== 0) && `inside: ${shape?.type} at ${shape?.x}, ${shape?.y}`,
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').getAttribute("data-selected")) === "true", { message: "the new frame selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z: the frame gone (the row's pin with it)" });
+      return `dimmed · ⌘C → Paste here → Frame 2 at ${numberAttr(frame, "x")}, ${numberAttr(frame, "y")}, 100 × 100, the rectangle at 0, 0 → one ⌘Z`;
+    },
+  },
+  {
+    id: "FW-154", feature: "⌘C on a frame, then Paste here on the empty canvas: a copy of the frame with its corner at the pointer, selected; one ⌘Z", wp: "re-measure §2a menus 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await clipPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectFrame(page, "screen:screen-1");
+      await page.locator(".studio-viewport").focus();
+      await until(async () => { await page.keyboard.press("ControlOrMeta+KeyC"); await sleep(400); return /Copied frame/.test(await statusText(page)); }, { timeout: 8000, message: '"Copied frame"' });
+      await deselect(page);
+      const spot = await emptySpot(page);
+      const menu = await menuOn(page, { x: spot.x, y: spot.y, width: 0, height: 0 });
+      await menu.getByRole("menuitem", { name: /^Paste here/ }).click();
+      await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "a copy of the frame" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const copy = boardTag(text, "Screen", "screen-2");
+      const want = spot.board(numberAttr(boardTag(text, "Screen", "screen-1"), "x"), numberAttr(boardTag(text, "Screen", "screen-1"), "y"));
+      if (Math.abs(numberAttr(copy, "x") - want.x) > 3 || Math.abs(numberAttr(copy, "y") - want.y) > 3) throw new Error(`the copy at ${numberAttr(copy, "x")}, ${numberAttr(copy, "y")} (pointer ${want.x}, ${want.y})`);
+      if (!/<Shape\b/.test(text.slice(text.indexOf('<Screen id="screen-2"')))) throw new Error("the copy holds no shapes");
+      await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').getAttribute("data-selected")) === "true", { message: "the copy selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z: the copy gone (the row's pin with it)" });
+      return `⌘C on the frame → Paste here → its copy at ${numberAttr(copy, "x")}, ${numberAttr(copy, "y")} → one ⌘Z`;
+    },
+  },
+  {
     id: "FW-96", feature: "Assets › Local components shows a component set as one tile; a click adds an instance of the set", wp: "F7b 2026-10-19", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await setsPage(ctx);
@@ -2947,6 +3428,110 @@ export const rows = [
         await until(async () => ((((await pageText(page, id)) ?? "").match(/<Use of="chip" \/>/g) ?? []).length) === before + 1, { message: "one more instance of the set" });
         await showLeftTab(page, "layers");
         return names.join(" · ");
+      });
+    },
+  },
+  // F7c · putting layers into an instance's slot from the canvas.
+  {
+    id: "FW-160", feature: "An Assets item dragged over an instance's empty slot: the slot outlined in violet with its name; the drop keeps the main's layers there and adds the item after them; the main is untouched; one ⌘Z", wp: "F7c 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await slotsPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await openAssetLibrary(page, "Components");
+        const panel = page.locator("#studio-left-panel-assets");
+        await panel.getByLabel("Search components").fill("Badge");
+        const tile = panel.locator('[data-asset="badge"]').first();
+        await tile.waitFor({ state: "visible", timeout: 5000 });
+        const slot = await slotOf(page, id, 0).boundingBox();
+        if (!slot) throw new Error("the empty instance's slot is not on the canvas (no data-zen-slot)");
+        const seen = await slotDrag(page, middle(await tile.boundingBox()), { x: slot.x + slot.width / 2, y: slot.y + slot.height - 6 }, { shotName: "fw-160-slot-target" });
+        if (!seen.slot || seen.tag !== "Content") throw new Error(`over the slot the overlay shows ${JSON.stringify(seen)}`);
+        await written(page, id, /<Use of="panel" slots=\{\{ Content: <>\s*<Text>Empty<\/Text>\s*<Badge[^>]*>Active<\/Badge>\s*<\/> \}\} \/>/, "the slot: the main's Empty, then the Badge");
+        const after = (await pageText(page, id)) ?? "";
+        if (!MAIN_SLOT.test(after)) throw new Error("the main's slot layer changed");
+        await until(async () => (await panelAt(page, id, 0).getByText("Active", { exact: true }).count()) === 1, { message: "the instance draws the Badge in its slot" });
+        await showLeftTab(page, "layers");
+        await oneUndo(page, id, before);
+        return `over the slot: violet outline, tag ${seen.tag}, line ${seen.line} · Content = Empty + Badge · one ⌘Z`;
+      });
+    },
+  },
+  {
+    id: "FW-161", feature: "A layer dragged into an instance's slot between the layers the instance puts there lands at that place; the main is untouched; one ⌘Z", wp: "F7c 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await slotsPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        // A Text (⌘-click on a Badge picks its words, a part of it, as Figma's deepest select does).
+        await selectDeep(page, wordsOn(page, id, "Spare"), "Text");
+        const spare = await wordsOn(page, id, "Spare").boundingBox();
+        const filled = await panelAt(page, id, 1).getByText("Filled", { exact: true }).boundingBox();
+        const second = await panelAt(page, id, 1).getByText("Second", { exact: true }).boundingBox();
+        // Between the two layers of the slot (their gap's middle).
+        const seen = await slotDrag(page, middle(spare), { x: filled.x + filled.width / 2, y: (filled.y + filled.height + second.y) / 2 }, { shotName: "fw-161-slot-line" });
+        if (!seen.slot || !seen.line) throw new Error(`over the slot the overlay shows ${JSON.stringify(seen)}`);
+        await written(page, id, /slots=\{\{ Content: <>\s*<Text>Filled<\/Text>\s*<Text>Spare<\/Text>\s*<Text>Second<\/Text>\s*<\/> \}\}/, "Spare between Filled and Second");
+        const after = (await pageText(page, id)) ?? "";
+        if (after.split("<Text>Spare</Text>").length !== 2) throw new Error("Spare was copied, not moved");
+        if (!MAIN_SLOT.test(after)) throw new Error("the main's slot layer changed");
+        await oneUndo(page, id, before);
+        return "Spare → between Filled and Second · main untouched · one ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-162", feature: "A layer dragged out of an instance's slot leaves it (the slot keeps its other layer) and lands where it is dropped; one ⌘Z", wp: "F7c 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await slotsPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        const second = panelAt(page, id, 1).getByText("Second", { exact: true });
+        await selectDeep(page, second, "Text");
+        const spare = await wordsOn(page, id, "Spare").boundingBox();
+        const seen = await slotDrag(page, middle(await second.boundingBox()), { x: spare.x + spare.width - 2, y: spare.y + spare.height / 2 });
+        if (seen.slot) throw new Error(`over the row the overlay still shows a slot: ${JSON.stringify(seen)}`);
+        await written(page, id, /slots=\{\{ Content: <>\s*<Text>Filled<\/Text>\s*<\/> \}\}[\s\S]*<Badge>Loose<\/Badge>\s*<Text>Spare<\/Text>\s*<Text>Second<\/Text>/, "Second out of the slot, after Spare");
+        if (!MAIN_SLOT.test((await pageText(page, id)) ?? "")) throw new Error("the main's slot layer changed");
+        await oneUndo(page, id, before);
+        return "Second → after Spare · the slot keeps Filled · one ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-163", feature: "A layer of an instance's slot dragged above its sibling there changes places in the slot; one ⌘Z", wp: "F7c 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await slotsPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        const second = panelAt(page, id, 1).getByText("Second", { exact: true });
+        await selectDeep(page, second, "Text");
+        const filled = await panelAt(page, id, 1).getByText("Filled", { exact: true }).boundingBox();
+        const seen = await slotDrag(page, middle(await second.boundingBox()), { x: filled.x + filled.width / 2, y: filled.y + 2 });
+        if (!seen.slot || seen.tag !== "Content") throw new Error(`over the slot the overlay shows ${JSON.stringify(seen)}`);
+        await written(page, id, /slots=\{\{ Content: <>\s*<Text>Second<\/Text>\s*<Text>Filled<\/Text>\s*<\/> \}\}/, "Second before Filled");
+        await oneUndo(page, id, before);
+        return "Second ↑ Filled inside the slot · one ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-164", feature: "⌥-drag of a slot's layer into another instance's empty slot: a copy there (with that slot's main layers), the original stays; one ⌘Z", wp: "F7c 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await slotsPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        const filled = panelAt(page, id, 1).getByText("Filled", { exact: true });
+        await selectDeep(page, filled, "Text");
+        const empty = await panelAt(page, id, 0).getByText("Empty", { exact: true }).boundingBox();
+        const seen = await slotDrag(page, middle(await filled.boundingBox()), { x: empty.x + empty.width / 2, y: empty.y + empty.height + 4 }, { copy: true });
+        if (!seen.slot || seen.label !== "Copy") throw new Error(`⌥ over the slot the overlay shows ${JSON.stringify(seen)}`);
+        await written(page, id, /<Use of="panel" slots=\{\{ Content: <>\s*<Text>Empty<\/Text>\s*<Text>Filled<\/Text>\s*<\/> \}\} \/>/, "a copy of Filled after Empty in the first instance");
+        const after = (await pageText(page, id)) ?? "";
+        if (!/slots=\{\{ Content: <>\s*<Text>Filled<\/Text>\s*<Text>Second<\/Text>/.test(after)) throw new Error("the original left its slot");
+        if (!MAIN_SLOT.test(after)) throw new Error("the main's slot layer changed");
+        await oneUndo(page, id, before);
+        return "⌥ Filled → the empty slot (Empty + Filled) · original stays · one ⌘Z";
       });
     },
   },
@@ -3425,4 +4010,568 @@ export const rows = [
       return "New page › Create → Layers";
     },
   },
+  {
+    id: "FW-175", feature: "⌥⌘A (Select matching layers) selects the same layer in the other frames (its automatic name compared without its page-wide number), never one in a Section the frame is not in", wp: "Select matching 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await matchPage(ctx);
+      await pickIn(page, id, "screen:one", 1);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Alt+ControlOrMeta+KeyA");
+      await until(async () => /Selected 2 matching layers/.test(await statusText(page)), { message: "two matching layers" })
+        .catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 120)})`); });
+      const extra = await page.locator(".studio-selection__outline[data-kind='extra']").count();
+      if (extra !== 1) throw new Error(`${extra} other layers outlined (want the Ellipse of screen two)`);
+      const extraBox = await page.locator(".studio-selection__outline[data-kind='extra']").first().boundingBox();
+      const twin = await layerIn(page, id, "screen:two", 1).boundingBox();
+      if (Math.abs(extraBox.x - twin.x) > 3 || Math.abs(extraBox.y - twin.y) > 3) throw new Error("the outlined layer is not screen two's Ellipse");
+      return "Ellipse 1 (screen one) + Ellipse 2 (screen two); screen three sits in a Section";
+    },
+  },
+  {
+    id: "FW-176", feature: "⌥⌘A: a layer the person renamed matches only that name (Hero ≠ Rectangle), and a frame in a Section matches only frames in it: both say there is no match", wp: "Select matching 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await matchPage(ctx);
+      await pickIn(page, id, "screen:one", 0);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Alt+ControlOrMeta+KeyA");
+      await until(async () => /No matching layers in other frames/.test(await statusText(page)), { message: "no match for the Rectangle (screen two's is Hero)" });
+      await deselect(page);
+      await pickIn(page, id, "screen:three", 1);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Alt+ControlOrMeta+KeyA");
+      await until(async () => /No matching layers in other frames/.test(await statusText(page)) && (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === 0, { message: "no match from inside the Section" });
+      return "Rectangle vs Hero: none · Section frame: none";
+    },
+  },
+  {
+    id: "FW-177", feature: "Right-click › Select all with same › Fill selects every layer of the page painted with that fill, in every frame", wp: "Select matching 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await matchPage(ctx);
+      await pickIn(page, id, "screen:one", 0);
+      await sameFromMenu(page, id, "screen:one", 0, "Fill");
+      await until(async () => /Selected 3 layers with the same fill/.test(await statusText(page)), { message: "the three accent rectangles" })
+        .catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 120)})`); });
+      return "Fill › 3 accent rectangles (Hero and the Section's included)";
+    },
+  },
+  {
+    id: "FW-178", feature: "Select all with same › Instance selects every instance of the component, whatever its variant; Text properties selects the texts of that style (its menu opened by a right-click on the text's resize handle, as Figma's)", wp: "Select matching 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await matchPage(ctx);
+      await pickNamedIn(page, id, "screen:one", "Button");
+      await sameFromMenu(page, id, "screen:one", null, "Instance", "Button");
+      await until(async () => /Selected 3 layers with the same instance/.test(await statusText(page)), { message: "the three Buttons" })
+        .catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 120)})`); });
+      await deselect(page);
+      await pickNamedIn(page, id, "screen:one", "Text");
+      await sameFromMenu(page, id, "screen:one", null, "Text properties", "Text", { onHandle: true });
+      await until(async () => /Selected 2 layers with the same text properties/.test(await statusText(page)), { message: "the two Caption texts" })
+        .catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 120)})`); });
+      return "Instance › 3 Buttons (primary and secondary) · Text properties › 2 Captions";
+    },
+  },
+  {
+    id: "FW-179", feature: "Select all with same › Stroke on a layer without one says so and keeps the selection; ⌥⌘A is in Quick actions and no longer a 'not in Zen Studio yet' key", wp: "Select matching 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await matchPage(ctx);
+      await pickIn(page, id, "screen:one", 1);
+      await sameFromMenu(page, id, "screen:one", 1, "Stroke");
+      await until(async () => /This layer has no stroke/.test(await statusText(page)), { message: "no stroke said" });
+      if (await page.locator(".studio-selection__outline[data-kind='extra']").count()) throw new Error("other layers got selected");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyK");
+      const dialog = page.getByRole("dialog").last();
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      await page.keyboard.type("Select matching");
+      await dialog.getByText("Select matching layers", { exact: true }).first().waitFor({ state: "visible", timeout: 5000 });
+      await page.keyboard.press("Escape");
+      if (/isn't in Zen Studio yet/.test(await statusText(page))) throw new Error("⌥⌘A still says not yet");
+      return "Stroke › none said · Quick actions lists Select matching layers";
+    },
+  },
+  {
+    id: "FW-165", feature: "A Zen instance's Design tab has no Code properties (Figma's sections only); its HTML button type is on the Code tab's Properties, where typing submit writes type=\"submit\"; ⌘Z takes it back", wp: "§3a Properties 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await clickNamed(page, id, "Button");
+      await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+      const design = await noCodeOnDesign(page, ["type"]);
+      return restoring(page, id, () => onCodeTab(page, async () => {
+        await inspectorRow(page, "type").waitFor({ state: "visible", timeout: 5000 });
+        await typeInRow(page, "type", "submit");
+        await written(page, id, /<Button\b[^>]*type="submit"/, 'type="submit" on the Button');
+        await shot(page, "fw-165-instance-code-tab");
+        await undoUntilGone(page, id, /<Button\b[^>]*type="submit"/, "⌘Z takes the type back");
+        return `Design: ${design.join(", ")} · Code › Properties › Type → submit → ⌘Z`;
+      }));
+    },
+  },
+  {
+    id: "FW-166", feature: "An auto layout frame's HTML element is on the Code tab: section writes as=\"section\" on the Stack, ⌘Z takes it back; its Design tab keeps Figma's sections", wp: "§3a Properties 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectBody(page, id);
+      await until(async () => (await selectedName(page)) === "Frame", { message: "the body frame selected" });
+      const design = await noCodeOnDesign(page, ["as", "scroll"]);
+      return restoring(page, id, () => onCodeTab(page, async () => {
+        await inspectorRow(page, "as").waitFor({ state: "visible", timeout: 5000 });
+        await pickOption(page, "as", "section");
+        await written(page, id, /<Stack\b[^>]*as="section"/, 'as="section" on the Stack');
+        await undoUntilGone(page, id, /<Stack\b[^>]*as="section"/, "⌘Z takes the element back");
+        return `Design: ${design.join(", ")} · Code › Properties › HTML element → section → ⌘Z`;
+      }));
+    },
+  },
+  {
+    id: "FW-167", feature: "A text layer's HTML element is on the Code tab: span writes as=\"span\" on the Text, ⌘Z takes it back; its Design tab shows Typography and no code rows", wp: "§3a Properties 2026-10-21", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await clickNamed(page, id, "Text");
+      await until(async () => (await sections(page)).includes("Typography"), { message: "the text selected" });
+      const design = await noCodeOnDesign(page, ["as"]);
+      return restoring(page, id, () => onCodeTab(page, async () => {
+        await inspectorRow(page, "as").waitFor({ state: "visible", timeout: 5000 });
+        await pickOption(page, "as", "span");
+        await written(page, id, /<Text\b[^>]*as="span"/, 'as="span" on the Text');
+        await undoUntilGone(page, id, /<Text\b[^>]*as="span"/, "⌘Z takes the element back");
+        return `Design: ${design.join(", ")} · Code › Properties › HTML element → span → ⌘Z`;
+      }));
+    },
+  },
+  {
+    id: "FW-168", feature: "Attributes no API lists (aria-label, data-testid on a Button) are on the Code tab's Properties under their written names and edit there; the Design header's Show code opens them", wp: "§3a Properties 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const text = (title) => [
+        `// @zen-page ${JSON.stringify({ format: 1, title })}`,
+        'import { Board, Screen } from "@zen-ds/react/builder";',
+        'import { Button, Stack } from "@zen-ds/react";',
+        "export const mock = {};",
+        "",
+        "export default function Page() {",
+        "  return (",
+        "    <Board>",
+        `      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop" width={800} height={500}>`,
+        '        <Stack gap="md" padding="lg">',
+        '          <Button level="primary" aria-label="Save the draft" data-testid="save">Save</Button>',
+        "        </Stack>",
+        "      </Screen>",
+        "    </Board>",
+        "  );",
+        "}",
+        "",
+      ].join("\n");
+      const { page, id } = await seededPage(ctx, text, /data-testid="save"/);
+      await clickNamed(page, id, "Button");
+      await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+      const design = await noCodeOnDesign(page, ["aria-label", "data-testid", "type"]);
+      const before = (await pageText(page, id)) ?? "";
+      await right(page).getByRole("button", { name: "Show code", exact: true }).click();
+      try {
+        await codeProperties(page).waitFor({ state: "visible", timeout: 5000 });
+        for (const prop of ["aria-label", "data-testid", "type"]) await inspectorRow(page, prop).waitFor({ state: "visible", timeout: 5000 });
+        const labels = await codeProperties(page).locator('[data-prop="aria-label"], [data-prop="data-testid"]').allInnerTexts();
+        if (!labels.every((label, index) => label.includes(["aria-label", "data-testid"][index]))) throw new Error(`rows not under their written names: ${labels.join(" · ")}`);
+        await typeInRow(page, "aria-label", "Save");
+        await written(page, id, /<Button\b[^>]*aria-label="Save"/, 'aria-label="Save" on the Button');
+        await undoTo(page, id, before, 2);
+      } finally {
+        await showDesignTab(page).catch(() => undefined);
+      }
+      return `Design: ${design.join(", ")} · Show code → Code › Properties: aria-label, data-testid, Type · aria-label → Save → ⌘Z`;
+    },
+  },
+  {
+    id: "FW-169", feature: "The Code tab's Properties sit on the panel's one grid (Inline-Field rows, panelFits) for an instance, a frame and a text, above the layer's Code", wp: "§3a Properties 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      const seen = [];
+      const layers = [
+        ["the Button", () => clickNamed(page, id, "Button")],
+        ["the body frame", () => selectBody(page, id)],
+        ["the text", () => clickNamed(page, id, "Text")],
+      ];
+      for (const [what, select] of layers) {
+        await select();
+        await sleep(300);
+        await onCodeTab(page, async () => {
+          await expectPanelFits(page, `${what}'s Code tab`);
+          const order = await sections(page);
+          if (!(order.indexOf("Properties") >= 0 && order.indexOf("Properties") < order.indexOf("Code"))) throw new Error(`${what}: the Code tab reads ${order.join(", ")}`);
+          seen.push(`${what}: ${await codeProperties(page).locator(".studio-inspector__row").count()} rows`);
+          await shot(page, `fw-169-${what.split(" ").at(-1)}`);
+        });
+      }
+      return seen.join(" · ");
+    },
+  },
+  {
+    id: "FW-155", feature: "Hovering a selected auto layout frame's gap or padding shows Figma's pink area, a handle and its value as a variable pill (Gap · Small · 12); a click still opens the scale", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      await selectLayout(page, id, "Stack", 0);
+      const [a, b] = [await shapeBox(page, id, 0), await shapeBox(page, id, 1)];
+      const gap = { x: (a.x + a.width + b.x) / 2, y: a.y + a.height / 2 };
+      await page.mouse.move(gap.x - 1, gap.y);
+      await page.mouse.move(gap.x, gap.y);
+      const gapPill = await until(async () => { const text = await spacingPill(page); return /Gap · Small · 12/.test(text) ? text : null; }, { message: 'the "Gap · Small · 12" pill' });
+      const look = await page.evaluate(() => {
+        const probe = document.createElement("div");
+        probe.style.color = "var(--zen-color-background-support-pink-solid)";
+        document.body.append(probe);
+        const pink = getComputedStyle(probe).color;
+        probe.remove();
+        const handle = document.querySelector(".studio-selection__spacing-handle");
+        const label = document.querySelector(".studio-selection__spacing-label[data-drag]");
+        const hit = document.querySelector('.studio-selection__spacing-hit[data-drag="x"]');
+        return { pink, handle: handle ? getComputedStyle(handle).backgroundColor : null, label: label ? getComputedStyle(label).backgroundColor : null, hexagon: Boolean(label?.querySelector("svg")), tint: document.querySelectorAll('.studio-selection__gap[data-drag][data-hover="true"]').length, cursor: hit ? getComputedStyle(hit).cursor : null };
+      });
+      if (look.handle !== look.pink || look.label !== look.pink) throw new Error(`not Figma's pink: handle ${look.handle}, pill ${look.label} (Support/Pink/Solid ${look.pink})`);
+      if (!look.tint || !look.hexagon || look.cursor !== "ew-resize") throw new Error(`gap hover: ${JSON.stringify(look)}`);
+      const left = await sideArea(page, "left");
+      await page.mouse.move(left.cx + 1, left.cy);
+      await page.mouse.move(left.cx, left.cy);
+      const padPill = await until(async () => { const text = await spacingPill(page); return /Horizontal padding · Large · 20/.test(text) ? text : null; }, { message: 'the "Horizontal padding · Large · 20" pill' })
+        .catch(async (error) => { throw new Error(`${error.message} (pill: "${await spacingPill(page)}")`); });
+      if (!(await pinkTints(page, "padding"))) throw new Error("the hovered padding is not pink");
+      // A click without moving: the scale opens where it was clicked, as before the drag handles.
+      await page.mouse.move(gap.x, gap.y);
+      await page.mouse.down();
+      await page.mouse.up();
+      await page.getByRole("option", { name: /^XLarge\b/ }).waitFor({ state: "visible", timeout: 4000 });
+      await page.keyboard.press("Escape");
+      return `gap "${gapPill}" (pink, handle, hexagon, ew-resize) · padding "${padPill}" · click → the scale`;
+    },
+  },
+  {
+    id: "FW-156", feature: "Dragging the gap of an auto layout frame changes it, snapped to the Spacing/Gap ladder and previewed while dragging (Small 12 + 20 → XLarge 32); one write, one ⌘Z; the status line names it Gap XLarge", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectLayout(page, id, "Stack", 0);
+      const [a, b] = [await shapeBox(page, id, 0), await shapeBox(page, id, 1)];
+      const scale = a.width / 60;
+      const gap = { x: (a.x + a.width + b.x) / 2, y: a.y + a.height / 2 };
+      const during = await dragSpacing(page, gap, { dx: 20 * scale, during: async () => ({ pill: await spacingPill(page), moved: ((await shapeBox(page, id, 1)).x - b.x) / scale, text: await pageText(page, id) }) });
+      if (!/Gap · XLarge · 32/.test(during.pill)) throw new Error(`the pill while dragging reads "${during.pill}"`);
+      if (Math.abs(during.moved - 20) > 1.5) throw new Error(`the preview moved the second layer ${during.moved.toFixed(1)} px, not 20`);
+      if (during.text !== before) throw new Error("written before the release");
+      await until(async () => /gap="xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: 'the row Stack at gap="xl"' });
+      const tag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
+      if (!/paddingX="lg"/.test(tag) || !/paddingY="xl"/.test(tag)) throw new Error(`the padding changed too: ${tag}`);
+      const status = await until(async () => { const text = await statusText(page); return /Gap XLarge/.test(text) ? text : null; }, { timeout: 5000, message: 'the status line "Gap XLarge"' });
+      await oneUndo(page, id, before);
+      return `pill "${during.pill}" · the Ellipse moved ${during.moved.toFixed(0)} px · ${tag} · "${status.split(" | ").find((line) => /Gap XLarge/.test(line))}" · one ⌘Z`;
+    },
+  },
+  {
+    id: "FW-157", feature: "Dragging an auto layout frame's left padding changes Horizontal padding (Zen's paddingX: the right side moves with it), snapped to Spacing/Padding (Large 20 + 12 → 2XLarge 32); one write, one ⌘Z", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectLayout(page, id, "Stack", 0);
+      const scale = (await shapeBox(page, id, 0)).width / 60;
+      const host = layoutOf(page, id, "Stack");
+      const left = await sideArea(page, "left");
+      const during = await dragSpacing(page, { x: left.cx, y: left.cy }, { dx: 12 * scale, during: async () => ({
+        pill: await spacingPill(page), tints: await pinkTints(page, "padding"),
+        padding: await host.evaluate((el) => { const style = getComputedStyle(el); return [style.paddingLeft, style.paddingRight, style.paddingTop].join(" "); }),
+      }) });
+      if (!/Horizontal padding · 2XLarge · 32/.test(during.pill)) throw new Error(`the pill while dragging reads "${during.pill}"`);
+      if (during.padding !== "32px 32px 24px") throw new Error(`the preview's padding (left right top) is ${during.padding}, not 32px 32px 24px`);
+      if (during.tints !== 2) throw new Error(`${during.tints} padding areas pink while dragging, not 2 (left and right)`);
+      await until(async () => /paddingX="2xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: 'paddingX="2xl"' });
+      const tag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
+      if (!/paddingY="xl"/.test(tag) || !/gap="sm"/.test(tag)) throw new Error(`more than paddingX changed: ${tag}`);
+      await until(async () => /Horizontal padding 2XLarge/.test(await statusText(page)), { timeout: 5000, message: 'the status line "Horizontal padding 2XLarge"' });
+      await oneUndo(page, id, before);
+      return `pill "${during.pill}" · preview ${during.padding} · ${tag} · one ⌘Z`;
+    },
+  },
+  {
+    id: "FW-158", feature: "Modifiers as Figma's: ⌥ dragging the top padding sets the bottom too (Vertical padding 2XLarge); ⇧ dragging the left padding sets all four (padding 2XLarge, paddingX / paddingY removed in the same edit); one ⌘Z each", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      await selectLayout(page, id, "Stack", 0);
+      const scale = (await shapeBox(page, id, 0)).width / 60;
+      const top = await sideArea(page, "top");
+      const alt = await dragSpacing(page, { x: top.cx, y: top.cy }, { dy: 8 * scale, keys: ["Alt"], during: async () => ({ pill: await spacingPill(page), tints: await pinkTints(page, "padding") }) });
+      if (!/Vertical padding · 2XLarge · 32/.test(alt.pill) || alt.tints !== 2) throw new Error(`⌥: pill "${alt.pill}", ${alt.tints} padding areas pink (want top and bottom)`);
+      await until(async () => /paddingY="2xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: '⌥: paddingY="2xl"' });
+      const altTag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
+      if (!/paddingX="lg"/.test(altTag)) throw new Error(`⌥ changed the sides too: ${altTag}`);
+      await oneUndo(page, id, before);
+      await selectLayout(page, id, "Stack", 0);
+      const left = await sideArea(page, "left");
+      const all = await dragSpacing(page, { x: left.cx, y: left.cy }, { dx: 12 * scale, keys: ["Shift"], during: async () => ({ pill: await spacingPill(page), tints: await pinkTints(page, "padding") }) });
+      if (!/^Padding · 2XLarge · 32/.test(all.pill) || all.tints !== 4) throw new Error(`⇧: pill "${all.pill}", ${all.tints} padding areas pink (want all four)`);
+      await until(async () => /\spadding="2xl"/.test(tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/)), { message: '⇧: padding="2xl"' });
+      const allTag = tagWith((await pageText(page, id)) ?? "", "Stack", /direction="row"/);
+      if (/paddingX=|paddingY=/.test(allTag)) throw new Error(`⇧ kept a side prop: ${allTag}`);
+      await until(async () => /Padding 2XLarge/.test(await statusText(page)), { timeout: 5000, message: 'the status line "Padding 2XLarge"' });
+      await oneUndo(page, id, before);
+      return `⌥ top: "${alt.pill}" → ${altTag} · ⇧ left: "${all.pill}" → ${allTag} · one ⌘Z each`;
+    },
+  },
+  {
+    id: "FW-159", feature: "A Grid's column gap drags too (gap Small → Large); Escape mid-drag writes nothing and drops the preview; a free frame (Box) has no drag handles and a drag on its padding writes nothing", wp: "Figma parity 2026-10-21 · gap / padding handles", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await spacingPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const grid = await selectLayout(page, id, "Grid", 2);
+      const scale = (await shapeBox(page, id, 2)).width / 60;
+      const columnGap = (await dragAreas(page)).filter((area) => area.axis === "x").sort((p, q) => Math.abs(p.cx - (grid.x + grid.width / 2)) - Math.abs(q.cx - (grid.x + grid.width / 2)))[0];
+      if (!columnGap) throw new Error("no draggable column gap on the Grid");
+      const from = { x: columnGap.cx, y: columnGap.cy };
+      const pill = await dragSpacing(page, from, { dx: 12 * scale, during: () => spacingPill(page) });
+      if (!/Gap · Large · 24/.test(pill)) throw new Error(`the Grid's pill while dragging reads "${pill}"`);
+      await until(async () => /gap="lg"/.test(tagWith((await pageText(page, id)) ?? "", "Grid", /columns=/)), { message: 'the Grid at gap="lg"' });
+      await oneUndo(page, id, before);
+      // Escape while the button is still down: the drag ends, nothing is written, the Grid lays out as before.
+      await selectLayout(page, id, "Grid", 2);
+      const gridHost = layoutOf(page, id, "Grid");
+      await page.mouse.move(from.x, from.y);
+      await page.mouse.down();
+      let preview = "";
+      try {
+        for (let step = 1; step <= 6; step++) { await page.mouse.move(from.x + (20 * scale * step) / 6, from.y); await sleep(30); }
+        preview = await gridHost.evaluate((el) => getComputedStyle(el).columnGap);
+        await page.keyboard.press("Escape");
+      } finally {
+        await page.mouse.up();
+      }
+      await sleep(600);
+      const after = await gridHost.evaluate((el) => getComputedStyle(el).columnGap);
+      if (preview === after || after !== "12px") throw new Error(`Escape: column gap ${preview} while dragging, ${after} after (want back to 12px)`);
+      if ((await pageText(page, id)) !== before) throw new Error("Escape still wrote the drag");
+      // A free frame: its padding shows (and clicks to the scale), but nothing drags.
+      await selectLayout(page, id, "Box", 4);
+      const handles = await page.locator(".studio-selection__spacing-hit[data-drag]").count();
+      if (handles) throw new Error(`${handles} drag handles on a free frame`);
+      const boxTop = await sideArea(page, "top");
+      await dragSpacing(page, { x: boxTop.cx, y: boxTop.cy }, { dy: 10 * scale });
+      await page.keyboard.press("Escape");
+      await sleep(400);
+      if ((await pageText(page, id)) !== before) throw new Error("a drag on the free frame's padding wrote something");
+      return `Grid "${pill}" → gap="lg", one ⌘Z · Escape: ${preview} → ${after}, nothing written · free frame: no handles, nothing written`;
+    },
+  },
+  {
+    id: "FW-170", feature: "⌥⌘↵ on a selected Overlay frame (a Dialog) presents it as Figma presents a frame: open at once over the Screen that opens it, on that Screen's device, size and device frame; a reload keeps it; Esc closes the Dialog onto the Screen, a second Esc leaves", wp: "present overlay 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await presentOverlayPage(ctx);
+      const home = await homePlay(page);
+      await selectFrameRow(page, "overlay:confirm");
+      await presentKey(page);
+      const dialog = player(page).getByRole("dialog", { name: "Delete the file?" });
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      const shows = await playShows(page);
+      if (shows.screen !== "home" || shows.overlay !== "confirm") throw new Error(`Play shows "${shows.screen}" with ${shows.overlay}, not Files with the Dialog`);
+      if (shows.device !== home.device || shows.size !== home.size || shows.framed !== home.framed) throw new Error(`the Overlay plays on ${shows.device} ${shows.size}${shows.framed ? " framed" : ""}, Files on ${home.device} ${home.size}${home.framed ? " framed" : ""}`);
+      const start = new URL(page.url()).searchParams.get("play");
+      if (start !== "overlay:confirm") throw new Error(`the address says play=${start}`);
+      await page.reload();
+      await dialog.waitFor({ state: "visible", timeout: 20_000 });
+      await page.keyboard.press("Escape");
+      await until(async () => (await dialog.count()) === 0, { message: "Esc closes the Dialog" });
+      const after = await playShows(page);
+      if (after.screen !== "home" || after.overlay) throw new Error(`after Esc Play shows "${after.screen}" with ${after.overlay}`);
+      await leavePlay(page);
+      return `Files on ${home.device} ${home.size}${home.framed ? " framed" : ""} · ⌥⌘↵ on the Dialog → Files + Dialog, same device · reload keeps it · Esc → Files · Esc → out`;
+    },
+  },
+  {
+    id: "FW-171", feature: "Present from the Prototype tab on an Overlay selected in Flow: its interactions run (Move to trash goes to Deleted, Back returns to Files), R restarts on the Overlay over Files, Cancel (its close action) closes it onto Files", wp: "present overlay 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await presentOverlayPage(ctx);
+      await page.locator("#studio-right").getByRole("tab", { name: "Prototype" }).click();
+      const panel = page.locator('[data-e2e="prototype-panel"]');
+      await panel.waitFor({ state: "visible", timeout: 5000 });
+      await panel.locator('[data-frame="overlay:confirm"] button.studio-inspector__item').click();
+      await until(async () => (await page.locator('[data-studio-frame="overlay:confirm"]').getAttribute("data-selected")) === "true", { message: "the Overlay selected from Flow" });
+      await panel.getByRole("button", { name: "Present", exact: true }).click();
+      await player(page).waitFor({ state: "visible", timeout: 10_000 });
+      const dialog = player(page).getByRole("dialog", { name: "Delete the file?" });
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      await dialog.getByRole("button", { name: "Move to trash" }).click();
+      await until(async () => (await playShows(page)).screen === "done" && (await dialog.count()) === 0, { message: "Move to trash → Deleted" });
+      await player(page).getByRole("button", { name: "Back", exact: true }).click();
+      await until(async () => { const shows = await playShows(page); return shows.screen === "home" && !shows.overlay; }, { message: "Back → Files, the Dialog closed" });
+      await page.keyboard.press("r");
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      if ((await playShows(page)).screen !== "home") throw new Error("R restarted on another Screen than Files");
+      await dialog.getByRole("button", { name: "Cancel" }).click();
+      await until(async () => (await dialog.count()) === 0, { message: "Cancel closes the Dialog" });
+      if ((await playShows(page)).screen !== "home") throw new Error("Cancel left Files");
+      await leavePlay(page);
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      return "Flow › Dialog › Present → Files + Dialog · Move to trash → Deleted · Back → Files · R → the Dialog again · Cancel → Files · Esc → out";
+    },
+  },
+  {
+    id: "FW-172", feature: "An Overlay no Screen opens (a Bottom Sheet) presents alone from the Design tab's Present: over a blank screen of the page's device, size and device frame, named in the bar, Back off; its close action (Done) leaves Present, and so does one Esc", wp: "present overlay 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await presentOverlayPage(ctx);
+      const home = await homePlay(page);
+      await selectFrameRow(page, "overlay:about");
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      await page.locator("#studio-right").getByRole("button", { name: "Present", exact: true }).click();
+      await player(page).waitFor({ state: "visible", timeout: 10_000 });
+      const sheet = player(page).getByRole("dialog", { name: "About this app" });
+      await sheet.waitFor({ state: "visible", timeout: 5000 });
+      const shows = await playShows(page);
+      if (shows.screen || shows.overlay !== "about") throw new Error(`Play shows "${shows.screen}" with ${shows.overlay}, not the Sheet alone`);
+      if (shows.device !== home.device || shows.size !== home.size || shows.framed !== home.framed) throw new Error(`the Sheet plays on ${shows.device} ${shows.size}${shows.framed ? " framed" : ""}, Files on ${home.device} ${home.size}${home.framed ? " framed" : ""}`);
+      const blank = await player(page).locator(".studio-player__screen[data-blank] .studio-builder-screen").getAttribute("data-device", { timeout: 2000 }).catch(() => null);
+      if (blank !== "phone") throw new Error(`under the Sheet: ${blank ?? "no blank screen"}, not a blank phone screen`);
+      if (!(await player(page).innerText()).includes("· About this app")) throw new Error("the bar does not name the Sheet");
+      if (!(await player(page).getByRole("button", { name: "Back", exact: true }).isDisabled())) throw new Error("Back is on with nothing to go back to");
+      await sheet.getByRole("button", { name: "Done" }).click();
+      await player(page).waitFor({ state: "hidden", timeout: 5000 });
+      await page.locator(".studio-viewport").focus();
+      await presentKey(page);
+      await sheet.waitFor({ state: "visible", timeout: 5000 });
+      await leavePlay(page);
+      return `the Sheet alone on a blank ${shows.device} ${shows.size}${shows.framed ? " framed" : ""} · Done → out · ⌥⌘↵ · Esc → out`;
+    },
+  },
+  {
+    id: "FW-173", feature: "⌘K › Present on an Overlay the Overlay places (a Card, top right, dimmed) opens it over the Screen that opens it at once (no animation); a press outside closes it onto the Screen; Esc leaves", wp: "present overlay 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await presentOverlayPage(ctx);
+      await selectFrameRow(page, "overlay:tip");
+      await page.keyboard.press("ControlOrMeta+KeyK");
+      const actions = page.getByRole("dialog", { name: "Actions" });
+      await actions.waitFor({ state: "visible", timeout: 5000 });
+      await actions.getByLabel("Search actions").fill("Present");
+      await actions.locator(".studio-quick__option", { has: page.locator(".studio-quick__label", { hasText: /^Present$/ }) }).first().click();
+      await player(page).waitFor({ state: "visible", timeout: 10_000 });
+      const layer = player(page).locator('.studio-player__overlay[data-position="top-right"][data-background="true"]');
+      await layer.waitFor({ state: "visible", timeout: 5000 });
+      if (!(await layer.innerText()).includes("Tip: swipe a file to delete it.")) throw new Error("the Card is not in the overlay");
+      if (await layer.locator(".studio-player__overlay-content[data-motion]").count()) throw new Error("the presented Card animates in");
+      const shows = await playShows(page);
+      if (shows.screen !== "home" || shows.overlay !== "tip") throw new Error(`Play shows "${shows.screen}" with ${shows.overlay}, not Files with the Card`);
+      const box = await layer.boundingBox();
+      await page.mouse.click(box.x + 24, box.y + box.height - 24);
+      await until(async () => !(await playShows(page)).overlay, { message: "a press outside closes the Card" });
+      if ((await playShows(page)).screen !== "home") throw new Error("the press outside left Files");
+      await leavePlay(page);
+      return "⌘K › Present → Files + the Card top right, dimmed, no animation · press outside → Files · Esc → out";
+    },
+  },
+  {
+    id: "FW-174", feature: "Normal frames present as before: ⌥⌘↵ on a layer in a Screen plays from that Screen with no Overlay; the Prototype tab's Present on a Screen frame plays from it; the Design tab's Present on a Screen frame still presents the frame", wp: "present overlay 2026-10-21", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await presentOverlayPage(ctx);
+      await clickNamed(page, id, "Button", 2);
+      await until(async () => (await selectedName(page)) === "Button", { message: "the Undo Button selected" });
+      await page.locator(".studio-viewport").focus();
+      await presentKey(page);
+      await until(async () => (await playShows(page)).screen === "done", { message: "Play on Deleted" });
+      if ((await playShows(page)).overlay || (await playerDevice(page).locator('[role="dialog"]').count())) throw new Error("an Overlay opened from a Screen's layer");
+      await leavePlay(page);
+      await selectFrameRow(page, "screen:home");
+      await page.locator("#studio-right").getByRole("tab", { name: "Prototype" }).click();
+      await page.locator('[data-e2e="prototype-panel"]').getByRole("button", { name: "Present", exact: true }).click();
+      await player(page).waitFor({ state: "visible", timeout: 10_000 });
+      await until(async () => { const shows = await playShows(page); return shows.screen === "home" && !shows.overlay; }, { message: "Play on Files, no Overlay" });
+      await leavePlay(page);
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      await page.locator("#studio-right").getByRole("button", { name: "Present", exact: true }).click();
+      const present = page.locator(".studio-present");
+      await present.waitFor({ state: "visible", timeout: 5000 });
+      if (await player(page).count()) throw new Error("the Design tab's Present on a Screen frame started Play");
+      await page.keyboard.press("Escape");
+      await present.waitFor({ state: "hidden", timeout: 5000 });
+      return "⌥⌘↵ on Undo → Deleted, no Overlay · Prototype › Present on Files → Files · Design › Present on Files → the frame presented";
+    },
+  },
 ];
+
+/* ── Select matching layers / Select all with same › helpers ─────────────────────────────────────────────────────── */
+
+/** Three phone Screens with a free frame (an accent Rectangle, an Ellipse), a Caption text and a Button; screen two's
+ *  Rectangle is named Hero and its Button secondary; screen three sits in a Section. */
+const matchText = (title) => {
+  const screen = (frame, x, { name = "", level = "primary", caption = "Caption/Regular" } = {}) => [
+    `      <Screen id="${frame}" title="${frame}" device="phone" x={${x}} y={0} width={390} height={844}>`,
+    "        <Box width={358} height={200}>",
+    `          <Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} fill="accent-solid"${name ? ` data-name="${name}"` : ""} />`,
+    '          <Shape type="ellipse" position="absolute" insetLeft={140} insetTop={40} width={60} height={60} />',
+    "        </Box>",
+    `        <Text textStyle="${caption}">Hello</Text>`,
+    `        <Button level="${level}">Save</Button>`,
+    "      </Screen>",
+  ].join("\n");
+  return [
+    `// @zen-page ${JSON.stringify({ format: 1, title })}`,
+    'import { Board, Screen, Section } from "@zen-ds/react/builder";',
+    'import { Box, Button, Shape, Text } from "@zen-ds/react";',
+    "export const mock = {};",
+    "",
+    "export default function Page() {",
+    "  return (",
+    "    <Board>",
+    screen("one", 0),
+    screen("two", 500, { name: "Hero", level: "secondary" }),
+    '      <Section id="later" title="Later" x={960} y={-80} width={480} height={1020} />',
+    screen("three", 1000, { caption: "Body/Base/Bold" }),
+    "    </Board>",
+    "  );",
+    "}",
+    "",
+  ].join("\n");
+};
+let matchMade = null;
+async function matchPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!matchMade) matchMade = (await seededPage(ctx, matchText, /id="later"/)).id;
+  else if (!page.url().includes(encodeURIComponent(`local:${matchMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${matchMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await deselect(page);
+  return { page, id: matchMade };
+}
+/** The n-th Shape of a frame on the match page. */
+const layerIn = (page, id, frameId, index, name = "Shape") => page.locator(`[data-studio-frame="${frameId}"] [data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="${name}"]`).nth(index);
+/** ⌘-clicks the n-th Shape of a frame (Figma's deep select). */
+async function pickIn(page, id, frameId, index) {
+  const box = await layerIn(page, id, frameId, index).boundingBox();
+  await page.keyboard.down("ControlOrMeta");
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.up("ControlOrMeta");
+  await until(async () => (await selectedSrc(page)).length === 1, { timeout: 4000, message: "a layer selected" });
+}
+/** ⌘-clicks the first `name` layer of a frame. */
+async function pickNamedIn(page, id, frameId, name) {
+  const box = await layerIn(page, id, frameId, 0, name).boundingBox();
+  await page.keyboard.down("ControlOrMeta");
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.up("ControlOrMeta");
+  await until(async () => (await selectedSrc(page)).length === 1, { timeout: 4000, message: `${name} selected` });
+}
+/** Right-click on the layer › Select all with same › `item`. */
+async function sameFromMenu(page, id, frameId, index, item, name = "Shape", { onHandle = false } = {}) {
+  const box = await layerIn(page, id, frameId, index ?? 0, name).boundingBox();
+  if (onHandle) {
+    // On the selected layer's left resize handle: its menu opens there too (Figma's), as a short text is mostly handles.
+    const handle = await page.locator('.studio-resize__handle[data-handle="w"]').first().boundingBox();
+    if (!handle) throw new Error("no left resize handle on the selected layer");
+    await page.mouse.click(handle.x + handle.width / 2, handle.y + handle.height / 2, { button: "right" });
+  } else {
+    // Off the middle: a selected layer's handles sit there (an ellipse's arc dot, a short text's edge handles).
+    await page.mouse.click(box.x + Math.min(12, box.width / 4), box.y + box.height / 2, { button: "right" });
+  }
+  // A step that does not come names the menus that show (their labels and items).
+  const menus = () => page.evaluate(() => [...document.querySelectorAll('[role="menu"]')].map((menu) => `${menu.getAttribute("aria-label") ?? "?"}: ${[...menu.querySelectorAll('[role="menuitem"]')].map((item) => item.textContent?.trim()).join(" / ")}`).join(" || "));
+  const step = (promise, what) => promise.catch(async (error) => { throw new Error(`${what}: ${String(error.message).split("\n")[0]} (menus: ${(await menus()).slice(0, 300) || "none"})`); });
+  const menu = page.getByRole("menu").last();
+  await step(menu.waitFor({ state: "visible", timeout: 5000 }), "the layer menu");
+  await step(menu.getByRole("menuitem", { name: /^Select all with same/ }).click({ timeout: 5000 }), "Select all with same ›");
+  const list = page.getByRole("menu", { name: "Select all with same" });
+  await step(list.waitFor({ state: "visible", timeout: 5000 }), "the Select all with same list");
+  await step(list.getByRole("menuitem", { name: new RegExp(`^${item}`) }).click({ timeout: 5000 }), item);
+}

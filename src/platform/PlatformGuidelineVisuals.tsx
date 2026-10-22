@@ -5,8 +5,12 @@ import type { ReactNode } from "react";
 import { typographyStyles } from "../tokens/typography.generated";
 import { Avatar, AvatarStack } from "../components/Avatar";
 import { Badge, BadgeCounter } from "../components/Badge";
+import { BadgeStatus } from "../components/BadgeStatus";
+import { PropertyDate, PropertyField, PropertyStatus } from "../components/PropertyField";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { CalendarEvent, CalendarToolbar, CalendarWeekStrip } from "../components/Calendar";
+import { ScheduleSlotPicker } from "../components/Schedule";
+import { TimelineItem } from "../components/Timeline";
 import { AppShellAction, AppShellHeader } from "../components/AppShell";
 import { PageHeader } from "../components/PageHeader";
 import { Button, IconButton } from "../components/Button";
@@ -145,6 +149,9 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <div className="pgv-field"><InputField label="Workspace ID" disabled value="zen-7f3k2" /></div>, caption: "Disabled text is faint, skipped by Tab and can't be copied: a value to read is Read-only." } },
     { do: { preview: <div className="pgv-field"><InputField label="Work email" defaultValue="ava@zen" error="Enter a full address, like name@company.com" /></div>, caption: "Errors say how to fix the value." },
       dont: { preview: <div className="pgv-field"><InputField label="Work email" defaultValue="ava@zen" error="Invalid input" /></div>, caption: "A generic error leaves users guessing." } },
+    { do: { preview: <div className="pgv-wide"><PropertyField label="Status" icon="icon-loading-02-line"><PropertyStatus defaultValue="in-progress" /></PropertyField><PropertyField label="Due Date" icon="icon-calendar-line"><PropertyDate defaultValue={new Date(2026, 5, 7)} /></PropertyField></div>, caption: "A record's properties are PropertyFields: the value is the field, edited in place." },
+      // zen-allow-property-value: the Don't preview shows the rule broken.
+      dont: { preview: <div className="pgv-wide"><PropertyField label="Due Date" icon="icon-calendar-line"><InputField aria-label="Due Date" size="small" defaultValue="06/07/2026" /></PropertyField></div>, caption: "A bordered field in the value column breaks the row's alignment and its keyboard pattern." } },
   ],
   "app-shell": [
     // User rule 2026-10-18 (Figma audit navigation/collapse-beside-master-crumb, harness app-shell/collapse-beside-master-crumb).
@@ -186,6 +193,9 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
   badge: [
     { do: { preview: <Row><Badge size="small" theme="green" background="subtle" leading={<Icon name="icon-check-line" decorative />}>Live</Badge><BadgeCounter size="small" theme="red" value="99+" /></Row>, caption: "Semantic colour + text; counters cap at 99+." },
       dont: { preview: <Row><Badge size="small" theme="green" background="subtle" leadingIcon={false}> </Badge><BadgeCounter size="small" theme="red" value={1284} /></Row>, caption: "Colour alone carries no meaning; raw big numbers overflow." } },
+    { do: { preview: <Row><BadgeStatus status="in-progress" /><BadgeStatus status="in-review" /><BadgeStatus status="done" /></Row>, caption: "Workflow steps are BadgeStatus: the step sets the colour and the ring." },
+      // zen-allow-badge-workflow-status: the Don't preview shows the rule broken.
+      dont: { preview: <Row><Badge theme="blue" background="subtle">In progress</Badge><Badge theme="purple" background="subtle">In review</Badge><Badge theme="green" background="subtle">Done</Badge></Row>, caption: "Don't theme a Badge by hand for a step: each screen paints it differently." } },
   ],
   tag: [
     { do: { preview: <Row><Tag remove onRemove={noop}>react</Tag><Tag remove onRemove={noop}>tokens</Tag></Row>, caption: "Tags are values the user entered, removable in place." },
@@ -278,6 +288,14 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <div className="pgv-wide"><LayoutStack direction="row" gap="xs" align="center"><Button level="primary" size="sm" onClick={noop}>New event</Button><Button level="tertiary" size="sm" onClick={noop}>Month</Button><Button level="secondary" size="sm" onClick={noop}>Week</Button><Button level="tertiary" size="sm" onClick={noop}>Day</Button></LayoutStack></div>, caption: "Buttons as a view switch, and the page action squeezed into the row." } },
     { do: { preview: <div className="pgv-field"><LayoutStack gap="3xs"><CalendarEvent time="09:00" title="Daily standup" /><CalendarEvent time="11:00" title="Design review" color="violet" /><CalendarEvent time="14:00" title="1:1 Maya Chen" color="teal" /></LayoutStack></div>, caption: "One hue per calendar: Brand for the main one, others only to tell calendars apart." },
       dont: { preview: <div className="pgv-field"><CalendarWeekStrip device="desktop" defaultValue={new Date(2026, 8, 30)} today={new Date(2026, 8, 30)} onValueChange={noop} aria-label="Due date" /></div>, caption: "A week strip is not a form's date input: use DateField or DatePicker." } },
+  ],
+  timeline: [
+    { do: { preview: <div className="pgv-wide"><TimelineItem actor="Maya Chen" title="approved your leave request" time="10:42" marker={{ kind: "avatar", avatarName: "Maya Chen", tone: "positive" }} connector={false} /></div>, caption: "Tone is status: Positive for an approval, an Avatar because a person acted." },
+      dont: { preview: <div className="pgv-wide"><TimelineItem actor="Maya Chen" title="approved your leave request" time="10:42" marker={{ kind: "icon", tone: "negative" }} connector={false} /></div>, caption: "A Negative flag on an approval reads as a failure." } },
+  ],
+  schedule: [
+    { do: { preview: <div className="pgv-field"><ScheduleSlotPicker device="mobile" today="2026-09-30" defaultValue="2026-09-30T10:00" onValueChange={noop} aria-label="Review times" slots={[{ id: "2026-09-30T09:00", start: "2026-09-30T09:00", disabled: true }, { id: "2026-09-30T10:00", start: "2026-09-30T10:00" }, { id: "2026-09-30T11:00", start: "2026-09-30T11:00" }]} /></div>, caption: "Taken times stay in place, struck through: the day keeps its rhythm." },
+      dont: { preview: <div className="pgv-field"><ScheduleSlotPicker device="mobile" today="2026-09-30" defaultValue="2026-09-30T10:00" onValueChange={noop} aria-label="Review times" slots={[{ id: "2026-09-30T10:00", start: "2026-09-30T10:00" }, { id: "2026-09-30T11:00", start: "2026-09-30T11:00" }]} /></div>, caption: "Hiding taken times makes a full day look empty." } },
   ],
   "empty-state": [
     { do: { preview: <EmptyState title="No projects yet" size="sm" icon="icon-folder-line" primaryAction={{ label: "Create project", onClick: noop }}>Projects you create show up here.</EmptyState>, caption: "Say what's empty and offer the next step." },

@@ -3,7 +3,7 @@
 // connections and Play read from a page — trigger words, a choice control's items, per-item actions and their links.
 // Run: node src/platform/studio/builder/proto/protoModel.selftest.mjs
 import { parsePage } from "../../../../../tools/studio/dialect.mjs";
-import { actionsFor, choiceItemsOf, connectTrigger, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, linksOf, optionsOf, protoActionCode, protoSourcesOf, targetOfFrame, targetsByItem, triggerLabel } from "./protoModel.ts";
+import { actionsFor, choiceItemsOf, connectTrigger, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, linksOf, openerOf, optionsOf, playStartOf, protoActionCode, protoSourcesOf, targetOfFrame, targetsByItem, triggerLabel } from "./protoModel.ts";
 
 const failures = [];
 let passed = 0;
@@ -102,6 +102,12 @@ check("round 2 parses", motion.errors, []);
 check("a frame id finds its Screen (state) or Overlay", [frameNodeOf(motion, "screen:files:empty")?.props.onDelay?.action, frameNodeOf(motion, "overlay:confirm")?.name, frameNodeOf(motion, "screen:nope")], ["back", "Overlay", null]);
 check("the ⊕ never takes While hovering", connectTrigger(nodesOf(motion).find((node) => node.name === "Button"), ["whileHovering", "onClick"]), "onClick");
 check("links: a hover and an animated click lead somewhere", linksOf(motion).filter((link) => link.trigger === "whileHovering" || link.trigger === "onClick").map((link) => `${link.trigger} ${link.frameId}`).sort(), ["onClick screen:files", "whileHovering overlay:confirm"]);
+
+// Present from an Overlay frame: the Screen that opens it (a layer's action, or a Screen state's After delay), or none.
+check("the opener of an Overlay: none, a hovered Button's Screen", [openerOf(tree, "confirm"), openerOf(motion, "confirm"), openerOf(motion, "nope")], [null, "home", null]);
+const delayed = parsePage(page.replace('<Screen id="files" title="Files" device="phone" state="empty" />', '<Screen id="files" title="Files" device="phone" state="empty" onDelay={proto.open("confirm", { delay: 500 })} />'), { components: new Set(["BottomNavigation", "Button", "Dialog", "Segmented", "Sidebar", "SidebarMenuItem", "Stack"]) });
+check("the opener of an Overlay: a Screen state's After delay", openerOf(delayed, "confirm"), "files");
+check("playStartOf: a Screen, an Overlay, anything else", [playStartOf("screen:checkout:paid"), playStartOf("overlay:confirm"), playStartOf("section:s1"), playStartOf(null)], ["checkout", "overlay:confirm", null, null]);
 
 if (failures.length) {
   console.error(`✗ protoModel selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);

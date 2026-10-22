@@ -71,6 +71,10 @@ export type RenderContext = {
   /** Drawing an instance: the layers it puts in its main's slots (`<Use slots>`), drawn in the scope and context the
    *  `<Use>` sits in — the page's own layers, selectable as any. */
   slotFill?: { values: Readonly<Record<string, PageValue>>; scope: Scope; ctx: RenderContext };
+  /** Drawing a page's own instance (a `<Use>` of the page, not one nested in a main): its mark. Its main's slot layers
+   *  carry it as `data-zen-slot-of`, with the slot's name as `data-zen-slot`: a drop target on the canvas (F7c,
+   *  edit/drag.ts). */
+  slotOwner?: string;
 };
 
 /** An instance's `overrides` table, as nested.tsx keeps them: layer path → literal props, relative to `base`. */
@@ -413,7 +417,8 @@ function renderComponentNode(node: PageNode, scope: Scope, ctx: RenderContext, k
   const base = at ?? "";
   const nest: InstanceNest = { paths: layerPathsOf(drawn.main.root, ctx.components), base, tables: [...(ctx.nest?.tables ?? []), ...(table ? [{ base, table }] : [])] };
   const slotFill = node.props.slots?.kind === "object" ? { values: node.props.slots.fields, scope, ctx } : undefined;
-  const drawnRoot = renderNode(drawn.main.root, scope, { ...ctx, instance: true, values: drawn.values, chain: [...(ctx.chain ?? []), drawn.id], nest, slotFill }, at === null ? key : undefined, { ...extra, ...own, ...mark });
+  const slotOwner = ctx.instance ? undefined : srcOfNode(node, ctx);
+  const drawnRoot = renderNode(drawn.main.root, scope, { ...ctx, instance: true, values: drawn.values, chain: [...(ctx.chain ?? []), drawn.id], nest, slotFill, slotOwner }, at === null ? key : undefined, { ...extra, ...own, ...mark });
   return asLayer(drawnRoot, at, ctx.nest, key);
 }
 
@@ -465,6 +470,9 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
   // shows the new state at once instead of after a reload (user, 2026-10-11).
   const initial = initialStateOf(props);
   if (initial) props.key = `${key ?? ""}~${initial}`;
+  // A main's slot layer in a page's own instance: that instance's slot, where a drag drops layers (F7c).
+  const slotOf = ctx.slotOwner ? literalOf(node.props[BINDINGS.slot]) : undefined;
+  if (typeof slotOf === "string") Object.assign(props, { "data-zen-slot": slotOf, "data-zen-slot-of": ctx.slotOwner });
   // A main's slot layer in an instance that fills it: the instance's layers, out of every nested scope (nested.tsx slot).
   const slotName = ctx.slotFill && bound ? literalOf(node.props[BINDINGS.slot]) : undefined;
   const filled = typeof slotName === "string" ? ctx.slotFill!.values[slotName] : undefined;
