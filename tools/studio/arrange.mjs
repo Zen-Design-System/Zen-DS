@@ -9,6 +9,9 @@
 //             condition's element); after: the child it follows; neither: last
 //     copy    true: a copy goes there and the element stays (⌥-drag, ⌘V in the same file); `inserted`, else `moved`
 //     replace with copy: the copy takes the place of the child at that loc, which goes (⇧⌘R, paste to replace)
+//     slot    with `parent` a page's own instance (<Use>): into what it puts in its main's slot of that name (F7c,
+//             slot-fill.mjs), at `index` among the slot's layers or before / after one; pasteCode takes `slot` and
+//             `index` on the <Use> the same way. A layer of a slot moves out of it as a child does.
 //
 //   op "group" { with?, props?, box, kids, component?, flow? }   on one of the layers: they go into one floating Box where the
 //     frontmost was, each keeping its place on the canvas (Frame selection and ⌘G on layers of a frame without auto
@@ -37,6 +40,7 @@ import cloning from "../../src/platform/studio/cloning.json" with { type: "json"
 import { parseExpression } from "@babel/parser";
 import { applyEdits, applyOps, findElement, jsxName, parseLoc, parseSource } from "./jsx-source.mjs";
 import { UNIT, indentAt, pathTo, piece } from "./source-helpers.mjs";
+import { declaresSlot, shownMain, slotItemOf, slotLayerOf, slotRemoval, slotWrite } from "./slot-fill.mjs";
 
 /** Self-closing elements a layer can be dropped into (they open: `<Stack />` → `<Stack>…</Stack>`). */
 // A builder page's Screen opens too (Figma: an empty frame takes the layers drawn or dropped into it).
@@ -178,7 +182,9 @@ export function moveToPlan(ctx, nodePath, op, h) {
   const block = Boolean(shown) || (unit.type === "JSXExpressionContainer" && unit.expression !== element && !(h.TS_WRAPPERS.has(unit.expression?.type) && unit.expression.expression === element));
   const moving = block ? unit : element;
   const holder = path[holderAt];
-  if (holder?.type !== "JSXElement" && holder?.type !== "JSXFragment") {
+  // A layer of an instance's slot content (F7c): `slots={{ Content: <X /> }}` holds it as a value, as a child it moves.
+  const inSlot = block || shown ? null : slotItemOf(nodePath);
+  if (holder?.type !== "JSXElement" && holder?.type !== "JSXFragment" && !inSlot) {
     const fn = h.FUNCTION_TYPES.has(holder?.type) ? holder : holder?.type === "ReturnStatement" ? nodePath.findLast((node, k) => k < i - 1 && h.FUNCTION_TYPES.has(node.type)) : null;
     const owner = fn ? nodePath[nodePath.indexOf(fn) - 1] : null;
     if (fn && h.isMapCall(owner) && owner.arguments[0] === fn) h.refuse(`${what} is the row of a .map list; reorder the rows in its data.`);
@@ -191,11 +197,13 @@ export function moveToPlan(ctx, nodePath, op, h) {
   const { parent, parentName, parentPath } = destination(ctx, h, op.parent);
   if (moving.start <= parent.start && parent.end <= moving.end) h.refuse(`${what} cannot go inside itself.`);
   clonedPlace(h, element, path, holderAt, parent, copy);
-  landing(h, name, parent, parentName, ctx, parentPath);
-  const { entries, at, replaced } = positionIn(ctx, h, parent, parentName, op);
+  // Into an instance's slot (F7c): the instance's `slots` is written again, with the layer at its place.
+  const slot = op.slot !== undefined ? slotTarget(ctx, h, parent, op, [name], parentPath) : null;
+  if (!slot) landing(h, name, parent, parentName, ctx, parentPath);
+  const { entries, at, replaced } = slot ? { entries: [], at: 0, replaced: null } : positionIn(ctx, h, parent, parentName, op);
   if (replaced && replaced.start <= element.start && element.end <= replaced.end) h.refuse(`${what} is inside the layer it would replace; paste it elsewhere.`);
   if (!copy) {
-    const own = entries.findIndex((entry) => entry.node === unit || entry.node === element);
+    const own = slot ? -1 : entries.findIndex((entry) => entry.node === unit || entry.node === element);
     if (own >= 0 && (at === own || at === own + 1)) h.refuse(`${what} is already there.`);
   } else {
     const key = element.openingElement.attributes.find((attr) => attr.type === "JSXAttribute" && jsxName(attr.name) === "key");
@@ -211,12 +219,13 @@ export function moveToPlan(ctx, nodePath, op, h) {
       h.refuse(`${what} uses \`${used}\` (${here?.what ?? "a global"}), which ${there ? "is something else" : "does not exist"} inside <${parentName}>; ${copy ? "copy" : "move"} it in the code.`);
     }
   }
+  if (slot) return slotMovePlan(ctx, h, { op, slot, copy, element, name, what, moving, path, at: block ? unitAt : nodePath.length - 1, inSlot });
 
   // The code that goes (with detach's marker above it), placed like an inserted element.
-  const marker = h.detachMarker(holder, unit);
+  const marker = holder.type === "ObjectProperty" ? null : h.detachMarker(holder, unit);
   const start = marker && /^\s*$/.test(text.slice(marker.end, unit.start)) ? marker.start : moving.start;
   const { edit, placed, within } = place(ctx, h, parent, entries, at, { part: piece(text, moving, start, moving.end), name }, name);
-  const removed = copy ? [] : h.removal(ctx, path, block ? unitAt : nodePath.length - 1, what).edits;
+  const removed = copy ? [] : leaving(ctx, h, { inSlot, path, at: block ? unitAt : nodePath.length - 1, what });
   // A const's `{name}`: the element stays where the const writes it; an empty edit there gives its loc.
   const stay = shown ? { start: element.start, end: element.start, text: "" } : null;
   for (const gone of removed) {
@@ -230,6 +239,64 @@ export function moveToPlan(ctx, nodePath, op, h) {
     answer: copy ? "inserted" : "moved",
     snippet: () => ({ reason: `a ${copy ? (replaced ? "paste" : "copy") : "move"} is not copied into the example snippet; update it by hand (${what})` }),
   };
+}
+
+/**
+ * The edits that take a moved layer from where it is: its slot's entry when it is the only layer an instance puts in
+ * that slot (F7c, slot-fill.mjs), else as removeElement takes it.
+ */
+function leaving(ctx, h, { inSlot, path, at, what }) {
+  const gone = inSlot ? slotRemoval(ctx, inSlot) : null;
+  return gone ? [gone] : h.removal(ctx, path, at, what).edits;
+}
+
+/**
+ * moveTo with `slot` (F7c): the layer goes into what the instance at `parent` puts in its main's slot, one edit of its
+ * `slots`; from its own slots it changes place there, from elsewhere it leaves as any move takes it.
+ */
+function slotMovePlan(ctx, h, { op, slot, copy, element, name, what, moving, path, at, inSlot }) {
+  const own = !copy && inSlot && inSlot.use === slot.use ? { name: inSlot.name, index: inSlot.index } : null;
+  const removals = copy || own ? [] : leaving(ctx, h, { inSlot, path, at, what });
+  const code = { part: piece(ctx.text, moving), name, count: 1, element: moving === element };
+  const { edit, within, folded } = slotWrite(ctx, h, { use: slot.use, name: op.slot, place: op, code, own, removals });
+  const rest = removals.filter((gone) => !folded.includes(gone));
+  for (const gone of rest) {
+    if (gone.start < edit.start && edit.start < gone.end) h.refuse(`${what} cannot be dropped there (inside the code it leaves).`);
+  }
+  return {
+    edits: [...rest, edit],
+    focus: { edit, within, name },
+    answer: copy ? "inserted" : "moved",
+    snippet: () => ({ reason: `a ${copy ? "copy" : "move"} is not copied into the example snippet; update it by hand (${what})` }),
+  };
+}
+
+/** pasteCode with `slot` (F7c): the instance's `slots` written with the new layers, as `place` answers. */
+function slotPlaced(ctx, h, slot, op, code) {
+  const { edit, within } = slotWrite(ctx, h, { use: slot.use, name: op.slot, place: op, code });
+  return { edit, placed: { edits: [edit] }, within };
+}
+
+/**
+ * The slot `op.slot` of the page's own instance `use` that layers named `names` go into (F7c): its main has that slot
+ * property and a layer bound to it, which takes them as it takes a drop (childRefusal).
+ */
+function slotTarget(ctx, h, use, op, names, usePath) {
+  if (typeof op.slot !== "string" || !op.slot) h.refuse("`slot` must be the name of one of the instance's slots");
+  if (op.replace !== undefined && op.replace !== null) h.refuse("`replace` does not go with `slot`");
+  const useName = jsxName(use.openingElement.name);
+  if (useName !== "Use") h.refuse(`\`slot\` goes with an instance of the page's own component (<Use>), not <${useName}>`);
+  const shown = shownMain(ctx.ast, use);
+  if (!shown) h.refuse("The instance names no component of this page");
+  if (!declaresSlot(shown.owner, op.slot)) h.refuse(`${shown.name} has no slot ${op.slot}`);
+  const layer = slotLayerOf(shown.main, op.slot);
+  if (!layer) h.refuse(`${shown.name} binds no layer to its slot ${op.slot}`);
+  const layerName = jsxName(layer.openingElement.name);
+  for (const name of names) {
+    const refusal = childRefusal(name, layerName, { screenContent: h.LOCAL_PAGE.test(ctx.file ?? "") && inScreenContent(usePath), parentHasChildren: true });
+    if (refusal) h.refuse(refusal);
+  }
+  return { use, layerName };
 }
 
 /* ── shared by moveTo and pasteCode ──────────────────────────────────────────────────────────────────────────────── */
@@ -431,8 +498,10 @@ export function pasteCodePlan(ctx, nodePath, op, h) {
   if (annotated) h.refuse("The code carries data-zen-src; the Studio adds it");
   const node = elements[0];
   const name = jsxName(node.openingElement.name);
-  for (const element of elements) landing(h, jsxName(element.openingElement.name), parent, parentName, ctx, nodePath);
-  const { entries, at, replaced } = positionIn(ctx, h, parent, parentName, op);
+  // Into an instance's slot (F7c): the instance's `slots` is written again, with the new layers at their place.
+  const slot = op.slot !== undefined ? slotTarget(ctx, h, parent, op, elements.map((element) => jsxName(element.openingElement.name)), nodePath) : null;
+  if (!slot) for (const element of elements) landing(h, jsxName(element.openingElement.name), parent, parentName, ctx, nodePath);
+  const { entries, at, replaced } = slot ? { entries: [], at: 0, replaced: null } : positionIn(ctx, h, parent, parentName, op);
   const needed = [];
   const runtime = [];
   let toast = false;
@@ -451,7 +520,8 @@ export function pasteCodePlan(ctx, nodePath, op, h) {
       ? `<${used}> is not a Zen component this file can import; paste it in the code`
       : `The pasted layer uses \`${used}\`, which does not exist inside <${parentName}>; paste it in the code`);
   }
-  const { edit, placed, within } = place(ctx, h, parent, entries, at, { part: piece(wrapped, fragment, elements[0].start, elements.at(-1).end), name }, name);
+  const pasted = { part: piece(wrapped, fragment, elements[0].start, elements.at(-1).end), name };
+  const { edit, placed, within } = slot ? slotPlaced(ctx, h, slot, op, { ...pasted, count: elements.length, element: elements.length === 1 }) : place(ctx, h, parent, entries, at, pasted, name);
   const edits = [...placed.edits];
   if (replaced) edits.push(...replacing(ctx, h, replaced));
   const hooks = h.hookEdits(ctx, nodePath, { toast, statements: state.statements, react: state.react });
@@ -645,6 +715,7 @@ function manyMoveToPlan(ctx, outer, op, h) {
   const copy = op.copy === true;
   if (op.copy !== undefined && typeof op.copy !== "boolean") h.refuse("`copy` must be true or false");
   if (op.replace !== undefined && op.replace !== null) h.refuse("Several layers do not replace one; drop them beside it");
+  if (op.slot !== undefined) h.refuse("Drop one layer at a time into an instance's slot");
   const { parent, parentName, parentPath } = destination(ctx, h, op.parent);
   const { entries, at } = positionIn(ctx, h, parent, parentName, op);
   const layers = outer.map((element) => {

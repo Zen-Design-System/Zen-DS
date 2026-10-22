@@ -45,6 +45,8 @@ export type DragView = {
   guides?: Array<{ x: number; y: number; w: number; h: number }>;
   /** Pink equal-spacing marks of a free move, with their px (client px; edit/spacingModel.ts). */
   spacing?: Array<{ x: number; y: number; w: number; h: number; axis: "x" | "y"; label: string }>;
+  /** `into` is an instance's slot (F7c): its name, drawn as Figma's slot tag in the component colour. */
+  slot?: string | null;
 } | null;
 
 let view: DragView = null;
@@ -113,11 +115,11 @@ const emptyOverlay = (hit: FiberHit) => nameOfHit(hit) === "Overlay" && !hit.hos
 export const isDropContainer = (hit: FiberHit) => Boolean(hit.hosts[0]) && (DROP_COMPONENTS.has(nameOfHit(hit)) || DROP_TAGS.has(hit.name) || emptyOverlay(hit));
 
 type Axis = "row" | "column" | "grid";
-function axisOf(hit: FiberHit): Axis {
-  const host = hit.hosts[0];
+const axisOf = (hit: FiberHit): Axis => axisOfHost(hit.hosts[0], nameOfHit(hit));
+function axisOfHost(host: Element | undefined, name: string): Axis {
   if (!(host instanceof HTMLElement)) return "column";
   // A Screen's (and an AppShell's) content flows down the page, whatever box its bars make.
-  if (nameOfHit(hit) === "Screen" || nameOfHit(hit) === "AppShell") return "column";
+  if (name === "Screen" || name === "AppShell") return "column";
   const style = getComputedStyle(host);
   if (style.display.includes("flex")) return style.flexDirection.startsWith("row") ? "row" : "column";
   if (style.display.includes("grid")) return style.gridTemplateColumns.trim().split(/\s+/).length > 1 ? "grid" : "column";
@@ -147,7 +149,13 @@ type Unit = { first: string; last: string; rect: DOMRect; dragged: boolean };
  * What a drop is for: the dragged layer (its DOM nodes, its place before the drag, its parent's first node) or, for a
  * new element from Assets, nothing. `frame`: the example it must stay in (undefined: any).
  */
-export type DropContext = { hosts: Element[]; frame: Element | null | undefined; parentHost: Element | null; origin: DOMRect | null; layerSrc: string | null; copy: boolean; origins?: Map<Element, DOMRect>; /** How many layers are dragged (several selected: more than 1). */ layers?: number };
+export type DropContext = {
+  hosts: Element[]; frame: Element | null | undefined; parentHost: Element | null; origin: DOMRect | null; layerSrc: string | null; copy: boolean; origins?: Map<Element, DOMRect>;
+  /** How many layers are dragged (several selected: more than 1). */
+  layers?: number;
+  /** A page's own instance's slot under the pointer is a target (F7c: a layer drag, an Assets drag). */
+  slots?: boolean;
+};
 
 /**
  * Whether a layer of frame `from` may land in frame `to`: its own frame, or any Screen or Overlay of a page you made
@@ -170,10 +178,10 @@ export function kidsOf(container: FiberHit): FiberHit[] {
   return kids.filter((kid) => !kid.hosts[0]?.closest(BAR_PARTS));
 }
 
-/** The container's child layers in order; consecutive renders of one JSX element (a .map) form one unit. */
-function unitsOf(container: FiberHit, ctx: DropContext): Unit[] {
+/** Child layers in order (a container's: kidsOf); consecutive renders of one JSX element (a .map) form one unit. */
+function unitsOf(kids: FiberHit[], ctx: DropContext): Unit[] {
   const units: Unit[] = [];
-  for (const kid of kidsOf(container)) {
+  for (const kid of kids) {
     const dragged = Boolean(ctx.layerSrc && kid.hosts[0] && ctx.hosts.includes(kid.hosts[0]));
     const rect = dragged ? ctx.origins?.get(kid.hosts[0]) ?? ctx.origin : rectOf(kid.hosts);
     if (!rect || (!rect.width && !rect.height)) continue;
@@ -189,11 +197,14 @@ function unitsOf(container: FiberHit, ctx: DropContext): Unit[] {
 
 /** Where a drop at (x, y) goes inside `container`. */
 function insertion(container: FiberHit, x: number, y: number, ctx: DropContext): Target {
-  const axis = axisOf(container);
-  const units = unitsOf(container, ctx);
   const box = rectOf(container.hosts) ?? new DOMRect(x, y, 0, 0);
   const base: DropTarget = { parentSrc: container.src, parentName: container.name, frameId: frameOf(container.hosts[0]), panelId: panelOf(container.hosts[0]) };
-  if (!units.length) return { ...base, noop: false, into: toBox(box), line: null };
+  return placeAmong(unitsOf(kidsOf(container), ctx), axisOf(container), box, base, container.hosts[0] !== ctx.parentHost, x, y, ctx);
+}
+
+/** The place among `units` (laid out along `axis` in `box`) a drop at (x, y) takes: before / after a unit, its line. */
+function placeAmong(units: Unit[], axis: Axis, box: DOMRect, base: DropTarget, reparent: boolean, x: number, y: number, ctx: DropContext): Target {
+  if (!units.length) return { ...base, noop: false, into: toBox(box), line: null, ...(base.slot ? { index: 0 } : {}) };
   let index = units.length;
   if (axis === "grid") {
     let best = 0;
@@ -228,10 +239,42 @@ function insertion(container: FiberHit, x: number, y: number, ctx: DropContext):
     const at = axis === "row" && prev && next ? (prev.rect.right + next.rect.left) / 2 : next ? next.rect.left - thick : prev!.rect.right + thick;
     line = { x: at - thick / 2, y: top, w: thick, h: bottom - top };
   }
-  const target: Target = { ...base, noop, into: toBox(box), line, reparent: container.hosts[0] !== ctx.parentHost };
-  if (next) target.before = next.first;
+  const target: Target = { ...base, noop, into: toBox(box), line, reparent };
+  // A slot that shows its main's own layers (the instance puts none there yet) places by index: they have no marks.
+  if (base.slot && !(next ?? prev)?.first) target.index = index;
+  else if (next) target.before = next.first;
   else if (prev) target.after = prev.last;
   return target;
+}
+
+/* ── a page's own instance's slot (F7c) ──────────────────────────────────────────────────────────────────────────── */
+
+/** A slot of a page's own instance: its main's layer bound to the slot property, as the instance draws it (renderPage). */
+type SlotHit = { host: HTMLElement; name: string; useSrc: string };
+
+/** The innermost instance slot under (x, y) that is not part of what is dragged (`inside`), or null. */
+function slotUnder(x: number, y: number, inside: (element: Element) => boolean): SlotHit | null {
+  for (const element of document.elementsFromPoint(x, y)) {
+    if (!element.closest(".studio-world") || inside(element)) continue;
+    const host = element.closest<HTMLElement>("[data-zen-slot]");
+    if (!host || inside(host)) continue;
+    const { zenSlot: name, zenSlotOf: useSrc } = host.dataset;
+    return name && useSrc ? { host, name, useSrc } : null;
+  }
+  return null;
+}
+
+/**
+ * A drop into `slot` of the instance `use`: among the layers the instance puts there (page layers, placed by their
+ * marks), or among its main's own layers while it puts none (by index), as Figma drops into a slot of an instance.
+ */
+function slotInsertion(slot: SlotHit, use: FiberHit, x: number, y: number, ctx: DropContext): Target {
+  const kids = childHits(use).filter((kid) => kid.hosts[0] && slot.host.contains(kid.hosts[0]));
+  const shown = (child: Element) => { const rect = child.getBoundingClientRect(); return rect.width > 0 || rect.height > 0; };
+  const units = kids.length ? unitsOf(kids, ctx) : Array.from(slot.host.children).filter(shown).map((child) => ({ first: "", last: "", rect: child.getBoundingClientRect(), dragged: false }));
+  const base: DropTarget = { parentSrc: use.src, parentName: slot.name, frameId: frameOf(use.hosts[0]), panelId: panelOf(use.hosts[0]), slot: slot.name };
+  const own = units.some((unit) => unit.dragged);
+  return placeAmong(units, axisOfHost(slot.host, ""), slot.host.getBoundingClientRect(), base, !own, x, y, ctx);
 }
 
 export type DropAt = { target: Target | null; reason: string | null };
@@ -251,18 +294,28 @@ export function dropTargetAt(x: number, y: number, ctx: DropContext): DropAt {
   if (current.frame !== undefined && !sameDropScope(current.frame, frame)) return { target: null, reason: "Layers move within their own example" };
   const chain: FiberHit[] = [];
   for (let step: FiberHit | null = hit; step && chain.length < 40; step = parentHit(step, frame)) chain.push(step);
+  // The instance whose slot is under the pointer takes the drop into that slot (F7c), as a container would.
+  const slot = ctx.slots ? slotUnder(x, y, inside) : null;
+  const slotOf = (candidate: FiberHit) => (slot && candidate.src === slot.useSrc ? slot : null);
+  const container = (candidate: FiberHit) => isDropContainer(candidate) || Boolean(slotOf(candidate));
   for (let k = 0; k < chain.length; k += 1) {
     const candidate = chain[k];
     if (candidate.hosts.some((host) => inside(host))) continue;
+    const into = slotOf(candidate);
+    if (into) {
+      if ((ctx.layers ?? 1) > 1) return { target: null, reason: "Drop one layer at a time into a slot" };
+      return { target: slotInsertion(into, candidate, x, y, ctx), reason: null };
+    }
     if (!isDropContainer(candidate)) continue;
-    const outer = chain.slice(k + 1).find(isDropContainer);
+    const outer = chain.slice(k + 1).find(container);
     const rect = rectOf(candidate.hosts);
     // Near a container's edges inside another container: beside it, not into it (its own parent keeps it; an edge it
     // shares with the outer one, e.g. a first child flush with its parent's top, means inside).
     if (outer && rect && chain[k + 1] === outer && candidate.hosts[0] !== current.parentHost) {
-      const axis = axisOf(outer);
+      const outerSlot = slotOf(outer);
+      const axis = outerSlot ? axisOfHost(outerSlot.host, "") : axisOf(outer);
       const side = nearSide(rect, x, y, axis);
-      const outerRect = rectOf(outer.hosts);
+      const outerRect = outerSlot ? outerSlot.host.getBoundingClientRect() : rectOf(outer.hosts);
       if (side && !(outerRect && sharedEdge(rect, outerRect, side, axis))) continue;
     }
     return { target: insertion(bodyOf(candidate, ctx) ?? candidate, x, y, ctx), reason: null };
@@ -317,7 +370,7 @@ function follow(current: Session) {
   const dx = world.x - current.startWorld.x;
   const dy = world.y - current.startWorld.y;
   if (!current.refusal) for (const host of current.hosts) host.style.setProperty("translate", `${dx}px ${dy}px`);
-  const context: DropContext = { hosts: current.hosts, frame: current.frame, parentHost: current.parentHost, origin: current.origin, layerSrc: current.layer.src, copy: current.copy, origins: current.origins, layers: current.layers?.length ?? 1 };
+  const context: DropContext = { hosts: current.hosts, frame: current.frame, parentHost: current.parentHost, origin: current.origin, layerSrc: current.layer.src, copy: current.copy, origins: current.origins, layers: current.layers?.length ?? 1, slots: true };
   const { target, reason } = current.refusal ? { target: null, reason: current.refusal } : dropTargetAt(current.pointer.x, current.pointer.y, context);
   current.target = target;
   const label = reason ?? (current.copy ? "Copy" : null);
@@ -327,6 +380,7 @@ function follow(current: Session) {
     pointer: current.pointer,
     label,
     tone: reason ? "negative" : "info",
+    slot: target?.slot ?? null,
   });
 }
 
