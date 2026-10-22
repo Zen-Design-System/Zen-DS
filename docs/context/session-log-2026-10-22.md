@@ -35,3 +35,9 @@ the four ❌ keys of the walk's §2a.
   - `selectMatchingShortcut` in modKey (Ctrl+Alt+A off a Mac).
 - E2E FW-175…179 (figma group).
 - The worktree had no `uqr` (added by #191), so it was copied from the main checkout (memory: worktree node_modules).
+- **Found by FW-178/179:** a right-click on a selected layer's resize handle opened no menu, because the handle only
+  prevented the browser's menu. A short text at 53 % zoom is mostly handles. ResizeLayer now passes the right-click to
+  SelectionLayer's onContextMenu (one prop, as SpacingLayer does). FW-178 right-clicks the text's left handle.
+- **E2E:** FW-175…179 pass alone, 5 / 5 (after merging `main` f7e8708f). The test right-clicks off a selected ellipse's
+  middle, since the arc dot is a handle of its own.
+

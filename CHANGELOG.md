@@ -1127,6 +1127,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Zen Studio: a right-click on a selected layer's resize handle opens the layer's menu, as in Figma. A short text at a
+  low zoom is mostly handles, so its menu did not open.
 - Dialog, ModalForm, BottomSheet and modal SidePanel: a modal in an inert part of the page no longer takes Escape
   and Tab from the one in use, even when it opened last. Zen Studio draws Overlay frames open on its canvas, and
   after a reload into Present from an Overlay, the canvas's copy took the Escape of the Dialog being presented.
