@@ -71,3 +71,20 @@ added since brought 177 className back. PR 1: classes with a Figma-equivalent pr
   looked at).
 - My slip: I stopped my isolated server with pattern kills (`pkill -f "tail -f /dev/null"`), which can hit another
   session's processes; memory updated (TaskStop or exact PIDs only).
+
+## AppShell session · Mobile Bar takes the canvas's twin (tier S; gate finding from the box-themes session's theme/navigation-surface, via Giám sát)
+
+Branch zen/fix/app-shell-top-bar-canvas-20261023 from main 25a86b67. AppShell gave the Bar's TopNavigation `alt`
+(Surface/Alt) on every canvas. Checked against skills/zen-figma-design/references/screen-rules.md §1 (Theme-01…08):
+Canvas/Default ↔ Surface/Alt (Type=Alt), Canvas/Alt ↔ Surface/Default (Type=Default), Canvas/Flat ↔ Surface/Flat (no
+Top-Navigation type; Figma screens override by variable).
+- AppShell.tsx: `BAR_TYPE` by canvas (default → alt, alt → default, flat → default); `TOP_NAV_TYPE` keeps band,
+  band-sheet and media. app-shell.css: on `canvas="flat"` a Default bar's `--zen-top-nav-fill` is Surface/Flat.
+  `mobileTop` JSDoc updated; guidelines, api, ai-ui catalog and the platform api regenerated.
+- Test (tests/interaction/app-shell.test.tsx): for each canvas the bar's type and that its fill equals the shell's
+  background.
+- Not changed: BottomNavigation stays Surface/Default (Figma's Bottom-Navigation has no surface choice; BACKLOG P2
+  "Navigation surfaces missing"). Found, owner B: figma-push draws a mobile AppShell's TopNavigation with its own
+  `type` (default when unset), not the Bar type AppShell picks, so on the default canvas Figma gets Default where code
+  draws Alt (told Giám sát / B).
+- Static: tsc, guidelines, ai-ui, style, usage, mcp, studio selftests. Browser test and gate wait for the slot.
