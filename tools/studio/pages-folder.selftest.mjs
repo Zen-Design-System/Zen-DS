@@ -81,5 +81,22 @@ await test("photos: bad ids, a non-image extension and an oversized one are refu
   await rejects(folder.writeAsset("big-00000000.png", new Uint8Array(5 * 1024 * 1024 + 1)), "invalid");
 });
 
+// A page's comments beside it (docs/research/studio-comments-spec-2026-10-22.md): none reads as null, a valid file is
+// written and read back, an invalid one is refused, never listed as a page, and it goes to the trash with its page.
+await test("comments: write then read beside the page; refused when not valid; trashed with the page", async () => {
+  const comments = { format: 1, threads: [{ id: "t-1", anchor: { x: 10, y: 20 }, resolved: false, resolvedAt: 0, comments: [{ id: "c-1", author: { name: "Vu", color: "violet" }, text: "Hi", at: 1 }] }] };
+  await folder.write("gamma", text);
+  assert.equal(await folder.readComments("gamma"), null);
+  assert.equal((await folder.writeComments("gamma", comments)).threads, 1);
+  assert.deepEqual(await folder.readComments("gamma"), comments);
+  assert.ok(fs.existsSync(path.join(root, PAGES_DIR, "gamma.comments.json")));
+  assert.ok((await folder.list()).every((page) => !page.id.includes("comments")));
+  await rejects(folder.writeComments("gamma", { format: 1, threads: [{ id: "t" }] }), "invalid");
+  await rejects(folder.writeComments("../x", comments), "invalid");
+  await folder.trash("gamma");
+  assert.equal(await folder.readComments("gamma"), null);
+  assert.ok(fs.readdirSync(path.join(root, ".zen-studio/trash")).some((name) => name.startsWith("gamma-") && name.endsWith(".comments.json")));
+});
+
 fs.rmSync(root, { recursive: true, force: true });
 console.log(`pages-folder selftest: ${passed} passed${process.exitCode ? ", some failed" : ""}`);
