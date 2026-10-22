@@ -46,6 +46,16 @@ since 2026-10-12; native-pack.json has the wrapper too (#210). What was stale: t
   and pass `topNavigation` (AdminList, Dashboard and HrShell also `bottomNavigation`; Detail and SettingsForm are
   pushed pages with a Back chevron).
 
+## BACKLOG: the two widget-theme P1s re-checked (tier XS, docs; user "tiếp tục")
+
+Branch zen/docs/backlog-widget-themes-20261023, stacked on #226.
+- "P1 · Widget themes phase 2" removed: Card `color` and `solid`, MetricCard's types (8 with Tile), the chart paint
+  styles (7 Color Chart Sector styles in figma-styles.full.json), the chart descriptions in tools/figma-docs and the
+  Studio map shipped in #58 (cc3a97b9) and after; the gradient themes were dropped by the user (2026-10-14).
+- "P1 · Box theme vocabulary in code" rewritten as P2 "Code-side rules for the Figma theme audit": the vocabulary
+  (Card / ListBox theme · color · surface, MetricCard / ChartCard pass-through, Studio map, Card contract after #210)
+  is in code; only usage-guard rules mirroring the Figma audit's theme/* checks are left, and those wait for the user.
+
 ## Session B · Example className round 2, PR 1 (tier S; user decisions 2026-10-23, spec examples-classnames-round2-spec-2026-10-23.md)
 
 Branch zen/chore/examples-classnames-20261023. The coverage BACKLOG item (P3–P4) had been merged on 10-13; examples
