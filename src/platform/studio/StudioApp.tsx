@@ -595,6 +595,8 @@ export function StudioApp() {
       else if ((key === "r" || key === "o" || key === "l") && state.localPage) studioStore.setState({ tool: key === "r" ? "rectangle" : key === "o" ? "ellipse" : "line" });
       // S: Figma's Slice tool, on a page you made (builder/SliceFrame.tsx; ⇧S is the Section tool, above).
       else if (key === "s" && state.localPage) studioStore.setState({ tool: "slice" });
+      // C: Figma's Comment tool, on a page you made (comments/CommentsLayer.tsx; a Viewer comments too).
+      else if (key === "c" && state.localPage) studioStore.setState({ tool: "comment" });
       // P: Figma's Pen, on a page you made (draw/penTool.ts).
       else if (key === "p" && state.localPage) studioStore.setState({ tool: "pen" });
       else if (key === "f") {

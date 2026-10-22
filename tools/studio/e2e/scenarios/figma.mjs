@@ -7,6 +7,7 @@ import { newPageText } from "../../dialect.mjs";
 import { codeOfItem, grow } from "../../dnd-engine.mjs";
 import { inspectorRow, openAssetLibrary, openCodeProperties, selectedSrc, showDesignTab, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
+import { pagesDirOf } from "../lib/server.mjs";
 
 /** A new page of the Studio space titled `title` (its name). */
 const newPageFor = async (ctx, title) => (await newPage(ctx, { title })).name;
@@ -50,7 +51,6 @@ async function selectBody(page, id) {
 
 /** The Figma keys Zen Studio has no feature for yet (edit/figmaNotYet.ts): each says so and nothing else happens. */
 const NOT_YET = [
-  ["KeyC", "Comment"],
   ["KeyI", "Pick color"],
 ];
 
@@ -133,6 +133,59 @@ async function restoring(page, id, work) {
     await undoTo(page, id, before, 5).catch(() => undefined);
   }
 }
+/* ── Comments (Figma's Comment tool C: comments/CommentsLayer.tsx) ─────────────────────────────────────────────── */
+
+const commentPin = (page, text) => page.locator(".studio-comments").getByRole("button", { name: new RegExp(`^Comment by [^:]+: ${text}`) });
+/** Types `text` into the open comment popover (the name first, the first time this browser comments) and posts it. */
+async function postComment(page, text) {
+  const popover = page.locator(".studio-comment-popover");
+  await popover.waitFor({ state: "visible", timeout: 5000 });
+  const name = popover.locator("input");
+  if (await name.count()) await name.fill("Walk Tester");
+  const field = popover.locator("textarea");
+  await field.fill(text);
+  await field.press("Enter");
+}
+/** C, then a click at (x, y) and `text` posted there: the new thread's pin. */
+async function commentAt(page, x, y, text) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("KeyC");
+  await until(async () => (await pressedTool(page)) === "Comment", { message: "the Comment tool" });
+  await page.mouse.click(x, y);
+  await postComment(page, text);
+  const pin = commentPin(page, text);
+  await pin.waitFor({ state: "visible", timeout: 5000 });
+  return pin;
+}
+/** Runs `work`, then deletes every thread of the page (the right panel's list, Show resolved on), also when it fails. */
+async function commenting(page, work) {
+  try {
+    return await work();
+  } finally {
+    await clearComments(page).catch(() => undefined);
+  }
+}
+/** The right panel's Show resolved, set by a click on its label as a person does (Zen's box hides the native input). */
+async function showResolved(page, on) {
+  const box = right(page).getByRole("checkbox", { name: "Show resolved" });
+  if ((await box.isChecked()) !== on) await right(page).locator(".zen-checkbox", { hasText: "Show resolved" }).click();
+  await until(async () => (await box.isChecked()) === on, { message: `Show resolved ${on ? "on" : "off"}` });
+}
+async function clearComments(page) {
+  await page.locator(".studio-viewport").focus();
+  if ((await pressedTool(page)) !== "Comment") await page.keyboard.press("KeyC");
+  await showResolved(page, true);
+  const rows = right(page).locator(".studio-comments-list__row");
+  for (let left = await rows.count(); left > 0; left = await rows.count()) {
+    await rows.first().click();
+    await page.locator(".studio-comment-popover").getByRole("button", { name: "More thread actions" }).click();
+    await page.getByRole("menuitem", { name: "Delete thread" }).click();
+    await until(async () => (await rows.count()) < left, { message: "the thread deleted" });
+  }
+  await showResolved(page, false);
+  await page.keyboard.press("Escape");
+}
+
 /** Zooms out so the walk page's frame and room around it show (⇧1, then one zoom-out step). */
 async function roomAround(page) {
   await page.locator(".studio-viewport").focus();
@@ -1581,6 +1634,94 @@ export const rows = [
         await until(async () => (await pageText(page, id)) === drawn, { message: "⌘Z brings it back" });
         await undoTo(page, id, before, 3);
         return "Slice over the Button · click → Button · Delete → slice only · ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-193", feature: "C (Comment): a click on the frame opens a new comment there; the name once, Enter posts; its pin's corner is the place, the right panel lists it, the page file stays as it was", wp: "Comment tool 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return commenting(page, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        const frame = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+        const at = { x: frame.x + 60, y: frame.y + 80 };
+        const pin = await commentAt(page, at.x, at.y, "Check the spacing here");
+        const box = await pin.boundingBox();
+        if (Math.abs(box.x - at.x) > 2 || Math.abs(box.y + box.height - at.y) > 2) throw new Error(`the pin's corner is at ${box.x}, ${box.y + box.height}, not ${at.x}, ${at.y}`);
+        await page.getByRole("dialog", { name: /^Comment by / }).waitFor({ state: "visible", timeout: 5000 });
+        await right(page).getByRole("button", { name: /Check the spacing here/ }).waitFor({ state: "visible", timeout: 5000 });
+        if (((await pageText(page, id)) ?? "") !== before) throw new Error("commenting changed the page file");
+        return "C · click on screen-1 → New comment · name + Enter → pin at the click, thread open, listed on the right · page file unchanged";
+      });
+    },
+  },
+  {
+    id: "FW-194", feature: "A reply joins the thread (\"1 reply\" in the list); Resolve closes it and hides its pin; Show resolved shows it again; Reopen", wp: "Comment tool 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await walkPage(ctx);
+      return commenting(page, async () => {
+        const frame = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+        await commentAt(page, frame.x + 80, frame.y + 120, "First note");
+        const popover = page.locator(".studio-comment-popover");
+        await postComment(page, "A reply");
+        await until(async () => (await popover.locator(".studio-comment").count()) === 2, { message: "the reply in the thread" });
+        await until(async () => /1 reply/.test(await right(page).locator(".studio-comments-list").innerText()), { message: "1 reply in the list" });
+        await popover.getByRole("button", { name: "Resolve" }).click();
+        await until(async () => (await commentPin(page, "First note").count()) === 0 && (await popover.count()) === 0, { message: "resolved: pin and thread gone" });
+        await showResolved(page, true);
+        const pin = commentPin(page, "First note");
+        await until(async () => /resolved$/.test((await pin.getAttribute("aria-label")) ?? ""), { message: "the resolved pin shown" });
+        await pin.click();
+        await popover.getByRole("button", { name: "Reopen" }).click();
+        await until(async () => !/resolved$/.test((await pin.getAttribute("aria-label")) ?? ""), { message: "reopened" });
+        await showResolved(page, false);
+        await pin.waitFor({ state: "visible", timeout: 5000 });
+        return "reply → 1 reply · Resolve → hidden · Show resolved → shown · Reopen";
+      });
+    },
+  },
+  {
+    id: "FW-195", feature: "Comments are kept beside the page: <page>.comments.json next to its .zen.tsx; after a reload the pin is back", wp: "Comment tool 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return commenting(page, async () => {
+        const frame = await page.locator('[data-studio-frame="screen:screen-1"]').boundingBox();
+        await commentAt(page, frame.x + 100, frame.y + 60, "Kept beside the page");
+        const file = path.join(ctx.root, pagesDirOf(ctx.server.port), `${id}.comments.json`);
+        await until(async () => fs.existsSync(file) && /Kept beside the page/.test(fs.readFileSync(file, "utf8")), { message: `${id}.comments.json written` });
+        await page.reload({ waitUntil: "domcontentloaded" });
+        await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("KeyC");
+        await commentPin(page, "Kept beside the page").waitFor({ state: "visible", timeout: 10_000 });
+        return `${id}.comments.json beside ${id}.zen.tsx · reload → the pin is back`;
+      });
+    },
+  },
+  {
+    id: "FW-196", feature: "A pin on a frame keeps its place in it when the canvas zooms; Esc closes the thread, Esc again is Move; the pins show only with the Comment tool", wp: "Comment tool 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await walkPage(ctx);
+      return commenting(page, async () => {
+        const frameLocator = page.locator('[data-studio-frame="screen:screen-1"]');
+        const frame = await frameLocator.boundingBox();
+        const pin = await commentAt(page, frame.x + 40, frame.y + 40, "Stays on the frame");
+        const offset = async () => {
+          const [f, p] = [await frameLocator.boundingBox(), await pin.boundingBox()];
+          return { x: (p.x - f.x) / f.width, y: (p.y + p.height - f.y) / f.height };
+        };
+        const first = await offset();
+        await page.keyboard.press("Escape");
+        await until(async () => (await page.locator(".studio-comment-popover").count()) === 0, { message: "Esc closes the thread" });
+        if ((await pressedTool(page)) !== "Comment") throw new Error("the first Esc left the Comment tool");
+        await page.keyboard.press("Minus");
+        await sleep(400);
+        const zoomed = await offset();
+        if (Math.abs(zoomed.x - first.x) > 0.02 || Math.abs(zoomed.y - first.y) > 0.02) throw new Error(`the pin moved in the frame: ${JSON.stringify(first)} → ${JSON.stringify(zoomed)}`);
+        await page.keyboard.press("Escape");
+        await until(async () => (await pressedTool(page)) === "Move", { message: "Esc again → Move" });
+        if (await pin.count()) throw new Error("the pin shows with the Move tool");
+        return "pin stays at its place in screen-1 through a zoom · Esc → thread closed · Esc → Move, pins hidden";
       });
     },
   },
