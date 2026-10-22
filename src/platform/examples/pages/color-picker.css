@@ -10,5 +10,3 @@
   background: var(--px-color-picker-brand, var(--zen-color-background-accent-solid-default));
 }
 
-/* The property panel is as wide as an inspector. */
-.px-color-picker-panel { width: 100%; max-width: 360px; }
