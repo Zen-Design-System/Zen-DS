@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio: the Design tab shows only Figma's sections; what only code reads (an HTML element, Scroll, a button's
+  type, ids, aria-* and the attributes no API lists) moved from the closed "Code properties" section to the Code tab's
+  Properties, above the layer's code, edited there the same way (2026-10-21, parity plan §3a; E2E FW-165…169).
 - AppShellHeader `theme="borderless"` (Figma Header/AppShell Theme=Borderless, user-approved 2026-10-21): the
   border-divider rows without the 1px line under the top row. Zen Studio maps it both ways.
 - AppShellHeader `theme="border-divider"`: the Main row pads Padding/Large (20) above and Padding/Medium (16) below,
@@ -73,6 +76,20 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   "sửa push Sidebar đứng riêng luôn"). The set has 16 of its 40 combinations, so the push takes the nearest one: the
   themes other than Default exist only at Density=Small. An AppShell's master writes the same variant (`pattern="grid"`
   gives Border · Small), the rail width follows it (80 · 72 · 64), and the pull reads the look back.
+- Forms in overlays (user rules 2026-10-21):
+  - A Dialog is for a notice or a quick confirm, with one field at most. A data-entry form of two or more fields is a
+    ModalForm on desktop and tablet, and a BottomSheet on a phone.
+  - A ModalForm keeps its actions in a row. Its footer no longer stacks them below 720px or in a narrow device frame.
+  - New harness rules: `dialog/form-uses-modal-form`, `modal-form/actions-horizontal` and `modal-form/not-on-phone`.
+  - The Figma audit gains `modal/dialog-form`, `modal/form-actions-vertical`, `modal/form-on-phone` and
+    `modal/form-side-taller`.
+  - Zen Studio's Rename layers (⌘R on several layers) is now a ModalForm.
+- Figma Modal/Forms content now grows the modal instead of being cut off (2026-10-21, user: "kiểm tra lại constrain và
+  stretch của các layout bên trong forms, không để khoảng trống vô duyên"):
+  - Big's Body and Main-Contents hug their content; they had a fixed height and a Fill height.
+  - The 1-3, Half-Half and 3-4 Side-Content columns hug theirs. Their placeholder was Fill, which kept the slot from
+    growing.
+  - Default sizes are unchanged.
 - Four Breakpoint & Grids tokens from Figma, for Bento layouts (2026-10-21, user: "Kiểm tra update thêm token trong
   Breakpoints từ Figma"), the same in Desktop, Tablet and Mobile: `--zen-margin-bento-grid` (Padding/XSmall 8),
   `--zen-margin-bento-layout` (Padding/Medium 16), `--zen-gutter-bento-grid` (Gap/XSmall 8) and
@@ -88,6 +105,21 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   page in its own browser (real engine, touch and safe areas), from the Screen Play is on, in Play's modes and the
   project's theme. The link works for two hours. The dev server stays on localhost; a proxy forwards only the shared
   page, to the browser that opened its link. New dev dependency `uqr` (QR codes): run `npm install`.
+- **Timeline** (2026-10-21, approved with Calendar and Schedule; Figma ❖ Timeline 16121:9): TimelineActivity (an
+  activity feed of TimelineItem rows, newest first by day; Avatar / Icon / Dot markers whose tone is status),
+  TimelineMilestones (Done / Current / Upcoming from `today`, a row on desktop, a column on a phone) and TimelineGantt
+  (groups that collapse, task / summary / milestone bars by date that keep their real dates, today's line; a phone keeps
+  a 128px task column and scrolls three weeks, opening at today); primitives TimelineMarker, TimelineMilestone,
+  TimelineGanttBar, TimelineGanttLabel. Platform page `timeline`, guideline, harness rule `timeline/gantt-names-plan`,
+  label keys (en + vi), Zen Studio (Assets, Main component, Properties, library keys).
+- **Schedule** (2026-10-21, user: "xong gate thì làm tiếp Schedule"; Figma ❖ Schedule 16121:6): ScheduleResourceGrid
+  (people and rooms by hour or by day, bookings as Event-Block bars, the vertical now line; a phone keeps the resource
+  column and scrolls four hours, opening at now), ScheduleItinerary (Past / Now / Upcoming stops from `now`),
+  ScheduleSlotPicker (one native radio group across days; taken times disabled and struck through; Morning / Afternoon
+  on a phone under a Week-Strip) and ScheduleDayPlanner (Event-Cards at their start time, the hour grows so they never
+  overlap); primitives ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard.
+  Platform page `schedule`, guideline, harness rules `schedule/slot-picker-confirm`, `schedule/selected-needs-handler`,
+  label keys (en + vi), Zen Studio (Assets, Main component, Properties, library keys).
 - **Calendar** (2026-10-21, user: "Đã duyệt, làm Calendar trước"; Figma ❖ Calendar 16121:3): CalendarToolbar,
   CalendarMonth, CalendarTimeGrid (Week / Day, Mobile 3-Day), CalendarAgenda and CalendarWeekStrip (Dot / Tile) take
   events as data (`CalendarEventData`: id, title, start, end, allDay, color, meta, attendees); the primitives
@@ -169,6 +201,17 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Sidebar rail at Density=Medium follows Figma's Patterns/Sidebar (user 2026-10-21: "Sửa rail Medium theo Figma"): 80
   wide (was 84 / 88), the Padding/XSmall inset on the outer edge only, the logo and collapse control Spacing/Gap/Large
   apart (was Medium); the AppShell no longer pulls the page over the rail. The Studio push writes the 80px rail.
+- Zen Studio puts layers into an instance's slot from the canvas, as Figma does (F7c of the parity plan): dragging a
+  layer or an Assets item over a slot of an instance of the page's own component outlines that slot in the component
+  colour with its name, and the drop writes the instance's `slots` at that place. The first drop into a slot keeps the
+  layers its main shows there; a layer drags out of a slot, or to another place in it, as from any frame; ⌥ copies. The
+  main stays as it is, and each drag is one ⌘Z.
+- Zen Studio's gap and padding handles, as Figma's: on a selected auto layout frame (Stack, Grid) a hovered gap or
+  padding turns Figma's pink with a handle and its value as a variable pill ("Gap · Small · 12"); dragging it changes
+  the gap or the padding, snapped to the Spacing/Gap or Spacing/Padding ladder and previewed while dragging, written
+  once on release (one ⌘Z; Escape cancels). ⌥ sets the opposite side too (Zen's paddingX / paddingY always do), ⇧ (or
+  ⇧⌥) all four sides; the status line names the variable ("Gap XLarge"). A click still opens the scale; free frames
+  (Box) keep the click only. The spacing undo line now reads Figma's words ("Undid “Stack Gap → XLarge”").
 - Zen Studio's smart guides while resizing (the last item of F2 of the parity plan): resizing a floating layer in a
   free frame snaps its moving edges to the frame's and its other layers' edges and centres, with Figma's red guides
   while dragging; ⌘ held turns snapping off; ⌥ (from the centre) and ⇧ (keep the ratio) snap too. Still one write and
@@ -191,6 +234,19 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
     conformance test keeps that list exact.
   - The Design panel heads a frame "Frame" and a group "Group", as Figma; the code name shows on hover, and Layers keep
     it.
+<<<<<<< HEAD
+- Zen Studio's menus, two more gaps from the re-measure: the layer menu has Flip horizontal ⇧H and Flip vertical ⇧V
+  after Lock, as Figma's, on frames and shapes (the layers that turn). The empty canvas menu of a
+  page you made starts with Paste here (dimmed with nothing to paste): a copied frame lands there as a frame, copied
+  layers in a new frame of their size, both with their corner at the pointer, one ⌘Z. A frame placed on a page whose
+  frames had no place yet (drawn, pasted, duplicated, a Section) is now one ⌘Z with the pin of the others, not two.
+=======
+- Zen Studio presents an Overlay frame as Figma presents any frame: with a Dialog, Bottom Sheet, Side Panel or Card
+  Overlay selected, ⌥⌘↵, the Present buttons (Prototype and Design tabs), the canvas menu and ⌘K › Present open it at
+  once over the Screen that opens it, on that Screen's device, size and device frame; its interactions run, and closing
+  it (Esc, its close action, a press outside) goes on from that Screen. An Overlay no Screen opens shows over a blank
+  screen of the page's device, and closing it leaves Present. A reload keeps it (`?play=overlay:<id>`).
+>>>>>>> origin/main
 - Design principles for AI-generated UI, as skill references (principles for judgement, not rules or checks):
   `skills/zen-component-usage/references/design-principles.md` (colour meaning and balance, lead and supporting
   hues, fill-to-content pairing by step, APCA, dark mode, data colours, hierarchy and composition) and
@@ -1092,6 +1148,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Zen Studio: a right-click on a selected layer's resize handle opens the layer's menu, as in Figma. A short text at a
+  low zoom is mostly handles, so its menu did not open.
+- Dialog, ModalForm, BottomSheet and modal SidePanel: a modal in an inert part of the page no longer takes Escape
+  and Tab from the one in use, even when it opened last. Zen Studio draws Overlay frames open on its canvas, and
+  after a reload into Present from an Overlay, the canvas's copy took the Escape of the Dialog being presented.
 - Zen Studio: Layers lists the Main component's variants also when the page opens straight on them (their rows
   were sometimes empty).
 - Zen Studio: a page you just made opens on Layers, as a new Figma file does, instead of on the Pages list.
@@ -1229,6 +1290,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Zen Studio: ⌥⌘A Select matching layers, as Figma's: the same layer in the other frames (its Section's only), with
+  automatic names compared without their number. Also Select all with same › Properties, Fill, Stroke, Effect, Text
+  properties, Font and Instance, from the layer menu and Quick actions.
 - TopNavigation `largeTitleCapline` and `largeTitleSubheading` (2026-10-19): Figma Main-Heading-Text's Capline and
   Subheading, a Body/Base/Regular line above and below the large title ("Welcome home" / "Hi, Mai Anh", "Apple" /
   "HomePod mini" / "Living room"), grouped with it in an hgroup; they fold away with it.

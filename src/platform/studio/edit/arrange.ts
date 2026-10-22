@@ -33,7 +33,20 @@ export type DropTarget = {
   after?: string;
   /** It lands in another parent (the undo label says where). */
   reparent?: boolean;
+  /** `parentSrc` is a page's own instance and the layer goes into its slot of this name (F7c; `parentName` is the slot's
+   *  name too): before / after one of the layers the instance puts there, or at `index` among its main's own. */
+  slot?: string;
+  index?: number;
 };
+
+/** Where in its parent an op puts a layer (moveTo, pasteCode): before / after a child, or into a slot of an instance. */
+export function placeOf(target: DropTarget): { before?: string; after?: string; slot?: string; index?: number } {
+  const place: { before?: string; after?: string; slot?: string; index?: number } = target.slot ? { slot: target.slot } : {};
+  if (target.before) place.before = parseSrc(target.before)?.loc;
+  else if (target.after) place.after = parseSrc(target.after)?.loc;
+  else if (target.slot && target.index !== undefined) place.index = target.index;
+  return place;
+}
 
 const fail = (message: string) => announceEditStatus({ kind: "error", message, at: Date.now() });
 
@@ -114,9 +127,7 @@ export async function moveLayer(layer: NodeSelection, target: DropTarget, copy: 
     const at = wrap ? parseSrc(wrap.src) ?? from : from;
     const element = await studioApi.element(at.file, at.loc);
     if (!element) { fail(`${layer.name} is no longer there — select it again`); return false; }
-    const op: Extract<EditOp, { op: "moveTo" }> = { op: "moveTo", parent: to.loc };
-    if (target.before) op.before = parseSrc(target.before)?.loc;
-    else if (target.after) op.after = parseSrc(target.after)?.loc;
+    const op: Extract<EditOp, { op: "moveTo" }> = { op: "moveTo", parent: to.loc, ...placeOf(target) };
     if (copy) op.copy = true;
     const label = `${copy ? "Copy" : "Move"} ${layer.name}${target.reparent || copy ? ` into ${target.parentName}` : ""}`;
     const before = renderedNow(canvasApi.getWorldElement());
@@ -238,9 +249,7 @@ async function dropInstance(main: MainRef, target: DropTarget): Promise<boolean>
   if (!to) return false;
   const parent = await studioApi.element(to.file, to.loc);
   if (!parent) { fail(`${target.parentName} is no longer there`); return false; }
-  const op = { op: "pasteCode", code: `<Use of="${main.id}" />` } as Extract<EditOp, { op: "pasteCode" }>;
-  if (target.before) op.before = parseSrc(target.before)?.loc;
-  else if (target.after) op.after = parseSrc(target.after)?.loc;
+  const op = { op: "pasteCode", code: `<Use of="${main.id}" />`, ...placeOf(target) } as Extract<EditOp, { op: "pasteCode" }>;
   const before = renderedNow(canvasApi.getWorldElement());
   const response = await applyEdit({ file: to.file, loc: to.loc, name: parent.name, ops: [op], hash: parent.hash }, `Instance of ${main.name}`);
   if (!response.ok || !response.inserted) return false;

@@ -39,7 +39,7 @@ import { ProjectSetup, useProjectSetup } from "./project/ProjectSetup";
 import { startProjects } from "./project/projectStore";
 import { openQuickInsert, QuickInsert } from "./builder/library/QuickInsert";
 import { VariablesWindow } from "./variables/VariablesWindow";
-import { isPlaying, Player, startPlay } from "./builder/proto/Player";
+import { isPlaying, Player, playStartOf, startPlay } from "./builder/proto/Player";
 import { removeFrames } from "./builder/proto/addFrame";
 import { selectedFrames } from "./select/frameSelection";
 import { stepFrame } from "./board/frameOrder";
@@ -427,12 +427,13 @@ export function StudioApp() {
         else void createComponent(selection);
         return;
       }
-      // ⌥⌘↵ / Ctrl+Alt+Enter: Figma's Present. A page you made plays from the selected Screen (else its first: the
-      // prototype, as Figma's Present); an example frame is presented. P is Figma's Pen (edit/figmaNotYet.ts).
+      // ⌥⌘↵ / Ctrl+Alt+Enter: Figma's Present. A page you made plays from the selected Screen, or opens the selected
+      // Overlay over the Screen that opens it (else its first Screen: the prototype, as Figma's Present); an example
+      // frame is presented. P is Figma's Pen (edit/figmaNotYet.ts).
       if (mod && event.altKey && !event.shiftKey && event.key === "Enter") {
         if (doc || inExample) return;
         const frameId = state.selection?.kind === "frame" ? state.selection.frameId : state.selection?.frameId;
-        if (state.localPage) { event.preventDefault(); startPlay(frameId?.startsWith("screen:") ? frameId.split(":")[1] : null); return; }
+        if (state.localPage) { event.preventDefault(); startPlay(playStartOf(frameId)); return; }
         if (frameId) { event.preventDefault(); presentFrame(frameId); }
         return;
       }

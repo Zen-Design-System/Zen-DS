@@ -502,6 +502,19 @@ export const FIGMA_PROPS = {
   CalendarMonth: { sets: { "Calendar/Month": null }, props: { Device: "device", "Sixth-Week": skip("the month's own weeks: six when it spans six") } },
   CalendarTimeGrid: { sets: { "Calendar/Time-Grid": null }, props: { Device: "device", View: "view" } },
   CalendarAgenda: { sets: { "Calendar/Agenda": null }, props: { Device: "device" } },
+  // ❖ Timeline (16121:9, approved 2026-10-21): the public sets; .Primitives/Timeline/* are drawn inside them.
+  TimelineItem: {
+    sets: { "Timeline/Item": null },
+    props: { Size: "size", Time: "time", Description: { toggle: "description", on: "Annual leave · Oct 12 – Oct 16" }, Detail: skip("the detail line is the description prop"), Attachment: { toggle: "attachment", on: "Can we move the review to Thursday?" }, "Attachment-Slot": skip("the attachment's content"), Connector: "connector" },
+  },
+  TimelineActivity: { sets: { "Timeline/Activity": null }, props: { Device: "device" } },
+  TimelineMilestones: { sets: { "Timeline/Milestones": null }, props: { Device: "device" } },
+  TimelineGantt: { sets: { "Timeline/Gantt": null }, props: { Device: "device" } },
+  // ❖ Schedule (16121:6, approved 2026-10-21): the public sets; .Primitives/Schedule/* are drawn inside them.
+  ScheduleResourceGrid: { sets: { "Schedule/Resource-Grid": null }, props: { Device: "device", Scale: "scale" } },
+  ScheduleItinerary: { sets: { "Schedule/Itinerary": null }, props: { Device: "device" } },
+  ScheduleSlotPicker: { sets: { "Schedule/Slot-Picker": null }, props: { Device: "device" } },
+  ScheduleDayPlanner: { sets: { "Schedule/Day-Planner": null }, props: { Device: "device" } },
   DatePicker: {
     // Date-Picker/Mobile is the device prop (device="mobile"), not a third calendar: left out.
     sets: { "Date-Picker/Single-Calendar": "single", "Date-Picker/Dual-Calendar": "dual" },

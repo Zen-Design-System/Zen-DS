@@ -89,9 +89,12 @@ so on the status line.
 Up since 2026-10-18 (29): ⇧S (Section) (❌ → ✅) · ⇧P (Pencil) (❌ → ✅) · ⇧⌘K (Place image/video) (❌ → ✅) · ⌘K (Actions) (❌ → ✅) · ⌘F (Find and replace) (❌ → ✅) · ⇧R (Rulers) (❌ → ✅) · ⌃G (Show layout guides) (❌ → ✅) · ⌘Y (Outlines) (❌ → ✅) · N (Next frame) (❌ → ✅) · P (Pen) (🟡 → ✅) · ⌘/ (Actions) (🟡 → ✅) · Enter (Select children) (🟡 → ✅) · ⌘A with nothing selected (Select all) (❌ → ✅) · ⇧H (Flip horizontal) (❌ → ✅) · ⇧V (Flip vertical) (❌ → ✅) · ⌃⌥T (Tidy up) (❌ → ✅) · ⌃⌥H (Distribute horizontal spacing) (❌ → ✅) · Delete (nothing selected after) (🟡 → ✅) · ⌥⌘C ⌥⌘V (Copy / Paste properties) (🟡 → ✅) · ⌘G (Group selection) (❌ → ✅) · ⇧⌘G (Ungroup / Remove frame) (❌ → ✅) · ⌃⌘M (Use as mask) (❌ → ✅) · ⌘E (Flatten) (❌ → ✅) · ⌥⌘O (Outline stroke) on a Line (❌ → ✅) · ⇧⌘L (Lock) (❌ → ✅) · ⌘R (Rename) (❌ → ✅) · ⇧⌘C (Copy as PNG) (❌ → ✅) · A frame (free Box) (🟡 → ✅) · An auto layout frame (Stack) (🟡 → ✅).
 
 What is still not Figma's:
-- **Missing, and the status line says so:** ⌥⌘A (Select matching layers). K (Scale) since 2026-10-21
-  (Session C, the user's pick): K, the toolbar's Scale, the right panel's factor and anchor, corner drags; px values
-  scale, Zen token steps stay and the status line names them (user's choice, not Figma's: a text keeps its style).
+- **The four keys still missing on 2026-10-21 are built** (only I, Pick color, still says "not yet"):
+  ⌥⌘A (Select matching layers) on 2026-10-22, with Select all with same ›. It matches as Figma does, minus Studio's
+  page-wide name numbers (`edit/matchModel.ts`, E2E FW-175…179).
+  K (Scale) since 2026-10-21 (Session C, the user's pick): K, the toolbar's Scale, the right panel's factor and anchor,
+  corner drags; px values scale, Zen token steps stay and the status line names them (user's choice, not Figma's: a
+  text keeps its style).
   S (Slice) since 2026-10-22 (Session C, the user's pick): the Frame menu's Slice and S draw an export area over the
   board; its panel exports the area under it (Figma's 1x PNG first); Layers lists it; not pushed to Figma yet.
   C (Comment) since 2026-10-22 (Session C, the user's pick): pins on the canvas (on a frame or the board), the thread
@@ -100,9 +103,12 @@ What is still not Figma's:
 - **Detach instance on a Button:** kept on purpose (user, 2026-10-03: an interactive component stops working when
   detached).
 - **Menus:**
-  - The layer menu has no Flip horizontal / Flip vertical (the keys work).
+  - ~~The layer menu has no Flip horizontal / Flip vertical (the keys work).~~ Built 2026-10-21: after Lock, ⇧H / ⇧V,
+    on frames and shapes (the layers that turn; a component's menu has none) (E2E FW-150…152).
   - A Zen instance's menu has no Go to main component and no Reset all changes (Reset shows in its panel).
-  - The empty canvas menu is Zoom to fit, Zoom to 100% and Show/Hide UI, with no Paste (Paste here works inside a frame).
+  - ~~The empty canvas menu is Zoom to fit, Zoom to 100% and Show/Hide UI, with no Paste (Paste here works inside a frame).~~
+    Built 2026-10-21: Paste here first on a page you made, dimmed with nothing to paste; a copied frame lands as a frame,
+    copied layers in a new frame of their size, corner at the pointer, one ⌘Z (E2E FW-153, FW-154).
 - **Right panel:**
   - A Button, a Card and a text have a **Content** section that edits their words in the panel. Figma edits words on the
     canvas, or through an instance's text property.

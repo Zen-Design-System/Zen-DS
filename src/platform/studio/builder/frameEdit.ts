@@ -1,6 +1,6 @@
-import { announceEditStatus, applyEdit } from "../api";
+import { announceEditStatus, applyEdit, squashEdits } from "../api";
 import { studioStore } from "../store";
-import type { EditOp } from "../types";
+import type { EditOp, EditResponse } from "../types";
 import { loadEngine, zenComponents } from "./engine";
 import { frameOf, literalOf, type PageFrame } from "./render/frames";
 import { selectFrameWhenShown } from "../board/frames";
@@ -13,7 +13,7 @@ import { getPage, pageFile } from "./store/pageStore";
  * Writes of free frames on a builder page (user, 2026-10-15: "kéo frame đi mọi nơi", "cho phép copy"): a move sets the
  * frames' x / y; a copy (⌥-drag, ⌘D, ⌘C ⌘V) adds the frame again under a new id at its own place, a Section's copy
  * with everything it holds (copySection). Each is one edit and one undo step. Frames still in the row of unplaced frames are pinned where they show (in a move's edit; before an
- * added frame, as its own step), so placing one frame never moves another (render/framePlace.ts).
+ * added frame, an edit of its own that joinPin makes one undo step with the frame's), so placing one frame never moves another (render/framePlace.ts).
  */
 
 type Engine = Awaited<ReturnType<typeof loadEngine>>;
@@ -35,6 +35,16 @@ const same = (a: FramePlace | null, b: FramePlace) => Boolean(a && Math.round(a.
 
 /** Pins every frame still in the row where it shows (before a frame is added at a place of its own). */
 export const pinRow = (localPage: string) => moveFrames(localPage, new Map(), "Place frames");
+
+/**
+ * After pinRow and the edit that adds a frame (`response`): the two become one undo step named `label`, so one ⌘Z takes
+ * the frame away as Figma's does. `pinned`: the page's text and hash before the pin (null: nothing was pinned); the
+ * join happens only when the step below the frame's is that pin.
+ */
+export function joinPin(pinned: { text: string; hash: string } | null, response: EditResponse, label: string) {
+  if (!pinned || !response.ok || studioStore.getState().undo.at(-2)?.hashBefore !== pinned.hash) return;
+  squashEdits(2, label, pinned.text, response.after);
+}
 
 /** The frames' new places (frame id → place, world px from the board's frame origin), with the row pinned. */
 export async function moveFrames(localPage: string, moves: ReadonlyMap<string, FramePlace>, label: string): Promise<boolean> {
@@ -137,14 +147,16 @@ export async function copyFrame(localPage: string, frameId: string, at: FramePla
   const state = literalOf(original, "state");
   const newFrame = `${kind}:${id}${typeof state === "string" ? `:${state}` : ""}`;
   const label = options.label ?? (kind === "overlay" ? "Duplicate overlay" : kind === "slice" ? "Duplicate slice" : "Duplicate screen");
-  // Frames still in the row are pinned first (one more undo step, only on a page written before free frames).
-  if (board.frames.some((frame) => !frame.place) && !(await pinRow(localPage))) return null;
-  const fresh = board.frames.some((frame) => !frame.place) ? await readBoard(localPage) : board;
+  // Frames still in the row are pinned first (the same undo step: joinPin).
+  const pinned = board.frames.some((frame) => !frame.place) ? { text: board.text, hash: board.hash } : null;
+  if (pinned && !(await pinRow(localPage))) return null;
+  const fresh = pinned ? await readBoard(localPage) : board;
   if (!fresh) return null;
   // The original's element printed again without document ids: the engine gives the copy and its layers their own.
   const code = engine.elementText(copyOf(original, where), { ids: false });
   const after = index >= 0 ? fresh.nodes[index]?.loc : undefined;
   const response = await applyEdit({ file: fresh.file, loc: fresh.tree.board.loc, name: "Board", ops: [{ op: "insertChild", code, ...(after ? { after } : {}) }], hash: fresh.hash }, label);
+  joinPin(pinned, response, label);
   if (!response.ok) return null;
   selectFrameWhenShown(newFrame, (frameId) => studioStore.setState({ selection: { kind: "frame", frameId } }));
   return newFrame;
@@ -166,8 +178,9 @@ function heldBy(board: Board, sectionId: string): Placed[] {
 export async function copySection(localPage: string, sectionId: string, offset: { dx: number; dy: number } | null, options: { label?: string; heights?: ReadonlyMap<string, number>; source?: FrameClip } = {}): Promise<string | null> {
   let board = await readBoard(localPage);
   if (!board) return null;
-  // Frames still in the row are pinned first (one more undo step, only on a page written before free frames).
-  if (board.frames.some((frame) => !frame.place)) {
+  // Frames still in the row are pinned first (the same undo step: joinPin).
+  const pinned = board.frames.some((frame) => !frame.place) ? { text: board.text, hash: board.hash } : null;
+  if (pinned) {
     if (!(await pinRow(localPage))) return null;
     board = await readBoard(localPage);
     if (!board) return null;
@@ -195,6 +208,7 @@ export async function copySection(localPage: string, sectionId: string, offset: 
   // After the original in Layers; from another page, before the frames (a Section draws behind them).
   const after = index >= 0 ? board.nodes[index].loc : undefined;
   const response = await applyEdit({ file: board.file, loc: board.tree.board.loc, name: "Board", ops: [{ op: "insertChild", code: [...sections, ...frames].join("\n"), paste: true, ...(after ? { after } : { index: 0 }) }], hash: board.hash }, options.label ?? "Duplicate section");
+  joinPin(pinned, response, options.label ?? "Duplicate section");
   if (!response.ok) return null;
   selectFrameWhenShown(copied, (frameId) => studioStore.setState({ selection: { kind: "frame", frameId } }));
   return copied;

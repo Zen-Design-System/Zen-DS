@@ -29,8 +29,11 @@ function selectedFrame(localPage: string, target: EventTarget | null) {
 
 const heightsOf = (element: HTMLElement) => new Map(Array.from(element.parentElement?.children ?? []).flatMap((child) => (child instanceof HTMLElement && child.dataset.studioFrame ? [[child.dataset.studioFrame, child.offsetHeight] as const] : [])));
 
-/** The frame last copied with ⌘C (its page and element), while the system clipboard still holds its code. */
+/** The frame last copied with ⌘C (its page and element), while the system clipboard still holds its code; and when. */
 let clip: FrameClip | null = null;
+let copiedAt = 0;
+/** The frame last copied and when (Paste here on the empty canvas, builder/boardPaste.ts), or null. */
+export const copiedFrame = () => (clip ? { clip, copiedAt } : null);
 
 export function useFrameKeys(localPage: string, text: string | undefined) {
   useEffect(() => {
@@ -99,6 +102,7 @@ export function useFrameKeys(localPage: string, text: string | undefined) {
         return;
       }
       clip = ready;
+      copiedAt = Date.now();
       event.clipboardData?.setData("text/plain", ready.code);
       const copied = "Copied frame — ⌘V pastes it here, on another page you made, on the Zen file's canvas or in the Zen plugin";
       if (readyFigma && readyFigma.frameId === frame.frameId) {

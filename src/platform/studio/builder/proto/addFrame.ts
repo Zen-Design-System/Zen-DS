@@ -2,7 +2,7 @@ import { applyEdit } from "../../api";
 import { studioStore } from "../../store";
 import type { EditOp } from "../../types";
 import { loadEngine, zenComponents } from "../engine";
-import { pinRow } from "../frameEdit";
+import { joinPin, pinRow } from "../frameEdit";
 import type { FramePlace } from "../render/framePlace";
 import type { PageNode, PageTree } from "../render/renderPage";
 import { getPage, pageFile } from "../store/pageStore";
@@ -20,14 +20,16 @@ import { selectFrameWhenShown } from "../../board/frames";
 const literal = (node: PageNode, prop: string) => { const value = node.props[prop]; return value?.kind === "literal" ? value.value : undefined; };
 
 /** `holds`: what a new Overlay holds (dialect OVERLAY_HOLDS: dialog, sheet, panel, card). `name`: the frame's name before
- *  its number (the device picked, "iPhone 2"; else "Screen"); `empty`: no app frame (default: a drawn or sized Screen). */
-type Placement = { place?: FramePlace; width?: number; height?: number; device?: string; layout?: "mobile" | "desktop"; name?: string; empty?: boolean; holds?: "dialog" | "sheet" | "panel" | "card" };
+ *  its number (the device picked, "iPhone 2"; else "Screen"); `empty`: no app frame (default: a drawn or sized Screen).
+ *  `content`: layers an empty Screen holds (Paste here on the empty canvas, builder/boardPaste.ts), in the same edit;
+ *  `label`: the edit's name in History. */
+type Placement = { place?: FramePlace; width?: number; height?: number; device?: string; layout?: "mobile" | "desktop"; name?: string; empty?: boolean; holds?: "dialog" | "sheet" | "panel" | "card"; content?: string; label?: string };
 
 async function readBoard(localPage: string) {
   const [engine, page] = await Promise.all([loadEngine(), getPage(localPage)]);
   if (!page) return null;
   const tree = engine.parsePage(page.text, { components: new Set(zenComponents) }) as unknown as PageTree;
-  return tree.board ? { engine, tree: tree as PageTree & { board: PageNode }, frames: tree.board.children.filter((child): child is PageNode => child.kind === "element") } : null;
+  return tree.board ? { engine, tree: tree as PageTree & { board: PageNode }, frames: tree.board.children.filter((child): child is PageNode => child.kind === "element"), text: page.text } : null;
 }
 
 const TAGS: Record<string, string> = { screen: "Screen", overlay: "Overlay", section: "Section", slice: "Slice" };
@@ -77,7 +79,9 @@ export const SECTION_PADDING = 80;
 export async function addSection(localPage: string, box: { x: number; y: number; width: number; height: number }, label = "Add section"): Promise<string | null> {
   let board = await readBoard(localPage);
   if (!board) return null;
-  if (board.frames.some((frame) => frame.name !== "Section" && frame.name !== "Slice" && literal(frame, "x") === undefined)) {
+  // Frames still in the row are pinned first, in the same undo step (frameEdit.ts joinPin).
+  const pinned = board.frames.some((frame) => frame.name !== "Section" && frame.name !== "Slice" && literal(frame, "x") === undefined) ? { text: board.text, hash: board.engine.sha1(board.text) } : null;
+  if (pinned) {
     if (!(await pinRow(localPage))) return null;
     board = await readBoard(localPage);
     if (!board) return null;
@@ -86,6 +90,7 @@ export async function addSection(localPage: string, box: { x: number; y: number;
   const id = engine.freeFrameId("section", frames.filter((frame) => frame.name === "Section").map((frame) => String(literal(frame, "id") ?? "")));
   const code = engine.sectionCode({ id, title: `Section ${id.split("-").at(-1)}`, x: box.x, y: box.y, width: Math.max(100, box.width), height: Math.max(100, box.height) });
   const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code, index: 0 } as EditOp] }, label);
+  joinPin(pinned, response, label);
   if (!response.ok) return null;
   const frameId = `section:${id}`;
   selectFrameWhenShown(frameId, (shown) => studioStore.setState({ selection: { kind: "frame", frameId: shown } }));
@@ -99,7 +104,9 @@ export async function addSection(localPage: string, box: { x: number; y: number;
 export async function addSlice(localPage: string, box: { x: number; y: number; width: number; height: number }): Promise<string | null> {
   let board = await readBoard(localPage);
   if (!board) return null;
-  if (board.frames.some((frame) => frame.name !== "Section" && frame.name !== "Slice" && literal(frame, "x") === undefined)) {
+  // Frames still in the row are pinned first, in the same undo step (frameEdit.ts joinPin).
+  const pinned = board.frames.some((frame) => frame.name !== "Section" && frame.name !== "Slice" && literal(frame, "x") === undefined) ? { text: board.text, hash: board.engine.sha1(board.text) } : null;
+  if (pinned) {
     if (!(await pinRow(localPage))) return null;
     board = await readBoard(localPage);
     if (!board) return null;
@@ -108,6 +115,7 @@ export async function addSlice(localPage: string, box: { x: number; y: number; w
   const id = engine.freeFrameId("slice", frames.filter((frame) => frame.name === "Slice").map((frame) => String(literal(frame, "id") ?? "")));
   const code = engine.sliceCode({ id, title: `Slice ${id.split("-").at(-1)}`, x: box.x, y: box.y, width: Math.max(1, box.width), height: Math.max(1, box.height) });
   const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code } as EditOp] }, "Add slice");
+  joinPin(pinned, response, "Add slice");
   if (!response.ok) return null;
   const frameId = `slice:${id}`;
   selectFrameWhenShown(frameId, (shown) => studioStore.setState({ selection: { kind: "frame", frameId: shown } }));
@@ -121,11 +129,13 @@ export async function wrapInSection(localPage: string, frameIds: readonly string
   return around ? addSection(localPage, around, "Wrap in new section") : null;
 }
 
-export async function addFrame(localPage: string, kind: "screen" | "overlay", { place, width, height, device: drawn, layout, name, empty: bare, holds }: Placement = {}): Promise<boolean> {
+export async function addFrame(localPage: string, kind: "screen" | "overlay", { place, width, height, device: drawn, layout, name, empty: bare, holds, content, label }: Placement = {}): Promise<boolean> {
   let board = await readBoard(localPage);
   if (!board) return false;
-  // A frame with a place of its own: the frames still in the row are pinned first, so none of them moves.
-  if (place && board.frames.some((frame) => literal(frame, "x") === undefined)) {
+  // A frame with a place of its own: the frames still in the row are pinned first, so none of them moves (the same undo
+  // step: frameEdit.ts joinPin).
+  const pinned = place && board.frames.some((frame) => literal(frame, "x") === undefined) ? { text: board.text, hash: board.engine.sha1(board.text) } : null;
+  if (pinned) {
     if (!(await pinRow(localPage))) return false;
     board = await readBoard(localPage);
     if (!board) return false;
@@ -139,8 +149,12 @@ export async function addFrame(localPage: string, kind: "screen" | "overlay", { 
   // A drawn or picked Screen is empty, as Figma's frame (no app frame, nothing in it: the AppShell is the person's choice,
   // user 2026-10-18); the Prototype panel's Add screen still comes with the app frame.
   const empty = bare ?? width !== undefined;
-  const code = engine.frameCode({ kind, id, title, device, layout, chrome: !empty, empty, holds, ...(place ? { x: place.x, y: place.y } : {}), ...(width !== undefined ? { width, height } : {}) });
-  const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code } as EditOp] }, kind === "screen" ? (width !== undefined ? (name ? `Add ${name}` : "Draw frame") : "Add screen") : "Add overlay");
+  const frame = engine.frameCode({ kind, id, title, device, layout, chrome: !empty, empty, holds, ...(place ? { x: place.x, y: place.y } : {}), ...(width !== undefined ? { width, height } : {}) });
+  // An empty Screen is one self-closing tag: the content goes inside it, one level in.
+  const code = content && kind === "screen" && empty ? `${frame.replace(/\s*\/>$/, ">")}\n${content.split("\n").map((line) => (line ? `  ${line}` : line)).join("\n")}\n</Screen>` : frame;
+  const named = label ?? (kind === "screen" ? (width !== undefined ? (name ? `Add ${name}` : "Draw frame") : "Add screen") : "Add overlay");
+  const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code } as EditOp] }, named);
+  joinPin(pinned, response, named);
   if (response.ok && place) selectFrameWhenShown(`${kind}:${id}`, (frameId) => studioStore.setState({ selection: { kind: "frame", frameId } }));
   return Boolean(response.ok);
 }

@@ -133,7 +133,9 @@ Components own their inner padding and gap; never change them. Between elements,
 | Nothing to show | `Empty-State` | an empty table |
 | Loading | `Skeleton/*` | a spinner over the page |
 | A record's side details | `Side-Panel` | a Modal for reading |
-| Confirm or a short form | `Modal/Dialog`, `Modal/Forms` | a Side-Panel |
+| A notice or a quick confirm (one field at most) | `Modal/Dialog` | a Modal/Forms |
+| A data-entry form (two or more fields), desktop or tablet | `Modal/Forms`, its Actions `Direction=Horizontal`, the Side-Content no taller than the form | a Modal/Dialog, a Side-Panel |
+| A form on a phone | `Bottom Sheet` (title, the fields, the actions in its footer) | `Modal/Forms` (it has no Mobile device) |
 | Back on phone and tablet | the left chevron in `Top-Navigation/Mobile` | an arrow |
 
 Pick each component's guideline (`guidelines/<slug>.md`) before placing it.

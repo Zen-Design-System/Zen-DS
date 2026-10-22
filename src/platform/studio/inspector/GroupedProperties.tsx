@@ -11,7 +11,7 @@ import { NestedInstanceGroup } from "./NestedProperties";
 import type { NestedInstances } from "./nestedInstances";
 import { computedDefault, idleNotes } from "./computedDefaults";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
-import { entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, holds, isCodeProp, isSetValue, placedProps, type ComponentGroups, type GroupToggle, type PropEntry } from "./propGroups";
+import { codeOnlyProps, entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, holds, isSetValue, placedProps, type ComponentGroups, type GroupToggle, type PropEntry } from "./propGroups";
 import { PropField } from "./PropField";
 import { propLabel, type PropSpec, type PropValue } from "./propSchema";
 import { savedSetProp } from "./writePlan";
@@ -19,7 +19,6 @@ import { InspectorSection } from "./Section";
 import "./nested.css";
 import { canHideSrc, slotSwitchOp, slotsOffValue } from "../edit/visibility";
 import { HIDDEN_SLOTS_PROP } from "../../../../tools/studio/visibility.mjs";
-import { CodeProperties } from "./CodeProperties";
 
 /*
  * The Properties section of a component with Figma groups (propGroups.ts): its own properties and booleans, then one
@@ -143,7 +142,7 @@ export function ToggleRow({ toggle, on: rendered, value, api, selection, element
   );
 }
 
-export function GroupedProperties({ groups, selection, element, api, specs, shaped, note, rendered, nested }: {
+export function GroupedProperties({ groups, selection, element, api, specs, shaped, note, rendered, nested, view = "design" }: {
   groups: ComponentGroups;
   selection: NodeSelection;
   element: SourceElement;
@@ -157,6 +156,8 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
   rendered: Record<string, unknown> | undefined;
   /** Its nested instances (DesignPanel reads them once: Reset all overrides plans theirs too). */
   nested: NestedInstances;
+  /** "design": Figma's Properties section; "code": only the code-only rows, for the Code tab's Properties (CodePanel). */
+  view?: "design" | "code";
 }) {
   const props = conditionProps(rendered, element);
   const component = element.name;
@@ -172,10 +173,10 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
   // "3") shows while its boolean is on, and only where its layer exists (as the boolean row itself).
   const toggleOf = new Map(groups.toggles.map((toggle) => [toggle.prop, toggle]));
   const leftover = specs.map((spec) => spec.name).filter((name) => !placed.has(name));
-  // What only code reads (the HTML element, ids, links, accessibility names) goes to Code properties, closed, so the
-  // panel reads as Figma's instance panel (user, 2026-10-17: "chưa giống 100% component trên figma"); content and state
-  // stay here, a boolean's own value while its boolean is on.
-  const codeOnly: PropEntry[] = leftover.filter((name) => !toggleOf.has(name) && isCodeProp(name));
+  // What only code reads (the HTML element, ids, links, accessibility names) is on the Code tab, so the Design tab reads
+  // as Figma's instance panel (user, 2026-10-17: "chưa giống 100% component trên figma"); content and state stay here, a
+  // boolean's own value while its boolean is on.
+  const codeOnly: PropEntry[] = codeOnlyProps(groups, leftover);
   // A number Figma names in steps (Progress-Bar Progress) is a select among the variants; the number keeps its own field
   // here, for a value between the steps (user 2026-10-19: "thêm ô chọn Progress cho ProgressBar").
   const stepped = groups.own.filter((entry) => entryOptions(entry) && specOf(entryProp(entry))?.editor.kind === "number").map(entryProp);
@@ -242,6 +243,7 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
     );
   };
 
+  if (view === "code") return rows(codeOnly, "code");
   const toggles = groups.toggles.filter((toggle) => holds(toggle.when, props));
   return (
     <InspectorSection title="Properties" note={note}>
@@ -250,7 +252,6 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
         <ToggleRow key={toggle.label} toggle={toggle} on={isSetValue(props[toggle.prop])} value={api.valueFor(toggle.prop)} api={api} selection={selection} element={element} />
       ))}
       {rows(after, "after")}
-      <CodeProperties count={codeOnly.filter((entry) => entryShown(entry, props)).length}>{rows(codeOnly, "code")}</CodeProperties>
       {groups.nested.filter((group) => holds(group.when, props)).map((group) => (
         <div key={group.name} role="group" aria-label={group.name} className="studio-group">
           <div className="studio-group__header">

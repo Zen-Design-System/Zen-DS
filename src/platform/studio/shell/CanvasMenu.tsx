@@ -1,4 +1,4 @@
-import { startPlay } from "../builder/proto/Player";
+import { playStartOf, startPlay } from "../builder/proto/playStart";
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
 import { Menu, type MenuEntry, type MenuItemData } from "../../../components/Menu";
 import { ZenPortalProvider } from "../../../components/Portal";
@@ -13,12 +13,15 @@ import { clipboardActions, clipboardMenuItems, clipboardShortcuts, pasteHereItem
 import { copyAsCode, copyAsCss, copyAsPng, copyAsPngShortcut, copyAsSvg } from "../edit/copyAs";
 import { groupSelection, inMaskGroup, maskSelection, ungroupSelection } from "../edit/groupLayers";
 import { booleanSelection, flattenSelection, outlineStrokeSelection } from "../edit/pathOps";
+import type { SameKind } from "../edit/matchModel";
+import { SAME_LABELS, selectAllWithSame, selectMatchingLayers, selectMatchingShortcut } from "../edit/selectMatching";
 import { selectedFrames } from "../select/frameSelection";
 import { findBySrc } from "../select/picker";
 import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
 import { toggleIgnoreAutoLayout } from "../edit/ignoreAutoLayout";
 import { visibilityMenuItems } from "../edit/visibility";
 import { lockMenuItems } from "../edit/lock";
+import { flipMenuItems } from "../edit/flipLayers";
 import { renameShortcut, startRename } from "../edit/rename";
 import { findFrame } from "../board/frames";
 import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
@@ -31,6 +34,7 @@ import { maskShortcut, modKey, presentShortcut } from "./modKey";
 import { combineAsVariants, createComponent, createComponentOfLayers, createComponents, goToMain, pushChangesToMain, resetInstance } from "../edit/localComponents";
 import { goToZenMain, instanceActionsFor, instanceActionsVersion, mainPageOf, subscribeInstanceActions } from "../inspector/instanceActions";
 import { removeFrames, wrapInSection } from "../builder/proto/addFrame";
+import { boardPasteItems, boardPasteReady } from "../builder/boardPaste";
 import { canEdit, studioStore } from "../store";
 import { useChromeAttributes } from "./ChromeScope";
 import type { StudioSelection } from "../types";
@@ -40,11 +44,11 @@ import "./shell.css";
  * The canvas context menu (right-click, Select tool), like Figma's, for what is under the pointer:
  * - a layer: Copy, Cut, Paste, Paste to replace, Copy / Paste properties (edit/clipboard.ts), Add to {Slot}…, Duplicate,
  *   Move up / down (slots/menu.ts), Add auto layout ⇧A / Remove auto layout ⌥⇧A / Frame selection ⌥⌘G (edit/autoLayout.ts,
- *   select/wrapSelection.ts), Detach instance, then
- *   Remove (destructive, last);
+ *   select/wrapSelection.ts), Show / Hide, Lock, Flip horizontal ⇧H / vertical ⇧V (edit/flipLayers.ts), Detach
+ *   instance, then Remove (destructive, last);
  * - several selected layers: Copy, Cut, Duplicate, Move up / down, Remove for all of them (edit/multi.ts), then the wrap items;
  * - a frame: Zoom to frame, Present, Zoom to fit;
- * - the empty canvas: Zoom to fit, Zoom to 100%, Hide / show UI.
+ * - the empty canvas: Paste here on a page you made (builder/boardPaste.ts), Zoom to fit, Zoom to 100%, Hide / show UI.
  * The selection layer opens it at the pointer; it renders in its own window-sized layer (chrome modes) and anchors to
  * an invisible point there, moved up when the menu is taller than the room on either side (Figma keeps it whole).
  */
@@ -54,7 +58,7 @@ type MenuTarget = { kind: "node"; selection: NodeSelection } | { kind: "frame"; 
 /** A layer under the pointer that "Select layer" offers (Figma's submenu): its name and how to select it. */
 export type LayerUnderPointer = { name: string; icon: IconName; selected: boolean; select: () => void };
 /** `listing`: the menu shows only the layers under the pointer ("Select layer ›" chosen). */
-type MenuState = { x: number; y: number; target: MenuTarget; at: number; layers?: readonly LayerUnderPointer[]; listing?: boolean; copyAs?: boolean };
+type MenuState = { x: number; y: number; target: MenuTarget; at: number; layers?: readonly LayerUnderPointer[]; listing?: boolean; copyAs?: boolean; same?: boolean };
 /** What Menu's placement keeps between the anchor and the window edge: its 8px margin, its 4px gap and the 1px anchor
  * (.studio-canvas-menu__anchor). Leaving out the gap and the anchor made Menu find 5px too little room below the moved
  * anchor and open the menu above it, cut off by the window's top (2026-10-09). */
@@ -118,6 +122,15 @@ export function CanvasMenu() {
     return () => { alive = false; };
   }, [menu, offered, selection]);
 
+  // Paste here on the empty canvas is on when something can be pasted (the clipboard may take a moment to read).
+  const [pasteReady, setPasteReady] = useState<{ at: number; ready: boolean } | null>(null);
+  useEffect(() => {
+    if (menu?.target.kind !== "canvas") return undefined;
+    let alive = true;
+    void boardPasteReady().then((ready) => { if (alive) setPasteReady({ at: menu.at, ready }); });
+    return () => { alive = false; };
+  }, [menu]);
+
   const reply = plan && menu && plan.at === menu.at ? plan.reply : null;
   const reason = !selection ? null
     : !canEdit() ? (studioStore.getState().role === "admin" ? "Can't detach right now" : "View only")
@@ -155,7 +168,8 @@ export function CanvasMenu() {
   // Show / Hide (⇧⌘H) and one layout only, on a page made in the Studio (edit/visibility.ts).
   // Show / Hide, Lock / Unlock and Rename, as Figma's layer menu (edit/visibility.ts, edit/lock.ts, edit/rename.ts).
   const renameItem = (label: string): MenuItemData => ({ id: "rename", label, icon: "icon-text-input-line", shortcut: renameShortcut, disabled: Boolean(canEdit() ? undefined : "View only"), onSelect: () => { requestAnimationFrame(startRename); } });
-  const visibility: MenuEntry[] = menu?.target.kind === "node" ? [...visibilityMenuItems(selection), ...lockMenuItems(selection), ...(studioStore.getState().localPage && selection && !selection.part ? [renameItem("Rename")] : [])] : [];
+  // Flip horizontal ⇧H / vertical ⇧V after Lock, as in Figma's layer menu (edit/flipLayers.ts).
+  const visibility: MenuEntry[] = menu?.target.kind === "node" ? [...visibilityMenuItems(selection), ...lockMenuItems(selection), ...flipMenuItems(), ...(studioStore.getState().localPage && selection && !selection.part ? [renameItem("Rename")] : [])] : [];
   // Copy / Cut / Paste / Paste to replace / properties first, as in Figma's layer menu (edit/clipboard.ts).
   const clipboard = clipboardMenuItems(selection, menu ? { x: menu.x, y: menu.y } : null);
   // Figma's Copy/Paste as ›: one item opens the list in place (the Menu has no submenus), as Select layer does (F3).
@@ -183,6 +197,7 @@ export function CanvasMenu() {
     // Floats every selected Stack / Grid / Box at its own offsets (or puts them back in the flow): edit/ignoreAutoLayout.ts.
     { id: "multi-float", label: "Ignore auto layout", icon: "icon-transform-line", disabled: Boolean(editOff), caption: editOff, onSelect: () => { void toggleIgnoreAutoLayout(); } },
     ...lockMenuItems(selection),
+    ...flipMenuItems(),
     ...(studioStore.getState().localPage ? [renameItem("Rename…")] : []),
     // Figma's boolean groups and Flatten on several shapes of a page you made (edit/pathOps.ts, F9b).
     ...(studioStore.getState().localPage && extraShapes() ? [
@@ -236,8 +251,9 @@ export function CanvasMenu() {
     // Figma's Copy as PNG / SVG of a frame: its body as a picture or as SVG markup (edit/copyAs.ts).
     { id: "frame-copy-png", label: "Copy as PNG", icon: "icon-image-line" as const, shortcut: copyAsPngShortcut, onSelect: () => { void copyAsPng({ kind: "frame", frameId: frame.id }); } },
     { id: "frame-copy-svg", label: "Copy as SVG", icon: "icon-code-02-line" as const, onSelect: () => { void copyAsSvg({ kind: "frame", frameId: frame.id }); } },
-    // Present plays a page you made from this Screen (Figma's Present runs the prototype); an example frame is presented.
-    ...(!section && (localPage || frame.id.startsWith("example:")) ? [{ id: "frame-present", label: "Present", icon: "icon-play-line" as const, shortcut: presentShortcut, onSelect: () => (localPage ? startPlay(frame.id.startsWith("screen:") ? frame.id.split(":")[1] : null) : presentFrame(frame.id)) }] : []),
+    // Present plays a page you made from this Screen, or opens this Overlay over the Screen that opens it (Figma's Present
+    // runs the prototype); an example frame is presented.
+    ...(!section && (localPage || frame.id.startsWith("example:")) ? [{ id: "frame-present", label: "Present", icon: "icon-play-line" as const, shortcut: presentShortcut, onSelect: () => (localPage ? startPlay(playStartOf(frame.id)) : presentFrame(frame.id)) }] : []),
     // A frame of a page you made: its code and its Figma export on the clipboard (⌘V in the Zen plugin places it).
     ...(localPage && !section ? [{ id: "frame-copy-figma", label: "Copy for Figma", icon: "icon-copy-line" as const, onSelect: () => { void copyFrameForFigma(localPage, frame.id); } }] : []),
     // A builder page that starts as this example or template (GĐ3b): kept in this browser, so it needs no dev server.
@@ -255,7 +271,10 @@ export function CanvasMenu() {
       { id: "frame-delete", label: "Delete", icon: "icon-trash-line" as const, shortcut: removeShortcut, danger: true, disabled: Boolean(editOff), onSelect: () => { void removeFrames(localPage, framesOf(frame.id)); } },
     ] : []),
   ] : [];
+  // Figma's Paste here: what was copied last, on the board with its corner at the pointer (builder/boardPaste.ts).
+  const boardPaste = menu ? boardPasteItems({ x: menu.x, y: menu.y }, Boolean(pasteReady && pasteReady.at === menu.at && pasteReady.ready)) : [];
   const canvasItems: MenuEntry[] = [
+    ...(boardPaste.length ? [...boardPaste, { type: "separator" as const, id: "canvas-paste-separator" }] : []),
     { id: "canvas-fit", label: "Zoom to fit", icon: "icon-expand-04-line", shortcut: "⇧1", onSelect: () => canvasApi.fit() },
     { id: "canvas-100", label: "Zoom to 100%", icon: "icon-zoom-in-line", shortcut: "⇧0", onSelect: () => canvasApi.setZoom(1) },
     { type: "separator", id: "canvas-separator" },
@@ -269,13 +288,24 @@ export function CanvasMenu() {
     { id: "select-layer", label: "Select layer", icon: "icon-layers-three-01-line", shortcut: "›", onSelect: () => { const current = menu; window.setTimeout(() => set({ ...current, listing: true, at: Date.now() }), 0); } },
     { type: "separator", id: "select-layer-separator" },
   ] : [];
+  // Figma's Select matching layers (⌥⌘A) and Select all with same › on a page you made (edit/selectMatching.ts). The
+  // list opens in place, as Select layer and Copy as do.
+  const matchable = Boolean(menu && selection && !selection.part && studioStore.getState().localPage);
+  const selectItems: MenuEntry[] = matchable && menu ? [
+    { id: "select-matching", label: "Select matching layers", icon: "icon-target-04-line", shortcut: selectMatchingShortcut, onSelect: () => { selectMatchingLayers(); } },
+    { id: "select-same", label: "Select all with same", icon: "icon-layers-three-01-line", shortcut: "›", onSelect: () => { const current = menu; window.setTimeout(() => set({ ...current, same: true, at: Date.now() }), 0); } },
+    { type: "separator", id: "select-same-separator" },
+  ] : [];
+  const SAME_ICONS: Readonly<Record<SameKind, IconName>> = { properties: "icon-sliders-01-line", fill: "icon-droplets-01-line", stroke: "icon-circle-line", effect: "icon-stars-01-line", text: "icon-type-square-line", font: "icon-type-01-line", instance: "icon-diamond-line" };
+  const sameItems: MenuEntry[] = [{ type: "group", id: "select-same-list", label: "Select all with same", items: (Object.keys(SAME_LABELS) as SameKind[]).map((kind) => ({ id: `select-same-${kind}`, label: SAME_LABELS[kind], icon: SAME_ICONS[kind], onSelect: () => { selectAllWithSame(kind); } })) }];
   const layerItems: MenuEntry[] = [{ type: "group", id: "select-layer-list", label: "Select layer", items: under.map((layer, index) => ({ id: `select-layer-${index}`, label: layer.name, icon: layer.icon, caption: layer.selected ? "Selected" : undefined, onSelect: layer.select })) }];
   const entries: MenuEntry[] = menu?.listing ? layerItems
     : menu?.copyAs ? copyAsItems
+    : menu?.same ? sameItems
     : menu?.target.kind === "canvas" ? canvasItems
     : menu?.target.kind === "frame" ? frameItems
       : several ? severalItems
-        : [...selectLayer, ...clipboard, ...copyAsEntry, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...componentItems, ...zenInstanceItems, ...shapeItems, ...visibility, ...(offered ? [detach] : []), ...slotItems.trailing];
+        : [...selectLayer, ...selectItems, ...clipboard, ...copyAsEntry, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...componentItems, ...zenInstanceItems, ...shapeItems, ...visibility, ...(offered ? [detach] : []), ...slotItems.trailing];
   // A disabled item shows its label only, as Figma's menu does: no reason line under it (user, 2026-10-09).
   const items = entries.map((entry) => ("disabled" in entry && entry.disabled && entry.caption ? { ...entry, caption: undefined } : entry));
 
@@ -315,7 +345,7 @@ export function CanvasMenu() {
         <Menu
           open={Boolean(menu)}
           onOpenChange={(open) => { if (!open) set(null); }}
-          aria-label={menu?.listing ? "Select layer" : menu?.target.kind === "canvas" ? "Canvas actions" : frame ? `${frame.label} actions` : several ? "Selection actions" : selection ? `${selection.name} actions` : "Layer actions"}
+          aria-label={menu?.listing ? "Select layer" : menu?.same ? "Select all with same" : menu?.target.kind === "canvas" ? "Canvas actions" : frame ? `${frame.label} actions` : several ? "Selection actions" : selection ? `${selection.name} actions` : "Layer actions"}
           items={items}
           trigger={<button type="button" tabIndex={-1} aria-label="Canvas menu" className="studio-canvas-menu__anchor" style={{ left: point.x, top: anchorY ?? point.y }} />}
         />
