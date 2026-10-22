@@ -500,12 +500,12 @@ export function StudioApp() {
           && target.getAttribute("aria-expanded") !== "true");
         const here = !target || target === document.body || target.matches(".studio-viewport") || inspectorControl
           || Boolean(row && row === target && (row.getAttribute("data-kind") === "node" || row.getAttribute("data-kind") === "part") && row.getAttribute("aria-selected") === "true");
-        // A selected Screen or Overlay of a page you made goes as one edit (Figma deletes a selected frame), also from its
+        // A selected Screen, Overlay, Section or Slice of a page you made goes as one edit (Figma deletes a selected frame), also from its
         // name on the canvas (a button the click focused) or its selected row in Layers.
         const onFrame = here || Boolean(target?.closest(".studio-frame-label[data-selected='true']"))
           || Boolean(row && row === target && row.getAttribute("data-kind") === "frame" && row.getAttribute("aria-selected") === "true");
         if (!doc && !event.repeat && !event.shiftKey && onFrame && state.tool === "select" && selection?.kind === "frame" && state.localPage
-          && /^(screen|overlay|section):/.test(selection.frameId) && canEdit(state)) {
+          && /^(screen|overlay|section|slice):/.test(selection.frameId) && canEdit(state)) {
           event.preventDefault();
           // Every selected frame in one edit (F2c's several frames); a Section goes with its frames (⌘⌫ keeps them: the
           // ⌘ keys above).
@@ -583,7 +583,8 @@ export function StudioApp() {
       if (key === "v") studioStore.setState({ tool: "select" });
       else if (key === "h") studioStore.setState({ tool: "hand" });
       // K: Figma's Scale tool, on a page you made (draw/ScalePanel.tsx); K again puts the focus in its factor.
-      else if (key === "k" && state.localPage) { if (state.tool === "scale") focusScaleField(); else studioStore.setState({ tool: "scale" }); }
+      // The key's own letter never lands in the factor, which takes the focus while it is down.
+      else if (key === "k" && state.localPage) { event.preventDefault(); if (state.tool === "scale") focusScaleField(); else studioStore.setState({ tool: "scale" }); }
       else if (key === "i") studioStore.setState({ tool: "interact" });
       // Figma's A is the Frame tool too (on a page you made; elsewhere the Stack placement tool); T places text.
       else if (key === "a") studioStore.setState({ tool: state.localPage ? "frame" : "stack" });
