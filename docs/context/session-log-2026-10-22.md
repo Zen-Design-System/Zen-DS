@@ -184,3 +184,10 @@ E2E steps ran 3163–3377 s against that cap: the limit was sent to `npm`, not t
   first.
 - **After the fixes:** FW-05 and FW-180…186 pass 8/8; tsc, studio:selftest and the CI quick steps are green.
 - **PRs:** #215 smoothing → main, #216 gradient → #215, #217 Pick color → #216. Auto-fix is on.
+- **Live paste test (user's go, ~21:30):** a frame with linear, radial and angular gradients plus a hugging linear Stack
+  (`cornerSmoothing={60}`) was ⌘V'd into the Zen file's QA page through Figma's direct paste. All four landed with
+  every stop bound to its variable (Accent/Solid, Info/Solid), smoothing 0.6 and radius 16. It also showed a Shape of
+  width 200 or 80 pasted 1392 wide, an old bug on main: the push let a column's stretch give a shape `fillW`. Fixed on
+  the smoothing branch (figma-push `ownW`/`ownH` cover shapes, plus a selftest); the decoded clipboard now carries
+  200 / 80 with no STRETCH. No second paste: by then the user was working in another Figma file. The test frame was
+  removed (no node left on any page) and the clipboard put back as it was (empty). BACKLOG's gradient-paste P3 is closed.
