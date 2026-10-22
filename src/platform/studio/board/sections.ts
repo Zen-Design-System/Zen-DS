@@ -32,10 +32,14 @@ const middleIn = (box: BoardBox, area: BoardBox) => {
 /** The Section `box` belongs to among `boxes`: the smallest other Section its middle lies in, or null. */
 export function sectionAround(box: BoardBox, boxes: readonly BoardBox[]): string | null {
   let best: BoardBox | null = null;
+  const own = box.width * box.height;
+  const order = boxes.indexOf(box);
   for (const area of boxes) {
     if (!isSectionId(area.id) || area.id === box.id || !middleIn(box, area)) continue;
-    // A Section never holds one larger than itself (two of the same size: the one written first holds).
-    if (isSectionId(box.id) && area.width * area.height < box.width * box.height) continue;
+    // A Section never holds one larger than itself; of two the same size (a copy that just landed on its original:
+    // ⌘D, ⌥-drag) the one written first holds, never both each other (that loop overflowed sectionContents' walk).
+    const size = area.width * area.height;
+    if (isSectionId(box.id) && (size < own || (size === own && boxes.indexOf(area) > order))) continue;
     if (!best || area.width * area.height < best.width * best.height) best = area;
   }
   return best?.id ?? null;
@@ -61,7 +65,16 @@ export function sectionMembers(boxes: readonly BoardBox[] = boardBoxes()): Map<s
 export function sectionContents(sectionId: string, boxes: readonly BoardBox[] = boardBoxes()): string[] {
   const members = sectionMembers(boxes);
   const out: string[] = [];
-  const walk = (id: string) => { for (const member of members.get(id) ?? []) { out.push(member); walk(member); } };
+  // Each layer once, whatever the boxes say (a member that came round again is not walked twice).
+  const seen = new Set([sectionId]);
+  const walk = (id: string) => {
+    for (const member of members.get(id) ?? []) {
+      if (seen.has(member)) continue;
+      seen.add(member);
+      out.push(member);
+      walk(member);
+    }
+  };
   walk(sectionId);
   return out;
 }
