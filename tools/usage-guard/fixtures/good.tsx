@@ -77,6 +77,8 @@ export const Good = () => <>
   <Dialog open={open} onOpenChange={setOpen} theme="negative" title="Delete this project?" primaryAction={{ label: "Delete project", level: "danger" }}><Form onSubmit={remove}><InputField label="Project name" /></Form></Dialog>
   <PlatformPhone label="New task"><BottomSheet open title="New task"><InputField label="Title" size="lg" /><DateField label="Due" size="lg" /></BottomSheet></PlatformPhone>
   <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }}><Card theme="on-container">Brief</Card></SidePanel>
+  <ListBox theme="pale" color="green"><List aria-label="Approved"><ListItem title="Time off" /></List></ListBox>
+  <ListBox theme="border" surface="alt"><List aria-label="Files"><ListItem title="Brief.pdf" /></List></ListBox>
   <Dialog open={open} onOpenChange={setOpen} title="Project"><Card theme="on-container"><ListBox theme="border"><List aria-label="Files"><ListItem title="Brief.pdf" /></List></ListBox></Card></Dialog>
   <BottomSheet open={open} onOpenChange={setOpen} title="Members"><ListBox theme="on-container"><List aria-label="Members"><ListItem title="Ava Chen" /></List></ListBox></BottomSheet>
   <ListBox><List aria-label="Recent"><ListItem title="Brief.pdf" /></List></ListBox>
@@ -85,11 +87,11 @@ export const Good = () => <>
   <ListBox footer={<Stack direction="row" gap="xs" align="center"><Button onClick={openInbox}>Go to Inbox</Button><Button onClick={archiveAll}>Archive all</Button></Stack>}><List aria-label="Messages"><ListItem title="Sarah Kim" /></List></ListBox>
   <ListBox footer={<Text textStyle="Body/Small/Regular" tone="light">Updated 2 minutes ago</Text>}><List aria-label="Activity"><ListItem title="Brief shared" /></List></ListBox>
   {/* listbox/closing-list-on-phone: the closing list is open; a ListBox stays when content follows it, in a widget grid, or in grouped lists (§15). */}
-  <PlatformPhone label="Wallet"><Stack gap="lg"><Card theme="flat">Balance</Card><Box paddingX="lg"><List aria-label="Transactions"><ListItem title="From Sea Group" /></List></Box></Stack></PlatformPhone>
-  <PlatformPhone label="Files"><Stack gap="lg"><ListBox><List aria-label="Pinned"><ListItem title="Brief.pdf" /></List></ListBox><Card theme="flat">Storage</Card></Stack></PlatformPhone>
-  <PlatformPhone label="Home"><Grid columns={2} gap="sm"><Card theme="flat">Energy</Card><ListBox><List aria-label="Rooms"><ListItem title="Kitchen" /></List></ListBox></Grid></PlatformPhone>
+  <PlatformPhone label="Wallet"><Stack gap="lg"><Card theme="default">Balance</Card><Box paddingX="lg"><List aria-label="Transactions"><ListItem title="From Sea Group" /></List></Box></Stack></PlatformPhone>
+  <PlatformPhone label="Files"><Stack gap="lg"><ListBox><List aria-label="Pinned"><ListItem title="Brief.pdf" /></List></ListBox><Card theme="default">Storage</Card></Stack></PlatformPhone>
+  <PlatformPhone label="Home"><Grid columns={2} gap="sm"><Card theme="default">Energy</Card><ListBox><List aria-label="Rooms"><ListItem title="Kitchen" /></List></ListBox></Grid></PlatformPhone>
   <PlatformPhone label="Account"><Stack gap="lg"><ListBox><List aria-label="Account"><ListItem title="Profile" /></List></ListBox><ListBox><List aria-label="Privacy"><ListItem title="Blocked people" /></List></ListBox></Stack></PlatformPhone>
-  <PlatformPhone label="Focus"><Stack gap="lg"><Stack gap="xs"><Box paddingX="lg"><Text textStyle="Body/Small/Bold" tone="light">Turn on automatically</Text></Box><Card theme="flat">Weeknights</Card></Stack><Stack gap="xs"><Box paddingX="lg"><Text textStyle="Body/Small/Bold" tone="light">Allowed while on</Text></Box><ListBox><List aria-label="Allowed while on"><ListItem title="Ava Chen" /></List></ListBox></Stack></Stack></PlatformPhone>
+  <PlatformPhone label="Focus"><Stack gap="lg"><Stack gap="xs"><Box paddingX="lg"><Text textStyle="Body/Small/Bold" tone="light">Turn on automatically</Text></Box><Card theme="default">Weeknights</Card></Stack><Stack gap="xs"><Box paddingX="lg"><Text textStyle="Body/Small/Bold" tone="light">Allowed while on</Text></Box><ListBox><List aria-label="Allowed while on"><ListItem title="Ava Chen" /></List></ListBox></Stack></Stack></PlatformPhone>
   <Screen id="screen-desk" title="Tasks" device="desktop"><ListBox><List aria-label="Tasks"><ListItem title="Review the brief" /></List></ListBox></Screen>
   <Accordion title="Billing">Invoices are emailed monthly.</Accordion>
   <Pagination page={1} onPageChange={setPage} pageCount={10} />
@@ -126,14 +128,14 @@ export const Good = () => <>
   <Grid columns={4} gap="md"><MetricCard label="Revenue" value="$12.4K" /><MetricCard label="Orders" value="320" /><MetricCard label="Refunds" value="4" /><MetricCard label="Visitors" value="9.1K" /></Grid>
   <PlatformPhone label="Energy"><Grid columns={3} gap="sm"><MetricCard spacing="small" label="Today" value="12 kWh" /><MetricCard spacing="small" label="Week" value="80 kWh" /><MetricCard spacing="small" label="Month" value="320 kWh" /></Grid></PlatformPhone>
   <PlatformPhone label="Stats"><Grid columns={2} gap="sm"><MetricCard type="tile" label="Success rate" value="56%" /><MetricCard type="tile" label="Sessions" value="1.2K" /></Grid></PlatformPhone>
-  <PlatformPhone label="Voice"><Stack gap="md"><Card theme="flat" spacing="small"><VoiceRecorder state="ready" onRecord={record} onPause={pause} onResume={resume} onFinish={finish} onDiscard={discard} /></Card></Stack></PlatformPhone>
+  <PlatformPhone label="Voice"><Stack gap="md"><Card theme="default" spacing="small"><VoiceRecorder state="ready" onRecord={record} onPause={pause} onResume={resume} onFinish={finish} onDiscard={discard} /></Card></Stack></PlatformPhone>
   <div><Card onClick={open} aria-label="Zen website"><Text>Zen website</Text></Card></div>
   <div><Card theme="pale" color="violet"><Text>Design hours</Text></Card></div>
   <AppShell sidebar={null}><Card theme="subtle" color="cyan"><Text>Invoiced</Text></Card></AppShell>
   <AppShell sidebar={null} canvas="alt"><Card theme="pale" color="cyan"><Text>Invoiced</Text></Card></AppShell>
   <PlatformPhone label="Budget" canvas="alt"><MetricCard theme="pale" color="green" label="Saved" value="$1,240" /></PlatformPhone>
   <div><Card theme="solid" color="neutral"><Text>Invoiced this year</Text></Card></div>
-  <div><Card theme="border" surface="flat"><Text>Hours this week</Text></Card></div>
+  <div><Card theme="flat-border"><Text>Hours this week</Text></Card></div>
   <div><Card theme="shadow" surface="alt"><Text>Outstanding</Text></Card></div>
   <MetricCard theme="solid" color="yellow" label="Next payout" value="$12,400" />
   <MetricCard theme="solid" color="accent" type="tile" label="Success rate" value="56%" trend={{ direction: "positive", label: "+24%" }} />
@@ -362,7 +364,7 @@ export const Good = () => <>
 </>;
 
 // A component's root card is judged where the component is used: three side by side take Small, one keeps Medium.
-function DeviceCard({ label }: { label: string }) { return <Card theme="flat" spacing="small">{label}</Card>; }
+function DeviceCard({ label }: { label: string }) { return <Card theme="default" spacing="small">{label}</Card>; }
 export const Devices = () => <PlatformPhone label="Devices"><Grid columns={3} gap="md"><DeviceCard label="HomePod mini" /><DeviceCard label="Ceiling light" /><DeviceCard label="Blinds" /></Grid></PlatformPhone>;
-function RoomsCard() { return <Card theme="flat">Rooms</Card>; }
+function RoomsCard() { return <Card theme="default">Rooms</Card>; }
 export const Home = () => <PlatformPhone label="Home"><Stack gap="md"><RoomsCard /></Stack></PlatformPhone>;

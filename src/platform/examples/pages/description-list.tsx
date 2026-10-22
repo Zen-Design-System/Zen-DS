@@ -81,7 +81,7 @@ function InvoiceTotal() {
     toast({ type: "positive", title: "Invoice sent", children: "To accounts@saola.vn", action: { label: "Undo", onClick: () => setStatus("Draft") } });
   };
   return (
-    <Card ref={cardRef} as="section" theme="flat" aria-labelledby={titleId}>
+    <Card ref={cardRef} as="section" theme="default" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Stack direction="row" gap="2xs" align="center" wrap>
@@ -144,7 +144,7 @@ function PaymentDetails() {
     timer.current = window.setTimeout(() => setCopied(null), 2000);
   };
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId}>
+    <Card as="section" theme="default" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Pay by bank transfer</Heading>
@@ -210,7 +210,7 @@ function ContactDetails() {
     close(editing);
   };
   return (
-    <Card ref={cardRef} as="section" theme="flat" aria-labelledby={titleId}>
+    <Card ref={cardRef} as="section" theme="default" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Contact details</Heading>
@@ -427,7 +427,7 @@ function ProjectPanels() {
           {/* The Body pads the page: the filter and the list start at the page margin, md apart. */}
           <Stack gap="md">
             <ChipGroup aria-label="Status" size="md" level="secondary" options={statusFilters} value={filter} onValueChange={setFilter} />
-            <ListBox as="section" theme="flat" aria-labelledby={listId}
+            <ListBox as="section" theme="default" aria-labelledby={listId}
               header={<Heading level={2} id={listId} textStyle="Heading/Subheading">{filter === "all" ? "All projects" : filter}</Heading>}>
               {shown.length ? (
                 <List aria-labelledby={listId}>
@@ -492,7 +492,7 @@ function TaskPage() {
           )}
         </Stack>
         {/* About 260px wide on a desktop page: the list inside is under the 280px stackBelow, so each term sits above its value. */}
-        <Card as="section" theme="flat" spacing="md" aria-labelledby={detailsId}>
+        <Card as="section" theme="default" spacing="md" aria-labelledby={detailsId}>
           <Stack gap="md">
             <Heading level={4} id={detailsId} textStyle="Heading/Subheading">Details</Heading>
             <DescriptionList items={[
@@ -796,7 +796,7 @@ const retry = () => { titleRef.current?.focus(); load(opened.id); };
   {/* The Body pads the page: the filter and the list start at the margin. */}
   <Stack gap="md">
     <ChipGroup aria-label="Status" size="md" level="secondary" options={statuses} value={filter} onValueChange={setFilter} />
-    <ListBox as="section" theme="flat" aria-labelledby="projects" header={<Heading level={2} id="projects" textStyle="Heading/Subheading">All projects</Heading>}>
+    <ListBox as="section" theme="default" aria-labelledby="projects" header={<Heading level={2} id="projects" textStyle="Heading/Subheading">All projects</Heading>}>
       <List aria-labelledby="projects">
         {shown.map((project) => (
           <ListItem key={project.id} title={project.name} caption={\`\${project.client} · \${lead(project)}\`} selected={project.id === openId}
@@ -821,7 +821,7 @@ const retry = () => { titleRef.current?.focus(); load(opened.id); };
       ? <Button level="tertiary" onClick={reopen}>Reopen task</Button>
       : <Button level="primary" onClick={markDone}>Mark as done</Button>}
   </Stack>
-  <Card as="section" theme="flat" aria-labelledby="details">
+  <Card as="section" theme="default" aria-labelledby="details">
     <Stack gap="md">
       <Heading level={4} id="details" textStyle="Heading/Subheading">Details</Heading>
       {/* Narrower than stackBelow (280px by default): each term sits above its value. */}

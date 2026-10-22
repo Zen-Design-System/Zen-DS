@@ -1425,9 +1425,9 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"solid\" | \"subtle\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"default\" | \"pale\" | \"border\" | \"flat-border\" | \"on-container\" | \"solid\" | \"subtle\" | \"semi-pale\"",
           "required": false,
-          "default": "\"flat\"",
+          "default": "\"default\"",
           "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",
           "deprecated": null
         },
@@ -1441,10 +1441,10 @@
         },
         {
           "name": "surface",
-          "type": "\"default\" | \"alt\" | \"flat\"",
+          "type": "\"default\" | \"alt\"",
           "required": false,
           "default": null,
-          "description": "Figma nested Card Surface: default · alt (Flat, Border) · flat (Border only, on a Canvas/Flat page); see Card.",
+          "description": "Figma nested Card Surface: default · alt (Default, Border); see Card. A chart on a Canvas/Flat page takes theme=\"flat-border\".",
           "deprecated": null
         },
         {

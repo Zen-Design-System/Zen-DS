@@ -50,7 +50,7 @@ function PhotoReview() {
     event.preventDefault();
   };
   return (
-    <Card theme="flat" width="fill" onKeyDown={onKeyDown}>
+    <Card theme="default" width="fill" onKeyDown={onKeyDown}>
       <Stack gap="md">
         <Stack direction="row" align="center" justify="between" gap="md" wrap>
           <Stack gap="xs">
@@ -96,7 +96,7 @@ function PaymentLink() {
     timer.current = window.setTimeout(() => setCopied(false), 1500);
   };
   return (
-    <Card theme="flat" width="fill">
+    <Card theme="default" width="fill">
       <Stack gap="md">
         <Stack gap="xs">
           <Stack direction="row" align="center" gap="2xs">

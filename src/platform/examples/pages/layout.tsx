@@ -370,7 +370,7 @@ function TemplateGallery() {
       {/* As many 240px columns as fit, with no breakpoints; every card stretches to the tallest in its row. */}
       <Grid as="ul" minColumnWidth={240} gap="md" aria-label="Project templates">
         {shown.map((template) => (
-          <Card as="li" key={template.id} theme="flat" className="px-layout-template">
+          <Card as="li" key={template.id} theme="default" className="px-layout-template">
             {/* Two groups lg apart, pushed to the top and bottom: the footers line up across the row. */}
             <Stack gap="lg" justify="between" className="px-layout-template-body">
               <Stack gap="md">
@@ -413,7 +413,7 @@ function ProfileSkills() {
     toast({ title: "Skill removed", children: skill, action: { label: "Undo", onClick: () => setSkills((list) => (list.includes(skill) ? list : [...list.slice(0, index), skill, ...list.slice(index)])) } });
   };
   return (
-    <Stack><Card as="section" theme="flat" width="fill" maxWidth={440} alignSelf="center" aria-labelledby={titleId}>
+    <Stack><Card as="section" theme="default" width="fill" maxWidth={440} alignSelf="center" aria-labelledby={titleId}>
       {/* Groups inside one surface lg apart; each kicker xs above its cluster. */}
       <Stack gap="lg">
         <Stack direction="row" gap="md" align="center">
@@ -566,7 +566,7 @@ function PhoneTasks() {
             <Heading level={2} textStyle="Heading/4">{task.title}</Heading>
             <Text textStyle="Body/Small/Regular" tone="base">{`${project.name} · ${project.client}`}</Text>
           </Stack>
-          <Card theme="flat">
+          <Card theme="default">
             <DescriptionList divider items={[
               { term: "Status", description: statusBadge(task.done ? "Done" : "To do") },
               { term: "Due", description: formatDay(whenDue[task.when]) },
@@ -973,7 +973,7 @@ function SettingsSection({ id, title, description, children }) {
   <Grid as="ul" minColumnWidth={240} gap="md" aria-label="Project templates">
     {shown.map((template) => (
       // .equal-height > .zen-card__content and .equal-height-body { flex: 1 1 auto }: the content fills the stretched card.
-      <Card as="li" key={template.id} theme="flat" className="equal-height">
+      <Card as="li" key={template.id} theme="default" className="equal-height">
         {/* Two groups lg apart, pushed to the top and the bottom */}
         <Stack gap="lg" justify="between" className="equal-height-body">
           <Stack gap="md">
@@ -997,7 +997,7 @@ function SettingsSection({ id, title, description, children }) {
     title: "Wrapping cluster",
     description: "A row Stack with wrap flows the Tags onto as many lines as they need, 2xs apart across and down. Inside the card the header and each labelled group sit lg apart; the kicker sits xs above the Skills cluster and Add skill xs below it. Removing a skill can be undone from the toast.",
     render: () => <ProfileSkills />,
-    code: `<Card as="section" theme="flat" aria-labelledby="profile">
+    code: `<Card as="section" theme="default" aria-labelledby="profile">
   {/* Groups inside one surface: lg */}
   <Stack gap="lg">
     <Stack direction="row" gap="md" align="center">
@@ -1131,7 +1131,7 @@ function SettingsSection({ id, title, description, children }) {
       <Heading level={2} textStyle="Heading/4">Audit the account overview for WCAG 2.2</Heading>
       <Text textStyle="Body/Small/Regular" tone="base">Online banking redesign · Lumen Bank</Text>
     </Stack>
-    <Card theme="flat"><DescriptionList divider items={details} /></Card>
+    <Card theme="default"><DescriptionList divider items={details} /></Card>
   </AppShell>
 </PlatformPhone>`,
   },

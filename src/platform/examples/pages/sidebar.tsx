@@ -943,7 +943,7 @@ function SidebarStates() {
 }
 
 // ——— 7. On a phone ———————————————————————————————————————————————————————————————————————————————————
-/** A phone section: rows in a Flat box on the grey Canvas, titled (Heading/Subheading and See all) or named by `label`. */
+/** A phone section: rows in a Default box on the grey Canvas, titled (Heading/Subheading and See all) or named by `label`. */
 function PhoneList({ label, rows, titled = false, seeAll }: { label: string; rows: Row[]; titled?: boolean; seeAll?: () => void }) {
   const headingId = useId();
   return (
@@ -1006,7 +1006,7 @@ function SidebarOnPhone() {
     content = <><Text tone="light">Assigned to you or waiting for your review</Text>{taskList("My tasks", tasks.filter((t) => myTaskIds.includes(t.id)))}</>;
   } else if (page === "settings") {
     title = "Settings";
-    content = <Card theme="flat"><DescriptionList items={[{ term: "Workspace", description: studio.name }, { term: "Plan", description: `${studioPlan.name} · ${plural(studioSeats, "seat")}` }, { term: "Signed in as", description: me.email }]} /></Card>;
+    content = <Card theme="default"><DescriptionList items={[{ term: "Workspace", description: studio.name }, { term: "Plan", description: `${studioPlan.name} · ${plural(studioSeats, "seat")}` }, { term: "Signed in as", description: me.email }]} /></Card>;
   } else if (page === "help") {
     title = "Help";
     content = <PhoneList label="Help articles" rows={helpRows.map((row) => ({ ...row, onClick: () => toast({ title: row.title, children: row.caption }) }))} />;
