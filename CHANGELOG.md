@@ -298,6 +298,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   deletes any); the right panel lists the page's threads ("Show resolved" adds the resolved ones). You give your name
   once; a Viewer comments too. Comments are kept beside the page file (`<page>.comments.json` in the pages folder),
   never in the page's code, and are not sent to Figma.
+- Zen Studio: Libraries (⌥⌘O, the book button in Assets, or ⌘K › Libraries): switches for what a project's pages use,
+  saved in the project. Zen off takes Zen's components and icons out of Assets; the project's theme off draws its pages
+  in Zen's own theme.
 - Studio → Figma (Import from Studio): a Grid inside a Grid cell stretches to its row as in CSS, so a row's cards match its
   tallest (the Dashboard's metric pairs came out at their own heights); the direct paste keeps it at its own height.
 - Zen Studio: ⌥-drag, ⌘D and ⌘C ⌘V of a Section copy it with the frames and Sections it holds, in one ⌘Z, as Figma does
