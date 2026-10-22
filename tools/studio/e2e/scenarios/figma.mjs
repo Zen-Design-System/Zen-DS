@@ -3909,7 +3909,7 @@ export const rows = [
     },
   },
   {
-    id: "FW-178", feature: "Select all with same › Instance selects every instance of the component, whatever its variant; Text properties selects the texts of that style", wp: "Select matching 2026-10-22", timeout: 60_000,
+    id: "FW-178", feature: "Select all with same › Instance selects every instance of the component, whatever its variant; Text properties selects the texts of that style (its menu opened by a right-click on the text's resize handle, as Figma's)", wp: "Select matching 2026-10-22", timeout: 60_000,
     async run(ctx) {
       const { page, id } = await matchPage(ctx);
       await pickNamedIn(page, id, "screen:one", "Button");
@@ -3918,7 +3918,7 @@ export const rows = [
         .catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 120)})`); });
       await deselect(page);
       await pickNamedIn(page, id, "screen:one", "Text");
-      await sameFromMenu(page, id, "screen:one", null, "Text properties", "Text");
+      await sameFromMenu(page, id, "screen:one", null, "Text properties", "Text", { onHandle: true });
       await until(async () => /Selected 2 layers with the same text properties/.test(await statusText(page)), { message: "the two Caption texts" })
         .catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 120)})`); });
       return "Instance › 3 Buttons (primary and secondary) · Text properties › 2 Captions";
@@ -4408,13 +4408,24 @@ async function pickNamedIn(page, id, frameId, name) {
   await until(async () => (await selectedSrc(page)).length === 1, { timeout: 4000, message: `${name} selected` });
 }
 /** Right-click on the layer › Select all with same › `item`. */
-async function sameFromMenu(page, id, frameId, index, item, name = "Shape") {
+async function sameFromMenu(page, id, frameId, index, item, name = "Shape", { onHandle = false } = {}) {
   const box = await layerIn(page, id, frameId, index ?? 0, name).boundingBox();
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
+  if (onHandle) {
+    // On the selected layer's left resize handle: its menu opens there too (Figma's), as a short text is mostly handles.
+    const handle = await page.locator('.studio-resize__handle[data-handle="w"]').first().boundingBox();
+    if (!handle) throw new Error("no left resize handle on the selected layer");
+    await page.mouse.click(handle.x + handle.width / 2, handle.y + handle.height / 2, { button: "right" });
+  } else {
+    // Off the middle: a selected layer's handles sit there (an ellipse's arc dot, a short text's edge handles).
+    await page.mouse.click(box.x + Math.min(12, box.width / 4), box.y + box.height / 2, { button: "right" });
+  }
+  // A step that does not come names the menus that show (their labels and items).
+  const menus = () => page.evaluate(() => [...document.querySelectorAll('[role="menu"]')].map((menu) => `${menu.getAttribute("aria-label") ?? "?"}: ${[...menu.querySelectorAll('[role="menuitem"]')].map((item) => item.textContent?.trim()).join(" / ")}`).join(" || "));
+  const step = (promise, what) => promise.catch(async (error) => { throw new Error(`${what}: ${String(error.message).split("\n")[0]} (menus: ${(await menus()).slice(0, 300) || "none"})`); });
   const menu = page.getByRole("menu").last();
-  await menu.waitFor({ state: "visible", timeout: 5000 });
-  await menu.getByRole("menuitem", { name: /^Select all with same/ }).click();
+  await step(menu.waitFor({ state: "visible", timeout: 5000 }), "the layer menu");
+  await step(menu.getByRole("menuitem", { name: /^Select all with same/ }).click({ timeout: 5000 }), "Select all with same ›");
   const list = page.getByRole("menu", { name: "Select all with same" });
-  await list.waitFor({ state: "visible", timeout: 5000 });
-  await list.getByRole("menuitem", { name: new RegExp(`^${item}`) }).click();
+  await step(list.waitFor({ state: "visible", timeout: 5000 }), "the Select all with same list");
+  await step(list.getByRole("menuitem", { name: new RegExp(`^${item}`) }).click({ timeout: 5000 }), item);
 }

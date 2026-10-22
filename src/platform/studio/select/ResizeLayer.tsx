@@ -60,6 +60,8 @@ type Props = {
   /** Select tool, not presenting. */
   interactive: boolean;
   viewport: HTMLElement | null;
+  /** A right-click on a handle opens the canvas menu, as on the layer under it (Figma's). */
+  onPassContextMenu?: (event: ReactMouseEvent<HTMLDivElement>) => void;
 };
 
 type HandleId = "n" | "s" | "e" | "w" | "nw" | "ne" | "sw" | "se";
@@ -743,7 +745,7 @@ function gridCell(host: HTMLElement, wrapperSrc: string | null, props: Record<st
   return { src, element: grid, index: sole.index };
 }
 
-export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
+export function ResizeLayer({ box, hit, interactive, viewport, onPassContextMenu }: Props) {
   const role = useStudio((state) => state.role);
   const server = useStudioServer();
   const writable = canEdit() && role === "admin" && server.writable;
@@ -1363,7 +1365,8 @@ export function ResizeLayer({ box, hit, interactive, viewport }: Props) {
           style={geometry(handle)}
           onPointerDown={(event) => onPointerDown(event, handle)}
           onDoubleClick={(event) => onDoubleClick(event, handle)}
-          onContextMenu={(event) => event.preventDefault()}
+          // The layer's menu, not none: a small layer is mostly handles (a short text at a low zoom).
+          onContextMenu={(event) => { event.preventDefault(); onPassContextMenu?.(event); }}
         />
       ))}
       {cursor ? <div className="studio-resize__cover" data-handle={cursor} /> : null}

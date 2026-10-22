@@ -1109,6 +1109,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         // Crop mode (F8b) has its own corners where these are.
         interactive={tool === "select" && !presenting && !cropActive}
         viewport={viewport}
+        onPassContextMenu={onContextMenu}
       />
       {overlay.instances.map((box, index) => <div key={`i${index}`} className="studio-selection__outline" data-kind="instance" style={style(box)} />)}
       {overlay.extras.map((box, index) => <div key={`e${index}`} className="studio-selection__outline" data-kind="extra" style={style(box)} />)}
