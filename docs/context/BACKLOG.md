@@ -7,6 +7,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P3 · Gradient native paste not pasted live (2026-10-22, session B):** Studio ⌘C → Figma ⌘V writes the gradient as
+  Figma's own copies do (kiwi stops + stopsVar alias + transform, checked against native-pack), but scripted pastes were
+  unreliable, so no live paste. Next: ⌘C a gradient Shape and a hugging gradient Stack in the Studio, ⌘V in the Zen
+  file, read gradientTransform and the stops' variables. Pointer: `tools/studio/figma-native.mjs` gradientFill.
 - **P2 · Workflow steps still drawn as themed Badges (2026-10-21, BadgeStatus in code; multi-file migration):** other
   platform pages and the HR templates show a task's step as `Badge theme={taskStatusTheme[…]}`; the new rule
   `badge/workflow-status-uses-badge-status` flags new ones only. Move them to `<BadgeStatus>` (and Figma instances to
