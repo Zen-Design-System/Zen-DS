@@ -977,3 +977,20 @@ User: "A, liên kết sống". Map of the same-page assumptions from an Explore 
   there the key is Figma's Outline stroke (edit/figmaKeys.ts, the walk's row); Libraries takes it with nothing selected,
   as Keyboard shortcuts now says, and E2E opens it with Assets' book button. FW-197…202: 6/6 ✓.
 
+
+## Project components as real Figma instances (Session C, BACKLOG P3) — tier M, branch `zen/feat/studio-cross-page-figma-20261023`
+User: "xử luôn nhé" (the P3 item: a `<Use page>` reached Figma as its main's layers).
+- figma-push: one Use branch for this page's and another page's components; another page's instance goes as
+  `{type: INSTANCE, local, page}` and the package carries that page's component (`components: [{page, title, local,
+  spec}]`, built in its own page's scope by `figmaFromPage(…, {componentOf})`, nested ones too); a loop stops with a
+  note; `onPage` / `drawing` removed. Selftest 402. figma-native keys local mains `page/local` (138); figma-pull reads an
+  instance of a main outside the frame marked with another Studio page as `<Use of page>` (131).
+- Plugin (`zen-ds-figma-plugin`, branch studio-import, e1d96e5 + 7ee850b): the main is found in the file by page and id,
+  else made in a "<page> · components" holder beside the frame; importing that page moves it into its frame (holder
+  removed, instances stay linked). Found on the way and fixed: every re-import made local instances again (new ids,
+  Figma comments and prototype links lost, since F7): an instance of the same main is now reused, overrides reset, its
+  variant swapped when needed.
+- Real Figma (QA page 15872:3, importer bed): import uses → holder + main 17050:5, both instances linked; again → same
+  main, one holder; import cards → main moved into "QA Cards", holder gone, links kept; uses again → no holder. Then an
+  edited instance text: re-import kept ids 17052:21/24 (created 0, removed 0), the edit reset. Screenshots checked;
+  all test nodes removed (page empty).

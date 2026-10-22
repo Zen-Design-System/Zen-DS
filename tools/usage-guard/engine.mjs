@@ -139,10 +139,11 @@ export function createChecker(allRules, { consumer = false, css = true, packageN
   }
 
   function checkJsx(src, file) {
-    // Tags quoted in block comments (JSDoc: "usually <Search variant=…/>") are documentation, not usage.
-    // A comment opens after whitespace or punctuation, never inside a glob such as accept="image/*" (which would hide
-    // every tag up to the next */ from all rules).
-    const comments = [...src.matchAll(/(?<![^\s{}()[\];,:=?|&!>])\/\*[\s\S]*?\*\//g)].map((c) => [c.index, c.index + c[0].length]);
+    // Tags quoted in block comments (JSDoc: "usually <Search variant=…/>") and line comments ("// … (<Button>Save</Button>)")
+    // are documentation, not usage. A comment opens after whitespace or punctuation, never inside a glob such as
+    // accept="image/*" (which would hide every tag up to the next */ from all rules); a line comment never after ":" or
+    // a quote, so a URL ("https://…") stays code.
+    const comments = [...src.matchAll(/(?<![^\s{}()[\];,:=?|&!>])\/\*[\s\S]*?\*\/|(?<![^\s{}()[\];,])\/\/[^\n]*/g)].map((c) => [c.index, c.index + c[0].length]);
     const inComment = (i) => comments.some(([from, to]) => i > from && i < to);
     let tagRe = repoTagRe;
     let canonical = (tag) => tag;

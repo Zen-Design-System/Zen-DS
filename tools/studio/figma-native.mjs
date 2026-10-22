@@ -1001,13 +1001,13 @@ class Writer {
           this.localSpecs.set(child, variant);
         }
         this.localSpecs.set(spec, record);
-        if (spec.local) this.locals.set(spec.local, record);
+        if (spec.local) this.locals.set(localKey(spec), record);
       } else if (spec.type === "COMPONENT" && !this.localSpecs.has(spec)) {
         const defs = new Map();
         for (const property of spec.properties ?? []) if (LOCAL_PROP_TYPES[property.type]) defs.set(property.name, { id: this.fresh(), type: LOCAL_PROP_TYPES[property.type], initial: property.default });
         const record = { kind: "main", spec, guid: this.fresh(), defs };
         this.localSpecs.set(spec, record);
-        if (spec.local) this.locals.set(spec.local, record);
+        if (spec.local) this.locals.set(localKey(spec), record);
       }
       for (const child of spec.children ?? []) walk(child);
       for (const slot of spec.slots ?? []) for (const child of slot.children ?? []) walk(child);
@@ -1079,7 +1079,7 @@ class Writer {
    */
   localInstance(spec, parent, parentInfo) {
     const where = spec.name || "Instance";
-    const record = this.locals.get(spec.local);
+    const record = this.locals.get(localKey(spec));
     if (!record) { this.note(`${where}: its component ${spec.local} is not in this paste (copy the frame that holds it too)`); return this.placeholder({ ...spec, set: { name: spec.name } }, parent, parentInfo, where); }
     const wanted = spec.variant ?? {};
     const main = record.kind === "set" ? record.variants.find((v) => Object.entries(wanted).every(([name, value]) => String(v.values[name]) === String(value))) ?? record.variants[0] : record;
@@ -1777,10 +1777,15 @@ function swappedPath(pathText, setName) {
 }
 
 /** The paste's NODE_CHANGES message for an export (pure). `pictures`: the export's pictures by src (nativePictures). */
+/** A main's record key: its Studio id, after its page when it is another page's (Libraries' project components). */
+const localKey = (spec) => (spec.page ? `${spec.page}/${spec.local}` : String(spec.local));
+
 export function nativeMessage(pkg, pack, pictures = new Map()) {
   if (!pkg || pkg.format !== "zen-studio-figma" || !pkg.frame) throw new Error("Not a Zen Studio export");
   const writer = new Writer(pkg, indexPack(pack), pictures);
   writer.planLocals(pkg.frame);
+  // Another page's components (figma-push `components`): their instances come as frames of their layers, as a page's own.
+  for (const entry of pkg.components ?? []) writer.planLocals(entry.spec);
   const root = writer.frame(pkg.frame, PAGE, null, { root: true });
   writer.finishLocals();
   writer.finishContents();

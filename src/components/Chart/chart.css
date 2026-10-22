@@ -218,7 +218,6 @@
    free height reaches the chart as --zen-chart-grow (ChartCard useChartGrow), so the charts of a row end together
    instead of leaving an empty band under the shorter one (audit card-gap). A ring that already fills the card's width
    cannot grow more: the chart sits in the middle of what is left. */
-.zen-chart-card > .zen-card__content { flex: 1 1 auto; }
 .zen-chart-card__body > :last-child:not(.zen-chart-card__header, .zen-chart-card__metric) { margin-block: auto; }
 /* Beside its legend (start / end, total start) a ring grows with the card too (the user 2026-10-16: "Chart nên scale
    ra"), up to the width the row leaves it: the legend keeps its 100px basis (the total column 160px) and the gap, so a
