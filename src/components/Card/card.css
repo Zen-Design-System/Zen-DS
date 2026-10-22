@@ -25,10 +25,11 @@
 .zen-card[data-tone="border"] { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
 .zen-card[data-surface="default"] { --zen-card-surface: var(--zen-color-background-surface-default, #fff); }
 .zen-card[data-surface="alt"] { --zen-card-surface: var(--zen-color-background-surface-alt, #f7f7f7); }
-/* Surface=Flat (Figma Border/Flat 15530:502–520): a Border card on a Canvas/Flat page takes Surface/Flat (the page colour
-   in both modes) inside its Pale frame. Card.tsx sets it on Border only.
-   zen-allow-surface-flat: Figma's Card Border × Surface=Flat is Surface/Flat (user, 2026-10-14), not a navigation bar. */
-.zen-card[data-surface="flat"] { --zen-card-surface: var(--zen-color-background-surface-flat, #fff); }
+/* Flat-Border (Figma Theme=Flat-Border 15530:502–520, Border × Surface=Flat until 2026-10-21): the card of a Canvas/Flat
+   page, Surface/Flat (the page colour in both modes) inside a Border/Neutral/Pale frame; its own fill, whatever the
+   surface. zen-allow-surface-flat: Figma's Card Flat-Border is Surface/Flat (user, 2026-10-14 and 2026-10-21), not a
+   navigation bar. zen-allow-pale-actionable-box: this rule styles the static card only (clickable steps up below). */
+.zen-card[data-tone="flat-border"] { --zen-card-surface: var(--zen-color-background-surface-flat, #fff); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
 /* Color (Figma Card Color, Pale and Solid only; Card.tsx sets data-color on those themes, so a card never inherits
    another card's fill). Pale: Support/<Color>/Pale (6643:51022, 15480:87358–87418, 15530:526, 15530:550). Subtle:
    Support/<Color>/Subtle (16195:138554–138668). Solid: Neutral
@@ -163,15 +164,15 @@
 .zen-card[data-active="true"] { background: var(--zen-card-surface, var(--zen-color-background-surface-default, #fff)); box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111); }
 .zen-card[data-tone="shadow"][data-active="true"] { box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111), var(--zen-style-shadow-bottom-level-1-shadow); }
 /* Shadow on Surface/Alt: Surface-Alt never casts an outer shadow (component-usage-rules §9), so the card renders as Figma
-   Theme=Flat (6643:51018) on Surface/Alt, which already stands apart from a white Canvas/Alt page (§11); Selected keeps
+   Theme=Default (6643:51018) on Surface/Alt, which already stands apart from a white Canvas/Alt page (§11); Selected keeps
    its 2px inside stroke. CSS cannot read an inherited --zen-card-surface value: on an alt page scope pass surface="alt". */
 .zen-card[data-tone="shadow"][data-surface="alt"] { box-shadow: none; }
 .zen-card[data-tone="shadow"][data-surface="alt"][data-active="true"] { box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111); }
 
 /* Clickable cards are actionable containers: Border theme steps up to Neutral/Subtle with hover/pressed (§6). */
 .zen-card[data-interactive="true"] { cursor: pointer; transition: box-shadow var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease), background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
-.zen-card[data-interactive="true"][data-tone="border"]:not([data-active="true"]) { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
-.zen-card[data-interactive="true"][data-tone="border"]:not([data-active="true"]):hover { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-hover, rgb(1 1 1 / 16%)); }
+.zen-card[data-interactive="true"]:is([data-tone="border"], [data-tone="flat-border"]):not([data-active="true"]) { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)); }
+.zen-card[data-interactive="true"]:is([data-tone="border"], [data-tone="flat-border"]):not([data-active="true"]):hover { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-hover, rgb(1 1 1 / 16%)); }
 .zen-card[data-interactive="true"]:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
 
 .zen-card__content { display: flex; min-width: 0; flex-direction: column; }

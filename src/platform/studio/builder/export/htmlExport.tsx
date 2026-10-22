@@ -679,3 +679,50 @@ export async function layerPicture(host: HTMLElement, { format, scale }: { forma
   const blob = await drawPng(frame, css, { width, height, scale, type: format === "jpg" ? "image/jpeg" : "image/png" });
   return blob ? { blob, width, height, notes } : { error: "The browser could not draw this layer" };
 }
+
+/**
+ * Figma's Slice export: the area of the board under a Slice as it renders, `scale`× (PNG, JPG on white, or SVG as
+ * layerPicture writes one). Each frame under the area is drawn at its place in it and cut at the area's edges; the
+ * board between frames stays clear. `frames`: the board's frame elements with their board offsets (board/sections.ts
+ * boxes).
+ */
+export async function regionPicture(area: { x: number; y: number; width: number; height: number }, frames: ReadonlyArray<{ host: HTMLElement; x: number; y: number }>, { format, scale }: { format: LayerExportFormat; scale: number }): Promise<{ blob: Blob; width: number; height: number; notes: string[] } | { error: string }> {
+  const width = Math.max(1, Math.round(area.width));
+  const height = Math.max(1, Math.round(area.height));
+  const notes: string[] = [];
+  const photos = new Map<string, string>();
+  for (const { host } of frames) {
+    notes.push(...undrawable(host).map((note) => `${note} (not in the picture)`));
+    for (const image of host.querySelectorAll("img")) {
+      const url = absolute(image.currentSrc || image.src);
+      if (!url || photos.has(url) || url.startsWith("data:")) continue;
+      const file = await fetchFile(url);
+      if (file) photos.set(url, file.dataUrl);
+      else notes.push(`a photo did not load (${url})`);
+    }
+  }
+  const area_ = document.createElement("div");
+  for (const [name, value] of [["position", "relative"], ["width", `${width}px`], ["height", `${height}px`], ["overflow", "hidden"]]) area_.style.setProperty(name, value);
+  for (const { host, x, y } of frames) {
+    const copy = exportCopy(host, (url) => photos.get(absolute(url)) ?? absolute(url));
+    for (const image of copy.querySelectorAll("img, source")) { image.removeAttribute("srcset"); image.removeAttribute("sizes"); }
+    for (const [name, value] of [["position", "absolute"], ["left", `${Math.round(x - area.x)}px`], ["top", `${Math.round(y - area.y)}px`], ["margin", "0"], ["width", `${host.offsetWidth}px`], ["height", `${host.offsetHeight}px`]]) copy.style.setProperty(name, value);
+    area_.append(copy);
+  }
+  // The canvas's ZenProvider modes (light or dark, density, radius, the project's brand) around it.
+  const provider = frames[0]?.host.closest(".zen-provider");
+  const frame = document.createElement("div");
+  if (provider) for (const name of provider.getAttributeNames()) if (name === "class" || name === "style" || name.startsWith("data-")) frame.setAttribute(name, provider.getAttribute(name) ?? "");
+  frame.append(area_);
+  const assets: Assets = new Map();
+  let css = libraryCss(frames.map((entry) => entry.host), "Slice", assets);
+  await Promise.all([...assets.values()].filter((asset) => asset.path.startsWith("fonts/")).map(async (asset) => {
+    const file = await fetchFile(asset.url);
+    if (file) css = css.split(asset.path).join(file.dataUrl);
+  }));
+  css += `\n*, *::before, *::after { animation: none !important; transition: none !important; }\n.zen-provider { min-height: 0 !important; width: ${width}px; height: ${height}px; }`;
+  if (format === "svg") return { blob: new Blob([pictureSvg(frame, css, { width, height })], { type: "image/svg+xml" }), width, height, notes };
+  const blob = await drawPng(frame, css, { width, height, scale, type: format === "jpg" ? "image/jpeg" : "image/png" });
+  return blob ? { blob, width, height, notes } : { error: "The browser could not draw this slice" };
+}
+

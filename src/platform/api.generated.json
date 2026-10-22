@@ -11931,10 +11931,10 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"solid\" | \"subtle\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"default\" | \"pale\" | \"border\" | \"flat-border\" | \"on-container\" | \"solid\" | \"subtle\" | \"semi-pale\"",
           "required": false,
           "default": "\"shadow\"",
-          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/<Color>/Pale + Effect/Overlay blur) · Border ·\n On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness\n card/on-container-in-overlay) · Solid (15480:87472: the one widget of a row that stands out; Neutral fills\n Background/Neutral/Solid/Default and its content reads Content/Inverse/*, a hue fills Support/<Color>/Solid) ·\n Subtle (16195:138560…: Support/<Color>/Subtle + Effect/Overlay blur, the colour box on a Canvas/Default page, where\n Pale fades into the grey; Pale is for white pages — user rule 2026-10-17, harness card/pale-on-canvas-default).\n `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale.",
+          "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Default (the Surface fill alone: no border, no shadow) · Pale\n (Support/<Color>/Pale + Effect/Overlay blur) · Border (Border/Neutral/Pale) · Flat-Border (15530:502–520: Surface/Flat\n inside a Border/Neutral/Pale frame, the card of a Canvas/Flat page) · On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness\n card/on-container-in-overlay) · Solid (15480:87472: the one widget of a row that stands out; Neutral fills\n Background/Neutral/Solid/Default and its content reads Content/Inverse/*, a hue fills Support/<Color>/Solid) ·\n Subtle (16195:138560…: Support/<Color>/Subtle + Effect/Overlay blur, the colour box on a Canvas/Default page, where\n Pale fades into the grey; Pale is for white pages — user rule 2026-10-17, harness card/pale-on-canvas-default).\n `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale.",
           "deprecated": null
         },
         {
@@ -11942,7 +11942,7 @@
           "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\" | \"accent\"",
           "required": false,
           "default": "\"neutral\"",
-          "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, the nine hues: 15480:87358…, 15530:526, 15530:550),\n theme=\"subtle\" (Support/<Color>/Subtle, the same nine hues: 16195:138578…138668) and\n theme=\"solid\" (neutral: Background/Neutral/Solid/Default; brand · cyan · yellow · orange: Support/<Color>/Solid;\n accent: Background/Accent/Solid/Default, Solid only; Figma has no Solid violet, green, blue or purple and no Pale\n or Subtle accent, which render as Solid / Pale / Subtle Neutral — harness card/solid-color). Shadow, Flat, Border and On-Container\n ignore it (harness card/color-ignored). A Solid card re-points the neutral tokens its children read to the fill's\n own family (Neutral → Content/Inverse/*, Border/Inverse, Background/Inverse/*; Accent → Content/On-Accent; Yellow →\n Content/On-Brights; the other hues → Content/On-Colors) and tells its Metric parts which family to draw; the page\n keeps its mode.",
+          "description": "Figma Color, for theme=\"pale\" (Support/<Color>/Pale, the nine hues: 15480:87358…, 15530:526, 15530:550),\n theme=\"subtle\" (Support/<Color>/Subtle, the same nine hues: 16195:138578…138668) and\n theme=\"solid\" (neutral: Background/Neutral/Solid/Default; brand · cyan · yellow · orange: Support/<Color>/Solid;\n accent: Background/Accent/Solid/Default, Solid only; Figma has no Solid violet, green, blue or purple and no Pale\n or Subtle accent, which render as Solid / Pale / Subtle Neutral — harness card/solid-color). Shadow, Default, Border,\n Flat-Border and On-Container ignore it (harness card/color-ignored). A Solid card re-points the neutral tokens its children read to the fill's\n own family (Neutral → Content/Inverse/*, Border/Inverse, Background/Inverse/*; Accent → Content/On-Accent; Yellow →\n Content/On-Brights; the other hues → Content/On-Colors) and tells its Metric parts which family to draw; the page\n keeps its mode.",
           "deprecated": null
         },
         {
@@ -11971,10 +11971,10 @@
         },
         {
           "name": "surface",
-          "type": "\"default\" | \"alt\" | \"flat\"",
+          "type": "\"default\" | \"alt\"",
           "required": false,
           "default": null,
-          "description": "Figma Surface, chosen to suit the page's Canvas: Surface/Default · Surface/Alt (Flat and Border: 15530:454–496) ·\n Surface/Flat (Border only, 15530:502–520: a Border card on a Canvas/Flat page). Unset follows an inherited\n --zen-card-surface (a page scope can set it once), else Surface/Default. Pale / On-Container / Solid keep their own\n fill, and `flat` on a theme other than Border is ignored (harness card/surface-ignored). With theme=\"shadow\", `alt`\n drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018) on\n Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
+          "description": "Figma Surface, chosen to suit the page's Canvas: Surface/Default · Surface/Alt (Default and Border: 15530:454–496).\n Unset follows an inherited --zen-card-surface (a page scope can set it once), else Surface/Default. Pale /\n Flat-Border / On-Container / Solid / Subtle keep their own fill (harness card/surface-ignored). With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Default\n (6643:51018) on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
           "deprecated": null
         },
         {
@@ -12645,10 +12645,26 @@
         },
         {
           "name": "theme",
-          "type": "\"flat\" | \"shadow\" | \"pale\" | \"border\" | \"on-container\"",
+          "type": "\"default\" | \"shadow\" | \"pale\" | \"border\" | \"flat-border\" | \"on-container\"",
           "required": false,
-          "default": "\"flat\"",
-          "description": "Elevation, Figma Theme (the tokens of Card's Theme). Flat (default): Surface/Default alone — on Canvas/Default it\n needs no frame (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:\n Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px\n Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).\n On-Container: Surface/Flat, a box inside a Modal, Side Panel or Bottom Sheet (their Container fill, §16).",
+          "default": "\"default\"",
+          "description": "Elevation, Figma Theme (the tokens of Card's Theme). Default: Surface/Default alone — on Canvas/Default it\n needs no frame (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:\n Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px\n Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).\n Flat-Border: Surface/Flat inside that ring, the box of a Canvas/Flat page (Figma Theme=Flat-Border, 15531:3660).\n On-Container: Surface/Flat, a box inside a Modal, Side Panel or Bottom Sheet (their Container fill, §16).",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "\"neutral\" | \"brand\" | \"cyan\" | \"violet\" | \"green\" | \"yellow\" | \"orange\" | \"blue\" | \"purple\"",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "Figma Color: the hue of a Pale box, Support/<Hue>/Pale (one hue per family, as Card's Pale). Neutral by default;\n the other themes have no Color and ignore it.",
+          "deprecated": null
+        },
+        {
+          "name": "surface",
+          "type": "\"default\" | \"alt\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "Figma Surface: Surface/Alt for a Default or Border box (Theme × Surface=Alt), chosen to suit the page's Canvas, as\n Card's Surface. Default by default; the other themes keep their own fill and ignore it.",
           "deprecated": null
         },
         {
@@ -14059,7 +14075,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"solid\" | \"subtle\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"default\" | \"pale\" | \"border\" | \"flat-border\" | \"on-container\" | \"solid\" | \"subtle\" | \"semi-pale\"",
           "required": false,
           "default": null,
           "description": "Card theme (Figma Metric-Card uses Shadow; Type=Hero a Brand Pale fill: theme=\"pale\" color=\"brand\" by default).",
@@ -18221,9 +18237,9 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"solid\" | \"subtle\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"default\" | \"pale\" | \"border\" | \"flat-border\" | \"on-container\" | \"solid\" | \"subtle\" | \"semi-pale\"",
           "required": false,
-          "default": "\"flat\"",
+          "default": "\"default\"",
           "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",
           "deprecated": null
         },
@@ -18237,10 +18253,10 @@
         },
         {
           "name": "surface",
-          "type": "\"default\" | \"alt\" | \"flat\"",
+          "type": "\"default\" | \"alt\"",
           "required": false,
           "default": null,
-          "description": "Figma nested Card Surface: default · alt (Flat, Border) · flat (Border only, on a Canvas/Flat page); see Card.",
+          "description": "Figma nested Card Surface: default · alt (Default, Border); see Card. A chart on a Canvas/Flat page takes theme=\"flat-border\".",
           "deprecated": null
         },
         {
@@ -20461,18 +20477,18 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"border\" | \"pale\" | \"subtle\" | \"on-container\" | \"canvas\"",
+          "type": "\"shadow\" | \"default\" | \"border\" | \"flat-border\" | \"pale\" | \"subtle\" | \"on-container\" | \"canvas\"",
           "required": false,
           "default": "\"shadow\"",
-          "description": "Figma Theme (Card's Neutral themes): `shadow` Surface + Shadow/Bottom/Level-1 (default) · `flat` · `border`\nBorder/Neutral/Pale · `pale` Support/Neutral/Pale · `subtle` Support/Neutral/Subtle (both with the Overlay blur) ·\n`on-container` Surface/Flat, for a pane on a container · `canvas` no fill, for reading layouts (Docs).",
+          "description": "Figma Theme (Card's Neutral themes): `shadow` Surface + Shadow/Bottom/Level-1 (default) · `default` the Surface\nalone (`flat` until 2026-10-21) · `border` Border/Neutral/Pale · `flat-border` Surface/Flat inside that line, on a\nCanvas/Flat page (Border × Surface=Flat until 2026-10-21) · `pale` Support/Neutral/Pale · `subtle`\nSupport/Neutral/Subtle (both with the Overlay blur) · `on-container` Surface/Flat, for a pane on a container ·\n`canvas` no fill, for reading layouts (Docs).",
           "deprecated": null
         },
         {
           "name": "surface",
-          "type": "\"default\" | \"alt\" | \"flat\"",
+          "type": "\"default\" | \"alt\"",
           "required": false,
           "default": "\"default\"",
-          "description": "Figma Surface for the flat and border themes: `default` Surface/Default · `alt` Surface/Alt · `flat` Surface/Flat (border only).",
+          "description": "Figma Surface for the default and border themes: `default` Surface/Default · `alt` Surface/Alt.",
           "deprecated": null
         },
         {

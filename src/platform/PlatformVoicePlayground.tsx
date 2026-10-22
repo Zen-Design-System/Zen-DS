@@ -40,7 +40,7 @@ export function VoicePlayground() {
   const code = isRecorder
     ? `import { Card, VoiceRecorder } from "@zen-ds/react";
 
-<Card theme="flat" spacing="sm">
+<Card theme="default" spacing="sm">
   <VoiceRecorder
     state="${recorder}"
     elapsed="${clock(recorder === "ready" ? 0 : seconds)}"
@@ -53,7 +53,7 @@ export function VoicePlayground() {
 </Card>`
     : `import { AiVoiceConversation, Card } from "@zen-ds/react";
 
-<Card theme="flat" spacing="sm">
+<Card theme="default" spacing="sm">
   <AiVoiceConversation
     state="${conversation}"
     transcript="${conversation === "responding" ? "Start with five quiet minutes, then choose one thing that matters today." : conversation === "listening" ? "Help me plan a calm start to my day…" : "“Help me plan a calm start to my day.”"}"
@@ -73,7 +73,7 @@ export function VoicePlayground() {
         }} options={states} />
       </PlaygroundControls>
       <div data-typography={previewTypography} className="platform-example-row platform-voice-preview">
-        <Card theme="flat" spacing="sm" className="platform-voice-card">
+        <Card theme="default" spacing="sm" className="platform-voice-card">
           {isRecorder ? (
             <VoiceRecorder
               state={recorder}

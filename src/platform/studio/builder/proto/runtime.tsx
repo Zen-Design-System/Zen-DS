@@ -234,6 +234,12 @@ export function Section(_props: { id?: string; title?: string; x?: number; y?: n
   return null;
 }
 
+/** Figma's slice: an area of the board exported as a picture (builder/SliceFrame.tsx draws its outline in the Studio);
+ *  it draws nothing on the page itself. */
+export function Slice(_props: { id?: string; title?: string; x?: number; y?: number; width?: number; height?: number }) {
+  return null;
+}
+
 /** The page root: the board lays its children out; rendered alone it shows them in a column. */
 export function Board({ children }: { children?: ReactNode }) {
   return <>{children}</>;

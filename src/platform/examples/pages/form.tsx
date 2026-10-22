@@ -309,7 +309,7 @@ function WorkspaceAddressExample() {
   };
   const preview = form.values.slug.trim().toLowerCase() || address;
   return (
-    <Stack><Card as="section" theme="flat" aria-labelledby={titleId} width="fill" maxWidth={720} alignSelf="center">
+    <Stack><Card as="section" theme="default" aria-labelledby={titleId} width="fill" maxWidth={720} alignSelf="center">
       <Stack gap="md">
         <CardHeader id={titleId} title="Workspace address">Everyone at Đìzai Studio signs in here. Old links keep working for 30 days.</CardHeader>
         <Form ref={formRef} form={form} gap="md">
@@ -359,7 +359,7 @@ function BudgetAlertsExample() {
   const undo = () => { form.reset(); requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>("input")?.focus()); };
   const pick = (id: PersonId, on: boolean) => form.setValue("recipients", on ? recipientIds.filter((x) => x === id || recipients.includes(x)) : recipients.filter((x) => x !== id), { touch: true });
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId} surface="default">
+    <Card as="section" theme="default" aria-labelledby={titleId} surface="default">
       <Stack gap="md">
         <CardHeader id={titleId} title="Budget alerts">
           {`${lumen.name} · ${namesOf(saved.recipients)} hear when spending passes ${saved.threshold}%.`}
@@ -432,7 +432,7 @@ function DraftInvoiceExample() {
 
   if (status === "Deleted") {
     return (
-      <Stack><Card ref={cardRef} as="section" theme="flat" aria-label="Draft invoices" width="fill" maxWidth={720} alignSelf="center">
+      <Stack><Card ref={cardRef} as="section" theme="default" aria-label="Draft invoices" width="fill" maxWidth={720} alignSelf="center">
         <EmptyState size="sm" headingLevel={4} icon="icon-receipt-line" title="No draft invoices" primaryAction={{ label: "New draft", onClick: restart }}>
           Start a draft from a project milestone.
         </EmptyState>
@@ -440,7 +440,7 @@ function DraftInvoiceExample() {
     );
   }
   return (
-    <Stack><Card ref={cardRef} as="section" theme="flat" aria-labelledby={titleId} width="fill" maxWidth={720} alignSelf="center" surface="default">
+    <Stack><Card ref={cardRef} as="section" theme="default" aria-labelledby={titleId} width="fill" maxWidth={720} alignSelf="center" surface="default">
       <Stack gap="md">
         <CardHeader id={titleId} title="INV-2026-0144" badge={{ label: status, theme: sent ? "blue" : "neutral" }}>
           {sent ? `Sent to ${billTo} at ${formatTime(TODAY)}` : "Phin & Co · Loyalty app · Milestone 3"}

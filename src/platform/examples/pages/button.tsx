@@ -210,7 +210,7 @@ function SendInvoiceExample() {
   });
   const downloadPdf = () => toast({ title: "PDF downloaded" });
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center" spacing="md">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center" spacing="md">
       <Stack gap="md">
         <Stack direction="row" justify="between" align="start" gap="sm">
           <Stack gap="xs">
@@ -284,7 +284,7 @@ function DeleteFileExample() {
           </List>
         </ListBox>
       ) : (
-        <Card theme="flat">
+        <Card theme="default">
           <EmptyState size="sm" headingLevel={4} icon="icon-folder-line" title="No files yet" primaryAction={{ label: "Upload files", onClick: upload }}>
             Files you add to Loyalty app show up here.
           </EmptyState>
@@ -319,7 +319,7 @@ function HandOffExample() {
   useEffect(() => { (handedOff ? messageRef.current : buttonRef.current)?.focus(); }, [handedOff]);
   const handOff = () => { setHandedOff(true); toast({ type: "positive", title: "Designs handed off" }); };
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md" alignSelf="stretch">
         <Stack gap="2xs">
           <Heading level={4} textStyle="Heading/Subheading">Sprint 14 hand-off</Heading>
@@ -524,7 +524,7 @@ function PhoneApproveExample() {
           </Stack>
           <Badge theme={leaveStatusTheme[request.status]} background="subtle">{request.status}</Badge>
         </Stack>
-        <Card theme="flat">
+        <Card theme="default">
           <DescriptionList divider items={[
             { id: "type", term: "Type", description: request.kind },
             { id: "dates", term: "Dates", description: leaveDates(request) },
@@ -692,7 +692,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   >
     {/* The Body pads the screen and spaces its sections */}
     <Stack align="center" gap="md">…the person and the status…</Stack>
-    <Card theme="flat"><DescriptionList divider items={[…type, dates, length, balance after…]} /></Card>
+    <Card theme="default"><DescriptionList divider items={[…type, dates, length, balance after…]} /></Card>
     <Stack as="section" gap="xs" aria-labelledby="also-off">…who else is off…</Stack>
   </AppShell>
 </PlatformPhone>`,

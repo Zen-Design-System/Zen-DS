@@ -114,7 +114,7 @@ function ClientFaqExample() {
   const titleId = useId();
   return (
     // The Box fill (Support/Neutral/Pale) sits on the card's Surface, not straight on the grey page.
-    <Card theme="flat" as="section" aria-labelledby={titleId}>
+    <Card theme="default" as="section" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Working with us</Heading>
@@ -572,7 +572,7 @@ function AdvancedOptionsExample() {
     setName(""); setKey(""); setBudget(""); setAdvanced(false);
   };
   return (
-    <Card theme="flat">
+    <Card theme="default">
       <Form onSubmit={submit} gap="md" aria-labelledby={titleId} noValidate>
         <Heading level={4} id={titleId} textStyle="Heading/Subheading">New project</Heading>
         <InputField label="Project name" value={name} onValueChange={setName} error={errors.name} />
@@ -606,7 +606,7 @@ function LayerSettingsExample() {
   const [radius, setRadius] = useState(16);
   const [blur, setBlur] = useState(0);
   return (
-    <Card theme="flat" maxWidth={320} as="section" aria-labelledby={titleId}>
+    <Card theme="default" maxWidth={320} as="section" aria-labelledby={titleId}>
       <Stack gap="none">
         <Stack gap="xs" paddingY="md">
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Social banner</Heading>
@@ -642,7 +642,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     title: "Client FAQ",
     description: "A few standalone questions from the client portal in the Box theme, on a card so the Pale boxes stand out from the page. Each one opens on its own, and the first starts open so the card never looks empty.",
     render: () => <ClientFaqExample />,
-    code: `<Card theme="flat" as="section" aria-labelledby={titleId}>
+    code: `<Card theme="default" as="section" aria-labelledby={titleId}>
   <Stack gap="md">
     <Heading level={4} id={titleId} textStyle="Heading/Subheading">Working with us</Heading>
     <Stack gap="sm" direction="column">
@@ -767,7 +767,7 @@ const submit = () => {
     title: "Layer settings",
     description: "Small (size=\"sm\") is for dense panels and cards: its Body/Base/Bold titles sit under the panel heading and group short rows of inline fields and sliders. Size and Fill start open; Corners and blur, used less, waits closed.",
     render: () => <LayerSettingsExample />,
-    code: `<Card theme="flat" maxWidth={320} as="section" aria-labelledby={titleId}>
+    code: `<Card theme="default" maxWidth={320} as="section" aria-labelledby={titleId}>
   <Stack gap="none">
     <Stack gap="xs" paddingY="md">
       <Heading level={4} id={titleId} textStyle="Heading/Subheading">Social banner</Heading>

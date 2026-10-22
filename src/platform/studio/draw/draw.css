@@ -18,3 +18,38 @@
 /* While a drawing tool is on, the canvas shows a crosshair (Figma's). */
 [data-studio-drawing] { cursor: crosshair; }
 [data-studio-drawing] .studio-world, [data-studio-drawing] .studio-world * { cursor: crosshair !important; }
+
+/* The Scale tool's panel (ScalePanel.tsx, Figma's Scale section): the factor beside the 3 × 3 anchor points. */
+.studio-scale-row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-scale-anchor { display: grid; grid-template-columns: repeat(3, var(--zen-element-size-popular-2-xsmall, 16px)); gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-scale-anchor__point {
+  display: grid; place-items: center; width: var(--zen-element-size-popular-2-xsmall, 16px); height: var(--zen-element-size-popular-2-xsmall, 16px);
+  padding: 0; border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; cursor: pointer;
+}
+.studio-scale-anchor__point::after {
+  content: ""; width: var(--zen-spacing-gap-2-xsmall, 4px); height: var(--zen-spacing-gap-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-rounded, 999px); background: var(--zen-color-border-neutral-subtle-default);
+}
+.studio-scale-anchor__point:hover { background: var(--zen-color-background-neutral-flat-hover); }
+.studio-scale-anchor__point[aria-checked="true"]::after { width: var(--zen-spacing-gap-xsmall, 8px); height: var(--zen-spacing-gap-xsmall, 8px); background: var(--zen-color-background-accent-solid-default); }
+.studio-scale-anchor__point:focus-visible { outline: 2px solid var(--zen-color-focus-neutral-solid); outline-offset: 1px; }
+.studio-scale-anchor__point:disabled { cursor: default; opacity: 0.5; }
+.studio-scale-note { margin: 0; color: var(--zen-color-content-neutral-light); }
+
+/* The Scale tool's corners (ScaleHandles.tsx): the resize corners' look (an 8px square in a 12px hit area), and while
+   dragging the new box's outline with the factor and size under it. Pointer-only: the panel's field is the keyboard path. */
+.studio-scale-handles { position: absolute; inset: 0; pointer-events: none; }
+.studio-scale-handle { position: absolute; z-index: 3; top: 0; left: 0; box-sizing: border-box; width: 12px; height: 12px; pointer-events: auto; touch-action: none; }
+.studio-scale-handle::after {
+  position: absolute; inset: var(--zen-spacing-padding-3-xsmall, 2px); box-sizing: border-box; content: "";
+  border: 1px solid var(--zen-color-border-info-solid-default); background: var(--zen-color-background-surface-default);
+}
+.studio-scale-handle:hover::after { background: var(--zen-color-background-info-solid-default); }
+.studio-scale-handle:is([data-corner="top-left"], [data-corner="bottom-right"]) { cursor: nwse-resize; }
+.studio-scale-handle:is([data-corner="top-right"], [data-corner="bottom-left"]) { cursor: nesw-resize; }
+.studio-scale-ghost { position: absolute; top: 0; left: 0; box-sizing: border-box; border: 1px solid var(--zen-color-border-info-solid-default); pointer-events: none; }
+.studio-scale-ghost__pill {
+  position: absolute; top: 100%; left: 50%; translate: -50% var(--zen-spacing-gap-xsmall, 8px); white-space: nowrap;
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-info-solid-pressed); color: var(--zen-color-content-inverse-strongest);
+}

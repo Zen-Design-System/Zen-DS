@@ -410,6 +410,50 @@ original stays, one ⌘Z each) waits for a gate slot.
   start) and passed the row's 20 s. Fixed at its owner, the shared helper: each ⌘Z waits for its own step (the page
   changes). FW-66 + FW-106 ✓ in 12 s. The whole Figma walk again: 125 / 126, FW-02 (⌘F) timed out once and passed
   alone (8 s; it passed in the first walk run).
+## Session "Bug" · Card and List-Box theme rename (tier M; worktree ../Zen-DS-card-themes, branch zen/feat/card-theme-names-20261021)
+
+- User 2026-10-21: "Flat hiện tại nên là default, còn flat phải là dùng đổ màu surface-flat" → decided with the user:
+  Flat → Default (same look); the Surface/Flat card gets a Pale border and the name Flat-Border (it existed as Border ×
+  Surface=Flat, so that variant became the theme; no duplicate); On-Container stays for overlays; no alias, migrate all.
+  Then "làm tương tự cho cả box list": List-Box the same.
+- Figma (live, use_figma): Card 12 Flat variants → Theme=Default, 6 Border×Flat → Theme=Flat-Border with Surface=Default
+  (themes with their own fill keep Surface=Default, as On-Container); List-Box 8 + 4 likewise (its default Theme is now
+  Default). Option order is not settable by API: Default and Flat-Border list last. Descriptions of Card, List-Box and
+  Metric-Card rewritten with tools/figma-docs (FORCE gained List-Box and Metric-Card; backup frame on page 15:814).
+- Code: Card cardThemes/CardSurface/cardSurfaces, card.css flat-border (Surface/Flat + Pale ring; clickable steps to
+  Subtle like Border); ListBox listBoxThemes + list-item.css; ChartCard default "default". A tag-scoped script migrated
+  330 Card/MetricCard/ChartCard tags and 8 ListBox tags (JSX and shown code); hand fixes in a-compositions,
+  e-consumer-2, Chart.tsx, card-color.test, ListBox story, PlatformExamples playground.
+- Harness card/color-ignored + card/surface-ignored (Default, Flat-Border; surface="flat" → use flat-border);
+  guidelines, usage rules §16 (+ a Canvas/Flat row), AGENTS.consumer, Figma skill screen-rules/audit-rules and the
+  audit's family names; Studio map note, appearance effects (Default theme), detach (flat-border = Box surface + pale
+  border, approx), selftests, MCP E2E AI-04, nested pull row, handoff fixture, registry login page; ai-ui catalog rebuilt.
+- Pull reads an older library's names (B's suggestion, read only): Theme=Flat → theme="default", Border × Surface=Flat →
+  "flat-border" (figma-pull legacyThemeProps for Card and ListBox; selftest 115), so frames from files not yet on the
+  renamed library come back right. Push writes the new names only.
+- Not changed: AppShellPane (its own Figma Pane set still has Flat / Border × Surface=Flat) — question for the user.
+  figma-push/pull Card mapping and their selftests are B's (asked); native-pack names are C's (asked).
+- Rebuilt on main ac3ae48f (2026-10-21 afternoon, Supervisor: card-themes last in the queue): new branch from main,
+  cherry-picked the rename and the pull's legacy names; the codemod commit dropped (it runs again right before the
+  gate: .qa/card-migrate/migrate.mjs + hand-fixes.py + card-color.test.tsx.migrated, then guidelines:build, ai-ui:build,
+  library-keywords). Contract: the Card and List-Box sets spliced onto main's (only this branch changed them); live
+  List-Box also has Color (Neutral … Purple, Pale only) and Surface (Default · Alt on Default and Border).
+- Native pack: re-captured Card (Figma 120 variants; the pack had 80) and List-Box with the new names instead of a
+  name-only rename (user OK'd the clipboard; dropped 2 sets / 144 symbols, merged 184; check 177/177, native 130 ✓).
+- ListBox `color` / `surface` (user: "Thêm luôn trong đợt này"): Pale hues and Surface=Alt as Figma's variants, playground
+  chips, Studio map rows, push listBoxVariant (push selftest 348 ✓). Harness listbox/color-ignored and
+  listbox/surface-ignored (user: "Thêm"), each with its bad/good fixture case (usage selftest 223 rules).
+- AppShellPane (user: "Đổi theo Card"; AppShell handed it over): Figma Pane 16254:1099 variants renamed (Theme=Default ·
+  Default/Alt, Flat-Border · Default) and its description rewritten; code appShellPaneThemes default / flat-border,
+  Surface default | alt, app-shell.css, b-desktop-1, the app layer's Canvas/Flat → flat-border panes and cards. The
+  BACKLOG question is closed. Pane is not in the contract, pack or library keys (no Studio mapping).
+- Gate (2026-10-22, Supervisor GO 12:37): merged main 6f894b5e; codemod 351 tags in 153 files + hand fixes (union
+  types, card-color test incl. its data-tone list, the slots selftest's escaped sources and shifted columns, AP-06 writes
+  theme="default", two docs). First full run: static ✓ but the light audit's 4 shards hit the 30-min part timeout
+  ("crashed") and the Studio E2E its 2400 s cap — page count, not errors. Re-run (15:51–16:55) as two --only halves
+  (30 + 29 pages, shards 4, non-Studio --files) + studio:e2e --shard=1/2 and 2/2: both PASS (audit 1310 s, 0 new),
+  E2E 169/169 + 169/169. One ⚠ (ai-ui dead click, unrelated to the rename) → BACKLOG P3 on the user's word.
+
 
 ## Layers missed the Main component's variant cells (Session A, branch `zen/fix/layers-variant-cells-20261021`)
 
@@ -522,6 +566,25 @@ the Zen plugin's `settleGridRows` settles such a Grid as it settles a card, with
 would stay at its estimated 100: `figma-native` keeps it hugging with Hug rows, as before (selftest). Pull reads no
 cell height or row sizes, so the page round-trips unchanged. Selftests: push 343, native 131, pull 114.
 
+
+## Figma's Scale tool K (Session C) — tier M, branch `zen/feat/studio-scale-tool-20261021`
+The user picked it (2026-10-21) from the four Figma keys still "not yet" (K, S, C, ⌥⌘A), and chose "Giữ nguyên
+token": px values scale, Zen steps stay (Figma scales everything; Zen has no px font sizes or free spacing).
+- `draw/scaleModel.ts` (+ selftest 17): which props are px (sizes, min / max, insets, stroke weight, a px gap / padding /
+  radius / size), the factor field's words (2, 1.5x, 200%), the anchored box, the corner drag's factor, the insets per
+  constraint, the status ("Scaled 200% · Zen steps kept: gap, padding, text").
+- `draw/scaleLayers.ts`: the selection (several layers about the box around them; floating ones follow the anchor,
+  those in auto layout keep their place) or a Screen / Overlay and everything inside, in one `many setProps` edit.
+  Locked layers, layers inside an instance and Sections are refused with a status line.
+- UI: K (again: focus the field), the toolbar's Scale beside Move and Hand, the canvas status hint, Keyboard
+  shortcuts; the right panel's Scale section while the tool is on (`draw/ScalePanel.tsx`: factor, 3 × 3 anchor radio
+  group); corner handles on the selected layer (`draw/ScaleHandles.tsx`, mounted in SelectionLayer as CropHandles is),
+  an outline with the factor and size while dragging (the layer itself is not stretched), Esc cancels.
+- Shared small edits: types.ts (StudioTool "scale"), StudioApp.tsx (K), figmaNotYet.ts (K out), Inspector.tsx (one
+  branch), SelectionLayer.tsx (one mount), CanvasTools.tsx, CanvasStatus.tsx, ShortcutsDialog.tsx, package.json
+  (selftest), figma.mjs (K out of NOT_YET; rows FW-88, FW-89, FW-107). Parity doc §2a: K is no longer missing.
+- Not yet: clicking to select while K is on (select first, then K; the capture layer is the Move tool's).
+
 ## Search Rounded in the Figma library (session "Search shape variant rounded", tier S; user: "có")
 - Answer to the 2026-10-17 question (mobile library searches default to Rounded). Code already did it (1a89304b:
   SearchShapeContext in TopNavigation's control bar and BottomSheet, so the Input phone sheet too); this is the Figma side.
@@ -607,6 +670,23 @@ cell height or row sizes, so the page round-trips unchanged. Selftests: push 343
   returns focus to its opener, and a second press on the + closes the list (it counted as outside, then reopened).
 - Contact sheets: badge@390 Release checklist pushed Status off the phone (Owner 160px) → on a phone the owner joins
   the caption, as in Task status. Gate 3 (badge + input, files after run 2): PASS; run 2 Studio E2E 338 works · 0 broken.
+
+## Figma's Slice tool S (Session C) — tier M, branch `zen/feat/studio-slice-20261022`
+The progress session relayed the user's "điều phối cho session nhận scope chưa ai nhận đi"; the user confirmed in
+Session C (2026-10-22): Slice first, then Comment (beside the page file, no Figma sync), then a Libraries dialog
+(Zen, project components, project theme). E2E ids FW-190…199.
+- Dialect: `<Slice id title x y width height />`, a Board child beside the frames like a Section (no layers, 1 px to
+  40000), `sliceCode`, `SLICE_SIZE`; not one of `boardFrames` (prototype, visibility, push skip it). doc.mjs prints its
+  import, slots.mjs inserts it, the runtime's `Slice` renders nothing.
+- Board: `builder/SliceFrame.tsx`, drawn last (above the frames) as a dashed outline that takes no click; its name stays
+  visible over frames (FrameChrome) and selects / drags it; handles resize it (1 px min); ⌥-drag / ⌘D / ⌘C ⌘V copy it
+  (`slice-N`), Delete removes it alone, rename and lock as a frame; Layers shows it with the scissors icon.
+- Tool: S and the Frame menu's Slice (Figma UI3: Frame · Section · Slice), the drag of the Section tool, a click =
+  100 × 100 (`armFrameDraw(…, "slice")`, `addSlice`); ⌘K, the canvas status, Keyboard shortcuts; S out of figmaNotYet.
+- Panel: `builder/SlicePanel.tsx`, X / Y / W / H and Export (Figma's 1x PNG first): `htmlExport.ts regionPicture` draws
+  the frames under the area at their places, cut at its edges; ExportSection takes a `picture` (and `initial`).
+- Push: a note ("Slices (export areas of the board): not pushed"); SLICE in Figma is a follow-up.
+- Selftests: dialect 54 (+6), doc, push, sections; tsc; style guard. E2E FW-190…192 wait for a slot.
 
 
 ## Schedule in code + Studio (session "Calendar", tier L; user: "xong gate thì làm tiếp Schedule")

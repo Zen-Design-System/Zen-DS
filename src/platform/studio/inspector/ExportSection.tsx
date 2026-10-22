@@ -14,7 +14,7 @@ import { inspectorStatus } from "./status";
  * per layer (Figma keeps them in the file).
  */
 
-type ExportSetting = { scale: number; format: LayerExportFormat };
+export type ExportSetting = { scale: number; format: LayerExportFormat };
 
 const settingsByLayer = new Map<string, ExportSetting[]>();
 /** A layer's export settings this session (`src`, or `frame:<page key>:<frame id>`): ⇧⌘C copies at the first one's scale. */
@@ -45,23 +45,27 @@ function download(blob: Blob, name: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export function ExportSection({ src, layer, host }: { src: string; layer: string; host: HTMLElement | null }) {
-  const [settings, setSettings] = useState<ExportSetting[]>(() => settingsByLayer.get(src) ?? []);
+/** What draws one export: the layer's own picture (layerPicture), or a Slice's area of the board (SlicePanel.tsx). */
+export type ExportPicture = (setting: ExportSetting) => ReturnType<typeof layerPicture>;
+
+export function ExportSection({ src, layer, host, picture, initial }: { src: string; layer: string; host: HTMLElement | null; picture?: ExportPicture; initial?: ExportSetting[] }) {
+  // A Slice starts with one setting (Figma's 1x PNG): it is there to be exported.
+  const [settings, setSettings] = useState<ExportSetting[]>(() => settingsByLayer.get(src) ?? initial ?? []);
   const [busy, setBusy] = useState(false);
-  useEffect(() => { setSettings(settingsByLayer.get(src) ?? []); }, [src]);
+  useEffect(() => { setSettings(settingsByLayer.get(src) ?? initial ?? []); }, [src]);
   const update = (next: ExportSetting[]) => { settingsByLayer.set(src, next); setSettings(next); };
   const add = () => {
     const last = settings.at(-1);
     update([...settings, { scale: last ? SCALES.find((scale) => scale > last.scale) ?? last.scale : 1, format: last?.format ?? "png" }]);
   };
   const run = async () => {
-    if (!host?.isConnected) { inspectorStatus.set("neutral", "The layer is not on the canvas right now"); return; }
+    if (!picture && !host?.isConnected) { inspectorStatus.set("neutral", "The layer is not on the canvas right now"); return; }
     setBusy(true);
     let done = 0;
     const notes: string[] = [];
     try {
       for (const setting of settings) {
-        const result = await layerPicture(host, setting);
+        const result = picture ? await picture(setting) : await layerPicture(host!, setting);
         if ("error" in result) { notes.push(result.error); continue; }
         notes.push(...result.notes);
         download(result.blob, exportFileName(layer, setting));

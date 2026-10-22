@@ -196,7 +196,7 @@ export const Bad = () => <>
   {/* expect: card/on-container-in-overlay */}
   <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }}><Card theme="border">Brief</Card></SidePanel>
   {/* expect: card/color-ignored */}
-  <div><Card theme="flat" color="brand">Revenue</Card></div>
+  <div><Card theme="default" color="brand">Revenue</Card></div>
   {/* expect: card/color-ignored */}
   <MetricCard color="cyan" label="Invoiced" value="$48,200" />
   {/* expect: card/solid-color */}
@@ -204,7 +204,7 @@ export const Bad = () => <>
   {/* expect: card/solid-color */}
   <div><Card theme="pale" color="accent">Payout</Card></div>
   {/* expect: card/surface-ignored */}
-  <div><Card theme="flat" surface="flat">Hours</Card></div>
+  <div><Card theme="default" surface="flat">Hours</Card></div>
   {/* expect: card/pale-on-canvas-default */}
   <AppShell sidebar={null}><Card theme="pale" color="cyan">Invoiced</Card></AppShell>
   {/* expect: card/pale-on-canvas-default */}
@@ -224,6 +224,10 @@ export const Bad = () => <>
   <PlatformPhone label="Energy"><Grid columns={3} gap="sm"><MetricCard label="Today" value="12 kWh" /><MetricCard spacing="small" label="Week" value="80 kWh" /><MetricCard spacing="small" label="Month" value="320 kWh" /></Grid></PlatformPhone>
   {/* expect: listbox/on-container-in-overlay */}
   <Dialog open={open} onOpenChange={setOpen} title="Members"><ListBox><List aria-label="Members"><ListItem title="Ava Chen" /></List></ListBox></Dialog>
+  {/* expect: listbox/color-ignored */}
+  <ListBox theme="shadow" color="green"><List aria-label="Approvals"><ListItem title="Time off" /></List></ListBox>
+  {/* expect: listbox/surface-ignored */}
+  <ListBox theme="pale" surface="alt"><List aria-label="Approvals"><ListItem title="Time off" /></List></ListBox>
   {/* expect: listbox/footer-action-tertiary */}
   <ListBox footer={<Link href="/time-off/calendar">Open calendar</Link>}><List aria-label="Out this week"><ListItem title="Sarah Kim" /></List></ListBox>
   {/* expect: listbox/footer-action-tertiary */}
@@ -234,12 +238,12 @@ export const Bad = () => <>
   <ListBox footer={<Stack align="start"><Button level="tertiary" onClick={showAll}>Show all files</Button></Stack>}><List aria-label="Recent files"><ListItem title="Brief.pdf" /></List></ListBox>
   {/* A list that closes a phone screen is an open section, not a box (usage rules §19). */}
   {/* expect: listbox/closing-list-on-phone */}
-  <PlatformPhone label="Wallet"><Stack gap="lg"><Card theme="flat">Balance</Card><ListBox as="section" aria-label="Transactions"><List aria-label="Transactions"><ListItem title="From Sea Group" /></List></ListBox></Stack></PlatformPhone>
+  <PlatformPhone label="Wallet"><Stack gap="lg"><Card theme="default">Balance</Card><ListBox as="section" aria-label="Transactions"><List aria-label="Transactions"><ListItem title="From Sea Group" /></List></ListBox></Stack></PlatformPhone>
   {/* expect: listbox/closing-list-on-phone */}
-  <Screen id="screen-tasks" title="Tasks" device="phone"><Stack gap="lg"><Card theme="flat">Due today</Card><ListBox><List aria-label="Tasks"><ListItem title="Review the brief" /></List></ListBox></Stack></Screen>
+  <Screen id="screen-tasks" title="Tasks" device="phone"><Stack gap="lg"><Card theme="default">Due today</Card><ListBox><List aria-label="Tasks"><ListItem title="Review the brief" /></List></ListBox></Stack></Screen>
   {/* An apostrophe in a prop's JSX text ("I'm") opens no string: the AppShell still ends where its tag does. */}
   {/* expect: listbox/closing-list-on-phone */}
-  <PlatformPhone label="Coach"><AppShell hero={<Text>I'm Blinky, your buddy</Text>}><Card theme="flat">Coach Avo</Card><ListBox><List aria-label="Today's plan"><ListItem title="Breakfast" /></List></ListBox></AppShell></PlatformPhone>
+  <PlatformPhone label="Coach"><AppShell hero={<Text>I'm Blinky, your buddy</Text>}><Card theme="default">Coach Avo</Card><ListBox><List aria-label="Today's plan"><ListItem title="Breakfast" /></List></ListBox></AppShell></PlatformPhone>
   {/* expect: list-item/switch-row */}
   <ListItem title="Daily digest" trailing={<ToggleButton aria-label="Daily digest" />} />
   {/* expect: chip/radio-is-chip-group */}
@@ -585,10 +589,10 @@ export const Bad = () => <>
 
 // A component's root card is judged where the component is used: three side by side take Small.
 // expect: card/spacing-by-count
-function StatCard({ label }: { label: string }) { return <Card theme="flat">{label}</Card>; }
+function StatCard({ label }: { label: string }) { return <Card theme="default">{label}</Card>; }
 export const Stats = () => <PlatformPhone label="Home"><Grid columns={3} gap="md"><StatCard label="Inside" /><StatCard label="Humidity" /><StatCard label="kWh today" /></Grid></PlatformPhone>;
 
 // A ListBox at a component's root is judged where the component is used: here it closes the phone screen.
 // expect: listbox/closing-list-on-phone
 function RecentTransactions() { return <ListBox><List aria-label="Transactions"><ListItem title="From Sea Group" /></List></ListBox>; }
-export const Wallet = () => <PlatformPhone label="Wallet"><Stack gap="lg"><Card theme="flat">Balance</Card><RecentTransactions /></Stack></PlatformPhone>;
+export const Wallet = () => <PlatformPhone label="Wallet"><Stack gap="lg"><Card theme="default">Balance</Card><RecentTransactions /></Stack></PlatformPhone>;

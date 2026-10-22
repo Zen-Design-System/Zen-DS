@@ -94,7 +94,7 @@ function MasterPageExample() {
           <Heading level={2} textStyle="Heading/4">Time off</Heading>
           <div className="pth-cards">
             {[["Annual leave", "12", "days remaining"], ["Sick leave", "4", "days remaining"]].map(([title, value, meta]) => (
-              <Card key={title} theme="flat">
+              <Card key={title} theme="default">
                 <Stack gap="2xs">
                   <Heading level={3} textStyle="Heading/Subheading">{title}</Heading>
                   {/* A value is big, but it is not a heading: Display/4 in a span. */}
@@ -356,7 +356,7 @@ export const typographyHierarchyExamples: ExampleDef[] = [
   { title: "Master page · desktop", screen: true, wide: true, description: "A Sidebar destination: PageHeader h1 Heading/1 with its description (document.title follows it), h2 Heading/4 sections, h3 Heading/Subheading card titles; the Display/4 values are not headings.", render: () => <MasterPageExample />, code: `document.title = "Workbench · Acme"; // the h1 text, then the app name
 <PageHeader title="Workbench" description="Requests and balances for the Design team." actions={…} />
 <Heading level={2} textStyle="Heading/4">Time off</Heading>
-<Card theme="flat"><Heading level={3} textStyle="Heading/Subheading">Annual leave</Heading>
+<Card theme="default"><Heading level={3} textStyle="Heading/Subheading">Annual leave</Heading>
   <Text as="span" textStyle="Display/4">12</Text></Card>
 <Heading level={2} textStyle="Heading/4">Recent requests</Heading>` },
   { title: "Child page · desktop", screen: true, wide: true, description: "An item under a master page: Back named after the parent, the item's name as the h1 (Heading/1) and in document.title, then the same h2 Heading/4 sections.", render: () => <ChildPageExample />, code: `document.title = "Annual leave · Acme";

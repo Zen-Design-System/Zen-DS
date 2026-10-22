@@ -189,7 +189,7 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"pale\" | \"border\" | \"on-container\" | \"solid\" | \"subtle\" | \"semi-pale\"",
+          "type": "\"shadow\" | \"default\" | \"pale\" | \"border\" | \"flat-border\" | \"on-container\" | \"solid\" | \"subtle\" | \"semi-pale\"",
           "required": false,
           "default": null,
           "description": "Card theme (Figma Metric-Card uses Shadow; Type=Hero a Brand Pale fill: theme=\"pale\" color=\"brand\" by default).",
