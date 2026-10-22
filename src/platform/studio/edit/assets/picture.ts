@@ -205,6 +205,13 @@ export async function writePicture(selection: NodeSelection, value: string, labe
     if (!next) return say(false, UPLOAD_ONLY_LOCAL);
     return writeAtUse(hit, source, next, `${selection.name} → ${label}`);
   }
+  // No picture of its own, drawn by a helper (personAvatar's initials branch): the photo the data gives the other branch.
+  const helper = !src ? element.attributes.find((attr) => attr.kind === "expression" && attr.dataSource?.kind === "param" && attr.dataSource.helper) : undefined;
+  if (helper?.kind === "expression" && helper.dataSource?.helper) {
+    const next = code(at.file);
+    if (!next) return say(false, UPLOAD_ONLY_LOCAL);
+    return writeAtUse(hit, { kind: "param", editable: true, helper: helper.dataSource.helper, prop: "src" }, next, `${selection.name} → ${label}`);
+  }
   const next = code(at.file);
   if (!next) return say(false, UPLOAD_ONLY_LOCAL);
   // One written layer drawn for several rows (a helper builds each row's avatar): a fixed picture would show on all of

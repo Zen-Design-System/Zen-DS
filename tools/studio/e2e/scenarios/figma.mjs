@@ -12,6 +12,7 @@ import { pagesDirOf } from "../lib/server.mjs";
 /** A new page of the Studio space titled `title` (its name). */
 const newPageFor = async (ctx, title) => (await newPage(ctx, { title })).name;
 import { pickOption, scaleStep } from "./inspector.mjs";
+import { pictureRows } from "./figma/pictures.mjs";
 
 /** A phone page with its bars, a Button, a Card and a frame holding two shapes (the audit's walk page). */
 const seedText = (title) => {
@@ -5266,6 +5267,8 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       return "⌥⌘↵ on Undo → Deleted, no Overlay · Prototype › Present on Files → Files · Design › Present on Files → the frame presented";
     },
   },
+  // A photo dropped on one row or one item (BACKLOG P1 2026-10-10): figma/pictures.mjs.
+  ...pictureRows,
 ];
 
 /* ── Select matching layers / Select all with same › helpers ─────────────────────────────────────────────────────── */

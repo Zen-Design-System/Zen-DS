@@ -1333,10 +1333,12 @@ function reach(at, path, ctx) {
 
 /** Data written in the module, read (or, with `ctx.adding`, given its missing last field) by `follow`: a place or { add }. */
 function dataAt(at, node, path, ctx) {
-  const keys = path.map(stepKey);
-  const target = ctx.adding ? followAdding(at.mod, node, keys, ctx.read) : { found: follow(at.mod, node, keys, ctx.read) };
-  const root = node.type === "Identifier" ? node.name : null;
-  ctx.source = root ? [root, ...keys].join(".") : keys.join(".");
+  // A member path (`src: people.ava.photo` in an item) is read from its root, as a prop bound to it is.
+  const chain = node.type === "MemberExpression" ? memberPath(node) : null;
+  const root = chain ? chain.root : node;
+  const keys = [...(chain?.path ?? []), ...path.map(stepKey)];
+  const target = ctx.adding ? followAdding(at.mod, root, keys, ctx.read) : { found: follow(at.mod, root, keys, ctx.read) };
+  ctx.source = root.type === "Identifier" ? [root.name, ...keys].join(".") : keys.join(".");
   if (target.add) return { add: target.add };
   return place(target.found.mod, target.found.node);
 }
