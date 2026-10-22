@@ -2732,6 +2732,10 @@
           ],
           "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
         },
+        "cornerSmoothing": {
+          "type": "number",
+          "description": "Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle arc."
+        },
         "image": {
           "type": "string",
           "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke."
@@ -9528,6 +9532,10 @@
             "full"
           ],
           "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
+        },
+        "cornerSmoothing": {
+          "type": "number",
+          "description": "Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle arc."
         },
         "image": {
           "type": "string",
@@ -16729,6 +16737,10 @@
           ],
           "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
         },
+        "cornerSmoothing": {
+          "type": "number",
+          "description": "Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle arc."
+        },
         "image": {
           "type": "string",
           "description": "An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke."
@@ -18420,6 +18432,10 @@
             "full"
           ],
           "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
+        },
+        "cornerSmoothing": {
+          "type": "number",
+          "description": "Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle arc."
         },
         "image": {
           "type": "string",

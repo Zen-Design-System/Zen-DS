@@ -28,10 +28,38 @@ export interface CornerRadiusProps {
   radiusBottomLeft?: ZenCornerRadius;
 }
 
+/**
+ * Figma corner smoothing (cornerSmoothing): squircle corners. Spec docs/research/studio-fill-gradient-smoothing-eyedropper-
+ * spec-2026-10-22.md §2 (user: CSS corner-shape).
+ */
+export interface CornerSmoothingProps {
+  /**
+   * Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle
+   * arc. Drawn with CSS `corner-shape: superellipse(…)` where the browser has it (Chromium); other browsers keep plain
+   * rounded corners. It shapes the corners `radius` sets, so it needs a radius.
+   */
+  cornerSmoothing?: number;
+}
+
+/**
+ * The CSS superellipse for a smoothing in %: 0 is a circle arc (`round`, superellipse(1)), iOS's 60 % the squircle
+ * (superellipse(2)), 100 % about 2.67. Undefined for none.
+ */
+export function cornerShapeValue(smoothing: number | undefined): string | undefined {
+  if (typeof smoothing !== "number" || !(smoothing > 0)) return undefined;
+  return `superellipse(${Math.round((1 + Math.min(100, smoothing) / 60) * 100) / 100})`;
+}
+
+/** `data-corner-smoothing` and its --zen-corner-shape (read next to the attribute only, so it never leaks into a child). */
+export function cornerSmoothingStyle(smoothing: number | undefined): { attributes: Record<string, string | undefined>; vars: Record<string, string | undefined> } {
+  const shape = cornerShapeValue(smoothing);
+  return { attributes: { "data-corner-smoothing": shape ? "true" : undefined }, vars: { "--zen-corner-shape": shape } };
+}
+
 /** The per-corner props in CSS / Figma order (TL TR BR BL). */
 export const cornerRadiusPropNames = ["radiusTopLeft", "radiusTopRight", "radiusBottomRight", "radiusBottomLeft"] as const;
-/** Every prop the Corner radius field owns: `radius` plus the four corners (Studio filters these out of Properties). */
-export const radiusPropNames: ReadonlySet<string> = new Set(["radius", ...cornerRadiusPropNames]);
+/** Every prop the Corner radius field owns: `radius`, the four corners and the smoothing (Studio filters these out of Properties). */
+export const radiusPropNames: ReadonlySet<string> = new Set(["radius", ...cornerRadiusPropNames, "cornerSmoothing"]);
 
 /**
  * The border-radius value for `radius` plus per-corner overrides: the single token value when no corner is set (the

@@ -8,7 +8,7 @@
       "file": "src/components/Shape/Shape.tsx",
       "description": "Zen Shape: Figma's native shapes (Rectangle, Ellipse with its arc, Line, Arrow, Polygon, Star, and the Pen's Vector)\nfor illustrations, marks and decoration drawn in Zen Studio. Not a Figma library component: it maps to Figma's own\nnodes (RECTANGLE, ELLIPSE with arcData, LINE, REGULAR_POLYGON, STAR, VECTOR) on export and import. Colours are Zen tokens only (`fill` from\nColor/Background, `stroke` from Color/Border); the rectangle's radius takes the Corner-Radius tokens. It sizes and\nplaces like a layout primitive: `width` / `height` (px or fill) and Figma's position props (in a free frame:\n`position=\"absolute\"` with px insets).",
       "deprecated": null,
-      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, ImageFillProps",
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, CornerSmoothingProps, ImageFillProps",
       "props": [
         {
           "name": "width",
@@ -152,6 +152,14 @@
           "required": false,
           "default": null,
           "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`.",
+          "deprecated": null
+        },
+        {
+          "name": "cornerSmoothing",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle\narc. Drawn with CSS `corner-shape: superellipse(…)` where the browser has it (Chromium); other browsers keep plain\nrounded corners. It shapes the corners `radius` sets, so it needs a radius.",
           "deprecated": null
         },
         {

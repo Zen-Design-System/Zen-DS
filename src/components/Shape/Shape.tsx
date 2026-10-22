@@ -2,7 +2,7 @@ import { useId, useRef, useState, type CSSProperties, type HTMLAttributes, type 
 import { frameFlips, zenBlendModes, type FrameFlip, type ZenBlendMode } from "../Layout/appearance";
 import { layoutPosition, type LayoutPositionProps } from "../Layout/position";
 import { layoutSizing, withSizingVars, type LayoutSizingProps } from "../Layout/sizing";
-import { cornerRadiusValue, type CornerRadiusProps } from "../_shared/corners";
+import { cornerRadiusValue, cornerSmoothingStyle, type CornerRadiusProps, type CornerSmoothingProps } from "../_shared/corners";
 import { useMergedRefs } from "../_shared/merge-refs";
 import type { ZenCornerRadius } from "../_shared/scale";
 import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
@@ -25,7 +25,7 @@ export type ShapeBooleanOperation = (typeof shapeBooleanOperations)[number];
 /** Figma's default size for a shape placed with a click (100 × 100). */
 export const SHAPE_DEFAULT_SIZE = 100;
 
-export interface ShapeProps extends Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, ImageFillProps {
+export interface ShapeProps extends Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, CornerSmoothingProps, ImageFillProps {
   /**
    * The shape, as Figma's shape tools draw it: `rectangle` (default; Figma RECTANGLE), `ellipse` (ELLIPSE, with an arc),
    * `line` (LINE: `width` is its length, `rotation` its angle, no height), `arrow` (a LINE with Figma's "Line arrow" end
@@ -136,6 +136,7 @@ export function Shape({
   radiusTopRight,
   radiusBottomRight,
   radiusBottomLeft,
+  cornerSmoothing,
   arcStart,
   arcSweep,
   arcRatio,
@@ -201,6 +202,7 @@ export function Shape({
     rotate: finite(rotation) && rotation % 360 !== 0 ? `${-rotation}deg` : undefined,
     scale: flip === "horizontal" ? "-1 1" : flip === "vertical" ? "1 -1" : flip === "both" ? "-1 -1" : undefined,
     ...(kind === "rectangle" ? picture.vars : {}),
+    ...(kind === "rectangle" ? cornerSmoothingStyle(cornerSmoothing).vars : {}),
   };
   const shown = Object.fromEntries(Object.entries(vars).filter(([, value]) => value !== undefined)) as CSSProperties;
   const a11y = label ? { role: "img", "aria-label": label } : { "aria-hidden": true as const };
@@ -280,6 +282,7 @@ export function Shape({
       ref={merged}
       className={["zen-shape", className].filter(Boolean).join(" ")}
       data-type={kind}
+      {...(kind === "rectangle" ? cornerSmoothingStyle(cornerSmoothing).attributes : {})}
       data-flip={flip && (frameFlips as readonly string[]).includes(flip) ? flip : undefined}
       data-stroke-align={strokeColor && weight ? align : undefined}
       {...(kind === "rectangle" ? picture.attributes : {})}

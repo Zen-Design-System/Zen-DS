@@ -64,7 +64,7 @@ check("image md fallback", cornerRadiusValue("md", { radiusTopLeft: "none" }), "
 
 // Owned prop sets (Studio filters them out of the generic Properties list).
 check("position props", [...positionPropNames].sort(), ["constraintX", "constraintY", "insetBottom", "insetLeft", "insetRight", "insetTop", "position"]);
-check("radius props", [...radiusPropNames].sort(), ["radius", "radiusBottomLeft", "radiusBottomRight", "radiusTopLeft", "radiusTopRight"]);
+check("radius props (corner smoothing goes with them)", [...radiusPropNames].sort(), ["cornerSmoothing", "radius", "radiusBottomLeft", "radiusBottomRight", "radiusTopLeft", "radiusTopRight"]);
 
 if (failures.length) {
   console.error(`position selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);

@@ -3699,6 +3699,29 @@ export const rows = [
     },
   },
   {
+    id: "FW-180", feature: "Appearance › Corner smoothing (Figma's, beside the independent corners): 60 % writes cornerSmoothing={60} and the frame draws squircle corners (corner-shape where the browser has it); 0 takes it away", wp: "parity ❌ corner smoothing 2026-10-22",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      await selectBody(page, id);
+      const corners = right(page).getByRole("button", { name: "Independent corners", exact: true });
+      if ((await corners.getAttribute("aria-pressed")) !== "true") await corners.click();
+      await typeNumber(page, "Corner smoothing", 60);
+      await written(page, id, /<Stack\b[^>]*cornerSmoothing=\{60\}/, "cornerSmoothing={60}");
+      await until(async () => page.evaluate(() => {
+        const layer = document.querySelector('.studio-world [data-corner-smoothing="true"]');
+        if (!layer) return false;
+        const style = getComputedStyle(layer);
+        // Chromium draws it (corner-shape); elsewhere the attribute and its superellipse are what the code gives.
+        return style.getPropertyValue("--zen-corner-shape").trim() === "superellipse(2)" && (!("cornerShape" in style) || /superellipse/.test(style.cornerShape));
+      }), { message: "the frame draws superellipse(2) corners" });
+      await shot(page, "fw-180-corner-smoothing");
+      await expectPanelFits(page, "the corners with Corner smoothing");
+      await typeNumber(page, "Corner smoothing", 0);
+      await written(page, id, /cornerSmoothing=/, "cornerSmoothing removed at 0", true);
+      return "Independent corners → Corner smoothing 60 % → cornerSmoothing={60}, superellipse(2) → 0 → removed";
+    },
+  },
+  {
     id: "FW-150", feature: "A shape's layer menu has Flip horizontal ⇧H and Flip vertical ⇧V right after Lock (Figma's place); Flip horizontal writes flip=\"horizontal\", one ⌘Z takes it back", wp: "re-measure §2a menus 2026-10-21", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await clipPage(ctx);
