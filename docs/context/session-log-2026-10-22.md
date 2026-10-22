@@ -115,3 +115,11 @@ E2E steps ran 3163–3377 s against that cap: the limit was sent to `npm`, not t
   shows, `SlotChips` drew the read-only people/place values as Chips with no handler (a `<button>` that does nothing;
   seen in the appshell and card-themes gates too). The chip guideline says a read-only label is a Tag: they are Tags
   now. Scoped gate `--only=ai-ui`: PASS, behaviour 0 warnings. Its BACKLOG P3 line (from #210) is removed.
+
+## AppShell session · BACKLOG: two items already done (tier XS, docs only)
+
+- "P3 · Card Spacing=XSmall follow-ups" is done: native-pack.json on main has the 40 Spacing=XSmall Card variants,
+  from Bug's card-themes re-capture (#210).
+- "P3 · Designer question: the mobile playground's 'Sort by' Action sheet marks the current sort" is answered: #213
+  (06df41f4) turned the Action example into commands and made the rule strict, and usage:check shows 0 warnings.
+

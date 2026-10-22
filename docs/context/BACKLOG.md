@@ -48,11 +48,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a
   variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
   frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
-- **P3 · Card Spacing=XSmall follow-ups (2026-10-20, AppShell session):**
-  - The 40 XSmall variants and `Card-padding-xsmall` are in Figma, code and the Studio props.
-  - Still to do: `docs/figma-contracts/native-pack.json` has no XSmall Card. It needs a probe-frame rebuild
-    (`node tools/studio/native-pack.mjs --help`), so a direct paste of an xs Card notes "no variant"; the plugin import
-    works.
 - **P3 · Card contract predates Figma's Sub-Action wrapper (2026-10-21, Session B):** since 2026-10-18 Figma's Card draws
   Sub-Action › Wrapper › Button/Icon-Flat, but `docs/figma-contracts/card.json` still has Sub-Action as the instance, so
   `nested-paths.mjs --check` passes on the old shape. The push, pull and plugin (833ea0e) handle the wrapper already.
@@ -150,7 +145,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · Designer question: Popover label at 3.75:1 (2026-10-14):** `.zen-popover__label` ("Select an option or create one" in
   PopoverManualAddNew) uses Content/Neutral/Light, #838383 on white at 12px, under AA's 4.5:1. Baselined in
   tests/smoke/axe-baseline.json. Keep, or move the label to Content/Neutral/Medium?
-- **P3 · Designer question: the mobile playground's "Sort by" Action sheet marks the current sort (2026-10-15, seen by `usage:check`, on main since 2026-10-07):** `src/platform/PlatformMobilePlaygrounds.tsx:240` passes `selectedId` to a `type="action"` BottomSheet; rule `bottom-sheet/choice-uses-list-item` warns that a single choice is a Modal sheet with `<List>` of `<ListItem selected>` rows. Keep the Action sheet (Figma shows Sort by as actions) and allow it, or switch the playground to the Modal sheet?
 - **P1 · Studio → Figma coverage, P3–P4 (user approved 2026-10-12, in this order; P1, P2 merged 2026-10-13):** done on
   the way: MetricCard, ChartCard / charts, ListItem leading, ListBox header, AiChatBlock, Table cells (a design copy's
   and the push's: avatar, badge, actions, checkbox, sort). Left for P3: TopNavigation (114 uses ↔ Top-Navigation/Mobile
