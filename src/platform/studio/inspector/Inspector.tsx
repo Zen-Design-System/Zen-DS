@@ -16,6 +16,7 @@ import "./drafts";
 import { FramePanel } from "./FramePanel";
 import { LocalPartPanel } from "./LocalPartPanel";
 import { FramePresets } from "../builder/FramePresets";
+import { ScalePanel } from "../draw/ScalePanel";
 import { PagePanel } from "./PagePanel";
 // A part: a Table's Data-Row or Cell has its own panel, any other part is PartPanel's (table/TableCellPanel.tsx).
 import { TablePartPanel } from "../table/TableCellPanel";
@@ -116,6 +117,8 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
   const identity = useSelectionIdentity(selection);
   // The Frame tool on a page you made: Figma's frame presets (builder/FramePresets.tsx, Session C's F4).
   const presetsPage = useStudio((state) => (state.tool === "frame" ? state.localPage : null));
+  // The Scale tool (K) on a page you made: Figma's Scale section (draw/ScalePanel.tsx, Session C).
+  const scalePage = useStudio((state) => (state.tool === "scale" ? state.localPage : null));
   return (
     <div className="studio-inspector">
       <div className="studio-inspector__tabs">
@@ -136,6 +139,7 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
           // The Code tab holds a layer's code properties (DesignPanel's code view; §3a), the Design tab only Figma's.
           : tab === "code" ? <CodePanel selection={selection} codeSlot={codeSlot} properties={selection?.kind === "node" && !selection.part ? <DesignPanel key={identity} view="code" selection={selection} controlsSlot={controlsSlot} /> : null} />
           : presetsPage ? <FramePresets localPage={presetsPage} />
+          : scalePage ? <ScalePanel />
           : several && selection?.kind === "node" && !selection.part ? <SelectionActions />
           // A layer inside an instance of a page's own component (F7b): its overrides.
           : selection?.kind === "node" && selection.part && selection.name === "Use" ? <LocalPartPanel key={identity} selection={selection} />

@@ -439,6 +439,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
   // Sections (F4) are areas of the Studio board; the push sends one Screen.
   const sections = boardElements.filter((child) => child.name === "Section").length;
   if (sections) notes.push(`${sections} Section${sections > 1 ? "s" : ""} (areas of the board): not pushed`);
+  const slices = boardElements.filter((child) => child.name === "Slice").length;
+  if (slices) notes.push(`${slices} Slice${slices > 1 ? "s" : ""} (export areas of the board): not pushed`);
   /** Code-only components drawn as a frame of their layers (or as their text), by name: one note each at the end. */
   const framed = new Map();
   const countFramed = (name) => framed.set(name, (framed.get(name) ?? 0) + 1);

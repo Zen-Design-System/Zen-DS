@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Self-test of the builder page dialect (tools/studio/dialect.mjs). Run: node tools/studio/dialect.selftest.mjs
-import { boardFrames, boardSections, componentSets, jsxText, localComponents, newPageText, pageHeader, parsePage, resolveInstance, sectionCode, validateDialect } from "./dialect.mjs";
+import { boardFrames, boardSections, componentSets, jsxText, localComponents, newPageText, pageHeader, parsePage, resolveInstance, sectionCode, sliceCode, validateDialect } from "./dialect.mjs";
 
 const failures = [];
 let passed = 0;
@@ -169,6 +169,15 @@ check("sections: needs its size", /<Section> needs width/.test(first(withSection
 check("sections: holds no layers", /holds no layers/.test(first(withSection('<Section id="s" title="S" x={0} y={0} width={400} height={400}><Screen id="x" /></Section>'))), true);
 check("sections: sectionCode", sectionCode({ id: "section-2", title: "Flow <A>", x: -40.4, y: 10, width: 470, height: 925 }), '<Section id="section-2" title="Flow A" x={-40} y={10} width={470} height={925} />');
 check("sections: the code is a valid Section", messages(withSection(sectionCode({ id: "section-2", title: "Flow", x: 0, y: 0, width: 470, height: 925 }))), []);
+// Slices (Figma's): an export area of the board, above the frames, no layers; not one of the board's frames.
+const withSlice = (slice) => withSection(slice).replace("import { Board, Screen, Section }", "import { Board, Screen, Slice }");
+const slicePage = withSlice('<Slice id="slice-1" title="Hero" x={0} y={0} width={1} height={240} />');
+check("slices: a Slice on the Board (as small as 1 px)", messages(slicePage), []);
+check("slices: not one of the board's frames", boardFrames(parsePage(slicePage)).map((frame) => frame.id), ["home"]);
+check("slices: needs its size", /<Slice> needs height/.test(first(withSlice('<Slice id="s" title="S" x={0} y={0} width={100} />'))), true);
+check("slices: holds no layers", /A Slice holds no layers/.test(first(withSlice('<Slice id="s" title="S" x={0} y={0} width={40} height={40}><Screen id="x" /></Slice>'))), true);
+check("slices: sliceCode", sliceCode({ id: "slice-2", title: "Hero <A>", x: 10.4, y: -5, width: 320, height: 200 }), '<Slice id="slice-2" title="Hero A" x={10} y={-5} width={320} height={200} />');
+check("slices: the code is a valid Slice", messages(withSlice(sliceCode({ id: "slice-2", title: "Hero", x: 0, y: 0, width: 320, height: 200 }))), []);
 
 if (failures.length) {
   console.error(`dialect selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);

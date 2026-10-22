@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useSyncExternalStore } from "react";
 import { CropHandles, useCropActive } from "../draw/CropHandles";
+import { ScaleHandles } from "../draw/ScaleHandles";
 import { ArcHandles } from "./ArcHandles";
 import { startVectorEdit, VectorHandles, vectorEditing } from "./VectorHandles";
 import { RotateHandles } from "./RotateHandles";
@@ -1084,6 +1085,12 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         box={overlay.selected}
         hit={overlay.selected && !partRef.current && !overlay.extras.length && selectedRef.current?.src === overlay.selected.src ? selectedRef.current : null}
         interactive={tool === "select" && !presenting}
+        viewport={viewport}
+      />
+      {/* The Scale tool's corners (K, draw/ScaleHandles.tsx): drag one to scale the layer and all in it. */}
+      <ScaleHandles
+        box={overlay.selected && !partRef.current && selectedRef.current?.src === overlay.selected.src ? (overlay.extras.length ? unionBox([overlay.selected, ...overlay.extras]) : overlay.selected) : null}
+        interactive={tool === "scale" && !presenting}
         viewport={viewport}
       />
       {/* Figma's arc handles on a selected ellipse (Sweep, Start, Ratio), above the resize handles. */}

@@ -20,8 +20,6 @@ type NotYet = { code: string; keys: Keys; name: string; macOnly?: boolean };
  * which Figma writes as Ctrl+Alt elsewhere.
  */
 export const FIGMA_NOT_YET: readonly NotYet[] = [
-  { code: "KeyK", keys: {}, name: "Scale" },
-  { code: "KeyS", keys: {}, name: "Slice" },
   { code: "KeyC", keys: {}, name: "Comment" },
   { code: "KeyI", keys: {}, name: "Pick color" },
 ];
