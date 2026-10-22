@@ -1332,6 +1332,7 @@
 .pth-outline__text { overflow: hidden; font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 900px) { .pth-demo { grid-template-columns: minmax(0, 1fr); } }
 
-/* Calendar playground: the views fill the preview; a phone-width column on mobile. */
-.platform-calendar-preview { flex-direction: column; align-items: stretch; }
+/* Calendar playground: the views fill the preview; a phone-width column on mobile. One line (nowrap): a wrapping
+   column's line takes its widest item's width, which let Schedule's Resource-Grid grow to Figma's 1120px. */
+.platform-calendar-preview { flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
 .platform-calendar-preview[data-device="mobile"] { width: min(390px, 100%); align-self: center; }

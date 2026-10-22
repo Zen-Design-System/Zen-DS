@@ -1340,7 +1340,7 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "Figma Header Label (Heading/Subheading).",
+          "description": "Figma Header Label (Body/Extra/Medium, 2026-10-21).",
           "deprecated": null
         },
         {
@@ -1348,7 +1348,7 @@
           "type": "2 | 3 | 4",
           "required": false,
           "default": "3",
-          "description": "Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2\n when the card sits directly under the page h1). The look stays Heading/Subheading — the level follows the outline,\n not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title.",
+          "description": "Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2\n when the card sits directly under the page h1). The look stays Body/Extra/Medium — the level follows the outline,\n not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title.",
           "deprecated": null
         },
         {
@@ -1364,7 +1364,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "One line under the title that says what the figure is (\"Available revenue in your wallet\"), Body/Small/Regular.",
+          "description": "What the figure is (\"Available revenue in your wallet\"), Body/Small/Regular: the top of Figma's Metric, under the\n Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value).",
           "deprecated": null
         },
         {
@@ -1372,7 +1372,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "The headline figure the chart explains (\"$4,346.00\"), Heading/2 (Figma Chart-Card Heading > Value).",
+          "description": "The headline figure the chart explains (\"$4,346.00\"), Display/4 (Figma Chart-Card Metric > Value), under the\n description and the Segmented.",
           "deprecated": null
         },
         {

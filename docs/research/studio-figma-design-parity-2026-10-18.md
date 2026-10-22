@@ -90,12 +90,17 @@ Up since 2026-10-18 (29): ⇧S (Section) (❌ → ✅) · ⇧P (Pencil) (❌ →
 
 What is still not Figma's:
 - **Missing, and the status line says so:** K (Scale), S (Slice), C (Comment), ⌥⌘A (Select matching layers).
+  ⌥⌘A was built on 2026-10-22, with Select all with same ›. It matches as Figma does, minus Studio's page-wide name
+  numbers (`edit/matchModel.ts`, E2E FW-175…179).
 - **Detach instance on a Button:** kept on purpose (user, 2026-10-03: an interactive component stops working when
   detached).
 - **Menus:**
-  - The layer menu has no Flip horizontal / Flip vertical (the keys work).
+  - ~~The layer menu has no Flip horizontal / Flip vertical (the keys work).~~ Built 2026-10-21: after Lock, ⇧H / ⇧V,
+    on frames and shapes (the layers that turn; a component's menu has none) (E2E FW-150…152).
   - A Zen instance's menu has no Go to main component and no Reset all changes (Reset shows in its panel).
-  - The empty canvas menu is Zoom to fit, Zoom to 100% and Show/Hide UI, with no Paste (Paste here works inside a frame).
+  - ~~The empty canvas menu is Zoom to fit, Zoom to 100% and Show/Hide UI, with no Paste (Paste here works inside a frame).~~
+    Built 2026-10-21: Paste here first on a page you made, dimmed with nothing to paste; a copied frame lands as a frame,
+    copied layers in a new frame of their size, corner at the pointer, one ⌘Z (E2E FW-153, FW-154).
 - **Right panel:**
   - A Button, a Card and a text have a **Content** section that edits their words in the panel. Figma edits words on the
     canvas, or through an instance's text property.

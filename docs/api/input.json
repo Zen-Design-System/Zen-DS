@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "input",
-  "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
+  "import": "import { InputField, SelectField, DateField, ColorField, NumberField, TextAreaField, AutocompleteField, RichTextField, PropertyField, PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople, PropertyTags, InputLabel, InputHelpText, InputLeadingTrailing, InputContent, ControlBarSelectItem, RichTextEditorBar, HeadingField, InputConditionItem, InputConditions } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "InputField",
@@ -1628,6 +1628,685 @@
       ]
     },
     {
+      "name": "PropertyField",
+      "file": "src/components/PropertyField/PropertyField.tsx",
+      "description": "Figma Input/Property-Field (16923:6031, page ❖ Input): a property of a record (a task, ticket, deal or file) — an\nicon and a label on the left, the value on the right, edited in place. Rows stack in one or two columns of a detail\nview; Spacing/Gap/2XSmall apart. The label column is 128 wide (Input/Size/Medium high, Gap/XSmall inside); the value is\na .Primitives/Input/Property-Value cell (16921:6022).",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root `<div role=\"group\">`, named by the label.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Base, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so every row's value lines up.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName | ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Icon + Icon-Src: the property's line icon (Content/Neutral/Light).",
+          "deprecated": null
+        },
+        {
+          "name": "action",
+          "type": "{ label: string; onClick?: () => void }",
+          "required": false,
+          "default": null,
+          "description": "Figma Action: the + after the label (Button/Icon-Main XSmall Tertiary). PropertyPeople and PropertyTags show it by\nthemselves, opening their picker; pass `action` to add something else.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The value: one cell — PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople or PropertyTags.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "PropertyText",
+      "file": "src/components/PropertyField/PropertyField.tsx",
+      "description": "Figma Property-Value Type=Text: free text that turns into an input in place (the Input focus look while editing).",
+      "deprecated": null,
+      "extends": "PropertyValueBaseProps",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The cell.",
+          "deprecated": null
+        },
+        {
+          "name": "placeholder",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Shown while there is no value (Figma State=Default). Default: the locale's \"Empty\" (vi \"Trống\").",
+          "deprecated": null
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Show the value only: no hover, no picker, no remove buttons (a record people may not change).",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"inputted\" | \"hover\" | \"editing\"",
+          "required": false,
+          "default": null,
+          "description": "Draw a fixed Figma state (docs, matrices); a live cell finds its own.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the cell when it is not inside a PropertyField (which names it by its label).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The text. Controlled with onValueChange.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "required": false,
+          "default": "\"\"",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Called with the new text when an edit is committed (Enter or leaving the field); Escape keeps the old one.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "PropertySelect",
+      "file": "src/components/PropertyField/PropertyField.tsx",
+      "description": "Figma Property-Value Type=Select: one option (its icon and name); opens Popover/Default under the cell.",
+      "deprecated": null,
+      "extends": "PropertyValueBaseProps",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The cell.",
+          "deprecated": null
+        },
+        {
+          "name": "placeholder",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Shown while there is no value (Figma State=Default). Default: the locale's \"Empty\" (vi \"Trống\").",
+          "deprecated": null
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Show the value only: no hover, no picker, no remove buttons (a record people may not change).",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"inputted\" | \"hover\" | \"editing\"",
+          "required": false,
+          "default": null,
+          "description": "Draw a fixed Figma state (docs, matrices); a live cell finds its own.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the cell when it is not inside a PropertyField (which names it by its label).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "options",
+          "type": "PropertyFieldOption[]",
+          "required": true,
+          "default": null,
+          "description": "The options of the Popover; each may carry an icon and its tone (a priority's flag).",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string | null",
+          "required": false,
+          "default": null,
+          "description": "The chosen option's value. Controlled with onValueChange; null = nothing chosen.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string | null",
+          "required": false,
+          "default": "null",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "popoverLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Names the option list (Popover label). Default: the row's label.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "PropertyStatus",
+      "file": "src/components/PropertyField/PropertyField.tsx",
+      "description": "Figma Property-Value Type=Status: a BadgeStatus Medium; opens Popover/Default of BadgeStatus items.",
+      "deprecated": null,
+      "extends": "PropertyValueBaseProps",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The cell.",
+          "deprecated": null
+        },
+        {
+          "name": "placeholder",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Shown while there is no value (Figma State=Default). Default: the locale's \"Empty\" (vi \"Trống\").",
+          "deprecated": null
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Show the value only: no hover, no picker, no remove buttons (a record people may not change).",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"inputted\" | \"hover\" | \"editing\"",
+          "required": false,
+          "default": null,
+          "description": "Draw a fixed Figma state (docs, matrices); a live cell finds its own.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the cell when it is not inside a PropertyField (which names it by its label).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "BadgeStatusValue | null",
+          "required": false,
+          "default": null,
+          "description": "The workflow step (a BadgeStatus). Controlled with onValueChange; null = no status yet.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "BadgeStatusValue | null",
+          "required": false,
+          "default": "null",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: BadgeStatusValue) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "statuses",
+          "type": "unknown",
+          "required": false,
+          "default": "[\"to-do\", \"in-progress\", \"in-review\", \"done\", \"blocked\", \"cancelled\"]",
+          "description": "The steps the picker offers, in order. Default: all six.",
+          "deprecated": null
+        },
+        {
+          "name": "labels",
+          "type": "Partial<Record<BadgeStatusValue, ReactNode>>",
+          "required": false,
+          "default": null,
+          "description": "A product's own words for the steps (`{ \"in-review\": \"QA\" }`); the step keeps its colour and ring.",
+          "deprecated": null
+        },
+        {
+          "name": "progress",
+          "type": "number",
+          "required": false,
+          "default": null,
+          "description": "The ring's exact value for the current step (0–100), as BadgeStatus `progress`.",
+          "deprecated": null
+        },
+        {
+          "name": "popoverLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Names the list of steps (Popover label). Default: the row's label.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "PropertyDate",
+      "file": "src/components/PropertyField/PropertyField.tsx",
+      "description": "Figma Property-Value Type=Date: the day as text; opens the Date-Picker under the cell.",
+      "deprecated": null,
+      "extends": "PropertyValueBaseProps",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The cell.",
+          "deprecated": null
+        },
+        {
+          "name": "placeholder",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Shown while there is no value (Figma State=Default). Default: the locale's \"Empty\" (vi \"Trống\").",
+          "deprecated": null
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Show the value only: no hover, no picker, no remove buttons (a record people may not change).",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"inputted\" | \"hover\" | \"editing\"",
+          "required": false,
+          "default": null,
+          "description": "Draw a fixed Figma state (docs, matrices); a live cell finds its own.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the cell when it is not inside a PropertyField (which names it by its label).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "PropertyDateValue | null",
+          "required": false,
+          "default": null,
+          "description": "The day: a Date or an ISO string (\"2026-06-07\", local time). Controlled with onValueChange; null = no date.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "PropertyDateValue | null",
+          "required": false,
+          "default": "null",
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: Date | null) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "format",
+          "type": "Intl.DateTimeFormatOptions",
+          "required": false,
+          "default": "{ dateStyle: \"long\" }",
+          "description": "How the day reads, for the locale (Intl.DateTimeFormat). Default `{ dateStyle: \"long\" }`: \"June 7, 2026\".",
+          "deprecated": null
+        },
+        {
+          "name": "minDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "maxDate",
+          "type": "Date",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "PropertyPeople",
+      "file": "src/components/PropertyField/PropertyField.tsx",
+      "description": "Figma Property-Value Type=Person: Tag Leading-Photo chips with Remove; the + opens Popover/Default with Search and Avatar Small items.",
+      "deprecated": null,
+      "extends": "PropertyMultiProps",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The cell.",
+          "deprecated": null
+        },
+        {
+          "name": "placeholder",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Shown while there is no value (Figma State=Default). Default: the locale's \"Empty\" (vi \"Trống\").",
+          "deprecated": null
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Show the value only: no hover, no picker, no remove buttons (a record people may not change).",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"inputted\" | \"hover\" | \"editing\"",
+          "required": false,
+          "default": null,
+          "description": "Draw a fixed Figma state (docs, matrices); a live cell finds its own.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the cell when it is not inside a PropertyField (which names it by its label).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "options",
+          "type": "PropertyFieldOption[]",
+          "required": true,
+          "default": null,
+          "description": "Everyone or every label that can be added.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string[]",
+          "required": false,
+          "default": null,
+          "description": "The chosen values, in order. Controlled with onValueChange.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string[]",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string[]) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "addLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the + (Figma Action). Default: the locale's \"Add <label>\".",
+          "deprecated": null
+        },
+        {
+          "name": "popoverLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Names the list (Popover label). Default: the row's label.",
+          "deprecated": null
+        },
+        {
+          "name": "single",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "One person only (a Reporter): picking replaces and closes. Default: several (Assignees).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "PropertyTags",
+      "file": "src/components/PropertyField/PropertyField.tsx",
+      "description": "Figma Property-Value Type=Tags: Badges Medium Subtle with Remove, wrapping; the + opens Popover/Default with Search.",
+      "deprecated": null,
+      "extends": "PropertyMultiProps",
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "The cell.",
+          "deprecated": null
+        },
+        {
+          "name": "placeholder",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Shown while there is no value (Figma State=Default). Default: the locale's \"Empty\" (vi \"Trống\").",
+          "deprecated": null
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "required": false,
+          "default": null,
+          "description": "Show the value only: no hover, no picker, no remove buttons (a record people may not change).",
+          "deprecated": null
+        },
+        {
+          "name": "state",
+          "type": "\"default\" | \"inputted\" | \"hover\" | \"editing\"",
+          "required": false,
+          "default": null,
+          "description": "Draw a fixed Figma state (docs, matrices); a live cell finds its own.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the cell when it is not inside a PropertyField (which names it by its label).",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "options",
+          "type": "PropertyFieldOption[]",
+          "required": true,
+          "default": null,
+          "description": "Everyone or every label that can be added.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string[]",
+          "required": false,
+          "default": null,
+          "description": "The chosen values, in order. Controlled with onValueChange.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string[]",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "onValueChange",
+          "type": "(value: string[]) => void",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "addLabel",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the + (Figma Action). Default: the locale's \"Add <label>\".",
+          "deprecated": null
+        },
+        {
+          "name": "popoverLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Names the list (Popover label). Default: the row's label.",
+          "deprecated": null
+        },
+        {
+          "name": "onCreate",
+          "type": "(label: string) => void",
+          "required": false,
+          "default": null,
+          "description": "Lets people create a label that is not listed: called with the typed text (Create \"…\" row).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
       "name": "InputLabel",
       "file": "src/components/Input/Input.tsx",
       "description": "Public implementation of Figma's `Primitives/Input/Label` (387:3651): Content (label · optional · tooltip icon,\ngap 2XSmall) + an optional right-aligned Action. The tooltip icon sits outside the <label> so hovering or\nfocusing it never activates the field.",
@@ -2223,9 +2902,13 @@
   ],
   "types": {
     "AutocompleteOption": "type AutocompleteOption = { id: string; label: string; leading?: ReactNode; photoSrc?: string }",
+    "BadgeStatusValue": "type BadgeStatusValue = \"to-do\" | \"in-progress\" | \"in-review\" | \"done\" | \"blocked\" | \"cancelled\"",
     "BadgeTheme": "type BadgeTheme = \"accent\" | \"neutral\" | \"yellow\" | \"orange\" | \"red\" | \"crimson\" | \"pink\" | \"plum\" | \"purple\" | \"violet\" | \"indigo\" | \"blue\" | \"cyan\" | \"teal\" | \"green\" | \"brown\" | \"inverse\" | \"on-color\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
     "InputLeadingTrailingOption": "type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: ReactNode; icon?: IconName | ReactNode; flag?: ReactNode; }",
     "InputSize": "type InputSize = \"sm\" | \"md\" | \"lg\" | \"xl\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+    "PropertyDateValue": "type PropertyDateValue = Date | string",
+    "PropertyFieldOption": "type PropertyFieldOption = { value: string; label: ReactNode; icon?: IconName | ReactNode; tone?: PropertyIconTone; photoSrc?: string; theme?: BadgeTheme; disabled?: boolean; }",
+    "PropertyIconTone": "type PropertyIconTone = \"neutral\" | \"accent\" | \"info\" | \"positive\" | \"warning\" | \"negative\"",
     "RichTextBlockType": "type RichTextBlockType = \"p\" | \"h1\" | \"h2\" | \"h3\"",
     "RichTextCommand": "type RichTextCommand = | \"undo\" | \"redo\" | \"bold\" | \"underline\" | \"italic\" | \"strikethrough\" | \"align-left\" | \"align-center\" | \"align-right\" | \"align-justify\" | \"bulleted-list\" | \"numbered-list\" | \"outdent\" | \"indent\" | \"link\" | \"image\" | \"video\" | \"clear-format\"",
     "SelectFieldOption": "type SelectFieldOption = { label: string; value: string; disabled?: boolean; meta?: string; theme?: \"icon\" | \"text-only\" | \"photo-small\" | \"photo-big\" | \"avatar-small\" | \"avatar-big\" | \"dock-icon\" | \"badge\"; leading?: IconName | ReactNode; caption?: string; photoSrc?: string; photoAlt?: string; badgeTheme?: BadgeTheme; }"

@@ -279,13 +279,16 @@ async function selectLayer(page, id, name, index = 0) {
   await clickNamed(page, id, name, index);
   let now = "";
   await until(async () => { now = await selectedName(page); return Boolean(now) && now !== pageName; }, { timeout: 3000 }).catch(() => undefined);
-  for (let up = 0; up < 5 && now !== name; up += 1) {
+  for (let up = 0; up < 5 && now !== name && (await codeName(page)) !== name; up += 1) {
     const was = now;
     await page.keyboard.press("Escape");
     await until(async () => (now = await selectedName(page)) !== was, { timeout: 2000 }).catch(() => undefined);
   }
-  return now;
+  return (await codeName(page)) === name ? name : now;
 }
+
+/** The selected layer's code name: a frame's panel heads it Frame or Group and keeps its code name on hover (FW-142). */
+const codeName = (page) => page.locator("#studio-right h2").first().getAttribute("title", { timeout: 1000 }).catch(() => null);
 
 /** Moves layers of the body by dragging them on the canvas, each to each place (one ⌘Z each). */
 async function moves(ctx) {

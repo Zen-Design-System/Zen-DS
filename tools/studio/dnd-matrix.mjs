@@ -208,6 +208,118 @@ for (const seed of seeds().filter((one) => !only || one.name === only)) {
   }
 }
 
+/* ── 4. An instance's slot (F7c, slot-fill.mjs) ─────────────────────────────────────────────────────────────────── */
+
+// A page's own component with a slot, an instance that puts nothing there (its main's layer shows) and one that puts two
+// layers there: every Assets item into every place of each slot (pasteCode with `slot`), every loose layer into them
+// (moveTo with `slot`), every slot layer out to every place of the page (and ⌥ copies). Judged as above, and: the main
+// stays as it is, the slot holds one layer more (a paste, a move in) or one less (a move out).
+const SLOT_SEED = `// @zen-page {"format":1,"title":"Slots"}
+import { Board, Component, Screen, Use } from "@zen-ds/react/builder";
+import { Badge, Button, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Slots" device="desktop">
+        <Stack gap="xl" padding="xl">
+          <Component id="panel" name="Panel" properties={{ Content: { type: "slot" } }}>
+            <Stack gap="sm" padding="lg">
+              <Text>Panel</Text>
+              <Stack data-prop-slot="Content" gap="md">
+                <Text>Empty</Text>
+              </Stack>
+            </Stack>
+          </Component>
+          <Use of="panel" />
+          <Use of="panel" slots={{ Content: <>
+            <Text>Filled</Text>
+            <Button>Go</Button>
+          </> }} />
+          <Stack direction="row" gap="md">
+            <Badge>Loose</Badge>
+            <Text>Spare</Text>
+          </Stack>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+if (!only || only === "slots") {
+  resetDocs();
+  const mainOf = (text) => /<Component id="panel"[\s\S]*?<\/Component>/.exec(text)?.[0];
+  /** The instances and how many layers each puts in its slot (null: none, its main's layer shows). */
+  const fills = (text) => {
+    const out = [];
+    eachElement(parsePage(text, { components }).board, (node) => {
+      if (node.name !== "Use") return;
+      const content = node.props.slots?.kind === "object" ? node.props.slots.fields.Content : undefined;
+      out.push({ node, count: !content ? null : content.kind === "element" ? 1 : content.children.filter((child) => child.kind !== "text" || child.value.trim()).length });
+    });
+    return out;
+  };
+  const judgeSlot = (label, before, result, { use, delta, mainKept = true }) => {
+    tally.cases += 1;
+    if (result.crash) { note("crash", { seed: "slots", label, error: result.crash.slice(0, 300) }); return; }
+    if (!result.text) {
+      tally.refused += 1;
+      refusal(result.error ?? "");
+      if (!wordy(result.error)) note("refusal-without-words", { seed: "slots", label, error: result.error });
+      return;
+    }
+    tally.accepted += 1;
+    const issues = validateDialect(result.text, { components });
+    if (issues.length) note("accepted-invalid-page", { seed: "slots", label, issue: issues[0]?.message ?? String(issues[0]) });
+    if (mainKept && mainOf(result.text) !== mainOf(before)) note("slot-changed-main", { seed: "slots", label });
+    const was = fills(before)[use];
+    const now = fills(result.text)[use];
+    const expected = (was.count ?? (delta > 0 ? 1 : 0)) + delta;
+    if ((now?.count ?? 0) !== expected) note("slot-count", { seed: "slots", label, changed: `${was.count ?? "main"} → ${now?.count ?? "main"} (expected ${expected})` });
+  };
+  const uses = fills(SLOT_SEED);
+  const places = (fill) => Array.from({ length: (fill.count ?? 1) + 1 }, (_, index) => index);
+  // Assets items into each slot place (the defaults of the empty one count as its layers).
+  for (const item of items) {
+    if (!item.code) continue;
+    uses.forEach((fill, use) => {
+      for (const index of places(fill)) {
+        if (tally.cases >= limit) return;
+        const result = edit(SLOT_SEED, FILE, { loc: fill.node.loc, name: "Use", ops: [{ op: "pasteCode", code: item.code, slot: "Content", index }] });
+        judgeSlot(`paste ${item.id} → slot of Use #${use} @${index}`, SLOT_SEED, result, { use, delta: item.code.trim().startsWith("<>") ? 0 : 1 });
+      }
+    });
+  }
+  // Layers in and out.
+  const all = elementsOf(SLOT_SEED);
+  const loose = all.filter(({ node, parents }) => !["Board", "Screen", "Use", "Component"].includes(node.name) && !parents.some((parent) => parent.name === "Component" || parent.name === "Use") && parents.length > 2);
+  for (const layer of loose) {
+    uses.forEach((fill, use) => {
+      for (const index of places(fill)) {
+        for (const copy of [false, true]) {
+          const op = { op: "moveTo", parent: fill.node.loc, slot: "Content", index, ...(copy ? { copy } : {}) };
+          judgeSlot(`${copy ? "copy" : "move"} ${layer.node.name}@${layer.node.loc} → slot of Use #${use} @${index}`, SLOT_SEED, edit(SLOT_SEED, FILE, { loc: layer.node.loc, name: layer.node.name, ops: [op] }), { use, delta: 1 });
+        }
+      }
+    });
+  }
+  const inSlot = all.filter(({ parents }) => parents.at(-1)?.name === "Use");
+  for (const layer of inSlot) {
+    const use = uses.findIndex((fill) => fill.node.loc === layer.parents.at(-1).loc);
+    // Out to every place of the page outside the main (beside or into a layer), and to the other instance's slot.
+    for (const place of placesOf(SLOT_SEED).filter((one) => !one.inProp && !one.parents.some((parent) => parent.name === "Component") && one.parent.name !== "Use" && one.parent.name !== "Board")) {
+      const op = { op: "moveTo", parent: place.parent.loc, ...(place.before ? { before: place.before } : place.after ? { after: place.after } : {}) };
+      judgeSlot(`move ${layer.node.name}@${layer.node.loc} out → ${describe(place)}`, SLOT_SEED, edit(SLOT_SEED, FILE, { loc: layer.node.loc, name: layer.node.name, ops: [op] }), { use, delta: -1 });
+    }
+    uses.forEach((fill, other) => {
+      if (other === use) return;
+      for (const index of places(fill)) judgeSlot(`move ${layer.node.name}@${layer.node.loc} → slot of Use #${other} @${index}`, SLOT_SEED, edit(SLOT_SEED, FILE, { loc: layer.node.loc, name: layer.node.name, ops: [{ op: "moveTo", parent: fill.node.loc, slot: "Content", index }] }), { use: other, delta: 1 });
+    });
+  }
+}
+
 const ms = Date.now() - started;
 const top = [...reasons].sort((a, b) => b[1] - a[1]).slice(0, 20);
 console.log(`dnd-matrix: ${tally.cases} cases in ${(ms / 1000).toFixed(1)}s · ${tally.accepted} accepted · ${tally.refused} refused · ${tally.findings} findings`);

@@ -18,6 +18,7 @@ import {
 } from "../../../components/Input";
 import { Box, Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
+import { PropertyDate, PropertyField, PropertyPeople, PropertySelect, PropertyStatus, PropertyTags, PropertyText, type PropertyFieldOption } from "../../../components/PropertyField";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { Toggle } from "../../../components/Toggle";
@@ -25,7 +26,7 @@ import { TopNavigation } from "../../../components/TopNavigation";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
-  TODAY, formatDate, formatDay, formatMoney, invoiceStatusTheme, invoices, leaveRequests, leaveStatusTheme, people, peopleList, taskStatusTheme,
+  TODAY, daysFromToday, formatDate, formatDay, formatMoney, invoiceStatusTheme, invoices, leaveRequests, leaveStatusTheme, people, peopleList, taskStatusTheme,
   type LeaveStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
@@ -484,6 +485,89 @@ function TimeOffPhoneExample() {
 }
 
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————
+// ——— PropertyField: a record's properties, each edited in place ———————————————————————————————————————
+const priorityOptions: PropertyFieldOption[] = [
+  { value: "urgent", label: "Urgent", icon: "icon-flag-01-solid", tone: "negative" },
+  { value: "high", label: "High", icon: "icon-flag-01-solid", tone: "warning" },
+  { value: "normal", label: "Normal", icon: "icon-flag-01-solid", tone: "info" },
+  { value: "low", label: "Low", icon: "icon-flag-01-solid", tone: "neutral" },
+];
+const personOptions: PropertyFieldOption[] = peopleList.map((person) => ({ value: person.id, label: person.name, photoSrc: person.photo }));
+const labelOptions: PropertyFieldOption[] = [
+  { value: "ds", label: "Design System", theme: "blue" },
+  { value: "ui", label: "UI Design", theme: "orange" },
+  { value: "research", label: "Research", theme: "green" },
+  { value: "a11y", label: "Accessibility", theme: "purple" },
+];
+
+function TaskProperties() {
+  const [labels, setLabels] = useState(labelOptions);
+  const [applied, setApplied] = useState(["ds", "ui"]);
+  const create = (name: string) => {
+    const id = `label-${labels.length + 1}`;
+    setLabels((all) => [...all, { value: id, label: name, theme: "neutral" }]);
+    setApplied((list) => [...list, id]);
+  };
+  return (
+    <Stack gap="2xs" align="stretch">
+      <Grid columns={{ mobile: 1, desktop: 2 }} rowGap="2xs" columnGap="xl">
+        <PropertyField label="Status" icon="icon-loading-02-line"><PropertyStatus defaultValue="to-do" statuses={["to-do", "in-progress", "in-review", "done", "blocked"]} /></PropertyField>
+        <PropertyField label="Priority" icon="icon-flag-01-line"><PropertySelect options={priorityOptions} defaultValue="urgent" /></PropertyField>
+        <PropertyField label="Start Date" icon="icon-calendar-line"><PropertyDate /></PropertyField>
+        <PropertyField label="Assignee" icon="icon-users-plus-line"><PropertyPeople options={personOptions} defaultValue={["alex"]} /></PropertyField>
+        <PropertyField label="Due Date" icon="icon-calendar-line"><PropertyDate defaultValue={daysFromToday(7)} /></PropertyField>
+        <PropertyField label="Reporter" icon="icon-user-left-line"><PropertyPeople single options={personOptions} defaultValue={["chi"]} /></PropertyField>
+      </Grid>
+      <PropertyField label="Labels" icon="icon-tag-line"><PropertyTags options={labels} value={applied} onValueChange={setApplied} onCreate={create} /></PropertyField>
+      <PropertyField label="Sprint" icon="icon-text-input-line"><PropertyText defaultValue="Sprint 42 · Design QA" /></PropertyField>
+    </Stack>
+  );
+}
+
+function ProjectProperties() {
+  return (
+    <Stack gap="2xs" align="stretch">
+      <PropertyField label="Phase" icon="icon-loading-02-line">
+        <PropertyStatus defaultValue="in-progress" progress={64} statuses={["to-do", "in-progress", "blocked", "done"]}
+          labels={{ "to-do": "Planning", "in-progress": "Active", blocked: "On hold", done: "Completed" }} />
+      </PropertyField>
+      <PropertyField label="Lead" icon="icon-user-circle-line"><PropertyPeople single options={personOptions} defaultValue={["chi"]} /></PropertyField>
+      <PropertyField label="Launch" icon="icon-calendar-check-line"><PropertyDate defaultValue={daysFromToday(33)} /></PropertyField>
+      <PropertyField label="Client" icon="icon-building-02-line"><PropertyText defaultValue="Phin & Co" /></PropertyField>
+    </Stack>
+  );
+}
+
+function ViewerProperties() {
+  const [canEdit, setCanEdit] = useState(false);
+  return (
+    <Stack gap="md" align="stretch">
+      <Toggle size="md" label="Can edit this task" caption="Viewers see the same rows without hover, pickers or remove buttons." checked={canEdit} onCheckedChange={setCanEdit} />
+      <Stack gap="2xs" align="stretch">
+        <PropertyField label="Status" icon="icon-loading-02-line"><PropertyStatus readOnly={!canEdit} defaultValue="in-review" /></PropertyField>
+        <PropertyField label="Assignee" icon="icon-users-plus-line"><PropertyPeople readOnly={!canEdit} options={personOptions} defaultValue={["bao", "chi"]} /></PropertyField>
+        <PropertyField label="Due Date" icon="icon-calendar-line"><PropertyDate readOnly={!canEdit} defaultValue={daysFromToday(3)} /></PropertyField>
+      </Stack>
+    </Stack>
+  );
+}
+
+function PhoneTaskProperties() {
+  return (
+    <PlatformPhone label="Task" header={<TopNavigation type="alt" title="PHIN-214" />}>
+      <Stack gap="md" align="stretch" paddingX="lg">
+        <Heading level={2} textStyle="Heading/4">Design the points history screen</Heading>
+        <Stack gap="2xs" align="stretch">
+          <PropertyField label="Status" icon="icon-loading-02-line"><PropertyStatus defaultValue="in-progress" /></PropertyField>
+          <PropertyField label="Priority" icon="icon-flag-01-line"><PropertySelect options={priorityOptions} defaultValue="high" /></PropertyField>
+          <PropertyField label="Assignee" icon="icon-users-plus-line"><PropertyPeople options={personOptions} defaultValue={["chi"]} /></PropertyField>
+          <PropertyField label="Due Date" icon="icon-calendar-line"><PropertyDate defaultValue={daysFromToday(2)} /></PropertyField>
+        </Stack>
+      </Stack>
+    </PlatformPhone>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Create a project",
@@ -663,6 +747,86 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     primaryAction={{ label: "Discard request", level: "danger", onClick: toList }} secondaryAction={{ label: "Keep editing" }}>
     <Text tone="base">The dates and the note you entered won't be sent.</Text>
   </BottomSheet>
+</PlatformPhone>`,
+  },
+  {
+    title: "Task properties",
+    wide: true,
+    description: "A task's properties are PropertyFields in two columns: click a value to change it in place. Status opens its steps, Priority its flags, dates the calendar, People and Labels add with the + after the label; Start Date says Empty until it is set.",
+    render: () => <TaskProperties />,
+    code: `const priorities = [
+  { value: "urgent", label: "Urgent", icon: "icon-flag-01-solid", tone: "negative" },
+  { value: "high", label: "High", icon: "icon-flag-01-solid", tone: "warning" },
+  …
+];
+
+<Grid columns={{ mobile: 1, desktop: 2 }} rowGap="2xs" columnGap="xl">
+  <PropertyField label="Status" icon="icon-loading-02-line">
+    <PropertyStatus value={status} onValueChange={setStatus} />
+  </PropertyField>
+  <PropertyField label="Priority" icon="icon-flag-01-line">
+    <PropertySelect options={priorities} value={priority} onValueChange={setPriority} />
+  </PropertyField>
+  <PropertyField label="Start Date" icon="icon-calendar-line"><PropertyDate value={start} onValueChange={setStart} /></PropertyField>
+  <PropertyField label="Assignee" icon="icon-users-plus-line">
+    <PropertyPeople options={people} value={assignees} onValueChange={setAssignees} />
+  </PropertyField>
+  <PropertyField label="Due Date" icon="icon-calendar-line"><PropertyDate value={due} onValueChange={setDue} /></PropertyField>
+  <PropertyField label="Reporter" icon="icon-user-left-line">
+    <PropertyPeople single options={people} value={reporter} onValueChange={setReporter} />
+  </PropertyField>
+</Grid>
+<PropertyField label="Labels" icon="icon-tag-line">
+  <PropertyTags options={labels} value={applied} onValueChange={setApplied} onCreate={createLabel} />
+</PropertyField>
+<PropertyField label="Sprint" icon="icon-text-input-line">
+  <PropertyText value={sprint} onValueChange={setSprint} />
+</PropertyField>`,
+  },
+  {
+    title: "Project phase in its own words",
+    description: "A project keeps its own words for the workflow (Planning, Active, On hold, Completed) through labels, and the active phase passes its exact share, so the ring shows 64%.",
+    render: () => <ProjectProperties />,
+    code: `<PropertyField label="Phase" icon="icon-loading-02-line">
+  <PropertyStatus value={phase} onValueChange={setPhase} progress={64}
+    statuses={["to-do", "in-progress", "blocked", "done"]}
+    labels={{ "to-do": "Planning", "in-progress": "Active", blocked: "On hold", done: "Completed" }} />
+</PropertyField>
+<PropertyField label="Lead" icon="icon-user-circle-line">
+  <PropertyPeople single options={people} value={lead} onValueChange={setLead} />
+</PropertyField>
+<PropertyField label="Launch" icon="icon-calendar-check-line"><PropertyDate value={launch} onValueChange={setLaunch} /></PropertyField>
+<PropertyField label="Client" icon="icon-building-02-line"><PropertyText value={client} onValueChange={setClient} /></PropertyField>`,
+  },
+  {
+    title: "Read-only for viewers",
+    description: "People who may not change the task see the same rows with readOnly: no hover, no picker and no remove buttons, so nothing looks clickable. Turn on Can edit to get the editing rows back.",
+    render: () => <ViewerProperties />,
+    code: `<Toggle size="md" label="Can edit this task" checked={canEdit} onCheckedChange={setCanEdit} />
+<PropertyField label="Status" icon="icon-loading-02-line">
+  <PropertyStatus readOnly={!canEdit} value={status} onValueChange={setStatus} />
+</PropertyField>
+<PropertyField label="Assignee" icon="icon-users-plus-line">
+  <PropertyPeople readOnly={!canEdit} options={people} value={assignees} onValueChange={setAssignees} />
+</PropertyField>
+<PropertyField label="Due Date" icon="icon-calendar-line">
+  <PropertyDate readOnly={!canEdit} value={due} onValueChange={setDue} />
+</PropertyField>`,
+  },
+  {
+    title: "Task details on a phone",
+    description: "On a phone the label column grows with Component Size (128 in Compact, 154 in Comfortable), so a label beside its + still fits and the values line up; each value opens its picker under itself.",
+    render: () => <PhoneTaskProperties />,
+    code: `<PlatformPhone header={<TopNavigation type="alt" title="PHIN-214" />}>
+  <Stack gap="md" paddingX="lg">
+    <Heading level={2} textStyle="Heading/4">Design the points history screen</Heading>
+    <Stack gap="2xs">
+      <PropertyField label="Status" icon="icon-loading-02-line"><PropertyStatus value={status} onValueChange={setStatus} /></PropertyField>
+      <PropertyField label="Priority" icon="icon-flag-01-line"><PropertySelect options={priorities} value={priority} onValueChange={setPriority} /></PropertyField>
+      <PropertyField label="Assignee" icon="icon-users-plus-line"><PropertyPeople options={people} value={assignees} onValueChange={setAssignees} /></PropertyField>
+      <PropertyField label="Due Date" icon="icon-calendar-line"><PropertyDate value={due} onValueChange={setDue} /></PropertyField>
+    </Stack>
+  </Stack>
 </PlatformPhone>`,
   },
 ]);

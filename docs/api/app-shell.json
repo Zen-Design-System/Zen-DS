@@ -255,7 +255,7 @@
     {
       "name": "AppShellHeader",
       "file": "src/components/AppShell/AppShellHeader.tsx",
-      "description": "Figma Header/AppShell (16783:71068; Theme=Default 16243:290461), the header of Pattern/AppShell/Desktop. The Main frame\npads Margin-Comfortable above (Margin-Compact at Density=Small) and at the sides and Spacing/Padding/Small below,\nSpacing/Gap/Large between its rows (`theme=\"border-divider\"` pads each row itself, a Pale line under the top row):\n- Top-Header: the Sidebar's collapse toggle (Collapse Button: a Button/Icon-Flat Small Primary in a 20px wrapper, while\n  the AppShell has `collapse=\"header\"`) or, on a narrow shell, the menu button that opens the navigation drawer; then\n  Top-Elements: `leading` · `center` · `actions` (Primitives/Dashboard/Header Type=Navigation), Spacing/Gap/Medium apart.\n- Main-Element: `main`, the page's own header.\nUnder the Main frame, Sections: `sections`. Pass it as the AppShell's `header`; on a phone the shell shows its\n`topNavigation` instead.",
+      "description": "Figma Header/AppShell (16783:71068; Theme=Default 16243:290461), the header of Pattern/AppShell/Desktop. The Main frame\npads Margin-Comfortable above (Margin-Compact at Density=Small) and at the sides and Spacing/Padding/Small below,\nSpacing/Gap/Large between its rows (`theme=\"border-divider\"` pads each row itself, a Pale line under the top row; `borderless` the same without the line):\n- Top-Header: the Sidebar's collapse toggle (Collapse Button: a Button/Icon-Flat Small Primary in a 20px wrapper, while\n  the AppShell has `collapse=\"header\"`) or, on a narrow shell, the menu button that opens the navigation drawer; then\n  Top-Elements: `leading` · `center` · `actions` (Primitives/Dashboard/Header Type=Navigation), Spacing/Gap/Medium apart.\n- Main-Element: `main`, the page's own header.\nUnder the Main frame, Sections: `sections`. Pass it as the AppShell's `header`; on a phone the shell shows its\n`topNavigation` instead.",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\">",
       "props": [
@@ -301,10 +301,10 @@
         },
         {
           "name": "theme",
-          "type": "\"default\" | \"border-divider\"",
+          "type": "\"default\" | \"border-divider\" | \"borderless\"",
           "required": false,
           "default": null,
-          "description": "Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,\nSpacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads\nPadding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Medium ·\nMargin-Comfortable). Unset follows the AppShell: `pattern=\"grid\"` draws border-divider, other patterns default.",
+          "description": "Figma Theme: `default` (one Main frame: Margin-Comfortable above and at the sides, Padding/Small below,\nSpacing/Gap/Large between the rows) · `border-divider` (Theme=Border & Divider, 16783:72140: the top row pads\nPadding/Small · Margin-Comfortable with a 1px Border/Neutral/Pale line under it; the Main row pads Padding/Large\nabove, Padding/Medium below, Margin-Comfortable at the sides) · `borderless` (Theme=Borderless: the same rows\nwithout the line). Figma draws both only at Density=Small. Unset follows the AppShell: `pattern=\"grid\"` draws border-divider, other patterns default.",
           "deprecated": null
         },
         {
@@ -312,7 +312,7 @@
           "type": "\"medium\" | \"small\"",
           "required": false,
           "default": null,
-          "description": "Figma Density: `medium` (Margin-Comfortable above) · `small` (Margin-Compact above, 16823:76454). Unset follows\n the AppShell: `pattern=\"grid\"` draws small, other patterns medium. The border-divider theme pads its rows itself.",
+          "description": "Figma Density: `medium` (Margin-Comfortable above) · `small` (Margin-Compact above, 16823:76454). Unset follows\n the AppShell: `pattern=\"grid\"` draws small, other patterns medium. The border-divider and borderless themes pad their rows themselves.",
           "deprecated": null
         },
         {

@@ -1,10 +1,11 @@
 /* Badge examples (brief: docs/research/example-rebuild-brief-2026-09-30.md). Đìzai Studio, signed in as Alex Duong,
-   Wednesday Sep 30, 2026, 10:30 am. Status is always a Badge from one vocabulary per domain (data.ts theme maps);
-   counts are a BadgeCounter; removable labels are Badges with onRemove. */
+   Wednesday Sep 30, 2026, 10:30 am. Status is a Badge from one vocabulary per domain (data.ts theme maps), and a
+   workflow step (to do → done) is a BadgeStatus; counts are a BadgeCounter; removable labels are Badges with onRemove. */
 import { useEffect, useId, useRef, useState } from "react";
 import { useZen } from "../../../components/Provider";
 import { Avatar } from "../../../components/Avatar";
 import { Badge, BadgeCounter, type BadgeTheme } from "../../../components/Badge";
+import { BadgeStatus, type BadgeStatusValue } from "../../../components/BadgeStatus";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
@@ -13,7 +14,7 @@ import { DescriptionList } from "../../../components/DescriptionList";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import type { IconName } from "../../../components/Icon";
-import { Stack } from "../../../components/Layout";
+import { Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
 import { Menu } from "../../../components/Menu";
 import { Table, TableBadges, TableMedia, TableText, type TableColumn } from "../../../components/Table";
@@ -24,8 +25,8 @@ import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { PlatformPhone } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
-  TODAY, daysFromToday, formatDate, formatDue, formatMoney, formatRelative, initials, invoiceStatusTheme, invoices, people, priorityTheme, projectById, projects, taskStatusTheme, tasks,
-  type InvoiceStatus, type Priority, type Task, type TaskStatus,
+  TODAY, daysFromToday, formatDate, formatDue, formatMoney, formatRelative, initials, invoiceStatusTheme, invoices, people, priorityTheme, projectById, projects, tasks,
+  type InvoiceStatus, type Priority, type ProjectStatus, type Task, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -33,6 +34,8 @@ import { keepOnHotUpdate } from "../../hotData";
 export const page: PlatformPage = "badge";
 
 const taskStatuses: TaskStatus[] = ["To do", "In progress", "In review", "Done"];
+/** A task's workflow step is a BadgeStatus: the step picks the colour and the ring (harness: badge/workflow-status-uses-badge-status). */
+const taskStep: Record<TaskStatus, BadgeStatusValue> = { "To do": "to-do", "In progress": "in-progress", "In review": "in-review", Done: "done" };
 const priorities: Priority[] = ["Urgent", "High", "Medium", "Low"];
 /** Priority reads without colour: an arrow for the direction, an octagon for Urgent. */
 const priorityIcon: Record<Priority, IconName> = { Urgent: "icon-alert-octagon-solid", High: "icon-arrow-up-line", Medium: "icon-equal-line", Low: "icon-arrow-down-line" };
@@ -54,7 +57,7 @@ function TaskStatusTable() {
   const phone = useZen()?.breakpoint === "mobile";
   const columns: TableColumn<Task>[] = phone ? [
     { id: "task", header: "Task", cell: (task) => <TableText caption={`${task.key} · ${people[task.assignee].name}`}>{task.title}</TableText> },
-    { id: "status", header: "Status", cell: (task) => <TableBadges><Badge size="md" theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge></TableBadges> },
+    { id: "status", header: "Status", cell: (task) => <TableBadges><BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus></TableBadges> },
   ] : [
     { id: "task", header: "Task", cell: (task) => <TableText caption={task.key}>{task.title}</TableText> },
     { id: "assignee", header: "Assignee", width: "180px", cell: (task) => {
@@ -62,7 +65,7 @@ function TaskStatusTable() {
       return <TableMedia bold={false} media={person.photo ? <Avatar size="xs" theme="photo" src={person.photo} alt="" /> : <Avatar size="xs" theme={person.theme} alt="">{initials(person.name)}</Avatar>}>{person.name}</TableMedia>;
     } },
     { id: "priority", header: "Priority", width: "128px", cell: (task) => <TableBadges><Badge size="md" theme={priorityTheme[task.priority]} background="subtle" leading={priorityIcon[task.priority]}>{task.priority}</Badge></TableBadges> },
-    { id: "status", header: "Status", width: "136px", cell: (task) => <TableBadges><Badge size="md" theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge></TableBadges> },
+    { id: "status", header: "Status", width: "136px", cell: (task) => <TableBadges><BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus></TableBadges> },
     { id: "due", header: "Due", width: "132px", cell: (task) => <TableText>{formatDate(task.due)}</TableText> },
   ];
   return (
@@ -307,7 +310,7 @@ function MobileTasks() {
             {rows.map((task) => (
               <ListItem key={task.id} onClick={() => setOpenId(task.id)} title={task.title}
                 caption={`${task.key} · ${task.finished ? finishedLabel(task.finished) : formatDue(task.due)}`}
-                trailing={<Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} />
+                trailing={<BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus>} />
             ))}
           </List>
         </Stack>
@@ -319,7 +322,7 @@ function MobileTasks() {
           <Stack gap="md" align="stretch">
             <Stack gap="xs" align="start">
               <Text textStyle="Body/Extra/Medium">{opened.title}</Text>
-              <Badge theme={taskStatusTheme[opened.status]} background="subtle">{opened.status}</Badge>
+              <BadgeStatus status={taskStep[opened.status]}>{opened.status}</BadgeStatus>
             </Stack>
             <DescriptionList items={[
               { term: "Project", description: projectById(opened.project).name },
@@ -333,13 +336,79 @@ function MobileTasks() {
   );
 }
 
+// ——— BadgeStatus: a release checklist — one workflow, Blocked and Cancelled outside its order ——————————————
+type ReleaseStep = { id: string; title: string; owner: keyof typeof people; status: BadgeStatusValue; progress?: number; note?: string };
+const releaseSteps: ReleaseStep[] = [
+  { id: "r1", title: "Freeze the 0.5 component API", owner: "alex", status: "done" },
+  { id: "r2", title: "Move the HR template to Badge-Status", owner: "chi", status: "done" },
+  { id: "r3", title: "Translate the status labels", owner: "bao", status: "in-review" },
+  { id: "r4", title: "Ship the Studio importer", owner: "finn", status: "in-progress", progress: 60 },
+  { id: "r5", title: "Publish the Figma library", owner: "gia", status: "blocked", note: "Waits for the design review" },
+  { id: "r6", title: "Write the migration guide", owner: "emi", status: "to-do" },
+  { id: "r7", title: "Keep the old Status pill", owner: "alex", status: "cancelled", note: "Replaced by Badge-Status" },
+];
+function ReleaseChecklist() {
+  // On a phone the owner joins the step's caption and only Status stays beside it, as in Task status.
+  const phone = useZen()?.breakpoint === "mobile";
+  const columns: TableColumn<ReleaseStep>[] = phone ? [
+    { id: "step", header: "Step", cell: (step) => <TableText caption={[people[step.owner].name, step.note].filter(Boolean).join(" · ")}>{step.title}</TableText> },
+    { id: "status", header: "Status", cell: (step) => <TableBadges><BadgeStatus status={step.status} progress={step.progress} /></TableBadges> },
+  ] : [
+    { id: "step", header: "Step", cell: (step) => <TableText caption={step.note}>{step.title}</TableText> },
+    { id: "owner", header: "Owner", width: "160px", cell: (step) => <TableText>{people[step.owner].name}</TableText> },
+    { id: "status", header: "Status", width: "160px", cell: (step) => <TableBadges><BadgeStatus status={step.status} progress={step.progress} /></TableBadges> },
+  ];
+  return <Table aria-label="Release 0.5 checklist" columns={columns} rows={releaseSteps} />;
+}
+
+// ——— BadgeStatus with an exact share: projects report how far they are ———————————————————————————
+/** A project's own status words map onto the workflow; the label stays the project's word. */
+const projectStep: Record<ProjectStatus, BadgeStatusValue> = { Planning: "to-do", Active: "in-progress", "On hold": "blocked", Completed: "done" };
+function ProjectProgress() {
+  return (
+    <ListBox>
+      <List aria-label="Projects">
+        {projects.map((project) => (
+          <ListItem key={project.id} title={project.name} caption={`${project.client} · due ${formatDate(project.due)}`}
+            leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" />}
+            trailing={<BadgeStatus size="sm" status={projectStep[project.status]} progress={project.status === "Active" ? project.progress : undefined}>{project.status}</BadgeStatus>} />
+        ))}
+      </List>
+    </ListBox>
+  );
+}
+
+// ——— BadgeStatus as a board's column heads, each with its count ——————————————————————————————————
+function TaskBoard() {
+  return (
+    <Grid columns={{ mobile: 1, tablet: 2, desktop: 4 }} gap="md" align="start">
+      {taskStatuses.map((step) => {
+        const column = tasks.filter((task) => task.status === step);
+        return (
+          <Stack key={step} gap="xs" align="stretch" role="group" aria-label={`${step}, ${plural(column.length, "task")}`}>
+            <Stack direction="row" gap="xs" align="center">
+              <BadgeStatus status={taskStep[step]}>{step}</BadgeStatus>
+              <BadgeCounter value={column.length} theme="neutral" background="subtle" aria-hidden="true" />
+            </Stack>
+            <ListBox>
+              <List aria-label={`${step} tasks`}>
+                {column.map((task) => <ListItem key={task.id} title={task.title} titleLines={2} caption={`${task.key} · ${people[task.assignee].name}`} />)}
+              </List>
+            </ListBox>
+          </Stack>
+        );
+      })}
+    </Grid>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Task status",
     wide: true,
-    description: "A task table shows status and priority as Subtle badges from one fixed vocabulary, two per row at most; priority adds an icon so it reads without colour. Filtering is a Chip, never a clickable badge.",
+    description: "A task table shows the workflow step as a BadgeStatus, whose ring fills as the task moves on, and priority as a Subtle badge with an icon so it reads without colour; two per row at most. Filtering is a Chip, never a clickable badge.",
     render: () => <TaskStatusTable />,
-    code: `const statusTheme = { "To do": "neutral", "In progress": "blue", "In review": "purple", Done: "green" };
+    code: `const step = { "To do": "to-do", "In progress": "in-progress", "In review": "in-review", Done: "done" };
 const priorityIcon = { Urgent: "icon-alert-octagon-solid", High: "icon-arrow-up-line", Medium: "icon-equal-line", Low: "icon-arrow-down-line" };
 
 const columns = [
@@ -348,7 +417,7 @@ const columns = [
     <Badge size="md" theme={priorityTheme[t.priority]} background="subtle" leading={priorityIcon[t.priority]}>{t.priority}</Badge>
   </TableBadges> },
   { id: "status", header: "Status", width: "136px", cell: (t) => <TableBadges>
-    <Badge size="md" theme={statusTheme[t.status]} background="subtle">{t.status}</Badge>
+    <BadgeStatus status={step[t.status]}>{t.status}</BadgeStatus>
   </TableBadges> },
 ];
 
@@ -361,6 +430,69 @@ const columns = [
   {/* The table lies on the page: no Card or Box around it */}
   <Table aria-label="Studio tasks" columns={columns} rows={rows} empty={<EmptyState icon="icon-search-medium-line" title="No tasks match" … />} />
 </Stack>`,
+  },
+  {
+    title: "Release checklist",
+    wide: true,
+    description: "Every step of one workflow is a BadgeStatus with its default label. In Progress shows an exact 60% and says it after the label; Blocked and Cancelled stand outside the order with a library icon, and their reason sits in the step's caption.",
+    render: () => <ReleaseChecklist />,
+    code: `const steps = [
+  { id: "r3", title: "Translate the status labels", owner: "Bao Nguyen", status: "in-review" },
+  { id: "r4", title: "Ship the Studio importer", owner: "Finn Walsh", status: "in-progress", progress: 60 },
+  { id: "r5", title: "Publish the Figma library", owner: "Gia Pham", status: "blocked", note: "Waits for the design review" },
+  { id: "r7", title: "Keep the old Status pill", owner: "Alex Duong", status: "cancelled", note: "Replaced by Badge-Status" },
+  …
+];
+
+<Table aria-label="Release 0.5 checklist" rows={steps} columns={[
+  { id: "step", header: "Step", cell: (s) => <TableText caption={s.note}>{s.title}</TableText> },
+  { id: "owner", header: "Owner", width: "160px", cell: (s) => <TableText>{s.owner}</TableText> },
+  // The default label comes from the locale: "In Review", vi "Đang duyệt"
+  { id: "status", header: "Status", width: "160px", cell: (s) => <TableBadges>
+    <BadgeStatus status={s.status} progress={s.progress} />
+  </TableBadges> },
+]} />`,
+  },
+  {
+    title: "Project progress",
+    description: "Projects map their own words onto the workflow and keep them as the label. An active project passes its exact share, so the ring shows 64% and a screen reader hears it; a Small badge fits the list row.",
+    render: () => <ProjectProgress />,
+    code: `const step = { Planning: "to-do", Active: "in-progress", "On hold": "blocked", Completed: "done" };
+
+<ListBox>
+  <List aria-label="Projects">
+    {projects.map((p) => (
+      <ListItem key={p.id} title={p.name} caption={\`\${p.client} · due \${formatDate(p.due)}\`}
+        leading={<DockIcon icon={p.icon} theme={p.theme} background="subtle" />}
+        trailing={<BadgeStatus size="sm" status={step[p.status]}
+          progress={p.status === "Active" ? p.progress : undefined}>{p.status}</BadgeStatus>} />
+    ))}
+  </List>
+</ListBox>`,
+  },
+  {
+    title: "Board columns",
+    wide: true,
+    description: "On a board each column is headed by its step's BadgeStatus and a BadgeCounter, so the columns read in workflow order and the ring tells how far along each one is.",
+    render: () => <TaskBoard />,
+    code: `<Grid columns={{ mobile: 1, tablet: 2, desktop: 4 }} gap="md" align="start">
+  {["To do", "In progress", "In review", "Done"].map((s) => {
+    const column = tasks.filter((t) => t.status === s);
+    return (
+      <Stack key={s} gap="xs" role="group" aria-label={\`\${s}, \${plural(column.length, "task")}\`}>
+        <Stack direction="row" gap="xs" align="center">
+          <BadgeStatus status={step[s]}>{s}</BadgeStatus>
+          <BadgeCounter value={column.length} theme="neutral" background="subtle" aria-hidden="true" />
+        </Stack>
+        <ListBox>
+          <List aria-label={\`\${s} tasks\`}>
+            {column.map((t) => <ListItem key={t.id} title={t.title} titleLines={2} caption={\`\${t.key} · \${t.assignee}\`} />)}
+          </List>
+        </ListBox>
+      </Stack>
+    );
+  })}
+</Grid>`,
   },
   {
     title: "Unread counts",
@@ -383,7 +515,7 @@ const columns = [
   },
   {
     title: "Status on a phone",
-    description: "On a phone the status sits at the end of each row as a Subtle badge, and the caption follows it: open tasks say when they're due, finished ones when they were done. Open a task and move it on: the badge in the sheet and in the row change together.",
+    description: "On a phone the step sits at the end of each row as a BadgeStatus, and the caption follows it: open tasks say when they're due, finished ones when they were done. Open a task and move it on: the badge in the sheet and in the row change together, ring and all.",
     render: () => <MobileTasks />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 // Only open work has a due date to warn about; Done says when it finished.
@@ -401,14 +533,14 @@ const caption = (task) => \`\${task.key} · \${task.status === "Done" ? finished
     <List aria-label="Tasks">
       {rows.map((task) => (
         <ListItem key={task.id} onClick={() => setOpenId(task.id)} title={task.title} caption={caption(task)}
-          trailing={<Badge theme={statusTheme[task.status]} background="subtle">{task.status}</Badge>} />
+          trailing={<BadgeStatus status={step[task.status]}>{task.status}</BadgeStatus>} />
       ))}
     </List>
   </Stack>
   <BottomSheet inline open={openId !== null} onOpenChange={close} title={task.key}
     primaryAction={{ label: "Send for review", onClick: () => moveTo("In review") }} secondaryAction={{ label: "Close" }}>
     <Text textStyle="Body/Extra/Medium">{task.title}</Text>
-    <Badge theme={statusTheme[task.status]} background="subtle">{task.status}</Badge>
+    <BadgeStatus status={step[task.status]}>{task.status}</BadgeStatus>
   </BottomSheet>
 </PlatformPhone>`,
   },

@@ -63,7 +63,7 @@ One chart family in one style: how a value changes over time (Line, Area), compa
 | Combo | `ComboChart data[] {label, bar, line} · barLabel · lineLabel · format (bars, start axis) · lineFormat (line, end axis) · lineMax · initialIndex · showLegend · legendPosition` | 20px Color Chart Sector/Primary bars (Corner-Radius/XSmall top corners) on the start axis; a 2px Sector/Secondary line with an 8px Surface dot per period (12px when active) on the end axis, left-aligned after the plot; both axes share the gridlines |
 | Every chart | `aria-label · format · animate` | Draw-in on mount and on new data (bars rise, lines wipe, rings sweep, cells pop); reduced motion fades; animate={false} turns it off |
 | Average | `LineChart · BarChart · StackBarChart showAverage` | A dotted Border/Neutral/Solid rule at the mean (the first series; closed bars, projected left out; column totals) with an "Avg $88.7K" tag in the Tooltip colours (Figma Show Average) |
-| Card | `ChartCard title · icon · description · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme` | Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Heading/Subheading + chevron, Body/Small description, Heading/2 value, Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card) |
+| Card | `ChartCard title · icon · description · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme` | Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Body/Extra/Medium title + chevron, then the Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card), then the Metric under it: Body/Small description over a Display/4 value, Gap/3XSmall apart, Padding/Small above (Figma Chart/Line-Chart, every chart since 2026-10-21) |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/chart.json`.
@@ -302,11 +302,11 @@ Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) �
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `title` (required) | `ReactNode` | — | Figma Header Label (Heading/Subheading). |
-| `headingLevel` | `2 \| 3 \| 4` | `3` | Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2 when the card sits directly under the page h1). The look stays Heading/Subheading — the level follows the outline, not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title. |
+| `title` (required) | `ReactNode` | — | Figma Header Label (Body/Extra/Medium, 2026-10-21). |
+| `headingLevel` | `2 \| 3 \| 4` | `3` | Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2 when the card sits directly under the page h1). The look stays Body/Extra/Medium — the level follows the outline, not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title. |
 | `icon` | `IconName \| ReactNode` | — | Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node. Decorative; the title names the card. |
-| `description` | `ReactNode` | — | One line under the title that says what the figure is ("Available revenue in your wallet"), Body/Small/Regular. |
-| `value` | `ReactNode` | — | The headline figure the chart explains ("$4,346.00"), Heading/2 (Figma Chart-Card Heading > Value). |
+| `description` | `ReactNode` | — | What the figure is ("Available revenue in your wallet"), Body/Small/Regular: the top of Figma's Metric, under the Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value). |
+| `value` | `ReactNode` | — | The headline figure the chart explains ("$4,346.00"), Display/4 (Figma Chart-Card Metric > Value), under the description and the Segmented. |
 | `onOpen` | `() => void` | — | Figma Header trailing Button/Icon-Main XSmall Tertiary (chevron): opens the full report. |
 | `openLabel` | `string` | — | Accessible name of the open button. Default: the locale's “Open report”. |
 | `ranges` | `SegmentedOption[]` | — | Figma Segmented (Secondary) range switch. |

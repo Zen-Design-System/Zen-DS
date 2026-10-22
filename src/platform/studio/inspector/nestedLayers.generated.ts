@@ -278,6 +278,33 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
   "RowActions": {
     "Button": "IconButton"
   },
+  "ScheduleDayPlanner": {
+    "Card": "ScheduleEventCard",
+    "Month": "IconButton",
+    "Week": "CalendarWeekStrip"
+  },
+  "ScheduleEventCard": {
+    "Attendees": "AvatarStack",
+    "Menu": "IconButton"
+  },
+  "ScheduleItinerary": {
+    "Stop": "ScheduleItineraryItem"
+  },
+  "ScheduleItineraryItem": {
+    "Badge": "Badge"
+  },
+  "ScheduleResource": {
+    "Avatar": "Avatar",
+    "Icon": "DockIcon"
+  },
+  "ScheduleResourceGrid": {
+    "Booking": "CalendarEventBlock",
+    "Resource": "ScheduleResource"
+  },
+  "ScheduleSlotPicker": {
+    "Slot": "ScheduleSlot",
+    "Week": "CalendarWeekStrip"
+  },
   "Search": {
     "Filter": "InputLeadingTrailing",
     "Leading": "Icon",
@@ -349,6 +376,22 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
   "TextAreaField": {
     "Leading": "Icon",
     "Trailing": "Icon"
+  },
+  "TimelineActivity": {
+    "Item": "TimelineItem"
+  },
+  "TimelineGantt": {
+    "Bar": "TimelineGanttBar",
+    "Label": "TimelineGanttLabel"
+  },
+  "TimelineItem": {
+    "Avatar": "Avatar",
+    "Icon": "DockIcon",
+    "Marker": "TimelineMarker"
+  },
+  "TimelineMarker": {
+    "Avatar": "Avatar",
+    "Icon": "DockIcon"
   },
   "Toast": {
     "Action": "Button",

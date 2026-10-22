@@ -19,6 +19,11 @@ export const Good = () => <>
   <Badge remove onRemove={() => drop("design")}>Design</Badge>
   <Tag remove onRemove={remove}>react</Tag>
   <BadgeCounter value="99+" />
+  {/* A workflow step is a BadgeStatus; other statuses stay Badges (badge/workflow-status-uses-badge-status). */}
+  <BadgeStatus status="in-progress" progress={60} />
+  {/* One value cell per PropertyField (property-field/one-value). */}
+  <PropertyField label="Status" icon="icon-loading-02-line"><PropertyStatus value={status} onValueChange={setStatus} /></PropertyField>
+  <Badge theme="green" background="subtle">Paid</Badge>
   <Avatar theme="photo" src={url} alt="Ava Chen" />
   <Avatar theme="blue" alt="">AC</Avatar>
   <Avatar theme="green" background="subtle" alt="Ava Chen">AC</Avatar>
@@ -68,6 +73,9 @@ export const Good = () => <>
   {/* Keeps its own choice (no onPopoverSelect): it counts the picked items itself. */}
   <Chip variant="advanced" selectionMode="multiple" popoverMultiple popoverLabel="Status" popoverItems={[{ id: "open", label: "Open", selected: true }, { id: "done", label: "Done" }]}>Status</Chip>
   <Dialog open={open} onOpenChange={setOpen} title="Settings"><InputField label="Workspace name" /></Dialog>
+  <ModalForm open={open} onOpenChange={setOpen} title="New project" primaryAction={{ label: "Create" }} secondaryAction={{ label: "Cancel" }}><InputField label="Name" /><SelectField label="Owner" options={owners} /></ModalForm>
+  <Dialog open={open} onOpenChange={setOpen} theme="negative" title="Delete this project?" primaryAction={{ label: "Delete project", level: "danger" }}><Form onSubmit={remove}><InputField label="Project name" /></Form></Dialog>
+  <PlatformPhone label="New task"><BottomSheet open title="New task"><InputField label="Title" size="lg" /><DateField label="Due" size="lg" /></BottomSheet></PlatformPhone>
   <SidePanel open={open} onOpenChange={setOpen} title="Edit project" primaryAction={{ label: "Save changes" }}><Card theme="on-container">Brief</Card></SidePanel>
   <ListBox theme="pale" color="green"><List aria-label="Approved"><ListItem title="Time off" /></List></ListBox>
   <ListBox theme="border" surface="alt"><List aria-label="Files"><ListItem title="Brief.pdf" /></List></ListBox>
@@ -294,6 +302,9 @@ export const Good = () => <>
   <CalendarToolbar date={day} view={view} onViewChange={setView} onToday={goToday} onPrevious={() => setDay(shiftPeriod(day, view, -1))} onNext={() => setDay(shiftPeriod(day, view, 1))} />
   <CalendarToolbar date={day} views={[]} onPrevious={previousWeek} onNext={nextWeek} />
   <CalendarTimeGrid device="mobile" view="3-day" date={day} events={events} />
+  <ScheduleSlotPicker slots={slots} value={slot} onValueChange={setSlot} aria-label="Review times" />
+  <TimelineGantt groups={plan} aria-label="Lotus banking redesign" />
+  <ScheduleResourceGrid resources={resources} bookings={bookings} selectedBookingId={open} onBookingClick={(booking) => setOpen(booking.id)} />
   <CalendarMonth month={day} events={events} selectedEventId={open} onEventClick={(event) => setOpen(event.id)} />
   <DatePicker calendar="dual" selectionMode="range" range={period} showActions onApply={(_, picked) => picked && setPeriod(picked)} />
   <Pagination theme="inline" page={page} onPageChange={setPage} total={120} pageSize={pageSize} onPageSizeChange={setPageSize} aria-label="Invoice pages" />

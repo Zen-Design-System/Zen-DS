@@ -581,3 +581,44 @@ with the page) is not a `ListBox`. It joins the page as one open section, as Fig
 Harness (`npm run usage:check`): `listbox/closing-list-on-phone` (error) on a ListBox in a `PlatformPhone` or a Studio
 `<Screen device="phone">` with nothing after it, outside any Grid, row Stack or box, and not a §15 group. Figma audit
 (`skills/zen-figma-design`): `list-box/closing-list-on-phone` on a phone screen's last List-Box.
+## 20. A workflow step is a BadgeStatus
+
+A task's or project's step in one workflow (To Do → In Progress → In Review → Done, plus Blocked and Cancelled outside
+the order) is a **BadgeStatus** (Figma Badge-Status, page ❖ Badge): the step picks the colour (Neutral, Info, Warning,
+Positive, Negative) and the progress ring, so every screen reads the workflow the same way. Rename a step only by its
+label (`children`, default from the locale); pass `progress` only for an exact share (a project at 60%). Statuses that
+are not workflow steps (Live, Paid, Draft, Overdue) stay Badges.
+
+- **Applies to:** `Badge` whose text is a workflow step, in English or Vietnamese.
+- User decision 2026-10-21: a component of its own, like BadgeCounter; the ring's value is free (no fixed presets).
+
+```tsx
+// ✅
+<BadgeStatus status="in-progress" />
+<BadgeStatus status="in-progress" progress={60} />
+<BadgeStatus status="blocked">On hold</BadgeStatus>
+// ❌
+<Badge theme="blue" background="subtle">In progress</Badge>
+```
+
+Harness (`npm run usage:check`): `badge/workflow-status-uses-badge-status` (error).
+
+## 21. A record's properties are PropertyFields
+
+A property of a task, ticket, deal or file that people change in place (status, priority, dates, assignee, labels) is a
+**PropertyField** (Figma Input/Property-Field) holding exactly one value cell: PropertyText, PropertySelect,
+PropertyStatus, PropertyDate, PropertyPeople or PropertyTags. The borderless cell is the field: it hovers with the
+Flat ramp, opens its picker under itself, and Text becomes an input in place. One label column for the whole list; an
+empty value says the locale's "Empty"; status and priority icons take their tone's Light level.
+
+- **Applies to:** `PropertyField` children.
+- User decision 2026-10-21: Figma first, approved ("duyệt"), then code.
+
+```tsx
+// ✅
+<PropertyField label="Due Date" icon="icon-calendar-line"><PropertyDate value={due} onValueChange={setDue} /></PropertyField>
+// ❌
+<PropertyField label="Due Date"><InputField aria-label="Due Date" value={due} /></PropertyField>
+```
+
+Harness (`npm run usage:check`): `property-field/one-value` (error).

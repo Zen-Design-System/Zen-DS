@@ -44,6 +44,12 @@ export function loadUploads(): Promise<void> {
   return loading;
 }
 
+/** Photos handed over with a page (Open on phone, device/DevicePlay.tsx): shown by id on this page, never stored. */
+export function rememberUploads(photos: ReadonlyArray<{ id: string; name: string; type: string; blob: Blob }>) {
+  for (const photo of photos) remember({ ...photo, size: photo.blob.size, createdAt: 0 });
+  notify();
+}
+
 /** 8 hex digits of FNV-1a over the bytes (no secure context needed, unlike crypto.subtle). */
 function hashOf(bytes: Uint8Array): string {
   let hash = 0x811c9dc5;

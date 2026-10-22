@@ -2,9 +2,9 @@ import { typographyStyles } from "../../../tokens/typography.generated";
 import { useDragView } from "./drag";
 
 /*
- * What a layer drag draws (edit/drag.ts): the outline of the container it lands in, the 2 px insertion line, and a pill
- * at the pointer ("Copy" while ⌥ is held, or why it cannot land there). Client coordinates, made relative to the
- * viewport here.
+ * What a layer drag draws (edit/drag.ts): the outline of the container it lands in (an instance's slot: violet, named),
+ * the 2 px insertion line, and a pill at the pointer ("Copy" while ⌥ is held, or why it cannot land there). Client
+ * coordinates, made relative to the viewport here.
  */
 export function DragLayer({ viewport }: { viewport: HTMLElement | null }) {
   const view = useDragView();
@@ -13,7 +13,12 @@ export function DragLayer({ viewport }: { viewport: HTMLElement | null }) {
   const place = (box: { x: number; y: number; w: number; h: number }) => ({ transform: `translate(${box.x - origin.left}px, ${box.y - origin.top}px)`, width: box.w, height: box.h });
   return (
     <>
-      {view.into ? <div className="studio-drag__into" style={place(view.into)} /> : null}
+      {/* An instance's slot (F7c): Figma's slot outline and name tag, in the component colour. */}
+      {view.into ? (
+        <div className="studio-drag__into" data-slot={view.slot ? "true" : undefined} style={place(view.into)}>
+          {view.slot ? <span className={`studio-drag__slot-tag ${typographyStyles["Caption/Medium"]}`}>{view.slot}</span> : null}
+        </div>
+      ) : null}
       {view.line ? <div className="studio-drag__line" style={place(view.line)} /> : null}
       {view.guides?.map((guide, index) => <div key={index} className="studio-drag__guide" style={place(guide)} />)}
       {/* Figma's equal spacing: the matching gaps in pink, each with its px. */}

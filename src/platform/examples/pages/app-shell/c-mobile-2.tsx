@@ -83,12 +83,14 @@ function OrderDetailPhone() {
             ? { label: "Track shipment", onClick: () => toast({ title: "Parcel with GHN Express", children: "Out for delivery Thu, Oct 2" }) }
             : { label: "Mark as shipped", onClick: () => { setShipped(true); toast({ title: "Order #10428 shipped", children: "Lia gets the tracking link by email.", action: { label: "Undo", onClick: () => setShipped(false) } }); } }} />}
       >
-        <Stack gap="lg">
-          <Stack gap="xs">
-            <Badge size="sm" leadingIcon={false} theme={shipped ? "green" : "orange"}>{shipped ? "Shipped" : "Ready to ship"}</Badge>
-            <Text as="p" textStyle="Display/4" tabularNumbers>$110.00</Text>
-            <Text textStyle="Body/Small/Regular" tone="light">2 items · Paid with Visa ·· 42</Text>
-          </Stack>
+        {/* Two sections, a section gap apart (the AppShell body spaces them): the order's total, then the Segmented with
+            the groups it switches, Spacing/Gap/Medium between them (Figma C5, usage rules §13). */}
+        <Stack gap="xs">
+          <Badge size="sm" leadingIcon={false} theme={shipped ? "green" : "orange"}>{shipped ? "Shipped" : "Ready to ship"}</Badge>
+          <Text as="p" textStyle="Display/4" tabularNumbers>$110.00</Text>
+          <Text textStyle="Body/Small/Regular" tone="light">2 items · Paid with Visa ·· 42</Text>
+        </Stack>
+        <Stack gap="md">
           <Segmented fullWidth aria-label="Order sections" value={tab} onValueChange={(next) => setTab(next as OrderTab)}
             options={[{ id: "details", label: "Details" }, { id: "items", label: "Items" }, { id: "activity", label: "Activity" }]} />
           {tab === "details" ? (
@@ -294,12 +296,13 @@ export const examples: ExampleDef[] = [
       secondaryAction={{ label: "Contact", onClick: contact }}
       primaryAction={{ label: "Mark as shipped", onClick: ship }} />}
   >
-    <Stack gap="lg">
-      <Stack gap="xs">
-        <Badge size="sm" leadingIcon={false} theme="orange">Ready to ship</Badge>
-        <Text as="p" textStyle="Display/4">$110.00</Text>
-        <Text textStyle="Body/Small/Regular" tone="light">2 items · Paid with Visa ·· 42</Text>
-      </Stack>
+    {/* Two sections (the body spaces them): the total, then the Segmented with the groups it switches. */}
+    <Stack gap="xs">
+      <Badge size="sm" leadingIcon={false} theme="orange">Ready to ship</Badge>
+      <Text as="p" textStyle="Display/4">$110.00</Text>
+      <Text textStyle="Body/Small/Regular" tone="light">2 items · Paid with Visa ·· 42</Text>
+    </Stack>
+    <Stack gap="md">
       <Segmented fullWidth aria-label="Order sections" value={tab} onValueChange={setTab}
         options={[{ id: "details", label: "Details" }, { id: "items", label: "Items" }, { id: "activity", label: "Activity" }]} />
       <Card theme="pale" as="section" aria-labelledby="customer">

@@ -22,6 +22,7 @@ import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
 import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./figma-charts.mjs";
 import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma } from "./figma-metric.mjs";
+import { propertyValueElement } from "./figma-property.mjs";
 import { runsFromSegments } from "./text-runs.mjs";
 import { instanceLayerPaths } from "./instance-paths.mjs";
 import { imageFillProps, READ_IMAGE_FILL } from "./figma-image.mjs";
@@ -1959,6 +1960,18 @@ function convertNode(node, ctx) {
     if (slottedLayers.length && takesChildren) children = slottedLayers.map((child) => convert(child, ctx)).filter(Boolean);
     else if (slottedLayers.length) notes.push(`${where}: what its ${slotted.map((slot) => slot.name).join(", ")} slot holds is left out (the component takes no content)`);
     delete props.children;
+    // A PropertyField's value is its nested Value's Type, State and layers (figma-property.mjs): the cell element.
+    if (set.code === "PropertyField") {
+      // `label` is required in code: Figma's own default ("Status") is still the row's label.
+      if (!props.label && typeof node.props?.Label === "string") {
+        const rest = { ...props };
+        for (const key of Object.keys(props)) delete props[key];
+        Object.assign(props, { label: literal(node.props.Label) }, rest);
+      }
+      const cell = propertyValueElement(node, literal);
+      children = [cell.element];
+      for (const note of cell.notes) notes.push(`${where}: ${note}`);
+    }
     const overrides = {};
     // Date-Picker/Mobile: range mode for its Multiple variants, its heading's text the title (unless the default).
     if (set.code === "DatePickerSheet") {

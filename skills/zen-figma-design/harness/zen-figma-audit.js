@@ -26,7 +26,8 @@
 //   shape/loose              warning  a hand-drawn shape outside any component (use a Zen component or a local one)
 //   component/detached       warning  a frame named like a Zen component that is not an instance (detached)
 //   bounds/overflow          error    a layer sticking out of its parent (also when the parent does not clip; a centred
-//                                     button bleeding out of a non-clipping icon-size wrapper is Zen's design)
+//                                     button bleeding out of a non-clipping icon-size wrapper, and a Large Indicator
+//                                     Tab-Bar spilling evenly out of a header row, are Zen's design)
 //   bounds/clipped           error    a layer cut off by a clipping parent
 //   bounds/stroke-clip-gap   warning  a clipping frame with an inside stroke and a radius over a filled child that reaches
 //                                     a corner: Figma clips the child 1px in with the outer radius, a gap shows at the corner
@@ -50,7 +51,7 @@
 //                                     with Solid (or Subtle on a white page)
 //   theme/navigation-surface error    a header, Sidebar or top/bottom bar that does not match the Canvas (no fill, or
 //                                     the Surface of the Canvas's colour); only on Canvas/Default may the Sidebar or the
-//                                     Bottom-Navigation be a Surface/Default panel
+//                                     Bottom-Navigation be a Surface/Default panel; a floating bar's own scrim passes
 //   theme/mixed-elevation    error    a shadow on a Canvas/Alt or Canvas/Flat screen, or on Canvas/Default some of the
 //                                     Sidebar, bars and boxes cast one and others do not
 //   theme/mixed-boxes        warning  one screen mixes box families (Flat, Border, Pale, Subtle)
@@ -96,6 +97,12 @@
 //   section/title-apart      warning  a title row on its own in the section stack, a section gap away from its content
 //   list-box/closing-list-on-phone  error  a List-Box that closes a phone screen (the last section, not in a row or grid
 //                                     of widgets, not one of several grouped List-Boxes): an open section as ◆ Finance
+//   modal/dialog-form        error    a Modal/Dialog holding two or more Input fields: a Dialog is a notice or a quick
+//                                     confirm; a data-entry form is Modal/Forms (desktop, tablet) or a Bottom Sheet (phone)
+//   modal/form-actions-vertical  error  a Modal/Forms whose Actions are Direction=Vertical: a form keeps them in a row
+//   modal/form-on-phone      error    a Modal/Forms on a phone screen: a phone opens the form in a Bottom Sheet
+//   modal/form-side-taller   warning  a Modal/Forms whose Side-Content runs taller than the form, so the actions float
+//                                     above an empty band: shorten the side, or move its content into the form
 // Content that runs on past the far end of a frame set to scroll (Figma prototype overflow: a long Body, a Chip row)
 // is scroll content, not bounds/clipped.
 
@@ -309,6 +316,18 @@ function isBleed(node, own, frame) {
 }
 
 /**
+ * A Large Indicator Tab-Bar (64) in a header row (40) spills evenly above and below the row: its indicator sits on the
+ * header's bottom border (tabs.css "the indicator sits on the bar's bottom border"; Master-Layout B3), so the row keeps
+ * its height. Deliberate, so not an overflow.
+ */
+function isTabBleed(node, own, frame) {
+  const above = frame.y - own.y, below = own.y + own.height - frame.y - frame.height;
+  if (above <= TOLERANCE || Math.abs(above - below) > TOLERANCE || own.x < frame.x - TOLERANCE || own.x + own.width > frame.x + frame.width + TOLERANCE) return false;
+  const tabs = node.type === "INSTANCE" ? [node] : "findAll" in node ? node.findAll((child) => child.type === "INSTANCE" && child.name === "Tab-Bar") : [];
+  return tabs.some((tab) => tab.name === "Tab-Bar" && tab.variantProperties?.Style === "Indicator" && Math.abs(tab.height - own.height) <= TOLERANCE);
+}
+
+/**
  * Scroll content: a clipping frame set to scroll (Figma prototype overflow) shows the rest of its content when the
  * user scrolls, so a layer that runs on only past its far end (bottom for Vertical, right for Horizontal) is not cut.
  * A phone screen whose Body is longer than 844, or a Chip row wider than the screen, scrolls this way; so does the
@@ -346,7 +365,7 @@ function checkBounds(node) {
   const frame = box(parent);
   if (!own || !frame) return;
   if (sticksOut(own, frame, tolerance)) {
-    if (isBleed(node, own, frame) || scrollsPast(node, own, frame, tolerance)) return;
+    if (isBleed(node, own, frame) || isTabBleed(node, own, frame) || scrollsPast(node, own, frame, tolerance)) return;
     report(parent.clipsContent ? "bounds/clipped" : "bounds/overflow", ERROR, node, `${side(own, frame, tolerance)} past ${parent.name}`);
     return;
   }
@@ -527,7 +546,10 @@ async function checkThemePairingOf(root) {
   }
   for (const { node, role, panel } of bars) {
     const kind = await surfaceKind(node);
-    const seamless = kind === "none" || kind === `Canvas/${canvas}` || kind === CANVAS_TWIN[canvas];
+    // A bar that floats over the page (Top-Navigation Liquid-Overlay over a photo, Bottom-Navigation Floating) draws
+    // its own scrim gradient: the component's fill, not one the screen painted (Master-Layout C4, D5).
+    const ownScrim = kind === "Gradient" && node.type === "INSTANCE" && !(node.overrides ?? []).some((change) => change.id === node.id && change.overriddenFields.includes("fills"));
+    const seamless = kind === "none" || kind === `Canvas/${canvas}` || kind === CANVAS_TWIN[canvas] || ownScrim;
     const allowedPanel = panel && canvas === "Default" && kind === "Surface/Default";
     if (!seamless && !allowedPanel) report("theme/navigation-surface", ERROR, node, `${role} is ${kind} on Canvas/${canvas}: match the canvas (no fill or ${CANVAS_TWIN[canvas]})${panel ? "; only on Canvas/Default may it be a Surface/Default panel" : ""}`);
     if (panel && kind !== "none" && !seamless) (dropShadow(node) ? elevated : flat).push(node);
@@ -765,6 +787,10 @@ async function isLoneTitle(node) {
   const shown = node.findAll((child) => child.visible !== false);
   for (const child of shown) if (child.type === "INSTANCE" && !/^(Button\/Flat|Link)/.test(await setNameOf(child))) return false;
   const texts = shown.filter((child) => child.type === "TEXT");
+  // A heading over its paragraph (a docs step, an intro) is a section of text, not a title: copy is a text after the
+  // first one that runs past 60 characters or wraps (Master-Layout B5's "2. Wrap your app in ZenProvider").
+  const isCopy = (text) => text.characters.length > 60 || text.height > 1.5 * (typeof text.fontSize === "number" ? text.fontSize : 16) * 1.4;
+  if (texts.slice(1).some(isCopy)) return false;
   return texts.length > 0 && texts.length <= 3 && TITLE_STYLE.test(await textStyleName(texts[0]));
 }
 async function checkSectionGap(root) {
@@ -835,6 +861,35 @@ async function checkClosingList(root) {
     for (const [box, content] of closing) {
       if (perContent.get(content.id) > 1) continue;
       report("list-box/closing-list-on-phone", ERROR, box, "the last section of a phone screen is in a List-Box: make it an open section as ◆ Finance Transactions (a Heading row with See All over the List-Items in a frame padded Margin-Comfortable, no box)");
+    }
+  }
+}
+
+// Forms in modals (user 2026-10-21: "Các form nhập liệu nhiều, phức tạp mà bật modal thì không dùng dialog. Dialog thường
+// dùng chức năng thông báo/confirm nhanh, còn nhập liệu, tạo form… thì dùng forms", "form thì không dùng Action direction
+// vertical", "không dùng form cho mobile. Mobile forms thay thế bằng bottom sheet", "không để khoảng trống vô duyên").
+// The code harness has the same rules (dialog/form-uses-modal-form, modal-form/actions-horizontal, modal-form/not-on-phone).
+async function checkModalForms(root) {
+  for (const screen of screensOf(root)) {
+    const phone = screen.width < 744 || screen.findAll((node) => node.type === "INSTANCE" && /^Top-Navigation\/Mobile/.test(node.name)).length > 0;
+    for (const modal of screen.findAll((node) => node.type === "INSTANCE" && node.visible !== false)) {
+      const set = await setNameOf(modal);
+      if (set === "Modal/Dialog") {
+        let fields = 0;
+        for (const inner of modal.findAll((node) => node.type === "INSTANCE" && node.visible !== false)) if (/^Input\//.test(await setNameOf(inner))) fields++;
+        if (fields >= 2) report("modal/dialog-form", ERROR, modal, `${fields} Input fields in a Modal/Dialog: a Dialog is a notice or a quick confirm; put the form in Modal/Forms (desktop, tablet) or a Bottom Sheet (phone)`);
+        continue;
+      }
+      if (set !== "Modal/Forms") continue;
+      if (phone) report("modal/form-on-phone", ERROR, modal, "Modal/Forms on a phone screen: a phone opens the form in a Bottom Sheet (title, fields, actions in its footer)");
+      for (const actions of modal.findAll((node) => node.type === "INSTANCE")) {
+        if ((await setNameOf(actions)) !== ".Primitives/Modal/Actions") continue;
+        const direction = Object.entries(actions.componentProperties || {}).find(([key]) => key.split("#")[0] === "Direction")?.[1]?.value;
+        if (direction === "Vertical") report("modal/form-actions-vertical", ERROR, actions, "Modal/Forms with Actions Direction=Vertical: a form keeps its actions in a row (Direction=Horizontal)");
+      }
+      const side = modal.findOne((node) => node.type === "FRAME" && node.name === "Side-Content" && node.visible !== false);
+      const form = modal.findOne((node) => node.type === "FRAME" && node.name === "Container");
+      if (side && form && side.height > form.height + TOLERANCE) report("modal/form-side-taller", WARNING, side, `Side-Content ${Math.round(side.height)} tall beside a ${Math.round(form.height)} form: the actions float above an empty band; shorten the side or move its content into the form`);
     }
   }
 }
@@ -1228,6 +1283,7 @@ for (const root of roots) await checkBackChevron(root);
 for (const root of roots) await checkButtonRoles(root);
 for (const root of roots) await checkTouchSpacing(root);
 for (const root of roots) await checkSectionGap(root);
+for (const root of roots) await checkModalForms(root);
 for (const root of roots) await checkClosingList(root);
 for (const root of roots) await checkNavIcons(root);
 for (const root of roots) await checkFloatingBarFit(root);

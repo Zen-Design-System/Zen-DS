@@ -8,6 +8,7 @@
 //      header, per-server token, same Origin only, annotated files only, atomic writes).
 //   3. /__zen-studio/mcp (2026-10-15): the Studio MCP for AI clients, relayed to an open Studio tab (mcp/server.mjs).
 //   4. /__zen-studio/agent/* (2026-10-18): Zen Agent, the Studio's own chat agent on the same tools (agent/routes.mjs).
+//   5. /__zen-studio/device/* (2026-10-21): Open on phone, a page shared from Play for a phone on the Wi-Fi (device-share.mjs).
 // Admin drafts (2026-10-03): edits never touch the disk until POST /save. A draft = { base (disk text when it
 // started), baseHash, content, updatedAt } per repo-relative file, kept in memory and in
 // node_modules/.cache/zen-studio/drafts-<port>.json (one file per dev server, restored when it starts). Every reader
@@ -46,6 +47,7 @@ import { PROMOTE_DIR, planPromotion, typecheck, writePromotion } from "./promote
 import { attachRelay, createRelay } from "./mcp/relay.mjs";
 import { MCP_PATH, studioMcp } from "./mcp/server.mjs";
 import { AGENT_ROUTES, zenAgent } from "./agent/routes.mjs";
+import { DEVICE_ROUTES, devicePreview } from "./device-share.mjs";
 import { TOKENS_CSS, isTokenSource, variablesHost } from "./variables-host.mjs";
 import { VariableEditError } from "./variables.mjs";
 
@@ -82,6 +84,8 @@ export function zenStudio() {
   const token = randomBytes(18).toString("base64url");
   /** Zen Agent (agent/routes.mjs): the dev server only, made with the Studio MCP's relay. */
   let agent = null;
+  /** Open on phone (device-share.mjs): pages shared from Play and the network proxy a phone loads them through. */
+  let device = null;
 
   /* Admin drafts: repo-relative real path → { base, baseHash, content, updatedAt } (drafts.mjs). */
   const drafts = new Map();
@@ -182,6 +186,8 @@ export function zenStudio() {
       // same tabs, through this relay; /agent/* below.
       agent = zenAgent({ root, relay, port: serverPort });
       server.httpServer?.once("close", () => { void agent?.close(); });
+      device = devicePreview({ port: serverPort });
+      server.httpServer?.once("close", () => { void device?.close(); });
       server.middlewares.use((req, res, next) => {
         if (req.url?.split("?")[0] !== MCP_PATH) return next();
         mcp(req, res).catch((error) => { if (!res.headersSent) send(res, 500, { ok: false, code: "invalid", error: String(error?.message ?? error) }); });
@@ -386,6 +392,17 @@ export function zenStudio() {
         else if (req.method === "POST") checkWriteHeaders(req);
         else throw new HttpError("invalid", `${req.method} is not allowed here`, 405);
         const answer = await agent.handle(route, req.method === "POST" ? await readJson(req) : null, url);
+        return send(res, answer.status, answer.body);
+      }
+      // Open on phone (device-share.mjs): POST /device/share with the token (any role: the share only reads), GET
+      // /device/page by the share's own token (the phone, through the network proxy, or this machine).
+      if (DEVICE_ROUTES.has(url.pathname.slice(PREFIX.length))) {
+        if (!device) throw new HttpError("not-found", "Open on phone runs on the Studio dev server only");
+        if (route === "POST /device/share") {
+          checkToken(req);
+          if (!String(req.headers["content-type"] ?? "").includes("application/json")) throw new HttpError("invalid", "Send JSON (content-type: application/json)");
+        } else if (route !== "GET /device/page") throw new HttpError("invalid", `${req.method} is not allowed here`, 405);
+        const answer = await device.handle(route, req.method === "POST" ? await readJson(req) : null, url);
         return send(res, answer.status, answer.body);
       }
       if (ROUTES.has(url.pathname.slice(PREFIX.length)) || PROJECT_ROUTES.has(url.pathname.slice(PREFIX.length))) throw new HttpError("invalid", `${req.method} is not allowed here`, 405);

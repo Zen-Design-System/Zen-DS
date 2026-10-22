@@ -893,6 +893,50 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       "toggles": []
     }
   ],
+  "BadgeStatus": [
+    {
+      "name": "Badge-Status",
+      "figma": "16932:195",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "status",
+          "label": "Status",
+          "names": [
+            "To Do",
+            "In Progress",
+            "In Review",
+            "Done",
+            "Blocked",
+            "Cancelled"
+          ],
+          "values": [
+            "to-do",
+            "in-progress",
+            "in-review",
+            "done",
+            "blocked",
+            "cancelled"
+          ],
+          "default": "to-do"
+        },
+        {
+          "prop": "size",
+          "label": "Size",
+          "names": [
+            "Medium",
+            "Small"
+          ],
+          "values": [
+            "medium",
+            "small"
+          ],
+          "default": "medium"
+        }
+      ],
+      "toggles": []
+    }
+  ],
   "BottomSheet": [
     {
       "name": "Bottom-Sheet",
@@ -987,11 +1031,13 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "label": "Theme",
           "names": [
             "Default",
-            "Border & Divider"
+            "Border & Divider",
+            "Borderless"
           ],
           "values": [
             "default",
-            "border-divider"
+            "border-divider",
+            "borderless"
           ],
           "default": "default"
         },
@@ -1564,6 +1610,30 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
         }
       ],
       "toggles": []
+    }
+  ],
+  "PropertyField": [
+    {
+      "name": "Input/Property-Field",
+      "figma": "16923:6031",
+      "fixed": {},
+      "axes": [],
+      "toggles": [
+        {
+          "prop": "icon",
+          "label": "Icon",
+          "on": "icon-loading-02-line",
+          "default": true
+        },
+        {
+          "prop": "action",
+          "label": "Action",
+          "on": {
+            "label": "Add"
+          },
+          "default": false
+        }
+      ]
     }
   ],
   "InputField": [
@@ -3866,6 +3936,216 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
     {
       "name": "Calendar/Agenda",
       "figma": "16128:1036",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "TimelineItem": [
+    {
+      "name": "Timeline/Item",
+      "figma": "16131:1090",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "size",
+          "label": "Size",
+          "names": [
+            "Medium",
+            "Small"
+          ],
+          "values": [
+            "medium",
+            "small"
+          ],
+          "default": "medium"
+        }
+      ],
+      "toggles": [
+        {
+          "prop": "description",
+          "label": "Description",
+          "on": "Annual leave · Oct 12 – Oct 16",
+          "default": true
+        },
+        {
+          "prop": "attachment",
+          "label": "Attachment",
+          "on": "Can we move the review to Thursday?",
+          "default": false
+        }
+      ]
+    }
+  ],
+  "TimelineActivity": [
+    {
+      "name": "Timeline/Activity",
+      "figma": "16131:1311",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "TimelineMilestones": [
+    {
+      "name": "Timeline/Milestones",
+      "figma": "16132:777",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "TimelineGantt": [
+    {
+      "name": "Timeline/Gantt",
+      "figma": "16136:859",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "ScheduleResourceGrid": [
+    {
+      "name": "Schedule/Resource-Grid",
+      "figma": "16135:145822",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        },
+        {
+          "prop": "scale",
+          "label": "Scale",
+          "names": [
+            "Hours",
+            "Days"
+          ],
+          "values": [
+            "hours",
+            "days"
+          ],
+          "default": "hours"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "ScheduleItinerary": [
+    {
+      "name": "Schedule/Itinerary",
+      "figma": "16135:13820",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "ScheduleSlotPicker": [
+    {
+      "name": "Schedule/Slot-Picker",
+      "figma": "16135:14046",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "device",
+          "label": "Device",
+          "names": [
+            "Desktop",
+            "Mobile"
+          ],
+          "values": [
+            "desktop",
+            "mobile"
+          ],
+          "default": "desktop"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "ScheduleDayPlanner": [
+    {
+      "name": "Schedule/Day-Planner",
+      "figma": "16143:1439",
       "fixed": {},
       "axes": [
         {

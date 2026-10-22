@@ -18,6 +18,8 @@ export const isRepo = fs.existsSync(path.join(root, "src/components"));
 /** Shipped with the package by `npm run build:lib` (Zen's own layout classes; the package has no src/**\/*.css). */
 const packagedContext = (() => { try { return JSON.parse(fs.readFileSync(path.join(root, "dist/usage-context.json"), "utf8")); } catch { return null; } })();
 const INPUTS = ["InputField", "SelectField", "DateField", "ColorField", "NumberField", "TextAreaField", "AutocompleteField", "RichTextField"];
+/** The fields a data-entry form is made of (dialog/form-uses-modal-form counts them). */
+const FORM_FIELDS = [...INPUTS, "HeadingField", "SliderField", "FileUpload"];
 const FOCUSABLE_TRIGGERS = ["Button", "IconButton", "button", "a", "Chip", "Link", "input", "TabItem", "Toggle", ...INPUTS, "Search"];
 
 /* ── attribute helpers ─────────────────────────────────────────────── */
@@ -1203,6 +1205,22 @@ export const rules = [
   { id: "dialog/no-nested", components: ["Dialog"], severity: "error", allow: "nested-dialog", guideline: "docs/guidelines/dialog.md",
     summary: "Never stack dialogs: a Dialog does not open another Dialog.",
     check: ({ children }) => /<Dialog\b/.test(children) && "contains another Dialog — replace the content in place or use a page." },
+  // Forms in overlays (user rule 2026-10-21: "Các form nhập liệu nhiều, phức tạp mà bật modal thì không dùng dialog.
+  // Dialog thường dùng chức năng thông báo/confirm nhanh, còn nhập liệu, tạo form… thì dùng forms", "form thì không dùng
+  // Action direction vertical", "không dùng form cho mobile. Mobile forms thay thế bằng bottom sheet").
+  { id: "dialog/form-uses-modal-form", components: ["Dialog"], severity: "error", allow: "dialog-form", guideline: "docs/guidelines/dialog.md",
+    summary: "Dialog is for a notice or a quick confirm (one field at most, such as typing a name to confirm). A data-entry form, two or more fields, opens in a ModalForm on desktop and tablet and in a BottomSheet on a phone.",
+    check: ({ children }) => {
+      // One field is still a quick confirm (type the name to delete), even wrapped in a Form so Enter confirms.
+      const fields = FORM_FIELDS.reduce((count, tag) => count + openingTags(children ?? "", tag).length, 0);
+      return fields >= 2 && `holds ${fields} fields — Dialog is for a notice or a quick confirm: put the form in a ModalForm (desktop and tablet) or a BottomSheet (phone).`;
+    } },
+  { id: "modal-form/actions-horizontal", components: ["ModalForm"], severity: "error", allow: "modal-form-actions", guideline: "docs/guidelines/dialog.md",
+    summary: "A ModalForm's footer keeps its actions in a row (Tertiary cancel, Primary submit): actionsDirection=\"vertical\" belongs to a Dialog's equal-weight choices, never to a form.",
+    check: ({ attrs }) => literal(attrs, "actionsDirection") === "vertical" && "stacks its actions vertically — a form's footer keeps them in a row: leave actionsDirection out (horizontal)." },
+  { id: "modal-form/not-on-phone", components: ["PlatformPhone", "Screen"], severity: "error", allow: "modal-form-phone", guideline: "docs/guidelines/bottom-sheet.md",
+    summary: "On a phone a form opens in a BottomSheet, never a ModalForm (Figma's Modal/Forms has no Mobile device). A phone is a PlatformPhone frame or a Studio Screen with device=\"phone\".",
+    check: ({ tag, attrs, children }) => (tag !== "Screen" || literal(attrs, "device") === "phone") && openingTags(children ?? "", "ModalForm").length > 0 && "opens a ModalForm on a phone — put the form in a BottomSheet (its title, the fields, the actions in its footer)." },
   { id: "accordion/no-nested", components: ["Accordion"], severity: "error", allow: "nested-accordion", guideline: "docs/guidelines/accordion.md",
     summary: "Accordions are one level deep: no Accordion inside an Accordion.",
     check: ({ children }) => /<Accordion\b/.test(children) && "contains another Accordion — flatten the list or link to a page." },
@@ -1503,6 +1521,22 @@ export const rules = [
   { id: "badge/count-uses-counter", components: ["Badge"], severity: "error", allow: "badge-count", guideline: "docs/guidelines/badge.md",
     summary: "A bare count (a number, or an expression like count / length / total / unread) is a Badge-Counter, not a Badge — BadgeCounter keeps the round pill and a min width equal to its height.",
     check: ({ children }) => { const c = (children ?? "").trim(); const numeric = /^\d+\+?$/.test(c) || /^\{\s*(String\()?[\w.$]*(count|length|total|unread|countIn)\b[^}]*\}$/i.test(c); return numeric && `shows a count (\`${c.slice(0, 40)}\`) — use <BadgeCounter value={…} />.`; } },
+  // User 2026-10-21 (Badge-Status approved): a workflow step is BadgeStatus, whose ring shows how far the work moved.
+  { id: "badge/workflow-status-uses-badge-status", components: ["Badge"], severity: "error", allow: "badge-workflow-status", guideline: "docs/guidelines/badge.md",
+    summary: "A workflow step (To Do, In Progress, In Review, Done, Blocked, Cancelled; vi Cần làm, Đang làm, Đang duyệt, Hoàn thành, Bị chặn, Đã huỷ) is a BadgeStatus: its ring shows how far the work has moved and the step picks its colours. Other statuses (Live, Paid, Draft) stay Badges.",
+    check: ({ children }) => {
+      const c = (children ?? "").trim().replace(/^\{\s*["'`]|["'`]\s*\}$/g, "").trim().toLowerCase();
+      const step = { "to do": "to-do", todo: "to-do", "cần làm": "to-do", "in progress": "in-progress", "đang làm": "in-progress", "in review": "in-review", "đang duyệt": "in-review", done: "done", "hoàn thành": "done", blocked: "blocked", "bị chặn": "blocked", cancelled: "cancelled", canceled: "cancelled", "đã huỷ": "cancelled", "đã hủy": "cancelled" }[c];
+      return step && `shows the workflow step \`${c}\` — use <BadgeStatus status="${step}" /> (its ring and colours come from the step).`;
+    } },
+  { id: "property-field/one-value", components: ["PropertyField"], severity: "error", allow: "property-value", guideline: "docs/guidelines/input.md",
+    summary: "A PropertyField holds exactly one value cell — PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople or PropertyTags — the borderless cell that edits the value in place; a bordered field or loose text breaks the row's alignment and its keyboard pattern.",
+    check: ({ children }) => {
+      const c = children ?? "";
+      if (!c.trim() || /^\s*\{[^}]*\}\s*$/.test(c)) return false;
+      const cells = (c.match(/<Property(Text|Select|Status|Date|People|Tags)\b/g) ?? []).length;
+      return cells !== 1 && (cells === 0 ? "has no Property* value cell — put one of PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople or PropertyTags inside." : `has ${cells} value cells — one PropertyField per property.`);
+    } },
   { id: "badge/count-text-uses-counter", components: ["span", "Text"], severity: "error", allow: "count-text", guideline: "docs/guidelines/badge.md",
     summary: "A count shown on its own beside a label (a section's, a tab's or a filter's item count: an element whose class names a count) is a BadgeCounter, not bare text — the same round pill everywhere a number counts something.",
     check: ({ attrs, children }) => {
@@ -1964,6 +1998,24 @@ export const rules = [
       return null;
     } },
   // The behaviour probes (2026-09-28): an inline "Report period" whose Cancel and Submit both only closed, doing nothing.
+  { id: "timeline/gantt-names-plan", components: ["TimelineGantt"], severity: "warn", allow: "gantt-name", guideline: "docs/guidelines/timeline.md",
+    summary: "Name the Gantt after its plan (aria-label=\"Lotus banking redesign\"): without it the table is only \"Tasks\", and a page with two plans reads them the same.",
+    check: ({ attrs, src }) => (/@storybook\//.test(src) || spreadsProps(attrs) || present(attrs, "aria-label") || present(attrs, "aria-labelledby")) ? null : "has no aria-label: name it after the plan." },
+  { id: "schedule/slot-picker-confirm", components: ["ScheduleSlotPicker"], severity: "warn", allow: "schedule-confirm", guideline: "docs/guidelines/schedule.md",
+    summary: "A Slot-Picker only chooses a time: without onValueChange the app never hears the choice, and the confirm action (\"Book 10:00\") in the page or sheet footer has nothing to book.",
+    check: ({ attrs, src }) => {
+      if (/@storybook\//.test(src) || spreadsProps(attrs)) return null;
+      return topAttrs(attrs).has("onValueChange") ? null : "has no onValueChange: keep the chosen slot (value / onValueChange) so the footer's Book action can confirm it.";
+    } },
+  { id: "schedule/selected-needs-handler", components: ["ScheduleResourceGrid"], severity: "warn", allow: "schedule-selected", guideline: "docs/guidelines/schedule.md",
+    summary: "selectedBookingId marks the booking whose details are open; without onBookingClick the bars are static, so the selection can never change.",
+    check: ({ attrs, src }) => {
+      if (/@storybook\//.test(src) || spreadsProps(attrs)) return null;
+      const own = topAttrs(attrs);
+      const selected = own.get("selectedBookingId");
+      if (!selected || /^\s*null\s*$/.test(selected.expr ?? "") || own.has("onBookingClick")) return null;
+      return "passes selectedBookingId without onBookingClick: open the booking from onBookingClick.";
+    } },
   { id: "calendar/toolbar-navigation", components: ["CalendarToolbar"], severity: "warn", allow: "calendar-navigation", guideline: "docs/guidelines/calendar.md",
     summary: "A CalendarToolbar moves the period and switches the view: without onPrevious / onNext its arrows are disabled, and while its view switch is shown (views not empty) it needs onViewChange, or pressing a view does nothing.",
     check: ({ attrs, src }) => {

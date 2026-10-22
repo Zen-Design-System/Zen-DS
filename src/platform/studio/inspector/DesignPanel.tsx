@@ -41,6 +41,7 @@ import { hasIdleNotes, idleNotes } from "./computedDefaults";
 import { AppearanceSection, appearancePropNames, CardEffectsSection, EffectsSection, FillSection, isFrameLook, StrokeSection } from "../appearance/AppearanceSection";
 import { ShapeSections, shapePropNames } from "../appearance/ShapeSections";
 import { NestedProperties } from "./NestedProperties";
+import { codeOnlyProps } from "./propGroups";
 import { useNestedInstances } from "./nestedInstances";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
 import { CodeProperties } from "./CodeProperties";
@@ -376,8 +377,11 @@ function useLiveProps(selection: NodeSelection, enabled: boolean) {
   return live;
 }
 
-/** Design tab for a JSX element. */
-export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelection; controlsSlot: HTMLElement }) {
+/**
+ * Design tab for a JSX element. `view` "code": only its code properties (what only code reads), for the Code tab
+ * (CodePanel), with the same rows and writes as the Design tab; the Design tab itself keeps Figma's sections.
+ */
+export function DesignPanel({ selection, controlsSlot, view = "design" }: { selection: NodeSelection; controlsSlot: HTMLElement; view?: "design" | "code" }) {
   const parsed = parseSrc(selection.src);
   const server = useStudioServer();
   const role = useStudio((state) => state.role);
@@ -398,7 +402,7 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   const refetch = useCallback(() => setVersion((value) => value + 1), []);
   const info = useSyncExternalStore(selectionInstances.subscribe, selectionInstances.get, selectionInstances.get);
   const instances = info.src === selection.src ? info.count : 0;
-  const detach = useDetachPlan(element, selection, detachShown(element, selection) && editable);
+  const detach = useDetachPlan(element, selection, detachShown(element, selection) && editable && view === "design");
   // A row of a .map: Detach replaces only this row (index === K), every other edit changes all instances. While the
   // plan loads, the rendered fibers say whether it is a .map row, so the header does not change height when it arrives.
   const mapRow = useMemo(() => {
@@ -867,20 +871,16 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
   });
 
   // Properties (instance properties, nested instances, slots): right under the header for an instance, as Figma UI3
-  // shows them; a frame's, text's or shape's code-only properties and its layers stay at the end.
+  // shows them; a frame's, text's or shape's layers stay at the end.
   const instanceFirst = kind === "zen" || kind === "local";
+  // A frame, text or shape has no Figma properties: what the code adds (HTML element, Scroll, Html for…) is on the Code
+  // tab (user, 2026-10-17: less developer language).
+  const codeOnlyKind = !groups && (kind === "primitive" || kind === "shape");
   const propertyBlocks = (
     <>
       {element && propertySpecs.length && groups ? (
         <GroupedProperties groups={groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} nested={nested} />
-      ) : element && propertySpecs.length && (kind === "primitive" || kind === "shape") ? (
-        // A frame, text or shape has no Figma properties: what the code adds (HTML element, Scroll, Html for…) waits in
-        // Code properties, closed (user, 2026-10-17: less developer language).
-        <CodeProperties count={propertySpecs.length} placement="panel">
-          {propertySpecs.filter((spec) => !shapedNames.has(spec.name)).map((spec) => <Field key={spec.name} spec={spec} api={api} component={name} label={propLabel(spec.name, name)} />)}
-          {shapedProps.map((entry) => <ObjectProperties key={entry.spec.name} component={name} props={[entry]} api={api} selection={selection} only={entry.shape.type === "object" ? { prop: entry.spec.name } : undefined} />)}
-        </CodeProperties>
-      ) : element && propertySpecs.length ? (
+      ) : element && propertySpecs.length && !codeOnlyKind ? (
         // Properties in titled groups with a divider between them (autoGroups.ts), then one section per object or array
         // prop (Trend, items), titled with its name; an object's fields need no header of their own there.
         <>
@@ -917,6 +917,29 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
       {element ? <SlotsSection api={api} selection={selection} element={element} /> : null}
     </>
   );
+
+  // The Code tab's Properties (CodeProperties.tsx; §3a "code-only ones on the Code tab"): a component's code-only props,
+  // a frame's, text's or shape's own props, and the attributes no API lists, each edited as on the Design tab.
+  const groupedCode = groups ? codeOnlyProps(groups, propertySpecs.map((spec) => spec.name)) : [];
+  const ownCode = codeOnlyKind ? propertySpecs : [];
+  if (view === "code") {
+    if (!element || !(groupedCode.length || ownCode.length || otherAttributes.length)) return null;
+    return (
+      <InspectorHostContext value={sourceHost(selection)}>
+      <InspectorFileContext value={element.file}>
+      <InspectorSrcContext value={selection.src}>
+        <CodeProperties note={spreadNote}>
+          {groups && groupedCode.length ? <GroupedProperties view="code" groups={groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} rendered={renderedProps} nested={nested} /> : null}
+          {ownCode.filter((spec) => !shapedNames.has(spec.name)).map((spec) => <Field key={spec.name} spec={spec} api={api} component={name} label={propLabel(spec.name, name)} />)}
+          {ownCode.length ? shapedProps.map((entry) => <ObjectProperties key={entry.spec.name} component={name} props={[entry]} api={api} selection={selection} only={entry.shape.type === "object" ? { prop: entry.spec.name } : undefined} />) : null}
+          {/* HTML and undocumented attributes keep their written names (href, aria-label). */}
+          {otherAttributes.map((attr) => <Field key={attr.name} spec={attributeSpec(attr)} api={api} label={attr.name} />)}
+        </CodeProperties>
+      </InspectorSrcContext>
+      </InspectorFileContext>
+      </InspectorHostContext>
+    );
+  }
 
   return (
     // Scale fields measure their tokens on the selected element (density, breakpoint and mode applied).
@@ -1078,13 +1101,6 @@ export function DesignPanel({ selection, controlsSlot }: { selection: NodeSelect
               ))}
             </ul>
           ) : null}
-        </InspectorSection>
-      ) : null}
-
-      {element && otherAttributes.length ? (
-        <InspectorSection title="Code properties">
-          {/* HTML and undocumented attributes keep their written names (href, aria-label). */}
-          {otherAttributes.map((attr) => <Field key={attr.name} spec={attributeSpec(attr)} api={api} label={attr.name} />)}
         </InspectorSection>
       ) : null}
 
