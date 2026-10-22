@@ -2,7 +2,7 @@
 // Self-test of the Appearance / Effects model (./appearanceModel.ts, imported directly: Node strips the types).
 // Run: node src/platform/studio/appearance/appearanceModel.selftest.mjs
 import fs from "node:fs";
-import { cardThemeEffect, cornerClear, cornerPick, defaultEffect, EFFECT_STYLES, effectAvailability, effectKey, effectLayers, effectWarnings, isMixed, uniformClear, uniformPick } from "./appearanceModel.ts";
+import { addGradientStop, cardThemeEffect, cornerClear, cornerPick, defaultEffect, EFFECT_STYLES, effectAvailability, effectKey, effectLayers, effectWarnings, gradientCode, gradientOf, isMixed, removeGradientStop, retypeGradient, setGradientStop, startGradient, uniformClear, uniformPick, widestGapAt } from "./appearanceModel.ts";
 
 const failures = [];
 let passed = 0;
@@ -49,6 +49,20 @@ const level1 = effectLayers(manifestStyle("Shadow/Bottom/Level-1")?.effects ?? [
 check("effect layers: Level-1's first drop shadow", level1[0], "Drop shadow · X 0 · Y 4 · Blur 8 · Spread −4 · Shadow/Neutral/Base");
 check("effect layers: the overlay's background blur at the CSS radius", effectLayers(manifestStyle("Effect/Overlay")?.effects ?? []), ["Background blur · 50"]);
 check("every Box effect style is in the manifest", EFFECT_STYLES.every((style) => manifestStyle(style.name)), true);
+
+// Fill › Gradient (spec 2026-10-22 §1).
+const two = [{ color: "accent-solid", at: 0 }, { color: "info-solid", at: 100 }];
+check("gradient: read from what the element renders", gradientOf({ state: "bound", live: { type: "linear", angle: 45, stops: two }, expression: "" }), { type: "linear", angle: 45, stops: two });
+check("gradient: read from its code", gradientOf({ state: "bound", expression: '{ type: "radial", stops: [{ color: "accent-solid", at: 0 }, { color: "info-solid", at: 100 },] }' }), { type: "radial", stops: two });
+check("gradient: none unset or unknown", [gradientOf({ state: "unset" }), gradientOf({ state: "bound", live: { type: "conic", stops: two } })], [null, null]);
+check("gradient: code leaves the default angle out", [gradientCode({ type: "linear", angle: 180, stops: two }), gradientCode({ type: "angular", angle: 200, stops: two }), gradientCode({ type: "radial", angle: 30, stops: [two[0]] })],
+  ['{ type: "linear", stops: [{ color: "accent-solid", at: 0 }, { color: "info-solid", at: 100 }] }', '{ type: "angular", angle: 200, stops: [{ color: "accent-solid", at: 0 }, { color: "info-solid", at: 100 }] }', '{ type: "radial", stops: [{ color: "accent-solid", at: 0 }] }']);
+check("gradient: a new one fades its colour to transparent", [startGradient("linear", "info-solid"), startGradient("diamond", undefined).stops[0].color], [{ type: "linear", stops: [{ color: "info-solid", at: 0 }, { color: "neutral-flat", at: 100 }] }, "accent-solid"]);
+check("gradient: retype keeps stops; an angle only between angled types", [retypeGradient({ type: "linear", angle: 45, stops: two }, "angular").angle, "angle" in retypeGradient({ type: "linear", angle: 45, stops: two }, "radial")], [45, false]);
+check("gradient: + adds a stop in the widest gap, in the colour before it", addGradientStop({ type: "linear", stops: [{ color: "accent-solid", at: 0 }, { color: "info-solid", at: 20 }, { color: "neutral-flat", at: 100 }] }).stops.at(-1), { color: "info-solid", at: 60 });
+check("gradient: a stop at a place (a click on the bar)", [addGradientStop({ type: "linear", stops: two }, 12.4).stops.at(-1), widestGapAt({ type: "linear", stops: [two[0]] })], [{ color: "accent-solid", at: 12 }, 50]);
+check("gradient: keeps two stops", [removeGradientStop({ type: "linear", stops: two }, 0).stops.length, removeGradientStop({ type: "linear", stops: [...two, two[1]] }, 0).stops.length], [2, 2]);
+check("gradient: a stop's place is a whole percent in 0–100", setGradientStop({ type: "linear", stops: two }, 1, { at: 140.4 }).stops[1].at, 100);
 
 if (failures.length) {
   console.error(`appearanceModel selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);

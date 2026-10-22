@@ -59,6 +59,20 @@
   background-repeat: var(--zen-image-repeat);
   background-origin: border-box;
 }
+/* A gradient fill (gradient prop, _shared/gradient.ts): its layers over the fill colour, under an image fill. */
+:is(.zen-box, .zen-stack, .zen-grid)[data-gradient] {
+  background-image: var(--zen-gradient);
+  background-size: var(--zen-gradient-size);
+  background-position: var(--zen-gradient-position);
+  background-repeat: var(--zen-gradient-repeat);
+  background-origin: border-box;
+}
+:is(.zen-box, .zen-stack, .zen-grid)[data-gradient][data-image] {
+  background-image: var(--zen-image-fill), var(--zen-gradient);
+  background-size: var(--zen-image-size), var(--zen-gradient-size);
+  background-position: var(--zen-image-position), var(--zen-gradient-position);
+  background-repeat: var(--zen-image-repeat), var(--zen-gradient-repeat);
+}
 :is(.zen-box, .zen-stack, .zen-grid)[data-border="pale"] { border: 1px solid var(--zen-color-border-neutral-pale-default); }
 /* zen-allow-subtle-static-box: border="subtle" is for actionable frames; the JSX rule box/border-matches-action checks each use. */
 :is(.zen-box, .zen-stack, .zen-grid)[data-border="subtle"] { border: 1px solid var(--zen-color-border-neutral-subtle-default); }

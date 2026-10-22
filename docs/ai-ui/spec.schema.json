@@ -6556,6 +6556,17 @@
                 ],
                 "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale)."
               },
+              "gradient": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ZenGradient"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as a Shape's `fill`): it paints over the layer's fill colour (a Sh"
+              },
               "surface": {
                 "anyOf": [
                   {
@@ -19925,6 +19936,17 @@
                   }
                 ],
                 "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale)."
+              },
+              "gradient": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ZenGradient"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as a Shape's `fill`): it paints over the layer's fill colour (a Sh"
               },
               "surface": {
                 "anyOf": [
@@ -34350,6 +34372,17 @@
                 ],
                 "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale)."
               },
+              "gradient": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ZenGradient"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as a Shape's `fill`): it paints over the layer's fill colour (a Sh"
+              },
               "type": {
                 "anyOf": [
                   {
@@ -37678,6 +37711,17 @@
                   }
                 ],
                 "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale)."
+              },
+              "gradient": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ZenGradient"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as a Shape's `fill`): it paints over the layer's fill colour (a Sh"
               },
               "surface": {
                 "anyOf": [
@@ -45990,6 +46034,20 @@
       "required": [],
       "additionalProperties": false
     },
+    "GradientStop": {
+      "type": "object",
+      "properties": {
+        "color": {},
+        "at": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "color",
+        "at"
+      ],
+      "additionalProperties": false
+    },
     "GridTracks": {
       "anyOf": [
         {
@@ -47889,6 +47947,33 @@
       "required": [
         "id",
         "name"
+      ],
+      "additionalProperties": false
+    },
+    "ZenGradient": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "linear",
+            "radial",
+            "angular",
+            "diamond"
+          ]
+        },
+        "angle": {
+          "type": "number"
+        },
+        "stops": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GradientStop"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "stops"
       ],
       "additionalProperties": false
     }

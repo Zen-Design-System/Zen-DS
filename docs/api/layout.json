@@ -187,6 +187,14 @@
           "deprecated": null
         },
         {
+          "name": "gradient",
+          "type": "ZenGradient",
+          "required": false,
+          "default": null,
+          "description": "A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as\na Shape's `fill`): it paints over the layer's fill colour (a Shape then has none unless `fill` is given) and under an\nimage fill. Diamond is drawn as four linear quadrants (CSS has none).",
+          "deprecated": null
+        },
+        {
           "name": "surface",
           "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
           "required": false,
@@ -569,6 +577,14 @@
           "required": false,
           "default": null,
           "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale). Default 100.",
+          "deprecated": null
+        },
+        {
+          "name": "gradient",
+          "type": "ZenGradient",
+          "required": false,
+          "default": null,
+          "description": "A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as\na Shape's `fill`): it paints over the layer's fill colour (a Shape then has none unless `fill` is given) and under an\nimage fill. Diamond is drawn as four linear quadrants (CSS has none).",
           "deprecated": null
         },
         {
@@ -957,6 +973,14 @@
           "deprecated": null
         },
         {
+          "name": "gradient",
+          "type": "ZenGradient",
+          "required": false,
+          "default": null,
+          "description": "A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as\na Shape's `fill`): it paints over the layer's fill colour (a Shape then has none unless `fill` is given) and under an\nimage fill. Diamond is drawn as four linear quadrants (CSS has none).",
+          "deprecated": null
+        },
+        {
           "name": "surface",
           "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
           "required": false,
@@ -1161,7 +1185,11 @@
     }
   ],
   "types": {
+    "GradientStop": "interface GradientStop { color: Exclude<ShapeFill, \"none\">; at: number; }",
+    "GradientType": "type GradientType = \"linear\" | \"radial\" | \"angular\" | \"diamond\"",
     "GridTracks": "type GridTracks = number | string",
+    "ShapeFill": "type ShapeFill = (typeof shapeFills)[number]",
+    "ZenGradient": "interface ZenGradient { type: GradientType; angle?: number; stops: GradientStop[]; }",
     "ZenMargin": "type ZenMargin = \"margin-comfortable\" | \"margin-compact\"",
     "ZenPadding": "type ZenPadding = \"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
     "ZenScale": "type ZenScale = \"3xs\" | \"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"3xl\"",

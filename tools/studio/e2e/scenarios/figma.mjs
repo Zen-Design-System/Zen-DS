@@ -4090,6 +4090,61 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   {
+    id: "FW-181", feature: "Fill › Gradient on a rectangle: Linear makes its colour the first stop, fading to Neutral/Flat (fill prop gone), the canvas paints a linear-gradient; angle 45 writes angle: 45; + adds a stop in the widest gap, selected; its colour picks a variable from the fill palette; → moves its handle 1 %; the rows sit on the panel's grid; one ⌘Z each", wp: "Fill gradient 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      return restoring(page, id, async () => {
+        await selectShapes(page, id, [0]);
+        const tag = async () => ((await pageText(page, id)) ?? "").match(/<Shape type="rectangle"[^\n]*\/>/)?.[0] ?? "";
+        await chooseGradient(page, "Linear");
+        await until(async () => /gradient=\{\{ type: "linear", stops: \[\{ color: "[a-z-]+", at: 0 \}, \{ color: "neutral-flat", at: 100 \}\] \}\}/.test(await tag()), { message: "a linear gradient fading to Neutral/Flat" });
+        const shape = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).first();
+        await until(async () => (await shape.getAttribute("data-gradient")) === "linear" && /linear-gradient/.test(await shape.evaluate((node) => getComputedStyle(node).backgroundImage)), { message: "the canvas paints the gradient" });
+        await typeNumber(page, "Gradient angle", 45);
+        await until(async () => /gradient=\{\{ type: "linear", angle: 45,/.test(await tag()), { message: "angle: 45" });
+        await press(page, "Add gradient stop");
+        await until(async () => (await tag()).match(/\{ color: /g)?.length === 3 && /at: 50 \}\] \}\}/.test(await tag()), { message: "a third stop at 50%" });
+        await pickStopColor(page, "info-solid", /^Info \/ Solid/);
+        await until(async () => /\{ color: "info-solid", at: 50 \}/.test(await tag()), { message: "the new stop on Info/Solid" });
+        await shot(page, "fw-181-gradient");
+        await expectPanelFits(page, "the gradient rows");
+        await right(page).getByRole("slider", { name: "Stop 3" }).focus();
+        await page.keyboard.press("ArrowRight");
+        await until(async () => /\{ color: "info-solid", at: 51 \}/.test(await tag()), { message: "→ moves it to 51%" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => /\{ color: "info-solid", at: 50 \}/.test(await tag()), { message: "one ⌘Z: 50% again" });
+        return (await tag()).match(/gradient=\{\{[^}]*\}[^]*?\] \}\}/)?.[0] ?? await tag();
+      });
+    },
+  },
+  {
+    id: "FW-182", feature: "Fill › Gradient: Diamond keeps the stops (no angle row), the canvas paints four quadrants; a press on the bar adds a stop there; − removes the selected stop and a gradient keeps two; − on the gradient leaves the rectangle unfilled (fill=\"none\"), as Figma's −", wp: "Fill gradient 2026-10-22", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await shapesPage(ctx);
+      return restoring(page, id, async () => {
+        await selectShapes(page, id, [0]);
+        const tag = async () => ((await pageText(page, id)) ?? "").match(/<Shape type="rectangle"[^\n]*\/>/)?.[0] ?? "";
+        await chooseGradient(page, "Linear");
+        await until(async () => /type: "linear"/.test(await tag()), { message: "linear" });
+        await chooseGradient(page, "Diamond");
+        await until(async () => /gradient=\{\{ type: "diamond", stops: /.test(await tag()), { message: "diamond, its stops kept" });
+        if (await right(page).getByRole("spinbutton", { name: "Gradient angle", exact: true }).count()) throw new Error("a diamond shows an angle");
+        const shape = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Shape"]`).first();
+        await until(async () => (await shape.evaluate((node) => getComputedStyle(node).backgroundImage)).split("linear-gradient(").length - 1 === 4, { message: "four quadrants on the canvas" });
+        const bar = await right(page).getByRole("group", { name: "Gradient stops" }).boundingBox();
+        await page.mouse.click(bar.x + bar.width * 0.25, bar.y + 3);
+        await until(async () => (await tag()).match(/\{ color: /g)?.length === 3 && /at: 2[3-7] \}\] \}\}/.test(await tag()), { message: "a stop where the bar was pressed (about 25%)" });
+        await right(page).getByRole("button", { name: /^Remove stop/ }).click();
+        await until(async () => (await tag()).match(/\{ color: /g)?.length === 2, { message: "two stops" });
+        if (await right(page).getByRole("button", { name: /^Remove stop/ }).count()) throw new Error("a two-stop gradient offers − on a stop");
+        await press(page, "Remove gradient");
+        await until(async () => !/gradient=/.test(await tag()) && /fill="none"/.test(await tag()), { message: "no gradient, unfilled" });
+        return await tag();
+      });
+    },
+  },
+  {
     id: "FW-165", feature: "A Zen instance's Design tab has no Code properties (Figma's sections only); its HTML button type is on the Code tab's Properties, where typing submit writes type=\"submit\"; ⌘Z takes it back", wp: "§3a Properties 2026-10-21", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
@@ -4574,4 +4629,22 @@ async function sameFromMenu(page, id, frameId, index, item, name = "Shape", { on
   const list = page.getByRole("menu", { name: "Select all with same" });
   await step(list.waitFor({ state: "visible", timeout: 5000 }), "the Select all with same list");
   await step(list.getByRole("menuitem", { name: new RegExp(`^${item}`) }).click({ timeout: 5000 }), item);
+}
+
+/** Fill › Gradient's type set to `label` (its PropField row: a select, or a Segmented when the options fit). */
+async function chooseGradient(page, label) {
+  const row = page.locator('#studio-right [data-prop="gradient-fill"] [data-prop="gradientType"]').first();
+  await row.waitFor({ state: "visible", timeout: 8000 });
+  const segmented = row.locator(".zen-segmented");
+  if (await segmented.count()) { await segmented.getByRole("button", { name: label, exact: true }).click(); return; }
+  await row.getByRole("combobox", { name: /Gradient/ }).or(row.getByRole("button", { name: /Gradient/ })).first().click();
+  await page.getByRole("option", { name: label, exact: true }).click();
+}
+/** The selected stop's color picked by searching `query`, the option named like `name`. */
+async function pickStopColor(page, query, name) {
+  await right(page).getByRole("combobox", { name: "Stop color" }).or(right(page).getByRole("button", { name: "Stop color" })).first().click();
+  const search = page.getByPlaceholder("Search colors");
+  await search.waitFor({ state: "visible", timeout: 5000 });
+  await search.fill(query);
+  await page.getByRole("option", { name }).first().click();
 }

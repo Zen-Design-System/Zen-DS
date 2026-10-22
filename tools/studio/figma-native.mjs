@@ -12,6 +12,7 @@
 
 import { decodeSchema, inflateRaw, bytesOf, base64Of, figmaClipboardHtml } from "./figma-kiwi.mjs";
 import { FIGMA_CLIPBOARD_SCHEMA } from "./figma-clipboard-schema.generated.mjs";
+import { gradientTransform } from "./figma-gradient.mjs";
 
 const LABEL_PROPS = ["Label", "Text", "Title", "Content"];
 const IDENTITY = { m00: 1, m01: 0, m02: 0, m10: 0, m11: 1, m12: 0 };
@@ -630,6 +631,7 @@ class Writer {
     if (typeof spec.strokeBottom === "number") { node.borderBottomWeight = spec.strokeBottom; node.borderTopWeight = 0; node.borderLeftWeight = 0; node.borderRightWeight = 0; node.borderStrokeWeightsIndependent = true; }
     Object.assign(node, this.bindings(vars));
     if (spec.fill) node.fillPaints = this.paint(spec.fill, spec.name);
+    this.gradientFill(node, spec, pos.w, pos.h);
     this.imageFill(node, spec, spec.name || "Frame");
     this.push(node, parentInfo);
     const info = { mode, tracks, w: pos.w, h: pos.h, internal: parentInfo?.internal, hugW: mode !== "NONE" && sizing.w === "HUG", hugH: mode !== "NONE" && sizing.h === "HUG" };
@@ -727,6 +729,26 @@ class Writer {
   }
 
   /**
+   * A layer's gradient (`gradientFill`, figma-gradient.mjs) as Figma's gradient paint over its colour and under its
+   * picture: each stop bound to its colour variable (`stopsVar`, as a SOLID paint's `colorVar`), the transform from the
+   * CSS angle in the layer's size (a hugging frame's estimate: Figma keeps the matrix when the layer resizes).
+   */
+  gradientFill(node, spec, width, height) {
+    const fill = spec.gradientFill;
+    if (!fill?.type || !Array.isArray(fill.stops)) return;
+    const stops = fill.stops.map((stop) => ({ stop, id: this.variable(stop.color) })).filter((entry) => entry.id);
+    if (stops.length < 2) { this.note(`${spec.name || "Layer"}: its gradient has fewer than two stops on variables in this file; left out`); return; }
+    const [[m00, m01, m02], [m10, m11, m12]] = gradientTransform(fill.type, fill.angle, width, height);
+    const black = { r: 0, g: 0, b: 0, a: 1 };
+    node.fillPaints = [...(node.fillPaints ?? []), {
+      type: fill.type, opacity: 1, visible: true, blendMode: "NORMAL", transform: { m00, m01, m02, m10, m11, m12 },
+      stops: stops.map(({ stop }) => ({ color: black, position: stop.position })),
+      stopsVar: stops.map(({ stop, id }) => ({ color: black, colorVar: aliasOf(id, "COLOR"), position: stop.position })),
+    }];
+    delete node.styleIdForFill;
+  }
+
+  /**
    * A layer's picture (`imageFill`, figma-image.mjs) as Figma's IMAGE paint over its colour (the importer's
    * applyImageFill), its bytes a blob of the message (nativeMessage gives `dataBlob` its index). The Studio src rides as the importer's shared plugin data
    * ("zenstudio", "image") for the pull: Figma keeps shared data as an entry with no plugin id, keyed "namespace-key"
@@ -800,6 +822,7 @@ class Writer {
     if (spec.type === "STAR" && typeof spec.innerRadius === "number") node.starInnerScale = spec.innerRadius;
     if (path) node.vectorData = path.vectorData;
     if (spec.type === "BOOLEAN_OPERATION") { node.booleanOperation = BOOLEAN_OPERATIONS[spec.booleanOperation] ?? "UNION"; node.vectorOperationVersion = 1; }
+    if (!line) this.gradientFill(node, spec, pos.w, pos.h);
     if (!line) this.imageFill(node, spec, name);
     this.push(node, parentInfo);
     // A boolean group's shapes, each at its X / Y inside it (Figma combines them).

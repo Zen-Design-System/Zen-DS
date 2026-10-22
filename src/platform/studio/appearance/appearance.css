@@ -41,3 +41,41 @@
 /* Fill › Image (ImageFillRow.tsx, F8): the picture's field with Upload and − beside it, then Image fit and a tile's scale. */
 .studio-image-fill { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-image-fill__picture { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr); grid-auto-flow: column; grid-auto-columns: auto; align-items: center; column-gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+
+/* Fill › Gradient (GradientFillRow.tsx): rows on the panel's grid, a field across both field columns with its button in
+   the icon column (the type and −, the bar and +, the stop's colour); its angle and the stop's place are pair rows. */
+.studio-gradient-fill { display: grid; min-width: 0; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-gradient-fill__row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* The bar (Figma's gradient bar): the stops left to right over a checkerboard (a transparent stop shows it), a handle
+   per stop in its colour; a press on the bar adds a stop there. */
+.studio-gradient-fill__bar {
+  position: relative;
+  height: var(--zen-button-size-xsmall, 24px);
+  margin-inline: calc(var(--zen-element-size-popular-small, 16px) / 2);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: repeating-conic-gradient(var(--zen-color-background-neutral-subtle-default) 0 25%, var(--zen-color-background-surface-default) 0 50%) 0 0 / var(--zen-spacing-gap-xsmall, 8px) var(--zen-spacing-gap-xsmall, 8px);
+  box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default);
+  cursor: copy;
+  touch-action: none;
+}
+.studio-gradient-fill__bar[data-disabled] { cursor: default; }
+.studio-gradient-fill__preview { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; }
+/* A handle: the stop's colour (currentColor) in a white ring, as Figma's stop; the selected one ringed in Accent. */
+.studio-gradient-fill__handle {
+  position: absolute;
+  top: 50%;
+  width: var(--zen-element-size-popular-small, 16px);
+  height: var(--zen-element-size-popular-small, 16px);
+  box-sizing: border-box;
+  border: 2px solid var(--zen-color-background-white-solid-default, #fff);
+  border-radius: var(--zen-corner-radius-rounded, 1000px);
+  background: currentColor;
+  /* zen-allow-raw-shadow: Slide-Dot's thumb shadow (the ColorPicker handle's), 0 0 4 in Color/Shadow/Neutral/Strong. */
+  box-shadow: 0 0 4px var(--zen-color-shadow-neutral-strong);
+  transform: translate(-50%, -50%);
+  cursor: ew-resize;
+  touch-action: none;
+}
+.studio-gradient-fill__handle[data-selected] { outline: 2px solid var(--zen-color-border-accent-solid-default); outline-offset: 1px; }
+.studio-gradient-fill__handle:focus-visible { outline: 3px solid var(--zen-color-focus-neutral-subtle, rgb(2 2 2 / 8%)); outline-offset: 1px; }
+.studio-gradient-fill__handle[aria-disabled="true"] { cursor: default; }

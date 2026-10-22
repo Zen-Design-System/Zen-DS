@@ -281,6 +281,28 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(read?.fillPaints?.[1]?.image.hash.length === 20 && Buffer.from(readBlob?.bytes ?? []).equals(logoBytes) && read.pluginData?.[0]?.key === "zenstudio-image", "the picture's bytes and its src survive the paste html");
 }
 
+// --- Gradient fills (figma-gradient.mjs): stops bound like a SOLID paint's colour, the transform from the CSS angle --
+{
+  const accent = "Color/Background/Accent/Solid/Default", info = "Color/Background/Info/Solid/Default";
+  const stops = [{ position: 0, color: accent }, { position: 1, color: info }];
+  const specs = [
+    { type: "RECTANGLE", shape: true, name: "Linear", fill: "Color/Background/Neutral/Subtle/Default", gradientFill: { type: "GRADIENT_LINEAR", angle: 45, stops }, fixedWidth: 200, fixedHeight: 100 },
+    { type: "FRAME", name: "Angular", layout: { mode: "VERTICAL" }, fixedWidth: 120, gradientFill: { type: "GRADIENT_ANGULAR", angle: 180, stops }, children: [] },
+    { type: "ELLIPSE", shape: true, name: "Lonely", gradientFill: { type: "GRADIENT_RADIAL", stops: [stops[0], { position: 1, color: "Color/No/Such" }] }, fixedWidth: 40, fixedHeight: 40 },
+  ];
+  const { message, notes } = nativeMessage(exportOf(specs), pack);
+  const named = (name) => message.nodeChanges.find((n) => n.name === name);
+  const [solid, linear] = named("Linear")?.fillPaints ?? [];
+  check(solid?.type === "SOLID" && linear?.type === "GRADIENT_LINEAR", "a gradient over the shape's colour");
+  check(linear?.stopsVar?.length === 2 && id(linear.stopsVar[0].colorVar.value.alias.guid) === pack.variables[accent][0] && id(linear.stopsVar[1].colorVar.value.alias.guid) === pack.variables[info][0] && linear.stops.map((stop) => stop.position).join() === "0,1", "each stop bound to its colour variable, at its place");
+  // 45° in a 200 × 100 box: towards the top right, the line as long as the box's projection (gradient.selftest).
+  const t = linear?.transform ?? {};
+  check(Math.abs(t.m00 - 2 / 3) < 1e-4 && Math.abs(t.m01 + 1 / 3) < 1e-4 && Math.abs(t.m02 - 1 / 3) < 1e-4, `the linear transform from its angle and size (${JSON.stringify(t)})`);
+  const turn = named("Angular")?.fillPaints?.find((paint) => paint.type === "GRADIENT_ANGULAR")?.transform ?? {};
+  check(Math.abs(turn.m00) < 1e-4 && Math.abs(turn.m01 - 1) < 1e-4 && Math.abs(turn.m10 + 1) < 1e-4 && Math.abs(turn.m12 - 1) < 1e-4, "an angular start turns the matrix about the centre");
+  check(named("Lonely")?.fillPaints.length === 0 && notes.some((note) => note.includes("Lonely") && note.includes("fewer than two stops")), `a gradient short of two known stops is noted (${notes.join("; ")})`);
+}
+
 // --- Shapes as Figma's own layers (its copy of the importer's layers, 2026-10-20) -----------------------------------
 {
   const border = "Color/Border/Accent/Solid/Default", fill = "Color/Background/Neutral/Subtle/Default";

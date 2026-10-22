@@ -10827,7 +10827,7 @@
   "shape": [
     {
       "name": "Shape",
-      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, ImageFillProps",
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, ImageFillProps, GradientFillProps",
       "props": [
         {
           "name": "width",
@@ -11006,6 +11006,14 @@
           "deprecated": null
         },
         {
+          "name": "gradient",
+          "type": "ZenGradient",
+          "required": false,
+          "default": null,
+          "description": "A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as\na Shape's `fill`): it paints over the layer's fill colour (a Shape then has none unless `fill` is given) and under an\nimage fill. Diamond is drawn as four linear quadrants (CSS has none).",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "\"rectangle\" | \"ellipse\" | \"line\" | \"arrow\" | \"polygon\" | \"star\" | \"vector\" | \"boolean\"",
           "required": false,
@@ -11058,7 +11066,7 @@
           "type": "ShapeFill",
           "required": false,
           "default": null,
-          "description": "Fill: a Color/Background token by its path (\"neutral-subtle\", \"accent-solid\", \"surface\", \"support-blue-soft\"; list in\n`shapeFills`), or \"none\". Default: Background/Support/Neutral/Soft, Figma's light grey; a line, arrow or vector has none,\nand a shape with an `image` has none unless it is given (the colour then shows around a `fit` picture).",
+          "description": "Fill: a Color/Background token by its path (\"neutral-subtle\", \"accent-solid\", \"surface\", \"support-blue-soft\"; list in\n`shapeFills`), or \"none\". Default: Background/Support/Neutral/Soft, Figma's light grey; a line, arrow or vector has none,\nand a shape with an `image` or a `gradient` has none unless it is given (the colour then shows around a `fit` picture,\nor through a gradient's transparent stops).",
           "deprecated": null
         },
         {
@@ -18714,6 +18722,14 @@
           "deprecated": null
         },
         {
+          "name": "gradient",
+          "type": "ZenGradient",
+          "required": false,
+          "default": null,
+          "description": "A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as\na Shape's `fill`): it paints over the layer's fill colour (a Shape then has none unless `fill` is given) and under an\nimage fill. Diamond is drawn as four linear quadrants (CSS has none).",
+          "deprecated": null
+        },
+        {
           "name": "surface",
           "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
           "required": false,
@@ -19096,6 +19112,14 @@
           "deprecated": null
         },
         {
+          "name": "gradient",
+          "type": "ZenGradient",
+          "required": false,
+          "default": null,
+          "description": "A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as\na Shape's `fill`): it paints over the layer's fill colour (a Shape then has none unless `fill` is given) and under an\nimage fill. Diamond is drawn as four linear quadrants (CSS has none).",
+          "deprecated": null
+        },
+        {
           "name": "surface",
           "type": "\"none\" | \"surface\" | \"surface-alt\" | \"subtle\" | \"pale\" | \"canvas\"",
           "required": false,
@@ -19475,6 +19499,14 @@
           "required": false,
           "default": null,
           "description": "With `imageFit=\"tile\"`: each tile's size in percent of the picture's own size (Figma's tile scale). Default 100.",
+          "deprecated": null
+        },
+        {
+          "name": "gradient",
+          "type": "ZenGradient",
+          "required": false,
+          "default": null,
+          "description": "A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as\na Shape's `fill`): it paints over the layer's fill colour (a Shape then has none unless `fill` is given) and under an\nimage fill. Diamond is drawn as four linear quadrants (CSS has none).",
           "deprecated": null
         },
         {

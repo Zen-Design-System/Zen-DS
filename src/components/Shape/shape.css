@@ -33,6 +33,20 @@
   background-repeat: var(--zen-image-repeat);
 }
 
+/* A gradient fill (gradient prop, _shared/gradient.ts): the rectangle's layers over its fill colour, under an image. */
+.zen-shape[data-type="rectangle"][data-gradient] {
+  background-image: var(--zen-gradient);
+  background-size: var(--zen-gradient-size);
+  background-position: var(--zen-gradient-position);
+  background-repeat: var(--zen-gradient-repeat);
+}
+.zen-shape[data-type="rectangle"][data-gradient][data-image] {
+  background-image: var(--zen-image-fill), var(--zen-gradient);
+  background-size: var(--zen-image-size), var(--zen-gradient-size);
+  background-position: var(--zen-image-position), var(--zen-gradient-position);
+  background-repeat: var(--zen-image-repeat), var(--zen-gradient-repeat);
+}
+
 /* Ellipse, polygon, star: an SVG drawn in the element's own px box; strokes may reach past it (outside, centre). */
 .zen-shape__drawing { position: absolute; top: 0; left: 0; display: block; overflow: visible; pointer-events: none; }
 

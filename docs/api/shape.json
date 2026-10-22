@@ -8,7 +8,7 @@
       "file": "src/components/Shape/Shape.tsx",
       "description": "Zen Shape: Figma's native shapes (Rectangle, Ellipse with its arc, Line, Arrow, Polygon, Star, and the Pen's Vector)\nfor illustrations, marks and decoration drawn in Zen Studio. Not a Figma library component: it maps to Figma's own\nnodes (RECTANGLE, ELLIPSE with arcData, LINE, REGULAR_POLYGON, STAR, VECTOR) on export and import. Colours are Zen tokens only (`fill` from\nColor/Background, `stroke` from Color/Border); the rectangle's radius takes the Corner-Radius tokens. It sizes and\nplaces like a layout primitive: `width` / `height` (px or fill) and Figma's position props (in a free frame:\n`position=\"absolute\"` with px insets).",
       "deprecated": null,
-      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, ImageFillProps",
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"children\">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, ImageFillProps, GradientFillProps",
       "props": [
         {
           "name": "width",
@@ -187,6 +187,14 @@
           "deprecated": null
         },
         {
+          "name": "gradient",
+          "type": "ZenGradient",
+          "required": false,
+          "default": null,
+          "description": "A gradient fill (Figma's Linear, Radial, Angular or Diamond paint) whose stops are colour variables (paint slugs, as\na Shape's `fill`): it paints over the layer's fill colour (a Shape then has none unless `fill` is given) and under an\nimage fill. Diamond is drawn as four linear quadrants (CSS has none).",
+          "deprecated": null
+        },
+        {
           "name": "type",
           "type": "\"rectangle\" | \"ellipse\" | \"line\" | \"arrow\" | \"polygon\" | \"star\" | \"vector\" | \"boolean\"",
           "required": false,
@@ -239,7 +247,7 @@
           "type": "ShapeFill",
           "required": false,
           "default": null,
-          "description": "Fill: a Color/Background token by its path (\"neutral-subtle\", \"accent-solid\", \"surface\", \"support-blue-soft\"; list in\n`shapeFills`), or \"none\". Default: Background/Support/Neutral/Soft, Figma's light grey; a line, arrow or vector has none,\nand a shape with an `image` has none unless it is given (the colour then shows around a `fit` picture).",
+          "description": "Fill: a Color/Background token by its path (\"neutral-subtle\", \"accent-solid\", \"surface\", \"support-blue-soft\"; list in\n`shapeFills`), or \"none\". Default: Background/Support/Neutral/Soft, Figma's light grey; a line, arrow or vector has none,\nand a shape with an `image` or a `gradient` has none unless it is given (the colour then shows around a `fit` picture,\nor through a gradient's transparent stops).",
           "deprecated": null
         },
         {
@@ -366,8 +374,11 @@
     }
   ],
   "types": {
+    "GradientStop": "interface GradientStop { color: Exclude<ShapeFill, \"none\">; at: number; }",
+    "GradientType": "type GradientType = \"linear\" | \"radial\" | \"angular\" | \"diamond\"",
     "ShapeFill": "type ShapeFill = (typeof shapeFills)[number]",
     "ShapeStroke": "type ShapeStroke = (typeof shapeStrokes)[number]",
+    "ZenGradient": "interface ZenGradient { type: GradientType; angle?: number; stops: GradientStop[]; }",
     "ZenMargin": "type ZenMargin = \"margin-comfortable\" | \"margin-compact\"",
     "ZenPadding": "type ZenPadding = \"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
     "ZenScale": "type ZenScale = \"3xs\" | \"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"3xl\"",
