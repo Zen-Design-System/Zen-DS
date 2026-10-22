@@ -15,6 +15,9 @@ import { useStudio } from "../../store";
 import { announceEditStatus, subscribeStudioWrites } from "../../api";
 import { pageFile } from "../../builder/store/pageStore";
 import { mainsOf, setsOf } from "../localComponents";
+import { openLibraries, useLibraries } from "../../project/libraries";
+import { modKey } from "../../shell/modKey";
+import { tip } from "../../shell/ShortcutTip";
 import { altOf, removeUpload, UPLOAD_ACCEPT, uploadPhotos, useUploads } from "../../builder/assets/uploads";
 import { iconInsertable, insertAsset, insertItem, paletteInsertable, photoInsertable, pressAsset, uploadInsertable, type Insertable } from "./assets";
 import { AssetThumb } from "./AssetThumb";
@@ -66,7 +69,10 @@ const pressProps = (item: Insertable) => ({
 });
 
 export function AssetsPanel() {
-  const [library, setLibrary] = useState<Library | null>(null);
+  const [chosen, setLibrary] = useState<Library | null>(null);
+  // Zen turned off in Libraries while its components or icons are open: back to the libraries.
+  const zen = useLibraries().zen;
+  const library = zen || chosen === "photos" ? chosen : null;
   const [query, setQuery] = useState("");
   const [view, setViewState] = useState<View>(readView);
   const [iconStyle, setIconStyle] = useState<"line" | "solid">("line");
@@ -97,6 +103,8 @@ export function AssetsPanel() {
       ) : null}
       <div className="studio-assets__search" role="search">
         <Search size="sm" placeholder={label} aria-label={label} value={query} onChange={(event) => setQuery(event.target.value)} onClear={clear} />
+        {/* Figma's book button: Libraries (⌥⌘O), the switches of what this project's pages use. */}
+        <IconButton icon="icon-book-open-line" aria-label="Libraries" aria-keyshortcuts="Alt+Meta+O" tooltip={tip("Libraries", `⌥${modKey}O`)} appearance="flat" level="primary" size="sm" onClick={openLibraries} />
       </div>
       {library === "components" ? <ComponentLibrary query={query} view={view} onClear={clear} />
         : library === "icons" ? <IconGrid query={query} style={iconStyle} onClear={clear} />
@@ -167,6 +175,8 @@ function LocalComponents() {
 
 function Libraries({ onOpen }: { onOpen: (library: Library) => void }) {
   const uploads = useUploads();
+  // Zen turned off in Libraries (⌥⌘O): its components and icons leave Assets.
+  const zen = useLibraries().zen;
   const counts: Record<Library, number> = useMemo(() => ({
     components: PALETTE.length,
     icons: searchIconGlyphs("").length,
@@ -177,7 +187,7 @@ function Libraries({ onOpen }: { onOpen: (library: Library) => void }) {
       <LocalComponents />
       <p className={`studio-assets__kicker ${typographyStyles["Caption/Medium"]}`}>Libraries</p>
       <ul className="studio-assets__list" aria-label="Libraries">
-        {LIBRARIES.map((entry) => {
+        {LIBRARIES.filter((entry) => zen || entry.id === "photos").map((entry) => {
           const count = counts[entry.id] + (entry.id === "photos" ? uploads.length : 0);
           return (
             <li key={entry.id}>
@@ -202,8 +212,9 @@ function Libraries({ onOpen }: { onOpen: (library: Library) => void }) {
 
 function AllResults({ query, view, onOpen, onClear }: { query: string; view: View; onOpen: (library: Library) => void; onClear: () => void }) {
   const uploads = useUploads();
-  const components = useMemo(() => searchCatalog(query).map((entry) => entry.item), [query]);
-  const glyphs = useMemo(() => searchIconGlyphs(query).filter((glyph) => glyph.line ?? glyph.solid), [query]);
+  const zen = useLibraries().zen;
+  const components = useMemo(() => (zen ? searchCatalog(query).map((entry) => entry.item) : []), [query, zen]);
+  const glyphs = useMemo(() => (zen ? searchIconGlyphs(query).filter((glyph) => glyph.line ?? glyph.solid) : []), [query, zen]);
   const photos = useMemo(() => searchLibraryPhotos(query), [query]);
   const words = query.trim().toLowerCase();
   const mine = uploads.filter((upload) => `${upload.name} ${altOf(upload.name)}`.toLowerCase().includes(words));

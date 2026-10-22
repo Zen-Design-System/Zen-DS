@@ -472,7 +472,8 @@ function SlotChips({ slots, keys, onOpen, interactive = true }: { slots: LiveSlo
       {items.filter((item) => keys.includes(item.key) && (interactive || item.value)).map((item) => item.value
         ? (interactive
           ? <Chip key={item.key} variant="normal" size="sm" leading={item.icon} dropdown onClick={() => onOpen(item.key)}>{item.value}</Chip>
-          : <Chip key={item.key} variant="normal" size="sm" leading={item.icon}>{item.value}</Chip>)
+          // Read-only once the form shows: a Tag (a Chip always does something; the gate's dead-click probe caught one).
+          : <Tag key={item.key} leading={item.icon}>{item.value}</Tag>)
         : <Chip key={item.key} variant="normal" size="sm" leading="icon-plus-line" state="placeholder" onClick={() => onOpen(item.key)}>{item.add}</Chip>)}
     </Stack>
   );

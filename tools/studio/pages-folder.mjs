@@ -3,7 +3,8 @@
 // it). On the dev server this folder is the pages' source of truth; the browser's IndexedDB is the working copy
 // (src/platform/studio/builder/store/pageStore.ts syncs the two).
 //
-//   pagesFolder(root, { validate }) → { list(), read(id), write(id, text), trash(id), writeAsset(id, bytes), readAsset(id),
+//   pagesFolder(root, { validate }) → { list(), read(id), write(id, text), trash(id), readComments(id), writeComments(id, doc),
+//                                       writeAsset(id, bytes), readAsset(id),
 //                                       trashAsset(id) }  (uploaded photos in <pages>/assets/, 2026-10-08: a page opened in
 //                                       another browser on the dev server finds them there)
 //
@@ -13,6 +14,7 @@
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
+import { validateComments } from "./page-comments.mjs";
 
 export const PAGE_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
 /** An uploaded photo's id (builder/assets/uploads.ts assetIdFor: a slug, a hash, an image extension). */
@@ -20,6 +22,9 @@ export const ASSET_ID = /^[a-z0-9][a-z0-9-]{0,80}\.(png|jpg|webp|gif|svg)$/;
 /** An uploaded photo is at most 5 MB (uploads.ts MAX_UPLOAD_BYTES). */
 export const MAX_ASSET = 5 * 1024 * 1024;
 export const MAX_PAGE = 2 * 1024 * 1024;
+/** A page's comments file, beside it (docs/research/studio-comments-spec-2026-10-22.md), is at most 1 MB. */
+export const MAX_COMMENTS = 1024 * 1024;
+const COMMENTS_SUFFIX = ".comments.json";
 export const PAGES_DIR = ".zen-studio/pages";
 export const TRASH_DIR = ".zen-studio/trash";
 const SUFFIX = ".zen.tsx";
@@ -133,6 +138,51 @@ export function pagesFolder(root, { validate = () => [], dir = PAGES_DIR } = {})
       return { id, mtime: Math.round(stat.mtimeMs) };
     },
 
+    /** A page's comments (`<id>.comments.json` beside it), or null when it has none. */
+    async readComments(id) {
+      checkId(id);
+      const abs = path.join(pagesAbs, `${id}${COMMENTS_SUFFIX}`);
+      let stat;
+      try {
+        stat = await fsp.lstat(abs);
+      } catch {
+        return null;
+      }
+      if (stat.isSymbolicLink() || !stat.isFile()) throw new PagesError("forbidden", `${id}${COMMENTS_SUFFIX} is a link or not a file`);
+      if (stat.size > MAX_COMMENTS) throw new PagesError("invalid", `${id}${COMMENTS_SUFFIX} is over 1 MB`);
+      try {
+        return JSON.parse(await fsp.readFile(abs, "utf8"));
+      } catch {
+        throw new PagesError("invalid", `${id}${COMMENTS_SUFFIX} is not JSON`);
+      }
+    },
+
+    /** Writes a page's comments beside it, atomically, after their check (page-comments.mjs validateComments). */
+    async writeComments(id, doc) {
+      checkId(id);
+      const errors = validateComments(doc);
+      if (errors.length) throw new PagesError("invalid", `Not valid comments: ${errors[0]}`);
+      const text = `${JSON.stringify(doc, null, 2)}\n`;
+      if (Buffer.byteLength(text, "utf8") > MAX_COMMENTS) throw new PagesError("invalid", "A page's comments are at most 1 MB");
+      await ensureDir(pagesAbs);
+      const abs = path.join(pagesAbs, `${id}${COMMENTS_SUFFIX}`);
+      try {
+        const stat = await fsp.lstat(abs);
+        if (stat.isSymbolicLink() || !stat.isFile()) throw new PagesError("forbidden", `${id}${COMMENTS_SUFFIX} is a link or not a file`);
+      } catch (error) {
+        if (error instanceof PagesError) throw error;
+      }
+      const temp = path.join(pagesAbs, `.${id}.comments.${process.pid}-${Date.now()}.tmp`);
+      await fsp.writeFile(temp, text, "utf8");
+      try {
+        await fsp.rename(temp, abs);
+      } catch (error) {
+        await fsp.rm(temp, { force: true });
+        throw error;
+      }
+      return { id, threads: doc.threads.length };
+    },
+
     /** Keeps an uploaded photo in assets/ (atomically; an existing one with the same id holds the same bytes). */
     async writeAsset(id, bytes) {
       checkAsset(id);
@@ -175,8 +225,17 @@ export function pagesFolder(root, { validate = () => [], dir = PAGES_DIR } = {})
       const { abs, stat } = await pageFile(id);
       if (!stat) return { id, trashed: false };
       await ensureDir(trashAbs);
-      const to = path.join(trashAbs, `${id}-${new Date().toISOString().replace(/[:.]/g, "-")}${SUFFIX}`);
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const to = path.join(trashAbs, `${id}-${stamp}${SUFFIX}`);
       await fsp.rename(abs, to);
+      // Its comments go with it.
+      const comments = path.join(pagesAbs, `${id}${COMMENTS_SUFFIX}`);
+      try {
+        const stat = await fsp.lstat(comments);
+        if (stat.isFile() && !stat.isSymbolicLink()) await fsp.rename(comments, path.join(trashAbs, `${id}-${stamp}${COMMENTS_SUFFIX}`));
+      } catch {
+        // no comments
+      }
       return { id, trashed: true, to: path.relative(root, to).split(path.sep).join("/") };
     },
   };

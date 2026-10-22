@@ -4,6 +4,7 @@ import { Rulers } from "./Rulers";
 import { FindPanel } from "../edit/FindPanel";
 import { CanvasBackgroundSync } from "./CanvasBackground";
 import { LayoutGuides } from "./LayoutGuides";
+import { CommentsLayer } from "../comments/CommentsLayer";
 import { PlatformTypographyContext } from "../../PlatformTemplate";
 import { FrameChrome } from "../board/FrameChrome";
 import { SelectionLayer } from "../select/SelectionLayer";
@@ -345,6 +346,8 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
       <ConstraintLayer viewport={viewport} world={world} />
       <EditLayer viewport={viewport} world={world} />
       <FrameChrome viewport={viewport} />
+      {/* Figma's comments: pins and the open thread while the Comment tool is on (C). */}
+      <CommentsLayer viewport={viewport} />
       {/* A page's canvas Background (F10). */}
       <CanvasBackgroundSync viewport={viewport} />
       {/* Figma's Find and replace (⌘F, F10). */}
