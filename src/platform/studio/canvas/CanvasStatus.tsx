@@ -28,6 +28,7 @@ const hints: Record<StudioTool, string> = {
   pencil: "Pencil ⇧P · drag to draw · Esc for Move",
   stack: "Auto layout frame · click where it goes",
   text: "Text T · click where it goes",
+  comment: "Comment C · click to add a comment, click a pin to open it · Esc for Move",
   image: "Image · click where it goes",
 };
 

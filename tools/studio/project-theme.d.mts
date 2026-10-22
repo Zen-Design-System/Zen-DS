@@ -19,7 +19,9 @@ export type ProjectTheme = {
   chart: Array<{ family: SupportFamily; tone: SectorTone }>;
   modes: ProjectModes;
 };
-export type Project = { format: 1; id: string; name: string; createdAt: number; updatedAt: number; theme: ProjectTheme };
+/** The libraries a project's pages use (its Libraries dialog): Zen, the project's own components, its theme. */
+export type ProjectLibraries = { zen: boolean; components: boolean; theme: boolean };
+export type Project = { format: 1; id: string; name: string; createdAt: number; updatedAt: number; theme: ProjectTheme; libraries: ProjectLibraries };
 export type Palette = { lightSolid: string[]; darkSolid: string[]; lightAlpha: string[]; darkAlpha: string[]; darkBackground: string; anchor: string; alias: RampName | null };
 export type OnBrand = { default: string; hover: string; pressed: string; lc: number };
 
@@ -38,6 +40,9 @@ export function projectBrand(id: string): string;
 export function projectIdFor(name: string, taken?: Set<string>): string;
 export function normalizeTheme(input: unknown, errors?: string[]): ProjectTheme;
 export function normalizeProject(input: unknown): { project: Project | null; errors: string[] };
+export const PROJECT_LIBRARIES: ReadonlyArray<keyof ProjectLibraries>;
+export function defaultLibraries(): ProjectLibraries;
+export function normalizeLibraries(input: unknown): ProjectLibraries;
 export function tintedNeutralAnchor(primaryHex: string): string;
 export function projectPalettes(theme: ProjectTheme): { primary: Palette; neutral: Palette; onBrand: { light: OnBrand; dark: OnBrand } };
 export function projectThemeCss(id: string, theme: ProjectTheme, options?: { name?: string; brand?: string }): string;

@@ -1,0 +1,76 @@
+/* Comments on the canvas (CommentsLayer.tsx, Figma's Comment tool C): the layer is a view in screen space over the
+   frames; only its pins and the open thread's popover take presses. */
+.studio-comments { position: absolute; z-index: 26; inset: 0; overflow: hidden; pointer-events: none; }
+.studio-comments > * { position: absolute; top: 0; left: 0; pointer-events: auto; }
+
+/* A pin: the first author's avatar in a speech bubble whose bottom-left corner is the place (Figma's). */
+.studio-comment-pin {
+  display: grid;
+  place-items: center;
+  width: var(--zen-image-size-small, 32px);
+  height: var(--zen-image-size-small, 32px);
+  box-sizing: border-box;
+  padding: 0;
+  border: 0;
+  border-radius: var(--zen-corner-radius-rounded, 999px) var(--zen-corner-radius-rounded, 999px) var(--zen-corner-radius-rounded, 999px) 0;
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+  cursor: pointer;
+}
+.studio-comment-pin:hover { background: var(--zen-color-background-neutral-subtle-default); }
+.studio-comment-pin[aria-pressed="true"], .studio-comment-pin[data-draft] { outline: 2px solid var(--zen-color-border-accent-solid-default); }
+.studio-comment-pin[data-resolved] { opacity: 0.6; }
+.studio-comment-pin:focus-visible { outline: 2px solid var(--zen-color-focus-neutral-solid); outline-offset: 2px; }
+.studio-comment-pin[data-draft] { cursor: default; }
+
+/* The thread's popover beside its pin: comments, then the reply field. */
+.studio-comment-popover {
+  display: grid;
+  max-height: 360px;
+  box-sizing: border-box;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-small, 12px);
+  border-radius: var(--zen-corner-radius-large, 16px);
+  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  background: var(--zen-popover-background, #fff);
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+}
+.studio-comment-popover__head { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-comment-popover__actions { display: flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-comment-popover__list { display: grid; min-height: 0; margin: 0; padding: 0; overflow: auto; gap: var(--zen-spacing-gap-small, 12px); list-style: none; }
+.studio-comment-popover__compose { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-comment { display: grid; min-width: 0; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-comment__body { display: grid; min-width: 0; gap: var(--zen-spacing-gap-3-xsmall, 2px); overflow-wrap: anywhere; white-space: pre-wrap; }
+.studio-comment__head { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); white-space: normal; }
+.studio-comment__head > :last-child:not(:nth-child(2)) { margin-inline-start: auto; }
+
+/* The right panel's list (CommentsPanel.tsx): one row per thread, the open one marked. */
+.studio-comments-list { display: grid; margin: 0; padding: 0; gap: var(--zen-spacing-gap-3-xsmall, 2px); list-style: none; }
+.studio-comments-list__row {
+  display: grid;
+  width: 100%;
+  box-sizing: border-box;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
+  padding: var(--zen-spacing-padding-xsmall, 8px);
+  border: 0;
+  border-radius: var(--zen-corner-radius-small, 8px);
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.studio-comments-list__row:hover { background: var(--zen-color-background-neutral-flat-hover); }
+.studio-comments-list__row[aria-current="true"] { background: var(--zen-color-background-neutral-flat-pressed); }
+.studio-comments-list__row[data-resolved] { opacity: 0.7; }
+.studio-comments-list__row:focus-visible { outline: 2px solid var(--zen-color-focus-neutral-solid); outline-offset: -2px; }
+.studio-comments-list__body { display: grid; min-width: 0; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-comments-list__head { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-comments-list__text { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
+
+/* While the Comment tool is on, the canvas shows Figma's comment cursor (a crosshair here). */
+.studio-viewport[data-studio-commenting],
+.studio-viewport[data-studio-commenting] .studio-world * { cursor: crosshair !important; }
