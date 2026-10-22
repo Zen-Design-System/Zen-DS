@@ -50,8 +50,9 @@ async function selectBody(page, id) {
 
 /** The Figma keys Zen Studio has no feature for yet (edit/figmaNotYet.ts): each says so and nothing else happens. */
 const NOT_YET = [
-  ["KeyK", "Scale"], ["KeyC", "Comment"],
-  ["KeyI", "Pick color"], ["KeyS", "Slice"],
+  ["KeyS", "Slice"],
+  ["KeyC", "Comment"],
+  ["KeyI", "Pick color"],
 ];
 
 
@@ -1492,6 +1493,108 @@ export const rows = [
         await until(async () => (await pageText(page, id)) === drawn, { message: "one ⌘Z takes the dragged copy away" });
         await undoTo(page, id, before, 4);
         return `⌘D → section-2 + ${duplicated.screen} at +${duplicated.dx}, 0; ⌘Z; ⌥-drag → copy at +${dragged.dx}, +${dragged.dy}, original stays; ⌘Z`;
+      });
+    },
+  },
+  {
+    id: "FW-88", feature: "K (Scale) on a selected shape: the Scale tool, its factor field in focus; 2 + Enter doubles its size from the top-left (its X / Y stay), one ⌘Z", wp: "Scale tool 2026-10-21",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await selectShape(page, id, 0);
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("KeyK");
+        await until(async () => (await pressedTool(page)) === "Scale", { message: "the Scale tool on" });
+        const field = page.locator('#studio-right input[aria-label="Scale"]');
+        await field.waitFor({ state: "visible", timeout: 5000 });
+        await until(async () => field.evaluate((input) => input === document.activeElement), { message: "the factor field in focus" });
+        await page.keyboard.type("2");
+        await page.keyboard.press("Enter");
+        const rect = async () => ((await pageText(page, id)) ?? "").match(/<Shape type="rectangle"[^>]*\/>/)?.[0] ?? "";
+        await until(async () => /width=\{160\}/.test(await rect()) && /height=\{120\}/.test(await rect()), { message: "the rectangle 160 × 120" });
+        const tag = await rect();
+        if (!/insetLeft=\{20\}/.test(tag) || !/insetTop=\{20\}/.test(tag)) throw new Error(`the top-left anchor moved it: ${tag}`);
+        await until(async () => /Scaled 200%/.test(await statusText(page)), { message: "Scaled 200%" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+        await page.keyboard.press("KeyV");
+        return "K → Scale, field in focus · 2 ↵ → 160 × 120 at 20, 20 · Scaled 200% · ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-89", feature: "Scale a frame with layers in it: 50% + Enter halves the Box and its shapes' sizes and places inside it (an auto layout frame keeps its place), one ⌘Z", wp: "Scale tool 2026-10-21",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await selectShape(page, id, 0);
+        await page.keyboard.press("Escape");
+        // The Design panel heads a Box "Frame", as Figma UI3 does.
+        await until(async () => /^Frame/.test(await selectedName(page)), { message: "the Box selected" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("KeyK");
+        const field = page.locator('#studio-right input[aria-label="Scale"]');
+        await until(async () => field.evaluate((input) => input === document.activeElement), { message: "the factor field in focus" });
+        await page.keyboard.type("50%");
+        await page.keyboard.press("Enter");
+        const text = async () => (await pageText(page, id)) ?? "";
+        await until(async () => /<Box width=\{179\} height=\{100\}>/.test(await text()), { message: "the Box 179 × 100" });
+        const now = await text();
+        const shapes = [...now.matchAll(/<Shape type="(rectangle|ellipse)"[^>]*\/>/g)].map((match) => match[0]);
+        const want = [/insetLeft=\{10\}/, /insetTop=\{10\}/, /width=\{40\}/, /height=\{30\}/, /insetLeft=\{70\}/, /insetTop=\{20\}/, /width=\{30\}/, /height=\{30\}/];
+        const ok = want.slice(0, 4).every((re) => re.test(shapes[0] ?? "")) && want.slice(4).every((re) => re.test(shapes[1] ?? ""));
+        if (!ok) throw new Error(`the shapes did not scale with the Box: ${shapes.join(" | ")}`);
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+        await page.keyboard.press("KeyV");
+        return "Box › K · 50% ↵ → Box 179 × 100, rectangle 40 × 30 at 10, 10, ellipse 30 × 30 at 70, 20 · ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-107", feature: "Scale tool: drag a shape's bottom-right corner out and it scales as one (its ratio kept, the top-left corner still); Esc mid-drag puts it back; one ⌘Z", wp: "Scale tool 2026-10-21",
+    async run(ctx) {
+      const { page, id } = await walkPage(ctx);
+      return restoring(page, id, async () => {
+        const before = (await pageText(page, id)) ?? "";
+        await selectShape(page, id, 1);
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("KeyK");
+        await until(async () => (await pressedTool(page)) === "Scale", { message: "the Scale tool on" });
+        await page.locator(".studio-viewport").focus();
+        const corner = page.locator('.studio-scale-handle[data-corner="bottom-right"]');
+        await corner.waitFor({ state: "visible", timeout: 5000 });
+        const box = await corner.boundingBox();
+        const start = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+        const topLeft = await page.locator('.studio-scale-handle[data-corner="top-left"]').boundingBox();
+        const side = start.x - (topLeft.x + topLeft.width / 2);
+        // Esc mid-drag: nothing written.
+        await page.mouse.move(start.x, start.y);
+        await page.mouse.down();
+        await page.mouse.move(start.x + side / 2, start.y + side / 2, { steps: 4 });
+        await page.keyboard.press("Escape");
+        await page.mouse.up();
+        await sleep(300);
+        if ((await pageText(page, id)) !== before) throw new Error("Esc mid-drag wrote the scale");
+        await page.mouse.move(start.x, start.y);
+        await page.mouse.down();
+        await page.mouse.move(start.x + side / 2, start.y + side / 2, { steps: 4 });
+        await page.mouse.move(start.x + side, start.y + side, { steps: 4 });
+        await page.mouse.up();
+        const ellipse = async () => ((await pageText(page, id)) ?? "").match(/<Shape type="ellipse"[^>]*\/>/)?.[0] ?? "";
+        let size = null;
+        await until(async () => { const tag = await ellipse(); const w = Number(tag.match(/width=\{(\d+)\}/)?.[1]); const h = Number(tag.match(/height=\{(\d+)\}/)?.[1]); size = [w, h]; return w >= 110 && w <= 130 && w === h; }, { message: "the ellipse about twice as big, still round" });
+        const tag = await ellipse();
+        if (!/insetLeft=\{140\}/.test(tag) || !/insetTop=\{40\}/.test(tag)) throw new Error(`its top-left corner moved: ${tag}`);
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await until(async () => (await pageText(page, id)) === before, { message: "one ⌘Z" });
+        await page.keyboard.press("KeyV");
+        return `Esc mid-drag → unchanged · corner drag → ${size[0]} × ${size[1]} at 140, 40 · ⌘Z`;
       });
     },
   },

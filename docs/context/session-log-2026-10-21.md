@@ -566,6 +566,25 @@ the Zen plugin's `settleGridRows` settles such a Grid as it settles a card, with
 would stay at its estimated 100: `figma-native` keeps it hugging with Hug rows, as before (selftest). Pull reads no
 cell height or row sizes, so the page round-trips unchanged. Selftests: push 343, native 131, pull 114.
 
+
+## Figma's Scale tool K (Session C) — tier M, branch `zen/feat/studio-scale-tool-20261021`
+The user picked it (2026-10-21) from the four Figma keys still "not yet" (K, S, C, ⌥⌘A), and chose "Giữ nguyên
+token": px values scale, Zen steps stay (Figma scales everything; Zen has no px font sizes or free spacing).
+- `draw/scaleModel.ts` (+ selftest 17): which props are px (sizes, min / max, insets, stroke weight, a px gap / padding /
+  radius / size), the factor field's words (2, 1.5x, 200%), the anchored box, the corner drag's factor, the insets per
+  constraint, the status ("Scaled 200% · Zen steps kept: gap, padding, text").
+- `draw/scaleLayers.ts`: the selection (several layers about the box around them; floating ones follow the anchor,
+  those in auto layout keep their place) or a Screen / Overlay and everything inside, in one `many setProps` edit.
+  Locked layers, layers inside an instance and Sections are refused with a status line.
+- UI: K (again: focus the field), the toolbar's Scale beside Move and Hand, the canvas status hint, Keyboard
+  shortcuts; the right panel's Scale section while the tool is on (`draw/ScalePanel.tsx`: factor, 3 × 3 anchor radio
+  group); corner handles on the selected layer (`draw/ScaleHandles.tsx`, mounted in SelectionLayer as CropHandles is),
+  an outline with the factor and size while dragging (the layer itself is not stretched), Esc cancels.
+- Shared small edits: types.ts (StudioTool "scale"), StudioApp.tsx (K), figmaNotYet.ts (K out), Inspector.tsx (one
+  branch), SelectionLayer.tsx (one mount), CanvasTools.tsx, CanvasStatus.tsx, ShortcutsDialog.tsx, package.json
+  (selftest), figma.mjs (K out of NOT_YET; rows FW-88, FW-89, FW-107). Parity doc §2a: K is no longer missing.
+- Not yet: clicking to select while K is on (select first, then K; the capture layer is the Move tool's).
+
 ## Search Rounded in the Figma library (session "Search shape variant rounded", tier S; user: "có")
 - Answer to the 2026-10-17 question (mobile library searches default to Rounded). Code already did it (1a89304b:
   SearchShapeContext in TopNavigation's control bar and BottomSheet, so the Input phone sheet too); this is the Figma side.
