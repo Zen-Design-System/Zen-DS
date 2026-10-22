@@ -94,7 +94,7 @@ What is still not Figma's:
   detached).
 - **Menus:**
   - ~~The layer menu has no Flip horizontal / Flip vertical (the keys work).~~ Built 2026-10-21: after Lock, ⇧H / ⇧V,
-    dimmed on a layer without flip (E2E FW-150…152).
+    on frames and shapes (the layers that turn; a component's menu has none) (E2E FW-150…152).
   - A Zen instance's menu has no Go to main component and no Reset all changes (Reset shows in its panel).
   - ~~The empty canvas menu is Zoom to fit, Zoom to 100% and Show/Hide UI, with no Paste (Paste here works inside a frame).~~
     Built 2026-10-21: Paste here first on a page you made, dimmed with nothing to paste; a copied frame lands as a frame,

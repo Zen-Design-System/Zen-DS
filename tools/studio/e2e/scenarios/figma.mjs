@@ -3124,7 +3124,7 @@ export const rows = [
     },
   },
   {
-    id: "FW-152", feature: "A Button's layer menu shows Flip horizontal / Flip vertical in the same place, dimmed (only frames and shapes flip)", wp: "re-measure §2a menus 2026-10-21",
+id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shapes flip (as Flatten shows on shapes only), so a component's long menu stays in the window", wp: "re-measure §2a menus 2026-10-21",
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
       await clickNamed(page, id, "Button");
@@ -3132,11 +3132,10 @@ export const rows = [
       const menu = await menuOn(page, await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).first().boundingBox());
       const items = await menuItems(menu);
       await page.keyboard.press("Escape");
-      const at = items.findIndex((item) => /^Lock\b/.test(item.text));
-      const flips = items.slice(at + 1, at + 3);
-      if (at < 0 || !/^Flip horizontal/.test(flips[0]?.text ?? "") || !/^Flip vertical/.test(flips[1]?.text ?? "")) throw new Error(`after Lock: ${flips.map((item) => item.text).join(" | ")}`);
-      if (!flips.every((item) => item.disabled)) throw new Error("Flip is on for a Button");
-      return "Lock · Flip horizontal · Flip vertical (dimmed)";
+      if (!items.some((item) => /^Lock\b/.test(item.text))) throw new Error(`no Lock (menu: ${items.map((item) => item.text).join(" | ")})`);
+      const flips = items.filter((item) => /^Flip /.test(item.text));
+      if (flips.length) throw new Error(`a Button's menu offers ${flips.map((item) => item.text).join(", ")}`);
+      return `${items.length} items, no Flip`;
     },
   },
   {

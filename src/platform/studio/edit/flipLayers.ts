@@ -60,13 +60,14 @@ export async function flipLayers(axis: "horizontal" | "vertical"): Promise<boole
 }
 
 /**
- * The layer menu's Flip horizontal ⇧H / Flip vertical ⇧V, in Figma's place after Lock (shell/CanvasMenu.tsx): offered
- * on every layer as Figma does, dimmed when a selected layer has no flip (only frames and shapes turn) or for a viewer.
+ * The layer menu's Flip horizontal ⇧H / Flip vertical ⇧V, in Figma's place after Lock (shell/CanvasMenu.tsx), on frames
+ * and shapes (the layers that turn), as Flatten shows on shapes only: a component's menu is long already, and two items
+ * dimmed for good pushed its last ones out of the window (E2E ST-03). Dimmed for a viewer.
  */
 export function flipMenuItems(): MenuItemData[] {
   const layers = selectedLayers();
-  if (!layers.length) return [];
-  const off = !canEdit() || layers.some((layer) => !TURNABLE.has(baseName(layer.name)));
+  if (!layers.length || layers.some((layer) => !TURNABLE.has(baseName(layer.name)))) return [];
+  const off = !canEdit();
   return [
     { id: "flip-horizontal", label: "Flip horizontal", icon: "icon-flip-horizontal-line", shortcut: "⇧H", disabled: off, onSelect: () => { void flipLayers("horizontal"); } },
     { id: "flip-vertical", label: "Flip vertical", icon: "icon-flip-vertical-line", shortcut: "⇧V", disabled: off, onSelect: () => { void flipLayers("vertical"); } },

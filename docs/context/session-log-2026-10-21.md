@@ -695,8 +695,10 @@ plan's remaining pieces (user, 2026-10-21: "mở phiên nhận các phần đó"
 ## Menus: Flip in the layer menu, Paste here on the empty canvas (tier S, branch `zen/feat/studio-menu-flip-paste-20261021`)
 Two gaps of the re-measure §2a "Menus" (the user opened one session per remaining piece, 2026-10-21).
 - Layer menu: `edit/flipLayers.ts` `flipMenuItems` — Flip horizontal ⇧H / Flip vertical ⇧V right after Lock, in the
-  one-layer and the several-layers menus (`shell/CanvasMenu.tsx`). Offered on every layer as Figma does, dimmed where
-  `flipLayers` would refuse (not a Box / Stack / Grid / Shape) or for a viewer.
+  one-layer and the several-layers menus (`shell/CanvasMenu.tsx`), on frames and shapes only (what `flipLayers` turns),
+  dimmed for a viewer. First built dimmed on every layer as Figma offers it: the gate's ST-03 caught a component page's
+  Button menu at 24 items, two of them past the window's foot (the list scrolls at 400 px); shown where it works, as
+  Flatten is, the menu is back to 22.
 - Empty canvas menu: `builder/boardPaste.ts` — Paste here first, on a page you made only (a component page's board
   takes nothing). Dimmed with nothing to paste: no frame or layer copied in the Studio and an empty system clipboard
   where the browser lets the page read it without asking (where it would ask, the item stays on). The later ⌘C wins:
@@ -711,6 +713,6 @@ Two gaps of the re-measure §2a "Menus" (the user opened one session per remaini
   `joinPin` squashes the pin and the frame's edit into one undo step (`squashEdits`, only when the step below is that
   pin); `addFrame`, `addSection`, `copyFrame`, `copySection` use it.
 - E2E (figma walk): FW-150 shape menu order + flip + one ⌘Z; FW-151 two shapes Flip vertical (Y 40 · 20) + one ⌘Z;
-  FW-152 Button: Flip dimmed; FW-153 Paste here dimmed after a fresh load and an empty clipboard, then a shape's paste
+  FW-152 Button: no Flip; FW-153 Paste here dimmed after a fresh load and an empty clipboard, then a shape's paste
   → Frame 2, 100 × 100 at the pointer, the rectangle at 0, 0, selected, one ⌘Z; FW-154 a frame's paste at the pointer.
 - Static: tsc, studio:selftest, usage:check ✓.
