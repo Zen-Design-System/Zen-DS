@@ -1,7 +1,7 @@
 import { useId, useRef, useState } from "react";
 import { ActionBar } from "../../../components/ActionBar";
 import { Avatar } from "../../../components/Avatar";
-import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { IconButton } from "../../../components/Button";
 import { Checkbox } from "../../../components/Checkbox";
@@ -23,7 +23,7 @@ import { TopNavigation } from "../../../components/TopNavigation";
 import { platformMedia } from "../../PlatformMedia";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import {
-  TODAY, daysFromToday, files, formatBytes, formatDate, formatDay, formatDue, formatRelative, formatTime, initials, people, projectById, projects, taskStatusTheme,
+  TODAY, daysFromToday, files, formatBytes, formatDate, formatDay, formatDue, formatRelative, formatTime, initials, people, projectById, projects, taskStep,
   type Person, type PersonId, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
@@ -385,7 +385,7 @@ function FiltersExample() {
             <List aria-label="Tasks">
               {rows.map((row) => (
                 <ListItem key={row.id} title={row.title} caption={`${owner(row.assignee)} · ${row.finished ? `Finished ${formatDay(row.finished)}` : formatDue(row.due)}`} leading={<Avatar size="md" {...avatarOf(people[row.assignee])} />}
-                  trailing={<Badge theme={taskStatusTheme[row.status]} background="subtle">{row.status}</Badge>} />
+                  trailing={<BadgeStatus status={taskStep[row.status]}>{row.status}</BadgeStatus>} />
               ))}
             </List>
           </Box>

@@ -502,6 +502,16 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("library layers (live): no notes, valid dialect", [pulled.notes, validateDialect(pulled.text, { components: new Set(["Badge", "Button", "Pagination", "Stack"]) })], [[], []]);
 }
 
+// Another Studio page's component (project components, a live link): the reader's instance with its page comes back as
+// `<Use of page>` with the values it shows.
+{
+  const cross = { type: "FRAME", name: "Uses", width: 390, height: 844, layout: { mode: "VERTICAL", gap: 0, gapVar: null, padding: [0, 0, 0, 0], paddingVar: null, primary: "MIN", counter: "MIN", wrap: false }, children: [
+    { type: "INSTANCE", name: "Chip", local: "chip", page: "chips", variant: { Size: "Small" }, props: { Label: "Go" } },
+  ] };
+  const { text: crossText } = pageFromFigma(cross, { mapping });
+  ok("project component: an instance of another page's component pulls as <Use of page>", /<Use of="chip" page="chips" variant=\{\{ Size: "Small" \}\} props=\{\{ Label: "Go" \}\} \/>/.test(crossText));
+}
+
 if (failures.length) {
   console.error(`✗ figma-pull selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}\n--- page ---\n${text}\n--- notes ---\n${notes.join("\n")}`);
   process.exit(1);

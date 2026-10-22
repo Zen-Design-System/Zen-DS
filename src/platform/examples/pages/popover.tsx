@@ -10,7 +10,7 @@ import { Popover, PopoverBulkAction, PopoverBulkActionDivider, PopoverBulkAction
 import { Chip } from "../../../components/Chip";
 import { Button, IconButton } from "../../../components/Button";
 import { AvatarStack } from "../../../components/Avatar";
-import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { Card } from "../../../components/Card";
 import { DockIcon } from "../../../components/DockIcon";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
@@ -28,7 +28,7 @@ import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import {
   TODAY, daysFromToday, files as studioFiles, formatBytes, formatDate, formatDue, formatRange, formatRelative, leaveRequests, people, projectById,
-  projectStatusTheme, projects, tasks, type Person, type StudioFile,
+  projectProgress, projectStep, projects, tasks, type Person, type StudioFile,
 } from "../data";
 import { keepOnHotUpdate } from "../../hotData";
 import "./popover.css";
@@ -279,7 +279,7 @@ function JumpToProject() {
           <Stack gap="xs">
             <Stack direction="row" align="center" gap="2xs" wrap>
               <Heading level={4} textStyle="Heading/Subheading">{project.name}</Heading>
-              <Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>
+              <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>
             </Stack>
             <Text as="span" textStyle="Body/Small/Regular" tone="base">{`${project.client} · led by ${personName(project.lead)}`}</Text>
           </Stack>
@@ -528,7 +528,7 @@ const fieldRef = useRef<HTMLElement>(null);
   <Stack gap="xs">
     <Stack direction="row" align="center" gap="2xs" wrap>
       <Heading level={4} textStyle="Heading/Subheading">{project.name}</Heading>
-      <Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>
+      <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>
     </Stack>
     <Text as="span" textStyle="Body/Small/Regular" tone="base">{\`\${project.client} · led by \${lead.name}\`}</Text>
   </Stack>

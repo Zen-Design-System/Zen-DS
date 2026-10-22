@@ -17,6 +17,29 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- **Docs platform and the HR Tasks template:** every task's and project's status is a BadgeStatus (its ring and
+  colour come from the step; the label stays the data's word): To do / In progress / In review / Done, and projects'
+  Planning → to do, Active → in progress with the project's real progress, On hold → blocked, Completed → done
+  (`taskStep`, `projectStep`, `projectProgress` in the examples data). Leave and expense statuses stay Badges
+  (2026-10-23).
+- BadgeStatus in running text (a DescriptionList value, a sentence) sits on a Badge's baseline, so its line is as tall
+  as a Badge's (28px Medium, it was 29) (2026-10-23).
+- Usage harness: `app-shell/pattern-parts` reads only the shell's own props, so a part's content (a header's
+  `BadgeStatus progress`) no longer counts as the shell's `progress` (2026-10-23).
+- Card: the content area is Figma's Content-Slot, a column that fills the card. A card a grid row stretches (or one
+  with a Fill height) gives its content that height, and a child with `height="fill"` grows into it, so a CTA or
+  footer sits at the foot without a class; a ListBox body does the same. Hug cards keep their content height
+  (2026-10-23).
+- Zen Studio: ⇧⌘G with several layers selected ungroups every selected group or frame, as Figma's (one ⌘Z takes it
+  back); their layers and the other selected layers stay selected, and the canvas menu offers Ungroup on several layers
+  (2026-10-23).
+- Zen Studio ↔ Figma: an instance's layer name (data-name) is its Figma name and comes back with Pull from Figma, and so
+  does a name changed in Figma since; an instance's accessible name (aria-label, an icon button's label) stays its Figma
+  name first (2026-10-23).
+- Chart and metric marks on a colour Solid Card (Brand, Accent, Cyan, Yellow, Orange) draw their second series (the
+  current Spark-Bar, the active bar, a Bullet or Gauge target, the Funnel's last stage, the Combo line) in black at 49%
+  (Content/Neutral/Light; Inverse/Light in dark mode), as Figma's Color Chart Sector/On-Color/Secondary does, not 69%.
+  The user kept that style's binding and the Tertiary one (Border/Neutral/Subtle/Pressed) (2026-10-23).
 - Zen Studio: a photo dropped on one row's avatar changes that row's picture on example pages too when a helper
   function draws it (the sidebar's `personAvatar(people[t.assignee])` in rows `taskRow(t)` builds): it lands in that
   person's data (`people.alex.photo` in examples/data.ts), an initials avatar gets its first photo, one ⌘Z. A photo
@@ -371,7 +394,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   that page takes it back), and a main that other pages use cannot be deleted until they let it go. An instance whose
   main is gone (its page in the Trash or out of the project) shows "Missing component" until the main is back. As in
   Figma, a component can't go inside itself through another page (Assets says which one holds it). Open on phone draws
-  these instances too. Sent to Figma as its layers for now.
+  these instances too. In Figma (Import from Studio) such an instance is a real instance of its main: the export
+  carries the other page's component, made in a "<page> · components" frame beside the frame until that page is
+  imported (then it moves into its frame and the instances stay linked); a re-import keeps each instance the same layer
+  (id, comments, prototype links); Pull reads it back as `<Use of page>` (2026-10-23).
 - Studio → Figma (Import from Studio): a Grid inside a Grid cell stretches to its row as in CSS, so a row's cards match its
   tallest (the Dashboard's metric pairs came out at their own heights); the direct paste keeps it at its own height.
 - Zen Studio: ⌥-drag, ⌘D and ⌘C ⌘V of a Section copy it with the frames and Sections it holds, in one ⌘Z, as Figma does

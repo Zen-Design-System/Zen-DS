@@ -7,6 +7,7 @@ import { ActionBar } from "../../../components/ActionBar";
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button, IconButton } from "../../../components/Button";
@@ -30,7 +31,7 @@ import { platformMedia } from "../../PlatformMedia";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import {
   TODAY, daysFromToday, formatDate, formatDay, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, invoices, leaveBalance, me,
-  people, projectById, studio, taskStatusTheme, type PersonId, type TaskStatus,
+  people, projectById, studio, taskStep, type PersonId, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
 import type { PlatformPage } from "../../PlatformExamples";
@@ -381,7 +382,7 @@ function MoodboardExample() {
         <List aria-labelledby={titleId}>
           {rows.map((task) => (
             <ListItem key={task.id} title={task.title} titleLines={2} caption={`${task.key} · ${people[task.assignee].name}`}
-              trailing={<Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} />
+              trailing={<BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus>} />
           ))}
         </List>
       </ListBox>

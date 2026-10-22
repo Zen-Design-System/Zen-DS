@@ -702,7 +702,7 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   const line = parsed?.line ?? 0;
   const file = parsed?.file ?? "";
   const firstText = texts[0]?.index;
-  // The words written as the element's children (<Button>Save</Button>): Figma's Text property of an instance, in its
+  // The words written as the element's children (a Button's "Save"): Figma's Text property of an instance, in its
   // Properties block; on a text layer the Text row first in Typography (user 2026-10-22: no Content section of its own,
   // a text layer keeps a Text field). Words the code computes ({item.name}) show as bound.
   const childText = texts.length || expressions.length ? (
