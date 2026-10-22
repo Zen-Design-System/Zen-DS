@@ -86,6 +86,11 @@ Branch zen/feat/appshell-header-figma-look-20261021. Spec card: docs/research/st
   fixtures/figma-appshell-header.json.
 - Checks: push selftest 368, pull 121, studio:selftest, tsc, usage, ai-ui, style, guidelines, figma-props --check; the
   plugin's full npm test.
+- Gate (2026-10-22, with Card subAction and Child-Heading; main a2143e36 with #210's renamed Card themes merged in):
+  the first run (18:56) failed on HO-10, which still expected the top bar as Dashboard header Type=Navigation; the test
+  now checks Header/AppShell in the master with the Search in Top-Elements' Leading-Slots. Second run (19:23–19:48)
+  **PASS**: Studio E2E 338/338. `--only=figma` 171/171 (811 s). Both figma runs (and one on 10-21) log a Vite
+  "Maximum call stack size exceeded" rejection with no failing row: BACKLOG P3.
 
 ## Session B · Instance menu, instance Appearance, Frame / Group heading (user, 2026-10-21: three of A's re-measure gaps)
 
