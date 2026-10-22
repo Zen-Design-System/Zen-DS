@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Native tokens (SwiftUI, Flutter): the system's appearance maps onto a context — Dark for a dark color scheme and
+  Global Colors' Zen-High-Contrast mode under Increase Contrast — with `.zenSystemContext()` / `with(colorScheme:contrast:)`
+  / `with(traits:)` in Swift and `ZenContext.fromMediaQuery` / `withSystem` in Dart, plus `ZenContext.highContrast`; the
+  test vectors cover the high-contrast mode (1218 vectors, from 830) (2026-10-23).
 - **Docs platform and the HR Tasks template:** every task's and project's status is a BadgeStatus (its ring and
   colour come from the step; the label stays the data's word): To do / In progress / In review / Done, and projects'
   Planning → to do, Active → in progress with the project's real progress, On hold → blocked, Completed → done
