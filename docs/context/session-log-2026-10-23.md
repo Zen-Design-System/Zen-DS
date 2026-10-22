@@ -90,3 +90,6 @@ Two BACKLOG P1s waiting on the user (brief from the supervisor: "xử hết back
     "Chart series colour :" for them before).
   - Code: Card Solid's `--zen-card-mark-ink` (the second series on a hue Solid) Neutral/Base 69% → Content/Neutral/Light
     49%, Inverse/Light in dark mode, to match the style.
+  - Gate PASS (isolated; card, widgets, metric; audit 1512/390/320, dark, behaviour, 80 browser tests; report
+    2026-10-22T19-17-48-192108d7). No platform example draws a second series on a hue Solid, so a throwaway browser test
+    measured the Bullet target on Brand / Cyan / Yellow / Orange Solid cards: rgba(0, 0, 0, 0.486) in light and dark.
