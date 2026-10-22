@@ -41,3 +41,18 @@ the four ❌ keys of the walk's §2a.
 - **E2E:** FW-175…179 pass alone, 5 / 5 (after merging `main` f7e8708f). The test right-clicks off a selected ellipse's
   middle, since the arc dot is a handle of its own.
 
+
+## Session A — Figma walks measured again (17:00, Giám sát's slot)
+
+- **Where:** 5b027db1, C's Libraries head. It is `main` 6f894b5e plus Scale, Slice, Comment and Libraries (#206–#209),
+  so it reads as `main` will once they merge.
+- **§2 hands-on walk, 76 actions:** 72 ✅ · 4 🟡 · 0 ❌. It was 65 · 7 · 4 on 2026-10-21 and 36 · 14 · 26 on 2026-10-18.
+  - The 7 rows that went up: K, S, C, ⌥⌘A and the three right-click menus.
+  - The 4 🟡 left: Detach on a Button (kept on purpose) and the right panel's Content section (B, the user's decision).
+- **§6.3 first ten minutes:** 14 / 14 tasks in 40 steps, the same as Figma's 40, with 0 refusals.
+- **Walk script change:** ⌥⌘A matches in other frames, so K-34 first copies the frame (title click, ⌘D). It also reads
+  the status line, since the selection count did not see the copy.
+- **Written into:** the plan doc's §2b, §5 status and §6.3.
+- **Before that, a read-only review of C's project-components branch** (two passes). C fixed every finding: 1 red
+  selftest, the push resolving the wrong page, the phone library, the detach self-link, a missing-component placeholder,
+  the cross-page cycle in the push, and gone-main messages.
