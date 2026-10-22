@@ -10,6 +10,7 @@ export { phoneChromeCode, phoneLinkedOf, planPhoneSync, PHONE_LINKED_PROP } from
 export { ID_PROP, docFromText, editDoc, elementText, locMap, locsOf, newDocId, printPage, withoutIds } from "./doc.mjs";
 export { migrateScreenFrame } from "./screen-frame.mjs";
 export { relayoutCode } from "./relayout.mjs";
+export { withUsePage } from "./use-page.mjs";
 export { booleanResult, flattenResult, outlineStrokeResult, planBooleans } from "./path-ops.mjs";
 export { planGroups } from "./group-fit.mjs";
 export { floatAt } from "./arrange.mjs";

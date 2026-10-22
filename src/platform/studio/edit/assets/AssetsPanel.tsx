@@ -13,7 +13,8 @@ import { iconTitle, searchIconGlyphs, searchLibraryPhotos } from "../../builder/
 import { PALETTE, PALETTE_GROUPS, type PaletteItem } from "../../slots/palette";
 import { useStudio } from "../../store";
 import { announceEditStatus, subscribeStudioWrites } from "../../api";
-import { pageFile } from "../../builder/store/pageStore";
+import { pageFile, usePages } from "../../builder/store/pageStore";
+import { pageComponents, projectOfPage } from "../../project/projectLibrary";
 import { mainsOf, setsOf } from "../localComponents";
 import { openLibraries, useLibraries } from "../../project/libraries";
 import { modKey } from "../../shell/modKey";
@@ -173,6 +174,54 @@ function LocalComponents() {
   );
 }
 
+/** A component of another page of the project (Libraries' project components, a live link): its page and title. */
+type ProjectAsset = { id: string; name: string; page: string; pageTitle: string; variants: number | null };
+
+/** The project's other pages' component sets and lone mains, by page (none for a draft, or with the library off). */
+function useProjectComponents(): ProjectAsset[] {
+  const localPage = useStudio((state) => state.localPage);
+  const pages = usePages();
+  const on = useLibraries().components;
+  const project = localPage ? projectOfPage(localPage) : null;
+  if (!localPage || !project || !on) return [];
+  return pages.flatMap((meta) => {
+    if (meta.id === localPage || projectOfPage(meta.id) !== project) return [];
+    const components = pageComponents(meta.id);
+    if (!components) return [];
+    return [...components].flatMap(([id, entry]): ProjectAsset[] => (entry.kind === "set"
+      ? [{ id, name: entry.name, page: meta.id, pageTitle: meta.title, variants: entry.variants.length }]
+      : entry.set ? [] : [{ id, name: entry.name, page: meta.id, pageTitle: meta.title, variants: null }]));
+  });
+}
+
+/** An instance of another page's component, as an asset: `<Use of page>`, drawn from its main there. */
+const projectInsertable = (asset: ProjectAsset): Insertable => ({ label: asset.name, root: "Use", code: (file) => (file && /^local:/.test(file) ? `<Use of="${asset.id}" page="${asset.page}" />` : null), refusal: "Project components go on a page of the project" });
+
+/** Figma's Assets › the file's components on its other pages: this project's, under the page's own (Libraries ⌥⌘O
+ *  turns them off). A click or a drag places an instance that follows its main. */
+function ProjectComponents() {
+  const assets = useProjectComponents();
+  if (!assets.length) return null;
+  return (
+    <>
+      <p className={`studio-assets__kicker ${typographyStyles["Caption/Medium"]}`}>Project components</p>
+      <ul className="studio-assets__list" aria-label="Project components">
+        {assets.map((asset) => (
+          <li key={`${asset.page}/${asset.id}`}>
+            <button type="button" className="studio-assets__library studio-assets__local" aria-label={`${asset.name}, ${asset.variants === null ? "component" : "component set"} on ${asset.pageTitle}`} title={`${asset.name} · on ${asset.pageTitle} · click or drag for an instance that follows it`} {...pressProps(projectInsertable(asset))}>
+              <span className="studio-assets__library-icon" data-component="main"><Icon name="icon-diamond-line" size="sm" decorative /></span>
+              <span className="studio-assets__library-text">
+                <span className={`studio-assets__name ${typographyStyles["Body/Small/Medium"]}`}>{asset.name}</span>
+                <span className={`studio-assets__source ${typographyStyles["Caption/Regular"]}`}>{asset.variants === null ? asset.pageTitle : `${asset.pageTitle} · ${asset.variants} variant${asset.variants === 1 ? "" : "s"}`}</span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
 function Libraries({ onOpen }: { onOpen: (library: Library) => void }) {
   const uploads = useUploads();
   // Zen turned off in Libraries (⌥⌘O): its components and icons leave Assets.
@@ -185,6 +234,7 @@ function Libraries({ onOpen }: { onOpen: (library: Library) => void }) {
   return (
     <div className="studio-assets__scroll">
       <LocalComponents />
+      <ProjectComponents />
       <p className={`studio-assets__kicker ${typographyStyles["Caption/Medium"]}`}>Libraries</p>
       <ul className="studio-assets__list" aria-label="Libraries">
         {LIBRARIES.filter((entry) => zen || entry.id === "photos").map((entry) => {

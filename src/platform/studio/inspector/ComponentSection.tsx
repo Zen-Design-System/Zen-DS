@@ -6,6 +6,7 @@ import { typographyStyles } from "../../../tokens/typography.generated";
 import { ToggleButton } from "../../../components/Toggle";
 import { applyEdit, parseSrc, studioApi, subscribeStudioWrites } from "../api";
 import { loadEngine, zenComponents } from "../builder/engine";
+import { pageFile } from "../builder/store/pageStore";
 import {
   addVariant, BINDING_OF, bindLayer, createInstance, detachInstance, goToMain, mainsOf, newProperty, renameComponent, renameVariantProperty,
   overrideCount, pushChangesToMain, resetInstance, selectInstances, setAbout, setComponentProperties, setInstanceValues, setsOf, setVariantValues, swapInstance, objectCode,
@@ -63,10 +64,21 @@ function useComponents(selection: NodeSelection): Found | null {
         const tree = engine.parsePage(source.content, { components: new Set(zenComponents) });
         let instance: Instance | null = null;
         let owner: Found["owner"] = null;
+        // An instance of another page's component (Libraries' project components, a live link): its main, variants,
+        // properties and swap choices are that page's.
+        let page = null as string | null;
+        engine.eachElement(tree.board, (node) => { if (node.loc === at.loc && node.name === "Use" && typeof node.props.page?.value === "string") page = node.props.page.value; });
+        let other = null as { mains: MainRef[]; sets: SetRef[]; tree: typeof tree } | null;
+        if (page) {
+          const file = pageFile(page);
+          const [otherMains, otherSets, otherSource] = await Promise.all([mainsOf(file), setsOf(file), studioApi.source(file)]);
+          if (!alive) return;
+          other = { mains: otherMains, sets: otherSets, tree: engine.parsePage(otherSource.content, { components: new Set(zenComponents) }) };
+        }
         engine.eachElement(tree.board, (node, parents) => {
           if (node.loc !== at.loc) return;
           if (node.name === "Use") {
-            const resolved = engine.resolveInstance(tree, node);
+            const resolved = engine.resolveInstance(other?.tree ?? tree, node);
             if (resolved?.main.id) instance = { of: String(node.props.of?.value ?? ""), mainId: resolved.main.id, setId: resolved.set?.id ?? null, variant: resolved.variant, values: resolved.values, own: { variant: literalsOf(node.props.variant) as Record<string, string>, props: literalsOf(node.props.props), overrides: overrideCount(node) } };
           }
           const component = [...parents].reverse().find((parent) => (parent as { name?: string }).name === "Component") as { props?: Record<string, { value?: unknown }> } | undefined;
@@ -81,7 +93,7 @@ function useComponents(selection: NodeSelection): Found | null {
             owner = { main, set: main.set ? sets.find((entry) => entry.id === main.set) ?? null : null, loc: node.loc, bound };
           }
         });
-        setFound({ mains, sets, main: mains.find((entry) => entry.rootLoc === at.loc) ?? null, set: sets.find((entry) => entry.loc === at.loc) ?? null, instance, owner });
+        setFound({ mains: other?.mains ?? mains, sets: other?.sets ?? sets, main: mains.find((entry) => entry.rootLoc === at.loc) ?? null, set: sets.find((entry) => entry.loc === at.loc) ?? null, instance, owner });
       } catch {
         if (alive) setFound(null);
       }

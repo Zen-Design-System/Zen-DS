@@ -1,5 +1,7 @@
 import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../api";
 import { loadEngine, zenComponents } from "../builder/engine";
+import { cachedPage, getPage, listPages, pageFile, pageIdOf } from "../builder/store/pageStore";
+import { openLocalPage } from "../shell/navigation";
 import { canvasApi } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
 import { displayName } from "../select/layerMeta";
@@ -48,7 +50,8 @@ export async function mainsOf(file: string): Promise<MainRef[]> {
   const tree = engine.parsePage(source.content, { components: new Set(zenComponents) });
   const uses = new Map<string, string[]>();
   engine.eachElement(tree.board, (node) => {
-    if (node.name !== "Use") return;
+    // An instance of another page's component (`page`) is not one of this page's.
+    if (node.name !== "Use" || node.props.page) return;
     const of = String(node.props.of?.value ?? "");
     uses.set(of, [...(uses.get(of) ?? []), node.loc]);
   });
@@ -73,7 +76,29 @@ export async function mainOfInstance(selection: StudioSelection | null): Promise
   if (!at) return null;
   const element = await studioApi.element(at.file, at.loc);
   const of = element?.attributes.find((attr) => attr.kind === "string" && attr.name === "of")?.value;
-  return (await mainsOf(at.file)).find((main) => main.id === of) ?? null;
+  // An instance of another page's component (Libraries' project components, a live link) has its main there.
+  const page = element?.attributes.find((attr) => attr.kind === "string" && attr.name === "page")?.value;
+  return (await mainsOf(page ? pageFile(page) : at.file)).find((main) => main.id === of) ?? null;
+}
+
+/** The pages (their titles) other than the main's own whose instances show `main` (`<Use page of>`). */
+export async function usesElsewhere(main: Pick<MainRef, "id" | "file">): Promise<string[]> {
+  const home = pageIdOf(main.file);
+  if (!home) return [];
+  const engine = await loadEngine();
+  const titles: string[] = [];
+  for (const meta of await listPages()) {
+    if (meta.id === home) continue;
+    const text = cachedPage(meta.id)?.text ?? (await getPage(meta.id))?.text;
+    if (!text?.includes("page=")) continue;
+    let used = false;
+    try {
+      const tree = engine.parsePage(text, { components: new Set(zenComponents) });
+      engine.eachElement(tree.board, (node) => { if (node.name === "Use" && node.props.page?.value === home && node.props.of?.value === main.id) used = true; });
+    } catch { /* a page that does not parse shows nothing */ }
+    if (used) titles.push(meta.title);
+  }
+  return titles;
 }
 
 /** Selects the layer written at `file:loc` (its first render), as a click would. */
@@ -237,7 +262,10 @@ export async function detachInstance(selection: NodeSelection): Promise<boolean>
   const [use, root, source] = await Promise.all([studioApi.element(at.file, at.loc), studioApi.element(main.file, main.rootLoc), studioApi.source(main.file)]);
   if (!use || !root?.range) return false;
   const engine = await loadEngine();
-  const code = engine.relayoutCode(source.content, root.range, {});
+  const written = engine.relayoutCode(source.content, root.range, {});
+  // A main on another page: its own instances keep naming that page's components.
+  const home = main.file !== at.file ? pageIdOf(main.file) : null;
+  const code = home ? engine.withUsePage(written, home) : written;
   const before = renderedNow(canvasApi.getWorldElement());
   const response = await applyEdit({ file: at.file, loc: at.loc, name: "Use", ops: [{ op: "replaceElement", code } as EditOp], hash: use.hash }, `Detach ${main.name}`);
   if (!response.ok) return false;
@@ -253,7 +281,27 @@ export async function detachInstance(selection: NodeSelection): Promise<boolean>
 export async function goToMain(selection: NodeSelection): Promise<boolean> {
   const main = await mainOfInstance(selection);
   if (!main) return fail("This instance's main component is not on the page");
-  selectAt(main.file, main.rootLoc, selection, main.name);
+  const at = parseSrc(selection.src);
+  const home = at && main.file !== at.file ? pageIdOf(main.file) : null;
+  if (!home) { selectAt(main.file, main.rootLoc, selection, main.name); return true; }
+  // On another page of the project (Libraries' project components): that page opens with the main selected.
+  openLocalPage(home);
+  const src = `${main.file}:${main.rootLoc}`;
+  const started = Date.now();
+  const select = () => {
+    const world = canvasApi.getWorldElement();
+    const hit = world ? findBySrc(world, src)[0] : undefined;
+    if (hit && world) {
+      multiSelection.clear();
+      selectHit(hit, world);
+      flushStudioStore();
+      const box = hit.hosts[0]?.getBoundingClientRect();
+      if (box) canvasApi.ensureVisible(box);
+      return;
+    }
+    if (Date.now() - started < 8000) requestAnimationFrame(select);
+  };
+  requestAnimationFrame(select);
   return true;
 }
 
@@ -307,6 +355,12 @@ export async function deleteMain(selection: NodeSelection): Promise<boolean> {
   if (!main) return false;
   if (main.uses.length) {
     inspectorStatus.set("neutral", `${main.name} has ${main.uses.length} instance${main.uses.length > 1 ? "s" : ""}: detach or delete ${main.uses.length > 1 ? "them" : "it"} first`);
+    return true;
+  }
+  // Instances on the project's other pages follow it too (a live link): they would draw nothing without it.
+  const elsewhere = await usesElsewhere(main);
+  if (elsewhere.length) {
+    inspectorStatus.set("neutral", `${main.name} has instances on ${elsewhere.join(", ")}: detach or delete them first`);
     return true;
   }
   const component = await studioApi.element(main.file, main.componentLoc);
@@ -493,11 +547,16 @@ const literalValue = (value: Literal) => (typeof value === "string" ? { kind: "s
 /** The page's tree, its components model and the `<Use>` at `loc` (null when there is none). */
 async function instanceAt(file: string, loc: string) {
   const [engine, source] = await Promise.all([loadEngine(), studioApi.source(file)]);
-  const tree = engine.parsePage(source.content, { components: new Set(zenComponents) });
-  const model = { mains: engine.localComponents(tree.board), sets: engine.componentSets(tree.board) };
+  const own = engine.parsePage(source.content, { components: new Set(zenComponents) });
   let use: TreeNode | null = null;
-  engine.eachElement(tree.board, (node) => { if ((node as TreeNode).loc === loc && (node as TreeNode).name === "Use") use = node as TreeNode; });
-  return { engine, tree, model, use: use as TreeNode | null };
+  engine.eachElement(own.board, (node) => { if ((node as TreeNode).loc === loc && (node as TreeNode).name === "Use") use = node as TreeNode; });
+  // An instance of another page's component reads its main there (Libraries' project components): `tree` and `model`
+  // are the main's page's, `mainFile` names it.
+  const page = (use as TreeNode | null)?.props.page;
+  const mainFile = page?.kind === "literal" && typeof page.value === "string" ? pageFile(page.value) : file;
+  const tree = mainFile === file ? own : engine.parsePage((await studioApi.source(mainFile)).content, { components: new Set(zenComponents) });
+  const model = { mains: engine.localComponents(tree.board), sets: engine.componentSets(tree.board) };
+  return { engine, tree, model, use: use as TreeNode | null, mainFile };
 }
 
 /** How many layers an instance overrides (Figma's changed layers), for its panel. */
@@ -521,7 +580,7 @@ export function resetInstance(selection: NodeSelection): Promise<boolean> {
 export async function pushChangesToMain(selection: NodeSelection): Promise<boolean> {
   const at = parseSrc(selection.src);
   if (!at) return false;
-  const { engine, tree, model, use } = await instanceAt(at.file, at.loc);
+  const { engine, tree, model, use, mainFile } = await instanceAt(at.file, at.loc);
   if (!use) return fail("Select an instance of a component on this page");
   const table = literalTable(use.props.overrides);
   if (!Object.keys(table).length) return fail("This instance has no changes of its layers to push");
@@ -563,11 +622,21 @@ export async function pushChangesToMain(selection: NodeSelection): Promise<boole
     inner.set(holder.loc, entry);
   }
   for (const { node, table: own } of inner.values()) add(node.loc, { op: "setProp", name: "overrides", value: expression(own) });
-  add(use.loc, Object.keys(left).length ? { op: "setProp", name: "overrides", value: expression(left) } : { op: "removeProp", name: "overrides" });
+  const name = resolved?.set?.name ?? resolved?.main.name ?? "its main component";
+  const rest: EditOp = Object.keys(left).length ? { op: "setProp", name: "overrides", value: expression(left) } : { op: "removeProp", name: "overrides" };
+  if (mainFile !== at.file) {
+    // The main is on another page (a live link): its page takes the changes, then the instance lets them go.
+    const locs = Object.keys(opsByLoc);
+    const target = locs.length ? await studioApi.element(mainFile, locs[0]) : null;
+    if (!target) return fail("Nothing of the main component takes these changes");
+    const pushed = await applyEdit({ file: mainFile, loc: locs[0], name: target.name, ops: [{ op: "many", action: "setProps", locs, opsByLoc } as EditOp], hash: target.hash }, `Push changes to ${name}`);
+    if (!pushed.ok) return false;
+  } else add(use.loc, rest);
   const element = await studioApi.element(at.file, at.loc);
   if (!element) return fail("The instance is no longer there — select it again");
-  const name = resolved?.set?.name ?? resolved?.main.name ?? "its main component";
-  const response = await applyEdit({ file: at.file, loc: at.loc, name: "Use", ops: [{ op: "many", action: "setProps", locs: Object.keys(opsByLoc), opsByLoc } as EditOp], hash: element.hash }, `Push changes to ${name}`);
+  const response = mainFile !== at.file
+    ? await applyEdit({ file: at.file, loc: at.loc, name: "Use", ops: [rest], hash: element.hash }, `Push changes to ${name}`)
+    : await applyEdit({ file: at.file, loc: at.loc, name: "Use", ops: [{ op: "many", action: "setProps", locs: Object.keys(opsByLoc), opsByLoc } as EditOp], hash: element.hash }, `Push changes to ${name}`);
   const kept = Object.keys(left);
   if (response.ok) inspectorStatus.set(kept.length ? "neutral" : "positive", kept.length ? `Pushed to ${name}; kept on this instance: ${kept.join(", ")}` : `Pushed to ${name}: every instance shows the change`);
   return response.ok;
@@ -591,11 +660,13 @@ export type LocalLayer = {
   nested: { setId: string | null; mainId: string; variant: Record<string, string>; values: Record<string, unknown> } | null;
   /** Below a component of the library (its own nested layer, as Figma's): the path inside it, else null. */
   inner: string | null;
+  /** The file of the page the instance's main is on (another page's for Libraries' project components). */
+  mainFile: string;
 };
 
 /** The layer at `path` inside the instance at `file:loc` (through nested instances), or null. */
 export async function localLayerAt(file: string, loc: string, path: string): Promise<LocalLayer | null> {
-  const { engine, tree, model, use } = await instanceAt(file, loc);
+  const { engine, tree, model, use, mainFile } = await instanceAt(file, loc);
   if (!use) return null;
   const table = literalTable(use.props.overrides);
   // A nested instance is drawn in the variant its own values and this instance's overrides of it pick (renderPage draws
@@ -655,6 +726,7 @@ export async function localLayerAt(file: string, loc: string, path: string): Pro
     hiddenInMain: found.props.hidden?.kind === "literal" && found.props.hidden.value === true,
     nested,
     inner,
+    mainFile,
   };
 }
 

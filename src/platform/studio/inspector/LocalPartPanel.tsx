@@ -50,7 +50,10 @@ function useLocalLayer(selection: PartSelection, path: string | null) {
     if (!at || !path) { setState(null); return undefined; }
     let alive = true;
     const load = async () => {
-      const [layer, mains, sets] = await Promise.all([localLayerAt(at.file, at.loc, path), mainsOf(at.file), setsOf(at.file)]);
+      const layer = await localLayerAt(at.file, at.loc, path);
+      // An instance of another page's component: its nested instances' choices are that page's.
+      const file = layer?.mainFile ?? at.file;
+      const [mains, sets] = await Promise.all([mainsOf(file), setsOf(file)]);
       if (alive) setState({ layer, mains, sets });
     };
     void load();
