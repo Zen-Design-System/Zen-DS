@@ -87,9 +87,9 @@ export function useActiveProjectId(): string | null {
 
 export const useActiveProject = (): Project | null => useProject(useActiveProjectId());
 
-/** The canvas's preview modes and brand with a project's modes over them. */
+/** The canvas's preview modes and brand with a project's modes over them (none while its theme library is off). */
 export function withProject(preview: StudioPreviewSettings, project: Project | null): { preview: StudioPreviewSettings; brand: string } {
-  return project ? { preview: { ...preview, ...projectModes(project.theme) }, brand: projectBrand(project.id) } : { preview, brand: "zen" };
+  return project && project.libraries.theme ? { preview: { ...preview, ...projectModes(project.theme) }, brand: projectBrand(project.id) } : { preview, brand: "zen" };
 }
 
 /** The canvas's modes for the open project (the world, its overlay layer, Present, Play, the insert previews). */

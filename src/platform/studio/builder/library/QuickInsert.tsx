@@ -17,6 +17,7 @@ import { closeQuickInsert, quickInsertMode, subscribeQuickInsert, type QuickInse
 import { describeTarget, insertTarget } from "./target";
 import "./library.css";
 import { useCanvasPreview } from "../../project/activeProject";
+import { useLibraries } from "../../project/libraries";
 
 /*
  * Quick insert (Studio builder GĐ3 M2, spec docs/research/studio-builder-library-spec-2026-10-06.md §3c), Figma's ⇧I:
@@ -46,11 +47,14 @@ type Entry =
   | { kind: "photo"; id: string; label: string; caption: string; photo: LibraryPhoto };
 const GROUP_LABEL: Record<Entry["kind"], string> = { component: "Components", icon: "Icons", photo: "Photos" };
 
-/** The results for `query`: components only for an empty one (the whole palette) or a swap, else every kind that matches. */
-function entriesFor(query: string, mode: QuickInsertMode): Entry[] {
-  const components: Entry[] = searchCatalog(query).slice(0, query.trim() ? MAX.component : 40).map((entry) => ({ kind: "component", id: `c-${entry.id}`, label: entry.label, caption: entry.caption ?? entry.group, item: entry.item }));
+/**
+ * The results for `query`: components only for an empty one (the whole palette) or a swap, else every kind that matches.
+ * `zen` false (Libraries, ⌥⌘O): no Zen components or icons, photos only.
+ */
+function entriesFor(query: string, mode: QuickInsertMode, zen: boolean): Entry[] {
+  const components: Entry[] = !zen ? [] : searchCatalog(query).slice(0, query.trim() ? MAX.component : 40).map((entry) => ({ kind: "component", id: `c-${entry.id}`, label: entry.label, caption: entry.caption ?? entry.group, item: entry.item }));
   if (!query.trim() || mode === "swap") return components;
-  const icons: Entry[] = searchIconGlyphs(query).slice(0, MAX.icon).map((glyph) => ({ kind: "icon", id: `i-${glyph.id}`, label: iconTitle(glyph), caption: "Icon", name: (glyph.line ?? glyph.solid) as IconName }));
+  const icons: Entry[] = !zen ? [] : searchIconGlyphs(query).slice(0, MAX.icon).map((glyph) => ({ kind: "icon", id: `i-${glyph.id}`, label: iconTitle(glyph), caption: "Icon", name: (glyph.line ?? glyph.solid) as IconName }));
   const photos: Entry[] = searchLibraryPhotos(query).slice(0, MAX.photo).map((entry) => ({ kind: "photo", id: `p-${entry.key}`, label: entry.photo.alt, caption: "Photo", photo: entry }));
   return [...components, ...icons, ...photos];
 }
@@ -65,7 +69,8 @@ function QuickInsertPanel({ mode }: { mode: QuickInsertMode }) {
   const pointer = useRef<{ x: number; y: number } | null>(null);
   const selection = useStudio((state) => state.selection);
   const { preview, brand } = useCanvasPreview();
-  const results = useMemo(() => entriesFor(query, mode), [query, mode]);
+  const zen = useLibraries().zen;
+  const results = useMemo(() => entriesFor(query, mode, zen), [query, mode, zen]);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the target follows the selection (and is read again on open)
   const target = useMemo(() => insertTarget(), [selection]);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- the same: the layer a swap replaces
