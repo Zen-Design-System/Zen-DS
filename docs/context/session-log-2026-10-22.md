@@ -10,7 +10,9 @@ the 58 components without Figma properties lose the 2026-10-06 groups for one Pr
   own rows; else at `children`'s place in the API order) or first in a text layer's Typography (TextSection
   `textRows`). An instance with words but no property block gets a Properties section of its own.
 - inspector/autoGroups.ts deleted. The double-click fallback (focus-content) focuses the moved Text row.
-- E2E FW-205…207 (Button, InputLabel, Text); written, to run in my gate turn.
+- Gate (20:48–21:11, main 032d8fbd): **PASS**, Studio E2E 338/338 in 3 shards. `--only=figma` 173/174: FW-206 could
+  not find its InputLabel on the canvas (InputLabel spreads no props onto its DOM, so no data-zen-src): the row now uses a
+  Link (no Figma properties, 6 rows, `children` after Visited). FW-205…207 then 3/3.
 
 ## Select matching layers ⌥⌘A + Select all with same › (Session A, branch `zen/feat/studio-select-matching-20261022`)
 

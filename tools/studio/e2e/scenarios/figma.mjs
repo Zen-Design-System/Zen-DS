@@ -4518,19 +4518,19 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   {
-    id: "FW-206", feature: "A component without Figma properties (InputLabel) shows one Properties block in its prop order, as Figma's instance panel: no Appearance / Content / State / Actions sections, its words a Text row where `children` sits", wp: "Content into properties 2026-10-22", timeout: 40_000,
+    id: "FW-206", feature: "A component without Figma properties (Link) shows one Properties block in its prop order, as Figma's instance panel: no Content / State / Actions sections, its words a Text row where `children` sits (after Visited)", wp: "Content into properties 2026-10-22", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await contentPage(ctx);
-      await clickNamed(page, id, "InputLabel");
-      await until(async () => /Input ?Label/i.test(await selectedName(page)), { message: "the InputLabel selected" });
+      await clickNamed(page, id, "Link");
+      await until(async () => /Link/i.test(await selectedName(page)), { message: "the Link selected" });
       const titles = await sections(page);
       const grouped = titles.filter((title) => ["Content", "State", "Actions", "More"].includes(title));
       if (grouped.length || !titles.includes("Properties")) throw new Error(`sections ${titles.join(", ")}`);
       const rows = await right(page).locator(".studio-inspector__section").filter({ has: page.locator("h3", { hasText: /^Properties$/ }) }).first()
         .locator(".studio-inspector__row[data-prop]").evaluateAll((all) => all.map((row) => row.getAttribute("data-prop")));
       const at = (name) => rows.findIndex((prop) => prop.split(" ").includes(name));
-      if (at("children") < 0 || (at("optional") >= 0 && at("children") > at("optional"))) throw new Error(`rows ${rows.join(", ")}`);
-      await expectPanelFits(page, "the InputLabel's Properties");
+      if (at("children") < 0 || at("visited") < 0 || at("children") < at("visited")) throw new Error(`rows ${rows.join(", ")}`);
+      await expectPanelFits(page, "the Link's Properties");
       return `sections ${titles.join(" · ")} · rows ${rows.join(", ")}`;
     },
   },
@@ -5041,11 +5041,11 @@ async function sameFromMenu(page, id, frameId, index, item, name = "Shape", { on
   await step(list.getByRole("menuitem", { name: new RegExp(`^${item}`) }).click({ timeout: 5000 }), item);
 }
 
-/** A phone page with a Button, an InputLabel (no Figma properties) and a Text (the Content-into-properties rows). */
+/** A phone page with a Button, a Link (no Figma properties) and a Text (the Content-into-properties rows). */
 const contentText = (title) => {
   let text = newPageText({ title, device: "phone", chrome: true });
   text = grow(text, "Stack", '<Button level="primary">Save</Button>');
-  text = grow(text, "Stack", "<InputLabel>Email</InputLabel>");
+  text = grow(text, "Stack", '<Link href="#docs">Docs</Link>');
   return grow(text, "Stack", "<Text>Hello there</Text>");
 };
 let contentMade = null;
