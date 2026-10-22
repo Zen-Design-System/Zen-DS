@@ -196,9 +196,19 @@ function pageChecks({ scopeSel, mobile }) {
       }
       return { w, h };
     };
+    // A target scrolled out of a clipping frame (a template's scroll area) cannot be pressed there: it is no neighbour of
+    // what shows at the same page position (templates "Show all" under the next card's button, 2026-10-23).
+    const clippedOut = (el) => {
+      const r = el.getBoundingClientRect();
+      for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+        const s = getComputedStyle(a); if (s.overflowX === "visible" && s.overflowY === "visible") continue;
+        const q = a.getBoundingClientRect(); if (r.right <= q.left || r.left >= q.right || r.bottom <= q.top || r.top >= q.bottom) return true;
+      }
+      return false;
+    };
     const targets = [];
     for (const el of scope.querySelectorAll("button, a[href], [role='button'], input[type='checkbox'], input[type='radio']")) {
-      if (!visible(el)) continue;
+      if (!visible(el) || clippedOut(el)) continue;
       // The whole field wrapper is the click target for Select/Date triggers; native inputs under custom marks are hidden.
       if (el.matches(".zen-select__trigger, .zen-input__native") || parseFloat(getComputedStyle(el).opacity) === 0 || getComputedStyle(el).pointerEvents === "none" || el.matches(":disabled")) continue;
       const r = el.getBoundingClientRect(); if (r.width <= 2 || r.height <= 2) continue;

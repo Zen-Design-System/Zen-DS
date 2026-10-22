@@ -15,3 +15,20 @@ added since brought 177 className back. PR 1: classes with a Figma-equivalent pr
   looked at).
 - My slip: I stopped my isolated server with pattern kills (`pkill -f "tail -f /dev/null"`), which can hit another
   session's processes; memory updated (TaskStop or exact PIDs only).
+
+## 320px debt left: the designer calls (tier L: docs chrome at 320; user: "xử hết", B1, "Gỡ khỏi mục này")
+
+Branch claude/eloquent-mclean-8f4974 from main 4b96bbb8. BACKLOG P1 "320px debt left" → archived.
+- Re-measured at 320 (audit on a private server, 6 pages): the 13 Chat findings were gone already (the 10-20 AppShell
+  gate fixed ChatComposer and the narrow desktop ChatThread); 10 layout findings left: Voice 5, DatePicker 2, Pagination 1,
+  Rating 1, Settings form 1, plus the templates "Show all" target false positive.
+- The 9 in a card (Voice, DatePicker, Pagination, Rating) overflowed only because the docs chrome left an example 248px and
+  its Card 208, against 248 inside a Card on a real 320 phone. `platform.css` under 375px: stage and playground preview
+  span the card with an 8px inset (example 272). Measured with `--css` first: all 9 fit; 390/1512 untouched.
+- Settings form template: the photo row wraps, FileUpload in `<Box width="fill" minWidth={136}>` (button 119 at
+  Comfortable; 150 is left at 390), so only a 320 phone stacks it. 390/1512 widths measured unchanged.
+- `audit.mjs` targets: a target scrolled out of a clipping frame is skipped (the "Show all" link at y 10683 sat under a
+  frame ending at 8937 and was "crowded" by the next card's button).
+- Text / widgets / sidebar style findings stay in the all-viewport baseline (user: accepted, not 320 debt).
+- Seen, not changed: Settings form's save bar truncates "Discard" at 320 Comfortable — the user's 10-19 ActionBar rule
+  (Primary keeps its label, the other gives way).

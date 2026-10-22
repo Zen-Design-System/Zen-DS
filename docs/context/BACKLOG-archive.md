@@ -2,6 +2,24 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-23 (320px debt)
+
+- Done 2026-10-23 (user: "xử hết"; re-measured on main 4b96bbb8: the 13 Chat findings were already gone after the
+  AppShell phone chrome; under 375px the docs stage now spans the card with an 8px inset, so an example has 272px and the
+  Voice, DatePicker, Pagination and Rating findings fit; Settings form's photo row wraps below 136px; the audit skips
+  targets scrolled out of a frame; the text / widgets / sidebar style findings stay in the all-viewport baseline as
+  accepted, user):
+  **P1 · 320px debt left: designer calls (2026-10-16):** 197 → 33 baselined 320 findings (docs grids, small-phone docs
+  chrome, ListItem / Toast / Stepper text fixed; session log). Left, each a call for the user or the designer: Chat desktop
+  examples at Comfortable on a 288px screen (13: composer send button, call button, the fixed 32px file-text box, read
+  receipts, file size/time); Voice actions at Comfortable need 192px, a Voice in a Card on a 320 phone has 168 (5; it
+  overflowed at both densities before the wider stage, now only at Comfortable); 4–13px at Comfortable in a 208px card:
+  DatePicker "October 2026" (2), Small Pagination 216px (1), Rating "Freelance illustrators" + Sort chip (1), Settings form
+  Avatar 2XL + FileUpload (1) — a `wrap` there changes 390/1512, so stack them on phones or accept. Not 320 layout:
+  templates "Show all" target (1, the audit counts a link clipped inside a template's scroll frame), text-style
+  rhythm/scale debt also recorded at 390/1512 (8) and widgets "8 text styles" (1; the same gallery is now recorded at 1512 / 390 / dark too, 9 → 8 after the user's Heading/1 call: 7 widget types in one
+  example, a designer call whether a gallery may exceed 7 styles).
+
 ## Archived 2026-10-23 (Session C)
 
 - Done 2026-10-21 (#177, native frame look: stroke, sides, dash, radii, effect style with its effects, opacity, rotation and
