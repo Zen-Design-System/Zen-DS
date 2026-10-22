@@ -224,6 +224,10 @@ async function restoreDocuments(api, before, { dropAdded = false } = {}) {
 
 /* ── run ─────────────────────────────────────────────────────────────────────────────────────────────────────────── */
 const started = Date.now();
+/** The budget counts awake time, as the row timers do. Date.now() goes on while the Mac sleeps: measured with it, a
+ * 46-min sleep (lid closed, 2026-10-22) used up a shard's budget and its last 95 rows were reported as not run. */
+const awake = () => performance.now();
+const startedAwake = awake();
 const matrix = createMatrix();
 let server = null;
 let browser = null;
@@ -260,14 +264,14 @@ try {
   const wanted = (row) => (!onlyRows || onlyRows.includes(row.id)) && (!inShard || inShard.has(row.id));
   /** Past --budget: the row is kept as not run (a skip the report counts apart), never started. */
   const pastBudget = (group, row) => {
-    if (Date.now() - started <= budget) return false;
+    if (awake() - startedAwake <= budget) return false;
     matrix.rows.push({ id: row.id, group, feature: row.feature, wp: row.wp, status: "skip", notRun: true, ms: 0, evidence: `not run: past the --budget of ${budget / 1000} s` });
     return true;
   };
   for (const group of only) {
     const mod = modules.get(group);
     if (inShard && !mod.rows.some((row) => inShard.has(row.id))) continue;
-    if (Date.now() - started > budget) { for (const row of mod.rows.filter(wanted)) pastBudget(group, row); continue; }
+    if (awake() - startedAwake > budget) { for (const row of mod.rows.filter(wanted)) pastBudget(group, row); continue; }
     console.log(`\n${group}`);
     await reseed();
     let session = null;

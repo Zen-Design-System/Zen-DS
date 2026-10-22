@@ -172,12 +172,13 @@ const run = (cmd, args, timeoutMs = 600000) => { const r = spawnSync(cmd, args, 
 // Runtime jobs (audit, dark audit, behaviour) are independent processes that only read the shared baselines and write their own
 // --out file, so they run side by side; --serial (or ZEN_QA_SERIAL=1) restores one-after-another if timing-sensitive checks ever flake.
 const SERIAL = flag("serial") || process.env.ZEN_QA_SERIAL === "1";
-// `marks` collects the "✓|⚠|✗ <page>@<width>" lines with the time each arrived (page timings for the next shard plan).
+// `marks` collects the "✓|⚠|✗ <page>@<width>" lines with the time each arrived (page timings for the next shard plan), in
+// awake time like the time limit's timer: a Mac asleep mid-run would otherwise charge the sleep to one page.
 // `term`: at the time limit the process gets SIGTERM first (the Studio E2E puts the disk back), SIGKILL 15 s later.
 const runAsync = (cmd, args, timeoutMs = 600000, { marks = null, term = false } = {}) => new Promise((resolve) => {
-  const t0 = Date.now(); const c = spawn(cmd, args, { cwd: root, env: { ...process.env, FORCE_COLOR: "0" } }); let out = "", carry = "", killed = false, hard = 0;
+  const t0 = Date.now(), a0 = performance.now(); const c = spawn(cmd, args, { cwd: root, env: { ...process.env, FORCE_COLOR: "0" } }); let out = "", carry = "", killed = false, hard = 0;
   const timer = setTimeout(() => { killed = true; c.kill(term ? "SIGTERM" : "SIGKILL"); if (term) hard = setTimeout(() => c.kill("SIGKILL"), 15000); }, timeoutMs);
-  const take = (d) => { out += d; if (!marks) return; const lines = `${carry}${d}`.split("\n"); carry = lines.pop(); for (const l of lines) if (/^[✓⚠✗] /.test(l)) marks.push([Date.now() - t0, l]); };
+  const take = (d) => { out += d; if (!marks) return; const lines = `${carry}${d}`.split("\n"); carry = lines.pop(); for (const l of lines) if (/^[✓⚠✗] /.test(l)) marks.push([performance.now() - a0, l]); };
   const end = (code) => { clearTimeout(timer); clearTimeout(hard); resolve({ code, out, ms: Date.now() - t0, start: t0, end: Date.now(), killed }); };
   c.stdout.on("data", take); c.stderr.on("data", (d) => { out += d; });
   c.on("error", (e) => { out += String(e); end(2); }); c.on("close", (code) => end(code ?? 1));
