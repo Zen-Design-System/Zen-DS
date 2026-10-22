@@ -68,7 +68,7 @@ function PeopleDirectory() {
         <ListBox as="section" aria-label="People"
           header={<>
             <Stack direction="row" gap="xs" align="center" wrap>
-              <Box className="px-list-item-search"><Search placeholder="Search people" aria-label="Search people" value={query} onValueChange={setQuery} /></Box>
+              <Box width="fill" minWidth={200}><Search placeholder="Search people" aria-label="Search people" value={query} onValueChange={setQuery} /></Box>
               <Chip variant="advanced" selected={team !== null} popoverLabel="Team"
                 popoverItems={teams.map((option) => ({ id: option, label: option, selected: option === team }))}
                 onPopoverSelect={(item) => setTeam(item.id === team ? null : (item.id as Team))} onClearSelection={() => setTeam(null)}>
