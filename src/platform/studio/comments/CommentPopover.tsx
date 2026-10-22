@@ -125,7 +125,7 @@ export function CommentPopover({ page, thread, draft, style }: { page: string; t
       {me ? null : <InputField size="sm" label="Your name" value={name} maxLength={60} onValueChange={setName} placeholder="Shown with your comments" />}
       <div className="studio-comment-popover__compose">
         <TextAreaField ref={field} aria-label={thread ? "Reply" : "Add a comment"} placeholder={thread ? "Reply" : "Add a comment"} rows={2} value={text} maxLength={4000} onValueChange={setText} onKeyDown={onKey} />
-        <Button level="primary" size="sm" disabled={!text.trim()} onClick={() => void post()}>{thread ? "Reply" : "Post"}</Button>
+        <Button level="primary" size="sm" style={{ justifySelf: "end" }} disabled={!text.trim()} onClick={() => void post()}>{thread ? "Reply" : "Post"}</Button>
       </div>
     </div>
   );
