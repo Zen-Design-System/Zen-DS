@@ -181,3 +181,5 @@ Branch claude/modest-gauss-20ef1e. BACKLOG "a row's picture through a helper" an
 - Tests: data-source selftest +10 cases (47); E2E FW-235…238 (figma group, `scenarios/figma/pictures.mjs`, fixture
   frame "E2E pictures").
 - Not covered (refused in words): a layer either side of a condition, a helper in another file, a default parameter.
+- Gate (slot from chart-color-phase2, Giám sát's queue; `--isolated`, 12 files): **PASS**, Studio E2E 338/0 (4 shards,
+  1415 s). Then `studio:e2e --only=figma,select --rows=FW-235…238,SE-36`: 5/0 on the first run.
