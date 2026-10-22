@@ -46,6 +46,20 @@
 .studio-drag__line { position: absolute; top: 0; left: 0; box-sizing: border-box; pointer-events: none; }
 .studio-drag__into { box-shadow: inset 0 0 0 1px var(--zen-color-border-info-solid-default); }
 .studio-drag__line { border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-border-info-solid-default); }
+/* An instance's slot as the drop target (F7c): Figma's component colour (violet), its name in a tag above its top-left
+   corner, as the selection's name tag sits. */
+.studio-drag__into[data-slot] { box-shadow: inset 0 0 0 2px var(--zen-color-border-support-violet-solid); }
+.studio-drag__slot-tag {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: var(--zen-spacing-gap-3-xsmall, 2px);
+  padding: 0 var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-xsmall, 4px);
+  background: var(--zen-color-background-support-violet-solid);
+  color: var(--zen-color-content-on-colors);
+  white-space: nowrap;
+}
 /* A free move's smart guides: Figma's red lines where an edge or centre meets another's. */
 .studio-drag__guide { position: absolute; top: 0; left: 0; box-sizing: border-box; pointer-events: none; background: var(--zen-color-border-negative-solid-default); }
 /* Figma's equal-spacing marks (edit/spacingModel.ts): a pink gap line with its px in a pink pill at its middle. */

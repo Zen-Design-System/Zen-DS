@@ -691,3 +691,30 @@ plan's remaining pieces (user, 2026-10-21: "mở phiên nhận các phần đó"
   usage:check, style:check ✓. Gate (`qa --isolated --files=…`, 2026-10-22 05:10): PASS, Studio E2E 338/0 (1505 s, I-02
   in it); `studio:e2e --only=figma --rows=FW-10,FW-142,FW-165…169` 7/0 (34 s); the FW-165/169 panel shots read right.
 - Left as is: PartPanel (a Table part) still titles its rows "Props" / "Attributes" (§3a glossary row, not this item).
+
+## F7c: layers into a local instance's slot from the canvas — tier M, branch `zen/feat/studio-slot-drop-20261021`
+Approved scope (user 2026-10-21: "mở phiên nhận các phần đó"; BACKLOG P2 "Studio components, after F7a/F7b"). A layer
+drag or an Assets drag over a slot of an instance of the page's own component now targets that slot, as Figma's: the
+slot is outlined in the component colour with its name (DragView `slot`, DragLayer, edit.css), the insertion line shows
+the place, and the drop writes the instance's `slots`. One write, one ⌘Z; the main is never touched.
+- Canvas: renderPage marks a main's slot layer drawn in a page instance (`data-zen-slot`, `data-zen-slot-of`, only for
+  a `<Use>` of the page, not one nested in a main). `dropTargetAt` takes that slot as a container when the caller opts
+  in (`DropContext.slots`: the layer drag and the Assets drag; paste-here, draw and place keep their targets). Units are
+  the layers the instance puts there (placed by their marks), else its main's own layers (placed by `index`).
+  `insertion` was split into `placeAmong` so both share the line and the before/after logic.
+- Engine: `tools/studio/slot-fill.mjs`; arrange.mjs moveTo / pasteCode take `slot` (+ `index`) and write the
+  `<Use>`'s `slots` again (one layer `<X />`, several `<>…</>`, the Use's line giving the indentation). A slot the
+  instance puts nothing in yet keeps its main's layers on the first drop (Figma keeps a slot's default content, and
+  figma-pull reads them back that way). A layer moves out of a slot, or within it, as from any frame; the slot's last
+  layer takes its entry (and `slots`) away. A removal inside the rewritten `slots` is applied to the layer it falls in
+  (a layer inside the slot's one layer dragged beside it). `many` refuses a slot ("Drop one layer at a time").
+- editDoc's second run on the engine text keeps the layer ids in every slot case (checked in Node).
+- Checks: arrange selftest +7 slot cases (58); `studio:dnd` slot section (667 cases: every Assets item into every slot
+  place, loose layers in and ⌥ copies, slot layers out to every place and to the other slot; 0 findings; 21 143 in
+  all); engine-iso lists slot-fill; E2E FW-160…164.
+- Gate (2026-10-22 ~06:45, main be387faf merged in; conflicts in CHANGELOG, this log and figma.mjs were both sides
+  adding, kept both; main's own `oneUndo` helper kept): `qa --isolated --files=…` PASS, Studio E2E 338 / 0 (1538 s).
+  `--only=figma` FW-25, FW-160…164 6 / 0; FW-161 first failed in its setup (⌘-click on a Badge picks its words, a part),
+  so it drags the Text Spare now. `--only=dnd` DND-05 ✓; DND-04 failed on main too since FW-142 (the panel heads a Box
+  Frame, so its selectLayer pressed Escape up to the page): fixed at the test, it reads the heading's code name (title);
+  8 / 8 moves.
