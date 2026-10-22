@@ -393,7 +393,7 @@ const focusContent = () => window.dispatchEvent(new CustomEvent("zen-studio:focu
 /**
  * A double-click at (x, y) on the element `ownerSrc` (the selection, or what the double-click just selected): edits
  * the text under the pointer when that element's own source holds it. Returns true when it takes the double-click
- * (the source lookup is async; text that turns out not to be editable falls back to the inspector's Content field).
+ * (the source lookup is async; text that turns out not to be editable falls back to the inspector's Text field: an instance's Text property, a text layer's Text row in Typography).
  */
 export function tryStartTextEdit(x: number, y: number, ownerSrc: string): boolean {
   if (!canStart()) return false;

@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio's Design panel has no Content section, as Figma's: an instance's words are its Text property in its
+  Properties block, a text layer's a Text row first in Typography; a component without Figma properties shows one
+  Properties block in its prop order instead of Appearance / Content / Icon / State / Actions groups (2026-10-22).
 - Zen Studio: the Design tab shows only Figma's sections; what only code reads (an HTML element, Scroll, a button's
   type, ids, aria-* and the attributes no API lists) moved from the closed "Code properties" section to the Code tab's
   Properties, above the layer's code, edited there the same way (2026-10-21, parity plan §3a; E2E FW-165…169).

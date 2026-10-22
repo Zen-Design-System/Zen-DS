@@ -30,7 +30,7 @@
 
 const skip = (why) => ({ skip: why });
 const DEVICE = skip("device frame: the platform renders phones and desktops itself");
-const CHILDREN = skip("the label is the element's text (Content section)");
+const CHILDREN = skip("the label is the element's text (its Text property)");
 const HOVER = skip("preview state: hover comes from the pointer");
 const NO_PROP = skip("no code prop");
 
