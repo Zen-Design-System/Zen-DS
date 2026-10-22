@@ -6,6 +6,7 @@ import { INSTANCE_LOOK_PROPS, instanceLookStyle, takesInstanceLook } from "../..
 import { LOCKED_PROP, NAME_PROP } from "../../../../../tools/studio/layer-meta.mjs";
 import { instanceLayerPaths, NESTED_VALUE_KEY, WORDS_KEY } from "../../../../../tools/studio/instance-paths.mjs";
 import * as Zen from "../../../../index";
+import { typographyStyles } from "../../../../tokens/typography.generated";
 import { NestedContext, overridesAt } from "../../../../components/_shared/nested";
 import { resolveMediaDeep } from "../library/media";
 import { Board, Overlay, protoHandler, Screen, Section, Slice, type ProtoActions } from "../proto/runtime";
@@ -290,6 +291,9 @@ export function layerPathsOf(root: PageNode, components?: LocalComponents, libra
   });
 }
 
+/** The page a render's file is ("local:<id>.zen.tsx", the export's "export:<id>.zen.tsx"). */
+const pageOfFile = (file: string) => /^(?:local|export):(.+)\.zen\.tsx$/.exec(file)?.[1];
+
 /** An instance's `overrides` prop as a table of literals (anything else in it is the code's, not an override). */
 function overridesTable(value: PageValue | undefined): NestedTable["table"] | null {
   if (value?.kind !== "object") return null;
@@ -418,12 +422,19 @@ function renderComponentNode(node: PageNode, scope: Scope, ctx: RenderContext, k
   // An instance of another page's component (`page`, Libraries' project components) draws from that page's components,
   // and its main's own instances name that page's.
   const page = literalOf(node.props.page);
-  const home = typeof page === "string" ? page : ctx.scope;
+  const home = typeof page === "string" ? page : ctx.scope ?? pageOfFile(ctx.file);
   const components = typeof page === "string" ? ctx.library?.get(page) : ctx.components;
   const drawn = instanceOf(components, node);
+  if (!drawn) {
+    // Another page's main that is gone (its page trashed or out of the project, the main deleted or cut): Figma keeps
+    // the instance and says its main is missing; it comes back with the main.
+    if (typeof page !== "string" || ctx.instance) return null;
+    const of = String(literalOf(node.props.of) ?? "");
+    return createElement("div", { key, className: `studio-missing-main ${typographyStyles["Caption/Regular"]}`, "data-zen-src": srcOfNode(node, ctx), "data-zen-name": "Use", "data-zen-instance": of, "data-zen-instance-page": page, "data-zen-instance-name": `Missing ${of}`, ...extra }, `Missing component: ${of}`);
+  }
   // An instance of a main being drawn (directly or through another instance) would draw itself forever.
-  const link = `${home ?? ""}/${drawn?.id ?? ""}`;
-  if (!drawn || ctx.chain?.includes(link)) return null;
+  const link = `${home ?? ""}/${drawn.id}`;
+  if (ctx.chain?.includes(link)) return null;
   // The instance's own layer name and lock (layer-meta.mjs) stand for its root, not the main root's.
   const own: Record<string, unknown> = {};
   for (const prop of [NAME_PROP, LOCKED_PROP]) if (node.props[prop]?.kind === "literal") own[prop] = (node.props[prop] as { value: unknown }).value;

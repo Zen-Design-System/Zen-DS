@@ -4,7 +4,7 @@ import type { FigmaMapping } from "./figma-map.mjs";
 import type { LibraryKeys, LibraryKeyTable } from "./library-keys.mjs";
 
 export type FigmaPackage = { format: "zen-studio-figma"; version: 1; page: { id: string | null; title: string; version?: string; frame?: string }; frame: Record<string, unknown>; images?: Record<string, string | null>; library?: LibraryKeys };
-type Options = { mapping: FigmaMapping; nestedLayers?: Readonly<Record<string, Readonly<Record<string, string>>>>; newId?: () => string; /** The project's other pages by id (their text), for `<Use page>`. */ pages?: Readonly<Record<string, string>> };
+type Options = { mapping: FigmaMapping; nestedLayers?: Readonly<Record<string, Readonly<Record<string, string>>>>; newId?: () => string; /** The project's other pages by id (their text), for `<Use page>`. */ pages?: Readonly<Record<string, string>>; /** This page's id (a `<Use page>` naming it is one of its own). */ pageId?: string };
 export function figmaIdOf(docId: string | null | undefined): string | undefined;
 export function figmaFromPage(text: string, options: Options): { frame: Record<string, unknown> | null; notes: string[]; images?: string[] };
 export function figmaPackage(text: string, options: Options & { page?: { id?: string; title?: string }; libraryKeys?: LibraryKeyTable }): { pkg: FigmaPackage | null; notes: string[]; images: string[] };

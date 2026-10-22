@@ -855,4 +855,11 @@ User: "A, liên kết sống". Map of the same-page assumptions from an Explore 
 - Assets' search and ⇧I list the project's components too (first, as Figma lists the file's own;
   `edit/assets/projectAssets.ts`). Not yet: a real cross-page instance in Figma (it waits for pushing several pages
   together). E2E ids FW-200…204 are C's (Giám sát, 2026-10-22).
+- A's read-only review (9 items), all fixed here: layer-meta selftest words; figma-push pushes another page's main in
+  its own page's scope (`onPage`, `pageId`; a `<Use page=self>` goes the local way; selftest with an id clash, 365);
+  Open on phone carries the project's page texts (`SharedPage.id/pages`, device-share limits, selftest 43) and PlayScreens
+  takes a `library` prop (playFlow no longer imports the page store); detach drops a `page` naming the page it lands on
+  and mainsOf counts such an instance as its own; a `<Use page>` whose main is gone draws "Missing component"; Push
+  changes across pages names the main's page in its status; Assets re-render once the engine loads; the instance chain
+  names the open page; Go to main says when the main never shows and stops when something else is picked.
 

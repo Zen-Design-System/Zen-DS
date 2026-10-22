@@ -18,6 +18,9 @@ export type SharedPage = {
   brand: string;
   /** The project's theme (its `[data-brand="p-…"]` mode), when the page is in a project. */
   themeCss: string;
+  /** The page's id and the project's other pages by id (their text): instances of their components draw on the phone. */
+  id?: string;
+  pages?: Record<string, string>;
   uploads: SharedPhoto[];
 };
 

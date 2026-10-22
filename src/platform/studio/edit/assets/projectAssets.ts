@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { engineNow, loadEngine } from "../../builder/engine";
 import { usePages } from "../../builder/store/pageStore";
 import { useLibraries } from "../../project/libraries";
 import { pageComponents, projectOfPage } from "../../project/projectLibrary";
@@ -18,6 +20,8 @@ export function useProjectComponents(): ProjectAsset[] {
   const localPage = useStudio((state) => state.localPage);
   const pages = usePages();
   const on = useLibraries().components;
+  const [, ready] = useState(0);
+  useEffect(() => { if (!engineNow()) void loadEngine().then(() => ready((count) => count + 1)); }, []);
   const project = localPage ? projectOfPage(localPage) : null;
   if (!localPage || !project || !on) return [];
   return pages.flatMap((meta) => {

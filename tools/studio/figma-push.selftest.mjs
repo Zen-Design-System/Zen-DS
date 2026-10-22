@@ -1297,6 +1297,31 @@ export default function UsesChips() {
     check("project component: its main's layers, named after its set, keyed as this page's", [layer?.type, layer?.name, keys.length > 0 && keys.every((key) => String(key).startsWith(String(layer?.key)))], ["FRAME", "Chip", true]);
     check("project component: a note says so", pushed.notes.some((note) => /component of page chips/.test(note)), true);
     check("project component: without that page, a note", figmaFromPage(usesChips, { mapping }).notes.some((note) => /is not pushed/.test(note)), true);
+    // Its main's own instances resolve on its page, even when this page has a component of the same id (A's review).
+    const page = (title, body) => `// @zen-page {"format":1,"title":"${title}"}
+import { Board, Component, Screen, Use } from "@zen-ds/react/builder";
+import { Stack, Text } from "@zen-ds/react";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="${title}" device="desktop">
+        <Stack gap="lg" padding="xl">
+          ${body}
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+    const cards = page("Cards", '<Component id="tag" name="Tag"><Text>Tag</Text></Component>\n          <Component id="card" name="Card"><Stack><Text>Card</Text><Use of="tag" /></Stack></Component>');
+    const clash = page("Uses", '<Component id="tag" name="Other tag"><Text>Other</Text></Component>\n          <Use of="card" page="cards" />\n          <Use of="tag" page="uses" />');
+    const clashPush = figmaFromPage(clash, { mapping, pages: { cards }, pageId: "uses" });
+    const named = []; const names = (node) => { if (!node || typeof node !== "object") return; if (typeof node.name === "string") named.push(node.name); for (const child of node.children ?? []) names(child); };
+    const [, cardLayer, ownTag] = clashPush.frame.children;
+    names(cardLayer);
+    check("project component: a nested instance of its own page, not this page's same id", [cardLayer?.name, named.includes("Tag"), named.includes("Other tag")], ["Card", true, false]);
+    check("project component: <Use page> naming this page is its own instance", [ownTag?.type, ownTag?.local], ["INSTANCE", "tag"]);
   }
   // F7b: an instance's overrides of its main's layers, by the child indices that reach them in the drawn main.
   const overriddenPage = chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="chip" overrides={{ Text: { children: "Hi", tone: "accent" }, Icon: { hidden: true } }} />');

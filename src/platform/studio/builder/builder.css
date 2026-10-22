@@ -305,3 +305,16 @@
 /* A frame's X / Y and W / H on a page you made (FrameGeometry.tsx): two of Figma's number fields side by side, as the
    Position section's pair (position.css), with the same trailing room. */
 .studio-frame-geometry__pair { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+
+/* An instance of another page's component whose main is gone (renderPage.tsx): Figma's missing component, a dashed box
+   that says so; it draws again once the main is back. */
+.studio-missing-main {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: var(--zen-element-size-popular-medium, 32px);
+  padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px);
+  border: 1px dashed var(--zen-color-border-neutral-subtle-default);
+  border-radius: var(--zen-corner-radius-small, 8px);
+  color: var(--zen-color-content-neutral-light);
+}

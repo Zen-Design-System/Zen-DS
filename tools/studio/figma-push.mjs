@@ -404,7 +404,7 @@ function fragmentsAsRows(doc) {
   return { ...doc, board: doc.board ? node(doc.board) : doc.board };
 }
 
-export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages = {} } = {}) {
+export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages = {}, pageId } = {}) {
   const notes = [];
   const read = docFromText(text, newId ? { newId } : {});
   const { errors } = read;
@@ -452,6 +452,13 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages =
       otherPages.set(page, board ? { board, model: { mains: localComponents(board), sets: componentSets(board) } } : null);
     }
     return otherPages.get(page);
+  };
+  /** A main of page `home` as this page pushes it: its own instances (no `page`) name `home`, so they resolve there. */
+  const onPage = (node, home) => {
+    if (!node || node.kind !== "element") return node?.kind === "map" ? { ...node, node: onPage(node.node, home) } : node;
+    const props = Object.fromEntries(Object.entries(node.props).map(([name, value]) => [name, value?.kind === "element" ? { ...value, node: onPage(value.node, home) } : value]));
+    if (node.name === "Use" && !props.page) props.page = { kind: "literal", value: home };
+    return { ...node, props, children: (node.children ?? []).map((child) => onPage(child, home)) };
   };
   /** A layer tree made from another page's nodes keeps no ids of that page (they would meet this page's keys). */
   const withoutKeys = (node) => { if (!node || typeof node !== "object") return node; delete node.id; delete node.key; for (const child of node.children ?? []) withoutKeys(child); return node; };
@@ -525,12 +532,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages =
       // An instance of another page's component (Libraries' project components, a live link): a push sends one page, so
       // its main's layers go in its place, named after it.
       const home = String(element.props.page.value);
+      // One of this page's own components, named by its page (a main on another page may hold one): the local way.
+      if (pageId && home === pageId) return convertElement({ ...element, props: Object.fromEntries(Object.entries(element.props).filter(([name]) => name !== "page")) }, parent);
       const other = otherPage(home);
       const resolved = other ? resolveInstance(other.board, element, other.model) : null;
       const main = resolved ? other.model.mains.find((entry) => entry.id === resolved.main.id) : null;
       const root = main?.node.children.find((child) => child.kind === "element");
       if (!root) { notes.push(`An instance of ${String(code.of ?? "")} on page ${home} is not pushed: that page's component is not here`); return null; }
-      node = withoutKeys(convert(root, parent));
+      node = withoutKeys(convert(onPage(root, home), parent));
       if (!node) return null;
       node.name = resolved.set?.name ?? resolved.main.name;
       notes.push(`${node.name} (a component of page ${home}): pushed as its layers, without its instance changes`);
@@ -2254,7 +2263,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages =
  * and variable collections it uses, so the plugin imports them from the published library in a file other than Zen's.
  */
 export function figmaPackage(text, { mapping, nestedLayers = {}, page = {}, newId, libraryKeys, pages } = {}) {
-  const { frame, notes, images } = figmaFromPage(text, { mapping, nestedLayers, newId, pages });
+  const { frame, notes, images } = figmaFromPage(text, { mapping, nestedLayers, newId, pages, pageId: page.id });
   if (!frame) return { pkg: null, notes, images: [] };
   // A frame with nothing in it would import as an empty frame: say why instead.
   if (!frame.children?.length) return { pkg: null, notes: [`nothing on the page has a place in Figma${notes.length ? ` (${notes.join("; ")})` : ""}`], images: [] };

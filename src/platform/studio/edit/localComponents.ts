@@ -49,9 +49,10 @@ export async function mainsOf(file: string): Promise<MainRef[]> {
   const source = await studioApi.source(file);
   const tree = engine.parsePage(source.content, { components: new Set(zenComponents) });
   const uses = new Map<string, string[]>();
+  const own = pageIdOf(file);
   engine.eachElement(tree.board, (node) => {
-    // An instance of another page's component (`page`) is not one of this page's.
-    if (node.name !== "Use" || node.props.page) return;
+    // An instance of another page's component (`page`) is not one of this page's; one naming this page is.
+    if (node.name !== "Use" || (node.props.page && node.props.page.value !== own)) return;
     const of = String(node.props.of?.value ?? "");
     uses.set(of, [...(uses.get(of) ?? []), node.loc]);
   });
@@ -265,7 +266,7 @@ export async function detachInstance(selection: NodeSelection): Promise<boolean>
   const written = engine.relayoutCode(source.content, root.range, {});
   // A main on another page: its own instances keep naming that page's components.
   const home = main.file !== at.file ? pageIdOf(main.file) : null;
-  const code = home ? engine.withUsePage(written, home) : written;
+  const code = home ? engine.withUsePage(written, home, { own: pageIdOf(at.file) ?? undefined }) : written;
   const before = renderedNow(canvasApi.getWorldElement());
   const response = await applyEdit({ file: at.file, loc: at.loc, name: "Use", ops: [{ op: "replaceElement", code } as EditOp], hash: use.hash }, `Detach ${main.name}`);
   if (!response.ok) return false;
@@ -289,6 +290,9 @@ export async function goToMain(selection: NodeSelection): Promise<boolean> {
   const src = `${main.file}:${main.rootLoc}`;
   const started = Date.now();
   const select = () => {
+    // Something else picked meanwhile (another page, a layer): it stays.
+    const state = studioStore.getState();
+    if (state.localPage !== home || state.selection) return;
     const world = canvasApi.getWorldElement();
     const hit = world ? findBySrc(world, src)[0] : undefined;
     if (hit && world) {
@@ -300,6 +304,7 @@ export async function goToMain(selection: NodeSelection): Promise<boolean> {
       return;
     }
     if (Date.now() - started < 8000) requestAnimationFrame(select);
+    else fail(`${main.name} does not show on its page`);
   };
   requestAnimationFrame(select);
   return true;
@@ -638,7 +643,9 @@ export async function pushChangesToMain(selection: NodeSelection): Promise<boole
     ? await applyEdit({ file: at.file, loc: at.loc, name: "Use", ops: [rest], hash: element.hash }, `Push changes to ${name}`)
     : await applyEdit({ file: at.file, loc: at.loc, name: "Use", ops: [{ op: "many", action: "setProps", locs: Object.keys(opsByLoc), opsByLoc } as EditOp], hash: element.hash }, `Push changes to ${name}`);
   const kept = Object.keys(left);
-  if (response.ok) inspectorStatus.set(kept.length ? "neutral" : "positive", kept.length ? `Pushed to ${name}; kept on this instance: ${kept.join(", ")}` : `Pushed to ${name}: every instance shows the change`);
+  // On another page (a live link) the change is that page's: its ⌘Z takes it back.
+  const there = mainFile !== at.file ? ` on ${cachedPage(pageIdOf(mainFile) ?? "")?.title ?? "its page"} (⌘Z there undoes it)` : "";
+  if (response.ok) inspectorStatus.set(kept.length ? "neutral" : "positive", kept.length ? `Pushed to ${name}${there}; kept on this instance: ${kept.join(", ")}` : `Pushed to ${name}${there}: every instance shows the change`);
   return response.ok;
 }
 

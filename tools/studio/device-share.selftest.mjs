@@ -49,6 +49,8 @@ check("a malformed token finds nothing", store.get("../x"), null);
 clock += 101;
 check("a share expires", store.get(token), null);
 check("the body needs text", sharePayload({}) instanceof Error, true);
+check("a share carries the project's other pages", [sharePayload({ text: "<Board />", id: "home", pages: { cards: "<Board />" } }).pages, sharePayload({ text: "<Board />", id: "home" }).id], [{ cards: "<Board />" }, "home"]);
+check("pages are page ids → text", sharePayload({ text: "<Board />", pages: { "Bad Id": "x" } }) instanceof Error, true);
 check("a share body", sharePayload({ text: "<Board />", title: "Orders", start: "screen-2", modes: { theme: "dark", bad: 1 }, brand: "p-acme", uploads: [{ id: "a.png", type: "image/png", data: "AAAA" }] }), { title: "Orders", text: "<Board />", start: "screen-2", modes: { theme: "dark" }, brand: "p-acme", themeCss: "", uploads: [{ id: "a.png", name: "a.png", type: "image/png", data: "AAAA" }] });
 check("an upload must be an image", sharePayload({ text: "x", uploads: [{ id: "a", type: "text/html", data: "" }] }) instanceof Error, true);
 check("Wi-Fi first, virtual adapters last", lanAddresses({ bridge100: [{ family: "IPv4", internal: false, address: "192.168.64.1" }], lo0: [{ family: "IPv4", internal: true, address: "127.0.0.1" }], en0: [{ family: "IPv4", internal: false, address: "192.168.1.20" }, { family: "IPv6", internal: false, address: "fe80::1" }], en5: [{ family: "IPv4", internal: false, address: "169.254.3.4" }] }), ["192.168.1.20", "192.168.64.1"]);
