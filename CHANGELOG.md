@@ -24,6 +24,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (`collapse="sidebar"`); a short page's main column starts at the top (plugin `studio-import` bf300bc, `edits.counter`);
   a PageHeader's childTitle and description show their Header-Text layers; the read keeps a nested variant change (a
   first crumb at Level Master).
+- Corner smoothing (Figma's squircle corners): Box, Stack, Grid and rectangle Shapes take `cornerSmoothing` (0–100 %, iOS
+  60), drawn with CSS `corner-shape: superellipse(…)` where the browser has it (Chromium) and plain rounded corners
+  elsewhere. Zen Studio sets it beside the independent corners and round-trips it with Figma's `cornerSmoothing`
+  (push, pull, native paste, plugin `studio-import` ef17610).
 - Zen Studio: the Design tab shows only Figma's sections; what only code reads (an HTML element, Scroll, a button's
   type, ids, aria-* and the attributes no API lists) moved from the closed "Code properties" section to the Code tab's
   Properties, above the layer's code, edited there the same way (2026-10-21, parity plan §3a; E2E FW-165…169).
