@@ -597,6 +597,13 @@ test("param: a prop of a component of the file is edited where it is used; `path
     "  return <List>{rows.map(({ id, ...row }) => <ListItem key={id} {...row} />)}</List>;",
     "}",
     "const taskList = (label: string, list: typeof tasks) => <RowCard label={label} rows={list.map((t) => taskRow(t))} />;",
+    "const phoneList = (label: string, list: typeof tasks, titled = false) => <RowCard label={label} titled={titled} rows={list.map((t) => taskRow(t))} />;",
+    "export function Phone({ view }: { view: string }) {",
+    "  let content;",
+    "  if (view === \"mine\") content = <><Text>Mine</Text>{phoneList(\"Due\", tasks)}</>;",
+    "  else content = <><Text>Home</Text>{phoneList(\"Due\", open, true)}</>;",
+    "  return <Section>{content}</Section>;",
+    "}",
     "export function Page({ wide }: { wide: boolean }) {",
     "  const team = [people.alex, people.bao];",
     "  return (",
@@ -682,6 +689,20 @@ test("param: a prop of a component of the file is edited where it is used; `path
     assert.match(mine.code, /bao: person\("bao", "Bao Nguyen", "teal", \{ photo: "new\.webp" \}\)/);
     const alone = edit(AVATAR, "Avatar", { prop: "src", via: [{ loc: at("const taskList", "RowCard"), prop: "rows", path: [{ index: 1 }, "leading"] }] });
     assert.match(alone.error, /list is a parameter/, "without the Box the call's list is unknown");
+  });
+  test("helper: a `let` set in branches, told apart by the fields the canvas read (titled: true, the default false)", () => {
+    const holder = at("const phoneList", "RowCard");
+    const result = edit(AVATAR, "Avatar", { prop: "src", via: [
+      { loc: holder, prop: "rows", path: [{ index: 1, fields: { id: "t3", title: "Usability" } }, "leading"] },
+      { loc: at("<Section>", "Section"), prop: "children", path: ["children", { index: 1, fields: { label: "Due", titled: true } }], holds: 0 },
+    ] });
+    assert.ok(!result.error, result.error);
+    assert.match(result.code, /alex: person\("alex", "Alex Duong", "indigo", \{ photo: "new\.webp" \}\)/);
+    const either = edit(AVATAR, "Avatar", { prop: "src", via: [
+      { loc: holder, prop: "rows", path: [{ index: 1, fields: { id: "t3" } }, "leading"] },
+      { loc: at("<Section>", "Section"), prop: "children", path: ["children", { index: 1, fields: { label: "Due" } }], holds: 0 },
+    ] });
+    assert.ok(either.error, "without titled both branches draw a RowCard labelled Due: the list is unknown");
   });
   test("helper: refusals stay clear (no via, a condition that draws either call, no row to tell)", () => {
     assert.equal(edit(AVATAR, "Avatar", { prop: "src" }).code, "invalid");

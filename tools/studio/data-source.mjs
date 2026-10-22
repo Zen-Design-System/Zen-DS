@@ -1170,7 +1170,7 @@ function childrenNode(element) {
   const kids = element.children
     .filter((child) => !(child.type === "JSXText" && !child.value.trim() && child.value.includes("\n")) && !(child.type === "JSXExpressionContainer" && child.expression.type === "JSXEmptyExpression"))
     .map((child) => (child.type === "JSXExpressionContainer" ? child.expression : child));
-  if (!kids.length) refuse(`<${jsxName(element.openingElement.name)}> has no children here`, "not-found");
+  if (!kids.length) refuse(`<${element.openingElement ? jsxName(element.openingElement.name) : ""}> has no children here`, "not-found");
   return kids.length === 1 ? kids[0] : { type: "ArrayExpression", elements: kids, start: element.start, end: element.end };
 }
 
@@ -1235,8 +1235,16 @@ function reach(at, path, ctx) {
         }
         const argument = bound.args[binding.position];
         if (argument === null) refuse(`${helperName(at.mod, binding.fn) ?? "The function"}(…) gets its arguments from a spread here`);
+        // A parameter's default is read when checking a place (`titled = false`), never edited: it is every call's.
+        const fallback = binding.fn.params[binding.position];
+        if (!argument && ctx.defaults && fallback?.type === "AssignmentPattern" && fallback.left.type === "Identifier") return reach(place(at.mod, fallback.right, at.env), path, ctx);
         if (!argument) refuse(`${helperName(at.mod, binding.fn) ?? "The function"}(…) is not given ${node.name} here: its default is the function's own code; edit it there`);
         return reach(argument, [...binding.path, ...path], ctx);
+      }
+      // A `let` set in branches (`let content; if (…) content = <>…</>; else …`): each value it is given.
+      if (binding?.kind === "const" && !binding.constant) {
+        const values = assignedValues(at.mod, binding);
+        if (values.length) return oneOf(values.map((value) => place(at.mod, value, isModuleLevel(at.mod, binding.declarator) ? NO_ENV : at.env)), path, ctx);
       }
       if (binding?.kind === "const" && binding.init) return reach(place(at.mod, binding.init, isModuleLevel(at.mod, binding.declarator) ? NO_ENV : at.env), path, ctx);
       if (binding?.kind === "state") {
@@ -1282,8 +1290,14 @@ function reach(at, path, ctx) {
       const items = node.elements;
       if (items.slice(0, index + 1).some((item) => item?.type === "SpreadElement")) refuse("The list has a spread before this item; edit it in the code");
       if (!items[index]) refuse(`The list has no item ${index + 1}`, "not-found");
-      return reach(place(at.mod, items[index], at.env), rest, ctx);
+      const item = place(at.mod, items[index], at.env);
+      if (typeof step === "object" && !fitsFields(item, step.fields, ctx)) refuse(`The list's item ${index + 1} here is not the one drawn`, "not-found");
+      return reach(item, rest, ctx);
     }
+    case "JSXFragment":
+      if (!path.length) break;
+      if (stepKey(step) !== "children") refuse(`A fragment has no ${stepKey(step)}`, "not-found");
+      return reach(place(at.mod, childrenNode(node), at.env), rest, ctx);
     case "JSXElement": {
       if (!path.length) break;
       const key = stepKey(step);
@@ -1329,6 +1343,42 @@ function reach(at, path, ctx) {
   if (!path.length) return at;
   refuse("The value is computed in the code, not written as data");
   return null;
+}
+
+/** The values a `let` is given: its initializer and every `name = value` in the scope that declares it. */
+function assignedValues(mod, binding) {
+  const path = pathTo(mod.ast.program, binding.declarator) ?? [];
+  const scope = [...path].reverse().find((node) => FUNCTION_TYPES.has(node.type) || node.type === "Program") ?? mod.ast.program;
+  const name = binding.declarator.id.name;
+  const out = binding.init ? [binding.init] : [];
+  walk(scope, (node) => {
+    if (node.type === "AssignmentExpression" && node.operator === "=" && node.left.type === "Identifier" && node.left.name === name && bindingOf(mod, name, node.left)?.declarator === binding.declarator) out.push(node.right);
+    return true;
+  });
+  return out;
+}
+
+/**
+ * Whether what the code draws at a list place agrees with the plain fields the canvas read there (`label: "Due this
+ * week"`, `titled: true`): a field the code gives as a literal must be the same; one it computes says nothing.
+ */
+function fitsFields(item, fields, ctx) {
+  if (!fields || typeof fields !== "object") return true;
+  for (const [key, value] of Object.entries(fields).slice(0, 16)) {
+    if (!["string", "number", "boolean"].includes(typeof value) || key === "key" || !/^[\w$-]+$/.test(key)) continue;
+    let read;
+    try {
+      read = reach(item, [key], { read: ctx.read, steps: ctx.steps, defaults: true });
+    } catch (error) {
+      if (error instanceof Refusal) continue;
+      throw error;
+    }
+    const node = read?.node ? unwrap(read.node) : null;
+    if (!node || !isLiteralNode(node)) continue;
+    const written = node.type === "BooleanLiteral" ? node.value : node.type === "NullLiteral" ? null : literalText(node);
+    if (written !== (typeof value === "boolean" ? value : String(value))) return false;
+  }
+  return true;
 }
 
 /** Data written in the module, read (or, with `ctx.adding`, given its missing last field) by `follow`: a place or { add }. */
@@ -1401,6 +1451,7 @@ function produce(at, target, ctx, depth = 0) {
         const argument = at.env.get(binding.fn).args[binding.position];
         if (argument) return produce(argument, target, ctx, depth + 1);
       }
+      if (binding?.kind === "const" && !binding.constant && assignedValues(at.mod, binding).length) return first(assignedValues(at.mod, binding).map((value) => place(at.mod, value, isModuleLevel(at.mod, binding.declarator) ? NO_ENV : at.env)));
       if (binding?.kind === "const" && binding.init) return produce(place(at.mod, binding.init, isModuleLevel(at.mod, binding.declarator) ? NO_ENV : at.env), target, ctx, depth + 1);
       break;
     }
@@ -1439,14 +1490,29 @@ function rowItem(row, ctx) {
     }
   }
   const constraints = rowConstraints(row, ctx);
-  const lists = listsRead(row.list.mod, row.list.node, ctx.read);
+  const settled = settle(row.list);
+  const lists = listsRead(settled.mod, settled.node, ctx.read);
   const found = constraints.length ? itemByPaths(lists, constraints, ctx.read) : null;
   if (found) return (row.item = place(found.list.mod, found.item));
-  const call = listCall(row.list);
+  const call = listCall(settled);
   refuse(call
     ? `The rows go through ${call}(…), and the Studio cannot tell which row of the data this is; edit the data in the code`
     : (reason?.message ?? "The Studio cannot tell which row of the data this is; edit the data in the code"));
   return null;
+}
+
+/** A list's place through the parameters the walk bound (`list` in `taskList(label, list)` → the call's `open`). */
+function settle(at) {
+  let current = at;
+  for (let guard = 0; guard < 8; guard++) {
+    const node = unwrap(current.node);
+    if (node?.type !== "Identifier") return current;
+    const binding = bindingOf(current.mod, node.name, node);
+    const argument = binding?.kind === "param" && !binding.path.length ? current.env.get(binding.fn)?.args?.[binding.position] : null;
+    if (!argument) return current;
+    current = argument;
+  }
+  return current;
 }
 
 /** The call a list is computed by (`tasks.filter(…)`, through the consts that hold it), or null. */
