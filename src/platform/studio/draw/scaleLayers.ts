@@ -1,5 +1,6 @@
 import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../api";
 import { frameNodeOf } from "../builder/frameEdit";
+import { inspectorStatus } from "../inspector/status";
 import { floatingItems, type FloatingItem } from "../edit/alignLayers";
 import { unionOf } from "../edit/arrangeModel";
 import { isLockedSrc } from "../select/layerMeta";
@@ -59,7 +60,10 @@ async function collect(file: string, element: SourceElement, factor: number, int
 async function send(file: string, first: SourceElement, into: Collected, factor: number): Promise<boolean> {
   const locs = Object.keys(into.opsByLoc);
   if (!locs.length) { say(`Nothing to scale in px: ${scaleStatus(factor, into.kept).replace(/^Scaled \d+%( · )?/, "") || "its sizes come from its content"}`); return false; }
-  const response = await applyEdit({ file, loc: first.loc, name: first.name, ops: [{ op: "many", action: "setProps", locs, opsByLoc: into.opsByLoc }], hash: first.hash }, scaleStatus(factor, into.kept));
+  const status = scaleStatus(factor, into.kept);
+  const response = await applyEdit({ file, loc: first.loc, name: first.name, ops: [{ op: "many", action: "setProps", locs, opsByLoc: into.opsByLoc }], hash: first.hash }, status);
+  // The line says the factor and the Zen steps kept (the user's pick), over the edit's own "Saved" line.
+  if (response.ok) inspectorStatus.set("positive", status);
   return Boolean(response.ok);
 }
 
