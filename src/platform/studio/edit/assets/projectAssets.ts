@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { engineNow, loadEngine } from "../../builder/engine";
 import { usePages } from "../../builder/store/pageStore";
 import { useLibraries } from "../../project/libraries";
-import { pageComponents, projectOfPage } from "../../project/projectLibrary";
-import { useStudio } from "../../store";
+import { canvasApi } from "../../canvas/viewport";
+import { holdsComponent, libraryOf, pageComponents, projectOfPage } from "../../project/projectLibrary";
+import { findBySrc } from "../../select/picker";
+import { studioStore, useStudio } from "../../store";
 import type { Insertable } from "./assets";
 
 /*
@@ -34,5 +36,21 @@ export function useProjectComponents(): ProjectAsset[] {
   });
 }
 
-/** An instance of another page's component, as an asset: `<Use of page>`, drawn from its main there. */
-export const projectInsertable = (asset: ProjectAsset): Insertable => ({ label: asset.name, root: "Use", code: (file) => (file && /^local:/.test(file) ? `<Use of="${asset.id}" page="${asset.page}" />` : null), refusal: "Project components go on a page of the project" });
+/**
+ * An instance of another page's component, as an asset: `<Use of page>`, drawn from its main there. Never inside a main
+ * of this page it holds (Figma: a component can't go inside itself).
+ */
+export const projectInsertable = (asset: ProjectAsset): Insertable => ({
+  label: asset.name,
+  root: "Use",
+  code: (file) => (file && /^local:/.test(file) ? `<Use of="${asset.id}" page="${asset.page}" />` : null),
+  refusal: "Project components go on a page of the project",
+  refuseIn: (src) => {
+    const world = canvasApi.getWorldElement();
+    const main = world ? findBySrc(world, src)[0]?.hosts[0]?.closest("[data-zen-main]") : null;
+    const page = studioStore.getState().localPage;
+    const id = main?.getAttribute("data-zen-main");
+    if (!page || !id) return null;
+    return holdsComponent(libraryOf(page), { page: asset.page, id: asset.id }, { page, id }) ? `${asset.name} holds ${main?.getAttribute("data-zen-main-name") ?? id}: a component can't go inside itself` : null;
+  },
+});

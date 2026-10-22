@@ -64,6 +64,8 @@ export type Insertable = {
   icon?: string;
   /** A photo's source on a builder page: with an Image or Avatar of a page selected, the click swaps its picture instead. */
   photo?: string;
+  /** Why it cannot go inside the layer at `src` (another page's component inside its own main), or null. */
+  refuseIn?: (src: string) => string | null;
 };
 
 export const paletteInsertable = (item: PaletteItem): Insertable => ({ label: item.label, root: item.root, state: item.state, code: (file) => codeOf(item, file), refusal: builderRefusal(item) });
@@ -153,6 +155,8 @@ export function insertItem(item: Insertable) {
   const file = parseSrc(target.src)?.file;
   const code = item.code(file);
   if (code === null) { fail(item.refusal); return; }
+  const inside = item.refuseIn?.(target.src);
+  if (inside) { fail(inside); return; }
   void insertCode(target, code, stateFor(item, file));
 }
 
@@ -175,6 +179,8 @@ export function swapItem(item: Insertable) {
   const file = parseSrc(target.src)?.file;
   const code = item.code(file);
   if (code === null) { fail(item.refusal); return; }
+  const inside = item.refuseIn?.(target.src);
+  if (inside) { fail(inside); return; }
   void swapSelection(target, code, item.label, stateFor(item, file));
 }
 
@@ -195,6 +201,8 @@ export async function dropAsset(item: Insertable, target: DropTarget, free?: { x
   if (!parent) { fail(`${target.parentName} is no longer there`); return; }
   const written = item.code(at.file);
   if (written === null) { fail(item.refusal); return; }
+  const inside = item.refuseIn?.(target.parentSrc);
+  if (inside) { fail(inside); return; }
   const code = free ? floatingCode(written, item.root, free.x, free.y) : written;
   const state = stateFor(item, at.file);
   const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code, ...(state?.length ? { state: state.map((entry) => ({ ...entry })) } : {}), ...placeOf(target) };

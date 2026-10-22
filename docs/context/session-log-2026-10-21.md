@@ -910,4 +910,7 @@ User: "A, liên kết sống". Map of the same-page assumptions from an Explore 
   missing main (its page in the Trash) gives "This instance's main component is missing" instead of an unhandled
   rejection (mainOfInstance catches, instanceAt `missing`); Open on phone and the push send only the pages the page's
   instances reach (`projectPageTexts(id, from)`).
+- A's optional parity item, done while waiting for the slot: Assets / ⇧I / a drag refuse a project component inside a
+  main of this page it holds, through any page (`holdsComponent` in projectLibrary.ts, Insertable `refuseIn`), with
+  "<X> holds <Main>: a component can't go inside itself"; E2E FW-202. Phase 2 merged with main a2143e36 (6151b4a0).
 

@@ -90,3 +90,49 @@ export async function projectPageTexts(pageId: string, from?: string): Promise<R
   }
   return reached;
 }
+
+type Link = { page: string; id: string };
+/**
+ * Whether the component `from` holds `target` (its main, or a main of its set) anywhere inside it, through the
+ * instances its layers hold on any page of the project (a `<Use>` without `page` names its own page's). Figma refuses a
+ * component inside itself; an instance placed so would draw nothing.
+ */
+export function holdsComponent(library: ReadonlyMap<string, LocalComponents> | undefined, from: Link, target: Link): boolean {
+  if (!library) return false;
+  const seen = new Set<string>();
+  const roots = (link: Link): PageNode[] => {
+    const entry = library.get(link.page)?.get(link.id);
+    if (!entry) return [];
+    if (entry.kind === "main") return [entry.root];
+    return entry.variants.flatMap((variant) => { const main = library.get(link.page)?.get(variant); return main?.kind === "main" ? [main.root] : []; });
+  };
+  const named = (link: Link) => {
+    if (link.page !== target.page) return false;
+    if (link.id === target.id) return true;
+    const entry = library.get(link.page)?.get(link.id);
+    return entry?.kind === "set" ? entry.variants.includes(target.id) : false;
+  };
+  const visit = (link: Link): boolean => {
+    const key = `${link.page}/${link.id}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    if (named(link)) return true;
+    const uses: Link[] = [];
+    const walk = (node: PageNode) => {
+      if (node.name === "Use") {
+        const page = node.props.page?.kind === "literal" ? String(node.props.page.value) : link.page;
+        const of = node.props.of?.kind === "literal" ? String(node.props.of.value) : "";
+        if (of) uses.push({ page, id: of });
+      }
+      for (const value of Object.values(node.props)) if (value.kind === "element") walk(value.node);
+      for (const child of node.children) {
+        if (child.kind === "element") walk(child);
+        else if (child.kind === "map") walk(child.node);
+      }
+    };
+    roots(link).forEach(walk);
+    return uses.some(visit);
+  };
+  return visit(from);
+}
+

@@ -1904,6 +1904,36 @@ export const rows = [
     },
   },
   {
+    id: "FW-202", feature: "A project component that holds this page's main can't go inside that main (Figma: a component can't go inside itself); the page stays as it was", wp: "Libraries phase 2 2026-10-22", timeout: 90_000,
+    async run(ctx) {
+      const { page, id, promo } = await projectPages(ctx);
+      const dir = path.join(ctx.root, pagesDirOf(ctx.server.port));
+      const own = path.join(dir, `${id}.zen.tsx`), other = path.join(dir, `${promo}.zen.tsx`);
+      const [ownBefore, otherBefore] = [fs.readFileSync(own, "utf8"), fs.readFileSync(other, "utf8")];
+      try {
+        // This page's main Hero, and Promo on the other page holding an instance of it.
+        fs.writeFileSync(own, ownBefore.replace(/import \{ Board, /, "import { Board, Component, ").replace(/(<Stack[^>]*>)/, `$1\n          <Component id="hero" name="Hero"><Stack gap="sm"><Text>Hero</Text></Stack></Component>`));
+        fs.writeFileSync(other, otherBefore.replace("import { Board, Component, Screen }", "import { Board, Component, Screen, Use }").replace('<Component id="promo" name="Promo"><Text>Promo</Text></Component>', `<Component id="promo" name="Promo"><Stack><Text>Promo</Text><Use of="hero" page="${id}" /></Stack></Component>`));
+        await mineOption(page, /^Sync with the folder/);
+        await until(async () => /<Component id="hero"/.test((await pageText(page, id)) ?? ""), { timeout: 15_000, message: "Hero on the page" });
+        const hero = page.locator('[data-zen-main="hero"]').first();
+        await hero.waitFor({ state: "visible", timeout: 10_000 });
+        await hero.click({ modifiers: ["ControlOrMeta"] });
+        await until(async () => (await selectedName(page)) !== "", { message: "a layer of Hero selected" });
+        const before = (await pageText(page, id)) ?? "";
+        await showLeftTab(page, "assets");
+        await page.getByRole("button", { name: new RegExp("^Promo, component on ") }).click();
+        await until(async () => /can't go inside itself/.test(await statusText(page)), { message: "refused: a component can't go inside itself" });
+        if (((await pageText(page, id)) ?? "") !== before) throw new Error("the instance went in anyway");
+        return `Promo (holds Hero) into Hero → "${(await statusText(page)).split(" | ").find((line) => /inside itself/.test(line))}" · page unchanged`;
+      } finally {
+        fs.writeFileSync(own, ownBefore);
+        fs.writeFileSync(other, otherBefore);
+        await mineOption(page, /^Sync with the folder/).catch(() => undefined);
+      }
+    },
+  },
+  {
     id: "FW-88", feature: "K (Scale) on a selected shape: the Scale tool, its factor field in focus; 2 + Enter doubles its size from the top-left (its X / Y stay), one ⌘Z", wp: "Scale tool 2026-10-21",
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
