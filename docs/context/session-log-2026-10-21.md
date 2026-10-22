@@ -712,3 +712,9 @@ the place, and the drop writes the instance's `slots`. One write, one ⌘Z; the 
 - Checks: arrange selftest +7 slot cases (58); `studio:dnd` slot section (667 cases: every Assets item into every slot
   place, loose layers in and ⌥ copies, slot layers out to every place and to the other slot; 0 findings; 21 143 in
   all); engine-iso lists slot-fill; E2E FW-160…164.
+- Gate (2026-10-22 ~06:45, main be387faf merged in; conflicts in CHANGELOG, this log and figma.mjs were both sides
+  adding, kept both; main's own `oneUndo` helper kept): `qa --isolated --files=…` PASS, Studio E2E 338 / 0 (1538 s).
+  `--only=figma` FW-25, FW-160…164 6 / 0; FW-161 first failed in its setup (⌘-click on a Badge picks its words, a part),
+  so it drags the Text Spare now. `--only=dnd` DND-05 ✓; DND-04 failed on main too since FW-142 (the panel heads a Box
+  Frame, so its selectLayer pressed Escape up to the page): fixed at the test, it reads the heading's code name (title);
+  8 / 8 moves.
