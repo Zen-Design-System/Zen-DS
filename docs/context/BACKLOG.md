@@ -57,10 +57,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   slot content, overrides inside nested instances and of Zen components in a main since 2026-10-20; layers into a slot
   from the canvas since 2026-10-21 (F7c). Open, a question for the user: should the React export inline an instance
   whose overrides no property takes (now a comment)? Pointer: `docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md` §5.
-- **P3 · ai-ui dead click on the phone composer's slot chip (2026-10-22, card-themes gate; user: "không phải ưu tiên giai
-  đoạn này"):** behaviour probe ⚠ [deadclick] ai-ui@1512 "Composed while typing, on a phone": the "Gia" people chip shows
-  no visible effect. LiveTypingExample renders SlotChips with `interactive={!showForm}`, so once the form shows the chip is
-  passive yet still a button.zen-chip; make it a non-button there or give it an effect. `src/platform/examples/pages/ai-ui.tsx`.
 - **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 9 examples (vectors and the ticket stub since 2026-10-19); not covered yet: states,
   edge cases (a 0 % sweep, a thin star), a phone example and keyboard / a11y (a labelled mark). Pointer:
   `src/platform/examples/pages/shape.tsx`.
