@@ -20,6 +20,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - **Docs platform:** the Shape page has three more examples: a seat map whose marks carry labels (picked with Segmented
   buttons, taken seats drawn as outlines), the arc's and star's limits (Sweep 0 %, a hairline ring, thin and zero-ratio
   stars) and onboarding art on a phone (2026-10-23).
+- Figma contracts: `nested-layers.json` is re-read from the live file (2026-10-23): Card's 120 variants, Empty-State
+  as its set (16339:135, so `nested-paths` now checks EmptyState too, 45/45), and the layer changes in Bottom-Sheet,
+  Modal/Dialog and Inline-Message.
 - Usage harness: a tag quoted in a `//` line comment is documentation, as in a block comment, so it no longer trips a
   rule (Zen Studio's Design panel showed a false "Save has no onClick"); a URL's `//` still leaves the rest of the line
   checked (2026-10-23).

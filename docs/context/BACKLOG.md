@@ -41,10 +41,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Figma → plugin). Open: modes (add / rename / delete), new collections, description / scoping / code syntax, rename of a
   variable code reads (rewrite its CSS readers), apply a variable from Inspector fields (E5), Change variable mode per
   frame (E6). Pointer: `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
-- **P3 · Card contract predates Figma's Sub-Action wrapper (2026-10-21, Session B):** since 2026-10-18 Figma's Card draws
-  Sub-Action › Wrapper › Button/Icon-Flat, but `docs/figma-contracts/card.json` still has Sub-Action as the instance, so
-  `nested-paths.mjs --check` passes on the old shape. The push, pull and plugin (833ea0e) handle the wrapper already.
-  Pointer: re-capture the Card set with `tools/figma-contract/mcp-capture` (about 1 MB, several calls).
 - **P2 · Studio components, after F7a/F7b (2026-10-19, Session B):** sets, variants, properties, overrides, Reset, Push
   changes, slot content, Assets › Local are built (branches zen/feat/studio-f7-*, f7b-*); Figma pull of overrides and
   slot content, overrides inside nested instances and of Zen components in a main since 2026-10-20; layers into a slot
@@ -68,11 +64,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   raw CSS, so the prop needs its own name), stacked/single area fill to the Neutral pair; Studio figma-charts push/pull
   of `Color`; Gauge/Funnel/Bullet are sets now (ids in `CHART_SETS` are their Primary variants, keys unchanged);
   re-capture library-keys + component-properties; figma-docs text for the property.
-- **P2 · Templates take the phone chrome (2026-10-16, follow-up of the responsive header P3, waits for the user):**
-  AdminList, Detail, Dashboard, SettingsForm and HrShell keep their PageHeader in the content and have no
-  `topNavigation` / `bottomNavigation`, so on a phone they show the drawer and the desktop header rows. Each needs its
-  PageHeader moved into `sections` (a small desktop spacing change to review at 1512 / 390) and its phone parts by
-  `docs/component-usage-rules.md` §17. Zen Studio pages made from them already get the phone parts (P4).
 - **P1 · 320px debt left: designer calls (2026-10-16):** 197 → 33 baselined 320 findings (docs grids, small-phone docs
   chrome, ListItem / Toast / Stepper text fixed; session log). Left, each a call for the user or the designer: Chat desktop
   examples at Comfortable on a 288px screen (13: composer send button, call button, the fixed 32px file-text box, read
