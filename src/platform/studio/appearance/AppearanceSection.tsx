@@ -33,7 +33,7 @@ import "./appearance.css";
  */
 
 /** A frame's look: what Appearance, Fill, Stroke and Effects show (Layout appearance.ts). */
-const FRAME_LOOK = ["opacity", "blendMode", "surface", "gradient", "image", "imageFit", "imageCrop", "imageScale", "border", "borderWeight", "borderSides", "borderStyle", "radius", ...CORNERS, "effectStyle"];
+const FRAME_LOOK = ["opacity", "blendMode", "surface", "gradient", "image", "imageFit", "imageCrop", "imageScale", "border", "borderWeight", "borderSides", "borderStyle", "radius", ...CORNERS, "cornerSmoothing", "effectStyle"];
 /** The props these sections show, so DesignPanel keeps them out of Properties. */
 export const appearancePropNames: Readonly<Record<string, readonly string[]>> = {
   Box: FRAME_LOOK,
