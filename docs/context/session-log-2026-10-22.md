@@ -168,3 +168,19 @@ E2E steps ran 3163–3377 s against that cap: the limit was sent to `npm`, not t
   shows, `SlotChips` drew the read-only people/place values as Chips with no handler (a `<button>` that does nothing;
   seen in the appshell and card-themes gates too). The chip guideline says a read-only label is a Tag: they are Tags
   now. Scoped gate `--only=ai-ui`: PASS, behaviour 0 warnings. Its BACKLOG P3 line (from #210) is removed.
+
+## Session A — B's corner smoothing → gradient → Pick color stack landed (20:00–21:00)
+
+- **Taken over from B** at the user's request ("giao cho session khác xử corner smoothing, gradient, Pick color (B)").
+- **Main merged in, bottom-up:** a8a0bf23, then 032d8fbd (#213, #214). Conflicts:
+  - the studio:selftest chain: both sides kept;
+  - figma-push DRAWN_PARTS: main's line, with smoothingOf below it;
+  - toolbar, Shortcuts, figmaNotYet, FW-05: Comment (C) and Pick color (I) both built, so the not-yet lists are empty;
+  - CHANGELOG and BACKLOG: both sides kept.
+- **Gate PASS** on Pick color (ab48e6e6): Studio E2E 338/0 in 8 shards, 9 pages.
+- **Found by FW-180's first run:** Corner smoothing never showed on frames, because FRAME_LOOK lacked `cornerSmoothing`.
+  Fixed on the smoothing branch.
+- **FW-186:** `pickLayer` read the selection from Layers while the left panel was on Pages. The helper now shows Layers
+  first.
+- **After the fixes:** FW-05 and FW-180…186 pass 8/8; tsc, studio:selftest and the CI quick steps are green.
+- **PRs:** #215 smoothing → main, #216 gradient → #215, #217 Pick color → #216. Auto-fix is on.
