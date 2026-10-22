@@ -1135,6 +1135,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Zen Studio: a right-click on a selected layer's resize handle opens the layer's menu, as in Figma. A short text at a
+  low zoom is mostly handles, so its menu did not open.
 - Dialog, ModalForm, BottomSheet and modal SidePanel: a modal in an inert part of the page no longer takes Escape
   and Tab from the one in use, even when it opened last. Zen Studio draws Overlay frames open on its canvas, and
   after a reload into Present from an Overlay, the canvas's copy took the Escape of the Dialog being presented.
@@ -1275,6 +1277,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Zen Studio: ⌥⌘A Select matching layers, as Figma's: the same layer in the other frames (its Section's only), with
+  automatic names compared without their number. Also Select all with same › Properties, Fill, Stroke, Effect, Text
+  properties, Font and Instance, from the layer menu and Quick actions.
 - TopNavigation `largeTitleCapline` and `largeTitleSubheading` (2026-10-19): Figma Main-Heading-Text's Capline and
   Subheading, a Body/Base/Regular line above and below the large title ("Welcome home" / "Hi, Mai Anh", "Apple" /
   "HomePod mini" / "Living room"), grouped with it in an hgroup; they fold away with it.
