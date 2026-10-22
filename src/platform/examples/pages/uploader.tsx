@@ -172,7 +172,7 @@ function ExpenseClaim() {
     setReceipt([]);
   };
   return (
-    <Card theme="flat">
+    <Card theme="default">
       {/* One level of blocks (md): title → fields → actions. */}
       <Form onSubmit={submit} gap="md" aria-labelledby={titleId}>
         <Heading level={4} id={titleId} textStyle="Heading/Subheading">New expense</Heading>

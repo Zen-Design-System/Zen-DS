@@ -35,7 +35,7 @@ function BrandColourExample() {
   const [saved, setSaved] = useState("#1F6FEB");
   const { toast } = useToast();
   return (
-    <Card theme="flat" spacing="md">
+    <Card theme="default" spacing="md">
       <Form gap="lg" onSubmit={(event) => { event.preventDefault(); setSaved(brand); toast({ type: "positive", title: "Theme saved" }); }}>
         <Stack gap="xs">
           <Heading level={3} textStyle="Heading/4">Client portal theme</Heading>
@@ -69,7 +69,7 @@ function PropertyPanelExample() {
   const [border, setBorder] = useState("#FFFFFF");
   return (
     <div className="px-color-picker-panel">
-      <Card theme="flat">
+      <Card theme="default">
         {/* Each group is its own stack and the panel stacks them with no gap, so every rule has 16 above and below. */}
         <Stack gap="none">
           <Stack gap="xs" paddingY="md">
@@ -184,7 +184,7 @@ function PhoneThemeExample() {
         ) : null}
         <Stack as="section" gap="xs" aria-labelledby={previewId}>
           <Box paddingX="lg"><Heading level={2} id={previewId} textStyle="Body/Small/Bold" tone="light">Ticket preview</Heading></Box>
-          <Card theme="flat">
+          <Card theme="default">
             <Stack gap="md">
               {/* The preview paints the picked value: the app's own colour, not a Zen token, so the token-scale audit skips it. */}
               <div className="px-color-picker-brand" data-audit-skip-quality style={{ "--px-color-picker-brand": theme } as CSSProperties}>
@@ -201,7 +201,7 @@ function PhoneThemeExample() {
         </Stack>
         <Stack as="section" gap="xs" aria-labelledby={placesId}>
           <Box paddingX="lg"><Heading level={2} id={placesId} textStyle="Body/Small/Bold" tone="light">Where it shows</Heading></Box>
-          <ListBox theme="flat">
+          <ListBox theme="default">
             <List aria-labelledby={placesId}>
               {themePlaces.map((place) => (
                 <ListItem key={place.id} title={place.title} caption={place.caption} leading={<ColorSwatch color={theme} size="md" />} />
@@ -235,7 +235,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     title: "Property panel",
     description: "Inline fields (layout=\"inline\") in a dense panel: the label inside the field, the value at the end, a colour as its swatch. Each group is its own stack and the panel stacks them with no gap, so every rule has the same space above and below; the Accordion sets the title → rows gap itself.",
     render: () => <PropertyPanelExample />,
-    code: `<Card theme="flat">
+    code: `<Card theme="default">
   <Stack gap="none">
     <Stack gap="xs" paddingY="md"><Heading level={3} textStyle="Heading/4">Photo Stack</Heading></Stack>
     <Divider />
@@ -293,8 +293,8 @@ const ratio = contrastWithWhite(theme); // WCAG relative luminance
     <ColorField label="Theme colour" value={theme} onValueChange={setTheme} size="lg"
       savedColors={palette} helpText="Pick from the event palette or type a hex value." />
     {ratio < 4.5 ? <InlineMessage theme="warning" title="White text is hard to read on this colour">…</InlineMessage> : null}
-    <Card theme="flat">{/* the ticket, painted with the theme colour */}</Card>
-    <ListBox theme="flat">
+    <Card theme="default">{/* the ticket, painted with the theme colour */}</Card>
+    <ListBox theme="default">
       <List aria-label="Where it shows">
         {places.map((place) => <ListItem key={place.id} title={place.title} caption={place.caption} leading={<ColorSwatch color={theme} size="md" />} />)}
       </List>

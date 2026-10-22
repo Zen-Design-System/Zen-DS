@@ -366,18 +366,18 @@
         },
         {
           "name": "theme",
-          "type": "\"shadow\" | \"flat\" | \"border\" | \"pale\" | \"subtle\" | \"on-container\" | \"canvas\"",
+          "type": "\"shadow\" | \"default\" | \"border\" | \"flat-border\" | \"pale\" | \"subtle\" | \"on-container\" | \"canvas\"",
           "required": false,
           "default": "\"shadow\"",
-          "description": "Figma Theme (Card's Neutral themes): `shadow` Surface + Shadow/Bottom/Level-1 (default) · `flat` · `border`\nBorder/Neutral/Pale · `pale` Support/Neutral/Pale · `subtle` Support/Neutral/Subtle (both with the Overlay blur) ·\n`on-container` Surface/Flat, for a pane on a container · `canvas` no fill, for reading layouts (Docs).",
+          "description": "Figma Theme (Card's Neutral themes): `shadow` Surface + Shadow/Bottom/Level-1 (default) · `default` the Surface\nalone (`flat` until 2026-10-21) · `border` Border/Neutral/Pale · `flat-border` Surface/Flat inside that line, on a\nCanvas/Flat page (Border × Surface=Flat until 2026-10-21) · `pale` Support/Neutral/Pale · `subtle`\nSupport/Neutral/Subtle (both with the Overlay blur) · `on-container` Surface/Flat, for a pane on a container ·\n`canvas` no fill, for reading layouts (Docs).",
           "deprecated": null
         },
         {
           "name": "surface",
-          "type": "\"default\" | \"alt\" | \"flat\"",
+          "type": "\"default\" | \"alt\"",
           "required": false,
           "default": "\"default\"",
-          "description": "Figma Surface for the flat and border themes: `default` Surface/Default · `alt` Surface/Alt · `flat` Surface/Flat (border only).",
+          "description": "Figma Surface for the default and border themes: `default` Surface/Default · `alt` Surface/Alt.",
           "deprecated": null
         },
         {

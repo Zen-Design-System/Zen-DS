@@ -240,7 +240,7 @@ function SecurityChecks() {
         action: { label: "Remove guests", onClick: () => setConfirming(true) } },
   ];
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId}>
+    <Card as="section" theme="default" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Heading ref={titleRef} level={4} id={titleId} tabIndex={-1} textStyle="Heading/Subheading">Workspace security</Heading>
@@ -322,7 +322,7 @@ function CommentItem({ comment }: { comment: Comment }) {
 function Comments() {
   const titleId = useId();
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId}>
+    <Card as="section" theme="default" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Comments</Heading>
@@ -362,7 +362,7 @@ function SendFiles() {
     setPicked([]);
   };
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId}>
+    <Card as="section" theme="default" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Send files to Phin & Co</Heading>
@@ -502,7 +502,7 @@ function PlanRenewal() {
   const [unpaid, setUnpaid] = useState(2);
   const titleId = useId();
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId}>
+    <Card as="section" theme="default" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={2} id={titleId} textStyle="Heading/Subheading">Pro plan</Heading>

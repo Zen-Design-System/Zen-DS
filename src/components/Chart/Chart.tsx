@@ -223,7 +223,7 @@ export interface ChartCardProps {
   theme?: CardTheme;
   /** Figma nested Card Color, for theme="pale", "subtle" or "solid": the Card's hue (Solid Neutral is the dark widget; see Card). */
   color?: CardColor;
-  /** Figma nested Card Surface: default · alt (Flat, Border) · flat (Border only, on a Canvas/Flat page); see Card. */
+  /** Figma nested Card Surface: default · alt (Default, Border); see Card. A chart on a Canvas/Flat page takes theme="flat-border". */
   surface?: CardSurface;
   /** The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it). */
   children: ReactNode;
@@ -269,7 +269,7 @@ function useChartGrow(body: RefObject<HTMLDivElement | null>) {
  * (every Figma chart card's Show Icon · Icon · Title · Show Description · Description · Show Value · Value · Show Ranges ·
  * Show Open properties).
  */
-export function ChartCard({ title, headingLevel = 3, icon, description, value, onOpen, openLabel: openLabelProp, ranges, range, onRangeChange, rangesFullWidth = true, theme = "flat", color, surface, children, className, overrides, ref }: ChartCardProps) {
+export function ChartCard({ title, headingLevel = 3, icon, description, value, onOpen, openLabel: openLabelProp, ranges, range, onRangeChange, rangesFullWidth = true, theme = "default", color, surface, children, className, overrides, ref }: ChartCardProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const openLabel = openLabelProp ?? t.openReport;

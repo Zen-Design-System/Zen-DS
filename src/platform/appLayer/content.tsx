@@ -115,7 +115,7 @@ ${itemCode.join("\n")}
       code={code}
     >
       <div className="pac-dl-frame" data-width={width}>
-        <Card theme="flat">
+        <Card theme="default">
           <Stack gap="md">
             <Heading level={3} textStyle="Heading/Subheading">{content === "order" ? "Order summary" : "Contact details"}</Heading>
             <DescriptionList layout={layout} divider={divider} items={items} />

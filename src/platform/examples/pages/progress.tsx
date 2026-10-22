@@ -63,7 +63,7 @@ function StorageQuotaExample() {
     toast({ title: "File deleted", children: `${gb(file.gb)} freed`, action: { label: "Undo", onClick: restore } });
   };
   return (
-    <Card theme="flat" as="section" aria-labelledby={titleId}>
+    <Card theme="default" as="section" aria-labelledby={titleId}>
       {/* Header group → file list: blocks of one surface (md); each block keeps its label close (xs). */}
       <Stack gap="md">
         <Stack gap="xs">
@@ -110,7 +110,7 @@ function SetupChecklistExample() {
   const ready = done.length === setupSteps.length;
   const toggle = (id: string, checked: boolean) => setDone((list) => (checked ? [...list, id] : list.filter((x) => x !== id)));
   return (
-    <Card theme="flat" as="section" aria-labelledby={titleId}>
+    <Card theme="default" as="section" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">{`Get ${brandRefresh.name} ready`}</Heading>
@@ -289,7 +289,7 @@ function LoyaltyStampsExample() {
         : { label: "Scan receipt", startIcon: "icon-scan-line", onClick: scan }} />}>
       {/* Body padding lg (20) = the bar's margin; the reward card and the visits are sections of the screen (lg). */}
       <Stack gap="lg" padding="lg">
-        <Card theme="flat" as="section" aria-labelledby={cardTitleId}>
+        <Card theme="default" as="section" aria-labelledby={cardTitleId}>
           <Stack gap="md">
             <Stack gap="xs">
               <Heading level={2} id={cardTitleId} textStyle="Heading/Subheading">Free drink</Heading>

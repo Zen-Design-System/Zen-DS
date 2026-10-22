@@ -155,9 +155,9 @@ function SkipLinkPortal() {
               <Heading level={2} id={glanceId} textStyle="Heading/4">At a glance</Heading>
               {/* No Sidebar sets an elevation: white flat boxes on the Canvas. */}
               <Grid columns="repeat(auto-fit, minmax(min(100%, 220px), 1fr))" gap="md">
-                <MetricCard theme="flat" size="md" icon="icon-target-04-line" iconTheme="blue" label="Progress" value={`${loyalty.progress}%`} />
-                <MetricCard theme="flat" size="md" icon="icon-calendar-line" iconTheme="purple" label="Store staff beta" value={formatDate(new Date(2026, 9, 15))} />
-                <MetricCard theme="flat" size="md" icon="icon-coins-line" iconTheme="green" label="Budget used" value={formatCompactMoney(loyalty.spent)} />
+                <MetricCard theme="default" size="md" icon="icon-target-04-line" iconTheme="blue" label="Progress" value={`${loyalty.progress}%`} />
+                <MetricCard theme="default" size="md" icon="icon-calendar-line" iconTheme="purple" label="Store staff beta" value={formatDate(new Date(2026, 9, 15))} />
+                <MetricCard theme="default" size="md" icon="icon-coins-line" iconTheme="green" label="Budget used" value={formatCompactMoney(loyalty.spent)} />
               </Grid>
             </Stack>
           ) : null}
@@ -264,7 +264,7 @@ function LeaveApprovals() {
         // "Approve" alone sounds the same on every card; the hidden words name whose request it is.
         const whose = ` ${person.name}'s request`;
         return (
-          <Card key={request.id} as="article" theme="flat" data-request={request.id} tabIndex={-1} aria-label={`${person.name}, ${request.kind}`}>
+          <Card key={request.id} as="article" theme="default" data-request={request.id} tabIndex={-1} aria-label={`${person.name}, ${request.kind}`}>
             <Stack gap="md">
               <Stack direction="row" gap="md" align="center">
                 {personAvatar(request.person)}
@@ -524,10 +524,10 @@ function MonthAtAGlance() {
         </Chip>
       </Stack>
       <Grid minColumnWidth="220px" gap="md">
-        <MetricCard theme="flat" label="Invoiced" value={formatCompactMoney(at.month.invoiced)} trend={trend(at.month.invoiced, at.before.invoiced)} icon="icon-receipt-line" iconTheme="blue" />
-        <MetricCard theme="flat" label="Collected" value={formatCompactMoney(at.month.collected)} trend={trend(at.month.collected, at.before.collected)} icon="icon-currency-dollar-circle-line" iconTheme="green" />
-        <MetricCard theme="flat" label="Billable hours" value={`${at.hours.toLocaleString("en-US")} h`} trend={trend(at.hours, at.hoursBefore)} icon="icon-clock-line" iconTheme="violet" />
-        <MetricCard theme="flat" label="Overdue" value={formatCompactMoney(overdue)} trend={{ direction: "normal", label: plural(overdueCount, "invoice") }} icon="icon-alarm-clock-line" iconTheme="orange" />
+        <MetricCard theme="default" label="Invoiced" value={formatCompactMoney(at.month.invoiced)} trend={trend(at.month.invoiced, at.before.invoiced)} icon="icon-receipt-line" iconTheme="blue" />
+        <MetricCard theme="default" label="Collected" value={formatCompactMoney(at.month.collected)} trend={trend(at.month.collected, at.before.collected)} icon="icon-currency-dollar-circle-line" iconTheme="green" />
+        <MetricCard theme="default" label="Billable hours" value={`${at.hours.toLocaleString("en-US")} h`} trend={trend(at.hours, at.hoursBefore)} icon="icon-clock-line" iconTheme="violet" />
+        <MetricCard theme="default" label="Overdue" value={formatCompactMoney(overdue)} trend={{ direction: "normal", label: plural(overdueCount, "invoice") }} icon="icon-alarm-clock-line" iconTheme="orange" />
       </Grid>
     </Stack>
   );
@@ -659,10 +659,10 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     </Chip>
   </Stack>
   <Grid minColumnWidth="220px" gap="md">
-    <MetricCard theme="flat" label="Invoiced" value="$105.7K" trend={{ direction: "positive", label: "+9% vs Aug" }} icon="icon-receipt-line" iconTheme="blue" />
-    <MetricCard theme="flat" label="Collected" value="$88.3K" trend={{ direction: "negative", label: "−8% vs Aug" }} icon="icon-currency-dollar-circle-line" iconTheme="green" />
-    <MetricCard theme="flat" label="Billable hours" value="5,900 h" trend={{ direction: "positive", label: "+4% vs Aug" }} icon="icon-clock-line" iconTheme="violet" />
-    <MetricCard theme="flat" label="Overdue" value="$12.9K" trend={{ direction: "normal", label: "1 invoice" }} icon="icon-alarm-clock-line" iconTheme="orange" />
+    <MetricCard theme="default" label="Invoiced" value="$105.7K" trend={{ direction: "positive", label: "+9% vs Aug" }} icon="icon-receipt-line" iconTheme="blue" />
+    <MetricCard theme="default" label="Collected" value="$88.3K" trend={{ direction: "negative", label: "−8% vs Aug" }} icon="icon-currency-dollar-circle-line" iconTheme="green" />
+    <MetricCard theme="default" label="Billable hours" value="5,900 h" trend={{ direction: "positive", label: "+4% vs Aug" }} icon="icon-clock-line" iconTheme="violet" />
+    <MetricCard theme="default" label="Overdue" value="$12.9K" trend={{ direction: "normal", label: "1 invoice" }} icon="icon-alarm-clock-line" iconTheme="orange" />
   </Grid>
 </Stack>`,
   },

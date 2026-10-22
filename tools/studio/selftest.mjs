@@ -1042,9 +1042,9 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
       "      </Box>",
     ]);
     check("card full: IconButton gets a new import, sorted among the components", importLines(fullResult).slice(1, 4), ['import { Badge } from "../../../components/Badge";', 'import { IconButton } from "../../../components/Button";', 'import { DescriptionItem, DescriptionList } from "../../../components/DescriptionList";']);
-    for (const [theme, surface] of [["flat", "surface"], ["pale", "pale"], ["semi-pale", "pale"], ["border", "surface"]]) {
+    for (const [theme, surface] of [["default", "surface"], ["pale", "pale"], ["semi-pale", "pale"], ["border", "surface"], ["flat-border", "surface"]]) {
       const one = detachAt(`card ${theme}`, page(`export const A = () => <Card theme="${theme}"><Stack gap="sm"><Text>x</Text></Stack></Card>;`), "<Card", "Card");
-      check(`card ${theme}: surface, a block child kept as is`, changedLines(one)[0], `export const A = () => /* zen-detached: Card · Zen Studio */ <Box surface="${surface}"${theme === "border" ? ' border="pale"' : ""} radius="2xl" padding="xl"><Stack gap="sm"><Text>x</Text></Stack></Box>;`);
+      check(`card ${theme}: surface, a block child kept as is`, changedLines(one)[0], `export const A = () => /* zen-detached: Card · Zen Studio */ <Box surface="${surface}"${theme === "border" || theme === "flat-border" ? ' border="pale"' : ""} radius="2xl" padding="xl"><Stack gap="sm"><Text>x</Text></Stack></Box>;`);
     }
     const spaced = detachAt("card inline text", page('export const A = () => <Card spacing="small"> Hi <b>there</b></Card>;'), "<Card", "Card");
     check("card: edge whitespace stays inline in a Stack", changedLines(spaced).slice(0, 2), ['export const A = () => /* zen-detached: Card · Zen Studio */ <Box surface="surface" radius="lg" padding="md">', '  <Stack gap="none"> Hi <b>there</b></Stack>']);
@@ -1656,7 +1656,7 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
       "    // keeps the stage height",
       "    style={{ minHeight: 0 }}",
       "    /* flat on purpose */",
-      '    theme="flat"',
+      '    theme="default"',
       "    // last",
       "  >",
       "    x",

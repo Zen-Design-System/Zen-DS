@@ -56,7 +56,7 @@ function LabelColourExample() {
     toast({ type: "positive", title: "Label created" });
   };
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       {/* Two groups in one card (lg apart): the labels so far, and the form that adds one. */}
       <Stack gap="lg">
         <Stack gap="xs">
@@ -151,7 +151,7 @@ function HighlightExample() {
   // Clear highlight disables itself: focus moves to the swatches, where a new colour can be picked.
   const clear = () => { cardRef.current?.querySelector<HTMLElement>(".zen-color-selector input")?.focus(); setValue(undefined); };
   return (
-    <Stack><Card ref={cardRef} theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card ref={cardRef} theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Review notes</Heading>
@@ -191,11 +191,11 @@ function ChartSeriesExample() {
   const shared = clientSeries.filter((series, index) => clientSeries.some((other, j) => j !== index && colours[other.id] === colours[series.id]));
   return (
     <Stack><Stack gap="md" width="fill" maxWidth={440} alignSelf="center">
-      <ChartCard title="Hours by client" headingLevel={4} theme="flat">
+      <ChartCard title="Hours by client" headingLevel={4} theme="default">
         <StackBarChart aria-label="Hours by client, last four weeks" height={200} format={(value) => `${value} h`}
           series={clientSeries.map((series) => ({ ...series, color: swatch(colours[series.id]).value }))} data={weeklyHours} />
       </ChartCard>
-      <Card theme="flat">
+      <Card theme="default">
         <Stack gap="md">
           {shared.length ? (
             <InlineMessage theme="warning" title="Two clients share a colour">

@@ -36,7 +36,7 @@ function PhotoZoomExample() {
   // Reset zoom disables itself: focus moves to the slider instead of falling to the page.
   const reset = () => { formRef.current?.querySelector<HTMLElement>('input[type="range"]')?.focus(); setZoom(100); };
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Form ref={formRef} onSubmit={() => toast({ type: "positive", title: "Profile photo updated" })} gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Profile photo</Heading>
         {/* The crop follows the thumb while it moves: the slider tunes by eye, the preview shows the result. */}
@@ -74,7 +74,7 @@ function BudgetAlertExample() {
   const save = () => { toSlider(); setSaved(threshold); toast({ type: "positive", title: "Budget alert saved" }); };
   const cancel = () => { toSlider(); setThreshold(saved); };
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Form ref={formRef} onSubmit={save} gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Budget alert</Heading>
@@ -226,7 +226,7 @@ function SoundsExample() {
   const [sounds, setSounds] = useState(false);
   const [volume, setVolume] = useState(60);
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       {/* The card header and two settings of one group: md apart; each label sits xs from its control. */}
       <Stack gap="md">
         <Stack gap="xs">

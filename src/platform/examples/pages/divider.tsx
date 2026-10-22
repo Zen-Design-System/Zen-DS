@@ -232,7 +232,7 @@ function ProfileCardExample() {
     toast({ title: "Email copied", children: chi.email });
   };
   return (
-    <Card theme="flat" as="article" aria-labelledby={titleId}>
+    <Card theme="default" as="article" aria-labelledby={titleId}>
       {/* The person, their details and their projects are groups of one surface (lg); the avatar keeps the gap a List
           row keeps between its leading visual and its text (md). */}
       <Stack gap="lg">
@@ -281,7 +281,7 @@ function FileToolbarExample() {
     buttons[(next + buttons.length) % buttons.length]?.focus();
   };
   return (
-    <Card theme="flat">
+    <Card theme="default">
       <Stack gap="md" className="px-divider-file">
         {/* On a narrow screen the zoom group and its divider step aside (people pinch to zoom there), so a divider never
             wraps onto the end of a line. */}
@@ -336,7 +336,7 @@ function SignInExample() {
     window.requestAnimationFrame(() => againRef.current?.focus());
   };
   return (
-    <Card theme="flat">
+    <Card theme="default">
       {sentTo ? (
         // The sent state replaces the form: what happened, then the one way back.
         <Stack gap="md">
@@ -444,7 +444,7 @@ function MobileReceiptExample() {
       >
         {screen.anchor}
         {/* The slip: the store, the items and the stub are its groups, lg apart, with a divider between each. */}
-        <Card theme="flat" as="article" aria-label={`Receipt for order ${order.id}`}>
+        <Card theme="default" as="article" aria-label={`Receipt for order ${order.id}`}>
           <Stack gap="lg">
             <Stack direction="column" align="center" gap="md">
               <DockIcon icon="icon-coffee-cup-line" theme="orange" background="subtle" size="2xl" />
@@ -554,7 +554,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     title: "Groups in a card",
     description: "Spacing does most of the grouping; a Default divider goes only between the person, their details and their projects, never at the top or bottom of the card.",
     render: () => <ProfileCardExample />,
-    code: `<Card theme="flat">
+    code: `<Card theme="default">
   <Stack gap="lg">
     <Stack direction="row" gap="md">
       <Avatar size="large" theme="photo" src={chi.photo} alt="" />
@@ -583,7 +583,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToOrders }} />}
     actionBar={<ActionBar primaryAction={{ label: "Email receipt", onClick: openEmail }} secondaryAction={{ label: "Order again", onClick: orderAgain }} />}
   >
-    <Card theme="flat" as="article" aria-label="Receipt for order A-247">
+    <Card theme="default" as="article" aria-label="Receipt for order A-247">
       <Stack gap="lg">
         <Stack align="center" gap="md">…the store…</Stack>
         <Divider />

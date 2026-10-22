@@ -105,7 +105,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {
     title: "Compact log",
     description: "Size Small with Dot markers suits a dense audit log in a side panel; long details wrap.",
-    render: () => <Card theme="flat"><Stack gap="md"><Heading level={3} textStyle="Heading/Subheading">Audit log</Heading><TimelineActivity size="sm" entries={entries.map((entry) => ({ ...entry, attachment: undefined, marker: { kind: "dot", tone: entry.marker?.tone ?? "neutral" } }))} today={TODAY} /></Stack></Card>,
+    render: () => <Card theme="default"><Stack gap="md"><Heading level={3} textStyle="Heading/Subheading">Audit log</Heading><TimelineActivity size="sm" entries={entries.map((entry) => ({ ...entry, attachment: undefined, marker: { kind: "dot", tone: entry.marker?.tone ?? "neutral" } }))} today={TODAY} /></Stack></Card>,
     code: `<TimelineActivity size="sm" entries={entries.map((entry) => ({ ...entry, marker: { kind: "dot", tone: entry.marker?.tone } }))} />`,
   },
   {

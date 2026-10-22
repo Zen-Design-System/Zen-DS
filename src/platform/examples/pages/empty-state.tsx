@@ -439,7 +439,7 @@ function NoAccess() {
                 <Text textStyle="Body/Small/Regular" tone="base">{`${project.name} · ${project.client}`}</Text>
               </Stack>
             </Stack>
-            <Card theme="flat">
+            <Card theme="default">
               <DescriptionList divider items={[
                 { term: "Owner", description: owner.name },
                 { term: "Size", description: formatBytes(file.bytes) },
