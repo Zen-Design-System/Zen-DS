@@ -21,6 +21,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   with a Fill height) gives its content that height, and a child with `height="fill"` grows into it, so a CTA or
   footer sits at the foot without a class; a ListBox body does the same. Hug cards keep their content height
   (2026-10-23).
+- Zen Studio: ⇧⌘G with several layers selected ungroups every selected group or frame, as Figma's (one ⌘Z takes it
+  back); their layers and the other selected layers stay selected, and the canvas menu offers Ungroup on several layers
+  (2026-10-23).
+- Zen Studio ↔ Figma: an instance's layer name (data-name) is its Figma name and comes back with Pull from Figma, and so
+  does a name changed in Figma since; an instance's accessible name (aria-label, an icon button's label) stays its Figma
+  name first (2026-10-23).
 - Chart and metric marks on a colour Solid Card (Brand, Accent, Cyan, Yellow, Orange) draw their second series (the
   current Spark-Bar, the active bar, a Bullet or Gauge target, the Funnel's last stage, the Combo line) in black at 49%
   (Content/Neutral/Light; Inverse/Light in dark mode), as Figma's Color Chart Sector/On-Color/Secondary does, not 69%.
