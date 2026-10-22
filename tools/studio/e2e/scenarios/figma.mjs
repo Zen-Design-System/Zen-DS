@@ -4090,7 +4090,7 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   {
-    id: "FW-200", feature: "A Button's words are its Text property in the Properties block (after Figma's own properties), no Content section; typing there writes its children; ⌘Z takes it back", wp: "Content into properties 2026-10-22", timeout: 40_000,
+    id: "FW-205", feature: "A Button's words are its Text property in the Properties block (after Figma's own properties), no Content section; typing there writes its children; ⌘Z takes it back", wp: "Content into properties 2026-10-22", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await contentPage(ctx);
       return restoring(page, id, async () => {
@@ -4113,7 +4113,7 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   {
-    id: "FW-201", feature: "A component without Figma properties (InputLabel) shows one Properties block in its prop order, as Figma's instance panel: no Appearance / Content / State / Actions sections, its words a Text row where `children` sits", wp: "Content into properties 2026-10-22", timeout: 40_000,
+    id: "FW-206", feature: "A component without Figma properties (InputLabel) shows one Properties block in its prop order, as Figma's instance panel: no Appearance / Content / State / Actions sections, its words a Text row where `children` sits", wp: "Content into properties 2026-10-22", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await contentPage(ctx);
       await clickNamed(page, id, "InputLabel");
@@ -4130,7 +4130,7 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   {
-    id: "FW-202", feature: "A text layer (Text) keeps its words in a Text row first in Typography (user 2026-10-22), no Content section; typing there writes them", wp: "Content into properties 2026-10-22", timeout: 40_000,
+    id: "FW-207", feature: "A text layer (Text) keeps its words in a Text row first in Typography (user 2026-10-22), no Content section; typing there writes them", wp: "Content into properties 2026-10-22", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await contentPage(ctx);
       return restoring(page, id, async () => {

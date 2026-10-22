@@ -108,7 +108,7 @@ What is still not Figma's:
     in a component without Figma properties); a text layer keeps a Text row first in Typography (the user kept a panel
     field). Components without Figma properties show one Properties block in their prop order, as Figma's instance panel
     (the Appearance / Content / Icon / State / Actions groups of 2026-10-06 are gone). The child-layer list went with the
-    section (Layers and Enter select children). E2E FW-200…202.
+    section (Layers and Enter select children). E2E FW-205…207.
   - A Button's panel has no Appearance, Fill, Stroke or Effects, so its look comes from its variants only.
 
 Found on the way (not graded rows):

@@ -10,7 +10,7 @@ the 58 components without Figma properties lose the 2026-10-06 groups for one Pr
   own rows; else at `children`'s place in the API order) or first in a text layer's Typography (TextSection
   `textRows`). An instance with words but no property block gets a Properties section of its own.
 - inspector/autoGroups.ts deleted. The double-click fallback (focus-content) focuses the moved Text row.
-- E2E FW-200…202 (Button, InputLabel, Text); written, to run in my gate turn.
+- E2E FW-205…207 (Button, InputLabel, Text); written, to run in my gate turn.
 
 ## Select matching layers ⌥⌘A + Select all with same › (Session A, branch `zen/feat/studio-select-matching-20261022`)
 
