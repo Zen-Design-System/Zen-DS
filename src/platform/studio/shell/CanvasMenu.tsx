@@ -1,4 +1,4 @@
-import { startPlay } from "../builder/proto/Player";
+import { playStartOf, startPlay } from "../builder/proto/playStart";
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
 import { Menu, type MenuEntry, type MenuItemData } from "../../../components/Menu";
 import { ZenPortalProvider } from "../../../components/Portal";
@@ -238,8 +238,9 @@ export function CanvasMenu() {
     // Figma's Copy as PNG / SVG of a frame: its body as a picture or as SVG markup (edit/copyAs.ts).
     { id: "frame-copy-png", label: "Copy as PNG", icon: "icon-image-line" as const, shortcut: copyAsPngShortcut, onSelect: () => { void copyAsPng({ kind: "frame", frameId: frame.id }); } },
     { id: "frame-copy-svg", label: "Copy as SVG", icon: "icon-code-02-line" as const, onSelect: () => { void copyAsSvg({ kind: "frame", frameId: frame.id }); } },
-    // Present plays a page you made from this Screen (Figma's Present runs the prototype); an example frame is presented.
-    ...(!section && (localPage || frame.id.startsWith("example:")) ? [{ id: "frame-present", label: "Present", icon: "icon-play-line" as const, shortcut: presentShortcut, onSelect: () => (localPage ? startPlay(frame.id.startsWith("screen:") ? frame.id.split(":")[1] : null) : presentFrame(frame.id)) }] : []),
+    // Present plays a page you made from this Screen, or opens this Overlay over the Screen that opens it (Figma's Present
+    // runs the prototype); an example frame is presented.
+    ...(!section && (localPage || frame.id.startsWith("example:")) ? [{ id: "frame-present", label: "Present", icon: "icon-play-line" as const, shortcut: presentShortcut, onSelect: () => (localPage ? startPlay(playStartOf(frame.id)) : presentFrame(frame.id)) }] : []),
     // A frame of a page you made: its code and its Figma export on the clipboard (⌘V in the Zen plugin places it).
     ...(localPage && !section ? [{ id: "frame-copy-figma", label: "Copy for Figma", icon: "icon-copy-line" as const, onSelect: () => { void copyFrameForFigma(localPage, frame.id); } }] : []),
     // A builder page that starts as this example or template (GĐ3b): kept in this browser, so it needs no dev server.

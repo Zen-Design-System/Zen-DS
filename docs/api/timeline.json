@@ -1,0 +1,553 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "timeline",
+  "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+  "components": [
+    {
+      "name": "TimelineActivity",
+      "file": "src/components/Timeline/TimelineViews.tsx",
+      "description": "Figma `Timeline/Activity` (16131:1311): an activity feed — day kickers (Body/Small/Bold, Neutral/Light: \"Today\",\n\"Yesterday\", then the date) over `Timeline/Item` rows, kicker → items Gap/XSmall, day → day Gap/Large; each day's last\nitem has no connector. Newest first. A list per day, named by its kicker.",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLDivElement>",
+      "props": [
+        {
+          "name": "entries",
+          "type": "TimelineEntryData[]",
+          "required": true,
+          "default": null,
+          "description": "The entries (any order): shown newest first, grouped by day.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The day treated as today (\"Today\", \"Yesterday\" kickers). Default: the device clock.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Item size: `md` (default) or `sm` (a compact log).",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Device: `desktop` (640) or `mobile` (358); the items are the same. Default: from the breakpoint.",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the items (`{ \"Item[approve]/Marker\": { tone: \"positive\" } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TimelineItem",
+      "file": "src/components/Timeline/Timeline.tsx",
+      "description": "Figma `Timeline/Item` (16131:1090): one entry of an activity history — a 24px rail (the marker, then a 2px\nBorder/Neutral/Subtle connector, Gap/2XSmall), then the body (Padding-top 3XSmall, Padding-bottom Large / Small,\nGap/2XSmall): the actor in Body/Small/Bold and what they did in Body/Small/Regular (Strongest) beside the time\n(Caption/Regular Light, Gap/XSmall), an optional detail (Body/Small/Regular Base) and attachment. Gap/Small (Small:\nXSmall) between rail and body.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"title\">",
+      "props": [
+        {
+          "name": "actor",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "The actor, in Body/Small/Bold (\"Maya Chen\").",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "What happened, after the actor (\" approved your leave request\").",
+          "deprecated": null
+        },
+        {
+          "name": "time",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Time (\"10:42\").",
+          "deprecated": null
+        },
+        {
+          "name": "description",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Description + Detail: one line of detail (\"Annual leave · Oct 12 – Oct 16\").",
+          "deprecated": null
+        },
+        {
+          "name": "attachment",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Attachment + Attachment-Slot: a comment, a file, a change. A string draws the comment box (Surface/Alt,\nPadding/Small, Corner-Radius/Base); pass a node for your own.",
+          "deprecated": null
+        },
+        {
+          "name": "connector",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Figma Connector: the rail down to the next item (off on a group's last item). Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"md\" | \"sm\" | \"medium\" | \"small\"",
+          "required": false,
+          "default": "\"md\"",
+          "description": "Figma Size: `md` (24px marker, Large after each item, default) or `sm` (Small after; a Dot marker suits it).",
+          "deprecated": null
+        },
+        {
+          "name": "marker",
+          "type": "TimelineMarkerData",
+          "required": false,
+          "default": null,
+          "description": "The marker (Kind = Figma Type, Tone, icon, avatar). Default: Icon Accent (Medium), Dot Neutral (Small).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the marker (`{ \"Marker\": { tone: \"positive\" } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TimelineMilestones",
+      "file": "src/components/Timeline/TimelineViews.tsx",
+      "description": "Figma `Timeline/Milestones` (16132:777): a row (desktop, Horizontal) or a column (phone, Vertical) of\n`.Primitives/Timeline/Milestone` — Done ones in Accent, exactly one Current (with its description), the rest\nUpcoming; the last one has no connector. A desktop box too narrow for 96px per milestone stacks them as the phone\ndoes. An ordered list; the Current milestone carries `aria-current=\"step\"`.",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLOListElement>",
+      "props": [
+        {
+          "name": "milestones",
+          "type": "TimelineMilestoneData[]",
+          "required": true,
+          "default": null,
+          "description": "The milestones, in date order.",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The day treated as today: milestones before it are Done, the first on or after it is Current, the rest Upcoming.\nDefault: the device clock.",
+          "deprecated": null
+        },
+        {
+          "name": "currentId",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The Current milestone by id, when it is not the date's (a late phase).",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Device: `desktop` (a row; items share the width) or `mobile` (a column). Default: from the breakpoint.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLOListElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<ol>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TimelineGantt",
+      "file": "src/components/Timeline/TimelineViews.tsx",
+      "description": "Figma `Timeline/Gantt` (16136:859): a Border box (`Color/Background/Surface/Default`, 1px Pale, Corner-Radius/Base,\nclipped) — a 40px header (\"Tasks\" and the week starts, Caption/Medium Neutral/Base) over a task column of\n`.Primitives/Timeline/Gantt-Label` rows (240, 128 on a phone) beside a track of 44px rows with week columns, Pale rules\noutside the layout. `.Primitives/Timeline/Gantt-Bar` bars sit by date — x = days from the first column × day width + 2,\nwidth = days × day width − 4, centred in the row — and keep their real dates past the edge (the track scrolls; never\nsqueezed). A group's Summary spans its tasks; the vertical `.Primitives/Calendar/Now-Line` marks today. On a phone,\nmilestone titles live in the task column only.\n\nSemantics: a `role=\"table\"` — the week headers, then per row a row header (the label; a group's is a disclosure that\nhides its tasks) and one cell with its bar (a button with `onTaskClick`).",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLDivElement>",
+      "props": [
+        {
+          "name": "groups",
+          "type": "TimelineGroupData[]",
+          "required": true,
+          "default": null,
+          "description": "The plan: groups of tasks. A group's summary bar spans its tasks.",
+          "deprecated": null
+        },
+        {
+          "name": "start",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "First day of the scale (rounded to its Monday). Default: the Monday of the earliest task.",
+          "deprecated": null
+        },
+        {
+          "name": "weeks",
+          "type": "number",
+          "required": false,
+          "default": "9",
+          "description": "How many weeks the scale shows (default 9).",
+          "deprecated": null
+        },
+        {
+          "name": "today",
+          "type": "Date | string",
+          "required": false,
+          "default": null,
+          "description": "The day treated as today: the vertical now line. Default: the device clock.",
+          "deprecated": null
+        },
+        {
+          "name": "onTaskClick",
+          "type": "(task: TimelineTaskData, target: HTMLElement) => void",
+          "required": false,
+          "default": null,
+          "description": "Pressing a task or milestone bar: open it, anchored to `target`. Without it the bars are static.",
+          "deprecated": null
+        },
+        {
+          "name": "defaultCollapsed",
+          "type": "string[]",
+          "required": false,
+          "default": "[]",
+          "description": "Groups collapsed at first (by id).",
+          "deprecated": null
+        },
+        {
+          "name": "device",
+          "type": "\"desktop\" | \"mobile\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Device: `desktop` (240px task column, the whole scale) or `mobile` (128px column, three weeks visible; the\ntrack scrolls and opens at today, else the plan's start). Default: from the breakpoint.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the plan (default the locale's \"Tasks\").",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the labels and bars (`{ \"Bar[ui]\": { color: \"teal\" } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TimelineMarker",
+      "file": "src/components/Timeline/Timeline.tsx",
+      "description": "Figma `.Primitives/Timeline/Marker` (16130:55): the marker on a timeline rail, Image-Size/XSmall (24px). Dot: 10px —\n`Color/Background/<Tone>/Solid/Default`, Neutral a Surface dot with a 2px Border/Neutral/Solid ring. Icon: Dock-Icon\nXSmall Subtle (Neutral, Accent, Green, Orange, Red). Avatar: Avatar/Single XSmall Subtle. Decorative: the item says what\nhappened.",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLSpanElement>",
+      "props": [
+        {
+          "name": "type",
+          "type": "\"dot\" | \"icon\" | \"avatar\"",
+          "required": false,
+          "default": "\"dot\"",
+          "description": "Figma Type: `dot` (10px; Neutral is hollow), `icon` (Dock-Icon XSmall, Subtle) or `avatar` (Avatar XSmall, one\ninitial). Avatar when a person did it, Icon when the system did, Dot in compact logs.",
+          "deprecated": null
+        },
+        {
+          "name": "tone",
+          "type": "\"neutral\" | \"accent\" | \"positive\" | \"warning\" | \"negative\"",
+          "required": false,
+          "default": "\"neutral\"",
+          "description": "Figma Tone (status, not decoration). Default neutral.",
+          "deprecated": null
+        },
+        {
+          "name": "icon",
+          "type": "IconName",
+          "required": false,
+          "default": null,
+          "description": "Type=Icon: the icon (default the tone's: edit, message, check, clock, flag).",
+          "deprecated": null
+        },
+        {
+          "name": "avatarName",
+          "type": "string",
+          "required": false,
+          "default": "\"\"",
+          "description": "Type=Avatar: the person's name (its initial) and photo.",
+          "deprecated": null
+        },
+        {
+          "name": "avatarSrc",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "avatarTheme",
+          "type": "Exclude<AvatarTheme, \"photo\">",
+          "required": false,
+          "default": "\"teal\"",
+          "description": "Type=Avatar without a photo: the initial's theme (default teal).",
+          "deprecated": null
+        },
+        {
+          "name": "overrides",
+          "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "required": false,
+          "default": null,
+          "description": "Figma instance overrides of the Dock-Icon / Avatar it draws (`{ \"Icon\": { theme: \"blue\" } }`). Written by Zen Studio.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<span>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TimelineMilestone",
+      "file": "src/components/Timeline/Timeline.tsx",
+      "description": "Figma `.Primitives/Timeline/Milestone` (16130:147): one dated milestone. Horizontal: an axis (a 16px marker box, then a\n2px connector, Gap/2XSmall) over the content (Padding-right Small, Gap/3XSmall), Gap/XSmall. Vertical: a 16px rail\n(Padding-top 3XSmall) beside the content (Padding-bottom Large), Gap/Small. Date Caption/Medium (Current Accent/Base,\nelse Neutral/Light), Title Body/Small/Medium (Current Bold) Strongest, Description Caption/Regular Light. Markers as the\nItinerary's: Done Accent dot, Current a 16px Accent ring, Upcoming a hollow Neutral/Solid ring; connectors Accent after\nDone, Border/Neutral/Subtle otherwise.",
+      "deprecated": null,
+      "extends": "Omit<HTMLAttributes<HTMLDivElement>, \"title\">",
+      "props": [
+        {
+          "name": "date",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Date (\"Sep 25\").",
+          "deprecated": null
+        },
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Title (\"Design sign-off\").",
+          "deprecated": null
+        },
+        {
+          "name": "description",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Description: one line of detail (shown on the Current milestone).",
+          "deprecated": null
+        },
+        {
+          "name": "status",
+          "type": "\"done\" | \"current\" | \"upcoming\"",
+          "required": false,
+          "default": "\"upcoming\"",
+          "description": "Figma Status: `done` (Accent dot and connector), `current` (Accent ring, Accent date, bold title) or `upcoming`\n(a hollow neutral dot).",
+          "deprecated": null
+        },
+        {
+          "name": "orientation",
+          "type": "\"horizontal\" | \"vertical\"",
+          "required": false,
+          "default": "\"horizontal\"",
+          "description": "Figma Orientation: `horizontal` (marker and connector above the text; desktop) or `vertical` (the rail on the left;\nphones). Default horizontal.",
+          "deprecated": null
+        },
+        {
+          "name": "connector",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Figma Connector (off on the last milestone). Default true.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TimelineGanttBar",
+      "file": "src/components/Timeline/Timeline.tsx",
+      "description": "Figma `.Primitives/Timeline/Gantt-Bar` (16130:77), 28px high. Task: Padding 2XSmall · XSmall, Corner-Radius/XSmall,\n`Color/Background/Support/<Hue>/Subtle` with a 2px `Color/Border/Support/<Hue>/Solid` leading rule, the title in\nCaption/Bold Strongest (one line). Summary: an 8px Corner-Radius/2XSmall `Color/Background/Neutral/Solid/Default` bar.\nMilestone: an 11px Accent/Solid square turned 45° in a 16px box, the title (Caption/Bold Strongest) Gap/XSmall after it.",
+      "deprecated": null,
+      "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"title\" | \"color\">",
+      "props": [
+        {
+          "name": "title",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Title (inside a task, beside a milestone; a summary shows none).",
+          "deprecated": null
+        },
+        {
+          "name": "kind",
+          "type": "\"task\" | \"summary\" | \"milestone\"",
+          "required": false,
+          "default": "\"task\"",
+          "description": "Figma Kind: `task` (Subtle hue with a Solid leading rule, the title inside), `summary` (a group's span: an 8px\nNeutral bar) or `milestone` (an Accent diamond with the title beside it).",
+          "deprecated": null
+        },
+        {
+          "name": "color",
+          "type": "\"brand\" | \"blue\" | \"violet\" | \"teal\" | \"green\" | \"orange\" | \"pink\"",
+          "required": false,
+          "default": "\"brand\"",
+          "description": "Figma Color for tasks: the workstream (default brand).",
+          "deprecated": null
+        },
+        {
+          "name": "hideTitle",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Hide a milestone's title (the phone Gantt shows it in the task column only).",
+          "deprecated": null
+        },
+        {
+          "name": "onClick",
+          "type": "MouseEventHandler<HTMLButtonElement>",
+          "required": false,
+          "default": null,
+          "description": "Pressing the bar (open the task). Without it the bar is static.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root element (a `<button>` when pressable, else a `<div>`).",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "TimelineGanttLabel",
+      "file": "src/components/Timeline/Timeline.tsx",
+      "description": "Figma `.Primitives/Timeline/Gantt-Label` (16130:90): a 44px row of the Gantt's task column with a Pale rule below —\nGroup: Padding 0 · Small, Gap/XSmall, icon-chevron-down-line, Body/Small/Bold; Task: 32 from the left, Body/Small/Regular\nand the assignee's Avatar XSmall.",
+      "deprecated": null,
+      "extends": "HTMLAttributes<HTMLDivElement>",
+      "props": [
+        {
+          "name": "name",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "Figma Name. One line, truncated.",
+          "deprecated": null
+        },
+        {
+          "name": "level",
+          "type": "\"group\" | \"task\"",
+          "required": false,
+          "default": "\"task\"",
+          "description": "Figma Level: `group` (a chevron and Body/Small/Bold; collapses its tasks) or `task` (indented 32, Body/Small/Regular,\nthe assignee).",
+          "deprecated": null
+        },
+        {
+          "name": "assignee",
+          "type": "{ src?: string; alt?: string }",
+          "required": false,
+          "default": null,
+          "description": "Figma Assignee (task): the person, as an Avatar XSmall.",
+          "deprecated": null
+        },
+        {
+          "name": "expanded",
+          "type": "boolean",
+          "required": false,
+          "default": "true",
+          "description": "Group: whether its tasks show (the chevron points down). With `onToggle` the label is a disclosure button.",
+          "deprecated": null
+        },
+        {
+          "name": "onToggle",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Group: show or hide its tasks.",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "Ref to the root `<div>`.",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "AvatarTheme": "type AvatarTheme = \"photo\" | \"accent\" | \"blue\" | \"brown\" | \"crimson\" | \"cyan\" | \"green\" | \"indigo\" | \"neutral\" | \"orange\" | \"pink\" | \"plum\" | \"purple\" | \"red\" | \"teal\" | \"violet\" | \"yellow\" | \"sky\" | \"mint\" | \"bronze\" | \"golden\"",
+    "CalendarColor": "type CalendarColor = \"brand\" | \"blue\" | \"violet\" | \"teal\" | \"green\" | \"orange\" | \"pink\"",
+    "CalendarDateInput": "type CalendarDateInput = Date | string",
+    "TimelineEntryData": "interface TimelineEntryData { id: string; at: CalendarDateInput; actor?: string; title: string; description?: string; attachment?: ReactNode; marker?: TimelineMarkerData; }",
+    "TimelineGroupData": "interface TimelineGroupData { id: string; name: string; tasks: TimelineTaskData[]; }",
+    "TimelineMarkerData": "interface TimelineMarkerData extends Pick<TimelineMarkerProps, \"tone\" | \"icon\" | \"avatarName\" | \"avatarSrc\" | \"avatarTheme\"> { kind?: TimelineMarkerProps[\"type\"]; }",
+    "TimelineMilestoneData": "interface TimelineMilestoneData { id: string; date: CalendarDateInput; title: string; description?: string; }",
+    "TimelineTaskData": "interface TimelineTaskData { id: string; name: string; start: CalendarDateInput; end?: CalendarDateInput; kind?: \"task\" | \"milestone\"; color?: CalendarColor; assignee?: { src?: string; alt?: string }; }"
+  }
+}

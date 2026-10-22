@@ -93,10 +93,16 @@ Last updated: 2026-10-21.
     - A JSX-text comment in B4.
   - E2E shards are 336/0. The PR follows the app-shell and ai-ui re-audit.
   - Detail in session-log-2026-10-19.
-- **Calendar / Schedule / Timeline:** Figma pages ❖ Calendar 16121:3, ❖ Schedule 16121:6, ❖ Timeline 16121:9 (2026-10-17,
-  approved by the user 2026-10-21). **Calendar is in code + Studio** (branch `zen/feat/calendar-20261021`, worktree
-  `../Zen-DS-calendar`): 5 views + 7 primitives, platform page `calendar`; spec `docs/research/calendar-2026-10-21.md`,
-  detail session-log-2026-10-21. Schedule, then Timeline, come next (tier L each).
+- **Calendar / Schedule / Timeline (done, on main 2026-10-22):** Figma ❖ Calendar 16121:3, ❖ Schedule 16121:6,
+  ❖ Timeline 16121:9 (drawn 2026-10-17, approved 2026-10-21), in code + Zen Studio: Calendar #180 (5 views + 7
+  primitives), Schedule #197 (4 views + 5 primitives), Timeline #198 (3 views + Item + 4 primitives); pages `calendar`,
+  `schedule`, `timeline`; specs `docs/research/{calendar,schedule,timeline}-2026-10-21.md`, detail session-log-2026-10-21.
+  Conventions they set: date props take ISO strings (Studio pages hold literals), data objects say `kind` (an object
+  with a string `type` reads as an AI UI node), array props are plain arrays (build-api reads no `readonly`), wide
+  views keep a minimum column and scroll or wrap in a narrow box. Open: BACKLOG P2 (designer) on the mobile Toolbar title.
+- **Studio simulator + Open on phone (2026-10-21, on main):** Android phone 412×917 and tablet 1280×800 (#190); Open on
+  phone, Play's QR to a real phone over the Wi-Fi through a token proxy, dev server stays on localhost (#191; `uqr`
+  devDependency).
 - **Widget themes phase 1 (2026-10-13, Figma only):** Card +`Color` (7 hues) and Themes Gradient/Solid (72 variants),
   gradient + On-Color chart styles from tokens, Metric-Card `Type` (KPI, Sparkline, Spark-Bars, Goal-Progress,
   Comparison, Category-Bar, Hero) and 7 new card-less chart components (Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel,

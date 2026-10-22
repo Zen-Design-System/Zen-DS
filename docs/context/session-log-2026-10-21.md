@@ -199,6 +199,56 @@ server with Chromium. The scripts are in A's scratchpad (`walk/`), built on the 
     14 / 14 in 40 steps, the same as Figma's 40, with 0 refusals.
   - FW-132 / FW-133: 2 / 2.
 
+## AppShell session · Forms in overlays: rules, harness, Figma Modal/Forms stretch (tier S, branch `zen/feat/form-overlay-rules-20261021`)
+
+The user asked, all on 2026-10-21:
+- "Viết thêm rule và hardness. Các form nhập liệu nhiều, phức tạp mà bật modal thì không dùng dialog. Dialog thường
+  dùng chức năng thông báo/confirm nhanh, còn nhập liệu, tạo form..v..v thì dùng forms";
+- "form thì k dùng Action direction vertical";
+- "không dùng form cho mobile. Mobile forms thay thế bằng bottom sheet";
+- "Cần kiểm tra lại constrain và stretch của các layout bên trong forms", "không để khoản trống vô duyên".
+
+Code harness (check-usage.mjs; bad and good fixtures; 224 rules self-tested):
+- `dialog/form-uses-modal-form`: a Dialog with two or more fields. One field stays a quick confirm, even inside a Form
+  (the dialog example's type-the-name delete).
+- `modal-form/actions-horizontal`: a ModalForm with `actionsDirection="vertical"`.
+- `modal-form/not-on-phone`: a ModalForm in a PlatformPhone, or in a Studio Screen with device="phone".
+- The repo had one hit, Zen Studio's Rename layers (3 fields). The user picked "Đổi sang ModalForm": Enter or Rename
+  submits, and E2E FW-14 keeps its names (dialog "Rename 2 layers", "Rename to", the Preview list, Rename).
+
+ModalForm CSS: the footer no longer stacks its actions vertically below 720px or in a ≤ 688px device frame. The side
+column still stacks. dialog-modal.test expects a row now. Where three actions don't fit (narrow window or frame), the row wraps instead of
+running out of the panel: a new dialog-modal test covers a Big form with three actions in a 390 frame.
+
+Gate (2026-10-22 03:00, main 9a43884d merged in; `ZEN_QA_SHARDS=4 --isolated --pages=dialog,bottom-sheet,card,empty-state,menu,page-header`) **PASS**:
+- Static checks green; Vitest 79/79.
+- Platform audit 1512 + 390 + 320: 0 errors, 0 new warnings. Dark: 0. Behaviour: 0.
+- Studio E2E: 338 works · 0 broken (full run, no shards).
+- `studio:e2e --only=figma --rows=FW-14`: works. Rename layers is now a ModalForm: Dot $n → Dot 1, Dot 2, one ⌘Z.
+- Contact sheets reviewed (dialog 390 / 1512).
+
+Guidelines, AGENTS.consumer rule 11, the zen-component-usage skill, and the Figma screen rules and audit table are
+updated.
+
+Figma audit (zen-figma-audit.js, `checkModalForms`):
+- The rules: `modal/dialog-form`, `modal/form-actions-vertical`, `modal/form-on-phone`, and `modal/form-side-taller`
+  (warning).
+- Smoke-tested live on a temporary QA frame: a 390px phone with a 1-3 form, vertical actions and a tall side, then a
+  desktop Basic. Three findings, the desktop clean. The frame was removed.
+
+Figma Modal/Forms (841:17182), measured live with temporary instances:
+- Most of it already fits: the Close is pinned right and top, the grids are FIXED 240 + flex or even flex, and the
+  slots fill their width.
+- Two real bugs, both fixed in the library:
+  - Big: Body was FIXED height and Main-Contents FILL. A tall form ran under the Actions and was clipped (304 vs 740).
+    Both now hug.
+  - 1-3, Half-Half, 3-4: the Side-Content column and slot were FILL, and the slot's Item placeholder was FILL. A tall
+    side was clipped (304 vs 561). The column and slot now hug, and the placeholder has a fixed height (256 / 276 /
+    276, as before).
+- Re-test: every tall main or side content fits, and the default sizes are unchanged.
+- Figma's grid cannot stretch the form column to a taller side, so a side taller than the form leaves an empty band
+  under the actions. The guideline and `modal/form-side-taller` keep the side no taller than the form.
+
 ## AppShell session · Breakpoint & Grids tokens (tier XS, branch `zen/fix/tokens-breakpoint-bento-20261021`; user: "Kiểm tra update thêm token trong Breakpoints từ Figma")
 
 - Read live (use_figma, the Breakpoint & Grids collection: Desktop · Tablet · Mobile, 16 variables). The repo's 12
@@ -557,3 +607,141 @@ cell height or row sizes, so the page round-trips unchanged. Selftests: push 343
   returns focus to its opener, and a second press on the + closes the list (it counted as outside, then reopened).
 - Contact sheets: badge@390 Release checklist pushed Status off the phone (Owner 160px) → on a phone the owner joins
   the caption, as in Task status. Gate 3 (badge + input, files after run 2): PASS; run 2 Studio E2E 338 works · 0 broken.
+
+
+## Schedule in code + Studio (session "Calendar", tier L; user: "xong gate thì làm tiếp Schedule")
+
+Branch `zen/feat/schedule-20261021` (worktree `../Zen-DS-schedule`, on top of the Calendar branch). Spec card:
+`docs/research/schedule-2026-10-21.md` (read from ❖ Schedule 16121:6 with read-only use_figma dumps).
+
+- `src/components/Schedule/`: ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner and the
+  primitives; dates through Calendar's `toDate` (ISO strings for Studio pages). Reuses Event-Block, Now-Line, Week-Strip,
+  Avatar / AvatarStack, Dock-Icon, Badge, Divider, IconButton.
+- Choices: Slot heights from Select-Item Medium / Small (Comfortable 40 / 32 on phones; Figma's text says 44); Past stop
+  titles Neutral/Base (zen-allow, Figma 16133:1131); the Slot label keeps Corner-Radius/Action/Small (it is the radio's
+  box); Event-Card meta wraps on a narrow card; bars and the now line are placed through CSS variables.
+- Platform page `schedule` (playground + 6 examples incl. PlatformPhone booking), Do/Don't visuals, guideline + keyboard
+  map, harness rules (2, fixtures), smoke fixtures, axe baseline (colour-contrast only: Neutral/Light text), 4 interaction
+  tests. Studio: component-properties page ❖ Schedule (4 public sets), figma-props map, 4 Assets items, library keys.
+- Native pack (user: "Làm luôn"): probe of the 4 sets on the QA page, one Figma desktop copy (the clipboard was empty and
+  stays empty), merged additively (9 sets, 34 symbols), no picture layers, probe removed; native-pack check green.
+
+## Timeline in code + Studio (session "Calendar", tier L; approved with the three pages)
+
+Branch `zen/feat/timeline-20261021` (worktree `../Zen-DS-timeline`, on top of Schedule). Spec card:
+`docs/research/timeline-2026-10-21.md`.
+
+- `src/components/Timeline/`: TimelineActivity, TimelineMilestones, TimelineGantt and the primitives TimelineItem,
+  TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel; dates through Calendar's `toDate`.
+- The Gantt splits its own width into weeks, so (as Resource-Grid) its scroll box takes `contain: inline-size` and a
+  sizer gives Figma's width (1120 / 358) where the parent hugs; the phone Gantt and Resource-Grid re-align to today / now
+  once their columns are measured (they opened half a column early).
+- Platform page `timeline` (playground + 6 examples incl. PlatformPhone), Do/Don't visuals, guideline + keyboard map,
+  harness rule (1, fixtures), smoke fixtures, axe baseline (colour-contrast only), 3 interaction tests; Studio
+  contract page ❖ Timeline (4 public sets), figma-props map, 3 Assets items, library keys.
+- Native pack (user: "Làm luôn"): probe of the 4 Timeline sets, one Figma desktop copy (clipboard empty before and after),
+  merged additively (8 sets, 36 symbols), no picture layers, probe removed. Figma descriptions of the 8 sets updated.
+
+
+## Gap / padding drag handles (side session, tier S, branch `claude/vigorous-kalam-46a23f`)
+
+Approved scope (user 2026-10-21, "mở phiên nhận các phần đó"): BACKLOG "rest of P2–P3", gap / padding drag handles.
+- Spec card (changed elements only): spacing hit areas of a selected Stack / Grid (SpacingLayer). Hover / drag tint
+  Support/Pink/Subtle (padding fill, gap fill under Support/Pink/Solid stripes), handle Support/Pink/Solid with
+  Corner-Radius/Rounded, pill Support/Pink/Solid + Content/On-Colors, Caption/Medium, Gap/3XSmall before the hexagon
+  (icon-hexagon-01-line, Figma's variable pill), Gap/XSmall below the handle. States: rest (Info tints as before),
+  hover (pink + handle + pill), dragging (every area the prop sets pink, cursor ew/ns-resize everywhere), held
+  preview until the re-render. Keyboard: no new tab stops (the Inspector's Layout section stays the keyboard path);
+  Escape cancels a drag, ⇧ / ⌥ read live while dragging.
+- `select/spacingDrag.ts` (+ selftest 24, in studio:selftest): drag axis and sign per side, CSS px travel, nearest
+  step (smaller on a tie), longhand preview properties, DRAG_LAYOUTS = Stack / Grid. SpacingLayer: a press on a
+  draggable area waits for 3 px; a drag previews the step inline on the host (longhands React never writes), writes
+  once on release (setProp + removeProp of the written side props for ⇧, one undo step), holds the preview until the
+  re-render (ResizeLayer's pattern); a press that never moved is the old click (the scale opens on release; ⇧ goes on
+  to the selection logic). Zen pads per axis, so a plain and a ⌥ drag both set paddingX / paddingY; ⇧ or ⇧⌥ (Figma's
+  all-sides gesture; ⇧'s big nudge means nothing on a ladder) sets `padding`. Status line "Gap XLarge · 32 · ⌘Z to
+  undo"; the picker's undo label now uses Figma's words too (was `gap → "xl"`).
+- Grid's padding is one prop, so any side drags all four there; Box (free frame), Card, Form keep the click.
+- E2E FW-155…159 (figma.mjs, own seeded page): hover pink / handle / pill / click, gap drag + preview + one ⌘Z,
+  left padding (both sides), ⌥ top and ⇧ left, Grid column gap + Escape + free frame. No studio:dnd rows: the
+  matrix covers layer drops, not spacing.
+- BACKLOG entry trimmed to ⇧⌘G of several layers (ungroupSelection acts on the primary only).
+- Gate (2026-10-22, main 8c973b40 merged, `--isolated --files=…`): PASS, Studio E2E 338 / 0 (1508 s); FW-155…159 5 / 0,
+  SE-20 ✓. First FW try: 2 broken because the fixture's 8 px padding (≈ 4 screen px at fit zoom) lay under the resize
+  strip on the frame's edge (ResizeLayer STRIP, 4 px inside), which keeps the press as Figma's edge resize does; the
+  fixture pads 20 / 24 now and the rows aim at each area's centre read from the canvas. A padding thinner than ≈ 8
+  screen px drags only after zooming in.
+
+## Code properties move to the Code tab (tier S, branch `zen/feat/studio-code-props-code-tab-20261021`)
+
+Parity plan §3a ("Properties: code-only ones on the Code tab"), the BACKLOG P1 item; one of the sessions opened for the
+plan's remaining pieces (user, 2026-10-21: "mở phiên nhận các phần đó").
+
+- The Design tab lost both code blocks: the closed "Code properties" disclosure (a frame's, text's or shape's own props;
+  a component's code-only props inside Properties) and the "Code properties" section of attributes no API lists.
+- The Code tab has them as **Properties**, between Example code and Code: `DesignPanel view="code"` renders only those
+  rows with the Design tab's own FieldApi (queue, hash, optimistic values, .map rows), so every edit writes as before;
+  `Inspector` hands it to `CodePanel`. `GroupedProperties view="code"` gives a component's code-only rows;
+  `propGroups.codeOnlyProps` is the one rule (selftest). The disclosure CSS went; no detach plan is read on the Code tab.
+- E2E: I-02 checks the Design tab has no button type and finds it on the Code tab; lib `openCodeProperties` opens the
+  Code tab (`showDesignTab` after). New FW-165 (instance type → submit, ⌘Z), FW-166 (frame `as` → section), FW-167
+  (text `as` → span), FW-168 (aria-label / data-testid by their written names, Show code, edit), FW-169 (panelFits on
+  the Code tab for an instance, a frame and a text; Properties above Code).
+- Static: tsc, words lint (1851 UI strings after main c548520a), e2e selftest (480 rows), propGroups selftest,
+  usage:check, style:check ✓. Gate (`qa --isolated --files=…`, 2026-10-22 05:10): PASS, Studio E2E 338/0 (1505 s, I-02
+  in it); `studio:e2e --only=figma --rows=FW-10,FW-142,FW-165…169` 7/0 (34 s); the FW-165/169 panel shots read right.
+- Left as is: PartPanel (a Table part) still titles its rows "Props" / "Attributes" (§3a glossary row, not this item).
+
+## F7c: layers into a local instance's slot from the canvas — tier M, branch `zen/feat/studio-slot-drop-20261021`
+Approved scope (user 2026-10-21: "mở phiên nhận các phần đó"; BACKLOG P2 "Studio components, after F7a/F7b"). A layer
+drag or an Assets drag over a slot of an instance of the page's own component now targets that slot, as Figma's: the
+slot is outlined in the component colour with its name (DragView `slot`, DragLayer, edit.css), the insertion line shows
+the place, and the drop writes the instance's `slots`. One write, one ⌘Z; the main is never touched.
+- Canvas: renderPage marks a main's slot layer drawn in a page instance (`data-zen-slot`, `data-zen-slot-of`, only for
+  a `<Use>` of the page, not one nested in a main). `dropTargetAt` takes that slot as a container when the caller opts
+  in (`DropContext.slots`: the layer drag and the Assets drag; paste-here, draw and place keep their targets). Units are
+  the layers the instance puts there (placed by their marks), else its main's own layers (placed by `index`).
+  `insertion` was split into `placeAmong` so both share the line and the before/after logic.
+- Engine: `tools/studio/slot-fill.mjs`; arrange.mjs moveTo / pasteCode take `slot` (+ `index`) and write the
+  `<Use>`'s `slots` again (one layer `<X />`, several `<>…</>`, the Use's line giving the indentation). A slot the
+  instance puts nothing in yet keeps its main's layers on the first drop (Figma keeps a slot's default content, and
+  figma-pull reads them back that way). A layer moves out of a slot, or within it, as from any frame; the slot's last
+  layer takes its entry (and `slots`) away. A removal inside the rewritten `slots` is applied to the layer it falls in
+  (a layer inside the slot's one layer dragged beside it). `many` refuses a slot ("Drop one layer at a time").
+- editDoc's second run on the engine text keeps the layer ids in every slot case (checked in Node).
+- Checks: arrange selftest +7 slot cases (58); `studio:dnd` slot section (667 cases: every Assets item into every slot
+  place, loose layers in and ⌥ copies, slot layers out to every place and to the other slot; 0 findings; 21 143 in
+  all); engine-iso lists slot-fill; E2E FW-160…164.
+- Gate (2026-10-22 ~06:45, main be387faf merged in; conflicts in CHANGELOG, this log and figma.mjs were both sides
+  adding, kept both; main's own `oneUndo` helper kept): `qa --isolated --files=…` PASS, Studio E2E 338 / 0 (1538 s).
+  `--only=figma` FW-25, FW-160…164 6 / 0; FW-161 first failed in its setup (⌘-click on a Badge picks its words, a part),
+  so it drags the Text Spare now. `--only=dnd` DND-05 ✓; DND-04 failed on main too since FW-142 (the panel heads a Box
+  Frame, so its selectLayer pressed Escape up to the page): fixed at the test, it reads the heading's code name (title);
+  8 / 8 moves.
+
+## Present from a selected Overlay frame (tier S, branch `zen/feat/studio-present-overlay-20261021`)
+
+The last Present item of BACKLOG P1 "Studio design page = Figma" (user 2026-10-21: "mở phiên nhận các phần đó").
+- `builder/proto/playStart.ts` holds Play's start (`presenting: "play:<start>"`): a Screen id, `overlay:<id>`, or empty.
+  `playStartOf(frameId)` (protoModel.ts, Node-tested) maps the selected frame; ⌥⌘↵, the canvas menu, the Prototype tab's
+  Present and `presentFrame` (the Design tab's Present, ⌘K › Present) use it. A Screen frame keeps its old path (the
+  Design tab and ⌘K still present it as a frame; ⌥⌘↵ plays it).
+- `playFlow.tsx` (usePlayFlow, shared with Open on phone since #191; ported after it landed): the Overlay starts open,
+  no animation, over `openerOf(tree, id)` — the first Screen (default state first)
+  with a layer or After delay that opens it — on that Screen's device, size and frame; closing it (Esc, its close
+  action, a press outside, Back) goes on from that Screen; R restarts on it. With no opener it shows over a blank Screen
+  of the first Screen's device; closing it calls `onLeave` (Play leaves Present), Back is off, and Back from a Screen it
+  led to re-opens it. The phone's DevicePlay keeps `usePlayFlow(tree, start)` unchanged.
+- `?play=overlay:<id>` keeps it through a reload. ⌘K › Interact stays on pages you made: templates' forms are tried in
+  place with it (SP-23 / SP-24), but it is no longer the way to try an Overlay.
+- E2E (figma.mjs, own seeded page): FW-170 ⌥⌘↵ + reload + Esc ×2, FW-171 Prototype › Present + Move to trash / Back / R /
+  Cancel, FW-172 alone (Design › Present, blank phone, Done leaves), FW-173 Card via ⌘K (no animation, outside press),
+  FW-174 normal frames unchanged. protoModel selftest +3 checks.
+- Gate (slot from the Code-tab session, main f5d1ecce merged): static ✓, Studio E2E 338 / 338. FW rows: 4 / 6 at first.
+  FW-174's page was not zoomed to fit (its Button off screen): the helper now presses ⇧1. FW-170 found a real bug: after
+  a reload into Present, Esc did not close the Dialog. The canvas draws Overlay frames open, and its copy of the Dialog
+  (inert under Play) mounted last, so useModal's stack made it the topmost and gave it Escape and Tab. Fixed at its
+  owner, `Dialog.tsx` useModal: a modal whose parent is inert is never the topmost. Interaction test added in
+  dialog-modal.test.tsx; it fails without the fix.
+- Gate again with the fix (f282db11): static ✓, browser tests 81 / 81, audit 0, Studio E2E 338 / 338; FW-06 and
+  FW-170…174 6 / 6. main be387faf (#200, #201) merged after it; the BACKLOG entry keeps only its data-name line.

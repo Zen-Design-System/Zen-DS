@@ -18,9 +18,12 @@ export const STYLE_ON_ROOT = new Set([
   "DashboardHeader", "DateField", "DatePickerItem", "DescriptionList", "EmptyState", "FileIcon", "Flag", "Form",
   "FormActions", "FormField", "FormFieldset", "HeadingField", "Icon", "IconButton", "InputField", "Link", "List", "ListBox",
   "ListItem", "NumberField", "PageHeader", "PaginationItem", "Popover", "PopoverBunkAction", "PopoverBunkActionDivider",
-  "PopoverBunkActionGroup", "PopoverItem", "PopoverManualAddNew", "PopoverSearch", "PropertyField", "Search", "SegmentedItem", "SelectField",
+  "PopoverBunkActionGroup", "PopoverItem", "PopoverManualAddNew", "PopoverSearch", "PropertyField",
+  "ScheduleDayPlanner", "ScheduleEventCard", "ScheduleHourLabel", "ScheduleItinerary", "ScheduleItineraryItem",
+  "ScheduleResource", "ScheduleResourceGrid", "ScheduleSlotPicker", "Search", "SegmentedItem", "SelectField",
   "SkeletonHeading", "SkeletonShape", "SkeletonText", "Stepper", "TabItem", "Table", "Tag", "TextAreaField",
-  "ToggleListItem", "TooltipSurface",
+  "TimelineActivity", "TimelineGantt", "TimelineGanttBar", "TimelineGanttLabel", "TimelineItem", "TimelineMarker",
+  "TimelineMilestone", "TimelineMilestones", "ToggleListItem", "TooltipSurface",
 ]);
 
 /** Components the conformance test sees forwarding `style` that are no instance: their own look, or not a layer. */

@@ -1560,6 +1560,259 @@
       ]
     },
     {
+      "slug": "schedule",
+      "title": "Schedule",
+      "file": "docs/guidelines/schedule.md",
+      "apiFile": "docs/api/schedule.json",
+      "figma": "Schedule/Resource-Grid, Itinerary, Slot-Picker, Day-Planner and .Primitives/Schedule/* (page ❖ Schedule 16121:6)",
+      "import": "import { ScheduleResourceGrid, ScheduleItinerary, ScheduleSlotPicker, ScheduleDayPlanner, ScheduleResource, ScheduleSlot, ScheduleItineraryItem, ScheduleHourLabel, ScheduleEventCard } from \"@zen-ds/react\";",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "use": [
+        "Shift planning, room and equipment booking, team leave: ScheduleResourceGrid (scale hours for a day, days for a week).",
+        "Event programmes, a delivery route, a day of visits: ScheduleItinerary.",
+        "Booking a meeting or an appointment: ScheduleSlotPicker, with the confirm action in the page or sheet footer.",
+        "A person's day on a phone or in a side panel: ScheduleDayPlanner."
+      ],
+      "avoid": [
+        "One person's week of hours → CalendarTimeGrid.",
+        "Unrelated events in date order → CalendarAgenda.",
+        "Any time of day in a form → DatePicker with timePicker.",
+        "Tasks across weeks → a Gantt (Timeline, not in code yet)."
+      ],
+      "props": {
+        "ScheduleResourceGrid": [
+          "resources: ScheduleResourceData[]",
+          "bookings?: ScheduleBookingData[] = []",
+          "scale?: hours|days = hours",
+          "date?: Date|string",
+          "startHour?: number = 9",
+          "endHour?: number = 17",
+          "now?: Date|string",
+          "today?: Date|string",
+          "resourcesLabel?: ReactNode",
+          "onBookingClick?: (booking: ScheduleBookingData, target: HTMLElement) => void",
+          "selectedBookingId?: string|null = null",
+          "device?: desktop|mobile",
+          "aria-label?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleItinerary": [
+          "stops: ScheduleStopData[]",
+          "title?: ReactNode",
+          "now?: Date|string",
+          "device?: desktop|mobile",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleSlotPicker": [
+          "slots: ScheduleSlotData[]",
+          "days?: CalendarDateInput[]",
+          "value?: string|null",
+          "defaultValue?: string|null = null",
+          "onValueChange?: (id: string, slot: ScheduleSlotData) => void",
+          "day?: Date|string",
+          "onDayChange?: (day: Date) => void",
+          "today?: Date|string",
+          "device?: desktop|mobile",
+          "aria-label?: string",
+          "name?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleDayPlanner": [
+          "events?: ScheduleCardData[] = []",
+          "value?: CalendarDateInput|null",
+          "defaultValue?: CalendarDateInput|null",
+          "onValueChange?: (day: Date) => void",
+          "title?: ReactNode",
+          "titleLevel?: 2|3|4 = 2",
+          "onMonthClick?: () => void",
+          "onCardMenu?: (card: ScheduleCardData, target: HTMLElement) => void",
+          "startHour?: number = 9",
+          "endHour?: number = 18",
+          "now?: Date|string",
+          "today?: Date|string",
+          "device?: desktop|mobile",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleResource": [
+          "name: ReactNode",
+          "meta?: ReactNode",
+          "type?: person|room = person",
+          "avatarSrc?: string",
+          "avatarTheme?: Exclude<AvatarTheme, photo> = violet",
+          "icon?: IconName = icon-building-02-line",
+          "device?: desktop|mobile = desktop",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleSlot": [
+          "time: ReactNode",
+          "size?: md|sm|medium|small = md",
+          "checked?: boolean",
+          "disabled?: boolean",
+          "ref?: Ref<HTMLInputElement>"
+        ],
+        "ScheduleItineraryItem": [
+          "start: ReactNode",
+          "duration?: ReactNode",
+          "title: ReactNode",
+          "meta?: ReactNode",
+          "status?: past|now|upcoming = upcoming",
+          "connector?: boolean = true",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "ScheduleHourLabel": [
+          "hour: ReactNode",
+          "now?: boolean = false",
+          "ref?: Ref<HTMLSpanElement>"
+        ],
+        "ScheduleEventCard": [
+          "title: ReactNode",
+          "status?: ReactNode",
+          "time?: ReactNode",
+          "color?: CalendarColor|neutral = brand",
+          "attendees?: Array<{ src?: string; alt?: string }>",
+          "note?: ReactNode",
+          "onMenuClick?: MouseEventHandler<HTMLButtonElement>",
+          "menuLabel?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLElement>"
+        ]
+      },
+      "do": [
+        "Keep the confirm action (\"Book 10:00\") in the page or sheet footer, enabled once a time is chosen.",
+        "Keep taken or past times in place (disabled, struck through) so the day keeps its rhythm.",
+        "Pass `now` (and `today`) when your app's clock is not the device's, so Past / Now and the now line agree with your data.",
+        "Give bars real start and end dates: a bar past the visible range scrolls with the track."
+      ],
+      "dont": [
+        "Don't hide taken slots: people then cannot tell a full day from an empty one.",
+        "Don't use a Slot-Picker for filters or scopes: that is Chip advanced.",
+        "Don't put several Now stops in an itinerary: one stop runs at a time.",
+        "Don't stack many overlapping events in a Day-Planner: use CalendarTimeGrid, which splits the column."
+      ],
+      "rules": [
+        "interaction/no-noop-handler",
+        "schedule/slot-picker-confirm",
+        "schedule/selected-needs-handler"
+      ]
+    },
+    {
+      "slug": "timeline",
+      "title": "Timeline",
+      "file": "docs/guidelines/timeline.md",
+      "apiFile": "docs/api/timeline.json",
+      "figma": "Timeline/Item, Activity, Milestones, Gantt and .Primitives/Timeline/* (page ❖ Timeline 16121:9)",
+      "import": "import { TimelineActivity, TimelineItem, TimelineMilestones, TimelineGantt, TimelineMarker, TimelineMilestone, TimelineGanttBar, TimelineGanttLabel } from \"@zen-ds/react\";",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "use": [
+        "A record's Activity tab, a side-panel history, notifications grouped by day: TimelineActivity.",
+        "Project phases on an overview page, a release plan: TimelineMilestones.",
+        "Project plans, roadmaps, campaign schedules that span weeks: TimelineGantt."
+      ],
+      "avoid": [
+        "Steps the user moves through in a form → Stepper.",
+        "A timed plan of one day → ScheduleItinerary.",
+        "Hours of one day → CalendarTimeGrid or ScheduleResourceGrid.",
+        "A chat thread → Chat."
+      ],
+      "props": {
+        "TimelineActivity": [
+          "entries: TimelineEntryData[]",
+          "today?: Date|string",
+          "size?: md|sm|medium|small = md",
+          "device?: desktop|mobile",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "TimelineItem": [
+          "actor?: ReactNode",
+          "title: ReactNode",
+          "time?: ReactNode",
+          "description?: ReactNode",
+          "attachment?: ReactNode",
+          "connector?: boolean = true",
+          "size?: md|sm|medium|small = md",
+          "marker?: TimelineMarkerData",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "TimelineMilestones": [
+          "milestones: TimelineMilestoneData[]",
+          "today?: Date|string",
+          "currentId?: string",
+          "device?: desktop|mobile",
+          "ref?: Ref<HTMLOListElement>"
+        ],
+        "TimelineGantt": [
+          "groups: TimelineGroupData[]",
+          "start?: Date|string",
+          "weeks?: number = 9",
+          "today?: Date|string",
+          "onTaskClick?: (task: TimelineTaskData, target: HTMLElement) => void",
+          "defaultCollapsed?: string[] = []",
+          "device?: desktop|mobile",
+          "aria-label?: string",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "TimelineMarker": [
+          "type?: dot|icon|avatar = dot",
+          "tone?: neutral|accent|positive|warning|negative = neutral",
+          "icon?: IconName",
+          "avatarName?: string = ",
+          "avatarSrc?: string",
+          "avatarTheme?: Exclude<AvatarTheme, photo> = teal",
+          "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>",
+          "ref?: Ref<HTMLSpanElement>"
+        ],
+        "TimelineMilestone": [
+          "date: ReactNode",
+          "title: ReactNode",
+          "description?: ReactNode",
+          "status?: done|current|upcoming = upcoming",
+          "orientation?: horizontal|vertical = horizontal",
+          "connector?: boolean = true",
+          "ref?: Ref<HTMLDivElement>"
+        ],
+        "TimelineGanttBar": [
+          "title: ReactNode",
+          "kind?: task|summary|milestone = task",
+          "color?: brand|blue|violet|teal|green|orange|pink = brand",
+          "hideTitle?: boolean = false",
+          "onClick?: MouseEventHandler<HTMLButtonElement>",
+          "ref?: Ref<HTMLElement>"
+        ],
+        "TimelineGanttLabel": [
+          "name: ReactNode",
+          "level?: group|task = task",
+          "assignee?: { src?: string; alt?: string }",
+          "expanded?: boolean = true",
+          "onToggle?: () => void",
+          "ref?: Ref<HTMLDivElement>"
+        ]
+      },
+      "do": [
+        "Use an Avatar marker when a person acted, an Icon when the system did, a Dot in compact logs.",
+        "Let the tone carry status: Positive approved, Negative rejected, Warning waiting, Accent the newest or current.",
+        "Name the Gantt after the plan (aria-label) so its table reads as more than \"Tasks\".",
+        "Keep bars on their real dates: the track scrolls; never squeeze a bar to fit."
+      ],
+      "dont": [
+        "Don't colour markers for decoration: tone is status.",
+        "Don't use Milestones or the Gantt for a form the user steps through: use Stepper.",
+        "Don't mark more than one milestone Current."
+      ],
+      "rules": [
+        "interaction/no-noop-handler",
+        "timeline/gantt-names-plan"
+      ]
+    },
+    {
       "slug": "tooltip",
       "title": "Tooltip",
       "file": "docs/guidelines/tooltip.md",
@@ -1811,7 +2064,7 @@
       ],
       "avoid": [
         "Non-blocking feedback → Toast.",
-        "Long forms → a page or Side Panel.",
+        "A data-entry form (two or more fields) → ModalForm on desktop and tablet, BottomSheet on a phone; a long form → a page.",
         "Hints → Tooltip/Popover."
       ],
       "props": {
@@ -1864,8 +2117,9 @@
         ]
       },
       "do": [
-        "Use ModalForm for 3–8 field create/edit flows; keep Dialog for confirmations.",
-        "Use actionsDirection=\"vertical\" when the choices deserve equal weight or labels are long.",
+        "Use Dialog for a notice or a quick confirm, with one field at most (type the name to delete). A data-entry form, two or more fields, opens in a ModalForm on desktop and tablet (harness: dialog/form-uses-modal-form) and in a BottomSheet on a phone (harness: modal-form/not-on-phone).",
+        "Use actionsDirection=\"vertical\" on a Dialog when the choices deserve equal weight or labels are long; a ModalForm keeps its actions in a row (harness: modal-form/actions-horizontal).",
+        "Keep a ModalForm's side column (side) no taller than the form, a summary or an illustration, so the actions sit under the fields with no empty band; longer side content belongs in the form.",
         "Phrase the title as the question (\"Delete “Marketing site”?\") and repeat the verb in the primary action.",
         "Use theme negative + level danger for irreversible actions; give Cancel initial focus with `secondaryAction={{ label: \"Cancel\", autoFocus: true }}` (otherwise the primary action takes it).",
         "Require typing the name for high-impact deletes.",
@@ -1881,6 +2135,7 @@
         "Don't use a dialog for information the user can ignore.",
         "Don't hide the only way out (always Escape or a cancel action).",
         "Don't open a dialog from a dialog (harness: dialog/no-nested).",
+        "Don't put a form in a Dialog, and don't open a ModalForm on a phone.",
         "Don't open a dialog on page load without a user action.",
         "Don't rely on the browser's required bubbles in a ModalForm. They are off by default; noValidate={false} only when you deliberately hand validation to the browser."
       ],
@@ -1888,6 +2143,8 @@
         "dialog/needs-title",
         "dialog/negative-uses-danger",
         "dialog/no-nested",
+        "dialog/form-uses-modal-form",
+        "modal-form/actions-horizontal",
         "api/deprecated-prop",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
@@ -3985,6 +4242,7 @@
       },
       "do": [
         "Keep one task per sheet and one primary action.",
+        "On a phone, open a form in a BottomSheet (its title, the fields, the actions in its footer), never in a ModalForm (harness: modal-form/not-on-phone).",
         "Let the user drag, tap the scrim or press Escape to dismiss.",
         "For a single choice, fill the sheet with List + ListItem: the picked row is `selected` (Active/Neutral/Subtle) with a trailing check, and picking closes the sheet. The Action type's `selectedId` row (Accent/Subtle) is Figma's state, not the house pattern for choices (user, 2026-09-30).",
         "Lists inside the sheet use List/ListItem (the sheet sets --zen-list-inset: 0).",
@@ -3999,6 +4257,7 @@
         "Don't nest a <Form> inside a BottomSheet that has onSubmit, and don't submit from primaryAction.onClick; pass form.handleSubmit to onSubmit instead."
       ],
       "rules": [
+        "modal-form/not-on-phone",
         "segmented/control-bar-full-width",
         "bottom-sheet/action-needs-items",
         "bottom-sheet/choice-uses-list-item",

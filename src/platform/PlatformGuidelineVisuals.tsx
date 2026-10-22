@@ -9,6 +9,8 @@ import { BadgeStatus } from "../components/BadgeStatus";
 import { PropertyDate, PropertyField, PropertyStatus } from "../components/PropertyField";
 import { Breadcrumbs } from "../components/Breadcrumbs";
 import { CalendarEvent, CalendarToolbar, CalendarWeekStrip } from "../components/Calendar";
+import { ScheduleSlotPicker } from "../components/Schedule";
+import { TimelineItem } from "../components/Timeline";
 import { AppShellAction, AppShellHeader } from "../components/AppShell";
 import { PageHeader } from "../components/PageHeader";
 import { Button, IconButton } from "../components/Button";
@@ -286,6 +288,14 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
       dont: { preview: <div className="pgv-wide"><LayoutStack direction="row" gap="xs" align="center"><Button level="primary" size="sm" onClick={noop}>New event</Button><Button level="tertiary" size="sm" onClick={noop}>Month</Button><Button level="secondary" size="sm" onClick={noop}>Week</Button><Button level="tertiary" size="sm" onClick={noop}>Day</Button></LayoutStack></div>, caption: "Buttons as a view switch, and the page action squeezed into the row." } },
     { do: { preview: <div className="pgv-field"><LayoutStack gap="3xs"><CalendarEvent time="09:00" title="Daily standup" /><CalendarEvent time="11:00" title="Design review" color="violet" /><CalendarEvent time="14:00" title="1:1 Maya Chen" color="teal" /></LayoutStack></div>, caption: "One hue per calendar: Brand for the main one, others only to tell calendars apart." },
       dont: { preview: <div className="pgv-field"><CalendarWeekStrip device="desktop" defaultValue={new Date(2026, 8, 30)} today={new Date(2026, 8, 30)} onValueChange={noop} aria-label="Due date" /></div>, caption: "A week strip is not a form's date input: use DateField or DatePicker." } },
+  ],
+  timeline: [
+    { do: { preview: <div className="pgv-wide"><TimelineItem actor="Maya Chen" title="approved your leave request" time="10:42" marker={{ kind: "avatar", avatarName: "Maya Chen", tone: "positive" }} connector={false} /></div>, caption: "Tone is status: Positive for an approval, an Avatar because a person acted." },
+      dont: { preview: <div className="pgv-wide"><TimelineItem actor="Maya Chen" title="approved your leave request" time="10:42" marker={{ kind: "icon", tone: "negative" }} connector={false} /></div>, caption: "A Negative flag on an approval reads as a failure." } },
+  ],
+  schedule: [
+    { do: { preview: <div className="pgv-field"><ScheduleSlotPicker device="mobile" today="2026-09-30" defaultValue="2026-09-30T10:00" onValueChange={noop} aria-label="Review times" slots={[{ id: "2026-09-30T09:00", start: "2026-09-30T09:00", disabled: true }, { id: "2026-09-30T10:00", start: "2026-09-30T10:00" }, { id: "2026-09-30T11:00", start: "2026-09-30T11:00" }]} /></div>, caption: "Taken times stay in place, struck through: the day keeps its rhythm." },
+      dont: { preview: <div className="pgv-field"><ScheduleSlotPicker device="mobile" today="2026-09-30" defaultValue="2026-09-30T10:00" onValueChange={noop} aria-label="Review times" slots={[{ id: "2026-09-30T10:00", start: "2026-09-30T10:00" }, { id: "2026-09-30T11:00", start: "2026-09-30T11:00" }]} /></div>, caption: "Hiding taken times makes a full day look empty." } },
   ],
   "empty-state": [
     { do: { preview: <EmptyState title="No projects yet" size="sm" icon="icon-folder-line" primaryAction={{ label: "Create project", onClick: noop }}>Projects you create show up here.</EmptyState>, caption: "Say what's empty and offer the next step." },
