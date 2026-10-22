@@ -703,6 +703,17 @@ Viewer comments, the author or an Admin deletes). Spec card: `docs/research/stud
   shortcuts; C out of figmaNotYet and FW-05's list.
 - Checks: tsc, words lint, style guard, page-comments + pages-folder selftests. E2E FW-193…196 wait for a slot.
 
+## Figma's Libraries ⌥⌘O (Session C) — tier M, branch `zen/feat/studio-libraries-20261022` (on the Comment branch)
+Spec card `docs/research/studio-libraries-spec-2026-10-22.md`. Phase 1 built:
+- `project.json` `libraries: { zen, components, theme }` (normalizeLibraries: on unless false; old projects all on),
+  `updateProject(…, { libraries })`, `project/libraries.ts` (useLibraries, librariesNow, the open state).
+- `project/LibrariesDialog.tsx` (ModalForm: Zen Design System and "<project> theme" Toggles, Admin only, Drafts: Zen
+  fixed on); ⌥⌘O, Assets' book button, ⌘K › Libraries, Keyboard shortcuts.
+- Zen off: Assets keeps Photos (Components / Icons and their search results go), Assets' ⇧I finds photos only; the pages
+  keep drawing. Theme off: `withProject` gives Zen's modes (data-brand zen).
+- E2E FW-197 (Zen switch), FW-198 (theme switch) on a project written to the E2E server's projects folder; wait for a slot.
+- Phase 2 (project components across pages) waits for the user's pick of the model (live link or publish + update).
+
 
 ## Schedule in code + Studio (session "Calendar", tier L; user: "xong gate thì làm tiếp Schedule")
 

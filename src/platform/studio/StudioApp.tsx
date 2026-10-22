@@ -74,6 +74,8 @@ import { AiChip } from "./mcp/AiChip";
 import { startMcpRuntime } from "./mcp/runtime";
 import "./studio.css";
 import { useCanvasPreview, useRememberPageProject } from "./project/activeProject";
+import { LibrariesDialog } from "./project/LibrariesDialog";
+import { openLibraries } from "./project/libraries";
 
 /** An open overlay owns Escape (it closes first): a popover, menu, listbox, dialog, or an expanded combobox/trigger. */
 function escapeOwnedByOverlay(event: KeyboardEvent) {
@@ -408,6 +410,12 @@ export function StudioApp() {
         else void detachSelection(selection);
         return;
       }
+      // ⌥⌘O / Ctrl+Alt+O: Figma's Libraries (project/LibrariesDialog.tsx).
+      if (mod && event.altKey && !event.shiftKey && event.code === "KeyO") {
+        event.preventDefault();
+        if (!event.repeat) openLibraries();
+        return;
+      }
       // ⌥⌘K / Ctrl+Alt+K: Figma's Create component — the selected layer becomes a main component where it is.
       if (mod && event.altKey && !event.shiftKey && event.code === "KeyK") {
         const selection = state.selection;
@@ -712,6 +720,7 @@ export function StudioApp() {
 
         <ChromeScope className="studio-dialogs">
           <ShortcutsDialog />
+          <LibrariesDialog />
           <BatchRenameDialog />
           <QuickInsert />
           <VariablesWindow />
