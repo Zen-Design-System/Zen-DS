@@ -186,6 +186,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   row). Both the plugin's import and the direct paste; existed before the master layout. Likely: such a Grid's rows
   Flex (needs a Figma check: use_figma does not lay out new grids). Pointer: figma-push.mjs Grid rows, plugin
   settleGridRows.
+- **P3 · AppShell phone bars in Figma (2026-10-23, B; found by AppShell, needs the user's OK):** figma-push draws a
+  phone frame's top and bottom bars only from the builder Screen's own `topNavigation` / `bottomNavigation`. An
+  AppShell's own phone bars are named in the push notes and not drawn: a root AppShell on a phone Screen keeps only its
+  content, as the runtime shows it, and an AppShell inside a page draws only its desktop parts. Drawing them (Figma
+  Pattern/AppShell/Mobile, its Bar type by canvas: default→Alt, alt→Default, flat→Default on Surface/Flat) is new scope.
+  Pointer: `tools/studio/figma-push.mjs` `appShellNode` (~852) and the Screen's mobile chrome (~2232).
 - **P3 · Direct paste parity left after native-diff (2026-10-17):** slot contents written at Figma's outer level, grid row
   minimum heights, kept overrides by resolved variable, and a smaller pack (18.9 MB). Pointer: research doc §8.
 - **P2 · Studio push of LineChart still draws Figma's sample axis (user, 2026-10-13: "sync lại component của figma lẫn
