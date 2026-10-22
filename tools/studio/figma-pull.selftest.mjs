@@ -215,8 +215,8 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
     type: "FRAME", name: "Charts", width: 1440, layout: { mode: "VERTICAL", gap: 16, padding: [0, 0, 0, 0] },
     children: [
       { type: "INSTANCE", id: "9:1", name: "Card", set: { id: cardSet.id, name: cardSet.name }, props: { Theme: "Border", Spacing: "Medium", Active: "No", "Sub-Action": false }, slots: [{ id: "9:2", name: "Content", children: [chart("Chart/Area-Chart", "15484:2663", { ...header, "Show Legend": true, Type: "Stacked" }, { ranges })] }] },
-      // Chart/Chart-Card read as its Card (Flat by default), its chart a Bar-Chart Horizontal with only a title.
-      { type: "INSTANCE", id: "9:3", name: "Chart/Chart-Card", set: { id: cardSet.id, name: cardSet.name }, props: { Theme: "Flat", Spacing: "Medium", Active: "No", "Sub-Action": false }, slots: [{ id: "9:4", name: "Content", children: [chart("Chart/Bar-Chart", "15321:84071", { "Show Icon": false, Title: "Capacity", "Show Description": false, "Show Value": false, "Show Ranges": false, "Show Open": false, "Show Average": true, Orientation: "Horizontal" })] }] },
+      // Chart/Chart-Card read as its Card (Default by default), its chart a Bar-Chart Horizontal with only a title.
+      { type: "INSTANCE", id: "9:3", name: "Chart/Chart-Card", set: { id: cardSet.id, name: cardSet.name }, props: { Theme: "Default", Spacing: "Medium", Active: "No", "Sub-Action": false }, slots: [{ id: "9:4", name: "Content", children: [chart("Chart/Bar-Chart", "15321:84071", { "Show Icon": false, Title: "Capacity", "Show Description": false, "Show Value": false, "Show Ranges": false, "Show Open": false, "Show Average": true, Orientation: "Horizontal" })] }] },
       chart("Chart/Multi-Line-Chart", "15501:3054", { Title: "x", Sector: "6-Sectors", "Show Average": false }, { headingHidden: true }),
       chart("Chart/Donut-Chart", "15324:80365", { Title: "x", Legend: "Start", Total: "Centre", "Total Label": "Invoiced in Q3 2026", "Total Value": "$296,800" }, { headingHidden: true }),
       chart("Chart/Gauge-Chart", "15486:2467", { Title: "Utilisation", "Show Legend": false }),
@@ -227,7 +227,7 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("charts: the page is valid dialect", validateDialect(page), []);
   ok("charts: a Card holding a chart with its Heading is a ChartCard: title, icon, description, value, ranges (the picked one), the open button as a toast, the Card's theme", page.includes('<ChartCard title="Billable hours" icon="icon-line-chart-up-line" description="Logged by team, 2026" value="11,480 h" ranges={[{ id: "month", label: "Month" }, { id: "quarter", label: "Quarter" }]} range="quarter" onOpen={proto.toast({ title: "Open report" })} theme="border">'));
   ok("charts: Area Type Stacked with its legend (the stacked default) is the stacked sample", /<AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026"/.test(page) && !/showLegend/.test(page.split("\n").find((line) => line.includes("<AreaChart")) ?? ""));
-  ok("charts: Chart/Chart-Card (read as its Flat Card) is a ChartCard with ChartCard's default theme; Bar Horizontal + Show Average", /<ChartCard title="Capacity">\s*<BarChart orientation="horizontal" aria-label="Billable hours per team against capacity, September 2026"[^>]*showAverage \/>/.test(page));
+  ok("charts: Chart/Chart-Card (read as its Default Card) is a ChartCard with ChartCard's default theme; Bar Horizontal + Show Average", /<ChartCard title="Capacity">\s*<BarChart orientation="horizontal" aria-label="Billable hours per team against capacity, September 2026"[^>]*showAverage \/>/.test(page));
   ok("charts: a chart whose Heading is hidden is the chart alone; Multi-Line Sector 6 has six months", /<LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026"[^>]*data=\{\[\{ label: "Apr"[^\]]*\{ label: "Sep", value: 105700 \}\]\}/.test(page));
   ok("charts: Donut Legend Start, its Total Label kept, the sample's total left to the code", /<DonutChart aria-label="Revenue by client, Q3 2026"[^>]*legendPosition="start" label="Invoiced in Q3 2026" \/>/.test(page));
   ok("charts: a chart with its Heading outside a Card: the chart, and a note that its header is ChartCard's", /<GaugeChart [^>]*showLegend=\{false\}/.test(page) && chartNotes.some((note) => note.startsWith('GaugeChart: its heading (Title "Utilisation") shows in Figma')));
@@ -248,7 +248,10 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
     children: [
       card("8:1", { Theme: "Solid", Color: "Neutral" }, [{ type: "TEXT", name: "Title", characters: "Invoiced this year", textStyle: "Heading/Subheading" }]),
       card("8:2", { Theme: "Pale", Color: "Violet", Spacing: "Small" }, [{ type: "TEXT", name: "Title", characters: "Design hours", textStyle: "Heading/Subheading" }]),
-      card("8:5", { Theme: "Border", Color: "Neutral", Surface: "Flat" }, [{ type: "TEXT", name: "Title", characters: "Hours", textStyle: "Heading/Subheading" }]),
+      card("8:5", { Theme: "Flat-Border", Color: "Neutral", Surface: "Default" }, [{ type: "TEXT", name: "Title", characters: "Hours", textStyle: "Heading/Subheading" }]),
+      // A file on the library before the 2026-10-21 rename: Theme=Flat and Border × Surface=Flat read as the new themes.
+      card("8:6", { Theme: "Flat", Color: "Neutral", Surface: "Alt" }, [{ type: "TEXT", name: "Title", characters: "Old flat", textStyle: "Heading/Subheading" }]),
+      card("8:7", { Theme: "Border", Color: "Neutral", Surface: "Flat" }, [{ type: "TEXT", name: "Title", characters: "Old border flat", textStyle: "Heading/Subheading" }]),
       card("8:3", { Theme: "Solid", Color: "Yellow" }, [{ type: "INSTANCE", id: "8:4", name: "Chart/Line-Chart", set: { id: "6643:63324", name: "Chart/Line-Chart" }, props: { "Show Icon": false, Title: "Revenue", "Show Description": false, "Show Value": false, "Show Ranges": false, "Show Open": false } }]),
     ],
   };
@@ -256,7 +259,8 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("card colour: the page is valid dialect", validateDialect(page), []);
   ok("card colour: Theme Solid + Color Neutral (the dark widget) is theme=\"solid\" with the default colour left out", /<Card theme="solid">/.test(page));
   ok("card colour: Theme Pale + Color Violet keeps its colour", /<Card theme="pale" color="violet" spacing="small">/.test(page));
-  ok("card surface: Theme Border + Surface Flat is surface=\"flat\"", /<Card theme="border" surface="flat">/.test(page));
+  ok("card surface: Theme Flat-Border (Border × Surface=Flat until 2026-10-21) is theme=\"flat-border\"", /<Card theme="flat-border">/.test(page));
+  ok("card theme: an older library's Theme=Flat is theme=\"default\", its Border × Surface=Flat theme=\"flat-border\"", /<Card theme="default" surface="alt">\s*<Text[^>]*>Old flat/.test(page) && /<Card theme="flat-border">\s*<Text[^>]*>Old border flat/.test(page));
   ok("card colour: a Solid Yellow Card around a chart with its Heading is a ChartCard that passes its colour on", /<ChartCard title="Revenue" theme="solid" color="yellow">/.test(page));
 }
 

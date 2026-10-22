@@ -228,7 +228,7 @@ function DiscoverPhone() {
               {intents.map((item) => {
                 const chosen = intent === item.id;
                 return (
-                  <Card key={item.id} theme={chosen ? "subtle" : "flat"} color={chosen ? "brand" : "neutral"} spacing="xs" aria-pressed={chosen} onClick={() => setIntent(item.id)}>
+                  <Card key={item.id} theme={chosen ? "subtle" : "default"} color={chosen ? "brand" : "neutral"} spacing="xs" aria-pressed={chosen} onClick={() => setIntent(item.id)}>
                     <Stack gap="xs" align="center">
                       <Icon name={item.icon} tone={chosen ? "accent-base" : "base"} decorative />
                       <Text textStyle="Caption/Medium" tone={chosen ? "accent-base" : "strongest"} align="center" wrap={false}>{item.lines[0]}<br />{item.lines[1]}</Text>
@@ -326,7 +326,7 @@ function BigNumberPhone() {
               </Stack>
               <Stack direction="row" gap="sm" fillChildren width="fill">
                 {hero.tiles.map((tile) => (
-                  <MetricCard key={tile.id} type="tile" theme="flat" size="sm" icon={false} label={tile.label} value={tile.value} />
+                  <MetricCard key={tile.id} type="tile" theme="default" size="sm" icon={false} label={tile.label} value={tile.value} />
                 ))}
               </Stack>
             </Stack>
@@ -459,7 +459,7 @@ export const examples: ExampleDef[] = [
             <Text textStyle="Caption/Medium" tone="accent-base" align="center" wrap={false}>Find<br />ancestors</Text>
           </Stack>
         </Card>
-        <Card theme="flat" spacing="xs" aria-pressed={false} onClick={pick}>…Explain<br />my DNA</Card>
+        <Card theme="default" spacing="xs" aria-pressed={false} onClick={pick}>…Explain<br />my DNA</Card>
         …Find records · Family story
       </Grid>
     </Stack>
@@ -523,9 +523,9 @@ export const examples: ExampleDef[] = [
             <Text textStyle="Body/Base/Medium" tone="on-accent">Calories eaten today</Text>
           </Stack>
           <Stack direction="row" gap="sm" fillChildren width="fill">
-            <MetricCard type="tile" theme="flat" size="sm" icon={false} label="Protein" value="32%" />
-            <MetricCard type="tile" theme="flat" size="sm" icon={false} label="Carbs" value="44%" />
-            <MetricCard type="tile" theme="flat" size="sm" icon={false} label="Fat" value="28%" />
+            <MetricCard type="tile" theme="default" size="sm" icon={false} label="Protein" value="32%" />
+            <MetricCard type="tile" theme="default" size="sm" icon={false} label="Carbs" value="44%" />
+            <MetricCard type="tile" theme="default" size="sm" icon={false} label="Fat" value="28%" />
           </Stack>
         </Stack>
       </Box>

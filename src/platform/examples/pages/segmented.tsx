@@ -57,7 +57,7 @@ function FileViewsExample() {
   const [query, setQuery] = useState("");
   const shown = brandFiles.filter((file) => file.name.toLowerCase().includes(query.trim().toLowerCase()));
   return (
-    <Card theme="flat">
+    <Card theme="default">
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Brand refresh files</Heading>
@@ -160,9 +160,9 @@ function ReportPeriodExample() {
       </Stack>
       <Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
         {/* Flat Surfaces on the stage's Canvas/Default: no border, no shadow (usage rules §16). */}
-        <MetricCard theme="flat" label="Billable hours" value={data.hours.value} trend={data.hours.trend} icon="icon-clock-line" iconTheme="blue" />
-        <MetricCard theme="flat" label="Utilisation" value={data.utilisation.value} trend={data.utilisation.trend} icon="icon-pie-chart-01-line" iconTheme="violet" />
-        <MetricCard theme="flat" label="Invoiced" value={data.invoiced.value} trend={data.invoiced.trend} icon="icon-currency-dollar-circle-line" iconTheme="green" />
+        <MetricCard theme="default" label="Billable hours" value={data.hours.value} trend={data.hours.trend} icon="icon-clock-line" iconTheme="blue" />
+        <MetricCard theme="default" label="Utilisation" value={data.utilisation.value} trend={data.utilisation.trend} icon="icon-pie-chart-01-line" iconTheme="violet" />
+        <MetricCard theme="default" label="Invoiced" value={data.invoiced.value} trend={data.invoiced.trend} icon="icon-currency-dollar-circle-line" iconTheme="green" />
       </Grid>
     </Stack>
   );
@@ -293,7 +293,7 @@ function BillingPeriodExample() {
     toast({ type: "positive", title: "Billing period changed", action: { label: "Undo", onClick: () => { setBilling(previous); setPeriod(previous); } } });
   };
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={() => switchTo(period, billing)} gap="md">
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">{`${plan.name} plan`}</Heading>
@@ -476,7 +476,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 ]} />
 
 <Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
-  <MetricCard theme="flat" label="Billable hours" value={data.hours.value} trend={data.hours.trend}
+  <MetricCard theme="default" label="Billable hours" value={data.hours.value} trend={data.hours.trend}
     icon="icon-clock-line" iconTheme="blue" />
   {/* Utilisation, Invoiced */}
 </Grid>`,

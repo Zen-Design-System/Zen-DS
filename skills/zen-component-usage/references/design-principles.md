@@ -181,7 +181,7 @@ shows: a screen that "needs more colour" often needs more space or a clearer typ
   nothing is.
 - **A shell drawn in lines keeps its boxes flat.** AppShell `pattern="grid"` (Figma Layout=Grid) separates its Sidebar
   and header with Pale lines instead of surfaces, so the page builds from Boxes and Flat Cards on the grey Canvas
-  (MetricCard, ChartCard, ListBox keep `theme="flat"`). Give `theme="subtle"` only to a metric card that should stand
+  (MetricCard, ChartCard, ListBox keep `theme="default"`, the Flat of before 2026-10-21). Give `theme="subtle"` only to a metric card that should stand
   out (◇ Master-Layout Rule 16823:85229, user 2026-10-21).
 - **Content first.** Real data at realistic lengths (long names, large numbers, an empty list), then the empty,
   loading and error states. They are part of the design.

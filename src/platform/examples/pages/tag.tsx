@@ -58,7 +58,7 @@ function Reviewers() {
     toast({ type: "positive", title: "Reviewers saved" });
   };
   return (
-    <Card theme="flat" ref={cardRef}>
+    <Card theme="default" ref={cardRef}>
       <Form onSubmit={save}>
         <Stack gap="xs" align="stretch">
           <Heading level={4} textStyle="Heading/Subheading">{file.name}</Heading>
@@ -96,7 +96,7 @@ function Keywords() {
   const [options, setOptions] = useState(keywordLibrary.map((keyword) => ({ id: keyword, label: keyword })));
   const [keywords, setKeywords] = useState(["Event website", "Ticketing", "Accessibility"]);
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId}>
+    <Card as="section" theme="default" aria-labelledby={titleId}>
       <Stack gap="md" align="stretch">
         <Stack gap="xs" align="stretch">
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">{caseStudy.name}</Heading>
@@ -142,7 +142,7 @@ function InviteGuests() {
     setValue([]);
   };
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId}>
+    <Card as="section" theme="default" aria-labelledby={titleId}>
       <Form onSubmit={send} invalidMessage={() => (invalid.length ? `${invalid[0]} isn't a valid email address` : "Add at least one email address")}>
         <Stack gap="xs" align="stretch">
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Invite client guests</Heading>
@@ -327,7 +327,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     title: "Reviewers",
     description: "People picked for a review are photo Tags inside the field, each removable with ×. After saving, the field turns Read-only: the tags stay, without × or Add.",
     render: () => <Reviewers />,
-    code: `<Card theme="flat">
+    code: `<Card theme="default">
   <Form onSubmit={save}>
     <Heading level={4} textStyle="Heading/Subheading">Loyalty app – points history.fig</Heading>
     <AutocompleteField label="Reviewers" readOnly={!editing} addLabel="Add people"
@@ -413,7 +413,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     code: `const [options, setOptions] = useState(studioKeywords.map((k) => ({ id: k, label: k })));
 const [keywords, setKeywords] = useState(["Event website", "Ticketing", "Accessibility"]);
 
-<Card as="section" theme="flat" aria-labelledby={titleId}>
+<Card as="section" theme="default" aria-labelledby={titleId}>
   <Heading level={4} id={titleId} textStyle="Heading/Subheading">Book Fair 2026 website</Heading>
   <Text textStyle="Body/Small/Regular" tone="base">Case study · Hanoi Book Fair</Text>
   <AutocompleteField label="Keywords" addLabel="Add keyword" searchPlaceholder="Find or create a keyword"
@@ -432,7 +432,7 @@ const [keywords, setKeywords] = useState(["Event website", "Ticketing", "Accessi
     render: () => <InviteGuests />,
     code: `const invalid = value.filter((email) => !emailPattern.test(email));
 
-<Card as="section" theme="flat" aria-labelledby={titleId}>
+<Card as="section" theme="default" aria-labelledby={titleId}>
   {/* Invalid: Form announces invalidMessage and focuses the first Error tag's Remove. */}
   <Form onSubmit={() => { if (!invalid.length) sendInvites(value); }}
     invalidMessage={() => \`\${invalid[0]} isn't a valid email address\`}>

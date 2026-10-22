@@ -41,7 +41,7 @@ function frame(card, footer) {
   return h(Z.ZenProvider, { theme: "light" },
     h(Z.Container, { maxWidth: "sm" },
       h(Z.Stack, { gap: "lg", justify: "center", paddingY: "xl", style: { minHeight: "100vh", boxSizing: "border-box" } },
-        h(Z.Card, { theme: "flat" },
+        h(Z.Card, { theme: "default" },
           h(Z.Stack, { justify: "center", width: "fill", direction: "row" },
             h(Z.Box, { padding: "xl", paddingX: "none", width: "fill", maxWidth: 400 }, card))),
         footer)));

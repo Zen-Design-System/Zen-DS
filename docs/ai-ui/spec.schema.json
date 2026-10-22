@@ -3680,8 +3680,9 @@
                   {
                     "enum": [
                       "shadow",
-                      "flat",
+                      "default",
                       "border",
+                      "flat-border",
                       "pale",
                       "subtle",
                       "on-container",
@@ -3692,22 +3693,21 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Theme (Card's Neutral themes): `shadow` Surface + Shadow/Bottom/Level-1 (default) · `flat` · `border` Border/Neutral/Pale · `pale` Support/Neutral/Pale · `subtle` Support/Neu"
+                "description": "Figma Theme (Card's Neutral themes): `shadow` Surface + Shadow/Bottom/Level-1 (default) · `default` the Surface alone (`flat` until 2026-10-21) · `border` Border/Neutral/Pale · `fl"
               },
               "surface": {
                 "anyOf": [
                   {
                     "enum": [
                       "default",
-                      "alt",
-                      "flat"
+                      "alt"
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Surface for the flat and border themes: `default` Surface/Default · `alt` Surface/Alt · `flat` Surface/Flat (border only)."
+                "description": "Figma Surface for the default and border themes: `default` Surface/Default · `alt` Surface/Alt."
               },
               "children": {
                 "anyOf": [
@@ -10111,9 +10111,10 @@
                   {
                     "enum": [
                       "shadow",
-                      "flat",
+                      "default",
                       "pale",
                       "border",
+                      "flat-border",
                       "on-container",
                       "solid",
                       "subtle",
@@ -10124,7 +10125,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/<Color>/Pale + Effect/Overlay blur) · Border · On-Container (Surface/Flat: a card inside a Modal, Side Panel or B"
+                "description": "Figma Theme: Shadow (Shadow/Bottom/Level-1) · Default (the Surface fill alone: no border, no shadow) · Pale (Support/<Color>/Pale + Effect/Overlay blur) · Border (Border/Neutral/Pa"
               },
               "color": {
                 "anyOf": [
@@ -10182,15 +10183,14 @@
                   {
                     "enum": [
                       "default",
-                      "alt",
-                      "flat"
+                      "alt"
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Surface, chosen to suit the page's Canvas: Surface/Default · Surface/Alt (Flat and Border: 15530:454–496) · Surface/Flat (Border only, 15530:502–520: a Border card on a Canva"
+                "description": "Figma Surface, chosen to suit the page's Canvas: Surface/Default · Surface/Alt (Default and Border: 15530:454–496)."
               },
               "aria-label": {
                 "anyOf": [
@@ -10535,9 +10535,10 @@
                   {
                     "enum": [
                       "shadow",
-                      "flat",
+                      "default",
                       "pale",
                       "border",
+                      "flat-border",
                       "on-container",
                       "solid",
                       "subtle",
@@ -10577,15 +10578,14 @@
                   {
                     "enum": [
                       "default",
-                      "alt",
-                      "flat"
+                      "alt"
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma nested Card Surface: default · alt (Flat, Border) · flat (Border only, on a Canvas/Flat page); see Card."
+                "description": "Figma nested Card Surface: default · alt (Default, Border); see Card."
               },
               "children": {
                 "anyOf": [
@@ -23283,10 +23283,11 @@
                 "anyOf": [
                   {
                     "enum": [
-                      "flat",
+                      "default",
                       "shadow",
                       "pale",
                       "border",
+                      "flat-border",
                       "on-container"
                     ]
                   },
@@ -23295,6 +23296,41 @@
                   }
                 ],
                 "description": "Elevation, Figma Theme (the tokens of Card's Theme)."
+              },
+              "color": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "neutral",
+                      "brand",
+                      "cyan",
+                      "violet",
+                      "green",
+                      "yellow",
+                      "orange",
+                      "blue",
+                      "purple"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Color: the hue of a Pale box, Support/<Hue>/Pale (one hue per family, as Card's Pale)."
+              },
+              "surface": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "default",
+                      "alt"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Surface: Surface/Alt for a Default or Border box (Theme × Surface=Alt), chosen to suit the page's Canvas, as Card's Surface."
               },
               "as": {
                 "anyOf": [
@@ -24784,9 +24820,10 @@
                   {
                     "enum": [
                       "shadow",
-                      "flat",
+                      "default",
                       "pale",
                       "border",
+                      "flat-border",
                       "on-container",
                       "solid",
                       "subtle",

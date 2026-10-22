@@ -252,7 +252,7 @@ Harness (`npm run usage:check`): `navigation/back-chevron` (error). Suppress a d
 | `canvas-alt` | `surface-default` | a closed border: `0 0 0 1px` Border/Neutral/**Pale** when static, **Subtle** when actionable (§6) |
 | `canvas-alt` | `surface-alt` | nothing extra (the colour separates it) |
 | `canvas-default` / `canvas-flat` | `surface-default` | as designed |
-| `canvas-flat` | `surface-flat` (Card `theme="border" surface="flat"`) | the Pale border (Figma Card Border × Surface=Flat) |
+| `canvas-flat` | `surface-flat` (Card and ListBox `theme="flat-border"`) | the Pale border (Figma Card / List-Box Theme=Flat-Border; Border × Surface=Flat until 2026-10-21) |
 
 - **A shadow does not count.** Elevation alone reads as a smudge on white, and it disappears in dark mode, so the border is required even when the box also has a shadow.
 - **Navigation bars** (Top/Bottom Navigation, Sidebar) are not boxes on the page; they keep their own separators.
@@ -398,10 +398,10 @@ grouped list, never thin kicker labels over one long run of rows on a single whi
     desktop) and List-Container-Vertical-Padding above and below (8px / 12px), rows Gap/3XSmall apart. The fill sits 8px
     (phone) / 12px (desktop) from every edge, concentric with Interactive-List-Item-Radius (Large 16px on a phone, Base
     12px on desktop); kicker `Box paddingX="lg"` on a phone (20px), `paddingX="xl"` on desktop (24px);
-  - blocks that are not List-Items (a DescriptionList, labelled Toggles) take a `<Card theme="flat">` (user rule
+  - blocks that are not List-Items (a DescriptionList, labelled Toggles) take a `<Card theme="default">` (user rule
     2026-10-06: ListBox is only for List-Item rows); its Card-padding-medium and 2XLarge corner match the ListBox, so
     every group on the screen still shares one inset and one corner.
-  - on the Surface-Alt screen the ListBox stays `theme="flat"` (the default): white on Surface-Alt needs no frame.
+  - on the Surface-Alt screen the ListBox stays `theme="default"` (the default): white on Surface-Alt needs no frame.
 - Desktop: one Card per group (Heading/Subheading title) or a Heading/4 section over a bordered List.
 
 ## 16. Default pairing: Canvas/Default + flat Surface/Default
@@ -415,7 +415,7 @@ Workspace plan (the pricing cards).
   and phone screens (`PlatformPhone` by default) included. The audit warns on a Surface/Default box on it with a border or
   a shadow (`roles`, quality-checks.mjs; phones and shells are not checked yet). A page
   inside an example never paints its own white background.
-- Boxes on it: Card `theme="flat"`, MetricCard `theme="flat"`, ChartCard (flat by default), `ListBox` (flat by default), or a
+- Boxes on it: Card `theme="default"`, MetricCard `theme="default"`, ChartCard (`default` by default), `ListBox` (`default` by default), or a
   `Box surface="surface"` without `border`. White on Canvas/Default separates the box in light and dark mode, so it
   needs no frame.
 - What is not a box sits straight on the canvas: a Segmented and its caption, a form, a Table (§14), an EmptyState.
@@ -425,17 +425,18 @@ Conditions that pick something else win over the default:
 | Condition | Pairing |
 | --- | --- |
 | A screen with a Sidebar (AppShell, templates) | Elevation follows the Sidebar: the default Sidebar on Canvas/Default takes Card `theme="shadow"` and ListBox `theme="shadow"`; a white Canvas/Alt with an Alt or Flat Sidebar takes bordered cards and ListBox `theme="border"` |
-| A white page: Canvas/Alt, or a white phone screen (`PlatformPhone canvas="surface"`; phone screens default to Canvas/Default since 2026-10-07 and then follow this section) | §11: a Pale border (Subtle when actionable; ListBox `theme="border"`) or `surface="alt"`; grouped lists on a Surface-Alt phone screen follow §15 (flat ListBox) |
+| A white page: Canvas/Alt, or a white phone screen (`PlatformPhone canvas="surface"`; phone screens default to Canvas/Default since 2026-10-07 and then follow this section) | §11: a Pale border (Subtle when actionable; ListBox `theme="border"`) or `surface="alt"`; grouped lists on a Surface-Alt phone screen follow §15 (ListBox `theme="default"`) |
+| A Canvas/Flat page (page and bars one plane in both modes; user 2026-10-21) | Card and ListBox `theme="flat-border"`: Surface/Flat inside a Pale frame (Figma Theme=Flat-Border) |
 | A Card or ListBox inside a Modal (Dialog, ModalForm), a SidePanel or a BottomSheet (user rule 2026-10-12; harness `card/on-container-in-overlay`, `listbox/on-container-in-overlay`) | `theme="on-container"`: Surface/Flat on the panel's Container fill (white on light grey in light mode, dark-neutral-1 on dark-neutral-2 in dark), no border, no shadow |
 | A Surface box inside another Surface (a card in a card or in a ListBox) | Same colour, so it takes the Pale border (§6; ListBox `theme="border"`), or a Surface-Alt / Pale fill |
-| A clickable card (`onClick`, choice tiles) | `theme="border"`: the Subtle stroke and its Hover/Pressed are the affordance (§6); Flat has no hover state |
+| A clickable card (`onClick`, choice tiles) | `theme="border"`: the Subtle stroke and its Hover/Pressed are the affordance (§6); Default has no hover state |
 | The selected card | `selected` (2px Card/Border/Active) on whatever theme the card has |
 | An example whose subject is a Card theme or a white page | The theme it demonstrates |
 
 ```tsx
-// ✅ no condition: grey canvas, white flat cards
+// ✅ no condition: grey canvas, white cards (theme="default")
 <Grid columns={{ mobile: 1, desktop: 3 }} gap="md">
-  <Card as="section" theme="flat" aria-labelledby={titleId}>…</Card>
+  <Card as="section" theme="default" aria-labelledby={titleId}>…</Card>
 </Grid>
 // ❌ a frame or an elevation nothing asks for
 <Card theme="border">…</Card>          // on the stage: no white page, no Surface behind it

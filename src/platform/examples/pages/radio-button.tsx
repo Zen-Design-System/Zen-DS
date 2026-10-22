@@ -50,7 +50,7 @@ function PaymentTermsExample() {
   };
   // The card is a form: Enter or Send invoice submits, and the action sits on the right (full width under 480px).
   return (
-    <Card theme="flat">
+    <Card theme="default">
       <Form onSubmit={send}>
         <Stack gap="xs">
           <Stack direction="row" gap="2xs" align="center" wrap>
@@ -98,7 +98,7 @@ function DeclineReviewExample() {
   });
   // The whole card is the form: header, reason, note and actions take the Form's gap.
   return (
-    <Card theme="flat">
+    <Card theme="default">
       <Form form={form}>
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Connect the rewards API to checkout</Heading>
@@ -155,7 +155,7 @@ function ProjectVisibilityExample() {
         {/* Radio cards: the whole card selects; the selected card gets the Active stroke. */}
         <Grid minColumnWidth={280} gap="md">
           {visibilityOptions.map((option) => (
-            <Card key={option.id} className="px-radio-button-card" theme="flat" spacing="small" selected={visibility === option.id}>
+            <Card key={option.id} className="px-radio-button-card" theme="default" spacing="small" selected={visibility === option.id}>
               <RadioButton name={name} value={option.id} bold label={option.label} caption={option.caption} disabled={option.disabled}
                 checked={visibility === option.id} onCheckedChange={(checked) => { if (checked) setVisibility(option.id); }} />
             </Card>
@@ -190,7 +190,7 @@ function DateTimeExample() {
   const week = draft.week === "monday" ? formatRange(daysFromToday(-2), daysFromToday(4)) : formatRange(daysFromToday(-3), daysFromToday(3));
   const save = () => { setSaved(draft); toast({ title: "Preferences saved" }); };
   return (
-    <Card theme="flat">
+    <Card theme="default">
       <Form onSubmit={save}>
         <Stack gap="xs">
           <Heading level={4} textStyle="Heading/Subheading">Date and time</Heading>
@@ -352,7 +352,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   <FormFieldset kind="radio" legend="Who can open Loyalty app">
     <Grid minColumnWidth={280} gap="md">
       {options.map((option) => (
-        <Card key={option.id} theme="flat" spacing="small" selected={visibility === option.id}>
+        <Card key={option.id} theme="default" spacing="small" selected={visibility === option.id}>
           <RadioButton name="visibility" value={option.id} bold label={option.label} caption={option.caption}
             disabled={option.disabled} checked={visibility === option.id}
             onCheckedChange={(checked) => { if (checked) setVisibility(option.id); }} />

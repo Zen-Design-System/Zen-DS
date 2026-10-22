@@ -131,9 +131,19 @@ export function ListItem({ ref, title, titleLines = 1, caption, leading, value, 
   );
 }
 
-/** ListBox elevation: Figma List-Box Theme (Flat · Shadow · Pale · Border · On-Container, the tokens of Card's Theme). */
-export const listBoxThemes = ["flat", "shadow", "pale", "border", "on-container"] as const;
+/** ListBox elevation: Figma List-Box Theme (Default · Shadow · Pale · Border · Flat-Border · On-Container, the tokens of
+ *  Card's Theme; renamed with Card 2026-10-21: Flat → Default, Border × Surface=Flat → Flat-Border). */
+export const listBoxThemes = ["default", "shadow", "pale", "border", "flat-border", "on-container"] as const;
 export type ListBoxTheme = (typeof listBoxThemes)[number];
+/** Figma List-Box Color (14922:75297): the Pale theme's hue, Support/<Hue>/Pale; the other themes are Neutral only. */
+export const listBoxColors = ["neutral", "brand", "cyan", "violet", "green", "yellow", "orange", "blue", "purple"] as const;
+export type ListBoxColor = (typeof listBoxColors)[number];
+/** Figma List-Box Surface: Surface/Default or Surface/Alt. */
+export type ListBoxSurface = "default" | "alt";
+/** The Surfaces each Theme has in Figma (Alt on Default and Border); the others keep their own fill. */
+export const listBoxSurfaces: Readonly<Record<ListBoxTheme, readonly ListBoxSurface[]>> = {
+  default: ["default", "alt"], shadow: ["default"], pale: ["default"], border: ["default", "alt"], "flat-border": ["default"], "on-container": ["default"],
+};
 
 /**
  * Standard HTML attributes (`id`, `data-*`, `aria-*`, `style`…) go to the root element (`as`). `width`, `minWidth`,
@@ -151,12 +161,19 @@ export interface ListBoxProps extends Omit<HTMLAttributes<HTMLElement>, "title">
   children: ReactNode;
   /** Figma Footer-Slot (Footer=Yes): what follows the rows, e.g. a "Show all" Tertiary button. Pads Card-padding-medium. */
   footer?: ReactNode;
-  /** Elevation, Figma Theme (the tokens of Card's Theme). Flat (default): Surface/Default alone — on Canvas/Default it
+  /** Elevation, Figma Theme (the tokens of Card's Theme). Default: Surface/Default alone — on Canvas/Default it
    *  needs no frame (usage rules §16). Shadow: Shadow/Bottom/Level-1, when the page's elevation follows a default Sidebar. Pale:
    *  Support/Neutral/Pale + Effect/Overlay blur, a tinted box (never with a shadow, §9). Border: a 1px
    *  Border/Neutral/Pale ring inside, for a white page (Canvas/Alt, a phone screen) or a box inside another Surface (§11).
+   *  Flat-Border: Surface/Flat inside that ring, the box of a Canvas/Flat page (Figma Theme=Flat-Border, 15531:3660).
    *  On-Container: Surface/Flat, a box inside a Modal, Side Panel or Bottom Sheet (their Container fill, §16). */
   theme?: ListBoxTheme;
+  /** Figma Color: the hue of a Pale box, Support/<Hue>/Pale (one hue per family, as Card's Pale). Neutral by default;
+   *  the other themes have no Color and ignore it. */
+  color?: ListBoxColor;
+  /** Figma Surface: Surface/Alt for a Default or Border box (Theme × Surface=Alt), chosen to suit the page's Canvas, as
+   *  Card's Surface. Default by default; the other themes keep their own fill and ignore it. */
+  surface?: ListBoxSurface;
   /** "div" (default) or "section" when the box is a titled region (give it aria-labelledby). */
   as?: "div" | "section";
   className?: string;
@@ -167,14 +184,17 @@ export interface ListBoxProps extends Omit<HTMLAttributes<HTMLElement>, "title">
  * tokens change by mode. Surface/Default, Corner-Radius/2XLarge (24px, concentric with the row fill:
  * Interactive-List-Item-Radius + its gap to the edge), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium
  * sideways (24px desktop · 20px tablet and mobile), the body List-Container-Vertical-Padding above and below. Header and
- * Footer are optional (Figma Header=No / Footer=No). `theme` is Figma's Theme: flat (default), shadow, pale,
- * border or on-container.
+ * Footer are optional (Figma Header=No / Footer=No). `theme` is Figma's Theme: default, shadow, pale, border,
+ * flat-border or on-container; `color` the Pale box's hue and `surface` the Default or Border box's Surface.
  */
-export function ListBox({ ref, header, footer, children, theme = "flat", as: Tag = "div", className, width, minWidth, maxWidth, alignSelf, style, ...rest }: ListBoxProps) {
+export function ListBox({ ref, header, footer, children, theme = "default", color = "neutral", surface = "default", as: Tag = "div", className, width, minWidth, maxWidth, alignSelf, style, ...rest }: ListBoxProps) {
   const sizing = layoutSizing({ width, minWidth, maxWidth, alignSelf });
+  // Only Figma's variants: a hue on Pale, Surface/Alt on Default and Border.
+  const hue = theme === "pale" && color !== "neutral" ? color : undefined;
+  const alt = surface === "alt" && listBoxSurfaces[theme]?.includes("alt");
   return (
     // One ref type for both `as` tags (div, section).
-    <Tag {...rest} ref={ref as Ref<HTMLDivElement>} {...sizing.attributes} style={withSizingVars(style, sizing.vars)} data-tone={theme} className={["zen-list-box", className].filter(Boolean).join(" ")}>
+    <Tag {...rest} ref={ref as Ref<HTMLDivElement>} {...sizing.attributes} style={withSizingVars(style, sizing.vars)} data-tone={theme} data-color={hue} data-surface={alt ? "alt" : undefined} className={["zen-list-box", className].filter(Boolean).join(" ")}>
       {header ? <div className="zen-list-box__header">{header}</div> : null}
       <div className="zen-list-box__body">{children}</div>
       {footer ? <div className="zen-list-box__footer">{footer}</div> : null}

@@ -94,7 +94,7 @@ export const rows = [
       await call(ctx, "batch", { ops: [
         { tool: "insert", as: "card", args: { parent: content, jsx: "<Card><Text>Batch card</Text></Card>" } },
         { tool: "insert", args: { parent: "$card", jsx: '<Button level="secondary">Card action</Button>' } },
-        { tool: "update", args: { id: "$card", props: { theme: "flat" } } },
+        { tool: "update", args: { id: "$card", props: { theme: "default" } } },
       ] });
       await until(async () => (await frameText(page)).includes("Card action"), { message: "the batch on the canvas" });
       const stack = await undoStack(page);

@@ -195,9 +195,10 @@ export const FIGMA_PROPS = {
   },
   Card: {
     sets: { Card: null },
-    // Color: Pale and Subtle take all nine, Solid Neutral · Brand · Cyan · Yellow · Orange. Surface: Alt on Flat and Border, Flat on
-    // Border (Shadow on alt draws as Flat on Surface/Alt). figma-push writes only variants Figma has (cardVariant). Active
-    // is `selected` (`active` is its deprecated alias).
+    // Theme (renamed 2026-10-21): Flat → Default; Border × Surface=Flat → Flat-Border (Surface/Flat in a Pale frame, for
+    // Canvas/Flat). Color: Pale and Subtle take all nine, Solid Neutral · Brand · Cyan · Yellow · Orange. Surface: Alt on
+    // Default and Border (Shadow on alt draws as Default on Surface/Alt). figma-push writes only variants Figma has
+    // (cardVariant). Active is `selected` (`active` is its deprecated alias).
     props: { Content: skip("content slot (Slots section)"), "Sub-Action": skip("a sub-action object or node (Object properties)"), Theme: "theme", Color: "color", Surface: "surface", Spacing: "spacing", Active: { prop: "selected", bool: true } },
   },
   Chip: {
@@ -292,6 +293,10 @@ export const FIGMA_PROPS = {
       "Header-Slot": skip("content slot (Slots section)"),
       "Body-Slot": skip("content slot (Slots section)"),
       Theme: "theme",
+      // Color (Neutral … Purple, the Pale theme's hue) and Surface (Default · Alt on Default and Border), live in Figma
+      // 2026-10-21 (user: "Thêm luôn trong đợt này").
+      Color: "color",
+      Surface: "surface",
       Footer: { toggle: "footer", on: "slot" },
       "Footer-Slot": skip("content slot (Slots section)"),
     },
