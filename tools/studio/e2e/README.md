@@ -5,7 +5,8 @@ feature, whether it works or is broken, with evidence. It was built as GĐ0 of
 `docs/research/studio-builder-plan-2026-10-05.md`.
 
 ```bash
-npm run studio:e2e                           # every group, about 2 minutes
+npm run studio:e2e                           # every group: 338 rows, about 25 minutes (2026-10-22)
+npm run studio:e2e -- --shard=1/3            # a third of the rows (the gate runs 1/3, 2/3, 3/3 one after another)
 npm run studio:e2e -- --only=shell,select    # some groups
 npm run studio:e2e -- --rows=K-07,I-03       # some rows (debugging)
 npm run studio:e2e -- --update-baseline      # record this run after a fix
@@ -17,7 +18,9 @@ server up.
 
 `npm run qa` runs the self-tests as a static step and the E2E as a runtime step whenever Studio files are in scope:
 `src/platform/studio/**`, `src/platform/examples/e2e/**` or `tools/studio/**`. With `--quick` it runs only the
-shell, select and inspector groups.
+shell, select and inspector groups. The gate counts the rows (`--list`), plans shards of about 10 minutes from the last
+run's seconds per row, runs them one after another with `--shard=k/n --budget=<s>`, and writes one combined report,
+`.qa/studio-e2e/<gate stamp>-gate.md`, with one regression list.
 
 ## The production build (builder pages without the dev server)
 
@@ -53,6 +56,10 @@ the engine modules or the build config.
 - **Shards.** `--shard=k/n` runs the k-th of n contiguous slices of the selected rows (its groups only), its report
   named `<stamp>-shard<k>of<n>`. Shards in one tree share the save fixture: run them one after another there, or in
   separate worktrees.
+- **Time budget.** `--budget=<seconds>` starts no row once the run is that old: the rows left are reported as not run
+  (a skip marked `notRun` in the report, `⚠ Not run …` in the output) and the run exits 1, with its report written and
+  the disk put back. A run stopped by SIGTERM or Ctrl-C also puts the disk back before it exits (2, no report).
+- **Row count.** `--list` prints the selected rows' count per group as JSON and runs nothing.
 
 ## Rows and the baseline
 

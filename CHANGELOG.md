@@ -1178,6 +1178,13 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Build-QA gate (2026-10-22): a full `npm run qa -- --all` ends with a real pass or fail for every step instead of
+  being killed by a time limit. The audit, dark audit and behaviour jobs run in shards of about 10 minutes sized from
+  each page's last measured time; a shard that still stops early fails its step and names the pages it did not check.
+  The Studio E2E runs in shards of about 10 minutes, one after another, each with a time budget; rows left over are
+  reported as not run, and one combined report lists the regressions. `studio:e2e` gains `--budget` and `--list`.
+- AI UI page, "Composed while typing": once the booking form shows, the read-only people and place values are Tags
+  (they were Chips that did nothing when clicked; the behaviour gate's dead-click warning, BACKLOG P3 until now).
 - Zen Studio: a right-click on a selected layer's resize handle opens the layer's menu, as in Figma. A short text at a
   low zoom is mostly handles, so its menu did not open.
 - Dialog, ModalForm, BottomSheet and modal SidePanel: a modal in an inert part of the page no longer takes Escape
