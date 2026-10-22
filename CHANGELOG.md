@@ -21,6 +21,15 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   current Spark-Bar, the active bar, a Bullet or Gauge target, the Funnel's last stage, the Combo line) in black at 49%
   (Content/Neutral/Light; Inverse/Light in dark mode), as Figma's Color Chart Sector/On-Color/Secondary does, not 69%.
   The user kept that style's binding and the Tertiary one (Border/Neutral/Subtle/Pressed) (2026-10-23).
+- **Docs platform:** the Shape page has three more examples: a seat map whose marks carry labels (picked with Segmented
+  buttons, taken seats drawn as outlines), the arc's and star's limits (Sweep 0 %, a hairline ring, thin and zero-ratio
+  stars) and onboarding art on a phone (2026-10-23).
+- Figma contracts: `nested-layers.json` is re-read from the live file (2026-10-23): Card's 120 variants, Empty-State
+  as its set (16339:135, so `nested-paths` now checks EmptyState too, 45/45), and the layer changes in Bottom-Sheet,
+  Modal/Dialog and Inline-Message.
+- Usage harness: a tag quoted in a `//` line comment is documentation, as in a block comment, so it no longer trips a
+  rule (Zen Studio's Design panel showed a false "Save has no onClick"); a URL's `//` still leaves the rest of the line
+  checked (2026-10-23).
 - Zen Studio: copying a Section onto its own place (⌘D, ⌥-drag) no longer overflows the page's stack: of two
   Sections the same size the one written first holds the other, as documented, never both each other. The Studio E2E
   report (and the gate's) now names the row and the stack of every Vite error, so a page error that fails no row is
