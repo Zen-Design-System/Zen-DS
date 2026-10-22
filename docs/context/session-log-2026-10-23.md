@@ -92,6 +92,6 @@ Branch claude/modest-gauss-20ef1e. BACKLOG "a row's picture through a helper" an
   Picture on an initials Avatar goes the same way. doc.mjs maps `via` locs on pages you made.
 - Real files checked with the engine: sidebar desktop (RowCard rows[1] → taskRow → personAvatar → people.bao.photo,
   through filter/sort/slice) and phone frame (`let content` → taskList("Due this week", …, true) → people.alex.photo).
-- Tests: data-source selftest +10 cases (47); E2E FW-PIC-1…4 (figma group, `scenarios/figma/pictures.mjs`, fixture
+- Tests: data-source selftest +10 cases (47); E2E FW-235…238 (figma group, `scenarios/figma/pictures.mjs`, fixture
   frame "E2E pictures").
 - Not covered (refused in words): a layer either side of a condition, a helper in another file, a default parameter.

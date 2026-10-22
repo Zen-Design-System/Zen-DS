@@ -102,8 +102,8 @@ code words.
 | Drag a photo from Assets onto an avatar or image | The layer lights up with "Picture of Avatar"; the drop replaces it (one undo step) | fixture SE-36 |
 | Open the Inspector's Picture | A picker (People, Library, your uploads) with the current photo's name, in every file — no more text field "Bound to {…}" | fixture, table |
 | ⌘-click an avatar a row passes into a ListItem | The Avatar is selected (was: the ListItem), the hover outline shows it first | sidebar |
-| Drop a photo on an avatar shared by 14 rows (built by a helper) | Refused in plain words: "shared by 14 rows … change the person's photo in the data" (Figma would override one instance; see the program). **2026-10-23: that person's photo changes** (the call that drew the row is read from the canvas, data-source.mjs `via`); an initials avatar gets its first photo | sidebar; E2E FW-PIC-1 |
-| Drop a photo on one face of an AvatarStack, one reader of a ChatMessage | **2026-10-23:** that item's picture (`items[2].src` where the list is written or read) | E2E FW-PIC-3, FW-PIC-4 |
+| Drop a photo on an avatar shared by 14 rows (built by a helper) | Refused in plain words: "shared by 14 rows … change the person's photo in the data" (Figma would override one instance; see the program). **2026-10-23: that person's photo changes** (the call that drew the row is read from the canvas, data-source.mjs `via`); an initials avatar gets its first photo | sidebar; E2E FW-235 |
+| Drop a photo on one face of an AvatarStack, one reader of a ChatMessage | **2026-10-23:** that item's picture (`items[2].src` where the list is written or read) | E2E FW-237, FW-238 |
 | ⌘D on a page you made | Duplicates (was refused as "has a key") | B-34 |
 
 ### The remaining program, as acceptance criteria

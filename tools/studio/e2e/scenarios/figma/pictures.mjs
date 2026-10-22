@@ -57,7 +57,7 @@ const failWith = (page, message) => async (error) => { throw new Error(`${error.
 
 export const pictureRows = [
   {
-    id: "FW-PIC-1", feature: "A photo dropped on a row's avatar that a helper draws (the sidebar's personAvatar(people[t.assignee]) in rows taskRow builds from filtered tasks) changes that person's photo in data.ts, one ⌘Z puts it back; an initials avatar gets its first photo", wp: "pictures 2026-10-23",
+    id: "FW-235", feature: "A photo dropped on a row's avatar that a helper draws (the sidebar's personAvatar(people[t.assignee]) in rows taskRow builds from filtered tasks) changes that person's photo in data.ts, one ⌘Z puts it back; an initials avatar gets its first photo", wp: "pictures 2026-10-23",
     async run(ctx) {
       const page = await picturesFrame(ctx);
       const before = await data(ctx);
@@ -77,7 +77,7 @@ export const pictureRows = [
     },
   },
   {
-    id: "FW-PIC-2", feature: "A refusal stays clear where the code, not the row, picks the data: a drop on an avatar either side of a condition draws says so and writes nothing", wp: "pictures 2026-10-23",
+    id: "FW-236", feature: "A refusal stays clear where the code, not the row, picks the data: a drop on an avatar either side of a condition draws says so and writes nothing", wp: "pictures 2026-10-23",
     async run(ctx) {
       const page = await picturesFrame(ctx);
       const before = { host: await ctx.text(), data: await data(ctx) };
@@ -90,7 +90,7 @@ export const pictureRows = [
     },
   },
   {
-    id: "FW-PIC-3", feature: "A photo dropped on one face of an AvatarStack (items a .map builds from data.ts) changes that person's photo, and on one reader of a ChatMessage (seenBy written in place) that item's picture; one ⌘Z each", wp: "pictures 2026-10-23",
+    id: "FW-237", feature: "A photo dropped on one face of an AvatarStack (items a .map builds from data.ts) changes that person's photo, and on one reader of a ChatMessage (seenBy written in place) that item's picture; one ⌘Z each", wp: "pictures 2026-10-23",
     async run(ctx) {
       const page = await picturesFrame(ctx);
       const before = { host: await ctx.text(), data: await data(ctx) };
@@ -109,7 +109,7 @@ export const pictureRows = [
     },
   },
   {
-    id: "FW-PIC-4", feature: "On a page you made, a photo dropped on one reader of a ChatMessage writes that reader's src in the page (zen-media:), the other reader keeps none; one ⌘Z", wp: "pictures 2026-10-23",
+    id: "FW-238", feature: "On a page you made, a photo dropped on one reader of a ChatMessage writes that reader's src in the page (zen-media:), the other reader keeps none; one ⌘Z", wp: "pictures 2026-10-23",
     async run(ctx) {
       const seeded = await seededPage(ctx, (title) => grow(newPageText({ title, device: "desktop" }), "Stack", '<ChatMessage side="you" seenBy={[{ name: "Ava Chen" }, { name: "Gia Pham" }]}>Seen by two</ChatMessage>'), /Seen by two/);
       const { page, id } = seeded;
