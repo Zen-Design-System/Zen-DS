@@ -363,6 +363,8 @@ export const Good = () => <>
   <div><Card subAction={{ label: "More", icon: "icon-dots-horizontal-line", onClick: act }}>Team</Card></div>
 </>;
 
+// A tag quoted in a line comment (<Button>Save</Button>) is documentation: no action-without-handler.
+
 // A component's root card is judged where the component is used: three side by side take Small, one keeps Medium.
 function DeviceCard({ label }: { label: string }) { return <Card theme="default" spacing="small">{label}</Card>; }
 export const Devices = () => <PlatformPhone label="Devices"><Grid columns={3} gap="md"><DeviceCard label="HomePod mini" /><DeviceCard label="Ceiling light" /><DeviceCard label="Blinds" /></Grid></PlatformPhone>;

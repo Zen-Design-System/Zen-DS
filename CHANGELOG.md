@@ -23,6 +23,15 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio ↔ Figma: an instance's layer name (data-name) is its Figma name and comes back with Pull from Figma, and so
   does a name changed in Figma since; an instance's accessible name (aria-label, an icon button's label) stays its Figma
   name first (2026-10-23).
+- **Docs platform:** the Shape page has three more examples: a seat map whose marks carry labels (picked with Segmented
+  buttons, taken seats drawn as outlines), the arc's and star's limits (Sweep 0 %, a hairline ring, thin and zero-ratio
+  stars) and onboarding art on a phone (2026-10-23).
+- Figma contracts: `nested-layers.json` is re-read from the live file (2026-10-23): Card's 120 variants, Empty-State
+  as its set (16339:135, so `nested-paths` now checks EmptyState too, 45/45), and the layer changes in Bottom-Sheet,
+  Modal/Dialog and Inline-Message.
+- Usage harness: a tag quoted in a `//` line comment is documentation, as in a block comment, so it no longer trips a
+  rule (Zen Studio's Design panel showed a false "Save has no onClick"); a URL's `//` still leaves the rest of the line
+  checked (2026-10-23).
 - Zen Studio: copying a Section onto its own place (⌘D, ⌥-drag) no longer overflows the page's stack: of two
   Sections the same size the one written first holds the other, as documented, never both each other. The Studio E2E
   report (and the gate's) now names the row and the stack of every Vite error, so a page error that fails no row is
