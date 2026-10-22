@@ -624,8 +624,8 @@ function PhoneProjectColours() {
   const open = projects.filter((project) => project.status !== "Completed");
   return (
     // A white Canvas/Alt screen: the boxes on it are Pale, each in its project's colour.
-    <PlatformPhone label="Projects" canvas="alt" headerOverlay screenRef={screenRef}
-      header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef} />}>
+    <PlatformPhone label="Projects" canvas="surface" headerOverlay screenRef={screenRef}
+      header={<TopNavigation type="default" title="Projects" largeTitle="Projects" scrollRef={screenRef} />}>
       <Stack gap="sm" padding="lg">
         {open.map((project) => (
           <Card key={project.id} as="section" theme="pale" color={projectColor[project.theme] ?? "neutral"} spacing="small" aria-labelledby={`project-${project.id}`}>
@@ -934,7 +934,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     render: () => <PhoneProjectColours />,
     code: `const projectColor: Record<string, CardColor> = { orange: "orange", blue: "blue", teal: "cyan", purple: "purple", indigo: "violet", green: "green" };
 
-<PlatformPhone canvas="alt" header={<TopNavigation type="alt" title="Projects" largeTitle="Projects" scrollRef={screenRef} />}>
+<PlatformPhone canvas="surface" header={<TopNavigation type="default" title="Projects" largeTitle="Projects" scrollRef={screenRef} />}>
   <Stack gap="sm" padding="lg">
     {open.map((project) => (
       <Card key={project.id} as="section" theme="pale" color={projectColor[project.theme] ?? "neutral"} spacing="small"

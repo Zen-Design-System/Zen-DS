@@ -1428,7 +1428,7 @@
           "type": "\"shadow\" | \"default\" | \"pale\" | \"border\" | \"flat-border\" | \"on-container\" | \"solid\" | \"subtle\" | \"semi-pale\"",
           "required": false,
           "default": "\"default\"",
-          "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",
+          "description": "Figma nested Card Theme: Default (default, the Surface alone) inside a panel or section; Shadow when the chart card\n sits on the canvas next to other Shadow cards (metric cards on a dashboard); the other themes follow the Card rules\n for the page's Canvas (harness theme/box-on-canvas).",
           "deprecated": null
         },
         {
@@ -1445,6 +1445,14 @@
           "required": false,
           "default": null,
           "description": "Figma nested Card Surface: default · alt (Default, Border); see Card. A chart on a Canvas/Flat page takes theme=\"flat-border\".",
+          "deprecated": null
+        },
+        {
+          "name": "spacing",
+          "type": "\"md\" | \"sm\" | \"xs\" | \"medium\" | \"small\" | \"xsmall\"",
+          "required": false,
+          "default": "\"medium\"",
+          "description": "Figma nested Card Spacing: Medium (default; Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small,\n Corner-Radius/Large) · XSmall (Card-padding-xsmall, Corner-Radius/Base), for a chart in a narrow tile or a row of\n several on a phone. Short (md, sm, xs) or Figma (medium, small, xsmall) spelling.",
           "deprecated": null
         },
         {

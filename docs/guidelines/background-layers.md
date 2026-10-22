@@ -54,6 +54,8 @@ Every background sits on one of five layers, bottom to top: 1 Canvas (the page) 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `theme/mode-override` | error | Only the page picks Light or Dark (Figma audit theme/mode-override, user 2026-10-14): a ZenProvider with theme inside a page (AppShell, PlatformPhone) or a box mixes two palettes on one screen. A dark widget is Card theme="solid" color="neutral" (Background/Neutral/Solid + Inverse content). | `zen-allow-mode-override: <reason>` |
+| `theme/navigation-surface` | error | Bars match the Canvas (Figma audit theme/navigation-surface): no fill or the canvas's twin Surface (Canvas/Default ↔ Surface/Alt, Canvas/Alt ↔ Surface/Default, Canvas/Flat ↔ Surface/Flat); only on Canvas/Default may the Sidebar be a Surface/Default panel. Judges a Sidebar in an AppShell and a TopNavigation with a solid fill (default, alt, compact, compact-alt) on an AppShell or PlatformPhone page. | `zen-allow-navigation-surface: <reason>` |
 | `layer/root-is-canvas` | error | The page (:root / html / body) is layer 1 and paints a Canvas token: canvas-default (most designs), canvas-alt (white pages) or canvas-flat. | `zen-allow-root-background: <reason>` |
 | `layer/canvas-is-page` | error | Canvas is only the page layer; components never paint Canvas — cards and containers on the page use Surface. | `zen-allow-canvas-layer: <reason>` |
 | `layer/surface-flat-is-navigation` | warn | Surface/Flat is for top/bottom navigation containers on a Canvas/Flat page, so both modes read as one seamless surface. | `zen-allow-surface-flat: <reason>` |

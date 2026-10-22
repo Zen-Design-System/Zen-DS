@@ -455,11 +455,13 @@ function ProjectsFlyoutExample() {
 
   return (
     <AppFrame frameRef={frameRef}>
-      {/* Canvas/Alt (a white page) → Sidebar background="alt" and bordered boxes. The rail starts collapsed. */}
+      {/* Canvas/Alt (a white page) → the Sidebar sits on the canvas: Surface/Default (the canvas's own colour) with no
+          shadow and a Pale divider, and bordered boxes (theme/navigation-surface). The rail starts collapsed. */}
       <AppShell canvas="alt" sidebarCollapsed={collapsed} onSidebarCollapsedChange={setCollapsed}
         sidebar={(
           <Sidebar
-            background="alt"
+            shadow={false}
+            divider
             logo={studioLogo}
             logoCollapsed={studioMark}
             sections={sections}
@@ -598,7 +600,7 @@ function SwitchWorkspaceExample() {
         sidebar={(
           <Sidebar
             variant="workspace"
-            background="alt"
+            divider
             // Exactly one selected workspace: it carries the accent Focus-Ring in the rail.
             workspaceItems={workspaces.map((w) => ({ id: w.id, label: w.label, icon: w.mark, selected: w.id === workspace.id }))}
             workspaceAction={<IconButton appearance="main" level="tertiary" size="md" aria-label="Add workspace" icon="icon-plus-line" onClick={() => setDialog("workspace")} />}
@@ -1103,11 +1105,12 @@ const [query, setQuery] = useState("");
 const { layout } = useAppShell(); // inside the shell: "desktop" draws the rail, "drawer" the whole Sidebar
 const open = (id) => { setPage(id); setFlyout(false); setQuery(""); };
 
-// Canvas/Alt page → background="alt"
+// Canvas/Alt page → the Sidebar on the canvas: Surface/Default, no shadow, a divider
 <AppShell canvas="alt" sidebarCollapsed={collapsed} onSidebarCollapsedChange={setCollapsed}
   sidebar={
     <Sidebar
-      background="alt"
+      shadow={false}
+      divider
       sections={[{ items: [
         { id: "home", label: "Home", icon: "icon-home-03-line", selected: page === "home" },
         { id: "projects", label: "Projects", icon: "icon-folder-line", selected: isProjectPage },
@@ -1141,7 +1144,7 @@ const open = (id) => { setPage(id); setFlyout(false); setQuery(""); };
   },
   {
     title: "Switch workspace",
-    description: "For people in more than one workspace: the rail lists them with the active one ringed, the header name switches too, and each workspace brings its own sections and keeps the page left open in it. The header’s trail starts at the workspace and a Badge says Alex’s role there; on a Canvas/Alt page the Sidebar takes background=\"alt\". The workspace Sidebar has no rail, so the top row has no collapse toggle.",
+    description: "For people in more than one workspace: the rail lists them with the active one ringed, the header name switches too, and each workspace brings its own sections and keeps the page left open in it. The header’s trail starts at the workspace and a Badge says Alex’s role there; on a Canvas/Alt page the Sidebar sits on the canvas (Surface/Default, no shadow) with a divider. The workspace Sidebar has no rail, so the top row has no collapse toggle.",
     wide: true,
     screen: true,
     render: () => <SwitchWorkspaceExample />,
@@ -1149,7 +1152,7 @@ const open = (id) => { setPage(id); setFlyout(false); setQuery(""); };
   sidebar={
     <Sidebar
       variant="workspace"
-      background="alt"
+      divider
       workspaceItems={workspaces.map((w) => ({ id: w.id, label: w.name, icon: w.mark, selected: w.id === active }))}
       workspaceAction={<IconButton appearance="main" level="tertiary" size="md" aria-label="Add workspace" icon="icon-plus-line" onClick={openNewWorkspace} />}
       headerAction={<IconButton appearance="flat" level="primary" size="sm" aria-label="Workspace settings" icon="icon-settings-01-line" onClick={() => setPage("settings")} />}

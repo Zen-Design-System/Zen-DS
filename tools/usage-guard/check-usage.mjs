@@ -231,20 +231,154 @@ const CANVAS_TAGS = ["AppShell", "PlatformPhone", "ZenProvider"];
  * media), or null when no such page wraps it, a box (Card, ListBox, an overlay) sits between them, or the canvas is an
  * expression.
  */
-const canvasOf = (src, start) => {
+const canvasOf = (src, start) => canvasHost(src, start)?.canvas ?? null;
+/** The page the element at `start` sits right on (see canvasOf): its tag, where its opening tag starts, that tag's text
+ *  and its Canvas; null when none wraps it or a box sits between them. */
+const canvasHost = (src, start) => {
   const host = nearestBox(src, start, [...BOX_TAGS, ...CANVAS_TAGS]);
   if (!CANVAS_TAGS.includes(host)) return null;
   const opening = [...src.slice(0, start).matchAll(new RegExp(`<${host}\\b`, "g"))].at(-1);
   if (!opening) return null;
   const close = tagClose(src, opening.index + host.length + 1);
   const tag = src.slice(opening.index, close < 0 ? start : close + 1);
+  return { host, index: opening.index, tag, canvas: canvasOfTag(host, tag) };
+};
+/** The Canvas a page's opening tag sets (see canvasOf). */
+const canvasOfTag = (host, tag) => {
   if (host === "ZenProvider") return /\bpaint=\{false\}/.test(tag) ? null : "default";
   // A phone AppShell on Band-Sheet or Media draws its page on a Surface/Default sheet (app-shell.css), not on the Canvas.
   if (host === "AppShell" && /\bmobileTop=(?:"|\{\s*")(band-sheet|media)"/.test(tag)) return "surface";
   const value = /\bcanvas=(?:"([\w-]+)"|\{\s*"([\w-]+)"\s*\})/.exec(tag);
   if (!value && /\bcanvas=/.test(tag)) return null;
   const canvas = value ? value[1] ?? value[2] : "default";
+  // PlatformPhone names its screen fills by Surface (platform.css): alt paints Surface/Alt, the colour of Canvas/Default
+  // in both modes, and surface paints Surface/Default, the colour of Canvas/Alt.
+  if (host === "PlatformPhone" && (canvas === "alt" || canvas === "surface")) return canvas === "alt" ? "default" : "alt";
   return canvas === "canvas" ? "default" : canvas;
+};
+
+// ---- Theme pairing, the code side of the Figma audit's theme/* rules (skills/zen-figma-design/references/
+// audit-rules.md, screen-rules §1; user's Theme-01…08, 2026-10-13): pick the Canvas, then the boxes, bars and elevation.
+/** The boxes the pairing judges. Charts draw no surface: their ChartCard (or Card) is the box. */
+const THEME_BOXES = ["Card", "ListBox", "MetricCard", "ChartCard"];
+/** The canvases the pairing table covers (a Surface sheet or media backdrop is judged by nothing here). */
+const PAIRED_CANVASES = ["default", "alt", "flat"];
+/**
+ * What a box draws, read from its literal props as the Figma audit reads the paint: `kind` Surface/Default · Surface/Alt ·
+ * Surface/Flat · Pale · Subtle · Solid · Gradient, `border`, `shadow` (true/false; null for Solid, the stand-out with no
+ * shadow variant, and Gradient) and `family` (Default · Border · Flat-Border · Pale · Subtle; null for Solid and
+ * Gradient). null when its theme or surface is an expression or props are spread in.
+ */
+const boxLook = (tag, attrs) => {
+  const own = topLevel(attrs);
+  if (opaque(attrs) || ["theme", "surface"].some((name) => has(own, name) && literal(own, name) === undefined)) return null;
+  const theme = literal(own, "theme") ?? (tag === "ListBox" || tag === "ChartCard" ? "default" : tag === "MetricCard" && literal(own, "type") === "hero" ? "pale" : "shadow");
+  // Surface=Alt exists on Default and Border (and Card's Shadow, drawn as Default on Surface/Alt); see card/surface-ignored.
+  const alt = literal(own, "surface") === "alt" && (tag === "ListBox" ? ["default", "border"] : ["shadow", "default", "border"]).includes(theme);
+  const kind = theme === "semi-pale" ? "Gradient" : theme === "pale" ? "Pale" : theme === "subtle" ? "Subtle" : theme === "solid" ? "Solid"
+    : theme === "flat-border" || theme === "on-container" ? "Surface/Flat" : alt ? "Surface/Alt" : "Surface/Default";
+  const border = theme === "border" || theme === "flat-border";
+  const standOut = kind === "Solid" || kind === "Gradient";
+  return { theme, kind, border, shadow: standOut ? null : theme === "shadow" && !alt, family: standOut ? null : kind === "Pale" || kind === "Subtle" ? kind : border ? (kind === "Surface/Flat" ? "Flat-Border" : "Border") : "Default" };
+};
+/** A Sidebar's panel (Figma: the Side-Bar placeholder): `shadow` true/false when it draws the Surface/Default panel
+ *  (background default), null when it has no panel to count (Alt, Flat or Inverse fill, a flush or carved theme, the
+ *  grid pattern's border Sidebar, props it cannot read). `background` is its fill. */
+const sidebarLook = (attrs, host) => {
+  const own = topLevel(attrs);
+  if (opaque(attrs) || ["background", "theme"].some((name) => has(own, name) && literal(own, name) === undefined)) return null;
+  const theme = literal(own, "theme") ?? (host && /\bpattern=(?:"|\{\s*")grid"/.test(host.tag) ? "border" : "default");
+  const background = literal(own, "background") ?? "default";
+  const flush = theme !== "default";
+  // The workspace panel and the small density never cast one (Sidebar `shadow`); `shadow={false}` is Figma Shadow=No.
+  const shadowless = literal(own, "variant") === "workspace" || literal(own, "density") === "small" || /(^|\s)shadow=\{\s*false\s*\}/.test(attrs);
+  return { background, flush, shadow: flush || background !== "default" ? null : !shadowless };
+};
+/** Block comments in a source (JSDoc and `{/* … *\/}` notes): tags quoted there are not usage (as the engine skips them). */
+const commentSpans = (src) => [...src.matchAll(/(?<![^\s{}()[\];,:=?|&!>])\/\*[\s\S]*?\*\//g)].map((c) => [c.index, c.index + c[0].length]);
+let pageCache = { src: null, byHost: null };
+/** The boxes and Sidebars right on the page whose opening tag starts at `index`, each with its look (one scan per source). */
+const pageSurfaces = (src, index) => {
+  if (pageCache.src !== src) {
+    const byHost = new Map();
+    const comments = commentSpans(src);
+    for (const m of src.matchAll(/<(Card|ListBox|MetricCard|ChartCard|Sidebar)\b(?![.\w])/g)) {
+      if (/[\w$)\]]/.test(src[m.index - 1] ?? "") || comments.some(([from, to]) => m.index > from && m.index < to)) continue;
+      const close = tagClose(src, m.index + m[0].length);
+      if (close < 0 || inCodeSample(src, close)) continue;
+      const host = canvasHost(src, m.index);
+      if (!host) continue;
+      const attrs = src.slice(m.index + m[0].length, close).replace(/\/\s*$/, "");
+      const look = m[1] === "Sidebar" ? sidebarLook(attrs, host) : boxLook(m[1], attrs);
+      if (!byHost.has(host.index)) byHost.set(host.index, []);
+      byHost.get(host.index).push({ tag: m[1], start: m.index, look });
+    }
+    pageCache = { src, byHost };
+  }
+  return pageCache.byHost.get(index) ?? [];
+};
+const CANVAS_NAME = { default: "Canvas/Default", alt: "Canvas/Alt", flat: "Canvas/Flat" };
+/** theme/box-on-canvas: the box's fill does not belong to the page's Canvas — message, or false. */
+const boxOnCanvasFinding = (tag, attrs, src, start, end) => {
+  if (inCodeSample(src, end)) return false;
+  const look = boxLook(tag, attrs);
+  if (!look) return false;
+  if (look.kind === "Gradient") return `is theme="semi-pale", a gradient box (Figma deleted every gradient box, 2026-10-14) — colour is theme="pale" (theme="subtle" on Canvas/Default), the one box that stands out theme="solid".`;
+  const canvas = canvasOf(src, start);
+  if (!PAIRED_CANVASES.includes(canvas) || look.kind === "Solid" || (look.kind === "Subtle" && canvas !== "default")) return false;
+  // card/pale-on-canvas-default says it for a Card, MetricCard or ChartCard (and points to Subtle).
+  if (canvas === "default" && look.kind === "Pale" && tag !== "ListBox") return false;
+  const fits = { default: look.kind === "Surface/Default" || look.kind === "Subtle", alt: look.kind === "Pale" || look.kind === "Surface/Alt" || (look.kind === "Surface/Default" && look.border), flat: look.kind === "Pale" || (look.kind === "Surface/Flat" && look.border) }[canvas];
+  if (fits) return false;
+  const fix = {
+    default: tag === "ListBox" ? "theme=\"default\", \"shadow\" or \"border\" (Surface/Default); List-Box has no Subtle, so a Pale list belongs on a white page" : "theme=\"default\", \"shadow\" or \"border\" (Surface/Default), or theme=\"subtle\" for colour",
+    alt: "theme=\"border\", theme=\"pale\", or surface=\"alt\" on theme=\"default\" (Surface/Default is the white canvas itself)",
+    flat: "theme=\"flat-border\" (Surface/Flat in a Pale border) or theme=\"pale\"",
+  }[canvas];
+  const drawn = `${look.kind}${look.border ? " with a border" : ""}`;
+  return `draws ${drawn} (theme="${look.theme}"${look.kind === "Surface/Alt" ? " surface=\"alt\"" : ""}) on a ${CANVAS_NAME[canvas]} page — use ${fix}.`;
+};
+/** theme/mixed-elevation: a shadow on a white page, or on Canvas/Default a flat surface beside shadowed ones. */
+const mixedElevationFinding = (tag, attrs, src, start, end) => {
+  if (inCodeSample(src, end)) return false;
+  const host = canvasHost(src, start);
+  if (!host || !PAIRED_CANVASES.includes(host.canvas)) return false;
+  const look = tag === "Sidebar" ? sidebarLook(attrs, host) : boxLook(tag, attrs);
+  if (!look || look.shadow === null) return false;
+  if (host.canvas !== "default") return look.shadow && `casts Shadow/Bottom/Level-1 on a ${CANVAS_NAME[host.canvas]} page, where nothing casts one — ${tag === "Sidebar" ? "set shadow={false}" : host.canvas === "flat" ? "use theme=\"flat-border\"" : "use theme=\"border\" (or surface=\"alt\" on theme=\"default\")"}.`;
+  const elevated = pageSurfaces(src, host.index).filter((item) => item.look?.shadow === true);
+  return !look.shadow && elevated.length > 0 && `casts no shadow while ${elevated.length} other surface(s) on this Canvas/Default page cast Shadow/Bottom/Level-1 — one elevation per page: give every box theme="shadow" (and the Sidebar its shadow), or take every shadow off (theme="default", Sidebar shadow={false}).`;
+};
+/** theme/navigation-surface: a Sidebar or TopNavigation whose fill does not match the page's Canvas. */
+const NAV_TWIN = { default: "Surface/Alt", alt: "Surface/Default", flat: "Surface/Flat" };
+const SIDEBAR_FILL = { default: "Surface/Default", alt: "Surface/Alt", flat: "Surface/Flat", inverse: "Background/Inverse" };
+/** The TopNavigation types with a solid fill; the blurring, glass, overlay and transparent types draw their own scrim
+ *  over the page (the Figma audit passes a bar's own gradient). */
+const TOP_NAV_FILL = { default: "Surface/Default", compact: "Surface/Default", alt: "Surface/Alt", "compact-alt": "Surface/Alt" };
+const navigationSurfaceFinding = (tag, attrs, src, start, end) => {
+  if (inCodeSample(src, end)) return false;
+  const host = canvasHost(src, start);
+  if (!host || !PAIRED_CANVASES.includes(host.canvas)) return false;
+  const canvas = host.canvas;
+  if (tag === "Sidebar") {
+    const look = sidebarLook(attrs, host);
+    if (!look || look.flush) return false;
+    const fill = SIDEBAR_FILL[look.background];
+    // On Canvas/Default the Sidebar may also be a Surface/Default panel (the default, shadowed Sidebar).
+    if (!fill || fill === NAV_TWIN[canvas] || (canvas === "default" && fill === "Surface/Default")) return false;
+    const want = { default: "background=\"default\" (the Surface panel) or \"alt\"", alt: "background=\"default\" with shadow={false} (Surface/Default is the white canvas's colour in both modes)", flat: "background=\"flat\"" }[canvas];
+    return `is ${fill} on a ${CANVAS_NAME[canvas]} page — the Sidebar matches the canvas: ${want}.`;
+  }
+  const own = topLevel(attrs);
+  if (opaque(attrs) || (has(own, "type") && literal(own, "type") === undefined)) return false;
+  // AppShell gives a TopNavigation without a type Figma's type for its mobile Top (bar: alt); on a phone it is default.
+  const inShell = host.host === "AppShell";
+  const type = literal(own, "type") ?? (inShell ? (/\bmobileTop=(?:"|\{\s*")(band|band-sheet|media)"/.test(host.tag) ? null : "alt") : "default");
+  const fill = TOP_NAV_FILL[type];
+  // Figma's Top-Navigation has no Flat type yet (BACKLOG P2): a Canvas/Flat phone is not judged.
+  if (!fill || canvas === "flat" || fill === NAV_TWIN[canvas]) return false;
+  const want = type.startsWith("compact") ? (canvas === "default" ? "compact-alt" : "compact") : canvas === "default" ? "alt" : "default";
+  return `is ${fill} (type="${type}"${literal(own, "type") ? "" : ", the default"}) on a ${CANVAS_NAME[canvas]} page — the top bar matches the canvas (${NAV_TWIN[canvas]}): type="${want}".`;
 };
 
 /** Regions of a page where an Empty State is Small (empty-state/small-in-box): widgets, lists, panels and overlays. */
@@ -1407,9 +1541,34 @@ export const rules = [
     check: ({ attrs, src, start, end }) => {
       const own = topLevel(attrs);
       const theme = literal(own, "theme");
-      if (inCodeSample(src, end) || opaque(attrs) || (theme !== "pale" && theme !== "semi-pale")) return false;
+      if (inCodeSample(src, end) || opaque(attrs) || theme !== "pale") return false;
       return canvasOf(src, start) === "default" && `is theme="${theme}" on a Canvas/Default page, where Pale fades into the grey — use theme="subtle" (Support/<Color>/Subtle); Pale is for Canvas/Alt and Canvas/Flat pages.`;
     } },
+  { id: "theme/box-on-canvas", components: THEME_BOXES, severity: "error", allow: "box-on-canvas", guideline: "docs/guidelines/card.md",
+    summary: "A box (Card, ListBox, MetricCard, ChartCard) draws the Surface of the page's Canvas (Figma audit theme/box-on-canvas, screen-rules §1): Canvas/Default → Default, Shadow or Border (colour: Subtle); Canvas/Alt → Border, Pale, or Default on surface=\"alt\"; Canvas/Flat → Flat-Border or Pale. No gradient box (semi-pale, user 2026-10-14). Solid, and Subtle on a white page, are the stand-out box and fit any canvas.",
+    check: ({ tag, attrs, src, start, end }) => boxOnCanvasFinding(tag, attrs, src, start, end) },
+  { id: "theme/mixed-elevation", components: [...THEME_BOXES, "Sidebar"], severity: "error", allow: "mixed-elevation", guideline: "docs/guidelines/card.md",
+    summary: "One elevation per page (Figma audit theme/mixed-elevation): nothing casts a shadow on a Canvas/Alt or Canvas/Flat page; on Canvas/Default every box and the Sidebar panel cast Shadow/Bottom/Level-1, or none does. Solid (the stand-out, which has no shadow variant) is not counted.",
+    check: ({ tag, attrs, src, start, end }) => mixedElevationFinding(tag, attrs, src, start, end) },
+  { id: "theme/mixed-boxes", components: CANVAS_TAGS, severity: "warn", allow: "mixed-boxes", guideline: "docs/guidelines/card.md",
+    summary: "One box family per page (Figma audit theme/mixed-boxes): Default (with or without Shadow), Border, Flat-Border, Pale or Subtle; vary the Color inside Pale or Subtle instead. A Solid box, and Subtle on a white page, stand out and are not counted.",
+    check: ({ tag, attrs, src, start, end }) => {
+      if (inCodeSample(src, end)) return false;
+      const canvas = canvasOfTag(tag, `<${tag}${attrs}>`);
+      if (!PAIRED_CANVASES.includes(canvas)) return false;
+      const families = new Set(pageSurfaces(src, start).filter((item) => item.tag !== "Sidebar" && item.look?.family && !(item.look.kind === "Subtle" && canvas !== "default")).map((item) => item.look.family));
+      return families.size > 1 && `holds boxes of ${[...families].join(", ")} on its ${CANVAS_NAME[canvas]} — keep one family per page; colour may vary inside Pale or Subtle.`;
+    } },
+  { id: "theme/mode-override", components: ["ZenProvider"], severity: "error", allow: "mode-override", guideline: "docs/guidelines/background-layers.md",
+    summary: "Only the page picks Light or Dark (Figma audit theme/mode-override, user 2026-10-14): a ZenProvider with theme inside a page (AppShell, PlatformPhone) or a box mixes two palettes on one screen. A dark widget is Card theme=\"solid\" color=\"neutral\" (Background/Neutral/Solid + Inverse content).",
+    check: ({ attrs, src, start, end }) => {
+      if (inCodeSample(src, end) || !has(topLevel(attrs), "theme")) return false;
+      const host = nearestBox(src, start, [...BOX_TAGS, "AppShell", "PlatformPhone"]);
+      return host !== null && `sets theme inside a ${host}: only the page (the screen frame) picks Light or Dark — drop theme here; for a dark widget use Card theme="solid" color="neutral".`;
+    } },
+  { id: "theme/navigation-surface", components: ["Sidebar", "TopNavigation"], severity: "error", allow: "navigation-surface", guideline: "docs/guidelines/background-layers.md",
+    summary: "Bars match the Canvas (Figma audit theme/navigation-surface): no fill or the canvas's twin Surface (Canvas/Default ↔ Surface/Alt, Canvas/Alt ↔ Surface/Default, Canvas/Flat ↔ Surface/Flat); only on Canvas/Default may the Sidebar be a Surface/Default panel. Judges a Sidebar in an AppShell and a TopNavigation with a solid fill (default, alt, compact, compact-alt) on an AppShell or PlatformPhone page.",
+    check: ({ tag, attrs, src, start, end }) => navigationSurfaceFinding(tag, attrs, src, start, end) },
   { id: "card/spacing-by-count", components: ["Card", "MetricCard"], severity: "warn", allow: "card-spacing", guideline: "docs/guidelines/card.md",
     summary: "On a phone (a PlatformPhone frame or a BottomSheet), three or more cards side by side (a row or grid of stats, a list of choices) take spacing=\"small\" (Card-padding-small, Corner-Radius/Large); one or two keep Spacing=Medium, the default. Desktop cards keep Medium and are not judged. MetricCard counts as a card (type=\"tile\" is Small by default). User rule 2026-10-17, mobile only.",
     check: ({ attrs, src, start, children }) => cardSpacingFinding(attrs, src, start, children) },

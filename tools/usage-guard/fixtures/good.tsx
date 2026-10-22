@@ -133,7 +133,15 @@ export const Good = () => <>
   <div><Card theme="pale" color="violet"><Text>Design hours</Text></Card></div>
   <AppShell sidebar={null}><Card theme="subtle" color="cyan"><Text>Invoiced</Text></Card></AppShell>
   <AppShell sidebar={null} canvas="alt"><Card theme="pale" color="cyan"><Text>Invoiced</Text></Card></AppShell>
-  <PlatformPhone label="Budget" canvas="alt"><MetricCard theme="pale" color="green" label="Saved" value="$1,240" /></PlatformPhone>
+  {/* Theme pairing: one box family and one elevation per page, bars on the canvas, the page alone picks Light or Dark. */}
+  <AppShell canvas="alt" sidebar={<Sidebar shadow={false} divider sections={sections} />}><Card theme="border"><Text>Revenue</Text></Card><ListBox theme="border" surface="alt">Rows</ListBox><Card theme="subtle" color="cyan"><Text>Invoiced</Text></Card></AppShell>
+  <AppShell canvas="flat" sidebar={<Sidebar background="flat" sections={sections} />}><Card theme="flat-border"><Text>Hours</Text></Card><ListBox theme="flat-border">Rows</ListBox></AppShell>
+  <AppShell sidebar={<Sidebar sections={sections} />}><Card><Text>Revenue</Text></Card><MetricCard label="Costs" value="$1,200" /><Card theme="solid" color="neutral"><Text>Payout</Text></Card></AppShell>
+  <PlatformPhone label="Inbox" canvas="surface" header={<TopNavigation type="default" title="Inbox" />}><Card theme="border"><Text>Balance</Text></Card></PlatformPhone>
+  <PlatformPhone label="Inbox" header={<TopNavigation type="alt" title="Inbox" />}><Card theme="default"><Text>Balance</Text></Card></PlatformPhone>
+  <ZenProvider theme="dark"><AppShell sidebar={null}><Card theme="default"><Text>Revenue</Text></Card></AppShell></ZenProvider>
+  {/* PlatformPhone canvas="surface" is the white screen (Surface/Default, the colour of Canvas/Alt); "alt" paints Surface/Alt. */}
+  <PlatformPhone label="Budget" canvas="surface"><MetricCard theme="pale" color="green" label="Saved" value="$1,240" /></PlatformPhone>
   <div><Card theme="solid" color="neutral"><Text>Invoiced this year</Text></Card></div>
   <div><Card theme="flat-border"><Text>Hours this week</Text></Card></div>
   <div><Card theme="shadow" surface="alt"><Text>Outstanding</Text></Card></div>
