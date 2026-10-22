@@ -1566,9 +1566,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       // wide, 2026-10-16). It fills; one with a surface keeps hugging (its background would spread).
       const holdsWrap = !row && !own.width && wrapsText(node);
       const wide = (fillW && !oneLine) || shareW || holdsWrap || (node.type === "TEXT" && !row && !node.autoWidth) || (row && child.name === "Divider");
-      // A frame of a px width / height keeps it (CSS: a set width wins over a column's stretch).
-      const ownW = node.type === "FRAME" && node.fixedWidth !== undefined;
-      const ownH = node.type === "FRAME" && node.fixedHeight !== undefined;
+      // A frame or a shape of a px width / height keeps it (CSS: a set width wins over a column's stretch; a rectangle of
+      // width 200 pasted 1392 wide, 2026-10-22).
+      const ownW = (node.type === "FRAME" || node.shape) && node.fixedWidth !== undefined;
+      const ownH = (node.type === "FRAME" || node.shape) && node.fixedHeight !== undefined;
       return { ...node, ...(wide && !ownW ? { fillW: true } : {}), ...((fillH || shareH) && !ownH ? { fillH: true } : {}) };
     }).filter(Boolean);
     if (grid && !fit) {
