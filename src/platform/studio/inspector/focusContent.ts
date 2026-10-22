@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 
 /*
  * A double-click on canvas text that cannot be edited in place asks the Inspector for its text field
- * (`zen-studio:focus-content`, edit/textEdit.ts): the Design panel's Content field, or a selected data item's label (a
- * Sidebar row, whose text comes from a nested list). The panel may mount a moment later: a request stays valid 2 s.
+ * (`zen-studio:focus-content`, edit/textEdit.ts): the Design panel's Text field (an instance's Text property, a text
+ * layer's Text row in Typography), or a selected data item's label (a Sidebar row, whose text comes from a nested list).
+ * The panel may mount a moment later: a request stays valid 2 s.
  */
 let focusRequestedAt = 0;
 const focusListeners = new Set<() => void>();

@@ -1,5 +1,19 @@
 # Session log 2026-10-22
 
+## Session B · Content into the instance's properties (tier S; user's call relayed by the progress session, 2026-10-22)
+
+Branch zen/feat/studio-content-props-20261022. The walk's §2a: a Button, Card and text had a **Content** section
+Figma has no counterpart for. User decisions in session B: a text layer keeps a Text field (first row of Typography);
+the 58 components without Figma properties lose the 2026-10-06 groups for one Properties block in prop order.
+- DesignPanel: the Content section, its child-layer list and selectChild are gone. `childText` (the JSX children's
+  words, a computed one as bound) goes to the Properties block of an instance (GroupedProperties `text`, after Figma's
+  own rows; else at `children`'s place in the API order) or first in a text layer's Typography (TextSection
+  `textRows`). An instance with words but no property block gets a Properties section of its own.
+- inspector/autoGroups.ts deleted. The double-click fallback (focus-content) focuses the moved Text row.
+- Gate (20:48–21:11, main 032d8fbd): **PASS**, Studio E2E 338/338 in 3 shards. `--only=figma` 173/174: FW-206 could
+  not find its InputLabel on the canvas (InputLabel spreads no props onto its DOM, so no data-zen-src): the row now uses a
+  Link (no Figma properties, 6 rows, `children` after Visited). FW-205…207 then 3/3.
+
 ## Session B · Corner smoothing (tier M; parity ❌, user decisions in session B: CSS corner-shape)
 
 Branch zen/feat/studio-corner-smoothing-20261022. Spec card: docs/research/studio-fill-gradient-smoothing-eyedropper-spec-2026-10-22.md

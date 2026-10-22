@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio's Design panel has no Content section, as Figma's: an instance's words are its Text property in its
+  Properties block, a text layer's a Text row first in Typography; a component without Figma properties shows one
+  Properties block in its prop order instead of Appearance / Content / Icon / State / Actions groups (2026-10-22).
 - Zen Studio ↔ Figma: AppShellHeader arrives as Figma's Header/AppShell with its `theme` and `density` (Border & Divider
   is Small-only in Figma: a Medium one goes as Small, with a note), on its own or swapped into the master layout, its
   leading · center · actions in Top-Elements, `main` in Main-Element and `sections` in Sections (emptied when there are
