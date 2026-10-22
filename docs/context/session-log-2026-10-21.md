@@ -1,5 +1,28 @@
 # Session log 2026-10-21
 
+## Session B · Dashboard header Child-Heading in the contracts (tier S; from the header work's BACKLOG P3)
+
+Branch zen/fix/dashboard-header-child-heading-20261021, merged into the header branch (one gate).
+- component-properties.json and dashboard-header.json drop Child-Heading (the live read of 4122:33402, 2026-10-21: only
+  that property left); figma-props.map.mjs drops its toggle; figmaProps.generated.ts and variantSets.generated.ts rebuilt.
+- Checks: figma-props --check, variant-sets --check, run-all.mjs 44/44 (Dashboard header 64/64), nested-paths --check,
+  studio:selftest, tsc. New BACKLOG P3: the Card contract predates Figma's Sub-Action wrapper.
+
+## Session B · Card subAction to and from Figma (tier S; user: "làm hết" while the header PR waits for its gate)
+
+Branch zen/feat/card-subaction-figma-20261021 (from main 73e88b15).
+- Push: Sub-Action on with `subAction`, its icon (not the default ⋮) as Sub-Action's Leading-Icon-Src; MetricCard through
+  Card/Sub-Action; a label other than "More actions" is noted; a node that is not an IconButton shows as ⋮ (noted).
+- Pull: Sub-Action on → subAction {label: "More actions", icon}; what Card draws (flat, Secondary, Small) is no override.
+- Found live: Figma's Card wraps the button in Sub-Action › Wrapper frames (2026-10-18), so a nested "Sub-Action" path
+  only worked by luck through the set fallback ("Button", the first button in the card). Plugin `studio-import`
+  833ea0e: paths go through a wrapper frame and, ending there, take its one top-level instance; the pull maps the
+  read's "Button" back to "Sub-Action"; the Metric-Card reader takes the Sub-Action frame's button.
+- Also found: a Card/ListBox `width` was never pushed (the card hugged, ⋮ over its text). Now Fixed width out, and back
+  from the push JSON or a read whose instance is resized off its main.
+- Live (QA page, removed): Card with icon-share-01-line, Card without, MetricCard with share icon. Checks: push 358,
+  pull 117, native 130, studio:selftest, tsc, usage, ai-ui, style, guidelines, figma-props, plugin npm test.
+
 ## Simulator Android (tier S; user: "Ừ, thêm máy Android vào simulator đi"), worktree `../Zen-DS-android`, branch `zen/feat/studio-android-devices-20261021`
 - `tools/studio/screen-devices.mjs`: Android phone 412 × 917 (Figma Android Compact), Android tablet 1280 × 800 / 800 × 1280
   (Figma Android Expanded, turned), `os: "android"`, `deviceOs()`. Radii 39 / 20 are estimates (Google publishes none;
@@ -36,6 +59,38 @@
   Color/Content/Neutral/Light; Type=Control-Bar Subheading (the result count) = Strongest (code already matches).
 - PageHeader `description` Text tone base → light (DashboardHeader type="main" renders PageHeader, so its subheading
   follows). JSDoc cites the node; guidelines + api docs rebuilt.
+
+## Session B · AppShellHeader theme / density to and from Figma (tier M; user picked it from #184's BACKLOG P3)
+
+Branch zen/feat/appshell-header-figma-look-20261021. Spec card: docs/research/studio-appshell-header-figma-spec-2026-10-21.md.
+
+- Push: an AppShellHeader is Header/AppShell (16783:71068) with Theme × Density by the map (Border & Divider / Borderless at
+  Medium → Small, noted); leading · center · actions as Top-Elements' Leading/Center/Trailing frames (the centre's layers
+  fill its 400 as dashboard-header.css does), main in Main-Element, sections padded in Sections. In an AppShell the
+  master's Header/Dashboard is swapped to it (nested + slots `within` Header/AppShell); Dashboard rows and
+  TOP_BAR_PADDING are gone.
+- Found in the live test and fixed in the same change:
+  - Sections holds two sample rows and has no switch: a header with none sends it empty.
+  - Primitives/Dashboard/Header lost Child-Heading; Header-Text is a slot, so Child and SubHeading show by `edits`
+    (visible). The pull reads the shown texts. Contracts still list Child-Heading: BACKLOG P3.
+  - The master centres its row: a short page sat mid-height. Plugin `studio-import` bf300bc adds `edits.counter` (an
+    empty path is the instance); the push sends `{ layer: [], counter: "MIN" }` (instance-root alignment overrides are
+    allowed; min-size is not).
+  - Side-Bar/Master's Collapse Button (default on) drew a second toggle: the push sets it from onCollapsedChange or
+    collapse="sidebar" and drops the old IconButton in Header-Content; the pull reads collapse="sidebar" from it.
+  - A placed master reads as compositions: the pull takes a Header/AppShell composition frame too, so a real read comes
+    back as `<AppShell>` (it did not before). The reader also keeps a nested instance set to another variant (a first
+    crumb at Level Master), which Figma lists no override for.
+- Live (Zen file, QA page, frames removed): AppShell with a Border & Divider / Small header (three rounds until clean),
+  and a standalone Default / Medium header (Search 400, centre 400, a section): no notes. Read back →
+  fixtures/figma-appshell-header.json.
+- Checks: push selftest 368, pull 121, studio:selftest, tsc, usage, ai-ui, style, guidelines, figma-props --check; the
+  plugin's full npm test.
+- Gate (2026-10-22, with Card subAction and Child-Heading; main a2143e36 with #210's renamed Card themes merged in):
+  the first run (18:56) failed on HO-10, which still expected the top bar as Dashboard header Type=Navigation; the test
+  now checks Header/AppShell in the master with the Search in Top-Elements' Leading-Slots. Second run (19:23–19:48)
+  **PASS**: Studio E2E 338/338. `--only=figma` 171/171 (811 s). Both figma runs (and one on 10-21) log a Vite
+  "Maximum call stack size exceeded" rejection with no failing row: BACKLOG P3.
 
 ## Session B · Instance menu, instance Appearance, Frame / Group heading (user, 2026-10-21: three of A's re-measure gaps)
 
