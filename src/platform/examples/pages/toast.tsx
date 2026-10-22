@@ -174,7 +174,7 @@ function BackgroundExportExample() {
     {/* A ListBox: the title, the export status and Export CSV in its Header-Slot, the past exports in its Body-Slot. */}
     <ListBox as="section" aria-labelledby={titleId} width="fill" maxWidth={480}
       header={<Stack direction="row" justify="between" align="center" gap="xs" wrap>
-        <Stack gap="2xs" className="px-toast-grow">
+        <Stack gap="2xs" width="fill" minWidth={160}>
           <Heading level={4} id={titleId} textStyle="Heading/Subheading">Timesheets</Heading>
           <Text textStyle="Body/Small/Regular" tone="base" role="status">
             {running ? "Exporting September for 48 people…" : `September 2026 · ${plural(48, "person", "people")}`}
