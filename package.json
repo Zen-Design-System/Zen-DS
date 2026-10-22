@@ -158,6 +158,7 @@
     "studio:build-check": "node tools/studio/e2e/build-check.mjs",
     "qa": "node tools/qa/run.mjs",
     "qa:quick": "node tools/qa/run.mjs --quick",
+    "qa:selftest": "node tools/qa/selftest.mjs",
     "ship": "node tools/ship/ship.mjs",
     "tokens:native": "node scripts/build-native-tokens.mjs",
     "tokens:native:check": "node scripts/build-native-tokens.mjs --check"

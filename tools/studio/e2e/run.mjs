@@ -7,6 +7,9 @@
 //   npm run studio:e2e -- --update-baseline     record this run as the baseline (after a fix)
 //   npm run studio:e2e -- --shard=2/4            the 2nd of 4 contiguous slices of the selected rows (CI, or one slice
 //                                                after the other: shards in one tree share the save fixture)
+//   npm run studio:e2e -- --budget=1800          start no row after 1800 s: the rows left are reported as not run (exit 1)
+//   npm run studio:e2e -- --list                 the selected rows' count per group as JSON; nothing runs (the QA gate
+//                                                plans its shards from it)
 //   flags: --host=<example page id> (default uploader) · --port=<n> · --rows=<id,id> · --no-retry · --headed · --keep
 //          · --watch-all (the server watches the whole tree; by default it watches only the files the harness writes, so
 //          a peer's edit to a Studio module never hot-updates a run mid-row)
@@ -48,6 +51,13 @@ const hostFile = `src/platform/examples/pages/${host}.tsx`;
 const saveFile = "src/platform/examples/e2e/StudioSaveFixture.tsx";
 const dataFile = "src/platform/examples/data.ts";
 const ROW_TIMEOUT = 20_000;
+/** --budget=<seconds>: the run's time budget. A row not started by then is reported as not run, so a slow machine ends
+ * with a report instead of being stopped mid-row (the QA gate gives each shard one). */
+const budget = flag("budget") === undefined ? Infinity : Number(flag("budget")) * 1000;
+if (!(budget > 0)) {
+  console.error(`--budget takes a number of seconds (got ${flag("budget")})`);
+  process.exit(2);
+}
 /** --shard=k/n: this run's slice of the selected rows (contiguous, so a shard opens few groups). */
 const shard = (() => {
   const value = flag("shard");
@@ -60,6 +70,14 @@ const shard = (() => {
   }
   return { k, n };
 })();
+
+// --list: nothing runs and nothing is written.
+if (has("list")) {
+  const groups = {};
+  for (const group of only) groups[group] = (await import(pathToFileURL(path.join(here, "scenarios", `${group}.mjs`)).href)).rows.filter((row) => !onlyRows || onlyRows.includes(row.id)).length;
+  console.log(JSON.stringify({ rows: Object.values(groups).reduce((a, b) => a + b, 0), groups }));
+  process.exit(0);
+}
 
 const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
 const fixtureSource = read("tools/studio/e2e/fixtures/host-page.tsx").replaceAll("__HOST_PAGE__", host);
@@ -136,6 +154,15 @@ function restoreDisk() {
     } else notes.push(`! ${rel} changed during the run by someone else — left as it is`);
   }
   return notes;
+}
+// Stopped from outside (the QA gate's hard stop, Ctrl-C): the disk goes back as the run's finally would have put it.
+for (const signal of ["SIGTERM", "SIGINT"]) {
+  process.once(signal, () => {
+    for (const note of restoreDisk()) console.log(`  ${note}`);
+    fs.rmSync(lockFile, { force: true });
+    console.log(`\nStopped (${signal}): no report`);
+    process.exit(2);
+  });
 }
 
 /* ── a row's documents, kept for its retry ───────────────────────────────────────────────────────────────────────── */
@@ -230,9 +257,17 @@ try {
   const selected = only.flatMap((group) => modules.get(group).rows.filter((row) => !onlyRows || onlyRows.includes(row.id)).map((row) => row.id));
   const inShard = shard ? new Set(selected.slice(Math.floor(((shard.k - 1) * selected.length) / shard.n), Math.floor((shard.k * selected.length) / shard.n))) : null;
   if (shard) console.log(`  shard ${shard.k}/${shard.n}: ${inShard.size} of ${selected.length} rows`);
+  const wanted = (row) => (!onlyRows || onlyRows.includes(row.id)) && (!inShard || inShard.has(row.id));
+  /** Past --budget: the row is kept as not run (a skip the report counts apart), never started. */
+  const pastBudget = (group, row) => {
+    if (Date.now() - started <= budget) return false;
+    matrix.rows.push({ id: row.id, group, feature: row.feature, wp: row.wp, status: "skip", notRun: true, ms: 0, evidence: `not run: past the --budget of ${budget / 1000} s` });
+    return true;
+  };
   for (const group of only) {
     const mod = modules.get(group);
     if (inShard && !mod.rows.some((row) => inShard.has(row.id))) continue;
+    if (Date.now() - started > budget) { for (const row of mod.rows.filter(wanted)) pastBudget(group, row); continue; }
     console.log(`\n${group}`);
     await reseed();
     let session = null;
@@ -274,7 +309,7 @@ try {
       }
     }
     for (const row of mod.rows) {
-      if ((onlyRows && !onlyRows.includes(row.id)) || (inShard && !inShard.has(row.id))) continue;
+      if (!wanted(row) || pastBudget(group, row)) continue;
       if (openError) {
         matrix.add({ id: row.id, group, feature: row.feature, wp: row.wp, status: "broken", ms: 0, error: openError });
         continue;
@@ -383,9 +418,11 @@ if (server?.errors?.length) {
   for (const line of unique.slice(0, 6)) console.log(`  ${line.slice(0, 200)}`);
 }
 console.log(`\n${count("works")} works · ${count("broken")} broken · ${count("skip")} skipped · ${Math.round(ms / 1000)} s`);
+const notRun = matrix.rows.filter((row) => row.notRun);
+if (notRun.length) console.log(`⚠ Not run (past the --budget of ${budget / 1000} s): ${notRun.length} row(s): ${notRun.map((r) => r.id).join(", ")}`);
 if (verdict.regressions.length) console.log(`✗ Regressions (worked in the baseline): ${verdict.regressions.map((r) => r.id).join(", ")}`);
 if (verdict.fixed.length) console.log(`✓ Fixed since the baseline (run with --update-baseline to record): ${verdict.fixed.map((r) => r.id).join(", ")}`);
 if (verdict.fresh.length && !has("update-baseline")) console.log(`  New rows (not in the baseline): ${verdict.fresh.map((r) => r.id).join(", ")}`);
 console.log(`Report: ${path.relative(root, report.md)}`);
-if (exitCode === 0 && verdict.regressions.length) exitCode = 1;
+if (exitCode === 0 && (verdict.regressions.length || notRun.length)) exitCode = 1;
 process.exit(exitCode);

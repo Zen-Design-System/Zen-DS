@@ -14,8 +14,10 @@
  *                                     drafts); used by itself when the shared server does not answer
  *   npm run qa -- --quick             fast loop while building: static gates + audit at 1512 (never counts as a pass)
  *   npm run qa -- --serial            run the steps one after another (default: tsc, contract suites and Vitest run side by side,
- *                                     and audit + dark audit + behaviour run side by side, split over ZEN_QA_SHARDS=2 processes
- *                                     per job when 6+ pages are rendered; the contract suites run ZEN_QA_SUITES=4 at a time)
+ *                                     and audit + dark audit + behaviour run side by side in shards of about 10 min planned
+ *                                     from the last run's page timings, ZEN_QA_SHARDS=2 processes per job at a time; the
+ *                                     contract suites run ZEN_QA_SUITES=4 at a time). The Studio E2E runs in shards of about
+ *                                     10 min one after another, with one combined report (.qa/studio-e2e/<stamp>-gate.md)
  *   npm run qa -- --tokens-base=HEAD~1  diff the token files against another ref (default HEAD) for the token scope
  *
  * ① Static     tsc · style-guard (spacing/radius/type/colour/shadow tokens) · usage-guard · guidelines (stale docs of
@@ -45,9 +47,10 @@ import path from "node:path";
 import { spawnSync, spawn } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
-  INTERACTION_FOLDERS, LABELS_FILE, REPRESENTATIVE, TOKEN_STYLE_FILES, allPages, auxKind, contractSuites, dirtyFiles, guidelineOwners,
-  guidelineSlugOf, isExampleSource, markPassed, pagesForEdit, pendingAux, pendingEdits, primaryPages, readLedger, sha1File,
-  sheetsToReview, tokenScope, uiKind, writeLedger,
+  INTERACTION_FOLDERS, LABELS_FILE, PAGE_SECONDS, REPRESENTATIVE, TOKEN_STYLE_FILES, allPages, auxKind, contractSuites, dirtyFiles,
+  e2eRowSeconds, guidelineOwners, guidelineSlugOf, isExampleSource, markPassed, pageEstimator, pageSeconds, pagesForEdit, pendingAux,
+  pendingEdits, planE2E, planShards, primaryPages, readLedger, readTimings, sha1File, shardCapS, sheetsToReview, tokenScope, uiKind,
+  writeLedger, writeTimings,
 } from "./lib.mjs";
 
 const root = path.resolve(process.env.ZEN_QA_ROOT || path.join(path.dirname(fileURLToPath(import.meta.url)), "../.."));
@@ -169,27 +172,52 @@ const run = (cmd, args, timeoutMs = 600000) => { const r = spawnSync(cmd, args, 
 // Runtime jobs (audit, dark audit, behaviour) are independent processes that only read the shared baselines and write their own
 // --out file, so they run side by side; --serial (or ZEN_QA_SERIAL=1) restores one-after-another if timing-sensitive checks ever flake.
 const SERIAL = flag("serial") || process.env.ZEN_QA_SERIAL === "1";
-const runAsync = (cmd, args, timeoutMs = 600000) => new Promise((resolve) => { const t0 = Date.now(); const c = spawn(cmd, args, { cwd: root, env: { ...process.env, FORCE_COLOR: "0" } }); let out = ""; const timer = setTimeout(() => c.kill("SIGKILL"), timeoutMs); c.stdout.on("data", (d) => { out += d; }); c.stderr.on("data", (d) => { out += d; }); c.on("error", (e) => { clearTimeout(timer); resolve({ code: 2, out: String(e), ms: Date.now() - t0 }); }); c.on("close", (code) => { clearTimeout(timer); resolve({ code: code ?? 1, out, ms: Date.now() - t0 }); }); });
-const launch = (cmd, args, timeoutMs) => { let p = null; const go = () => (p ??= runAsync(cmd, args, timeoutMs)); if (!SERIAL) go(); return go; };
+// `marks` collects the "✓|⚠|✗ <page>@<width>" lines with the time each arrived (page timings for the next shard plan).
+// `term`: at the time limit the process gets SIGTERM first (the Studio E2E puts the disk back), SIGKILL 15 s later.
+const runAsync = (cmd, args, timeoutMs = 600000, { marks = null, term = false } = {}) => new Promise((resolve) => {
+  const t0 = Date.now(); const c = spawn(cmd, args, { cwd: root, env: { ...process.env, FORCE_COLOR: "0" } }); let out = "", carry = "", killed = false, hard = 0;
+  const timer = setTimeout(() => { killed = true; c.kill(term ? "SIGTERM" : "SIGKILL"); if (term) hard = setTimeout(() => c.kill("SIGKILL"), 15000); }, timeoutMs);
+  const take = (d) => { out += d; if (!marks) return; const lines = `${carry}${d}`.split("\n"); carry = lines.pop(); for (const l of lines) if (/^[✓⚠✗] /.test(l)) marks.push([Date.now() - t0, l]); };
+  const end = (code) => { clearTimeout(timer); clearTimeout(hard); resolve({ code, out, ms: Date.now() - t0, start: t0, end: Date.now(), killed }); };
+  c.stdout.on("data", take); c.stderr.on("data", (d) => { out += d; });
+  c.on("error", (e) => { out += String(e); end(2); }); c.on("close", (code) => end(code ?? 1));
+});
 // fn over items, at most `limit` at a time, results in input order. Each contract suite starts its own browser, so the
 // scoped contract step runs ZEN_QA_SUITES (default 4) of them at once, one by one under --serial.
 const pooled = async (items, limit, fn) => { const out = new Array(items.length); let next = 0; await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => { while (next < items.length) { const i = next++; out[i] = await fn(items[i]); } })); return out; };
 const SUITE_LIMIT = SERIAL ? 1 : Math.max(1, Number(process.env.ZEN_QA_SUITES ?? 4) || 4);
-// The pages of a runtime job are independent (reports are keyed by page@width), so a run of 6+ pages is also split in
-// ZEN_QA_SHARDS (default 2) processes per job and the part reports are merged back into the one file the gate reads.
+// The pages of a runtime job are independent (reports are keyed by page@width), so a job runs in shards planned from the
+// last run's page timings (.qa/timings.json, lib.mjs planShards): each shard about 10 min, stopped at 3× its plan (never
+// under 30 min), and the part reports are merged back into the one file the gate reads. The shards of all jobs share one
+// pool of ZEN_QA_SHARDS (default 2) processes per job, the main audit's first; --serial runs them one at a time.
+const SHARDS = Math.max(1, Number(process.env.ZEN_QA_SHARDS ?? 2) || 1);
+const timings = readTimings(root);
+let runtimePool = null;
+const makePool = (limit) => { let active = 0; const queue = []; const next = () => { while (active < limit && queue.length) { const [fn, resolve] = queue.shift(); active += 1; fn().then(resolve).finally(() => { active -= 1; next(); }); } }; return (fn) => new Promise((resolve) => { queue.push([fn, resolve]); next(); }); };
 const mergeReports = (reps) => { const m = { ...reps[0], pages: {} }; for (const r of reps) { Object.assign(m.pages, r.pages ?? {}); for (const k of ["baselined", "current", "smokeStats"]) if (r[k]) m[k] = { ...(m[k] ?? {}), ...r[k] }; } return m; };
-const launchSharded = (cmd, baseArgs, pageList, finalOut, timeoutMs) => {
-  const n = SERIAL ? 1 : Math.max(1, Math.min(Number(process.env.ZEN_QA_SHARDS ?? 2) || 1, Math.floor(pageList.length / 3)));
+const readJson = (file) => { try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return null; } };
+const readJsonText = (out) => { try { return JSON.parse(out.trim().split("\n").at(-1)); } catch { return null; } };
+const launchSharded = (job, cmd, baseArgs, pageList, finalOut) => {
+  const estimate = pageEstimator(timings[job], PAGE_SECONDS[job]);
+  const plan = planShards(pageList, estimate, { min: Math.min(SHARDS, Math.floor(pageList.length / 3)) });
   const argsFor = (pages, out) => baseArgs.map((a) => (a.startsWith("--pages=") ? `--pages=${pages.join(",")}` : a.startsWith("--out=") ? `--out=${out}` : a));
-  if (n <= 1) return launch(cmd, argsFor(pageList, finalOut), timeoutMs);
-  const groups = Array.from({ length: n }, () => []); pageList.forEach((pg, i) => groups[i % n].push(pg));
-  const parts = groups.map((g, i) => { const out = finalOut.replace(/\.json$/, `.part${i}.json`); return { out, job: launch(cmd, argsFor(g, out), timeoutMs) }; });
+  const parts = plan.map((s, i) => {
+    const out = plan.length === 1 ? finalOut : finalOut.replace(/\.json$/, `.part${i}.json`); const cap = shardCapS(s.seconds); const marks = [];
+    return { ...s, out, cap, marks, job: runtimePool(() => runAsync(cmd, argsFor(s.items, out), cap * 1000, { marks })) };
+  });
   let done = null;
   return () => (done ??= (async () => {
-    const rs = await Promise.all(parts.map((x) => x.job()));
-    const reps = parts.map((x) => { try { return JSON.parse(fs.readFileSync(x.out, "utf8")); } catch { return null; } });
-    if (reps.every(Boolean)) fs.writeFileSync(finalOut, JSON.stringify(mergeReports(reps), null, 2));
-    return { code: rs.find((r) => r.code !== 0)?.code ?? 0, out: rs.map((r) => r.out).join("\n"), ms: Math.max(...rs.map((r) => r.ms)) };
+    const rs = await Promise.all(parts.map((x) => x.job));
+    const reps = parts.map((x) => readJson(x.out));
+    if (plan.length > 1 && reps.some(Boolean)) fs.writeFileSync(finalOut, JSON.stringify(mergeReports(reps.filter(Boolean)), null, 2));
+    // A shard without a report (stopped at its limit, or crashed): its pages were not checked, which fails the step; the
+    // findings of the other shards still count.
+    const trouble = parts.flatMap((x, i) => (reps[i] ? [] : [`shard ${i + 1}/${parts.length} (${x.items.join(", ")}) wrote no report: ${rs[i].killed ? `stopped at its ${Math.round(x.cap / 60)}-min limit after ${Object.keys(pageSeconds(x.marks)).length} of ${x.items.length} page(s) (plan ${Math.round(x.seconds / 60)} min)` : `exit ${rs[i].code}`}`]));
+    // Next plan: what each page took; the pages of a shard that hit its limit count as if they had shared it.
+    const table = (timings[job] ??= {});
+    parts.forEach((x, i) => { Object.assign(table, pageSeconds(x.marks)); if (rs[i].killed) for (const pg of x.items) table[pg] = Math.max(table[pg] ?? 0, estimate(pg), Math.round(x.cap / x.items.length)); });
+    try { writeTimings(root, timings); } catch { /* timings are a hint */ }
+    return { code: rs.find((r) => r.code !== 0)?.code ?? 0, out: rs.map((r) => r.out).join("\n"), ms: Math.max(...rs.map((r) => r.end)) - Math.min(...rs.map((r) => r.start)), shards: parts.length, trouble };
   })());
 };
 const secs = (r) => (r?.ms ? ` · ${Math.round(r.ms / 1000)}s` : "");
@@ -234,7 +262,7 @@ const where = (file, line) => { const r = ledger.files?.[file]?.ranges; if (!r?.
   } else step("static", "Usage guard", "skip", "no TSX/CSS in scope");
 }
 // Harness self-tests: only when the harness itself changed (S5a).
-for (const [name, script, dir] of [["Usage-guard self-test", "tools/usage-guard/selftest.mjs", "tools/usage-guard"], ["Style-guard self-test", "tools/style-guard/selftest.mjs", "tools/style-guard"]]) {
+for (const [name, script, dir] of [["Usage-guard self-test", "tools/usage-guard/selftest.mjs", "tools/usage-guard"], ["Style-guard self-test", "tools/style-guard/selftest.mjs", "tools/style-guard"], ["QA gate self-test", "tools/qa/selftest.mjs", "tools/qa"]]) {
   if (!ALL && !aux.some((f) => f.startsWith(`${dir}/`))) { step("static", name, "skip", `no ${dir} edits since the last pass`); continue; }
   const r = run(process.execPath, [script]);
   step("static", name, r.code === 0 ? "pass" : "fail", "", r.code === 0 ? [] : tail(r.out, /✗/));
@@ -384,7 +412,6 @@ const studioDrafts = serverUp ? await (async () => {
   }
 })() : [];
 const ERROR_KINDS = new Set(["errors", "overflow", "images", "names", "nesting", "surfaces", "edges", "sizes", "typography", "device", "outline", "playground", "smoke", "scale", "hierarchy", "density", "fit"]);
-const readAudit = (file) => { try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return null; } };
 const auditItems = (report) => { const errs = [], warns = []; for (const [key, entry] of Object.entries(report?.pages ?? {})) for (const [kind, items] of Object.entries(entry)) for (const item of items) (ERROR_KINDS.has(kind) ? errs : warns).push(`[${kind}] ${key}: ${item}`); return { errs, warns }; };
 const sheets = [];
 let review = { required: [], optional: [], unchanged: [], overwritten: [] };
@@ -411,19 +438,24 @@ if (failFast) {
   const darkOut = path.join(runDir, "audit-dark.json");
   const behScript = path.join(root, "tools/platform-audit/behaviour.mjs");
   const behOut = path.join(runDir, "behaviour.json");
-  const jobMain = launchSharded(process.execPath, args, P, main, 1800000);
-  const jobDark = QUICK ? null : launchSharded(process.execPath, ["tools/platform-audit/audit.mjs", `--url=${BASE}`, `--pages=${P.join(",")}`, "--viewports=1512", "--dark", "--no-playground", "--quality", `--out=${darkOut}`], P, darkOut, 1800000);
-  const jobBeh = QUICK || TOKEN_ONLY || !fs.existsSync(behScript) ? null : launchSharded(process.execPath, [behScript, `--url=${BASE}`, `--pages=${P.join(",")}`, `--out=${behOut}`], P, behOut, 1800000);
+  const withBeh = !QUICK && !TOKEN_ONLY && fs.existsSync(behScript);
+  runtimePool = makePool(SERIAL ? 1 : SHARDS * (QUICK ? 1 : withBeh ? 3 : 2));
+  const jobMain = launchSharded(QUICK ? "audit-quick" : TOKEN_ONLY ? "audit-token" : "audit", process.execPath, args, P, main);
+  const jobDark = QUICK ? null : launchSharded("dark", process.execPath, ["tools/platform-audit/audit.mjs", `--url=${BASE}`, `--pages=${P.join(",")}`, "--viewports=1512", "--dark", "--no-playground", "--quality", `--out=${darkOut}`], P, darkOut);
+  const jobBeh = withBeh ? launchSharded("behaviour", process.execPath, [behScript, `--url=${BASE}`, `--pages=${P.join(",")}`, `--out=${behOut}`], P, behOut) : null;
+  // A job's shard count, and the shards that wrote no report (each one fails the step).
+  const shardNote = (x) => `${x.shards > 1 ? ` · ${x.shards} shards` : ""}${x.trouble.length ? ` · ${x.trouble.length} shard(s) without a report` : ""}`;
+  const shardItems = (x) => x.trouble.map((t) => `✗ ${t}`);
   const r = await jobMain();
-  const report = readAudit(main);
-  if (!report) step("runtime", "Platform audit", "fail", `audit crashed (exit ${r.code})`, tail(r.out, /./).slice(-12));
-  else { const { errs, warns } = auditItems(report); const known = Object.values(report.baselined ?? {}).flatMap((k) => Object.values(k)).flat().length; step("runtime", `Platform audit ${QUICK ? "1512" : TOKEN_ONLY ? `1512 + 390 + 320 · quality${TOKEN_SIZES ? " · density" : ""} (token fast path)` : "1512 + 390 + 320 · smoke · quality · density"}${secs(r)}`, errs.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s)${known ? `, ${known} baseline` : ""}`, [...errs, ...warns.map((w) => `⚠ ${w}`)]); }
+  const report = readJson(main);
+  if (!report) step("runtime", "Platform audit", "fail", `audit crashed (exit ${r.code})${shardNote(r)}`, [...shardItems(r), ...tail(r.out, /./).slice(-12)]);
+  else { const { errs, warns } = auditItems(report); const known = Object.values(report.baselined ?? {}).flatMap((k) => Object.values(k)).flat().length; step("runtime", `Platform audit ${QUICK ? "1512" : TOKEN_ONLY ? `1512 + 390 + 320 · quality${TOKEN_SIZES ? " · density" : ""} (token fast path)` : "1512 + 390 + 320 · smoke · quality · density"}${secs(r)}`, errs.length || r.trouble.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s)${known ? `, ${known} baseline` : ""}${shardNote(r)}`, [...shardItems(r), ...errs, ...warns.map((w) => `⚠ ${w}`)]); }
   if (!QUICK) {
     const dark = darkOut;
     const d = await jobDark();
-    const dr = readAudit(dark);
-    if (!dr) step("runtime", "Dark mode audit", "fail", `audit crashed (exit ${d.code})`, tail(d.out, /./).slice(-8));
-    else { const { errs, warns } = auditItems(dr); const known = Object.values(dr.baselined ?? {}).flatMap((k) => Object.values(k)).flat().length; step("runtime", "Dark mode audit", errs.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s)${known ? `, ${known} baseline` : ""}${secs(d)}`, [...errs, ...warns.map((w) => `⚠ ${w}`)]); }
+    const dr = readJson(dark);
+    if (!dr) step("runtime", "Dark mode audit", "fail", `audit crashed (exit ${d.code})${shardNote(d)}`, [...shardItems(d), ...tail(d.out, /./).slice(-8)]);
+    else { const { errs, warns } = auditItems(dr); const known = Object.values(dr.baselined ?? {}).flatMap((k) => Object.values(k)).flat().length; step("runtime", "Dark mode audit", errs.length || d.trouble.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s)${known ? `, ${known} baseline` : ""}${secs(d)}${shardNote(d)}`, [...shardItems(d), ...errs, ...warns.map((w) => `⚠ ${w}`)]); }
 
     say("\n③ Behaviour");
     const script = behScript;
@@ -432,12 +464,12 @@ if (failFast) {
     else {
       const out = behOut;
       const b = await jobBeh();
-      const br = readAudit(out);
-      if (!br) step("behaviour", "Behaviour probes", b.code === 0 ? "pass" : "fail", b.code === 0 ? "" : `crashed (exit ${b.code})`, tail(b.out, /./).slice(-8));
+      const br = readJson(out);
+      if (!br) step("behaviour", "Behaviour probes", b.code === 0 && !b.trouble.length ? "pass" : "fail", b.code === 0 && !b.trouble.length ? "" : `crashed (exit ${b.code})${shardNote(b)}`, [...shardItems(b), ...tail(b.out, /./).slice(-8)]);
       else {
         const all = Object.entries(br.pages ?? {}).flatMap(([key, fs_]) => (fs_ ?? []).map((f) => ({ ...f, key })));
         const fresh = all.filter((f) => f.new !== false); const errs = fresh.filter((f) => f.severity === "error"); const warns = fresh.filter((f) => f.severity !== "error");
-        step("behaviour", "Focus ring · keyboard reach · APG keys · dead clicks · hover", errs.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s), ${all.length - fresh.length} baseline${secs(b)}`, [...errs, ...warns].map((f) => `${f.severity === "error" ? "✗" : "⚠"} [${f.check}] ${f.key} ${f.card ? `${f.card}: ` : ""}${f.message}`));
+        step("behaviour", "Focus ring · keyboard reach · APG keys · dead clicks · hover", errs.length || b.trouble.length ? "fail" : warns.length ? "warn" : "pass", `${errs.length} error(s), ${warns.length} new warning(s), ${all.length - fresh.length} baseline${secs(b)}${shardNote(b)}`, [...shardItems(b), ...[...errs, ...warns].map((f) => `${f.severity === "error" ? "✗" : "⚠"} [${f.check}] ${f.key} ${f.card ? `${f.card}: ` : ""}${f.message}`)]);
       }
     }
   }
@@ -445,18 +477,53 @@ if (failFast) {
 
 // Zen Studio E2E (tools/studio/e2e): drives the Studio UI on its own dev server (port 5190+, its own drafts), so it needs
 // neither 5173 nor a page. A row that worked in matrix.baseline.json and now fails is a regression (exit 1).
+// Shards (2026-10-22): the full matrix (338 rows) took 25 min alone and passed its 40-min limit under load, ending with
+// "no summary". Its rows now run in shards one after another (they share the save fixture), each planned at about 10 min
+// from the last run's seconds per row (lib.mjs planE2E), with a --budget after which a shard starts no row (those are
+// reported as not run, a ✗) and a hard stop 10 min later; one combined report and regression list come out.
 if (studioInScope && !staticFailed.length) {
   say("\n② Studio E2E");
   const t0 = Date.now();
-  // 40 min: the full matrix (147 rows, 2026-10-07) ran about 15; at 341 rows with the board sweep (2026-10-18) it runs
-  // about 27 and outgrew the 25 min limit it had.
-  const r = run("npm", ["run", "-s", "studio:e2e", "--", ...(QUICK ? ["--only=shell,select,inspector"] : [])], 2400000);
-  const summary = r.out.match(/(\d+) works · (\d+) broken/)?.[0] ?? "no summary";
-  const regressions = r.out.match(/✗ Regressions[^\n]*/)?.[0];
-  const fixed = r.out.match(/✓ Fixed since the baseline[^\n]*/)?.[0];
-  const report = r.out.match(/Report: (\S+)/)?.[1];
-  step("runtime", "Studio E2E (feature matrix)", r.code === 0 ? (fixed ? "warn" : "pass") : "fail",
-    `${summary}${report ? ` · ${report}` : ""} · ${Math.round((Date.now() - t0) / 1000)}s`, [regressions, fixed, r.code === 2 ? tail(r.out, /error|Error/).slice(0, 6).join(" | ") : ""].filter(Boolean));
+  const e2e = "tools/studio/e2e/run.mjs";
+  const groups = QUICK ? ["--only=shell,select,inspector"] : [];
+  const listed = readJsonText(run(process.execPath, [e2e, "--list", ...groups], 120000).out);
+  const rowCount = listed?.rows ?? timings.e2e?.rows ?? 340;
+  const plan = planE2E(rowCount, e2eRowSeconds(root, timings));
+  const shards = [];
+  for (let k = 1; k <= plan.n; k++) {
+    if (plan.n > 1) say(`  shard ${k}/${plan.n} (about ${Math.round(plan.planned / 60)} min, budget ${Math.round(plan.budget / 60)} min) …`);
+    const r = await runAsync(process.execPath, [e2e, ...groups, ...(plan.n > 1 ? [`--shard=${k}/${plan.n}`] : []), `--budget=${plan.budget}`], plan.cap * 1000, { term: true });
+    const md = r.out.match(/Report: (\S+)/)?.[1];
+    shards.push({ k, r, md, rep: md ? readJson(path.join(root, md.replace(/\.md$/, ".json"))) : null });
+  }
+  const { compare, readBaseline, readFlaky, writeReport } = await import(pathToFileURL(path.join(root, "tools/studio/e2e/lib/matrix.mjs")).href);
+  const baselineFile = path.join(root, "tools/studio/e2e/matrix.baseline.json");
+  const rows = shards.flatMap((x) => x.rep?.rows ?? []);
+  const verdict = compare(rows, readBaseline(baselineFile), readFlaky(baselineFile));
+  const count = (status) => rows.filter((row) => row.status === status).length;
+  const notRun = rows.filter((row) => row.notRun);
+  const ms = Date.now() - t0;
+  let report = shards[0]?.md;
+  if (plan.n > 1 && rows.length) {
+    const first = shards.find((x) => x.rep)?.rep;
+    report = rel(writeReport(path.join(root, ".qa/studio-e2e"), `${stamp}-gate`, rows, verdict, { host: first?.host, groups: first?.groups, ms, shards: shards.map((x) => ({ shard: `${x.k}/${plan.n}`, report: x.md ?? null, exit: x.r.code, ms: x.r.ms })), viteErrors: union(shards.map((x) => x.rep?.viteErrors ?? [])) }).md);
+  }
+  const trouble = shards.filter((x) => !x.rep || x.r.code === 2).map((x) => `✗ ${plan.n > 1 ? `shard ${x.k}/${plan.n}` : "the run"}: ${x.r.killed ? `stopped at its ${Math.round(plan.cap / 60)}-min limit` : `exit ${x.r.code}`}${x.rep ? "" : ", no report"}${x.r.code === 2 ? ` — ${tail(x.r.out, /error|Error|Stopped/).slice(0, 4).join(" | ")}` : ""}`);
+  const failed = trouble.length || shards.some((x) => x.r.code !== 0);
+  step("runtime", "Studio E2E (feature matrix)", failed ? "fail" : verdict.fixed.length ? "warn" : "pass",
+    `${count("works")} works · ${count("broken")} broken${count("skip") ? ` · ${count("skip")} skipped` : ""}${report ? ` · ${report}` : ""}${plan.n > 1 ? ` · ${plan.n} shards` : ""} · ${Math.round(ms / 1000)}s`, [
+      verdict.regressions.length ? `✗ Regressions (worked in the baseline): ${verdict.regressions.map((row) => row.id).join(", ")}` : "",
+      notRun.length ? `✗ Not run (a shard reached its ${Math.round(plan.budget / 60)}-min budget): ${notRun.length} row(s): ${brief(notRun.map((row) => row.id), 12)}` : "",
+      verdict.fixed.length ? `✓ Fixed since the baseline (run with --update-baseline to record): ${verdict.fixed.map((row) => row.id).join(", ")}` : "",
+      ...trouble,
+      ...(plan.n > 1 ? shards.map((x) => `shard ${x.k}/${plan.n}: ${x.rep?.rows?.length ?? 0} row(s) · ${Math.round(x.r.ms / 1000)}s${x.md ? ` · ${x.md}` : ""}`) : []),
+    ].filter(Boolean));
+  // Next plan: seconds per row of a full matrix that ran to the end.
+  const ran = rows.length - notRun.length;
+  if (!QUICK && !trouble.length && ran >= 20) {
+    timings.e2e = { perRow: Math.round(shards.reduce((a, x) => a + x.r.ms, 0) / ran / 100) / 10, rows: rowCount, at: new Date().toISOString() };
+    try { writeTimings(root, timings); } catch { /* timings are a hint */ }
+  }
 } else if (studioInScope) step("runtime", "Studio E2E (feature matrix)", "skip", "skipped because a static gate failed");
 
 /* ── ④ example coverage ─────────────────────────────────────────────────────────────────────────────────────────── */
