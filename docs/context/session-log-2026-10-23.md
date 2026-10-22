@@ -158,3 +158,21 @@ Branch `zen/fix/studio-parity-leftovers-20261023`; both BACKLOG lines archived.
 - Gate (01:45–02:14, isolated, the 8 files): static ✓, Studio E2E 338 / 338 (3 shards), Build-QA PASS. FW rows run
   apart (the gate's matrix has no FW group): FW-220 first timed out (a ⇧⌘-click on the second group's empty spot added
   nothing); it now ⇧-clicks "Group 2" in Layers, as B-33 does: FW-119 + FW-220 2 / 2, FW-11…18 8 / 8.
+
+## AppShell session · Figma contracts G5 (tier S, read-only Figma + contract files; BACKLOG P3, user-approved, via Giám sát)
+
+Branch zen/chore/figma-contracts-g5-20261023 from main 4c456456.
+- Capture: `mcp-capture/capture-template.js` per file (code in the scratchpad), 56 read-only use_figma calls made by two
+  helper agents so the LZ chunks stay out of the main context, `assemble.cjs` from the transcripts (all hashes whole),
+  written with each file's own serialisation (python json.dumps; input-search-primitives JSON.stringify; table-cells
+  raw unicode).
+- (a) New: chart-line, -stack-bar, -multi-line, -bar, -donut, -radial, -heatmap, -area, -grouped-bar, -combo, -gauge,
+  -funnel, -bar-list, -bullet, -card (Gauge / Funnel / Bullet are sets with Color now: 15968:130382 / 130460 / 130554,
+  told the chart-colour session; its branch already points CHART_SETS there).
+- (b) Re-read whole: avatar-single (48 → 656 variants: Theme gained Sky, Mint, Bronze, Golden), chat-bubbles,
+  table-cells, input-search-primitives, datepicker-sidebar, input-search (Search/Default unchanged but its
+  description), segmented-toggle-badge-avatarstack (Segmented unchanged; Badge and Badge-Counter +24, the four hues).
+  The code already has the four hues (avatarThemes, badgeThemes).
+- Found: Figma's Side-Bar/Master/Small-Density (5974:20590) is named "Component" now → BACKLOG designer question.
+- Checks: nested-paths --check 45/45; run-all.mjs 25/25 (Input/Heading 432/432 on the new capture); figma-pull's
+  Actions-Cell icon still icon-dots-vertical-line. BACKLOG G5 narrowed to the suites still to write.

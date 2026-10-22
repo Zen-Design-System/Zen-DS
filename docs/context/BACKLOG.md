@@ -156,13 +156,17 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   approval and a Figma source).
 - **P3 · Update from Figma in another browser (2026-10-13, P6b leftover):** a pull in a browser that kept no export
   falls back to a two-way comparison. Pointer: `docs/research/studio-figma-push-spec-2026-10-12.md` §8 "P6b".
-- **P3 · Figma contracts to capture or refresh (merged 2026-10-23 from the 2026-10-08 and 2026-10-12 entries):** (a) the
-  chart sets (`CHART_SETS` in `tools/studio/figma-charts.mjs`) have no `docs/figma-contracts/chart-*.json` and no parity
-  suite, so a later Figma edit is not caught (`tools/figma-contract/mcp-capture`). (b) Contracts no suite reads still
-  hold an old capture: `avatar-single`, `chat-bubbles`, `input-search-primitives` and `table-cells` (September),
-  `datepicker-sidebar` (10-06), the rest of `input-search` (its Input/Heading entry 10-08, Search 10-17) and
-  `segmented-toggle-badge-avatarstack` (but its Segmented sets, 10-14 / 10-20). Re-capture each when its suite is
-  written (the LZ-chunk capture, `tools/figma-contract/README.md`).
+- **P3 · Figma contract suites still to write (2026-10-23; captures done the same day):** the 14 chart sets and
+  Chart/Chart-Card now have contracts (`docs/figma-contracts/chart-*.json`, read 2026-10-23) and avatar-single,
+  chat-bubbles, input-search-primitives, table-cells, datepicker-sidebar, input-search and
+  segmented-toggle-badge-avatarstack were re-read whole; only Input/Heading and the Segmented sets have a parity suite,
+  so a later Figma edit to the others is still not caught. A suite per set (`tools/figma-contract/suites`, README
+  "Writing a suite") needs a browser slot each and the user's go (new harness work).
+- **P3 · Designer question: Side-Bar/Master/Small-Density is named "Component" in Figma (2026-10-23, contract re-read):**
+  the set 5974:20590 on ❖ Sidebar (key 1cca393d…, Expand Yes/No) lost its name; no other set has it. The push imports
+  it by key (library-keys.json) so it still lands, but a pull or a component-properties re-capture matches sets by
+  name (`tools/studio/figma-props.map.mjs` Sidebar `Side-Bar/Master/Small-Density`). Rename it back in Figma, or say
+  it is retired.
 - **P3 · Figma layers left unnamed (designer, 2026-10-12):** the nested layer-name gate (tools/figma-contract/
   nested-paths.mjs, 44/44 components since nested-layers.json) allows code names Figma has no layer for: unnamed
   instances that carry their component's name (AiChatField's three action buttons, AlertBanner / InlineMessage / Toast /
