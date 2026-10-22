@@ -19,9 +19,7 @@ type NotYet = { code: string; keys: Keys; name: string; macOnly?: boolean };
  * Figma's key → its feature name (help.figma.com words). `mod` is ⌘ (Ctrl elsewhere); `ctrl` is the Mac Control key,
  * which Figma writes as Ctrl+Alt elsewhere.
  */
-export const FIGMA_NOT_YET: readonly NotYet[] = [
-  { code: "KeyC", keys: {}, name: "Comment" },
-];
+export const FIGMA_NOT_YET: readonly NotYet[] = [];
 
 /** Whether the modifiers of `event` are exactly `keys` on this platform. */
 function matches(event: KeyboardEvent, entry: NotYet): boolean {

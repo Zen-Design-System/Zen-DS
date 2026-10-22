@@ -109,3 +109,46 @@ the four ❌ keys of the walk's §2a.
 - **E2E:** FW-175…179 pass alone, 5 / 5 (after merging `main` f7e8708f). The test right-clicks off a selected ellipse's
   middle, since the arc dot is a handle of its own.
 
+
+## Session A — Figma walks measured again (17:00, Giám sát's slot)
+
+- **Where:** 5b027db1, C's Libraries head. It is `main` 6f894b5e plus Scale, Slice, Comment and Libraries (#206–#209),
+  so it reads as `main` will once they merge.
+- **§2 hands-on walk, 76 actions:** 72 ✅ · 4 🟡 · 0 ❌. It was 65 · 7 · 4 on 2026-10-21 and 36 · 14 · 26 on 2026-10-18.
+  - The 7 rows that went up: K, S, C, ⌥⌘A and the three right-click menus.
+  - The 4 🟡 left: Detach on a Button (kept on purpose) and the right panel's Content section (B, the user's decision).
+- **§6.3 first ten minutes:** 14 / 14 tasks in 40 steps, the same as Figma's 40, with 0 refusals.
+- **Walk script change:** ⌥⌘A matches in other frames, so K-34 first copies the frame (title click, ⌘D). It also reads
+  the status line, since the selection count did not see the copy.
+- **Written into:** the plan doc's §2b, §5 status and §6.3.
+- **Before that, a read-only review of C's project-components branch** (two passes). C fixed every finding: 1 red
+  selftest, the push resolving the wrong page, the phone library, the detach self-link, a missing-component placeholder,
+  the cross-page cycle in the push, and gone-main messages.
+
+## QA gate: shards sized from measured time (gate-shards session, branch `zen/fix/qa-gate-shards-20261022`)
+
+Asked by the progress session: every full gate failed on time limits, not findings. Bug's card-theme gate (12:47): the
+4 main audit shards (~15 pages each, 12 Chromium processes at once) all passed the 30-min cap and wrote no report; the
+Studio E2E (338 rows, one process, ~25 min on a quiet machine) passed its 40-min cap ("no summary · 2400s"). Earlier
+E2E steps ran 3163–3377 s against that cap: the limit was sent to `npm`, not to the harness.
+
+- **Audit / dark / behaviour:** `planShards` (tools/qa/lib.mjs) packs pages into shards of ~10 min from each page's last
+  time (`.qa/timings.json`, measured by the gate from the "✓|⚠|✗ page@width" line each page prints, in awake time);
+  untimed pages take the median, else `PAGE_SECONDS`. All shards share one pool of `ZEN_QA_SHARDS` (2) processes per
+  job, main audit first. A shard stops at max(30 min, 3× plan); one without a report fails its step and names its pages.
+- **Studio E2E:** `--list` counts the rows, `planE2E` picks n shards of ~10 min from the last seconds per row, the gate
+  runs `node tools/studio/e2e/run.mjs --shard=k/n --budget=<s>` one after another (SIGTERM, then SIGKILL, at budget +
+  10 min) and writes one combined report `.qa/studio-e2e/<stamp>-gate.md`. The runner's `--budget` starts no row after
+  it (rows left: `notRun`, exit 1); SIGTERM/SIGINT put the disk back before it exits.
+- `tools/qa/selftest.mjs` (`npm run qa:selftest`, 26 checks), run by the gate when `tools/qa` is in scope (auxKind "qa").
+- **Full gate 17:08–18:43 (`--all --isolated`, main 6f894b5e):** static all ✓ (81/81 Vitest, all contract suites);
+  audit ✓ 21 shards, 1484 s, 0 errors, 61 baseline; dark ✓ 2 shards, 107 s; behaviour ⚠ 7 shards, 455 s, 1 new warning
+  (below); E2E shards 1/3 387 s and 2/3 599 s, 225 rows, 0 broken; contact sheets ✓. No step was killed.
+- **The Mac slept 17:50–18:36 during E2E shard 3/3:** rows ST-12/23/24 took 352–970 s of wall time and still worked
+  (row timers stop during sleep), but `--budget` measured `Date.now()`, so the last 95 rows were reported as not run
+  (✗, with a full report). Fixed: the budget and the page timings use `performance.now()` (awake time). Shard 3/3
+  re-run alone: 113 works · 0 broken · 540 s, exit 0. E2E total 338/338 works, 0 broken (387 + 599 + 540 s).
+- **Gate finding fixed:** behaviour ⚠ deadclick ai-ui@1512 "Composed while typing, on a phone": once the booking form
+  shows, `SlotChips` drew the read-only people/place values as Chips with no handler (a `<button>` that does nothing;
+  seen in the appshell and card-themes gates too). The chip guideline says a read-only label is a Tag: they are Tags
+  now. Scoped gate `--only=ai-ui`: PASS, behaviour 0 warnings. Its BACKLOG P3 line (from #210) is removed.

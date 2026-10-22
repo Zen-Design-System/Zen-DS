@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { authorized } from "../api";
 import { run, SETTINGS } from "../builder/store/pageStore";
-import { normalizeProject, projectIdFor, projectThemeCss, type Project, type ProjectTheme } from "../../../../tools/studio/project-theme.mjs";
+import { normalizeProject, projectIdFor, projectThemeCss, type Project, type ProjectLibraries, type ProjectTheme } from "../../../../tools/studio/project-theme.mjs";
 
 /*
  * Studio projects (user, 2026-10-17: "tạo dự án như Figma … set theme cho Dự án … sau vẫn vào setting của Project điều
@@ -144,8 +144,8 @@ export async function createProject(name: string, theme: ProjectTheme): Promise<
   return project;
 }
 
-/** Saves a project's new name or theme (Project settings). */
-export async function updateProject(id: string, change: { name?: string; theme?: ProjectTheme }): Promise<Project> {
+/** Saves a project's new name or theme (Project settings), or its libraries (the Libraries dialog). */
+export async function updateProject(id: string, change: { name?: string; theme?: ProjectTheme; libraries?: ProjectLibraries }): Promise<Project> {
   await load();
   const current = projects.find((project) => project.id === id);
   if (!current) throw new Error("The project is gone");

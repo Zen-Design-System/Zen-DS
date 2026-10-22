@@ -56,7 +56,7 @@ export const canvasToolGroups: ReadonlyArray<ReadonlyArray<ToolEntry>> = [
   frameTools,
   shapeTools,
   penTools,
-  [{ id: "stack", label: "Stack", icon: "icon-rows-01-line" }, { id: "text", label: "Text", key: "T", icon: "icon-type-01-line" }, { id: "image", label: "Place image/video", key: `⇧${modKey}K`, icon: "icon-image-line" }],
+  [{ id: "stack", label: "Stack", icon: "icon-rows-01-line" }, { id: "text", label: "Text", key: "T", icon: "icon-type-01-line" }, { id: "image", label: "Place image/video", key: `⇧${modKey}K`, icon: "icon-image-line" }, { id: "comment", label: "Comment", key: "C", icon: "icon-message-chat-circle-line" }],
   [{ id: "interact", label: "Interact", key: "I", icon: "icon-cursor-click-line" }],
 ];
 export const canvasTools = canvasToolGroups.flat();
@@ -178,7 +178,7 @@ function PenTools({ tool, off }: { tool: StudioTool; off: boolean }) {
  * the shape tools (draw/drawTool.ts: Rectangle R, Line L, Arrow ⇧L, Ellipse O, Polygon, Star); Text T (a page you
  * made: Figma's, a click for Auto width text or a drag for a text box, typing at once; example pages: placed with the
  * pointer); Stack and Image, placed with the pointer (edit/place.ts: the insertion line shows where, a click places it,
- * then Move again); Assets
+ * then Move again); Comment C (a page you made: comments/CommentsLayer.tsx); Assets
  * (⇧I, Quick insert: components, icons, photos); Interact.
  */
 export function CanvasTools() {
@@ -198,6 +198,9 @@ export function CanvasTools() {
       void placeImages(() => armDraw("image"));
     } else if (isPenTool(tool) && localPage) {
       if (!armPen(tool)) studioStore.setState({ tool: "select" });
+    } else if (tool === "comment") {
+      // Figma's Comment tool (C) on a page you made: comments/CommentsLayer.tsx takes the canvas presses.
+      if (!localPage) studioStore.setState({ tool: "select" });
     } else if (tool === "stack" || tool === "text" || tool === "image") {
       const item = placed(tool);
       if (!item || !armPlacement({ label: item.label, item })) studioStore.setState({ tool: "select" });
@@ -214,7 +217,8 @@ export function CanvasTools() {
       {canvasToolGroups.map((group, index) => {
         // A page you made is a Figma design page: no Stack tool (Frame F, then Add auto layout ⇧A) and no Interact
         // (the examples' tool); I is Figma's Pick color there (edit/pickColor.ts).
-        const items = localPage ? group.filter((item) => item.id !== "stack" && item.id !== "interact") : group;
+        // Comments belong to a page you made (stored beside its file).
+        const items = localPage ? group.filter((item) => item.id !== "stack" && item.id !== "interact") : group.filter((item) => item.id !== "comment");
         if (!items.length) return null;
         return (
         <Fragment key={group[0].id}>

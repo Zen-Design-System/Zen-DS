@@ -75,6 +75,8 @@ import { AiChip } from "./mcp/AiChip";
 import { startMcpRuntime } from "./mcp/runtime";
 import "./studio.css";
 import { useCanvasPreview, useRememberPageProject } from "./project/activeProject";
+import { LibrariesDialog } from "./project/LibrariesDialog";
+import { openLibraries } from "./project/libraries";
 
 /** An open overlay owns Escape (it closes first): a popover, menu, listbox, dialog, or an expanded combobox/trigger. */
 function escapeOwnedByOverlay(event: KeyboardEvent) {
@@ -409,6 +411,12 @@ export function StudioApp() {
         else void detachSelection(selection);
         return;
       }
+      // ⌥⌘O / Ctrl+Alt+O: Figma's Libraries (project/LibrariesDialog.tsx).
+      if (mod && event.altKey && !event.shiftKey && event.code === "KeyO") {
+        event.preventDefault();
+        if (!event.repeat) openLibraries();
+        return;
+      }
       // ⌥⌘K / Ctrl+Alt+K: Figma's Create component — the selected layer becomes a main component where it is.
       if (mod && event.altKey && !event.shiftKey && event.code === "KeyK") {
         const selection = state.selection;
@@ -597,6 +605,8 @@ export function StudioApp() {
       else if ((key === "r" || key === "o" || key === "l") && state.localPage) studioStore.setState({ tool: key === "r" ? "rectangle" : key === "o" ? "ellipse" : "line" });
       // S: Figma's Slice tool, on a page you made (builder/SliceFrame.tsx; ⇧S is the Section tool, above).
       else if (key === "s" && state.localPage) studioStore.setState({ tool: "slice" });
+      // C: Figma's Comment tool, on a page you made (comments/CommentsLayer.tsx; a Viewer comments too).
+      else if (key === "c" && state.localPage) studioStore.setState({ tool: "comment" });
       // P: Figma's Pen, on a page you made (draw/penTool.ts).
       else if (key === "p" && state.localPage) studioStore.setState({ tool: "pen" });
       else if (key === "f") {
@@ -712,6 +722,7 @@ export function StudioApp() {
 
         <ChromeScope className="studio-dialogs">
           <ShortcutsDialog />
+          <LibrariesDialog />
           <BatchRenameDialog />
           <QuickInsert />
           <VariablesWindow />
