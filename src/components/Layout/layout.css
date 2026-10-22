@@ -86,6 +86,8 @@
 :is(.zen-box, .zen-stack, .zen-grid)[data-border="subtle"][data-border-style="dashed"] { border-style: dashed; }
 /* Stack and Grid corners (Box keeps --zen-box-radius above). */
 :is(.zen-stack, .zen-grid)[data-corners] { border-radius: var(--zen-layout-radius); }
+/* Corner smoothing (Figma cornerSmoothing): squircle corners where the browser has corner-shape (Chromium). */
+:is(.zen-box, .zen-stack, .zen-grid)[data-corner-smoothing] { corner-shape: var(--zen-corner-shape); }
 /* Figma's layer opacity, rotation (counter-clockwise, about the centre) and flip. Individual transforms compose with any
    transform of the element and leave its box in the layout. */
 :is(.zen-box, .zen-stack, .zen-grid)[data-opacity] { opacity: var(--zen-layout-opacity); }

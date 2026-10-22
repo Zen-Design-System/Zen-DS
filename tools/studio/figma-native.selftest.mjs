@@ -242,7 +242,7 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   const unconverted = await nativePictures(formats, { toPng: async () => { throw new Error("no canvas"); } });
   check(unconverted.get("/a.gif")?.hash && /a WebP \(Figma's paste takes PNG, JPEG and GIF/.test(unconverted.get("/b.webp")?.reason ?? ""), "without a canvas a WebP has a reason");
 
-  const rectangle = { type: "RECTANGLE", shape: true, name: "Rectangle", fill: "Color/Background/Neutral/Subtle/Default", imageFill: { src: logo, scaleMode: "FILL" }, radius: 12, radiusVar: "Corner-Radius/Base", rotation: 90, opacity: 0.5, fixedWidth: 200, fixedHeight: 100 };
+  const rectangle = { type: "RECTANGLE", shape: true, name: "Rectangle", fill: "Color/Background/Neutral/Subtle/Default", imageFill: { src: logo, scaleMode: "FILL" }, radius: 12, radiusVar: "Corner-Radius/Base", cornerSmoothing: 0.6, rotation: 90, opacity: 0.5, fixedWidth: 200, fixedHeight: 100 };
   const ellipse = { type: "ELLIPSE", shape: true, name: "Ellipse", stroke: "Color/Border/Accent/Solid/Default", strokeWeight: 2, strokeAlign: "OUTSIDE", arc: { start: 0, end: Math.PI, inner: 0 }, imageFill: { src: photo, scaleMode: "CROP", crop: { x: 0.1, y: 0.2, width: 0.5, height: 0.4 } }, fixedWidth: 80, fixedHeight: 80 };
   const tiled = { type: "FRAME", name: "Tiled", layout: { mode: "VERTICAL" }, fixedWidth: 300, imageFill: { src: logo, scaleMode: "TILE", scale: 0.5 }, children: [] };
   const lost = { type: "RECTANGLE", shape: true, name: "Lost", imageFill: { src: "/uploads/gone.png", scaleMode: "FILL" }, fixedWidth: 40, fixedHeight: 40 };
@@ -255,6 +255,7 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(id(solid?.colorVar?.value.alias.guid) === pack.variables["Color/Background/Neutral/Subtle/Default"][0] && picture?.type === "IMAGE", "its colour variable under its picture");
   check(picture?.imageScaleMode === "FILL" && picture.image.hash.join() === shown.hash.join() && picture.imageThumbnail.hash.join() === shown.hash.join() && picture.originalImageWidth === 369, "the IMAGE paint names the picture by hash, with its size");
   check(rect?.pluginData?.some((entry) => entry.pluginID === "" && entry.key === "zenstudio-image" && entry.value === logo), "the Studio src rides as the importer's shared plugin data");
+  check(rect?.cornerSmoothing === 0.6, "a rectangle's corner smoothing (0–1)");
   check(rect?.rectangleTopLeftCornerRadius === 12 && rect.parameterConsumptionMap?.entries.length === 4 && rect.parameterConsumptionMap.entries.every((entry) => id(entry.variableData.value.alias.guid) === pack.variables["Corner-Radius/Base"][0]), "corners on the Corner-Radius variable");
   // Turned 90° about its centre: a 200 × 100 layer's centre (100, 50) stays where it was.
   const t = rect?.transform ?? {};
@@ -359,7 +360,7 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   const edge = "Border/Neutral/Subtle/Default";
   const looks = { type: "FRAME", name: "Looks", layout: { mode: "NONE" }, fixedWidth: 600, fixedHeight: 300, children: [
     ["Stroked", { stroke: edge, strokeWeight: 2, strokeAlign: "INSIDE" }], ["Bottom", { stroke: edge, strokeWeight: 1, strokeSides: "bottom" }],
-    ["Dashed", { stroke: edge, strokeWeight: 1, dash: [2, 2] }], ["Cornered", { radii: [16, 0, 16, 0], radiiVars: ["Corner-Radius/XLarge", null, "Corner-Radius/XLarge", null] }],
+    ["Dashed", { stroke: edge, strokeWeight: 1, dash: [2, 2] }], ["Cornered", { radii: [16, 0, 16, 0], radiiVars: ["Corner-Radius/XLarge", null, "Corner-Radius/XLarge", null], cornerSmoothing: 0.6 }],
     ["Shadowed", { effectStyle: "Shadow/Bottom/Level-2" }], ["Faded", { opacity: 0.5 }], ["Turned", { rotation: 90 }], ["Plain", {}],
   ].map(([name, look]) => ({ type: "FRAME", name, layout: { mode: "NONE" }, fixedWidth: 120, fixedHeight: 80, children: [], absolute: { cx: "MIN", cy: "MIN", left: 20, top: 20, right: 0, bottom: 0 }, ...look })) };
   const looked = nativeMessage(exportOf([looks]), pack).message.nodeChanges;
@@ -370,6 +371,7 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(bottom.borderBottomWeight === 1 && bottom.borderTopWeight === 0 && bottom.borderLeftWeight === 0 && bottom.borderRightWeight === 0 && bottom.borderStrokeWeightsIndependent === true, "a stroke on one side: that side's weight, 0 on the others");
   check(JSON.stringify(lookOf("Dashed").dashPattern) === "[2,2]" && !("dashPattern" in stroked), "Zen's dash 2 / 2, only where the code dashes");
   check(cornered.rectangleTopLeftCornerRadius === 16 && cornered.rectangleTopRightCornerRadius === 0 && cornered.rectangleBottomRightCornerRadius === 16 && cornered.rectangleBottomLeftCornerRadius === 0 && cornered.rectangleCornerRadiiIndependent && JSON.stringify(bound(cornered).sort()) === JSON.stringify(["RECTANGLE_BOTTOM_RIGHT_CORNER_RADIUS", "RECTANGLE_TOP_LEFT_CORNER_RADIUS"]), "corners one by one (TL TR BR BL), each step on its Corner-Radius variable");
+  check(cornered.cornerSmoothing === 0.6 && !("cornerSmoothing" in plain), "a frame's corner smoothing (0–1), only where the code smooths");
   const shadowed = lookOf("Shadowed");
   check(id(shadowed.styleIdForEffect?.guid) === pack.styles["Shadow/Bottom/Level-2"][0] && shadowed.effects?.length === 3 && shadowed.effects.every((effect) => effect.type === "DROP_SHADOW" && effect.colorVar?.value.alias.guid) && shadowed.effects[0].radius === 40 && shadowed.effects[0].offset.y === 12, "the effect style by its node id, with its effects (bound to their colour variables), as Figma's copies write it");
   // native-pack effects: a Plugin API shadow as Figma's clipboard writes it; glass is left out.

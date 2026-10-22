@@ -43,7 +43,7 @@ Generated from the TypeScript source; full JSON in `docs/api/shape.json`.
 ### Shape
 Zen Shape: Figma's native shapes (Rectangle, Ellipse with its arc, Line, Arrow, Polygon, Star, and the Pen's Vector) for illustrations, marks and decoration drawn in Zen Studio. Not a Figma library component: it maps to Figma's own nodes (RECTANGLE, ELLIPSE with arcData, LINE, REGULAR_POLYGON, STAR, VECTOR) on export and import. Colours are Zen tokens only (`fill` from Color/Background, `stroke` from Color/Border); the rectangle's radius takes the Corner-Radius tokens. It sizes and places like a layout primitive: `width` / `height` (px or fill) and Figma's position props (in a free frame: `position="absolute"` with px insets).
 
-Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, ImageFillProps, GradientFillProps`.
+Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProps, LayoutPositionProps, CornerRadiusProps, CornerSmoothingProps, ImageFillProps, GradientFillProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -65,6 +65,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">, LayoutSizingProp
 | `radiusTopRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Top-right corner on the Corner-Radius tokens (Figma topRightRadius). Wins over `radius`. |
 | `radiusBottomRight` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-right corner on the Corner-Radius tokens (Figma bottomRightRadius). Wins over `radius`. |
 | `radiusBottomLeft` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | — | Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius). Wins over `radius`. |
+| `cornerSmoothing` | `number` | — | Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle arc. Drawn with CSS `corner-shape: superellipse(…)` where the browser has it (Chromium); other browsers keep plain rounded corners. It shapes the corners `radius` sets, so it needs a radius. |
 | `image` | `string` | — | An image fill (Figma's Image paint): the picture's URL, painted over the layer's fill and under its stroke. A picture that means something needs an accessible name on its layer; without one it is decoration. A picture in the content (an article photo, a product shot) is an Image (alt, ratio, caption), not a fill. |
 | `imageFit` | `"fill" \| "fit" \| "crop" \| "tile"` | — | How the picture fills the layer (Figma's image scale mode): `fill` (default) covers it and crops what overflows, `fit` shows the whole picture, `crop` the part `imageCrop` names, stretched to the layer, `tile` repeats it at `imageScale`. |
 | `imageCrop` | `{ x: number; y: number; width: number; height: number }` | — | With `imageFit="crop"`: the part of the picture shown, in percent of it, e.g. { x: 10, y: 0, width: 80, height: 100 }. Unset: as `fill`. |

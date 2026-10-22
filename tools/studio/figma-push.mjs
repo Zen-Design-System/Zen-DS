@@ -152,6 +152,8 @@ const FRAMED_SLOT_PROPS = { ListBox: new Set(["header", "footer"]), Sidebar: new
 const SLOT_SHOWN_BY = { MetricCard: { custom: "Custom" }, Metric: { custom: "Custom" } };
 /** Props the push draws in the instance's own layers (metricParts, listItemParts), not in a slot. */
 const DRAWN_PARTS = { MetricCard: new Set(["trend", "action"]), Metric: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), UploaderFileItem: new Set(["file"]), ChatMessage: new Set(["author", "reactions", "seenBy"]), DatePickerSheet: new Set(["range", "defaultRange", "title", "open", "isOpen"]) };
+/** A layer's corner smoothing as Figma's cornerSmoothing (0–1), from the code's % (Box, Stack, Grid, Shape); 0 is none. */
+const smoothingOf = (code) => (typeof code.cornerSmoothing === "number" && code.cornerSmoothing > 0 ? Math.round(Math.min(100, code.cornerSmoothing)) / 100 : 0);
 /** What the page holds but does not show: screen-reader text. */
 const NOT_DRAWN = new Set(["VisuallyHidden"]);
 /**
@@ -663,6 +665,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       ...(kind === "polygon" || kind === "star" ? { pointCount: typeof code.pointCount === "number" ? code.pointCount : kind === "star" ? 5 : 3 } : {}),
       ...(kind === "star" ? { innerRadius: (typeof code.starRatio === "number" ? code.starRatio : STAR_RATIO) / 100 } : {}),
       ...(radius && radius[1] ? { radius: radius[1], radiusVar: radius[0] } : {}),
+      // Figma's corner smoothing (0–1), a rectangle's.
+      ...(kind === "rectangle" && smoothingOf(code) ? { cornerSmoothing: smoothingOf(code) } : {}),
       ...(typeof code.rotation === "number" && code.rotation % 360 ? { rotation: code.rotation } : {}),
       ...(["horizontal", "vertical", "both"].includes(code.flip) ? { flip: code.flip } : {}),
       ...(typeof code.opacity === "number" && code.opacity < 100 ? { opacity: Math.max(0, code.opacity) / 100 } : {}),
@@ -1464,6 +1468,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId } = {}) 
       if (steps.every((corner) => corner === steps[0])) Object.assign(look, { radius: steps[0][1], ...(steps[0][0] ? { radiusVar: steps[0][0] } : {}) });
       else Object.assign(look, { radii: steps.map((corner) => corner[1]), radiiVars: steps.map((corner) => corner[0] || null) });
     }
+    // Figma's corner smoothing (0–1; the code's cornerSmoothing is in %).
+    if (smoothingOf(code)) look.cornerSmoothing = smoothingOf(code);
     if (typeof code.effectStyle === "string" && FRAME_EFFECTS.has(code.effectStyle)) look.effectStyle = code.effectStyle;
     if (typeof code.opacity === "number" && code.opacity < 100) look.opacity = Math.max(0, code.opacity) / 100;
     // Its layer blend (blend-modes.mjs), when not Pass through (a frame's and a group's default).

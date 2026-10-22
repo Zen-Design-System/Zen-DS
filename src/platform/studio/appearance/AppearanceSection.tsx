@@ -67,8 +67,11 @@ export function AppearanceFields({ api, specs, opacity, radius: withRadius = tru
   const base = withRadius ? specs.find((spec) => spec.name === "radius") : undefined;
   const w = writtenRadius(api);
   const anyCorner = CORNERS.some((corner) => w.corners[corner] !== undefined);
-  const [open, setOpen] = useState(anyCorner);
-  useEffect(() => { if (anyCorner) setOpen(true); }, [anyCorner]);
+  // Figma's Corner smoothing (0–100 %, iOS 60), beside the corners: shown with them, open while it is set.
+  const smoothable = Boolean(base) && specs.some((spec) => spec.name === "cornerSmoothing");
+  const smoothing = smoothable ? numberOf(api.valueFor("cornerSmoothing")) : null;
+  const [open, setOpen] = useState(anyCorner || Boolean(smoothing));
+  useEffect(() => { if (anyCorner || smoothing) setOpen(true); }, [anyCorner, smoothing]);
   const send = (ops: ReturnType<typeof uniformPick>, label: string) => { if (ops.length) void api.apply(ops, label); };
   const fallback = typeof base?.defaultValue === "string" ? base.defaultValue : undefined;
   const radius = base ? (
@@ -101,6 +104,15 @@ export function AppearanceFields({ api, specs, opacity, radius: withRadius = tru
       onReset={w.corners[key] !== undefined ? () => send(cornerClear(w, key), `${cornerLabels[key]} radius → corner radius`) : undefined}
     />
   ));
+  const setSmoothing = (value: number) => {
+    const next = Math.round(Math.min(100, Math.max(0, value)));
+    // None is Figma's default: the prop goes.
+    send(next === 0 ? [{ op: "removeProp", name: "cornerSmoothing" }] : [{ op: "setProp", name: "cornerSmoothing", value: { kind: "number", value: next } }], `Corner smoothing → ${next}%`);
+  };
+  const smooth = smoothable ? cell("cornerSmoothing", (
+    <ScrubNumberField label={<Icon name="icon-maximize-02-line" size="sm" decorative />} name="Corner smoothing" suffix="%" min={0} max={100} value={smoothing ?? 0}
+      disabled={api.disabled || boundOrSpread(api.valueFor("cornerSmoothing"))} onCommit={setSmoothing} />
+  )) : null;
   const fields: ReactNode[] = [];
   if (opacity) fields.push(cell("opacity", opacity));
   if (radius) fields.push(cell("radius", radius));
@@ -117,6 +129,7 @@ export function AppearanceFields({ api, specs, opacity, radius: withRadius = tru
         <>
           <InspectorFields labels={[cornerLabels.radiusTopLeft, cornerLabels.radiusTopRight]} fields={[corner("radiusTopLeft"), corner("radiusTopRight")]} />
           <InspectorFields labels={[cornerLabels.radiusBottomLeft, cornerLabels.radiusBottomRight]} fields={[corner("radiusBottomLeft"), corner("radiusBottomRight")]} />
+          {smooth ? <InspectorFields labels={["Corner smoothing"]} fields={[smooth, null]} /> : null}
         </>
       ) : null}
     </>

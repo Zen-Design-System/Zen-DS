@@ -20,6 +20,8 @@
 /* Rectangle: the element itself paints (the radius follows the Corner-Radius tokens and mode). Strokes are box shadows
    so the box keeps its size: inside, centred (half in, half out) or outside, as Figma's strokeAlign. */
 .zen-shape[data-type="rectangle"] { border-radius: var(--zen-shape-radius, 0); background: var(--zen-shape-fill, transparent); }
+/* Corner smoothing (Figma cornerSmoothing): squircle corners where the browser has corner-shape (Chromium). */
+.zen-shape[data-type="rectangle"][data-corner-smoothing] { corner-shape: var(--zen-corner-shape); }
 .zen-shape[data-type="rectangle"][data-stroke-align="inside"] { box-shadow: inset 0 0 0 var(--zen-shape-stroke-weight) var(--zen-shape-stroke); }
 .zen-shape[data-type="rectangle"][data-stroke-align="outside"] { box-shadow: 0 0 0 var(--zen-shape-stroke-weight) var(--zen-shape-stroke); }
 .zen-shape[data-type="rectangle"][data-stroke-align="center"] { box-shadow: inset 0 0 0 calc(var(--zen-shape-stroke-weight) / 2) var(--zen-shape-stroke), 0 0 0 calc(var(--zen-shape-stroke-weight) / 2) var(--zen-shape-stroke); }

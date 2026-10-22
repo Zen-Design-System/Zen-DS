@@ -9,7 +9,7 @@
  * Rotation and flip are CSS individual transforms (`rotate`, `scale`): they compose with any `transform` and leave the
  * layer's box in the layout where it was, as Figma's rotation does inside auto layout's own bounds.
  */
-import { cornerRadiusValue, type CornerRadiusProps } from "../_shared/corners";
+import { cornerRadiusValue, type CornerRadiusProps, type CornerSmoothingProps } from "../_shared/corners";
 import type { ZenCornerRadius } from "../_shared/scale";
 import { imageFillPropNames, type ImageFillProps } from "../_shared/image-fill";
 import { gradientPropNames, gradientStyle, type GradientFillProps } from "../_shared/gradient";
@@ -37,7 +37,7 @@ export type FrameFlip = (typeof frameFlips)[number];
 export const zenBlendModes = ["pass-through", "normal", "darken", "multiply", "plus-darker", "color-burn", "lighten", "screen", "plus-lighter", "color-dodge", "overlay", "soft-light", "hard-light", "difference", "exclusion", "hue", "saturation", "color", "luminosity"] as const;
 export type ZenBlendMode = (typeof zenBlendModes)[number];
 
-export interface FrameAppearanceProps extends CornerRadiusProps, ImageFillProps, GradientFillProps {
+export interface FrameAppearanceProps extends CornerRadiusProps, CornerSmoothingProps, ImageFillProps, GradientFillProps {
   /**
    * Fill: the background layer (docs/guidelines/background-layers.md), Figma's frame fill bound to its variable.
    * `surface` (Background/Surface/Default) for cards and panels on the Canvas page, `surface-alt` on a white (Alt)
@@ -89,7 +89,7 @@ type Vars = Record<`--${string}`, string | undefined>;
 const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
 
 /** Data attributes and custom properties for the fill, stroke, opacity, blend, rotation and flip; nothing for unset props. */
-export function frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, gradient, opacity, blendMode, rotation, flip }: Omit<FrameAppearanceProps, "radius" | keyof CornerRadiusProps> & FrameTransformProps): { attributes: Attributes; vars: Vars } {
+export function frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, gradient, opacity, blendMode, rotation, flip }: Omit<FrameAppearanceProps, "radius" | keyof CornerRadiusProps | keyof CornerSmoothingProps> & FrameTransformProps): { attributes: Attributes; vars: Vars } {
   const stroked = border !== undefined && border !== "none";
   // Pass through is the frame's default: nothing to draw.
   const blend = blendMode && blendMode !== "pass-through" && (zenBlendModes as readonly string[]).includes(blendMode) ? blendMode : undefined;

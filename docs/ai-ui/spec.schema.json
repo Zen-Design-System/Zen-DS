@@ -6486,6 +6486,17 @@
                 ],
                 "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
               },
+              "cornerSmoothing": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle arc."
+              },
               "image": {
                 "anyOf": [
                   {
@@ -19866,6 +19877,17 @@
                   }
                 ],
                 "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
+              },
+              "cornerSmoothing": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle arc."
               },
               "image": {
                 "anyOf": [
@@ -34302,6 +34324,17 @@
                 ],
                 "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
               },
+              "cornerSmoothing": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle arc."
+              },
               "image": {
                 "anyOf": [
                   {
@@ -37641,6 +37674,17 @@
                   }
                 ],
                 "description": "Bottom-left corner on the Corner-Radius tokens (Figma bottomLeftRadius)."
+              },
+              "cornerSmoothing": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Corner smoothing in % (Figma cornerSmoothing 0–100; iOS is 60): the corners curve as a squircle instead of a circle arc."
               },
               "image": {
                 "anyOf": [
