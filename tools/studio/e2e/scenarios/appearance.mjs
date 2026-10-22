@@ -77,9 +77,9 @@ export const rows = [
       if (await panel.getByRole("button", { name: "Remove effect" }).count()) throw new Error("the theme effect can be removed");
       await row.getByRole("button", { name: /Shadow\/Bottom\/Level-1/ }).click();
       await page.getByRole("menuitem", { name: /No effect/ }).click();
-      await expectSource(ctx, "card", (el) => el.attr("theme") === "flat", 'theme="flat" written');
+      await expectSource(ctx, "card", (el) => el.attr("theme") === "default", 'theme="default" written');
       await until(async () => (await row.innerText().catch(() => "")).includes("No effect"), { timeout: 8000, message: "the row shows No effect" });
-      return "Shadow/Bottom/Level-1 from the Shadow theme; No effect writes theme flat";
+      return "Shadow/Bottom/Level-1 from the Shadow theme; No effect writes theme default";
     },
   },
   {

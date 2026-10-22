@@ -593,7 +593,7 @@ function TaskActionsKeyboard() {
     item.onSelect?.();
   };
   return (
-    <Card as="section" ref={cardRef} theme="flat" aria-labelledby={titleId} onKeyDown={onKeyDown}>
+    <Card as="section" ref={cardRef} theme="default" aria-labelledby={titleId} onKeyDown={onKeyDown}>
       <Stack gap="md">
         <Stack gap="xs">
           <Text as="span" textStyle="Body/Small/Regular" tone="base">{`${task.key} · ${projectById(task.project).name}`}</Text>
@@ -696,7 +696,7 @@ function PhoneFileMenu() {
             <FileIcon format={fileIconFormatOf(opened.name)} size="3xl" />
             <Text textStyle="Body/Small/Regular" tone="base" align="center">{`${formatBytes(opened.bytes)} · Loyalty app · Phin & Co`}</Text>
           </Stack>
-          <Card theme="flat">
+          <Card theme="default">
             <DescriptionList divider layout="inline" items={[
               { term: "Size", description: formatBytes(opened.bytes) },
               { term: "Owner", description: people[opened.owner].name },
@@ -858,7 +858,7 @@ const onKeyDown = (event) => {
   if (item) { event.preventDefault(); item.onSelect(); }
 };
 
-<Card as="section" theme="flat" aria-labelledby={titleId} onKeyDown={onKeyDown}>
+<Card as="section" theme="default" aria-labelledby={titleId} onKeyDown={onKeyDown}>
   {/* key, title, details… */}
   <Menu items={items} trigger={<Button level="tertiary" endIcon="icon-chevron-down-line">Actions</Button>} />
 </Card>`,

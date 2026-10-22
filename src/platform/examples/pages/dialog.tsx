@@ -116,7 +116,7 @@ function DeleteProject() {
     focusSoon(() => listRef.current?.querySelector<HTMLElement>("button"));
   };
   return (
-    <Card theme="flat" spacing="md" width="fill">
+    <Card theme="default" spacing="md" width="fill">
       <Stack gap="md" ref={listRef}>
         <CardHeader title="Completed projects" />
         {rows.length ? (
@@ -162,7 +162,7 @@ function DiscardChanges() {
   const save = () => { setSaved(draft?.trim() || saved); close(); toast({ title: "Description saved" }); };
   const discard = () => { setConfirming(false); close(); };
   return (
-    <Card theme="flat" spacing="md" width="fill">
+    <Card theme="default" spacing="md" width="fill">
       <Stack gap="md">
         <CardHeader title={pointsTask.title}>{`${pointsTask.key} · Loyalty app`}</CardHeader>
         {editing ? (
@@ -218,7 +218,7 @@ function InviteByEmail() {
     toast({ title: "Invite sent" });
   };
   return (
-    <Card theme="flat" spacing="md" width="fill">
+    <Card theme="default" spacing="md" width="fill">
       <Stack gap="md">
         <CardHeader title="People on Loyalty app" action={<Button level="tertiary" startIcon="icon-user-plus-line" onClick={start} size="sm">Invite people</Button>} />
         <CardList label="People on Loyalty app">
@@ -323,7 +323,7 @@ function RequestTimeOff() {
   const approver = people.minhAnh;
   const typeName = useId();
   return (
-    <Card theme="flat" spacing="md" width="fill">
+    <Card theme="default" spacing="md" width="fill">
       <Stack gap="md">
         <CardHeader title="Your time off" action={<Button level="tertiary" startIcon="icon-plus-line" onClick={start} size="sm">Request time off</Button>}>
           {`${plural(leaveBalance["Annual leave"] ?? 0, "day")} of annual leave left in ${TODAY.getFullYear()}`}
@@ -400,7 +400,7 @@ function NewProject() {
   // The lead is on the team anyway; members are everyone else who is ticked.
   const members = team.filter((id) => id !== lead);
   return (
-    <Card theme="flat" spacing="md" width="fill">
+    <Card theme="default" spacing="md" width="fill">
       <Stack gap="md">
         <CardHeader title="Projects" action={<Button level="tertiary" startIcon="icon-plus-line" onClick={start} size="sm">New project</Button>} />
         <CardList label="Projects">
@@ -479,7 +479,7 @@ function RestoreVersion() {
   };
   const saveCopy = () => { setOpen(false); toast({ title: "Copy saved" }); };
   return (
-    <Card theme="flat" spacing="md" width="fill">
+    <Card theme="default" spacing="md" width="fill">
       <Stack gap="md">
         <CardHeader title={contractFile.name}>Loyalty app · version history</CardHeader>
         <CardList label="Versions">
@@ -530,7 +530,7 @@ function TokenOnce() {
   const copy = () => { navigator.clipboard?.writeText(secret).catch(() => undefined); setCopied(true); };
   const newest = tokens[0];
   return (
-    <Card theme="flat" spacing="md" width="fill">
+    <Card theme="default" spacing="md" width="fill">
       <Stack gap="md">
         <CardHeader title="Access tokens">Tokens let your tools read and publish the Zen design system.</CardHeader>
         <Form onSubmit={create} gap="md">

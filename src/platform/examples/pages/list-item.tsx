@@ -92,7 +92,7 @@ function PeopleDirectory() {
             </EmptyState>
           )}
         </ListBox>
-        <Card as="section" theme="flat" aria-labelledby={titleId}>
+        <Card as="section" theme="default" aria-labelledby={titleId}>
           <Stack gap="lg">
             <Stack direction="column" gap="md" align="center" justify="start">
               <Avatar size="2xl" {...avatarFor(person)} />

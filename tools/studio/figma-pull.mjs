@@ -764,7 +764,20 @@ const isZenIcon = (name, mapping) => (mapping.iconNames ? mapping.iconNames.has(
  * The code props of an instance (or a nested one) that differ from the component's code default (docs/api; the Figma
  * set's default when the code has none); `children` its label text.
  */
+/**
+ * Card and List-Box Theme names before 2026-10-21, as a file on an older library version still has them: Theme=Flat is
+ * Default, Border × Surface=Flat is Flat-Border. Read only (B's suggestion): the push writes the new names, the code keeps
+ * no alias.
+ */
+const LEGACY_THEME_CODES = new Set(["Card", "ListBox"]);
+function legacyThemeProps(props) {
+  if (props?.Theme === "Flat") return { ...props, Theme: "Default" };
+  if (props?.Theme === "Border" && props.Surface === "Flat") return { ...props, Theme: "Flat-Border", Surface: "Default" };
+  return props;
+}
+
 function instanceProps(item, set, mapping, notes, where) {
+  if (LEGACY_THEME_CODES.has(set.code) && item.props) item = { ...item, props: legacyThemeProps(item.props) };
   const props = {};
   const used = new Set();
   const swaps = new Map();
@@ -1685,8 +1698,8 @@ function chartCardElement(chart, header, cardProps, where, ctx) {
   if (header.range) props.range = literal(header.range);
   if (header.open) props.onOpen = OPEN_REPORT;
   const { theme, color, surface, ...rest } = cardProps;
-  // ChartCard's own default is Flat (the Card's is Shadow).
-  if (theme && !(theme.kind === "literal" && theme.value === "flat")) props.theme = theme;
+  // ChartCard's own default is Default (the Card's is Shadow).
+  if (theme && !(theme.kind === "literal" && theme.value === "default")) props.theme = theme;
   else if (!theme) props.theme = literal("shadow");
   // Its Card's Color (Pale and Solid widgets): ChartCard passes it to its Card.
   if (color) props.color = color;

@@ -295,8 +295,10 @@ function AppShellPlayground() {
   const directoryPattern = pattern === "sidebar" || pattern === "grid";
   const navigate = (next: NavPage) => { setPage(next); setPanel(false); };
   const person = people[personId];
-  const paneTheme = canvas === "default" ? "shadow" : "border";
-  const cardTheme = canvas === "default" ? "shadow" : "border";
+  // Canvas/Default takes shadowed boxes, Canvas/Alt bordered ones, Canvas/Flat Flat-Border (Surface/Flat in the Pale line;
+  // user 2026-10-21: a Flat-Border box pairs with Canvas/Flat).
+  const paneTheme = canvas === "default" ? "shadow" : canvas === "flat" ? "flat-border" : "border";
+  const cardTheme = canvas === "default" ? "shadow" : canvas === "flat" ? "flat-border" : "border";
   const narrow = width > 0 && width < 560;
   const unread = notifications !== "none";
   const glass = mobileTop === "media";

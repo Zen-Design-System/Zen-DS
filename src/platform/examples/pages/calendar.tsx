@@ -83,7 +83,7 @@ function WeekDetailsExample() {
     <div className="px-calendar-split">
       <CalendarTimeGrid view="week" date={day(0)} events={events} now={TODAY} className="px-calendar-scroll"
         selectedEventId={selected} onEventClick={(picked) => setSelected(picked.id === selected ? null : picked.id)} />
-      <Card theme="flat" className="px-calendar-details" aria-live="polite">
+      <Card theme="default" className="px-calendar-details" aria-live="polite">
         {event ? (
           <Stack gap="sm">
             <Heading level={3} textStyle="Heading/Subheading">{event.title}</Heading>
@@ -116,7 +116,7 @@ function EmptyWeekExample() {
 function DayPlannerExample() {
   const [picked, setPicked] = useState(day(0));
   return (
-    <Card theme="flat" className="px-calendar-planner">
+    <Card theme="default" className="px-calendar-planner">
       <Stack gap="md">
         <Heading level={3} textStyle="Heading/Subheading">My week</Heading>
         <CalendarWeekStrip variant="tile" device="desktop" value={picked} onValueChange={setPicked} events={events} today={TODAY} aria-label="Pick a day" />
@@ -196,7 +196,7 @@ const event = events.find((item) => item.id === selected);
 
 <CalendarTimeGrid view="week" date={today} events={events} style={{ maxHeight: 560 }}
   selectedEventId={selected} onEventClick={(picked) => setSelected(picked.id === selected ? null : picked.id)} />
-<Card theme="flat" aria-live="polite">
+<Card theme="default" aria-live="polite">
   {event ? <EventDetails event={event} /> : <Text tone="light">Select an event to see its details.</Text>}
 </Card>`,
   },
@@ -215,7 +215,7 @@ const event = events.find((item) => item.id === selected);
     render: () => <DayPlannerExample />,
     code: `const [day, setDay] = useState(today);
 
-<Card theme="flat">
+<Card theme="default">
   <Stack gap="md">
     <Heading level={3} textStyle="Heading/Subheading">My week</Heading>
     <CalendarWeekStrip variant="tile" value={day} onValueChange={setDay} events={events} aria-label="Pick a day" />

@@ -697,12 +697,13 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "type": "VARIANT",
         "options": {
           "Shadow": "shadow",
-          "Flat": "flat",
           "Pale": "pale",
           "Border": "border",
           "On-Container": "on-container",
           "Solid": "solid",
-          "Subtle": "subtle"
+          "Subtle": "subtle",
+          "Default": "default",
+          "Flat-Border": "flat-border"
         }
       },
       {
@@ -728,8 +729,7 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "type": "VARIANT",
         "options": {
           "Default": "default",
-          "Alt": "alt",
-          "Flat": "flat"
+          "Alt": "alt"
         }
       },
       {
@@ -1547,11 +1547,37 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "label": "Theme",
         "type": "VARIANT",
         "options": {
-          "Flat": "flat",
           "Shadow": "shadow",
           "Pale": "pale",
           "Border": "border",
-          "On-Container": "on-container"
+          "On-Container": "on-container",
+          "Default": "default",
+          "Flat-Border": "flat-border"
+        }
+      },
+      {
+        "prop": "color",
+        "label": "Color",
+        "type": "VARIANT",
+        "options": {
+          "Neutral": "neutral",
+          "Brand": "brand",
+          "Cyan": "cyan",
+          "Violet": "violet",
+          "Green": "green",
+          "Yellow": "yellow",
+          "Orange": "orange",
+          "Blue": "blue",
+          "Purple": "purple"
+        }
+      },
+      {
+        "prop": "surface",
+        "label": "Surface",
+        "type": "VARIANT",
+        "options": {
+          "Default": "default",
+          "Alt": "alt"
         }
       }
     ],

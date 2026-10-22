@@ -498,12 +498,13 @@ function cardBox(r, { theme, spacing, surface }, rootProps) {
   if (theme === "pale") r.approx("Card theme pale: Support/Neutral/Pale with the overlay blur becomes Box surface pale (Neutral/Pale).");
   if (theme === "semi-pale") r.approx("Card theme semi-pale: the Pale→Subtle gradient with the overlay blur becomes Box surface pale.");
   if (theme === "on-container") r.approx("Card theme on-container: Surface/Flat becomes Box surface (Surface/Default): the same white in light mode, one step lighter in dark.");
+  if (theme === "flat-border") r.approx("Card theme flat-border: Surface/Flat becomes Box surface (Surface/Default) inside the Pale border: the same white in light mode, one step lighter in dark.");
   const padding = boxPadding(r, small ? "md" : "xl");
   if (!small) r.approx(`Card padding is fixed at ${padding.map((prop) => prop.value).join(" × ")} (Card-padding-medium follows the breakpoint: 24 desktop, 20 tablet and phone).`);
   return [
     ...rootProps,
     str("surface", fill),
-    theme === "border" ? str("border", "pale") : null,
+    theme === "border" || theme === "flat-border" ? str("border", "pale") : null,
     str("radius", r.m("radius", "radius", small ? "lg" : "2xl")),
     ...padding,
   ];
@@ -555,7 +556,8 @@ function withSubAction(r, content, sub) {
   return [el(r.use("Stack"), [str("direction", "row"), str("align", "start"), str("gap", "xs")], [body, sub])];
 }
 
-const CARD_THEMES = ["shadow", "flat", "pale", "border", "semi-pale", "on-container"];
+// Card themes (renamed 2026-10-21: flat → default; border + surface="flat" → flat-border).
+const CARD_THEMES = ["shadow", "default", "pale", "border", "flat-border", "semi-pale", "on-container"];
 const spacingKey = (value) => (value === "sm" || value === "small" ? "sm" : "md");
 
 const RECIPES = {

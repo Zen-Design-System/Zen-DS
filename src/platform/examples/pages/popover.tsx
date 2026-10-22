@@ -125,7 +125,7 @@ function AssignPeople() {
   });
   const team = loyaltyTeam.filter((person) => assigned.includes(person.id));
   return (
-    <Card theme="flat" width="fill">
+    <Card theme="default" width="fill">
       <Stack gap="md">
         <CardTitle title={task.title}>{`${task.key} · Due ${formatDate(task.due)}`}</CardTitle>
         <Stack direction="row" align="center" gap="xs" wrap>
@@ -158,7 +158,7 @@ function CreateLabel() {
     focusSoon(() => rowRef.current?.querySelectorAll<HTMLElement>(".zen-tag__remove")[index] ?? rowRef.current?.querySelector<HTMLElement>(".zen-chip"));
   };
   return (
-    <Card theme="flat" width="fill">
+    <Card theme="default" width="fill">
       <Stack gap="md">
         <CardTitle title={task.title}>{`${task.key} · ${formatDue(task.due)}`}</CardTitle>
         <Stack ref={rowRef} direction="row" align="center" gap="xs" wrap>
@@ -257,7 +257,7 @@ function JumpToProject() {
   const project = projectById(projectId);
   const pick = (id: string) => { setProjectId(id); setQuery(""); setOpen(false); };
   return (
-    <Card theme="flat" width="fill">
+    <Card theme="default" width="fill">
       <Stack gap="md">
         {/* ↓ from the field moves into the results; Escape or a click outside closes them. */}
         <Box ref={fieldRef} onKeyDown={(event) => {
@@ -295,7 +295,7 @@ function ReviewTimeZone() {
   const zone = timeZones.find((z) => z.id === zoneId)!;
   const { day, time } = reviewIn(zone.offset);
   return (
-    <Card theme="flat" width="fill">
+    <Card theme="default" width="fill">
       <Stack gap="md">
         <CardTitle title="Design review with Lumen Bank">{`${projectById("lumen-banking").name} · hosted by ${personName("alex")}`}</CardTitle>
         <Stack direction="row" align="center" justify="between" gap="md" wrap>
@@ -330,7 +330,7 @@ function PublishDomain() {
   const [domain, setDomain] = useState("hanoibookfair.vn");
   const { toast } = useToast();
   return (
-    <Card theme="flat" width="fill">
+    <Card theme="default" width="fill">
       <Stack gap="md">
         <CardTitle title={project.name}>{`${project.client} · led by ${personName(project.lead)}`}</CardTitle>
         {/* On a narrow card Publish wraps under the field, which keeps 200px for the domain. */}

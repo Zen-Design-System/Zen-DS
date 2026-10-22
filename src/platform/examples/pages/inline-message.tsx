@@ -221,7 +221,7 @@ function ErrorSummaryExample() {
   });
   const count = Object.keys(form.errors).length;
   return (
-    <Card theme="flat" width="fill" maxWidth={480}>
+    <Card theme="default" width="fill" maxWidth={480}>
       {/* Form moves focus to the first invalid field after a failed submit; the summary counts what is left. */}
       <Form form={form} gap="md" aria-labelledby={titleId}>
         <Heading level={4} id={titleId} textStyle="Heading/Subheading">New client</Heading>
@@ -284,7 +284,7 @@ function VerifyDomainExample() {
   };
   const copy = () => { void navigator.clipboard?.writeText(txtValue).catch(() => undefined); toast({ id: "dns-copied", title: "Value copied" }); };
   return (
-    <Card theme="flat" width="fill" maxWidth={480}>
+    <Card theme="default" width="fill" maxWidth={480}>
       <Stack ref={root} as="section" gap="xl" aria-labelledby={titleId}>
         <Stack gap="xs">
           <Heading level={4} id={titleId} tabIndex={-1} textStyle="Heading/Subheading">Email domain</Heading>

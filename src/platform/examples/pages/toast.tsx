@@ -233,7 +233,7 @@ function FailedCommentExample() {
     post(text);
   };
   return (
-    <Card theme="flat" spacing="md" width="fill" maxWidth={480}>
+    <Card theme="default" spacing="md" width="fill" maxWidth={480}>
       {/* Two groups in one surface (lg): the thread, then the reply form; each keeps md inside. */}
       <Stack as="section" gap="lg" aria-labelledby={titleId}>
         <Stack gap="md">
