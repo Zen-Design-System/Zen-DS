@@ -2,6 +2,16 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-23 (Figma-parity leftovers done on `zen/fix/studio-parity-leftovers-20261023`)
+
+- **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved; F0–F10 shipped by 2026-10-20,
+  HANDOFF):** `docs/research/studio-figma-design-parity-2026-10-18.md`. Left: an instance's data-name stays in the page
+  (its Figma name is its component's or carries content, which pull reads as such).
+- **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17; re-checked 2026-10-21):** ⇧⌘G of several layers (it ungroups
+  the primary selection only: edit/groupLayers.ts `ungroupSelection`). The rest shipped (⌘G, Enter = all children,
+  Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles, frame presets, gap /
+  padding drag handles 2026-10-21). Pointer: same doc §8.
+
 ## Archived 2026-10-23 (backlog triage of the P2 / P3 open items)
 
 - Answered and done 2026-10-19/20 (#155, 7db4c184: the React export turns an instance's overrides that no property carries into props of the component's function; the user's "cách 3", 2026-10-20):

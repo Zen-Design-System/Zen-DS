@@ -32,10 +32,15 @@ export const FRAME_COMPONENTS = new Set(["Box", "Stack", "Grid"]);
 
 /**
  * The layers whose data-name is their Figma name both ways (push writes it, pull reads it back): frames, shapes, text.
- * An instance's Figma name is its component's or carries its content (an icon button's label, a file icon's format,
- * an avatar's person), which pull reads as such: its data-name stays in the page.
+ * An instance's is too where its Figma name carries nothing else (its component's); one named by its content (an
+ * aria-label, a file icon's format, an avatar's person) keeps that content there and its data-name stays in the page
+ * (the accessible name first, user 2026-10-23). The push marks a name it gave this way (`nameGiven`), the Zen plugin
+ * keeps the mark, and pull reads such a name, or one changed in Figma since, back as the data-name.
  */
 export const FIGMA_NAMED = new Set([...FRAME_COMPONENTS, "Shape", "Text"]);
+
+/** Instances whose Figma name is their accessible name (an icon button's aria-label): never their data-name. */
+export const LABEL_NAMED = new Set(["IconButton"]);
 
 /** A Shape's Figma node name by its type, as Figma's tools name what they draw. */
 export const SHAPE_NAMES = { rectangle: "Rectangle", ellipse: "Ellipse", line: "Line", arrow: "Arrow", polygon: "Polygon", star: "Star", vector: "Vector" };

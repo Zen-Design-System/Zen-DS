@@ -19,9 +19,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   "September 2026" (~200px) and a fourth view label ("Agenda") no longer fit 358px beside Today and the arrows, in
   Comfortable density. Code: the mobile toolbar's default title is the short form ("Sep 2026"), and the phone example
   offers three views. Designer: keep the short title, or another style / layout? Pointer: `src/components/Calendar/CalendarToolbar.tsx`.
-- **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved; F0–F10 shipped by 2026-10-20,
-  HANDOFF):** `docs/research/studio-figma-design-parity-2026-10-18.md`. Left: an instance's data-name stays in the page
-  (its Figma name is its component's or carries content, which pull reads as such).
 - **P2 · Charts in Studio pages show no currency (2026-10-18, V-1 of the vibe agent; new API, user):** `format` on
   LineChart / BarList / MetricCard is a function, which the page dialect cannot write, so a revenue chart reads "128.4K",
   not "$128.4K". Needs a literal preset (e.g. `format="currency"` + `currency`) or a dialect form. Pointer:
@@ -32,10 +29,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   collections, description / scoping / code syntax, rename of a variable code reads (rewrite its CSS readers), Change
   variable mode per frame / section / page (E6; today a frame's Theme Light/Dark, for the session only). Pointer:
   `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
-- **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17; re-checked 2026-10-21):** ⇧⌘G of several layers (it ungroups
-  the primary selection only: edit/groupLayers.ts `ungroupSelection`). The rest shipped (⌘G, Enter = all children,
-  Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles, frame presets, gap /
-  padding drag handles 2026-10-21). Pointer: same doc §8.
 - **P3 · Metric Title-Highlight Figma slips (2026-10-17, for the designer):** in 7523:507049, the Header gap of 12 is
   unbound (should be Spacing/Gap/Small) and Medium's Metric-Number has paragraphSpacing bound to Font-Size/Heading-3
   (session log 2026-10-17, "Metric-Inline/Title-Highlight"; the Custom-Slot padding is fixed).

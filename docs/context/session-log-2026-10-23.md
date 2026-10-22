@@ -104,3 +104,22 @@ Two BACKLOG P1s waiting on the user (brief from the supervisor: "xử hết back
   - Gate PASS (isolated; card, widgets, metric; audit 1512/390/320, dark, behaviour, 80 browser tests; report
     2026-10-22T19-17-48-192108d7). No platform example draws a second series on a hue Solid, so a throwaway browser test
     measured the Bullet target on Brand / Cyan / Yellow / Orange Solid cards: rgba(0, 0, 0, 0.486) in light and dark.
+
+## Session C · Figma-parity leftovers (tier S each; Giám sát's queue, plan studio-figma-design-parity-2026-10-18.md)
+Branch `zen/fix/studio-parity-leftovers-20261023`; both BACKLOG lines archived.
+- ⇧⌘G on several layers (BACKLOG P2): `ungroupLayers` in edit/groupLayers.ts ungroups every selected group or frame,
+  the last in the code first, each once the canvas drew the one before (it reads its layers' places there); other
+  selected srcs follow each write (`mapSrc`); the writes are squashed into one ⌘Z. The canvas menu offers Ungroup on
+  several layers. E2E FW-220 (two seeded groups → four shapes in place, all selected, one ⌘Z).
+- An instance's data-name (BACKLOG P1 leftover). User's choice (AskUserQuestion): the accessible name first. Push:
+  an instance named by its component takes the data-name as its Figma name (`nameGiven`); an aria-label keeps the name
+  (note), IconButton never (layer-meta `LABEL_NAMED`). Plugin (studio-import c95084e): plugin data "name" (what the
+  import wrote) and "given". Pull reader: `nameGiven` when given or renamed in Figma since; pull writes data-name only
+  then. A first try reading every non-default instance name made the library's own names ("Item", "Main") data-names
+  on a live Zen screen and kept a padded wrapper: dropped.
+- Real Figma (QA page): the import wrote name/given as planned; the real reader marked given ✓ / plain ✗ / renamed in
+  Figma ✓; pageFromFigma gave `<Use data-name="Hero note">`, `<Use>`, `<Use data-name="Renamed in Figma">`. Test frame
+  removed. Selftests push 402, pull 130, layer-meta 15, plugin `npm test` ✓.
+- Gate (01:45–02:14, isolated, the 8 files): static ✓, Studio E2E 338 / 338 (3 shards), Build-QA PASS. FW rows run
+  apart (the gate's matrix has no FW group): FW-220 first timed out (a ⇧⌘-click on the second group's empty spot added
+  nothing); it now ⇧-clicks "Group 2" in Layers, as B-33 does: FW-119 + FW-220 2 / 2, FW-11…18 8 / 8.
