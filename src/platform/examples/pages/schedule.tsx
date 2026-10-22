@@ -129,7 +129,7 @@ function MyDayExample() {
   const [picking, setPicking] = useState(false);
   const [menu, setMenu] = useState<string | null>(null);
   return (
-    <Stack gap="md" className="px-schedule-planner">
+    <Stack gap="md" maxWidth={420}>
       <ScheduleDayPlanner events={cards} value={day} onValueChange={setDay} now={NOW}
         onMonthClick={() => setPicking((open) => !open)} onCardMenu={(card) => setMenu(card.title)} />
       {picking ? <DatePicker aria-label="Choose a day" today={new Date(2026, 8, 30)} value={day} onValueChange={(picked) => { if (picked) setDay(picked); setPicking(false); }} /> : null}
