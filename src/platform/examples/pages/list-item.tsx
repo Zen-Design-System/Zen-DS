@@ -5,6 +5,7 @@
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import { Avatar } from "../../../components/Avatar";
 import { Badge, BadgeCounter } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Chip } from "../../../components/Chip";
@@ -28,7 +29,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
   TODAY, activity, daysFromToday, files, formatBytes, formatRange, formatRelative, initials, leaveRequests, people, peopleList, projectById,
-  projects, projectStatusTheme, type Person, type PersonId, type StudioFile, type Team,
+  projects, projectProgress, projectStep, type Person, type PersonId, type StudioFile, type Team,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -113,7 +114,7 @@ function PeopleDirectory() {
                     // Nothing else shows the project's name, so beside the Badge it wraps instead of being cut.
                     <ListItem key={project.id} title={project.name} titleLines={2} caption={project.client}
                       leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" />}
-                      trailing={<Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>} />
+                      trailing={<BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>} />
                   ))}
                 </List>
               ) : (

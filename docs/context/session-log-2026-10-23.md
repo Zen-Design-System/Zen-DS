@@ -92,6 +92,28 @@ Top-Navigation type; Figma screens override by variable).
   ChatComposer's default quick action had no onClick (dead wherever an app keeps the default); it now sends "👍" through
   onSend, as the chat page's own quickAction does. Test in chat.test.tsx (both devices); docs regenerated.
 
+## AppShell session · Workflow steps to BadgeStatus (tier M, multi-file; BACKLOG P2, the user's pick through Giám sát)
+
+Branch zen/fix/workflow-badge-status-20261023 from main 4b96bbb8. User's call (this session): project statuses move
+too, with the badge page's map (Planning → to-do, Active → in-progress with the project's real progress, On hold →
+blocked, Completed → done); labels stay the data's words.
+- `examples/data.ts`: `taskStatusTheme` / `projectStatusTheme` replaced by `taskStep`, `projectStep` and
+  `projectProgress(project)` (Active → its progress, else the step's own ring). HR `data.ts`: `taskStep` beside
+  `taskStatusTheme` (still the HR Tasks group headers' ProgressCircle theme).
+- 28 example pages, the app-layer AppShell playground (`appLayer/shell.tsx`), HR Tasks' StatusBadge and the PageHeader
+  story: 57 Badges → `<BadgeStatus status={…Step[x]}>{x}</BadgeStatus>`, code samples alike (a script for the plain
+  form, by hand for the helpers in app-shell, layout and sidebar). Leave, expense, invoice and priority stay Badges.
+- Gate finding fixed at its owner: `app-shell/pattern-parts` read nested props (a header's `BadgeStatus progress`) as
+  the shell's `progress`; it now reads `topLevel(attrs)`. Fixture in good.tsx.
+- BACKLOG line narrowed to the Figma instances (a Zen file write, waits for the user). CHANGELOG lines.
+- Static: tsc, usage:selftest, usage:check (only DesignPanel's warning, fixed in #223), quick gate PASS (29 pages).
+- Slot (after B): visual diff 25a86b67 (detached checkout, no stash) vs the branch, 29 pages × 1512/390, isolated
+  :5200 stopped by task: 550 panels, 478 identical, 72 changed — all the status badges (ring + step colour, tables fit
+  their 120–152px columns); top-navigation/390/06 differs only by a lazy photo. Two panels grew 1px (menu/390/04,
+  search/390/04): a BadgeStatus in a DescriptionList value made the line 29px for 28 — its inline-flex baseline is the
+  20px ring's bottom where a Badge's is its 16px leading's. Fixed at the owner: badge-status.css lowers the ring by half
+  the difference (tokens), test tests/interaction/badge-status.test.tsx (line height = a Badge's at Medium and Small).
+
 ## Session B · Example className round 2, PR 2: Card / ListBox content column (tier L; user "Content-Slot là cột auto layout")
 
 - `.zen-card__content` grows (flex 1 1 auto): Figma's Content-Slot fills the card; a `height="fill"` child of the card
