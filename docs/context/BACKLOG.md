@@ -7,10 +7,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P3 · Gradient native paste not pasted live (2026-10-22, session B):** Studio ⌘C → Figma ⌘V writes the gradient as
-  Figma's own copies do (kiwi stops + stopsVar alias + transform, checked against native-pack), but scripted pastes were
-  unreliable, so no live paste. Next: ⌘C a gradient Shape and a hugging gradient Stack in the Studio, ⌘V in the Zen
-  file, read gradientTransform and the stops' variables. Pointer: `tools/studio/figma-native.mjs` gradientFill.
 - **P3 · A Vite "Maximum call stack size exceeded" rejection in `studio:e2e --only=figma` (2026-10-22, session B):** the
   run ends 171/171 but logs "Vite errors during the run (2, 1 distinct): [Unhandled rejection] RangeError: Maximum call
   stack size exceeded"; seen on 10-21 too (another branch), so not from the header change. Next: run the figma group
