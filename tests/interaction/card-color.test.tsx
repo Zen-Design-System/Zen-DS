@@ -51,7 +51,7 @@ describe("Card colour", () => {
     );
     const cards = [...screen.container.querySelectorAll(".zen-card")];
     expect(cards.map((card) => [card.getAttribute("data-tone"), card.getAttribute("data-color")])).toEqual([
-      ["pale", "violet"], ["solid", "neutral"], ["solid", "brand"], ["flat", null], ["pale", "cyan"], ["pale", "neutral"], ["solid", "accent"],
+      ["pale", "violet"], ["solid", "neutral"], ["solid", "brand"], ["default", null], ["pale", "cyan"], ["pale", "neutral"], ["solid", "accent"],
       ["subtle", "green"], ["subtle", "neutral"],
     ]);
   });
