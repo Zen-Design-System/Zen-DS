@@ -68,7 +68,7 @@ function PropertyPanelExample() {
   const [shape, setShape] = useState("portrait");
   const [border, setBorder] = useState("#FFFFFF");
   return (
-    <div className="px-color-picker-panel">
+    <Box width="fill" maxWidth={360}>
       <Card theme="default">
         {/* Each group is its own stack and the panel stacks them with no gap, so every rule has 16 above and below. */}
         <Stack gap="none">
@@ -92,7 +92,7 @@ function PropertyPanelExample() {
           </Accordion>
         </Stack>
       </Card>
-    </div>
+    </Box>
   );
 }
 
