@@ -2437,6 +2437,31 @@ export default function Page() {
   check("pull of a read: a rectangle's and a frame's smoothing in %", [/<Shape type="rectangle"[^>]*cornerSmoothing=\{60\}/.test(readBack), /radius="lg" cornerSmoothing=\{60\}/.test(readBack)], [true, true]);
 }
 
+// An AppShell's own phone bars (topNavigation / bottomNavigation) are not drawn (the runtime shows the Screen's): the
+// push names them, for a root AppShell on a phone Screen and for one inside a page (BACKLOG P3, 2026-10-23).
+{
+  const shellPage = (inner) => `// @zen-page {"format":1,"title":"Shell bars"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, BottomNavigation, Box, Text, TopNavigation } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Shell bars" device="phone">
+        ${inner}
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const shell = '<AppShell topNavigation={<TopNavigation title="Inbox" />} bottomNavigation={<BottomNavigation items={[{ id: "home", label: "Home", icon: "icon-home-02-line" }]} selected="home" />}><Text>Body</Text></AppShell>';
+  const barNotes = (notes) => notes.filter((note) => /^AppShell (topNavigation|bottomNavigation): drawn only as the Screen's own bars/.test(note)).length;
+  check("a root AppShell's phone bars are named, not drawn", barNotes(push(shellPage(shell)).notes), 2);
+  check("a page's AppShell's phone bars are named too", barNotes(push(shellPage(`<Box>${shell}</Box>`)).notes), 2);
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);
