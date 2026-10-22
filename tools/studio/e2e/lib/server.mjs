@@ -54,9 +54,9 @@ export function peerIgnore(root, watched) {
 /**
  * Starts the harness server. `port` pins one port (fails when busy); otherwise the first free one in 5190–5199.
  * `watchOnly` (repo-relative files): watch just those under src/ and tools/ (peerIgnore); unset: the whole tree.
- * Returns { url, port, close }.
+ * `rowOf`: the E2E row running now, noted with each Vite error. Returns { url, port, errors, details, close }.
  */
-export async function startServer(root, { port: wanted, watchOnly } = {}) {
+export async function startServer(root, { port: wanted, watchOnly, rowOf } = {}) {
   const port = wanted ?? (await freePort(5190, 5199));
   if (!port) throw new Error("No free port in 5190–5199 for the Studio E2E server");
   fs.rmSync(draftsFileOf(root, port), { force: true });
@@ -67,10 +67,24 @@ export async function startServer(root, { port: wanted, watchOnly } = {}) {
   fs.rmSync(path.join(root, `${DRAFTS_DIR}/e2e-promote-${port}`), { recursive: true, force: true });
   process.env.ZEN_STUDIO_PROMOTE_DIR = promoteDirOf(port);
   const { createServer, createLogger } = await import("vite");
-  // Vite's errors (failed hot updates forwarded from the page included) are collected for the report, not printed.
+  // Vite's errors (failed hot updates forwarded from the page included) are collected for the report, not printed: the
+  // first line of each (`errors`), and with it the row that was running and the rest of the message (`details`: a page's
+  // forwarded error carries its stack, " > method file:line:col" lines, which the first line alone loses).
   const errors = [];
+  const details = [];
   const base = createLogger("error", { allowClearScreen: false });
-  const customLogger = { ...base, error(message, options) { errors.push(String(message).split("\n")[0].replace(/\x1b\[[0-9;]*m/g, "")); }, warn() {}, warnOnce() {}, info() {} };
+  const customLogger = {
+    ...base,
+    error(message) {
+      const text = String(message).replace(/\x1b\[[0-9;]*m/g, "");
+      const line = text.split("\n")[0];
+      errors.push(line);
+      details.push({ line, row: rowOf?.() ?? null, stack: text.split("\n").slice(1).filter((entry) => entry.trim()).slice(0, 12) });
+    },
+    warn() {},
+    warnOnce() {},
+    info() {},
+  };
   const server = await createServer({
     customLogger,
     root,
@@ -94,8 +108,10 @@ export async function startServer(root, { port: wanted, watchOnly } = {}) {
   return {
     url,
     port,
-    /** Vite errors since the start (failed hot updates included). */
+    /** Vite errors since the start (failed hot updates included): first lines. */
     errors,
+    /** The same errors with the row that was running and their stack lines. */
+    details,
     async close() {
       await server.close();
       fs.rmSync(draftsFileOf(root, port), { force: true });

@@ -31,6 +31,14 @@ check("a section never holds a larger one", sectionAround(outer, boxes), null);
 check("members are one level", Object.fromEntries(sectionMembers(boxes)), { "section:outer": ["section:inner", "screen:settings"], "section:inner": ["screen:home"] });
 check("contents are every level", sectionContents("section:outer", boxes), ["section:inner", "screen:home", "screen:settings"]);
 check("an empty section has no contents", sectionContents("section:inner", [inner]), []);
+// A copy that lands on its original (⌘D, ⌥-drag of a Section, FW-106): two Sections the same size, each middle in the
+// other. The one written first holds the copy, never both each other (the loop overflowed sectionContents, 2026-10-22).
+const original = box("section:original", 100, 100, 800, 600);
+const copy = box("section:copy", 120, 120, 800, 600);
+const framed = box("screen:framed", 200, 200, 390, 300);
+const twins = [original, copy, framed];
+check("of two same-size sections, the first written holds the second", [sectionAround(copy, twins), sectionAround(original, twins)], ["section:original", null]);
+check("contents of overlapping twins end (no loop); the frame stays the original's", [sectionContents("section:original", twins), sectionContents("section:copy", twins)], [["section:copy", "screen:framed"], []]);
 check("the box around frames, padded", boxAround([home, settings], 80), { x: 120, y: 120, width: 1550, height: 1004 });
 check("no box around nothing", boxAround([], 80), null);
 

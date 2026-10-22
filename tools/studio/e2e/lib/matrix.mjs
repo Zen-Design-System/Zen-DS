@@ -78,6 +78,9 @@ export function writeReport(dir, stamp, rows, verdict, meta) {
     "| --- | --- | --- | --- | --- | --- |",
     ...rows.map((row) => `| ${row.id} | ${row.group} | ${row.feature} | ${row.wp ?? ""} | ${row.status} | ${String(row.status === "works" ? row.evidence ?? "" : row.error ?? row.evidence ?? "").replace(/\|/g, "\\|").replace(/\n/g, " ").slice(0, 220)} |`),
     "",
+    // Vite's errors during the run (a page's unhandled error or rejection, forwarded): the rows they came up in and the
+    // stack, so an error that fails no row can still be traced.
+    ...(meta.viteErrorDetails?.length ? ["## Vite errors", "", ...meta.viteErrorDetails.flatMap((entry) => [`- ${entry.line}${entry.rows.length ? ` (during ${entry.rows.join(", ")})` : ""}`, ...entry.stack.map((frame) => `    ${frame}`)]), ""] : []),
   ].filter((line, i, all) => line !== "" || all[i - 1] !== "");
   fs.writeFileSync(md, `${lines.join("\n")}\n`);
   return { json, md };

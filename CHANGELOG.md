@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio: copying a Section onto its own place (⌘D, ⌥-drag) no longer overflows the page's stack: of two
+  Sections the same size the one written first holds the other, as documented, never both each other. The Studio E2E
+  report (and the gate's) now names the row and the stack of every Vite error, so a page error that fails no row is
+  traced (2026-10-22).
 - Zen Studio's Design panel has no Content section, as Figma's: an instance's words are its Text property in its
   Properties block, a text layer's a Text row first in Typography; a component without Figma properties shows one
   Properties block in its prop order instead of Appearance / Content / Icon / State / Actions groups (2026-10-22).

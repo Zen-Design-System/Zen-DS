@@ -507,7 +507,7 @@ if (studioInScope && !staticFailed.length) {
   let report = shards[0]?.md;
   if (plan.n > 1 && rows.length) {
     const first = shards.find((x) => x.rep)?.rep;
-    report = rel(writeReport(path.join(root, ".qa/studio-e2e"), `${stamp}-gate`, rows, verdict, { host: first?.host, groups: first?.groups, ms, shards: shards.map((x) => ({ shard: `${x.k}/${plan.n}`, report: x.md ?? null, exit: x.r.code, ms: x.r.ms })), viteErrors: union(shards.map((x) => x.rep?.viteErrors ?? [])) }).md);
+    report = rel(writeReport(path.join(root, ".qa/studio-e2e"), `${stamp}-gate`, rows, verdict, { host: first?.host, groups: first?.groups, ms, shards: shards.map((x) => ({ shard: `${x.k}/${plan.n}`, report: x.md ?? null, exit: x.r.code, ms: x.r.ms })), viteErrors: union(shards.map((x) => x.rep?.viteErrors ?? [])), viteErrorDetails: shards.flatMap((x) => x.rep?.viteErrorDetails ?? []).filter((entry, index, all) => all.findIndex((other) => other.line === entry.line) === index) }).md);
   }
   const trouble = shards.filter((x) => !x.rep || x.r.code === 2).map((x) => `✗ ${plan.n > 1 ? `shard ${x.k}/${plan.n}` : "the run"}: ${x.r.killed ? `stopped at its ${Math.round(plan.cap / 60)}-min limit` : `exit ${x.r.code}`}${x.rep ? "" : ", no report"}${x.r.code === 2 ? ` — ${tail(x.r.out, /error|Error|Stopped/).slice(0, 4).join(" | ")}` : ""}`);
   const failed = trouble.length || shards.some((x) => x.r.code !== 0);
