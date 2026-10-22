@@ -230,13 +230,15 @@ const awake = () => performance.now();
 const startedAwake = awake();
 const matrix = createMatrix();
 let server = null;
+/** The row running now (startServer notes it with each Vite error). */
+let currentRow = null;
 let browser = null;
 let exitCode = 0;
 
 try {
   console.log(`Zen Studio E2E · host page ${host} · groups ${only.join(", ")}`);
   // Only the files the harness writes are watched (unless --watch-all): the run keeps the code it started with.
-  server = await startServer(root, { port: flag("port") ? Number(flag("port")) : undefined, ...(has("watch-all") ? {} : { watchOnly: guarded }) });
+  server = await startServer(root, { port: flag("port") ? Number(flag("port")) : undefined, ...(has("watch-all") ? {} : { watchOnly: guarded }), rowOf: () => currentRow });
   console.log(`  server ${server.url}`);
   const api = studioApi(server.url);
   await api.ping();
@@ -319,6 +321,7 @@ try {
         continue;
       }
       const t0 = Date.now();
+      currentRow = row.id;
       let status = "works";
       let evidence = null;
       let error = null;
@@ -412,14 +415,22 @@ const baselineFile = path.join(here, "matrix.baseline.json");
 const baseline = readBaseline(baselineFile);
 const verdict = compare(matrix.rows, baseline, readFlaky(baselineFile));
 const ms = Date.now() - started;
-const report = writeReport(outDir, stamp, matrix.rows, verdict, { host, groups: only, ms, ...(shard ? { shard: `${shard.k}/${shard.n}` } : {}), viteErrors: [...new Set(server?.errors ?? [])] });
+// Each distinct Vite error once, with the rows it came up in and its first stack (a page's error names its source line).
+const viteErrorDetails = [...new Set(server?.errors ?? [])].map((line) => {
+  const seen = (server?.details ?? []).filter((entry) => entry.line === line);
+  return { line, rows: [...new Set(seen.map((entry) => entry.row).filter(Boolean))], stack: seen.find((entry) => entry.stack.length)?.stack ?? [] };
+});
+const report = writeReport(outDir, stamp, matrix.rows, verdict, { host, groups: only, ms, ...(shard ? { shard: `${shard.k}/${shard.n}` } : {}), viteErrors: [...new Set(server?.errors ?? [])], viteErrorDetails });
 if (has("update-baseline")) writeBaseline(baselineFile, matrix.rows, baseline);
 
 const count = (status) => matrix.rows.filter((row) => row.status === status).length;
 if (server?.errors?.length) {
   const unique = [...new Set(server.errors)];
   console.log(`\nVite errors during the run (${server.errors.length}, ${unique.length} distinct):`);
-  for (const line of unique.slice(0, 6)) console.log(`  ${line.slice(0, 200)}`);
+  for (const entry of viteErrorDetails.slice(0, 6)) {
+    console.log(`  ${entry.line.slice(0, 200)}${entry.rows.length ? `  (during ${entry.rows.join(", ")})` : ""}`);
+    for (const frame of entry.stack.slice(0, 6)) console.log(`      ${frame.slice(0, 200)}`);
+  }
 }
 console.log(`\n${count("works")} works · ${count("broken")} broken · ${count("skip")} skipped · ${Math.round(ms / 1000)} s`);
 const notRun = matrix.rows.filter((row) => row.notRun);
