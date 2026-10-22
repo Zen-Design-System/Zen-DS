@@ -31,3 +31,6 @@ Branch `zen/fix/studio-parity-leftovers-20261023`; both BACKLOG lines archived.
 - Real Figma (QA page): the import wrote name/given as planned; the real reader marked given ✓ / plain ✗ / renamed in
   Figma ✓; pageFromFigma gave `<Use data-name="Hero note">`, `<Use>`, `<Use data-name="Renamed in Figma">`. Test frame
   removed. Selftests push 402, pull 130, layer-meta 15, plugin `npm test` ✓.
+- Gate (01:45–02:14, isolated, the 8 files): static ✓, Studio E2E 338 / 338 (3 shards), Build-QA PASS. FW rows run
+  apart (the gate's matrix has no FW group): FW-220 first timed out (a ⇧⌘-click on the second group's empty spot added
+  nothing); it now ⇧-clicks "Group 2" in Layers, as B-33 does: FW-119 + FW-220 2 / 2, FW-11…18 8 / 8.

@@ -4143,20 +4143,20 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       const { page, id, text } = await seededPage(ctx, twoGroupsText, /group>[\s\S]*group>/);
       const before = await text();
       await showLeftTab(page, "layers");
-      // ⌘-click an empty spot of each group (below its rectangle, left of its ellipse): the group is the layer there.
+      // The first group by ⌘-clicking an empty spot of it (below its rectangle, left of its ellipse: the group is the layer
+      // there), the second ⇧-clicked in Layers, which shows the first's row and its sibling.
       const boxes = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Box"]`);
-      for (const [at, index] of [1, 2].entries()) {
-        const box = await boxes.nth(index).boundingBox();
-        if (!box) throw new Error(`group ${at + 1} has no box on the canvas`);
-        if (at) await page.keyboard.down("Shift");
-        await page.keyboard.down("ControlOrMeta");
-        await page.mouse.click(box.x + box.width / 2, box.y + box.height - 4);
-        await page.keyboard.up("ControlOrMeta");
-        if (at) await page.keyboard.up("Shift");
-        await sleep(300);
-      }
+      const box = await boxes.nth(1).boundingBox();
+      if (!box) throw new Error("the first group has no box on the canvas");
+      await page.keyboard.down("ControlOrMeta");
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height - 4);
+      await page.keyboard.up("ControlOrMeta");
       const selected = async (count) => (await selectedSrc(page)).length === count || (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === count - 1;
-      await until(() => selected(2), { message: "both groups selected" });
+      await until(() => selected(1), { message: "the first group selected" });
+      const second = page.locator(".studio-layers__tree [role='treeitem'] .studio-layers__name", { hasText: /^Group 2$/ });
+      await until(async () => (await second.count()) === 1, { message: "Layers shows Group 2" });
+      await second.click({ modifiers: ["Shift"] });
+      await until(() => selected(2), { message: "both groups selected" }).catch(async (error) => { throw new Error(`${error.message} · selected ${JSON.stringify(await selectedSrc(page))} · ${await selectedName(page)}`); });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+Shift+KeyG");
       await until(async () => !/group>/.test(await text()), { message: "⇧⌘G ungroups both" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
