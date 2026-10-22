@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio: a photo dropped on one row's avatar changes that row's picture on example pages too when a helper
+  function draws it (the sidebar's `personAvatar(people[t.assignee])` in rows `taskRow(t)` builds): it lands in that
+  person's data (`people.alex.photo` in examples/data.ts), an initials avatar gets its first photo, one ⌘Z. A photo
+  dropped on one face of an AvatarStack, one reader of a ChatMessage's `seenBy` or another item of a list prop writes
+  that item's picture, where the list is written or read. Where the code, not the row, picks the data (either side of
+  a condition) the drop says so and writes nothing (2026-10-23).
 - **Docs platform:** the Shape page has three more examples: a seat map whose marks carry labels (picked with Segmented
   buttons, taken seats drawn as outlines), the arc's and star's limits (Sweep 0 %, a hairline ring, thin and zero-ratio
   stars) and onboarding art on a phone (2026-10-23).

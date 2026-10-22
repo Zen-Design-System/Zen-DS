@@ -5,8 +5,8 @@
 //   originOf(code, file, loc, { prop } | { child })      what feeds the prop (or the expression child) of the element at loc
 //                                                        ({ tableRows: true }: whether a Table's rows can be edited)
 //   dataFieldEdit(code, file, loc, name, op, { read })   op setDataField { prop? | child? | field?, row, rowKey?, rowFields?,
-//                                                        table?, value }: the edit at the source, { file, code, state }
-//                                                        (possibly another file), or { error, code }
+//                                                        table?, path?, via?, value }: the edit at the source, { file, code,
+//                                                        state } (possibly another file), or { error, code }
 //
 // Sources it can follow (a value is edited only where it is written as a literal):
 //   - a .map row: `{crew.map((one) => <ListItem title={one.name} />)}` → crew[row].name, where crew is an array literal
@@ -21,7 +21,11 @@
 //     expression reads (a sort, filter, slice, spread, local const or useMemo in between), else the row at that place of
 //     a list read as is. A column without `cell` draws its `field` from the row: op setDataField { field } on the Table;
 //   - a lookup keyed by the row: `people[member.id].name` (a .map row or a Table cell) reads the row's `id` where it is
-//     written, then edits people.<id>.name; a const of the row function (`const team = teams[row.team]`) is read through.
+//     written, then edits people.<id>.name; a const of the row function (`const team = teams[row.team]`) is read through;
+//   - a helper's parameter (`const personAvatar = (p) => <Avatar src={p.photo} />`, kind "param" with `helper`): the
+//     client names the call that drew the instance by the elements above it that hold it (`via`), and the walk (reach)
+//     binds each function's parameters to the call's arguments down to the row's data (2026-10-23);
+//   - a field inside a prop's value (`path`: an AvatarStack's items[2].src), written in place or read by a .map.
 // Refused, with the reason the Inspector shows: .filter / .sort / other calls before the .map, computed keys, spreads,
 // state that the component changes (useState read directly: that is setStateInit's, keep-behaviour rule), values that
 // are not literals at their source.

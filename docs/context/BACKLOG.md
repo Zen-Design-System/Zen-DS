@@ -237,15 +237,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Chat-Control's trailing send instance `Main` (code `Send`).
   Naming them in Figma with Zen's names lets the gate check them and a Studio page's overrides land in Figma by name.
   Pointer: `ALLOWED` in nested-paths.mjs.
-- **P1 · Figma usability — a row's picture through a helper (session "Table states", 2026-10-10):** the sidebar example
-  builds each row's avatar with `personAvatar(people[t.assignee])` (a plain function, not a component), so the engine
-  cannot reach that row's person; a dropped photo is refused ("shared by 14 rows"). Extend kind "param" to helper
-  functions called with data (data-source.mjs classify → the call's argument → the row's data), then the drop changes
-  that person's photo. Pointer: `docs/research/studio-usability-eval-2026-10-10.md` §5.
-- **P1 · Figma usability — pictures inside list props (2026-10-10):** an AvatarStack's `items[i].src`, ChatMessage
-  `seenBy`, Card `image`-like fields: a drop on one face should write that item's field (ObjectProperties already edits
-  the item; the drop needs the item index from the part under the pointer). On a page you made an AvatarStack face
-  now takes its own photo as an override (M8, 2026-10-11); example code still waits for this.
 - **P2 · Figma usability — a photo file dropped from the desktop on a repo page (2026-10-10):** uploads live in this
   browser (IndexedDB), so example and template code cannot read them; a drop there needs the dev server to save the file
   under `src/assets/media/` (POST route + `MEDIA_REPO_FILES` refresh). On pages you made it works today.
