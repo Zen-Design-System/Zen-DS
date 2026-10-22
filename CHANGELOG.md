@@ -201,6 +201,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Sidebar rail at Density=Medium follows Figma's Patterns/Sidebar (user 2026-10-21: "Sửa rail Medium theo Figma"): 80
   wide (was 84 / 88), the Padding/XSmall inset on the outer edge only, the logo and collapse control Spacing/Gap/Large
   apart (was Medium); the AppShell no longer pulls the page over the rail. The Studio push writes the 80px rail.
+- Zen Studio puts layers into an instance's slot from the canvas, as Figma does (F7c of the parity plan): dragging a
+  layer or an Assets item over a slot of an instance of the page's own component outlines that slot in the component
+  colour with its name, and the drop writes the instance's `slots` at that place. The first drop into a slot keeps the
+  layers its main shows there; a layer drags out of a slot, or to another place in it, as from any frame; ⌥ copies. The
+  main stays as it is, and each drag is one ⌘Z.
 - Zen Studio's gap and padding handles, as Figma's: on a selected auto layout frame (Stack, Grid) a hovered gap or
   padding turns Figma's pink with a handle and its value as a variable pill ("Gap · Small · 12"); dragging it changes
   the gap or the padding, snapped to the Spacing/Gap or Spacing/Padding ladder and previewed while dragging, written
