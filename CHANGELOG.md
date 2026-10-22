@@ -22,6 +22,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Planning → to do, Active → in progress with the project's real progress, On hold → blocked, Completed → done
   (`taskStep`, `projectStep`, `projectProgress` in the examples data). Leave and expense statuses stay Badges
   (2026-10-23).
+- BadgeStatus in running text (a DescriptionList value, a sentence) sits on a Badge's baseline, so its line is as tall
+  as a Badge's (28px Medium, it was 29) (2026-10-23).
 - Usage harness: `app-shell/pattern-parts` reads only the shell's own props, so a part's content (a header's
   `BadgeStatus progress`) no longer counts as the shell's `progress` (2026-10-23).
 - **Docs platform:** the Shape page has three more examples: a seat map whose marks carry labels (picked with Segmented

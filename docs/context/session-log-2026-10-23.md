@@ -87,3 +87,9 @@ blocked, Completed → done); labels stay the data's words.
   the shell's `progress`; it now reads `topLevel(attrs)`. Fixture in good.tsx.
 - BACKLOG line narrowed to the Figma instances (a Zen file write, waits for the user). CHANGELOG lines.
 - Static: tsc, usage:selftest, usage:check (only DesignPanel's warning, fixed in #223), quick gate PASS (29 pages).
+- Slot (after B): visual diff 25a86b67 (detached checkout, no stash) vs the branch, 29 pages × 1512/390, isolated
+  :5200 stopped by task: 550 panels, 478 identical, 72 changed — all the status badges (ring + step colour, tables fit
+  their 120–152px columns); top-navigation/390/06 differs only by a lazy photo. Two panels grew 1px (menu/390/04,
+  search/390/04): a BadgeStatus in a DescriptionList value made the line 29px for 28 — its inline-flex baseline is the
+  20px ring's bottom where a Badge's is its 16px leading's. Fixed at the owner: badge-status.css lowers the ring by half
+  the difference (tokens), test tests/interaction/badge-status.test.tsx (line height = a Badge's at Medium and Small).
