@@ -2812,6 +2812,156 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     ],
     "toggles": []
   },
+  "TimelineItem": {
+    "figma": "16131:1090",
+    "own": [
+      {
+        "prop": "time",
+        "label": "Time",
+        "type": "TEXT"
+      },
+      {
+        "prop": "connector",
+        "label": "Connector",
+        "type": "BOOLEAN"
+      },
+      {
+        "prop": "size",
+        "label": "Size",
+        "type": "VARIANT",
+        "options": {
+          "Medium": "medium",
+          "Small": "small"
+        }
+      }
+    ],
+    "toggles": [
+      {
+        "label": "Description",
+        "prop": "description",
+        "on": "Annual leave · Oct 12 – Oct 16"
+      },
+      {
+        "label": "Attachment",
+        "prop": "attachment",
+        "on": "Can we move the review to Thursday?"
+      }
+    ]
+  },
+  "TimelineActivity": {
+    "figma": "16131:1311",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "TimelineMilestones": {
+    "figma": "16132:777",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "TimelineGantt": {
+    "figma": "16136:859",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ScheduleResourceGrid": {
+    "figma": "16135:145822",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      },
+      {
+        "prop": "scale",
+        "label": "Scale",
+        "type": "VARIANT",
+        "options": {
+          "Hours": "hours",
+          "Days": "days"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ScheduleItinerary": {
+    "figma": "16135:13820",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ScheduleSlotPicker": {
+    "figma": "16135:14046",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ScheduleDayPlanner": {
+    "figma": "16143:1439",
+    "own": [
+      {
+        "prop": "device",
+        "label": "Device",
+        "type": "VARIANT",
+        "options": {
+          "Desktop": "desktop",
+          "Mobile": "mobile"
+        }
+      }
+    ],
+    "toggles": []
+  },
   "DatePicker": {
     "figma": "895:31954",
     "own": [

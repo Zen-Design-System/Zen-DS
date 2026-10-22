@@ -24,6 +24,8 @@ type PageMeta = {
   frames: Set<string>;
   /** Each frame's element ("screen:home" → its loc and tag), for renaming and locking it. */
   frameNodes: Map<string, { loc: string; name: string }>;
+  /** The page's tree as last rendered: Select matching layers and Select all with same › read it (edit/matchModel.ts). */
+  board: PageNode | null;
 };
 
 const byFile = new Map<string, PageMeta>();
@@ -75,7 +77,7 @@ export function setLayerMeta(file: string, tree: { board: PageNode | null } | nu
   }
   const before = byFile.get(file);
   const same = before && sameMap(before.auto, auto) && sameSet(before.locked, locked) && sameSet(before.own, own) && sameSet(before.frames, frames);
-  byFile.set(file, { auto, locked, own, frames, frameNodes });
+  byFile.set(file, { auto, locked, own, frames, frameNodes, board: tree?.board ?? null });
   // Called while BuilderBoard renders: listeners hear it after that render.
   if (!same) {
     version += 1;
@@ -97,6 +99,9 @@ export const isOwnLock = (src: string | null | undefined): boolean => Boolean(sr
 
 /** A frame's element on the page `file` ("screen:home" → its loc and tag), if the page shows it. */
 export const frameNodeOf = (file: string | null | undefined, frameId: string | null | undefined) => (file && frameId ? byFile.get(file)?.frameNodes.get(frameId) : undefined);
+
+/** The page's tree as the canvas last rendered it (`file`: "local:<id>.zen.tsx"), or null. */
+export const pageBoardOf = (file: string | null | undefined): PageNode | null => (file ? byFile.get(file)?.board ?? null : null);
 
 /** Whether a frame ("screen:home") is locked on the page `file`. */
 export const isLockedFrame = (file: string | null | undefined, frameId: string | null | undefined): boolean => Boolean(file && frameId && byFile.get(file)?.frames.has(frameId));

@@ -366,14 +366,14 @@ export type EditOp =
    * `before` / after the one at `after` (neither: last), same file; `copy` leaves it in place (⌥-drag). `hash`
    * required. Answer: `moved.loc`, or `inserted.loc` for a copy (tools/studio/arrange.mjs).
    */
-  | { op: "moveTo"; parent: string; before?: string; after?: string; copy?: boolean; replace?: string }
+  | { op: "moveTo"; parent: string; before?: string; after?: string; copy?: boolean; replace?: string; /** Into this slot of the instance at `parent` (F7c; tools/studio/slot-fill.mjs), at `index` among its layers. */ slot?: string; index?: number }
   /**
    * ⌘V of code (another file, or after a cut), sent on the element it goes into: one JSX element, before / after /
    * replacing the child at that loc (none: last). Names it reads must exist there or be Zen components (imported), or
    * the names of `state` (an Assets item: declared as insertChild does). `hash` required. Answer: `inserted.loc`
    * (tools/studio/arrange.mjs).
    */
-  | { op: "pasteCode"; code: string; before?: string; after?: string; replace?: string; state?: StateDecl[]; /** px in the frame without auto layout it lands in: the layers float there (Paste here). */ at?: { x: number; y: number } }
+  | { op: "pasteCode"; code: string; before?: string; after?: string; replace?: string; state?: StateDecl[]; /** px in the frame without auto layout it lands in: the layers float there (Paste here). */ at?: { x: number; y: number }; /** Into this slot of the `<Use>` it is sent on (F7c), at `index` among its layers. */ slot?: string; index?: number }
   /**
    * Swap instance (GĐ4 M2): `code`, one JSX element, takes the place of the element at loc wherever it is written (a
    * child, a prop's value, a .map row); its key stays; Zen components are imported, the ones left unused go. `hash`

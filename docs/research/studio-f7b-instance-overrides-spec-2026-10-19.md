@@ -47,6 +47,11 @@ of Chip") and that values are literals.
   - Dropping a layer into it, or Assets › click with the slot selected, writes `slots`.
   - This depends on drag-and-drop targets (Session A / C areas). It ships as F7c if they cannot take a target in this
     window; `slots` is rendered and pushed here.
+  - **F7c, built 2026-10-21:** renderPage marks a main's slot layer drawn in a page's own instance (`data-zen-slot`,
+    `data-zen-slot-of`); `edit/drag.ts` dropTargetAt takes it as a container for a layer drag and an Assets drag (a
+    violet outline with the slot's name); ops moveTo / pasteCode with `slot` (`tools/studio/slot-fill.mjs`) write the
+    instance's `slots`, the main's own slot layers kept on a first drop. Out of a slot: a move as from any frame.
+    Several layers at once into a slot are refused (one at a time). E2E FW-160…164, `studio:dnd` slot rows.
 - **Assets › Local** (`edit/assets/**`, Session C's area): the page's sets and lone mains as tiles, with their
   description as the tile's tooltip; a click adds an instance. Asked of C.
 

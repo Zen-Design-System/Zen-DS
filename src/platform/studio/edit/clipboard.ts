@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import type { MenuEntry } from "../../../components/Menu";
 import { announceEditStatus, applyEdit, currentEditStatus, parseSrc, studioApi, subscribeStudioWrites } from "../api";
-import { canvasApi, getViewportBox } from "../canvas/viewport";
+import { canvasApi, getViewport, getViewportBox } from "../canvas/viewport";
 import { copyFrameForFigma, frameFigmaClip, writeFrameClip } from "../builder/export/figmaClipboard";
 import { openQuickInsert } from "../builder/library/quickInsertState";
 import { frameInView, rootSelection } from "../builder/library/target";
@@ -11,7 +11,7 @@ import { multiSelection, selectedLayers } from "../select/multiSelection";
 import { expectRender, mapSrc, renderedNow } from "../select/remap";
 import { canStructurallyEdit, insideWrap, pasteIntoSlot, pasteWarningIn, rememberInsert, removeSelection, selectedSlotOf, slotPasteTarget, slotPasteWarning, studioWrapOf, swapSelection } from "../slots/actions";
 import { canEdit, flushStudioStore, studioStore } from "../store";
-import type { EditOp, EditValue, SourceElement, StateDecl, StudioSelection } from "../types";
+import type { EditOp, EditValue, SourceElement, StateDecl, StudioNodeRef, StudioSelection } from "../types";
 import type { NodeSelection } from "./arrange";
 import { dropTargetAt, isDropContainer, type DropContext } from "./drag";
 import { codeOfLayers, removeLayers, statesRead } from "./multi";
@@ -51,9 +51,11 @@ export const clipboardShortcuts = {
 /**
  * `file` / `loc`: where the copied element sits (null loc: several layers or a cut, pasted as code; null file: several
  * files); `tag`: the element at `loc` (its wrap Stack's "Stack" for a wrapped component, `name` being the component);
- * `state`: the useState values the code reads in `file`.
+ * `state`: the useState values the code reads in `file`; `size` / `floats` / `several`: the layers' box on the canvas
+ * (zoom undone), whether they all floated and were more than one, for Paste here on the empty canvas
+ * (builder/boardPaste.ts); `copiedAt`: when.
  */
-type Clip = { file: string | null; loc: string | null; name: string; tag: string; code: string; cut: boolean; wrapped: boolean; state: StateDecl[] };
+type Clip = { file: string | null; loc: string | null; name: string; tag: string; code: string; cut: boolean; wrapped: boolean; state: StateDecl[]; size: { width: number; height: number } | null; floats: boolean; several: boolean; copiedAt: number };
 type PropsClip = { name: string; values: Array<{ name: string; value: EditValue }> };
 
 let clip: Clip | null = null;
@@ -131,7 +133,7 @@ async function copyLayers(cut: boolean) {
   const read = await codeOfLayers(layers);
   if (typeof read === "string") { fail(read); return false; }
   await navigator.clipboard?.writeText(read.code).catch(() => undefined);
-  clip = { file: read.file, loc: null, name: `${layers.length} layers`, tag: "", code: read.code, cut, wrapped: false, state: read.state };
+  clip = { file: read.file, loc: null, name: `${layers.length} layers`, tag: "", code: read.code, cut, wrapped: false, state: read.state, ...measure(layers), copiedAt: Date.now() };
   if (cut) return removeLayers(layers);
   done(`Copied ${layers.length} layers · ${clipboardShortcuts.paste} to paste`);
   return true;
@@ -148,7 +150,7 @@ async function copyLayer(selection: NodeSelection, data: DataTransfer | null, cu
   }
   if (!cached || !data) await navigator.clipboard?.writeText(read.code).catch(() => undefined);
   const at = parseSrc(selection.src)!;
-  clip = { file: at.file, loc: read.loc, name: read.element.name, tag: read.tag, code: read.code, cut, wrapped: read.wrapped, state: read.state };
+  clip = { file: at.file, loc: read.loc, name: read.element.name, tag: read.tag, code: read.code, cut, wrapped: read.wrapped, state: read.state, ...measure([selection]), copiedAt: Date.now() };
   if (cut) return true;
   // A Screen of a page you made goes to Figma as well: ⌘V on the Zen file's canvas or in the Zen plugin places it.
   const screen = screenOf(selection);
@@ -159,6 +161,22 @@ async function copyLayer(selection: NodeSelection, data: DataTransfer | null, cu
   done(`Copied ${read.element.name} — preparing it for Figma…`);
   void writeFrameClip(read.code, html).then(() => done(`Copied ${read.element.name} · ${clipboardShortcuts.paste} in the Zen plugin places it; copy again for the Zen file's canvas`), (error: unknown) => announceEditStatus({ kind: "error", message: `Copied for the Studio only — not for Figma: ${error instanceof Error ? error.message : String(error)}`, at: Date.now() }));
   return true;
+}
+
+/** The copied layers' box on the canvas in px (the zoom undone) and whether they all float (Figma's frame without auto
+ *  layout): Paste here on the empty canvas makes a frame that size (builder/boardPaste.ts). */
+function measure(layers: readonly StudioNodeRef[]): Pick<Clip, "size" | "floats" | "several"> {
+  const world = canvasApi.getWorldElement();
+  const hosts = world ? layers.flatMap((layer) => { const hits = findBySrc(world, layer.src); return (hits[layer.instance] ?? hits[0])?.hosts ?? []; }) : [];
+  const rect = hosts.length ? rectOf(hosts) : null;
+  const zoom = getViewport().zoom || 1;
+  return { size: rect ? { width: Math.round(rect.width / zoom), height: Math.round(rect.height / zoom) } : null, floats: hosts.length > 0 && hosts.every(floats), several: layers.length > 1 };
+}
+
+/** What ⌘C / ⌘X last copied on the canvas (Paste here on the empty canvas, builder/boardPaste.ts): its code, name, box,
+ *  whether it is several layers and whether they float, and when; null before any copy. */
+export function copiedLayers() {
+  return clip ? { code: clip.code, name: selectedName(clip.name), several: clip.several, size: clip.size, floats: clip.floats, copiedAt: clip.copiedAt } : null;
 }
 
 /* ── where a paste goes ──────────────────────────────────────────────────────────────────────────────────────────── */
@@ -224,7 +242,8 @@ function follow(response: { file: string; after: string }, loc: string, name: st
   rememberInsert(response.file, response.after, from, next, Boolean(spot.replace));
 }
 
-const textLayer = (text: string) => `<Text>{${JSON.stringify(text.trim())}}</Text>`;
+/** Plain text pasted as a layer: a <Text> (builder/boardPaste.ts too). */
+export const textLayer = (text: string) => `<Text>{${JSON.stringify(text.trim())}}</Text>`;
 
 let pasting = false;
 
