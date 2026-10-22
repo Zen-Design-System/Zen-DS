@@ -65,15 +65,28 @@ export function useProjectLibrary(pageId: string | null, own: LocalComponents): 
   return last.current.library;
 }
 
-/** The texts of the other pages of `pageId`'s project by id (the Figma push draws their components' instances). */
-export async function projectPageTexts(pageId: string): Promise<Record<string, string>> {
+/**
+ * The texts of the other pages of `pageId`'s project by id (the Figma push and Open on phone draw their components'
+ * instances). With `from` (the page's text), only the pages its `<Use page>` reach, and the pages those reach in turn.
+ */
+export async function projectPageTexts(pageId: string, from?: string): Promise<Record<string, string>> {
   const project = projectOfPage(pageId) ?? headerProject((await getPage(pageId))?.text ?? "");
   if (!project) return {};
-  const out: Record<string, string> = {};
+  const all: Record<string, string> = {};
   for (const meta of await listPages()) {
     if (meta.id === pageId) continue;
     const text = cachedPage(meta.id)?.text ?? (await getPage(meta.id))?.text;
-    if (text && headerProject(text) === project) out[meta.id] = text;
+    if (text && headerProject(text) === project) all[meta.id] = text;
   }
-  return out;
+  if (from === undefined) return all;
+  const reached: Record<string, string> = {};
+  const queue = [from];
+  for (let text = queue.shift(); text !== undefined; text = queue.shift()) {
+    for (const [, id] of text.matchAll(/\bpage="([a-z0-9][a-z0-9-]{0,63})"/g)) {
+      if (!(id in all) || id in reached) continue;
+      reached[id] = all[id];
+      queue.push(all[id]);
+    }
+  }
+  return reached;
 }

@@ -34,7 +34,7 @@ export function OpenOnPhone({ page, title, text, start, modes, brand }: Props) {
     setCopied(false);
     const themeCss = project ? projectThemeCss(project.id, project.theme, { name: project.name }) : "";
     // Instances of the project's other pages' components (Libraries' project components) draw on the phone too.
-    const pages = text.includes("page=") ? await projectPageTexts(page) : {};
+    const pages = text.includes("page=") ? await projectPageTexts(page, text) : {};
     setState(await sharePage({ title, text, start, modes, brand, themeCss, id: page, pages }));
   };
   const link = "ok" in state && state.ok ? state.urls[0] ?? null : null;

@@ -862,4 +862,8 @@ User: "A, liên kết sống". Map of the same-page assumptions from an Explore 
   and mainsOf counts such an instance as its own; a `<Use page>` whose main is gone draws "Missing component"; Push
   changes across pages names the main's page in its status; Assets re-render once the engine loads; the instance chain
   names the open page; Go to main says when the main never shows and stops when something else is picked.
+- A's second pass: the push stops at a loop of components across pages (`drawing` set, a note; selftest 366); a
+  missing main (its page in the Trash) gives "This instance's main component is missing" instead of an unhandled
+  rejection (mainOfInstance catches, instanceAt `missing`); Open on phone and the push send only the pages the page's
+  instances reach (`projectPageTexts(id, from)`).
 

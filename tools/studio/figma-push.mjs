@@ -446,6 +446,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages =
   const localModel = { mains: localComponents(doc.board), sets: componentSets(doc.board) };
   /** The project's other pages (`pages`: id → text), read once each, for `<Use page>` (Libraries' project components). */
   const otherPages = new Map();
+  /** The other pages' mains being pushed, outermost first (`page/id`): one inside itself is left out, as the canvas does. */
+  const drawing = new Set();
   const otherPage = (page) => {
     if (!otherPages.has(page)) {
       const board = typeof pages[page] === "string" ? docFromText(pages[page]).doc?.board : null;
@@ -539,7 +541,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages =
       const main = resolved ? other.model.mains.find((entry) => entry.id === resolved.main.id) : null;
       const root = main?.node.children.find((child) => child.kind === "element");
       if (!root) { notes.push(`An instance of ${String(code.of ?? "")} on page ${home} is not pushed: that page's component is not here`); return null; }
-      node = withoutKeys(convert(onPage(root, home), parent));
+      const link = `${home}/${resolved.main.id}`;
+      if (drawing.has(link)) { notes.push(`${resolved.set?.name ?? resolved.main.name} (page ${home}) sits inside itself through another page: that layer is not pushed`); return null; }
+      drawing.add(link);
+      try {
+        node = withoutKeys(convert(onPage(root, home), parent));
+      } finally {
+        drawing.delete(link);
+      }
       if (!node) return null;
       node.name = resolved.set?.name ?? resolved.main.name;
       notes.push(`${node.name} (a component of page ${home}): pushed as its layers, without its instance changes`);

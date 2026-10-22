@@ -79,7 +79,12 @@ export async function mainOfInstance(selection: StudioSelection | null): Promise
   const of = element?.attributes.find((attr) => attr.kind === "string" && attr.name === "of")?.value;
   // An instance of another page's component (Libraries' project components, a live link) has its main there.
   const page = element?.attributes.find((attr) => attr.kind === "string" && attr.name === "page")?.value;
-  return (await mainsOf(page ? pageFile(page) : at.file)).find((main) => main.id === of) ?? null;
+  // Its page in the Trash or gone: the main is missing (the canvas shows "Missing component").
+  try {
+    return (await mainsOf(page ? pageFile(page) : at.file)).find((main) => main.id === of) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 /** The pages (their titles) other than the main's own whose instances show `main` (`<Use page of>`). */
@@ -259,7 +264,7 @@ export async function detachInstance(selection: NodeSelection): Promise<boolean>
   if (!check.ok) return fail(check.reason);
   const main = await mainOfInstance(selection);
   const at = parseSrc(selection.src);
-  if (!main || !at) return fail("This instance's main component is not on the page");
+  if (!main || !at) return fail("This instance's main component is missing");
   const [use, root, source] = await Promise.all([studioApi.element(at.file, at.loc), studioApi.element(main.file, main.rootLoc), studioApi.source(main.file)]);
   if (!use || !root?.range) return false;
   const engine = await loadEngine();
@@ -281,7 +286,7 @@ export async function detachInstance(selection: NodeSelection): Promise<boolean>
 /** Go to main component: the main's root layer selected (and shown). */
 export async function goToMain(selection: NodeSelection): Promise<boolean> {
   const main = await mainOfInstance(selection);
-  if (!main) return fail("This instance's main component is not on the page");
+  if (!main) return fail("This instance's main component is missing");
   const at = parseSrc(selection.src);
   const home = at && main.file !== at.file ? pageIdOf(main.file) : null;
   if (!home) { selectAt(main.file, main.rootLoc, selection, main.name); return true; }
@@ -559,9 +564,12 @@ async function instanceAt(file: string, loc: string) {
   // are the main's page's, `mainFile` names it.
   const page = (use as TreeNode | null)?.props.page;
   const mainFile = page?.kind === "literal" && typeof page.value === "string" ? pageFile(page.value) : file;
-  const tree = mainFile === file ? own : engine.parsePage((await studioApi.source(mainFile)).content, { components: new Set(zenComponents) });
-  const model = { mains: engine.localComponents(tree.board), sets: engine.componentSets(tree.board) };
-  return { engine, tree, model, use: use as TreeNode | null, mainFile };
+  // That page in the Trash or gone: no main to read (`missing`).
+  const other = mainFile === file ? null : await studioApi.source(mainFile).then((read) => engine.parsePage(read.content, { components: new Set(zenComponents) }), () => null);
+  const missing = mainFile !== file && !other;
+  const tree = other ?? own;
+  const model = missing ? { mains: [], sets: [] } : { mains: engine.localComponents(tree.board), sets: engine.componentSets(tree.board) };
+  return { engine, tree, model, use: use as TreeNode | null, mainFile, missing };
 }
 
 /** How many layers an instance overrides (Figma's changed layers), for its panel. */
@@ -585,8 +593,9 @@ export function resetInstance(selection: NodeSelection): Promise<boolean> {
 export async function pushChangesToMain(selection: NodeSelection): Promise<boolean> {
   const at = parseSrc(selection.src);
   if (!at) return false;
-  const { engine, tree, model, use, mainFile } = await instanceAt(at.file, at.loc);
+  const { engine, tree, model, use, mainFile, missing } = await instanceAt(at.file, at.loc);
   if (!use) return fail("Select an instance of a component on this page");
+  if (missing) return fail("Its main component is missing");
   const table = literalTable(use.props.overrides);
   if (!Object.keys(table).length) return fail("This instance has no changes of its layers to push");
   const resolved = engine.resolveInstance(tree, use);

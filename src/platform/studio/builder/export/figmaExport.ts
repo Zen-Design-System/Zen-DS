@@ -73,7 +73,7 @@ export async function exportFigma({ id, title, text, doc, frame }: { id: string;
   const source = shown ? printPage(shown, { ids: true }) : text;
   // With the library's keys the plugin binds the frame in any file that uses the published Zen library, not only Zen's.
   // The project's other pages: an instance of one of their components goes as its main's layers (figma-push.mjs).
-  const pages = source.includes("page=") ? await projectPageTexts(id) : {};
+  const pages = source.includes("page=") ? await projectPageTexts(id, source) : {};
   const { pkg, notes } = figmaPackage(source, { mapping: repoMapping(), nestedLayers: NESTED_LAYERS, page: { id, title }, libraryKeys: libraryKeys as LibraryKeyTable, pages });
   if (!pkg) return { error: notes.join("; ") || "The page has no Screen to export" };
   if (frame) pkg.page.frame = frame;

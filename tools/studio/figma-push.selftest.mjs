@@ -1322,6 +1322,12 @@ export default function Page() {
     names(cardLayer);
     check("project component: a nested instance of its own page, not this page's same id", [cardLayer?.name, named.includes("Tag"), named.includes("Other tag")], ["Card", true, false]);
     check("project component: <Use page> naming this page is its own instance", [ownTag?.type, ownTag?.local], ["INSTANCE", "tag"]);
+    // Two pages whose components hold each other (A's second review): the push stops at the loop and says so.
+    const loopA = page("A", '<Component id="hero" name="Hero"><Stack><Text>Hero</Text><Use of="card" page="b" /></Stack></Component>');
+    const loopB = page("B", '<Component id="card" name="Card"><Stack><Text>Card</Text><Use of="hero" page="a" /></Stack></Component>');
+    let looped = null;
+    try { looped = figmaFromPage(page("C", '<Use of="card" page="b" />'), { mapping, pages: { a: loopA, b: loopB }, pageId: "c" }); } catch (error) { looped = { error: String(error) }; }
+    check("project component: a loop across pages is pushed once round and noted", [looped?.error ?? null, looped?.frame?.children?.[0]?.name, (looped?.notes ?? []).some((note) => /sits inside itself/.test(note))], [null, "Card", true]);
   }
   // F7b: an instance's overrides of its main's layers, by the child indices that reach them in the drawn main.
   const overriddenPage = chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="chip" overrides={{ Text: { children: "Hi", tone: "accent" }, Icon: { hidden: true } }} />');
