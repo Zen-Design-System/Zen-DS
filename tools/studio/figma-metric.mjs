@@ -121,6 +121,9 @@ export function metricCardFigma(values, { notes, where, footerText = null, foote
   if (!heroDefault && CARD_THEME[theme] && !(type !== "hero" && theme === "shadow")) card.Theme = CARD_THEME[theme];
   if (!heroDefault && color && (theme === "pale" || theme === "solid")) card.Color = capital(color);
   nested.push({ path: "Card", props: card });
+  // Its icon when it is not the default ⋮ (Card.tsx: Sub-Action's Leading-Icon-Src).
+  const subIcon = values.subAction && typeof values.subAction === "object" ? values.subAction.icon : null;
+  if (typeof subIcon === "string" && subIcon !== SUB_ACTION_ICON) nested.push({ path: "Card/Sub-Action", props: { "Leading-Icon-Src": subIcon } });
   if (type === "hero" && !heroDefault && theme === "solid") notes.push(`${where}: Figma's Hero card keeps its Brand Pale fill; pick the Card's fill (Background/Neutral/Solid for Solid Neutral) in Figma`);
   const trendOf = (trend, path) => {
     if (!trend || typeof trend !== "object") return [{ path: path.replace(/\/Trend$/, ""), props: { Trend: false } }];
@@ -213,6 +216,14 @@ function trendAt(node, path) {
 }
 
 /** Whether a read instance is a Metric-Card. */
+/** Card's Sub-Action icon by default (Card.tsx; Figma 1460:13). */
+export const SUB_ACTION_ICON = "icon-dots-vertical-line";
+/**
+ * Figma's ⋮ Sub-Action shown, as the code's `subAction`: its icon when it is not the default; the label is the built-in
+ * "More actions" (labels.ts moreActions), Figma having no words for it.
+ */
+export const subActionFromFigma = (icon) => ({ kind: "object", fields: { label: literal(zenLabels.en.moreActions), ...(typeof icon === "string" && icon !== SUB_ACTION_ICON ? { icon: literal(icon) } : {}) } });
+
 export const isMetricCard = (node) => node?.type === "INSTANCE" && (node.set?.id === METRIC_CARD_SET.id || node.set?.name === METRIC_CARD_SET.name);
 
 /**
@@ -231,9 +242,9 @@ export function metricCardFromFigma(node, { notes, where }) {
   if (!heroDefault && theme && !(type !== "hero" && theme === "shadow")) props.theme = literal(theme);
   if (!heroDefault && color && color !== "neutral" && (theme === "pale" || theme === "solid")) props.color = literal(color);
   if (!heroDefault && theme === "solid" && color === "neutral") props.color = literal("neutral");
-  if (card["Sub-Action"] === true) notes.push(`${where}: Sub-Action shows in Figma; set subAction on the MetricCard in the Studio`);
   // As the palette writes it: theme and color, then the type.
   if (type !== "kpi") props.type = literal(type);
+  if (card["Sub-Action"] === true) props.subAction = subActionFromFigma(nestedAt(node, "Card/Sub-Action")?.props?.["Leading-Icon-Src"]);
   if (type === "comparison") {
     if (texts[COMPARISON_TITLE] ?? texts.Title) props.label = literal(texts[COMPARISON_TITLE] ?? texts.Title);
     const columns = [];
@@ -299,6 +310,10 @@ export const READ_METRIC_CARD = `const readMetricCard = async (instance, set) =>
   const out = { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), texts: {}, nested: [] };
   const card = instance.findOne((n) => n.type === "INSTANCE" && n.name === "Card");
   if (card) out.nested.push({ path: "Card", props: await propsOf(card) });
+  // Its ⋮ Sub-Action's icon (Leading-Icon-Src), when it shows.
+  const wrap = card ? card.findOne((n) => n.name === "Sub-Action" && n.visible) : null;
+  const sub = wrap && wrap.type !== "INSTANCE" ? wrap.findOne((n) => n.type === "INSTANCE") : wrap;
+  if (sub) out.nested.push({ path: "Card/Sub-Action", props: await propsOf(sub) });
   if (out.props.Type === "Tile") {
     const tile = instance.findOne((n) => n.type === "INSTANCE" && /Metric-Tile$/.test(n.name));
     if (!tile) return out;
