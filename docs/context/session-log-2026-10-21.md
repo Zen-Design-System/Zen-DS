@@ -968,4 +968,8 @@ User: "A, liên kết sống". Map of the same-page assumptions from an Explore 
 - A's optional parity item, done while waiting for the slot: Assets / ⇧I / a drag refuse a project component inside a
   main of this page it holds, through any page (`holdsComponent` in projectLibrary.ts, Insertable `refuseIn`), with
   "<X> holds <Main>: a component can't go inside itself"; E2E FW-202. Phase 2 merged with main a2143e36 (6151b4a0).
+- Phase 2 gate (21:2x, main 032d8fbd merged): Build-QA PASS, Studio E2E 338/338 in 4 shards (#212). Figma rows: FW-199
+  and FW-200 ✓; FW-201 found a bug in every Detach: a main whose layer is a Text failed in relayoutCode ("The frame holds
+  text of its own"), same page or not. An empty plan now writes the element as it is (relayout selftest 10). FW-202's
+  ⌘-click now goes through the mouse at the main's place (a locator click met the canvas layers).
 

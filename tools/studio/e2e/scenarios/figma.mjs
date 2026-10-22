@@ -1918,7 +1918,11 @@ export const rows = [
         await until(async () => /<Component id="hero"/.test((await pageText(page, id)) ?? ""), { timeout: 15_000, message: "Hero on the page" });
         const hero = page.locator('[data-zen-main="hero"]').first();
         await hero.waitFor({ state: "visible", timeout: 10_000 });
-        await hero.click({ modifiers: ["ControlOrMeta"] });
+        // ⌘-click on the canvas at its place (the canvas layers over it take a locator click).
+        const box = await hero.boundingBox();
+        await page.keyboard.down("ControlOrMeta");
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+        await page.keyboard.up("ControlOrMeta");
         await until(async () => (await selectedName(page)) !== "", { message: "a layer of Hero selected" });
         const before = (await pageText(page, id)) ?? "";
         await showLeftTab(page, "assets");

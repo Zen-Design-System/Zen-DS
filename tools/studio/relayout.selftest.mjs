@@ -84,4 +84,10 @@ test("an empty painted frame gets its auto layout Stack", () => assert.equal(rel
   <Stack direction="row" />
 </Box>`));
 
+test("an empty plan writes the element as it is, a Text's words too (Detach of a Text main)", () => {
+  const text = `    <Component id="promo" name="Promo">\n      <Text tone="light">\n        Promo\n      </Text>\n    </Component>`;
+  const element = `<Text tone="light">\n        Promo\n      </Text>`;
+  assert.equal(relayoutCode(text, at(text, element), {}), `<Text tone="light">\n  Promo\n</Text>`);
+});
+
 console.log(`relayout selftest: ${count} passed`);
