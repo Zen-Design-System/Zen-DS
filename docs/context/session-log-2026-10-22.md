@@ -1,5 +1,18 @@
 # Session log 2026-10-22
 
+## Session B · The figma group's Vite "Maximum call stack" (tier S; user picked BACKLOG P3 in session B)
+
+Branch zen/fix/studio-e2e-vite-stack-20261022. `studio:e2e --only=figma` ended green but logged "[Unhandled
+rejection] RangeError: Maximum call stack size exceeded" (since 10-21): a page error Vite forwards, whose stack the
+harness cut (server.mjs kept the first line).
+- Harness: server.mjs keeps each error's stack lines and the running row (`rowOf`); run.mjs prints them and the report
+  JSON / md carry `viteErrorDetails`; tools/qa/run.mjs passes the shards' details into the gate's report.
+- The run then said: during FW-106, `walk` in board/sections.ts. ⌘D / ⌥-drag of a Section lands a same-size copy on
+  its original; sectionAround let each hold the other (its comment promised "the one written first holds"), so
+  sectionContents recursed without end. Fix: the tie-break by board order, and a walk that visits each layer once
+  (sections.selftest +2). C (the file's owner, #182) told and agreed.
+- Checks: FW-44/45/106 3/3 with no Vite error; gate (22:10–22:34, main b960a79f) **PASS**, Studio E2E 338/338.
+
 ## Session B · Content into the instance's properties (tier S; user's call relayed by the progress session, 2026-10-22)
 
 Branch zen/feat/studio-content-props-20261022. The walk's §2a: a Button, Card and text had a **Content** section
