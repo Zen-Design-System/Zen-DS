@@ -718,6 +718,33 @@ the place, and the drop writes the instance's `slots`. One write, one ⌘Z; the 
   so it drags the Text Spare now. `--only=dnd` DND-05 ✓; DND-04 failed on main too since FW-142 (the panel heads a Box
   Frame, so its selectLayer pressed Escape up to the page): fixed at the test, it reads the heading's code name (title);
   8 / 8 moves.
+
+## Present from a selected Overlay frame (tier S, branch `zen/feat/studio-present-overlay-20261021`)
+
+The last Present item of BACKLOG P1 "Studio design page = Figma" (user 2026-10-21: "mở phiên nhận các phần đó").
+- `builder/proto/playStart.ts` holds Play's start (`presenting: "play:<start>"`): a Screen id, `overlay:<id>`, or empty.
+  `playStartOf(frameId)` (protoModel.ts, Node-tested) maps the selected frame; ⌥⌘↵, the canvas menu, the Prototype tab's
+  Present and `presentFrame` (the Design tab's Present, ⌘K › Present) use it. A Screen frame keeps its old path (the
+  Design tab and ⌘K still present it as a frame; ⌥⌘↵ plays it).
+- `playFlow.tsx` (usePlayFlow, shared with Open on phone since #191; ported after it landed): the Overlay starts open,
+  no animation, over `openerOf(tree, id)` — the first Screen (default state first)
+  with a layer or After delay that opens it — on that Screen's device, size and frame; closing it (Esc, its close
+  action, a press outside, Back) goes on from that Screen; R restarts on it. With no opener it shows over a blank Screen
+  of the first Screen's device; closing it calls `onLeave` (Play leaves Present), Back is off, and Back from a Screen it
+  led to re-opens it. The phone's DevicePlay keeps `usePlayFlow(tree, start)` unchanged.
+- `?play=overlay:<id>` keeps it through a reload. ⌘K › Interact stays on pages you made: templates' forms are tried in
+  place with it (SP-23 / SP-24), but it is no longer the way to try an Overlay.
+- E2E (figma.mjs, own seeded page): FW-170 ⌥⌘↵ + reload + Esc ×2, FW-171 Prototype › Present + Move to trash / Back / R /
+  Cancel, FW-172 alone (Design › Present, blank phone, Done leaves), FW-173 Card via ⌘K (no animation, outside press),
+  FW-174 normal frames unchanged. protoModel selftest +3 checks.
+- Gate (slot from the Code-tab session, main f5d1ecce merged): static ✓, Studio E2E 338 / 338. FW rows: 4 / 6 at first.
+  FW-174's page was not zoomed to fit (its Button off screen): the helper now presses ⇧1. FW-170 found a real bug: after
+  a reload into Present, Esc did not close the Dialog. The canvas draws Overlay frames open, and its copy of the Dialog
+  (inert under Play) mounted last, so useModal's stack made it the topmost and gave it Escape and Tab. Fixed at its
+  owner, `Dialog.tsx` useModal: a modal whose parent is inert is never the topmost. Interaction test added in
+  dialog-modal.test.tsx; it fails without the fix.
+- Gate again with the fix (f282db11): static ✓, browser tests 81 / 81, audit 0, Studio E2E 338 / 338; FW-06 and
+  FW-170…174 6 / 6. main be387faf (#200, #201) merged after it; the BACKLOG entry keeps only its data-name line.
 ## Menus: Flip in the layer menu, Paste here on the empty canvas (tier S, branch `zen/feat/studio-menu-flip-paste-20261021`)
 Two gaps of the re-measure §2a "Menus" (the user opened one session per remaining piece, 2026-10-21).
 - Layer menu: `edit/flipLayers.ts` `flipMenuItems` — Flip horizontal ⇧H / Flip vertical ⇧V right after Lock, in the

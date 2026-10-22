@@ -16,7 +16,7 @@ import type { PageNode, PageTree, PageValue } from "../render/renderPage";
 import { pageFile, usePage } from "../store/pageStore";
 import { usePageTree } from "../usePageTree";
 import { addFrame as addBoardFrame } from "./addFrame";
-import { startPlay } from "./Player";
+import { playStartOf, startPlay } from "./playStart";
 import { defaultTarget, writeAction, writeItemTargets, writeProp, type ProtoLayer } from "./protoEdit";
 import { selectedItem } from "./protoDom";
 import {
@@ -30,7 +30,8 @@ import { placesItself, protoSubject, type ProtoSubject } from "./protoTriggers";
  * The Inspector's Prototype tab on a builder page (Studio builder GĐ2 M3, spec
  * docs/research/studio-builder-pages-spec-2026-10-06.md §3 2d; Figma's Prototype panel since 2026-10-15):
  * - Flow: the page's Screens and Overlays (a click selects the frame and brings it into view, ▷ plays from a Screen; the
- *   first Screen is where Play starts), Add screen, Add overlay, Play (from the selected Screen, else the start).
+ *   first Screen is where Play starts), Add screen, Add overlay, Present (from the selected Screen, or the selected
+ *   Overlay over the Screen that opens it; else the start).
  * - Interactions of the selected layer: each trigger it takes (On click / On tap, On change, While hovering; a Screen's
  *   After delay) with an action (navigate to a Screen, open an Overlay, close, back, show a toast, open a link) and how
  *   it animates (Instant, Dissolve, Move in, Push, Slide in; direction, duration); the main trigger and every set one
@@ -47,9 +48,6 @@ const OVERLAY_KINDS = [
   { id: "panel", label: "Side panel", icon: "icon-layout-right-line" },
   { id: "card", label: "Card · you place it", icon: "icon-square-line" },
 ] as const;
-
-/** The Screen a frame id belongs to ("screen:checkout:paid" → "checkout"), or null. */
-const screenOfFrame = (frameId: string | null | undefined) => (frameId?.startsWith("screen:") ? frameId.split(":")[1] : null);
 
 export function PrototypePanel() {
   const localPage = useStudio((state) => state.localPage);
@@ -68,7 +66,8 @@ export function PrototypePanel() {
   // An item of a choice control (a SidebarMenuItem) shows its control's interactions, that item marked.
   const via = subject?.item ? choiceItemsOf(subject.node).find((item) => item.value === subject.item)?.label ?? subject.item : null;
   const selectedFrame = selection?.kind === "frame" ? selection.frameId : selection?.kind === "node" ? selection.frameId : null;
-  const playFrom = screenOfFrame(selectedFrame);
+  // Present starts from the selected Screen, or opens the selected Overlay over the Screen that opens it (Figma's).
+  const playFrom = playStartOf(selectedFrame);
   const home = frames.find((frame) => frame.frameId === selectedFrame);
   const firstScreen = frames.find((frame) => frame.kind === "screen");
 
