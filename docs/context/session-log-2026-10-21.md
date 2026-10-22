@@ -972,4 +972,8 @@ User: "A, liên kết sống". Map of the same-page assumptions from an Explore 
   and FW-200 ✓; FW-201 found a bug in every Detach: a main whose layer is a Text failed in relayoutCode ("The frame holds
   text of its own"), same page or not. An empty plan now writes the element as it is (relayout selftest 10). FW-202's
   ⌘-click now goes through the mouse at the main's place (a locator click met the canvas layers).
+- Rows (22:39–22:43, slot after A): the Libraries rows now seed their project's two pages through the folder in one sync
+  (the New page flow met the project's home). FW-201 showed ⌥⌘O does nothing for Libraries while a layer is selected:
+  there the key is Figma's Outline stroke (edit/figmaKeys.ts, the walk's row); Libraries takes it with nothing selected,
+  as Keyboard shortcuts now says, and E2E opens it with Assets' book button. FW-197…202: 6/6 ✓.
 

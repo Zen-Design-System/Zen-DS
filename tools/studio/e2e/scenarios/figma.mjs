@@ -215,10 +215,11 @@ async function libraryPage(ctx) {
   await until(async () => (await page.locator(".studio-world").getAttribute("data-brand")) === `p-${LIBRARY_PROJECT}`, { timeout: 10_000, message: "the page draws in its project's theme" });
   return { page, id: libraryMade };
 }
-/** ⌥⌘O, the switch `name` set to `on`, Done; then project.json says so. */
+/** Assets' book button (⌥⌘O is Outline stroke while a layer is selected), the switch `name` set to `on`, Done; then
+ *  project.json says so. */
 async function setLibrary(ctx, page, name, key, on) {
-  await page.locator(".studio-viewport").focus();
-  await page.keyboard.press("ControlOrMeta+Alt+KeyO");
+  await showLeftTab(page, "assets");
+  await page.locator(".studio-assets__search").getByRole("button", { name: "Libraries" }).click();
   const dialog = page.getByRole("dialog", { name: "Libraries" });
   await dialog.waitFor({ state: "visible", timeout: 5000 });
   const toggle = dialog.getByRole("switch", { name });
@@ -1809,6 +1810,13 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await libraryPage(ctx);
       try {
+        // ⌥⌘O with nothing selected opens it (with a layer selected the key is Outline stroke).
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+Alt+KeyO");
+        const shortcut = page.getByRole("dialog", { name: "Libraries" });
+        await shortcut.waitFor({ state: "visible", timeout: 5000 });
+        await shortcut.getByRole("button", { name: "Done" }).click();
+        await shortcut.waitFor({ state: "hidden", timeout: 5000 });
         await showLeftTab(page, "assets");
         const libraries = page.locator('[aria-label="Libraries"].studio-assets__list');
         await libraries.getByRole("button", { name: "Components" }).waitFor({ state: "visible", timeout: 5000 });

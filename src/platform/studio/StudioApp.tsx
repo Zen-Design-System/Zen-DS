@@ -410,7 +410,8 @@ export function StudioApp() {
         else void detachSelection(selection);
         return;
       }
-      // ⌥⌘O / Ctrl+Alt+O: Figma's Libraries (project/LibrariesDialog.tsx).
+      // ⌥⌘O / Ctrl+Alt+O: Figma's Libraries (project/LibrariesDialog.tsx) with nothing selected; with a layer selected the
+      // key is Figma's Outline stroke, which edit/figmaKeys.ts takes first.
       if (mod && event.altKey && !event.shiftKey && event.code === "KeyO") {
         event.preventDefault();
         if (!event.repeat) openLibraries();
