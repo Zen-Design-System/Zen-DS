@@ -80,3 +80,5 @@ added since brought 177 className back. PR 1: classes with a Figma-equivalent pr
   surfaces; chart push data; UX polish → the design check); 8 are closed by open PRs or branches (#223, #225, #226,
   workflow-badge-status, studio-parity-leftovers). Also archived: the P6b remains, the empty "Phone decisions" heading,
   and 9 plan-section entries already marked done (PR #5, I-15) or done by #141. 38 archive entries in all.
+- Merged main twice (#223, then #225–#227): conflicts kept both sides (their removals and the P2 "Code-side rules"
+  line, my rewrites); no entry is archived twice and none of mine came back. Open after: 7 P1, 19 P2, 12 P3.
