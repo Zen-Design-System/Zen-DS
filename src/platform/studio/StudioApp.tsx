@@ -53,6 +53,7 @@ import { openQuickActions } from "./edit/quick/state";
 import { useViewKeys } from "./canvas/viewKeys";
 import { useFindKey } from "./edit/FindPanel";
 import { useFigmaNotYet } from "./edit/figmaNotYet";
+import { startPickColor } from "./edit/pickColor";
 import { useLockKeys } from "./edit/lock";
 import { useRenameKeys } from "./edit/rename";
 import { BatchRenameDialog } from "./shell/BatchRenameDialog";
@@ -593,7 +594,8 @@ export function StudioApp() {
       // K: Figma's Scale tool, on a page you made (draw/ScalePanel.tsx); K again puts the focus in its factor.
       // The key's own letter never lands in the factor, which takes the focus while it is down.
       else if (key === "k" && state.localPage) { event.preventDefault(); if (state.tool === "scale") focusScaleField(); else studioStore.setState({ tool: "scale" }); }
-      else if (key === "i") studioStore.setState({ tool: "interact" });
+      // I: Figma's Pick color on a page you made (edit/pickColor.ts); Interact on an example page.
+      else if (key === "i") { if (state.localPage) startPickColor(); else studioStore.setState({ tool: "interact" }); }
       // Figma's A is the Frame tool too (on a page you made; elsewhere the Stack placement tool); T places text.
       else if (key === "a") studioStore.setState({ tool: state.localPage ? "frame" : "stack" });
       else if (key === "t") studioStore.setState({ tool: "text" });

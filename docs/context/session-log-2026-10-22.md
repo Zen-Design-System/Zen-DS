@@ -63,6 +63,25 @@ and the Figma tools; land smoothing first). Spec card §1 (same file as smoothin
 - Checks: gradient selftest 49, push 366, pull 119, native 138, appearance model 33, studio:selftest, tsc, style,
   usage, guidelines, ai-ui, compile-api, plugin npm test. E2E FW-181/182 pass (run alone, 2 rows).
 
+## Session B · Pick color (I) (tier M; parity ❌, user decision in session B: the layer's token, then the pixel)
+
+Branch zen/feat/studio-pick-color-20261022, stacked on the gradient branch (land smoothing → gradient → this).
+- edit/pickColorModel.ts (pure, selftest 10): what a pick paints (Shape fill · frame surface · a text-tone component's
+  tone; nothing on a Button), chooseOption (the layer's own variable when the target's palette has it, else the nearest
+  colour of that palette), pickOps (a fill or surface also takes a gradient's place, Figma's solid).
+- edit/pickColor.ts: I (page you made) arms it like the placement tools (capture listeners, crosshair, the drag tag names
+  the colour, the layer under the pointer outlined); a click reads the paint at the point (an SVG fill, a text's colour,
+  the first visible background; a picture or gradient → the browser's EyeDropper on that click, Chromium) and writes all
+  selected layers in one edit (setOwnPropsOnLayers); Esc, a press on the panels, another tool or page stops it.
+  edit/pickColorRequest.ts lets SwatchControl's new "Pick color" row (every colour list) start it for that row without
+  the Inspector importing the canvas code (madge: it had added a PropField ↔ pickColor cycle).
+- I left FIGMA_NOT_YET; StudioApp's I is Interact only on example pages; Quick actions › Pick color (I), Keyboard
+  shortcuts › Tools.
+- E2E FW-183…186 (pick onto a Shape, a frame exact and nearest, Esc / no selection / Quick actions, a colour row's
+  pick); FW-05's list lost I. The EyeDropper path has no E2E (the browser's own picker). My slip: I ran FW-05 +
+  FW-183…186 beside C's gate (check and run in one command); told C. FW-184's helper was fixed afterwards by reading
+  the code (layers chosen by data-name), to re-run in my gate turn.
+
 ## Select matching layers ⌥⌘A + Select all with same › (Session A, branch `zen/feat/studio-select-matching-20261022`)
 
 The user's ask, relayed by the progress session: "điều phối cho session nhận scope chưa ai nhận đi". ⌥⌘A was one of
@@ -163,6 +182,29 @@ E2E steps ran 3163–3377 s against that cap: the limit was sent to `npm`, not t
   shows, `SlotChips` drew the read-only people/place values as Chips with no handler (a `<button>` that does nothing;
   seen in the appshell and card-themes gates too). The chip guideline says a read-only label is a Tag: they are Tags
   now. Scoped gate `--only=ai-ui`: PASS, behaviour 0 warnings. Its BACKLOG P3 line (from #210) is removed.
+
+## Session A — B's corner smoothing → gradient → Pick color stack landed (20:00–21:00)
+
+- **Taken over from B** at the user's request ("giao cho session khác xử corner smoothing, gradient, Pick color (B)").
+- **Main merged in, bottom-up:** a8a0bf23, then 032d8fbd (#213, #214). Conflicts:
+  - the studio:selftest chain: both sides kept;
+  - figma-push DRAWN_PARTS: main's line, with smoothingOf below it;
+  - toolbar, Shortcuts, figmaNotYet, FW-05: Comment (C) and Pick color (I) both built, so the not-yet lists are empty;
+  - CHANGELOG and BACKLOG: both sides kept.
+- **Gate PASS** on Pick color (ab48e6e6): Studio E2E 338/0 in 8 shards, 9 pages.
+- **Found by FW-180's first run:** Corner smoothing never showed on frames, because FRAME_LOOK lacked `cornerSmoothing`.
+  Fixed on the smoothing branch.
+- **FW-186:** `pickLayer` read the selection from Layers while the left panel was on Pages. The helper now shows Layers
+  first.
+- **After the fixes:** FW-05 and FW-180…186 pass 8/8; tsc, studio:selftest and the CI quick steps are green.
+- **PRs:** #215 smoothing → main, #216 gradient → #215, #217 Pick color → #216. Auto-fix is on.
+- **Live paste test (user's go, ~21:30):** a frame with linear, radial and angular gradients plus a hugging linear Stack
+  (`cornerSmoothing={60}`) was ⌘V'd into the Zen file's QA page through Figma's direct paste. All four landed with
+  every stop bound to its variable (Accent/Solid, Info/Solid), smoothing 0.6 and radius 16. It also showed a Shape of
+  width 200 or 80 pasted 1392 wide, an old bug on main: the push let a column's stretch give a shape `fillW`. Fixed on
+  the smoothing branch (figma-push `ownW`/`ownH` cover shapes, plus a selftest); the decoded clipboard now carries
+  200 / 80 with no STRETCH. No second paste: by then the user was working in another Figma file. The test frame was
+  removed (no node left on any page) and the clipboard put back as it was (empty). BACKLOG's gradient-paste P3 is closed.
 
 ## AppShell session · BACKLOG: two items already done (tier XS, docs only)
 

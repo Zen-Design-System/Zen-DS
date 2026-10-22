@@ -37,6 +37,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Zen Studio's Fill › Gradient sets the type, the angle and the stops on a gradient bar (a press adds one, a handle drags
   or takes ← →, Delete removes it), and round-trips them with Figma's gradient paints bound to variables (push, pull,
   native paste, plugin `studio-import` 9c54e40).
+- Zen Studio: Pick color (I, Figma's eyedropper) on a page you made: a click on the canvas paints the selected layers'
+  fill (a Shape's fill, a frame's surface, a text's tone) with the picked layer's own colour variable, or the nearest
+  variable of the target's palette (said), in one edit; a picture's pixel comes from the browser's eyedropper (Chromium).
+  Every colour list has Pick color too, for its own row; Quick actions and Keyboard shortcuts list it. I is no longer a
+  "not in Zen Studio yet" key.
 - Zen Studio: the Design tab shows only Figma's sections; what only code reads (an HTML element, Scroll, a button's
   type, ids, aria-* and the attributes no API lists) moved from the closed "Code properties" section to the Code tab's
   Properties, above the layer's code, edited there the same way (2026-10-21, parity plan §3a; E2E FW-165…169).

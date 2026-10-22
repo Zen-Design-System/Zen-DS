@@ -216,7 +216,7 @@ export function CanvasTools() {
     <ChromeScope className="studio-canvas-tools" role="toolbar" aria-label="Tools">
       {canvasToolGroups.map((group, index) => {
         // A page you made is a Figma design page: no Stack tool (Frame F, then Add auto layout ⇧A) and no Interact
-        // (the examples' tool); I is Figma's Pick color there (edit/figmaNotYet.ts).
+        // (the examples' tool); I is Figma's Pick color there (edit/pickColor.ts).
         // Comments belong to a page you made (stored beside its file).
         const items = localPage ? group.filter((item) => item.id !== "stack" && item.id !== "interact") : group.filter((item) => item.id !== "comment");
         if (!items.length) return null;
