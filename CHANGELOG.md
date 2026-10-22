@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio's Properties panel shows a chart's Figma properties in Figma's order and names: Orientation, Type, Color,
+  Show Legend, Show Average, Legend, Total, Size and the Donut's Total Label / Value (the header rows stay ChartCard's),
+  and the Main component frame draws the chart sets' variants; `component-properties.json` has the ❖ Chart page
+  (15 sets, read 2026-10-23) (2026-10-23).
 - Charts take `palette="primary" | "secondary"`, Figma's Color on Bar, Stack-Bar, Area, Grouped-Bar, Combo, Donut,
   Radial, Gauge, Funnel and Bullet: `secondary` leads with Chart/Sector/Secondary (Neutral Deep) and keeps
   Sector/Primary for the highlight (the active bar, the target, the second series; one area takes the Neutral fade).

@@ -187,3 +187,18 @@ Branch claude/interesting-yonath-0da9e0 (worktree agitated-leakey-b2b41c). BACKL
   E2E 338 / 338 (3 shards), Build-QA PASS. Contact sheets: the 390 sheet showed "5,900 of 7,564 h" leaving the unit "h"
   alone on its line (in the new example and the older "Utilisation against a target"): the chart page's `hours()` now
   puts a no-break space before "h". Re-gate of the chart page PASS; the unit stays with its number.
+
+## Chart sets in the Studio inspector (tier S; G3 of the P2/P3 triage, approved by the user 2026-10-23; Giám sát assigned it here)
+
+Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows need `palette`).
+- Read ❖ Chart (6143:31287) live with `tools/studio/figma-props-read.js` (read-only): 15 sets with properties (Line,
+  Multi-Line, Stack-Bar, Bar, Area, Grouped-Bar, Combo, Donut, Radial, Bar-List, Heatmap, Curve-Preview, Gauge, Funnel,
+  Bullet; Gauge/Funnel/Bullet by their set ids). Chart/Chart-Card has no component properties, so it has no entry.
+  Only that page's entry of component-properties.json changed (48 other pages byte-identical; Curve-Preview unchanged).
+- figma-props.map.mjs: eleven charts mapped. The header properties (Show Icon … Show Open) are ChartCard's (skip), Sector
+  is the data's period count and Average the data's mean (skip), Donut's Ring-Slot its data (skip); the rest map to
+  showAverage, orientation, type, showLegend, palette, legendPosition, totalPosition, size, label, value. LineChart maps
+  Line-Chart only (Multi-Line is `compare`, no prop picks it); Bar-List and Heatmap have only the header and keep the one
+  list. Push and pull keep their chart branch (figma-charts.mjs runs before the generic set lookup both ways).
+- Generated: figmaProps (105 components, 230 props), variantSets (the Main component frame draws the chart variants).
+  studio:selftest ✓ (propGroups 352), library-keys / native-pack checks ✓, tsc ✓.
