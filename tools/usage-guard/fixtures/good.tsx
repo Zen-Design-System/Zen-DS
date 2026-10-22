@@ -221,6 +221,9 @@ export const Good = () => <>
   <AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026" data={data} series={[{ id: "design", label: "Design" }, { id: "engineering", label: "Engineering" }, { id: "delivery", label: "Delivery" }]} />
   <GroupedBarChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={data} series={[{ id: "invoiced", label: "Invoiced" }, { id: "collected", label: "Collected" }]} />
   <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" data={combo} barLabel="Revenue" lineLabel="Margin" lineMax={100} />
+  <BarChart palette="secondary" aria-label="Revenue per month, Apr – Sep 2026" data={data} />
+  <GroupedBarChart palette="secondary" aria-label="Invoiced and collected per month, Apr – Sep 2026" data={data} series={[{ id: "invoiced", label: "Invoiced" }, { id: "collected", label: "Collected" }]} />
+  <BarChart aria-label="Revenue per month, Apr – Sep 2026" data={data} color="var(--zen-color-background-support-cyan-solid)" />
   <TableMedia media={<Avatar size="small" theme="photo" src={photo} alt="" />} caption="Designer">Ava Chen</TableMedia>
   <TableMedia media={<Avatar size="xsmall" theme="photo" src={photo} alt="" />}>Ava Chen</TableMedia>
   <TableMedia media={<DockIcon icon="icon-file-doc-line" size="xsmall" />}>Spec.pdf</TableMedia>

@@ -73,13 +73,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   light text on a White-Overlay fill, as Button/Overlay White-Overlay) reads 1.8:1 on Brand/Accent #FF6BD5 (white on
   the bare band is already 2.5:1); it suits darker solid colours. Decide whether to keep it for light brand colours or
   steer them to `black-overlay` in the guideline (session log 2026-10-17, "Chip + Segmented overlay").
-- **P1 · Chart `Color = Primary | Secondary`, phase 2 in code + Studio (2026-10-17, waits for the user's Figma review;
-  user chose "Figma trước, code sau khi duyệt"):** the 10 Figma chart sets have it (session log 2026-10-17, "Chart
-  Color"). Code: one prop on BarChart, StackBarChart, AreaChart, GroupedBarChart, ComboChart, DonutChart, RadialChart,
-  GaugeChart, FunnelChart, BulletChart that swaps Sector/Primary and /Secondary (BarChart's `color`/`activeColor` are
-  raw CSS, so the prop needs its own name), stacked/single area fill to the Neutral pair; Studio figma-charts push/pull
-  of `Color`; Gauge/Funnel/Bullet are sets now (ids in `CHART_SETS` are their Primary variants, keys unchanged);
-  re-capture library-keys + component-properties; figma-docs text for the property.
 - **P2 · Templates take the phone chrome (2026-10-16, follow-up of the responsive header P3, waits for the user):**
   AdminList, Detail, Dashboard, SettingsForm and HrShell keep their PageHeader in the content and have no
   `topNavigation` / `bottomNavigation`, so on a phone they show the drawer and the desktop header rows. Each needs its
@@ -182,7 +175,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   `zen/feat/charts-phase2`: seven components, Studio palette, push/pull of all 15 chart sets).
 - **P2 · Studio inspector has no chart Figma properties (charts phase 2, 2026-10-14):** the chart sets are missing from
   `docs/figma-contracts/component-properties.json` (captured 2026-10-05), so the inspector's Figma-props rows (Show
-  Legend, Show Average, Type, Orientation …) are absent for charts; push/pull carry them. Needs a contract re-capture.
+  Legend, Show Average, Type, Orientation, Color …) are absent for charts; push/pull carry them. Needs a contract re-capture.
 - **P2 · Chart parity, designer decisions and Figma active states (2026-10-17):** active X pill (20px hug, Medium vs
   sector-wide 16px Bold), 88% dim of inactive columns, Bar label padding/thinning, Tooltip anchor and lanes, Heatmap
   density token, Chart Card description gap; Figma lacks the Line/Multi-Line active dot, Area Stacked and Grouped/Combo

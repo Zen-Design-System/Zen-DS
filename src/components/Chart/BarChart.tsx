@@ -2,7 +2,7 @@ import { Fragment, useMemo, type CSSProperties, type Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { AverageLine, ChartBlock, ChartSummary, PlotFrame, defaultFormat, meanOf, niceScale, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartPoint } from "./chartCore";
+import { AverageLine, ChartBlock, ChartSummary, PlotFrame, defaultFormat, meanOf, niceScale, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartPaletteName, type ChartPoint } from "./chartCore";
 
 export interface BarChartProps {
   /** One bar per category or period (`{ label, value }`); mark a forecast `projected` (hatched) and give a bar a `target`
@@ -21,10 +21,13 @@ export interface BarChartProps {
   ref?: Ref<HTMLDivElement>;
   /** The bar active at first (painted Chart/Sector/Secondary, its Tooltip shown). Default: the last bar that isn't projected. */
   initialIndex?: number;
-  /** Colour of the bars. Default Chart/Sector/Primary. */
+  /** Colour of the bars, any CSS colour. Default Chart/Sector/Primary (Chart/Sector/Secondary with `palette="secondary"`). */
   color?: string;
-  /** Colour of the active bar. Default Chart/Sector/Secondary. */
+  /** Colour of the active bar, any CSS colour. Default Chart/Sector/Secondary (Chart/Sector/Primary with `palette="secondary"`). */
   activeColor?: string;
+  /** Figma Color: `primary` (default) draws Color Chart Sector/Primary bars with the active one in Sector/Secondary;
+   *  `secondary` draws Sector/Secondary bars with the active one in Sector/Primary. `color` / `activeColor` still win. */
+  palette?: ChartPaletteName;
   /** Grow the bars from the baseline on mount and when the data changes (default true; reduced motion fades). */
   animate?: boolean;
   /** A dotted line at the mean of the bars that aren't projected, tagged "Avg $87.8K" (Figma Show Average). */
@@ -37,9 +40,10 @@ export interface BarChartProps {
  * in Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→). Horizontal: a
  * category column, 24px bars, a value column at the end of the rows (the active one in Strongest; no Tooltip floats over
  * the bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart
- * 15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941); the hatch is .Chart/Hatch 15321:475.
+ * 15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941; Color=Primary · Secondary ↔ `palette`); the hatch is
+ * .Chart/Hatch 15321:475.
  */
-export function BarChart({ data, orientation = "vertical", format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, color, activeColor, animate = true, showAverage = false, ref }: BarChartProps) {
+export function BarChart({ data, orientation = "vertical", format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, color, activeColor, palette = "primary", animate = true, showAverage = false, ref }: BarChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const signature = signatureOf(data.map((d) => [d.value, d.target ?? null, d.projected ?? false]));
@@ -57,7 +61,7 @@ export function BarChart({ data, orientation = "vertical", format = defaultForma
 
   if (!horizontal) {
     return (
-      <ChartBlock ref={ref} kind="bar">
+      <ChartBlock ref={ref} kind="bar" palette={palette}>
         <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel} activeLine="neutral" className={className} kind="bar" animate={animate}
           tooltip={current ? valueText(current) : null} summary={summary} average={average}>
           <div className="zen-chart__bars" key={signature} style={colours}>
@@ -74,7 +78,7 @@ export function BarChart({ data, orientation = "vertical", format = defaultForma
   }
 
   return (
-    <ChartBlock ref={ref} kind="bar">
+    <ChartBlock ref={ref} kind="bar" palette={palette}>
       <div className={["zen-chart", "zen-chart--horizontal", className].filter(Boolean).join(" ")} data-kind="bar" data-orientation="horizontal" data-animate={animate ? undefined : "false"} style={colours}>
         <div className="zen-chart__hplot" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0} onKeyDown={onKeyDown} data-average={average ? "true" : undefined}
           style={{ "--zen-chart-count": data.length } as CSSProperties}>

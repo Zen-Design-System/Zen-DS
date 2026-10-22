@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode, Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartLegend, chartPalette, signatureOf, type ChartLegendPosition } from "./chartCore";
+import { ChartBlock, ChartLegend, sectorAt, signatureOf, type ChartLegendPosition, type ChartPaletteName } from "./chartCore";
 
 export interface GaugeChartProps {
   /** The reading, measured from 0 to `max` ("1,052 h", "82"). A value past `max` fills the ring and still reads as it is. */
@@ -33,6 +33,9 @@ export interface GaugeChartProps {
   ref?: Ref<HTMLDivElement>;
   /** Sweep the value from 0 on mount and when it changes; the target tick fades in after (default true; reduced motion fades). */
   animate?: boolean;
+  /** Figma Color: `primary` (default) draws the value in Color Chart Sector/Primary and the target tick in Sector/Secondary;
+   *  `secondary` the value in Sector/Secondary and the tick in Sector/Primary. */
+  palette?: ChartPaletteName;
 }
 
 /** Figma Gauge: the tick runs 4px past both edges of the ring, 3px wide, at the default 240px width. */
@@ -47,9 +50,9 @@ const TICK_PX = 3;
  * Body/Small/Regular · Content/Neutral/Base caption; the scale's ends (Label/Small/Medium · Content/Neutral/Light) sit
  * centred under the ring's two ends. The legend (Figma Show Legend) names the value and the target, Spacing/Gap/Small
  * apart. It is a `meter` (aria-valuenow, min 0, max `max`, value text "Billable 82%, Target 85%"): nothing in it can be
- * picked, so it takes no tab stop. Figma Chart/Gauge-Chart 15486:2467.
+ * picked, so it takes no tab stop. Figma Chart/Gauge-Chart 15968:130382 (Color=Primary 15486:2467 · Secondary ↔ `palette`).
  */
-export function GaugeChart({ value: valueProp, max = 100, target: targetProp, actualLabel, targetLabel, caption, size = 240, format, showLegend, legendPosition = "bottom", "aria-label": ariaLabel, className, animate = true, ref }: GaugeChartProps) {
+export function GaugeChart({ value: valueProp, max = 100, target: targetProp, actualLabel, targetLabel, caption, size = 240, format, showLegend, legendPosition = "bottom", "aria-label": ariaLabel, className, animate = true, palette = "primary", ref }: GaugeChartProps) {
   const t = useZenLabels();
   // A reading that isn't a number reads 0 (aria-valuenow must be one); a target that isn't a number is no target.
   const value = Number.isFinite(valueProp) ? valueProp : 0;
@@ -69,10 +72,10 @@ export function GaugeChart({ value: valueProp, max = 100, target: targetProp, ac
     return { from: at(40 - TICK_OVERSHOOT_PX * k), to: at(50 + TICK_OVERSHOOT_PX * k) };
   })();
   const legend = (showLegend ?? target !== undefined)
-    ? <ChartLegend gap="small" items={[{ id: "value", label: valueName, color: chartPalette[0] }, ...(target === undefined ? [] : [{ id: "target", label: targetName, color: chartPalette[1] }])]} />
+    ? <ChartLegend gap="small" items={[{ id: "value", label: valueName, color: sectorAt(0, palette) }, ...(target === undefined ? [] : [{ id: "target", label: targetName, color: sectorAt(1, palette) }])]} />
     : undefined;
   return (
-    <ChartBlock ref={ref} kind="gauge" legend={legend} position={legendPosition} className="zen-chart-round">
+    <ChartBlock ref={ref} kind="gauge" legend={legend} position={legendPosition} className="zen-chart-round" palette={palette}>
       <div className={["zen-chart", "zen-chart--round", "zen-chart--gauge", className].filter(Boolean).join(" ")} data-kind="gauge" data-animate={animate ? undefined : "false"} style={{ "--zen-chart-size": `calc(${size}px + 2 * var(--zen-chart-grow, 0px))` } as CSSProperties}>
         <div className="zen-chart__gauge" role="meter" aria-label={ariaLabel} aria-valuemin={0} aria-valuemax={max} aria-valuenow={Math.max(0, Math.min(max, value))} aria-valuetext={valueText}>
           <div className="zen-chart__gauge-dial" aria-hidden="true">

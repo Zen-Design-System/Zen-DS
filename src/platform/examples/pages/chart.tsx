@@ -817,6 +817,28 @@ function HoursUtilisationCard() {
   );
 }
 
+/* ───────────── Figma Color = Secondary ───────────── */
+
+/** Three cards led by Chart/Sector/Secondary (Neutral Deep in Zen's theme), the brand colour kept for what stands out:
+ *  the active bar, the gauge's target, the second client's share (Figma Color=Secondary ↔ palette="secondary"). */
+function NeutralLedRow() {
+  return (
+    <Grid minColumnWidth="clamp(300px, 30%, 100%)" gap="md">
+      <ChartCard title="Revenue" icon="icon-bar-chart-01-line" description="Invoiced so far in 2026" value={formatMoney(invoicedSoFar)}>
+        <BarChart palette="secondary" aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast" data={revenue2026} format={formatCompactMoney} height={240} />
+      </ChartCard>
+      <ChartCard title="Utilisation" icon="icon-speedometer-03-line" description="Billable share of logged hours, September"
+        value={`${billableSeptember.toLocaleString("en-US")} of ${hours(loggedSeptember)}`}>
+        <GaugeChart palette="secondary" aria-label="Billable share of logged hours against the 85% target, September 2026" value={billableSeptember} max={loggedSeptember}
+          target={loggedSeptember * 0.85} actualLabel="Billable" />
+      </ChartCard>
+      <ChartCard title="Revenue by client" icon="icon-pie-chart-01-line" description="Q3 2026" value={formatMoney(clientShares.reduce((sum, c) => sum + c.value, 0))}>
+        <DonutChart palette="secondary" aria-label="Revenue by client, Q3 2026" data={clientShares} format={formatCompactMoney} />
+      </ChartCard>
+    </Grid>
+  );
+}
+
 /* ───────────── Examples ───────────── */
 
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
@@ -1242,5 +1264,24 @@ const retry = () => {
     format={hours} lineFormat={(value) => \`\${value}%\`} lineMax={100} height={240}
     data={[{ label: "Apr", bar: 5560, line: 77 }, /* … */ { label: "Sep", bar: 5900, line: 78 }]} />
 </ChartCard>`,
+  },
+  {
+    title: "Led by the neutral colour",
+    description: "palette=\"secondary\" (Figma Color=Secondary) leads a chart with Chart/Sector/Secondary, Neutral Deep in Zen's theme, and keeps the brand colour for what should stand out: the active bar, the gauge's target, the second client's share. Bar, stack bar, area, grouped bar, combo, donut, radial, gauge, funnel and bullet charts take it; colours from the third series on stay as they are.",
+    render: () => <NeutralLedRow />,
+    code: `<Grid minColumnWidth="clamp(300px, 30%, 100%)" gap="md">
+  <ChartCard title="Revenue" icon="icon-bar-chart-01-line" description="Invoiced so far in 2026" value="$798,300">
+    <BarChart palette="secondary" aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast"
+      data={[{ label: "Jan", value: 74300 }, /* … */ { label: "Dec", value: 104000, projected: true }]} format={formatCompactMoney} height={240} />
+  </ChartCard>
+  <ChartCard title="Utilisation" icon="icon-speedometer-03-line" description="Billable share of logged hours, September" value="5,900 of 7,564 h">
+    <GaugeChart palette="secondary" aria-label="Billable share of logged hours against the 85% target, September 2026"
+      value={5900} max={7564} target={7564 * 0.85} actualLabel="Billable" />
+  </ChartCard>
+  <ChartCard title="Revenue by client" icon="icon-pie-chart-01-line" description="Q3 2026" value="$296,800">
+    <DonutChart palette="secondary" aria-label="Revenue by client, Q3 2026" format={formatCompactMoney}
+      data={[{ id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 }, /* … */]} />
+  </ChartCard>
+</Grid>`,
   },
 ]);

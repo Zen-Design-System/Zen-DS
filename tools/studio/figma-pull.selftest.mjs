@@ -219,7 +219,7 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
       { type: "INSTANCE", id: "9:3", name: "Chart/Chart-Card", set: { id: cardSet.id, name: cardSet.name }, props: { Theme: "Default", Spacing: "Medium", Active: "No", "Sub-Action": false }, slots: [{ id: "9:4", name: "Content", children: [chart("Chart/Bar-Chart", "15321:84071", { "Show Icon": false, Title: "Capacity", "Show Description": false, "Show Value": false, "Show Ranges": false, "Show Open": false, "Show Average": true, Orientation: "Horizontal" })] }] },
       chart("Chart/Multi-Line-Chart", "15501:3054", { Title: "x", Sector: "6-Sectors", "Show Average": false }, { headingHidden: true }),
       chart("Chart/Donut-Chart", "15324:80365", { Title: "x", Legend: "Start", Total: "Centre", "Total Label": "Invoiced in Q3 2026", "Total Value": "$296,800" }, { headingHidden: true }),
-      chart("Chart/Gauge-Chart", "15486:2467", { Title: "Utilisation", "Show Legend": false }),
+      chart("Chart/Gauge-Chart", "15968:130382", { Title: "Utilisation", "Show Legend": false, Color: "Secondary" }),
       chart("Chart/Grouped-Bar-Chart", "15485:2457", { Title: "x", "Show Legend": false }, { headingHidden: true }),
     ],
   };
@@ -230,6 +230,7 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("charts: Chart/Chart-Card (read as its Default Card) is a ChartCard with ChartCard's default theme; Bar Horizontal + Show Average", /<ChartCard title="Capacity">\s*<BarChart orientation="horizontal" aria-label="Billable hours per team against capacity, September 2026"[^>]*showAverage \/>/.test(page));
   ok("charts: a chart whose Heading is hidden is the chart alone; Multi-Line Sector 6 has six months", /<LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026"[^>]*data=\{\[\{ label: "Apr"[^\]]*\{ label: "Sep", value: 105700 \}\]\}/.test(page));
   ok("charts: Donut Legend Start, its Total Label kept, the sample's total left to the code", /<DonutChart aria-label="Revenue by client, Q3 2026"[^>]*legendPosition="start" label="Invoiced in Q3 2026" \/>/.test(page));
+  ok("charts: Color=Secondary is palette=\"secondary\"; Color=Primary writes no palette", /<GaugeChart [^>]*palette="secondary"/.test(page) && !/<(BarChart|DonutChart|GroupedBarChart)[^>]*palette=/.test(page));
   ok("charts: a chart with its Heading outside a Card: the chart, and a note that its header is ChartCard's", /<GaugeChart [^>]*showLegend=\{false\}/.test(page) && chartNotes.some((note) => note.startsWith('GaugeChart: its heading (Title "Utilisation") shows in Figma')));
   ok("charts: one note that the data is the Studio's sample", chartNotes.some((note) => note.startsWith("6 charts: the data is the Studio's sample")));
   ok("charts: grouped bars with Show Legend off keep their legend (chart/series-need-legend), with a note", !/<GroupedBarChart [^>]*showLegend/.test(page) && chartNotes.some((note) => /Show Legend is off in Figma; its series need their legend/.test(note)));

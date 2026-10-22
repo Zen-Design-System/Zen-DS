@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Charts take `palette="primary" | "secondary"`, Figma's Color on Bar, Stack-Bar, Area, Grouped-Bar, Combo, Donut,
+  Radial, Gauge, Funnel and Bullet: `secondary` leads with Chart/Sector/Secondary (Neutral Deep) and keeps
+  Sector/Primary for the highlight (the active bar, the target, the second series; one area takes the Neutral fade).
+  Zen Studio pushes and pulls it as Color; the harness warns (`chart/palette-by-hand`) when the two sector colours are
+  set by hand (2026-10-23).
 - Zen Studio: copying a Section onto its own place (⌘D, ⌥-drag) no longer overflows the page's stack: of two
   Sections the same size the one written first holds the other, as documented, never both each other. The Studio E2E
   report (and the gate's) now names the row and the stack of every Vite error, so a page error that fails no row is
