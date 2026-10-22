@@ -71,3 +71,25 @@ added since brought 177 className back. PR 1: classes with a Figma-equivalent pr
   looked at).
 - My slip: I stopped my isolated server with pattern kills (`pkill -f "tail -f /dev/null"`), which can hit another
   session's processes; memory updated (TaskStop or exact PIDs only).
+
+## Colour P1s: On-Brand on Zen/9 and the Chart On-Color styles (session "colour P1s", tier S)
+
+Two BACKLOG P1s waiting on the user (brief from the supervisor: "xử hết backlog", clear the P1s before the next phase).
+- **White on Zen/9 (closed, no change).** Measured with the ramp's APCA (`tools/studio/zen-ramp.generated.mjs`): white on
+  Light Zen/9 #F755C9 Lc 60 / 2.96:1, black 86% Lc 48 / 6.22:1; Zen/10 white Lc 71; Dark hover #FF7BD6 white Lc 50
+  (ramp floor 50); Dark pressed keeps black 86% (Lc 73). White is the APCA pick on every Light step. The user decided the
+  measure on 2026-10-19 ("không áp dụng cứng nhắc WCAG … dùng APCA … có mode High Contrast"), and the audit's
+  `apcaPick` already passes the pair, so the item was closed without asking again.
+- **Color Chart Sector/On-Color/Secondary and /Tertiary (user: "Giữ binding mới").** Live Figma: Secondary →
+  Content/Neutral/Light (black 49% Light), Tertiary → Border/Neutral/Subtle/Pressed (18%), Primary → Content/On-Colors.
+  Live consumers: only the 6 Bullet-Chart Tracks (Tertiary × layer 50%); the 11 Spark-Bars bars that use Secondary sit
+  in a detached frame. Options shown with swatches on Brand / Cyan / Yellow / Orange solids (Secondary Lc 31–46,
+  ~2.9:1; Neutral/Base 69% Lc 42–62; the old binding drew solid #121212).
+  - Figma: the three style descriptions said "Content/Neutral/Strongest at 48% / 20%" (Primary too, though it is
+    On-Colors) and were rewritten; `tools/figma-docs/style-descriptions.mjs` now has an On-Color branch (it wrote
+    "Chart series colour :" for them before).
+  - Code: Card Solid's `--zen-card-mark-ink` (the second series on a hue Solid) Neutral/Base 69% → Content/Neutral/Light
+    49%, Inverse/Light in dark mode, to match the style.
+  - Gate PASS (isolated; card, widgets, metric; audit 1512/390/320, dark, behaviour, 80 browser tests; report
+    2026-10-22T19-17-48-192108d7). No platform example draws a second series on a hue Solid, so a throwaway browser test
+    measured the Bullet target on Brand / Cyan / Yellow / Orange Solid cards: rgba(0, 0, 0, 0.486) in light and dark.

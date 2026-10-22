@@ -22,11 +22,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved; F0–F10 shipped by 2026-10-20,
   HANDOFF):** `docs/research/studio-figma-design-parity-2026-10-18.md`. Left: an instance's data-name stays in the page
   (its Figma name is its component's or carries content, which pull reads as such).
-- **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
-  (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
-  (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
-  rule gives Zen black text on step 9. Shown by ai-ui › "Follow-ups edit, not rebuild" (Schedule). Pointer:
-  tokens/source/figma/base-colors-project.json Light/On-Brand-Default, Figma Base Colors (Project).
 - **P2 · Charts in Studio pages show no currency (2026-10-18, V-1 of the vibe agent; new API, user):** `format` on
   LineChart / BarList / MetricCard is a function, which the page dialect cannot write, so a revenue chart reads "128.4K",
   not "$128.4K". Needs a literal preset (e.g. `format="currency"` + `currency`) or a dialect form. Pointer:
@@ -131,11 +126,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (`docs/figma-contracts/layer-renames-2026-10-12.json`, with the undo map). Other files see them once the library is
   published. What `ALLOWED` in nested-paths.mjs still lists is structure, not naming: unnamed bottom-navigation items
   and stepper steps, pages named by number, ChatComposer actions named by job, code-only layers (Retry, Counter…).
-- **P1 · Review the rebound Figma styles Color Chart Sector/On-Color/Secondary and /Tertiary (user 2026-10-14: "Thử rồi
-  duyệt sau"):** they bound Content/Neutral/Strongest (alpha 1) with a 48% / 20% paint opacity, and a bound colour's
-  opacity follows the variable's alpha, so they drew solid everywhere. Now bound to Content/Neutral/Light (49% light /
-  60% dark) and Border/Neutral/Subtle/Pressed (18% / 23%); the Bullet-Chart main's Track and the widget boards use them.
-  If the user rejects it, restore the old binding (and the layer-opacity workaround). Session log 2026-10-13.
 - **P2 · Code-side rules for the Figma theme audit — waits for the user (2026-10-13, rest of "Box theme vocabulary in
   code"; re-checked 2026-10-23):** the vocabulary is in code: Card / ListBox `theme` · `color` · `surface`, MetricCard
   and ChartCard pass it through, the Studio map and the Card contract follow #210 (no Semi-Pale; `semi-pale` is a
