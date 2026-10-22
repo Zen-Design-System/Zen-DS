@@ -106,7 +106,8 @@ Last updated: 2026-10-21.
 - **Widget themes phase 1 (2026-10-13, Figma only):** Card +`Color` (7 hues) and Themes Gradient/Solid (72 variants),
   gradient + On-Color chart styles from tokens, Metric-Card `Type` (KPI, Sparkline, Spark-Bars, Goal-Progress,
   Comparison, Category-Bar, Hero) and 7 new card-less chart components (Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel,
-  Bar-List, Bullet). Code + Studio = phase 2, after the user's review (BACKLOG P1).
+  Bar-List, Bullet). Phase 2 is in code and Studio; the gradient themes were dropped (2026-10-14). Since 2026-10-23
+  the harness mirrors the Figma theme audit (theme/* rules, Card guideline) and a Canvas/Alt Sidebar sits on the canvas.
 - **Figma descriptions + AI kit (2026-10-13):** every public set, the semantic/spacing/radius/breakpoint variables and
   every style in the file carry descriptions from `tools/figma-docs/build.mjs` (rerun after a rule change; the user
   approved writing them); the old texts are in frame "Description backup 2026-10-13" on 🔒 ARCHIVED until the user

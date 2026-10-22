@@ -139,14 +139,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   opacity follows the variable's alpha, so they drew solid everywhere. Now bound to Content/Neutral/Light (49% light /
   60% dark) and Border/Neutral/Subtle/Pressed (18% / 23%); the Bullet-Chart main's Track and the widget boards use them.
   If the user rejects it, restore the old binding (and the layer-opacity workaround). Session log 2026-10-13.
-- **P2 · Code-side rules for the Figma theme audit — waits for the user (2026-10-13, rest of "Box theme vocabulary in
-  code"; re-checked 2026-10-23):** the vocabulary is in code: Card / ListBox `theme` · `color` · `surface`, MetricCard
-  and ChartCard pass it through, the Studio map and the Card contract follow #210 (no Semi-Pale; `semi-pale` is a
-  deprecated alias of pale). Left: usage-guard rules mirroring the Figma audit's `theme/mixed-elevation`,
-  `theme/mode-override`, `theme/mixed-boxes`, `theme/on-solid-content` and `theme/on-white-solid`
-  (`skills/zen-figma-design/harness/zen-figma-audit.js`); code already has card/pale-on-canvas-default,
-  layer/surface-on-canvas-alt-border, layer/surface-flat-is-navigation and surface/no-shadow-on-tinted. New harness
-  rules need the user's yes, and colour / composition principles stay skill guidance unless the user says otherwise.
 - **P2 · Navigation surfaces missing in the Figma library (designer, 2026-10-13):** Side-Bar/Master/Basic has no
   background variant (code Sidebar has default/alt/flat + divider), Top-Navigation/Mobile has no Flat type,
   Bottom-Navigation has no surface choice and its main carries an unstyled drop shadow. Screens override by variable
