@@ -118,6 +118,11 @@ check("components: two layers in a main", /exactly one layer/.test(first(withCom
 check("components: a repeated id", /share the id/.test(first(withComponents('<Component id="a" name="A"><Text>a</Text></Component><Component id="a" name="B"><Text>b</Text></Component>'))), true);
 check("components: an instance inside its main", /inside its own component/.test(first(withComponents('<Component id="a" name="A"><Stack><Use of="a" /></Stack></Component>'))), true);
 check("components: a bad id", /needs an id/.test(first(withComponents('<Component id="A b" name="A"><Text>a</Text></Component>'))), true);
+// Libraries' project components (live): an instance of another page's component checks its shape only.
+check("components: another page's component", messages(withComponents('<Use of="card-1" page="pricing" variant={{ Size: "Small" }} props={{ Label: "Go" }} overrides={{ Text: { children: "Hi" } }} />')), []);
+check("components: page names a page id", /names a page of the project/.test(first(withComponents('<Use of="card-1" page="Bad Page" />'))), true);
+check("components: of on another page is a component id", /names a component of page pricing/.test(first(withComponents('<Use of="Card 1" page="pricing" />'))), true);
+check("components: overrides on another page's take literals", /literal values/.test(first(withComponents('<Use of="card-1" page="pricing" overrides={{ Text: { children: mock.x } }} />'))), true);
 // F7: sets, variants, properties and their bindings, instances with variant and props (Figma's component sets).
 {
   const set = `<ComponentSet id="chip" name="Chip" properties={{ Label: { type: "text", default: "Filter" }, "Show icon": { type: "boolean", default: true }, Icon: { type: "swap", default: "icon-star-line" } }}>

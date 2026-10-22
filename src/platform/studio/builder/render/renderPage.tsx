@@ -58,6 +58,11 @@ export type RenderContext = {
   layout?: "mobile" | "desktop";
   /** The page's main components and component sets by id (`<Component>`, `<ComponentSet>`), for their instances (`<Use>`). */
   components?: LocalComponents;
+  /** The components of every page of the project by page id (Libraries' project components, a live link): a
+   *  `<Use page>` draws from that page's map. The open page is in it too (another page's main may hold one of its). */
+  library?: ReadonlyMap<string, LocalComponents>;
+  /** Drawing another page's main: that page's id, whose components its own `<Use of>` name (none: the open page). */
+  scope?: string;
   /** Drawing an instance's layers: they carry no mark of their own (the instance is one layer, its root carries the
    *  `<Use>`'s), so a click anywhere on it selects the instance, as Figma's first click does. */
   instance?: boolean;
@@ -275,10 +280,12 @@ function literalsOf(value: PageValue | undefined): Record<string, unknown> {
 
 /** Each layer of a main by its path inside an instance of it (tools/studio/instance-paths.mjs), a nested instance by its
  *  set's or main's name. */
-export function layerPathsOf(root: PageNode, components?: LocalComponents): Map<PageNode, string> {
+export function layerPathsOf(root: PageNode, components?: LocalComponents, library?: ReadonlyMap<string, LocalComponents>): Map<PageNode, string> {
   return instanceLayerPaths(root, (node) => {
-    const entry = components?.get(String(literalOf(node.props.of) ?? ""));
-    const set = entry?.kind === "main" && entry.set ? components?.get(entry.set) : undefined;
+    const page = literalOf(node.props.page);
+    const map = typeof page === "string" ? library?.get(page) : components;
+    const entry = map?.get(String(literalOf(node.props.of) ?? ""));
+    const set = entry?.kind === "main" && entry.set ? map?.get(entry.set) : undefined;
     return set?.kind === "set" ? set.name : entry?.name ?? null;
   });
 }
@@ -361,6 +368,12 @@ export function componentsKey(components: LocalComponents, ids?: ReadonlyMap<str
     : `${id}:${entry.name}:${JSON.stringify(entry.variant ?? null)}:${JSON.stringify(entry.properties)}:${signatureOf(entry.root, ids)}`)).join("|");
 }
 
+/** The same for the project's other pages (Libraries' project components): an edit of a main on one page draws its
+ *  instances on the others again. */
+export function libraryKey(library: ReadonlyMap<string, LocalComponents> | undefined): string {
+  return library ? [...library].map(([page, components]) => `${page}{${componentsKey(components)}}`).join("") : "";
+}
+
 /**
  * The main an instance draws and its property values (dialect.mjs resolveInstance, on the render's map): the main `of`
  * names, or its set's first variant, with `variant` values over it (the variant matching most of them); each property's
@@ -402,23 +415,29 @@ function renderComponentNode(node: PageNode, scope: Scope, ctx: RenderContext, k
     const name = entry?.kind === "main" ? entry.name : String(literalOf(node.props.name) ?? id);
     return root ? renderNode(root, scope, ctx, key, { ...extra, "data-zen-main": id, "data-zen-main-name": name, ...(entry?.kind === "main" && entry.set ? { "data-zen-variant": name } : {}) }) : null;
   }
-  const drawn = instanceOf(ctx.components, node);
+  // An instance of another page's component (`page`, Libraries' project components) draws from that page's components,
+  // and its main's own instances name that page's.
+  const page = literalOf(node.props.page);
+  const home = typeof page === "string" ? page : ctx.scope;
+  const components = typeof page === "string" ? ctx.library?.get(page) : ctx.components;
+  const drawn = instanceOf(components, node);
   // An instance of a main being drawn (directly or through another instance) would draw itself forever.
-  if (!drawn || ctx.chain?.includes(drawn.id)) return null;
+  const link = `${home ?? ""}/${drawn?.id ?? ""}`;
+  if (!drawn || ctx.chain?.includes(link)) return null;
   // The instance's own layer name and lock (layer-meta.mjs) stand for its root, not the main root's.
   const own: Record<string, unknown> = {};
   for (const prop of [NAME_PROP, LOCKED_PROP]) if (node.props[prop]?.kind === "literal") own[prop] = (node.props[prop] as { value: unknown }).value;
   // A nested instance inside an instance is part of it (one layer to the first click), as Figma's. An instance of a set
   // is named after the set ("Chip"), never its variant ("Size=Small").
-  const owner = drawn.main.set ? ctx.components?.get(drawn.main.set) : undefined;
-  const mark = ctx.instance ? {} : { "data-zen-src": srcOfNode(node, ctx), "data-zen-name": "Use", "data-zen-instance": drawn.id, "data-zen-instance-name": owner?.kind === "set" ? owner.name : drawn.main.name };
+  const owner = drawn.main.set ? components?.get(drawn.main.set) : undefined;
+  const mark = ctx.instance ? {} : { "data-zen-src": srcOfNode(node, ctx), "data-zen-name": "Use", "data-zen-instance": drawn.id, "data-zen-instance-name": owner?.kind === "set" ? owner.name : drawn.main.name, ...(typeof page === "string" ? { "data-zen-instance-page": page } : {}) };
   // Its overrides (F7b): its own table at its place, under the outer instances' (theirs win, as Figma's outermost does).
   const table = overridesTable(node.props.overrides);
   const base = at ?? "";
-  const nest: InstanceNest = { paths: layerPathsOf(drawn.main.root, ctx.components), base, tables: [...(ctx.nest?.tables ?? []), ...(table ? [{ base, table }] : [])] };
+  const nest: InstanceNest = { paths: layerPathsOf(drawn.main.root, components, ctx.library), base, tables: [...(ctx.nest?.tables ?? []), ...(table ? [{ base, table }] : [])] };
   const slotFill = node.props.slots?.kind === "object" ? { values: node.props.slots.fields, scope, ctx } : undefined;
   const slotOwner = ctx.instance ? undefined : srcOfNode(node, ctx);
-  const drawnRoot = renderNode(drawn.main.root, scope, { ...ctx, instance: true, values: drawn.values, chain: [...(ctx.chain ?? []), drawn.id], nest, slotFill, slotOwner }, at === null ? key : undefined, { ...extra, ...own, ...mark });
+  const drawnRoot = renderNode(drawn.main.root, scope, { ...ctx, components, scope: home, instance: true, values: drawn.values, chain: [...(ctx.chain ?? []), link], nest, slotFill, slotOwner }, at === null ? key : undefined, { ...extra, ...own, ...mark });
   return asLayer(drawnRoot, at, ctx.nest, key);
 }
 

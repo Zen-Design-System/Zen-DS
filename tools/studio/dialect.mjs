@@ -625,7 +625,9 @@ export function resolveInstance(tree, use, model) {
 }
 
 /** What `<Use>` takes: its component, its variant and property values, its overrides, and the layer data any layer carries (layer-meta.mjs). */
-const USE_PROPS = new Set(["of", "variant", "props", "overrides", "slots", "data-name", "data-locked"]);
+const USE_PROPS = new Set(["of", "page", "variant", "props", "overrides", "slots", "data-name", "data-locked"]);
+/** A page id (pages-folder.mjs PAGE_ID): `<Use page>` names another page of the project, whose component it shows. */
+const USE_PAGE_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const COMPONENT_PROPS = new Set(["id", "name", "variant", "properties", "description", "link"]);
 const SET_PROPS = new Set(["id", "name", "properties", "description", "link"]);
 
@@ -693,12 +695,27 @@ function checkComponents(board, errors) {
   eachElement(board, (node, parents) => {
     if (node.name !== "Use") return;
     const of = literalProp(node, "of") ?? null;
-    if (typeof of !== "string" || !ids.has(of)) { at(node, `<Use of="${of ?? ""}"> names no component of this page`); return; }
+    // An instance of another page's component (Libraries' project components, live): this page cannot see that page, so
+    // only its shape is checked here; the editor reads the main there.
+    const foreign = node.props.page !== undefined;
+    if (foreign) {
+      const page = literalProp(node, "page");
+      if (typeof page !== "string" || !USE_PAGE_ID.test(page)) { at(node, "<Use page=\"…\"> names a page of the project by its id"); return; }
+      if (typeof of !== "string" || !COMPONENT_ID.test(of)) { at(node, `<Use of="${of ?? ""}"> names a component of page ${page}`); return; }
+    } else if (typeof of !== "string" || !ids.has(of)) { at(node, `<Use of="${of ?? ""}"> names no component of this page`); return; }
     if (node.children.some((child) => child.kind !== "text" || child.value.trim())) at(node, "<Use> holds nothing: it shows its component");
     // An instance inside its own main (or its own set) would draw itself forever.
-    if (parents.some((parent) => (parent.name === "Component" || parent.name === "ComponentSet") && parent.props.id?.value === of)) at(node, `<Use of="${of}"> sits inside its own component`);
+    if (!foreign && parents.some((parent) => (parent.name === "Component" || parent.name === "ComponentSet") && parent.props.id?.value === of)) at(node, `<Use of="${of}"> sits inside its own component`);
     // An instance may carry its own layer name and lock (tools/studio/layer-meta.mjs), as any layer does.
-    for (const prop of Object.keys(node.props)) if (!USE_PROPS.has(prop)) at(node, `<Use> takes of, variant, props, overrides and slots only, not ${prop}`);
+    for (const prop of Object.keys(node.props)) if (!USE_PROPS.has(prop)) at(node, `<Use> takes of, page, variant, props, overrides and slots only, not ${prop}`);
+    if (foreign) {
+      if (node.props.variant && !literalObject(node.props.variant)) at(node, "variant takes text values: variant={{ Size: \"Small\" }}");
+      if (node.props.props && !literalObject(node.props.props)) at(node, "props takes literal values: props={{ Label: \"Cancel\" }}");
+      if (node.props.slots && (node.props.slots.kind !== "object" || Object.values(node.props.slots.fields).some((content) => content.kind !== "element" && content.kind !== "fragment"))) at(node, "slots is an object of layers: slots={{ Content: <Text>Hi</Text> }}");
+      const overrides = node.props.overrides;
+      if (overrides && (overrides.kind !== "object" || Object.values(overrides.fields).some((layer) => layer.kind !== "object" || Object.values(layer.fields).some((value) => value.kind !== "literal")))) at(node, "overrides is an object of literal values: overrides={{ Text: { children: \"Done\" } }}");
+      return;
+    }
     const resolved = resolveInstance(board, node, model);
     if (!resolved) return;
     const set = resolved.set;

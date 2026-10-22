@@ -15,6 +15,7 @@ import { pageKey, studioStore } from "../../store";
 import { designNames, guidelineNotes, handoffMarkdown, type FocusStop, type GuidelineNotes, type HandoffFrame } from "./handoff";
 import { drawPng, pictureSvg, undrawable } from "./screenshot";
 import { previewForPage } from "../../project/activeProject";
+import { libraryOf } from "../../project/projectLibrary";
 
 /*
  * HTML export (Studio builder GĐ5 M2, spec docs/research/studio-builder-handoff-spec-2026-10-07.md §3b'): each Screen and
@@ -328,7 +329,7 @@ async function renderFrames(id: string, text: string): Promise<Rendered | { erro
   const root = createRoot(host);
   const dispose = () => { root.unmount(); host.remove(); };
   // Its own file name, so the copy's data-zen-src never reads as the page on the canvas.
-  const ctx = { file: `export:${id}.zen.tsx`, mock: tree.mock, proto: INERT, components: componentsOf(tree.board) };
+  const ctx = { file: `export:${id}.zen.tsx`, mock: tree.mock, proto: INERT, components: componentsOf(tree.board), library: libraryOf(id) };
   try {
     root.render(
       <ProtoContext value={INERT}>

@@ -5,6 +5,8 @@ import { frameMotion, motionProps } from "./playMotion";
 import { DEFAULT_DELAY, openerOf, optionsOf, OVERLAY_START, type ProtoOptions } from "./protoModel";
 import { placesItself } from "./protoTriggers";
 import { protoHandler, Screen, type PageDevice, type ProtoActions, type ScreenCanvas, type ScreenLayout } from "./runtime";
+import { pageIdOf } from "../store/pageStore";
+import { libraryOf } from "../../project/projectLibrary";
 
 /*
  * A page's prototype flow, shared by Play (Player.tsx, in the Studio) and the phone (device/DevicePlay.tsx, Open on phone):
@@ -132,7 +134,9 @@ export type PlayFlow = ReturnType<typeof usePlayFlow>;
  */
 export function PlayScreens({ flow, file, overlaySafe }: { flow: PlayFlow; file: string; overlaySafe?: { top: number | string; bottom: number | string } | null }) {
   const { tree, screen, blank, alone, currentKey, overlay, closeOverlay, leaving, leavingNode, entering, endLeaving, overlayNode, actions } = flow;
-  const ctx = { file, mock: tree?.mock ?? {}, proto: actions, components: componentsOf(tree?.board ?? null) };
+  // Instances of the project's other pages' components draw as the canvas does (project/projectLibrary.ts).
+  const page = pageIdOf(file);
+  const ctx = { file, mock: tree?.mock ?? {}, proto: actions, components: componentsOf(tree?.board ?? null), library: page ? libraryOf(page) : undefined };
   const overlayChild = overlayNode?.children.find((child): child is PageNode => child.kind === "element");
   const safe = (value: number | string) => (typeof value === "number" ? `${value}px` : value);
   const blankSize = (prop: string) => { const value = blank ? literal(blank, prop) : undefined; return typeof value === "number" ? value : undefined; };
