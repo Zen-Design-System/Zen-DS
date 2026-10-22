@@ -308,6 +308,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   area, then Export it (1x PNG to start; PNG, JPG or SVG at any scale) as a picture of the frames under it. A slice
   draws its dashed outline only, so a click inside it still selects what is under it; it is renamed, moved, resized,
   copied and deleted as a frame is, and Layers lists it. Not sent to Figma yet.
+- Zen Studio: Figma's Comment tool (C, or Comment in the toolbar) on a page you made: click the canvas to pin a
+  comment there (on a frame it stays at its place in the frame), reply, resolve and reopen, delete your own (an Admin
+  deletes any); the right panel lists the page's threads ("Show resolved" adds the resolved ones). You give your name
+  once; a Viewer comments too. Comments are kept beside the page file (`<page>.comments.json` in the pages folder),
+  never in the page's code, and are not sent to Figma.
+- Zen Studio: Libraries (⌥⌘O, the book button in Assets, or ⌘K › Libraries): switches for what a project's pages use,
+  saved in the project. Zen off takes Zen's components and icons out of Assets; the project's theme off draws its pages
+  in Zen's own theme.
 - Studio → Figma (Import from Studio): a Grid inside a Grid cell stretches to its row as in CSS, so a row's cards match its
   tallest (the Dashboard's metric pairs came out at their own heights); the direct paste keeps it at its own height.
 - Zen Studio: ⌥-drag, ⌘D and ⌘C ⌘V of a Section copy it with the frames and Sections it holds, in one ⌘Z, as Figma does
@@ -1158,6 +1166,13 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Build-QA gate (2026-10-22): a full `npm run qa -- --all` ends with a real pass or fail for every step instead of
+  being killed by a time limit. The audit, dark audit and behaviour jobs run in shards of about 10 minutes sized from
+  each page's last measured time; a shard that still stops early fails its step and names the pages it did not check.
+  The Studio E2E runs in shards of about 10 minutes, one after another, each with a time budget; rows left over are
+  reported as not run, and one combined report lists the regressions. `studio:e2e` gains `--budget` and `--list`.
+- AI UI page, "Composed while typing": once the booking form shows, the read-only people and place values are Tags
+  (they were Chips that did nothing when clicked; the behaviour gate's dead-click warning, BACKLOG P3 until now).
 - Zen Studio: a right-click on a selected layer's resize handle opens the layer's menu, as in Figma. A short text at a
   low zoom is mostly handles, so its menu did not open.
 - Dialog, ModalForm, BottomSheet and modal SidePanel: a modal in an inert part of the page no longer takes Escape

@@ -17,6 +17,7 @@ import { FramePanel } from "./FramePanel";
 import { LocalPartPanel } from "./LocalPartPanel";
 import { FramePresets } from "../builder/FramePresets";
 import { ScalePanel } from "../draw/ScalePanel";
+import { CommentsPanel } from "../comments/CommentsPanel";
 import { PagePanel } from "./PagePanel";
 // A part: a Table's Data-Row or Cell has its own panel, any other part is PartPanel's (table/TableCellPanel.tsx).
 import { TablePartPanel } from "../table/TableCellPanel";
@@ -119,6 +120,8 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
   const presetsPage = useStudio((state) => (state.tool === "frame" ? state.localPage : null));
   // The Scale tool (K) on a page you made: Figma's Scale section (draw/ScalePanel.tsx, Session C).
   const scalePage = useStudio((state) => (state.tool === "scale" ? state.localPage : null));
+  // The Comment tool (C) on a page you made: Figma's comments list (comments/CommentsPanel.tsx).
+  const commentPage = useStudio((state) => (state.tool === "comment" ? state.localPage : null));
   return (
     <div className="studio-inspector">
       <div className="studio-inspector__tabs">
@@ -135,7 +138,8 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
         <ZoomMenu size="xs" />
       </div>
       <TabPanel idPrefix="studio-inspector" id={tab} className="studio-inspector__body">
-        {tab === "prototype" ? <PrototypePanel />
+        {commentPage ? <CommentsPanel localPage={commentPage} />
+          : tab === "prototype" ? <PrototypePanel />
           // The Code tab holds a layer's code properties (DesignPanel's code view; §3a), the Design tab only Figma's.
           : tab === "code" ? <CodePanel selection={selection} codeSlot={codeSlot} properties={selection?.kind === "node" && !selection.part ? <DesignPanel key={identity} view="code" selection={selection} controlsSlot={controlsSlot} /> : null} />
           : presetsPage ? <FramePresets localPage={presetsPage} />

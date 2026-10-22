@@ -38,6 +38,7 @@ export function auxKind(rel) {
   if (/^tools\/style-guard\//.test(rel)) return "style-guard";
   if (/^tools\/figma-contract\//.test(rel)) return "figma-contract";
   if (/^tools\/studio\//.test(rel)) return "studio";
+  if (/^tools\/qa\//.test(rel)) return "qa";
   if (/^tests\//.test(rel)) return "tests";
   if (/^(tokens\/source|src\/tokens)\//.test(rel)) return "tokens";
   if (/^styles\/source\//.test(rel)) return "styles-source";
@@ -540,4 +541,98 @@ export function sheetsToReview(root, ledger, run, cap = SHEET_CAP) {
   // optional, so the cap is not a page size.
   if (sheets.some((s) => s && typeof s.required === "boolean")) return { required: pending.filter((s) => s.required), optional: pending.filter((s) => !s.required), unchanged, overwritten };
   return { required: pending.slice(0, cap), optional: pending.slice(cap), unchanged, overwritten };
+}
+
+/* ── shard plans ────────────────────────────────────────────────────────────────────────────────────────────────── */
+// The runtime jobs (audit, dark audit, behaviour) and the Studio E2E run in shards sized from what the last run measured
+// (.qa/timings.json), so each shard stays far under the cap that stops a hung process. Before (2026-10-22) a full gate
+// split 59 pages over a fixed number of processes and the 338 E2E rows ran as one: on a loaded machine they passed their
+// 30- and 40-minute caps and were killed before writing a report, so the gate failed on time, not on a finding.
+/** What a shard is planned to take, in seconds. */
+export const SHARD_TARGET_S = 600;
+/** A shard's time limit: 3× its plan, never under 30 min. */
+export const shardCapS = (planned) => Math.max(1800, Math.ceil(3 * planned));
+/** Seconds per page for a page with no timing yet (2026-10-22, a loaded machine: 59 pages over 12 processes). */
+export const PAGE_SECONDS = { audit: 150, "audit-token": 60, "audit-quick": 30, dark: 10, behaviour: 45 };
+/** Seconds per Studio E2E row with no run to measure, and what each shard adds (its server, the first Studio compile). */
+export const E2E_ROW_SECONDS = 6;
+export const E2E_SHARD_OVERHEAD_S = 45;
+
+const timingsFile = (root) => path.join(root, ".qa", "timings.json");
+/** { audit: { page: s }, "audit-token", "audit-quick", dark, behaviour, e2e: { perRow, rows, at } } of the last runs. */
+export function readTimings(root) {
+  try { return JSON.parse(fs.readFileSync(timingsFile(root), "utf8")); } catch { return {}; }
+}
+export function writeTimings(root, timings) {
+  fs.mkdirSync(path.dirname(timingsFile(root)), { recursive: true });
+  fs.writeFileSync(timingsFile(root), `${JSON.stringify(timings, null, 2)}\n`);
+}
+
+/** page → expected seconds: its last timing, else the median of the timed pages, else `fallback`. */
+export function pageEstimator(table, fallback) {
+  const known = Object.values(table ?? {}).filter(Number.isFinite).sort((a, b) => a - b);
+  const typical = known.length ? known[Math.floor(known.length / 2)] : fallback;
+  return (page) => (Number.isFinite(table?.[page]) ? table[page] : typical);
+}
+
+/**
+ * `items` in shards of about `target` seconds: at least `min` shards, at most one per item, the longest item first into
+ * the lightest shard. Each shard keeps the input order. Returns [{ items, seconds }], the heaviest first.
+ */
+export function planShards(items, estimate, { target = SHARD_TARGET_S, min = 1 } = {}) {
+  if (!items.length) return [];
+  const cost = items.map((item) => Math.max(1, Number(estimate(item)) || 1));
+  const total = cost.reduce((a, b) => a + b, 0);
+  const n = Math.max(1, Math.min(items.length, Math.max(min, Math.ceil(total / target))));
+  const bins = Array.from({ length: n }, () => ({ at: [], seconds: 0 }));
+  for (const i of items.map((_, i) => i).sort((a, b) => cost[b] - cost[a] || a - b)) {
+    const bin = bins.reduce((a, b) => (b.seconds < a.seconds ? b : a));
+    bin.at.push(i); bin.seconds += cost[i];
+  }
+  return bins.map((b) => ({ items: b.at.sort((x, y) => x - y).map((i) => items[i]), seconds: Math.round(b.seconds) })).sort((a, b) => b.seconds - a.seconds);
+}
+
+/**
+ * Seconds per page from a runtime job's output: audit.mjs and behaviour.mjs print one "✓|⚠|✗ <page>@<width>" line as each
+ * page run ends, and `marks` holds [ms since the process started, line]. A page's time is the gap before each of its
+ * lines, summed over its widths.
+ */
+export function pageSeconds(marks) {
+  const out = {};
+  let last = 0;
+  for (const [t, line] of marks) {
+    const m = /^[✓⚠✗] (\S+?)@\d+/.exec(line);
+    if (!m) continue;
+    out[m[1]] = (out[m[1]] ?? 0) + (t - last) / 1000;
+    last = t;
+  }
+  return Object.fromEntries(Object.entries(out).map(([page, s]) => [page, Math.round(s * 10) / 10]));
+}
+
+/** Seconds per Studio E2E row: the last gate's measure, else the newest E2E report of 20+ rows, else E2E_ROW_SECONDS. */
+export function e2eRowSeconds(root, timings) {
+  if (Number.isFinite(timings?.e2e?.perRow)) return timings.e2e.perRow;
+  const dir = path.join(root, ".qa", "studio-e2e");
+  let reports = [];
+  try { reports = fs.readdirSync(dir).filter((f) => /^\d{4}-.+\.json$/.test(f)).sort().reverse(); } catch { /* no runs yet */ }
+  for (const f of reports) {
+    try {
+      const r = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8"));
+      if ((r.rows?.length ?? 0) >= 20 && r.ms > 0) return Math.round((r.ms / r.rows.length / 100)) / 10;
+    } catch { /* unreadable report */ }
+  }
+  return E2E_ROW_SECONDS;
+}
+
+/**
+ * Studio E2E shards for `rows` rows at `perRow` seconds: n shards of about SHARD_TARGET_S, run one after another (they
+ * share the save fixture). `budget`: after it a shard starts no row (run.mjs --budget, the rest are reported as not
+ * run); `cap`: the hard stop, a budget plus the longest row (2 × 60 s with its retry) and the teardown.
+ */
+export function planE2E(rows, perRow, { target = SHARD_TARGET_S } = {}) {
+  const work = Math.max(1, rows) * Math.max(0.1, perRow);
+  const n = Math.max(1, Math.min(Math.max(1, rows), Math.ceil(work / target)));
+  const planned = Math.round(E2E_SHARD_OVERHEAD_S + work / n);
+  const budget = shardCapS(planned);
+  return { n, planned, budget, cap: budget + 600 };
 }

@@ -266,6 +266,21 @@ export const studioApi = {
     for (let index = 0; index < text.length; index += 1) bytes[index] = text.charCodeAt(index);
     return bytes;
   },
+  /** A page's comments beside it in .zen-studio/pages/ (GET /pages/comments): the file's JSON, or null when it has none. */
+  async pageComments(id: string): Promise<unknown | null> {
+    const reply = await authorized<{ ok?: unknown; comments?: unknown }>(`/pages/comments?id=${encodeURIComponent(id)}`);
+    if (!reply || reply.status !== 200 || reply.body?.ok === false) return null;
+    return reply.body?.comments ?? null;
+  },
+  /** POST /pages/comments-write { id, comments }; rejects with a StudioApiError when refused. */
+  async pageCommentsWrite(id: string, comments: unknown): Promise<void> {
+    const reply = await post<{ ok?: unknown }>("/pages/comments-write", { id, comments });
+    if (!reply) throw new StudioApiError("invalid", NO_SERVER);
+    if (reply.status !== 200 || reply.body?.ok === false) {
+      const { code, error } = errorOf(reply.body, "Comments not saved");
+      throw new StudioApiError(code, error);
+    }
+  },
   /** POST /pages/asset-write { id, data: base64 } or /pages/asset-trash { id }; rejects with a StudioApiError when refused. */
   async pageAssetWrite(action: "write" | "trash", id: string, bytes?: Uint8Array): Promise<void> {
     let data: string | undefined;

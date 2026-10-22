@@ -63,7 +63,7 @@ const HARNESS_TIMEOUT = 60_000;
 /** The drafts of each dev server persist here (relative to the root), as drafts-<port>.json. */
 const DRAFTS_DIR = "node_modules/.cache/zen-studio";
 const STATUS = { forbidden: 403, "not-found": 404, stale: 409, invalid: 400, confirm: 409 };
-const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/css-edit", "/drafts", "/frame-drafts", "/save", "/discard", "/parity", "/parity-keep", "/parity-revert", "/binding-diff", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/asset-trash", "/promote"]);
+const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/css-edit", "/drafts", "/frame-drafts", "/save", "/discard", "/parity", "/parity-keep", "/parity-revert", "/binding-diff", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/comments", "/pages/comments-write", "/pages/asset-trash", "/promote"]);
 /** Studio projects (2026-10-17, projects-folder.mjs): their own set, so the routes above merge cleanly. */
 const PROJECT_ROUTES = new Set(["/projects", "/projects/write", "/projects/trash"]);
 /** A frame request names at most this many frames and locs (a page renders a few thousand elements). */
@@ -360,6 +360,19 @@ export function zenStudio() {
         const body = await readJson(req);
         if (route === "POST /pages/asset-write" && typeof body.data !== "string") throw new HttpError("invalid", "Send { id, data }: the photo's bytes as base64");
         const result = await exclusive(() => pagesCall(() => (route === "POST /pages/asset-write" ? pages().writeAsset(body.id, new Uint8Array(Buffer.from(body.data, "base64"))) : pages().trashAsset(body.id))));
+        return send(res, 200, { ok: true, ...result });
+      }
+      // A page's comments beside it (docs/research/studio-comments-spec-2026-10-22.md): read by anyone with the token,
+      // written with the write headers (a Viewer comments too: the Studio's role is not the server's).
+      if (route === "GET /pages/comments") {
+        checkToken(req);
+        const id = url.searchParams.get("id");
+        return send(res, 200, { ok: true, id, comments: await pagesCall(() => pages().readComments(id)) });
+      }
+      if (route === "POST /pages/comments-write") {
+        checkWriteHeaders(req);
+        const body = await readJson(req);
+        const result = await exclusive(() => pagesCall(() => pages().writeComments(body.id, body.comments)));
         return send(res, 200, { ok: true, ...result });
       }
       if (route === "POST /pages/write" || route === "POST /pages/trash") {
