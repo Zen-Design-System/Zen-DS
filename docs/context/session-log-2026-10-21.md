@@ -716,3 +716,6 @@ Two gaps of the re-measure §2a "Menus" (the user opened one session per remaini
   FW-152 Button: no Flip; FW-153 Paste here dimmed after a fresh load and an empty clipboard, then a shape's paste
   → Frame 2, 100 × 100 at the pointer, the rectangle at 0, 0, selected, one ⌘Z; FW-154 a frame's paste at the pointer.
 - Static: tsc, studio:selftest, usage:check ✓.
+- Gate (2026-10-22, main be387faf merged in, `qa --isolated --files=…`): first run Studio E2E 337 / 338, ST-03 (the
+  dimmed Flip, above); after the fix ST-03/04/05 3 / 0 and PASS, Studio E2E 338 / 0 (1514 s).
+  `studio:e2e --only=figma --rows=FW-150…154,FW-36,FW-41,FW-120` 8 / 0 (40 s).
