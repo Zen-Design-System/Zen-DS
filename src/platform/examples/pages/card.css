@@ -1,9 +1,5 @@
-/* Card examples. Plan cards share one height (the Grid stretches them); the content fills the card so each CTA sits on
-   the bottom edge, level across the row (Card's content slot takes no height prop). */
-.px-card-plan > .zen-card__content { flex: 1 1 auto; }
-.px-card-grow { flex: 1 1 auto; min-width: 0; }
-.px-card-plan__cta { margin-top: auto; }
-/* Every title row keeps the Badge's height (Badge/Size/Medium follows the density: 28, 32 at Comfortable). */
+/* Card examples. Every plan title row keeps the Badge's height (Badge/Size/Medium follows the density: 28, 32 at
+   Comfortable). */
 .px-card-plan__title { min-height: var(--zen-badge-size-medium, 28px); }
 /* Playground (Spacing=small, xsmall): the dashed content slot fills the card, so its corners follow the card's (outer
    radius minus the inset: 16 − 16 = square corners; xsmall 12 − 8 = 4) instead of the slot's own 12px, and the nested
