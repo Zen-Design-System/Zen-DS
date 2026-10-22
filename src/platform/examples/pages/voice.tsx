@@ -50,7 +50,7 @@ function TaskVoiceNote() {
   const [status, setStatus] = useState("");
   return (
     <Stack gap="md">
-      <Card theme="flat" spacing="sm" width="fill" maxWidth={448}>
+      <Card theme="default" spacing="sm" width="fill" maxWidth={448}>
         <VoiceRecorder
           {...take.props}
           title="Note for “Rewards screens”"
@@ -85,7 +85,7 @@ function MicrophoneBlocked() {
           Your browser blocked the microphone for this site. Allow it, then record again.
         </InlineMessage>
       ) : null}
-      <Card theme="flat" spacing="sm" width="fill" maxWidth={448}>
+      <Card theme="default" spacing="sm" width="fill" maxWidth={448}>
         <VoiceRecorder
           {...take.props}
           input={blocked ? "No microphone allowed" : "Built-in microphone"}
@@ -145,7 +145,7 @@ function useConversation() {
 function TalkWithZen() {
   const talk = useConversation();
   return (
-    <Card theme="flat" spacing="sm" width="fill" maxWidth={448}>
+    <Card theme="default" spacing="sm" width="fill" maxWidth={448}>
       <AiVoiceConversation {...talk.props} />
     </Card>
   );
@@ -176,7 +176,7 @@ function TakeLimit() {
   }, [take, atLimit]);
   return (
     <Stack gap="md">
-      <Card theme="flat" spacing="sm" width="fill" maxWidth={320}>
+      <Card theme="default" spacing="sm" width="fill" maxWidth={320}>
         <VoiceRecorder
           {...take.props}
           title="Note for “Rewards screens — checkout copy review with Lumen Bank”"
@@ -201,7 +201,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     description: "Voice Recorder on a Card: Record starts the take, Pause and Resume hold it, Finish attaches it to the task's list and Discard throws it away. Discard and Finish stay off until there is a take.",
     code: `const [state, setState] = useState("ready");
 
-<Card theme="flat" spacing="sm">
+<Card theme="default" spacing="sm">
   <VoiceRecorder
     state={state}
     elapsed={elapsed} start={windowStart} end={windowEnd}
@@ -230,7 +230,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     Your browser blocked the microphone for this site. Allow it, then record again.
   </InlineMessage>
 ) : null}
-<Card theme="flat" spacing="sm">
+<Card theme="default" spacing="sm">
   <VoiceRecorder state={state} input={blocked ? "No microphone allowed" : "Built-in microphone"} format="48 kHz · Mono"
     onRecord={() => (blocked ? setAsked(true) : setState("recording"))}
     onPause={pause} onResume={resume} onFinish={finish} onDiscard={discard} />
@@ -243,7 +243,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     code: `const [state, setState] = useState("ready");
 const [muted, setMuted] = useState(false);
 
-<Card theme="flat" spacing="sm">
+<Card theme="default" spacing="sm">
   <AiVoiceConversation
     state={state}
     transcript={transcript}
@@ -268,7 +268,7 @@ const [muted, setMuted] = useState(false);
   {
     title: "The one-minute limit on a narrow card",
     description: "Edge cases: on a narrow card the long title truncates to one line, and a take that reaches its limit pauses itself at 01:00 and says why — Resume turns off (a main action without its handler is disabled), Finish saves it and Discard throws it away. (This demo starts three seconds before the limit.)",
-    code: `<Card theme="flat" spacing="sm">
+    code: `<Card theme="default" spacing="sm">
   <VoiceRecorder
     state={state}
     title="Note for “Rewards screens — checkout copy review with Lumen Bank”"

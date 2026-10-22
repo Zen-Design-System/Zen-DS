@@ -163,7 +163,7 @@ function StudioOverviewExample() {
       {shown.length ? (
         <Grid minColumnWidth="220px" gap="md">
           {shown.map((kpi) => (
-            <MetricCard key={kpi.id} theme="flat" label={kpi.label} value={kpi[period].value} trend={trendOf(kpi)} icon={kpi.icon} iconTheme={kpi.theme}
+            <MetricCard key={kpi.id} theme="default" label={kpi.label} value={kpi[period].value} trend={trendOf(kpi)} icon={kpi.icon} iconTheme={kpi.theme}
               subAction={
                 <Menu align="end" trigger={<IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label={`Actions for ${kpi.label}`} />}
                   items={[
@@ -203,7 +203,7 @@ function StudioOverviewExample() {
 function LeadMetricExample() {
   const headingId = useId();
   return (
-    <Card as="section" theme="flat" aria-labelledby={headingId}>
+    <Card as="section" theme="default" aria-labelledby={headingId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} id={headingId} textStyle="Heading/Subheading">People</Heading>
@@ -237,7 +237,7 @@ function TrendGuidanceExample() {
   };
   return (
     <Stack gap="md">
-      <MetricCard theme="flat" label="Timesheets submitted" value="41 of 48" icon="icon-clock-line" iconTheme="blue" iconBackground="solid"
+      <MetricCard theme="default" label="Timesheets submitted" value="41 of 48" icon="icon-clock-line" iconTheme="blue" iconBackground="solid"
         trend={{ direction: "negative", label: "−4 vs. last week" }} />
       <Box ref={messageRef} tabIndex={-1}>
         {sent ? (
@@ -281,16 +281,16 @@ function TileStatesExample() {
       {/* At most three tiles a row, one on a phone */}
       <Grid minColumnWidth="clamp(240px, 30%, 100%)" gap="md">
         {/* Loaded */}
-        <MetricCard theme="flat" size="md" label="Budget" value="$36,000" icon="icon-coins-line" iconTheme="green" />
+        <MetricCard theme="default" size="md" label="Budget" value="$36,000" icon="icon-coins-line" iconTheme="green" />
         {/* No data yet: a dash, and a caption that says why */}
-        <Card theme="flat">
+        <Card theme="default">
           <Stack gap="xs">
             <Metric size="md" label="Hours logged" value={noData} icon="icon-clock-line" iconTheme="blue" />
             <Text textStyle="Body/Small/Regular" tone="base">No time logged yet. Tracking starts at the kickoff.</Text>
           </Stack>
         </Card>
         {/* Couldn't load → Skeleton in the metric's shape → the number */}
-        <Card theme="flat" ref={tileRef} tabIndex={-1} aria-busy={tasks === "loading"}>
+        <Card theme="default" ref={tileRef} tabIndex={-1} aria-busy={tasks === "loading"}>
           {tasks === "loading" ? (
             <Stack direction="row" gap="sm" align="center" aria-hidden="true">
               <SkeletonShape shape="round" size="md" />
@@ -428,7 +428,7 @@ function InvoiceSummaryExample() {
 function TeamPulseExample() {
   const headingId = useId();
   return (
-    <Card as="section" theme="flat" aria-labelledby={headingId}>
+    <Card as="section" theme="default" aria-labelledby={headingId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Heading level={4} id={headingId} textStyle="Heading/Subheading">Pulse survey</Heading>
@@ -595,7 +595,7 @@ function BudgetProgress() {
       {budgets.map((item) => {
         const used = Math.round((item.spent / item.budget) * 100);
         return (
-          <MetricCard key={item.id} theme="flat" variant="title-highlight" size="md" label={item.label} value={`$${item.spent.toLocaleString("en-US")}`}
+          <MetricCard key={item.id} theme="default" variant="title-highlight" size="md" label={item.label} value={`$${item.spent.toLocaleString("en-US")}`}
             icon={item.icon} iconTheme={item.theme}
             trend={{ direction: used > 100 ? "negative" : "normal", label: `of $${item.budget.toLocaleString("en-US")}` }}
             custom={<ProgressBar value={Math.min(used, 100)} theme="status" scale="quota" label={`${used}%`} aria-label={`${item.label} budget used`} />} />
@@ -618,11 +618,11 @@ function RevenueByChannel() {
     <Stack gap="lg">
       <Grid columns="repeat(auto-fit, minmax(min(100%, 200px), 1fr))" gap="md">
         {channels.map((channel) => (
-          <MetricCard variant="icon-highlight" key={channel.id} theme="flat" size="sm" icon={false} label={channel.label} value={channel.value}
+          <MetricCard variant="icon-highlight" key={channel.id} theme="default" size="sm" icon={false} label={channel.label} value={channel.value}
             metricColor={channel.color} counter={channel.invoices} />
         ))}
       </Grid>
-      <MetricCard theme="flat" variant="title-highlight" size="md" label="Next payout" labelIcon="icon-wallet-02-line"
+      <MetricCard theme="default" variant="title-highlight" size="md" label="Next payout" labelIcon="icon-wallet-02-line"
         hint="Paid invoices from the last 14 days, less the 2.9% card fee. Pays out every second Friday." value="$4,812.40"
         icon="icon-bank-line" iconTheme="green" trend={{ direction: "normal", label: "Friday, Oct 16" }} />
     </Stack>
@@ -653,11 +653,11 @@ const overdueCount = invoices.filter((row) => row.status === "Overdue").length;
 function MetricTypesRow() {
   return (
     <Grid columns="repeat(auto-fit, minmax(min(100%, 260px), 1fr))" gap="md">
-      <MetricCard theme="flat" type="sparkline" label="Revenue" value={usd(monthOf("sep").invoiced)} series={invoicedSeries} format={formatCompactMoney}
+      <MetricCard theme="default" type="sparkline" label="Revenue" value={usd(monthOf("sep").invoiced)} series={invoicedSeries} format={formatCompactMoney}
         trend={{ direction: "positive", label: `${changeOf(monthOf("sep").invoiced, monthOf("aug").invoiced)} vs. August` }} />
-      <MetricCard theme="flat" type="spark-bars" label="Hours logged" value={hoursLabel(weeklyHours[weeklyHours.length - 1])} series={weeklyHours} format={hoursLabel}
+      <MetricCard theme="default" type="spark-bars" label="Hours logged" value={hoursLabel(weeklyHours[weeklyHours.length - 1])} series={weeklyHours} format={hoursLabel}
         trend={{ direction: "positive", label: `${changeOf(weeklyHours[11], weeklyHours[10])} vs. last week` }} />
-      <MetricCard theme="flat" type="goal-progress" label="Collected in Q3" value={usd(q3Collected)} format={usd}
+      <MetricCard theme="default" type="goal-progress" label="Collected in Q3" value={usd(q3Collected)} format={usd}
         goal={{ value: q3Collected, target: 290000 }} trend={{ direction: "positive", label: `${changeOf(q3Collected, q2Collected)} vs. Q2` }} />
     </Grid>
   );
@@ -667,12 +667,12 @@ function MetricTypesRow() {
 function CashFlowRow() {
   return (
     <Grid columns="repeat(auto-fit, minmax(min(100%, 420px), 1fr))" gap="md">
-      <MetricCard theme="flat" type="comparison" label="Cash flow · September" comparison={[
+      <MetricCard theme="default" type="comparison" label="Cash flow · September" comparison={[
         { id: "invoiced", label: "Invoiced", value: usd(monthOf("sep").invoiced), trend: { direction: "positive", label: `${changeOf(monthOf("sep").invoiced, monthOf("aug").invoiced)} vs. August` } },
         { id: "collected", label: "Collected", value: usd(monthOf("sep").collected), trend: { direction: "negative", label: `${changeOf(monthOf("sep").collected, monthOf("aug").collected)} vs. August` } },
         { id: "overdue", label: "Overdue", value: usd(byStatus.find((item) => item.id === "overdue")!.value), trend: { direction: "normal", label: plural(overdueCount, "invoice") } },
       ]} />
-      <MetricCard theme="flat" type="category-bar" label="Open and paid invoices" value={usd(statusTotal)} categories={byStatus} format={usd} />
+      <MetricCard theme="default" type="category-bar" label="Open and paid invoices" value={usd(statusTotal)} categories={byStatus} format={usd} />
     </Grid>
   );
 }
@@ -701,13 +701,13 @@ function PhoneMetricTypes() {
       <AppShell topNavigation={<TopNavigation type="compact-alt" title="September" scrollRef={screenRef} leading={back} />}>
         {/* The Body pads the screen; the cards sit md apart, flat on the grey Canvas (no bottom bar, no shadow). */}
         <Stack gap="md">
-          <MetricCard theme="flat" spacing="small" type="sparkline" label="Revenue" value={usd(monthOf("sep").invoiced)} series={invoicedSeries} format={formatCompactMoney}
+          <MetricCard theme="default" spacing="small" type="sparkline" label="Revenue" value={usd(monthOf("sep").invoiced)} series={invoicedSeries} format={formatCompactMoney}
             trend={{ direction: "positive", label: `${changeOf(monthOf("sep").invoiced, monthOf("aug").invoiced)} vs. August` }} />
-          <MetricCard theme="flat" spacing="small" type="comparison" label="Cash flow" headingLevel={2} comparison={[
+          <MetricCard theme="default" spacing="small" type="comparison" label="Cash flow" headingLevel={2} comparison={[
             { id: "invoiced", label: "Invoiced", value: usd(monthOf("sep").invoiced), trend: { direction: "positive", label: "+9% vs. August" } },
             { id: "collected", label: "Collected", value: usd(monthOf("sep").collected), trend: { direction: "negative", label: "−8% vs. August" } },
           ]} />
-          <MetricCard theme="flat" spacing="small" type="category-bar" label="Invoices by status" value={usd(statusTotal)} categories={byStatus} format={usd} />
+          <MetricCard theme="default" spacing="small" type="category-bar" label="Invoices by status" value={usd(statusTotal)} categories={byStatus} format={usd} />
         </Stack>
       </AppShell>
     </PlatformPhone>
@@ -726,9 +726,9 @@ function StandOutTiles() {
       <Grid columns="repeat(auto-fit, minmax(min(100%, 160px), 1fr))" gap="md">
         <MetricCard type="tile" theme="solid" color={color} label="Overdue" value="$12,880" icon="icon-alarm-clock-line"
           trend={{ direction: "negative", label: "+1 invoice" }} />
-        <MetricCard type="tile" theme="flat" label="Collected" value="$88,300" icon="icon-wallet-02-line"
+        <MetricCard type="tile" theme="default" label="Collected" value="$88,300" icon="icon-wallet-02-line"
           trend={{ direction: "negative", label: "−8% vs. August" }} />
-        <MetricCard type="tile" theme="flat" label="Hours logged" value="1,284 h" icon="icon-clock-line"
+        <MetricCard type="tile" theme="default" label="Hours logged" value="1,284 h" icon="icon-clock-line"
           trend={{ direction: "positive", label: "+13% vs. August" }} />
       </Grid>
     </Stack>
@@ -754,13 +754,13 @@ function PhoneTiles() {
           <Grid columns="repeat(2, minmax(0, 1fr))" gap="sm">
             <MetricCard type="tile" theme="solid" color="neutral" label="Billable" value="82%" icon="icon-pie-chart-01-line"
               trend={{ direction: "positive", label: "+4%" }} />
-            <MetricCard type="tile" theme="flat" label="Hours logged" value="164 h" icon="icon-clock-line"
+            <MetricCard type="tile" theme="default" label="Hours logged" value="164 h" icon="icon-clock-line"
               trend={{ direction: "positive", label: "+12 h" }} />
           </Grid>
           <Grid columns="repeat(3, minmax(0, 1fr))" gap="sm">
-            <MetricCard type="tile" size="sm" theme="flat" label="Tasks done" value="12" icon="icon-check-done-line" trend={{ direction: "negative", label: "−2" }} />
-            <MetricCard type="tile" size="sm" theme="flat" label="Reviews" value="9" icon="icon-annotation-check-line" trend={{ direction: "positive", label: "+3" }} />
-            <MetricCard type="tile" size="sm" theme="flat" label="Days off left" value="9" icon="icon-plane-line" />
+            <MetricCard type="tile" size="sm" theme="default" label="Tasks done" value="12" icon="icon-check-done-line" trend={{ direction: "negative", label: "−2" }} />
+            <MetricCard type="tile" size="sm" theme="default" label="Reviews" value="9" icon="icon-annotation-check-line" trend={{ direction: "positive", label: "+3" }} />
+            <MetricCard type="tile" size="sm" theme="default" label="Days off left" value="9" icon="icon-plane-line" />
           </Grid>
         </Stack>
         {/* What comes up next: the rows under the tiles, in the Body's margin. */}
@@ -781,9 +781,9 @@ function PhoneTiles() {
 function FirstWeeksMetrics() {
   return (
     <Grid columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">
-      <MetricCard theme="flat" type="sparkline" label="Revenue" value={noData} series={[]} trend={{ direction: "normal", label: "First invoice due Oct 31" }} />
-      <MetricCard theme="flat" type="spark-bars" label="Hours logged" value={hoursLabel(38)} series={[38]} trend={{ direction: "normal", label: "Week 1 of the project" }} />
-      <MetricCard theme="flat" type="goal-progress" label="Deposit collected" value={usd(5600)} format={usd} goal={{ value: 5600, target: 5000 }}
+      <MetricCard theme="default" type="sparkline" label="Revenue" value={noData} series={[]} trend={{ direction: "normal", label: "First invoice due Oct 31" }} />
+      <MetricCard theme="default" type="spark-bars" label="Hours logged" value={hoursLabel(38)} series={[38]} trend={{ direction: "normal", label: "Week 1 of the project" }} />
+      <MetricCard theme="default" type="goal-progress" label="Deposit collected" value={usd(5600)} format={usd} goal={{ value: 5600, target: 5000 }}
         trend={{ direction: "positive", label: "$600 over the deposit" }} />
     </Grid>
   );
@@ -810,7 +810,7 @@ const hide = (kpi: Kpi) => {
 
 <Grid minColumnWidth="220px" gap="md">
   {kpis.filter((kpi) => !hidden.includes(kpi.id)).map((kpi) => (
-    <MetricCard key={kpi.id} theme="flat" label={kpi.label} value={kpi[period].value} trend={trendOf(kpi)}
+    <MetricCard key={kpi.id} theme="default" label={kpi.label} value={kpi[period].value} trend={trendOf(kpi)}
       icon={kpi.icon} iconTheme={kpi.theme} // Revenue green, Billable hours blue…
       subAction={
         <Menu align="end"
@@ -832,7 +832,7 @@ const hide = (kpi: Kpi) => {
     title: "One lead metric",
     description: "Headcount leads at XLarge with the only Solid Dock-Icon. The three metrics that explain it share one smaller size below a Divider.",
     render: () => <LeadMetricExample />,
-    code: `<Card as="section" theme="flat" aria-labelledby={headingId}>
+    code: `<Card as="section" theme="default" aria-labelledby={headingId}>
   <Stack gap="md">
     <Stack gap="xs">
       <Heading level={4} id={headingId} textStyle="Heading/Subheading">People</Heading>
@@ -853,7 +853,7 @@ const hide = (kpi: Kpi) => {
     title: "Team pulse",
     description: "A survey widget shows people-centred scores with an emoji Dock-Icon instead of an icon. The Normal trend says in words that a score held steady.",
     render: () => <TeamPulseExample />,
-    code: `<Card as="section" theme="flat" aria-labelledby={headingId}>
+    code: `<Card as="section" theme="default" aria-labelledby={headingId}>
   <Stack gap="md">
     <Stack gap="xs">
       <Heading level={4} id={headingId} textStyle="Heading/Subheading">Pulse survey</Heading>
@@ -878,14 +878,14 @@ const noData = <><span aria-hidden="true">—</span><VisuallyHidden>No data</Vis
 
 {/* At most three tiles a row, one on a phone */}
 <Grid minColumnWidth="clamp(240px, 30%, 100%)" gap="md">
-  <MetricCard theme="flat" size="md" label="Budget" value="$36,000" icon="icon-coins-line" iconTheme="green" />
-  <Card theme="flat">
+  <MetricCard theme="default" size="md" label="Budget" value="$36,000" icon="icon-coins-line" iconTheme="green" />
+  <Card theme="default">
     <Stack gap="xs">
       <Metric size="md" label="Hours logged" value={noData} icon="icon-clock-line" iconTheme="blue" />
       <Text textStyle="Body/Small/Regular" tone="base">No time logged yet. Tracking starts at the kickoff.</Text>
     </Stack>
   </Card>
-  <Card theme="flat" ref={tileRef} tabIndex={-1} aria-busy={tasks === "loading"}>
+  <Card theme="default" ref={tileRef} tabIndex={-1} aria-busy={tasks === "loading"}>
     {tasks === "loading" ? (
       <Stack direction="row" gap="sm" align="center" aria-hidden="true">
         <SkeletonShape shape="round" size="md" />
@@ -913,7 +913,7 @@ const send = () => {
   toast({ title: "Reminder sent", action: { label: "Undo", onClick: () => setSent(false) } });
 };
 
-<MetricCard theme="flat" label="Timesheets submitted" value="41 of 48" icon="icon-clock-line" iconTheme="blue" iconBackground="solid"
+<MetricCard theme="default" label="Timesheets submitted" value="41 of 48" icon="icon-clock-line" iconTheme="blue" iconBackground="solid"
   trend={{ direction: "negative", label: "−4 vs. last week" }} />
 {sent ? (
   <InlineMessage theme="positive" title="Reminder sent to 7 people">If hours are still missing on Friday morning, they get one more.</InlineMessage>
@@ -1002,7 +1002,7 @@ const paid = sumOf(rows, ["Paid"]);
     title: "Budget with progress",
     description: "Title-Highlight takes your own content under the number in its Custom slot (Figma Custom-Slot): here each project's spend as a ProgressBar. The corner icon stays beside the number; the bar uses the quota scale, so it turns Warning from 75% and Negative from 90%.",
     render: () => <BudgetProgress />,
-    code: `<MetricCard theme="flat" variant="title-highlight" size="md" label="Loyalty app" value="$28,400"
+    code: `<MetricCard theme="default" variant="title-highlight" size="md" label="Loyalty app" value="$28,400"
   icon="icon-phone-line" iconTheme="orange" trend={{ direction: "normal", label: "of $36,000" }}
   custom={<ProgressBar value={79} theme="status" scale="quota" label="79%" aria-label="Loyalty app budget used" />} />`,
   },
@@ -1010,10 +1010,10 @@ const paid = sumOf(rows, ["Paid"]);
     title: "Revenue by channel",
     description: "Metric-Color puts each channel's chart colour before its label, and the Counter after it says how many invoices the total covers. The payout tile is Title-Highlight with a Label-Icon before its title and a Hint after it, which explains how the number is worked out on hover and focus.",
     render: () => <RevenueByChannel />,
-    code: `<MetricCard variant="icon-highlight" theme="flat" size="sm" icon={false} label="Projects" value="$18,240"
+    code: `<MetricCard variant="icon-highlight" theme="default" size="sm" icon={false} label="Projects" value="$18,240"
   metricColor="var(--zen-color-background-support-blue-solid)" counter={6} />
 
-<MetricCard theme="flat" variant="title-highlight" size="md" label="Next payout" labelIcon="icon-wallet-02-line"
+<MetricCard theme="default" variant="title-highlight" size="md" label="Next payout" labelIcon="icon-wallet-02-line"
   hint="Paid invoices from the last 14 days, less the 2.9% card fee. Pays out every second Friday."
   value="$4,812.40" icon="icon-bank-line" iconTheme="green" trend={{ direction: "normal", label: "Friday, Oct 16" }} />`,
   },
@@ -1023,13 +1023,13 @@ const paid = sumOf(rows, ["Paid"]);
     description: "MetricCard type draws Figma's Metric-Card types under a Title-Highlight number: a sparkline of the last twelve months, spark bars with the current week in Chart Sector/Secondary, and a stacked ProgressBar toward the quarter's goal. The marks draw in on load; screen readers hear the numbers and a summary of each series.",
     render: () => <MetricTypesRow />,
     code: `{/* display: grid; repeat(auto-fit, minmax(260px, 1fr)); gap: 16px */}
-<MetricCard theme="flat" type="sparkline" label="Revenue" value="$105,700" format={formatCompactMoney}
+<MetricCard theme="default" type="sparkline" label="Revenue" value="$105,700" format={formatCompactMoney}
   series={[71200, 76500, 68900, 74300, 79600, 85100, 82300, 91800, 88400, 94100, 97000, 105700]}
   trend={{ direction: "positive", label: "+9% vs. August" }} />
-<MetricCard theme="flat" type="spark-bars" label="Hours logged" value="1,284 h" format={hoursLabel}
+<MetricCard theme="default" type="spark-bars" label="Hours logged" value="1,284 h" format={hoursLabel}
   series={[1012, 1086, 1048, 760, 1131, 1176, 1104, 640, 1153, 1067, 1132, 1284]}
   trend={{ direction: "positive", label: "+13% vs. last week" }} />
-<MetricCard theme="flat" type="goal-progress" label="Collected in Q3" value="$275,800" format={formatMoney}
+<MetricCard theme="default" type="goal-progress" label="Collected in Q3" value="$275,800" format={formatMoney}
   goal={{ value: 275800, target: 290000 }} trend={{ direction: "positive", label: "+8% vs. Q2" }} />`,
   },
   {
@@ -1037,12 +1037,12 @@ const paid = sumOf(rows, ["Paid"]);
     wide: true,
     description: "Comparison puts three numbers side by side under one title, each with its own trend; Category-Bar splits one total into its parts, each row saying its amount and a share that adds up to 100%. On a narrow card the columns stack.",
     render: () => <CashFlowRow />,
-    code: `<MetricCard theme="flat" type="comparison" label="Cash flow · September" comparison={[
+    code: `<MetricCard theme="default" type="comparison" label="Cash flow · September" comparison={[
   { id: "invoiced", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "+9% vs. August" } },
   { id: "collected", label: "Collected", value: "$88,300", trend: { direction: "negative", label: "−8% vs. August" } },
   { id: "overdue", label: "Overdue", value: "$12,880", trend: { direction: "normal", label: "1 invoice" } },
 ]} />
-<MetricCard theme="flat" type="category-bar" label="Open and paid invoices" value="$95,520.50" format={formatMoney}
+<MetricCard theme="default" type="category-bar" label="Open and paid invoices" value="$95,520.50" format={formatMoney}
   categories={[
     { id: "paid", label: "Paid", value: 49640.5 }, { id: "sent", label: "Sent", value: 21000 },
     { id: "overdue", label: "Overdue", value: 12880 }, { id: "draft", label: "Draft", value: 12000 },
@@ -1072,9 +1072,9 @@ const dark = look === "dark";
 <Grid columns="repeat(auto-fit, minmax(min(100%, 160px), 1fr))" gap="md">
   <MetricCard type="tile" theme="solid" color={color} label="Overdue" value="$12,880" icon="icon-alarm-clock-line"
     trend={{ direction: "negative", label: "+1 invoice" }} />
-  <MetricCard type="tile" theme="flat" label="Collected" value="$88,300" icon="icon-wallet-02-line"
+  <MetricCard type="tile" theme="default" label="Collected" value="$88,300" icon="icon-wallet-02-line"
     trend={{ direction: "negative", label: "−8% vs. August" }} />
-  <MetricCard type="tile" theme="flat" label="Hours logged" value="1,284 h" icon="icon-clock-line"
+  <MetricCard type="tile" theme="default" label="Hours logged" value="1,284 h" icon="icon-clock-line"
     trend={{ direction: "positive", label: "+13% vs. August" }} />
 </Grid>`,
   },
@@ -1089,12 +1089,12 @@ const dark = look === "dark";
       <Grid columns="repeat(2, minmax(0, 1fr))" gap="sm">
         <MetricCard type="tile" theme="solid" color="neutral" label="Billable" value="82%" icon="icon-pie-chart-01-line"
           trend={{ direction: "positive", label: "+4%" }} />
-        <MetricCard type="tile" theme="flat" label="Hours logged" value="164 h" icon="icon-clock-line" trend={{ direction: "positive", label: "+12 h" }} />
+        <MetricCard type="tile" theme="default" label="Hours logged" value="164 h" icon="icon-clock-line" trend={{ direction: "positive", label: "+12 h" }} />
       </Grid>
       <Grid columns="repeat(3, minmax(0, 1fr))" gap="sm">
-        <MetricCard type="tile" size="sm" theme="flat" label="Tasks done" value="12" icon="icon-check-done-line" trend={{ direction: "negative", label: "−2" }} />
-        <MetricCard type="tile" size="sm" theme="flat" label="Reviews" value="9" icon="icon-annotation-check-line" trend={{ direction: "positive", label: "+3" }} />
-        <MetricCard type="tile" size="sm" theme="flat" label="Days off left" value="9" icon="icon-plane-line" />
+        <MetricCard type="tile" size="sm" theme="default" label="Tasks done" value="12" icon="icon-check-done-line" trend={{ direction: "negative", label: "−2" }} />
+        <MetricCard type="tile" size="sm" theme="default" label="Reviews" value="9" icon="icon-annotation-check-line" trend={{ direction: "positive", label: "+3" }} />
+        <MetricCard type="tile" size="sm" theme="default" label="Days off left" value="9" icon="icon-plane-line" />
       </Grid>
     </Stack>
     {/* Coming up: a List under a Body/Small/Bold kicker */}
@@ -1109,13 +1109,13 @@ const dark = look === "dark";
   <AppShell topNavigation={<TopNavigation type="compact-alt" title="September" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: backToNumbers }} />}>
     <Stack gap="md">
-      <MetricCard theme="flat" spacing="small" type="sparkline" label="Revenue" value="$105,700" series={invoiced} format={formatCompactMoney}
+      <MetricCard theme="default" spacing="small" type="sparkline" label="Revenue" value="$105,700" series={invoiced} format={formatCompactMoney}
         trend={{ direction: "positive", label: "+9% vs. August" }} />
-      <MetricCard theme="flat" spacing="small" type="comparison" label="Cash flow" headingLevel={2} comparison={[
+      <MetricCard theme="default" spacing="small" type="comparison" label="Cash flow" headingLevel={2} comparison={[
         { id: "invoiced", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "+9% vs. August" } },
         { id: "collected", label: "Collected", value: "$88,300", trend: { direction: "negative", label: "−8% vs. August" } },
       ]} />
-      <MetricCard theme="flat" spacing="small" type="category-bar" label="Invoices by status" value="$95,520.50" categories={byStatus} format={formatMoney} />
+      <MetricCard theme="default" spacing="small" type="category-bar" label="Invoices by status" value="$95,520.50" categories={byStatus} format={formatMoney} />
     </Stack>
   </AppShell>
 </PlatformPhone>`,
@@ -1124,11 +1124,11 @@ const dark = look === "dark";
     title: "First weeks of a project",
     description: "Edge cases keep their shape: with no data yet the sparkline keeps its height and the number reads a dash (\"No data\" to screen readers); one week of hours is one current bar; a goal already passed fills the bar and reads 112%.",
     render: () => <FirstWeeksMetrics />,
-    code: `<MetricCard theme="flat" type="sparkline" label="Revenue" value={noData} series={[]}
+    code: `<MetricCard theme="default" type="sparkline" label="Revenue" value={noData} series={[]}
   trend={{ direction: "normal", label: "First invoice due Oct 31" }} />
-<MetricCard theme="flat" type="spark-bars" label="Hours logged" value="38 h" series={[38]}
+<MetricCard theme="default" type="spark-bars" label="Hours logged" value="38 h" series={[38]}
   trend={{ direction: "normal", label: "Week 1 of the project" }} />
-<MetricCard theme="flat" type="goal-progress" label="Deposit collected" value="$5,600" format={formatMoney}
+<MetricCard theme="default" type="goal-progress" label="Deposit collected" value="$5,600" format={formatMoney}
   goal={{ value: 5600, target: 5000 }} trend={{ direction: "positive", label: "$600 over the deposit" }} />`,
   },
 ]);

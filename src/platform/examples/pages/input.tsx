@@ -76,7 +76,7 @@ function NewProjectExample() {
     },
   });
   return (
-    <Card theme="flat">
+    <Card theme="default">
       {/* Fields stack md apart; the grid's columns sit lg apart. */}
       <Form form={form} gap="md">
         <Heading level={4} textStyle="Heading/Subheading">New project</Heading>
@@ -107,7 +107,7 @@ function BillingDetailsExample() {
   const [po, setPo] = useState("");
   const [address, setAddress] = useState("");
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Billing details</Heading>
         <Stack gap="md" direction="column">
@@ -149,7 +149,7 @@ function WorkspaceProfileExample() {
     toast({ type: "positive", title: "Workspace updated" });
   };
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Form onSubmit={save} gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Workspace profile</Heading>
         <InputField label="Workspace name" maxLength={32} characterLimit helpText="Shown in the sidebar and on invoices." value={name} onValueChange={setName} />
@@ -180,7 +180,7 @@ function SentInvoiceExample() {
     toast({ type: "positive", title: "Invoice number copied" });
   };
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       {/* Two groups in one card (lg apart); fields inside a group md apart. */}
       <Stack gap="lg">
         <Stack gap="md">
@@ -223,7 +223,7 @@ function ClientContactExample() {
   const [currency, setCurrency] = useState("usd");
   const [retainer, setRetainer] = useState("12,000");
   return (
-    <Stack><Card theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card theme="default" width="fill" maxWidth={440} alignSelf="center">
       <Stack gap="md">
         <Heading level={4} textStyle="Heading/Subheading">Lumen Bank</Heading>
         <InputField label="Phone" type="tel" value={phone} onValueChange={setPhone}
@@ -266,7 +266,7 @@ function PasswordRulesExample() {
   };
   const again = () => { restarted.current = true; setPassword(""); setTried(false); setShown(false); setDone(false); };
   return (
-    <Stack><Card ref={cardRef} theme="flat" width="fill" maxWidth={440} alignSelf="center">
+    <Stack><Card ref={cardRef} theme="default" width="fill" maxWidth={440} alignSelf="center">
       {done ? (
         <InlineMessage theme="positive" title="Password set" action={{ label: "Change password", onClick: again }}>
           You can now sign in to Đìzai Studio as em@dizai.studio.
@@ -318,7 +318,7 @@ function TaskDetailExample() {
   const discard = () => { toTitle(); setTitle(saved.title); setNotes(saved.notes); };
   const ava = people.ava;
   return (
-    <Card theme="flat">
+    <Card theme="default">
       {/* Blocks of one card md apart: the task header, the notes, the actions. */}
       <Form ref={formRef} onSubmit={save} gap="md">
         <Stack gap="sm">
@@ -585,7 +585,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   onSubmit: (v, { reset }) => { toast({ type: "positive", title: "Project created" }); reset(); },
 });
 
-<Card theme="flat">
+<Card theme="default">
   <Form form={form} gap="md">
     <Heading level={4} textStyle="Heading/Subheading">New project</Heading>
     <Grid minColumnWidth={280} rowGap="md" columnGap="lg">

@@ -34,8 +34,8 @@ Trước khi thêm example mới, kiểm tra trùng lặp: hai example cùng d�
 ## 3. Pattern desktop
 
 - **Một mood chung: Canvas/Default + Surface/Default phẳng** (user, 2026-10-06). Stage của example là Canvas/Default
-  (cả card `screen`); khối trên đó là Surface/Default **không border, không shadow**: Card `theme="flat"`, MetricCard
-  `theme="flat"`, ChartCard (mặc định flat), ListBox, `Box surface="surface"` không `border`. Thứ không phải khối
+  (cả card `screen`); khối trên đó là Surface/Default **không border, không shadow**: Card `theme="default"`, MetricCard
+  `theme="default"`, ChartCard (mặc định default), ListBox (tên `flat` cũ, đổi ngày 2026-10-21), `Box surface="surface"` không `border`. Thứ không phải khối
   (Segmented + caption, form, Table §14) nằm thẳng trên canvas. Mẫu tham chiếu: Card › Workspace plan.
   - Chỉ đổi khi có điều kiện: màn có Sidebar → elevation theo Sidebar; trang trắng (Canvas/Alt) hoặc màn điện thoại →
     border Pale (Subtle nếu actionable) hoặc `surface="alt"` (§11); Surface nằm trong Surface (card trong card,

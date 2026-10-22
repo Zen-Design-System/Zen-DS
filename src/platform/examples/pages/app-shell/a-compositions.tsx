@@ -38,13 +38,13 @@ type Look = {
   /** Figma Sidebar Shadow=Yes (Surface + Shadow/Bottom/Level-1) or Shadow=No (Surface/Default without the shadow). */
   sidebarShadow: boolean;
   /** The KPI cards' Card theme; `pale` gives each metric family its own hue. */
-  cards: "shadow" | "flat" | "pale" | "border";
+  cards: "shadow" | "default" | "pale" | "border";
   /** The two List-Boxes' theme. */
-  lists: "shadow" | "flat" | "border";
+  lists: "shadow" | "default" | "border";
 };
 const looks = {
   floating: { canvas: "default", sidebarShadow: true, cards: "shadow", lists: "shadow" },
-  tiles: { canvas: "default", sidebarShadow: false, cards: "flat", lists: "flat" },
+  tiles: { canvas: "default", sidebarShadow: false, cards: "default", lists: "default" },
   open: { canvas: "alt", sidebarShadow: false, cards: "pale", lists: "border" },
   hairline: { canvas: "alt", sidebarShadow: false, cards: "border", lists: "border" },
 } satisfies Record<string, Look>;

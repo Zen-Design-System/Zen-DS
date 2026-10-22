@@ -218,7 +218,7 @@ function MoodboardExample() {
   }, [round]);
   const busy = loaded.length < moodboard.length;
   return (
-    <Card theme="flat" as="section" aria-labelledby={titleId}>
+    <Card theme="default" as="section" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack direction="row" gap="sm" justify="between" align="start">
           <Stack gap="xs">
@@ -489,7 +489,7 @@ function TaskDetailPhoneExample() {
           <Heading level={2} textStyle="Heading/4">{task.title}</Heading>
           {loading ? <SkeletonShape shape="pill" size="xs" /> : <Badge background="subtle" theme={taskStatusTheme[status]}>{status}</Badge>}
         </Stack>
-        <Card theme="flat" aria-busy={loading}>
+        <Card theme="default" aria-busy={loading}>
           <DescriptionList divider items={[
             { term: "Project", description: loading ? skeleton : projectById(task.project).name },
             { term: "Assignee", description: loading ? skeleton : people[task.assignee].name },
@@ -628,7 +628,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       <Heading level={2} textStyle="Heading/4">{task.title}</Heading>
       {loading ? <SkeletonShape shape="pill" size="xs" /> : <Badge background="subtle" theme={statusTheme}>{task.status}</Badge>}
     </Stack>
-    <Card theme="flat" aria-busy={loading}>
+    <Card theme="default" aria-busy={loading}>
       <DescriptionList divider items={[
         { term: "Project", description: loading ? <SkeletonText lines={1} className="skeleton-inline" /> : project.name },
         { term: "Due", description: loading ? <SkeletonText lines={1} className="skeleton-inline" /> : formatDue(task.due) },

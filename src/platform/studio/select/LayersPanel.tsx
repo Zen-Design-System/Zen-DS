@@ -763,7 +763,7 @@ function isMaskLayer(node: LayerNode) {
 
 function rowIcon(node: LayerNode, front: boolean): IconName {
   // A page you made: a frame is Figma's frame (#); a code page's frames are its sections.
-  if (node.kind === "frame") return front ? (isSectionId(node.frameId) ? "icon-browser-line" : "icon-hash-01-line") : "icon-layout-alt-01-line";
+  if (node.kind === "frame") return front ? (node.frameId.startsWith("slice:") ? "icon-scissors-line" : isSectionId(node.frameId) ? "icon-browser-line" : "icon-hash-01-line") : "icon-layout-alt-01-line";
   // Figma's layer icons (select/layerNames.ts): a component's ◇ (its main and its instances), a shape's own, a frame's
   // # (Box), auto layout by its direction (Stack), text's T.
   // The mask of a mask group (Box mask: its first layer, ⌃⌘M): Figma's mask icon.

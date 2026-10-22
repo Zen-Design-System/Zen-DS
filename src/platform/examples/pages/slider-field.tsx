@@ -33,7 +33,7 @@ function PhotoLayoutExample() {
   const [scale, setScale] = useState(0.7);
   const [opacity, setOpacity] = useState(0.6);
   return (
-    <Card theme="flat" maxWidth={360}>
+    <Card theme="default" maxWidth={360}>
       <Stack gap="none">
         <Stack gap="xs" paddingY="md">
           <Heading level={3} textStyle="Heading/4">Photo Stack</Heading>
@@ -61,7 +61,7 @@ function MotionExample() {
   const [bounce, setBounce] = useState(0.04);
   const [stiffness, setStiffness] = useState(320);
   return (
-    <Card theme="flat" maxWidth={360}>
+    <Card theme="default" maxWidth={360}>
       <Stack gap="xs">
         <Heading level={3} textStyle="Heading/4">Transition Spring</Heading>
         <Segmented aria-label="Spring type" size="sm" fullWidth value={type} onValueChange={setType} options={[{ id: "time", label: "Time" }, { id: "physics", label: "Physics" }]} />

@@ -8,7 +8,9 @@ import { CardContentContext, cardContentOf } from "./card-content";
 import "./card.css";
 import "../Icon/core";
 
-export const cardThemes = ["shadow", "flat", "pale", "border", "on-container", "solid", "subtle"] as const;
+/** Figma Card Theme (6643:51021), renamed 2026-10-21 (user: "Flat hiện tại nên là default, còn flat phải là dùng đổ màu
+ *  surface-flat"): `default` was `flat` (no border, no shadow), `flat-border` was Border × Surface=Flat. */
+export const cardThemes = ["shadow", "default", "pale", "border", "flat-border", "on-container", "solid", "subtle"] as const;
 export const cardSpacings = ["medium", "small", "xsmall"] as const;
 /** Figma Card Color (6643:51021): the hue of a Pale or Solid card. */
 export const cardColors = ["neutral", "brand", "cyan", "violet", "green", "yellow", "orange", "blue", "purple", "accent"] as const;
@@ -25,13 +27,13 @@ export type CardTheme = (typeof cardThemes)[number] | "semi-pale";
 type CardSpacingKey = (typeof cardSpacings)[number];
 /** Short (canonical) or long Figma spelling — both render the same. */
 export type CardSpacing = "md" | "sm" | "xs" | "medium" | "small" | "xsmall";
-/** Layer 2 fill of Shadow / Flat / Border cards (Figma Card Surface): default on a Canvas/Default page, alt to suit a
- *  Canvas/Alt (white) page, flat (Border only) on a Canvas/Flat page. */
-export type CardSurface = "default" | "alt" | "flat";
+/** Layer 2 fill of Shadow / Default / Border cards (Figma Card Surface): default on a Canvas/Default page, alt to suit a
+ *  Canvas/Alt (white) page. A card on a Canvas/Flat page is theme="flat-border" (Surface/Flat inside a Pale frame). */
+export type CardSurface = "default" | "alt";
 /** The Figma Surface each theme draws (Card 6643:51021); `surface` on another theme is ignored (harness card/surface-ignored).
  *  Shadow on alt is the one code extra: it renders as Flat on Surface/Alt. */
 export const cardSurfaces: Readonly<Record<(typeof cardThemes)[number], readonly CardSurface[]>> = {
-  shadow: ["default", "alt"], flat: ["default", "alt"], border: ["default", "alt", "flat"], pale: ["default"], "on-container": ["default"], solid: ["default"], subtle: ["default"],
+  shadow: ["default", "alt"], default: ["default", "alt"], border: ["default", "alt"], "flat-border": ["default"], pale: ["default"], "on-container": ["default"], solid: ["default"], subtle: ["default"],
 };
 
 export interface CardSubAction {
@@ -51,8 +53,9 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
   /** The root element. */
   ref?: Ref<HTMLElement>;
   children?: ReactNode;
-  /** Figma Theme: Shadow (Shadow/Bottom/Level-1) · Flat · Pale (Support/<Color>/Pale + Effect/Overlay blur) · Border ·
-   *  On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness
+  /** Figma Theme: Shadow (Shadow/Bottom/Level-1) · Default (the Surface fill alone: no border, no shadow) · Pale
+   *  (Support/<Color>/Pale + Effect/Overlay blur) · Border (Border/Neutral/Pale) · Flat-Border (15530:502–520: Surface/Flat
+   *  inside a Border/Neutral/Pale frame, the card of a Canvas/Flat page) · On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness
    *  card/on-container-in-overlay) · Solid (15480:87472: the one widget of a row that stands out; Neutral fills
    *  Background/Neutral/Solid/Default and its content reads Content/Inverse/*, a hue fills Support/<Color>/Solid) ·
    *  Subtle (16195:138560…: Support/<Color>/Subtle + Effect/Overlay blur, the colour box on a Canvas/Default page, where
@@ -63,8 +66,8 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
    *  theme="subtle" (Support/<Color>/Subtle, the same nine hues: 16195:138578…138668) and
    *  theme="solid" (neutral: Background/Neutral/Solid/Default; brand · cyan · yellow · orange: Support/<Color>/Solid;
    *  accent: Background/Accent/Solid/Default, Solid only; Figma has no Solid violet, green, blue or purple and no Pale
-   *  or Subtle accent, which render as Solid / Pale / Subtle Neutral — harness card/solid-color). Shadow, Flat, Border and On-Container
-   *  ignore it (harness card/color-ignored). A Solid card re-points the neutral tokens its children read to the fill's
+   *  or Subtle accent, which render as Solid / Pale / Subtle Neutral — harness card/solid-color). Shadow, Default, Border,
+   *  Flat-Border and On-Container ignore it (harness card/color-ignored). A Solid card re-points the neutral tokens its children read to the fill's
    *  own family (Neutral → Content/Inverse/*, Border/Inverse, Background/Inverse/*; Accent → Content/On-Accent; Yellow →
    *  Content/On-Brights; the other hues → Content/On-Colors) and tells its Metric parts which family to draw; the page
    *  keeps its mode. */
@@ -80,12 +83,11 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
    * @deprecated Use selected.
    */
   active?: boolean;
-  /** Figma Surface, chosen to suit the page's Canvas: Surface/Default · Surface/Alt (Flat and Border: 15530:454–496) ·
-   *  Surface/Flat (Border only, 15530:502–520: a Border card on a Canvas/Flat page). Unset follows an inherited
-   *  --zen-card-surface (a page scope can set it once), else Surface/Default. Pale / On-Container / Solid keep their own
-   *  fill, and `flat` on a theme other than Border is ignored (harness card/surface-ignored). With theme="shadow", `alt`
-   *  drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Flat (6643:51018) on
-   *  Surface/Alt; an inherited alt surface cannot do this, so pass surface="alt" explicitly on an alt page. */
+  /** Figma Surface, chosen to suit the page's Canvas: Surface/Default · Surface/Alt (Default and Border: 15530:454–496).
+   *  Unset follows an inherited --zen-card-surface (a page scope can set it once), else Surface/Default. Pale /
+   *  Flat-Border / On-Container / Solid / Subtle keep their own fill (harness card/surface-ignored). With theme="shadow",
+   *  `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Default
+   *  (6643:51018) on Surface/Alt; an inherited alt surface cannot do this, so pass surface="alt" explicitly on an alt page. */
   surface?: CardSurface;
   /** Makes the whole card one action (role=button, Enter/Space). Keep other controls out of clickable cards. */
   onClick?: (event: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>) => void;
@@ -131,7 +133,7 @@ export function Card({ ref, children, theme = "shadow", color = "neutral", spaci
       data-tone={tone}
       data-color={hue}
       data-spacing={spacing}
-      data-surface={surface === "flat" && tone !== "border" ? undefined : surface}
+      data-surface={surface}
       data-active={active ? "true" : undefined}
       data-interactive={interactive ? "true" : undefined}
       role={interactive ? "button" : rest.role}

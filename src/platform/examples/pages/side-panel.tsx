@@ -358,7 +358,7 @@ function EditProjectExample() {
   const discard = () => { setConfirming(false); setOpen(false); };
   const due = parseDay(project.due) ?? loyalty.due;
   return (
-    <Card as="section" theme="flat" aria-labelledby={titleId}
+    <Card as="section" theme="default" aria-labelledby={titleId}
       subAction={{ label: "Edit project", icon: "icon-edit-02-line", onClick: edit }}>
       <Stack gap="md">
         <Stack gap="xs">

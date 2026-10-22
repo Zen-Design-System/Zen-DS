@@ -359,7 +359,7 @@ function SupportInboxApp() {
             footer={<SidebarMenuItem id="preferences" label="Preferences" icon="icon-settings-01-line" />} />
         )}
         leadingPane={(
-          <AppShellPane theme="flat" title={<>Inbox <BadgeCounter theme="neutral" background="solid" value={12} /></>}
+          <AppShellPane theme="default" title={<>Inbox <BadgeCounter theme="neutral" background="solid" value={12} /></>}
             action={<IconButton level="tertiary" size="sm" icon="icon-edit-01-line" aria-label="New conversation" onClick={() => toast({ title: "New conversation", children: "Pick a customer or type an email address." })} />}>
             <Stack paddingX="xs" gap="sm">
               <Search theme="filter-icon" placeholder="Search conversations" aria-label="Search conversations" value={query} onValueChange={setQuery}
@@ -651,7 +651,7 @@ export const examples: ExampleDef[] = [
   collapse="sidebar"
   sidebar={<Sidebar logo={logo} logoCollapsed={mark} sections={sections} selectedId="inbox" footer={<SidebarMenuItem id="preferences" label="Preferences" icon="icon-settings-01-line" />} />}
   leadingPane={
-    <AppShellPane theme="flat" title={<>Inbox <BadgeCounter theme="neutral" background="solid" value={12} /></>}
+    <AppShellPane theme="default" title={<>Inbox <BadgeCounter theme="neutral" background="solid" value={12} /></>}
       action={<IconButton level="tertiary" size="sm" icon="icon-edit-01-line" aria-label="New conversation" onClick={compose} />}>
       <Stack paddingX="xs" gap="sm">
         <Search theme="filter-icon" placeholder="Search conversations" aria-label="Search conversations" value={query} onValueChange={setQuery} onFilterClick={openFilters} />

@@ -6,7 +6,7 @@ const meta = {
   title: "Components/Card",
   component: Card,
   tags: ["autodocs"],
-  parameters: { layout: "padded", docs: { description: { component: "Figma Card (6643:51021): Theme Shadow/Flat/Pale/Border/On-Container/Solid × Color (Pale: nine hues; Solid: Neutral, Brand, Cyan, Yellow, Orange) × Spacing Medium/Small × Active, with an optional top-right Sub-Action." } } },
+  parameters: { layout: "padded", docs: { description: { component: "Figma Card (6643:51021): Theme Shadow/Default/Pale/Border/Flat-Border/On-Container/Solid/Subtle × Color (Pale: nine hues; Solid: Neutral, Brand, Cyan, Yellow, Orange) × Spacing Medium/Small × Active, with an optional top-right Sub-Action." } } },
   args: { theme: "shadow", color: "neutral", spacing: "medium", active: false, children: "Content slot", subAction: { label: "More actions" } },
   argTypes: { theme: { control: "inline-radio", options: cardThemes }, color: { control: "select", options: cardColors }, spacing: { control: "inline-radio", options: cardSpacings } },
   decorators: [(Story) => <div style={{ width: 230, padding: 24, background: "var(--zen-color-background-neutral-pale-default)" }}><Story /></div>],

@@ -102,7 +102,7 @@ function NewProjectExample() {
   const teamNames = draft.team.map((id) => people[id].name).join(", ");
 
   return (
-    <Card theme="flat" as="section" aria-label="New project">
+    <Card theme="default" as="section" aria-label="New project">
       <Stack ref={contentRef} gap="lg">
         {/* Passed steps are buttons that go back to edit; steps ahead stay inert. */}
         <Stepper aria-label="New project" orientation={orientation} steps={projectSteps} current={current}
@@ -205,7 +205,7 @@ function FailedCheckExample() {
   const reset = () => { setFixed(false); setPhase("check"); titleRef.current?.focus(); };
 
   return (
-    <Card theme="flat" as="section" aria-label="Import time entries">
+    <Card theme="default" as="section" aria-label="Import time entries">
       <Stack ref={contentRef} gap="md">
         <Stack gap="xs">
           <Heading ref={titleRef} tabIndex={-1} level={4} textStyle="Heading/Subheading">Import time entries</Heading>
@@ -258,7 +258,7 @@ function InvoiceApprovalExample() {
   };
 
   return (
-    <Card theme="flat" as="section" aria-labelledby={titleId}>
+    <Card theme="default" as="section" aria-labelledby={titleId}>
       <Stack gap="md">
         <Stack gap="xs">
           <Stack direction="row" gap="2xs" align="center" wrap>
@@ -501,7 +501,7 @@ function NewHireOnboardingExample() {
   };
 
   return (
-    <Card theme="flat" as="section" aria-label={`Onboarding for ${newHire.name}`}>
+    <Card theme="default" as="section" aria-label={`Onboarding for ${newHire.name}`}>
       <Grid ref={cardRef} columns={split ? "minmax(0, 16rem) minmax(0, 40rem)" : 1} gap="lg" align="start">
         <Stack gap="md">
           <List aria-label="New hire">
@@ -660,7 +660,7 @@ toast({ title: "Invoice approved", children: "INV-2026-0143",
   { id: "welcome", title: "Welcome message", caption: "Sends Oct 5 at 9:00 am" },
 ];
 
-<Card theme="flat" as="section" aria-label="Onboarding for Tam Dang">
+<Card theme="default" as="section" aria-label="Onboarding for Tam Dang">
   {/* Two columns while the card is at least 640px wide, stacked below that */}
   <Grid ref={ref} columns={width >= 640 ? "minmax(0, 16rem) minmax(0, 40rem)" : 1} gap="lg" align="start">
     <Stack gap="md">
