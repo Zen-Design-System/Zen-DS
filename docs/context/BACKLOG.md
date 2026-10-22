@@ -25,11 +25,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved; F0–F10 shipped by 2026-10-20,
   HANDOFF):** `docs/research/studio-figma-design-parity-2026-10-18.md`. Left: an instance's data-name stays in the page
   (its Figma name is its component's or carries content, which pull reads as such).
-- **P2 · Figma's native clipboard path misses a frame's look (2026-10-19, Studio F5a; no owner session):** figma-push and
-  the Zen plugin's importer carry a frame's fill on Stack / Grid, stroke + sides + dash, radii, effectStyle, opacity,
-  rotation and flip (spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md` §4);
-  `tools/studio/figma-native.mjs` / `native-pack.mjs` (⌘C → ⌘V in Figma) do not map them yet (a layer's blend mode goes
-  since 2026-10-20, Session C). Giám sát raises it with the user.
 - **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
   (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
