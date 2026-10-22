@@ -4659,6 +4659,66 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   {
+    id: "FW-205", feature: "A Button's words are its Text property in the Properties block (after Figma's own properties), no Content section; typing there writes its children; ⌘Z takes it back", wp: "Content into properties 2026-10-22", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await contentPage(ctx);
+      return restoring(page, id, async () => {
+        await clickNamed(page, id, "Button");
+        await until(async () => (await selectedName(page)) === "Button", { message: "the Button selected" });
+        const titles = await sections(page);
+        if (titles.includes("Content")) throw new Error(`a Content section: ${titles.join(", ")}`);
+        const properties = right(page).locator(".studio-inspector__section").filter({ has: page.locator("h3", { hasText: /^Properties$/ }) }).first();
+        const text = properties.locator('[data-prop~="children"]').getByRole("textbox", { name: "Text", exact: true });
+        await text.waitFor({ state: "visible", timeout: 5000 });
+        if ((await text.inputValue()) !== "Save") throw new Error(`the Text property reads ${await text.inputValue()}`);
+        await expectPanelFits(page, "the Button's Properties");
+        await typeText(page, "Text", "Store");
+        await written(page, id, />Store<\/Button>/, "the Button's children → Store");
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await written(page, id, />Save<\/Button>/, "⌘Z: Save again");
+        return `sections ${titles.join(" · ")} · Text Save → Store → ⌘Z`;
+      });
+    },
+  },
+  {
+    id: "FW-206", feature: "A component without Figma properties (Link) shows one Properties block in its prop order, as Figma's instance panel: no Content / State / Actions sections, its words a Text row where `children` sits (after Visited)", wp: "Content into properties 2026-10-22", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await contentPage(ctx);
+      await clickNamed(page, id, "Link");
+      await until(async () => /Link/i.test(await selectedName(page)), { message: "the Link selected" });
+      const titles = await sections(page);
+      const grouped = titles.filter((title) => ["Content", "State", "Actions", "More"].includes(title));
+      if (grouped.length || !titles.includes("Properties")) throw new Error(`sections ${titles.join(", ")}`);
+      const rows = await right(page).locator(".studio-inspector__section").filter({ has: page.locator("h3", { hasText: /^Properties$/ }) }).first()
+        .locator(".studio-inspector__row[data-prop]").evaluateAll((all) => all.map((row) => row.getAttribute("data-prop")));
+      const at = (name) => rows.findIndex((prop) => prop.split(" ").includes(name));
+      if (at("children") < 0 || at("visited") < 0 || at("children") < at("visited")) throw new Error(`rows ${rows.join(", ")}`);
+      await expectPanelFits(page, "the Link's Properties");
+      return `sections ${titles.join(" · ")} · rows ${rows.join(", ")}`;
+    },
+  },
+  {
+    id: "FW-207", feature: "A text layer (Text) keeps its words in a Text row first in Typography (user 2026-10-22), no Content section; typing there writes them", wp: "Content into properties 2026-10-22", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await contentPage(ctx);
+      return restoring(page, id, async () => {
+        // The page's second Text (its first is the starter's "Start building here").
+        await clickNamed(page, id, "Text", 1);
+        await until(async () => /Text|Hello/.test(await selectedName(page)), { message: "the Text selected" });
+        const titles = await sections(page);
+        if (titles.includes("Content") || titles.includes("Properties")) throw new Error(`sections ${titles.join(", ")}`);
+        const typography = right(page).locator(".studio-inspector__section").filter({ has: page.locator("h3", { hasText: /^Typography$/ }) }).first();
+        const first = await typography.locator(".studio-inspector__row[data-prop]").first().getAttribute("data-prop");
+        if (!first?.split(" ").includes("children")) throw new Error(`Typography starts with ${first}`);
+        await expectPanelFits(page, "the Text's Typography");
+        await typeText(page, "Text", "Hi there");
+        await written(page, id, />Hi there<\/Text>/, "the Text's words → Hi there");
+        return `sections ${titles.join(" · ")} · Typography starts with Text`;
+      });
+    },
+  },
+  {
     id: "FW-165", feature: "A Zen instance's Design tab has no Code properties (Figma's sections only); its HTML button type is on the Code tab's Properties, where typing submit writes type=\"submit\"; ⌘Z takes it back", wp: "§3a Properties 2026-10-21", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
@@ -5202,4 +5262,28 @@ async function pickLayer(page, id, name) {
   await showLeftTab(page, "layers");
   await until(async () => (await selectedSrc(page)).some((selected) => Boolean(selected) && src?.replace(/#\d+$/, "") === selected), { message: `${name} selected` });
   return async () => ((await pageText(page, id)) ?? "").match(new RegExp(`<(?:Shape|Box) data-name="${name}"[^\\n]*?/?>`))?.[0] ?? "";
+}
+
+/** A phone page with a Button, a Link (no Figma properties) and a Text (the Content-into-properties rows). */
+const contentText = (title) => {
+  let text = newPageText({ title, device: "phone", chrome: true });
+  text = grow(text, "Stack", '<Button level="primary">Save</Button>');
+  text = grow(text, "Stack", '<Link href="#docs">Docs</Link>');
+  return grow(text, "Stack", "<Text>Hello there</Text>");
+};
+let contentMade = null;
+async function contentPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!contentMade) {
+    const seeded = await seededPage(ctx, contentText, /Hello there/);
+    contentMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${contentMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${contentMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  return { page, id: contentMade };
 }

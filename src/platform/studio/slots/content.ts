@@ -45,7 +45,7 @@ export type SlotLayer =
    * a prop's fragment; a `.map` or a condition among children moves as its whole block), with how many there are; absent when it cannot move (a prop's one element).
    */
   | { kind: "element"; name: string; loc: string | null; via?: SlotExpressionForm; removable: boolean; reason?: string; sibling?: { index: number; count: number } }
-  /** Text written directly in the slot (the Content section edits it). */
+  /** Text written directly in the slot (the Text field edits it: an instance's Text property, a text layer's Typography). */
   | { kind: "text"; value: string }
   /** Content the source computes (a `.map`, a call, a variable) and the server did not resolve: read-only, with why. */
   | { kind: "expression"; code: string; form: SlotExpressionForm; reason: string };

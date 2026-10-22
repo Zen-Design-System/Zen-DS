@@ -1,4 +1,4 @@
-import { Fragment, startTransition, useEffect, useState } from "react";
+import { Fragment, startTransition, useEffect, useState, type ReactNode } from "react";
 import { Icon } from "../../../components/Icon";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { typographyStyles } from "../../../tokens/typography.generated";
@@ -142,7 +142,7 @@ export function ToggleRow({ toggle, on: rendered, value, api, selection, element
   );
 }
 
-export function GroupedProperties({ groups, selection, element, api, specs, shaped, note, rendered, nested, view = "design" }: {
+export function GroupedProperties({ groups, selection, element, api, specs, shaped, note, rendered, nested, view = "design", text = null }: {
   groups: ComponentGroups;
   selection: NodeSelection;
   element: SourceElement;
@@ -158,6 +158,8 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
   nested: NestedInstances;
   /** "design": Figma's Properties section; "code": only the code-only rows, for the Code tab's Properties (CodePanel). */
   view?: "design" | "code";
+  /** The instance's words (its JSX children, DesignPanel's childText): Figma's Text property, after Figma's own ones. */
+  text?: ReactNode;
 }) {
   const props = conditionProps(rendered, element);
   const component = element.name;
@@ -251,6 +253,7 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
       {toggles.map((toggle) => (
         <ToggleRow key={toggle.label} toggle={toggle} on={isSetValue(props[toggle.prop])} value={api.valueFor(toggle.prop)} api={api} selection={selection} element={element} />
       ))}
+      {text}
       {rows(after, "after")}
       {groups.nested.filter((group) => holds(group.when, props)).map((group) => (
         <div key={group.name} role="group" aria-label={group.name} className="studio-group">

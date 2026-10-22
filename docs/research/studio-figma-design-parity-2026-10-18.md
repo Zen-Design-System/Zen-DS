@@ -110,8 +110,13 @@ What is still not Figma's:
     Built 2026-10-21: Paste here first on a page you made, dimmed with nothing to paste; a copied frame lands as a frame,
     copied layers in a new frame of their size, corner at the pointer, one ⌘Z (E2E FW-153, FW-154).
 - **Right panel:**
-  - A Button, a Card and a text have a **Content** section that edits their words in the panel. Figma edits words on the
-    canvas, or through an instance's text property.
+  - ~~A Button, a Card and a text have a **Content** section that edits their words in the panel. Figma edits words on
+    the canvas, or through an instance's text property.~~ Built 2026-10-22 (user's call): no Content section. An
+    instance's words are its Text property in the Properties block (after Figma's own properties; where `children` sits
+    in a component without Figma properties); a text layer keeps a Text row first in Typography (the user kept a panel
+    field). Components without Figma properties show one Properties block in their prop order, as Figma's instance panel
+    (the Appearance / Content / Icon / State / Actions groups of 2026-10-06 are gone). The child-layer list went with the
+    section (Layers and Enter select children). E2E FW-205…207.
   - A Button's panel has no Appearance, Fill, Stroke or Effects, so its look comes from its variants only.
 
 Found on the way (not graded rows):
