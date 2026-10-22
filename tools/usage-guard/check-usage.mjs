@@ -1130,12 +1130,14 @@ export const rules = [
     summary: "Each desktop pattern draws its own parts: leadingPane on list-detail, workspace and docs; trailingPane on workspace, docs and focus; progress on focus; the Sidebar beside the page on sidebar and list-detail. A part the pattern does not draw only shows on a narrow screen.",
     check: ({ attrs, src, end }) => {
       if (inCodeSample(src, end)) return null;
-      const pattern = literal(attrs, "pattern") ?? "sidebar";
+      // The shell's own props only: a part's content (a header's BadgeStatus progress={60}) is not the shell's.
+      const own = topLevel(attrs);
+      const pattern = literal(own, "pattern") ?? "sidebar";
       const parts = [
         ["leadingPane", ["list-detail", "workspace", "docs"]],
         ["trailingPane", ["workspace", "docs", "focus"]],
         ["progress", ["focus"]],
-      ].filter(([name, patterns]) => has(attrs, name) && !patterns.includes(pattern)).map(([name]) => name);
+      ].filter(([name, patterns]) => has(own, name) && !patterns.includes(pattern)).map(([name]) => name);
       return parts.length ? `gives pattern="${pattern}" ${parts.join(" and ")}, which it does not draw on a desktop — pick the pattern that has ${parts.length > 1 ? "them" : "it"} (Figma Pattern/AppShell/Desktop Layout) or drop ${parts.length > 1 ? "them" : "it"}.` : null;
     } },
   { id: "toast/needs-title", components: ["Toast"], severity: "error", allow: "toast-title", guideline: "docs/guidelines/toast.md",

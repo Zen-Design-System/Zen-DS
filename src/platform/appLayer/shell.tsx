@@ -4,6 +4,7 @@ import { AlertBanner } from "../../components/AlertBanner";
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader, AppShellPane, useAppShell, type AppShellCollapse, type AppShellMobileTop, type AppShellPattern } from "../../components/AppShell";
 import { Avatar, AvatarStack } from "../../components/Avatar";
 import { Badge } from "../../components/Badge";
+import { BadgeStatus } from "../../components/BadgeStatus";
 import { BottomNavigation, type BottomNavigationItem } from "../../components/BottomNavigation";
 import { Breadcrumbs } from "../../components/Breadcrumbs";
 import { Button, IconButton } from "../../components/Button";
@@ -29,7 +30,7 @@ import { Table, TableMedia, TableText, type TableColumn } from "../../components
 import { Tabs } from "../../components/Tabs";
 import { Heading, Text, plural } from "../../components/Text";
 import { TopNavigation, type TopNavigationAction } from "../../components/TopNavigation";
-import { daysFromToday, formatDate, formatDay, formatRange, formatRelative, initials, leaveBalance, leaveRequests, leaveStatusTheme, me, people, peopleList, projectStatusTheme, projects, studio, type Person, type PersonId, type Team } from "../examples/data";
+import { daysFromToday, formatDate, formatDay, formatRange, formatRelative, initials, leaveBalance, leaveRequests, leaveStatusTheme, me, people, peopleList, projectProgress, projectStep, projects, studio, type Person, type PersonId, type Team } from "../examples/data";
 import { StudioLogo } from "../PlatformFrames";
 import { platformMedia } from "../PlatformMedia";
 import { PlatformPhone } from "../PlatformPhone";
@@ -472,7 +473,7 @@ function AppShellPlayground() {
           {theirProjects.map((project) => (
             <ListItem key={project.id} title={project.name} titleLines={2} caption={narrowCards ? `${project.status} · due ${formatDate(project.due)}` : `${project.client} · due ${formatDate(project.due)}`}
               leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" size="md" />}
-              trailing={narrowCards ? undefined : <Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>} />
+              trailing={narrowCards ? undefined : <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>} />
           ))}
         </List>
       ) : <Text tone="base">{`${firstName(person)} isn’t on a project right now.`}</Text>;

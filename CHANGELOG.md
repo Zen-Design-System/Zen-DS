@@ -22,6 +22,15 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Sector/Primary for the highlight (the active bar, the target, the second series; one area takes the Neutral fade).
   Zen Studio pushes and pulls it as Color; the harness warns (`chart/palette-by-hand`) when the two sector colours are
   set by hand (2026-10-23).
+- **Docs platform and the HR Tasks template:** every task's and project's status is a BadgeStatus (its ring and
+  colour come from the step; the label stays the data's word): To do / In progress / In review / Done, and projects'
+  Planning → to do, Active → in progress with the project's real progress, On hold → blocked, Completed → done
+  (`taskStep`, `projectStep`, `projectProgress` in the examples data). Leave and expense statuses stay Badges
+  (2026-10-23).
+- BadgeStatus in running text (a DescriptionList value, a sentence) sits on a Badge's baseline, so its line is as tall
+  as a Badge's (28px Medium, it was 29) (2026-10-23).
+- Usage harness: `app-shell/pattern-parts` reads only the shell's own props, so a part's content (a header's
+  `BadgeStatus progress`) no longer counts as the shell's `progress` (2026-10-23).
 - Card: the content area is Figma's Content-Slot, a column that fills the card. A card a grid row stretches (or one
   with a Fill height) gives its content that height, and a child with `height="fill"` grows into it, so a CTA or
   footer sits at the foot without a class; a ListBox body does the same. Hug cards keep their content height

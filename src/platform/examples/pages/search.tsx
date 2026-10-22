@@ -4,6 +4,7 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { Avatar, type AvatarTheme } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { Button } from "../../../components/Button";
 import { Chip } from "../../../components/Chip";
@@ -25,7 +26,7 @@ import { PlatformPhone } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
   daysFromToday, files, formatBytes, formatDate, formatMoney, formatRelative, initials, invoiceStatusTheme, invoices, people, peopleList,
-  projectById, projectStatusTheme, projects, studio, type Invoice, type InvoiceStatus, type Person, type PersonId,
+  projectById, projectProgress, projectStep, projects, studio, type Invoice, type InvoiceStatus, type Person, type PersonId,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -263,7 +264,7 @@ function ProjectJumpExample() {
             </Stack>
           </Stack>
           <DescriptionList items={[
-            { term: "Status", description: <Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge> },
+            { term: "Status", description: <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus> },
             { term: "Lead", description: lead.name },
             { term: "Due", description: formatDate(project.due) },
             { term: "Budget", description: project.budget ? `${formatMoney(project.spent)} of ${formatMoney(project.budget)}` : "Internal project" },

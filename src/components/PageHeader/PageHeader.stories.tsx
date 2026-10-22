@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Badge } from "../Badge";
+import { BadgeStatus } from "../BadgeStatus";
 import { Breadcrumbs } from "../Breadcrumbs";
 import { Button } from "../Button";
 import { Tabs } from "../Tabs";
@@ -24,7 +24,7 @@ export const Detail: Story = {
   args: {
     title: "Brand refresh",
     back: { label: "Projects", onClick: () => undefined },
-    meta: <Badge size="small" theme="green" background="subtle">In review</Badge>,
+    meta: <BadgeStatus size="small" status="in-review" />,
     description: "Logo, colour and type updates for the 2026 launch.",
     actions: <Button level="primary">Publish</Button>,
     tabs: <Tabs aria-label="Project sections" items={[{ id: "overview", label: "Overview" }, { id: "files", label: "Files" }]} defaultValue="overview" />,
