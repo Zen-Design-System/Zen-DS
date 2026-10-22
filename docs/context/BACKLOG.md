@@ -50,15 +50,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Sub-Action › Wrapper › Button/Icon-Flat, but `docs/figma-contracts/card.json` still has Sub-Action as the instance, so
   `nested-paths.mjs --check` passes on the old shape. The push, pull and plugin (833ea0e) handle the wrapper already.
   Pointer: re-capture the Card set with `tools/figma-contract/mcp-capture` (about 1 MB, several calls).
-- **P3 · AppShellHeader `theme` / `density` to and from Figma (2026-10-21, Session B; waits for the user):** since #179 the
-  header takes `theme="border-divider"` and `density="small"` (Figma Header/AppShell 16783:71068 Theme × Density), but
-  the push still draws an AppShell's header as Dashboard header rows in the master layout, so either look arrives in
-  Figma as the default, and the pull has nothing to read back. Pointer: figma-push.mjs appShellNode; AppShell's notes in
-  session-log-2026-10-21.md.
-- **P3 · Card `subAction` to and from Figma (2026-10-20, Session B):** the push writes no Sub-Action for a Card's
-  `subAction` ("data with no Figma slot"), so Figma's Card shows none and an override of `Card/Sub-Action` lands on a
-  hidden layer; the pull notes a shown Sub-Action instead of reading it. Map it as Sub-Action on + the IconButton's
-  icon (label: its aria). Pointer: figma-push.mjs Card node, figma-pull.mjs "shows in Figma; set it on the Card".
 - **P2 · Studio components, after F7a/F7b (2026-10-19, Session B):** sets, variants, properties, overrides, Reset, Push
   changes, slot content, Assets › Local are built (branches zen/feat/studio-f7-*, f7b-*); Figma pull of overrides and
   slot content, overrides inside nested instances and of Zen components in a main since 2026-10-20; layers into a slot
