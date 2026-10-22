@@ -136,7 +136,8 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
       </div>
       <TabPanel idPrefix="studio-inspector" id={tab} className="studio-inspector__body">
         {tab === "prototype" ? <PrototypePanel />
-          : tab === "code" ? <CodePanel selection={selection} codeSlot={codeSlot} />
+          // The Code tab holds a layer's code properties (DesignPanel's code view; §3a), the Design tab only Figma's.
+          : tab === "code" ? <CodePanel selection={selection} codeSlot={codeSlot} properties={selection?.kind === "node" && !selection.part ? <DesignPanel key={identity} view="code" selection={selection} controlsSlot={controlsSlot} /> : null} />
           : presetsPage ? <FramePresets localPage={presetsPage} />
           : scalePage ? <ScalePanel />
           : several && selection?.kind === "node" && !selection.part ? <SelectionActions />

@@ -102,14 +102,20 @@
     {
       "name": "Badge",
       "status": "verified",
-      "purpose": "Non-interactive status, category or count labels.",
+      "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
       "props": "children? size? theme? background? leading? leadingIcon? remove? onRemove? removeLabel? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "BadgeCounter",
       "status": "verified",
-      "purpose": "Non-interactive status, category or count labels.",
+      "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
       "props": "value? size?"
+    },
+    {
+      "name": "BadgeStatus",
+      "status": "stable",
+      "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
+      "props": "status? size? progress? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "BarChart",
@@ -656,6 +662,48 @@
       "props": "value theme? label? aria-label?"
     },
     {
+      "name": "PropertyDate",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? value? defaultValue? onValueChange? format? minDate? maxDate?"
+    },
+    {
+      "name": "PropertyField",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "label icon? action? children? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "PropertyPeople",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? options value? defaultValue? onValueChange? addLabel? popoverLabel? single?"
+    },
+    {
+      "name": "PropertySelect",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? options value? defaultValue? onValueChange? popoverLabel?"
+    },
+    {
+      "name": "PropertyStatus",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? value? defaultValue? onValueChange? statuses? labels? progress? popoverLabel?"
+    },
+    {
+      "name": "PropertyTags",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? options value? defaultValue? onValueChange? addLabel? popoverLabel? onCreate?"
+    },
+    {
+      "name": "PropertyText",
+      "status": "stable",
+      "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
+      "props": "placeholder? readOnly? aria-label? value? defaultValue? onValueChange?"
+    },
+    {
       "name": "RadialChart",
       "status": "stable",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
@@ -684,6 +732,60 @@
       "status": "verified",
       "purpose": "Collect a single value from the user. All fields share Label → Field → Help-Text anatomy and the Leading/Trailing slots.",
       "props": "id? size? value? defaultValue? onValueChange? placeholder? readOnly? required? maxLength? editorBar? editorBarTheme? onFocus? onBlur? label? helpText? labelOptional? labelTooltip? labelAction? helpTheme? helpIcon? characterLimit? error?"
+    },
+    {
+      "name": "ScheduleDayPlanner",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "events? value? defaultValue? onValueChange? title? titleLevel? onMonthClick? startHour? endHour? now? today? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ScheduleEventCard",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "title status? time? color? attendees? note? onMenuClick? menuLabel? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ScheduleHourLabel",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "hour now? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ScheduleItinerary",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "stops title? now? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ScheduleItineraryItem",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "start duration? title meta? status? connector? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ScheduleResource",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "name meta? type? avatarSrc? avatarTheme? icon? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ScheduleResourceGrid",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "resources bookings? scale? date? startHour? endHour? now? today? resourcesLabel? selectedBookingId? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "ScheduleSlot",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "time size? checked? disabled? aria-label? aria-labelledby? aria-describedby? readOnly? required? placeholder? name? autoComplete? inputMode? maxLength? min? max? step?"
+    },
+    {
+      "name": "ScheduleSlotPicker",
+      "status": "stable",
+      "purpose": "Plan time around people, rooms and stops: who is booked when (Resource-Grid), a day's programme (Itinerary), bookable times (Slot-Picker) and one person's day as cards (Day-Planner). Built on the Calendar parts (Event-Block bars, the now line, the week strip); dates are Dates or local ISO strings.",
+      "props": "slots days? value? defaultValue? onValueChange? day? onDayChange? today? device? aria-label? name? aria-labelledby? aria-describedby?"
     },
     {
       "name": "Search",
@@ -835,6 +937,54 @@
       "status": "stable",
       "purpose": "Shows a picture in a ratio frame that keeps its size while loading (Skeleton) and fails gracefully (neutral placeholder, alt kept). Thumbnail is the fixed square for list rows, tables and pickers.",
       "props": "src? alt size? shape? fit? loading? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TimelineActivity",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "entries today? size? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TimelineGantt",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "groups start? weeks? today? defaultCollapsed? device? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TimelineGanttBar",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "title kind? color? hideTitle? onClick? aria-label? aria-labelledby? aria-describedby? disabled?"
+    },
+    {
+      "name": "TimelineGanttLabel",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "name level? assignee? expanded? onToggle? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TimelineItem",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "actor? title time? description? attachment? connector? size? marker? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TimelineMarker",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "type? tone? icon? avatarName? avatarSrc? avatarTheme? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TimelineMilestone",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "date title description? status? orientation? connector? aria-label? aria-labelledby? aria-describedby?"
+    },
+    {
+      "name": "TimelineMilestones",
+      "status": "stable",
+      "purpose": "Show what happened and what is planned: an activity history (TimelineActivity of TimelineItem rows), dated project milestones (TimelineMilestones) and a roadmap of grouped tasks across weeks (TimelineGantt). Dates are Dates or local ISO strings.",
+      "props": "milestones today? currentId? device? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "Toast",

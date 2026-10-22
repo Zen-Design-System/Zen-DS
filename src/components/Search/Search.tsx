@@ -38,9 +38,9 @@ export interface SearchProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
   size?: SearchSize;
   /** Figma's `Shape` (Search/Default): `rounded` is a pill, Corner-Radius/Rounded on the field, so its stroke, inset
    * shadow and focus ring follow, and on the filter affordance; `default` keeps Corner-Radius/Input of the size.
-   * Prefer `rounded` for searches on phone screens. Default `default`, but `rounded` inside a TopNavigation control bar
-   * or a BottomSheet (a phone's built-in search); pass `shape="default"` there to keep the square field. Ignored with
-   * `variant="popover"`. */
+   * Prefer `rounded` for searches on phone screens. Default `default`, but `rounded` inside a TopNavigation control bar,
+   * a BottomSheet or an AppShell on a phone (a phone's search); pass `shape="default"` there to keep the square field.
+   * Ignored with `variant="popover"`. */
   shape?: SearchShape;
   /** Optional Input label above the field; when set it also names the input. */
   label?: ReactNode;

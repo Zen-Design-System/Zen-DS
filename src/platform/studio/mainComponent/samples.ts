@@ -19,6 +19,8 @@ const bao = `{ name: "Bao Nguyen", theme: "blue" }`;
 export const MAIN_SAMPLES: Readonly<Record<string, PaletteItem>> = {
   ToggleButton: sample("ToggleButton", `<ToggleButton icon="icon-star-01-line" aria-label="Favourite" />`),
   BadgeCounter: sample("BadgeCounter", `<BadgeCounter value={3} />`),
+  // Timeline/Item (16131:1090): an entry with its detail line and a comment attachment, so Attachment and Description draw.
+  TimelineItem: sample("TimelineItem", `<TimelineItem actor="Maya Chen" title="approved your leave request" time="10:42" description="Annual leave · Oct 12 – Oct 16" attachment="Can we move the review to Thursday?" />`),
   HeadingField: sample("HeadingField", `<HeadingField aria-label="Project name" placeholder="Untitled project" />`),
   SkeletonShape: sample("SkeletonShape", `<SkeletonShape shape="round" size="md" />`),
   OpinionScale: sample("OpinionScale", `<OpinionScale scale={5} aria-label="How was your visit?" />`),

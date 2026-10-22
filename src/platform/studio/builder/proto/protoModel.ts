@@ -302,14 +302,39 @@ export function targetOfFrame(frameId: string): { action: "navigate" | "open"; t
   return null;
 }
 
+/** Play's start for an Overlay presented as a frame ("overlay:<id>"; a Screen's start is its id). */
+export const OVERLAY_START = "overlay:";
+
+/** Where Figma's Present starts from a selected frame: a Screen ("screen:<id>[:<state>]") at that Screen, an Overlay
+ *  ("overlay:<id>") as itself; anything else (a Section, nothing) at the first Screen (null). */
+export function playStartOf(frameId: string | null | undefined): string | null {
+  const [kind, id] = frameId?.split(":") ?? [];
+  if (!id) return null;
+  return kind === "screen" ? id : kind === "overlay" ? `${OVERLAY_START}${id}` : null;
+}
+
 /** Every navigate / open action of the page: the layer's loc, its trigger, and the frame it leads to. `own`: the action is
  *  the trigger prop itself (a drag on its arrow can change it); else it sits inside the prop's value (a Dialog's
  *  primaryAction), changed in the code or by the Prototype tab of the layer that holds it. `item`: the choice item that
  *  leads there (an action with one target per item). */
 export type ProtoLink = { loc: string; trigger: string; action: "navigate" | "open"; target: string; frameId: string; own: boolean; item?: string };
-export function linksOf(tree: PageTree | null): ProtoLink[] {
+export const linksOf = (tree: PageTree | null): ProtoLink[] => (tree?.board ? linksIn(tree.board) : []);
+
+/** The Screen that opens the Overlay `overlay` (where Present shows it as Figma presents a frame: over the frame its
+ *  trigger is on): the first in the Board, a default state before the others, with a layer (or its own After delay)
+ *  that opens it. Null when no Screen does. */
+export function openerOf(tree: PageTree | null, overlay: string): string | null {
+  const screens = (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element" && child.name === "Screen");
+  const opens = (screen: PageNode) => linksIn(screen).some((link) => link.action === "open" && link.target === overlay);
+  const screen = screens.find((node) => literalOf(node, "state") === undefined && opens(node)) ?? screens.find(opens);
+  const id = screen ? literalOf(screen, "id") : undefined;
+  return typeof id === "string" && id ? id : null;
+}
+
+/** The navigate / open actions of `root` and every layer in it. */
+function linksIn(root: PageNode): ProtoLink[] {
   const out: ProtoLink[] = [];
-  const stack: PageNode[] = tree?.board ? [tree.board] : [];
+  const stack: PageNode[] = [root];
   while (stack.length) {
     const node = stack.pop()!;
     for (const [trigger, prop] of Object.entries(node.props)) {

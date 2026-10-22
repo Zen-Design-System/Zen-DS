@@ -87,6 +87,18 @@
   "PopoverManualAddNew": [
     "color-contrast"
   ],
+  "ScheduleDayPlanner": [
+    "color-contrast"
+  ],
+  "ScheduleHourLabel": [
+    "color-contrast"
+  ],
+  "ScheduleItinerary": [
+    "color-contrast"
+  ],
+  "ScheduleResourceGrid": [
+    "color-contrast"
+  ],
   "Segmented": [
     "color-contrast"
   ],
@@ -103,6 +115,18 @@
     "color-contrast"
   ],
   "Tabs": [
+    "color-contrast"
+  ],
+  "TimelineActivity": [
+    "color-contrast"
+  ],
+  "TimelineItem": [
+    "color-contrast"
+  ],
+  "TimelineMilestone": [
+    "color-contrast"
+  ],
+  "TimelineMilestones": [
     "color-contrast"
   ],
   "UploaderFileItem": [

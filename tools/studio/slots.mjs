@@ -97,7 +97,8 @@ const CHROME_NAMES = ["ExamplePage", "ComponentPreview", "PlaygroundControls", "
 const WHERE = { ConditionalExpression: "a condition (? :)", LogicalExpression: "a condition (&& / ||)", IfStatement: "an if", CallExpression: "a function call", ArrayExpression: "an array", VariableDeclarator: "a variable", ObjectProperty: "an object", SwitchCase: "a switch", AssignmentExpression: "an assignment", SequenceExpression: "a sequence", TemplateLiteral: "a template literal" };
 /** Names a component can take from src/components when the caller passes no componentModules (the common ones). */
 const FALLBACK_FOLDERS = {
-  Accordion: "Accordion", Avatar: "Avatar", AvatarStack: "Avatar", Badge: "Badge", Button: "Button", IconButton: "Button", Card: "Card",
+  Accordion: "Accordion", Avatar: "Avatar", AvatarStack: "Avatar", Badge: "Badge", BadgeStatus: "BadgeStatus", Button: "Button", IconButton: "Button", Card: "Card",
+  PropertyField: "PropertyField", PropertyText: "PropertyField", PropertySelect: "PropertyField", PropertyStatus: "PropertyField", PropertyDate: "PropertyField", PropertyPeople: "PropertyField", PropertyTags: "PropertyField",
   Checkbox: "Checkbox", DescriptionList: "DescriptionList", Divider: "Divider", Shape: "Shape", DockIcon: "DockIcon", EmptyState: "EmptyState",
   FormFieldset: "Form", Icon: "Icon", Image: "Image", InlineMessage: "InlineMessage", InputField: "Input", NumberField: "Input",
   SelectField: "Input", TextAreaField: "Input", Box: "Layout", Container: "Layout", Grid: "Layout", Stack: "Layout", Link: "Link",

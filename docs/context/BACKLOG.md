@@ -7,15 +7,20 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
+- **P2 · Workflow steps still drawn as themed Badges (2026-10-21, BadgeStatus in code; multi-file migration):** other
+  platform pages and the HR templates show a task's step as `Badge theme={taskStatusTheme[…]}`; the new rule
+  `badge/workflow-status-uses-badge-status` flags new ones only. Move them to `<BadgeStatus>` (and Figma instances to
+  Badge-Status). Pointer: `grep -rn taskStatusTheme src/platform`.
+- **P3 · PropertyField ↔ Figma gaps (2026-10-21):** a People / Labels cell pushes one person and two tags (the
+  Property-Value variants hold that many), and `BadgeStatus progress` is not pushed (Progress-Icon's arc is set by hand in
+  Figma). Pointer: `tools/studio/figma-property.mjs`.
 - **P2 · Calendar/Toolbar Mobile in the Mobile typography — question for the designer (2026-10-21, Calendar in code):**
   Figma drew the Mobile variant (16125:399) in the desktop type sizes; with Mobile typography Heading/3 is 26px, so
   "September 2026" (~200px) and a fourth view label ("Agenda") no longer fit 358px beside Today and the arrows, in
   Comfortable density. Code: the mobile toolbar's default title is the short form ("Sep 2026"), and the phone example
   offers three views. Designer: keep the short title, or another style / layout? Pointer: `src/components/Calendar/CalendarToolbar.tsx`.
 - **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved; F0–F10 shipped by 2026-10-20,
-  HANDOFF):** `docs/research/studio-figma-design-parity-2026-10-18.md`. Left: the Code properties rows move to the Code
-  tab (§3a "Properties", structural); Present (⌥⌘↵) from a selected Overlay frame, as Figma presents any frame (needs
-  `builder/proto/Player.tsx`; until then ⌘K › Interact tries an overlay's form); an instance's data-name stays in the page
+  HANDOFF):** `docs/research/studio-figma-design-parity-2026-10-18.md`. Left: an instance's data-name stays in the page
   (its Figma name is its component's or carries content, which pull reads as such).
 - **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
   (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
@@ -49,22 +54,16 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   icon (label: its aria). Pointer: figma-push.mjs Card node, figma-pull.mjs "shows in Figma; set it on the Card".
 - **P2 · Studio components, after F7a/F7b (2026-10-19, Session B):** sets, variants, properties, overrides, Reset, Push
   changes, slot content, Assets › Local are built (branches zen/feat/studio-f7-*, f7b-*); Figma pull of overrides and
-  slot content, overrides inside nested instances and of Zen components in a main since 2026-10-20. Open:
-  - Putting layers into an instance's slot from the canvas (drag-and-drop target; F7c, needs A's or C's drop code).
-  Pointer: `docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md` §5.
+  slot content, overrides inside nested instances and of Zen components in a main since 2026-10-20; layers into a slot
+  from the canvas since 2026-10-21 (F7c). Open, a question for the user: should the React export inline an instance
+  whose overrides no property takes (now a comment)? Pointer: `docs/research/studio-f7b-instance-overrides-spec-2026-10-19.md` §5.
 - **P3 · Shape examples: coverage (2026-10-17, gate ④):** the Shape page shows 9 examples (vectors and the ticket stub since 2026-10-19); not covered yet: states,
   edge cases (a 0 % sweep, a thin star), a phone example and keyboard / a11y (a labelled mark). Pointer:
   `src/platform/examples/pages/shape.tsx`.
-- **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17):** gap / padding drag handles, ⇧⌘G of several layers, ⌘G,
-  Enter = all children, Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles,
-  frame presets. Pointer: same doc §8.
-- **P2 · Search Shape=Rounded follow-ups (2026-10-17, session log "Search Shape"):** (a) settled 2026-10-17 (user:
-  "mặc định nhưng cho sửa"): TopNavigation control bars and BottomSheets give their Search `rounded` in code and
-  Studio; for the designer: set Shape=Rounded on the Search instance in Figma Top-Navigation/Mobile's Control-Bar and
-  Bottom-Sheet's search so the library matches. (b) native
-  paste: `docs/figma-contracts/native-pack.json` has no Search/Default Shape yet, so a direct ⌘V of `shape="rounded"`
-  lands as Default with a note (the plugin import is right); re-capture the Search/Default probe (`native-pack.mjs
-  probe-code` + `capture`, Figma desktop).
+- **P2 · Studio Figma parity, rest of P2–P3 (2026-10-17; re-checked 2026-10-21):** ⇧⌘G of several layers (it ungroups
+  the primary selection only: edit/groupLayers.ts `ungroupSelection`). The rest shipped (⌘G, Enter = all children,
+  Delete selects nothing, Layers rename / lock, multi-frame marquee, flip, rotation handles, frame presets, gap /
+  padding drag handles 2026-10-21). Pointer: same doc §8.
 - **P3 · Metric Title-Highlight Figma slips (2026-10-17, for the designer):** in 7523:507049, the Header gap of 12 is
   unbound (should be Spacing/Gap/Small) and Medium's Metric-Number has paragraphSpacing bound to Font-Size/Heading-3
   (session log 2026-10-17, "Metric-Inline/Title-Highlight"; the Custom-Slot padding is fixed).

@@ -13,6 +13,7 @@ import { stepLayer } from "./arrange";
 import { copyAsPng } from "./copyAs";
 import { flipLayers } from "./flipLayers";
 import { groupSelection, maskSelection, ungroupSelection } from "./groupLayers";
+import { selectMatchingLayers } from "./selectMatching";
 import { booleanSelection, flattenSelection, outlineStrokeSelection, type BooleanOperation } from "./pathOps";
 import { textEditSession } from "./textEdit";
 
@@ -163,6 +164,13 @@ export function useFigmaKeys() {
       if (mod && event.shiftKey && !event.altKey && event.code === "KeyC" && state.tool === "select" && (selection?.kind === "frame" || (selection?.kind === "node" && !selection.part))) {
         event.preventDefault();
         void copyAsPng(selection);
+        return;
+      }
+      // ⌥⌘A: Figma's Select matching layers (edit/selectMatching.ts). It only selects, so a page you view takes it too;
+      // with no layer selected it says so.
+      if (mod && event.altKey && !event.shiftKey && event.code === "KeyA" && state.tool === "select") {
+        event.preventDefault();
+        selectMatchingLayers();
         return;
       }
       if (selection?.kind !== "node" || selection.part || state.tool !== "select") return;

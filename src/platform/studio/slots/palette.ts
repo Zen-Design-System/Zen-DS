@@ -103,7 +103,8 @@ export type PaletteResult = { items: PaletteItem[]; warnings: Readonly<Record<st
 
 /** src/components/<Folder> for every name a snippet uses, and useToast. Server: extend detach.mjs COMPONENT_FOLDER. */
 export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
-  Heading: "Text", Text: "Text", Button: "Button", IconButton: "Button", Link: "Link", Avatar: "Avatar", Badge: "Badge",
+  Heading: "Text", Text: "Text", Button: "Button", IconButton: "Button", Link: "Link", Avatar: "Avatar", Badge: "Badge", BadgeStatus: "BadgeStatus",
+  PropertyField: "PropertyField", PropertyText: "PropertyField", PropertySelect: "PropertyField", PropertyStatus: "PropertyField", PropertyDate: "PropertyField", PropertyPeople: "PropertyField", PropertyTags: "PropertyField",
   Tag: "Tag", DockIcon: "DockIcon", List: "ListItem", ListItem: "ListItem", ListBox: "ListItem", DescriptionList: "DescriptionList",
   Metric: "MetricWidget", MetricCard: "MetricWidget", Card: "Card", ProgressBar: "Progress", ProgressCircle: "Progress", InlineMessage: "InlineMessage",
   EmptyState: "EmptyState", InputField: "Input", TextAreaField: "Input", SelectField: "Input", Checkbox: "Checkbox",
@@ -117,6 +118,8 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
   SkeletonText: "Skeleton", SkeletonHeading: "Skeleton", Search: "Search", Chip: "Chip", Slider: "Slider",
   DateField: "Input", NumberField: "Input", AutocompleteField: "Input", RichTextField: "Input",
   ColorField: "Input", ColorPicker: "ColorPicker", ColorSwatch: "ColorSwatch", SliderField: "SliderField", CurvePreview: "CurvePreview",
+  TimelineActivity: "Timeline", TimelineMilestones: "Timeline", TimelineGantt: "Timeline", TimelineItem: "Timeline",
+  ScheduleResourceGrid: "Schedule", ScheduleItinerary: "Schedule", ScheduleSlotPicker: "Schedule", ScheduleDayPlanner: "Schedule",
   CalendarToolbar: "Calendar", CalendarMonth: "Calendar", CalendarTimeGrid: "Calendar", CalendarAgenda: "Calendar", CalendarWeekStrip: "Calendar",
   DatePicker: "DatePicker", ColorSelector: "ColorSelector", FileUpload: "Uploader", Dialog: "Dialog", ModalForm: "Dialog", SidePanel: "SidePanel",
   BottomSheet: "BottomSheet", Popover: "Popover", PageHeader: "PageHeader", DashboardHeader: "DashboardHeader", TopNavigation: "TopNavigation",
@@ -292,6 +295,10 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "badge", label: "Badge", group: "Data display", caption: "Status", root: "Badge", components: ["Badge"], interactive: false, input: false,
     build: () => `<Badge theme="green" background="subtle">Active</Badge>`,
+  },
+  {
+    id: "badge-status", label: "Badge status", group: "Data display", caption: "Workflow step", root: "BadgeStatus", components: ["BadgeStatus"], interactive: false, input: false,
+    build: () => `<BadgeStatus status="in-progress" />`,
   },
   {
     id: "tag-group", label: "Tag group", group: "Data display", root: "Stack", components: ["Stack", "Tag"], interactive: false, input: false,
@@ -843,6 +850,36 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<InputField label="Project name" placeholder="e.g. Loyalty app" />`,
   },
   {
+    id: "property-field", label: "Property field", group: "Inputs", caption: "Edited in place", root: "PropertyField", components: ["PropertyField", "PropertyStatus"], interactive: true, input: true,
+    build: () => lines(
+      `<PropertyField label="Status" icon="icon-loading-02-line">`,
+      `  <PropertyStatus defaultValue="to-do" />`,
+      `</PropertyField>`,
+    ),
+  },
+  {
+    id: "task-properties", label: "Task properties", group: "Inputs", caption: "Status, dates, people", root: "Stack", components: ["Stack", "PropertyField", "PropertyStatus", "PropertySelect", "PropertyDate", "PropertyPeople", "PropertyTags"], interactive: true, input: true,
+    build: () => lines(
+      `<Stack gap="2xs" align="stretch">`,
+      `  <PropertyField label="Status" icon="icon-loading-02-line">`,
+      `    <PropertyStatus defaultValue="in-progress" />`,
+      `  </PropertyField>`,
+      `  <PropertyField label="Priority" icon="icon-flag-01-line">`,
+      `    <PropertySelect defaultValue="urgent" options={[{ value: "urgent", label: "Urgent", icon: "icon-flag-01-solid", tone: "negative" }, { value: "low", label: "Low", icon: "icon-flag-01-solid", tone: "neutral" }]} />`,
+      `  </PropertyField>`,
+      `  <PropertyField label="Due Date" icon="icon-calendar-line">`,
+      `    <PropertyDate defaultValue="2026-06-07" />`,
+      `  </PropertyField>`,
+      `  <PropertyField label="Assignee" icon="icon-users-plus-line">`,
+      `    <PropertyPeople defaultValue={["alex"]} options={[{ value: "alex", label: "Alex Duong" }, { value: "sun", label: "Sun Hung" }]} />`,
+      `  </PropertyField>`,
+      `  <PropertyField label="Labels" icon="icon-tag-line">`,
+      `    <PropertyTags defaultValue={["ds"]} options={[{ value: "ds", label: "Design System", theme: "blue" }, { value: "ui", label: "UI Design", theme: "orange" }]} />`,
+      `  </PropertyField>`,
+      `</Stack>`,
+    ),
+  },
+  {
     id: "textarea-field", label: "Text area", group: "Inputs", root: "TextAreaField", components: ["TextAreaField"], interactive: true, input: true,
     build: () => `<TextAreaField label="Notes" />`,
   },
@@ -916,6 +953,36 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "calendar-toolbar", label: "Calendar toolbar", group: "Navigation", caption: "Period and view", root: "CalendarToolbar", components: ["CalendarToolbar"], interactive: true, input: false,
     build: () => `<CalendarToolbar title="September 2026" view="month" />`,
+  },
+  // ❖ Timeline (16121:9): the same demo day, ISO dates.
+  {
+    id: "timeline-activity", label: "Activity feed", group: "Data display", caption: "Who did what, by day", root: "TimelineActivity", components: ["TimelineActivity"], interactive: false, input: false,
+    build: () => `<TimelineActivity today="2026-09-30" entries={[{ id: "approve", at: "2026-09-30T10:42", actor: "Maya Chen", title: "approved your leave request", description: "Annual leave · Oct 12 – Oct 16", marker: { kind: "avatar", avatarName: "Maya Chen", tone: "positive" } }, { id: "comment", at: "2026-09-30T09:15", actor: "Linh Tran", title: "commented on Q4 roadmap", attachment: "Can we move the review to Thursday?", marker: { kind: "icon", tone: "accent" } }, { id: "shared", at: "2026-09-29T17:30", actor: "Zen Studio", title: "shared the design file", marker: { kind: "icon", tone: "neutral" } }]} />`,
+  },
+  {
+    id: "timeline-milestones", label: "Milestones", group: "Data display", caption: "Project phases", root: "TimelineMilestones", components: ["TimelineMilestones"], interactive: false, input: false,
+    build: () => `<TimelineMilestones today="2026-09-30" milestones={[{ id: "kickoff", date: "2026-08-03", title: "Kickoff" }, { id: "signoff", date: "2026-09-25", title: "Design sign-off" }, { id: "beta", date: "2026-10-23", title: "Beta launch", description: "Invite 40 studio clients" }, { id: "launch", date: "2026-11-16", title: "Public launch" }]} />`,
+  },
+  {
+    id: "timeline-gantt", label: "Gantt roadmap", group: "Data display", caption: "Tasks across weeks", root: "TimelineGantt", components: ["TimelineGantt"], interactive: true, input: false,
+    build: () => `<TimelineGantt aria-label="Lotus banking redesign" start="2026-08-31" today="2026-09-30" groups={[{ id: "design", name: "Design", tasks: [{ id: "wire", name: "Wireframes", start: "2026-09-14", end: "2026-09-26" }, { id: "ui", name: "UI design", start: "2026-09-21", end: "2026-10-10" }, { id: "signoff", name: "Design sign-off", start: "2026-10-09", kind: "milestone" }] }, { id: "build", name: "Build", tasks: [{ id: "fe", name: "Frontend", start: "2026-09-28", end: "2026-10-17", color: "teal" }] }]} />`,
+  },
+  // ❖ Schedule (16121:6): the same demo day, ISO dates.
+  {
+    id: "schedule-resource-grid", label: "Resource schedule", group: "Data display", caption: "People and rooms by hour", root: "ScheduleResourceGrid", components: ["ScheduleResourceGrid"], interactive: false, input: false,
+    build: () => `<ScheduleResourceGrid date="2026-09-30" now="2026-09-30T13:15" resources={[{ id: "alex", name: "Alex Duong", meta: "Designer" }, { id: "maya", name: "Maya Chen", meta: "Product lead" }, { id: "lotus", name: "Room 2 · Lotus", meta: "8 seats", kind: "room" }]} bookings={[{ id: "q4", resourceId: "alex", title: "Q4 planning", start: "2026-09-30T10:30", end: "2026-09-30T12:00", color: "blue" }, { id: "hiring", resourceId: "maya", title: "Hiring panel", start: "2026-09-30T15:00", end: "2026-09-30T17:00", color: "pink" }, { id: "room", resourceId: "lotus", title: "Design critique", start: "2026-09-30T16:00", end: "2026-09-30T17:00", color: "violet" }]} />`,
+  },
+  {
+    id: "schedule-itinerary", label: "Itinerary", group: "Data display", caption: "A day's timed stops", root: "ScheduleItinerary", components: ["ScheduleItinerary"], interactive: false, input: false,
+    build: () => `<ScheduleItinerary title="Wed, Sep 30 · Design Day" now="2026-09-30T13:15" stops={[{ id: "keynote", title: "Opening keynote", start: "2026-09-30T09:00", end: "2026-09-30T09:45", meta: "Hall A" }, { id: "workshop", title: "Workshop: prototyping", start: "2026-09-30T13:00", end: "2026-09-30T14:30", meta: "Room 2" }, { id: "closing", title: "Closing talk", start: "2026-09-30T15:00", end: "2026-09-30T15:45", meta: "Hall A" }]} />`,
+  },
+  {
+    id: "schedule-slot-picker", label: "Time slots", group: "Inputs", caption: "Book a time", root: "ScheduleSlotPicker", components: ["ScheduleSlotPicker"], interactive: true, input: true,
+    build: () => `<ScheduleSlotPicker aria-label="Review times" today="2026-09-30" slots={[{ id: "a", start: "2026-09-30T14:00" }, { id: "b", start: "2026-09-30T15:00", disabled: true }, { id: "c", start: "2026-10-01T09:00" }, { id: "d", start: "2026-10-01T10:00" }, { id: "e", start: "2026-10-02T11:00" }]} />`,
+  },
+  {
+    id: "schedule-day-planner", label: "Day planner", group: "Data display", caption: "A person's day as cards", root: "ScheduleDayPlanner", components: ["ScheduleDayPlanner"], interactive: true, input: false,
+    build: () => `<ScheduleDayPlanner defaultValue="2026-09-30" now="2026-09-30T13:15" events={[{ id: "a", title: "Wireframing and brainstorming", start: "2026-09-30T09:00", end: "2026-09-30T10:00", color: "violet", status: "Done" }, { id: "b", title: "Exploration phase", start: "2026-09-30T13:00", end: "2026-09-30T16:00", status: "In progress" }]} />`,
   },
   {
     id: "calendar-week-strip", label: "Week strip", group: "Navigation", caption: "Pick a day of the week", root: "CalendarWeekStrip", components: ["CalendarWeekStrip"], interactive: true, input: false,
