@@ -8,6 +8,16 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   a `<Use page>` is pushed as its main's layers with a note, because a push sends one page. A real INSTANCE needs the main's
   page pushed with it (several pages at once) and the importer to link them. Pointer: `tools/studio/figma-push.mjs` `pages`.
 
+## Archived 2026-10-23 (Session C)
+
+- Done 2026-10-21 (#177, native frame look: stroke, sides, dash, radii, effect style with its effects, opacity, rotation and
+  flip in `tools/studio/figma-native.mjs`; fill was already there; corner smoothing and gradients came with #215 / #216):
+  **P2 · Figma's native clipboard path misses a frame's look (2026-10-19, Studio F5a; no owner session):** figma-push and
+  the Zen plugin's importer carry a frame's fill on Stack / Grid, stroke + sides + dash, radii, effectStyle, opacity,
+  rotation and flip (spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md` §4);
+  `tools/studio/figma-native.mjs` / `native-pack.mjs` (⌘C → ⌘V in Figma) do not map them yet (a layer's blend mode goes
+  since 2026-10-20, Session C). Giám sát raises it with the user.
+
 ## Archived 2026-10-21 (Search Shape follow-ups)
 
 - Done 2026-10-21 (Bottom-Sheet re-probed and replaced in the pack; its Search is Search/Default Small Rounded there now):

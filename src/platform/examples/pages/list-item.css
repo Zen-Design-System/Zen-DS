@@ -1,6 +1,4 @@
 /* List Item examples. */
-/* The search takes the room the chips leave in the toolbar row. */
-.px-list-item-search { flex: 1 1 auto; min-width: 0; }
 /* The people pane scrolls on its own, like a mail list. A scroller clips what hangs outside it, so the pane spans the
    ListBox body's side padding (Card-padding-medium) and pads it back: the rows line up with the header and a clickable
    row's fill (12px past the row sideways) stays inside the pane. */

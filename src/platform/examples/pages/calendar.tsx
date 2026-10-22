@@ -116,7 +116,7 @@ function EmptyWeekExample() {
 function DayPlannerExample() {
   const [picked, setPicked] = useState(day(0));
   return (
-    <Card theme="default" className="px-calendar-planner">
+    <Card theme="default" maxWidth={420}>
       <Stack gap="md">
         <Heading level={3} textStyle="Heading/Subheading">My week</Heading>
         <CalendarWeekStrip variant="tile" device="desktop" value={picked} onValueChange={setPicked} events={events} today={TODAY} aria-label="Pick a day" />
