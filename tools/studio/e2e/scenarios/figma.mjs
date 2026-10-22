@@ -280,6 +280,11 @@ async function roomAround(page) {
 /** A phone page with a free frame: a filled, stroked Rectangle and a plain Ellipse. */
 const clipText = (title) => grow(newPageText({ title, device: "phone", chrome: true }), "Stack", '<Box width={358} height={220}>\n<Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} fill="support-teal-solid" stroke="accent-solid" strokeWeight={2} opacity={80} />\n<Shape type="ellipse" position="absolute" insetLeft={140} insetTop={40} width={60} height={60} />\n</Box>');
 let clipMade = null;
+/** Two floating groups of two shapes in a frame without auto layout (FW-220: ⇧⌘G on both). */
+const twoGroupsText = (title) => {
+  const group = (top) => `<Box position="absolute" insetLeft={20} insetTop={${top}} width={180} height={80} group>\n<Shape type="rectangle" position="absolute" insetLeft={0} insetTop={0} width={80} height={60} />\n<Shape type="ellipse" position="absolute" insetLeft={120} insetTop={20} width={60} height={60} />\n</Box>`;
+  return grow(newPageText({ title, device: "phone", chrome: true }), "Stack", `<Box width={358} height={220}>\n${group(20)}\n${group(120)}\n</Box>`);
+};
 async function clipPage(ctx) {
   const { page } = await ctx.studio();
   if (!clipMade) {
@@ -4130,6 +4135,36 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       if (shapes[0].x !== 20 || shapes[0].y !== 20 || shapes[1].x !== 140 || shapes[1].y !== 40) throw new Error(`after ungroup at ${shapes.map((shape) => `${shape.x}, ${shape.y}`).join(" · ")}`);
       await undoTo(page, id, before, 4);
       return "⌘G → Group 1 at 20, 20 · ⇧⌘G → back where they were · ⌘Z";
+    },
+  },
+  {
+    id: "FW-220", feature: "⇧⌘G on two selected groups ungroups both, as Figma's: each layer stays where it was, all four selected, one ⌘Z", wp: "F3 · BACKLOG P2 parity rest 2026-10-23", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, text } = await seededPage(ctx, twoGroupsText, /group>[\s\S]*group>/);
+      const before = await text();
+      await showLeftTab(page, "layers");
+      // ⌘-click an empty spot of each group (below its rectangle, left of its ellipse): the group is the layer there.
+      const boxes = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Box"]`);
+      for (const [at, index] of [1, 2].entries()) {
+        const box = await boxes.nth(index).boundingBox();
+        if (!box) throw new Error(`group ${at + 1} has no box on the canvas`);
+        if (at) await page.keyboard.down("Shift");
+        await page.keyboard.down("ControlOrMeta");
+        await page.mouse.click(box.x + box.width / 2, box.y + box.height - 4);
+        await page.keyboard.up("ControlOrMeta");
+        if (at) await page.keyboard.up("Shift");
+        await sleep(300);
+      }
+      const selected = async (count) => (await selectedSrc(page)).length === count || (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === count - 1;
+      await until(() => selected(2), { message: "both groups selected" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Shift+KeyG");
+      await until(async () => !/group>/.test(await text()), { message: "⇧⌘G ungroups both" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      const places = shapeTags(await text()).map((shape) => `${shape.x},${shape.y}`).join(" ");
+      if (places !== "20,20 140,40 20,120 140,140") throw new Error(`after ungroup at ${places}`);
+      await until(() => selected(4), { message: "the four layers selected" });
+      await oneUndo(page, id, before);
+      return "two groups → ⇧⌘G → four shapes where they were, all selected · one ⌘Z";
     },
   },
   {
