@@ -283,12 +283,23 @@ const readInstance = async (instance) => {
 // id it draws), and on the frame the Studio page and the export it came from.
 const studioData = (node, name) => { try { return node.getSharedPluginData("zenstudio", name) || null; } catch (e) { return null; } };
 const ROOT_ID = ${JSON.stringify(nodeId)};
+// The Studio page the frame read was imported as (set once the frame is found, below).
+let READ_PAGE = null;
 // A component of the page itself (a main or set inside the frame read): its Studio id (the Zen plugin keeps it), else
 // its Figma id. A library component, or one elsewhere in the file: null.
 const pageOwn = (component) => { for (let at = component; at; at = at.parent) if (at.id === ROOT_ID) return studioData(component, "local") || component.id; return null; };
 const ownerOf = (main) => (main && main.parent && main.parent.type === "COMPONENT_SET" ? main.parent : main);
-// A Zen component's instance (the library's, not one of the page's own components).
-const zenInstance = async (node) => node.type === "INSTANCE" && !pageOwn(ownerOf(await node.getMainComponentAsync()));
+// Another Studio page's component (Zen Studio's project components): a main the Zen plugin marked with its page and id,
+// outside the frame read (in its own page's frame, or the holder frame it waits in). { page, local }, else null.
+const studioPageOf = (node) => { for (let at = node; at && at.type !== "PAGE" && at.type !== "DOCUMENT"; at = at.parent) { const page = studioData(at, "page") || studioData(at, "components-of"); if (page) return page; } return null; };
+const projectOwn = (component) => {
+  if (!component || pageOwn(component)) return null;
+  const local = studioData(component, "local");
+  const page = local ? studioPageOf(component) : null;
+  return local && page && page !== READ_PAGE ? { page, local } : null;
+};
+// A Zen component's instance (the library's, not one of the page's own components, nor another Studio page's).
+const zenInstance = async (node) => { if (node.type !== "INSTANCE") return false; const owner = ownerOf(await node.getMainComponentAsync()); return !pageOwn(owner) && !projectOwn(owner); };
 // A swap's component: the page's own (its id) or another by name (an icon).
 const swapName = async (id) => {
   const component = typeof id === "string" ? await figma.getNodeByIdAsync(id) : null;
@@ -323,6 +334,13 @@ const plainJson = (value) => JSON.stringify(value, (key, entry) => (key === "id"
 // page's own components has that its counterpart in the main has not (Figma lists no override for a nested instance
 // switched to another variant, checked 2026-10-20); what it puts in its main's slots, when that differs from its main's
 // own content.
+// An instance of another Studio page's component: its page and id, its variant and property values (its changes to the
+// main's layers are left to that page's main).
+const readProjectInstance = async (node, owner) => {
+  const own = await instanceValues(node);
+  const of = projectOwn(owner);
+  return { type: "INSTANCE", id: node.id, name: node.name, local: of.local, page: of.page, ...(Object.keys(own.variant).length ? { variant: own.variant } : {}), ...(Object.keys(own.props).length ? { props: own.props } : {}) };
+};
 const readLocalInstance = async (node, owner) => {
   const out = { type: "INSTANCE", id: node.id, name: node.name, local: pageOwn(owner) };
   const own = await instanceValues(node);
@@ -481,6 +499,7 @@ const readLayer = async (node) => {
   if (node.type === "INSTANCE") {
     const owner = ownerOf(await node.getMainComponentAsync());
     if (owner && pageOwn(owner)) return readLocalInstance(node, owner);
+    if (owner && projectOwn(owner)) return readProjectInstance(node, owner);
     return readInstance(node);
   }
   return readFrame(node);
@@ -760,6 +779,7 @@ const markSticky = (entry, ids) => {
 };
 const node = await figma.getNodeByIdAsync(${JSON.stringify(nodeId)});
 if (!node) throw new Error("No node " + ${JSON.stringify(nodeId)});
+READ_PAGE = studioPageOf(node);
 // ASCII only (\\uXXXX for the rest): an answer with many non-ASCII characters was cut short in transit.
 const result = node.type === "INSTANCE" || node.type === "TEXT" ? await read(node) : await readFrame(node, true);
 if (("overflowDirection" in node && node.overflowDirection !== "NONE") || scrolls(result)) markSticky(result, await stickyIdsOf(node));
@@ -2296,6 +2316,13 @@ function componentElement(node, ctx) {
 
 /** An instance of the page's own main or set: `<Use>` with the variant and values that differ from its defaults. */
 function useElement(node, ctx) {
+  // An instance of another Studio page's component (project components): `<Use of page>` with the values it shows.
+  if (typeof node.page === "string" && node.page) {
+    const props = { of: literal(node.local), page: literal(node.page) };
+    if (node.variant && Object.keys(node.variant).length) props.variant = valuesObject(node.variant);
+    if (node.props && Object.keys(node.props).length) props.props = valuesObject(node.props);
+    return { kind: "element", name: "Use", props, children: [] };
+  }
   const of = pageValue(node.local, ctx);
   if (!ctx.local.ids.has(node.local)) { ctx.notes.push(`${node.name ?? "Instance"}: an instance of a component that is not on this page (left out)`); return null; }
   const props = { of: literal(of) };

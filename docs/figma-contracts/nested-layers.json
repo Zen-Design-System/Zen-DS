@@ -1,7 +1,7 @@
 {
  "note": "Layer names (I instance, F frame or slot, T text) of each component set, hidden layers included, from a read-only use_figma read of the live file (skipInvisibleInstanceChildren = false). tools/figma-contract/nested-paths.mjs checks nest() names against it for sets with no full contract and for layers the full contracts drop (hidden ones inside instances). Re-read: node tools/figma-contract/nested-layers-read.mjs code.",
  "file": "9nZv4uW2LT21yuHabMTCh1",
- "captured": "2026-10-17",
+ "captured": "2026-10-23",
  "sets": {
   "12074:16888": {
    "n": "AI/Chat-Field",
@@ -137,6 +137,7 @@
     "Button": "I",
     "Leading-Icon": "I",
     "Trailing-Icon": "I",
+    "Trailing-Icon-2": "I",
     "Noti": "I",
     "Top-Heading-Text": "I",
     "Leading": "FI",
@@ -163,7 +164,6 @@
     "Control-Bar": "F",
     "Control-Slot": "F",
     "Search": "F",
-    "Search/Popover": "I",
     "Search/Default": "I",
     "Icon": "I",
     "Content": "IF",
@@ -182,7 +182,7 @@
   },
   "6643:51021": {
    "n": "Card",
-   "v": 20,
+   "v": 120,
    "l": {
     "Content": "F",
     "Sub-Action": "F",
@@ -357,7 +357,7 @@
     "Icon-Wrapper": "F",
     "Icon": "I",
     "Content": "F",
-    "Heading-Text": "IF",
+    "Heading-Text": "F",
     "Heading": "T",
     "Caption-Container": "F",
     "Caption": "T",
@@ -411,25 +411,6 @@
     ".Primitives/Container/Block-Placeholder": "F"
    }
   },
-  "6085:25796": {
-   "n": "Empty-State",
-   "v": 1,
-   "l": {
-    "Illustration": "I",
-    "Icon": "I",
-    "Content-Wrapper": "F",
-    "Content": "F",
-    "Title": "T",
-    "Caption": "T",
-    "CTA": "I",
-    "Primary": "I",
-    "Container": "F",
-    "Leading-Icon": "I",
-    "Label": "T",
-    "Trailing-Icon": "I",
-    "Secondary": "I"
-   }
-  },
   "595:54857": {
    "n": "Inline-Message",
    "v": 6,
@@ -443,8 +424,9 @@
     "Caption": "T",
     "Action": "I",
     "Container": "F",
-    "Label-Wrapper": "F",
+    "Leading-Icon": "I",
     "Label": "T",
+    "Trailing-Icon": "I",
     "Close": "I",
     "Leading": "F"
    }
@@ -935,6 +917,25 @@
     "Button/Main": "I",
     "Trailing-Icon": "I",
     "Primitives/Metric/Metric-Tile": "I"
+   }
+  },
+  "16339:135": {
+   "n": "Empty-State",
+   "v": 2,
+   "l": {
+    "Illustration": "I",
+    "Icon": "I",
+    "Content-Wrapper": "F",
+    "Content": "F",
+    "Title": "T",
+    "Caption": "T",
+    "CTA": "I",
+    "Primary": "I",
+    "Container": "F",
+    "Leading-Icon": "I",
+    "Label": "T",
+    "Trailing-Icon": "I",
+    "Secondary": "I"
    }
   }
  }

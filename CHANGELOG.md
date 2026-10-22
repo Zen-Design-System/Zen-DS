@@ -22,6 +22,19 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   inside itself, so the chat, AI chat and AI UI composers dock without example CSS. Zen Studio sets it in Prototype ›
   Scroll behavior (in place on the canvas, stuck in Play and Present); Figma push and pull map bottom to Fixed and top
   to Sticky. `surface="canvas"` paints the AppShell's canvas inside a shell (2026-10-23).
+- Chart and metric marks on a colour Solid Card (Brand, Accent, Cyan, Yellow, Orange) draw their second series (the
+  current Spark-Bar, the active bar, a Bullet or Gauge target, the Funnel's last stage, the Combo line) in black at 49%
+  (Content/Neutral/Light; Inverse/Light in dark mode), as Figma's Color Chart Sector/On-Color/Secondary does, not 69%.
+  The user kept that style's binding and the Tertiary one (Border/Neutral/Subtle/Pressed) (2026-10-23).
+- **Docs platform:** the Shape page has three more examples: a seat map whose marks carry labels (picked with Segmented
+  buttons, taken seats drawn as outlines), the arc's and star's limits (Sweep 0 %, a hairline ring, thin and zero-ratio
+  stars) and onboarding art on a phone (2026-10-23).
+- Figma contracts: `nested-layers.json` is re-read from the live file (2026-10-23): Card's 120 variants, Empty-State
+  as its set (16339:135, so `nested-paths` now checks EmptyState too, 45/45), and the layer changes in Bottom-Sheet,
+  Modal/Dialog and Inline-Message.
+- Usage harness: a tag quoted in a `//` line comment is documentation, as in a block comment, so it no longer trips a
+  rule (Zen Studio's Design panel showed a false "Save has no onClick"); a URL's `//` still leaves the rest of the line
+  checked (2026-10-23).
 - Zen Studio: copying a Section onto its own place (⌘D, ⌥-drag) no longer overflows the page's stack: of two
   Sections the same size the one written first holds the other, as documented, never both each other. The Studio E2E
   report (and the gate's) now names the row and the stack of every Vite error, so a page error that fails no row is
@@ -361,7 +374,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   that page takes it back), and a main that other pages use cannot be deleted until they let it go. An instance whose
   main is gone (its page in the Trash or out of the project) shows "Missing component" until the main is back. As in
   Figma, a component can't go inside itself through another page (Assets says which one holds it). Open on phone draws
-  these instances too. Sent to Figma as its layers for now.
+  these instances too. In Figma (Import from Studio) such an instance is a real instance of its main: the export
+  carries the other page's component, made in a "<page> · components" frame beside the frame until that page is
+  imported (then it moves into its frame and the instances stay linked); a re-import keeps each instance the same layer
+  (id, comments, prototype links); Pull reads it back as `<Use of page>` (2026-10-23).
 - Studio → Figma (Import from Studio): a Grid inside a Grid cell stretches to its row as in CSS, so a row's cards match its
   tallest (the Dashboard's metric pairs came out at their own heights); the direct paste keeps it at its own height.
 - Zen Studio: ⌥-drag, ⌘D and ⌘C ⌘V of a Section copy it with the frames and Sections it holds, in one ⌘Z, as Figma does
