@@ -25,11 +25,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P1 · Studio design page = Figma, in Figma's words (2026-10-18, plan approved; F0–F10 shipped by 2026-10-20,
   HANDOFF):** `docs/research/studio-figma-design-parity-2026-10-18.md`. Left: an instance's data-name stays in the page
   (its Figma name is its component's or carries content, which pull reads as such).
-- **P2 · Figma's native clipboard path misses a frame's look (2026-10-19, Studio F5a; no owner session):** figma-push and
-  the Zen plugin's importer carry a frame's fill on Stack / Grid, stroke + sides + dash, radii, effectStyle, opacity,
-  rotation and flip (spec `docs/research/studio-f5-right-panel-spec-2026-10-19.md` §4);
-  `tools/studio/figma-native.mjs` / `native-pack.mjs` (⌘C → ⌘V in Figma) do not map them yet (a layer's blend mode goes
-  since 2026-10-20, Session C). Giám sát raises it with the user.
 - **P1 · Zen accent: white text on Zen/9 is 2.96:1 — question for the designer (2026-10-17, gate ⚠ contrast):** since #109
   (On-Brand Default / Hover → white, the user's "Đồng bộ On-Brand theo Figma", trade-off known) an Accent Solid button
   (`level="accent"`) writes #FFFFFF on Zen/9 #F755C9 = 2.96:1 (AA needs 4.5:1, 3:1 for large text), where the high-contrast
@@ -122,12 +117,15 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · Designer question: Popover label at 3.75:1 (2026-10-14):** `.zen-popover__label` ("Select an option or create one" in
   PopoverManualAddNew) uses Content/Neutral/Light, #838383 on white at 12px, under AA's 4.5:1. Baselined in
   tests/smoke/axe-baseline.json. Keep, or move the label to Content/Neutral/Medium?
-- **P1 · Studio → Figma coverage, P3–P4 (user approved 2026-10-12, in this order; P1, P2 merged 2026-10-13):** done on
-  the way: MetricCard, ChartCard / charts, ListItem leading, ListBox header, AiChatBlock, Table cells (a design copy's
-  and the push's: avatar, badge, actions, checkbox, sort). Left for P3: TopNavigation (114 uses ↔ Top-Navigation/Mobile
-  + 8 Nav-Action sets), ColorSelector, TabItem, InputConditions, UploaderFileItem, DatePickerSheet, chat parts, Metric
-  (re-capture); the chart family now belongs to session "Chart components với animation". P4: raw HTML and className in
-  examples. Audit and numbers: `docs/research/studio-figma-push-spec-2026-10-12.md` §8.
+- **P2 · Example className, round 2 (2026-10-23, session B; user: "theo bạn cái nào lợi hơn lâu dài, chính xác nhất"):**
+  the 2026-10-12 coverage plan's P3 (TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem,
+  DatePickerSheet, chat, Metric) and P4/P5 (className 219 → 112) were merged on 2026-10-13 (spec
+  `docs/research/studio-figma-push-spec-2026-10-12.md` §8). Examples added since carry 177 className and 74 raw tags
+  again. Doing now (branch `zen/chore/examples-classnames-20261023`): classes with a Figma-equivalent Zen prop (Fill
+  container, Absolute, max size, scroll, Grid stackBelow) become props, bleed margins become structure, dead classes go;
+  docs-only CSS (ch widths, component internals, motion, media, demo focus rings) stays. User decisions 2026-10-23: Card /
+  ListBox content becomes an auto layout column, Box / Stack get `sticky`, wrapping rows use Fill + min width. Three PRs;
+  spec card `docs/research/examples-classnames-round2-spec-2026-10-23.md`.
 - **P3 · Zen plugin `code.js` Swap Project Colors reads `getVariableById` (sync) (2026-10-14):** under the manifest's
   `dynamic-page` it throws (caught), so a Global Color that is an alias derives from nothing (`getBgColor`, ~line 5655).
   Import from Studio no longer uses any sync API (`tests/plugin-source-safety.test.js` checks it).
