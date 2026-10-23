@@ -20,10 +20,11 @@ Record a voice take, or talk with the assistant out loud: a waveform or voice si
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| State | `state` | VoiceRecorder ready · recording · paused; AiVoiceConversation ready · listening · responding — your recorder or assistant drives it |
+| State | `state` | VoiceRecorder ready · recording · paused; AiVoiceConversation ready · listening · thinking · responding — your recorder or assistant drives it (Thinking is code-first: Figma's variant is a designer question) |
 | Recorder actions | `onRecord · onPause · onResume · onFinish · onDiscard` | the main action follows the state; Discard and Finish stay off until there is a take |
 | Conversation actions | `onStart · onDone · onInterrupt · onEnd · muted + onMutedChange` | Mute and End stay off until the conversation starts |
 | Waveform | `elapsed · start · end · levels (0–1)` | Heading/Subheading time, an 80px waveform, Caption start / end. Without levels the sample take moves: it scrolls at 7 bars a second while recording (a new take enters at the right edge), holds still when paused; the voice signal moves like speech while listening or responding |
+| Live levels | `useVoiceLevels(stream, { bars, rate, paused })` | your microphone's levels from an AnalyserNode at the waveform's 7 a second, oldest first: bars 56 for VoiceRecorder, 5 for the conversation's signal; undefined without a stream (the sample or the flat line shows) |
 | Transcript | `transcript · speaker` | the AI/Chat-Bubble inside the Surface/Alt card |
 | Footer | `input · format (Recorder) · note (Conversation)` | Caption, Neutral/Light |
 
@@ -58,7 +59,7 @@ Figma AI Voice Conversation (15084:79715): the header (Body/Base/Medium name + a
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `state` | `"ready" \| "listening" \| "responding"` | `"ready"` | Figma State: Ready (the microphone is off), Listening (you talk), Responding (the assistant answers). |
+| `state` | `"ready" \| "listening" \| "thinking" \| "responding"` | `"ready"` | Figma State: Ready (the microphone is off), Listening (you talk), Responding (the assistant answers). Thinking (code first; Figma's variant is a designer question): between your last word and its first spoken one, so the answer's words never show before there is an answer — the voice rests as dots that brighten in turn. |
 | `name` | `ReactNode` | — | The assistant's name in the header. Default: the locale's "Zen voice". |
 | `heading` | `ReactNode` | — | The status heading and its line (Heading/Subheading, Body/Small/Regular). Default: what the state means. |
 | `headingLevel` | `2 \| 3 \| 4 \| 5 \| 6` | `3` | The status heading's level in the page outline (an `h3` by default; `2` straight under a screen's h1). |
@@ -68,7 +69,7 @@ Figma AI Voice Conversation (15084:79715): the header (Body/Base/Medium name + a
 | `levels` | _HTML attribute_ | — | The voice signal's bar levels while listening or responding, 0–1 each (Figma draws 5 and 7), from your audio. Unset: Figma's bars move like speech — your voice while listening, the assistant's steadier one while responding (still under reduced motion). Muted while listening, the bars rest as dots: the microphone hears nothing. |
 | `muted` | `boolean` | `false` | Mute (the left action, a toggle; off until the conversation starts). Muted, the button shows it is on, the signal rests while listening, and the guidance and note say the microphone is muted. |
 | `onMutedChange` | `(muted: boolean) => void` | — |  |
-| `onStart` | `() => void` | — | The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Responding). |
+| `onStart` | `() => void` | — | The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Thinking, Responding). Done speaking is the manual fallback: end the turn yourself when the voice falls silent (set `state`), as voice modes do. |
 | `onDone` | `() => void` | — |  |
 | `onInterrupt` | `() => void` | — |  |
 | `onEnd` | `() => void` | — | End the conversation (off while Ready). |
@@ -80,7 +81,12 @@ Figma AI Voice Conversation (15084:79715): the header (Body/Base/Medium name + a
 ## ✅ Do
 - Put them on a Card or a Surface: the frame itself is transparent (Figma).
 - Wire every action you show: a main action without its handler does nothing (harness: voice/actions-wired).
-- Let your audio code drive state, and give the time and levels from it: one recorder level every 1/7 s (oldest dropped) keeps a real take scrolling at the timeline's speed; leave levels unset in a prototype and the sample moves by itself.
+- Let your audio code drive state, and give the time and levels from it: useVoiceLevels(stream) gives one recorder level every 1/7 s (oldest dropped), so a real take scrolls at the timeline's speed; leave levels unset in a prototype and the sample moves by itself.
+- Let a person take Discard back: an Undo in a toast, or a confirmation for a take longer than a few seconds — a take is never lost to one press.
+- Say when nothing is heard: after about 3 seconds of silence while recording or listening, set guidance to what to check ("No sound detected. Check that your microphone is on and not muted.").
+- End the person's turn on silence (end-of-speech detection) and let them interrupt by speaking, as voice modes do; Done speaking stays as the manual way.
+- Show Thinking between the person's last word and the assistant's first spoken word, so the answer's words never show before there is an answer.
+- When a turn is not heard or the connection drops, say what happened and what to do in heading and guidance ("I didn’t catch that" · "Say it again, a little closer to your microphone."), and keep listening.
 - On a phone, use a white screen (canvas surface) so the Surface/Alt signal and card show.
 
 ## ❌ Don't
@@ -91,7 +97,7 @@ Figma AI Voice Conversation (15084:79715): the header (Body/Base/Medium name + a
 ## Accessibility
 - Each voice action is a named button (its name is printed under it); Mute is a toggle (aria-pressed) that shows its Pressed look while on, and muted while listening the signal rests and the guidance and note say the microphone is muted.
 - Motion follows prefers-reduced-motion: the waveform and voice signal keep Figma's still frames; the clock, Badge and words still change.
-- The guidance and status lines are polite live regions, so a state change is announced once.
+- The guidance and status lines are polite live regions, so a state change is announced once (Thinking included: “Thinking it through”).
 - The waveform and voice signal are decorative (aria-hidden): the time and the Badge carry the meaning.
 
 ## Content
