@@ -72,6 +72,8 @@ const current = JSON.parse(JSON.stringify(base));
 element(current, "f14243-64888").props.theme = { kind: "literal", value: "flat" };
 element(current, "f14243-64885").props.textStyle = { kind: "literal", value: "Display/2" };
 element(current, "f14243-64884").children.push({ kind: "element", id: "nmine1", name: "Text", props: {}, children: [{ kind: "text", value: "Added in the Studio" }] });
+// …and gave the Button a prototype action (option C: open an overlay by it), which Figma holds nowhere.
+element(current, "f14243-64886").props.onClick = { kind: "proto", action: "open", args: ["pick-date"] };
 
 check("the header names the frame", figmaSource(base.header), { file: "9nZv4uW2LT21yuHabMTCh1", node: "14243:64878" });
 ok("two pulls of one frame match; another frame does not", sameFigmaSource(figmaSource(base.header), figmaSource(incoming.header)) && !sameFigmaSource(figmaSource(base.header), { file: "9nZv4uW2LT21yuHabMTCh1", node: "1:2" }));
@@ -100,6 +102,8 @@ check("the grid: swapped, Development gone, Templates added after the others (Fi
 check("the Button takes Figma's new size", element(merged, "f14243-64886").props.size, { kind: "literal", value: "small" });
 check("the unticked conflict keeps the Studio's theme", element(merged, "f14243-64888").props.theme, { kind: "literal", value: "flat" });
 check("the Studio's own edits stay: the tagline's style, the line it added", [element(merged, "f14243-64885").props.textStyle.value, element(merged, "nmine1")?.children[0].value], ["Display/2", "Added in the Studio"]);
+check("the Studio's prototype action stays through the pull (Figma holds none)", element(merged, "f14243-64886").props.onClick, { kind: "proto", action: "open", args: ["pick-date"] });
+check("…and two ways (no base) it is no change either", figmaChanges({ current, incoming }).changes.filter((change) => change.name === "onClick").length, 0);
 check("the merged page is valid dialect", validateDialect(printPage(merged)), []);
 check("ticking the conflict too gives Figma's theme", element(mergeFigma(current, incoming, changes).doc, "f14243-64888").props.theme, { kind: "literal", value: "border" });
 
