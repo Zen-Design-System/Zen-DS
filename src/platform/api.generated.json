@@ -14163,10 +14163,18 @@
         },
         {
           "name": "format",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
-          "description": "How a number of `series`, `goal` and `categories` reads (the summary, the goal's label, each category's amount).\n Default \"1.2K\".",
+          "default": null,
+          "description": "How a number of `series`, `goal` and `categories` reads (the summary, the goal's label, each category's amount): a\n function, or a preset a Zen Studio page can write as text — `\"compact\"` 1.2K (the default), `\"currency\"` $1.2K (in\n `currency`), `\"percent\"` 41%. `value` is shown as you pass it.",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"`.",
           "deprecated": null
         },
         {
@@ -16887,10 +16895,18 @@
         },
         {
           "name": "format",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
-          "description": "Formats axis labels, the Tooltip and the summary (`$23.4K`, `52 GB`). Default: 1.2K.",
+          "default": null,
+          "description": "How axis labels, the Tooltip and the summary read: a function (`(v) => v + \" GB\"`), or a preset a Zen Studio page\n can write as text — `\"compact\"` 1.2K (the default), `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41%.",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"`.",
           "deprecated": null
         },
         {
@@ -17005,10 +17021,18 @@
         },
         {
           "name": "format",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
-          "description": "Formats axis labels, the Tooltip and the summary.",
+          "default": null,
+          "description": "How axis labels, the Tooltip and the summary read: a function, or a preset a Zen Studio page can write as\n text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41%. Default: 1.2K.",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"`.",
           "deprecated": null
         },
         {
@@ -17115,10 +17139,18 @@
         },
         {
           "name": "format",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
-          "description": "Formats axis labels, the Tooltip total and the summary.",
+          "default": null,
+          "description": "How axis labels, the Tooltip total and the summary read: a function, or a preset a Zen Studio page can write\n as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41%. Default: 1.2K.",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"`.",
           "deprecated": null
         },
         {
@@ -17217,10 +17249,18 @@
         },
         {
           "name": "format",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
-          "description": "Formats the centre figure and the summary.",
+          "default": null,
+          "description": "How the centre figure and the summary read: a function, or a preset a Zen Studio page can write as text:\n `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41%. Default: 1.2K.",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"`.",
           "deprecated": null
         },
         {
@@ -17343,10 +17383,18 @@
         },
         {
           "name": "format",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
           "default": null,
-          "description": "Formats the centre figure and the summary. Default: the share of `max` in whole percent (\"43%\").",
+          "description": "How the centre figure and the summary read: a function, or a preset a Zen Studio page can write as text:\n `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41% (the value as it is). Default: the share\n of `max` in whole percent (\"43%\").",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"`.",
           "deprecated": null
         },
         {
@@ -17461,10 +17509,18 @@
         },
         {
           "name": "format",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
-          "description": "Formats the Tooltip and the summary (\"14 sessions\").",
+          "default": null,
+          "description": "How the Tooltip and the summary read (\"14 sessions\"): a function, or a preset a Zen Studio page can write as\n text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41%. Default: 1.2K.",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"`.",
           "deprecated": null
         },
         {
@@ -17539,10 +17595,18 @@
         },
         {
           "name": "format",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
-          "description": "Formats each row's value and the summary (\"$96,400\").",
+          "default": null,
+          "description": "How each row's value and the summary read: a function (`(v) => \"$\" + v.toLocaleString(\"en-US\")` → \"$96,400\"), or a\n preset a Zen Studio page can write as text — `\"compact\"` 96.4K (the default), `\"currency\"` $96.4K (in `currency`),\n `\"percent\"` 41%.",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"`.",
           "deprecated": null
         },
         {
@@ -17633,10 +17697,18 @@
         },
         {
           "name": "format",
-          "type": "(value: number, row: ChartBullet) => string",
+          "type": "((value: number, row: ChartBullet) => string) | ChartFormatPreset",
           "required": false,
           "default": null,
-          "description": "Formats the value and the target of a row (\"$798K of $900K\") and the summary. It gets the row too, so each goal can\n take its own unit: `(v, row) => (row.label === \"Utilisation\" ? v + \"%\" : String(v))`.",
+          "description": "How the value and the target of a row (\"$798K of $900K\") and the summary read. A function gets the row too, so\n each goal can take its own unit: `(v, row) => (row.label === \"Utilisation\" ? v + \"%\" : String(v))`; or a\n preset a Zen Studio page can write as text: `\"compact\"` 1.2K (the default), `\"currency\"` $1.2K (in\n `currency`), `\"percent\"` 41%.",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"`.",
           "deprecated": null
         },
         {
@@ -17751,10 +17823,18 @@
         },
         {
           "name": "format",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
           "default": null,
-          "description": "Formats the figure, the target and the end labels. Default: the share of `max` in whole percent (\"82%\", \"0%\", \"100%\").",
+          "description": "How the figure, the target and the end labels read: a function, or a preset a Zen Studio page can write as\n text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41% (the value as it is). Default: the\n share of `max` in whole percent (\"82%\", \"0%\", \"100%\").",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"`.",
           "deprecated": null
         },
         {
@@ -17829,10 +17909,18 @@
         },
         {
           "name": "format",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
-          "description": "Formats the counts under the stage names and in the summary (the shares are whole percent of the first stage).",
+          "default": null,
+          "description": "How the counts under the stage names and in the summary read (the shares are whole percent of the first\n stage): a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in\n `currency`), `\"percent\"` 41%. Default: 1.2K.",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"`.",
           "deprecated": null
         },
         {
@@ -17915,10 +18003,18 @@
         },
         {
           "name": "format",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
-          "description": "Formats axis labels, the Tooltip and the summary (`2,210 h`, `$23.4K`). Default: 1.2K.",
+          "default": null,
+          "description": "How axis labels, the Tooltip and the summary read (`2,210 h`, `$23.4K`): a function, or a preset a Zen Studio\n page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41%. Default: 1.2K.",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"`.",
           "deprecated": null
         },
         {
@@ -18017,10 +18113,18 @@
         },
         {
           "name": "format",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
-          "description": "Formats axis labels, the Tooltip and the summary. Default: 1.2K.",
+          "default": null,
+          "description": "How axis labels, the Tooltip and the summary read: a function, or a preset a Zen Studio page can write as\n text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41%. Default: 1.2K.",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"`.",
           "deprecated": null
         },
         {
@@ -18127,18 +18231,26 @@
         },
         {
           "name": "format",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
-          "description": "Formats the bars' values and the start axis (`$105.7K`). Default: 1.2K.",
+          "default": null,
+          "description": "How the bars' values and the start axis read (`$105.7K`): a function, or a preset a Zen Studio page can write\n as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41%. Default: 1.2K.",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"` for the bars; `lineFormat=\"currency\"` takes it too.",
           "deprecated": null
         },
         {
           "name": "lineFormat",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
-          "description": "Formats the line's values and the end axis (`41%`). Default: 1.2K.",
+          "default": null,
+          "description": "How the line's values and the end axis read (`41%`): a function or a preset, as `format`. Default: 1.2K.",
           "deprecated": null
         },
         {

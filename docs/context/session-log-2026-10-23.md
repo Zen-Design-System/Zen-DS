@@ -269,3 +269,20 @@ Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows 
 - Merged main 9022cdad (after #236 merged; #237's chart-*.json contracts came in, no overlap). Gate (isolated, the map +
   the two generated maps): Studio self-tests ✓, TypeScript ✓, nested layer names 45 / 45, Studio E2E 338 / 338
   (3 shards, BL-02 Main component coverage included), Build-QA PASS. No platform page in scope, so no contact sheet.
+
+## Chart number format presets (tier M; user G2 2026-10-23: "literal preset format="currency" + currency"; scope widened by the user to every chart with `format`)
+
+Branch zen/feat/chart-format-presets-20261023 from main 9fe063d2. BACKLOG P2 "Charts in Studio pages show no currency".
+- chartCore: `ChartFormatPreset` ("compact" | "currency" | "percent"), `ChartFormat` (function or preset), `formatOf(format,
+  currency)`. Currency: Intl's narrow symbol before defaultFormat's compact figure ("$128.4K", "€950", "-₫1.2K"; a code
+  with no symbol keeps a no-break space: "CHF 5K"; a code Intl refuses is written as its letters). `currency` alone
+  implies the currency preset; percent appends "%" to the value as it is.
+- `format` + `currency` on LineChart, StackBarChart, BarChart, AreaChart, GroupedBarChart, ComboChart (`lineFormat` too,
+  sharing `currency`), DonutChart, RadialChart and GaugeChart (their default stays the share of `max`), FunnelChart,
+  HeatmapChart, BarList, BulletChart (a row function or a preset) and MetricCard. The user widened the scope from the
+  approved three (LineChart, BarList, MetricCard): a preset only some charts take would crash a page that writes it on
+  another (format is called as a function).
+- Studio palette: on a builder page a money callback becomes `format="currency"`, a share `"percent"` (PRESETS); hours
+  and goals keep the chart's own format. figma-widgets selftest: number formats come back like data (Figma has no format
+  property). part-props: PlotFrame no longer maps `format` (the chart resolves it first).
+- Guideline row "Number format" + a do line; good-fixture cases; example "Money as a preset" (LineChart + BarList).

@@ -2,14 +2,19 @@ import type { CSSProperties, Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartSummary, defaultFormat, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartPaletteName, type ChartPoint } from "./chartCore";
+import { ChartBlock, ChartSummary, formatOf, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartFormat, type ChartPaletteName, type ChartPoint } from "./chartCore";
 
 export interface FunnelChartProps {
   /** One stage per step, first contact first (`{ label, value }`): each bar is as wide as its share of the first stage.
    *  Keep 3–6 stages. */
   data: ChartPoint[];
-  /** Formats the counts under the stage names and in the summary (the shares are whole percent of the first stage). */
-  format?: (value: number) => string;
+  /** How the counts under the stage names and in the summary read (the shares are whole percent of the first
+   *  stage): a function, or a preset a Zen Studio page can write as text: `"compact"` 1.2K, `"currency"` $1.2K (in
+   *  `currency`), `"percent"` 41%. Default: 1.2K. */
+  format?: ChartFormat;
+  /** The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies
+   *  `format="currency"`. */
+  currency?: string;
   /** What the funnel shows and over which range ("Leads to signed projects, Q3 2026"). */
   "aria-label": string;
   /** Extra class on the chart (not the legend). */
@@ -35,7 +40,8 @@ export interface FunnelChartProps {
  * Home/End pick one (the others dim) and the summary reads its name, count and share. Figma Chart/Funnel-Chart 15968:130460
  * (Color=Primary 15486:2497 · Secondary ↔ `palette`).
  */
-export function FunnelChart({ data, format = defaultFormat, "aria-label": ariaLabel, className, initialIndex, animate = true, palette = "primary", ref }: FunnelChartProps) {
+export function FunnelChart({ data, format: formatProp, currency, "aria-label": ariaLabel, className, initialIndex, animate = true, palette = "primary", ref }: FunnelChartProps) {
+  const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   const id = useChartId();
   const initial = initialIndex ?? null;

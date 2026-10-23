@@ -2,7 +2,7 @@ import { useMemo, type CSSProperties, type Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartLegend, PlotFrame, SeriesValues, defaultFormat, niceScale, sectorAt, signatureOf, staggerStyle, useChartSelection, type ChartPaletteName } from "./chartCore";
+import { ChartBlock, ChartLegend, PlotFrame, SeriesValues, formatOf, niceScale, sectorAt, signatureOf, staggerStyle, useChartSelection, type ChartFormat, type ChartPaletteName } from "./chartCore";
 
 /** One period of a ComboChart: the bar's value (start axis) and the line's value (end axis). */
 export interface ChartComboDatum { label: string; bar: number; line: number }
@@ -14,10 +14,14 @@ export interface ComboChartProps {
   barLabel: string;
   /** What the line measures ("Margin"), named in the legend and the summary. */
   lineLabel: string;
-  /** Formats the bars' values and the start axis (`$105.7K`). Default: 1.2K. */
-  format?: (value: number) => string;
-  /** Formats the line's values and the end axis (`41%`). Default: 1.2K. */
-  lineFormat?: (value: number) => string;
+  /** How the bars' values and the start axis read (`$105.7K`): a function, or a preset a Zen Studio page can write
+   *  as text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. */
+  format?: ChartFormat;
+  /** The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies
+   *  `format="currency"` for the bars; `lineFormat="currency"` takes it too. */
+  currency?: string;
+  /** How the line's values and the end axis read (`41%`): a function or a preset, as `format`. Default: 1.2K. */
+  lineFormat?: ChartFormat;
   /** The top of the end axis (100 for a share in %). Default: a round top over the line's values, on the same gridlines
    *  as the start axis. */
   lineMax?: number;
@@ -62,7 +66,9 @@ const round = (value: number) => Math.round(value * 1e6) / 1e6;
  * Legend) names both measures Spacing/Gap/Medium under the plot, its items Spacing/Gap/Small apart. ←/→ and Home/End
  * move between periods; hover picks one.
  */
-export function ComboChart({ data, barLabel, lineLabel, format = defaultFormat, lineFormat = defaultFormat, lineMax, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, palette = "primary", ref }: ComboChartProps) {
+export function ComboChart({ data, barLabel, lineLabel, format: formatProp, currency, lineFormat: lineFormatProp, lineMax, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, palette = "primary", ref }: ComboChartProps) {
+  const format = formatOf(formatProp, currency);
+  const lineFormat = formatOf(lineFormatProp ?? "compact", currency);
   const t = useZenLabels();
   // The bars and the line: Figma Color Chart Sector/Primary and Secondary, swapped by `palette` (CSS reads chart.css
   // --zen-chart-lead / -second).

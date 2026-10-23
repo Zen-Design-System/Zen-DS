@@ -79,7 +79,7 @@
       "name": "AreaChart",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "data series type? height? aria-label initialIndex? showLegend? legendPosition? animate? palette?"
+      "props": "data series type? format? currency? height? aria-label initialIndex? showLegend? legendPosition? animate? palette?"
     },
     {
       "name": "AutocompleteField",
@@ -121,13 +121,13 @@
       "name": "BarChart",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "data orientation? height? aria-label initialIndex? color? activeColor? palette? animate? showAverage?"
+      "props": "data orientation? format? currency? height? aria-label initialIndex? color? activeColor? palette? animate? showAverage?"
     },
     {
       "name": "BarList",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "data headers? aria-label initialIndex? animate?"
+      "props": "data headers? format? currency? aria-label initialIndex? animate?"
     },
     {
       "name": "BottomNavigation",
@@ -164,7 +164,7 @@
       "name": "BulletChart",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "data actualLabel? targetLabel? showLegend? legendPosition? aria-label initialIndex? animate? palette?"
+      "props": "data actualLabel? targetLabel? showLegend? legendPosition? format? currency? aria-label initialIndex? animate? palette?"
     },
     {
       "name": "Button",
@@ -350,7 +350,7 @@
       "name": "ComboChart",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "data barLabel lineLabel lineMax? height? aria-label initialIndex? showLegend? legendPosition? animate? palette?"
+      "props": "data barLabel lineLabel format? currency? lineFormat? lineMax? height? aria-label initialIndex? showLegend? legendPosition? animate? palette?"
     },
     {
       "name": "Container",
@@ -424,7 +424,7 @@
       "name": "DonutChart",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "data size? aria-label value? label? totalPosition? showPercent? showLegend? legendPosition? animate? palette?"
+      "props": "data format? currency? size? aria-label value? label? totalPosition? showPercent? showLegend? legendPosition? animate? palette?"
     },
     {
       "name": "EmptyState",
@@ -478,13 +478,13 @@
       "name": "FunnelChart",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "data aria-label initialIndex? animate? palette?"
+      "props": "data format? currency? aria-label initialIndex? animate? palette?"
     },
     {
       "name": "GaugeChart",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "value max? target? actualLabel? targetLabel? caption? size? showLegend? legendPosition? aria-label animate? palette?"
+      "props": "value max? target? actualLabel? targetLabel? caption? size? format? currency? showLegend? legendPosition? aria-label animate? palette?"
     },
     {
       "name": "Grid",
@@ -496,7 +496,7 @@
       "name": "GroupedBarChart",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "data series height? aria-label initialIndex? showLegend? legendPosition? animate? palette?"
+      "props": "data series format? currency? height? aria-label initialIndex? showLegend? legendPosition? animate? palette?"
     },
     {
       "name": "Heading",
@@ -508,7 +508,7 @@
       "name": "HeatmapChart",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "rows columns values max? aria-label showLegend? animate?"
+      "props": "rows columns values format? currency? max? aria-label showLegend? animate?"
     },
     {
       "name": "Icon",
@@ -544,7 +544,7 @@
       "name": "LineChart",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "data label? compare? height? aria-label initialIndex? curve? fill? showLegend? legendPosition? animate? showAverage?"
+      "props": "data label? compare? format? currency? height? aria-label initialIndex? curve? fill? showLegend? legendPosition? animate? showAverage?"
     },
     {
       "name": "Link",
@@ -604,7 +604,7 @@
       "name": "MetricCard",
       "status": "stable",
       "purpose": "Show one key number with its label, an identifying icon and how it changed; a MetricCard type adds the small picture behind it (a trend line, recent bars, a goal, a split or a comparison).",
-      "props": "variant? value? theme? color? subAction? spacing? type? series? seriesLabel? goal? comparison? categories? footer? headingLevel? animate? label trend? icon? iconTheme? iconBackground? iconEmoji? size? action? iconSize? custom? metricColor? counter? labelIcon? hint?"
+      "props": "variant? value? theme? color? subAction? spacing? type? series? seriesLabel? goal? comparison? categories? format? currency? footer? headingLevel? animate? label trend? icon? iconTheme? iconBackground? iconEmoji? size? action? iconSize? custom? metricColor? counter? labelIcon? hint?"
     },
     {
       "name": "ModalForm",
@@ -707,7 +707,7 @@
       "name": "RadialChart",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "data max? size? aria-label value? label? showLegend? legendPosition? animate? palette?"
+      "props": "data max? format? currency? size? aria-label value? label? showLegend? legendPosition? animate? palette?"
     },
     {
       "name": "RadioButton",
@@ -882,7 +882,7 @@
       "name": "StackBarChart",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "data series height? aria-label initialIndex? showLegend? legendPosition? animate? showAverage? palette?"
+      "props": "data series format? currency? height? aria-label initialIndex? showLegend? legendPosition? animate? showAverage? palette?"
     },
     {
       "name": "Stepper",

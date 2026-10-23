@@ -19,10 +19,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   "September 2026" (~200px) and a fourth view label ("Agenda") no longer fit 358px beside Today and the arrows, in
   Comfortable density. Code: the mobile toolbar's default title is the short form ("Sep 2026"), and the phone example
   offers three views. Designer: keep the short title, or another style / layout? Pointer: `src/components/Calendar/CalendarToolbar.tsx`.
-- **P2 · Charts in Studio pages show no currency (2026-10-18, V-1 of the vibe agent; new API, user):** `format` on
-  LineChart / BarList / MetricCard is a function, which the page dialect cannot write, so a revenue chart reads "128.4K",
-  not "$128.4K". Needs a literal preset (e.g. `format="currency"` + `currency`) or a dialect form. Pointer:
-  `docs/research/studio-vibe-agent-2026-10-18.md` §7.
 - **P2 · Studio Variables v2 (2026-10-17; re-checked 2026-10-23):** v1 is on main (#116: Local variables window, edit /
   alias / create / rename / duplicate / delete, drafts + live tokens.css, Save builds the tokens, Copy for Figma →
   plugin); Apply / Detach variable on Inspector fields (E5) came with F5b (#151). Open: modes (add / rename / delete), new

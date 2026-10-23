@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode, Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartLegend, sectorAt, signatureOf, type ChartLegendPosition, type ChartPaletteName } from "./chartCore";
+import { ChartBlock, ChartLegend, formatOf, sectorAt, signatureOf, type ChartFormat, type ChartLegendPosition, type ChartPaletteName } from "./chartCore";
 
 export interface GaugeChartProps {
   /** The reading, measured from 0 to `max` ("1,052 h", "82"). A value past `max` fills the ring and still reads as it is. */
@@ -19,8 +19,13 @@ export interface GaugeChartProps {
   caption?: ReactNode;
   /** Width of the half ring in px (default 240, as Figma); the ring is a tenth of it thick. The gauge never grows past its box. */
   size?: number;
-  /** Formats the figure, the target and the end labels. Default: the share of `max` in whole percent ("82%", "0%", "100%"). */
-  format?: (value: number) => string;
+  /** How the figure, the target and the end labels read: a function, or a preset a Zen Studio page can write as
+   *  text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41% (the value as it is). Default: the
+   *  share of `max` in whole percent ("82%", "0%", "100%"). */
+  format?: ChartFormat;
+  /** The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies
+   *  `format="currency"`. */
+  currency?: string;
   /** The legend names the value and the target (Figma Show Legend). Default: on when there is a target. */
   showLegend?: boolean;
   /** Legend below (default), above, or beside the gauge (start / end). */
@@ -52,12 +57,12 @@ const TICK_PX = 3;
  * apart. It is a `meter` (aria-valuenow, min 0, max `max`, value text "Billable 82%, Target 85%"): nothing in it can be
  * picked, so it takes no tab stop. Figma Chart/Gauge-Chart 15968:130382 (Color=Primary 15486:2467 · Secondary ↔ `palette`).
  */
-export function GaugeChart({ value: valueProp, max = 100, target: targetProp, actualLabel, targetLabel, caption, size = 240, format, showLegend, legendPosition = "bottom", "aria-label": ariaLabel, className, animate = true, palette = "primary", ref }: GaugeChartProps) {
+export function GaugeChart({ value: valueProp, max = 100, target: targetProp, actualLabel, targetLabel, caption, size = 240, format, currency, showLegend, legendPosition = "bottom", "aria-label": ariaLabel, className, animate = true, palette = "primary", ref }: GaugeChartProps) {
   const t = useZenLabels();
   // A reading that isn't a number reads 0 (aria-valuenow must be one); a target that isn't a number is no target.
   const value = Number.isFinite(valueProp) ? valueProp : 0;
   const target = targetProp !== undefined && Number.isFinite(targetProp) ? targetProp : undefined;
-  const show = format ?? ((v: number) => `${Number.isFinite(v / max) ? Math.round((v / max) * 100) : 0}%`);
+  const show = format !== undefined || currency ? formatOf(format, currency) : ((v: number) => `${Number.isFinite(v / max) ? Math.round((v / max) * 100) : 0}%`);
   const shareOf = (v: number) => (Number.isFinite(v / max) ? Math.max(0, Math.min(1, v / max)) : 0);
   const share = shareOf(value);
   const targetName = targetLabel ?? t.chartTarget;

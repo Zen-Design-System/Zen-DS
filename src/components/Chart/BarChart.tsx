@@ -2,7 +2,7 @@ import { Fragment, useMemo, type CSSProperties, type Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { AverageLine, ChartBlock, ChartSummary, PlotFrame, defaultFormat, meanOf, niceScale, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartPaletteName, type ChartPoint } from "./chartCore";
+import { AverageLine, ChartBlock, ChartSummary, PlotFrame, formatOf, meanOf, niceScale, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartFormat, type ChartPaletteName, type ChartPoint } from "./chartCore";
 
 export interface BarChartProps {
   /** One bar per category or period (`{ label, value }`); mark a forecast `projected` (hatched) and give a bar a `target`
@@ -10,8 +10,12 @@ export interface BarChartProps {
   data: ChartPoint[];
   /** `vertical` columns over periods (default) or `horizontal` bars for categories with longer names (Q1–Q4, teams). */
   orientation?: "vertical" | "horizontal";
-  /** Formats axis labels, the Tooltip and the summary. */
-  format?: (value: number) => string;
+  /** How axis labels, the Tooltip and the summary read: a function, or a preset a Zen Studio page can write as
+   *  text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. */
+  format?: ChartFormat;
+  /** The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies
+   *  `format="currency"`. */
+  currency?: string;
   /** Height of a vertical plot in px, lanes included. Horizontal charts take the height of their rows. */
   height?: number;
   /** What the chart shows and over which range ("Revenue per month, Jan – Dec 2026"). */
@@ -43,7 +47,8 @@ export interface BarChartProps {
  * 15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941; Color=Primary · Secondary ↔ `palette`); the hatch is
  * .Chart/Hatch 15321:475.
  */
-export function BarChart({ data, orientation = "vertical", format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, color, activeColor, palette = "primary", animate = true, showAverage = false, ref }: BarChartProps) {
+export function BarChart({ data, orientation = "vertical", format: formatProp, currency, height = 280, "aria-label": ariaLabel, className, initialIndex, color, activeColor, palette = "primary", animate = true, showAverage = false, ref }: BarChartProps) {
+  const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   const id = useChartId();
   const signature = signatureOf(data.map((d) => [d.value, d.target ?? null, d.projected ?? false]));

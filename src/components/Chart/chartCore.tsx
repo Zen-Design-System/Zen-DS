@@ -106,6 +106,43 @@ export function ChartFade({ id, top, bottom, bottomOpacity }: { id: string; top:
 /** "1.2K" from 1,000 up, else the value to one decimal at most (a mean of 306.666… reads "306.7"). */
 export const defaultFormat = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`);
 
+/** A number format written as text, so a Zen Studio page (which holds literals, never functions) can set it: `compact`
+ *  "128.4K" (the default), `currency` "$128.4K" in the `currency` prop's currency, `percent` "41%" (the value is already
+ *  a percentage). The user 2026-10-23: a literal preset, no function-writing dialect. */
+export type ChartFormatPreset = "compact" | "currency" | "percent";
+/** How a chart reads its numbers: a function (`(value) => string`), or a preset a page can write as text. */
+export type ChartFormat = ((value: number) => string) | ChartFormatPreset;
+
+const SYMBOLS = new Map<string, string>();
+/** A currency's narrow symbol ("$", "€", "₫"); a code with no symbol ("CHF") keeps a no-break space before the figure. */
+function currencySymbol(currency: string) {
+  const code = currency.toUpperCase();
+  let symbol = SYMBOLS.get(code);
+  if (symbol === undefined) {
+    try {
+      symbol = new Intl.NumberFormat("en-US", { style: "currency", currency: code, currencyDisplay: "narrowSymbol" }).formatToParts(0).find((part) => part.type === "currency")?.value ?? code;
+    } catch {
+      symbol = code; // not an ISO 4217 code: its letters, as written
+    }
+    if (/^[A-Z]{2,}$/i.test(symbol)) symbol = `${symbol}\u00a0`;
+    SYMBOLS.set(code, symbol);
+  }
+  return symbol;
+}
+
+/** `format` as a function: the function itself, or the preset's (compact numbers as defaultFormat). A `currency` without
+ *  a `format` reads as the currency preset; `currency` defaults to USD. */
+export function formatOf(format: ChartFormat | undefined, currency?: string): (value: number) => string {
+  if (typeof format === "function") return format;
+  const preset = format ?? (currency ? "currency" : "compact");
+  if (preset === "currency") {
+    const symbol = currencySymbol(currency || "USD");
+    return (value) => `${value < 0 ? "-" : ""}${symbol}${defaultFormat(Math.abs(value))}`;
+  }
+  if (preset === "percent") return (value) => `${defaultFormat(value)}%`;
+  return defaultFormat;
+}
+
 /** A ring chart's diameter steps (Figma Donut-Chart / Radial-Chart Size; the user 2026-10-16). */
 export const chartRingSizes = ["small", "medium", "large", "xlarge"] as const;
 /** Small 120 · Medium 168 (default) · Large 240 · XLarge 320 px, in either spelling (`sm` … `xl`). */

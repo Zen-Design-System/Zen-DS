@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Charts and MetricCard read money and shares from text: `format` also takes `"compact"` (128.4K, the default),
+  `"currency"` ($128.4K, in `currency`, an ISO 4217 code: USD by default; `currency` alone implies it) and `"percent"`
+  (41%), on every chart with a `format` (ComboChart's `lineFormat` too, BulletChart beside its row function). Zen Studio
+  pages hold only text, so their money widgets now read "$105.7K" instead of "105.7K" (2026-10-23).
 - Zen Studio's Properties panel shows a chart's Figma properties in Figma's order and names: Orientation, Type, Color,
   Show Legend, Show Average, Legend, Total, Size and the Donut's Total Label / Value (the header rows stay ChartCard's),
   and the Main component frame draws the chart sets' variants; `component-properties.json` has the ❖ Chart page

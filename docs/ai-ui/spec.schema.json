@@ -3842,6 +3842,37 @@
                 ],
                 "description": "Figma Type: `area` (default) — one measure as a line over its fading area; `stacked` — 2–4 series as fading bands stacked bottom-up with a line on top of each band, so the top line"
               },
+              "format": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How axis labels, the Tooltip and the summary read (`2,210 h`, `$23.4K`): a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `curr"
+              },
+              "currency": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+              },
               "height": {
                 "anyOf": [
                   {
@@ -5041,6 +5072,37 @@
                 ],
                 "description": "`vertical` columns over periods (default) or `horizontal` bars for categories with longer names (Q1–Q4, teams)."
               },
+              "format": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How axis labels, the Tooltip and the summary read: a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41"
+              },
+              "currency": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+              },
               "height": {
                 "anyOf": [
                   {
@@ -5241,6 +5303,37 @@
                   }
                 ],
                 "description": "Column labels above the rows: what the items are (start) and what the values measure (end), e.g."
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How each row's value and the summary read: a function (`(v) => \"$\" + v.toLocaleString(\"en-US\")` → \"$96,400\"), or a preset a Zen Studio page can write as text — `\"compact\"` 96.4K (t"
+              },
+              "currency": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
               },
               "aria-label": {
                 "anyOf": [
@@ -7412,6 +7505,37 @@
                   }
                 ],
                 "description": "Legend below the rows (default) or above them."
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How the value and the target of a row (\"$798K of $900K\") and the summary read."
+              },
+              "currency": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
               },
               "aria-label": {
                 "anyOf": [
@@ -13879,6 +14003,57 @@
                 ],
                 "description": "What the line measures (\"Margin\"), named in the legend and the summary."
               },
+              "format": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How the bars' values and the start axis read (`$105.7K`): a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"perce"
+              },
+              "currency": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+              },
+              "lineFormat": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How the line's values and the end axis read (`41%`): a function or a preset, as `format`."
+              },
               "lineMax": {
                 "anyOf": [
                   {
@@ -17161,6 +17336,37 @@
                 ],
                 "description": "The shares of one total (`{ id, label, value }`), drawn clockwise from 12 o'clock in palette order."
               },
+              "format": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How the centre figure and the summary read: a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41%."
+              },
+              "currency": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+              },
               "size": {
                 "anyOf": [
                   {
@@ -19270,6 +19476,37 @@
                 ],
                 "description": "One stage per step, first contact first (`{ label, value }`): each bar is as wide as its share of the first stage."
               },
+              "format": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How the counts under the stage names and in the summary read (the shares are whole percent of the first stage): a function, or a preset a Zen Studio page can write as text: `\"compa"
+              },
+              "currency": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+              },
               "aria-label": {
                 "anyOf": [
                   {
@@ -19446,6 +19683,37 @@
                   }
                 ],
                 "description": "Width of the half ring in px (default 240, as Figma); the ring is a tenth of it thick."
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How the figure, the target and the end labels read: a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 4"
+              },
+              "currency": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
               },
               "showLegend": {
                 "anyOf": [
@@ -20624,6 +20892,37 @@
                 ],
                 "description": "The compared series, 2–3, side by side in each group in this order (harness: chart/grouped-series-count)."
               },
+              "format": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How axis labels, the Tooltip and the summary read: a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41"
+              },
+              "currency": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+              },
               "height": {
                 "anyOf": [
                   {
@@ -21226,6 +21525,37 @@
                   }
                 ],
                 "description": "One value per row per column: `values[row][column]`."
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How the Tooltip and the summary read (\"14 sessions\"): a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"`"
+              },
+              "currency": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
               },
               "max": {
                 "anyOf": [
@@ -22897,6 +23227,37 @@
                   }
                 ],
                 "description": "A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Border/Neutral/Solid line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-"
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How axis labels, the Tooltip and the summary read: a function (`(v) => v + \" GB\"`), or a preset a Zen Studio page can write as text — `\"compact\"` 1.2K (the default), `\"currency\"` $"
+              },
+              "currency": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
               },
               "height": {
                 "anyOf": [
@@ -25137,6 +25498,37 @@
                   }
                 ],
                 "description": "category-bar: the parts of the card's `value`, largest first (two to seven: the chart palette has seven colours)."
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How a number of `series`, `goal` and `categories` reads (the summary, the goal's label, each category's amount): a function, or a preset a Zen Studio page can write as text — `\"com"
+              },
+              "currency": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
               },
               "footer": {
                 "anyOf": [
@@ -29581,6 +29973,37 @@
                   }
                 ],
                 "description": "The value a full ring stands for (default 100: the values are percentages)."
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How the centre figure and the summary read: a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41% (the"
+              },
+              "currency": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
               },
               "size": {
                 "anyOf": [
@@ -38496,6 +38919,37 @@
                   }
                 ],
                 "description": "The stacked series, bottom first, in palette order unless a series sets `color`."
+              },
+              "format": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "compact",
+                          "currency",
+                          "percent"
+                        ]
+                      },
+                      {}
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How axis labels, the Tooltip total and the summary read: a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percen"
+              },
+              "currency": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
               },
               "height": {
                 "anyOf": [

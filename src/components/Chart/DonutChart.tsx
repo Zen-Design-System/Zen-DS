@@ -2,13 +2,17 @@ import { useId, type CSSProperties, type ReactNode, type Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartLegend, ChartSummary, colourAt, defaultFormat, ringSize, signatureOf, useChartId, useChartSelection, type ChartLegendPosition, type ChartPaletteName, type ChartRingSize, type ChartSlice } from "./chartCore";
+import { ChartBlock, ChartLegend, ChartSummary, colourAt, formatOf, ringSize, signatureOf, useChartId, useChartSelection, type ChartFormat, type ChartLegendPosition, type ChartPaletteName, type ChartRingSize, type ChartSlice } from "./chartCore";
 
 export interface DonutChartProps {
   /** The shares of one total (`{ id, label, value }`), drawn clockwise from 12 o'clock in palette order. Keep 2–7 slices. */
   data: ChartSlice[];
-  /** Formats the centre figure and the summary. */
-  format?: (value: number) => string;
+  /** How the centre figure and the summary read: a function, or a preset a Zen Studio page can write as text:
+   *  `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. */
+  format?: ChartFormat;
+  /** The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies
+   *  `format="currency"`. */
+  currency?: string;
   /** Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling
    *  (`sm` … `xl`); a number still sets px. The ring is 22% of it; it never grows past its box, and a stretched Chart Card
    *  grows it. Small shows the centre figure alone (Body/Base/Bold), XLarge in Heading/3. */
@@ -74,7 +78,8 @@ function slicePath(from: number, to: number, outer: number, inner: number, halfG
  * to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365
  * (Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).
  */
-export function DonutChart({ data, format = defaultFormat, size = "medium", "aria-label": ariaLabel, value, label, totalPosition = "centre", showPercent = true, showLegend = true, legendPosition = "bottom", className, animate = true, palette = "primary", ref }: DonutChartProps) {
+export function DonutChart({ data, format: formatProp, currency, size = "medium", "aria-label": ariaLabel, value, label, totalPosition = "centre", showPercent = true, showLegend = true, legendPosition = "bottom", className, animate = true, palette = "primary", ref }: DonutChartProps) {
+  const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   const id = useChartId();
   const sweepId = `${useId().replace(/:/g, "")}-sweep`;

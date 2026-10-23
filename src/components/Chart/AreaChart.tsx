@@ -2,7 +2,7 @@ import { useMemo, type CSSProperties, type Ref } from "react";
 import { TooltipSurface } from "../Tooltip";
 import { useZenLabels } from "../_shared/zen-context";
 import "./chart.css";
-import { ChartBlock, ChartFade, ChartLegend, PlotFrame, colourAt, defaultFormat, fadeAt, niceScale, signatureOf, useChartId, useChartSelection, type ChartDatum, type ChartPaletteName, type ChartSeries } from "./chartCore";
+import { ChartBlock, ChartFade, ChartLegend, PlotFrame, colourAt, fadeAt, formatOf, niceScale, signatureOf, useChartId, useChartSelection, type ChartDatum, type ChartFormat, type ChartPaletteName, type ChartSeries } from "./chartCore";
 
 export interface AreaChartProps {
   /** One period per item, a value per series id (`{ label: "Sep", values: { design: 750, … } }`). Keep 4–12 periods. */
@@ -14,8 +14,12 @@ export interface AreaChartProps {
   /** Figma Type: `area` (default) — one measure as a line over its fading area; `stacked` — 2–4 series as fading bands
    *  stacked bottom-up with a line on top of each band, so the top line reads the period's total. */
   type?: "area" | "stacked";
-  /** Formats axis labels, the Tooltip and the summary (`2,210 h`, `$23.4K`). Default: 1.2K. */
-  format?: (value: number) => string;
+  /** How axis labels, the Tooltip and the summary read (`2,210 h`, `$23.4K`): a function, or a preset a Zen Studio
+   *  page can write as text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. */
+  format?: ChartFormat;
+  /** The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies
+   *  `format="currency"`. */
+  currency?: string;
   /** Height of the plot in px, lanes included (6px above the grid for the top Y label, 28px below it for the X labels). */
   height?: number;
   /** What the chart shows and over which range ("Billable hours per month, Apr – Sep 2026"). */
@@ -55,7 +59,8 @@ const pathOf = (pts: readonly Point[]) => pts.map(([x, y], i) => `${i ? "L" : "M
  * the value, or the stack's total. The legend (Figma Show Legend) sits Spacing/Gap/Medium under the plot, its items
  * Spacing/Gap/Small apart. ←/→ and Home/End move between periods; hover picks one.
  */
-export function AreaChart({ data, series, type = "area", format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend, legendPosition = "bottom", animate = true, palette = "primary", ref }: AreaChartProps) {
+export function AreaChart({ data, series, type = "area", format: formatProp, currency, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend, legendPosition = "bottom", animate = true, palette = "primary", ref }: AreaChartProps) {
+  const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   const stacked = type === "stacked";
   const drawn = stacked ? series : series.slice(0, 1);
