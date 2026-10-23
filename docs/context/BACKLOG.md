@@ -11,9 +11,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   code side moved to BadgeStatus (platform examples, the app-layer AppShell playground, the HR Tasks template); Figma
   screens that show a task's or project's step with a themed Badge instance still need swapping to Badge-Status. Waits
   for the user: a write to the Zen Figma file.
-- **P3 · PropertyField ↔ Figma gaps (2026-10-21):** a People / Labels cell pushes one person and two tags (the
-  Property-Value variants hold that many), and `BadgeStatus progress` is not pushed (Progress-Icon's arc is set by hand in
-  Figma). Pointer: `tools/studio/figma-property.mjs`.
 - **P3 · Studio Variables: new collections (2026-10-23, B; waits for the user):** v2 (chunks 1–4: Edit variable,
   rename with an alias, modes, per-frame `modes`) is on branch zen/feat/studio-variables-v2-20261023. Creating a
   collection in Studio is left: the build reads a fixed list of 11 sources (`scripts/token-outputs.mjs` SOURCE_FILES,
@@ -38,6 +35,8 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (`docs/figma-contracts/layer-renames-2026-10-12.json`, with the undo map). Other files see them once the library is
   published. What `ALLOWED` in nested-paths.mjs still lists is structure, not naming: unnamed bottom-navigation items
   and stepper steps, pages named by number, ChatComposer actions named by job, code-only layers (Retry, Counter…).
+  Also waiting on the publish since 2026-10-23: `.Primitives/Input/Property-Value`'s Value-Slot (Person / Tags), which
+  Import from Studio fills with every person and label (the user's choice of a slot).
 - **P2 · Direct paste (⌘V on the canvas), what is left (merged 2026-10-23 from the 2026-10-17 P2 and P3):** it binds by
   node id, so only the Zen file takes it; other files need the published library and full component definitions in the
   paste (instances by `componentKey`, as Figma's own copies carry). The frame menu's Copy for Figma writes async
