@@ -98,9 +98,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   takes Theme · Density · Shadow since 2026-10-21 (#181) and Top-Navigation/Mobile has Type=Transparent /
   Transparent-On-Color since 2026-10-17. Left: Bottom-Navigation has no surface choice and its main carries an unstyled
   drop shadow (not re-read since 2026-10-13). Screens override by variable until then (screen-rules §1).
-- **P2 · Studio inspector has no chart Figma properties (charts phase 2, 2026-10-14):** the chart sets are missing from
-  `docs/figma-contracts/component-properties.json` (captured 2026-10-05), so the inspector's Figma-props rows (Show
-  Legend, Show Average, Type, Orientation, Color …) are absent for charts; push/pull carry them. Needs a contract re-capture.
 - **P2 · Chart questions for the designer (merged 2026-10-23 from four entries of 2026-10-13 … 10-18; Figma not
   edited):** (a) parity: active X pill (20px hug, Medium vs sector-wide 16px Bold), 88% dim of inactive columns, Bar
   label padding / thinning, Tooltip anchor and lanes, bar lanes 38/26 vs 36/28, horizontal / heatmap axis gaps 8 vs 16,
