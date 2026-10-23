@@ -47,12 +47,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   FIXED at Table/Cell/Size (one line, ellipsis). The docs Props / API / Keyboard references still need multi-line rows:
   a temporary `.platform-ref` override in `src/platform/platform.css` lets them grow. Replace it with a sheet component,
   designed in Figma first for the user's review, then built in code.
-- **P3 · Figma contract suites still to write (2026-10-23; captures done the same day):** the 14 chart sets and
-  Chart/Chart-Card now have contracts (`docs/figma-contracts/chart-*.json`, read 2026-10-23) and avatar-single,
-  chat-bubbles, input-search-primitives, table-cells, datepicker-sidebar, input-search and
-  segmented-toggle-badge-avatarstack were re-read whole; only Input/Heading and the Segmented sets have a parity suite,
-  so a later Figma edit to the others is still not caught. A suite per set (`tools/figma-contract/suites`, README
-  "Writing a suite") needs a browser slot each and the user's go (new harness work).
+- **P3 · Figma contract suites, next batch (2026-10-23):** the 14 chart sets and Chart/Chart-Card have passing suites
+  (`tools/figma-contract/suites/chart-*.mjs`, user's go 2026-10-23, done the same day). Still without one: the re-read
+  avatar-single, chat-bubbles, input-search-primitives, table-cells, datepicker-sidebar, input-search and
+  segmented-toggle-badge-avatarstack contracts. A suite per set needs a browser slot and the user's go.
 
 - **Questions for the designer and decisions for the user** are collected in [`QUESTIONS.md`](QUESTIONS.md) (moved
   there 2026-10-08). Code keeps its current behaviour until each is answered.
