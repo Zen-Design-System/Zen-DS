@@ -456,7 +456,9 @@
 /* ── Playground additions ── */
 .platform-radio-group { display: grid; gap: var(--zen-spacing-gap-small, 12px); width: min(360px, 100%); }
 .platform-date-picker-preview { flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
-.platform-date-picker-inline .zen-date-picker, .pe-inline-picker .zen-date-picker { position: static; }
+/* The picker in place on the page: no wider than its stage, so Comfortable's 40px days give way on a 320px phone. */
+.platform-date-picker-inline { max-width: 100%; }
+.platform-date-picker-inline .zen-date-picker, .pe-inline-picker .zen-date-picker { position: static; max-width: 100%; }
 /* Device=Mobile: the calendar fills a phone's content width (Date-Picker/Mobile 9923:3576: 390 − 2 × Modal-Padding = 350). */
 .platform-date-picker-inline[data-device="mobile"] { width: min(350px, 100%); }
 /* A dual calendar (≈492px) scrolls inside its card on narrow screens instead of widening the page. */
