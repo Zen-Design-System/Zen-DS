@@ -47,10 +47,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   paste (instances by `componentKey`, as Figma's own copies carry). The rest of the parity list closed on 2026-10-23
   (Copy for Figma in a copy event, grid cards' heights, the pack at 7.7 MB; the slot and alias differences kept by
   design). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §8.
-- **P3 · Native paste of a sticky layer not tried live (2026-10-23, B):** figma-native writes `scrollBehavior`
-  (FIXED_WHEN_CHILD_OF_SCROLLING_FRAME on the absolute dock, STICKY_SCROLLS in flow) from Figma's own clipboard schema;
-  the plugin path was checked live. Still to see in a real ⌘V: Figma keeps both, and whether it also wants
-  `fixedChildrenDivider` on the parent. Pointer: `docs/research/layout-sticky-spec-2026-10-23.md` § Figma.
 - **P3 · AppShell phone bars in Figma (2026-10-23, B; found by AppShell, needs the user's OK):** figma-push draws a
   phone frame's top and bottom bars only from the builder Screen's own `topNavigation` / `bottomNavigation`. An
   AppShell's own phone bars are named in the push notes and not drawn: a root AppShell on a phone Screen keeps only its

@@ -374,6 +374,10 @@ for it); the rest closed (research doc studio-native-paste-2026-10-17.md §8).
   `expandPack` restores fresh copies (78 ms, cached per pack); all native-pack writes compact, reads expand. Round trip
   byte-identical; paste messages of 58 Studio pages + Expenses identical to the old pack's. figma-native selftest 142.
 - Kept by design: slot overrides on the slot's default layer, and the component's alias variable in kept overrides.
+- Sticky native paste tried live (BACKLOG P3 from B, handed over by the progress session; archived). Oracle: a frame
+  with a Fixed dock via `numberOfFixedChildren` copied from Figma desktop → FIXED_WHEN_CHILD_OF_SCROLLING_FRAME on the
+  dock, no `fixedChildrenDivider`. A ⌘V of a Studio frame (sticky top + bottom) → fixed count 1, and Figma's copy of it
+  keeps STICKY_SCROLLS and FIXED. figma-native unchanged. QA page cleared, clipboard put back 6/6 both times.
 
 ## Session B · Studio Variables v2 (G4, tier L; user decisions: modes prop, mode lists from tokens, rename keeps an alias)
 
