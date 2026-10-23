@@ -1,3 +1,4 @@
+import { useModeScope, type ZenModes } from "../../../../components/_shared/zen-context";
 import { Children, cloneElement, createContext, isValidElement, useContext, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactElement, type ReactNode, type RefObject } from "react";
 import { AppShell } from "../../../../components/AppShell";
 import { ZenPortalProvider } from "../../../../components/Portal";
@@ -90,6 +91,9 @@ type ScreenProps = HTMLAttributes<HTMLDivElement> & {
   topNavigation?: ReactNode;
   bottomNavigation?: ReactNode;
   children?: ReactNode;
+  /** The Screen's own variable modes (Figma's Change variable mode on a frame; Studio Variables v2): they win over the
+   *  device's (a phone's Comfortable and Mobile typography), and the components inside read them as their context. */
+  modes?: ZenModes;
   /** The frame's place on the board (the canvas reads it from the page, render/framePlace.ts); nothing on the screen. */
   x?: number;
   y?: number;
@@ -128,8 +132,9 @@ function withScrollLink(topNavigation: ReactNode, scrollRef: RefObject<HTMLEleme
   return cloneElement(topNavigation as ReactElement<{ scrollRef?: RefObject<HTMLElement | null> }>, { scrollRef });
 }
 
-export function Screen({ id, title, device: drawnDevice = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, x: _x, y: _y, width, height, ...rest }: ScreenProps) {
+export function Screen({ id, title, device: drawnDevice = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, x: _x, y: _y, width, height, modes, ...rest }: ScreenProps) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const scope = useModeScope(modes);
   const presentScroll = usePresentScroller(rootRef);
   // The hardware: the device Present or Play simulates, else the one the Screen is drawn for (its size, its type's own).
   const simulated = useContext(SimulatedDeviceContext);
@@ -175,9 +180,11 @@ export function Screen({ id, title, device: drawnDevice = "desktop", layout, can
       data-typography={phone ? "mobile" : undefined}
       data-os={bars ? barsOs : undefined}
       data-inset={inset || undefined}
+      {...scope.attributes}
       style={safe || drawn ? { ...safe, ...drawn, ...style } : style}
       aria-label={title}
     >
+      {scope.wrap(<>
       {!chrome ? content : desktop ? (
         <>
           {sidebar ? <div className="studio-builder-screen__side">{sidebar}</div> : null}
@@ -197,6 +204,7 @@ export function Screen({ id, title, device: drawnDevice = "desktop", layout, can
       )}
       {/* Last, beside the app (never inside __main, where the Screen's slots are found; Present and Play pin them there). */}
       {bars && device !== "desktop" && !pinBars ? <DeviceBars os={barsOs} device={device} duo={duo} /> : null}
+      </>)}
     </div>
   );
 }

@@ -6886,6 +6886,83 @@
                 ],
                 "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept."
               },
+              "modes": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "theme": {
+                        "enum": [
+                          "light",
+                          "dark"
+                        ]
+                      },
+                      "componentTheme": {
+                        "enum": [
+                          "neutral-s1",
+                          "brand-s1",
+                          "neutral-s2",
+                          "brand-s2",
+                          "neutral-s3",
+                          "neutral-s4",
+                          "neutral-s5",
+                          "neutral-s6",
+                          "neutral-s7"
+                        ]
+                      },
+                      "density": {
+                        "enum": [
+                          "compact",
+                          "comfortable",
+                          "studio"
+                        ]
+                      },
+                      "radius": {
+                        "enum": [
+                          "rounded",
+                          "smooth",
+                          "standard",
+                          "luxury",
+                          "studio"
+                        ]
+                      },
+                      "emphasis": {
+                        "enum": [
+                          "medium",
+                          "strong",
+                          "light"
+                        ]
+                      },
+                      "breakpoint": {
+                        "enum": [
+                          "desktop",
+                          "tablet",
+                          "mobile"
+                        ]
+                      },
+                      "typography": {
+                        "enum": [
+                          "dashboard",
+                          "popular",
+                          "mobile",
+                          "studio"
+                        ]
+                      },
+                      "brand": {
+                        "enum": [
+                          "zen"
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The frame's own variable modes, one per ZenProvider axis: `{ theme: \"dark\" }` draws a dark card on a light page, `{ density: \"comfortable\", breakpoint: \"mobile\" }` a phone-sized bl"
+              },
               "padding": {
                 "anyOf": [
                   {
@@ -10751,7 +10828,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas next to other Shadow cards (metric cards on a dashboard)."
+                "description": "Figma nested Card Theme: Default (default, the Surface alone) inside a panel or section; Shadow when the chart card sits on the canvas next to other Shadow cards (metric cards on a"
               },
               "color": {
                 "anyOf": [
@@ -10788,6 +10865,24 @@
                   }
                 ],
                 "description": "Figma nested Card Surface: default · alt (Default, Border); see Card."
+              },
+              "spacing": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "md",
+                      "sm",
+                      "xs",
+                      "medium",
+                      "small",
+                      "xsmall"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma nested Card Spacing: Medium (default; Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small, Corner-Radius/Large) · XSmall (Card-padding-xsmall, Corner-Radi"
               },
               "children": {
                 "anyOf": [
@@ -20558,6 +20653,83 @@
                 ],
                 "description": "Figma effect style (the whole style is the token, one per layer as in Figma)."
               },
+              "modes": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "theme": {
+                        "enum": [
+                          "light",
+                          "dark"
+                        ]
+                      },
+                      "componentTheme": {
+                        "enum": [
+                          "neutral-s1",
+                          "brand-s1",
+                          "neutral-s2",
+                          "brand-s2",
+                          "neutral-s3",
+                          "neutral-s4",
+                          "neutral-s5",
+                          "neutral-s6",
+                          "neutral-s7"
+                        ]
+                      },
+                      "density": {
+                        "enum": [
+                          "compact",
+                          "comfortable",
+                          "studio"
+                        ]
+                      },
+                      "radius": {
+                        "enum": [
+                          "rounded",
+                          "smooth",
+                          "standard",
+                          "luxury",
+                          "studio"
+                        ]
+                      },
+                      "emphasis": {
+                        "enum": [
+                          "medium",
+                          "strong",
+                          "light"
+                        ]
+                      },
+                      "breakpoint": {
+                        "enum": [
+                          "desktop",
+                          "tablet",
+                          "mobile"
+                        ]
+                      },
+                      "typography": {
+                        "enum": [
+                          "dashboard",
+                          "popular",
+                          "mobile",
+                          "studio"
+                        ]
+                      },
+                      "brand": {
+                        "enum": [
+                          "zen"
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The frame's own variable modes, one per ZenProvider axis: `{ theme: \"dark\" }` draws a dark card on a light page, `{ density: \"comfortable\", breakpoint: \"mobile\" }` a phone-sized bl"
+              },
               "columns": {
                 "anyOf": [
                   {
@@ -25402,6 +25574,20 @@
                   }
                 ],
                 "description": "Card Color (Figma Card Color, for theme=\"pale\", \"subtle\" or \"solid\"): the Card's hue."
+              },
+              "surface": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "default",
+                      "alt"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Metric-Card's exposed Card Surface: default · alt (Default and Border; Shadow on alt drops its shadow), chosen to suit the page's Canvas, as on Card."
               },
               "subAction": {
                 "anyOf": [
@@ -36000,7 +36186,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border)."
+                "description": "The Sidebar's fill, matched to the page's Canvas (Figma theme pairing, harness theme/navigation-surface): Default = Surface/Default, with a shadow on a Canvas/Default page (cards t"
               },
               "divider": {
                 "anyOf": [
@@ -36011,7 +36197,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the page on a Canvas/Alt (white) page."
+                "description": "A Pale divider on the Sidebar's inner edge, the full height of the block: separates a Sidebar that sits on the canvas (no shadow) from the page, as on a Canvas/Alt (white) page."
               },
               "shadow": {
                 "anyOf": [
@@ -38602,6 +38788,83 @@
                   }
                 ],
                 "description": "Figma effect style (the whole style is the token, one per layer as in Figma)."
+              },
+              "modes": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "theme": {
+                        "enum": [
+                          "light",
+                          "dark"
+                        ]
+                      },
+                      "componentTheme": {
+                        "enum": [
+                          "neutral-s1",
+                          "brand-s1",
+                          "neutral-s2",
+                          "brand-s2",
+                          "neutral-s3",
+                          "neutral-s4",
+                          "neutral-s5",
+                          "neutral-s6",
+                          "neutral-s7"
+                        ]
+                      },
+                      "density": {
+                        "enum": [
+                          "compact",
+                          "comfortable",
+                          "studio"
+                        ]
+                      },
+                      "radius": {
+                        "enum": [
+                          "rounded",
+                          "smooth",
+                          "standard",
+                          "luxury",
+                          "studio"
+                        ]
+                      },
+                      "emphasis": {
+                        "enum": [
+                          "medium",
+                          "strong",
+                          "light"
+                        ]
+                      },
+                      "breakpoint": {
+                        "enum": [
+                          "desktop",
+                          "tablet",
+                          "mobile"
+                        ]
+                      },
+                      "typography": {
+                        "enum": [
+                          "dashboard",
+                          "popular",
+                          "mobile",
+                          "studio"
+                        ]
+                      },
+                      "brand": {
+                        "enum": [
+                          "zen"
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The frame's own variable modes, one per ZenProvider axis: `{ theme: \"dark\" }` draws a dark card on a light page, `{ density: \"comfortable\", breakpoint: \"mobile\" }` a phone-sized bl"
               },
               "direction": {
                 "anyOf": [
@@ -45313,14 +45576,14 @@
                   {
                     "enum": [
                       "neutral-s1",
+                      "brand-s1",
                       "neutral-s2",
+                      "brand-s2",
                       "neutral-s3",
                       "neutral-s4",
                       "neutral-s5",
                       "neutral-s6",
-                      "neutral-s7",
-                      "brand-s1",
-                      "brand-s2"
+                      "neutral-s7"
                     ]
                   },
                   {

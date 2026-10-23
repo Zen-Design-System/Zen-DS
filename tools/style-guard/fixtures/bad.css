@@ -39,3 +39,5 @@
 .pe-bad-target { background: transparent; }
 /* expect: color/flat-state */
 .pe-bad-target:hover:not(:disabled) { background: var(--zen-color-background-surface-hover); }
+/* expect: token/renamed */
+.pe-bad-renamed { gap: var(--zen-style-guard-fixture-old-gap); }

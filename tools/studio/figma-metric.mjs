@@ -42,6 +42,10 @@ const TREND_DIRECTION = { Positive: "positive", Negative: "negative", Normal: "n
 // Renamed 2026-10-21: Flat → Default, Border × Surface=Flat → Flat-Border.
 const CARD_THEME = { shadow: "Shadow", default: "Default", pale: "Pale", "semi-pale": "Pale", border: "Border", "flat-border": "Flat-Border", "on-container": "On-Container", solid: "Solid", subtle: "Subtle" };
 const THEME_OF = { Shadow: "shadow", Default: "default", Pale: "pale", Border: "border", "Flat-Border": "flat-border", "On-Container": "on-container", Solid: "solid", Subtle: "subtle" };
+/** Card Spacing (code's short or long spelling) ↔ Figma; Type=Tile's Card is Small, the other types' Medium. */
+const CARD_SPACING = { md: "Medium", medium: "Medium", sm: "Small", small: "Small", xs: "XSmall", xsmall: "XSmall" };
+const SPACING_OF = { Medium: "md", Small: "sm", XSmall: "xs" };
+const spacingDefault = (type) => (type === "tile" ? "Small" : "Medium");
 const capital = (word) => (typeof word === "string" && word ? word[0].toUpperCase() + word.slice(1) : word);
 const words = (value) => (typeof value === "string" || typeof value === "number" ? String(value) : null);
 
@@ -119,7 +123,11 @@ export function metricCardFigma(values, { notes, where, footerText = null, foote
   const heroDefault = type === "hero" && theme === "pale" && color === "brand";
   const card = { "Sub-Action": Boolean(values.subAction) };
   if (!heroDefault && CARD_THEME[theme] && !(type !== "hero" && theme === "shadow")) card.Theme = CARD_THEME[theme];
-  if (!heroDefault && color && (theme === "pale" || theme === "solid")) card.Color = capital(color);
+  if (!heroDefault && color && (theme === "pale" || theme === "subtle" || theme === "solid")) card.Color = capital(color);
+  // Surface=Alt exists on Default and Border; code's Shadow on alt draws as Default on Surface/Alt (Card.tsx).
+  if (values.surface === "alt" && ["shadow", "default", "border"].includes(theme)) Object.assign(card, { Surface: "Alt" }, theme === "shadow" ? { Theme: "Default" } : {});
+  const spacing = CARD_SPACING[values.spacing];
+  if (spacing && spacing !== spacingDefault(type)) card.Spacing = spacing;
   nested.push({ path: "Card", props: card });
   // Its icon when it is not the default ⋮ (Card.tsx: Sub-Action's Leading-Icon-Src).
   const subIcon = values.subAction && typeof values.subAction === "object" ? values.subAction.icon : null;
@@ -240,8 +248,10 @@ export function metricCardFromFigma(node, { notes, where }) {
   const color = typeof card.Color === "string" ? card.Color.toLowerCase() : undefined;
   const heroDefault = type === "hero" && ((theme === "solid" && color === "brand") || (theme === "pale" && color === "brand") || !theme);
   if (!heroDefault && theme && !(type !== "hero" && theme === "shadow")) props.theme = literal(theme);
-  if (!heroDefault && color && color !== "neutral" && (theme === "pale" || theme === "solid")) props.color = literal(color);
+  if (!heroDefault && color && color !== "neutral" && (theme === "pale" || theme === "subtle" || theme === "solid")) props.color = literal(color);
   if (!heroDefault && theme === "solid" && color === "neutral") props.color = literal("neutral");
+  if (card.Surface === "Alt" && (theme === "default" || theme === "border")) props.surface = literal("alt");
+  if (SPACING_OF[card.Spacing] && card.Spacing !== spacingDefault(type)) props.spacing = literal(SPACING_OF[card.Spacing]);
   // As the palette writes it: theme and color, then the type.
   if (type !== "kpi") props.type = literal(type);
   if (card["Sub-Action"] === true) props.subAction = subActionFromFigma(nestedAt(node, "Card/Sub-Action")?.props?.["Leading-Icon-Src"]);

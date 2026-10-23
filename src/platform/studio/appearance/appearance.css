@@ -79,3 +79,5 @@
 .studio-gradient-fill__handle[data-selected] { outline: 2px solid var(--zen-color-border-accent-solid-default); outline-offset: 1px; }
 .studio-gradient-fill__handle:focus-visible { outline: 3px solid var(--zen-color-focus-neutral-subtle, rgb(2 2 2 / 8%)); outline-offset: 1px; }
 .studio-gradient-fill__handle[aria-disabled="true"] { cursor: default; }
+/* Apply variable mode (VariableModes.tsx): each collection's name above its modes in the popover. */
+.studio-modes__collection { display: block; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-2-xsmall, 4px); }

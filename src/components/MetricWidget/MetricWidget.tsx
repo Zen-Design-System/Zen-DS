@@ -1,6 +1,6 @@
 import type { ReactNode, Ref } from "react";
 import { Badge } from "../Badge";
-import { Card, type CardColor, type CardSpacing, type CardSubAction, type CardTheme } from "../Card";
+import { Card, type CardColor, type CardSpacing, type CardSubAction, type CardSurface, type CardTheme } from "../Card";
 import { useCardContent } from "../Card/card-content";
 import { DockIcon, type DockIconBackground, type DockIconTheme } from "../DockIcon";
 import { Icon, type IconName } from "../Icon";
@@ -238,6 +238,9 @@ export type MetricCardProps = Omit<MetricProps, "value" | "variant"> & {
   theme?: CardTheme;
   /** Card Color (Figma Card Color, for theme="pale", "subtle" or "solid"): the Card's hue. Solid Neutral is the dark widget; see Card. */
   color?: CardColor;
+  /** Figma Metric-Card's exposed Card Surface: default · alt (Default and Border; Shadow on alt drops its shadow), chosen
+   *  to suit the page's Canvas, as on Card. A metric card on a Canvas/Flat page takes theme="flat-border". */
+  surface?: CardSurface;
   /** Card Sub-Action (Figma: ⋮ Button/Icon-Flat). */
   subAction?: CardSubAction | ReactNode;
   /** Figma Metric-Card's Card Spacing (it is an exposed Card): Medium (default; Card-padding-medium, Corner-Radius/2XLarge)
@@ -329,7 +332,7 @@ function MetricTile({ label, value, trend, icon = "icon-activity-line", iconThem
  * Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric and a ⋮ Sub-Action. Type=KPI is an
  * XLarge Icon-Highlight Metric; the other types (see `type`) put their marks, bar or columns under a Title-Highlight one.
  */
-export function MetricCard({ theme: themeProp, color: colorProp, subAction, spacing, className, overrides, type = "kpi", variant = "title-highlight", series, seriesLabel, goal, comparison, categories, format: formatProp, currency, footer, headingLevel = 3, animate = true, ref, ...metric }: MetricCardProps) {
+export function MetricCard({ theme: themeProp, color: colorProp, surface, subAction, spacing, className, overrides, type = "kpi", variant = "title-highlight", series, seriesLabel, goal, comparison, categories, format: formatProp, currency, footer, headingLevel = 3, animate = true, ref, ...metric }: MetricCardProps) {
   const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   // Figma Type=Hero: a Card whose fill is Support/Brand/Pale (its Solid Brand card, fill overridden) and a Metric-Trend
@@ -344,7 +347,7 @@ export function MetricCard({ theme: themeProp, color: colorProp, subAction, spac
   const card = (content: ReactNode) => (
     // zen-allow-overrides: MetricCard passes its own overrides on, so the Card's Sub-Action and the Metric's layers
     // (`Metric/Icon`) read the same table.
-    <Card ref={ref} theme={theme} color={color} subAction={subAction} spacing={spacing ?? (type === "tile" ? "sm" : undefined)} className={["zen-metric-card", className].filter(Boolean).join(" ")} data-type={type === "kpi" ? undefined : type} overrides={overrides}>
+    <Card ref={ref} theme={theme} color={color} surface={surface} subAction={subAction} spacing={spacing ?? (type === "tile" ? "sm" : undefined)} className={["zen-metric-card", className].filter(Boolean).join(" ")} data-type={type === "kpi" ? undefined : type} overrides={overrides}>
       {content}
     </Card>
   );
