@@ -636,7 +636,8 @@ function DesktopConversation({ m }: { m: Messenger }) {
   return (
     <Stack as="section" gap="none" height="fill" className="px-chat-desk" aria-label={`Chat with ${conv.title}`}>
       <Box className="px-chat-desk__thread"><Thread key={conv.id} m={m} /></Box>
-      <Box className="px-chat-dock"><Composer m={m} /></Box>
+      {/* Docked at the foot of the Body (Figma Fix position when scrolling) on the page's Canvas: the messages scroll under it. */}
+      <Box sticky="bottom" surface="canvas"><Composer m={m} /></Box>
       <ChatDemoNote note={m.demo.note} />
     </Stack>
   );
@@ -1102,7 +1103,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       </>} />
   )} />}
 >
-  {/* The Body: the thread fills the page; the composer docks at the bottom of the window (position: sticky) */}
+  {/* The Body: the thread fills the page; the composer docks at the bottom of the window on the page's Canvas */}
   <ChatThread device="desktop" aria-label={\`Messages with \${chat.title}\`}>
     {chat.messages.map((m) => (
       <ChatMessage key={m.id} side={m.side} author={m.author} continued={m.continued}
@@ -1110,7 +1111,9 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
         reaction={picked[m.id]} onReact={(kind) => react(m.id, kind)}>{m.text}</ChatMessage>
     ))}
   </ChatThread>
-  <ChatComposer device="desktop" onSend={send} replyTo={replyTo} onCancelReply={() => setReplyTo(undefined)} />
+  <Box sticky="bottom" surface="canvas">
+    <ChatComposer device="desktop" onSend={send} replyTo={replyTo} onCancelReply={() => setReplyTo(undefined)} />
+  </Box>
 </AppShell>`,
   },
   {

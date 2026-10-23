@@ -3,8 +3,8 @@ import { canvasApi, getViewport, getViewportBox } from "../../canvas/viewport";
 import { multiSelection } from "../../select/multiSelection";
 import { expectRender, renderedNow } from "../../select/remap";
 import { canStructurallyEdit, pasteWarningIn, swapSelection } from "../../slots/actions";
-import { altOf, ASSET_PREFIX, type Upload } from "../../builder/assets/uploads";
-import { MEDIA_PREFIX, photoCode, type LibraryPhoto } from "../../builder/library/media";
+import { altOf, ASSET_PREFIX, assetBlob, type Upload } from "../../builder/assets/uploads";
+import { MEDIA_PREFIX, photoCode, pictureExpression, type LibraryPhoto } from "../../builder/library/media";
 import { insertTarget } from "../../builder/library/target";
 import { builderCode, type PaletteContext, type PaletteItem } from "../../slots/palette";
 import type { ContentSlot } from "../../slots/registry";
@@ -18,6 +18,7 @@ import { snapBox, SNAP_PX, type FrameBox } from "../../builder/render/framePlace
 import { annotatedAt, findBySrc, fiberOf, frameOf, hitOf, instanceOf, nameOf, panelOf, rectOf as rectOfHosts, selectHit, srcOf, type FiberHit } from "../../select/picker";
 import { partHit, selectPart, selectedPartStore, withoutPart, type PartHit } from "../../select/parts";
 import { itemPictureOf, nestedPicture, PICTURED, writePicture } from "./picture";
+import { REPO_PICTURE_TYPES, saveRepoPicture, type RepoPicture } from "./repoMedia";
 
 /*
  * Assets, Figma-like (docs/research/studio-figma-editing-plan-2026-10-03.md, Phase 6): the Zen components of the slot
@@ -66,6 +67,8 @@ export type Insertable = {
   photo?: string;
   /** Why it cannot go inside the layer at `src` (another page's component inside its own main), or null. */
   refuseIn?: (src: string) => string | null;
+  /** A photo this browser holds, for a repo page: saved in the repo first, then the item that adds it (or why not). */
+  toRepo?: () => Promise<Insertable | string>;
 };
 
 export const paletteInsertable = (item: PaletteItem): Insertable => ({ label: item.label, root: item.root, state: item.state, code: (file) => codeOf(item, file), refusal: builderRefusal(item) });
@@ -78,6 +81,24 @@ export const uploadInsertable = (upload: Upload): Insertable => ({
   photo: `${ASSET_PREFIX}${upload.id}`,
   code: (file) => (file?.startsWith("local:") ? `<Image src="${ASSET_PREFIX}${upload.id}" alt=${JSON.stringify(altOf(upload.name))} ratio="4:3" />` : null),
   refusal: "An uploaded photo goes on a page you made (Pages › New page); example code takes the library's photos",
+  // On a repo page the upload is saved in the repo (src/assets/media) first, then added as that file.
+  toRepo: async () => {
+    const blob = await assetBlob(upload.id).catch(() => null);
+    if (!blob) return "This upload is no longer in this browser";
+    const saved = await saveRepoPicture(blob, upload.name);
+    return "error" in saved ? saved.error : repoPictureInsertable(saved);
+  },
+});
+
+/** A picture saved in the repo (repoMedia.ts): an Image reading its file, `zen-media:` on a page you made. */
+export const repoPictureInsertable = (saved: RepoPicture): Insertable => ({
+  label: saved.label,
+  root: "Image",
+  photo: saved.value,
+  code: (file) => (file?.startsWith("local:")
+    ? `<Image src="${saved.value}" alt=${JSON.stringify(saved.label)} ratio="4:3" />`
+    : `<Image src={${pictureExpression(file ?? saved.file, saved.file)}} alt=${JSON.stringify(saved.label)} ratio="4:3" />`),
+  refusal: "",
 });
 
 /**
@@ -173,6 +194,7 @@ export function insertItem(item: Insertable) {
   }
   const file = parseSrc(target.src)?.file;
   const code = item.code(file);
+  if (code === null && item.toRepo && file && !file.startsWith("local:")) { void item.toRepo().then((next) => (typeof next === "string" ? fail(next) : insertItem(next))); return; }
   if (code === null) { fail(item.refusal); return; }
   const inside = item.refuseIn?.(target.src);
   if (inside) { fail(inside); return; }
@@ -197,6 +219,7 @@ export function swapItem(item: Insertable) {
   if (typeof target === "string") { fail(target); return; }
   const file = parseSrc(target.src)?.file;
   const code = item.code(file);
+  if (code === null && item.toRepo && file && !file.startsWith("local:")) { void item.toRepo().then((next) => (typeof next === "string" ? fail(next) : insertItem(next))); return; }
   if (code === null) { fail(item.refusal); return; }
   const inside = item.refuseIn?.(target.src);
   if (inside) { fail(inside); return; }
@@ -219,6 +242,12 @@ export async function dropAsset(item: Insertable, target: DropTarget, free?: { x
   const parent = await studioApi.element(at.file, at.loc);
   if (!parent) { fail(`${target.parentName} is no longer there`); return; }
   const written = item.code(at.file);
+  if (written === null && item.toRepo && !at.file.startsWith("local:")) {
+    const next = await item.toRepo();
+    if (typeof next === "string") { fail(next); return; }
+    await dropAsset(next, target, free);
+    return;
+  }
   if (written === null) { fail(item.refusal); return; }
   const inside = item.refuseIn?.(target.parentSrc);
   if (inside) { fail(inside); return; }
@@ -237,6 +266,35 @@ export async function dropAsset(item: Insertable, target: DropTarget, free?: { x
   expectRender(next, before, () => undefined, 1500);
   studioStore.setState({ selection: next });
   flushStudioStore();
+}
+
+/**
+ * Pictures from the computer dropped on a repo page (BACKLOG P2 2026-10-10): each is saved in the repo (repoMedia.ts),
+ * then lands as a library photo does: on an Image, Avatar, account or a face of a list (an AvatarStack's) it replaces
+ * that picture (the first file), elsewhere each is a new Image where they fell (one edit each).
+ */
+export async function dropComputerPictures(files: readonly File[], x: number, y: number) {
+  if (!canEdit()) { fail("View only"); return; }
+  const pictures = files.filter((file) => file.type.startsWith("image/"));
+  if (!pictures.length) return;
+  const refused = pictures.find((file) => !REPO_PICTURE_TYPES.includes(file.type));
+  if (refused) { fail(`${refused.name}: example code takes photos (PNG, JPEG or WebP)`); return; }
+  const swap = picturedAt(x, y);
+  const { target, reason } = swap ? { target: null, reason: null } : dropTargetAt(x, y, NOTHING);
+  const refusal = swap ? null : reason ?? (target ? refusalFor(target) : "Drop pictures on a layer of the page");
+  if (refusal) { fail(refusal); return; }
+  const world = canvasApi.getWorldElement();
+  for (const file of swap ? pictures.slice(0, 1) : pictures) {
+    const saved = await saveRepoPicture(file, file.name);
+    if ("error" in saved) { fail(saved.error); return; }
+    if (swap) {
+      if (swap.part) selectPart(swap.part, world);
+      else if (swap.hit) selectHit(swap.hit, world);
+      await writePicture(swap.selection, saved.value, saved.label, swap.part);
+      return;
+    }
+    if (target) await dropAsset(repoPictureInsertable(saved), target, freeDropAt(target, { x, y }, false));
+  }
 }
 
 /* ── a Screen's bars ──────────────────────────────────────────────────────────────────────────────────────────────── */

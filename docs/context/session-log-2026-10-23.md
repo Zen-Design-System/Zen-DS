@@ -160,6 +160,23 @@ Two BACKLOG P1s waiting on the user (brief from the supervisor: "xử hết back
     2026-10-22T19-17-48-192108d7). No platform example draws a second series on a hue Solid, so a throwaway browser test
     measured the Bullet target on Brand / Cyan / Yellow / Orange Solid cards: rgba(0, 0, 0, 0.486) in light and dark.
 
+## Session B · Example className round 2, PR 3: `sticky` (tier M; user "Thêm prop sticky cho Box", "Bottom = Fixed, Top = Sticky")
+
+- Spec: docs/research/layout-sticky-spec-2026-10-23.md (Figma facts measured with use_figma; the AppShell session OK'd
+  the Body rule). `sticky="top|bottom"` on Stack, Grid, Box, Shape; AppShell Body bottom padding through
+  `--zen-app-shell-body-pad-end`, a bottom-sticky descendant takes it inside itself; `surface="canvas"` follows the
+  shell's canvas; chat / ai-chat / ai-ui docks without CSS; Studio Prototype › Scroll behavior (canvas in place);
+  push bottom → Fixed (absolute, on top), top → Sticky; pull reads numberOfFixedChildren and the REST export's Sticky;
+  native writes scrollBehavior. Plugin 397fc74 on studio-import (npm test green; its API sequence checked live).
+- Found in my own work and fixed: React saw two Prototype-panel children keyed by the layer (Scroll behavior beside
+  Interactions); the first gate failed on a stale compile-api.generated.mjs (individual selftests do not cover it:
+  run `npm run studio:selftest`).
+- Visual diff (chat, ai-chat, ai-ui, app-shell, templates, layout, shape; 1512 + 390; before = main 0f4c28cf in a
+  scratch worktree): 227 identical, 1 changed (chat 01, 3 px, the same noise as PR 2). Dock probe at 1512: sticky,
+  −24 / +24, its bottom on the scroller's bottom mid-scroll and at the end.
+- E2E FW-210/211 works; app-shell + app-shell-grid tests 52/52; gate `--isolated` PASS (0 errors, Studio E2E 338).
+- Not run: a live native paste of a sticky layer (BACKLOG P3).
+
 ## Session C · Figma-parity leftovers (tier S each; Giám sát's queue, plan studio-figma-design-parity-2026-10-18.md)
 Branch `zen/fix/studio-parity-leftovers-20261023`; both BACKLOG lines archived.
 - ⇧⌘G on several layers (BACKLOG P2): `ungroupLayers` in edit/groupLayers.ts ungroups every selected group or frame,
@@ -341,6 +358,26 @@ Branch claude/eloquent-mclean-8f4974 from main 4b96bbb8. BACKLOG P1 "320px debt 
   dark, behaviour 0 errors, 0 new warnings → PASS. Contact sheets: templates 390/1512 keep the photo row whole.
   Visual diff templates 1512 + 390, old vs new template: 32 identical. Baseline: the 28 @320 keys gate 2 no longer finds
   removed (13 Chat, 10 layout, the Show-all target, 4 Text-page heading demos); 16 @320 keys left, all also at 1512/390.
+
+## A photo file from the computer on a repo page (tier M; BACKLOG P2, G4 picked by the user in the triage session)
+
+Branch zen/feat/studio-desktop-photo-repo-20261023 (stacked on #239). Example and template code cannot read this
+browser's uploads, so a dropped photo is saved in the repo first.
+- Dev server: `POST /__zen-studio/media { name, data }` (write headers) writes `src/assets/media/<slug>-<hash>.webp`
+  (the same bytes are the same file) and a CREDITS.md row "Dropped in Zen Studio from …, to confirm before publishing"
+  (`tools/studio/repo-media.mjs`, selftest 3 cases). A file, not a draft: it stays when the edit is undone or discarded.
+- Client: `edit/assets/repoMedia.ts` converts PNG / JPEG / WebP to WebP ≤ 1600 px and registers the key at once
+  (`media.ts` registerRepoPicture); the glob's own update merges new pictures instead of reloading the Studio.
+  `canvas/fileDrop.ts` on a repo page → `assets.ts dropComputerPictures`: on a pictured layer or a list face the
+  picture (writePicture, with #239's helper and list paths), elsewhere a new `<Image src={new URL(…)}>` where it fell.
+  "Your uploads" on a repo page (click, drop, the Inspector's and a table cell's Picture) are saved the same way.
+- E2E FW-239 (drop on a helper row's avatar → people.bao.photo is the saved file, CREDITS row, ⌘Z) and FW-240 (drop into
+  the Stack → an Image reading the file, ⌘Z); both remove what they saved.
+- Finding met on the way, fixed at its owner (FW-240's first run): pasted or inserted code could not read a repo
+  picture. `arrange.mjs` / `slots.mjs` parsed it as a script (`import.meta` refused) and took `URL` for a component to
+  import; they parse as a module now, `URL` is a JS global and `import.meta` reads no name (arrange selftest +1 case).
+- Gate (slot from box-themes; `--isolated`, the branch's 13 files): **PASS**, Studio E2E 338/0. FW-235…240: 5/1 (FW-240,
+  the paste finding above); after the fix FW-239/240 2/0 and a second gate on arrange.mjs + slots.mjs **PASS** 338/0.
 
 - Static: tsc, usage, style, guidelines, studio, ai-ui, mcp, nested-paths. The conformance run and the gate wait for a
   browser slot.

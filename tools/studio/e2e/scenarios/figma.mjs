@@ -4905,6 +4905,65 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   {
+    id: "FW-210", feature: "Prototype › Scroll behavior on a frame (Figma's Position when scrolling): Stick to bottom writes sticky=\"bottom\", the Design tab lists no sticky row, the canvas draws it in place, ⌘Z takes it back", wp: "sticky 2026-10-23", timeout: 45_000,
+    async run(ctx) {
+      const { page, id } = await stickyPage(ctx);
+      return restoring(page, id, async () => {
+        await selectDock(page, id);
+        const designRows = await right(page).locator(".studio-inspector__row[data-prop]").evaluateAll((all) => all.map((row) => row.getAttribute("data-prop")));
+        if (designRows.some((prop) => prop.split(" ").includes("sticky"))) throw new Error(`the Design tab lists sticky: ${designRows.join(", ")}`);
+        await page.locator("#studio-right").getByRole("tab", { name: "Prototype" }).click();
+        const panel = page.locator('[data-e2e="prototype-panel"]');
+        await panel.waitFor({ state: "visible", timeout: 5000 });
+        const section = panel.locator(".studio-inspector__section").filter({ has: page.locator("h3", { hasText: /^Scroll behavior$/ }) });
+        await section.waitFor({ state: "visible", timeout: 5000 });
+        await stickTo(page, section, "Stick to bottom");
+        await written(page, id, /<Box padding="md" sticky="bottom">/, "the Box sticks to the bottom");
+        await expectPanelFits(page, "Scroll behavior");
+        const dock = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Box"]`).first();
+        await until(async () => (await dock.getAttribute("data-sticky")) === "bottom", { message: "the canvas renders data-sticky" });
+        const onCanvas = await dock.evaluate((node) => getComputedStyle(node).position);
+        if (onCanvas !== "relative") throw new Error(`on the canvas the dock is ${onCanvas}, not drawn in place`);
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await written(page, id, /sticky=/, "⌘Z: no sticky", true);
+        await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+        return "Prototype › Scroll behavior › Stick to bottom → sticky=\"bottom\" · canvas relative · ⌘Z";
+      });
+    },
+  },
+  {
+    id: "FW-211", feature: "In Present a sticky=\"bottom\" frame sticks: position sticky, and with the Screen scrolled to its top the dock sits on the screen's bottom edge, the thread passing under it", wp: "sticky 2026-10-23", timeout: 45_000,
+    async run(ctx) {
+      const { page, id } = await stickyPage(ctx);
+      return restoring(page, id, async () => {
+        await selectDock(page, id);
+        await page.locator("#studio-right").getByRole("tab", { name: "Prototype" }).click();
+        const section = page.locator('[data-e2e="prototype-panel"] .studio-inspector__section').filter({ has: page.locator("h3", { hasText: /^Scroll behavior$/ }) });
+        await stickTo(page, section, "Stick to bottom");
+        await written(page, id, /sticky="bottom"/, "the Box sticks to the bottom");
+        await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+        await page.locator(".studio-viewport").focus();
+        await presentKey(page);
+        const dock = player(page).locator('[data-zen-name="Box"][data-sticky="bottom"]').first();
+        await dock.waitFor({ state: "attached", timeout: 10_000 });
+        const measured = await dock.evaluate((node) => {
+          let scroller = node.parentElement;
+          while (scroller && !/(auto|scroll)/.test(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
+          if (scroller) scroller.scrollTop = 0;
+          const box = node.getBoundingClientRect();
+          const edge = scroller ? scroller.getBoundingClientRect().bottom : window.innerHeight;
+          return { position: getComputedStyle(node).position, gap: Math.round(edge - box.bottom), scrolls: Boolean(scroller && scroller.scrollHeight > scroller.clientHeight) };
+        });
+        await leavePlay(page);
+        if (measured.position !== "sticky") throw new Error(`in Present the dock is ${measured.position}`);
+        if (!measured.scrolls) throw new Error("the Screen does not scroll: the seed is too short to test sticking");
+        if (Math.abs(measured.gap) > 2) throw new Error(`at the top of the page the dock ends ${measured.gap}px above the screen's bottom edge`);
+        return `Present: sticky, on the bottom edge (${measured.gap}px)`;
+      });
+    },
+  },
+  {
     id: "FW-165", feature: "A Zen instance's Design tab has no Code properties (Figma's sections only); its HTML button type is on the Code tab's Properties, where typing submit writes type=\"submit\"; ⌘Z takes it back", wp: "§3a Properties 2026-10-21", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
@@ -5460,6 +5519,44 @@ const contentText = (title) => {
   return grow(text, "Stack", "<Text>Hello there</Text>");
 };
 let contentMade = null;
+/** A phone page whose thread is taller than the screen, a dock Box last (FW-210/211: sticky). */
+const stickyText = (title) => {
+  let text = newPageText({ title, device: "phone", chrome: false });
+  for (let line = 1; line <= 24; line += 1) text = grow(text, "Stack", `<Text>Message ${line}</Text>`);
+  return grow(text, "Stack", '<Box padding="md">\n<Text>Dock</Text>\n</Box>');
+};
+let stickyMade = null;
+/** Picks `option` in Prototype › Scroll behavior's Position select (its row's button, as pickOption opens a select). */
+async function stickTo(page, section, option) {
+  await section.locator('[data-prop="scroll:sticky"] button').first().click();
+  await page.getByRole("option", { name: option, exact: true }).click();
+}
+/** Selects the dock Box: a click on its padding, then Escape up (Figma's Esc) until the panel's code name is Box (a
+ *  frame's panel heads it Frame and keeps the code name in its title, FW-142). */
+async function selectDock(page, id) {
+  await clickNamed(page, id, "Box");
+  const codeName = () => right(page).locator("h2").first().getAttribute("title", { timeout: 1000 }).catch(() => null);
+  for (let up = 0; up < 4 && (await codeName()) !== "Box"; up += 1) {
+    await page.keyboard.press("Escape");
+    await sleep(300);
+  }
+  await until(async () => (await codeName()) === "Box", { message: `the dock Box selected (panel: ${await selectedName(page)})` });
+}
+async function stickyPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!stickyMade) {
+    const seeded = await seededPage(ctx, stickyText, /<Text>Dock<\/Text>/);
+    stickyMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${stickyMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${stickyMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  return { page, id: stickyMade };
+}
 async function contentPage(ctx) {
   const { page } = await ctx.studio();
   if (!contentMade) {

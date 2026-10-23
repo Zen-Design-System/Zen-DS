@@ -61,6 +61,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Figma's outer level, grid row minimum heights, kept overrides by resolved variable, and a smaller pack (23 MB on
   2026-10-23). Pictures go since 2026-10-19 (F8c), a frame's whole look since #177. Pointer:
   `docs/research/studio-native-paste-2026-10-17.md` §6, §7c, §8.
+- **P3 · Native paste of a sticky layer not tried live (2026-10-23, B):** figma-native writes `scrollBehavior`
+  (FIXED_WHEN_CHILD_OF_SCROLLING_FRAME on the absolute dock, STICKY_SCROLLS in flow) from Figma's own clipboard schema;
+  the plugin path was checked live. Still to see in a real ⌘V: Figma keeps both, and whether it also wants
+  `fixedChildrenDivider` on the parent. Pointer: `docs/research/layout-sticky-spec-2026-10-23.md` § Figma.
 - **P3 · AppShell phone bars in Figma (2026-10-23, B; found by AppShell, needs the user's OK):** figma-push draws a
   phone frame's top and bottom bars only from the builder Screen's own `topNavigation` / `bottomNavigation`. An
   AppShell's own phone bars are named in the push notes and not drawn: a root AppShell on a phone Screen keeps only its
@@ -88,9 +92,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   segmented-toggle-badge-avatarstack were re-read whole; only Input/Heading and the Segmented sets have a parity suite,
   so a later Figma edit to the others is still not caught. A suite per set (`tools/figma-contract/suites`, README
   "Writing a suite") needs a browser slot each and the user's go (new harness work).
-- **P2 · Figma usability — a photo file dropped from the desktop on a repo page (2026-10-10):** uploads live in this
-  browser (IndexedDB), so example and template code cannot read them; a drop there needs the dev server to save the file
-  under `src/assets/media/` (POST route + `MEDIA_REPO_FILES` refresh). On pages you made it works today.
 
 - **Questions for the designer and decisions for the user** are collected in [`QUESTIONS.md`](QUESTIONS.md) (moved
   there 2026-10-08). Code keeps its current behaviour until each is answered.

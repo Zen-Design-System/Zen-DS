@@ -2,8 +2,11 @@
 // (BACKLOG P1 2026-10-10, docs/research/studio-usability-eval-2026-10-10.md §5). The example rows use the host
 // fixture's "E2E pictures" frame (fixtures/host-page.tsx PictureFixture); the last one a page made in the Studio. A part
 // of figma.mjs (the group's rows spread it), kept in its own folder so the harness self-test reads it through figma.mjs.
+import fs from "node:fs";
+import path from "node:path";
 import { newPageText } from "../../../dialect.mjs";
 import { grow } from "../../../dnd-engine.mjs";
+import { locOf } from "../../lib/source.mjs";
 import { focusFrame, openAssetLibrary, sleep, statusText, until } from "../../lib/studio.mjs";
 import { pageText, seededPage } from "../builder.mjs";
 import { waitSeed } from "../inspector.mjs";
@@ -54,6 +57,39 @@ async function undoOnce(page, read, before, message) {
 }
 
 const failWith = (page, message) => async (error) => { throw new Error(`${error.message} (${message}) · status: ${(await statusText(page)).slice(-200)}`); };
+
+/**
+ * A PNG from "the computer" dropped at a point of the canvas, as the OS drops a file: a DataTransfer with the File, the
+ * drag events on the element under the point. `shade` makes each row's picture its own bytes.
+ */
+const dropFile = (page, at, name, shade) => page.evaluate(async ({ x, y, name, shade }) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 96;
+  canvas.height = 96;
+  const context = canvas.getContext("2d");
+  context.fillStyle = shade;
+  context.fillRect(0, 0, 96, 96);
+  context.fillStyle = "#fff";
+  context.fillRect(24, 24, 48, 48);
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+  const data = new DataTransfer();
+  data.items.add(new File([blob], name, { type: "image/png" }));
+  const target = document.elementFromPoint(x, y);
+  for (const type of ["dragenter", "dragover", "drop"]) target.dispatchEvent(new DragEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, dataTransfer: data }));
+}, { x: at.x, y: at.y, name, shade });
+
+/** Runs `work` and then takes away what the drop saved in the repo: new files in src/assets/media, CREDITS.md's rows. */
+async function keepingMedia(ctx, work) {
+  const dir = path.join(ctx.root, "src/assets/media");
+  const before = new Set(fs.readdirSync(dir));
+  const credits = fs.readFileSync(path.join(dir, "CREDITS.md"), "utf8");
+  try {
+    return await work(() => fs.readdirSync(dir).filter((name) => !before.has(name)));
+  } finally {
+    for (const name of fs.readdirSync(dir)) if (!before.has(name)) fs.rmSync(path.join(dir, name), { force: true });
+    fs.writeFileSync(path.join(dir, "CREDITS.md"), credits);
+  }
+}
 
 export const pictureRows = [
   {
@@ -121,6 +157,40 @@ export const pictureRows = [
       if (!/\{ name: "Ava Chen" \}/.test((await pageText(page, id)) ?? "")) throw new Error("reader 1 changed too");
       await undoOnce(page, async () => (await pageText(page, id)) ?? "", before, "one ⌘Z");
       return "seenBy[1].src = zen-media:… on a page you made · ⌘Z";
+    },
+  },
+  {
+    id: "FW-239", feature: "A photo file dropped from the computer on a row's avatar of an example page is saved in the repo (src/assets/media, WebP, a CREDITS.md row) and becomes that person's photo in data.ts; one ⌘Z", wp: "pictures 2026-10-23",
+    async run(ctx) {
+      const page = await picturesFrame(ctx);
+      return keepingMedia(ctx, async (added) => {
+        const before = await data(ctx);
+        const rows = await until(async () => { const found = await faces(page, ".zen-list-item .zen-avatar"); return found.length >= 3 ? found : null; }, { message: "the rows' avatars" });
+        await dropFile(page, rows[0], "Team photo.png", "#3b6");
+        const saved = await until(() => added().find((name) => /^team-photo-[0-9a-f]{8}\.webp$/.test(name)) ?? null, { message: "the photo saved in src/assets/media" }).catch(failWith(page, "drop from the computer"));
+        await until(async () => personLine(await data(ctx), "bao").includes(`photo: new URL("../../assets/media/${saved}", import.meta.url).href`), { message: "Bao's photo is the saved file" }).catch(failWith(page, "the row's data"));
+        if (!fs.readFileSync(path.join(ctx.root, "src/assets/media/CREDITS.md"), "utf8").includes(`| ${saved} | Dropped in Zen Studio from "Team photo.png"`)) throw new Error("no CREDITS.md row for the saved photo");
+        await until(async () => (await faces(page, ".zen-list-item .zen-avatar"))[0]?.img.includes(saved), { message: "the row draws the saved photo" });
+        await undoOnce(page, () => data(ctx), before, "one ⌘Z puts data.ts back");
+        return `${saved} in src/assets/media + CREDITS row · people.bao.photo → it · ⌘Z`;
+      });
+    },
+  },
+  {
+    id: "FW-240", feature: "A photo file dropped from the computer into a layout of an example page is saved in the repo and added there as an Image reading the file; one ⌘Z takes it away", wp: "pictures 2026-10-23",
+    async run(ctx) {
+      const page = await picturesFrame(ctx);
+      return keepingMedia(ctx, async (added) => {
+        const before = await ctx.text();
+        // The pictures Stack's own padding, under its last layer: the drop goes into the Stack.
+        const src = `${ctx.file}:${locOf(before, "pictures").loc}`;
+        const box = await until(async () => { const rect = await page.evaluate((at) => window.__e2e.rectOf(at), src); return rect ? { x: rect.x + 40, y: rect.y + rect.height - 6 } : null; }, { message: "the pictures Stack" });
+        await dropFile(page, box, "Cover shot.png", "#36b");
+        const saved = await until(() => added().find((name) => /^cover-shot-[0-9a-f]{8}\.webp$/.test(name)) ?? null, { message: "the photo saved in src/assets/media" }).catch(failWith(page, "drop from the computer"));
+        await until(async () => (await ctx.text()).includes(`<Image src={new URL("../../../assets/media/${saved}", import.meta.url).href} alt="Cover shot" ratio="4:3" />`), { message: "an Image reading the saved file in the page" }).catch(failWith(page, "the new Image"));
+        await undoOnce(page, () => ctx.text(), before, "one ⌘Z takes the Image away");
+        return `${saved} saved · <Image src={new URL(…)}> added · ⌘Z`;
+      });
     },
   },
 ];
