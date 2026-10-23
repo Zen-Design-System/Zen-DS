@@ -139,6 +139,38 @@ export const rows = [
     },
   },
   {
+    id: "DA-10", feature: "Resizing a .map row previews every row it draws, as the pill's \"all N\" says (not only the pressed one); Escape takes the preview away and writes nothing", wp: "BACKLOG 2026-10-24", timeout: 40_000,
+    async run(ctx) {
+      const page = await freshSelect(ctx, "crew-row", { frame: 1 });
+      await sleep(400);
+      const before = await ctx.text();
+      const handle = page.locator('.studio-resize__handle[data-handle="e"], .studio-resize__handle[data-handle="s"]').first();
+      await handle.waitFor({ state: "visible", timeout: 5000 }).catch(() => { throw new Error("the .map row shows no width or height handle"); });
+      const side = await handle.getAttribute("data-handle");
+      const axis = side === "e" ? "width" : "height";
+      const sizes = () => page.locator('[data-studio-frame="example:1"] [data-e2e="crew-row"]').evaluateAll((nodes, which) => nodes.map((node) => Math.round(node.getBoundingClientRect()[which])), axis);
+      const start = await sizes();
+      if (start.length < 2) throw new Error(`the fixture draws ${start.length} crew row(s)`);
+      const box = await handle.boundingBox();
+      const x = box.x + box.width / 2;
+      const y = box.y + box.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      for (let step = 1; step <= 6; step += 1) await page.mouse.move(side === "e" ? x - (30 * step) / 6 : x, side === "s" ? y + (24 * step) / 6 : y);
+      await sleep(200);
+      const during = await sizes();
+      await page.keyboard.press("Escape");
+      await page.mouse.up();
+      await sleep(300);
+      const after = await sizes();
+      if (during[0] === start[0]) throw new Error(`the pressed row did not preview (${axis} ${start[0]} → ${during[0]})`);
+      if (new Set(during).size !== 1) throw new Error(`the rows previewed apart: ${during.join(", ")} (only the pressed one changes)`);
+      if (after.join() !== start.join()) throw new Error(`Escape left a preview: ${after.join(", ")} (was ${start.join(", ")})`);
+      if ((await ctx.text()) !== before) throw new Error("Escape wrote the resize");
+      return `${start.length} rows: ${axis} ${start[0]} → ${during[0]} on every row while dragging → Escape → ${after[0]}, nothing written`;
+    },
+  },
+  {
     id: "DA-05", feature: "⌘D on a .map row copies its data item (a new id), the JSX stays one element; the copy is selected", wp: "slots 2026-10-09",
     async run(ctx) {
       const page = await freshSelect(ctx, "crew-row", { frame: 1 });

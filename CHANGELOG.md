@@ -17,6 +17,13 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio: a draft made, saved or discarded in another browser (or a drafted file changed on disk) shows in every
+  open Studio tab at once; it waited for the 10 s poll, a focus or a tab switch (2026-10-24).
+- Zen Studio: resizing a row a `.map` draws previews every row it draws, as its pill's "all N" says; only the pressed row
+  moved before (2026-10-24).
+- Zen Studio: an element held in a `const` and shown on a condition (`{view === "list" ? listView : boardView}`, or
+  also in a prop) moves up, down and by dragging, with its condition, as one written in place does; it said "edit it in
+  the code" (user, 2026-10-24). A const shown twice in one element still asks for the code.
 - Zen Studio → Figma: a page goes to Figma with every Screen, Screen state and Overlay as a frame of its own (an
   Overlay as big as what it holds), and its Prototype actions as Figma interactions: On click, While hovering and After
   delay; Navigate to, Open overlay, Close overlay and Back, with their animation, direction and Zen's duration and curve

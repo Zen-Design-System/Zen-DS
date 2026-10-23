@@ -499,6 +499,38 @@ const BADGE = '<Badge theme="blue">Pro plan</Badge>';
   check("const shown in two branches: only the Card's {summary} moves", [inCard.code.indexOf("{summary}", inCard.code.indexOf("<Card")) < inCard.code.indexOf("<Text>Desk"), inCard.code.indexOf("<Text>Phone") < inCard.code.indexOf("{summary}")], [true, true]);
   const dragged = applySlotOp(stacked, locOf(stacked, "<Badge>Summary"), "Badge", { op: "moveTo", parent: locOf(stacked, "<Card") }, options({ hash: sha1(stacked) }));
   check("const child: dragged into the Card as {summary}", [dragged.error ?? null, /<Card theme="default">\{twice\}\{twice\}\s*\{summary\}/.test(dragged.code ?? "") || /<Card theme="default">[\s\S]*\{summary\}[\s\S]*<\/Card>/.test(dragged.code ?? ""), (dragged.code ?? "").split("{summary}").length - 1], [null, true, 1]);
+  // Shown on a condition (BACKLOG Q1-A, user 2026-10-24: `{view === "list" ? listView : boardView}`, `empty={noClaims}`).
+  const onCondition = page(
+    "export function Panel({ wide, phone }: { wide: boolean; phone: boolean }) {",
+    "  const list = <Badge>List</Badge>;",
+    "  const board = <Badge>Board</Badge>;",
+    "  const empty = <Badge>Empty</Badge>;",
+    "  const field = <Badge>Field</Badge>;",
+    "  return (",
+    "    <Stack gap=\"md\">",
+    "      <Text>First</Text>",
+    "      {wide ? list : board}",
+    "      {phone && empty}",
+    "      <Card theme=\"default\" footer={empty}>{wide ? field : null}{wide ? null : field}</Card>",
+    "    </Stack>",
+    "  );",
+    "}",
+  );
+  const listUp = run("const on a condition: move up", onCondition, "<Badge>List", "Badge", move("prev"));
+  check("const on a condition: its {wide ? list : board} steps before First; the consts stay", [listUp.code.indexOf("{wide ? list : board}") < listUp.code.indexOf("<Text>First"), listUp.code.includes("const list = <Badge>List</Badge>;"), listUp.moved?.loc], [true, true, locOf(onCondition, "<Badge>List")]);
+  const emptyNo = applySlotOp(onCondition, locOf(onCondition, "<Badge>Empty"), "Badge", move("prev"), options({ hash: sha1(onCondition) }));
+  check("const on a condition and in a prop: refused without the place", emptyNo.error, "<Badge> is not one of an element's children (it sits in a variable); only children move.");
+  const emptyUp = run("const on a condition and in a prop: move the Stack's", onCondition, "<Badge>Empty", "Badge", { op: "moveElement", to: "prev", parent: locOf(onCondition, "<Stack") });
+  check("const on a condition and in a prop: {phone && empty} steps up, footer={empty} stays", [emptyUp.code.indexOf("{phone && empty}") < emptyUp.code.indexOf("{wide ? list : board}"), emptyUp.code.includes("footer={empty}")], [true, true]);
+  const fieldNo = applySlotOp(onCondition, locOf(onCondition, "<Badge>Field"), "Badge", { op: "moveElement", to: "next", parent: locOf(onCondition, "<Card") }, options({ hash: sha1(onCondition) }));
+  check("const shown twice on conditions in one element: refused, it names both", fieldNo.error, "<Badge> is the value of `field`, shown 2 times in <Card>; move it in the code.");
+  const boardDragged = applySlotOp(onCondition, locOf(onCondition, "<Badge>Board"), "Badge", { op: "moveTo", parent: locOf(onCondition, "<Card") }, options({ hash: sha1(onCondition) }));
+  check("const on a condition: dragged into the Card with its condition", [boardDragged.error ?? null, /<Card theme="default" footer=\{empty\}>[\s\S]*\{wide \? list : board\}[\s\S]*<\/Card>/.test(boardDragged.code ?? ""), (boardDragged.code ?? "").split("{wide ? list : board}").length - 1], [null, true, 1]);
+  const conditionSlots = describeSlots(onCondition, PAGE, locOf(onCondition, "<Stack"));
+  check("describeSlots: a condition's consts, where the consts write them", conditionSlots.children.filter(Boolean), [
+    { elements: [{ name: "Badge", loc: locOf(onCondition, "<Badge>List") }, { name: "Badge", loc: locOf(onCondition, "<Badge>Board") }], form: "ternary" },
+    { elements: [{ name: "Badge", loc: locOf(onCondition, "<Badge>Empty") }], form: "and" },
+  ]);
   const described = describeSlots(shared, PAGE, locOf(shared, "<ListItem title=\"Wide"));
   const at = (attr) => described.attributes[["title", "trailing", "leading"].indexOf(attr)];
   check("describeSlots: a const's elements, where the const writes them", [at("trailing"), at("leading")?.form, at("leading")?.elements.map((ref) => ref.name)], [{ elements: [{ name: "Badge", loc: locOf(shared, "<Badge>Apps") }], form: "element", const: "apps" }, "fragment", ["Badge", "Badge"]]);

@@ -73,30 +73,10 @@ starts.
   `.figma.ts` templates (the repo has no figma.config.json yet).
 
 ### Studio editor / push-pull / plugin
-- **P3 · Studio resize leftovers (2026-10-03/06; rewritten 2026-10-24):** (1) an item with a Fixed width alone in a px
-  Grid column still edits its own width on a drag (`select/ResizeLayer.tsx` ~732: no grid cell while that width would
-  stay); resizing the column and clearing that width needs one request touching two elements (server op), M. (2) A
-  `.map` drag previews only the pressed instance while its pill says "all N" (`preview()` ~367 sizes `drag.host` only),
-  S–M.
-- **P3 · Studio drafts, live push (2026-10-02):** other browsers learn about a draft or a stale disk by the 10 s poll,
-  focus or visibility (`src/platform/studio/sourceDrafts.ts` ~31, ~121); a Vite ws event (`zen-studio:drafts`) from the
-  plugin, as `zen-studio:pages-changed` does (`tools/studio/vite-plugin-zen-studio.mjs` ~173), would show it at once. S.
 - **P3 · Builder Link folder: the permission prompt of a real folder is untested (2026-10-06, GĐ2 M4):**
   `npm run studio:build-check` covers link, write, Trash (trash/ copy), Restore and the reconnect after a reload through
   an OPFS folder, which the browser always grants; a folder the person picks is usually "prompt" after a reload, so the
   Reconnect button path (`mirrors.ts` reconnectFolder → requestPermission) needs one check by hand in Chromium.
-- **P3 · Studio slots: what still says "edit it in the code" (2026-10-08/09; rewritten 2026-10-24):** (a) remove +
-  insert of a same-named element in one slot is matched as the same element by "Modified" (`tools/studio/slots.mjs`
-  matchElements ~2109; a selftest case first), S–M. (b) `node tools/studio/slot-audit.mjs --ops` lists the moves still
-  refused with the reason (`tools/studio/items.mjs` ~59–89): an element of a condition held in a const (12 on 10-09), an
-  atom slot holding a string (41: EmptyState `icon="…"`, swapped in Properties), `.map` rows whose list is computed
-  (33). Re-run the counts; decision (user): which to build (M–L each).
-- **P3 · Studio object props: a per-row override (2026-10-04; rewritten 2026-10-24):** bound, conditional and loop-bound
-  props are editable since 10b1b91c (a fixed value, the data item at its source, or every row; E2E I-09…I-11, IN-18,
-  IN-19). Left from B4: an override of one row that leaves the shared data alone. Decision (user): wanted (L)? If not,
-  relabel the "B4" classes of `tools/studio/editability-audit.mjs` (~210).
-- **P3 · Studio E2E row for ungroup (2026-10-05; rewritten 2026-10-24):** TopNavigation item ops have E2E ST-23 (drag
-  swap) and ST-24 (drop to group); `ungroupItem` has only a selftest (`tools/studio/items.selftest.mjs` ~278). S.
 
 ### Components
 - **P2 · ModalForm `header={false}` has no accessible name (2026-09-30; rewritten 2026-10-24):** the title is not
