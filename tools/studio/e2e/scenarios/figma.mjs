@@ -1086,6 +1086,25 @@ async function slotDrag(page, from, to, { copy = false, shotName = null } = {}) 
   }
 }
 const middle = (box) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
+/** A layer's box once the canvas has stopped moving (two reads 100 ms apart agree): a zoom or a panel resize settles first. */
+async function settledBox(locator) {
+  let last = null;
+  for (let tries = 0; tries < 20; tries += 1) {
+    const box = await locator.boundingBox();
+    if (box && last && ["x", "y", "width", "height"].every((key) => Math.abs(box[key] - last[key]) < 0.5)) return box;
+    last = box;
+    await sleep(100);
+  }
+  return last;
+}
+/** No drag, placement or modifier left over from an earlier row: the mouse up, the modifiers up, Escape twice. */
+async function freshPointer(page) {
+  await page.mouse.up().catch(() => {});
+  for (const key of ["Alt", "Shift", "Meta", "Control"]) await page.keyboard.up(key).catch(() => {});
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+}
 /** Selects a layer as Figma's ⌘-click does (the deepest layer: one in an instance's slot, one in a row), then checks it:
  *  a press on it then drags that layer. */
 async function selectDeep(page, layer, name) {
@@ -4021,14 +4040,22 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       const { page, id } = await slotsPage(ctx);
       return restoring(page, id, async () => {
         const before = (await pageText(page, id)) ?? "";
+        // Order-independent (Giám sát 2026-10-23: it failed after other figma rows): nothing left over, the whole page in
+        // view once the Assets panel is open, the boxes read when the canvas is still.
+        await freshPointer(page);
         await openAssetLibrary(page, "Components");
         const panel = page.locator("#studio-left-panel-assets");
         await panel.getByLabel("Search components").fill("Badge");
         const tile = panel.locator('[data-asset="badge"]').first();
         await tile.waitFor({ state: "visible", timeout: 5000 });
-        const slot = await slotOf(page, id, 0).boundingBox();
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Shift+Digit1");
+        const slot = await settledBox(slotOf(page, id, 0));
         if (!slot) throw new Error("the empty instance's slot is not on the canvas (no data-zen-slot)");
-        const seen = await slotDrag(page, middle(await tile.boundingBox()), { x: slot.x + slot.width / 2, y: slot.y + slot.height - 6 }, { shotName: "fw-160-slot-target" });
+        // Into the slot below the main's Empty: the middle of the room between its last layer and the slot's bottom edge.
+        const empty = await settledBox(slotOf(page, id, 0).getByText("Empty", { exact: true }));
+        const below = empty ? (empty.y + empty.height + slot.y + slot.height) / 2 : slot.y + slot.height - 6;
+        const seen = await slotDrag(page, middle(await settledBox(tile)), { x: slot.x + slot.width / 2, y: below }, { shotName: "fw-160-slot-target" });
         if (!seen.slot || seen.tag !== "Content") throw new Error(`over the slot the overlay shows ${JSON.stringify(seen)}`);
         await written(page, id, /<Use of="panel" slots=\{\{ Content: <>\s*<Text>Empty<\/Text>\s*<Badge[^>]*>Active<\/Badge>\s*<\/> \}\} \/>/, "the slot: the main's Empty, then the Badge");
         const after = (await pageText(page, id)) ?? "";

@@ -487,6 +487,18 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(/^\d+:\d+$/.test(await copiedNode(probeCopy.html)) && (await copiedNode("<p>text</p>")) === "", "a copy names the node it was made of; other html names none");
 }
 
+// --- a phone AppShell (figma-push Pattern/AppShell/Mobile): nested paths through its frames, an edit's fill --------
+{
+  const shell = { type: "INSTANCE", name: "AppShell", set: { id: "16261:136204", name: "Pattern/AppShell/Mobile" }, props: { Device: "Phone", Top: "Band", Bottom: "Actions", "Top-Navigation": true },
+    nested: [{ path: "Band/Top-Navigation", props: { Type: "Transparent-On-Color" } }, { path: "Action-Bar/Actions", props: { Button: "Dual", Direction: "Horizontal" } }, { path: "Action-Bar/Actions/Button[1]", props: {}, text: "Book" }],
+    slots: [{ name: "Hero", within: ["Band"], children: [] }], edits: [{ layer: ["Band"], fill: "Background/Accent/Solid/Default" }, { layer: ["Band", "Hero"], visible: false }], fillW: true };
+  const { message, notes } = run([shell]);
+  check(notes.length === 0, `phone AppShell: Band › Top-Navigation found through the frame, Band painted, Hero hidden (${notes.join("; ")})`);
+  const placed = instances(message)[0];
+  const painted = overrides(placed).find((entry) => entry.fillPaints);
+  check(Boolean(painted?.fillPaints?.[0]?.colorVar), "phone AppShell: the Band's fill is an override of the instance, bound to its colour variable");
+}
+
 // --- the pack as stored: repeated subtrees once in `shared`, expanded on load ------------------------------------------
 {
   const keep = { self: { name: "Icon", size: { x: 44, y: 44 } } };

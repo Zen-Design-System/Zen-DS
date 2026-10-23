@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio → Figma: a phone AppShell is Figma's Pattern/AppShell/Mobile (2026-10-23). Its TopNavigation takes the
+  Bar type the canvas gives it (default → Alt, alt → Default, flat → Default on Surface/Flat), a band's bar
+  Transparent (on an accent band Transparent-On-Color) and the media bar Liquid-Overaly; its tabs, ActionBar, band
+  colour, hero or backdrop and the page sit in the pattern's own layers. A Screen with bars of its own still draws
+  those. A BottomNavigation's tabs now go to Figma as they show (selected, labels, dot, the Default bar's action) and
+  come back the same.
 - Zen Studio → Figma: Line, Bar (vertical and horizontal), Area, Grouped-Bar and Combo charts carry the page's own X
   labels, six Y labels (Combo's line axis too) and active Tooltip in the page's number format ("$128.4K", "€2.4K"),
   instead of Figma's sample text; their bars and lines keep Figma's sample shapes. A Line chart moves its selected period
