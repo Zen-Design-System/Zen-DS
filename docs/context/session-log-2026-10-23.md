@@ -269,3 +269,21 @@ Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows 
 - Merged main 9022cdad (after #236 merged; #237's chart-*.json contracts came in, no overlap). Gate (isolated, the map +
   the two generated maps): Studio self-tests ✓, TypeScript ✓, nested layer names 45 / 45, Studio E2E 338 / 338
   (3 shards, BL-02 Main component coverage included), Build-QA PASS. No platform page in scope, so no contact sheet.
+
+## Update from Figma in another browser (tier M; BACKLOG P3, P6b leftover; user "chia như đề xuất", via the parent session)
+
+Branch zen/feat/figma-export-baseline-20261023 from main 9fe063d2. A pull in a browser that had not exported the frame
+found no base (`figmaExports` lived in that browser's IndexedDB only): the frame did not even match its page, so it came
+in as a new page, or compared two ways.
+- `tools/studio/page-figma.mjs` (+ .d.mts, selftest): `<id>.figma.json` = `{ format: 1, exports[≤5], pull? }`,
+  `validateFigma`, `joinFigma` (exports by version, the later `at` wins; the later pull), `fitFigma` (drops the oldest
+  exports past a size).
+- `pages-folder.mjs` `readFigma` / `writeFigma` (8 MB, atomic, no links; trashed with the page, as comments);
+  `GET /pages/figma`, `POST /pages/figma-write`; `studioApi.pageFigma*`; the dev and linked-folder mirrors.
+- `pageStore.ts`: `keepFigmaExport`, `setFigmaBase` and a pulled import write the bases beside the page, joined with the
+  folder's (another browser's exports stay; 6 MB cap under the server's body limit). `loadSharedFigma(id)` joins the
+  folder's into this browser's record; `findPulledPage` reads it before giving up on the exported page, `pulledChanges`
+  before it picks the base. The two-way copy now says neither this browser nor the pages folder keeps a base.
+- E2E HO-13: export in one context, a second context (its own IndexedDB) on the same dev server imports the frame read
+  back with two designer edits → Update from Figma three ways, 2 changes ticked; Apply keeps Container / titleLines /
+  ListBox theme / aria and writes the pull back beside the page.

@@ -4,7 +4,7 @@ import fs from "node:fs";
 import { unzipFiles } from "../../zip.mjs";
 import path from "node:path";
 import { pagesDirOf, promoteDirOf } from "../lib/server.mjs";
-import { openAssetLibrary, openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { openAssetLibrary, openStudio, openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, focusScreen, newPage, pageText, selectStack } from "./builder.mjs";
 import { packageFromClip } from "../../figma-clip.mjs";
 
@@ -644,6 +644,67 @@ export const rows = [
       if (Object.values(landed).some((value) => !value)) throw new Error(`after Apply: ${JSON.stringify(landed)}`);
       await page.screenshot({ path: ".qa/studio-e2e/handoff-HO-11.png" }).catch(() => undefined);
       return `export ${pkg.page.version} kept; the read back: Update from Figma on ${id}, 2 changes applied; Container, titleLines, ListBox theme, aria kept`;
+    },
+  },
+  {
+    id: "HO-13", feature: "Round trip by key from another browser (figma P6b leftover): Export › Figma also keeps the export beside the page in the pages folder (<id>.figma.json); a second browser on the same dev server (its own IndexedDB, no export of its own) imports the frame read back after the designer's two edits and gets Update from Figma three ways on that page — just those two changes, ticked — and Apply keeps what Figma cannot hold and writes its pull back beside the page", wp: "figma round trip P6b leftover 2026-10-23",
+    timeout: 90000,
+    async run(ctx) {
+      const { pageFromFigma, repoMapping } = await import("../../figma-pull.mjs");
+      const { printPage } = await import("../../doc.mjs");
+      const fixture = JSON.parse(fs.readFileSync(new URL("../../fixtures/figma-pushed.json", import.meta.url), "utf8"));
+      const { page } = await ctx.studio();
+      const id = await importHtmlPage(page, fixture.page, "screen:screen-1");
+      const panel = await openExport(page);
+      await panel.getByRole("button", { name: "Figma", exact: true }).click();
+      await until(async () => /zen-studio-figma/.test(await panel.innerText()), { timeout: 10_000, message: "the Figma JSON in the panel" });
+      const downloading = page.waitForEvent("download");
+      await panel.getByRole("button", { name: `Download ${id}.figma.json` }).click();
+      const pkg = JSON.parse(fs.readFileSync(await (await downloading).path(), "utf8"));
+      await page.keyboard.press("Escape");
+      // The export beside the page in the dev server's pages folder: what the other browser reads.
+      const beside = path.join(ctx.root, pagesDirOf(ctx.server.port), `${id}.figma.json`);
+      const shared = () => (fs.existsSync(beside) ? JSON.parse(fs.readFileSync(beside, "utf8")) : null);
+      await until(() => shared()?.exports?.[0]?.version === pkg.page.version, { timeout: 10_000, message: `${id}.figma.json with export ${pkg.page.version}` });
+      // In Figma, as in HO-11: the frame placed by the plugin, the first list row and the heading renamed, then read back.
+      const read = JSON.parse(JSON.stringify({ ...pkg.frame, id: `9${Date.now() % 1e6}:3`, file: "9nZv4uW2LT21yuHabMTCh1", page: pkg.page.id, version: pkg.page.version }));
+      const nodes = (node) => [node, ...(node.children ?? []).flatMap(nodes), ...(node.slots ?? []).flatMap((slot) => slot.children.flatMap(nodes))];
+      nodes(read).find((node) => node.texts?.Title === "Loyalty app").texts.Title = "Loyalty app v2";
+      nodes(read).find((node) => node.type === "TEXT" && node.characters === "Projects").characters = "Your projects";
+      const pulled = printPage(pageFromFigma(read, { mapping: await repoMapping() }).doc, { ids: true });
+      // Another browser: a fresh context (its own IndexedDB) on the same dev server; the page comes from the folder.
+      const other = await openStudio(ctx.browser, { url: ctx.server.url, page: ctx.host });
+      try {
+        const tab = other.page;
+        await showLeftTab(tab, "pages");
+        await openStudioSpace(tab);
+        await until(async () => /Loyalty app/.test((await pageText(tab, id)) ?? ""), { timeout: 20_000, message: `${id} synced from the folder` });
+        const kept = await tab.evaluate(async (pageId) => (await (await import("/src/platform/studio/builder/store/pageStore.ts")).getPage(pageId))?.figmaExports?.length ?? 0, id);
+        if (kept) throw new Error(`the other browser already holds ${kept} export(s) before the pull`);
+        await tab.locator('[data-e2e="import-pages"]').setInputFiles({ name: `${id}-from-figma.zen.tsx`, mimeType: "text/plain", buffer: Buffer.from(pulled, "utf8") });
+        const dialog = tab.getByRole("dialog", { name: "Update from Figma" });
+        await dialog.waitFor({ state: "visible", timeout: 15000 });
+        await until(async () => (await dialog.locator("[data-change]").count()) === 2, { timeout: 15000, message: "two changes listed" })
+          .catch(async (error) => { throw new Error(`${error.message} (${(await dialog.innerText()).replace(/\s+/g, " ").slice(0, 400)})`); });
+        const said = (await dialog.innerText()).replace(/\s+/g, " ");
+        if (!/What changed in Figma since/.test(said)) throw new Error(`not three ways: ${said.slice(0, 300)}`);
+        await sleep(300);
+        await tab.screenshot({ path: ".qa/studio-e2e/handoff-HO-13-dialog.png" }).catch(() => undefined);
+        await dialog.getByRole("button", { name: "Apply 2 changes" }).click();
+        await dialog.waitFor({ state: "hidden", timeout: 15000 });
+        await until(async () => /Your projects/.test((await pageText(tab, id)) ?? ""), { timeout: 15000, message: "the update written" });
+        const text = (await pageText(tab, id)) ?? "";
+        const landed = {
+          title: /title="Loyalty app v2"/.test(text), heading: />Your projects<\/Heading>/.test(text), container: /<Container>/.test(text),
+          titleLines: (text.match(/titleLines=\{2\}/g) ?? []).length === 2, theme: /<ListBox theme="shadow">/.test(text), aria: /aria-labelledby="chi-projects"/.test(text),
+          onePage: !(await tab.evaluate(async (pageId) => (await import("/src/platform/studio/builder/store/pageStore.ts")).getPage(`${pageId}-from-figma`), id)),
+        };
+        if (Object.values(landed).some((value) => !value)) throw new Error(`after Apply: ${JSON.stringify(landed)}`);
+        await until(() => shared()?.pull?.version === pkg.page.version, { timeout: 10_000, message: "the pull written back beside the page" });
+      } finally {
+        await other.context.close();
+      }
+      return `export ${pkg.page.version} beside the page; another browser (no export of its own): Update from Figma three ways, 2 changes applied, Container / titleLines / ListBox theme / aria kept, its pull written back`;
     },
   },
   {

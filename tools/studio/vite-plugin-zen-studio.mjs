@@ -63,7 +63,7 @@ const HARNESS_TIMEOUT = 60_000;
 /** The drafts of each dev server persist here (relative to the root), as drafts-<port>.json. */
 const DRAFTS_DIR = "node_modules/.cache/zen-studio";
 const STATUS = { forbidden: 403, "not-found": 404, stale: 409, invalid: 400, confirm: 409 };
-const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/css-edit", "/drafts", "/frame-drafts", "/save", "/discard", "/parity", "/parity-keep", "/parity-revert", "/binding-diff", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/comments", "/pages/comments-write", "/pages/asset-trash", "/promote"]);
+const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/css-edit", "/drafts", "/frame-drafts", "/save", "/discard", "/parity", "/parity-keep", "/parity-revert", "/binding-diff", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/comments", "/pages/comments-write", "/pages/figma", "/pages/figma-write", "/pages/asset-trash", "/promote"]);
 /** Studio projects (2026-10-17, projects-folder.mjs): their own set, so the routes above merge cleanly. */
 const PROJECT_ROUTES = new Set(["/projects", "/projects/write", "/projects/trash"]);
 /** A frame request names at most this many frames and locs (a page renders a few thousand elements). */
@@ -373,6 +373,19 @@ export function zenStudio() {
         checkWriteHeaders(req);
         const body = await readJson(req);
         const result = await exclusive(() => pagesCall(() => pages().writeComments(body.id, body.comments)));
+        return send(res, 200, { ok: true, ...result });
+      }
+      // A page's Figma bases beside it (page-figma.mjs, P6b): its exports and last pull, so Update from Figma in another
+      // browser compares three ways. Written by whoever exports or pulls (the same headers as a page write).
+      if (route === "GET /pages/figma") {
+        checkToken(req);
+        const id = url.searchParams.get("id");
+        return send(res, 200, { ok: true, id, figma: await pagesCall(() => pages().readFigma(id)) });
+      }
+      if (route === "POST /pages/figma-write") {
+        checkWriteHeaders(req);
+        const body = await readJson(req);
+        const result = await exclusive(() => pagesCall(() => pages().writeFigma(body.id, body.figma)));
         return send(res, 200, { ok: true, ...result });
       }
       if (route === "POST /pages/write" || route === "POST /pages/trash") {

@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { headerFigma, headerLayoutGuides, withHeaderCanvas, headerProject, headerTitle, withHeaderGuides, withHeaderLayoutGuides, withHeaderOs, withHeaderProject, keepsRevision, MAX_REVISIONS, planSync, PAGE_ID, slugOf, textHash, trashExpired, withHeaderTitle, withScreenTitles, type CanvasBackground, type LayoutGuide, type PageGuide, type RevisionReason } from "./pageModel";
 import type { PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
+import { fitFigma, joinFigma, validateFigma, type PageFigma } from "../../../../../tools/studio/page-figma.mjs";
 
 /*
  * Builder pages kept in the browser (Studio builder GĐ2; spec docs/research/studio-builder-pages-spec-2026-10-06.md §3
@@ -36,13 +37,14 @@ export type PageRecord = {
   doc?: PageDoc;
   /**
    * A page pulled from Figma (tools/studio/figma-pull.mjs, its header names the frame): the document the last pull made,
-   * the base a new pull of that frame is compared with (figma-diff.mjs). Kept in this browser only, across edits.
+   * the base a new pull of that frame is compared with (figma-diff.mjs). Kept across edits, here and beside the page in a
+   * connected folder (`<id>.figma.json`, tools/studio/page-figma.mjs), so another browser there compares three ways too.
    */
   figma?: FigmaBase;
   /**
    * Its latest exports to Figma (Export › Figma, newest first, five at most): each the pull of the frame it places (the
    * base) and the page it came from. A pull of a frame the Zen plugin placed names its page and export (figma-pull.mjs),
-   * and Update from Figma compares with that export.
+   * and Update from Figma compares with that export. Kept here and in the connected folder, as `figma`.
    */
   figmaExports?: Array<FigmaBase & { version: string; at: number }>;
 };
@@ -50,7 +52,7 @@ export type PageRecord = {
  * What a Figma frame is compared with: `base`, the pull of the frame as it was; `synced`, the page as it stood then (a
  * pushed page holds what Figma cannot, figma-diff.mjs); `version`, the export the frame came from.
  */
-export type FigmaBase = { base: PageDoc; synced?: PageDoc; version?: string };
+export type FigmaBase = { base: PageDoc; synced?: PageDoc; version?: string; at?: number };
 export type PageMeta = Omit<PageRecord, "text" | "sync" | "doc" | "figma" | "figmaExports">;
 export type Revision = { key: number; page: string; text: string; at: number; reason: RevisionReason };
 
@@ -75,6 +77,10 @@ export interface PageMirror {
   readComments?(id: string): Promise<unknown | null>;
   /** Writes a page's comments beside it. */
   writeComments?(id: string, comments: unknown): Promise<void>;
+  /** A page's Figma bases beside it (`<id>.figma.json`, tools/studio/page-figma.mjs); null when it has none. */
+  readFigma?(id: string): Promise<unknown | null>;
+  /** Writes a page's Figma bases beside it. */
+  writeFigma?(id: string, figma: unknown): Promise<void>;
 }
 
 /** Where the pages are kept, for the Pages panel. */
@@ -256,6 +262,7 @@ export async function putPage(id: string, text: string, { title, reason = "edit"
   await writeRecord(record);
   channel?.postMessage({ id });
   pushToMirror(id);
+  if (figma) void shareFigma(record);
   return record;
 }
 
@@ -353,16 +360,20 @@ export async function importPage(text: string, wantedId: string | null, { doc, f
 
 /**
  * The live page pulled from this Figma frame (its header's `figma`), or null. A frame the Zen plugin placed from a page
- * here names that page and its export (`page`, `version`): that page, when this browser exported it.
+ * here names that page and its export (`page`, `version`): that page, when this browser or its connected folder keeps
+ * that export (another browser on the same dev server exported it).
  */
 export async function findPulledPage(source: { file: string | null; node: string; page?: string; version?: string }): Promise<string | null> {
   await loadAll();
   const pushed = source.page ? cache.get(source.page) : undefined;
   if (pushed && isLive(pushed)) {
-    const exported = source.version
-      ? pushed.figma?.version === source.version || Boolean(pushed.figmaExports?.some((entry) => entry.version === source.version))
-      : Boolean(pushed.figmaExports?.length);
-    if (exported) return pushed.id;
+    const exported = (record: PageRecord) => source.version
+      ? record.figma?.version === source.version || Boolean(record.figmaExports?.some((entry) => entry.version === source.version))
+      : Boolean(record.figmaExports?.length);
+    if (exported(pushed)) return pushed.id;
+    // Exported from another browser on this dev server or folder: its bases are beside the page.
+    const joined = await loadSharedFigma(pushed.id);
+    if (joined && exported(joined)) return pushed.id;
   }
   for (const record of cache.values()) {
     if (!isLive(record)) continue;
@@ -376,9 +387,10 @@ export async function findPulledPage(source: { file: string | null; node: string
 export async function setFigmaBase(id: string, base: PageDoc, { synced, version }: { synced?: PageDoc; version?: string } = {}): Promise<void> {
   const record = cache.get(id) ?? (await readRecord(id));
   if (!record) return;
-  const next: PageRecord = { ...record, figma: { base, ...(synced ? { synced } : {}), ...(version ? { version } : {}) } };
+  const next: PageRecord = { ...record, figma: { base, ...(synced ? { synced } : {}), ...(version ? { version } : {}), at: Date.now() } };
   cache.set(id, next);
   await writeRecord(next);
+  await shareFigma(next);
 }
 
 /** Keeps an export to Figma (its version, the pull of its frame, the page it came from): the five latest, newest first. */
@@ -389,6 +401,65 @@ export async function keepFigmaExport(id: string, entry: { version: string; base
   const next: PageRecord = { ...record, figmaExports: [{ ...entry, at: Date.now() }, ...others].slice(0, 5) };
   cache.set(id, next);
   await writeRecord(next);
+  await shareFigma(next);
+}
+
+/*
+ * A page's Figma bases beside it in the connected folder (figma round trip P6b, leftover 2026-10-23): what one browser
+ * exported or pulled, another on the same dev server or folder reads before it compares a pull, so Update from Figma
+ * lists only what the designer changed there too.
+ */
+
+/** The folder file's limit, kept under the dev server's 8 MB (pages-folder.mjs MAX_FIGMA, its request body). */
+const MAX_SHARED_FIGMA = 6 * 1024 * 1024;
+
+/** The page's Figma bases as the folder keeps them (tools/studio/page-figma.mjs). */
+const figmaFileOf = (record: PageRecord): PageFigma => ({
+  format: 1,
+  exports: (record.figmaExports ?? []).map(({ version, at, base, synced }) => ({ version, at, base, synced: synced ?? base })),
+  ...(record.figma ? { pull: { ...record.figma, at: record.figma.at ?? record.updatedAt } } : {}),
+});
+
+/** The folder's Figma bases for the page when it keeps valid ones; null otherwise. */
+async function readSharedFigma(id: string): Promise<PageFigma | null> {
+  const source = mirror;
+  if (!source?.readFigma) return null;
+  try {
+    const shared = await source.readFigma(id);
+    return shared && !validateFigma(shared).length ? (shared as PageFigma) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Writes the page's Figma bases beside it, joined with what the folder holds (another browser's exports stay). */
+async function shareFigma(record: PageRecord): Promise<void> {
+  const target = mirror;
+  if (!target?.writeFigma || (!record.figmaExports?.length && !record.figma)) return;
+  try {
+    const joined = joinFigma(await readSharedFigma(record.id), figmaFileOf(record));
+    await target.writeFigma(record.id, fitFigma(joined, MAX_SHARED_FIGMA));
+  } catch {
+    // The folder keeps the bases it had; this browser still has its own.
+  }
+}
+
+/**
+ * Joins the folder's Figma bases for the page into this browser's copy: an export or a pull made in another browser
+ * becomes a base here (by its version; the later pull wins). Returns the record after, or null without the page.
+ */
+export async function loadSharedFigma(id: string): Promise<PageRecord | null> {
+  const shared = await readSharedFigma(id);
+  const record = cache.get(id) ?? (await readRecord(id));
+  if (!record || !shared) return record ?? null;
+  const joined = joinFigma(figmaFileOf(record), shared);
+  const next: PageRecord = { ...record };
+  if (joined.exports.length) next.figmaExports = joined.exports; else delete next.figmaExports;
+  if (joined.pull) next.figma = joined.pull;
+  if (JSON.stringify([next.figmaExports, next.figma]) === JSON.stringify([record.figmaExports, record.figma])) return record;
+  cache.set(id, next);
+  await writeRecord(next);
+  return next;
 }
 
 /** Moves a page to the Trash (and the mirror's copy to the folder's trash). */
