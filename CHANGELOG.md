@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Figma contracts: the 14 chart sets and Chart/Chart-Card are captured (`docs/figma-contracts/chart-*.json`), and seven
+  older contracts are re-read from the live file (Avatar/Single and Badge / Badge-Counter now list Sky, Mint, Bronze and
+  Golden, which the code already has) (2026-10-23).
 - Charts take `palette="primary" | "secondary"`, Figma's Color on Bar, Stack-Bar, Area, Grouped-Bar, Combo, Donut,
   Radial, Gauge, Funnel and Bullet: `secondary` leads with Chart/Sector/Secondary (Neutral Deep) and keeps
   Sector/Primary for the highlight (the active bar, the target, the second series; one area takes the Neutral fade).
