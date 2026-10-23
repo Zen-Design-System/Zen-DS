@@ -21,6 +21,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   open Studio tab at once; it waited for the 10 s poll, a focus or a tab switch (2026-10-24).
 - Zen Studio: resizing a row a `.map` draws previews every row it draws, as its pill's "all N" says; only the pressed row
   moved before (2026-10-24).
+- Zen Studio: an element held in a `const` and shown on a condition (`{view === "list" ? listView : boardView}`, or
+  also in a prop) moves up, down and by dragging, with its condition, as one written in place does; it said "edit it in
+  the code" (user, 2026-10-24). A const shown twice in one element still asks for the code.
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in

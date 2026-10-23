@@ -359,6 +359,22 @@ export const rows = [
     },
   },
   {
+    id: "ST-29", feature: "A const shown on a condition among children and in a prop (`{view === \"list\" ? note : null}`, `trailing={note}`): Send backward moves its `{…}`; the const and the prop stay", wp: "BACKLOG 2026-10-24",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "const-note", { frame: 8 });
+      const rect = await rectOf(page, ctx.file, await at(ctx, "const-note"));
+      await page.mouse.click(rect.x + rect.width / 2, rect.y + rect.height / 2, { button: "right" });
+      await page.getByRole("menuitem", { name: /^Send backward/ }).click();
+      await until(async () => {
+        const text = await ctx.text();
+        return text.indexOf('{view === "list" ? note : null}') >= 0 && text.indexOf('{view === "list" ? note : null}') < text.indexOf('data-e2e="const-after"');
+      }, { message: "the {view === \"list\" ? note : null} before the Text in the source" });
+      const text = await ctx.text();
+      if (countOf(text, "const-note") !== 1 || !text.includes("trailing={note}")) throw new Error("the const or its prop changed");
+      return "its {…} moved before the Text; const note and trailing={note} unchanged";
+    },
+  },
+  {
     id: "ST-26", feature: "Toolbar › Text (T): point beside a layer in a Stack, click: a Text lands there, selected; Move again", wp: "toolbar 2026-10-09",
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-a");
