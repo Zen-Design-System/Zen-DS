@@ -281,4 +281,5 @@ Branch zen/feat/box-theme-rules-20261023 (worktree festive-archimedes-176df5). #
   behaviour 0, browser tests 81/81, Studio E2E 338/0, Build-QA PASS. Contact sheets: the Canvas/Alt Sidebars sit white
   on white with their divider, the G1 KPI cards are flat beside the charts, the Q3 badge reads Inverse. At 1512 the two
   new ListBox examples shrank (.pe-shell is a 480-tall row for app windows): their page is now a column of its content's
-  height (list-item.css), re-shot after the slot came back.
+  height (list-item.css), re-shot after the slot came back: `qa --only=list-item --isolated` PASS (audit, dark,
+  behaviour 0); at 1512 the three Pale groups fill their columns and the flat page hugs its list, 390 unchanged.
