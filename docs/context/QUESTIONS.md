@@ -172,7 +172,14 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
     `chart-phase2-spec-2026-10-14.md` §4). (c) Bar, Donut, Radial, Heatmap and Multi-Line draw their own
     Surface/Default card, so they cannot take Card Theme / Color like the card-less new charts: align them? (d) Beside a
     taller LineChart card (Grid stretch) BarList's 5 rows sit ~72px apart: hug at the top, or fill as now?
-    (`docs/research/studio-vibe-agent-2026-10-18.md` §7)
+    (`docs/research/studio-vibe-agent-2026-10-18.md` §7) (e) From the chart contract suites (2026-10-23, the
+    `figmaExceptions` of `tools/figma-contract/suites/chart-*.mjs`): Radial Large's centre figure is Display/4 where
+    Donut Large keeps Heading/4 (code: Heading/4 for both, Display/4 at XLarge only) — which one? Figma slips to fix:
+    Bullet Rows SPACE_BETWEEN in a set fixed 16px short (goals 8px apart, Gap/Medium bound); Gauge frame fixed 2px
+    taller than its content; Grouped-Bar and Combo 6-Sectors size bars from the whole column (the other Sectors from the
+    column inside its 2px padding); Heatmap rows 21.6px under 24px cells; Radial XLarge keeps Medium's fixed 84px
+    caption; Stack-Bar's fourth segment (the Value-Sector instance) alone carries Effect/Overlay; Multi-Line shows two
+    active periods (the selected sector and the Compare layer's Active frame on the last one).
   - **AI UI, Figma first (P2, merged from six entries of 2026-10-14/15; `docs/ai-ui/README.md`):** (1) a tentative look
     for a guessed form (ShapeShift: the form faded, empty slots as dashed "+ Add date" chips); Zen has no tentative state
     or token (Chip `state="placeholder"` only recolours the label). (2) The recognised span underlined in the prompt
