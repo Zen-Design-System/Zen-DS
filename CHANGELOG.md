@@ -22,6 +22,36 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   inside itself, so the chat, AI chat and AI UI composers dock without example CSS. Zen Studio sets it in Prototype ›
   Scroll behavior (in place on the canvas, stuck in Play and Present); Figma push and pull map bottom to Fixed and top
   to Sticky. `surface="canvas"` paints the AppShell's canvas inside a shell (2026-10-23).
+- Zen Studio's Properties panel shows a chart's Figma properties in Figma's order and names: Orientation, Type, Color,
+  Show Legend, Show Average, Legend, Total, Size and the Donut's Total Label / Value (the header rows stay ChartCard's),
+  and the Main component frame draws the chart sets' variants; `component-properties.json` has the ❖ Chart page
+  (15 sets, read 2026-10-23) (2026-10-23).
+- Figma contracts: the 14 chart sets and Chart/Chart-Card are captured (`docs/figma-contracts/chart-*.json`), and seven
+  older contracts are re-read from the live file (Avatar/Single and Badge / Badge-Counter now list Sky, Mint, Bronze and
+  Golden, which the code already has) (2026-10-23).
+- Charts take `palette="primary" | "secondary"`, Figma's Color on Bar, Stack-Bar, Area, Grouped-Bar, Combo, Donut,
+  Radial, Gauge, Funnel and Bullet: `secondary` leads with Chart/Sector/Secondary (Neutral Deep) and keeps
+  Sector/Primary for the highlight (the active bar, the target, the second series; one area takes the Neutral fade).
+  Zen Studio pushes and pulls it as Color; the harness warns (`chart/palette-by-hand`) when the two sector colours are
+  set by hand (2026-10-23).
+- ChatComposer: the default quick action (👍 "Send a like", when an app passes no `quickAction`) sends "👍" through
+  `onSend`; it was a button that did nothing (2026-10-23).
+- AppShell: on a phone the Bar's TopNavigation takes the canvas's twin, as Figma pairs them: Alt on the default canvas
+  (as before), Default on `canvas="alt"` (it was Alt, a grey bar on a white page), and Default repainted Surface/Flat on
+  `canvas="flat"` (2026-10-23).
+- **Docs platform and the HR Tasks template:** every task's and project's status is a BadgeStatus (its ring and
+  colour come from the step; the label stays the data's word): To do / In progress / In review / Done, and projects'
+  Planning → to do, Active → in progress with the project's real progress, On hold → blocked, Completed → done
+  (`taskStep`, `projectStep`, `projectProgress` in the examples data). Leave and expense statuses stay Badges
+  (2026-10-23).
+- BadgeStatus in running text (a DescriptionList value, a sentence) sits on a Badge's baseline, so its line is as tall
+  as a Badge's (28px Medium, it was 29) (2026-10-23).
+- Usage harness: `app-shell/pattern-parts` reads only the shell's own props, so a part's content (a header's
+  `BadgeStatus progress`) no longer counts as the shell's `progress` (2026-10-23).
+- Card: the content area is Figma's Content-Slot, a column that fills the card. A card a grid row stretches (or one
+  with a Fill height) gives its content that height, and a child with `height="fill"` grows into it, so a CTA or
+  footer sits at the foot without a class; a ListBox body does the same. Hug cards keep their content height
+  (2026-10-23).
 - Zen Studio: ⇧⌘G with several layers selected ungroups every selected group or frame, as Figma's (one ⌘Z takes it
   back); their layers and the other selected layers stay selected, and the canvas menu offers Ungroup on several layers
   (2026-10-23).
@@ -32,6 +62,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   current Spark-Bar, the active bar, a Bullet or Gauge target, the Funnel's last stage, the Combo line) in black at 49%
   (Content/Neutral/Light; Inverse/Light in dark mode), as Figma's Color Chart Sector/On-Color/Secondary does, not 69%.
   The user kept that style's binding and the Tertiary one (Border/Neutral/Subtle/Pressed) (2026-10-23).
+- Zen Studio: a photo dropped on one row's avatar changes that row's picture on example pages too when a helper
+  function draws it (the sidebar's `personAvatar(people[t.assignee])` in rows `taskRow(t)` builds): it lands in that
+  person's data (`people.alex.photo` in examples/data.ts), an initials avatar gets its first photo, one ⌘Z. A photo
+  dropped on one face of an AvatarStack, one reader of a ChatMessage's `seenBy` or another item of a list prop writes
+  that item's picture, where the list is written or read. Where the code, not the row, picks the data (either side of
+  a condition) the drop says so and writes nothing (2026-10-23).
 - **Docs platform:** the Shape page has three more examples: a seat map whose marks carry labels (picked with Segmented
   buttons, taken seats drawn as outlines), the arc's and star's limits (Sweep 0 %, a hairline ring, thin and zero-ratio
   stars) and onboarding art on a phone (2026-10-23).

@@ -17,6 +17,7 @@ import {
   AvatarStack,
   Badge,
   BadgeCounter,
+  BadgeStatus,
   BottomSheet,
   Box,
   Button,
@@ -76,6 +77,7 @@ import {
   taskStatuses,
   taskStatusProgress,
   taskStatusTheme,
+  taskStep,
   tasks as seedTasks,
   toDate,
   toIsoDay,
@@ -128,7 +130,8 @@ const toggle = (list: string[], value: string) => (list.includes(value) ? list.f
 const StatusMark = ({ status }: { status: TaskStatus }) => (
   <ProgressCircle value={taskStatusProgress[status]} theme={taskStatusTheme[status] as "neutral" | "blue" | "yellow" | "green"} aria-label={status} />
 );
-const StatusBadge = ({ status }: { status: TaskStatus }) => <Badge theme={taskStatusTheme[status]} background="subtle">{status}</Badge>;
+/** The step as a BadgeStatus: its ring fills as the task moves on; the label is the status word. */
+const StatusBadge = ({ status }: { status: TaskStatus }) => <BadgeStatus status={taskStep[status]}>{status}</BadgeStatus>;
 /** The priority flag in the priority's colour; `named` gives it a name when no label follows it. */
 const PriorityFlag = ({ priority, size = "base", named = false }: { priority: TaskPriority; size?: "sm" | "base"; named?: boolean }) => (
   <Icon name={taskPriorityMeta[priority].icon} size={size} tone={taskPriorityMeta[priority].tone} title={named ? `${priority} priority` : undefined} decorative={!named} />

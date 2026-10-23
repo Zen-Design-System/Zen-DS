@@ -184,3 +184,17 @@ export const Combo: Story = {
     </ChartCard>
   ),
 };
+
+/** Figma Color=Secondary: Color Chart Sector/Secondary leads and Sector/Primary is the highlight (the active bar, the
+ *  target tick, the second slice). */
+export const PaletteSecondary: Story = {
+  render: () => (
+    <div style={{ display: "grid", gap: 24 }}>
+      <BarChart palette="secondary" aria-label="Revenue per month, Apr – Sep 2026" format={money}
+        data={months6.map((label, i) => ({ label, value: [82300, 91800, 88400, 94100, 97000, 105700][i] }))} />
+      <GaugeChart palette="secondary" aria-label="Billable share of logged hours, September 2026" value={82} target={85} actualLabel="Billable" />
+      <DonutChart palette="secondary" aria-label="Revenue by client, Q3 2026"
+        data={[{ id: "lumen", label: "Lumen Bank", value: 30 }, { id: "phin", label: "Phin & Co", value: 23 }, { id: "mekong", label: "Mekong Freight", value: 18 }]} />
+    </div>
+  ),
+};

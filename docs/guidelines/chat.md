@@ -80,7 +80,7 @@ Figma Chat-Control (6182:56819): Surface bar, padding 8, gap 8. Actions are flat
 | `label` | `string` | — | Accessible name of the field (the placeholder is not a label); the locale's "Message" by default. |
 | `onEmoji` | `() => void` | — | The emoji button inside the field. |
 | `actions` | `{ icon: IconName \| ReactElement; label: string; onClick?: () => void }[]` | — | Figma Leading-Actions (plus · mic · photo; only plus while typing): Nav-Action/Icon-Flat 44px on mobile, Button/Icon-Flat Medium 40px on desktop. `icon`: an icon name or an element. |
-| `quickAction` | `{ icon: IconName \| ReactElement; label: string; onClick?: () => void }` | — | Figma Trailing-Actions when the field is empty (a 👍 "Send a like" by default). While typing it becomes Send. `icon`: an icon name or an element. |
+| `quickAction` | `{ icon: IconName \| ReactElement; label: string; onClick?: () => void }` | — | Figma Trailing-Actions when the field is empty: by default a 👍 "Send a like" that sends "👍" through `onSend`. While typing it becomes Send. `icon`: an icon name or an element. |
 | `device` | `"mobile" \| "desktop"` | `"mobile"` |  |
 | `disabled` | `boolean` | `false` |  |
 | `replyTo` | `ChatReplyTarget` | — | Replying to a message: a "Replying to …" bar above the field (× or Escape cancels). Attach it to what you send. Setting it (or switching to another message) moves focus into the field, so Reply leaves the caret ready to type; a composer that mounts with a reply already set does not take focus. |

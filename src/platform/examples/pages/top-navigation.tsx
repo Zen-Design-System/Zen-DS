@@ -2,6 +2,7 @@ import { useId, useRef, useState } from "react";
 import { ActionBar } from "../../../components/ActionBar";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomSheet, type BottomSheetItem } from "../../../components/BottomSheet";
 import { ChatAvatarGroup, ChatCall, ChatComposer, ChatMessage, ChatThread, type ChatPerson, type ChatReplyTarget } from "../../../components/Chat";
 import { DescriptionList } from "../../../components/DescriptionList";
@@ -22,7 +23,7 @@ import { PlatformPhoneMedia, platformMedia, type PlatformPhoto } from "../../Pla
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import {
   TODAY, daysFromToday, formatDate, formatDay, formatDue, formatRelative, formatTime, initials, leaveRequests, me, people, peopleList,
-  projectById, projectStatusTheme, projects, tasks,
+  projectById, projectProgress, projectStep, projects, tasks,
   type Person, type PersonId, type Project, type ProjectStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
@@ -86,7 +87,7 @@ function RootAndDetailExample() {
               <ListItem key={item.id} data-project={item.id} title={item.name} caption={item.client}
                 leading={<DockIcon icon={item.icon} theme={item.theme} background="subtle" size="md" />}
                 // Small status: a phone row is a narrow space, and the project name must not truncate beside it.
-                trailing={<Badge theme={projectStatusTheme[item.status]} background="subtle" size="sm">{item.status}</Badge>}
+                trailing={<BadgeStatus status={projectStep[item.status]} size="sm" progress={projectProgress(item)}>{item.status}</BadgeStatus>}
                 onClick={() => screen.go('.zen-top-nav__action[aria-label="Back"]', () => setOpenId(item.id))} />
             ))}
           </List>
@@ -112,7 +113,7 @@ function RootAndDetailExample() {
         <Box paddingX="lg">
           <DescriptionList items={[
             { term: "Client", description: opened.client },
-            { term: "Status", description: <Badge theme={projectStatusTheme[opened.status]} background="subtle">{opened.status}</Badge> },
+            { term: "Status", description: <BadgeStatus status={projectStep[opened.status]} progress={projectProgress(opened)}>{opened.status}</BadgeStatus> },
             { term: "Lead", description: people[opened.lead].name },
             { term: opened.status === "Completed" ? "Handed over" : "Due", description: formatDate(opened.due) },
             { term: "Progress", description: `${opened.progress}%` },

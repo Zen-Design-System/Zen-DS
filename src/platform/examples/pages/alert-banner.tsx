@@ -9,6 +9,7 @@ import { AlertBanner, type AlertBannerTheme } from "../../../components/AlertBan
 import { AppShell, AppShellAccount, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomNavigation } from "../../../components/BottomNavigation";
 import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button } from "../../../components/Button";
@@ -30,7 +31,7 @@ import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { PlatformPhone } from "../../PlatformPhone";
 import {
   TODAY, activity, daysFromToday, formatDate, formatDay, formatDue, formatMoney, formatRange, formatRelative, formatTime, initials, me, people,
-  plans, projectById, projectStatusTheme, projects, studio, taskStatusTheme, tasks, workspacePlan, type Person, type PersonId, type Project,
+  plans, projectById, projectProgress, projectStep, projects, studio, taskStep, tasks, workspacePlan, type Person, type PersonId, type Project,
   type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
@@ -44,8 +45,8 @@ export const page: PlatformPage = "alert-banner";
 const avatarOf = (person: Person) => person.photo
   ? { theme: "photo" as const, src: person.photo, alt: "" }
   : { theme: person.theme, background: "subtle" as const, children: initials(person.name) };
-const statusBadge = (status: TaskStatus) => <Badge theme={taskStatusTheme[status]} background="subtle">{status}</Badge>;
-const projectBadge = (p: Project) => <Badge theme={projectStatusTheme[p.status]} background="subtle">{p.status}</Badge>;
+const statusBadge = (status: TaskStatus) => <BadgeStatus status={taskStep[status]}>{status}</BadgeStatus>;
+const projectBadge = (p: Project) => <BadgeStatus status={projectStep[p.status]} progress={projectProgress(p)}>{p.status}</BadgeStatus>;
 
 // ——— The studio’s shell (examples 1–3) ————————————————————————————————————————————————————————————————————
 type StudioPageId = "home" | "projects" | "team" | "billing" | "settings";

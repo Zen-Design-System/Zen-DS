@@ -176,7 +176,11 @@
 .zen-card[data-interactive="true"]:is([data-tone="border"], [data-tone="flat-border"]):not([data-active="true"]):hover { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-hover, rgb(1 1 1 / 16%)); }
 .zen-card[data-interactive="true"]:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
 
-.zen-card__content { display: flex; min-width: 0; flex-direction: column; }
+/* Figma Content-Slot (Card 6664:21686) is a vertical auto layout that fills the card: it takes the height a grid row
+   or a Fill height gives the card, and a child with height="fill" grows into it (a CTA pinned to the foot). In a Hug
+   card it keeps its content height. */
+.zen-card__content { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
+.zen-card__content > [data-h="fill"]:not([data-position="absolute"]) { flex: 1 1 auto; height: auto; }
 /* Sub-Action: a 20px anchor at the padding corner holding the 32px Small icon button, so it overhangs 6px. */
 .zen-card__sub-action { position: absolute; top: var(--zen-card-padding); right: var(--zen-card-padding); display: flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; }
 /* Figma Card (6664:21686): the Sub-Action is an absolute layer over the top-right corner and takes no room; the Content

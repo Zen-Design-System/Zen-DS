@@ -103,7 +103,7 @@
           "type": "\"bar\" | \"band\" | \"band-sheet\" | \"media\"",
           "required": false,
           "default": "\"bar\"",
-          "description": "Figma Pattern/AppShell/Mobile Top, the mobile structure (under 1024px: phones and iPad portrait):\n- `bar` (default): the TopNavigation on Surface/Alt over the page.\n- `band`: a Support/Brand/Subtle band with the TopNavigation (transparent) and the `hero`, then the page.\n- `band-sheet`: the band fills the screen and the page rises over it as a sheet with 3XLarge top corners.\n- `media`: a `backdrop` (photo, video, map) behind a liquid-overlay TopNavigation, the page as a sheet over it.",
+          "description": "Figma Pattern/AppShell/Mobile Top, the mobile structure (under 1024px: phones and iPad portrait):\n- `bar` (default): the TopNavigation over the page, on the canvas's twin surface: Surface/Alt on the default canvas,\n  Surface/Default on `canvas=\"alt\"`, Surface/Flat on `canvas=\"flat\"`.\n- `band`: a Support/Brand/Subtle band with the TopNavigation (transparent) and the `hero`, then the page.\n- `band-sheet`: the band fills the screen and the page rises over it as a sheet with 3XLarge top corners.\n- `media`: a `backdrop` (photo, video, map) behind a liquid-overlay TopNavigation, the page as a sheet over it.",
           "deprecated": null
         },
         {

@@ -10,6 +10,7 @@ import { Fragment, useCallback, useEffect, useId, useRef, useState, type ReactNo
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge, BadgeCounter } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { Breadcrumbs, type BreadcrumbItemData } from "../../../components/Breadcrumbs";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
@@ -35,7 +36,7 @@ import type { PlatformPage } from "../../PlatformExamples";
 import { PreviewAppFrame, StudioLogo } from "../../PlatformFrames";
 import {
   TODAY, activity, daysFromToday, formatDate, formatDay, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, invoices, leaveRequests,
-  leaveStatusTheme, me, people, plans, projectStatusTheme, projects, studio, workspacePlan,
+  leaveStatusTheme, me, people, plans, projectStep, projects, studio, workspacePlan,
   type Invoice, type LeaveRequest, type LeaveStatus, type Person, type PersonId, type Project, type ProjectStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
@@ -376,7 +377,7 @@ const clients: Client[] = [
 ];
 const projectsOf = (client: Client) => projects.filter((project) => project.client === client.name);
 const invoicesOf = (client: Client) => invoices.filter((invoice) => invoice.client === client.name);
-const projectBadge = (status: ProjectStatus) => <Badge theme={projectStatusTheme[status]} background="subtle">{status}</Badge>;
+const projectBadge = (status: ProjectStatus) => <BadgeStatus status={projectStep[status]}>{status}</BadgeStatus>;
 
 function ClientPages() {
   // The route: [] Clients · [client] a client · [client, project] a project.
@@ -812,7 +813,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   main={
     <PageHeader
       title="Lumen Bank online banking, phase 2: transfers, savings goals and card controls"
-      meta={<Badge theme={projectStatusTheme[status]} background="subtle">{status}</Badge>}
+      meta={<BadgeStatus status={projectStep[status]}>{status}</BadgeStatus>}
       description="Lumen Bank · Oct 12, 2026 – Feb 26, 2027 · Led by Alex Duong"
       actions={<>
         <Button level="tertiary" onClick={share}>Share</Button>

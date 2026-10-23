@@ -1130,12 +1130,14 @@ export const rules = [
     summary: "Each desktop pattern draws its own parts: leadingPane on list-detail, workspace and docs; trailingPane on workspace, docs and focus; progress on focus; the Sidebar beside the page on sidebar and list-detail. A part the pattern does not draw only shows on a narrow screen.",
     check: ({ attrs, src, end }) => {
       if (inCodeSample(src, end)) return null;
-      const pattern = literal(attrs, "pattern") ?? "sidebar";
+      // The shell's own props only: a part's content (a header's BadgeStatus progress={60}) is not the shell's.
+      const own = topLevel(attrs);
+      const pattern = literal(own, "pattern") ?? "sidebar";
       const parts = [
         ["leadingPane", ["list-detail", "workspace", "docs"]],
         ["trailingPane", ["workspace", "docs", "focus"]],
         ["progress", ["focus"]],
-      ].filter(([name, patterns]) => has(attrs, name) && !patterns.includes(pattern)).map(([name]) => name);
+      ].filter(([name, patterns]) => has(own, name) && !patterns.includes(pattern)).map(([name]) => name);
       return parts.length ? `gives pattern="${pattern}" ${parts.join(" and ")}, which it does not draw on a desktop — pick the pattern that has ${parts.length > 1 ? "them" : "it"} (Figma Pattern/AppShell/Desktop Layout) or drop ${parts.length > 1 ? "them" : "it"}.` : null;
     } },
   { id: "toast/needs-title", components: ["Toast"], severity: "error", allow: "toast-title", guideline: "docs/guidelines/toast.md",
@@ -1722,6 +1724,9 @@ export const rules = [
   { id: "chart/combo-needs-labels", components: ["ComboChart"], severity: "error", allow: "combo-labels", guideline: "docs/guidelines/chart.md",
     summary: "A ComboChart names both measures (barLabel, lineLabel): its legend, Tooltip order and summary read them.",
     check: ({ attrs }) => { if (opaque(attrs)) return false; const missing = ["barLabel", "lineLabel"].filter((name) => !has(attrs, name) || literal(attrs, name)?.trim() === ""); return missing.length > 0 && `has no ${missing.join(" or ")} — name what the bars and the line measure ("Revenue", "Margin"); the legend and the summary read them.`; } },
+  { id: "chart/palette-by-hand", components: ["BarChart", "StackBarChart", "AreaChart", "GroupedBarChart", "DonutChart", "RadialChart"], severity: "warn", allow: "chart-palette", guideline: "docs/guidelines/chart.md",
+    summary: "Lead a chart with Chart/Sector/Secondary through palette=\"secondary\" (Figma Color), not by setting the sector colours by hand.",
+    check: ({ attrs }) => /--zen-chart-sector-(primary|secondary)\b|chartPalette\s*\[\s*[01]\s*\]/.test(attrs) && "sets Chart/Sector/Primary or /Secondary by hand — pass palette=\"secondary\" (Figma Color=Secondary): it swaps the two lead colours, their fades and the highlight together, and follows a project's theme." },
   { id: "uploader/no-noop-replace", components: ["FileUpload", "UploaderFileItem"], severity: "warn", allow: "noop-replace", guideline: "docs/guidelines/uploader.md",
     summary: "Never pass a no-op onReplace; omit it so Replace re-opens the file picker.",
     check: ({ attrs }) => /^\s*\(\s*[\w,\s]*\)\s*=>\s*(\{\s*\}|undefined|null|void 0)\s*$/.test(expr(attrs, "onReplace") ?? "x") && "passes a no-op onReplace — the Replace action would do nothing; omit it (Replace re-opens the picker) or replace the file." },

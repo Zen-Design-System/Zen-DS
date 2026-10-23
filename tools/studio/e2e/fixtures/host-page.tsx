@@ -6,10 +6,11 @@
 // Keep it a valid example page module: { page, examples }.
 import { useMemo, useState, type ReactNode } from "react";
 import { AlertBanner } from "../../../components/AlertBanner";
-import { Avatar } from "../../../components/Avatar";
+import { Avatar, AvatarStack } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
+import { ChatMessage } from "../../../components/Chat";
 import { Checkbox } from "../../../components/Checkbox";
 import { Chip } from "../../../components/Chip";
 import { Dialog } from "../../../components/Dialog";
@@ -270,6 +271,42 @@ function ShellFixture() {
   );
 }
 
+/**
+ * Pictures through helpers and inside list props (BACKLOG P1 2026-10-10, as the sidebar example): rows a helper builds
+ * (`pictureRow`) from tasks a filter picks, each avatar drawn by `pictureAvatar(people[t.assignee])` (Bao has a photo,
+ * Em has initials); a row whose helper call either side of a condition draws; an AvatarStack whose items a .map builds
+ * from data.ts; a ChatMessage's readers written in place.
+ */
+type PicturePerson = (typeof people)[keyof typeof people];
+const pictureAvatar = (p: PicturePerson) => p.photo
+  ? <Avatar size="sm" theme="photo" src={p.photo} alt="" />
+  : <Avatar size="sm" theme={p.theme} alt="">{p.name.slice(0, 2)}</Avatar>;
+const pictureTasks: Array<{ id: string; title: string; assignee: keyof typeof people; done: boolean }> = [
+  { id: "pt-1", title: "Kickoff", assignee: "ava", done: true },
+  { id: "pt-2", title: "Wireframes", assignee: "bao", done: false },
+  { id: "pt-3", title: "Handoff", assignee: "em", done: false },
+];
+const pictureRow = (t: (typeof pictureTasks)[number]) => ({ id: t.id, title: t.title, leading: pictureAvatar(people[t.assignee]) });
+const pictureWide = pictureTasks.length > 2;
+
+function PictureRows({ rows }: { rows: Array<{ id: string; title: string; leading: ReactNode }> }) {
+  return <List>{rows.map(({ id, ...row }) => <ListItem key={id} {...row} />)}</List>;
+}
+
+function PictureFixture() {
+  const open = pictureTasks.filter((t) => !t.done);
+  return (
+    <Stack data-e2e="pictures" gap="md" padding="lg">
+      <PictureRows data-e2e="pic-rows" rows={open.map((t) => pictureRow(t))} />
+      <List>
+        <ListItem data-e2e="pic-either" title="Either" leading={pictureWide ? pictureAvatar(people.ava) : pictureAvatar(people.bao)} />
+      </List>
+      <AvatarStack data-e2e="pic-stack" size="sm" items={[people.ava, people.bao, people.gia].map((p) => ({ src: p.photo, alt: p.name }))} />
+      <ChatMessage data-e2e="pic-chat" side="you" seenBy={[{ name: "Ava Chen", src: people.ava.photo }, { name: "Gia Pham" }]}>Seen by two</ChatMessage>
+    </Stack>
+  );
+}
+
 export const examples: ExampleDef[] = [
   { title: "E2E layout", description: "Stacks, buttons, text and a checkbox written as literals.", code: "<LayoutFixture />", render: () => <LayoutFixture /> },
   { title: "E2E data", description: "Rows from a .map over a const and over data.ts, a state-bound and a conditional prop.", code: "<DataFixture />", render: () => <DataFixture /> },
@@ -283,4 +320,5 @@ export const examples: ExampleDef[] = [
   { title: "E2E canvas", description: "A clipping scroll box, a 0 gap, two Headings, floating and flowing Boxes, a wrapped Button.", code: "<CanvasFixture />", render: () => <CanvasFixture /> },
   { title: "E2E table", description: "A Table: sorted rows, a column's cell from a field and from data.ts, a column without cell.", code: "<TableFixture />", render: () => <TableFixture /> },
   { title: "E2E shell", description: "Layers a local wrapper component lays out in its own Stack, as examples' Page does.", code: "<ShellFixture />", render: () => <ShellFixture /> },
+  { title: "E2E pictures", description: "Avatars a helper draws for rows, an AvatarStack's items from data.ts, a ChatMessage's readers.", code: "<PictureFixture />", render: () => <PictureFixture /> },
 ];

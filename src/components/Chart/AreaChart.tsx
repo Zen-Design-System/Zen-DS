@@ -2,7 +2,7 @@ import { useMemo, type CSSProperties, type Ref } from "react";
 import { TooltipSurface } from "../Tooltip";
 import { useZenLabels } from "../_shared/zen-context";
 import "./chart.css";
-import { ChartBlock, ChartFade, ChartLegend, PlotFrame, colourAt, defaultFormat, fadeAt, niceScale, signatureOf, useChartId, useChartSelection, type ChartDatum, type ChartSeries } from "./chartCore";
+import { ChartBlock, ChartFade, ChartLegend, PlotFrame, colourAt, defaultFormat, fadeAt, niceScale, signatureOf, useChartId, useChartSelection, type ChartDatum, type ChartPaletteName, type ChartSeries } from "./chartCore";
 
 export interface AreaChartProps {
   /** One period per item, a value per series id (`{ label: "Sep", values: { design: 750, … } }`). Keep 4–12 periods. */
@@ -33,6 +33,10 @@ export interface AreaChartProps {
   legendPosition?: "top" | "bottom";
   /** Wipe the areas in from the left on mount and when the data changes (default true; reduced motion fades). */
   animate?: boolean;
+  /** Figma Color: `primary` (default) walks the palette in order; `secondary` swaps the first two series' lines and fades —
+   *  a single area draws a Color Chart Sector/Secondary line over the Neutral fade, a stacked chart's bottom band takes the
+   *  Neutral pair and the next the Accent pair. A series' own `color` still wins. */
+  palette?: ChartPaletteName;
 }
 
 /** A point's place in the plot, in % of its width and height: x on the period's centre, y from the top. */
@@ -40,7 +44,7 @@ type Point = readonly [number, number];
 const pathOf = (pts: readonly Point[]) => pts.map(([x, y], i) => `${i ? "L" : "M"} ${x} ${y}`).join(" ");
 
 /**
- * Figma Chart/Area-Chart (set 15484:2663; Type=Area 15484:2552 · Type=Stacked 15484:2605): straight 2px lines (round caps)
+ * Figma Chart/Area-Chart (set 15484:2663; Type=Area 15484:2552 · Type=Stacked 15484:2605; Color=Primary · Secondary ↔ `palette`): straight 2px lines (round caps)
  * in the Color Chart Sector styles (`chartPalette`) from the first period's centre to the last, each over an area that
  * fades top → bottom from Solid to Subtle at 30% (Figma 2026-10-14: Background/Accent, then Neutral, then Support/Cyan,
  * as the line chart's area; `chartFades`) — one area, or stacked bands — on the bar charts' frame: Y labels (Label/Small/Medium,
@@ -51,7 +55,7 @@ const pathOf = (pts: readonly Point[]) => pts.map(([x, y], i) => `${i ? "L" : "M
  * the value, or the stack's total. The legend (Figma Show Legend) sits Spacing/Gap/Medium under the plot, its items
  * Spacing/Gap/Small apart. ←/→ and Home/End move between periods; hover picks one.
  */
-export function AreaChart({ data, series, type = "area", format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend, legendPosition = "bottom", animate = true, ref }: AreaChartProps) {
+export function AreaChart({ data, series, type = "area", format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend, legendPosition = "bottom", animate = true, palette = "primary", ref }: AreaChartProps) {
   const t = useZenLabels();
   const stacked = type === "stacked";
   const drawn = stacked ? series : series.slice(0, 1);
@@ -76,28 +80,28 @@ export function AreaChart({ data, series, type = "area", format = defaultFormat,
     ? `${current.label}: ${t.chartTotal(format(totals[active!]))}; ${drawn.map((s) => `${s.label} ${valueOf(s)}`).join(", ")}${position}`
     : `${current.label}: ${valueOf(drawn[0])}${position}`;
   const legendOn = showLegend ?? drawn.length > 1;
-  const legend = legendOn && drawn.length ? <ChartLegend gap="small" items={drawn.map((s, si) => ({ id: s.id, label: s.label, color: colourAt(s, si) }))} /> : undefined;
+  const legend = legendOn && drawn.length ? <ChartLegend gap="small" items={drawn.map((s, si) => ({ id: s.id, label: s.label, color: colourAt(s, si, palette) }))} /> : undefined;
   const peak = active !== null && lines.length ? lines[lines.length - 1][active] : undefined;
   const fadeId = `zen-chart-fade-${useChartId()}`;
   return (
-    <ChartBlock ref={ref} kind="area" legend={legend} position={legendPosition}>
+    <ChartBlock ref={ref} kind="area" legend={legend} position={legendPosition} palette={palette}>
       <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel}
         activeLine="neutral" className={["zen-chart--area", className].filter(Boolean).join(" ")} kind="bar" animate={animate} tooltip={null} summary={summary}>
         <div className="zen-chart__marks" key={signature} data-type={type}>
           <svg className="zen-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
             {/* Figma Area / *-Area: each band's own vertical fade, Solid at its top → Subtle at its foot. */}
-            <defs>{drawn.map((s, si) => <ChartFade key={s.id} id={`${fadeId}-${si}`} {...fadeAt(s, si)} />)}</defs>
+            <defs>{drawn.map((s, si) => <ChartFade key={s.id} id={`${fadeId}-${si}`} {...fadeAt(s, si, palette)} />)}</defs>
             {drawn.map((s, si) => (
               <g key={s.id}>
                 <path className="zen-chart__area-band" d={bands[si]} fill={`url(#${fadeId}-${si})`} />
-                <path className="zen-chart__area-line" d={pathOf(lines[si])} style={{ stroke: colourAt(s, si) }} vectorEffect="non-scaling-stroke" />
+                <path className="zen-chart__area-line" d={pathOf(lines[si])} style={{ stroke: colourAt(s, si, palette) }} vectorEffect="non-scaling-stroke" />
               </g>
             ))}
           </svg>
           {/* The active period: the rule from the top dot down to the baseline, then a dot on each line; they sit in the
               wiped layer, so they appear as the lines reach them. */}
           {peak ? <span className="zen-chart__area-rule" style={{ left: `${peak[0]}%`, top: `${peak[1]}%` }} /> : null}
-          {active !== null ? drawn.map((s, si) => lines[si][active] ? <span key={s.id} className="zen-chart__area-dot" style={{ left: `${lines[si][active][0]}%`, top: `${lines[si][active][1]}%`, borderColor: colourAt(s, si) }} /> : null) : null}
+          {active !== null ? drawn.map((s, si) => lines[si][active] ? <span key={s.id} className="zen-chart__area-dot" style={{ left: `${lines[si][active][0]}%`, top: `${lines[si][active][1]}%`, borderColor: colourAt(s, si, palette) }} /> : null) : null}
         </div>
         {/* Figma: the Tooltip stands beside the active dot (before it on the plot's end half, after it on the start half). */}
         {peak && current ? (

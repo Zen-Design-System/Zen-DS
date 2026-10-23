@@ -6,6 +6,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { ActionBar } from "../../../components/ActionBar";
 import { Avatar, AvatarStack } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { Button, IconButton } from "../../../components/Button";
 import { Card, type CardColor } from "../../../components/Card";
 import { ChartCard, LineChart } from "../../../components/Chart";
@@ -35,7 +36,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
   daysFromToday, formatCompactMoney, formatDate, formatDue, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, people, plans, projectById, projects,
-  projectStatusTheme, studioMonths, tasks, workspacePlan, type InvoiceStatus, type PersonId, type Plan, type PlanId, type Project, type ProjectStatus,
+  projectProgress, projectStep, studioMonths, tasks, workspacePlan, type InvoiceStatus, type PersonId, type Plan, type PlanId, type Project, type ProjectStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -96,7 +97,7 @@ function BrowseProjects() {
               <Stack gap="md">
                 <Stack direction="row" justify="between" align="start">
                   <DockIcon icon={project.icon} theme={project.theme} background="solid" />
-                  <Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>
+                  <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>
                 </Stack>
                 <Stack gap="xs">
                   <Heading level={4} textStyle="Heading/Subheading" truncate={2}>{project.name}</Heading>
@@ -119,7 +120,7 @@ function BrowseProjects() {
         {opened ? (
           <Stack gap="lg">
             <DescriptionList divider items={[
-              { term: "Status", description: <Badge theme={projectStatusTheme[opened.status]} background="subtle">{opened.status}</Badge> },
+              { term: "Status", description: <BadgeStatus status={projectStep[opened.status]} progress={projectProgress(opened)}>{opened.status}</BadgeStatus> },
               { term: "Lead", description: people[opened.lead].name },
               { term: "Dates", description: formatRange(opened.start, opened.due) },
               { term: "Progress", description: `${opened.progress}%` },
@@ -322,34 +323,37 @@ function WorkspacePlan() {
         {plans.map((plan) => {
           const titleId = `${baseId}-${plan.id}`;
           return (
-            <Card key={plan.id} as="section" theme="default" selected={plan.id === current} aria-labelledby={titleId} className="px-card-plan">
-              <Stack gap="md" className="px-card-grow">
-                <Stack gap="xs">
-                  {/* Every title row keeps the Badge's height, so the prices line up across the row of cards. */}
-                  <Stack direction="row" gap="2xs" align="center" className="px-card-plan__title">
-                    <Heading level={4} id={titleId} textStyle="Heading/Subheading">{plan.name}</Heading>
-                    {plan.id === recommended ? <Badge theme="accent" background="subtle">Recommended</Badge> : null}
-                  </Stack>
-                  <Text textStyle="Body/Small/Regular" tone="base">{plan.summary}</Text>
-                </Stack>
-                <Stack gap="xs">
-                  <Stack direction="row" gap="2xs" align="baseline">
-                    <Text as="span" textStyle="Heading/2">{price(plan) ? formatMoney(price(plan)) : "Free"}</Text>
-                    {price(plan) ? <Text as="span" textStyle="Body/Small/Regular" tone="base">{`per seat ${per}`}</Text> : null}
-                  </Stack>
-                  <Text as="span" textStyle="Caption/Regular" tone="light">
-                    {plan.id === current ? `Your plan · ${plural(seats, "seat")}` : !price(plan) ? "No card needed" : `Billed ${period}`}
-                  </Text>
-                </Stack>
-                <Stack as="ul" gap="xs" aria-label={`${plan.name} includes`}>
-                  {planDetails[plan.id].features.map((feature) => (
-                    <Stack as="li" key={feature} direction="row" gap="2xs">
-                      <Icon name="icon-check-line" size="sm" decorative />
-                      <Text as="span" textStyle="Body/Small/Regular">{feature}</Text>
+            <Card key={plan.id} as="section" theme="default" selected={plan.id === current} aria-labelledby={titleId}>
+              {/* The plan fills the card (Content-Slot column) and spaces its CTA to the foot, level across the row. */}
+              <Stack gap="md" height="fill" justify="between">
+                <Stack gap="md">
+                  <Stack gap="xs">
+                    {/* Every title row keeps the Badge's height, so the prices line up across the row of cards. */}
+                    <Stack direction="row" gap="2xs" align="center" className="px-card-plan__title">
+                      <Heading level={4} id={titleId} textStyle="Heading/Subheading">{plan.name}</Heading>
+                      {plan.id === recommended ? <Badge theme="accent" background="subtle">Recommended</Badge> : null}
                     </Stack>
-                  ))}
+                    <Text textStyle="Body/Small/Regular" tone="base">{plan.summary}</Text>
+                  </Stack>
+                  <Stack gap="xs">
+                    <Stack direction="row" gap="2xs" align="baseline">
+                      <Text as="span" textStyle="Heading/2">{price(plan) ? formatMoney(price(plan)) : "Free"}</Text>
+                      {price(plan) ? <Text as="span" textStyle="Body/Small/Regular" tone="base">{`per seat ${per}`}</Text> : null}
+                    </Stack>
+                    <Text as="span" textStyle="Caption/Regular" tone="light">
+                      {plan.id === current ? `Your plan · ${plural(seats, "seat")}` : !price(plan) ? "No card needed" : `Billed ${period}`}
+                    </Text>
+                  </Stack>
+                  <Stack as="ul" gap="xs" aria-label={`${plan.name} includes`}>
+                    {planDetails[plan.id].features.map((feature) => (
+                      <Stack as="li" key={feature} direction="row" gap="2xs">
+                        <Icon name="icon-check-line" size="sm" decorative />
+                        <Text as="span" textStyle="Body/Small/Regular">{feature}</Text>
+                      </Stack>
+                    ))}
+                  </Stack>
                 </Stack>
-                <Stack className="px-card-plan__cta">{cta(plan)}</Stack>
+                <Stack>{cta(plan)}</Stack>
               </Stack>
             </Card>
           );

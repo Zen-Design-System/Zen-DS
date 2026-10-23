@@ -11,6 +11,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } f
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge, type BadgeTheme } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Checkbox } from "../../../components/Checkbox";
@@ -42,7 +43,7 @@ import type { PlatformPage } from "../../PlatformExamples";
 import { PreviewAppFrame, StudioLogo } from "../../PlatformFrames";
 import {
   TODAY, activity, daysFromToday, formatBytes, formatDate, formatDay, formatDue, formatMoney, formatRange, formatRelative, initials, leaveStatusTheme, me, people, peopleList, projectById, projects,
-  projectStatusTheme, studio, type LeaveKind, type LeaveStatus, type Person, type PersonId, type ProjectStatus, type StudioFile, type Team,
+  projectProgress, projectStep, studio, type LeaveKind, type LeaveStatus, type Person, type PersonId, type ProjectStatus, type StudioFile, type Team,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -195,7 +196,7 @@ function PeopleDirectoryExample() {
               {onProjects.map((project) => (
                 <ListItem key={project.id} title={project.name} caption={project.client}
                   leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" />}
-                  trailing={<Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>} />
+                  trailing={<BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>} />
               ))}
             </List>
           ) : (
@@ -364,7 +365,7 @@ function EditProjectExample() {
         <Stack gap="xs">
           <Stack direction="row" gap="2xs" align="center" wrap>
             <Heading level={4} id={titleId} textStyle="Heading/Subheading">{project.name}</Heading>
-            <Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>
+            <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>
           </Stack>
           <Text textStyle="Body/Small/Regular" tone="base">{project.brief || "Phin & Co"}</Text>
         </Stack>
