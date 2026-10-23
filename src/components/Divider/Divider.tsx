@@ -1,5 +1,6 @@
 import type { Ref } from "react";
 import "./divider.css";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const dividerColors = ["default", "medium", "high"] as const;
 export type DividerColor = (typeof dividerColors)[number];
@@ -22,7 +23,7 @@ export interface DividerProps {
  * Figma Divider (460:38361): a 1px INSIDE stroke line. Default (Pale) is the everyday rule; Medium (Subtle) and
  * High (Solid) add emphasis only when the design calls for it.
  */
-export function Divider({ color = "default", orientation = "horizontal", dashed = false, decorative = false, className, ref }: DividerProps) {
+export function Divider({ color = "default", orientation = "horizontal", dashed = false, decorative = false, className, ref, ...rest }: DividerProps) {
   const props = {
     ref: ref as Ref<HTMLDivElement & HTMLHRElement> | undefined,
     className: ["zen-divider", className].filter(Boolean).join(" "),
@@ -30,6 +31,6 @@ export function Divider({ color = "default", orientation = "horizontal", dashed 
     "data-orientation": orientation,
     "data-dashed": dashed ? "true" : undefined,
   };
-  if (decorative) return <div {...props} aria-hidden="true" />;
-  return orientation === "vertical" ? <div {...props} role="separator" aria-orientation="vertical" /> : <hr {...props} />;
+  if (decorative) return <div {...dataAttributes(rest)} {...props} aria-hidden="true" />;
+  return orientation === "vertical" ? <div {...dataAttributes(rest)} {...props} role="separator" aria-orientation="vertical" /> : <hr {...dataAttributes(rest)} {...props} />;
 }

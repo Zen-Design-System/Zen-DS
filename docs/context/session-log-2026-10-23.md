@@ -303,6 +303,27 @@ Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows 
   the two generated maps): Studio self-tests ✓, TypeScript ✓, nested layer names 45 / 45, Studio E2E 338 / 338
   (3 shards, BL-02 Main component coverage included), Build-QA PASS. No platform page in scope, so no contact sheet.
 
+## AppShell session · Every component forwards data-* (tier M, many components; G2 AI UI decisions, user via Giám sát)
+
+Branch zen/fix/components-forward-data-attrs-20261023 from main 9fe063d2. User's answers (G2): every component forwards
+`data-*` (Skeletons included) so `data-ai-ui-id` lands; keep the verified heuristic; the classifier runs on the device;
+ChatReactorsPanel stays experimental. After #244 (which recorded these answers and the spec format: Zen's tree), the
+merge keeps #244's README wording with data-* marked built, and drops the BACKLOG build line.
+- `_shared/data-attributes.ts`: `dataAttributes(props)` picks the `data-*` keys; spread first on a root so the
+  component's own data-* styling hooks win. Only data-*: no other HTML attribute changes what a component renders.
+- 119 public components destructured their props with no rest (static scan). A codemod (AST, tools/studio/jsx-source)
+  gave 105 a `...rest` and `{...dataAttributes(rest)}` on every JSX root they return; 14 by hand where the root is a
+  variable, a fragment or a conditional (BottomSheet, Dialog, ModalForm, SidePanel, ToastStack: the ref'd panel; ChatFile
+  both branches; ChatPhotos; ChatReactions' pill; ChatReactorsPanel's sheet; DatePickerMonthYear; Menu's surface;
+  PropertySelect / Status / Date through PickerCell `data`; TableTrend through trendBadge).
+- tests/smoke/conformance.test.tsx: every public component gets `data-zen-conformance` and must put it in the DOM
+  (NO_DATA: the providers and ZenPortal).
+- Verified count: 38 before #237, 53 after it (chart contracts), same heuristic.
+- Slot (Giám sát's GO): the conformance run found 20 the scan missed — the charts' shared ChartBlock, Divider's two
+  non-decorative branches, ChatThread and SidebarSubMenu (the codemod put the spread on a context provider),
+  ChatReactorsPanel's desktop popover (through ZenPortal), PropertyPeople / Tags (MultiCell), SidebarMenuItem (the item
+  row, `dataAttributes(item)`). Fixed; conformance 218 passed / 5 skipped, `npm test` 1300 passed (82 files).
+
 ## Backlog G1 designer questions + G2 answers (tier XS, docs only; Giám sát's request, user "xử hết backlog")
 - QUESTIONS.md / QUESTIONS.vi.md: one designer review batch moved from BACKLOG (triage group G1, 10 entries): Calendar
   toolbar mobile, Metric Title-Highlight, Action-Icon-Gap 20, Bottom-Navigation surface, Side-Bar/Master/Small-Density
@@ -353,3 +374,23 @@ for it); the rest closed (research doc studio-native-paste-2026-10-17.md §8).
   `expandPack` restores fresh copies (78 ms, cached per pack); all native-pack writes compact, reads expand. Round trip
   byte-identical; paste messages of 58 Studio pages + Expenses identical to the old pack's. figma-native selftest 142.
 - Kept by design: slot overrides on the slot's default layer, and the component's alias variable in kept overrides.
+
+## A photo file from the computer on a repo page (tier M; BACKLOG P2, G4 picked by the user in the triage session)
+
+Branch zen/feat/studio-desktop-photo-repo-20261023 (stacked on #239). Example and template code cannot read this
+browser's uploads, so a dropped photo is saved in the repo first.
+- Dev server: `POST /__zen-studio/media { name, data }` (write headers) writes `src/assets/media/<slug>-<hash>.webp`
+  (the same bytes are the same file) and a CREDITS.md row "Dropped in Zen Studio from …, to confirm before publishing"
+  (`tools/studio/repo-media.mjs`, selftest 3 cases). A file, not a draft: it stays when the edit is undone or discarded.
+- Client: `edit/assets/repoMedia.ts` converts PNG / JPEG / WebP to WebP ≤ 1600 px and registers the key at once
+  (`media.ts` registerRepoPicture); the glob's own update merges new pictures instead of reloading the Studio.
+  `canvas/fileDrop.ts` on a repo page → `assets.ts dropComputerPictures`: on a pictured layer or a list face the
+  picture (writePicture, with #239's helper and list paths), elsewhere a new `<Image src={new URL(…)}>` where it fell.
+  "Your uploads" on a repo page (click, drop, the Inspector's and a table cell's Picture) are saved the same way.
+- E2E FW-239 (drop on a helper row's avatar → people.bao.photo is the saved file, CREDITS row, ⌘Z) and FW-240 (drop into
+  the Stack → an Image reading the file, ⌘Z); both remove what they saved.
+- Finding met on the way, fixed at its owner (FW-240's first run): pasted or inserted code could not read a repo
+  picture. `arrange.mjs` / `slots.mjs` parsed it as a script (`import.meta` refused) and took `URL` for a component to
+  import; they parse as a module now, `URL` is a JS global and `import.meta` reads no name (arrange selftest +1 case).
+- Gate (slot from box-themes; `--isolated`, the branch's 13 files): **PASS**, Studio E2E 338/0. FW-235…240: 5/1 (FW-240,
+  the paste finding above); after the fix FW-239/240 2/0 and a second gate on arrange.mjs + slots.mjs **PASS** 338/0.

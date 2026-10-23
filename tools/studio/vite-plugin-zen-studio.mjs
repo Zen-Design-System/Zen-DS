@@ -44,6 +44,7 @@ import { validateDialect } from "./dialect.mjs";
 import { PAGES_DIR, PagesError, pagesFolder } from "./pages-folder.mjs";
 import { PROJECTS_DIR, ProjectsError, projectsFolder } from "./projects-folder.mjs";
 import { PROMOTE_DIR, planPromotion, typecheck, writePromotion } from "./promote.mjs";
+import { MAX_MEDIA_BYTES, MEDIA_DIR, isWebp, mediaFileName, withCredits } from "./repo-media.mjs";
 import { attachRelay, createRelay } from "./mcp/relay.mjs";
 import { MCP_PATH, studioMcp } from "./mcp/server.mjs";
 import { AGENT_ROUTES, zenAgent } from "./agent/routes.mjs";
@@ -63,7 +64,7 @@ const HARNESS_TIMEOUT = 60_000;
 /** The drafts of each dev server persist here (relative to the root), as drafts-<port>.json. */
 const DRAFTS_DIR = "node_modules/.cache/zen-studio";
 const STATUS = { forbidden: 403, "not-found": 404, stale: 409, invalid: 400, confirm: 409 };
-const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/css-edit", "/drafts", "/frame-drafts", "/save", "/discard", "/parity", "/parity-keep", "/parity-revert", "/binding-diff", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/comments", "/pages/comments-write", "/pages/asset-trash", "/promote"]);
+const ROUTES = new Set(["/ping", "/source", "/element", "/detach-plan", "/edit", "/write", "/css-edit", "/drafts", "/frame-drafts", "/save", "/discard", "/parity", "/parity-keep", "/parity-revert", "/binding-diff", "/pages", "/pages/write", "/pages/trash", "/pages/asset", "/pages/asset-write", "/pages/comments", "/pages/comments-write", "/pages/asset-trash", "/promote", "/media"]);
 /** Studio projects (2026-10-17, projects-folder.mjs): their own set, so the routes above merge cleanly. */
 const PROJECT_ROUTES = new Set(["/projects", "/projects/write", "/projects/trash"]);
 /** A frame request names at most this many frames and locs (a page renders a few thousand elements). */
@@ -398,6 +399,12 @@ export function zenStudio() {
         const body = await readJson(req);
         return send(res, 200, await promote(body));
       }
+      // A picture from the computer dropped on a repo page: written under src/assets/media (repo-media.mjs).
+      if (route === "POST /media") {
+        checkWriteHeaders(req);
+        const body = await readJson(req);
+        return send(res, 200, await exclusive(() => saveMedia(body)));
+      }
       // Zen Agent (agent/routes.mjs): GET with the token, POST as an edit (admin role, token, JSON).
       if (AGENT_ROUTES.has(url.pathname.slice(PREFIX.length))) {
         if (!agent) throw new HttpError("not-found", "Zen Agent runs on the Studio dev server only");
@@ -443,6 +450,36 @@ export function zenStudio() {
     // TypeScript and the harness run outside the write queue, on the template only.
     const [tsc, harness] = await Promise.all([typecheck(root, [plan.file]), runHarness([plan.file])]);
     return { ok: true, file: plan.file, component: plan.component, written: result.written, tsc, harness };
+  }
+
+  /**
+   * POST /media { name, data }: a picture (WebP bytes as base64, the browser converts it) saved as
+   * src/assets/media/<name>-<hash>.webp, which example and template code read as `new URL(…, import.meta.url).href`, and
+   * a CREDITS.md row naming where it came from. A file, not a draft: it stays when the edit that uses it is undone or
+   * discarded. The same picture again is the same file. { ok, file, key, created }.
+   */
+  async function saveMedia(body) {
+    const { name, data } = body ?? {};
+    if (typeof name !== "string" || !name.trim() || typeof data !== "string") throw new HttpError("invalid", "Send { name, data }: the picture's file name and its WebP bytes as base64");
+    const bytes = new Uint8Array(Buffer.from(data, "base64"));
+    if (bytes.length > MAX_MEDIA_BYTES) throw new HttpError("invalid", "The picture is over 5 MB");
+    if (!isWebp(bytes)) throw new HttpError("invalid", "Send the picture as WebP");
+    const fileName = mediaFileName(name, bytes);
+    const file = `${MEDIA_DIR}/${fileName}`;
+    const abs = path.join(root, file);
+    let created = false;
+    if (!fs.existsSync(abs)) {
+      await fsp.mkdir(path.dirname(abs), { recursive: true });
+      await fsp.writeFile(abs, bytes);
+      created = true;
+    } else if (!Buffer.from(await fsp.readFile(abs)).equals(Buffer.from(bytes))) {
+      throw new HttpError("invalid", `${file} exists with other bytes; rename the picture and drop it again`);
+    }
+    const creditsAbs = path.join(root, MEDIA_DIR, "CREDITS.md");
+    const credits = fs.existsSync(creditsAbs) ? await fsp.readFile(creditsAbs, "utf8") : "# Platform sample media\n";
+    const next = withCredits(credits, fileName, name.trim(), new Date().toISOString().slice(0, 10));
+    if (next !== credits) await fsp.writeFile(creditsAbs, next);
+    return { ok: true, file, key: fileName.replace(/\.webp$/, ""), created };
   }
 
   async function edit(body) {

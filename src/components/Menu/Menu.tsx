@@ -33,6 +33,7 @@ import { useDismissableLayer } from "../_shared/layers";
 import { useMergedRefs } from "../_shared/merge-refs";
 import { useControllableState } from "../_shared/use-controllable-state";
 import { useStableCallback } from "../_shared/use-stable-callback";
+import { dataAttributes } from "../_shared/data-attributes";
 
 /** One action in a Menu. */
 export type MenuItemData = {
@@ -197,7 +198,7 @@ function useMenuPlacement(surfaceRef: RefObject<HTMLElement | null>, triggerRef:
  *     items={[{ id: "duplicate", label: "Duplicate" }, { type: "separator" }, { id: "delete", label: "Delete", danger: true }]}
  *     onSelect={(item) => run(item.id)} />
  */
-export function Menu({ trigger, items, children, onSelect, align = "start", open: openProp, defaultOpen = false, onOpenChange, "aria-label": ariaLabel, className, overrides }: MenuProps) {
+export function Menu({ trigger, items, children, onSelect, align = "start", open: openProp, defaultOpen = false, onOpenChange, "aria-label": ariaLabel, className, overrides, ...rest }: MenuProps) {
   const nest = useNested(overrides);
   // onOpenChange is called by setOpen below, on every request as before (the hook would skip a repeated value).
   const [open, setOpenState] = useControllableState({ value: openProp, defaultValue: defaultOpen, name: "Menu open" });
@@ -381,7 +382,7 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
   const overlayRoot = presence.mounted ? triggerRef.current?.closest<HTMLElement>("[data-zen-overlay-root]") ?? null : null;
   const closing = presence.phase === "closing";
   const surface = presence.mounted ? (
-    <div ref={surfaceRef} className={["zen-popover", "zen-menu", className].filter(Boolean).join(" ")} style={placement.style} data-side={placement.side} data-state={closing ? "closing" : undefined} inert={closing || undefined}>
+    <div {...dataAttributes(rest)} ref={surfaceRef} className={["zen-popover", "zen-menu", className].filter(Boolean).join(" ")} style={placement.style} data-side={placement.side} data-state={closing ? "closing" : undefined} inert={closing || undefined}>
       <div
         ref={listRef}
         id={menuId}
@@ -439,12 +440,12 @@ export interface MenuItemProps {
 }
 
 /** One action row (role=menuitem) on the Popover/Item primitive. Use it inside `<Menu>` when you compose children. */
-export function MenuItem({ id, label, icon, caption, shortcut, danger = false, disabled = false, onSelect, className }: MenuItemProps) {
+export function MenuItem({ id, label, icon, caption, shortcut, danger = false, disabled = false, onSelect, className, ...rest }: MenuItemProps) {
   const menu = useContext(MenuContext);
   const nest = useNested();
   const leading = nest("Icon", icon === undefined ? undefined : typeof icon === "string" ? <Icon name={icon} size="base" decorative /> : icon);
   return (
-    <PopoverItem
+    <PopoverItem {...dataAttributes(rest)}
       itemRole="menuitem"
       tabIndex={-1}
       className={["zen-menu__item", className].filter(Boolean).join(" ")}
@@ -460,8 +461,8 @@ export function MenuItem({ id, label, icon, caption, shortcut, danger = false, d
 }
 
 /** A Divider between groups of items (role=separator). */
-export function MenuSeparator({ className }: { /** Extra class on the line. */ className?: string }) {
-  return <Divider className={["zen-menu__separator", className].filter(Boolean).join(" ")} />;
+export function MenuSeparator({ className, ...rest }: { /** Extra class on the line. */ className?: string }) {
+  return <Divider {...dataAttributes(rest)} className={["zen-menu__separator", className].filter(Boolean).join(" ")} />;
 }
 
 export interface MenuGroupProps {
@@ -476,10 +477,10 @@ export interface MenuGroupProps {
 
 /** Items under a label (Figma .Primitives/Popover/Label): role=group, named by the label through aria-labelledby (APG
  *  menu). The label is a plain element, never a heading (h1–h6 or role=heading). */
-export function MenuGroup({ label, children, className }: MenuGroupProps) {
+export function MenuGroup({ label, children, className, ...rest }: MenuGroupProps) {
   const labelId = `zen-menu-group-${idFrom(useId())}`;
   return (
-    <div role="group" aria-labelledby={labelId} className={["zen-menu__group", className].filter(Boolean).join(" ")}>
+    <div {...dataAttributes(rest)} role="group" aria-labelledby={labelId} className={["zen-menu__group", className].filter(Boolean).join(" ")}>
       <div id={labelId} className={`zen-popover__label ${typographyStyles["Body/Small/Medium"]}`}>{label}</div>
       {children}
     </div>

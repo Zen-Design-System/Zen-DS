@@ -29,11 +29,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
   Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their
   own state) is done: session log 2026-10-15 "Self-managed state".
-- **P2 · AI UI: every component forwards `data-*` (user, 2026-10-23; was "AI UI: decisions for the user"):** the
-  user answered the open decisions of `docs/ai-ui/README.md`: the 41 `verified` components stand (`STATUS_OVERRIDES`
-  stays empty); the spec format stays Zen's node tree (Studio dialect shape), an A2UI / json-render exporter can come
-  later; the classifier stays on the device (`keywordClassifier`, no server); `ChatReactorsPanel` stays experimental.
-  Left to build: every component forwards `data-*`, the Skeletons too, so `data-ai-ui-id` reaches the DOM.
 - **P2 · Example className, round 2 (2026-10-23, session B; user: "theo bạn cái nào lợi hơn lâu dài, chính xác nhất"):**
   the 2026-10-12 coverage plan's P3 (TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem,
   DatePickerSheet, chat, Metric) and P4/P5 (className 219 → 112) were merged on 2026-10-13 (spec
@@ -98,9 +93,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   segmented-toggle-badge-avatarstack were re-read whole; only Input/Heading and the Segmented sets have a parity suite,
   so a later Figma edit to the others is still not caught. A suite per set (`tools/figma-contract/suites`, README
   "Writing a suite") needs a browser slot each and the user's go (new harness work).
-- **P2 · Figma usability — a photo file dropped from the desktop on a repo page (2026-10-10):** uploads live in this
-  browser (IndexedDB), so example and template code cannot read them; a drop there needs the dev server to save the file
-  under `src/assets/media/` (POST route + `MEDIA_REPO_FILES` refresh). On pages you made it works today.
 
 - **Questions for the designer and decisions for the user** are collected in [`QUESTIONS.md`](QUESTIONS.md) (moved
   there 2026-10-08). Code keeps its current behaviour until each is answered.
