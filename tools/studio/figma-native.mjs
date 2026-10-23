@@ -156,8 +156,34 @@ export function layerKey(name) {
   return parts[0] === "Primitives" ? parts[parts.length - 1].replace(/-\d+$/, "") : parts[0];
 }
 
+/** Packs expanded once (expandPack): a page copies many frames from the same module. */
+const expandedPacks = new WeakMap();
+
+/**
+ * The pack as written (native-pack.mjs compactPack) back to its full form: each `{$: n}` is a fresh copy of `shared[n]`
+ * (repeated subtrees, mostly the overrides and variable links a nested instance keeps, are stored once in the file).
+ * A pack without `shared` is already full.
+ */
+export function expandPack(pack) {
+  if (!pack?.shared) return pack;
+  if (expandedPacks.has(pack)) return expandedPacks.get(pack);
+  const { shared, ...rest } = pack;
+  const build = (value) => {
+    if (!value || typeof value !== "object") return value;
+    if (Array.isArray(value)) return value.map(build);
+    if ("$" in value) return build(shared[value.$]);
+    const out = {};
+    for (const key in value) out[key] = build(value[key]);
+    return out;
+  };
+  const full = build(rest);
+  expandedPacks.set(pack, full);
+  return full;
+}
+
 /** The pack read for lookups: each symbol's rows as a tree, names to ids. */
-export function indexPack(pack) {
+export function indexPack(compact) {
+  const pack = expandPack(compact);
   const trees = new Map();
   const byName = new Map();
   for (const [id, symbol] of Object.entries(pack.symbols)) if (!symbol.set && !byName.has(symbol.name)) byName.set(symbol.name, id);
