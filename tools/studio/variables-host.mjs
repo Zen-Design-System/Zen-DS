@@ -101,6 +101,33 @@ export function variablesHost({ realRoot, drafts }) {
     return found;
   }
 
+  /** A collection's ZenProvider axis: its data-* attribute and prop (scripts/token-outputs.mjs modeSelector, ZenProvider). */
+  const MODE_AXIS = {
+    "Base Colors (Project)": ["brand", "brand"], "Mode Colors (Semantic)": ["theme", "theme"], "Component Theme": ["component-theme", "componentTheme"],
+    "Component Size": ["density", "density"], "Corner Radius": ["radius", "radius"], "Emphasis Level": ["emphasis", "emphasis"],
+    "Breakpoint & Grids": ["breakpoint", "breakpoint"], "Typography Configuration": ["typography", "typography"],
+  };
+
+  /** The source files under src/ that use a mode by its id: `data-<axis>="id"` (CSS or JSX) or the ZenProvider prop. */
+  function modeReaders(collection, mode) {
+    const axis = MODE_AXIS[collection];
+    if (!axis) return [];
+    const id = cssNameOf(mode).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`data-${axis[0]}=["']${id}["']|\\b${axis[1]}(=|:\\s*|=\\{)["']${id}["']`);
+    const found = [];
+    const walk = (dir) => {
+      for (const entry of fs.readdirSync(path.join(realRoot(), dir), { withFileTypes: true })) {
+        const rel = `${dir}/${entry.name}`;
+        if (entry.isDirectory()) { walk(rel); continue; }
+        if (!/\.(css|tsx?|mjs)$/.test(entry.name) || GENERATED.test(rel)) continue;
+        const text = drafts.get(rel)?.content ?? fs.readFileSync(path.join(realRoot(), rel), "utf8");
+        if (pattern.test(text)) found.push(rel.replace(/^src\//, ""));
+      }
+    };
+    walk("src");
+    return found;
+  }
+
   /**
    * One edit of one collection: { text, changed, label } (variables.mjs), checked against every collection and, for
    * a rename or a delete, against what reads the variable (other variables' aliases, code under src/).
@@ -118,7 +145,7 @@ export function variablesHost({ realRoot, drafts }) {
     if (rel === GLOBAL_COLORS && ops.some((op) => op?.op === "setValue" && op.mode === HIGH_CONTRAST_MODE)) {
       throw new VariableEditError("invalid", `${HIGH_CONTRAST_MODE} follows the Zen values (the high-contrast algorithm): change the Zen value`);
     }
-    const result = applyVariableOps(before, ops, { variables, readers, nameReaders });
+    const result = applyVariableOps(before, ops, { variables, readers, nameReaders, modeReaders });
     return rel === GLOBAL_COLORS ? { ...result, text: withHighContrast(result.text, textOf(BASE_COLORS)) } : result;
   }
 

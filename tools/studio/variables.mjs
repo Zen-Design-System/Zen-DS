@@ -13,6 +13,11 @@
 //                                                   `formerNames` (v2: the build keeps --zen-old: var(--zen-new))
 //        { op: "duplicate", name, to? }             "<name> copy", numbered when taken
 //        { op: "delete", name }                     refused while something reads it
+//        { op: "addMode", name, from? }              a column: every variable takes `from`'s value (default the first
+//                                                   mode, as Figma); Duplicate mode is addMode with `from`
+//        { op: "renameMode", mode, to }  { op: "deleteMode", mode }   refused while code uses the mode
+//                                                   (context.modeReaders); only a ZenProvider axis's collection
+//                                                   (MODE_COLLECTIONS) edits its modes
 //        { op: "meta", name, description?, scopes?, hiddenFromPublishing? }   Figma's Edit variable (Studio Variables v2,
 //                                                   docs/research/studio-variables-v2-spec-2026-10-23.md): an empty
 //                                                   description, ALL_SCOPES (or no scopes key) and false are dropped
@@ -31,6 +36,10 @@ export const VARIABLE_SCOPES = {
   STRING: ["FONT_FAMILY", "FONT_STYLE", "TEXT_CONTENT"],
   BOOLEAN: [],
 };
+/** The collections whose modes are a ZenProvider axis (scripts/token-outputs.mjs MODE_AXES; v2, user 2026-10-23: modes
+ *  are edited in every collection that has them as an axis). Global Colors' second mode is the derived high contrast. */
+export const MODE_COLLECTIONS = new Set(["Base Colors (Project)", "Mode Colors (Semantic)", "Component Theme", "Component Size", "Corner Radius", "Emphasis Level", "Breakpoint & Grids", "Typography Configuration"]);
+
 /** A token's fields in the order the files (and the Zen plugin's Push to GitHub) write them. */
 const TOKEN_FIELDS = ["name", "type", "valuesByMode", "scopes", "description", "hiddenFromPublishing", "codeSyntax", "formerNames"];
 
@@ -45,6 +54,8 @@ const refuse = (message, code = "invalid") => { throw new VariableEditError(code
 
 /** The build's CSS name of a variable (scripts/token-outputs.mjs `cssName`, without `--zen-`). */
 export const cssNameOf = (name) => String(name).replace(/([a-z0-9])([A-Z])/g, "$1-$2").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
+/** A mode's id in code: its CSS data-* value (scripts/token-outputs.mjs toKebab). */
+export const modeIdOf = (mode) => cssNameOf(mode);
 /** Figma's Code syntax (Web) of a variable: the CSS custom property code reads, from its name (not stored). */
 export const codeSyntaxOf = (name) => `var(--zen-${cssNameOf(name)})`;
 
@@ -222,6 +233,51 @@ export function applyVariableOps(text, ops, context) {
       sync(token);
       changed.push(name);
       label ||= `Duplicate ${source.name}`;
+    } else if (op?.op === "addMode" || op?.op === "renameMode" || op?.op === "deleteMode") {
+      if (!MODE_COLLECTIONS.has(collection.name)) refuse(`${collection.name}'s modes are not a ZenProvider mode: they stay as Figma has them`);
+      const modeName = (text) => {
+        const clean = String(text ?? "").trim();
+        if (!/[a-z0-9]/i.test(clean)) refuse("A mode name needs a letter or a digit");
+        const taken = collection.modes.find((mode) => mode !== op.mode && modeIdOf(mode) === modeIdOf(clean));
+        if (taken) refuse(`${clean} would be ${modeIdOf(clean)} in code, as ${taken} is already`, "conflict");
+        return clean;
+      };
+      const used = (mode) => {
+        const reading = (context.modeReaders ?? (() => []))(collection.name, mode);
+        if (reading.length) refuse(`${mode} is used by ${reading.slice(0, 3).join(", ")}${reading.length > 3 ? ` and ${reading.length - 3} more` : ""}: ${op.op === "deleteMode" ? "deleting" : "renaming"} it would break them`, "conflict");
+      };
+      if (op.op === "addMode") {
+        const from = op.from ?? collection.modes[0];
+        if (!collection.modes.includes(from)) refuse(`${collection.name} has no mode ${from}`);
+        // Unnamed: Figma's "Mode N", or "<mode> copy" for a duplicate, numbered when taken.
+        let name = op.name ? String(op.name) : null;
+        if (!name) {
+          const base = op.from ? `${from} copy` : `Mode ${collection.modes.length + 1}`;
+          name = base;
+          for (let n = 2; collection.modes.some((mode) => modeIdOf(mode) === modeIdOf(name)); n += 1) name = `${base} ${n}`;
+        }
+        const mode = modeName(name);
+        const at = collection.modes.indexOf(from);
+        collection.modes = op.from ? [...collection.modes.slice(0, at + 1), mode, ...collection.modes.slice(at + 1)] : [...collection.modes, mode];
+        collection.tokens = collection.tokens.map((token) => ordered({ ...token, valuesByMode: Object.fromEntries(collection.modes.map((each) => [each, each === mode ? token.valuesByMode[from] : token.valuesByMode[each]])) }));
+        label ||= op.from ? `Duplicate mode ${from}` : `Add mode ${mode}`;
+      } else if (op.op === "renameMode") {
+        if (!collection.modes.includes(op.mode)) refuse(`${collection.name} has no mode ${op.mode}`, "not-found");
+        const to = modeName(op.to);
+        if (to === op.mode) continue;
+        if (modeIdOf(to) !== modeIdOf(op.mode)) used(op.mode);
+        collection.modes = collection.modes.map((mode) => (mode === op.mode ? to : mode));
+        collection.tokens = collection.tokens.map((token) => ordered({ ...token, valuesByMode: Object.fromEntries(Object.entries(token.valuesByMode).map(([mode, value]) => [mode === op.mode ? to : mode, value])) }));
+        label ||= `Rename mode ${op.mode} → ${to}`;
+      } else {
+        if (!collection.modes.includes(op.mode)) refuse(`${collection.name} has no mode ${op.mode}`, "not-found");
+        if (collection.modes.length === 1) refuse(`${collection.name} needs a mode`);
+        used(op.mode);
+        collection.modes = collection.modes.filter((mode) => mode !== op.mode);
+        collection.tokens = collection.tokens.map((token) => ordered({ ...token, valuesByMode: Object.fromEntries(Object.entries(token.valuesByMode).filter(([mode]) => mode !== op.mode)) }));
+        label ||= `Delete mode ${op.mode}`;
+      }
+      for (const token of collection.tokens) sync(token);
     } else if (op?.op === "meta") {
       const index = indexOf(op.name);
       const token = { ...collection.tokens[index] };
@@ -316,12 +372,25 @@ export function variablesPackage(base, now) {
     if (!before || !after) continue;
     const old = new Map(before.tokens.map((token) => [token.name, token]));
     const next = new Map(after.tokens.map((token) => [token.name, token]));
+    // Modes (v2): a mode gone and a new one with the same values in every variable is a rename.
+    const addedModes = after.modes.filter((mode) => !before.modes.includes(mode));
+    const removedModes = before.modes.filter((mode) => !after.modes.includes(mode));
+    const renamedFrom = new Map();
+    for (const mode of addedModes) {
+      const was = removedModes.find((gone) => ![...renamedFrom.values()].includes(gone)
+        && after.tokens.every((token) => !old.has(token.name) || sameValues(token.valuesByMode[mode], old.get(token.name).valuesByMode[gone])));
+      if (was) renamedFrom.set(mode, was);
+    }
+    const renamedModes = new Set(renamedFrom.values());
+    for (const [mode, from] of renamedFrom) changes.push({ op: "renameMode", collection: after.name, mode, from });
+    for (const mode of addedModes) if (!renamedFrom.has(mode)) changes.push({ op: "addMode", collection: after.name, mode });
+    for (const mode of removedModes) if (!renamedModes.has(mode)) changes.push({ op: "deleteMode", collection: after.name, mode });
     const created = after.tokens.filter((token) => !old.has(token.name));
     const deleted = before.tokens.filter((token) => !next.has(token.name));
     for (const token of after.tokens) {
       const was = old.get(token.name);
       if (!was) continue;
-      const modes = Object.keys(token.valuesByMode).filter((mode) => !sameValues(token.valuesByMode[mode], was.valuesByMode[mode]));
+      const modes = Object.keys(token.valuesByMode).filter((mode) => !sameValues(token.valuesByMode[mode], was.valuesByMode[renamedFrom.get(mode) ?? mode]));
       if (!sameValues(metaOf(token), metaOf(was))) changes.push({ op: "meta", collection: after.name, name: token.name, type: token.type, ...metaChange(token) });
       if (modes.length) changes.push({ op: "set", collection: after.name, name: token.name, type: token.type, values: Object.fromEntries(modes.map((mode) => [mode, valueOf(token.valuesByMode[mode])])) });
     }
@@ -339,7 +408,8 @@ export function variablesPackage(base, now) {
   }
   // In the order the plugin applies them: renames free their old names, creates exist before a value aliases them,
   // deletes go last (nothing reads them by then).
-  const ORDER = { rename: 0, create: 1, set: 2, meta: 2, delete: 3 };
+  // Modes first (a value may be for a new mode), a mode's delete last.
+  const ORDER = { renameMode: 0, addMode: 0, rename: 0, create: 1, set: 2, meta: 2, delete: 3, deleteMode: 4 };
   changes.sort((a, b) => ORDER[a.op] - ORDER[b.op]);
   return { format: "zen-studio-variables", version: 1, changes };
 }

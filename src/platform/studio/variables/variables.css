@@ -45,12 +45,19 @@
 .studio-vars__count { flex: 0 0 auto; }
 
 /* The table: Name and a column per mode, a virtual list of 32px rows under a sticky header. */
-.studio-vars__grid { position: relative; min-width: 0; flex: 1 1 auto; overflow: auto; --studio-vars-columns: minmax(200px, 1.2fr) repeat(var(--studio-vars-modes, 1), minmax(168px, 1fr)); }
-.studio-vars__rows { position: relative; min-width: calc(200px + var(--studio-vars-modes, 1) * 168px); }
-.studio-vars__row { position: absolute; top: 0; left: 0; display: grid; width: 100%; min-width: calc(200px + var(--studio-vars-modes, 1) * 168px); height: 32px; box-sizing: border-box; grid-template-columns: var(--studio-vars-columns); border-bottom: 1px solid var(--zen-color-border-neutral-subtle-default); }
+.studio-vars__grid { position: relative; min-width: 0; flex: 1 1 auto; overflow: auto; --studio-vars-columns: minmax(200px, 1.2fr) repeat(var(--studio-vars-modes, 1), minmax(168px, 1fr)) var(--zen-element-size-popular-xlarge, 32px); }
+.studio-vars__rows { position: relative; min-width: calc(200px + var(--studio-vars-modes, 1) * 168px + var(--zen-element-size-popular-xlarge, 32px)); }
+.studio-vars__row { position: absolute; top: 0; left: 0; display: grid; width: 100%; min-width: calc(200px + var(--studio-vars-modes, 1) * 168px + var(--zen-element-size-popular-xlarge, 32px)); height: 32px; box-sizing: border-box; grid-template-columns: var(--studio-vars-columns); border-bottom: 1px solid var(--zen-color-border-neutral-subtle-default); }
 .studio-vars__row--head { position: sticky; z-index: 2; top: 0; background: var(--zen-color-background-surface-default); color: var(--zen-color-content-neutral-base); }
 .studio-vars__row--group { display: block; border-bottom: 0; }
 .studio-vars__cell { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0 var(--zen-spacing-padding-xsmall, 8px); overflow: hidden; white-space: nowrap; }
+/* Mode columns (v2): the header names the mode, its ⋯ shows on hover or focus; + adds a mode after the last column. */
+.studio-vars__mode { justify-content: space-between; }
+.studio-vars__mode-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.studio-vars__mode .zen-input-field { min-width: 0; flex: 1 1 auto; }
+.studio-vars__mode-menu { opacity: 0; }
+.studio-vars__mode:is(:hover, :focus-within) .studio-vars__mode-menu, .studio-vars__mode-menu[aria-expanded="true"] { opacity: 1; }
+.studio-vars__add-mode { justify-content: center; padding: 0; }
 .studio-vars__cell:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
 .studio-vars__cell--group { height: 32px; padding-top: var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-base); }
 .studio-vars__cell--name { position: sticky; z-index: 1; left: 0; background: var(--zen-color-background-surface-default); }

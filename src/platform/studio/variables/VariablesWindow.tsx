@@ -11,7 +11,7 @@ import { Search } from "../../../components/Search";
 import { Segmented } from "../../../components/Segmented";
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
-import type { VariableInput, VariableOp } from "../../../../tools/studio/variables.mjs";
+import { MODE_COLLECTIONS, type VariableInput, type VariableOp } from "../../../../tools/studio/variables.mjs";
 import { applyVariableEdit, readVariables, redoEdit, subscribeStudioWrites, undoEdit, variablesForFigma, variablesHandedOver, type VariableCollection, type VariablesFigma } from "../api";
 import { requestSave, saveDrafts } from "../sourceDrafts";
 import { canEdit, useStudio } from "../store";
@@ -197,6 +197,7 @@ function VariablesPanel() {
   const [editing, setEditing] = useState<Editing | null>(null);
   const [renaming, setRenaming] = useState<{ name: string; text: string } | null>(null);
   const [details, setDetails] = useState<{ name: string; rect: DOMRect } | null>(null);
+  const [renamingMode, setRenamingMode] = useState<{ mode: string; text: string } | null>(null);
   const [focus, setFocus] = useState<Focus>({ row: 0, col: 1 });
   const [scroll, setScroll] = useState({ top: 0, height: 480 });
   const [copied, setCopied] = useState(false);
@@ -399,6 +400,37 @@ function VariablesPanel() {
     if (row) setDetails({ name: variable.name, rect: row.getBoundingClientRect() });
   };
   const detailed = details ? index.get(details.name)?.variable ?? null : null;
+  // Modes (v2, user 2026-10-23): a ZenProvider axis's collection adds, renames, duplicates and deletes its modes; Global
+  // Colors' high contrast, a project's theme column and the single-mode collections keep theirs.
+  const modesEditable = Boolean(collection && editableRows && MODE_COLLECTIONS.has(collection.name));
+  // Figma names a new column in place: once the collection shows it, its header opens for typing.
+  const modesBeforeAdd = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const before = modesBeforeAdd.current;
+    const added = before ? modes.find((mode) => !before.has(mode)) : undefined;
+    if (!added) return;
+    modesBeforeAdd.current = null;
+    setRenamingMode({ mode: added, text: added });
+  }, [modes]);
+  const addMode = async (from?: string) => {
+    modesBeforeAdd.current = new Set(modes);
+    const done = await run([{ op: "addMode", ...(from ? { from } : {}) }], from ? `Duplicate mode ${from}` : "Add mode");
+    if (!done) modesBeforeAdd.current = null;
+  };
+  const commitModeRename = async () => {
+    if (!renamingMode) return;
+    const { mode, text } = renamingMode;
+    setRenamingMode(null);
+    const to = text.trim();
+    if (!to || to === mode) return;
+    await run([{ op: "renameMode", mode, to }], `Rename mode ${mode} → ${to}`);
+  };
+  const modeMenu = (mode: string): MenuEntry[] => [
+    { id: "rename-mode", label: "Rename mode", onSelect: () => setRenamingMode({ mode, text: mode }) },
+    { id: "duplicate-mode", label: "Duplicate mode", onSelect: () => { void addMode(mode); } },
+    { type: "separator", id: "mode-separator" },
+    { id: "delete-mode", label: "Delete mode", danger: true, disabled: modes.length < 2, onSelect: () => { void run([{ op: "deleteMode", mode }], `Delete mode ${mode}`); } },
+  ];
   const rowMenu = (variable: Variable): MenuEntry[] => [
     { id: "edit", label: "Edit variable", onSelect: () => openDetails(variable) },
     { id: "rename", label: "Rename", shortcut: "Enter", disabled: !editableRows, onSelect: () => setRenaming({ name: variable.name, text: shortName(variable.name) }) },
@@ -445,8 +477,33 @@ function VariablesPanel() {
           <div className="studio-vars__row studio-vars__row--head" role="row" aria-rowindex={1}>
             <div className={`studio-vars__cell studio-vars__cell--name ${typographyStyles["Body/Small/Medium"]}`} role="columnheader">Name</div>
             {modes.map((mode) => (
-              <div key={mode} className={`studio-vars__cell ${typographyStyles["Body/Small/Medium"]}`} role="columnheader" title={collection.name === "Global Colors" && mode === DERIVED_MODE ? "Follows the Zen values (the high-contrast algorithm)" : mode === projectMode ? "This project's theme — change it in Project settings" : undefined}>{mode}</div>
+              <div key={mode} className={`studio-vars__cell studio-vars__mode ${typographyStyles["Body/Small/Medium"]}`} role="columnheader" title={collection.name === "Global Colors" && mode === DERIVED_MODE ? "Follows the Zen values (the high-contrast algorithm)" : mode === projectMode ? "This project's theme — change it in Project settings" : undefined}
+                onDoubleClick={() => { if (modesEditable) setRenamingMode({ mode, text: mode }); }}>
+                {renamingMode?.mode === mode ? (
+                  <InputField
+                    size="sm"
+                    aria-label={`Rename mode ${mode}`}
+                    value={renamingMode.text}
+                    autoFocus
+                    onFocus={(event) => event.currentTarget.select()}
+                    onValueChange={(text) => setRenamingMode({ mode, text })}
+                    onBlur={() => { void commitModeRename(); }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") { event.preventDefault(); void commitModeRename(); }
+                      else if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setRenamingMode(null); }
+                    }}
+                  />
+                ) : <span className="studio-vars__mode-name">{mode}</span>}
+                {modesEditable && renamingMode?.mode !== mode ? (
+                  <Menu aria-label={`${mode} mode actions`} align="end" items={modeMenu(mode)} trigger={<IconButton icon="icon-dots-horizontal-line" appearance="flat" size="xs" aria-label={`${mode} mode actions`} tooltip="Mode actions" className="studio-vars__mode-menu" />} />
+                ) : null}
+              </div>
             ))}
+            {modesEditable ? (
+              <div className="studio-vars__cell studio-vars__add-mode" role="columnheader">
+                <IconButton icon="icon-plus-line" appearance="flat" size="xs" aria-label="Add mode" tooltip="Add mode" onClick={() => { void addMode(); }} />
+              </div>
+            ) : null}
           </div>
           <div className="studio-vars__rows" style={{ height: rows.length * ROW_HEIGHT }}>
             {rows.slice(first, last).map((row, offsetIndex) => {

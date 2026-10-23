@@ -152,6 +152,30 @@ test("Edit variable (v2): description, scopes by type, hidden from publishing; w
   assert.deepEqual(Object.keys(JSON.parse(kept).Spacing), ["hiddenFromPublishing", "modes", "tokens"]);
 });
 
+test("modes (v2): add (first mode's values, Figma's Mode N), duplicate beside, rename, delete; refused while used; axis collections only", () => {
+  const added = applyVariableOps(semantic, [{ op: "addMode" }], context());
+  const read = readCollection(added.text);
+  assert.deepEqual([read.modes, read.tokens[0].valuesByMode["Mode 3"], added.label], [["Light", "Dark", "Mode 3"], "{Light/Blue/9}", "Add mode Mode 3"]);
+  const twin = readCollection(applyVariableOps(semantic, [{ op: "addMode", from: "Light" }], context()).text);
+  assert.deepEqual(twin.modes, ["Light", "Light copy", "Dark"]);
+  assert.deepEqual(Object.keys(twin.tokens[0].valuesByMode), ["Light", "Light copy", "Dark"]);
+  refused(() => applyVariableOps(semantic, [{ op: "addMode", name: "dark" }], context()), "conflict", /would be dark in code, as Dark is already/);
+  const renamed = readCollection(applyVariableOps(added.text, [{ op: "renameMode", mode: "Mode 3", to: "Dim" }], context()).text);
+  assert.deepEqual([renamed.modes, Object.keys(renamed.tokens[1].valuesByMode)], [["Light", "Dark", "Dim"], ["Light", "Dark", "Dim"]]);
+  const used = { ...context(), modeReaders: (collection, mode) => (mode === "Dark" ? ["components/Provider/provider.css"] : []) };
+  refused(() => applyVariableOps(semantic, [{ op: "deleteMode", mode: "Dark" }], used), "conflict", /Dark is used by components\/Provider\/provider.css: deleting it/);
+  refused(() => applyVariableOps(semantic, [{ op: "renameMode", mode: "Dark", to: "Night" }], used), "conflict", /renaming it would break/);
+  // A case-only rename keeps the code id: allowed while used.
+  assert.deepEqual(readCollection(applyVariableOps(semantic, [{ op: "renameMode", mode: "Dark", to: "DARK" }], used).text).modes, ["Light", "DARK"]);
+  const gone = readCollection(applyVariableOps(semantic, [{ op: "deleteMode", mode: "Dark" }], context()).text);
+  assert.deepEqual([gone.modes, Object.keys(gone.tokens[0].valuesByMode)], [["Light"], ["Light"]]);
+  refused(() => applyVariableOps(spacing, [{ op: "addMode" }], context()), "invalid", /not a ZenProvider mode/);
+  // The plugin package: renameMode / addMode / deleteMode, the new mode's values as set changes.
+  const pkg = variablesPackage(new Map([["s", semantic]]), new Map([["s", applyVariableOps(semantic, [{ op: "renameMode", mode: "Dark", to: "Night" }, { op: "addMode", name: "Dim", from: "Light" }], context()).text]]));
+  assert.deepEqual(pkg.changes.filter((change) => /Mode$/.test(change.op)), [{ op: "renameMode", collection: "Mode Colors (Semantic)", mode: "Night", from: "Dark" }, { op: "addMode", collection: "Mode Colors (Semantic)", mode: "Dim" }]);
+  assert.ok(pkg.changes.filter((change) => change.op === "set").every((change) => Object.keys(change.values).join() === "Dim"), "only the new mode's values are sets (the renamed one kept them)");
+});
+
 test("the repo's own token sources read, and a no-op edit gives the same text back", () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
   const dir = path.join(root, "tokens/source/figma");

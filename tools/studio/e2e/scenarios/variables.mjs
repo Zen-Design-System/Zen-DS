@@ -188,5 +188,35 @@ export const rows = [
       await until(async () => Boolean(await token("Spacing/Gap/Large")) && !(await token("Spacing/Gap/Large")).formerNames, { timeout: 10_000, message: "⌘Z: Large again" });
       return `renamed with formerNames · --zen-spacing-gap-large = ${value} · ⌘Z`;
     },
+  },  {
+    id: "VA-07", feature: "Modes (v2): + Add mode on Emphasis Level names the new column in place (E2E Bold, the first mode's values), the canvas's tokens.css has [data-emphasis=\"e2e-bold\"]; Delete mode is refused while code uses it (Mode Colors › Dark); ⌘Z takes the mode back", wp: "Variables v2 2026-10-23",
+    async run(ctx) {
+      const { page, win } = await openVariables(ctx);
+      await collection(page, win, "Emphasis Level");
+      await win.getByRole("button", { name: "Add mode" }).click();
+      const header = win.getByRole("textbox", { name: /^Rename mode / });
+      await header.waitFor({ timeout: 5000 });
+      await header.fill("E2E Bold");
+      await header.press("Enter");
+      const file = "tokens/source/figma/emphasis-level.json";
+      const modes = async () => Object.values(JSON.parse(await source(ctx, file)))[0].modes;
+      await until(async () => (await modes()).includes("E2E Bold"), { timeout: 10_000, message: "the mode named in the file" });
+      const weights = () => page.evaluate(() => {
+        const read = (mode) => { const probe = document.createElement("div"); probe.setAttribute("data-emphasis", mode); document.body.append(probe); const value = getComputedStyle(probe).getPropertyValue("--zen-emphasis-font-weight-bold").trim(); probe.remove(); return value; };
+        return [read("medium"), read("e2e-bold")];
+      });
+      await until(async () => { const [medium, bold] = await weights(); return medium !== "" && bold === medium; }, { timeout: 15_000, message: "the new mode's CSS (the first mode's values)" });
+      await collection(page, win, "Mode Colors (Semantic)");
+      const dark = win.getByRole("columnheader").filter({ hasText: /^Dark$/ });
+      await dark.hover();
+      await dark.getByRole("button", { name: "Dark mode actions" }).click();
+      await page.getByRole("menuitem", { name: "Delete mode" }).click();
+      await until(async () => /Dark is used by .*: deleting it would break/.test(await win.locator(".studio-vars__status").innerText()), { message: "the refusal names the code" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await modes()).length === 3, { timeout: 10_000, message: "⌘Z: three modes again" });
+      return `E2E Bold added and named · weights ${(await weights().catch(() => [])).join("/")} · Dark's delete refused · ⌘Z`;
+    },
   },
 ];

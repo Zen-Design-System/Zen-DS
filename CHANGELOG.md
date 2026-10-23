@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio Variables: modes (user, 2026-10-23). A ZenProvider axis's collection adds a mode (Figma's + names it
+  in place, with the first mode's values), renames, duplicates and deletes it; rename and delete are refused while code
+  uses the mode. ZenProvider's mode lists (`zenThemes`, `zenDensities` …) and the Studio preview modes come from the
+  collections (`src/tokens/modes.generated.ts`, written by tokens:build), so a new mode is a value after the build.
 - Zen Studio Variables: a variable that code or another variable reads can be renamed (user, 2026-10-23). The old
   name stays as `formerNames` in its collection, tokens.css keeps `--zen-old: var(--zen-new)` in every block that
   declares it, and an alias `{Old/Name}` still resolves. The new style-guard rule `token/renamed` warns on the old
