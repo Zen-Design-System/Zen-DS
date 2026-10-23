@@ -328,3 +328,8 @@ in as a new page, or compared two ways.
 - E2E HO-13: export in one context, a second context (its own IndexedDB) on the same dev server imports the frame read
   back with two designer edits → Update from Figma three ways, 2 changes ticked; Apply keeps Container / titleLines /
   ListBox theme / aria and writes the pull back beside the page.
+- C had built the same in parallel (zen/fix/studio-figma-base-mirror-20261023, `<id>.figma-base.json`, no PR; Giám sát
+  gave the item here). Compared: both keep the exports and the last pull and test with a second browser context; this
+  version also joins with the folder's file before a write (another browser's exports stay), checks the file's shape,
+  shares the first pull of an imported page, and its HO-13 applies and checks the pull written back. Folded in from C:
+  the file is compact JSON (page documents roughly halve against pretty-printed).

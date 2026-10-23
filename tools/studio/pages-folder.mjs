@@ -211,7 +211,7 @@ export function pagesFolder(root, { validate = () => [], dir = PAGES_DIR } = {})
       checkId(id);
       const errors = validateFigma(doc);
       if (errors.length) throw new PagesError("invalid", `Not valid Figma bases: ${errors[0]}`);
-      const text = `${JSON.stringify(doc, null, 2)}\n`;
+      const text = `${JSON.stringify(doc)}\n`;
       if (Buffer.byteLength(text, "utf8") > MAX_FIGMA) throw new PagesError("invalid", `A page's Figma bases are at most ${MAX_FIGMA / 1024 / 1024} MB`);
       await ensureDir(pagesAbs);
       const abs = path.join(pagesAbs, `${id}${FIGMA_SUFFIX}`);

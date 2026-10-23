@@ -46,7 +46,7 @@ test("join never changes the copies it is given", () => {
 });
 test("fit drops the oldest exports until the file is small enough; the pull stays", () => {
   const big = { format: 1, exports: [exp("v3", 3), exp("v2", 2), exp("v1", 1)], pull: { base: doc("p"), at: 4 } };
-  const one = new TextEncoder().encode(JSON.stringify({ ...big, exports: big.exports.slice(0, 1) }, null, 2)).length + 1;
+  const one = new TextEncoder().encode(JSON.stringify({ ...big, exports: big.exports.slice(0, 1) })).length + 1;
   const fitted = fitFigma(big, one);
   assert.deepEqual(fitted.exports.map((entry) => entry.version), ["v3"]);
   assert.ok(fitted.pull);

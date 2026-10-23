@@ -10,10 +10,11 @@
 //   emptyFigma() → { format: 1, exports: [] }
 //   validateFigma(doc) → [message…]   (the shape; [] when it is fine)
 //   joinFigma(a, b) → the two copies joined: exports by version (the later one winning), the later pull
-//   fitFigma(doc, maxBytes) → the newest exports that fit in maxBytes as JSON (the pull always stays)
+//   fitFigma(doc, maxBytes) → the newest exports that fit in maxBytes as compact JSON (the pull always stays)
 //
 // Every function returns a new document. The documents (`base`, `synced`) are page documents (tools/studio/doc.mjs) and
-// are not checked here beyond being objects. No imports.
+// are not checked here beyond being objects. The file is compact JSON (documents are large; nobody reads it by hand).
+// No imports.
 
 export const FIGMA_FORMAT = 1;
 export const FIGMA_EXPORTS = 5;
@@ -58,9 +59,9 @@ export function joinFigma(a, b) {
   return { format: FIGMA_FORMAT, exports, ...(pulls.length ? { pull: pulls[0] } : {}) };
 }
 
-/** The newest exports that keep `doc` within `maxBytes` as JSON; the pull always stays. */
+/** The newest exports that keep `doc` within `maxBytes` as compact JSON; the pull always stays. */
 export function fitFigma(doc, maxBytes) {
-  const size = (value) => new TextEncoder().encode(JSON.stringify(value, null, 2)).length + 1;
+  const size = (value) => new TextEncoder().encode(JSON.stringify(value)).length + 1;
   let exports = doc.exports;
   while (exports.length && size({ ...doc, exports }) > maxBytes) exports = exports.slice(0, -1);
   return { ...doc, exports };

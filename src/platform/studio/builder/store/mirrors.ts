@@ -128,7 +128,7 @@ function folderMirror(handle: DirHandle): PageMirror {
     },
     async writeFigma(id, figma) {
       const out = await (await handle.getFileHandle(`${id}${FIGMA_SUFFIX}`, { create: true })).createWritable();
-      await out.write(`${JSON.stringify(figma, null, 2)}\n`);
+      await out.write(`${JSON.stringify(figma)}\n`);
       await out.close();
     },
     async trash(id) {
