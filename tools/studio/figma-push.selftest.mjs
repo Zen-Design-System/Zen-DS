@@ -1789,15 +1789,15 @@ export default function Page() {
           <ChartCard title="Invoiced and collected">
             <LineChart aria-label="Invoiced and collected" legendPosition="top" label="Invoiced" data={[{ label: "Mar", value: 1 }, { label: "Apr", value: 1 }, { label: "May", value: 1 }, { label: "Jun", value: 1 }, { label: "Jul", value: 1 }, { label: "Aug", value: 1 }, { label: "Sep", value: 1 }]} compare={{ label: "Collected", values: [1, 1, 1, 1, 1, 1, 1] }} />
           </ChartCard>
-          <ChartCard title="Hours" theme="border"><StackBarChart aria-label="Hours" series={[{ id: "a", label: "A" }]} data={[{ label: "Apr", values: { a: 1 } }]} /></ChartCard>
+          <ChartCard title="Hours" theme="border"><StackBarChart palette="secondary" aria-label="Hours" series={[{ id: "a", label: "A" }]} data={[{ label: "Apr", values: { a: 1 } }]} /></ChartCard>
           <ChartCard title="Capacity" theme="pale"><BarChart orientation="horizontal" showAverage aria-label="Capacity" data={[{ label: "Design", value: 2650 }, { label: "Delivery", value: 750, projected: true }]} /></ChartCard>
-          <ChartCard title="Clients"><DonutChart aria-label="Clients" totalPosition="start" label="Invoiced in Q3" value="$296.8K" data={[{ id: "a", label: "A", value: 1 }]} /></ChartCard>
+          <ChartCard title="Clients"><DonutChart palette="secondary" aria-label="Clients" totalPosition="start" label="Invoiced in Q3" value="$296.8K" data={[{ id: "a", label: "A", value: 1 }]} /></ChartCard>
           <ChartCard title="Budget"><RadialChart aria-label="Budget" legendPosition="end" data={[{ id: "a", label: "A", value: 36 }]} /></ChartCard>
           <ChartCard title="When"><HeatmapChart aria-label="When" columns={["Mon"]} rows={["9 am"]} values={[[1]]} /></ChartCard>
           <ChartCard title="Hours by team"><AreaChart type="stacked" aria-label="Hours by team" series={[{ id: "a", label: "A" }, { id: "b", label: "B" }]} data={[{ label: "Apr", values: { a: 1, b: 2 } }]} /></ChartCard>
           <ChartCard title="Invoiced vs. collected"><GroupedBarChart aria-label="Invoiced vs. collected" series={[{ id: "a", label: "A" }, { id: "b", label: "B" }]} data={[{ label: "Apr", values: { a: 1, b: 2 } }]} /></ChartCard>
           <ChartCard title="Revenue and margin"><ComboChart aria-label="Revenue and margin" barLabel="Revenue" lineLabel="Margin" data={[{ label: "Apr", bar: 1, line: 2 }]} /></ChartCard>
-          <ChartCard title="Utilisation"><GaugeChart aria-label="Utilisation" value={82} target={85} showLegend={false} /></ChartCard>
+          <ChartCard title="Utilisation"><GaugeChart palette="secondary" aria-label="Utilisation" value={82} target={85} showLegend={false} /></ChartCard>
           <ChartCard title="Proposal funnel"><FunnelChart aria-label="Proposal funnel" data={[{ label: "Leads", value: 240 }, { label: "Signed", value: 62 }]} /></ChartCard>
           <ChartCard title="Top clients"><BarList aria-label="Top clients" data={[{ label: "A", value: 3 }, { label: "B", value: 2 }, { label: "C", value: 1 }]} /></ChartCard>
           <ChartCard title="Quarter goals"><BulletChart aria-label="Quarter goals" data={[{ label: "Revenue", value: 612000, target: 600000 }]} /></ChartCard>
@@ -1828,7 +1828,12 @@ export default function Page() {
   check("RadialChart legendPosition end: Legend End", charts[5].props.Legend, "End");
   check("AreaChart stacked: Type Stacked, Show Legend on (the code's default when stacked)", [charts[7].props.Type, charts[7].props["Show Legend"]], ["Stacked", true]);
   check("Show Legend by the code's default: on (Grouped, Combo, Bullet); Gauge as written", [8, 9, 10, 13].map((index) => charts[index].props["Show Legend"]), [true, true, false, true]);
-  check("Funnel, Bar list, Heatmap: no variant or legend property", [6, 11, 12].map((index) => Object.keys(charts[index].props).filter((name) => !head.includes(name))), [[], [], []]);
+  check("Funnel, Bar list, Heatmap: no variant or legend property (Funnel: Color)", [6, 11, 12].map((index) => Object.keys(charts[index].props).filter((name) => !head.includes(name))), [[], ["Color"], []]);
+  // Figma Color (2026-10-17) ↔ palette: the ten sets that have it, Secondary where the page says palette="secondary".
+  check("Color: Primary unless palette=\"secondary\"; Line, Multi-Line, Heatmap and Bar list have none", charts.map((chart) => chart.props.Color ?? null), [null, null, "Secondary", "Primary", "Secondary", "Primary", null, "Primary", "Primary", "Primary", "Secondary", "Primary", null, "Primary"]);
+  check("Gauge, Funnel, Bullet: their sets (2026-10-17), not the old lone components", [10, 11, 13].map((index) => charts[index].set.id), ["15968:130382", "15968:130460", "15968:130554"]);
+  const styles = (node) => [...(node.fillStyle ? [node.fillStyle] : []), ...[...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children ?? [])].flatMap(styles)];
+  check("palette=\"secondary\": the drawn marks swap Sector/Primary and /Secondary (a stack's first series, a donut's first slice)", [styles(charts[2])[0], styles(charts[4])[0]], ["Color Chart Sector/Secondary", "Color Chart Sector/Secondary"]);
   check("a chart on its own: every header toggle off, its Heading hidden, the code's defaults (Area: no legend, Bar: Vertical)", bare.map((chart) => [chart.props["Show Icon"], chart.props["Show Ranges"], chart.props["Show Open"], chart.hide, chart.props["Show Legend"] ?? chart.props.Orientation]), [[false, false, false, ["Heading"], false], [false, false, false, ["Heading"], "Vertical"]]);
   check("a chart in a ChartCard keeps its own key (its element id); the card the ChartCard's", cards.every((card) => card.key && card.slots[0].children[0].key && card.key !== card.slots[0].children[0].key), true);
   ok("notes: Figma draws its own sample data, once per kind", notes.some((note) => /^LineChart: Figma's Chart\/Line-Chart draws its own sample data/.test(note)) && notes.some((note) => /^BulletChart: Figma's Chart\/Bullet-Chart draws its own sample data/.test(note)));
@@ -2435,6 +2440,31 @@ export default function Page() {
   ] };
   const readBack = pageFromFigma(read, { mapping }).text;
   check("pull of a read: a rectangle's and a frame's smoothing in %", [/<Shape type="rectangle"[^>]*cornerSmoothing=\{60\}/.test(readBack), /radius="lg" cornerSmoothing=\{60\}/.test(readBack)], [true, true]);
+}
+
+// An AppShell's own phone bars (topNavigation / bottomNavigation) are not drawn (the runtime shows the Screen's): the
+// push names them, for a root AppShell on a phone Screen and for one inside a page (BACKLOG P3, 2026-10-23).
+{
+  const shellPage = (inner) => `// @zen-page {"format":1,"title":"Shell bars"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, BottomNavigation, Box, Text, TopNavigation } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Shell bars" device="phone">
+        ${inner}
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const shell = '<AppShell topNavigation={<TopNavigation title="Inbox" />} bottomNavigation={<BottomNavigation items={[{ id: "home", label: "Home", icon: "icon-home-02-line" }]} selected="home" />}><Text>Body</Text></AppShell>';
+  const barNotes = (notes) => notes.filter((note) => /^AppShell (topNavigation|bottomNavigation): drawn only as the Screen's own bars/.test(note)).length;
+  check("a root AppShell's phone bars are named, not drawn", barNotes(push(shellPage(shell)).notes), 2);
+  check("a page's AppShell's phone bars are named too", barNotes(push(shellPage(`<Box>${shell}</Box>`)).notes), 2);
 }
 
 // A frame's own variable modes (Studio Variables v2, user 2026-10-23: `modes={{ … }}`): push writes { axis: mode id } on

@@ -9,6 +9,7 @@ import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { DockIcon, type DockIconTheme } from "../../../components/DockIcon";
 import { Avatar } from "../../../components/Avatar";
 import { Badge, BadgeCounter } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { DescriptionList } from "../../../components/DescriptionList";
@@ -23,7 +24,7 @@ import { TopNavigation } from "../../../components/TopNavigation";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import {
   activity, daysFromToday, formatDate, formatDue, formatMoney, formatRange, formatRelative, formatTime, initials, invoices, leaveRequests, people,
-  projectStatusTheme, projects, type Person, type Project,
+  projectProgress, projectStep, projects, type Person, type Project,
 } from "../data";
 import { keepOnHotUpdate } from "../../hotData";
 
@@ -107,7 +108,7 @@ function ProjectTable() {
         { id: "lead", header: "Lead", width: "200px", cell: (row) => (
           <TableMedia media={<Avatar size="xs" {...avatarFor(person(row.lead))} />} bold={false}>{person(row.lead).name}</TableMedia>
         ) },
-        { id: "status", header: "Status", width: "140px", cell: (row) => <TableBadges><Badge theme={projectStatusTheme[row.status]} background="subtle">{row.status}</Badge></TableBadges> },
+        { id: "status", header: "Status", width: "140px", cell: (row) => <TableBadges><BadgeStatus status={projectStep[row.status]} progress={projectProgress(row)}>{row.status}</BadgeStatus></TableBadges> },
         { id: "due", header: "Due", width: "150px", sortable: true, cell: (row) => <TableText>{formatDate(row.due)}</TableText> },
         { id: "budget", header: "Budget", align: "right", width: "140px", sortable: true, cell: (row) => <TableText>{formatMoney(row.budget, true)}</TableText> },
       ]} />
@@ -327,7 +328,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
       </TableMedia>
     ) },
     { id: "lead", header: "Lead", cell: (row) => <TableMedia media={<Avatar size="xs" {...avatarFor(lead)} />} bold={false}>{lead.name}</TableMedia> },
-    { id: "status", header: "Status", cell: (row) => <TableBadges><Badge theme={projectStatusTheme[row.status]} background="subtle">{row.status}</Badge></TableBadges> },
+    { id: "status", header: "Status", cell: (row) => <TableBadges><BadgeStatus status={projectStep[row.status]} progress={projectProgress(row)}>{row.status}</BadgeStatus></TableBadges> },
     { id: "due", header: "Due", sortable: true, cell: (row) => <TableText>{formatDate(row.due)}</TableText> },
     { id: "budget", header: "Budget", align: "right", sortable: true, cell: (row) => <TableText>{formatMoney(row.budget, true)}</TableText> },
   ]} />`,

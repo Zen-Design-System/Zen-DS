@@ -3,6 +3,7 @@ import { Accordion } from "../../../components/Accordion";
 import { ActionBar } from "../../../components/ActionBar";
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader, AppShellPane } from "../../../components/AppShell";
 import { Badge, BadgeCounter } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
@@ -33,7 +34,7 @@ import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { PreviewAppFrame, StudioLogo } from "../../PlatformFrames";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
-import { daysFromToday, formatDate, formatMoney, leaveBalance, me, people, projectStatusTheme, projects, studio, tasks, type Project } from "../data";
+import { daysFromToday, formatDate, formatMoney, leaveBalance, me, people, projectProgress, projectStep, projects, studio, tasks, type Project } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
 import "./accordion.css";
@@ -360,7 +361,7 @@ function ProjectFiltersExample() {
           {rows.map((project) => (
             <ListItem key={project.id} leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" size="medium" />} title={project.name}
               caption={project.client} onClick={() => { setOpened(project); setDetailOpen(true); }}
-              trailing={<Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>} />
+              trailing={<BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>} />
           ))}
         </List>
       </ListBox>
@@ -369,7 +370,7 @@ function ProjectFiltersExample() {
         title={opened?.name ?? ""} description={opened?.client}>
         {opened ? (
           <DescriptionList items={[
-            { id: "status", term: "Status", description: <Badge theme={projectStatusTheme[opened.status]} background="subtle">{opened.status}</Badge> },
+            { id: "status", term: "Status", description: <BadgeStatus status={projectStep[opened.status]} progress={projectProgress(opened)}>{opened.status}</BadgeStatus> },
             { id: "lead", term: "Project lead", description: people[opened.lead].name },
             { id: "due", term: "Due", description: formatDate(opened.due) },
             { id: "progress", term: "Progress", description: `${opened.progress}%` },

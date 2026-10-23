@@ -7,6 +7,7 @@ import { ActionBar } from "../../../components/ActionBar";
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
@@ -32,7 +33,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import {
   TODAY, activity, daysFromToday, formatBytes, formatDate, formatDue, formatMoney, formatRelative, initials, invoiceStatusTheme,
-  invoices, me, people, priorityTheme, projectById, studio, studioMonths, taskStatusTheme, tasks, type Activity, type Invoice, type PersonId,
+  invoices, me, people, priorityTheme, projectById, studio, studioMonths, taskStep, tasks, type Activity, type Invoice, type PersonId,
   type Task,
 } from "../data";
 import type { ExampleDef } from "../types";
@@ -487,7 +488,7 @@ function TaskDetailPhoneExample() {
             spaces the title, the fields and the description Layout-Mobile/Section-Gap apart. */}
         <Stack gap="xs" aria-busy={loading}>
           <Heading level={2} textStyle="Heading/4">{task.title}</Heading>
-          {loading ? <SkeletonShape shape="pill" size="xs" /> : <Badge background="subtle" theme={taskStatusTheme[status]}>{status}</Badge>}
+          {loading ? <SkeletonShape shape="pill" size="xs" /> : <BadgeStatus status={taskStep[status]}>{status}</BadgeStatus>}
         </Stack>
         <Card theme="default" aria-busy={loading}>
           <DescriptionList divider items={[

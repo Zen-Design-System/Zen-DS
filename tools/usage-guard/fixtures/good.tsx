@@ -188,6 +188,8 @@ export const Good = () => <>
   <AppShell sidebar={nav} header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} main={<PageHeader title="Invoices" />} />} topNavigation={<TopNavigation title="Invoices" largeTitle="Invoices" />} bottomNavigation={<BottomNavigation value="invoices" onValueChange={go} items={roots} />}>{page}</AppShell>
   {/* The Master crumb stays when the toggle moves into the Sidebar; each pattern gets the panes it draws. */}
   <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader leading={<Breadcrumbs items={crumbs} onNavigate={go} />} />}>{page}</AppShell>
+  {/* A part's content carries its own props: the header's BadgeStatus progress is not the shell's progress. */}
+  <AppShell sidebar={nav} header={<AppShellHeader main={<PageHeader title="Loyalty app" meta={<BadgeStatus status="in-progress" progress={64}>Active</BadgeStatus>} />} />}>{page}</AppShell>
   <AppShell pattern="workspace" header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} />} leadingPane={<AppShellPane title="Files">{fileList}</AppShellPane>} trailingPane={<AppShellPane title="Comments">{comments}</AppShellPane>}>{page}</AppShell>
   {/* A comment with an apostrophe inside an attribute's expression is no string: the tag still reads as one AppShell. */}
   <AppShell sidebar={(
@@ -221,6 +223,9 @@ export const Good = () => <>
   <AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026" data={data} series={[{ id: "design", label: "Design" }, { id: "engineering", label: "Engineering" }, { id: "delivery", label: "Delivery" }]} />
   <GroupedBarChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={data} series={[{ id: "invoiced", label: "Invoiced" }, { id: "collected", label: "Collected" }]} />
   <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" data={combo} barLabel="Revenue" lineLabel="Margin" lineMax={100} />
+  <BarChart palette="secondary" aria-label="Revenue per month, Apr – Sep 2026" data={data} />
+  <GroupedBarChart palette="secondary" aria-label="Invoiced and collected per month, Apr – Sep 2026" data={data} series={[{ id: "invoiced", label: "Invoiced" }, { id: "collected", label: "Collected" }]} />
+  <BarChart aria-label="Revenue per month, Apr – Sep 2026" data={data} color="var(--zen-color-background-support-cyan-solid)" />
   <TableMedia media={<Avatar size="small" theme="photo" src={photo} alt="" />} caption="Designer">Ava Chen</TableMedia>
   <TableMedia media={<Avatar size="xsmall" theme="photo" src={photo} alt="" />}>Ava Chen</TableMedia>
   <TableMedia media={<DockIcon icon="icon-file-doc-line" size="xsmall" />}>Spec.pdf</TableMedia>

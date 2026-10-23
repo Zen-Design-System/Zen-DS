@@ -847,7 +847,7 @@ export interface ChatComposerProps {
   onEmoji?: () => void;
   /** Figma Leading-Actions (plus · mic · photo; only plus while typing): Nav-Action/Icon-Flat 44px on mobile, Button/Icon-Flat Medium 40px on desktop. `icon`: an icon name or an element. */
   actions?: { icon: IconName | ReactElement; label: string; onClick?: () => void }[];
-  /** Figma Trailing-Actions when the field is empty (a 👍 "Send a like" by default). While typing it becomes Send. `icon`: an icon name or an element. */
+  /** Figma Trailing-Actions when the field is empty: by default a 👍 "Send a like" that sends "👍" through `onSend`. While typing it becomes Send. `icon`: an icon name or an element. */
   quickAction?: { icon: IconName | ReactElement; label: string; onClick?: () => void };
   device?: "mobile" | "desktop";
   disabled?: boolean;
@@ -877,7 +877,8 @@ export function ChatComposer({ onSend, placeholder: placeholderProp, label: labe
   const nest = useNested(overrides);
   const placeholder = placeholderProp ?? t.composerPlaceholder;
   const label = labelProp ?? t.message;
-  const quickAction = quickActionProp ?? { icon: "icon-thumbs-up-line" as IconName, label: t.sendLike };
+  // The default 👍 sends a like through onSend, so a composer that keeps it has no dead button.
+  const quickAction = quickActionProp ?? { icon: "icon-thumbs-up-line" as IconName, label: t.sendLike, onClick: () => onSend("👍") };
   const [text, setText] = useState("");
   const fieldRef = useRef<HTMLTextAreaElement>(null);
   // Reply moves focus into the field. A passive effect on purpose: it runs after the unmount cleanups of the same commit,

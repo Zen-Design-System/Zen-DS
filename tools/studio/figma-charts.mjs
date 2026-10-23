@@ -10,7 +10,8 @@ import { docFromText } from "./doc.mjs";
 import { paletteItem } from "../../src/platform/studio/slots/palette.ts";
 
 /** Every chart set; the plugin finds a set by its id, then by its name. Line, Stack-Bar, Bar, Area, Grouped-Bar and
- *  Combo have a Sector of 4 · 6 · 7 · 12 periods (the live file, 2026-10-17). */
+ *  Combo have a Sector of 4 · 6 · 7 · 12 periods (the live file, 2026-10-17). Gauge, Funnel and Bullet became sets on
+ *  2026-10-17 (Color): their old component ids are now the Color=Primary variants (15486:2467, 15486:2497, 15487:2516). */
 export const CHART_SETS = {
   line: { id: "15929:120139", name: "Chart/Line-Chart" },
   stackBar: { id: "15930:4271", name: "Chart/Stack-Bar-Chart" },
@@ -22,10 +23,10 @@ export const CHART_SETS = {
   area: { id: "15484:2663", name: "Chart/Area-Chart" },
   groupedBar: { id: "15933:120083", name: "Chart/Grouped-Bar-Chart" },
   combo: { id: "15934:7580", name: "Chart/Combo-Chart" },
-  gauge: { id: "15486:2467", name: "Chart/Gauge-Chart" },
-  funnel: { id: "15486:2497", name: "Chart/Funnel-Chart" },
+  gauge: { id: "15968:130382", name: "Chart/Gauge-Chart" },
+  funnel: { id: "15968:130460", name: "Chart/Funnel-Chart" },
   barList: { id: "15487:2473", name: "Chart/Bar-List" },
-  bullet: { id: "15487:2516", name: "Chart/Bullet-Chart" },
+  bullet: { id: "15968:130554", name: "Chart/Bullet-Chart" },
 };
 /** Chart/Chart-Card (a component holding a Card whose Content slot holds a chart): read as its Card. */
 export const CHART_CARD_SET = { id: "6643:63528", name: "Chart/Chart-Card" };
@@ -39,6 +40,9 @@ export const CHART_COMPONENTS = new Set(["LineChart", "StackBarChart", "BarChart
 /** Sets with Show Average + Average (↔ showAverage) and with Show Legend (↔ showLegend). */
 const AVERAGE = new Set(["line", "stackBar", "multiLine", "bar"]);
 const LEGEND = new Set(["area", "groupedBar", "combo", "gauge", "bullet"]);
+/** Sets with Color = Primary | Secondary (↔ palette; the live file, 2026-10-17): Line, Multi-Line, Bar-List and Heatmap
+ *  have none. */
+const COLOR = new Set(["bar", "stackBar", "area", "groupedBar", "combo", "donut", "radial", "gauge", "funnel", "bullet"]);
 /** Chart/Multi-Line-Chart's Sector options: as many periods as the line has points. */
 const SECTORS = [4, 6, 7, 12];
 /** Sets whose Sector is the period count (2026-10-17): the smallest that holds every point, so none is dropped. */
@@ -46,6 +50,11 @@ const SECTORED = new Set(["line", "stackBar", "bar", "area", "groupedBar", "comb
 const sectorFor = (count) => SECTORS.find((sectors) => sectors >= count) ?? SECTORS[SECTORS.length - 1];
 /** The paint style of the i-th series or slice (chartCore chartPalette; Figma's "Color Chart Sector/…", never variables). */
 const SECTOR_STYLES = ["Primary", "Secondary", "Tertiary", "Quaternary", "Quinary", "Senary", "Septenary"].map((name) => `Color Chart Sector/${name}`);
+/** The style of the i-th series or slice under `palette` (chartCore sectorAt): "secondary" swaps the first two. */
+const sectorStyle = (index, palette) => {
+  const slot = index % SECTOR_STYLES.length;
+  return SECTOR_STYLES[palette === "secondary" && slot < 2 ? 1 - slot : slot];
+};
 /** chartCore defaultFormat: a number as the code writes it without `format` (a tick, a tooltip, a total). */
 const formatNumber = (value) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`);
 /** chartCore niceScale: the axis top and its ticks (a 1 · 2 · 2.5 · 5 step, at most 5 steps). */
@@ -147,7 +156,7 @@ function stackBarMarks(values, sectors, notes, where, setName) {
     const stack = segments.length ? [{
       type: "FRAME", name: "Stack", radius: 8, radiusVar: "Corner-Radius/Small", clip: true,
       layout: { mode: "GRID", gap: 0, rowGap: 0, padding: [0, 0, 0, 0], grid: { columns: 1, rows: segments.length, rowSizes: segments.map((segment) => ({ type: "FLEX", value: (segment.value / total) * 100 })) } },
-      children: segments.map((segment, row) => ({ type: "FRAME", name: segment.s.label ?? segment.s.id, fillStyle: SECTOR_STYLES[segment.si % SECTOR_STYLES.length], cell: { col: 0, row, span: 1 }, fillW: true, fillH: true })),
+      children: segments.map((segment, row) => ({ type: "FRAME", name: segment.s.label ?? segment.s.id, fillStyle: sectorStyle(segment.si, values.palette), cell: { col: 0, row, span: 1 }, fillW: true, fillH: true })),
       cell: { col: 0, row: rows.length - 1, span: 1 }, fillW: true, fillH: true,
     }] : [];
     slots.push({
@@ -229,11 +238,11 @@ function donutMarks(values, px, notes, where, setName) {
   const drawn = slices.filter((slice) => slice.share > 0);
   const whole = { x: 0, y: 0, w: 1, h: 1 };
   const marks = drawn.length === 1
-    ? [{ type: "ELLIPSE", name: "Slice", arc: { start: 0, end: Math.PI * 2, inner: (50 - RING) / 50 }, fillStyle: SECTOR_STYLES[drawn[0].i % SECTOR_STYLES.length], place: whole }]
+    ? [{ type: "ELLIPSE", name: "Slice", arc: { start: 0, end: Math.PI * 2, inner: (50 - RING) / 50 }, fillStyle: sectorStyle(drawn[0].i, values.palette), place: whole }]
     : drawn.map((slice) => ({
       type: "VECTOR", name: "Slice", box: { w: 100, h: 100 },
       d: slicePath((slice.start / 100) * Math.PI * 2, ((slice.start + slice.share) / 100) * Math.PI * 2, 50, 50 - RING, (SLICE_GAP_PX / 2) * unit, SLICE_CORNER_PX * unit),
-      fillStyle: SECTOR_STYLES[slice.i % SECTOR_STYLES.length], strokeStyle: SECTOR_STYLES[slice.i % SECTOR_STYLES.length], strokeWeight: SLICE_CORNER_PX * 2, strokeJoin: "ROUND",
+      fillStyle: sectorStyle(slice.i, values.palette), strokeStyle: sectorStyle(slice.i, values.palette), strokeWeight: SLICE_CORNER_PX * 2, strokeJoin: "ROUND",
       place: whole,
     }));
   const r = 50 - RING / 2;
@@ -270,6 +279,7 @@ export function chartFigma(name, values, notes, where) {
   }
   if (key === "bar") props.Orientation = values.orientation === "horizontal" ? "Horizontal" : "Vertical";
   if (key === "area") props.Type = values.type === "stacked" ? "Stacked" : "Area";
+  if (COLOR.has(key)) props.Color = values.palette === "secondary" ? "Secondary" : "Primary";
   // As many periods as the data has (the smallest Sector that holds them).
   const periods = Array.isArray(values.data) ? values.data.length : null;
   const sectors = periods === null ? SECTORS[0] : sectorFor(periods);
@@ -469,6 +479,7 @@ export function chartFromFigma(node, notes, where) {
   }
   if (key === "bar") { if (figma.Orientation === "Horizontal") set("orientation", "horizontal"); else unset("orientation"); }
   if (key === "area") { if (figma.Type === "Stacked") set("type", "stacked"); else unset("type"); }
+  if (COLOR.has(key)) { if (figma.Color === "Secondary") set("palette", "secondary"); else unset("palette"); }
   if (key === "donut") {
     if (figma.Total === "Start") { set("totalPosition", "start"); unset("legendPosition"); }
     else if (figma.Legend === "Start") set("legendPosition", "start");

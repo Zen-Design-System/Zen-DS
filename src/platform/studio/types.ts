@@ -191,6 +191,12 @@ export type DataSource = {
   editable: boolean;
   /** kind "param": a prop of a component of the file (`PersonAvatar`'s `person`, then `path`), written where it is used. */
   component?: string;
+  /**
+   * kind "param" read by a helper function of the file (`personAvatar(people[t.assignee])` draws `src={p.photo}`): written
+   * in the data of the call that drew the instance (op setDataField `via`); `prop` / `child` are then the element's own.
+   */
+  helper?: string;
+  child?: number;
   prop?: string;
   source?: string;
   path?: string[];
@@ -198,6 +204,24 @@ export type DataSource = {
   reason?: string;
   /** Client only (the inspector): which row of the list the selected instance renders, for the edit and its note. */
   row?: number;
+};
+
+/** A plain field the canvas read (a row's id or title), to find the row of the data it was made from. */
+export type ViaField = string | number | boolean;
+
+/**
+ * An annotated element above an instance that holds it in its props (op setDataField `via`, nearest first): `prop` and
+ * `path` lead to it (RowCard's `rows` › [3] › `leading`), each list place with the plain fields of its item; `row` /
+ * `fields` the holder's own .map row (its place, its plain props and key); `holds`: the index in `via` of the holder
+ * whose element this one holds instead of the instance (a helper that draws that holder).
+ */
+export type ViaHolder = {
+  loc: string;
+  prop: string;
+  path: Array<string | { index: number; fields?: Record<string, ViaField> }>;
+  row?: number;
+  fields?: Record<string, ViaField>;
+  holds?: number;
 };
 
 /** A field of an object literal: a plain literal, an expression as written, or a spread (`key` "…"). */
@@ -292,9 +316,11 @@ export type EditOp =
    * A Table cell (2026-10-10): `row` is the row's place among the Table's rendered rows, `rowKey` its React key
    * (getRowId), `rowFields` its plain fields as rendered (the row is found by them when the code computes its key),
    * `table` the Table's loc (the column may be written apart from it); `field` (on the Table itself) names the row field
-   * a column without `cell` draws. `path`: fields after the value (`person={people[row.id]}` then `.theme`).
+   * a column without `cell` draws. `path`: fields after the value (`person={people[row.id]}` then `.theme`), or inside a
+   * value written in place (`items={[{ src }, …]}`: ["2", "src"]). `via`: for a value a helper builds from its argument
+   * (DataSource kind "param" with `helper`), the annotated elements above the instance that hold it (inspector/callSite.ts).
    */
-  | { op: "setDataField"; prop?: string; child?: number; row?: number; rowKey?: string; rowFields?: Record<string, string | number | boolean>; table?: string; field?: string[]; path?: string[]; value: EditValue }
+  | { op: "setDataField"; prop?: string; child?: number; row?: number; rowKey?: string; rowFields?: Record<string, string | number | boolean>; table?: string; field?: string[]; path?: string[]; via?: ViaHolder[]; value: EditValue }
   /** A fixed prop of an element a `.map` draws, made that row's own (core rebuild M4): the rows get a field, the element reads it. */
   | { op: "setRowProp"; name: string; row: number; value: EditValue }
   /**

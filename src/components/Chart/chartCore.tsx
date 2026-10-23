@@ -50,8 +50,23 @@ export const chartPalette = [
   "var(--zen-chart-sector-septenary, var(--zen-color-background-support-green-soft, #acdaae))",
 ] as const;
 
-/** The colour of the series (or slice) at `index`: its own colour, else the palette in order. */
-export const colourAt = (item: { color?: string } | undefined, index: number) => item?.color ?? chartPalette[index % chartPalette.length];
+/** Figma Color on the chart sets that lead with the first two sector styles (Bar, Stack-Bar, Area, Grouped-Bar, Combo,
+ *  Donut, Radial, Gauge, Funnel, Bullet; the user 2026-10-17: "dùng secondary trước, hover là primary"): `primary` keeps
+ *  the palette in order; `secondary` swaps its first two — what was Color Chart Sector/Primary takes Sector/Secondary and
+ *  the other way round — so a Neutral Deep chart takes the brand colour as its highlight. Sectors 3–7 stay. */
+export type ChartPaletteName = "primary" | "secondary";
+
+/** The palette slot of the item at `index`: in order, the first two swapped under `palette="secondary"`. */
+const slotAt = (index: number, palette: ChartPaletteName = "primary") => {
+  const slot = index % chartPalette.length;
+  return palette === "secondary" && slot < 2 ? 1 - slot : slot;
+};
+
+/** The sector colour at `index` of a palette (Figma Color): `sectorAt(0, "secondary")` is Chart/Sector/Secondary. */
+export const sectorAt = (index: number, palette?: ChartPaletteName) => chartPalette[slotAt(index, palette)];
+
+/** The colour of the series (or slice) at `index`: its own colour, else the palette in order (Figma Color: `palette`). */
+export const colourAt = (item: { color?: string } | undefined, index: number, palette?: ChartPaletteName) => item?.color ?? sectorAt(index, palette);
 
 /** The fade under an area, per palette slot (Figma Chart/Line-Chart's Trend and Chart/Area-Chart, 2026-10-14): a
  *  vertical gradient from a Solid colour at the area's highest point to its Subtle at the baseline, the whole area at 30%
@@ -68,11 +83,12 @@ export const chartFades = [
   [chartPalette[6], "var(--zen-chart-sector-septenary-subtle, var(--zen-color-background-support-green-subtle, rgb(172 218 174 / 16%)))"],
 ] as const;
 
-/** The fade of the series at `index`: the palette slot's Solid → Subtle, or a series' own `color` fading to 16% of itself
- *  (about the Support ramps' Subtle). */
-export const fadeAt = (item: { color?: string } | undefined, index: number) => {
+/** The fade of the series at `index`: the palette slot's Solid → Subtle (under `palette="secondary"` the first area takes
+ *  the Neutral pair and the second the Accent pair, as Figma Area-Chart Color=Secondary), or a series' own `color` fading
+ *  to 16% of itself (about the Support ramps' Subtle). */
+export const fadeAt = (item: { color?: string } | undefined, index: number, palette?: ChartPaletteName) => {
   if (item?.color) return { top: item.color, bottom: item.color, bottomOpacity: 0.16 };
-  const [top, bottom] = chartFades[index % chartFades.length];
+  const [top, bottom] = chartFades[slotAt(index, palette)];
   return { top, bottom, bottomOpacity: undefined };
 };
 
@@ -182,14 +198,15 @@ function useBesideWrapped(block: RefObject<HTMLDivElement | null>, on: boolean) 
   return wrapped;
 }
 
-/** A chart with its legend before or after it (top / bottom; start / end beside it for round charts). */
-export function ChartBlock({ legend, position = "bottom", kind, children, className, layout, ref }: { legend?: ReactNode; position?: ChartLegendPosition; kind: string; children: ReactNode; className?: string; layout?: string; ref?: Ref<HTMLDivElement> }) {
+/** A chart with its legend before or after it (top / bottom; start / end beside it for round charts). `palette="secondary"`
+ *  swaps the two lead sector colours its CSS marks read (`--zen-chart-lead`, `--zen-chart-second`; chart.css). */
+export function ChartBlock({ legend, position = "bottom", kind, children, className, layout, palette, ref }: { legend?: ReactNode; position?: ChartLegendPosition; kind: string; children: ReactNode; className?: string; layout?: string; palette?: ChartPaletteName; ref?: Ref<HTMLDivElement> }) {
   const own = useRef<HTMLDivElement>(null);
   const merged = useMergedRefs(own, ref);
   const beside = Boolean(legend && (position === "start" || position === "end")) || layout === "total-start";
   const wrapped = useBesideWrapped(own, beside);
   return (
-    <div ref={merged} className={["zen-chart-block", className].filter(Boolean).join(" ")} data-kind={kind} data-legend={legend ? position : undefined} data-layout={layout} data-wrapped={beside && wrapped ? "true" : undefined}>
+    <div ref={merged} className={["zen-chart-block", className].filter(Boolean).join(" ")} data-kind={kind} data-legend={legend ? position : undefined} data-layout={layout} data-wrapped={beside && wrapped ? "true" : undefined} data-palette={palette === "secondary" ? palette : undefined}>
       {children}
       {legend}
     </div>

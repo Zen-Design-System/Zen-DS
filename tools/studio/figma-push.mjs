@@ -392,6 +392,10 @@ const frameModes = (value) => {
   const modes = Object.fromEntries(Object.entries(value).filter(([axis, mode]) => MODE_AXES.has(axis) && typeof mode === "string"));
   return Object.keys(modes).length ? modes : null;
 };
+/** An AppShell's phone bars (AppShell.tsx mobile Top / Bottom): figma-push draws the Screen's own bars instead (BACKLOG
+ *  P3 "AppShell phone bars in Figma"), so a page's AppShell ones only get a note. */
+const APP_SHELL_MOBILE_BARS = ["topNavigation", "bottomNavigation"];
+const MOBILE_BARS_NOTE = "drawn only as the Screen's own bars (set them in the Screen section)";
 
 function entryFor(name, code, byCode, mapping) {
   const entries = byCode.get(name);
@@ -886,6 +890,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     const header = layerOf(element, "header")?.name === "AppShellHeader" ? layerOf(element, "header") : null;
     const hasTopBar = Boolean(header) && ["leading", "center", "actions"].some((prop) => layerOf(header, prop));
     for (const prop of ["leadingPane", "trailingPane", "progress"]) if (layerOf(element, prop)) notes.push(`AppShell ${prop}: not drawn in Figma yet (the Sidebar pattern only)`);
+    for (const prop of APP_SHELL_MOBILE_BARS) if (layerOf(element, prop)) notes.push(`AppShell ${prop}: ${MOBILE_BARS_NOTE}`);
     // The collapse toggle (AppShell.tsx, collapse="header"): a Zen Sidebar that is not the workspace rail, with a top bar.
     // Header/AppShell draws it as its Collapse Button.
     const collapsed = literalOf(sidebar?.props.collapsed) ?? code.defaultSidebarCollapsed ?? code.sidebarCollapsed ?? false;
@@ -2263,6 +2268,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   const placed = screen.children.filter((child) => child.kind === "element");
   // The master layout (a root AppShell, screen-frame.mjs) is the desktop layout's: the mobile layout draws its content.
   const layers = active === "mobile" && placed.length === 1 && placed[0].name === "AppShell" ? placed[0].children.filter((child) => child.kind === "element") : placed;
+  // Its own phone bars are not drawn there either (the runtime shows the Screen's): the push says so.
+  if (layers !== placed) for (const prop of APP_SHELL_MOBILE_BARS) if (layerOf(placed[0], prop)) notes.push(`AppShell ${prop}: ${MOBILE_BARS_NOTE}`);
   const rootStack = !chrome && layers.length === 1 && layers[0].name === "Stack";
   // Anything else on the Screen (an AppShell, a Container…) fills the frame's width, as it fills the Screen.
   const filled = (node) => (node.absolute ? node : { ...node, fillW: true });
