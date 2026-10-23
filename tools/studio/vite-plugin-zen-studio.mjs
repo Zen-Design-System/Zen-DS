@@ -638,7 +638,8 @@ export function zenStudio() {
     const disk = target.missing ? null : await readText(target.abs);
     const current = drafts.get(target.realRel)?.content ?? disk ?? "";
     if (sha1(current) !== expectHash) throw new HttpError("stale", `${target.rel} changed since this edit; not overwritten`);
-    const draft = content !== current ? await setDraft(target, disk, content, { created: target.missing }) : drafts.has(target.realRel);
+    // "" on a collection file that exists is its delete (Figma's Delete collection, redone): the file goes at Save.
+    const draft = content !== current ? await setDraft(target, disk, content, { created: target.missing, deleted: isTokenSource(target.realRel) && !target.missing && content === "" }) : drafts.has(target.realRel);
     return { ok: true, hash: sha1(content), draft };
   }
 
@@ -685,7 +686,7 @@ export function zenStudio() {
       if (error instanceof VariableEditError) throw new HttpError(error.code === "conflict" ? "invalid" : error.code, error.message);
       throw error;
     }
-    const draft = result.text !== before ? await setDraft(target, disk, result.text, { created: target.missing }) : drafts.has(target.realRel);
+    const draft = result.text !== before ? await setDraft(target, disk, result.text, { created: target.missing, deleted: !target.missing && result.text === "" }) : drafts.has(target.realRel);
     // The first line that differs: where the status line and the history record point.
     const a = before.split("\n");
     const b = result.text.split("\n");
@@ -864,7 +865,9 @@ export function zenStudio() {
       }
       if (!plan.unchanged) {
         try {
-          await writeAtomic(target.abs, plan.text);
+          // A collection deleted in the Variables window: its file goes.
+          if (plan.deleted) await fsp.unlink(target.abs);
+          else await writeAtomic(target.abs, plan.text);
         } catch (error) {
           conflicts.push({ file, conflict: true, reason: `the file could not be written (${error?.message ?? error})` });
           continue;

@@ -7,13 +7,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P3 · Studio Variables: rename / delete a collection, and created collections in the docs (2026-10-23, B):** a
-  collection made in Studio (one mode, `:root`; branch zen/feat/studio-variables-collections-20261023) cannot be renamed
-  or deleted from the window yet: before its Save ⌘Z removes it, after it the file is a code change. The docs' Design
-  Tokens pages list `tokens/source/figma.collections.json`, a hand-kept manifest (layer, purpose), so a created
-  collection is not shown there. Question for the user: which layer and purpose a created collection gets (or whether
-  docs list it at all). Pointer: `docs/research/studio-variables-collections-spec-2026-10-23.md` § Not in this chunk.
-
 - **P2 · Studio option C, waiting for the user (2026-10-15):** links between components on a template page (a Chip
   that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
   Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their

@@ -61,8 +61,46 @@ session: "Cho B làm 'tạo collection mới' trong Studio Variables theo đề 
 - **Plugin `applyVariables`:** if the collection is missing, it calls `figma.variables.createVariableCollection(name)`
   and renames the default mode to the package's mode name. It is checked live on a throwaway collection in the Zen file.
 
+## Rename, delete and the docs group (user, 2026-10-23 evening, through the progress session)
+
+The user's answers to the two questions below:
+
+1. "Rename and delete a collection, as in Figma: yes. Deleting a collection whose variables are in use asks first."
+2. "A new collection shows on the docs Design Tokens page: yes. When a collection is created, Studio asks which group it
+   belongs to (layer / purpose) and writes the manifest entry, so the page lists it."
+
+**Create** is now a form: Name, Group (Primitive · Semantic · Component · Layout, the docs' layers) and Purpose
+(optional). The collection file keeps `layer` and `purpose` beside its modes.
+
+**Manifest:**
+- `tokens:build` writes the made collections' entries into `tokens/source/figma.collections.json`, with
+  `madeIn: "Zen Studio"`.
+  - Each entry takes its counts from the collection; entries come by slug, after the 11 Figma ones.
+  - With no made collections, the file is byte-identical: the manifest's own style is kept, plain arrays and objects on
+    one line up to 160 columns.
+- `tokens:check` fails when the manifest is stale.
+- The Design Tokens page and the QA page list read the manifest, so a made collection appears in both.
+
+**Rename collection** (⋯ › Rename collection, named in place):
+- Only a collection made here can be renamed; its file keeps its name.
+- The 11 Figma exports have the item off, because code reads them by name.
+- The Figma package carries `renameCollection` first.
+
+**Delete collection** (⋯ › Delete collection):
+- Only a collection made here can be deleted.
+- An alias from another collection refuses the delete: the build would lose the alias's target.
+- Code that reads its variables asks first (a `confirm` answer, then a Dialog), and the delete is sent again with `force`.
+- Before Save, the draft is `""` with `deleted: true`. Save removes the file, and ⌘Z writes the text back.
+- The Figma package carries `deleteCollection` last.
+
+**Plugin:** `renameCollection` sets the collection's name, and `deleteCollection` removes the collection.
+
+**E2E:** VA-08 now goes through the form. VA-09 covers rename → delete → ⌘Z three times, with the actions off on a
+Figma export.
+
 ## Not in this chunk (BACKLOG)
 
+- (Both items below were answered and built the same day; see the section above.)
 - Rename and delete a collection.
 - Docs: the Design Tokens pages list `tokens/source/figma.collections.json`, a hand-kept manifest (layer, purpose). A
   created collection is not listed there until someone gives it a layer and a purpose. That is a question for the user.

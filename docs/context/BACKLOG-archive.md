@@ -4,6 +4,15 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
 
 ## Archived 2026-10-23 (B: Studio Variables new collections)
 
+- Done 2026-10-23 (user via the progress session: rename and delete as in Figma, a delete in use asks first; a new
+  collection asks its docs group and is listed; spec § Rename, delete and the docs group):
+  **P3 · Studio Variables: rename / delete a collection, and created collections in the docs (2026-10-23, B):** a
+  collection made in Studio (one mode, `:root`; branch zen/feat/studio-variables-collections-20261023) cannot be renamed
+  or deleted from the window yet: before its Save ⌘Z removes it, after it the file is a code change. The docs' Design
+  Tokens pages list `tokens/source/figma.collections.json`, a hand-kept manifest (layer, purpose), so a created
+  collection is not shown there. Question for the user: which layer and purpose a created collection gets (or whether
+  docs list it at all). Pointer: `docs/research/studio-variables-collections-spec-2026-10-23.md` § Not in this chunk.
+
 - Done 2026-10-23 (user via the progress session: "Cho B làm 'tạo collection mới' trong Studio Variables theo đề xuất:
   chỉ một mode (:root)"; spec docs/research/studio-variables-collections-spec-2026-10-23.md, plugin 429e3f2):
   **P3 · Studio Variables: new collections (2026-10-23, B; waits for the user):** v2 (chunks 1–4: Edit variable,

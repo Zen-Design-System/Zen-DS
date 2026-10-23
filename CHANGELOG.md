@@ -20,7 +20,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in
-  the folder (the 11 Figma exports first), and Copy for Figma creates it there (Zen plugin).
+  the folder (the 11 Figma exports first), and Copy for Figma creates it there (Zen plugin). Creating one asks its docs
+  group (Primitive, Semantic, Component, Layout) and a purpose: `tokens:build` lists it on the Design Tokens page. A
+  collection made in Studio is renamed and deleted from its ⋯ menu (a delete asks first while code reads its variables;
+  another collection's alias refuses it); the 11 Figma exports keep their names.
 - Zen Studio → Figma: Line, Bar (vertical and horizontal), Area, Grouped-Bar and Combo charts carry the page's own X
   labels, six Y labels (Combo's line axis too) and active Tooltip in the page's number format ("$128.4K", "€2.4K"),
   instead of Figma's sample text; their bars and lines keep Figma's sample shapes. A Line chart moves its selected period

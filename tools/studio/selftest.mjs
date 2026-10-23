@@ -2598,6 +2598,15 @@ const wrapTsc = [];
   ok("save: a file of that name appeared → conflict", /appeared on disk/.test((await drafts.planSave(madeDraft, "{}\n")).conflict ?? ""));
   check("follow: a new file meets a file of its name → kept", await drafts.followDisk(madeDraft, "{}\n"), { draft: madeDraft, changed: false });
   check("drafts: a new file's draft is not stale without a file", drafts.draftInfo("tokens/source/figma/extras.json", madeDraft, null).stale, false);
+  // A file deleted here (a collection deleted in the Variables window): removed at Save, undone by writing its text back.
+  const goneDraft = drafts.nextDraft(undefined, madeText, "", 10, { deleted: true });
+  check("drafts: a deleted file's draft", goneDraft, { base: madeText, baseHash: sha1(madeText), content: "", updatedAt: 10, deleted: true });
+  check("drafts: a deleted file written back → no draft", drafts.nextDraft(goneDraft, madeText, madeText, 11), null);
+  check("save: a deleted file is removed", await drafts.planSave(goneDraft, madeText), { text: "", rebased: false, deleted: true });
+  check("save: a deleted file already gone → nothing to do", await drafts.planSave(goneDraft, null), { text: "", rebased: false, unchanged: true, deleted: true });
+  ok("save: a deleted file changed on disk → conflict", /changed on disk since it was deleted/.test((await drafts.planSave(goneDraft, "{}\n")).conflict ?? ""));
+  check("follow: a deleted file gone from disk → dropped", await drafts.followDisk(goneDraft, null), { draft: null });
+  check("drafts: deleted survives the drafts file", drafts.parseDrafts(drafts.serializeDrafts(new Map([["tokens/source/figma/extras.json", goneDraft]]))).drafts.get("tokens/source/figma/extras.json"), goneDraft);
   check("drafts: created survives the drafts file", drafts.parseDrafts(drafts.serializeDrafts(new Map([["tokens/source/figma/extras.json", madeDraft]]))).drafts.get("tokens/source/figma/extras.json"), madeDraft);
   check("rebase: disk = base → the draft", await drafts.rebaseDraft(base, content, base), content);
   check("rebase: draft = base → the disk", await drafts.rebaseDraft(base, base, outside), outside);

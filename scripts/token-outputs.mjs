@@ -43,6 +43,48 @@ export function sourceFiles(names) {
 /** A collection made in Zen Studio (not one of the 11 Figma exports): one mode, declared on :root. */
 export const isCreatedSlug = (slug) => !SOURCE_FILES.some(([, known]) => known === slug);
 
+/** The docs' manifest entries (tokens/source/figma.collections.json) of the collections made in Zen Studio. */
+const MADE_IN = "Zen Studio";
+
+/**
+ * The manifest with its entries for the collections made in Zen Studio written from those collections (user
+ * 2026-10-23: the Design Tokens page lists a new collection under the group Studio asked for): the 11 Figma entries
+ * as they are, then one per made collection, by slug (`madeIn: "Zen Studio"`; its counts read from the collection).
+ */
+export function collectionsManifest(manifest, made) {
+  const entry = ({ slug, sourceName, modes, tokens, body }) => {
+    const types = {};
+    for (const token of tokens) types[token.type] = (types[token.type] ?? 0) + 1;
+    return {
+      slug, name: sourceName, layer: body.layer ?? "semantic", variableCount: tokens.length, modes, types,
+      hiddenVariableCount: tokens.filter((token) => token.hiddenFromPublishing === true).length,
+      purpose: body.purpose ?? "", codeAxis: null, madeIn: MADE_IN,
+    };
+  };
+  const kept = manifest.collections.filter((collection) => collection.madeIn !== MADE_IN);
+  return { ...manifest, collections: [...kept, ...[...made].sort((a, b) => (a.slug < b.slug ? -1 : 1)).map(entry)] };
+}
+
+/** The manifest's text as the file writes it: arrays and objects of plain values on one line while they fit 160. */
+export function manifestText(value) {
+  const inline = (v) => {
+    if (v === null || typeof v !== "object") return JSON.stringify(v);
+    if (Array.isArray(v)) return `[${v.map(inline).join(", ")}]`;
+    const entries = Object.entries(v);
+    return entries.length ? `{ ${entries.map(([key, item]) => `${JSON.stringify(key)}: ${inline(item)}`).join(", ")} }` : "{}";
+  };
+  const write = (v, indent, lead) => {
+    if (v === null || typeof v !== "object") return JSON.stringify(v);
+    const flat = inline(v);
+    const nested = (Array.isArray(v) ? v : Object.values(v)).some((item) => item && typeof item === "object");
+    if (!nested && indent.length + lead + flat.length <= 160) return flat;
+    const inner = `${indent}  `;
+    if (Array.isArray(v)) return `[\n${v.map((item) => inner + write(item, inner, 0)).join(",\n")}\n${indent}]`;
+    return `{\n${Object.entries(v).map(([key, item]) => `${inner}${JSON.stringify(key)}: ${write(item, inner, JSON.stringify(key).length + 2)}`).join(",\n")}\n${indent}}`;
+  };
+  return `${write(value, "", 0)}\n`;
+}
+
 /**
  * `readSource(fileName)` → the parsed JSON of tokens/source/figma/<fileName>; `motion` → tokens/source/motion.json
  * parsed. Returns { css, ts, catalog (the catalog file's text), count, collections }. Throws on duplicate names and
@@ -61,7 +103,7 @@ export function tokenOutputs({ readSource, files = SOURCE_FILES, motion, warn = 
     const sourceName = Object.keys(json)[0];
     const source = json[sourceName];
     if (isCreatedSlug(slug) && source.modes.length !== 1) throw new Error(`${sourceName} (${fileName}): a collection made in Zen Studio has one mode only (:root), not ${source.modes.length}`);
-    return { slug, sourceName, modes: source.modes, tokens: source.tokens };
+    return { slug, sourceName, modes: source.modes, tokens: source.tokens, body: source };
   });
 
   const catalog = collections.flatMap((collection) =>
@@ -297,5 +339,5 @@ export function tokenOutputs({ readSource, files = SOURCE_FILES, motion, warn = 
     "",
   ].join("\n");
 
-  return { css, ts, modesTs, catalog: catalogText, count: catalog.length, collections: collections.length };
+  return { css, ts, modesTs, catalog: catalogText, count: catalog.length, collections: collections.length, made: collections.filter((collection) => isCreatedSlug(collection.slug)) };
 }

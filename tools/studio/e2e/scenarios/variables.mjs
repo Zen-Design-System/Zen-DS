@@ -40,6 +40,19 @@ async function collection(page, win, name) {
   await until(async () => (await win.locator(".studio-vars__head").getByRole("button").first().innerText()).trim() === name, { message: `the ${name} collection` });
 }
 
+/** Create collection: the Collections menu's last item, then its form (name, the docs group, a purpose). */
+async function createCollection(page, win, name, group, purpose) {
+  await win.locator(".studio-vars__head").getByRole("button").first().click();
+  await page.getByRole("menuitem", { name: "Create collection" }).click();
+  const form = page.getByRole("dialog", { name: "Create collection" });
+  await form.waitFor({ timeout: 5000 });
+  await form.getByRole("textbox", { name: /^Name/ }).fill(name);
+  await form.getByRole("radio", { name: group }).click().catch(async () => form.getByRole("button", { name: group }).click());
+  await form.getByRole("textbox", { name: /^Purpose/ }).fill(purpose);
+  await form.getByRole("button", { name: "Create" }).click();
+  await until(async () => (await form.count()) === 0, { timeout: 10_000, message: "the form closed" });
+}
+
 const cssVar = (page, name) => page.evaluate((prop) => getComputedStyle(document.documentElement).getPropertyValue(prop).trim(), name);
 const source = async (ctx, file) => (await ctx.api.source(file)).content;
 
@@ -225,18 +238,13 @@ export const rows = [
     },
   },
   {
-    id: "VA-08", feature: "Create collection (user 2026-10-23, one mode on :root): the Collections menu's last item names it in place (E2E Collection), a draft of tokens/source/figma/e2e-collection.json with no file on disk, one column Mode 1 and no Add mode; Create variable › Number is on the canvas's :root; ⌘Z twice takes the variable, then the collection, back and leaves no file", wp: "Variables v2",
+    id: "VA-08", feature: "Create collection (user 2026-10-23, one mode on :root): the Collections menu's last item asks its name and the docs group (E2E Collection, Layout, a purpose), a draft of tokens/source/figma/e2e-collection.json with no file on disk, one column Mode 1 and no Add mode; Create variable › Number is on the canvas's :root; ⌘Z twice takes the variable, then the collection, back and leaves no file", wp: "Variables v2",
     async run(ctx) {
       const { page, win } = await openVariables(ctx);
       const file = "tokens/source/figma/e2e-collection.json";
       const onDisk = () => fs.existsSync(path.join(ctx.root, file));
       if (onDisk()) throw new Error(`${file} is on disk before the row`);
-      await win.locator(".studio-vars__head").getByRole("button").first().click();
-      await page.getByRole("menuitem", { name: "Create collection" }).click();
-      const field = win.getByRole("textbox", { name: "Collection name" });
-      await field.waitFor({ timeout: 5000 });
-      await field.fill("E2E Collection");
-      await field.press("Enter");
+      await createCollection(page, win, "E2E Collection", "Layout", "E2E rows");
       const head = win.locator(".studio-vars__head").getByRole("button").first();
       await until(async () => (await head.innerText()).trim() === "E2E Collection", { timeout: 10_000, message: "the new collection shown" });
       const columns = (await win.getByRole("columnheader").allInnerTexts()).map((text) => text.trim());
@@ -244,6 +252,8 @@ export const rows = [
       if (await win.getByRole("button", { name: "Add mode" }).count()) throw new Error("a created collection offers Add mode");
       const body = async () => Object.values(JSON.parse(await source(ctx, file)))[0];
       if ((await body()).tokens.length !== 0) throw new Error("the new collection is not empty");
+      const group = await body();
+      if (group.layer !== "layout" || group.purpose !== "E2E rows") throw new Error(`the docs group written: ${group.layer} · ${group.purpose}`);
       await win.getByRole("button", { name: "Create variable" }).click();
       await page.getByRole("menuitem", { name: "Number" }).click();
       const rename = win.getByRole("textbox", { name: /^Rename / });
@@ -261,6 +271,46 @@ export const rows = [
       await until(async () => { try { await source(ctx, file); return false; } catch { return true; } }, { timeout: 10_000, message: "⌘Z: the collection's draft gone" });
       if (onDisk()) throw new Error(`${file} was left on disk`);
       return `E2E Collection · ${columns.slice(1).join(", ")} · ${variable.name} → ${prop}: 0px · ⌘Z twice: no draft, no file`;
+    },
+  },
+  {
+    id: "VA-09", feature: "Rename and Delete collection (user 2026-10-23, as Figma): the ⋯ menu renames a collection made here in place and deletes it (gone from the Collections menu, its draft \"\"); ⌘Z brings it back, then its old name, then no collection; the 11 Figma exports have both items off", wp: "Variables v2",
+    async run(ctx) {
+      const { page, win } = await openVariables(ctx);
+      const file = "tokens/source/figma/e2e-renamed.json";
+      await collection(page, win, "Spacing");
+      await win.getByRole("button", { name: "Collection actions" }).click();
+      const off = await page.getByRole("menuitem", { name: "Rename collection" }).isDisabled();
+      await page.keyboard.press("Escape");
+      if (!off) throw new Error("Rename collection is offered on Spacing (a Figma export)");
+      await createCollection(page, win, "E2E Renamed", "Semantic", "");
+      const head = win.locator(".studio-vars__head").getByRole("button").first();
+      await until(async () => (await head.innerText()).trim() === "E2E Renamed", { timeout: 10_000, message: "the new collection shown" });
+      await win.getByRole("button", { name: "Collection actions" }).click();
+      await page.getByRole("menuitem", { name: "Rename collection" }).click();
+      const field = win.getByRole("textbox", { name: "Rename collection" });
+      await field.waitFor({ timeout: 5000 });
+      await field.fill("E2E Partner");
+      await field.press("Enter");
+      const name = async () => { try { return Object.keys(JSON.parse(await source(ctx, file)))[0] ?? null; } catch { return null; } };
+      await until(async () => (await name()) === "E2E Partner", { timeout: 10_000, message: "the file's collection renamed (its file kept)" });
+      await win.getByRole("button", { name: "Collection actions" }).click();
+      await page.getByRole("menuitem", { name: "Delete collection" }).click();
+      const listed = async () => {
+        await win.locator(".studio-vars__head").getByRole("button").first().click();
+        const names = await page.getByRole("menu", { name: "Collections" }).getByRole("menuitem").allInnerTexts();
+        await page.keyboard.press("Escape");
+        return names.some((text) => text.startsWith("E2E Partner"));
+      };
+      await until(async () => !(await listed()), { timeout: 10_000, message: "the deleted collection left the menu" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(listed, { timeout: 10_000, message: "⌘Z: the collection back" });
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await name()) === "E2E Renamed", { timeout: 10_000, message: "⌘Z: its old name" });
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await name()) === null, { timeout: 10_000, message: "⌘Z: no collection" });
+      return "Figma exports: Rename off · E2E Renamed → E2E Partner → deleted → ⌘Z ×3";
     },
   },
 ];

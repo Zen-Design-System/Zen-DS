@@ -689,10 +689,11 @@ function applyServerEdit(path: "/css-edit" | "/variable-edit", request: object, 
     else if (reply.status === 200 && reply.body?.ok) result = reply.body;
     else {
       const { code, error } = errorOf(reply.body, "Edit refused");
-      result = { ok: false, code: code === "stale" || code === "not-found" || code === "forbidden" ? code : "invalid", error };
+      // "confirm": the edit waits for the person's yes (Delete collection with variables in use), sent again with force.
+      result = { ok: false, code: code === "stale" || code === "not-found" || code === "forbidden" || code === "confirm" ? code : "invalid", error };
     }
     if (!result.ok) {
-      setStatus({ kind: "error", message: result.error, file, at: Date.now() });
+      if (result.code !== "confirm") setStatus({ kind: "error", message: result.error, file, at: Date.now() });
       return result;
     }
     if (result.before === result.after) {
@@ -709,7 +710,11 @@ function applyServerEdit(path: "/css-edit" | "/variable-edit", request: object, 
 }
 
 /** One token collection as the Variables window reads it (GET /variables): drafts included. */
-export type VariableCollection = { file: string; name: string; modes: string[]; tokens: VariableToken[]; hash: string; draft: boolean };
+export type VariableCollection = {
+  file: string; name: string; modes: string[]; tokens: VariableToken[]; hash: string; draft: boolean;
+  /** Made in Zen Studio (not one of the 11 Figma exports): renamed and deleted here; its docs group. */
+  created?: boolean; layer?: "primitive" | "semantic" | "component" | "layout"; purpose?: string;
+};
 /** What Figma does not have yet: saved variable changes since the last hand-over. */
 export type VariablesFigma = { changes: number; since: string | null };
 export type VariablesReply = { ok: true; collections: VariableCollection[]; figma: VariablesFigma } | { ok: false; error: string };

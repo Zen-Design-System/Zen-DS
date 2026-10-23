@@ -545,4 +545,13 @@ Branch zen/feat/chart-push-real-data-20261023 (stacked on the format presets: la
   save → package), tokens:check with a scratch file (1 mode passes, 2 refused; removed), native generator on a scratch
   catalog (new ZenCollection key), plugin npm test, createVariableCollection + renameMode live in the Zen file
   (throwaway, removed), tsc. E2E VA-08 written (VA-01 counts collections without the new item); runs in the gate.
+- Then (user's answers via the progress session, same evening): Create is a form (name, docs group, purpose; the file
+  keeps `layer` / `purpose`); tokens:build writes the made collections' manifest entries (`madeIn`, counts from the
+  file; the manifest's own style, byte-identical without one; tokens:check flags a stale one); ⋯ › Rename / Delete
+  collection for collections made here (the 11 refused: code reads them by name); a delete asks first while code reads
+  its variables (`confirm` → Dialog → `force`), an alias from another collection refuses it; drafts.mjs `deleted`
+  drafts (Save unlinks, ⌘Z writes back). Package: renameCollection first, deleteCollection last. Checked: variables
+  selftest, studio selftest (deleted drafts), host flow on a scratch copy (rename, refusals, confirm, force, alias),
+  tokens:build / tokens:check with a scratch file (entry written, then removed: the manifest byte-identical), tsc.
+  E2E VA-09.
 
