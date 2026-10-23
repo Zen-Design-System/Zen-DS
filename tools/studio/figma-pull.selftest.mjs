@@ -513,6 +513,19 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("project component: an instance of another page's component pulls as <Use of page>", /<Use of="chip" page="chips" variant=\{\{ Size: "Small" \}\} props=\{\{ Label: "Go" \}\} \/>/.test(crossText));
 }
 
+{
+  // Figma Table/Sheet (figmaReadCode's SHEET) → <SheetTable>: a column per header cell (its label, fixed width or Fill),
+  // its content from the first row (keys, code, Bold text), the rows under the columns' ids.
+  const frame = { type: "FRAME", name: "S", width: 1440, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: [{ type: "SHEET", name: "Keyboard",
+    header: [{ label: "Key", w: 200 }, { label: "Prop", w: 300, fill: true }, { label: "Action", w: 600, fill: true }],
+    rows: [{ cells: [{ kind: "keys", text: "Tab / Shift + Tab", w: 200 }, { kind: "code", text: "onKeyDown", w: 300, fill: true }, { kind: "text", text: "Moves focus.", bold: true, w: 600, fill: true }] },
+      { cells: [{ kind: "keys", text: "Esc", w: 200 }, { kind: "code", text: "onClose", w: 300, fill: true }, { kind: "text", text: "Closes the menu.", bold: true, w: 600, fill: true }] }] }] };
+  const back = pageFromFigma(frame, { mapping }).text;
+  ok("sheet: Table/Sheet is a SheetTable with its columns (a fixed width, content keys / code, bold)", back.includes('<SheetTable aria-label="Keyboard"') && back.includes('{ id: "key", header: "Key", width: "200px", content: "keys" }') && back.includes('{ id: "prop", header: "Prop", content: "code" }') && back.includes('{ id: "action", header: "Action", bold: true }'));
+  ok("sheet: the rows under the columns' ids", back.includes('{ id: "row-1", key: "Tab / Shift + Tab", prop: "onKeyDown", action: "Moves focus." }') && back.includes('{ id: "row-2", key: "Esc", prop: "onClose", action: "Closes the menu." }'));
+  ok("sheet: figmaReadCode reads a frame of Table/Sheet rows as one SHEET", /isSheet\(visible\)/.test(figmaReadCode("1:2")) && /type: "SHEET"/.test(figmaReadCode("1:2")));
+}
+
 // PropertyField ↔ Figma (2026-10-23, live read): People and Tags from the Value's Value-Slot, a ring's progress from its
 // Progress arc (BadgeStatus and the Status cell); the Value's parts are the cell's (no overrides), a status' own label
 // is not BadgeStatus' children.
