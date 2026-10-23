@@ -23,7 +23,7 @@ const HTML_WORDS: Record<string, string> = {
 };
 
 /** The Studio's prototype actions, as the Prototype tab names them. */
-const ACTIONS: Record<string, string> = { "proto.toast": "Show toast", "proto.navigate": "Go to page", "proto.open": "Open overlay" };
+const ACTIONS: Record<string, string> = { "proto.toast": "Show toast", "proto.navigate": "Go to page", "proto.open": "Open overlay", "proto.filter": "Filter table", "proto.step": "Change step" };
 
 /** "labelIcon" → "label icon", "selectedId" → "selected id". */
 const spaced = (name: string) => name.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/([A-Z])([A-Z][a-z])/g, "$1 $2").toLowerCase();

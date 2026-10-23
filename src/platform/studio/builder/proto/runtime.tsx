@@ -4,6 +4,7 @@ import { AppShell } from "../../../../components/AppShell";
 import { ZenPortalProvider } from "../../../../components/Portal";
 import { deviceOfScreen, deviceOs, type ScreenDevice } from "../../../../../tools/studio/screen-devices.mjs";
 import { DeviceBars, duoStatusOf, safeAreasOf, type DeviceOs } from "./DeviceBars";
+import type { FilterMatch } from "./protoModel";
 
 /*
  * The builder page runtime (spec docs/research/studio-builder-pages-spec-2026-10-06.md §2, §3 2d): what
@@ -23,18 +24,38 @@ export const screenLayoutOf = (device: PageDevice, layout?: ScreenLayout): Scree
 export const DEVICE_WIDTH: Readonly<Record<PageDevice, number>> = { phone: 390, tablet: 768, desktop: 1440 };
 
 /** What a page's `proto.*` calls do. `options` is the action's own (protoModel.ts ProtoOptions: animation, delay);
- *  `hover`: what runs While hovering triggers, an overlay shown while the pointer stays (Play's; the canvas never opens
- *  one under the pointer). */
+ *  `from`: the element pressed (an overlay at Position Manual opens next to it); `hover`: what runs While hovering
+ *  triggers, an overlay shown while the pointer stays (Play's; the canvas never opens one under the pointer). `filter`
+ *  and `step` (Filter table, Change step) drive the Screen's Table and Stepper in Play; `filter` takes what the trigger
+ *  hands over (a Search's text, the chosen item). */
 export type ProtoActions = {
   navigate: (screen: string, options?: unknown) => void;
-  open: (overlay: string, options?: unknown) => void;
+  open: (overlay: string, options?: unknown, from?: Element | null) => void;
   close: () => void;
   back: () => void;
   toast: (options: unknown) => void;
   link: (url: string) => void;
-  hover?: { enter: (overlay: string, options?: unknown) => void; leave: () => void };
+  filter?: (filter: unknown, choice?: unknown) => void;
+  step?: (to: unknown, options?: unknown) => void;
+  hover?: { enter: (overlay: string, options?: unknown, from?: Element | null) => void; leave: () => void };
 };
 const inert: ProtoActions = { navigate: () => undefined, open: () => undefined, close: () => undefined, back: () => undefined, toast: () => undefined, link: () => undefined };
+
+/** Play's live state of the shown Screen (Filter table, Change step), by the layer's place: each filtered Table's
+ *  filter, each driven Stepper's step (`stepTargets`: the Steppers a Change step drives, which Play then holds). */
+export type PlayLive = {
+  filters: ReadonlyMap<string, { column?: string; values: string[]; match: FilterMatch }>;
+  steps: ReadonlyMap<string, number>;
+  stepTargets: ReadonlySet<string>;
+  onStep: (loc: string, index: number) => void;
+};
+
+/** The element a handler's event was pressed on (a React or DOM event's current target), or null (a value). */
+export const eventElement = (event: unknown): Element | null => {
+  if (typeof Element === "undefined" || !event || typeof event !== "object") return null;
+  const { currentTarget, target } = event as { currentTarget?: unknown; target?: unknown };
+  return currentTarget instanceof Element ? currentTarget : target instanceof Element ? target : null;
+};
 export const ProtoContext = createContext<ProtoActions>(inert);
 
 /** The page's mobile OS (its header's `os`; user, 2026-10-10: one choice for the page): the status bar and bottom bar its
@@ -59,17 +80,20 @@ const itemKey = (choice: unknown): string => {
 };
 
 /** A page's `proto.<action>(…args)`: the handler a prop receives (it runs the context's action when called). A
- *  navigate / open with one target per item (`proto.navigate({ home: "screen-1" })`) runs for the chosen item's entry. */
+ *  navigate / open with one target per item (`proto.navigate({ home: "screen-1" })`) runs for the chosen item's entry;
+ *  open names the element pressed, filter hands over what the trigger did (its first argument). */
 export function protoHandler(actions: ProtoActions, action: string, args: unknown[]): (...event: unknown[]) => void {
   return (...event) => {
     const run = (actions as unknown as Record<string, ((...rest: unknown[]) => void) | undefined>)[action];
     const [first] = args;
     if ((action === "navigate" || action === "open") && first && typeof first === "object" && !Array.isArray(first)) {
       const target = (first as Record<string, unknown>)[itemKey(event[0])];
-      if (typeof target === "string") run?.(target, args[1]);
+      if (typeof target === "string") run?.(target, args[1], eventElement(event[0]));
       return;
     }
-    run?.(...args);
+    if (action === "open") run?.(first, args[1], eventElement(event[0]));
+    else if (action === "filter") run?.(first, event[0]);
+    else run?.(...args);
   };
 }
 

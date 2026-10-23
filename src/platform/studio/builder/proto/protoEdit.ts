@@ -20,18 +20,18 @@ export function defaultTarget(action: ProtoAction, frames: ProtoFrame[], homeScr
   return undefined;
 }
 
-const SAY: Record<ProtoAction, string> = { none: "No interaction", navigate: "Navigate to", open: "Open overlay", close: "Close overlay", back: "Back", toast: "Show toast", link: "Open link" };
+const SAY: Record<ProtoAction, string> = { none: "No interaction", navigate: "Navigate to", open: "Open overlay", close: "Close overlay", back: "Back", toast: "Show toast", link: "Open link", filter: "Filter table", step: "Change step" };
 
 /** Sets `trigger` on the layer to `action` (with `target` and `options`); None removes the prop. After delay always
  *  names its delay. Resolves to whether it was written. */
-export async function writeAction(layer: ProtoLayer, trigger: string, action: ProtoAction, target?: string, options?: ProtoOptions, label?: string): Promise<boolean> {
+export async function writeAction(layer: ProtoLayer, trigger: string, action: ProtoAction, target?: string | Record<string, string | undefined>, options?: ProtoOptions, label?: string): Promise<boolean> {
   if (action === "none") {
     const response = await applyEdit({ file: layer.file, loc: layer.loc, name: layer.name, ops: [{ op: "removeProp", name: trigger } as EditOp] }, "Remove interaction");
     return Boolean(response.ok);
   }
   const written = trigger === DELAY_TRIGGER ? { ...options, delay: options?.delay ?? DEFAULT_DELAY } : options;
   const code = protoActionCode(action, target ?? "", written);
-  const response = await applyEdit({ file: layer.file, loc: layer.loc, name: layer.name, ops: [{ op: "setProp", name: trigger, value: { kind: "expression", code } } as EditOp] }, label ?? (target ? `${SAY[action]} ${target}` : SAY[action]));
+  const response = await applyEdit({ file: layer.file, loc: layer.loc, name: layer.name, ops: [{ op: "setProp", name: trigger, value: { kind: "expression", code } } as EditOp] }, label ?? (typeof target === "string" && target ? `${SAY[action]} ${target}` : SAY[action]));
   return Boolean(response.ok);
 }
 
