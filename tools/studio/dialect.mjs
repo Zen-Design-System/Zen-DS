@@ -23,7 +23,10 @@ import { NESTED_VALUE_KEY, instanceLayerPaths } from "./instance-paths.mjs";
 export { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenLayout };
 
 export const PAGE_DEVICES = ["phone", "tablet", "desktop"];
+/** A Screen's usual states. Any lowercase name is one (option C, 2026-10-23: "filtered", "step-2", a frame Navigate to
+ *  leads to as Figma's lead to any frame). */
 export const SCREEN_STATES = ["empty", "loading", "error"];
+const SCREEN_STATE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 export const SCREEN_CANVASES = ["default", "alt", "flat"];
 /** A Screen's drawn size (props `width`, `height`, world px); the max is the frame width's (board/frameLayout.ts). */
 export const FRAME_SIZE = { min: 100, max: 4096 };
@@ -34,7 +37,7 @@ export const SECTION_SIZE = { min: 100, max: 40000 };
 const BUILDER_NAMES = new Set(["Board", "Screen", "Overlay", "Section", "Slice", "proto", "Component", "ComponentSet", "Use"]);
 /** A page-local main component's id (Figma's main component, Zen Studio 2026-10-17): lowercase letters, digits, dashes. */
 const COMPONENT_ID = /^[a-z][a-z0-9-]*$/;
-const PROTO_ACTIONS = new Set(["navigate", "open", "close", "back", "toast", "link"]);
+const PROTO_ACTIONS = new Set(["navigate", "open", "close", "back", "toast", "link", "filter", "step"]);
 const PACKAGE = "@zen-ds/react";
 const BUILDER_PACKAGE = "@zen-ds/react/builder";
 const HEADER = /^﻿?\/\/ @zen-page (\{.*\})[ \t]*\r?\n/;
@@ -408,7 +411,7 @@ export function parsePage(text, { components } = {}) {
     if (value.type === "JSXFragment") return fragmentValue(value, items);
     if (value.type === "CallExpression" && value.callee.type === "MemberExpression" && value.callee.object.type === "Identifier" && value.callee.object.name === "proto") {
       const action = value.callee.property.name;
-      if (!PROTO_ACTIONS.has(action)) return fail(value, `proto.${action} is not an interaction (navigate, open, close, back, toast, link)`);
+      if (!PROTO_ACTIONS.has(action)) return fail(value, `proto.${action} is not an interaction (navigate, open, close, back, toast, link, filter, step)`);
       const args = value.arguments.map(literalValue);
       if (args.includes(undefined)) return fail(value, `proto.${action}(…) takes literal arguments`);
       return { kind: "proto", action, args };
@@ -478,7 +481,7 @@ export function parsePage(text, { components } = {}) {
         const canvas = child.props.canvas;
         if (canvas && !(canvas.kind === "literal" && SCREEN_CANVASES.includes(canvas.value))) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `canvas is ${SCREEN_CANVASES.join(", ")}` });
         const state = child.props.state;
-        if (state && !(state.kind === "literal" && SCREEN_STATES.includes(state.value))) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `state is ${SCREEN_STATES.join(", ")} (no state = the default)` });
+        if (state && !(state.kind === "literal" && typeof state.value === "string" && SCREEN_STATE.test(state.value))) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `state is a lowercase name (${SCREEN_STATES.join(", ")}, filtered…; no state = the default)` });
         number("width", FRAME_SIZE.min, FRAME_SIZE.max);
         number("height", FRAME_SIZE.min, FRAME_SIZE.max);
       }

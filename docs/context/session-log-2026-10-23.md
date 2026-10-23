@@ -556,6 +556,46 @@ Branch zen/feat/voice-proposals-20261023 from main 9fe063d2. Review `docs/resear
   6/6), audits 1512 / 390 / 320, dark, keyboard / APG, voice 8 and chat 10 examples; contact sheets looked at (the narrow
   recorder footer wraps "Live levels · 7 a second" as the existing "48 kHz · Mono" one does).
 
+## Studio option C: links between components as prototype actions (tier M; BACKLOG P2, user decision 2026-10-23)
+
+Branch claude/studio-option-c-289219. The user's call (G2 round): a Figma-style Prototype action, "open this popover,
+anchored to this element", no variables. Asked once more here: filter Chip / Search → Table and Stepper Next →
+**both** ways; pushing Overlays and actions to Figma → BACKLOG (P3 line).
+
+| Case | Studio | Figma |
+| --- | --- | --- |
+| Chip → DatePicker | On click → Open overlay; the DatePicker (takes `anchorRef`) sits by the Chip in Play | Open overlay, Position Manual (by the trigger) |
+| Chip → Bottom Sheet | On tap → Open overlay; the sheet places itself | Open overlay, Bottom center |
+| Card in an Overlay | Overlay `position="manual"`: below the trigger, start edge, 4px, flips above (useAnchoredPosition) | Manual + `overlayRelativePosition` |
+| Filter / Next, Figma's way | ⌘D the Screen (or a Screen state) and Navigate to it: `proto.navigate("orders:paid")` | Navigate to a frame |
+| Filter, live | `proto.filter({ column, value, match, table })`: the shown Screen's Table keeps matching rows | none (needs variables) |
+| Next, live | `proto.step("next" \| "previous", { stepper })`: the Screen's Stepper moves | none ("Change to" changes its own instance only) |
+
+- Model (`protoModel.ts`, pure): `screenTargetOf`, `targetOfFrame` keeps a state (a ⊕ dropped on a state frame leads
+  there), `filterCode/filterOf/filterRows/filterValuesOf/cellText/columnsOf`, `stepCode/stepOf/steppedIndex/stepperOf`,
+  `layersIn/targetLayerOf/layerNameOf`, `actionsIn/stepTargetsOf`. Dialect: `filter`, `step` actions; a Screen state is
+  any lowercase name (was empty/loading/error only).
+- Play (`runtime.tsx`, `playFlow.tsx`, `renderPage.tsx`): `open` gets the pressed element; the anchor is that element,
+  else the layer that opens the Overlay on the shown Screen (Present from the Overlay frame, After delay); the Overlay
+  waits one layout pass for it. The trigger pressed again closes its overlay. Filter and step state is per Screen visit
+  (Restart and a new Screen drop it); Play holds only the Steppers a Change step drives.
+- Prototype tab: Position Manual; Navigate to lists states; Filter table rows Table (2+ named) / Column / Value (empty:
+  what the trigger hands over; a text input writes `match: "contains"`); Change step rows Step (Previous/Next) / Stepper.
+- Handoff: compile turns a state target into navigate + "pass state", filter / step into TODO(dev) handlers, Manual into
+  "anchor it". Push notes "N interactions (Prototype tab): not pushed".
+- Found on the way, fixed: Update from Figma without a base (another browser) offered to remove every Studio
+  `proto.*` prop (the page stood in for the base); figma-diff now never treats a missing prototype action as Figma's.
+  And Escape in Play with a DatePicker overlay open left Play (no Escape owner matched it): Escape now closes any open
+  Play overlay first (Player.tsx).
+- Tests: protoModel selftest 29 → 44, dialect +2, compile +6 (option C page), figma-diff +2 (the action survives, two
+  ways too); `tests/interaction/studio-option-c.test.tsx` (4: DatePicker 4px below its Chip and closed by a day and by
+  the Chip, Manual Card below its Button, Chip and Search filters, Stepper Next/Previous/passed step + state target);
+  E2E PT-18…PT-21 (prototype group: the Prototype tab writes them, Play runs them).
+- Gate (Giám sát's slot after picture-drops; `--isolated`, 21 files, main 17b4ee93): **PASS** — static, Studio
+  self-tests, Vitest 83/83, Studio E2E 344 works / 1 broken (4 shards, 1815 s). The broken row was PT-21: its seeded
+  page placed the state frame at x 1600, so both frames opened out of view and the first click selected nothing; the row
+  now fits the board (⇧1) first and its steps name themselves on failure. PT-19 passed on retry in the gate. Then
+  `studio:e2e --rows=PT-18…PT-21 --no-retry` twice: 4/4 both times. CI quick steps all 0.
 
 ## Session C · Bare horizontal BarChart keeps 290px in Figma (tier S; BACKLOG P3, routed by the progress session)
 Plugin `studio-import` 7e2f273; this repo only closes the line (docs).

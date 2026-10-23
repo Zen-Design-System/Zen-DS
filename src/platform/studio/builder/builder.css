@@ -140,6 +140,9 @@
 .studio-player__overlay[data-position$="right"] { justify-content: flex-end; }
 .studio-player__overlay[data-background="true"] { background: var(--zen-color-background-overlay); }
 .studio-player__overlay-content { min-width: 0; max-width: 100%; max-height: 100%; overflow: auto; }
+/* Position Manual (Figma's, by its trigger): the layer sits by the element that opened it, as a Popover (Play measures
+   it, useAnchoredPosition); the box still takes the outside press. */
+.studio-player__overlay[data-position="manual"] > .studio-player__overlay-content { position: absolute; max-height: none; }
 .studio-player__overlay[data-hover="true"],
 .studio-player__overlay[data-hover="true"] *,
 .studio-player__device[data-hover-overlay="true"] > :not(.studio-player__screens),

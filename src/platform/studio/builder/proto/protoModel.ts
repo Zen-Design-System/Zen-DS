@@ -9,9 +9,15 @@ import type { PageNode, PageTree, PageValue } from "../render/renderPage";
  * A choice control (BottomNavigation, Tabs, Segmented, ChipGroup, Sidebar, Menu…) hands the chosen item to its trigger;
  * its action can lead each item somewhere else: `onValueChange={proto.navigate({ home: "screen-1", files: "screen-2" })}`
  * (an item without an entry goes nowhere; runtime.tsx protoHandler picks the entry by the value or the item's id).
+ *
+ * Option C (user, 2026-10-23: links between components are prototype actions, no variables): Navigate to also takes a
+ * Screen's state ("orders:filtered", each state a frame as in Figma); an Overlay at Position Manual opens next to the
+ * layer that opens it (Figma's Manual, relative to the trigger); and two actions Figma has no word for run live in Play:
+ * Filter table (a Chip, a Search or a choice control filters the rows of the Screen's Table) and Change step (Next or
+ * Previous on the Screen's Stepper).
  */
 
-export type ProtoAction = "none" | "navigate" | "open" | "close" | "back" | "toast" | "link";
+export type ProtoAction = "none" | "navigate" | "open" | "close" | "back" | "toast" | "link" | "filter" | "step";
 export const ACTIONS: ReadonlyArray<{ value: ProtoAction; label: string }> = [
   { value: "none", label: "None" },
   { value: "navigate", label: "Navigate to" },
@@ -20,6 +26,8 @@ export const ACTIONS: ReadonlyArray<{ value: ProtoAction; label: string }> = [
   { value: "back", label: "Back" },
   { value: "toast", label: "Show toast" },
   { value: "link", label: "Open link" },
+  { value: "filter", label: "Filter table" },
+  { value: "step", label: "Change step" },
 ];
 
 /** Figma's trigger names where a prop has one; else the prop in words ("onRowClick" → "On row click"). A phone or tablet
@@ -77,8 +85,9 @@ export const DEFAULT_DELAY = 800;
 export type ProtoOptions = { animation?: ProtoAnimation; direction?: ProtoDirection; duration?: ProtoDuration; delay?: number };
 export const moves = (animation: ProtoAnimation | undefined) => animation === "move" || animation === "push" || animation === "slide";
 
-/** Where an action keeps its options: after its target (navigate, open, toast, link), else first (close, back). */
-const optionsAt = (action: string) => (action === "close" || action === "back" ? 0 : 1);
+/** Where an action keeps its options: after its target (navigate, open, toast, link, step), else first (close, back). A
+ *  filter has none: its one argument is the filter. */
+const optionsAt = (action: string) => (action === "close" || action === "back" ? 0 : action === "filter" ? -1 : 1);
 /** An action's options (only the known ones, valid values). */
 export function optionsOf(action: string, args: readonly unknown[]): ProtoOptions {
   const raw = args[optionsAt(action)];
@@ -110,14 +119,157 @@ const objectCode = (value: Record<string, unknown>) => {
   return `{${entries.length ? ` ${entries.map(([key, field]) => `${keyCode(key)}: ${JSON.stringify(field)}`).join(", ")} ` : ""}}`;
 };
 
-/** `proto.<action>(target?, options?)`: a target per item as `{ item: target }`; a toast's title as `{ title }`. */
+/** `proto.<action>(target?, options?)`: a target per item as `{ item: target }`; a toast's title as `{ title }`; a
+ *  filter as `{ column, value, match, table }` (filterCode); a step as "next" or "previous" (stepCode). */
 export function protoActionCode(action: Exclude<ProtoAction, "none">, target?: string | Record<string, string | undefined>, options?: ProtoOptions): string {
+  if (action === "filter") return filterCode(typeof target === "object" ? target : {});
+  if (action === "step") return typeof target === "object" ? stepCode(target.to === "previous" ? "previous" : "next", target.stepper) : stepCode(target === "previous" ? "previous" : "next");
   const extra = writtenOptions(options);
   const args: string[] = [];
   if (action === "toast") args.push(objectCode({ title: typeof target === "string" ? target : "" }));
   else if (action === "navigate" || action === "open" || action === "link") args.push(typeof target === "object" ? objectCode(target) : JSON.stringify(target ?? ""));
   if (extra) args.push(objectCode(extra));
   return `proto.${action}(${args.join(", ")})`;
+}
+
+/* ── Option C: a Screen's states as targets, Filter table, Change step ─────────────────────────────────────────────── */
+
+/** A Navigate to target: a Screen's id, or "<id>:<state>" for one of its states (Figma: every frame is a target). */
+export function screenTargetOf(target: string): { id: string; state?: string } {
+  const at = target.indexOf(":");
+  return at < 0 ? { id: target } : { id: target.slice(0, at), state: target.slice(at + 1) || undefined };
+}
+
+/** How a filter compares: the cell is the value (a chip, a chosen item), or holds it (what is typed in a Search). */
+export type FilterMatch = "is" | "contains";
+/** A Filter table action: the column it reads (none: every field of the row), the value (none: what the trigger hands
+ *  over, as a Search's text or a choice control's item), how it compares, and the Table by its layer name (none: the
+ *  Screen's first Table). */
+export type ProtoFilter = { column?: string; value?: string; match?: FilterMatch; table?: string };
+
+/** `proto.filter({ … })`, its fields in a fixed order, empty and default ones left out. */
+export function filterCode(filter: ProtoFilter | Record<string, string | undefined>): string {
+  const given = filter as Record<string, string | undefined>;
+  const fields: Record<string, string | undefined> = {};
+  for (const key of ["column", "value", "match", "table"]) if (given[key]) fields[key] = given[key];
+  if (fields.match === "is") delete fields.match;
+  return `proto.filter(${objectCode(fields)})`;
+}
+
+/** A filter action's filter (its known fields, valid values). */
+export function filterOf(args: readonly unknown[]): ProtoFilter {
+  const raw = args[0];
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const value = raw as Record<string, unknown>;
+  const text = (field: unknown) => (typeof field === "string" && field ? field : typeof field === "number" ? String(field) : undefined);
+  const out: ProtoFilter = {};
+  if (text(value.column)) out.column = text(value.column);
+  if (text(value.value) !== undefined) out.value = text(value.value);
+  if (value.match === "contains") out.match = "contains";
+  if (text(value.table)) out.table = text(value.table);
+  return out;
+}
+
+/** The words of a cell: a text or number, a list's items, an object's label / name / title / value; else none. */
+export function cellText(value: unknown): string {
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (Array.isArray(value)) return value.map(cellText).filter(Boolean).join(" ");
+  if (value && typeof value === "object") {
+    const item = value as Record<string, unknown>;
+    return [item.label, item.name, item.title, item.value].map(cellText).find(Boolean) ?? "";
+  }
+  return "";
+}
+
+/** What a trigger hands over as filter values: a text or number, each item of a list, an item's id / value and label. A
+ *  DOM or React event (a press) hands over nothing. */
+export function filterValuesOf(choice: unknown): string[] {
+  if (typeof choice === "string" || typeof choice === "number") return [String(choice)];
+  if (Array.isArray(choice)) return choice.flatMap(filterValuesOf);
+  if (choice && typeof choice === "object" && !("nativeEvent" in choice) && !("target" in choice)) {
+    const item = choice as Record<string, unknown>;
+    return [item.id, item.value, item.label].filter((field): field is string | number => typeof field === "string" || typeof field === "number").map(String);
+  }
+  return [];
+}
+
+/** A Table's columns as items (its id, its header's words). */
+export function columnsOf(table: PageNode): ChoiceItem[] {
+  const list = table.props.columns;
+  if (list?.kind !== "array") return [];
+  return list.items.flatMap((entry) => {
+    if (entry.kind !== "object") return [];
+    const id = fieldText(entry.fields.id);
+    return id ? [{ value: id, label: fieldText(entry.fields.header) ?? id }] : [];
+  });
+}
+
+/** The rows a filter keeps: the ones whose cell in `fields` (the column's field and its caption; none: every field) is
+ *  one of `values` (`is`) or holds one (`contains`), ignoring case. No value: every row. */
+export function filterRows<T>(rows: readonly T[], values: readonly string[], match: FilterMatch = "is", fields?: readonly string[]): T[] {
+  const wanted = values.map((value) => value.trim().toLowerCase()).filter(Boolean);
+  if (!wanted.length) return [...rows];
+  return rows.filter((row) => {
+    if (!row || typeof row !== "object") return false;
+    const record = row as Record<string, unknown>;
+    const texts = (fields ?? Object.keys(record)).map((field) => cellText(record[field]).toLowerCase()).filter(Boolean);
+    return texts.some((text) => wanted.some((value) => (match === "contains" ? text.includes(value) : text === value)));
+  });
+}
+
+/** Which way Change step goes. */
+export type ProtoStep = "next" | "previous";
+/** `proto.step("next")`, with the Stepper's layer name when it is not the Screen's first. */
+export const stepCode = (to: ProtoStep, stepper?: string) => `proto.step(${JSON.stringify(to)}${stepper ? `, ${objectCode({ stepper })}` : ""})`;
+/** A step action's way and Stepper. */
+export function stepOf(args: readonly unknown[]): { to: ProtoStep; stepper?: string } {
+  const [to, options] = args;
+  const stepper = options && typeof options === "object" && !Array.isArray(options) ? (options as { stepper?: unknown }).stepper : undefined;
+  return { to: to === "previous" ? "previous" : "next", ...(typeof stepper === "string" && stepper ? { stepper } : {}) };
+}
+/** The step after `current` on a Stepper of `count` steps (it stays on the first or the last). */
+export const steppedIndex = (current: number, to: ProtoStep, count: number) => Math.max(0, Math.min(Math.max(0, count - 1), current + (to === "next" ? 1 : -1)));
+
+/** A layer's name for an action that names it: its layer name, else its accessible name. */
+export const layerNameOf = (node: PageNode): string | undefined => {
+  const name = literalOf(node, "data-name") ?? literalOf(node, "aria-label");
+  return typeof name === "string" && name ? name : undefined;
+};
+
+/** The `component` layers inside `root` (a Screen), in reading order. */
+export function layersIn(root: PageNode, component: string): PageNode[] {
+  const out: PageNode[] = [];
+  const visit = (node: PageNode) => {
+    if (node !== root && node.name === component) out.push(node);
+    const values: PageValue[] = Object.values(node.props);
+    while (values.length) {
+      const value = values.shift()!;
+      if (value.kind === "element") visit(value.node);
+      else if (value.kind === "fragment") for (const child of value.children) { if (child.kind === "element") visit(child); else if (child.kind === "map") visit(child.node); }
+      else if (value.kind === "array") values.push(...value.items);
+      else if (value.kind === "object") values.push(...Object.values(value.fields));
+    }
+    for (const child of node.children) {
+      if (child.kind === "element") visit(child);
+      else if (child.kind === "map") visit(child.node);
+    }
+  };
+  visit(root);
+  return out;
+}
+
+/** The layer a Filter table or Change step drives on `screen`: the one named `name`, else the first. */
+export const targetLayerOf = (screen: PageNode | null | undefined, component: string, name?: string): PageNode | null => {
+  const layers = screen ? layersIn(screen, component) : [];
+  return (name ? layers.find((node) => layerNameOf(node) === name) : undefined) ?? layers[0] ?? null;
+};
+
+/** A Stepper's number of steps (its `steps`, else its step children) and where it starts (`current`, else `defaultCurrent`). */
+export function stepperOf(node: PageNode): { count: number; start: number } {
+  const steps = node.props.steps;
+  const count = steps?.kind === "array" ? steps.items.length : steps?.kind === "literal" && Array.isArray(steps.value) ? steps.value.length : node.children.filter((child) => child.kind === "element").length;
+  const start = literalOf(node, "current") ?? literalOf(node, "defaultCurrent");
+  return { count, start: typeof start === "number" ? start : 0 };
 }
 
 /** A prop's value as a prototype action, or null (unset, or code of its own). */
@@ -293,11 +445,12 @@ export function framesOf(tree: PageTree | null): ProtoFrame[] {
   });
 }
 
-/** A canvas frame id as the target an action names: a Screen's id (any of its states → the Screen) or an Overlay's. */
+/** A canvas frame id as the target an action names: a Screen's id ("<id>:<state>" for one of its states, its own frame
+ *  as in Figma) or an Overlay's. */
 export function targetOfFrame(frameId: string): { action: "navigate" | "open"; target: string } | null {
-  const [kind, id] = frameId.split(":");
+  const [kind, id, state] = frameId.split(":");
   if (!id) return null;
-  if (kind === "screen") return { action: "navigate", target: id };
+  if (kind === "screen") return { action: "navigate", target: state ? `${id}:${state}` : id };
   if (kind === "overlay") return { action: "open", target: id };
   return null;
 }
@@ -391,6 +544,44 @@ export function protoSourcesOf(tree: PageTree | null): Map<string, ChoiceItem[] 
     for (const child of node.children) {
       if (child.kind === "element") stack.push(child);
       else if (child.kind === "map") stack.push(child.node);
+    }
+  }
+  return out;
+}
+
+/** Every `proto.*` action of `root` and the layers in it (also inside a prop's value): the layer's loc, its action, args. */
+export function actionsIn(root: PageNode | null | undefined): Array<{ loc: string; action: string; args: unknown[] }> {
+  const out: Array<{ loc: string; action: string; args: unknown[] }> = [];
+  const stack: PageNode[] = root ? [root] : [];
+  while (stack.length) {
+    const node = stack.pop()!;
+    const values: PageValue[] = Object.values(node.props);
+    while (values.length) {
+      const value = values.pop()!;
+      if (value.kind === "proto") out.push({ loc: node.loc, action: value.action, args: value.args });
+      else if (value.kind === "element") stack.push(value.node);
+      else if (value.kind === "fragment") for (const child of value.children) { if (child.kind === "element") stack.push(child); else if (child.kind === "map") stack.push(child.node); }
+      else if (value.kind === "array") values.push(...value.items);
+      else if (value.kind === "object") values.push(...Object.values(value.fields));
+    }
+    for (const child of node.children) {
+      if (child.kind === "element") stack.push(child);
+      else if (child.kind === "map") stack.push(child.node);
+    }
+  }
+  return out;
+}
+
+/** The Steppers a Change step of the page drives (Play holds their step): on each Screen, the one it names, else the
+ *  first (a step in an Overlay drives whichever Screen shows under it). */
+export function stepTargetsOf(tree: PageTree | null): Set<string> {
+  const names = new Set(actionsIn(tree?.board).filter((entry) => entry.action === "step").map((entry) => stepOf(entry.args).stepper ?? ""));
+  const out = new Set<string>();
+  if (!names.size) return out;
+  for (const screen of (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element" && child.name === "Screen")) {
+    for (const name of names) {
+      const node = targetLayerOf(screen, "Stepper", name || undefined);
+      if (node) out.add(node.loc);
     }
   }
   return out;
