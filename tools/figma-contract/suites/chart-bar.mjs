@@ -15,6 +15,7 @@ const PALE = "Color/Background/Support/Neutral/Pale";
 const fillOf = (node) => node?.fill?.find((paint) => !paint.hidden)?.v;
 const has = (k, orientation) => (vp) => orientation(vp) && count(vp) > k;
 const row = (k, column) => `.zen-chart__hrows > :nth-child(${3 * k + column})`;
+const fromPlot = { figmaRoot: "Chart > Plot > Bars", root: ".zen-chart__hgrid" };
 
 function verticalCase(spec) {
   const plot = child(child(spec, "Chart"), "Plot");
@@ -84,18 +85,27 @@ export default {
     { figma: "Chart > Plot > Tooltip-Anchor > Tooltip > Container > Slot > Text > Contents > Info", dom: ".zen-chart__sector[data-active] .zen-tooltip__label", check: ["text"], when: vertical },
     { figma: "Chart > Plot > Average", dom: ".zen-chart__average", check: ["size"], when: vertical },
     // ── Horizontal ──
-    { figma: "Chart > Plot > Bars", dom: ".zen-chart__hgrid", check: ["size", "x", "y"], when: horizontal },
+    // The plot's width is what the two text-hugging columns (category pills, values) leave, and Inter's advances differ
+    // by a pixel or two between font rasterisers (macOS vs CI's Linux). So the plot's marks compare in % of its width
+    // (`xr` / `wr` / `cxr` from the Bars frame) and the pills by their end against the plot's start.
+    { figma: "Chart > Plot > Bars", dom: ".zen-chart__hgrid", check: ["h", "y"], when: horizontal },
     ...[0, 1, 2, 3].map((k) => [
-      { figma: `Chart > Plot > Grid > Tick#${k} > Line-${k + 1}`, dom: `.zen-chart__hgrid > span:nth-child(${k + 1})`, check: ["h", "cx", "y", "stroke"], strokeSide: "left", when: horizontal },
-      // Figma centres a tick label on its 1px line, code on the line's start edge: half a pixel apart (tolerance 1).
-      { figma: `Chart > Plot > Grid > Tick#${k} > Label`, dom: `.zen-chart__haxis > span:nth-child(${k + 1})`, check: ["text", "cx", "y"], tolerance: 1, when: horizontal },
+      { figma: `Chart > Plot > Grid > Tick#${k} > Line-${k + 1}`, dom: `.zen-chart__hgrid > span:nth-child(${k + 1})`, check: ["h", "y", "stroke"], strokeSide: "left", when: horizontal },
+      { figma: `Chart > Plot > Grid > Tick#${k} > Line-${k + 1}`, dom: `.zen-chart__hgrid > span:nth-child(${k + 1})`, check: ["cxr"], tolerance: 1, ...fromPlot, when: horizontal },
+      { figma: `Chart > Plot > Grid > Tick#${k} > Label`, dom: `.zen-chart__haxis > span:nth-child(${k + 1})`, check: ["text", "y"], when: horizontal },
+      // Figma centres a tick label on its 1px line, code on the line's start edge: half a pixel apart (tolerance 1%).
+      { figma: `Chart > Plot > Grid > Tick#${k} > Label`, dom: `.zen-chart__haxis > span:nth-child(${k + 1})`, check: ["cxr"], tolerance: 1, ...fromPlot, when: horizontal },
     ]).flat(),
     ...Array.from({ length: 12 }, (_, k) => [
-      { figma: `Chart > Categories > Category#${k} > Wrapper`, dom: row(k, 1), check: ["h", "right", "cy", "fill", "radius"], when: has(k, horizontal) },
+      { figma: `Chart > Categories > Category#${k} > Wrapper`, dom: row(k, 1), check: ["h", "cy", "fill", "radius"], when: has(k, horizontal) },
+      { figma: `Chart > Categories > Category#${k} > Wrapper`, dom: row(k, 1), check: ["right"], ...fromPlot, when: has(k, horizontal) },
       { figma: `Chart > Categories > Category#${k} > Wrapper > Label`, dom: row(k, 1), check: ["text"], when: has(k, horizontal) },
-      { figma: `Chart > Plot > Bars > Track#${k}`, dom: row(k, 2), check: ["size", "x", "y"], when: has(k, horizontal) },
-      { figma: `Chart > Plot > Bars > Track#${k} > Target`, dom: `${row(k, 2)} > .zen-chart__target`, check: ["w", "h", "x", "fill", "radius"], tolerance: 1, when: has(k, horizontal) },
-      { figma: `Chart > Plot > Bars > Track#${k} > Bar`, dom: `${row(k, 2)} > .zen-chart__bar`, check: ["w", "h", "x", "fill", "radius"], tolerance: 1, when: has(k, horizontal) },
+      { figma: `Chart > Plot > Bars > Track#${k}`, dom: row(k, 2), check: ["h", "y"], when: has(k, horizontal) },
+      { figma: `Chart > Plot > Bars > Track#${k}`, dom: row(k, 2), check: ["xr", "wr"], ...fromPlot, when: has(k, horizontal) },
+      ...["Target", "Bar"].map((mark) => [
+        { figma: `Chart > Plot > Bars > Track#${k} > ${mark}`, dom: `${row(k, 2)} > .zen-chart__${mark.toLowerCase()}`, check: ["h", "fill", "radius"], when: has(k, horizontal) },
+        { figma: `Chart > Plot > Bars > Track#${k} > ${mark}`, dom: `${row(k, 2)} > .zen-chart__${mark.toLowerCase()}`, check: ["xr", "wr"], ...fromPlot, when: has(k, horizontal) },
+      ]).flat(),
       { figma: `Chart > Values > Value#${k} > Label`, dom: row(k, 3), check: ["text", "right", "cy"], when: has(k, horizontal) },
     ]).flat(),
     { figma: "Chart > Plot > Average", dom: ".zen-chart__hgrid > .zen-chart__average", check: ["size"], when: horizontal },

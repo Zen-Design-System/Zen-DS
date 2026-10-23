@@ -59,9 +59,14 @@ export default {
       { figma: `Chart > Row#${r} > Row-Label`, dom: `.zen-chart__cells > :nth-child(${r * 8 + 1})`, check: ["right"] },
       ...Array.from({ length: 7 }, (_, c) => ({ figma: `Chart > Row#${r} > Cell#${c}`, dom: cellAt(r, c), check: ["size", "x", "cy", "fill", "radius"] })),
     ]).flat(),
-    // The scale: Less, the five steps, More, at the end.
-    ...["Label#0", ...STEPS.map((_, i) => `Step#${i}`), "Label#1"].map((layer, i) => ({
-      figma: `Chart > Scale > ${layer}`, dom: `.zen-chart__scale > :nth-child(${i + 1})`, check: layer.startsWith("Step") ? ["size", "x", "cy", "fill", "radius"] : ["text", "right", "cy"],
-    })),
+    // The scale at the end: More, the five steps and Less before it. "More"'s width differs by a pixel or two between
+    // font rasterisers, so the steps and "Less" are placed from the first step.
+    ...STEPS.map((_, i) => [
+      { figma: `Chart > Scale > Step#${i}`, dom: `.zen-chart__scale > :nth-child(${i + 2})`, check: ["size", "cy", "fill", "radius"] },
+      { figma: `Chart > Scale > Step#${i}`, dom: `.zen-chart__scale > :nth-child(${i + 2})`, check: ["x"], figmaRoot: "Chart > Scale > Step#0", root: ".zen-chart__scale > :nth-child(2)" },
+    ]).flat(),
+    { figma: "Chart > Scale > Label#0", dom: ".zen-chart__scale > :nth-child(1)", check: ["text", "cy"] },
+    { figma: "Chart > Scale > Label#0", dom: ".zen-chart__scale > :nth-child(1)", check: ["right"], figmaRoot: "Chart > Scale > Step#0", root: ".zen-chart__scale > :nth-child(2)" },
+    { figma: "Chart > Scale > Label#1", dom: ".zen-chart__scale > :nth-child(7)", check: ["text", "right", "cy"] },
   ],
 };

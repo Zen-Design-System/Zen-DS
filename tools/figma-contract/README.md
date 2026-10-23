@@ -80,7 +80,9 @@ whose middle must match). A path part `*` matches any child (a layer named by it
 `strokeScale` for shapes drawn in viewBox units; `fillVia: "gradient"` compares an SVG `<linearGradient>` stop by stop
 through each stop's bound variable (plus the paint's opacity against `fill-opacity`), `fillVia: "stroke"` a Figma fill
 code draws as a stroke. `figmaRoot` (with `root`) measures from a Figma layer and its DOM pair instead of the component,
-so a plot's insides compare to their own frame when a lane above them differs. An exception's `code` may be a number,
+so a plot's insides compare to their own frame when a lane above them differs; `xr` / `wr` / `cxr` give x, width and
+centre in % of that frame's width, for a row whose width follows text-hugging neighbours (Inter's advances differ by a
+pixel or two between macOS and CI's Linux, so suites never assert a width that a label's text decides). An exception's `code` may be a number,
 matched within 0.05px (a width code derives from its column); opacities compare to three decimals.
 
 The chart suites (`chart-*.mjs`, 2026-10-23) render each Figma Chart/* set as the body of a Chart Card (cases.tsx

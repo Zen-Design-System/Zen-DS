@@ -150,7 +150,7 @@ for (const mode of modes) {
       const want = {
         // `figmaRoot` (with `root`, its DOM pair): offsets from that layer instead of the component, so a plot's insides
         // compare to its own frame when a lane above it differs.
-        w: node.w, h: node.h, x: figma.x - (origin?.x ?? 0), y: figma.y - (origin?.y ?? 0),
+        w: node.w, h: node.h, x: figma.x - (origin?.x ?? 0), y: figma.y - (origin?.y ?? 0), rootW: (origin?.node ?? spec).w,
         fill: visiblePaint(node.fill), stroke: visiblePaint(node.stroke), sw: node.sw, sa: node.sa,
         r: node.r, bvR: node.bv?.topLeftRadius, op: node.op,
         fxStyle: node.fxStyle, ts: node.ts, textFill: node.t === "TEXT" ? visiblePaint(node.fill) : null,
@@ -205,6 +205,12 @@ for (const mode of modes) {
         if (need.includes("right")) out.right = [want.x + want.w, +((rect.right ?? rect.left + rect.width) - rr.left).toFixed(2)];
         // The centre, for a layer whose box differs from the element's but whose middle must match (a chart's axis label
         // centred in a grid row Figma sizes to the row, where code's box hugs the line).
+        // The same in % of the root's width (`figmaRoot` and its DOM pair): a row whose width follows text-hugging
+        // neighbours (it differs by a pixel or two between font rasterisers) still places its marks proportionally.
+        const pct = (value, of) => +((value / of) * 100).toFixed(2);
+        if (need.includes("xr")) out.xr = [pct(want.x, want.rootW), pct(rect.left - rr.left, rr.width)];
+        if (need.includes("wr")) out.wr = [pct(want.w, want.rootW), pct(rect.width, rr.width)];
+        if (need.includes("cxr")) out.cxr = [pct(want.x + want.w / 2, want.rootW), pct(rect.left + rect.width / 2 - rr.left, rr.width)];
         if (need.includes("cx")) out.cx = [+(want.x + want.w / 2).toFixed(2), +(rect.left + rect.width / 2 - rr.left).toFixed(2)];
         if (need.includes("cy")) out.cy = [+(want.y + want.h / 2).toFixed(2), +(rect.top + rect.height / 2 - rr.top).toFixed(2)];
         if (need.includes("fill")) {

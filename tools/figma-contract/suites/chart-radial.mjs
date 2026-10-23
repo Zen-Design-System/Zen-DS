@@ -33,7 +33,10 @@ export default {
   ],
   map: [
     ...cardMap(),
-    { figma: "Chart", dom: ".zen-chart-round", check: ["size", "x", "y"] },
+    // Under the rings the three legend items fill 346 of 352px in Figma, so a rasteriser whose Inter runs a little wider
+    // (CI's Linux) wraps them: the Bottom legend's height and the chart's are compared beside the rings only (End).
+    { figma: "Chart", dom: ".zen-chart-round", check: ["size", "x", "y"], when: (vp) => vp.Legend === "End" },
+    { figma: "Chart", dom: ".zen-chart-round", check: ["w", "x", "y"], when: (vp) => vp.Legend === "Bottom" },
     { figma: "Chart > Ring", dom: ".zen-chart__round", check: ["size", "x", "y"] },
     // Tracks and rings: SVG circles in viewBox units (100 = the diameter), so strokes scale by the ring's px / 100.
     ...Object.entries(PX).flatMap(([Size, px]) => [0, 1, 2].flatMap((i) => [
@@ -43,6 +46,7 @@ export default {
     { figma: "Chart > Ring > Centre", dom: ".zen-chart__centre", check: ["cx", "cy"] },
     { figma: "Chart > Ring > Centre > Value", dom: ".zen-chart__centre-value", check: ["text", "h", "cx"] },
     { figma: "Chart > Ring > Centre > Caption", dom: ".zen-chart__centre-label", check: ["text", "h", "cx"] },
-    ...legendMap("Chart > Legend", { items: 3, itemName: "Legend-Item", itemY: true }),
+    ...legendMap("Chart > Legend", { items: 3, itemName: "Legend-Item", itemY: true, when: (vp) => vp.Legend === "End" }),
+    ...legendMap("Chart > Legend", { items: 3, itemName: "Legend-Item", check: ["w", "x", "y"], when: (vp) => vp.Legend === "Bottom" }),
   ],
 };
