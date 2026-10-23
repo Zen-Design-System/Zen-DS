@@ -96,6 +96,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio: ⇧⌘G with several layers selected ungroups every selected group or frame, as Figma's (one ⌘Z takes it
   back); their layers and the other selected layers stay selected, and the canvas menu offers Ungroup on several layers
   (2026-10-23).
+- Zen Studio → Figma: the frame menu's Copy for Figma pastes straight onto the Zen file's canvas, as ⌘C does (it reached
+  only the Zen plugin before); cards that stretch to their grid row keep their Studio height in the paste, so a row of
+  Metric-Cards no longer squeezes its sparklines; the definition pack the paste reads is 7.7 MB, from 23.3 MB
+  (2026-10-23).
 - Zen Studio ↔ Figma: an instance's layer name (data-name) is its Figma name and comes back with Pull from Figma, and so
   does a name changed in Figma since; an instance's accessible name (aria-label, an icon button's label) stays its Figma
   name first (2026-10-23).

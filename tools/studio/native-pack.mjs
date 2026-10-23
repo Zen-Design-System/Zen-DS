@@ -35,9 +35,49 @@
 // type]}; a set lists its `variants` in layer order (the first is Figma's default). `contents` {id: [node…]} are the slot
 // contents a component sets on its nested instances, in full (a paste that edits one carries its own copy, as Figma
 // does); their style and variable refs are node ids, their vector data inline (`{blob: base64}`). The schema Figma wrote
-// rides along as figma-clipboard-schema.generated.mjs.
+// rides along as figma-clipboard-schema.generated.mjs. The file stores every repeated subtree once (`shared`, written
+// `{$: n}`: compactPack); read it through figma-native.mjs expandPack.
 
 import { readFigmaClipboard, base64Of } from "./figma-kiwi.mjs";
+import { expandPack } from "./figma-native.mjs";
+
+/** Subtrees shorter than this (as JSON) stay inline: a reference would save little. */
+const SHARED_MIN = 40;
+
+/**
+ * The pack as the file stores it: every subtree (object or array, ≥ SHARED_MIN as JSON) that occurs more than once goes
+ * into `shared` once and is written `{$: n}` where it occurs (the 2026-10-23 pack: 23.3 → 7.7 MB). figma-native.mjs
+ * expandPack restores it; deterministic, so a refresh diffs only what changed.
+ */
+export function compactPack(full) {
+  const pack = expandPack(full);
+  const count = new Map();
+  const visit = (value) => {
+    if (!value || typeof value !== "object") return;
+    if (!Array.isArray(value) && "$" in value) throw new Error("native-pack: a pack object holds a `$` key, which compactPack writes for its references");
+    const json = JSON.stringify(value);
+    if (json.length >= SHARED_MIN) {
+      const seen = count.get(json) ?? 0;
+      count.set(json, seen + 1);
+      if (seen) return;
+    }
+    for (const item of Array.isArray(value) ? value : Object.values(value)) visit(item);
+  };
+  const META = new Set(["note", "file", "read", "merged"]);
+  for (const [key, value] of Object.entries(pack)) if (!META.has(key)) visit(value);
+  const index = new Map();
+  for (const [json, times] of count) if (times > 1) index.set(json, index.size);
+  const children = (value) => (Array.isArray(value) ? value.map(swap) : Object.fromEntries(Object.entries(value).map(([key, item]) => [key, swap(item)])));
+  const swap = (value) => {
+    if (!value || typeof value !== "object") return value;
+    const at = index.get(JSON.stringify(value));
+    return at === undefined ? children(value) : { $: at };
+  };
+  const out = {};
+  for (const [key, value] of Object.entries(pack)) out[key] = META.has(key) ? value : swap(value);
+  out.shared = [...index.keys()].map((json) => children(JSON.parse(json)));
+  return out;
+}
 
 export const PACK_FILE = "docs/figma-contracts/native-pack.json";
 export const SCHEMA_MODULE = "tools/studio/figma-clipboard-schema.generated.mjs";
@@ -542,8 +582,8 @@ if (typeof process !== "undefined" && process.argv?.[1] && import.meta.url === (
     for (const html of htmls) { const copy = await readFigmaClipboard(html); if (!copy) throw new Error("native-pack: a copy without Figma's buffer"); copies.push(copy); }
     const fresh = packFrom(copies, { read });
     // --merge: the copies' definitions on top of the existing pack (and its schema, which pastes still read).
-    const pack = merge ? mergePacks(JSON.parse(fs.readFileSync(path.join(root, PACK_FILE), "utf8")), fresh) : fresh;
-    fs.writeFileSync(path.join(root, PACK_FILE), `${JSON.stringify(pack)}\n`);
+    const pack = merge ? mergePacks(expandPack(JSON.parse(fs.readFileSync(path.join(root, PACK_FILE), "utf8"))), fresh) : fresh;
+    fs.writeFileSync(path.join(root, PACK_FILE), `${JSON.stringify(compactPack(pack))}\n`);
     if (!merge) fs.writeFileSync(path.join(root, SCHEMA_MODULE), schemaModule(copies[copies.length - 1], read));
     if (merge) { const last = pack.merged[pack.merged.length - 1]; console.log(`native-pack: added ${last.sets.length} sets (${last.sets.join(", ") || "none"}) and ${last.symbols} symbols from the copies; the ${Object.keys(fresh.symbols).length - last.symbols} the pack had stay`); }
     const missing = ids.filter((key) => !pack.sets[key] && !pack.symbols[key]);
@@ -576,22 +616,22 @@ if (typeof process !== "undefined" && process.argv?.[1] && import.meta.url === (
   else if (command === "effects-code") console.log(effectsCode());
   else if (command === "effects" && option("files")) {
     const file = path.join(root, PACK_FILE);
-    const result = withEffects(JSON.parse(fs.readFileSync(file, "utf8")), fs.readFileSync(option("files"), "utf8").trim().replace(/^"|"$/g, ""));
-    fs.writeFileSync(file, `${JSON.stringify(result.pack)}\n`);
+    const result = withEffects(expandPack(JSON.parse(fs.readFileSync(file, "utf8"))), fs.readFileSync(option("files"), "utf8").trim().replace(/^"|"$/g, ""));
+    fs.writeFileSync(file, `${JSON.stringify(compactPack(result.pack))}\n`);
     console.log(`native-pack: the effects of ${result.styles} effect styles${result.skipped.length ? `; skipped: ${result.skipped.join(", ")}` : ""}`);
   } else if (command === "images-code" || command === "images") {
-    const pack = JSON.parse(fs.readFileSync(path.join(root, PACK_FILE), "utf8"));
+    const pack = expandPack(JSON.parse(fs.readFileSync(path.join(root, PACK_FILE), "utf8")));
     // Sets and the components outside them, icons aside (an icon shows no picture).
     const components = [...Object.keys(pack.sets), ...Object.entries(pack.symbols).filter(([, symbol]) => !symbol.set && !/^(icon|ic)-/.test(symbol.name)).map(([key]) => key)].sort();
     if (command === "images-code") console.log(imagesCode(components, Number(option("part") ?? 0)));
     else if (option("files")) {
       const result = withImages(pack, option("files").split(",").map((file) => fs.readFileSync(file, "utf8").trim().replace(/^"|"$/g, "")));
-      fs.writeFileSync(path.join(root, PACK_FILE), `${JSON.stringify(result.pack)}\n`);
+      fs.writeFileSync(path.join(root, PACK_FILE), `${JSON.stringify(compactPack(result.pack))}\n`);
       console.log(`native-pack: ${result.layers} picture layers in ${result.symbols} components${result.skipped.length ? `; skipped: ${result.skipped.join(", ")}` : ""} (parts: ${Math.ceil(components.length / 100)})`);
     } else { console.error("usage: native-pack.mjs images --files=<answers of images-code>"); process.exit(1); }
   }
   else if (command === "check") {
-    const pack = JSON.parse(fs.readFileSync(path.join(root, PACK_FILE), "utf8"));
+    const pack = expandPack(JSON.parse(fs.readFileSync(path.join(root, PACK_FILE), "utf8")));
     const missing = ids.filter((key) => !pack.sets[key] && !pack.symbols[key]);
     if (missing.length) { console.error(`native-pack: ${missing.length} set(s) the push can write are not in the pack (${missing.join(", ")}): rebuild with probe-code + capture`); process.exit(1); }
     console.log(`native-pack: every set the push can write (${ids.length}) is in the pack (read ${pack.read})`);

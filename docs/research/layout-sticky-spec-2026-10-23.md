@@ -112,13 +112,13 @@ STICKY_SCROLLS); the absolute part is already there.
 - The plugin's API sequence ran live in the Zen file: absolute + STRETCH/MAX + moved on top +
   `numberOfFixedChildren = 1` read back, then 0. The frame was deleted.
 
-**Not run:**
+**Live native paste (2026-10-23, session C; QA page, test frames removed, clipboard saved and put back 6/6):**
 
-- A live native paste (scripted pastes are unreliable and risk the user's clipboard and front page; memory
-  paste-into-figma-myself).
-- Whether Figma also needs `fixedChildrenDivider` for a pasted Fixed layer.
-
-Both are in BACKLOG P3 next to the native gradient paste.
+- A Studio frame (sticky top Stack, sticky bottom Box) pasted with ⌘V: the frame reads `numberOfFixedChildren` 1, the
+  Box absolute STRETCH / MAX; Figma's copy of the pasted frame carries STICKY_SCROLLS on the Stack and
+  FIXED_WHEN_CHILD_OF_SCROLLING_FRAME on the Box. Figma keeps both.
+- Figma's own copy of a Fixed layer set through the Plugin API (`numberOfFixedChildren` = 1) writes
+  FIXED_WHEN_CHILD_OF_SCROLLING_FRAME on the layer and no `fixedChildrenDivider` on the frame: the paste needs none.
 
 ## Checks
 
