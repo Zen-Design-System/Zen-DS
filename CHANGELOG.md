@@ -1535,6 +1535,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- CI (2026-10-24): the SwiftUI and Flutter token packages in `platforms/` are compiled and tested on macOS
+  (`swift test`, `flutter test` on Flutter 3.24.5) by a Native packages workflow, whenever they or their generator
+  change (or by hand). Until now nothing compiled them.
 - Zen Studio ↔ Figma, phone app frames (2026-10-23): a frame built on Figma's Pattern/AppShell/Mobile comes back from
   Figma as a phone AppShell with its bars — its Top (bar, band, band-sheet, media), TopNavigation, tabs or ActionBar,
   hero or backdrop, band colour and canvas, and the page in it — instead of a Stack and a note. An ActionBar on its own
