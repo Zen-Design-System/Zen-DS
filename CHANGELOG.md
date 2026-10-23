@@ -1261,7 +1261,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   with an 8px inset, so an example gets 272px (an app on a 320 phone has 288): Voice actions, the inline DatePicker's
   "October 2026", a Small Pagination and the Rating list's Sort chip fit at Comfortable. Settings form template: the
   photo upload drops under the avatar when less than 136px is left beside it (a 320 phone only). The audit no longer
-  counts a link scrolled out of a template's frame as a crowded touch target.
+  counts a link scrolled out of a template's frame as a crowded touch target, nor the space hanging at a line break of
+  pre-wrap text (chat bubbles) as text touching the edge.
 - Build-QA gate (2026-10-22): a full `npm run qa -- --all` ends with a real pass or fail for every step instead of
   being killed by a time limit. The audit, dark audit and behaviour jobs run in shards of about 10 minutes sized from
   each page's last measured time; a shard that still stops early fails its step and names the pages it did not check.

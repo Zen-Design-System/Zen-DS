@@ -224,3 +224,11 @@ Branch claude/eloquent-mclean-8f4974 from main 4b96bbb8. BACKLOG P1 "320px debt 
 - Text / widgets / sidebar style findings stay in the all-viewport baseline (user: accepted, not 320 debt).
 - Seen, not changed: Settings form's save bar truncates "Discard" at 320 Comfortable — the user's 10-19 ActionBar rule
   (Primary keeps its label, the other gives way).
+- Gate 1 (`qa --all --isolated`, after merging main 99d230be): static, Vitest 82/82, contracts, dark, behaviour, Studio
+  E2E 338/0 ✓; audit ✗ 14 new 320 "edge" errors (ai-chat "Rate an answer" after Regenerate, ai-ui Prompt=invoices),
+  all one false positive: pre-wrap text gives the space at each line break its own rect, hanging 4px past the box
+  (words end at 295.8 in a 296 box). `audit.mjs` edges now measure pre-wrap text by its words; both pages clean.
+- Gate 2 (all 83 pages, `--isolated`, Studio E2E left out: only audit.mjs changed since gate 1): audit 1512/390/320,
+  dark, behaviour 0 errors, 0 new warnings → PASS. Contact sheets: templates 390/1512 keep the photo row whole.
+  Visual diff templates 1512 + 390, old vs new template: 32 identical. Baseline: the 28 @320 keys gate 2 no longer finds
+  removed (13 Chat, 10 layout, the Show-all target, 4 Text-page heading demos); 16 @320 keys left, all also at 1512/390.
