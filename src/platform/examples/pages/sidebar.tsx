@@ -5,7 +5,7 @@
    a Search in its top row and the page's PageHeader in its Main row, and the Body at the page margin (no Container).
    Below 1024px the shell opens the Sidebar as a drawer from the header's menu button; on a phone, from the Top
    Navigation's. */
-import { createContext, useContext, useEffect, useId, useRef, useState, type AnchorHTMLAttributes, type ReactNode, type Ref } from "react";
+import { createContext, useContext, useEffect, useId, useRef, useState, type AnchorHTMLAttributes, type ReactElement, type ReactNode, type Ref } from "react";
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader, useAppShell, type AppShellLayout } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge, type BadgeTheme } from "../../../components/Badge";
@@ -25,7 +25,7 @@ import { List, ListBox, ListItem, type ListBoxTheme } from "../../../components/
 import { Menu } from "../../../components/Menu";
 import { PageHeader } from "../../../components/PageHeader";
 import { Search } from "../../../components/Search";
-import { Sidebar, SidebarMenuItem, SidebarMenuSection, SidebarSubMenu, type SidebarItem, type SidebarSection } from "../../../components/Sidebar";
+import { Sidebar, SidebarMenuItem, SidebarMenuSection, SidebarSubHeader, SidebarSubMenu, type SidebarItem, type SidebarSection } from "../../../components/Sidebar";
 import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
@@ -1047,6 +1047,48 @@ function SidebarOnPhone() {
   );
 }
 
+/* Recipe (user 2026-10-24: "a docs recipe now; parts later"): the HR-Platform Sidebar's account header and a module's
+   Back + title, from the Sidebar's own slots. The brand is the workspace's square logo with its name over its email and a
+   chevron-selector Menu at the end that switches workspace; inside a module the Sidebar shows a SidebarSubHeader (Back over
+   the module's name), and its rail keeps the logo and the Back chevron. */
+const accountModules: Record<string, { title: string; sections: SidebarSection[] }> = {
+  projects: { title: "Projects", sections: [{ items: [nav("all", "All projects", "icon-folder-line"), nav("mine", "Assigned to me", "icon-user-check-line"), nav("archived", "Archived", "icon-archive-line")] }] },
+};
+function AccountHeaderExample() {
+  const { toast } = useToast();
+  const [active, setActive] = useState("ws-dizai");
+  const [module, setModule] = useState<string | null>("projects");
+  const [page, setPage] = useState("all");
+  const workspace = baseWorkspaces.find((w) => w.id === active) ?? baseWorkspaces[0];
+  const home: SidebarSection[] = [{ items: [nav("home", "Home", "icon-home-03-line"), nav("projects", "Projects", "icon-folder-line"), nav("people", "People", "icon-users-line")] }];
+  const current = module ? accountModules[module] : null;
+  const brand = (
+    <Stack direction="row" gap="xs" align="center" width="fill">
+      {workspace.mark}
+      <Stack gap="none" width="fill" minWidth={0}>
+        <Text as="span" textStyle="Body/Base/Bold" truncate>{workspace.label}</Text>
+        <Text as="span" textStyle="Caption/Regular" tone="light" truncate>{`${workspace.role} · ${plural(workspace.members, "member")}`}</Text>
+      </Stack>
+      <Menu align="end" aria-label="Switch workspace" trigger={<IconButton appearance="flat" level="primary" size="sm" aria-label="Switch workspace" icon="icon-chevron-selector-vertical-line" />}
+        items={baseWorkspaces.map((w) => ({ id: w.id, label: w.label, icon: w.mark as ReactElement, caption: w.id === active ? "Current workspace" : w.role, onSelect: () => { setActive(w.id); setModule(null); toast({ title: `Switched to ${w.label}` }); } }))} />
+    </Stack>
+  );
+  const label = (current?.sections ?? home).flatMap((section) => section.items).find((item) => item.id === (current ? page : "home"))?.label ?? "Home";
+  return (
+    <AppShell
+      sidebar={(
+        <Sidebar aria-label={current ? `${current.title} navigation` : "Workspace navigation"} brand={brand} logoCollapsed={workspace.mark}
+          subHeader={current ? <SidebarSubHeader title={current.title} backLabel="Back to Home" onBack={() => setModule(null)} /> : undefined}
+          sections={current ? current.sections : home} selectedId={current ? page : "home"}
+          onItemClick={(item) => (current ? setPage(item.id) : accountModules[item.id] ? (setModule(item.id), setPage("all")) : toast({ title: item.label, children: "Not part of this demo." }))} />
+      )}
+      header={<AppShellHeader main={<PageHeader title={label} description={workspace.label} />} />}
+    >
+      <EmptyState size="sm" headingLevel={2} icon="icon-folder-line" title={`${label} in ${workspace.label}`}>Switch the workspace from the header's menu; open Projects to see the module's Back + title.</EmptyState>
+    </AppShell>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Studio navigation",
@@ -1175,6 +1217,32 @@ const open = (id) => { setPage(id); setFlyout(false); setQuery(""); };
 >
   <WorkspacePage workspace={current} page={page} />
 </AppShell>`,
+  },
+  {
+    title: "Account header and module title",
+    description: "A recipe for an app whose Sidebar names the workspace and opens modules (HR-Platform). The brand is the workspace's square logo, its name over a short line, and a chevron-selector menu that switches workspace. Inside a module, a SidebarSubHeader puts Back over the module's name; the collapsed rail keeps the logo and the Back chevron.",
+    wide: true,
+    screen: true,
+    render: () => <AccountHeaderExample />,
+    code: `<Sidebar
+  brand={
+    <Stack direction="row" gap="xs" align="center" width="fill">
+      <Avatar size="medium" shape="square" theme="photo" src={workspace.logo} alt="" />
+      <Stack gap="none" width="fill" minWidth={0}>
+        <Text as="span" textStyle="Body/Base/Bold" truncate>{workspace.name}</Text>
+        <Text as="span" textStyle="Caption/Regular" tone="light" truncate>Admin · 24 members</Text>
+      </Stack>
+      <Menu align="end" aria-label="Switch workspace"
+        trigger={<IconButton appearance="flat" level="primary" size="sm" aria-label="Switch workspace" icon="icon-chevron-selector-vertical-line" />}
+        items={workspaces.map((w) => ({ id: w.id, label: w.name, icon: w.mark, onSelect: () => switchTo(w.id) }))} />
+    </Stack>
+  }
+  logoCollapsed={<Avatar size="medium" shape="square" theme="photo" src={workspace.logo} alt={workspace.name} />}
+  subHeader={module ? <SidebarSubHeader title="Projects" backLabel="Back to Home" onBack={() => setModule(null)} /> : undefined}
+  sections={module ? projectSections : homeSections}
+  selectedId={page}
+  onItemClick={(item) => open(item.id)}
+/>`,
   },
   {
     title: "Handbook with chapters",
