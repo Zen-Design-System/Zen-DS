@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Charts and MetricCard read money and shares from text: `format` also takes `"compact"` (128.4K, the default),
+  `"currency"` ($128.4K, in `currency`, an ISO 4217 code: USD by default; `currency` alone implies it) and `"percent"`
+  (41%), on every chart with a `format` (ComboChart's `lineFormat` too, BulletChart beside its row function). Zen Studio
+  pages hold only text, so their money widgets now read "$105.7K" instead of "105.7K" (2026-10-23).
 - Layout: `modes={{ theme: "dark", density: "comfortable" }}` on Stack, Grid and Box, and on a Studio Screen. This is
   Figma's Change variable mode on a frame: the data-* attributes tokens.css reads, and the ZenProvider context for the
   components inside. Zen Studio sets it with Apply variable mode (Appearance header, Screen section). Push and the Zen
