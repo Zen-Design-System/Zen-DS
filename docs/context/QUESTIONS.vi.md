@@ -205,6 +205,39 @@ làm hiện tại; khi có câu trả lời, việc cần làm sẽ vào `BACKLO
   Table không có `onRowClick` vẫn nhận nền Table/Cell Hover trong code (`table.css` ~57). Cell Hover dành cho mọi hàng
   (Table/Cell/Default State=Hover của Figma), hay chỉ cho hàng mở, chọn hoặc sửa được thứ gì đó?
 
+### Đợt hỏi designer 24/10/2026 (chuyển từ `BACKLOG.md`, khi rà phần backlog kế hoạch; code giữ cách làm hiện tại đến khi có câu trả lời)
+
+- **Màu icon của Dock-Icon Solid Sky / Mint / Yellow (P3, 05/10):** các nền này vẽ icon trắng (On-Colors, 1,6–1,8:1),
+  còn Avatar và Badge trên cùng nền dùng On-Brights. Đổi Dock-Icon sang On-Brights? Code đang theo Figma
+  (`dock-icon.css` ~48, ~60).
+- **Dock-Icon Emoji cỡ XSmall (P3, 30/09):** glyph emoji trong code 12px, trong Figma 28px (`dock-icon.css` ~20–27).
+  XSmall nên theo bên nào?
+- **Khung HR Tasks so với component (P3, 30/09):** Box chỉ có bề mặt trung tính, còn cột Kanban dùng màu Support/Subtle:
+  có thêm bề mặt màu không? Card Spacing Small đệm 16, thẻ ticket đệm 12/12; ModalForm Big rộng 960, khung vẽ 800 và có
+  icon hành động (Attach File); TextAreaField cao 112, khung vẽ 240; ProgressCircle Done trong code và trong
+  Progress-Circle/Icon là đĩa có dấu check, khung Tasks là đĩa đặc; chữ của cờ ưu tiên tone Base, khung vẽ Light; khoảng
+  cách tiêu đề–meta của PageHeader là 12, khung vẽ 8 (giờ không còn chevron tiêu đề). Cái nào là variant hay ghi đè tại
+  chỗ, cái nào component nên theo? Tab Calendar / Gantt của All Tasks chờ khung vẽ (bạn, 30/09: "Chờ thiết kế"); nay đã
+  có Calendar (#180) và Timeline (#198) để vẽ từ đó.
+- **EmptyState trong Card (P3, 02/10):** không có đệm trên, đệm dưới 48px (`empty-state.css` ~10), nên lệch trong Card.
+  Có chủ ý không?
+- **Viền Input (P3, 03/10 và 13/10):** `Input/Border/Popover-Search` ở S1–S6 vẫn lưu màu NaN (đọc ngày 24/10; S7 trỏ tới
+  Focus/Neutral/Subtle), bản export ghi thành `#NANNANNAN`; một giá trị trong suốt bình thường sẽ export sạch.
+  `.Primitives/Input/Text-Area` khi Focused có vòng 2px Focus/Neutral/Subtle, Field-Only có vòng 3px; viền lỗi
+  (Inputted-Error / Blank-Error) của Text-Area là Color/Border/Negative/Solid/Default, của Field-Only là
+  Color/Focus/Negative/Solid (cùng màu). Code dùng vòng 3px và Focus/Negative cho cả hai: sửa Figma cho khớp?
+- **Hover / pressed của Card Default (P3, 06/10):** theme Default (tên cũ là Flat, đổi ngày 22/10) không có trạng thái
+  hover hay pressed, nên thẻ bấm được vẫn phải có viền. Có vẽ thêm không? (BACKLOG "Card states")
+- **Hover của hàng Table (P3, 01/10):** hàng của bảng không có hành động vẫn hiện nền hover. Cell Hover của Figma chỉ
+  dành cho hàng bấm được? (BACKLOG "Table follow-ups")
+- **Các trang template HR dùng 9 kiểu chữ (P3, 08/10; đưa vào baseline 21/10):** HR · Home, My leaves và Expense
+  overview mỗi trang dùng 9 kiểu, trong khi kiểm tra [rhythm] của audit cho một trang đầy đủ khoảng 8 (danh sách trong
+  `tools/platform-audit/quality-baseline.json`; Home: Body/Base/Regular, Heading/1, Heading/4, Body/Small/Regular,
+  Heading/Subheading, Body/Small/Bold, Body/Base/Bold, Body/Extra/Medium, Display/4). Khung HR-Platform trong Figma có
+  dùng ngần ấy không (chấp nhận), hay mỗi trang nên bỏ kiểu nào?
+- **Sửa trong Figma (P3, 06/10):** bố cục List trên trang Demo 14730:79268 ("My Leaves") vẫn dùng padding List cũ (trên
+  / dưới 12, hai bên 0, gap 2); với master mới các hàng chạm cạnh khung và nền chồng lên nhau.
+
 ## Cho bạn (quyết định và việc cần làm)
 
 **Đã trả lời ngày 09/10/2026:**
