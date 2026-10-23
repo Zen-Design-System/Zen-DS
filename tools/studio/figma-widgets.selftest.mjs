@@ -61,8 +61,10 @@ check("the page of every widget is valid dialect", validateDialect(PAGE), []);
 
 // What a widget is made of, without its data: per element, its name and the props Figma carries (header, theme,
 // variants). Data props come back as the Studio's sample (DATA); DonutChart's centre label/value and RadialChart's
-// legend position are carried, as in figma-push.selftest.mjs §29.
+// legend position are carried, as in figma-push.selftest.mjs §29. A number format (format="currency", lineFormat,
+// currency: text presets since 2026-10-23) is data too: Figma draws the figures as text and has no format property.
 const DATA = new Set(["data", "series", "compare", "values", "rows", "columns", "aria-label", "height", "label", "barLabel", "lineLabel", "value", "target", "actualLabel", "headers", "legendPosition", "max", "size"]);
+const FORMAT = new Set(["format", "lineFormat", "currency"]);
 const shape = (text) => {
   const value = (v) => (v.kind === "element" ? { element: tree(v.node) } : v.kind === "object" ? Object.fromEntries(Object.entries(v.fields).sort(([a], [b]) => a.localeCompare(b)).map(([k, f]) => [k, value(f)])) : v.kind === "array" ? v.items.map(value) : v.value);
   const tree = (node) => ({ name: node.name, props: Object.fromEntries(Object.entries(node.props).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, value(v)])), children: node.children.map((child) => (child.kind === "element" ? tree(child) : child.value)) });
@@ -75,10 +77,10 @@ const widgetsOf = (text) => {
       const parts = [];
       const inner = (child) => {
         const isChart = /Chart$|^BarList$/.test(child.name) && child.name !== "ChartCard";
-        parts.push({ name: child.name, props: Object.fromEntries(Object.entries(child.props).filter(([prop]) => !isChart || !DATA.has(prop) || (child.name === "RadialChart" && prop === "legendPosition"))) });
+        parts.push({ name: child.name, props: Object.fromEntries(Object.entries(child.props).filter(([prop]) => !FORMAT.has(prop) && (!isChart || !DATA.has(prop) || (child.name === "RadialChart" && prop === "legendPosition")))) });
         child.children.forEach((grandchild) => grandchild.name && inner(grandchild));
       };
-      out.push({ name: node.name, props: node.props, parts: (node.children.forEach((child) => child.name && inner(child)), parts) });
+      out.push({ name: node.name, props: Object.fromEntries(Object.entries(node.props).filter(([prop]) => !FORMAT.has(prop))), parts: (node.children.forEach((child) => child.name && inner(child)), parts) });
       return;
     }
     node.children.forEach((child) => child.name && walk(child));

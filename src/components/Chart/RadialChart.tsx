@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode, Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartLegend, ChartSummary, colourAt, ringSize, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartLegendPosition, type ChartPaletteName, type ChartRingSize, type ChartSlice } from "./chartCore";
+import { ChartBlock, ChartLegend, ChartSummary, colourAt, formatOf, ringSize, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartFormat, type ChartLegendPosition, type ChartPaletteName, type ChartRingSize, type ChartSlice } from "./chartCore";
 import { dataAttributes } from "../_shared/data-attributes";
 
 export interface RadialChartProps {
@@ -10,8 +10,13 @@ export interface RadialChartProps {
   data: ChartSlice[];
   /** The value a full ring stands for (default 100: the values are percentages). */
   max?: number;
-  /** Formats the centre figure and the summary. Default: the share of `max` in whole percent ("43%"). */
-  format?: (value: number) => string;
+  /** How the centre figure and the summary read: a function, or a preset a Zen Studio page can write as text:
+   *  `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41% (the value as it is). Default: the share
+   *  of `max` in whole percent ("43%"). */
+  format?: ChartFormat;
+  /** The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies
+   *  `format="currency"`. */
+  currency?: string;
   /** Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling
    *  (`sm` … `xl`); a number still sets px. Rings are 10px with 8px between them (6px and 4px at Small, so four still fit);
    *  the chart never grows past its box, and a stretched Chart Card grows it. Small shows the centre figure alone
@@ -47,11 +52,11 @@ const RINGS = { small: { ring: 6, gap: 4 }, regular: { ring: 10, gap: 8 } };
  * to the outer and inner ring. Figma Chart/Radial-Chart 15325:1135 (Legend=Bottom · End; Size=Small 120 · Medium 168 ·
  * Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).
  */
-export function RadialChart({ data, max = 100, format, size = "medium", "aria-label": ariaLabel, value, label, showLegend = true, legendPosition = "bottom", className, animate = true, palette = "primary", ref, ...rest }: RadialChartProps) {
+export function RadialChart({ data, max = 100, format, size = "medium", "aria-label": ariaLabel, value, label, currency, showLegend = true, legendPosition = "bottom", className, animate = true, palette = "primary", ref, ...rest }: RadialChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const { active, setActive, onKeyDown } = useChartSelection(data.length, null);
-  const show = format ?? ((v: number) => `${Number.isFinite(v / max) ? Math.round((v / max) * 100) : 0}%`);
+  const show = format !== undefined || currency ? formatOf(format, currency) : ((v: number) => `${Number.isFinite(v / max) ? Math.round((v / max) * 100) : 0}%`);
   const { px, step } = ringSize(size);
   const { ring: RING_PX, gap: GAP_PX } = step === "small" ? RINGS.small : RINGS.regular;
   const k = 100 / px; // px → viewBox units

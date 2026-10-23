@@ -28,7 +28,6 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     "PlotFrame": {
       "animate": "animate",
       "ariaLabel": "aria-label",
-      "format": "format",
       "height": "height"
     }
   },
@@ -56,7 +55,6 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     "PlotFrame": {
       "animate": "animate",
       "ariaLabel": "aria-label",
-      "format": "format",
       "height": "height"
     }
   },
@@ -264,7 +262,6 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     "PlotFrame": {
       "animate": "animate",
       "ariaLabel": "aria-label",
-      "format": "format",
       "height": "height"
     }
   },
@@ -419,7 +416,6 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     "PlotFrame": {
       "animate": "animate",
       "ariaLabel": "aria-label",
-      "format": "format",
       "height": "height"
     }
   },
@@ -466,7 +462,6 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     "PlotFrame": {
       "animate": "animate",
       "ariaLabel": "aria-label",
-      "format": "format",
       "height": "height"
     }
   },
@@ -503,8 +498,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     },
     "CategoryBar": {
       "animate": "animate",
-      "categories": "categories",
-      "format": "format"
+      "categories": "categories"
     },
     "SparkBars": {
       "animate": "animate"
@@ -753,7 +747,6 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     "PlotFrame": {
       "animate": "animate",
       "ariaLabel": "aria-label",
-      "format": "format",
       "height": "height"
     }
   },
