@@ -71,10 +71,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
   asks for it.
-- **P3 · Sheet-style table for long content (user, 2026-10-13; 2026-10-23: Figma first, then code):** Table rows are
-  FIXED at Table/Cell/Size (one line, ellipsis). The docs Props / API / Keyboard references still need multi-line rows:
-  a temporary `.platform-ref` override in `src/platform/platform.css` lets them grow. Replace it with a sheet component,
-  designed in Figma first for the user's review, then built in code.
 - **P3 · Update from Figma in another browser (2026-10-13, P6b leftover):** a pull in a browser that kept no export
   falls back to a two-way comparison. Pointer: `docs/research/studio-figma-push-spec-2026-10-12.md` §8 "P6b".
 - **P3 · Figma contract suites still to write (2026-10-23; captures done the same day):** the 14 chart sets and

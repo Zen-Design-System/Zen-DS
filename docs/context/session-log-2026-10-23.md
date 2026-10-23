@@ -422,3 +422,22 @@ Branch zen/feat/box-theme-rules-20261023 (worktree festive-archimedes-176df5). #
   new ListBox examples shrank (.pe-shell is a 480-tall row for app windows): their page is now a column of its content's
   height (list-item.css), re-shot after the slot came back: `qa --only=list-item --isolated` PASS (audit, dark,
   behaviour 0); at 1512 the three Pale groups fill their columns and the flat page hugs its list, 390 unchanged.
+
+## SheetTable: the Figma Table/Sheet in code (tier L: a new component, and every page's Props / API / Keyboard)
+
+Branch zen/feat/sheet-table-20261023 (worktree festive-archimedes-176df5). User approved the Figma draft (doc frame
+17100:7996, now "Table/Sheet"): code name SheetTable, minimum row height one Table row.
+- Component: SheetTable (Table/Cell/Header row; cells hug their content from Table/Cell/Size, top-aligned, padding
+  Small × Medium, last row without its rule), SheetCode, SheetKeys / SheetKey; columns take `cell` or a declarative
+  `content` (text | code | keys) + `field` + `bold`, so Studio's palette (no functions) and AI UI specs can place it.
+- Docs: PlatformReference's Keyboard, API and Props sections are SheetTables (the .platform-ref Table override, the
+  kbd / code / separator styles and their official-platform and Studio-board selector copies are gone); page Sheet
+  Table (playground, 5 examples: props, keyboard, tokens, phone, empty), Do/Don't, guideline, Table's "avoid" points
+  to it.
+- Harness: sheet-table/needs-name (error), table/reference-in-sheet (warn: SheetCode / SheetKeys / kbd in a Table).
+- Tests: smoke fixtures (axe baseline color-contrast for the header's Content/Neutral/Light, as Table's), STYLE_ON_ROOT;
+  the AI UI catalog test read a fixture row field named `type` as a spec node, so the fixture uses declarative columns.
+- Figma: descriptions of Table/Sheet/Cell and the Code / Key primitives name the code (backup on ARCHIVED).
+- Left for a follow-up: Studio push / pull of a SheetTable to Figma Table/Sheet cells (the parts need contract and
+  library-key captures first).
+
