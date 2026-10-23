@@ -160,25 +160,25 @@
       "key": "54673118afe3e7fe6c399b66bf7c766ac616f5de",
       "set": "15934:7580"
     },
-    "15486:2467": {
+    "15968:130382": {
       "name": "Chart/Gauge-Chart",
-      "type": "COMPONENT",
-      "key": "0fcde786ad7611f9984c7412cce8eb47afc0ddc1"
+      "type": "COMPONENT_SET",
+      "key": "a1f6fc401a70df1d204405b8a138d312d483e493"
     },
-    "15486:2497": {
+    "15968:130460": {
       "name": "Chart/Funnel-Chart",
-      "type": "COMPONENT",
-      "key": "47bf212e87bb33e7851c1948a1f7d597d3db97ab"
+      "type": "COMPONENT_SET",
+      "key": "32b6b16ccd3f141ce3f2f8abab235b62448a8d70"
     },
     "15487:2473": {
       "name": "Chart/Bar-List",
       "type": "COMPONENT",
       "key": "d4abb4765c68f4ffbe3ceaa32df669dfa19acb93"
     },
-    "15487:2516": {
+    "15968:130554": {
       "name": "Chart/Bullet-Chart",
-      "type": "COMPONENT",
-      "key": "ecba08c3c993b8653dfd06a787e457494bbad4a7"
+      "type": "COMPONENT_SET",
+      "key": "da78b8352200f4d2beb583d52735e651021f63b1"
     },
     "15501:3054": {
       "name": "Chart/Multi-Line-Chart",
