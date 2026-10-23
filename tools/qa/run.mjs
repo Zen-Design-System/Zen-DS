@@ -439,11 +439,11 @@ const studioDrafts = serverUp ? await (async () => {
   }
 })() : [];
 const ERROR_KINDS = new Set(["errors", "overflow", "images", "names", "nesting", "surfaces", "edges", "sizes", "typography", "device", "outline", "playground", "smoke", "scale", "hierarchy", "density", "fit"]);
+const auditItems = (report) => { const errs = [], warns = []; for (const [key, entry] of Object.entries(report?.pages ?? {})) for (const [kind, items] of Object.entries(entry)) for (const item of items) (ERROR_KINDS.has(kind) ? errs : warns).push(`[${kind}] ${key}: ${item}`); return { errs, warns }; };
 // The pages the browser steps run on: all of them, or under --failed the pages that had an error or no report last time
 // ([] when the last run's browser steps all passed; all of them when they never ran).
 let RP = P;
 const retryPages = () => (RETRY ? retryPagesFrom({ steps: RETRY.steps, runDir: RETRY.runDir, pages: P, errorKinds: ERROR_KINDS, behaviour: fs.existsSync(path.join(root, "tools/platform-audit/behaviour.mjs")) }) : P);
-const auditItems = (report) => { const errs = [], warns = []; for (const [key, entry] of Object.entries(report?.pages ?? {})) for (const [kind, items] of Object.entries(entry)) for (const item of items) (ERROR_KINDS.has(kind) ? errs : warns).push(`[${kind}] ${key}: ${item}`); return { errs, warns }; };
 const sheets = [];
 let review = { required: [], optional: [], unchanged: [], overwritten: [] };
 const skipped = [];
