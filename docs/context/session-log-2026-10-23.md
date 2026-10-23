@@ -195,6 +195,24 @@ scripts/build-native-tokens.mjs (engines, tests and README too), so the change i
   neither. The Swift and Dart code was reviewed against the APIs (iOS 15 / macOS 12, Flutter MediaQueryData).
 - BACKLOG line removed.
 
+## AppShell session · Figma contracts G5 (tier S, read-only Figma + contract files; BACKLOG P3, user-approved, via Giám sát)
+
+Branch zen/chore/figma-contracts-g5-20261023 from main 4c456456.
+- Capture: `mcp-capture/capture-template.js` per file (code in the scratchpad), 56 read-only use_figma calls made by two
+  helper agents so the LZ chunks stay out of the main context, `assemble.cjs` from the transcripts (all hashes whole),
+  written with each file's own serialisation (python json.dumps; input-search-primitives JSON.stringify; table-cells
+  raw unicode).
+- (a) New: chart-line, -stack-bar, -multi-line, -bar, -donut, -radial, -heatmap, -area, -grouped-bar, -combo, -gauge,
+  -funnel, -bar-list, -bullet, -card (Gauge / Funnel / Bullet are sets with Color now: 15968:130382 / 130460 / 130554,
+  told the chart-colour session; its branch already points CHART_SETS there).
+- (b) Re-read whole: avatar-single (48 → 656 variants: Theme gained Sky, Mint, Bronze, Golden), chat-bubbles,
+  table-cells, input-search-primitives, datepicker-sidebar, input-search (Search/Default unchanged but its
+  description), segmented-toggle-badge-avatarstack (Segmented unchanged; Badge and Badge-Counter +24, the four hues).
+  The code already has the four hues (avatarThemes, badgeThemes).
+- Found: Figma's Side-Bar/Master/Small-Density (5974:20590) is named "Component" now → BACKLOG designer question.
+- Checks: nested-paths --check 45/45; run-all.mjs 25/25 (Input/Heading 432/432 on the new capture); figma-pull's
+  Actions-Cell icon still icon-dots-vertical-line. BACKLOG G5 narrowed to the suites still to write.
+
 ## Chart Color phase 2: `palette` in code + Studio (tier M; user: "xử hết backlog", then approved the Figma review and the name `palette`)
 
 Branch claude/interesting-yonath-0da9e0 (worktree agitated-leakey-b2b41c). BACKLOG P1 "Chart Color = Primary | Secondary, phase 2".
@@ -223,3 +241,29 @@ Branch claude/interesting-yonath-0da9e0 (worktree agitated-leakey-b2b41c). BACKL
   E2E 338 / 338 (3 shards), Build-QA PASS. Contact sheets: the 390 sheet showed "5,900 of 7,564 h" leaving the unit "h"
   alone on its line (in the new example and the older "Utilisation against a target"): the chart page's `hours()` now
   puts a no-break space before "h". Re-gate of the chart page PASS; the unit stays with its number.
+
+## Picture drops on one row or one item (tier M; BACKLOG P1 ×2, user "dọn hết trước khi qua phase mới")
+
+Branch claude/modest-gauss-20ef1e. BACKLOG "a row's picture through a helper" and "pictures inside list props" (both
+2026-10-10, docs/research/studio-usability-eval-2026-10-10.md §5).
+- **Engine** (`tools/studio/data-source.mjs`): classify gives a helper's parameter kind "param" with `helper` (an object
+  argument `p.photo`, or a lookup `const one = people[id]`). A walk (`reach`) follows a place through props, spreads,
+  fragments, children, lists, `.map` rows, helper calls, conditions and `let`s set in branches, binding each function's
+  parameters to the call's arguments; `produce` finds the bindings the target element is drawn with. A row a filter or
+  sort moved is found by the fields its object copies from the data (`id: t.id`), a list place is checked against the
+  fields the canvas read there (`titled: true` vs the default false). op setDataField `via` (holders, nearest first,
+  `holds` for a holder a helper draws) and `path` (a field inside a value written in place or read by a .map). An
+  initials Avatar (no `src`) takes the field its sibling branch reads. `followAdding` resolves a const item
+  (`seenBy={[gia, emi]}`) to where it is written.
+- **Client**: `inspector/callSite.ts` `viaOf` (holders whose props hold the instance by identity, through fragments,
+  with plain fields and the holder's own row); `writeAtUse` routes `helper` values. `edit/assets/picture.ts`
+  `itemPictureOf` (the item of the owner's list prop: layer index `Avatar[2]`, else picture / key / fields, ties by
+  drawing order) and `writeItemPicture`; `assets.ts` makes such faces drop targets ("Picture of Avatar"). DesignPanel's
+  Picture on an initials Avatar goes the same way. doc.mjs maps `via` locs on pages you made.
+- Real files checked with the engine: sidebar desktop (RowCard rows[1] → taskRow → personAvatar → people.bao.photo,
+  through filter/sort/slice) and phone frame (`let content` → taskList("Due this week", …, true) → people.alex.photo).
+- Tests: data-source selftest +10 cases (47); E2E FW-235…238 (figma group, `scenarios/figma/pictures.mjs`, fixture
+  frame "E2E pictures").
+- Not covered (refused in words): a layer either side of a condition, a helper in another file, a default parameter.
+- Gate (slot from chart-color-phase2, Giám sát's queue; `--isolated`, 12 files): **PASS**, Studio E2E 338/0 (4 shards,
+  1415 s). Then `studio:e2e --only=figma,select --rows=FW-235…238,SE-36`: 5/0 on the first run.
