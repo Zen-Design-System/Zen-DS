@@ -42,7 +42,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "style" | "className" | "childre
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `theme` | `"light" \| "dark" \| "system"` | — | Colour mode. `system` follows the OS (prefers-color-scheme). Unset: inherit (the page default is light). |
-| `componentTheme` | `"neutral-s1" \| "neutral-s2" \| "neutral-s3" \| "neutral-s4" \| "neutral-s5" \| "neutral-s6" \| "neutral-s7" \| "brand-s1" \| "brand-s2"` | — | Component colour theme (Figma "Component Theme" mode). Default neutral-s1. |
+| `componentTheme` | `"neutral-s1" \| "brand-s1" \| "neutral-s2" \| "brand-s2" \| "neutral-s3" \| "neutral-s4" \| "neutral-s5" \| "neutral-s6" \| "neutral-s7"` | — | Component colour theme (Figma "Component Theme" mode). Default neutral-s1. |
 | `density` | `"compact" \| "comfortable" \| "studio"` | — | Spacing density. Default compact (dashboards); comfortable for touch-first or marketing layouts. |
 | `radius` | `"rounded" \| "smooth" \| "standard" \| "luxury" \| "studio"` | — | Corner-radius scale. Default rounded. |
 | `emphasis` | `"medium" \| "strong" \| "light"` | — | Font weights and active stroke widths (Figma "Emphasis Level" mode). Default medium; light is lighter, strong heavier. |

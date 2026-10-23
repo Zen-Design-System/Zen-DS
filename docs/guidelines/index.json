@@ -5642,7 +5642,7 @@
       "props": {
         "ZenProvider": [
           "theme?: light|dark|system",
-          "componentTheme?: neutral-s1|neutral-s2|neutral-s3|neutral-s4|neutral-s5|neutral-s6|neutral-s7|brand-s1|brand-s2",
+          "componentTheme?: neutral-s1|brand-s1|neutral-s2|brand-s2|neutral-s3|neutral-s4|neutral-s5|neutral-s6|neutral-s7",
           "density?: compact|comfortable|studio",
           "radius?: rounded|smooth|standard|luxury|studio",
           "emphasis?: medium|strong|light",

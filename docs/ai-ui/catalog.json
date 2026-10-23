@@ -21918,14 +21918,14 @@
         "componentTheme": {
           "enum": [
             "neutral-s1",
+            "brand-s1",
             "neutral-s2",
+            "brand-s2",
             "neutral-s3",
             "neutral-s4",
             "neutral-s5",
             "neutral-s6",
-            "neutral-s7",
-            "brand-s1",
-            "brand-s2"
+            "neutral-s7"
           ],
           "description": "Component colour theme (Figma \"Component Theme\" mode)."
         },

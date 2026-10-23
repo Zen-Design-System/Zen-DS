@@ -4,6 +4,18 @@
 import { HIGH_CONTRAST_MODE, HIGH_CONTRAST_ROLES, highContrastValues, neutralRampsOf } from "./high-contrast.mjs";
 
 /** The 11 Figma JSON exports in tokens/source/figma and the slug each is built under. */
+/** The collections whose modes are a ZenProvider axis (each a data-* attribute, modeSelector below), by axis name. */
+export const MODE_AXES = {
+  "base-colors-project": "brand",
+  "mode-colors-semantic": "theme",
+  "component-colors-theme": "componentTheme",
+  "component-size": "density",
+  "corner-radius": "radius",
+  "emphasis-level": "emphasis",
+  "breakpoint-grids": "breakpoint",
+  "typography-configuration": "typography",
+};
+
 export const SOURCE_FILES = [
   ["global-colors.json", "global-colors"],
   ["global-dimensions.json", "global-dimensions"],
@@ -253,5 +265,19 @@ export function tokenOutputs({ readSource, motion, warn = console.warn }) {
   ].join("\n");
 
   const catalogText = `${JSON.stringify({ collections: collectionContract, tokens: catalog }, null, 2)}\n`;
-  return { css, ts, catalog: catalogText, count: catalog.length, collections: collections.length };
+  // The mode lists of the ZenProvider axes (src/tokens/modes.generated.ts): a mode added or renamed in the collections
+  // (Zen Studio's Variables, a Figma sync) is a ZenProvider value after the next build (Studio Variables v2, user
+  // 2026-10-23: mode lists come from the tokens).
+  const axes = collections.filter((collection) => MODE_AXES[collection.slug]);
+  const modesTs = [
+    "/* Generated from the Figma collections' modes (scripts/token-outputs.mjs). Do not edit directly. */",
+    "/** Each ZenProvider axis: its mode ids, the data-* value tokens.css reads, in the collection's order. */",
+    `export const tokenModes = ${JSON.stringify(Object.fromEntries(axes.map((collection) => [MODE_AXES[collection.slug], collection.modes.map(toKebab)])), null, 2)} as const;`,
+    "",
+    "/** The Figma name of each mode id, by axis. */",
+    `export const tokenModeNames = ${JSON.stringify(Object.fromEntries(axes.map((collection) => [MODE_AXES[collection.slug], Object.fromEntries(collection.modes.map((mode) => [toKebab(mode), mode]))])), null, 2)} as const;`,
+    "",
+  ].join("\n");
+
+  return { css, ts, modesTs, catalog: catalogText, count: catalog.length, collections: collections.length };
 }
