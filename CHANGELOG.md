@@ -17,20 +17,17 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
-<<<<<<< HEAD
 - QA gate: a new `clip` check (`--quality`, error, baselined) reports a control that fits its own text but is cut off by
   an `overflow: hidden` ancestor, hidden past its edge while its sibling controls show, or covered by another element of
   the example. `overflow` and `fit` could not see these. The gate now also fails on `counts`, `card-gap` and
   `legend-column`, which the audit already called errors. `npm run platform:audit:selftest` runs every in-page quality,
   outline and clip check on fixtures, in the gate and in CI (user, 2026-10-24).
-=======
 - Zen Studio → Figma: a page goes to Figma with every Screen, Screen state and Overlay as a frame of its own (an
   Overlay as big as what it holds), and its Prototype actions as Figma interactions: On click, While hovering and After
   delay; Navigate to, Open overlay, Close overlay and Back, with their animation, direction and Zen's duration and curve
   (a Dialog's, Side Panel's or Bottom Sheet's buttons too). Pull from Figma reads them back. Show toast, Open link, Filter table,
   Change step and the overlay's position, background and click-outside stay in the Studio, each named in the notes
   (2026-10-24).
->>>>>>> origin/main
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in
