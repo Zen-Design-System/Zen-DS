@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio: a draft made, saved or discarded in another browser (or a drafted file changed on disk) shows in every
+  open Studio tab at once; it waited for the 10 s poll, a focus or a tab switch (2026-10-24).
+- Zen Studio: resizing a row a `.map` draws previews every row it draws, as its pill's "all N" says; only the pressed row
+  moved before (2026-10-24).
 - Zen Studio → Figma (Zen plugin): a chart pushed on its own (no ChartCard) keeps its rows in Figma. A horizontal
   BarChart no longer stretches to the component's 290px once its Heading is hidden, so its values sit beside their bars
   (2026-10-23).

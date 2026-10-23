@@ -337,6 +337,28 @@ export const rows = [
     },
   },
   {
+    id: "ST-28", feature: "The Inspector's item row: Group Favourite with Share puts both in one pill (op groupItem); Take Favourite out of its group leaves it where it is and the group of one is no group (op ungroupItem)", wp: "BACKLOG 2026-10-24", timeout: 40_000,
+    async run(ctx) {
+      const page = await navSelected(ctx);
+      const panel = page.locator("#studio-right");
+      const trailing = async () => /trailing=\{\[([\s\S]*?)\]\}/.exec(await ctx.text())?.[1] ?? "";
+      const groups = async () => ((await trailing()).match(/group:/g) ?? []).length;
+      if (await groups()) throw new Error("the fixture's actions start grouped");
+      const press = async (label) => {
+        const button = panel.getByRole("button", { name: label, exact: true });
+        await button.scrollIntoViewIfNeeded();
+        await button.click();
+      };
+      await press("Group Favourite with Share");
+      await until(async () => (await groups()) === 2, { message: "Favourite and Share in one group in the source" });
+      await press("Take Favourite out of its group");
+      await until(async () => (await groups()) === 0, { message: "no group left (a group of one is no group)" });
+      const order = (await trailing()).indexOf('"Favourite"') < (await trailing()).indexOf('"Share"');
+      if (!order) throw new Error("Favourite moved when it left the group");
+      return "grouped from the row, then Favourite out: no group, Favourite before Share";
+    },
+  },
+  {
     id: "ST-26", feature: "Toolbar › Text (T): point beside a layer in a Stack, click: a Text lands there, selected; Move again", wp: "toolbar 2026-10-09",
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-a");
