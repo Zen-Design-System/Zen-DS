@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio → Figma: Line, Bar (vertical and horizontal), Area, Grouped-Bar and Combo charts carry the page's own X
+  labels, six Y labels (Combo's line axis too) and active Tooltip in the page's number format ("$128.4K", "€2.4K"),
+  instead of Figma's sample text; their bars and lines keep Figma's sample shapes. A Line chart moves its selected period
+  to the page's; Bar, Area and Multi-Line keep Figma's highlighted period and read its value, with a note when the page's
+  active one differs (2026-10-23).
 - Charts and MetricCard read money and shares from text: `format` also takes `"compact"` (128.4K, the default),
   `"currency"` ($128.4K, in `currency`, an ISO 4217 code: USD by default; `currency` alone implies it) and `"percent"`
   (41%), on every chart with a `format` (ComboChart's `lineFormat` too, BulletChart beside its row function). Zen Studio
