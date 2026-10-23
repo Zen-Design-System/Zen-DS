@@ -2,6 +2,14 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-24 (Menu and Chip on phones, `zen/feat/menu-chip-phone-sheet-20261024`)
+
+- Done 2026-10-24 (user, option A: automatic, the rule SelectField follows; handed from box-themes to C): Menu opens as
+  an action Bottom Sheet on a phone (Sheet-Actions rows, captions as Subtext, group labels and separators), a Chip's
+  popoverItems as a Bottom Sheet List (Search, Done for several picks); `_shared/phone-sheet.tsx` holds the rule.
+  The sheet part of **P3 · Phone targets and sheets (2026-10-01):** "Menu and Chip popovers have no phone sheet mode,
+  so templates build their own sheets: a design decision, L." The targets part stays open in `BACKLOG.md`.
+
 ## Archived 2026-10-24 (triage of "Backlog (plan before opening sessions)")
 
 Every entry checked against main 545216b6 (code, git history, two Figma variable reads); its verdict precedes it. Kept

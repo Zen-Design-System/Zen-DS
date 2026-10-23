@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Menu and Chip open as a Bottom Sheet on phones by themselves, the rule SelectField follows (the nearest
+  `data-breakpoint`, else ZenProvider's, is mobile; user 2026-10-24). A Menu becomes an action sheet titled by its
+  `aria-label` or its trigger's name, with captions, group labels and separators (no shortcuts); a Chip's `popoverItems`
+  become a sheet List with its Search, the picked rows Selected, and Done for `popoverMultiple`. BottomSheet items take a
+  `caption` (Figma Subtext), and a Popover item's caption is Caption/Regular, as in Figma (was Body/Small/Regular).
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in
