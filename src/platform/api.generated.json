@@ -12185,10 +12185,10 @@
       "props": [
         {
           "name": "state",
-          "type": "\"ready\" | \"listening\" | \"responding\"",
+          "type": "\"ready\" | \"listening\" | \"thinking\" | \"responding\"",
           "required": false,
           "default": "\"ready\"",
-          "description": "Figma State: Ready (the microphone is off), Listening (you talk), Responding (the assistant answers).",
+          "description": "Figma State: Ready (the microphone is off), Listening (you talk), Responding (the assistant answers). Thinking\n (code first; Figma's variant is a designer question): between your last word and its first spoken one, so the\n answer's words never show before there is an answer — the voice rests as dots that brighten in turn.",
           "deprecated": null
         },
         {
@@ -12268,7 +12268,7 @@
           "type": "() => void",
           "required": false,
           "default": null,
-          "description": "The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Responding).",
+          "description": "The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Thinking, Responding). Done speaking\n is the manual fallback: end the turn yourself when the voice falls silent (set `state`), as voice modes do.",
           "deprecated": null
         },
         {
@@ -16253,6 +16253,14 @@
           "required": false,
           "default": null,
           "description": "The message's sound levels, 0–1 each (Figma draws 34).",
+          "deprecated": null
+        },
+        {
+          "name": "onSeek",
+          "type": "(progress: number) => void",
+          "required": false,
+          "default": null,
+          "description": "Seek: with it the waveform is a slider (voice review C3) — a tap or drag on it, ←/→ (5 %), Home and End give the\n new share played, 0–1; set `progress` (and your audio's position) from it. Its value reads `elapsed` of `duration`.",
           "deprecated": null
         },
         {
