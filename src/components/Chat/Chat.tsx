@@ -835,7 +835,7 @@ export function ChatThread({ children, device = "mobile", "aria-label": ariaLabe
     void document.fonts?.ready.then(() => { if (live) requestAnimationFrame(() => { if (live) pin(); }); });
     return () => { live = false; observer?.disconnect(); listen(scroller, false); };
   }, [children]);
-  return <ChatDeviceContext.Provider {...dataAttributes(rest)} value={device}><div ref={threadRefs} className={["zen-chat-thread", className].filter(Boolean).join(" ")} data-device={device} role="log" aria-label={ariaLabel} aria-live="polite">{children}</div></ChatDeviceContext.Provider>;
+  return <ChatDeviceContext.Provider value={device}><div {...dataAttributes(rest)} ref={threadRefs} className={["zen-chat-thread", className].filter(Boolean).join(" ")} data-device={device} role="log" aria-label={ariaLabel} aria-live="polite">{children}</div></ChatDeviceContext.Provider>;
 }
 
 export interface ChatComposerProps {

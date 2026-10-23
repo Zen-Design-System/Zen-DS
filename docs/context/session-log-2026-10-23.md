@@ -286,5 +286,7 @@ open question (spec format).
 - tests/smoke/conformance.test.tsx: every public component gets `data-zen-conformance` and must put it in the DOM
   (NO_DATA: the providers and ZenPortal).
 - Verified count: 38 before #237, 53 after it (chart contracts), same heuristic.
-- Static: tsc, usage, style, guidelines, studio, ai-ui, mcp, nested-paths. The conformance run and the gate wait for a
-  browser slot.
+- Slot (Giám sát's GO): the conformance run found 20 the scan missed — the charts' shared ChartBlock, Divider's two
+  non-decorative branches, ChatThread and SidebarSubMenu (the codemod put the spread on a context provider),
+  ChatReactorsPanel's desktop popover (through ZenPortal), PropertyPeople / Tags (MultiCell), SidebarMenuItem (the item
+  row, `dataAttributes(item)`). Fixed; conformance 218 passed / 5 skipped, `npm test` 1300 passed (82 files).

@@ -90,7 +90,7 @@ function ChatReactorsList({ reactions, mine, onRemoveMine, glyph, onDone }: Pick
  * its "Reactions" label. Not a <Popover>: that one holds an option list (role="listbox"), and this panel holds emoji
  * tabs and a list of people.
  */
-function ChatReactorsPopover({ label, side, onOpenChange, anchorRef, children, ref }: Pick<ChatReactorsPanelProps, "side" | "onOpenChange" | "anchorRef" | "ref"> & { label: string; children: ReactNode }) {
+function ChatReactorsPopover({ label, side, onOpenChange, anchorRef, children, ref, data }: Pick<ChatReactorsPanelProps, "side" | "onOpenChange" | "anchorRef" | "ref"> & { label: string; children: ReactNode; /** The panel's data-* attributes. */ data?: object }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const rootRefs = useMergedRefs<HTMLDivElement>(rootRef, ref);
   const labelId = useId();
@@ -123,7 +123,7 @@ function ChatReactorsPopover({ label, side, onOpenChange, anchorRef, children, r
     (anchor?.matches("button, a[href], input, [tabindex]") ? anchor : anchor?.querySelector<HTMLElement>("button, a[href], input, [tabindex]"))?.focus();
   };
   return (
-    <div ref={rootRefs} role="dialog" aria-labelledby={labelId} className="zen-popover zen-chat-reactors__popover" style={placement.style} data-side={placement.side} data-search="false" data-scroll-bar="true" onKeyDown={handleKeyDown}>
+    <div {...dataAttributes(data ?? {})} ref={rootRefs} role="dialog" aria-labelledby={labelId} className="zen-popover zen-chat-reactors__popover" style={placement.style} data-side={placement.side} data-search="false" data-scroll-bar="true" onKeyDown={handleKeyDown}>
       <div id={labelId} className={`zen-popover__label ${typographyStyles["Body/Small/Medium"]}`}>{label}</div>
       <div className="zen-popover__items">{children}</div>
     </div>
@@ -137,8 +137,8 @@ export function ChatReactorsPanel({ reactions, mine, onRemoveMine, glyph, device
   if (device === "desktop") {
     // Portalled so the thread's scroll box never clips it; useAnchoredPosition still attaches it to the pill and flips it.
     return (
-      <ZenPortal {...dataAttributes(rest)}>
-        <ChatReactorsPopover ref={ref} label={t.reactions} side={side} onOpenChange={onOpenChange} anchorRef={anchorRef}>{list}</ChatReactorsPopover>
+      <ZenPortal>
+        <ChatReactorsPopover data={rest} ref={ref} label={t.reactions} side={side} onOpenChange={onOpenChange} anchorRef={anchorRef}>{list}</ChatReactorsPopover>
       </ZenPortal>
     );
   }

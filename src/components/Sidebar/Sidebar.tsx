@@ -398,7 +398,7 @@ function SidebarItemView({
   const Row: ElementType = isLink ? (linkAs ?? "a") : "button";
 
   return (
-    <div ref={rootRef} className="zen-sidebar__item-group" data-level={depth === 0 ? "master" : "child"}>
+    <div {...dataAttributes(item)} ref={rootRef} className="zen-sidebar__item-group" data-level={depth === 0 ? "master" : "child"}>
       <Row
         className="zen-sidebar__item"
         data-depth={depth}
@@ -629,8 +629,8 @@ function SidebarPanel({ className, brand, brandSlots, sections, children, footer
 export function SidebarSubMenu({ search, items = [], sections = [], onItemClick, children, className, ref, ...rest }: SidebarSubMenuProps) {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   return (
-    <SidebarRowsContext {...dataAttributes(rest)} value={{ collapsed: false, openItems, setOpenItems, onItemClick }}>
-      <div ref={ref} className={["zen-sidebar__sub-content", className].filter(Boolean).join(" ")}>
+    <SidebarRowsContext value={{ collapsed: false, openItems, setOpenItems, onItemClick }}>
+      <div {...dataAttributes(rest)} ref={ref} className={["zen-sidebar__sub-content", className].filter(Boolean).join(" ")}>
         {search ? <div className="zen-sidebar__sub-search">{search}</div> : null}
         {items.length ? <div className="zen-sidebar__sub-items">
           {items.map((item) => <SidebarItemView key={item.id} item={item} depth={0} collapsed={false} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} />)}

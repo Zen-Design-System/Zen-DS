@@ -6,6 +6,7 @@ import { scaleKey } from "../_shared/scale";
 import { TooltipSurface } from "../Tooltip";
 import { VisuallyHidden } from "../VisuallyHidden";
 import { typographyStyles } from "../../tokens/typography.generated";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export interface ChartPoint {
   label: string;
@@ -200,13 +201,13 @@ function useBesideWrapped(block: RefObject<HTMLDivElement | null>, on: boolean) 
 
 /** A chart with its legend before or after it (top / bottom; start / end beside it for round charts). `palette="secondary"`
  *  swaps the two lead sector colours its CSS marks read (`--zen-chart-lead`, `--zen-chart-second`; chart.css). */
-export function ChartBlock({ legend, position = "bottom", kind, children, className, layout, palette, ref }: { legend?: ReactNode; position?: ChartLegendPosition; kind: string; children: ReactNode; className?: string; layout?: string; palette?: ChartPaletteName; ref?: Ref<HTMLDivElement> }) {
+export function ChartBlock({ legend, position = "bottom", kind, children, className, layout, palette, ref, ...rest }: { legend?: ReactNode; position?: ChartLegendPosition; kind: string; children: ReactNode; className?: string; layout?: string; palette?: ChartPaletteName; ref?: Ref<HTMLDivElement> }) {
   const own = useRef<HTMLDivElement>(null);
   const merged = useMergedRefs(own, ref);
   const beside = Boolean(legend && (position === "start" || position === "end")) || layout === "total-start";
   const wrapped = useBesideWrapped(own, beside);
   return (
-    <div ref={merged} className={["zen-chart-block", className].filter(Boolean).join(" ")} data-kind={kind} data-legend={legend ? position : undefined} data-layout={layout} data-wrapped={beside && wrapped ? "true" : undefined} data-palette={palette === "secondary" ? palette : undefined}>
+    <div {...dataAttributes(rest)} ref={merged} className={["zen-chart-block", className].filter(Boolean).join(" ")} data-kind={kind} data-legend={legend ? position : undefined} data-layout={layout} data-wrapped={beside && wrapped ? "true" : undefined} data-palette={palette === "secondary" ? palette : undefined}>
       {children}
       {legend}
     </div>
