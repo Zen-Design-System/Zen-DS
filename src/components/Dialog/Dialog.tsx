@@ -15,6 +15,7 @@ import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { inertOutside, lockScroll } from "../_shared/modal-isolation";
 import { useMergedRefs } from "../_shared/merge-refs";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const dialogThemes = ["default", "info", "positive", "warning", "negative"] as const;
 export type DialogTheme = (typeof dialogThemes)[number];
@@ -201,7 +202,7 @@ export interface ModalActionsProps {
 }
 
 /** Figma .Primitives/Modal/Actions (694:9383): Direction × Button (Single · Dual · Triple), Button/Main Medium, gap Small. */
-export function ModalActions({ primaryAction, secondaryAction, tertiaryAction, direction = "horizontal", onDefault, submitPrimary = false, className, overrides, ref }: ModalActionsProps) {
+export function ModalActions({ primaryAction, secondaryAction, tertiaryAction, direction = "horizontal", onDefault, submitPrimary = false, className, overrides, ref, ...rest }: ModalActionsProps) {
   const nest = useNested(overrides);
   const count = [primaryAction, secondaryAction, tertiaryAction].filter(Boolean).length;
   if (!count) return null;
@@ -216,7 +217,7 @@ export function ModalActions({ primaryAction, secondaryAction, tertiaryAction, d
     ));
   };
   return (
-    <div ref={ref} className={["zen-modal-actions", className].filter(Boolean).join(" ")} data-direction={direction} data-count={count}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-modal-actions", className].filter(Boolean).join(" ")} data-direction={direction} data-count={count}>
       {render(tertiaryAction, "tertiary", "tertiary")}
       <div className="zen-modal-actions__main">
         {render(secondaryAction, "tertiary", "secondary")}
@@ -260,7 +261,7 @@ export interface DialogProps extends OverlayOpenProps {
  * bottom clear of the safe area). Focus is trapped while open and restored to the opener on close.
  * Inside a device frame (`[data-zen-overlay-root]`, e.g. a phone preview) it opens in that frame, and the frame's width
  * picks the Device (an unsaved-changes guard on a phone screen). */
-export function Dialog({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, theme = "default", icon = true, primaryAction, secondaryAction, tertiaryAction, actionsDirection = "horizontal", children, dismissible = true, className, overrides, ref }: DialogProps) {
+export function Dialog({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, theme = "default", icon = true, primaryAction, secondaryAction, tertiaryAction, actionsDirection = "horizontal", children, dismissible = true, className, overrides, ref, ...rest }: DialogProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const id = useId().replace(/:/g, "");
@@ -276,7 +277,7 @@ export function Dialog({ open: openProp, isOpen, onOpenChange: onOpenChangeProp,
   const Title = `h${headingLevel}` as const;
   const overlay = (
     <div className="zen-dialog-overlay" data-state={phase} data-modal="dialog" data-contained={host.contained ? "true" : undefined} onPointerDown={(event) => { if (!closing && dismissible && event.target === event.currentTarget) onOpenChange(false); }}>
-      <div ref={mergedPanelRef} data-state={phase} inert={closing} aria-hidden={closing || undefined} role={theme === "negative" || theme === "warning" ? "alertdialog" : "dialog"} aria-modal="true" aria-labelledby={`${id}-title`} aria-describedby={description ? `${id}-desc` : undefined} tabIndex={-1} className={["zen-dialog", className].filter(Boolean).join(" ")} data-tone={theme}>
+      <div {...dataAttributes(rest)} ref={mergedPanelRef} data-state={phase} inert={closing} aria-hidden={closing || undefined} role={theme === "negative" || theme === "warning" ? "alertdialog" : "dialog"} aria-modal="true" aria-labelledby={`${id}-title`} aria-describedby={description ? `${id}-desc` : undefined} tabIndex={-1} className={["zen-dialog", className].filter(Boolean).join(" ")} data-tone={theme}>
         <div className="zen-dialog__content">
           <div className="zen-dialog__heading">
             {iconNode ? <span className="zen-dialog__icon" aria-hidden="true">{iconNode}</span> : null}
@@ -344,7 +345,7 @@ export interface ModalFormProps extends OverlayOpenProps {
  * Half-Half and 3-4 layouts add a Side-Content column 4px apart. Below 720px the side column stacks above the form.
  * Inside a device frame (`[data-zen-overlay-root]`) it opens in that frame, like Dialog. With `onSubmit` it is a
  * `<form noValidate>` that behaves like Form: a blocked submit focuses the first invalid field and announces the count. */
-export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, layout = "basic", side, top, header = true, closeButton = true, closeLabel: closeLabelProp, children, primaryAction, secondaryAction, tertiaryAction, actionsDirection = "horizontal", onSubmit, noValidate = true, invalidMessage: invalidMessageProp, dismissible = true, className, overrides, ref }: ModalFormProps) {
+export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, layout = "basic", side, top, header = true, closeButton = true, closeLabel: closeLabelProp, children, primaryAction, secondaryAction, tertiaryAction, actionsDirection = "horizontal", onSubmit, noValidate = true, invalidMessage: invalidMessageProp, dismissible = true, className, overrides, ref, ...rest }: ModalFormProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
@@ -407,7 +408,7 @@ export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   };
   const overlay = (
     <div className="zen-dialog-overlay" data-state={phase} data-contained={host.contained ? "true" : undefined} onPointerDown={(event) => { if (!closing && dismissible && event.target === event.currentTarget) onOpenChange(false); }}>
-      <div ref={mergedPanelRef} data-state={phase} inert={closing} aria-hidden={closing || undefined} role="dialog" aria-modal="true" aria-labelledby={title ? `${id}-title` : undefined} aria-describedby={description ? `${id}-desc` : undefined} tabIndex={-1}
+      <div {...dataAttributes(rest)} ref={mergedPanelRef} data-state={phase} inert={closing} aria-hidden={closing || undefined} role="dialog" aria-modal="true" aria-labelledby={title ? `${id}-title` : undefined} aria-describedby={description ? `${id}-desc` : undefined} tabIndex={-1}
         className={["zen-modal-form", className].filter(Boolean).join(" ")} data-layout={layout} data-side={hasSide ? "true" : "false"}>
         {onSubmit
           ? <form className="zen-modal-form__content" noValidate={noValidate} onSubmit={submit}>{inner}</form>

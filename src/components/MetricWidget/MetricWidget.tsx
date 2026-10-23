@@ -15,6 +15,7 @@ import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { defaultFormat } from "../Chart/chartCore";
 import { CategoryBar, SparkBars, Sparkline, useSeriesName, type MetricCategory } from "./MetricMarks";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export type { MetricCategory } from "./MetricMarks";
 
@@ -121,7 +122,7 @@ function MetricColorDot({ color }: { color: boolean | string }) {
  * Figma Primitives/Metric/Metric-Inline/Icon-Highlight (595:55188): Dock-Icon + Contents (gap 2XSmall) of
  * Label (Neutral/Light) over the Metric-Number (Neutral/Strongest), then the trend.
  */
-export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconTheme = "neutral", iconBackground = "subtle", iconEmoji, size: sizeProp = "xl", variant = "icon-highlight", action, iconSize, custom, metricColor = false, counter, labelIcon, hint, className, overrides, ref }: MetricProps) {
+export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconTheme = "neutral", iconBackground = "subtle", iconEmoji, size: sizeProp = "xl", variant = "icon-highlight", action, iconSize, custom, metricColor = false, counter, labelIcon, hint, className, overrides, ref, ...rest }: MetricProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const size = scaleKey(sizeProp, metricSizes);
@@ -168,14 +169,14 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
       </>
     );
     return (
-      <div ref={ref} className={["zen-metric", className].filter(Boolean).join(" ")} data-size={size} data-variant="title-highlight" data-icon={mark ? dock : undefined} data-custom={custom ? "true" : undefined}>
+      <div {...dataAttributes(rest)} ref={ref} className={["zen-metric", className].filter(Boolean).join(" ")} data-size={size} data-variant="title-highlight" data-icon={mark ? dock : undefined} data-custom={custom ? "true" : undefined}>
         {/* Figma: the Dock-Icon is absolute inside Contents, so with a Custom-Slot it stays above the slot. */}
         {custom ? <><div className="zen-metric__body">{body}</div><div className="zen-metric__custom">{custom}</div></> : body}
       </div>
     );
   }
   return (
-    <div ref={ref} className={["zen-metric", className].filter(Boolean).join(" ")} data-size={size} data-layout={stacked ? "stacked" : "inline"}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-metric", className].filter(Boolean).join(" ")} data-size={size} data-layout={stacked ? "stacked" : "inline"}>
       {nest("Icon", iconEmoji ? <DockIcon theme="emoji" emoji={iconEmoji} background={iconBackground} size={stacked ? "large" : "medium"} />
         : icon ? <DockIcon icon={icon} theme={iconTheme} background={iconBackground} size={stacked ? "large" : "medium"} /> : null)}
       <div className="zen-metric__contents">

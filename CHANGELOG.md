@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Every component forwards its `data-*` attributes to its root (Skeletons, charts, chat, dialogs, sheets and the rest:
+  119 that dropped them), so the AI UI renderer's `data-ai-ui-id`, test ids and analytics hooks land; only `data-*`, so
+  nothing else a component renders changes. The conformance test checks it for every public component (2026-10-23).
 - Layout: `sticky="top" | "bottom"` on Stack, Grid, Box and Shape (Figma's Fix position when scrolling): the layer
   stays in the flow and sticks to its scrolling ancestor's edge. In an AppShell Body a bottom dock takes the page margin
   inside itself, so the chat, AI chat and AI UI composers dock without example CSS. Zen Studio sets it in Prototype ›

@@ -29,11 +29,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
   Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their
   own state) is done: session log 2026-10-15 "Self-managed state".
-- **P2 · AI UI: every component forwards `data-*` (user, 2026-10-23; was "AI UI: decisions for the user"):** the
-  user answered the open decisions of `docs/ai-ui/README.md`: the 41 `verified` components stand (`STATUS_OVERRIDES`
-  stays empty); the spec format stays Zen's node tree (Studio dialect shape), an A2UI / json-render exporter can come
-  later; the classifier stays on the device (`keywordClassifier`, no server); `ChatReactorsPanel` stays experimental.
-  Left to build: every component forwards `data-*`, the Skeletons too, so `data-ai-ui-id` reaches the DOM.
 - **P2 · Example className, round 2 (2026-10-23, session B; user: "theo bạn cái nào lợi hơn lâu dài, chính xác nhất"):**
   the 2026-10-12 coverage plan's P3 (TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem,
   DatePickerSheet, chat, Metric) and P4/P5 (className 219 → 112) were merged on 2026-10-13 (spec

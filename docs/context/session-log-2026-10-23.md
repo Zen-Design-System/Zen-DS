@@ -303,6 +303,27 @@ Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows 
   the two generated maps): Studio self-tests ✓, TypeScript ✓, nested layer names 45 / 45, Studio E2E 338 / 338
   (3 shards, BL-02 Main component coverage included), Build-QA PASS. No platform page in scope, so no contact sheet.
 
+## AppShell session · Every component forwards data-* (tier M, many components; G2 AI UI decisions, user via Giám sát)
+
+Branch zen/fix/components-forward-data-attrs-20261023 from main 9fe063d2. User's answers (G2): every component forwards
+`data-*` (Skeletons included) so `data-ai-ui-id` lands; keep the verified heuristic; the classifier runs on the device;
+ChatReactorsPanel stays experimental. After #244 (which recorded these answers and the spec format: Zen's tree), the
+merge keeps #244's README wording with data-* marked built, and drops the BACKLOG build line.
+- `_shared/data-attributes.ts`: `dataAttributes(props)` picks the `data-*` keys; spread first on a root so the
+  component's own data-* styling hooks win. Only data-*: no other HTML attribute changes what a component renders.
+- 119 public components destructured their props with no rest (static scan). A codemod (AST, tools/studio/jsx-source)
+  gave 105 a `...rest` and `{...dataAttributes(rest)}` on every JSX root they return; 14 by hand where the root is a
+  variable, a fragment or a conditional (BottomSheet, Dialog, ModalForm, SidePanel, ToastStack: the ref'd panel; ChatFile
+  both branches; ChatPhotos; ChatReactions' pill; ChatReactorsPanel's sheet; DatePickerMonthYear; Menu's surface;
+  PropertySelect / Status / Date through PickerCell `data`; TableTrend through trendBadge).
+- tests/smoke/conformance.test.tsx: every public component gets `data-zen-conformance` and must put it in the DOM
+  (NO_DATA: the providers and ZenPortal).
+- Verified count: 38 before #237, 53 after it (chart contracts), same heuristic.
+- Slot (Giám sát's GO): the conformance run found 20 the scan missed — the charts' shared ChartBlock, Divider's two
+  non-decorative branches, ChatThread and SidebarSubMenu (the codemod put the spread on a context provider),
+  ChatReactorsPanel's desktop popover (through ZenPortal), PropertyPeople / Tags (MultiCell), SidebarMenuItem (the item
+  row, `dataAttributes(item)`). Fixed; conformance 218 passed / 5 skipped, `npm test` 1300 passed (82 files).
+
 ## Backlog G1 designer questions + G2 answers (tier XS, docs only; Giám sát's request, user "xử hết backlog")
 - QUESTIONS.md / QUESTIONS.vi.md: one designer review batch moved from BACKLOG (triage group G1, 10 entries): Calendar
   toolbar mobile, Metric Title-Highlight, Action-Icon-Gap 20, Bottom-Navigation surface, Side-Bar/Master/Small-Density

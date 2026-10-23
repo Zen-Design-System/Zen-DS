@@ -25,6 +25,7 @@ import "../Icon/core";
 import { useNested, type Nest, type NestedOverrides } from "../_shared/nested";
 import { sanitizeHtml } from "../_shared/sanitize-html";
 import { useDismissableLayer } from "../_shared/layers";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const inputSizes = ["small", "medium", "large", "xlarge"] as const;
 export const headingInputSizes = ["h1", "h2", "h3"] as const;
@@ -108,12 +109,12 @@ export interface InputLabelProps {
 /** Public implementation of Figma's `Primitives/Input/Label` (387:3651): Content (label · optional · tooltip icon,
  * gap 2XSmall) + an optional right-aligned Action. The tooltip icon sits outside the <label> so hovering or
  * focusing it never activates the field. */
-export function InputLabel({ id, labelId, children, optional = false, tooltip = false, action, disabled = false, ref }: InputLabelProps) {
+export function InputLabel({ id, labelId, children, optional = false, tooltip = false, action, disabled = false, ref, ...rest }: InputLabelProps) {
   const t = useZenLabels();
   const tooltipContent = tooltip === true || tooltip === false || tooltip === undefined || tooltip === null ? null : tooltip;
   const icon = <Icon name="icon-info-circle-line" size="2xs" decorative />;
   return (
-    <span ref={ref} className={`zen-input-label ${typographyStyles["Body/Small/Regular"]}`} data-state={disabled ? "disabled" : "default"}>
+    <span {...dataAttributes(rest)} ref={ref} className={`zen-input-label ${typographyStyles["Body/Small/Regular"]}`} data-state={disabled ? "disabled" : "default"}>
       <span className="zen-input-label__content">
         <label className="zen-input-label__text" htmlFor={id} id={labelId}>{children}{optional ? <span className="zen-input-label__optional">{t.optional}</span> : null}</label>
         {tooltipContent && !disabled
@@ -136,11 +137,11 @@ export interface InputHelpTextProps {
 }
 
 /** Public implementation of Figma's `.Primitives/Input/Help-Text` owner. */
-export function InputHelpText({ id, children, theme = "neutral", icon = true, characterLimit, ref }: InputHelpTextProps) {
+export function InputHelpText({ id, children, theme = "neutral", icon = true, characterLimit, ref, ...rest }: InputHelpTextProps) {
   // Figma .Primitives/Input/Help-Text: Neutral = Caption/Regular; Negative/Warning/Positive = Caption/Medium. Icons at Element-Size/Popular/XSmall.
   const iconName = theme === "negative" ? "icon-alert-octagon-line" : theme === "positive" ? "icon-check-line" : theme === "warning" ? "icon-alert-triangle-line" : "icon-info-circle-line";
   return (
-    <p ref={ref} id={id} className={`zen-input-help ${typographyStyles[theme === "neutral" ? "Caption/Regular" : "Caption/Medium"]}`} data-tone={theme} role={theme === "negative" ? "alert" : undefined}>
+    <p {...dataAttributes(rest)} ref={ref} id={id} className={`zen-input-help ${typographyStyles[theme === "neutral" ? "Caption/Regular" : "Caption/Medium"]}`} data-tone={theme} role={theme === "negative" ? "alert" : undefined}>
       <span className="zen-input-help__content">{icon ? <span className="zen-input-help__icon" aria-hidden="true"><Icon name={iconName} size="xs" decorative /></span> : null}<span>{children}</span></span>
       {/* Character-Limitation stays Caption/Regular in Content/Neutral/Light for every theme. */}
       {characterLimit !== undefined && characterLimit !== null ? <span className={`zen-input-help__limit ${typographyStyles["Caption/Regular"]}`}>{characterLimit}</span> : null}
@@ -198,7 +199,7 @@ export type InputLeadingTrailingOption = {
  * - picker: `options` → a button (label + chevron) that opens the shared Popover;
  * - action: `onClick` → a button that runs the caller's action (filter, show password…);
  * - decorative: neither, or `interactive={false}` → a plain slot; a click on it focuses the field. */
-export function InputLeadingTrailing({ size: sizeProp = "md", active: activeProp = true, icon, flag, label, showLabel = true, dropdown = false, showDropdown, children, options, value, onValueChange, popoverLabel, align = "end", disabled: disabledProp = false, interactive: requestedInteractive, onClick, "aria-label": ariaLabel, "aria-haspopup": ariaHasPopup, "aria-expanded": ariaExpanded, ref }: InputLeadingTrailingProps) {
+export function InputLeadingTrailing({ size: sizeProp = "md", active: activeProp = true, icon, flag, label, showLabel = true, dropdown = false, showDropdown, children, options, value, onValueChange, popoverLabel, align = "end", disabled: disabledProp = false, interactive: requestedInteractive, onClick, "aria-label": ariaLabel, "aria-haspopup": ariaHasPopup, "aria-expanded": ariaExpanded, ref, ...rest }: InputLeadingTrailingProps) {
   const size = scaleKey(sizeProp, inputSizes);
   // Figma Field-Only State=Disabled swaps its slots to Active=No: inside a disabled field the slot is inactive and locked.
   const fieldDisabled = useContext(FieldDisabledContext);
@@ -229,17 +230,17 @@ export function InputLeadingTrailing({ size: sizeProp = "md", active: activeProp
   const pickerName = ariaLabel ?? (popoverLabel ? `${popoverLabel}: ${typeof (current?.label ?? label) === "string" ? current?.label ?? label : value ?? ""}` : undefined);
   // Icon-only slots show their name as a tooltip (Zen rule); labelled slots already read.
   const tip = useIconTooltip(interactive && !hasLabel && !open ? (isPicker ? pickerName : ariaLabel) : false);
-  if (!interactive) return <span ref={ref} className="zen-input-leading-trailing" {...common}>{content}</span>;
+  if (!interactive) return <span {...dataAttributes(rest)} ref={ref} className="zen-input-leading-trailing" {...common}>{content}</span>;
   if (!isPicker) {
     return (
-      <button ref={ref as Ref<HTMLButtonElement>} type="button" className="zen-input-leading-trailing zen-input-leading-trailing--interactive" {...common} disabled={disabled} aria-label={ariaLabel} aria-haspopup={ariaHasPopup} aria-expanded={ariaExpanded} {...tip.bind({ onClick })}>
+      <button {...dataAttributes(rest)} ref={ref as Ref<HTMLButtonElement>} type="button" className="zen-input-leading-trailing zen-input-leading-trailing--interactive" {...common} disabled={disabled} aria-label={ariaLabel} aria-haspopup={ariaHasPopup} aria-expanded={ariaExpanded} {...tip.bind({ onClick })}>
         {content}
         {tip.tooltip}
       </button>
     );
   }
   return (
-    <span ref={ref} className="zen-input-leading-trailing__picker" data-open={open ? "true" : "false"} data-align={align}>
+    <span {...dataAttributes(rest)} ref={ref} className="zen-input-leading-trailing__picker" data-open={open ? "true" : "false"} data-align={align}>
       <button
         ref={anchorRef}
         type="button"
@@ -295,11 +296,11 @@ export interface InputContentProps {
 }
 
 /** Public implementation of Figma's `.Primitives/Input/Input-Content/Default`. */
-export function InputContent({ size: sizeProp = "md", state = "default", text = "Content", cursor = true, ref }: InputContentProps) {
+export function InputContent({ size: sizeProp = "md", state = "default", text = "Content", cursor = true, ref, ...rest }: InputContentProps) {
   const size = scaleKey(sizeProp, inputSizes);
   const caret = <span className="zen-input-content__cursor" aria-hidden="true" />;
   // Figma: Focused shows the caret before the placeholder, Typing after the typed text.
-  return <span ref={ref} className={`zen-input-content ${typographyStyles[size === "small" ? "Body/Small/Medium" : size === "large" ? "Heading/4" : "Body/Base/Medium"]}`} data-size={size} data-state={state}>{cursor && state === "focused" ? caret : null}{text}{cursor && state === "typing" ? caret : null}</span>;
+  return <span {...dataAttributes(rest)} ref={ref} className={`zen-input-content ${typographyStyles[size === "small" ? "Body/Small/Medium" : size === "large" ? "Heading/4" : "Body/Base/Medium"]}`} data-size={size} data-state={state}>{cursor && state === "focused" ? caret : null}{text}{cursor && state === "typing" ? caret : null}</span>;
 }
 
 /** Field text style: XLarge fields use Heading/4 (Figma Input-Content Large), every other size Body/Base/Medium. */
@@ -1072,7 +1073,7 @@ export interface AutocompleteFieldProps {
  * over the Add slot. Selected options become tags; the popover closes on outside pointer-down or Escape. Removing a tag
  * moves focus to the next tag's Remove button, else the previous tag's, else Add Item.
  */
-export function AutocompleteField({ id: providedId, label, helpText, helpTheme = "neutral", helpIcon = true, error: errorProp, errorMessage, options, value, defaultValue = [], onValueChange, onChange, invalidValues = [], readOnly = false, disabled = false, addLabel: addLabelProp, popoverLabel: popoverLabelProp, searchPlaceholder: searchPlaceholderProp, onCreate, createLabel, className, overrides, ref }: AutocompleteFieldProps) {
+export function AutocompleteField({ id: providedId, label, helpText, helpTheme = "neutral", helpIcon = true, error: errorProp, errorMessage, options, value, defaultValue = [], onValueChange, onChange, invalidValues = [], readOnly = false, disabled = false, addLabel: addLabelProp, popoverLabel: popoverLabelProp, searchPlaceholder: searchPlaceholderProp, onCreate, createLabel, className, overrides, ref, ...rest }: AutocompleteFieldProps) {
   const nest = useNested(overrides);
   const error = errorProp ?? errorMessage;
   const t = useZenLabels();
@@ -1119,7 +1120,7 @@ export function AutocompleteField({ id: providedId, label, helpText, helpTheme =
   };
   const messageId = `${id}-message`;
   return (
-    <div ref={mergedRootRef} className={["zen-autocomplete", className].filter(Boolean).join(" ")} data-state={disabled ? "disabled" : readOnly ? "view-only" : error ? "error" : open ? "focused" : "default"} aria-describedby={error || helpText ? messageId : undefined}>
+    <div {...dataAttributes(rest)} ref={mergedRootRef} className={["zen-autocomplete", className].filter(Boolean).join(" ")} data-state={disabled ? "disabled" : readOnly ? "view-only" : error ? "error" : open ? "focused" : "default"} aria-describedby={error || helpText ? messageId : undefined}>
       {label ? nest("Label", <InputLabel id={id} disabled={disabled}>{label}</InputLabel>) : null}
       {selected.length ? (
         <div className="zen-autocomplete__tags" role="list" aria-label={typeof label === "string" ? label : undefined}>
@@ -1372,7 +1373,7 @@ export interface RichTextEditorBarProps {
  * 3XSmall inside a block. Items keep the editor's selection (mouse-down does not steal focus); arrow keys move
  * between items (ARIA toolbar pattern).
  */
-export function RichTextEditorBar({ theme = "subtle", active = {}, disabled, blockType = "p", onBlockTypeChange, onCommand, controls, "aria-label": ariaLabelProp, className, ref }: RichTextEditorBarProps) {
+export function RichTextEditorBar({ theme = "subtle", active = {}, disabled, blockType = "p", onBlockTypeChange, onCommand, controls, "aria-label": ariaLabelProp, className, ref, ...rest }: RichTextEditorBarProps) {
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.formatting;
   // The block types of `richTextBlockTypes`, named in the locale.
@@ -1407,7 +1408,7 @@ export function RichTextEditorBar({ theme = "subtle", active = {}, disabled, blo
     items[next].focus();
   };
   return (
-    <div ref={mergedBarRef} className={["zen-rich-text-editor-bar", className].filter(Boolean).join(" ")} role="toolbar" aria-label={ariaLabel} aria-controls={controls} onKeyDown={onKeyDown}
+    <div {...dataAttributes(rest)} ref={mergedBarRef} className={["zen-rich-text-editor-bar", className].filter(Boolean).join(" ")} role="toolbar" aria-label={ariaLabel} aria-controls={controls} onKeyDown={onKeyDown}
       onFocus={(event) => { const index = focusables().indexOf(event.target as unknown as HTMLButtonElement); if (index >= 0) setFocusIndex(index); }}>
       {editorBarLayout.map((block, index) => {
         if (block === "divider") return <span key={`divider-${index}`} className="zen-rich-text-editor-bar__divider" aria-hidden="true" />;
@@ -1544,7 +1545,7 @@ const insertCopy: Record<RichTextInsert, { label: "insertLink" | "insertImage" |
  * outside (clearing the field after it was posted) starts a new history.
  */
 export function RichTextField(
-  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, className, value, defaultValue, onValueChange, placeholder, readOnly = false, required, maxLength, editorBar = true, editorBarTheme = "subtle", onFocus, onBlur, overrides, ref }: RichTextFieldProps,
+  { id: providedId, label, labelOptional, labelTooltip, labelAction, helpText, helpTheme, helpIcon, characterLimit, error: errorProp, errorMessage, size: sizeProp = "md", state, className, value, defaultValue, onValueChange, placeholder, readOnly = false, required, maxLength, editorBar = true, editorBarTheme = "subtle", onFocus, onBlur, overrides, ref, ...rest }: RichTextFieldProps,
 ) {
   // The label sits above the Editor-Bar, outside the shell: its own nest for the Label layer.
   const labelNest = useNested(overrides);
@@ -1779,7 +1780,7 @@ export function RichTextField(
   const copy = insert ? { title: t.richText[insertCopy[insert.kind].label], action: t.richText[insertCopy[insert.kind].label], placeholder: insertCopy[insert.kind].placeholder } : null;
 
   return (
-    <div className={["zen-rich-text-field", className].filter(Boolean).join(" ")} data-size={size}>
+    <div {...dataAttributes(rest)} className={["zen-rich-text-field", className].filter(Boolean).join(" ")} data-size={size}>
       {/* The label names the whole composition, so it sits above the Editor-Bar (Figma's Text-Area has Label=false). */}
       <FieldLabel id={id} label={label} required={required} optional={labelOptional} tooltip={labelTooltip} action={labelAction} nest={labelNest} />
       {editorBar ? (
@@ -1991,10 +1992,10 @@ export function HeadingField({ headingSize = "h3", multiline = false, onValueCha
 export type InputConditionState = "default" | "success" | "wrong";
 /** Figma Primitives/Input/Input-Conditions/Condition-Item: 16px icon (Element-Size/Popular/Small) + Body/Small/Regular,
  * gap 2XSmall. Default Content/Neutral/Base (minus), Success Positive/Light (check), Wrong Negative/Light (x-small). */
-export function InputConditionItem({ label, state = "default", ref }: { label: ReactNode; state?: InputConditionState; /** The root `<li>` element. */ ref?: Ref<HTMLLIElement> }) {
-  return <li ref={ref} className="zen-input-condition" data-state={state}><Icon name={state === "success" ? "icon-check-line" : state === "wrong" ? "icon-x-small-line" : "icon-minus-line"} size="sm" decorative /><span className={`zen-input-condition__text ${typographyStyles["Body/Small/Regular"]}`}>{label}</span></li>;
+export function InputConditionItem({ label, state = "default", ref, ...rest }: { label: ReactNode; state?: InputConditionState; /** The root `<li>` element. */ ref?: Ref<HTMLLIElement> }) {
+  return <li {...dataAttributes(rest)} ref={ref} className="zen-input-condition" data-state={state}><Icon name={state === "success" ? "icon-check-line" : state === "wrong" ? "icon-x-small-line" : "icon-minus-line"} size="sm" decorative /><span className={`zen-input-condition__text ${typographyStyles["Body/Small/Regular"]}`}>{label}</span></li>;
 }
 /** Figma Input-Conditions: an Item-List slot stacking Condition-Items with gap XSmall. */
-export function InputConditions({ children, state = "default", ref }: { children?: ReactNode; state?: "default"; /** The root `<ul>` element. */ ref?: Ref<HTMLUListElement> }) {
-  return <ul ref={ref} className="zen-input-conditions" data-state={state}>{children}</ul>;
+export function InputConditions({ children, state = "default", ref, ...rest }: { children?: ReactNode; state?: "default"; /** The root `<ul>` element. */ ref?: Ref<HTMLUListElement> }) {
+  return <ul {...dataAttributes(rest)} ref={ref} className="zen-input-conditions" data-state={state}>{children}</ul>;
 }
