@@ -25,3 +25,4 @@
 .pe-good-row[aria-current="true"]:hover { background: var(--zen-color-background-neutral-subtle-hover); }
 .pe-good-filled { background: var(--zen-color-background-neutral-subtle-default); }
 .pe-good-filled:hover { background: var(--zen-color-background-neutral-subtle-hover); }
+.pe-good-renamed { gap: var(--zen-spacing-gap-small); }

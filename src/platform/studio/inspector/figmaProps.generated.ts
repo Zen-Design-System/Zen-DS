@@ -3435,6 +3435,11 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
             "type": "VARIANT"
           },
           {
+            "prop": "surface",
+            "label": "Surface",
+            "type": "VARIANT"
+          },
+          {
             "prop": "spacing",
             "label": "Spacing",
             "type": "VARIANT"

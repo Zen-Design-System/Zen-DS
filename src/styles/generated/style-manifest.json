@@ -2,7 +2,7 @@
   "fileName": "ZEN Kaiz (Official-Sep2026)",
   "extractedAt": "2026-09-24T12:36:57.826Z",
   "counts": {
-    "colors": 34,
+    "colors": 37,
     "textStyles": 36,
     "effectStyles": 18,
     "gridStyles": 0
@@ -953,6 +953,81 @@
       "cssVariable": "--zen-style-background-canvas-liquid-glass-fill",
       "color": null,
       "background": "linear-gradient(rgba(0, 0, 0, 0.03), rgba(0, 0, 0, 0.03)), linear-gradient(var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)), var(--zen-color-background-canvas-default, rgba(247, 247, 247, 1)))",
+      "unsupportedLayers": []
+    },
+    {
+      "name": "Color Chart Sector/On-Color/Primary",
+      "token": "color-chart-sector-on-color-primary",
+      "type": "solid",
+      "paints": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1
+          },
+          "bound": {
+            "color": "Color/Content/On-Colors"
+          }
+        }
+      ],
+      "cssVariable": "--zen-style-color-chart-sector-on-color-primary-fill",
+      "color": "var(--zen-color-content-on-colors, rgba(255, 255, 255, 1))",
+      "background": "linear-gradient(var(--zen-color-content-on-colors, rgba(255, 255, 255, 1)), var(--zen-color-content-on-colors, rgba(255, 255, 255, 1)))",
+      "unsupportedLayers": []
+    },
+    {
+      "name": "Color Chart Sector/On-Color/Secondary",
+      "token": "color-chart-sector-on-color-secondary",
+      "type": "solid",
+      "paints": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 0.4863,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0,
+            "g": 0,
+            "b": 0
+          },
+          "bound": {
+            "color": "Color/Content/Neutral/Light"
+          }
+        }
+      ],
+      "cssVariable": "--zen-style-color-chart-sector-on-color-secondary-fill",
+      "color": "var(--zen-color-content-neutral-light, rgba(0, 0, 0, 0.4863))",
+      "background": "linear-gradient(var(--zen-color-content-neutral-light, rgba(0, 0, 0, 0.4863)), var(--zen-color-content-neutral-light, rgba(0, 0, 0, 0.4863)))",
+      "unsupportedLayers": []
+    },
+    {
+      "name": "Color Chart Sector/On-Color/Tertiary",
+      "token": "color-chart-sector-on-color-tertiary",
+      "type": "solid",
+      "paints": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 0.1843,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.0039,
+            "g": 0.0039,
+            "b": 0.0039
+          },
+          "bound": {
+            "color": "Color/Border/Neutral/Subtle/Pressed"
+          }
+        }
+      ],
+      "cssVariable": "--zen-style-color-chart-sector-on-color-tertiary-fill",
+      "color": "var(--zen-color-border-neutral-subtle-pressed, rgba(1, 1, 1, 0.1843))",
+      "background": "linear-gradient(var(--zen-color-border-neutral-subtle-pressed, rgba(1, 1, 1, 0.1843)), var(--zen-color-border-neutral-subtle-pressed, rgba(1, 1, 1, 0.1843)))",
       "unsupportedLayers": []
     }
   ],

@@ -167,7 +167,7 @@
           "type": "\"default\" | \"alt\" | \"flat\" | \"inverse\"",
           "required": false,
           "default": "\"default\"",
-          "description": "Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border). Alt\n (Surface/Alt) and Flat are the only choices on a Canvas/Alt (white) page, where cards are bordered.",
+          "description": "The Sidebar's fill, matched to the page's Canvas (Figma theme pairing, harness theme/navigation-surface): Default =\n Surface/Default, with a shadow on a Canvas/Default page (cards there take the same shadow) or `shadow={false}` on a\n Canvas/Alt (white) page, where Surface/Default is the canvas's own colour and cards are bordered (add `divider`) ·\n Alt = Surface/Alt, seamless on Canvas/Default · Flat = Surface/Flat, the Sidebar of a Canvas/Flat page · Inverse =\n the dark Sidebar.",
           "deprecated": null
         },
         {
@@ -175,7 +175,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the\n page on a Canvas/Alt (white) page. Not with the default Sidebar, whose shadow already separates it.",
+          "description": "A Pale divider on the Sidebar's inner edge, the full height of the block: separates a Sidebar that sits on the\n canvas (no shadow) from the page, as on a Canvas/Alt (white) page. Not with a shadowed Sidebar, whose shadow already\n separates it.",
           "deprecated": null
         },
         {

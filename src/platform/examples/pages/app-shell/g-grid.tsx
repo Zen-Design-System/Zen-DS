@@ -166,7 +166,7 @@ function TeamPerformance() {
           <Stack gap="md">
             <Grid columns={kpiColumns} stackBelow={560} gap="md">
               {kpis.map((kpi) => (
-                <MetricCard key={kpi.id} type="kpi" size="xl" label={kpi.label} value={kpi.value} trend={kpi.trend}
+                <MetricCard key={kpi.id} type="kpi" size="xl" theme="default" label={kpi.label} value={kpi.value} trend={kpi.trend}
                   icon={kpi.icon} iconTheme={kpi.hue} iconBackground="solid" iconSize="lg"
                   action={<IconButton appearance="main" level="tertiary" size="xs" icon="icon-chevron-right-line-small" aria-label={`Open ${kpi.label.toLowerCase()}`} onClick={() => toast({ title: `${kpi.label}: ${kpi.value}`, children: kpi.detail })} />} />
               ))}
@@ -338,7 +338,7 @@ export const examples: ExampleDef[] = [
     main={<PageHeader title="Team performance" description="Week 38 · Sep 16 – 22, 2024" actions={…} />} />}>
   <Stack gap="xl">
     <Stack gap="md">
-      <Grid columns={4} gap="md">{kpis.map((kpi) => <MetricCard type="kpi" size="xl" … />)}</Grid> {/* Flat */}
+      <Grid columns={4} gap="md">{kpis.map((kpi) => <MetricCard type="kpi" size="xl" theme="default" … />)}</Grid> {/* no shadow, as the charts */}
       <Grid columns={2} gap="md">
         <ChartCard title="Time worked" ranges={ranges} range={range} onRangeChange={setRange}><LineChart … /></ChartCard>
         <ChartCard title="Leads by salesperson" value="647 leads"><BarChart aria-label="Leads per salesperson this week" data={leads} /></ChartCard>
