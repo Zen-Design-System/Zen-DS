@@ -340,6 +340,8 @@ anchored to this element", no variables. Asked once more here: filter Chip / Sea
   "anchor it". Push notes "N interactions (Prototype tab): not pushed".
 - Found on the way, fixed: Update from Figma without a base (another browser) offered to remove every Studio
   `proto.*` prop (the page stood in for the base); figma-diff now never treats a missing prototype action as Figma's.
+  And Escape in Play with a DatePicker overlay open left Play (no Escape owner matched it): Escape now closes any open
+  Play overlay first (Player.tsx).
 - Tests: protoModel selftest 29 → 44, dialect +2, compile +6 (option C page), figma-diff +2 (the action survives, two
   ways too); `tests/interaction/studio-option-c.test.tsx` (4: DatePicker 4px below its Chip and closed by a day and by
   the Chip, Manual Card below its Button, Chip and Search filters, Stepper Next/Previous/passed step + state target);

@@ -787,6 +787,12 @@ export const rows = [
       await picker.waitFor({ state: "visible", timeout: 3000 });
       await chip.click();
       await until(async () => (await picker.count()) === 0, { message: "the Chip pressed again closes the DatePicker" });
+      // Escape closes it and stays in Play.
+      await chip.click();
+      await picker.waitFor({ state: "visible", timeout: 3000 });
+      await page.keyboard.press("Escape");
+      await until(async () => (await picker.count()) === 0, { message: "Escape closes the DatePicker" });
+      if (!(await playing(page).isVisible())) throw new Error("Escape left Play instead of closing the DatePicker");
       const tipButton = playing(page).getByRole("button", { name: "Tip" });
       await tipButton.click();
       const card = playing(page).locator('.studio-player__overlay[data-position="manual"] .studio-player__overlay-content');
@@ -796,7 +802,7 @@ export const rows = [
       await tipButton.click({ force: true });
       await until(async () => (await card.count()) === 0, { message: "the Button pressed again closes its overlay" });
       await page.keyboard.press("Escape");
-      return `DatePicker ${pickerSide} its Chip, closed by a picked day and by the Chip again · Manual Card ${cardSide} its Button, closed by it`;
+      return `DatePicker ${pickerSide} its Chip, closed by a picked day, the Chip again and Escape · Manual Card ${cardSide} its Button, closed by it`;
     },
   },
   {
