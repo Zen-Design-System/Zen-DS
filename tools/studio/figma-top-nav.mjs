@@ -33,6 +33,10 @@ export const TOP_NAV_TYPES = {
   compact: { option: "Compact", style: "Flat", button: NAV_BUTTONS.flat, level: "Primary" },
   "compact-alt": { option: "Compact-Alt", style: "Flat", button: NAV_BUTTONS.flat, level: "Primary" },
   "compact-overlay": { option: "Compact-Overlay", style: "Flat", button: NAV_BUTTONS.overlay, level: "Flat Overlay" },
+  // A band's bar (AppShell mobileTop band / band-sheet, Pattern/AppShell/Mobile Top=Band): no fill; over a colour band its
+  // content and actions turn on-colour (TopNavigation.tsx: Liquid-Glass actions).
+  transparent: { option: "Transparent", style: "Default", button: NAV_BUTTONS.main, level: "Tertiary" },
+  "transparent-on-color": { option: "Transparent-On-Color", style: "Default", button: NAV_BUTTONS.glass, level: "Secondary" },
 };
 /** Figma Type → TopNavigation `type` (the pull). */
 export const TOP_NAV_TYPE_OF = Object.fromEntries(Object.entries(TOP_NAV_TYPES).map(([type, look]) => [look.option, type]));

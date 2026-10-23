@@ -22,6 +22,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   XLarge set their centre figure in Display/4 (was Heading/3); HeatmapChart's row labels sit in a 40px column and
   BarList's values in a 64px column (longer text widens them). Every chart set and Chart/Chart-Card has a Figma contract
   suite in `tools/figma-contract/run-all.mjs` (2026-10-23).
+- Zen Studio → Figma: a phone AppShell is Figma's Pattern/AppShell/Mobile (2026-10-23). Its TopNavigation takes the
+  Bar type the canvas gives it (default → Alt, alt → Default, flat → Default on Surface/Flat), a band's bar
+  Transparent (on an accent band Transparent-On-Color) and the media bar Liquid-Overaly; its tabs, ActionBar, band
+  colour, hero or backdrop and the page sit in the pattern's own layers. A Screen with bars of its own still draws
+  those. A BottomNavigation's tabs now go to Figma as they show (selected, labels, dot, the Default bar's action) and
+  come back the same.
 - Zen Studio → Figma: Line, Bar (vertical and horizontal), Area, Grouped-Bar and Combo charts carry the page's own X
   labels, six Y labels (Combo's line axis too) and active Tooltip in the page's number format ("$128.4K", "€2.4K"),
   instead of Figma's sample text; their bars and lines keep Figma's sample shapes. A Line chart moves its selected period

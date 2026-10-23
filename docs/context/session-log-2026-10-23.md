@@ -631,6 +631,28 @@ in as a new page, or compared two ways.
   pull's) ids before the compare, unless it already holds most of them (this browser's own export). After: HO-11, HO-13,
   I-03 3/3; handoff group 13/13; studio:selftest ✓.
 
+## Session B · AppShell phone bars in Figma (tier M; BACKLOG P3, user-approved through the progress session)
+
+- figma-push `mobileShellNode`: a phone AppShell (root or inside the page) with phone parts → Pattern/AppShell/Mobile
+  16261:136204 (Device · Top Bar/Band/Band-Sheet/Media · Bottom Tab-Bar/Floating/Actions/None), layers per Top read
+  from the set. Bar type by canvas as AppShell.tsx BAR_TYPE; flat repaints the Default bar Surface/Flat (edit `fill`,
+  plugin 84b6d1e, figma-native too); band colour on Band / Stage; hero/backdrop slot hidden and emptied when unset
+  (Figma's sample Placeholder kept its 192px). ActionBar → Action-Bar/Mobile (Type, Actions Dual/Single × direction,
+  buttons in Figma's order). A Screen with its own bars keeps them and notes the AppShell's.
+- BottomNavigation tabs (were "no item set yet"): Items/Default · Floating · Floating-Glass, Theme by selection,
+  selectedIcon, showLabels, dot, the Default bar's action as Type=Action, the floating CTA's glyph. Pull reads them back
+  (labels kept while hidden, value, theme, selection, action): round trip exact in the selftest.
+- library-keys.json + 4 sets (keys read live). TOP_NAV_TYPES + transparent / transparent-on-color.
+- Native paste: native-pack `write --merge` of a probe copy (+3 sets: the pattern, Action-Bar/Mobile, Status-bar/IOS/
+  Tablet; 36 symbols, 23.6 MB, no pictures); figma-native nestedAt looks into a frame on the path (Band › Top-Navigation),
+  as the importer does, and writes an edit's fill. The capture switched the user's Figma tab (they were on Home); the
+  clipboard was saved and restored (6/6 types).
+- Live, real importer in the Zen file (QA page 15872:3, frames removed): flat bar + 3 tabs; band accent + ActionBar.
+- FW-160 made order-independent (Giám sát: it failed after other figma rows in C's run): pointer and modifiers reset,
+  ⇧1 once the Assets panel is open, boxes read when the canvas is still, the drop in the slot's room below its Empty.
+- Left: pulling the pattern back to AppShell, and a standalone ActionBar in Figma → BACKLOG P3. Archived BACKLOG
+  "Example className, round 2" and "AppShell phone bars"; the sticky native paste line is C's (tried live).
+
 ## Chart contract suites (tier M; BACKLOG P3, the user's go 2026-10-23)
 - 15 suites in `tools/figma-contract/suites/chart-*.mjs`: Line, Multi-Line, Chart-Card, Stack-Bar, Bar, Area,
   Grouped-Bar, Combo, Donut, Radial, Gauge, Funnel, Bullet, Heatmap, Bar-List; `run-all.mjs` 39 suites + 25 interaction
