@@ -23,4 +23,4 @@ reaction Navigate / Open / Close overlay / Back."
   Close overlay; imported again: 0 created, reactions kept. The reader read back Push right 0.28 s, While hovering and
   After delay 1.5 s.
 - Tests: push 466 (+15), pull 135, native 150 (+1), plugin `npm test` (multi-frame, legacy frame, ⌘C copy, removed
-  reaction, missing destination); E2E HO-14 (new, Export › Figma of HTML_PAGE).
+  reaction, missing destination); E2E HO-16 (new, Export › Figma of HTML_PAGE; id from Giám sát).

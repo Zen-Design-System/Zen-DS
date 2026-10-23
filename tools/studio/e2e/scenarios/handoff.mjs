@@ -243,7 +243,7 @@ export const rows = [
     },
   },
   {
-    id: "HO-14", feature: "Export › Figma of a page with several frames (push of prototypes, 2026-10-24): every Screen, Screen state and Overlay is a frame of its own (an Overlay hugs what it holds), and the Prototype tab's actions are Figma reactions — the Invite button opens the invite Overlay, the Dialog's Primary button closes it",
+    id: "HO-16", feature: "Export › Figma of a page with several frames (push of prototypes, 2026-10-24): every Screen, Screen state and Overlay is a frame of its own (an Overlay hugs what it holds), and the Prototype tab's actions are Figma reactions — the Invite button opens the invite Overlay, the Dialog's Primary button closes it",
     async run(ctx) {
       const { page } = await ctx.studio();
       const id = await importHtmlPage(page, HTML_PAGE, "screen:people");
