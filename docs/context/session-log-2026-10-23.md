@@ -379,6 +379,23 @@ for it); the rest closed (research doc studio-native-paste-2026-10-17.md §8).
   dock, no `fixedChildrenDivider`. A ⌘V of a Studio frame (sticky top + bottom) → fixed count 1, and Figma's copy of it
   keeps STICKY_SCROLLS and FIXED. figma-native unchanged. QA page cleared, clipboard put back 6/6 both times.
 
+## Session C · PropertyField ↔ Figma gaps (BACKLOG P3; Giám sát's G3 queue, tier M)
+Branch `zen/fix/studio-property-field-figma-20261023`.
+- Figma (user's choice "Make Container a Slot"): in the 8 Person / Tags variants of `.Primitives/Input/Property-Value`
+  (16921:6022) Person / Tag-1 / Tag-2 now sit in `Value-Slot` (one SLOT property, gap bound like Container's, hidden in
+  Default so "Empty" keeps its place) inside Container; sizes unchanged (280 × 40), the 7 example instances kept their
+  people and labels. component-properties.json has the slot; native pack re-probed for the two sets (probe frame,
+  clipboard saved and restored, merge-property.mjs replaces the sets and 25 symbols). Needs the library publish.
+- Push: People / Tags fill the Value-Slot (a Person Tag per person: its name in its own text — Tag's Label property and
+  first text are its avatar's — the avatar's first letter; a Badge per label); a ring's progress (BadgeStatus, the Status
+  cell) is the Progress arc (`arcs` on the nested Leading; from 3π/2, as the set's own 0 / 25 / 50 / 100). Plugin
+  `applyArcs` (landed inside B's 09849d4 in the shared checkout); native paste writes the arc override too.
+- Pull: the reader records changed arcs (`arcs`); People / Tags from `innerSlots` (old files: Person, Tag-1/2). Found on
+  the live read and fixed: the Value's parts became PropertyField `overrides` (a note per row), and a BadgeStatus' own
+  label came back as children.
+- Real Figma (QA page): import → arcs 80 / 60, 3 people, 3 labels; the real reader + pull give them back
+  (fixture figma-property-values.json). Selftests: push 411, pull 134, native 141; plugin `npm test` ✓.
+
 ## Session B · Studio Variables v2 (G4, tier L; user decisions: modes prop, mode lists from tokens, rename keeps an alias)
 
 - Spec docs/research/studio-variables-v2-spec-2026-10-23.md. Chunks 1–4 in one PR: Edit variable (meta op, plugin

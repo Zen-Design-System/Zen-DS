@@ -1448,6 +1448,14 @@ class InstanceBuild {
     const at = list.findIndex((a) => key(a.defID) === defId);
     if (at >= 0) list[at] = assignment; else list.push(assignment);
   }
+  /** Ellipses' arcs by layer name (figma-push `arcs`, radians): a Badge-Status ring's Progress, an override. */
+  arcs(path, arcs, where) {
+    for (const [name, arc] of Object.entries(arcs)) {
+      const ref = this.layers(path).find((item) => item.type === "ELLIPSE" && item.name === name);
+      if (!ref) { this.w.note(`${where}: no ellipse ${name}`); continue; }
+      this.target(ref).arcData = { startingAngle: arc.start || 0, endingAngle: arc.end || 0, innerRadius: arc.inner || 0 };
+    }
+  }
   setText(ref, text) {
     const def = this.boundDef(ref, "TEXT_DATA");
     if (def) { this.assignOwn(ref, def, { textValue: textData(text) }, { value: { textDataValue: textData(text) }, dataType: "TEXT_DATA", resolvedDataType: "TEXT_DATA" }); return; }
@@ -1679,6 +1687,7 @@ class InstanceBuild {
     if (typeof nested.text === "string") scope.build.label(scope.path, nested.text, at);
     scope.build.texts(scope.path, nested, at);
     if (nested.swapIcon) scope.build.swapIcon(scope.path, nested.swapIcon, at);
+    if (nested.arcs) scope.build.arcs(scope.path, nested.arcs, at);
     // As wide as its content (a chart's Segmented that is not full width): its own sizing, and no longer filling its
     // parent (only the sizing left the pasted Segmented stretched across the chart, where the plugin's import hugs).
     if (nested.hugW) this.sizeLayer(ref, { hugW: true }, at);
