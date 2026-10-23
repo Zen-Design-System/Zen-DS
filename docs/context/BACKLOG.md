@@ -36,10 +36,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Spacing/Gap|Padding, but the Gap ladder has no 20 (16 Medium, 24 Large), so this one stays on `dm-20`. Keep, or move it to a
   Gap step (a visible change in Top Navigation's flat icon actions)?
 
-- **P2 · Studio option C, waiting for the user (2026-10-15):** links between components on a template page (a Chip
-  that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
-  Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their
-  own state) is done: session log 2026-10-15 "Self-managed state".
+- **P3 · Push Overlays and prototype actions to Figma (user 2026-10-23, option C: later):** the push sends the first
+  Screen only and names the Prototype tab's actions it drops; Figma could hold Navigate to, Open / Close overlay and Back
+  as reactions (plugin `setReactionsAsync`) once Screens and Overlays push as frames. Manual's `overlayPositionType` is
+  read-only in the plugin API (a hand step in Figma). Session log 2026-10-23 "Studio option C".
 - **P2 · AI UI: decisions for the user (merged 2026-10-23 from five entries of 2026-10-14/15; `docs/ai-ui/README.md`
   "Open decisions"):** (1) `verified` is a heuristic: `tools/ai-ui/build-catalog.mjs` marks a component verified when a
   Figma contract file or suite name matches its folder (41); confirm them or list them in `tools/ai-ui/catalog.config.mjs`

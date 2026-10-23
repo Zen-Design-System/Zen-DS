@@ -1184,3 +1184,8 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   label row in the 14-row Trend grid) agree, so at 1.6× height the labels sit ~40px under the baseline. Fixing it pins
   the label lane in both (code: a fixed lane; Figma: the label row FIXED, Y labels re-anchored). Waits for the user:
   change both, or keep. Session log 2026-10-16 "Figma chart sizing".
+- [closed 2026-10-23: built as prototype actions (Manual overlay by its trigger, Screen states as targets, Filter table,
+  Change step), session log 2026-10-23 "Studio option C"] **P2 · Studio option C, waiting for the user (2026-10-15):** links between components on a template page (a Chip
+  that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
+  Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their
+  own state) is done: session log 2026-10-15 "Self-managed state".
