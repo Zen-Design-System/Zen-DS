@@ -571,3 +571,8 @@ Branch zen/feat/voice-proposals-20261023 from main 9fe063d2. Review `docs/resear
 - Exceptions pin the open QUESTIONS.md Charts (P2) (a) items (X pill, lanes, 88% dim, axis gaps, Area/Grouped/Combo
   without an active state) and the Figma slips, listed for the designer as (e) with the one open call: Radial Large
   Display/4 vs Donut Large Heading/4. BACKLOG P3 line rewritten to the next batch (seven non-chart contracts).
+- CI's Linux runs Inter a pixel or two wider: the horizontal bars, the heatmap scale and the radial Bottom legend now
+  compare widths in % of their frame (`xr`/`wr`/`cxr`) or from their neighbours. Merged main 425b5733 (#250/#251: only
+  docs conflicted). Gate (isolated, chart): static, TypeScript, Vitest 81/81, Figma contracts (all suites), audit
+  1512/390/320 0 errors, dark 0, behaviour 0, Build-QA PASS; contact sheets: the Donut total reads as the card's value,
+  the heatmap rows line up after the 40px labels, the BarList values end on one column.
