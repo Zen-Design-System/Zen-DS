@@ -460,3 +460,7 @@ Branch zen/feat/chart-push-real-data-20261023 (stacked on the format presets: la
   (now hidden); a horizontal row past the data kept an empty pill and a sample bar (now hidden, its value empty). Found,
   BACKLOG P3 (plugin repo): a bare horizontal Bar keeps 290px after its Heading hides, so Values drift from the rows.
 - figma-push selftest 420 (a page of six labelled charts: Line, Bar V/H, Area in EUR, Grouped, Combo with lineFormat).
+- Gate for both chart PRs (isolated, top branch c6bb2bfd after main b8c4241e; pages chart, widgets, metric): static ✓,
+  Vitest 80 / 80, audit 1512 / 390 / 320 + dark + behaviour 0 new, Studio E2E 340 / 341 — B-10 (Export → Import the
+  same text) timed out on a click while the machine was loaded (C's E2E ran beside it ~25 s) and passed alone right
+  after (1 / 1). Contact sheets: "Money as a preset" reads "$" on the axis, Tooltip and list at 390 and 1512.
