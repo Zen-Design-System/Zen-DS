@@ -20,6 +20,7 @@ import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useDismissableLayer } from "../_shared/layers";
 import { useMergedRefs } from "../_shared/merge-refs";
 import { useStableCallback } from "../_shared/use-stable-callback";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export type SidebarVariant = "basic" | "workspace" | "small-density";
 /** Figma Patterns/Sidebar Theme. */
@@ -397,7 +398,7 @@ function SidebarItemView({
   const Row: ElementType = isLink ? (linkAs ?? "a") : "button";
 
   return (
-    <div ref={rootRef} className="zen-sidebar__item-group" data-level={depth === 0 ? "master" : "child"}>
+    <div {...dataAttributes(item)} ref={rootRef} className="zen-sidebar__item-group" data-level={depth === 0 ? "master" : "child"}>
       <Row
         className="zen-sidebar__item"
         data-depth={depth}
@@ -509,10 +510,10 @@ export interface SidebarSubHeaderProps {
  * Spacing/Gap/Medium between them; Density=Small (the Sidebar's `density`) Padding/2XSmall · Padding/XSmall and
  * Spacing/Gap/Small. Pass it as the Sidebar's `subHeader`; on the rail only the back control shows.
  */
-export function SidebarSubHeader({ title, onBack, backLabel, headingLevel = 2, className, ref }: SidebarSubHeaderProps) {
+export function SidebarSubHeader({ title, onBack, backLabel, headingLevel = 2, className, ref, ...rest }: SidebarSubHeaderProps) {
   const t = useZenLabels();
   return (
-    <div ref={ref} className={["zen-sidebar__sub-header", className].filter(Boolean).join(" ")}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-sidebar__sub-header", className].filter(Boolean).join(" ")}>
       <IconButton appearance="main" level="tertiary" size="sm" icon={<Icon name="icon-chevron-left-line-medium" />} aria-label={backLabel ?? t.back} onClick={onBack} />
       {/* On the rail (sidebar.css) the title stays in the accessibility tree; only its box goes. */}
       <Heading level={headingLevel} textStyle="Heading/4" truncate className="zen-sidebar__sub-header-title">{title}</Heading>
@@ -534,9 +535,9 @@ export function SidebarMenuItem(props: SidebarMenuItemProps) {
 
 /** A titled group of `<SidebarMenuItem>` rows in a slot, the JSX form of a `sections` entry (Figma section label +
  *  Item-List). The collapsed rail hides the title and opens later groups with a divider, as for `sections`. */
-export function SidebarMenuSection({ label, action, children, ref }: SidebarMenuSectionProps) {
+export function SidebarMenuSection({ label, action, children, ref, ...rest }: SidebarMenuSectionProps) {
   return (
-    <section ref={ref} className="zen-sidebar__section">
+    <section {...dataAttributes(rest)} ref={ref} className="zen-sidebar__section">
       {label ? <SidebarSectionTitle label={label} action={action} /> : null}
       <div className="zen-sidebar__section-items">{children}</div>
     </section>
@@ -625,11 +626,11 @@ function SidebarPanel({ className, brand, brandSlots, sections, children, footer
 }
 
 /** Figma Side-Bar/Sub → Sub-Item: Search/Popover, then the Item-List of Master menu items (gap Small). */
-export function SidebarSubMenu({ search, items = [], sections = [], onItemClick, children, className, ref }: SidebarSubMenuProps) {
+export function SidebarSubMenu({ search, items = [], sections = [], onItemClick, children, className, ref, ...rest }: SidebarSubMenuProps) {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   return (
     <SidebarRowsContext value={{ collapsed: false, openItems, setOpenItems, onItemClick }}>
-      <div ref={ref} className={["zen-sidebar__sub-content", className].filter(Boolean).join(" ")}>
+      <div {...dataAttributes(rest)} ref={ref} className={["zen-sidebar__sub-content", className].filter(Boolean).join(" ")}>
         {search ? <div className="zen-sidebar__sub-search">{search}</div> : null}
         {items.length ? <div className="zen-sidebar__sub-items">
           {items.map((item) => <SidebarItemView key={item.id} item={item} depth={0} collapsed={false} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} />)}
@@ -655,7 +656,7 @@ function SidebarFlyout({ children, label, onClose, rootRef }: { children: ReactN
   return <div className="zen-sidebar__submenu" role="region" aria-label={label}>{children}</div>;
 }
 
-export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed: collapsedArg, onCollapsedChange: onCollapsedChangeProp, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, children, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, shadow = true, theme: themeProp, subHeader, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose, overrides, ref }: SidebarProps) {
+export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed: collapsedArg, onCollapsedChange: onCollapsedChangeProp, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, children, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, shadow = true, theme: themeProp, subHeader, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose, overrides, ref, ...rest }: SidebarProps) {
   // Unset is not "expanded": an AppShell's pattern decides where the rail starts (List-Detail on the rail), so the
   // shell hears `collapsed` only when it was given.
   const collapsedProp = collapsedArg ?? false;
@@ -700,7 +701,7 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
 
   if (variant === "workspace") {
     return (
-      <nav ref={navRef} className={rootClassName} data-variant="workspace" data-background={background} data-divider={divider ? "true" : undefined} data-collapsed="false" aria-label={ariaLabel ?? t.workspaceNavigation}>
+      <nav {...dataAttributes(rest)} ref={navRef} className={rootClassName} data-variant="workspace" data-background={background} data-divider={divider ? "true" : undefined} data-collapsed="false" aria-label={ariaLabel ?? t.workspaceNavigation}>
         {workspaceBar ? <div className="zen-sidebar__workspace-rail">
           <div className="zen-sidebar__workspace-header">{workspaceBrand ?? <span className="zen-sidebar__workspace-default-mark" aria-hidden="true"><Icon name="icon-zen" size="lg" /></span>}</div>
           <div className="zen-sidebar__workspace-body"><div className="zen-sidebar__workspace-items">
@@ -719,7 +720,7 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
   }
 
   return (
-    <nav ref={navRef} className={rootClassName} data-variant={variant} data-background={background} data-divider={divider ? "true" : undefined} data-shadow={shadow ? undefined : "false"} data-theme={theme === "default" ? undefined : theme} data-collapsed={collapsed ? "true" : "false"} data-sidebar-density={density} aria-label={ariaLabel ?? t.mainNavigation}>
+    <nav {...dataAttributes(rest)} ref={navRef} className={rootClassName} data-variant={variant} data-background={background} data-divider={divider ? "true" : undefined} data-shadow={shadow ? undefined : "false"} data-theme={theme === "default" ? undefined : theme} data-collapsed={collapsed ? "true" : "false"} data-sidebar-density={density} aria-label={ariaLabel ?? t.mainNavigation}>
       <SidebarNavContext value={nav}>
         {nest.scope(<SidebarPanel className="zen-sidebar__surface" brand={brand} brandSlots={{ logo, logoCollapsed, productName }} sections={sections} footer={footer} search={search} searchCollapsed={searchCollapsed} subHeader={subHeader} collapsed={collapsed} onCollapsedChange={onCollapsedChange} expandRail={expandRail} openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick}>{children}</SidebarPanel>)}
         {flyout}

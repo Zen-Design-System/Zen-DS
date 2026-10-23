@@ -3,6 +3,7 @@ import { Button } from "../../../components/Button";
 import { tableEditorTypeFor } from "../../../components/Table";
 import { pictureCode } from "../builder/library/media";
 import { UPLOAD_ONLY_LOCAL } from "../edit/assets/picture";
+import { repoValueFor } from "../edit/assets/repoMedia";
 import { Icon } from "../../../components/Icon";
 import { Heading } from "../../../components/Text";
 import { ToggleButton } from "../../../components/Toggle";
@@ -494,7 +495,7 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
           {label === "Icon" && text
             ? <IconControl label={label} value={value} fallback={undefined} disabled={rowsLocked} onSet={(next) => set({ kind: "string", value: next })} />
             : label === "Picture" && text
-              ? <PhotoControl label={label} value={value} disabled={rowsLocked} people={kind === "avatar"} onSet={(next) => { const code = pictureCode(table?.tableRows?.file ?? parseSrc(selection.src)?.file ?? "", next); if (code) set(code); else inspectorStatus.set("negative", UPLOAD_ONLY_LOCAL); }} onClear={value ? () => set({ kind: "string", value: "" }) : undefined} />
+              ? <PhotoControl label={label} value={value} disabled={rowsLocked} people={kind === "avatar"} onSet={(next) => { const file = table?.tableRows?.file ?? parseSrc(selection.src)?.file ?? ""; void repoValueFor(file, next).then((picked) => { if (typeof picked !== "string") { inspectorStatus.set("negative", picked.error); return; } const code = pictureCode(file, picked); if (code) set(code); else inspectorStatus.set("negative", UPLOAD_ONLY_LOCAL); }); }} onClear={value ? () => set({ kind: "string", value: "" }) : undefined} />
               : field}
         </InspectorRow>,
       );

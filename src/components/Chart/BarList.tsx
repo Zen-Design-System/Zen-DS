@@ -3,6 +3,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
 import { ChartBlock, ChartSummary, defaultFormat, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartPoint } from "./chartCore";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export interface BarListProps {
   /** One row per item (`{ label, value }`), already ranked by you, largest first: the list never reorders, and the
@@ -33,7 +34,7 @@ export interface BarListProps {
  * Content/Neutral/Light). ↑/↓ and Home/End move the active row, hover picks one; the summary reads its name and value.
  * Figma Chart/Bar-List 15487:2473 (the chart body; the header is ChartCard's).
  */
-export function BarList({ data, headers, format = defaultFormat, "aria-label": ariaLabel, className, initialIndex = 0, animate = true, ref }: BarListProps) {
+export function BarList({ data, headers, format = defaultFormat, "aria-label": ariaLabel, className, initialIndex = 0, animate = true, ref, ...rest }: BarListProps) {
   const t = useZenLabels();
   const id = useChartId();
   const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex, "vertical");
@@ -42,7 +43,7 @@ export function BarList({ data, headers, format = defaultFormat, "aria-label": a
   const current = active === null ? undefined : data[active];
   const summary = current ? `${current.label}: ${format(current.value)} (${t.chartPoint(active! + 1, data.length)})` : t.noData;
   return (
-    <ChartBlock ref={ref} kind="bar-list">
+    <ChartBlock {...dataAttributes(rest)} ref={ref} kind="bar-list">
       <div className={["zen-chart", "zen-chart--list", className].filter(Boolean).join(" ")} data-kind="bar-list" data-animate={animate ? undefined : "false"}>
         <div className="zen-chart__list" style={{ "--zen-chart-count": data.length } as CSSProperties} role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0} onKeyDown={onKeyDown}>
           {headers ? (

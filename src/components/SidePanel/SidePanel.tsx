@@ -12,6 +12,7 @@ import "./side-panel.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useMergedRefs } from "../_shared/merge-refs";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export type SidePanelType = "standard" | "modal";
 export type SidePanelSize = "default" | "small";
@@ -65,7 +66,7 @@ export interface SidePanelProps extends OverlayOpenProps {
  * back · title (Standard Heading/3, Modal Heading/4) · close, gap Medium; caption; more header content) · Contents
  * (gap Medium, scrolls) · Modal/Actions footer.
  */
-export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, headerContent, top, onBack, backLabel: backLabelProp, type = "standard", size = "default", icon, children, primaryAction, secondaryAction, dismissible = true, closeLabel: closeLabelProp, className, overrides, ref }: SidePanelProps) {
+export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, headerContent, top, onBack, backLabel: backLabelProp, type = "standard", size = "default", icon, children, primaryAction, secondaryAction, dismissible = true, closeLabel: closeLabelProp, className, overrides, ref, ...rest }: SidePanelProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
@@ -123,7 +124,7 @@ export function SidePanel({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   const Title = `h${headingLevel}` as const;
   const panel = (
     <aside
-      ref={mergedPanelRef}
+      {...dataAttributes(rest)} ref={mergedPanelRef}
       data-state={phase}
       inert={closing}
       aria-hidden={closing || undefined}

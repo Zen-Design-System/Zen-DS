@@ -9,6 +9,7 @@ import "./stepper.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useControllableState } from "../_shared/use-controllable-state";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const stepperStates = ["default", "focused", "passed", "error"] as const;
 export type StepperState = (typeof stepperStates)[number];
@@ -64,7 +65,7 @@ export function StepperStep(_step: StepperStep): null {
 }
 
 /** Figma .Primitives/Stepper/Item (1625:4827): 24px marker — number (Style=Text) or icon (Style=Icon). */
-export function StepperItem({ state = "default", index = 1, icon, ref }: {
+export function StepperItem({ state = "default", index = 1, icon, ref, ...rest }: {
   state?: StepperState;
   index?: number;
   icon?: IconName | ReactElement;
@@ -73,7 +74,7 @@ export function StepperItem({ state = "default", index = 1, icon, ref }: {
 }) {
   const glyph = state === "passed" ? "icon-check-solid" : state === "error" ? "icon-info-octagon-solid" : icon;
   return (
-    <span ref={ref} className="zen-stepper-item" data-state={state} aria-hidden="true">
+    <span {...dataAttributes(rest)} ref={ref} className="zen-stepper-item" data-state={state} aria-hidden="true">
       {glyph ? renderIcon(glyph) : <span className={typographyStyles[state === "focused" ? "Body/Small/Bold" : "Body/Small/Medium"]}>{index}</span>}
     </span>
   );

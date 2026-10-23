@@ -13,6 +13,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./top-navigation.css";
 import "../Icon/core";
 import { useMergedRefs } from "../_shared/merge-refs";
+import { dataAttributes } from "../_shared/data-attributes";
 
 /**
  * Figma Top-Navigation/Mobile (12014:45167) Type. Each type pairs a background with a Nav-Action style:
@@ -227,7 +228,7 @@ function trailingItems(lead: TrailingItem[], trailing: TrailingItem[], pairs: bo
 const TrailingVisual = ({ node }: { node: ReactNode }) => <span className="zen-top-nav__visual">{node}</span>;
 
 /** Figma Nav-Action (Icon-Main Tertiary · Flat · Liquid-Glass): a 44px circle with a 24px icon. */
-export function TopNavigationActionButton({ action, variant, className, state, ref }: {
+export function TopNavigationActionButton({ action, variant, className, state, ref, ...rest }: {
   action: TopNavigationAction;
   variant: string;
   className?: string;
@@ -241,7 +242,7 @@ export function TopNavigationActionButton({ action, variant, className, state, r
   const glass = useLiquidGlass("liquid-glass-normal", variant === "glass" || variant === "glass-dark");
   const buttonRef = useMergedRefs<HTMLButtonElement>(ref, glass);
   return (
-    <button ref={buttonRef} type="button" className={["zen-top-nav__action", className].filter(Boolean).join(" ")} data-style={variant} data-state={state} aria-label={action.label} disabled={action.disabled} {...tip.bind({ onClick: action.onClick })}>
+    <button {...dataAttributes(rest)} ref={buttonRef} type="button" className={["zen-top-nav__action", className].filter(Boolean).join(" ")} data-style={variant} data-state={state} aria-label={action.label} disabled={action.disabled} {...tip.bind({ onClick: action.onClick })}>
       {renderIcon(action.icon)}
       {action.dot ? <NotificationDot className="zen-top-nav__dot" /> : null}
       {tip.tooltip}
@@ -342,7 +343,7 @@ function useScrollFold(scrollRef: TopNavigationProps["scrollRef"], linked: boole
   return state;
 }
 
-export function TopNavigation({ type = "default", margin = "comfortable", subtitle, titleLeading, onTitleClick, titleLabel, trailingGroup = false, title, largeTitle, largeTitleCapline, largeTitleSubheading, headingLevel = "h1", leading, trailing = [], largeTitleAction, topBar, controlBar, banner, searchAction, scrollRef, collapsed: collapsedProp, sticky = false, "aria-label": ariaLabel, className, ref }: TopNavigationProps) {
+export function TopNavigation({ type = "default", margin = "comfortable", subtitle, titleLeading, onTitleClick, titleLabel, trailingGroup = false, title, largeTitle, largeTitleCapline, largeTitleSubheading, headingLevel = "h1", leading, trailing = [], largeTitleAction, topBar, controlBar, banner, searchAction, scrollRef, collapsed: collapsedProp, sticky = false, "aria-label": ariaLabel, className, ref, ...rest }: TopNavigationProps) {
   const t = useZenLabels();
   const titleId = useId();
   const variant = actionStyleFor(type);
@@ -408,7 +409,7 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
   const search = usePresence(foldsSearch && (linked ? scroll.folded : collapsed), 120);
   const searchButton: TopNavigationAction | null = searchAction ? { icon: searchAction.icon ?? "icon-search-medium-line", label: searchAction.label ?? t.search, onClick: searchAction.onClick } : null;
   return (
-    <Root ref={headerRef} className={["zen-top-nav", className].filter(Boolean).join(" ")} data-type={type} data-margin={margin} data-collapsed={collapsed ? "true" : undefined} data-sticky={sticky ? "true" : undefined} data-scroll-linked={linked ? "true" : undefined} data-scrolled={linked && scroll.scrolled ? "true" : undefined} data-bar={barOverlay ? "overlay" : undefined} aria-label={Root === "header" ? ariaLabel : undefined}>
+    <Root {...dataAttributes(rest)} ref={headerRef} className={["zen-top-nav", className].filter(Boolean).join(" ")} data-type={type} data-margin={margin} data-collapsed={collapsed ? "true" : undefined} data-sticky={sticky ? "true" : undefined} data-scroll-linked={linked ? "true" : undefined} data-scrolled={linked && scroll.scrolled ? "true" : undefined} data-bar={barOverlay ? "overlay" : undefined} aria-label={Root === "header" ? ariaLabel : undefined}>
       {progressive ? <ProgressiveBlur className="zen-top-nav__progressive" strong="top" /> : null}
       {hiddenTitle ? <VisuallyHidden as={headingLevel}>{title}</VisuallyHidden> : null}
       {/* data-identity: the Heading-Text Type=Sub title block — centred as the variant draws it, or start-aligned after a

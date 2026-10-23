@@ -5,6 +5,7 @@ import { Icon } from "../Icon";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./checkbox.css";
 import "../Icon/core";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const checkboxStates = ["default", "hover", "focus", "disabled"] as const;
 export type CheckboxState = (typeof checkboxStates)[number];
@@ -36,7 +37,7 @@ export interface CheckboxProps {
   ref?: Ref<HTMLInputElement>;
 }
 
-export function Checkbox({ checked, defaultChecked = false, indeterminate = false, onCheckedChange, onChange, label: labelProp, "aria-label": ariaLabel, caption, bold = false, checkSide = "left", state = "default", disabled = false, name, value, className, ref }: CheckboxProps) {
+export function Checkbox({ checked, defaultChecked = false, indeterminate = false, onCheckedChange, onChange, label: labelProp, "aria-label": ariaLabel, caption, bold = false, checkSide = "left", state = "default", disabled = false, name, value, className, ref, ...rest }: CheckboxProps) {
   // "Content label" stays English on purpose: Figma's demo placeholder, shown only when neither label nor aria-label is set.
   const label = labelProp ?? (ariaLabel ? undefined : "Content label");
   const [isChecked, setChecked] = useControllableState({ value: checked, defaultValue: defaultChecked, onChange: onCheckedChange, name: "Checkbox checked" });
@@ -47,7 +48,7 @@ export function Checkbox({ checked, defaultChecked = false, indeterminate = fals
   useEffect(() => { if (inputRef.current) inputRef.current.indeterminate = indeterminate; }, [indeterminate]);
   const mergedRef = useMergedRefs(inputRef, ref);
   return (
-    <label className={["zen-checkbox", className].filter(Boolean).join(" ")} data-side={checkSide} data-state={isDisabled ? "disabled" : state} data-checked={isChecked || indeterminate ? "true" : "false"} data-indeterminate={indeterminate ? "true" : "false"}>
+    <label {...dataAttributes(rest)} className={["zen-checkbox", className].filter(Boolean).join(" ")} data-side={checkSide} data-state={isDisabled ? "disabled" : state} data-checked={isChecked || indeterminate ? "true" : "false"} data-indeterminate={indeterminate ? "true" : "false"}>
       {/* Figma Checkbox/Text (309:46871): Container row = Check-Wrapper (2px block padding) + Content (fill).
           Content is .Primitives/Checkbox/Content (309:46789): Label (Body/Base Regular|Bold) and, when on, the Subtext
           (Caption/Regular, Content/Neutral/Light) directly under it — gap 3XSmall, aligned with the label, not the mark. */}
@@ -88,9 +89,9 @@ export interface CheckboxMarkProps {
 
 /** Figma Checkbox/Mark on its own (16px, State=Default): the visual control for rows that own the
  * interaction themselves, e.g. multi-select Popover items. Decorative — the row carries the state. */
-export function CheckboxMarkIndicator({ checked = false, indeterminate = false, disabled = false, className, ref }: CheckboxMarkProps) {
+export function CheckboxMarkIndicator({ checked = false, indeterminate = false, disabled = false, className, ref, ...rest }: CheckboxMarkProps) {
   return (
-    <span ref={ref} className={["zen-checkbox-mark", className].filter(Boolean).join(" ")} data-checked={checked || indeterminate ? "true" : "false"} data-disabled={disabled ? "true" : undefined} aria-hidden="true">
+    <span {...dataAttributes(rest)} ref={ref} className={["zen-checkbox-mark", className].filter(Boolean).join(" ")} data-checked={checked || indeterminate ? "true" : "false"} data-disabled={disabled ? "true" : undefined} aria-hidden="true">
       <span className="zen-checkbox__box">{checked || indeterminate ? <Icon name={indeterminate ? "icon-minus-line" : "icon-check-line"} size="xs" decorative /> : null}</span>
     </span>
   );
