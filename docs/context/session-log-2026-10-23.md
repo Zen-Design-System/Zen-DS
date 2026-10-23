@@ -457,5 +457,7 @@ Branch zen/feat/box-theme-rules-20261023 (worktree festive-archimedes-176df5). #
   as the importer does, and writes an edit's fill. The capture switched the user's Figma tab (they were on Home); the
   clipboard was saved and restored (6/6 types).
 - Live, real importer in the Zen file (QA page 15872:3, frames removed): flat bar + 3 tabs; band accent + ActionBar.
+- FW-160 made order-independent (Giám sát: it failed after other figma rows in C's run): pointer and modifiers reset,
+  ⇧1 once the Assets panel is open, boxes read when the canvas is still, the drop in the slot's room below its Empty.
 - Left: pulling the pattern back to AppShell, and a standalone ActionBar in Figma → BACKLOG P3. Archived BACKLOG
   "Example className, round 2" and "AppShell phone bars"; the sticky native paste line is C's (tried live).
