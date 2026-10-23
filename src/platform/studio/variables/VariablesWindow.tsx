@@ -17,6 +17,7 @@ import { requestSave, saveDrafts } from "../sourceDrafts";
 import { canEdit, useStudio } from "../store";
 import { aliasOf, aliasOptions, colorParts, colorWith, groupOf, groupsOf, indexOf, newName, resolved, rowsOf, shortName, TYPE_LABEL, type Entry, type Row, type Variable, type VariableType } from "./variablesModel";
 import { closeVariables, subscribeVariables, variablesOpen } from "./variablesState";
+import { EditVariable } from "./EditVariable";
 import "./variables.css";
 import { useActiveProject } from "../project/activeProject";
 import { openProjectSetup } from "../project/ProjectSetup";
@@ -195,6 +196,7 @@ function VariablesPanel() {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [editing, setEditing] = useState<Editing | null>(null);
   const [renaming, setRenaming] = useState<{ name: string; text: string } | null>(null);
+  const [details, setDetails] = useState<{ name: string; rect: DOMRect } | null>(null);
   const [focus, setFocus] = useState<Focus>({ row: 0, col: 1 });
   const [scroll, setScroll] = useState({ top: 0, height: 480 });
   const [copied, setCopied] = useState(false);
@@ -392,7 +394,13 @@ function VariablesPanel() {
 
   const editedVariable = editing ? index.get(editing.name)?.variable ?? null : null;
   const total = collection?.tokens.length ?? 0;
+  const openDetails = (variable: Variable) => {
+    const row = gridRef.current?.querySelector<HTMLElement>(`[data-variable="${CSS.escape(variable.name)}"]`);
+    if (row) setDetails({ name: variable.name, rect: row.getBoundingClientRect() });
+  };
+  const detailed = details ? index.get(details.name)?.variable ?? null : null;
   const rowMenu = (variable: Variable): MenuEntry[] => [
+    { id: "edit", label: "Edit variable", onSelect: () => openDetails(variable) },
     { id: "rename", label: "Rename", shortcut: "Enter", disabled: !editableRows, onSelect: () => setRenaming({ name: variable.name, text: shortName(variable.name) }) },
     { id: "duplicate", label: "Duplicate", disabled: !editableRows, onSelect: () => { void run([{ op: "duplicate", name: variable.name }], `Duplicate ${variable.name}`); } },
     { type: "separator", id: "row-separator" },
@@ -572,6 +580,17 @@ function VariablesPanel() {
       </footer>
     </section>
       {/* Beside the window, not in it: its transform and backdrop filter would hold a fixed editor and clip it. */}
+      {details && detailed ? (
+        <EditVariable
+          key={details.name}
+          variable={detailed}
+          rect={details.rect}
+          disabled={!editableRows}
+          onRename={(to) => { void run([{ op: "rename", name: details.name, to }], `Rename ${details.name} → ${to}`).then((done) => { if (done) setDetails((now) => (now ? { ...now, name: to } : now)); }); }}
+          onMeta={(meta) => { void run([{ op: "meta", name: details.name, ...meta }], `Edit variable ${details.name}`); }}
+          onClose={() => setDetails(null)}
+        />
+      ) : null}
       {editing && editedVariable ? (
         <ValueEditor
           key={`${editing.name}:${editing.mode}`}

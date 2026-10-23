@@ -11,6 +11,9 @@
 //        { op: "rename", name, to }                 refused while something reads it (context.readers)
 //        { op: "duplicate", name, to? }             "<name> copy", numbered when taken
 //        { op: "delete", name }                     refused while something reads it
+//        { op: "meta", name, description?, scopes?, hiddenFromPublishing? }   Figma's Edit variable (Studio Variables v2,
+//                                                   docs/research/studio-variables-v2-spec-2026-10-23.md): an empty
+//                                                   description, ALL_SCOPES (or no scopes key) and false are dropped
 //   context: { variables: Map(name → { type, collection, valuesByMode }) of every collection (this one included, as
 //             saved or drafted), readers(name) → [description] (other variables' aliases and code reading its CSS name) }
 //
@@ -19,6 +22,15 @@
 
 export const TOKEN_SOURCE = /^tokens\/source\/figma\/[a-z0-9-]+\.json$/;
 export const VARIABLE_TYPES = ["COLOR", "FLOAT", "STRING", "BOOLEAN"];
+/** Figma's variable scopes by type (Plugin API VariableScope): where a picker offers the variable. None written = all. */
+export const VARIABLE_SCOPES = {
+  COLOR: ["ALL_FILLS", "FRAME_FILL", "SHAPE_FILL", "TEXT_FILL", "STROKE_COLOR", "EFFECT_COLOR"],
+  FLOAT: ["CORNER_RADIUS", "WIDTH_HEIGHT", "GAP", "STROKE_FLOAT", "OPACITY", "EFFECT_FLOAT", "FONT_WEIGHT", "FONT_SIZE", "LINE_HEIGHT", "LETTER_SPACING", "PARAGRAPH_SPACING", "PARAGRAPH_INDENT"],
+  STRING: ["FONT_FAMILY", "FONT_STYLE", "TEXT_CONTENT"],
+  BOOLEAN: [],
+};
+/** A token's fields in the order the files (and the Zen plugin's Push to GitHub) write them. */
+const TOKEN_FIELDS = ["name", "type", "valuesByMode", "scopes", "description", "hiddenFromPublishing", "codeSyntax"];
 
 export class VariableEditError extends Error {
   constructor(code, message) {
@@ -31,6 +43,8 @@ const refuse = (message, code = "invalid") => { throw new VariableEditError(code
 
 /** The build's CSS name of a variable (scripts/token-outputs.mjs `cssName`, without `--zen-`). */
 export const cssNameOf = (name) => String(name).replace(/([a-z0-9])([A-Z])/g, "$1-$2").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
+/** Figma's Code syntax (Web) of a variable: the CSS custom property code reads, from its name (not stored). */
+export const codeSyntaxOf = (name) => `var(--zen-${cssNameOf(name)})`;
 
 const ALIAS = /^\{(.+)\}$/;
 /** The variable a value aliases, or null. */
@@ -47,10 +61,14 @@ export function readCollection(text) {
   const name = Object.keys(json ?? {})[0];
   const body = name ? json[name] : null;
   if (!body || !Array.isArray(body.modes) || !Array.isArray(body.tokens)) refuse("The collection file has no modes and tokens");
-  return { name, modes: body.modes, tokens: body.tokens };
+  return { name, modes: body.modes, tokens: body.tokens, body };
 }
 
-const writeCollection = (collection) => `${JSON.stringify({ [collection.name]: { modes: collection.modes, tokens: collection.tokens } }, null, 2)}\n`;
+/** The file again: the collection's own fields where they were (hiddenFromPublishing …), its modes and tokens. */
+const writeCollection = (collection) => `${JSON.stringify({ [collection.name]: { ...(collection.body ?? {}), modes: collection.modes, tokens: collection.tokens } }, null, 2)}\n`;
+
+/** A token's fields in the files' order (a field added by an edit lands where the plugin's push writes it). */
+const ordered = (token) => Object.fromEntries([...TOKEN_FIELDS.filter((field) => field in token), ...Object.keys(token).filter((field) => !TOKEN_FIELDS.includes(field))].map((field) => [field, token[field]]));
 
 /** "#abc" / "#AABBCC" / "#AABBCC80" → "#AABBCC" or "#AABBCC80" (opaque colours keep 6 digits, as the exports do). */
 export function normalizeColor(value) {
@@ -184,11 +202,38 @@ export function applyVariableOps(text, ops, context) {
       let to = op.to ? String(op.to) : `${source.name} copy`;
       if (!op.to) for (let n = 2; variables.has(to) || [...variables.keys()].some((other) => cssNameOf(other) === cssNameOf(to)); n += 1) to = `${source.name} copy ${n}`;
       const name = checkedName(variables, to);
-      const token = { name, type: source.type, valuesByMode: { ...source.valuesByMode } };
+      // Figma's Duplicate keeps the description and scopes.
+      const token = ordered({ name, type: source.type, valuesByMode: { ...source.valuesByMode }, ...metaOf(source) });
       collection.tokens.splice(index + 1, 0, token);
       sync(token);
       changed.push(name);
       label ||= `Duplicate ${source.name}`;
+    } else if (op?.op === "meta") {
+      const index = indexOf(op.name);
+      const token = { ...collection.tokens[index] };
+      if ("description" in op) {
+        const text = String(op.description ?? "").trim();
+        if (text) token.description = text;
+        else delete token.description;
+      }
+      if ("scopes" in op) {
+        const allowed = VARIABLE_SCOPES[token.type] ?? [];
+        const scopes = Array.isArray(op.scopes) ? [...new Set(op.scopes.map(String))] : null;
+        // ALL_SCOPES is Figma's default: the file writes no scopes then. An empty list hides it from every picker.
+        if (!scopes || scopes.includes("ALL_SCOPES")) delete token.scopes;
+        else {
+          const wrong = scopes.filter((scope) => !allowed.includes(scope));
+          if (wrong.length) refuse(`${token.name} is a ${typeWord(token.type)}: it has no scope ${wrong.join(", ")}`);
+          token.scopes = allowed.filter((scope) => scopes.includes(scope));
+        }
+      }
+      if ("hiddenFromPublishing" in op) {
+        if (op.hiddenFromPublishing === true) token.hiddenFromPublishing = true;
+        else delete token.hiddenFromPublishing;
+      }
+      collection.tokens[index] = ordered(token);
+      changed.push(token.name);
+      label ||= `Edit variable ${token.name}`;
     } else if (op?.op === "delete") {
       const index = indexOf(op.name);
       const reading = readers(op.name);
@@ -210,7 +255,7 @@ export function variablesOf(texts) {
   const variables = new Map();
   for (const [file, text] of texts) {
     const collection = readCollection(text);
-    for (const token of collection.tokens) variables.set(token.name, { type: token.type, collection: collection.name, file, valuesByMode: token.valuesByMode });
+    for (const token of collection.tokens) variables.set(token.name, { type: token.type, collection: collection.name, file, valuesByMode: token.valuesByMode, ...metaOf(token) });
   }
   return variables;
 }
@@ -225,6 +270,11 @@ export function aliasReaders(variables, name) {
 }
 
 const sameValues = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+/** A token's Edit variable fields, as written (none when unset). */
+const metaOf = (token) => Object.fromEntries(["description", "scopes", "hiddenFromPublishing"].filter((field) => token[field] !== undefined).map((field) => [field, token[field]]));
+/** The plugin's meta fields of a change: the three as they are now (null clears one), and the Web code syntax. */
+const metaChange = (token) => ({ description: token.description ?? "", scopes: token.scopes ?? ["ALL_SCOPES"], hiddenFromPublishing: token.hiddenFromPublishing === true });
 
 /**
  * The Zen plugin's package of what changed between two states of the token sources (Map file → text each): per
@@ -249,22 +299,24 @@ export function variablesPackage(base, now) {
       const was = old.get(token.name);
       if (!was) continue;
       const modes = Object.keys(token.valuesByMode).filter((mode) => !sameValues(token.valuesByMode[mode], was.valuesByMode[mode]));
+      if (!sameValues(metaOf(token), metaOf(was))) changes.push({ op: "meta", collection: after.name, name: token.name, type: token.type, ...metaChange(token) });
       if (modes.length) changes.push({ op: "set", collection: after.name, name: token.name, type: token.type, values: Object.fromEntries(modes.map((mode) => [mode, valueOf(token.valuesByMode[mode])])) });
     }
     for (const token of created) {
       const twin = deleted.findIndex((gone) => gone.type === token.type && sameValues(gone.valuesByMode, token.valuesByMode));
       if (twin >= 0) {
-        changes.push({ op: "rename", collection: after.name, name: token.name, from: deleted[twin].name, type: token.type });
+        changes.push({ op: "rename", collection: after.name, name: token.name, from: deleted[twin].name, type: token.type, codeSyntax: { WEB: codeSyntaxOf(token.name) } });
+        if (!sameValues(metaOf(token), metaOf(deleted[twin]))) changes.push({ op: "meta", collection: after.name, name: token.name, type: token.type, ...metaChange(token) });
         deleted.splice(twin, 1);
       } else {
-        changes.push({ op: "create", collection: after.name, name: token.name, type: token.type, values: valuesOf(token.valuesByMode) });
+        changes.push({ op: "create", collection: after.name, name: token.name, type: token.type, values: valuesOf(token.valuesByMode), codeSyntax: { WEB: codeSyntaxOf(token.name) }, ...metaChange(token) });
       }
     }
     for (const token of deleted) changes.push({ op: "delete", collection: after.name, name: token.name, type: token.type });
   }
   // In the order the plugin applies them: renames free their old names, creates exist before a value aliases them,
   // deletes go last (nothing reads them by then).
-  const ORDER = { rename: 0, create: 1, set: 2, delete: 3 };
+  const ORDER = { rename: 0, create: 1, set: 2, meta: 2, delete: 3 };
   changes.sort((a, b) => ORDER[a.op] - ORDER[b.op]);
   return { format: "zen-studio-variables", version: 1, changes };
 }

@@ -88,6 +88,12 @@
 .studio-vars__editor { position: fixed; z-index: 37; display: flex; width: 280px; max-height: 420px; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); overflow: hidden; padding: var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-base, 12px); outline: 1px solid var(--zen-color-border-popover-subtle); background: var(--zen-color-background-popover-default); box-shadow: var(--zen-style-effect-popover-shadow-unclipped); backdrop-filter: var(--zen-style-effect-popover-backdrop-filter); }
 .studio-vars__editor-head { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-vars__editor-head > .zen-segmented { flex: 1 1 auto; }
+/* Edit variable (v2): Figma's panel — name, description, scoping, code syntax, Hide from publishing; it scrolls when tall. */
+.studio-vars__details { width: 300px; max-height: 520px; gap: var(--zen-spacing-gap-small, 12px); overflow-y: auto; padding: var(--zen-spacing-padding-small, 12px); }
+.studio-vars__details-head { display: flex; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-vars__scopes { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: 0; border: 0; }
+.studio-vars__legend { margin-bottom: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0; }
+.studio-vars__code { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); overflow-wrap: anywhere; }
 .studio-vars__custom { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-vars__custom .zen-color-picker { width: 100%; box-shadow: none; outline: 0; }
 .studio-vars__unit { color: var(--zen-color-content-neutral-base); }

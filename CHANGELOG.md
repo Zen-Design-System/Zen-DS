@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio Variables: Edit variable (a row's ⋯) as Figma's panel: name, description, scoping (the properties of its
+  type, or all), Hide from publishing, and the code syntax (Web: the `var(--zen-…)` code reads). The fields live in the
+  collection JSON (`scopes`, `description`, `hiddenFromPublishing`, as the Zen plugin's Push to GitHub writes them), and
+  Copy for Figma hands them to the plugin with the Web code syntax (2026-10-23).
 - Card: the content area is Figma's Content-Slot, a column that fills the card. A card a grid row stretches (or one
   with a Fill height) gives its content that height, and a child with `height="fill"` grows into it, so a CTA or
   footer sits at the foot without a class; a ListBox body does the same. Hug cards keep their content height

@@ -132,4 +132,37 @@ export const rows = [
       return `${/"name": "([^"]*E2E Huge)"/.exec(before)?.[1]} created · delete of Spacing/Gap/Small refused: ${(await win.locator(".studio-vars__status").innerText()).slice(0, 90)}`;
     },
   },
+  {
+    id: "VA-05", feature: "Edit variable (v2, Figma's panel from the row's ⋯): a description and scoping written in the collection (scopes in Figma's names, Gap only), the code syntax shown as its CSS name, ⌘Z takes the scoping back", wp: "Variables v2 2026-10-23",
+    async run(ctx) {
+      const { page, win } = await openVariables(ctx);
+      await collection(page, win, "Spacing");
+      await win.getByRole("searchbox", { name: "Search variables" }).fill("gap small");
+      const row = win.locator('[data-variable="Spacing/Gap/Small"]');
+      await row.hover();
+      await row.getByRole("button", { name: "Small actions" }).click();
+      await page.getByRole("menuitem", { name: "Edit variable" }).click();
+      const panel = page.getByRole("dialog", { name: "Edit variable Spacing/Gap/Small" });
+      await panel.waitFor({ timeout: 5000 });
+      const code = (await panel.locator(".studio-vars__code").innerText()).replace(/\s+/g, " ");
+      if (!code.includes("var(--zen-spacing-gap-small)")) throw new Error(`code syntax: ${code}`);
+      const file = "tokens/source/figma/spacing.json";
+      const token = async () => JSON.parse(await source(ctx, file)).Spacing.tokens.find((each) => each.name === "Spacing/Gap/Small");
+      await panel.getByRole("textbox", { name: "Description" }).fill("Between controls in a row");
+      await panel.getByRole("textbox", { name: "Description" }).press("Tab");
+      await until(async () => (await token())?.description === "Between controls in a row", { timeout: 10_000, message: "the description written" });
+      await panel.getByRole("checkbox", { name: "Show in all supported properties" }).click();
+      await until(async () => (await token())?.scopes?.length === 12, { timeout: 10_000, message: "every number scope listed (All off)" });
+      for (const name of ["Corner radius", "Width and height", "Stroke", "Layer opacity", "Effects", "Font weight", "Font size", "Line height", "Letter spacing", "Paragraph spacing", "Paragraph indent"]) {
+        await panel.getByRole("checkbox", { name, exact: true }).click();
+        await sleep(150);
+      }
+      await until(async () => JSON.stringify((await token())?.scopes) === JSON.stringify(["GAP"]), { timeout: 10_000, message: "scoped to Gap only" });
+      await page.keyboard.press("Escape");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await token())?.scopes?.length === 2 && (await token()).scopes.includes("GAP"), { timeout: 10_000, message: "⌘Z: one scope back" });
+      return `description + scopes → ${JSON.stringify((await token()).scopes)} after ⌘Z · ${code.trim().slice(0, 60)}`;
+    },
+  },
 ];

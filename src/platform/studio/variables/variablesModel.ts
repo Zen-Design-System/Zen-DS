@@ -6,7 +6,8 @@
 
 export type VariableType = "COLOR" | "FLOAT" | "STRING" | "BOOLEAN";
 export type VariableValue = string | number | boolean;
-export type Variable = { name: string; type: VariableType; valuesByMode: Record<string, VariableValue> };
+/** Figma's Edit variable fields (Studio Variables v2): unset = no description, every scope, published. */
+export type Variable = { name: string; type: VariableType; valuesByMode: Record<string, VariableValue>; description?: string; scopes?: string[]; hiddenFromPublishing?: boolean };
 export type Collection = { file: string; name: string; modes: string[]; tokens: Variable[]; hash?: string; draft?: boolean };
 export type Entry = { variable: Variable; collection: Collection };
 

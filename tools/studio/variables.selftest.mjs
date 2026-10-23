@@ -108,14 +108,35 @@ test("the plugin package: set, create, delete, and a rename read from a deleted 
   const pkg = variablesPackage(new Map([["s", semantic]]), new Map([["s", after]]));
   assert.equal(pkg.format, "zen-studio-variables");
   assert.deepEqual(pkg.changes, [
-    { op: "rename", collection: "Mode Colors (Semantic)", name: "Color/Border/Accent/Main", from: "Color/Border/Accent/Base", type: "COLOR" },
-    { op: "create", collection: "Mode Colors (Semantic)", name: "Color/Content/Accent/Strong", type: "COLOR", values: { Light: "#FFFFFF", Dark: "#FFFFFF" } },
+    { op: "rename", collection: "Mode Colors (Semantic)", name: "Color/Border/Accent/Main", from: "Color/Border/Accent/Base", type: "COLOR", codeSyntax: { WEB: "var(--zen-color-border-accent-main)" } },
+    { op: "create", collection: "Mode Colors (Semantic)", name: "Color/Content/Accent/Strong", type: "COLOR", values: { Light: "#FFFFFF", Dark: "#FFFFFF" }, codeSyntax: { WEB: "var(--zen-color-content-accent-strong)" }, description: "", scopes: ["ALL_SCOPES"], hiddenFromPublishing: false },
     { op: "set", collection: "Mode Colors (Semantic)", name: "Color/Content/Accent/Base", type: "COLOR", values: { Dark: "#FF0000" } },
   ]);
   const gone = applyVariableOps(spacing, [{ op: "delete", name: "Spacing/Gap/Small" }], context()).text;
   assert.deepEqual(variablesPackage(new Map([["p", spacing]]), new Map([["p", gone]])).changes, [{ op: "delete", collection: "Spacing", name: "Spacing/Gap/Small", type: "FLOAT" }]);
   const aliased = applyVariableOps(semantic, [{ op: "setValue", name: "Color/Border/Accent/Base", mode: "Dark", value: { alias: "Light/Blue/9" } }], context()).text;
   assert.deepEqual(variablesPackage(new Map([["s", semantic]]), new Map([["s", aliased]])).changes[0].values, { Dark: { alias: "Light/Blue/9" } });
+});
+
+test("Edit variable (v2): description, scopes by type, hidden from publishing; written in the plugin's field order", () => {
+  const edited = applyVariableOps(semantic, [{ op: "meta", name: "Color/Content/Accent/Base", description: "  Links and accents  ", scopes: ["TEXT_FILL", "STROKE_COLOR", "TEXT_FILL"], hiddenFromPublishing: true }], context());
+  const token = readCollection(edited.text).tokens[0];
+  assert.deepEqual(Object.keys(token), ["name", "type", "valuesByMode", "scopes", "description", "hiddenFromPublishing"]);
+  assert.deepEqual([token.description, token.scopes, token.hiddenFromPublishing, edited.label], ["Links and accents", ["TEXT_FILL", "STROKE_COLOR"], true, "Edit variable Color/Content/Accent/Base"]);
+  refused(() => applyVariableOps(semantic, [{ op: "meta", name: "Color/Content/Accent/Base", scopes: ["GAP"] }], context()), "invalid", /is a colour: it has no scope GAP/);
+  // Clearing: an empty description, ALL_SCOPES and false write nothing; an empty list hides it from every picker.
+  const cleared = applyVariableOps(edited.text, [{ op: "meta", name: "Color/Content/Accent/Base", description: "", scopes: ["ALL_SCOPES"], hiddenFromPublishing: false }], context());
+  assert.deepEqual(Object.keys(readCollection(cleared.text).tokens[0]), ["name", "type", "valuesByMode"]);
+  assert.deepEqual(readCollection(applyVariableOps(semantic, [{ op: "meta", name: "Color/Content/Accent/Base", scopes: [] }], context()).text).tokens[0].scopes, []);
+  // The package: a meta change with the three fields as they are now; a duplicate keeps them.
+  const pkg = variablesPackage(new Map([["s", semantic]]), new Map([["s", edited.text]]));
+  assert.deepEqual(pkg.changes, [{ op: "meta", collection: "Mode Colors (Semantic)", name: "Color/Content/Accent/Base", type: "COLOR", description: "Links and accents", scopes: ["TEXT_FILL", "STROKE_COLOR"], hiddenFromPublishing: true }]);
+  const twin = applyVariableOps(edited.text, [{ op: "duplicate", name: "Color/Content/Accent/Base" }], context());
+  assert.equal(readCollection(twin.text).tokens[1].description, "Links and accents");
+  // A collection's own fields stay where they were.
+  const hidden = `${JSON.stringify({ Spacing: { hiddenFromPublishing: true, modes: ["Standard"], tokens: [{ name: "Spacing/Gap/Small", type: "FLOAT", valuesByMode: { Standard: 12 } }] } }, null, 2)}\n`;
+  const kept = applyVariableOps(hidden, [{ op: "setValue", name: "Spacing/Gap/Small", mode: "Standard", value: 14 }], context()).text;
+  assert.deepEqual(Object.keys(JSON.parse(kept).Spacing), ["hiddenFromPublishing", "modes", "tokens"]);
 });
 
 test("the repo's own token sources read, and a no-op edit gives the same text back", () => {
