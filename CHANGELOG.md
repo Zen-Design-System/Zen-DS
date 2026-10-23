@@ -25,6 +25,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   scrolls; read-only text areas lose the resize grip; the Chat bubble focus ring follows the bubble's corners; Shadow
   cards on an alt page scope drop their shadow; small ChartCard, MetricCard and Pagination buttons take a 44px touch
   area on phones.
+- Zen Studio → Figma: a page goes to Figma with every Screen, Screen state and Overlay as a frame of its own (an
+  Overlay as big as what it holds), and its Prototype actions as Figma interactions: On click, While hovering and After
+  delay; Navigate to, Open overlay, Close overlay and Back, with their animation, direction and Zen's duration and curve
+  (a Dialog's, Side Panel's or Bottom Sheet's buttons too). Pull from Figma reads them back. Show toast, Open link, Filter table,
+  Change step and the overlay's position, background and click-outside stay in the Studio, each named in the notes
+  (2026-10-24).
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in
