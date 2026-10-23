@@ -9,6 +9,15 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   **P3 · Update from Figma in another browser (2026-10-13, P6b leftover):** a pull in a browser that kept no export
   falls back to a two-way comparison. Pointer: `docs/research/studio-figma-push-spec-2026-10-12.md` §8 "P6b".
 
+## Archived 2026-10-23 (Figma Badge-Status swap)
+
+- Done 2026-10-23 (user approved the write to the Zen Figma file; 9 themed Badges swapped to Badge-Status on ◆ HR-Platform
+  `.Row`, ❖ Popover and ❖ List-Item; list in the session log):
+  **P3 · Figma instances of a workflow step still drawn as themed Badges (2026-10-21; code done 2026-10-23):** the
+  code side moved to BadgeStatus (platform examples, the app-layer AppShell playground, the HR Tasks template); Figma
+  screens that show a task's or project's step with a themed Badge instance still need swapping to Badge-Status. Waits
+  for the user: a write to the Zen Figma file.
+
 ## Archived 2026-10-23 (PropertyField ↔ Figma, done on `zen/fix/studio-property-field-figma-20261023`)
 
 - **P3 · PropertyField ↔ Figma gaps (2026-10-21):** a People / Labels cell pushes one person and two tags (the
