@@ -4,10 +4,9 @@
    gradient); the AI shows itself in the Liquid Glass field and the working-state ring below. */
 
 /* Desktop: the Body pads the page and scrolls under the header; the thread grows to push the dock down when the
-   conversation is short, and the field docks at the bottom of the window (sticky), so the bubbles pass under the glass.
-   The dock keeps the page margin below the field in place of the Body's. */
+   conversation is short, and the field docks at the bottom of the window (Box sticky="bottom"), so the bubbles pass
+   under the glass. The dock keeps the page margin below the field in place of the Body's (AppShell). */
 .px-ai-ui-desk__thread { flex: 1 0 auto; padding-block-end: var(--zen-spacing-padding-xlarge, 24px); }
-.px-ai-ui-dock { position: sticky; z-index: 3; bottom: 0; margin-block-end: calc(-1 * var(--zen-margin-comfortable, 24px)); padding-block-end: var(--zen-margin-comfortable, 24px); }
 /* The field lines up with the conversation column (AiChatThread: max 800, centred). */
 .px-ai-ui-column { width: 100%; max-width: 800px; margin-inline: auto; }
 
