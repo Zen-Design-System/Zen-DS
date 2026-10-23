@@ -7,6 +7,7 @@ import { pagesDirOf, promoteDirOf } from "../lib/server.mjs";
 import { openAssetLibrary, openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, focusScreen, newPage, pageText, selectStack } from "./builder.mjs";
 import { packageFromClip } from "../../figma-clip.mjs";
+import { readFigmaClipboard } from "../../figma-kiwi.mjs";
 
 /** A phone page with every kind of frame the HTML export writes: a screen, its state variant, an overlay; a photo, a form. */
 const HTML_PAGE = `// @zen-page {"format":1,"title":"HTML check"}
@@ -97,7 +98,7 @@ export default function Page() {
 
 const FIGMA_PAGE = `// @zen-page {"format":1,"title":"Projects"}
 import { Board, Screen } from "@zen-ds/react/builder";
-import { Button, Card, Stack, Text } from "@zen-ds/react";
+import { Button, Card, Grid, MetricCard, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -113,6 +114,10 @@ export default function Page() {
           <Card theme="default">
             <Text>Loyalty app</Text>
           </Card>
+          <Grid columns={2} gap="md">
+            <MetricCard type="sparkline" label="Revenue" value="$105,700" series={[1, 2, 3, 2, 4]} />
+            <MetricCard type="goal-progress" label="Q4 revenue" value="$108,400" goal={{ value: 108400, target: 135000 }} />
+          </Grid>
         </Stack>
       </Screen>
     </Board>
@@ -690,13 +695,31 @@ export const rows = [
       await page.mouse.click(box.x + box.width / 2, box.y + box.height - 24, { button: "right" });
       await page.getByRole("menuitem", { name: "Copy for Figma" }).click();
       await check("Copy for Figma");
+      // Figma's canvas takes the html only as written (a copy event): an async write turns `<!--` into `&lt;!--`.
+      const raw = await page.evaluate(async () => {
+        for (const item of await navigator.clipboard.read({ unsanitized: ["text/html"] })) if (item.types.includes("text/html")) return (await item.getType("text/html")).text();
+        return "";
+      });
+      if (!/<span data-metadata="<!--\(figmeta\)/.test(raw) || !raw.includes('<span data-buffer="<!--(figma)')) {
+        throw new Error(`Copy for Figma: Figma's own clipboard is not on it as written (${raw.slice(0, 120)}…)`);
+      }
+      // The Metric-Cards stretch to their grid row: each takes its canvas height as its minimum (else Figma's Hug row
+      // takes the shortest card and squeezes the sparkline).
+      const { message } = await readFigmaClipboard(raw);
+      // The page's two cards by their names (the paste also carries the components' own layers, grids among them).
+      const cards = ["Revenue", "Q4 revenue"].map((name) => message.nodeChanges.find((node) => node.type === "INSTANCE" && node.name === name));
+      const canvas = await page.locator('[data-studio-frame="screen:screen-1"] .zen-metric-card').evaluateAll((cards) => cards.map((card) => card.offsetHeight));
+      const mins = cards.map((card) => card?.minSize?.value?.y ?? 0);
+      if (cards.some((card) => !card) || canvas.length !== 2 || mins.some((min, index) => Math.abs(min - canvas[index]) > 1)) {
+        throw new Error(`Copy for Figma: the grid's cards keep minimum heights ${mins.join(", ") || "none"} for canvas heights ${canvas.join(", ")}`);
+      }
       // ⌘C with the Screen layer selected (the right-click selected it).
       await page.evaluate(() => navigator.clipboard.writeText("before"));
       await page.locator(".studio-viewport").focus();
       await sleep(800);
       await page.keyboard.press(process.platform === "darwin" ? "Meta+c" : "Control+c");
       await check("⌘C on the Screen layer");
-      return `⌘C on the frame and on its Screen layer, Copy for Figma: ${Object.keys(copied.library.sets).length} sets with keys, frame screen:screen-1, code beside it`;
+      return `⌘C on the frame and on its Screen layer, Copy for Figma (Figma's own clipboard as written, grid cards at their canvas heights): ${Object.keys(copied.library.sets).length} sets with keys, frame screen:screen-1, code beside it`;
     },
   },
 ];

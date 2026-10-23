@@ -15,6 +15,8 @@ export type NativePack = {
 export type NativePicture = { hash: number[]; hex: string; name: string; width: number; height: number; bytes: Uint8Array } | { reason: string };
 /** Turns a WebP picture into PNG bytes (Figma's paste takes PNG, JPEG and GIF), or null. */
 export type ToPng = (bytes: Uint8Array, mime: string) => Promise<Uint8Array | null>;
+/** The pack as stored (`shared` subtrees written `{$: n}`, native-pack.mjs compactPack) in full; a full pack as it is. */
+export function expandPack<T>(pack: T): T;
 /** The paste's NODE_CHANGES message for an export (pure): its root frame's id and what could not be written. */
 export function nativeMessage(pkg: unknown, pack: unknown, pictures?: Map<string, NativePicture>): { message: Record<string, unknown>; root: { sessionID: number; localID: number }; notes: string[] };
 /** The export's pictures (src → base64 bytes) by src, with their SHA-1, size and bytes. */
