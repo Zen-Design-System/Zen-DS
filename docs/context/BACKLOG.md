@@ -35,11 +35,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (FIXED_WHEN_CHILD_OF_SCROLLING_FRAME on the absolute dock, STICKY_SCROLLS in flow) from Figma's own clipboard schema;
   the plugin path was checked live. Still to see in a real ⌘V: Figma keeps both, and whether it also wants
   `fixedChildrenDivider` on the parent. Pointer: `docs/research/layout-sticky-spec-2026-10-23.md` § Figma.
-- **P3 · Pull the phone AppShell back from Figma (2026-10-23, B):** the push draws a phone AppShell as Figma's
-  Pattern/AppShell/Mobile (its bar, tabs or ActionBar, band, page); figma-pull has no reader for that pattern yet, so a
-  pull gives the page in a Stack named AppShell and notes the rest (as before the push drew it). An ActionBar outside an
-  AppShell still has no Figma set (Action-Bar/Mobile, 16326:6489). Pointer: `tools/studio/figma-push.mjs`
-  `mobileShellNode`, `actionBarParts`; `figma-pull.mjs` masterLayout reader (~1980) as the pattern to follow.
 - **P3 · A bare horizontal BarChart in Figma keeps its 290px height (2026-10-23, found in the live check of the chart
   push; plugin repo):** a chart pushed without a ChartCard hides its Heading, but the instance stays at the component's
   fixed height, so the Chart fills it and the Values column (space between) drifts from the rows (vertical charts just

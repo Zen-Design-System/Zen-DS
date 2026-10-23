@@ -2,6 +2,17 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-23 (phone AppShell pull, ActionBar alone)
+
+- Done 2026-10-23 (user approved the split; figma-pull mobileShellElement / actionBarElement, figmaReadCode
+  readMobileShell / readActionBarParts, figma-push actionBarNode; checked on live reads of a placed pattern and
+  Action-Bar/Mobile; stacked on #253):
+  **P3 · Pull the phone AppShell back from Figma (2026-10-23, B):** the push draws a phone AppShell as Figma's
+  Pattern/AppShell/Mobile (its bar, tabs or ActionBar, band, page); figma-pull has no reader for that pattern yet, so a
+  pull gives the page in a Stack named AppShell and notes the rest (as before the push drew it). An ActionBar outside an
+  AppShell still has no Figma set (Action-Bar/Mobile, 16326:6489). Pointer: `tools/studio/figma-push.mjs`
+  `mobileShellNode`, `actionBarParts`; `figma-pull.mjs` masterLayout reader (~1980) as the pattern to follow.
+
 ## Archived 2026-10-23 (B: example className round 2, AppShell phone bars)
 
 - Done 2026-10-23 (the three PRs merged: #224, #231 Card / ListBox content column, #232 `sticky`):

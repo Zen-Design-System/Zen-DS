@@ -1489,6 +1489,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Zen Studio ↔ Figma, phone app frames (2026-10-23): a frame built on Figma's Pattern/AppShell/Mobile comes back from
+  Figma as a phone AppShell with its bars — its Top (bar, band, band-sheet, media), TopNavigation, tabs or ActionBar,
+  hero or backdrop, band colour and canvas, and the page in it — instead of a Stack and a note. An ActionBar on its own
+  goes to Figma as Action-Bar/Mobile (it was left out) and comes back as an ActionBar.
 - Zen Studio: ⌥⌘A Select matching layers, as Figma's: the same layer in the other frames (its Section's only), with
   automatic names compared without their number. Also Select all with same › Properties, Fill, Stroke, Effect, Text
   properties, Font and Instance, from the layer menu and Quick actions.
