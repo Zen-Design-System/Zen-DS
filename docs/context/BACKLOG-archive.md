@@ -23,6 +23,16 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   Pattern/AppShell/Mobile, its Bar type by canvas: default→Alt, alt→Default, flat→Default on Surface/Flat) is new scope.
   Pointer: `tools/studio/figma-push.mjs` `appShellNode` (~852) and the Screen's mobile chrome (~2232).
 
+## Archived 2026-10-23 (native paste of a sticky layer, tried live on `zen/fix/studio-native-paste-rest-20261023`)
+
+- Done 2026-10-23: a real ⌘V into the Zen file kept both (Sticky on the in-flow layer, Fixed on the absolute dock,
+  `numberOfFixedChildren` 1), and Figma's own copy of a Fixed layer writes no `fixedChildrenDivider` either; figma-native
+  unchanged. Spec `docs/research/layout-sticky-spec-2026-10-23.md` § Figma.
+- **P3 · Native paste of a sticky layer not tried live (2026-10-23, B):** figma-native writes `scrollBehavior`
+  (FIXED_WHEN_CHILD_OF_SCROLLING_FRAME on the absolute dock, STICKY_SCROLLS in flow) from Figma's own clipboard schema;
+  the plugin path was checked live. Still to see in a real ⌘V: Figma keeps both, and whether it also wants
+  `fixedChildrenDivider` on the parent. Pointer: `docs/research/layout-sticky-spec-2026-10-23.md` § Figma.
+
 ## Archived 2026-10-23 (Figma Badge-Status swap)
 
 - Done 2026-10-23 (user approved the write to the Zen Figma file; 9 themed Badges swapped to Badge-Status on ◆ HR-Platform

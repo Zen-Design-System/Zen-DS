@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import type { MenuEntry } from "../../../components/Menu";
 import { announceEditStatus, applyEdit, currentEditStatus, parseSrc, studioApi, subscribeStudioWrites } from "../api";
 import { canvasApi, getViewport, getViewportBox } from "../canvas/viewport";
-import { copyFrameForFigma, frameFigmaClip, writeFrameClip } from "../builder/export/figmaClipboard";
+import { copyFrameForFigma, copyFrameNow, frameFigmaClip, writeFrameClip } from "../builder/export/figmaClipboard";
 import { openQuickInsert } from "../builder/library/quickInsertState";
 import { frameInView, rootSelection } from "../builder/library/target";
 import { nodeKind, propSpecs } from "../inspector/propSchema";
@@ -126,6 +126,16 @@ function screenOf(selection: NodeSelection): { localPage: string; frameId: strin
 }
 /** The selected Screen's Figma export, read ahead for the copy event (the clipboard's HTML: export/figmaClipboard.ts). */
 let figmaReady: { src: string; html: string } | null = null;
+
+/** The menu's Copy for Figma on a selected Screen: what ⌘C reads ahead goes in a copy event (Figma's canvas takes it). */
+function copyScreenForFigma(node: NodeSelection) {
+  const screen = screenOf(node)!;
+  if (ready?.src === node.src && figmaReady?.src === node.src && copyFrameNow(ready.code, figmaReady.html)) {
+    done(`Copied ${node.name} for Figma · ${clipboardShortcuts.paste} on the Zen file's canvas or in the Zen plugin places it`);
+    return;
+  }
+  void copyFrameForFigma(screen.localPage, screen.frameId);
+}
 
 /** ⌘C / ⌘X on a multi-selection: the layers' code in source order (they paste together, in that order). */
 async function copyLayers(cut: boolean) {
@@ -656,7 +666,7 @@ export function clipboardMenuItems(selection: StudioSelection | null, point?: { 
   return [
     { id: "clip-copy", label: "Copy", icon: "icon-copy-line", shortcut: clipboardShortcuts.copy, onSelect: () => { void copyLayer(node, null, false); } },
     // A Screen of a page you made: Copy carries it to Figma too; this names it (⌘V in the Zen plugin places it).
-    ...(screenOf(node) ? [{ id: "clip-copy-figma", label: "Copy for Figma", icon: "icon-copy-line" as const, onSelect: () => { const screen = screenOf(node)!; void copyFrameForFigma(screen.localPage, screen.frameId); } }] : []),
+    ...(screenOf(node) ? [{ id: "clip-copy-figma", label: "Copy for Figma", icon: "icon-copy-line" as const, onSelect: () => { copyScreenForFigma(node); } }] : []),
     { id: "clip-cut", label: "Cut", icon: "icon-scissors-line", shortcut: clipboardShortcuts.cut, disabled: !editable.ok, caption: reason, onSelect: () => { void copyLayer(node, null, true).then((copied) => { if (copied) void removeSelection(node); }); } },
     { id: "clip-paste", label: "Paste", icon: "icon-clipboard-line", shortcut: clipboardShortcuts.paste, disabled: !editable.ok, caption: reason, onSelect: () => { void pasteFromMenu(node, false); } },
     ...(point ? [pasteHereItem(point)] : []),
