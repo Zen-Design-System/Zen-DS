@@ -179,11 +179,14 @@ export function Screen({ id, title, device: drawnDevice = "desktop", layout, can
   const tall = simulated ? simulated.height : height;
   const drawn = real ? REAL_HEIGHT : typeof tall === "number" ? ({ "--studio-screen-height": `${tall}px` } as CSSProperties) : null;
   const active = screenLayoutOf(device, simulated ? simulated.layout : layout);
-  // The sides the content keeps clear itself: a Top / Bottom Navigation (the mobile layout's) pads by the safe area.
-  const inset = bars || (real && device !== "desktop") ? [!(active === "mobile" && topNavigation) && "top", !(active === "mobile" && bottomNavigation) && "bottom"].filter(Boolean).join(" ") : "";
   const desktop = active === "desktop";
+  // A root AppShell with phone parts of its own on a Screen without bars (a page pulled from Figma's
+  // Pattern/AppShell/Mobile): the AppShell draws its bars, band and ActionBar, as the app does.
+  const shellBars = desktop || topNavigation || bottomNavigation ? null : phoneShellOf(children);
+  // The sides the content keeps clear itself: a Top / Bottom Navigation (the mobile layout's) pads by the safe area.
+  const inset = bars || (real && device !== "desktop") ? [!(active === "mobile" && (topNavigation || shellBars?.top)) && "top", !(active === "mobile" && (bottomNavigation || shellBars?.bottom)) && "bottom"].filter(Boolean).join(" ") : "";
   const chrome = desktop ? Boolean(sidebar || header) : Boolean(topNavigation || bottomNavigation);
-  const content = desktop ? children : withoutMasterLayout(children);
+  const content = desktop || shellBars ? children : withoutMasterLayout(children);
   // Present and Play scroll the whole screen in the page: its system bars stay at the edges of the window, as a phone's
   // do (a canvas frame draws them on its own edges).
   const pinBars = Boolean(presentScroll && bars && device !== "desktop" && chrome && !desktop);
@@ -231,6 +234,15 @@ export function Screen({ id, title, device: drawnDevice = "desktop", layout, can
       </>)}
     </div>
   );
+}
+
+/** A lone root AppShell's own phone parts ({ top, bottom }: the sides its bars keep clear), or null without any. */
+function phoneShellOf(children: ReactNode): { top: boolean; bottom: boolean } | null {
+  const nodes = Children.toArray(children).filter((child) => !(typeof child === "string" && !child.trim()));
+  const [only] = nodes;
+  if (nodes.length !== 1 || !isValidElement<{ topNavigation?: ReactNode; bottomNavigation?: ReactNode; actionBar?: ReactNode; hero?: ReactNode; backdrop?: ReactNode }>(only) || only.type !== AppShell) return null;
+  const { topNavigation, bottomNavigation, actionBar, hero, backdrop } = only.props;
+  return topNavigation || bottomNavigation || actionBar || hero || backdrop ? { top: Boolean(topNavigation), bottom: Boolean(bottomNavigation || actionBar) } : null;
 }
 
 /** A Screen's content without its master layout (a lone root AppShell gives its children): the mobile layout's. */

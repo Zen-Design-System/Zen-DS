@@ -125,7 +125,10 @@ export default function Page() {
 }
 `;
 
-/** A phone page whose root AppShell has its bars (figma-push mobileShellNode: Pattern/AppShell/Mobile). */
+/**
+ * A phone page whose root AppShell has its bars (figma-push mobileShellNode: Pattern/AppShell/Mobile). `phoneLinked={[]}`:
+ * its Screen's phone parts are decided, so the Studio draws no phone header of its own over them as the page opens.
+ */
 const PHONE_SHELL_PAGE = `// @zen-page {"format":1,"title":"Inbox app"}
 import { Board, Screen } from "@zen-ds/react/builder";
 import { AppShell, BottomNavigation, Text, TopNavigation } from "@zen-ds/react";
@@ -135,7 +138,7 @@ export const mock = {};
 export default function Page() {
   return (
     <Board>
-      <Screen id="screen-1" title="Inbox app" device="phone">
+      <Screen id="screen-1" title="Inbox app" device="phone" phoneLinked={[]}>
         <AppShell topNavigation={<TopNavigation title="Inbox" />} bottomNavigation={<BottomNavigation items={[{ id: "home", label: "Home", icon: "icon-home-02-line" }, { id: "alerts", label: "Alerts", icon: "icon-bell-01-line" }]} value="home" showLabels />}>
           <Text>Three new messages</Text>
         </AppShell>
@@ -792,11 +795,17 @@ export const rows = [
       const sets = JSON.stringify(pkg.frame).match(/"name":"(Pattern\/AppShell\/Mobile|Top-Navigation\/Mobile|Bottom-Navigation\/Mobile\/Default)"/g) ?? [];
       if (sets.length < 3) throw new Error(`the export draws ${sets.join(", ") || "no phone pattern"}`);
       const back = await pullAsNewPage(page, pkg, `${id}-pulled`);
-      const shell = back.text.match(/<AppShell\b[^]*?>/)?.[0] ?? "";
-      const landed = { shell: /topNavigation=\{<TopNavigation title="Inbox"/.test(shell) && /bottomNavigation=\{<BottomNavigation /.test(shell), page: /<Text>Three new messages<\/Text>/.test(back.text), noStack: !/data-name="AppShell"/.test(back.text) };
+      // The AppShell's opening tag runs to the page inside it (its bars hold `/>` of their own).
+      const shell = back.text.match(/<AppShell\b[^]*?>(?=\s*<Text)/)?.[0] ?? "";
+      const landed = { shell: /topNavigation=\{<TopNavigation title="Inbox"/.test(shell) && /bottomNavigation=\{<BottomNavigation /.test(shell), page: /<Text>Three new messages<\/Text>/.test(back.text), noStack: !/data-name="AppShell"/.test(back.text), decided: /<Screen [^>]*phoneLinked=\{\[\]\}/.test(back.text) };
       if (Object.values(landed).some((value) => !value)) throw new Error(`pulled page: ${JSON.stringify(landed)} ${shell.slice(0, 200)}`);
       const frame = page.locator('[data-studio-frame="screen:screen-1"]');
-      await until(async () => (await frame.locator(".zen-top-nav").count()) > 0 && (await frame.locator(".zen-bottom-nav").count()) > 0, { timeout: 10_000, message: "both bars on the canvas" });
+      await until(async () => (await frame.locator(".zen-top-nav").count()) > 0 && (await frame.locator(".zen-bottom-nav").count()) > 0, { timeout: 10_000, message: "both bars on the canvas" })
+        .catch(async (error) => {
+          await page.screenshot({ path: ".qa/studio-e2e/handoff-HO-14-fail.png" }).catch(() => undefined);
+          const seen = await page.evaluate(() => ({ url: location.search, frames: [...document.querySelectorAll("[data-studio-frame]")].map((f) => f.getAttribute("data-studio-frame")), top: document.querySelectorAll(".zen-top-nav").length, bottom: document.querySelectorAll(".zen-bottom-nav").length, shell: document.querySelectorAll(".zen-app-shell").length }));
+          throw new Error(`${error.message} ${JSON.stringify(seen)}`);
+        });
       await page.screenshot({ path: ".qa/studio-e2e/handoff-HO-14.png" }).catch(() => undefined);
       return `export → Pattern/AppShell/Mobile; pulled back as ${back.id}: root AppShell with TopNavigation "Inbox" and its tabs, both bars on the canvas`;
     },

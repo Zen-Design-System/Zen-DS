@@ -694,5 +694,13 @@ mobileShellNode / MOBILE_SHELL_TOP / actionBarParts are what this reads back).
 - Real Zen file: a temporary Pattern/AppShell/Mobile (Phone · Bar · Tab-Bar) and an Action-Bar/Mobile on "Studio exports —
   QA", read with the new code and removed; the pattern read is a fixture (figma-mobile-shell-read.json): AppShell with
   Figma's sample TopNavigation, four tabs and the Empty-State page, no note.
-- Selftest tools/studio/figma-mobile-shell.selftest.mjs (in studio:selftest): 19 checks — push → pull round trips for
+- Selftest tools/studio/figma-mobile-shell.selftest.mjs (in studio:selftest): 20 checks — push → pull round trips for
   every Top, band, canvas, hero/backdrop, tabs, ActionBar in and out of the shell, and the two live reads.
+- Gate (slot after B; main 1b9a9cd0, then #252 merged in mid-run by Auto-fix): Studio self-tests ✓, E2E 347/348, HO-15 ✓,
+  HO-14 ✗. Two causes, both fixed: (1) a Screen with no `phoneLinked` gets phone bars derived from its desktop header
+  as it opens (responsive-header planPhoneSync), and the push then draws those instead of the pattern; the pull now writes
+  `phoneLinked={[]}` on the Screen when the AppShell brings its own bars (the row's page too). (2) The Studio canvas never
+  drew a root AppShell's phone parts: runtime.tsx Screen gave a phone layout only the AppShell's children
+  (withoutMasterLayout). A Screen without bars of its own now keeps an AppShell that has phone parts (phoneShellOf), and its
+  safe-area inset follows that AppShell's bars (TopNavigation / BottomNavigation / ActionBar pad by it themselves).
+  HO-14 then ✓ (screenshot: the Inbox bar under the status bar, the tabs at the bottom).

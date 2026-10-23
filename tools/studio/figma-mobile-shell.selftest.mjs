@@ -45,6 +45,7 @@ const tabs = '<BottomNavigation items={[{ id: "home", label: "Home", icon: "icon
   const back = roundTrip(`<AppShell topNavigation={<TopNavigation title="Inbox" />} bottomNavigation={${tabs}}><Text>Body</Text></AppShell>`);
   check("Bar · Tab-Bar: the AppShell comes back with its TopNavigation (the canvas's Alt bar unsaid) and its tabs", back.shell, `<AppShell topNavigation={<TopNavigation title="Inbox" />} bottomNavigation={${tabs}}>`);
   check("Bar · Tab-Bar: the page in the AppShell", back.body, "Body");
+  check("Bar · Tab-Bar: the Screen's phone parts decided as none (the Studio draws no phone header over the AppShell's bars)", /<Screen [^>]*phoneLinked=\{\[\]\}/.test(back.text), true);
   check("Bar · Tab-Bar: no AppShell Stack, no note about the pattern", [/name="AppShell"/.test(back.text), back.notes.filter((note) => /AppShell|Pattern/.test(note))], [false, []]);
   check("the pulled page passes the dialect check", validateDialect(back.text, { components: new Set(["ActionBar", "AppShell", "BottomNavigation", "Icon", "Text", "TopNavigation"]) }), []);
 }

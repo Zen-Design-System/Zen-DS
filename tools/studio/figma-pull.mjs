@@ -3235,7 +3235,11 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   const own = (part) => (frame ? idOf(frame, ctx, part) : undefined);
   // A Stack, or an AppShell (an app frame), is the Screen's content as it is; anything else goes in a Stack.
   const content = root ? (root.name === "Stack" || root.name === "AppShell" ? root : { kind: "element", id: own("content"), name: "Stack", props: {}, children: [root] }) : null;
-  const screen = { kind: "element", id: own("screen"), name: "Screen", props: { id: literal("screen-1"), title: literal(title), device: literal(deviceOf(frame?.width)), ...screenProps, ...(chrome?.props ?? {}) }, children: content ? [content] : [] };
+  // A phone AppShell with its own bars (Pattern/AppShell/Mobile) keeps them: the Screen's phone parts are decided as none,
+  // so the Studio does not draw a phone header over them from a desktop header the page has not got
+  // (responsive-header.mjs planPhoneSync links a Screen's parts only while it has no phoneLinked).
+  const ownBars = content?.name === "AppShell" && ["topNavigation", "bottomNavigation", "actionBar"].some((prop) => content.props[prop]) && !chrome?.props?.topNavigation && !chrome?.props?.bottomNavigation;
+  const screen = { kind: "element", id: own("screen"), name: "Screen", props: { id: literal("screen-1"), title: literal(title), device: literal(deviceOf(frame?.width)), ...screenProps, ...(chrome?.props ?? {}), ...(ownBars ? { phoneLinked: { kind: "array", items: [] } } : {}) }, children: content ? [content] : [] };
   const board = { kind: "element", id: own("board") ?? "board", name: "Board", props: {}, children: [screen] };
   // Elements no layer stands for take their place under their parent (deterministic: the same frame, the same ids).
   // The layers' own names (data-name) on the elements that are left once wrappers fold away; the page frame's name is
