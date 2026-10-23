@@ -25,6 +25,8 @@ import { detachShown, rowOf, useDetachPlan } from "./detach";
 import { cellDataTarget } from "../table/tableCells";
 import { pictureCode, pictureExpression, resolveMedia } from "../builder/library/media";
 import { UPLOAD_ONLY_LOCAL } from "../edit/assets/picture";
+import { repoValueFor } from "../edit/assets/repoMedia";
+import { ASSET_PREFIX } from "../builder/assets/uploads";
 import { writeAtUse } from "./callSite";
 import { DetachAction } from "./DetachAction";
 import { ExportSection } from "./ExportSection";
@@ -547,6 +549,11 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
     },
     setProp: (name, value) => {
       if (!element) return;
+      // An upload picked on a repo page is saved in the repo first (edit/assets/repoMedia.ts), then written as that file.
+      if (typeof value === "string" && value.startsWith(ASSET_PREFIX) && !element.file.startsWith("local:") && propSpecs(element.name).find((spec) => spec.name === name)?.editor.kind === "photo") {
+        void repoValueFor(element.file, value).then((next) => (typeof next === "string" ? api.setProp(name, next) : inspectorStatus.set("negative", next.error)));
+        return;
+      }
       const current = overrides[name] ?? displayValueOf(element.name, element.attributes, name, live);
       // A .map row on a page you made: "This row" makes a fixed value this row's own (op setRowProp: the rows get a
       // field, the element reads it); "All rows" writes the value on the layer, a binding to the row's field included.
