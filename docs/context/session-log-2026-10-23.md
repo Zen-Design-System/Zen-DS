@@ -160,6 +160,23 @@ Two BACKLOG P1s waiting on the user (brief from the supervisor: "xử hết back
     2026-10-22T19-17-48-192108d7). No platform example draws a second series on a hue Solid, so a throwaway browser test
     measured the Bullet target on Brand / Cyan / Yellow / Orange Solid cards: rgba(0, 0, 0, 0.486) in light and dark.
 
+## Session B · Example className round 2, PR 3: `sticky` (tier M; user "Thêm prop sticky cho Box", "Bottom = Fixed, Top = Sticky")
+
+- Spec: docs/research/layout-sticky-spec-2026-10-23.md (Figma facts measured with use_figma; the AppShell session OK'd
+  the Body rule). `sticky="top|bottom"` on Stack, Grid, Box, Shape; AppShell Body bottom padding through
+  `--zen-app-shell-body-pad-end`, a bottom-sticky descendant takes it inside itself; `surface="canvas"` follows the
+  shell's canvas; chat / ai-chat / ai-ui docks without CSS; Studio Prototype › Scroll behavior (canvas in place);
+  push bottom → Fixed (absolute, on top), top → Sticky; pull reads numberOfFixedChildren and the REST export's Sticky;
+  native writes scrollBehavior. Plugin 397fc74 on studio-import (npm test green; its API sequence checked live).
+- Found in my own work and fixed: React saw two Prototype-panel children keyed by the layer (Scroll behavior beside
+  Interactions); the first gate failed on a stale compile-api.generated.mjs (individual selftests do not cover it:
+  run `npm run studio:selftest`).
+- Visual diff (chat, ai-chat, ai-ui, app-shell, templates, layout, shape; 1512 + 390; before = main 0f4c28cf in a
+  scratch worktree): 227 identical, 1 changed (chat 01, 3 px, the same noise as PR 2). Dock probe at 1512: sticky,
+  −24 / +24, its bottom on the scroller's bottom mid-scroll and at the end.
+- E2E FW-210/211 works; app-shell + app-shell-grid tests 52/52; gate `--isolated` PASS (0 errors, Studio E2E 338).
+- Not run: a live native paste of a sticky layer (BACKLOG P3).
+
 ## Session C · Figma-parity leftovers (tier S each; Giám sát's queue, plan studio-figma-design-parity-2026-10-18.md)
 Branch `zen/fix/studio-parity-leftovers-20261023`; both BACKLOG lines archived.
 - ⇧⌘G on several layers (BACKLOG P2): `ungroupLayers` in edit/groupLayers.ts ungroups every selected group or frame,
@@ -285,6 +302,16 @@ Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows 
 - Merged main 9022cdad (after #236 merged; #237's chart-*.json contracts came in, no overlap). Gate (isolated, the map +
   the two generated maps): Studio self-tests ✓, TypeScript ✓, nested layer names 45 / 45, Studio E2E 338 / 338
   (3 shards, BL-02 Main component coverage included), Build-QA PASS. No platform page in scope, so no contact sheet.
+
+## Backlog G1 designer questions + G2 answers (tier XS, docs only; Giám sát's request, user "xử hết backlog")
+- QUESTIONS.md / QUESTIONS.vi.md: one designer review batch moved from BACKLOG (triage group G1, 10 entries): Calendar
+  toolbar mobile, Metric Title-Highlight, Action-Icon-Gap 20, Bottom-Navigation surface, Side-Bar/Master/Small-Density
+  named "Component", 438-page library gaps, Android bars, unnamed layers, chart questions, AI UI Figma first.
+- BACKLOG per the user's G2 answers: AI UI decisions closed (41 verified stand, Zen's node tree with an A2UI exporter
+  later, classifier on the device, ChatReactorsPanel experimental), only `data-*` forwarding left to build; ListItem Value
+  "decided, not built"; sheet table "Figma first, then code". docs/ai-ui/README.md "Open decisions" updated the same way.
+- Open BACKLOG entries with a priority 32 → 21 (ListItem Value is parked now, like Code view), then + 1 P3 for Giám sát:
+  compile #238's Swift/Dart on a machine with the toolchains. After merging main (#238, #241 closed two more): 20.
 
 ## 320px debt left: the designer calls (tier L: docs chrome at 320; user: "xử hết", B1, "Gỡ khỏi mục này")
 

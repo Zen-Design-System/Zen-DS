@@ -10942,6 +10942,14 @@
           "deprecated": null
         },
         {
+          "name": "sticky",
+          "type": "\"top\" | \"bottom\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Fix position when scrolling\" (Prototype › Scroll behavior): the layer stays in its place in the layout and,\nwhile its nearest scrolling ancestor (an AppShell Body, a pane, a `scroll` Stack) scrolls, sticks to that\nancestor's `top` or `bottom` edge, above the content passing under it. Put `sticky=\"bottom\"` last (a chat composer\ndocked under its thread) and `sticky=\"top\"` first (a list's header). A last child of an AppShell Body takes the\nBody's bottom margin inside itself, so the content scrolls under the margin too. Ignored with\n`position=\"absolute\"`. Default unset: it scrolls with its parent.",
+          "deprecated": null
+        },
+        {
           "name": "radiusTopLeft",
           "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
           "required": false,
@@ -18762,6 +18770,14 @@
           "deprecated": null
         },
         {
+          "name": "sticky",
+          "type": "\"top\" | \"bottom\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Fix position when scrolling\" (Prototype › Scroll behavior): the layer stays in its place in the layout and,\nwhile its nearest scrolling ancestor (an AppShell Body, a pane, a `scroll` Stack) scrolls, sticks to that\nancestor's `top` or `bottom` edge, above the content passing under it. Put `sticky=\"bottom\"` last (a chat composer\ndocked under its thread) and `sticky=\"top\"` first (a list's header). A last child of an AppShell Body takes the\nBody's bottom margin inside itself, so the content scrolls under the margin too. Ignored with\n`position=\"absolute\"`. Default unset: it scrolls with its parent.",
+          "deprecated": null
+        },
+        {
           "name": "radiusTopLeft",
           "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
           "required": false,
@@ -19168,6 +19184,14 @@
           "deprecated": null
         },
         {
+          "name": "sticky",
+          "type": "\"top\" | \"bottom\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Fix position when scrolling\" (Prototype › Scroll behavior): the layer stays in its place in the layout and,\nwhile its nearest scrolling ancestor (an AppShell Body, a pane, a `scroll` Stack) scrolls, sticks to that\nancestor's `top` or `bottom` edge, above the content passing under it. Put `sticky=\"bottom\"` last (a chat composer\ndocked under its thread) and `sticky=\"top\"` first (a list's header). A last child of an AppShell Body takes the\nBody's bottom margin inside itself, so the content scrolls under the margin too. Ignored with\n`position=\"absolute\"`. Default unset: it scrolls with its parent.",
+          "deprecated": null
+        },
+        {
           "name": "radiusTopLeft",
           "type": "\"none\" | Exclude<ZenScaleInput, \"3xs\" | \"3xsmall\"> | \"full\"",
           "required": false,
@@ -19555,6 +19579,14 @@
           "required": false,
           "default": null,
           "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame. Read only when `constraintX` is `left` or `left-right`. Default none.",
+          "deprecated": null
+        },
+        {
+          "name": "sticky",
+          "type": "\"top\" | \"bottom\"",
+          "required": false,
+          "default": null,
+          "description": "Figma \"Fix position when scrolling\" (Prototype › Scroll behavior): the layer stays in its place in the layout and,\nwhile its nearest scrolling ancestor (an AppShell Body, a pane, a `scroll` Stack) scrolls, sticks to that\nancestor's `top` or `bottom` edge, above the content passing under it. Put `sticky=\"bottom\"` last (a chat composer\ndocked under its thread) and `sticky=\"top\"` first (a list's header). A last child of an AppShell Body takes the\nBody's bottom margin inside itself, so the content scrolls under the margin too. Ignored with\n`position=\"absolute\"`. Default unset: it scrolls with its parent.",
           "deprecated": null
         },
         {

@@ -96,10 +96,10 @@ export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingPro
  *   <Stack gap="lg">…sections…</Stack>
  *   <Stack direction="row" gap="sm" align="center" justify="between">…toolbar…</Stack>
  */
-export function Stack({ direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, clip = false, scroll, padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, modes, ...rest }: StackProps) {
+export function Stack({ direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, clip = false, scroll, padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, modes, ...rest }: StackProps) {
   const scope = useModeScope(modes);
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
-  const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
+  const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky });
   const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, gradient, opacity, blendMode, rotation, flip });
   const picture = useImageFill({ image, imageFit, imageCrop, imageScale });
   const corners = frameCorners(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft });
@@ -201,10 +201,10 @@ function useStackBelow(below: number | undefined, forwarded: Ref<HTMLElement> | 
  *   <Grid columns={{ mobile: 1, desktop: 2 }} gap="lg">…fields…</Grid>
  *   <Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} gap="lg" align="start">…main…aside…</Grid>
  */
-export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, stackBelow, padding, clip = false, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, modes, ...rest }: GridProps) {
+export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, stackBelow, padding, clip = false, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, modes, ...rest }: GridProps) {
   const scope = useModeScope(modes);
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
-  const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
+  const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky });
   const perBreakpoint = typeof columns === "object" ? columns : undefined;
   const fixed = typeof columns === "object" ? undefined : columns;
   const desktop = tracks(fixed ?? perBreakpoint?.desktop ?? perBreakpoint?.tablet ?? perBreakpoint?.mobile);
@@ -281,10 +281,10 @@ export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps
  * around content that flows as blocks, or layers placed at X / Y. With auto layout the same frame is a Stack or Grid,
  * which take the same appearance props. For clickable or selectable tiles use Card; for page width use Container.
  */
-export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, group, mask, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, clip, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, as: Element = "div", className, style, children, ref, modes, ...rest }: BoxProps) {
+export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, group, mask, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, clip, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, modes, ...rest }: BoxProps) {
   const scope = useModeScope(modes);
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
-  const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
+  const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky });
   // A group (Figma's) has no look of its own: only its opacity, rotation and flip.
   const look = group ? frameAppearance({ opacity, blendMode, rotation, flip }) : frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, gradient, opacity, blendMode, rotation, flip });
   const pad = group ? {} : { block: paddingY ?? padding, inline: paddingX ?? padding };

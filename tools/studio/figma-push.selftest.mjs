@@ -2467,6 +2467,41 @@ export default function Page() {
   check("a page's AppShell's phone bars are named too", barNotes(push(shellPage(`<Box>${shell}</Box>`)).notes), 2);
 }
 
+// sticky (user 2026-10-23 "Bottom = Fixed, Top = Sticky"): bottom is Figma's Fixed (absolute in the auto layout, pinned
+// inside the frame's padding, its topmost layer), top is Figma's Sticky in flow; both come back as sticky, in flow.
+{
+  const page = `// @zen-page {"format":1,"title":"Sticky"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Sticky" device="desktop">
+        <Stack padding="xl" gap="md">
+          <Box sticky="bottom" surface="canvas"><Text>Field</Text></Box>
+          <Stack sticky="top"><Text>Title</Text></Stack>
+          <Text>Thread</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(page);
+  const column = find(frame, (node) => node.type === "FRAME" && (node.children ?? []).some((child) => child.scrollBehavior));
+  const kids = column?.children ?? [];
+  const dock = kids.find((node) => node.scrollBehavior === "FIXED");
+  const head = kids.find((node) => node.scrollBehavior === "STICKY_SCROLLS");
+  check("push: sticky bottom is Figma's Fixed, absolute, pinned bottom and stretched inside the padding", dock && [dock.absolute.cx, dock.absolute.cy, dock.absolute.left, dock.absolute.right, dock.absolute.bottom], ["STRETCH", "MAX", 24, 24, 24]);
+  check("push: a Fixed layer is the frame's last (Figma's fixed layers are its topmost)", kids.at(-1) === dock, true);
+  check("push: sticky top is Figma's Sticky, in flow", head && [head.scrollBehavior, "absolute" in head], ["STICKY_SCROLLS", false]);
+  const back = pageFromFigma(frame, { mapping }).text;
+  check("round trip: both come back as sticky, in flow", [/<Box [^>]*sticky="bottom"/.test(back), /<Stack [^>]*sticky="top"/.test(back), back.includes('position="absolute"')], [true, true, false]);
+}
+
 // A frame's own variable modes (Studio Variables v2, user 2026-10-23: `modes={{ … }}`): push writes { axis: mode id } on
 // the frame (the Screen's on the page frame), pull reads Figma's { collection: mode name } back as `modes`.
 {

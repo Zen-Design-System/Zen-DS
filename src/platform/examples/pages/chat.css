@@ -12,14 +12,12 @@
 .px-chat-fill > :is(.zen-chat-thread, .px-chat-empty) { flex: 1 1 auto; }
 
 /* Desktop (AppShell desktop): the thread fills the Body under the header and lines its messages up with the page
-   margin (it takes back its own 16px sides); the composer docks at the bottom of the window on the shell's Canvas, so the
-   messages scroll under it, and it keeps the page margin below it in place of the Body's. */
+   margin (it takes back its own 16px sides); the composer docks at the bottom of the window on the shell's Canvas
+   (Box sticky="bottom" surface="canvas"), so the messages scroll under it, and it keeps the page margin below it in
+   place of the Body's (AppShell). */
 .px-chat-panel:not([hidden]), .px-chat-desk { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; }
 .px-chat-desk__thread { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; margin-inline: calc(-1 * var(--zen-spacing-padding-medium, 16px)); }
 .px-chat-desk__thread > :is(.zen-chat-thread, .px-chat-empty) { flex: 1 1 auto; }
-/* zen-allow-canvas-layer: the dock is the page itself continuing under the docked composer (the shell's own Canvas), so
-   the messages scroll under the composer instead of showing through the margin below it. */
-.px-chat-dock { position: sticky; z-index: 3; bottom: 0; margin-block-end: calc(-1 * var(--zen-margin-comfortable, 24px)); padding-block-end: var(--zen-margin-comfortable, 24px); background: var(--zen-app-shell-canvas, var(--zen-color-background-canvas-default, #f7f7f7)); }
 
 /* A chat with no messages yet: the Empty State sits in the middle of the free space, above the composer. */
 .px-chat-empty { min-height: 0; }

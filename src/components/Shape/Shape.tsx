@@ -168,6 +168,7 @@ export function Shape({
   insetRight,
   insetBottom,
   insetLeft,
+  sticky,
   className,
   style,
   ref,
@@ -180,7 +181,7 @@ export function Shape({
   const size = useShapeSize(node, width, height, line);
   const id = safeId(useId());
   const sizing = layoutSizing({ width, height: line ? undefined : height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
-  const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft });
+  const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky });
   // A boolean group draws its result as a vector does: its path in its viewBox (Zen Studio computes it from its shapes).
   const vector = kind === "vector" || kind === "boolean";
   const boolean = kind === "boolean";
