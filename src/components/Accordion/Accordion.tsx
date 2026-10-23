@@ -5,6 +5,7 @@ import { typographyStyles, type TypographyStyleName } from "../../tokens/typogra
 import "./accordion.css";
 import "../Icon/core";
 import { useControllableState } from "../_shared/use-controllable-state";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const accordionSizes = ["small", "medium", "large", "xlarge"] as const;
 export const accordionThemes = ["divider", "box"] as const;
@@ -80,7 +81,7 @@ export interface AccordionProps {
  * XLarge Padding/XLarge) splits into a box inset of padding − header gap and a trigger padding of the header gap, so the
  * layout matches Figma; the trigger radius is box radius − inset (concentric corners), and the focus ring sits inside it.
  */
-export function Accordion({ ref, title, headingLevel = 3, children, size: sizeProp = "md", theme = "divider", contentWidth = "title", expanded, defaultExpanded = false, onExpandedChange, className }: AccordionProps) {
+export function Accordion({ ref, title, headingLevel = 3, children, size: sizeProp = "md", theme = "divider", contentWidth = "title", expanded, defaultExpanded = false, onExpandedChange, className, ...rest }: AccordionProps) {
   const size = scaleKey(sizeProp, accordionSizes);
   const Heading = `h${headingLevel}` as "h2" | "h3" | "h4" | "h5" | "h6";
   const [isExpanded, setExpanded] = useControllableState({ value: expanded, defaultValue: defaultExpanded, onChange: onExpandedChange, name: "Accordion expanded" });
@@ -89,7 +90,7 @@ export function Accordion({ ref, title, headingLevel = 3, children, size: sizePr
   const triggerId = `${id}-trigger`;
   const toggle = () => setExpanded(!isExpanded);
   return (
-    <div ref={ref} className={["zen-accordion", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-content-width={contentWidth === "full" ? "full" : undefined} data-expanded={isExpanded ? "true" : "false"}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-accordion", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-content-width={contentWidth === "full" ? "full" : undefined} data-expanded={isExpanded ? "true" : "false"}>
       <Heading className="zen-accordion__heading">
         <button id={triggerId} type="button" className="zen-accordion__trigger" aria-expanded={isExpanded} aria-controls={panelId} onClick={toggle}>
           <span className={`zen-accordion__title ${typographyStyles[titleStyle[size]]}`}>{title}</span>

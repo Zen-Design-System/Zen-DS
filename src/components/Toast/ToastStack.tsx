@@ -4,6 +4,7 @@ import { usePortalContainer } from "../Portal";
 import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
 import "../Motion/motion.css";
 import { Toast, type ToastProps } from "./Toast";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export interface ToastItem extends Omit<ToastProps, "onClose" | "className" | "ref"> {
   id: string | number;
@@ -72,7 +73,7 @@ function useToastLayer(container: HTMLElement | null, placement: ToastPlacement)
  * toast fades and shrinks in place (Fast), then its row closes (Base) so the others slide over. Fixed stacks portal into
  * a shared layer in the ZenPortal container; aria-live is on each Toast.
  */
-export function ToastStack({ toasts, onDismiss, placement = "bottom-center", duration = 5000, max = 3, inline = false, closeLabel, className, ref }: ToastStackProps) {
+export function ToastStack({ toasts, onDismiss, placement = "bottom-center", duration = 5000, max = 3, inline = false, closeLabel, className, ref, ...rest }: ToastStackProps) {
   // Rendered rows keep their position; a toast removed from `toasts` stays as "closing" until its exit animation ends.
   const [rows, setRows] = useState<Array<{ item: ToastItem; exiting: boolean }>>(() => toasts.map((item) => ({ item, exiting: false })));
   const [paused, setPaused] = useState(false);
@@ -121,7 +122,7 @@ export function ToastStack({ toasts, onDismiss, placement = "bottom-center", dur
 
   const stack = (
     <div
-      ref={ref}
+      {...dataAttributes(rest)} ref={ref}
       className={["zen-toast-stack", className].filter(Boolean).join(" ")}
       data-placement={placement}
       data-inline={inline ? "true" : undefined}

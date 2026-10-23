@@ -10,6 +10,7 @@ import { visibleBounds } from "../Popover/useAnchoredPosition";
 import { useControllableState } from "../_shared/use-controllable-state";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./tooltip.css";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const tooltipColors = ["default", "accent", "white-overlay", "black-overlay"] as const;
 export const tooltipSizes = ["medium", "small"] as const;
@@ -91,7 +92,7 @@ const hoverWait = (delay: number) => (Date.now() - lastTooltipClosedAt < TOOLTIP
 const InsideTooltipContext = createContext(false);
 
 /** Shows a TooltipSurface next to its trigger on hover (after `delay`) and keyboard focus; Escape dismisses. */
-export function Tooltip({ content, children, color = "default", size: sizeProp = "md", placement = "top", delay = TOOLTIP_HOVER_DELAY, open: controlledOpen, defaultOpen = false, onOpenChange, closable = false, disabled = false, className }: TooltipProps) {
+export function Tooltip({ content, children, color = "default", size: sizeProp = "md", placement = "top", delay = TOOLTIP_HOVER_DELAY, open: controlledOpen, defaultOpen = false, onOpenChange, closable = false, disabled = false, className, ...dataRest }: TooltipProps) {
   const size = scaleKey(sizeProp, tooltipSizes);
   const id = `zen-tooltip-${useId().replace(/:/g, "")}`;
   // onOpenChange is called below rather than through the hook: it fires against the open state as rendered (disabled
@@ -165,7 +166,7 @@ export function Tooltip({ content, children, color = "default", size: sizeProp =
     ? cloneElement(children, { "aria-describedby": [children.props["aria-describedby"], open ? id : undefined].filter(Boolean).join(" ") || undefined })
     : children;
   return (
-    <span
+    <span {...dataAttributes(dataRest)}
       className={["zen-tooltip-anchor", className].filter(Boolean).join(" ")}
       onPointerEnter={(event) => { if (event.pointerType !== "touch") show(hoverWait(delay)); }}
       onPointerLeave={hideOnLeave}
