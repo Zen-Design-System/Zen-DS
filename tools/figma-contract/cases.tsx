@@ -12,8 +12,32 @@ import { AppShellAction } from "../../src/components/AppShell";
 import { Breadcrumbs } from "../../src/components/Breadcrumbs";
 import { DashboardHeader } from "../../src/components/DashboardHeader";
 import { Search } from "../../src/components/Search";
+import { AreaChart, BarChart, BarList, BulletChart, ChartCard, ComboChart, DonutChart, FunnelChart, GaugeChart, GroupedBarChart, HeatmapChart, LineChart, RadialChart, StackBarChart } from "../../src/components/Chart";
 
 type Props = Record<string, any>;
+// Chart suites pass data as JSON, so a formatter travels by name: the Figma axis labels ("$25K", "$0", "45%", "1,000 h").
+const formats: Record<string, (value: number) => string> = {
+  usdK: (v) => (v === 0 ? "$0" : `$${Math.round(v / 100) / 10}K`),
+  usd: (v) => `$${v.toLocaleString("en-US")}`,
+  pct: (v) => `${v}%`,
+  hours: (v) => `${v.toLocaleString("en-US")} h`,
+  plain: (v) => v.toLocaleString("en-US"),
+};
+const charts: Record<string, (props: Props) => ReactNode> = {
+  line: (p) => <LineChart {...p} />,
+  stack: (p) => <StackBarChart {...p} />,
+  bar: (p) => <BarChart {...p} />,
+  area: (p) => <AreaChart {...p} />,
+  grouped: (p) => <GroupedBarChart {...p} />,
+  combo: (p) => <ComboChart {...p} />,
+  donut: (p) => <DonutChart {...p} />,
+  radial: (p) => <RadialChart {...p} />,
+  gauge: (p) => <GaugeChart {...p} />,
+  funnel: (p) => <FunnelChart {...p} />,
+  bullet: (p) => <BulletChart {...p} />,
+  heatmap: (p) => <HeatmapChart {...p} />,
+  barList: (p) => <BarList {...p} />,
+};
 const photo = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="#c8a"/></svg>');
 
 export const cases: Record<string, (props: Props) => ReactNode> = {
@@ -94,6 +118,15 @@ export const cases: Record<string, (props: Props) => ReactNode> = {
       </div>
     );
   },
+  // Figma Chart/* sets are a Chart Card's body (Heading · Segmented · Metric · chart), so each renders in a ChartCard as
+  // wide as the set plus the card's padding (suites/_chart-shared.mjs); `chart` names the component, `chartProps` its props.
+  chartCard: ({ width, chart, chartProps: { format, lineFormat, ...chartProps } = {}, open, ...card }) => (
+    <div style={{ width }}>
+      <ChartCard title="Title" {...card} onOpen={open ? () => {} : undefined}>
+        {charts[chart]({ "aria-label": "Chart", animate: false, ...chartProps, ...(format ? { format: formats[format] } : null), ...(lineFormat ? { lineFormat: formats[lineFormat] } : null) })}
+      </ChartCard>
+    </div>
+  ),
   // Stateful demos used by interactions.mjs (behaviour, not visuals).
   interactive: () => <InteractiveDemo />,
 };

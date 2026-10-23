@@ -24,6 +24,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   group (Primitive, Semantic, Component, Layout) and a purpose: `tokens:build` lists it on the Design Tokens page. A
   collection made in Studio is renamed and deleted from its ⋯ menu (a delete asks first while code reads its variables;
   another collection's alias refuses it); the 11 Figma exports keep their names.
+- Charts now follow their Figma sets where a new parity suite found them apart: DonutChart's total beside the ring
+  (`totalPosition="start"`) is Display/4, Gap/3XSmall under its caption, as the Chart Card's value; Donut and Radial
+  XLarge set their centre figure in Display/4 (was Heading/3); HeatmapChart's row labels sit in a 40px column and
+  BarList's values in a 64px column (longer text widens them). Every chart set and Chart/Chart-Card has a Figma contract
+  suite in `tools/figma-contract/run-all.mjs` (2026-10-23).
 - Zen Studio → Figma: a phone AppShell is Figma's Pattern/AppShell/Mobile (2026-10-23). Its TopNavigation takes the
   Bar type the canvas gives it (default → Alt, alt → Default, flat → Default on Surface/Flat), a band's bar
   Transparent (on an accent band Transparent-On-Color) and the media bar Liquid-Overaly; its tabs, ActionBar, band

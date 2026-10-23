@@ -385,7 +385,7 @@
     {
       "name": "DonutChart",
       "file": "src/components/Chart/DonutChart.tsx",
-      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,\nparted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %\npill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)\n— or, with `totalPosition=\"start\"`, beside the ring above the legend (Body/Small/Regular caption, Heading/2 figure, as\nthe Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump\nto the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365\n(Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).",
+      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,\nparted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %\npill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)\n— or, with `totalPosition=\"start\"`, beside the ring above the legend (Body/Small/Regular caption, Display/4 figure, as\nthe Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump\nto the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365\n(Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -418,7 +418,7 @@
           "type": "ChartRingSize | number",
           "required": false,
           "default": "\"medium\"",
-          "description": "Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling\n (`sm` … `xl`); a number still sets px. The ring is 22% of it; it never grows past its box, and a stretched Chart Card\n grows it. Small shows the centre figure alone (Body/Base/Bold), XLarge in Heading/3.",
+          "description": "Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling\n (`sm` … `xl`); a number still sets px. The ring is 22% of it; it never grows past its box, and a stretched Chart Card\n grows it. Small shows the centre figure alone (Body/Base/Bold), XLarge in Display/4.",
           "deprecated": null
         },
         {
@@ -555,7 +555,7 @@
           "type": "ChartRingSize | number",
           "required": false,
           "default": "\"medium\"",
-          "description": "Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling\n (`sm` … `xl`); a number still sets px. Rings are 10px with 8px between them (6px and 4px at Small, so four still fit);\n the chart never grows past its box, and a stretched Chart Card grows it. Small shows the centre figure alone\n (Body/Base/Bold), XLarge in Heading/3.",
+          "description": "Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling\n (`sm` … `xl`); a number still sets px. Rings are 10px with 8px between them (6px and 4px at Small, so four still fit);\n the chart never grows past its box, and a stretched Chart Card grows it. Small shows the centre figure alone\n (Body/Base/Bold), XLarge in Display/4.",
           "deprecated": null
         },
         {
@@ -635,7 +635,7 @@
     {
       "name": "HeatmapChart",
       "file": "src/components/Chart/HeatmapChart.tsx",
-      "description": "Heatmap in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): a 24px-tall cell per row ×\ncolumn (Corner-Radius/Small, Spacing/Gap/2XSmall apart) on 5 Support/Brand steps, column labels on top and row labels\non the left (Label/Small/Medium, Neutral/Light), a Less → More scale (Caption/Regular). Hover or the arrow keys pick a\ncell (its row and column labels light up and its Tooltip reads \"Tue 1 pm · 55 h\"); Home/End jump to the row's first and\nlast cell. Figma Chart/Heatmap-Chart 15326:1043.",
+      "description": "Heatmap in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): a 24px-tall cell per row ×\ncolumn (Corner-Radius/Small, Spacing/Gap/2XSmall apart) on 5 Support/Brand steps, column labels on top and row labels\nin a 40px start column (Label/Small/Medium, Neutral/Light; a longer label widens it), a Less → More scale (Caption/Regular). Hover or the arrow keys pick a\ncell (its row and column labels light up and its Tooltip reads \"Tue 1 pm · 55 h\"); Home/End jump to the row's first and\nlast cell. Figma Chart/Heatmap-Chart 15326:1043.",
       "deprecated": null,
       "extends": null,
       "props": [

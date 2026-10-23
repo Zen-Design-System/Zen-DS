@@ -17292,7 +17292,7 @@
           "type": "ChartRingSize | number",
           "required": false,
           "default": "\"medium\"",
-          "description": "Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling\n (`sm` … `xl`); a number still sets px. The ring is 22% of it; it never grows past its box, and a stretched Chart Card\n grows it. Small shows the centre figure alone (Body/Base/Bold), XLarge in Heading/3.",
+          "description": "Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling\n (`sm` … `xl`); a number still sets px. The ring is 22% of it; it never grows past its box, and a stretched Chart Card\n grows it. Small shows the centre figure alone (Body/Base/Bold), XLarge in Display/4.",
           "deprecated": null
         },
         {
@@ -17426,7 +17426,7 @@
           "type": "ChartRingSize | number",
           "required": false,
           "default": "\"medium\"",
-          "description": "Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling\n (`sm` … `xl`); a number still sets px. Rings are 10px with 8px between them (6px and 4px at Small, so four still fit);\n the chart never grows past its box, and a stretched Chart Card grows it. Small shows the centre figure alone\n (Body/Base/Bold), XLarge in Heading/3.",
+          "description": "Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling\n (`sm` … `xl`); a number still sets px. Rings are 10px with 8px between them (6px and 4px at Small, so four still fit);\n the chart never grows past its box, and a stretched Chart Card grows it. Small shows the centre figure alone\n (Body/Base/Bold), XLarge in Display/4.",
           "deprecated": null
         },
         {
