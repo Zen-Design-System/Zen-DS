@@ -226,7 +226,7 @@ key): the dry run and the selftest cover the pipeline; the first live numbers ar
   `autoComplete`, `inputMode`, `min`, `max`, `step`, `maxLength` on fields. `value` / `defaultValue` (and `checked`) are
   written out from their `on<X>Change` handler when react-docgen left them out.
 - **Status:** `stable` = documented and smoke- and conformance-tested (every public component); `verified` = a Figma parity
-  suite or capture covers the component's folder (41 today; by file name, see open decisions); `experimental` = a required
+  suite or capture covers the component's folder (41 today; by file name, confirmed by the user 2026-10-23); `experimental` = a required
   prop has no JSON form (`unavailable` names it: ChatReactorsPanel `glyph`, ZenPortalProvider `container`), or set in
   `catalog.config.mjs`. Experimental components fail validation unless `{ experimental: true }`.
 - **Chrome:** AppShell, Sidebar, TopNavigation, BottomNavigation, DashboardHeader, PageHeader, ZenProvider, Container stay
@@ -242,10 +242,12 @@ key): the dry run and the selftest cover the pipeline; the first live numbers ar
 
 ## Open decisions (user / designer)
 
-1. **`verified` is a heuristic** on Figma contract file names; confirm the 41 or list them in `STATUS_OVERRIDES`.
-2. **Spec format:** this tree, or A2UI / json-render? The tree keeps Studio's dialect shape (element / props / children,
-   refs, maps); an exporter to A2UI can be written on top if a native renderer is needed.
-3. **Narrow Table:** keep the sideways scroll in a chat column, or a compact mode that folds columns (needs Figma)?
-4. **Prose:** fenced code renders as `Text as="code"` (no mono style or code block component); a Prose / CodeBlock
+Decided by the user on 2026-10-23: the 41 `verified` components stand (`STATUS_OVERRIDES` stays empty); the spec stays
+this tree (Studio's dialect shape; an A2UI / json-render exporter can be written on top later); the classifier stays on
+the device; `ChatReactorsPanel` stays experimental (its `glyph` formatter gets no JSON form); every component forwards
+`data-*`, the Skeletons too (to build: `docs/context/BACKLOG.md`). Still open, for the designer
+(`docs/context/QUESTIONS.md`, "AI UI, Figma first"):
+
+1. **Narrow Table:** keep the sideways scroll in a chat column, or a compact mode that folds columns (needs Figma)?
+2. **Prose:** fenced code renders as `Text as="code"` (no mono style or code block component); a Prose / CodeBlock
    component needs Figma.
-5. **Chat reactions:** `ChatReactorsPanel.glyph` is a formatter; give it a JSON form if reactions should be composable.
