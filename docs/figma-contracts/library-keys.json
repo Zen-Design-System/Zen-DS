@@ -1003,6 +1003,26 @@
       "name": "Timeline/Gantt",
       "type": "COMPONENT_SET",
       "key": "fda09a52b703f41168731d7007be5f571848dc2b"
+    },
+    "16261:136204": {
+      "name": "Pattern/AppShell/Mobile",
+      "type": "COMPONENT_SET",
+      "key": "1bdb8a18ba489cae7e787ad10e1a390f5aa678f1"
+    },
+    "4060:26507": {
+      "name": ".Primitives/Bottom-Navigation/Items/Default",
+      "type": "COMPONENT_SET",
+      "key": "a44e084fcd80ac5d0e1e9cc07423da6ce522ebd3"
+    },
+    "9017:25813": {
+      "name": ".Primitives/Bottom-Navigation/Items/Floating",
+      "type": "COMPONENT_SET",
+      "key": "bfb6f3ac00c71e59ee742312a515d6f5bc11ee1c"
+    },
+    "9018:43881": {
+      "name": ".Primitives/Bottom-Navigation/Items/Floating-Glass",
+      "type": "COMPONENT_SET",
+      "key": "5f0c978e202362bb4967f6984f8d8ab4d894953d"
     }
   },
   "missing": [
