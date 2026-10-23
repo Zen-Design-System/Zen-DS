@@ -26,6 +26,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   `table/reference-in-sheet` (code or keys in a Table's cells), Studio palette entry. Studio push / pull: a SheetTable
   goes to Figma as Table/Cell/Header and Table/Sheet/Cell rows (Code, Key chips or a Text-Cell in each cell) and comes
   back as a SheetTable with declarative columns.
+- Zen Studio → Figma: a page goes to Figma with every Screen, Screen state and Overlay as a frame of its own (an
+  Overlay as big as what it holds), and its Prototype actions as Figma interactions: On click, While hovering and After
+  delay; Navigate to, Open overlay, Close overlay and Back, with their animation, direction and Zen's duration and curve
+  (a Dialog's, Side Panel's or Bottom Sheet's buttons too). Pull from Figma reads them back. Show toast, Open link, Filter table,
+  Change step and the overlay's position, background and click-outside stay in the Studio, each named in the notes
+  (2026-10-24).
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in

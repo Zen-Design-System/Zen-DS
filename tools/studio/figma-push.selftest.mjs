@@ -9,6 +9,7 @@ import fs from "node:fs";
 import { figmaFromPage, figmaIdOf, figmaPackage, sidebarPatternProps } from "./figma-push.mjs";
 import { figmaDocId, pageFromFigma, repoMapping } from "./figma-pull.mjs";
 import { figmaChanges, mergeFigma } from "./figma-diff.mjs";
+import { DURATION_MS, EASING } from "./figma-proto.mjs";
 import { NESTED_LAYERS } from "../../src/platform/studio/inspector/nestedLayers.generated.ts";
 
 let passed = 0;
@@ -2687,6 +2688,79 @@ export default function Page() {
   ] };
   const readBack = pageFromFigma(read, { mapping }).text;
   check("pull of a read: Figma's collection modes as `modes` (a collection that is no axis is left)", [/<Screen [^>]*modes=\{\{ theme: "dark" \}\}/.test(readBack), /modes=\{\{ density: "comfortable" \}\}/.test(readBack)], [true, true]);
+}
+
+// Every Screen, Screen state and Overlay as a frame, the Prototype tab's actions as Figma's reactions (figma-proto.mjs;
+// user 2026-10-23: "push mọi Screen và Overlay thành frame, kèm reaction Navigate / Open / Close overlay / Back").
+{
+  const page = `// @zen-page {"format":1,"title":"Flow"}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { BottomSheet, Button, Card, Dialog, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="home" title="Home" device="phone" onDelay={proto.navigate("details", { delay: 1500 })}>
+        <Stack gap="md" padding="lg">
+          <Button onClick={proto.navigate("details", { animation: "push", direction: "right", duration: "slow" })}>Next</Button>
+          <Card whileHovering={proto.open("tip")}><Text>Hover</Text></Card>
+          <Button onClick={proto.toast({ title: "Saved" })}>Save</Button>
+          <Button onClick={proto.open("confirm", { animation: "instant" })}>Delete</Button>
+        </Stack>
+      </Screen>
+      <Screen id="details" title="Details" device="phone">
+        <Stack gap="md" padding="lg"><Button onClick={proto.back()}>Back</Button></Stack>
+      </Screen>
+      <Screen id="details" state="empty" title="Details" device="phone">
+        <Stack gap="md" padding="lg"><Button onClick={proto.navigate("details")}>Retry</Button></Stack>
+      </Screen>
+      <Overlay id="tip" position="manual">
+        <Card><Text>Tip</Text></Card>
+      </Overlay>
+      <Overlay id="confirm" background closeOnOutside>
+        <Dialog title="Delete it?" primaryAction={{ label: "Delete", onClick: proto.close() }} secondaryAction={{ label: "Cancel", onClick: proto.back() }} />
+      </Overlay>
+      <Overlay id="sheet">
+        <BottomSheet title="Pick" primaryAction={{ label: "Done", onClick: proto.close() }}><Text>One</Text></BottomSheet>
+      </Overlay>
+    </Board>
+  );
+}
+`;
+  const { pkg, notes } = figmaPackage(page, { mapping, nestedLayers: NESTED_LAYERS, page: { id: "flow" } });
+  check("flow: every Screen, Screen state and Overlay is a frame, the first Screen as `frame` too", [pkg.frames.map((entry) => entry.id), pkg.frame === pkg.frames[0].frame], [["screen:home", "screen:details", "screen:details:empty", "overlay:tip", "overlay:confirm", "overlay:sheet"], true]);
+  const byId = Object.fromEntries(pkg.frames.map((entry) => [entry.id, entry.frame]));
+  check("flow: a state's frame is named after it; an Overlay's by what it holds, hugging it, with no canvas or height", [byId["screen:details:empty"].name, byId["overlay:confirm"].name, byId["overlay:confirm"].hug, "fill" in byId["overlay:confirm"], "minH" in byId["overlay:confirm"], "width" in byId["overlay:confirm"]], ["Details · empty", "Delete it?", true, false, false, false]);
+  const EASE = [0.16, 1, 0.3, 1];
+  check("flow: After delay is the frame's own reaction, its delay in seconds", byId["screen:home"].reactions, [{ trigger: "AFTER_TIMEOUT", timeout: 1.5, action: "NAVIGATE", to: "screen:details", transition: { type: "DISSOLVE", duration: 0.2, easing: EASE } }]);
+  const layer = (frameId, name) => find(byId[frameId], (node) => node.reactions && (node.text === name || node.name === name || (node.children ?? []).some((child) => child.characters === name)));
+  check("flow: Navigate to with Push, its direction and Motion/Duration/Slow", layer("screen:home", "Next")?.reactions, [{ trigger: "ON_CLICK", action: "NAVIGATE", to: "screen:details", transition: { type: "PUSH", direction: "RIGHT", duration: 0.28, easing: EASE } }]);
+  check("flow: While hovering opens an overlay; Instant has no transition", [find(byId["screen:home"], (node) => node.reactions?.[0]?.trigger === "ON_HOVER")?.reactions, layer("screen:home", "Delete")?.reactions], [[{ trigger: "ON_HOVER", action: "OVERLAY", to: "overlay:tip", transition: { type: "DISSOLVE", duration: 0.2, easing: EASE } }], [{ trigger: "ON_CLICK", action: "OVERLAY", to: "overlay:confirm" }]]);
+  check("flow: Back, and Navigate to a Screen from its own state", [layer("screen:details", "Back")?.reactions, layer("screen:details:empty", "Retry")?.reactions?.[0]?.to], [[{ trigger: "ON_CLICK", action: "BACK" }], "screen:details"]);
+  const dialog = find(byId["overlay:confirm"], (node) => node.set?.name === "Modal/Dialog");
+  check("flow: a Dialog's actions on its Primary and Secondary buttons", dialog?.reactions, [{ trigger: "ON_CLICK", action: "CLOSE", layer: "Container/Actions/Buttons/Container/Primary" }, { trigger: "ON_CLICK", action: "BACK", layer: "Container/Actions/Buttons/Container/Secondary" }]);
+  const sheet = find(byId["overlay:sheet"], (node) => node.set?.name === "Bottom-Sheet");
+  check("flow: a Bottom Sheet's action on its Primary button, by its names (both are named Button/Main)", sheet?.reactions, [{ trigger: "ON_CLICK", action: "CLOSE", layer: ["Container", "Footer", "Buttons", "Button/Main[1]"] }]);
+  const said = (pattern) => notes.some((note) => pattern.test(note));
+  check("flow: what Figma has no reaction or setting for is named (a toast, overlay settings); a sheet's action is pushed", [said(/Button onClick: toast: Figma has no such action/), !said(/BottomSheet primaryAction/), said(/Overlay tip: set Prototype › Overlay › Position to Manual/), said(/Overlay sheet: set Prototype › Overlay › Position to Bottom center/), said(/Overlay confirm: add Background dim/), said(/Overlay confirm: tick Close when clicking outside/)], [true, true, true, true, true, true]);
+  check("flow: no note says Screens or interactions are left behind", notes.filter((note) => /only the first Screen|not pushed$|Overlays? \(dialogs/.test(note) && /Screen|Overlay|interaction/.test(note)), []);
+  // The motion the reactions carry is the tokens' (tokens/source/motion.json).
+  const motion = JSON.parse(fs.readFileSync(new URL("../../tokens/source/motion.json", import.meta.url), "utf8")).Motion.tokens;
+  const token = (name) => motion.find((entry) => entry.name === name)?.value;
+  check("flow: durations and the curve are Motion/Duration/Fast·Base·Slow and Motion/Ease/Emphasized", [DURATION_MS.fast, DURATION_MS.base, DURATION_MS.slow, EASING], [token("Motion/Duration/Fast"), token("Motion/Duration/Base"), token("Motion/Duration/Slow"), token("Motion/Ease/Emphasized")]);
+  // Round trip: the reactions come back as the page's actions.
+  const back = (frameId) => pageFromFigma({ ...byId[frameId], id: "9:1" }, { mapping }).text;
+  ok("flow: pulled back, On click Navigate to keeps its animation", back("screen:home").includes('onClick={proto.navigate("details", { animation: "push", direction: "right", duration: "slow" })}'));
+  ok("flow: pulled back, the frame's After delay is the Screen's onDelay", /<Screen [^>]*onDelay=\{proto\.navigate\("details", \{ delay: 1500 \}\)\}/.test(back("screen:home")));
+  ok("flow: pulled back, While hovering and Instant", back("screen:home").includes('whileHovering={proto.open("tip")}') && back("screen:home").includes('onClick={proto.open("confirm", { animation: "instant" })}'));
+  ok("flow: pulled back, Back", back("screen:details").includes("onClick={proto.back()}"));
+  // A reaction a designer added to a frame that is no Studio frame (figma-pull names it "figma:<id>") is a note.
+  const foreign = JSON.parse(JSON.stringify(byId["screen:details"]));
+  find(foreign, (node) => node.reactions).reactions = [{ trigger: "ON_CLICK", action: "NAVIGATE", to: "figma:5:6" }];
+  const pulled = pageFromFigma({ ...foreign, id: "9:2" }, { mapping });
+  check("flow: a reaction to a frame that is no Studio Screen stays in Figma, with a note", [pulled.text.includes("proto."), pulled.notes.some((note) => /Navigate to: its frame is not a Studio Screen/.test(note))], [false, true]);
 }
 
 {
