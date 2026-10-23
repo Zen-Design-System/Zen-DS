@@ -689,6 +689,35 @@ in as a new page, or compared two ways.
   1512/390/320 0 errors, dark 0, behaviour 0, Build-QA PASS; contact sheets: the Donut total reads as the card's value,
   the heatmap rows line up after the 40px labels, the BarList values end on one column.
 
+## Session B · Studio Variables: new collections (tier M; BACKLOG P3, user via the progress session)
+
+- Spec docs/research/studio-variables-collections-spec-2026-10-23.md. Branch zen/feat/studio-variables-collections-20261023.
+- Build: token-outputs `sourceFiles(listing)` (the 11 first, then created files by name), a created collection must have
+  one mode and is declared on :root; build-tokens passes the folder; check-token-coverage wants the 11 + single-mode
+  extras. Output for today's 11 is byte-identical (headers name created collections only when there are some).
+- Studio: `createCollection` op (Figma's "Mode 1", name and file-slug clashes refused); variables-host lists the folder
+  + created drafts; drafts.mjs `created` drafts (empty base; Save writes the file, a file of that name appearing is a
+  conflict, undo to "" drops it); dev server resolves a missing token source for create / write / save; the window's
+  Collections menu ends with Create collection (name in place). Package: `createCollection` first; plugin 429e3f2.
+- Checked: variables selftest (14), drafts checks in studio selftest, host flow on a scratch copy (create → :root CSS →
+  save → package), tokens:check with a scratch file (1 mode passes, 2 refused; removed), native generator on a scratch
+  catalog (new ZenCollection key), plugin npm test, createVariableCollection + renameMode live in the Zen file
+  (throwaway, removed), tsc. E2E VA-08 written (VA-01 counts collections without the new item); runs in the gate.
+- Then (user's answers via the progress session, same evening): Create is a form (name, docs group, purpose; the file
+  keeps `layer` / `purpose`); tokens:build writes the made collections' manifest entries (`madeIn`, counts from the
+  file; the manifest's own style, byte-identical without one; tokens:check flags a stale one); ⋯ › Rename / Delete
+  collection for collections made here (the 11 refused: code reads them by name); a delete asks first while code reads
+  its variables (`confirm` → Dialog → `force`), an alias from another collection refuses it; drafts.mjs `deleted`
+  drafts (Save unlinks, ⌘Z writes back). Package: renameCollection first, deleteCollection last (plugin 235d6e8, the
+  name set and remove() live on a throwaway collection). Checked: variables
+  selftest, studio selftest (deleted drafts), host flow on a scratch copy (rename, refusals, confirm, force, alias),
+  tokens:build / tokens:check with a scratch file (entry written, then removed: the manifest byte-identical), tsc.
+  E2E VA-09.
+- Gate #254 (first run): VA-08 / VA-09 broken by the rows themselves ("E2E Collection" kebab-cases to e2-e-collection;
+  20 s was short) and by a real gap: ⌘Z after deleting an unsaved collection read GET /source as not-found and was
+  skipped. Fixed: a missing collection file reads as "" (undo / redo write it back); the rows take collectionFileOf and
+  60 s. variables group 9 / 9.
+
 ## Phone AppShell pulled back from Figma; ActionBar alone both ways (tier M; B's P3, user approved the split via the parent)
 
 Branch zen/feat/pull-phone-appshell-20261023, stacked on B's #253 (zen/feat/push-appshell-phone-bars-20261023: its
