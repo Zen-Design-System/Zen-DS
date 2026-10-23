@@ -2,7 +2,7 @@ import type { CSSProperties, Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartSummary, defaultFormat, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartPoint } from "./chartCore";
+import { ChartBlock, ChartSummary, defaultFormat, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartPaletteName, type ChartPoint } from "./chartCore";
 
 export interface FunnelChartProps {
   /** One stage per step, first contact first (`{ label, value }`): each bar is as wide as its share of the first stage.
@@ -21,6 +21,9 @@ export interface FunnelChartProps {
   initialIndex?: number;
   /** Open every bar from its centre on mount and when the data changes (default true; reduced motion fades). */
   animate?: boolean;
+  /** Figma Color: `primary` (default) draws the stages in Color Chart Sector/Primary and the last in Sector/Secondary;
+   *  `secondary` the stages in Sector/Secondary and the last in Sector/Primary. */
+  palette?: ChartPaletteName;
 }
 
 /**
@@ -29,9 +32,10 @@ export interface FunnelChartProps {
  * column, a 32px bar centred in its track as wide as its share of the first stage (Chart/Sector/Primary, the last stage
  * Chart/Sector/Secondary, Corner-Radius/Small), and the share at the end (Body/Small/Medium, right-aligned). Rows
  * Spacing/Gap/XSmall apart, columns Spacing/Gap/Small. Stages are pickable like horizontal bars: hover or ↑/↓ and
- * Home/End pick one (the others dim) and the summary reads its name, count and share. Figma Chart/Funnel-Chart 15486:2497.
+ * Home/End pick one (the others dim) and the summary reads its name, count and share. Figma Chart/Funnel-Chart 15968:130460
+ * (Color=Primary 15486:2497 · Secondary ↔ `palette`).
  */
-export function FunnelChart({ data, format = defaultFormat, "aria-label": ariaLabel, className, initialIndex, animate = true, ref }: FunnelChartProps) {
+export function FunnelChart({ data, format = defaultFormat, "aria-label": ariaLabel, className, initialIndex, animate = true, palette = "primary", ref }: FunnelChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const initial = initialIndex ?? null;
@@ -44,7 +48,7 @@ export function FunnelChart({ data, format = defaultFormat, "aria-label": ariaLa
     ? `${current.label}: ${format(current.value)}${active! > 0 ? `, ${t.chartShareOf(shareText(current.value), first.label)}` : ""} (${t.chartPoint(active! + 1, data.length)})`
     : data.map((d) => `${d.label} ${format(d.value)} (${shareText(d.value)})`).join(", ");
   return (
-    <ChartBlock ref={ref} kind="funnel">
+    <ChartBlock ref={ref} kind="funnel" palette={palette}>
       <div className={["zen-chart", "zen-chart--funnel", className].filter(Boolean).join(" ")} data-kind="funnel" data-animate={animate ? undefined : "false"}>
         <div className="zen-chart__funnel" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
           onKeyDown={onKeyDown} onBlur={() => setActive(initial)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(initial); }}

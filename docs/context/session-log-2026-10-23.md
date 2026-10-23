@@ -72,6 +72,26 @@ added since brought 177 className back. PR 1: classes with a Figma-equivalent pr
 - My slip: I stopped my isolated server with pattern kills (`pkill -f "tail -f /dev/null"`), which can hit another
   session's processes; memory updated (TaskStop or exact PIDs only).
 
+## AppShell session · Mobile Bar takes the canvas's twin (tier S; gate finding from the box-themes session's theme/navigation-surface, via Giám sát)
+
+Branch zen/fix/app-shell-top-bar-canvas-20261023 from main 25a86b67. AppShell gave the Bar's TopNavigation `alt`
+(Surface/Alt) on every canvas. Checked against skills/zen-figma-design/references/screen-rules.md §1 (Theme-01…08):
+Canvas/Default ↔ Surface/Alt (Type=Alt), Canvas/Alt ↔ Surface/Default (Type=Default), Canvas/Flat ↔ Surface/Flat (no
+Top-Navigation type; Figma screens override by variable).
+- AppShell.tsx: `BAR_TYPE` by canvas (default → alt, alt → default, flat → default); `TOP_NAV_TYPE` keeps band,
+  band-sheet and media. app-shell.css: on `canvas="flat"` a Default bar's `--zen-top-nav-fill` is Surface/Flat.
+  `mobileTop` JSDoc updated; guidelines, api, ai-ui catalog and the platform api regenerated.
+- Test (tests/interaction/app-shell.test.tsx): for each canvas the bar's type and that its fill equals the shell's
+  background.
+- Not changed: BottomNavigation stays Surface/Default (Figma's Bottom-Navigation has no surface choice; BACKLOG P2
+  "Navigation surfaces missing"). Found, owner B: figma-push draws a mobile AppShell's TopNavigation with its own
+  `type` (default when unset), not the Bar type AppShell picks, so on the default canvas Figma gets Default where code
+  draws Alt (told Giám sát / B).
+- Slot (after the BadgeStatus PR #234): app-shell.test.tsx 41/41; gate (app-shell, templates, accordion, action-bar,
+  sidebar) PASS, vitest 81/81, with one new warning: deadclick on app-shell@1512 B2 "Send a like". Owner fix:
+  ChatComposer's default quick action had no onClick (dead wherever an app keeps the default); it now sends "👍" through
+  onSend, as the chat page's own quickAction does. Test in chat.test.tsx (both devices); docs regenerated.
+
 ## AppShell session · Workflow steps to BadgeStatus (tier M, multi-file; BACKLOG P2, the user's pick through Giám sát)
 
 Branch zen/fix/workflow-badge-status-20261023 from main 4b96bbb8. User's call (this session): project statuses move
@@ -158,6 +178,36 @@ Branch `zen/fix/studio-parity-leftovers-20261023`; both BACKLOG lines archived.
 - Gate (01:45–02:14, isolated, the 8 files): static ✓, Studio E2E 338 / 338 (3 shards), Build-QA PASS. FW rows run
   apart (the gate's matrix has no FW group): FW-220 first timed out (a ⇧⌘-click on the second group's empty spot added
   nothing); it now ⇧-clicks "Group 2" in Layers, as B-33 does: FW-119 + FW-220 2 / 2, FW-11…18 8 / 8.
+
+## Chart Color phase 2: `palette` in code + Studio (tier M; user: "xử hết backlog", then approved the Figma review and the name `palette`)
+
+Branch claude/interesting-yonath-0da9e0 (worktree agitated-leakey-b2b41c). BACKLOG P1 "Chart Color = Primary | Secondary, phase 2".
+- Figma review: the 10 sets read live, Primary vs Secondary side by side (12 pairs incl. Bar horizontal and Area
+  stacked). Every pair swaps the Color Chart Sector styles cleanly (style tally per set: Primary ↔ Secondary counts mirror).
+  A twin diff (55 pairs: clip, size, position, layout, radius, stroke, effects, text) found two drifts made after the
+  10-17 build, both in Secondary: Bar Horizontal 4-Sectors had Plot clipping on (axis "0 h" / "3,000 h" cut) with Bars
+  164 instead of 144; Grouped-Bar 4-Sectors was 434 tall instead of its Primary's 370. User: "Duyệt, sửa 2 chỗ" → both
+  now match their Primary; re-diff 0 differences, no overlaps in the sets.
+- Code: `palette?: "primary" | "secondary"` on the ten charts (type `ChartPaletteName`). chartCore `sectorAt` /
+  `colourAt` / `fadeAt` swap palette slots 0 ↔ 1 (series 3–7 and an item's own `color` stay; a single or stacked area
+  takes the Neutral fade pair); ChartBlock writes `data-palette`, and chart.css marks read `--zen-chart-lead` /
+  `--zen-chart-second` (Bar's bars and active bar, Gauge value/target, Funnel stages/last, Bullet actual/target, Combo
+  bars/line/dots). BarList keeps Sector/Primary (no Color in Figma). BarChart `color` / `activeColor` still win.
+- Studio (`tools/studio/figma-charts.mjs`): push writes Color on the ten sets and swaps the drawn Stack-Bar segment and
+  Donut slice styles; pull reads Color=Secondary back as `palette="secondary"`. CHART_SETS Gauge/Funnel/Bullet now hold
+  their set ids (15968:130382 / :130460 / :130554; the old ids are the Color=Primary variants); library-keys.json has the
+  three set keys (in place of the old component entries; read live, read-only). The native pack already had the sets
+  (merged 10-21). A key imports in other files only once the library is published with these sets.
+- Docs and checks: chart guideline (Color row, use line, do line, Figma ids), harness `chart/palette-by-hand` (warn: the
+  sector colours set by hand on color/activeColor/series) with bad/good fixtures, a Do/Don't pair, platform example
+  "Led by the neutral colour" (Bar, Gauge, Donut), a story; Figma descriptions of the ten sets gained a "Color:" line
+  (decoded first; Stack-Bar's stacked `&amp;lt;` escape fixed). No chart contract suite exists (BACKLOG P3), and the
+  component-properties contract still has no chart sets (BACKLOG P2 inspector item, Color added to it).
+- Gate (isolated, chart + 23 files): static ✓, Vitest 79 / 79, audit 1512 / 390 / 320 + dark + behaviour 0 new, Studio
+  E2E 338 / 338 (3 shards), Build-QA PASS. Contact sheets: the 390 sheet showed "5,900 of 7,564 h" leaving the unit "h"
+  alone on its line (in the new example and the older "Utilisation against a target"): the chart page's `hours()` now
+  puts a no-break space before "h". Re-gate of the chart page PASS; the unit stays with its number.
+
 ## Picture drops on one row or one item (tier M; BACKLOG P1 ×2, user "dọn hết trước khi qua phase mới")
 
 Branch claude/modest-gauss-20ef1e. BACKLOG "a row's picture through a helper" and "pictures inside list props" (both
