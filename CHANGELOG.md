@@ -26,6 +26,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   `table/reference-in-sheet` (code or keys in a Table's cells), Studio palette entry. Studio push / pull: a SheetTable
   goes to Figma as Table/Cell/Header and Table/Sheet/Cell rows (Code, Key chips or a Text-Cell in each cell) and comes
   back as a SheetTable with declarative columns.
+- Zen Studio → Figma: a phone AppShell is Figma's Pattern/AppShell/Mobile (2026-10-23). Its TopNavigation takes the
+  Bar type the canvas gives it (default → Alt, alt → Default, flat → Default on Surface/Flat), a band's bar
+  Transparent (on an accent band Transparent-On-Color) and the media bar Liquid-Overaly; its tabs, ActionBar, band
+  colour, hero or backdrop and the page sit in the pattern's own layers. A Screen with bars of its own still draws
+  those. A BottomNavigation's tabs now go to Figma as they show (selected, labels, dot, the Default bar's action) and
+  come back the same.
 - Zen Studio → Figma: Line, Bar (vertical and horizontal), Area, Grouped-Bar and Combo charts carry the page's own X
   labels, six Y labels (Combo's line axis too) and active Tooltip in the page's number format ("$128.4K", "€2.4K"),
   instead of Figma's sample text; their bars and lines keep Figma's sample shapes. A Line chart moves its selected period

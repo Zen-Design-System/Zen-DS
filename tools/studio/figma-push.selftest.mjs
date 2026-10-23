@@ -2542,26 +2542,82 @@ export default function Page() {
 // An AppShell's own phone bars (topNavigation / bottomNavigation) are not drawn (the runtime shows the Screen's): the
 // push names them, for a root AppShell on a phone Screen and for one inside a page (BACKLOG P3, 2026-10-23).
 {
-  const shellPage = (inner) => `// @zen-page {"format":1,"title":"Shell bars"}
+  const shellPage = (inner, chrome = "") => `// @zen-page {"format":1,"title":"Shell bars"}
 import { Board, Screen } from "@zen-ds/react/builder";
-import { AppShell, BottomNavigation, Box, Text, TopNavigation } from "@zen-ds/react";
+import { ActionBar, AppShell, BottomNavigation, Box, Icon, Text, TopNavigation } from "@zen-ds/react";
 
 export const mock = {};
 
 export default function Page() {
   return (
     <Board>
-      <Screen id="screen-1" title="Shell bars" device="phone">
+      <Screen id="screen-1" title="Shell bars" device="phone"${chrome}>
         ${inner}
       </Screen>
     </Board>
   );
 }
 `;
-  const shell = '<AppShell topNavigation={<TopNavigation title="Inbox" />} bottomNavigation={<BottomNavigation items={[{ id: "home", label: "Home", icon: "icon-home-02-line" }]} selected="home" />}><Text>Body</Text></AppShell>';
-  const barNotes = (notes) => notes.filter((note) => /^AppShell (topNavigation|bottomNavigation): drawn only as the Screen's own bars/.test(note)).length;
-  check("a root AppShell's phone bars are named, not drawn", barNotes(push(shellPage(shell)).notes), 2);
-  check("a page's AppShell's phone bars are named too", barNotes(push(shellPage(`<Box>${shell}</Box>`)).notes), 2);
+  // A phone AppShell is Figma's Pattern/AppShell/Mobile (user 2026-10-23, BACKLOG "AppShell phone bars in Figma"): its
+  // TopNavigation, tabs or ActionBar and the page in the pattern's layers for its Top, the bar's type by the canvas.
+  const tabs = 'bottomNavigation={<BottomNavigation items={[{ id: "home", label: "Home", icon: "icon-home-02-line", selectedIcon: "icon-home-02-solid" }, { id: "me", label: "Me", icon: "icon-user-01-line", dot: true }]} value="home" showLabels action={{ icon: "icon-plus-line", label: "New" }} />}';
+  const shellOf = (attrs = "", bars = `topNavigation={<TopNavigation title="Inbox" />} ${tabs}`) => `<AppShell ${attrs} ${bars}><Text>Body</Text></AppShell>`;
+  const pattern = (page) => { const { frame, notes } = push(page); return { app: find(frame, (node) => node.set?.name === "Pattern/AppShell/Mobile"), frame, notes }; };
+  const at = (app, path) => app?.nested?.find((entry) => entry.path === path);
+  {
+    const { app, frame, notes } = pattern(shellPage(shellOf()));
+    check("phone AppShell: Pattern/AppShell/Mobile Phone · Bar · Tab-Bar, filling the Screen", [frame.children[0] === app, app?.props, app?.fillW], [true, { Device: "Phone", Top: "Bar", Bottom: "Tab-Bar", "Top-Navigation": true, "Floating-Actions": false }, true]);
+    check("phone AppShell: the bar Top-Navigation/Mobile Alt on the default canvas, the tabs Bottom-Navigation/Mobile/Default", [at(app, "Top-Navigation")?.set?.name, at(app, "Top-Navigation")?.props.Type, at(app, "Bottom-Navigation")?.set?.name], ["Top-Navigation/Mobile", "Alt", "Bottom-Navigation/Mobile/Default"]);
+    const navItems = app?.slots.find((slot) => slot.name === "Nav-Items");
+    check("phone AppShell: the tabs in Nav-Items as BottomNavigation.tsx draws them, its action the last tab (Type=Action)", [navItems?.within, navItems?.children.map((tab) => [tab.set.name, tab.props.Type, tab.props.Select, tab.props.Label, tab.props["Label-Text"], tab.props["Icon-Src"], tab.props.Noti])], [["Bottom-Navigation"], [
+      [".Primitives/Bottom-Navigation/Items/Default", "Default", "Yes", true, "Home", "icon-home-02-solid", false],
+      [".Primitives/Bottom-Navigation/Items/Default", "Default", "No", true, "Me", "icon-user-01-line", true],
+      [".Primitives/Bottom-Navigation/Items/Default", "Action", "No", false, undefined, "icon-plus-line", false]]]);
+    const content = app?.slots.find((slot) => slot.name === "Content");
+    check("phone AppShell: the page in Body's Content slot, hugging; no note", [content?.within, content?.hugH, content?.children.map((node) => node.characters), notes], [["Body"], true, ["Body"], []]);
+  }
+  check("phone AppShell inside the page draws the pattern too", Boolean(pattern(shellPage(`<Box>${shellOf()}</Box>`)).app), true);
+  {
+    const alt = pattern(shellPage(shellOf('canvas="alt"'))).app;
+    const flat = pattern(shellPage(shellOf('canvas="flat"'))).app;
+    check("phone AppShell canvas alt: Default bar on Canvas/Alt", [at(alt, "Top-Navigation")?.props.Type, alt?.fill, alt?.edits], ["Default", "Background/Canvas/Alt", []]);
+    check("phone AppShell canvas flat: Default bar repainted Surface/Flat on Canvas/Flat (app-shell.css)", [at(flat, "Top-Navigation")?.props.Type, flat?.fill, flat?.edits], ["Default", "Background/Canvas/Flat", [{ layer: ["Top-Navigation"], fill: "Background/Surface/Flat" }]]);
+    check("phone AppShell: a TopNavigation's own type wins", at(pattern(shellPage(shellOf("", '<TopNavigation slot="topNavigation" />').replace("<TopNavigation slot=\"topNavigation\" />", "").replace("<AppShell  ", '<AppShell topNavigation={<TopNavigation title="Inbox" type="compact" />} '))).app, "Top-Navigation")?.props.Type, "Compact");
+  }
+  {
+    const band = pattern(shellPage(shellOf('mobileTop="band" band="accent"'))).app;
+    check("phone AppShell band accent: Top=Band, the bar in Band Transparent-On-Color, Band painted Accent/Solid, the page in Body", [band?.props.Top, at(band, "Band/Top-Navigation")?.props.Type, band?.edits.find((edit) => edit.fill), band?.slots.find((slot) => slot.name === "Content")?.within], ["Band", "Transparent-On-Color", { layer: ["Band"], fill: "Background/Accent/Solid/Default" }, ["Body"]]);
+    check("phone AppShell band without a hero: the Hero slot emptied and hidden (Figma's sample Placeholder goes, the band hugs its bar)", [band?.slots.find((slot) => slot.name === "Hero"), band?.edits.find((edit) => edit.layer.at(-1) === "Hero")], [{ name: "Hero", within: ["Band"], children: [] }, { layer: ["Band", "Hero"], visible: false }]);
+    const sheet = pattern(shellPage(shellOf('mobileTop="band-sheet"'))).app;
+    check("phone AppShell band-sheet: the bar in Stage Transparent, the page in Stage › Sheet, no canvas fill", [sheet?.props.Top, at(sheet, "Stage/Top-Navigation")?.props.Type, sheet?.slots.find((slot) => slot.name === "Content")?.within, sheet?.fill], ["Band-Sheet", "Transparent", ["Stage", "Sheet"], undefined]);
+    const media = pattern(shellPage(shellOf('mobileTop="media" backdrop={<Text>Photo</Text>}'))).app;
+    check("phone AppShell media: the bar Liquid-Overaly, the backdrop in Stage's Backdrop slot, shown", [media?.props.Top, at(media, "Stage/Top-Navigation")?.props.Type, media?.slots.find((slot) => slot.name === "Backdrop")?.within, media?.edits], ["Media", "Liquid-Overaly", ["Stage"], [{ layer: ["Stage", "Backdrop"], visible: true }]]);
+  }
+  {
+    const actions = pattern(shellPage(shellOf("", 'actionBar={<ActionBar direction="horizontal" primaryAction={{ label: "Book", startIcon: <Icon name="icon-calendar-line" decorative /> }} secondaryAction={{ label: "Later" }} />}'))).app;
+    check("phone AppShell actionBar: Bottom=Actions; Action-Bar Default, Actions Dual Horizontal, Tertiary then Primary with its icon", [actions?.props.Bottom, actions?.props["Top-Navigation"], actions?.nested.filter((entry) => entry.path.startsWith("Action-Bar")).map((entry) => [entry.path, entry.props, entry.text])], ["Actions", false, [
+      ["Action-Bar", { Type: "Default" }, undefined],
+      ["Action-Bar/Actions", { Button: "Dual", Direction: "Horizontal" }, undefined],
+      ["Action-Bar/Actions/Button[0]", {}, "Later"],
+      ["Action-Bar/Actions/Button[1]", { "Leading-Icon": true, "Leading-Icon-Src": "icon-calendar-line" }, "Book"]]]);
+    const glass = pattern(shellPage(shellOf("", '<BottomNavigation type="floating-glass" theme="accent" items={[{ id: "home", label: "Home", icon: "icon-home-02-line" }]} value="home" action={{ icon: "icon-plus-line", label: "New" }} />'.replace("<BottomNavigation", "bottomNavigation={<BottomNavigation").replace("/>", "/>}")))).app;
+    check("phone AppShell floating-glass: Bottom=Floating, CTA on with the action's glyph, the tab Accent", [glass?.props.Bottom, at(glass, "Bottom-Navigation")?.props.CTA, at(glass, "Bottom-Navigation/Action")?.swapIcon, glass?.slots.find((slot) => slot.name === "Nav-Items")?.children[0]?.props.Theme], ["Floating", true, "icon-plus-line", "Accent"]);
+  }
+  {
+    // The Screen's own bars win (as the Studio shows them): the root AppShell draws its page only and names its bars.
+    const { frame, notes } = push(shellPage(shellOf(), ' topNavigation={<TopNavigation title="Screen" />}'));
+    check("phone Screen with its own bars: no pattern, the AppShell's bars named", [Boolean(find(frame, (node) => node.set?.name === "Pattern/AppShell/Mobile")), notes.filter((note) => note.endsWith("the Screen's own bars draw instead (as the Studio shows them)")).length], [false, 2]);
+  }
+  check("a desktop AppShell keeps the master layout", Boolean(pattern(shellPage(shellOf()).replace('device="phone"', 'device="desktop"')).app), false);
+  {
+    // The tabs come back as they went (figma-pull bottomNavLook): labels kept while hidden, value, showLabels, dot, action.
+    // (Figma has one icon per tab: a selectedIcon comes back as the selected tab's icon.)
+    const bar = '<BottomNavigation items={[{ id: "home", label: "Home", icon: "icon-home-02-line" }, { id: "alerts", label: "Alerts", icon: "icon-bell-01-line", dot: true }]} value="home" showLabels action={{ icon: "icon-plus-line", label: "New" }} />';
+    const glass = '<BottomNavigation type="floating-glass" items={[{ id: "home", label: "Home", icon: "icon-home-02-line" }]} value="home" theme="accent" selection="solid" />';
+    const back = (element) => pageFromFigma(push(shellPage("<Text>Body</Text>", ` bottomNavigation={${element}}`)).frame, { mapping }).text.match(/<BottomNavigation\b[^]*?\/>/)?.[0];
+    check("Screen bottomNavigation round trip: items, value, showLabels, dot, the Default bar's action", back(bar), bar);
+    check("Screen bottomNavigation round trip: floating-glass, accent, selection solid", back(glass), glass);
+  }
 }
 
 // sticky (user 2026-10-23 "Bottom = Fixed, Top = Sticky"): bottom is Figma's Fixed (absolute in the auto layout, pinned

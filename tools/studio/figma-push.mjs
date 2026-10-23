@@ -80,6 +80,10 @@ const SETS = {
   // Data items drawn as their primitive (Term / Value, a tab's Text, a step's title and number).
   descriptionItem: { id: "14859:78890", name: ".Primitives/Description-List/Item" },
   tabItem: { id: "1576:2090", name: "Primitives/Tab-Item" },
+  // A Bottom-Navigation's tab, one set per bar (Default · Floating · Floating-Glass).
+  navItem: { id: "4060:26507", name: ".Primitives/Bottom-Navigation/Items/Default" },
+  navItemFloating: { id: "9017:25813", name: ".Primitives/Bottom-Navigation/Items/Floating" },
+  navItemGlass: { id: "9018:43881", name: ".Primitives/Bottom-Navigation/Items/Floating-Glass" },
   stepVertical: { id: "4034:11389", name: ".Primitives/Stepper/Step-Vertical" },
   // One colour swatch (its own fill is the colour); ColorSelector is a row of them.
   colorSwatch: { id: "373:97252", name: "Color-Selector" },
@@ -158,7 +162,7 @@ const FRAMED_SLOT_PROPS = { ListBox: new Set(["header", "footer"]), Sidebar: new
  *  Title-Highlight has Custom, Icon-Highlight no Custom-Slot at all). */
 const SLOT_SHOWN_BY = { MetricCard: { custom: "Custom" }, Metric: { custom: "Custom" } };
 /** Props the push draws in the instance's own layers (metricParts, listItemParts), not in a slot. */
-const DRAWN_PARTS = { AppShellHeader: new Set(["leading", "center", "actions"]), Card: new Set(["subAction"]), MetricCard: new Set(["trend", "action"]), Metric: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), UploaderFileItem: new Set(["file"]), ChatMessage: new Set(["author", "reactions", "seenBy"]), DatePickerSheet: new Set(["range", "defaultRange", "title", "open", "isOpen"]) };
+const DRAWN_PARTS = { AppShellHeader: new Set(["leading", "center", "actions"]), Card: new Set(["subAction"]), MetricCard: new Set(["trend", "action"]), Metric: new Set(["trend", "action"]), ListItem: new Set(["leading", "trailing"]), InlineMessage: new Set(["action"]), BottomNavigation: new Set(["action"]), UploaderFileItem: new Set(["file"]), ChatMessage: new Set(["author", "reactions", "seenBy"]), DatePickerSheet: new Set(["range", "defaultRange", "title", "open", "isOpen"]) };
 /** A layer's corner smoothing as Figma's cornerSmoothing (0–1), from the code's % (Box, Stack, Grid, Shape); 0 is none. */
 const smoothingOf = (code) => (typeof code.cornerSmoothing === "number" && code.cornerSmoothing > 0 ? Math.round(Math.min(100, code.cornerSmoothing)) / 100 : 0);
 /** What the page holds but does not show: screen-reader text. */
@@ -398,10 +402,24 @@ const frameModes = (value) => {
 };
 /** The layers that take `sticky` (Layout/position.ts): Figma's Scroll behavior on a frame or a shape. */
 const STICKY_FRAMES = new Set(["Stack", "Grid", "Box", "Shape"]);
-/** An AppShell's phone bars (AppShell.tsx mobile Top / Bottom): figma-push draws the Screen's own bars instead (BACKLOG
- *  P3 "AppShell phone bars in Figma"), so a page's AppShell ones only get a note. */
+/** An AppShell's phone bars (AppShell.tsx mobile Top / Bottom): a phone Screen with bars of its own draws those instead
+ *  and names the AppShell's; a desktop one does not show them. */
 const APP_SHELL_MOBILE_BARS = ["topNavigation", "bottomNavigation"];
-const MOBILE_BARS_NOTE = "drawn only as the Screen's own bars (set them in the Screen section)";
+const MOBILE_BARS_NOTE = "the Screen's own bars draw instead (as the Studio shows them)";
+const DESKTOP_BARS_NOTE = "a phone part: a phone Screen draws it (Pattern/AppShell/Mobile)";
+/** An AppShell's phone parts (AppShell.tsx mobile structure): any of them draws Figma's Pattern/AppShell/Mobile. */
+const APP_SHELL_PHONE_PARTS = ["topNavigation", "bottomNavigation", "actionBar", "hero", "backdrop"];
+/** Figma's Pattern/AppShell/Mobile (◇ Master-Layout 16261:136204, read 2026-10-23): Device × Top × Bottom. */
+const MOBILE_SHELL_SET = { id: "16261:136204", name: "Pattern/AppShell/Mobile" };
+/** Each Top variant's layers: where its Top-Navigation, Content, Hero and Backdrop sit (read from the set, 2026-10-23). */
+const MOBILE_SHELL_TOP = {
+  bar: { option: "Bar", top: ["Top-Navigation"], content: ["Body"] },
+  band: { option: "Band", top: ["Band", "Top-Navigation"], content: ["Body"], hero: ["Band"] },
+  "band-sheet": { option: "Band-Sheet", top: ["Stage", "Top-Navigation"], content: ["Stage", "Sheet"], hero: ["Stage"] },
+  media: { option: "Media", top: ["Stage", "Top-Navigation"], content: ["Stage", "Sheet"], backdrop: ["Stage"] },
+};
+/** The Bar's TopNavigation by the canvas (AppShell.tsx BAR_TYPE: the canvas's twin surface; Flat is Default repainted). */
+const MOBILE_BAR_TYPE = { default: "alt", alt: "default", flat: "default" };
 
 function entryFor(name, code, byCode, mapping) {
   const entries = byCode.get(name);
@@ -481,6 +499,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   const screen = doc.board.children.find((child) => child.kind === "element" && child.name === "Screen");
   if (!screen) return { frame: null, notes: ["the page has no Screen"] };
   const device = literalOf(screen.props.device) ?? "desktop";
+  // The Screen's layout: a phone's (and a tablet's in its phone layout) AppShell draws Pattern/AppShell/Mobile.
+  const phoneLayout = screenLayout(device, literalOf(screen.props.layout)) === "mobile";
   const frameWidth = DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop;
   const boardElements = doc.board.children.filter((child) => child.kind === "element");
   if (boardElements.filter((child) => child.name === "Screen").length > 1) notes.push("only the first Screen is pushed");
@@ -924,13 +944,15 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
    * other patterns' panes and progress are not drawn yet (docs/research/appshell-rebuild-2026-10-19.md, phase 2b).
    */
   function appShellNode(element, code, id, parent = null) {
+    // On a phone layout, an AppShell with phone parts is Figma's Pattern/AppShell/Mobile (user 2026-10-23).
+    if (phoneLayout && APP_SHELL_PHONE_PARTS.some((prop) => layerOf(element, prop))) return mobileShellNode(element, code, id);
     const sidebar = layerOf(element, "sidebar");
     const overrides = plain(element.props.overrides) ?? {};
     // Header/AppShell (AppShellHeader.tsx): the top row's leading · center · actions, the Main row and the section rows.
     const header = layerOf(element, "header")?.name === "AppShellHeader" ? layerOf(element, "header") : null;
     const hasTopBar = Boolean(header) && ["leading", "center", "actions"].some((prop) => layerOf(header, prop));
     for (const prop of ["leadingPane", "trailingPane", "progress"]) if (layerOf(element, prop)) notes.push(`AppShell ${prop}: not drawn in Figma yet (the Sidebar pattern only)`);
-    for (const prop of APP_SHELL_MOBILE_BARS) if (layerOf(element, prop)) notes.push(`AppShell ${prop}: ${MOBILE_BARS_NOTE}`);
+    for (const prop of APP_SHELL_MOBILE_BARS) if (layerOf(element, prop)) notes.push(`AppShell ${prop}: ${DESKTOP_BARS_NOTE}`);
     // The collapse toggle (AppShell.tsx, collapse="header"): a Zen Sidebar that is not the workspace rail, with a top bar.
     // Header/AppShell draws it as its Collapse Button.
     const collapsed = literalOf(sidebar?.props.collapsed) ?? code.defaultSidebarCollapsed ?? code.sidebarCollapsed ?? false;
@@ -972,6 +994,100 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     const row = [look ? sidebarPatternNode(sidebarNode, look) : sidebarNode, column, aside].filter(Boolean).map((node) => (node === column ? node : { ...node, fillH: true }));
     if (!banner.length) return shellFrame("AppShell", "HORIZONTAL", row, { ...(id ? { id } : {}), ...canvas });
     return shellFrame("AppShell", "VERTICAL", [...filling(banner), shellFrame("Frame", "HORIZONTAL", row, { fillW: true })], { ...(id ? { id } : {}), ...canvas });
+  }
+
+  /**
+   * A phone AppShell as Figma's Pattern/AppShell/Mobile (16261:136204, user 2026-10-23): its Top variant by `mobileTop`,
+   * its Bottom by the bar it pins (a BottomNavigation's Tab-Bar or Floating, an ActionBar's Actions, None), the
+   * TopNavigation at the variant's place with Figma's type for that Top unless it sets its own (a Bar takes the
+   * canvas's twin: Alt on Canvas/Default, Default on Alt, Default repainted Surface/Flat on Flat; a Band Transparent, or
+   * Transparent-On-Color on an accent band; Media Liquid-Overlay), the page in the Content slot, `hero` and `backdrop` in
+   * theirs. Floating actions have no slot in the pattern yet: noted.
+   */
+  function mobileShellNode(element, code, id) {
+    const topKind = MOBILE_SHELL_TOP[code.mobileTop] ? code.mobileTop : "bar";
+    const place = MOBILE_SHELL_TOP[topKind];
+    const canvasKind = ["alt", "flat"].includes(code.canvas) ? code.canvas : "default";
+    const nested = [], slots = [], edits = [];
+    const list = (value) => (Array.isArray(value) ? value : value ? [value] : []);
+    const inside = (spec, layers) => {
+      const own = Object.fromEntries(["set", "text", "texts", "textList", "swapIcon"].filter((field) => spec[field] !== undefined).map((field) => [field, spec[field]]));
+      const path = layers.join("/");
+      nested.push({ path, props: spec.props ?? {}, ...own });
+      for (const entry of spec.nested ?? []) nested.push({ ...entry, path: `${path}/${entry.path}` });
+      for (const slot of spec.slots ?? []) slots.push({ ...slot, within: [...layers, ...list(slot.within)] });
+      for (const edit of spec.edits ?? []) edits.push({ ...edit, layer: [...layers, ...list(edit.layer)] });
+      for (const name of spec.hide ?? []) edits.push({ layer: [...layers, name], visible: false });
+    };
+    const stretch = { direction: "column", stretch: true, width: frameWidth };
+    const top = layerOf(element, "topNavigation");
+    if (top?.name === "TopNavigation") {
+      const own = literalOf(top.props.type);
+      const type = own ?? (topKind === "bar" ? MOBILE_BAR_TYPE[canvasKind] : topKind === "media" ? "liquid-overlay" : code.band === "accent" ? "transparent-on-color" : "transparent");
+      const node = convert({ ...top, props: { ...top.props, type: literal(type) } }, stretch);
+      if (node?.type === "INSTANCE") inside(node, place.top);
+      // Flat: Figma has no Flat bar; the Default bar is repainted Surface/Flat, as app-shell.css does.
+      if (type === "default" && topKind === "bar" && canvasKind === "flat") edits.push({ layer: place.top, fill: "Background/Surface/Flat" });
+    } else if (top) notes.push(`AppShell topNavigation <${top.name}>: the phone pattern holds a TopNavigation`);
+    const bottom = layerOf(element, "bottomNavigation");
+    const actions = layerOf(element, "actionBar");
+    let bottomKind = "None";
+    if (actions?.name === "ActionBar") {
+      actionBarParts(actions, nested);
+      bottomKind = "Actions";
+    } else if (actions) notes.push(`AppShell actionBar <${actions.name}>: the phone pattern holds an ActionBar`);
+    else if (bottom) {
+      const node = convert(bottom, stretch);
+      if (node?.type === "INSTANCE") { bottomKind = /Floating/.test(node.set?.name ?? "") ? "Floating" : "Tab-Bar"; inside(node, ["Bottom-Navigation"]); }
+    }
+    const page = element.children.filter((child) => child.kind === "element").map((child) => convert(child, stretch)).filter(Boolean).map((node) => (node.absolute ? node : { ...node, fillW: true }));
+    if (page.length) slots.push({ name: "Content", within: place.content, hugH: true, children: page });
+    for (const prop of ["hero", "backdrop"]) {
+      const layers = layersOf(element, prop);
+      const name = prop === "hero" ? "Hero" : "Backdrop";
+      if (layers.length && !place[prop]) { notes.push(`AppShell ${prop}: the ${place.option} top has no ${prop} (mobileTop ${prop === "hero" ? "band or band-sheet" : "media"})`); continue; }
+      if (!place[prop]) continue;
+      // Shown with the page's layers; without any it is hidden and emptied (AppShell.tsx draws nothing there; Figma's
+      // slot holds a sample Placeholder and keeps its height when only emptied).
+      slots.push({ name, within: place[prop], children: layers.map((layer) => convert(layer, stretch)).filter(Boolean) });
+      edits.push({ layer: [...place[prop], name], visible: layers.length > 0 });
+    }
+    if (layerOf(element, "floatingActions")) notes.push("AppShell floatingActions: the phone pattern has no slot for them yet");
+    // The band's colour (app-shell.css data-band; Figma's Band and Band-Sheet Stage start Support/Brand/Subtle).
+    const band = { pale: "Background/Support/Brand/Pale", soft: "Background/Support/Brand/Soft", accent: "Background/Accent/Solid/Default" }[code.band];
+    if (band && (topKind === "band" || topKind === "band-sheet")) edits.push({ layer: [topKind === "band" ? "Band" : "Stage"], fill: band });
+    // The canvas under a Bar or Band top (Band-Sheet and Media start on Surface/Default, the sheet's colour).
+    const fill = topKind === "bar" || topKind === "band" ? { alt: "Background/Canvas/Alt", flat: "Background/Canvas/Flat" }[canvasKind] : undefined;
+    return {
+      type: "INSTANCE", ...(id ? { id } : {}), name: "AppShell", set: MOBILE_SHELL_SET,
+      props: { Device: device === "tablet" ? "Tablet" : "Phone", Top: place.option, Bottom: bottomKind, "Top-Navigation": Boolean(top), "Floating-Actions": false },
+      ...(nested.length ? { nested } : {}), slots, edits, ...(fill ? { fill } : {}), fillW: true,
+    };
+  }
+
+  /**
+   * An AppShell's ActionBar as the phone pattern's Action-Bar (Action-Bar/Mobile, read 2026-10-23): Type Glass for the
+   * glass surface, else Default; its Actions (.Primitives/Bottom-Sheet/Actions) Dual with a secondaryAction, else Single,
+   * in its direction; the Buttons in Figma's order (Horizontal: Tertiary then Primary; Vertical: Primary first), each with
+   * its label, level and Icon start icon. A summary or custom buttons have no place there: a note.
+   */
+  function actionBarParts(bar, nested) {
+    const code = codeProps(bar);
+    const action = (prop) => (bar.props[prop]?.kind === "object" ? bar.props[prop].fields : null);
+    const primary = action("primaryAction"), secondary = action("secondaryAction");
+    const vertical = code.direction !== "horizontal";
+    nested.push({ path: "Action-Bar", props: { Type: code.surface === "glass" ? "Glass" : "Default" } });
+    nested.push({ path: "Action-Bar/Actions", props: { Button: secondary ? "Dual" : "Single", Direction: vertical ? "Vertical" : "Horizontal" } });
+    const order = secondary ? (vertical ? [primary, secondary] : [secondary, primary]) : [primary];
+    order.forEach((fields, index) => {
+      if (!fields) return;
+      const label = textValue(plain(fields.label));
+      const level = literalOf(fields.level);
+      const icon = fields.startIcon?.kind === "element" && fields.startIcon.node.name === "Icon" ? literalOf(fields.startIcon.node.props.name) : null;
+      nested.push({ path: `Action-Bar/Actions/Button[${index}]`, props: { ...(level ? { Level: level[0].toUpperCase() + level.slice(1) } : {}), ...(icon ? { "Leading-Icon": true, "Leading-Icon-Src": icon } : {}) }, ...(label ? { text: label } : {}) });
+    });
+    if (bar.props.summary || bar.children.some((child) => child.kind === "element")) notes.push("AppShell actionBar: the phone pattern's Action-Bar holds its two buttons only (summary and custom buttons not drawn)");
+    if (code.surface === "alt" || code.surface === "none") notes.push(`AppShell actionBar surface="${code.surface}": drawn as the Default Action-Bar`);
   }
 
   /**
@@ -1750,6 +1866,27 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
         // Its count in the Badge-Counter Badge=Yes shows.
         ...(textValue(item?.badge) ? { nested: [{ path: "Badge-Counter", text: textValue(item.badge) }] } : {}) }));
     } },
+    // A tab as BottomNavigation.tsx draws it: `value`'s tab selected with its selectedIcon, the label under showLabels, the
+    // dot as Noti. A floating bar's tabs take the selection's Theme (Floating: Surface, Floating-Glass: Subtle = Neutral);
+    // the Default bar's action is its last tab, Type=Action.
+    BottomNavigation: { items: (list, code, raw, element) => {
+      const type = code.type ?? "default";
+      const set = type === "floating" ? SETS.navItemFloating : type === "floating-glass" ? SETS.navItemGlass : SETS.navItem;
+      const hue = code.theme === "accent" ? "Accent" : "Neutral";
+      const selection = code.selection ?? (type === "floating-glass" ? "subtle" : "surface");
+      const theme = type === "default" ? hue : selection === "solid" ? `${hue}-Solid` : selection === "surface" ? `${hue}-Surface` : hue;
+      const tab = (item, selected) => {
+        const label = textValue(item?.label);
+        const icon = selected && typeof item?.selectedIcon === "string" ? item.selectedIcon : typeof item?.icon === "string" ? item.icon : null;
+        return { type: "INSTANCE", name: label || "Tab", set,
+          props: { Type: "Default", Select: selected ? "Yes" : "No", Theme: theme, Label: code.showLabels === true, ...(label ? { "Label-Text": label } : {}), ...(icon ? { "Icon-Src": icon } : {}), Noti: item?.dot === true } };
+      };
+      const tabs = list.map((item) => tab(item, item?.id !== undefined && item.id === code.value));
+      const action = plain(element?.props.action);
+      if (type === "default" && action && typeof action === "object") tabs.push({ type: "INSTANCE", name: textValue(action.label) || "Action", set,
+        props: { Type: "Action", Select: "No", Theme: theme, Label: false, ...(typeof action.icon === "string" ? { "Icon-Src": action.icon } : {}), Noti: false } });
+      return tabs;
+    } },
     Stepper: { steps: (list, code) => {
       if (code.orientation !== "vertical") return null;
       const current = Number(code.current ?? 0);
@@ -1764,9 +1901,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     } },
   };
 
-  function dataSlotChildren(owner, dataSlot, value, code, raw) {
+  function dataSlotChildren(owner, dataSlot, value, code, raw, element) {
     const build = ITEM_BUILDERS[owner]?.[dataSlot.prop];
-    if (build) return build(Array.isArray(value) ? value : [], code, raw);
+    if (build) return build(Array.isArray(value) ? value : [], code, raw, element);
     const items = DATA_ITEMS[owner]?.[dataSlot.prop];
     if (!items) return null;
     const labelKey = /\btitle:/.test(dataSlot.newItem(0).code) ? "title" : "label";
@@ -2169,7 +2306,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     for (const [name, value] of Object.entries(element.props)) {
       const dataSlot = dataSlots.find((slot) => slot.prop === name);
       if (dataSlot && (value.kind === "array" || value.kind === "object")) {
-        const children = dataSlotChildren(element.name, dataSlot, plain(value), code, value);
+        const children = dataSlotChildren(element.name, dataSlot, plain(value), code, value, element);
         // Segmented hugs its items unless fullWidth (Segmented.tsx): its Item-List slot hugs with it.
         // A Segmented's items hug, or split a full-width one: its Item-List slot fills it then (Figma's slot hugs).
         if (children) slots.push({ name: dataSlot.name, children, ...(element.name === "Segmented" ? (code.fullWidth === true ? { fillW: true } : { hugW: true }) : {}) });
@@ -2213,6 +2350,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
       if (icon) (node.nested ??= []).push({ path: "Sub-Action", ...(flat ? { set: { id: flat.id, name: flat.name } } : {}), props: { "Leading-Icon-Src": icon } });
     }
     if (element.name === "ListItem") listItemParts(element, code, node, where, slots);
+    // A floating bar's action is Figma's CTA (the props map's toggle) with the action's glyph; the Default bar draws it
+    // as its last tab (ITEM_BUILDERS).
+    if (element.name === "BottomNavigation" && (code.type === "floating" || code.type === "floating-glass")) {
+      const action = plain(element.props.action);
+      if (typeof action?.icon === "string") (node.nested ??= []).push({ path: "Action", ...(typeof action.label === "string" ? { name: action.label } : {}), props: {}, swapIcon: action.icon });
+    }
     if (FIELDS.has(element.name)) fieldParts(element, code, node);
     // Progress: its label (a string, else the percentage) in Text; the bar's fill step by its value (Progress-Bar).
     if (element.name === "ProgressBar" || element.name === "ProgressCircle") {
@@ -2362,9 +2505,13 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   const chrome = chromeProps.some(chromeOf);
   const placed = screen.children.filter((child) => child.kind === "element");
   // The master layout (a root AppShell, screen-frame.mjs) is the desktop layout's: the mobile layout draws its content.
-  const layers = active === "mobile" && placed.length === 1 && placed[0].name === "AppShell" ? placed[0].children.filter((child) => child.kind === "element") : placed;
-  // Its own phone bars are not drawn there either (the runtime shows the Screen's): the push says so.
-  if (layers !== placed) for (const prop of APP_SHELL_MOBILE_BARS) if (layerOf(placed[0], prop)) notes.push(`AppShell ${prop}: ${MOBILE_BARS_NOTE}`);
+  // A root AppShell with phone parts on a phone Screen without bars of its own is Figma's Pattern/AppShell/Mobile
+  // (appShellNode; user 2026-10-23: "AppShell phone bars in Figma"); with the Screen's own bars it draws its content,
+  // the Screen's bars winning (the runtime shows those), and says so.
+  const rootShell = active === "mobile" && placed.length === 1 && placed[0].name === "AppShell" ? placed[0] : null;
+  const shellPhone = Boolean(rootShell && !chrome && APP_SHELL_PHONE_PARTS.some((prop) => layerOf(rootShell, prop)));
+  const layers = rootShell && !shellPhone ? rootShell.children.filter((child) => child.kind === "element") : placed;
+  if (rootShell && chrome) for (const prop of APP_SHELL_MOBILE_BARS) if (layerOf(rootShell, prop)) notes.push(`AppShell ${prop}: ${MOBILE_BARS_NOTE}`);
   const rootStack = !chrome && layers.length === 1 && layers[0].name === "Stack";
   // Anything else on the Screen (an AppShell, a Container…) fills the frame's width, as it fills the Screen.
   const filled = (node) => (node.absolute ? node : { ...node, fillW: true });
