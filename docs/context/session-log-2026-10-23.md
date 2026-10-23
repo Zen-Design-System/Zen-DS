@@ -277,4 +277,5 @@ Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows 
 - BACKLOG per the user's G2 answers: AI UI decisions closed (41 verified stand, Zen's node tree with an A2UI exporter
   later, classifier on the device, ChatReactorsPanel experimental), only `data-*` forwarding left to build; ListItem Value
   "decided, not built"; sheet table "Figma first, then code". docs/ai-ui/README.md "Open decisions" updated the same way.
-- Open BACKLOG entries with a priority 32 → 21 (ListItem Value is parked now, like Code view).
+- Open BACKLOG entries with a priority 32 → 21 (ListItem Value is parked now, like Code view), then + 1 P3 for Giám sát:
+  compile #238's Swift/Dart on a machine with the toolchains.

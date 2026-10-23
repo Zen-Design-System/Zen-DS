@@ -111,8 +111,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   under `src/assets/media/` (POST route + `MEDIA_REPO_FILES` refresh). On pages you made it works today.
 
 - **Questions for the designer and decisions for the user** are collected in [`QUESTIONS.md`](QUESTIONS.md) (moved
-  there 2026-10-08; the 2026-10-23 designer batch, triage group G1, too). Code keeps its current behaviour until each is
-  answered.
+  there 2026-10-08). Code keeps its current behaviour until each is answered.
 - **P3 · Zen-High-Contrast in the native packages (2026-10-05):** Global Colors carries the Zen-High-Contrast mode since
   the export "Zen-Variables 2" (it equals the algorithm on all 960 values; tokens:check verifies it). The native packages
   carry the second mode as data (resolver default Zen); mapping it to iOS accessibilityContrast / Flutter highContrast is
@@ -125,6 +124,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (§8.3; proposed). Examples get every language too (user, 2026-10-03). Nothing built.
 - **P3 · Studio UX polish N1–N11 — deferred by the user 2026-10-08 ("để sau"):** `docs/research/studio-ux-audit-2026-10-04.md`.
   Written before the UI3 shell (#63) and F0–F10, so re-check each note in the Studio UI design check (next phase).
+- **P3 · Native packages never compiled (2026-10-23, #238):** run `swift test` (platforms/swift) and `flutter test`
+  (platforms/flutter) on a machine with the toolchains; #238's Swift/Dart (Zen-High-Contrast mapping) has never been
+  compiled (this Mac's Command Line Tools SDK does not match the compiler, no Flutter, and CI runs neither).
 
 ## Backlog (plan before opening sessions)
 - **P2 · LICENSE.md is a draft: legal review before selling (2026-10-08):** drafted on PR #5 (Dizai Studio, Vietnam law, subscription, apps-not-kits, per company + member limit); a lawyer must review it and remove its "Draft" note. Was: package.json has no `license` field and the repo no
