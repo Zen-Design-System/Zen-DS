@@ -337,3 +337,15 @@ Branch claude/eloquent-mclean-8f4974 from main 4b96bbb8. BACKLOG P1 "320px debt 
   dark, behaviour 0 errors, 0 new warnings → PASS. Contact sheets: templates 390/1512 keep the photo row whole.
   Visual diff templates 1512 + 390, old vs new template: 32 identical. Baseline: the 28 @320 keys gate 2 no longer finds
   removed (13 Chat, 10 layout, the Show-all target, 4 Text-page heading demos); 16 @320 keys left, all also at 1512/390.
+
+## Session B · Studio Variables v2 (G4, tier L; user decisions: modes prop, mode lists from tokens, rename keeps an alias)
+
+- Spec docs/research/studio-variables-v2-spec-2026-10-23.md. Chunks 1–4 in one PR: Edit variable (meta op, plugin
+  217d5c6), rename of a code-read variable (formerNames → `--zen-old: var(--zen-new)`, style-guard token/renamed),
+  modes (src/tokens/modes.generated.ts feeds ZenProvider and Studio; add/rename/duplicate/delete; plugin 09849d4), a
+  frame's `modes` (Stack/Grid/Box/Screen, useModeScope; Apply variable mode; push/pull explicit modes; plugin 1d3f0e3).
+  Each plugin write checked live on throwaway nodes. Chunk 5 (new collections) to BACKLOG P3.
+- Also: plugin f24b64b (Swap Project Colors async getter; BACKLOG line closed), relayed from the user.
+- Found and fixed in my own work: checkedName skipped every clash on create (`except` undefined), token-outputs needed
+  the old names for alias targets, VA-01 regression (the + Add mode cell was a columnheader).
+- Gate `--isolated` PASS on 2b051305 (after merging #232): 0 errors, Studio E2E 341 works (VA-05…07, FW-210…213).
