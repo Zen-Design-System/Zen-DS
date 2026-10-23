@@ -23,10 +23,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
   asks for it.
-- **P3 · Sheet-style table for long content (user, 2026-10-13; 2026-10-23: Figma first, then code):** Table rows are
-  FIXED at Table/Cell/Size (one line, ellipsis). The docs Props / API / Keyboard references still need multi-line rows:
-  a temporary `.platform-ref` override in `src/platform/platform.css` lets them grow. Replace it with a sheet component,
-  designed in Figma first for the user's review, then built in code.
 - **P3 · Figma contract suites, next batch (2026-10-23):** the 14 chart sets and Chart/Chart-Card have passing suites
   (`tools/figma-contract/suites/chart-*.mjs`, user's go 2026-10-23, done the same day). Still without one: the re-read
   avatar-single, chat-bubbles, input-search-primitives, table-cells, datepicker-sidebar, input-search and
@@ -41,9 +37,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (§8.3; proposed). Examples get every language too (user, 2026-10-03). Nothing built.
 - **P3 · Studio UX polish N1–N11 — deferred by the user 2026-10-08 ("để sau"):** `docs/research/studio-ux-audit-2026-10-04.md`.
   Written before the UI3 shell (#63) and F0–F10, so re-check each note in the Studio UI design check (next phase).
-- **P3 · Native packages never compiled (2026-10-23, #238):** run `swift test` (platforms/swift) and `flutter test`
-  (platforms/flutter) on a machine with the toolchains; #238's Swift/Dart (Zen-High-Contrast mapping) has never been
-  compiled (this Mac's Command Line Tools SDK does not match the compiler, no Flutter, and CI runs neither).
 
 ## Backlog (plan before opening sessions)
 Triaged 2026-10-24 against main 545216b6: every entry was checked against the code and git history. Done, stale,

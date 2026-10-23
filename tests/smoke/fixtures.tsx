@@ -144,6 +144,21 @@ export const fixtures: Record<string, Fixture> = {
   PopoverItem: { props: { label: "Newest" }, wrap: (el) => <div role="listbox" aria-label="Sort by">{el}</div> },
   InputConditionItem: { props: { label: "At least 8 characters" }, wrap: (el) => <ul>{el}</ul> },
   TableText: { wrap: (el) => <table><tbody><tr><td>{el}</td></tr></tbody></table> },
+  // A props reference: a name column of code, a long description that wraps.
+  SheetTable: {
+    props: {
+      "aria-label": "Card props",
+      // Declarative columns (the AI UI catalog renders the same props from a spec); no row field is named \`type\`,
+      // which a spec reads as a component.
+      rows: [{ id: "theme", values: '"shadow" | "default" | "pale" | "border"', description: "Picked by where the card sits on the page." }, { id: "surface", values: '"default" | "alt"', description: "Surface/Alt on a white Canvas/Alt page." }],
+      columns: [
+        { id: "prop", header: "Prop", width: "20%", content: "code", field: "id" },
+        { id: "values", header: "Type", width: "40%", content: "code" },
+        { id: "description", header: "Description" },
+      ],
+    },
+  },
+  SheetKeys: { props: { value: "Shift + Tab / Tab" } },
   TableMedia: { props: { media: <img src={photo} alt="" />, children: "Ava Nguyen" }, wrap: (el) => <table><tbody><tr><td>{el}</td></tr></tbody></table> },
   TableTrend: { wrap: (el) => <table><tbody><tr><td>{el}</td></tr></tbody></table> },
   TableBadges: { wrap: (el) => <table><tbody><tr><td>{el}</td></tr></tbody></table> },

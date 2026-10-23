@@ -17,6 +17,15 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- **SheetTable** (Figma Table/Sheet, approved 2026-10-23): reference rows that grow with their content — props and their
+  types, API signatures, keyboard shortcuts, token values — read in full instead of cut by a Table's ellipsis.
+  `SheetCode` (Body/Code/Regular) and `SheetKeys` / `SheetKey` (key chips) fill its cells beside `TableText`; columns
+  take a `cell` function or a declarative `content` (text, code, keys) from a `field`; `minWidth` scrolls a wide sheet
+  sideways, `empty` fills a sheet with no rows. The docs Props, API and Keyboard references are SheetTables now (the
+  `.platform-ref` override is gone); new docs page, guideline, harness `sheet-table/needs-name` and
+  `table/reference-in-sheet` (code or keys in a Table's cells), Studio palette entry. Studio push / pull: a SheetTable
+  goes to Figma as Table/Cell/Header and Table/Sheet/Cell rows (Code, Key chips or a Text-Cell in each cell) and comes
+  back as a SheetTable with declarative columns.
 - Zen Studio → Figma: a page goes to Figma with every Screen, Screen state and Overlay as a frame of its own (an
   Overlay as big as what it holds), and its Prototype actions as Figma interactions: On click, While hovering and After
   delay; Navigate to, Open overlay, Close overlay and Back, with their animation, direction and Zen's duration and curve
@@ -1531,6 +1540,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- CI (2026-10-24): the SwiftUI and Flutter token packages in `platforms/` are compiled and tested on macOS
+  (`swift test`, `flutter test` on Flutter 3.24.5) by a Native packages workflow, whenever they or their generator
+  change (or by hand). Until now nothing compiled them.
 - Zen Studio ↔ Figma, phone app frames (2026-10-23): a frame built on Figma's Pattern/AppShell/Mobile comes back from
   Figma as a phone AppShell with its bars — its Top (bar, band, band-sheet, media), TopNavigation, tabs or ActionBar,
   hero or backdrop, band colour and canvas, and the page in it — instead of a Stack and a note. An ActionBar on its own

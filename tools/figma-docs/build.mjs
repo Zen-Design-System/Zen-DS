@@ -44,7 +44,7 @@ const EXTRA = {
   "❖ Chat": ["Chat/Section/Time", "Chat/Reaction-Bar", "Chat/Conversation-List/List-Item/Default", "Chat/Bubble/Voice", "Chat/Conversation/Reply", "Chat/Reply/Quote", "Chat/Composer-Reply"],
   "❖ Popover": ["Scroll-Bar", "Popover/Manual-Add-New"],
   "❖ Input": [".Primitives/Input/Color-Swatch"],
-  "❖ Table ": ["Primitives/Table/Cell/Group-Avatar-Cell"],
+  "❖ Table ": ["Primitives/Table/Cell/Group-Avatar-Cell", "Table/Sheet/Cell", ".Primitives/Table/Sheet/Code", ".Primitives/Table/Sheet/Key"],
   "❖ Voice": ["Voice Recorder", "AI Voice Conversation"],
   "❖ Chart": ["Chart/Chart-Card", "Chart/Line-Chart", "Chart/Stack-Bar-Chart", "Chart/Area-Chart", "Chart/Grouped-Bar-Chart", "Chart/Combo-Chart", "Chart/Bar-List", "Chart/Gauge-Chart", "Chart/Funnel-Chart", "Chart/Bullet-Chart"],
   "◇ Master-Layout": ["Patterns/Pages/Density-Medium", "Patterns/Sidebar/Density-Medium", "Header/Dashboard", "Primitives/Notification-Dot"],
