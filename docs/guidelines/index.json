@@ -4899,6 +4899,7 @@
           "rotation?: number",
           "flip?: horizontal|vertical|both",
           "effectStyle?: Shadow/Bottom/Level-1|Shadow/Bottom/Level-2|Shadow/Bottom/Level-3|Shadow/Bottom/Level-4|Shadow/Top/Level-1|Shadow/Top/Level-2|Shadow/Top/Level-3|Shadow/Top/Level-4|Effect/Overlay",
+          "modes?: { theme?: light|dark; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, auto>; typography?: ZenTypography; brand?: ZenBrand; }",
           "direction?: column|row = column",
           "gap?: none|ZenScaleInput|giant|xgiant|2xgiant = md",
           "align?: start|center|end|stretch|baseline",
@@ -4951,6 +4952,7 @@
           "rotation?: number",
           "flip?: horizontal|vertical|both",
           "effectStyle?: Shadow/Bottom/Level-1|Shadow/Bottom/Level-2|Shadow/Bottom/Level-3|Shadow/Bottom/Level-4|Shadow/Top/Level-1|Shadow/Top/Level-2|Shadow/Top/Level-3|Shadow/Top/Level-4|Effect/Overlay",
+          "modes?: { theme?: light|dark; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, auto>; typography?: ZenTypography; brand?: ZenBrand; }",
           "columns?: GridTracks|{ mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks }",
           "minColumnWidth?: number|string = 240",
           "gap?: none|ZenScaleInput|giant|xgiant|2xgiant = md",
@@ -5002,6 +5004,7 @@
           "blendMode?: pass-through|normal|darken|multiply|plus-darker|color-burn|lighten|screen|plus-lighter|color-dodge|overlay|soft-light|hard-light|difference|exclusion|hue|saturation|color|luminosity",
           "rotation?: number",
           "flip?: horizontal|vertical|both",
+          "modes?: { theme?: light|dark; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, auto>; typography?: ZenTypography; brand?: ZenBrand; }",
           "padding?: none|ZenScaleInput|4xl|ZenMargin",
           "paddingX?: none|ZenScaleInput|4xl|ZenMargin",
           "paddingY?: none|ZenScaleInput|4xl|ZenMargin",
@@ -5681,7 +5684,7 @@
       "props": {
         "ZenProvider": [
           "theme?: light|dark|system",
-          "componentTheme?: neutral-s1|neutral-s2|neutral-s3|neutral-s4|neutral-s5|neutral-s6|neutral-s7|brand-s1|brand-s2",
+          "componentTheme?: neutral-s1|brand-s1|neutral-s2|brand-s2|neutral-s3|neutral-s4|neutral-s5|neutral-s6|neutral-s7",
           "density?: compact|comfortable|studio",
           "radius?: rounded|smooth|standard|luxury|studio",
           "emphasis?: medium|strong|light",

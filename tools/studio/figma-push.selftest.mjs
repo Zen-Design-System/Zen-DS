@@ -2530,6 +2530,40 @@ export default function Page() {
   check("round trip: both come back as sticky, in flow", [/<Box [^>]*sticky="bottom"/.test(back), /<Stack [^>]*sticky="top"/.test(back), back.includes('position="absolute"')], [true, true, false]);
 }
 
+// A frame's own variable modes (Studio Variables v2, user 2026-10-23: `modes={{ … }}`): push writes { axis: mode id } on
+// the frame (the Screen's on the page frame), pull reads Figma's { collection: mode name } back as `modes`.
+{
+  const page = `// @zen-page {"format":1,"title":"Modes"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Modes" device="desktop" modes={{ theme: "dark" }}>
+        <Stack padding="xl" gap="md">
+          <Box modes={{ density: "comfortable", theme: "light" }} padding="md"><Text>Light card</Text></Box>
+          <Text>Body</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const box = find(frame, (node) => node.name === "Box");
+  check("push: the Screen's modes on the page frame, a Box's on its frame", [frame.modes, box?.modes, notes.some((note) => /modes/.test(note))], [{ theme: "dark" }, { density: "comfortable", theme: "light" }, false]);
+  const back = pageFromFigma(frame, { mapping }).text;
+  check("round trip: modes come back on the Screen and the Box", [/<Screen [^>]*modes=\{\{ theme: "dark" \}\}/.test(back), /modes=\{\{ density: "comfortable", theme: "light" \}\}/.test(back)], [true, true]);
+  const read = { type: "FRAME", name: "Read", width: 1440, layout: { mode: "VERTICAL" }, modes: { "Mode Colors (Semantic)": "Dark", "Spacing": "Standard" }, children: [
+    { type: "FRAME", name: "Card", layout: { mode: "VERTICAL" }, modes: { "Component Size": "Comfortable" }, children: [{ type: "TEXT", characters: "Hi" }] },
+  ] };
+  const readBack = pageFromFigma(read, { mapping }).text;
+  check("pull of a read: Figma's collection modes as `modes` (a collection that is no axis is left)", [/<Screen [^>]*modes=\{\{ theme: "dark" \}\}/.test(readBack), /modes=\{\{ density: "comfortable" \}\}/.test(readBack)], [true, true]);
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

@@ -18,12 +18,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   LineChart / BarList / MetricCard is a function, which the page dialect cannot write, so a revenue chart reads "128.4K",
   not "$128.4K". Needs a literal preset (e.g. `format="currency"` + `currency`) or a dialect form. Pointer:
   `docs/research/studio-vibe-agent-2026-10-18.md` §7.
-- **P2 · Studio Variables v2 (2026-10-17; re-checked 2026-10-23):** v1 is on main (#116: Local variables window, edit /
-  alias / create / rename / duplicate / delete, drafts + live tokens.css, Save builds the tokens, Copy for Figma →
-  plugin); Apply / Detach variable on Inspector fields (E5) came with F5b (#151). Open: modes (add / rename / delete), new
-  collections, description / scoping / code syntax, rename of a variable code reads (rewrite its CSS readers), Change
-  variable mode per frame / section / page (E6; today a frame's Theme Light/Dark, for the session only). Pointer:
-  `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
+- **P3 · Studio Variables: new collections (2026-10-23, B; waits for the user):** v2 (chunks 1–4: Edit variable,
+  rename with an alias, modes, per-frame `modes`) is on branch zen/feat/studio-variables-v2-20261023. Creating a
+  collection in Studio is left: the build reads a fixed list of 11 sources (`scripts/token-outputs.mjs` SOURCE_FILES,
+  variables-host TOKEN_FILES), drafts cannot create a file yet, and the native token generator would see a new slug.
+  Single-mode only (`:root`) is the proposal. Pointer: `docs/research/studio-variables-v2-spec-2026-10-23.md` § Status.
 
 - **P2 · Studio option C, waiting for the user (2026-10-15):** links between components on a template page (a Chip
   that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
@@ -38,9 +37,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   docs-only CSS (ch widths, component internals, motion, media, demo focus rings) stays. User decisions 2026-10-23: Card /
   ListBox content becomes an auto layout column, Box / Stack get `sticky`, wrapping rows use Fill + min width. Three PRs;
   spec card `docs/research/examples-classnames-round2-spec-2026-10-23.md`.
-- **P3 · Zen plugin `code.js` Swap Project Colors reads `getVariableById` (sync) (2026-10-14):** under the manifest's
-  `dynamic-page` it throws (caught), so a Global Color that is an alias derives from nothing (`getBgColor`, ~line 5655).
-  Import from Studio no longer uses any sync API (`tests/plugin-source-safety.test.js` checks it).
 - **P3 · Figma: publish the renamed layers (user, 2026-10-12):** 186 layers in the Zen file were renamed to Zen's names
   (and Inline-Message's slot property Visual → Leading, same id), names only, checked before/after
   (`docs/figma-contracts/layer-renames-2026-10-12.json`, with the undo map). Other files see them once the library is

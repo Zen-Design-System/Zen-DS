@@ -12,6 +12,8 @@ import { frameWidthPresets, isCustomFrameWidth } from "../board/frameLayout";
 import { useStudioFrames } from "../board/frames";
 import { presentFrame } from "../board/presentFrame";
 import { pageKey, setFrameOverride, useStudio } from "../store";
+import { modeCode, VariableModesPicker } from "../appearance/VariableModes";
+import type { ZenModes } from "../../../components/_shared/zen-context";
 import { applyEdit } from "../api";
 import { DEVICE_WIDTH, pageOsOf, type PageDevice, type ScreenCanvas } from "../builder/proto/runtime";
 import type { PageChild, PageNode } from "../builder/render/renderPage";
@@ -169,6 +171,15 @@ function ScreenSection({ frameId }: { frameId: string }) {
     const op = { op: "screenFrame" as const, prop: part.prop, on, code: screenFrameCode(part.prop, title) };
     void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, label);
   };
+  // The Screen's own variable modes (Figma's Change variable mode; Studio Variables v2), written in the page.
+  const modesValue = node.props.modes;
+  const screenModes: ZenModes = modesValue?.kind === "object"
+    ? Object.fromEntries(Object.entries(modesValue.fields).flatMap(([axis, value]) => (value.kind === "literal" && typeof value.value === "string" ? [[axis, value.value]] : [])))
+    : {};
+  const writeModes = (next: ZenModes | null, label: string) => {
+    const op = next ? { op: "setProp" as const, name: "modes", value: { kind: "expression" as const, code: modeCode(next) } } : { op: "removeProp" as const, name: "modes" };
+    void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, `Screen ${label}`);
+  };
   // Default is no prop at all, as the device's desktop default.
   const writeCanvas = (next: ScreenCanvas) => {
     if (next === canvas) return;
@@ -176,7 +187,7 @@ function ScreenSection({ frameId }: { frameId: string }) {
     void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, `Screen canvas → ${next}`);
   };
   return (
-    <InspectorSection title="Screen" fieldGrid>
+    <InspectorSection title="Screen" fieldGrid actions={<VariableModesPicker modes={screenModes} disabled={!admin} onChange={writeModes} />}>
       <InspectorRow label="Size" name="screen-size">
         <RowSelectField
           aria-label="Screen size"
@@ -337,7 +348,9 @@ function FramePanelBody({ frameId, controlsSlot }: { frameId: string; controlsSl
         </InspectorRow>}
         {/* The label above and the Segmented across the fields, as a Screen's Canvas (user, 2026-10-15): beside a label
             its three options were cut ("P… L… D…"). */}
-        <InspectorFields
+        {/* A view setting for example frames; a Screen of a page you made keeps its modes in the page (Screen › Apply
+            variable mode, Studio Variables v2). */}
+        {isBuilderFrame(frameId) && frameId.startsWith("screen:") ? null : <InspectorFields
           name="theme"
           labels={["Theme"]}
           code="Frame theme"
@@ -352,7 +365,7 @@ function FramePanelBody({ frameId, controlsSlot }: { frameId: string; controlsSl
               options={[{ id: "page", label: "Page" }, { id: "light", label: "Light" }, { id: "dark", label: "Dark" }]}
             />
           )]}
-        />
+        />}
         <div className="studio-inspector__actions">
           <Button
             level={presentable ? "primary" : "tertiary"}

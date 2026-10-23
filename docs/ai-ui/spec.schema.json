@@ -6793,6 +6793,83 @@
                 ],
                 "description": "Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept."
               },
+              "modes": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "theme": {
+                        "enum": [
+                          "light",
+                          "dark"
+                        ]
+                      },
+                      "componentTheme": {
+                        "enum": [
+                          "neutral-s1",
+                          "brand-s1",
+                          "neutral-s2",
+                          "brand-s2",
+                          "neutral-s3",
+                          "neutral-s4",
+                          "neutral-s5",
+                          "neutral-s6",
+                          "neutral-s7"
+                        ]
+                      },
+                      "density": {
+                        "enum": [
+                          "compact",
+                          "comfortable",
+                          "studio"
+                        ]
+                      },
+                      "radius": {
+                        "enum": [
+                          "rounded",
+                          "smooth",
+                          "standard",
+                          "luxury",
+                          "studio"
+                        ]
+                      },
+                      "emphasis": {
+                        "enum": [
+                          "medium",
+                          "strong",
+                          "light"
+                        ]
+                      },
+                      "breakpoint": {
+                        "enum": [
+                          "desktop",
+                          "tablet",
+                          "mobile"
+                        ]
+                      },
+                      "typography": {
+                        "enum": [
+                          "dashboard",
+                          "popular",
+                          "mobile",
+                          "studio"
+                        ]
+                      },
+                      "brand": {
+                        "enum": [
+                          "zen"
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The frame's own variable modes, one per ZenProvider axis: `{ theme: \"dark\" }` draws a dark card on a light page, `{ density: \"comfortable\", breakpoint: \"mobile\" }` a phone-sized bl"
+              },
               "padding": {
                 "anyOf": [
                   {
@@ -20307,6 +20384,83 @@
                   }
                 ],
                 "description": "Figma effect style (the whole style is the token, one per layer as in Figma)."
+              },
+              "modes": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "theme": {
+                        "enum": [
+                          "light",
+                          "dark"
+                        ]
+                      },
+                      "componentTheme": {
+                        "enum": [
+                          "neutral-s1",
+                          "brand-s1",
+                          "neutral-s2",
+                          "brand-s2",
+                          "neutral-s3",
+                          "neutral-s4",
+                          "neutral-s5",
+                          "neutral-s6",
+                          "neutral-s7"
+                        ]
+                      },
+                      "density": {
+                        "enum": [
+                          "compact",
+                          "comfortable",
+                          "studio"
+                        ]
+                      },
+                      "radius": {
+                        "enum": [
+                          "rounded",
+                          "smooth",
+                          "standard",
+                          "luxury",
+                          "studio"
+                        ]
+                      },
+                      "emphasis": {
+                        "enum": [
+                          "medium",
+                          "strong",
+                          "light"
+                        ]
+                      },
+                      "breakpoint": {
+                        "enum": [
+                          "desktop",
+                          "tablet",
+                          "mobile"
+                        ]
+                      },
+                      "typography": {
+                        "enum": [
+                          "dashboard",
+                          "popular",
+                          "mobile",
+                          "studio"
+                        ]
+                      },
+                      "brand": {
+                        "enum": [
+                          "zen"
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The frame's own variable modes, one per ZenProvider axis: `{ theme: \"dark\" }` draws a dark card on a light page, `{ density: \"comfortable\", breakpoint: \"mobile\" }` a phone-sized bl"
               },
               "columns": {
                 "anyOf": [
@@ -38212,6 +38366,83 @@
                 ],
                 "description": "Figma effect style (the whole style is the token, one per layer as in Figma)."
               },
+              "modes": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "theme": {
+                        "enum": [
+                          "light",
+                          "dark"
+                        ]
+                      },
+                      "componentTheme": {
+                        "enum": [
+                          "neutral-s1",
+                          "brand-s1",
+                          "neutral-s2",
+                          "brand-s2",
+                          "neutral-s3",
+                          "neutral-s4",
+                          "neutral-s5",
+                          "neutral-s6",
+                          "neutral-s7"
+                        ]
+                      },
+                      "density": {
+                        "enum": [
+                          "compact",
+                          "comfortable",
+                          "studio"
+                        ]
+                      },
+                      "radius": {
+                        "enum": [
+                          "rounded",
+                          "smooth",
+                          "standard",
+                          "luxury",
+                          "studio"
+                        ]
+                      },
+                      "emphasis": {
+                        "enum": [
+                          "medium",
+                          "strong",
+                          "light"
+                        ]
+                      },
+                      "breakpoint": {
+                        "enum": [
+                          "desktop",
+                          "tablet",
+                          "mobile"
+                        ]
+                      },
+                      "typography": {
+                        "enum": [
+                          "dashboard",
+                          "popular",
+                          "mobile",
+                          "studio"
+                        ]
+                      },
+                      "brand": {
+                        "enum": [
+                          "zen"
+                        ]
+                      }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The frame's own variable modes, one per ZenProvider axis: `{ theme: \"dark\" }` draws a dark card on a light page, `{ density: \"comfortable\", breakpoint: \"mobile\" }` a phone-sized bl"
+              },
               "direction": {
                 "anyOf": [
                   {
@@ -44891,14 +45122,14 @@
                   {
                     "enum": [
                       "neutral-s1",
+                      "brand-s1",
                       "neutral-s2",
+                      "brand-s2",
                       "neutral-s3",
                       "neutral-s4",
                       "neutral-s5",
                       "neutral-s6",
-                      "neutral-s7",
-                      "brand-s1",
-                      "brand-s2"
+                      "neutral-s7"
                     ]
                   },
                   {

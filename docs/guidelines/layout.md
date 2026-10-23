@@ -52,7 +52,7 @@ Generated from the TypeScript source; full JSON in `docs/api/layout.json`.
 ### Stack
 One-dimensional layout with token spacing. Use it instead of hand-written flex CSS. <Stack gap="lg">…sections…`</Stack>` <Stack direction="row" gap="sm" align="center" justify="between">…toolbar…`</Stack>`
 
-Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps`.
+Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -92,6 +92,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `rotation` | `number` | — | Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the frame about its centre; its place in the layout stays (the rotated frame may overlap its neighbours, as in Figma). |
 | `flip` | `"horizontal" \| "vertical" \| "both"` | — | Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept. |
 | `effectStyle` | `"Shadow/Bottom/Level-1" \| "Shadow/Bottom/Level-2" \| "Shadow/Bottom/Level-3" \| "Shadow/Bottom/Level-4" \| "Shadow/Top/Level-1" \| "Shadow/Top/Level-2" \| "Shadow/Top/Level-3" \| "Shadow/Top/Level-4" \| "Effect/Overlay"` | — | Figma effect style (the whole style is the token, one per layer as in Figma). Drop shadows (`Shadow/Bottom/Level-1…4`, `Shadow/Top/Level-1…4`) render only on `surface="surface"`, never on Subtle, Pale or Surface-Alt (component-usage-rules §9) nor without a fill, and a shadowed surface takes no border (elevation follows the Sidebar). `Shadow/Bottom/Level-1` is the Card (Theme=Shadow 7063:62203) and Sidebar elevation; the Top levels cast upward for bottom-pinned bars (Bottom-Sheet 4059:14162 uses Top/Level-2). `Effect/Overlay` is the background blur behind a translucent fill and renders only on `surface="subtle"` or `"pale"`. The shadows use the spread tokens, which Figma draws on a filled, clipped frame: pair them with `clip` when children could overflow. |
+| `modes` | `{ theme?: "light" \| "dark"; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, "auto">; typography?: ZenTypography; brand?: ZenBrand; }` | — | The frame's own variable modes, one per ZenProvider axis: `{ theme: "dark" }` draws a dark card on a light page, `{ density: "comfortable", breakpoint: "mobile" }` a phone-sized block on a desktop page. Written as the data-* attributes tokens.css reads, and given to the components inside as their ZenProvider context (a component reading the breakpoint or the theme sees the frame's). Unset axes inherit. Figma: Layer › Apply variable mode. |
 | `direction` | `"column" \| "row"` | `"column"` | column (default) stacks top to bottom; row lays items side by side. |
 | `gap` | `"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant"` | `"md"` | Space between items (Figma Spacing/Gap). Default md (16px). |
 | `align` | `"start" \| "center" \| "end" \| "stretch" \| "baseline"` | — | Cross-axis alignment. Default: rows center their items; columns stretch fields, cards and lists to the full width while buttons, chips, badges, tags and avatars keep their own width (pass `align="stretch"` to stretch those too, e.g. full-width buttons in a mobile footer). |
@@ -110,7 +111,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 ### Grid
 Two-dimensional layout for cards, tiles and form columns. <Grid minColumnWidth={280}>…cards…`</Grid>` <Grid columns={{ mobile: 1, desktop: 2 }} gap="lg">…fields…`</Grid>` <Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} gap="lg" align="start">…main…aside…`</Grid>`
 
-Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps`.
+Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -150,6 +151,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `rotation` | `number` | — | Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the frame about its centre; its place in the layout stays (the rotated frame may overlap its neighbours, as in Figma). |
 | `flip` | `"horizontal" \| "vertical" \| "both"` | — | Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept. |
 | `effectStyle` | `"Shadow/Bottom/Level-1" \| "Shadow/Bottom/Level-2" \| "Shadow/Bottom/Level-3" \| "Shadow/Bottom/Level-4" \| "Shadow/Top/Level-1" \| "Shadow/Top/Level-2" \| "Shadow/Top/Level-3" \| "Shadow/Top/Level-4" \| "Effect/Overlay"` | — | Figma effect style (the whole style is the token, one per layer as in Figma). Drop shadows (`Shadow/Bottom/Level-1…4`, `Shadow/Top/Level-1…4`) render only on `surface="surface"`, never on Subtle, Pale or Surface-Alt (component-usage-rules §9) nor without a fill, and a shadowed surface takes no border (elevation follows the Sidebar). `Shadow/Bottom/Level-1` is the Card (Theme=Shadow 7063:62203) and Sidebar elevation; the Top levels cast upward for bottom-pinned bars (Bottom-Sheet 4059:14162 uses Top/Level-2). `Effect/Overlay` is the background blur behind a translucent fill and renders only on `surface="subtle"` or `"pale"`. The shadows use the spread tokens, which Figma draws on a filled, clipped frame: pair them with `clip` when children could overflow. |
+| `modes` | `{ theme?: "light" \| "dark"; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, "auto">; typography?: ZenTypography; brand?: ZenBrand; }` | — | The frame's own variable modes, one per ZenProvider axis: `{ theme: "dark" }` draws a dark card on a light page, `{ density: "comfortable", breakpoint: "mobile" }` a phone-sized block on a desktop page. Written as the data-* attributes tokens.css reads, and given to the components inside as their ZenProvider context (a component reading the breakpoint or the theme sees the frame's). Unset axes inherit. Figma: Layer › Apply variable mode. |
 | `columns` | `GridTracks \| { mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks }` | — | Fixed column count, or per breakpoint (`{ mobile: 1, tablet: 2, desktop: 3 }`, following ZenProvider's breakpoint). A string is a track list for unequal columns: `{ mobile: 1, desktop: "2fr 1fr" }` puts a main column next to an aside. Omit it to fit as many `minColumnWidth` columns as the width allows. |
 | `minColumnWidth` | `number \| string` | `240` | Responsive auto-fill: every column is at least this wide (px or CSS length). Default 240. |
 | `gap` | `"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant"` | `"md"` | Space between cells. Default md (16px). |
@@ -166,7 +168,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 ### Box
 A frame without auto layout (Figma's Frame): token padding, fill (background layer), stroke, corner radius and effect around content that flows as blocks, or layers placed at X / Y. With auto layout the same frame is a Stack or Grid, which take the same appearance props. For clickable or selectable tiles use Card; for page width use Container.
 
-Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps`.
+Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps, FrameModeProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -207,6 +209,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `blendMode` | `"pass-through" \| "normal" \| "darken" \| "multiply" \| "plus-darker" \| "color-burn" \| "lighten" \| "screen" \| "plus-lighter" \| "color-dodge" \| "overlay" \| "soft-light" \| "hard-light" \| "difference" \| "exclusion" \| "hue" \| "saturation" \| "color" \| "luminosity"` | — | Figma's layer blend (Appearance › blend mode, the Plugin API's `blendMode`): how the frame mixes with what lies under it. Default `pass-through` (its layers blend with what is under the frame, Figma's frame default); `normal` keeps their blending inside the frame. Mostly for pictures and decorative layers, never to make text readable. |
 | `rotation` | `number` | — | Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the frame about its centre; its place in the layout stays (the rotated frame may overlap its neighbours, as in Figma). |
 | `flip` | `"horizontal" \| "vertical" \| "both"` | — | Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept. |
+| `modes` | `{ theme?: "light" \| "dark"; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, "auto">; typography?: ZenTypography; brand?: ZenBrand; }` | — | The frame's own variable modes, one per ZenProvider axis: `{ theme: "dark" }` draws a dark card on a light page, `{ density: "comfortable", breakpoint: "mobile" }` a phone-sized block on a desktop page. Written as the data-* attributes tokens.css reads, and given to the components inside as their ZenProvider context (a component reading the breakpoint or the theme sees the frame's). Unset axes inherit. Figma: Layer › Apply variable mode. |
 | `padding` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
 | `paddingX` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
 | `paddingY` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
@@ -238,12 +241,19 @@ interface GradientStop { color: Exclude<ShapeFill, "none">; at: number; }
 type GradientType = "linear" | "radial" | "angular" | "diamond"
 type GridTracks = number | string
 type ShapeFill = (typeof shapeFills)[number]
+type ZenBrand = "zen"
+type ZenBreakpoint = "auto" | "desktop" | "tablet" | "mobile"
+type ZenComponentTheme = "neutral-s1" | "brand-s1" | "neutral-s2" | "brand-s2" | "neutral-s3" | "neutral-s4" | "neutral-s5" | "neutral-s6" | "neutral-s7"
+type ZenDensity = "compact" | "comfortable" | "studio"
+type ZenEmphasis = "medium" | "strong" | "light"
 interface ZenGradient { type: GradientType; angle?: number; stops: GradientStop[]; }
 type ZenMargin = "margin-comfortable" | "margin-compact"
 type ZenPadding = "none" | ZenScaleInput | "4xl" | ZenMargin
+type ZenRadius = "rounded" | "smooth" | "standard" | "luxury" | "studio"
 type ZenScale = "3xs" | "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl"
 type ZenScaleInput = ZenScale | ZenScaleLong
 type ZenScaleLong = "3xsmall" | "2xsmall" | "xsmall" | "small" | "medium" | "large" | "xlarge" | "2xlarge" | "3xlarge"
+type ZenTypography = "dashboard" | "popular" | "mobile" | "studio"
 ```
 
 ## ✅ Do

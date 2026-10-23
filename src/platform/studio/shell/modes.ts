@@ -1,6 +1,7 @@
 import type { IconName } from "../../../components/Icon";
 import { studioStore } from "../store";
 import type { StudioPreviewSettings } from "../types";
+import { tokenModeNames, tokenModes } from "../../../tokens/modes.generated";
 
 /* Preview modes of the canvas (the classic topbar's shellControlDefinitions, which PlatformTemplate does not export).
    The one option source for every place that names them: the toolbar Modes popover (the control surface) and the
@@ -9,28 +10,17 @@ import type { StudioPreviewSettings } from "../types";
 
 export type ModeKey = keyof StudioPreviewSettings;
 
+/** An axis's modes from the tokens (src/tokens/modes.generated.ts), Figma's names as labels; the Studio's own `studio`
+ *  mode (its chrome's) is not a preview choice. */
+const modesOf = (axis: keyof typeof tokenModes) => tokenModes[axis].filter((id) => id !== "studio").map((id) => ({ id, label: (tokenModeNames[axis] as Record<string, string>)[id] ?? id }));
+
 export const previewModeDefinitions: ReadonlyArray<{ key: ModeKey; label: string; icon: IconName; values: ReadonlyArray<{ id: string; label: string }> }> = [
-  { key: "theme", label: "Mode", icon: "icon-sun-line", values: [{ id: "light", label: "Light" }, { id: "dark", label: "Dark" }] },
-  {
-    key: "componentTheme",
-    label: "Component theme",
-    icon: "icon-colors-line",
-    values: [
-      { id: "neutral-s1", label: "Neutral-S1" },
-      { id: "brand-s1", label: "Brand-S1" },
-      { id: "neutral-s2", label: "Neutral-S2" },
-      { id: "brand-s2", label: "Brand-S2" },
-      { id: "neutral-s3", label: "Neutral-S3" },
-      { id: "neutral-s4", label: "Neutral-S4" },
-      { id: "neutral-s5", label: "Neutral-S5" },
-      { id: "neutral-s6", label: "Neutral-S6" },
-      { id: "neutral-s7", label: "Neutral-S7" },
-    ],
-  },
-  { key: "density", label: "Component size", icon: "icon-ruler-line", values: [{ id: "compact", label: "Compact" }, { id: "comfortable", label: "Comfortable" }] },
-  { key: "typography", label: "Typography", icon: "icon-type-01-line", values: [{ id: "dashboard", label: "Dashboard" }, { id: "popular", label: "Popular" }, { id: "mobile", label: "Mobile" }] },
-  { key: "radius", label: "Corner radius", icon: "icon-maximize-02-line", values: [{ id: "rounded", label: "Rounded" }, { id: "smooth", label: "Smooth" }, { id: "standard", label: "Standard" }, { id: "luxury", label: "Luxury" }] },
-  { key: "emphasis", label: "Emphasis", icon: "icon-sliders-02-line", values: [{ id: "medium", label: "Medium" }, { id: "strong", label: "Strong" }, { id: "light", label: "Light" }] },
+  { key: "theme", label: "Mode", icon: "icon-sun-line", values: modesOf("theme") },
+  { key: "componentTheme", label: "Component theme", icon: "icon-colors-line", values: modesOf("componentTheme") },
+  { key: "density", label: "Component size", icon: "icon-ruler-line", values: modesOf("density") },
+  { key: "typography", label: "Typography", icon: "icon-type-01-line", values: modesOf("typography") },
+  { key: "radius", label: "Corner radius", icon: "icon-maximize-02-line", values: modesOf("radius") },
+  { key: "emphasis", label: "Emphasis", icon: "icon-sliders-02-line", values: modesOf("emphasis") },
   { key: "contrast", label: "Contrast", icon: "icon-contrast-01-line", values: [{ id: "standard", label: "Standard" }, { id: "high", label: "High" }] },
 ];
 
