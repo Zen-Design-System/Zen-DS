@@ -74,8 +74,8 @@ function TokenReference() {
     <SheetTable caption="Canvas and surface colours" rows={tokens} getRowId={(row) => row.name} minWidth="640px"
       columns={[
         { id: "name", header: "Token", width: "34%", cell: (row) => <SheetCode>{row.name}</SheetCode> },
-        { id: "light", header: "Light", width: "12%", cell: (row) => <SheetCode>{row.light}</SheetCode> },
-        { id: "dark", header: "Dark", width: "12%", cell: (row) => <SheetCode>{row.dark}</SheetCode> },
+        { id: "light", header: "Light", width: "96px", cell: (row) => <SheetCode>{row.light}</SheetCode> },
+        { id: "dark", header: "Dark", width: "96px", cell: (row) => <SheetCode>{row.dark}</SheetCode> },
         { id: "use", header: "When to use", cell: (row) => <TableText>{row.use}</TableText> },
       ]} />
   );
@@ -150,8 +150,8 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     code: `<SheetTable caption="Canvas and surface colours" rows={tokens} getRowId={(row) => row.name} minWidth="640px"
   columns={[
     { id: "name", header: "Token", width: "34%", cell: (row) => <SheetCode>{row.name}</SheetCode> },
-    { id: "light", header: "Light", width: "12%", cell: (row) => <SheetCode>{row.light}</SheetCode> },
-    { id: "dark", header: "Dark", width: "12%", cell: (row) => <SheetCode>{row.dark}</SheetCode> },
+    { id: "light", header: "Light", width: "96px", cell: (row) => <SheetCode>{row.light}</SheetCode> },
+    { id: "dark", header: "Dark", width: "96px", cell: (row) => <SheetCode>{row.dark}</SheetCode> },
     { id: "use", header: "When to use", cell: (row) => <TableText>{row.use}</TableText> },
   ]} />`,
   },
