@@ -1,6 +1,7 @@
 import { figmaClipHtml, onlyFrame } from "../../../../../tools/studio/figma-clip.mjs";
 import type { PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
 import { announceEditStatus } from "../../api";
+import { canvasApi } from "../../canvas/viewport";
 import { findBySrc } from "../../select/picker";
 import { resolveSrc } from "../../select/srcIds";
 import { frameClip } from "../frameEdit";
@@ -48,7 +49,8 @@ function withCanvasHeights<T extends { frame: unknown }>(pkg: T, localPage: stri
   const scale = frame.getBoundingClientRect().width / frame.offsetWidth || 1;
   const file = pageFile(localPage);
   const heightOf = (key: string) => {
-    const hits = findBySrc(frame, resolveSrc(`${file}:@${key}`));
+    // Found from the canvas's world (as the Inspector finds a selection), kept to this frame's own.
+    const hits = findBySrc(canvasApi.getWorldElement() ?? frame, resolveSrc(`${file}:@${key}`)).filter((hit) => hit.hosts.some((host) => frame.contains(host)));
     if (hits.length !== 1 || !hits[0].hosts.length) return null;
     const boxes = hits[0].hosts.map((host) => host.getBoundingClientRect());
     return Math.round((Math.max(...boxes.map((box) => box.bottom)) - Math.min(...boxes.map((box) => box.top))) / scale);

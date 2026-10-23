@@ -706,12 +706,11 @@ export const rows = [
       // The Metric-Cards stretch to their grid row: each takes its canvas height as its minimum (else Figma's Hug row
       // takes the shortest card and squeezes the sparkline).
       const { message } = await readFigmaClipboard(raw);
-      const at = (guid) => `${guid.sessionID}:${guid.localID}`;
-      const grid = message.nodeChanges.find((node) => node.stackMode === "GRID");
-      const cards = message.nodeChanges.filter((node) => grid && node.type === "INSTANCE" && node.parentIndex && at(node.parentIndex.guid) === at(grid.guid));
+      // The page's two cards by their names (the paste also carries the components' own layers, grids among them).
+      const cards = ["Revenue", "Q4 revenue"].map((name) => message.nodeChanges.find((node) => node.type === "INSTANCE" && node.name === name));
       const canvas = await page.locator('[data-studio-frame="screen:screen-1"] .zen-metric-card').evaluateAll((cards) => cards.map((card) => card.offsetHeight));
-      const mins = cards.map((card) => card.minSize?.value?.y ?? 0);
-      if (cards.length !== 2 || canvas.length !== 2 || mins.some((min, index) => Math.abs(min - canvas[index]) > 1)) {
+      const mins = cards.map((card) => card?.minSize?.value?.y ?? 0);
+      if (cards.some((card) => !card) || canvas.length !== 2 || mins.some((min, index) => Math.abs(min - canvas[index]) > 1)) {
         throw new Error(`Copy for Figma: the grid's cards keep minimum heights ${mins.join(", ") || "none"} for canvas heights ${canvas.join(", ")}`);
       }
       // ⌘C with the Screen layer selected (the right-click selected it).
