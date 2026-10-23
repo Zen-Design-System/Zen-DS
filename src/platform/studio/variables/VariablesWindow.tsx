@@ -469,7 +469,7 @@ function VariablesPanel() {
           role="grid"
           aria-label={`${collection.name} variables`}
           aria-rowcount={rows.length + 1}
-          aria-colcount={columns}
+          aria-colcount={columns + (modesEditable ? 1 : 0)}
           style={{ ["--studio-vars-modes" as string]: modes.length }}
           onScroll={(event) => setScroll({ top: event.currentTarget.scrollTop, height: event.currentTarget.clientHeight })}
           onKeyDown={onGridKey}
@@ -500,7 +500,8 @@ function VariablesPanel() {
               </div>
             ))}
             {modesEditable ? (
-              <div className="studio-vars__cell studio-vars__add-mode" role="columnheader">
+              // Not a column of its own: the + after the last mode (Figma's), a cell of the header row.
+              <div className="studio-vars__cell studio-vars__add-mode" role="gridcell">
                 <IconButton icon="icon-plus-line" appearance="flat" size="xs" aria-label="Add mode" tooltip="Add mode" onClick={() => { void addMode(); }} />
               </div>
             ) : null}
