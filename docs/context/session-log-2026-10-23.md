@@ -179,6 +179,22 @@ Branch `zen/fix/studio-parity-leftovers-20261023`; both BACKLOG lines archived.
   apart (the gate's matrix has no FW group): FW-220 first timed out (a ⇧⌘-click on the second group's empty spot added
   nothing); it now ⇧-clicks "Group 2" in Layers, as B-33 does: FW-119 + FW-220 2 / 2, FW-11…18 8 / 8.
 
+## AppShell session · Zen-High-Contrast in the native packages (tier S, static; BACKLOG P3 G5, user-approved, via Giám sát)
+
+Branch zen/feat/native-high-contrast-20261023 from main 4c456456. Everything under platforms/ is written by
+scripts/build-native-tokens.mjs (engines, tests and README too), so the change is in its templates.
+- Swift: `ZenContext.highContrast`; `with(colorScheme:contrast:)` (Dark / Light, Zen-High-Contrast / Zen, other modes
+  kept); `.zenSystemContext(base)` (a ViewModifier reading colorScheme and colorSchemeContrast); UIKit
+  `with(traits:)` (userInterfaceStyle, accessibilityContrast .high). Dart: `ZenContext.highContrast`,
+  `withSystem(brightness:highContrast:)`, `ZenContext.fromMediaQuery(data, base)` (platformBrightness, highContrast:
+  Flutter reports it on iOS).
+- Vectors: two contexts in Zen-High-Contrast (Light, Dark) and 8 semantic colours the mode changes (it changes 82 in
+  Light, 63 in Dark) → 1218 vectors (830). New Swift and Dart tests for the mapping. README section.
+- Checks: tokens:native:check, tokens:check. Not run: swift test (this Mac's Command Line Tools: SwiftPM cannot link the
+  manifest and the SDK does not match the compiler, so no Swift builds at all) and flutter test (no Flutter); CI runs
+  neither. The Swift and Dart code was reviewed against the APIs (iOS 15 / macOS 12, Flutter MediaQueryData).
+- BACKLOG line removed.
+
 ## AppShell session · Figma contracts G5 (tier S, read-only Figma + contract files; BACKLOG P3, user-approved, via Giám sát)
 
 Branch zen/chore/figma-contracts-g5-20261023 from main 4c456456.

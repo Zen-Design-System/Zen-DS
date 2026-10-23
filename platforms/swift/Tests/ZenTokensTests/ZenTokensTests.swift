@@ -76,4 +76,17 @@ final class ZenTokensTests: XCTestCase {
         XCTAssertGreaterThan(ZenTokens.shared.tokenCount, 2000)
         XCTAssertNotNil(ZenTokens.shared.resolve(ZenToken.spacingGap2XSmall))
     }
+
+    func testTheSystemAppearancePicksDarkAndHighContrast() {
+        let base = ZenContext.standard.with(ZenCollection.cornerRadius, "Smooth")
+        let increased = base.with(colorScheme: .dark, contrast: .increased)
+        XCTAssertEqual(increased.modes[ZenCollection.modeColorsSemantic], "Dark")
+        XCTAssertEqual(increased.modes[ZenCollection.globalColors], "Zen-High-Contrast")
+        XCTAssertEqual(increased.modes[ZenCollection.cornerRadius], "Smooth")
+        let standard = base.with(colorScheme: .light, contrast: .standard)
+        XCTAssertEqual(standard.modes[ZenCollection.modeColorsSemantic], "Light")
+        XCTAssertEqual(standard.modes[ZenCollection.globalColors], "Zen")
+        // A colour the high-contrast palette darkens resolves to its high-contrast value.
+        XCTAssertNotEqual(ZenTokens.shared.hex(ZenToken.colorContentAccentLight, .standard), ZenTokens.shared.hex(ZenToken.colorContentAccentLight, .highContrast))
+    }
 }

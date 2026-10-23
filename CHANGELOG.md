@@ -20,6 +20,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio ↔ Figma: a PropertyField's people and labels all reach Figma (Property-Value's Person and Tags cells now
   hold a Value-Slot, the user's choice; once the library is published other files see it), and a BadgeStatus' or Status
   cell's `progress` is its ring's Progress arc; both come back with Pull from Figma and a direct paste carries them
+- Native tokens (SwiftUI, Flutter): the system's appearance maps onto a context — Dark for a dark color scheme and
+  Global Colors' Zen-High-Contrast mode under Increase Contrast — with `.zenSystemContext()` / `with(colorScheme:contrast:)`
+  / `with(traits:)` in Swift and `ZenContext.fromMediaQuery` / `withSystem` in Dart, plus `ZenContext.highContrast`; the
+  test vectors cover the high-contrast mode (1218 vectors, from 830) (2026-10-23).
 - Zen Studio's Properties panel shows a chart's Figma properties in Figma's order and names: Orientation, Type, Color,
   Show Legend, Show Average, Legend, Total, Size and the Donut's Total Label / Value (the header rows stay ChartCard's),
   and the Main component frame draws the chart sets' variants; `component-properties.json` has the ❖ Chart page
