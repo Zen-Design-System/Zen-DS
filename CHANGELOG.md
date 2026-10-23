@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Tokens: every component theme declares each `<background>-shadow-off` companion (`initial` where the fill is not
+  tinted), so a component theme nested inside a tinted one (Neutral-S4 inside Neutral-S3) keeps its Figma shadow;
+  `tokens:check` counts missing companions. Usage harness: `avatar/solid-initials-contrast` follows today's tokens (golden,
+  teal, cyan and orange Solid fall below 3:1 with white initials; green now passes at 3.48) (2026-10-24).
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in
