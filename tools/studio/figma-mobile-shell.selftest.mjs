@@ -75,6 +75,24 @@ const tabs = '<BottomNavigation items={[{ id: "home", label: "Home", icon: "icon
 }
 
 {
+  // An ActionBar on its own: Figma's Action-Bar/Mobile and back.
+  const alone = (bar) => {
+    const { frame, notes } = figmaFromPage(page(`<Stack gap="md"><Text>Body</Text>${bar}</Stack>`).replace("import { ActionBar,", "import { ActionBar, Stack,"), { mapping, nestedLayers: NESTED_LAYERS });
+    const back = pageFromFigma(frame, { mapping });
+    return { notes, set: JSON.stringify(frame).includes('"name":"Action-Bar/Mobile"'), bar: back.text.match(/<ActionBar\b[^]*?\/>/)?.[0]?.replace(/\s+/g, " ") ?? null };
+  };
+  const two = '<ActionBar primaryAction={{ label: "Save" }} secondaryAction={{ label: "Cancel" }} />';
+  check("ActionBar alone: drawn as Action-Bar/Mobile (no 'left out' note) and back the same", [alone(two).set, alone(two).notes, alone(two).bar], [true, [], two]);
+  const glass = '<ActionBar surface="glass" direction="horizontal" primaryAction={{ label: "Send", level: "danger" }} />';
+  check("ActionBar alone: glass, horizontal, one action with its level, back the same", alone(glass).bar, glass);
+  // The live read of a placed Action-Bar/Mobile (Figma's default: Dual, Horizontal, Tertiary then Primary, 2026-10-23).
+  const read = { type: "FRAME", id: "17142:3", name: "Bar", width: 390, height: 120, layout: { mode: "VERTICAL" }, children: [{ type: "INSTANCE", id: "17142:4", name: "Action-Bar/Mobile", set: { id: "16326:6489", name: "Action-Bar/Mobile" }, props: { "Home-Indicator": true, Type: "Default" }, nested: [
+    { path: "Actions", props: { Button: "Dual", Direction: "Horizontal" } },
+    { path: "Actions/Button[0]", props: { "Trailing-Icon-Src": "icon-plus-line", "Leading-Icon-Src": "icon-plus-line", Text: "Button", "Trailing-Icon": false, "Leading-Icon": false, Size: "Large", Level: "Tertiary", State: "Default" }, text: "Button" },
+    { path: "Actions/Button[1]", props: { "Trailing-Icon-Src": "icon-plus-line", "Trailing-Icon": false, "Leading-Icon-Src": "icon-plus-line", Text: "Button", "Leading-Icon": false, Size: "Large", Level: "Primary", State: "Default" }, text: "Button" }] }] };
+  check("ActionBar alone, live read: the roles' own levels and the hidden icons unsaid", pageFromFigma(read, { mapping }).text.match(/<ActionBar\b[^]*?\/>/)?.[0], '<ActionBar direction="horizontal" primaryAction={{ label: "Button" }} secondaryAction={{ label: "Button" }} />');
+}
+{
   // The live read of a placed Pattern/AppShell/Mobile (figmaReadCode readMobileShell, 2026-10-23): Figma's own sample.
   const fixture = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-mobile-shell-read.json", import.meta.url), "utf8"));
   const back = pageFromFigma(fixture.frame, { mapping });
