@@ -136,6 +136,7 @@
     "guidelines:build": "node tools/usage-guard/build-guidelines.mjs",
     "guidelines:check": "node tools/usage-guard/build-guidelines.mjs --check",
     "platform:audit": "node tools/platform-audit/audit.mjs",
+    "platform:audit:selftest": "node tools/platform-audit/selftest.mjs",
     "platform:audit:full": "node tools/platform-audit/audit.mjs --viewports=1512,1024,390 --smoke",
     "platform:shoot": "node tools/platform-audit/shoot.mjs",
     "test": "vitest run",

@@ -51,7 +51,11 @@
  *   card-gap    (--quality) a MetricCard / ChartCard stretched by its row that stops ≥ 12px above its foot beside one that
  *               fills it (widgetLayout)
  *   legend-column (--quality) a chart legend of ≥ 3 items one per line under its chart, with room for a row (widgetLayout)
- * These six (and elevation, contrast, targets, outline-*; never surfaces) are compared with tools/platform-audit/quality-baseline.json: pre-existing findings are listed as baseline and
+ *   clip        (--quality) a control that fits its own text but is cut off by an `overflow: hidden` ancestor, hidden past
+ *               its edge while its sibling controls show, or covered by another element of the example (controlClip):
+ *               what `overflow` and `fit` cannot see. Scroll containers, a phone frame's bottom edge and floating layers
+ *               are not findings
+ * These Build-QA kinds (and elevation, contrast, targets, outline-*; never surfaces) are compared with tools/platform-audit/quality-baseline.json: pre-existing findings are listed as baseline and
  * do not fail the run; `--baseline-update` rewrites the entries of the pages and viewports in this run, and
  * `--baseline-update=fit` (a comma list of kinds) only those kinds — seed a new check without accepting the other kinds'
  * current findings (a peer's work in progress) as debt.
@@ -68,7 +72,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
-import { qualityChecks, densitySnapshot, textFit, widgetLayout } from "./quality-checks.mjs";
+import { controlClip, qualityChecks, densitySnapshot, textFit, widgetLayout } from "./quality-checks.mjs";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const require = createRequire(path.join(root, "package.json"));
@@ -102,7 +106,7 @@ const OUTLINE_KINDS = ["outline-h1", "outline-start", "outline-card", "outline-s
 // captions with no ellipsis, a few examples): there every kind is compared with the baseline, so only new findings fail
 // while the recorded ones wait in BACKLOG. 1512 and 390 keep the rule below.
 const BASELINE_ALL_KINDS = new Set([320]);
-const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "ladder", "density", "fit", "card-gap", "legend-column", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings", "elevation"]; // contrast, targets, outline-* and elevation stay warnings; baselined so only NEW ones are listed. surfaces (§11 border, shadow on Canvas/Alt) is never baselined: it found no existing debt, and --baseline-update must not accept it
+const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "ladder", "density", "fit", "card-gap", "legend-column", "clip", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings", "elevation"]; // contrast, targets, outline-* and elevation stay warnings; baselined so only NEW ones are listed. surfaces (§11 border, shadow on Canvas/Alt) is never baselined: it found no existing debt, and --baseline-update must not accept it
 const CSS = arg("css", null) ? fs.readFileSync(path.resolve(String(arg("css"))), "utf8") : null;
 if (CSS && BASELINE_UPDATE) { console.error("--css cannot be combined with --baseline-update: the injected CSS is not the page's real state."); process.exit(2); }
 const baseline = arg("no-baseline", false) ? {} : (() => { try { return JSON.parse(fs.readFileSync(BASELINE_FILE, "utf8")).keys ?? {}; } catch { return {}; } })();
@@ -537,7 +541,7 @@ function pageChecks({ scopeSel, mobile }) {
 }
 
 const sum = (r) => Object.values(r).reduce((n, list) => n + list.length, 0);
-const SEVERITY = { errors: "error", overflow: "error", counts: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", elevation: "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error", "card-gap": "error", "legend-column": "error" };
+const SEVERITY = { errors: "error", overflow: "error", counts: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", elevation: "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error", "card-gap": "error", "legend-column": "error", clip: "error" };
 
 async function run() {
   const browser = await chromium.launch();
@@ -566,14 +570,16 @@ async function run() {
       if (docOverflow) base.overflow.unshift("document scrolls horizontally");
       const entry = { ...base, errors: [...errors], playground: [], smoke: [] };
       // Build-QA: token scale, text styles, content hierarchy, rhythm (quality-checks.mjs). Playground and smoke add theirs below.
-      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "ladder", "fit", "card-gap", "legend-column"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
-      // One scope's quality kinds: qualityChecks (text styles, tokens, hierarchy, rhythm) and textFit (text wider than its box).
+      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "ladder", "fit", "card-gap", "legend-column", "clip"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
+      // One scope's quality kinds: qualityChecks (text styles, tokens, hierarchy, rhythm), textFit (text wider than its box),
+      // widgetLayout (card-gap, legend-column) and controlClip (a control cut off or covered).
       const quality = async (scopeSel, crash = false) => ({
         ...await page.evaluate(qualityChecks, { scopeSel }).catch((e) => (crash ? { scale: [`quality checks crashed: ${e.message.split("\n")[0]}`] } : null)),
         ...await page.evaluate(textFit, { scopeSel }).catch((e) => (crash ? { fit: [`text-fit check crashed: ${e.message.split("\n")[0]}`] } : null)),
         ...await page.evaluate(widgetLayout, { scopeSel }).catch((e) => (crash ? { "card-gap": [`widget layout check crashed: ${e.message.split("\n")[0]}`] } : null)),
+        ...await page.evaluate(controlClip, { scopeSel }).catch((e) => (crash ? { clip: [`control clip check crashed: ${e.message.split("\n")[0]}`] } : null)),
       });
-      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], density: [], fit: [], "card-gap": [], "legend-column": [] });
+      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], density: [], fit: [], "card-gap": [], "legend-column": [], clip: [] });
       if (QUALITY) addQuality(await quality(".official-platform", true));
       if (DENSITY) {
         // Component Size: compare every Zen box Compact vs Comfortable; content that outgrows its box only in Comfortable is a

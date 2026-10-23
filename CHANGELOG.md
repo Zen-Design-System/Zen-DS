@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- QA gate: a new `clip` check (`--quality`, error, baselined) reports a control that fits its own text but is cut off by
+  an `overflow: hidden` ancestor, hidden past its edge while its sibling controls show, or covered by another element of
+  the example. `overflow` and `fit` could not see these. The gate now also fails on `counts`, `card-gap` and
+  `legend-column`, which the audit already called errors. `npm run platform:audit:selftest` runs every in-page quality,
+  outline and clip check on fixtures, in the gate and in CI (user, 2026-10-24).
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in
