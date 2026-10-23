@@ -1,6 +1,7 @@
 import { announceEditStatus } from "../api";
 import { placePictureAt } from "../draw/drawTool";
 import { picturesOf } from "../draw/placeImage";
+import { dropComputerPictures } from "../edit/assets/assets";
 import { setImagePaste } from "../edit/clipboard";
 import { canEdit, studioStore } from "../store";
 import { canvasApi, getViewport } from "./viewport";
@@ -8,7 +9,9 @@ import { canvasApi, getViewport } from "./viewport";
 /*
  * Pictures from the computer onto the canvas (Studio parity F8), as Figma takes them: files dropped on a frame of a page
  * you made are uploaded and placed where they fell, side by side; pasted ones go in the middle of the selected frame
- * (or the frame in view). Each is a Rectangle with the image fill (draw/drawTool.ts placePictureAt), one edit each.
+ * (or the frame in view). Each is a Rectangle with the image fill (draw/drawTool.ts placePictureAt), one edit each. On a
+ * repo page (example or template code) a dropped photo is saved in the repo first (src/assets/media), then lands as a
+ * library photo: on an Avatar or Image its picture, elsewhere a new Image (edit/assets/assets.ts dropComputerPictures).
  */
 
 const GAP = 16;
@@ -41,12 +44,12 @@ export function installFileDrop(localPage: string | null): () => void {
     if (!overCanvas(event)) return;
     // Taken, so the browser does not open the file instead.
     event.preventDefault();
-    if (event.dataTransfer) event.dataTransfer.dropEffect = localPage ? "copy" : "none";
+    if (event.dataTransfer) event.dataTransfer.dropEffect = canEdit() ? "copy" : "none";
   };
   const onDrop = (event: DragEvent) => {
     if (!overCanvas(event)) return;
     event.preventDefault();
-    if (!localPage) { say("Pictures go on pages you made"); return; }
+    if (!localPage) { void dropComputerPictures([...(event.dataTransfer?.files ?? [])], event.clientX, event.clientY); return; }
     void placeFiles([...(event.dataTransfer?.files ?? [])], { x: event.clientX, y: event.clientY }, false, "Drop pictures");
   };
   window.addEventListener("dragover", onOver);

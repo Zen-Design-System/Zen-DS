@@ -4,6 +4,7 @@ import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles, type TypographyStyleName } from "../../tokens/typography.generated";
 import "./avatar.css";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const avatarSizes = ["2xsmall", "xsmall", "small", "medium", "large", "xlarge", "2xlarge", "3xlarge"] as const;
 export const avatarThemes = ["photo", "accent", "blue", "brown", "crimson", "cyan", "green", "indigo", "neutral", "orange", "pink", "plum", "purple", "red", "teal", "violet", "yellow", "sky", "mint", "bronze", "golden"] as const;
@@ -49,7 +50,7 @@ export interface AvatarProps {
 }
 
 /** Figma Avatar/Single (Medium 223:8784 … 3XLarge 223:8714): photo or initials on the theme fill, optional status dot. */
-export function Avatar({ size: sizeProp = "md", theme = "neutral", background = "solid", shape = "circle", status = false, focus = false, src, alt = "", children, className, ref }: AvatarProps) {
+export function Avatar({ size: sizeProp = "md", theme = "neutral", background = "solid", shape = "circle", status = false, focus = false, src, alt = "", children, className, ref, ...rest }: AvatarProps) {
   const t = useZenLabels();
   const size = scaleKey(sizeProp, avatarSizes);
   // Initials: up to two characters; XSmall and 2XSmall show a single one.
@@ -65,7 +66,7 @@ export function Avatar({ size: sizeProp = "md", theme = "neutral", background = 
   const name = alt.trim();
   const named = !src && Boolean(name);
   return (
-    <span ref={ref} className={["zen-avatar", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-background={background} data-shape={shape} data-focus={focus ? "true" : "false"}
+    <span {...dataAttributes(rest)} ref={ref} className={["zen-avatar", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-background={background} data-shape={shape} data-focus={focus ? "true" : "false"}
       role={named ? "img" : undefined} aria-label={named ? [name, status ? t.online : null].filter(Boolean).join(", ") : undefined}>
       <span className="zen-avatar__inner">
         {src ? <img src={src} alt={alt} /> : <span className={`zen-avatar__initials ${typographyStyles[initialsStyle[size]]}`} aria-hidden={named || !name ? true : undefined}>{initials}</span>}

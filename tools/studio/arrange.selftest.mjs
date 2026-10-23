@@ -283,6 +283,13 @@ test("pasteCode: Zen components join the imports, after a child", () => {
   assert.ok(result.inserted?.loc);
 });
 
+test("pasteCode: a picture the repo holds reads import.meta.url (a photo dropped from the computer, 2026-10-23)", () => {
+  const result = paste(outer, { code: '<Image src={new URL("../../../assets/media/cover-shot-1a2b3c4d.webp", import.meta.url).href} alt="Cover shot" ratio="4:3" />' });
+  assert.ok(!result.error, result.error);
+  assert.match(result.code, /<Image src=\{new URL\("\.\.\/\.\.\/\.\.\/assets\/media\/cover-shot-1a2b3c4d\.webp", import\.meta\.url\)\.href\} alt="Cover shot" ratio="4:3" \/>/);
+  assert.match(result.code, /import \{ Image \} from "\.\.\/\.\.\/\.\.\/components\/Image";/);
+});
+
 test("pasteCode: a name that exists where it lands is fine, one that does not is refused", () => {
   const ok = paste(outer, { code: "<Button onClick={() => setOn(!on)}>Again</Button>", before: one });
   assert.ok(!ok.error, ok.error);

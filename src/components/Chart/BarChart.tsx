@@ -3,6 +3,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
 import { AverageLine, ChartBlock, ChartSummary, PlotFrame, defaultFormat, meanOf, niceScale, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartPaletteName, type ChartPoint } from "./chartCore";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export interface BarChartProps {
   /** One bar per category or period (`{ label, value }`); mark a forecast `projected` (hatched) and give a bar a `target`
@@ -43,7 +44,7 @@ export interface BarChartProps {
  * 15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941; Color=Primary · Secondary ↔ `palette`); the hatch is
  * .Chart/Hatch 15321:475.
  */
-export function BarChart({ data, orientation = "vertical", format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, color, activeColor, palette = "primary", animate = true, showAverage = false, ref }: BarChartProps) {
+export function BarChart({ data, orientation = "vertical", format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, color, activeColor, palette = "primary", animate = true, showAverage = false, ref, ...rest }: BarChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const signature = signatureOf(data.map((d) => [d.value, d.target ?? null, d.projected ?? false]));
@@ -61,7 +62,7 @@ export function BarChart({ data, orientation = "vertical", format = defaultForma
 
   if (!horizontal) {
     return (
-      <ChartBlock ref={ref} kind="bar" palette={palette}>
+      <ChartBlock {...dataAttributes(rest)} ref={ref} kind="bar" palette={palette}>
         <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel} activeLine="neutral" className={className} kind="bar" animate={animate}
           tooltip={current ? valueText(current) : null} summary={summary} average={average}>
           <div className="zen-chart__bars" key={signature} style={colours}>
@@ -78,7 +79,7 @@ export function BarChart({ data, orientation = "vertical", format = defaultForma
   }
 
   return (
-    <ChartBlock ref={ref} kind="bar" palette={palette}>
+    <ChartBlock {...dataAttributes(rest)} ref={ref} kind="bar" palette={palette}>
       <div className={["zen-chart", "zen-chart--horizontal", className].filter(Boolean).join(" ")} data-kind="bar" data-orientation="horizontal" data-animate={animate ? undefined : "false"} style={colours}>
         <div className="zen-chart__hplot" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0} onKeyDown={onKeyDown} data-average={average ? "true" : undefined}
           style={{ "--zen-chart-count": data.length } as CSSProperties}>

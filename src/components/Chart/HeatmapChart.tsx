@@ -4,6 +4,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
 import { ChartBlock, ChartSummary, defaultFormat, placeTip, signatureOf, staggerStyle, useChartId } from "./chartCore";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export interface HeatmapChartProps {
   /** Row labels, top to bottom ("1 pm", "2 pm"…). */
@@ -38,7 +39,7 @@ const levelOf = (value: number, max: number) => (value <= 0 || max <= 0 ? 0 : Ma
  * cell (its row and column labels light up and its Tooltip reads "Tue 1 pm · 55 h"); Home/End jump to the row's first and
  * last cell. Figma Chart/Heatmap-Chart 15326:1043.
  */
-export function HeatmapChart({ rows, columns, values, format = defaultFormat, max: maxProp, "aria-label": ariaLabel, showLegend = true, className, animate = true, ref }: HeatmapChartProps) {
+export function HeatmapChart({ rows, columns, values, format = defaultFormat, max: maxProp, "aria-label": ariaLabel, showLegend = true, className, animate = true, ref, ...rest }: HeatmapChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const [active, setActive] = useState<[number, number] | null>(null);
@@ -64,7 +65,7 @@ export function HeatmapChart({ rows, columns, values, format = defaultFormat, ma
     </div>
   ) : undefined;
   return (
-    <ChartBlock ref={ref} kind="heatmap" legend={legend} position="bottom">
+    <ChartBlock {...dataAttributes(rest)} ref={ref} kind="heatmap" legend={legend} position="bottom">
       <div className={["zen-chart", "zen-chart--heatmap", className].filter(Boolean).join(" ")} data-kind="heatmap" data-animate={animate ? undefined : "false"} style={{ "--zen-chart-columns": columns.length, "--zen-chart-rows": rows.length } as CSSProperties}>
         <div className="zen-chart__heat" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
           onKeyDown={onKeyDown} onBlur={() => setActive(null)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(null); }}>

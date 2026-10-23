@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Every component forwards its `data-*` attributes to its root (Skeletons, charts, chat, dialogs, sheets and the rest:
+  119 that dropped them), so the AI UI renderer's `data-ai-ui-id`, test ids and analytics hooks land; only `data-*`, so
+  nothing else a component renders changes. The conformance test checks it for every public component (2026-10-23).
 - Layout: `sticky="top" | "bottom"` on Stack, Grid, Box and Shape (Figma's Fix position when scrolling): the layer
   stays in the flow and sticks to its scrolling ancestor's edge. In an AppShell Body a bottom dock takes the page margin
   inside itself, so the chat, AI chat and AI UI composers dock without example CSS. Zen Studio sets it in Prototype ›
@@ -70,6 +73,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   current Spark-Bar, the active bar, a Bullet or Gauge target, the Funnel's last stage, the Combo line) in black at 49%
   (Content/Neutral/Light; Inverse/Light in dark mode), as Figma's Color Chart Sector/On-Color/Secondary does, not 69%.
   The user kept that style's binding and the Tertiary one (Border/Neutral/Subtle/Pressed) (2026-10-23).
+- Zen Studio: a photo file dropped from the computer on an example or template page is saved in the repo
+  (`src/assets/media`, as WebP up to 1600 px, with a CREDITS.md row to confirm its licence) and then lands as a library
+  photo: on an Avatar, Image, account or a face of a list it replaces that picture, elsewhere it is a new Image reading
+  the file. A photo from "Your uploads" picked or dropped on such a page is saved the same way (2026-10-23).
 - Zen Studio: a photo dropped on one row's avatar changes that row's picture on example pages too when a helper
   function draws it (the sidebar's `personAvatar(people[t.assignee])` in rows `taskRow(t)` builds): it lands in that
   person's data (`people.alex.photo` in examples/data.ts), an initials avatar gets its first photo, one ⌘Z. A photo

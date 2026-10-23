@@ -88,7 +88,7 @@ const TS_WRAPPERS = new Set(["TSAsExpression", "TSSatisfiesExpression", "TSNonNu
 /** Layout primitives a slot's content can be wrapped in (src/components/Layout). */
 const WRAP_TAGS = ["Stack", "Grid", "Box"];
 /** Built-in values inserted code may read (`new Date(2026, 9, 14)`, `Math.round`): never the page's own names. */
-const JS_GLOBALS = new Set(["Date", "Math", "Number", "String", "Boolean", "Array", "Object", "JSON", "Intl"]);
+const JS_GLOBALS = new Set(["Date", "Math", "Number", "String", "Boolean", "Array", "Object", "JSON", "Intl", "URL"]);
 /** Props that are never content slots. */
 const NOT_SLOTS = new Set(["key", "ref", "className", "style", "dangerouslySetInnerHTML"]);
 /** Docs chrome rendered from other files (chromeFunctions finds the ones a file declares itself). */
@@ -353,7 +353,7 @@ function prepareCode(raw, folders, allowed = new Set(), bound = null, parentName
   if (bound) return pastedCode(src, folders, allowed, bound, parentName);
   let node;
   try {
-    node = parseExpression(src, { plugins: PLUGINS });
+    node = parseExpression(src, { plugins: PLUGINS, sourceType: "module" });
   } catch (error) {
     refuse(`The code is not one JSX element: ${error.message.replace(/\s*\(\d+:\d+\)$/, "")}`);
   }
@@ -369,7 +369,7 @@ function pastedCode(src, folders, allowed, bound, parentName) {
   const wrapped = `<>\n${src}\n</>`;
   let fragment;
   try {
-    fragment = parseExpression(wrapped, { plugins: PLUGINS });
+    fragment = parseExpression(wrapped, { plugins: PLUGINS, sourceType: "module" });
   } catch (error) {
     refuse(`The clipboard is not JSX elements: ${error.message.replace(/\s*\(\d+:\d+\)$/, "")}`);
   }
@@ -399,6 +399,8 @@ function codeReads(node, folders, allowed, bound, parentName) {
     if (inner.type === "CatchClause") patternNames(inner.param, declared);
     if ((inner.type === "MemberExpression" || inner.type === "OptionalMemberExpression") && !inner.computed) skip.add(inner.property);
     if ((inner.type === "ObjectProperty" || inner.type === "ObjectMethod") && !inner.computed && !inner.shorthand) skip.add(inner.key);
+    // `import.meta` (a picture the repo holds: `new URL("…", import.meta.url).href`) reads no name.
+    if (inner.type === "MetaProperty") { skip.add(inner.meta); skip.add(inner.property); }
     if (inner.type === "JSXAttribute" && attrName(inner) === "data-zen-src") refuse("The code carries data-zen-src; the Studio adds it");
     if (inner.type === "JSXOpeningElement") {
       // Tag names are JSXIdentifiers (attribute names too): only a capitalised or member tag's root is a reference.

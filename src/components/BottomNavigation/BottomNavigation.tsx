@@ -10,6 +10,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./bottom-navigation.css";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { dataAttributes } from "../_shared/data-attributes";
 
 /** Figma Bottom-Navigation/Mobile: Default (full-width bar) · Floating (Surface/Glass pill) · Floating-Glass (Liquid-Glass pill). */
 export type BottomNavigationType = "default" | "floating" | "floating-glass";
@@ -91,7 +92,7 @@ function TipButton({ tip, children, ...props }: ButtonHTMLAttributes<HTMLButtonE
  * edge, strongest at the bottom — the mirror of the Top Navigation blur.
  * The home indicator is the OS's; the bar pads `env(safe-area-inset-bottom)`.
  */
-export function BottomNavigation({ items: itemsProp, children, value, onValueChange, type = "default", theme = "neutral", selection: selectionProp, showLabels = false, action, fixed = false, backdrop = "surface", "aria-label": ariaLabelProp, className, overrides, ref }: BottomNavigationProps) {
+export function BottomNavigation({ items: itemsProp, children, value, onValueChange, type = "default", theme = "neutral", selection: selectionProp, showLabels = false, action, fixed = false, backdrop = "surface", "aria-label": ariaLabelProp, className, overrides, ref, ...rest }: BottomNavigationProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.mainTabs;
@@ -135,7 +136,7 @@ export function BottomNavigation({ items: itemsProp, children, value, onValueCha
     </ul>
   );
   return (
-    <nav ref={ref} className={["zen-bottom-nav", className].filter(Boolean).join(" ")} aria-label={ariaLabel} data-type={type} data-tone={theme} data-selection={selection} data-labels={showLabels ? "true" : undefined} data-fixed={fixed ? "true" : undefined} data-backdrop={floating && backdrop === "none" ? "none" : undefined}>
+    <nav {...dataAttributes(rest)} ref={ref} className={["zen-bottom-nav", className].filter(Boolean).join(" ")} aria-label={ariaLabel} data-type={type} data-tone={theme} data-selection={selection} data-labels={showLabels ? "true" : undefined} data-fixed={fixed ? "true" : undefined} data-backdrop={floating && backdrop === "none" ? "none" : undefined}>
       {/* Floating types: Figma progressive background blur, strongest at the bottom edge (see bottom-navigation.css). */}
       {floating ? <ProgressiveBlur className="zen-bottom-nav__progressive" strong="bottom" /> : null}
       {floating ? <div className="zen-bottom-nav__row"><div ref={floatingGlass} className="zen-bottom-nav__pill">{list}</div>{actionButton}</div> : list}

@@ -7,6 +7,7 @@ import { typographyStyles, type TypographyStyleName } from "../../tokens/typogra
 import "./empty-state.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const emptyStateSizes = ["sm", "md"] as const;
 /** Short (canonical) or long Figma spelling — both render the same. */
@@ -69,7 +70,7 @@ export interface EmptyStateProps extends Omit<HTMLAttributes<HTMLElement>, "titl
  * Size=Medium (6085:25816) 240 with a 44 icon (Popular/2XLarge); Size=Small (16339:53) 200, the same art at 5/6 scale
  * with a 36 icon (Popular/XLarge) and the same 1px grid and 2px rings. Icon Content/Placeholder.
  */
-export function EmptyStateIllustration({ icon = "icon-user-circle-line", size: sizeProp = "md", ref }: {
+export function EmptyStateIllustration({ icon = "icon-user-circle-line", size: sizeProp = "md", ref, ...rest }: {
   icon?: IconName | ReactElement;
   /** `md` 240 (default) · `sm` 200. */
   size?: EmptyStateSize;
@@ -79,7 +80,7 @@ export function EmptyStateIllustration({ icon = "icon-user-circle-line", size: s
   const nest = useNested();
   const size = scaleKey(sizeProp, emptyStateSizes);
   return (
-    <span ref={ref} className={`zen-empty-state__illustration zen-empty-state__illustration--${size}`} aria-hidden="true">
+    <span {...dataAttributes(rest)} ref={ref} className={`zen-empty-state__illustration zen-empty-state__illustration--${size}`} aria-hidden="true">
       <svg viewBox="0 0 240 240" width="240" height="240" className="zen-empty-state__art">
         <g className="zen-empty-state__grid">
           {[40, 93, 146, 199].map((x) => <line key={`v${x}`} x1={x} x2={x} y1={40} y2={200} />)}

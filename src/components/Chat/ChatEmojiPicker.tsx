@@ -4,6 +4,7 @@ import { Icon } from "../Icon";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "../Icon/core";
+import { dataAttributes } from "../_shared/data-attributes";
 
 /** A compact, dependency-free emoji set for message reactions (name is the accessible label and the search key). */
 export const chatEmojiSet: ReadonlyArray<{ emoji: string; name: string }> = [
@@ -28,7 +29,7 @@ const COLUMNS = 8;
  * grid of 36px emoji buttons (the Reaction/Emoji/Interactive size). Arrow keys move through the grid, Home/End jump,
  * Enter/Space picks, Escape (handled by the popover) closes.
  */
-export function ChatEmojiPicker({ value, onPick, onBack, label: labelProp, ref }: { value?: string; onPick: (emoji: string) => void; onBack: () => void; /** Accessible name of the panel (the locale's "Choose a reaction" by default). */ label?: string; /** Ref to the root `<div>` (role="dialog"). */ ref?: Ref<HTMLDivElement> }) {
+export function ChatEmojiPicker({ value, onPick, onBack, label: labelProp, ref, ...rest }: { value?: string; onPick: (emoji: string) => void; onBack: () => void; /** Accessible name of the panel (the locale's "Choose a reaction" by default). */ label?: string; /** Ref to the root `<div>` (role="dialog"). */ ref?: Ref<HTMLDivElement> }) {
   const t = useZenLabels();
   const label = labelProp ?? t.chooseReaction;
   const [query, setQuery] = useState("");
@@ -45,7 +46,7 @@ export function ChatEmojiPicker({ value, onPick, onBack, label: labelProp, ref }
     buttons[Math.max(0, Math.min(buttons.length - 1, next))]?.focus();
   };
   return (
-    <div ref={ref} className="zen-chat-emoji" role="dialog" aria-label={label}>
+    <div {...dataAttributes(rest)} ref={ref} className="zen-chat-emoji" role="dialog" aria-label={label}>
       <div className="zen-chat-emoji__head">
         <IconButton appearance="flat" level="primary" size="sm" aria-label={t.backToQuickReactions} onClick={onBack} icon={<Icon name="icon-chevron-left-line-medium" />} />
         <label className="zen-chat-emoji__search">

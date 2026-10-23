@@ -9,6 +9,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./rating.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const ratingSizes = ["xsmall", "small", "medium", "large", "xlarge"] as const;
 export const ratingThemes = ["default", "neutral", "accent"] as const;
@@ -44,7 +45,7 @@ export interface RatingProps {
  * Figma Rating/Star (1536:26008): a star input — one radio per star (arrow keys move, Space/click sets), hover previews
  * the value. Stars are icon-star-01-solid with gap 3XSmall.
  */
-export function Rating({ value, defaultValue = 0, onValueChange, onChange, max = 5, size: sizeProp = "md", theme = "default", "aria-label": ariaLabelProp, name, disabled = false, className, ref }: RatingProps) {
+export function Rating({ value, defaultValue = 0, onValueChange, onChange, max = 5, size: sizeProp = "md", theme = "default", "aria-label": ariaLabelProp, name, disabled = false, className, ref, ...rest }: RatingProps) {
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.rating;
   const size = scaleKey(sizeProp, ratingSizes);
@@ -53,7 +54,7 @@ export function Rating({ value, defaultValue = 0, onValueChange, onChange, max =
   const autoName = useId();
   const shown = hover ?? current;
   return (
-    <div ref={ref} className={["zen-rating", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} role="radiogroup" aria-label={ariaLabel} aria-disabled={disabled || undefined} onPointerLeave={() => setHover(null)}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-rating", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} role="radiogroup" aria-label={ariaLabel} aria-disabled={disabled || undefined} onPointerLeave={() => setHover(null)}>
       {Array.from({ length: max }, (_, index) => {
         const star = index + 1;
         return (
@@ -82,7 +83,7 @@ export interface RatingDisplayProps {
 }
 
 /** Figma Rating-Display (9818:5582): a Rating=None base row with the filled row clipped to the value on top. */
-export function RatingDisplay({ value, max = 5, size: sizeProp = "md", theme = "default", label, className, ref }: RatingDisplayProps) {
+export function RatingDisplay({ value, max = 5, size: sizeProp = "md", theme = "default", label, className, ref, ...rest }: RatingDisplayProps) {
   const t = useZenLabels();
   const locale = useZenLocale();
   const size = scaleKey(sizeProp, ratingSizes);
@@ -91,7 +92,7 @@ export function RatingDisplay({ value, max = 5, size: sizeProp = "md", theme = "
   // One decimal, written the locale's way (en "4.5", vi "4,5").
   const fallbackLabel = t.ratingValue(new Intl.NumberFormat(locale, { useGrouping: false }).format(Number(clamped.toFixed(1))), max);
   return (
-    <span ref={ref} className={["zen-rating-display", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} role="img" aria-label={label ?? fallbackLabel} style={{ "--zen-rating-fill": `${(clamped / max) * 100}%` } as CSSProperties}>
+    <span {...dataAttributes(rest)} ref={ref} className={["zen-rating-display", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} role="img" aria-label={label ?? fallbackLabel} style={{ "--zen-rating-fill": `${(clamped / max) * 100}%` } as CSSProperties}>
       <span className="zen-rating-display__base" aria-hidden="true">{stars}</span>
       <span className="zen-rating-display__fill" aria-hidden="true">{stars}</span>
     </span>
@@ -146,14 +147,14 @@ export interface OpinionScaleProps {
  * custom `labels` are clamped with an ellipsis (Figma's item is 68px tall for one Caption line; two lines is the code
  * limit), so the faces keep one height. Figma has no narrow or long-label variant; both are code-only.
  */
-export function OpinionScale({ scale = 5, value, onValueChange, onChange, labels, "aria-label": ariaLabelProp, className, ref }: OpinionScaleProps) {
+export function OpinionScale({ scale = 5, value, onValueChange, onChange, labels, "aria-label": ariaLabelProp, className, ref, ...rest }: OpinionScaleProps) {
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.howDoYouFeel;
   // `null` is a controlled "nothing chosen"; there is no defaultValue, so uncontrolled starts empty.
   const [current, setCurrent] = useControllableState<OpinionEmotion | null>({ value, defaultValue: null, onChange: (next) => { if (next !== null) { onValueChange?.(next); onChange?.(next); } }, name: "OpinionScale value" });
   const name = useId();
   return (
-    <div ref={ref} className={["zen-opinion-scale", className].filter(Boolean).join(" ")} data-scale={scale} role="radiogroup" aria-label={ariaLabel}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-opinion-scale", className].filter(Boolean).join(" ")} data-scale={scale} role="radiogroup" aria-label={ariaLabel}>
       {scaleSets[scale].map((id) => {
         const option = opinionEmotions.find((item) => item.id === id)!;
         const selected = current === id;
@@ -203,7 +204,7 @@ export interface NpsScaleProps {
  * 7–8, promoters 9–10), so the component must not change the scale the app collects. 0–5 keeps 24px targets in one row
  * down to 144px.
  */
-export function NpsScale({ scale = 10, value, onValueChange, onChange, lowLabel: lowLabelProp, highLabel: highLabelProp, "aria-label": ariaLabelProp, className, overrides, ref }: NpsScaleProps) {
+export function NpsScale({ scale = 10, value, onValueChange, onChange, lowLabel: lowLabelProp, highLabel: highLabelProp, "aria-label": ariaLabelProp, className, overrides, ref, ...rest }: NpsScaleProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const lowLabel = lowLabelProp === undefined ? t.npsLow : lowLabelProp;
@@ -212,7 +213,7 @@ export function NpsScale({ scale = 10, value, onValueChange, onChange, lowLabel:
   // State only: a click on the chosen chip fires onValueChange again (as before), so the callbacks are called directly.
   const [current, setCurrent] = useControllableState<number | null>({ value, defaultValue: null, name: "NpsScale value" });
   return (
-    <div ref={ref} className={["zen-nps-scale", className].filter(Boolean).join(" ")} data-scale={scale} style={{ "--zen-nps-count": scale + 1 } as CSSProperties}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-nps-scale", className].filter(Boolean).join(" ")} data-scale={scale} style={{ "--zen-nps-count": scale + 1 } as CSSProperties}>
       <div className="zen-nps-scale__numbers" role="group" aria-label={ariaLabel}>
         {Array.from({ length: scale + 1 }, (_, n) => (
           nest("Chip", <Chip key={n} variant="number-only" size="small" level="secondary" selected={current === n} aria-pressed={current === n} onClick={() => { setCurrent(n); onValueChange?.(n); onChange?.(n); }}>{n}</Chip>, n)
