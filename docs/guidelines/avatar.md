@@ -64,7 +64,7 @@ Also accepts `Omit<AvatarProps, "children" | "alt" | "src">`.
 ## ❌ Don't
 - Don't show more than 5 avatars in a stack; summarise the rest in text.
 - Don't use status without a text equivalent nearby ("Online").
-- Don't put initials on a Solid green, teal, orange or cyan avatar: the white initials measure 2.6–2.9:1. Use background="subtle" or a theme such as indigo, violet or purple; photos are fine (harness: avatar/solid-initials-contrast).
+- Don't put initials on a Solid golden, teal, cyan or orange avatar: the white initials measure 2.6–3.0:1. Use background="subtle" or a theme such as indigo, violet or purple; photos are fine (harness: avatar/solid-initials-contrast).
 
 ## Accessibility
 - Without a photo, an avatar with alt is one image named by it (role=img): an AvatarStack of initials reads "Ava Nguyen, Minh Tran", not "AN MT". The status joins the name ("Ava Nguyen, Online"), alt="" hides the initials, and the stack's overflow avatar reads "+N".
@@ -76,7 +76,7 @@ Also accepts `Omit<AvatarProps, "children" | "alt" | "src">`.
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `avatar/needs-alt` | error | Avatars need alt (the person's name; alt="" only when the name is shown next to it). | `zen-allow-avatar-alt: <reason>` |
-| `avatar/solid-initials-contrast` | warn | Initials on a Solid green, teal, orange or cyan Avatar fall below 3:1 contrast; use background="subtle" or another theme (photos are fine). | `zen-allow-avatar-contrast: <reason>` |
+| `avatar/solid-initials-contrast` | warn | Initials on a Solid golden, teal, cyan or orange Avatar fall below 3:1 contrast; use background="subtle" or another theme (photos are fine). | `zen-allow-avatar-contrast: <reason>` |
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |

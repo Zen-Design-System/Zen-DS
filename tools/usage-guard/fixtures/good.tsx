@@ -27,6 +27,7 @@ export const Good = () => <>
   <Avatar theme="photo" src={url} alt="Ava Chen" />
   <Avatar theme="blue" alt="">AC</Avatar>
   <Avatar theme="green" background="subtle" alt="Ava Chen">AC</Avatar>
+  <Avatar theme="green" alt="Ava Chen">AC</Avatar>
   <Avatar theme="teal" background="solid" src={url} alt="Minh Tran" />
   <Avatar theme="indigo" background="solid" alt="Bao Le">BL</Avatar>
   <Tooltip content="Duplicate"><IconButton onClick={act} aria-label="Duplicate" icon={<Icon name="icon-copy-line" />} /></Tooltip>

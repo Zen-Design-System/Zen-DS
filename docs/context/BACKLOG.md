@@ -23,11 +23,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   paste (instances by `componentKey`, as Figma's own copies carry). The rest of the parity list closed on 2026-10-23
   (Copy for Figma in a copy event, grid cards' heights, the pack at 7.7 MB; the slot and alias differences kept by
   design). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §8.
-- **P3 · Pull the phone AppShell back from Figma (2026-10-23, B):** the push draws a phone AppShell as Figma's
-  Pattern/AppShell/Mobile (its bar, tabs or ActionBar, band, page); figma-pull has no reader for that pattern yet, so a
-  pull gives the page in a Stack named AppShell and notes the rest (as before the push drew it). An ActionBar outside an
-  AppShell still has no Figma set (Action-Bar/Mobile, 16326:6489). Pointer: `tools/studio/figma-push.mjs`
-  `mobileShellNode`, `actionBarParts`; `figma-pull.mjs` masterLayout reader (~1980) as the pattern to follow.
 - **ListItem Value in Figma — decided, not built (user, 2026-10-23: "not now"; 2026-10-13: "code first"):** code has
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
@@ -184,9 +179,6 @@ starts.
   instead of a Segmented that does not fit; a bare `<Container>` around a Table has 0 cases). The four approved rules
   (`table/bulk-actions-max`, `chip/needs-action`, three actions in one TopNavigation group, `search-folds-to-action` on
   `scrollRef` bars) shipped 2026-10-24.
-- **P3 · `avatar/solid-initials-contrast` misses `golden` (2026-10-05):** Golden Solid draws white initials at 2.58:1
-  (Bronze 3.38:1), but the rule and the avatar guideline's Don't list green | teal | orange | cyan only
-  (`check-usage.mjs` ~1054, `guidelines.source.mjs`). A fix to an existing rule, S.
 - **P3 · Audit gaps (2026-10-02/03; the user's go 2026-10-24), in flight:** the focused-heading `edges` frame (PR #264);
   `fit` / `overflow` also catch a control clipped by an `overflow: hidden` ancestor or covered by a sibling, and a durable
   selftest for the quality / outline checks (B, PR #270). Done: `platform:audit`, `platform:shoot` and `visual-diff` warn
@@ -197,20 +189,11 @@ starts.
   script's edits counting only when the command names the file is documented (`skills/zen-build-qa` §3). Kept on
   purpose: partial `--only` runs and mixed stale guidelines fail. Not now: B.4, C.4, C.6, C.7; no global text-width
   tolerance (the suites' `xr` / `wr` / `cxr` checks replace it).
-- **P3 · `-shadow-off` leaks into nested component themes** (found 2026-09-29, token update): companions are emitted
-  only in the modes whose fill is tinted, so a Neutral-S4 scope inside a Neutral-S3 scope inherits S3's `0 0 #0000`
-  and its selected chip loses the Figma shadow. Nothing in the repo nests component themes, but `ZenProvider` allows
-  it. Fix idea: `scripts/build-tokens.mjs` emits `<token>-shadow-off: initial` in the other modes.
-  (2026-10-24: the companions are emitted by `scripts/token-outputs.mjs` ~139 now.)
 - **P3 · Figma contract suites from the 2026-09-29 parity list (merged 2026-10-24):** the Open-items entry "Figma
   contract suites, next batch" holds the plan; it should also name Breadcrumbs (a figmaExceptions entry for the 4px list
   padding; `breadcrumbs.json` was not in the 2026-10-23 re-read), a harness kind that renders SegmentedItem inside
   Segmented, and Search/Popover with Neutral-S4 (`popover-search.mjs` checks Default only). Fold in when that entry
   starts.
-- **P3 · Memory-only notes → repo (2026-10-02):** the playground empty-slot and APFS backup-naming notes live only in
-  the Mac's memory; copy them into the repo's skills. S.
-
-### Next-phase Studio design check
 - **P3 · Studio panels in dark chrome and at 280px (2026-10-03; rewritten 2026-10-24):** no screenshot pass of the
   rebuilt UI3 panels in dark chrome (`chromeTheme`, `src/platform/studio/store.ts` ~21) or at their 280px minimum width
   (`inspector/inspector.css` ~3). Goes with N1–N11 (Open items).

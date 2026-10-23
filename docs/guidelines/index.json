@@ -1047,7 +1047,7 @@
       "dont": [
         "Don't show more than 5 avatars in a stack; summarise the rest in text.",
         "Don't use status without a text equivalent nearby (\"Online\").",
-        "Don't put initials on a Solid green, teal, orange or cyan avatar: the white initials measure 2.6–2.9:1. Use background=\"subtle\" or a theme such as indigo, violet or purple; photos are fine (harness: avatar/solid-initials-contrast)."
+        "Don't put initials on a Solid golden, teal, cyan or orange avatar: the white initials measure 2.6–3.0:1. Use background=\"subtle\" or a theme such as indigo, violet or purple; photos are fine (harness: avatar/solid-initials-contrast)."
       ],
       "rules": [
         "avatar/needs-alt",

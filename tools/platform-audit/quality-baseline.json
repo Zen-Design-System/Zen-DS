@@ -1,6 +1,6 @@
 {
   "generated": "2026-10-21T14:15:53.015Z",
-  "note": "Pre-existing Build-QA findings (audit.mjs --quality/--density). New findings fail; fix these when you touch the page, then re-run with --baseline-update.",
+  "note": "Pre-existing Build-QA findings (audit.mjs --quality/--density). New findings fail; one met while working on its page is fixed in the same change (AGENTS.md, fix at once), then re-run with --baseline-update.",
   "total": 131,
   "keys": {
     "sidebar@1512|scale|Variant=small-density: Patterns/Sidebar: \"Kaiz\" (span.zen-sidebar__default-brand-product) is 10/13.3333 — no Zen text style; nearest caption-bold 11/16 or label-small-bold 9/12": 1,
