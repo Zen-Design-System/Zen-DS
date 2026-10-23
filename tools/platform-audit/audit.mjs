@@ -290,8 +290,8 @@ function pageChecks({ scopeSel, mobile }) {
     const colour = parse(layer); const lengths = layer.replace(/rgba?\([^)]*\)/g, "").match(/-?[\d.]+px/g)?.map(parseFloat) ?? [];
     return (colour?.a ?? 1) > 0 && lengths.length >= 4 && lengths[0] === 0 && lengths[1] === 0 && lengths[2] === 0 && lengths[3] >= 0.5;
   });
-  const framedBy = (s) => ["Top", "Right", "Bottom", "Left"].every((k) => parseFloat(s[`border${k}Width`]) >= 0.5 && s[`border${k}Style`] !== "none" && (parse(s[`border${k}Color`])?.a ?? 0) > 0)
-    || (s.outlineStyle !== "none" && parseFloat(s.outlineWidth) > 0 && (parse(s.outlineColor)?.a ?? 0) > 0) || ring(s.boxShadow);
+  const bordered = (s) => ["Top", "Right", "Bottom", "Left"].every((k) => parseFloat(s[`border${k}Width`]) >= 0.5 && s[`border${k}Style`] !== "none" && (parse(s[`border${k}Color`])?.a ?? 0) > 0);
+  const framedBy = (s) => bordered(s) || (s.outlineStyle !== "none" && parseFloat(s.outlineWidth) > 0 && (parse(s.outlineColor)?.a ?? 0) > 0) || ring(s.boxShadow);
   const framed = (el) => framedBy(getComputedStyle(el)) || ["::before", "::after"].some((p) => { const ps = getComputedStyle(el, p); return ps.content !== "none" && framedBy(ps); });
   if (painters.canvas.length && painters.surface.length) {
     for (const el of scope.querySelectorAll("*")) {
@@ -362,7 +362,9 @@ function pageChecks({ scopeSel, mobile }) {
     for (let a = el; a && a !== document.body; a = a.parentElement) {
       if (a.matches(".official-platform, .pe-card, .platform-example-panel, .platform-phone, .platform-phone__screen, main")) return null;
       const s = getComputedStyle(a); if (["auto", "scroll"].includes(s.overflowY) || ["auto", "scroll"].includes(s.overflowX)) return null;
-      if (paints(a) || framedBy(s)) return a;
+      // A focused element's outline or ring is its focus indicator, not a box: a heading focused by script (tabIndex={-1},
+      // after a route change) would otherwise hold its own text at 0px. Only its borders frame it.
+      if (paints(a) || (a.matches(":focus") ? bordered(s) : framedBy(s))) return a;
     }
     return null;
   };
@@ -788,7 +790,7 @@ async function run() {
     const replaced = (k) => runs.has(k.slice(0, k.indexOf("|"))) && (!kinds || kinds.has(k.split("|")[1]));
     const keys = Object.fromEntries(Object.entries(stored).filter(([k]) => !replaced(k)));
     for (const [k, n] of Object.entries(report.current ?? {})) if (replaced(k)) keys[k] = n;
-    fs.writeFileSync(BASELINE_FILE, JSON.stringify({ generated: new Date().toISOString(), note: "Pre-existing Build-QA findings (audit.mjs --quality/--density). New findings fail; fix these when you touch the page, then re-run with --baseline-update.", total: Object.values(keys).reduce((a, b) => a + b, 0), keys }, null, 2) + "\n");
+    fs.writeFileSync(BASELINE_FILE, JSON.stringify({ generated: new Date().toISOString(), note: "Pre-existing Build-QA findings (audit.mjs --quality/--density). New findings fail; one met while working on its page is fixed in the same change (AGENTS.md, fix at once), then re-run with --baseline-update.", total: Object.values(keys).reduce((a, b) => a + b, 0), keys }, null, 2) + "\n");
     console.log(`Baseline → tools/platform-audit/quality-baseline.json (${Object.keys(keys).length} keys${kinds ? `; replaced ${[...kinds].join(", ")} only` : ""})`);
     process.exit(0);
   }

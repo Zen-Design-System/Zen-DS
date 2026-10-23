@@ -128,6 +128,16 @@ export function tokenOutputs({ readSource, motion, warn = console.warn }) {
   // `--zen-old: var(--zen-new)`, so code and aliases that read the old name keep working while the harness warns.
   const formerLines = (token) => (Array.isArray(token.formerNames) ? token.formerNames : []).map((former) => `  ${cssName(former)}: var(${cssName(token.name)}); /* renamed to ${token.name} */`);
   const cssBlocks = [];
+  // House rule: a surface filled with a Subtle / Pale / Surface-Alt background carries no drop shadow. A component
+  // background that aliases one of those in a theme gets `<token>-shadow-off: 0 0 #0000` there; components write
+  // `box-shadow: var(<their background>-shadow-off, <shadow>)` so the shadow drops per theme. Every other theme declares
+  // the companion `initial` (the guaranteed-invalid value, so the fallback shadow applies): without it a theme nested
+  // inside a tinted one (Neutral-S4 inside Neutral-S3) would inherit the outer theme's empty shadow (2026-09-29 finding).
+  const tintedAlias = (value) => {
+    const alias = typeof value === "string" ? value.match(aliasPattern)?.[1] : undefined;
+    return Boolean(alias && /^Color\/Background\//.test(alias) && /(\/(Subtle|Pale)(\/|$)|Subtle\/|Pale\/|\/Surface\/Alt$|-Subtle$|-Pale$)/.test(alias));
+  };
+  const shadowOff = (collection, token) => collection.slug === "component-colors-theme" && /background/i.test(token.name) && collection.modes.some((mode) => tintedAlias(token.valuesByMode[mode]));
   for (const collection of collections) {
     collection.modes.forEach((mode, modeIndex) => {
       if (collection.slug === "global-colors" && mode === HIGH_CONTRAST_MODE) return; // its own block, below
@@ -135,16 +145,9 @@ export function tokenOutputs({ readSource, motion, warn = console.warn }) {
       cssBlocks.push(`${modeSelector(collection.slug, mode, modeIndex)} {`);
       for (const token of collection.tokens) {
         cssBlocks.push(`  ${cssName(token.name)}: ${formatCssValue(token, token.valuesByMode[mode])};`, ...formerLines(token));
-        // House rule: a surface filled with a Subtle / Pale / Surface-Alt background carries no drop shadow.
-        // A component background that aliases one of those in this theme gets `<token>-shadow-off: none`;
-        // components write `box-shadow: var(<their background>-shadow-off, <shadow>)` so the shadow drops per theme.
-        if (collection.slug === "component-colors-theme" && /background/i.test(token.name)) {
-          const value = token.valuesByMode[mode];
-          const alias = typeof value === "string" ? value.match(aliasPattern)?.[1] : undefined;
-          if (alias && /^Color\/Background\//.test(alias) && /(\/(Subtle|Pale)(\/|$)|Subtle\/|Pale\/|\/Surface\/Alt$|-Subtle$|-Pale$)/.test(alias)) {
-            cssBlocks.push(`  ${cssName(token.name)}-shadow-off: 0 0 #0000;`); // an empty shadow layer: combinable in a shadow list, unlike `none`
-          }
-        }
+        // The no-shadow companion (above): an empty shadow layer where the fill is tinted (combinable in a shadow list,
+        // unlike `none`), `initial` in the other themes so a nested theme never inherits it.
+        if (shadowOff(collection, token)) cssBlocks.push(`  ${cssName(token.name)}-shadow-off: ${tintedAlias(token.valuesByMode[mode]) ? "0 0 #0000" : "initial"};`);
       }
       cssBlocks.push("}", "");
     });

@@ -1045,13 +1045,15 @@ export const rules = [
   { id: "avatar/needs-alt", components: ["Avatar"], severity: "error", allow: "avatar-alt", guideline: "docs/guidelines/avatar.md",
     summary: "Avatars need alt (the person's name; alt=\"\" only when the name is shown next to it).",
     check: ({ attrs }) => !present(attrs, "alt") && "has no alt." },
-  // Figma draws white initials on these Solid fills (kept as drawn), but they measure below 3:1: green 2.93, teal 2.70,
-  // orange 2.73, cyan 2.60 (yellow has its own dark text). A photo covers the fill, so only initials avatars are flagged.
+  // Figma draws white initials (Content/On-Colors) on these Solid fills (kept as drawn), but they measure below 3:1
+  // (tokens 2026-10-24, the same in both themes): golden 2.58, teal 2.70, cyan 2.96, orange 2.98. Green measures 3.48 and
+  // bronze 3.38, so they pass; yellow, sky and mint take dark On-Brights text. A photo covers the fill, so only initials
+  // avatars are flagged.
   { id: "avatar/solid-initials-contrast", components: ["Avatar"], severity: "warn", allow: "avatar-contrast", guideline: "docs/guidelines/avatar.md",
-    summary: "Initials on a Solid green, teal, orange or cyan Avatar fall below 3:1 contrast; use background=\"subtle\" or another theme (photos are fine).",
+    summary: "Initials on a Solid golden, teal, cyan or orange Avatar fall below 3:1 contrast; use background=\"subtle\" or another theme (photos are fine).",
     check: ({ attrs }) => {
       const theme = literal(attrs, "theme");
-      if (!/^(green|teal|orange|cyan)$/.test(theme ?? "") || present(attrs, "src")) return null;
+      if (!/^(golden|teal|cyan|orange)$/.test(theme ?? "") || present(attrs, "src")) return null;
       const background = value(attrs, "background");
       if (background !== undefined && background !== "solid" && background !== "\"solid\"") return null;
       return `shows white initials on Solid ${theme} (below 3:1 contrast) — use background="subtle" or a theme such as indigo, violet or purple.`;

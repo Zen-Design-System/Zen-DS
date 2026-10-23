@@ -31,7 +31,7 @@ export const Bad = () => <>
   {/* expect: avatar/needs-alt */}
   <Avatar theme="photo" src={url} />
   {/* expect: avatar/solid-initials-contrast */}
-  <Avatar theme="green" alt="Ava Chen">AC</Avatar>
+  <Avatar theme="golden" alt="Ava Chen">AC</Avatar>
   {/* expect: avatar/solid-initials-contrast */}
   <Avatar theme="cyan" background="solid" alt="Minh Tran" />
   {/* expect: tooltip/focusable-trigger */}
