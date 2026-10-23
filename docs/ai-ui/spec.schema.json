@@ -2614,7 +2614,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Pattern/AppShell/Mobile Top, the mobile structure (under 1024px: phones and iPad portrait): - `bar` (default): the TopNavigation on Surface/Alt over the page."
+                "description": "Figma Pattern/AppShell/Mobile Top, the mobile structure (under 1024px: phones and iPad portrait): - `bar` (default): the TopNavigation over the page, on the canvas's twin surface:"
               },
               "band": {
                 "anyOf": [
@@ -3910,6 +3910,20 @@
                   }
                 ],
                 "description": "Wipe the areas in from the left on mount and when the data changes (default true; reduced motion fades)."
+              },
+              "palette": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "primary",
+                      "secondary"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Color: `primary` (default) walks the palette in order; `secondary` swaps the first two series' lines and fades — a single area draws a Color Chart Sector/Secondary line over"
               }
             },
             "required": [
@@ -5069,7 +5083,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Colour of the bars."
+                "description": "Colour of the bars, any CSS colour."
               },
               "activeColor": {
                 "anyOf": [
@@ -5080,7 +5094,21 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Colour of the active bar."
+                "description": "Colour of the active bar, any CSS colour."
+              },
+              "palette": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "primary",
+                      "secondary"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Color: `primary` (default) draws Color Chart Sector/Primary bars with the active one in Sector/Secondary; `secondary` draws Sector/Secondary bars with the active one in Secto"
               },
               "animate": {
                 "anyOf": [
@@ -7417,6 +7445,20 @@
                   }
                 ],
                 "description": "Grow the bars from the start and fade the ticks in on mount and when the data changes (default true; reduced motion fades)."
+              },
+              "palette": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "primary",
+                      "secondary"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Color: `primary` (default) draws the bars in Color Chart Sector/Primary and the target ticks in Sector/Secondary; `secondary` the bars in Sector/Secondary and the ticks in Se"
               }
             },
             "required": [
@@ -10849,7 +10891,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Trailing-Actions when the field is empty (a 👍 \"Send a like\" by default)."
+                "description": "Figma Trailing-Actions when the field is empty: by default a 👍 \"Send a like\" that sends \"👍\" through `onSend`."
               },
               "device": {
                 "anyOf": [
@@ -13934,6 +13976,20 @@
                   }
                 ],
                 "description": "Grow the bars from the baseline and wipe the line in from the left on mount and when the data changes (default true; reduced motion fades)."
+              },
+              "palette": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "primary",
+                      "secondary"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Color: `primary` (default) draws Color Chart Sector/Primary bars and a Sector/Secondary line; `secondary` draws Sector/Secondary bars and a Sector/Primary line and dots."
               }
             },
             "required": [
@@ -17283,6 +17339,20 @@
                   }
                 ],
                 "description": "Grow every slice from its start angle on mount and when the data changes (default true; reduced motion fades)."
+              },
+              "palette": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "primary",
+                      "secondary"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Color: `primary` (default) colours the slices in palette order; `secondary` swaps the first two (the first slice Color Chart Sector/Secondary, the second Sector/Primary)."
               }
             },
             "required": [
@@ -19250,6 +19320,20 @@
                   }
                 ],
                 "description": "Open every bar from its centre on mount and when the data changes (default true; reduced motion fades)."
+              },
+              "palette": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "primary",
+                      "secondary"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Color: `primary` (default) draws the stages in Color Chart Sector/Primary and the last in Sector/Secondary; `secondary` the stages in Sector/Secondary and the last in Sector/"
               }
             },
             "required": [
@@ -19429,6 +19513,20 @@
                   }
                 ],
                 "description": "Sweep the value from 0 on mount and when it changes; the target tick fades in after (default true; reduced motion fades)."
+              },
+              "palette": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "primary",
+                      "secondary"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Color: `primary` (default) draws the value in Color Chart Sector/Primary and the target tick in Sector/Secondary; `secondary` the value in Sector/Secondary and the tick in Se"
               }
             },
             "required": [
@@ -20612,6 +20710,20 @@
                   }
                 ],
                 "description": "Grow the bars from the baseline on mount and when the data changes (default true; reduced motion fades)."
+              },
+              "palette": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "primary",
+                      "secondary"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Color: `primary` (default) walks the palette in order; `secondary` swaps the first two series (the first Color Chart Sector/Secondary, the second Sector/Primary)."
               }
             },
             "required": [
@@ -29637,6 +29749,20 @@
                   }
                 ],
                 "description": "Sweep every ring from 12 o'clock to its value on mount and when the data changes (default true; reduced motion fades)."
+              },
+              "palette": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "primary",
+                      "secondary"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Color: `primary` (default) colours the rings in palette order; `secondary` swaps the first two (the outer ring Color Chart Sector/Secondary, the next Sector/Primary)."
               }
             },
             "required": [
@@ -38482,6 +38608,20 @@
                   }
                 ],
                 "description": "A dotted line at the mean of the column totals, tagged \"Avg 5.9K h\" (Figma Show Average)."
+              },
+              "palette": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "primary",
+                      "secondary"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Color: `primary` (default) stacks the series in palette order; `secondary` swaps the first two (the bottom segment Color Chart Sector/Secondary, the next Sector/Primary)."
               }
             },
             "required": [

@@ -135,7 +135,7 @@
     {
       "name": "BarChart",
       "file": "src/components/Chart/BarChart.tsx",
-      "description": "Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with\nCorner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched\nin Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→). Horizontal: a\ncategory column, 24px bars, a value column at the end of the rows (the active one in Strongest; no Tooltip floats over\nthe bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart\n15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941); the hatch is .Chart/Hatch 15321:475.",
+      "description": "Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with\nCorner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched\nin Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→). Horizontal: a\ncategory column, 24px bars, a value column at the end of the rows (the active one in Strongest; no Tooltip floats over\nthe bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart\n15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941; Color=Primary · Secondary ↔ `palette`); the hatch is\n.Chart/Hatch 15321:475.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -208,7 +208,7 @@
           "type": "string",
           "required": false,
           "default": null,
-          "description": "Colour of the bars. Default Chart/Sector/Primary.",
+          "description": "Colour of the bars, any CSS colour. Default Chart/Sector/Primary (Chart/Sector/Secondary with `palette=\"secondary\"`).",
           "deprecated": null
         },
         {
@@ -216,7 +216,15 @@
           "type": "string",
           "required": false,
           "default": null,
-          "description": "Colour of the active bar. Default Chart/Sector/Secondary.",
+          "description": "Colour of the active bar, any CSS colour. Default Chart/Sector/Secondary (Chart/Sector/Primary with `palette=\"secondary\"`).",
+          "deprecated": null
+        },
+        {
+          "name": "palette",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Figma Color: `primary` (default) draws Color Chart Sector/Primary bars with the active one in Sector/Secondary;\n `secondary` draws Sector/Secondary bars with the active one in Sector/Primary. `color` / `activeColor` still win.",
           "deprecated": null
         },
         {
@@ -240,7 +248,7 @@
     {
       "name": "StackBarChart",
       "file": "src/components/Chart/Chart.tsx",
-      "description": "Figma Chart/Stack-Bar-Chart (6643:73471): one column per sector (2px side padding, Corner-Radius/Small on the column),\nsegments in series order from the bottom, a 12px-dot legend (Caption/Regular), and a Tooltip with the active total.",
+      "description": "Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector (2px side padding, Corner-Radius/Small on the column),\nsegments in series order from the bottom, a 12px-dot legend (Caption/Regular), and a Tooltip with the active total.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -339,13 +347,21 @@
           "default": "false",
           "description": "A dotted line at the mean of the column totals, tagged \"Avg 5.9K h\" (Figma Show Average).",
           "deprecated": null
+        },
+        {
+          "name": "palette",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Figma Color: `primary` (default) stacks the series in palette order; `secondary` swaps the first two (the bottom\n segment Color Chart Sector/Secondary, the next Sector/Primary). A series' own `color` still wins.",
+          "deprecated": null
         }
       ]
     },
     {
       "name": "DonutChart",
       "file": "src/components/Chart/DonutChart.tsx",
-      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,\nparted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %\npill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)\n— or, with `totalPosition=\"start\"`, beside the ring above the legend (Body/Small/Regular caption, Heading/2 figure, as\nthe Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump\nto the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365\n(Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320).",
+      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,\nparted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %\npill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)\n— or, with `totalPosition=\"start\"`, beside the ring above the legend (Body/Small/Regular caption, Heading/2 figure, as\nthe Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump\nto the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365\n(Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -452,13 +468,21 @@
           "default": "true",
           "description": "Grow every slice from its start angle on mount and when the data changes (default true; reduced motion fades).",
           "deprecated": null
+        },
+        {
+          "name": "palette",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Figma Color: `primary` (default) colours the slices in palette order; `secondary` swaps the first two (the first\n slice Color Chart Sector/Secondary, the second Sector/Primary). A slice's own `color` still wins.",
+          "deprecated": null
         }
       ]
     },
     {
       "name": "RadialChart",
       "file": "src/components/Chart/RadialChart.tsx",
-      "description": "Radial chart (ring gauges) in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): concentric\n10px rings in palette order with round ends, each over a dotted Border/Neutral/Subtle track, and a centre figure\n(Heading/4, Caption/Regular caption). Hover or ←/→ pick a ring: the centre shows it and the others dim; Home/End jump\nto the outer and inner ring. Figma Chart/Radial-Chart 15325:1135 (Legend=Bottom · End; Size=Small 120 · Medium 168 ·\nLarge 240 · XLarge 320).",
+      "description": "Radial chart (ring gauges) in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): concentric\n10px rings in palette order with round ends, each over a dotted Border/Neutral/Subtle track, and a centre figure\n(Heading/4, Caption/Regular caption). Hover or ←/→ pick a ring: the centre shows it and the others dim; Home/End jump\nto the outer and inner ring. Figma Chart/Radial-Chart 15325:1135 (Legend=Bottom · End; Size=Small 120 · Medium 168 ·\nLarge 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -556,6 +580,14 @@
           "required": false,
           "default": "true",
           "description": "Sweep every ring from 12 o'clock to its value on mount and when the data changes (default true; reduced motion fades).",
+          "deprecated": null
+        },
+        {
+          "name": "palette",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Figma Color: `primary` (default) colours the rings in palette order; `secondary` swaps the first two (the outer ring\n Color Chart Sector/Secondary, the next Sector/Primary). A ring's own `color` still wins.",
           "deprecated": null
         }
       ]
@@ -725,7 +757,7 @@
     {
       "name": "BulletChart",
       "file": "src/components/Chart/BulletChart.tsx",
-      "description": "Bullet chart: 1–4 goals, each a row with its label (Body/Small/Medium, Content/Neutral/Strongest) and \"actual of\ntarget\" (Body/Small/Regular, Content/Neutral/Base) above a 16px Corner-Radius/Rounded track (Border/Neutral/Subtle/\nPressed at 50%: Figma's Color Chart Sector/On-Color/Tertiary), the actual as an 8px Color Chart Sector/Primary bar inset\n4px, and the target as a 3px Color Chart Sector/Secondary tick 24px tall; rows Spacing/Gap/Medium apart, label and\ntrack Spacing/Gap/XSmall. A legend (Spacing/Gap/Small between items) names the bar and the tick. ↑/↓ and Home/End\npick a row (the others' marks dim), hover too; the summary reads \"Revenue: $798K of $900K (1 of 3)\".\nFigma Chart/Bullet-Chart 15487:2516 (the chart body and Show Legend; the header is ChartCard's).",
+      "description": "Bullet chart: 1–4 goals, each a row with its label (Body/Small/Medium, Content/Neutral/Strongest) and \"actual of\ntarget\" (Body/Small/Regular, Content/Neutral/Base) above a 16px Corner-Radius/Rounded track (Border/Neutral/Subtle/\nPressed at 50%: Figma's Color Chart Sector/On-Color/Tertiary), the actual as an 8px Color Chart Sector/Primary bar inset\n4px, and the target as a 3px Color Chart Sector/Secondary tick 24px tall; rows Spacing/Gap/Medium apart, label and\ntrack Spacing/Gap/XSmall. A legend (Spacing/Gap/Small between items) names the bar and the tick. ↑/↓ and Home/End\npick a row (the others' marks dim), hover too; the summary reads \"Revenue: $798K of $900K (1 of 3)\".\nFigma Chart/Bullet-Chart 15968:130554 (Color=Primary 15487:2516 · Secondary ↔ `palette`; the chart body and Show Legend; the\nheader is ChartCard's).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -816,13 +848,21 @@
           "default": "true",
           "description": "Grow the bars from the start and fade the ticks in on mount and when the data changes (default true; reduced\n motion fades).",
           "deprecated": null
+        },
+        {
+          "name": "palette",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Figma Color: `primary` (default) draws the bars in Color Chart Sector/Primary and the target ticks in Sector/Secondary;\n `secondary` the bars in Sector/Secondary and the ticks in Sector/Primary.",
+          "deprecated": null
         }
       ]
     },
     {
       "name": "GaugeChart",
       "file": "src/components/Chart/GaugeChart.tsx",
-      "description": "Gauge in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): one measure against a maximum as a\nhalf ring a tenth of its width thick (Figma innerRadius 0.8) — the track Background/Neutral/Subtle, the value\nChart/Sector/Primary (Color Chart Sector/Primary) with flat ends, the target a 3px round-capped Chart/Sector/Secondary\ntick 4px past both edges. The reading sits in the hole: the figure Heading/2 · Content/Neutral/Strongest over a\nBody/Small/Regular · Content/Neutral/Base caption; the scale's ends (Label/Small/Medium · Content/Neutral/Light) sit\ncentred under the ring's two ends. The legend (Figma Show Legend) names the value and the target, Spacing/Gap/Small\napart. It is a `meter` (aria-valuenow, min 0, max `max`, value text \"Billable 82%, Target 85%\"): nothing in it can be\npicked, so it takes no tab stop. Figma Chart/Gauge-Chart 15486:2467.",
+      "description": "Gauge in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): one measure against a maximum as a\nhalf ring a tenth of its width thick (Figma innerRadius 0.8) — the track Background/Neutral/Subtle, the value\nChart/Sector/Primary (Color Chart Sector/Primary) with flat ends, the target a 3px round-capped Chart/Sector/Secondary\ntick 4px past both edges. The reading sits in the hole: the figure Heading/2 · Content/Neutral/Strongest over a\nBody/Small/Regular · Content/Neutral/Base caption; the scale's ends (Label/Small/Medium · Content/Neutral/Light) sit\ncentred under the ring's two ends. The legend (Figma Show Legend) names the value and the target, Spacing/Gap/Small\napart. It is a `meter` (aria-valuenow, min 0, max `max`, value text \"Billable 82%, Target 85%\"): nothing in it can be\npicked, so it takes no tab stop. Figma Chart/Gauge-Chart 15968:130382 (Color=Primary 15486:2467 · Secondary ↔ `palette`).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -937,13 +977,21 @@
           "default": "true",
           "description": "Sweep the value from 0 on mount and when it changes; the target tick fades in after (default true; reduced motion fades).",
           "deprecated": null
+        },
+        {
+          "name": "palette",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Figma Color: `primary` (default) draws the value in Color Chart Sector/Primary and the target tick in Sector/Secondary;\n `secondary` the value in Sector/Secondary and the tick in Sector/Primary.",
+          "deprecated": null
         }
       ]
     },
     {
       "name": "FunnelChart",
       "file": "src/components/Chart/FunnelChart.tsx",
-      "description": "Funnel in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): one row per stage — the name\n(Body/Small/Medium · Content/Neutral/Strongest) over its count (Caption/Regular · Content/Neutral/Base) in an 84px start\ncolumn, a 32px bar centred in its track as wide as its share of the first stage (Chart/Sector/Primary, the last stage\nChart/Sector/Secondary, Corner-Radius/Small), and the share at the end (Body/Small/Medium, right-aligned). Rows\nSpacing/Gap/XSmall apart, columns Spacing/Gap/Small. Stages are pickable like horizontal bars: hover or ↑/↓ and\nHome/End pick one (the others dim) and the summary reads its name, count and share. Figma Chart/Funnel-Chart 15486:2497.",
+      "description": "Funnel in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): one row per stage — the name\n(Body/Small/Medium · Content/Neutral/Strongest) over its count (Caption/Regular · Content/Neutral/Base) in an 84px start\ncolumn, a 32px bar centred in its track as wide as its share of the first stage (Chart/Sector/Primary, the last stage\nChart/Sector/Secondary, Corner-Radius/Small), and the share at the end (Body/Small/Medium, right-aligned). Rows\nSpacing/Gap/XSmall apart, columns Spacing/Gap/Small. Stages are pickable like horizontal bars: hover or ↑/↓ and\nHome/End pick one (the others dim) and the summary reads its name, count and share. Figma Chart/Funnel-Chart 15968:130460\n(Color=Primary 15486:2497 · Secondary ↔ `palette`).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -1002,13 +1050,21 @@
           "default": "true",
           "description": "Open every bar from its centre on mount and when the data changes (default true; reduced motion fades).",
           "deprecated": null
+        },
+        {
+          "name": "palette",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Figma Color: `primary` (default) draws the stages in Color Chart Sector/Primary and the last in Sector/Secondary;\n `secondary` the stages in Sector/Secondary and the last in Sector/Primary.",
+          "deprecated": null
         }
       ]
     },
     {
       "name": "AreaChart",
       "file": "src/components/Chart/AreaChart.tsx",
-      "description": "Figma Chart/Area-Chart (set 15484:2663; Type=Area 15484:2552 · Type=Stacked 15484:2605): straight 2px lines (round caps)\nin the Color Chart Sector styles (`chartPalette`) from the first period's centre to the last, each over an area that\nfades top → bottom from Solid to Subtle at 30% (Figma 2026-10-14: Background/Accent, then Neutral, then Support/Cyan,\nas the line chart's area; `chartFades`) — one area, or stacked bands — on the bar charts' frame: Y labels (Label/Small/Medium,\nContent/Neutral/Light) right-aligned in a column Spacing/Padding/XSmall before the plot, dashed 4 / 4\nBorder/Neutral/Pale gridlines, a solid Border/Active/Neutral/Subtle baseline, X labels under it (the active one a pill).\nThe active period shows a 12px dot on each line (Surface/Default, 2px ring in the series colour), a 1px\nBorder/Active/Neutral/Subtle rule from the top dot to the baseline and the Tooltip beside the dot, a dot's width away:\nthe value, or the stack's total. The legend (Figma Show Legend) sits Spacing/Gap/Medium under the plot, its items\nSpacing/Gap/Small apart. ←/→ and Home/End move between periods; hover picks one.",
+      "description": "Figma Chart/Area-Chart (set 15484:2663; Type=Area 15484:2552 · Type=Stacked 15484:2605; Color=Primary · Secondary ↔ `palette`): straight 2px lines (round caps)\nin the Color Chart Sector styles (`chartPalette`) from the first period's centre to the last, each over an area that\nfades top → bottom from Solid to Subtle at 30% (Figma 2026-10-14: Background/Accent, then Neutral, then Support/Cyan,\nas the line chart's area; `chartFades`) — one area, or stacked bands — on the bar charts' frame: Y labels (Label/Small/Medium,\nContent/Neutral/Light) right-aligned in a column Spacing/Padding/XSmall before the plot, dashed 4 / 4\nBorder/Neutral/Pale gridlines, a solid Border/Active/Neutral/Subtle baseline, X labels under it (the active one a pill).\nThe active period shows a 12px dot on each line (Surface/Default, 2px ring in the series colour), a 1px\nBorder/Active/Neutral/Subtle rule from the top dot to the baseline and the Tooltip beside the dot, a dot's width away:\nthe value, or the stack's total. The legend (Figma Show Legend) sits Spacing/Gap/Medium under the plot, its items\nSpacing/Gap/Small apart. ←/→ and Home/End move between periods; hover picks one.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -1107,13 +1163,21 @@
           "default": "true",
           "description": "Wipe the areas in from the left on mount and when the data changes (default true; reduced motion fades).",
           "deprecated": null
+        },
+        {
+          "name": "palette",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Figma Color: `primary` (default) walks the palette in order; `secondary` swaps the first two series' lines and fades —\n a single area draws a Color Chart Sector/Secondary line over the Neutral fade, a stacked chart's bottom band takes the\n Neutral pair and the next the Accent pair. A series' own `color` still wins.",
+          "deprecated": null
         }
       ]
     },
     {
       "name": "GroupedBarChart",
       "file": "src/components/Chart/GroupedBarChart.tsx",
-      "description": "Figma Chart/Grouped-Bar-Chart (15485:2457): per period a group of 12px bars, one per series, Spacing/Gap/2XSmall\napart, centred in the period's column (with room to spare the group grows to 70% of the column, bars up to 32px); each bar takes its series' Color Chart Sector style (`chartPalette`) with\nCorner-Radius/XSmall on its top corners. The bar charts' frame: Y labels (Label/Small/Medium, Content/Neutral/Light)\nright-aligned Spacing/Padding/XSmall before the plot, dashed 4 / 4 Border/Neutral/Pale gridlines over a solid\nBorder/Active/Neutral/Subtle baseline, X labels under it (the active one a pill). The active group keeps its colours\n(the others ease to 88%, as stacked columns), its Border/Active/Neutral/Subtle rule and the Tooltip in the top lane,\nwhich reads every series' value after its dot. The legend (Figma Show Legend) sits Spacing/Gap/Medium under the plot,\nits items Spacing/Gap/Small apart. ←/→ and Home/End move between groups; hover picks one.",
+      "description": "Figma Chart/Grouped-Bar-Chart (15485:2457; Color=Primary · Secondary ↔ `palette`): per period a group of 12px bars, one per series, Spacing/Gap/2XSmall\napart, centred in the period's column (with room to spare the group grows to 70% of the column, bars up to 32px); each bar takes its series' Color Chart Sector style (`chartPalette`) with\nCorner-Radius/XSmall on its top corners. The bar charts' frame: Y labels (Label/Small/Medium, Content/Neutral/Light)\nright-aligned Spacing/Padding/XSmall before the plot, dashed 4 / 4 Border/Neutral/Pale gridlines over a solid\nBorder/Active/Neutral/Subtle baseline, X labels under it (the active one a pill). The active group keeps its colours\n(the others ease to 88%, as stacked columns), its Border/Active/Neutral/Subtle rule and the Tooltip in the top lane,\nwhich reads every series' value after its dot. The legend (Figma Show Legend) sits Spacing/Gap/Medium under the plot,\nits items Spacing/Gap/Small apart. ←/→ and Home/End move between groups; hover picks one.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -1204,13 +1268,21 @@
           "default": "true",
           "description": "Grow the bars from the baseline on mount and when the data changes (default true; reduced motion fades).",
           "deprecated": null
+        },
+        {
+          "name": "palette",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Figma Color: `primary` (default) walks the palette in order; `secondary` swaps the first two series (the first\n Color Chart Sector/Secondary, the second Sector/Primary). A series' own `color` still wins.",
+          "deprecated": null
         }
       ]
     },
     {
       "name": "ComboChart",
       "file": "src/components/Chart/ComboChart.tsx",
-      "description": "Figma Chart/Combo-Chart (15485:2519): two measures over the same periods on two axes. Bars (Color Chart Sector/Primary,\n20px, half the period's column with room to spare, up to 40px; Corner-Radius/XSmall on the top corners) read the start axis; a straight 2px Color Chart Sector/Secondary line\n(round caps) with an 8px dot on every period (Surface/Default, 2px ring) reads the end axis. Both axes take\nLabel/Small/Medium in Content/Neutral/Light, Spacing/Padding/XSmall from the plot (the start one right-aligned, the end\none left-aligned) and share the dashed 4 / 4 Border/Neutral/Pale gridlines over a solid Border/Active/Neutral/Subtle\nbaseline. The active period keeps its bar (the others ease to 88%), its dot grows to 12px, and the Tooltip in the top\nlane reads both values after their dots; X labels under the plot (the active one a pill). The legend (Figma Show\nLegend) names both measures Spacing/Gap/Medium under the plot, its items Spacing/Gap/Small apart. ←/→ and Home/End\nmove between periods; hover picks one.",
+      "description": "Figma Chart/Combo-Chart (15485:2519; Color=Primary · Secondary ↔ `palette`): two measures over the same periods on two axes. Bars (Color Chart Sector/Primary,\n20px, half the period's column with room to spare, up to 40px; Corner-Radius/XSmall on the top corners) read the start axis; a straight 2px Color Chart Sector/Secondary line\n(round caps) with an 8px dot on every period (Surface/Default, 2px ring) reads the end axis. Both axes take\nLabel/Small/Medium in Content/Neutral/Light, Spacing/Padding/XSmall from the plot (the start one right-aligned, the end\none left-aligned) and share the dashed 4 / 4 Border/Neutral/Pale gridlines over a solid Border/Active/Neutral/Subtle\nbaseline. The active period keeps its bar (the others ease to 88%), its dot grows to 12px, and the Tooltip in the top\nlane reads both values after their dots; X labels under the plot (the active one a pill). The legend (Figma Show\nLegend) names both measures Spacing/Gap/Medium under the plot, its items Spacing/Gap/Small apart. ←/→ and Home/End\nmove between periods; hover picks one.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -1324,6 +1396,14 @@
           "required": false,
           "default": "true",
           "description": "Grow the bars from the baseline and wipe the line in from the left on mount and when the data changes (default\n true; reduced motion fades).",
+          "deprecated": null
+        },
+        {
+          "name": "palette",
+          "type": "\"primary\" | \"secondary\"",
+          "required": false,
+          "default": "\"primary\"",
+          "description": "Figma Color: `primary` (default) draws Color Chart Sector/Primary bars and a Sector/Secondary line; `secondary`\n draws Sector/Secondary bars and a Sector/Primary line and dots.",
           "deprecated": null
         }
       ]

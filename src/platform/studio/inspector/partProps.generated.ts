@@ -22,6 +22,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   },
   "AreaChart": {
     "ChartBlock": {
+      "palette": "palette",
       "position": "legendPosition"
     },
     "PlotFrame": {
@@ -49,6 +50,9 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     }
   },
   "BarChart": {
+    "ChartBlock": {
+      "palette": "palette"
+    },
     "PlotFrame": {
       "animate": "animate",
       "ariaLabel": "aria-label",
@@ -58,6 +62,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   },
   "BulletChart": {
     "ChartBlock": {
+      "palette": "palette",
       "position": "legendPosition"
     }
   },
@@ -253,6 +258,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   },
   "ComboChart": {
     "ChartBlock": {
+      "palette": "palette",
       "position": "legendPosition"
     },
     "PlotFrame": {
@@ -344,6 +350,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   },
   "DonutChart": {
     "ChartBlock": {
+      "palette": "palette",
       "position": "legendPosition"
     }
   },
@@ -393,13 +400,20 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "tooltip": "labelTooltip"
     }
   },
+  "FunnelChart": {
+    "ChartBlock": {
+      "palette": "palette"
+    }
+  },
   "GaugeChart": {
     "ChartBlock": {
+      "palette": "palette",
       "position": "legendPosition"
     }
   },
   "GroupedBarChart": {
     "ChartBlock": {
+      "palette": "palette",
       "position": "legendPosition"
     },
     "PlotFrame": {
@@ -576,6 +590,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   },
   "RadialChart": {
     "ChartBlock": {
+      "palette": "palette",
       "position": "legendPosition"
     }
   },
@@ -732,6 +747,7 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
   },
   "StackBarChart": {
     "ChartBlock": {
+      "palette": "palette",
       "position": "legendPosition"
     },
     "PlotFrame": {
