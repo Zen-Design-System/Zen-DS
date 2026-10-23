@@ -596,3 +596,37 @@ anchored to this element", no variables. Asked once more here: filter Chip / Sea
   page placed the state frame at x 1600, so both frames opened out of view and the first click selected nothing; the row
   now fits the board (⇧1) first and its steps name themselves on failure. PT-19 passed on retry in the gate. Then
   `studio:e2e --rows=PT-18…PT-21 --no-retry` twice: 4/4 both times. CI quick steps all 0.
+
+## Update from Figma in another browser (tier M; BACKLOG P3, P6b leftover; user "chia như đề xuất", via the parent session)
+
+Branch zen/feat/figma-export-baseline-20261023 from main 9fe063d2. A pull in a browser that had not exported the frame
+found no base (`figmaExports` lived in that browser's IndexedDB only): the frame did not even match its page, so it came
+in as a new page, or compared two ways.
+- `tools/studio/page-figma.mjs` (+ .d.mts, selftest): `<id>.figma-base.json` = `{ format: 1, exports[≤5], pull? }`,
+  `validateFigma`, `joinFigma` (exports by version, the later `at` wins; the later pull), `fitFigma` (drops the oldest
+  exports past a size).
+- `pages-folder.mjs` `readFigma` / `writeFigma` (8 MB, atomic, no links; trashed with the page, as comments);
+  `GET /pages/figma`, `POST /pages/figma-write`; `studioApi.pageFigma*`; the dev and linked-folder mirrors.
+- `pageStore.ts`: `keepFigmaExport`, `setFigmaBase` and a pulled import write the bases beside the page, joined with the
+  folder's (another browser's exports stay; 6 MB cap under the server's body limit). `loadSharedFigma(id)` joins the
+  folder's into this browser's record; `findPulledPage` reads it before giving up on the exported page, `pulledChanges`
+  before it picks the base. The two-way copy now says neither this browser nor the pages folder keeps a base.
+- E2E HO-13: export in one context, a second context (its own IndexedDB) on the same dev server imports the frame read
+  back with two designer edits → Update from Figma three ways, 2 changes ticked; Apply keeps Container / titleLines /
+  ListBox theme / aria and writes the pull back beside the page.
+- C had built the same in parallel (zen/fix/studio-figma-base-mirror-20261023, `<id>.figma-base.json`, no PR; Giám sát
+  gave the item here). Compared: both keep the exports and the last pull and test with a second browser context; this
+  version also joins with the folder's file before a write (another browser's exports stay), checks the file's shape,
+  shares the first pull of an imported page, and its HO-13 applies and checks the pull written back. Folded in from C:
+  the file is compact JSON (page documents roughly halve against pretty-printed), and its name ends in `.figma-base.json`
+  (C's catch: `<id>.figma.json` is Export › Figma's own download, which a person may save into the linked folder).
+- Gate (slot after C; main a77113a0 merged): static ✓, Studio self-tests ✓, Studio E2E 340/342. Broken: HO-13 ("already
+  matches the frame": 0 changes) and I-03 (inspector, two quick toggles; works alone, a load flake). Cause of HO-13, the
+  real root of the BACKLOG item: a page's document and its element ids live in each browser's IndexedDB; the page file
+  carries none, so another browser rebuilt the document with new ids and no key of the exported frame matched
+  (figma-diff skips a layer the page lacks; the old two-way compare tracked Figma ids only, so it listed nothing either).
+  Fix: `doc.mjs` `carryIds(doc, from)` lends `from`'s ids wherever the trees line up (same component, same place, and
+  below it only where the children are the same components in the same order, so an added row never takes its
+  neighbour's id; 6 doc selftest checks); `localApi.lendPageIds` gives the page's document the export's (or the last
+  pull's) ids before the compare, unless it already holds most of them (this browser's own export). After: HO-11, HO-13,
+  I-03 3/3; handoff group 13/13; studio:selftest ✓.

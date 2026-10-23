@@ -2,8 +2,8 @@ import type { PageDoc } from "../../../../tools/studio/browser-engine.mjs";
 import type { FigmaChange, FigmaSource } from "../../../../tools/studio/figma-diff.mjs";
 import { applyEdit } from "../api";
 import { loadEngine, zenComponents } from "./engine";
-import { ensurePageDoc } from "./localApi";
-import { findPulledPage, getPage, importPage, pageFile, setFigmaBase, type FigmaBase, type PageRecord } from "./store/pageStore";
+import { ensurePageDoc, lendPageIds } from "./localApi";
+import { findPulledPage, getPage, importPage, loadSharedFigma, pageFile, setFigmaBase, type FigmaBase, type PageRecord } from "./store/pageStore";
 
 /*
  * Pages pulled from Figma (core rebuild M6; tools/studio/figma-pull.mjs makes them, figma-diff.mjs compares two pulls).
@@ -12,7 +12,8 @@ import { findPulledPage, getPage, importPage, pageFile, setFigmaBase, type Figma
  * person ticks as one edit — the Board replaced by the merged one, ids kept (doc.mjs editDoc), so one ⌘Z undoes it.
  * A frame the Zen plugin placed from a page here (Export › Figma) pulls back with that page's ids and names the page and
  * its export: Update from Figma on that page compares with the pull of that export, so only what the designer changed
- * is listed and what Figma cannot hold (a Container, a titleLines, aria) stays.
+ * is listed and what Figma cannot hold (a Container, a titleLines, aria) stays. The export and the last pull are also kept
+ * beside the page in a connected folder, so another browser on the same dev server compares three ways as well.
  */
 
 /** figma-diff.mjs, a small chunk of its own: loaded when a pulled page is imported. */
@@ -39,7 +40,7 @@ export const importPulled = (pulled: PulledPage, wantedId: string | null) => imp
 
 /**
  * What the pull is compared with: for a frame placed from an export of this page, that export's pull (or the last update
- * from that same export); else the last pull. Null: none kept in this browser (two ways).
+ * from that same export); else the last pull. Null: none kept here or in the connected folder (two ways).
  */
 export function figmaBaseOf(record: PageRecord, version: string | undefined): FigmaBase | null {
   if (version !== undefined && record.figma?.version === version) return record.figma;
@@ -50,9 +51,16 @@ export function figmaBaseOf(record: PageRecord, version: string | undefined): Fi
 /** The export a pulled page's frame came from (its header's `figma.version`), if any. */
 const versionOf = (incoming: PageDoc) => (incoming.header as { figma?: { version?: unknown } } | undefined)?.figma?.version as string | undefined;
 
-/** What the pull changes on the page, three ways when this browser kept the last pull: { changes, threeWay }. */
+/** What the pull changes on the page, three ways when a base is kept here or in the folder: { changes, threeWay }. */
 export async function pulledChanges(pageId: string, incoming: PageDoc): Promise<{ changes: FigmaChange[]; threeWay: boolean }> {
   await ensurePageDoc(pageId);
+  await loadSharedFigma(pageId);
+  // A frame exported or pulled in another browser names that browser's ids: the page's document here takes them where
+  // it lines up with the page the base was taken from, so the comparison finds the designer's layers.
+  const before = await getPage(pageId);
+  const taken = before ? figmaBaseOf(before, versionOf(incoming)) : null;
+  const lender = taken?.synced ?? taken?.base;
+  if (lender) await lendPageIds(pageId, lender);
   const record = await getPage(pageId);
   if (!record?.doc) throw new Error("The page cannot be read as a document (fix its dialect errors first)");
   const { figmaChanges } = await diff();
