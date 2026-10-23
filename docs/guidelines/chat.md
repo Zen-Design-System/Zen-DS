@@ -18,6 +18,7 @@ Person-to-person messaging: a thread of bubbles (text, files, calls, photos) wit
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
+| Voice message | `ChatVoice duration · elapsed · progress · playing + onPlayingChange · speed + onSpeedChange · onSeek` | with onSeek the waveform is a slider: a tap or drag seeks, ←/→ 5 %, Home / End; its value reads elapsed of duration |
 | Message | `ChatMessage side · domain · author · showName · continued` | You (Bubble-Chat-You) · Others (Surface + Neutral/Subtle, 24px avatar) |
 | Meta | `time · status · reactions[] · seenBy[]` | Social: time under the thread · Business: inside the bubble |
 | Content | `text · ChatFile · ChatCall · ChatPhotos` | Dock-Icon file/call cards (Neutral Subtle for Others files and answered calls, Red for missed); photo grid is a 260 (mobile) / 400 (desktop) square of radius-16 tiles, 1–4+ |
@@ -216,6 +217,7 @@ Figma Chat/Bubble/Voice (15084:80205): a 288-wide bubble (Spacing/Padding/Small,
 | `speed` | `number` | `1` | Playback speed (1, 1.5, 2); the "1×" button steps to the next one. Without `onSpeedChange` it is shown, not a button. |
 | `onSpeedChange` | `(speed: number) => void` | — |  |
 | `levels` | _HTML attribute_ | — | The message's sound levels, 0–1 each (Figma draws 34). |
+| `onSeek` | `(progress: number) => void` | — | Seek: with it the waveform is a slider (voice review C3) — a tap or drag on it, ←/→ (5 %), Home and End give the new share played, 0–1; set `progress` (and your audio's position) from it. Its value reads `elapsed` of `duration`. |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the play button it draws, by layer (`{ Play: { level: "accent" } }`). Written by Zen Studio; app code sets playing. |
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
@@ -338,6 +340,7 @@ interface ChatReplyTarget { id: string; author: string; fromYou?: boolean; kind:
 - Don't give the call card a Secondary button: Figma Chat/Bubble/Call uses Button/Overlay Inverse (Social: Call back · Call again) and Button/Flat Primary on missed calls only (Business: Call back · Send voice message).
 
 ## Accessibility
+- ChatVoice's waveform is decorative without onSeek; with it, it is a named slider (“Playback position”) whose value reads “0:12 of 0:32”.
 - The thread is role=log with aria-live=polite, so new messages are announced.
 - Reactions and read lists are role=img with a text summary; the picker's emojis are toggle buttons with names.
 - The composer field has its own label (default "Message"); the placeholder "Aa" is not a label. Send appears only when there is text; the failed line is role=status so the failure is announced.
