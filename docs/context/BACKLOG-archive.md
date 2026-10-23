@@ -2,6 +2,50 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-24 (Components group, #266 `zen/fix/components-backlog-20261024`; user 2026-10-24 "Theo đề xuất")
+
+- Done 2026-10-24 in #266: ModalForm keeps its name without the header (`aria-label` / `aria-labelledby`); the seven
+  nits (ProgressCircle `decorative`, Table `currentRowId`, Popover / Menu keep their edge, read-only TextArea, Chat
+  `onJumpToReply` docs and ring corners, Breadcrumbs plate = Figma); Toggle docs; DatePicker event dots and
+  density-sized cells; Card Shadow on an alt page scope; AdminList selection on Table `bulkActions`; the Sidebar header
+  recipe (parts later, when a second app needs them). Table add-row: closed by the user. Card Default Hover / Pressed and
+  Table hover on rows that open nothing: moved to QUESTIONS.md (designer).
+- **P2 · ModalForm `header={false}` has no accessible name (2026-09-30; rewritten 2026-10-24):** the title is not
+  rendered, but `aria-labelledby` still points at its id, and only `data-*` props reach the panel, so an app cannot pass
+  `aria-label` (`src/components/Dialog/Dialog.tsx` ~372, ~411). No repo page uses `header={false}` today. S.
+- **P3 · Component a11y and behaviour nits (2026-09-29 … 10-03; gathered 2026-10-24; engineering, S each):**
+  ProgressCircle has no decorative mode (always `role="progressbar"`, `Progress.tsx` ~106; HR Tasks repeats the visible
+  status); the read-only TextArea still draws its resize grip (`input.css` ~143); Table has no selected-row cue
+  (`aria-current`, Selected fill) for the row whose detail is open in a docked panel; a Popover surface shifted into
+  view jumps 64–96px to its edge-aligned spot once an edge fits (`Popover/useAnchoredPosition.ts` ~46, ~149: clamp from
+  the edge the anchor moves toward); a Chat quote whose original is not loaded does nothing (`Chat/ChatReply.tsx` ~115:
+  tell apps to pass `onJumpToReply` in the guideline, or give the default a fallback); the Chat bubble focus ring uses
+  Corner-Radius/XLarge on every corner, ignoring the Business radius and the tail corner (`chat.css` ~200–204); the
+  Breadcrumbs Sub plate's −8px bleed covers the chevron's first 4px (hover only; `breadcrumbs.css` ~15, ~41: accept or
+  trim).
+- **P3 · DatePicker leftovers (2026-09-29):** Event-List with 1–4 dots and its On-Selected colour (510:36577; `event`
+  draws one Accent/Light dot, `DatePicker.tsx` ~31, ~82), S–M. Day cells (32 / 24) and the 224px panel are px while
+  Figma binds Select-Item/Size/Medium | Small (40 / 32 in Comfortable), so the calendar does not grow with density
+  (`date-picker.css` ~10–29), M.
+- **P3 · Card states (2026-10-03/06; merged 2026-10-24):** `theme="shadow"` on an inherited alt surface (page scope
+  `--zen-card-surface`, e.g. `.pe-shell[data-canvas="alt"]`) still casts its shadow; only an explicit `surface="alt"`
+  drops it (`card.css` ~167), S–M. The Default theme (Flat before #210) has no hover or pressed state when clickable
+  (`card.css` ~175 styles Border and Flat-Border only), so clickable cards stay bordered: Figma's Default hover /
+  pressed first (designer), then S.
+- **P3 · Table follow-ups (2026-10-01/08; merged 2026-10-24):** (a) `src/templates/AdminListTemplate.tsx` still shows
+  its own sticky ActionBar for selected rows (Change role / Remove): move it to `bulkActions`? (decision, then S); (b)
+  rows of a table without `onRowClick` still show the hover fill (`table.css` ~57): Figma's Cell Hover or clickable rows
+  only? (designer); (c) no add-row slot; the HR templates now use the page header's action or a per-column button: still
+  wanted? (decision, M).
+- **P3 · Sidebar headers from HR-Platform (2026-09-29; rewritten 2026-10-24):** `HrShell` builds both through slots: the
+  account header (square Avatar, name, email; `src/templates/hr/HrShell.tsx` ~353) and Back + Heading/4 in `search` with
+  `searchCollapsed` (~362). Left: the account header's chevron-selector switch menu, and whether Sidebar should own
+  these parts. Decision (user): a recipe or a component part (M).
+- **P3 · Toggle docs (2026-09-29; rewritten 2026-10-24):** the platform still passes the deprecated `selected` /
+  `onSelectedChange` (`PlatformGuidelineVisuals.tsx` ~180, ~337; `PlatformExamples.tsx` ~1041, ~1050), and Toggle /
+  ToggleButton have no JSDoc citing their node ids (`Toggle.tsx` ~44, ~118). S.
+
+
 ## Archived 2026-10-24 (prototypes pushed to Figma, `zen/feat/push-prototype-20261024`, plugin dcd3af3)
 
 - Done 2026-10-24 (user, via the progress session: "push mọi Screen và Overlay thành frame, kèm reaction Navigate /

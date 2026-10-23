@@ -68,3 +68,12 @@ went to the coordinator as one list.
 - Checks: tsc, usage:check / selftest, style:check, guidelines / ai-ui / Studio maps rebuilt, push / pull selftests,
   vitest dialog-modal, anchored-position, popover/menu files, card-color, component-fixes, calendar + date files,
   navigation / top-navigation-parity / liquid-glass. Gate: pending its slot from Giám sát.
+- User decisions (2026-10-24, "Theo đề xuất", via the coordinator), built here: AdminListTemplate's selection ActionBar
+  → Table `bulkActions` (labels name the skipped rows); Sidebar recipe "Account header and module title" (brand +
+  chevron-selector Menu, SidebarSubHeader); Card Default Hover/Pressed and Table hover on rows that open nothing →
+  QUESTIONS.md / .vi.md; Table add-row closed. Menu/Chip phone sheets handed to session C (#271, spec sent; Menu.tsx
+  overlap = #266's clamp). TopNavigation (2) in progress on `wip/top-nav-20261024`: Figma read — Heading-Text/Basic
+  4060:17984 Dropdown = icon-chevron-down-line 20 Gap/2XSmall after the Sub title; Badges = a row under the H1 heading
+  (Gap/XSmall, Badge Medium Neutral Solid), so `largeTitleAction` does not cover it. BACKLOG: 7 Components entries
+  archived, TopNavigation and the sheet line rewritten.
+- CI: the library CSS check reads comments (`.pe-` in card.css's comment failed "Gates, tests and package"); reworded.
