@@ -7,7 +7,7 @@
 //       action: "NAVIGATE" | "OVERLAY" | "CLOSE" | "BACK", to?: "screen:<id>[:<state>]" | "overlay:<id>",
 //       transition?: { type: "DISSOLVE" | "MOVE_IN" | "PUSH" | "SLIDE_IN", direction?: "LEFT" | "RIGHT" | "TOP" | "BOTTOM",
 //                      duration: seconds, easing: [x1, y1, x2, y2] },
-//       layer?: a nested layer's path in the instance (a Dialog's Primary button) }
+//       layer?: a nested layer's path in the instance (a Dialog's Primary button), or its names one by one }
 //
 // The Studio's own words (src/platform/studio/builder/proto/protoModel.ts): an action is `proto.<action>(target?,
 // options?)`, its trigger the prop it sits in (onClick, whileHovering; a Screen's onDelay), its options { animation,
@@ -117,13 +117,14 @@ export function protoOfReaction(reaction) {
 }
 
 /**
- * Where an overlay component's actions sit in its Figma instance (read in the Zen file, 2026-10-24: Modal/Dialog and
- * Side-Panel Type=Modal share .Primitives/Modal/Actions): a reaction on `primaryAction.onClick` goes on that button.
- * Bottom-Sheet's two buttons are both named "Button/Main" (a slash in the name: no path reaches them), so its actions
- * are a note, as any other component's.
+ * Where an overlay component's actions sit in its Figma instance (read in the Zen file, 2026-10-24): a reaction on
+ * `primaryAction.onClick` goes on that button. Modal/Dialog and Side-Panel Type=Modal share .Primitives/Modal/Actions;
+ * Bottom-Sheet Type=Modal's Footer holds two layers both named "Button/Main" (Dual, Tertiary then Primary), a name with a
+ * slash, so its path is its names one by one. Any other component's actions are a note.
  */
 const MODAL_ACTIONS = { primaryAction: "Container/Actions/Buttons/Container/Primary", secondaryAction: "Container/Actions/Buttons/Container/Secondary" };
-export const ACTION_LAYERS = { Dialog: MODAL_ACTIONS, SidePanel: MODAL_ACTIONS };
+const SHEET_ACTIONS = { primaryAction: ["Container", "Footer", "Buttons", "Button/Main[1]"], secondaryAction: ["Container", "Footer", "Buttons", "Button/Main[0]"] };
+export const ACTION_LAYERS = { Dialog: MODAL_ACTIONS, SidePanel: MODAL_ACTIONS, BottomSheet: SHEET_ACTIONS };
 
 /** An Overlay's own props (the Prototype tab's overlay settings; its x / y place it on the board). */
 export const OVERLAY_PROPS = ["position", "background", "closeOnOutside", "x", "y"];

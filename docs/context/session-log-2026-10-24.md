@@ -2,7 +2,7 @@
 
 ## Session C · Prototypes pushed to Figma (tier M; BACKLOG P3, user-approved via the progress session)
 
-Branch `zen/feat/push-prototype-20261024` from main 1b9a9cd0; plugin `studio-import` dcd3af3. User, verbatim: "Cho C
+Branch `zen/feat/push-prototype-20261024` from main 1b9a9cd0; plugin `studio-import` dcd3af3 + 6490d95. User, verbatim: "Cho C
 (đang rảnh) làm luôn P3 'Push Overlays and prototype actions to Figma': push mọi Screen và Overlay thành frame, kèm
 reaction Navigate / Open / Close overlay / Back."
 - Push: `figmaPackage` writes `frames` for every Screen, Screen state and Overlay (`figmaFromPage` takes `frame`; an
@@ -11,7 +11,8 @@ reaction Navigate / Open / Close overlay / Back."
   has no reaction for is named per action, and an action on a part with no layer of its own is counted.
 - `tools/studio/figma-proto.mjs` (new): action ↔ reaction both ways, Motion tokens (120/200/280 ms, Emphasized curve;
   the push selftest compares them with tokens/source/motion.json), Overlay settings as hand-step notes, ACTION_LAYERS
-  for Dialog and Side Panel buttons (read in the Zen file; Bottom-Sheet's buttons have no path).
+  for Dialog, Side Panel and Bottom Sheet buttons (read in the Zen file; the sheet's two are both "Button/Main", so
+  its path is a list of names, plugin layerAt takes one; checked live).
 - Plugin: `place` → `placeFrame` per frame, side by side, then `applyReactions` (setReactionsAsync, nested layers too);
   `existingRoot(pkg, part)` keeps a whole page's frames (`set = page`) apart from ⌘C copies and reuses the old
   whole-page frame for the first Screen; a copy's reaction finds the page's frames on the page.
@@ -22,5 +23,5 @@ reaction Navigate / Open / Close overlay / Back."
   the Overlay 440×212 hugging; Invite → Open overlay (Dissolve 0.2 s, CUSTOM_CUBIC_BEZIER); the Dialog's Primary →
   Close overlay; imported again: 0 created, reactions kept. The reader read back Push right 0.28 s, While hovering and
   After delay 1.5 s.
-- Tests: push 466 (+15), pull 135, native 150 (+1), plugin `npm test` (multi-frame, legacy frame, ⌘C copy, removed
+- Tests: push 467 (+16), pull 135, native 150 (+1), plugin `npm test` (multi-frame, legacy frame, ⌘C copy, removed
   reaction, missing destination); E2E HO-16 (new, Export › Figma of HTML_PAGE; id from Giám sát).

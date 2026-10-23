@@ -418,8 +418,9 @@ Back".
   overlay), onDelay của Screen → AFTER_TIMEOUT trên frame. Navigate / Open / Close / Back; animation → DISSOLVE, MOVE_IN,
   PUSH, SLIDE_IN (Instant: không transition), hướng LEFT/RIGHT/TOP/BOTTOM, Motion/Duration 120/200/280 ms và
   Motion/Ease/Emphasized làm CUSTOM_CUBIC_BEZIER. Nút của Dialog và Side-Panel Type=Modal theo đường dẫn
-  `Container/Actions/Buttons/Container/Primary|Secondary` (đọc trong file Zen); Bottom-Sheet: hai nút cùng tên
-  "Button/Main" có dấu "/" nên không có đường dẫn → ghi chú.
+  `Container/Actions/Buttons/Container/Primary|Secondary` (đọc trong file Zen); Bottom-Sheet Type=Modal: hai nút cùng
+  tên "Button/Main" (Tertiary rồi Primary) → đường dẫn là danh sách tên `["Container","Footer","Buttons","Button/Main[1]"]`
+  (plugin layerAt nhận mảng, 6490d95; thử thật trong file Zen).
 - Plugin: `place` đặt từng frame cạnh nhau (120 px), rồi `applyReactions` gọi `setReactionsAsync` (cũng trên lớp con của
   instance). Frame của cả trang mang plugin data `set = page`; Screen đầu dùng lại frame một lần import cả trang cũ
   (frame ""); bản ⌘C giữ frame riêng và reaction của nó tìm frame của trang trên page. Reaction trang không còn thì gỡ.
