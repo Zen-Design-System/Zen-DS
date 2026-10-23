@@ -4881,7 +4881,7 @@
       [
         "State",
         "state",
-        "VoiceRecorder ready · recording · paused; AiVoiceConversation ready · listening · responding — your recorder or assistant drives it"
+        "VoiceRecorder ready · recording · paused; AiVoiceConversation ready · listening · thinking · responding — your recorder or assistant drives it (Thinking is code-first: Figma's variant is a designer question)"
       ],
       [
         "Recorder actions",
@@ -4899,6 +4899,11 @@
         "Heading/Subheading time, an 80px waveform, Caption start / end. Without levels the sample take moves: it scrolls at 7 bars a second while recording (a new take enters at the right edge), holds still when paused; the voice signal moves like speech while listening or responding"
       ],
       [
+        "Live levels",
+        "useVoiceLevels(stream, { bars, rate, paused })",
+        "your microphone's levels from an AnalyserNode at the waveform's 7 a second, oldest first: bars 56 for VoiceRecorder, 5 for the conversation's signal; undefined without a stream (the sample or the flat line shows)"
+      ],
+      [
         "Transcript",
         "transcript · speaker",
         "the AI/Chat-Bubble inside the Surface/Alt card"
@@ -4913,7 +4918,12 @@
     "do": [
       "Put them on a Card or a Surface: the frame itself is transparent (Figma).",
       "Wire every action you show: a main action without its handler does nothing (harness: voice/actions-wired).",
-      "Let your audio code drive state, and give the time and levels from it: one recorder level every 1/7 s (oldest dropped) keeps a real take scrolling at the timeline's speed; leave levels unset in a prototype and the sample moves by itself.",
+      "Let your audio code drive state, and give the time and levels from it: useVoiceLevels(stream) gives one recorder level every 1/7 s (oldest dropped), so a real take scrolls at the timeline's speed; leave levels unset in a prototype and the sample moves by itself.",
+      "Let a person take Discard back: an Undo in a toast, or a confirmation for a take longer than a few seconds — a take is never lost to one press.",
+      "Say when nothing is heard: after about 3 seconds of silence while recording or listening, set guidance to what to check (\"No sound detected. Check that your microphone is on and not muted.\").",
+      "End the person's turn on silence (end-of-speech detection) and let them interrupt by speaking, as voice modes do; Done speaking stays as the manual way.",
+      "Show Thinking between the person's last word and the assistant's first spoken word, so the answer's words never show before there is an answer.",
+      "When a turn is not heard or the connection drops, say what happened and what to do in heading and guidance (\"I didn’t catch that\" · \"Say it again, a little closer to your microphone.\"), and keep listening.",
       "On a phone, use a white screen (canvas surface) so the Surface/Alt signal and card show."
     ],
     "dont": [
@@ -4924,7 +4934,7 @@
     "a11y": [
       "Each voice action is a named button (its name is printed under it); Mute is a toggle (aria-pressed) that shows its Pressed look while on, and muted while listening the signal rests and the guidance and note say the microphone is muted.",
       "Motion follows prefers-reduced-motion: the waveform and voice signal keep Figma's still frames; the clock, Badge and words still change.",
-      "The guidance and status lines are polite live regions, so a state change is announced once.",
+      "The guidance and status lines are polite live regions, so a state change is announced once (Thinking included: “Thinking it through”).",
       "The waveform and voice signal are decorative (aria-hidden): the time and the Badge carry the meaning."
     ],
     "content": [
@@ -7280,6 +7290,11 @@
     ],
     "api": [
       [
+        "Voice message",
+        "ChatVoice duration · elapsed · progress · playing + onPlayingChange · speed + onSpeedChange · onSeek",
+        "with onSeek the waveform is a slider: a tap or drag seeks, ←/→ 5 %, Home / End; its value reads elapsed of duration"
+      ],
+      [
         "Message",
         "ChatMessage side · domain · author · showName · continued",
         "You (Bubble-Chat-You) · Others (Surface + Neutral/Subtle, 24px avatar)"
@@ -7442,6 +7457,7 @@
       "Don't give the call card a Secondary button: Figma Chat/Bubble/Call uses Button/Overlay Inverse (Social: Call back · Call again) and Button/Flat Primary on missed calls only (Business: Call back · Send voice message)."
     ],
     "a11y": [
+      "ChatVoice's waveform is decorative without onSeek; with it, it is a named slider (“Playback position”) whose value reads “0:12 of 0:32”.",
       "The thread is role=log with aria-live=polite, so new messages are announced.",
       "Reactions and read lists are role=img with a text summary; the picker's emojis are toggle buttons with names.",
       "The composer field has its own label (default \"Message\"); the placeholder \"Aa\" is not a label. Send appears only when there is text; the failed line is role=status so the failure is announced.",

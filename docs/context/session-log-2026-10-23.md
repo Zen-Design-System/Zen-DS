@@ -269,3 +269,23 @@ Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows 
 - Merged main 9022cdad (after #236 merged; #237's chart-*.json contracts came in, no overlap). Gate (isolated, the map +
   the two generated maps): Studio self-tests ✓, TypeScript ✓, nested layer names 45 / 45, Studio E2E 338 / 338
   (3 shards, BL-02 Main component coverage included), Build-QA PASS. No platform page in scope, so no contact sheet.
+
+## Voice proposals (tier M; the user approved them all, relayed by the progress session: "chia như đề xuất")
+
+Branch zen/feat/voice-proposals-20261023 from main 9fe063d2. Review `docs/research/voice-usability-review-2026-10-13.md`.
+- A4: `AiVoiceConversation state="thinking"`: the signal rests as five 4px dots that brighten in turn (opacity) and the
+  halo breathes (voice.css, infinite, inside no-preference; reduced motion keeps still dots); Badge "Thinking",
+  heading "Thinking it through", speaker "You · Said", Interrupt as the main action. Figma's variant stays QUESTIONS
+  Voice (a), now noting the code look.
+- R7: `useVoiceLevels(stream, { bars = 56, rate = 7, paused })` (Voice/useVoiceLevels.ts): AnalyserNode RMS → dBFS −60…0
+  → 0–1, one level per 1/rate s, undefined without a stream.
+- C3: `ChatVoice onSeek(share)`: the waveform becomes an APG slider (Playback position, value "0:16 of 0:32"; pointer
+  with capture, ←/→ 5 %, PageUp/Down 10 %, Home, End; RTL flips the pointer), focus ring Focus/Accent/Solid.
+- R4, R6, A5, A8: guideline Do lines; examples: Discard with an Undo toast, "Your microphone's real levels" (silence
+  warning after 3 s under the quiet line), the conversation ends your turn on 1.2 s of silence then thinks, "A turn Zen
+  did not catch". Chat example seeks.
+- Labels (en, vi): voiceThinking, voiceThinkingHeading, voiceThinkingGuidance, voiceYouSaid, voicePosition,
+  voicePositionValue. Generated docs rebuilt (guidelines, api, ai-ui). Test tests/interaction/voice-proposals.test.tsx.
+- Overlap: the AppShell session's data-* forwarding branch edits the same component signatures (Voice.tsx, Chat.tsx);
+  told it the file list first; whichever lands second merges the signature lines by hand.
+

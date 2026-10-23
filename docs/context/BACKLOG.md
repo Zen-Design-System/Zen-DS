@@ -134,9 +134,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   point count since 2026-10-17, and Stack-Bar and Donut draw the page's data (`stackBarMarks`, `donutMarks` in
   `tools/studio/figma-charts.mjs`). Left, once the user confirms the scope: X labels, the six Y ticks and the active
   tooltip for Line, Bar, Area, Grouped and Combo (the pull takes the matching palette sample's data).
-- **P2 · Voice proposals awaiting the user's approval (2026-10-13):** Discard confirm or Undo (R4), a silence warning and
-  auto end-of-turn in the guideline (R6, A5, A8), `useVoiceLevels(stream)` so real apps move like the sample (R7),
-  `state="thinking"` (A4), ChatVoice `onSeek` (C3). Pointer: `docs/research/voice-usability-review-2026-10-13.md`.
 - **P3 · ListItem Value in Figma (user, 2026-10-13: "code first"):** code has `value` · `valueCaption` · `valueTone`
   (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item has no primitive for it yet (built by hand
   as a text stack in the Trailing slot). Add a `.Primitives/List-Item/…/Value` to `9nZv4uW2…` only when the user approves.

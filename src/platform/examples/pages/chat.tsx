@@ -1007,7 +1007,8 @@ function FilesPhotosCalls() {
 }
 
 // ——— 9. Voice messages (phone) ——————————————————————————————————————————————————————————————————————————
-/** A voice message that plays: progress moves while it plays, the speed steps 1× → 1.5× → 2×. */
+/** A voice message that plays: progress moves while it plays, the speed steps 1× → 1.5× → 2×, and a tap, drag or
+ *  arrow key on the waveform seeks (ChatVoice onSeek, voice review C3). */
 function useVoicePlayback(seconds: number) {
   const [playing, setPlaying] = useState(false);
   const [at, setAt] = useState(0);
@@ -1022,7 +1023,7 @@ function useVoicePlayback(seconds: number) {
     return () => window.clearInterval(timer);
   }, [playing, speed, seconds]);
   const mmss = (value: number) => `${Math.floor(value / 60)}:${String(Math.floor(value % 60)).padStart(2, "0")}`;
-  return { playing, onPlayingChange: setPlaying, progress: at / seconds, elapsed: mmss(at), duration: mmss(seconds), speed, onSpeedChange: setSpeed };
+  return { playing, onPlayingChange: setPlaying, progress: at / seconds, elapsed: mmss(at), duration: mmss(seconds), speed, onSpeedChange: setSpeed, onSeek: (share: number) => setAt(share * seconds) };
 }
 
 function VoiceMessages() {
@@ -1238,7 +1239,7 @@ const handle = (action, id) => {
   },
   {
     title: "Voice messages",
-    description: "On a phone, ChatVoice plays a voice message in its bubble: the played share of the waveform turns full strength, the speed steps 1× → 1.5× → 2×, and hold (or Shift+F10 on a focused bubble) offers Reply, Forward, Pin and Delete as on a file.",
+    description: "On a phone, ChatVoice plays a voice message in its bubble: the played share of the waveform turns full strength, a tap or drag on the waveform seeks (←/→, Home and End from the keyboard), the speed steps 1× → 1.5× → 2×, and hold (or Shift+F10 on a focused bubble) offers Reply, Forward, Pin and Delete as on a file.",
     render: () => <VoiceMessages />,
     code: `<PlatformPhone canvas="canvas" screenRef={screenRef}>
   <AppShell
@@ -1249,10 +1250,12 @@ const handle = (action, id) => {
       <ChatMessage side="others" author={bao} continued {...act("voice-intro", "others", { text: intro })}>{intro}</ChatMessage>
       <ChatMessage side="others" author={bao} {...act("voice-bao", "others", { kind: "voice" })}>
         <ChatVoice side="others" duration="0:32" elapsed={elapsed} progress={progress}
-          playing={playing} onPlayingChange={setPlaying} speed={speed} onSpeedChange={setSpeed} />
+          playing={playing} onPlayingChange={setPlaying} speed={speed} onSpeedChange={setSpeed}
+          onSeek={(share) => seekTo(share * 32)} />
       </ChatMessage>
       <ChatMessage side="you" status="Seen" {...act("voice-you", "you", { kind: "voice" })}>
-        <ChatVoice side="you" duration="0:18" playing={mine} onPlayingChange={setMine} speed={mineSpeed} onSpeedChange={setMineSpeed} />
+        <ChatVoice side="you" duration="0:18" elapsed={mineElapsed} progress={mineProgress} playing={mine} onPlayingChange={setMine}
+          speed={mineSpeed} onSpeedChange={setMineSpeed} onSeek={(share) => seekMineTo(share * 18)} />
       </ChatMessage>
     </ChatThread>
   </AppShell>

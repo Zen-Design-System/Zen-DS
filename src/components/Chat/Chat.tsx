@@ -570,6 +570,9 @@ export type ChatVoiceProps = {
   onSpeedChange?: (speed: number) => void;
   /** The message's sound levels, 0–1 each (Figma draws 34). */
   levels?: readonly number[];
+  /** Seek: with it the waveform is a slider (voice review C3) — a tap or drag on it, ←/→ (5 %), Home and End give the
+   *  new share played, 0–1; set `progress` (and your audio's position) from it. Its value reads `elapsed` of `duration`. */
+  onSeek?: (progress: number) => void;
   /** Figma instance overrides: props of the play button it draws, by layer (`{ Play: { level: "accent" } }`). Written by Zen Studio;
    *  app code sets playing. */
   overrides?: NestedOverrides;
@@ -585,12 +588,41 @@ export type ChatVoiceProps = {
  * Label/Small/Medium. Business adds a Caption/Regular line: the length (or where playback is), Ready to play / Playing
  * and the time. Hover and the reaction pill come from ChatMessage, as on every bubble.
  */
-export function ChatVoice({ side = "others", duration, elapsed, progress = 0, playing = false, onPlayingChange, speed = 1, onSpeedChange, levels, overrides, ref }: ChatVoiceProps) {
+export function ChatVoice({ side = "others", duration, elapsed, progress = 0, playing = false, onPlayingChange, speed = 1, onSpeedChange, levels, onSeek, overrides, ref }: ChatVoiceProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const { domain, time } = useContext(ChatMessageContext);
   const bars = levels ?? CHAT_VOICE_LEVELS;
-  const played = Math.round(Math.max(0, Math.min(1, progress)) * bars.length);
+  const share = Math.max(0, Math.min(1, progress));
+  const played = Math.round(share * bars.length);
+  // Seek (APG slider): the share under the pointer (from the right edge in a right-to-left page), or a keyboard step.
+  const seekAt = (event: ReactPointerEvent<HTMLSpanElement>) => {
+    const box = event.currentTarget.getBoundingClientRect();
+    if (!box.width) return;
+    const rtl = getComputedStyle(event.currentTarget).direction === "rtl";
+    const x = (event.clientX - box.left) / box.width;
+    onSeek?.(Math.max(0, Math.min(1, rtl ? 1 - x : x)));
+  };
+  const seekKey = (event: KeyboardEvent<HTMLSpanElement>) => {
+    const step = { ArrowRight: 0.05, ArrowUp: 0.05, ArrowLeft: -0.05, ArrowDown: -0.05, PageUp: 0.1, PageDown: -0.1 }[event.key];
+    const next = event.key === "Home" ? 0 : event.key === "End" ? 1 : step === undefined ? null : share + step;
+    if (next === null) return;
+    event.preventDefault();
+    onSeek?.(Math.max(0, Math.min(1, next)));
+  };
+  const seek = onSeek ? {
+    role: "slider" as const,
+    tabIndex: 0,
+    "aria-label": t.voicePosition,
+    "aria-valuemin": 0,
+    "aria-valuemax": 100,
+    "aria-valuenow": Math.round(share * 100),
+    "aria-valuetext": elapsed ? t.voicePositionValue(elapsed, duration) : `${Math.round(share * 100)}%`,
+    "data-seek": "true",
+    onKeyDown: seekKey,
+    onPointerDown: (event: ReactPointerEvent<HTMLSpanElement>) => { event.currentTarget.setPointerCapture?.(event.pointerId); seekAt(event); },
+    onPointerMove: (event: ReactPointerEvent<HTMLSpanElement>) => { if (event.currentTarget.hasPointerCapture?.(event.pointerId)) seekAt(event); },
+  } : { "aria-hidden": true as const };
   const business = domain === "business";
   const control = {
     icon: (playing ? "icon-pause-solid" : "icon-play-solid") as IconName,
@@ -607,7 +639,7 @@ export function ChatVoice({ side = "others", duration, elapsed, progress = 0, pl
         {side === "you"
           ? nest("Play", <IconButton appearance="overlay" level="inverse" {...control} />)
           : nest("Play", <IconButton appearance="main" level={business ? "tertiary" : "surface"} {...control} />)}
-        <span className="zen-chat-voice__wave" aria-hidden="true">
+        <span className="zen-chat-voice__wave" {...seek}>
           {bars.map((level, index) => (
             // zen-allow-inline-style: each bar's height is the message's sound level (a data value, not a token).
             <span key={index} className="zen-chat-voice__bar" data-played={index < played || undefined} style={{ height: `${Math.max(0, Math.min(1, level)) * 100}%` }} />
