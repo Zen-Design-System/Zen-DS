@@ -3,6 +3,7 @@ import { scaleKey } from "../_shared/scale";
 import { useControllableState } from "../_shared/use-controllable-state";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./slider-field.css";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const sliderFieldThemes = ["neutral", "accent"] as const;
 export const sliderFieldSizes = ["small", "medium"] as const;
@@ -65,7 +66,7 @@ export function SliderField({
   disabled = false,
   "aria-label": ariaLabel,
   className,
-  ref,
+  ref, ...rest
 }: SliderFieldProps) {
   const size: SliderFieldSizeKey = scaleKey(sizeProp, sliderFieldSizes);
   const id = useId().replace(/:/g, "");
@@ -117,7 +118,7 @@ export function SliderField({
   const state = disabled ? "disabled" : typing ? "typing" : dragging ? "dragging" : "default";
 
   return (
-    <div
+    <div {...dataAttributes(rest)}
       ref={ref}
       className={["zen-slider-field", className].filter(Boolean).join(" ")}
       data-size={size}
