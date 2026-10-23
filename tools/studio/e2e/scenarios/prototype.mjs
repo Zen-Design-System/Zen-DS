@@ -188,7 +188,7 @@ export default function Page() {
     <Board>
       <Screen id="checkout" title="Checkout">
         <Stack gap="md" padding="lg">
-          <Stepper steps={[{ id: "cart", label: "Cart" }, { id: "pay", label: "Pay" }, { id: "ship", label: "Ship" }]} />
+          <Stepper steps={[{ id: "cart", title: "Cart" }, { id: "pay", title: "Pay" }, { id: "ship", title: "Ship" }]} />
           <Button>Next</Button>
           <Button onClick={proto.step("previous")}>Previous</Button>
           <Button>Finish</Button>

@@ -341,4 +341,6 @@ anchored to this element", no variables. Asked once more here: filter Chip / Sea
 - Found on the way, fixed: Update from Figma without a base (another browser) offered to remove every Studio
   `proto.*` prop (the page stood in for the base); figma-diff now never treats a missing prototype action as Figma's.
 - Tests: protoModel selftest 29 → 44, dialect +2, compile +6 (option C page), figma-diff +2 (the action survives, two
-  ways too); E2E PT-18…PT-21 (prototype group).
+  ways too); `tests/interaction/studio-option-c.test.tsx` (4: DatePicker 4px below its Chip and closed by a day and by
+  the Chip, Manual Card below its Button, Chip and Search filters, Stepper Next/Previous/passed step + state target);
+  E2E PT-18…PT-21 (prototype group: the Prototype tab writes them, Play runs them).

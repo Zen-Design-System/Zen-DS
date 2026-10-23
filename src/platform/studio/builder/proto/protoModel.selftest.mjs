@@ -129,7 +129,7 @@ const optionC = [
   `          <Search aria-label="Search orders" onValueChange={${protoActionCode("filter", { match: "contains" })}} />`,
   '          <Table aria-label="Orders" columns={[{ id: "client", header: "Client", captionField: "email" }, { id: "status", header: "Status" }]} rows={[{ id: "1", client: "Acme", email: "ops@acme.io", status: "Paid" }, { id: "2", client: "Globex", email: "it@globex.com", status: "Overdue" }]} />',
   '          <Table data-name="Archive" columns={[{ id: "client", header: "Client" }]} rows={[]} />',
-  '          <Stepper steps={[{ id: "a", label: "Cart" }, { id: "b", label: "Pay" }, { id: "c", label: "Done" }]} defaultCurrent={1} />',
+  '          <Stepper steps={[{ id: "a", title: "Cart" }, { id: "b", title: "Pay" }, { id: "c", title: "Done" }]} defaultCurrent={1} />',
   `          <Button onClick={${protoActionCode("step", "next")}}>Next</Button>`,
   `          <Button onClick={${protoActionCode("step", "previous")}}>Back</Button>`,
   '          <Button onClick={proto.navigate("orders:paid")}>Only paid</Button>',

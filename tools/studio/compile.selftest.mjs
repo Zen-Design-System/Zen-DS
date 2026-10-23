@@ -408,7 +408,7 @@ export default function Page() {
     '  <Button onClick={proto.step("next")}>Next</Button>',
     '  <Chip onClick={proto.open("tip")}>Tip</Chip>',
     '  <Table columns={[{ id: "status", header: "Status" }]} rows={[{ id: "1", status: "Paid" }]} />',
-    '  <Stepper steps={[{ id: "a", label: "Cart" }, { id: "b", label: "Pay" }]} />',
+    '  <Stepper steps={[{ id: "a", title: "Cart" }, { id: "b", title: "Pay" }]} />',
     "</Screen>",
     '<Screen id="orders" title="Orders · paid" state="paid"><Text>Paid only</Text></Screen>',
     '<Overlay id="tip" position="manual"><Card><Text>Tip</Text></Card></Overlay>',
