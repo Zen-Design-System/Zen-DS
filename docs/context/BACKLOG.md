@@ -7,12 +7,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P3 · Studio Variables: new collections (2026-10-23, B; waits for the user):** v2 (chunks 1–4: Edit variable,
-  rename with an alias, modes, per-frame `modes`) is on branch zen/feat/studio-variables-v2-20261023. Creating a
-  collection in Studio is left: the build reads a fixed list of 11 sources (`scripts/token-outputs.mjs` SOURCE_FILES,
-  variables-host TOKEN_FILES), drafts cannot create a file yet, and the native token generator would see a new slug.
-  Single-mode only (`:root`) is the proposal. Pointer: `docs/research/studio-variables-v2-spec-2026-10-23.md` § Status.
-
 - **P3 · Push Overlays and prototype actions to Figma (user 2026-10-23, option C: later):** the push sends the first
   Screen only and names the Prototype tab's actions it drops; Figma could hold Navigate to, Open / Close overlay and Back
   as reactions (plugin `setReactionsAsync`) once Screens and Overlays push as frames. Manual's `overlayPositionType` is

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import { HIGH_CONTRAST_MODE, highContrastValues, neutralRampsOf, verifyHighContrast } from "./high-contrast.mjs";
+import { SOURCE_FILES, collectionsManifest, manifestText } from "./token-outputs.mjs";
 
 const sourceDir = "tokens/source/figma";
 const files = fs.readdirSync(sourceDir).filter((name) => name.endsWith(".json")).sort();
@@ -10,7 +11,7 @@ for (const file of files) {
   const json = JSON.parse(fs.readFileSync(`${sourceDir}/${file}`, "utf8"));
   const name = Object.keys(json)[0];
   const source = json[name];
-  collections.push({ name, modes: source.modes, count: source.tokens.length });
+  collections.push({ name, file, modes: source.modes, count: source.tokens.length, source });
   tokens.push(...source.tokens.map((token) => ({ ...token, collection: name })));
 }
 
@@ -93,7 +94,18 @@ const visit = (name, stack) => {
 };
 for (const name of edges.keys()) visit(name, []);
 
-console.log(`Collections: ${collections.length}/11`);
+// The 11 Figma exports are all there; a collection made in Zen Studio has one mode (scripts/token-outputs.mjs sourceFiles).
+const missingSources = SOURCE_FILES.map(([file]) => file).filter((file) => !files.includes(file));
+const created = collections.filter((collection) => !SOURCE_FILES.some(([file]) => file === collection.file));
+const multiModeCreated = created.filter((collection) => collection.modes.length !== 1);
+console.log(`Collections: ${collections.length - created.length}/11${created.length ? ` + ${created.length} made in Zen Studio` : ""}`);
+for (const file of missingSources) console.log(`  missing Figma export: ${file}`);
+for (const collection of multiModeCreated) console.log(`  ${collection.name} (${collection.file}): ${collection.modes.length} modes; a collection made in Zen Studio has one (:root)`);
+// The docs' manifest lists each made collection under its group (scripts/token-outputs.mjs collectionsManifest).
+const manifestRaw = fs.readFileSync("tokens/source/figma.collections.json", "utf8");
+const made = created.map((collection) => ({ slug: collection.file.replace(/\.json$/, ""), sourceName: collection.name, modes: collection.modes, tokens: collection.source.tokens, body: collection.source }));
+const manifestStale = manifestText(collectionsManifest(JSON.parse(manifestRaw), made)) !== manifestRaw;
+if (manifestStale) console.log("  tokens/source/figma.collections.json does not list the collections made in Zen Studio as they are: run npm run tokens:build");
 console.log(`Variables: ${tokens.length}/${tokens.length} (100.00%)`);
 console.log(`Duplicate names: ${duplicateNames.length}`);
 console.log(`CSS name collisions: ${cssNameCollisions.length}`);
@@ -114,7 +126,9 @@ console.log(`${HIGH_CONTRAST_MODE} (${figmaHighContrast ? "Figma" : "generated"}
 for (const failure of highContrastFailures.slice(0, 20)) console.log(`  ${failure}`);
 
 if (
-  collections.length !== 11 ||
+  missingSources.length ||
+  multiModeCreated.length ||
+  manifestStale ||
   duplicateNames.length ||
   cssNameCollisions.length ||
   missingModes.length ||
