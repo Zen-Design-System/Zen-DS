@@ -2,6 +2,14 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-24 (native packages compiled in CI)
+
+- Done 2026-10-24 (user: "thêm job CI macOS chạy swift test và flutter test cho platforms/"; .github/workflows/native.yml,
+  PR #267):
+  **P3 · Native packages never compiled (2026-10-23, #238):** run `swift test` (platforms/swift) and `flutter test`
+  (platforms/flutter) on a machine with the toolchains; #238's Swift/Dart (Zen-High-Contrast mapping) has never been
+  compiled (this Mac's Command Line Tools SDK does not match the compiler, no Flutter, and CI runs neither).
+
 ## Archived 2026-10-23 (B: Studio Variables new collections)
 
 - Done 2026-10-23 (user via the progress session: rename and delete as in Figma, a delete in use asks first; a new

@@ -1520,6 +1520,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- CI (2026-10-24): the SwiftUI and Flutter token packages in `platforms/` are compiled and tested on macOS
+  (`swift test`, `flutter test` on Flutter 3.24.5) by a Native packages workflow, whenever they or their generator
+  change (or by hand). Until now nothing compiled them.
 - Zen Studio, Update from Figma in another browser (2026-10-23): Export › Figma and every pull also keep their base
   beside the page in the pages folder (`<id>.figma-base.json` in the dev server's .zen-studio/pages, or the linked folder), so
   a frame pulled back in a browser that did not export it is still compared three ways: only what the designer changed
