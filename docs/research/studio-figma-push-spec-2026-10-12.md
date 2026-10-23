@@ -406,3 +406,28 @@ vào vẫn giữ mọi thứ Figma không giữ được.
   duyệt khác đọc file đó trước khi tìm trang và so, nên vẫn so ba chiều. Id phần tử của trang chỉ sống trong IndexedDB
   từng trình duyệt, nên trang ở trình duyệt kia mượn id của bản export chỗ cây khớp (`doc.mjs carryIds`,
   `localApi.lendPageIds`). E2E HO-13 (hai context trình duyệt).
+
+### P7 — prototype sang Figma (2026-10-24, nhánh `zen/feat/push-prototype-20261024`; plugin dcd3af3)
+
+User duyệt (qua phiên tiến độ): "push mọi Screen và Overlay thành frame, kèm reaction Navigate / Open / Close overlay /
+Back".
+
+- `figmaPackage` ghi `frames: [{ id, frame }]` cho mọi Screen, state (`screen:<id>:<state>`, tên "People · empty") và
+  Overlay (`overlay:<id>`: frame `hug`, không canvas, không chiều cao); `frame` vẫn là Screen đầu (plugin cũ chỉ đọc nó).
+- `tools/studio/figma-proto.mjs`: action ↔ reaction. Trigger onClick → ON_CLICK, whileHovering → ON_HOVER (chỉ Open
+  overlay), onDelay của Screen → AFTER_TIMEOUT trên frame. Navigate / Open / Close / Back; animation → DISSOLVE, MOVE_IN,
+  PUSH, SLIDE_IN (Instant: không transition), hướng LEFT/RIGHT/TOP/BOTTOM, Motion/Duration 120/200/280 ms và
+  Motion/Ease/Emphasized làm CUSTOM_CUBIC_BEZIER. Nút của Dialog và Side-Panel Type=Modal theo đường dẫn
+  `Container/Actions/Buttons/Container/Primary|Secondary` (đọc trong file Zen); Bottom-Sheet Type=Modal: hai nút cùng
+  tên "Button/Main" (Tertiary rồi Primary) → đường dẫn là danh sách tên `["Container","Footer","Buttons","Button/Main[1]"]`
+  (plugin layerAt nhận mảng, 6490d95; thử thật trong file Zen).
+- Plugin: `place` đặt từng frame cạnh nhau (120 px), rồi `applyReactions` gọi `setReactionsAsync` (cũng trên lớp con của
+  instance). Frame của cả trang mang plugin data `set = page`; Screen đầu dùng lại frame một lần import cả trang cũ
+  (frame ""); bản ⌘C giữ frame riêng và reaction của nó tìm frame của trang trên page. Reaction trang không còn thì gỡ.
+- Overlay settings (vị trí, nền, đóng khi bấm ra ngoài) chỉ đọc được qua Plugin API: ghi chú bước tay.
+- Pull: reader đọc `reactions` (đích theo plugin data "frame", khác thì "figma:<id>"), `pageFromFigma` ghi lại `proto.*`;
+  After delay của frame → `onDelay` của Screen. Bản dán thẳng không mang reaction (ghi chú).
+- Thử thật (trang QA, đã xoá): importer thật đặt 3 frame, Invite → Open overlay (Dissolve 0,2 s, cubic Bézier), Primary
+  của Dialog → Close overlay; import lại không tạo frame mới. Reader đọc lại Push sang phải 0,28 s, While hovering,
+  After delay 1,5 s.
+
