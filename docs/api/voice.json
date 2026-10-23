@@ -157,10 +157,10 @@
       "props": [
         {
           "name": "state",
-          "type": "\"ready\" | \"listening\" | \"responding\"",
+          "type": "\"ready\" | \"listening\" | \"thinking\" | \"responding\"",
           "required": false,
           "default": "\"ready\"",
-          "description": "Figma State: Ready (the microphone is off), Listening (you talk), Responding (the assistant answers).",
+          "description": "Figma State: Ready (the microphone is off), Listening (you talk), Responding (the assistant answers). Thinking\n (code first; Figma's variant is a designer question): between your last word and its first spoken one, so the\n answer's words never show before there is an answer — the voice rests as dots that brighten in turn.",
           "deprecated": null
         },
         {
@@ -240,7 +240,7 @@
           "type": "() => void",
           "required": false,
           "default": null,
-          "description": "The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Responding).",
+          "description": "The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Thinking, Responding). Done speaking\n is the manual fallback: end the turn yourself when the voice falls silent (set `state`), as voice modes do.",
           "deprecated": null
         },
         {

@@ -205,14 +205,16 @@ export function VoiceRecorder({ state = "ready", title, elapsed = "00:00.00", st
 
 /* ── AI Voice Conversation ─────────────────────────────────────────────────────────────────────── */
 
-export type AiVoiceState = "ready" | "listening" | "responding";
+export type AiVoiceState = "ready" | "listening" | "thinking" | "responding";
 
 /** Figma's voice signal bars (px of the 96px circle): 5 while listening, 7 while responding. */
 const LISTENING_LEVELS = [12, 28, 44, 32, 16];
 const RESPONDING_LEVELS = [22, 40, 28, 52, 34, 44, 20];
 
 export type AiVoiceConversationProps = {
-  /** Figma State: Ready (the microphone is off), Listening (you talk), Responding (the assistant answers). */
+  /** Figma State: Ready (the microphone is off), Listening (you talk), Responding (the assistant answers). Thinking
+   *  (code first; Figma's variant is a designer question): between your last word and its first spoken one, so the
+   *  answer's words never show before there is an answer — the voice rests as dots that brighten in turn. */
   state?: AiVoiceState;
   /** The assistant's name in the header. Default: the locale's "Zen voice". */
   name?: ReactNode;
@@ -233,7 +235,8 @@ export type AiVoiceConversationProps = {
    *  rests while listening, and the guidance and note say the microphone is muted. */
   muted?: boolean;
   onMutedChange?: (muted: boolean) => void;
-  /** The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Responding). */
+  /** The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Thinking, Responding). Done speaking
+   *  is the manual fallback: end the turn yourself when the voice falls silent (set `state`), as voice modes do. */
   onStart?: () => void;
   onDone?: () => void;
   onInterrupt?: () => void;
@@ -264,16 +267,18 @@ export function AiVoiceConversation({ state = "ready", name, heading, headingLev
   const ready = state === "ready";
   // Muted while it is your turn: the microphone hears nothing, so the signal rests as dots and the words say why.
   const silent = state === "listening" && muted;
+  const thinking = state === "thinking";
   const shown = levels?.map((level) => level * 96) ?? (state === "responding" ? RESPONDING_LEVELS : LISTENING_LEVELS);
-  const bars = silent ? shown.map(() => 4) : shown;
+  // Muted while listening, or thinking (no one speaks): the voice rests as dots.
+  const bars = silent || thinking ? LISTENING_LEVELS.map(() => 4) : shown;
   // Without your levels the bars move like speech (voice.css; still under reduced motion).
-  const live = !ready && !silent && !levels;
+  const live = !ready && !silent && !thinking && !levels;
   const main = state === "listening"
     ? { icon: "icon-stop-solid" as const, label: t.voiceDoneSpeaking, onClick: onDone }
-    : state === "responding"
+    : state === "responding" || thinking
       ? { icon: "icon-microphone-line" as const, label: t.voiceInterrupt, onClick: onInterrupt }
       : { icon: "icon-microphone-solid" as const, label: t.voiceStartTalking, onClick: onStart };
-  const status = state === "listening" ? t.voiceListening : state === "responding" ? t.voiceResponding : t.voiceReady;
+  const status = state === "listening" ? t.voiceListening : state === "responding" ? t.voiceResponding : thinking ? t.voiceThinking : t.voiceReady;
   const Heading = `h${headingLevel}` as "h2" | "h3" | "h4" | "h5" | "h6";
   return (
     <div {...dataAttributes(rest)} ref={ref} className={["zen-voice", "zen-ai-voice", className].filter(Boolean).join(" ")} role="group" aria-labelledby={nameId} data-state={state}>
@@ -282,7 +287,7 @@ export function AiVoiceConversation({ state = "ready", name, heading, headingLev
         {nest("Status", <Badge size="sm" theme={ready ? "neutral" : "accent"} background="subtle">{status}</Badge>)}
       </div>
       <div className="zen-ai-voice__presence">
-        <span className="zen-ai-voice__signal" aria-hidden="true" data-live={live ? state : undefined}>
+        <span className="zen-ai-voice__signal" aria-hidden="true" data-live={live ? state : undefined} data-thinking={thinking || undefined}>
           {ready ? <Icon name="icon-microphone-line" size="lg" decorative /> : bars.map((px, index) => (
             // zen-allow-inline-style: each bar's height is the live voice level (a data value, not a token).
             <span key={index} className="zen-ai-voice__level" style={{ "--zen-ai-voice-level": `${Math.max(4, Math.min(96, px))}px` } as CSSProperties} />
@@ -290,12 +295,12 @@ export function AiVoiceConversation({ state = "ready", name, heading, headingLev
         </span>
       </div>
       <div className="zen-ai-voice__status" aria-live="polite">
-        <Heading className={`zen-ai-voice__heading ${typographyStyles["Heading/Subheading"]}`}>{heading ?? (state === "listening" ? t.voiceListeningHeading : state === "responding" ? t.voiceRespondingHeading : t.voiceReadyHeading)}</Heading>
-        <span className={`zen-ai-voice__guidance ${typographyStyles["Body/Small/Regular"]}`}>{guidance ?? (silent ? t.voiceMutedGuidance : state === "listening" ? t.voiceListeningGuidance : state === "responding" ? t.voiceRespondingGuidance : t.voiceReadyConversationGuidance)}</span>
+        <Heading className={`zen-ai-voice__heading ${typographyStyles["Heading/Subheading"]}`}>{heading ?? (state === "listening" ? t.voiceListeningHeading : state === "responding" ? t.voiceRespondingHeading : thinking ? t.voiceThinkingHeading : t.voiceReadyHeading)}</Heading>
+        <span className={`zen-ai-voice__guidance ${typographyStyles["Body/Small/Regular"]}`}>{guidance ?? (silent ? t.voiceMutedGuidance : state === "listening" ? t.voiceListeningGuidance : state === "responding" ? t.voiceRespondingGuidance : thinking ? t.voiceThinkingGuidance : t.voiceReadyConversationGuidance)}</span>
       </div>
       {transcript ? (
         <div className="zen-ai-voice__context">
-          <span className={`zen-ai-voice__speaker ${typographyStyles["Label/Small/Medium"]}`}>{speaker ?? (state === "listening" ? t.voiceYouLive : state === "responding" ? t.voiceAssistantSpoken : t.voiceTrySaying)}</span>
+          <span className={`zen-ai-voice__speaker ${typographyStyles["Label/Small/Medium"]}`}>{speaker ?? (state === "listening" ? t.voiceYouLive : state === "responding" ? t.voiceAssistantSpoken : thinking ? t.voiceYouSaid : t.voiceTrySaying)}</span>
           {nest("Transcript", <AiChatBubble side="ai">{transcript}</AiChatBubble>)}
         </div>
       ) : null}

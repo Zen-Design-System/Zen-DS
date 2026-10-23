@@ -43,9 +43,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   fixed height, so the Chart fills it and the Values column (space between) drifts from the rows (vertical charts just
   grow their plot). The fix is the plugin importer's: shrink an instance by a layer it hides, or hug it once its Plot is
   back to the sample's size (`studio-import.js` INSTANCE branch). In a ChartCard the rows line up.
-- **P2 · Voice proposals awaiting the user's approval (2026-10-13):** Discard confirm or Undo (R4), a silence warning and
-  auto end-of-turn in the guideline (R6, A5, A8), `useVoiceLevels(stream)` so real apps move like the sample (R7),
-  `state="thinking"` (A4), ChatVoice `onSeek` (C3). Pointer: `docs/research/voice-usability-review-2026-10-13.md`.
 - **ListItem Value in Figma — decided, not built (user, 2026-10-23: "not now"; 2026-10-13: "code first"):** code has
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user

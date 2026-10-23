@@ -531,6 +531,31 @@ Branch zen/feat/chart-push-real-data-20261023 (stacked on the format presets: la
   same text) timed out on a click while the machine was loaded (C's E2E ran beside it ~25 s) and passed alone right
   after (1 / 1). Contact sheets: "Money as a preset" reads "$" on the axis, Tooltip and list at 390 and 1512.
 
+- Static: tsc, usage, style, guidelines, studio, ai-ui, mcp, nested-paths. The conformance run and the gate wait for a
+  browser slot.
+
+## Voice proposals (tier M; the user approved them all, relayed by the progress session: "chia như đề xuất")
+
+Branch zen/feat/voice-proposals-20261023 from main 9fe063d2. Review `docs/research/voice-usability-review-2026-10-13.md`.
+- A4: `AiVoiceConversation state="thinking"`: the signal rests as five 4px dots that brighten in turn (opacity) and the
+  halo breathes (voice.css, infinite, inside no-preference; reduced motion keeps still dots); Badge "Thinking",
+  heading "Thinking it through", speaker "You · Said", Interrupt as the main action. Figma's variant stays QUESTIONS
+  Voice (a), now noting the code look.
+- R7: `useVoiceLevels(stream, { bars = 56, rate = 7, paused })` (Voice/useVoiceLevels.ts): AnalyserNode RMS → dBFS −60…0
+  → 0–1, one level per 1/rate s, undefined without a stream.
+- C3: `ChatVoice onSeek(share)`: the waveform becomes an APG slider (Playback position, value "0:16 of 0:32"; pointer
+  with capture, ←/→ 5 %, PageUp/Down 10 %, Home, End; RTL flips the pointer), focus ring Focus/Accent/Solid.
+- R4, R6, A5, A8: guideline Do lines; examples: Discard with an Undo toast, "Your microphone's real levels" (silence
+  warning after 3 s under the quiet line), the conversation ends your turn on 1.2 s of silence then thinks, "A turn Zen
+  did not catch". Chat example seeks.
+- Labels (en, vi): voiceThinking, voiceThinkingHeading, voiceThinkingGuidance, voiceYouSaid, voicePosition,
+  voicePositionValue. Generated docs rebuilt (guidelines, api, ai-ui). Test tests/interaction/voice-proposals.test.tsx.
+- Overlap: the AppShell session's data-* forwarding branch (#246) edits the same component signatures (Voice.tsx,
+  Chat.tsx); merged it in early, ChatVoice keeps `onSeek` and `...rest`.
+- Gate (slot from debt-320px, Giám sát's GO; `--isolated --pages=voice,chat`): **PASS** — Vitest 83/83 (the new test
+  6/6), audits 1512 / 390 / 320, dark, keyboard / APG, voice 8 and chat 10 examples; contact sheets looked at (the narrow
+  recorder footer wraps "Live levels · 7 a second" as the existing "48 kHz · Mono" one does).
+
 ## Session B · Studio Variables: new collections (tier M; BACKLOG P3, user via the progress session)
 
 - Spec docs/research/studio-variables-collections-spec-2026-10-23.md. Branch zen/feat/studio-variables-collections-20261023.
