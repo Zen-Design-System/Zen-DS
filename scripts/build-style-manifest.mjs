@@ -99,7 +99,9 @@ const paintLayer = (paint) => {
   if (paint.visible === false) return null;
   const opacity = paint.opacity ?? 1;
   if (paint.type === "SOLID") {
-    const color = colorRef(paint.color, paint.bound?.color, opacity);
+    // A bound colour draws its variable as it is: the Plugin API reports the variable's own alpha as the paint's
+    // opacity (Color Chart Sector/On-Color/Secondary: Content/Neutral/Light, 0.49), so applying it again would halve it.
+    const color = paint.bound?.color ? colorRef({ ...paint.color, a: opacity }, paint.bound.color) : colorRef(paint.color, undefined, opacity);
     return { css: `linear-gradient(${color}, ${color})`, solid: color };
   }
   if (paint.type === "GRADIENT_LINEAR") {

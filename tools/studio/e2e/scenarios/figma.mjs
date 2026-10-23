@@ -4964,6 +4964,44 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   {
+    id: "FW-212", feature: "Apply variable mode on a frame (Figma UI3's Appearance header; Variables v2): Mode Colors › Dark writes modes={{ theme: \"dark\" }}, the canvas draws the Box with data-theme=\"dark\", Auto removes it", wp: "Variables v2 2026-10-23", timeout: 45_000,
+    async run(ctx) {
+      const { page, id } = await modesPage(ctx);
+      return restoring(page, id, async () => {
+        await selectModesBox(page, id);
+        const button = right(page).getByRole("button", { name: "Apply variable mode" }).first();
+        await button.click();
+        await page.getByRole("option", { name: "Dark", exact: true }).first().click();
+        await written(page, id, /<Box padding="md" modes=\{\{ theme: "dark" \}\}>/, "the Box's modes written");
+        const box = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Box"]`).first();
+        await until(async () => (await box.getAttribute("data-theme")) === "dark", { message: "the canvas draws it dark" });
+        await button.click();
+        await page.getByRole("option", { name: /^Auto/ }).first().click();
+        await written(page, id, /modes=/, "Auto: no modes", true);
+        return "Apply variable mode › Dark → modes={{ theme: \"dark\" }} · data-theme=dark · Auto → removed";
+      });
+    },
+  },
+  {
+    id: "FW-213", feature: "A Screen's own modes (Screen section › Apply variable mode; Variables v2): Component Size › Comfortable writes modes on the Screen, its element has data-density=\"comfortable\"; ⌘Z takes it back", wp: "Variables v2 2026-10-23", timeout: 45_000,
+    async run(ctx) {
+      const { page, id } = await modesPage(ctx);
+      return restoring(page, id, async () => {
+        await selectFrameRow(page, "screen:screen-1");
+        const section = right(page).locator(".studio-inspector__section").filter({ has: page.locator("h3", { hasText: /^Screen$/ }) }).first();
+        await section.getByRole("button", { name: "Apply variable mode" }).click();
+        await page.getByRole("option", { name: "Comfortable", exact: true }).first().click();
+        await written(page, id, /<Screen [^>]*modes=\{\{ density: "comfortable" \}\}/, "the Screen's modes written");
+        const screen = page.locator('[data-screen="screen-1"]').first();
+        await until(async () => (await screen.getAttribute("data-density")) === "comfortable", { message: "the screen is Comfortable" });
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+KeyZ");
+        await written(page, id, /<Screen [^>]*modes=/, "⌘Z: no Screen modes", true);
+        return "Screen › Apply variable mode › Comfortable → modes on the Screen · data-density=comfortable · ⌘Z";
+      });
+    },
+  },
+  {
     id: "FW-165", feature: "A Zen instance's Design tab has no Code properties (Figma's sections only); its HTML button type is on the Code tab's Properties, where typing submit writes type=\"submit\"; ⌘Z takes it back", wp: "§3a Properties 2026-10-21", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await walkPage(ctx);
@@ -5519,6 +5557,34 @@ const contentText = (title) => {
   return grow(text, "Stack", "<Text>Hello there</Text>");
 };
 let contentMade = null;
+/** A desktop page with one Box (FW-212/213: a frame's and the Screen's variable modes). */
+const modesText = (title) => grow(newPageText({ title, device: "desktop", chrome: false }), "Stack", '<Box padding="md">\n<Text>Modes card</Text>\n</Box>');
+let modesMade = null;
+async function modesPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!modesMade) {
+    const seeded = await seededPage(ctx, modesText, /<Text>Modes card<\/Text>/);
+    modesMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${modesMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${modesMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  return { page, id: modesMade };
+}
+/** Selects the page's Box: a click on its padding, then Escape up until the panel's code name is Box (FW-142). */
+async function selectModesBox(page, id) {
+  await clickNamed(page, id, "Box");
+  const codeName = () => right(page).locator("h2").first().getAttribute("title", { timeout: 1000 }).catch(() => null);
+  for (let up = 0; up < 4 && (await codeName()) !== "Box"; up += 1) {
+    await page.keyboard.press("Escape");
+    await sleep(300);
+  }
+  await until(async () => (await codeName()) === "Box", { message: `the Box selected (panel: ${await selectedName(page)})` });
+}
 /** A phone page whose thread is taller than the screen, a dock Box last (FW-210/211: sticky). */
 const stickyText = (title) => {
   let text = newPageText({ title, device: "phone", chrome: false });

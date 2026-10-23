@@ -375,6 +375,18 @@ for it); the rest closed (research doc studio-native-paste-2026-10-17.md §8).
   byte-identical; paste messages of 58 Studio pages + Expenses identical to the old pack's. figma-native selftest 142.
 - Kept by design: slot overrides on the slot's default layer, and the component's alias variable in kept overrides.
 
+## Session B · Studio Variables v2 (G4, tier L; user decisions: modes prop, mode lists from tokens, rename keeps an alias)
+
+- Spec docs/research/studio-variables-v2-spec-2026-10-23.md. Chunks 1–4 in one PR: Edit variable (meta op, plugin
+  217d5c6), rename of a code-read variable (formerNames → `--zen-old: var(--zen-new)`, style-guard token/renamed),
+  modes (src/tokens/modes.generated.ts feeds ZenProvider and Studio; add/rename/duplicate/delete; plugin 09849d4), a
+  frame's `modes` (Stack/Grid/Box/Screen, useModeScope; Apply variable mode; push/pull explicit modes; plugin 1d3f0e3).
+  Each plugin write checked live on throwaway nodes. Chunk 5 (new collections) to BACKLOG P3.
+- Also: plugin f24b64b (Swap Project Colors async getter; BACKLOG line closed), relayed from the user.
+- Found and fixed in my own work: checkedName skipped every clash on create (`except` undefined), token-outputs needed
+  the old names for alias targets, VA-01 regression (the + Add mode cell was a columnheader).
+- Gate `--isolated` PASS on 2b051305 (after merging #232): 0 errors, Studio E2E 341 works (VA-05…07, FW-210…213).
+
 ## A photo file from the computer on a repo page (tier M; BACKLOG P2, G4 picked by the user in the triage session)
 
 Branch zen/feat/studio-desktop-photo-repo-20261023 (stacked on #239). Example and template code cannot read this
@@ -394,3 +406,35 @@ browser's uploads, so a dropped photo is saved in the repo first.
   import; they parse as a module now, `URL` is a JS global and `import.meta` reads no name (arrange selftest +1 case).
 - Gate (slot from box-themes; `--isolated`, the branch's 13 files): **PASS**, Studio E2E 338/0. FW-235…240: 5/1 (FW-240,
   the paste finding above); after the fix FW-239/240 2/0 and a second gate on arrange.mjs + slots.mjs **PASS** 338/0.
+
+## Box themes in code: the Figma theme audit as harness rules (tier M; user review 2026-10-23)
+
+Branch zen/feat/box-theme-rules-20261023 (worktree festive-archimedes-176df5). #227 had folded the two P1s into one P2.
+- Already on main (checked against the live file): Card theme · color · surface (120 variants), ListBox (64), MetricCard
+  types incl. Tile, ChartCard theme/color/surface, Card/List-Box/Metric-Card contracts.
+- User review (AskUserQuestion), all as recommended: the theme/* rules at Figma's severities, fix flagged examples;
+  MetricCard `surface` + ChartCard `spacing`; descriptions written to Figma; later "Theo Figma" (a Canvas/Alt Sidebar
+  sits on the canvas, not Surface/Alt) and "Làm luôn" for on-solid-content.
+- Rules: theme/box-on-canvas, mixed-elevation, mixed-boxes (warn), mode-override, navigation-surface, on-solid-content.
+  on-white-solid already existed as content/on-white-solid. Page boxes are read per AppShell / PlatformPhone /
+  ZenProvider (pageSurfaces); PlatformPhone canvas="alt" paints Surface/Alt (= Canvas/Default) and "surface" Canvas/Alt,
+  so the canvas reader maps them (card.tsx's "white Canvas/Alt" phone was grey: now canvas="surface").
+- Fixed by the rules: 3 Sidebars background="alt" on Canvas/Alt (now shadow={false} divider), 2 top bars type default on
+  Canvas/Default (now alt), g-grid KPI cards shadowed beside flat charts (now default), the Q3 widget's On-Color badge on
+  Solid Neutral (white on white in dark mode; now inverse); ProjectsHome's thumbnail ZenProvider keeps theme (allowed:
+  same mode, re-declared for its brand).
+- Styles: + 3 Color Chart Sector/On-Color styles; build-style-manifest no longer multiplies a bound paint's opacity (the
+  variable's alpha) a second time. Studio: Metric-Card Card Surface/Spacing both ways; Subtle Color was dropped on push.
+- Figma: descriptions of Card, List-Box, Metric-Card and 9 chart sets rewritten (backup frame on ARCHIVED). My first
+  write dropped the Color lines chart-color-phase2 had just added to six charts; restored word for word a minute later,
+  now in the source (chartColor) and FORCE, and that session was told.
+- Left out: a ChartCard row in the Studio Figma-props map (Chart/Chart-Card has no property of its own to anchor the
+  nested Card; its theme props show as code props). AppShell's default bar type (alt) does not follow canvas="alt": the
+  rule flags it at the TopNavigation; AppShell's files belong to the BadgeStatus migration, so Giám sát routes the
+  one-line fix (TOP_NAV_TYPE.bar follows canvas) to its owner.
+- Gate (02:42–03:25, isolated, 8 pages + the token-scope set, 24 files): static ✓, audit 1512/390/320 0 errors, dark 0,
+  behaviour 0, browser tests 81/81, Studio E2E 338/0, Build-QA PASS. Contact sheets: the Canvas/Alt Sidebars sit white
+  on white with their divider, the G1 KPI cards are flat beside the charts, the Q3 badge reads Inverse. At 1512 the two
+  new ListBox examples shrank (.pe-shell is a 480-tall row for app windows): their page is now a column of its content's
+  height (list-item.css), re-shot after the slot came back: `qa --only=list-item --isolated` PASS (audit, dark,
+  behaviour 0); at 1512 the three Pale groups fill their columns and the flat page hugs its list, 390 unchanged.

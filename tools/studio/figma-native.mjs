@@ -596,6 +596,12 @@ class Writer {
   }
 
   frame(spec, parent, parentInfo, { root = false, id: given = null } = {}) {
+    // A frame's variable modes (Studio Variables v2): the paste holds no collection or mode ids, so the Zen plugin's
+    // import sets them; one note says so.
+    if (spec.modes && !this.modesNoted) {
+      this.modesNoted = true;
+      this.note("variable modes (a frame's `modes`): a direct paste leaves them; Import from Studio in the Zen plugin sets them");
+    }
     // A Grid in a grid cell: the push stretches it with Flex rows, which the Zen plugin settles by measuring
     // (settleGridRows). A paste cannot measure, and a Grid with Flex rows keeps the height it lands at (Figma,
     // 2026-10-21), so here it hugs with Hug rows: its cards keep their own heights, as before.

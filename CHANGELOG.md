@@ -17,6 +17,23 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Layout: `modes={{ theme: "dark", density: "comfortable" }}` on Stack, Grid and Box, and on a Studio Screen. This is
+  Figma's Change variable mode on a frame: the data-* attributes tokens.css reads, and the ZenProvider context for the
+  components inside. Zen Studio sets it with Apply variable mode (Appearance header, Screen section). Push and the Zen
+  plugin write Figma's explicit mode per collection, and pull reads it back; a direct paste leaves it and says so
+  (2026-10-23).
+- Zen Studio Variables: modes (user, 2026-10-23). A ZenProvider axis's collection adds a mode (Figma's + names it
+  in place, with the first mode's values), renames, duplicates and deletes it; rename and delete are refused while code
+  uses the mode. ZenProvider's mode lists (`zenThemes`, `zenDensities` …) and the Studio preview modes come from the
+  collections (`src/tokens/modes.generated.ts`, written by tokens:build), so a new mode is a value after the build.
+- Zen Studio Variables: a variable that code or another variable reads can be renamed (user, 2026-10-23). The old
+  name stays as `formerNames` in its collection, tokens.css keeps `--zen-old: var(--zen-new)` in every block that
+  declares it, and an alias `{Old/Name}` still resolves. The new style-guard rule `token/renamed` warns on the old
+  name. A rename stays refused while code looks the variable up by its Figma name in quotes.
+- Zen Studio Variables: Edit variable (a row's ⋯) as Figma's panel: name, description, scoping (the properties of its
+  type, or all), Hide from publishing, and the code syntax (Web: the `var(--zen-…)` code reads). The fields live in the
+  collection JSON (`scopes`, `description`, `hiddenFromPublishing`, as the Zen plugin's Push to GitHub writes them), and
+  Copy for Figma hands them to the plugin with the Web code syntax (2026-10-23).
 - Every component forwards its `data-*` attributes to its root (Skeletons, charts, chat, dialogs, sheets and the rest:
   119 that dropped them), so the AI UI renderer's `data-ai-ui-id`, test ids and analytics hooks land; only `data-*`, so
   nothing else a component renders changes. The conformance test checks it for every public component (2026-10-23).
@@ -83,6 +100,18 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   dropped on one face of an AvatarStack, one reader of a ChatMessage's `seenBy` or another item of a list prop writes
   that item's picture, where the list is written or read. Where the code, not the row, picks the data (either side of
   a condition) the drop says so and writes nothing (2026-10-23).
+- **Usage harness (box themes, 2026-10-23):** the Figma theme audit's rules in code. `theme/box-on-canvas`: a box's
+  fill belongs to its page's Canvas (`theme="semi-pale"`, a gradient box, is an error). `theme/mixed-elevation`: one
+  elevation per page. `theme/mixed-boxes` (warning): one box family per page. `theme/mode-override`: no ZenProvider
+  `theme` inside a page or box. `theme/navigation-surface`: the Sidebar and TopNavigation match the canvas.
+  `theme/on-solid-content`: Badge, DockIcon and text tones on a Solid card follow its fill. A Sidebar on a Canvas/Alt
+  page now sits on the canvas (`shadow={false}`, `divider`), as in Figma; the docs and examples follow.
+- **MetricCard** `surface` and **ChartCard** `spacing` pass through to their Card (Figma exposes it); Zen Studio pushes
+  and pulls both, and a Subtle Metric-Card keeps its Color.
+- **Styles:** the three `Color Chart Sector/On-Color/*` paint styles (`--zen-style-color-chart-sector-on-color-*-fill`);
+  a bound paint no longer applies its variable's alpha twice.
+- **Figma descriptions:** Card, List-Box, Metric-Card and the seven chart widgets describe Color, Surface and Type, with
+  no gradient themes (written to the live file).
 - **Docs platform:** the Shape page has three more examples: a seat map whose marks carry labels (picked with Segmented
   buttons, taken seats drawn as outlines), the arc's and star's limits (Sweep 0 %, a hairline ring, thin and zero-ratio
   stars) and onboarding art on a phone (2026-10-23).

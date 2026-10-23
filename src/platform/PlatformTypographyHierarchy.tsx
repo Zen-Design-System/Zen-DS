@@ -199,7 +199,7 @@ function ChildScreenExample() {
     <Demo>
       <PlatformPhone key={openId ?? "root"} label="Child screen" headerOverlay screenRef={screenRef} header={order
         ? <TopNavigation type="compact-alt" title={`Order ${order.id}`} scrollRef={screenRef} leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => screen.go(`[data-order="${order.id}"] .zen-list-item__wrapper`, () => setOpenId(null)) }} />
-        : <TopNavigation title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
+        : <TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
         {screen.anchor}
         {order ? (
           <div className="pth-screen">

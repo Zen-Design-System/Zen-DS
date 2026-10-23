@@ -16,7 +16,7 @@ import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { Icon, type IconName } from "../../../components/Icon";
 import { Box, Grid, Stack } from "../../../components/Layout";
 import { Link } from "../../../components/Link";
-import { List, ListBox, ListItem, ToggleListItem } from "../../../components/ListItem";
+import { List, ListBox, ListItem, ToggleListItem, type ListBoxColor } from "../../../components/ListItem";
 import { Menu } from "../../../components/Menu";
 import { Search } from "../../../components/Search";
 import { SidePanel } from "../../../components/SidePanel";
@@ -29,7 +29,7 @@ import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import type { PlatformPage } from "../../PlatformExamples";
 import {
   TODAY, activity, daysFromToday, files, formatBytes, formatRange, formatRelative, initials, leaveRequests, people, peopleList, projectById,
-  projects, projectProgress, projectStep, type Person, type PersonId, type StudioFile, type Team,
+  projects, projectProgress, projectStep, type Person, type PersonId, type Project, type ProjectStatus, type StudioFile, type Team,
 } from "../data";
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
@@ -534,6 +534,66 @@ function PhoneTransactions() {
   );
 }
 
+/** The project board's groups: a Pale box each, in its own hue (one box family on the page; the colour varies). */
+const projectGroups: { id: string; title: string; statuses: ProjectStatus[]; color: ListBoxColor }[] = [
+  { id: "active", title: "Active", statuses: ["Active"], color: "blue" },
+  { id: "waiting", title: "Planning or on hold", statuses: ["Planning", "On hold"], color: "orange" },
+  { id: "done", title: "Completed", statuses: ["Completed"], color: "green" },
+];
+
+/** A white Canvas/Alt page: colour on a box is Pale (theme/box-on-canvas), one box per group of projects. */
+function ProjectBoard() {
+  const { toast } = useToast();
+  const baseId = useId();
+  const open = (project: Project) => toast({ title: project.name, children: `${project.client} · ${project.progress}% done` });
+  return (
+    <Box className="pe-shell px-list-item-page" data-canvas="alt">
+      <Grid columns={3} stackBelow={720} gap="md" align="start">
+        {projectGroups.map((group) => {
+          const rows = projects.filter((project) => group.statuses.includes(project.status));
+          const titleId = `${baseId}-${group.id}`;
+          return (
+            <ListBox key={group.id} as="section" theme="pale" color={group.color} aria-labelledby={titleId}
+              header={<Stack direction="row" gap="xs" align="center">
+                <Heading level={4} id={titleId} textStyle="Heading/Subheading">{group.title}</Heading>
+                <BadgeCounter value={rows.length} aria-hidden="true" />
+              </Stack>}>
+              <List aria-labelledby={titleId}>
+                {rows.map((project) => (
+                  <ListItem key={project.id} title={project.name} titleLines={2} caption={project.client}
+                    leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" />}
+                    onClick={() => open(project)} />
+                ))}
+              </List>
+            </ListBox>
+          );
+        })}
+      </Grid>
+    </Box>
+  );
+}
+
+/** A Canvas/Flat page (page and bars one plane in both modes): its list box is Flat-Border, Surface/Flat in a Pale ring. */
+function FlatPageFiles() {
+  const { toast } = useToast();
+  const titleId = useId();
+  return (
+    <Box className="pe-shell px-list-item-page" data-canvas="flat">
+      <ListBox as="section" theme="flat-border" aria-labelledby={titleId}
+        header={<Heading level={4} id={titleId} textStyle="Heading/Subheading">Shared with you</Heading>}>
+        <List aria-labelledby={titleId}>
+          {files.slice(0, 4).map((file) => (
+            <ListItem key={file.id} title={file.name} titleLines={2}
+              caption={`${formatBytes(file.bytes)} · ${people[file.owner].name} · ${formatRelative(file.updated)}`}
+              leading={<FileIcon format={fileIconFormatOf(file.name)} size="xl" />}
+              onClick={() => toast({ title: "Opening file", children: file.name })} />
+          ))}
+        </List>
+      </ListBox>
+    </Box>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "People directory",
@@ -742,5 +802,46 @@ const received = entry.vnd > 0;
     </List>
   </Stack>
 </Box>`,
+  },
+  {
+    title: "Project groups on a white page",
+    wide: true,
+    description: "On a white Canvas/Alt page, colour on a list box is Pale: one box per group, each in its own hue (theme=\"pale\" color), so the page keeps one box family while the groups read apart. The count beside each title is a BadgeCounter; each row opens its project. On the grey Canvas/Default the same boxes stay theme=\"default\" (List-Box has no Subtle), and a plain box on a white page takes surface=\"alt\" or theme=\"border\".",
+    render: () => <ProjectBoard />,
+    code: `{/* The page is Canvas/Alt (background: var(--zen-color-background-canvas-alt)) */}
+<Grid columns={3} stackBelow={720} gap="md" align="start">
+  {groups.map((group) => (
+    <ListBox key={group.id} as="section" theme="pale" color={group.color} aria-labelledby={group.id}
+      header={<Stack direction="row" gap="xs" align="center">
+        <Heading level={4} id={group.id} textStyle="Heading/Subheading">{group.title}</Heading>
+        <BadgeCounter value={group.projects.length} aria-hidden="true" />
+      </Stack>}>
+      <List aria-labelledby={group.id}>
+        {group.projects.map((project) => (
+          <ListItem key={project.id} title={project.name} titleLines={2} caption={project.client}
+            leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" />}
+            onClick={() => open(project)} />
+        ))}
+      </List>
+    </ListBox>
+  ))}
+</Grid>`,
+  },
+  {
+    title: "Files on a flat page",
+    description: "A Canvas/Flat page reads as one plane with its bars in light and dark, so its list box is Flat-Border: Surface/Flat inside a Pale ring, with no shadow (theme/box-on-canvas, theme/mixed-elevation). Each row opens its file.",
+    render: () => <FlatPageFiles />,
+    code: `{/* The page is Canvas/Flat (background: var(--zen-color-background-canvas-flat)) */}
+<ListBox as="section" theme="flat-border" aria-labelledby="shared"
+  header={<Heading level={4} id="shared" textStyle="Heading/Subheading">Shared with you</Heading>}>
+  <List aria-labelledby="shared">
+    {files.map((file) => (
+      <ListItem key={file.id} title={file.name} titleLines={2}
+        caption={\`\${formatBytes(file.bytes)} · \${people[file.owner].name} · \${formatRelative(file.updated)}\`}
+        leading={<FileIcon format={fileIconFormatOf(file.name)} size="xl" />}
+        onClick={() => openFile(file)} />
+    ))}
+  </List>
+</ListBox>`,
   },
 ]);

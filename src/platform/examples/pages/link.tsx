@@ -416,7 +416,7 @@ function PhoneSignIn() {
     return (
       // A tab root: the large title folds into the bar as the lists scroll under it.
       <PlatformPhone key="home" label="Zen app" headerOverlay screenRef={screenRef}
-        header={<TopNavigation title="Home" largeTitle="Home" scrollRef={screenRef}
+        header={<TopNavigation type="alt" title="Home" largeTitle="Home" scrollRef={screenRef}
           trailing={[{ icon: "icon-log-out-01-line", label: "Sign out", onClick: () => screen.go(`[id="${formId}"] input[type="password"]`, () => { signIn.reset({ email: signIn.values.email, password: "" }); setView("sign-in"); }) }]} />}>
         {screen.anchor}
         <Stack gap="lg" paddingY="xs">

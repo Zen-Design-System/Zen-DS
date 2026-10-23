@@ -857,6 +857,87 @@
      "Color/Background/Canvas/Default"
     ]
    }
+  },
+  {
+   "id": "S:e99966cc9a60814c4b405b1d7bfb40d68f458685,",
+   "key": "e99966cc9a60814c4b405b1d7bfb40d68f458685",
+   "name": "Color Chart Sector/On-Color/Primary",
+   "description": "Chart marks on a Card Theme=Solid (colour) background, the first series, and the Accent line, dots and fade: Content/On-Colors (white). Use them instead of the Color Chart Sector palette, whose Primary is the brand colour itself. The tone comes from the variable's own alpha; a paint opacity on the style is ignored.",
+   "paints": [
+    {
+     "type": "SOLID",
+     "visible": true,
+     "opacity": 1,
+     "blendMode": "NORMAL",
+     "color": {
+      "r": 1,
+      "g": 1,
+      "b": 1
+     },
+     "bound": {
+      "color": "Color/Content/On-Colors"
+     }
+    }
+   ],
+   "bound": {
+    "paints": [
+     "Color/Content/On-Colors"
+    ]
+   }
+  },
+  {
+   "id": "S:14f333d14cf0359f00422aef9fc617f1212e1b27,",
+   "key": "14f333d14cf0359f00422aef9fc617f1212e1b27",
+   "name": "Color Chart Sector/On-Color/Secondary",
+   "description": "Chart marks on a Card Theme=Solid (colour) background, the second series: Content/Neutral/Light (black at 49% in Light). Use them instead of the Color Chart Sector palette, whose Primary is the brand colour itself. The tone comes from the variable's own alpha; a paint opacity on the style is ignored.",
+   "paints": [
+    {
+     "type": "SOLID",
+     "visible": true,
+     "opacity": 0.4863,
+     "blendMode": "NORMAL",
+     "color": {
+      "r": 0,
+      "g": 0,
+      "b": 0
+     },
+     "bound": {
+      "color": "Color/Content/Neutral/Light"
+     }
+    }
+   ],
+   "bound": {
+    "paints": [
+     "Color/Content/Neutral/Light"
+    ]
+   }
+  },
+  {
+   "id": "S:bcc9ad73f863abd61b1c89cba501541973630cd7,",
+   "key": "bcc9ad73f863abd61b1c89cba501541973630cd7",
+   "name": "Color Chart Sector/On-Color/Tertiary",
+   "description": "Chart marks on a Card Theme=Solid (colour) background, tracks, rest bars and the third series: Border/Neutral/Subtle/Pressed (black at 18% in Light). Use them instead of the Color Chart Sector palette, whose Primary is the brand colour itself. The tone comes from the variable's own alpha; a paint opacity on the style is ignored.",
+   "paints": [
+    {
+     "type": "SOLID",
+     "visible": true,
+     "opacity": 0.1843,
+     "blendMode": "NORMAL",
+     "color": {
+      "r": 0.0039,
+      "g": 0.0039,
+      "b": 0.0039
+     },
+     "bound": {
+      "color": "Color/Border/Neutral/Subtle/Pressed"
+     }
+    }
+   ],
+   "bound": {
+    "paints": [
+     "Color/Border/Neutral/Subtle/Pressed"
+    ]
+   }
   }
  ],
  "text": [

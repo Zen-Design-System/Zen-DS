@@ -204,6 +204,14 @@
           "deprecated": null
         },
         {
+          "name": "surface",
+          "type": "\"default\" | \"alt\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Metric-Card's exposed Card Surface: default · alt (Default and Border; Shadow on alt drops its shadow), chosen\n to suit the page's Canvas, as on Card. A metric card on a Canvas/Flat page takes theme=\"flat-border\".",
+          "deprecated": null
+        },
+        {
           "name": "subAction",
           "type": "CardSubAction | ReactNode",
           "required": false,
