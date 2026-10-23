@@ -422,3 +422,32 @@ Branch zen/feat/box-theme-rules-20261023 (worktree festive-archimedes-176df5). #
   new ListBox examples shrank (.pe-shell is a 480-tall row for app windows): their page is now a column of its content's
   height (list-item.css), re-shot after the slot came back: `qa --only=list-item --isolated` PASS (audit, dark,
   behaviour 0); at 1512 the three Pale groups fill their columns and the flat page hugs its list, 390 unchanged.
+
+## Figma: workflow steps drawn as themed Badges → Badge-Status (tier S, Figma-only; BACKLOG P3, user approved the write)
+
+Zen file 9nZv4uW2LT21yuHabMTCh1. Scan: every page's text for the harness's step words (To Do … Cancelled, vi) and the
+code's project steps (Planning, Active, On hold, Completed, plus Not started / In discussion), kept where the nearest
+instance is the Badge set (260:4825). The HR screens and the AppShell boards already showed Badge-Status (10-21 swap).
+Swapped with `swapComponent` (labels and widths kept; signatures match the main variant: fills, text style, arcs):
+
+| Page | Frame | Badge node | Before → after |
+| --- | --- | --- | --- |
+| ◆ HR-Platform | `.Row` 7394:108859, State=Hover | I7394:108361;4035:10637;7394:108378;4081:18368;7394:108838;4035:11662;7394:108722 | Badge Neutral Subtle M "To Do" → Badge-Status To Do M |
+| ◆ HR-Platform | `.Row` 7394:108859, State=Default | I7394:108528;4035:10637;7394:110374;4081:18370;7394:111923;4035:11662;7394:110388 | Badge Neutral Subtle M "To Do" → To Do M |
+| ❖ Popover | Popover/Default 14046:67128 (status menu) | I14046:67128;4031:26127;14046:67145;4031:26096;14046:67151;829:19627 | Blue "In Discussion" → In Review M, label kept |
+| ❖ Popover | 〃 | …14046:67146;4031:26096;14046:67153;829:19627 | Neutral "Not Started" → To Do M, label kept |
+| ❖ Popover | 〃 | …14046:67147;4031:26096;14046:67155;829:19627 | Yellow "In Progress" → In Progress M |
+| ❖ Popover | 〃 | …14046:67148;4031:26096;14046:67157;829:19627 | Red "Cancelled" → Cancelled M |
+| ❖ Popover | 〃 | …14046:67149;4031:26096;14046:67159;829:19627 | Green "Done" → Done M |
+| ❖ List-Item | Example/People directory 14990:1171, Card 14990:1664, Projects | I14990:1664;6643:50987;14990:1683;14817:2747;4080:11391;14990:1612 | Blue "Active" (Loyalty app) → In Progress M, label "Active" (code: projectStep) |
+| ❖ List-Item | 〃 | I14990:1664;6643:50987;14990:1684;14817:2747;4080:11391;14990:1652 | Blue "Active" (Zen design system) → In Progress M, label "Active" |
+
+- Layer names: the old layers had the Badge's default name, so Figma's swap renames them Badge-Status (as the 10-21
+  swap did); no custom name was touched. Rings keep the variant's arc (no progress pushed by hand).
+- Stay Badges (not a task's step, as in code): leave requests Pending/Approved/Rejected (HR tables), Draft, Ready to
+  ship, New, Paid/Unpaid, Voice Ready/Paused. Plain step text (Kanban group headers with Progress-Icon, Schedule
+  event cards, keyboards) is not a Badge.
+- Audit (zen-figma-audit.js, minified to fit use_figma): `.Row` 0 errors, 2 warnings (pre-existing Light drag-handle
+  icon in Table/Cell, the template's own choice); Popover 0/0; People directory 2 errors fixed (Person and Toolbar
+  frames clipped a button/chip shadow by 2px: Clip content off), 2 warnings left (docs Example/Stage corner radii).
+  Screenshots checked; nothing moved, so no overlap. Final scan: 0 themed Badges with a step word on the 3 pages.
