@@ -23,6 +23,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (a Dialog's, Side Panel's or Bottom Sheet's buttons too). Pull from Figma reads them back. Show toast, Open link, Filter table,
   Change step and the overlay's position, background and click-outside stay in the Studio, each named in the notes
   (2026-10-24).
+- Zen Studio → Figma (Zen plugin): a chart pushed on its own (no ChartCard) keeps its rows in Figma. A horizontal
+  BarChart no longer stretches to the component's 290px once its Heading is hidden, so its values sit beside their bars
+  (2026-10-23).
 - Charts now follow their Figma sets where a new parity suite found them apart: DonutChart's total beside the ring
   (`totalPosition="start"`) is Display/4, Gap/3XSmall under its caption, as the Chart Card's value; Donut and Radial
   XLarge set their centre figure in Display/4 (was Heading/3); HeatmapChart's row labels sit in a 40px column and
