@@ -179,6 +179,22 @@ Branch `zen/fix/studio-parity-leftovers-20261023`; both BACKLOG lines archived.
   apart (the gate's matrix has no FW group): FW-220 first timed out (a ⇧⌘-click on the second group's empty spot added
   nothing); it now ⇧-clicks "Group 2" in Layers, as B-33 does: FW-119 + FW-220 2 / 2, FW-11…18 8 / 8.
 
+## AppShell session · Zen-High-Contrast in the native packages (tier S, static; BACKLOG P3 G5, user-approved, via Giám sát)
+
+Branch zen/feat/native-high-contrast-20261023 from main 4c456456. Everything under platforms/ is written by
+scripts/build-native-tokens.mjs (engines, tests and README too), so the change is in its templates.
+- Swift: `ZenContext.highContrast`; `with(colorScheme:contrast:)` (Dark / Light, Zen-High-Contrast / Zen, other modes
+  kept); `.zenSystemContext(base)` (a ViewModifier reading colorScheme and colorSchemeContrast); UIKit
+  `with(traits:)` (userInterfaceStyle, accessibilityContrast .high). Dart: `ZenContext.highContrast`,
+  `withSystem(brightness:highContrast:)`, `ZenContext.fromMediaQuery(data, base)` (platformBrightness, highContrast:
+  Flutter reports it on iOS).
+- Vectors: two contexts in Zen-High-Contrast (Light, Dark) and 8 semantic colours the mode changes (it changes 82 in
+  Light, 63 in Dark) → 1218 vectors (830). New Swift and Dart tests for the mapping. README section.
+- Checks: tokens:native:check, tokens:check. Not run: swift test (this Mac's Command Line Tools: SwiftPM cannot link the
+  manifest and the SDK does not match the compiler, so no Swift builds at all) and flutter test (no Flutter); CI runs
+  neither. The Swift and Dart code was reviewed against the APIs (iOS 15 / macOS 12, Flutter MediaQueryData).
+- BACKLOG line removed.
+
 ## AppShell session · Figma contracts G5 (tier S, read-only Figma + contract files; BACKLOG P3, user-approved, via Giám sát)
 
 Branch zen/chore/figma-contracts-g5-20261023 from main 4c456456.
@@ -269,6 +285,31 @@ Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows 
 - Merged main 9022cdad (after #236 merged; #237's chart-*.json contracts came in, no overlap). Gate (isolated, the map +
   the two generated maps): Studio self-tests ✓, TypeScript ✓, nested layer names 45 / 45, Studio E2E 338 / 338
   (3 shards, BL-02 Main component coverage included), Build-QA PASS. No platform page in scope, so no contact sheet.
+
+## 320px debt left: the designer calls (tier L: docs chrome at 320; user: "xử hết", B1, "Gỡ khỏi mục này")
+
+Branch claude/eloquent-mclean-8f4974 from main 4b96bbb8. BACKLOG P1 "320px debt left" → archived.
+- Re-measured at 320 (audit on a private server, 6 pages): the 13 Chat findings were gone already (the 10-20 AppShell
+  gate fixed ChatComposer and the narrow desktop ChatThread); 10 layout findings left: Voice 5, DatePicker 2, Pagination 1,
+  Rating 1, Settings form 1, plus the templates "Show all" target false positive.
+- The 9 in a card (Voice, DatePicker, Pagination, Rating) overflowed only because the docs chrome left an example 248px and
+  its Card 208, against 248 inside a Card on a real 320 phone. `platform.css` under 375px: stage and playground preview
+  span the card with an 8px inset (example 272). Measured with `--css` first: all 9 fit; 390/1512 untouched.
+- Settings form template: the photo row wraps, FileUpload in `<Box width="fill" minWidth={136}>` (button 119 at
+  Comfortable; 150 is left at 390), so only a 320 phone stacks it. 390/1512 widths measured unchanged.
+- `audit.mjs` targets: a target scrolled out of a clipping frame is skipped (the "Show all" link at y 10683 sat under a
+  frame ending at 8937 and was "crowded" by the next card's button).
+- Text / widgets / sidebar style findings stay in the all-viewport baseline (user: accepted, not 320 debt).
+- Seen, not changed: Settings form's save bar truncates "Discard" at 320 Comfortable — the user's 10-19 ActionBar rule
+  (Primary keeps its label, the other gives way).
+- Gate 1 (`qa --all --isolated`, after merging main 99d230be): static, Vitest 82/82, contracts, dark, behaviour, Studio
+  E2E 338/0 ✓; audit ✗ 14 new 320 "edge" errors (ai-chat "Rate an answer" after Regenerate, ai-ui Prompt=invoices),
+  all one false positive: pre-wrap text gives the space at each line break its own rect, hanging 4px past the box
+  (words end at 295.8 in a 296 box). `audit.mjs` edges now measure pre-wrap text by its words; both pages clean.
+- Gate 2 (all 83 pages, `--isolated`, Studio E2E left out: only audit.mjs changed since gate 1): audit 1512/390/320,
+  dark, behaviour 0 errors, 0 new warnings → PASS. Contact sheets: templates 390/1512 keep the photo row whole.
+  Visual diff templates 1512 + 390, old vs new template: 32 identical. Baseline: the 28 @320 keys gate 2 no longer finds
+  removed (13 Chat, 10 layout, the Show-all target, 4 Text-page heading demos); 16 @320 keys left, all also at 1512/390.
 
 ## Update from Figma in another browser (tier M; BACKLOG P3, P6b leftover; user "chia như đề xuất", via the parent session)
 
