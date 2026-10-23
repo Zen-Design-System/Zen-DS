@@ -159,27 +159,6 @@ starts.
   `onSelectedChange` (`PlatformGuidelineVisuals.tsx` ~180, ~337; `PlatformExamples.tsx` ~1041, ~1050), and Toggle /
   ToggleButton have no JSDoc citing their node ids (`Toggle.tsx` ~44, ~118). S.
 
-### Designer
-- **P3 · Questions for the designer, gathered 2026-10-24** (to `QUESTIONS.md` with the next designer round; code keeps
-  its current behaviour):
-  - Dock-Icon Solid Sky, Mint (and Yellow) draw white icons (On-Colors, 1.6–1.8:1) while Avatar / Badge use On-Brights
-    there: switch Figma to On-Brights? (code follows Figma, `dock-icon.css` ~48, ~60).
-  - Emoji DockIcon XSmall draws a 12px glyph against Figma's 28px (`dock-icon.css` ~20–27).
-  - HR Tasks frames vs the components: Box Support/Subtle colour surfaces (Kanban columns; Box has neutral surfaces
-    only), Card Spacing Small 16 vs the 12/12 ticket, ModalForm Big 960 vs 800 with an action icon (Attach File),
-    TextAreaField 112 vs 240, ProgressCircle Done as a disc vs a check, flag text tone Base vs Light, the PageHeader 12
-    vs 8 gap (PageHeader has no title chevron now). All Tasks Calendar / Gantt tabs (user 2026-09-30: "Chờ thiết kế"):
-    Calendar (#180) and Timeline (#198) exist now to draw them from.
-  - EmptyState inside a Card is lopsided: no top padding, 48px at the bottom (`empty-state.css` ~10).
-  - Input in Figma: `Input/Border/Popover-Search` still stores a NaN colour in S1–S6 (read 2026-10-24; S7 aliases
-    Focus/Neutral/Subtle), which exports as `#NANNANNAN`: a plain transparent value exports cleanly.
-    `.Primitives/Input/Text-Area` Focused has a 2px ring, Field-Only a 3px one; Text-Area's error border is
-    Color/Border/Negative/Solid/Default, Field-Only's Color/Focus/Negative/Solid (code: the 3px ring and Focus/Negative
-    on both).
-  - Card Default hover / pressed, and Table hover on rows that do nothing (Components above).
-  - A Figma fix: the Demo page's List composition (14730:79268, "My Leaves") still has the old List padding (12 top /
-    bottom, 0 sides, gap 2), so with the new master its rows touch the frame sides.
-
 ### Platform examples and docs
 - **P3 · Example audit baselines (2026-10-08; rewritten 2026-10-24):** HR · Home, My leaves and Expense overview use 9
   text styles each ([rhythm], baselined 2026-10-21 in `tools/platform-audit/quality-baseline.json`): trim or accept

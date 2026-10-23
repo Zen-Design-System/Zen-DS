@@ -8,3 +8,4 @@
 - Left: 35 entries under 7 owner groups (business, Studio, components, designer, platform, tooling, design check);
   4 P2: the LICENSE review, the registry's user steps, ModalForm `header={false}` without a name (a11y), and the
   contrast/targets baseline seeding. "## Open items" untouched; nothing P1-urgent found. No work started.
+- User "Giao 35 mục theo đề xuất": the Designer entry moved to QUESTIONS.md / .vi.md as the 2026-10-24 designer batch.

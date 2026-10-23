@@ -194,6 +194,34 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
     text style or CodeBlock / Prose component. (6) A Keycap (Kbd) for keyboard hints ("Tab to keep as booking"; the
     demo uses Tag).
 
+- For the designer, one review (moved from `BACKLOG.md` on 2026-10-24, triage of the planned backlog; code keeps its
+  current behaviour until answered):
+  - **Dock-Icon Solid Sky / Mint / Yellow icon colour (P3, 2026-10-05):** these fills draw white icons (On-Colors,
+    1.6–1.8:1) while Avatar and Badge use On-Brights on the same fills. Switch Dock-Icon to On-Brights? Code follows
+    Figma (`dock-icon.css` ~48, ~60).
+  - **Emoji Dock-Icon XSmall (P3, 2026-09-30):** the emoji glyph is 12px in code against Figma's 28px (`dock-icon.css`
+    ~20–27). Which is right for XSmall?
+  - **HR Tasks frames vs the components (P3, 2026-09-30):** Box has neutral surfaces only while the Kanban columns use
+    Support/Subtle colours: add coloured surfaces? Card Spacing Small pads 16 where the ticket pads 12/12; ModalForm Big
+    is 960 against the frame's 800, and the frame has an action icon (Attach File); TextAreaField is 112 against 240;
+    ProgressCircle Done is a disc with a check in code and in Progress-Circle/Icon, a full disc in the Tasks frame; the
+    flag text tone is Base against Light; PageHeader's title-to-meta gap is 12 against 8 (it has no title chevron now).
+    Which are variants or local overrides, and which should the components follow? The All Tasks Calendar / Gantt tabs
+    wait for frames (user 2026-09-30: "Chờ thiết kế"); Calendar (#180) and Timeline (#198) exist now to draw them from.
+  - **EmptyState in a Card (P3, 2026-10-02):** no top padding and 48px at the bottom (`empty-state.css` ~10), so it sits
+    lopsided in a Card. Intended?
+  - **Input borders (P3, 2026-10-03 and 10-13):** `Input/Border/Popover-Search` still stores a NaN colour in S1–S6 (read
+    2026-10-24; S7 aliases Focus/Neutral/Subtle), which the export writes as `#NANNANNAN`; a plain transparent value
+    exports cleanly. `.Primitives/Input/Text-Area` Focused has a 2px Focus/Neutral/Subtle ring, Field-Only a 3px one;
+    Text-Area's Inputted-Error / Blank-Error border is Color/Border/Negative/Solid/Default, Field-Only's
+    Color/Focus/Negative/Solid (the same colour). Code uses the 3px ring and Focus/Negative on both: align Figma?
+  - **Card Default hover / pressed (P3, 2026-10-06):** the Default theme (Flat before the 2026-10-22 rename) has no
+    hover or pressed state, so clickable cards stay bordered. Draw them? (BACKLOG "Card states")
+  - **Table row hover (P3, 2026-10-01):** rows of a table with no row action still show the hover fill. Does Figma's
+    Cell Hover apply to clickable rows only? (BACKLOG "Table follow-ups")
+  - **Fix in Figma (P3, 2026-10-06):** the Demo page's List composition 14730:79268 ("My Leaves") still has the old List
+    padding (12 top / bottom, 0 sides, gap 2); with the new master its rows touch the frame sides and the fills overlap.
+
 ## For the user (decisions and actions)
 
 Answered on 2026-10-09: selecting on the canvas follows Figma's click (a click selects the outermost layer in context,
