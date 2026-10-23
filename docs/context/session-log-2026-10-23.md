@@ -473,35 +473,7 @@ Swapped with `swapComponent` (labels and widths kept; signatures match the main 
 
 Branch zen/feat/chart-format-presets-20261023 from main 9fe063d2. BACKLOG P2 "Charts in Studio pages show no currency".
 - chartCore: `ChartFormatPreset` ("compact" | "currency" | "percent"), `ChartFormat` (function or preset), `formatOf(format,
-  currency)`. Currency: Intl's narrow symbol before defaultFormat's compact figure ("## Figma: workflow steps drawn as themed Badges → Badge-Status (tier S, Figma-only; BACKLOG P3, user approved the write)
-
-Zen file 9nZv4uW2LT21yuHabMTCh1. Scan: every page's text for the harness's step words (To Do … Cancelled, vi) and the
-code's project steps (Planning, Active, On hold, Completed, plus Not started / In discussion), kept where the nearest
-instance is the Badge set (260:4825). The HR screens and the AppShell boards already showed Badge-Status (10-21 swap).
-Swapped with `swapComponent` (labels and widths kept; signatures match the main variant: fills, text style, arcs):
-
-| Page | Frame | Badge node | Before → after |
-| --- | --- | --- | --- |
-| ◆ HR-Platform | `.Row` 7394:108859, State=Hover | I7394:108361;4035:10637;7394:108378;4081:18368;7394:108838;4035:11662;7394:108722 | Badge Neutral Subtle M "To Do" → Badge-Status To Do M |
-| ◆ HR-Platform | `.Row` 7394:108859, State=Default | I7394:108528;4035:10637;7394:110374;4081:18370;7394:111923;4035:11662;7394:110388 | Badge Neutral Subtle M "To Do" → To Do M |
-| ❖ Popover | Popover/Default 14046:67128 (status menu) | I14046:67128;4031:26127;14046:67145;4031:26096;14046:67151;829:19627 | Blue "In Discussion" → In Review M, label kept |
-| ❖ Popover | 〃 | …14046:67146;4031:26096;14046:67153;829:19627 | Neutral "Not Started" → To Do M, label kept |
-| ❖ Popover | 〃 | …14046:67147;4031:26096;14046:67155;829:19627 | Yellow "In Progress" → In Progress M |
-| ❖ Popover | 〃 | …14046:67148;4031:26096;14046:67157;829:19627 | Red "Cancelled" → Cancelled M |
-| ❖ Popover | 〃 | …14046:67149;4031:26096;14046:67159;829:19627 | Green "Done" → Done M |
-| ❖ List-Item | Example/People directory 14990:1171, Card 14990:1664, Projects | I14990:1664;6643:50987;14990:1683;14817:2747;4080:11391;14990:1612 | Blue "Active" (Loyalty app) → In Progress M, label "Active" (code: projectStep) |
-| ❖ List-Item | 〃 | I14990:1664;6643:50987;14990:1684;14817:2747;4080:11391;14990:1652 | Blue "Active" (Zen design system) → In Progress M, label "Active" |
-
-- Layer names: the old layers had the Badge's default name, so Figma's swap renames them Badge-Status (as the 10-21
-  swap did); no custom name was touched. Rings keep the variant's arc (no progress pushed by hand).
-- Stay Badges (not a task's step, as in code): leave requests Pending/Approved/Rejected (HR tables), Draft, Ready to
-  ship, New, Paid/Unpaid, Voice Ready/Paused. Plain step text (Kanban group headers with Progress-Icon, Schedule
-  event cards, keyboards) is not a Badge.
-- Audit (zen-figma-audit.js, minified to fit use_figma): `.Row` 0 errors, 2 warnings (pre-existing Light drag-handle
-  icon in Table/Cell, the template's own choice); Popover 0/0; People directory 2 errors fixed (Person and Toolbar
-  frames clipped a button/chip shadow by 2px: Clip content off), 2 warnings left (docs Example/Stage corner radii).
-  Screenshots checked; nothing moved, so no overlap. Final scan: 0 themed Badges with a step word on the 3 pages.
-28.4K", "€950", "-₫1.2K"; a code
+  currency)`. Currency: Intl's narrow symbol before defaultFormat's compact figure ("$128.4K", "€950", "-₫1.2K"; a code
   with no symbol keeps a no-break space: "CHF 5K"; a code Intl refuses is written as its letters). `currency` alone
   implies the currency preset; percent appends "%" to the value as it is.
 - `format` + `currency` on LineChart, StackBarChart, BarChart, AreaChart, GroupedBarChart, ComboChart (`lineFormat` too,
@@ -521,35 +493,7 @@ Branch zen/feat/chart-push-real-data-20261023 (stacked on the format presets: la
 - Read live (read-only): Line's periods are .Primitives/Chart/Sector instances (Label, Select "Selected Highlight",
   Tooltip) beside six Trend Label texts; Bar vertical Y-Axis › Label × 6, X-Axis › Tick › Label, a Tooltip-Anchor at a
   fixed column (x / column width: 4→2, 6→2, 7→5, 12→8); Bar horizontal Categories / Values / Grid › Tick × 4; Area,
-  Grouped-Bar and Combo name their axis texts after Figma's sample (Q1…, Apr–Sep, Mon–Sun, Jan–Dec; 2.5K…, ## Figma: workflow steps drawn as themed Badges → Badge-Status (tier S, Figma-only; BACKLOG P3, user approved the write)
-
-Zen file 9nZv4uW2LT21yuHabMTCh1. Scan: every page's text for the harness's step words (To Do … Cancelled, vi) and the
-code's project steps (Planning, Active, On hold, Completed, plus Not started / In discussion), kept where the nearest
-instance is the Badge set (260:4825). The HR screens and the AppShell boards already showed Badge-Status (10-21 swap).
-Swapped with `swapComponent` (labels and widths kept; signatures match the main variant: fills, text style, arcs):
-
-| Page | Frame | Badge node | Before → after |
-| --- | --- | --- | --- |
-| ◆ HR-Platform | `.Row` 7394:108859, State=Hover | I7394:108361;4035:10637;7394:108378;4081:18368;7394:108838;4035:11662;7394:108722 | Badge Neutral Subtle M "To Do" → Badge-Status To Do M |
-| ◆ HR-Platform | `.Row` 7394:108859, State=Default | I7394:108528;4035:10637;7394:110374;4081:18370;7394:111923;4035:11662;7394:110388 | Badge Neutral Subtle M "To Do" → To Do M |
-| ❖ Popover | Popover/Default 14046:67128 (status menu) | I14046:67128;4031:26127;14046:67145;4031:26096;14046:67151;829:19627 | Blue "In Discussion" → In Review M, label kept |
-| ❖ Popover | 〃 | …14046:67146;4031:26096;14046:67153;829:19627 | Neutral "Not Started" → To Do M, label kept |
-| ❖ Popover | 〃 | …14046:67147;4031:26096;14046:67155;829:19627 | Yellow "In Progress" → In Progress M |
-| ❖ Popover | 〃 | …14046:67148;4031:26096;14046:67157;829:19627 | Red "Cancelled" → Cancelled M |
-| ❖ Popover | 〃 | …14046:67149;4031:26096;14046:67159;829:19627 | Green "Done" → Done M |
-| ❖ List-Item | Example/People directory 14990:1171, Card 14990:1664, Projects | I14990:1664;6643:50987;14990:1683;14817:2747;4080:11391;14990:1612 | Blue "Active" (Loyalty app) → In Progress M, label "Active" (code: projectStep) |
-| ❖ List-Item | 〃 | I14990:1664;6643:50987;14990:1684;14817:2747;4080:11391;14990:1652 | Blue "Active" (Zen design system) → In Progress M, label "Active" |
-
-- Layer names: the old layers had the Badge's default name, so Figma's swap renames them Badge-Status (as the 10-21
-  swap did); no custom name was touched. Rings keep the variant's arc (no progress pushed by hand).
-- Stay Badges (not a task's step, as in code): leave requests Pending/Approved/Rejected (HR tables), Draft, Ready to
-  ship, New, Paid/Unpaid, Voice Ready/Paused. Plain step text (Kanban group headers with Progress-Icon, Schedule
-  event cards, keyboards) is not a Badge.
-- Audit (zen-figma-audit.js, minified to fit use_figma): `.Row` 0 errors, 2 warnings (pre-existing Light drag-handle
-  icon in Table/Cell, the template's own choice); Popover 0/0; People directory 2 errors fixed (Person and Toolbar
-  frames clipped a button/chip shadow by 2px: Clip content off), 2 warnings left (docs Example/Stage corner radii).
-  Screenshots checked; nothing moved, so no overlap. Final scan: 0 themed Badges with a step word on the 3 pages.
-25K…, 50%…);
+  Grouped-Bar and Combo name their axis texts after Figma's sample (Q1…, Apr–Sep, Mon–Sun, Jan–Dec; 2.5K…, $125K…, 50%…);
   Area's anchor sits on the last Sector (constraint MAX); Multi-Line's comparison Tooltip at Compare › Active; Grouped and
   Combo have no active state. The importer resolves edits by exact names (`>` direct child, `[i]`), so the push names them.
 - figma-charts.mjs: `formatFor` (chartCore formatOf in Node: presets, currency, lineFormat), `sixTicks` (shared with
