@@ -7,10 +7,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P2 · Studio option C, waiting for the user (2026-10-15):** links between components on a template page (a Chip
-  that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
-  Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their
-  own state) is done: session log 2026-10-15 "Self-managed state".
+- **P3 · Push Overlays and prototype actions to Figma (user 2026-10-23, option C: later):** the push sends the first
+  Screen only and names the Prototype tab's actions it drops; Figma could hold Navigate to, Open / Close overlay and Back
+  as reactions (plugin `setReactionsAsync`) once Screens and Overlays push as frames. Manual's `overlayPositionType` is
+  read-only in the plugin API (a hand step in Figma). Session log 2026-10-23 "Studio option C".
 - **P2 · Example className, round 2 (2026-10-23, session B; user: "theo bạn cái nào lợi hơn lâu dài, chính xác nhất"):**
   the 2026-10-12 coverage plan's P3 (TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem,
   DatePickerSheet, chat, Metric) and P4/P5 (className 219 → 112) were merged on 2026-10-13 (spec

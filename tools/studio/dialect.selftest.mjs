@@ -89,6 +89,10 @@ check("not a Zen component", /is not a Zen component/.test(first(broken("<Text>a
 check("a hook in the page", /only returns its <Board>/.test(messages(page.replace("  return (\n    <Board>", "  const [a] = useState(0);\n  return (\n    <Board>")).join("|")), true);
 check("no header", /page header/.test(messages(page.replace(/^.*\n/, "")).join("|")), true);
 check("screen id", /needs an id/.test(messages(broken("<Text>a</Text>").replace('id="s"', 'id="Bad Id"')).join("|")), true);
+// Option C (2026-10-23): any lowercase state names a frame Navigate to leads to; Filter table and Change step are actions.
+const withProto = (body) => broken(body).replace("{ Board, Screen }", "{ Board, Screen, proto }");
+check("a Screen state: any lowercase name, not a capital or a space", [messages(broken("<Text>a</Text>").replace('id="s"', 'id="s" state="step-2"')), messages(broken("<Text>a</Text>").replace('id="s"', 'id="s" state="Filtered"')).length, messages(broken("<Text>a</Text>").replace('id="s"', 'id="s" state="no match"')).length], [[], 1, 1]);
+check("filter and step are interactions; another name is not", [messages(withProto('<Button onClick={proto.filter({ column: "status", value: "Paid" })}>Paid</Button><Button onClick={proto.step("next", { stepper: "Pay" })}>Next</Button>')), /not an interaction \(navigate, open, close, back, toast, link, filter, step\)/.test(first(withProto("<Button onClick={proto.shuffle()}>Go</Button>")))], [[], true]);
 check("jsxText", [jsxText("\n   a  \n  b\n"), jsxText("  lead"), jsxText("a\tb")], ["a b", "  lead", "a b"]);
 
 // Page-local components (Figma's main components and instances, 2026-10-17).

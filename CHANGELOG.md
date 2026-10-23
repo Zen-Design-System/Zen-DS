@@ -66,6 +66,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Global Colors' Zen-High-Contrast mode under Increase Contrast — with `.zenSystemContext()` / `with(colorScheme:contrast:)`
   / `with(traits:)` in Swift and `ZenContext.fromMediaQuery` / `withSystem` in Dart, plus `ZenContext.highContrast`; the
   test vectors cover the high-contrast mode (1218 vectors, from 830) (2026-10-23).
+- Zen Studio prototypes (option C): an Overlay at Position Manual opens next to the layer that opens it, and a
+  DatePicker or Popover in an Overlay sits by its trigger, as Figma's Manual overlay; Navigate to takes a Screen's state;
+  Filter table (a Chip, Search or choice control filters the Screen's Table) and Change step (Next / Previous on its
+  Stepper) run in Play. Screen states take any lowercase name; Update from Figma keeps the Studio's prototype actions
+  (2026-10-23).
 - Voice (the user's approval of the 2026-10-13 review): `AiVoiceConversation state="thinking"` between your last word
   and its first spoken word (the voice rests as dots that brighten in turn; Interrupt is the main action; Figma's
   variant is still a designer question); `useVoiceLevels(stream, { bars, rate, paused })` turns a microphone into the
