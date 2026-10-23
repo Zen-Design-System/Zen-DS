@@ -45,3 +45,12 @@ reaction Navigate / Open / Close overlay / Back."
 - qa:selftest 26 → 30 checks (the page choice); a static-only run against a fake failed ledger skipped TypeScript and
   re-ran the failed self-test (the fake ledger and its report removed after).
 
+## Native packages compiled in CI (tier S, CI only; BACKLOG P3; user: "thêm job CI macOS chạy swift test và flutter test cho platforms/")
+
+Branch zen/ci/native-platform-tests-20261024 from main 6a7e872a, PR #267.
+- `.github/workflows/native.yml` (Native packages): `swift test` in platforms/swift and `flutter test` in platforms/flutter
+  (subosito/flutter-action@v2, Flutter 3.24.5 stable), both on macos-14; only on PRs / pushes to main that touch
+  platforms/**, scripts/build-native-tokens.mjs or the workflow, plus workflow_dispatch (macOS minutes).
+- First run (0608e651): Apple Swift 5.10 builds the package (20 s) and passes 4/4 tests; Flutter 3.24.5 passes 4/4. #238's
+  Zen-High-Contrast Swift and Dart compile — nothing to fix in the generator's templates.
+- This Mac still cannot run either locally (memory native-toolchains-broken-locally, updated): the PR's run is the check.
