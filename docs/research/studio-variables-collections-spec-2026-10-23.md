@@ -93,7 +93,8 @@ The user's answers to the two questions below:
 - Before Save, the draft is `""` with `deleted: true`. Save removes the file, and ⌘Z writes the text back.
 - The Figma package carries `deleteCollection` last.
 
-**Plugin:** `renameCollection` sets the collection's name, and `deleteCollection` removes the collection.
+**Plugin** (235d6e8 on `studio-import`): `renameCollection` sets the collection's name, and `deleteCollection` removes
+the collection. Both were checked live on a throwaway collection in the Zen file, which was removed.
 
 **E2E:** VA-08 now goes through the form. VA-09 covers rename → delete → ⌘Z three times, with the actions off on a
 Figma export.

@@ -550,7 +550,8 @@ Branch zen/feat/chart-push-real-data-20261023 (stacked on the format presets: la
   file; the manifest's own style, byte-identical without one; tokens:check flags a stale one); ⋯ › Rename / Delete
   collection for collections made here (the 11 refused: code reads them by name); a delete asks first while code reads
   its variables (`confirm` → Dialog → `force`), an alias from another collection refuses it; drafts.mjs `deleted`
-  drafts (Save unlinks, ⌘Z writes back). Package: renameCollection first, deleteCollection last. Checked: variables
+  drafts (Save unlinks, ⌘Z writes back). Package: renameCollection first, deleteCollection last (plugin 235d6e8, the
+  name set and remove() live on a throwaway collection). Checked: variables
   selftest, studio selftest (deleted drafts), host flow on a scratch copy (rename, refusals, confirm, force, alias),
   tokens:build / tokens:check with a scratch file (entry written, then removed: the manifest byte-identical), tsc.
   E2E VA-09.
