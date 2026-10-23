@@ -556,3 +556,18 @@ Branch zen/feat/voice-proposals-20261023 from main 9fe063d2. Review `docs/resear
   6/6), audits 1512 / 390 / 320, dark, keyboard / APG, voice 8 and chat 10 examples; contact sheets looked at (the narrow
   recorder footer wraps "Live levels · 7 a second" as the existing "48 kHz · Mono" one does).
 
+
+## Session C · Bare horizontal BarChart keeps 290px in Figma (tier S; BACKLOG P3, routed by the progress session)
+Plugin `studio-import` 7e2f273; this repo only closes the line (docs).
+- Cause, read in the Zen file: Bar-Chart Horizontal is a fixed 290 (min height 290 too): Heading 24 · Metric · Chart
+  (Fill, 164). A bare chart hides the Heading and its header toggles, so the Chart grew to 290 and the Values column
+  (space between) spread away from the Category rows (offsets 0 / 42 / 84 / 126 px).
+- Fix (studio-import.js `giveBackHidden`, after the hide step): a fixed-height vertical instance that hides one of its
+  own layers shrinks by what its Fill layers grew past the component's, lowering its min height. The amount is kept in
+  plugin data `gaveBack`; imported again without the hide it comes back in full, with the component's min height. The
+  Chart cannot be measured on the way back (its Plot holds a fixed 164).
+- Live in the Zen file, QA page (the function verbatim on real instances; frames removed): Horizontal 4 rows 290 → 164,
+  offsets → 0; 12 rows 610 → 484; Heading shown again → 290; Vertical untouched (not a fixed height). Two slips found
+  live and fixed: the component's min height held the resize, and the shown Heading could not be measured.
+- Plugin test: the mock now holds the min height and the Chart's content height, as Figma does; it fails on both slips.
+  `npm test` exit 0, `npm run build` (dist backed up), pushed `main:studio-import`.

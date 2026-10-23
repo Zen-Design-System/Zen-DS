@@ -2,6 +2,18 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-23 (bare horizontal BarChart height, plugin `studio-import` 7e2f273)
+
+- Done 2026-10-23: the importer gives a hidden layer's room back. An instance of a fixed height that hides one of its own
+  layers shrinks by what its Fill layers grew past the component's, its minimum height with it (Bar-Chart's is 290).
+  Imported again without the hide, it takes the room back. Live in the Zen file: Horizontal 4 rows 290 → 164, Values
+  offsets 0 / 42 / 84 / 126 → 0; 12 rows 610 → 484; Vertical untouched.
+- **P3 · A bare horizontal BarChart in Figma keeps its 290px height (2026-10-23, found in the live check of the chart
+  push; plugin repo):** a chart pushed without a ChartCard hides its Heading, but the instance stays at the component's
+  fixed height, so the Chart fills it and the Values column (space between) drifts from the rows (vertical charts just
+  grow their plot). The fix is the plugin importer's: shrink an instance by a layer it hides, or hug it once its Plot is
+  back to the sample's size (`studio-import.js` INSTANCE branch). In a ChartCard the rows line up.
+
 ## Archived 2026-10-23 (native paste of a sticky layer, tried live on `zen/fix/studio-native-paste-rest-20261023`)
 
 - Done 2026-10-23: a real ⌘V into the Zen file kept both (Sticky on the in-flow layer, Fixed on the absolute dock,

@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio → Figma (Zen plugin): a chart pushed on its own (no ChartCard) keeps its rows in Figma. A horizontal
+  BarChart no longer stretches to the component's 290px once its Heading is hidden, so its values sit beside their bars
+  (2026-10-23).
 - Zen Studio → Figma: Line, Bar (vertical and horizontal), Area, Grouped-Bar and Combo charts carry the page's own X
   labels, six Y labels (Combo's line axis too) and active Tooltip in the page's number format ("$128.4K", "€2.4K"),
   instead of Figma's sample text; their bars and lines keep Figma's sample shapes. A Line chart moves its selected period
