@@ -379,7 +379,14 @@ function pageChecks({ scopeSel, mobile }) {
     if (br.width / k < 60 || br.height / k < 24) continue;
     const bs = getComputedStyle(box);
     const inner = { left: br.left + k * parseFloat(bs.borderLeftWidth), right: br.right - k * parseFloat(bs.borderRightWidth), top: br.top + k * parseFloat(bs.borderTopWidth), bottom: br.bottom - k * parseFloat(bs.borderBottomWidth) };
-    const range = document.createRange(); range.selectNodeContents(n); const full = range.getBoundingClientRect(); if (!full.width || !full.height) continue;
+    // The words only: in pre-wrap text (chat bubbles) the space at each line break hangs past the box unseen, with a rect
+    // of its own (ai-chat "Rate an answer" and ai-ui at 320, 2026-10-23), so there the words' rects are measured.
+    const range = document.createRange(); range.selectNodeContents(n); let full = range.getBoundingClientRect(); if (!full.width || !full.height) continue;
+    if (/pre-wrap|break-spaces/.test(getComputedStyle(el).whiteSpace)) {
+      const words = { left: Infinity, right: -Infinity, top: Infinity, bottom: -Infinity };
+      for (const m of n.textContent.matchAll(/\S+/g)) { range.setStart(n, m.index); range.setEnd(n, m.index + m[0].length); const w = range.getBoundingClientRect(); if (!w.width) continue; words.left = Math.min(words.left, w.left); words.right = Math.max(words.right, w.right); words.top = Math.min(words.top, w.top); words.bottom = Math.max(words.bottom, w.bottom); }
+      if (words.right > words.left) full = words;
+    }
     // Only the visible part counts: truncated text (overflow hidden + ellipsis) is clipped by its own box, not the card's edge.
     const tr = { left: full.left, right: full.right, top: full.top, bottom: full.bottom };
     for (let c = el; c && c !== box; c = c.parentElement) {
