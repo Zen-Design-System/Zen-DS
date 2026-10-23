@@ -16,8 +16,8 @@ import { dropTargetAt, kidsOf, publishDragView, type DropContext } from "../drag
 import { floatingCode } from "../autoLayoutPlan";
 import { snapBox, SNAP_PX, type FrameBox } from "../../builder/render/framePlace";
 import { annotatedAt, findBySrc, fiberOf, frameOf, hitOf, instanceOf, nameOf, panelOf, rectOf as rectOfHosts, selectHit, srcOf, type FiberHit } from "../../select/picker";
-import { withoutPart } from "../../select/parts";
-import { nestedPicture, PICTURED, writePicture } from "./picture";
+import { partHit, selectPart, selectedPartStore, withoutPart, type PartHit } from "../../select/parts";
+import { itemPictureOf, nestedPicture, PICTURED, writePicture } from "./picture";
 
 /*
  * Assets, Figma-like (docs/research/studio-figma-editing-plan-2026-10-03.md, Phase 6): the Zen components of the slot
@@ -89,6 +89,9 @@ export function selectedImage(): NodeSelection | null {
   if (selection?.kind !== "node") return null;
   // A picture the selected layer draws as a nested instance (an AvatarStack's Avatar) on a page you made: that one.
   if (nestedPicture(selection)) return selection;
+  // A face drawn from an item of the selected layer's list prop (an AvatarStack's items[2], a reader in seenBy): its item.
+  const part = selection.part ? selectedPartStore.get() : null;
+  if (part && part.name === selection.part?.name && itemPictureOf(part)) return selection;
   if (!PICTURED.has(selection.name)) return null;
   return selection.part ? (withoutPart(selection) as NodeSelection) : selection;
 }
@@ -100,15 +103,31 @@ const swapPhoto = (selection: NodeSelection, src: string, label: string) => writ
  * The Image, Avatar or account under the pointer (an Avatar drawn as a part of an account counts as the account), as a
  * selection a dropped photo goes on, with its box; null over anything else.
  */
-function picturedAt(x: number, y: number): { selection: NodeSelection; box: DOMRect; hit: ReturnType<typeof hitOf> } | null {
+function picturedAt(x: number, y: number): { selection: NodeSelection; box: DOMRect; hit: ReturnType<typeof hitOf>; part?: PartHit } | null {
   const world = canvasApi.getWorldElement();
   // The drag's own overlay sits on top: the first element under the pointer that is on the canvas (as dropTargetAt).
   const under = document.elementsFromPoint(x, y).find((element) => world?.contains(element) && element !== world);
   if (!world || !under) return null;
+  let face: ReturnType<typeof fiberOf> = null;
   for (let fiber = fiberOf(under); fiber; fiber = fiber.return) {
+    // A face its owner draws from a list prop (an AvatarStack's items[2], a ChatMessage's seenBy): that item's picture,
+    // once the owner (the nearest layer of the code) is reached.
+    if (face && srcOf(fiber)) {
+      const owner = hitOf(fiber);
+      const part = owner ? partHit(owner, face) : null;
+      face = null;
+      const host = owner?.hosts[0];
+      const selection = owner && part ? { kind: "node", src: owner.src, name: owner.name, frameId: frameOf(host), panelId: panelOf(host), instance: instanceOf(world, owner), part: { path: part.path, name: part.name } } as NodeSelection : null;
+      const box = part ? rectOfHosts(part.hosts) : null;
+      // A page you made overrides the nested instance's own picture instead (M8), when the owner names it as a layer.
+      if (owner && part && selection && box && (itemPictureOf(part) || nestedPicture(selection, part))) return { hit: owner, part, box, selection };
+    }
     if (typeof fiber.type !== "function" || !PICTURED.has(nameOf(fiber))) continue;
     const src = srcOf(fiber);
-    if (!src) continue;
+    if (!src) {
+      face ??= fiber;
+      continue;
+    }
     const hit = hitOf(fiber);
     const box = hit ? rectOfHosts(hit.hosts) : null;
     if (!hit || !box) return null;
@@ -350,7 +369,7 @@ function onMove(event: PointerEvent) {
     current.target = null;
     current.refusal = null;
     const { box, selection } = current.swap;
-    publishDragView({ line: null, into: { x: box.x, y: box.y, w: box.width, h: box.height }, pointer, label: `Picture of ${selection.name}`, tone: "info" });
+    publishDragView({ line: null, into: { x: box.x, y: box.y, w: box.width, h: box.height }, pointer, label: `Picture of ${current.swap.part?.name ?? selection.name}`, tone: "info" });
     return;
   }
   // A Top / Bottom Navigation over a phone Screen: its bar.
@@ -411,9 +430,10 @@ function stop(commit: boolean) {
   window.addEventListener("click", swallow, { capture: true, once: true });
   window.setTimeout(() => window.removeEventListener("click", swallow, { capture: true }), 0);
   if (commit && current.swap && current.item.photo) {
-    const { selection, hit } = current.swap;
-    if (hit) selectHit(hit, canvasApi.getWorldElement());
-    void writePicture(selection, current.item.photo, current.item.label);
+    const { selection, hit, part } = current.swap;
+    if (part) selectPart(part, canvasApi.getWorldElement());
+    else if (hit) selectHit(hit, canvasApi.getWorldElement());
+    void writePicture(selection, current.item.photo, current.item.label, part);
     return;
   }
   if (commit && current.bar && !current.refusal) { void dropBar(current.item, current.bar); return; }

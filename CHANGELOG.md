@@ -21,6 +21,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Show Legend, Show Average, Legend, Total, Size and the Donut's Total Label / Value (the header rows stay ChartCard's),
   and the Main component frame draws the chart sets' variants; `component-properties.json` has the ❖ Chart page
   (15 sets, read 2026-10-23) (2026-10-23).
+- Figma contracts: the 14 chart sets and Chart/Chart-Card are captured (`docs/figma-contracts/chart-*.json`), and seven
+  older contracts are re-read from the live file (Avatar/Single and Badge / Badge-Counter now list Sky, Mint, Bronze and
+  Golden, which the code already has) (2026-10-23).
 - Charts take `palette="primary" | "secondary"`, Figma's Color on Bar, Stack-Bar, Area, Grouped-Bar, Combo, Donut,
   Radial, Gauge, Funnel and Bullet: `secondary` leads with Chart/Sector/Secondary (Neutral Deep) and keeps
   Sector/Primary for the highlight (the active bar, the target, the second series; one area takes the Neutral fade).
@@ -54,6 +57,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   current Spark-Bar, the active bar, a Bullet or Gauge target, the Funnel's last stage, the Combo line) in black at 49%
   (Content/Neutral/Light; Inverse/Light in dark mode), as Figma's Color Chart Sector/On-Color/Secondary does, not 69%.
   The user kept that style's binding and the Tertiary one (Border/Neutral/Subtle/Pressed) (2026-10-23).
+- Zen Studio: a photo dropped on one row's avatar changes that row's picture on example pages too when a helper
+  function draws it (the sidebar's `personAvatar(people[t.assignee])` in rows `taskRow(t)` builds): it lands in that
+  person's data (`people.alex.photo` in examples/data.ts), an initials avatar gets its first photo, one ⌘Z. A photo
+  dropped on one face of an AvatarStack, one reader of a ChatMessage's `seenBy` or another item of a list prop writes
+  that item's picture, where the list is written or read. Where the code, not the row, picks the data (either side of
+  a condition) the drop says so and writes nothing (2026-10-23).
 - **Docs platform:** the Shape page has three more examples: a seat map whose marks carry labels (picked with Segmented
   buttons, taken seats drawn as outlines), the arc's and star's limits (Sweep 0 %, a hairline ring, thin and zero-ratio
   stars) and onboarding art on a phone (2026-10-23).
