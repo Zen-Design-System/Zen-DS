@@ -33,6 +33,11 @@ const DEVICE = skip("device frame: the platform renders phones and desktops itse
 const CHILDREN = skip("the label is the element's text (its Text property)");
 const HOVER = skip("preview state: hover comes from the pointer");
 const NO_PROP = skip("no code prop");
+/** A ❖ Chart set's header (Figma Chart-Card's, on every chart): ChartCard holds it, not the chart. */
+const CHART_CARD = skip("the header is ChartCard's: put the chart in a ChartCard");
+const CHART_HEADER = Object.fromEntries(["Show Icon", "Icon", "Title", "Show Description", "Description", "Show Value", "Value", "Show Ranges", "Show Open"].map((name) => [name, CHART_CARD]));
+const CHART_SECTOR = skip("the periods are the data: the push picks the Sector that holds them");
+const CHART_AVERAGE = skip("the tag reads the mean of the data");
 
 /** A field's Label and Help-Text layers (Primitives/Input/Label, .Primitives/Input/Help-Text): the text and its options,
  *  shown while the field's Label or Help-Text boolean is on. Help-Text's set is private (a "." name, which the page read
@@ -367,6 +372,63 @@ export const FIGMA_PROPS = {
     props: {
       Type: "type",
     },
+  },
+  // ❖ Chart (read 2026-10-23): the header properties every chart set carries are ChartCard's (figma-charts.mjs writes
+  // them from the card around the chart), the Sector is the data's period count and the Average tag its mean; the rest
+  // are the chart's own. Multi-Line is LineChart with `compare` (no prop picks it), Bar-List and Heatmap have only the
+  // header: they keep the one list.
+  LineChart: {
+    sets: { "Chart/Line-Chart": null },
+    props: { ...CHART_HEADER, "Show Average": "showAverage", Average: CHART_AVERAGE, Sector: CHART_SECTOR },
+  },
+  StackBarChart: {
+    sets: { "Chart/Stack-Bar-Chart": null },
+    props: { ...CHART_HEADER, "Show Average": "showAverage", Average: CHART_AVERAGE, Sector: CHART_SECTOR, Color: "palette" },
+  },
+  BarChart: {
+    sets: { "Chart/Bar-Chart": null },
+    props: { ...CHART_HEADER, "Show Average": "showAverage", Average: CHART_AVERAGE, Orientation: "orientation", Sector: CHART_SECTOR, Color: "palette" },
+  },
+  AreaChart: {
+    sets: { "Chart/Area-Chart": null },
+    props: { ...CHART_HEADER, "Show Legend": "showLegend", Type: "type", Sector: CHART_SECTOR, Color: "palette" },
+  },
+  GroupedBarChart: {
+    sets: { "Chart/Grouped-Bar-Chart": null },
+    props: { ...CHART_HEADER, "Show Legend": "showLegend", Sector: CHART_SECTOR, Color: "palette" },
+  },
+  ComboChart: {
+    sets: { "Chart/Combo-Chart": null },
+    props: { ...CHART_HEADER, "Show Legend": "showLegend", Sector: CHART_SECTOR, Color: "palette" },
+  },
+  DonutChart: {
+    sets: { "Chart/Donut-Chart": null },
+    props: {
+      ...CHART_HEADER,
+      "Total Label": "label",
+      "Total Value": "value",
+      "Ring-Slot": skip("the slices are the data"),
+      Legend: "legendPosition",
+      Total: "totalPosition",
+      Size: "size",
+      Color: "palette",
+    },
+  },
+  RadialChart: {
+    sets: { "Chart/Radial-Chart": null },
+    props: { ...CHART_HEADER, Legend: "legendPosition", Size: "size", Color: "palette" },
+  },
+  GaugeChart: {
+    sets: { "Chart/Gauge-Chart": null },
+    props: { ...CHART_HEADER, "Show Legend": "showLegend", Color: "palette" },
+  },
+  FunnelChart: {
+    sets: { "Chart/Funnel-Chart": null },
+    props: { ...CHART_HEADER, Color: "palette" },
+  },
+  BulletChart: {
+    sets: { "Chart/Bullet-Chart": null },
+    props: { ...CHART_HEADER, "Show Legend": "showLegend", Color: "palette" },
   },
   SliderField: {
     sets: { "Slider/Field": null },

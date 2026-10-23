@@ -2800,6 +2800,346 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
       "toggles": []
     }
   ],
+  "LineChart": [
+    {
+      "name": "Chart/Line-Chart",
+      "figma": "15929:120139",
+      "fixed": {},
+      "axes": [],
+      "toggles": []
+    }
+  ],
+  "StackBarChart": [
+    {
+      "name": "Chart/Stack-Bar-Chart",
+      "figma": "15930:4271",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "palette",
+          "label": "Color",
+          "names": [
+            "Primary",
+            "Secondary"
+          ],
+          "values": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "BarChart": [
+    {
+      "name": "Chart/Bar-Chart",
+      "figma": "15321:84071",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "orientation",
+          "label": "Orientation",
+          "names": [
+            "Vertical",
+            "Horizontal"
+          ],
+          "values": [
+            "vertical",
+            "horizontal"
+          ],
+          "default": "vertical"
+        },
+        {
+          "prop": "palette",
+          "label": "Color",
+          "names": [
+            "Primary",
+            "Secondary"
+          ],
+          "values": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "AreaChart": [
+    {
+      "name": "Chart/Area-Chart",
+      "figma": "15484:2663",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "type",
+          "label": "Type",
+          "names": [
+            "Area",
+            "Stacked"
+          ],
+          "values": [
+            "area",
+            "stacked"
+          ],
+          "default": "area"
+        },
+        {
+          "prop": "palette",
+          "label": "Color",
+          "names": [
+            "Primary",
+            "Secondary"
+          ],
+          "values": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "GroupedBarChart": [
+    {
+      "name": "Chart/Grouped-Bar-Chart",
+      "figma": "15933:120083",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "palette",
+          "label": "Color",
+          "names": [
+            "Primary",
+            "Secondary"
+          ],
+          "values": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "ComboChart": [
+    {
+      "name": "Chart/Combo-Chart",
+      "figma": "15934:7580",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "palette",
+          "label": "Color",
+          "names": [
+            "Primary",
+            "Secondary"
+          ],
+          "values": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "DonutChart": [
+    {
+      "name": "Chart/Donut-Chart",
+      "figma": "15324:80365",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "legendPosition",
+          "label": "Legend",
+          "names": [
+            "Bottom",
+            "Start",
+            "End"
+          ],
+          "values": [
+            "bottom",
+            "start",
+            "end"
+          ],
+          "default": "start"
+        },
+        {
+          "prop": "totalPosition",
+          "label": "Total",
+          "names": [
+            "Centre",
+            "Start"
+          ],
+          "values": [
+            "centre",
+            "start"
+          ],
+          "default": "centre"
+        },
+        {
+          "prop": "size",
+          "label": "Size",
+          "names": [
+            "Medium",
+            "Large",
+            "Small",
+            "XLarge"
+          ],
+          "values": [
+            "medium",
+            "large",
+            "small",
+            "xlarge"
+          ],
+          "default": "small"
+        },
+        {
+          "prop": "palette",
+          "label": "Color",
+          "names": [
+            "Primary",
+            "Secondary"
+          ],
+          "values": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "RadialChart": [
+    {
+      "name": "Chart/Radial-Chart",
+      "figma": "15325:1135",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "legendPosition",
+          "label": "Legend",
+          "names": [
+            "Bottom",
+            "End"
+          ],
+          "values": [
+            "bottom",
+            "end"
+          ],
+          "default": "bottom"
+        },
+        {
+          "prop": "size",
+          "label": "Size",
+          "names": [
+            "Medium",
+            "Small",
+            "Large",
+            "XLarge"
+          ],
+          "values": [
+            "medium",
+            "small",
+            "large",
+            "xlarge"
+          ],
+          "default": "small"
+        },
+        {
+          "prop": "palette",
+          "label": "Color",
+          "names": [
+            "Primary",
+            "Secondary"
+          ],
+          "values": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "GaugeChart": [
+    {
+      "name": "Chart/Gauge-Chart",
+      "figma": "15968:130382",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "palette",
+          "label": "Color",
+          "names": [
+            "Primary",
+            "Secondary"
+          ],
+          "values": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "FunnelChart": [
+    {
+      "name": "Chart/Funnel-Chart",
+      "figma": "15968:130460",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "palette",
+          "label": "Color",
+          "names": [
+            "Primary",
+            "Secondary"
+          ],
+          "values": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary"
+        }
+      ],
+      "toggles": []
+    }
+  ],
+  "BulletChart": [
+    {
+      "name": "Chart/Bullet-Chart",
+      "figma": "15968:130554",
+      "fixed": {},
+      "axes": [
+        {
+          "prop": "palette",
+          "label": "Color",
+          "names": [
+            "Primary",
+            "Secondary"
+          ],
+          "values": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary"
+        }
+      ],
+      "toggles": []
+    }
+  ],
   "SliderField": [
     {
       "name": "Slider/Field",

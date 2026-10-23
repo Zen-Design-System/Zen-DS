@@ -267,3 +267,21 @@ Branch claude/modest-gauss-20ef1e. BACKLOG "a row's picture through a helper" an
 - Not covered (refused in words): a layer either side of a condition, a helper in another file, a default parameter.
 - Gate (slot from chart-color-phase2, Giám sát's queue; `--isolated`, 12 files): **PASS**, Studio E2E 338/0 (4 shards,
   1415 s). Then `studio:e2e --only=figma,select --rows=FW-235…238,SE-36`: 5/0 on the first run.
+
+## Chart sets in the Studio inspector (tier S; G3 of the P2/P3 triage, approved by the user 2026-10-23; Giám sát assigned it here)
+
+Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows need `palette`).
+- Read ❖ Chart (6143:31287) live with `tools/studio/figma-props-read.js` (read-only): 15 sets with properties (Line,
+  Multi-Line, Stack-Bar, Bar, Area, Grouped-Bar, Combo, Donut, Radial, Bar-List, Heatmap, Curve-Preview, Gauge, Funnel,
+  Bullet; Gauge/Funnel/Bullet by their set ids). Chart/Chart-Card has no component properties, so it has no entry.
+  Only that page's entry of component-properties.json changed (48 other pages byte-identical; Curve-Preview unchanged).
+- figma-props.map.mjs: eleven charts mapped. The header properties (Show Icon … Show Open) are ChartCard's (skip), Sector
+  is the data's period count and Average the data's mean (skip), Donut's Ring-Slot its data (skip); the rest map to
+  showAverage, orientation, type, showLegend, palette, legendPosition, totalPosition, size, label, value. LineChart maps
+  Line-Chart only (Multi-Line is `compare`, no prop picks it); Bar-List and Heatmap have only the header and keep the one
+  list. Push and pull keep their chart branch (figma-charts.mjs runs before the generic set lookup both ways).
+- Generated: figmaProps (105 components, 230 props), variantSets (the Main component frame draws the chart variants).
+  studio:selftest ✓ (propGroups 352), library-keys / native-pack checks ✓, tsc ✓.
+- Merged main 9022cdad (after #236 merged; #237's chart-*.json contracts came in, no overlap). Gate (isolated, the map +
+  the two generated maps): Studio self-tests ✓, TypeScript ✓, nested layer names 45 / 45, Studio E2E 338 / 338
+  (3 shards, BL-02 Main component coverage included), Build-QA PASS. No platform page in scope, so no contact sheet.

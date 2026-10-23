@@ -21,6 +21,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Global Colors' Zen-High-Contrast mode under Increase Contrast — with `.zenSystemContext()` / `with(colorScheme:contrast:)`
   / `with(traits:)` in Swift and `ZenContext.fromMediaQuery` / `withSystem` in Dart, plus `ZenContext.highContrast`; the
   test vectors cover the high-contrast mode (1218 vectors, from 830) (2026-10-23).
+- Zen Studio's Properties panel shows a chart's Figma properties in Figma's order and names: Orientation, Type, Color,
+  Show Legend, Show Average, Legend, Total, Size and the Donut's Total Label / Value (the header rows stay ChartCard's),
+  and the Main component frame draws the chart sets' variants; `component-properties.json` has the ❖ Chart page
+  (15 sets, read 2026-10-23) (2026-10-23).
 - Figma contracts: the 14 chart sets and Chart/Chart-Card are captured (`docs/figma-contracts/chart-*.json`), and seven
   older contracts are re-read from the live file (Avatar/Single and Badge / Badge-Counter now list Sky, Mint, Bronze and
   Golden, which the code already has) (2026-10-23).
