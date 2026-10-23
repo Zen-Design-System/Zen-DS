@@ -4,8 +4,8 @@
    9923:3576 carry no fill, stroke or effect), so it has no Effect/Popover shadow or blur, no Popover fill or border and
    no surface padding: its days line up with the container's content. */
 .zen-date-picker[data-placement="inline"] { position: relative; z-index: auto; min-width: 0; padding: 0; border: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
-/* Day cells are Figma's Select-Item/Size: Medium 32 (Small 24) in the default density, 40 (32) in Comfortable, 28 in
-   Compact; a panel is seven of them (224 at 32). */
+/* Day cells are Figma's Select-Item/Size (Component Size collection): Medium 32 (Small 24) in Compact, the default;
+   40 (32) in Comfortable; 28 (24) in the Studio density. A panel is seven of them (224 at 32). */
 /* Calendar panels: Single = one 224px panel; Dual-Calendar = two panels with Spacing/Gap/Small between.
    Inside a panel the Header and Calendar-Table are 12 apart (Spacing/Gap/Small). */
 .zen-date-picker__panels { display: flex; gap: var(--zen-spacing-gap-small, 12px); align-items: flex-start; }
