@@ -30,6 +30,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (a Dialog's, Side Panel's or Bottom Sheet's buttons too). Pull from Figma reads them back. Show toast, Open link, Filter table,
   Change step and the overlay's position, background and click-outside stay in the Studio, each named in the notes
   (2026-10-24).
+- Per-component CSS (user, 2026-10-24): `import "@zen-ds/react/styles/Button";` loads the shared base (font, tokens,
+  text styles, effects) and only the CSS that component and the components it renders need, instead of all of
+  `styles.css`; one entry per component you render, each file loaded once. A Button-only app loads 34 KB of CSS (gzip)
+  instead of 96 KB. `styles.css` is unchanged; `styles/base.css` is the base alone; `npx zen-ds doctor` names
+  components whose entry is missing (docs/getting-started.md, "Load only the CSS you use").
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in

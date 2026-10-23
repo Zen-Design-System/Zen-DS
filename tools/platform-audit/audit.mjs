@@ -125,7 +125,9 @@ function allPages() {
 }
 const PAGES = arg("pages", null) ? String(arg("pages")).split(",") : allPages();
 
-const IGNORED_CONSOLE = /\[vite\]|Download the React DevTools|favicon|ResizeObserver loop/i;
+// The dev server's own noise, never the page's: Vite logs, and the browser's error when Vite's HMR socket
+// (ws://…/?token=…) drops, which failed a CI audit on table@1512 (PR #268, 2026-10-24).
+const IGNORED_CONSOLE = /\[vite\]|Download the React DevTools|favicon|ResizeObserver loop|WebSocket connection to 'wss?:\/\/[^']*[?&]token=/i;
 
 /** In-page checks, scoped to `scopeSel` (defaults to the whole platform). Runs in the browser. */
 function pageChecks({ scopeSel, mobile }) {

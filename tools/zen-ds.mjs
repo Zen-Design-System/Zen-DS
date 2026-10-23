@@ -4,7 +4,7 @@
 //   zen-ds init     add the @zen-ds registry line to .npmrc and the AI entry points to the app: AGENTS.md section,
 //                   CLAUDE.md (@AGENTS.md), .mcp.json (zen-ds MCP server); prints the ESLint and setup snippets.
 //                   Idempotent: re-running changes nothing.
-//   zen-ds doctor   check the app's setup: registry line, package + React versions, styles.css imported, ZenProvider
+//   zen-ds doctor   check the app's setup: registry line, package + React versions, styles.css or style entries, ZenProvider
 //                   rendered, ESLint plugin / MCP / AGENTS wired. Exit 1 when something required is missing.
 //   zen-ds check    `zen-usage --css`: the usage harness on ./src, stylesheets included.
 //   zen-ds audit    load pages in Chromium and check what people see: overflow, names, contrast, the heading outline,
@@ -79,6 +79,7 @@ Next steps (not automated — they touch your code):
   0. Commit .npmrc. Each developer signs in once with their Zen account (npm opens the browser):
        npm login --registry=${REGISTRY} --scope=@zen-ds
   1. Entry file:  import "@zen-ds/react/styles.css";
+                  (or only the CSS you use: import "@zen-ds/react/styles/Button"; one line per component)
   2. Root:        <ZenProvider theme="system"> <App /> </ZenProvider>   (import { ZenProvider } from "@zen-ds/react")
   3. ESLint (flat config), optional:
        import zen from "@zen-ds/react/eslint";
@@ -102,7 +103,18 @@ function doctor() {
   const srcDir = exists("src") ? path.join(app, "src") : app;
   const sources = fs.existsSync(srcDir) ? fs.readdirSync(srcDir, { recursive: true }).map(String).filter((f) => /\.[jt]sx?$/.test(f) && !/node_modules|dist/.test(f)) : [];
   const text = sources.map((f) => fs.readFileSync(path.join(srcDir, f), "utf8"));
-  add(text.some((t) => /@zen-ds\/react\/styles\.css/.test(t)), "styles.css is imported", 'add import "@zen-ds/react/styles.css" to your entry file (main.tsx)');
+  // Styles: the whole styles.css, or one style entry per component (import "@zen-ds/react/styles/Dialog").
+  const wholeSheet = text.some((t) => /@zen-ds\/react\/styles\.css/.test(t));
+  const entries = [...new Set(text.flatMap((t) => [...t.matchAll(/["']@zen-ds\/react\/styles\/([A-Z]\w*)["']/g)].map((match) => match[1])))];
+  add(wholeSheet || entries.length > 0, wholeSheet ? "styles.css is imported" : "per-component style entries are imported", 'add import "@zen-ds/react/styles.css" to your entry file (main.tsx), or import "@zen-ds/react/styles/<Component>" for each component you render');
+  const manifest = (() => { try { return JSON.parse(fs.readFileSync(path.join(app, "node_modules/@zen-ds/react/dist/css/manifest.json"), "utf8")).components; } catch { return null; } })();
+  if (!wholeSheet && entries.length && manifest) {
+    const covered = new Set(entries.flatMap((name) => manifest[name] ?? []));
+    const used = [...new Set(text.flatMap((t) => [...t.matchAll(/import\s*\{([^}]*)\}\s*from\s*["']@zen-ds\/react["']/g)].flatMap((match) => match[1].split(",").map((part) => part.trim().replace(/^type\s+/, "").split(/\s+as\s+/)[0]))))];
+    const uncovered = used.filter((name) => manifest[name]?.some((part) => !covered.has(part)));
+    const unknown = entries.filter((name) => !manifest[name]);
+    add(!uncovered.length && !unknown.length, "every rendered component has its style entry", [uncovered.length ? `add import "@zen-ds/react/styles/<Name>" for ${uncovered.join(", ")}` : "", unknown.length ? `no style entry named ${unknown.join(", ")}` : ""].filter(Boolean).join("; "));
+  }
   add(text.some((t) => /<ZenProvider\b/.test(t)), "ZenProvider wraps the app", "render <ZenProvider> around your app (modes, Canvas, overlays, toasts)");
   add(!text.some((t) => /@zen-ds\/react\/(src|dist)\//.test(t)), "no deep imports into the package", 'import from "@zen-ds/react" (and /styles.css, /icons/all, /eslint), not from its src or dist folders');
   add(readApp("AGENTS.md")?.includes(AGENTS_MARKER) ?? false, "AGENTS.md has the Zen section", "npx zen-ds init", false);

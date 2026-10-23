@@ -4,7 +4,8 @@ Template used by `npm run verify:package` (scripts/verify-package.mjs). The scri
 this folder to a temporary directory, installs the tarball there and checks what a real app would hit:
 
 - `tsc` with `skipLibCheck: false` against the shipped declarations (`src/app.tsx` uses a wide slice of the API);
-- `vite build` of two pages; `button-only.html` is held to the JS budget;
+- `vite build` of three pages; `button-only.html` is held to the JS budget, and `split.html` (the same Button with its
+  style entry, `@zen-ds/react/styles/Button`) to the per-component CSS budget;
 - `ssr.mjs`: `renderToString` in plain Node.
 
 Keep it small and realistic: it is what an AI or a developer does right after `npm install`.
