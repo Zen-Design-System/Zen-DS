@@ -32,13 +32,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · Metric Title-Highlight Figma slips (2026-10-17, for the designer):** in 7523:507049, the Header gap of 12 is
   unbound (should be Spacing/Gap/Small) and Medium's Metric-Number has paragraphSpacing bound to Font-Size/Heading-3
   (session log 2026-10-17, "Metric-Inline/Title-Highlight"; the Custom-Slot padding is fixed).
-- **P1 · Chart `Color = Primary | Secondary`, phase 2 in code + Studio (2026-10-17, waits for the user's Figma review;
-  user chose "Figma trước, code sau khi duyệt"):** the 10 Figma chart sets have it (session log 2026-10-17, "Chart
-  Color"). Code: one prop on BarChart, StackBarChart, AreaChart, GroupedBarChart, ComboChart, DonutChart, RadialChart,
-  GaugeChart, FunnelChart, BulletChart that swaps Sector/Primary and /Secondary (BarChart's `color`/`activeColor` are
-  raw CSS, so the prop needs its own name), stacked/single area fill to the Neutral pair; Studio figma-charts push/pull
-  of `Color`; Gauge/Funnel/Bullet are sets now (ids in `CHART_SETS` are their Primary variants, keys unchanged);
-  re-capture library-keys + component-properties; figma-docs text for the property.
 - **P1 · 320px debt left: designer calls (2026-10-16):** 197 → 33 baselined 320 findings (docs grids, small-phone docs
   chrome, ListItem / Toast / Stepper text fixed; session log). Left, each a call for the user or the designer: Chat desktop
   examples at Comfortable on a 288px screen (13: composer send button, call button, the fixed 32px file-text box, read
@@ -107,7 +100,7 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   drop shadow (not re-read since 2026-10-13). Screens override by variable until then (screen-rules §1).
 - **P2 · Studio inspector has no chart Figma properties (charts phase 2, 2026-10-14):** the chart sets are missing from
   `docs/figma-contracts/component-properties.json` (captured 2026-10-05), so the inspector's Figma-props rows (Show
-  Legend, Show Average, Type, Orientation …) are absent for charts; push/pull carry them. Needs a contract re-capture.
+  Legend, Show Average, Type, Orientation, Color …) are absent for charts; push/pull carry them. Needs a contract re-capture.
 - **P2 · Chart questions for the designer (merged 2026-10-23 from four entries of 2026-10-13 … 10-18; Figma not
   edited):** (a) parity: active X pill (20px hug, Medium vs sector-wide 16px Bold), 88% dim of inactive columns, Bar
   label padding / thinning, Tooltip anchor and lanes, bar lanes 38/26 vs 36/28, horizontal / heatmap axis gaps 8 vs 16,
