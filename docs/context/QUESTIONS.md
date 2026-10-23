@@ -121,6 +121,72 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
   look in code; Meet/Zoom use a negative one — keep Pressed or Danger/Subtle? (d) Chat/Bubble/Voice Social shows no
   length (Business does) and no unheard marker; (e) a Paused playback row for VoiceRecorder (listen before Finish)?
 
+- For the designer, one review (moved from `BACKLOG.md` on 2026-10-23, triage group G1; code keeps its current
+  behaviour until answered):
+  - **Calendar/Toolbar Mobile in the Mobile typography (P2, 2026-10-21):** Figma drew the Mobile variant (16125:399) in
+    the desktop type sizes; with Mobile typography Heading/3 is 26px, so "September 2026" (~200px) and a fourth view
+    label ("Agenda") no longer fit 358px beside Today and the arrows, in Comfortable density. Code: the mobile toolbar's
+    default title is the short form ("Sep 2026"), and the phone example offers three views. Keep the short title, or
+    another style / layout? Pointer: `src/components/Calendar/CalendarToolbar.tsx`.
+  - **Metric Title-Highlight slips (P3, 2026-10-17):** in 7523:507049, the Header gap of 12 is unbound (should be
+    Spacing/Gap/Small) and Medium's Metric-Number has paragraphSpacing bound to Font-Size/Heading-3 (session log
+    2026-10-17, "Metric-Inline/Title-Highlight"; the Custom-Slot padding is fixed).
+  - **Navigation-Mobile/Top/Action-Icon-Gap is 20 (P3, 2026-10-15):** Component Size spacing now aliases
+    Spacing/Gap|Padding, but the Gap ladder has no 20 (16 Medium, 24 Large), so this one stays on `dm-20`. Keep, or move
+    it to a Gap step (a visible change in Top Navigation's flat icon actions)?
+  - **Bottom-Navigation surface (P2, 2026-10-13; re-checked 2026-10-23):** Patterns/Sidebar takes Theme · Density ·
+    Shadow since 2026-10-21 (#181) and Top-Navigation/Mobile has Type=Transparent / Transparent-On-Color since
+    2026-10-17. Left: Bottom-Navigation has no surface choice and its main carries an unstyled drop shadow (not re-read
+    since 2026-10-13). Screens override by variable until then (screen-rules §1).
+  - **Side-Bar/Master/Small-Density is named "Component" (P3, 2026-10-23, contract re-read):** the set 5974:20590 on
+    ❖ Sidebar (key 1cca393d…, Expand Yes/No) lost its name; no other set has it. The push imports it by key
+    (library-keys.json) so it still lands, but a pull or a component-properties re-capture matches sets by name
+    (`tools/studio/figma-props.map.mjs` Sidebar `Side-Bar/Master/Small-Density`). Rename it back, or say it is retired.
+  - **Library gaps the 438-page Studio → Figma test found (P2, 2026-10-18):** (a) Accordion/Text has no content slot, so
+    an open Accordion's content cannot be drawn (the push notes it); (b) Dock-Icon has Theme=Emoji only at Medium and
+    Large (the HR templates use XSmall in table cells: the default variant shows); (c) Chat/Section/Read-List Seen
+    by=5+ holds four Avatars after "+N" where Chat.tsx draws five (the push writes four). Pointer: session log
+    2026-10-17 "Studio → Figma test run", figma-push.mjs chatMessageNode.
+  - **Android system bars (P2, user 2026-10-10):** the Studio's Android Screens draw a Material 3 status bar (24) and
+    gesture handle (108 × 4, 10 from the bottom) with dummy icons (builder/proto/DeviceBars.tsx); the Zen file's
+    ⚙️ Operation Components has only Status-bar/IOS/Mobile, /Tablet and System/Bottom-Indicator. Add
+    Status-bar/Android/Mobile (+ Tablet) and an Android navigation bar there; then the code follows those nodes.
+  - **Layers left unnamed (P3, 2026-10-12):** the nested layer-name gate (`tools/figma-contract/nested-paths.mjs`,
+    44/44 components since nested-layers.json) allows code names Figma has no layer for: unnamed instances that carry
+    their component's name (AiChatField's three action buttons, AlertBanner / InlineMessage / Toast / ChatCall actions,
+    Pagination's Previous / Next / page-size chip, SidePanel's close button), icons named after their glyph
+    (AlertBanner, Dialog, SidePanel, EmptyState, Tabs), and Figma names that differ from Zen's, which the code keeps
+    (user, 2026-10-12): Empty-State's buttons unnamed inside CTA (code `Primary` / `Secondary`), Modal/Forms' action
+    row `Footer › Buttons` (code `Actions`, as Dialog and Side-Panel), Bottom-Navigation Floating's `CTA` (code
+    `Action`), Inline-Message's `Icon-Wrapper › Icon` / Custom `Visual` slot and Toast's `icon-Container › Icon` (code
+    `Leading`), Chat-Control's trailing send instance `Main` (code `Send`). Naming them with Zen's names lets the gate
+    check them and a Studio page's overrides land in Figma by name. Pointer: `ALLOWED` in nested-paths.mjs.
+  - **Charts (P2, merged from four entries of 2026-10-13 … 10-18; Figma not edited):** (a) parity: active X pill (20px
+    hug, Medium vs sector-wide 16px Bold), 88% dim of inactive columns, Bar label padding / thinning, Tooltip anchor and
+    lanes, bar lanes 38/26 vs 36/28, horizontal / heatmap axis gaps 8 vs 16, Heatmap density token, Chart Card
+    description gap; Figma lacks the Line / Multi-Line active dot, Area Stacked and Grouped / Combo active states,
+    Radial default variant (`docs/research/chart-parity-audit-2026-10-17.md` §2–§4). (b) Slips from the widgets batch:
+    Bar-Chart Vertical `Average › Rule` 15335:2421 strokeCap NONE (no dots); Segmented `Item-List` FIXED 114 in Line,
+    Stack-Bar, Multi-Line, Chart-Card and Heatmap (labels overlap); Area fills bound to Background/Accent|Neutral while
+    lines use the Chart Sector styles; Solid hue cards: the series in the card's own hue uses Brand in code
+    (On-Color/Tertiary washes out as an area); no Border/Inverse/Pale|Subtle token; Metric-Card Hero keeps a Brand Pale
+    fill override on a Solid Brand Card (`docs/research/widget-patterns-spec-2026-10-14.md`,
+    `chart-phase2-spec-2026-10-14.md` §4). (c) Bar, Donut, Radial, Heatmap and Multi-Line draw their own
+    Surface/Default card, so they cannot take Card Theme / Color like the card-less new charts: align them? (d) Beside a
+    taller LineChart card (Grid stretch) BarList's 5 rows sit ~72px apart: hug at the top, or fill as now?
+    (`docs/research/studio-vibe-agent-2026-10-18.md` §7)
+  - **AI UI, Figma first (P2, merged from six entries of 2026-10-14/15; `docs/ai-ui/README.md`):** (1) a tentative look
+    for a guessed form (ShapeShift: the form faded, empty slots as dashed "+ Add date" chips); Zen has no tentative state
+    or token (Chip `state="placeholder"` only recolours the label). (2) The recognised span underlined in the prompt
+    field: `extractSlots` returns the `spans`, but `AiChatField` is a plain textarea (an overlay or a contenteditable,
+    tier M). (3) "AI glow" gradient tokens for the "AI is working" orb (demo CSS `.px-ai-ui-orb` in
+    `src/platform/examples/pages/ai-ui.css`, from Support Pink / Violet / Cyan); `tokens.css` has no gradient token; if
+    the orb stays it becomes a component (AiChatBubble `thinking="orb"`?). (4) A 4-column Table in a 600 / 390 px chat
+    column needs ~608 px and scrolls sideways in its own box (`tests/ai-ui/narrow.test.tsx`): keep, or a compact mode
+    that folds columns? (5) Prose has no code block: `markdownToSpec` renders fenced code as `Text as="code"`; no mono
+    text style or CodeBlock / Prose component. (6) A Keycap (Kbd) for keyboard hints ("Tab to keep as booking"; the
+    demo uses Tag).
+
 ## For the user (decisions and actions)
 
 Answered on 2026-10-09: selecting on the canvas follows Figma's click (a click selects the outermost layer in context,

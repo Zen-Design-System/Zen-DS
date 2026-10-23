@@ -14,11 +14,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 - **P3 · PropertyField ↔ Figma gaps (2026-10-21):** a People / Labels cell pushes one person and two tags (the
   Property-Value variants hold that many), and `BadgeStatus progress` is not pushed (Progress-Icon's arc is set by hand in
   Figma). Pointer: `tools/studio/figma-property.mjs`.
-- **P2 · Calendar/Toolbar Mobile in the Mobile typography — question for the designer (2026-10-21, Calendar in code):**
-  Figma drew the Mobile variant (16125:399) in the desktop type sizes; with Mobile typography Heading/3 is 26px, so
-  "September 2026" (~200px) and a fourth view label ("Agenda") no longer fit 358px beside Today and the arrows, in
-  Comfortable density. Code: the mobile toolbar's default title is the short form ("Sep 2026"), and the phone example
-  offers three views. Designer: keep the short title, or another style / layout? Pointer: `src/components/Calendar/CalendarToolbar.tsx`.
 - **P2 · Charts in Studio pages show no currency (2026-10-18, V-1 of the vibe agent; new API, user):** `format` on
   LineChart / BarList / MetricCard is a function, which the page dialect cannot write, so a revenue chart reads "128.4K",
   not "$128.4K". Needs a literal preset (e.g. `format="currency"` + `currency`) or a dialect form. Pointer:
@@ -29,40 +24,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   collections, description / scoping / code syntax, rename of a variable code reads (rewrite its CSS readers), Change
   variable mode per frame / section / page (E6; today a frame's Theme Light/Dark, for the session only). Pointer:
   `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
-- **P3 · Metric Title-Highlight Figma slips (2026-10-17, for the designer):** in 7523:507049, the Header gap of 12 is
-  unbound (should be Spacing/Gap/Small) and Medium's Metric-Number has paragraphSpacing bound to Font-Size/Heading-3
-  (session log 2026-10-17, "Metric-Inline/Title-Highlight"; the Custom-Slot padding is fixed).
-- **P1 · 320px debt left: designer calls (2026-10-16):** 197 → 33 baselined 320 findings (docs grids, small-phone docs
-  chrome, ListItem / Toast / Stepper text fixed; session log). Left, each a call for the user or the designer: Chat desktop
-  examples at Comfortable on a 288px screen (13: composer send button, call button, the fixed 32px file-text box, read
-  receipts, file size/time); Voice actions at Comfortable need 192px, a Voice in a Card on a 320 phone has 168 (5; it
-  overflowed at both densities before the wider stage, now only at Comfortable); 4–13px at Comfortable in a 208px card:
-  DatePicker "October 2026" (2), Small Pagination 216px (1), Rating "Freelance illustrators" + Sort chip (1), Settings form
-  Avatar 2XL + FileUpload (1) — a `wrap` there changes 390/1512, so stack them on phones or accept. Not 320 layout:
-  templates "Show all" target (1, the audit counts a link clipped inside a template's scroll frame), text-style
-  rhythm/scale debt also recorded at 390/1512 (8) and widgets "8 text styles" (1; the same gallery is now recorded at 1512 / 390 / dark too, 9 → 8 after the user's Heading/1 call: 7 widget types in one
-  example, a designer call whether a gallery may exceed 7 styles).
-- **P3 · Designer question: Navigation-Mobile/Top/Action-Icon-Gap is 20 (2026-10-15):** Component Size spacing now aliases
-  Spacing/Gap|Padding, but the Gap ladder has no 20 (16 Medium, 24 Large), so this one stays on `dm-20`. Keep, or move it to a
-  Gap step (a visible change in Top Navigation's flat icon actions)?
 
 - **P2 · Studio option C, waiting for the user (2026-10-15):** links between components on a template page (a Chip
   that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
   Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their
   own state) is done: session log 2026-10-15 "Self-managed state".
-- **P2 · AI UI: spec format, for the user (2026-10-14; the other four AI UI decisions answered 2026-10-23, see
-  `docs/ai-ui/README.md` "Decided"):** Zen's node tree (Studio dialect shape) or A2UI / json-render (an exporter can sit
-  on top); decide before a native renderer is needed.
-- **P2 · AI UI: Figma first, for the designer (merged 2026-10-23 from six entries of 2026-10-14/15):** (1) a tentative
-  look for a guessed form (ShapeShift: the form faded, empty slots as dashed "+ Add date" chips); Zen has no tentative
-  state or token (Chip `state="placeholder"` only recolours the label). (2) The recognised span underlined in the prompt
-  field: `extractSlots` returns the `spans`, but `AiChatField` is a plain textarea (an overlay or a contenteditable, tier
-  M). (3) "AI glow" gradient tokens for the "AI is working" orb (demo CSS `.px-ai-ui-orb` in
-  `src/platform/examples/pages/ai-ui.css`, from Support Pink / Violet / Cyan); `tokens.css` has no gradient token; if
-  the orb stays it becomes a component (AiChatBubble `thinking="orb"`?). (4) A 4-column Table in a 600 / 390 px chat
-  column needs ~608 px and scrolls sideways in its own box (`tests/ai-ui/narrow.test.tsx`): keep, or a compact mode that
-  folds columns? (5) Prose has no code block: `markdownToSpec` renders fenced code as `Text as="code"`; no mono text
-  style or CodeBlock / Prose component. (6) A Keycap (Kbd) for keyboard hints ("Tab to keep as booking"; the demo uses Tag).
 - **P2 · Example className, round 2 (2026-10-23, session B; user: "theo bạn cái nào lợi hơn lâu dài, chính xác nhất"):**
   the 2026-10-12 coverage plan's P3 (TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem,
   DatePickerSheet, chat, Metric) and P4/P5 (className 219 → 112) were merged on 2026-10-13 (spec
@@ -88,23 +54,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (`skills/zen-figma-design/harness/zen-figma-audit.js`); code already has card/pale-on-canvas-default,
   layer/surface-on-canvas-alt-border, layer/surface-flat-is-navigation and surface/no-shadow-on-tinted. New harness
   rules need the user's yes, and colour / composition principles stay skill guidance unless the user says otherwise.
-- **P2 · Navigation surfaces missing in the Figma library (designer, 2026-10-13; re-checked 2026-10-23):** Patterns/Sidebar
-  takes Theme · Density · Shadow since 2026-10-21 (#181) and Top-Navigation/Mobile has Type=Transparent /
-  Transparent-On-Color since 2026-10-17. Left: Bottom-Navigation has no surface choice and its main carries an unstyled
-  drop shadow (not re-read since 2026-10-13). Screens override by variable until then (screen-rules §1).
-- **P2 · Chart questions for the designer (merged 2026-10-23 from four entries of 2026-10-13 … 10-18; Figma not
-  edited):** (a) parity: active X pill (20px hug, Medium vs sector-wide 16px Bold), 88% dim of inactive columns, Bar
-  label padding / thinning, Tooltip anchor and lanes, bar lanes 38/26 vs 36/28, horizontal / heatmap axis gaps 8 vs 16,
-  Heatmap density token, Chart Card description gap; Figma lacks the Line / Multi-Line active dot, Area Stacked and
-  Grouped / Combo active states, Radial default variant (`docs/research/chart-parity-audit-2026-10-17.md` §2–§4).
-  (b) Figma slips from the widgets batch: Bar-Chart Vertical `Average › Rule` 15335:2421 strokeCap NONE (no dots);
-  Segmented `Item-List` FIXED 114 in Line, Stack-Bar, Multi-Line, Chart-Card and Heatmap (labels overlap); Area fills
-  bound to Background/Accent|Neutral while lines use the Chart Sector styles; Solid hue cards: the series in the card's
-  own hue uses Brand in code (On-Color/Tertiary washes out as an area); no Border/Inverse/Pale|Subtle token; Metric-Card
-  Hero keeps a Brand Pale fill override on a Solid Brand Card (`docs/research/widget-patterns-spec-2026-10-14.md`,
-  `chart-phase2-spec-2026-10-14.md` §4). (c) Bar, Donut, Radial, Heatmap and Multi-Line draw their own Surface/Default
-  card, so they cannot take Card Theme / Color like the card-less new charts: align them? (d) Beside a taller LineChart
-  card (Grid stretch) BarList's 5 rows sit ~72px apart: hug at the top, or fill as now? (`docs/research/studio-vibe-agent-2026-10-18.md` §7)
 - **P2 · Direct paste (⌘V on the canvas), what is left (merged 2026-10-23 from the 2026-10-17 P2 and P3):** it binds by
   node id, so only the Zen file takes it; other files need the published library and full component definitions in the
   paste (instances by `componentKey`, as Figma's own copies carry). The frame menu's Copy for Figma writes async
@@ -118,23 +67,19 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   content, as the runtime shows it, and an AppShell inside a page draws only its desktop parts. Drawing them (Figma
   Pattern/AppShell/Mobile, its Bar type by canvas: default→Alt, alt→Default, flat→Default on Surface/Flat) is new scope.
   Pointer: `tools/studio/figma-push.mjs` `appShellNode` (~852) and the Screen's mobile chrome (~2232).
-- **P2 · Figma library gaps the 438-page Studio → Figma test found (2026-10-18, questions for the designer):** (a)
-  Accordion/Text has no content slot, so an open Accordion's content cannot be drawn (the push notes it); (b) Dock-Icon
-  has Theme=Emoji only at Medium and Large (the HR templates use XSmall in table cells: the default variant shows);
-  (c) Chat/Section/Read-List Seen by=5+ holds four Avatars after "+N" where Chat.tsx draws five (the push writes four).
-  Pointer: session log 2026-10-17 "Studio → Figma test run", figma-push.mjs chatMessageNode.
 - **P2 · Studio push of Line, Bar, Area, Grouped and Combo charts draws Figma's sample data (user, 2026-10-13: "sync lại
   component của figma lẫn studio"; re-checked 2026-10-23):** the push picks each chart's Sector (4 / 6 / 7 / 12) by the
   point count since 2026-10-17, and Stack-Bar and Donut draw the page's data (`stackBarMarks`, `donutMarks` in
   `tools/studio/figma-charts.mjs`). Left, once the user confirms the scope: X labels, the six Y ticks and the active
   tooltip for Line, Bar, Area, Grouped and Combo (the pull takes the matching palette sample's data).
-- **P3 · ListItem Value in Figma (user, 2026-10-13: "code first"):** code has `value` · `valueCaption` · `valueTone`
-  (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item has no primitive for it yet (built by hand
-  as a text stack in the Trailing slot). Add a `.Primitives/List-Item/…/Value` to `9nZv4uW2…` only when the user approves.
-- **P3 · Sheet-style table for long content (user, 2026-10-13):** Table rows are FIXED at Table/Cell/Size (one line,
-  ellipsis). The docs Props / API / Keyboard references still need multi-line rows: a temporary `.platform-ref`
-  override in `src/platform/platform.css` lets them grow. Replace it with the planned sheet component (needs the user's
-  approval and a Figma source).
+- **ListItem Value in Figma — decided, not built (user, 2026-10-23: "not now"; 2026-10-13: "code first"):** code has
+  `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
+  the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
+  asks for it.
+- **P3 · Sheet-style table for long content (user, 2026-10-13; 2026-10-23: Figma first, then code):** Table rows are
+  FIXED at Table/Cell/Size (one line, ellipsis). The docs Props / API / Keyboard references still need multi-line rows:
+  a temporary `.platform-ref` override in `src/platform/platform.css` lets them grow. Replace it with a sheet component,
+  designed in Figma first for the user's review, then built in code.
 - **P3 · Update from Figma in another browser (2026-10-13, P6b leftover):** a pull in a browser that kept no export
   falls back to a two-way comparison. Pointer: `docs/research/studio-figma-push-spec-2026-10-12.md` §8 "P6b".
 - **P3 · Figma contract suites still to write (2026-10-23; captures done the same day):** the 14 chart sets and
@@ -143,37 +88,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   segmented-toggle-badge-avatarstack were re-read whole; only Input/Heading and the Segmented sets have a parity suite,
   so a later Figma edit to the others is still not caught. A suite per set (`tools/figma-contract/suites`, README
   "Writing a suite") needs a browser slot each and the user's go (new harness work).
-- **P3 · Designer question: Side-Bar/Master/Small-Density is named "Component" in Figma (2026-10-23, contract re-read):**
-  the set 5974:20590 on ❖ Sidebar (key 1cca393d…, Expand Yes/No) lost its name; no other set has it. The push imports
-  it by key (library-keys.json) so it still lands, but a pull or a component-properties re-capture matches sets by
-  name (`tools/studio/figma-props.map.mjs` Sidebar `Side-Bar/Master/Small-Density`). Rename it back in Figma, or say
-  it is retired.
-- **P3 · Figma layers left unnamed (designer, 2026-10-12):** the nested layer-name gate (tools/figma-contract/
-  nested-paths.mjs, 44/44 components since nested-layers.json) allows code names Figma has no layer for: unnamed
-  instances that carry their component's name (AiChatField's three action buttons, AlertBanner / InlineMessage / Toast /
-  ChatCall actions, Pagination's Previous / Next / page-size chip, SidePanel's close button), icons named after their
-  glyph (AlertBanner, Dialog, SidePanel, EmptyState, Tabs), and Figma names that differ from Zen's, which the code keeps
-  (user, 2026-10-12): Empty-State's buttons unnamed inside CTA (code `Primary` / `Secondary`), Modal/Forms' action row
-  `Footer › Buttons` (code `Actions`, as Dialog and Side-Panel), Bottom-Navigation Floating's `CTA` (code `Action`),
-  Inline-Message's `Icon-Wrapper › Icon` / Custom `Visual` slot and Toast's `icon-Container › Icon` (code `Leading`),
-  Chat-Control's trailing send instance `Main` (code `Send`).
-  Naming them in Figma with Zen's names lets the gate check them and a Studio page's overrides land in Figma by name.
-  Pointer: `ALLOWED` in nested-paths.mjs.
 - **P2 · Figma usability — a photo file dropped from the desktop on a repo page (2026-10-10):** uploads live in this
   browser (IndexedDB), so example and template code cannot read them; a drop there needs the dev server to save the file
   under `src/assets/media/` (POST route + `MEDIA_REPO_FILES` refresh). On pages you made it works today.
-- **P2 · Figma: Android system bars (user, 2026-10-10):** the Studio's Android Screens draw a Material 3 status bar
-  (24) and gesture handle (108 × 4, 10 from the bottom) with dummy icons (builder/proto/DeviceBars.tsx); the Zen file's
-  ⚙️ Operation Components has only Status-bar/IOS/Mobile, /Tablet and System/Bottom-Indicator. Designer: add
-  Status-bar/Android/Mobile (+ Tablet) and an Android navigation bar there; then the code follows those nodes.
 
 - **Questions for the designer and decisions for the user** are collected in [`QUESTIONS.md`](QUESTIONS.md) (moved
   there 2026-10-08). Code keeps its current behaviour until each is answered.
-- **P3 · Zen-High-Contrast in the native packages (2026-10-05):** Global Colors carries the Zen-High-Contrast mode since
-  the export "Zen-Variables 2" (it equals the algorithm on all 960 values; tokens:check verifies it). The native packages
-  carry the second mode as data (resolver default Zen); mapping it to iOS accessibilityContrast / Flutter highContrast is
-  still open. Pointer: `platforms/README.md`.
-
 - **Code view in other languages — on hold (user, 2026-10-08: "tạm lưu backlog, sẽ làm giai đoạn sau"):** order chosen:
   HTML/CSS → Vue → Swift → Flutter → Svelte. Plan `docs/research/code-languages-plan-2026-10-03.md`, phases P1–P9, each
   approved on its own. Still to answer when it starts: web strategy (§8.1; proposed A, native Vue/Svelte on the shared
@@ -181,6 +101,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (§8.3; proposed). Examples get every language too (user, 2026-10-03). Nothing built.
 - **P3 · Studio UX polish N1–N11 — deferred by the user 2026-10-08 ("để sau"):** `docs/research/studio-ux-audit-2026-10-04.md`.
   Written before the UI3 shell (#63) and F0–F10, so re-check each note in the Studio UI design check (next phase).
+- **P3 · Native packages never compiled (2026-10-23, #238):** run `swift test` (platforms/swift) and `flutter test`
+  (platforms/flutter) on a machine with the toolchains; #238's Swift/Dart (Zen-High-Contrast mapping) has never been
+  compiled (this Mac's Command Line Tools SDK does not match the compiler, no Flutter, and CI runs neither).
 
 ## Backlog (plan before opening sessions)
 - **P2 · LICENSE.md is a draft: legal review before selling (2026-10-08):** drafted on PR #5 (Dizai Studio, Vietnam law, subscription, apps-not-kits, per company + member limit); a lawyer must review it and remove its "Draft" note. Was: package.json has no `license` field and the repo no

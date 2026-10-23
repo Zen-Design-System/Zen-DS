@@ -32,5 +32,5 @@ export function Divider({ color = "default", orientation = "horizontal", dashed 
     "data-dashed": dashed ? "true" : undefined,
   };
   if (decorative) return <div {...dataAttributes(rest)} {...props} aria-hidden="true" />;
-  return orientation === "vertical" ? <div {...props} role="separator" aria-orientation="vertical" /> : <hr {...props} />;
+  return orientation === "vertical" ? <div {...dataAttributes(rest)} {...props} role="separator" aria-orientation="vertical" /> : <hr {...dataAttributes(rest)} {...props} />;
 }

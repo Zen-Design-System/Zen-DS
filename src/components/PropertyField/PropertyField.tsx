@@ -339,7 +339,7 @@ interface PropertyMultiProps extends PropertyValueBaseProps {
   popoverLabel?: ReactNode;
 }
 
-function MultiCell({ type, options, value, defaultValue = [], onValueChange, addLabel, popoverLabel, placeholder, readOnly, state: stateProp, "aria-label": ariaLabel, className, ref, single, onCreate, renderChip, itemOf }: PropertyMultiProps & {
+function MultiCell({ type, options, value, defaultValue = [], onValueChange, addLabel, popoverLabel, placeholder, readOnly, state: stateProp, "aria-label": ariaLabel, className, ref, single, onCreate, renderChip, itemOf, ...rest }: PropertyMultiProps & {
   type: "person" | "tags"; single?: boolean; onCreate?: (label: string) => void;
   renderChip: (option: PropertyFieldOption, remove: (() => void) | undefined) => ReactNode;
   itemOf: (option: PropertyFieldOption, selected: boolean) => PopoverItemData;
@@ -394,7 +394,7 @@ function MultiCell({ type, options, value, defaultValue = [], onValueChange, add
   };
   return (
     <>
-      <span ref={(node) => { cellRef.current = node; if (typeof ref === "function") ref(node); else if (ref) (ref as { current: HTMLElement | null }).current = node; }}
+      <span {...dataAttributes(rest)} ref={(node) => { cellRef.current = node; if (typeof ref === "function") ref(node); else if (ref) (ref as { current: HTMLElement | null }).current = node; }}
         className={cellClass(className)} data-type={type} data-state={state} data-interactive={readOnly ? undefined : ""} data-read-only={readOnly ? "" : undefined}
         onClick={onCellClick}>
         {chosen.length ? chosen.map((option) => <span key={option.value} className="zen-property-value__chip">{renderChip(option, readOnly ? undefined : () => setCurrent((list) => list.filter((item) => item !== option.value)))}</span>) : <Placeholder>{placeholder}</Placeholder>}

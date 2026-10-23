@@ -23,11 +23,29 @@ final fill = ZenTokens.instance.color(ZenToken.colorBackgroundSurfaceDefault, da
 final gap = ZenTokens.instance.number(ZenToken.spacingGap2XSmall);                   // double, in px
 ```
 
+## Dark mode and Increase Contrast
+
+Global Colors has a second mode, Zen-High-Contrast: the palette the web uses under `prefers-contrast: more`
+(ZenProvider `contrast`). It changes about 80 semantic colours in Light and 60 in Dark. Map the system's appearance onto a
+context once near the root:
+
+```swift
+ContentView().zenSystemContext(ZenContext.standard.with(ZenCollection.componentColorsTheme, "Brand - S1"))   // colorScheme + colorSchemeContrast
+let context = ZenContext.standard.with(traits: traitCollection)                                              // UIKit: userInterfaceStyle + accessibilityContrast
+```
+
+```dart
+final context = ZenContext.fromMediaQuery(MediaQuery.of(context));   // platformBrightness + highContrast (iOS Increase Contrast)
+```
+
+`ZenContext.highContrast` is the mode on its own; `with(colorScheme:contrast:)` (Swift) and `withSystem(brightness:highContrast:)`
+(Dart) keep the context's other modes.
+
 Token names are the Figma names (`Color/Background/Surface/Default`); the constants are the same names in camelCase. Numbers are px (font weights are plain numbers), colours are `#RRGGBB` or `#RRGGBBAA`.
 
 ## Parity
 
-`scripts/build-native-tokens.mjs` holds the reference resolver. It writes `platforms/tests/vectors.json` (its answers for 830 token × mode-context pairs) and copies it next to the Swift and Flutter tests, which assert their own resolver returns the same. `npm run tokens:native:check` fails when these files are stale or a token cannot be resolved in any of its collection's modes.
+`scripts/build-native-tokens.mjs` holds the reference resolver. It writes `platforms/tests/vectors.json` (its answers for 1218 token × mode-context pairs) and copies it next to the Swift and Flutter tests, which assert their own resolver returns the same. `npm run tokens:native:check` fails when these files are stale or a token cannot be resolved in any of its collection's modes.
 
 Run the platform tests on a machine with the toolchain: `cd platforms/swift && swift test`, `cd platforms/flutter && flutter test`.
 

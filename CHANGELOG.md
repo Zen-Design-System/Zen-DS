@@ -20,6 +20,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Every component forwards its `data-*` attributes to its root (Skeletons, charts, chat, dialogs, sheets and the rest:
   119 that dropped them), so the AI UI renderer's `data-ai-ui-id`, test ids and analytics hooks land; only `data-*`, so
   nothing else a component renders changes. The conformance test checks it for every public component (2026-10-23).
+- Native tokens (SwiftUI, Flutter): the system's appearance maps onto a context — Dark for a dark color scheme and
+  Global Colors' Zen-High-Contrast mode under Increase Contrast — with `.zenSystemContext()` / `with(colorScheme:contrast:)`
+  / `with(traits:)` in Swift and `ZenContext.fromMediaQuery` / `withSystem` in Dart, plus `ZenContext.highContrast`; the
+  test vectors cover the high-contrast mode (1218 vectors, from 830) (2026-10-23).
 - Voice (the user's approval of the 2026-10-13 review): `AiVoiceConversation state="thinking"` between your last word
   and its first spoken word (the voice rests as dots that brighten in turn; Interrupt is the main action; Figma's
   variant is still a designer question); `useVoiceLevels(stream, { bars, rate, paused })` turns a microphone into the
@@ -1280,6 +1284,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- 320px phones, the last recorded debt (2026-10-23, user: "xử hết"): under 375px the docs stage spans the example card
+  with an 8px inset, so an example gets 272px (an app on a 320 phone has 288): Voice actions, the inline DatePicker's
+  "October 2026", a Small Pagination and the Rating list's Sort chip fit at Comfortable. Settings form template: the
+  photo upload drops under the avatar when less than 136px is left beside it (a 320 phone only). The audit no longer
+  counts a link scrolled out of a template's frame as a crowded touch target, nor the space hanging at a line break of
+  pre-wrap text (chat bubbles) as text touching the edge.
 - Build-QA gate (2026-10-22): a full `npm run qa -- --all` ends with a real pass or fail for every step instead of
   being killed by a time limit. The audit, dark audit and behaviour jobs run in shards of about 10 minutes sized from
   each page's last measured time; a shard that still stops early fails its step and names the pages it did not check.
