@@ -21,6 +21,8 @@
 .zen-app-shell { background: var(--zen-app-shell-canvas); }
 .zen-app-shell[data-canvas="alt"] { --zen-app-shell-canvas: var(--zen-color-background-canvas-alt, #fff); }
 .zen-app-shell[data-canvas="flat"] { --zen-app-shell-canvas: var(--zen-color-background-canvas-flat); }
+/* Canvas/Flat ↔ Surface/Flat (Figma theme pairing): Top-Navigation has no Flat type, so the Bar's Default is repainted. */
+.zen-app-shell[data-canvas="flat"] .zen-app-shell__top-nav .zen-top-nav[data-type="default"] { --zen-top-nav-fill: var(--zen-color-background-surface-flat, #fff); }
 
 /* Banner: a full-width strip (AlertBanner) above everything; it stays while the page scrolls. */
 .zen-app-shell__banner { position: sticky; z-index: 30; top: 0; flex: 0 0 auto; }

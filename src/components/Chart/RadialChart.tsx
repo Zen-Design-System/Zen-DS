@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode, Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartLegend, ChartSummary, colourAt, ringSize, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartLegendPosition, type ChartRingSize, type ChartSlice } from "./chartCore";
+import { ChartBlock, ChartLegend, ChartSummary, colourAt, ringSize, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartLegendPosition, type ChartPaletteName, type ChartRingSize, type ChartSlice } from "./chartCore";
 
 export interface RadialChartProps {
   /** One ring per measure, outermost first (`{ id, label, value }`), each measured against `max`. Keep 1–4 rings. */
@@ -31,6 +31,9 @@ export interface RadialChartProps {
   ref?: Ref<HTMLDivElement>;
   /** Sweep every ring from 12 o'clock to its value on mount and when the data changes (default true; reduced motion fades). */
   animate?: boolean;
+  /** Figma Color: `primary` (default) colours the rings in palette order; `secondary` swaps the first two (the outer ring
+   *  Color Chart Sector/Secondary, the next Sector/Primary). A ring's own `color` still wins. */
+  palette?: ChartPaletteName;
 }
 
 /** Ring width and the gap between rings, in px (Figma Radial-Chart; Small is thinner so four rings still fit). */
@@ -41,9 +44,9 @@ const RINGS = { small: { ring: 6, gap: 4 }, regular: { ring: 10, gap: 8 } };
  * 10px rings in palette order with round ends, each over a dotted Border/Neutral/Subtle track, and a centre figure
  * (Heading/4, Caption/Regular caption). Hover or ←/→ pick a ring: the centre shows it and the others dim; Home/End jump
  * to the outer and inner ring. Figma Chart/Radial-Chart 15325:1135 (Legend=Bottom · End; Size=Small 120 · Medium 168 ·
- * Large 240 · XLarge 320).
+ * Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).
  */
-export function RadialChart({ data, max = 100, format, size = "medium", "aria-label": ariaLabel, value, label, showLegend = true, legendPosition = "bottom", className, animate = true, ref }: RadialChartProps) {
+export function RadialChart({ data, max = 100, format, size = "medium", "aria-label": ariaLabel, value, label, showLegend = true, legendPosition = "bottom", className, animate = true, palette = "primary", ref }: RadialChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const { active, setActive, onKeyDown } = useChartSelection(data.length, null);
@@ -51,7 +54,7 @@ export function RadialChart({ data, max = 100, format, size = "medium", "aria-la
   const { px, step } = ringSize(size);
   const { ring: RING_PX, gap: GAP_PX } = step === "small" ? RINGS.small : RINGS.regular;
   const k = 100 / px; // px → viewBox units
-  const rings = data.map((d, i) => ({ d, i, colour: colourAt(d, i), r: 50 - k * (RING_PX / 2 + i * (RING_PX + GAP_PX)), share: Number.isFinite(d.value / max) ? Math.max(0, Math.min(100, (d.value / max) * 100)) : 0 }));
+  const rings = data.map((d, i) => ({ d, i, colour: colourAt(d, i, palette), r: 50 - k * (RING_PX / 2 + i * (RING_PX + GAP_PX)), share: Number.isFinite(d.value / max) ? Math.max(0, Math.min(100, (d.value / max) * 100)) : 0 }));
   const current = active === null ? undefined : rings[active];
   const lead = rings[0];
   const summary = !lead ? t.noData : current
@@ -59,7 +62,7 @@ export function RadialChart({ data, max = 100, format, size = "medium", "aria-la
     : rings.map((ring) => `${ring.d.label} ${show(ring.d.value)}`).join(", ");
   const legend = showLegend ? <ChartLegend items={rings.map((ring) => ({ id: ring.d.id, label: ring.d.label, color: ring.colour }))} /> : undefined;
   return (
-    <ChartBlock ref={ref} kind="radial" legend={legend} position={legendPosition} className="zen-chart-round">
+    <ChartBlock ref={ref} kind="radial" legend={legend} position={legendPosition} className="zen-chart-round" palette={palette}>
       <div className={["zen-chart", "zen-chart--round", className].filter(Boolean).join(" ")} data-kind="radial" data-size={step} data-animate={animate ? undefined : "false"} style={{ "--zen-chart-size": `calc(${px}px + var(--zen-chart-grow, 0px))` } as CSSProperties}>
         <div className="zen-chart__round" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
           onKeyDown={onKeyDown} onBlur={() => setActive(null)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(null); }}

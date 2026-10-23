@@ -619,11 +619,13 @@
 }
 /* Small phones (under 375px): the docs chrome took 56px a side (page 24 + stage margin 16 + stage padding 16), leaving an
    example 208px of a 320px screen, narrower than any phone it shows. The page keeps the top bar's 16px gutter and the
-   stage and playground preview inset 8 + 12, so an example gets 248px. 390px and wider are unchanged. */
+   stage and playground preview span the card with an 8px inset, so an example gets 272px (an app on a 320 phone has 288
+   inside its 16px margins): a Voice, an inline DatePicker or a Small Pagination in a Card fits as it does in the app
+   (user 2026-10-23, the last 320 debt). 390px and wider are unchanged. */
 @media (max-width: 374px) {
   .official-page { width: calc(100% - 2 * var(--zen-spacing-padding-medium, 16px)); }
-  .pe-card__stage { padding: var(--zen-spacing-padding-small, 12px); margin-inline: var(--zen-spacing-padding-xsmall, 8px); }
-  .platform-example-panel--stack > :is(.platform-example-row, .platform-input-preview) { margin-inline: var(--zen-spacing-padding-xsmall, 8px); padding-inline: var(--zen-spacing-padding-small, 12px); }
+  .pe-card__stage { padding: var(--zen-spacing-padding-xsmall, 8px); margin-inline: 0; }
+  .platform-example-panel--stack > :is(.platform-example-row, .platform-input-preview) { margin-inline: 0; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
 }
 
 /* ── New component pages ── */
@@ -1010,15 +1012,6 @@
 .pe-order-summary dt { color: var(--zen-color-content-neutral-light, #6b6b6b); font: inherit; }
 .pe-order-summary dd { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; }
 .pe-order-summary > div:last-child dt, .pe-order-summary > div:last-child dd { color: var(--zen-color-content-neutral-strongest, #111); font-weight: var(--zen-emphasis-font-weight-bold, 600); }
-/* Pricing plans: equal-height cards, the CTA pinned to the bottom of each. */
-.pe-plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
-.pe-plan-grid > .zen-card > .zen-card__content { flex: 1 1 auto; }
-.pe-plan-grid .pe-plan { flex: 1 1 auto; }
-.pe-plan { display: grid; width: 100%; grid-template-rows: auto auto auto 1fr auto; gap: var(--zen-spacing-gap-small, 12px); }
-.pe-plan__price { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
-.pe-checklist { display: grid; align-content: start; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; }
-.pe-checklist li { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.pe-checklist .zen-icon { flex: 0 0 auto; color: var(--zen-color-content-positive-base, #2e7d32); }
 /* Grouped list sections. */
 .pe-list-groups { display: grid; width: 100%; gap: var(--zen-spacing-gap-large, 24px); }
 .pe-list-group { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); }

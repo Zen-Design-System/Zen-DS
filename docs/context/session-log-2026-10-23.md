@@ -72,6 +72,61 @@ added since brought 177 className back. PR 1: classes with a Figma-equivalent pr
 - My slip: I stopped my isolated server with pattern kills (`pkill -f "tail -f /dev/null"`), which can hit another
   session's processes; memory updated (TaskStop or exact PIDs only).
 
+## AppShell session · Mobile Bar takes the canvas's twin (tier S; gate finding from the box-themes session's theme/navigation-surface, via Giám sát)
+
+Branch zen/fix/app-shell-top-bar-canvas-20261023 from main 25a86b67. AppShell gave the Bar's TopNavigation `alt`
+(Surface/Alt) on every canvas. Checked against skills/zen-figma-design/references/screen-rules.md §1 (Theme-01…08):
+Canvas/Default ↔ Surface/Alt (Type=Alt), Canvas/Alt ↔ Surface/Default (Type=Default), Canvas/Flat ↔ Surface/Flat (no
+Top-Navigation type; Figma screens override by variable).
+- AppShell.tsx: `BAR_TYPE` by canvas (default → alt, alt → default, flat → default); `TOP_NAV_TYPE` keeps band,
+  band-sheet and media. app-shell.css: on `canvas="flat"` a Default bar's `--zen-top-nav-fill` is Surface/Flat.
+  `mobileTop` JSDoc updated; guidelines, api, ai-ui catalog and the platform api regenerated.
+- Test (tests/interaction/app-shell.test.tsx): for each canvas the bar's type and that its fill equals the shell's
+  background.
+- Not changed: BottomNavigation stays Surface/Default (Figma's Bottom-Navigation has no surface choice; BACKLOG P2
+  "Navigation surfaces missing"). Found, owner B: figma-push draws a mobile AppShell's TopNavigation with its own
+  `type` (default when unset), not the Bar type AppShell picks, so on the default canvas Figma gets Default where code
+  draws Alt (told Giám sát / B).
+- Slot (after the BadgeStatus PR #234): app-shell.test.tsx 41/41; gate (app-shell, templates, accordion, action-bar,
+  sidebar) PASS, vitest 81/81, with one new warning: deadclick on app-shell@1512 B2 "Send a like". Owner fix:
+  ChatComposer's default quick action had no onClick (dead wherever an app keeps the default); it now sends "👍" through
+  onSend, as the chat page's own quickAction does. Test in chat.test.tsx (both devices); docs regenerated.
+
+## AppShell session · Workflow steps to BadgeStatus (tier M, multi-file; BACKLOG P2, the user's pick through Giám sát)
+
+Branch zen/fix/workflow-badge-status-20261023 from main 4b96bbb8. User's call (this session): project statuses move
+too, with the badge page's map (Planning → to-do, Active → in-progress with the project's real progress, On hold →
+blocked, Completed → done); labels stay the data's words.
+- `examples/data.ts`: `taskStatusTheme` / `projectStatusTheme` replaced by `taskStep`, `projectStep` and
+  `projectProgress(project)` (Active → its progress, else the step's own ring). HR `data.ts`: `taskStep` beside
+  `taskStatusTheme` (still the HR Tasks group headers' ProgressCircle theme).
+- 28 example pages, the app-layer AppShell playground (`appLayer/shell.tsx`), HR Tasks' StatusBadge and the PageHeader
+  story: 57 Badges → `<BadgeStatus status={…Step[x]}>{x}</BadgeStatus>`, code samples alike (a script for the plain
+  form, by hand for the helpers in app-shell, layout and sidebar). Leave, expense, invoice and priority stay Badges.
+- Gate finding fixed at its owner: `app-shell/pattern-parts` read nested props (a header's `BadgeStatus progress`) as
+  the shell's `progress`; it now reads `topLevel(attrs)`. Fixture in good.tsx.
+- BACKLOG line narrowed to the Figma instances (a Zen file write, waits for the user). CHANGELOG lines.
+- Static: tsc, usage:selftest, usage:check (only DesignPanel's warning, fixed in #223), quick gate PASS (29 pages).
+- Slot (after B): visual diff 25a86b67 (detached checkout, no stash) vs the branch, 29 pages × 1512/390, isolated
+  :5200 stopped by task: 550 panels, 478 identical, 72 changed — all the status badges (ring + step colour, tables fit
+  their 120–152px columns); top-navigation/390/06 differs only by a lazy photo. Two panels grew 1px (menu/390/04,
+  search/390/04): a BadgeStatus in a DescriptionList value made the line 29px for 28 — its inline-flex baseline is the
+  20px ring's bottom where a Badge's is its 16px leading's. Fixed at the owner: badge-status.css lowers the ring by half
+  the difference (tokens), test tests/interaction/badge-status.test.tsx (line height = a Badge's at Medium and Small).
+
+## Session B · Example className round 2, PR 2: Card / ListBox content column (tier L; user "Content-Slot là cột auto layout")
+
+- `.zen-card__content` grows (flex 1 1 auto): Figma's Content-Slot fills the card; a `height="fill"` child of the card
+  content or of `.zen-list-box__body` grows into it. MetricCard / ChartCard dropped their own copy of the rule.
+- Examples: px-card-plan, px-card-grow, px-card-plan__cta (plan cards: a Fill-height Stack, justify between),
+  px-layout-template(-body) and px-layout-cover-body went; px-layout-cover stays (26rem follows the type scale). Dead
+  platform.css `.pe-plan*` / `.pe-checklist` removed.
+- Visual diff, all 72 pages at 1512 + 390, before = a scratch worktree of main 25a86b67 (the classifier refused
+  overwriting files or a detached checkout in this worktree): 1194 identical, 4 changed, all noise (lazy photo in
+  top-navigation 06, 3 px in chat 01 and form 01, the voice wave).
+- Gate `--isolated` (card, layout, list-item, metric, chart): PASS, 0 errors / 0 new warnings, Studio E2E 338 works;
+  contact sheets card-1512 and layout-390 looked at.
+
 ## Backlog triage · P2 / P3 open items (tier XS, docs only; user: "rà 54 mục P2/P3")
 - Each of the 53 P2 / P3 entries (B's className round 2 left to B) checked against main 4b96bbb8, merged PRs and open
   branches. 5 done or answered (#155, #193, #50/#99, the user's White-Overlay call, round 2 supersedes the 112 classes);
@@ -123,6 +178,122 @@ Branch `zen/fix/studio-parity-leftovers-20261023`; both BACKLOG lines archived.
 - Gate (01:45–02:14, isolated, the 8 files): static ✓, Studio E2E 338 / 338 (3 shards), Build-QA PASS. FW rows run
   apart (the gate's matrix has no FW group): FW-220 first timed out (a ⇧⌘-click on the second group's empty spot added
   nothing); it now ⇧-clicks "Group 2" in Layers, as B-33 does: FW-119 + FW-220 2 / 2, FW-11…18 8 / 8.
+
+## AppShell session · Figma contracts G5 (tier S, read-only Figma + contract files; BACKLOG P3, user-approved, via Giám sát)
+
+Branch zen/chore/figma-contracts-g5-20261023 from main 4c456456.
+- Capture: `mcp-capture/capture-template.js` per file (code in the scratchpad), 56 read-only use_figma calls made by two
+  helper agents so the LZ chunks stay out of the main context, `assemble.cjs` from the transcripts (all hashes whole),
+  written with each file's own serialisation (python json.dumps; input-search-primitives JSON.stringify; table-cells
+  raw unicode).
+- (a) New: chart-line, -stack-bar, -multi-line, -bar, -donut, -radial, -heatmap, -area, -grouped-bar, -combo, -gauge,
+  -funnel, -bar-list, -bullet, -card (Gauge / Funnel / Bullet are sets with Color now: 15968:130382 / 130460 / 130554,
+  told the chart-colour session; its branch already points CHART_SETS there).
+- (b) Re-read whole: avatar-single (48 → 656 variants: Theme gained Sky, Mint, Bronze, Golden), chat-bubbles,
+  table-cells, input-search-primitives, datepicker-sidebar, input-search (Search/Default unchanged but its
+  description), segmented-toggle-badge-avatarstack (Segmented unchanged; Badge and Badge-Counter +24, the four hues).
+  The code already has the four hues (avatarThemes, badgeThemes).
+- Found: Figma's Side-Bar/Master/Small-Density (5974:20590) is named "Component" now → BACKLOG designer question.
+- Checks: nested-paths --check 45/45; run-all.mjs 25/25 (Input/Heading 432/432 on the new capture); figma-pull's
+  Actions-Cell icon still icon-dots-vertical-line. BACKLOG G5 narrowed to the suites still to write.
+
+## Chart Color phase 2: `palette` in code + Studio (tier M; user: "xử hết backlog", then approved the Figma review and the name `palette`)
+
+Branch claude/interesting-yonath-0da9e0 (worktree agitated-leakey-b2b41c). BACKLOG P1 "Chart Color = Primary | Secondary, phase 2".
+- Figma review: the 10 sets read live, Primary vs Secondary side by side (12 pairs incl. Bar horizontal and Area
+  stacked). Every pair swaps the Color Chart Sector styles cleanly (style tally per set: Primary ↔ Secondary counts mirror).
+  A twin diff (55 pairs: clip, size, position, layout, radius, stroke, effects, text) found two drifts made after the
+  10-17 build, both in Secondary: Bar Horizontal 4-Sectors had Plot clipping on (axis "0 h" / "3,000 h" cut) with Bars
+  164 instead of 144; Grouped-Bar 4-Sectors was 434 tall instead of its Primary's 370. User: "Duyệt, sửa 2 chỗ" → both
+  now match their Primary; re-diff 0 differences, no overlaps in the sets.
+- Code: `palette?: "primary" | "secondary"` on the ten charts (type `ChartPaletteName`). chartCore `sectorAt` /
+  `colourAt` / `fadeAt` swap palette slots 0 ↔ 1 (series 3–7 and an item's own `color` stay; a single or stacked area
+  takes the Neutral fade pair); ChartBlock writes `data-palette`, and chart.css marks read `--zen-chart-lead` /
+  `--zen-chart-second` (Bar's bars and active bar, Gauge value/target, Funnel stages/last, Bullet actual/target, Combo
+  bars/line/dots). BarList keeps Sector/Primary (no Color in Figma). BarChart `color` / `activeColor` still win.
+- Studio (`tools/studio/figma-charts.mjs`): push writes Color on the ten sets and swaps the drawn Stack-Bar segment and
+  Donut slice styles; pull reads Color=Secondary back as `palette="secondary"`. CHART_SETS Gauge/Funnel/Bullet now hold
+  their set ids (15968:130382 / :130460 / :130554; the old ids are the Color=Primary variants); library-keys.json has the
+  three set keys (in place of the old component entries; read live, read-only). The native pack already had the sets
+  (merged 10-21). A key imports in other files only once the library is published with these sets.
+- Docs and checks: chart guideline (Color row, use line, do line, Figma ids), harness `chart/palette-by-hand` (warn: the
+  sector colours set by hand on color/activeColor/series) with bad/good fixtures, a Do/Don't pair, platform example
+  "Led by the neutral colour" (Bar, Gauge, Donut), a story; Figma descriptions of the ten sets gained a "Color:" line
+  (decoded first; Stack-Bar's stacked `&amp;lt;` escape fixed). No chart contract suite exists (BACKLOG P3), and the
+  component-properties contract still has no chart sets (BACKLOG P2 inspector item, Color added to it).
+- Gate (isolated, chart + 23 files): static ✓, Vitest 79 / 79, audit 1512 / 390 / 320 + dark + behaviour 0 new, Studio
+  E2E 338 / 338 (3 shards), Build-QA PASS. Contact sheets: the 390 sheet showed "5,900 of 7,564 h" leaving the unit "h"
+  alone on its line (in the new example and the older "Utilisation against a target"): the chart page's `hours()` now
+  puts a no-break space before "h". Re-gate of the chart page PASS; the unit stays with its number.
+
+## Picture drops on one row or one item (tier M; BACKLOG P1 ×2, user "dọn hết trước khi qua phase mới")
+
+Branch claude/modest-gauss-20ef1e. BACKLOG "a row's picture through a helper" and "pictures inside list props" (both
+2026-10-10, docs/research/studio-usability-eval-2026-10-10.md §5).
+- **Engine** (`tools/studio/data-source.mjs`): classify gives a helper's parameter kind "param" with `helper` (an object
+  argument `p.photo`, or a lookup `const one = people[id]`). A walk (`reach`) follows a place through props, spreads,
+  fragments, children, lists, `.map` rows, helper calls, conditions and `let`s set in branches, binding each function's
+  parameters to the call's arguments; `produce` finds the bindings the target element is drawn with. A row a filter or
+  sort moved is found by the fields its object copies from the data (`id: t.id`), a list place is checked against the
+  fields the canvas read there (`titled: true` vs the default false). op setDataField `via` (holders, nearest first,
+  `holds` for a holder a helper draws) and `path` (a field inside a value written in place or read by a .map). An
+  initials Avatar (no `src`) takes the field its sibling branch reads. `followAdding` resolves a const item
+  (`seenBy={[gia, emi]}`) to where it is written.
+- **Client**: `inspector/callSite.ts` `viaOf` (holders whose props hold the instance by identity, through fragments,
+  with plain fields and the holder's own row); `writeAtUse` routes `helper` values. `edit/assets/picture.ts`
+  `itemPictureOf` (the item of the owner's list prop: layer index `Avatar[2]`, else picture / key / fields, ties by
+  drawing order) and `writeItemPicture`; `assets.ts` makes such faces drop targets ("Picture of Avatar"). DesignPanel's
+  Picture on an initials Avatar goes the same way. doc.mjs maps `via` locs on pages you made.
+- Real files checked with the engine: sidebar desktop (RowCard rows[1] → taskRow → personAvatar → people.bao.photo,
+  through filter/sort/slice) and phone frame (`let content` → taskList("Due this week", …, true) → people.alex.photo).
+- Tests: data-source selftest +10 cases (47); E2E FW-235…238 (figma group, `scenarios/figma/pictures.mjs`, fixture
+  frame "E2E pictures").
+- Not covered (refused in words): a layer either side of a condition, a helper in another file, a default parameter.
+- Gate (slot from chart-color-phase2, Giám sát's queue; `--isolated`, 12 files): **PASS**, Studio E2E 338/0 (4 shards,
+  1415 s). Then `studio:e2e --only=figma,select --rows=FW-235…238,SE-36`: 5/0 on the first run.
+
+## Chart sets in the Studio inspector (tier S; G3 of the P2/P3 triage, approved by the user 2026-10-23; Giám sát assigned it here)
+
+Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows need `palette`).
+- Read ❖ Chart (6143:31287) live with `tools/studio/figma-props-read.js` (read-only): 15 sets with properties (Line,
+  Multi-Line, Stack-Bar, Bar, Area, Grouped-Bar, Combo, Donut, Radial, Bar-List, Heatmap, Curve-Preview, Gauge, Funnel,
+  Bullet; Gauge/Funnel/Bullet by their set ids). Chart/Chart-Card has no component properties, so it has no entry.
+  Only that page's entry of component-properties.json changed (48 other pages byte-identical; Curve-Preview unchanged).
+- figma-props.map.mjs: eleven charts mapped. The header properties (Show Icon … Show Open) are ChartCard's (skip), Sector
+  is the data's period count and Average the data's mean (skip), Donut's Ring-Slot its data (skip); the rest map to
+  showAverage, orientation, type, showLegend, palette, legendPosition, totalPosition, size, label, value. LineChart maps
+  Line-Chart only (Multi-Line is `compare`, no prop picks it); Bar-List and Heatmap have only the header and keep the one
+  list. Push and pull keep their chart branch (figma-charts.mjs runs before the generic set lookup both ways).
+- Generated: figmaProps (105 components, 230 props), variantSets (the Main component frame draws the chart variants).
+  studio:selftest ✓ (propGroups 352), library-keys / native-pack checks ✓, tsc ✓.
+- Merged main 9022cdad (after #236 merged; #237's chart-*.json contracts came in, no overlap). Gate (isolated, the map +
+  the two generated maps): Studio self-tests ✓, TypeScript ✓, nested layer names 45 / 45, Studio E2E 338 / 338
+  (3 shards, BL-02 Main component coverage included), Build-QA PASS. No platform page in scope, so no contact sheet.
+
+## 320px debt left: the designer calls (tier L: docs chrome at 320; user: "xử hết", B1, "Gỡ khỏi mục này")
+
+Branch claude/eloquent-mclean-8f4974 from main 4b96bbb8. BACKLOG P1 "320px debt left" → archived.
+- Re-measured at 320 (audit on a private server, 6 pages): the 13 Chat findings were gone already (the 10-20 AppShell
+  gate fixed ChatComposer and the narrow desktop ChatThread); 10 layout findings left: Voice 5, DatePicker 2, Pagination 1,
+  Rating 1, Settings form 1, plus the templates "Show all" target false positive.
+- The 9 in a card (Voice, DatePicker, Pagination, Rating) overflowed only because the docs chrome left an example 248px and
+  its Card 208, against 248 inside a Card on a real 320 phone. `platform.css` under 375px: stage and playground preview
+  span the card with an 8px inset (example 272). Measured with `--css` first: all 9 fit; 390/1512 untouched.
+- Settings form template: the photo row wraps, FileUpload in `<Box width="fill" minWidth={136}>` (button 119 at
+  Comfortable; 150 is left at 390), so only a 320 phone stacks it. 390/1512 widths measured unchanged.
+- `audit.mjs` targets: a target scrolled out of a clipping frame is skipped (the "Show all" link at y 10683 sat under a
+  frame ending at 8937 and was "crowded" by the next card's button).
+- Text / widgets / sidebar style findings stay in the all-viewport baseline (user: accepted, not 320 debt).
+- Seen, not changed: Settings form's save bar truncates "Discard" at 320 Comfortable — the user's 10-19 ActionBar rule
+  (Primary keeps its label, the other gives way).
+- Gate 1 (`qa --all --isolated`, after merging main 99d230be): static, Vitest 82/82, contracts, dark, behaviour, Studio
+  E2E 338/0 ✓; audit ✗ 14 new 320 "edge" errors (ai-chat "Rate an answer" after Regenerate, ai-ui Prompt=invoices),
+  all one false positive: pre-wrap text gives the space at each line break its own rect, hanging 4px past the box
+  (words end at 295.8 in a 296 box). `audit.mjs` edges now measure pre-wrap text by its words; both pages clean.
+- Gate 2 (all 83 pages, `--isolated`, Studio E2E left out: only audit.mjs changed since gate 1): audit 1512/390/320,
+  dark, behaviour 0 errors, 0 new warnings → PASS. Contact sheets: templates 390/1512 keep the photo row whole.
+  Visual diff templates 1512 + 390, old vs new template: 32 identical. Baseline: the 28 @320 keys gate 2 no longer finds
+  removed (13 Chat, 10 layout, the Show-all target, 4 Text-page heading demos); 16 @320 keys left, all also at 1512/390.
 
 ## Session C · PropertyField ↔ Figma gaps (BACKLOG P3; Giám sát's G3 queue, tier M)
 Branch `zen/fix/studio-property-field-figma-20261023`.

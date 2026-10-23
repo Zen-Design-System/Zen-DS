@@ -11,6 +11,7 @@ import { ActionBar } from "../../../components/ActionBar";
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge, type BadgeTheme } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { Breadcrumbs } from "../../../components/Breadcrumbs";
@@ -43,7 +44,7 @@ import type { PlatformPage } from "../../PlatformExamples";
 import { PreviewAppFrame, StudioLogo, StudioMark } from "../../PlatformFrames";
 import {
   activity, daysFromToday, formatCompactMoney, formatDate, formatDay, formatDue, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, invoices,
-  me, people, projectById, projectStatusTheme, projects, studio, tasks, taskStatusTheme,
+  me, people, projectById, projectProgress, projectStep, projects, studio, tasks, taskStep,
   type Person, type PersonId, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
@@ -56,7 +57,7 @@ export const page: PlatformPage = "layout";
 const avatarOf = (person: Person) => person.photo
   ? { theme: "photo" as const, src: person.photo, alt: "" }
   : { theme: person.theme, alt: "", children: initials(person.name) };
-const statusBadge = (status: TaskStatus) => <Badge theme={taskStatusTheme[status]} background="subtle">{status}</Badge>;
+const statusBadge = (status: TaskStatus) => <BadgeStatus status={taskStep[status]}>{status}</BadgeStatus>;
 const taskStatuses: TaskStatus[] = ["To do", "In progress", "In review", "Done"];
 /** A row caption of whole values: it wraps between values, never inside a key or a name; each "· " stays with the value it introduces, so no line ends on a dot. */
 const wholeValues = (...values: (string | false)[]) => values.filter((value): value is string => Boolean(value)).map((value, index) => (
@@ -181,7 +182,7 @@ function ProjectOverview() {
             actions={<StudioActions />}
             main={(
               <PageHeader title={lumen.name}
-                meta={<Badge theme={projectStatusTheme[lumen.status]} background="subtle">{lumen.status}</Badge>}
+                meta={<BadgeStatus status={projectStep[lumen.status]} progress={projectProgress(lumen)}>{lumen.status}</BadgeStatus>}
                 description={`${lumen.client} · ${lumen.progress}% done · Due ${formatDate(lumen.due)}`}
                 actions={<><Button level="tertiary" onClick={() => setDialog("share")}>Share</Button><Button level="primary" onClick={() => setDialog("task")}>New task</Button></>} />
             )}
@@ -370,9 +371,9 @@ function TemplateGallery() {
       {/* As many 240px columns as fit, with no breakpoints; every card stretches to the tallest in its row. */}
       <Grid as="ul" minColumnWidth={240} gap="md" aria-label="Project templates">
         {shown.map((template) => (
-          <Card as="li" key={template.id} theme="default" className="px-layout-template">
-            {/* Two groups lg apart, pushed to the top and bottom: the footers line up across the row. */}
-            <Stack gap="lg" justify="between" className="px-layout-template-body">
+          <Card as="li" key={template.id} theme="default">
+            {/* Two groups lg apart, pushed to the top and bottom of the stretched card: the footers line up across the row. */}
+            <Stack gap="lg" justify="between" height="fill">
               <Stack gap="md">
                 <DockIcon icon={template.icon} theme={template.theme} background="subtle" />
                 <Stack gap="xs">
@@ -466,7 +467,7 @@ function ClientInvoices() {
         <Text textStyle="Body/Small/Regular" tone="base">Saola Outdoor · Brand refresh</Text>
       </Stack>}
       footer={<Text textStyle="Caption/Regular" tone="light">Synced with Payments 2 minutes ago</Text>}>
-      <Stack justify={created ? "start" : "center"} className="px-layout-cover-body">
+      <Stack justify={created ? "start" : "center"} height="fill">
         {created ? (
           <List aria-labelledby={titleId}>
             <ListItem title={saolaDraft.number} caption={`${formatMoney(saolaDraft.amount)} · Due ${formatDate(saolaDraft.due)}`}
@@ -675,7 +676,7 @@ function ElevatedPanels() {
           <ListItem key={project.id} title={project.name} titleLines={2}
             caption={wholeValues(narrow && project.status, project.client, `${project.progress}% done`, `Due ${formatDate(project.due)}`)}
             leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" size="md" />}
-            trailing={badge(projectStatusTheme[project.status], project.status)} />
+            trailing={narrow ? undefined : <BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>} />
         ))}
       </ElevatedList>
     );
@@ -706,7 +707,7 @@ function ElevatedPanels() {
           <ElevatedList aria-labelledby={dueId} header={<Heading level={2} id={dueId} textStyle="Heading/Subheading">Due this week</Heading>}>
             {dueThisWeek.map((task) => (
               <ListItem key={task.id} title={task.title} titleLines={2} caption={wholeValues(narrow && task.status, task.key, formatDue(task.due))}
-                leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} trailing={badge(taskStatusTheme[task.status], task.status)} />
+                leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} trailing={narrow ? undefined : <BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus>} />
             ))}
           </ElevatedList>
           <ElevatedList aria-labelledby={activityId} header={<Heading level={2} id={activityId} textStyle="Heading/Subheading">Since yesterday</Heading>}>
@@ -972,10 +973,9 @@ function SettingsSection({ id, title, description, children }) {
   </Stack>
   <Grid as="ul" minColumnWidth={240} gap="md" aria-label="Project templates">
     {shown.map((template) => (
-      // .equal-height > .zen-card__content and .equal-height-body { flex: 1 1 auto }: the content fills the stretched card.
-      <Card as="li" key={template.id} theme="default" className="equal-height">
-        {/* Two groups lg apart, pushed to the top and the bottom */}
-        <Stack gap="lg" justify="between" className="equal-height-body">
+      <Card as="li" key={template.id} theme="default">
+        {/* Fill height: the content takes the stretched card; two groups lg apart, pushed to the top and the bottom */}
+        <Stack gap="lg" justify="between" height="fill">
           <Stack gap="md">
             <DockIcon icon={template.icon} theme={template.theme} background="subtle" />
             <Stack gap="xs">
@@ -1028,14 +1028,14 @@ function SettingsSection({ id, title, description, children }) {
     title: "Centred in a panel",
     description: "A panel of fixed height: the header stays at the top, the footnote at the bottom, and the middle Stack grows, so an empty state sits in the optical centre. Create invoice puts the draft at the top of the list instead; the toast's Undo brings the empty state back.",
     render: () => <ClientInvoices />,
-    code: `{/* .cover { min-height: 26rem }; the ListBox body grows by itself, .grow { flex: 1 1 auto } */}
+    code: `{/* .cover { min-height: 26rem }: the ListBox body grows by itself, and the Fill-height Stack grows with it */}
 <ListBox as="section" className="cover" aria-labelledby="invoices"
   header={<Stack gap="xs">
     <Heading level={4} id="invoices" textStyle="Heading/Subheading">Invoices</Heading>
     <Text textStyle="Body/Small/Regular" tone="base">Saola Outdoor · Brand refresh</Text>
   </Stack>}
   footer={<Text textStyle="Caption/Regular" tone="light">Synced with Payments 2 minutes ago</Text>}>
-  <Stack justify={invoices.length ? "start" : "center"} className="grow">
+  <Stack justify={invoices.length ? "start" : "center"} height="fill">
     {invoices.length ? <List aria-labelledby="invoices">…</List> : (
       <EmptyState size="sm" headingLevel={5} compactTitle title="No invoices yet"
         primaryAction={{ label: "Create invoice", onClick: create }} icon="icon-receipt-line">
@@ -1070,7 +1070,7 @@ function SettingsSection({ id, title, description, children }) {
           {tasks.map((task) => (
             <ListItem key={task.id} title={task.title} titleLines={2} caption={\`\${task.key} · \${formatDue(task.due)}\`}
               leading={<Avatar size="md" {...avatarOf(task.assignee)} />}
-              trailing={<Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} />
+              trailing={<BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus>} />
           ))}
         </List>
       </ListBox>

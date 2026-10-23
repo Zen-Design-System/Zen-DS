@@ -7,7 +7,7 @@ import type { ExampleDef } from "../types";
 import { PlatformPhone } from "../../PlatformPhone";
 import { AppShell, AppShellAccount, AppShellHeader } from "../../../components/AppShell";
 import { Avatar, type AvatarSize } from "../../../components/Avatar";
-import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button, IconButton } from "../../../components/Button";
@@ -26,7 +26,7 @@ import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { Toggle, ToggleButton } from "../../../components/Toggle";
 import { TopNavigation } from "../../../components/TopNavigation";
-import { TODAY, daysFromToday, formatDue, formatRelative, formatTime, initials, me, people, studio, taskStatusTheme, type Person, type TaskStatus } from "../data";
+import { TODAY, daysFromToday, formatDue, formatRelative, formatTime, initials, me, people, studio, taskStep, type Person, type TaskStatus } from "../data";
 import { keepOnHotUpdate } from "../../hotData";
 import "./toggle.css";
 
@@ -230,7 +230,7 @@ function ShowCompletedExample() {
           // The task title is the row's content and nothing opens it: it may wrap to a second line, never cut.
           <ListItem key={task.id} title={task.title} titleLines={2} caption={`${task.key} · ${task.when}`}
             leading={<PersonAvatar person={task.assignee} size="medium" named />}
-            trailing={<Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} />
+            trailing={<BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus>} />
         ))}
       </List>
     </ListBox>
@@ -531,7 +531,7 @@ const shown = showDone ? tasks : tasks.filter((task) => task.status !== "Done");
     {shown.map((task) => (
       <ListItem key={task.id} title={task.title} titleLines={2} caption={\`\${task.key} · \${task.when}\`}
         leading={<Avatar size="medium" theme="photo" src={task.assignee.photo} alt={task.assignee.name} />}
-        trailing={<Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge>} />
+        trailing={<BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus>} />
     ))}
   </List>
 </ListBox>`,

@@ -749,7 +749,7 @@
             "media"
           ],
           "default": "bar",
-          "description": "Figma Pattern/AppShell/Mobile Top, the mobile structure (under 1024px: phones and iPad portrait): - `bar` (default): the TopNavigation on Surface/Alt over the page."
+          "description": "Figma Pattern/AppShell/Mobile Top, the mobile structure (under 1024px: phones and iPad portrait): - `bar` (default): the TopNavigation over the page, on the canvas's twin surface:"
         },
         "band": {
           "enum": [
@@ -1225,7 +1225,7 @@
       "name": "AreaChart",
       "slug": "chart",
       "folder": "Chart",
-      "status": "stable",
+      "status": "verified",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, BarList, BulletChart, GaugeChart, FunnelChart, AreaChart, GroupedBarChart, ComboChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -1252,7 +1252,8 @@
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
         "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
-        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
+        "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
@@ -1267,7 +1268,7 @@
         "More than 3 series in a GroupedBarChart, or stacked areas whose series aren't parts of one total → StackBarChart, LineChart or a Table.",
         "A ComboChart for two measures in the same unit → GroupedBarChart or LineChart compare."
       ],
-      "description": "Figma Chart/Area-Chart (set 15484:2663; Type=Area 15484:2552 · Type=Stacked 15484:2605): straight 2px lines (round caps) in the Color Chart Sector styles (`chartPalette`) from the",
+      "description": "Figma Chart/Area-Chart (set 15484:2663; Type=Area 15484:2552 · Type=Stacked 15484:2605; Color=Primary · Secondary ↔ `palette`): straight 2px lines (round caps) in the Color Chart S",
       "props": {
         "data": {
           "type": "array",
@@ -1323,6 +1324,14 @@
           "type": "boolean",
           "default": true,
           "description": "Wipe the areas in from the left on mount and when the data changes (default true; reduced motion fades)."
+        },
+        "palette": {
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary",
+          "description": "Figma Color: `primary` (default) walks the palette in order; `secondary` swaps the first two series' lines and fades — a single area draws a Color Chart Sector/Secondary line over"
         }
       },
       "requiredActions": [],
@@ -1829,7 +1838,7 @@
       "name": "BarChart",
       "slug": "chart",
       "folder": "Chart",
-      "status": "stable",
+      "status": "verified",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, BarList, BulletChart, GaugeChart, FunnelChart, AreaChart, GroupedBarChart, ComboChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -1856,7 +1865,8 @@
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
         "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
-        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
+        "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
@@ -1905,11 +1915,19 @@
         },
         "color": {
           "type": "string",
-          "description": "Colour of the bars."
+          "description": "Colour of the bars, any CSS colour."
         },
         "activeColor": {
           "type": "string",
-          "description": "Colour of the active bar."
+          "description": "Colour of the active bar, any CSS colour."
+        },
+        "palette": {
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary",
+          "description": "Figma Color: `primary` (default) draws Color Chart Sector/Primary bars with the active one in Sector/Secondary; `secondary` draws Sector/Secondary bars with the active one in Secto"
         },
         "animate": {
           "type": "boolean",
@@ -1934,7 +1952,7 @@
       "name": "BarList",
       "slug": "chart",
       "folder": "Chart",
-      "status": "stable",
+      "status": "verified",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, BarList, BulletChart, GaugeChart, FunnelChart, AreaChart, GroupedBarChart, ComboChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -1961,7 +1979,8 @@
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
         "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
-        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
+        "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
@@ -3196,7 +3215,7 @@
       "name": "BulletChart",
       "slug": "chart",
       "folder": "Chart",
-      "status": "stable",
+      "status": "verified",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, BarList, BulletChart, GaugeChart, FunnelChart, AreaChart, GroupedBarChart, ComboChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -3223,7 +3242,8 @@
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
         "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
-        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
+        "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
@@ -3282,6 +3302,14 @@
           "type": "boolean",
           "default": true,
           "description": "Grow the bars from the start and fade the ticks in on mount and when the data changes (default true; reduced motion fades)."
+        },
+        "palette": {
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary",
+          "description": "Figma Color: `primary` (default) draws the bars in Color Chart Sector/Primary and the target ticks in Sector/Secondary; `secondary` the bars in Sector/Secondary and the ticks in Se"
         }
       },
       "requiredActions": [],
@@ -4562,7 +4590,7 @@
       "name": "Card",
       "slug": "card",
       "folder": "Card",
-      "status": "stable",
+      "status": "verified",
       "import": "import { Card } from \"@zen-ds/react\";",
       "purpose": "A surface that groups related content about one subject — a project, a stat, a choice — and can be selected or opened as a whole.",
       "use": [
@@ -4716,7 +4744,7 @@
       "name": "ChartCard",
       "slug": "chart",
       "folder": "Chart",
-      "status": "stable",
+      "status": "verified",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, BarList, BulletChart, GaugeChart, FunnelChart, AreaChart, GroupedBarChart, ComboChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -4743,7 +4771,8 @@
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
         "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
-        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
+        "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
@@ -4979,7 +5008,7 @@
             "label"
           ],
           "additionalProperties": false,
-          "description": "Figma Trailing-Actions when the field is empty (a 👍 \"Send a like\" by default)."
+          "description": "Figma Trailing-Actions when the field is empty: by default a 👍 \"Send a like\" that sends \"👍\" through `onSend`."
         },
         "device": {
           "enum": [
@@ -6360,7 +6389,7 @@
       "name": "ComboChart",
       "slug": "chart",
       "folder": "Chart",
-      "status": "stable",
+      "status": "verified",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, BarList, BulletChart, GaugeChart, FunnelChart, AreaChart, GroupedBarChart, ComboChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -6387,7 +6416,8 @@
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
         "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
-        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
+        "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
@@ -6402,7 +6432,7 @@
         "More than 3 series in a GroupedBarChart, or stacked areas whose series aren't parts of one total → StackBarChart, LineChart or a Table.",
         "A ComboChart for two measures in the same unit → GroupedBarChart or LineChart compare."
       ],
-      "description": "Figma Chart/Combo-Chart (15485:2519): two measures over the same periods on two axes.",
+      "description": "Figma Chart/Combo-Chart (15485:2519; Color=Primary · Secondary ↔ `palette`): two measures over the same periods on two axes.",
       "props": {
         "data": {
           "type": "array",
@@ -6457,6 +6487,14 @@
           "type": "boolean",
           "default": true,
           "description": "Grow the bars from the baseline and wipe the line in from the left on mount and when the data changes (default true; reduced motion fades)."
+        },
+        "palette": {
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary",
+          "description": "Figma Color: `primary` (default) draws Color Chart Sector/Primary bars and a Sector/Secondary line; `secondary` draws Sector/Secondary bars and a Sector/Primary line and dots."
         }
       },
       "requiredActions": [],
@@ -7917,7 +7955,7 @@
       "name": "DonutChart",
       "slug": "chart",
       "folder": "Chart",
-      "status": "stable",
+      "status": "verified",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, BarList, BulletChart, GaugeChart, FunnelChart, AreaChart, GroupedBarChart, ComboChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -7944,7 +7982,8 @@
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
         "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
-        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
+        "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
@@ -8035,6 +8074,14 @@
           "type": "boolean",
           "default": true,
           "description": "Grow every slice from its start angle on mount and when the data changes (default true; reduced motion fades)."
+        },
+        "palette": {
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary",
+          "description": "Figma Color: `primary` (default) colours the slices in palette order; `secondary` swaps the first two (the first slice Color Chart Sector/Secondary, the second Sector/Primary)."
         }
       },
       "requiredActions": [],
@@ -9021,7 +9068,7 @@
       "name": "FunnelChart",
       "slug": "chart",
       "folder": "Chart",
-      "status": "stable",
+      "status": "verified",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, BarList, BulletChart, GaugeChart, FunnelChart, AreaChart, GroupedBarChart, ComboChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -9048,7 +9095,8 @@
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
         "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
-        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
+        "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
@@ -9086,6 +9134,14 @@
           "type": "boolean",
           "default": true,
           "description": "Open every bar from its centre on mount and when the data changes (default true; reduced motion fades)."
+        },
+        "palette": {
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary",
+          "description": "Figma Color: `primary` (default) draws the stages in Color Chart Sector/Primary and the last in Sector/Secondary; `secondary` the stages in Sector/Secondary and the last in Sector/"
         }
       },
       "requiredActions": [],
@@ -9100,7 +9156,7 @@
       "name": "GaugeChart",
       "slug": "chart",
       "folder": "Chart",
-      "status": "stable",
+      "status": "verified",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, BarList, BulletChart, GaugeChart, FunnelChart, AreaChart, GroupedBarChart, ComboChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -9127,7 +9183,8 @@
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
         "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
-        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
+        "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
@@ -9198,6 +9255,14 @@
           "type": "boolean",
           "default": true,
           "description": "Sweep the value from 0 on mount and when it changes; the target tick fades in after (default true; reduced motion fades)."
+        },
+        "palette": {
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary",
+          "description": "Figma Color: `primary` (default) draws the value in Color Chart Sector/Primary and the target tick in Sector/Secondary; `secondary` the value in Sector/Secondary and the tick in Se"
         }
       },
       "requiredActions": [],
@@ -9910,7 +9975,7 @@
       "name": "GroupedBarChart",
       "slug": "chart",
       "folder": "Chart",
-      "status": "stable",
+      "status": "verified",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, BarList, BulletChart, GaugeChart, FunnelChart, AreaChart, GroupedBarChart, ComboChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -9937,7 +10002,8 @@
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
         "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
-        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
+        "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
@@ -9952,7 +10018,7 @@
         "More than 3 series in a GroupedBarChart, or stacked areas whose series aren't parts of one total → StackBarChart, LineChart or a Table.",
         "A ComboChart for two measures in the same unit → GroupedBarChart or LineChart compare."
       ],
-      "description": "Figma Chart/Grouped-Bar-Chart (15485:2457): per period a group of 12px bars, one per series, Spacing/Gap/2XSmall apart, centred in the period's column (with room to spare the group",
+      "description": "Figma Chart/Grouped-Bar-Chart (15485:2457; Color=Primary · Secondary ↔ `palette`): per period a group of 12px bars, one per series, Spacing/Gap/2XSmall apart, centred in the period",
       "props": {
         "data": {
           "type": "array",
@@ -10001,6 +10067,14 @@
           "type": "boolean",
           "default": true,
           "description": "Grow the bars from the baseline on mount and when the data changes (default true; reduced motion fades)."
+        },
+        "palette": {
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary",
+          "description": "Figma Color: `primary` (default) walks the palette in order; `secondary` swaps the first two series (the first Color Chart Sector/Secondary, the second Sector/Primary)."
         }
       },
       "requiredActions": [],
@@ -10307,7 +10381,7 @@
       "name": "HeatmapChart",
       "slug": "chart",
       "folder": "Chart",
-      "status": "stable",
+      "status": "verified",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, BarList, BulletChart, GaugeChart, FunnelChart, AreaChart, GroupedBarChart, ComboChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -10334,7 +10408,8 @@
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
         "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
-        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
+        "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
@@ -11214,7 +11289,7 @@
       "name": "LineChart",
       "slug": "chart",
       "folder": "Chart",
-      "status": "stable",
+      "status": "verified",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, BarList, BulletChart, GaugeChart, FunnelChart, AreaChart, GroupedBarChart, ComboChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -11241,7 +11316,8 @@
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
         "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
-        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
+        "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
@@ -14265,7 +14341,7 @@
       "name": "RadialChart",
       "slug": "chart",
       "folder": "Chart",
-      "status": "stable",
+      "status": "verified",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, BarList, BulletChart, GaugeChart, FunnelChart, AreaChart, GroupedBarChart, ComboChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -14292,7 +14368,8 @@
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
         "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
-        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
+        "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
@@ -14375,6 +14452,14 @@
           "type": "boolean",
           "default": true,
           "description": "Sweep every ring from 12 o'clock to its value on mount and when the data changes (default true; reduced motion fades)."
+        },
+        "palette": {
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary",
+          "description": "Figma Color: `primary` (default) colours the rings in palette order; `secondary` swaps the first two (the outer ring Color Chart Sector/Secondary, the next Sector/Primary)."
         }
       },
       "requiredActions": [],
@@ -18817,7 +18902,7 @@
       "name": "StackBarChart",
       "slug": "chart",
       "folder": "Chart",
-      "status": "stable",
+      "status": "verified",
       "import": "import { LineChart, BarChart, StackBarChart, DonutChart, RadialChart, HeatmapChart, BarList, BulletChart, GaugeChart, FunnelChart, AreaChart, GroupedBarChart, ComboChart, ChartCard } from \"@zen-ds/react\";",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
       "use": [
@@ -18844,7 +18929,8 @@
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
         "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
-        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart."
+        "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
+        "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
       "avoid": [
         "One number → Metric / MetricCard.",
@@ -18859,7 +18945,7 @@
         "More than 3 series in a GroupedBarChart, or stacked areas whose series aren't parts of one total → StackBarChart, LineChart or a Table.",
         "A ComboChart for two measures in the same unit → GroupedBarChart or LineChart compare."
       ],
-      "description": "Figma Chart/Stack-Bar-Chart (6643:73471): one column per sector (2px side padding, Corner-Radius/Small on the column), segments in series order from the bottom, a 12px-dot legend (",
+      "description": "Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector (2px side padding, Corner-Radius/Small on the column), segments in series ord",
       "props": {
         "data": {
           "type": "array",
@@ -18913,6 +18999,14 @@
           "type": "boolean",
           "default": false,
           "description": "A dotted line at the mean of the column totals, tagged \"Avg 5.9K h\" (Figma Show Average)."
+        },
+        "palette": {
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "default": "primary",
+          "description": "Figma Color: `primary` (default) stacks the series in palette order; `secondary` swaps the first two (the bottom segment Color Chart Sector/Secondary, the next Sector/Primary)."
         }
       },
       "requiredActions": [],
@@ -23589,7 +23683,8 @@
         "Turn on showAverage when the question is \"above or below normal?\"; leave it off when the trend itself is the point.",
         "Rank a BarList yourself, largest first, and fold the tail into \"Other\" past 8 rows (harness: chart/bar-list-ranked, chart/bar-list-rows); keep a BulletChart to 1–4 goals (harness: chart/bullet-rows); pass a GaugeChart its `max` when the value isn't a percentage (harness: chart/gauge-in-range); give a FunnelChart 3–6 stages in order, each no larger than the one before (harness: chart/funnel-stages).",
         "Give an AreaChart one series, or 2–4 with type=\"stacked\" (harness: chart/area-series-count); keep a GroupedBarChart to 2–3 series (harness: chart/grouped-series-count); name both measures of a ComboChart with barLabel and lineLabel (harness: chart/combo-needs-labels).",
-        "Lead the card with the figure the chart explains (`value`) and say what it is (`description`)."
+        "Lead the card with the figure the chart explains (`value`) and say what it is (`description`).",
+        "Lead a chart with Sector/Secondary through palette=\"secondary\", never by passing the sector colours to color, activeColor or a series (harness: chart/palette-by-hand)."
       ],
       "dont": [
         "Don't use a line for categories that aren't ordered in time.",
@@ -23617,6 +23712,7 @@
         "chart/area-series-count",
         "chart/grouped-series-count",
         "chart/combo-needs-labels",
+        "chart/palette-by-hand",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"

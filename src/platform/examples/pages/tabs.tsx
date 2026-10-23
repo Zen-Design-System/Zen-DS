@@ -7,6 +7,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } f
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader } from "../../../components/AppShell";
 import { Avatar, AvatarStack } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomNavigation, type BottomNavigationItem } from "../../../components/BottomNavigation";
 import { Breadcrumbs } from "../../../components/Breadcrumbs";
 import { Button, IconButton } from "../../../components/Button";
@@ -34,7 +35,7 @@ import { DemoFieldDialog } from "../../PlatformDemoActions";
 import { PlatformPhone, usePhoneScreen } from "../../PlatformPhone";
 import {
   TODAY, activity, daysFromToday, files, formatBytes, formatDate, formatDue, formatMoney, formatRange, formatRelative, initials, invoiceStatusTheme, invoices,
-  leaveRequests, leaveStatusTheme, me, people, peopleList, projectById, projectStatusTheme, projects, studio, tasks, taskStatusTheme,
+  leaveRequests, leaveStatusTheme, me, people, peopleList, projectById, projectProgress, projectStep, projects, studio, tasks, taskStep,
   type InvoiceStatus, type Person, type PersonId, type Project, type StudioFile, type Task,
 } from "../data";
 import type { PlatformPage } from "../../PlatformExamples";
@@ -85,7 +86,7 @@ const lumenActivity = [
 const taskColumns: TableColumn<Task>[] = [
   { id: "task", header: "Task", cell: (t) => <TableText bold caption={t.key}>{t.title}</TableText> },
   { id: "assignee", header: "Assignee", width: "180px", cell: (t) => <TableMedia bold={false} media={avatar(people[t.assignee], "xsmall")}>{people[t.assignee].name}</TableMedia> },
-  { id: "status", header: "Status", width: "140px", cell: (t) => <Badge theme={taskStatusTheme[t.status]} background="subtle">{t.status}</Badge> },
+  { id: "status", header: "Status", width: "140px", cell: (t) => <BadgeStatus status={taskStep[t.status]}>{t.status}</BadgeStatus> },
   { id: "due", header: "Due", width: "140px", cell: (t) => <TableText>{formatDate(t.due)}</TableText> },
 ];
 
@@ -152,7 +153,7 @@ function ProjectSectionsExample() {
               <PageHeader
                 eyebrow={lumen.client}
                 title={lumen.name}
-                meta={<Badge theme={projectStatusTheme[lumen.status]} background="subtle">{lumen.status}</Badge>}
+                meta={<BadgeStatus status={projectStep[lumen.status]} progress={projectProgress(lumen)}>{lumen.status}</BadgeStatus>}
                 description={`${formatRange(lumen.start, lumen.due)} · Led by ${people[lumen.lead].name}`}
                 actions={<><Button level="tertiary" onClick={() => setDialog("share")}>Share</Button><Button level="primary" onClick={() => setDialog("task")}>New task</Button></>}
               />
@@ -524,7 +525,7 @@ function ProfileOnPhoneExample() {
             <List aria-label="Projects">
               {personProjects.map((p) => (
                 <ListItem key={p.id} title={p.name} caption={p.client} leading={<DockIcon icon={p.icon} theme={p.theme} background="subtle" size="medium" />}
-                  trailing={<Badge theme={projectStatusTheme[p.status]} background="subtle">{p.status}</Badge>} />
+                  trailing={<BadgeStatus status={projectStep[p.status]} progress={projectProgress(p)}>{p.status}</BadgeStatus>} />
               ))}
             </List>
           ) : (
@@ -686,7 +687,7 @@ function WorkspaceTopNavExample() {
                   {myDueSoon.map((t) => (
                     <ListItem key={t.id} title={t.title} titleLines={2} caption={`${t.key} · ${formatDue(t.due)}`}
                       leading={<DockIcon icon={projectById(t.project).icon} theme={projectById(t.project).theme} background="subtle" size="medium" />}
-                      trailing={<Badge theme={taskStatusTheme[t.status]} background="subtle">{t.status}</Badge>}
+                      trailing={<BadgeStatus status={taskStep[t.status]}>{t.status}</BadgeStatus>}
                       onClick={() => open(t.title, `${t.key} · ${projectById(t.project).name}`)} />
                   ))}
                 </List>
@@ -732,7 +733,7 @@ function WorkspaceTopNavExample() {
                   {projects.filter((p) => p.status !== "Active").map((p) => (
                     <ListItem key={p.id} title={p.name} caption={`${p.client} · Led by ${people[p.lead].name}`}
                       leading={<DockIcon icon={p.icon} theme={p.theme} background="subtle" size="medium" />}
-                      trailing={<Badge theme={projectStatusTheme[p.status]} background="subtle">{p.status}</Badge>}
+                      trailing={<BadgeStatus status={projectStep[p.status]} progress={projectProgress(p)}>{p.status}</BadgeStatus>}
                       onClick={() => open(p.name, `${p.client} · ${p.status}`)} />
                   ))}
                 </List>

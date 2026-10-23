@@ -10,6 +10,7 @@ import { ActionBar } from "../../../components/ActionBar";
 import { Dialog, ModalForm } from "../../../components/Dialog";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { Button, IconButton } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Checkbox } from "../../../components/Checkbox";
@@ -27,7 +28,7 @@ import { Heading, Text, plural } from "../../../components/Text";
 import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import {
-  TODAY, daysFromToday, files, formatDate, formatDay, formatRange, formatRelative, initials, leaveRequests, leaveStatusTheme, people, projectStatusTheme,
+  TODAY, daysFromToday, files, formatDate, formatDay, formatRange, formatRelative, initials, leaveRequests, leaveStatusTheme, people, projectProgress, projectStep,
   projects, tasks, type LeaveKind, type LeaveRequest, type LeaveStatus, type Person, type PersonId, type ProjectStatus,
 } from "../data";
 import { keepOnHotUpdate } from "../../hotData";
@@ -407,7 +408,7 @@ function NewProject() {
           {rows.map((project) => (
             <Row key={project.id} title={project.name} caption={project.client}
               leading={<DockIcon icon={project.icon} theme={project.theme} background="subtle" />}
-              trailing={<Badge theme={projectStatusTheme[project.status]} background="subtle">{project.status}</Badge>} />
+              trailing={<BadgeStatus status={projectStep[project.status]} progress={projectProgress(project)}>{project.status}</BadgeStatus>} />
           ))}
         </CardList>
       </Stack>
@@ -446,7 +447,7 @@ function NewProject() {
             { term: "Lead", description: people[lead].name },
             { term: "Members", description: members.map((id) => people[id].name).join(", ") || "Only the lead" },
             { term: "Brief", description: brief.trim() || "Not written yet" },
-            { term: "Status", description: <Badge theme={projectStatusTheme.Planning} background="subtle">Planning</Badge> },
+            { term: "Status", description: <BadgeStatus status={projectStep.Planning}>Planning</BadgeStatus> },
           ]} />
         )}
       </ModalForm>
