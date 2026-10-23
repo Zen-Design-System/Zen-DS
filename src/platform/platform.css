@@ -753,7 +753,7 @@
 /* zen-allow-canvas-layer: the example shell stands in for an app page */
 .pe-shell[data-canvas] { background: var(--zen-color-background-canvas-default, #f7f7f7); }
 /* zen-allow-canvas-layer: the example shell stands in for an app page */
-.pe-shell[data-canvas="alt"] { --zen-card-surface: var(--zen-color-background-surface-alt, #f7f7f7); background: var(--zen-color-background-canvas-alt, #fff); }
+.pe-shell[data-canvas="alt"] { --zen-card-surface: var(--zen-color-background-surface-alt, #f7f7f7); --zen-card-shadow: 0 0 transparent; background: var(--zen-color-background-canvas-alt, #fff); }
 /* zen-allow-canvas-layer: the example shell stands in for an app page */
 .pe-shell[data-canvas="flat"] { background: var(--zen-color-background-canvas-flat, #fff); }
 /* Sidebar playground stage = the page Canvas the sidebar sits on. */

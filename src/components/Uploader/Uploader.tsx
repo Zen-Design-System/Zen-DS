@@ -1,6 +1,6 @@
 import { useId, useLayoutEffect, useRef, useState, type DragEvent, type KeyboardEvent, type ReactNode, type Ref } from "react";
 import { useMergedRefs } from "../_shared/merge-refs";
-import { Button, IconButton } from "../Button";
+import { Button, IconButton, type ButtonSize } from "../Button";
 import { FileIcon, fileIconFormatOf } from "../FileIcon";
 import { Icon } from "../Icon";
 import { ProgressBar } from "../Progress";
@@ -133,6 +133,9 @@ export interface FileUploadProps {
   error?: ReactNode;
   /** Figma Type: Drag & Drop (dropzone) or Browse Button. */
   type?: "dropzone" | "button";
+  /** Type=Button: the Choose File button's size. Small by default, as Figma draws it; `md` (40) or `lg` on a phone,
+   *  where a Small button needs 6px free above and below for its 44px touch area. */
+  buttonSize?: ButtonSize;
   /** Dropzone text and caption (Figma Text / Caption). Default text: the locale's “Drag & Drop or Choose file to upload”. */
   text?: ReactNode;
   caption?: ReactNode;
@@ -165,7 +168,7 @@ export interface FileUploadProps {
  * Removing a file keeps focus in the field: the next file's Remove button, else the previous one's, else the upload
  * button (also when a single-file field shows its drop zone or Choose File button again). Apps need no refocus code.
  */
-export function FileUpload({ label, helpText, error, type = "dropzone", text: textProp, caption, accept, multiple = false, onFilesAdd, files = [], thumbnail, onRemove, onReplace, onRetry, buttonLabel: buttonLabelProp, extended = true, className, overrides, ref, ...rest }: FileUploadProps) {
+export function FileUpload({ label, helpText, error, type = "dropzone", buttonSize = "sm", text: textProp, caption, accept, multiple = false, onFilesAdd, files = [], thumbnail, onRemove, onReplace, onRetry, buttonLabel: buttonLabelProp, extended = true, className, overrides, ref, ...rest }: FileUploadProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const text = textProp === undefined ? t.dropzoneText : textProp;
@@ -213,7 +216,7 @@ export function FileUpload({ label, helpText, error, type = "dropzone", text: te
           {dragging && !error ? <svg className="zen-dropzone__dash" aria-hidden="true" focusable="false"><rect width="100%" height="100%" /></svg> : null}
         </button>
       ) : (
-        <span className="zen-file-upload__button">{nest("Button", <Button id={`${id}-trigger`} appearance="main" level="tertiary" size="sm" onClick={open} aria-describedby={described}>{buttonLabel}</Button>)}</span>
+        <span className="zen-file-upload__button">{nest("Button", <Button id={`${id}-trigger`} appearance="main" level="tertiary" size={buttonSize} onClick={open} aria-describedby={described}>{buttonLabel}</Button>)}</span>
       )}
       {error || helpText ? (
         <span id={`${id}-help`} className={`zen-file-upload__help ${typographyStyles["Caption/Regular"]}`} data-tone={error ? "negative" : undefined}>

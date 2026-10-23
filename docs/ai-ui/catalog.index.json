@@ -442,7 +442,7 @@
       "name": "FileUpload",
       "status": "stable",
       "purpose": "Let users add files by dropping or browsing, then track each file's upload.",
-      "props": "label? helpText? error? type? text? caption? accept? multiple? onFilesAdd? files? thumbnail? onRemove? onReplace? onRetry? buttonLabel? extended?"
+      "props": "label? helpText? error? type? buttonSize? text? caption? accept? multiple? onFilesAdd? files? thumbnail? onRemove? onReplace? onRetry? buttonLabel? extended?"
     },
     {
       "name": "Flag",

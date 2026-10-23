@@ -719,10 +719,10 @@
         },
         {
           "name": "event",
-          "type": "boolean",
+          "type": "boolean | number",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "Events on this day, drawn as dots under it (Figma `.Primitives/Date-Picker/Item/Event-List` 510:36577): `true` or a\n count, 1–4 dots (more show 4), 4px apart by Spacing/Gap/3XSmall; Content/Accent/Light, Date-Picker-Item/Content/\n Selected on a selected day (Variant=On-Selected).",
           "deprecated": null
         },
         {

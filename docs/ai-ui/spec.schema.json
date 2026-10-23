@@ -10186,7 +10186,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The events of the period: a day with any shows the event dot (Dot style)."
+                "description": "The events of the period: a day shows a dot per event, up to 4 (Dot style; Figma Event-List)."
               },
               "variant": {
                 "anyOf": [
@@ -18114,6 +18114,30 @@
                   }
                 ],
                 "description": "Figma Type: Drag & Drop (dropzone) or Browse Button."
+              },
+              "buttonSize": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "2xs",
+                      "xs",
+                      "sm",
+                      "md",
+                      "lg",
+                      "xl",
+                      "2xsmall",
+                      "xsmall",
+                      "small",
+                      "medium",
+                      "large",
+                      "xlarge"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Type=Button: the Choose File button's size."
               },
               "text": {
                 "anyOf": [

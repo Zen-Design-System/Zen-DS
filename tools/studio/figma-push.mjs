@@ -1519,7 +1519,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     const bar = topNavActions(layout.barFolds ? titleActions : [], actionsOf("trailing"), { flat, firstTwo: code.trailingGroup === true });
     const beside = folded ? bar : layout.showLarge ? topNavActions(titleActions, [], { flat }) : { actions: [] };
     const barActions = folded ? [] : bar.actions;
-    if (bar.grouped) notes.push(`${where}: actions that share a pill are drawn one by one (Figma's Trailing-Slot has no shared pill)`);
+    if (bar.grouped || beside.grouped) notes.push(`${where}: actions that share a pill are drawn one by one (Figma's Trailing-Slot has no shared pill)`);
     const navAction = (action, part, index) => {
       const icon = typeof action.icon === "string" ? action.icon : null;
       if (!icon) notes.push(`${where}: an action whose icon is not an icon name keeps Figma's sample glyph`);

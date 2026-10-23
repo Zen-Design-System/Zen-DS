@@ -4671,7 +4671,7 @@
             "$ref": "#/$defs/CalendarEventData"
           },
           "default": [],
-          "description": "The events of the period: a day with any shows the event dot (Dot style)."
+          "description": "The events of the period: a day shows a dot per event, up to 4 (Dot style; Figma Event-List)."
         },
         "variant": {
           "enum": [
@@ -8486,6 +8486,24 @@
           ],
           "default": "dropzone",
           "description": "Figma Type: Drag & Drop (dropzone) or Browse Button."
+        },
+        "buttonSize": {
+          "enum": [
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge"
+          ],
+          "default": "sm",
+          "description": "Type=Button: the Choose File button's size."
         },
         "text": {
           "x-kind": "node",
@@ -23620,7 +23638,7 @@
         "Use Active for the selected card in a single-choice grid, together with aria-pressed or a radio inside.",
         "Put secondary card actions in the Sub-Action menu.",
         "Card shadow = Box effectStyle=\"Shadow/Bottom/Level-1\": a static elevated panel may be a Box with that style; a clickable or selectable panel is a Card.",
-        "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"flat-border\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Default cards only, which is what a Canvas/Alt page takes anyway.",
+        "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"flat-border\" on a Canvas/Flat page. An explicit alt drops the Shadow theme's shadow; a page scope that sets an alt --zen-card-surface sets --zen-card-shadow: 0 0 transparent with it, so its Shadow cards drop it too.",
         "Put colour on a box by the page's Canvas: theme=\"subtle\" and a color on the grey Canvas/Default (Pale fades into it), theme=\"pale\" on a white Canvas/Alt or Canvas/Flat page (any of the nine hues, content stays neutral), e.g. a card per project or client (harness card/pale-on-canvas-default).",
         "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) or accent suits one time-sensitive figure.",
         "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read the fill's own family by themselves (content follows the fill, user 2026-10-17): Content/Inverse/* on Neutral, Content/On-Colors on Brand, Cyan and Orange, Content/On-Brights on Yellow, Content/On-Accent on Accent. MetricTrend and a MetricCard tile's Dock-Icon follow too (Inverse on Neutral, On-Color on the others). Pick Button appearance=\"overlay\" level=\"inverse\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero), and a Badge or DockIcon theme=\"inverse\" on Solid Neutral, theme=\"on-color\" on Accent and the hues; keep text in a neutral tone (or the family's own), never a colour tone (harness theme/on-solid-content).",

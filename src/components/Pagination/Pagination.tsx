@@ -108,8 +108,8 @@ export function Pagination({ page: pageProp, defaultPage = 1, onValueChange, onP
   // A new page size keeps the first row of the page in view (the page Pagination keeps itself; a controlled one is yours).
   const resize = (next: number) => { setPage(Math.floor(((current - 1) * perPage) / next) + 1); setOwnPageSize(next); onPageSizeChange?.(next); };
   const arrowSize = size === "small" ? "sm" : "xs";
-  const previous = nest("Previous", <IconButton appearance="main" level="tertiary" size={arrowSize} aria-label={t.previousPage} disabled={current <= 1} onClick={() => go(current - 1)} icon={<Icon name="icon-chevron-left-line-small" />} />);
-  const next = nest("Next", <IconButton appearance="main" level="tertiary" size={arrowSize} aria-label={t.nextPage} disabled={current >= pages} onClick={() => go(current + 1)} icon={<Icon name="icon-chevron-right-line-small" />} />);
+  const previous = nest("Previous", <IconButton appearance="main" level="tertiary" size={arrowSize} data-arrow="previous" aria-label={t.previousPage} disabled={current <= 1} onClick={() => go(current - 1)} icon={<Icon name="icon-chevron-left-line-small" />} />);
+  const next = nest("Next", <IconButton appearance="main" level="tertiary" size={arrowSize} data-arrow="next" aria-label={t.nextPage} disabled={current >= pages} onClick={() => go(current + 1)} icon={<Icon name="icon-chevron-right-line-small" />} />);
 
   if (!compact) {
     const level: PaginationLevel = theme === "secondary" ? "secondary" : "primary";

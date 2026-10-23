@@ -6411,10 +6411,10 @@
         },
         {
           "name": "event",
-          "type": "boolean",
+          "type": "boolean | number",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "Events on this day, drawn as dots under it (Figma `.Primitives/Date-Picker/Item/Event-List` 510:36577): `true` or a\n count, 1–4 dots (more show 4), 4px apart by Spacing/Gap/3XSmall; Content/Accent/Light, Date-Picker-Item/Content/\n Selected on a selected day (Variant=On-Selected).",
           "deprecated": null
         },
         {
@@ -8368,7 +8368,7 @@
           "type": "CalendarEventData[]",
           "required": false,
           "default": "[]",
-          "description": "The events of the period: a day with any shows the event dot (Dot style).",
+          "description": "The events of the period: a day shows a dot per event, up to 4 (Dot style; Figma Event-List).",
           "deprecated": null
         },
         {
@@ -12006,7 +12006,7 @@
           "type": "\"default\" | \"alt\"",
           "required": false,
           "default": null,
-          "description": "Figma Surface, chosen to suit the page's Canvas: Surface/Default · Surface/Alt (Default and Border: 15530:454–496).\n Unset follows an inherited --zen-card-surface (a page scope can set it once), else Surface/Default. Pale /\n Flat-Border / On-Container / Solid / Subtle keep their own fill (harness card/surface-ignored). With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Default\n (6643:51018) on Surface/Alt; an inherited alt surface cannot do this, so pass surface=\"alt\" explicitly on an alt page.",
+          "description": "Figma Surface, chosen to suit the page's Canvas: Surface/Default · Surface/Alt (Default and Border: 15530:454–496).\n Unset follows an inherited --zen-card-surface (a page scope can set it once), else Surface/Default. Pale /\n Flat-Border / On-Container / Solid / Subtle keep their own fill (harness card/surface-ignored). With theme=\"shadow\",\n `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Default\n (6643:51018) on Surface/Alt. A page scope that sets an alt --zen-card-surface sets `--zen-card-shadow: 0 0 transparent`\n with it, so its Shadow cards drop the shadow too; `surface=\"default\"` on a card brings it back.",
           "deprecated": null
         },
         {
@@ -14415,6 +14415,14 @@
           "required": false,
           "default": "\"dropzone\"",
           "description": "Figma Type: Drag & Drop (dropzone) or Browse Button.",
+          "deprecated": null
+        },
+        {
+          "name": "buttonSize",
+          "type": "\"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": "\"sm\"",
+          "description": "Type=Button: the Choose File button's size. Small by default, as Figma draws it; `md` (40) or `lg` on a phone,\n where a Small button needs 6px free above and below for its 44px touch area.",
           "deprecated": null
         },
         {
