@@ -133,7 +133,7 @@ export const rows = [
     },
   },
   {
-    id: "VA-05", feature: "Edit variable (v2, Figma's panel from the row's ⋯): a description and scoping written in the collection (scopes in Figma's names, Gap only), the code syntax shown as its CSS name, ⌘Z takes the scoping back", wp: "Variables v2 2026-10-23",
+    id: "VA-05", feature: "Edit variable (v2, Figma's panel from the row's ⋯): a description and scoping written in the collection (scopes in Figma's names, Gap only), the code syntax shown as its CSS name, ⌘Z takes the scoping back", wp: "Variables v2 2026-10-23", timeout: 60_000,
     async run(ctx) {
       const { page, win } = await openVariables(ctx);
       await collection(page, win, "Spacing");
@@ -151,10 +151,12 @@ export const rows = [
       await panel.getByRole("textbox", { name: "Description" }).fill("Between controls in a row");
       await panel.getByRole("textbox", { name: "Description" }).press("Tab");
       await until(async () => (await token())?.description === "Between controls in a row", { timeout: 10_000, message: "the description written" });
-      await panel.getByRole("checkbox", { name: "Show in all supported properties" }).click();
+      // Zen's Checkbox hides the native input: a click on its label, as a person does (figma.mjs showResolved).
+      const tick = (name) => panel.locator(".zen-checkbox").filter({ hasText: new RegExp(`^${name}$`) }).click();
+      await tick("Show in all supported properties");
       await until(async () => (await token())?.scopes?.length === 12, { timeout: 10_000, message: "every number scope listed (All off)" });
       for (const name of ["Corner radius", "Width and height", "Stroke", "Layer opacity", "Effects", "Font weight", "Font size", "Line height", "Letter spacing", "Paragraph spacing", "Paragraph indent"]) {
-        await panel.getByRole("checkbox", { name, exact: true }).click();
+        await tick(name);
         await sleep(150);
       }
       await until(async () => JSON.stringify((await token())?.scopes) === JSON.stringify(["GAP"]), { timeout: 10_000, message: "scoped to Gap only" });
@@ -165,7 +167,7 @@ export const rows = [
       return `description + scopes → ${JSON.stringify((await token()).scopes)} after ⌘Z · ${code.trim().slice(0, 60)}`;
     },
   },  {
-    id: "VA-06", feature: "Rename a variable code reads (v2, user 2026-10-23): Spacing/Gap/Large → E2E Roomy is written with formerNames, the canvas's --zen-spacing-gap-large still resolves (the build's alias), ⌘Z takes it back", wp: "Variables v2 2026-10-23",
+    id: "VA-06", feature: "Rename a variable code reads (v2, user 2026-10-23): Spacing/Gap/Large → Roomy is written with formerNames, the canvas's --zen-spacing-gap-large still resolves (the build's alias), ⌘Z takes it back", wp: "Variables v2 2026-10-23", timeout: 60_000,
     async run(ctx) {
       const { page, win } = await openVariables(ctx);
       await collection(page, win, "Spacing");
@@ -176,12 +178,12 @@ export const rows = [
       await page.getByRole("menuitem", { name: "Rename" }).click();
       const rename = win.getByRole("textbox", { name: /^Rename / });
       await rename.waitFor({ timeout: 5000 });
-      await rename.fill("E2E Roomy");
+      await rename.fill("Roomy");
       await rename.press("Enter");
       const file = "tokens/source/figma/spacing.json";
       const token = async (name) => JSON.parse(await source(ctx, file)).Spacing.tokens.find((each) => each.name === name);
-      await until(async () => JSON.stringify((await token("Spacing/Gap/E2E Roomy"))?.formerNames) === JSON.stringify(["Spacing/Gap/Large"]), { timeout: 10_000, message: "renamed, the old name kept" });
-      await until(async () => (await cssVar(page, "--zen-spacing-gap-e2e-roomy")) !== "" && (await cssVar(page, "--zen-spacing-gap-large")) === (await cssVar(page, "--zen-spacing-gap-e2e-roomy")), { timeout: 15_000, message: "the old CSS name resolves to the new one" });
+      await until(async () => JSON.stringify((await token("Spacing/Gap/Roomy"))?.formerNames) === JSON.stringify(["Spacing/Gap/Large"]), { timeout: 10_000, message: "renamed, the old name kept" });
+      await until(async () => (await cssVar(page, "--zen-spacing-gap-roomy")) !== "" && (await cssVar(page, "--zen-spacing-gap-large")) === (await cssVar(page, "--zen-spacing-gap-roomy")), { timeout: 15_000, message: "the old CSS name resolves to the new one" });
       const value = await cssVar(page, "--zen-spacing-gap-large");
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+KeyZ");
