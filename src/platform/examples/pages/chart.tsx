@@ -840,6 +840,22 @@ function NeutralLedRow() {
   );
 }
 
+/* ───────────── Number format presets ───────────── */
+
+/** Money written as text (format="currency"), as a Zen Studio page writes it: a page holds text, never a function. */
+function CurrencyPresetRow() {
+  return (
+    <Grid minColumnWidth="clamp(300px, 45%, 100%)" gap="md">
+      <ChartCard title="Invoiced and collected" icon="icon-line-chart-up-line" description="Apr – Sep 2026">
+        <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={cashMonths} label="Invoiced" compare={collected} legendPosition="top" format="currency" height={240} />
+      </ChartCard>
+      <ChartCard title="Top clients" icon="icon-horizontal-bar-chart-01-line" description="Revenue in Q3 2026">
+        <BarList aria-label="Revenue by client, Q3 2026" headers={{ label: "Client", value: "Revenue" }} data={clientShares} format="currency" />
+      </ChartCard>
+    </Grid>
+  );
+}
+
 /* ───────────── Examples ───────────── */
 
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
@@ -1265,6 +1281,22 @@ const retry = () => {
     format={hours} lineFormat={(value) => \`\${value}%\`} lineMax={100} height={240}
     data={[{ label: "Apr", bar: 5560, line: 77 }, /* … */ { label: "Sep", bar: 5900, line: 78 }]} />
 </ChartCard>`,
+  },
+  {
+    title: "Money as a preset",
+    description: "format=\"currency\" reads money without a function: \"$105.7K\" on the axis, in the Tooltip and down the list, the way a Zen Studio page writes it (a page holds text, never a function). currency picks another currency (\"EUR\" €105.7K), format=\"percent\" reads a share, and a function still writes any other unit.",
+    render: () => <CurrencyPresetRow />,
+    code: `<Grid minColumnWidth="clamp(300px, 45%, 100%)" gap="md">
+  <ChartCard title="Invoiced and collected" icon="icon-line-chart-up-line" description="Apr – Sep 2026">
+    <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" label="Invoiced" legendPosition="top" format="currency" height={240}
+      data={[{ label: "Apr", value: 82300 }, /* … */ { label: "Sep", value: 105700 }]}
+      compare={{ label: "Collected", values: [79500, /* … */ 88300] }} />
+  </ChartCard>
+  <ChartCard title="Top clients" icon="icon-horizontal-bar-chart-01-line" description="Revenue in Q3 2026">
+    <BarList aria-label="Revenue by client, Q3 2026" headers={{ label: "Client", value: "Revenue" }} format="currency"
+      data={[{ label: "Lumen Bank", value: 89000 }, { label: "Phin & Co", value: 68300 }, /* … */]} />
+  </ChartCard>
+</Grid>`,
   },
   {
     title: "Led by the neutral colour",
