@@ -9,3 +9,17 @@
   4 P2: the LICENSE review, the registry's user steps, ModalForm `header={false}` without a name (a11y), and the
   contrast/targets baseline seeding. "## Open items" untouched; nothing P1-urgent found. No work started.
 - User "Giao 35 mục theo đề xuất": the Designer entry moved to QUESTIONS.md / .vi.md as the 2026-10-24 designer batch.
+
+## Tooling: approved harness rules, inventory, :5173 warning, token scope in TSX (tier S–M; the user's decisions 2026-10-24)
+- Rules (each with an `expect:` case in fixtures/bad.tsx and a clean case in good.tsx): `table/bulk-actions-max` (array
+  literal or `(ids) => [ … ]` with more than five), `chip/needs-action` (Normal/Advanced with no handler, popover or
+  selection; code samples, stories and component source skipped), `max-three-trailing` flags a group of three or more
+  (my "count each item" recommendation meant this: a grouped pair stays one place, as Figma's dual Nav-Action),
+  `search-folds-to-action` also on `scrollRef`. `chip/needs-action` found two dead chips in Studio's ThemePreview
+  specimen: they now press like the buttons beside them.
+- 1e/1f: `docs/research/harness-inventory-2026-10-24.md` (0 bare Containers around a Table; 887 Do/Don't lines, 161
+  checked; three candidates for the user).
+- 2c: `toolServer()` in tools/qa/isolated-server.mjs; audit, shoot and visual-diff warn on :5173 and take `--isolated`.
+- 3c: `tokenScope` reads `var(--zen-…)` in TSX/TS (component folders → their page, example pages → the page); against
+  228897cd it finds 19 TSX consumers. 3d documented in skills/zen-build-qa §3. B.2 is its own PR.
+

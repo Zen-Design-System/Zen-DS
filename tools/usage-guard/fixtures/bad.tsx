@@ -453,6 +453,14 @@ export const Bad = () => <>
   <PopoverBulkAction><PopoverBulkActionGroup><IconButton onClick={act} aria-label="Undo" icon={undo} /></PopoverBulkActionGroup></PopoverBulkAction>
   {/* expect: top-navigation/search-folds-to-action */}
   <TopNavigation title="Inbox" largeTitle="Inbox" collapsed={collapsed} controlBar={<Search placeholder="Search messages" />} />
+  {/* expect: top-navigation/search-folds-to-action */}
+  <TopNavigation title="Inbox" largeTitle="Inbox" scrollRef={scroller} controlBar={<Search placeholder="Search messages" />} />
+  {/* expect: top-navigation/max-three-trailing */}
+  <TopNavigation title="Ava Chen" trailing={[{ icon: "icon-phone-line", label: "Audio call", group: "call", onClick: act }, { icon: "icon-video-recorder-line", label: "Video call", group: "call", onClick: act }, { icon: "icon-share-01-line", label: "Share", group: "call", onClick: share }]} />
+  {/* expect: table/bulk-actions-max */}
+  <Table aria-label="Files" rows={rows} getRowId={getId} columns={columns} selectable selectedIds={ids} onSelectionChange={setIds} bulkActions={[{ id: "a1", icon: "icon-archive-line", label: "Action 1", onClick: act }, { id: "a2", icon: "icon-archive-line", label: "Action 2", onClick: act }, { id: "a3", icon: "icon-archive-line", label: "Action 3", onClick: act }, { id: "a4", icon: "icon-archive-line", label: "Action 4", onClick: act }, { id: "a5", icon: "icon-archive-line", label: "Action 5", onClick: act }, { id: "a6", icon: "icon-archive-line", label: "Action 6", onClick: act }]} />
+  {/* expect: chip/needs-action */}
+  <Chip variant="normal">Design</Chip>
   {/* expect: top-navigation/max-three-trailing */}
   <TopNavigation title="Inbox" collapsed={collapsed} controlBar={<Search placeholder="Search messages" />} searchAction={{ onClick: openSearch }} trailing={[{ icon: "icon-edit-02-line", label: "New message", onClick: compose }, { icon: "icon-star-01-line", label: "Starred", onClick: openStarred }, { icon: "icon-dots-horizontal-line", label: "More", onClick: openMore }]} />
   {/* expect: chat/hold-delete-destructive */}

@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Usage harness (`zen-usage`, ESLint plugin; 2026-10-24): `chip/needs-action` warns on a Normal or Advanced Chip that
+  does nothing when pressed; `table/bulk-actions-max` on more than five bulk actions; `top-navigation/max-three-trailing`
+  also flags three or more actions in one group (Figma's grouped pill holds two); `top-navigation/search-folds-to-action`
+  also checks bars that fold through `scrollRef`. `platform:audit`, `platform:shoot` and `visual-diff` say when they
+  measure the shared :5173 dev server and take `--isolated` for a private one.
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in

@@ -1707,6 +1707,25 @@ export const rules = [
         ? `titles the table in this Card with "${resolved}" — a widget title is <Heading textStyle="Heading/Subheading">.`
         : `titles the table below with "${resolved}" — a table section title is <Heading level={2} textStyle="Heading/4"> (or pass the title as <Table caption> under a section heading).`);
     } },
+  { id: "table/bulk-actions-max", components: ["Table"], severity: "warn", allow: "table-bulk-actions", guideline: "docs/guidelines/table.md",
+    summary: "A Table's bulk-action bar holds at most five actions (icon-only Button/Icon-Flat Medium; on a phone the ones that don't fit move into More): pick the five that matter for a selection.",
+    check: ({ attrs }) => {
+      const v = expr(attrs, "bulkActions");
+      // An array literal, or a function of the selected ids that returns one.
+      const list = v && (/^\s*\[/.test(v) ? v : /^\s*(?:\([^)]*\)|\w+)\s*=>\s*\(?\s*(\[[\s\S]*\])\s*\)?\s*$/.exec(v)?.[1]);
+      if (!list || /\.\.\.|\.map\(|…|\$\{/.test(list)) return null;
+      const n = (list.match(/\{\s*id\s*:/g) ?? []).length;
+      return n > 5 && `has ${n} bulk actions — the bar shows five; keep the five a selection needs most (the rest belong on the row's own actions).`;
+    } },
+  { id: "chip/needs-action", components: ["Chip"], severity: "warn", allow: "chip-action", guideline: "docs/guidelines/chip.md",
+    summary: "A Normal or Advanced Chip is a button: give it something to do (onClick, popoverItems / onPopoverCreate, a selection via select / selected / defaultSelected, or onClearSelection). A count is a Number-only Chip, a label a Badge.",
+    check: ({ attrs, src, start, file }) => {
+      if (inTemplateText(src, start) || /@storybook\//.test(src) || COMPONENT_SOURCE.test(file ?? "")) return null; // code samples, stories, component internals
+      if (literal(attrs, "variant") === "number-only" || spreadsProps(attrs)) return null;
+      const acts = ["onClick", "onKeyDown", "onPointerDown", "onPointerUp", "onMouseDown", "onMouseUp", "popoverItems", "onPopoverCreate", "onClearSelection", "select", "selected", "defaultSelected", "form", "formAction", "aria-pressed", "aria-haspopup", "aria-expanded", "disabled"];
+      if (acts.some((name) => has(attrs, name)) || /submit|reset/.test(literal(attrs, "type") ?? "")) return null;
+      return "renders a button that does nothing — give it onClick, popoverItems or a selection (select / selected / defaultSelected); a static label is a Badge, a count a Number-only Chip.";
+    } },
   { id: "table/needs-name", components: ["Table"], severity: "error", allow: "table-name", guideline: "docs/guidelines/table.md",
     summary: "A Table is named by a caption or aria-label.",
     check: ({ attrs }) => !present(attrs, "caption") && !named(attrs) && "has neither caption nor aria-label." },
@@ -1809,13 +1828,16 @@ export const rules = [
     summary: "At most three trailing places in a Top Navigation, as Figma's Trailing-Slot takes (actions next to each other with the same `group` share one pill, one place; a searchAction counts as one while collapsed), and at most three large-title actions; move the rest into a ⋯ Bottom Sheet.",
     check: ({ attrs }) => {
       // Places, not actions: a run of actions with the same literal `group` is one pill (Figma's dual Nav-Action).
+      let crowded = null; // a group of three or more: Figma's dual Nav-Action pill holds two actions
       const count = (name) => {
         const v = expr(attrs, name);
         if (!v || /\.map\(|\.\.\./.test(v)) return 0;
-        let places = 0, prev = null;
+        let places = 0, prev = null, run = 0;
         for (const item of v.split(/\{\s*icon\s*:/).slice(1)) {
           const group = /\bgroup\s*:\s*["'`]([^"'`]+)["'`]/.exec(item)?.[1] ?? null;
-          if (!(group && group === prev)) places += 1;
+          if (!(group && group === prev)) { places += 1; run = 0; }
+          run += 1;
+          if (group && run > 2) crowded ??= { group, name };
           prev = group;
         }
         // A node in the list (a Badge, an Avatar: Figma's Trailing-Slot holds them as they are) takes a place too.
@@ -1830,12 +1852,13 @@ export const rules = [
         return places;
       };
       const n = count("trailing"), title = count("largeTitleAction"), search = has(attrs, "searchAction") ? 1 : 0;
+      if (crowded) return `groups three or more ${crowded.name === "trailing" ? "trailing" : "large-title"} actions in group "${crowded.group}" — a grouped pill holds two (Figma's dual Nav-Action); keep two together and give the rest their own place or a "More" Bottom Sheet.`;
       if (title > 3) return `has ${title} large-title actions — Header-Trailing shows three; put the rest in a "More" Bottom Sheet.`;
       return n + search > 3 && (search ? `has ${n} trailing places plus searchAction — while collapsed the Search action takes a slot and the last one is hidden; keep two other trailing places.` : `has ${n} trailing places — keep three (a grouped pair is one) and put the rest in a "More" Bottom Sheet.`);
     } },
   { id: "top-navigation/search-folds-to-action", components: ["TopNavigation"], severity: "warn", allow: "nav-search-fold", guideline: "docs/guidelines/top-navigation.md",
-    summary: "A collapsing Top Navigation whose control bar is a Search passes searchAction, so Search stays one tap away (top-right) while the bar is folded.",
-    check: ({ attrs }) => has(attrs, "collapsed") && /<Search\b/.test(expr(attrs, "controlBar") ?? "") && !present(attrs, "searchAction") && "collapses with a Search control bar but no searchAction — pass searchAction={{ label, onClick }} so a Search action replaces the bar while collapsed." },
+    summary: "A collapsing Top Navigation (collapsed, or a scrollRef that folds it) whose control bar is a Search passes searchAction, so Search stays one tap away (top-right) while the bar is folded.",
+    check: ({ attrs }) => (has(attrs, "collapsed") || has(attrs, "scrollRef")) && /<Search\b/.test(expr(attrs, "controlBar") ?? "") && !present(attrs, "searchAction") && "collapses with a Search control bar but no searchAction — pass searchAction={{ label, onClick }} so a Search action replaces the bar while collapsed." },
   { id: "bottom-navigation/destinations", components: ["BottomNavigation"], severity: "error", allow: "nav-destinations", guideline: "docs/guidelines/bottom-navigation.md",
     summary: "Bottom Navigation holds 3–5 root destinations.",
     check: ({ attrs }) => { const n = literalCount(attrs, "items"); return n !== undefined && (n < 3 || n > 5) && `has ${n} destinations — use 3–5 (2 → Segmented/Tabs, 6+ → a More destination or Sidebar).`; } },

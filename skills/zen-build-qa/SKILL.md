@@ -104,6 +104,9 @@ npm run qa -- --all               # every page: tier L (AGENTS.md §C)
 What the scope means:
 
 - **Pages** come from edits made after the last passing run; after a pass, older edits and their notes stop counting.
+- **Bash edits** count only for the changed files the command itself names (the hook cannot tell a script's writes from
+  another session's): after a script, `sed -i` on a glob or a code generator other than tokens/styles/icons:build, pass
+  the files with `--files=` (or `--since=<minutes>`). Kept on purpose (the user, 2026-10-24).
 - **Tokens** (`src/styles/tokens.css`, `tokens/source/**`, `src/tokens/**`): the gate diffs the changed custom
   properties against git HEAD, adds every `--zen-*` var that aliases them, finds the component and platform CSS that
   reads those names and checks those files' pages. It prints the consumer pages, or says none was found and falls back
