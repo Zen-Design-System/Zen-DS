@@ -22,7 +22,7 @@ A surface that slides up from the bottom for supplementary content, a short task
 | Type | `type` | modal (contents + Actions footer) · action (Sheet-Actions items) |
 | Size | `size` | flex (hugs content) · max (full height minus the top gap) |
 | Header | `title · search` | title h2 in Heading/3 (never Heading/1) + 44px Tertiary close; optional Search slot |
-| Items | `items[] {id, label, icon, trailing, destructive} · selectedId · onSelect · keepOpen` | 48px rows (24px icon, 12px gap), Single-Selected = Accent/Subtle + check |
+| Items | `items[] {id, label, caption, icon, trailing, destructive} · selectedId · onSelect · keepOpen` | 48px rows (24px icon, 12px gap); caption = Figma Subtext (Caption/Regular, 2px under the label); Single-Selected = Accent/Subtle + check |
 | Actions | `primaryAction · secondaryAction · actionsDirection` | Large buttons; horizontal (Tertiary · Primary, equal widths) or vertical (Primary over Tertiary, each at its own 48px height) |
 | Form | `onSubmit` | Modal type: body + Actions footer become a <form>; Enter in a field or the primary action submits (primary = type=submit, closes only from your handler); pass form.handleSubmit; the Search slot stays outside |
 | Dismiss | `dismissible · inline` | scrim, Escape and drag-down; inline anchors to a positioned container |
@@ -45,11 +45,11 @@ Also accepts `OverlayOpenProps`.
 | `type` | `"modal" \| "action"` | `"modal"` |  |
 | `size` | `"flex" \| "max"` | `"flex"` |  |
 | `search` | `ReactNode` | — | Figma Search slot (a Search, under the header). The Search takes focus when the sheet opens (`data-autofocus` elsewhere wins). |
-| `items` | `BottomSheetItem[]` | `[]` | Action type: Figma Items slot. |
+| `items` | `BottomSheetItem[]` | `[]` | Action type: Figma Items slot. Without items, the action body holds `children` (a Menu's groups and separators). |
 | `selectedId` | `string` | — | Action type: the item shown as Single-Selected (Active/Accent/Subtle + check). |
 | `onSelect` | `(item: BottomSheetItem) => void` | — | Action type: called with the item; the sheet closes unless `keepOpen` is set. |
 | `keepOpen` | `boolean` | `false` |  |
-| `children` | `ReactNode` | — | Modal type: Figma Contents slot. |
+| `children` | `ReactNode` | — | Modal type: Figma Contents slot. Action type without `items`: the Items slot (a Menu's rows on a phone). |
 | `primaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
 | `secondaryAction` | `{ label: ReactNode; onClick?: () => void; level?: ButtonLevel; disabled?: boolean; autoFocus?: boolean; /** `submit` makes the button submit a form, as ActionBar actions can: the `form` it names (a SidePanel's body form sits * outside the actions), so Enter in a field submits too. Without `onClick` a submit button only submits. */ type?: "button" \| "submit"; /** id of the <form> a `submit` action submits (Button `form`). */ form?: string; }` | — |  |
 | `actionsDirection` | `"horizontal" \| "vertical"` | `"horizontal"` | Figma .Primitives/Bottom-Sheet/Actions Direction. |
@@ -66,7 +66,7 @@ Also accepts `OverlayOpenProps`.
 Object shapes the props above refer to.
 
 ```ts
-interface BottomSheetItem { id: string; label: ReactNode; icon?: IconName | ReactElement; trailing?: ReactNode; disabled?: boolean; destructive?: boolean; }
+interface BottomSheetItem { id: string; label: ReactNode; caption?: ReactNode; icon?: IconName | ReactElement; trailing?: ReactNode; disabled?: boolean; destructive?: boolean; }
 type ButtonLevel = "primary" | "accent" | "secondary" | "tertiary" | "danger" | "danger-subtle" | "positive" | "positive-subtle" | "surface" | "danger-secondary" | "positive-secondary" | "inverse" | "white" | "white-overlay" | "black-overlay" | "inverse-subtle"
 ```
 

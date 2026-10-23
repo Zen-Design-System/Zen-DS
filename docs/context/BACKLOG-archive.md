@@ -30,6 +30,14 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   **P3 · Studio E2E row for ungroup (2026-10-05; rewritten 2026-10-24):** TopNavigation item ops have E2E ST-23 (drag
   swap) and ST-24 (drop to group); `ungroupItem` has only a selftest (`tools/studio/items.selftest.mjs` ~278). S.
 
+## Archived 2026-10-24 (Menu and Chip on phones, `zen/feat/menu-chip-phone-sheet-20261024`)
+
+- Done 2026-10-24 (user, option A: automatic, the rule SelectField follows; handed from box-themes to C): Menu opens as
+  an action Bottom Sheet on a phone (Sheet-Actions rows, captions as Subtext, group labels and separators), a Chip's
+  popoverItems as a Bottom Sheet List (Search, Done for several picks); `_shared/phone-sheet.tsx` holds the rule.
+  The sheet part of **P3 · Phone targets and sheets (2026-10-01):** "Menu and Chip popovers have no phone sheet mode,
+  so templates build their own sheets: a design decision, L." The targets part stays open in `BACKLOG.md`.
+
 ## Archived 2026-10-24 (prototypes pushed to Figma, `zen/feat/push-prototype-20261024`, plugin dcd3af3)
 
 - Done 2026-10-24 (user, via the progress session: "push mọi Screen và Overlay thành frame, kèm reaction Navigate /

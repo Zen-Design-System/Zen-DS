@@ -13,8 +13,9 @@ const query = <T extends Element = HTMLElement>(selector: string) => document.qu
 describe("Menu and SidePanel (backlog batch 5)", () => {
   it("Menu that fits on neither side of its trigger shifts into a 390px window", async () => {
     await page.viewport(390, 844);
+    // The popover's placement in a narrow window: a phone breakpoint opens a Bottom Sheet instead (menu-chip-sheet.test.tsx).
     await render(
-      <ZenProvider>
+      <ZenProvider breakpoint="desktop">
         <div style={{ paddingLeft: 170, paddingTop: 40 }}>
           <Menu aria-label="Document actions" trigger={<Button>More</Button>}
             items={[{ id: "copy", label: "Copy a link to this document to your clipboard", onSelect: () => {} }, { id: "move", label: "Move this document to another project", onSelect: () => {} }]} />
@@ -49,8 +50,9 @@ describe("Menu and SidePanel (backlog batch 5)", () => {
 describe("Chip popoverPortal (backlog batch 6)", () => {
   function ScrollRow() {
     const [status, setStatus] = useState<string[]>([]);
+    // The portalled Popover (the window is still 390px wide from the Menu test; a phone opens a Bottom Sheet instead).
     return (
-      <ZenProvider>
+      <ZenProvider breakpoint="desktop">
         <div data-testid="row" style={{ display: "flex", width: 160, overflowX: "auto" }}>
           <Chip variant="advanced" dropdown popoverPortal popoverLabel="Status" selectionMode="multiple" popoverMultiple selected={status.length > 0}
             popoverItems={["To do", "In review", "Done"].map((value) => ({ id: value, label: value, selected: status.includes(value) }))}

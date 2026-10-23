@@ -86,6 +86,16 @@
 .zen-bottom-sheet__item[data-destructive="true"] { color: var(--zen-color-content-negative-light, #d03e19); }
 .zen-bottom-sheet__item:disabled { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: not-allowed; }
 .zen-bottom-sheet__item-label { overflow: hidden; min-width: 0; flex: 1; text-overflow: ellipsis; white-space: nowrap; }
+/* Figma .Primitives/Popover/Item/Content with Subtext on: Label over Subtext, Spacing/Gap/3XSmall apart, Content/Neutral/Light. */
+.zen-bottom-sheet__item-content { display: grid; min-width: 0; flex: 1; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+/* Two lines: the icon stays beside the label, as in the Popover item (Content's cross axis is Min). */
+.zen-bottom-sheet__item:has(> .zen-bottom-sheet__item-content) > .zen-icon:first-child { align-self: flex-start; }
+.zen-bottom-sheet__item-caption { overflow: hidden; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-overflow: ellipsis; white-space: nowrap; }
+.zen-bottom-sheet__item:disabled .zen-bottom-sheet__item-caption { color: inherit; }
+/* A Menu's group on a phone: its label (.Primitives/Popover/Label) over its rows, the rows' inline padding; separators
+   are a Divider between the rows. */
+.zen-bottom-sheet__group { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: 0; list-style: none; }
+.zen-bottom-sheet__label { display: flex; min-height: 32px; box-sizing: border-box; align-items: center; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-medium, 16px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-bottom-sheet__item-trailing { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 64%)); }
 /* zen-allow-slot-size: fixed 16px check (see the item icon above). */
 .zen-bottom-sheet__check.zen-icon { width: 16px; height: 16px; color: var(--zen-color-content-accent-base, #95197b); }

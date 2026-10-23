@@ -59,7 +59,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `photoSrc` | `string` | — | Leading-Photo theme: image rendered through the shared Avatar/Single (Photo, Subtle) primitive, sized per Figma (XSmall → 2XSmall 20, Small → XSmall 24, Medium → Small 32). |
 | `photoAlt` | `string` | `""` |  |
 | `trailing` | `IconName \| ReactNode` | — | Trailing slot: an icon name or a node; replaces the dropdown chevron / remove affordance. |
-| `popoverItems` | `PopoverItemData[]` | — | Items rendered by the shared Figma Popover/Default composition. Without `onPopoverSelect` (and `onPopoverCreate`) the chip keeps the choice itself, starting from the items marked `selected`: a pick marks it (`popoverMultiple` toggles) and the chip shows the one picked value as its label (and its photo or icon). A filter chip (`defaultSelected`, or nothing picked at first) is then Selected, counts several for `selectionMode` "multiple" and clears them with its close affordance; a chip that starts on a value (a period) only changes it. Pass `onPopoverSelect` to keep the choice in your own state. |
+| `popoverItems` | `PopoverItemData[]` | — | Items rendered by the shared Figma Popover/Default composition. Without `onPopoverSelect` (and `onPopoverCreate`) the chip keeps the choice itself, starting from the items marked `selected`: a pick marks it (`popoverMultiple` toggles) and the chip shows the one picked value as its label (and its photo or icon). A filter chip (`defaultSelected`, or nothing picked at first) is then Selected, counts several for `selectionMode` "multiple" and clears them with its close affordance; a chip that starts on a value (a period) only changes it. Pass `onPopoverSelect` to keep the choice in your own state. On a phone (the nearest `data-breakpoint`, else ZenProvider's, is "mobile"; SelectField's rule) the items open in a Bottom Sheet instead, titled `popoverLabel` (else the chip's label): picked rows are Selected with a check, the Search comes with `popoverSearch`, a pick closes it, and with `popoverMultiple` picks keep it open until Done. A chip with `onPopoverCreate` keeps its popover. |
 | `popoverOpen` | `boolean` | — | Controlled open state for the advanced chip menu. |
 | `defaultPopoverOpen` | `boolean` | `false` | Uncontrolled start for `popoverOpen` (default false). |
 | `popoverMultiple` | `boolean` | `false` | Keep the shared Popover open while selected options are toggled. |
@@ -113,6 +113,7 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 | ↓ | Open the Popover (Advanced) |
 | Escape | Close the Popover and return focus |
 | Delete / Backspace | Clear the selection (when clearable) |
+| (phone) | popoverItems open in a Bottom Sheet: Tab stays inside, Escape closes and returns focus |
 
 ## ✅ Do
 - On a colour band, a Solid hue card or a photo, give every chip an overlay level (ChipGroup too): black-overlay by default (level="overlay"), white-overlay on a solid colour. Primary and Secondary take mode tokens that flip in dark mode, and their Accent focus ring vanishes on the band.
@@ -127,7 +128,7 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 - Offer "Clear all" (Tertiary button) when two or more filters are active.
 - Keep Advanced chips' Popover open while toggling multiple options (popoverMultiple).
 - Show the count on multiple-selection chips (harness: chip/multiple-needs-count).
-- On a phone, keep filter chips in one horizontally scrolling row (no wrapping) and open choices in a Bottom Sheet of List + ListItem rows (the picked one `selected`) instead of a Popover; show the result count with a plural label and offer Clear filters on an empty result.
+- On a phone, keep filter chips in one horizontally scrolling row (no wrapping). With popoverItems the choices open in a Bottom Sheet by themselves (SelectField's rule): List + ListItem rows, the picked one `selected` with a check, titled popoverLabel; a pick closes it, popoverMultiple keeps it open until Done. Show the result count with a plural label and offer Clear filters on an empty result.
 
 ## ❌ Don't
 - Don't use Secondary or any Button to open a filter list.

@@ -107,8 +107,8 @@ starts.
   are done (`largeTitleCapline`, `largeTitleSubheading`).
 - **P3 · Phone targets and sheets (2026-10-01):** the MetricCard breakdown chevron (the caller's `action`), the
   ChartCard open button (`size="2xs"`, `Chart.tsx` ~306) and Pagination prev / next (`Pagination.tsx` ~110) are 24px on
-  phones; FileUpload's button is a fixed `sm` with no size prop (`Uploader.tsx` ~216), S–M. Menu and Chip popovers have
-  no phone sheet mode, so templates build their own sheets: a design decision, L.
+  phones; FileUpload's button is a fixed `sm` with no size prop (`Uploader.tsx` ~216), S–M. (The sheet part, Menu and
+  Chip on phones, was done 2026-10-24: see the archive.)
 - **P3 · DatePicker leftovers (2026-09-29):** Event-List with 1–4 dots and its On-Selected colour (510:36577; `event`
   draws one Accent/Light dot, `DatePicker.tsx` ~31, ~82), S–M. Day cells (32 / 24) and the 224px panel are px while
   Figma binds Select-Item/Size/Medium | Small (40 / 32 in Comfortable), so the calendar does not grow with density

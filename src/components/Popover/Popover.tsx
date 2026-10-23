@@ -118,7 +118,7 @@ export function PopoverItem({ item, label, caption, leading, trailing, selected,
       {badgeContent ? <span className="zen-popover__item-content zen-popover__item-content--badge">{nest("Badge", <Badge size="medium" theme={item?.badgeTheme ?? "neutral"} background="solid" leadingIcon={false}>{resolvedLabel}</Badge>)}</span> : null}
       {!badgeContent && (resolvedLabel || resolvedCaption) ? <span className="zen-popover__item-content">
         <span className={`zen-popover__item-label ${typographyStyles["Body/Base/Medium"]}`}>{resolvedLabel}</span>
-        {resolvedCaption ? <span className={`zen-popover__item-caption ${typographyStyles["Body/Small/Regular"]}`}>{resolvedCaption}</span> : null}
+        {resolvedCaption ? <span className={`zen-popover__item-caption ${typographyStyles["Caption/Regular"]}`}>{resolvedCaption}</span> : null}
       </span> : null}
       {isSelected && control === "check" ? <span className="zen-popover__item-check" aria-hidden="true"><Icon name="icon-check-line" size="xs" /></span> : null}
       {resolvedTrailing ? <span className="zen-popover__item-trailing">{resolvedTrailing}</span> : null}

@@ -235,6 +235,9 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "scrollBar": "popoverScrollBar",
       "searchPlaceholder": "popoverSearchPlaceholder",
       "searchValue": "popoverSearchValue"
+    },
+    "Search": {
+      "placeholder": "popoverSearchPlaceholder"
     }
   },
   "ChipGroup": {
@@ -465,12 +468,23 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "height": "height"
     }
   },
+  "Menu": {
+    "BottomSheet": {
+      "title": "aria-label"
+    }
+  },
   "MenuItem": {
     "Icon": {
       "name": "icon"
     },
     "PopoverItem": {
       "caption": "caption",
+      "disabled": "disabled",
+      "label": "label"
+    },
+    "SheetActionRow": {
+      "caption": "caption",
+      "destructive": "danger",
       "disabled": "disabled",
       "label": "label"
     }

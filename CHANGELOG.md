@@ -34,6 +34,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Time-Picker's fields fill the row; Sidebar selected rows' counters are Background/Inverse/Solid, group chevrons
   Content/Neutral/Light, Small-density section titles 32px, and the Workspace panel is Sidebar/Default-Width (320px in
   all in Compact, was 340). 66 more Figma contract suites run in `tools/figma-contract/run-all.mjs`.
+- Menu and Chip open as a Bottom Sheet on phones by themselves, the rule SelectField follows (the nearest
+  `data-breakpoint`, else ZenProvider's, is mobile; user 2026-10-24). A Menu becomes an action sheet titled by its
+  `aria-label` or its trigger's name, with captions, group labels and separators (no shortcuts); a Chip's `popoverItems`
+  become a sheet List with its Search, the picked rows Selected, and Done for `popoverMultiple`. BottomSheet items take a
+  `caption` (Figma Subtext), and a Popover item's caption is Caption/Regular, as in Figma (was Body/Small/Regular).
 - Zen Studio → Figma: a page goes to Figma with every Screen, Screen state and Overlay as a frame of its own (an
   Overlay as big as what it holds), and its Prototype actions as Figma interactions: On click, While hovering and After
   delay; Navigate to, Open overlay, Close overlay and Back, with their animation, direction and Zen's duration and curve

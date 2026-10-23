@@ -75,3 +75,20 @@ slots (b) A built and B not (computed `.map` rows keep "edit it in the code"), n
   QUESTIONS Segmented (P2) binding, the BACKLOG Breadcrumbs "4px list padding" (both captures pad 0). New BACKLOG: the
   APIs the suites asked for, the checker gaps. Linux fonts (#252): no text-decided width or x is asserted.
 
+## Menu and Chip on phones (C, tier L; branch `zen/feat/menu-chip-phone-sheet-20261024`)
+
+- User decision 2026-10-24 (option A, automatic), handed from box-themes. `_shared/phone-sheet.tsx` holds SelectField's
+  rule (`usePhoneSheet`: the nearest `data-breakpoint` above the control, else ZenProvider's) and `sheetLeading`;
+  SelectField and DateField now use it too.
+- Figma, read with use_figma: Primitives/Sheet-Actions/Item (4059:17214) holds `.Primitives/Popover/Item/Content`
+  (829:20006), whose Subtext is Caption/Regular 11px, 2px under the label. So BottomSheet items got `caption`, and the
+  Popover's own caption, Body/Small/Regular 12px since v0.2, was fixed to Caption/Regular at its owner.
+- Menu on a phone: `<BottomSheet type="action">` holding the Menu's own rows (`SheetActionRow`, MenuContext `sheet`),
+  so `children` composition, groups (a labelled `role=group` with its own list) and separators survive; shortcuts are
+  dropped. Trigger `aria-haspopup="dialog"`; keyboard opening starts on the first / last item (`data-autofocus`). The
+  sheet's modal owns Escape, Tab and focus return. The deliberate action-sheet-without-items is `zen-allow-sheet-items`.
+- Chip on a phone: SelectField's sheet (List + ListItem, Selected + check, Search filtering by text unless the app
+  filters, `done` label for `popoverMultiple`). `onPopoverCreate` chips keep their popover.
+- Tests: `tests/interaction/menu-chip-sheet.test.tsx` (7). Two backlog-fixes tests that test the popovers at 390px are
+  pinned to `breakpoint="desktop"`. Chip's "Filters on a phone" example now uses `popoverItems` instead of a hand-built
+  sheet. Generated: guidelines/api docs, Studio compile-api and partProps.

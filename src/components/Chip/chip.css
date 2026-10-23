@@ -236,3 +236,7 @@
 .zen-chip__multi-trailing[data-clickable="true"]:hover .zen-chip__multi-remove { display: inline-flex; }
 .zen-chip[data-size="medium"] .zen-chip__remove { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); }
 .zen-chip__remove > .zen-icon, .zen-chip__multi-remove > .zen-icon { width: 100% !important; height: 100% !important; }
+
+/* A phone's sheet (popoverItems on a phone): an item that can't be picked, in the Bottom Sheet's List (not clickable,
+   Content/Disabled), as SelectField's. */
+.zen-chip__sheet-option--disabled .zen-list-item__title { color: var(--zen-color-content-disabled, #00000045); }

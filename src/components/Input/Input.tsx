@@ -3,7 +3,6 @@ import { useControllableState } from "../_shared/use-controllable-state";
 import { useMergedRefs } from "../_shared/merge-refs";
 import { Icon, type IconName } from "../Icon";
 import { Popover, PopoverManualAddNew, useExclusivePopover, type PopoverWidth } from "../Popover";
-import { Avatar } from "../Avatar";
 import type { BadgeTheme } from "../Badge";
 import { BottomSheet } from "../BottomSheet";
 import { List, ListItem } from "../ListItem";
@@ -18,13 +17,14 @@ import { Tooltip, useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
 import type { ZenLabels } from "../_shared/labels";
 import { scaleKey } from "../_shared/scale";
-import { useZen, useZenLabels } from "../_shared/zen-context";
+import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./input.css";
 import "../Icon/core";
 import { useNested, type Nest, type NestedOverrides } from "../_shared/nested";
 import { sanitizeHtml } from "../_shared/sanitize-html";
 import { useDismissableLayer } from "../_shared/layers";
+import { sheetLeading, usePhoneSheet } from "../_shared/phone-sheet";
 import { dataAttributes } from "../_shared/data-attributes";
 
 export const inputSizes = ["small", "medium", "large", "xlarge"] as const;
@@ -506,13 +506,6 @@ export type SelectFieldOption = {
 const optionContent = (option: SelectFieldOption) => ({
   theme: option.theme, leading: option.leading, caption: option.caption, photoSrc: option.photoSrc, photoAlt: option.photoAlt, badgeTheme: option.badgeTheme,
 });
-/** The same content in a phone's sheet row: the icon or the picture leads, the Subtext is the row's caption. */
-const optionSheetLeading = (option: SelectFieldOption): ReactNode => {
-  if (option.leading) return renderIcon(option.leading);
-  if (!option.photoSrc) return undefined;
-  const avatar = option.theme === "avatar-small" || option.theme === "avatar-big";
-  return <Avatar size={option.theme === "avatar-big" || option.theme === "photo-big" ? "medium" : "small"} shape={avatar ? "circle" : "square"} theme="photo" src={option.photoSrc} alt={option.photoAlt ?? ""} />;
-};
 export type SelectFieldProps = CommonFieldProps & Omit<SelectHTMLAttributes<HTMLSelectElement>, "size"> & {
   options?: SelectFieldOption[];
   /** Called with the picked value and its option, next to the native `onChange(event)` (which still runs). */
@@ -574,14 +567,8 @@ export function SelectField(
   // (popoverOpen) leaves focus where it is.
   const [openedFromTrigger, setOpenedFromTrigger] = useState(false);
   const closeAndRestore = () => { setOpen(false); triggerRef.current?.focus(); };
-  // Mobile: the options open in a Bottom Sheet. The nearest data-breakpoint decides (ZenProvider's, or a phone frame
-  // that only sets the attribute), else the provider's breakpoint; read again whenever the list opens or closes.
-  const zen = useZen();
-  const [domBreakpoint, setDomBreakpoint] = useState<string | null>(null);
-  useLayoutEffect(() => {
-    setDomBreakpoint(triggerRef.current?.parentElement?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") ?? null);
-  }, [open, zen?.breakpoint]);
-  const asSheet = (domBreakpoint ?? zen?.breakpoint) === "mobile";
+  // Mobile: the options open in a Bottom Sheet (usePhoneSheet: the nearest data-breakpoint, else the provider's).
+  const asSheet = usePhoneSheet(triggerRef, open);
   const [sheetQuery, setSheetQuery] = useState("");
   useEffect(() => { if (!open) setSheetQuery(""); }, [open]);
   useExclusivePopover(open, () => setOpen(false), triggerRef);
@@ -719,7 +706,7 @@ export function SelectField(
             {options.filter((option) => !sheetQuery.trim() || option.label.toLowerCase().includes(sheetQuery.trim().toLowerCase())).map((option) => {
               const picked = option.value === (controlledValue ?? selectedValue);
               return (
-                <ListItem key={option.value} title={option.label} caption={option.caption} leading={optionSheetLeading(option)} selected={picked} className={option.disabled ? "zen-select__sheet-option--disabled" : undefined} aria-disabled={option.disabled || undefined}
+                <ListItem key={option.value} title={option.label} caption={option.caption} leading={sheetLeading(option)} selected={picked} className={option.disabled ? "zen-select__sheet-option--disabled" : undefined} aria-disabled={option.disabled || undefined}
                   trailing={option.meta || picked ? <>{option.meta ? <span className={`zen-select__option-meta ${typographyStyles["Body/Small/Regular"]}`}>{option.meta}</span> : null}{picked ? <Icon name="icon-check-line" size="base" decorative /> : null}</> : undefined}
                   onClick={option.disabled ? undefined : () => { pick(option.value); setOpen(false); }} />
               );
@@ -831,9 +818,7 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
   const canOpen = !props.readOnly && props.state !== "read-only" && !props.disabled && props.state !== "disabled";
   // Phones (the nearest data-breakpoint, else ZenProvider's) get the Date-Picker/Mobile sheet instead of the desktop
   // popover (Figma has no mobile popover). A modal sheet opens on a tap or ArrowDown, not on Tab focus.
-  const zenBreakpoint = useZen()?.breakpoint;
-  const [phone, setPhone] = useState(false);
-  useLayoutEffect(() => { setPhone((fieldRef.current?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") ?? zenBreakpoint) === "mobile"); }, [zenBreakpoint]);
+  const phone = usePhoneSheet(fieldRef, open);
   // Controlled: setInternalValue leaves the prop alone. onValueChange is reported by InputField (typing) and handleDateChange (a pick).
   const [currentValue, setInternalValue] = useControllableState<DateFieldProps["value"]>({ value, defaultValue: () => String(defaultValue ?? ""), name: "DateField value" });
   const parsedValue = parseDateFieldValue(currentValue);
