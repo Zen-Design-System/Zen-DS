@@ -7919,22 +7919,22 @@
       [
         "Donut",
         "DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size (small 120 · medium 168 · large 240 · xlarge 320) · legendPosition (bottom · top · start · end)",
-        "Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption, Heading/2 figure)"
+        "Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4; Body/Base/Bold alone at Small, Display/4 at XLarge) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption over a Display/4 figure, Gap/3XSmall apart, as the Chart Card's Metric)"
       ],
       [
         "Radial",
         "RadialChart data[] {id, label, value} · max · value · label · size (small 120 · medium 168 · large 240 · xlarge 320) · legendPosition",
-        "10px rings 8px apart over dotted Border/Neutral/Subtle tracks, outer ring first"
+        "10px rings 8px apart over dotted Border/Neutral/Subtle tracks, outer ring first; the centre figure Heading/4 (Body/Base/Bold alone at Small, Display/4 at XLarge)"
       ],
       [
         "Heatmap",
         "HeatmapChart rows · columns · values[row][column] · max · showLegend",
-        "24px cells on Support/Brand Pale · Soft · Solid · Rich · Deep, Less → More scale"
+        "24px cells on Support/Brand Pale · Soft · Solid · Rich · Deep, row labels in a 40px start column (a longer label widens it), Less → More scale"
       ],
       [
         "Bar list",
         "BarList data[] {label, value} · headers {label, value} · initialIndex",
-        "32px rows Spacing/Gap/XSmall apart: Color Chart Sector/Primary bars at 24% (the active row 48%) as long as their share of the leader, Corner-Radius/Small, the name inside (Body/Small/Medium), the values in an end column Spacing/Gap/Small after the bars; column labels Caption/Medium, Neutral/Light"
+        "32px rows Spacing/Gap/XSmall apart: Color Chart Sector/Primary bars at 24% (the active row 48%) as long as their share of the leader, Corner-Radius/Small, the name inside (Body/Small/Medium), the values in a 64px end column (a longer value widens it) Spacing/Gap/Small after the bars; column labels Caption/Medium, Neutral/Light"
       ],
       [
         "Bullet",

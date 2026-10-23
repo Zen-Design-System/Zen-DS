@@ -91,7 +91,8 @@ const findPath = (root, route) => {
   for (const part of parts) {
     const [nameText, indexText] = part.split("#");
     const names = nameText.split("|");
-    const matches = (node.c ?? []).filter((child) => names.includes(child.n));
+    // `*` matches any child (a layer named by its own text, as a chart's tick label).
+    const matches = (node.c ?? []).filter((child) => names.includes(child.n) || names.includes("*"));
     const child = matches[Number(indexText ?? 0)];
     if (!child) return null;
     x += child.x ?? 0;
@@ -133,6 +134,8 @@ for (const mode of modes) {
       const figma = findPath(spec, entry.figma);
       if (!figma) { checks.push({ layer: entry.figma, prop: "exists", figma: "missing in Figma", dom: "-", ok: false }); continue; }
       const node = figma.node;
+      const origin = entry.figmaRoot ? findPath(spec, entry.figmaRoot) : null;
+      if (entry.figmaRoot && !origin) { checks.push({ layer: entry.figmaRoot, prop: "exists", figma: "missing in Figma", dom: "-", ok: false }); continue; }
       if (node.hidden && !entry.forceVisible) {
         const present = await page.evaluate(({ id, sel }) => {
           const el = document.querySelector(`[data-case="${id}"] ${sel.split("::")[0]}`);
@@ -145,7 +148,9 @@ for (const mode of modes) {
         continue;
       }
       const want = {
-        w: node.w, h: node.h, x: figma.x, y: figma.y,
+        // `figmaRoot` (with `root`, its DOM pair): offsets from that layer instead of the component, so a plot's insides
+        // compare to its own frame when a lane above it differs.
+        w: node.w, h: node.h, x: figma.x - (origin?.x ?? 0), y: figma.y - (origin?.y ?? 0), rootW: (origin?.node ?? spec).w,
         fill: visiblePaint(node.fill), stroke: visiblePaint(node.stroke), sw: node.sw, sa: node.sa,
         r: node.r, bvR: node.bv?.topLeftRadius, op: node.op,
         fxStyle: node.fxStyle, ts: node.ts, textFill: node.t === "TEXT" ? visiblePaint(node.fill) : null,
@@ -197,21 +202,50 @@ for (const mode of modes) {
         if (need.includes("pos") || need.includes("x")) out.x = [want.x, +(rect.left - rr.left).toFixed(2)];
         if (need.includes("pos") || need.includes("y")) out.y = [want.y, +(rect.top - rr.top).toFixed(2)];
         // The end edge, for a FILL layer whose start follows a text-hugging sibling (its x and w vary with the font).
-        if (need.includes("right")) out.right = [want.x + want.w, +(rect.right - rr.left).toFixed(2)];
+        if (need.includes("right")) out.right = [want.x + want.w, +((rect.right ?? rect.left + rect.width) - rr.left).toFixed(2)];
+        // The centre, for a layer whose box differs from the element's but whose middle must match (a chart's axis label
+        // centred in a grid row Figma sizes to the row, where code's box hugs the line).
+        // The same in % of the root's width (`figmaRoot` and its DOM pair): a row whose width follows text-hugging
+        // neighbours (it differs by a pixel or two between font rasterisers) still places its marks proportionally.
+        const pct = (value, of) => +((value / of) * 100).toFixed(2);
+        if (need.includes("xr")) out.xr = [pct(want.x, want.rootW), pct(rect.left - rr.left, rr.width)];
+        if (need.includes("wr")) out.wr = [pct(want.w, want.rootW), pct(rect.width, rr.width)];
+        if (need.includes("cxr")) out.cxr = [pct(want.x + want.w / 2, want.rootW), pct(rect.left + rect.width / 2 - rr.left, rr.width)];
+        if (need.includes("cx")) out.cx = [+(want.x + want.w / 2).toFixed(2), +(rect.left + rect.width / 2 - rr.left).toFixed(2)];
+        if (need.includes("cy")) out.cy = [+(want.y + want.h / 2).toFixed(2), +(rect.top + rect.height / 2 - rr.top).toFixed(2)];
         if (need.includes("fill")) {
           const expected = want.fill ? colorOf(want.fill) : "rgba(0, 0, 0, 0)";
-          const actual = entry.fillVia === "color" ? cs.color : entry.fillVia === "fill" ? cs.fill : entry.fillVia === "caret" ? cs.caretColor : cs.backgroundColor;
+          // "stroke": a Figma fill that code draws as an SVG stroke (a gauge's value arc).
+          const actual = entry.fillVia === "color" ? cs.color : entry.fillVia === "fill" ? cs.fill : entry.fillVia === "stroke" ? cs.stroke : entry.fillVia === "caret" ? cs.caretColor : cs.backgroundColor;
           out.fill = [expected + (want.fill?.v ? `  [${want.fill.v}]` : ""), actual];
+          // "gradient": an SVG shape painted by a <linearGradient> (a chart's area fade). Each stop compares through its
+          // bound variable, and the paint's opacity with the shape's fill-opacity.
+          if (entry.fillVia === "gradient") {
+            const paint = want.fill;
+            const round = (value) => +Number(value).toFixed(2);
+            const stops = (paint?.stops ?? []).map((stop) => `${stop.v ? probe("color", `var(${cssVars[stop.v]})`) : probe("color", stop.c)} ${round(stop.p * 100)}%`);
+            const wanted = paint ? `linear-gradient(${stops.join(", ")}) @${round(paint.op ?? 1)}` : "none";
+            const ref = cs.fill.match(/url\("?#([^")]+)"?\)/);
+            const gradient = ref && document.getElementById(ref[1]);
+            const got = gradient
+              ? `linear-gradient(${Array.from(gradient.querySelectorAll("stop")).map((stop) => `${getComputedStyle(stop).stopColor} ${round(parseFloat(stop.getAttribute("offset")) * 100)}%`).join(", ")}) @${round(cs.fillOpacity)}`
+              : cs.fill;
+            out.fill = [wanted + (paint?.stops ? `  [${paint.stops.map((stop) => stop.v ?? stop.c).join(" → ")}]` : ""), got];
+          }
         }
         if (need.includes("stroke")) {
           const expected = want.stroke ? `${want.sw}px ${colorOf(want.stroke)}` : "none";
           let actual = "none";
           const via = entry.strokeVia ?? "border";
-          if (via === "border" && parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== "none") actual = `${parseFloat(cs.borderTopWidth)}px ${cs.borderTopColor}`;
+          // strokeSide: the border side that draws a one-sided stroke (a vertical rule drawn by border-left); default top.
+          const side = { top: "Top", left: "Left", bottom: "Bottom", right: "Right" }[entry.strokeSide ?? "top"];
+          if (via === "border" && parseFloat(cs[`border${side}Width`]) > 0 && cs[`border${side}Style`] !== "none") actual = `${parseFloat(cs[`border${side}Width`])}px ${cs[`border${side}Color`]}`;
           if (via === "after" || via === "before") {
             const ps = getComputedStyle(el, "::" + via);
-            if (ps.content !== "none" && parseFloat(ps.borderTopWidth) > 0) actual = `${parseFloat(ps.borderTopWidth)}px ${ps.borderTopColor}`;
+            if (ps.content !== "none" && parseFloat(ps[`border${side}Width`]) > 0) actual = `${parseFloat(ps[`border${side}Width`])}px ${ps[`border${side}Color`]}`;
           }
+          // "svg": an SVG shape's own stroke (a chart's line, ring or tick); its width in CSS px, as Figma's stroke weight.
+          if (via === "svg" && cs.stroke !== "none" && parseFloat(cs.strokeWidth) > 0) actual = `${+(parseFloat(cs.strokeWidth) * (entry.strokeScale ?? 1)).toFixed(2)}px ${cs.stroke}`;
           if (via === "outline" && cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0) actual = `${parseFloat(cs.outlineWidth)}px ${cs.outlineColor}`;
           if (via === "shadow") {
             const m = cs.boxShadow.match(/(rgba?\([^)]*\))\s+0px\s+0px\s+0px\s+([\d.]+)px/);
@@ -261,11 +295,13 @@ for (const mode of modes) {
           p.remove();
           out.color = [colorOf(want.textFill) + (want.textFill?.v ? `  [${want.textFill.v}]` : ""), cs.color];
         }
-        if (need.includes("opacity")) out.op = [String(want.op ?? 1), cs.opacity];
+        // Figma stores opacity as a float (0.47999998927116394 for 48%): both sides compare to three decimals.
+        const op3 = (value) => String(Math.round(Number(value) * 1000) / 1000);
+        if (need.includes("opacity")) out.op = [op3(want.op ?? 1), op3(cs.opacity)];
         return out;
       }, {
-        id: item.id, sel: entry.dom, want, entry: { check: entry.check, fillVia: entry.fillVia, strokeVia: entry.strokeVia, fxIgnoreInset: entry.fxIgnoreInset, fxBackdrop: entry.fxBackdrop, root: entry.root ?? suite.root },
-        cssVars: Object.fromEntries([want.fill?.v, want.stroke?.v, want.textFill?.v, want.bvR].filter(Boolean).map((name) => [name, cssVar(name)])),
+        id: item.id, sel: entry.dom, want, entry: { check: entry.check, fillVia: entry.fillVia, strokeVia: entry.strokeVia, strokeSide: entry.strokeSide, strokeScale: entry.strokeScale, fxIgnoreInset: entry.fxIgnoreInset, fxBackdrop: entry.fxBackdrop, root: entry.root ?? suite.root },
+        cssVars: Object.fromEntries([want.fill?.v, want.stroke?.v, want.textFill?.v, want.bvR, ...(want.fill?.stops ?? []).map((stop) => stop.v)].filter(Boolean).map((name) => [name, cssVar(name)])),
         styleTokens: Object.fromEntries([want.fxStyle, want.ts].filter(Boolean).map((name) => [name, styleToken(name)])),
       });
       if (got.missing) { checks.push({ layer: entry.figma, prop: "exists", figma: "present", dom: `missing ${entry.dom}`, ok: false }); continue; }
@@ -292,10 +328,12 @@ let failures = 0;
 let total = 0;
 const lines = [];
 const known = [];
-// An exception may pin `code` (the value code deliberately renders instead), so a later drift still fails.
+// An exception may pin `code` (the value code deliberately renders instead), so a later drift still fails: a string
+// matches exactly, a number within 0.05px (a geometry code derives, as a bar's width from its column).
+const pinned = (code, actual) => (typeof code === "number" ? Math.abs(Number(actual) - code) <= 0.05 : String(actual) === code);
 const isKnown = (result, check) => (suite.figmaExceptions ?? []).find((item) =>
   item.layer === check.layer && item.prop === check.prop && Object.entries(item.vp).every(([key, value]) => result.variant[key] === value)
-  && (item.code === undefined || String(check.actual) === item.code));
+  && (item.code === undefined || pinned(item.code, check.actual)));
 for (const result of results) {
   for (const check of result.checks) {
     const exception = !check.ok && isKnown(result, check);
