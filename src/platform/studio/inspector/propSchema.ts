@@ -314,6 +314,8 @@ export function dataSourceLabel(source: DataSource, row?: number): string {
   const fields = (source.path ?? []).map((key) => `.${key}`).join("");
   // A list written in place of names (`[people.ava, people.bao]`) names the row's item itself.
   const items = source.kind === "row" ? /^\[\s*([\w$.]+(?:\s*,\s*[\w$.]+)*)\s*,?\s*\]$/.exec(source.source ?? "")?.[1].split(/\s*,\s*/) : undefined;
+  // A value a helper draws from the data it is given (personAvatar(people[t.assignee])): that row's data.
+  if (source.kind === "param" && source.helper) return `the data ${source.helper}(…) draws this layer from`;
   // A prop of a component of the file: written where it is used.
   if (source.kind === "param") return `<${source.component ?? "the component"}>'s ${[source.prop, ...(source.path ?? [])].filter(Boolean).join(".")} where it is used`;
   // A Table cell's row: the value as the cell reads it, and which row.
