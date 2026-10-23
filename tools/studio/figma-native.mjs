@@ -610,9 +610,10 @@ class Writer {
     }
     const id = given ?? this.fresh();
     const fill = this.fills(spec, parentInfo);
-    const sizing = root ? { w: "FIXED", h: "HUG" } : { w: fill.w ? "FILL" : spec.fixedWidth ? "FIXED" : "HUG", h: fill.h ? "FILL" : "HUG" };
+    // The page frame is the device wide; an Overlay's (figma-push `hug`) as big as what it holds.
+    const sizing = root ? { w: spec.hug ? "HUG" : "FIXED", h: "HUG" } : { w: fill.w ? "FILL" : spec.fixedWidth ? "FIXED" : "HUG", h: fill.h ? "FILL" : "HUG" };
     const { fields, vars = [], mode, tracks } = this.layout(spec, spec.layout, sizing);
-    const guess = root ? { w: this.pkg.frame.width || 1440, h: 100 } : this.estimate(spec);
+    const guess = root && !spec.hug ? { w: this.pkg.frame.width || 1440, h: 100 } : this.estimate(spec);
     const w = guess.w, h = guess.h;
     const pos = this.position(spec, parentInfo, w, h);
     const node = {
@@ -1838,6 +1839,9 @@ export function nativeMessage(pkg, pack, pictures = new Map()) {
   // Another page's components (figma-push `components`): their instances come as frames of their layers, as a page's own.
   for (const entry of pkg.components ?? []) writer.planLocals(entry.spec);
   const root = writer.frame(pkg.frame, PAGE, null, { root: true });
+  // Prototype interactions (figma-push `reactions`) lead to other frames: the Zen plugin's import places them.
+  const interactions = (function count(node) { return (node?.reactions?.length ?? 0) + (node?.children ?? []).reduce((sum, child) => sum + count(child), 0) + (node?.slots ?? []).reduce((sum, slot) => sum + slot.children.reduce((all, child) => all + count(child), 0), 0); })(pkg.frame);
+  if (interactions) writer.note(`${interactions} interaction${interactions > 1 ? "s" : ""} (Prototype tab): a direct paste carries none; import the page with the Zen plugin for them`);
   writer.finishLocals();
   writer.finishContents();
   const skeletons = writer.skeletons();

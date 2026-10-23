@@ -499,6 +499,14 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(Boolean(painted?.fillPaints?.[0]?.colorVar), "phone AppShell: the Band's fill is an override of the instance, bound to its colour variable");
 }
 
+// --- an Overlay's frame (figma-push `hug`) and the Prototype tab's reactions (the plugin's; a paste names them) ----------
+{
+  const overlay = { format: "zen-studio-figma", version: 1, page: { id: "t", title: "T" }, frame: { type: "FRAME", name: "Invite", hug: true, layout: { mode: "VERTICAL", gap: 0 }, children: [{ type: "FRAME", name: "Card", layout: { mode: "VERTICAL", gap: 0 }, reactions: [{ trigger: "ON_CLICK", action: "CLOSE" }], children: [] }] } };
+  const { message, notes } = nativeMessage(overlay, pack);
+  const root = message.nodeChanges.find((node) => node.name === "Invite");
+  check([root?.stackPrimarySizing, root?.stackCounterSizing].every((value) => /^RESIZE_TO_FIT/.test(value ?? "")) && notes.some((note) => /1 interaction \(Prototype tab\): a direct paste carries none/.test(note)), "an Overlay frame hugs both ways; its interactions are named (the Zen plugin's import carries them)");
+}
+
 // --- the pack as stored: repeated subtrees once in `shared`, expanded on load ------------------------------------------
 {
   const keep = { self: { name: "Icon", size: { x: 44, y: 44 } } };
