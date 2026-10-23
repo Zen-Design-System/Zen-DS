@@ -65,13 +65,14 @@ export function cardMap(prefix) {
 }
 
 /** A legend's map entries: the row, each item's dot (size + colour) and label (text style + colour). `items` legend items. */
-export function legendMap(route, { items = 2, itemName = ".Chart/Legend-Item", dotName = "Dot", check = ["w", "h", "x", "y"], when } = {}) {
-  const entries = [{ figma: route, dom: ".zen-chart__legend", check, when }];
+/** `itemY` also places each item (a legend that wraps or lists down a column); `check: []` skips the row's own box. */
+export function legendMap(route, { items = 2, itemName = ".Chart/Legend-Item", dotName = "Dot", check = ["w", "h", "x", "y"], itemY = false, when } = {}) {
+  const entries = check.length ? [{ figma: route, dom: ".zen-chart__legend", check, when }] : [];
   for (let i = 0; i < items; i += 1) {
     const li = `.zen-chart__legend > li:nth-child(${i + 1})`;
     entries.push(
       { figma: `${route} > ${itemName}#${i} > ${dotName}`, dom: `${li} > .zen-chart__swatch`, check: ["size", "fill"], when },
-      { figma: `${route} > ${itemName}#${i} > Label`, dom: li, check: ["text", "h"], when },
+      { figma: `${route} > ${itemName}#${i} > Label`, dom: li, check: itemY ? ["text", "h", "y"] : ["text", "h"], when },
     );
   }
   return entries;

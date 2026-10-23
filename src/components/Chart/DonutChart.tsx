@@ -12,7 +12,7 @@ export interface DonutChartProps {
   format?: (value: number) => string;
   /** Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling
    *  (`sm` … `xl`); a number still sets px. The ring is 22% of it; it never grows past its box, and a stretched Chart Card
-   *  grows it. Small shows the centre figure alone (Body/Base/Bold), XLarge in Heading/3. */
+   *  grows it. Small shows the centre figure alone (Body/Base/Bold), XLarge in Display/4. */
   size?: ChartRingSize | number;
   /** What the chart shows ("Spending by category, September 2026"). */
   "aria-label": string;
@@ -70,7 +70,7 @@ function slicePath(from: number, to: number, outer: number, inner: number, halfG
  * Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,
  * parted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %
  * pill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)
- * — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Heading/2 figure, as
+ * — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Display/4 figure, as
  * the Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump
  * to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365
  * (Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).
@@ -134,7 +134,7 @@ export function DonutChart({ data, format = defaultFormat, size = "medium", "ari
         }) : null}
         {totalPosition === "centre" ? (
           <span className="zen-chart__centre" aria-hidden="true">
-            <span className={`zen-chart__centre-value ${typographyStyles[step === "small" ? "Body/Base/Bold" : step === "xlarge" ? "Heading/3" : "Heading/4"]}`}>{figure}</span>
+            <span className={`zen-chart__centre-value ${typographyStyles[step === "small" ? "Body/Base/Bold" : step === "xlarge" ? "Display/4" : "Heading/4"]}`}>{figure}</span>
             {step !== "small" ? <span className={`zen-chart__centre-label ${typographyStyles["Caption/Regular"]}`}>{caption}</span> : null}
           </span>
         ) : null}
@@ -148,7 +148,7 @@ export function DonutChart({ data, format = defaultFormat, size = "medium", "ari
         <div className="zen-chart__side">
           <div className="zen-chart__total" aria-hidden="true">
             <span className={`zen-chart__total-label ${typographyStyles["Body/Small/Regular"]}`}>{caption}</span>
-            <span className={`zen-chart__total-value ${typographyStyles["Heading/2"]}`}>{figure}</span>
+            <span className={`zen-chart__total-value ${typographyStyles["Display/4"]}`}>{figure}</span>
           </div>
           {legend}
         </div>

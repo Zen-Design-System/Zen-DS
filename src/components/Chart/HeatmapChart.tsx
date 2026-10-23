@@ -35,7 +35,7 @@ const levelOf = (value: number, max: number) => (value <= 0 || max <= 0 ? 0 : Ma
 /**
  * Heatmap in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): a 24px-tall cell per row ×
  * column (Corner-Radius/Small, Spacing/Gap/2XSmall apart) on 5 Support/Brand steps, column labels on top and row labels
- * on the left (Label/Small/Medium, Neutral/Light), a Less → More scale (Caption/Regular). Hover or the arrow keys pick a
+ * in a 40px start column (Label/Small/Medium, Neutral/Light; a longer label widens it), a Less → More scale (Caption/Regular). Hover or the arrow keys pick a
  * cell (its row and column labels light up and its Tooltip reads "Tue 1 pm · 55 h"); Home/End jump to the row's first and
  * last cell. Figma Chart/Heatmap-Chart 15326:1043.
  */

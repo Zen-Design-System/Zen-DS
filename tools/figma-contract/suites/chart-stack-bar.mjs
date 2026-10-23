@@ -48,7 +48,7 @@ export default {
     ...cardMap("Elements"),
     { figma: "Elements", dom: ":root", check: ["size"] },
     ...trendMap(T),
-    ...legendMap("Elements > Legend", { items: 5, itemName: "Legend-Item", dotName: "Ellipse 2" }),
+    ...legendMap("Elements > Legend", { items: 5, itemName: "Legend-Item", dotName: "Ellipse 2", itemY: true }),
     { figma: "Elements > Legend > Legend-Item#5", dom: ".zen-chart__legend > li:nth-child(6)", check: ["size"] },
     // One column per sector: 2px side padding, the stack ≤ 40px centred in it with Corner-Radius/Small; the segments
     // bottom-up (Figma lists them top-down: Value#3 is the bottom one). Figma's column box runs from the plot's top to the

@@ -15,7 +15,7 @@ export interface RadialChartProps {
   /** Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling
    *  (`sm` … `xl`); a number still sets px. Rings are 10px with 8px between them (6px and 4px at Small, so four still fit);
    *  the chart never grows past its box, and a stretched Chart Card grows it. Small shows the centre figure alone
-   *  (Body/Base/Bold), XLarge in Heading/3. */
+   *  (Body/Base/Bold), XLarge in Display/4. */
   size?: ChartRingSize | number;
   /** What the chart shows ("Budget used by area, September 2026"). */
   "aria-label": string;
@@ -80,7 +80,7 @@ export function RadialChart({ data, max = 100, format, size = "medium", "aria-la
             </g>
           </svg>
           <span className="zen-chart__centre" aria-hidden="true">
-            <span className={`zen-chart__centre-value ${typographyStyles[step === "small" ? "Body/Base/Bold" : step === "xlarge" ? "Heading/3" : "Heading/4"]}`}>{current ? show(current.d.value) : value ?? (lead ? show(lead.d.value) : "")}</span>
+            <span className={`zen-chart__centre-value ${typographyStyles[step === "small" ? "Body/Base/Bold" : step === "xlarge" ? "Display/4" : "Heading/4"]}`}>{current ? show(current.d.value) : value ?? (lead ? show(lead.d.value) : "")}</span>
             {step !== "small" ? <span className={`zen-chart__centre-label ${typographyStyles["Caption/Regular"]}`}>{current ? current.d.label : label ?? lead?.d.label}</span> : null}
           </span>
           <ChartSummary id={`${id}-summary`}>{summary}</ChartSummary>

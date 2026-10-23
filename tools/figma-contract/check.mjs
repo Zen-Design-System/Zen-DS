@@ -134,6 +134,8 @@ for (const mode of modes) {
       const figma = findPath(spec, entry.figma);
       if (!figma) { checks.push({ layer: entry.figma, prop: "exists", figma: "missing in Figma", dom: "-", ok: false }); continue; }
       const node = figma.node;
+      const origin = entry.figmaRoot ? findPath(spec, entry.figmaRoot) : null;
+      if (entry.figmaRoot && !origin) { checks.push({ layer: entry.figmaRoot, prop: "exists", figma: "missing in Figma", dom: "-", ok: false }); continue; }
       if (node.hidden && !entry.forceVisible) {
         const present = await page.evaluate(({ id, sel }) => {
           const el = document.querySelector(`[data-case="${id}"] ${sel.split("::")[0]}`);
@@ -146,7 +148,9 @@ for (const mode of modes) {
         continue;
       }
       const want = {
-        w: node.w, h: node.h, x: figma.x, y: figma.y,
+        // `figmaRoot` (with `root`, its DOM pair): offsets from that layer instead of the component, so a plot's insides
+        // compare to its own frame when a lane above it differs.
+        w: node.w, h: node.h, x: figma.x - (origin?.x ?? 0), y: figma.y - (origin?.y ?? 0),
         fill: visiblePaint(node.fill), stroke: visiblePaint(node.stroke), sw: node.sw, sa: node.sa,
         r: node.r, bvR: node.bv?.topLeftRadius, op: node.op,
         fxStyle: node.fxStyle, ts: node.ts, textFill: node.t === "TEXT" ? visiblePaint(node.fill) : null,
@@ -205,7 +209,8 @@ for (const mode of modes) {
         if (need.includes("cy")) out.cy = [+(want.y + want.h / 2).toFixed(2), +(rect.top + rect.height / 2 - rr.top).toFixed(2)];
         if (need.includes("fill")) {
           const expected = want.fill ? colorOf(want.fill) : "rgba(0, 0, 0, 0)";
-          const actual = entry.fillVia === "color" ? cs.color : entry.fillVia === "fill" ? cs.fill : entry.fillVia === "caret" ? cs.caretColor : cs.backgroundColor;
+          // "stroke": a Figma fill that code draws as an SVG stroke (a gauge's value arc).
+          const actual = entry.fillVia === "color" ? cs.color : entry.fillVia === "fill" ? cs.fill : entry.fillVia === "stroke" ? cs.stroke : entry.fillVia === "caret" ? cs.caretColor : cs.backgroundColor;
           out.fill = [expected + (want.fill?.v ? `  [${want.fill.v}]` : ""), actual];
           // "gradient": an SVG shape painted by a <linearGradient> (a chart's area fade). Each stop compares through its
           // bound variable, and the paint's opacity with the shape's fill-opacity.
@@ -284,7 +289,9 @@ for (const mode of modes) {
           p.remove();
           out.color = [colorOf(want.textFill) + (want.textFill?.v ? `  [${want.textFill.v}]` : ""), cs.color];
         }
-        if (need.includes("opacity")) out.op = [String(want.op ?? 1), cs.opacity];
+        // Figma stores opacity as a float (0.47999998927116394 for 48%): both sides compare to three decimals.
+        const op3 = (value) => String(Math.round(Number(value) * 1000) / 1000);
+        if (need.includes("opacity")) out.op = [op3(want.op ?? 1), op3(cs.opacity)];
         return out;
       }, {
         id: item.id, sel: entry.dom, want, entry: { check: entry.check, fillVia: entry.fillVia, strokeVia: entry.strokeVia, strokeSide: entry.strokeSide, strokeScale: entry.strokeScale, fxIgnoreInset: entry.fxIgnoreInset, fxBackdrop: entry.fxBackdrop, root: entry.root ?? suite.root },
@@ -315,10 +322,12 @@ let failures = 0;
 let total = 0;
 const lines = [];
 const known = [];
-// An exception may pin `code` (the value code deliberately renders instead), so a later drift still fails.
+// An exception may pin `code` (the value code deliberately renders instead), so a later drift still fails: a string
+// matches exactly, a number within 0.05px (a geometry code derives, as a bar's width from its column).
+const pinned = (code, actual) => (typeof code === "number" ? Math.abs(Number(actual) - code) <= 0.05 : String(actual) === code);
 const isKnown = (result, check) => (suite.figmaExceptions ?? []).find((item) =>
   item.layer === check.layer && item.prop === check.prop && Object.entries(item.vp).every(([key, value]) => result.variant[key] === value)
-  && (item.code === undefined || String(check.actual) === item.code));
+  && (item.code === undefined || pinned(item.code, check.actual)));
 for (const result of results) {
   for (const check of result.checks) {
     const exception = !check.ok && isKnown(result, check);
