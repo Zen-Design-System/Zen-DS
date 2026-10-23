@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
+  place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
+  block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in
+  the folder (the 11 Figma exports first), and Copy for Figma creates it there (Zen plugin).
 - Layout: `modes={{ theme: "dark", density: "comfortable" }}` on Stack, Grid and Box, and on a Studio Screen. This is
   Figma's Change variable mode on a frame: the data-* attributes tokens.css reads, and the ZenProvider context for the
   components inside. Zen Studio sets it with Apply variable mode (Appearance header, Screen section). Push and the Zen

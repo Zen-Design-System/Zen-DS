@@ -2,6 +2,17 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-23 (B: Studio Variables new collections)
+
+- Done 2026-10-23 (user via the progress session: "Cho B làm 'tạo collection mới' trong Studio Variables theo đề xuất:
+  chỉ một mode (:root)"; spec docs/research/studio-variables-collections-spec-2026-10-23.md, plugin 429e3f2):
+  **P3 · Studio Variables: new collections (2026-10-23, B; waits for the user):** v2 (chunks 1–4: Edit variable,
+  rename with an alias, modes, per-frame `modes`) is on branch zen/feat/studio-variables-v2-20261023. Creating a
+  collection in Studio is left: the build reads a fixed list of 11 sources (`scripts/token-outputs.mjs` SOURCE_FILES,
+  variables-host TOKEN_FILES), drafts cannot create a file yet, and the native token generator would see a new slug.
+  Single-mode only (`:root`) is the proposal. Pointer: `docs/research/studio-variables-v2-spec-2026-10-23.md` § Status.
+
+
 ## Archived 2026-10-23 (320px debt)
 
 - Done 2026-10-23 (user: "xử hết"; re-measured on main 4b96bbb8: the 13 Chat findings were already gone after the

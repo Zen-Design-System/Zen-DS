@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { tokenOutputs } from "./token-outputs.mjs";
+import { sourceFiles, tokenOutputs } from "./token-outputs.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourceDir = path.join(root, "tokens/source/figma");
@@ -11,8 +11,10 @@ const catalogPath = path.join(root, "src/tokens/catalog.generated.json");
 const modesPath = path.join(root, "src/tokens/modes.generated.ts");
 
 // The build itself is scripts/token-outputs.mjs (shared with the Zen Studio dev server's Variables drafts).
+// Every collection in the folder: the 11 Figma exports and those made in Zen Studio (one mode each).
 const { css, ts, modesTs, catalog, count, collections } = tokenOutputs({
   readSource: (fileName) => JSON.parse(fs.readFileSync(path.join(sourceDir, fileName), "utf8")),
+  files: sourceFiles(fs.readdirSync(sourceDir)),
   motion: JSON.parse(fs.readFileSync(path.join(root, "tokens/source/motion.json"), "utf8")),
 });
 

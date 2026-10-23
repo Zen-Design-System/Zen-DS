@@ -2588,6 +2588,17 @@ const wrapTsc = [];
   const crlf = base.replace(/\n/g, "\r\n");
   const crlfDraft = drafts.nextDraft(undefined, crlf, crlf.replace("primary", "tertiary"), 6);
   check("save: CRLF rebase", (await drafts.planSave(crlfDraft, crlf.replace("end", "END"))).text, crlf.replace("primary", "tertiary").replace("end", "END"));
+  // A new file (a collection made in the Variables window): an empty base marked created, written by Save, gone when undone.
+  const madeText = "{\n  \"Extras\": { \"modes\": [\"Mode 1\"], \"tokens\": [] }\n}\n";
+  const madeDraft = drafts.nextDraft(undefined, null, madeText, 7, { created: true });
+  check("drafts: a new file's draft", madeDraft, { base: "", baseHash: sha1(""), content: madeText, updatedAt: 7, created: true });
+  check("drafts: a new file's later edit stays created", drafts.nextDraft(madeDraft, null, `${madeText} `, 8).created, true);
+  check("drafts: a new file undone to \"\" → no draft", drafts.nextDraft(madeDraft, null, "", 9), null);
+  check("save: a new file is written", await drafts.planSave(madeDraft, null), { text: madeText, rebased: false, created: true });
+  ok("save: a file of that name appeared → conflict", /appeared on disk/.test((await drafts.planSave(madeDraft, "{}\n")).conflict ?? ""));
+  check("follow: a new file meets a file of its name → kept", await drafts.followDisk(madeDraft, "{}\n"), { draft: madeDraft, changed: false });
+  check("drafts: a new file's draft is not stale without a file", drafts.draftInfo("tokens/source/figma/extras.json", madeDraft, null).stale, false);
+  check("drafts: created survives the drafts file", drafts.parseDrafts(drafts.serializeDrafts(new Map([["tokens/source/figma/extras.json", madeDraft]]))).drafts.get("tokens/source/figma/extras.json"), madeDraft);
   check("rebase: disk = base → the draft", await drafts.rebaseDraft(base, content, base), content);
   check("rebase: draft = base → the disk", await drafts.rebaseDraft(base, base, outside), outside);
 

@@ -3,6 +3,8 @@
 // the canvas shows at once and ⌘Z takes back, an alias picked from the Variables tab, a variable created and named in
 // place, a delete refused while code reads the variable. Nothing is saved (a Save runs the token build in the worktree);
 // the run drops every draft between rows.
+import fs from "node:fs";
+import path from "node:path";
 import { sleep, until } from "../lib/studio.mjs";
 import { seededPage } from "./builder.mjs";
 
@@ -47,7 +49,8 @@ export const rows = [
     async run(ctx) {
       const { page, win } = await openVariables(ctx);
       await win.locator(".studio-vars__head").getByRole("button").first().click();
-      const listed = await page.getByRole("menu", { name: "Collections" }).getByRole("menuitem").count();
+      // The collections, without the menu's last item (Create collection).
+      const listed = await page.getByRole("menu", { name: "Collections" }).getByRole("menuitem").filter({ hasNotText: "Create collection" }).count();
       await page.keyboard.press("Escape");
       if (listed !== 11) throw new Error(`${listed} collections listed, want 11`);
       await collection(page, win, "Component Theme");
@@ -219,6 +222,45 @@ export const rows = [
       await page.keyboard.press("ControlOrMeta+KeyZ");
       await until(async () => (await modes()).length === 3, { timeout: 10_000, message: "⌘Z: three modes again" });
       return `E2E Bold added and named · weights ${(await weights().catch(() => [])).join("/")} · Dark's delete refused · ⌘Z`;
+    },
+  },
+  {
+    id: "VA-08", feature: "Create collection (user 2026-10-23, one mode on :root): the Collections menu's last item names it in place (E2E Collection), a draft of tokens/source/figma/e2e-collection.json with no file on disk, one column Mode 1 and no Add mode; Create variable › Number is on the canvas's :root; ⌘Z twice takes the variable, then the collection, back and leaves no file", wp: "Variables v2",
+    async run(ctx) {
+      const { page, win } = await openVariables(ctx);
+      const file = "tokens/source/figma/e2e-collection.json";
+      const onDisk = () => fs.existsSync(path.join(ctx.root, file));
+      if (onDisk()) throw new Error(`${file} is on disk before the row`);
+      await win.locator(".studio-vars__head").getByRole("button").first().click();
+      await page.getByRole("menuitem", { name: "Create collection" }).click();
+      const field = win.getByRole("textbox", { name: "Collection name" });
+      await field.waitFor({ timeout: 5000 });
+      await field.fill("E2E Collection");
+      await field.press("Enter");
+      const head = win.locator(".studio-vars__head").getByRole("button").first();
+      await until(async () => (await head.innerText()).trim() === "E2E Collection", { timeout: 10_000, message: "the new collection shown" });
+      const columns = (await win.getByRole("columnheader").allInnerTexts()).map((text) => text.trim());
+      if (columns.join("|") !== "Name|Mode 1") throw new Error(`columns: ${columns.join(" | ")}`);
+      if (await win.getByRole("button", { name: "Add mode" }).count()) throw new Error("a created collection offers Add mode");
+      const body = async () => Object.values(JSON.parse(await source(ctx, file)))[0];
+      if ((await body()).tokens.length !== 0) throw new Error("the new collection is not empty");
+      await win.getByRole("button", { name: "Create variable" }).click();
+      await page.getByRole("menuitem", { name: "Number" }).click();
+      const rename = win.getByRole("textbox", { name: /^Rename / });
+      await rename.waitFor({ timeout: 5000 });
+      await rename.press("Escape");
+      await until(async () => (await body()).tokens.length === 1, { timeout: 10_000, message: "the variable in the collection's file" });
+      const [variable] = (await body()).tokens;
+      const prop = `--zen-${variable.name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase()}`;
+      await until(async () => (await cssVar(page, prop)) === "0px", { timeout: 15_000, message: `${prop} on :root` });
+      if (onDisk()) throw new Error("a draft wrote the file");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => (await body()).tokens.length === 0, { timeout: 10_000, message: "⌘Z: the variable gone" });
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => { try { await source(ctx, file); return false; } catch { return true; } }, { timeout: 10_000, message: "⌘Z: the collection's draft gone" });
+      if (onDisk()) throw new Error(`${file} was left on disk`);
+      return `E2E Collection · ${columns.slice(1).join(", ")} · ${variable.name} → ${prop}: 0px · ⌘Z twice: no draft, no file`;
     },
   },
 ];

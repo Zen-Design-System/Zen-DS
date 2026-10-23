@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { VariableEditError, aliasReaders, applyVariableOps, cssNameOf, normalizeColor, readCollection, resolveValue, variablesOf, variablesPackage } from "./variables.mjs";
+import { NEW_COLLECTION_MODE, VariableEditError, aliasReaders, applyVariableOps, collectionFileOf, cssNameOf, normalizeColor, readCollection, resolveValue, variablesOf, variablesPackage } from "./variables.mjs";
 
 let count = 0;
 const test = (name, run) => { try { run(); count += 1; } catch (error) { console.error(`✗ ${name}`); throw error; } };
@@ -174,6 +174,26 @@ test("modes (v2): add (first mode's values, Figma's Mode N), duplicate beside, r
   const pkg = variablesPackage(new Map([["s", semantic]]), new Map([["s", applyVariableOps(semantic, [{ op: "renameMode", mode: "Dark", to: "Night" }, { op: "addMode", name: "Dim", from: "Light" }], context()).text]]));
   assert.deepEqual(pkg.changes.filter((change) => /Mode$/.test(change.op)), [{ op: "renameMode", collection: "Mode Colors (Semantic)", mode: "Night", from: "Dark" }, { op: "addMode", collection: "Mode Colors (Semantic)", mode: "Dim" }]);
   assert.ok(pkg.changes.filter((change) => change.op === "set").every((change) => Object.keys(change.values).join() === "Dim"), "only the new mode's values are sets (the renamed one kept them)");
+});
+
+test("createCollection (user 2026-10-23, one mode): a new file's text, its name checked; then its variables; the package creates it first", () => {
+  const collections = [...files].map(([file, body]) => ({ file, name: readCollection(body).name }));
+  const made = applyVariableOps("", [{ op: "createCollection", name: "  Brand   Extras " }], { ...context(), collections });
+  assert.deepEqual([JSON.parse(made.text), made.label, made.changed, collectionFileOf("Brand Extras"), NEW_COLLECTION_MODE], [{ "Brand Extras": { modes: ["Mode 1"], tokens: [] } }, "Create collection Brand Extras", [], "tokens/source/figma/brand-extras.json", "Mode 1"]);
+  assert.ok(made.text.endsWith("}\n"), "written as the exports are (two spaces, a final newline)");
+  // With a first variable in the same edit: one label, the variable in the one mode.
+  const withGap = applyVariableOps("", [{ op: "createCollection", name: "Extras" }, { op: "create", name: "Extras/Gap", type: "FLOAT" }], { ...context(), collections });
+  assert.deepEqual([readCollection(withGap.text).tokens, withGap.label], [[{ name: "Extras/Gap", type: "FLOAT", valuesByMode: { "Mode 1": 0 } }], "Create collection Extras"]);
+  refused(() => applyVariableOps("", [{ op: "createCollection", name: "spacing" }], { ...context(), collections }), "conflict", /Spacing already exists/);
+  refused(() => applyVariableOps("", [{ op: "createCollection", name: "Global  colors!" }], { ...context(), collections: [{ file: "tokens/source/figma/global-colors.json", name: "Primitives" }] }), "conflict", /would be tokens\/source\/figma\/global-colors.json, the file of Primitives/);
+  refused(() => applyVariableOps("", [{ op: "createCollection", name: " - " }], { ...context(), collections }), "invalid", /needs a letter or a digit/);
+  refused(() => applyVariableOps(spacing, [{ op: "createCollection", name: "Extras" }], { ...context(), collections }), "invalid", /makes a new file/);
+  refused(() => applyVariableOps(spacing, [{ op: "create", name: "A/B", type: "FLOAT" }, { op: "createCollection", name: "Extras" }], { ...context(), collections }), "invalid", /comes first/);
+  // Saved, Figma has not got it (its base is null, "no file"): Create collection, then its variables.
+  const pkg = variablesPackage(new Map([["tokens/source/figma/extras.json", null]]), new Map([["tokens/source/figma/extras.json", withGap.text]]));
+  assert.deepEqual(pkg.changes.map((change) => [change.op, change.collection, change.modes ?? change.name]), [["createCollection", "Extras", ["Mode 1"]], ["create", "Extras", "Extras/Gap"]]);
+  // A file Figma never had and that is gone again: nothing.
+  assert.deepEqual(variablesPackage(new Map([["tokens/source/figma/extras.json", null]]), new Map()).changes, []);
 });
 
 test("the repo's own token sources read, and a no-op edit gives the same text back", () => {

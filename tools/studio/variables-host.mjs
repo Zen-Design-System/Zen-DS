@@ -9,12 +9,13 @@ import { execFile } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { HIGH_CONTRAST_MODE, highContrastValues, neutralRampsOf } from "../../scripts/high-contrast.mjs";
-import { SOURCE_FILES, tokenOutputs } from "../../scripts/token-outputs.mjs";
-import { TOKEN_SOURCE, VariableEditError, aliasReaders, applyVariableOps, cssNameOf, readCollection, variablesOf, variablesPackage } from "./variables.mjs";
+import { sourceFiles, tokenOutputs } from "../../scripts/token-outputs.mjs";
+import { TOKEN_SOURCE, VariableEditError, aliasReaders, applyVariableOps, collectionFileOf, cssNameOf, readCollection, variablesOf, variablesPackage } from "./variables.mjs";
 
 export const TOKENS_CSS = "src/styles/tokens.css";
-export const TOKEN_FILES = SOURCE_FILES.map(([file]) => `tokens/source/figma/${file}`);
-export const isTokenSource = (rel) => typeof rel === "string" && TOKEN_SOURCE.test(rel) && TOKEN_FILES.includes(rel);
+const TOKEN_DIR = "tokens/source/figma";
+/** A collection file: one of the 11 Figma exports or one made in Zen Studio (tokens/source/figma/<slug>.json). */
+export const isTokenSource = (rel) => typeof rel === "string" && TOKEN_SOURCE.test(rel);
 
 const GLOBAL_COLORS = "tokens/source/figma/global-colors.json";
 const BASE_COLORS = "tokens/source/figma/base-colors-project.json";
@@ -49,17 +50,28 @@ const run = (cwd, script) => new Promise((resolve) => {
 export function variablesHost({ realRoot, drafts }) {
   const disk = (rel) => fs.readFileSync(path.join(realRoot(), rel), "utf8");
   const textOf = (rel) => drafts.get(rel)?.content ?? disk(rel);
+  /** The collections in the build's order (scripts/token-outputs.mjs sourceFiles): the folder's files and the
+   *  collections made in Zen Studio that are only a draft yet. [file name, slug, repo path] each. */
+  const sources = () => {
+    let names = [];
+    try { names = fs.readdirSync(path.join(realRoot(), TOKEN_DIR)); } catch { /* no folder: none */ }
+    const drafted = [...drafts.keys()].filter(isTokenSource).map((rel) => rel.slice(TOKEN_DIR.length + 1));
+    return sourceFiles([...names, ...drafted]).map(([file, slug]) => [file, slug, `${TOKEN_DIR}/${file}`]).filter(([, , rel]) => drafts.has(rel) || fs.existsSync(path.join(realRoot(), rel)));
+  };
+  const tokenFiles = () => sources().map(([, , rel]) => rel);
 
   let cache = { drafts: [], css: null };
   /** tokens.css as the build writes it from the token sources and their drafts; null without a token draft. */
   function draftCss() {
-    const drafted = TOKEN_FILES.map((rel) => drafts.get(rel) ?? null);
+    const list = sources();
+    const drafted = list.map(([, , rel]) => drafts.get(rel) ?? null);
     if (!drafted.some(Boolean)) return null;
-    if (cache.css !== null && drafted.every((draft, index) => draft === cache.drafts[index])) return cache.css;
-    const byFile = new Map(SOURCE_FILES.map(([file], index) => [file, TOKEN_FILES[index]]));
+    if (cache.css !== null && drafted.length === cache.drafts.length && drafted.every((draft, index) => draft === cache.drafts[index])) return cache.css;
+    const byFile = new Map(list.map(([file, , rel]) => [file, rel]));
     try {
       const { css } = tokenOutputs({
         readSource: (file) => JSON.parse(textOf(byFile.get(file))),
+        files: list.map(([file, slug]) => [file, slug]),
         motion: JSON.parse(disk("tokens/source/motion.json")),
         warn: () => {},
       });
@@ -73,7 +85,7 @@ export function variablesHost({ realRoot, drafts }) {
 
   /** Every collection as the Studio sees it now (drafts included). */
   function collections(sha1) {
-    return TOKEN_FILES.map((rel) => {
+    return tokenFiles().map((rel) => {
       const text = textOf(rel);
       const collection = readCollection(text);
       return { file: rel, name: collection.name, modes: collection.modes, tokens: collection.tokens, hash: sha1(text), draft: drafts.has(rel) };
@@ -143,7 +155,8 @@ export function variablesHost({ realRoot, drafts }) {
    * a rename or a delete, against what reads the variable (other variables' aliases, code under src/).
    */
   function edit(rel, before, ops) {
-    const texts = new Map(TOKEN_FILES.map((file) => [file, file === rel ? before : textOf(file)]));
+    // A collection made now (createCollection on a file that does not exist yet) is not among the others.
+    const texts = new Map(tokenFiles().filter((file) => file !== rel || before).map((file) => [file, file === rel ? before : textOf(file)]));
     const variables = variablesOf(texts);
     // A delete also asks about the variable's old names (code may still read --zen-<old>).
     const touched = ops.filter((op) => op?.op === "rename" || op?.op === "delete").flatMap((op) => [op.name, ...(op.op === "delete" ? variables.get(op.name)?.formerNames ?? [] : [])]);
@@ -155,7 +168,10 @@ export function variablesHost({ realRoot, drafts }) {
     if (rel === GLOBAL_COLORS && ops.some((op) => op?.op === "setValue" && op.mode === HIGH_CONTRAST_MODE)) {
       throw new VariableEditError("invalid", `${HIGH_CONTRAST_MODE} follows the Zen values (the high-contrast algorithm): change the Zen value`);
     }
-    const result = applyVariableOps(before, ops, { variables, readers, nameReaders, modeReaders });
+    const collectionsNow = [...texts].map(([file, text]) => ({ file, name: readCollection(text).name }));
+    if (ops[0]?.op === "createCollection" && (before || drafts.has(rel) || fs.existsSync(path.join(realRoot(), rel)))) throw new VariableEditError("conflict", `${rel} exists already`);
+    const result = applyVariableOps(before, ops, { variables, readers, nameReaders, modeReaders, collections: collectionsNow });
+    if (ops[0]?.op === "createCollection" && collectionFileOf(readCollection(result.text).name) !== rel) throw new VariableEditError("invalid", `${readCollection(result.text).name} is written to ${collectionFileOf(readCollection(result.text).name)}, not ${rel}`);
     return rel === GLOBAL_COLORS ? { ...result, text: withHighContrast(result.text, textOf(BASE_COLORS)) } : result;
   }
 
@@ -168,7 +184,8 @@ export function variablesHost({ realRoot, drafts }) {
     }
   };
 
-  /** Before a save writes token sources: the texts they had, kept when no earlier save since the hand-over kept one. */
+  /** Before a save writes token sources: the texts they had, kept when no earlier save since the hand-over kept one
+   *  (null: a collection made in Zen Studio, no file yet; Figma then gets Create collection). */
   function keepBase(prior) {
     if (!prior.size) return;
     const base = readBase() ?? { since: new Date().toISOString(), files: {} };
@@ -188,7 +205,8 @@ export function variablesHost({ realRoot, drafts }) {
     const base = readBase();
     if (!base) return { pkg: variablesPackage(new Map(), new Map()), since: null };
     const files = Object.keys(base.files).filter(isTokenSource);
-    return { pkg: variablesPackage(new Map(files.map((rel) => [rel, base.files[rel]])), new Map(files.map((rel) => [rel, disk(rel)]))), since: base.since };
+    const onDisk = files.filter((rel) => fs.existsSync(path.join(realRoot(), rel)));
+    return { pkg: variablesPackage(new Map(files.map((rel) => [rel, base.files[rel]])), new Map(onDisk.map((rel) => [rel, disk(rel)]))), since: base.since };
   }
 
   /** The person handed the package to Figma: what is saved now is what Figma has. */

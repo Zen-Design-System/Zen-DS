@@ -21,13 +21,23 @@
 //        { op: "meta", name, description?, scopes?, hiddenFromPublishing? }   Figma's Edit variable (Studio Variables v2,
 //                                                   docs/research/studio-variables-v2-spec-2026-10-23.md): an empty
 //                                                   description, ALL_SCOPES (or no scopes key) and false are dropped
+//        { op: "createCollection", name }           first, on an empty text (a file that does not exist yet): Figma's
+//                                                   Create collection, one mode "Mode 1" (:root; user 2026-10-23,
+//                                                   docs/research/studio-variables-collections-spec-2026-10-23.md);
+//                                                   the file is collectionFileOf(name)
 //   context: { variables: Map(name → { type, collection, valuesByMode }) of every collection (this one included, as
-//             saved or drafted), readers(name) → [description] (other variables' aliases and code reading its CSS name) }
+//             saved or drafted), readers(name) → [description] (other variables' aliases and code reading its CSS name),
+//             collections: [{ name, file }] (createCollection checks its name against them) }
 //
 //   variablesPackage(base, now) → the Zen plugin's `zen-studio-variables` v1 package: what changed from the `base`
 //   texts to the `now` texts (Map file → text), by collection, variable name and mode; renames, creates, sets, deletes.
+//   A base of null (the file did not exist) is a createCollection first.
 
 export const TOKEN_SOURCE = /^tokens\/source\/figma\/[a-z0-9-]+\.json$/;
+/** A new collection's one mode, as Figma names it. */
+export const NEW_COLLECTION_MODE = "Mode 1";
+/** The file a collection made in Zen Studio is written to: its name in kebab case (the build's slug). */
+export const collectionFileOf = (name) => `tokens/source/figma/${cssNameOf(name)}.json`;
 export const VARIABLE_TYPES = ["COLOR", "FLOAT", "STRING", "BOOLEAN"];
 /** Figma's variable scopes by type (Plugin API VariableScope): where a picker offers the variable. None written = all. */
 export const VARIABLE_SCOPES = {
@@ -162,8 +172,29 @@ function readersSentence(name, readers) {
   return `${name} is read by ${shown}${readers.length > 3 ? ` and ${readers.length - 3} more` : ""}`;
 }
 
+/** A new collection's name checked: text with a letter or a digit, not another collection's name or file. */
+function checkedCollectionName(collections, name) {
+  const clean = String(name ?? "").trim().replace(/\s+/g, " ");
+  if (!/[a-z0-9]/i.test(clean)) refuse("A collection name needs a letter or a digit");
+  for (const other of collections) {
+    if (other.name.toLowerCase() === clean.toLowerCase()) refuse(`${other.name} already exists`, "conflict");
+    if (other.file === collectionFileOf(clean)) refuse(`${clean} would be ${other.file}, the file of ${other.name}`, "conflict");
+  }
+  return clean;
+}
+
 export function applyVariableOps(text, ops, context) {
   if (!Array.isArray(ops) || !ops.length) refuse("Expected ops");
+  // Create collection: the file starts as the empty collection, then the other ops (if any) apply to it.
+  let made = null;
+  if (ops[0]?.op === "createCollection") {
+    if (text) refuse("Create collection makes a new file; this one exists");
+    made = checkedCollectionName(context.collections ?? [], ops[0].name);
+    text = writeCollection({ name: made, modes: [NEW_COLLECTION_MODE], tokens: [], body: {} });
+    ops = ops.slice(1);
+    if (!ops.length) return { text, changed: [], label: `Create collection ${made}` };
+  }
+  if (ops.some((op) => op?.op === "createCollection")) refuse("Create collection comes first, on a new file");
   const collection = readCollection(text);
   const variables = new Map(context.variables);
   const readers = context.readers ?? (() => []);
@@ -317,7 +348,7 @@ export function applyVariableOps(text, ops, context) {
     }
   }
   if (ops.length > 1) label = `${label} (+${ops.length - 1})`;
-  return { text: writeCollection(collection), changed, label };
+  return { text: writeCollection(collection), changed, label: made ? `Create collection ${made}` : label };
 }
 
 /** Every variable of the collections (Map file → text): name → { type, collection, file, valuesByMode }. */
@@ -367,8 +398,13 @@ export function variablesPackage(base, now) {
   const valueOf = (value) => (aliasOf(value) ? { alias: aliasOf(value) } : value);
   const valuesOf = (valuesByMode) => Object.fromEntries(Object.entries(valuesByMode).map(([mode, value]) => [mode, valueOf(value)]));
   for (const file of files) {
-    const before = base.has(file) ? readCollection(base.get(file)) : null;
+    let before = base.has(file) && base.get(file) !== null ? readCollection(base.get(file)) : null;
     const after = now.has(file) ? readCollection(now.get(file)) : null;
+    // A collection made in Zen Studio (its base is "no file"): Figma creates it, then its variables.
+    if (!before && after && base.has(file)) {
+      changes.push({ op: "createCollection", collection: after.name, modes: after.modes });
+      before = { name: after.name, modes: after.modes, tokens: [] };
+    }
     if (!before || !after) continue;
     const old = new Map(before.tokens.map((token) => [token.name, token]));
     const next = new Map(after.tokens.map((token) => [token.name, token]));
@@ -409,7 +445,7 @@ export function variablesPackage(base, now) {
   // In the order the plugin applies them: renames free their old names, creates exist before a value aliases them,
   // deletes go last (nothing reads them by then).
   // Modes first (a value may be for a new mode), a mode's delete last.
-  const ORDER = { renameMode: 0, addMode: 0, rename: 0, create: 1, set: 2, meta: 2, delete: 3, deleteMode: 4 };
+  const ORDER = { createCollection: -1, renameMode: 0, addMode: 0, rename: 0, create: 1, set: 2, meta: 2, delete: 3, deleteMode: 4 };
   changes.sort((a, b) => ORDER[a.op] - ORDER[b.op]);
   return { format: "zen-studio-variables", version: 1, changes };
 }

@@ -422,3 +422,19 @@ Branch zen/feat/box-theme-rules-20261023 (worktree festive-archimedes-176df5). #
   new ListBox examples shrank (.pe-shell is a 480-tall row for app windows): their page is now a column of its content's
   height (list-item.css), re-shot after the slot came back: `qa --only=list-item --isolated` PASS (audit, dark,
   behaviour 0); at 1512 the three Pale groups fill their columns and the flat page hugs its list, 390 unchanged.
+
+## Session B · Studio Variables: new collections (tier M; BACKLOG P3, user via the progress session)
+
+- Spec docs/research/studio-variables-collections-spec-2026-10-23.md. Branch zen/feat/studio-variables-collections-20261023.
+- Build: token-outputs `sourceFiles(listing)` (the 11 first, then created files by name), a created collection must have
+  one mode and is declared on :root; build-tokens passes the folder; check-token-coverage wants the 11 + single-mode
+  extras. Output for today's 11 is byte-identical (headers name created collections only when there are some).
+- Studio: `createCollection` op (Figma's "Mode 1", name and file-slug clashes refused); variables-host lists the folder
+  + created drafts; drafts.mjs `created` drafts (empty base; Save writes the file, a file of that name appearing is a
+  conflict, undo to "" drops it); dev server resolves a missing token source for create / write / save; the window's
+  Collections menu ends with Create collection (name in place). Package: `createCollection` first; plugin 429e3f2.
+- Checked: variables selftest (14), drafts checks in studio selftest, host flow on a scratch copy (create → :root CSS →
+  save → package), tokens:check with a scratch file (1 mode passes, 2 refused; removed), native generator on a scratch
+  catalog (new ZenCollection key), plugin npm test, createVariableCollection + renameMode live in the Zen file
+  (throwaway, removed), tsc. E2E VA-08 written (VA-01 counts collections without the new item); runs in the gate.
+

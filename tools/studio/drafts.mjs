@@ -42,12 +42,14 @@ const splitLines = (text) => text.match(/[^\n]*\n|[^\n]+$/g) ?? [];
  * The draft of a file after an edit or a write produced `content`. `prev`: its draft so far (undefined when none);
  * `disk`: the file on disk now. A new draft starts from the disk (`base`, `baseHash`); an existing one keeps its base.
  * null: `content` equals the disk, or the draft's base (every edit undone: the disk, which may have changed since, is
- * what readers see again), so there is nothing to save.
+ * what readers see again), so there is nothing to save. `created`: a file that does not exist yet (a collection made in
+ * Zen Studio's Variables): the draft starts from an empty base and keeps `created: true`; undone to "" it is gone.
  */
-export function nextDraft(prev, disk, content, now = Date.now()) {
+export function nextDraft(prev, disk, content, now = Date.now(), { created = false } = {}) {
   if (typeof content !== "string") throw new TypeError("content must be a string");
   if (disk === content || (prev && prev.base === content)) return null;
-  if (prev) return { base: prev.base, baseHash: prev.baseHash, content, updatedAt: now };
+  if (prev) return { base: prev.base, baseHash: prev.baseHash, content, updatedAt: now, ...(prev.created ? { created: true } : {}) };
+  if (created && disk === null) return { base: "", baseHash: sha1(""), content, updatedAt: now, created: true };
   if (typeof disk !== "string") throw new TypeError("a draft starts from the disk text");
   return { base: disk, baseHash: sha1(disk), content, updatedAt: now };
 }
@@ -80,6 +82,12 @@ export async function rebaseDraft(base, content, disk) {
  *   { conflict: reason }                        keep the draft; `reason` is a short sentence
  */
 export async function planSave(draft, disk) {
+  // A new file: written as it is, unless a file of that name appeared meanwhile.
+  if (draft.created) {
+    if (disk === null || disk === undefined) return { text: draft.content, rebased: false, created: true };
+    if (disk === draft.content) return { text: disk, rebased: false, unchanged: true };
+    return { conflict: "a file of that name appeared on disk since the draft made it" };
+  }
   if (typeof disk !== "string") return { conflict: "the file is no longer on disk" };
   if (disk === draft.content) return { text: disk, rebased: false, unchanged: true };
   if (sha1(disk) === draft.baseHash) return { text: draft.content, rebased: false };
@@ -100,6 +108,8 @@ export async function planSave(draft, disk) {
 export async function followDisk(draft, disk) {
   if (typeof disk !== "string") return { draft, changed: false };
   if (disk === draft.content) return { draft: null };
+  // A new file's draft meets a file of its name: it stays as it is (Save reports the clash).
+  if (draft.created) return { draft, changed: false };
   if (sha1(disk) === draft.baseHash) return { draft, changed: false };
   const content = await rebaseDraft(draft.base, draft.content, disk);
   if (content === null) return { draft, changed: false };
@@ -136,15 +146,17 @@ export function changedLines(before, after) {
  */
 export function draftInfo(file, draft, disk, lines = changedLines(draft.base, draft.content)) {
   const diskHash = typeof disk === "string" ? sha1(disk) : null;
-  return { file, baseHash: draft.baseHash, diskHash, stale: diskHash !== draft.baseHash, changedLines: lines, updatedAt: draft.updatedAt };
+  // A new file's draft is stale only when a file of its name appeared.
+  const stale = draft.created ? diskHash !== null : diskHash !== draft.baseHash;
+  return { file, baseHash: draft.baseHash, diskHash, stale, changedLines: lines, updatedAt: draft.updatedAt, ...(draft.created ? { created: true } : {}) };
 }
 
 /** The persisted drafts file: { format, drafts: { [file]: { base, baseHash, content, updatedAt } } }, files sorted. */
 export function serializeDrafts(drafts) {
   const out = {};
   for (const file of [...drafts.keys()].sort()) {
-    const { base, baseHash, content, updatedAt } = drafts.get(file);
-    out[file] = { base, baseHash, content, updatedAt };
+    const { base, baseHash, content, updatedAt, created } = drafts.get(file);
+    out[file] = { base, baseHash, content, updatedAt, ...(created ? { created: true } : {}) };
   }
   return `${JSON.stringify({ format: DRAFTS_FORMAT, drafts: out })}\n`;
 }
@@ -171,7 +183,7 @@ export function parseDrafts(text, isAllowed = () => true) {
       && entry.baseHash === sha1(entry.base) && isAllowed(file);
     if (!valid) { dropped += 1; continue; }
     const updatedAt = Number.isFinite(entry.updatedAt) ? entry.updatedAt : 0;
-    drafts.set(file, { base: entry.base, baseHash: entry.baseHash, content: entry.content, updatedAt });
+    drafts.set(file, { base: entry.base, baseHash: entry.baseHash, content: entry.content, updatedAt, ...(entry.created === true ? { created: true } : {}) });
   }
   return { drafts, dropped };
 }

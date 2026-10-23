@@ -11,7 +11,7 @@ import { Search } from "../../../components/Search";
 import { Segmented } from "../../../components/Segmented";
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
-import { MODE_COLLECTIONS, type VariableInput, type VariableOp } from "../../../../tools/studio/variables.mjs";
+import { MODE_COLLECTIONS, collectionFileOf, type VariableInput, type VariableOp } from "../../../../tools/studio/variables.mjs";
 import { applyVariableEdit, readVariables, redoEdit, subscribeStudioWrites, undoEdit, variablesForFigma, variablesHandedOver, type VariableCollection, type VariablesFigma } from "../api";
 import { requestSave, saveDrafts } from "../sourceDrafts";
 import { canEdit, useStudio } from "../store";
@@ -198,6 +198,11 @@ function VariablesPanel() {
   const [renaming, setRenaming] = useState<{ name: string; text: string } | null>(null);
   const [details, setDetails] = useState<{ name: string; rect: DOMRect } | null>(null);
   const [renamingMode, setRenamingMode] = useState<{ mode: string; text: string } | null>(null);
+  // Create collection (Figma names it in place): the name being typed where the collection button was.
+  const [naming, setNaming] = useState<string | null>(null);
+  // Enter commits, and the field's blur as it goes would commit again: one commit per naming.
+  const namingOpen = useRef(false);
+  const startNaming = () => { namingOpen.current = true; setNaming(""); };
   const [focus, setFocus] = useState<Focus>({ row: 0, col: 1 });
   const [scroll, setScroll] = useState({ top: 0, height: 480 });
   const [copied, setCopied] = useState(false);
@@ -322,6 +327,23 @@ function VariablesPanel() {
     if (await run([{ op: "create", name, type: kind, ...(after ? { after } : {}) }], `Create variable ${name}`)) setRenaming({ name, text: shortName(name) });
   };
 
+  // Figma's Create collection, one mode (user 2026-10-23: "chỉ một mode (:root)"): a draft of its new file, ⌘Z removes it.
+  const createCollection = async () => {
+    if (!namingOpen.current) return;
+    namingOpen.current = false;
+    const name = (naming ?? "").trim().replace(/\s+/g, " ");
+    setNaming(null);
+    if (!name) return;
+    if (!editable) { say("View only"); return; }
+    const target = collectionFileOf(name);
+    const response = await applyVariableEdit({ file: target, ops: [{ op: "createCollection", name }] }, `Create collection ${name}`);
+    if (!response.ok) { say(response.error); return; }
+    setFile(target);
+    setGroup("");
+    setFocus({ row: 0, col: 1 });
+    void load();
+  };
+
   const copyForFigma = async () => {
     const reply = await variablesForFigma();
     if (!reply.ok) { say(reply.error); return; }
@@ -361,7 +383,7 @@ function VariablesPanel() {
   };
 
   const onWindowKey = (event: ReactKeyboardEvent<HTMLElement>) => {
-    if (event.key === "Escape" && !editing && !renaming) { event.preventDefault(); event.stopPropagation(); closeVariables(); return; }
+    if (event.key === "Escape" && !editing && !renaming && naming === null) { event.preventDefault(); event.stopPropagation(); closeVariables(); return; }
     // The Studio leaves keys inside a dialog to it: this window takes ⌘Z, ⇧⌘Z and ⌘S itself, as Figma's does (a text field
     // keeps its own undo).
     const mod = event.metaKey || event.ctrlKey;
@@ -599,11 +621,27 @@ function VariablesPanel() {
       onKeyDown={onWindowKey}
     >
       <header className="studio-vars__head" onPointerDown={onHeadDown}>
-        <Menu
-          aria-label="Collections"
-          items={(shownCollections ?? []).map((each) => ({ id: each.file, label: each.name, caption: `${each.tokens.length} · ${each.modes.length} ${each.modes.length === 1 ? "mode" : "modes"}`, onSelect: () => { setFile(each.file); setGroup(""); setFocus({ row: 0, col: 1 }); if (gridRef.current) gridRef.current.scrollTop = 0; } }))}
-          trigger={<Button level="primary" appearance="flat" size="sm" endIcon="icon-chevron-down-line">{collection?.name ?? "Variables"}</Button>}
-        />
+        {naming !== null ? (
+          <InputField
+            size="sm"
+            aria-label="Collection name"
+            placeholder="Collection"
+            value={naming}
+            autoFocus
+            onValueChange={setNaming}
+            onBlur={() => { void createCollection(); }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") { event.preventDefault(); void createCollection(); }
+              else if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); namingOpen.current = false; setNaming(null); }
+            }}
+          />
+        ) : (
+          <Menu
+            aria-label="Collections"
+            items={[...(shownCollections ?? []).map((each) => ({ id: each.file, label: each.name, caption: `${each.tokens.length} · ${each.modes.length} ${each.modes.length === 1 ? "mode" : "modes"}`, onSelect: () => { setFile(each.file); setGroup(""); setFocus({ row: 0, col: 1 }); if (gridRef.current) gridRef.current.scrollTop = 0; } })), { type: "separator" as const, id: "collections-separator" }, { id: "create-collection", label: "Create collection", icon: "icon-plus-line" as IconName, disabled: !editable, onSelect: startNaming }]}
+            trigger={<Button level="primary" appearance="flat" size="sm" endIcon="icon-chevron-down-line">{collection?.name ?? "Variables"}</Button>}
+          />
+        )}
         <span className="studio-vars__head-fill" />
         <Search size="sm" placeholder="Search" aria-label="Search variables" value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} />
         {/* A filter is a Chip (harness button/filter-is-chip): the type it keeps, Selected while it filters. */}

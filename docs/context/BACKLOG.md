@@ -18,12 +18,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   LineChart / BarList / MetricCard is a function, which the page dialect cannot write, so a revenue chart reads "128.4K",
   not "$128.4K". Needs a literal preset (e.g. `format="currency"` + `currency`) or a dialect form. Pointer:
   `docs/research/studio-vibe-agent-2026-10-18.md` §7.
-- **P3 · Studio Variables: new collections (2026-10-23, B; waits for the user):** v2 (chunks 1–4: Edit variable,
-  rename with an alias, modes, per-frame `modes`) is on branch zen/feat/studio-variables-v2-20261023. Creating a
-  collection in Studio is left: the build reads a fixed list of 11 sources (`scripts/token-outputs.mjs` SOURCE_FILES,
-  variables-host TOKEN_FILES), drafts cannot create a file yet, and the native token generator would see a new slug.
-  Single-mode only (`:root`) is the proposal. Pointer: `docs/research/studio-variables-v2-spec-2026-10-23.md` § Status.
-
+- **P3 · Studio Variables: rename / delete a collection, and created collections in the docs (2026-10-23, B):** a
+  collection made in Studio (one mode, `:root`; branch zen/feat/studio-variables-collections-20261023) cannot be renamed
+  or deleted from the window yet: before its Save ⌘Z removes it, after it the file is a code change. The docs' Design
+  Tokens pages list `tokens/source/figma.collections.json`, a hand-kept manifest (layer, purpose), so a created
+  collection is not shown there. Question for the user: which layer and purpose a created collection gets (or whether
+  docs list it at all). Pointer: `docs/research/studio-variables-collections-spec-2026-10-23.md` § Not in this chunk.
 - **P2 · Studio option C, waiting for the user (2026-10-15):** links between components on a template page (a Chip
   that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
   Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their
