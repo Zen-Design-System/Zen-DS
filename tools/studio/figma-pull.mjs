@@ -1625,6 +1625,114 @@ function appShellElement(node, ctx) {
   return { kind: "element", name: "AppShell", props, children };
 }
 
+/* ── phone AppShell (Pattern/AppShell/Mobile) ─────────────────────────────────────────────────────────────────── */
+
+/** Figma's phone app frame (figma-push.mjs MOBILE_SHELL_SET, mobileShellNode: the other way). */
+const MOBILE_SHELL = "Pattern/AppShell/Mobile";
+/** Figma's ActionBar (Action-Bar/Mobile, 16326:6489): the phone pattern's bottom actions, or one standing alone. */
+const ACTION_BAR = "Action-Bar/Mobile";
+/**
+ * Each Top option of the pattern: AppShell's `mobileTop`, and the layers holding its Top-Navigation, the page (Content),
+ * the hero and the backdrop (figma-push.mjs MOBILE_SHELL_TOP).
+ */
+const MOBILE_SHELL_TOPS = {
+  Bar: { top: "bar", nav: ["Top-Navigation"], content: ["Body"] },
+  Band: { top: "band", nav: ["Band", "Top-Navigation"], content: ["Body"], hero: ["Band"] },
+  "Band-Sheet": { top: "band-sheet", nav: ["Stage", "Top-Navigation"], content: ["Stage", "Sheet"], hero: ["Stage"] },
+  Media: { top: "media", nav: ["Stage", "Top-Navigation"], content: ["Stage", "Sheet"], backdrop: ["Stage"] },
+};
+/** The band's paint → AppShell `band` (figma-push mobileShellNode; Figma's own Support/Brand/Subtle is the default). */
+const MOBILE_BAND_OF = { "Background/Support/Brand/Pale": "pale", "Background/Support/Brand/Soft": "soft", "Background/Accent/Solid/Default": "accent" };
+/** The pattern's fill → AppShell `canvas` (Canvas/Default is the pattern's own). */
+const MOBILE_CANVAS_OF = { "Background/Canvas/Alt": "alt", "Background/Canvas/Flat": "flat" };
+/** The bar AppShell gives its TopNavigation on each canvas (AppShell.tsx BAR_TYPE): a pulled bar of that type says nothing. */
+const MOBILE_BAR_TYPE = { default: "alt", alt: "default", flat: "default" };
+const sameLayers = (within, layers) => {
+  const list = Array.isArray(within) ? within : within ? [within] : [];
+  return list.length === layers.length && layers.every((name, index) => list[index] === name);
+};
+
+/**
+ * Figma's Action-Bar/Mobile as ActionBar (figma-push.mjs actionBarParts, the other way): Type Glass is the glass surface;
+ * its Actions Dual has a secondaryAction, Direction Horizontal the horizontal bar (Tertiary then Primary; Vertical puts
+ * Primary first); each Button's words its label, its Level its level, its Leading-Icon its startIcon. `part`: the
+ * pattern's Action-Bar (partOf) or a standalone instance; its nested paths start at its Actions.
+ */
+function actionBarElement(part, ctx) {
+  const nested = part.nested ?? [];
+  const actions = nested.find((entry) => entry.path === "Actions")?.props ?? {};
+  const props = {};
+  if (part.props?.Type === "Glass") props.surface = literal("glass");
+  const horizontal = actions.Direction === "Horizontal";
+  if (horizontal) props.direction = literal("horizontal");
+  const action = (index) => {
+    const button = nested.find((entry) => entry.path === `Actions/Button[${index}]`);
+    if (!button) return null;
+    const fields = {};
+    const label = button.text ?? button.texts?.Label ?? button.texts?.Text;
+    if (typeof label === "string" && label) fields.label = literal(label);
+    if (typeof button.props?.Level === "string") fields.level = literal(button.props.Level.toLowerCase());
+    const icon = button.props?.["Leading-Icon"] === true ? button.props["Leading-Icon-Src"] : null;
+    if (typeof icon === "string" && isZenIcon(icon, ctx.mapping)) fields.startIcon = { kind: "element", node: { kind: "element", name: "Icon", props: { name: literal(icon), decorative: literal(true) }, children: [] } };
+    return fields.label ? { kind: "object", fields } : null;
+  };
+  const dual = actions.Button === "Dual";
+  const [primary, secondary] = dual ? (horizontal ? [action(1), action(0)] : [action(0), action(1)]) : [action(0), null];
+  if (!primary) { ctx.notes.push(`ActionBar "${part.name ?? ACTION_BAR}": its button has no words, left out`); return null; }
+  props.primaryAction = primary;
+  if (secondary) props.secondaryAction = secondary;
+  return { kind: "element", name: "ActionBar", props, children: [] };
+}
+
+/**
+ * Figma's Pattern/AppShell/Mobile as AppShell (figma-push.mjs mobileShellNode, the other way): its Top is `mobileTop`;
+ * the Top-Navigation at that Top's place is `topNavigation` (its type left unsaid when it is the one AppShell gives that
+ * top on that canvas); Bottom Tab-Bar or Floating is the Bottom-Navigation as `bottomNavigation`, Actions the Action-Bar
+ * as `actionBar`; the Content slot is the page, the Hero and Backdrop slots (when shown) `hero` and `backdrop`; the
+ * band's paint is `band`, the pattern's fill `canvas`. Null for another layer.
+ */
+function mobileShellElement(node, ctx) {
+  if (node.type !== "INSTANCE" || node.set?.name !== MOBILE_SHELL) return null;
+  const look = node.props ?? {};
+  const place = MOBILE_SHELL_TOPS[look.Top] ?? MOBILE_SHELL_TOPS.Bar;
+  const props = {};
+  if (place.top !== "bar") props.mobileTop = literal(place.top);
+  const edits = node.edits ?? [];
+  const bandLayer = place.hero ?? place.backdrop;
+  const band = bandLayer && place.top !== "media" ? MOBILE_BAND_OF[edits.find((edit) => edit.fill && sameLayers(edit.layer, bandLayer))?.fill] : undefined;
+  if (band) props.band = literal(band);
+  const canvas = MOBILE_CANVAS_OF[node.fill];
+  if (canvas) props.canvas = literal(canvas);
+  if (look["Top-Navigation"] !== false) {
+    const top = convert(partOf(node, place.nav.join("/"), place.nav, TOP_NAV_SET), ctx);
+    if (top?.name === "TopNavigation") {
+      const given = place.top === "bar" ? MOBILE_BAR_TYPE[canvas ?? "default"] : place.top === "media" ? "liquid-overlay" : band === "accent" ? "transparent-on-color" : "transparent";
+      if (top.props.type?.value === given) delete top.props.type;
+      props.topNavigation = { kind: "element", node: top };
+    } else if (top) ctx.notes.push(`AppShell "${node.name}": the Top-Navigation read as <${top.name}>, left out`);
+  }
+  if (look.Bottom === "Actions") {
+    const bar = actionBarElement(partOf(node, "Action-Bar", ["Action-Bar"], { name: ACTION_BAR }), ctx);
+    if (bar) props.actionBar = { kind: "element", node: bar };
+  } else if (look.Bottom === "Tab-Bar" || look.Bottom === "Floating") {
+    const fallback = { name: look.Bottom === "Floating" ? "Bottom-Navigation/Mobile/Floating" : "Bottom-Navigation/Mobile/Default" };
+    const bottom = convert(partOf(node, "Bottom-Navigation", ["Bottom-Navigation"], fallback), ctx);
+    if (bottom?.name === "BottomNavigation") props.bottomNavigation = { kind: "element", node: bottom };
+  }
+  const slotAt = (name, layers) => (node.slots ?? []).find((slot) => slot.name === name && sameLayers(slot.within, layers));
+  for (const [prop, name] of [["hero", "Hero"], ["backdrop", "Backdrop"]]) {
+    const layers = place[prop];
+    if (!layers || edits.some((edit) => edit.visible === false && sameLayers(edit.layer, [...layers, name]))) continue;
+    const slot = slotAt(name, layers);
+    const element = oneOf((slot?.children ?? []).map((child) => convert(child, ctx)).filter(Boolean), { name, layout: slot?.layout, source: slot }, ctx);
+    if (element) props[prop] = { kind: "element", node: element };
+  }
+  const content = slotAt("Content", place.content);
+  const children = (content?.children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
+  if (look["Floating-Actions"] === true) ctx.notes.push(`AppShell "${node.name}": Floating-Actions on: the phone pattern's floating actions are not read yet`);
+  return { kind: "element", name: "AppShell", props, children };
+}
+
 /** Figma's ◇ Master-Layout page pattern and the Sidebar pattern in it (figma-push.mjs MASTER_LAYOUT_SET). */
 const MASTER_LAYOUT = "Patterns/Pages/Density-Medium";
 /** Figma Patterns/Sidebar (6040:67524), renamed from "Patterns/Sidebar/Density-Medium" on 2026-10-21. */
@@ -2009,6 +2117,10 @@ function shapeElement(node, ctx) {
 function convertNode(node, ctx) {
   const { mapping, notes } = ctx;
   if (!node) return null;
+  // Figma's Pattern/AppShell/Mobile: a phone AppShell with its bars; Action-Bar/Mobile on its own: an ActionBar.
+  const phoneShell = mobileShellElement(node, ctx);
+  if (phoneShell) return phoneShell;
+  if (node.type === "INSTANCE" && node.set?.name === ACTION_BAR) return actionBarElement(node, ctx);
   // Figma's ◇ Master-Layout written by the push: AppShell (the read of a placed one comes as frames, below).
   const master = masterLayoutFrame(node);
   if (master) { const shell = appShellElement(master, ctx); if (shell) return shell; }
