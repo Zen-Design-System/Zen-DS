@@ -128,6 +128,30 @@ export function pictureValueOf(file: string | null | undefined, written: string 
 const absoluteUrl = (src: string) => { try { return new URL(src, document.baseURI).href; } catch { return src; } };
 const keyBySrc = new Map([...MEDIA_FILES].flatMap(([key, src]) => [[src, key], [absoluteUrl(src), key]]));
 
+/**
+ * A picture the Studio just saved in the repo (edit/assets/repoMedia.ts, a photo dropped from the computer on a repo page):
+ * known at once under `key`, with its repo file and its URL, as the glob would list it after a reload.
+ */
+export function registerRepoPicture(key: string, file: string, src: string) {
+  (MEDIA_FILES as Map<string, string>).set(key, src);
+  (MEDIA_REPO_FILES as Map<string, string>).set(key, file);
+  keyByRepoFile.set(file, key);
+  keyBySrc.set(src, key);
+  keyBySrc.set(absoluteUrl(src), key);
+}
+
+// A picture added to src/assets/media updates the glob above: its entries join the maps the Studio already holds,
+// instead of an update that would reload the Studio mid-edit. Any other change to this module updates as before.
+if (import.meta.hot) {
+  import.meta.hot.accept((next) => {
+    const files = (next as { MEDIA_FILES?: ReadonlyMap<string, string> } | undefined)?.MEDIA_FILES;
+    const repo = (next as { MEDIA_REPO_FILES?: ReadonlyMap<string, string> } | undefined)?.MEDIA_REPO_FILES;
+    const added = files && repo ? [...repo].filter(([key]) => !MEDIA_REPO_FILES.has(key) && files.has(key)) : [];
+    if (!added.length) { import.meta.hot?.invalidate(); return; }
+    for (const [key, file] of added) registerRepoPicture(key, file, files!.get(key)!);
+  });
+}
+
 /** This build's URL of a picture → its `zen-media:` value (any other text unchanged). */
 export const mediaValueOf = (value: string) => { const key = keyBySrc.get(value); return key ? `${MEDIA_PREFIX}${key}` : value; };
 /** The URL of a `zen-media:` key in this build (null: no such picture). */

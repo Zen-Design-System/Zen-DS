@@ -337,3 +337,23 @@ Branch claude/eloquent-mclean-8f4974 from main 4b96bbb8. BACKLOG P1 "320px debt 
   dark, behaviour 0 errors, 0 new warnings → PASS. Contact sheets: templates 390/1512 keep the photo row whole.
   Visual diff templates 1512 + 390, old vs new template: 32 identical. Baseline: the 28 @320 keys gate 2 no longer finds
   removed (13 Chat, 10 layout, the Show-all target, 4 Text-page heading demos); 16 @320 keys left, all also at 1512/390.
+
+## A photo file from the computer on a repo page (tier M; BACKLOG P2, G4 picked by the user in the triage session)
+
+Branch zen/feat/studio-desktop-photo-repo-20261023 (stacked on #239). Example and template code cannot read this
+browser's uploads, so a dropped photo is saved in the repo first.
+- Dev server: `POST /__zen-studio/media { name, data }` (write headers) writes `src/assets/media/<slug>-<hash>.webp`
+  (the same bytes are the same file) and a CREDITS.md row "Dropped in Zen Studio from …, to confirm before publishing"
+  (`tools/studio/repo-media.mjs`, selftest 3 cases). A file, not a draft: it stays when the edit is undone or discarded.
+- Client: `edit/assets/repoMedia.ts` converts PNG / JPEG / WebP to WebP ≤ 1600 px and registers the key at once
+  (`media.ts` registerRepoPicture); the glob's own update merges new pictures instead of reloading the Studio.
+  `canvas/fileDrop.ts` on a repo page → `assets.ts dropComputerPictures`: on a pictured layer or a list face the
+  picture (writePicture, with #239's helper and list paths), elsewhere a new `<Image src={new URL(…)}>` where it fell.
+  "Your uploads" on a repo page (click, drop, the Inspector's and a table cell's Picture) are saved the same way.
+- E2E FW-239 (drop on a helper row's avatar → people.bao.photo is the saved file, CREDITS row, ⌘Z) and FW-240 (drop into
+  the Stack → an Image reading the file, ⌘Z); both remove what they saved.
+- Finding met on the way, fixed at its owner (FW-240's first run): pasted or inserted code could not read a repo
+  picture. `arrange.mjs` / `slots.mjs` parsed it as a script (`import.meta` refused) and took `URL` for a component to
+  import; they parse as a module now, `URL` is a JS global and `import.meta` reads no name (arrange selftest +1 case).
+- Gate (slot from box-themes; `--isolated`, the branch's 13 files): **PASS**, Studio E2E 338/0. FW-235…240: 5/1 (FW-240,
+  the paste finding above); after the fix FW-239/240 2/0 and a second gate on arrange.mjs + slots.mjs **PASS** 338/0.

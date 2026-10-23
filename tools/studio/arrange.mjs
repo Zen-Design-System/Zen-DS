@@ -118,6 +118,8 @@ function isReference(node, parent, key) {
   if ((parent.type === "MemberExpression" || parent.type === "OptionalMemberExpression") && key === "property" && !parent.computed) return false;
   if ((parent.type === "ObjectProperty" || parent.type === "ObjectMethod" || parent.type === "ClassProperty" || parent.type === "ClassMethod") && key === "key" && !parent.computed) return false;
   if (parent.type === "LabeledStatement" || parent.type === "BreakStatement" || parent.type === "ContinueStatement") return false;
+  // `import.meta` (a picture the repo holds: `new URL("…", import.meta.url).href`) reads no name.
+  if (parent.type === "MetaProperty") return false;
   if (parent.type?.startsWith("TS")) return false;
   return true;
 }
@@ -424,7 +426,7 @@ export function pxOf(attribute) {
  */
 export function floatAt(raw, at) {
   const wrapped = `<>\n${raw}\n</>`;
-  const fragment = parseExpression(wrapped, { plugins: ["jsx", "typescript"] });
+  const fragment = parseExpression(wrapped, { plugins: ["jsx", "typescript"], sourceType: "module" });
   const elements = fragment.children.filter((child) => child.type === "JSXElement");
   const own = elements.map((element) => {
     const attributes = element.openingElement.attributes.filter((attribute) => attribute.type === "JSXAttribute");
@@ -456,7 +458,7 @@ export function floatAt(raw, at) {
 }
 
 /** Names pasted code may read without a binding where it lands. */
-const GLOBALS = new Set(["undefined", "NaN", "Infinity", "Math", "Date", "Number", "String", "Boolean", "Array", "Object", "JSON", "Intl", "console", "window", "document"]);
+const GLOBALS = new Set(["undefined", "NaN", "Infinity", "Math", "Date", "Number", "String", "Boolean", "Array", "Object", "JSON", "Intl", "URL", "console", "window", "document"]);
 
 /**
  * The plan for op pasteCode { code, before?, after?, replace?, state? } on the element the code goes into (⌘V / ⇧⌘R
@@ -487,7 +489,7 @@ export function pasteCodePlan(ctx, nodePath, op, h) {
   const wrapped = `<>\n${src}\n</>`;
   let fragment;
   try {
-    fragment = parseExpression(wrapped, { plugins: ["jsx", "typescript"] });
+    fragment = parseExpression(wrapped, { plugins: ["jsx", "typescript"], sourceType: "module" });
   } catch (error) {
     h.refuse(`The clipboard is not JSX elements: ${error.message.replace(/\s*\(\d+:\d+\)$/, "")}`);
   }
@@ -556,7 +558,7 @@ export function replacePlan(ctx, nodePath, op, h) {
   const state = h.stateFor(ctx, raw.replace(/\r\n|\r/g, "\n").trim(), op.state);
   let node;
   try {
-    node = parseExpression(state.src, { plugins: ["jsx", "typescript"] });
+    node = parseExpression(state.src, { plugins: ["jsx", "typescript"], sourceType: "module" });
   } catch (error) {
     h.refuse(`The code is not one JSX element: ${error.message.replace(/\s*\(\d+:\d+\)$/, "")}`);
   }
@@ -803,7 +805,7 @@ const countLines = (value) => (value.match(/\r\n|\n|\r/g) ?? []).length;
 /** `raw` (one element's code) without the props that float it: it joins its new parent's auto layout. */
 function inFlow(raw) {
   const wrapped = `<>\n${raw}\n</>`;
-  const fragment = parseExpression(wrapped, { plugins: ["jsx", "typescript"] });
+  const fragment = parseExpression(wrapped, { plugins: ["jsx", "typescript"], sourceType: "module" });
   const element = fragment.children.find((child) => child.type === "JSXElement");
   const edits = [];
   for (const attribute of element.openingElement.attributes) {
