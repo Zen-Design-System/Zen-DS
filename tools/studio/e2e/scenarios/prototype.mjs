@@ -21,6 +21,15 @@ async function drag(page, from, to) {
   await page.mouse.up();
 }
 
+/** Runs one step of a row; a failure names the step (a bare "locator.click: Timeout" says nothing of where). */
+async function step(label, run) {
+  try {
+    return await run();
+  } catch (error) {
+    throw new Error(`${label}: ${String(error?.message ?? error).split("\n")[0]}`);
+  }
+}
+
 const frameCenter = async (page, frameId) => center(await page.locator(`[data-studio-frame="${frameId}"]`).boundingBox());
 
 async function prototypeTab(page) {
@@ -90,6 +99,113 @@ export default function Page() {
       <Screen id="screen-1" title=${JSON.stringify(title)} device="phone" width={390} height={844}>
         <Stack gap="md" padding="lg">
           <Text>Android</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/** Option C (user 2026-10-23): a desktop Screen whose Chip opens a DatePicker overlay and whose Button opens a Card
+ *  overlay (set to Manual in the row), both by their trigger (PT-18). */
+const anchoredPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { Button, Card, Chip, DatePicker, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Orders">
+        <Stack gap="md" padding="lg">
+          <Chip onClick={proto.open("pick-date")}>Date</Chip>
+          <Button onClick={proto.open("tip")}>Tip</Button>
+          <Text>Orders</Text>
+        </Stack>
+      </Screen>
+      <Overlay id="pick-date">
+        <DatePicker />
+      </Overlay>
+      <Overlay id="tip">
+        <Card>
+          <Text>Pick a day first</Text>
+        </Card>
+      </Overlay>
+    </Board>
+  );
+}
+`;
+
+/** A phone Screen whose Chip opens a Bottom Sheet (PT-19). */
+const sheetPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { BottomSheet, Chip, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Orders" device="phone">
+        <Stack gap="md" padding="lg">
+          <Chip onClick={proto.open("sort")}>Sort</Chip>
+          <Text>Orders</Text>
+        </Stack>
+      </Screen>
+      <Overlay id="sort">
+        <BottomSheet title="Sort by" primaryAction={{ label: "Done", onClick: proto.close() }}>
+          <Text>Newest first</Text>
+        </BottomSheet>
+      </Overlay>
+    </Board>
+  );
+}
+`;
+
+/** A Table, a Chip with no action yet and a Search that filters the client column (PT-20). */
+const filterPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { Chip, Search, Stack, Table } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Orders">
+        <Stack gap="md" padding="lg">
+          <Chip>Paid</Chip>
+          <Search aria-label="Search orders" onValueChange={proto.filter({ column: "client", match: "contains" })} />
+          <Table aria-label="Orders" columns={[{ id: "client", header: "Client" }, { id: "status", header: "Status" }]} rows={[{ id: "1", client: "Acme", status: "Paid" }, { id: "2", client: "Globex", status: "Overdue" }, { id: "3", client: "Initech", status: "Paid" }]} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/** A Stepper with Next (no action yet), Previous and Finish (no action yet), and a "done" state of the Screen (PT-21). */
+const stepPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { Button, Stack, Stepper, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="checkout" title="Checkout">
+        <Stack gap="md" padding="lg">
+          <Stepper steps={[{ id: "cart", title: "Cart" }, { id: "pay", title: "Pay" }, { id: "ship", title: "Ship" }]} />
+          <Button>Next</Button>
+          <Button onClick={proto.step("previous")}>Previous</Button>
+          <Button>Finish</Button>
+        </Stack>
+      </Screen>
+      <Screen id="checkout" title="Checkout · done" state="done">
+        <Stack gap="md" padding="lg">
+          <Text>All done</Text>
         </Stack>
       </Screen>
     </Board>
@@ -639,6 +755,171 @@ export const rows = [
       }
       await page.keyboard.press("Escape");
       return "Play › Open on phone: QR + network link → Esc keeps Play → a 390 × 844 phone plays screen-1 (no simulated bars) → Next → screen-2";
+    },
+  },
+  {
+    id: "PT-18", feature: "Option C (user 2026-10-23: \"open this popover, anchored to this element\"): in Play a Chip opens its DatePicker overlay right below it (Figma's Manual, by the trigger) and a picked day closes it; an Overlay set to Position Manual in the Prototype tab opens its Card below the Button that opens it, and the Button pressed again closes it", wp: "option C 2026-10-23", timeout: 40_000,
+    async run(ctx) {
+      const { page, id, text: source } = await seededPage(ctx, anchoredPage, /proto\.open\("pick-date"\)/);
+      await prototypeTab(page);
+      await page.locator('[data-e2e="prototype-panel"] [data-frame="overlay:tip"] button.studio-inspector__item').click();
+      await pickOption(page, "overlay:position", "Manual");
+      await until(async () => /<Overlay id="tip" position="manual">/.test(await source()), { message: 'position="manual" on the tip Overlay' });
+      await page.locator('[data-e2e="prototype-panel"] [data-frame="overlay:pick-date"] button.studio-inspector__item').click();
+      await until(async () => (await page.locator('[data-e2e="prototype-panel"] .studio-inspector__note').allInnerTexts()).some((note) => note.includes("DatePicker opens by its trigger")), { message: "the pick-date Overlay says its DatePicker opens by its trigger" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      // Below the trigger, at its start edge, a 4px gap (Popover's) in the device's scale; or above it with no room below.
+      const by = async (trigger, surface) => {
+        const device = playing(page).locator(".studio-player__device");
+        const scale = await device.evaluate((el) => el.getBoundingClientRect().width / el.offsetWidth);
+        const t = await trigger.boundingBox();
+        const s = await surface.boundingBox();
+        const below = Math.abs(s.y - (t.y + t.height + 4 * scale));
+        const above = Math.abs(t.y - (s.y + s.height + 4 * scale));
+        const start = Math.abs(s.x - t.x);
+        if (Math.min(below, above) > 3 || start > 3) throw new Error(`not by its trigger: trigger ${JSON.stringify(t)}, surface ${JSON.stringify(s)}`);
+        return below <= 3 ? "below" : "above";
+      };
+      const chip = playing(page).getByRole("button", { name: "Date" });
+      await chip.click();
+      const picker = playing(page).locator(".zen-date-picker");
+      await picker.waitFor({ state: "visible", timeout: 3000 });
+      await sleep(300);
+      const pickerSide = await by(chip, picker);
+      await picker.locator(".zen-date-picker__day:not(:disabled)").nth(10).click();
+      await until(async () => (await picker.count()) === 0, { message: "a picked day closes the DatePicker" });
+      // The Chip opens it again, and pressed once more closes it (its trigger is not outside it).
+      await chip.click();
+      await picker.waitFor({ state: "visible", timeout: 3000 });
+      await chip.click();
+      await until(async () => (await picker.count()) === 0, { message: "the Chip pressed again closes the DatePicker" });
+      // Escape closes it and stays in Play.
+      await chip.click();
+      await picker.waitFor({ state: "visible", timeout: 3000 });
+      await page.keyboard.press("Escape");
+      await until(async () => (await picker.count()) === 0, { message: "Escape closes the DatePicker" });
+      if (!(await playing(page).isVisible())) throw new Error("Escape left Play instead of closing the DatePicker");
+      const tipButton = playing(page).getByRole("button", { name: "Tip" });
+      await tipButton.click();
+      const card = playing(page).locator('.studio-player__overlay[data-position="manual"] .studio-player__overlay-content');
+      await card.waitFor({ state: "visible", timeout: 3000 });
+      await sleep(400);
+      const cardSide = await by(tipButton, card);
+      await tipButton.click({ force: true });
+      await until(async () => (await card.count()) === 0, { message: "the Button pressed again closes its overlay" });
+      await page.keyboard.press("Escape");
+      return `DatePicker ${pickerSide} its Chip, closed by a picked day, the Chip again and Escape · Manual Card ${cardSide} its Button, closed by it`;
+    },
+  },
+  {
+    id: "PT-19", feature: "Option C: on a phone Screen a Chip opens a Bottom Sheet overlay; the sheet places itself at the bottom of the device (Figma's Bottom center) and its Done (Close overlay) closes it", wp: "option C 2026-10-23", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, sheetPage, /proto\.open\("sort"\)/);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      await step("tap the Sort chip", () => playing(page).getByRole("button", { name: "Sort" }).click());
+      const sheet = playing(page).getByRole("dialog", { name: "Sort by" });
+      await sheet.waitFor({ state: "visible", timeout: 3000 });
+      await sleep(500);
+      const device = await playing(page).locator(".studio-player__device").boundingBox();
+      const box = await sheet.boundingBox();
+      const gap = device.y + device.height - (box.y + box.height);
+      if (gap > 40 || box.y < device.y + device.height / 3) throw new Error(`the sheet is not at the bottom (gap ${Math.round(gap)}, top ${Math.round(box.y - device.y)})`);
+      await step("press the sheet's Done", () => sheet.getByRole("button", { name: "Done" }).click());
+      await until(async () => (await sheet.count()) === 0, { message: "Done closes the sheet" });
+      await page.keyboard.press("Escape");
+      return `Chip → Bottom Sheet at the device's bottom (gap ${Math.round(gap)}) → Done closes it`;
+    },
+  },
+  {
+    id: "PT-20", feature: "Option C Filter table: the Prototype tab sets a Chip's On click to Filter table, column Status, value Paid (proto.filter); in Play the Chip filters the Screen's Table and pressed again shows every row; a Search filters it by what is typed (contains)", wp: "option C 2026-10-23", timeout: 40_000,
+    async run(ctx) {
+      const { page, id, text: source } = await seededPage(ctx, filterPage, /proto\.filter\(/);
+      await clickNamed(page, id, "Chip");
+      await prototypeTab(page);
+      await pickOption(page, "proto:onClick", "Filter table");
+      await until(async () => /<Chip onClick=\{proto\.filter\(\{\}\)\}>/.test(await source()), { message: "proto.filter({}) on the Chip" });
+      await pickOption(page, "proto:onClick:column", "Status");
+      await until(async () => /proto\.filter\(\{ column: "status" \}\)/.test(await source()), { message: "column status" });
+      const value = page.locator('#studio-right [data-prop="proto:onClick:value"] input');
+      await value.fill("Paid");
+      await value.press("Enter");
+      await until(async () => /<Chip onClick=\{proto\.filter\(\{ column: "status", value: "Paid" \}\)\}>/.test(await source()), { message: 'proto.filter({ column: "status", value: "Paid" })' });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      const rows = playing(page).locator(".zen-table tbody tr.zen-table__row");
+      const clients = async () => (await rows.allInnerTexts()).map((row) => row.split(/\s+/)[0]);
+      await until(async () => (await rows.count()) === 3, { message: "three rows at first" });
+      await playing(page).getByRole("button", { name: "Paid" }).click();
+      await until(async () => (await clients()).join() === "Acme,Initech", { message: "the Paid chip keeps Acme and Initech" });
+      await playing(page).getByRole("button", { name: "Paid" }).click();
+      await until(async () => (await rows.count()) === 3, { message: "pressed again: every row" });
+      const search = playing(page).getByLabel("Search orders");
+      await search.fill("glo");
+      await until(async () => (await clients()).join() === "Globex", { message: "“glo” keeps Globex" });
+      await search.fill("");
+      await until(async () => (await rows.count()) === 3, { message: "cleared: every row" });
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      return "Chip → Filter table · Status · Paid written · Play: 3 → 2 rows → 3 again · Search “glo” → Globex → cleared";
+    },
+  },
+  {
+    id: "PT-21", feature: "Option C Change step and a Screen state as a target: the Prototype tab sets Next to Change step (Next/Previous segmented); the Finish Button's ⊕ dropped on the Screen's \"done\" state frame navigates to that state (Figma: every frame is a target); in Play Next and Previous move the Stepper, a passed step goes back, Finish shows the done state and Back returns to the first step", wp: "option C 2026-10-23", timeout: 50_000,
+    async run(ctx) {
+      const { page, id, text: source } = await seededPage(ctx, stepPage, /state="done"/);
+      // Both frames in view (the seeded page opens wherever the board starts).
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Digit1");
+      await sleep(400);
+      await clickNamed(page, id, "Button", 0);
+      await prototypeTab(page);
+      await step("pick Change step", () => pickOption(page, "proto:onClick", "Change step"));
+      await until(async () => /<Button onClick=\{proto\.step\("next"\)\}>Next/.test(await source()), { message: 'proto.step("next") on Next' });
+      await step("pick Previous", () => pickOption(page, "proto:onClick:step", "Previous"));
+      await until(async () => /<Button onClick=\{proto\.step\("previous"\)\}>Next/.test(await source()), { message: "Previous" });
+      await step("pick Next", () => pickOption(page, "proto:onClick:step", "Next"));
+      await until(async () => /<Button onClick=\{proto\.step\("next"\)\}>Next/.test(await source()), { message: "Next again" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Digit1");
+      await sleep(400);
+      await clickNamed(page, id, "Button", 2);
+      const plus = page.locator(".studio-proto-plus");
+      await plus.waitFor({ state: "visible", timeout: 5000 });
+      await drag(page, center(await plus.boundingBox()), await frameCenter(page, "screen:checkout:done"));
+      await until(async () => /<Button onClick=\{proto\.navigate\("checkout:done"\)\}>Finish/.test(await source()), { message: 'Finish → proto.navigate("checkout:done")' });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      const currentStep = async () => (await playing(page).locator('.zen-stepper__step[aria-current="step"]').innerText().catch(() => "")).trim();
+      const press = (name) => step(`press ${name} in Play`, () => playing(page).getByRole("button", { name, exact: true }).click());
+      await until(async () => /Cart/.test(await currentStep()), { message: "Cart first" });
+      await press("Next");
+      await until(async () => /Pay/.test(await currentStep()), { message: "Next → Pay" });
+      await press("Next");
+      await press("Next");
+      await until(async () => /Ship/.test(await currentStep()), { message: "Next twice more → Ship (the last stays)" });
+      await press("Previous");
+      await until(async () => /Pay/.test(await currentStep()), { message: "Previous → Pay" });
+      await step("press the passed Cart step", () => playing(page).locator(".zen-stepper__step").first().locator("button").click());
+      await until(async () => /Cart/.test(await currentStep()), { message: "the passed Cart step goes back" });
+      await press("Finish");
+      await until(async () => (await playScreen(page)) === "checkout:done", { message: "Finish → the done state" });
+      await playing(page).getByText("All done").waitFor({ state: "visible", timeout: 3000 });
+      await step("press Play's Back", () => playing(page).getByRole("button", { name: "Back", exact: true }).click());
+      await until(async () => (await playScreen(page)) === "checkout", { message: "Play's Back → checkout" });
+      await until(async () => /Cart/.test(await currentStep()), { message: "a new visit starts on Cart" });
+      await page.keyboard.press("Escape");
+      return "Next → Change step (Previous/Next) · Finish ⊕ → checkout:done · Play: Cart → Pay → Ship (stays) → Previous → Pay → Cart (passed step) → done state → Back → Cart";
     },
   },
 ];

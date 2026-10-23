@@ -1,7 +1,7 @@
 import { typographyStyles } from "../../../tokens/typography.generated";
 import type { DetachPlan, EditRequest, EditResponse, SourceElement, SourceFile, WriteRequest, WriteResponse } from "../types";
 import { engineOptions, loadDetach, loadEngine, zenComponents } from "./engine";
-import { getPage, pageFile, pageIdOf, putPage, setPageDoc } from "./store/pageStore";
+import { getPage, pageFile, pageIdOf, putPage, replacePageDoc, setPageDoc } from "./store/pageStore";
 import { loadPathKit } from "../draw/pathKit";
 import type { PageDoc } from "../../../../tools/studio/browser-engine.mjs";
 import { LEGACY_FRAME } from "../../../../tools/studio/screen-chrome.mjs";
@@ -94,6 +94,28 @@ export async function ensurePageDoc(id: string): Promise<void> {
   // The text stays as written (the person's formatting; the user's call, 2026-10-11: the page file stays TSX and its
   // document travels beside it in this browser). Refused when an edit landed meanwhile: that edit brought its own.
   if (await setPageDoc(id, page.text, doc)) remember(engine.sha1(page.text), doc);
+}
+
+/**
+ * The page's document with the ids of `from` where the two line up (tools/studio/doc.mjs carryIds): this browser built it
+ * from the page's text with new ids, while a Figma frame exported or pulled in another browser names that browser's
+ * (figma round trip P6b). Only the ids change; undo keeps them. True when the document took ids.
+ */
+export async function lendPageIds(id: string, from: PageDoc): Promise<boolean> {
+  await ensurePageDoc(id);
+  const page = await getPage(id);
+  if (!page?.doc) return false;
+  const engine = await loadEngine();
+  // A document that already holds most of those ids is this browser's own (it exported or pulled the frame): left as is.
+  const idsOf = (doc: PageDoc) => [...engine.printPage(doc, { ids: true }).matchAll(/data-zen-id="([^"]*)"/g)].map((match) => match[1]);
+  const own = new Set(idsOf(page.doc));
+  const theirs = idsOf(from);
+  if (theirs.filter((one) => own.has(one)).length * 2 >= theirs.length) return false;
+  const carried = engine.carryIds(page.doc, from);
+  if (engine.printPage(carried, { ids: true }) === engine.printPage(page.doc, { ids: true })) return false;
+  if (!(await replacePageDoc(id, page.text, page.doc, carried))) return false;
+  remember(engine.sha1(page.text), carried);
+  return true;
 }
 
 /**

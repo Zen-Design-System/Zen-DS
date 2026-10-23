@@ -34,6 +34,13 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   Pattern/AppShell/Mobile, its Bar type by canvas: default→Alt, alt→Default, flat→Default on Surface/Flat) is new scope.
   Pointer: `tools/studio/figma-push.mjs` `appShellNode` (~852) and the Screen's mobile chrome (~2232).
 
+## Archived 2026-10-23 (P6b: Update from Figma in another browser)
+
+- Done 2026-10-23 (user: "chia như đề xuất"; the export and the last pull are kept beside the page in the pages folder,
+  `<id>.figma-base.json` via tools/studio/page-figma.mjs, and read before a pull is matched and compared; E2E HO-13):
+  **P3 · Update from Figma in another browser (2026-10-13, P6b leftover):** a pull in a browser that kept no export
+  falls back to a two-way comparison. Pointer: `docs/research/studio-figma-push-spec-2026-10-12.md` §8 "P6b".
+
 ## Archived 2026-10-23 (native paste of a sticky layer, tried live on `zen/fix/studio-native-paste-rest-20261023`)
 
 - Done 2026-10-23: a real ⌘V into the Zen file kept both (Sticky on the in-flow layer, Fixed on the absolute dock,
@@ -1241,3 +1248,8 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   label row in the 14-row Trend grid) agree, so at 1.6× height the labels sit ~40px under the baseline. Fixing it pins
   the label lane in both (code: a fixed lane; Figma: the label row FIXED, Y labels re-anchored). Waits for the user:
   change both, or keep. Session log 2026-10-16 "Figma chart sizing".
+- [closed 2026-10-23: built as prototype actions (Manual overlay by its trigger, Screen states as targets, Filter table,
+  Change step), session log 2026-10-23 "Studio option C"] **P2 · Studio option C, waiting for the user (2026-10-15):** links between components on a template page (a Chip
+  that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
+  Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their
+  own state) is done: session log 2026-10-15 "Self-managed state".
