@@ -106,13 +106,13 @@ await test("figma bases: write then read beside the page; refused when not valid
   assert.equal(await folder.readFigma("delta"), null);
   assert.equal((await folder.writeFigma("delta", figma)).exports, 1);
   assert.deepEqual(await folder.readFigma("delta"), figma);
-  assert.ok(fs.existsSync(path.join(root, PAGES_DIR, "delta.figma.json")));
+  assert.ok(fs.existsSync(path.join(root, PAGES_DIR, "delta.figma-base.json")));
   assert.ok((await folder.list()).every((page) => !page.id.includes("figma")));
   await rejects(folder.writeFigma("delta", { format: 1, exports: [{ version: "x" }] }), "invalid");
   await rejects(folder.writeFigma("../x", figma), "invalid");
   await folder.trash("delta");
   assert.equal(await folder.readFigma("delta"), null);
-  assert.ok(fs.readdirSync(path.join(root, ".zen-studio/trash")).some((name) => name.startsWith("delta-") && name.endsWith(".figma.json")));
+  assert.ok(fs.readdirSync(path.join(root, ".zen-studio/trash")).some((name) => name.startsWith("delta-") && name.endsWith(".figma-base.json")));
 });
 
 fs.rmSync(root, { recursive: true, force: true });

@@ -38,7 +38,7 @@ export type PageRecord = {
   /**
    * A page pulled from Figma (tools/studio/figma-pull.mjs, its header names the frame): the document the last pull made,
    * the base a new pull of that frame is compared with (figma-diff.mjs). Kept across edits, here and beside the page in a
-   * connected folder (`<id>.figma.json`, tools/studio/page-figma.mjs), so another browser there compares three ways too.
+   * connected folder (`<id>.figma-base.json`, tools/studio/page-figma.mjs), so another browser there compares three ways too.
    */
   figma?: FigmaBase;
   /**
@@ -77,7 +77,7 @@ export interface PageMirror {
   readComments?(id: string): Promise<unknown | null>;
   /** Writes a page's comments beside it. */
   writeComments?(id: string, comments: unknown): Promise<void>;
-  /** A page's Figma bases beside it (`<id>.figma.json`, tools/studio/page-figma.mjs); null when it has none. */
+  /** A page's Figma bases beside it (`<id>.figma-base.json`, tools/studio/page-figma.mjs); null when it has none. */
   readFigma?(id: string): Promise<unknown | null>;
   /** Writes a page's Figma bases beside it. */
   writeFigma?(id: string, figma: unknown): Promise<void>;

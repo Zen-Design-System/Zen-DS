@@ -402,5 +402,5 @@ vào vẫn giữ mọi thứ Figma không giữ được.
   áp vào giữ chi tiết code. Lỗi gặp và sửa: Vite chèn import trước shebang của `figma-pull.mjs` (bỏ shebang).
 - Còn lại: frame designer tự dựng (không từ export) vẫn kéo về như trước; trình duyệt khác không có export → so hai chiều.
 - 2026-10-23 (P6b leftover): bản export và lần pull gần nhất còn được giữ cạnh trang trong thư mục pages
-  (`.zen-studio/pages/<id>.figma.json` trên dev server, hoặc thư mục liên kết; `tools/studio/page-figma.mjs`): trình
+  (`.zen-studio/pages/<id>.figma-base.json` trên dev server, hoặc thư mục liên kết; `tools/studio/page-figma.mjs`): trình
   duyệt khác đọc file đó trước khi tìm trang và so, nên vẫn so ba chiều. E2E HO-13 (hai context trình duyệt).

@@ -647,7 +647,7 @@ export const rows = [
     },
   },
   {
-    id: "HO-13", feature: "Round trip by key from another browser (figma P6b leftover): Export › Figma also keeps the export beside the page in the pages folder (<id>.figma.json); a second browser on the same dev server (its own IndexedDB, no export of its own) imports the frame read back after the designer's two edits and gets Update from Figma three ways on that page — just those two changes, ticked — and Apply keeps what Figma cannot hold and writes its pull back beside the page", wp: "figma round trip P6b leftover 2026-10-23",
+    id: "HO-13", feature: "Round trip by key from another browser (figma P6b leftover): Export › Figma also keeps the export beside the page in the pages folder (<id>.figma-base.json); a second browser on the same dev server (its own IndexedDB, no export of its own) imports the frame read back after the designer's two edits and gets Update from Figma three ways on that page — just those two changes, ticked — and Apply keeps what Figma cannot hold and writes its pull back beside the page", wp: "figma round trip P6b leftover 2026-10-23",
     timeout: 90000,
     async run(ctx) {
       const { pageFromFigma, repoMapping } = await import("../../figma-pull.mjs");
@@ -663,9 +663,9 @@ export const rows = [
       const pkg = JSON.parse(fs.readFileSync(await (await downloading).path(), "utf8"));
       await page.keyboard.press("Escape");
       // The export beside the page in the dev server's pages folder: what the other browser reads.
-      const beside = path.join(ctx.root, pagesDirOf(ctx.server.port), `${id}.figma.json`);
+      const beside = path.join(ctx.root, pagesDirOf(ctx.server.port), `${id}.figma-base.json`);
       const shared = () => (fs.existsSync(beside) ? JSON.parse(fs.readFileSync(beside, "utf8")) : null);
-      await until(() => shared()?.exports?.[0]?.version === pkg.page.version, { timeout: 10_000, message: `${id}.figma.json with export ${pkg.page.version}` });
+      await until(() => shared()?.exports?.[0]?.version === pkg.page.version, { timeout: 10_000, message: `${id}.figma-base.json with export ${pkg.page.version}` });
       // In Figma, as in HO-11: the frame placed by the plugin, the first list row and the heading renamed, then read back.
       const read = JSON.parse(JSON.stringify({ ...pkg.frame, id: `9${Date.now() % 1e6}:3`, file: "9nZv4uW2LT21yuHabMTCh1", page: pkg.page.id, version: pkg.page.version }));
       const nodes = (node) => [node, ...(node.children ?? []).flatMap(nodes), ...(node.slots ?? []).flatMap((slot) => slot.children.flatMap(nodes))];

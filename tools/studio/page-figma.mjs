@@ -1,5 +1,6 @@
 // A page's Figma bases (figma round trip P6b, leftover 2026-10-23): what Update from Figma compares a pull with, kept
-// beside the page file (`<page>.figma.json`) as well as in the browser, so another browser on the dev server, or one
+// beside the page file (`<page>.figma-base.json`, not `.figma.json`: that is Export › Figma's download, which a person
+// may save in the same linked folder) as well as in the browser, so another browser on the dev server, or one
 // with the same linked folder, compares three ways too. Pure functions the browser and the dev server share.
 //
 //   { format: 1, exports: [{ version, at, base, synced }], pull?: { base, synced?, version?, at } }

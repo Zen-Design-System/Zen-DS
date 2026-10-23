@@ -28,7 +28,7 @@ export const MAX_COMMENTS = 1024 * 1024;
 const COMMENTS_SUFFIX = ".comments.json";
 /** A page's Figma bases beside it (page-figma.mjs: its exports and its last pull, page documents) are at most 8 MB. */
 export const MAX_FIGMA = 8 * 1024 * 1024;
-const FIGMA_SUFFIX = ".figma.json";
+const FIGMA_SUFFIX = ".figma-base.json";
 export const PAGES_DIR = ".zen-studio/pages";
 export const TRASH_DIR = ".zen-studio/trash";
 const SUFFIX = ".zen.tsx";
@@ -187,7 +187,7 @@ export function pagesFolder(root, { validate = () => [], dir = PAGES_DIR } = {})
       return { id, threads: doc.threads.length };
     },
 
-    /** A page's Figma bases (`<id>.figma.json` beside it), or null when it has none. */
+    /** A page's Figma bases (`<id>.figma-base.json` beside it), or null when it has none. */
     async readFigma(id) {
       checkId(id);
       const abs = path.join(pagesAbs, `${id}${FIGMA_SUFFIX}`);

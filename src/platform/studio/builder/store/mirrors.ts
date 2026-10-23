@@ -21,7 +21,7 @@ const DEV = import.meta.env.DEV;
 const FOLDER_KEY = "folder";
 const SUFFIX = ".zen.tsx";
 const COMMENTS_SUFFIX = ".comments.json";
-const FIGMA_SUFFIX = ".figma.json";
+const FIGMA_SUFFIX = ".figma-base.json";
 /** pages-folder.mjs MAX_FIGMA: a bigger file is not read. */
 const MAX_FIGMA_FILE = 8 * 1024 * 1024;
 
@@ -117,7 +117,7 @@ function folderMirror(handle: DirHandle): PageMirror {
       await out.write(`${JSON.stringify(comments, null, 2)}\n`);
       await out.close();
     },
-    // Its Figma bases beside it (`<id>.figma.json`; tools/studio/page-figma.mjs).
+    // Its Figma bases beside it (`<id>.figma-base.json`; tools/studio/page-figma.mjs).
     async readFigma(id) {
       try {
         const file = await (await handle.getFileHandle(`${id}${FIGMA_SUFFIX}`)).getFile();

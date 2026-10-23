@@ -316,7 +316,7 @@ Branch claude/eloquent-mclean-8f4974 from main 4b96bbb8. BACKLOG P1 "320px debt 
 Branch zen/feat/figma-export-baseline-20261023 from main 9fe063d2. A pull in a browser that had not exported the frame
 found no base (`figmaExports` lived in that browser's IndexedDB only): the frame did not even match its page, so it came
 in as a new page, or compared two ways.
-- `tools/studio/page-figma.mjs` (+ .d.mts, selftest): `<id>.figma.json` = `{ format: 1, exports[≤5], pull? }`,
+- `tools/studio/page-figma.mjs` (+ .d.mts, selftest): `<id>.figma-base.json` = `{ format: 1, exports[≤5], pull? }`,
   `validateFigma`, `joinFigma` (exports by version, the later `at` wins; the later pull), `fitFigma` (drops the oldest
   exports past a size).
 - `pages-folder.mjs` `readFigma` / `writeFigma` (8 MB, atomic, no links; trashed with the page, as comments);
@@ -332,4 +332,5 @@ in as a new page, or compared two ways.
   gave the item here). Compared: both keep the exports and the last pull and test with a second browser context; this
   version also joins with the folder's file before a write (another browser's exports stay), checks the file's shape,
   shares the first pull of an imported page, and its HO-13 applies and checks the pull written back. Folded in from C:
-  the file is compact JSON (page documents roughly halve against pretty-printed).
+  the file is compact JSON (page documents roughly halve against pretty-printed), and its name ends in `.figma-base.json`
+  (C's catch: `<id>.figma.json` is Export › Figma's own download, which a person may save into the linked folder).
