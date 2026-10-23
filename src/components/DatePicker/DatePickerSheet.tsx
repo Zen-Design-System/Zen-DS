@@ -7,6 +7,7 @@ import { useControllableState } from "../_shared/use-controllable-state";
 import { DatePicker, type DatePickerRange } from "./DatePicker";
 import "./date-picker.css";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export interface DatePickerSheetProps extends OverlayOpenProps {
   /** Figma Header heading (Heading/3). Default: the locale's "Choose date" ("Choose dates" for a range). */
@@ -58,7 +59,7 @@ export interface DatePickerSheetProps extends OverlayOpenProps {
  * ends in `.Primitives/Date-Picker/Footer-Actions` (9923:2791): the summary beside a Large Primary, Spacing/Gap/Small
  * apart. Picks are a draft until OK. DateField opens it on phones in place of the desktop popover.
  */
-export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, selectionMode = "single", value, defaultValue = null, range, defaultRange = null, onApply, onValueChange, onRangeChange, onCancel, minDate, maxDate, today, monthCount = 12, summary, applyLabel, cancelLabel, className, overrides, ref }: DatePickerSheetProps) {
+export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, selectionMode = "single", value, defaultValue = null, range, defaultRange = null, onApply, onValueChange, onRangeChange, onCancel, minDate, maxDate, today, monthCount = 12, summary, applyLabel, cancelLabel, className, overrides, ref, ...rest }: DatePickerSheetProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
@@ -86,7 +87,7 @@ export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenCh
   const cancel = () => { onCancel?.(); onOpenChange(false); };
   const ok = applyLabel ?? t.ok;
   return (
-    <BottomSheet
+    <BottomSheet {...dataAttributes(rest)}
       ref={ref}
       className={["zen-date-picker-sheet", className].filter(Boolean).join(" ")}
       open={open}

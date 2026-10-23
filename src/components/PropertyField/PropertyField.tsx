@@ -13,6 +13,7 @@ import { useZenLabels, useZenLocale } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./property-field.css";
 import "../Icon/core";
+import { dataAttributes } from "../_shared/data-attributes";
 
 /** Figma .Primitives/Input/Property-Value State: Default (empty) · Inputted · Hover · Editing. Pass it only to draw a
  *  fixed state (docs, matrices); a live cell finds its own. */
@@ -125,13 +126,15 @@ function useReturnFocus(open: boolean, targetRef: RefObject<HTMLElement | null>)
 }
 
 /** The single-value cell: a button that opens its picker. */
-function PickerCell({ cellRef, state, type, readOnly, popup, open, onOpen, labelledBy, ariaLabel, valueId, className, children }: {
+function PickerCell({ cellRef, state, type, readOnly, popup, open, onOpen, labelledBy, ariaLabel, valueId, className, data, children }: {
+  /** The field's own data-* attributes (dataAttributes), on the cell. */
+  data?: object;
   cellRef: Ref<HTMLButtonElement>; state: PropertyValueState; type: string; readOnly?: boolean; popup: "listbox" | "dialog"; open: boolean; onOpen: () => void;
   labelledBy?: string; ariaLabel?: string; valueId: string; className?: string; children: ReactNode;
 }) {
-  if (readOnly) return <span ref={cellRef as Ref<HTMLSpanElement>} id={valueId} className={cellClass(className)} data-type={type} data-state={state} data-read-only="">{children}</span>;
+  if (readOnly) return <span {...dataAttributes(data ?? {})} ref={cellRef as Ref<HTMLSpanElement>} id={valueId} className={cellClass(className)} data-type={type} data-state={state} data-read-only="">{children}</span>;
   return (
-    <button ref={cellRef} type="button" id={valueId} className={cellClass(className)} data-type={type} data-state={state} data-interactive=""
+    <button {...dataAttributes(data ?? {})} ref={cellRef} type="button" id={valueId} className={cellClass(className)} data-type={type} data-state={state} data-interactive=""
       aria-haspopup={popup} aria-expanded={open} aria-labelledby={labelledBy ? `${labelledBy} ${valueId}` : undefined} aria-label={labelledBy ? undefined : ariaLabel}
       onClick={onOpen}>
       {children}
@@ -150,7 +153,7 @@ export interface PropertyTextProps extends PropertyValueBaseProps {
 }
 
 /** Figma Property-Value Type=Text: free text that turns into an input in place (the Input focus look while editing). */
-export function PropertyText({ ref, value, defaultValue = "", onValueChange, placeholder, readOnly, state: stateProp, "aria-label": ariaLabel, className }: PropertyTextProps) {
+export function PropertyText({ ref, value, defaultValue = "", onValueChange, placeholder, readOnly, state: stateProp, "aria-label": ariaLabel, className, ...rest }: PropertyTextProps) {
   const row = useContext(PropertyFieldContext);
   const valueId = useId();
   const [current, setCurrent] = useControllableState({ value, defaultValue, onChange: onValueChange, name: "PropertyText value" });
@@ -173,7 +176,7 @@ export function PropertyText({ ref, value, defaultValue = "", onValueChange, pla
   const state = stateProp ?? (editing ? "editing" : current ? "inputted" : "default");
   if (shownEditing) {
     return (
-      <span ref={ref as Ref<HTMLSpanElement>} className={cellClass(className)} data-type="text" data-state="editing">
+      <span {...dataAttributes(rest)} ref={ref as Ref<HTMLSpanElement>} className={cellClass(className)} data-type="text" data-state="editing">
         <input ref={inputRef} className={`zen-property-value__input ${valueText}`} value={editing ? draft : current} readOnly={!editing}
           aria-labelledby={row?.labelId} aria-label={row ? undefined : ariaLabel}
           onChange={(event) => setDraft(event.target.value)} onKeyDown={onKeyDown} onBlur={() => { if (editing) finish(true, false); }} />
@@ -181,9 +184,9 @@ export function PropertyText({ ref, value, defaultValue = "", onValueChange, pla
     );
   }
   const content = current ? <span className={`zen-property-value__text ${valueText}`}>{current}</span> : <Placeholder>{placeholder}</Placeholder>;
-  if (readOnly) return <span ref={ref as Ref<HTMLSpanElement>} id={valueId} className={cellClass(className)} data-type="text" data-state={state} data-read-only="">{content}</span>;
+  if (readOnly) return <span {...dataAttributes(rest)} ref={ref as Ref<HTMLSpanElement>} id={valueId} className={cellClass(className)} data-type="text" data-state={state} data-read-only="">{content}</span>;
   return (
-    <button ref={(node) => { triggerRef.current = node; if (typeof ref === "function") ref(node); else if (ref) (ref as { current: HTMLElement | null }).current = node; }}
+    <button {...dataAttributes(rest)} ref={(node) => { triggerRef.current = node; if (typeof ref === "function") ref(node); else if (ref) (ref as { current: HTMLElement | null }).current = node; }}
       type="button" id={valueId} className={cellClass(className)} data-type="text" data-state={state} data-interactive=""
       aria-labelledby={row ? `${row.labelId} ${valueId}` : undefined} aria-label={row ? undefined : ariaLabel} onClick={start}>
       {content}
@@ -205,7 +208,7 @@ export interface PropertySelectProps extends PropertyValueBaseProps {
 }
 
 /** Figma Property-Value Type=Select: one option (its icon and name); opens Popover/Default under the cell. */
-export function PropertySelect({ ref, options, value, defaultValue = null, onValueChange, popoverLabel, placeholder, readOnly, state: stateProp, "aria-label": ariaLabel, className }: PropertySelectProps) {
+export function PropertySelect({ ref, options, value, defaultValue = null, onValueChange, popoverLabel, placeholder, readOnly, state: stateProp, "aria-label": ariaLabel, className, ...rest }: PropertySelectProps) {
   const row = useContext(PropertyFieldContext);
   const valueId = useId();
   const popoverId = useId();
@@ -218,7 +221,7 @@ export function PropertySelect({ ref, options, value, defaultValue = null, onVal
   const items: PopoverItemData[] = options.map((option) => ({ id: option.value, value: option.value, label: option.label, disabled: option.disabled, selected: option.value === current, theme: option.icon ? "icon" : "text-only", leading: option.icon ? <ToneIcon icon={option.icon} tone={option.tone} /> : undefined }));
   return (
     <>
-      <PickerCell cellRef={(node) => { cellRef.current = node; if (typeof ref === "function") ref(node); else if (ref) (ref as { current: HTMLElement | null }).current = node; }}
+      <PickerCell data={rest} cellRef={(node) => { cellRef.current = node; if (typeof ref === "function") ref(node); else if (ref) (ref as { current: HTMLElement | null }).current = node; }}
         state={state} type="select" readOnly={readOnly} popup="listbox" open={open} onOpen={() => setOpen((was) => !was)} labelledBy={row?.labelId} ariaLabel={ariaLabel} valueId={valueId} className={className}>
         {chosen ? <>{chosen.icon ? <ToneIcon icon={chosen.icon} tone={chosen.tone} /> : null}<span className={`zen-property-value__text ${valueText}`}>{chosen.label}</span></> : <Placeholder>{placeholder}</Placeholder>}
       </PickerCell>
@@ -249,7 +252,7 @@ export interface PropertyStatusProps extends PropertyValueBaseProps {
 }
 
 /** Figma Property-Value Type=Status: a BadgeStatus Medium; opens Popover/Default of BadgeStatus items. */
-export function PropertyStatus({ ref, value, defaultValue = null, onValueChange, statuses = badgeStatuses, labels, progress, popoverLabel, placeholder, readOnly, state: stateProp, "aria-label": ariaLabel, className }: PropertyStatusProps) {
+export function PropertyStatus({ ref, value, defaultValue = null, onValueChange, statuses = badgeStatuses, labels, progress, popoverLabel, placeholder, readOnly, state: stateProp, "aria-label": ariaLabel, className, ...rest }: PropertyStatusProps) {
   const row = useContext(PropertyFieldContext);
   const valueId = useId();
   const popoverId = useId();
@@ -261,7 +264,7 @@ export function PropertyStatus({ ref, value, defaultValue = null, onValueChange,
   const items: PopoverItemData[] = statuses.map((status) => ({ id: status, value: status, theme: "text-only", selected: status === current, label: <BadgeStatus status={status}>{labels?.[status]}</BadgeStatus> }));
   return (
     <>
-      <PickerCell cellRef={(node) => { cellRef.current = node; if (typeof ref === "function") ref(node); else if (ref) (ref as { current: HTMLElement | null }).current = node; }}
+      <PickerCell data={rest} cellRef={(node) => { cellRef.current = node; if (typeof ref === "function") ref(node); else if (ref) (ref as { current: HTMLElement | null }).current = node; }}
         state={state} type="status" readOnly={readOnly} popup="listbox" open={open} onOpen={() => setOpen((was) => !was)} labelledBy={row?.labelId} ariaLabel={ariaLabel} valueId={valueId} className={className}>
         {current ? <BadgeStatus status={current} progress={progress}>{labels?.[current]}</BadgeStatus> : <Placeholder>{placeholder}</Placeholder>}
       </PickerCell>
@@ -296,7 +299,7 @@ export interface PropertyDateProps extends PropertyValueBaseProps {
 }
 
 /** Figma Property-Value Type=Date: the day as text; opens the Date-Picker under the cell. */
-export function PropertyDate({ ref, value, defaultValue = null, onValueChange, format = { dateStyle: "long" }, minDate, maxDate, placeholder, readOnly, state: stateProp, "aria-label": ariaLabel, className }: PropertyDateProps) {
+export function PropertyDate({ ref, value, defaultValue = null, onValueChange, format = { dateStyle: "long" }, minDate, maxDate, placeholder, readOnly, state: stateProp, "aria-label": ariaLabel, className, ...rest }: PropertyDateProps) {
   const row = useContext(PropertyFieldContext);
   const locale = useZenLocale();
   const valueId = useId();
@@ -307,7 +310,7 @@ export function PropertyDate({ ref, value, defaultValue = null, onValueChange, f
   const state = stateProp ?? (open ? "editing" : current ? "inputted" : "default");
   return (
     <>
-      <PickerCell cellRef={(node) => { cellRef.current = node; if (typeof ref === "function") ref(node); else if (ref) (ref as { current: HTMLElement | null }).current = node; }}
+      <PickerCell data={rest} cellRef={(node) => { cellRef.current = node; if (typeof ref === "function") ref(node); else if (ref) (ref as { current: HTMLElement | null }).current = node; }}
         state={state} type="date" readOnly={readOnly} popup="dialog" open={open} onOpen={() => setOpen((was) => !was)} labelledBy={row?.labelId} ariaLabel={ariaLabel} valueId={valueId} className={className}>
         {current ? <span className={`zen-property-value__text ${valueText}`}>{new Intl.DateTimeFormat(locale, format).format(current)}</span> : <Placeholder>{placeholder}</Placeholder>}
       </PickerCell>

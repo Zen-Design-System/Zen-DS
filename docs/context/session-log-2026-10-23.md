@@ -270,6 +270,25 @@ Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows 
   the two generated maps): Studio self-tests ✓, TypeScript ✓, nested layer names 45 / 45, Studio E2E 338 / 338
   (3 shards, BL-02 Main component coverage included), Build-QA PASS. No platform page in scope, so no contact sheet.
 
+## AppShell session · Every component forwards data-* (tier M, many components; G2 AI UI decisions, user via Giám sát)
+
+Branch zen/fix/components-forward-data-attrs-20261023 from main 9fe063d2. User's answers (G2): every component forwards
+`data-*` (Skeletons included) so `data-ai-ui-id` lands; keep the verified heuristic; the classifier runs on the device;
+ChatReactorsPanel stays experimental. Recorded in docs/ai-ui/README.md "Decided"; BACKLOG line narrowed to the one
+open question (spec format).
+- `_shared/data-attributes.ts`: `dataAttributes(props)` picks the `data-*` keys; spread first on a root so the
+  component's own data-* styling hooks win. Only data-*: no other HTML attribute changes what a component renders.
+- 119 public components destructured their props with no rest (static scan). A codemod (AST, tools/studio/jsx-source)
+  gave 105 a `...rest` and `{...dataAttributes(rest)}` on every JSX root they return; 14 by hand where the root is a
+  variable, a fragment or a conditional (BottomSheet, Dialog, ModalForm, SidePanel, ToastStack: the ref'd panel; ChatFile
+  both branches; ChatPhotos; ChatReactions' pill; ChatReactorsPanel's sheet; DatePickerMonthYear; Menu's surface;
+  PropertySelect / Status / Date through PickerCell `data`; TableTrend through trendBadge).
+- tests/smoke/conformance.test.tsx: every public component gets `data-zen-conformance` and must put it in the DOM
+  (NO_DATA: the providers and ZenPortal).
+- Verified count: 38 before #237, 53 after it (chart contracts), same heuristic.
+- Static: tsc, usage, style, guidelines, studio, ai-ui, mcp, nested-paths. The conformance run and the gate wait for a
+  browser slot.
+
 ## Voice proposals (tier M; the user approved them all, relayed by the progress session: "chia như đề xuất")
 
 Branch zen/feat/voice-proposals-20261023 from main 9fe063d2. Review `docs/research/voice-usability-review-2026-10-13.md`.

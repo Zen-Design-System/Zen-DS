@@ -12,6 +12,7 @@ import type { ChatPerson, ChatReaction, ChatReactionKind } from "./Chat";
 import "./chat-reactors.css";
 import { useDismissableLayer } from "../_shared/layers";
 import { useMergedRefs } from "../_shared/merge-refs";
+import { dataAttributes } from "../_shared/data-attributes";
 
 /**
  * Who reacted (no Figma frame — composed from Zen parts, following Messenger / WhatsApp / Slack): pressing the
@@ -129,20 +130,20 @@ function ChatReactorsPopover({ label, side, onOpenChange, anchorRef, children, r
   );
 }
 
-export function ChatReactorsPanel({ reactions, mine, onRemoveMine, glyph, device, side, open, onOpenChange, anchorRef, ref }: ChatReactorsPanelProps) {
+export function ChatReactorsPanel({ reactions, mine, onRemoveMine, glyph, device, side, open, onOpenChange, anchorRef, ref, ...rest }: ChatReactorsPanelProps) {
   const t = useZenLabels();
   if (!open) return null;
   const list = <ChatReactorsList reactions={reactions} mine={mine} onRemoveMine={onRemoveMine} glyph={glyph} onDone={() => onOpenChange(false)} />;
   if (device === "desktop") {
     // Portalled so the thread's scroll box never clips it; useAnchoredPosition still attaches it to the pill and flips it.
     return (
-      <ZenPortal>
+      <ZenPortal {...dataAttributes(rest)}>
         <ChatReactorsPopover ref={ref} label={t.reactions} side={side} onOpenChange={onOpenChange} anchorRef={anchorRef}>{list}</ChatReactorsPopover>
       </ZenPortal>
     );
   }
   const root = anchorRef.current?.closest<HTMLElement>("[data-zen-overlay-root]") ?? null;
   // A fixed half-screen sheet (chat-reactors.css): switching emoji tabs changes the list, never the sheet's height.
-  const sheet = <BottomSheet ref={ref} className="zen-chat-reactors__sheet" open onOpenChange={onOpenChange} title={t.reactions} inline={Boolean(root)}>{list}</BottomSheet>;
+  const sheet = <BottomSheet {...dataAttributes(rest)} ref={ref} className="zen-chat-reactors__sheet" open onOpenChange={onOpenChange} title={t.reactions} inline={Boolean(root)}>{list}</BottomSheet>;
   return root ? createPortal(sheet, root) : sheet;
 }

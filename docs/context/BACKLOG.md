@@ -50,15 +50,9 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
   Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their
   own state) is done: session log 2026-10-15 "Self-managed state".
-- **P2 · AI UI: decisions for the user (merged 2026-10-23 from five entries of 2026-10-14/15; `docs/ai-ui/README.md`
-  "Open decisions"):** (1) `verified` is a heuristic: `tools/ai-ui/build-catalog.mjs` marks a component verified when a
-  Figma contract file or suite name matches its folder (41); confirm them or list them in `tools/ai-ui/catalog.config.mjs`
-  `STATUS_OVERRIDES` (empty). (2) Spec format: Zen's node tree (Studio dialect shape) or A2UI / json-render (an exporter
-  can sit on top); decide before a native renderer is needed. (3) Classifier placement (handoff Q4): the kit classifies on
-  the device (`keywordClassifier`); a smarter one (embeddings or a small model) on the device keeps keystrokes private, a
-  server one needs consent ("Composing while typing"). (4) `ChatReactorsPanel` is experimental: its required `glyph` is a
-  formatter with no JSON form; give it one if chat reactions should be composable. (5) `data-ai-ui-id` does not reach the
-  DOM on components that keep their HTML attributes (the Skeletons): should every component forward `data-*`?
+- **P2 · AI UI: spec format, for the user (2026-10-14; the other four AI UI decisions answered 2026-10-23, see
+  `docs/ai-ui/README.md` "Decided"):** Zen's node tree (Studio dialect shape) or A2UI / json-render (an exporter can sit
+  on top); decide before a native renderer is needed.
 - **P2 · AI UI: Figma first, for the designer (merged 2026-10-23 from six entries of 2026-10-14/15):** (1) a tentative
   look for a guessed form (ShapeShift: the form faded, empty slots as dashed "+ Add date" chips); Zen has no tentative
   state or token (Chip `state="placeholder"` only recolours the label). (2) The recognised span underlined in the prompt

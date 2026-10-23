@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Every component forwards its `data-*` attributes to its root (Skeletons, charts, chat, dialogs, sheets and the rest:
+  119 that dropped them), so the AI UI renderer's `data-ai-ui-id`, test ids and analytics hooks land; only `data-*`, so
+  nothing else a component renders changes. The conformance test checks it for every public component (2026-10-23).
 - Voice (the user's approval of the 2026-10-13 review): `AiVoiceConversation state="thinking"` between your last word
   and its first spoken word (the voice rests as dots that brighten in turn; Interrupt is the main action; Figma's
   variant is still a designer question); `useVoiceLevels(stream, { bars, rate, paused })` turns a microphone into the

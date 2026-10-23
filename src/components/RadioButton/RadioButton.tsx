@@ -3,6 +3,7 @@ import { Icon } from "../Icon";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./radio-button.css";
 import "../Icon/core";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const radioStates = ["default", "hover", "focus", "disabled"] as const;
 export type RadioState = (typeof radioStates)[number];
@@ -31,7 +32,7 @@ export interface RadioButtonProps {
   ref?: Ref<HTMLInputElement>;
 }
 
-export function RadioButton({ checked, defaultChecked = false, onCheckedChange, onChange, label: labelProp, "aria-label": ariaLabel, caption, bold = false, radioSide = "left", state = "default", disabled = false, name, value, className, ref }: RadioButtonProps) {
+export function RadioButton({ checked, defaultChecked = false, onCheckedChange, onChange, label: labelProp, "aria-label": ariaLabel, caption, bold = false, radioSide = "left", state = "default", disabled = false, name, value, className, ref, ...rest }: RadioButtonProps) {
   // "Content label" stays English on purpose: Figma's demo placeholder, shown only when neither label nor aria-label is set.
   const label = labelProp ?? (ariaLabel ? undefined : "Content label");
   // Uncontrolled radios stay native (defaultChecked) so a group sharing `name` keeps exactly one
@@ -39,7 +40,7 @@ export function RadioButton({ checked, defaultChecked = false, onCheckedChange, 
   const isChecked = checked ?? defaultChecked;
   const isDisabled = disabled || state === "disabled";
   return (
-    <label className={["zen-radio-button", className].filter(Boolean).join(" ")} data-side={radioSide} data-state={isDisabled ? "disabled" : state} data-checked={checked === undefined ? undefined : isChecked ? "true" : "false"}>
+    <label {...dataAttributes(rest)} className={["zen-radio-button", className].filter(Boolean).join(" ")} data-side={radioSide} data-state={isDisabled ? "disabled" : state} data-checked={checked === undefined ? undefined : isChecked ? "true" : "false"}>
       {radioSide === "left" ? <RadioMark /> : null}
       {label !== undefined || caption ? <span className="zen-radio-button__content">
         {label !== undefined ? <span className={`zen-radio-button__label ${typographyStyles[bold ? "Body/Base/Bold" : "Body/Base/Regular"]}`}>{label}</span> : null}

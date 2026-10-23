@@ -87,7 +87,8 @@ const next = applyOps(spec, [{ op: "setProp", id: "book", name: "level", value: 
   path the spec gives (`$state`), or, for `value`, `checked`, `open`, `page`, `range`, `expanded`, `selected`, to
   `state[<id>].<prop>` when the spec sets neither prop nor handler — so every pick reaches the conversation
   (`onStateChange`, `onEvent`). A required handler the spec leaves out (AiChatField `onSubmit`, TableBulkAction `onClick`)
-  emits an action of that name. Every element gets `data-ai-ui-id` where the component forwards HTML attributes.
+  emits an action of that name. Every element gets `data-ai-ui-id`: every component forwards `data-*` to its root
+  (tests/smoke/conformance.test.tsx), Skeletons included.
 - **Ops** (`applyOps`): `setProp`, `removeProp`, `setText`, `setChildren`, `insertChild`, `removeNode`, `replaceNode`,
   `moveNode`, `setData`, `setState`; pure, by id, with `OpError` codes. Re-rendering the edited spec keeps the state.
 - **Markdown** (`markdownToSpec`): headings → `Heading` (h1 of an answer renders as level 2), paragraphs → `Text` with
@@ -238,14 +239,21 @@ key): the dry run and the selftest cover the pipeline; the first live numbers ar
   120 components; 13 skipped: parts that need their parent, experimental, fixtures without a JSON form).
 - In a 600 px and a 390 px column the booking form and the charts fit; a 4-column `Table` needs ~608 px and scrolls
   sideways inside its own box (`.zen-table` has `overflow-x: auto`), so the column itself never overflows.
-- `data-ai-ui-id` does not reach the DOM on components that keep their HTML attributes to themselves (the Skeletons).
+
+## Decided (user, 2026-10-23)
+
+- **`verified`:** the heuristic stays: a component is verified when a Figma contract file or suite matches its folder
+  (41 when asked; 53 since the chart contracts of #237); `STATUS_OVERRIDES` stays empty.
+- **Classifier placement:** on the device. `keywordClassifier` (or a smarter on-device one) keeps keystrokes private; a
+  server classifier is not used.
+- **`ChatReactorsPanel` stays experimental:** its `glyph` formatter has no JSON form, so chat reactions are not composable.
+- **`data-*` on every component:** each one forwards its `data-*` attributes to its root, so `data-ai-ui-id`, test ids
+  and analytics hooks land everywhere (built 2026-10-23).
 
 ## Open decisions (user / designer)
 
-1. **`verified` is a heuristic** on Figma contract file names; confirm the 41 or list them in `STATUS_OVERRIDES`.
-2. **Spec format:** this tree, or A2UI / json-render? The tree keeps Studio's dialect shape (element / props / children,
+1. **Spec format:** this tree, or A2UI / json-render? The tree keeps Studio's dialect shape (element / props / children,
    refs, maps); an exporter to A2UI can be written on top if a native renderer is needed.
-3. **Narrow Table:** keep the sideways scroll in a chat column, or a compact mode that folds columns (needs Figma)?
-4. **Prose:** fenced code renders as `Text as="code"` (no mono style or code block component); a Prose / CodeBlock
+2. **Narrow Table:** keep the sideways scroll in a chat column, or a compact mode that folds columns (needs Figma)?
+3. **Prose:** fenced code renders as `Text as="code"` (no mono style or code block component); a Prose / CodeBlock
    component needs Figma.
-5. **Chat reactions:** `ChatReactorsPanel.glyph` is a formatter; give it a JSON form if reactions should be composable.

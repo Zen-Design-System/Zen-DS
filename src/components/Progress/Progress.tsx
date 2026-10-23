@@ -4,6 +4,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./progress.css";
 import "../Icon/core";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const progressBarThemes = ["neutral", "accent", "status"] as const;
 export const progressBarLayouts = ["inline", "stacked"] as const;
@@ -48,7 +49,7 @@ export interface ProgressBarProps {
 /** Figma Progress-Bar (1536:260): 8px Neutral/Subtle track, rounded, Active fill; Body/Base/Regular text, gap XSmall.
  * Layout=Inline puts the label after the bar; Layout=Stacked (15304:45…) puts a Header row (Label Body/Base/Bold fills,
  * Value Body/Base/Regular hugs, baseline-aligned) above the full-width track. */
-export function ProgressBar({ value, theme = "neutral", layout = "inline", label, valueLabel, "aria-label": ariaLabel, scale = "completion", className, ref }: ProgressBarProps) {
+export function ProgressBar({ value, theme = "neutral", layout = "inline", label, valueLabel, "aria-label": ariaLabel, scale = "completion", className, ref, ...rest }: ProgressBarProps) {
   const t = useZenLabels();
   const labelId = useId();
   const v = clamp(value);
@@ -67,7 +68,7 @@ export function ProgressBar({ value, theme = "neutral", layout = "inline", label
     </div>
   );
   return (
-    <div ref={ref} className={["zen-progress-bar", className].filter(Boolean).join(" ")} data-layout={layout} data-tone={theme} data-status={theme === "status" ? progressStatus(v, scale) : undefined}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-progress-bar", className].filter(Boolean).join(" ")} data-layout={layout} data-tone={theme} data-status={theme === "status" ? progressStatus(v, scale) : undefined}>
       {stacked ? (
         <>
           <div className="zen-progress-bar__header">
@@ -95,13 +96,13 @@ export interface ProgressCircleProps {
 /** Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px ring (2px Support/Subtle border, no
  * fill) with a 12px Support/Solid pie from 12 o'clock; Done = full solid disc (it covers the ring) + 12px
  * icon-check-solid. */
-export function ProgressCircle({ value, theme = "accent", label, "aria-label": ariaLabel, className, ref }: ProgressCircleProps) {
+export function ProgressCircle({ value, theme = "accent", label, "aria-label": ariaLabel, className, ref, ...rest }: ProgressCircleProps) {
   const t = useZenLabels();
   const v = clamp(value);
   const done = v >= 100;
   const text = label === true ? `${Math.round(v)}%` : label;
   return (
-    <div ref={ref} className={["zen-progress-circle", className].filter(Boolean).join(" ")} data-tone={theme}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-progress-circle", className].filter(Boolean).join(" ")} data-tone={theme}>
       <span className="zen-progress-circle__icon" data-done={done ? "true" : "false"} style={{ "--zen-progress-value": v } as CSSProperties} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(v)} aria-label={ariaLabel ?? (typeof text === "string" ? undefined : t.progress)} aria-valuetext={typeof text === "string" ? text : undefined}>
         {done ? <Icon name="icon-check-solid" decorative /> : null}
       </span>

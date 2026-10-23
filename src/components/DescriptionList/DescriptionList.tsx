@@ -3,6 +3,7 @@ import { Text } from "../Text";
 import { useIsomorphicLayoutEffect } from "../_shared/use-isomorphic-layout-effect";
 import { useMergedRefs } from "../_shared/merge-refs";
 import "./description-list.css";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const descriptionListLayouts = ["inline", "stacked"] as const;
 export type DescriptionListLayout = (typeof descriptionListLayouts)[number];
@@ -41,9 +42,9 @@ export interface DescriptionItemProps {
  *
  *   <DescriptionItem term="Total" description="$321.90" emphasis />
  */
-export function DescriptionItem({ term, description, action, emphasis = false, className, ref }: DescriptionItemProps) {
+export function DescriptionItem({ term, description, action, emphasis = false, className, ref, ...rest }: DescriptionItemProps) {
   return (
-    <div ref={ref} className={["zen-description-list__item", className].filter(Boolean).join(" ")} data-emphasis={emphasis ? "true" : undefined} data-action={action ? "true" : undefined}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-description-list__item", className].filter(Boolean).join(" ")} data-emphasis={emphasis ? "true" : undefined} data-action={action ? "true" : undefined}>
       <Text as="dt" className="zen-description-list__term" textStyle={emphasis ? "Body/Base/Bold" : "Body/Small/Regular"} tone={emphasis ? "strongest" : "base"}>{term}</Text>
       <Text as="dd" className="zen-description-list__description" textStyle={emphasis ? "Body/Base/Bold" : "Body/Base/Medium"}>{description}</Text>
       {action ? <dd className="zen-description-list__action">{action}</dd> : null}
