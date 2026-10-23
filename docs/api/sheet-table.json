@@ -1,0 +1,167 @@
+{
+  "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
+  "slug": "sheet-table",
+  "import": "import { SheetTable, SheetCode, SheetKey, SheetKeys } from \"@zen-ds/react\";",
+  "components": [
+    {
+      "name": "SheetTable",
+      "file": "src/components/SheetTable/SheetTable.tsx",
+      "description": "Figma Table/Sheet (page ❖ Table, doc frame 17100:7996; cell set Table/Sheet/Cell 17100:8027): reference rows whose\ntext runs long — props and their types, API signatures, keyboard shortcuts, token values. Each row grows with its\ncontent from a Table/Cell/Size minimum, aligned to the top, so every line is read; a Table keeps one-line rows and\ncuts long text (user rule 2026-10-13). Header: Table/Cell/Header (Table/Header/Size, All-Caps/S, Content/Neutral/\nLight). Cells: Spacing/Padding/Small × Medium, Table-Cell/Background/Default, a 1px Border/Neutral/Pale rule under\nevery row but the last (Divider=No). Static: no sorting, selection or row clicks — those rows belong in a Table.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLDivElement>",
+          "required": false,
+          "default": null,
+          "description": "The root element (the scroll box around the `<table>`).",
+          "deprecated": null
+        },
+        {
+          "name": "columns",
+          "type": "SheetTableColumn<T>[]",
+          "required": true,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "rows",
+          "type": "unknown",
+          "required": true,
+          "default": null,
+          "description": "The items, one row each.",
+          "deprecated": null
+        },
+        {
+          "name": "getRowId",
+          "type": "(row: T, index: number) => string",
+          "required": false,
+          "default": "(row, index) => rowIdOf(row, index)",
+          "description": "A stable, unique id per row (React keys). Default: the row's `id` field, else its position.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the sheet for screen readers when there is no visible `caption` (or use `aria-labelledby`).",
+          "deprecated": null
+        },
+        {
+          "name": "caption",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Visible caption above the sheet (Heading/4), which also names it.",
+          "deprecated": null
+        },
+        {
+          "name": "minWidth",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The narrowest the columns may get, a CSS length (e.g. \"680px\"): a narrower container scrolls the sheet sideways\ninstead of squeezing its columns into a word per line. Leave it unset for two short columns.",
+          "deprecated": null
+        },
+        {
+          "name": "empty",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Rendered in a full-width row when `rows` is empty (e.g. \"No keyboard shortcuts\").",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "SheetCode",
+      "file": "src/components/SheetTable/SheetTable.tsx",
+      "description": "Figma .Primitives/Table/Sheet/Code (17100:8013): a code value in a SheetTable cell — a prop name, a type union, a\nsignature, a default. Body/Code/Regular in Content/Neutral/Strongest; it wraps, never cuts.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<code>` element.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "The code, as plain text.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "SheetKey",
+      "file": "src/components/SheetTable/SheetTable.tsx",
+      "description": "Figma .Primitives/Table/Sheet/Key (17100:8015): one keyboard key (Tab, Shift, →, Esc) as a chip — Element-Size/Popular/\nBase minimum, Spacing/Padding/2XSmall sides, Corner-Radius/2XSmall, Background/Neutral/Pale with a Border/Neutral/Pale\nring and a 2px foot, Body/Code/Regular in Content/Neutral/Strongest.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<kbd>` element.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "The key's name, as printed on it (\"Shift\", \"Tab\", \"→\").",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "SheetKeys",
+      "file": "src/components/SheetTable/SheetTable.tsx",
+      "description": "A shortcut written as text — \"Shift + Tab / Tab\", \"G then I\" — as SheetKey chips with their separators between them:\nSpacing/Gap/2XSmall apart, the separators in Body/Small/Regular, Content/Neutral/Light (Figma Table/Sheet Keyboard\nexample). `+` joins keys pressed together, `/` separates alternatives, `then` a sequence.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>` element.",
+          "deprecated": null
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true,
+          "default": null,
+          "description": "The shortcut: keys joined by \" + \", \" / \" or \" then \".",
+          "deprecated": null
+        }
+      ]
+    }
+  ],
+  "types": {
+    "SheetTableColumn": "interface SheetTableColumn<T> { id: string; header: ReactNode; width?: string; cell?: (row: T, index: number) => ReactNode; content?: SheetTableContent; field?: string; bold?: boolean; }",
+    "SheetTableContent": "type SheetTableContent = \"text\" | \"code\" | \"keys\""
+  }
+}

@@ -144,6 +144,19 @@ export const fixtures: Record<string, Fixture> = {
   PopoverItem: { props: { label: "Newest" }, wrap: (el) => <div role="listbox" aria-label="Sort by">{el}</div> },
   InputConditionItem: { props: { label: "At least 8 characters" }, wrap: (el) => <ul>{el}</ul> },
   TableText: { wrap: (el) => <table><tbody><tr><td>{el}</td></tr></tbody></table> },
+  // A props reference: a name column of code, a long description that wraps.
+  SheetTable: {
+    props: {
+      "aria-label": "Card props",
+      rows: [{ id: "theme", type: '"shadow" | "default" | "pale" | "border"', description: "Picked by where the card sits on the page." }, { id: "surface", type: '"default" | "alt"', description: "Surface/Alt on a white Canvas/Alt page." }],
+      columns: [
+        { id: "prop", header: "Prop", width: "20%", cell: (row: { id: string }) => <code>{row.id}</code> },
+        { id: "type", header: "Type", width: "40%", cell: (row: { type: string }) => <code>{row.type}</code> },
+        { id: "description", header: "Description", cell: (row: { description: string }) => row.description },
+      ],
+    },
+  },
+  SheetKeys: { props: { value: "Shift + Tab / Tab" } },
   TableMedia: { props: { media: <img src={photo} alt="" />, children: "Ava Nguyen" }, wrap: (el) => <table><tbody><tr><td>{el}</td></tr></tbody></table> },
   TableTrend: { wrap: (el) => <table><tbody><tr><td>{el}</td></tr></tbody></table> },
   TableBadges: { wrap: (el) => <table><tbody><tr><td>{el}</td></tr></tbody></table> },

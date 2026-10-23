@@ -1,0 +1,62 @@
+/* Figma Table/Sheet (page ❖ Table 1595:2631, doc frame 17100:7996): reference rows that grow with their content. */
+/* The scroll box: a sheet narrower than its minWidth scrolls sideways instead of squeezing its columns. */
+.zen-sheet-table { position: relative; width: 100%; min-width: 0; overflow-x: auto; }
+.zen-sheet-table__table { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: fixed; }
+.zen-sheet-table__caption { padding-bottom: var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-strongest, #111); text-align: start; caption-side: top; }
+
+/* Header: Table/Cell/Header Type=None — FIXED Table/Header/Size, padding Medium sideways, All-Caps/S Neutral/Light and
+   the same inset 1px Border/Neutral/Pale rule as Table (a hairline that never adds to the height). */
+.zen-sheet-table__header {
+  box-sizing: border-box;
+  height: var(--zen-table-header-size, 36px);
+  padding: 0 var(--zen-spacing-padding-medium, 16px);
+  background: var(--zen-table-cell-background-default, transparent);
+  box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%));
+  font-weight: inherit;
+  text-align: start;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* Body cell: Table/Sheet/Cell — Hug height from a Table/Cell/Size minimum (a <td> height is a minimum), the content at
+   the top (counterAxis MIN), padding Small × Medium, Table-Cell/Background/Default, Divider=Yes under every row but the
+   last (Divider=No). */
+.zen-sheet-table__cell {
+  box-sizing: border-box;
+  height: var(--zen-table-cell-size, 52px);
+  padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px);
+  background: var(--zen-table-cell-background-default, transparent);
+  box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  color: var(--zen-color-content-neutral-strongest, #111);
+  text-align: start;
+  vertical-align: top;
+}
+.zen-sheet-table__row:last-child > .zen-sheet-table__cell { box-shadow: none; }
+/* The Content slot: its pieces side by side (Spacing/Gap/XSmall), every line of them read in full. */
+.zen-sheet-table__content { display: flex; min-width: 0; flex-wrap: wrap; align-items: flex-start; gap: var(--zen-spacing-gap-xsmall, 8px); overflow-wrap: anywhere; }
+/* Figma Primitives/Table/Cell/Text-Cell in a sheet: its label and Subtext wrap (in a Table they end in an ellipsis). */
+.zen-sheet-table__content > .zen-table-text { grid-template-columns: minmax(0, 1fr); }
+.zen-sheet-table__content > .zen-table-text > * { overflow: visible; white-space: normal; }
+
+/* Code: Body/Code/Regular in Content/Neutral/Strongest; long unions and signatures break anywhere rather than overflow. */
+.zen-sheet-code { min-width: 0; color: var(--zen-color-content-neutral-strongest, #111); overflow-wrap: anywhere; white-space: normal; }
+
+/* Keys: chips Spacing/Gap/2XSmall apart (rows wrap the same), the separators Body/Small/Regular in Neutral/Light. */
+.zen-sheet-keys { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.zen-sheet-keys__separator { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-sheet-key {
+  display: inline-flex;
+  box-sizing: border-box;
+  min-width: var(--zen-element-size-popular-base, 20px);
+  min-height: var(--zen-element-size-popular-base, 20px);
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--zen-spacing-padding-2-xsmall, 4px);
+  border-radius: var(--zen-corner-radius-2-xsmall, 4px);
+  background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%));
+  /* Figma strokes 1px inside with a 2px bottom: two inset rings, as the key's foot. */
+  box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)), inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  color: var(--zen-color-content-neutral-strongest, #111);
+  white-space: nowrap;
+}
