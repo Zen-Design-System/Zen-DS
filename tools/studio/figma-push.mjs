@@ -411,6 +411,8 @@ const DESKTOP_BARS_NOTE = "a phone part: a phone Screen draws it (Pattern/AppShe
 const APP_SHELL_PHONE_PARTS = ["topNavigation", "bottomNavigation", "actionBar", "hero", "backdrop"];
 /** Figma's Pattern/AppShell/Mobile (◇ Master-Layout 16261:136204, read 2026-10-23): Device × Top × Bottom. */
 const MOBILE_SHELL_SET = { id: "16261:136204", name: "Pattern/AppShell/Mobile" };
+/** Figma's ActionBar on its own (Action-Bar/Mobile 16326:6489, read 2026-10-23): Type Default · Glass, Home-Indicator. */
+const ACTION_BAR_SET = { id: "16326:6489", name: "Action-Bar/Mobile" };
 /** Each Top variant's layers: where its Top-Navigation, Content, Hero and Backdrop sit (read from the set, 2026-10-23). */
 const MOBILE_SHELL_TOP = {
   bar: { option: "Bar", top: ["Top-Navigation"], content: ["Body"] },
@@ -738,6 +740,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     else if (element.name === "Table") node = tableNode(element, code, id, parent);
     else if (element.name === "SheetTable") node = sheetTableNode(element, code, id);
     else if (element.name === "AppShell") node = appShellNode(element, code, id, parent);
+    else if (element.name === "ActionBar") node = actionBarNode(element, code, id);
     else if (element.name === "AppShellAccount") node = accountNode(element, code, id);
     else if (element.name === "PageHeader") node = pageHeaderNode(element, code, id);
     else if (element.name === "TopNavigation") node = topNavigationNode(element, code, id);
@@ -1071,23 +1074,37 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
    * in its direction; the Buttons in Figma's order (Horizontal: Tertiary then Primary; Vertical: Primary first), each with
    * its label, level and Icon start icon. A summary or custom buttons have no place there: a note.
    */
-  function actionBarParts(bar, nested) {
+  function actionBarParts(bar, nested, prefix = "Action-Bar") {
     const code = codeProps(bar);
     const action = (prop) => (bar.props[prop]?.kind === "object" ? bar.props[prop].fields : null);
     const primary = action("primaryAction"), secondary = action("secondaryAction");
     const vertical = code.direction !== "horizontal";
-    nested.push({ path: "Action-Bar", props: { Type: code.surface === "glass" ? "Glass" : "Default" } });
-    nested.push({ path: "Action-Bar/Actions", props: { Button: secondary ? "Dual" : "Single", Direction: vertical ? "Vertical" : "Horizontal" } });
+    // `prefix`: the Action-Bar's place in the pattern; a standalone one (actionBarNode) writes its own Type and paths.
+    const at = (rest) => (prefix ? `${prefix}/${rest}` : rest);
+    const where = prefix ? "AppShell actionBar" : "ActionBar";
+    if (prefix) nested.push({ path: prefix, props: { Type: code.surface === "glass" ? "Glass" : "Default" } });
+    nested.push({ path: at("Actions"), props: { Button: secondary ? "Dual" : "Single", Direction: vertical ? "Vertical" : "Horizontal" } });
     const order = secondary ? (vertical ? [primary, secondary] : [secondary, primary]) : [primary];
     order.forEach((fields, index) => {
       if (!fields) return;
       const label = textValue(plain(fields.label));
       const level = literalOf(fields.level);
       const icon = fields.startIcon?.kind === "element" && fields.startIcon.node.name === "Icon" ? literalOf(fields.startIcon.node.props.name) : null;
-      nested.push({ path: `Action-Bar/Actions/Button[${index}]`, props: { ...(level ? { Level: level[0].toUpperCase() + level.slice(1) } : {}), ...(icon ? { "Leading-Icon": true, "Leading-Icon-Src": icon } : {}) }, ...(label ? { text: label } : {}) });
+      nested.push({ path: at(`Actions/Button[${index}]`), props: { ...(level ? { Level: level[0].toUpperCase() + level.slice(1) } : {}), ...(icon ? { "Leading-Icon": true, "Leading-Icon-Src": icon } : {}) }, ...(label ? { text: label } : {}) });
     });
-    if (bar.props.summary || bar.children.some((child) => child.kind === "element")) notes.push("AppShell actionBar: the phone pattern's Action-Bar holds its two buttons only (summary and custom buttons not drawn)");
-    if (code.surface === "alt" || code.surface === "none") notes.push(`AppShell actionBar surface="${code.surface}": drawn as the Default Action-Bar`);
+    if (bar.props.summary || bar.children.some((child) => child.kind === "element")) notes.push(`${where}: Figma's Action-Bar holds its two buttons only (summary and custom buttons not drawn)`);
+    if (code.surface === "alt" || code.surface === "none") notes.push(`${where} surface="${code.surface}": drawn as the Default Action-Bar`);
+  }
+
+  /**
+   * An ActionBar on its own (outside an AppShell's actionBar) as Figma's Action-Bar/Mobile (16326:6489, read 2026-10-23):
+   * its Type and buttons as actionBarParts writes them, without the Home-Indicator (the Screen draws its own), filling
+   * its row. figma-pull actionBarElement reads it back.
+   */
+  function actionBarNode(element, code, id) {
+    const nested = [];
+    actionBarParts(element, nested, "");
+    return { type: "INSTANCE", ...(id ? { id } : {}), name: "ActionBar", set: ACTION_BAR_SET, props: { Type: code.surface === "glass" ? "Glass" : "Default", "Home-Indicator": false }, nested, fillW: true };
   }
 
   /**
