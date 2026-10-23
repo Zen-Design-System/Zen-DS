@@ -184,3 +184,8 @@ Branch zen/feat/box-theme-rules-20261023 (worktree festive-archimedes-176df5). #
   nested Card; its theme props show as code props). AppShell's default bar type (alt) does not follow canvas="alt": the
   rule flags it at the TopNavigation; AppShell's files belong to the BadgeStatus migration, so Giám sát routes the
   one-line fix (TOP_NAV_TYPE.bar follows canvas) to its owner.
+- Gate (02:42–03:25, isolated, 8 pages + the token-scope set, 24 files): static ✓, audit 1512/390/320 0 errors, dark 0,
+  behaviour 0, browser tests 81/81, Studio E2E 338/0, Build-QA PASS. Contact sheets: the Canvas/Alt Sidebars sit white
+  on white with their divider, the G1 KPI cards are flat beside the charts, the Q3 badge reads Inverse. At 1512 the two
+  new ListBox examples shrank (.pe-shell is a 480-tall row for app windows): their page is now a column of its content's
+  height (list-item.css), re-shot after the slot came back.
