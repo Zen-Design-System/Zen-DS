@@ -9,6 +9,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./toast.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const toastTypes = ["neutral", "subtle", "info", "positive", "warning", "negative"] as const;
 export type ToastType = (typeof toastTypes)[number];
@@ -64,7 +65,7 @@ export interface ToastProps {
  * gap Medium; the Body groups the Title/Caption stack (gap 3XSmall) with the action (gap XSmall).
  * Subtle is the Popover surface with a 1px OUTSIDE Border/Popover/Subtle stroke.
  */
-export function Toast({ type: typeProp, status, title, children, icon = true, action, onClose, closeLabel: closeLabelProp, className, overrides, ref }: ToastProps) {
+export function Toast({ type: typeProp, status, title, children, icon = true, action, onClose, closeLabel: closeLabelProp, className, overrides, ref, ...rest }: ToastProps) {
   const nest = useNested(overrides);
   const type: ToastType = typeProp ?? toneFromStatus(status) ?? "neutral";
   const t = useZenLabels();
@@ -79,7 +80,7 @@ export function Toast({ type: typeProp, status, title, children, icon = true, ac
     if (!action?.keepOpen) onClose?.();
   };
   return (
-    <div ref={ref} className={["zen-toast", className].filter(Boolean).join(" ")} data-type={type} role={urgent ? "alert" : "status"}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-toast", className].filter(Boolean).join(" ")} data-type={type} role={urgent ? "alert" : "status"}>
       {leading ? <span className="zen-toast__icon" aria-hidden="true">{leading}</span> : null}
       <div className="zen-toast__body">
         <div className="zen-toast__content">

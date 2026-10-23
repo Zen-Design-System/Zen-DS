@@ -7,6 +7,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./breadcrumbs.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export type BreadcrumbEmphasis = "default" | "medium";
 export type BreadcrumbLevel = "master" | "sub";
@@ -45,7 +46,7 @@ export interface BreadcrumbItemProps {
 }
 
 /** Figma .Primitives/Breadcrumbs/Item (292:43787): Level × State × Emphasis. */
-export function BreadcrumbItem({ item, level: levelProp, emphasis: emphasisProp, current = false, state: stateProp, onNavigate }: BreadcrumbItemProps) {
+export function BreadcrumbItem({ item, level: levelProp, emphasis: emphasisProp, current = false, state: stateProp, onNavigate, ...rest }: BreadcrumbItemProps) {
   const nest = useNested();
   const level = levelProp ?? item.level ?? "sub";
   const emphasis = emphasisProp ?? item.emphasis ?? "default";
@@ -57,9 +58,9 @@ export function BreadcrumbItem({ item, level: levelProp, emphasis: emphasisProp,
     </>
   );
   const common = { className: "zen-breadcrumb", "data-level": level, "data-state": state, "data-current": current ? "true" : undefined };
-  if (current) return <span {...common} aria-current="page">{content}</span>;
-  if (item.href) return <a {...common} href={item.href} onClick={(event) => onNavigate?.(item, event)}>{content}</a>;
-  return <button {...common} type="button" onClick={(event) => onNavigate?.(item, event)}>{content}</button>;
+  if (current) return <span {...dataAttributes(rest)} {...common} aria-current="page">{content}</span>;
+  if (item.href) return <a {...dataAttributes(rest)} {...common} href={item.href} onClick={(event) => onNavigate?.(item, event)}>{content}</a>;
+  return <button {...dataAttributes(rest)} {...common} type="button" onClick={(event) => onNavigate?.(item, event)}>{content}</button>;
 }
 
 export interface BreadcrumbsProps {
@@ -89,7 +90,7 @@ export interface BreadcrumbsProps {
 }
 
 /** Figma Breadcrumbs (4031:20161): Item-List with chevron separators (icon-chevron-right-line-small, Neutral/Light). */
-export function Breadcrumbs({ items: itemsProp, children, emphasis = "default", master = true, maxItems, onNavigate, "aria-label": ariaLabelProp, className, overrides, ref }: BreadcrumbsProps) {
+export function Breadcrumbs({ items: itemsProp, children, emphasis = "default", master = true, maxItems, onNavigate, "aria-label": ariaLabelProp, className, overrides, ref, ...rest }: BreadcrumbsProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.breadcrumb;
@@ -113,7 +114,7 @@ export function Breadcrumbs({ items: itemsProp, children, emphasis = "default", 
   const collapse = !expanded && maxItems !== undefined && maxItems >= 2 && items.length > maxItems;
   const visible: Array<BreadcrumbItemData | "ellipsis"> = collapse ? [items[0], "ellipsis", ...items.slice(items.length - (maxItems - 1))] : items;
   return (
-    <nav ref={ref} aria-label={ariaLabel} className={["zen-breadcrumbs", className].filter(Boolean).join(" ")}>
+    <nav {...dataAttributes(rest)} ref={ref} aria-label={ariaLabel} className={["zen-breadcrumbs", className].filter(Boolean).join(" ")}>
       <ol ref={listRef} className="zen-breadcrumbs__list">
         {visible.map((entry, index) => {
           const last = index === visible.length - 1;

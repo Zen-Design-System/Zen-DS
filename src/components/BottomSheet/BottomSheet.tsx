@@ -14,6 +14,7 @@ import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { SearchShapeContext } from "../_shared/search-shape";
 import { useMergedRefs } from "../_shared/merge-refs";
+import { dataAttributes } from "../_shared/data-attributes";
 
 /** Figma Type: Modal (contents + Actions footer) · Action (a list of Sheet-Actions items). */
 export type BottomSheetType = "modal" | "action";
@@ -88,7 +89,7 @@ export interface BottomSheetProps extends OverlayOpenProps {
  * Initial focus: `data-autofocus`, else the Search or first field of a form sheet, else the sheet itself.
  * Modal + `onSubmit`: body and footer become a `<form>` (Form rule: Enter submits; the primary action is the submit button).
  */
-export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, type = "modal", size = "flex", search, items = [], selectedId, onSelect, keepOpen = false, children, primaryAction, secondaryAction, actionsDirection = "horizontal", footer: footerContent, onSubmit, dismissible = true, inline = false, closeLabel: closeLabelProp, className, overrides, ref }: BottomSheetProps) {
+export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, type = "modal", size = "flex", search, items = [], selectedId, onSelect, keepOpen = false, children, primaryAction, secondaryAction, actionsDirection = "horizontal", footer: footerContent, onSubmit, dismissible = true, inline = false, closeLabel: closeLabelProp, className, overrides, ref, ...rest }: BottomSheetProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
@@ -171,7 +172,7 @@ export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChange
 
   const sheet = (
     <div
-      ref={mergedPanelRef}
+      {...dataAttributes(rest)} ref={mergedPanelRef}
       className={["zen-bottom-sheet", className].filter(Boolean).join(" ")}
       data-type={type}
       data-size={size}

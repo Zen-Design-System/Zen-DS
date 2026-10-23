@@ -87,7 +87,8 @@ const next = applyOps(spec, [{ op: "setProp", id: "book", name: "level", value: 
   path the spec gives (`$state`), or, for `value`, `checked`, `open`, `page`, `range`, `expanded`, `selected`, to
   `state[<id>].<prop>` when the spec sets neither prop nor handler — so every pick reaches the conversation
   (`onStateChange`, `onEvent`). A required handler the spec leaves out (AiChatField `onSubmit`, TableBulkAction `onClick`)
-  emits an action of that name. Every element gets `data-ai-ui-id` where the component forwards HTML attributes.
+  emits an action of that name. Every element gets `data-ai-ui-id`: every component forwards `data-*` to its root
+  (tests/smoke/conformance.test.tsx), Skeletons included.
 - **Ops** (`applyOps`): `setProp`, `removeProp`, `setText`, `setChildren`, `insertChild`, `removeNode`, `replaceNode`,
   `moveNode`, `setData`, `setState`; pure, by id, with `OpError` codes. Re-rendering the edited spec keeps the state.
 - **Markdown** (`markdownToSpec`): headings → `Heading` (h1 of an answer renders as level 2), paragraphs → `Text` with
@@ -226,7 +227,7 @@ key): the dry run and the selftest cover the pipeline; the first live numbers ar
   `autoComplete`, `inputMode`, `min`, `max`, `step`, `maxLength` on fields. `value` / `defaultValue` (and `checked`) are
   written out from their `on<X>Change` handler when react-docgen left them out.
 - **Status:** `stable` = documented and smoke- and conformance-tested (every public component); `verified` = a Figma parity
-  suite or capture covers the component's folder (41 today; by file name, see open decisions); `experimental` = a required
+  suite or capture covers the component's folder (41 today; by file name, confirmed by the user 2026-10-23); `experimental` = a required
   prop has no JSON form (`unavailable` names it: ChatReactorsPanel `glyph`, ZenPortalProvider `container`), or set in
   `catalog.config.mjs`. Experimental components fail validation unless `{ experimental: true }`.
 - **Chrome:** AppShell, Sidebar, TopNavigation, BottomNavigation, DashboardHeader, PageHeader, ZenProvider, Container stay
@@ -238,14 +239,15 @@ key): the dry run and the selftest cover the pipeline; the first live numbers ar
   120 components; 13 skipped: parts that need their parent, experimental, fixtures without a JSON form).
 - In a 600 px and a 390 px column the booking form and the charts fit; a 4-column `Table` needs ~608 px and scrolls
   sideways inside its own box (`.zen-table` has `overflow-x: auto`), so the column itself never overflows.
-- `data-ai-ui-id` does not reach the DOM on components that keep their HTML attributes to themselves (the Skeletons).
 
 ## Open decisions (user / designer)
 
-1. **`verified` is a heuristic** on Figma contract file names; confirm the 41 or list them in `STATUS_OVERRIDES`.
-2. **Spec format:** this tree, or A2UI / json-render? The tree keeps Studio's dialect shape (element / props / children,
-   refs, maps); an exporter to A2UI can be written on top if a native renderer is needed.
-3. **Narrow Table:** keep the sideways scroll in a chat column, or a compact mode that folds columns (needs Figma)?
-4. **Prose:** fenced code renders as `Text as="code"` (no mono style or code block component); a Prose / CodeBlock
+Decided by the user on 2026-10-23: the 41 `verified` components stand (`STATUS_OVERRIDES` stays empty); the spec stays
+this tree (Studio's dialect shape; an A2UI / json-render exporter can be written on top later); the classifier stays on
+the device; `ChatReactorsPanel` stays experimental (its `glyph` formatter gets no JSON form); every component forwards
+`data-*`, the Skeletons too (built in #246: `tests/smoke/conformance.test.tsx` checks it). Still open, for the designer
+(`docs/context/QUESTIONS.md`, "AI UI, Figma first"):
+
+1. **Narrow Table:** keep the sideways scroll in a chat column, or a compact mode that folds columns (needs Figma)?
+2. **Prose:** fenced code renders as `Text as="code"` (no mono style or code block component); a Prose / CodeBlock
    component needs Figma.
-5. **Chat reactions:** `ChatReactorsPanel.glyph` is a formatter; give it a JSON form if reactions should be composable.

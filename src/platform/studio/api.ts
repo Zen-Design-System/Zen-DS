@@ -312,6 +312,22 @@ export const studioApi = {
     }
   },
   /**
+   * POST /media { name, data: base64 WebP }: a picture from the computer saved in the repo (src/assets/media, with a
+   * CREDITS.md row) so example and template code can read it; rejects with a StudioApiError when refused.
+   */
+  async saveMedia(name: string, bytes: Uint8Array): Promise<{ file: string; key: string; created: boolean }> {
+    let text = "";
+    for (let index = 0; index < bytes.length; index += 0x8000) text += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+    const reply = await post<{ ok?: unknown; file?: unknown; key?: unknown; created?: unknown }>("/media", { name, data: btoa(text) }, 60_000);
+    if (!reply) throw new StudioApiError("invalid", NO_SERVER);
+    const body = reply.body;
+    if (reply.status !== 200 || body?.ok !== true || typeof body.file !== "string" || typeof body.key !== "string") {
+      const { code, error } = errorOf(body, "The picture was not saved");
+      throw new StudioApiError(code, error);
+    }
+    return { file: body.file, key: body.key, created: body.created === true };
+  },
+  /**
    * POST /promote (Studio builder GĐ5 M5): the page written as src/templates/studio/<Name>Template.tsx with its photos,
    * TypeScript and the harness on it. `conflict`: that template exists and differs (send `overwrite` to replace it).
    */

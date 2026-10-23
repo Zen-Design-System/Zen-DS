@@ -9,6 +9,7 @@ import { overrideOps, overrideTable, withOverride } from "../../inspector/overri
 import { cellDataTarget } from "../../table/tableCells";
 import { pictureCode, resolveMedia } from "../../builder/library/media";
 import { PHOTO_PROPS } from "../../inspector/propSchema";
+import { repoValueFor } from "./repoMedia";
 import { rowScope } from "../../inspector/rowScope";
 import type { EditOp, EditValue, StudioPartRef } from "../../types";
 import type { NodeSelection } from "../arrange";
@@ -28,7 +29,7 @@ import type { NodeSelection } from "../arrange";
 /** Layers whose picture is their `src` (propSchema.ts PHOTO_PROPS). */
 export const PICTURED: ReadonlySet<string> = new Set(Object.keys(PHOTO_PROPS));
 
-export const UPLOAD_ONLY_LOCAL = "An uploaded photo stays in this browser: on example code pick a photo from People or the Library";
+export const UPLOAD_ONLY_LOCAL = "An uploaded photo stays in this browser: on example code pick a photo from People or the Library, or drop the file from the computer";
 
 /**
  * The picture a component draws as a nested instance (an AvatarStack's Avatar, Figma's nested Avatar/Single) when it
@@ -153,9 +154,12 @@ function plainProps(props: Record<string, unknown>): Record<string, string | num
 }
 
 /** Puts `value` (zen-media:/zen-asset:/URL) on the selected layer; false with the reason shown when it cannot. */
-export async function writePicture(selection: NodeSelection, value: string, label: string, given?: PartHit | null): Promise<boolean> {
+export async function writePicture(selection: NodeSelection, picked: string, label: string, given?: PartHit | null): Promise<boolean> {
   const at = parseSrc(selection.src);
   if (!at) return false;
+  // An upload on a repo page is saved in the repo first (repoMedia.ts): example code reads files, not this browser.
+  const value = await repoValueFor(at.file, picked);
+  if (typeof value !== "string") { inspectorStatus.set("negative", value.error); return false; }
   // A nested picture (core rebuild M8: an AvatarStack's Avatar): its own src, as the owner's instance overrides, the way
   // Figma overrides one nested instance's image (one undo step; the Inspector's Reset takes it back).
   const nested = nestedPicture(selection, given);

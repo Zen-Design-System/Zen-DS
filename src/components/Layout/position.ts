@@ -27,6 +27,9 @@ export type LayoutConstraintX = (typeof layoutConstraintsX)[number];
 /** Figma vertical constraint MIN | MAX | STRETCH | CENTER. */
 export const layoutConstraintsY = ["top", "bottom", "top-bottom", "center"] as const;
 export type LayoutConstraintY = (typeof layoutConstraintsY)[number];
+/** Figma "Fix position when scrolling": the edge of the scrolling ancestor the layer sticks to. */
+export const layoutStickies = ["top", "bottom"] as const;
+export type LayoutSticky = (typeof layoutStickies)[number];
 
 export interface LayoutPositionProps {
   /**
@@ -62,13 +65,22 @@ export interface LayoutPositionProps {
   insetBottom?: LayoutInset;
   /** Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame. Read only when `constraintX` is `left` or `left-right`. Default none. */
   insetLeft?: LayoutInset;
+  /**
+   * Figma "Fix position when scrolling" (Prototype › Scroll behavior): the layer stays in its place in the layout and,
+   * while its nearest scrolling ancestor (an AppShell Body, a pane, a `scroll` Stack) scrolls, sticks to that
+   * ancestor's `top` or `bottom` edge, above the content passing under it. Put `sticky="bottom"` last (a chat composer
+   * docked under its thread) and `sticky="top"` first (a list's header). A last child of an AppShell Body takes the
+   * Body's bottom margin inside itself, so the content scrolls under the margin too. Ignored with
+   * `position="absolute"`. Default unset: it scrolls with its parent.
+   */
+  sticky?: LayoutSticky;
 }
 
 /** Prop names owned by the Position section (Studio filters these out of the generic Properties list). */
-export const positionPropNames: ReadonlySet<string> = new Set(["position", "constraintX", "constraintY", "insetTop", "insetRight", "insetBottom", "insetLeft"]);
+export const positionPropNames: ReadonlySet<string> = new Set(["position", "constraintX", "constraintY", "insetTop", "insetRight", "insetBottom", "insetLeft", "sticky"]);
 
 export interface LayoutPositionOutput {
-  /** Data attributes to spread on the element; empty unless `position="absolute"`. */
+  /** Data attributes to spread on the element; empty unless `position="absolute"` or `sticky`. */
   attributes: Record<`data-${string}`, string>;
   /** The four inset custom properties; empty unless `position="absolute"`. */
   vars: Record<`--${string}`, string>;
@@ -80,8 +92,8 @@ const inset = (value: LayoutInset | undefined) => (typeof value === "number" ? (
  * Data attributes and custom properties for the position props, the same `{ attributes, vars }` shape as
  * `layoutSizing()`. Unset or static produces nothing; an unknown constraint falls back to left / top.
  */
-export function layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft }: LayoutPositionProps): LayoutPositionOutput {
-  if (position !== "absolute") return { attributes: {}, vars: {} };
+export function layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky }: LayoutPositionProps): LayoutPositionOutput {
+  if (position !== "absolute") return { attributes: sticky && (layoutStickies as readonly string[]).includes(sticky) ? { "data-sticky": sticky } : {}, vars: {} };
   const x = constraintX && (layoutConstraintsX as readonly string[]).includes(constraintX) ? constraintX : "left";
   const y = constraintY && (layoutConstraintsY as readonly string[]).includes(constraintY) ? constraintY : "top";
   return {

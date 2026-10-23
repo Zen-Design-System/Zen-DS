@@ -9,6 +9,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import "./voice.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { dataAttributes } from "../_shared/data-attributes";
 
 /*
  * Figma ❖ Voice (15081:1294): purpose-built voice components made of Zen parts, typography styles and semantic
@@ -149,7 +150,7 @@ export type VoiceRecorderProps = {
  * the guidance (Body/Small/Regular Neutral/Base), the transport (Discard · Record/Pause/Resume · Finish; Discard and
  * Finish disabled until there is a take), a Border/Neutral/Pale divider and the input details.
  */
-export function VoiceRecorder({ state = "ready", title, elapsed = "00:00.00", start = "00:00", end = "00:00", levels, guidance, input, format, onRecord, onPause, onResume, onFinish, onDiscard, className, overrides, ref }: VoiceRecorderProps) {
+export function VoiceRecorder({ state = "ready", title, elapsed = "00:00.00", start = "00:00", end = "00:00", levels, guidance, input, format, onRecord, onPause, onResume, onFinish, onDiscard, className, overrides, ref, ...rest }: VoiceRecorderProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const titleId = useId();
@@ -170,7 +171,7 @@ export function VoiceRecorder({ state = "ready", title, elapsed = "00:00.00", st
       : { icon: "icon-microphone-solid" as const, label: t.voiceRecord, onClick: onRecord };
   const said = guidance ?? (state === "recording" ? t.voiceRecordingGuidance : state === "paused" ? t.voicePausedGuidance : t.voiceReadyGuidance);
   return (
-    <div ref={ref} className={["zen-voice", "zen-voice-recorder", className].filter(Boolean).join(" ")} role="group" aria-labelledby={titleId} data-state={state}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-voice", "zen-voice-recorder", className].filter(Boolean).join(" ")} role="group" aria-labelledby={titleId} data-state={state}>
       <div className="zen-voice__header">
         <span id={titleId} className={`zen-voice__title ${typographyStyles["Body/Base/Medium"]}`}>{title ?? t.voiceNewRecording}</span>
         {state === "recording"
@@ -256,7 +257,7 @@ export type AiVoiceConversationProps = {
  * Corner-Radius/Base, Spacing/Padding/Small: the speaker in Label/Small/Medium Neutral/Light over an AI/Chat-Bubble),
  * the actions (Mute · Start talking / Done speaking / Interrupt · End) and the note.
  */
-export function AiVoiceConversation({ state = "ready", name, heading, headingLevel = 3, guidance, speaker, transcript, levels, muted = false, onMutedChange, onStart, onDone, onInterrupt, onEnd, note, className, overrides, ref }: AiVoiceConversationProps) {
+export function AiVoiceConversation({ state = "ready", name, heading, headingLevel = 3, guidance, speaker, transcript, levels, muted = false, onMutedChange, onStart, onDone, onInterrupt, onEnd, note, className, overrides, ref, ...rest }: AiVoiceConversationProps) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   const nameId = useId();
@@ -275,7 +276,7 @@ export function AiVoiceConversation({ state = "ready", name, heading, headingLev
   const status = state === "listening" ? t.voiceListening : state === "responding" ? t.voiceResponding : t.voiceReady;
   const Heading = `h${headingLevel}` as "h2" | "h3" | "h4" | "h5" | "h6";
   return (
-    <div ref={ref} className={["zen-voice", "zen-ai-voice", className].filter(Boolean).join(" ")} role="group" aria-labelledby={nameId} data-state={state}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-voice", "zen-ai-voice", className].filter(Boolean).join(" ")} role="group" aria-labelledby={nameId} data-state={state}>
       <div className="zen-voice__header">
         <span id={nameId} className={`zen-voice__title ${typographyStyles["Body/Base/Medium"]}`}>{name ?? t.voiceAssistant}</span>
         {nest("Status", <Badge size="sm" theme={ready ? "neutral" : "accent"} background="subtle">{status}</Badge>)}

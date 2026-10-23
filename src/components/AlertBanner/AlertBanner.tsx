@@ -10,6 +10,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./alert-banner.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const alertBannerThemes = ["default", "info", "positive", "warning", "negative"] as const;
 export const alertBannerSizes = ["medium", "small"] as const;
@@ -57,7 +58,7 @@ export interface AlertBannerProps {
  * Medium 56px (padding Small/Large, gap Small, 20px icons) · Small 32px (padding XSmall/Medium, gap XSmall, 16px icons).
  * Warning uses Content/On-Brights; Info/Positive/Negative use Content/On-Colors; Default is Neutral/Solid + Inverse.
  */
-export function AlertBanner({ children, theme: themeProp, status, size: sizeProp = "md", leading = true, action, onClose, closeLabel: closeLabelProp, className, overrides, ref }: AlertBannerProps) {
+export function AlertBanner({ children, theme: themeProp, status, size: sizeProp = "md", leading = true, action, onClose, closeLabel: closeLabelProp, className, overrides, ref, ...rest }: AlertBannerProps) {
   const nest = useNested(overrides);
   const theme: AlertBannerTheme = themeProp ?? toneFromStatus(status) ?? "default";
   const t = useZenLabels();
@@ -67,7 +68,7 @@ export function AlertBanner({ children, theme: themeProp, status, size: sizeProp
   const urgent = theme === "negative" || theme === "warning";
   const closeTip = useIconTooltip(onClose ? closeLabel : false);
   return (
-    <div ref={ref} className={["zen-alert-banner", className].filter(Boolean).join(" ")} data-tone={theme} data-size={size} role={urgent ? "alert" : "status"}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-alert-banner", className].filter(Boolean).join(" ")} data-tone={theme} data-size={size} role={urgent ? "alert" : "status"}>
       {leadingNode ? <span className="zen-alert-banner__icon" aria-hidden="true">{leadingNode}</span> : null}
       <span className={`zen-alert-banner__message ${typographyStyles[size === "small" ? "Body/Small/Medium" : "Body/Base/Medium"]}`}>{nest.slot(children)}</span>
       {action && size === "medium" ? (
