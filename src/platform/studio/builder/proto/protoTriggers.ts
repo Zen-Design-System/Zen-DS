@@ -24,6 +24,10 @@ export function triggersOf(name: string, written: string[]): string[] {
  *  Overlay holding one follows it; any other layer is placed by the Overlay's position. */
 export const placesItself = (name: string) => Boolean(API.get(name.split(".")[0])?.props.some((prop) => prop.name === "open"));
 
+/** Does it open next to the element that opens it (it takes `anchorRef`: DatePicker, Popover)? In Play it sits by the
+ *  layer that opened its Overlay, as Figma's Manual overlay by its trigger. */
+export const anchorsItself = (name: string) => placesItself(name) && Boolean(API.get(name.split(".")[0])?.props.some((prop) => prop.name === "anchorRef"));
+
 /**
  * What the Prototype tab and the canvas edit for the layer at `loc`: the layer with its triggers and the one a ⊕ drag
  * writes; or, for a layer that takes no event but is one item of a choice control (a SidebarMenuItem: its Sidebar hands
@@ -43,3 +47,6 @@ export function protoSubject(tree: PageTree | null, loc: string): ProtoSubject |
   }
   return { node, triggers, trigger: null, item: null };
 }
+
+/** Does it take typed text (an input: Search, a text field)? Its Filter table compares by "contains". */
+export const takesText = (name: string) => /\b(Input|Textarea)HTMLAttributes\b/.test(API.get(name.split(".")[0])?.extends ?? "");

@@ -8,7 +8,9 @@
 //   while the `state` prop names it. Board / Screen / Overlay are the design's runtime: they do not reach the output.
 // - proto.navigate("x") → navigate("x") (and onNavigate), open / close → an `overlay` state, back → the history (then
 //   onBack), toast → useToast, link → window.open. A TODO(dev) block names every handler to wire. A choice control's
-//   per-item action (proto.navigate({ home: "screen-1" })) picks its target by the item the control hands over.
+//   per-item action (proto.navigate({ home: "screen-1" })) picks its target by the item the control hands over. A
+//   Screen state's target ("orders:filtered") navigates to the Screen and names the state to pass; Filter table and
+//   Change step (Play drives the Table and Stepper) become TODO(dev) handlers: the app owns that state.
 // - Each Overlay frame's overlay renders with open={overlay === "x"} and onOpenChange.
 // - The mock becomes `export const mock` with a type inferred from it; `{mock.x}` reads the `data` prop (default: mock).
 // - `zen-media:` / `zen-asset:` photos become imports from ./assets (the handoff zip carries the files; `mediaFile(kind,
@@ -137,7 +139,18 @@ function protoCode(value, ctx, where) {
     return `(choice: unknown) => { const to = (${dataLiteral(arg, "")} as Record<string, string | undefined>)[choiceKey(choice)]; if (to) setOverlay(to as Parameters<typeof setOverlay>[0]); }`;
   }
   switch (value.action) {
-    case "navigate": ctx.uses.add("navigate"); ctx.handlers.push(`${where} navigates to "${arg}"`); return `() => navigate(${json(String(arg))})`;
+    case "navigate": {
+      ctx.uses.add("navigate");
+      const [screen, state] = String(arg).split(":");
+      ctx.handlers.push(state ? `${where} navigates to "${screen}" in its "${state}" state: pass state="${state}"` : `${where} navigates to "${arg}"`);
+      return `() => navigate(${json(screen)})`;
+    }
+    case "filter": {
+      const filter = arg && typeof arg === "object" ? arg : {};
+      ctx.handlers.push(`${where} filters ${filter.table ? `the Table "${filter.table}"` : "the screen's Table"} by ${filter.column ? `its "${filter.column}" column` : "any column"}${filter.value ? ` = "${filter.value}"` : " (the value it hands over)"}: filter the rows in the app`);
+      return "() => undefined";
+    }
+    case "step": ctx.handlers.push(`${where} moves ${value.args[1]?.stepper ? `the Stepper "${value.args[1].stepper}"` : "the screen's Stepper"} to its ${arg === "previous" ? "previous" : "next"} step: keep the step in state`); return "() => undefined";
     case "open": ctx.uses.add("overlay"); return `() => setOverlay(${json(String(arg))})`;
     case "close": ctx.uses.add("overlay"); return "() => setOverlay(null)";
     case "back": ctx.uses.add("back"); return "back";
@@ -611,7 +624,9 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
     const position = String(literalOf(node, "position") ?? "center").replace("-", " ");
     const closes = literalOf(node, "closeOnOutside") !== false;
     const dim = literalOf(node, "background") === true;
-    ctx.handlers.push(`Overlay "${id}" (<${root.name}>): show it at the ${position} of the screen${dim ? " over a dimmed screen (Background/Overlay)" : ""}${closes ? "; a press outside closes it" : ""}`);
+    // Manual (Figma's, by its trigger): next to the layer that opens it, as a popover.
+    const where = position === "manual" ? "next to the layer that opens it (anchor it, as a Popover's anchorRef)" : `at the ${position} of the screen`;
+    ctx.handlers.push(`Overlay "${id}" (<${root.name}>): show it ${where}${dim ? " over a dimmed screen (Background/Overlay)" : ""}${closes ? "; a press outside closes it" : ""}`);
     const inner = body + UNIT;
     return `${body}{/* Overlay "${id}" · ${position}${dim ? " · dims the screen" : ""}${closes ? " · closes on an outside press" : ""} */}\n${body}{overlay === ${json(id)} && (\n${inner}${elementCode({ ...root, props }, ctx, inner)}\n${body})}`;
   }).filter(Boolean);
