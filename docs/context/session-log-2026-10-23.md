@@ -466,6 +466,9 @@ Branch zen/feat/sheet-table-20261023 (worktree festive-archimedes-176df5). User 
   sheets with no notes (fixed / Fill widths, Divider Yes/No, a row 72 high where a type union wraps); the real pull
   reader read both back as SHEET and the page printed from it passes validateDialect with the component list. QA frame
   removed. Checks: studio:selftest (push 425, pull 135), library-keys / native-pack / figma-props checks.
+- CI Platform audit on 41a45c36 failed on one console error, Vite's HMR socket dropping on tabs@1512-dark ("WebSocket
+  connection to 'ws://localhost:5173/?token=…' failed"): audit.mjs IGNORED_CONSOLE meant to skip HMR noise but matched
+  only `[vite]`; it now also skips that socket error (an app's own WebSocket without the HMR token still counts).
 
 ## Figma: workflow steps drawn as themed Badges → Badge-Status (tier S, Figma-only; BACKLOG P3, user approved the write)
 
