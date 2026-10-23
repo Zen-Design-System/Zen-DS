@@ -169,7 +169,7 @@
 /* Shadow on Surface/Alt: Surface-Alt never casts an outer shadow (component-usage-rules §9), so the card renders as Figma
    Theme=Default (6643:51018) on Surface/Alt, which already stands apart from a white Canvas/Alt page (§11); Selected keeps
    its 2px inside stroke. CSS cannot read an inherited --zen-card-surface value, so an alt page scope sets
-   --zen-card-shadow too (platform .pe-shell[data-canvas="alt"]); surface="alt" does it on the card itself. */
+   --zen-card-shadow too (the docs platform's alt canvas does); surface="alt" does it on the card itself. */
 .zen-card[data-tone="shadow"][data-surface="alt"] { box-shadow: none; }
 .zen-card[data-tone="shadow"][data-surface="alt"][data-active="true"] { box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111); }
 
