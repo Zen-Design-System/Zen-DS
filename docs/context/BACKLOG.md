@@ -101,13 +101,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   `chart-phase2-spec-2026-10-14.md` §4). (c) Bar, Donut, Radial, Heatmap and Multi-Line draw their own Surface/Default
   card, so they cannot take Card Theme / Color like the card-less new charts: align them? (d) Beside a taller LineChart
   card (Grid stretch) BarList's 5 rows sit ~72px apart: hug at the top, or fill as now? (`docs/research/studio-vibe-agent-2026-10-18.md` §7)
-- **P2 · Direct paste (⌘V on the canvas), what is left (merged 2026-10-23 from the 2026-10-17 P2 and P3):** it binds by
+- **P2 · Direct paste (⌘V on the canvas) into other files (2026-10-17; waits on the library publish):** it binds by
   node id, so only the Zen file takes it; other files need the published library and full component definitions in the
-  paste (instances by `componentKey`, as Figma's own copies carry). The frame menu's Copy for Figma writes async
-  (Chromium rewrites the html, only the plugin reads it). Parity left after native-diff: slot contents written at
-  Figma's outer level, grid row minimum heights, kept overrides by resolved variable, and a smaller pack (23 MB on
-  2026-10-23). Pictures go since 2026-10-19 (F8c), a frame's whole look since #177. Pointer:
-  `docs/research/studio-native-paste-2026-10-17.md` §6, §7c, §8.
+  paste (instances by `componentKey`, as Figma's own copies carry). The rest of the parity list closed on 2026-10-23
+  (Copy for Figma in a copy event, grid cards' heights, the pack at 7.7 MB; the slot and alias differences kept by
+  design). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §8.
 - **P3 · AppShell phone bars in Figma (2026-10-23, B; found by AppShell, needs the user's OK):** figma-push draws a
   phone frame's top and bottom bars only from the builder Screen's own `topNavigation` / `bottomNavigation`. An
   AppShell's own phone bars are named in the push notes and not drawn: a root AppShell on a phone Screen keeps only its

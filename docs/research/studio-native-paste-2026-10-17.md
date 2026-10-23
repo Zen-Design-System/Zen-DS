@@ -170,6 +170,18 @@ ghi chú.
 
 ## 8. Còn mở
 
-Cách ghi slot ở cấp ngoài như Figma (nội dung "Contents" của List-Item, "Header-Text" của Header: bản dán ghi override vào
-layer mặc định của slot; vẫn hiện đúng), chiều cao tối thiểu của hàng grid (plugin đo sau khi dựng), biến alias trong phần
-giữ lại (Figma ghi biến đích: Strongest thay Button-Tertiary/Content/Default, cùng màu), gói định nghĩa 18,9 MB (gzip 0,9).
+Dán vào file khác ngoài Zen: chờ thư viện publish (instance theo `componentKey`, định nghĩa đầy đủ trong bản dán).
+
+Đã đóng 2026-10-23 (session C):
+- Menu "Copy for Figma" đọc trước khung khi menu mở và ghi trong copy event như ⌘C (trước đó ghi bất đồng bộ, Chromium
+  đổi `<!--` thành `&lt;!--`, chỉ plugin đọc được). E2E HO-12 đọc html không qua sanitize, kiểm hai span của Figma.
+- Chiều cao tối thiểu của thẻ trong hàng grid: thử trong Figma (trang QA, 2026-10-23), hàng Hug với bốn Metric-Card
+  kéo giãn không có min lấy thẻ thấp nhất (208) và ép Sparkline từ 236 xuống 208. Bản dán không đo được trong Figma nên
+  lấy chiều cao của thẻ trên canvas Studio (figmaClipboard.ts `withCanvasHeights`, theo id phần tử) làm `minSize`, như
+  plugin đo (settleGridRows). Thẻ canvas không vẽ đúng một lần (ngoài trang, vẽ bằng map) thì không có min.
+- Gói định nghĩa 23,3 → 7,7 MB (gzip 0,76): mỗi nhánh lặp lại (chủ yếu `keep`/`pcm` của instance lồng) ghi một lần
+  trong `shared`, chỗ dùng ghi `{$: n}` (native-pack.mjs `compactPack`); figma-native.mjs `expandPack` mở lại khi nạp
+  (78 ms). Bản dán của 59 trang (58 trang Studio + Expenses) giống từng byte với gói cũ.
+- Giữ theo thiết kế: slot ghi override vào layer mặc định của slot thay vì nội dung ở cấp ngoài như Figma (hiện như
+  nhau, sửa trong Figma như nhau); phần giữ lại ghi biến alias của component (Button-Tertiary/Content/Default) thay vì
+  biến đích Figma tự ghi (Strongest): cùng màu, và theo đúng ngữ nghĩa component ở mọi mode.

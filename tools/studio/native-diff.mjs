@@ -11,7 +11,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { nativeMessage } from "./figma-native.mjs";
+import { expandPack, nativeMessage } from "./figma-native.mjs";
 import { readFigmaClipboard } from "./figma-kiwi.mjs";
 
 const id = (guid) => (guid ? `${guid.sessionID}:${guid.localID}` : "");
@@ -344,7 +344,7 @@ if (process.argv[1] && import.meta.url === `file://${path.resolve(process.argv[1
     console.error("usage: native-diff.mjs --pkg=<export .figma.json> --oracle=<Figma copy .html> [--limit=3] [--json=<out>]");
     process.exit(1);
   }
-  const pack = JSON.parse(fs.readFileSync(path.join(root, "docs/figma-contracts/native-pack.json"), "utf8"));
+  const pack = expandPack(JSON.parse(fs.readFileSync(path.join(root, "docs/figma-contracts/native-pack.json"), "utf8")));
   const pkg = JSON.parse(fs.readFileSync(option("pkg"), "utf8"));
   const theirs = await readFigmaClipboard(fs.readFileSync(option("oracle"), "utf8"));
   if (!theirs) throw new Error("native-diff: the oracle holds no Figma clipboard");

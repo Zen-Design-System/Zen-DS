@@ -1,8 +1,10 @@
 import { figmaClipHtml, onlyFrame } from "../../../../../tools/studio/figma-clip.mjs";
 import type { PageDoc } from "../../../../../tools/studio/browser-engine.mjs";
 import { announceEditStatus } from "../../api";
+import { findBySrc } from "../../select/picker";
+import { resolveSrc } from "../../select/srcIds";
 import { frameClip } from "../frameEdit";
-import { getPage } from "../store/pageStore";
+import { getPage, pageFile } from "../store/pageStore";
 
 /*
  * A frame of a page you made on the system clipboard for Figma (docs/research/studio-copy-to-figma-2026-10-16.md P2):
@@ -25,9 +27,48 @@ export async function frameFigmaClip(localPage: string, frameId: string): Promis
     const { exportFigma } = await import("./figmaExport");
     const result = await exportFigma({ id: page.id, title: page.title, text: page.text, doc, frame: frameId });
     if ("error" in result) return result;
-    return { html: await withNativePaste(figmaClipHtml(result.pkg), result.pkg, result.notes), notes: result.notes };
+    return { html: await withNativePaste(figmaClipHtml(result.pkg), withCanvasHeights(result.pkg, localPage, frameId), result.notes), notes: result.notes };
   } catch (error) {
     return { error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+type SpecNode = { type?: string; key?: string; fillH?: boolean; minH?: number; layout?: { mode?: string }; children?: SpecNode[] };
+
+/**
+ * The export with each card that stretches to its grid row (an instance in a Grid) given the height it has on the
+ * canvas as its minimum, for the direct paste. Figma's Hug row gives a stretched card only what its content cannot shrink
+ * below: a row of Metric-Cards took its shortest card and squeezed the sparklines (Figma, 2026-10-23: 236 → 208). The
+ * Zen plugin measures in Figma (settleGridRows); a paste cannot, so it takes the Studio's heights. A card the canvas does
+ * not show once (off the page, drawn by a map) keeps none.
+ */
+function withCanvasHeights<T extends { frame: unknown }>(pkg: T, localPage: string, frameId: string): T {
+  const frame = document.querySelector<HTMLElement>(`[data-studio-frame="${CSS.escape(frameId)}"]`);
+  if (!frame?.offsetWidth) return pkg;
+  const scale = frame.getBoundingClientRect().width / frame.offsetWidth || 1;
+  const file = pageFile(localPage);
+  const heightOf = (key: string) => {
+    const hits = findBySrc(frame, resolveSrc(`${file}:@${key}`));
+    if (hits.length !== 1 || !hits[0].hosts.length) return null;
+    const boxes = hits[0].hosts.map((host) => host.getBoundingClientRect());
+    return Math.round((Math.max(...boxes.map((box) => box.bottom)) - Math.min(...boxes.map((box) => box.top))) / scale);
+  };
+  const visit = (value: unknown): unknown => {
+    if (Array.isArray(value)) return value.map(visit);
+    if (!value || typeof value !== "object") return value;
+    const node = Object.fromEntries(Object.entries(value).map(([name, item]) => [name, visit(item)])) as SpecNode;
+    if (node.layout?.mode === "GRID" && Array.isArray(node.children)) {
+      node.children = node.children.map((cell) => {
+        const height = cell.type === "INSTANCE" && cell.fillH && cell.key && /^[\w-]+$/.test(cell.key) ? heightOf(cell.key) : null;
+        return height ? { ...cell, minH: Math.max(cell.minH ?? 0, height) } : cell;
+      });
+    }
+    return node;
+  };
+  try {
+    return { ...pkg, frame: visit(pkg.frame) };
+  } catch {
+    return pkg;
   }
 }
 

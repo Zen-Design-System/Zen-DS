@@ -310,3 +310,19 @@ Branch claude/eloquent-mclean-8f4974 from main 4b96bbb8. BACKLOG P1 "320px debt 
   dark, behaviour 0 errors, 0 new warnings → PASS. Contact sheets: templates 390/1512 keep the photo row whole.
   Visual diff templates 1512 + 390, old vs new template: 32 identical. Baseline: the 28 @320 keys gate 2 no longer finds
   removed (13 Chat, 10 layout, the Show-all target, 4 Text-page heading demos); 16 @320 keys left, all also at 1512/390.
+
+## Session C · Direct paste, what was left (tier S; G3 item 2 from Giám sát, user-approved triage)
+Branch `zen/fix/studio-native-paste-rest-20261023`. The other-files part waits on the library publish (BACKLOG P2 kept
+for it); the rest closed (research doc studio-native-paste-2026-10-17.md §8).
+- Copy for Figma (frame menu) wrote after the click with `navigator.clipboard.write`: Chromium rewrote the html and only
+  the plugin read it. The menu now reads the frame ahead when it opens (`readFrameAhead`, CanvasMenu) and the click
+  writes code + html in a copy event (`copyFrameNow`, ≤ 3 s wait for the read; else the old write, "copy again for the
+  Zen file's canvas"); the Screen layer's menu uses what ⌘C read ahead. HO-12 reads the html unsanitized.
+- Grid row heights: Figma test (QA page, removed): four stretched Metric-Cards in a Hug row without minimum → row 208
+  (Goal-Progress), Sparkline cards 236 → 208. The paste now takes each stretched instance cell's canvas height as
+  `minSize` (`withCanvasHeights`: findBySrc by element id). HO-12's page gained a two-Metric-Card Grid; it checks the
+  minimums equal the canvas heights.
+- Pack 23.3 → 7.7 MB (gzip 0.76): `compactPack` interns subtrees ≥ 40 chars seen twice into `shared` (`{$: n}`),
+  `expandPack` restores fresh copies (78 ms, cached per pack); all native-pack writes compact, reads expand. Round trip
+  byte-identical; paste messages of 58 Studio pages + Expenses identical to the old pack's. figma-native selftest 142.
+- Kept by design: slot overrides on the slot's default layer, and the component's alias variable in kept overrides.

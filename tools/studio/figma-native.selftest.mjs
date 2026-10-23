@@ -5,13 +5,14 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { nativeMessage, nativePictures, pictureKind, figmaPasteHtml, parsePath, pathBounds, vectorNetwork } from "./figma-native.mjs";
+import { expandPack, nativeMessage, nativePictures, pictureKind, figmaPasteHtml, parsePath, pathBounds, vectorNetwork } from "./figma-native.mjs";
 import { readFigmaClipboard } from "./figma-kiwi.mjs";
-import { mergePacks, copiedNode, effectFromPlugin, withEffects } from "./native-pack.mjs";
+import { compactPack, mergePacks, copiedNode, effectFromPlugin, withEffects } from "./native-pack.mjs";
 import { diffMessages } from "./native-diff.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-const pack = JSON.parse(fs.readFileSync(path.join(root, "docs/figma-contracts/native-pack.json"), "utf8"));
+const stored = JSON.parse(fs.readFileSync(path.join(root, "docs/figma-contracts/native-pack.json"), "utf8"));
+const pack = expandPack(stored);
 let checks = 0;
 const failures = [];
 const check = (ok, message) => { checks++; if (!ok) failures.push(message); };
@@ -473,6 +474,20 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   // capture: the copy must be of the probe frame (Figma can keep the person's own selection).
   const probeCopy = await figmaPasteHtml(exportOf([{ type: "FRAME", name: "Probe", layout: { mode: "VERTICAL" }, children: [] }]), pack);
   check(/^\d+:\d+$/.test(await copiedNode(probeCopy.html)) && (await copiedNode("<p>text</p>")) === "", "a copy names the node it was made of; other html names none");
+}
+
+// --- the pack as stored: repeated subtrees once in `shared`, expanded on load ------------------------------------------
+{
+  const keep = { self: { name: "Icon", size: { x: 44, y: 44 } } };
+  const small = { note: "n", file: "f", read: "2026-10-23", sets: {}, symbols: { "1:2": { name: "A", nodes: [["1:3", -1, "INSTANCE", "Icon", 1, 44, 44, 0, 0, "9:9", 0, { keep }]] }, "1:4": { name: "B", nodes: [["1:5", -1, "INSTANCE", "Icon", 1, 44, 44, 0, 0, "9:9", 0, { keep }]] } }, styles: {}, variables: {}, contents: {} };
+  const compact = compactPack(small);
+  check(compact.shared?.length === 1 && JSON.stringify(compact).split('"name":"Icon","size"').length === 2 && JSON.stringify(expandPack(compact)) === JSON.stringify(small), "compactPack stores a repeated subtree once; expandPack gives the pack back as it was");
+  const expanded = expandPack(compact);
+  check(expanded.symbols["1:2"].nodes[0][11] !== expanded.symbols["1:4"].nodes[0][11] && expandPack(compact) === expanded && expandPack(small) === small, "each reference expands to its own copy, once per pack; a full pack stays as it is");
+  let refused = false;
+  try { compactPack({ ...small, contents: { "2:1": [{ $: 1 }] } }); } catch { refused = true; }
+  check(refused, "a pack object with a `$` key is refused (it would read as a reference)");
+  check(Array.isArray(stored.shared) && stored.shared.length > 1000 && `${JSON.stringify(compactPack(stored))}` === JSON.stringify(stored), "native-pack.json is stored compact, as compactPack writes it (a refresh diffs only what changed)");
 }
 
 // --- the Expenses page, end to end ---------------------------------------------------------------------------------
