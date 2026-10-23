@@ -3,7 +3,7 @@ import { TooltipSurface } from "../Tooltip";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartSummary, defaultFormat, placeTip, signatureOf, staggerStyle, useChartId } from "./chartCore";
+import { ChartBlock, ChartSummary, formatOf, placeTip, signatureOf, staggerStyle, useChartId, type ChartFormat } from "./chartCore";
 import { dataAttributes } from "../_shared/data-attributes";
 
 export interface HeatmapChartProps {
@@ -13,8 +13,12 @@ export interface HeatmapChartProps {
   columns: string[];
   /** One value per row per column: `values[row][column]`. */
   values: number[][];
-  /** Formats the Tooltip and the summary ("14 sessions"). */
-  format?: (value: number) => string;
+  /** How the Tooltip and the summary read ("14 sessions"): a function, or a preset a Zen Studio page can write as
+   *  text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. */
+  format?: ChartFormat;
+  /** The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies
+   *  `format="currency"`. */
+  currency?: string;
   /** The value of the deepest step. Default: the largest value. */
   max?: number;
   /** What the chart shows ("Studio sessions by weekday and hour, September 2026"). */
@@ -39,7 +43,8 @@ const levelOf = (value: number, max: number) => (value <= 0 || max <= 0 ? 0 : Ma
  * cell (its row and column labels light up and its Tooltip reads "Tue 1 pm · 55 h"); Home/End jump to the row's first and
  * last cell. Figma Chart/Heatmap-Chart 15326:1043.
  */
-export function HeatmapChart({ rows, columns, values, format = defaultFormat, max: maxProp, "aria-label": ariaLabel, showLegend = true, className, animate = true, ref, ...rest }: HeatmapChartProps) {
+export function HeatmapChart({ rows, columns, values, format: formatProp, currency, max: maxProp, "aria-label": ariaLabel, showLegend = true, className, animate = true, ref, ...rest }: HeatmapChartProps) {
+  const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   const id = useChartId();
   const [active, setActive] = useState<[number, number] | null>(null);

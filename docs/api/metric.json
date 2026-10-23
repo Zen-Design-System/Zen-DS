@@ -285,10 +285,18 @@
         },
         {
           "name": "format",
-          "type": "(value: number) => string",
+          "type": "((value: number) => string) | ChartFormatPreset",
           "required": false,
-          "default": "(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)",
-          "description": "How a number of `series`, `goal` and `categories` reads (the summary, the goal's label, each category's amount).\n Default \"1.2K\".",
+          "default": null,
+          "description": "How a number of `series`, `goal` and `categories` reads (the summary, the goal's label, each category's amount): a\n function, or a preset a Zen Studio page can write as text — `\"compact\"` 1.2K (the default), `\"currency\"` $1.2K (in\n `currency`), `\"percent\"` 41%. `value` is shown as you pass it.",
+          "deprecated": null
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\"). Set alone it implies\n `format=\"currency\"`.",
           "deprecated": null
         },
         {
@@ -448,6 +456,7 @@
   ],
   "types": {
     "CardSubAction": "interface CardSubAction { label: string; icon?: IconName | ReactElement; onClick?: () => void; }",
+    "ChartFormatPreset": "type ChartFormatPreset = \"compact\" | \"currency\" | \"percent\"",
     "DockIconTheme": "type DockIconTheme = (typeof dockIconThemes)[number]",
     "MetricGoal": "interface MetricGoal { value: number; target: number; label?: ReactNode; valueLabel?: ReactNode; }",
     "MetricTrendDirection": "type MetricTrendDirection = \"positive\" | \"negative\" | \"normal\""

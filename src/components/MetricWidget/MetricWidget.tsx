@@ -13,7 +13,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./metric-widget.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
-import { defaultFormat } from "../Chart/chartCore";
+import { formatOf, type ChartFormat } from "../Chart/chartCore";
 import { CategoryBar, SparkBars, Sparkline, useSeriesName, type MetricCategory } from "./MetricMarks";
 import { dataAttributes } from "../_shared/data-attributes";
 
@@ -278,9 +278,13 @@ export type MetricCardProps = Omit<MetricProps, "value" | "variant"> & {
   comparison?: readonly MetricComparisonItem[];
   /** category-bar: the parts of the card's `value`, largest first (two to seven: the chart palette has seven colours). */
   categories?: readonly MetricCategory[];
-  /** How a number of `series`, `goal` and `categories` reads (the summary, the goal's label, each category's amount).
-   *  Default "1.2K". */
-  format?: (value: number) => string;
+  /** How a number of `series`, `goal` and `categories` reads (the summary, the goal's label, each category's amount): a
+   *  function, or a preset a Zen Studio page can write as text — `"compact"` 1.2K (the default), `"currency"` $1.2K (in
+   *  `currency`), `"percent"` 41%. `value` is shown as you pass it. */
+  format?: ChartFormat;
+  /** The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies
+   *  `format="currency"`. */
+  currency?: string;
   /** Content under the type's own (Figma Hero: a Small Button — level="primary" on a hue card, appearance="overlay"
    *  level="inverse" on Solid Neutral, as Figma's Button/Overlay Inverse). */
   footer?: ReactNode;
@@ -328,7 +332,8 @@ function MetricTile({ label, value, trend, icon = "icon-activity-line", iconThem
  * Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric and a ⋮ Sub-Action. Type=KPI is an
  * XLarge Icon-Highlight Metric; the other types (see `type`) put their marks, bar or columns under a Title-Highlight one.
  */
-export function MetricCard({ theme: themeProp, color: colorProp, surface, subAction, spacing, className, overrides, type = "kpi", variant = "title-highlight", series, seriesLabel, goal, comparison, categories, format = defaultFormat, footer, headingLevel = 3, animate = true, ref, ...metric }: MetricCardProps) {
+export function MetricCard({ theme: themeProp, color: colorProp, surface, subAction, spacing, className, overrides, type = "kpi", variant = "title-highlight", series, seriesLabel, goal, comparison, categories, format: formatProp, currency, footer, headingLevel = 3, animate = true, ref, ...metric }: MetricCardProps) {
+  const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   // Figma Type=Hero: a Card whose fill is Support/Brand/Pale (its Solid Brand card, fill overridden) and a Metric-Trend
   // Content=On-Color (a white pill) on that fill; on a Solid card the trend follows the card (Solid Neutral, 15487:89034,

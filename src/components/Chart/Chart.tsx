@@ -12,12 +12,12 @@ import "./chart.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import {
-  ChartBlock, ChartFade, ChartLegend, PlotFrame, SeriesValues, chartFades, colourAt, defaultFormat, meanOf, niceScale, signatureOf, staggerStyle, useChartId, useChartSelection,
-  type ChartCompare, type ChartDatum, type ChartFill, type ChartPaletteName, type ChartPoint, type ChartSeries,
+  ChartBlock, ChartFade, ChartLegend, PlotFrame, SeriesValues, chartFades, colourAt, defaultFormat, formatOf, meanOf, niceScale, signatureOf, staggerStyle, useChartId, useChartSelection,
+  type ChartCompare, type ChartDatum, type ChartFill, type ChartFormat, type ChartPaletteName, type ChartPoint, type ChartSeries,
 } from "./chartCore";
 import { dataAttributes } from "../_shared/data-attributes";
 
-export { chartPalette, type ChartCompare, type ChartDatum, type ChartFill, type ChartLegendPosition, type ChartPaletteName, type ChartPoint, type ChartSeries, type ChartSlice, type ChartStack } from "./chartCore";
+export { chartPalette, type ChartCompare, type ChartDatum, type ChartFill, type ChartFormat, type ChartFormatPreset, type ChartLegendPosition, type ChartPaletteName, type ChartPoint, type ChartSeries, type ChartSlice, type ChartStack } from "./chartCore";
 
 /** Smooth (Figma's curve: a horizontal tangent at each point) or straight segments through the points. */
 function linePath(pts: readonly (readonly [number, number])[], curve: "smooth" | "linear") {
@@ -44,8 +44,12 @@ export interface LineChartProps {
   /** A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Border/Neutral/Solid
    *  line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order. */
   compare?: ChartCompare;
-  /** Formats axis labels, the Tooltip and the summary (`$23.4K`, `52 GB`). Default: 1.2K. */
-  format?: (value: number) => string;
+  /** How axis labels, the Tooltip and the summary read: a function (`(v) => v + " GB"`), or a preset a Zen Studio page
+   *  can write as text — `"compact"` 1.2K (the default), `"currency"` $1.2K (in `currency`), `"percent"` 41%. */
+  format?: ChartFormat;
+  /** The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies
+   *  `format="currency"`. */
+  currency?: string;
   /** Height of the plot in px, lanes included (a seventh of it for the Tooltip lane on top and one for the X labels below,
    *  as Figma's 14-row Trend grid). */
   height?: number;
@@ -79,7 +83,8 @@ export interface LineChartProps {
  * 15501:3054, Sector 4 · 6 · 7 · 12): the same chart plus one dashed Border/Neutral/Solid line at 40%, both values in the
  * Tooltip and a legend. ←/→, Home/End move between points.
  */
-export function LineChart({ data, label, compare, format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, curve = "smooth", fill = "area", showLegend = true, legendPosition = "bottom", animate = true, showAverage = false, ref, ...rest }: LineChartProps) {
+export function LineChart({ data, label, compare, format: formatProp, currency, height = 280, "aria-label": ariaLabel, className, initialIndex, curve = "smooth", fill = "area", showLegend = true, legendPosition = "bottom", animate = true, showAverage = false, ref, ...rest }: LineChartProps) {
+  const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   const values = data.map((d) => d.value);
   const compared = compare ? data.map((_, i) => compare.values[i] ?? 0) : undefined;
@@ -137,8 +142,12 @@ export interface StackBarChartProps {
   data: ChartDatum[];
   /** The stacked series, bottom first, in palette order unless a series sets `color`. */
   series: ChartSeries[];
-  /** Formats axis labels, the Tooltip total and the summary. */
-  format?: (value: number) => string;
+  /** How axis labels, the Tooltip total and the summary read: a function, or a preset a Zen Studio page can write
+   *  as text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. */
+  format?: ChartFormat;
+  /** The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies
+   *  `format="currency"`. */
+  currency?: string;
   /** Height of the plot in px, lanes included. */
   height?: number;
   /** What the chart shows and over which range. */
@@ -165,7 +174,8 @@ export interface StackBarChartProps {
  * Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector (2px side padding, Corner-Radius/Small on the column),
  * segments in series order from the bottom, a 12px-dot legend (Caption/Regular), and a Tooltip with the active total.
  */
-export function StackBarChart({ data, series, format = defaultFormat, height = 236, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, showAverage = false, palette = "primary", ref, ...rest }: StackBarChartProps) {
+export function StackBarChart({ data, series, format: formatProp, currency, height = 236, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, showAverage = false, palette = "primary", ref, ...rest }: StackBarChartProps) {
+  const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   const totals = data.map((d) => series.reduce((sum, s) => sum + (d.values[s.id] ?? 0), 0));
   const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...totals)), [totals.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps -- deliberate content-hash memo: keyed on the data signature, not its identity

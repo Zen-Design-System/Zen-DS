@@ -45,6 +45,8 @@ const LEGEND = new Set(["area", "groupedBar", "combo", "gauge", "bullet"]);
 const COLOR = new Set(["bar", "stackBar", "area", "groupedBar", "combo", "donut", "radial", "gauge", "funnel", "bullet"]);
 /** Chart/Multi-Line-Chart's Sector options: as many periods as the line has points. */
 const SECTORS = [4, 6, 7, 12];
+/** Sets whose page data the push writes as labels, axis and Tooltip only (their bars and lines stay Figma's sample). */
+const LABELLED = new Set(["line", "multiLine", "bar", "area", "groupedBar", "combo"]);
 /** Sets whose Sector is the period count (2026-10-17): the smallest that holds every point, so none is dropped. */
 const SECTORED = new Set(["line", "stackBar", "bar", "area", "groupedBar", "combo"]);
 const sectorFor = (count) => SECTORS.find((sectors) => sectors >= count) ?? SECTORS[SECTORS.length - 1];
@@ -140,7 +142,7 @@ function stackBarMarks(values, sectors, notes, where, setName) {
   if (!data.length || !series.length) return null;
   if (data.length > sectors) notes.push(`${where}: ${data.length} periods; Figma's ${setName} draws ${sectors} (the first ${sectors} are written)`);
   if (series.some((item) => item.color)) notes.push(`${where}: a series' own colour is the palette's in Figma (Color Chart Sector styles)`);
-  if (values.format === true) notes.push(`${where}: its format function is not written (Figma shows the default format)`);
+  const fmt = formatFor(values, notes, where);
   const totals = data.map((item) => series.reduce((sum, s) => sum + Math.max(0, Number(item.values?.[s.id]) || 0), 0));
   const { top, ticks } = niceScale(Math.max(0, ...totals));
   const active = typeof values.initialIndex === "number" ? Math.min(Math.max(0, values.initialIndex), data.length - 1) : data.length - 1;
@@ -171,14 +173,199 @@ function stackBarMarks(values, sectors, notes, where, setName) {
     });
     nested.push({ path: `Sector-${k + 1}`, props: { Label: item ? words(item.label) : "", Select: k === active ? "Selected" : "Default", Tooltip: k === active } });
   }
-  nested.push({ path: `Sector-${active + 1}/Tooltip/Text`, props: { Text: formatNumber(totals[active]) } });
-  // Six axis labels, top to bottom: the code's ticks, or five equal steps of its top where it has fewer.
-  const labels = ticks.length === 6 ? [...ticks].reverse() : Array.from({ length: 6 }, (_, i) => (top * (5 - i)) / 5);
-  if (ticks.length !== 6) notes.push(`${where}: its axis has ${ticks.length - 1} steps; Figma's ${setName} has 5 (labels at fifths of ${formatNumber(top)})`);
+  nested.push({ path: `Sector-${active + 1}/Tooltip/Text`, props: { Text: fmt(totals[active]) } });
   const grid = `Chart/Stack-Chart/Comparison-Stack/Specifics/${sectors}-Sectors`;
-  const edits = labels.map((value, i) => ({ layer: [grid, `>Label[${i}]`], characters: formatNumber(value) }));
+  const edits = sixTicks(top, ticks, fmt, notes, where, setName).map((text, i) => ({ layer: [grid, `>Label[${i}]`], characters: text }));
   const legend = legendMarks(series.map((s) => words(s.label)), notes, where, setName, { instances: false });
   return { slots, nested, edits: [...edits, ...legend.edits] };
+}
+
+/** chartCore currencySymbol: a currency's narrow symbol ("$", "€"); a code with none keeps a no-break space before the figure. */
+function currencySymbol(currency) {
+  const code = String(currency).toUpperCase();
+  let symbol;
+  try {
+    symbol = new Intl.NumberFormat("en-US", { style: "currency", currency: code, currencyDisplay: "narrowSymbol" }).formatToParts(0).find((part) => part.type === "currency")?.value ?? code;
+  } catch {
+    symbol = code;
+  }
+  return /^[A-Z]{2,}$/i.test(symbol) ? `${symbol}\u00a0` : symbol;
+}
+/**
+ * The page's number format as the code reads it (chartCore formatOf): a text preset ("compact", "currency" in `currency`,
+ * "percent") or a `currency` alone; a function (`true` here) is not written: Figma's labels take the default format, noted.
+ * `prop` "lineFormat": ComboChart's line, whose preset takes `currency` but which `currency` alone does not make money.
+ */
+function formatFor(values, notes, where, prop = "format") {
+  const format = values[prop];
+  if (format === true) { notes.push(`${where}: its ${prop} function is not written (Figma shows the default format)`); return formatNumber; }
+  const preset = typeof format === "string" ? format : prop === "format" && values.currency ? "currency" : "compact";
+  if (preset === "currency") {
+    const symbol = currencySymbol(typeof values.currency === "string" && values.currency ? values.currency : "USD");
+    return (value) => `${value < 0 ? "-" : ""}${symbol}${formatNumber(Math.abs(value))}`;
+  }
+  if (preset === "percent") return (value) => `${formatNumber(value)}%`;
+  return formatNumber;
+}
+/** Six axis labels, top to bottom, as Figma's axes have: the code's ticks, or five equal steps of its top (noted). */
+function sixTicks(top, ticks, fmt, notes, where, setName) {
+  if (ticks.length !== 6) notes.push(`${where}: its axis has ${ticks.length - 1} steps; Figma's ${setName} has 5 (labels at fifths of ${fmt(top)})`);
+  return (ticks.length === 6 ? [...ticks].reverse() : Array.from({ length: 6 }, (_, i) => (top * (5 - i)) / 5)).map(fmt);
+}
+/** The data's items (objects only) and the active one as the code picks it: `initialIndex`, else `fallback`. */
+const itemsOf = (values) => (Array.isArray(values.data) ? values.data.filter((item) => item && typeof item === "object") : []);
+const activeOf = (values, count, fallback) => (typeof values.initialIndex === "number" ? Math.min(Math.max(0, values.initialIndex), count - 1) : fallback);
+/** A period past the data in Figma's Sector: an empty label. Data past it: noted, the first `sectors` written. */
+function periodsNote(count, sectors, notes, where, setName) {
+  if (count > sectors) notes.push(`${where}: ${count} periods; Figma's ${setName} draws ${sectors} (the first ${sectors} are written)`);
+}
+
+/*
+ * Line, Bar, Area, Grouped-Bar and Combo with the page's data (the user, 2026-10-23: X labels, the six Y ticks and the
+ * active Tooltip; the marks stay Figma's sample shapes). The live file, read 2026-10-23: a Line's periods are
+ * .Primitives/Chart/Sector instances (Label, Select, Tooltip) in .Chart/Line-Chart/Trend beside its six Label texts; Bar
+ * (vertical) has Y-Axis › Label × 6 and X-Axis › Tick › Label; Bar (horizontal) Categories › Category › Label, Values ›
+ * Value › Label and Grid › Tick › Label × 4; Area, Grouped-Bar and Combo name their axis texts by Figma's sample
+ * (TICK_NAMES, AXIS_NAMES). A Tooltip-Anchor (Bar, Area) and Multi-Line's comparison Tooltip sit on a period the push
+ * cannot move (FIXED_ACTIVE): their Tooltip reads that period, with a note when the page's active one differs.
+ */
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+/** Area, Grouped-Bar and Combo: each X tick's text layer is named after Figma's sample period, per Sector. */
+const TICK_NAMES = { 4: ["Q1", "Q2", "Q3", "Q4"], 6: ["Apr", "May", "Jun", "Jul", "Aug", "Sep"], 7: DAYS, 12: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] };
+/** …and each Y label after its sample value, top to bottom (Y-Axis; Combo's line axis Y-Axis-End). */
+const AXIS_NAMES = {
+  area: ["2.5K", "2K", "1.5K", "1K", "500", "0"],
+  groupedBar: ["$125K", "$100K", "$75K", "$50K", "$25K", "$0"],
+  combo: ["$125K", "$100K", "$75K", "$50K", "$25K", "$0"],
+  comboEnd: ["50%", "40%", "30%", "20%", "10%", "0%"],
+};
+/** The period Figma highlights where the push cannot move it, per Sector: Bar's Tooltip-Anchor (x / column width) and
+ *  Multi-Line's Compare › Active (its Sector "Selected Highlight"); Area's anchor sits on the last period. */
+const FIXED_ACTIVE = { bar: { 4: 2, 6: 2, 7: 5, 12: 8 }, multiLine: { 4: 1, 6: 2, 7: 3, 12: 5 } };
+/** The Tooltip at a period the push cannot move: that period's text, or hidden past the data; a note when the page's
+ *  active period is another. */
+function fixedTooltip(fixed, active, count, text, notes, where, setName) {
+  if (fixed >= count) {
+    notes.push(`${where}: Figma's ${setName} shows its Tooltip on period ${fixed + 1}, past the ${count} written (hidden)`);
+    return { hide: true };
+  }
+  if (fixed !== active) notes.push(`${where}: Figma's ${setName} highlights period ${fixed + 1}; the page's active period is ${active + 1} (the Tooltip reads period ${fixed + 1})`);
+  return { text: text(fixed) };
+}
+
+/** LineChart (Line-Chart, or Multi-Line with `compare`): Sector labels, the active Sector and its Tooltip, six Y labels. */
+function lineMarks(key, values, sectors, notes, where, setName) {
+  const data = itemsOf(values);
+  if (!data.length) return null;
+  periodsNote(data.length, sectors, notes, where, setName);
+  const fmt = formatFor(values, notes, where);
+  const count = Math.min(data.length, sectors);
+  const points = data.map((item) => Number(item.value) || 0);
+  const compare = key === "multiLine" && Array.isArray(values.compare?.values) ? values.compare.values.map((value) => Number(value) || 0) : null;
+  const { top, ticks } = niceScale(Math.max(0, ...points, ...(compare ?? [])));
+  const active = activeOf(values, data.length, data.length - 1);
+  const nested = [];
+  const edits = [];
+  if (key === "line") {
+    // The page's active period: its Sector selected with the Tooltip on (the others Default).
+    const at = Math.min(active, count - 1);
+    if (at !== active) notes.push(`${where}: the active period ${active + 1} is past the ${sectors} Figma draws (period ${at + 1} shown)`);
+    for (let k = 0; k < sectors; k++) nested.push({ path: `Sector-${k + 1}`, props: { Label: k < count ? words(data[k].label) : "", Select: k === at ? "Selected Highlight" : "Default", Tooltip: k === at } });
+    nested.push({ path: `Sector-${at + 1}/Tooltip/Text`, props: { Text: fmt(points[at]) } });
+  } else {
+    for (let k = 0; k < sectors; k++) nested.push({ path: `Sector-${k + 1}`, props: { Label: k < count ? words(data[k].label) : "" } });
+    const tip = fixedTooltip(FIXED_ACTIVE.multiLine[sectors], active, count, (k) => `${fmt(points[k])} \u00b7 ${fmt(compare?.[k] ?? 0)}`, notes, where, setName);
+    // Two Tooltips: the Sector's own (index 0, hidden in Figma) and the comparison's at Compare › Active.
+    if (tip.text) nested.push({ path: "Tooltip[1]/Text", props: { Text: tip.text } });
+    else edits.push({ layer: ["Compare", "Active"], visible: false });
+  }
+  sixTicks(top, ticks, fmt, notes, where, setName).forEach((text, i) => edits.push({ layer: [".Chart/Line-Chart/Trend", `>Label[${i}]`], characters: text }));
+  return { nested, edits };
+}
+
+/** BarChart.tsx valueText: a bar's value, "of" its target, " · Projected" (labels.ts en). */
+const barText = (item, fmt) => `${item.target !== undefined && item.target !== null ? `${fmt(Number(item.value) || 0)} of ${fmt(Number(item.target) || 0)}` : fmt(Number(item.value) || 0)}${item.projected ? " \u00b7 Projected" : ""}`;
+
+/** BarChart: vertical — X labels, six Y labels, the Tooltip at Figma's highlighted column; horizontal — category labels,
+ *  each row's value and the four value-axis labels (Figma draws 0 and thirds of the top). */
+function barMarks(values, sectors, notes, where, setName) {
+  const data = itemsOf(values);
+  if (!data.length) return null;
+  periodsNote(data.length, sectors, notes, where, setName);
+  const fmt = formatFor(values, notes, where);
+  const count = Math.min(data.length, sectors);
+  const { top, ticks } = niceScale(Math.max(0, ...data.map((item) => Math.max(Number(item.value) || 0, Number(item.target) || 0))));
+  const edits = [];
+  const nested = [];
+  if (values.orientation === "horizontal") {
+    for (let k = 0; k < sectors; k++) {
+      if (k < count) {
+        edits.push({ layer: ["Categories", `>Category[${k}]`, "Label"], characters: words(data[k].label) });
+        edits.push({ layer: ["Values", `>Value[${k}]`, "Label"], characters: fmt(Number(data[k].value) || 0) });
+        continue;
+      }
+      // A row past the data: its category pill and bar hidden; its value empty, so the Values column (space between)
+      // keeps every row's place (the live file, 2026-10-23).
+      edits.push({ layer: ["Categories", `>Category[${k}]`], visible: false }, { layer: ["Bars", `>Track[${k}]`], visible: false });
+      edits.push({ layer: ["Values", `>Value[${k}]`, "Label"], characters: "" });
+    }
+    if (ticks.length !== 4) notes.push(`${where}: its value axis has ${ticks.length - 1} steps; Figma's ${setName} has 3 (labels at thirds of ${fmt(top)})`);
+    const axis = ticks.length === 4 ? ticks : [0, 1, 2, 3].map((i) => (top * i) / 3);
+    axis.forEach((value, i) => edits.push({ layer: ["Grid", `>Tick[${i}]`, "Label"], characters: fmt(value) }));
+    return { nested, edits };
+  }
+  for (let k = 0; k < sectors; k++) edits.push({ layer: ["X-Axis", `>Tick[${k}]`, "Label"], characters: k < count ? words(data[k].label) : "" });
+  sixTicks(top, ticks, fmt, notes, where, setName).forEach((text, i) => edits.push({ layer: ["Y-Axis", `>Label[${i}]`], characters: text }));
+  const lastClosed = data.reduce((found, item, i) => (item.projected ? found : i), data.length - 1);
+  const tip = fixedTooltip(FIXED_ACTIVE.bar[sectors], activeOf(values, data.length, lastClosed), count, (k) => barText(data[k], fmt), notes, where, setName);
+  if (tip.text) nested.push({ path: "Tooltip/Text", props: { Text: tip.text } });
+  else edits.push({ layer: ["Tooltip-Anchor"], visible: false });
+  return { nested, edits };
+}
+
+/** Area, Grouped-Bar and Combo: X labels and six Y labels (Combo: its line axis too); Area (one series): the Tooltip on
+ *  the last period, where Figma's anchor sits. Grouped-Bar and Combo have no active state in Figma. */
+function axisMarks(key, values, sectors, notes, where, setName) {
+  const data = itemsOf(values);
+  if (!data.length) return null;
+  periodsNote(data.length, sectors, notes, where, setName);
+  const fmt = formatFor(values, notes, where);
+  const count = Math.min(data.length, sectors);
+  const series = Array.isArray(values.series) ? values.series.filter((item) => item && typeof item === "object") : [];
+  const edits = [];
+  const nested = [];
+  const names = TICK_NAMES[sectors];
+  for (let k = 0; k < sectors; k++) edits.push({ layer: ["X-Axis", `>Tick[${k}]`, `>${names[k]}`], characters: k < count ? words(data[k].label) : "" });
+  let max = 0;
+  if (key === "area") {
+    const drawn = values.type === "stacked" ? series : series.slice(0, 1);
+    max = Math.max(0, ...data.map((item) => drawn.reduce((sum, s) => sum + Math.max(0, Number(item.values?.[s.id]) || 0), 0)));
+  } else if (key === "groupedBar") max = Math.max(0, ...data.flatMap((item) => series.map((s) => Math.max(0, Number(item.values?.[s.id]) || 0))));
+  else max = Math.max(0, ...data.map((item) => Math.max(0, Number(item.bar) || 0)));
+  const { top, ticks } = niceScale(max);
+  sixTicks(top, ticks, fmt, notes, where, setName).forEach((text, i) => edits.push({ layer: ["Y-Axis", `>${AXIS_NAMES[key][i]}`], characters: text }));
+  if (key === "combo") {
+    // ComboChart.tsx: the end axis on the start axis' gridlines, its top lineMax or a round step over the line.
+    const lineFmt = formatFor(values, notes, where, "lineFormat");
+    const line = data.map((item) => Math.max(0, Number(item.line) || 0));
+    const steps = Math.max(1, ticks.length - 1);
+    const lineTop = typeof values.lineMax === "number" && values.lineMax > 0 ? values.lineMax : stepFor(Math.max(0, ...line), steps) * steps;
+    const end = ticks.length === 6 ? ticks.map((_, i) => (i * lineTop) / steps).reverse() : Array.from({ length: 6 }, (_, i) => (lineTop * (5 - i)) / 5);
+    end.forEach((value, i) => edits.push({ layer: ["Y-Axis-End", `>${AXIS_NAMES.comboEnd[i]}`], characters: lineFmt(Math.round(value * 1e6) / 1e6) }));
+  }
+  if (key === "area" && values.type !== "stacked" && series[0]) {
+    // Figma's anchor sits on the Sector's last period (constraint MAX), whatever the data fills.
+    const tip = fixedTooltip(sectors - 1, activeOf(values, data.length, data.length - 1), count, (k) => fmt(Math.max(0, Number(data[k].values?.[series[0].id]) || 0)), notes, where, setName);
+    if (tip.text) nested.push({ path: "Tooltip/Text", props: { Text: tip.text } });
+    else edits.push({ layer: ["Tooltip-Anchor"], visible: false });
+  }
+  return { nested, edits };
+}
+/** ComboChart.tsx stepFor: the end axis' step for `count` steps that reach `max` (1 · 2 · 2.5 · 5 × 10ⁿ). */
+function stepFor(max, count) {
+  if (!(max > 0)) return 1;
+  const magnitude = 10 ** Math.floor(Math.log10(max / count));
+  return [1, 2, 2.5, 5, 10, 20].map((m) => m * magnitude).find((s) => s * count >= max - 1e-9) ?? max / count;
 }
 
 /** DonutChart.tsx geometry: the ring 22% of the diameter, 4px straight gaps, 4px round corners, % pills at 6% and up. */
@@ -263,7 +450,8 @@ function donutMarks(values, px, notes, where, setName) {
  * The Figma set and properties of the chart `name` (push). `values`: its props as plain data (`data`, `compare`,
  * `orientation`…; a prop that holds no data, such as a handler, is `true`). Notes say what Figma cannot show.
  * → { set, props, slots?, nested?, edits?, drawn } or null when `name` is no chart; `drawn` says the page's data is
- * drawn (Stack-Bar, Donut), else Figma keeps its sample.
+ * drawn (Stack-Bar, Donut), "labels" when only its labels, axis and Tooltip are (Line, Bar, Area, Grouped-Bar, Combo),
+ * else Figma keeps its sample.
  */
 export function chartFigma(name, values, notes, where) {
   const key = setKeyOf(name, values);
@@ -286,6 +474,9 @@ export function chartFigma(name, values, notes, where) {
   if (SECTORED.has(key)) props.Sector = `${sectors}-Sectors`;
   let marks = null;
   if (key === "stackBar") marks = stackBarMarks(values, sectors, notes, where, set.name);
+  if (key === "line" || key === "multiLine") marks = lineMarks(key, values, key === "multiLine" ? Number.parseInt(props.Sector, 10) : sectors, notes, where, set.name);
+  if (key === "bar") marks = barMarks(values, sectors, notes, where, set.name);
+  if (key === "area" || key === "groupedBar" || key === "combo") marks = axisMarks(key, values, sectors, notes, where, set.name);
   if (key === "donut") {
     const start = values.totalPosition === "start";
     const position = values.legendPosition ?? "bottom";
@@ -301,7 +492,7 @@ export function chartFigma(name, values, notes, where) {
     if (label) props["Total Label"] = label;
     else notes.push(`${where}: its label is not text (Figma's Total Label kept)`);
     if (words(values.value)) props["Total Value"] = words(values.value);
-    else if (marks) props["Total Value"] = formatNumber(marks.total);
+    else if (marks) props["Total Value"] = formatFor(values, [], where)(marks.total);
   }
   if (key === "radial") {
     const position = values.legendPosition ?? "bottom";
@@ -321,7 +512,8 @@ export function chartFigma(name, values, notes, where) {
     if (position !== "bottom") notes.push(`${where}: legendPosition="${position}": Figma's ${set.name} draws its legend below`);
   } else if (values.showLegend === false && ["multiLine", "stackBar", "donut", "radial", "heatmap"].includes(key)) notes.push(`${where}: showLegend={false}: Figma's ${set.name} has no Show Legend (its legend shows)`);
   if (!marks) return { set, props, drawn: false };
-  return { set, props, drawn: true, ...(marks.slots?.length ? { slots: marks.slots } : {}), ...(marks.nested?.length ? { nested: marks.nested } : {}), ...(marks.edits?.length ? { edits: marks.edits } : {}) };
+  // Line, Bar, Area, Grouped-Bar and Combo: the page's labels, axis and Tooltip on Figma's sample marks.
+  return { set, props, drawn: LABELLED.has(key) ? "labels" : true, ...(marks.slots?.length ? { slots: marks.slots } : {}), ...(marks.nested?.length ? { nested: marks.nested } : {}), ...(marks.edits?.length ? { edits: marks.edits } : {}) };
 }
 
 /**
