@@ -134,6 +134,71 @@ làm hiện tại; khi có câu trả lời, việc cần làm sẽ vào `BACKLO
   Voice Social không hiện độ dài (Business có) và không có dấu "chưa nghe"; (e) thêm hàng nghe lại khi Paused cho
   VoiceRecorder (nghe trước khi Finish)?
 
+### Đợt hỏi designer 23/10/2026 (chuyển từ `BACKLOG.md`, nhóm G1; code giữ cách làm hiện tại đến khi có câu trả lời)
+
+- **Calendar/Toolbar Mobile với typography Mobile (P2, 21/10):** Figma vẽ biến thể Mobile (16125:399) theo cỡ chữ
+  desktop; với typography Mobile, Heading/3 là 26px nên "September 2026" (~200px) và nhãn chế độ xem thứ tư ("Agenda")
+  không còn vừa 358px cạnh nút Today và hai mũi tên, ở mật độ Comfortable. Code: tiêu đề mặc định của toolbar trên điện
+  thoại là dạng ngắn ("Sep 2026"), ví dụ điện thoại có ba chế độ xem. Giữ tiêu đề ngắn, hay đổi style / bố cục? Chỗ xem:
+  `src/components/Calendar/CalendarToolbar.tsx`.
+- **Metric Title-Highlight còn sót (P3, 17/10):** ở 7523:507049, khoảng cách 12 của Header chưa gắn biến (nên là
+  Spacing/Gap/Small), và Metric-Number của cỡ Medium có paragraphSpacing gắn vào Font-Size/Heading-3 (session log
+  17/10, "Metric-Inline/Title-Highlight"; padding của Custom-Slot đã sửa).
+- **Navigation-Mobile/Top/Action-Icon-Gap là 20 (P3, 15/10):** spacing Component Size nay trỏ về Spacing/Gap|Padding,
+  nhưng thang Gap không có 20 (16 Medium, 24 Large), nên riêng biến này vẫn ở `dm-20`. Giữ, hay chuyển về một bậc Gap
+  (nhìn thấy khác ở các nút icon phẳng của Top Navigation)?
+- **Bề mặt của Bottom-Navigation (P2, 13/10; xem lại 23/10):** Patterns/Sidebar có Theme · Density · Shadow từ 21/10
+  (#181), Top-Navigation/Mobile có Type=Transparent / Transparent-On-Color từ 17/10. Còn lại: Bottom-Navigation chưa có
+  lựa chọn bề mặt, và main của nó mang một bóng đổ không dùng Effect style (chưa đọc lại từ 13/10). Trong lúc chờ, màn
+  hình ghi đè bằng biến (screen-rules §1).
+- **Side-Bar/Master/Small-Density bị đặt tên "Component" (P3, 23/10, khi đọc lại contract):** bộ 5974:20590 trên
+  ❖ Sidebar (key 1cca393d…, Expand Yes/No) mất tên; không bộ nào khác bị vậy. Push vẫn nhập nó theo key
+  (library-keys.json) nên vẫn đặt được, nhưng pull hoặc chụp lại component-properties so bộ theo tên
+  (`tools/studio/figma-props.map.mjs`, Sidebar `Side-Bar/Master/Small-Density`). Đặt lại tên cũ, hay báo là đã bỏ?
+- **Thư viện còn thiếu, phát hiện khi thử đẩy 438 trang Studio → Figma (P2, 18/10):** (a) Accordion/Text không có slot
+  nội dung, nên nội dung của Accordion đang mở không vẽ được (push có ghi chú); (b) Dock-Icon chỉ có Theme=Emoji ở cỡ
+  Medium và Large (template HR dùng XSmall trong ô bảng: hiện ra biến thể mặc định); (c) Chat/Section/Read-List Seen
+  by=5+ có bốn Avatar sau "+N", còn Chat.tsx vẽ năm (push ghi bốn). Chỗ xem: session log 17/10 "Studio → Figma test
+  run", `chatMessageNode` trong figma-push.mjs.
+- **Thanh hệ thống Android (P2, bạn nêu 10/10):** các Screen Android của Studio vẽ thanh trạng thái Material 3 (24) và
+  thanh cử chỉ (108 × 4, cách đáy 10) với icon giả (builder/proto/DeviceBars.tsx); trang ⚙️ Operation Components của file
+  Zen chỉ có Status-bar/IOS/Mobile, /Tablet và System/Bottom-Indicator. Nhờ designer thêm Status-bar/Android/Mobile
+  (+ Tablet) và thanh điều hướng Android ở đó; sau đó code theo các node ấy.
+- **Layer chưa đặt tên (P3, 12/10):** bộ kiểm tra tên layer lồng nhau (`tools/figma-contract/nested-paths.mjs`, 44/44
+  component kể từ nested-layers.json) đang cho phép những tên trong code mà Figma không có layer tương ứng: instance chưa
+  đặt tên, mang tên component của nó (ba nút hành động của AiChatField, nút hành động của AlertBanner / InlineMessage /
+  Toast / ChatCall, Previous / Next / chip số dòng của Pagination, nút đóng của SidePanel); icon đặt tên theo glyph
+  (AlertBanner, Dialog, SidePanel, EmptyState, Tabs); và tên trong Figma khác tên của Zen, code giữ tên Zen (bạn quyết
+  12/10): nút của Empty-State chưa đặt tên trong CTA (code `Primary` / `Secondary`), hàng nút của Modal/Forms
+  `Footer › Buttons` (code `Actions`, như Dialog và Side-Panel), `CTA` của Bottom-Navigation Floating (code `Action`),
+  `Icon-Wrapper › Icon` / slot Custom `Visual` của Inline-Message và `icon-Container › Icon` của Toast (code `Leading`),
+  instance nút gửi `Main` ở cuối Chat-Control (code `Send`). Đặt theo tên của Zen thì bộ kiểm tra so được, và phần ghi đè
+  của trang Studio vào Figma đúng theo tên. Chỗ xem: `ALLOWED` trong nested-paths.mjs.
+- **Biểu đồ (P2, gộp từ bốn mục 13/10 … 18/10; chưa sửa Figma):** (a) đối chiếu: viên nhãn X đang chọn (hug 20px,
+  Medium so với 16px Bold toàn sector), làm mờ 88% các cột không chọn, padding / giãn nhãn của Bar, điểm neo và làn của
+  Tooltip, làn cột 38/26 so với 36/28, khoảng cách trục ngang / heatmap 8 so với 16, token mật độ của Heatmap, khoảng
+  cách mô tả của Chart Card; Figma thiếu chấm đang chọn của Line / Multi-Line, trạng thái đang chọn của Area Stacked và
+  Grouped / Combo, biến thể mặc định của Radial (`docs/research/chart-parity-audit-2026-10-17.md` §2–§4). (b) Sót từ đợt
+  widget: `Average › Rule` 15335:2421 của Bar-Chart Vertical có strokeCap NONE (không ra chấm); `Item-List` của
+  Segmented FIXED 114 ở Line, Stack-Bar, Multi-Line, Chart-Card và Heatmap (nhãn chồng nhau); nền Area gắn
+  Background/Accent|Neutral trong khi đường dùng style Chart Sector; thẻ Solid theo màu: chuỗi trùng màu thẻ dùng Brand
+  trong code (On-Color/Tertiary bị nhạt khi làm vùng); không có token Border/Inverse/Pale|Subtle; Metric-Card Hero giữ
+  nền ghi đè Brand Pale trên Card Solid Brand (`docs/research/widget-patterns-spec-2026-10-14.md`,
+  `chart-phase2-spec-2026-10-14.md` §4). (c) Bar, Donut, Radial, Heatmap và Multi-Line tự vẽ thẻ Surface/Default nên
+  không nhận Card Theme / Color như các biểu đồ mới không có thẻ: có làm cho đồng bộ? (d) Đặt cạnh một thẻ LineChart cao
+  hơn (Grid kéo giãn), 5 hàng của BarList cách nhau ~72px: dồn lên trên, hay giãn đều như bây giờ?
+  (`docs/research/studio-vibe-agent-2026-10-18.md` §7)
+- **AI UI, làm Figma trước (P2, gộp từ sáu mục 14–15/10; `docs/ai-ui/README.md`):** (1) dáng "tạm đoán" cho một form AI
+  đoán ra (ShapeShift: form mờ đi, ô trống thành chip nét đứt "+ Add date"); Zen chưa có trạng thái hay token tạm đoán
+  (Chip `state="placeholder"` chỉ đổi màu nhãn). (2) Gạch chân đoạn chữ đã nhận ra trong ô nhập prompt: `extractSlots`
+  trả về `spans`, nhưng `AiChatField` là textarea thường (cần lớp phủ hoặc contenteditable, bậc M). (3) Token gradient
+  "AI glow" cho quả cầu "AI đang làm" (CSS demo `.px-ai-ui-orb` trong `src/platform/examples/pages/ai-ui.css`, từ Support
+  Pink / Violet / Cyan); `tokens.css` chưa có token gradient; nếu giữ quả cầu thì nó thành component (AiChatBubble
+  `thinking="orb"`?). (4) Table 4 cột trong cột chat 600 / 390 px cần ~608 px và cuộn ngang trong khung riêng
+  (`tests/ai-ui/narrow.test.tsx`): giữ, hay chế độ gọn gập bớt cột? (5) Prose chưa có khối code: `markdownToSpec` hiện
+  code rào bằng `Text as="code"`; chưa có text style đơn cách hay component CodeBlock / Prose. (6) Keycap (Kbd) cho gợi ý
+  phím tắt ("Tab to keep as booking"; demo đang dùng Tag).
+
 ## Cho bạn (quyết định và việc cần làm)
 
 **Đã trả lời ngày 09/10/2026:**

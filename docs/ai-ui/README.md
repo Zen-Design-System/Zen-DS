@@ -227,7 +227,7 @@ key): the dry run and the selftest cover the pipeline; the first live numbers ar
   `autoComplete`, `inputMode`, `min`, `max`, `step`, `maxLength` on fields. `value` / `defaultValue` (and `checked`) are
   written out from their `on<X>Change` handler when react-docgen left them out.
 - **Status:** `stable` = documented and smoke- and conformance-tested (every public component); `verified` = a Figma parity
-  suite or capture covers the component's folder (41 today; by file name, see open decisions); `experimental` = a required
+  suite or capture covers the component's folder (41 today; by file name, confirmed by the user 2026-10-23); `experimental` = a required
   prop has no JSON form (`unavailable` names it: ChatReactorsPanel `glyph`, ZenPortalProvider `container`), or set in
   `catalog.config.mjs`. Experimental components fail validation unless `{ experimental: true }`.
 - **Chrome:** AppShell, Sidebar, TopNavigation, BottomNavigation, DashboardHeader, PageHeader, ZenProvider, Container stay
@@ -240,20 +240,14 @@ key): the dry run and the selftest cover the pipeline; the first live numbers ar
 - In a 600 px and a 390 px column the booking form and the charts fit; a 4-column `Table` needs ~608 px and scrolls
   sideways inside its own box (`.zen-table` has `overflow-x: auto`), so the column itself never overflows.
 
-## Decided (user, 2026-10-23)
-
-- **`verified`:** the heuristic stays: a component is verified when a Figma contract file or suite matches its folder
-  (41 when asked; 53 since the chart contracts of #237); `STATUS_OVERRIDES` stays empty.
-- **Classifier placement:** on the device. `keywordClassifier` (or a smarter on-device one) keeps keystrokes private; a
-  server classifier is not used.
-- **`ChatReactorsPanel` stays experimental:** its `glyph` formatter has no JSON form, so chat reactions are not composable.
-- **`data-*` on every component:** each one forwards its `data-*` attributes to its root, so `data-ai-ui-id`, test ids
-  and analytics hooks land everywhere (built 2026-10-23).
-
 ## Open decisions (user / designer)
 
-1. **Spec format:** this tree, or A2UI / json-render? The tree keeps Studio's dialect shape (element / props / children,
-   refs, maps); an exporter to A2UI can be written on top if a native renderer is needed.
-2. **Narrow Table:** keep the sideways scroll in a chat column, or a compact mode that folds columns (needs Figma)?
-3. **Prose:** fenced code renders as `Text as="code"` (no mono style or code block component); a Prose / CodeBlock
+Decided by the user on 2026-10-23: the 41 `verified` components stand (`STATUS_OVERRIDES` stays empty); the spec stays
+this tree (Studio's dialect shape; an A2UI / json-render exporter can be written on top later); the classifier stays on
+the device; `ChatReactorsPanel` stays experimental (its `glyph` formatter gets no JSON form); every component forwards
+`data-*`, the Skeletons too (built in #246: `tests/smoke/conformance.test.tsx` checks it). Still open, for the designer
+(`docs/context/QUESTIONS.md`, "AI UI, Figma first"):
+
+1. **Narrow Table:** keep the sideways scroll in a chat column, or a compact mode that folds columns (needs Figma)?
+2. **Prose:** fenced code renders as `Text as="code"` (no mono style or code block component); a Prose / CodeBlock
    component needs Figma.

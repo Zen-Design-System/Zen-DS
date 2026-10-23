@@ -290,8 +290,8 @@ Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows 
 
 Branch zen/fix/components-forward-data-attrs-20261023 from main 9fe063d2. User's answers (G2): every component forwards
 `data-*` (Skeletons included) so `data-ai-ui-id` lands; keep the verified heuristic; the classifier runs on the device;
-ChatReactorsPanel stays experimental. Recorded in docs/ai-ui/README.md "Decided"; BACKLOG line narrowed to the one
-open question (spec format).
+ChatReactorsPanel stays experimental. After #244 (which recorded these answers and the spec format: Zen's tree), the
+merge keeps #244's README wording with data-* marked built, and drops the BACKLOG build line.
 - `_shared/data-attributes.ts`: `dataAttributes(props)` picks the `data-*` keys; spread first on a root so the
   component's own data-* styling hooks win. Only data-*: no other HTML attribute changes what a component renders.
 - 119 public components destructured their props with no rest (static scan). A codemod (AST, tools/studio/jsx-source)
@@ -306,6 +306,16 @@ open question (spec format).
   non-decorative branches, ChatThread and SidebarSubMenu (the codemod put the spread on a context provider),
   ChatReactorsPanel's desktop popover (through ZenPortal), PropertyPeople / Tags (MultiCell), SidebarMenuItem (the item
   row, `dataAttributes(item)`). Fixed; conformance 218 passed / 5 skipped, `npm test` 1300 passed (82 files).
+
+## Backlog G1 designer questions + G2 answers (tier XS, docs only; Giám sát's request, user "xử hết backlog")
+- QUESTIONS.md / QUESTIONS.vi.md: one designer review batch moved from BACKLOG (triage group G1, 10 entries): Calendar
+  toolbar mobile, Metric Title-Highlight, Action-Icon-Gap 20, Bottom-Navigation surface, Side-Bar/Master/Small-Density
+  named "Component", 438-page library gaps, Android bars, unnamed layers, chart questions, AI UI Figma first.
+- BACKLOG per the user's G2 answers: AI UI decisions closed (41 verified stand, Zen's node tree with an A2UI exporter
+  later, classifier on the device, ChatReactorsPanel experimental), only `data-*` forwarding left to build; ListItem Value
+  "decided, not built"; sheet table "Figma first, then code". docs/ai-ui/README.md "Open decisions" updated the same way.
+- Open BACKLOG entries with a priority 32 → 21 (ListItem Value is parked now, like Code view), then + 1 P3 for Giám sát:
+  compile #238's Swift/Dart on a machine with the toolchains. After merging main (#238, #241 closed two more): 20.
 
 ## 320px debt left: the designer calls (tier L: docs chrome at 320; user: "xử hết", B1, "Gỡ khỏi mục này")
 
