@@ -23,11 +23,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   paste (instances by `componentKey`, as Figma's own copies carry). The rest of the parity list closed on 2026-10-23
   (Copy for Figma in a copy event, grid cards' heights, the pack at 7.7 MB; the slot and alias differences kept by
   design). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §8.
-- **P3 · Pull the phone AppShell back from Figma (2026-10-23, B):** the push draws a phone AppShell as Figma's
-  Pattern/AppShell/Mobile (its bar, tabs or ActionBar, band, page); figma-pull has no reader for that pattern yet, so a
-  pull gives the page in a Stack named AppShell and notes the rest (as before the push drew it). An ActionBar outside an
-  AppShell still has no Figma set (Action-Bar/Mobile, 16326:6489). Pointer: `tools/studio/figma-push.mjs`
-  `mobileShellNode`, `actionBarParts`; `figma-pull.mjs` masterLayout reader (~1980) as the pattern to follow.
 - **ListItem Value in Figma — decided, not built (user, 2026-10-23: "not now"; 2026-10-13: "code first"):** code has
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
