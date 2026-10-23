@@ -23,10 +23,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
   asks for it.
-- **P3 · Sheet-style table for long content (user, 2026-10-13; 2026-10-23: Figma first, then code):** Table rows are
-  FIXED at Table/Cell/Size (one line, ellipsis). The docs Props / API / Keyboard references still need multi-line rows:
-  a temporary `.platform-ref` override in `src/platform/platform.css` lets them grow. Replace it with a sheet component,
-  designed in Figma first for the user's review, then built in code.
 - **P3 · New APIs the contract suites asked for (2026-10-24; each needs the user's go):** Figma draws what code has no
   prop for, so those variants return null in their suites (`tools/figma-contract/suites/*.mjs`). Popover placement that
   covers its anchor (Input/Autocomplete-Field Focused opens the list over the Add slot; code 4px below it); DatePicker
