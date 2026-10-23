@@ -158,6 +158,8 @@ export const Good = () => <>
   <VoiceRecorder state="recording" onRecord={record} onPause={pause} onResume={resume} onFinish={finish} onDiscard={discard} />
   <AiVoiceConversation state="listening" onStart={listen} onDone={answer} onInterrupt={listen} onEnd={end} />
   <Table aria-label="Files" rows={rows} getRowId={getId} columns={columns} selectable selectedIds={ids} onSelectionChange={setIds} />
+  <SheetTable aria-label="Card props" rows={rows} minWidth="680px" columns={[{ id: "prop", header: "Prop", width: "18%", cell: (row) => <SheetCode>{row.name}</SheetCode> }, { id: "description", header: "Description", cell: (row) => <TableText>{row.description}</TableText> }]} />
+  <SheetTable aria-labelledby="keyboard" rows={rows} columns={[{ id: "keys", header: "Key", width: "32%", cell: (row) => <SheetKeys value={row.keys} /> }, { id: "action", header: "Action", cell: (row) => <TableText>{row.action}</TableText> }]} />
   <Table caption="Invoices" rows={rows} getRowId={getId} columns={[{ id: "n", header: "Name", sortable: true, cell: render }]} onSortChange={setSort} />
   <Table aria-label="Stock" rows={rows} getRowId={getId} columns={[{ id: "name", header: "Name", cell: render, edit: { value: getName, onCommit: save } }, { id: "qty", header: "Qty", align: "right", cell: render, edit: { type: "number", value: getQty, onCommit: save, validate: check } }]} />
   <IconButton onClick={act} level="tertiary" aria-label="More actions" aria-haspopup="menu" icon={<Icon name="icon-dots-horizontal-line" />} />

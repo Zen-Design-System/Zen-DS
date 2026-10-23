@@ -105,6 +105,9 @@
   "SegmentedItem": [
     "color-contrast"
   ],
+  "SheetTable": [
+    "color-contrast"
+  ],
   "StackBarChart": [
     "color-contrast"
   ],
