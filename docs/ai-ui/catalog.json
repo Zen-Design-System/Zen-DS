@@ -3587,7 +3587,7 @@
       "name": "CalendarAgenda",
       "slug": "calendar",
       "folder": "Calendar",
-      "status": "stable",
+      "status": "verified",
       "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "use": [
@@ -3675,7 +3675,7 @@
       "name": "CalendarAgendaItem",
       "slug": "calendar",
       "folder": "Calendar",
-      "status": "stable",
+      "status": "verified",
       "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "use": [
@@ -3785,7 +3785,7 @@
       "name": "CalendarDate",
       "slug": "calendar",
       "folder": "Calendar",
-      "status": "stable",
+      "status": "verified",
       "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "use": [
@@ -3839,7 +3839,7 @@
       "name": "CalendarDayCell",
       "slug": "calendar",
       "folder": "Calendar",
-      "status": "stable",
+      "status": "verified",
       "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "use": [
@@ -3918,7 +3918,7 @@
       "name": "CalendarDayTile",
       "slug": "calendar",
       "folder": "Calendar",
-      "status": "stable",
+      "status": "verified",
       "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "use": [
@@ -3995,7 +3995,7 @@
       "name": "CalendarEvent",
       "slug": "calendar",
       "folder": "Calendar",
-      "status": "stable",
+      "status": "verified",
       "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "use": [
@@ -4083,7 +4083,7 @@
       "name": "CalendarEventBlock",
       "slug": "calendar",
       "folder": "Calendar",
-      "status": "stable",
+      "status": "verified",
       "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "use": [
@@ -4176,7 +4176,7 @@
       "name": "CalendarMonth",
       "slug": "calendar",
       "folder": "Calendar",
-      "status": "stable",
+      "status": "verified",
       "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "use": [
@@ -4301,7 +4301,7 @@
       "name": "CalendarNowLine",
       "slug": "calendar",
       "folder": "Calendar",
-      "status": "stable",
+      "status": "verified",
       "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "use": [
@@ -4347,7 +4347,7 @@
       "name": "CalendarTimeGrid",
       "slug": "calendar",
       "folder": "Calendar",
-      "status": "stable",
+      "status": "verified",
       "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "use": [
@@ -4473,7 +4473,7 @@
       "name": "CalendarToolbar",
       "slug": "calendar",
       "folder": "Calendar",
-      "status": "stable",
+      "status": "verified",
       "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "use": [
@@ -4617,7 +4617,7 @@
       "name": "CalendarWeekStrip",
       "slug": "calendar",
       "folder": "Calendar",
-      "status": "stable",
+      "status": "verified",
       "import": "import { CalendarMonth, CalendarToolbar, CalendarTimeGrid, CalendarAgenda, CalendarWeekStrip, CalendarEvent, CalendarEventBlock, CalendarDate, CalendarNowLine, CalendarDayCell, CalendarAgendaItem, CalendarDayTile } from \"@zen-ds/react\";",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "use": [
@@ -7985,7 +7985,7 @@
       "name": "Divider",
       "slug": "divider",
       "folder": "Divider",
-      "status": "stable",
+      "status": "verified",
       "import": "import { Divider } from \"@zen-ds/react\";",
       "purpose": "A 1px line that separates groups of content. Default (Pale) is the everyday rule; Medium and High add emphasis only when the design calls for it.",
       "use": [
@@ -8038,7 +8038,7 @@
       "name": "DockIcon",
       "slug": "dock-icon",
       "folder": "DockIcon",
-      "status": "stable",
+      "status": "verified",
       "import": "import { DockIcon } from \"@zen-ds/react\";",
       "purpose": "A round, filled icon tile that identifies an app, category, file type or object.",
       "use": [
@@ -12230,7 +12230,7 @@
       "name": "Menu",
       "slug": "menu",
       "folder": "Menu",
-      "status": "stable",
+      "status": "verified",
       "import": "import { Menu, MenuItem, MenuSeparator, MenuGroup } from \"@zen-ds/react\";",
       "purpose": "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
       "use": [
@@ -12325,7 +12325,7 @@
       "name": "MenuGroup",
       "slug": "menu",
       "folder": "Menu",
-      "status": "stable",
+      "status": "verified",
       "import": "import { Menu, MenuItem, MenuSeparator, MenuGroup } from \"@zen-ds/react\";",
       "purpose": "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
       "use": [
@@ -12363,7 +12363,7 @@
       "name": "MenuItem",
       "slug": "menu",
       "folder": "Menu",
-      "status": "stable",
+      "status": "verified",
       "import": "import { Menu, MenuItem, MenuSeparator, MenuGroup } from \"@zen-ds/react\";",
       "purpose": "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
       "use": [
@@ -12435,7 +12435,7 @@
       "name": "MenuSeparator",
       "slug": "menu",
       "folder": "Menu",
-      "status": "stable",
+      "status": "verified",
       "import": "import { Menu, MenuItem, MenuSeparator, MenuGroup } from \"@zen-ds/react\";",
       "purpose": "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
       "use": [
@@ -13945,7 +13945,7 @@
       "name": "ProgressBar",
       "slug": "progress",
       "folder": "Progress",
-      "status": "stable",
+      "status": "verified",
       "import": "import { ProgressBar, ProgressCircle } from \"@zen-ds/react\";",
       "purpose": "Show determinate progress of a task or a step.",
       "use": [
@@ -14013,7 +14013,7 @@
       "name": "ProgressCircle",
       "slug": "progress",
       "folder": "Progress",
-      "status": "stable",
+      "status": "verified",
       "import": "import { ProgressBar, ProgressCircle } from \"@zen-ds/react\";",
       "purpose": "Show determinate progress of a task or a step.",
       "use": [
@@ -19956,7 +19956,7 @@
       "name": "Tag",
       "slug": "tag",
       "folder": "Tag",
-      "status": "stable",
+      "status": "verified",
       "import": "import { Tag } from \"@zen-ds/react\";",
       "purpose": "A chosen value inside a field (keywords, recipients), usually removable.",
       "use": [
