@@ -160,10 +160,10 @@ starts.
   ToggleButton have no JSDoc citing their node ids (`Toggle.tsx` ~44, ~118). S.
 
 ### Platform examples and docs
-- **P3 · Example audit baselines (2026-10-08; rewritten 2026-10-24):** HR · Home, My leaves and Expense overview use 9
-  text styles each ([rhythm], baselined 2026-10-21 in `tools/platform-audit/quality-baseline.json`): trim or accept
-  (designer); `behaviour-baseline.json` still holds the chat inbox-row dead click, a probe race closed 2026-10-08:
-  re-measure. S.
+- **P3 · Example audit baselines (2026-10-08; rewritten 2026-10-24):** `behaviour-baseline.json` still holds the chat
+  inbox-row dead click, a probe race closed 2026-10-08: re-measure (in progress on
+  zen/fix/platform-examples-backlog-20261024). The HR pages' 9 text styles moved to QUESTIONS.md (designer batch
+  2026-10-24). S.
 - **P3 · Guideline and snippet wording (2026-10-01/06; gathered 2026-10-24), S:** Pagination's "jump to page" wording
   and Enter row (`tools/usage-guard/guidelines.source.mjs` ~337, ~1020; Manually is a page-size input); the
   TopNavigation guideline's HIG "Navigation bars" link redirects to "Toolbars"; the Bottom Navigation guideline lacks

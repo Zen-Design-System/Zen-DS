@@ -224,6 +224,11 @@ làm hiện tại; khi có câu trả lời, việc cần làm sẽ vào `BACKLO
   hover hay pressed, nên thẻ bấm được vẫn phải có viền. Có vẽ thêm không? (BACKLOG "Card states")
 - **Hover của hàng Table (P3, 01/10):** hàng của bảng không có hành động vẫn hiện nền hover. Cell Hover của Figma chỉ
   dành cho hàng bấm được? (BACKLOG "Table follow-ups")
+- **Các trang template HR dùng 9 kiểu chữ (P3, 08/10; đưa vào baseline 21/10):** HR · Home, My leaves và Expense
+  overview mỗi trang dùng 9 kiểu, trong khi kiểm tra [rhythm] của audit cho một trang đầy đủ khoảng 8 (danh sách trong
+  `tools/platform-audit/quality-baseline.json`; Home: Body/Base/Regular, Heading/1, Heading/4, Body/Small/Regular,
+  Heading/Subheading, Body/Small/Bold, Body/Base/Bold, Body/Extra/Medium, Display/4). Khung HR-Platform trong Figma có
+  dùng ngần ấy không (chấp nhận), hay mỗi trang nên bỏ kiểu nào?
 - **Sửa trong Figma (P3, 06/10):** bố cục List trên trang Demo 14730:79268 ("My Leaves") vẫn dùng padding List cũ (trên
   / dưới 12, hai bên 0, gap 2); với master mới các hàng chạm cạnh khung và nền chồng lên nhau.
 

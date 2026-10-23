@@ -219,6 +219,11 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
     hover or pressed state, so clickable cards stay bordered. Draw them? (BACKLOG "Card states")
   - **Table row hover (P3, 2026-10-01):** rows of a table with no row action still show the hover fill. Does Figma's
     Cell Hover apply to clickable rows only? (BACKLOG "Table follow-ups")
+  - **HR template pages use 9 text styles (P3, 2026-10-08; baselined 2026-10-21):** HR · Home, My leaves and Expense
+    overview each use 9, where the audit's [rhythm] check allows a full page about 8 (the lists are in
+    `tools/platform-audit/quality-baseline.json`; Home: Body/Base/Regular, Heading/1, Heading/4, Body/Small/Regular,
+    Heading/Subheading, Body/Small/Bold, Body/Base/Bold, Body/Extra/Medium, Display/4). Do the HR-Platform frames use as
+    many (accept), or which style should each page drop?
   - **Fix in Figma (P3, 2026-10-06):** the Demo page's List composition 14730:79268 ("My Leaves") still has the old List
     padding (12 top / bottom, 0 sides, gap 2); with the new master its rows touch the frame sides and the fills overlap.
 
