@@ -22,6 +22,16 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   content, as the runtime shows it, and an AppShell inside a page draws only its desktop parts. Drawing them (Figma
   Pattern/AppShell/Mobile, its Bar type by canvas: default→Alt, alt→Default, flat→Default on Surface/Flat) is new scope.
   Pointer: `tools/studio/figma-push.mjs` `appShellNode` (~852) and the Screen's mobile chrome (~2232).
+
+## Archived 2026-10-23 (Figma Badge-Status swap)
+
+- Done 2026-10-23 (user approved the write to the Zen Figma file; 9 themed Badges swapped to Badge-Status on ◆ HR-Platform
+  `.Row`, ❖ Popover and ❖ List-Item; list in the session log):
+  **P3 · Figma instances of a workflow step still drawn as themed Badges (2026-10-21; code done 2026-10-23):** the
+  code side moved to BadgeStatus (platform examples, the app-layer AppShell playground, the HR Tasks template); Figma
+  screens that show a task's or project's step with a themed Badge instance still need swapping to Badge-Status. Waits
+  for the user: a write to the Zen Figma file.
+
 ## Archived 2026-10-23 (PropertyField ↔ Figma, done on `zen/fix/studio-property-field-figma-20261023`)
 
 - **P3 · PropertyField ↔ Figma gaps (2026-10-21):** a People / Labels cell pushes one person and two tags (the

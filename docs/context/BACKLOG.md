@@ -7,10 +7,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P3 · Figma instances of a workflow step still drawn as themed Badges (2026-10-21; code done 2026-10-23):** the
-  code side moved to BadgeStatus (platform examples, the app-layer AppShell playground, the HR Tasks template); Figma
-  screens that show a task's or project's step with a themed Badge instance still need swapping to Badge-Status. Waits
-  for the user: a write to the Zen Figma file.
 - **P3 · Studio Variables: new collections (2026-10-23, B; waits for the user):** v2 (chunks 1–4: Edit variable,
   rename with an alias, modes, per-frame `modes`) is on branch zen/feat/studio-variables-v2-20261023. Creating a
   collection in Studio is left: the build reads a fixed list of 11 sources (`scripts/token-outputs.mjs` SOURCE_FILES,
