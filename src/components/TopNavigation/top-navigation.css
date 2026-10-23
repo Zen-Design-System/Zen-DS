@@ -57,6 +57,11 @@
 .zen-top-nav__control--pinned, .zen-top-nav__banner--pinned { transform: translateY(calc(-1 * var(--zen-top-nav-shrink, var(--zen-top-nav-fold, 0px)))); }
 .zen-top-nav__fold { clip-path: inset(var(--zen-top-nav-fold, 0px) 0 0 0); }
 @media (prefers-reduced-motion: no-preference) { .zen-top-nav[data-scroll-linked="true"]::before { transition: border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
+/* scrolledType: the scroll-edge look gives way to the scrolled one with a colour fade (a colour change, so it stays under
+   reduced motion too); the rule under the bar keeps its own fade. */
+.zen-top-nav[data-scrolled-type="true"], .zen-top-nav[data-scrolled-type="true"] :is(.zen-top-nav__heading, .zen-top-nav__identity) { transition: color var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease); }
+.zen-top-nav[data-scrolled-type="true"] .zen-top-nav__title { transition: color var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease), opacity var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
+.zen-top-nav[data-scrolled-type="true"]::before { transition: background-color var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease), border-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); }
 
 /* Progressive background blur (Figma blurType=PROGRESSIVE, start radius at the top → 0 at the bottom), drawn by
    _shared/progressive-blur (a linear ramp of stacked backdrop blurs). Figma radius ≈ 2 × CSS blur(): Default-Bluring
@@ -85,6 +90,12 @@
 .zen-top-nav__title { overflow: hidden; max-width: 100%; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-2-xsmall, 4px); color: var(--zen-top-nav-content); text-align: center; text-overflow: ellipsis; white-space: nowrap; }
 .zen-top-nav__title[data-visible="false"] { opacity: 0; }
 @media (prefers-reduced-motion: no-preference) { .zen-top-nav__title { transition: opacity var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
+/* Figma Heading-Text Type=Sub Dropdown (titleMenu / titleDropdown): the bar title as a button, its chevron-down
+   (Element-Size/Popular/Base) Spacing/Gap/2XSmall after the words, in the title's colour. */
+.zen-top-nav__title-button { display: inline-flex; overflow: hidden; max-width: 100%; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); padding: var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: transparent; color: inherit; cursor: pointer; font: inherit; text-overflow: ellipsis; white-space: nowrap; }
+.zen-top-nav__title-button:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
+.zen-top-nav__title-button:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: -3px; }
+.zen-top-nav__chevron { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; }
 
 /* Expand-Heading: 64px, Main-Heading-Text (Navigation-Mobile/Top/Bar-Padding-H1…H3 × the side margin, 12005:30073) +
    Header-Trailing; the row centres the heading. */
@@ -104,6 +115,13 @@
 .zen-top-nav__heading-group[data-level="h2"] { padding-block: calc(var(--zen-navigation-mobile-top-bar-padding-h2, 12px) + var(--zen-spacing-padding-3-xsmall, 2px)); }
 .zen-top-nav__heading-group[data-level="h3"] { gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-block: var(--zen-navigation-mobile-top-bar-padding-h3, 16px); }
 .zen-top-nav__heading-group > .zen-top-nav__heading { flex: none; padding: 0; }
+/* Figma Main-Heading-Text Badges (largeTitleBadges): the heading, then a row of Badges Spacing/Gap/XSmall below it and
+   apart; the block keeps the heading's own padding. */
+.zen-top-nav__heading-stack { display: flex; overflow: hidden; min-width: 0; flex: 1; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-navigation-mobile-top-bar-padding-h1, 12px) var(--zen-top-nav-side); }
+.zen-top-nav__heading-stack[data-level="h2"] { padding-block: var(--zen-navigation-mobile-top-bar-padding-h2, 12px); }
+.zen-top-nav__heading-stack[data-level="h3"] { padding-block: var(--zen-navigation-mobile-top-bar-padding-h3, 16px); }
+.zen-top-nav__heading-stack > :is(.zen-top-nav__heading, .zen-top-nav__heading-group) { flex: none; padding: 0; }
+.zen-top-nav__badges { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* An Avatar in the bar or beside the large title (a node in leading, trailing or largeTitleAction, the account) is the
    size of the bar's actions: Figma Nav-Slot/Visual is bound to Navigation-Action/Size, 44 (user 2026-10-19: "trên top
    nav mobile thì là 44"), whatever Avatar size it was given. */

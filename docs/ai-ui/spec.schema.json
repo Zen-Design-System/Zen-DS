@@ -44883,7 +44883,32 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Makes the identity a button (open the profile / group info)."
+                "description": "Makes the bar title a button (open the profile / group info, a picker of your own)."
+              },
+              "titleMenu": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/MenuEntry"
+                    }
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Heading-Text Type=Sub Dropdown (`.Primitives/Heading-Text/Basic` 4060:17984): the bar title is a button with a chevron-down (icon-chevron-down-line, 20) Spacing/Gap/2XSmall a"
+              },
+              "titleDropdown": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The Dropdown chevron on an `onTitleClick` title that opens the app's own picker (a Bottom Sheet, a dialog)."
               },
               "titleLabel": {
                 "anyOf": [
@@ -45014,6 +45039,36 @@
                   }
                 ],
                 "description": "Figma Expand-Heading › Main-Heading-Text Subheading (Subheading on): a line under the large title — \"6 devices · 4 on\" under \"Living room\" (F2), \"Living room\" under \"HomePod mini\""
+              },
+              "largeTitleBadges": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Main-Heading-Text Badges (Badges on): a row of Badges under the large title (Badge Medium, Spacing/Gap/XSmall apart and below the heading), e.g."
               },
               "headingLevel": {
                 "anyOf": [
@@ -45235,6 +45290,30 @@
                   }
                 ],
                 "description": "For a Search control bar: while `collapsed`, the bar folds away and this Search action appears at the start of the trailing slot (top-right); it leaves again when the bar expands."
+              },
+              "scrolledType": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "default",
+                      "alt",
+                      "default-blurring",
+                      "alt-blurring",
+                      "liquid-glass",
+                      "default-overlay",
+                      "liquid-overlay",
+                      "compact",
+                      "compact-alt",
+                      "compact-overlay",
+                      "transparent",
+                      "transparent-on-color"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "With `scrollRef`: the type the bar takes once content scrolls under it (iOS's standard appearance), `type` being its look at the top (the scroll-edge appearance)."
               },
               "collapsed": {
                 "anyOf": [

@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactElement, type ReactNode, type Ref, type RefObject } from "react";
-import type { IconName } from "../Icon";
+import { Icon, type IconName } from "../Icon";
+import { Menu, type MenuEntry } from "../Menu";
 import { usePresence } from "../Motion";
 import { useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
@@ -74,8 +75,16 @@ export interface TopNavigationProps {
    * between the leading and trailing slots (the Social header aligns Heading and Subheading to the start).
    */
   titleLeading?: ReactNode;
-  /** Makes the identity a button (open the profile / group info). */
+  /** Makes the bar title a button (open the profile / group info, a picker of your own). */
   onTitleClick?: () => void;
+  /**
+   * Figma Heading-Text Type=Sub Dropdown (`.Primitives/Heading-Text/Basic` 4060:17984): the bar title is a button with a
+   * chevron-down (icon-chevron-down-line, 20) Spacing/Gap/2XSmall after it that opens this Menu, e.g. a list of mailboxes
+   * under "Inbox" or of projects under the current one. Leave out `onTitleClick`.
+   */
+  titleMenu?: MenuEntry[];
+  /** The Dropdown chevron on an `onTitleClick` title that opens the app's own picker (a Bottom Sheet, a dialog). */
+  titleDropdown?: boolean;
   titleLabel?: string;
   /**
    * The first two trailing actions share one pill (see `TopNavigationAction.group`), when no action names a group.
@@ -110,6 +119,12 @@ export interface TopNavigationProps {
    * "Scenes" (F12). Same style, tone and gap as `largeTitleCapline`; it folds away with the large title.
    */
   largeTitleSubheading?: ReactNode;
+  /**
+   * Figma Main-Heading-Text Badges (Badges on): a row of Badges under the large title (Badge Medium, Spacing/Gap/XSmall
+   * apart and below the heading), e.g. a plan or a status. It folds away with the large title. A Badge beside the title
+   * goes in `largeTitleAction` instead.
+   */
+  largeTitleBadges?: ReactNode;
   /**
    * Level of the screen title — the large title while it shows, else the bar title. Default h1: the title names the
    * screen (match `document.title` to it). Use h2 / h3 only for a navigation stack nested inside another screen that
@@ -177,6 +192,12 @@ export interface TopNavigationProps {
    * first child, or positioned over it. A `collapsed` value overrides it.
    */
   scrollRef?: RefObject<HTMLElement | null> | "window";
+  /**
+   * With `scrollRef`: the type the bar takes once content scrolls under it (iOS's standard appearance), `type` being its
+   * look at the top (the scroll-edge appearance). A hero header: type="transparent-on-color" over the hero photo, and
+   * scrolledType="default" for the opaque bar once the page scrolls; the change is a colour fade, also with reduced motion.
+   */
+  scrolledType?: TopNavigationType;
   /** Collapsed by hand: hides the large title and shows `title` (or the large title) in the navigator bar. Prefer
    *  `scrollRef`, which follows the scroll; with `collapsed` set, the scroll does not change it. */
   collapsed?: boolean;
@@ -348,12 +369,9 @@ function useScrollFold(scrollRef: TopNavigationProps["scrollRef"], linked: boole
   return state;
 }
 
-export function TopNavigation({ type = "default", margin = "comfortable", subtitle, titleLeading, onTitleClick, titleLabel, trailingGroup = false, title, largeTitle, largeTitleCapline, largeTitleSubheading, headingLevel = "h1", leading, trailing = [], largeTitleAction, topBar, controlBar, banner, searchAction, scrollRef, collapsed: collapsedProp, sticky = false, "aria-label": ariaLabel, className, ref, ...rest }: TopNavigationProps) {
+export function TopNavigation({ type: restingType = "default", margin = "comfortable", subtitle, titleLeading, onTitleClick, titleMenu, titleDropdown = false, titleLabel, trailingGroup = false, title, largeTitle, largeTitleCapline, largeTitleSubheading, largeTitleBadges, headingLevel = "h1", leading, trailing = [], largeTitleAction, topBar, controlBar, banner, searchAction, scrollRef, scrolledType, collapsed: collapsedProp, sticky = false, "aria-label": ariaLabel, className, ref, ...rest }: TopNavigationProps) {
   const t = useZenLabels();
   const titleId = useId();
-  const variant = actionStyleFor(type);
-  // The dual Nav-Action pill of the glass types is Liquid-Glass/Normal glass, as a single action.
-  const groupGlass = useLiquidGlass("liquid-glass-normal", variant === "glass" || variant === "glass-dark");
   const identity = Boolean(subtitle || titleLeading);
   const rootRef = useRef<HTMLElement>(null);
   const headerRef = useMergedRefs(ref, rootRef);
@@ -366,6 +384,11 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
   // Figma Top-bar=false (root screens): the bar row folds into the large-title row instead of sitting above it.
   const barFolds = Boolean(largeTitle) && !identity && (topBar === false || (topBar === undefined && !leading));
   const scroll = useScrollFold(scrollRef, linked, rootRef, foldNode, expandRef, barFolds && linked ? barRef : null);
+  // scrolledType: the look once content runs under the bar (iOS standard appearance); `type` is the scroll-edge look.
+  const type = scrolledType && linked && scroll.scrolled ? scrolledType : restingType;
+  const variant = actionStyleFor(type);
+  // The dual Nav-Action pill of the glass types is Liquid-Glass/Normal glass, as a single action.
+  const groupGlass = useLiquidGlass("liquid-glass-normal", variant === "glass" || variant === "glass-dark");
   const collapsed = collapsedProp ?? (linked && scroll.covered);
   const showLarge = Boolean(largeTitle) && !collapsed;
   // The bar overlays the large-title row while that row is there (always when scroll-linked: the fold stays mounted).
@@ -381,18 +404,27 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
   const Root = noBar && !hiddenTitle && !controlBar && !banner ? "div" : "header";
   // Figma Main-Heading-Text Capline / Subheading: the large title's lines, grouped with it (hgroup) while it shows.
   const lines = Boolean(largeTitleCapline || largeTitleSubheading);
+  // A heading that takes more than one line (its lines or its Badges) aligns the large-title row to the top.
+  const tall = lines || Boolean(largeTitleBadges);
   const largeHeading = (asHeading: boolean) => {
     const heading = asHeading
       ? <Heading className={`zen-top-nav__heading ${typographyStyles[headingStyle]}`} data-level={headingLevel}>{largeTitle}</Heading>
       : <div className={`zen-top-nav__heading ${typographyStyles[headingStyle]}`} data-level={headingLevel} aria-hidden="true">{largeTitle}</div>;
-    if (!lines) return heading;
     const Group = asHeading ? "hgroup" : "div";
-    return (
+    const titled = !lines ? heading : (
       <Group className="zen-top-nav__heading-group" data-level={headingLevel} aria-hidden={asHeading ? undefined : true}>
         {largeTitleCapline ? <p className={`zen-top-nav__capline ${typographyStyles["Body/Base/Regular"]}`}>{largeTitleCapline}</p> : null}
         {heading}
         {largeTitleSubheading ? <p className={`zen-top-nav__subheading ${typographyStyles["Body/Base/Regular"]}`}>{largeTitleSubheading}</p> : null}
       </Group>
+    );
+    // Figma Main-Heading-Text Contents: the heading, then the Badges row Spacing/Gap/XSmall below it.
+    if (!largeTitleBadges) return titled;
+    return (
+      <div className="zen-top-nav__heading-stack" data-level={headingLevel} aria-hidden={asHeading ? undefined : true}>
+        {titled}
+        <div className="zen-top-nav__badges">{largeTitleBadges}</div>
+      </div>
     );
   };
   const renderPlace = (place: TrailingPlace, index: number) => "node" in place
@@ -406,6 +438,12 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
   const barTitle = title ?? (collapsed ? largeTitle : undefined);
   // One title heading at all times: the large title while it shows, else the bar title (the copy under a large title is aria-hidden).
   const barIsTitle = Boolean(barTitle) && !showLarge;
+  // Figma Heading-Text Type=Sub Dropdown: the bar title as a button with a chevron-down that opens `titleMenu` (or the
+  // app's own picker, through onTitleClick + titleDropdown).
+  const clickableTitle = Boolean(onTitleClick || titleMenu);
+  const dropdown = Boolean(titleMenu) || (titleDropdown && Boolean(onTitleClick));
+  const chevron = <Icon name="icon-chevron-down-line" size="base" decorative className="zen-top-nav__chevron" />;
+  const withTitleMenu = (trigger: ReactElement) => (titleMenu ? <Menu trigger={trigger} items={titleMenu} /> : trigger);
   const Heading = headingLevel;
   const headingStyle = headingLevel === "h1" ? "Heading/1" : headingLevel === "h2" ? "Heading/2" : "Heading/3";
   const progressive = PROGRESSIVE_TYPES.has(type);
@@ -415,7 +453,7 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
   const search = usePresence(foldsSearch && (linked ? scroll.folded : collapsed), 120);
   const searchButton: TopNavigationAction | null = searchAction ? { icon: searchAction.icon ?? "icon-search-medium-line", label: searchAction.label ?? t.search, onClick: searchAction.onClick } : null;
   return (
-    <Root {...dataAttributes(rest)} ref={headerRef} className={["zen-top-nav", className].filter(Boolean).join(" ")} data-type={type} data-margin={margin} data-collapsed={collapsed ? "true" : undefined} data-sticky={sticky ? "true" : undefined} data-scroll-linked={linked ? "true" : undefined} data-scrolled={linked && scroll.scrolled ? "true" : undefined} data-bar={barOverlay ? "overlay" : undefined} aria-label={Root === "header" ? ariaLabel : undefined}>
+    <Root {...dataAttributes(rest)} ref={headerRef} className={["zen-top-nav", className].filter(Boolean).join(" ")} data-type={type} data-margin={margin} data-collapsed={collapsed ? "true" : undefined} data-sticky={sticky ? "true" : undefined} data-scroll-linked={linked ? "true" : undefined} data-scrolled={linked && scroll.scrolled ? "true" : undefined} data-scrolled-type={scrolledType && linked ? "true" : undefined} data-bar={barOverlay ? "overlay" : undefined} aria-label={Root === "header" ? ariaLabel : undefined}>
       {progressive ? <ProgressiveBlur className="zen-top-nav__progressive" strong="top" /> : null}
       {hiddenTitle ? <VisuallyHidden as={headingLevel}>{title}</VisuallyHidden> : null}
       {/* data-identity: the Heading-Text Type=Sub title block — centred as the variant draws it, or start-aligned after a
@@ -427,8 +465,8 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
         {identity ? (() => {
           // A heading cannot sit inside a button (its children are presentational), so a clickable identity is wrapped
           // by the heading; a static one makes its title line the heading.
-          const IdentityText = onTitleClick ? "span" : "div";
-          const IdentityTitle = !onTitleClick && barIsTitle ? Heading : "span";
+          const IdentityText = clickableTitle ? "span" : "div";
+          const IdentityTitle = !clickableTitle && barIsTitle ? Heading : "span";
           const content = (
             <>
               {titleLeading ? <span className="zen-top-nav__identity-leading">{titleLeading}</span> : null}
@@ -436,17 +474,21 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
                 <IdentityTitle id={titleId} className={`zen-top-nav__identity-title ${typographyStyles["Body/Extra/Bold"]}`}>{barTitle}</IdentityTitle>
                 {subtitle ? <span className={`zen-top-nav__identity-subtitle ${typographyStyles["Caption/Regular"]}`}>{subtitle}</span> : null}
               </IdentityText>
+              {dropdown ? chevron : null}
             </>
           );
-          if (!onTitleClick) return <div className="zen-top-nav__identity">{content}</div>;
-          const button = <button type="button" className="zen-top-nav__identity" onClick={onTitleClick} aria-label={titleLabel}>{content}</button>;
+          if (!clickableTitle) return <div className="zen-top-nav__identity">{content}</div>;
+          const button = withTitleMenu(<button type="button" className="zen-top-nav__identity" onClick={onTitleClick} aria-label={titleLabel} aria-haspopup={titleMenu ? "menu" : undefined}>{content}</button>);
           // The heading is named by the title alone, not by the button's longer label ("Ava Chen, active now. Open details").
           return barIsTitle ? <Heading className="zen-top-nav__identity-heading" aria-labelledby={titleId}>{button}</Heading> : button;
         })() : (
           // One element that stays mounted, so it can fade in as the large title folds away; it takes the heading role
           // (role=heading + aria-level, as React Navigation does) only while it is the screen's title.
           <div className={`zen-top-nav__title ${typographyStyles["Body/Extra/Bold"]}`} data-visible={barIsTitle ? "true" : "false"} role={barIsTitle ? "heading" : undefined} aria-level={barIsTitle ? Number(headingLevel.slice(1)) : undefined} aria-hidden={barIsTitle ? undefined : true}>
-            {barTitle}
+            {clickableTitle
+              // A button inside the heading (not around it); out of the tab order while the large title shows instead.
+              ? withTitleMenu(<button type="button" className="zen-top-nav__title-button" onClick={onTitleClick} aria-label={titleLabel} tabIndex={barIsTitle ? undefined : -1}>{barTitle}{dropdown ? chevron : null}</button>)
+              : barTitle}
           </div>
         )}
         <div className="zen-top-nav__trailing">
@@ -462,7 +504,7 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
           {largeTitle || foldsSearch ? (
             <div ref={setFoldNode} className="zen-top-nav__fold">
               {largeTitle ? (
-                <div ref={expandRef} className="zen-top-nav__expand" data-lines={lines ? "true" : undefined} inert={collapsed || undefined}>
+                <div ref={expandRef} className="zen-top-nav__expand" data-lines={tall ? "true" : undefined} inert={collapsed || undefined}>
                   {largeHeading(showLarge)}
                   {barFolds ? <ActionsRoom items={trailingItems(lead, trailing, pairs, trailingGroup, MAX_ACTIONS)} variant={variant} /> : expandTrailing}
                 </div>
@@ -477,7 +519,7 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
       ) : (
         <>
           {showLarge ? (
-            <div className="zen-top-nav__expand" data-lines={lines ? "true" : undefined}>
+            <div className="zen-top-nav__expand" data-lines={tall ? "true" : undefined}>
               {largeHeading(true)}
               {barFolds ? <ActionsRoom items={trailingItems(lead, trailing, pairs, trailingGroup, MAX_ACTIONS)} variant={variant} /> : expandTrailing}
             </div>

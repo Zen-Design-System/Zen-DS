@@ -92,11 +92,6 @@ starts.
   swap) and ST-24 (drop to group); `ungroupItem` has only a selftest (`tools/studio/items.selftest.mjs` ~278). S.
 
 ### Components
-- **P3 · TopNavigation follow-ups (2026-10-01/05; rewritten 2026-10-24; user 2026-10-24 "Theo đề xuất"):** (1) done
-  (#266: `largeTitleAction` pairs a `group`). (2) Approved: a bar-title Dropdown (`titleMenu` / `titleDropdown`, Figma
-  Heading-Text Dropdown), a hero header that turns opaque on scroll (`scrolledType`), large-title Badges
-  (`largeTitleBadges`: Figma's Badges row sits under the heading, so `largeTitleAction` does not cover it) and a
-  selection-mode docs recipe. In progress (box-themes, branch `wip/top-nav-20261024`), M.
 - **P3 · Menu and Chip popovers as phone sheets (2026-10-01; user 2026-10-24: option A, automatic as SelectField):**
   templates build their own sheets today. In progress: session C, draft PR #271. (The 24px phone targets and FileUpload
   `buttonSize` are done in #266.) L.

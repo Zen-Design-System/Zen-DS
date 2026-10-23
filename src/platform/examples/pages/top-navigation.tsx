@@ -7,6 +7,7 @@ import { BottomSheet, type BottomSheetItem } from "../../../components/BottomShe
 import { ChatAvatarGroup, ChatCall, ChatComposer, ChatMessage, ChatThread, type ChatPerson, type ChatReplyTarget } from "../../../components/Chat";
 import { DescriptionList } from "../../../components/DescriptionList";
 import { DockIcon } from "../../../components/DockIcon";
+import { Icon } from "../../../components/Icon";
 import { EmptyState } from "../../../components/EmptyState";
 import { Form, useFormState } from "../../../components/Form";
 import { Image } from "../../../components/Image";
@@ -663,6 +664,113 @@ function ModalScreenExample() {
   );
 }
 
+/* ───────────── 8. Title menu, large-title badges, hero header, selection mode (2026-10-24) ───────────── */
+
+const mailboxes = [
+  { id: "inbox", label: "Inbox", icon: "ic-inbox-01-line", unread: 3, rows: 6 },
+  { id: "starred", label: "Starred", icon: "icon-star-01-line", unread: 0, rows: 2 },
+  { id: "archive", label: "Archive", icon: "icon-archive-line", unread: 0, rows: 4 },
+] as const;
+
+function TitleMenuExample() {
+  const { toast } = useToast();
+  const [box, setBox] = useState<(typeof mailboxes)[number]["id"]>("inbox");
+  const current = mailboxes.find((item) => item.id === box) ?? mailboxes[0];
+  return (
+    <PlatformPhone label="Mail" canvas="alt" header={
+      <TopNavigation type="alt" title={current.label}
+        titleMenu={mailboxes.map((item) => ({ id: item.id, label: item.label, icon: item.icon, caption: item.unread ? plural(item.unread, "unread message") : undefined, onSelect: () => setBox(item.id) }))}
+        trailing={[{ icon: "icon-edit-01-line", label: "New message", onClick: () => toast({ title: "New message", children: "The composer isn't part of this demo." }) }]} />
+    }>
+      <Box paddingX="lg" paddingY="xs">
+        <List aria-label={current.label}>
+          {tasks.slice(0, current.rows).map((task) => (
+            <ListItem key={task.id} title={task.title} caption={`${people[task.assignee].name} · ${formatRelative(task.due)}`}
+              leading={<Avatar size="medium" theme={people[task.assignee].theme} src={people[task.assignee].photo} alt="">{initials(people[task.assignee].name)}</Avatar>} />
+          ))}
+        </List>
+      </Box>
+    </PlatformPhone>
+  );
+}
+
+const rooms = [
+  { id: "lamp", name: "Floor lamp", state: "On · 60%", icon: "icon-lightbulb-line" },
+  { id: "heat", name: "Heating", state: "22 °C", icon: "icon-thermometer-warm-line" },
+  { id: "tv", name: "TV", state: "Off", icon: "icon-tv-01-line" },
+] as const;
+
+function LargeTitleBadgesExample() {
+  const { toast } = useToast();
+  return (
+    <PlatformPhone label="Living room" canvas="alt" header={
+      <TopNavigation type="alt" largeTitle="Living room" largeTitleSubheading="6 devices"
+        largeTitleBadges={<><Badge theme="green" background="subtle">4 on</Badge><Badge theme="neutral" background="subtle">22 °C inside</Badge></>}
+        trailing={[{ icon: "icon-plus-line", label: "Add device", onClick: () => toast({ title: "Add device", children: "Pairing isn't part of this demo." }) }]} />
+    }>
+      <Box paddingX="lg" paddingY="xs">
+        <List aria-label="Devices">
+          {rooms.map((room) => <ListItem key={room.id} title={room.name} caption={room.state} leading={<DockIcon icon={room.icon} theme="neutral" background="subtle" />} />)}
+        </List>
+      </Box>
+    </PlatformPhone>
+  );
+}
+
+function HeroHeaderExample() {
+  const { toast } = useToast();
+  const screenRef = useRef<HTMLDivElement>(null);
+  const hero = platformMedia.mountainRoad;
+  return (
+    <PlatformPhone label="Saola Lodge" canvas="alt" headerOverlay screenRef={screenRef} header={
+      <TopNavigation type="transparent-on-color" scrolledType="default" title="Saola Lodge" scrollRef={screenRef}
+        leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Back to stays" }) }}
+        trailing={[{ icon: "icon-share-01-line", label: "Share", onClick: () => toast({ title: "Link copied" }) }]} />
+    }>
+      <Image src={hero.src} alt={hero.alt} ratio="4:3" loading="eager" />
+      <Stack gap="md" padding="lg">
+        <Heading level={2} textStyle="Heading/3">A lodge above the valley</Heading>
+        <Text tone="base">Twelve rooms on the ridge road, an hour from the airport. Every room looks over the valley, and breakfast is served on the terrace from seven.</Text>
+        <Text tone="base">Scroll down: the bar starts clear over the photo, in white, and turns into the Default bar as the page moves under it.</Text>
+        <Text tone="base">Check-in from 2 pm, check-out until 11 am. The lodge arranges pickup at the airport on request.</Text>
+      </Stack>
+    </PlatformPhone>
+  );
+}
+
+const sharedFiles = ["Brand refresh deck", "Store photos", "Saola brand audit", "Outdoor range moodboard", "Q4 campaign brief"];
+
+function SelectionModeExample() {
+  const { toast } = useToast();
+  const [selecting, setSelecting] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
+  const done = () => { setSelecting(false); setPicked([]); };
+  const toggle = (name: string) => setPicked((list) => (list.includes(name) ? list.filter((item) => item !== name) : [...list, name]));
+  const header = selecting ? (
+    <TopNavigation type="alt" title={picked.length ? `${plural(picked.length, "file")} selected` : "Select files"}
+      leading={{ icon: "icon-x-medium-line", label: "Cancel", onClick: done }}
+      trailing={[
+        { icon: "icon-share-01-line", label: "Share", disabled: !picked.length, onClick: () => { toast({ title: `${plural(picked.length, "file")} shared` }); done(); } },
+        { icon: "icon-trash-line", label: "Delete", disabled: !picked.length, onClick: () => { toast({ title: `${plural(picked.length, "file")} deleted` }); done(); } },
+      ]} />
+  ) : (
+    <TopNavigation type="alt" title="Files" trailing={[{ icon: "icon-check-circle-line", label: "Select", onClick: () => setSelecting(true) }]} />
+  );
+  return (
+    <PlatformPhone label="Files" canvas="alt" header={header}>
+      <Box paddingX="lg" paddingY="xs">
+        <List aria-label="Files">
+          {sharedFiles.map((name) => (
+            <ListItem key={name} title={name} caption="Shared with the Brand team" leading={<DockIcon icon="icon-file-doc-line" theme="blue" background="subtle" />}
+              selected={selecting && picked.includes(name)} trailing={selecting && picked.includes(name) ? <Icon name="icon-check-line" size="base" decorative /> : undefined}
+              onClick={selecting ? () => toggle(name) : () => toast({ title: name, children: "Opening files isn't part of this demo." })} />
+          ))}
+        </List>
+      </Box>
+    </PlatformPhone>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Root and detail",
@@ -810,5 +918,51 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     <Text tone="base">What you entered for this review will be lost.</Text>
   </BottomSheet>
 </PlatformPhone>`,
+  },
+  {
+    title: "Title menu",
+    description: "Figma Heading-Text Dropdown: the bar title is a button with a chevron that opens a menu, here of mailboxes with their unread counts. The title still names the screen; picking a mailbox renames it.",
+    render: () => <TitleMenuExample />,
+    code: `<TopNavigation type="alt" title={mailbox.label}
+  titleMenu={mailboxes.map((item) => ({ id: item.id, label: item.label, icon: item.icon, caption: item.unread ? plural(item.unread, "unread message") : undefined, onSelect: () => setMailbox(item.id) }))}
+  trailing={[{ icon: "icon-edit-01-line", label: "New message", onClick: compose }]} />`,
+  },
+  {
+    title: "Large title with badges",
+    description: "Figma Main-Heading-Text Badges: a row of Badges under the large title and its subheading, for what the screen's state is at a glance. They fold away with the large title; a Badge beside the title goes in largeTitleAction instead.",
+    render: () => <LargeTitleBadgesExample />,
+    code: `<TopNavigation type="alt" largeTitle="Living room" largeTitleSubheading="6 devices"
+  largeTitleBadges={<><Badge theme="green" background="subtle">4 on</Badge><Badge theme="neutral" background="subtle">22 °C inside</Badge></>}
+  trailing={[{ icon: "icon-plus-line", label: "Add device", onClick: addDevice }]} />`,
+  },
+  {
+    title: "Hero header",
+    description: "Over a hero photo the bar is clear (Transparent-On-Color: white title and Liquid Glass actions); with scrolledType it becomes the Default bar once the page scrolls under it, as iOS's scroll-edge and standard appearances. The change is a colour fade.",
+    render: () => <HeroHeaderExample />,
+    code: `const screenRef = useRef<HTMLDivElement>(null);
+
+<PlatformPhone canvas="alt" headerOverlay screenRef={screenRef} header={
+  <TopNavigation type="transparent-on-color" scrolledType="default" title="Saola Lodge" scrollRef={screenRef}
+    leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }}
+    trailing={[{ icon: "icon-share-01-line", label: "Share", onClick: share }]} />
+}>
+  <Image src={hero.src} alt={hero.alt} ratio="4:3" />
+  <Stack gap="md" padding="lg">{/* the stay */}</Stack>
+</PlatformPhone>`,
+  },
+  {
+    title: "Selection mode",
+    description: "A recipe from the props TopNavigation already has: Select swaps the bar for a selection bar, Cancel on the left, the count as its title, and the actions for the selection on the right (dimmed until something is picked). Rows toggle with a check while it is on.",
+    render: () => <SelectionModeExample />,
+    code: `const header = selecting ? (
+  <TopNavigation type="alt" title={picked.length ? \`\${plural(picked.length, "file")} selected\` : "Select files"}
+    leading={{ icon: "icon-x-medium-line", label: "Cancel", onClick: stopSelecting }}
+    trailing={[
+      { icon: "icon-share-01-line", label: "Share", disabled: !picked.length, onClick: sharePicked },
+      { icon: "icon-trash-line", label: "Delete", disabled: !picked.length, onClick: deletePicked },
+    ]} />
+) : (
+  <TopNavigation type="alt" title="Files" trailing={[{ icon: "icon-check-circle-line", label: "Select", onClick: startSelecting }]} />
+);`,
   },
 ]);
