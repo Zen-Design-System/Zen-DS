@@ -64,6 +64,7 @@ One chart family in one style: how a value changes over time (Line, Area), compa
 | Combo | `ComboChart data[] {label, bar, line} · barLabel · lineLabel · format (bars, start axis) · lineFormat (line, end axis) · lineMax · initialIndex · showLegend · legendPosition` | 20px Color Chart Sector/Primary bars (Corner-Radius/XSmall top corners) on the start axis; a 2px Sector/Secondary line with an 8px Surface dot per period (12px when active) on the end axis, left-aligned after the plot; both axes share the gridlines |
 | Color | `palette (primary · secondary) on BarChart, StackBarChart, AreaChart, GroupedBarChart, ComboChart, DonutChart, RadialChart, GaugeChart, FunnelChart, BulletChart` | Figma Color: secondary swaps Color Chart Sector/Primary and /Secondary — Bar: Secondary bars, the active one Primary; Stack bar, Grouped bar, Donut, Radial: the first two series, slices or rings swap; Area: the first two lines and fades swap (one area: a Secondary line over the Neutral fade); Combo: Secondary bars, a Primary line; Gauge and Bullet: the value in Secondary, the target in Primary; Funnel: Secondary stages, the last Primary. Sectors 3–7 and an item's own color stay. Line, Multi-line, Bar list and Heatmap have no Color |
 | Every chart | `aria-label · format · animate` | Draw-in on mount and on new data (bars rise, lines wipe, rings sweep, cells pop); reduced motion fades; animate={false} turns it off |
+| Number format | `format (a function, or compact · currency · percent) · currency (ISO 4217, default USD) · ComboChart lineFormat` | A function reads the numbers as you write them; a preset is text a Zen Studio page can hold: compact 128.4K (the default), currency $128.4K (in currency: EUR €128.4K, VND ₫128.4K; currency alone implies it), percent 41% (the value already a percentage). MetricCard takes the same format and currency for its series, goal and categories |
 | Average | `LineChart · BarChart · StackBarChart showAverage` | A dotted Border/Neutral/Solid rule at the mean (the first series; closed bars, projected left out; column totals) with an "Avg $88.7K" tag in the Tooltip colours (Figma Show Average) |
 | Card | `ChartCard title · icon · description · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme` | Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Body/Extra/Medium title + chevron, then the Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card), then the Metric under it: Body/Small description over a Display/4 value, Gap/3XSmall apart, Padding/Small above (Figma Chart/Line-Chart, every chart since 2026-10-21) |
 
@@ -78,7 +79,8 @@ Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fadin
 | `data` (required) | `ChartPoint[]` | — | One point per period (`{ label, value }`). Keep 4–12 periods. |
 | `label` | `string` | — | What the line measures ("Invoiced"), named in the legend and the summary once there is a `compare`. Default: the aria-label. |
 | `compare` | `ChartCompare` | — | A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Border/Neutral/Solid line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-Chart): one value per point of `data`, in order. |
-| `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | Formats axis labels, the Tooltip and the summary (`$23.4K`, `52 GB`). Default: 1.2K. |
+| `format` | `((value: number) => string) \| ChartFormatPreset` | — | How axis labels, the Tooltip and the summary read: a function (`(v) => v + " GB"`), or a preset a Zen Studio page can write as text — `"compact"` 1.2K (the default), `"currency"` $1.2K (in `currency`), `"percent"` 41%. |
+| `currency` | `string` | — | The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies `format="currency"`. |
 | `height` | `number` | `280` | Height of the plot in px, lanes included (a seventh of it for the Tooltip lane on top and one for the X labels below, as Figma's 14-row Trend grid). |
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Revenue invoiced per month, Apr – Sep 2026"). |
 | `className` | `string` | — |  |
@@ -98,7 +100,8 @@ Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-
 | --- | --- | --- | --- |
 | `data` (required) | `ChartPoint[]` | — | One bar per category or period (`{ label, value }`); mark a forecast `projected` (hatched) and give a bar a `target` to draw its goal as a hatched track behind it. Keep 3–12 bars. |
 | `orientation` | `"vertical" \| "horizontal"` | `"vertical"` | `vertical` columns over periods (default) or `horizontal` bars for categories with longer names (Q1–Q4, teams). |
-| `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | Formats axis labels, the Tooltip and the summary. |
+| `format` | `((value: number) => string) \| ChartFormatPreset` | — | How axis labels, the Tooltip and the summary read: a function, or a preset a Zen Studio page can write as text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. |
+| `currency` | `string` | — | The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies `format="currency"`. |
 | `height` | `number` | `280` | Height of a vertical plot in px, lanes included. Horizontal charts take the height of their rows. |
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Revenue per month, Jan – Dec 2026"). |
 | `className` | `string` | — |  |
@@ -117,7 +120,8 @@ Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette
 | --- | --- | --- | --- |
 | `data` (required) | `ChartDatum[]` | — | One column per period, a value per series id (`{ label: "Sep", values: { design: 2650, … } }`). |
 | `series` (required) | `ChartSeries[]` | — | The stacked series, bottom first, in palette order unless a series sets `color`. |
-| `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | Formats axis labels, the Tooltip total and the summary. |
+| `format` | `((value: number) => string) \| ChartFormatPreset` | — | How axis labels, the Tooltip total and the summary read: a function, or a preset a Zen Studio page can write as text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. |
+| `currency` | `string` | — | The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies `format="currency"`. |
 | `height` | `number` | `236` | Height of the plot in px, lanes included. |
 | `aria-label` (required) | `string` | — | What the chart shows and over which range. |
 | `className` | `string` | — |  |
@@ -135,7 +139,8 @@ Donut chart in the shared chart language (docs/research/chart-family-spec-2026-1
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `data` (required) | `ChartSlice[]` | — | The shares of one total (`{ id, label, value }`), drawn clockwise from 12 o'clock in palette order. Keep 2–7 slices. |
-| `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | Formats the centre figure and the summary. |
+| `format` | `((value: number) => string) \| ChartFormatPreset` | — | How the centre figure and the summary read: a function, or a preset a Zen Studio page can write as text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. |
+| `currency` | `string` | — | The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies `format="currency"`. |
 | `size` | `ChartRingSize \| number` | `"medium"` | Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling (`sm` … `xl`); a number still sets px. The ring is 22% of it; it never grows past its box, and a stretched Chart Card grows it. Small shows the centre figure alone (Body/Base/Bold), XLarge in Display/4. |
 | `aria-label` (required) | `string` | — | What the chart shows ("Spending by category, September 2026"). |
 | `value` | `ReactNode` | — | The total figure. Default: the total, formatted. The active slice's value replaces it while one is picked. |
@@ -156,7 +161,8 @@ Radial chart (ring gauges) in the shared chart language (docs/research/chart-fam
 | --- | --- | --- | --- |
 | `data` (required) | `ChartSlice[]` | — | One ring per measure, outermost first (`{ id, label, value }`), each measured against `max`. Keep 1–4 rings. |
 | `max` | `number` | `100` | The value a full ring stands for (default 100: the values are percentages). |
-| `format` | `(value: number) => string` | — | Formats the centre figure and the summary. Default: the share of `max` in whole percent ("43%"). |
+| `format` | `((value: number) => string) \| ChartFormatPreset` | — | How the centre figure and the summary read: a function, or a preset a Zen Studio page can write as text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41% (the value as it is). Default: the share of `max` in whole percent ("43%"). |
+| `currency` | `string` | — | The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies `format="currency"`. |
 | `size` | `ChartRingSize \| number` | `"medium"` | Diameter (Figma Size): `small` 120 · `medium` 168 (default) · `large` 240 · `xlarge` 320 px, in either spelling (`sm` … `xl`); a number still sets px. Rings are 10px with 8px between them (6px and 4px at Small, so four still fit); the chart never grows past its box, and a stretched Chart Card grows it. Small shows the centre figure alone (Body/Base/Bold), XLarge in Display/4. |
 | `aria-label` (required) | `string` | — | What the chart shows ("Budget used by area, September 2026"). |
 | `value` | `ReactNode` | — | The centre figure. Default: the outer ring's value, formatted. The active ring's value replaces it while one is picked. |
@@ -176,7 +182,8 @@ Heatmap in the shared chart language (docs/research/chart-family-spec-2026-10-12
 | `rows` (required) | `string[]` | — | Row labels, top to bottom ("1 pm", "2 pm"…). |
 | `columns` (required) | `string[]` | — | Column labels, left to right ("Mon", "Tue"…). |
 | `values` (required) | `number[][]` | — | One value per row per column: `values[row][column]`. |
-| `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | Formats the Tooltip and the summary ("14 sessions"). |
+| `format` | `((value: number) => string) \| ChartFormatPreset` | — | How the Tooltip and the summary read ("14 sessions"): a function, or a preset a Zen Studio page can write as text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. |
+| `currency` | `string` | — | The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies `format="currency"`. |
 | `max` | `number` | — | The value of the deepest step. Default: the largest value. |
 | `aria-label` (required) | `string` | — | What the chart shows ("Studio sessions by weekday and hour, September 2026"). |
 | `showLegend` | `boolean` | `true` | The Less → More scale under the grid (default true). |
@@ -191,7 +198,8 @@ Bar list: a ranking of 3–8 items, each a 32px row whose bar is as long as its 
 | --- | --- | --- | --- |
 | `data` (required) | `ChartPoint[]` | — | One row per item (`{ label, value }`), already ranked by you, largest first: the list never reorders, and the largest value is the full length every other bar is measured against. Keep 3–8 rows (fold the rest into "Other"). |
 | `headers` | `{ label: ReactNode; value: ReactNode }` | — | Column labels above the rows: what the items are (start) and what the values measure (end), e.g. `{ label: "Client", value: "Revenue" }`. Caption/Medium, Content/Neutral/Light. |
-| `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | Formats each row's value and the summary ("$96,400"). |
+| `format` | `((value: number) => string) \| ChartFormatPreset` | — | How each row's value and the summary read: a function (`(v) => "$" + v.toLocaleString("en-US")` → "$96,400"), or a preset a Zen Studio page can write as text — `"compact"` 96.4K (the default), `"currency"` $96.4K (in `currency`), `"percent"` 41%. |
+| `currency` | `string` | — | The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies `format="currency"`. |
 | `aria-label` (required) | `string` | — | What the list ranks and over which range ("Revenue by client, 2026 so far"). |
 | `className` | `string` | — | Extra class on the chart. |
 | `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
@@ -208,7 +216,8 @@ Bullet chart: 1–4 goals, each a row with its label (Body/Small/Medium, Content
 | `targetLabel` | `string` | — | The legend's name for the tick. Default the label "Target". |
 | `showLegend` | `boolean` | `true` | Show the legend that names the bar and the tick (Figma Show Legend, default true). |
 | `legendPosition` | `Extract<ChartLegendPosition, "top" \| "bottom">` | `"bottom"` | Legend below the rows (default) or above them. |
-| `format` | `(value: number, row: ChartBullet) => string` | — | Formats the value and the target of a row ("$798K of $900K") and the summary. It gets the row too, so each goal can take its own unit: `(v, row) => (row.label === "Utilisation" ? v + "%" : String(v))`. |
+| `format` | `((value: number, row: ChartBullet) => string) \| ChartFormatPreset` | — | How the value and the target of a row ("$798K of $900K") and the summary read. A function gets the row too, so each goal can take its own unit: `(v, row) => (row.label === "Utilisation" ? v + "%" : String(v))`; or a preset a Zen Studio page can write as text: `"compact"` 1.2K (the default), `"currency"` $1.2K (in `currency`), `"percent"` 41%. |
+| `currency` | `string` | — | The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies `format="currency"`. |
 | `aria-label` (required) | `string` | — | What the goals are and for which period ("Quarter goals, Q3 2026"). |
 | `className` | `string` | — | Extra class on the chart (not the legend). |
 | `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
@@ -228,7 +237,8 @@ Gauge in the shared chart language (docs/research/chart-family-spec-2026-10-12.m
 | `targetLabel` | `string` | — | The legend's name for the target and the start of the default caption. Default "Target". |
 | `caption` | `ReactNode` | — | The line under the figure. Default: the target ("Target 85%"), or `actualLabel` when there is no target. |
 | `size` | `number` | `240` | Width of the half ring in px (default 240, as Figma); the ring is a tenth of it thick. The gauge never grows past its box. |
-| `format` | `(value: number) => string` | — | Formats the figure, the target and the end labels. Default: the share of `max` in whole percent ("82%", "0%", "100%"). |
+| `format` | `((value: number) => string) \| ChartFormatPreset` | — | How the figure, the target and the end labels read: a function, or a preset a Zen Studio page can write as text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41% (the value as it is). Default: the share of `max` in whole percent ("82%", "0%", "100%"). |
+| `currency` | `string` | — | The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies `format="currency"`. |
 | `showLegend` | `boolean` | — | The legend names the value and the target (Figma Show Legend). Default: on when there is a target. |
 | `legendPosition` | `"top" \| "bottom" \| "start" \| "end"` | `"bottom"` | Legend below (default), above, or beside the gauge (start / end). |
 | `aria-label` (required) | `string` | — | What the gauge measures, and when ("Billable share of logged hours, September 2026"). |
@@ -243,7 +253,8 @@ Funnel in the shared chart language (docs/research/chart-family-spec-2026-10-12.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `data` (required) | `ChartPoint[]` | — | One stage per step, first contact first (`{ label, value }`): each bar is as wide as its share of the first stage. Keep 3–6 stages. |
-| `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | Formats the counts under the stage names and in the summary (the shares are whole percent of the first stage). |
+| `format` | `((value: number) => string) \| ChartFormatPreset` | — | How the counts under the stage names and in the summary read (the shares are whole percent of the first stage): a function, or a preset a Zen Studio page can write as text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. |
+| `currency` | `string` | — | The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies `format="currency"`. |
 | `aria-label` (required) | `string` | — | What the funnel shows and over which range ("Leads to signed projects, Q3 2026"). |
 | `className` | `string` | — | Extra class on the chart (not the legend). |
 | `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
@@ -259,7 +270,8 @@ Figma Chart/Area-Chart (set 15484:2663; Type=Area 15484:2552 · Type=Stacked 154
 | `data` (required) | `ChartDatum[]` | — | One period per item, a value per series id (`{ label: "Sep", values: { design: 750, … } }`). Keep 4–12 periods. |
 | `series` (required) | `ChartSeries[]` | — | The measured series, bottom first: one for `type="area"` (only the first is drawn), 2–4 for `"stacked"` (harness: chart/area-series-count). Lines walk the Figma styles Color Chart Sector/Primary …, areas fade from the slot's Solid to its Subtle (Accent, Neutral, Support Cyan …; `chartFades`), unless a series sets `color`. |
 | `type` | `"area" \| "stacked"` | `"area"` | Figma Type: `area` (default) — one measure as a line over its fading area; `stacked` — 2–4 series as fading bands stacked bottom-up with a line on top of each band, so the top line reads the period's total. |
-| `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | Formats axis labels, the Tooltip and the summary (`2,210 h`, `$23.4K`). Default: 1.2K. |
+| `format` | `((value: number) => string) \| ChartFormatPreset` | — | How axis labels, the Tooltip and the summary read (`2,210 h`, `$23.4K`): a function, or a preset a Zen Studio page can write as text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. |
+| `currency` | `string` | — | The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies `format="currency"`. |
 | `height` | `number` | `280` | Height of the plot in px, lanes included (6px above the grid for the top Y label, 28px below it for the X labels). |
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Billable hours per month, Apr – Sep 2026"). |
 | `className` | `string` | — | Extra class on the chart frame (the axes and the plot; the legend sits outside it). |
@@ -277,7 +289,8 @@ Figma Chart/Grouped-Bar-Chart (15485:2457; Color=Primary · Secondary ↔ `palet
 | --- | --- | --- | --- |
 | `data` (required) | `ChartDatum[]` | — | One group per period or category, a value per series id (`{ label: "Sep", values: { invoiced: 105700, collected: 88300 } }`). Keep 3–12 groups. |
 | `series` (required) | `ChartSeries[]` | — | The compared series, 2–3, side by side in each group in this order (harness: chart/grouped-series-count). Colours walk the Figma styles Color Chart Sector/Primary · Secondary · Tertiary unless a series sets `color`. |
-| `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | Formats axis labels, the Tooltip and the summary. Default: 1.2K. |
+| `format` | `((value: number) => string) \| ChartFormatPreset` | — | How axis labels, the Tooltip and the summary read: a function, or a preset a Zen Studio page can write as text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. |
+| `currency` | `string` | — | The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies `format="currency"`. |
 | `height` | `number` | `280` | Height of the plot in px, lanes included (36px above the grid for the Tooltip, 28px below it for the X labels). |
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Invoiced and collected per month, Apr – Sep 2026"). |
 | `className` | `string` | — | Extra class on the chart frame (the axes and the plot; the legend sits outside it). |
@@ -296,8 +309,9 @@ Figma Chart/Combo-Chart (15485:2519; Color=Primary · Secondary ↔ `palette`): 
 | `data` (required) | `ChartComboDatum[]` | — | One period per item (`{ label: "Sep", bar: 105700, line: 41 }`). Keep 4–12 periods. |
 | `barLabel` (required) | `string` | — | What the bars measure ("Revenue"), named in the legend, the Tooltip order and the summary (harness: chart/combo-needs-labels). |
 | `lineLabel` (required) | `string` | — | What the line measures ("Margin"), named in the legend and the summary. |
-| `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | Formats the bars' values and the start axis (`$105.7K`). Default: 1.2K. |
-| `lineFormat` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | Formats the line's values and the end axis (`41%`). Default: 1.2K. |
+| `format` | `((value: number) => string) \| ChartFormatPreset` | — | How the bars' values and the start axis read (`$105.7K`): a function, or a preset a Zen Studio page can write as text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. |
+| `currency` | `string` | — | The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies `format="currency"` for the bars; `lineFormat="currency"` takes it too. |
+| `lineFormat` | `((value: number) => string) \| ChartFormatPreset` | — | How the line's values and the end axis read (`41%`): a function or a preset, as `format`. Default: 1.2K. |
 | `lineMax` | `number` | — | The top of the end axis (100 for a share in %). Default: a round top over the line's values, on the same gridlines as the start axis. |
 | `height` | `number` | `280` | Height of the plot in px, lanes included (36px above the grid for the Tooltip, 28px below it for the X labels). |
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Revenue and margin per month, Apr – Sep 2026"). |
@@ -342,6 +356,7 @@ interface ChartBullet { label: string; value: number; target: number; max?: numb
 interface ChartComboDatum { label: string; bar: number; line: number }
 interface ChartCompare { label: string; values: number[] }
 interface ChartDatum { label: string; values: Record<string, number> }
+type ChartFormatPreset = "compact" | "currency" | "percent"
 type ChartLegendPosition = "top" | "bottom" | "start" | "end"
 interface ChartPoint { label: string; value: number; projected?: boolean; target?: number; }
 type ChartRingSize = "small" | "medium" | "large" | "xlarge" | "sm" | "md" | "lg" | "xl"
@@ -370,6 +385,7 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 - Rank a BarList yourself, largest first, and fold the tail into "Other" past 8 rows (harness: chart/bar-list-ranked, chart/bar-list-rows); keep a BulletChart to 1–4 goals (harness: chart/bullet-rows); pass a GaugeChart its `max` when the value isn't a percentage (harness: chart/gauge-in-range); give a FunnelChart 3–6 stages in order, each no larger than the one before (harness: chart/funnel-stages).
 - Give an AreaChart one series, or 2–4 with type="stacked" (harness: chart/area-series-count); keep a GroupedBarChart to 2–3 series (harness: chart/grouped-series-count); name both measures of a ComboChart with barLabel and lineLabel (harness: chart/combo-needs-labels).
 - Lead the card with the figure the chart explains (`value`) and say what it is (`description`).
+- Write money as money: format="currency" (currency="EUR" for another currency) or a function on code pages; a Zen Studio page holds only text, so there the preset is the way to show "$128.4K".
 - Lead a chart with Sector/Secondary through palette="secondary", never by passing the sector colours to color, activeColor or a series (harness: chart/palette-by-hand).
 
 ## ❌ Don't
