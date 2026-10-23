@@ -168,11 +168,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 - **Questions for the designer and decisions for the user** are collected in [`QUESTIONS.md`](QUESTIONS.md) (moved
   there 2026-10-08). Code keeps its current behaviour until each is answered.
-- **P3 · Zen-High-Contrast in the native packages (2026-10-05):** Global Colors carries the Zen-High-Contrast mode since
-  the export "Zen-Variables 2" (it equals the algorithm on all 960 values; tokens:check verifies it). The native packages
-  carry the second mode as data (resolver default Zen); mapping it to iOS accessibilityContrast / Flutter highContrast is
-  still open. Pointer: `platforms/README.md`.
-
 - **Code view in other languages — on hold (user, 2026-10-08: "tạm lưu backlog, sẽ làm giai đoạn sau"):** order chosen:
   HTML/CSS → Vue → Swift → Flutter → Svelte. Plan `docs/research/code-languages-plan-2026-10-03.md`, phases P1–P9, each
   approved on its own. Still to answer when it starts: web strategy (§8.1; proposed A, native Vue/Svelte on the shared
