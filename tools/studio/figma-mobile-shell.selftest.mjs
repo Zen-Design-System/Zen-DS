@@ -3,6 +3,7 @@
 // phone Screen's AppShell goes to Figma as Pattern/AppShell/Mobile and comes back as the same AppShell — its mobileTop,
 // band and canvas, its TopNavigation (the bar's type left unsaid where AppShell gives it), its tabs or ActionBar, its
 // hero or backdrop, its page. Run: node tools/studio/figma-mobile-shell.selftest.mjs
+import fs from "node:fs";
 import { validateDialect } from "./dialect.mjs";
 import { figmaFromPage } from "./figma-push.mjs";
 import { pageFromFigma, repoMapping } from "./figma-pull.mjs";
@@ -71,6 +72,16 @@ const tabs = '<BottomNavigation items={[{ id: "home", label: "Home", icon: "icon
   check("Actions: the horizontal ActionBar with its two actions and the primary's icon", back.shell, `<AppShell topNavigation={<TopNavigation title="Room" />} actionBar={${bar}}>`);
   const stacked = '<ActionBar surface="glass" primaryAction={{ label: "Pay" }} secondaryAction={{ label: "Cancel", level: "secondary" }} />';
   check("Actions: a vertical glass ActionBar, the secondary's level", roundTrip(`<AppShell actionBar={${stacked}}><Text>Body</Text></AppShell>`).shell, `<AppShell actionBar={${stacked}}>`);
+}
+
+{
+  // The live read of a placed Pattern/AppShell/Mobile (figmaReadCode readMobileShell, 2026-10-23): Figma's own sample.
+  const fixture = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-mobile-shell-read.json", import.meta.url), "utf8"));
+  const back = pageFromFigma(fixture.frame, { mapping });
+  const shell = back.text.match(/<AppShell\b[^]*?>(?=\s*<EmptyState)/)?.[0] ?? "";
+  check("live read: an AppShell holding the page (Empty-State), no Stack, no note", [/<AppShell /.test(back.text), /<EmptyState>Empty State Title<\/EmptyState>/.test(back.text), /name="AppShell"/.test(back.text), back.notes], [true, true, false, []]);
+  check("live read: the Bar's TopNavigation (Alt on Canvas/Default unsaid) with Figma's sample title", /topNavigation=\{<TopNavigation title="Heading" largeTitle="Heading"/.test(shell) && !/type=/.test(shell.match(/<TopNavigation[^>]*>/)?.[0] ?? ""), true);
+  check("live read: four tabs labelled by their Label-Text, the first selected", [(shell.match(/label: "Label"/g) ?? []).length, /value="label"/.test(shell)], [4, true]);
 }
 
 if (failures.length) {

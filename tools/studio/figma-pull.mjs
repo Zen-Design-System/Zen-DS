@@ -1456,7 +1456,9 @@ function dataSlotValue(slot, dataSlot, ctx, where, rail = false) {
   // A Bottom-Navigation tab keeps its label while Figma hides it (Label off is showLabels off, bottomNavLook).
   const tab = dataSlot.component === "BottomNavigation";
   const toItem = (item) => {
-    const shown = rail || tab ? { ...item, props: { ...item.props, Label: true }, text: item.text || item.name } : item;
+    // A placed tab's layer keeps its component's name: its label is its Label-Text (the push names the layer after it).
+    const label = tab && typeof item.props?.["Label-Text"] === "string" && /\//.test(item.name ?? "") ? item.props["Label-Text"] : null;
+    const shown = rail || tab ? { ...item, props: { ...item.props, Label: true }, text: item.text || label || item.name } : item;
     const fields = itemFields(shown, ctx, { labelKey, iconKey, where: `${where} › ${dataSlot.itemName}` });
     if (tab && item.props?.Noti === true) fields.dot = literal(true);
     // A count in its Badge-Counter (a Tab-Item with Badge on).
