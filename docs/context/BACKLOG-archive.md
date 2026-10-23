@@ -10,6 +10,16 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   (platforms/flutter) on a machine with the toolchains; #238's Swift/Dart (Zen-High-Contrast mapping) has never been
   compiled (this Mac's Command Line Tools SDK does not match the compiler, no Flutter, and CI runs neither).
 
+## Archived 2026-10-24 (prototypes pushed to Figma, `zen/feat/push-prototype-20261024`, plugin dcd3af3)
+
+- Done 2026-10-24 (user, via the progress session: "push mọi Screen và Overlay thành frame, kèm reaction Navigate /
+  Open / Close overlay / Back"): every Screen, Screen state and Overlay is a frame; the actions are Figma reactions
+  (figma-proto.mjs, plugin applyReactions); pull reads them back. Overlay settings stay a hand step (notes).
+- **P3 · Push Overlays and prototype actions to Figma (user 2026-10-23, option C: later):** the push sends the first
+  Screen only and names the Prototype tab's actions it drops; Figma could hold Navigate to, Open / Close overlay and Back
+  as reactions (plugin `setReactionsAsync`) once Screens and Overlays push as frames. Manual's `overlayPositionType` is
+  read-only in the plugin API (a hand step in Figma). Session log 2026-10-23 "Studio option C".
+
 ## Archived 2026-10-23 (phone AppShell pull, ActionBar alone)
 
 - Done 2026-10-23 (user approved the split; figma-pull mobileShellElement / actionBarElement, figmaReadCode
