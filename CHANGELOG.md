@@ -1520,6 +1520,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Zen Studio ↔ Figma, phone app frames (2026-10-23): a frame built on Figma's Pattern/AppShell/Mobile comes back from
+  Figma as a phone AppShell with its bars — its Top (bar, band, band-sheet, media), TopNavigation, tabs or ActionBar,
+  hero or backdrop, band colour and canvas, and the page in it — instead of a Stack and a note. An ActionBar on its own
+  goes to Figma as Action-Bar/Mobile (it was left out) and comes back as an ActionBar. On the Studio canvas a phone
+  Screen without bars of its own shows its root AppShell's bars, band and ActionBar (the canvas used to drop them).
 - Zen Studio, Update from Figma in another browser (2026-10-23): Export › Figma and every pull also keep their base
   beside the page in the pages folder (`<id>.figma-base.json` in the dev server's .zen-studio/pages, or the linked folder), so
   a frame pulled back in a browser that did not export it is still compared three ways: only what the designer changed
