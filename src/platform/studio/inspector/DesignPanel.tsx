@@ -589,6 +589,15 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
         void send([{ op: "setDataField", prop: name, ...row, value: next }], pictureLabel ?? `${element.name} ${name} → ${display(value)} (data)`, { [name]: { ...current, live: picture ? resolveMedia(value) : value } });
         return;
       }
+      // No picture written, drawn by a helper (personAvatar's initials branch): the photo the data gives the other branch.
+      const helper = picture && current.state === "unset" ? element.attributes.find((attr) => attr.kind === "expression" && attr.dataSource?.kind === "param" && attr.dataSource.helper) : undefined;
+      if (helper?.kind === "expression" && helper.dataSource?.helper) {
+        const world = canvasApi.getWorldElement();
+        const next = pictureValue(element.file);
+        if (!next) { inspectorStatus.set("negative", UPLOAD_ONLY_LOCAL); return; }
+        void writeAtUse(world ? findBySrc(world, selection.src)[selection.instance] : null, { kind: "param", editable: true, helper: helper.dataSource.helper, prop: name }, next, pictureLabel ?? `${element.name} ${name}`);
+        return;
+      }
       if (picture && !element.file.startsWith("local:")) {
         // In the repo the prop takes the picture's file as an expression (planPropWrite writes literals only).
         const next = pictureValue(element.file);

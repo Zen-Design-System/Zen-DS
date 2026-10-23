@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Figma contracts: the 14 chart sets and Chart/Chart-Card are captured (`docs/figma-contracts/chart-*.json`), and seven
+  older contracts are re-read from the live file (Avatar/Single and Badge / Badge-Counter now list Sky, Mint, Bronze and
+  Golden, which the code already has) (2026-10-23).
 - Charts take `palette="primary" | "secondary"`, Figma's Color on Bar, Stack-Bar, Area, Grouped-Bar, Combo, Donut,
   Radial, Gauge, Funnel and Bullet: `secondary` leads with Chart/Sector/Secondary (Neutral Deep) and keeps
   Sector/Primary for the highlight (the active bar, the target, the second series; one area takes the Neutral fade).
@@ -50,6 +53,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   current Spark-Bar, the active bar, a Bullet or Gauge target, the Funnel's last stage, the Combo line) in black at 49%
   (Content/Neutral/Light; Inverse/Light in dark mode), as Figma's Color Chart Sector/On-Color/Secondary does, not 69%.
   The user kept that style's binding and the Tertiary one (Border/Neutral/Subtle/Pressed) (2026-10-23).
+- Zen Studio: a photo dropped on one row's avatar changes that row's picture on example pages too when a helper
+  function draws it (the sidebar's `personAvatar(people[t.assignee])` in rows `taskRow(t)` builds): it lands in that
+  person's data (`people.alex.photo` in examples/data.ts), an initials avatar gets its first photo, one ⌘Z. A photo
+  dropped on one face of an AvatarStack, one reader of a ChatMessage's `seenBy` or another item of a list prop writes
+  that item's picture, where the list is written or read. Where the code, not the row, picks the data (either side of
+  a condition) the drop says so and writes nothing (2026-10-23).
 - **Usage harness (box themes, 2026-10-23):** the Figma theme audit's rules in code. `theme/box-on-canvas`: a box's
   fill belongs to its page's Canvas (`theme="semi-pale"`, a gradient box, is an error). `theme/mixed-elevation`: one
   elevation per page. `theme/mixed-boxes` (warning): one box family per page. `theme/mode-override`: no ZenProvider
