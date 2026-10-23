@@ -1395,10 +1395,12 @@ export default function UsesChips() {
 `;
     const pushed = figmaFromPage(usesChips, { mapping, pages: { chips } });
     const [layer] = pushed.frame.children;
-    // Its layers are keyed under the instance's own key (this page's), never by the other page's ids.
-    const keys = []; const walk = (node) => { if (!node || typeof node !== "object") return; for (const [name, value] of Object.entries(node)) { if (name === "key") keys.push(value); walk(value); } }; walk(layer);
-    check("project component: its main's layers, named after its set, keyed as this page's", [layer?.type, layer?.name, keys.length > 0 && keys.every((key) => String(key).startsWith(String(layer?.key)))], ["FRAME", "Chip", true]);
-    check("project component: a note says so", pushed.notes.some((note) => /component of page chips/.test(note)), true);
+    const [chipEntry] = pushed.components ?? [];
+    check("project component: a linked INSTANCE of the other page's set, its variant", [layer?.type, layer?.local, layer?.page, layer?.name, layer?.variant], ["INSTANCE", "chip", "chips", "Chip", { Size: "Small" }]);
+    check("project component: its set's definition goes with the package, keyed as its page keys it", [pushed.components?.length, chipEntry?.page, chipEntry?.title, chipEntry?.local, chipEntry?.spec?.type, chipEntry?.spec?.page, chipEntry?.spec?.children?.map((variant) => [variant.name, variant.page]), Boolean(chipEntry?.spec?.key)], [1, "chips", "Chips", "chip", "COMPONENT_SET", "chips", [["Size=Small", "chips"], ["Size=Large", "chips"]], true]);
+    const renamed = figmaFromPage(usesChips.replace('<Use of="chip" page="chips"', '<Use of="chip" page="chips" data-name="Size chip"'), { mapping, pages: { chips } }).frame.children[0];
+    check("project component: its instance's data-name is its Figma name (marked given)", [renamed?.name, renamed?.nameGiven, renamed?.page], ["Size chip", true, "chips"]);
+    check("project component: figmaPackage carries it", figmaPackage(usesChips, { mapping, pages: { chips }, page: { id: "uses-chips" } }).pkg.components?.map((entry) => `${entry.page}/${entry.local}`), ["chips/chip"]);
     check("project component: without that page, a note", figmaFromPage(usesChips, { mapping }).notes.some((note) => /is not pushed/.test(note)), true);
     // Its main's own instances resolve on its page, even when this page has a component of the same id (A's review).
     const page = (title, body) => `// @zen-page {"format":1,"title":"${title}"}
@@ -1420,17 +1422,22 @@ export default function Page() {
     const cards = page("Cards", '<Component id="tag" name="Tag"><Text>Tag</Text></Component>\n          <Component id="card" name="Card"><Stack><Text>Card</Text><Use of="tag" /></Stack></Component>');
     const clash = page("Uses", '<Component id="tag" name="Other tag"><Text>Other</Text></Component>\n          <Use of="card" page="cards" />\n          <Use of="tag" page="uses" />');
     const clashPush = figmaFromPage(clash, { mapping, pages: { cards }, pageId: "uses" });
-    const named = []; const names = (node) => { if (!node || typeof node !== "object") return; if (typeof node.name === "string") named.push(node.name); for (const child of node.children ?? []) names(child); };
     const [, cardLayer, ownTag] = clashPush.frame.children;
-    names(cardLayer);
-    check("project component: a nested instance of its own page, not this page's same id", [cardLayer?.name, named.includes("Tag"), named.includes("Other tag")], ["Card", true, false]);
+    const byKey = new Map((clashPush.components ?? []).map((entry) => [`${entry.page}/${entry.local}`, entry]));
+    const nestedTag = (byKey.get("cards/card")?.spec?.children?.[0]?.children ?? []).find((node) => node.type === "INSTANCE");
+    check("project component: a nested instance names its own page; that page's component comes too, not this page's same id", [cardLayer?.type, cardLayer?.page, nestedTag?.local, nestedTag?.page, [...byKey.keys()].sort(), byKey.get("cards/tag")?.spec?.name], ["INSTANCE", "cards", "tag", "cards", ["cards/card", "cards/tag"], "Tag"]);
     check("project component: <Use page> naming this page is its own instance", [ownTag?.type, ownTag?.local], ["INSTANCE", "tag"]);
     // Two pages whose components hold each other (A's second review): the push stops at the loop and says so.
     const loopA = page("A", '<Component id="hero" name="Hero"><Stack><Text>Hero</Text><Use of="card" page="b" /></Stack></Component>');
     const loopB = page("B", '<Component id="card" name="Card"><Stack><Text>Card</Text><Use of="hero" page="a" /></Stack></Component>');
     let looped = null;
     try { looped = figmaFromPage(page("C", '<Use of="card" page="b" />'), { mapping, pages: { a: loopA, b: loopB }, pageId: "c" }); } catch (error) { looped = { error: String(error) }; }
-    check("project component: a loop across pages is pushed once round and noted", [looped?.error ?? null, looped?.frame?.children?.[0]?.name, (looped?.notes ?? []).some((note) => /sits inside itself/.test(note))], [null, "Card", true]);
+    // The pushing page's own component, held by another page's: an instance of the one in the frame, nothing extra.
+    const heldBack = figmaFromPage(loopA.replace("</Component>", "</Component>\n          <Use of=\"card\" page=\"b\" />"), { mapping, pages: { b: loopB }, pageId: "a" });
+    const heldHero = (heldBack.components ?? [])[0]?.spec?.children?.[0]?.children?.find((node) => node.type === "INSTANCE");
+    check("project component: one holding the pushing page's own component links to the frame's", [(heldBack.components ?? []).map((entry) => `${entry.page}/${entry.local}`), heldHero?.local, heldHero?.page], [["b/card"], "hero", "a"]);
+    const loopNames = (looped?.components ?? []).map((entry) => `${entry.page}/${entry.local}`).sort();
+    check("project component: a loop across pages stops at the component inside itself, noted", [looped?.error ?? null, looped?.frame?.children?.[0]?.type, loopNames, (looped?.notes ?? []).some((note) => /sits inside itself/.test(note))], [null, "INSTANCE", ["a/hero", "b/card"], true]);
   }
   // F7b: an instance's overrides of its main's layers, by the child indices that reach them in the drawn main.
   const overriddenPage = chips.replace('<Use of="chip" variant={{ Size: "Large" }} props={{ Label: "Done" }} />', '<Use of="chip" overrides={{ Text: { children: "Hi", tone: "accent" }, Icon: { hidden: true } }} />');
@@ -1629,10 +1636,19 @@ export default function Page() {
 `;
   const pushedNames = push(names).frame;
   const row = pushedNames.children[0];
-  check("push: a frame's, a text's and a shape's data-name is its Figma name; an instance keeps its own", [row.name, row.children[0].name, row.children[1].name, pushedNames.children[1].name === "Main action"], ["Price row", "Price", "Dot", false]);
+  check("push: a frame's, a text's and a shape's data-name is its Figma name, and an instance's (marked nameGiven)", [row.name, row.children[0].name, row.children[1].name, pushedNames.children[1].name, pushedNames.children[1].nameGiven], ["Price row", "Price", "Dot", "Main action", true]);
   check("push: a lock is the Studio's (no locked on the layer)", JSON.stringify(pushedNames).includes("locked"), false);
   const back = pageFromFigma(pushedNames, { mapping }).text;
-  check("round trip: the names come back as data-name, the lock and the instance's name do not", ['data-name="Price row"', 'data-name="Price"', 'data-name="Dot"', 'data-name="Main action"', "data-locked"].map((part) => back.includes(part)), [true, true, true, false, false]);
+  check("round trip: the names come back as data-name, the instance's too; the lock does not", ['data-name="Price row"', 'data-name="Price"', 'data-name="Dot"', '<Button data-name="Main action">', "data-locked"].map((part) => back.includes(part)), [true, true, true, true, false]);
+  // The accessible name first (user 2026-10-23): an aria-label stays the Figma name (a note says the layer name stays in
+  // the Studio); an icon button's Figma name is its label, so its data-name never goes there.
+  const labelled = push(names.replace("{ Button, Shape", "{ Button, IconButton, Shape").replace('<Button data-name="Main action">Buy</Button>', '<Button data-name="Main action" aria-label="Buy the plan">Buy</Button>\n          <IconButton icon="icon-plus-line" data-name="Add row" />'));
+  const [labelledButton, iconButton] = labelled.frame.children.slice(1);
+  check("push: an aria-label stays an instance's Figma name over its data-name (noted); an icon button keeps its own", [labelledButton.name, Boolean(labelledButton.nameGiven), labelled.notes.filter((note) => /layer name stays in the Studio/.test(note)).length, iconButton.name === "Add row", Boolean(iconButton.nameGiven)], ["Buy the plan", false, 1, false, false]);
+  // Back from Figma: a layer the Zen plugin placed (its key) gives its name only when the plugin marked it the person's or
+  // it was renamed in Figma since (the reader's nameGiven); a content name ("Brief.pdf") and the library's own names stay.
+  const placed = (name, nameGiven) => ({ ...pushedNames, children: [{ ...pushedNames.children[1], name, key: "placed", nameGiven }] });
+  check("pull: a placed instance's name comes back when marked given, not otherwise", [pageFromFigma(placed("Checkout", true), { mapping }).text.includes('data-name="Checkout"'), pageFromFigma(placed("Checkout", false), { mapping }).text.includes("data-name")], [true, false]);
 
   // F9: a vector goes as Figma's VECTOR (its path fitted to its size, stroke centred, no fill) and comes back the same.
   const vectorPage = names.replace('<Shape type="ellipse" width={24} height={24} data-name="Dot" />', '<Shape type="vector" width={80} height={40} d="M 0 10 C 5 0 15 0 20 10 Z" viewBox="0 0 20 10" fillRule="evenodd" />');
@@ -1773,15 +1789,15 @@ export default function Page() {
           <ChartCard title="Invoiced and collected">
             <LineChart aria-label="Invoiced and collected" legendPosition="top" label="Invoiced" data={[{ label: "Mar", value: 1 }, { label: "Apr", value: 1 }, { label: "May", value: 1 }, { label: "Jun", value: 1 }, { label: "Jul", value: 1 }, { label: "Aug", value: 1 }, { label: "Sep", value: 1 }]} compare={{ label: "Collected", values: [1, 1, 1, 1, 1, 1, 1] }} />
           </ChartCard>
-          <ChartCard title="Hours" theme="border"><StackBarChart aria-label="Hours" series={[{ id: "a", label: "A" }]} data={[{ label: "Apr", values: { a: 1 } }]} /></ChartCard>
+          <ChartCard title="Hours" theme="border"><StackBarChart palette="secondary" aria-label="Hours" series={[{ id: "a", label: "A" }]} data={[{ label: "Apr", values: { a: 1 } }]} /></ChartCard>
           <ChartCard title="Capacity" theme="pale"><BarChart orientation="horizontal" showAverage aria-label="Capacity" data={[{ label: "Design", value: 2650 }, { label: "Delivery", value: 750, projected: true }]} /></ChartCard>
-          <ChartCard title="Clients"><DonutChart aria-label="Clients" totalPosition="start" label="Invoiced in Q3" value="$296.8K" data={[{ id: "a", label: "A", value: 1 }]} /></ChartCard>
+          <ChartCard title="Clients"><DonutChart palette="secondary" aria-label="Clients" totalPosition="start" label="Invoiced in Q3" value="$296.8K" data={[{ id: "a", label: "A", value: 1 }]} /></ChartCard>
           <ChartCard title="Budget"><RadialChart aria-label="Budget" legendPosition="end" data={[{ id: "a", label: "A", value: 36 }]} /></ChartCard>
           <ChartCard title="When"><HeatmapChart aria-label="When" columns={["Mon"]} rows={["9 am"]} values={[[1]]} /></ChartCard>
           <ChartCard title="Hours by team"><AreaChart type="stacked" aria-label="Hours by team" series={[{ id: "a", label: "A" }, { id: "b", label: "B" }]} data={[{ label: "Apr", values: { a: 1, b: 2 } }]} /></ChartCard>
           <ChartCard title="Invoiced vs. collected"><GroupedBarChart aria-label="Invoiced vs. collected" series={[{ id: "a", label: "A" }, { id: "b", label: "B" }]} data={[{ label: "Apr", values: { a: 1, b: 2 } }]} /></ChartCard>
           <ChartCard title="Revenue and margin"><ComboChart aria-label="Revenue and margin" barLabel="Revenue" lineLabel="Margin" data={[{ label: "Apr", bar: 1, line: 2 }]} /></ChartCard>
-          <ChartCard title="Utilisation"><GaugeChart aria-label="Utilisation" value={82} target={85} showLegend={false} /></ChartCard>
+          <ChartCard title="Utilisation"><GaugeChart palette="secondary" aria-label="Utilisation" value={82} target={85} showLegend={false} /></ChartCard>
           <ChartCard title="Proposal funnel"><FunnelChart aria-label="Proposal funnel" data={[{ label: "Leads", value: 240 }, { label: "Signed", value: 62 }]} /></ChartCard>
           <ChartCard title="Top clients"><BarList aria-label="Top clients" data={[{ label: "A", value: 3 }, { label: "B", value: 2 }, { label: "C", value: 1 }]} /></ChartCard>
           <ChartCard title="Quarter goals"><BulletChart aria-label="Quarter goals" data={[{ label: "Revenue", value: 612000, target: 600000 }]} /></ChartCard>
@@ -1812,7 +1828,12 @@ export default function Page() {
   check("RadialChart legendPosition end: Legend End", charts[5].props.Legend, "End");
   check("AreaChart stacked: Type Stacked, Show Legend on (the code's default when stacked)", [charts[7].props.Type, charts[7].props["Show Legend"]], ["Stacked", true]);
   check("Show Legend by the code's default: on (Grouped, Combo, Bullet); Gauge as written", [8, 9, 10, 13].map((index) => charts[index].props["Show Legend"]), [true, true, false, true]);
-  check("Funnel, Bar list, Heatmap: no variant or legend property", [6, 11, 12].map((index) => Object.keys(charts[index].props).filter((name) => !head.includes(name))), [[], [], []]);
+  check("Funnel, Bar list, Heatmap: no variant or legend property (Funnel: Color)", [6, 11, 12].map((index) => Object.keys(charts[index].props).filter((name) => !head.includes(name))), [[], ["Color"], []]);
+  // Figma Color (2026-10-17) ↔ palette: the ten sets that have it, Secondary where the page says palette="secondary".
+  check("Color: Primary unless palette=\"secondary\"; Line, Multi-Line, Heatmap and Bar list have none", charts.map((chart) => chart.props.Color ?? null), [null, null, "Secondary", "Primary", "Secondary", "Primary", null, "Primary", "Primary", "Primary", "Secondary", "Primary", null, "Primary"]);
+  check("Gauge, Funnel, Bullet: their sets (2026-10-17), not the old lone components", [10, 11, 13].map((index) => charts[index].set.id), ["15968:130382", "15968:130460", "15968:130554"]);
+  const styles = (node) => [...(node.fillStyle ? [node.fillStyle] : []), ...[...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children ?? [])].flatMap(styles)];
+  check("palette=\"secondary\": the drawn marks swap Sector/Primary and /Secondary (a stack's first series, a donut's first slice)", [styles(charts[2])[0], styles(charts[4])[0]], ["Color Chart Sector/Secondary", "Color Chart Sector/Secondary"]);
   check("a chart on its own: every header toggle off, its Heading hidden, the code's defaults (Area: no legend, Bar: Vertical)", bare.map((chart) => [chart.props["Show Icon"], chart.props["Show Ranges"], chart.props["Show Open"], chart.hide, chart.props["Show Legend"] ?? chart.props.Orientation]), [[false, false, false, ["Heading"], false], [false, false, false, ["Heading"], "Vertical"]]);
   check("a chart in a ChartCard keeps its own key (its element id); the card the ChartCard's", cards.every((card) => card.key && card.slots[0].children[0].key && card.key !== card.slots[0].children[0].key), true);
   ok("notes: Figma draws its own sample data, once per kind", notes.some((note) => /^LineChart: Figma's Chart\/Line-Chart draws its own sample data/.test(note)) && notes.some((note) => /^BulletChart: Figma's Chart\/Bullet-Chart draws its own sample data/.test(note)));
@@ -2419,6 +2440,31 @@ export default function Page() {
   ] };
   const readBack = pageFromFigma(read, { mapping }).text;
   check("pull of a read: a rectangle's and a frame's smoothing in %", [/<Shape type="rectangle"[^>]*cornerSmoothing=\{60\}/.test(readBack), /radius="lg" cornerSmoothing=\{60\}/.test(readBack)], [true, true]);
+}
+
+// An AppShell's own phone bars (topNavigation / bottomNavigation) are not drawn (the runtime shows the Screen's): the
+// push names them, for a root AppShell on a phone Screen and for one inside a page (BACKLOG P3, 2026-10-23).
+{
+  const shellPage = (inner) => `// @zen-page {"format":1,"title":"Shell bars"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, BottomNavigation, Box, Text, TopNavigation } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Shell bars" device="phone">
+        ${inner}
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const shell = '<AppShell topNavigation={<TopNavigation title="Inbox" />} bottomNavigation={<BottomNavigation items={[{ id: "home", label: "Home", icon: "icon-home-02-line" }]} selected="home" />}><Text>Body</Text></AppShell>';
+  const barNotes = (notes) => notes.filter((note) => /^AppShell (topNavigation|bottomNavigation): drawn only as the Screen's own bars/.test(note)).length;
+  check("a root AppShell's phone bars are named, not drawn", barNotes(push(shellPage(shell)).notes), 2);
+  check("a page's AppShell's phone bars are named too", barNotes(push(shellPage(`<Box>${shell}</Box>`)).notes), 2);
 }
 
 if (failures.length) {

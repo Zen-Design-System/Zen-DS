@@ -1,6 +1,7 @@
 import { useId, useMemo, useRef, useState } from "react";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
+import { BadgeStatus } from "../../../components/BadgeStatus";
 import { BottomSheet } from "../../../components/BottomSheet";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
@@ -20,7 +21,7 @@ import { useToast } from "../../../components/Toast";
 import { TopNavigation } from "../../../components/TopNavigation";
 import { PlatformPhone } from "../../PlatformPhone";
 import {
-  files, formatBytes, formatRelative, initials, people, peopleList, priorityTheme, projectById, projects, tasks, taskStatusTheme,
+  files, formatBytes, formatRelative, initials, people, peopleList, priorityTheme, projectById, projects, tasks, taskStep,
   type Person, type PersonId, type Priority, type StudioFile, type Task, type TaskStatus,
 } from "../data";
 import type { ExampleDef } from "../types";
@@ -46,7 +47,7 @@ const filterColumns: TableColumn<Task>[] = [
   { id: "project", header: "Project", width: "240px", cell: (task) => { const project = projectById(task.project); return <TableMedia bold={false} media={<DockIcon size="xs" icon={project.icon} theme={project.theme} background="subtle" />}>{project.name}</TableMedia>; } },
   { id: "assignee", header: "Assignee", width: "170px", cell: (task) => <TableMedia bold={false} media={<Avatar size="xs" {...avatarOf(people[task.assignee])} />}>{people[task.assignee].name}</TableMedia> },
   { id: "priority", header: "Priority", width: "110px", cell: (task) => <Badge theme={priorityTheme[task.priority]} background="subtle">{task.priority}</Badge> },
-  { id: "status", header: "Status", width: "130px", cell: (task) => <Badge theme={taskStatusTheme[task.status]} background="subtle">{task.status}</Badge> },
+  { id: "status", header: "Status", width: "130px", cell: (task) => <BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus> },
 ];
 
 function TaskFiltersExample() {

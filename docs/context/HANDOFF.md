@@ -107,6 +107,8 @@ Last updated: 2026-10-21.
   gradient + On-Color chart styles from tokens, Metric-Card `Type` (KPI, Sparkline, Spark-Bars, Goal-Progress,
   Comparison, Category-Bar, Hero) and 7 new card-less chart components (Area/Stacked, Grouped-Bar, Combo, Gauge, Funnel,
   Bar-List, Bullet). Code + Studio = phase 2, after the user's review (BACKLOG P1).
+- **Chart Color (2026-10-23):** Figma Color = Primary | Secondary on ten chart sets ↔ `palette` in code and Studio
+  push/pull (Gauge/Funnel/Bullet are sets: CHART_SETS holds the set ids). Harness `chart/palette-by-hand`.
 - **Figma descriptions + AI kit (2026-10-13):** every public set, the semantic/spacing/radius/breakpoint variables and
   every style in the file carry descriptions from `tools/figma-docs/build.mjs` (rerun after a rule change; the user
   approved writing them); the old texts are in frame "Description backup 2026-10-13" on 🔒 ARCHIVED until the user

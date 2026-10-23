@@ -109,10 +109,11 @@
    ink there, as Sector/Secondary does. */
 .zen-card[data-tone="solid"][data-color="neutral"]:not([data-active="true"]) :is(.zen-chart-block, .zen-chart),
 :where([data-theme="dark"]) .zen-card[data-tone="solid"]:not([data-active="true"]) :is(.zen-chart-block, .zen-chart) { --zen-color-background-support-brand-deep: var(--zen-color-background-inverse-solid-default); }
-/* A colour Solid: its content family (--zen-card-on), and the dark ink its marks keep for the second series (the page's
-   Neutral/Base, Inverse/Base in dark mode: what the series read before content followed the fill). */
-.zen-card[data-tone="solid"]:not([data-color="neutral"]):not([data-active="true"]) { --zen-card-on: var(--zen-color-content-on-colors); --zen-card-mark-ink: var(--zen-color-content-neutral-base); color: var(--zen-card-on); }
-:where([data-theme="dark"]) .zen-card[data-tone="solid"]:not([data-color="neutral"]):not([data-active="true"]) { --zen-card-mark-ink: var(--zen-color-content-inverse-base); }
+/* A colour Solid: its content family (--zen-card-on), and the dark ink its marks keep for the second series: Figma's
+   Color Chart Sector/On-Color/Secondary = the page's Content/Neutral/Light (black 49%; user 2026-10-23 kept that
+   binding), Inverse/Light in dark mode so the ink stays dark on the hue. */
+.zen-card[data-tone="solid"]:not([data-color="neutral"]):not([data-active="true"]) { --zen-card-on: var(--zen-color-content-on-colors); --zen-card-mark-ink: var(--zen-color-content-neutral-light); color: var(--zen-card-on); }
+:where([data-theme="dark"]) .zen-card[data-tone="solid"]:not([data-color="neutral"]):not([data-active="true"]) { --zen-card-mark-ink: var(--zen-color-content-inverse-light); }
 .zen-card[data-tone="solid"][data-color="yellow"]:not([data-active="true"]) { --zen-card-on: var(--zen-color-content-on-brights); }
 .zen-card[data-tone="solid"][data-color="accent"]:not([data-active="true"]) { --zen-card-on: var(--zen-color-content-on-accent-default); }
 .zen-card[data-tone="solid"]:not([data-color="neutral"]):not([data-active="true"]) > :is(.zen-card__content, .zen-card__sub-action) {
@@ -175,7 +176,11 @@
 .zen-card[data-interactive="true"]:is([data-tone="border"], [data-tone="flat-border"]):not([data-active="true"]):hover { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-hover, rgb(1 1 1 / 16%)); }
 .zen-card[data-interactive="true"]:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
 
-.zen-card__content { display: flex; min-width: 0; flex-direction: column; }
+/* Figma Content-Slot (Card 6664:21686) is a vertical auto layout that fills the card: it takes the height a grid row
+   or a Fill height gives the card, and a child with height="fill" grows into it (a CTA pinned to the foot). In a Hug
+   card it keeps its content height. */
+.zen-card__content { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
+.zen-card__content > [data-h="fill"]:not([data-position="absolute"]) { flex: 1 1 auto; height: auto; }
 /* Sub-Action: a 20px anchor at the padding corner holding the 32px Small icon button, so it overhangs 6px. */
 .zen-card__sub-action { position: absolute; top: var(--zen-card-padding); right: var(--zen-card-padding); display: flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; }
 /* Figma Card (6664:21686): the Sub-Action is an absolute layer over the top-right corner and takes no room; the Content
