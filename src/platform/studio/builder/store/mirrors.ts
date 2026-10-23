@@ -21,6 +21,9 @@ const DEV = import.meta.env.DEV;
 const FOLDER_KEY = "folder";
 const SUFFIX = ".zen.tsx";
 const COMMENTS_SUFFIX = ".comments.json";
+const FIGMA_SUFFIX = ".figma-base.json";
+/** pages-folder.mjs MAX_FIGMA: a bigger file is not read. */
+const MAX_FIGMA_FILE = 8 * 1024 * 1024;
 
 /* File System Access, as far as the Studio uses it (lib.dom lacks the iteration and permission parts). */
 type Permission = "granted" | "denied" | "prompt";
@@ -63,6 +66,9 @@ function devMirror(dir: string): PageMirror {
     // A page's comments beside it (GET /pages/comments, POST /pages/comments-write; comments/commentStore.ts).
     readComments: (id) => studioApi.pageComments(id),
     writeComments: (id, comments) => studioApi.pageCommentsWrite(id, comments),
+    // Its Figma bases beside it (GET /pages/figma, POST /pages/figma-write; tools/studio/page-figma.mjs).
+    readFigma: (id) => studioApi.pageFigma(id),
+    writeFigma: (id, figma) => studioApi.pageFigmaWrite(id, figma),
   };
 }
 
@@ -109,6 +115,20 @@ function folderMirror(handle: DirHandle): PageMirror {
     async writeComments(id, comments) {
       const out = await (await handle.getFileHandle(`${id}${COMMENTS_SUFFIX}`, { create: true })).createWritable();
       await out.write(`${JSON.stringify(comments, null, 2)}\n`);
+      await out.close();
+    },
+    // Its Figma bases beside it (`<id>.figma-base.json`; tools/studio/page-figma.mjs).
+    async readFigma(id) {
+      try {
+        const file = await (await handle.getFileHandle(`${id}${FIGMA_SUFFIX}`)).getFile();
+        return file.size > MAX_FIGMA_FILE ? null : JSON.parse(await file.text());
+      } catch {
+        return null;
+      }
+    },
+    async writeFigma(id, figma) {
+      const out = await (await handle.getFileHandle(`${id}${FIGMA_SUFFIX}`, { create: true })).createWritable();
+      await out.write(`${JSON.stringify(figma)}\n`);
       await out.close();
     },
     async trash(id) {

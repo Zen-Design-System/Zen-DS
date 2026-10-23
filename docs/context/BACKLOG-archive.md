@@ -23,6 +23,13 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   Pattern/AppShell/Mobile, its Bar type by canvas: default→Alt, alt→Default, flat→Default on Surface/Flat) is new scope.
   Pointer: `tools/studio/figma-push.mjs` `appShellNode` (~852) and the Screen's mobile chrome (~2232).
 
+## Archived 2026-10-23 (P6b: Update from Figma in another browser)
+
+- Done 2026-10-23 (user: "chia như đề xuất"; the export and the last pull are kept beside the page in the pages folder,
+  `<id>.figma-base.json` via tools/studio/page-figma.mjs, and read before a pull is matched and compared; E2E HO-13):
+  **P3 · Update from Figma in another browser (2026-10-13, P6b leftover):** a pull in a browser that kept no export
+  falls back to a two-way comparison. Pointer: `docs/research/studio-figma-push-spec-2026-10-12.md` §8 "P6b".
+
 ## Archived 2026-10-23 (native paste of a sticky layer, tried live on `zen/fix/studio-native-paste-rest-20261023`)
 
 - Done 2026-10-23: a real ⌘V into the Zen file kept both (Sticky on the in-flow layer, Fixed on the absolute dock,
