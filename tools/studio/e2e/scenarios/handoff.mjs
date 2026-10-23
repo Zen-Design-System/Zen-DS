@@ -316,6 +316,33 @@ export const rows = [
     },
   },
   {
+    id: "HO-16", feature: "Export › Figma of a page with several frames (push of prototypes, 2026-10-24): every Screen, Screen state and Overlay is a frame of its own (an Overlay hugs what it holds), and the Prototype tab's actions are Figma reactions — the Invite button opens the invite Overlay, the Dialog's Primary button closes it",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const id = await importHtmlPage(page, HTML_PAGE, "screen:people");
+      const panel = await openExport(page);
+      await panel.getByRole("button", { name: "Figma", exact: true }).click();
+      await until(async () => /zen-studio-figma/.test(await panel.innerText()), { timeout: 10_000, message: "the Figma JSON in the panel" });
+      const downloading = page.waitForEvent("download");
+      await panel.getByRole("button", { name: `Download ${id}.figma.json` }).click();
+      const pkg = JSON.parse(fs.readFileSync(await (await downloading).path(), "utf8"));
+      await page.keyboard.press("Escape");
+      const nodes = (node) => [node, ...(node.children ?? []).flatMap(nodes), ...(node.slots ?? []).flatMap((slot) => slot.children.flatMap(nodes))];
+      const frames = Object.fromEntries((pkg.frames ?? []).map((entry) => [entry.id, entry.frame]));
+      const invite = frames["screen:people"] ? nodes(frames["screen:people"]).find((node) => node.text === "Invite") : null;
+      const dialog = frames["overlay:invite"] ? nodes(frames["overlay:invite"]).find((node) => node.set?.name === "Modal/Dialog") : null;
+      const problems = [
+        JSON.stringify(Object.keys(frames)) !== JSON.stringify(["screen:people", "screen:people:empty", "overlay:invite"]) && `frames ${Object.keys(frames).join(", ") || "none"}`,
+        pkg.frame?.key !== frames["screen:people"]?.key && "the first Screen is not `frame`",
+        frames["overlay:invite"] && !frames["overlay:invite"].hug && "the overlay frame does not hug",
+        JSON.stringify(invite?.reactions?.map((reaction) => [reaction.trigger, reaction.action, reaction.to])) !== JSON.stringify([["ON_CLICK", "OVERLAY", "overlay:invite"]]) && `the Invite button's reactions ${JSON.stringify(invite?.reactions)}`,
+        JSON.stringify(dialog?.reactions?.map((reaction) => [reaction.action, reaction.layer])) !== JSON.stringify([["CLOSE", "Container/Actions/Buttons/Container/Primary"]]) && `the Dialog's reactions ${JSON.stringify(dialog?.reactions)}`,
+      ].filter(Boolean);
+      if (problems.length) throw new Error(problems.join(" · "));
+      return `${Object.keys(frames).length} frames (${Object.keys(frames).join(", ")}); Invite → Open overlay; Dialog Primary → Close overlay`;
+    },
+  },
+  {
     id: "HO-10", feature: "Export › Figma of an app page: the AppShell as Figma's Master-Layout (its Sidebar pattern, its AppShellHeader as Header/AppShell swapped in for the master's Header/Dashboard, the Search in Top-Elements' Leading-Slots) and the Container and List as frames that keep their layers, never an empty frame", wp: "figma push coverage P1 2026-10-12; master layout 2026-10-18; Header/AppShell 2026-10-21",
     async run(ctx) {
       const { page } = await ctx.studio();
