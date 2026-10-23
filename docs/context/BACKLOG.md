@@ -7,12 +7,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P3 · Studio Variables: new collections (2026-10-23, B; waits for the user):** v2 (chunks 1–4: Edit variable,
-  rename with an alias, modes, per-frame `modes`) is on branch zen/feat/studio-variables-v2-20261023. Creating a
-  collection in Studio is left: the build reads a fixed list of 11 sources (`scripts/token-outputs.mjs` SOURCE_FILES,
-  variables-host TOKEN_FILES), drafts cannot create a file yet, and the native token generator would see a new slug.
-  Single-mode only (`:root`) is the proposal. Pointer: `docs/research/studio-variables-v2-spec-2026-10-23.md` § Status.
-
 - **P3 · Figma: publish the renamed layers (user, 2026-10-12):** 186 layers in the Zen file were renamed to Zen's names
   (and Inline-Message's slot property Visual → Leading, same id), names only, checked before/after
   (`docs/figma-contracts/layer-renames-2026-10-12.json`, with the undo map). Other files see them once the library is

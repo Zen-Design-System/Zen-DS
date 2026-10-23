@@ -23,6 +23,13 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (a Dialog's, Side Panel's or Bottom Sheet's buttons too). Pull from Figma reads them back. Show toast, Open link, Filter table,
   Change step and the overlay's position, background and click-outside stay in the Studio, each named in the notes
   (2026-10-24).
+- Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
+  place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
+  block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in
+  the folder (the 11 Figma exports first), and Copy for Figma creates it there (Zen plugin). Creating one asks its docs
+  group (Primitive, Semantic, Component, Layout) and a purpose: `tokens:build` lists it on the Design Tokens page. A
+  collection made in Studio is renamed and deleted from its ⋯ menu (a delete asks first while code reads its variables;
+  another collection's alias refuses it); the 11 Figma exports keep their names.
 - Zen Studio → Figma (Zen plugin): a chart pushed on its own (no ChartCard) keeps its rows in Figma. A horizontal
   BarChart no longer stretches to the component's 290px once its Heading is hidden, so its values sit beside their bars
   (2026-10-23).

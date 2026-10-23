@@ -5,13 +5,15 @@ import { Button, IconButton } from "../../../components/Button";
 import { Chip } from "../../../components/Chip";
 import { ColorPicker } from "../../../components/ColorPicker";
 import { Icon } from "../../../components/Icon";
+import { Dialog, ModalForm } from "../../../components/Dialog";
+import { FormFieldset } from "../../../components/Form";
 import { InputField } from "../../../components/Input";
 import { Menu, type MenuEntry } from "../../../components/Menu";
 import { Search } from "../../../components/Search";
 import { Segmented } from "../../../components/Segmented";
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
-import { MODE_COLLECTIONS, type VariableInput, type VariableOp } from "../../../../tools/studio/variables.mjs";
+import { MODE_COLLECTIONS, collectionFileOf, type CollectionLayer, type VariableInput, type VariableOp } from "../../../../tools/studio/variables.mjs";
 import { applyVariableEdit, readVariables, redoEdit, subscribeStudioWrites, undoEdit, variablesForFigma, variablesHandedOver, type VariableCollection, type VariablesFigma } from "../api";
 import { requestSave, saveDrafts } from "../sourceDrafts";
 import { canEdit, useStudio } from "../store";
@@ -198,6 +200,14 @@ function VariablesPanel() {
   const [renaming, setRenaming] = useState<{ name: string; text: string } | null>(null);
   const [details, setDetails] = useState<{ name: string; rect: DOMRect } | null>(null);
   const [renamingMode, setRenamingMode] = useState<{ mode: string; text: string } | null>(null);
+  // Create collection (user 2026-10-23): its name and the docs' group it belongs to, asked in one form.
+  const [creating, setCreating] = useState<{ name: string; layer: CollectionLayer; purpose: string } | null>(null);
+  // Rename collection (Figma names it in place): the name being typed where the collection button was. Enter commits,
+  // and the field's blur as it goes would commit again: one commit per naming.
+  const [naming, setNaming] = useState<string | null>(null);
+  const namingOpen = useRef(false);
+  // Delete collection with variables in use: what reads them, until the person says yes.
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [focus, setFocus] = useState<Focus>({ row: 0, col: 1 });
   const [scroll, setScroll] = useState({ top: 0, height: 480 });
   const [copied, setCopied] = useState(false);
@@ -322,6 +332,47 @@ function VariablesPanel() {
     if (await run([{ op: "create", name, type: kind, ...(after ? { after } : {}) }], `Create variable ${name}`)) setRenaming({ name, text: shortName(name) });
   };
 
+  // Figma's Create collection, one mode (user 2026-10-23: "chỉ một mode (:root)"): a draft of its new file, ⌘Z removes it.
+  const createCollection = async () => {
+    if (!creating) return;
+    const name = creating.name.trim().replace(/\s+/g, " ");
+    if (!name) { say("A collection needs a name"); return; }
+    if (!editable) { say("View only"); return; }
+    const target = collectionFileOf(name);
+    const response = await applyVariableEdit({ file: target, ops: [{ op: "createCollection", name, layer: creating.layer, purpose: creating.purpose }] }, `Create collection ${name}`);
+    if (!response.ok) { say(response.error); return; }
+    setCreating(null);
+    setFile(target);
+    setGroup("");
+    setFocus({ row: 0, col: 1 });
+    void load();
+  };
+  // Rename and Delete collection (Figma's collection menu): a collection made here; the 11 Figma exports keep theirs.
+  const renameCollection = async () => {
+    if (!namingOpen.current || naming === null) return;
+    namingOpen.current = false;
+    const to = naming.trim().replace(/\s+/g, " ");
+    setNaming(null);
+    if (!collection || !to || to === collection.name) return;
+    await run([{ op: "renameCollection", to }], `Rename collection ${collection.name} → ${to}`);
+  };
+  const deleteCollection = async (force = false) => {
+    if (!collection) return;
+    if (!editable) { say("View only"); return; }
+    const response = await applyVariableEdit({ file: collection.file, ops: [{ op: "deleteCollection", ...(force ? { force: true } : {}) }] }, `Delete collection ${collection.name}`);
+    if (!response.ok && response.code === "confirm") { setDeleting(response.error); return; }
+    setDeleting(null);
+    if (!response.ok) { say(response.error); return; }
+    setFile(null);
+    setGroup("");
+    void load();
+  };
+  const collectionMenu: MenuEntry[] = [
+    { id: "rename-collection", label: "Rename collection", disabled: !editable || !collection?.created, onSelect: () => { namingOpen.current = true; setNaming(collection?.name ?? ""); } },
+    { type: "separator", id: "collection-separator" },
+    { id: "delete-collection", label: "Delete collection", danger: true, disabled: !editable || !collection?.created, onSelect: () => { void deleteCollection(); } },
+  ];
+
   const copyForFigma = async () => {
     const reply = await variablesForFigma();
     if (!reply.ok) { say(reply.error); return; }
@@ -361,7 +412,7 @@ function VariablesPanel() {
   };
 
   const onWindowKey = (event: ReactKeyboardEvent<HTMLElement>) => {
-    if (event.key === "Escape" && !editing && !renaming) { event.preventDefault(); event.stopPropagation(); closeVariables(); return; }
+    if (event.key === "Escape" && !editing && !renaming && naming === null && !creating && deleting === null) { event.preventDefault(); event.stopPropagation(); closeVariables(); return; }
     // The Studio leaves keys inside a dialog to it: this window takes ⌘Z, ⇧⌘Z and ⌘S itself, as Figma's does (a text field
     // keeps its own undo).
     const mod = event.metaKey || event.ctrlKey;
@@ -599,11 +650,30 @@ function VariablesPanel() {
       onKeyDown={onWindowKey}
     >
       <header className="studio-vars__head" onPointerDown={onHeadDown}>
-        <Menu
-          aria-label="Collections"
-          items={(shownCollections ?? []).map((each) => ({ id: each.file, label: each.name, caption: `${each.tokens.length} · ${each.modes.length} ${each.modes.length === 1 ? "mode" : "modes"}`, onSelect: () => { setFile(each.file); setGroup(""); setFocus({ row: 0, col: 1 }); if (gridRef.current) gridRef.current.scrollTop = 0; } }))}
-          trigger={<Button level="primary" appearance="flat" size="sm" endIcon="icon-chevron-down-line">{collection?.name ?? "Variables"}</Button>}
-        />
+        {naming !== null ? (
+          <InputField
+            size="sm"
+            aria-label="Rename collection"
+            value={naming}
+            autoFocus
+            onFocus={(event) => event.currentTarget.select()}
+            onValueChange={setNaming}
+            onBlur={() => { void renameCollection(); }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") { event.preventDefault(); void renameCollection(); }
+              else if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); namingOpen.current = false; setNaming(null); }
+            }}
+          />
+        ) : (
+          <Menu
+            aria-label="Collections"
+            items={[...(shownCollections ?? []).map((each) => ({ id: each.file, label: each.name, caption: `${each.tokens.length} · ${each.modes.length} ${each.modes.length === 1 ? "mode" : "modes"}`, onSelect: () => { setFile(each.file); setGroup(""); setFocus({ row: 0, col: 1 }); if (gridRef.current) gridRef.current.scrollTop = 0; } })), { type: "separator" as const, id: "collections-separator" }, { id: "create-collection", label: "Create collection", icon: "icon-plus-line" as IconName, disabled: !editable, onSelect: () => setCreating({ name: "", layer: "semantic", purpose: "" }) }]}
+            trigger={<Button level="primary" appearance="flat" size="sm" endIcon="icon-chevron-down-line">{collection?.name ?? "Variables"}</Button>}
+          />
+        )}
+        {naming === null ? (
+          <Menu aria-label="Collection actions" items={collectionMenu} trigger={<IconButton icon="icon-dots-horizontal-line" appearance="flat" size="sm" aria-label="Collection actions" tooltip={collection?.created ? "Collection actions" : "Rename and delete: collections made in Zen Studio"} />} />
+        ) : null}
         <span className="studio-vars__head-fill" />
         <Search size="sm" placeholder="Search" aria-label="Search variables" value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} />
         {/* A filter is a Chip (harness button/filter-is-chip): the type it keeps, Selected while it filters. */}
@@ -649,6 +719,35 @@ function VariablesPanel() {
           onClose={() => setDetails(null)}
         />
       ) : null}
+      <ModalForm
+        open={creating !== null}
+        onOpenChange={(open) => { if (!open) setCreating(null); }}
+        title="Create collection"
+        description="One mode, on :root. The Design Tokens page lists it under its group."
+        onSubmit={() => createCollection()}
+        primaryAction={{ label: "Create" }}
+        secondaryAction={{ label: "Cancel", onClick: () => setCreating(null) }}
+      >
+        <InputField label="Name" placeholder="Collection" autoComplete="off" data-autofocus="" required value={creating?.name ?? ""} onValueChange={(name) => setCreating((now) => (now ? { ...now, name } : now))} />
+        <FormFieldset legend="Group">
+          <Segmented
+            aria-label="Group"
+            options={[{ id: "primitive", label: "Primitive" }, { id: "semantic", label: "Semantic" }, { id: "component", label: "Component" }, { id: "layout", label: "Layout" }]}
+            value={creating?.layer ?? "semantic"}
+            onValueChange={(layer) => setCreating((now) => (now ? { ...now, layer: layer as CollectionLayer } : now))}
+            fullWidth
+          />
+        </FormFieldset>
+        <InputField label="Purpose" helpText="Optional: one line for the Design Tokens page" autoComplete="off" value={creating?.purpose ?? ""} onValueChange={(purpose) => setCreating((now) => (now ? { ...now, purpose } : now))} />
+      </ModalForm>
+      <Dialog
+        open={deleting !== null}
+        onOpenChange={(open) => { if (!open) setDeleting(null); }}
+        title={`Delete ${collection?.name ?? "collection"}?`}
+        description={`${deleting ?? ""}. Code that reads them falls back to its own values.`}
+        primaryAction={{ label: "Delete", level: "danger", onClick: () => { void deleteCollection(true); } }}
+        secondaryAction={{ label: "Cancel", onClick: () => setDeleting(null) }}
+      />
       {editing && editedVariable ? (
         <ValueEditor
           key={`${editing.name}:${editing.mode}`}
