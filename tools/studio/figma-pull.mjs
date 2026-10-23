@@ -190,8 +190,60 @@ const readChart = async (instance, set) => {
 };
 // A Metric-Card (figma-metric.mjs): its Type, texts, trends, Card and Hero button, in the shape figma-push writes.
 ${READ_METRIC_CARD}
+// Action-Bar/Mobile (figma-push actionBarParts): its Type, its Actions' button count and direction, each Button's
+// properties and words, by the paths the push writes (\`Actions/Button[i]\`, under \`prefix\` inside a pattern).
+const readActionBarParts = async (bar, prefix) => {
+  const at = (rest) => (prefix ? prefix + "/" + rest : rest);
+  const nested = prefix ? [{ path: prefix, props: await propsOf(bar) }] : [];
+  const actions = bar.findOne((n) => n.type === "INSTANCE" && layerKey(n.name) === "Actions");
+  if (!actions) return nested;
+  nested.push({ path: at("Actions"), props: await propsOf(actions) });
+  const buttons = actions.findAll((n) => n.type === "INSTANCE" && n.visible && layerKey(n.name) === "Button");
+  for (let i = 0; i < buttons.length; i++) nested.push({ path: at("Actions/Button[" + i + "]"), props: await propsOf(buttons[i]), text: firstText(buttons[i]) });
+  return nested;
+};
+// Pattern/AppShell/Mobile (figma-push mobileShellNode) in the shape the push writes: its Top-Navigation (read as
+// readTopNav reads one), Bottom-Navigation and its Nav-Items, Action-Bar parts, its own slots by the frames they sit in
+// (\`within\`), a hidden slot and the band's paint as edits, its own fill.
+const readMobileShell = async (instance, set) => {
+  const out = { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), nested: [], slots: [], edits: [] };
+  const own = await fillVariable(instance.fills);
+  if (own) out.fill = own;
+  const trailOf = (layer) => { const trail = []; for (let up = layer.parent; up && up.id !== instance.id; up = up.parent) { if (up.type === "INSTANCE") return null; trail.unshift(up.name); } return trail; };
+  for (const layer of instance.findAll((n) => n.type === "INSTANCE" && n.visible)) {
+    const trail = trailOf(layer);
+    if (!trail) continue;
+    const key = layerKey(layer.name);
+    const path = trail.concat([key]).join("/");
+    if (key === "Top-Navigation") { const top = await readTopNav(layer, await setOf(layer)); out.nested.push({ path, set: top.set, props: top.props, topNav: top.topNav }); }
+    else if (key === "Bottom-Navigation") {
+      out.nested.push({ path, set: await setOf(layer), props: await propsOf(layer) });
+      const items = layer.findOne((n) => n.type === "SLOT" && n.name === "Nav-Items");
+      const children = [];
+      for (const item of items ? items.children : []) { const read_ = await read(item); if (read_) children.push(read_); }
+      if (items) out.slots.push({ name: "Nav-Items", within: [path], children });
+    } else if (key === "Action-Bar") out.nested.push(...(await readActionBarParts(layer, path)));
+  }
+  for (const slot of instance.findAll((n) => n.type === "SLOT")) {
+    const within = trailOf(slot);
+    if (!within) continue;
+    let hidden = !slot.visible;
+    for (let up = slot.parent; up && up.id !== instance.id && !hidden; up = up.parent) hidden = !up.visible;
+    if (hidden) { out.edits.push({ layer: within.concat([slot.name]), visible: false }); continue; }
+    const children = [];
+    for (const inner of slot.children) { const read_ = await read(inner); if (read_) children.push(placed(read_, inner, slot)); }
+    out.slots.push({ name: slot.name, within, children });
+  }
+  for (const frame of instance.children.filter((n) => n.type === "FRAME" && (n.name === "Band" || n.name === "Stage"))) {
+    const paint = await fillVariable(frame.fills);
+    if (paint) out.edits.push({ layer: [frame.name], fill: paint });
+  }
+  return out;
+};
 const readInstance = async (instance) => {
   const set = await setOf(instance);
+  if (set && set.name === "Pattern/AppShell/Mobile") return readMobileShell(instance, set);
+  if (set && set.name === "Action-Bar/Mobile") return { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), nested: await readActionBarParts(instance, "") };
   // Its variant values too (Patterns/Sidebar: the Sidebar's theme, density and shadow).
   if (set && COMPOSITION.test(set.name)) return { ...(await readFrame(instance)), type: "FRAME", composition: set.name, compositionProps: await propsOf(instance) };
   if (set && set.name === "Top-Navigation/Mobile") return readTopNav(instance, set);
@@ -1665,19 +1717,21 @@ function actionBarElement(part, ctx) {
   if (part.props?.Type === "Glass") props.surface = literal("glass");
   const horizontal = actions.Direction === "Horizontal";
   if (horizontal) props.direction = literal("horizontal");
-  const action = (index) => {
+  // A Button at its role's own level (ActionBar.tsx: primary, tertiary) says nothing.
+  const action = (index, role) => {
     const button = nested.find((entry) => entry.path === `Actions/Button[${index}]`);
     if (!button) return null;
     const fields = {};
     const label = button.text ?? button.texts?.Label ?? button.texts?.Text;
     if (typeof label === "string" && label) fields.label = literal(label);
-    if (typeof button.props?.Level === "string") fields.level = literal(button.props.Level.toLowerCase());
+    const level = typeof button.props?.Level === "string" ? button.props.Level.toLowerCase() : null;
+    if (level && level !== role) fields.level = literal(level);
     const icon = button.props?.["Leading-Icon"] === true ? button.props["Leading-Icon-Src"] : null;
     if (typeof icon === "string" && isZenIcon(icon, ctx.mapping)) fields.startIcon = { kind: "element", node: { kind: "element", name: "Icon", props: { name: literal(icon), decorative: literal(true) }, children: [] } };
     return fields.label ? { kind: "object", fields } : null;
   };
   const dual = actions.Button === "Dual";
-  const [primary, secondary] = dual ? (horizontal ? [action(1), action(0)] : [action(0), action(1)]) : [action(0), null];
+  const [primary, secondary] = dual ? (horizontal ? [action(1, "primary"), action(0, "tertiary")] : [action(0, "primary"), action(1, "tertiary")]) : [action(0, "primary"), null];
   if (!primary) { ctx.notes.push(`ActionBar "${part.name ?? ACTION_BAR}": its button has no words, left out`); return null; }
   props.primaryAction = primary;
   if (secondary) props.secondaryAction = secondary;
@@ -1698,10 +1752,12 @@ function mobileShellElement(node, ctx) {
   const props = {};
   if (place.top !== "bar") props.mobileTop = literal(place.top);
   const edits = node.edits ?? [];
+  // A variable's name as the push writes it (a read gives its collection group too: Color/Background/…).
+  const paint = (name) => String(name ?? "").replace(/^Color\//, "");
   const bandLayer = place.hero ?? place.backdrop;
-  const band = bandLayer && place.top !== "media" ? MOBILE_BAND_OF[edits.find((edit) => edit.fill && sameLayers(edit.layer, bandLayer))?.fill] : undefined;
+  const band = bandLayer && place.top !== "media" ? MOBILE_BAND_OF[paint(edits.find((edit) => edit.fill && sameLayers(edit.layer, bandLayer))?.fill)] : undefined;
   if (band) props.band = literal(band);
-  const canvas = MOBILE_CANVAS_OF[node.fill];
+  const canvas = MOBILE_CANVAS_OF[paint(node.fill)];
   if (canvas) props.canvas = literal(canvas);
   if (look["Top-Navigation"] !== false) {
     const top = convert(partOf(node, place.nav.join("/"), place.nav, TOP_NAV_SET), ctx);
@@ -1745,7 +1801,7 @@ function partOf(owner, path, layers, fallbackSet) {
   const prefix = `${path}/`;
   return {
     type: "INSTANCE", name: own.name ?? path, set: own.set ?? fallbackSet, props: own.props ?? {},
-    ...(own.text !== undefined ? { text: own.text } : {}), ...(own.texts ? { texts: own.texts } : {}),
+    ...(own.text !== undefined ? { text: own.text } : {}), ...(own.texts ? { texts: own.texts } : {}), ...(own.topNav ? { topNav: own.topNav } : {}),
     nested: nested.filter((entry) => entry.path.startsWith(prefix)).map((entry) => ({ ...entry, path: entry.path.slice(prefix.length) })),
     slots: (owner.slots ?? []).filter((slot) => Array.isArray(slot.within) && layers.every((name, i) => slot.within[i] === name)).map((slot) => {
       const rest = slot.within.slice(layers.length);
