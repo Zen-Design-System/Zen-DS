@@ -510,5 +510,19 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(same.kinds.length === 0 && same.counts.INSTANCE > 150, `native-diff: a paste equals itself (${same.kinds.slice(0, 3).map((k) => k.kind).join("; ")})`);
 }
 
+// --- PropertyField ↔ Figma (2026-10-23): a ring's progress as its Progress arc, every person and label in the Value-Slot -----
+{
+  const ring = { start: 1.5 * Math.PI, end: 1.5 * Math.PI + 2 * Math.PI * 0.8, inner: 0 };
+  const { message, notes } = run([
+    { type: "INSTANCE", name: "Badge-Status", set: { id: "16932:195", name: "Badge-Status" }, props: { Status: "In Review", Size: "Medium" }, nested: [{ path: "Leading", props: {}, arcs: { Progress: ring } }] },
+    { type: "INSTANCE", name: "Input/Property-Field", set: { id: "16923:6031", name: "Input/Property-Field" }, props: { Label: "Assignee" }, nested: [{ path: "Value", props: { Type: "Person", State: "Inputted" } }],
+      slots: [{ name: "Value-Slot", within: "Value", children: ["Alex Duong", "Sun Hung", "Lan Pham"].map((name) => ({ type: "INSTANCE", name: "Person", set: { id: "288:32046", name: "Tag" }, props: { Theme: "Leading-Photo", State: "Default", Remove: "Yes" }, textList: [name], nested: [{ path: "Leading", props: {}, text: name.charAt(0) }] })) }] },
+  ]);
+  const text = JSON.stringify(message.nodeChanges);
+  check(notes.length === 0, `PropertyField / BadgeStatus: no notes (${notes.join("; ")})`);
+  check(overrides(instances(message)[0]).some((o) => o.arcData && Math.abs(o.arcData.endingAngle - ring.end) < 1e-6), "a BadgeStatus' progress is its Progress arc, an override");
+  check(["Alex Duong", "Sun Hung", "Lan Pham"].every((name) => text.includes(`"characters":"${name}"`)) && text.includes("SLOT_CONTENT_ID"), "three people in the Property-Value's Value-Slot, each named");
+}
+
 if (failures.length) { console.error(`✗ figma-native selftest: ${failures.length}/${checks} failed\n  ${failures.join("\n  ")}`); process.exit(1); }
 console.log(`✓ figma-native selftest: ${checks} checks pass.`);

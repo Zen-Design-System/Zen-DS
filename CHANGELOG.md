@@ -51,6 +51,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   inside itself, so the chat, AI chat and AI UI composers dock without example CSS. Zen Studio sets it in Prototype ›
   Scroll behavior (in place on the canvas, stuck in Play and Present); Figma push and pull map bottom to Fixed and top
   to Sticky. `surface="canvas"` paints the AppShell's canvas inside a shell (2026-10-23).
+- Zen Studio ↔ Figma: a PropertyField's people and labels all reach Figma (Property-Value's Person and Tags cells now
+  hold a Value-Slot, the user's choice; once the library is published other files see it), and a BadgeStatus' or Status
+  cell's `progress` is its ring's Progress arc; both come back with Pull from Figma and a direct paste carries them
+  (2026-10-23).
 - Native tokens (SwiftUI, Flutter): the system's appearance maps onto a context — Dark for a dark color scheme and
   Global Colors' Zen-High-Contrast mode under Increase Contrast — with `.zenSystemContext()` / `with(colorScheme:contrast:)`
   / `with(traits:)` in Swift and `ZenContext.fromMediaQuery` / `withSystem` in Dart, plus `ZenContext.highContrast`; the
