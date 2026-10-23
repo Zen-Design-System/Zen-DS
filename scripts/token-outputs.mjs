@@ -3,7 +3,6 @@
 // Variables window's drafts, docs/research/studio-figma-native-parity-2026-10-17.md §10) build the same CSS.
 import { HIGH_CONTRAST_MODE, HIGH_CONTRAST_ROLES, highContrastValues, neutralRampsOf } from "./high-contrast.mjs";
 
-/** The 11 Figma JSON exports in tokens/source/figma and the slug each is built under. */
 /** The collections whose modes are a ZenProvider axis (each a data-* attribute, modeSelector below), by axis name. */
 export const MODE_AXES = {
   "base-colors-project": "brand",
@@ -16,6 +15,7 @@ export const MODE_AXES = {
   "typography-configuration": "typography",
 };
 
+/** The 11 Figma JSON exports in tokens/source/figma and the slug each is built under. */
 export const SOURCE_FILES = [
   ["global-colors.json", "global-colors"],
   ["global-dimensions.json", "global-dimensions"],
@@ -31,11 +31,66 @@ export const SOURCE_FILES = [
 ];
 
 /**
+ * The collections of a tokens/source/figma listing (file names) and their slugs: the 11 Figma exports first, in their
+ * order, then the collections made in Zen Studio (Studio Variables, user 2026-10-23: "chỉ một mode (:root)"), by file
+ * name, each under its file name.
+ */
+export function sourceFiles(names) {
+  const known = new Set(SOURCE_FILES.map(([file]) => file));
+  const created = [...new Set(names)].filter((name) => /^[a-z0-9-]+\.json$/.test(name) && !known.has(name)).sort();
+  return [...SOURCE_FILES, ...created.map((file) => [file, file.replace(/\.json$/, "")])];
+}
+/** A collection made in Zen Studio (not one of the 11 Figma exports): one mode, declared on :root. */
+export const isCreatedSlug = (slug) => !SOURCE_FILES.some(([, known]) => known === slug);
+
+/** The docs' manifest entries (tokens/source/figma.collections.json) of the collections made in Zen Studio. */
+const MADE_IN = "Zen Studio";
+
+/**
+ * The manifest with its entries for the collections made in Zen Studio written from those collections (user
+ * 2026-10-23: the Design Tokens page lists a new collection under the group Studio asked for): the 11 Figma entries
+ * as they are, then one per made collection, by slug (`madeIn: "Zen Studio"`; its counts read from the collection).
+ */
+export function collectionsManifest(manifest, made) {
+  const entry = ({ slug, sourceName, modes, tokens, body }) => {
+    const types = {};
+    for (const token of tokens) types[token.type] = (types[token.type] ?? 0) + 1;
+    return {
+      slug, name: sourceName, layer: body.layer ?? "semantic", variableCount: tokens.length, modes, types,
+      hiddenVariableCount: tokens.filter((token) => token.hiddenFromPublishing === true).length,
+      purpose: body.purpose ?? "", codeAxis: null, madeIn: MADE_IN,
+    };
+  };
+  const kept = manifest.collections.filter((collection) => collection.madeIn !== MADE_IN);
+  return { ...manifest, collections: [...kept, ...[...made].sort((a, b) => (a.slug < b.slug ? -1 : 1)).map(entry)] };
+}
+
+/** The manifest's text as the file writes it: arrays and objects of plain values on one line while they fit 160. */
+export function manifestText(value) {
+  const inline = (v) => {
+    if (v === null || typeof v !== "object") return JSON.stringify(v);
+    if (Array.isArray(v)) return `[${v.map(inline).join(", ")}]`;
+    const entries = Object.entries(v);
+    return entries.length ? `{ ${entries.map(([key, item]) => `${JSON.stringify(key)}: ${inline(item)}`).join(", ")} }` : "{}";
+  };
+  const write = (v, indent, lead) => {
+    if (v === null || typeof v !== "object") return JSON.stringify(v);
+    const flat = inline(v);
+    const nested = (Array.isArray(v) ? v : Object.values(v)).some((item) => item && typeof item === "object");
+    if (!nested && indent.length + lead + flat.length <= 160) return flat;
+    const inner = `${indent}  `;
+    if (Array.isArray(v)) return `[\n${v.map((item) => inner + write(item, inner, 0)).join(",\n")}\n${indent}]`;
+    return `{\n${Object.entries(v).map(([key, item]) => `${inner}${JSON.stringify(key)}: ${write(item, inner, JSON.stringify(key).length + 2)}`).join(",\n")}\n${indent}}`;
+  };
+  return `${write(value, "", 0)}\n`;
+}
+
+/**
  * `readSource(fileName)` → the parsed JSON of tokens/source/figma/<fileName>; `motion` → tokens/source/motion.json
  * parsed. Returns { css, ts, catalog (the catalog file's text), count, collections }. Throws on duplicate names and
  * missing alias targets, as the build does.
  */
-export function tokenOutputs({ readSource, motion, warn = console.warn }) {
+export function tokenOutputs({ readSource, files = SOURCE_FILES, motion, warn = console.warn }) {
   const toKebab = (value) =>
     value
       .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
@@ -43,11 +98,12 @@ export function tokenOutputs({ readSource, motion, warn = console.warn }) {
       .replace(/^-|-$/g, "")
       .toLowerCase();
 
-  const collections = SOURCE_FILES.map(([fileName, slug]) => {
+  const collections = files.map(([fileName, slug]) => {
     const json = readSource(fileName);
     const sourceName = Object.keys(json)[0];
     const source = json[sourceName];
-    return { slug, sourceName, modes: source.modes, tokens: source.tokens };
+    if (isCreatedSlug(slug) && source.modes.length !== 1) throw new Error(`${sourceName} (${fileName}): a collection made in Zen Studio has one mode only (:root), not ${source.modes.length}`);
+    return { slug, sourceName, modes: source.modes, tokens: source.tokens, body: source };
   });
 
   const catalog = collections.flatMap((collection) =>
@@ -107,7 +163,8 @@ export function tokenOutputs({ readSource, motion, warn = console.warn }) {
       "breakpoint-grids": `[data-breakpoint="${value}"]`,
       "typography-configuration": `[data-typography="${value}"]`,
     };
-    const selector = selectors[slug];
+    // A collection made in Zen Studio has its one mode on :root.
+    const selector = selectors[slug] ?? (isCreatedSlug(slug) ? ":root" : null);
     if (!selector) throw new Error(`No CSS selector configured for ${slug}`);
     // Component colours alias the semantic (data-theme) colours, and a custom property resolves where it is declared.
     // A nested light/dark scope (e.g. one card switched to dark) would keep the outer mode's component colours, so
@@ -232,8 +289,11 @@ export function tokenOutputs({ readSource, motion, warn = console.warn }) {
     "",
   );
 
+  // The collections made in Zen Studio, named in the headers (none: the headers as before).
+  const created = collections.filter((collection) => isCreatedSlug(collection.slug)).length;
+  const madeHere = created ? ` the ${created} ${created === 1 ? "collection" : "collections"} made in Zen Studio` : "";
   const css = [
-    "/* Generated from the 11 Figma JSON exports and the code-owned motion tokens. Do not edit directly. */",
+    `/* Generated from the 11 Figma JSON exports${madeHere ? `,${madeHere}` : ""} and the code-owned motion tokens. Do not edit directly. */`,
     ...cssBlocks,
   ].join("\n");
 
@@ -251,7 +311,7 @@ export function tokenOutputs({ readSource, motion, warn = console.warn }) {
     ]),
   );
   const ts = [
-    "/* Generated from the 11 Figma JSON exports. Do not edit directly. */",
+    `/* Generated from the 11 Figma JSON exports${madeHere ? ` and${madeHere}` : ""}. Do not edit directly. */`,
     `export const tokens = ${JSON.stringify(tokenReferences, null, 2)} as const;`,
     "",
     `export const tokenCollections = ${JSON.stringify(collectionContract, null, 2)} as const;`,
@@ -282,5 +342,5 @@ export function tokenOutputs({ readSource, motion, warn = console.warn }) {
     "",
   ].join("\n");
 
-  return { css, ts, modesTs, catalog: catalogText, count: catalog.length, collections: collections.length };
+  return { css, ts, modesTs, catalog: catalogText, count: catalog.length, collections: collections.length, made: collections.filter((collection) => isCreatedSlug(collection.slug)) };
 }
