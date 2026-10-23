@@ -112,6 +112,17 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check((instance.componentPropAssignments ?? []).some((a) => a.varValue?.dataType === "SLOT_CONTENT_ID"), "a slot linked only by PROP_REF takes the export's content");
 }
 
+// --- sticky (figma-push): Fixed is the node's FIXED_WHEN_CHILD_OF_SCROLLING_FRAME on an absolute layer, Sticky stays in flow
+{
+  const dock = { type: "FRAME", name: "Dock", layout: { mode: "VERTICAL" }, scrollBehavior: "FIXED", absolute: { cx: "STRETCH", cy: "MAX", left: 24, right: 24, top: 0, bottom: 24 }, children: [{ type: "TEXT", characters: "Field" }] };
+  const head = { type: "FRAME", name: "Head", layout: { mode: "VERTICAL" }, scrollBehavior: "STICKY_SCROLLS", children: [{ type: "TEXT", characters: "Title" }] };
+  const { message } = run([head, { type: "TEXT", characters: "Body" }, dock]);
+  const fixed = message.nodeChanges.find((n) => n.name === "Dock");
+  const sticky = message.nodeChanges.find((n) => n.name === "Head");
+  check(fixed.scrollBehavior === "FIXED_WHEN_CHILD_OF_SCROLLING_FRAME" && fixed.stackPositioning === "ABSOLUTE" && fixed.verticalConstraint === "MAX" && fixed.horizontalConstraint === "STRETCH", "sticky bottom: Fixed, absolute, pinned to the bottom, stretched");
+  check(sticky.scrollBehavior === "STICKY_SCROLLS" && sticky.stackPositioning !== "ABSOLUTE", "sticky top: Figma Sticky, in flow");
+}
+
 // --- a vector in a free-form parent ------------------------------------------------------------------------------
 {
   const { message } = run([{ type: "FRAME", name: "Free", children: [{ type: "VECTOR", name: "Slice", d: "M 50 0 L 100 50 L 50 100 Z", box: { w: 100, h: 100 }, place: { x: 0, y: 0, w: 1, h: 1 }, fillStyle: "Color Chart Sector/Primary" }] }]);

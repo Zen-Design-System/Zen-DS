@@ -493,6 +493,9 @@ class Writer {
       out.horizontalConstraint = box.cx === "STRETCH" ? "STRETCH" : box.cx === "MAX" ? "MAX" : box.cx === "CENTER" ? "CENTER" : "MIN";
       out.verticalConstraint = box.cy === "STRETCH" ? "STRETCH" : box.cy === "MAX" ? "MAX" : box.cy === "CENTER" ? "CENTER" : "MIN";
     }
+    // sticky (figma-push): Figma's Fixed (absolute above) or Sticky, the node's own scroll behavior in the paste.
+    if (spec.scrollBehavior === "FIXED") out.scrollBehavior = "FIXED_WHEN_CHILD_OF_SCROLLING_FRAME";
+    else if (spec.scrollBehavior === "STICKY_SCROLLS") out.scrollBehavior = "STICKY_SCROLLS";
     void ownMode;
     return out;
   }
