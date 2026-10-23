@@ -50,6 +50,7 @@ import { Card } from "../components/Card";
 import { AiVoiceConversation, VoiceRecorder } from "../components/Voice";
 import { DockIcon } from "../components/DockIcon";
 import { List, ListItem, ToggleListItem } from "../components/ListItem";
+import { SheetCode, SheetTable } from "../components/SheetTable";
 import { Table, TableText } from "../components/Table";
 import { Rating, RatingDisplay } from "../components/Rating";
 import { ColorSelector } from "../components/ColorSelector";
@@ -339,6 +340,10 @@ export const guidelineVisuals: Record<string, GuidelinePair[]> = {
   table: [
     { do: { preview: <div className="pgv-wide"><Table aria-label="Invoices" rows={[{ id: "1", n: "INV-2401", a: "$120.00" }, { id: "2", n: "INV-2402", a: "$8.50" }]} getRowId={(r) => r.id} columns={[{ id: "n", header: "Invoice", cell: (r) => <TableText bold>{r.n}</TableText> }, { id: "a", header: "Amount", align: "right", cell: (r) => <TableText>{r.a}</TableText> }]} /></div>, caption: "Numbers right-aligned; one bold primary column." },
       dont: { preview: <div className="pgv-wide"><Table aria-label="Invoices" rows={[{ id: "1", n: "INV-2401", a: "$120.00" }, { id: "2", n: "INV-2402", a: "$8.50" }]} getRowId={(r) => r.id} columns={[{ id: "n", header: "Invoice", cell: (r) => <TableText bold>{r.n}</TableText> }, { id: "a", header: "Amount", cell: (r) => <TableText bold>{r.a}</TableText> }]} /></div>, caption: "Left-aligned amounts are hard to compare; everything bold has no hierarchy." } },
+  ],
+  "sheet-table": [
+    { do: { preview: <div className="pgv-wide"><SheetTable aria-label="Card props" rows={[{ id: "surface", type: '"default" | "alt"', d: "Surface/Alt on Default and Border, for a white Canvas/Alt page where Surface/Default is the canvas itself." }]} columns={[{ id: "p", header: "Prop", width: "24%", cell: (r) => <SheetCode>{r.id}</SheetCode> }, { id: "t", header: "Type", width: "30%", cell: (r) => <SheetCode>{r.type}</SheetCode> }, { id: "d", header: "Description", cell: (r) => <TableText>{r.d}</TableText> }]} /></div>, caption: "A reference reads in full: the row grows with its description, code stays code." },
+      dont: { preview: <div className="pgv-wide"><Table aria-label="Card props" rows={[{ id: "surface", type: '"default" | "alt"', d: "Surface/Alt on Default and Border, for a white Canvas/Alt page where Surface/Default is the canvas itself." }]} getRowId={(r) => r.id} columns={[{ id: "p", header: "Prop", width: "24%", cell: (r) => <TableText>{r.id}</TableText> }, { id: "t", header: "Type", width: "30%", cell: (r) => <TableText>{r.type}</TableText> }, { id: "d", header: "Description", cell: (r) => <TableText>{r.d}</TableText> }]} /></div>, caption: "A Table keeps one line per row: the description ends in an ellipsis and the reader loses the rule." } },
   ],
   rating: [
     { do: { preview: <Stack><Row><RatingDisplay value={4.6} /><span className="pgv-note">4.6 · 1,284 reviews</span></Row></Stack>, caption: "Averages use RatingDisplay with the count beside them." },

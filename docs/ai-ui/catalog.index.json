@@ -812,6 +812,30 @@
       "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? sticky? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? type? operation? children? d? viewBox? fillRule? fill? stroke? strokeWeight? strokeAlign? radius? arcStart? arcSweep? arcRatio? pointCount? starRatio? rotation? flip? opacity? blendMode? label? aria-label? aria-labelledby? aria-describedby?"
     },
     {
+      "name": "SheetCode",
+      "status": "stable",
+      "purpose": "Reference rows whose text runs long, read in full: props and their types, API signatures, keyboard shortcuts, token values.",
+      "props": "children"
+    },
+    {
+      "name": "SheetKey",
+      "status": "stable",
+      "purpose": "Reference rows whose text runs long, read in full: props and their types, API signatures, keyboard shortcuts, token values.",
+      "props": "children"
+    },
+    {
+      "name": "SheetKeys",
+      "status": "stable",
+      "purpose": "Reference rows whose text runs long, read in full: props and their types, API signatures, keyboard shortcuts, token values.",
+      "props": "value"
+    },
+    {
+      "name": "SheetTable",
+      "status": "stable",
+      "purpose": "Reference rows whose text runs long, read in full: props and their types, API signatures, keyboard shortcuts, token values.",
+      "props": "columns rows aria-label? caption? minWidth? empty?"
+    },
+    {
       "name": "Sidebar",
       "status": "verified",
       "chrome": true,

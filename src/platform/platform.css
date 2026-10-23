@@ -937,23 +937,9 @@
   .platform-toc { display: none; }
 }
 
-/* Keyboard / API reference sections. */
-.platform-ref__keys { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
-.platform-ref__keys kbd { display: inline-flex; min-width: 20px; height: 22px; box-sizing: border-box; align-items: center; justify-content: center; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border-radius: var(--zen-corner-radius-2-xsmall, 4px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)), inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest, #111); font-weight: var(--zen-emphasis-font-weight-medium, 500); font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
-.platform-ref__sep { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-small, 0px); }
-.platform-ref__code { color: var(--zen-color-content-neutral-strongest, #111); font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); }
-/* Props reference: one titled table per component; long unions and signatures wrap inside their cell. */
+/* Keyboard / API reference sections: SheetTables (src/components/SheetTable), one titled sheet per component. */
 .platform-ref__component { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-large, 24px); }
 .platform-ref__component h3, .platform-ref__component p { margin: 0; }
-/* Narrow screens scroll the table sideways (.zen-table overflow-x) instead of squeezing four columns into 342px. */
-.platform-ref__component .zen-table__table { min-width: 680px; }
-.platform-ref__component .platform-ref__code { overflow-wrap: break-word; white-space: normal; }
-/* Docs-only exception (user, 2026-10-13): the Props, API and Keyboard references hold long types and descriptions, so
-   their rows grow with the text. A Zen Table row is FIXED at Table/Cell/Size and cuts long text with an ellipsis;
-   these references move to the sheet-like component for long content once it exists (BACKLOG). */
-.platform-ref .zen-table__content { height: auto; min-height: var(--zen-table-slot, 28px); white-space: normal; }
-.platform-ref .zen-table-text { grid-template-columns: auto; }
-.platform-ref .zen-table-text > * { overflow: visible; white-space: normal; }
 
 /* ───────────── Mobile / conversation / chart batch (Top & Bottom Navigation, Bottom Sheet, Chat, AI Chat, Chart) ───────────── */
 .platform-mobile-preview { justify-content: center; }
@@ -1244,7 +1230,7 @@
    and the Zen docs keep their own styles. Untouched on purpose: the covers (Figma's raw 120px heroes) and the component
    previews / type specimens, which follow the system mode picked in the topbar. ── */
 /* Code = Body/Code: the Dev family (JetBrains Mono) at Body-Small size with Body-Code tracking. */
-.official-platform :is(.platform-ref__code, .platform-ref__keys kbd, .pg code, .text-style-row__meta code, .icon-card code, .icon-gallery__special-header code) {
+.official-platform :is(.pg code, .text-style-row__meta code, .icon-card code, .icon-gallery__special-header code) {
   font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace;
   font-size: var(--zen-typography-font-size-body-small);
   line-height: var(--zen-typography-line-height-body-small);
@@ -1252,7 +1238,7 @@
 }
 /* Uppercase guideline labels ("When to use") = All-Caps/S metrics (no extra tracking). */
 .official-platform :is(.pg-when__col h3, .pg-meta h3) { letter-spacing: var(--zen-typography-letter-spacing-all-caps-s); }
-.official-platform :is(.platform-ref__sep, .icon-gallery__toolbar p, .text-style-row__meta span, .text-style-group__heading span, .icon-card span) {
+.official-platform :is(.icon-gallery__toolbar p, .text-style-row__meta span, .text-style-group__heading span, .icon-card span) {
   font-size: var(--zen-typography-font-size-body-small);
   line-height: var(--zen-typography-line-height-body-small);
   letter-spacing: var(--zen-typography-letter-spacing-body-small);

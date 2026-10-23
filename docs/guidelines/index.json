@@ -3284,7 +3284,7 @@
         "Layout grids → CSS grid.",
         "Key/value details of one record → a description list.",
         "Editing many fields of one record, or edits that need review → a form or Side Panel (use onOpen to get there).",
-        "Long, multi-line cell content (notes, full descriptions, a spreadsheet-like grid) → not Table: its rows stay one line at Table/Cell/Size; a separate sheet-style component will cover it."
+        "Long, multi-line cell content (props and their types, signatures, keyboard shortcuts, full descriptions) → SheetTable: a Table's rows stay one line at Table/Cell/Size."
       ],
       "props": {
         "Table": [
@@ -3344,6 +3344,7 @@
         "table/actions-flat",
         "table/title-heading-4",
         "table/needs-name",
+        "table/reference-in-sheet",
         "table/interaction-needs-handler",
         "table/media-size-by-subtext",
         "table/editor-needs-commit",
@@ -3353,6 +3354,65 @@
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
+      ]
+    },
+    {
+      "slug": "sheet-table",
+      "title": "Sheet Table",
+      "file": "docs/guidelines/sheet-table.md",
+      "apiFile": "docs/api/sheet-table.json",
+      "figma": "Table/Sheet/Cell, .Primitives/Table/Sheet/Code, .Primitives/Table/Sheet/Key over Table/Cell/Header (page ❖ Table 1595:2631, doc frame 17100:7996)",
+      "import": "import { SheetTable, SheetCode, SheetKey, SheetKeys } from \"@zen-ds/react\";",
+      "purpose": "Reference rows whose text runs long, read in full: props and their types, API signatures, keyboard shortcuts, token values.",
+      "use": [
+        "A props or API reference: names, type unions and descriptions that wrap.",
+        "Keyboard shortcuts: SheetKeys chips beside what each one does.",
+        "Token or setting references whose values and notes run to several lines."
+      ],
+      "avoid": [
+        "Records people scan, sort, select or open → Table (one-line rows at Table/Cell/Size).",
+        "One or two attributes per item → List Item.",
+        "Key/value details of one record → Description List.",
+        "Paragraphs of prose → Text in the page; a sheet holds rows."
+      ],
+      "props": {
+        "SheetTable": [
+          "ref?: Ref<HTMLDivElement>",
+          "columns: SheetTableColumn<T>[]",
+          "getRowId?: (row: T, index: number) => string = (row, index) => rowIdOf(row, index)",
+          "aria-label?: string",
+          "caption?: ReactNode",
+          "minWidth?: string",
+          "empty?: ReactNode",
+          "className?: string"
+        ],
+        "SheetCode": [
+          "ref?: Ref<HTMLElement>",
+          "children: ReactNode"
+        ],
+        "SheetKey": [
+          "ref?: Ref<HTMLElement>",
+          "children: ReactNode"
+        ],
+        "SheetKeys": [
+          "ref?: Ref<HTMLSpanElement>",
+          "value: string"
+        ]
+      },
+      "do": [
+        "Name the sheet (aria-labelledby pointing at its section heading, a caption, or aria-label; harness: sheet-table/needs-name).",
+        "Write code values with SheetCode and shortcuts with SheetKeys, so a type or a key reads as code, not prose.",
+        "Give a sheet with several code columns a minWidth (about 680px for four), so a phone scrolls it sideways instead of breaking every word."
+      ],
+      "dont": [
+        "Don't use a SheetTable for data people act on: it has no sorting, selection or row clicks; that is a Table.",
+        "Don't cut long text in a reference with a Table's ellipsis: the reader needs the whole type or description.",
+        "Don't write keys as plain text (\"Shift+Tab\"): SheetKeys draws each key as a chip."
+      ],
+      "rules": [
+        "sheet-table/needs-name",
+        "table/reference-in-sheet",
+        "interaction/no-noop-handler"
       ]
     },
     {

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
-import { Table, TableText } from "../components/Table";
+import { SheetCode, SheetKeys, SheetTable } from "../components/SheetTable";
+import { TableText } from "../components/Table";
 import { Tooltip } from "../components/Tooltip";
 import { typographyStyles } from "../tokens/typography.generated";
 import apiReference from "./api.generated.json";
@@ -25,22 +26,17 @@ function SectionHead({ id, title, children }: { id: string; title: string; child
   );
 }
 
-/** "A + B / C" → <kbd>A</kbd> + <kbd>B</kbd> / <kbd>C</kbd> */
-function Keys({ value }: { value: string }) {
-  const parts = value.split(/(\s*[+/]\s*|\s+then\s+)/);
-  return <span className="platform-ref__keys">{parts.map((part, index) => /^\s*([+/]|then)\s*$/.test(part) ? <span key={index} className="platform-ref__sep">{part.trim()}</span> : part.trim() ? <kbd key={index}>{part.trim()}</kbd> : null)}</span>;
-}
-
 export function ComponentKeyboard({ page }: { page: PlatformPage }) {
   const rows = referenceFor(page)?.keyboard;
   if (!rows?.length) return null;
   return (
     <PlatformSection id="keyboard" label="Keyboard">
-      <section className="pe-section platform-ref" aria-labelledby="platform-keyboard-title">
+      <section className="pe-section" aria-labelledby="platform-keyboard-title">
         <SectionHead id="platform-keyboard-title" title="Keyboard">Keys supported when the component has focus. Everything reachable by pointer is reachable by keyboard.</SectionHead>
-        <Table aria-label="Keyboard interactions" rows={rows.map(([keys, action]) => ({ keys, action }))} getRowId={(row) => row.keys}
+        {/* Reference rows run long: a SheetTable lets them grow (a Table keeps one line). */}
+        <SheetTable aria-label="Keyboard interactions" rows={rows.map(([keys, action]) => ({ keys, action }))} getRowId={(row) => row.keys}
           columns={[
-            { id: "keys", header: "Key", width: "32%", cell: (row) => <Keys value={row.keys} /> },
+            { id: "keys", header: "Key", width: "32%", cell: (row) => <SheetKeys value={row.keys} /> },
             { id: "action", header: "Action", cell: (row) => <TableText>{row.action}</TableText> },
           ]} />
       </section>
@@ -53,12 +49,12 @@ export function ComponentApi({ page }: { page: PlatformPage }) {
   if (!rows?.length) return null;
   return (
     <PlatformSection id="api" label="API">
-      <section className="pe-section platform-ref" aria-labelledby="platform-api-title">
+      <section className="pe-section" aria-labelledby="platform-api-title">
         <SectionHead id="platform-api-title" title="API">Figma properties and the props that implement them.</SectionHead>
-        <Table aria-label="Properties" rows={rows.map(([figma, prop, values]) => ({ figma, prop, values }))} getRowId={(row) => `${row.figma}-${row.prop}`}
+        <SheetTable aria-label="Properties" rows={rows.map(([figma, prop, values]) => ({ figma, prop, values }))} getRowId={(row) => `${row.figma}-${row.prop}`}
           columns={[
             { id: "figma", header: "Figma property", width: "20%", cell: (row) => <TableText bold>{row.figma}</TableText> },
-            { id: "prop", header: "Prop", width: "22%", cell: (row) => <code className="platform-ref__code">{row.prop}</code> },
+            { id: "prop", header: "Prop", width: "22%", cell: (row) => <SheetCode>{row.prop}</SheetCode> },
             { id: "values", header: "Values", cell: (row) => <TableText>{row.values}</TableText> },
           ]} />
       </section>
@@ -83,17 +79,18 @@ export function ComponentProps({ page, only }: { page: PlatformPage; only?: stri
   const key = only ? `props-${only}` : "props";
   return (
     <PlatformSection id={key} label={only ? `${only} props` : "Props"}>
-      <section className="pe-section platform-ref" aria-labelledby={`platform-${key}-title`}>
+      <section className="pe-section" aria-labelledby={`platform-${key}-title`}>
         <SectionHead id={`platform-${key}-title`} title={only ? `${only} props` : "Props"}>Generated from the TypeScript source, so it is always current. AI agents read the same data from docs/api.</SectionHead>
         {components.map((component) => (
           <div key={component.name} className="platform-ref__component">
             <h3 className={typographyStyles["Heading/4"]}>{component.name}</h3>
-            {component.extends ? <p className={typographyStyles["Body/Small/Regular"]}>Also accepts <code className="platform-ref__code">{component.extends}</code>.</p> : null}
-            <Table aria-label={`${component.name} props`} rows={component.props} getRowId={(row) => row.name}
+            {component.extends ? <p className={typographyStyles["Body/Small/Regular"]}>Also accepts <SheetCode>{component.extends}</SheetCode>.</p> : null}
+            {/* Four columns of long unions and signatures: narrower than 680px, the sheet scrolls sideways. */}
+            <SheetTable aria-label={`${component.name} props`} rows={component.props} getRowId={(row) => row.name} minWidth="680px"
               columns={[
-                { id: "prop", header: "Prop", width: "18%", cell: (row) => <code className="platform-ref__code">{row.name}{row.required ? "" : "?"}</code> },
-                { id: "type", header: "Type", width: "34%", cell: (row) => row.type === "unknown" ? <TableText>HTML attribute</TableText> : <code className="platform-ref__code">{row.type}</code> },
-                { id: "default", header: "Default", width: "12%", cell: (row) => row.default === null ? <TableText>—</TableText> : <code className="platform-ref__code">{row.default}</code> },
+                { id: "prop", header: "Prop", width: "18%", cell: (row) => <SheetCode>{`${row.name}${row.required ? "" : "?"}`}</SheetCode> },
+                { id: "type", header: "Type", width: "34%", cell: (row) => row.type === "unknown" ? <TableText>HTML attribute</TableText> : <SheetCode>{row.type}</SheetCode> },
+                { id: "default", header: "Default", width: "12%", cell: (row) => row.default === null ? <TableText>—</TableText> : <SheetCode>{row.default}</SheetCode> },
                 { id: "description", header: "Description", cell: (row) => <TableText>{row.deprecated ? `Deprecated: ${row.deprecated} ` : ""}{row.description || "—"}</TableText> },
               ]} />
           </div>

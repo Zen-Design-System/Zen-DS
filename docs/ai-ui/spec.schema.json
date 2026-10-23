@@ -429,6 +429,18 @@
           "$ref": "#/$defs/components/Shape"
         },
         {
+          "$ref": "#/$defs/components/SheetCode"
+        },
+        {
+          "$ref": "#/$defs/components/SheetKey"
+        },
+        {
+          "$ref": "#/$defs/components/SheetKeys"
+        },
+        {
+          "$ref": "#/$defs/components/SheetTable"
+        },
+        {
           "$ref": "#/$defs/components/Sidebar"
         },
         {
@@ -35857,6 +35869,314 @@
         ],
         "additionalProperties": false
       },
+      "SheetCode": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "SheetCode"
+          },
+          "id": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "boolean"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The code, as plain text."
+              }
+            },
+            "required": [
+              "children"
+            ],
+            "additionalProperties": false
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/child"
+            }
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "SheetKey": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "SheetKey"
+          },
+          "id": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "boolean"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "children": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The key's name, as printed on it (\"Shift\", \"Tab\", \"→\")."
+              }
+            },
+            "required": [
+              "children"
+            ],
+            "additionalProperties": false
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/child"
+            }
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "SheetKeys": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "SheetKeys"
+          },
+          "id": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "boolean"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The shortcut: keys joined by \" + \", \" / \" or \" then \"."
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/child"
+            }
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "SheetTable": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "SheetTable"
+          },
+          "id": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "boolean"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "columns": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/SheetTableColumn"
+                    }
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ]
+              },
+              "rows": {
+                "anyOf": [
+                  {},
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The items, one row each."
+              },
+              "aria-label": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Names the sheet for screen readers when there is no visible `caption` (or use `aria-labelledby`)."
+              },
+              "caption": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Visible caption above the sheet (Heading/4), which also names it."
+              },
+              "minWidth": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The narrowest the columns may get, a CSS length (e.g."
+              },
+              "empty": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Rendered in a full-width row when `rows` is empty (e.g."
+              }
+            },
+            "required": [
+              "columns",
+              "rows"
+            ],
+            "additionalProperties": false
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/child"
+            }
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      },
       "Sidebar": {
         "type": "object",
         "properties": {
@@ -48102,6 +48422,57 @@
       "required": [
         "label",
         "value"
+      ],
+      "additionalProperties": false
+    },
+    "SheetTableColumn": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "header": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/node"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/child"
+              }
+            }
+          ]
+        },
+        "width": {
+          "type": "string"
+        },
+        "content": {
+          "enum": [
+            "text",
+            "code",
+            "keys"
+          ]
+        },
+        "field": {
+          "type": "string"
+        },
+        "bold": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "header"
       ],
       "additionalProperties": false
     },
