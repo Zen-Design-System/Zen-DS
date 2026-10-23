@@ -20,6 +20,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Every component forwards its `data-*` attributes to its root (Skeletons, charts, chat, dialogs, sheets and the rest:
   119 that dropped them), so the AI UI renderer's `data-ai-ui-id`, test ids and analytics hooks land; only `data-*`, so
   nothing else a component renders changes. The conformance test checks it for every public component (2026-10-23).
+- Layout: `sticky="top" | "bottom"` on Stack, Grid, Box and Shape (Figma's Fix position when scrolling): the layer
+  stays in the flow and sticks to its scrolling ancestor's edge. In an AppShell Body a bottom dock takes the page margin
+  inside itself, so the chat, AI chat and AI UI composers dock without example CSS. Zen Studio sets it in Prototype ›
+  Scroll behavior (in place on the canvas, stuck in Play and Present); Figma push and pull map bottom to Fixed and top
+  to Sticky. `surface="canvas"` paints the AppShell's canvas inside a shell (2026-10-23).
 - Native tokens (SwiftUI, Flutter): the system's appearance maps onto a context — Dark for a dark color scheme and
   Global Colors' Zen-High-Contrast mode under Increase Contrast — with `.zenSystemContext()` / `with(colorScheme:contrast:)`
   / `with(traits:)` in Swift and `ZenContext.fromMediaQuery` / `withSystem` in Dart, plus `ZenContext.highContrast`; the

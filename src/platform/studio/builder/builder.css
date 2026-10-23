@@ -42,6 +42,9 @@
    bar stuck to the Studio window instead, and a Screen lower than the window drew its bottom navigation at its top (user,
    2026-10-17). Under .studio-world, so the exported page keeps its sticky bars (htmlExport drops rules naming the world). */
 .studio-world :is(.studio-builder-screen__top, .studio-builder-screen__bottom) { position: relative; }
+/* The same for a frame's own sticky (Box sticky="bottom", position.css): in place on the canvas, stuck in Play, Present
+   and the export. */
+.studio-world :is(.zen-stack, .zen-grid, .zen-box, .zen-shape)[data-sticky]:not([data-position="absolute"]) { position: relative; }
 /* Present and Play: the system bars ride 0-high sticky boxes at the window's top and bottom edges (runtime.tsx). */
 .studio-builder-screen__pin { position: sticky; z-index: 20; height: 0; }
 .studio-builder-screen__pin[data-edge="top"] { top: 0; }

@@ -61,6 +61,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   Figma's outer level, grid row minimum heights, kept overrides by resolved variable, and a smaller pack (23 MB on
   2026-10-23). Pictures go since 2026-10-19 (F8c), a frame's whole look since #177. Pointer:
   `docs/research/studio-native-paste-2026-10-17.md` §6, §7c, §8.
+- **P3 · Native paste of a sticky layer not tried live (2026-10-23, B):** figma-native writes `scrollBehavior`
+  (FIXED_WHEN_CHILD_OF_SCROLLING_FRAME on the absolute dock, STICKY_SCROLLS in flow) from Figma's own clipboard schema;
+  the plugin path was checked live. Still to see in a real ⌘V: Figma keeps both, and whether it also wants
+  `fixedChildrenDivider` on the parent. Pointer: `docs/research/layout-sticky-spec-2026-10-23.md` § Figma.
 - **P3 · AppShell phone bars in Figma (2026-10-23, B; found by AppShell, needs the user's OK):** figma-push draws a
   phone frame's top and bottom bars only from the builder Screen's own `topNavigation` / `bottomNavigation`. An
   AppShell's own phone bars are named in the push notes and not drawn: a root AppShell on a phone Screen keeps only its
