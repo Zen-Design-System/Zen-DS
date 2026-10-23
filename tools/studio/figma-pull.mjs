@@ -708,6 +708,18 @@ const readFrame = async (node, root = false) => {
   if (!root && own("clipsContent") === true) out.clip = true;
   // Overflow scrolling (Stack / Box scroll) and a background bound to a colour variable (a Box's surface).
   if (!root && own("overflowDirection") && node.overflowDirection !== "NONE") out.scroll = node.overflowDirection;
+  // Figma's explicit variable modes (Change variable mode): { collection name: mode name } (Studio Variables v2: modes).
+  const explicit = own("explicitVariableModes");
+  if (explicit && Object.keys(explicit).length) {
+    const modes = {};
+    for (const [collectionId, modeId] of Object.entries(explicit)) {
+      let collection = null;
+      try { collection = await figma.variables.getVariableCollectionByIdAsync(collectionId); } catch (e) { collection = null; }
+      const mode = collection ? collection.modes.find((each) => each.modeId === modeId) : null;
+      if (collection && mode) modes[collection.name] = mode.name;
+    }
+    if (Object.keys(modes).length) out.modes = modes;
+  }
   const paint = !root && Array.isArray(own("fills")) ? node.fills.find((fill) => fill.visible !== false && fill.type === "SOLID") : null;
   const fill = paint ? await variableName(paint.boundVariables && paint.boundVariables.color && paint.boundVariables.color.id) : null;
   if (fill) out.fill = fill;
@@ -2604,6 +2616,9 @@ function frameElement(node, children, ctx) {
     return { kind: "element", name: "Box", props: { scroll: literal(scroll), ...look }, children: [{ kind: "element", name: "Grid", props, children }] };
   }
   if (scroll) props.scroll = literal(scroll);
+  // Figma's explicit variable modes on the frame (Studio Variables v2): the frame's `modes`.
+  const modes = modesProp(node.modes);
+  if (modes) props.modes = modes;
   const plain = !grid && Boolean(look.surface || look.border) && !Object.keys(props).some((name) => !BOX_PROPS.has(name) && name !== "gap") && (children.length <= 1 || props.gap?.value === "none");
   if (plain) {
     const { gap, ...boxProps } = props;
@@ -2612,7 +2627,27 @@ function frameElement(node, children, ctx) {
   return { kind: "element", name: grid ? "Grid" : "Stack", props: { ...props, ...look }, children };
 }
 /** Props a Box takes besides the look: a painted frame with only these is a Box. */
-const BOX_PROPS = new Set(["padding", "paddingX", "paddingY", "clip", "scroll"]);
+const BOX_PROPS = new Set(["padding", "paddingX", "paddingY", "clip", "scroll", "modes"]);
+/** A ZenProvider axis by the Figma collection whose mode it picks (figma-push frameModes, the other way). */
+const COLLECTION_AXIS = {
+  "Mode Colors (Semantic)": "theme", "Component Theme": "componentTheme", "Component Size": "density", "Corner Radius": "radius",
+  "Emphasis Level": "emphasis", "Breakpoint & Grids": "breakpoint", "Typography Configuration": "typography", "Base Colors (Project)": "brand",
+};
+const AXES = new Set(Object.values(COLLECTION_AXIS));
+const modeIdOf = (name) => name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
+/**
+ * The `modes` prop of a frame's explicit modes: the reader's { collection name: mode name } (axis → the mode's id), or
+ * the push's own { axis: mode id } (a round trip). Collections that are no ZenProvider axis are left out.
+ */
+function modesProp(modes) {
+  if (!modes || typeof modes !== "object") return null;
+  const fields = Object.fromEntries(Object.entries(modes).flatMap(([key, mode]) => {
+    if (typeof mode !== "string") return [];
+    if (COLLECTION_AXIS[key]) return [[COLLECTION_AXIS[key], literal(modeIdOf(mode))]];
+    return AXES.has(key) ? [[key, literal(mode)]] : [];
+  }));
+  return Object.keys(fields).length ? { kind: "object", fields } : null;
+}
 /** A Border variable → the frame border it draws (figma-push FRAME_STROKE, the other way). */
 const BORDER_OF = { "Border/Neutral/Pale/Default": "pale", "Border/Neutral/Subtle/Default": "subtle" };
 
@@ -2980,6 +3015,9 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   ctx.innerOf = new Map();
   // The Screen's own canvas and height, which figma-push writes on the page frame: Screen props, not a Box surface.
   const screenProps = {};
+  // The page frame's explicit variable modes are the Screen's (Studio Variables v2).
+  const screenModes = modesProp(frame?.modes);
+  if (screenModes) screenProps.modes = screenModes;
   const canvasFill = /^(?:Color\/)?Background\/Canvas\/(Default|Alt|Flat)$/.exec(String(frame?.fill ?? ""));
   if (canvasFill) {
     delete frame.fill;

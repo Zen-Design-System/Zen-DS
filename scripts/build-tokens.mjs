@@ -8,9 +8,10 @@ const sourceDir = path.join(root, "tokens/source/figma");
 const cssPath = path.join(root, "src/styles/tokens.css");
 const tsPath = path.join(root, "src/tokens/generated.ts");
 const catalogPath = path.join(root, "src/tokens/catalog.generated.json");
+const modesPath = path.join(root, "src/tokens/modes.generated.ts");
 
 // The build itself is scripts/token-outputs.mjs (shared with the Zen Studio dev server's Variables drafts).
-const { css, ts, catalog, count, collections } = tokenOutputs({
+const { css, ts, modesTs, catalog, count, collections } = tokenOutputs({
   readSource: (fileName) => JSON.parse(fs.readFileSync(path.join(sourceDir, fileName), "utf8")),
   motion: JSON.parse(fs.readFileSync(path.join(root, "tokens/source/motion.json"), "utf8")),
 });
@@ -20,5 +21,6 @@ fs.mkdirSync(path.dirname(tsPath), { recursive: true });
 fs.writeFileSync(cssPath, css);
 fs.writeFileSync(tsPath, ts);
 fs.writeFileSync(catalogPath, catalog);
+fs.writeFileSync(modesPath, modesTs);
 
 console.log(`Generated ${count} tokens across ${collections} collections.`);

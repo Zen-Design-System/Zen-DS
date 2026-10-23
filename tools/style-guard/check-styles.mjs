@@ -106,6 +106,8 @@ export const rules = [
     summary: "Elevation uses --zen-style-*-shadow tokens; hand-written shadows ignore theme and mode. Rings (0 0 0 Npx token) and inset hairlines are fine." },
   { id: "size/slot-token", severity: "warn", allow: "slot-size", scope: ["css"], guideline: "docs/qa/build-qa-process.md#density",
     summary: "A slot that holds a token-sized child (icon, avatar, thumbnail, mark) is sized with the same token or a calc of it, so Comfortable density does not overflow it." },
+  { id: "token/renamed", severity: "warn", allow: "renamed-token", scope: ["css", "inline"], guideline: "docs/research/studio-variables-v2-spec-2026-10-23.md",
+    summary: "A variable renamed in Zen Studio keeps its old --zen- name as an alias (tokens.css, \"renamed to …\"); read the new name, so the alias can go." },
   { id: "position/token", severity: "warn", allow: "raw-position", scope: ["css", "inline"], guideline: "docs/guidelines/layout.md",
     summary: "Examples and templates pin a layer with Stack/Grid/Box position=\"absolute\" + constraintX/constraintY + Spacing/Padding insets (Figma constraints), not raw top/right/bottom/left/inset lengths or percentages; 0, auto and token offsets are fine." },
 ];
@@ -128,9 +130,19 @@ const roleOfCustom = (name) => TOKEN_NAMESPACE.test(name) ? null : /radius/.test
  * Checks one declaration. Returns [{ rule, message }]. `ctx` = { selector, body, file, inline }.
  * `body` is the whole rule block (for rules that look at sibling declarations).
  */
+// Old names of renamed variables (tokens.css writes `--zen-old: var(--zen-new);` with a "renamed to New/Name" comment),
+// and the fixtures' own.
+const RENAMED = new Map([...fs.readFileSync(path.join(root, "src/styles/tokens.css"), "utf8").matchAll(/(--zen-[a-z0-9-]+): var\((--zen-[a-z0-9-]+)\); \/\* renamed to /g)].map((m) => [m[1], m[2]]));
+const FIXTURE_RENAMED = new Map([["--zen-style-guard-fixture-old-gap", "--zen-spacing-gap-small"]]);
+
 function checkDecl(prop, value, ctx) {
   const out = [];
   const add = (rule, message) => out.push({ rule, message });
+  // token/renamed: before the role checks (a custom property of no known role returns early below).
+  const renamed = /^tools\/style-guard\/fixtures\//.test(ctx.file ?? "") ? FIXTURE_RENAMED : RENAMED;
+  for (const [, old] of value.matchAll(/var\(\s*(--zen-[a-z0-9-]+)/g)) {
+    if (renamed.has(old)) add("token/renamed", `${old} was renamed: read ${renamed.get(old)} (the old name is an alias kept for now)`);
+  }
   const p = prop.startsWith("--") ? roleOfCustom(prop) : prop;
   if (!p) return out;
   const v = value.trim();

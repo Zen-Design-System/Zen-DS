@@ -80,10 +80,11 @@ export function variablesHost({ realRoot, drafts }) {
     });
   }
 
-  /** The source files under src/ that read a variable: its CSS name (`--zen-…`) or its Figma name in quotes. */
+  /** The source files under src/ that read a variable: by its CSS name (`--zen-…`, `css`) or its Figma name in quotes
+   *  (`quoted`: a lookup by name, which a rename would break; the CSS name survives as the build's alias). */
   function codeReaders(names) {
     const wanted = names.map((name) => ({ name, css: new RegExp(`--zen-${cssNameOf(name)}(?![a-z0-9-])`), quoted: [`"${name}"`, `'${name}'`, `\`${name}\``] }));
-    const found = new Map(names.map((name) => [name, []]));
+    const found = new Map(names.map((name) => [name, { css: [], quoted: [] }]));
     const walk = (dir) => {
       for (const entry of fs.readdirSync(path.join(realRoot(), dir), { withFileTypes: true })) {
         const rel = `${dir}/${entry.name}`;
@@ -91,11 +92,49 @@ export function variablesHost({ realRoot, drafts }) {
         if (!/\.(css|tsx?|mjs)$/.test(entry.name) || GENERATED.test(rel)) continue;
         const text = drafts.get(rel)?.content ?? fs.readFileSync(path.join(realRoot(), rel), "utf8");
         for (const want of wanted) {
-          if (want.css.test(text) || want.quoted.some((quoted) => text.includes(quoted))) found.get(want.name).push(rel);
+          if (want.css.test(text)) found.get(want.name).css.push(rel);
+          if (want.quoted.some((quoted) => text.includes(quoted))) found.get(want.name).quoted.push(rel);
         }
       }
     };
     walk("src");
+    return found;
+  }
+
+  /** A collection's ZenProvider axis: its data-* attribute and prop (scripts/token-outputs.mjs modeSelector, ZenProvider). */
+  const MODE_AXIS = {
+    "Base Colors (Project)": ["brand", "brand"], "Mode Colors (Semantic)": ["theme", "theme"], "Component Theme": ["component-theme", "componentTheme"],
+    "Component Size": ["density", "density"], "Corner Radius": ["radius", "radius"], "Emphasis Level": ["emphasis", "emphasis"],
+    "Breakpoint & Grids": ["breakpoint", "breakpoint"], "Typography Configuration": ["typography", "typography"],
+  };
+
+  /** The source files under src/ that use a mode by its id: `data-<axis>="id"` (CSS or JSX) or the ZenProvider prop. */
+  function modeReaders(collection, mode) {
+    const axis = MODE_AXIS[collection];
+    if (!axis) return [];
+    const id = cssNameOf(mode).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`data-${axis[0]}=["']${id}["']|\\b${axis[1]}(=|:\\s*|=\\{)["']${id}["']`);
+    const found = [];
+    const walk = (dir) => {
+      for (const entry of fs.readdirSync(path.join(realRoot(), dir), { withFileTypes: true })) {
+        const rel = `${dir}/${entry.name}`;
+        if (entry.isDirectory()) { walk(rel); continue; }
+        if (!/\.(css|tsx?|mjs)$/.test(entry.name) || GENERATED.test(rel)) continue;
+        const text = drafts.get(rel)?.content ?? fs.readFileSync(path.join(realRoot(), rel), "utf8");
+        if (pattern.test(text)) found.push(rel.replace(/^src\//, ""));
+      }
+    };
+    walk("src");
+    // Studio pages set modes on their frames (`modes={{ theme: "dark" }}`, Studio Variables v2): the pages folder too.
+    const pages = process.env.ZEN_STUDIO_PAGES_DIR || ".zen-studio/pages";
+    if (fs.existsSync(path.join(realRoot(), pages))) {
+      for (const entry of fs.readdirSync(path.join(realRoot(), pages), { withFileTypes: true })) {
+        if (!entry.isFile() || !entry.name.endsWith(".zen.tsx")) continue;
+        const rel = `${pages}/${entry.name}`;
+        const text = drafts.get(rel)?.content ?? fs.readFileSync(path.join(realRoot(), rel), "utf8");
+        if (pattern.test(text)) found.push(`page ${entry.name.replace(/\.zen\.tsx$/, "")}`);
+      }
+    }
     return found;
   }
 
@@ -106,13 +145,17 @@ export function variablesHost({ realRoot, drafts }) {
   function edit(rel, before, ops) {
     const texts = new Map(TOKEN_FILES.map((file) => [file, file === rel ? before : textOf(file)]));
     const variables = variablesOf(texts);
-    const touched = ops.filter((op) => op?.op === "rename" || op?.op === "delete").map((op) => op.name);
+    // A delete also asks about the variable's old names (code may still read --zen-<old>).
+    const touched = ops.filter((op) => op?.op === "rename" || op?.op === "delete").flatMap((op) => [op.name, ...(op.op === "delete" ? variables.get(op.name)?.formerNames ?? [] : [])]);
     const code = touched.length ? codeReaders(touched) : new Map();
-    const readers = (name) => [...aliasReaders(variables, name), ...(code.get(name) ?? []).map((file) => file.replace(/^src\//, ""))];
+    const short = (file) => file.replace(/^src\//, "");
+    const codeOf = (name) => { const found = code.get(name); return found ? [...new Set([...found.css, ...found.quoted])] : []; };
+    const readers = (name) => [...new Set([...aliasReaders(variables, name), ...[name, ...(variables.get(name)?.formerNames ?? [])].flatMap(codeOf).map(short)])];
+    const nameReaders = (name) => (code.get(name)?.quoted ?? []).map(short);
     if (rel === GLOBAL_COLORS && ops.some((op) => op?.op === "setValue" && op.mode === HIGH_CONTRAST_MODE)) {
       throw new VariableEditError("invalid", `${HIGH_CONTRAST_MODE} follows the Zen values (the high-contrast algorithm): change the Zen value`);
     }
-    const result = applyVariableOps(before, ops, { variables, readers });
+    const result = applyVariableOps(before, ops, { variables, readers, nameReaders, modeReaders });
     return rel === GLOBAL_COLORS ? { ...result, text: withHighContrast(result.text, textOf(BASE_COLORS)) } : result;
   }
 

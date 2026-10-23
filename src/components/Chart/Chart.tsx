@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, type ReactNode, type Ref, type RefObject } from "react";
-import { Card, type CardColor, type CardSurface, type CardTheme } from "../Card";
+import { Card, type CardColor, type CardSpacing, type CardSurface, type CardTheme } from "../Card";
 import { EmptyStateCardContext } from "../EmptyState/EmptyState";
 import { IconButton } from "../Button";
 import { Icon } from "../Icon";
@@ -222,13 +222,18 @@ export interface ChartCardProps {
   /** The range switch fills the card and splits it into equal items (Figma Segmented FILL, default); `false` hugs its
    *  items, as on a wide card where a full-width switch would stretch far past its labels (Figma HUG). */
   rangesFullWidth?: boolean;
-  /** Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas
-   *  next to other Shadow cards (metric cards on a dashboard). */
+  /** Figma nested Card Theme: Default (default, the Surface alone) inside a panel or section; Shadow when the chart card
+   *  sits on the canvas next to other Shadow cards (metric cards on a dashboard); the other themes follow the Card rules
+   *  for the page's Canvas (harness theme/box-on-canvas). */
   theme?: CardTheme;
   /** Figma nested Card Color, for theme="pale", "subtle" or "solid": the Card's hue (Solid Neutral is the dark widget; see Card). */
   color?: CardColor;
   /** Figma nested Card Surface: default · alt (Default, Border); see Card. A chart on a Canvas/Flat page takes theme="flat-border". */
   surface?: CardSurface;
+  /** Figma nested Card Spacing: Medium (default; Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small,
+   *  Corner-Radius/Large) · XSmall (Card-padding-xsmall, Corner-Radius/Base), for a chart in a narrow tile or a row of
+   *  several on a phone. Short (md, sm, xs) or Figma (medium, small, xsmall) spelling. */
+  spacing?: CardSpacing;
   /** The chart, or an EmptyState before there is data (keep the card title; the Empty State is set one level below it). */
   children: ReactNode;
   className?: string;
@@ -273,7 +278,7 @@ function useChartGrow(body: RefObject<HTMLDivElement | null>) {
  * (every Figma chart card's Show Icon · Icon · Title · Show Description · Description · Show Value · Value · Show Ranges ·
  * Show Open properties).
  */
-export function ChartCard({ title, headingLevel = 3, icon, description, value, onOpen, openLabel: openLabelProp, ranges, range, onRangeChange, rangesFullWidth = true, theme = "default", color, surface, children, className, overrides, ref, ...rest }: ChartCardProps) {
+export function ChartCard({ title, headingLevel = 3, icon, description, value, onOpen, openLabel: openLabelProp, ranges, range, onRangeChange, rangesFullWidth = true, theme = "default", color, surface, spacing = "medium", children, className, overrides, ref, ...rest }: ChartCardProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const openLabel = openLabelProp ?? t.openReport;
@@ -282,7 +287,7 @@ export function ChartCard({ title, headingLevel = 3, icon, description, value, o
   useChartGrow(body);
   const hasValue = value !== undefined && value !== null && value !== false;
   return (
-    <Card {...dataAttributes(rest)} ref={ref} theme={theme} color={color} spacing="medium" surface={surface} className={["zen-chart-card", className].filter(Boolean).join(" ")}>
+    <Card {...dataAttributes(rest)} ref={ref} theme={theme} color={color} spacing={spacing} surface={surface} className={["zen-chart-card", className].filter(Boolean).join(" ")}>
       <div ref={body} className="zen-chart-card__body">
         <div className="zen-chart-card__header">
           <div className="zen-chart-card__titlebar">

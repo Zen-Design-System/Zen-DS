@@ -213,6 +213,33 @@ export const Bad = () => <>
   <div><Card theme="subtle" color="accent">Payout</Card></div>
   {/* expect: card/surface-ignored */}
   <ChartCard title="Revenue" theme="pale" surface="alt"><LineChart aria-label="Revenue per month" data={[{ label: "Sep", value: 1 }]} /></ChartCard>
+  {/* Theme pairing (Figma audit theme/*): the box, the bars and the elevation follow the page's Canvas. */}
+  {/* expect: theme/box-on-canvas */}
+  <div><Card theme="semi-pale">Revenue</Card></div>
+  {/* expect: theme/box-on-canvas */}
+  <AppShell sidebar={null} canvas="alt"><ListBox>Rows</ListBox></AppShell>
+  {/* expect: theme/box-on-canvas */}
+  <AppShell sidebar={null} canvas="flat"><Card theme="border">Hours</Card></AppShell>
+  {/* expect: theme/box-on-canvas */}
+  <AppShell sidebar={null}><ListBox theme="pale" color="cyan">Rows</ListBox></AppShell>
+  {/* expect: theme/mixed-elevation */}
+  <AppShell sidebar={null}><Card>Revenue</Card><Card theme="default">Costs</Card></AppShell>
+  {/* expect: theme/mixed-elevation */}
+  <AppShell canvas="alt" sidebar={<Sidebar sections={sections} />}><Card theme="border">Revenue</Card></AppShell>
+  {/* expect: theme/mixed-boxes */}
+  <AppShell sidebar={null}><Card theme="border">Revenue</Card><Card theme="default">Costs</Card></AppShell>
+  {/* expect: theme/mode-override */}
+  <AppShell sidebar={null}><ZenProvider theme="dark"><Card theme="default">Revenue</Card></ZenProvider></AppShell>
+  {/* expect: theme/navigation-surface */}
+  <AppShell canvas="flat" sidebar={<Sidebar background="alt" sections={sections} />}><Card theme="flat-border">Hours</Card></AppShell>
+  {/* expect: theme/navigation-surface */}
+  <PlatformPhone label="Inbox" canvas="surface" header={<TopNavigation type="alt" title="Inbox" />}><ListBox theme="border">Rows</ListBox></PlatformPhone>
+  {/* expect: theme/on-solid-content */}
+  <div><Card theme="solid" color="neutral"><Badge theme="on-color">+13%</Badge></Card></div>
+  {/* expect: theme/on-solid-content */}
+  <div><Card theme="solid" color="brand"><DockIcon icon="icon-coins-line" /></Card></div>
+  {/* expect: theme/on-solid-content */}
+  <div><Card theme="solid" color="orange"><Text tone="positive-base">Paid</Text></Card></div>
   {/* On a phone (card/spacing-by-count judges PlatformPhone frames and BottomSheets only). */}
   {/* expect: card/spacing-by-count */}
   <PlatformPhone label="Home"><Grid columns={3} gap="md"><Card>Inside</Card><Card spacing="small">Humidity</Card><Card spacing="small">kWh today</Card></Grid></PlatformPhone>

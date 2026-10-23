@@ -392,11 +392,11 @@ function PeopleDirectoryApp() {
     <>
       <AppFrame>
         {account.screen ?? (
-          // A white Canvas takes a Surface-alt Sidebar and bordered cards. The trail starts with the workspace's Master
+          // A white Canvas takes a Sidebar on the canvas (Surface/Default, no shadow, a divider) and bordered cards. The trail starts with the workspace's Master
           // crumb (its home icon), so the collapse toggle moves into the Sidebar's header (Collapse=Sidebar): two icons
           // side by side at the start of the header read as one control.
           <AppShell canvas="alt" collapse="sidebar"
-            sidebar={<Sidebar background="alt" logo={studioLogo} logoCollapsed={studioMark} selectedId={page} onItemClick={(item) => go(item.id as PeoplePage)}
+            sidebar={<Sidebar shadow={false} divider logo={studioLogo} logoCollapsed={studioMark} selectedId={page} onItemClick={(item) => go(item.id as PeoplePage)}
               sections={[{ items: [
                 { id: "people", label: "People", icon: "icon-users-line" },
                 { id: "teams", label: "Teams", icon: "icon-grid-01-line" },
@@ -613,7 +613,7 @@ const behaviourExamples: ExampleDef[] = [
     code: `<AppShell
   canvas="alt"
   collapse="sidebar"
-  sidebar={<Sidebar background="alt" logo={logo} sections={sections} selectedId={page} onItemClick={(item) => go(item.id)} />}
+  sidebar={<Sidebar shadow={false} divider logo={logo} sections={sections} selectedId={page} onItemClick={(item) => go(item.id)} />}
   header={
     <AppShellHeader
       leading={<Breadcrumbs items={[{ id: "workspace", label: "Đìzai Studio" }, { id: "people", label: "People" }]} />}
