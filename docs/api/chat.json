@@ -958,6 +958,14 @@
           "deprecated": null
         },
         {
+          "name": "onSeek",
+          "type": "(progress: number) => void",
+          "required": false,
+          "default": null,
+          "description": "Seek: with it the waveform is a slider (voice review C3) — a tap or drag on it, ←/→ (5 %), Home and End give the\n new share played, 0–1; set `progress` (and your audio's position) from it. Its value reads `elapsed` of `duration`.",
+          "deprecated": null
+        },
+        {
           "name": "overrides",
           "type": "Readonly<Record<string, Readonly<Record<string, unknown>>>>",
           "required": false,

@@ -133,7 +133,11 @@ function actionWords(action: HandoffAction): [string, string] {
     return [`${action.action === "navigate" ? "goes to the screen of the chosen item" : "opens the overlay of the chosen item"}: ${entries || "none yet"}`, action.action === "navigate" ? "navigate(…) by choiceKey(item) + onNavigate" : "setOverlay(…) by choiceKey(item)"];
   }
   switch (action.action) {
-    case "navigate": return [`goes to screen ${code(target)}`, `navigate(${JSON.stringify(target)}) + onNavigate`];
+    case "navigate": {
+      // A Screen's state ("orders:filtered"): that Screen, with the state passed.
+      const [screen, state] = target.split(":");
+      return state ? [`goes to screen ${code(screen)} in its ${code(state)} state`, `navigate(${JSON.stringify(screen)}) + state="${state}"`] : [`goes to screen ${code(target)}`, `navigate(${JSON.stringify(target)}) + onNavigate`];
+    }
     case "open": return [`opens overlay ${code(target)}`, `setOverlay(${JSON.stringify(target)})`];
     case "close": return ["closes the overlay", "setOverlay(null)"];
     case "back": return ["goes back", "back() + onBack on the first screen"];
@@ -142,6 +146,12 @@ function actionWords(action: HandoffAction): [string, string] {
       return [`shows a toast${title ? ` “${title}”` : ""}`, "toast(…): replace it with the real outcome"];
     }
     case "link": return [`opens ${target}`, "window.open(…)"];
+    case "filter": {
+      const filter = (action.target && typeof action.target === "object" ? action.target : {}) as { column?: unknown; value?: unknown; table?: unknown };
+      const by = `${typeof filter.column === "string" ? `its ${code(filter.column)} column` : "any column"}${typeof filter.value === "string" ? ` = “${filter.value}”` : ", the value it hands over"}`;
+      return [`filters ${typeof filter.table === "string" ? `the Table ${code(filter.table)}` : "the screen's Table"} by ${by}`, "TODO(dev): filter the rows in the app"];
+    }
+    case "step": return [`moves the screen's Stepper to its ${target === "previous" ? "previous" : "next"} step`, "TODO(dev): keep the Stepper's current step in state"];
     case "hover": return [`shows overlay ${code(target)} while the pointer is over it`, "onPointerEnter / onPointerLeave → setOverlay"];
     default: return [action.action, ""];
   }

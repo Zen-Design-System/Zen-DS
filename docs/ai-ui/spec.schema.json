@@ -1978,7 +1978,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Responding)."
+                "description": "The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Thinking, Responding)."
               },
               "onDone": {
                 "anyOf": [

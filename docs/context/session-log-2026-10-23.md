@@ -560,3 +560,103 @@ Branch zen/feat/chart-push-real-data-20261023 (stacked on the format presets: la
   Vitest 80 / 80, audit 1512 / 390 / 320 + dark + behaviour 0 new, Studio E2E 340 / 341 — B-10 (Export → Import the
   same text) timed out on a click while the machine was loaded (C's E2E ran beside it ~25 s) and passed alone right
   after (1 / 1). Contact sheets: "Money as a preset" reads "$" on the axis, Tooltip and list at 390 and 1512.
+
+- Static: tsc, usage, style, guidelines, studio, ai-ui, mcp, nested-paths. The conformance run and the gate wait for a
+  browser slot.
+
+## Voice proposals (tier M; the user approved them all, relayed by the progress session: "chia như đề xuất")
+
+Branch zen/feat/voice-proposals-20261023 from main 9fe063d2. Review `docs/research/voice-usability-review-2026-10-13.md`.
+- A4: `AiVoiceConversation state="thinking"`: the signal rests as five 4px dots that brighten in turn (opacity) and the
+  halo breathes (voice.css, infinite, inside no-preference; reduced motion keeps still dots); Badge "Thinking",
+  heading "Thinking it through", speaker "You · Said", Interrupt as the main action. Figma's variant stays QUESTIONS
+  Voice (a), now noting the code look.
+- R7: `useVoiceLevels(stream, { bars = 56, rate = 7, paused })` (Voice/useVoiceLevels.ts): AnalyserNode RMS → dBFS −60…0
+  → 0–1, one level per 1/rate s, undefined without a stream.
+- C3: `ChatVoice onSeek(share)`: the waveform becomes an APG slider (Playback position, value "0:16 of 0:32"; pointer
+  with capture, ←/→ 5 %, PageUp/Down 10 %, Home, End; RTL flips the pointer), focus ring Focus/Accent/Solid.
+- R4, R6, A5, A8: guideline Do lines; examples: Discard with an Undo toast, "Your microphone's real levels" (silence
+  warning after 3 s under the quiet line), the conversation ends your turn on 1.2 s of silence then thinks, "A turn Zen
+  did not catch". Chat example seeks.
+- Labels (en, vi): voiceThinking, voiceThinkingHeading, voiceThinkingGuidance, voiceYouSaid, voicePosition,
+  voicePositionValue. Generated docs rebuilt (guidelines, api, ai-ui). Test tests/interaction/voice-proposals.test.tsx.
+- Overlap: the AppShell session's data-* forwarding branch (#246) edits the same component signatures (Voice.tsx,
+  Chat.tsx); merged it in early, ChatVoice keeps `onSeek` and `...rest`.
+- Gate (slot from debt-320px, Giám sát's GO; `--isolated --pages=voice,chat`): **PASS** — Vitest 83/83 (the new test
+  6/6), audits 1512 / 390 / 320, dark, keyboard / APG, voice 8 and chat 10 examples; contact sheets looked at (the narrow
+  recorder footer wraps "Live levels · 7 a second" as the existing "48 kHz · Mono" one does).
+
+## Studio option C: links between components as prototype actions (tier M; BACKLOG P2, user decision 2026-10-23)
+
+Branch claude/studio-option-c-289219. The user's call (G2 round): a Figma-style Prototype action, "open this popover,
+anchored to this element", no variables. Asked once more here: filter Chip / Search → Table and Stepper Next →
+**both** ways; pushing Overlays and actions to Figma → BACKLOG (P3 line).
+
+| Case | Studio | Figma |
+| --- | --- | --- |
+| Chip → DatePicker | On click → Open overlay; the DatePicker (takes `anchorRef`) sits by the Chip in Play | Open overlay, Position Manual (by the trigger) |
+| Chip → Bottom Sheet | On tap → Open overlay; the sheet places itself | Open overlay, Bottom center |
+| Card in an Overlay | Overlay `position="manual"`: below the trigger, start edge, 4px, flips above (useAnchoredPosition) | Manual + `overlayRelativePosition` |
+| Filter / Next, Figma's way | ⌘D the Screen (or a Screen state) and Navigate to it: `proto.navigate("orders:paid")` | Navigate to a frame |
+| Filter, live | `proto.filter({ column, value, match, table })`: the shown Screen's Table keeps matching rows | none (needs variables) |
+| Next, live | `proto.step("next" \| "previous", { stepper })`: the Screen's Stepper moves | none ("Change to" changes its own instance only) |
+
+- Model (`protoModel.ts`, pure): `screenTargetOf`, `targetOfFrame` keeps a state (a ⊕ dropped on a state frame leads
+  there), `filterCode/filterOf/filterRows/filterValuesOf/cellText/columnsOf`, `stepCode/stepOf/steppedIndex/stepperOf`,
+  `layersIn/targetLayerOf/layerNameOf`, `actionsIn/stepTargetsOf`. Dialect: `filter`, `step` actions; a Screen state is
+  any lowercase name (was empty/loading/error only).
+- Play (`runtime.tsx`, `playFlow.tsx`, `renderPage.tsx`): `open` gets the pressed element; the anchor is that element,
+  else the layer that opens the Overlay on the shown Screen (Present from the Overlay frame, After delay); the Overlay
+  waits one layout pass for it. The trigger pressed again closes its overlay. Filter and step state is per Screen visit
+  (Restart and a new Screen drop it); Play holds only the Steppers a Change step drives.
+- Prototype tab: Position Manual; Navigate to lists states; Filter table rows Table (2+ named) / Column / Value (empty:
+  what the trigger hands over; a text input writes `match: "contains"`); Change step rows Step (Previous/Next) / Stepper.
+- Handoff: compile turns a state target into navigate + "pass state", filter / step into TODO(dev) handlers, Manual into
+  "anchor it". Push notes "N interactions (Prototype tab): not pushed".
+- Found on the way, fixed: Update from Figma without a base (another browser) offered to remove every Studio
+  `proto.*` prop (the page stood in for the base); figma-diff now never treats a missing prototype action as Figma's.
+  And Escape in Play with a DatePicker overlay open left Play (no Escape owner matched it): Escape now closes any open
+  Play overlay first (Player.tsx).
+- Tests: protoModel selftest 29 → 44, dialect +2, compile +6 (option C page), figma-diff +2 (the action survives, two
+  ways too); `tests/interaction/studio-option-c.test.tsx` (4: DatePicker 4px below its Chip and closed by a day and by
+  the Chip, Manual Card below its Button, Chip and Search filters, Stepper Next/Previous/passed step + state target);
+  E2E PT-18…PT-21 (prototype group: the Prototype tab writes them, Play runs them).
+- Gate (Giám sát's slot after picture-drops; `--isolated`, 21 files, main 17b4ee93): **PASS** — static, Studio
+  self-tests, Vitest 83/83, Studio E2E 344 works / 1 broken (4 shards, 1815 s). The broken row was PT-21: its seeded
+  page placed the state frame at x 1600, so both frames opened out of view and the first click selected nothing; the row
+  now fits the board (⇧1) first and its steps name themselves on failure. PT-19 passed on retry in the gate. Then
+  `studio:e2e --rows=PT-18…PT-21 --no-retry` twice: 4/4 both times. CI quick steps all 0.
+
+## Update from Figma in another browser (tier M; BACKLOG P3, P6b leftover; user "chia như đề xuất", via the parent session)
+
+Branch zen/feat/figma-export-baseline-20261023 from main 9fe063d2. A pull in a browser that had not exported the frame
+found no base (`figmaExports` lived in that browser's IndexedDB only): the frame did not even match its page, so it came
+in as a new page, or compared two ways.
+- `tools/studio/page-figma.mjs` (+ .d.mts, selftest): `<id>.figma-base.json` = `{ format: 1, exports[≤5], pull? }`,
+  `validateFigma`, `joinFigma` (exports by version, the later `at` wins; the later pull), `fitFigma` (drops the oldest
+  exports past a size).
+- `pages-folder.mjs` `readFigma` / `writeFigma` (8 MB, atomic, no links; trashed with the page, as comments);
+  `GET /pages/figma`, `POST /pages/figma-write`; `studioApi.pageFigma*`; the dev and linked-folder mirrors.
+- `pageStore.ts`: `keepFigmaExport`, `setFigmaBase` and a pulled import write the bases beside the page, joined with the
+  folder's (another browser's exports stay; 6 MB cap under the server's body limit). `loadSharedFigma(id)` joins the
+  folder's into this browser's record; `findPulledPage` reads it before giving up on the exported page, `pulledChanges`
+  before it picks the base. The two-way copy now says neither this browser nor the pages folder keeps a base.
+- E2E HO-13: export in one context, a second context (its own IndexedDB) on the same dev server imports the frame read
+  back with two designer edits → Update from Figma three ways, 2 changes ticked; Apply keeps Container / titleLines /
+  ListBox theme / aria and writes the pull back beside the page.
+- C had built the same in parallel (zen/fix/studio-figma-base-mirror-20261023, `<id>.figma-base.json`, no PR; Giám sát
+  gave the item here). Compared: both keep the exports and the last pull and test with a second browser context; this
+  version also joins with the folder's file before a write (another browser's exports stay), checks the file's shape,
+  shares the first pull of an imported page, and its HO-13 applies and checks the pull written back. Folded in from C:
+  the file is compact JSON (page documents roughly halve against pretty-printed), and its name ends in `.figma-base.json`
+  (C's catch: `<id>.figma.json` is Export › Figma's own download, which a person may save into the linked folder).
+- Gate (slot after C; main a77113a0 merged): static ✓, Studio self-tests ✓, Studio E2E 340/342. Broken: HO-13 ("already
+  matches the frame": 0 changes) and I-03 (inspector, two quick toggles; works alone, a load flake). Cause of HO-13, the
+  real root of the BACKLOG item: a page's document and its element ids live in each browser's IndexedDB; the page file
+  carries none, so another browser rebuilt the document with new ids and no key of the exported frame matched
+  (figma-diff skips a layer the page lacks; the old two-way compare tracked Figma ids only, so it listed nothing either).
+  Fix: `doc.mjs` `carryIds(doc, from)` lends `from`'s ids wherever the trees line up (same component, same place, and
+  below it only where the children are the same components in the same order, so an added row never takes its
+  neighbour's id; 6 doc selftest checks); `localApi.lendPageIds` gives the page's document the export's (or the last
+  pull's) ids before the compare, unless it already holds most of them (this browser's own export). After: HO-11, HO-13,
+  I-03 3/3; handoff group 13/13; studio:selftest ✓.

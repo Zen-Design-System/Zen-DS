@@ -531,7 +531,7 @@
         "onStart": {
           "x-kind": "action",
           "params": [],
-          "description": "The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Responding)."
+          "description": "The main action: Start talking (Ready), Done speaking (Listening), Interrupt (Thinking, Responding)."
         },
         "onDone": {
           "x-kind": "action",
@@ -23818,7 +23818,12 @@
       "do": [
         "Put them on a Card or a Surface: the frame itself is transparent (Figma).",
         "Wire every action you show: a main action without its handler does nothing (harness: voice/actions-wired).",
-        "Let your audio code drive state, and give the time and levels from it: one recorder level every 1/7 s (oldest dropped) keeps a real take scrolling at the timeline's speed; leave levels unset in a prototype and the sample moves by itself.",
+        "Let your audio code drive state, and give the time and levels from it: useVoiceLevels(stream) gives one recorder level every 1/7 s (oldest dropped), so a real take scrolls at the timeline's speed; leave levels unset in a prototype and the sample moves by itself.",
+        "Let a person take Discard back: an Undo in a toast, or a confirmation for a take longer than a few seconds — a take is never lost to one press.",
+        "Say when nothing is heard: after about 3 seconds of silence while recording or listening, set guidance to what to check (\"No sound detected. Check that your microphone is on and not muted.\").",
+        "End the person's turn on silence (end-of-speech detection) and let them interrupt by speaking, as voice modes do; Done speaking stays as the manual way.",
+        "Show Thinking between the person's last word and the assistant's first spoken word, so the answer's words never show before there is an answer.",
+        "When a turn is not heard or the connection drops, say what happened and what to do in heading and guidance (\"I didn’t catch that\" · \"Say it again, a little closer to your microphone.\"), and keep listening.",
         "On a phone, use a white screen (canvas surface) so the Surface/Alt signal and card show."
       ],
       "dont": [

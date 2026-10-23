@@ -13,10 +13,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   variables-host TOKEN_FILES), drafts cannot create a file yet, and the native token generator would see a new slug.
   Single-mode only (`:root`) is the proposal. Pointer: `docs/research/studio-variables-v2-spec-2026-10-23.md` § Status.
 
-- **P2 · Studio option C, waiting for the user (2026-10-15):** links between components on a template page (a Chip
-  that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
-  Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their
-  own state) is done: session log 2026-10-15 "Self-managed state".
+- **P3 · Push Overlays and prototype actions to Figma (user 2026-10-23, option C: later):** the push sends the first
+  Screen only and names the Prototype tab's actions it drops; Figma could hold Navigate to, Open / Close overlay and Back
+  as reactions (plugin `setReactionsAsync`) once Screens and Overlays push as frames. Manual's `overlayPositionType` is
+  read-only in the plugin API (a hand step in Figma). Session log 2026-10-23 "Studio option C".
 - **P2 · Example className, round 2 (2026-10-23, session B; user: "theo bạn cái nào lợi hơn lâu dài, chính xác nhất"):**
   the 2026-10-12 coverage plan's P3 (TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem,
   DatePickerSheet, chat, Metric) and P4/P5 (className 219 → 112) were merged on 2026-10-13 (spec
@@ -49,15 +49,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   fixed height, so the Chart fills it and the Values column (space between) drifts from the rows (vertical charts just
   grow their plot). The fix is the plugin importer's: shrink an instance by a layer it hides, or hug it once its Plot is
   back to the sample's size (`studio-import.js` INSTANCE branch). In a ChartCard the rows line up.
-- **P2 · Voice proposals awaiting the user's approval (2026-10-13):** Discard confirm or Undo (R4), a silence warning and
-  auto end-of-turn in the guideline (R6, A5, A8), `useVoiceLevels(stream)` so real apps move like the sample (R7),
-  `state="thinking"` (A4), ChatVoice `onSeek` (C3). Pointer: `docs/research/voice-usability-review-2026-10-13.md`.
 - **ListItem Value in Figma — decided, not built (user, 2026-10-23: "not now"; 2026-10-13: "code first"):** code has
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
   asks for it.
-- **P3 · Update from Figma in another browser (2026-10-13, P6b leftover):** a pull in a browser that kept no export
-  falls back to a two-way comparison. Pointer: `docs/research/studio-figma-push-spec-2026-10-12.md` §8 "P6b".
 - **P3 · Figma contract suites still to write (2026-10-23; captures done the same day):** the 14 chart sets and
   Chart/Chart-Card now have contracts (`docs/figma-contracts/chart-*.json`, read 2026-10-23) and avatar-single,
   chat-bubbles, input-search-primitives, table-cells, datepicker-sidebar, input-search and

@@ -377,6 +377,12 @@ export type ZenLabels = {
   voiceAssistant: string;
   voiceListening: string;
   voiceResponding: string;
+  /** AiVoiceConversation Thinking (between your last word and its first spoken word): the badge, heading and line. */
+  voiceThinking: string;
+  voiceThinkingHeading: string;
+  voiceThinkingGuidance: string;
+  /** Who the transcript is from while it thinks: what you said, finished. */
+  voiceYouSaid: string;
   voiceReadyHeading: string;
   voiceListeningHeading: string;
   voiceRespondingHeading: string;
@@ -401,6 +407,9 @@ export type ZenLabels = {
   voiceReadyToPlay: string;
   voicePlaying: string;
   playbackSpeed: (speed: string) => string;
+  /** ChatVoice with onSeek: the waveform's slider name and where playback is ("0:12 of 0:32"). */
+  voicePosition: string;
+  voicePositionValue: (elapsed: string, duration: string) => string;
 };
 
 /** Range numbers with the language's thousands separator: en 1,284 · vi 1.284. */
@@ -678,6 +687,10 @@ const en: ZenLabels = {
   voiceAssistant: "Zen voice",
   voiceListening: "Listening",
   voiceResponding: "Responding",
+  voiceThinking: "Thinking",
+  voiceThinkingHeading: "Thinking it through",
+  voiceThinkingGuidance: "Working on an answer. You can interrupt.",
+  voiceYouSaid: "You · Said",
   voiceReadyHeading: "Let’s talk",
   voiceListeningHeading: "I’m listening",
   voiceRespondingHeading: "Here’s what I found",
@@ -701,6 +714,8 @@ const en: ZenLabels = {
   voiceReadyToPlay: "Ready to play",
   voicePlaying: "Playing",
   playbackSpeed: (speed) => `Playback speed ${speed}`,
+  voicePosition: "Playback position",
+  voicePositionValue: (elapsed, duration) => `${elapsed} of ${duration}`,
 };
 
 const vi: ZenLabels = {
@@ -974,6 +989,10 @@ const vi: ZenLabels = {
   voiceAssistant: "Zen voice",
   voiceListening: "Đang nghe",
   voiceResponding: "Đang trả lời",
+  voiceThinking: "Đang nghĩ",
+  voiceThinkingHeading: "Mình đang suy nghĩ",
+  voiceThinkingGuidance: "Đang soạn câu trả lời. Bạn có thể ngắt lời.",
+  voiceYouSaid: "Bạn · Đã nói",
   voiceReadyHeading: "Cùng trò chuyện",
   voiceListeningHeading: "Mình đang nghe",
   voiceRespondingHeading: "Đây là điều mình tìm được",
@@ -997,6 +1016,8 @@ const vi: ZenLabels = {
   voiceReadyToPlay: "Sẵn sàng phát",
   voicePlaying: "Đang phát",
   playbackSpeed: (speed) => `Tốc độ phát ${speed}`,
+  voicePosition: "Vị trí phát",
+  voicePositionValue: (elapsed, duration) => `${elapsed} trên ${duration}`,
 };
 
 /** Built-in dictionaries by language subtag. */

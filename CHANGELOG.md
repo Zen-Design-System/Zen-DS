@@ -68,6 +68,18 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Global Colors' Zen-High-Contrast mode under Increase Contrast — with `.zenSystemContext()` / `with(colorScheme:contrast:)`
   / `with(traits:)` in Swift and `ZenContext.fromMediaQuery` / `withSystem` in Dart, plus `ZenContext.highContrast`; the
   test vectors cover the high-contrast mode (1218 vectors, from 830) (2026-10-23).
+- Zen Studio prototypes (option C): an Overlay at Position Manual opens next to the layer that opens it, and a
+  DatePicker or Popover in an Overlay sits by its trigger, as Figma's Manual overlay; Navigate to takes a Screen's state;
+  Filter table (a Chip, Search or choice control filters the Screen's Table) and Change step (Next / Previous on its
+  Stepper) run in Play. Screen states take any lowercase name; Update from Figma keeps the Studio's prototype actions
+  (2026-10-23).
+- Voice (the user's approval of the 2026-10-13 review): `AiVoiceConversation state="thinking"` between your last word
+  and its first spoken word (the voice rests as dots that brighten in turn; Interrupt is the main action; Figma's
+  variant is still a designer question); `useVoiceLevels(stream, { bars, rate, paused })` turns a microphone into the
+  levels at the waveform's 7 a second; `ChatVoice onSeek` makes the waveform a slider (tap or drag, ←/→, Home, End).
+  The Voice guideline adds Undo or a confirmation for Discard, a silence warning, ending the turn on silence and plain
+  words for a turn it did not hear; the examples show each. New labels: voiceThinking, voiceThinkingHeading,
+  voiceThinkingGuidance, voiceYouSaid, voicePosition, voicePositionValue (en, vi) (2026-10-23).
 - Zen Studio's Properties panel shows a chart's Figma properties in Figma's order and names: Orientation, Type, Color,
   Show Legend, Show Average, Legend, Total, Size and the Donut's Total Label / Value (the header rows stay ChartCard's),
   and the Main component frame draws the chart sets' variants; `component-properties.json` has the ❖ Chart page
@@ -1496,6 +1508,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Zen Studio, Update from Figma in another browser (2026-10-23): Export › Figma and every pull also keep their base
+  beside the page in the pages folder (`<id>.figma-base.json` in the dev server's .zen-studio/pages, or the linked folder), so
+  a frame pulled back in a browser that did not export it is still compared three ways: only what the designer changed
+  is listed and ticked, and what Figma cannot hold stays. That browser's page takes the export's element ids where its
+  structure matches (it rebuilt the page with ids of its own, which no layer of the frame named).
 - Zen Studio: ⌥⌘A Select matching layers, as Figma's: the same layer in the other frames (its Section's only), with
   automatic names compared without their number. Also Select all with same › Properties, Fill, Stroke, Effect, Text
   properties, Font and Instance, from the layer menu and Quick actions.
