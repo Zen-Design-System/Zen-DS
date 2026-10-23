@@ -4,7 +4,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { E2E_ROW_SECONDS, SHARD_TARGET_S, e2eRowSeconds, pageEstimator, pageSeconds, planE2E, planShards, readTimings, shardCapS, writeTimings } from "./lib.mjs";
+import { E2E_ROW_SECONDS, SHARD_TARGET_S, e2eRowSeconds, pageEstimator, pageSeconds, planE2E, planShards, readTimings, retryPagesFrom, shardCapS, writeTimings } from "./lib.mjs";
 
 const failures = [];
 let passed = 0;
@@ -87,6 +87,28 @@ ok("cap: 3× a long plan", shardCapS(900) === 2700);
     ok("E2E per row: the gate's measure first", e2eRowSeconds(root, t) === 7.2);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
+// retryPagesFrom (--failed, process audit B.2): which pages a re-run audits again.
+{
+  const runDir = fs.mkdtempSync(path.join(os.tmpdir(), "zen-qa-retry-"));
+  try {
+    const errorKinds = new Set(["overflow", "edges"]);
+    const pagesIn = ["badge", "card", "chip", "divider"];
+    const fail = [{ group: "runtime", name: "Platform audit 1512 + 390 + 320", status: "fail" }, { group: "runtime", name: "Dark mode audit", status: "pass" }];
+    // The main audit: an error on card, only a warning kind on chip; divider is in no report (its shard stopped).
+    fs.writeFileSync(path.join(runDir, "audit.json"), JSON.stringify({ pages: { "badge@1512": {}, "card@390": { edges: ["x"] }, "chip@1512": { contrast: ["w"] } } }));
+    fs.writeFileSync(path.join(runDir, "audit-dark.json"), JSON.stringify({ pages: { "badge@1512": {}, "card@1512": {}, "chip@1512": {}, "divider@1512": {} } }));
+    const redo = retryPagesFrom({ steps: fail, runDir, pages: pagesIn, errorKinds, behaviour: false });
+    ok("--failed: the page with an error and the page no report saw", redo.join() === "card,divider");
+    ok("--failed: browser steps that all passed re-run nothing", retryPagesFrom({ steps: [{ group: "runtime", name: "Platform audit", status: "pass" }], runDir, pages: pagesIn, errorKinds }).length === 0);
+    ok("--failed: browser steps a static ✗ skipped re-run every page", retryPagesFrom({ steps: [{ group: "runtime", name: "Browser steps", status: "skip" }], runDir, pages: pagesIn, errorKinds }).join() === pagesIn.join());
+    fs.writeFileSync(path.join(runDir, "behaviour.json"), JSON.stringify({ pages: { "badge@1512": [{ severity: "error" }], "card@1512": [], "chip@1512": [{ severity: "error", new: false }], "divider@1512": [] } }));
+    const withBehaviour = retryPagesFrom({ steps: fail, runDir, pages: pagesIn, errorKinds, behaviour: true });
+    ok("--failed: a new behaviour error re-runs its page; a baselined one does not", withBehaviour.join() === "badge,card,divider");
+  } finally {
+    fs.rmSync(runDir, { recursive: true, force: true });
   }
 }
 

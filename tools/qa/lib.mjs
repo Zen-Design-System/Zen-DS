@@ -463,6 +463,30 @@ export const dirtyFiles = (ledger, root = ledger.repo) => Object.entries(ledger.
   .filter(([rel, f]) => f && typeof f === "object" && (!f.passedAt || f.editedAt > f.passedAt) && (!root || fs.existsSync(path.join(root, rel))))
   .map(([rel]) => rel);
 
+/* ── --failed (process audit B.2) ───────────────────────────────────────────────────────────────────────────── */
+/**
+ * The pages a `--failed` run audits again, from the last run's steps and its runtime reports in `runDir` (audit.json,
+ * audit-dark.json, behaviour.json, keyed page@width): [] when its browser steps all passed, every page when they never
+ * ran (a static ✗ skipped them), else the pages with an error finding or missing from a report (a shard that stopped).
+ */
+export function retryPagesFrom({ steps, runDir, pages, errorKinds, behaviour = true }) {
+  const ran = steps.filter((x) => (x.group === "runtime" || x.group === "behaviour") && !/^(Studio E2E|Unsaved Zen Studio drafts)/.test(x.name));
+  if (!ran.length || ran.some((x) => x.name === "Browser steps" && x.status === "skip")) return pages;
+  if (!ran.some((x) => x.status === "fail")) return [];
+  const redo = new Set();
+  for (const [file, audit] of [["audit.json", true], ["audit-dark.json", true], ["behaviour.json", false]]) {
+    if (!audit && !behaviour) continue;
+    let rep = null; try { rep = JSON.parse(fs.readFileSync(path.join(runDir, file), "utf8")); } catch { /* not written */ }
+    const seen = new Set(Object.keys(rep?.pages ?? {}).map((key) => key.split("@")[0]));
+    for (const page of pages) if (!seen.has(page)) redo.add(page);
+    for (const [key, entry] of Object.entries(rep?.pages ?? {})) {
+      const bad = audit ? Object.entries(entry ?? {}).some(([kind, items]) => errorKinds.has(kind) && items?.length) : (entry ?? []).some((f) => f.severity === "error" && f.new !== false);
+      if (bad) redo.add(key.split("@")[0]);
+    }
+  }
+  return pages.filter((page) => redo.has(page));
+}
+
 /* ── run in progress (S2) ───────────────────────────────────────────────────────────────────────────────────────── */
 export function pidAlive(pid) {
   if (!Number.isInteger(pid) || pid <= 0) return false;
