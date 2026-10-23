@@ -160,6 +160,23 @@ Two BACKLOG P1s waiting on the user (brief from the supervisor: "xử hết back
     2026-10-22T19-17-48-192108d7). No platform example draws a second series on a hue Solid, so a throwaway browser test
     measured the Bullet target on Brand / Cyan / Yellow / Orange Solid cards: rgba(0, 0, 0, 0.486) in light and dark.
 
+## Session B · Example className round 2, PR 3: `sticky` (tier M; user "Thêm prop sticky cho Box", "Bottom = Fixed, Top = Sticky")
+
+- Spec: docs/research/layout-sticky-spec-2026-10-23.md (Figma facts measured with use_figma; the AppShell session OK'd
+  the Body rule). `sticky="top|bottom"` on Stack, Grid, Box, Shape; AppShell Body bottom padding through
+  `--zen-app-shell-body-pad-end`, a bottom-sticky descendant takes it inside itself; `surface="canvas"` follows the
+  shell's canvas; chat / ai-chat / ai-ui docks without CSS; Studio Prototype › Scroll behavior (canvas in place);
+  push bottom → Fixed (absolute, on top), top → Sticky; pull reads numberOfFixedChildren and the REST export's Sticky;
+  native writes scrollBehavior. Plugin 397fc74 on studio-import (npm test green; its API sequence checked live).
+- Found in my own work and fixed: React saw two Prototype-panel children keyed by the layer (Scroll behavior beside
+  Interactions); the first gate failed on a stale compile-api.generated.mjs (individual selftests do not cover it:
+  run `npm run studio:selftest`).
+- Visual diff (chat, ai-chat, ai-ui, app-shell, templates, layout, shape; 1512 + 390; before = main 0f4c28cf in a
+  scratch worktree): 227 identical, 1 changed (chat 01, 3 px, the same noise as PR 2). Dock probe at 1512: sticky,
+  −24 / +24, its bottom on the scroller's bottom mid-scroll and at the end.
+- E2E FW-210/211 works; app-shell + app-shell-grid tests 52/52; gate `--isolated` PASS (0 errors, Studio E2E 338).
+- Not run: a live native paste of a sticky layer (BACKLOG P3).
+
 ## Session C · Figma-parity leftovers (tier S each; Giám sát's queue, plan studio-figma-design-parity-2026-10-18.md)
 Branch `zen/fix/studio-parity-leftovers-20261023`; both BACKLOG lines archived.
 - ⇧⌘G on several layers (BACKLOG P2): `ungroupLayers` in edit/groupLayers.ts ungroups every selected group or frame,

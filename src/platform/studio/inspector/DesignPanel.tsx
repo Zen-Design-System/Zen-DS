@@ -670,7 +670,8 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   const sizingSpecs = sizing ? specs.filter((spec) => sizingPropNames.has(spec.name)) : [];
   // position, constraintX/Y and inset* of Stack, Grid and Box go to the Position section (ActionBar keeps its own position).
   const positioned = ["Stack", "Grid", "Box", "Shape"].includes(name);
-  const positionSpecs = positioned ? specs.filter((spec) => (positionProps as readonly string[]).includes(spec.name)) : [];
+  // sticky is Figma's Scroll behavior: the Prototype tab's (PrototypePanel), so it is no Properties row either.
+  const positionSpecs = positioned ? specs.filter((spec) => (positionProps as readonly string[]).includes(spec.name) || spec.name === "sticky") : [];
   const layoutSpecs = isLayout ? specs.filter((spec) => isLayoutProp(name, spec.name) && !sizingSpecs.includes(spec) && !positionSpecs.includes(spec)) : [];
   const textSpecs = isText ? specs.filter((spec) => textProps.has(spec.name)) : [];
   // Box fill, border, corners and effect; Image corners: the Appearance and Effects sections (Figma UI3), not Properties.

@@ -41,8 +41,15 @@
 .zen-app-shell__sidebar { position: sticky; z-index: 21; top: var(--zen-app-shell-top); display: flex; height: calc(var(--zen-app-shell-height, 100dvh) - var(--zen-app-shell-top)); flex: 0 0 auto; }
 .zen-app-shell__sidebar > * { height: 100%; }
 
-/* Body (Figma Body): the page, Margin-Comfortable on every side, Spacing/Gap/XSmall between its blocks. */
-.zen-app-shell__body { display: flex; box-sizing: border-box; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-margin-comfortable, 24px); outline: none; }
+/* Body (Figma Body): the page, Margin-Comfortable on every side, Spacing/Gap/XSmall between its blocks. The bottom
+   padding is --zen-app-shell-body-pad-end in every layout, so a docked last child (below) takes exactly that margin. */
+.zen-app-shell__body { --zen-app-shell-body-pad-end: var(--zen-margin-comfortable, 24px); display: flex; box-sizing: border-box; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px) var(--zen-app-shell-body-pad-end); outline: none; }
+/* A layer that sticks to the Body's bottom (sticky="bottom" at the end of the page: a chat composer under its thread,
+   directly in the Body or in the conversation's own section) takes the Body's bottom margin inside itself: the content
+   scrolls under the margin as well as under the dock, and the dock keeps the page margin below it while it sticks and at
+   the end of the page alike. Its footprint in the flow is unchanged (−margin, +padding); its own bottom padding gives way
+   to the page margin. A dock in a scroll Stack or Box sticks to that scroller instead and keeps its own box. */
+.zen-app-shell__body [data-sticky="bottom"]:not([data-position="absolute"], [data-scroll] *) { margin-block-end: calc(-1 * var(--zen-app-shell-body-pad-end)); padding-block-end: var(--zen-app-shell-body-pad-end); }
 /* Docs: a reading column (max 720) centred in the Main-Container. Focus: the task column (max 680) beside its summary
    pane, both centred, Spacing/Gap/Large apart.
    zen-allow-slot-size: Figma's Column max widths (720 · 680), which have no token. */
@@ -100,7 +107,7 @@
 .zen-app-shell__floating-items { position: absolute; right: var(--zen-margin-comfortable, 24px); bottom: var(--zen-margin-comfortable, 24px); display: flex; align-items: center; gap: var(--zen-spacing-gap-large, 24px); filter: drop-shadow(0 4px 8px var(--zen-color-shadow-neutral-strongest, rgb(0 0 0 / 16%))) drop-shadow(0 0 1px var(--zen-color-shadow-neutral-light, rgb(0 0 0 / 4%))); }
 /* The end of the page keeps the floating row's height free, so the last row scrolls clear of it: its bottom margin, a
    Large button (Element-Size/Popular/3XLarge) and Padding/XSmall above it (88 at Comfortable). */
-.zen-app-shell:has(.zen-app-shell__floating) .zen-app-shell__body { padding-block-end: calc(var(--zen-margin-comfortable, 24px) + var(--zen-element-size-popular-3-xlarge, 56px) + var(--zen-spacing-padding-xsmall, 8px)); }
+.zen-app-shell:has(.zen-app-shell__floating) .zen-app-shell__body { --zen-app-shell-body-pad-end: calc(var(--zen-margin-comfortable, 24px) + var(--zen-element-size-popular-3-xlarge, 56px) + var(--zen-spacing-padding-xsmall, 8px)); padding-block-end: var(--zen-app-shell-body-pad-end); }
 /* Phones: hidden while the page scrolls down (useHideOnScroll), back on a scroll up or when it holds focus; it slides
    by Spacing/Padding/Medium × the motion movement (0 with reduced motion, so only the fade stays). */
 .zen-app-shell__floating-items { transition: opacity var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease-out), translate var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease-out); }
@@ -193,7 +200,7 @@
 
 /* Body: Spacing/Padding/XSmall above, Margin-Comfortable at the sides, Spacing/Padding/Large below; the page's sections
    Layout-Mobile/Section-Gap apart. */
-.zen-app-shell[data-layout="mobile"] .zen-app-shell__body { gap: var(--zen-layout-mobile-section-gap, 32px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-margin-comfortable, 20px) var(--zen-spacing-padding-large, 20px); }
+.zen-app-shell[data-layout="mobile"] .zen-app-shell__body { --zen-app-shell-body-pad-end: var(--zen-spacing-padding-large, 20px); gap: var(--zen-layout-mobile-section-gap, 32px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-margin-comfortable, 20px) var(--zen-app-shell-body-pad-end); }
 /* Bar: the TopNavigation sticks under the banner. */
 .zen-app-shell__top-nav { position: sticky; z-index: 20; top: var(--zen-app-shell-top); min-width: 0; }
 /* Top=Bar with a Transparent TopNavigation (Figma F1–F12: the bar has no fill, it sits on the page's Canvas): the sticky

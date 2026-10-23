@@ -6362,6 +6362,20 @@
                 ],
                 "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
               },
+              "sticky": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "top",
+                      "bottom"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma \"Fix position when scrolling\" (Prototype › Scroll behavior): the layer stays in its place in the layout and, while its nearest scrolling ancestor (an AppShell Body, a pane, a"
+              },
               "effectStyle": {
                 "anyOf": [
                   {
@@ -19855,6 +19869,20 @@
                   }
                 ],
                 "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
+              },
+              "sticky": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "top",
+                      "bottom"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma \"Fix position when scrolling\" (Prototype › Scroll behavior): the layer stays in its place in the layout and, while its nearest scrolling ancestor (an AppShell Body, a pane, a"
               },
               "radiusTopLeft": {
                 "anyOf": [
@@ -34367,6 +34395,20 @@
                 ],
                 "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
               },
+              "sticky": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "top",
+                      "bottom"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma \"Fix position when scrolling\" (Prototype › Scroll behavior): the layer stays in its place in the layout and, while its nearest scrolling ancestor (an AppShell Body, a pane, a"
+              },
               "radiusTopLeft": {
                 "anyOf": [
                   {
@@ -37717,6 +37759,20 @@
                   }
                 ],
                 "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
+              },
+              "sticky": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "top",
+                      "bottom"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma \"Fix position when scrolling\" (Prototype › Scroll behavior): the layer stays in its place in the layout and, while its nearest scrolling ancestor (an AppShell Body, a pane, a"
               },
               "radiusTopLeft": {
                 "anyOf": [
