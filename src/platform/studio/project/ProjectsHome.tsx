@@ -81,6 +81,8 @@ function ProjectCard({ project, pages }: { project: Project | null; pages: numbe
   const modes = project?.theme.modes;
   return (
     <Card theme="border" spacing="sm" className="studio-projects__card">
+      {/* zen-allow-mode-override: the thumbnail keeps the Studio chrome's own mode (chromeTheme); it re-declares it so the
+          project's brand colours resolve in that scope, without switching Light/Dark. */}
       <ZenProvider className="studio-projects__thumb" brand={(project ? projectBrand(project.id) : "zen") as ZenBrand} theme={chromeTheme}
         componentTheme={modes?.componentTheme ?? "neutral-s1"} radius={modes?.radius ?? "rounded"} density="compact" typography="dashboard" contrast="standard" breakpoint="desktop" portal={false} syncDocument={false} inert aria-hidden="true">
         <ol className="studio-projects__swatches">

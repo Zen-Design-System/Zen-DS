@@ -46,14 +46,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (`docs/figma-contracts/layer-renames-2026-10-12.json`, with the undo map). Other files see them once the library is
   published. What `ALLOWED` in nested-paths.mjs still lists is structure, not naming: unnamed bottom-navigation items
   and stepper steps, pages named by number, ChatComposer actions named by job, code-only layers (Retry, Counter…).
-- **P2 · Code-side rules for the Figma theme audit — waits for the user (2026-10-13, rest of "Box theme vocabulary in
-  code"; re-checked 2026-10-23):** the vocabulary is in code: Card / ListBox `theme` · `color` · `surface`, MetricCard
-  and ChartCard pass it through, the Studio map and the Card contract follow #210 (no Semi-Pale; `semi-pale` is a
-  deprecated alias of pale). Left: usage-guard rules mirroring the Figma audit's `theme/mixed-elevation`,
-  `theme/mode-override`, `theme/mixed-boxes`, `theme/on-solid-content` and `theme/on-white-solid`
-  (`skills/zen-figma-design/harness/zen-figma-audit.js`); code already has card/pale-on-canvas-default,
-  layer/surface-on-canvas-alt-border, layer/surface-flat-is-navigation and surface/no-shadow-on-tinted. New harness
-  rules need the user's yes, and colour / composition principles stay skill guidance unless the user says otherwise.
 - **P2 · Direct paste (⌘V on the canvas), what is left (merged 2026-10-23 from the 2026-10-17 P2 and P3):** it binds by
   node id, so only the Zen file takes it; other files need the published library and full component definitions in the
   paste (instances by `componentKey`, as Figma's own copies carry). The frame menu's Copy for Figma writes async

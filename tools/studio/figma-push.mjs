@@ -698,7 +698,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     // A typed MetricCard is Figma's Metric-Card of that Type (figma-metric.mjs); a KPI one a Card around Metric-Inline.
     else if (element.name === "MetricCard" && metricCardTyped({ type: literalOf(element.props.type) })) node = metricCardNode(element, code, id);
     // A KPI MetricCard is a Card around Metric-Inline (Metric's set; Figma Metric-Card is the typed ones').
-    else if (element.name === "MetricCard") node = cardAround(instanceNode({ ...element, name: "Metric" }, code), code.theme ?? "shadow", id, typeof code.label === "string" ? code.label : "MetricCard", code.color);
+    else if (element.name === "MetricCard") node = cardAround(instanceNode({ ...element, name: "Metric" }, code), code.theme ?? "shadow", id, typeof code.label === "string" ? code.label : "MetricCard", code.color, code.surface, code.spacing);
     else if (element.name === "AiChatBlock") node = aiChatBlockNode(element, code, id);
     // Metric is MetricCard's content without its Card: the same Metric-Inline set and parts.
     else if (element.name === "Metric") node = instanceNode(element, code, id);
@@ -1090,7 +1090,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     const drawing = chartNode(chart, header, null);
     if (!drawing) return null;
     if (chart.id) drawing.key = chart.id;
-    return cardAround(drawing, code.theme ?? "default", id, title || "ChartCard", code.color, code.surface);
+    return cardAround(drawing, code.theme ?? "default", id, title || "ChartCard", code.color, code.surface, code.spacing);
   }
 
   /**
@@ -1138,14 +1138,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     return { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code.label === "string" ? code.label : "MetricCard", ...drawn };
   }
 
-  /** A layer in a Card of `theme`, `color` and `surface` (MetricCard and ChartCard are a Card around their content:
-   *  Figma Metric-Card, Chart-Card). */
-  function cardAround(content, theme, id, name, color, surface) {
+  /** A layer in a Card of `theme`, `color`, `surface` and `spacing` (MetricCard and ChartCard are a Card around their
+   *  content: Figma Metric-Card, Chart-Card). */
+  function cardAround(content, theme, id, name, color, surface, spacing) {
     if (!content) return null;
     const card = entryFor("Card", { theme }, byCode, mapping);
     if (!card) return { ...content, ...(id ? { id } : {}) };
     const set = { id: card.id, name: card.name };
-    const own = { theme, ...(color !== undefined ? { color } : {}), ...(surface !== undefined ? { surface } : {}) };
+    const own = { theme, ...(color !== undefined ? { color } : {}), ...(surface !== undefined ? { surface } : {}), ...(spacing !== undefined ? { spacing } : {}) };
     const props = cardVariant({ ...figmaProps(card, own, mapping, notes, name, new Set(Object.keys(own))), ...onlyOwn(set, { "Sub-Action": false }) }, notes, name);
     return { type: "INSTANCE", ...(id ? { id } : {}), name, set, props, slots: [{ name: "Content", children: [{ ...content, fillW: true }] }] };
   }

@@ -79,6 +79,18 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   dropped on one face of an AvatarStack, one reader of a ChatMessage's `seenBy` or another item of a list prop writes
   that item's picture, where the list is written or read. Where the code, not the row, picks the data (either side of
   a condition) the drop says so and writes nothing (2026-10-23).
+- **Usage harness (box themes, 2026-10-23):** the Figma theme audit's rules in code. `theme/box-on-canvas`: a box's
+  fill belongs to its page's Canvas (`theme="semi-pale"`, a gradient box, is an error). `theme/mixed-elevation`: one
+  elevation per page. `theme/mixed-boxes` (warning): one box family per page. `theme/mode-override`: no ZenProvider
+  `theme` inside a page or box. `theme/navigation-surface`: the Sidebar and TopNavigation match the canvas.
+  `theme/on-solid-content`: Badge, DockIcon and text tones on a Solid card follow its fill. A Sidebar on a Canvas/Alt
+  page now sits on the canvas (`shadow={false}`, `divider`), as in Figma; the docs and examples follow.
+- **MetricCard** `surface` and **ChartCard** `spacing` pass through to their Card (Figma exposes it); Zen Studio pushes
+  and pulls both, and a Subtle Metric-Card keeps its Color.
+- **Styles:** the three `Color Chart Sector/On-Color/*` paint styles (`--zen-style-color-chart-sector-on-color-*-fill`);
+  a bound paint no longer applies its variable's alpha twice.
+- **Figma descriptions:** Card, List-Box, Metric-Card and the seven chart widgets describe Color, Surface and Type, with
+  no gradient themes (written to the live file).
 - **Docs platform:** the Shape page has three more examples: a seat map whose marks carry labels (picked with Segmented
   buttons, taken seats drawn as outlines), the arc's and star's limits (Sweep 0 %, a hairline ring, thin and zero-ratio
   stars) and onboarding art on a phone (2026-10-23).

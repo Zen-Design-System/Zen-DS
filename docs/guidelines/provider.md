@@ -96,6 +96,8 @@ type ZenLabels = { close: string; closePanel: string; dismiss: string; remove: s
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `theme/mixed-boxes` | warn | One box family per page (Figma audit theme/mixed-boxes): Default (with or without Shadow), Border, Flat-Border, Pale or Subtle; vary the Color inside Pale or Subtle instead. A Solid box, and Subtle on a white page, stand out and are not counted. | `zen-allow-mixed-boxes: <reason>` |
+| `theme/mode-override` | error | Only the page picks Light or Dark (Figma audit theme/mode-override, user 2026-10-14): a ZenProvider with theme inside a page (AppShell, PlatformPhone) or a box mixes two palettes on one screen. A dark widget is Card theme="solid" color="neutral" (Background/Neutral/Solid + Inverse content). | `zen-allow-mode-override: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 
 ## References

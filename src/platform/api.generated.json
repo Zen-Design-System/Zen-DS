@@ -5292,7 +5292,7 @@
           "type": "\"default\" | \"alt\" | \"flat\" | \"inverse\"",
           "required": false,
           "default": "\"default\"",
-          "description": "Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border). Alt\n (Surface/Alt) and Flat are the only choices on a Canvas/Alt (white) page, where cards are bordered.",
+          "description": "The Sidebar's fill, matched to the page's Canvas (Figma theme pairing, harness theme/navigation-surface): Default =\n Surface/Default, with a shadow on a Canvas/Default page (cards there take the same shadow) or `shadow={false}` on a\n Canvas/Alt (white) page, where Surface/Default is the canvas's own colour and cards are bordered (add `divider`) ·\n Alt = Surface/Alt, seamless on Canvas/Default · Flat = Surface/Flat, the Sidebar of a Canvas/Flat page · Inverse =\n the dark Sidebar.",
           "deprecated": null
         },
         {
@@ -5300,7 +5300,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the\n page on a Canvas/Alt (white) page. Not with the default Sidebar, whose shadow already separates it.",
+          "description": "A Pale divider on the Sidebar's inner edge, the full height of the block: separates a Sidebar that sits on the\n canvas (no shadow) from the page, as on a Canvas/Alt (white) page. Not with a shadowed Sidebar, whose shadow already\n separates it.",
           "deprecated": null
         },
         {
@@ -14098,6 +14098,14 @@
           "deprecated": null
         },
         {
+          "name": "surface",
+          "type": "\"default\" | \"alt\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Metric-Card's exposed Card Surface: default · alt (Default and Border; Shadow on alt drops its shadow), chosen\n to suit the page's Canvas, as on Card. A metric card on a Canvas/Flat page takes theme=\"flat-border\".",
+          "deprecated": null
+        },
+        {
           "name": "subAction",
           "type": "CardSubAction | ReactNode",
           "required": false,
@@ -18328,7 +18336,7 @@
           "type": "\"shadow\" | \"default\" | \"pale\" | \"border\" | \"flat-border\" | \"on-container\" | \"solid\" | \"subtle\" | \"semi-pale\"",
           "required": false,
           "default": "\"default\"",
-          "description": "Figma nested Card Theme: Flat (default) inside a panel or section; Shadow when the chart card sits on the canvas\n next to other Shadow cards (metric cards on a dashboard).",
+          "description": "Figma nested Card Theme: Default (default, the Surface alone) inside a panel or section; Shadow when the chart card\n sits on the canvas next to other Shadow cards (metric cards on a dashboard); the other themes follow the Card rules\n for the page's Canvas (harness theme/box-on-canvas).",
           "deprecated": null
         },
         {
@@ -18345,6 +18353,14 @@
           "required": false,
           "default": null,
           "description": "Figma nested Card Surface: default · alt (Default, Border); see Card. A chart on a Canvas/Flat page takes theme=\"flat-border\".",
+          "deprecated": null
+        },
+        {
+          "name": "spacing",
+          "type": "\"md\" | \"sm\" | \"xs\" | \"medium\" | \"small\" | \"xsmall\"",
+          "required": false,
+          "default": "\"medium\"",
+          "description": "Figma nested Card Spacing: Medium (default; Card-padding-medium, Corner-Radius/2XLarge) · Small (Card-padding-small,\n Corner-Radius/Large) · XSmall (Card-padding-xsmall, Corner-Radius/Base), for a chart in a narrow tile or a row of\n several on a phone. Short (md, sm, xs) or Figma (medium, small, xsmall) spelling.",
           "deprecated": null
         },
         {
