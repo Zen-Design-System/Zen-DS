@@ -6,7 +6,7 @@
 import fs from "node:fs";
 import { dataFieldEdit } from "./data-source.mjs";
 import { newPageText, parsePage, validateDialect } from "./dialect.mjs";
-import { docFromText, editDoc, locMap, locsOf, printPage, withoutIds } from "./doc.mjs";
+import { carryIds, docFromText, editDoc, locMap, locsOf, printPage, withoutIds } from "./doc.mjs";
 import { applyOps, sha1 } from "./jsx-source.mjs";
 
 const failures = [];
@@ -360,6 +360,44 @@ export default function Page() {
     'import { Stack, Text } from "@zen-ds/react";',
   ]);
   check("components: the print passes the dialect check with the Zen components", validateDialect(printed, { components: new Set(["Stack", "Text"]) }), []);
+}
+
+/* ── carryIds: another browser's document of the same page lends its ids where the trees line up (P6b) ──────────── */
+{
+  const page = (rows, title = "Projects") => `// @zen-page {"format":1,"title":"Carry"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { List, ListItem, Stack, Text } from "@zen-ds/react";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="home" title="Home">
+        <Stack gap="md">
+          <Text textStyle="Heading/3">${title}</Text>
+          <List>
+${rows.map((row) => `            <ListItem title="${row}" />`).join("\n")}
+          </List>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const idsOf = (doc) => [...printPage(doc, { ids: true }).matchAll(/data-zen-id="([^"]*)"/g)].map((match) => match[1]);
+  let other = 0;
+  const elsewhere = docFromText(page(["Loyalty app", "Rewards"]), { newId: () => `a${(other += 1)}` }).doc;
+  const here = docFromText(page(["Loyalty app", "Rewards"]), { newId }).doc;
+  const carried = carryIds(here, elsewhere);
+  check("carryIds: the same page takes every id of the other browser's document", idsOf(carried), idsOf(elsewhere));
+  check("carryIds: the page itself is unchanged", printPage(carried), printPage(here));
+  const edited = docFromText(page(["Loyalty app v2", "Rewards"], "Your projects"), { newId }).doc;
+  check("carryIds: words and props edited since, the same structure: every id still lent", idsOf(carryIds(edited, elsewhere)), idsOf(elsewhere));
+  const grown = docFromText(page(["New first", "Loyalty app", "Rewards"]), { newId }).doc;
+  const partly = idsOf(carryIds(grown, elsewhere));
+  const mine = idsOf(grown);
+  check("carryIds: a row added above: Board → List lent, the rows keep their own ids (never the wrong row's)", [partly.slice(0, 5), partly.slice(5)], [idsOf(elsewhere).slice(0, 5), mine.slice(5)]);
+  check("carryIds: no id is used twice", new Set(partly).size, partly.length);
+  check("carryIds: no other document leaves the ids as they were", idsOf(carryIds(here, null)), idsOf(here));
 }
 
 if (failures.length) {

@@ -1486,7 +1486,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio, Update from Figma in another browser (2026-10-23): Export › Figma and every pull also keep their base
   beside the page in the pages folder (`<id>.figma-base.json` in the dev server's .zen-studio/pages, or the linked folder), so
   a frame pulled back in a browser that did not export it is still compared three ways: only what the designer changed
-  is listed and ticked, and what Figma cannot hold stays.
+  is listed and ticked, and what Figma cannot hold stays. That browser's page takes the export's element ids where its
+  structure matches (it rebuilt the page with ids of its own, which no layer of the frame named).
 - Zen Studio: ⌥⌘A Select matching layers, as Figma's: the same layer in the other frames (its Section's only), with
   automatic names compared without their number. Also Select all with same › Properties, Fill, Stroke, Effect, Text
   properties, Font and Instance, from the layer menu and Quick actions.

@@ -232,6 +232,19 @@ export async function setPageDoc(id: string, text: string, doc: PageDoc): Promis
 }
 
 /**
+ * Gives a page a new document of the same text (its elements' ids only differ: builder/localApi.ts lendPageIds), without
+ * writing the text. Refused when the text or the document changed meanwhile.
+ */
+export async function replacePageDoc(id: string, text: string, from: PageDoc, doc: PageDoc): Promise<boolean> {
+  const record = cache.get(id) ?? (await readRecord(id));
+  if (!record || record.text !== text || record.doc !== from) return false;
+  const next: PageRecord = { ...record, doc };
+  cache.set(id, next);
+  await writeRecord(next);
+  return true;
+}
+
+/**
  * Writes a page's text (its title comes from the header line). `reason` decides whether the previous text is kept as a
  * revision (pageModel.keepsRevision); a connected mirror gets the new text. `doc`: the document `text` is the print of
  * (builder/localApi.ts); without it the page has none until it opens again. `figma`: the last Figma pull's document (null

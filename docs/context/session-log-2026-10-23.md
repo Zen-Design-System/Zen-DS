@@ -505,3 +505,13 @@ in as a new page, or compared two ways.
   shares the first pull of an imported page, and its HO-13 applies and checks the pull written back. Folded in from C:
   the file is compact JSON (page documents roughly halve against pretty-printed), and its name ends in `.figma-base.json`
   (C's catch: `<id>.figma.json` is Export › Figma's own download, which a person may save into the linked folder).
+- Gate (slot after C; main a77113a0 merged): static ✓, Studio self-tests ✓, Studio E2E 340/342. Broken: HO-13 ("already
+  matches the frame": 0 changes) and I-03 (inspector, two quick toggles; works alone, a load flake). Cause of HO-13, the
+  real root of the BACKLOG item: a page's document and its element ids live in each browser's IndexedDB; the page file
+  carries none, so another browser rebuilt the document with new ids and no key of the exported frame matched
+  (figma-diff skips a layer the page lacks; the old two-way compare tracked Figma ids only, so it listed nothing either).
+  Fix: `doc.mjs` `carryIds(doc, from)` lends `from`'s ids wherever the trees line up (same component, same place, and
+  below it only where the children are the same components in the same order, so an added row never takes its
+  neighbour's id; 6 doc selftest checks); `localApi.lendPageIds` gives the page's document the export's (or the last
+  pull's) ids before the compare, unless it already holds most of them (this browser's own export). After: HO-11, HO-13,
+  I-03 3/3; handoff group 13/13; studio:selftest ✓.

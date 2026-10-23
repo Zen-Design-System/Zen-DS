@@ -2,7 +2,7 @@ import type { PageDoc } from "../../../../tools/studio/browser-engine.mjs";
 import type { FigmaChange, FigmaSource } from "../../../../tools/studio/figma-diff.mjs";
 import { applyEdit } from "../api";
 import { loadEngine, zenComponents } from "./engine";
-import { ensurePageDoc } from "./localApi";
+import { ensurePageDoc, lendPageIds } from "./localApi";
 import { findPulledPage, getPage, importPage, loadSharedFigma, pageFile, setFigmaBase, type FigmaBase, type PageRecord } from "./store/pageStore";
 
 /*
@@ -55,6 +55,12 @@ const versionOf = (incoming: PageDoc) => (incoming.header as { figma?: { version
 export async function pulledChanges(pageId: string, incoming: PageDoc): Promise<{ changes: FigmaChange[]; threeWay: boolean }> {
   await ensurePageDoc(pageId);
   await loadSharedFigma(pageId);
+  // A frame exported or pulled in another browser names that browser's ids: the page's document here takes them where
+  // it lines up with the page the base was taken from, so the comparison finds the designer's layers.
+  const before = await getPage(pageId);
+  const taken = before ? figmaBaseOf(before, versionOf(incoming)) : null;
+  const lender = taken?.synced ?? taken?.base;
+  if (lender) await lendPageIds(pageId, lender);
   const record = await getPage(pageId);
   if (!record?.doc) throw new Error("The page cannot be read as a document (fix its dialect errors first)");
   const { figmaChanges } = await diff();
