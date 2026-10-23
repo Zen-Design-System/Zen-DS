@@ -266,3 +266,6 @@ Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows 
   list. Push and pull keep their chart branch (figma-charts.mjs runs before the generic set lookup both ways).
 - Generated: figmaProps (105 components, 230 props), variantSets (the Main component frame draws the chart variants).
   studio:selftest ✓ (propGroups 352), library-keys / native-pack checks ✓, tsc ✓.
+- Merged main 9022cdad (after #236 merged; #237's chart-*.json contracts came in, no overlap). Gate (isolated, the map +
+  the two generated maps): Studio self-tests ✓, TypeScript ✓, nested layer names 45 / 45, Studio E2E 338 / 338
+  (3 shards, BL-02 Main component coverage included), Build-QA PASS. No platform page in scope, so no contact sheet.
