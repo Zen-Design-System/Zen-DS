@@ -98,11 +98,14 @@
 /* Effect/Overlay (Figma background blur 100 → CSS 50px, Figma Dev Mode conversion). */
 .zen-avatar__inner { backdrop-filter: var(--zen-style-effect-overlay-backdrop-filter); }
 .zen-avatar[data-tone="photo"] { --zen-avatar-fill: transparent; background: var(--zen-color-background-surface-default); }
-/* Photo Image layer: 1px INSIDE stroke Border/Neutral/Subtle/Default above the picture. */
-.zen-avatar[data-tone="photo"] .zen-avatar__inner { position: relative; }
+/* Photo Image layer: 1px INSIDE stroke Border/Neutral/Subtle/Default above the picture, and no Effect/Overlay blur (that
+   effect is on the initials' Text layer, hidden on a photo). */
+.zen-avatar[data-tone="photo"] .zen-avatar__inner { position: relative; backdrop-filter: none; }
 .zen-avatar[data-tone="photo"] .zen-avatar__inner::after { position: absolute; inset: 0; border: 1px solid var(--zen-color-border-neutral-subtle-default); border-radius: inherit; content: ""; pointer-events: none; }
 .zen-avatar img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
-.zen-avatar[data-focus="true"]::before { position: absolute; border: 3px solid var(--zen-color-border-active-accent-solid, var(--zen-color-focus-accent-solid, #ff66d4)); border-radius: inherit; content: ""; inset: -4px; pointer-events: none; }
+/* Figma Focus-Ring: a box 4px outside the avatar with a 3px OUTSIDE stroke, so the ring is drawn as an outline around
+   that box (a border would sit inside it, 3px closer to the avatar). */
+.zen-avatar[data-focus="true"]::before { position: absolute; border-radius: inherit; content: ""; inset: -4px; outline: 3px solid var(--zen-color-border-active-accent-solid, var(--zen-color-focus-accent-solid, #ff66d4)); pointer-events: none; }
 .zen-avatar[data-shape="square"][data-focus="true"]::before { border-radius: var(--zen-avatar-focus-radius); }
 /* .Primitives/Avatar/Status (Active): dot + OUTSIDE Border/Inverse stroke, inset from the bottom-right per avatar size
    (L–2XS: 8px dot, 2px stroke; XL: 12/2; 2XL/3XL: 16/3). */
@@ -111,6 +114,8 @@
 .zen-avatar[data-size="xlarge"] .zen-avatar__status { --zen-avatar-status-size: 12px; }
 .zen-avatar[data-size="2xlarge"] .zen-avatar__status { --zen-avatar-status-size: 16px; --zen-avatar-status-stroke: 3px; --zen-avatar-status-inset: 2px; }
 .zen-avatar[data-size="3xlarge"] .zen-avatar__status { --zen-avatar-status-size: 16px; --zen-avatar-status-stroke: 3px; --zen-avatar-status-inset: 8px; }
+/* A square avatar puts the dot in its corner, inset 0 (Figma Avatar/Single Shape=Square at every size). */
+.zen-avatar[data-shape="square"] .zen-avatar__status { --zen-avatar-status-inset: 0px; }
 
 .zen-avatar-stack { display: inline-flex; align-items: center; }
 /* Figma Avatar/Stack (364:92561) item spacing: −8 (Medium and up), −4 (Small and below) — Gap/XSmall and Gap/2XSmall, negated. */

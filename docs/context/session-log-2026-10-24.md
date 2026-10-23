@@ -60,3 +60,18 @@ slots (b) A built and B not (computed `.map` rows keep "edit it in the code"), n
   `readBlock` place them. `slot-audit --op=move`: 22 → 4 refused (ai-ui `field`, shown twice in one Stack). Selftest
   +16, E2E ST-29 (fixture ConstFixture: Send backward on `{view === "list" ? note : null}`, `trailing={note}` stays).
 - **Per-row override**: editability-audit's three "B4" classes name what the Studio edits (I-09, I-10, I-11).
+
+## Contract suites, batch 2 (tier L; BACKLOG P3, the user's go 2026-10-24 through the progress session)
+- 66 suites, written by seven parallel helpers (one per group, case kinds in `tools/figma-contract/cases/<group>.tsx`,
+  merged by cases.tsx so they never shared a file): Avatar/Single, Avatar/Stack, Avatar status, Badge, Badge-Counter;
+  Segmented Item (a SegmentedItem-in-Segmented kind), Segmented, Toggle, Toggle-Button, Toggle Content, Breadcrumbs (3);
+  nine Input fields; eleven Input parts, Search/Default, Search/Popover (+ a light/neutral-s4 mode), Divider; thirteen
+  Table cells; seventeen DatePicker and Sidebar parts; three Chat sets. `.Primitives/Date-Picker` 9923:2323 has none
+  (code has no sheet header): BACKLOG. All 105 suites + 25 interaction checks pass (one by one, niced, beside another session's --all gate).
+- Code drifts fixed at their owners (CHANGELOG): Avatar, Badge, Input (six), Table toggle columns, DatePicker (six),
+  Sidebar (four, incl. the Workspace width 340 → 320 Compact). I read every diff before the commit; tsc, style:check,
+  usage:check clean.
+- Figma-side inconsistencies → `figmaExceptions` + QUESTIONS.md "From the contract suites, batch 2"; resolved:
+  QUESTIONS Segmented (P2) binding, the BACKLOG Breadcrumbs "4px list padding" (both captures pad 0). New BACKLOG: the
+  APIs the suites asked for, the checker gaps. Linux fonts (#252): no text-decided width or x is asserted.
+

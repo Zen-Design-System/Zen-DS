@@ -16,9 +16,9 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
   - **Toggle caption (P2):** the set 1526:5703 overrides Subtext to Caption/Regular 11/16 in all 24 variants, but the
     primitive `.Primitives/Toggle/Content` 1526:5945 says Body/Small/Regular 12/16. Code follows the set, like
     Checkbox, Radio and the Table cells. Fix the primitive?
-  - **Segmented (P2):** Item Medium / Secondary / Selected (and the set's Item-1) binds Tag/Background/Default, while
-    Small binds Segmented-Item-Secondary/Background/Seclected/Default. Same in light, different in dark. Code uses the
-    Segmented token. Also: code has a Disabled state Figma lacks; the `*/Seclected/Hover` and Secondary Border tokens
+  - **Segmented (P2):** ~~Item Medium / Secondary / Selected (and the set's Item-1) binds Tag/Background/Default~~
+    (resolved: the 2026-10-23 capture binds Segmented-Item-Secondary/Background/Seclected/Default, as code; contract suite
+    `segmented-item.mjs`, 2026-10-24). Also: code has a Disabled state Figma lacks; the `*/Seclected/Hover` and Secondary Border tokens
     are now unbound; the set description lists props it does not have; should focus stack with the selected shadow?
   - **Input / Search Disabled (2026-09-30):** Search/Default and Search/Popover have no State=Disabled; code derives it
     from the Field-Only instance they are built on (Field-Only State=Disabled + Leading-Trailing Active=No). Add the
@@ -39,6 +39,21 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
     descriptions are inconsistent.
   - **Breadcrumbs:** the root's 3XSmall gap has a single child and never renders; there is no current-page state and
     no collapse (…) item.
+  - **From the contract suites, batch 2 (2026-10-24; each is a `figmaExceptions` entry naming code's value):**
+    Chat Desktop Hover toolbar icons are 20px Content/Neutral/Base while Button/Icon-Flat Small Secondary binds 16px Light
+    (an icon swap that dropped the bindings?), and the reaction pill is a 24px circle where Apple's emoji is 20px wide (28 in
+    code); Badge Sky / Mint Solid Remove binds On-Colors (white) beside On-Brights labels, On-Color Remove binds
+    Neutral/Strongest (white in dark on a white badge), Badge-Counter Medium pads Subtle 8 / Solid 4; Avatar: four
+    variants lack a Focus-Ring, Medium Square Violet's ring binds Rounded, Large Square Solid roots bind Corner-Radius/Large
+    (fill and Subtle: Base), square Status dots bind the square's corner token, Medium squares inset the dot differently
+    per background; Table Photo-Cell is a bare rectangle (code: Avatar Square with its rings), Group-Avatar-Cell is FIXED
+    60px in a 28px slot; Input Leading-Trailing Medium icon + chevron without a label gaps 4 (8 elsewhere), Select / Date /
+    Number Small root gaps Gap/XSmall 8 where Text-Field and Text-Area bind Outside-Field-Gap 4, Select Small's chevron is
+    20 (Date and Field-Only 16), Number-Center's − stepper icon is 16 Strongest (+ and Number-Left: 12); DatePicker Item
+    binds the selected day's dot Inverse/Strongest (Event-List and Mobile: Content/Selected), the Single and Mobile
+    calendars draw weekend days as Default, Time-Picker Range From is fixed 64 where To hugs 52; Sidebar Menu-Item Child
+    rows pad 1px (code: 2px apart), the Small-Density rail's Header and Search hug and centre, the Workspace name sample is
+    Heading/Subheading (code Heading/4, 4233:5950), Section-Title has a Hover fill though it is not a control.
   - **DatePicker (2026-09-29):** In-Range-Hover fills the Container with Color/Background/Inverse/Solid/Default and
     leaves `Date-Picker-Item/Background/Seclected-In-Range/Hover` unused (code follows the component). The Header
     Date-Container is Corner-Radius/Small at rest and Base on Hover/Focused (the rest state has no fill, so only Base

@@ -214,16 +214,21 @@ export function InputLeadingTrailing({ size: sizeProp = "md", active: activeProp
   const isPicker = interactive && hasOptions;
   const resolvedDropdown = isPicker || (showDropdown ?? dropdown);
   const current = options?.find((option) => option.value === value);
+  // Figma's Elements frame (label · children · chevron) only exists with content: an empty one would add the root gap
+  // after an icon-only or flag-only slot (Label=No, Dropdown=No: 16 / 20 / 24 wide).
+  const hasElements = hasLabel || resolvedDropdown || (children !== undefined && children !== null && children !== false);
   // Icon names draw at the slot's Element-Size/Popular: Small 16 · Medium 20 · Large 24.
   const iconSize = size === "small" ? "sm" : size === "large" ? "md" : "base";
   const content = (
     <>
       {current?.flag ?? flag}{renderIcon(current?.icon ?? icon, { size: iconSize })}
-      <span className="zen-input-leading-trailing__elements">
-        {hasLabel ? <span className={`zen-input-leading-trailing__label ${typographyStyles[size === "large" ? "Heading/4" : "Body/Base/Medium"]}`}>{current ? current.label : label}</span> : null}
-        {children}
-        {resolvedDropdown ? <span className="zen-input-leading-trailing__dropdown"><Icon name={open ? "icon-chevron-up-line" : "icon-chevron-down-line"} size={size === "small" ? "sm" : "base"} decorative /></span> : null}
-      </span>
+      {hasElements ? (
+        <span className="zen-input-leading-trailing__elements">
+          {hasLabel ? <span className={`zen-input-leading-trailing__label ${typographyStyles[size === "large" ? "Heading/4" : "Body/Base/Medium"]}`}>{current ? current.label : label}</span> : null}
+          {children}
+          {resolvedDropdown ? <span className="zen-input-leading-trailing__dropdown"><Icon name={open ? "icon-chevron-up-line" : "icon-chevron-down-line"} size={size === "small" ? "sm" : "base"} decorative /></span> : null}
+        </span>
+      ) : null}
     </>
   );
   const common = { "data-size": size, "data-active": active ? "true" : "false", "data-label": showLabel ? "true" : "false", "data-dropdown": resolvedDropdown ? "true" : "false", "data-icon-only": hasLabel ? undefined : "true" };
@@ -394,8 +399,8 @@ function FieldShell({ children, id, label, labelOptional, labelTooltip, labelAct
   const resolvedState = normalizeInputState(state, error);
   const disabled = resolvedState === "disabled";
   const inline = layout === "inline";
-  // Icon names draw at the affordance size: Element-Size/Popular Small 16 · Base 20 · Medium 24 · Large 28.
-  const iconSize = size === "small" ? "sm" : size === "large" ? "md" : size === "xlarge" ? "lg" : "base";
+  // Icon names draw at the affordance size, Field-Only's Leading-Trailing icon: Small 16 · Medium and Large 20 · XLarge 24.
+  const iconSize = size === "small" ? "sm" : size === "xlarge" ? "md" : "base";
   return (
     <div className={["zen-input-field", className].filter(Boolean).join(" ")} data-size={size ?? "medium"} data-state={resolvedState} data-layout={inline ? "inline" : undefined}>
       {inline ? null : <FieldLabel id={id} label={label} required={required} optional={labelOptional} tooltip={labelTooltip} action={labelAction} disabled={disabled} nest={nest} />}
@@ -463,7 +468,8 @@ export function TextAreaField(
         ref={ref}
         id={id}
         rows={rows}
-        className={`zen-input__native zen-input__native--textarea ${typographyStyles["Body/Base/Medium"]}`}
+        // Figma Input/Text-Area: Small takes Input-Content Size=Small (Body/Small/Medium), Medium and Large Body/Base/Medium.
+        className={`zen-input__native zen-input__native--textarea ${typographyStyles[size === "small" ? "Body/Small/Medium" : "Body/Base/Medium"]}`}
         required={required}
         disabled={disabled || normalizeInputState(state, error) === "disabled"}
         readOnly={textareaProps.readOnly || normalizeInputState(state, error) === "read-only"}
@@ -638,7 +644,7 @@ export function SelectField(
     onBlur?.(selectFocusEvent(event, nativeRef.current));
   };
   return (
-    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={characterLimit === true ? undefined : characterLimit} size={size} state={isDisabled ? "disabled" : isReadOnly ? "read-only" : state} leading={leading} trailing={trailing ?? <Icon name="icon-chevron-down-line" size="2xs" />} layout={layout} className={[className, open ? "zen-input-field--popover-open" : ""].filter(Boolean).join(" ")} overrides={overrides}>
+    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={characterLimit === true ? undefined : characterLimit} size={size} state={isDisabled ? "disabled" : isReadOnly ? "read-only" : state} leading={leading} trailing={trailing ?? <Icon name="icon-chevron-down-line" size="2xs" className="zen-input__picker-icon" />} layout={layout} className={[className, open ? "zen-input-field--popover-open" : ""].filter(Boolean).join(" ")} overrides={overrides}>
       <button
         id={`${id}-trigger`}
         className={`zen-input__native zen-select__trigger ${fieldTextStyle(size)}`}
@@ -876,7 +882,7 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
         role={props.role ?? (datePicker ? "combobox" : undefined)}
         aria-haspopup={props["aria-haspopup"] ?? (datePicker ? "dialog" : undefined)}
         aria-expanded={props["aria-expanded"] ?? (datePicker ? open : undefined)}
-        trailing={trailing ?? <Icon name="icon-calendar-line" size="sm" />}
+        trailing={trailing ?? <Icon name="icon-calendar-line" size="sm" className="zen-input__picker-icon" />}
         onFocus={(event) => { if (canOpen && tabbing.current && !closing.current && !phone) setOpen(true); onFocus?.(event); }}
         onClick={onClick}
         onKeyDown={(event) => {

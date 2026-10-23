@@ -24,6 +24,16 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio: an element held in a `const` and shown on a condition (`{view === "list" ? listView : boardView}`, or
   also in a prop) moves up, down and by dragging, with its condition, as one written in place does; it said "edit it in
   the code" (user, 2026-10-24). A const shown twice in one element still asks for the code.
+- Figma parity fixes from the second batch of contract suites (2026-10-24): Avatar's focus ring sits 4px outside the
+  avatar (it was drawn inside that box) and square avatars put the status dot in the corner; Badge's Subtle Remove icon
+  is Content/Neutral/Light; Input Large and XLarge fields draw 20 / 24px icons (pickers 20), Read-Only fields grey their
+  slots, TextAreaField takes Figma's padding and the Small text style, icon-only Leading-Trailing slots lose an extra
+  gap, fields set the caret colour, and ControlBarSelectItem follows Button/Size/Medium in every density; Table toggle
+  columns draw Toggle-Button Medium; DatePicker days keep their letter-spacing, a selected day's event dot follows the
+  selected label, DatePickerHeader icons are 20px outside a DatePicker too, a Display header starts its month, and the
+  Time-Picker's fields fill the row; Sidebar selected rows' counters are Background/Inverse/Solid, group chevrons
+  Content/Neutral/Light, Small-density section titles 32px, and the Workspace panel is Sidebar/Default-Width (320px in
+  all in Compact, was 340). 66 more Figma contract suites run in `tools/figma-contract/run-all.mjs`.
 - Zen Studio → Figma: a page goes to Figma with every Screen, Screen state and Overlay as a frame of its own (an
   Overlay as big as what it holds), and its Prototype actions as Figma interactions: On click, While hovering and After
   delay; Navigate to, Open overlay, Close overlay and Back, with their animation, direction and Zen's duration and curve
