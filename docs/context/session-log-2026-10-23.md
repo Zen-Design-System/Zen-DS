@@ -286,6 +286,16 @@ Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows 
   the two generated maps): Studio self-tests ✓, TypeScript ✓, nested layer names 45 / 45, Studio E2E 338 / 338
   (3 shards, BL-02 Main component coverage included), Build-QA PASS. No platform page in scope, so no contact sheet.
 
+## Backlog G1 designer questions + G2 answers (tier XS, docs only; Giám sát's request, user "xử hết backlog")
+- QUESTIONS.md / QUESTIONS.vi.md: one designer review batch moved from BACKLOG (triage group G1, 10 entries): Calendar
+  toolbar mobile, Metric Title-Highlight, Action-Icon-Gap 20, Bottom-Navigation surface, Side-Bar/Master/Small-Density
+  named "Component", 438-page library gaps, Android bars, unnamed layers, chart questions, AI UI Figma first.
+- BACKLOG per the user's G2 answers: AI UI decisions closed (41 verified stand, Zen's node tree with an A2UI exporter
+  later, classifier on the device, ChatReactorsPanel experimental), only `data-*` forwarding left to build; ListItem Value
+  "decided, not built"; sheet table "Figma first, then code". docs/ai-ui/README.md "Open decisions" updated the same way.
+- Open BACKLOG entries with a priority 32 → 21 (ListItem Value is parked now, like Code view), then + 1 P3 for Giám sát:
+  compile #238's Swift/Dart on a machine with the toolchains. After merging main (#238, #241 closed two more): 20.
+
 ## 320px debt left: the designer calls (tier L: docs chrome at 320; user: "xử hết", B1, "Gỡ khỏi mục này")
 
 Branch claude/eloquent-mclean-8f4974 from main 4b96bbb8. BACKLOG P1 "320px debt left" → archived.
