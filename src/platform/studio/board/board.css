@@ -56,14 +56,14 @@
 :is(.studio-world, .studio-doc__page) .icon-card > div { border-radius: var(--platform-inset-radius); background: var(--platform-inset-background); }
 :is(.studio-world, .studio-doc__page) .icon-card code { border-top-color: var(--platform-surface-divider); }
 /* Code = Body/Code: the Dev family at Body-Small size with Body-Code tracking. */
-:is(.studio-world, .studio-doc__page) :is(.platform-code pre, .platform-code code, .platform-ref__code, .platform-ref__keys kbd, .pg code, .text-style-row__meta code, .icon-card code, .icon-gallery__special-header code) {
+:is(.studio-world, .studio-doc__page) :is(.platform-code pre, .platform-code code, .pg code, .text-style-row__meta code, .icon-card code, .icon-gallery__special-header code) {
   font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace;
   font-size: var(--zen-typography-font-size-body-small);
   line-height: var(--zen-typography-line-height-body-small);
   letter-spacing: var(--zen-typography-letter-spacing-body-code);
 }
 :is(.studio-world, .studio-doc__page) :is(.pg-when__col h3, .pg-meta h3) { letter-spacing: var(--zen-typography-letter-spacing-all-caps-s); }
-:is(.studio-world, .studio-doc__page) :is(.platform-ref__sep, .icon-gallery__toolbar p, .text-style-row__meta span, .text-style-group__heading span, .icon-card span) {
+:is(.studio-world, .studio-doc__page) :is(.icon-gallery__toolbar p, .text-style-row__meta span, .text-style-group__heading span, .icon-card span) {
   font-size: var(--zen-typography-font-size-body-small);
   line-height: var(--zen-typography-line-height-body-small);
   letter-spacing: var(--zen-typography-letter-spacing-body-small);

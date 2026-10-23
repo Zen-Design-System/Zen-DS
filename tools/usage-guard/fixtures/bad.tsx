@@ -283,6 +283,10 @@ export const Bad = () => <>
   <AiVoiceConversation state="ready" onStart={listen} />
   {/* expect: dock-icon/emoji-needs-glyph */}
   <DockIcon theme="emoji" />
+  {/* expect: sheet-table/needs-name */}
+  <SheetTable rows={rows} columns={[{ id: "prop", header: "Prop", cell: (row) => <SheetCode>{row.name}</SheetCode> }]} />
+  {/* expect: table/reference-in-sheet */}
+  <Table aria-label="Card props" rows={rows} columns={[{ id: "type", header: "Type", cell: (row) => <SheetCode>{row.type}</SheetCode> }]} />
   {/* expect: table/needs-name */}
   <Table rows={rows} getRowId={getId} columns={columns} />
   {/* expect: table/interaction-needs-handler */}
