@@ -214,10 +214,12 @@ export function zenStudio() {
       ensureRestored();
       if (route === "GET /ping") return send(res, 200, { ok: true, root, writable: isWritable(), token: loopbackHost(req) ? token : null, drafts: true });
       if (route === "GET /source") {
-        const target = await resolveFile(url.searchParams.get("file"), false);
+        // A collection file that does not exist (made in the Variables window, then undone or deleted before its Save)
+        // reads as "": undo and redo write it back (POST /write makes the draft again).
+        const target = await resolveFile(url.searchParams.get("file"), false, { create: true });
         const draft = drafts.get(target.realRel);
         if (!draft) {
-          const content = await readText(target.abs);
+          const content = target.missing ? "" : await readText(target.abs);
           return send(res, 200, { file: target.rel, content, hash: sha1(content) });
         }
         const disk = await readDisk(target.realRel);

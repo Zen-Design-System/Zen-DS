@@ -655,4 +655,8 @@ in as a new page, or compared two ways.
   selftest, studio selftest (deleted drafts), host flow on a scratch copy (rename, refusals, confirm, force, alias),
   tokens:build / tokens:check with a scratch file (entry written, then removed: the manifest byte-identical), tsc.
   E2E VA-09.
+- Gate #254 (first run): VA-08 / VA-09 broken by the rows themselves ("E2E Collection" kebab-cases to e2-e-collection;
+  20 s was short) and by a real gap: ⌘Z after deleting an unsaved collection read GET /source as not-found and was
+  skipped. Fixed: a missing collection file reads as "" (undo / redo write it back); the rows take collectionFileOf and
+  60 s. variables group 9 / 9.
 

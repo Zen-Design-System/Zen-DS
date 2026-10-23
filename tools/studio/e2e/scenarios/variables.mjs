@@ -6,6 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { sleep, until } from "../lib/studio.mjs";
+import { collectionFileOf } from "../../variables.mjs";
 import { seededPage } from "./builder.mjs";
 
 const emptyPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
@@ -238,10 +239,11 @@ export const rows = [
     },
   },
   {
-    id: "VA-08", feature: "Create collection (user 2026-10-23, one mode on :root): the Collections menu's last item asks its name and the docs group (E2E Collection, Layout, a purpose), a draft of tokens/source/figma/e2e-collection.json with no file on disk, one column Mode 1 and no Add mode; Create variable › Number is on the canvas's :root; ⌘Z twice takes the variable, then the collection, back and leaves no file", wp: "Variables v2",
+    id: "VA-08", feature: "Create collection (user 2026-10-23, one mode on :root): the Collections menu's last item asks its name and the docs group (E2E Collection, Layout, a purpose), a draft of tokens/source/figma/e2e-collection.json with no file on disk, one column Mode 1 and no Add mode; Create variable › Number is on the canvas's :root; ⌘Z twice takes the variable, then the collection, back and leaves no file", wp: "Variables v2", timeout: 60_000,
     async run(ctx) {
       const { page, win } = await openVariables(ctx);
-      const file = "tokens/source/figma/e2e-collection.json";
+      // The file is the name in kebab case, as the build names it ("E2E" → "e2-e").
+      const file = collectionFileOf("E2E Collection");
       const onDisk = () => fs.existsSync(path.join(ctx.root, file));
       if (onDisk()) throw new Error(`${file} is on disk before the row`);
       await createCollection(page, win, "E2E Collection", "Layout", "E2E rows");
@@ -268,16 +270,17 @@ export const rows = [
       await page.keyboard.press("ControlOrMeta+KeyZ");
       await until(async () => (await body()).tokens.length === 0, { timeout: 10_000, message: "⌘Z: the variable gone" });
       await page.keyboard.press("ControlOrMeta+KeyZ");
-      await until(async () => { try { await source(ctx, file); return false; } catch { return true; } }, { timeout: 10_000, message: "⌘Z: the collection's draft gone" });
+      // No draft and no file: the dev server reads the collection as "" (undo / redo write it back from there).
+      await until(async () => (await source(ctx, file).catch(() => "")) === "", { timeout: 10_000, message: "⌘Z: the collection's draft gone" });
       if (onDisk()) throw new Error(`${file} was left on disk`);
       return `E2E Collection · ${columns.slice(1).join(", ")} · ${variable.name} → ${prop}: 0px · ⌘Z twice: no draft, no file`;
     },
   },
   {
-    id: "VA-09", feature: "Rename and Delete collection (user 2026-10-23, as Figma): the ⋯ menu renames a collection made here in place and deletes it (gone from the Collections menu, its draft \"\"); ⌘Z brings it back, then its old name, then no collection; the 11 Figma exports have both items off", wp: "Variables v2",
+    id: "VA-09", feature: "Rename and Delete collection (user 2026-10-23, as Figma): the ⋯ menu renames a collection made here in place and deletes it (gone from the Collections menu, its draft \"\"); ⌘Z brings it back, then its old name, then no collection; the 11 Figma exports have both items off", wp: "Variables v2", timeout: 60_000,
     async run(ctx) {
       const { page, win } = await openVariables(ctx);
-      const file = "tokens/source/figma/e2e-renamed.json";
+      const file = collectionFileOf("E2E Renamed");
       await collection(page, win, "Spacing");
       await win.getByRole("button", { name: "Collection actions" }).click();
       const off = await page.getByRole("menuitem", { name: "Rename collection" }).isDisabled();
