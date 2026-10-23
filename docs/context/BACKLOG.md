@@ -11,10 +11,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   code side moved to BadgeStatus (platform examples, the app-layer AppShell playground, the HR Tasks template); Figma
   screens that show a task's or project's step with a themed Badge instance still need swapping to Badge-Status. Waits
   for the user: a write to the Zen Figma file.
-- **P2 · Charts in Studio pages show no currency (2026-10-18, V-1 of the vibe agent; new API, user):** `format` on
-  LineChart / BarList / MetricCard is a function, which the page dialect cannot write, so a revenue chart reads "128.4K",
-  not "$128.4K". Needs a literal preset (e.g. `format="currency"` + `currency`) or a dialect form. Pointer:
-  `docs/research/studio-vibe-agent-2026-10-18.md` §7.
 - **P3 · Studio Variables: new collections (2026-10-23, B; waits for the user):** v2 (chunks 1–4: Edit variable,
   rename with an alias, modes, per-frame `modes`) is on branch zen/feat/studio-variables-v2-20261023. Creating a
   collection in Studio is left: the build reads a fixed list of 11 sources (`scripts/token-outputs.mjs` SOURCE_FILES,
@@ -48,11 +44,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   pull gives the page in a Stack named AppShell and notes the rest (as before the push drew it). An ActionBar outside an
   AppShell still has no Figma set (Action-Bar/Mobile, 16326:6489). Pointer: `tools/studio/figma-push.mjs`
   `mobileShellNode`, `actionBarParts`; `figma-pull.mjs` masterLayout reader (~1980) as the pattern to follow.
-- **P2 · Studio push of Line, Bar, Area, Grouped and Combo charts draws Figma's sample data (user, 2026-10-13: "sync lại
-  component của figma lẫn studio"; re-checked 2026-10-23):** the push picks each chart's Sector (4 / 6 / 7 / 12) by the
-  point count since 2026-10-17, and Stack-Bar and Donut draw the page's data (`stackBarMarks`, `donutMarks` in
-  `tools/studio/figma-charts.mjs`). Left, once the user confirms the scope: X labels, the six Y ticks and the active
-  tooltip for Line, Bar, Area, Grouped and Combo (the pull takes the matching palette sample's data).
+- **P3 · A bare horizontal BarChart in Figma keeps its 290px height (2026-10-23, found in the live check of the chart
+  push; plugin repo):** a chart pushed without a ChartCard hides its Heading, but the instance stays at the component's
+  fixed height, so the Chart fills it and the Values column (space between) drifts from the rows (vertical charts just
+  grow their plot). The fix is the plugin importer's: shrink an instance by a layer it hides, or hug it once its Plot is
+  back to the sample's size (`studio-import.js` INSTANCE branch). In a ChartCard the rows line up.
 - **P2 · Voice proposals awaiting the user's approval (2026-10-13):** Discard confirm or Undo (R4), a silence warning and
   auto end-of-turn in the guideline (R6, A5, A8), `useVoiceLevels(stream)` so real apps move like the sample (R7),
   `state="thinking"` (A4), ChatVoice `onSeek` (C3). Pointer: `docs/research/voice-usability-review-2026-10-13.md`.
