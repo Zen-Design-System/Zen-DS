@@ -24,6 +24,7 @@ import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./fig
 import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma, subActionFromFigma } from "./figma-metric.mjs";
 import { BADGE_STATUS, changedProgress, propertyValueElement } from "./figma-property.mjs";
 import { runsFromSegments } from "./text-runs.mjs";
+import { ACTION_LAYERS, protoOfReaction } from "./figma-proto.mjs";
 import { instanceLayerPaths } from "./instance-paths.mjs";
 import { gradientFillProps, READ_GRADIENT_FILL } from "./figma-gradient.mjs";
 import { imageFillProps, READ_IMAGE_FILL } from "./figma-image.mjs";
@@ -190,8 +191,60 @@ const readChart = async (instance, set) => {
 };
 // A Metric-Card (figma-metric.mjs): its Type, texts, trends, Card and Hero button, in the shape figma-push writes.
 ${READ_METRIC_CARD}
+// Action-Bar/Mobile (figma-push actionBarParts): its Type, its Actions' button count and direction, each Button's
+// properties and words, by the paths the push writes (\`Actions/Button[i]\`, under \`prefix\` inside a pattern).
+const readActionBarParts = async (bar, prefix) => {
+  const at = (rest) => (prefix ? prefix + "/" + rest : rest);
+  const nested = prefix ? [{ path: prefix, props: await propsOf(bar) }] : [];
+  const actions = bar.findOne((n) => n.type === "INSTANCE" && layerKey(n.name) === "Actions");
+  if (!actions) return nested;
+  nested.push({ path: at("Actions"), props: await propsOf(actions) });
+  const buttons = actions.findAll((n) => n.type === "INSTANCE" && n.visible && layerKey(n.name) === "Button");
+  for (let i = 0; i < buttons.length; i++) nested.push({ path: at("Actions/Button[" + i + "]"), props: await propsOf(buttons[i]), text: firstText(buttons[i]) });
+  return nested;
+};
+// Pattern/AppShell/Mobile (figma-push mobileShellNode) in the shape the push writes: its Top-Navigation (read as
+// readTopNav reads one), Bottom-Navigation and its Nav-Items, Action-Bar parts, its own slots by the frames they sit in
+// (\`within\`), a hidden slot and the band's paint as edits, its own fill.
+const readMobileShell = async (instance, set) => {
+  const out = { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), nested: [], slots: [], edits: [] };
+  const own = await fillVariable(instance.fills);
+  if (own) out.fill = own;
+  const trailOf = (layer) => { const trail = []; for (let up = layer.parent; up && up.id !== instance.id; up = up.parent) { if (up.type === "INSTANCE") return null; trail.unshift(up.name); } return trail; };
+  for (const layer of instance.findAll((n) => n.type === "INSTANCE" && n.visible)) {
+    const trail = trailOf(layer);
+    if (!trail) continue;
+    const key = layerKey(layer.name);
+    const path = trail.concat([key]).join("/");
+    if (key === "Top-Navigation") { const top = await readTopNav(layer, await setOf(layer)); out.nested.push({ path, set: top.set, props: top.props, topNav: top.topNav }); }
+    else if (key === "Bottom-Navigation") {
+      out.nested.push({ path, set: await setOf(layer), props: await propsOf(layer) });
+      const items = layer.findOne((n) => n.type === "SLOT" && n.name === "Nav-Items");
+      const children = [];
+      for (const item of items ? items.children : []) { const read_ = await read(item); if (read_) children.push(read_); }
+      if (items) out.slots.push({ name: "Nav-Items", within: [path], children });
+    } else if (key === "Action-Bar") out.nested.push(...(await readActionBarParts(layer, path)));
+  }
+  for (const slot of instance.findAll((n) => n.type === "SLOT")) {
+    const within = trailOf(slot);
+    if (!within) continue;
+    let hidden = !slot.visible;
+    for (let up = slot.parent; up && up.id !== instance.id && !hidden; up = up.parent) hidden = !up.visible;
+    if (hidden) { out.edits.push({ layer: within.concat([slot.name]), visible: false }); continue; }
+    const children = [];
+    for (const inner of slot.children) { const read_ = await read(inner); if (read_) children.push(placed(read_, inner, slot)); }
+    out.slots.push({ name: slot.name, within, children });
+  }
+  for (const frame of instance.children.filter((n) => n.type === "FRAME" && (n.name === "Band" || n.name === "Stage"))) {
+    const paint = await fillVariable(frame.fills);
+    if (paint) out.edits.push({ layer: [frame.name], fill: paint });
+  }
+  return out;
+};
 const readInstance = async (instance) => {
   const set = await setOf(instance);
+  if (set && set.name === "Pattern/AppShell/Mobile") return readMobileShell(instance, set);
+  if (set && set.name === "Action-Bar/Mobile") return { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), nested: await readActionBarParts(instance, "") };
   // Its variant values too (Patterns/Sidebar: the Sidebar's theme, density and shadow).
   if (set && COMPOSITION.test(set.name)) return { ...(await readFrame(instance)), type: "FRAME", composition: set.name, compositionProps: await propsOf(instance) };
   if (set && set.name === "Top-Navigation/Mobile") return readTopNav(instance, set);
@@ -288,6 +341,45 @@ const readInstance = async (instance) => {
 // What the Zen plugin's Import from Studio left on a layer (shared plugin data "zenstudio"): its Studio key (the element
 // id it draws), and on the frame the Studio page and the export it came from.
 const studioData = (node, name) => { try { return node.getSharedPluginData("zenstudio", name) || null; } catch (e) { return null; } };
+// Prototype interactions (Zen-DS figma-proto.mjs's shape): a destination frame is named by the Studio frame id the Zen
+// plugin kept on it ("screen:…", "overlay:…"), else "figma:<id>"; layer: a nested layer of an instance.
+const destinationFrames = new Map();
+const destinationOf = async (id) => {
+  if (!id) return null;
+  if (!destinationFrames.has(id)) {
+    const dest = await figma.getNodeByIdAsync(id);
+    destinationFrames.set(id, (dest && studioData(dest, "frame")) || "figma:" + id);
+  }
+  return destinationFrames.get(id);
+};
+const reactionsOf = async (node, layer) => {
+  let list = [];
+  try { list = node.reactions || []; } catch (e) { list = []; }
+  const out = [];
+  for (const reaction of list) {
+    const trigger = reaction.trigger || {};
+    for (const action of reaction.actions || (reaction.action ? [reaction.action] : [])) {
+      if (!action) continue;
+      const entry = { trigger: trigger.type || null };
+      if (trigger.type === "AFTER_TIMEOUT") entry.timeout = trigger.timeout;
+      if (action.type === "CLOSE" || action.type === "BACK") entry.action = action.type;
+      else if (action.type === "NODE" && (action.navigation === "NAVIGATE" || action.navigation === "OVERLAY")) {
+        entry.action = action.navigation;
+        entry.to = await destinationOf(action.destinationId);
+        const t = action.transition;
+        if (t) {
+          const curve = t.easing && t.easing.easingFunctionCubicBezier;
+          entry.transition = { type: t.type, duration: t.duration };
+          if (t.direction) entry.transition.direction = t.direction;
+          if (curve) entry.transition.easing = [curve.x1, curve.y1, curve.x2, curve.y2];
+        }
+      } else entry.action = action.type + (action.navigation ? ":" + action.navigation : "");
+      if (layer) entry.layer = layer;
+      out.push(entry);
+    }
+  }
+  return out;
+};
 const ROOT_ID = ${JSON.stringify(nodeId)};
 // The Studio page the frame read was imported as (set once the frame is found, below).
 let READ_PAGE = null;
@@ -472,6 +564,16 @@ const read = async (node) => {
   let refs = null;
   try { refs = out ? node.componentPropertyReferences : null; } catch (e) { refs = null; }
   if (refs && Object.keys(refs).length) out.propRefs = Object.fromEntries(Object.entries(refs).map(([field, key]) => [field, String(key).split("#")[0]]));
+  // Its Prototype interactions, and an instance's on its own layers (a Dialog's Primary button), by their path.
+  const reactions = out ? await reactionsOf(node) : [];
+  if (out && node.type === "INSTANCE") {
+    for (const inner of node.findAll((layer) => { try { return (layer.reactions || []).length > 0; } catch (e) { return false; } })) {
+      const names = [];
+      for (let at = inner; at && at !== node; at = at.parent) names.unshift(at.name);
+      reactions.push(...(await reactionsOf(inner, names.join("/"))));
+    }
+  }
+  if (reactions.length) out.reactions = reactions;
   return out;
 };
 const readLayer = async (node) => {
@@ -1404,7 +1506,9 @@ function dataSlotValue(slot, dataSlot, ctx, where, rail = false) {
   // A Bottom-Navigation tab keeps its label while Figma hides it (Label off is showLabels off, bottomNavLook).
   const tab = dataSlot.component === "BottomNavigation";
   const toItem = (item) => {
-    const shown = rail || tab ? { ...item, props: { ...item.props, Label: true }, text: item.text || item.name } : item;
+    // A placed tab's layer keeps its component's name: its label is its Label-Text (the push names the layer after it).
+    const label = tab && typeof item.props?.["Label-Text"] === "string" && /\//.test(item.name ?? "") ? item.props["Label-Text"] : null;
+    const shown = rail || tab ? { ...item, props: { ...item.props, Label: true }, text: item.text || label || item.name } : item;
     const fields = itemFields(shown, ctx, { labelKey, iconKey, where: `${where} › ${dataSlot.itemName}` });
     if (tab && item.props?.Noti === true) fields.dot = literal(true);
     // A count in its Badge-Counter (a Tab-Item with Badge on).
@@ -1625,6 +1729,118 @@ function appShellElement(node, ctx) {
   return { kind: "element", name: "AppShell", props, children };
 }
 
+/* ── phone AppShell (Pattern/AppShell/Mobile) ─────────────────────────────────────────────────────────────────── */
+
+/** Figma's phone app frame (figma-push.mjs MOBILE_SHELL_SET, mobileShellNode: the other way). */
+const MOBILE_SHELL = "Pattern/AppShell/Mobile";
+/** Figma's ActionBar (Action-Bar/Mobile, 16326:6489): the phone pattern's bottom actions, or one standing alone. */
+const ACTION_BAR = "Action-Bar/Mobile";
+/**
+ * Each Top option of the pattern: AppShell's `mobileTop`, and the layers holding its Top-Navigation, the page (Content),
+ * the hero and the backdrop (figma-push.mjs MOBILE_SHELL_TOP).
+ */
+const MOBILE_SHELL_TOPS = {
+  Bar: { top: "bar", nav: ["Top-Navigation"], content: ["Body"] },
+  Band: { top: "band", nav: ["Band", "Top-Navigation"], content: ["Body"], hero: ["Band"] },
+  "Band-Sheet": { top: "band-sheet", nav: ["Stage", "Top-Navigation"], content: ["Stage", "Sheet"], hero: ["Stage"] },
+  Media: { top: "media", nav: ["Stage", "Top-Navigation"], content: ["Stage", "Sheet"], backdrop: ["Stage"] },
+};
+/** The band's paint → AppShell `band` (figma-push mobileShellNode; Figma's own Support/Brand/Subtle is the default). */
+const MOBILE_BAND_OF = { "Background/Support/Brand/Pale": "pale", "Background/Support/Brand/Soft": "soft", "Background/Accent/Solid/Default": "accent" };
+/** The pattern's fill → AppShell `canvas` (Canvas/Default is the pattern's own). */
+const MOBILE_CANVAS_OF = { "Background/Canvas/Alt": "alt", "Background/Canvas/Flat": "flat" };
+/** The bar AppShell gives its TopNavigation on each canvas (AppShell.tsx BAR_TYPE): a pulled bar of that type says nothing. */
+const MOBILE_BAR_TYPE = { default: "alt", alt: "default", flat: "default" };
+const sameLayers = (within, layers) => {
+  const list = Array.isArray(within) ? within : within ? [within] : [];
+  return list.length === layers.length && layers.every((name, index) => list[index] === name);
+};
+
+/**
+ * Figma's Action-Bar/Mobile as ActionBar (figma-push.mjs actionBarParts, the other way): Type Glass is the glass surface;
+ * its Actions Dual has a secondaryAction, Direction Horizontal the horizontal bar (Tertiary then Primary; Vertical puts
+ * Primary first); each Button's words its label, its Level its level, its Leading-Icon its startIcon. `part`: the
+ * pattern's Action-Bar (partOf) or a standalone instance; its nested paths start at its Actions.
+ */
+function actionBarElement(part, ctx) {
+  const nested = part.nested ?? [];
+  const actions = nested.find((entry) => entry.path === "Actions")?.props ?? {};
+  const props = {};
+  if (part.props?.Type === "Glass") props.surface = literal("glass");
+  const horizontal = actions.Direction === "Horizontal";
+  if (horizontal) props.direction = literal("horizontal");
+  // A Button at its role's own level (ActionBar.tsx: primary, tertiary) says nothing.
+  const action = (index, role) => {
+    const button = nested.find((entry) => entry.path === `Actions/Button[${index}]`);
+    if (!button) return null;
+    const fields = {};
+    const label = button.text ?? button.texts?.Label ?? button.texts?.Text;
+    if (typeof label === "string" && label) fields.label = literal(label);
+    const level = typeof button.props?.Level === "string" ? button.props.Level.toLowerCase() : null;
+    if (level && level !== role) fields.level = literal(level);
+    const icon = button.props?.["Leading-Icon"] === true ? button.props["Leading-Icon-Src"] : null;
+    if (typeof icon === "string" && isZenIcon(icon, ctx.mapping)) fields.startIcon = { kind: "element", node: { kind: "element", name: "Icon", props: { name: literal(icon), decorative: literal(true) }, children: [] } };
+    return fields.label ? { kind: "object", fields } : null;
+  };
+  const dual = actions.Button === "Dual";
+  const [primary, secondary] = dual ? (horizontal ? [action(1, "primary"), action(0, "tertiary")] : [action(0, "primary"), action(1, "tertiary")]) : [action(0, "primary"), null];
+  if (!primary) { ctx.notes.push(`ActionBar "${part.name ?? ACTION_BAR}": its button has no words, left out`); return null; }
+  props.primaryAction = primary;
+  if (secondary) props.secondaryAction = secondary;
+  return { kind: "element", name: "ActionBar", props, children: [] };
+}
+
+/**
+ * Figma's Pattern/AppShell/Mobile as AppShell (figma-push.mjs mobileShellNode, the other way): its Top is `mobileTop`;
+ * the Top-Navigation at that Top's place is `topNavigation` (its type left unsaid when it is the one AppShell gives that
+ * top on that canvas); Bottom Tab-Bar or Floating is the Bottom-Navigation as `bottomNavigation`, Actions the Action-Bar
+ * as `actionBar`; the Content slot is the page, the Hero and Backdrop slots (when shown) `hero` and `backdrop`; the
+ * band's paint is `band`, the pattern's fill `canvas`. Null for another layer.
+ */
+function mobileShellElement(node, ctx) {
+  if (node.type !== "INSTANCE" || node.set?.name !== MOBILE_SHELL) return null;
+  const look = node.props ?? {};
+  const place = MOBILE_SHELL_TOPS[look.Top] ?? MOBILE_SHELL_TOPS.Bar;
+  const props = {};
+  if (place.top !== "bar") props.mobileTop = literal(place.top);
+  const edits = node.edits ?? [];
+  // A variable's name as the push writes it (a read gives its collection group too: Color/Background/…).
+  const paint = (name) => String(name ?? "").replace(/^Color\//, "");
+  const bandLayer = place.hero ?? place.backdrop;
+  const band = bandLayer && place.top !== "media" ? MOBILE_BAND_OF[paint(edits.find((edit) => edit.fill && sameLayers(edit.layer, bandLayer))?.fill)] : undefined;
+  if (band) props.band = literal(band);
+  const canvas = MOBILE_CANVAS_OF[paint(node.fill)];
+  if (canvas) props.canvas = literal(canvas);
+  if (look["Top-Navigation"] !== false) {
+    const top = convert(partOf(node, place.nav.join("/"), place.nav, TOP_NAV_SET), ctx);
+    if (top?.name === "TopNavigation") {
+      const given = place.top === "bar" ? MOBILE_BAR_TYPE[canvas ?? "default"] : place.top === "media" ? "liquid-overlay" : band === "accent" ? "transparent-on-color" : "transparent";
+      if (top.props.type?.value === given) delete top.props.type;
+      props.topNavigation = { kind: "element", node: top };
+    } else if (top) ctx.notes.push(`AppShell "${node.name}": the Top-Navigation read as <${top.name}>, left out`);
+  }
+  if (look.Bottom === "Actions") {
+    const bar = actionBarElement(partOf(node, "Action-Bar", ["Action-Bar"], { name: ACTION_BAR }), ctx);
+    if (bar) props.actionBar = { kind: "element", node: bar };
+  } else if (look.Bottom === "Tab-Bar" || look.Bottom === "Floating") {
+    const fallback = { name: look.Bottom === "Floating" ? "Bottom-Navigation/Mobile/Floating" : "Bottom-Navigation/Mobile/Default" };
+    const bottom = convert(partOf(node, "Bottom-Navigation", ["Bottom-Navigation"], fallback), ctx);
+    if (bottom?.name === "BottomNavigation") props.bottomNavigation = { kind: "element", node: bottom };
+  }
+  const slotAt = (name, layers) => (node.slots ?? []).find((slot) => slot.name === name && sameLayers(slot.within, layers));
+  for (const [prop, name] of [["hero", "Hero"], ["backdrop", "Backdrop"]]) {
+    const layers = place[prop];
+    if (!layers || edits.some((edit) => edit.visible === false && sameLayers(edit.layer, [...layers, name]))) continue;
+    const slot = slotAt(name, layers);
+    const element = oneOf((slot?.children ?? []).map((child) => convert(child, ctx)).filter(Boolean), { name, layout: slot?.layout, source: slot }, ctx);
+    if (element) props[prop] = { kind: "element", node: element };
+  }
+  const content = slotAt("Content", place.content);
+  const children = (content?.children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
+  if (look["Floating-Actions"] === true) ctx.notes.push(`AppShell "${node.name}": Floating-Actions on: the phone pattern's floating actions are not read yet`);
+  return { kind: "element", name: "AppShell", props, children };
+}
+
 /** Figma's ◇ Master-Layout page pattern and the Sidebar pattern in it (figma-push.mjs MASTER_LAYOUT_SET). */
 const MASTER_LAYOUT = "Patterns/Pages/Density-Medium";
 /** Figma Patterns/Sidebar (6040:67524), renamed from "Patterns/Sidebar/Density-Medium" on 2026-10-21. */
@@ -1637,7 +1853,7 @@ function partOf(owner, path, layers, fallbackSet) {
   const prefix = `${path}/`;
   return {
     type: "INSTANCE", name: own.name ?? path, set: own.set ?? fallbackSet, props: own.props ?? {},
-    ...(own.text !== undefined ? { text: own.text } : {}), ...(own.texts ? { texts: own.texts } : {}),
+    ...(own.text !== undefined ? { text: own.text } : {}), ...(own.texts ? { texts: own.texts } : {}), ...(own.topNav ? { topNav: own.topNav } : {}),
     nested: nested.filter((entry) => entry.path.startsWith(prefix)).map((entry) => ({ ...entry, path: entry.path.slice(prefix.length) })),
     slots: (owner.slots ?? []).filter((slot) => Array.isArray(slot.within) && layers.every((name, i) => slot.within[i] === name)).map((slot) => {
       const rest = slot.within.slice(layers.length);
@@ -2009,6 +2225,10 @@ function shapeElement(node, ctx) {
 function convertNode(node, ctx) {
   const { mapping, notes } = ctx;
   if (!node) return null;
+  // Figma's Pattern/AppShell/Mobile: a phone AppShell with its bars; Action-Bar/Mobile on its own: an ActionBar.
+  const phoneShell = mobileShellElement(node, ctx);
+  if (phoneShell) return phoneShell;
+  if (node.type === "INSTANCE" && node.set?.name === ACTION_BAR) return actionBarElement(node, ctx);
   // Figma's ◇ Master-Layout written by the push: AppShell (the read of a placed one comes as frames, below).
   const master = masterLayoutFrame(node);
   if (master) { const shell = appShellElement(master, ctx); if (shell) return shell; }
@@ -3054,6 +3274,12 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
     if (frame.minH !== (deviceOf(frame.width) === "phone" ? 844 : 900)) screenProps.height = literal(frame.minH);
     delete frame.minH;
   }
+  // The frame's After delay (figma-proto.mjs): the Screen's onDelay.
+  for (const reaction of frame?.reactions ?? []) {
+    const made = protoOfReaction(reaction);
+    if (made.prop === "onDelay") screenProps.onDelay = { kind: "proto", action: made.action, args: made.args };
+    else ctx.notes.push(`the frame's ${made.note ?? `${made.prop} interaction`}: a Screen takes After delay only`);
+  }
   const chrome = screenChrome(frame, ctx);
   let root = chrome ? chrome.root : convert(frame, ctx);
   settleOverrides(ctx);
@@ -3065,12 +3291,21 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   const own = (part) => (frame ? idOf(frame, ctx, part) : undefined);
   // A Stack, or an AppShell (an app frame), is the Screen's content as it is; anything else goes in a Stack.
   const content = root ? (root.name === "Stack" || root.name === "AppShell" ? root : { kind: "element", id: own("content"), name: "Stack", props: {}, children: [root] }) : null;
-  const screen = { kind: "element", id: own("screen"), name: "Screen", props: { id: literal("screen-1"), title: literal(title), device: literal(deviceOf(frame?.width)), ...screenProps, ...(chrome?.props ?? {}) }, children: content ? [content] : [] };
+  // A phone AppShell with its own bars (Pattern/AppShell/Mobile) keeps them: the Screen's phone parts are decided as none,
+  // so the Studio does not draw a phone header over them from a desktop header the page has not got
+  // (responsive-header.mjs planPhoneSync links a Screen's parts only while it has no phoneLinked).
+  const ownBars = content?.name === "AppShell" && ["topNavigation", "bottomNavigation", "actionBar"].some((prop) => content.props[prop]) && !chrome?.props?.topNavigation && !chrome?.props?.bottomNavigation;
+  const screen = { kind: "element", id: own("screen"), name: "Screen", props: { id: literal("screen-1"), title: literal(title), device: literal(deviceOf(frame?.width)), ...screenProps, ...(chrome?.props ?? {}), ...(ownBars ? { phoneLinked: { kind: "array", items: [] } } : {}) }, children: content ? [content] : [] };
   const board = { kind: "element", id: own("board") ?? "board", name: "Board", props: {}, children: [screen] };
   // Elements no layer stands for take their place under their parent (deterministic: the same frame, the same ids).
   // The layers' own names (data-name) on the elements that are left once wrappers fold away; the page frame's name is
   // the Screen's title.
-  const named = (element) => { const source = SOURCE.get(element); if (source && source !== frame) givenName(element, source); };
+  const acted = new Set();
+  const named = (element) => {
+    const source = SOURCE.get(element);
+    if (source && source !== frame) givenName(element, source);
+    if (source && source !== frame && source.reactions && !acted.has(source)) { acted.add(source); pulledReactions(element, source, ctx); }
+  };
   const walk = (node) => {
     node.children.forEach((child, index) => { if (child.kind === "element") { child.id ??= `${node.id}.${index}`; named(child); walk(child); } });
     for (const [name, value] of Object.entries(node.props)) if (value.kind === "element") { value.node.id ??= `${node.id}.${name}`; named(value.node); walk(value.node); }
@@ -3081,6 +3316,28 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   const source = frame?.id ? { figma: { file: frame.file ?? file, node: frame.id, ...pushed } } : {};
   const doc = { header: { format: 1, title, ...source }, mock: {}, board };
   return { text: printPage(doc), notes: ctx.notes, doc };
+}
+
+/**
+ * A layer's Prototype interactions (figma-proto.mjs) as the element's proto props: On click → onClick, While hovering →
+ * whileHovering; one on a Dialog's button → its action prop's onClick, when the page has that prop. What the Studio has
+ * no word for (a reaction to a frame that is no Studio frame, a Smart animate) is a note.
+ */
+function pulledReactions(element, node, ctx) {
+  for (const reaction of node.reactions ?? []) {
+    const made = protoOfReaction(reaction);
+    if (made.note) { ctx.notes.push(`${element.name}: ${made.note}`); continue; }
+    const value = { kind: "proto", action: made.action, args: made.args };
+    if (reaction.layer) {
+      const field = Object.entries(ACTION_LAYERS[element.name] ?? {}).find(([, layer]) => layer === reaction.layer)?.[0];
+      const holder = field ? element.props[field] : null;
+      if (holder?.kind === "object") holder.fields[made.prop] = value;
+      else ctx.notes.push(`${element.name}: the interaction on its ${String(reaction.layer).split("/").pop()} layer stays as the page has it`);
+      continue;
+    }
+    if (made.prop === "onDelay") { ctx.notes.push(`${element.name}: After delay is a Screen's (on its frame), not a layer's`); continue; }
+    element.props[made.prop] = value;
+  }
 }
 
 /**

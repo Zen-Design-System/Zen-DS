@@ -152,6 +152,8 @@ export function libraryKeysFor(pkg, table) {
     for (const [key, item] of Object.entries(value)) if (key !== "images") visit(item, key);
   };
   visit(pkg.frame, "frame");
+  // A page's other Screens and its Overlays (figma-push `frames`) use the library too.
+  for (const each of pkg.frames ?? []) visit(each.frame, "frame");
   return { file: table.file, read: table.read, sets, icons, styles, collections: { ...table.collections } };
 }
 

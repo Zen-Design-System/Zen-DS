@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio → Figma: a page goes to Figma with every Screen, Screen state and Overlay as a frame of its own (an
+  Overlay as big as what it holds), and its Prototype actions as Figma interactions: On click, While hovering and After
+  delay; Navigate to, Open overlay, Close overlay and Back, with their animation, direction and Zen's duration and curve
+  (a Dialog's, Side Panel's or Bottom Sheet's buttons too). Pull from Figma reads them back. Show toast, Open link, Filter table,
+  Change step and the overlay's position, background and click-outside stay in the Studio, each named in the notes
+  (2026-10-24).
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in
@@ -1520,6 +1526,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   line chart draws its sector rule (Figma hides the idle ones).
 
 ### Added
+- Zen Studio ↔ Figma, phone app frames (2026-10-23): a frame built on Figma's Pattern/AppShell/Mobile comes back from
+  Figma as a phone AppShell with its bars — its Top (bar, band, band-sheet, media), TopNavigation, tabs or ActionBar,
+  hero or backdrop, band colour and canvas, and the page in it — instead of a Stack and a note. An ActionBar on its own
+  goes to Figma as Action-Bar/Mobile (it was left out) and comes back as an ActionBar. On the Studio canvas a phone
+  Screen without bars of its own shows its root AppShell's bars, band and ActionBar (the canvas used to drop them).
 - Zen Studio, Update from Figma in another browser (2026-10-23): Export › Figma and every pull also keep their base
   beside the page in the pages folder (`<id>.figma-base.json` in the dev server's .zen-studio/pages, or the linked folder), so
   a frame pulled back in a browser that did not export it is still compared three ways: only what the designer changed
