@@ -359,6 +359,26 @@ Branch claude/eloquent-mclean-8f4974 from main 4b96bbb8. BACKLOG P1 "320px debt 
   Visual diff templates 1512 + 390, old vs new template: 32 identical. Baseline: the 28 @320 keys gate 2 no longer finds
   removed (13 Chat, 10 layout, the Show-all target, 4 Text-page heading demos); 16 @320 keys left, all also at 1512/390.
 
+## Session C · Direct paste, what was left (tier S; G3 item 2 from Giám sát, user-approved triage)
+Branch `zen/fix/studio-native-paste-rest-20261023`. The other-files part waits on the library publish (BACKLOG P2 kept
+for it); the rest closed (research doc studio-native-paste-2026-10-17.md §8).
+- Copy for Figma (frame menu) wrote after the click with `navigator.clipboard.write`: Chromium rewrote the html and only
+  the plugin read it. The menu now reads the frame ahead when it opens (`readFrameAhead`, CanvasMenu) and the click
+  writes code + html in a copy event (`copyFrameNow`, ≤ 3 s wait for the read; else the old write, "copy again for the
+  Zen file's canvas"); the Screen layer's menu uses what ⌘C read ahead. HO-12 reads the html unsanitized.
+- Grid row heights: Figma test (QA page, removed): four stretched Metric-Cards in a Hug row without minimum → row 208
+  (Goal-Progress), Sparkline cards 236 → 208. The paste now takes each stretched instance cell's canvas height as
+  `minSize` (`withCanvasHeights`: findBySrc by element id). HO-12's page gained a two-Metric-Card Grid; it checks the
+  minimums equal the canvas heights.
+- Pack 23.3 → 7.7 MB (gzip 0.76): `compactPack` interns subtrees ≥ 40 chars seen twice into `shared` (`{$: n}`),
+  `expandPack` restores fresh copies (78 ms, cached per pack); all native-pack writes compact, reads expand. Round trip
+  byte-identical; paste messages of 58 Studio pages + Expenses identical to the old pack's. figma-native selftest 142.
+- Kept by design: slot overrides on the slot's default layer, and the component's alias variable in kept overrides.
+- Sticky native paste tried live (BACKLOG P3 from B, handed over by the progress session; archived). Oracle: a frame
+  with a Fixed dock via `numberOfFixedChildren` copied from Figma desktop → FIXED_WHEN_CHILD_OF_SCROLLING_FRAME on the
+  dock, no `fixedChildrenDivider`. A ⌘V of a Studio frame (sticky top + bottom) → fixed count 1, and Figma's copy of it
+  keeps STICKY_SCROLLS and FIXED. figma-native unchanged. QA page cleared, clipboard put back 6/6 both times.
+
 ## Session C · PropertyField ↔ Figma gaps (BACKLOG P3; Giám sát's G3 queue, tier M)
 Branch `zen/fix/studio-property-field-figma-20261023`.
 - Figma (user's choice "Make Container a Slot"): in the 8 Person / Tags variants of `.Primitives/Input/Property-Value`
@@ -440,6 +460,35 @@ Branch zen/feat/box-theme-rules-20261023 (worktree festive-archimedes-176df5). #
   height (list-item.css), re-shot after the slot came back: `qa --only=list-item --isolated` PASS (audit, dark,
   behaviour 0); at 1512 the three Pale groups fill their columns and the flat page hugs its list, 390 unchanged.
 
+## Figma: workflow steps drawn as themed Badges → Badge-Status (tier S, Figma-only; BACKLOG P3, user approved the write)
+
+Zen file 9nZv4uW2LT21yuHabMTCh1. Scan: every page's text for the harness's step words (To Do … Cancelled, vi) and the
+code's project steps (Planning, Active, On hold, Completed, plus Not started / In discussion), kept where the nearest
+instance is the Badge set (260:4825). The HR screens and the AppShell boards already showed Badge-Status (10-21 swap).
+Swapped with `swapComponent` (labels and widths kept; signatures match the main variant: fills, text style, arcs):
+
+| Page | Frame | Badge node | Before → after |
+| --- | --- | --- | --- |
+| ◆ HR-Platform | `.Row` 7394:108859, State=Hover | I7394:108361;4035:10637;7394:108378;4081:18368;7394:108838;4035:11662;7394:108722 | Badge Neutral Subtle M "To Do" → Badge-Status To Do M |
+| ◆ HR-Platform | `.Row` 7394:108859, State=Default | I7394:108528;4035:10637;7394:110374;4081:18370;7394:111923;4035:11662;7394:110388 | Badge Neutral Subtle M "To Do" → To Do M |
+| ❖ Popover | Popover/Default 14046:67128 (status menu) | I14046:67128;4031:26127;14046:67145;4031:26096;14046:67151;829:19627 | Blue "In Discussion" → In Review M, label kept |
+| ❖ Popover | 〃 | …14046:67146;4031:26096;14046:67153;829:19627 | Neutral "Not Started" → To Do M, label kept |
+| ❖ Popover | 〃 | …14046:67147;4031:26096;14046:67155;829:19627 | Yellow "In Progress" → In Progress M |
+| ❖ Popover | 〃 | …14046:67148;4031:26096;14046:67157;829:19627 | Red "Cancelled" → Cancelled M |
+| ❖ Popover | 〃 | …14046:67149;4031:26096;14046:67159;829:19627 | Green "Done" → Done M |
+| ❖ List-Item | Example/People directory 14990:1171, Card 14990:1664, Projects | I14990:1664;6643:50987;14990:1683;14817:2747;4080:11391;14990:1612 | Blue "Active" (Loyalty app) → In Progress M, label "Active" (code: projectStep) |
+| ❖ List-Item | 〃 | I14990:1664;6643:50987;14990:1684;14817:2747;4080:11391;14990:1652 | Blue "Active" (Zen design system) → In Progress M, label "Active" |
+
+- Layer names: the old layers had the Badge's default name, so Figma's swap renames them Badge-Status (as the 10-21
+  swap did); no custom name was touched. Rings keep the variant's arc (no progress pushed by hand).
+- Stay Badges (not a task's step, as in code): leave requests Pending/Approved/Rejected (HR tables), Draft, Ready to
+  ship, New, Paid/Unpaid, Voice Ready/Paused. Plain step text (Kanban group headers with Progress-Icon, Schedule
+  event cards, keyboards) is not a Badge.
+- Audit (zen-figma-audit.js, minified to fit use_figma): `.Row` 0 errors, 2 warnings (pre-existing Light drag-handle
+  icon in Table/Cell, the template's own choice); Popover 0/0; People directory 2 errors fixed (Person and Toolbar
+  frames clipped a button/chip shadow by 2px: Clip content off), 2 warnings left (docs Example/Stage corner radii).
+  Screenshots checked; nothing moved, so no overlap. Final scan: 0 themed Badges with a step word on the 3 pages.
+
 ## Chart number format presets (tier M; user G2 2026-10-23: "literal preset format="currency" + currency"; scope widened by the user to every chart with `format`)
 
 Branch zen/feat/chart-format-presets-20261023 from main 9fe063d2. BACKLOG P2 "Charts in Studio pages show no currency".
@@ -481,6 +530,31 @@ Branch zen/feat/chart-push-real-data-20261023 (stacked on the format presets: la
   Vitest 80 / 80, audit 1512 / 390 / 320 + dark + behaviour 0 new, Studio E2E 340 / 341 — B-10 (Export → Import the
   same text) timed out on a click while the machine was loaded (C's E2E ran beside it ~25 s) and passed alone right
   after (1 / 1). Contact sheets: "Money as a preset" reads "$" on the axis, Tooltip and list at 390 and 1512.
+
+- Static: tsc, usage, style, guidelines, studio, ai-ui, mcp, nested-paths. The conformance run and the gate wait for a
+  browser slot.
+
+## Voice proposals (tier M; the user approved them all, relayed by the progress session: "chia như đề xuất")
+
+Branch zen/feat/voice-proposals-20261023 from main 9fe063d2. Review `docs/research/voice-usability-review-2026-10-13.md`.
+- A4: `AiVoiceConversation state="thinking"`: the signal rests as five 4px dots that brighten in turn (opacity) and the
+  halo breathes (voice.css, infinite, inside no-preference; reduced motion keeps still dots); Badge "Thinking",
+  heading "Thinking it through", speaker "You · Said", Interrupt as the main action. Figma's variant stays QUESTIONS
+  Voice (a), now noting the code look.
+- R7: `useVoiceLevels(stream, { bars = 56, rate = 7, paused })` (Voice/useVoiceLevels.ts): AnalyserNode RMS → dBFS −60…0
+  → 0–1, one level per 1/rate s, undefined without a stream.
+- C3: `ChatVoice onSeek(share)`: the waveform becomes an APG slider (Playback position, value "0:16 of 0:32"; pointer
+  with capture, ←/→ 5 %, PageUp/Down 10 %, Home, End; RTL flips the pointer), focus ring Focus/Accent/Solid.
+- R4, R6, A5, A8: guideline Do lines; examples: Discard with an Undo toast, "Your microphone's real levels" (silence
+  warning after 3 s under the quiet line), the conversation ends your turn on 1.2 s of silence then thinks, "A turn Zen
+  did not catch". Chat example seeks.
+- Labels (en, vi): voiceThinking, voiceThinkingHeading, voiceThinkingGuidance, voiceYouSaid, voicePosition,
+  voicePositionValue. Generated docs rebuilt (guidelines, api, ai-ui). Test tests/interaction/voice-proposals.test.tsx.
+- Overlap: the AppShell session's data-* forwarding branch (#246) edits the same component signatures (Voice.tsx,
+  Chat.tsx); merged it in early, ChatVoice keeps `onSeek` and `...rest`.
+- Gate (slot from debt-320px, Giám sát's GO; `--isolated --pages=voice,chat`): **PASS** — Vitest 83/83 (the new test
+  6/6), audits 1512 / 390 / 320, dark, keyboard / APG, voice 8 and chat 10 examples; contact sheets looked at (the narrow
+  recorder footer wraps "Live levels · 7 a second" as the existing "48 kHz · Mono" one does).
 
 ## Chart contract suites (tier M; BACKLOG P3, the user's go 2026-10-23)
 - 15 suites in `tools/figma-contract/suites/chart-*.mjs`: Line, Multi-Line, Chart-Card, Stack-Bar, Bar, Area,

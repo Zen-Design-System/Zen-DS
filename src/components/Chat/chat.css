@@ -283,6 +283,9 @@
 /* zen-allow-slot-size: a waveform bar is a drawn glyph, 3px wide as in Figma; the unplayed share is 30% (Figma's opacity). */
 .zen-chat-voice__bar { width: 3px; min-height: 3px; flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 999px); background: currentColor; opacity: 0.3; transition: opacity var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-linear, linear); }
 .zen-chat-voice__bar[data-played] { opacity: 1; }
+/* With onSeek the waveform is a slider (voice review C3): a tap or drag seeks; the focus ring sits around the bars. */
+.zen-chat-voice__wave[data-seek] { cursor: pointer; touch-action: none; border-radius: var(--zen-corner-radius-xsmall, 4px); }
+.zen-chat-voice__wave[data-seek]:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
 /* zen-allow-slot-size: Figma's Playback speed box is 40 wide, so the bubble does not move as "1×" becomes "1.5×". */
 .zen-chat-voice__speed { display: inline-flex; width: 40px; height: 100%; flex: 0 0 auto; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; color: inherit; cursor: default; font-variant-numeric: tabular-nums; }
 button.zen-chat-voice__speed { cursor: pointer; }

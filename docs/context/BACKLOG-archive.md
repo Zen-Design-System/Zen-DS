@@ -2,6 +2,25 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-23 (native paste of a sticky layer, tried live on `zen/fix/studio-native-paste-rest-20261023`)
+
+- Done 2026-10-23: a real ⌘V into the Zen file kept both (Sticky on the in-flow layer, Fixed on the absolute dock,
+  `numberOfFixedChildren` 1), and Figma's own copy of a Fixed layer writes no `fixedChildrenDivider` either; figma-native
+  unchanged. Spec `docs/research/layout-sticky-spec-2026-10-23.md` § Figma.
+- **P3 · Native paste of a sticky layer not tried live (2026-10-23, B):** figma-native writes `scrollBehavior`
+  (FIXED_WHEN_CHILD_OF_SCROLLING_FRAME on the absolute dock, STICKY_SCROLLS in flow) from Figma's own clipboard schema;
+  the plugin path was checked live. Still to see in a real ⌘V: Figma keeps both, and whether it also wants
+  `fixedChildrenDivider` on the parent. Pointer: `docs/research/layout-sticky-spec-2026-10-23.md` § Figma.
+
+## Archived 2026-10-23 (Figma Badge-Status swap)
+
+- Done 2026-10-23 (user approved the write to the Zen Figma file; 9 themed Badges swapped to Badge-Status on ◆ HR-Platform
+  `.Row`, ❖ Popover and ❖ List-Item; list in the session log):
+  **P3 · Figma instances of a workflow step still drawn as themed Badges (2026-10-21; code done 2026-10-23):** the
+  code side moved to BadgeStatus (platform examples, the app-layer AppShell playground, the HR Tasks template); Figma
+  screens that show a task's or project's step with a themed Badge instance still need swapping to Badge-Status. Waits
+  for the user: a write to the Zen Figma file.
+
 ## Archived 2026-10-23 (PropertyField ↔ Figma, done on `zen/fix/studio-property-field-figma-20261023`)
 
 - **P3 · PropertyField ↔ Figma gaps (2026-10-21):** a People / Labels cell pushes one person and two tags (the
