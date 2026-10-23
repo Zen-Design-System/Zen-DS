@@ -281,6 +281,21 @@ export const studioApi = {
       throw new StudioApiError(code, error);
     }
   },
+  /** A page's Figma bases beside it in .zen-studio/pages/ (GET /pages/figma): the file's JSON, or null when it has none. */
+  async pageFigma(id: string): Promise<unknown | null> {
+    const reply = await authorized<{ ok?: unknown; figma?: unknown }>(`/pages/figma?id=${encodeURIComponent(id)}`);
+    if (!reply || reply.status !== 200 || reply.body?.ok === false) return null;
+    return reply.body?.figma ?? null;
+  },
+  /** POST /pages/figma-write { id, figma }; rejects with a StudioApiError when refused. */
+  async pageFigmaWrite(id: string, figma: unknown): Promise<void> {
+    const reply = await post<{ ok?: unknown }>("/pages/figma-write", { id, figma });
+    if (!reply) throw new StudioApiError("invalid", NO_SERVER);
+    if (reply.status !== 200 || reply.body?.ok === false) {
+      const { code, error } = errorOf(reply.body, "Figma bases not saved");
+      throw new StudioApiError(code, error);
+    }
+  },
   /** POST /pages/asset-write { id, data: base64 } or /pages/asset-trash { id }; rejects with a StudioApiError when refused. */
   async pageAssetWrite(action: "write" | "trash", id: string, bytes?: Uint8Array): Promise<void> {
     let data: string | undefined;
