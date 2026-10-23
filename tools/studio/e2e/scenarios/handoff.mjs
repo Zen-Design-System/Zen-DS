@@ -690,13 +690,21 @@ export const rows = [
       await page.mouse.click(box.x + box.width / 2, box.y + box.height - 24, { button: "right" });
       await page.getByRole("menuitem", { name: "Copy for Figma" }).click();
       await check("Copy for Figma");
+      // Figma's canvas takes the html only as written (a copy event): an async write turns `<!--` into `&lt;!--`.
+      const raw = await page.evaluate(async () => {
+        for (const item of await navigator.clipboard.read({ unsanitized: ["text/html"] })) if (item.types.includes("text/html")) return (await item.getType("text/html")).text();
+        return "";
+      });
+      if (!/<span data-metadata="<!--\(figmeta\)/.test(raw) || !raw.includes('<span data-buffer="<!--(figma)')) {
+        throw new Error(`Copy for Figma: Figma's own clipboard is not on it as written (${raw.slice(0, 120)}…)`);
+      }
       // ⌘C with the Screen layer selected (the right-click selected it).
       await page.evaluate(() => navigator.clipboard.writeText("before"));
       await page.locator(".studio-viewport").focus();
       await sleep(800);
       await page.keyboard.press(process.platform === "darwin" ? "Meta+c" : "Control+c");
       await check("⌘C on the Screen layer");
-      return `⌘C on the frame and on its Screen layer, Copy for Figma: ${Object.keys(copied.library.sets).length} sets with keys, frame screen:screen-1, code beside it`;
+      return `⌘C on the frame and on its Screen layer, Copy for Figma (Figma's own clipboard as written): ${Object.keys(copied.library.sets).length} sets with keys, frame screen:screen-1, code beside it`;
     },
   },
 ];
