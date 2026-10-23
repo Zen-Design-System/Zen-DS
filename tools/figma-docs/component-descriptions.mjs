@@ -365,7 +365,7 @@ export const componentDescriptions = {
     what: "Moves through a large ordered result set one page at a time.",
     use: ["Tables and result lists where position matters (page 3 of 10)."],
     instead: ["Short lists that fit on one screen → show them all.", "Continuous feeds → load more."],
-    props: [["Theme", "Primary · Secondary · Inline · Manually (a page-size choice or a jump-to-page field for data tables)"]],
+    props: [["Theme", "Primary · Secondary · Inline · Manually (a page-size choice for data tables: a Chip in Inline, a typed number in Manually)"]],
     code: "`<Pagination>`",
   }),
 
