@@ -1,7 +1,10 @@
 /* Figma Table/Sheet (page ❖ Table 1595:2631, doc frame 17100:7996): reference rows that grow with their content. */
 /* The scroll box: a sheet narrower than its minWidth scrolls sideways instead of squeezing its columns. */
 .zen-sheet-table { position: relative; width: 100%; min-width: 0; overflow-x: auto; }
-.zen-sheet-table__table { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: fixed; }
+/* Auto layout: a column's `width` is what it asks for, and no column gets narrower than its header word (All-Caps,
+   one line) or its widest unbreakable piece (a key chip). Code and text break anywhere, so they never force a column
+   wider; a fixed layout cut "DEFAULT" in a 12% column on a phone (gate 2026-10-24). */
+.zen-sheet-table__table { width: 100%; border-collapse: collapse; border-spacing: 0; table-layout: auto; }
 .zen-sheet-table__caption { padding-bottom: var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-strongest, #111); text-align: start; caption-side: top; }
 
 /* Header: Table/Cell/Header Type=None — FIXED Table/Header/Size, padding Medium sideways, All-Caps/S Neutral/Light and
