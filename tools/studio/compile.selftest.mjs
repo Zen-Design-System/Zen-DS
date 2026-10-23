@@ -398,6 +398,30 @@ export default function Page() {
   ok("generated props: the export parses", parsed);
 }
 
+// Option C (2026-10-23): a Screen state as a Navigate to target, Filter table and Change step (TODO handlers: the app
+// owns that state), an Overlay at Position Manual (next to the layer that opens it).
+{
+  const text = page("Orders", "Button, Card, Chip, Stepper, Table, Text", [
+    '<Screen id="orders" title="Orders">',
+    '  <Chip onClick={proto.filter({ column: "status", value: "Paid" })}>Paid</Chip>',
+    '  <Button onClick={proto.navigate("orders:paid")}>Only paid</Button>',
+    '  <Button onClick={proto.step("next")}>Next</Button>',
+    '  <Chip onClick={proto.open("tip")}>Tip</Chip>',
+    '  <Table columns={[{ id: "status", header: "Status" }]} rows={[{ id: "1", status: "Paid" }]} />',
+    '  <Stepper steps={[{ id: "a", label: "Cart" }, { id: "b", label: "Pay" }]} />',
+    "</Screen>",
+    '<Screen id="orders" title="Orders · paid" state="paid"><Text>Paid only</Text></Screen>',
+    '<Overlay id="tip" position="manual"><Card><Text>Tip</Text></Card></Overlay>',
+  ]);
+  check("option C: the page is valid", validateDialect(text), []);
+  const out = compileReact(text, { file: "orders.zen.tsx" });
+  ok("option C: compiles", !out.error);
+  ok("option C: a state target navigates to its Screen and names the state", out.code.includes('navigate("orders")') && out.handlers.some((line) => line.includes('in its "paid" state: pass state="paid"')));
+  ok("option C: Filter table and Change step are TODO handlers", out.handlers.some((line) => line.includes('filters the screen\'s Table by its "status" column = "Paid"')) && out.handlers.some((line) => line.includes("moves the screen's Stepper to its next step")));
+  ok("option C: a Manual overlay sits by the layer that opens it", out.handlers.some((line) => line.includes("next to the layer that opens it")));
+  ok("option C: the state is a prop", out.code.includes('state?: "paid"'));
+}
+
 if (failures.length) {
   console.error(`✗ compile selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

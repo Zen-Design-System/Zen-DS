@@ -425,6 +425,27 @@ function fragmentsAsRows(doc) {
   return { ...doc, board: doc.board ? node(doc.board) : doc.board };
 }
 
+/** How many `proto.*` actions a layer and the layers in it hold (also inside a prop's value, a Dialog's primaryAction). */
+function protoActionsIn(root) {
+  let count = 0;
+  const visit = (value) => {
+    if (!value || typeof value !== "object") return;
+    if (value.kind === "proto") { count += 1; return; }
+    if (value.kind === "element") { visitNode(value.node); return; }
+    if (value.kind === "map") { visitNode(value.node); return; }
+    if (value.kind === "array") value.items.forEach(visit);
+    else if (value.kind === "object") Object.values(value.fields).forEach(visit);
+    else if (value.kind === "fragment") value.children.forEach(visit);
+  };
+  const visitNode = (node) => {
+    if (!node || node.kind !== "element") return;
+    Object.values(node.props).forEach(visit);
+    for (const child of node.children ?? []) (child.kind === "map" ? visitNode(child.node) : visitNode(child));
+  };
+  visitNode(root);
+  return count;
+}
+
 /** A page's title, from its header line (`// @zen-page {"title": …}`), or null. */
 function titleOf(text) {
   const header = /^\/\/ @zen-page (\{.*\})$/m.exec(String(text ?? ""));
@@ -456,6 +477,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   if (sections) notes.push(`${sections} Section${sections > 1 ? "s" : ""} (areas of the board): not pushed`);
   const slices = boardElements.filter((child) => child.name === "Slice").length;
   if (slices) notes.push(`${slices} Slice${slices > 1 ? "s" : ""} (export areas of the board): not pushed`);
+  // The Prototype tab's actions (navigate, open overlay, filter…) stay in the Studio: Figma's reactions need the Screens and
+  // Overlays they lead to as frames, and the push sends one Screen.
+  const interactions = protoActionsIn(screen);
+  if (interactions) notes.push(`${interactions} interaction${interactions > 1 ? "s" : ""} (Prototype tab): not pushed`);
   /** Code-only components drawn as a frame of their layers (or as their text), by name: one note each at the end. */
   const framed = new Map();
   const countFramed = (name) => framed.set(name, (framed.get(name) ?? 0) + 1);

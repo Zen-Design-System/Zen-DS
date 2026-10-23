@@ -20,11 +20,11 @@ import { playStartOf, startPlay } from "./playStart";
 import { defaultTarget, writeAction, writeItemTargets, writeProp, type ProtoLayer } from "./protoEdit";
 import { selectedItem } from "./protoDom";
 import {
-  ACTIONS, actionsFor, ANIMATIONS, choiceItemsOf, DEFAULT_ANIMATION, DEFAULT_DELAY, DEFAULT_DIRECTION, DEFAULT_DURATION, DELAY_TRIGGER, frameNodeOf, framesOf,
-  HOVER_TRIGGER, isItemTrigger, literalOf, moves, optionsOf, protoOf, targetsByItem, triggerLabel,
-  type ChoiceItem, type ProtoAction, type ProtoAnimation, type ProtoDirection, type ProtoDuration, type ProtoFrame, type ProtoOptions,
+  ACTIONS, actionsFor, ANIMATIONS, choiceItemsOf, columnsOf, DEFAULT_ANIMATION, DEFAULT_DELAY, DEFAULT_DIRECTION, DEFAULT_DURATION, DELAY_TRIGGER, filterOf, frameNodeOf, framesOf,
+  HOVER_TRIGGER, isItemTrigger, layerNameOf, layersIn, literalOf, moves, openerOf, optionsOf, protoOf, stepOf, targetLayerOf, targetsByItem, triggerLabel,
+  type ChoiceItem, type ProtoAction, type ProtoAnimation, type ProtoDirection, type ProtoDuration, type ProtoFilter, type ProtoFrame, type ProtoOptions, type ProtoStep,
 } from "./protoModel";
-import { placesItself, protoSubject, type ProtoSubject } from "./protoTriggers";
+import { anchorsItself, placesItself, protoSubject, takesText, type ProtoSubject } from "./protoTriggers";
 
 /*
  * The Inspector's Prototype tab on a builder page (Studio builder GĐ2 M3, spec
@@ -37,8 +37,12 @@ import { placesItself, protoSubject, type ProtoSubject } from "./protoTriggers";
  *   it animates (Instant, Dissolve, Move in, Push, Slide in; direction, duration); the main trigger and every set one
  *   show, the others come from + (Add interaction). An action is written as the prop's `proto.*(…)` expression, so it is
  *   code like any other prop and ⌘Z undoes it. On the canvas the layer's ⊕ draws the same connection (ProtoLinks).
- * - Overlay: where an Overlay shows what it holds (Figma's overlay position), whether a press outside closes it and
- *   whether the screen dims behind it; a Dialog, Side Panel or Bottom Sheet places itself.
+ * - Overlay: where an Overlay shows what it holds (Figma's overlay position; Manual: next to the layer that opens it),
+ *   whether a press outside closes it and whether the screen dims behind it; a Dialog, Side Panel or Bottom Sheet places
+ *   itself, a DatePicker or Popover opens next to the layer that opens it.
+ * - Option C (user, 2026-10-23): Navigate to lists each Screen's states (Figma: every frame is a target); Filter table
+ *   names the Table, its column and the value (none: what the trigger hands over); Change step goes Next or Previous on
+ *   the Screen's Stepper.
  */
 
 /** What Add overlay puts in the new Overlay: a component that places itself, or a Card the Overlay places. */
@@ -180,6 +184,8 @@ function TriggerRow({ trigger, label, value, items, tree, layer, frames, home, d
   const picked = useSyncExternalStore(selectedItem.subscribe, selectedItem.get, selectedItem.get);
   const pickedItem = picked && picked.loc === layer.loc ? picked.item : null;
   const byItem = items.length > 0 && (action === "navigate" || action === "open");
+  // Filter table on a layer that takes typed text (a Search) compares by "contains".
+  const typed = takesText(layer.name);
   const targets = byItem ? targetsByItem(arg, items) ?? {} : {};
   const homeScreen = home?.kind === "screen" ? home.id : null;
 
@@ -189,6 +195,7 @@ function TriggerRow({ trigger, label, value, items, tree, layer, frames, home, d
       onRemoved();
       return;
     }
+    if (next === "filter") { void writeAction(layer, trigger, "filter", { match: typed ? "contains" : undefined }); return; }
     // A new action keeps the animation (and the delay) it had.
     const kept: ProtoOptions = next === action ? options : { delay: options.delay, ...(next === "navigate" || next === "open" ? { animation: options.animation, direction: options.direction, duration: options.duration } : {}) };
     if (items.length && (next === "navigate" || next === "open") && target === undefined) {
@@ -212,7 +219,8 @@ function TriggerRow({ trigger, label, value, items, tree, layer, frames, home, d
     else void writeAction(layer, trigger, action, typeof arg === "string" ? arg : argText, next, label);
   };
 
-  const screens = frames.filter((frame) => frame.kind === "screen" && !frame.state);
+  // Every Screen and each of its states (a state's own frame, as Figma's), by the target Navigate to writes.
+  const screens = frames.filter((frame) => frame.kind === "screen").map((frame) => ({ ...frame, id: frame.state ? `${frame.id}:${frame.state}` : frame.id, title: frame.state && !frame.title.includes(frame.state) ? `${frame.title} · ${frame.state}` : frame.title }));
   const overlays = frames.filter((frame) => frame.kind === "overlay");
   // An overlay that places itself (a Dialog…) animates itself too.
   const target = action === "open" && typeof arg === "string" ? frameNodeOf(tree, `overlay:${arg}`) : null;
@@ -279,10 +287,90 @@ function TriggerRow({ trigger, label, value, items, tree, layer, frames, home, d
           />
         </InspectorRow>
       ) : null}
+      {action === "filter" && proto ? <FilterRows trigger={trigger} filter={filterOf(proto.args)} screen={screenFor(tree, home)} hands={items.length > 0 || typed} typed={typed} layer={layer} disabled={disabled} /> : null}
+      {action === "step" && proto ? <StepRows trigger={trigger} step={stepOf(proto.args)} screen={screenFor(tree, home)} layer={layer} disabled={disabled} /> : null}
       {animates ? <AnimationRows trigger={trigger} options={options} disabled={disabled} onChange={writeOptions} /> : null}
       {target && !selfPlaced ? <OverlayFields node={target} file={layer.file} disabled={disabled} /> : null}
       {custom ? <Text as="p" tone="base" textStyle="Caption/Regular" className="studio-prototype__note">Picking an action replaces the code.</Text> : null}
     </div>
+  );
+}
+
+/** The Screen whose Table or Stepper a layer's Filter table or Change step drives: its own, or (in an Overlay) the one
+ *  that opens the Overlay. */
+function screenFor(tree: PageTree | null, home: ProtoFrame | null): PageNode | null {
+  if (!home) return null;
+  if (home.kind === "screen") return frameNodeOf(tree, home.frameId);
+  const opener = openerOf(tree, home.id);
+  return opener ? frameNodeOf(tree, `screen:${opener}`) : null;
+}
+
+/** The layers of `component` an action can name on `screen`: the first (by no name) and every other one with a name. */
+function namedTargets(screen: PageNode | null, component: string): Array<{ value: string; label: string }> {
+  const layers = screen ? layersIn(screen, component) : [];
+  return layers.flatMap((node, index) => {
+    const name = layerNameOf(node);
+    if (index === 0) return [{ value: NO_TARGET, label: name ?? component }];
+    return name ? [{ value: name, label: name }] : [];
+  });
+}
+
+/** Filter table: which Table (when the Screen has more than one with a name), the column it reads and the value (none:
+ *  what the trigger hands over: the chosen item, what is typed). */
+function FilterRows({ trigger, filter, screen, hands, typed, layer, disabled }: { trigger: string; filter: ProtoFilter; screen: PageNode | null; hands: boolean; typed: boolean; layer: ProtoLayer; disabled: boolean }) {
+  const tables = namedTargets(screen, "Table");
+  const table = targetLayerOf(screen, "Table", filter.table);
+  const columns = table ? columnsOf(table) : [];
+  const valueText = filter.value ?? "";
+  const [draft, setDraft] = useState(valueText);
+  useEffect(() => setDraft(valueText), [valueText]);
+  const write = (change: ProtoFilter, label: string) => void writeAction(layer, trigger, "filter", { ...filter, ...change }, undefined, label);
+  if (!table) return <Text as="p" tone="base" textStyle="Caption/Regular" className="studio-prototype__note">Add a Table to this screen.</Text>;
+  const commit = () => { if (draft !== valueText) write({ value: draft || undefined }, draft ? `Filter by ${draft}` : "Filter by the trigger"); };
+  return (
+    <>
+      {tables.length > 1 ? (
+        <InspectorRow label="Table" name={`proto:${trigger}:table`}>
+          <RowSelectField aria-label="Table" size="sm" disabled={disabled} value={filter.table ?? NO_TARGET} onValueChange={(next) => write({ table: next === NO_TARGET ? undefined : next, column: undefined }, `Filter ${next === NO_TARGET ? tables[0].label : next}`)} options={tables} />
+        </InspectorRow>
+      ) : null}
+      <InspectorRow label="Column" name={`proto:${trigger}:column`}>
+        <RowSelectField aria-label="Column" size="sm" disabled={disabled} value={filter.column ?? NO_TARGET} onValueChange={(next) => write({ column: next === NO_TARGET ? undefined : next }, `Filter ${next === NO_TARGET ? "any column" : columns.find((entry) => entry.value === next)?.label ?? next}`)} options={[{ value: NO_TARGET, label: "Any column" }, ...columns]} />
+      </InspectorRow>
+      <InspectorRow label="Value" name={`proto:${trigger}:value`}>
+        <RowInputField
+          aria-label="Filter value"
+          size="sm"
+          disabled={disabled}
+          placeholder={hands ? (typed ? "What's typed" : "The chosen item") : "Value"}
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={commit}
+          onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); commit(); } }}
+        />
+      </InspectorRow>
+    </>
+  );
+}
+
+const STEPS: ReadonlyArray<{ id: ProtoStep; label: string }> = [{ id: "previous", label: "Previous" }, { id: "next", label: "Next" }];
+
+/** Change step: Next or Previous, and which Stepper (when the Screen has more than one with a name). */
+function StepRows({ trigger, step, screen, layer, disabled }: { trigger: string; step: { to: ProtoStep; stepper?: string }; screen: PageNode | null; layer: ProtoLayer; disabled: boolean }) {
+  const steppers = namedTargets(screen, "Stepper");
+  const write = (to: ProtoStep, stepper: string | undefined, label: string) => void writeAction(layer, trigger, "step", { to, stepper }, undefined, label);
+  if (!steppers.length) return <Text as="p" tone="base" textStyle="Caption/Regular" className="studio-prototype__note">Add a Stepper to this screen.</Text>;
+  return (
+    <>
+      <InspectorRow label="Step" name={`proto:${trigger}:step`}>
+        <Segmented aria-label="Step" size="sm" fullWidth disabled={disabled} value={step.to} onValueChange={(next) => write(next as ProtoStep, step.stepper, `${next === "previous" ? "Previous" : "Next"} step`)} options={STEPS.map((entry) => ({ id: entry.id, label: entry.label }))} />
+      </InspectorRow>
+      {steppers.length > 1 ? (
+        <InspectorRow label="Stepper" name={`proto:${trigger}:stepper`}>
+          <RowSelectField aria-label="Stepper" size="sm" disabled={disabled} value={step.stepper ?? NO_TARGET} onValueChange={(next) => write(step.to, next === NO_TARGET ? undefined : next, `Change ${next === NO_TARGET ? steppers[0].label : next}`)} options={steppers} />
+        </InspectorRow>
+      ) : null}
+    </>
   );
 }
 
@@ -321,9 +409,11 @@ function AnimationRows({ trigger, options, disabled, onChange }: { trigger: stri
   );
 }
 
-/** Figma's overlay positions; Center is the default (not written). */
+/** Figma's overlay positions; Center is the default (not written). Manual: next to the layer that opens it (Figma's, by
+ *  its trigger; Play places it as a Zen Popover: below, at its start edge, above when there is no room). */
 const POSITIONS = [
   { value: "center", label: "Center" },
+  { value: "manual", label: "Manual" },
   { value: "top", label: "Top" },
   { value: "bottom", label: "Bottom" },
   { value: "top-left", label: "Top left" },
@@ -337,7 +427,7 @@ function OverlaySettings({ node, file, disabled }: { node: PageNode; file: strin
   const child = node.children.find((entry): entry is PageNode => entry.kind === "element");
   const selfPlaced = Boolean(child && placesItself(child.name));
   return (
-    <InspectorSection title="Overlay" note={selfPlaced && child ? `${child.name} places itself` : undefined}>
+    <InspectorSection title="Overlay" note={selfPlaced && child ? `${child.name} ${anchorsItself(child.name) ? "opens by its trigger" : "places itself"}` : undefined}>
       {selfPlaced ? null : <OverlayFields node={node} file={file} disabled={disabled} />}
     </InspectorSection>
   );

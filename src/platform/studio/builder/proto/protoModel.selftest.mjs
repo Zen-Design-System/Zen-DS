@@ -3,7 +3,7 @@
 // connections and Play read from a page — trigger words, a choice control's items, per-item actions and their links.
 // Run: node src/platform/studio/builder/proto/protoModel.selftest.mjs
 import { parsePage } from "../../../../../tools/studio/dialect.mjs";
-import { actionsFor, choiceItemsOf, connectTrigger, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, linksOf, openerOf, optionsOf, playStartOf, protoActionCode, protoSourcesOf, targetOfFrame, targetsByItem, triggerLabel } from "./protoModel.ts";
+import { actionsFor, cellText, choiceItemsOf, columnsOf, connectTrigger, filterCode, filterOf, filterRows, filterValuesOf, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, layersIn, linksOf, openerOf, optionsOf, playStartOf, protoActionCode, protoSourcesOf, screenTargetOf, stepCode, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, targetOfFrame, targetsByItem, triggerLabel } from "./protoModel.ts";
 
 const failures = [];
 let passed = 0;
@@ -53,7 +53,7 @@ check("a phone is tapped", triggerLabel("onClick", true), "On tap");
 
 // Frames.
 check("frames: screens with their state, overlays by their title", framesOf(tree).map((frame) => `${frame.frameId} ${frame.title}`), ["screen:home Home", "screen:files:empty Files", "overlay:confirm Leave?"]);
-check("a frame as a target", [targetOfFrame("screen:files:empty"), targetOfFrame("overlay:confirm"), targetOfFrame("example:0")], [{ action: "navigate", target: "files" }, { action: "open", target: "confirm" }, null]);
+check("a frame as a target: a Screen's state is its own (Figma: every frame)", [targetOfFrame("screen:files:empty"), targetOfFrame("screen:files"), targetOfFrame("overlay:confirm"), targetOfFrame("example:0")], [{ action: "navigate", target: "files:empty" }, { action: "navigate", target: "files" }, { action: "open", target: "confirm" }, null]);
 
 // Choice controls.
 function nodesOf(parsed) {
@@ -108,6 +108,74 @@ check("the opener of an Overlay: none, a hovered Button's Screen", [openerOf(tre
 const delayed = parsePage(page.replace('<Screen id="files" title="Files" device="phone" state="empty" />', '<Screen id="files" title="Files" device="phone" state="empty" onDelay={proto.open("confirm", { delay: 500 })} />'), { components: new Set(["BottomNavigation", "Button", "Dialog", "Segmented", "Sidebar", "SidebarMenuItem", "Stack"]) });
 check("the opener of an Overlay: a Screen state's After delay", openerOf(delayed, "confirm"), "files");
 check("playStartOf: a Screen, an Overlay, anything else", [playStartOf("screen:checkout:paid"), playStartOf("overlay:confirm"), playStartOf("section:s1"), playStartOf(null)], ["checkout", "overlay:confirm", null, null]);
+
+// Option C (user 2026-10-23): a Screen's states as targets, Manual overlays by their trigger, Filter table, Change step.
+check("a Navigate to target: a Screen, or one of its states", [screenTargetOf("orders"), screenTargetOf("orders:filtered"), screenTargetOf("orders:")], [{ id: "orders" }, { id: "orders", state: "filtered" }, { id: "orders" }]);
+const COMPONENTS_C = new Set(["Button", "Chip", "DatePicker", "Search", "Stack", "Stepper", "Table"]);
+const optionC = [
+  `// @zen-page {"format":1,"title":"Orders"}`,
+  `import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";`,
+  `import { Button, Chip, DatePicker, Search, Stack, Stepper, Table } from "@zen-ds/react";`,
+  "",
+  "export const mock = {};",
+  "",
+  "export default function Page() {",
+  "  return (",
+  "    <Board>",
+  '      <Screen id="orders" title="Orders">',
+  '        <Stack gap="md" padding="lg">',
+  '          <Chip onClick={proto.open("pick-date")}>Date</Chip>',
+  `          <Chip onClick={${protoActionCode("filter", { column: "status", value: "Paid" })}}>Paid</Chip>`,
+  `          <Search aria-label="Search orders" onValueChange={${protoActionCode("filter", { match: "contains" })}} />`,
+  '          <Table aria-label="Orders" columns={[{ id: "client", header: "Client", captionField: "email" }, { id: "status", header: "Status" }]} rows={[{ id: "1", client: "Acme", email: "ops@acme.io", status: "Paid" }, { id: "2", client: "Globex", email: "it@globex.com", status: "Overdue" }]} />',
+  '          <Table data-name="Archive" columns={[{ id: "client", header: "Client" }]} rows={[]} />',
+  '          <Stepper steps={[{ id: "a", label: "Cart" }, { id: "b", label: "Pay" }, { id: "c", label: "Done" }]} defaultCurrent={1} />',
+  `          <Button onClick={${protoActionCode("step", "next")}}>Next</Button>`,
+  `          <Button onClick={${protoActionCode("step", "previous")}}>Back</Button>`,
+  '          <Button onClick={proto.navigate("orders:paid")}>Only paid</Button>',
+  "        </Stack>",
+  "      </Screen>",
+  '      <Screen id="orders" title="Orders · paid" state="paid" />',
+  '      <Overlay id="pick-date" position="manual">',
+  "        <DatePicker />",
+  "      </Overlay>",
+  "    </Board>",
+  "  );",
+  "}",
+  "",
+].join("\n");
+const c = parsePage(optionC, { components: COMPONENTS_C });
+check("option C parses (filter and step are interactions)", c.errors, []);
+check("filter and step code: fields in order, defaults left out", [
+  protoActionCode("filter", { table: "Archive", value: "Paid", column: "status", match: "is" }),
+  filterCode({}),
+  protoActionCode("step", "previous"),
+  protoActionCode("step", { to: "next", stepper: "Checkout" }),
+  stepCode("next"),
+], ['proto.filter({ column: "status", value: "Paid", table: "Archive" })', "proto.filter({})", 'proto.step("previous")', 'proto.step("next", { stepper: "Checkout" })', 'proto.step("next")']);
+check("filter and step read back (unknown and empty fields dropped)", [filterOf([{ column: "status", value: "", match: "fuzzy", extra: 1 }]), filterOf([{ value: 3, match: "contains", table: "Archive" }]), filterOf(["x"]), stepOf(["previous", { stepper: "Pay" }]), stepOf([])], [{ column: "status" }, { value: "3", match: "contains", table: "Archive" }, {}, { to: "previous", stepper: "Pay" }, { to: "next" }]);
+check("a filter has no animation options", optionsOf("filter", [{ animation: "push" }]), {});
+check("what a trigger hands over: text, items, an item's id and label, never a press", [filterValuesOf("ow"), filterValuesOf(["paid", 2]), filterValuesOf({ id: "owner", label: "Owner" }), filterValuesOf({ nativeEvent: {}, target: {} }), filterValuesOf(undefined)], [["ow"], ["paid", "2"], ["owner", "Owner"], [], []]);
+check("a cell's words: text, numbers, lists, an object's label", [cellText("Paid"), cellText(3), cellText(["a", "b"]), cellText({ name: "Ann", avatar: "x" }), cellText(null)], ["Paid", "3", "a b", "Ann", ""]);
+const ROWS = [{ id: "1", client: "Acme", email: "ops@acme.io", status: "Paid" }, { id: "2", client: "Globex", email: "it@globex.com", status: "Overdue" }, { id: "3", client: "Paidwell", status: "Draft" }];
+check("filterRows: is (a column), contains (typed, its caption too), any field, nothing to match", [
+  filterRows(ROWS, ["paid"], "is", ["status"]).map((row) => row.id),
+  filterRows(ROWS, ["GLOBEX.COM"], "contains", ["client", "email"]).map((row) => row.id),
+  filterRows(ROWS, ["paid"], "contains").map((row) => row.id),
+  filterRows(ROWS, ["owner", "Draft"], "is").map((row) => row.id),
+  filterRows(ROWS, [" "], "is").length,
+], [["1"], ["2"], ["1", "3"], ["3"], 3]);
+const screenC = frameNodeOf(c, "screen:orders");
+const tables = layersIn(screenC, "Table");
+check("a Table's columns as items", columnsOf(tables[0]), [{ value: "client", label: "Client" }, { value: "status", label: "Status" }]);
+check("the Table a filter drives: by its name, else the first", [targetLayerOf(screenC, "Table")?.loc === tables[0].loc, targetLayerOf(screenC, "Table", "Archive")?.loc === tables[1].loc, targetLayerOf(screenC, "Table", "Orders")?.loc === tables[0].loc, targetLayerOf(screenC, "Table", "Nope")?.loc === tables[0].loc, targetLayerOf(null, "Table")], [true, true, true, true, null]);
+const stepper = layersIn(screenC, "Stepper")[0];
+check("a Stepper's steps and start; a step stays within them", [stepperOf(stepper), steppedIndex(1, "next", 3), steppedIndex(2, "next", 3), steppedIndex(0, "previous", 3), steppedIndex(0, "next", 0)], [{ count: 3, start: 1 }, 2, 2, 0, 0]);
+check("Play holds the Steppers a Change step drives (each Screen's first)", [...stepTargetsOf(c)], [stepper.loc]);
+check("no Change step on a page: Play holds no Stepper", stepTargetsOf(tree).size, 0);
+check("links: a state target leads to the state's frame; filter and step lead nowhere", linksOf(c).map((link) => `${link.action} ${link.frameId}`).sort(), ["navigate screen:orders:paid", "open overlay:pick-date"]);
+const cSources = protoSourcesOf(c);
+check("hotspots: a filter chip and a Next button are whole layers", [cSources.get(nodesOf(c).find((node) => node.name === "Chip" && node.children.some((child) => child.value === "Paid")).loc), cSources.get(nodesOf(c).find((node) => node.name === "Button").loc)], [null, null]);
 
 if (failures.length) {
   console.error(`✗ protoModel selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
