@@ -214,10 +214,12 @@ export function zenStudio() {
       ensureRestored();
       if (route === "GET /ping") return send(res, 200, { ok: true, root, writable: isWritable(), token: loopbackHost(req) ? token : null, drafts: true });
       if (route === "GET /source") {
-        const target = await resolveFile(url.searchParams.get("file"), false);
+        // A collection file that does not exist (made in the Variables window, then undone or deleted before its Save)
+        // reads as "": undo and redo write it back (POST /write makes the draft again).
+        const target = await resolveFile(url.searchParams.get("file"), false, { create: true });
         const draft = drafts.get(target.realRel);
         if (!draft) {
-          const content = await readText(target.abs);
+          const content = target.missing ? "" : await readText(target.abs);
           return send(res, 200, { file: target.rel, content, hash: sha1(content) });
         }
         const disk = await readDisk(target.realRel);
@@ -308,10 +310,11 @@ export function zenStudio() {
         const { saved, conflicts, prior } = await exclusive(async () => {
           const before = frame ? new Map() : await priorStylesheets(files);
           // Token sources: the disk text before this save, the base of what Figma still needs (variables-host.mjs).
+          // A collection made in Zen Studio had no file: its base is null (Figma gets Create collection).
           const tokenPrior = new Map();
-          for (const file of frame ? [] : files ?? [...drafts.keys()]) if (isTokenSource(file) && drafts.has(file)) tokenPrior.set(file, await readDisk(file));
+          for (const file of frame ? [] : files ?? [...drafts.keys()]) if (isTokenSource(file) && drafts.has(file)) tokenPrior.set(file, { text: await readDisk(file), created: Boolean(drafts.get(file)?.created) });
           const result = await (frame ? saveFrame(frame) : save(files));
-          variables.keepBase(new Map([...tokenPrior].filter(([file, text]) => text !== null && result.saved.some((entry) => entry.file === file))));
+          variables.keepBase(new Map([...tokenPrior].filter(([file, prior]) => (prior.text !== null || prior.created) && result.saved.some((entry) => entry.file === file)).map(([file, prior]) => [file, prior.text])));
           return { ...result, prior: before };
         }, gone);
         // Saved token sources: the token build and its check (tokens.css, generated.ts, the catalog, native packages).
@@ -645,11 +648,13 @@ export function zenStudio() {
   async function write(body) {
     const { file, content, expectHash } = body;
     if (typeof content !== "string" || typeof expectHash !== "string") throw new HttpError("invalid", "Expected { file, content, expectHash }");
-    const target = await resolveFile(file, true);
-    const disk = await readText(target.abs);
-    const current = drafts.get(target.realRel)?.content ?? disk;
+    // A collection made in the Variables window is a token source with no file yet: undo writes "" (no draft), redo its text.
+    const target = await resolveFile(file, true, { create: true });
+    const disk = target.missing ? null : await readText(target.abs);
+    const current = drafts.get(target.realRel)?.content ?? disk ?? "";
     if (sha1(current) !== expectHash) throw new HttpError("stale", `${target.rel} changed since this edit; not overwritten`);
-    const draft = content !== current ? await setDraft(target, disk, content) : drafts.has(target.realRel);
+    // "" on a collection file that exists is its delete (Figma's Delete collection, redone): the file goes at Save.
+    const draft = content !== current ? await setDraft(target, disk, content, { created: target.missing, deleted: isTokenSource(target.realRel) && !target.missing && content === "" }) : drafts.has(target.realRel);
     return { ok: true, hash: sha1(content), draft };
   }
 
@@ -684,9 +689,10 @@ export function zenStudio() {
   async function variableEdit(body) {
     const { file, ops, expectHash } = body ?? {};
     if (!isTokenSource(file)) throw new HttpError("forbidden", `${file} is not a token source`);
-    const target = await resolveFile(file, true);
-    const disk = await readText(target.abs);
-    const before = drafts.get(target.realRel)?.content ?? disk;
+    // Create collection: a file that does not exist yet becomes a draft of its own (variables-host.mjs edit).
+    const target = await resolveFile(file, true, { create: Array.isArray(ops) && ops[0]?.op === "createCollection" });
+    const disk = target.missing ? null : await readText(target.abs);
+    const before = drafts.get(target.realRel)?.content ?? disk ?? "";
     if (typeof expectHash === "string" && sha1(before) !== expectHash) throw new HttpError("stale", `${target.rel} changed since it was read; not changed`);
     let result;
     try {
@@ -695,7 +701,7 @@ export function zenStudio() {
       if (error instanceof VariableEditError) throw new HttpError(error.code === "conflict" ? "invalid" : error.code, error.message);
       throw error;
     }
-    const draft = result.text !== before ? await setDraft(target, disk, result.text) : drafts.has(target.realRel);
+    const draft = result.text !== before ? await setDraft(target, disk, result.text, { created: target.missing, deleted: !target.missing && result.text === "" }) : drafts.has(target.realRel);
     // The first line that differs: where the status line and the history record point.
     const a = before.split("\n");
     const b = result.text.split("\n");
@@ -816,8 +822,8 @@ export function zenStudio() {
   }
 
   /** An edit or write produced `content`: it becomes the draft (dropped when it equals the disk again). */
-  async function setDraft(target, disk, content) {
-    const next = nextDraft(drafts.get(target.realRel), disk, content);
+  async function setDraft(target, disk, content, options) {
+    const next = nextDraft(drafts.get(target.realRel), disk, content, Date.now(), options);
     if (next) drafts.set(target.realRel, next);
     else drafts.delete(target.realRel);
     await persist();
@@ -874,7 +880,9 @@ export function zenStudio() {
       }
       if (!plan.unchanged) {
         try {
-          await writeAtomic(target.abs, plan.text);
+          // A collection deleted in the Variables window: its file goes.
+          if (plan.deleted) await fsp.unlink(target.abs);
+          else await writeAtomic(target.abs, plan.text);
         } catch (error) {
           conflicts.push({ file, conflict: true, reason: `the file could not be written (${error?.message ?? error})` });
           continue;
@@ -1273,7 +1281,7 @@ export function zenStudio() {
    * A repo-relative path under src/, resolved (symlinks, case) to the file on disk. Edits need the exact real path of an
    * annotated file: a link, or a differently-cased spelling on a case-insensitive disk, is refused.
    */
-  async function resolveFile(rel, forEdit) {
+  async function resolveFile(rel, forEdit, { create = false } = {}) {
     if (typeof rel !== "string" || !rel || rel.includes("\0") || rel.includes("\\")) throw new HttpError("invalid", "Missing or malformed `file`");
     if (path.posix.normalize(rel) !== rel || path.posix.isAbsolute(rel)) throw new HttpError("forbidden", `${rel} is not a normalised repo-relative path`);
     // The token sources (tokens/source/figma/*.json) are the one place outside src/: the Variables window edits them
@@ -1286,6 +1294,8 @@ export function zenStudio() {
     const srcDir = path.join(root, tokenSource ? "tokens/source/figma" : "src");
     const abs = path.resolve(root, rel);
     if (!abs.startsWith(srcDir + path.sep)) throw new HttpError("forbidden", `${rel} is outside src/`);
+    // A collection made in Zen Studio before its first Save: a token source with a draft and no file (or being made).
+    if (tokenSource && (create || drafts.get(rel)?.created) && !fs.existsSync(abs)) return { rel, realRel: rel, abs, missing: true };
     let real;
     let realRoot;
     try {
