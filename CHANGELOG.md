@@ -17,6 +17,14 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Components backlog (2026-10-24): ModalForm `header={false}` keeps its title as the modal's name, and takes
+  `aria-label` / `aria-labelledby`; ProgressCircle `decorative` for a ring beside its own status word; Table
+  `currentRowId` marks the row whose item is open beside the table (aria-current, Selected fill); FileUpload
+  `buttonSize`; DatePicker days show 1–4 event dots (`event` takes a count) and grow with the density (Select-Item/Size);
+  TopNavigation `largeTitleAction` pairs a `group` in one pill. Popover and Menu no longer jump across when their anchor
+  scrolls; read-only text areas lose the resize grip; the Chat bubble focus ring follows the bubble's corners; Shadow
+  cards on an alt page scope drop their shadow; small ChartCard, MetricCard and Pagination buttons take a 44px touch
+  area on phones.
 - Zen Studio → Figma (Zen plugin): a chart pushed on its own (no ChartCard) keeps its rows in Figma. A horizontal
   BarChart no longer stretches to the component's 290px once its Heading is hidden, so its values sit beside their bars
   (2026-10-23).
