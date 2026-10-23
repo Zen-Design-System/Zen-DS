@@ -72,6 +72,10 @@ const SETS = {
   dataRow: { id: "4035:10629", name: "Primitives/Table/Data-Row" },
   headerCell: { id: "1604:12968", name: "Table/Cell/Header" },
   defaultCell: { id: "1603:23604", name: "Table/Cell/Default" },
+  // Table/Sheet (doc frame 17100:7996): SheetTable's cells and their Code / Key content.
+  sheetCell: { id: "17100:8027", name: "Table/Sheet/Cell" },
+  sheetCode: { id: "17100:8013", name: ".Primitives/Table/Sheet/Code" },
+  sheetKey: { id: "17100:8015", name: ".Primitives/Table/Sheet/Key" },
   // ❖ Chart: figma-charts.mjs CHART_SETS (every chart set, its variants and header properties).
   // Data items drawn as their primitive (Term / Value, a tab's Text, a step's title and number).
   descriptionItem: { id: "14859:78890", name: ".Primitives/Description-List/Item" },
@@ -687,6 +691,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     else if (element.name === "SidebarMenuItem") node = sidebarItemNode(code, id);
     else if (element.name === "AppShellAction") node = actionItemNode(code, id);
     else if (element.name === "Table") node = tableNode(element, code, id, parent);
+    else if (element.name === "SheetTable") node = sheetTableNode(element, code, id);
     else if (element.name === "AppShell") node = appShellNode(element, code, id, parent);
     else if (element.name === "AppShellAccount") node = accountNode(element, code, id);
     else if (element.name === "PageHeader") node = pageHeaderNode(element, code, id);
@@ -1937,6 +1942,49 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
       return { type: "INSTANCE", name: `Row ${index + 1}`, set: SETS.dataRow, props: {}, fillW: true, slots: [{ name: "Columns", children: [...select, ...columns.map((column) => sized({ type: "INSTANCE", name: column.id, set: SETS.defaultCell, props: onlyOwn(SETS.defaultCell, { Align: align(column) }), ...edge, slots: [{ name: "Content", children: [content(column, row ?? {}, rowId)] }] }, column))] }] };
     });
     return { type: "FRAME", ...(id ? { id } : {}), name: typeof code["aria-label"] === "string" ? code["aria-label"] : "Table", layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [{ type: "INSTANCE", name: "Header", set: SETS.dataRow, props: {}, fillW: true, slots: [{ name: "Columns", children: header }] }, ...rowNodes] };
+  }
+
+  /**
+   * A SheetTable as Figma Table/Sheet draws it (figma-pull sheetElement, the other way): a frame of row frames, the first
+   * a header row of Table/Cell/Header (Type=None), each other row a Table/Sheet/Cell per column (Fill height, so the
+   * rules line up; Divider=No on the last row) holding the column's content: a Text-Cell (Bold for a bold column), a
+   * .Primitives/Table/Sheet/Code, or a Keys frame of .Primitives/Table/Sheet/Key chips with the separators between them
+   * (SheetTable.tsx SheetKeys). A px width is the cell's fixed width; a percentage or none fills (Figma has no shares).
+   */
+  function sheetTableNode(element, code, id) {
+    const columns = Array.isArray(plain(element.props.columns)) ? plain(element.props.columns) : [];
+    const rows = Array.isArray(plain(element.props.rows)) ? plain(element.props.rows) : [];
+    const where = `SheetTable${id ? ` (${id})` : ""}`;
+    if (!columns.length) notes.push(`${where}: its columns are not written in the page (left out)`);
+    if (element.props.columns?.items?.some((item) => item.fields?.cell)) notes.push(`${where}: a column's cell function draws its field as text in Figma`);
+    if (!rows.length && element.props.empty) notes.push(`${where}: its empty row is not drawn (Figma Table/Sheet has rows only)`);
+    const percent = columns.some((column) => /%$/.test(String(column.width ?? "")));
+    if (percent) notes.push(`${where}: percentage widths draw as Fill (Figma auto layout has no shares)`);
+    const widthOf = (column) => (/^\d+px$/.test(String(column.width ?? "")) ? Number.parseInt(column.width, 10) : null);
+    const sized = (node, column) => (widthOf(column) ? { ...node, fixedWidth: widthOf(column) } : { ...node, fillW: true });
+    const rowFrame = (name, children) => ({ type: "FRAME", name, layout: { mode: "HORIZONTAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, fillW: true, children });
+    const header = columns.map((column) => sized({ type: "INSTANCE", name: column.id, set: SETS.headerCell, props: onlyOwn(SETS.headerCell, { "✏️ Label": String(column.header ?? ""), Label: Boolean(column.header), Type: "None", Align: "Left", Icon: false }) }, column));
+    // SheetKeys: "Shift + Tab / Tab" → Key chips with the separators (+, /, then) between them.
+    const keysNode = (value) => ({
+      type: "FRAME", name: "Keys", fillW: true,
+      layout: { mode: "HORIZONTAL", gap: 4, gapVar: "Spacing/Gap/2XSmall", rowGap: 4, rowGapVar: "Spacing/Gap/2XSmall", padding: [0, 0, 0, 0], counter: "CENTER", primary: "MIN", wrap: true },
+      children: value.split(/(\s*[+/]\s*|\s+then\s+)/).filter((part) => part.trim()).map((part) => (/^\s*(\+|\/|then)\s*$/.test(part)
+        ? { type: "TEXT", name: "Separator", characters: part.trim(), textStyle: "Body/Small/Regular", fill: contentToneToken("light") }
+        : { type: "INSTANCE", name: "Key", set: SETS.sheetKey, props: { Key: part.trim() } })),
+    });
+    const content = (column, row) => {
+      const value = row[column.field ?? column.id];
+      const words = typeof value === "string" || typeof value === "number" ? String(value) : "";
+      if (column.content === "code") return { type: "INSTANCE", name: "Code", set: SETS.sheetCode, props: { Code: words }, fillW: true };
+      if (column.content === "keys") return keysNode(words);
+      return { type: "INSTANCE", name: "Text-Cell", set: CELL_SETS.text, props: onlyOwn(CELL_SETS.text, { Bold: column.bold ? "Yes" : "No", Caption: false }), textList: [words], fillW: true };
+    };
+    const rowNodes = rows.map((row, index) => rowFrame(`Row ${index + 1}`, columns.map((column) => sized({
+      type: "INSTANCE", name: column.id, set: SETS.sheetCell, props: onlyOwn(SETS.sheetCell, { Divider: index === rows.length - 1 ? "No" : "Yes" }), fillH: true,
+      slots: [{ name: "Content", children: [content(column, row ?? {})] }],
+    }, column))));
+    const name = typeof code["aria-label"] === "string" ? code["aria-label"] : typeof code.caption === "string" ? code.caption : "SheetTable";
+    return { type: "FRAME", ...(id ? { id } : {}), name, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [rowFrame("Header", header), ...rowNodes] };
   }
 
   /**

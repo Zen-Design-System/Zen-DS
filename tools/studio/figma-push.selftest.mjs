@@ -2564,6 +2564,37 @@ export default function Page() {
   check("pull of a read: Figma's collection modes as `modes` (a collection that is no axis is left)", [/<Screen [^>]*modes=\{\{ theme: "dark" \}\}/.test(readBack), /modes=\{\{ density: "comfortable" \}\}/.test(readBack)], [true, true]);
 }
 
+{
+  // SheetTable → Figma Table/Sheet (2026-10-23): a header row of Table/Cell/Header, rows of Table/Sheet/Cell (Fill
+  // height, Divider=No on the last), Code and Key content, a px width fixed and a percentage Fill.
+  const page = `// @zen-page {"format":1,"title":"Sheet"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { SheetTable } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Sheet" device="desktop">
+        <SheetTable aria-label="Keyboard" rows={[{ id: "tab", keys: "Tab / Shift + Tab", prop: "onKeyDown", action: "Moves focus." }, { id: "esc", keys: "Esc", prop: "onClose", action: "Closes the menu." }]}
+          columns={[{ id: "keys", header: "Key", width: "200px", content: "keys" }, { id: "prop", header: "Prop", width: "20%", content: "code" }, { id: "action", header: "Action", bold: true }]} />
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const sheet = find(frame, (node) => node.type === "FRAME" && node.name === "Keyboard");
+  check("SheetTable: a header row and a row frame per row", sheet?.children.map((row) => row.name), ["Header", "Row 1", "Row 2"]);
+  check("SheetTable: the header row is Table/Cell/Header Type=None with the labels, the px column fixed, the others Fill", sheet.children[0].children.map((cell) => [cell.set.name, cell.props["✏️ Label"], cell.props.Type, cell.fixedWidth ?? null, cell.fillW ?? false]), [["Table/Cell/Header", "Key", "None", 200, false], ["Table/Cell/Header", "Prop", "None", null, true], ["Table/Cell/Header", "Action", "None", null, true]]);
+  check("SheetTable: cells are Table/Sheet/Cell at Fill height, Divider=No on the last row", sheet.children.slice(1).map((row) => row.children.map((cell) => [cell.set.name, cell.props.Divider, cell.fillH])), [[["Table/Sheet/Cell", "Yes", true], ["Table/Sheet/Cell", "Yes", true], ["Table/Sheet/Cell", "Yes", true]], [["Table/Sheet/Cell", "No", true], ["Table/Sheet/Cell", "No", true], ["Table/Sheet/Cell", "No", true]]]);
+  const [keys, prop, action] = sheet.children[1].children.map((cell) => cell.slots[0].children[0]);
+  check("SheetTable: keys are Key chips with their separators, in a wrapping Keys frame", [keys.name, keys.layout.wrap, keys.children.map((part) => part.type === "TEXT" ? part.characters : part.props.Key)], ["Keys", true, ["Tab", "/", "Shift", "+", "Tab"]]);
+  check("SheetTable: code is .Primitives/Table/Sheet/Code with its text; words a Bold Text-Cell", [prop.set.name, prop.props.Code, action.set.name, action.props.Bold, action.textList], [".Primitives/Table/Sheet/Code", "onKeyDown", "Primitives/Table/Cell/Text-Cell", "Yes", ["Moves focus."]]);
+  ok("SheetTable: a percentage width is noted (Fill in Figma)", notes.some((note) => /percentage widths draw as Fill/.test(note)));
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

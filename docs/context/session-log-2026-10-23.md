@@ -438,6 +438,15 @@ Branch zen/feat/sheet-table-20261023 (worktree festive-archimedes-176df5). User 
 - Tests: smoke fixtures (axe baseline color-contrast for the header's Content/Neutral/Light, as Table's), STYLE_ON_ROOT;
   the AI UI catalog test read a fixture row field named `type` as a spec node, so the fixture uses declarative columns.
 - Figma: descriptions of Table/Sheet/Cell and the Code / Key primitives name the code (backup on ARCHIVED).
-- Left for a follow-up: Studio push / pull of a SheetTable to Figma Table/Sheet cells (the parts need contract and
-  library-key captures first).
+- Studio push / pull (coordinator's follow-up, same branch): figma-push sheetTableNode writes a frame of rows, a
+  Table/Cell/Header row then Table/Sheet/Cell per column (Fill height, Divider=No on the last row) holding a Text-Cell, a
+  .Primitives/Table/Sheet/Code or a Keys frame of Key chips and separators; px widths fixed, % or none Fill (noted).
+  figma-pull reads a frame whose first row is all Table/Cell/Header and the rest all Table/Sheet/Cell as SHEET and
+  prints `<SheetTable columns rows>` with declarative columns. library-keys has the three keys (read with use_figma),
+  the contract has Table/Sheet/Cell (Content slot, Divider), the native pack the three sets (probe on the QA page,
+  `capture --merge`, probe removed). No figma-props map entry: like Table's cells, the push draws them.
+- Live test in the Zen file: the real importer (studio-import.js, unused paths stubbed, one use_figma call) placed two
+  sheets with no notes (fixed / Fill widths, Divider Yes/No, a row 72 high where a type union wraps); the real pull
+  reader read both back as SHEET and the page printed from it passes validateDialect with the component list. QA frame
+  removed. Checks: studio:selftest (push 425, pull 135), library-keys / native-pack / figma-props checks.
 

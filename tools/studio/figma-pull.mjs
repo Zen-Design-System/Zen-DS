@@ -612,6 +612,60 @@ const readTable = async (node, rows, root) => {
   }
   return out;
 };
+// A frame of row frames whose first row is Table/Cell/Header cells and the others Table/Sheet/Cell cells (Figma
+// Table/Sheet, figma-push sheetTableNode): one SheetTable. Each cell gives its width (or Fill) and its content: a
+// Text-Cell (its label, Bold), a Code (its text) or a Keys frame (its Key chips and the separators between them).
+const sheetSetNames = async (row) => {
+  const names = [];
+  for (const child of (row.children || []).filter((n) => n.visible)) names.push(child.type === "INSTANCE" ? ((await setOf(child)) || {}).name || "" : "");
+  return names;
+};
+const isSheet = async (rows) => {
+  if (rows.length < 2 || !rows.every((row) => row.type === "FRAME")) return false;
+  const head = await sheetSetNames(rows[0]);
+  if (!head.length || !head.every((name) => name === "Table/Cell/Header")) return false;
+  for (const row of rows.slice(1)) {
+    const names = await sheetSetNames(row);
+    if (!names.length || !names.every((name) => name === "Table/Sheet/Cell")) return false;
+  }
+  return true;
+};
+const readSheet = async (node, rows, root) => {
+  const out = { type: "SHEET", id: node.id, name: node.name, ...frameOf(node, root), header: [], rows: [] };
+  const sizeOf = (cell) => ({ w: Math.round(cell.width), ...(cell.layoutSizingHorizontal === "FILL" ? { fill: true } : {}) });
+  for (const cell of rows[0].children.filter((n) => n.visible)) {
+    const props = await propsOf(cell);
+    const named = Object.entries(props).find(([key, value]) => key.endsWith("Label") && typeof value === "string");
+    out.header.push({ id: cell.id, ...sizeOf(cell), label: props.Label === false ? "" : named ? named[1] : firstText(cell) || "" });
+  }
+  for (const row of rows.slice(1)) {
+    const cells = [];
+    for (const cell of row.children.filter((n) => n.visible)) {
+      const slot = cell.findOne((n) => n.type === "SLOT");
+      const first = slot ? slot.children.find((n) => n.visible) : null;
+      const read_ = { id: cell.id, ...sizeOf(cell), kind: "text", text: "" };
+      if (first && first.type === "FRAME") {
+        // Keys: each chip's Key and each separator, in order ("Tab / Shift + Tab").
+        const parts = [];
+        for (const part of first.children.filter((n) => n.visible)) {
+          if (part.type === "TEXT") { parts.push(part.characters); continue; }
+          if (part.type !== "INSTANCE") continue;
+          const props = await propsOf(part);
+          parts.push(typeof props.Key === "string" ? props.Key : firstText(part) || "");
+        }
+        Object.assign(read_, { kind: "keys", text: parts.join(" ") });
+      } else if (first && first.type === "INSTANCE") {
+        const set = (await setOf(first)) || {};
+        const props = await propsOf(first);
+        if (set.name === ".Primitives/Table/Sheet/Code") Object.assign(read_, { kind: "code", text: typeof props.Code === "string" ? props.Code : firstText(first) || "" });
+        else Object.assign(read_, { text: firstText(first, "Label") || firstText(first) || "", ...(props.Bold === "Yes" ? { bold: true } : {}) });
+      }
+      cells.push(read_);
+    }
+    out.rows.push({ id: row.id, cells });
+  }
+  return out;
+};
 // The frame read: its file (a pulled page remembers where it came from) and its size (the page's device).
 const frameOf = (node, root) => {
   if (!root) return {};
@@ -671,6 +725,7 @@ const readFrame = async (node, root = false) => {
     const sets = await Promise.all(visible.map(setOf));
     if (sets.every((set) => set && set.name === "Primitives/Table/Data-Row")) return readTable(node, visible, root);
   }
+  if (await isSheet(visible)) return readSheet(node, visible, root);
   const out = { type: node.type, id: node.id, name: node.name, ...frameOf(node, root), children: [] };
   // A page's own main or set (figma-push localModel): its Studio id, description and link; a variant's values, or the
   // properties a set or lone main defines.
@@ -1191,6 +1246,39 @@ function tableElement(node, ctx) {
   const sortedColumn = columns.find((column) => column.index === sortedAt);
   if (sortedColumn) props.sort = { kind: "object", fields: { columnId: literal(sortedColumn.id), direction: literal(header[sortedAt].sorted) } };
   return { kind: "element", name: "Table", props, children: [] };
+}
+
+/**
+ * Figma Table/Sheet (a frame of row frames read by figmaReadCode as one SHEET) → the code's <SheetTable>: a column per
+ * header cell (its label, a fixed width or Fill), its content from the first row's cell (text, Bold text, code, keys),
+ * the rows written in the SheetTable under the columns' ids (figma-push sheetTableNode, the other way).
+ */
+function sheetElement(node, ctx) {
+  const header = node.header ?? [];
+  const sample = node.rows[0]?.cells ?? [];
+  const ids = new Set();
+  const columns = [];
+  for (let index = 0; index < Math.max(header.length, sample.length); index += 1) {
+    const head = header[index] ?? {};
+    const cell = sample[index] ?? {};
+    const id = uniqueId(slug(head.label || `column ${index + 1}`), ids);
+    const fields = { id: literal(id), header: literal(head.label ?? "") };
+    if (!(cell.fill ?? head.fill) && (cell.w ?? head.w)) fields.width = literal(`${cell.w ?? head.w}px`);
+    if (cell.kind && cell.kind !== "text") fields.content = literal(cell.kind);
+    if (cell.bold) fields.bold = literal(true);
+    columns.push({ index, id, fields });
+  }
+  const rows = node.rows.map((row, at) => {
+    const record = { id: literal(`row-${at + 1}`) };
+    for (const column of columns) {
+      const cell = row.cells[column.index];
+      if (cell) record[column.id] = literal(String(cell.text ?? "").replace(/\u2028/g, " "));
+    }
+    return { kind: "object", fields: record };
+  });
+  const label = node.name.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
+  const props = { "aria-label": literal(label.charAt(0).toUpperCase() + label.slice(1)), columns: { kind: "array", items: columns.map((column) => ({ kind: "object", fields: column.fields })) }, rows: { kind: "array", items: rows } };
+  return { kind: "element", name: "SheetTable", props, children: [] };
 }
 
 /* ── Dashboard/Header ──────────────────────────────────────────────────────────────────────────────────────────── */
@@ -1996,6 +2084,7 @@ function convertNode(node, ctx) {
   if (node.type === "COMPONENT") return componentElement(node, ctx);
   if (node.type === "INSTANCE" && node.local) return useElement(node, ctx);
   if (node.type === "TABLE") return tableElement(node, ctx);
+  if (node.type === "SHEET") return sheetElement(node, ctx);
   if (node.type === "TEXT") {
     const props = {};
     // Body/Base/Regular is Text's default (Text.tsx): the push writes it for Figma, the page leaves it out.

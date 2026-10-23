@@ -1003,6 +1003,21 @@
       "name": "Timeline/Gantt",
       "type": "COMPONENT_SET",
       "key": "fda09a52b703f41168731d7007be5f571848dc2b"
+    },
+    "17100:8013": {
+      "name": ".Primitives/Table/Sheet/Code",
+      "type": "COMPONENT",
+      "key": "24af63cd914c193d59873561bb7cea3f1b0be844"
+    },
+    "17100:8015": {
+      "name": ".Primitives/Table/Sheet/Key",
+      "type": "COMPONENT",
+      "key": "372863ae653968f67413f13d95ba33afcfd36403"
+    },
+    "17100:8027": {
+      "name": "Table/Sheet/Cell",
+      "type": "COMPONENT_SET",
+      "key": "cbe7bfa578a31f060972ae97dfae29cc10359743"
     }
   },
   "missing": [

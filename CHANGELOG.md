@@ -23,7 +23,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   take a `cell` function or a declarative `content` (text, code, keys) from a `field`; `minWidth` scrolls a wide sheet
   sideways, `empty` fills a sheet with no rows. The docs Props, API and Keyboard references are SheetTables now (the
   `.platform-ref` override is gone); new docs page, guideline, harness `sheet-table/needs-name` and
-  `table/reference-in-sheet` (code or keys in a Table's cells), Studio palette entry.
+  `table/reference-in-sheet` (code or keys in a Table's cells), Studio palette entry. Studio push / pull: a SheetTable
+  goes to Figma as Table/Cell/Header and Table/Sheet/Cell rows (Code, Key chips or a Text-Cell in each cell) and comes
+  back as a SheetTable with declarative columns.
 - Layout: `modes={{ theme: "dark", density: "comfortable" }}` on Stack, Grid and Box, and on a Studio Screen. This is
   Figma's Change variable mode on a frame: the data-* attributes tokens.css reads, and the ZenProvider context for the
   components inside. Zen Studio sets it with Apply variable mode (Appearance header, Screen section). Push and the Zen
