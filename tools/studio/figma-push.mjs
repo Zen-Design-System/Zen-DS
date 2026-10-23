@@ -27,6 +27,7 @@ import { PROPERTY_TYPE as PROPERTY_CELL_TYPE, propertyValueFigma, statusArcs } f
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { textSegments } from "./text-runs.mjs";
+import { ACTION_LAYERS, OVERLAY_PLACES, OVERLAY_POSITION_WORDS, OVERLAY_PROPS, reactionOf } from "./figma-proto.mjs";
 import { gradientFillOf } from "./figma-gradient.mjs";
 import { imageFillOf } from "./figma-image.mjs";
 import { arcData, fitVectorPath, normalizeArc, parseVectorPath, parseViewBox, STAR_RATIO, vectorBounds } from "../../src/components/Shape/geometry.ts";
@@ -482,7 +483,14 @@ function titleOf(text) {
   try { return header ? JSON.parse(header[1]).title ?? null : null; } catch { return null; }
 }
 
-export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: given = {}, pageId, componentOf, components: shared, rootPageId = pageId } = {}) {
+/** A Board frame's id (figma-clip.mjs onlyFrame): "screen:<id>", "screen:<id>:<state>" for a Screen's state, "overlay:<id>". */
+export function boardFrameId(element) {
+  const literal = (name) => (element.props?.[name]?.kind === "literal" ? element.props[name].value : undefined);
+  const state = literal("state");
+  return `${element.name === "Overlay" ? "overlay" : "screen"}:${literal("id") ?? ""}${state ? `:${state}` : ""}`;
+}
+
+export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: given = {}, pageId, componentOf, components: shared, rootPageId = pageId, frame: frameId = null } = {}) {
   // The pushing page is one of the pages too (another page's component may hold one of its).
   const pages = pageId && typeof given[pageId] !== "string" ? { ...given, [pageId]: text } : given;
   const notes = [];
@@ -494,25 +502,51 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   const shown = { ...read.doc, board: { ...read.doc.board, children: read.doc.board.children.map((node) => (node.kind === "element" ? pruneHidden(node, node.name === "Screen" ? screenLayout(lit(node, "device") ?? "desktop", lit(node, "layout")) : undefined) : node)).filter(Boolean) } };
   const doc = fragmentsAsRows(shown);
   const byCode = setsByCode(mapping);
-  const screen = doc.board.children.find((child) => child.kind === "element" && child.name === "Screen");
-  if (!screen) return { frame: null, notes: ["the page has no Screen"] };
-  const device = literalOf(screen.props.device) ?? "desktop";
+  // The frame to draw: the first Screen, or the one `frame` names (a Screen, a Screen's state, an Overlay; boardFrameId).
+  const boardFrames = doc.board.children.filter((child) => child.kind === "element" && (child.name === "Screen" || child.name === "Overlay"));
+  const firstScreen = boardFrames.find((child) => child.name === "Screen") ?? null;
+  // A page of one Overlay (Copy for Figma on an Overlay's frame) draws that Overlay.
+  const screen = frameId ? boardFrames.find((child) => boardFrameId(child) === frameId) ?? null : firstScreen ?? boardFrames[0] ?? null;
+  if (!screen) return { frame: null, notes: [frameId ? `the page has no frame ${frameId}` : "the page has no Screen"] };
+  // An Overlay (a dialog, a sheet, a card the page opens) is drawn on the device of the page's Screens.
+  const overlay = screen.name === "Overlay";
+  const device = literalOf((overlay ? firstScreen ?? screen : screen).props.device) ?? "desktop";
   // The Screen's layout: a phone's (and a tablet's in its phone layout) AppShell draws Pattern/AppShell/Mobile.
   const phoneLayout = screenLayout(device, literalOf(screen.props.layout)) === "mobile";
   const frameWidth = DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop;
   const boardElements = doc.board.children.filter((child) => child.kind === "element");
-  if (boardElements.filter((child) => child.name === "Screen").length > 1) notes.push("only the first Screen is pushed");
-  const overlays = boardElements.filter((child) => child.name === "Overlay").length;
-  if (overlays) notes.push(`${overlays} Overlay${overlays > 1 ? "s" : ""} (dialogs and sheets the page opens): not pushed`);
   // Sections (F4) are areas of the Studio board; the push sends one Screen.
   const sections = boardElements.filter((child) => child.name === "Section").length;
   if (sections) notes.push(`${sections} Section${sections > 1 ? "s" : ""} (areas of the board): not pushed`);
   const slices = boardElements.filter((child) => child.name === "Slice").length;
   if (slices) notes.push(`${slices} Slice${slices > 1 ? "s" : ""} (export areas of the board): not pushed`);
-  // The Prototype tab's actions (navigate, open overlay, filter…) stay in the Studio: Figma's reactions need the Screens and
-  // Overlays they lead to as frames, and the push sends one Screen.
-  const interactions = protoActionsIn(screen);
-  if (interactions) notes.push(`${interactions} interaction${interactions > 1 ? "s" : ""} (Prototype tab): not pushed`);
+  // The Prototype tab's actions as Figma's reactions (figma-proto.mjs): on the layer each sits on, a Dialog's button for
+  // its primaryAction; the Screen's After delay on its frame. What Figma has no reaction for is a note; `handled` counts
+  // both, so an action left in a part the push does not draw is named too.
+  const handled = new Set();
+  const reactionsOf = (element) => {
+    const out = [];
+    const take = (key, trigger, value, layer) => {
+      if (handled.has(key)) return;
+      handled.add(key);
+      const reaction = reactionOf(trigger, value);
+      if (reaction.note) notes.push(`${element.name} ${trigger}: ${reaction.note}`);
+      else out.push(layer ? { ...reaction, layer } : reaction);
+    };
+    for (const [name, value] of Object.entries(element.props)) {
+      if (name === "onDelay" && element === screen) continue;
+      if (value?.kind === "proto") take(`${element.id}/${name}`, name, value);
+      else if (value?.kind === "object") {
+        for (const [field, inner] of Object.entries(value.fields)) {
+          if (inner?.kind !== "proto") continue;
+          const layer = ACTION_LAYERS[element.name]?.[name];
+          if (layer) take(`${element.id}/${name}.${field}`, field, inner, layer);
+          else { handled.add(`${element.id}/${name}.${field}`); notes.push(`${element.name} ${name}.${field}: its action is not pushed (no layer for it in Figma's ${element.name})`); }
+        }
+      }
+    }
+    return out;
+  };
   /** Code-only components drawn as a frame of their layers (or as their text), by name: one note each at the end. */
   const framed = new Map();
   const countFramed = (name) => framed.set(name, (framed.get(name) ?? 0) + 1);
@@ -573,6 +607,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   const convert = (element, parent) => {
     const node = convertElement(element, parent);
     if (node && element.id) node.key = element.id;
+    if (node && element.kind === "element") {
+      const reactions = reactionsOf(element);
+      if (reactions.length) node.reactions = [...(node.reactions ?? []), ...reactions];
+    }
     if (node && element.kind === "element") {
       const refs = Object.fromEntries(Object.keys(PROPERTY_BINDINGS).flatMap((attr) => (element.props[attr]?.kind === "literal" && REFERENCE[attr] ? [[REFERENCE[attr], String(element.props[attr].value)]] : [])));
       if (Object.keys(refs).length) node.propRefs = refs;
@@ -2465,7 +2503,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     return node;
   }
 
-  const title = literalOf(screen.props.title) ?? doc.header?.title ?? "Studio page";
+  // An Overlay is named by what it holds (a Dialog's title), else its id.
+  const overlayTitle = overlay ? screen.children.filter((child) => child.kind === "element").map((child) => literalOf(child.props.title)).find((value) => typeof value === "string") : null;
+  // A Screen's state is its own frame, named after it ("People · empty").
+  const screenState = overlay ? null : literalOf(screen.props.state);
+  const screenTitle = literalOf(screen.props.title) ?? doc.header?.title ?? "Studio page";
+  const title = overlay ? overlayTitle ?? String(literalOf(screen.props.id) ?? "Overlay") : screenState ? `${screenTitle} · ${screenState}` : screenTitle;
   // The Screen's app frame (screen-chrome.mjs; builder runtime Screen): the desktop layout's Sidebar and Page header, the
   // mobile layout's Top and Bottom navigation, around the page. The other layout's parts wait for a device change.
   const active = screenLayout(device, literalOf(screen.props.layout));
@@ -2481,7 +2524,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   const shellPhone = Boolean(rootShell && !chrome && APP_SHELL_PHONE_PARTS.some((prop) => layerOf(rootShell, prop)));
   const layers = rootShell && !shellPhone ? rootShell.children.filter((child) => child.kind === "element") : placed;
   if (rootShell && chrome) for (const prop of APP_SHELL_MOBILE_BARS) if (layerOf(rootShell, prop)) notes.push(`AppShell ${prop}: ${MOBILE_BARS_NOTE}`);
-  const rootStack = !chrome && layers.length === 1 && layers[0].name === "Stack";
+  const rootStack = !overlay && !chrome && layers.length === 1 && layers[0].name === "Stack";
   // Anything else on the Screen (an AppShell, a Container…) fills the frame's width, as it fills the Screen.
   const filled = (node) => (node.absolute ? node : { ...node, fillW: true });
   // The page's width: the frame's, less the desktop layout's Sidebar (an open Zen Sidebar; any other: unknown).
@@ -2503,7 +2546,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     const component = found ? convert(found, { direction: "column", stretch: false, width: null }) : null;
     return { component, notes: notes.slice(before), images: [...images] };
   }
-  const page = rootStack ? [] : layers.map((layer) => convert(layer, { direction: "column", stretch: true, width: pageWidth })).filter(Boolean).map(filled);
+  const page = rootStack || overlay ? [] : layers.map((layer) => convert(layer, { direction: "column", stretch: true, width: pageWidth })).filter(Boolean).map(filled);
   const column = (name, children, extra = {}) => ({ type: "FRAME", name, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: children.filter(Boolean), ...extra });
   const part = (prop, parent) => (chromeOf(prop) ? convert(chromeOf(prop), parent) : null);
   let body = page;
@@ -2519,11 +2562,24 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   } else if (chrome) {
     body = [part("topNavigation", { direction: "column", stretch: true }), column("Content", page, { fillW: true }), part("bottomNavigation", { direction: "column", stretch: true })].filter(Boolean).map(filled);
   }
-  const root = rootStack ? frameNode(layers[0], codeProps(layers[0]), figmaIdOf(layers[0].id), { direction: "column", stretch: true, width: frameWidth }) : { type: "FRAME", name: title, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: body };
+  // An Overlay's frame is as big as what it holds, with no canvas behind it, as Figma's overlay frames are (Prototype's
+  // Open overlay shows it over the Screen).
+  const root = overlay
+    ? { type: "FRAME", name: title, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, hug: true, children: layers.map((layer) => convert(layer, { direction: "column", stretch: false, width: null })).filter(Boolean) }
+    : rootStack ? frameNode(layers[0], codeProps(layers[0]), figmaIdOf(layers[0].id), { direction: "column", stretch: true, width: frameWidth }) : { type: "FRAME", name: title, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: body };
   // The Screen's own variable modes go on its frame (Studio Variables v2).
   const screenModes = frameModes(plain(screen.props.modes));
   if (screenModes) root.modes = { ...screenModes, ...(root.modes ?? {}) };
-  for (const element of [doc.board, screen]) for (const name of Object.keys(element.props)) if (!["id", "title", "device", "layout", "canvas", "height", "modes", ...chromeProps].includes(name) && !DRAWN_BY_PULL.has(name)) notes.push(`${element.name} ${name}: not pushed`);
+  for (const element of [doc.board, screen]) for (const name of Object.keys(element.props)) if (!["id", "title", "device", "layout", "canvas", "height", "modes", "state", "onDelay", ...OVERLAY_PROPS, ...chromeProps].includes(name) && !DRAWN_BY_PULL.has(name)) notes.push(`${element.name} ${name}: not pushed`);
+  // Figma's overlay settings (position, background, close on click outside) are read-only to a plugin: a hand step.
+  if (overlay) {
+    const position = literalOf(screen.props.position);
+    const placed = layers.find((layer) => OVERLAY_PLACES[layer.name]);
+    const where = placed ? OVERLAY_PLACES[placed.name] : position && position !== "center" ? OVERLAY_POSITION_WORDS[position] ?? position : null;
+    if (where) notes.push(`Overlay ${literalOf(screen.props.id)}: set Prototype › Overlay › Position to ${where} in Figma (a plugin cannot)`);
+    if (literalOf(screen.props.background) === true) notes.push(`Overlay ${literalOf(screen.props.id)}: add Background dim in Figma's overlay settings (a plugin cannot)`);
+    if (literalOf(screen.props.closeOnOutside) === true) notes.push(`Overlay ${literalOf(screen.props.id)}: tick Close when clicking outside in Figma (a plugin cannot)`);
+  }
   // The frame is keyed by the Stack it draws, else by the Screen (its layers keep their own keys).
   if (rootStack && layers[0].id) root.key = layers[0].id;
   else if (screen.id) root.key = screen.id;
@@ -2532,12 +2588,22 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   // phone 844, or the height it is drawn at): the plugin's frame was Figma's default white, the paste's had no fill.
   const canvas = { alt: "Alt", flat: "Flat" }[literalOf(screen.props.canvas)] ?? "Default";
   const screenHeight = literalOf(screen.props.height);
-  const frame = {
+  const frame = overlay ? { ...root, name: title } : {
     ...root, name: title, width: DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop,
     ...(root.fill || root.fillStyle ? {} : { fill: `Background/Canvas/${canvas}` }),
     minH: typeof screenHeight === "number" ? screenHeight : device === "phone" ? 844 : 900,
     ...(doc.header?.figma?.file ? { file: doc.header.figma.file } : {}),
   };
+  // A Screen's After delay: Figma's After delay on the frame itself.
+  if (!overlay && screen.props.onDelay?.kind === "proto") {
+    handled.add(`${screen.id}/onDelay`);
+    const reaction = reactionOf("onDelay", screen.props.onDelay);
+    if (reaction.note) notes.push(`Screen onDelay: ${reaction.note}`);
+    else frame.reactions = [...(frame.reactions ?? []), reaction];
+  }
+  // An action on a part the push does not draw as a layer (a component's own prop holding a layer): named, not lost.
+  const unhandled = protoActionsIn(screen) - handled.size;
+  if (unhandled > 0) notes.push(`${unhandled} interaction${unhandled > 1 ? "s" : ""} on parts drawn without their own layer: not pushed`);
   if (doc.header?.figma?.node) frame.id = doc.header.figma.node;
   // Layers the push draws itself (a Table's rows and cells, a data slot's items, a section) take their parent's key and
   // their place, so importing the page again finds them too.
@@ -2630,16 +2696,34 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
  * and variable collections it uses, so the plugin imports them from the published library in a file other than Zen's.
  */
 export function figmaPackage(text, { mapping, nestedLayers = {}, page = {}, newId, libraryKeys, pages } = {}) {
-  const { frame, notes, images, components } = figmaFromPage(text, { mapping, nestedLayers, newId, pages, pageId: page.id });
-  if (!frame) return { pkg: null, notes, images: [] };
+  const { frame, notes: firstNotes, images: firstImages, components: firstComponents } = figmaFromPage(text, { mapping, nestedLayers, newId, pages, pageId: page.id });
+  if (!frame) return { pkg: null, notes: firstNotes, images: [] };
+  // Every Screen, Screen state and Overlay of the Board, each a frame (the first Screen is `frame`, as before): the
+  // Prototype tab's actions lead from one to another (figma-proto.mjs reactions name the frame by its id).
+  const board = docFromText(text, newId ? { newId } : {}).doc?.board;
+  const ids = (board?.children ?? []).filter((child) => child.kind === "element" && (child.name === "Screen" || child.name === "Overlay")).map(boardFrameId);
+  const firstId = ids.find((id) => id.startsWith("screen:")) ?? ids[0];
+  const frames = [{ id: firstId, frame }];
+  const notes = [...firstNotes];
+  const images = new Set(firstImages);
+  const components = [...(firstComponents ?? [])];
+  for (const id of ids.filter((each) => each !== firstId)) {
+    const made = figmaFromPage(text, { mapping, nestedLayers, newId, pages, pageId: page.id, frame: id });
+    if (!made.frame) { notes.push(...made.notes); continue; }
+    frames.push({ id, frame: made.frame });
+    for (const note of made.notes) if (!notes.includes(note)) notes.push(note);
+    for (const src of made.images) images.add(src);
+    for (const component of made.components ?? []) if (!components.some((known) => known.page === component.page && known.local === component.local)) components.push(component);
+  }
+  // A reaction leading to a frame the package does not carry (a copy of one frame) is a note the plugin gives.
   // A frame with nothing in it would import as an empty frame: say why instead.
   if (!frame.children?.length) return { pkg: null, notes: [`nothing on the page has a place in Figma${notes.length ? ` (${notes.join("; ")})` : ""}`], images: [] };
   // `images`: picture source → base64 bytes, which the caller fills (the Studio reads its uploads and the dev server's
   // files; the CLI reads repo files): a picture left null keeps the component's own.
-  const pkg = { format: "zen-studio-figma", version: 1, page: { id: page.id ?? null, title: page.title ?? frame.name }, frame, images: Object.fromEntries(images.map((src) => [src, null])) };
+  const pkg = { format: "zen-studio-figma", version: 1, page: { id: page.id ?? null, title: page.title ?? frame.name }, frame, ...(frames.length > 1 ? { frames } : {}), images: Object.fromEntries([...images].map((src) => [src, null])) };
   // The project's other pages' components its instances show (Libraries' project components): the importer finds each in
   // the file (placed with its own page) or makes it beside the frame, and links the instances to it.
-  if (components?.length) pkg.components = components;
+  if (components.length) pkg.components = components;
   if (libraryKeys) pkg.library = libraryKeysFor(pkg, libraryKeys);
-  return { pkg, notes, images };
+  return { pkg, notes, images: [...images] };
 }
