@@ -125,6 +125,16 @@ export function variablesHost({ realRoot, drafts }) {
       }
     };
     walk("src");
+    // Studio pages set modes on their frames (`modes={{ theme: "dark" }}`, Studio Variables v2): the pages folder too.
+    const pages = process.env.ZEN_STUDIO_PAGES_DIR || ".zen-studio/pages";
+    if (fs.existsSync(path.join(realRoot(), pages))) {
+      for (const entry of fs.readdirSync(path.join(realRoot(), pages), { withFileTypes: true })) {
+        if (!entry.isFile() || !entry.name.endsWith(".zen.tsx")) continue;
+        const rel = `${pages}/${entry.name}`;
+        const text = drafts.get(rel)?.content ?? fs.readFileSync(path.join(realRoot(), rel), "utf8");
+        if (pattern.test(text)) found.push(`page ${entry.name.replace(/\.zen\.tsx$/, "")}`);
+      }
+    }
     return found;
   }
 

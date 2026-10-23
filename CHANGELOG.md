@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Layout: `modes={{ theme: "dark", density: "comfortable" }}` on Stack, Grid and Box, and on a Studio Screen. This is
+  Figma's Change variable mode on a frame: the data-* attributes tokens.css reads, and the ZenProvider context for the
+  components inside. Zen Studio sets it with Apply variable mode (Appearance header, Screen section). Push and the Zen
+  plugin write Figma's explicit mode per collection, and pull reads it back; a direct paste leaves it and says so
+  (2026-10-23).
 - Zen Studio Variables: modes (user, 2026-10-23). A ZenProvider axis's collection adds a mode (Figma's + names it
   in place, with the first mode's values), renames, duplicates and deletes it; rename and delete are refused while code
   uses the mode. ZenProvider's mode lists (`zenThemes`, `zenDensities` …) and the Studio preview modes come from the

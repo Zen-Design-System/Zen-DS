@@ -8,7 +8,7 @@
       "file": "src/components/Layout/Layout.tsx",
       "description": "One-dimensional layout with token spacing. Use it instead of hand-written flex CSS.\n\n  <Stack gap=\"lg\">…sections…</Stack>\n  <Stack direction=\"row\" gap=\"sm\" align=\"center\" justify=\"between\">…toolbar…</Stack>",
       "deprecated": null,
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps",
       "props": [
         {
           "name": "width",
@@ -288,6 +288,14 @@
           "required": false,
           "default": null,
           "description": "Figma effect style (the whole style is the token, one per layer as in Figma). Drop shadows\n(`Shadow/Bottom/Level-1…4`, `Shadow/Top/Level-1…4`) render only on `surface=\"surface\"`, never on Subtle, Pale or\nSurface-Alt (component-usage-rules §9) nor without a fill, and a shadowed surface takes no border (elevation follows\nthe Sidebar). `Shadow/Bottom/Level-1` is the Card (Theme=Shadow 7063:62203) and Sidebar elevation; the Top levels\ncast upward for bottom-pinned bars (Bottom-Sheet 4059:14162 uses Top/Level-2). `Effect/Overlay` is the background\nblur behind a translucent fill and renders only on `surface=\"subtle\"` or `\"pale\"`. The shadows use the spread\ntokens, which Figma draws on a filled, clipped frame: pair them with `clip` when children could overflow.",
+          "deprecated": null
+        },
+        {
+          "name": "modes",
+          "type": "{ theme?: \"light\" | \"dark\"; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, \"auto\">; typography?: ZenTypography; brand?: ZenBrand; }",
+          "required": false,
+          "default": null,
+          "description": "The frame's own variable modes, one per ZenProvider axis: `{ theme: \"dark\" }` draws a dark card on a light page,\n`{ density: \"comfortable\", breakpoint: \"mobile\" }` a phone-sized block on a desktop page. Written as the data-*\nattributes tokens.css reads, and given to the components inside as their ZenProvider context (a component reading\nthe breakpoint or the theme sees the frame's). Unset axes inherit. Figma: Layer › Apply variable mode.",
           "deprecated": null
         },
         {
@@ -409,7 +417,7 @@
       "file": "src/components/Layout/Layout.tsx",
       "description": "Two-dimensional layout for cards, tiles and form columns.\n\n  <Grid minColumnWidth={280}>…cards…</Grid>\n  <Grid columns={{ mobile: 1, desktop: 2 }} gap=\"lg\">…fields…</Grid>\n  <Grid columns={{ mobile: 1, desktop: \"2fr 1fr\" }} gap=\"lg\" align=\"start\">…main…aside…</Grid>",
       "deprecated": null,
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps",
       "props": [
         {
           "name": "width",
@@ -692,6 +700,14 @@
           "deprecated": null
         },
         {
+          "name": "modes",
+          "type": "{ theme?: \"light\" | \"dark\"; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, \"auto\">; typography?: ZenTypography; brand?: ZenBrand; }",
+          "required": false,
+          "default": null,
+          "description": "The frame's own variable modes, one per ZenProvider axis: `{ theme: \"dark\" }` draws a dark card on a light page,\n`{ density: \"comfortable\", breakpoint: \"mobile\" }` a phone-sized block on a desktop page. Written as the data-*\nattributes tokens.css reads, and given to the components inside as their ZenProvider context (a component reading\nthe breakpoint or the theme sees the frame's). Unset axes inherit. Figma: Layer › Apply variable mode.",
+          "deprecated": null
+        },
+        {
           "name": "columns",
           "type": "GridTracks | { mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks }",
           "required": false,
@@ -794,7 +810,7 @@
       "file": "src/components/Layout/Layout.tsx",
       "description": "A frame without auto layout (Figma's Frame): token padding, fill (background layer), stroke, corner radius and effect\naround content that flows as blocks, or layers placed at X / Y. With auto layout the same frame is a Stack or Grid,\nwhich take the same appearance props. For clickable or selectable tiles use Card; for page width use Container.",
       "deprecated": null,
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps, FrameModeProps",
       "props": [
         {
           "name": "width",
@@ -1085,6 +1101,14 @@
           "deprecated": null
         },
         {
+          "name": "modes",
+          "type": "{ theme?: \"light\" | \"dark\"; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, \"auto\">; typography?: ZenTypography; brand?: ZenBrand; }",
+          "required": false,
+          "default": null,
+          "description": "The frame's own variable modes, one per ZenProvider axis: `{ theme: \"dark\" }` draws a dark card on a light page,\n`{ density: \"comfortable\", breakpoint: \"mobile\" }` a phone-sized block on a desktop page. Written as the data-*\nattributes tokens.css reads, and given to the components inside as their ZenProvider context (a component reading\nthe breakpoint or the theme sees the frame's). Unset axes inherit. Figma: Layer › Apply variable mode.",
+          "deprecated": null
+        },
+        {
           "name": "padding",
           "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
           "required": false,
@@ -1213,11 +1237,18 @@
     "GradientType": "type GradientType = \"linear\" | \"radial\" | \"angular\" | \"diamond\"",
     "GridTracks": "type GridTracks = number | string",
     "ShapeFill": "type ShapeFill = (typeof shapeFills)[number]",
+    "ZenBrand": "type ZenBrand = \"zen\"",
+    "ZenBreakpoint": "type ZenBreakpoint = \"auto\" | \"desktop\" | \"tablet\" | \"mobile\"",
+    "ZenComponentTheme": "type ZenComponentTheme = \"neutral-s1\" | \"brand-s1\" | \"neutral-s2\" | \"brand-s2\" | \"neutral-s3\" | \"neutral-s4\" | \"neutral-s5\" | \"neutral-s6\" | \"neutral-s7\"",
+    "ZenDensity": "type ZenDensity = \"compact\" | \"comfortable\" | \"studio\"",
+    "ZenEmphasis": "type ZenEmphasis = \"medium\" | \"strong\" | \"light\"",
     "ZenGradient": "interface ZenGradient { type: GradientType; angle?: number; stops: GradientStop[]; }",
     "ZenMargin": "type ZenMargin = \"margin-comfortable\" | \"margin-compact\"",
     "ZenPadding": "type ZenPadding = \"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
+    "ZenRadius": "type ZenRadius = \"rounded\" | \"smooth\" | \"standard\" | \"luxury\" | \"studio\"",
     "ZenScale": "type ZenScale = \"3xs\" | \"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xl\" | \"3xl\"",
     "ZenScaleInput": "type ZenScaleInput = ZenScale | ZenScaleLong",
-    "ZenScaleLong": "type ZenScaleLong = \"3xsmall\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\" | \"2xlarge\" | \"3xlarge\""
+    "ZenScaleLong": "type ZenScaleLong = \"3xsmall\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\" | \"2xlarge\" | \"3xlarge\"",
+    "ZenTypography": "type ZenTypography = \"dashboard\" | \"popular\" | \"mobile\" | \"studio\""
   }
 }
