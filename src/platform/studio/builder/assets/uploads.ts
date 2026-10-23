@@ -125,6 +125,8 @@ export async function copyUploadsTo(mirror: PageMirror): Promise<number> {
 
 /** A photo's object URL in this Studio; null until it has loaded, or when this browser does not have it. */
 export const assetUrl = (id: string) => uploads.get(id)?.url ?? null;
+/** An uploaded photo by id (its name, type and URL), or null. */
+export const uploadOf = (id: string) => uploads.get(id) ?? null;
 /** The photo an object URL shows (the exports put its file in the zip), or null. */
 export const assetOfUrl = (url: string) => { for (const upload of uploads.values()) if (upload.url === url) return upload; return null; };
 /** A photo's file (this browser's copy); null when it does not have it. */

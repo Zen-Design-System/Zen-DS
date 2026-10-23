@@ -146,7 +146,7 @@
       "name": "Box",
       "status": "stable",
       "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
-      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? effectStyle? clip? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? blendMode? rotation? flip? padding? paddingX? paddingY? scroll? group? mask? as? children? aria-label? aria-labelledby? aria-describedby?"
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? sticky? effectStyle? clip? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? blendMode? rotation? flip? padding? paddingX? paddingY? scroll? group? mask? as? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "BreadcrumbItem",
@@ -490,7 +490,7 @@
       "name": "Grid",
       "status": "stable",
       "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
-      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? blendMode? rotation? flip? effectStyle? columns? minColumnWidth? gap? rowGap? columnGap? align? stackBelow? padding? as? children? clip? aria-label? aria-labelledby? aria-describedby?"
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? sticky? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? blendMode? rotation? flip? effectStyle? columns? minColumnWidth? gap? rowGap? columnGap? align? stackBelow? padding? as? children? clip? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "GroupedBarChart",
@@ -809,7 +809,7 @@
       "name": "Shape",
       "status": "stable",
       "purpose": "Figma's native shapes in code — Rectangle, Ellipse with its arc (pie, ring, ring segment), Line, Arrow, Polygon, Star and the Pen's Vector — for illustrations, marks and decoration drawn in Zen Studio, coloured with Zen tokens only.",
-      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? type? operation? children? d? viewBox? fillRule? fill? stroke? strokeWeight? strokeAlign? radius? arcStart? arcSweep? arcRatio? pointCount? starRatio? rotation? flip? opacity? blendMode? label? aria-label? aria-labelledby? aria-describedby?"
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? sticky? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? type? operation? children? d? viewBox? fillRule? fill? stroke? strokeWeight? strokeAlign? radius? arcStart? arcSweep? arcRatio? pointCount? starRatio? rotation? flip? opacity? blendMode? label? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "Sidebar",
@@ -876,7 +876,7 @@
       "name": "Stack",
       "status": "stable",
       "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
-      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? blendMode? rotation? flip? effectStyle? direction? gap? align? justify? wrap? clip? scroll? fillChildren? padding? paddingX? paddingY? as? children? aria-label? aria-labelledby? aria-describedby?"
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? sticky? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? blendMode? rotation? flip? effectStyle? direction? gap? align? justify? wrap? clip? scroll? fillChildren? padding? paddingX? paddingY? as? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "StackBarChart",

@@ -2689,6 +2689,13 @@
           ],
           "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
         },
+        "sticky": {
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Figma \"Fix position when scrolling\" (Prototype › Scroll behavior): the layer stays in its place in the layout and, while its nearest scrolling ancestor (an AppShell Body, a pane, a"
+        },
         "effectStyle": {
           "enum": [
             "Shadow/Bottom/Level-1",
@@ -9649,6 +9656,13 @@
             }
           ],
           "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
+        },
+        "sticky": {
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Figma \"Fix position when scrolling\" (Prototype › Scroll behavior): the layer stays in its place in the layout and, while its nearest scrolling ancestor (an AppShell Body, a pane, a"
         },
         "radiusTopLeft": {
           "enum": [
@@ -16958,6 +16972,13 @@
           ],
           "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
         },
+        "sticky": {
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Figma \"Fix position when scrolling\" (Prototype › Scroll behavior): the layer stays in its place in the layout and, while its nearest scrolling ancestor (an AppShell Body, a pane, a"
+        },
         "radiusTopLeft": {
           "enum": [
             "none",
@@ -18657,6 +18678,13 @@
             }
           ],
           "description": "Offset from the parent's left edge on Spacing/Padding (Figma X snapped to the ladder), or Figma's X in px in a free frame."
+        },
+        "sticky": {
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Figma \"Fix position when scrolling\" (Prototype › Scroll behavior): the layer stays in its place in the layout and, while its nearest scrolling ancestor (an AppShell Body, a pane, a"
         },
         "radiusTopLeft": {
           "enum": [

@@ -3,6 +3,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
 import { ChartBlock, ChartSummary, formatOf, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartFormat, type ChartPaletteName, type ChartPoint } from "./chartCore";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export interface FunnelChartProps {
   /** One stage per step, first contact first (`{ label, value }`): each bar is as wide as its share of the first stage.
@@ -40,7 +41,7 @@ export interface FunnelChartProps {
  * Home/End pick one (the others dim) and the summary reads its name, count and share. Figma Chart/Funnel-Chart 15968:130460
  * (Color=Primary 15486:2497 · Secondary ↔ `palette`).
  */
-export function FunnelChart({ data, format: formatProp, currency, "aria-label": ariaLabel, className, initialIndex, animate = true, palette = "primary", ref }: FunnelChartProps) {
+export function FunnelChart({ data, format: formatProp, currency, "aria-label": ariaLabel, className, initialIndex, animate = true, palette = "primary", ref, ...rest }: FunnelChartProps) {
   const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   const id = useChartId();
@@ -54,7 +55,7 @@ export function FunnelChart({ data, format: formatProp, currency, "aria-label": 
     ? `${current.label}: ${format(current.value)}${active! > 0 ? `, ${t.chartShareOf(shareText(current.value), first.label)}` : ""} (${t.chartPoint(active! + 1, data.length)})`
     : data.map((d) => `${d.label} ${format(d.value)} (${shareText(d.value)})`).join(", ");
   return (
-    <ChartBlock ref={ref} kind="funnel" palette={palette}>
+    <ChartBlock {...dataAttributes(rest)} ref={ref} kind="funnel" palette={palette}>
       <div className={["zen-chart", "zen-chart--funnel", className].filter(Boolean).join(" ")} data-kind="funnel" data-animate={animate ? undefined : "false"}>
         <div className="zen-chart__funnel" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
           onKeyDown={onKeyDown} onBlur={() => setActive(initial)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(initial); }}

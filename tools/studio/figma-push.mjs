@@ -384,6 +384,8 @@ function figmaProps(entry, code, mapping, notes, where, only = null, filled = nu
 /** The set of a code component: by its set prop (Button appearance="flat" → Button/Flat), else its only set. */
 /** Layers an override of names directly (words, visibility, a page instance's values), never a Zen component's set. */
 const NOT_LIBRARY = new Set(["Use", "Text", "Heading", "Stack", "Grid", "Box", "Shape"]);
+/** The layers that take `sticky` (Layout/position.ts): Figma's Scroll behavior on a frame or a shape. */
+const STICKY_FRAMES = new Set(["Stack", "Grid", "Box", "Shape"]);
 /** An AppShell's phone bars (AppShell.tsx mobile Top / Bottom): figma-push draws the Screen's own bars instead (BACKLOG
  *  P3 "AppShell phone bars in Figma"), so a page's AppShell ones only get a note. */
 const APP_SHELL_MOBILE_BARS = ["topNavigation", "bottomNavigation"];
@@ -706,6 +708,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     else if (element.name === "Sidebar" && !parent?.inShell) node = sidebarPatternNode(instanceNode(element, code, id, parent), sidebarLook(element, code.collapsed === true));
     else node = instanceNode(element, code, id, parent);
     if (node && code.position === "absolute") node.absolute = absoluteOf(code);
+    // sticky (position.ts; user 2026-10-23 "Bottom = Fixed, Top = Sticky"): bottom is Figma's Fixed, which auto layout
+    // takes only on an absolute layer, so it is pinned to the bottom, stretched across (its frame sets the insets from
+    // its padding, frameNode); top is Figma's Sticky and stays in flow.
+    else if (node && STICKY_FRAMES.has(element.name) && code.sticky === "bottom") {
+      const across = code.width === undefined || code.width === "fill";
+      node.absolute = { cx: across ? "STRETCH" : "MIN", cy: "MAX", left: 0, right: 0, top: 0, bottom: 0 };
+      node.scrollBehavior = "FIXED";
+    } else if (node && STICKY_FRAMES.has(element.name) && code.sticky === "top") node.scrollBehavior = "STICKY_SCROLLS";
     if (node && look) {
       const css = instanceLookStyle(look);
       if (css?.opacity !== undefined) node.opacity = css.opacity;
@@ -1610,6 +1620,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     let cellIndex = 0;
     const children = element.children.map((child) => {
       const node = convert(child, grid && child.kind === "element" ? { ...context, cell: true, width: cellWidths?.[cellIndex++ % columns.count] ?? null } : context);
+      // A Fixed layer (sticky="bottom") sits where CSS sticky leaves it at the end of the content: inside this frame's
+      // padding, on its bottom edge.
+      if (node?.scrollBehavior === "FIXED" && node.absolute) return { ...node, absolute: { ...node.absolute, left: x, right: x, bottom: y } };
       if (!node || node.absolute) return node;
       // A grid's cells fill their column; Grid's default align (stretch) makes a row's cards as tall as its tallest. A
       // Grid in a cell stretches too, its rows sharing the height (Flex, as CSS stretches auto rows), so its cards match
@@ -1642,6 +1655,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
       const ownH = (node.type === "FRAME" || node.shape) && node.fixedHeight !== undefined;
       return { ...node, ...(wide && !ownW ? { fillW: true } : {}), ...((fillH || shareH) && !ownH ? { fillH: true } : {}) };
     }).filter(Boolean);
+    // Figma's fixed layers are a frame's topmost (numberOfFixedChildren counts from the end): a Fixed layer goes last.
+    children.sort((a, b) => Number(a.scrollBehavior === "FIXED") - Number(b.scrollBehavior === "FIXED"));
     if (grid && !fit) {
       layout.grid = { columns: columns.count, rows: Math.max(1, Math.ceil(children.length / columns.count)), ...(columns.sizes ? { sizes: columns.sizes } : {}) };
       children.forEach((child, index) => { child.cell = { col: index % columns.count, row: Math.floor(index / columns.count), span: 1 }; });

@@ -3,6 +3,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
 import { ChartBlock, ChartLegend, ChartSummary, colourAt, formatOf, ringSize, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartFormat, type ChartLegendPosition, type ChartPaletteName, type ChartRingSize, type ChartSlice } from "./chartCore";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export interface RadialChartProps {
   /** One ring per measure, outermost first (`{ id, label, value }`), each measured against `max`. Keep 1–4 rings. */
@@ -51,7 +52,7 @@ const RINGS = { small: { ring: 6, gap: 4 }, regular: { ring: 10, gap: 8 } };
  * to the outer and inner ring. Figma Chart/Radial-Chart 15325:1135 (Legend=Bottom · End; Size=Small 120 · Medium 168 ·
  * Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).
  */
-export function RadialChart({ data, max = 100, format, size = "medium", "aria-label": ariaLabel, value, label, currency, showLegend = true, legendPosition = "bottom", className, animate = true, palette = "primary", ref }: RadialChartProps) {
+export function RadialChart({ data, max = 100, format, size = "medium", "aria-label": ariaLabel, value, label, currency, showLegend = true, legendPosition = "bottom", className, animate = true, palette = "primary", ref, ...rest }: RadialChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const { active, setActive, onKeyDown } = useChartSelection(data.length, null);
@@ -67,7 +68,7 @@ export function RadialChart({ data, max = 100, format, size = "medium", "aria-la
     : rings.map((ring) => `${ring.d.label} ${show(ring.d.value)}`).join(", ");
   const legend = showLegend ? <ChartLegend items={rings.map((ring) => ({ id: ring.d.id, label: ring.d.label, color: ring.colour }))} /> : undefined;
   return (
-    <ChartBlock ref={ref} kind="radial" legend={legend} position={legendPosition} className="zen-chart-round" palette={palette}>
+    <ChartBlock {...dataAttributes(rest)} ref={ref} kind="radial" legend={legend} position={legendPosition} className="zen-chart-round" palette={palette}>
       <div className={["zen-chart", "zen-chart--round", className].filter(Boolean).join(" ")} data-kind="radial" data-size={step} data-animate={animate ? undefined : "false"} style={{ "--zen-chart-size": `calc(${px}px + var(--zen-chart-grow, 0px))` } as CSSProperties}>
         <div className="zen-chart__round" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
           onKeyDown={onKeyDown} onBlur={() => setActive(null)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(null); }}

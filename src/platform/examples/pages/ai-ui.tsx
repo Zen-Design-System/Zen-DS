@@ -755,7 +755,7 @@ function ComposerScreen({ initial, aside = true }: { initial: string[]; aside?: 
         {/* The screen's title for the outline; the bar shows it at bar size (a content h1 would be Heading/1). */}
         <VisuallyHidden as="h1">Zen AI</VisuallyHidden>
         <Stack gap="lg" className="px-ai-ui-column px-ai-ui-desk__thread"><Thread demo={demo} /><Suggestions demo={demo} /></Stack>
-        <div className="px-ai-ui-dock"><AiChatField fieldStyle="liquid-glass" placeholder={`Ask Zen AI, ${firstName}`} busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} className="px-ai-ui-column" /></div>
+        <Box sticky="bottom"><AiChatField fieldStyle="liquid-glass" placeholder={`Ask Zen AI, ${firstName}`} busy={demo.busy} onStop={demo.stop} onSubmit={demo.ask} className="px-ai-ui-column" /></Box>
       </AppShell>
     </PreviewAppFrame>
   );

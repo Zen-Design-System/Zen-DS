@@ -3,6 +3,7 @@ import { TooltipSurface } from "../Tooltip";
 import { useZenLabels } from "../_shared/zen-context";
 import "./chart.css";
 import { ChartBlock, ChartFade, ChartLegend, PlotFrame, colourAt, fadeAt, formatOf, niceScale, signatureOf, useChartId, useChartSelection, type ChartDatum, type ChartFormat, type ChartPaletteName, type ChartSeries } from "./chartCore";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export interface AreaChartProps {
   /** One period per item, a value per series id (`{ label: "Sep", values: { design: 750, … } }`). Keep 4–12 periods. */
@@ -59,7 +60,7 @@ const pathOf = (pts: readonly Point[]) => pts.map(([x, y], i) => `${i ? "L" : "M
  * the value, or the stack's total. The legend (Figma Show Legend) sits Spacing/Gap/Medium under the plot, its items
  * Spacing/Gap/Small apart. ←/→ and Home/End move between periods; hover picks one.
  */
-export function AreaChart({ data, series, type = "area", format: formatProp, currency, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend, legendPosition = "bottom", animate = true, palette = "primary", ref }: AreaChartProps) {
+export function AreaChart({ data, series, type = "area", format: formatProp, currency, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend, legendPosition = "bottom", animate = true, palette = "primary", ref, ...rest }: AreaChartProps) {
   const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   const stacked = type === "stacked";
@@ -89,7 +90,7 @@ export function AreaChart({ data, series, type = "area", format: formatProp, cur
   const peak = active !== null && lines.length ? lines[lines.length - 1][active] : undefined;
   const fadeId = `zen-chart-fade-${useChartId()}`;
   return (
-    <ChartBlock ref={ref} kind="area" legend={legend} position={legendPosition} palette={palette}>
+    <ChartBlock {...dataAttributes(rest)} ref={ref} kind="area" legend={legend} position={legendPosition} palette={palette}>
       <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel}
         activeLine="neutral" className={["zen-chart--area", className].filter(Boolean).join(" ")} kind="bar" animate={animate} tooltip={null} summary={summary}>
         <div className="zen-chart__marks" key={signature} data-type={type}>

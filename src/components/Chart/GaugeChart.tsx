@@ -3,6 +3,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
 import { ChartBlock, ChartLegend, formatOf, sectorAt, signatureOf, type ChartFormat, type ChartLegendPosition, type ChartPaletteName } from "./chartCore";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export interface GaugeChartProps {
   /** The reading, measured from 0 to `max` ("1,052 h", "82"). A value past `max` fills the ring and still reads as it is. */
@@ -57,7 +58,7 @@ const TICK_PX = 3;
  * apart. It is a `meter` (aria-valuenow, min 0, max `max`, value text "Billable 82%, Target 85%"): nothing in it can be
  * picked, so it takes no tab stop. Figma Chart/Gauge-Chart 15968:130382 (Color=Primary 15486:2467 · Secondary ↔ `palette`).
  */
-export function GaugeChart({ value: valueProp, max = 100, target: targetProp, actualLabel, targetLabel, caption, size = 240, format, currency, showLegend, legendPosition = "bottom", "aria-label": ariaLabel, className, animate = true, palette = "primary", ref }: GaugeChartProps) {
+export function GaugeChart({ value: valueProp, max = 100, target: targetProp, actualLabel, targetLabel, caption, size = 240, format, currency, showLegend, legendPosition = "bottom", "aria-label": ariaLabel, className, animate = true, palette = "primary", ref, ...rest }: GaugeChartProps) {
   const t = useZenLabels();
   // A reading that isn't a number reads 0 (aria-valuenow must be one); a target that isn't a number is no target.
   const value = Number.isFinite(valueProp) ? valueProp : 0;
@@ -80,7 +81,7 @@ export function GaugeChart({ value: valueProp, max = 100, target: targetProp, ac
     ? <ChartLegend gap="small" items={[{ id: "value", label: valueName, color: sectorAt(0, palette) }, ...(target === undefined ? [] : [{ id: "target", label: targetName, color: sectorAt(1, palette) }])]} />
     : undefined;
   return (
-    <ChartBlock ref={ref} kind="gauge" legend={legend} position={legendPosition} className="zen-chart-round" palette={palette}>
+    <ChartBlock {...dataAttributes(rest)} ref={ref} kind="gauge" legend={legend} position={legendPosition} className="zen-chart-round" palette={palette}>
       <div className={["zen-chart", "zen-chart--round", "zen-chart--gauge", className].filter(Boolean).join(" ")} data-kind="gauge" data-animate={animate ? undefined : "false"} style={{ "--zen-chart-size": `calc(${size}px + 2 * var(--zen-chart-grow, 0px))` } as CSSProperties}>
         <div className="zen-chart__gauge" role="meter" aria-label={ariaLabel} aria-valuemin={0} aria-valuemax={max} aria-valuenow={Math.max(0, Math.min(max, value))} aria-valuetext={valueText}>
           <div className="zen-chart__gauge-dial" aria-hidden="true">

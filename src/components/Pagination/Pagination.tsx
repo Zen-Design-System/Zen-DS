@@ -10,6 +10,7 @@ import "./pagination.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useControllableState } from "../_shared/use-controllable-state";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const paginationThemes = ["primary", "secondary", "inline", "manually"] as const;
 export const paginationItemSizes = ["xsmall", "small"] as const;
@@ -92,7 +93,7 @@ export interface PaginationProps {
  * (Button/Size/XSmall), Small items (32, Select-Item/Size/Medium) take Icon-Main Small (Button/Size/Small), so the
  * arrows always match the items in both densities.
  */
-export function Pagination({ page: pageProp, defaultPage = 1, onValueChange, onPageChange, theme = "primary", pageCount, pageSize, defaultPageSize = 50, total = 0, pageSizeOptions = [10, 25, 50, 100], onPageSizeChange, size: sizeProp = "xs", "aria-label": ariaLabelProp, className, overrides, ref }: PaginationProps) {
+export function Pagination({ page: pageProp, defaultPage = 1, onValueChange, onPageChange, theme = "primary", pageCount, pageSize, defaultPageSize = 50, total = 0, pageSizeOptions = [10, 25, 50, 100], onPageSizeChange, size: sizeProp = "xs", "aria-label": ariaLabelProp, className, overrides, ref, ...rest }: PaginationProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.pagination;
@@ -113,7 +114,7 @@ export function Pagination({ page: pageProp, defaultPage = 1, onValueChange, onP
   if (!compact) {
     const level: PaginationLevel = theme === "secondary" ? "secondary" : "primary";
     return (
-      <nav ref={ref} className={["zen-pagination", className].filter(Boolean).join(" ")} data-tone={theme} aria-label={ariaLabel}>
+      <nav {...dataAttributes(rest)} ref={ref} className={["zen-pagination", className].filter(Boolean).join(" ")} data-tone={theme} aria-label={ariaLabel}>
         {previous}
         <div className="zen-pagination__pages">
           {paginationRange(current, pages).map((item, index) => nest("Page", (
@@ -130,7 +131,7 @@ export function Pagination({ page: pageProp, defaultPage = 1, onValueChange, onP
   const first = total === 0 ? 0 : (current - 1) * perPage + 1;
   const last = Math.min(total, current * perPage);
   return (
-    <nav ref={ref} className={["zen-pagination", className].filter(Boolean).join(" ")} data-tone={theme} aria-label={ariaLabel}>
+    <nav {...dataAttributes(rest)} ref={ref} className={["zen-pagination", className].filter(Boolean).join(" ")} data-tone={theme} aria-label={ariaLabel}>
       {theme === "inline"
         ? nest("Page-Size", <PageSizeChip pageSize={pageSize ?? ownPageSize} options={pageSizeOptions} onChange={resize} />)
         : <PageSizeInput pageSize={pageSize ?? ownPageSize} onChange={resize} />}

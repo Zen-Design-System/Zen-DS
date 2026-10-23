@@ -26,6 +26,18 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   `"currency"` ($128.4K, in `currency`, an ISO 4217 code: USD by default; `currency` alone implies it) and `"percent"`
   (41%), on every chart with a `format` (ComboChart's `lineFormat` too, BulletChart beside its row function). Zen Studio
   pages hold only text, so their money widgets now read "$105.7K" instead of "105.7K" (2026-10-23).
+- Every component forwards its `data-*` attributes to its root (Skeletons, charts, chat, dialogs, sheets and the rest:
+  119 that dropped them), so the AI UI renderer's `data-ai-ui-id`, test ids and analytics hooks land; only `data-*`, so
+  nothing else a component renders changes. The conformance test checks it for every public component (2026-10-23).
+- Layout: `sticky="top" | "bottom"` on Stack, Grid, Box and Shape (Figma's Fix position when scrolling): the layer
+  stays in the flow and sticks to its scrolling ancestor's edge. In an AppShell Body a bottom dock takes the page margin
+  inside itself, so the chat, AI chat and AI UI composers dock without example CSS. Zen Studio sets it in Prototype ›
+  Scroll behavior (in place on the canvas, stuck in Play and Present); Figma push and pull map bottom to Fixed and top
+  to Sticky. `surface="canvas"` paints the AppShell's canvas inside a shell (2026-10-23).
+- Native tokens (SwiftUI, Flutter): the system's appearance maps onto a context — Dark for a dark color scheme and
+  Global Colors' Zen-High-Contrast mode under Increase Contrast — with `.zenSystemContext()` / `with(colorScheme:contrast:)`
+  / `with(traits:)` in Swift and `ZenContext.fromMediaQuery` / `withSystem` in Dart, plus `ZenContext.highContrast`; the
+  test vectors cover the high-contrast mode (1218 vectors, from 830) (2026-10-23).
 - Zen Studio's Properties panel shows a chart's Figma properties in Figma's order and names: Orientation, Type, Color,
   Show Legend, Show Average, Legend, Total, Size and the Donut's Total Label / Value (the header rows stay ChartCard's),
   and the Main component frame draws the chart sets' variants; `component-properties.json` has the ❖ Chart page
@@ -66,6 +78,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   current Spark-Bar, the active bar, a Bullet or Gauge target, the Funnel's last stage, the Combo line) in black at 49%
   (Content/Neutral/Light; Inverse/Light in dark mode), as Figma's Color Chart Sector/On-Color/Secondary does, not 69%.
   The user kept that style's binding and the Tertiary one (Border/Neutral/Subtle/Pressed) (2026-10-23).
+- Zen Studio: a photo file dropped from the computer on an example or template page is saved in the repo
+  (`src/assets/media`, as WebP up to 1600 px, with a CREDITS.md row to confirm its licence) and then lands as a library
+  photo: on an Avatar, Image, account or a face of a list it replaces that picture, elsewhere it is a new Image reading
+  the file. A photo from "Your uploads" picked or dropped on such a page is saved the same way (2026-10-23).
 - Zen Studio: a photo dropped on one row's avatar changes that row's picture on example pages too when a helper
   function draws it (the sidebar's `personAvatar(people[t.assignee])` in rows `taskRow(t)` builds): it lands in that
   person's data (`people.alex.photo` in examples/data.ts), an initials avatar gets its first photo, one ⌘Z. A photo
@@ -1279,6 +1295,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- 320px phones, the last recorded debt (2026-10-23, user: "xử hết"): under 375px the docs stage spans the example card
+  with an 8px inset, so an example gets 272px (an app on a 320 phone has 288): Voice actions, the inline DatePicker's
+  "October 2026", a Small Pagination and the Rating list's Sort chip fit at Comfortable. Settings form template: the
+  photo upload drops under the avatar when less than 136px is left beside it (a 320 phone only). The audit no longer
+  counts a link scrolled out of a template's frame as a crowded touch target, nor the space hanging at a line break of
+  pre-wrap text (chat bubbles) as text touching the edge.
 - Build-QA gate (2026-10-22): a full `npm run qa -- --all` ends with a real pass or fail for every step instead of
   being killed by a time limit. The audit, dark audit and behaviour jobs run in shards of about 10 minutes sized from
   each page's last measured time; a shard that still stops early fails its step and names the pages it did not check.

@@ -10,6 +10,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import { colorFormats, formatChannels, hexToHsb, hexToRgb, hsbToHex, normalizeHex, parseChannel, type ColorFormat, type Hsb } from "./color";
 import "./color-picker.css";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export { colorFormats, type ColorFormat } from "./color";
 
@@ -104,7 +105,7 @@ export function ColorPicker({
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
   className,
-  ref,
+  ref, ...rest
 }: ColorPickerProps) {
   const t = useZenLabels();
   const [hex, setHex] = useControllableState<string>({
@@ -180,7 +181,7 @@ export function ColorPicker({
 
   if (!open) return null;
   return (
-    <div
+    <div {...dataAttributes(rest)}
       ref={mergedRef}
       className={["zen-color-picker", className].filter(Boolean).join(" ")}
       role={inline ? "group" : "dialog"}

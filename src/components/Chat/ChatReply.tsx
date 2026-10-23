@@ -8,6 +8,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import type { ChatFileKind, ChatSide } from "./Chat";
 import "./chat-reply.css";
 import "../Icon/core";
+import { dataAttributes } from "../_shared/data-attributes";
 
 /**
  * Reply to a message (composed from Zen tokens and the Chat primitives, following the common pattern of Messenger /
@@ -127,14 +128,14 @@ export function jumpToChatMessage(from: HTMLElement | null, id: string) {
  * (`onJump`, or scroll + flash in the same thread); the quote of a deleted message ("Message unavailable") is plain
  * text with no hover, since there is nothing to jump to.
  */
-export function ChatReplyQuote({ target, side, replier, onJump, ref }: { target: ChatReplyTarget; side: ChatSide; replier?: string; onJump?: (id: string) => void; /** Ref to the root `<div>`. */ ref?: Ref<HTMLDivElement> }) {
+export function ChatReplyQuote({ target, side, replier, onJump, ref, ...rest }: { target: ChatReplyTarget; side: ChatSide; replier?: string; onJump?: (id: string) => void; /** Ref to the root `<div>`. */ ref?: Ref<HTMLDivElement> }) {
   const t = useZenLabels();
   const who = side === "you" ? t.you : replier ?? t.they;
   const whom = target.fromYou ? (side === "you" ? t.yourself : t.youObject) : side === "others" && replier === target.author ? t.themselves : target.author;
   const caption = t.repliedTo(who, whom);
   const summary = chatReplySummary(target, t);
   return (
-    <div ref={ref} className="zen-chat-reply" data-side={side}>
+    <div {...dataAttributes(rest)} ref={ref} className="zen-chat-reply" data-side={side}>
       <span className={`zen-chat-reply__caption ${typographyStyles["Caption/Regular"]}`}><Icon name="icon-reply-solid" size="xs" decorative />{caption}</span>
       {target.kind === "deleted" ? (
         <span className="zen-chat-reply__quote" data-kind={target.kind} data-static="true"><ChatReplyBody target={target} lines={2} /></span>
@@ -149,11 +150,11 @@ export function ChatReplyQuote({ target, side, replier, onJump, ref }: { target:
 }
 
 /** In the composer: the "Replying to …" bar above the field, with × to cancel. */
-export function ChatComposerReply({ target, onCancel, ref }: { target: ChatReplyTarget; onCancel?: () => void; /** Ref to the root `<div>`. */ ref?: Ref<HTMLDivElement> }) {
+export function ChatComposerReply({ target, onCancel, ref, ...rest }: { target: ChatReplyTarget; onCancel?: () => void; /** Ref to the root `<div>`. */ ref?: Ref<HTMLDivElement> }) {
   const t = useZenLabels();
   const label = t.replyingTo(target.fromYou ? t.yourself : target.author);
   return (
-    <div ref={ref} className="zen-chat-composer-reply" role="status" aria-live="polite">
+    <div {...dataAttributes(rest)} ref={ref} className="zen-chat-composer-reply" role="status" aria-live="polite">
       <span className="zen-chat-composer-reply__body">
         <span className={`zen-chat-composer-reply__title ${typographyStyles["Body/Small/Medium"]}`}>{label}</span>
         <span className="zen-chat-composer-reply__preview"><ChatReplyBody target={target} dock="small" /></span>

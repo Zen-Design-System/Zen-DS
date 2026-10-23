@@ -160,6 +160,23 @@ Two BACKLOG P1s waiting on the user (brief from the supervisor: "xử hết back
     2026-10-22T19-17-48-192108d7). No platform example draws a second series on a hue Solid, so a throwaway browser test
     measured the Bullet target on Brand / Cyan / Yellow / Orange Solid cards: rgba(0, 0, 0, 0.486) in light and dark.
 
+## Session B · Example className round 2, PR 3: `sticky` (tier M; user "Thêm prop sticky cho Box", "Bottom = Fixed, Top = Sticky")
+
+- Spec: docs/research/layout-sticky-spec-2026-10-23.md (Figma facts measured with use_figma; the AppShell session OK'd
+  the Body rule). `sticky="top|bottom"` on Stack, Grid, Box, Shape; AppShell Body bottom padding through
+  `--zen-app-shell-body-pad-end`, a bottom-sticky descendant takes it inside itself; `surface="canvas"` follows the
+  shell's canvas; chat / ai-chat / ai-ui docks without CSS; Studio Prototype › Scroll behavior (canvas in place);
+  push bottom → Fixed (absolute, on top), top → Sticky; pull reads numberOfFixedChildren and the REST export's Sticky;
+  native writes scrollBehavior. Plugin 397fc74 on studio-import (npm test green; its API sequence checked live).
+- Found in my own work and fixed: React saw two Prototype-panel children keyed by the layer (Scroll behavior beside
+  Interactions); the first gate failed on a stale compile-api.generated.mjs (individual selftests do not cover it:
+  run `npm run studio:selftest`).
+- Visual diff (chat, ai-chat, ai-ui, app-shell, templates, layout, shape; 1512 + 390; before = main 0f4c28cf in a
+  scratch worktree): 227 identical, 1 changed (chat 01, 3 px, the same noise as PR 2). Dock probe at 1512: sticky,
+  −24 / +24, its bottom on the scroller's bottom mid-scroll and at the end.
+- E2E FW-210/211 works; app-shell + app-shell-grid tests 52/52; gate `--isolated` PASS (0 errors, Studio E2E 338).
+- Not run: a live native paste of a sticky layer (BACKLOG P3).
+
 ## Session C · Figma-parity leftovers (tier S each; Giám sát's queue, plan studio-figma-design-parity-2026-10-18.md)
 Branch `zen/fix/studio-parity-leftovers-20261023`; both BACKLOG lines archived.
 - ⇧⌘G on several layers (BACKLOG P2): `ungroupLayers` in edit/groupLayers.ts ungroups every selected group or frame,
@@ -178,6 +195,22 @@ Branch `zen/fix/studio-parity-leftovers-20261023`; both BACKLOG lines archived.
 - Gate (01:45–02:14, isolated, the 8 files): static ✓, Studio E2E 338 / 338 (3 shards), Build-QA PASS. FW rows run
   apart (the gate's matrix has no FW group): FW-220 first timed out (a ⇧⌘-click on the second group's empty spot added
   nothing); it now ⇧-clicks "Group 2" in Layers, as B-33 does: FW-119 + FW-220 2 / 2, FW-11…18 8 / 8.
+
+## AppShell session · Zen-High-Contrast in the native packages (tier S, static; BACKLOG P3 G5, user-approved, via Giám sát)
+
+Branch zen/feat/native-high-contrast-20261023 from main 4c456456. Everything under platforms/ is written by
+scripts/build-native-tokens.mjs (engines, tests and README too), so the change is in its templates.
+- Swift: `ZenContext.highContrast`; `with(colorScheme:contrast:)` (Dark / Light, Zen-High-Contrast / Zen, other modes
+  kept); `.zenSystemContext(base)` (a ViewModifier reading colorScheme and colorSchemeContrast); UIKit
+  `with(traits:)` (userInterfaceStyle, accessibilityContrast .high). Dart: `ZenContext.highContrast`,
+  `withSystem(brightness:highContrast:)`, `ZenContext.fromMediaQuery(data, base)` (platformBrightness, highContrast:
+  Flutter reports it on iOS).
+- Vectors: two contexts in Zen-High-Contrast (Light, Dark) and 8 semantic colours the mode changes (it changes 82 in
+  Light, 63 in Dark) → 1218 vectors (830). New Swift and Dart tests for the mapping. README section.
+- Checks: tokens:native:check, tokens:check. Not run: swift test (this Mac's Command Line Tools: SwiftPM cannot link the
+  manifest and the SDK does not match the compiler, so no Swift builds at all) and flutter test (no Flutter); CI runs
+  neither. The Swift and Dart code was reviewed against the APIs (iOS 15 / macOS 12, Flutter MediaQueryData).
+- BACKLOG line removed.
 
 ## AppShell session · Figma contracts G5 (tier S, read-only Figma + contract files; BACKLOG P3, user-approved, via Giám sát)
 
@@ -269,6 +302,82 @@ Branch zen/feat/chart-inspector-props-20261023 (stacked on #236: the Color rows 
 - Merged main 9022cdad (after #236 merged; #237's chart-*.json contracts came in, no overlap). Gate (isolated, the map +
   the two generated maps): Studio self-tests ✓, TypeScript ✓, nested layer names 45 / 45, Studio E2E 338 / 338
   (3 shards, BL-02 Main component coverage included), Build-QA PASS. No platform page in scope, so no contact sheet.
+
+## AppShell session · Every component forwards data-* (tier M, many components; G2 AI UI decisions, user via Giám sát)
+
+Branch zen/fix/components-forward-data-attrs-20261023 from main 9fe063d2. User's answers (G2): every component forwards
+`data-*` (Skeletons included) so `data-ai-ui-id` lands; keep the verified heuristic; the classifier runs on the device;
+ChatReactorsPanel stays experimental. After #244 (which recorded these answers and the spec format: Zen's tree), the
+merge keeps #244's README wording with data-* marked built, and drops the BACKLOG build line.
+- `_shared/data-attributes.ts`: `dataAttributes(props)` picks the `data-*` keys; spread first on a root so the
+  component's own data-* styling hooks win. Only data-*: no other HTML attribute changes what a component renders.
+- 119 public components destructured their props with no rest (static scan). A codemod (AST, tools/studio/jsx-source)
+  gave 105 a `...rest` and `{...dataAttributes(rest)}` on every JSX root they return; 14 by hand where the root is a
+  variable, a fragment or a conditional (BottomSheet, Dialog, ModalForm, SidePanel, ToastStack: the ref'd panel; ChatFile
+  both branches; ChatPhotos; ChatReactions' pill; ChatReactorsPanel's sheet; DatePickerMonthYear; Menu's surface;
+  PropertySelect / Status / Date through PickerCell `data`; TableTrend through trendBadge).
+- tests/smoke/conformance.test.tsx: every public component gets `data-zen-conformance` and must put it in the DOM
+  (NO_DATA: the providers and ZenPortal).
+- Verified count: 38 before #237, 53 after it (chart contracts), same heuristic.
+- Slot (Giám sát's GO): the conformance run found 20 the scan missed — the charts' shared ChartBlock, Divider's two
+  non-decorative branches, ChatThread and SidebarSubMenu (the codemod put the spread on a context provider),
+  ChatReactorsPanel's desktop popover (through ZenPortal), PropertyPeople / Tags (MultiCell), SidebarMenuItem (the item
+  row, `dataAttributes(item)`). Fixed; conformance 218 passed / 5 skipped, `npm test` 1300 passed (82 files).
+
+## Backlog G1 designer questions + G2 answers (tier XS, docs only; Giám sát's request, user "xử hết backlog")
+- QUESTIONS.md / QUESTIONS.vi.md: one designer review batch moved from BACKLOG (triage group G1, 10 entries): Calendar
+  toolbar mobile, Metric Title-Highlight, Action-Icon-Gap 20, Bottom-Navigation surface, Side-Bar/Master/Small-Density
+  named "Component", 438-page library gaps, Android bars, unnamed layers, chart questions, AI UI Figma first.
+- BACKLOG per the user's G2 answers: AI UI decisions closed (41 verified stand, Zen's node tree with an A2UI exporter
+  later, classifier on the device, ChatReactorsPanel experimental), only `data-*` forwarding left to build; ListItem Value
+  "decided, not built"; sheet table "Figma first, then code". docs/ai-ui/README.md "Open decisions" updated the same way.
+- Open BACKLOG entries with a priority 32 → 21 (ListItem Value is parked now, like Code view), then + 1 P3 for Giám sát:
+  compile #238's Swift/Dart on a machine with the toolchains. After merging main (#238, #241 closed two more): 20.
+
+## 320px debt left: the designer calls (tier L: docs chrome at 320; user: "xử hết", B1, "Gỡ khỏi mục này")
+
+Branch claude/eloquent-mclean-8f4974 from main 4b96bbb8. BACKLOG P1 "320px debt left" → archived.
+- Re-measured at 320 (audit on a private server, 6 pages): the 13 Chat findings were gone already (the 10-20 AppShell
+  gate fixed ChatComposer and the narrow desktop ChatThread); 10 layout findings left: Voice 5, DatePicker 2, Pagination 1,
+  Rating 1, Settings form 1, plus the templates "Show all" target false positive.
+- The 9 in a card (Voice, DatePicker, Pagination, Rating) overflowed only because the docs chrome left an example 248px and
+  its Card 208, against 248 inside a Card on a real 320 phone. `platform.css` under 375px: stage and playground preview
+  span the card with an 8px inset (example 272). Measured with `--css` first: all 9 fit; 390/1512 untouched.
+- Settings form template: the photo row wraps, FileUpload in `<Box width="fill" minWidth={136}>` (button 119 at
+  Comfortable; 150 is left at 390), so only a 320 phone stacks it. 390/1512 widths measured unchanged.
+- `audit.mjs` targets: a target scrolled out of a clipping frame is skipped (the "Show all" link at y 10683 sat under a
+  frame ending at 8937 and was "crowded" by the next card's button).
+- Text / widgets / sidebar style findings stay in the all-viewport baseline (user: accepted, not 320 debt).
+- Seen, not changed: Settings form's save bar truncates "Discard" at 320 Comfortable — the user's 10-19 ActionBar rule
+  (Primary keeps its label, the other gives way).
+- Gate 1 (`qa --all --isolated`, after merging main 99d230be): static, Vitest 82/82, contracts, dark, behaviour, Studio
+  E2E 338/0 ✓; audit ✗ 14 new 320 "edge" errors (ai-chat "Rate an answer" after Regenerate, ai-ui Prompt=invoices),
+  all one false positive: pre-wrap text gives the space at each line break its own rect, hanging 4px past the box
+  (words end at 295.8 in a 296 box). `audit.mjs` edges now measure pre-wrap text by its words; both pages clean.
+- Gate 2 (all 83 pages, `--isolated`, Studio E2E left out: only audit.mjs changed since gate 1): audit 1512/390/320,
+  dark, behaviour 0 errors, 0 new warnings → PASS. Contact sheets: templates 390/1512 keep the photo row whole.
+  Visual diff templates 1512 + 390, old vs new template: 32 identical. Baseline: the 28 @320 keys gate 2 no longer finds
+  removed (13 Chat, 10 layout, the Show-all target, 4 Text-page heading demos); 16 @320 keys left, all also at 1512/390.
+
+## A photo file from the computer on a repo page (tier M; BACKLOG P2, G4 picked by the user in the triage session)
+
+Branch zen/feat/studio-desktop-photo-repo-20261023 (stacked on #239). Example and template code cannot read this
+browser's uploads, so a dropped photo is saved in the repo first.
+- Dev server: `POST /__zen-studio/media { name, data }` (write headers) writes `src/assets/media/<slug>-<hash>.webp`
+  (the same bytes are the same file) and a CREDITS.md row "Dropped in Zen Studio from …, to confirm before publishing"
+  (`tools/studio/repo-media.mjs`, selftest 3 cases). A file, not a draft: it stays when the edit is undone or discarded.
+- Client: `edit/assets/repoMedia.ts` converts PNG / JPEG / WebP to WebP ≤ 1600 px and registers the key at once
+  (`media.ts` registerRepoPicture); the glob's own update merges new pictures instead of reloading the Studio.
+  `canvas/fileDrop.ts` on a repo page → `assets.ts dropComputerPictures`: on a pictured layer or a list face the
+  picture (writePicture, with #239's helper and list paths), elsewhere a new `<Image src={new URL(…)}>` where it fell.
+  "Your uploads" on a repo page (click, drop, the Inspector's and a table cell's Picture) are saved the same way.
+- E2E FW-239 (drop on a helper row's avatar → people.bao.photo is the saved file, CREDITS row, ⌘Z) and FW-240 (drop into
+  the Stack → an Image reading the file, ⌘Z); both remove what they saved.
+- Finding met on the way, fixed at its owner (FW-240's first run): pasted or inserted code could not read a repo
+  picture. `arrange.mjs` / `slots.mjs` parsed it as a script (`import.meta` refused) and took `URL` for a component to
+  import; they parse as a module now, `URL` is a JS global and `import.meta` reads no name (arrange selftest +1 case).
+- Gate (slot from box-themes; `--isolated`, the branch's 13 files): **PASS**, Studio E2E 338/0. FW-235…240: 5/1 (FW-240,
+  the paste finding above); after the fix FW-239/240 2/0 and a second gate on arrange.mjs + slots.mjs **PASS** 338/0.
 
 ## Chart number format presets (tier M; user G2 2026-10-23: "literal preset format="currency" + currency"; scope widened by the user to every chart with `format`)
 
