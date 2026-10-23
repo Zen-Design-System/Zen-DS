@@ -46,6 +46,7 @@ export const SYNONYM_ROWS: ReadonlyArray<readonly [terms: readonly string[], ids
   [["country", "language", "quốc kỳ", "cờ", "quốc gia"], ["flag"]],
   [["stars", "review", "score", "đánh giá", "sao"], ["rating-display", "rating"]],
   [["grid data", "data grid", "spreadsheet", "bảng", "bảng dữ liệu"], ["table"]],
+  [["props", "api reference", "keyboard shortcuts", "shortcuts", "reference", "tra cứu", "phím tắt", "bảng thuộc tính"], ["sheet-table"]],
   [["picture", "photo", "img", "thumbnail", "ảnh", "hình", "hình ảnh"], ["image"]],
   // Charts
   [["graph", "plot", "analytics", "biểu đồ", "đồ thị"], ["chart-card", "line-chart", "bar-chart"]],

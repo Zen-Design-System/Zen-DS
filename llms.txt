@@ -56,6 +56,7 @@
 - [Voice](docs/guidelines/voice.md): Record a voice take, or talk with the assistant out loud: a waveform or voice signal, what the state means, and three voice actions around one main action. Props: docs/api/voice.json
 - [List Item](docs/guidelines/list-item.md): One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value. Props: docs/api/list-item.json
 - [Table](docs/guidelines/table.md): Rows of structured records that users scan, compare, sort and act on. Props: docs/api/table.json
+- [Sheet Table](docs/guidelines/sheet-table.md): Reference rows whose text runs long, read in full: props and their types, API signatures, keyboard shortcuts, token values. Props: docs/api/sheet-table.json
 - [Rating](docs/guidelines/rating.md): Collect or show a quick quality judgement: stars, an emoji opinion, or an NPS score. Props: docs/api/rating.json
 - [Color Selector](docs/guidelines/color-selector.md): Pick one colour from a small curated set of swatches. Props: docs/api/color-selector.json
 - [Color Picker](docs/guidelines/color-picker.md): Pick or type any colour. ColorField is the Input field (a swatch and the hex) that opens ColorPicker under it; ColorPicker is the panel itself (the saturation × brightness area, the hue, a Format select with its channels, saved colours), inline by default; ColorSwatch is the colour chip that shows a value. Props: docs/api/color-picker.json
