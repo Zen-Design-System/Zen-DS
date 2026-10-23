@@ -17,6 +17,16 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Figma parity fixes from the second batch of contract suites (2026-10-24): Avatar's focus ring sits 4px outside the
+  avatar (it was drawn inside that box) and square avatars put the status dot in the corner; Badge's Subtle Remove icon
+  is Content/Neutral/Light; Input Large and XLarge fields draw 20 / 24px icons (pickers 20), Read-Only fields grey their
+  slots, TextAreaField takes Figma's padding and the Small text style, icon-only Leading-Trailing slots lose an extra
+  gap, fields set the caret colour, and ControlBarSelectItem follows Button/Size/Medium in every density; Table toggle
+  columns draw Toggle-Button Medium; DatePicker days keep their letter-spacing, a selected day's event dot follows the
+  selected label, DatePickerHeader icons are 20px outside a DatePicker too, a Display header starts its month, and the
+  Time-Picker's fields fill the row; Sidebar selected rows' counters are Background/Inverse/Solid, group chevrons
+  Content/Neutral/Light, Small-density section titles 32px, and the Workspace panel is Sidebar/Default-Width (320px in
+  all in Compact, was 340). 66 more Figma contract suites run in `tools/figma-contract/run-all.mjs`.
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in

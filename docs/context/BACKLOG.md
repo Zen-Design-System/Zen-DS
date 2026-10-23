@@ -36,10 +36,17 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   FIXED at Table/Cell/Size (one line, ellipsis). The docs Props / API / Keyboard references still need multi-line rows:
   a temporary `.platform-ref` override in `src/platform/platform.css` lets them grow. Replace it with a sheet component,
   designed in Figma first for the user's review, then built in code.
-- **P3 · Figma contract suites, next batch (2026-10-23):** the 14 chart sets and Chart/Chart-Card have passing suites
-  (`tools/figma-contract/suites/chart-*.mjs`, user's go 2026-10-23, done the same day). Still without one: the re-read
-  avatar-single, chat-bubbles, input-search-primitives, table-cells, datepicker-sidebar, input-search and
-  segmented-toggle-badge-avatarstack contracts. A suite per set needs a browser slot and the user's go.
+- **P3 · New APIs the contract suites asked for (2026-10-24; each needs the user's go):** Figma draws what code has no
+  prop for, so those variants return null in their suites (`tools/figma-contract/suites/*.mjs`). Popover placement that
+  covers its anchor (Input/Autocomplete-Field Focused opens the list over the Add slot; code 4px below it); DatePicker
+  event days with a count (Event-List Number-Event 2–4, the Single calendars' day-1 dot) and the sheet header of
+  `.Primitives/Date-Picker` 9923:2323 (Option 1 caption + picked date + edit, Option 2 range + Clear dates); the Workspace
+  Sidebar rail's Master-Background Flat / Inverse; Avatar status Disabled / Pending / Inactive and the 4px XSmall dot.
+- **P3 · Contract checker gaps (2026-10-24; harness work, the user's go):** `tools/figma-contract/check.mjs` reads the
+  first visible paint only (second fills and background-image overlays: Toggle bar, Social Others bubble, Editable
+  cell), compares `fx` only without a spread ring in the same shadow list (Toggle-Button dot), one corner radius (bubble
+  tails, Range-Selected-End), no max / min width (chat 220 / 516, Business 66 / 42), no inset edge shadows (Editable
+  cell underline), dash patterns or IMAGE fills. The suites name each skipped layer.
 
 - **Questions for the designer and decisions for the user** are collected in [`QUESTIONS.md`](QUESTIONS.md) (moved
   there 2026-10-08). Code keeps its current behaviour until each is answered.
@@ -209,11 +216,6 @@ starts.
   and its selected chip loses the Figma shadow. Nothing in the repo nests component themes, but `ZenProvider` allows
   it. Fix idea: `scripts/build-tokens.mjs` emits `<token>-shadow-off: initial` in the other modes.
   (2026-10-24: the companions are emitted by `scripts/token-outputs.mjs` ~139 now.)
-- **P3 · Figma contract suites from the 2026-09-29 parity list (merged 2026-10-24):** the Open-items entry "Figma
-  contract suites, next batch" holds the plan; it should also name Breadcrumbs (a figmaExceptions entry for the 4px list
-  padding; `breadcrumbs.json` was not in the 2026-10-23 re-read), a harness kind that renders SegmentedItem inside
-  Segmented, and Search/Popover with Neutral-S4 (`popover-search.mjs` checks Default only). Fold in when that entry
-  starts.
 - **P3 · Memory-only notes → repo (2026-10-02):** the playground empty-slot and APFS backup-naming notes live only in
   the Mac's memory; copy them into the repo's skills. S.
 
