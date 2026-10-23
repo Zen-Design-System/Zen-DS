@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show Brightness;
 
+import 'package:flutter/widgets.dart' show MediaQueryData;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zen_tokens/zen_tokens.dart';
 
@@ -52,5 +54,18 @@ void main() {
   test('every name constant exists', () {
     expect(ZenTokens.instance.tokenCount, greaterThan(2000));
     expect(ZenTokens.instance.resolve(ZenToken.spacingGap2XSmall), isNotNull);
+  });
+
+  test('the system appearance picks Dark and Zen-High-Contrast', () {
+    final base = ZenContext.standard.withMode(ZenCollection.cornerRadius, 'Smooth');
+    final increased = base.withSystem(brightness: Brightness.dark, highContrast: true);
+    expect(increased.modes['mode-colors-semantic'], 'Dark');
+    expect(increased.modes['global-colors'], 'Zen-High-Contrast');
+    expect(increased.modes['corner-radius'], 'Smooth');
+    final standard = ZenContext.fromMediaQuery(const MediaQueryData(platformBrightness: Brightness.light), base);
+    expect(standard.modes['mode-colors-semantic'], 'Light');
+    expect(standard.modes['global-colors'], 'Zen');
+    // A colour the high-contrast palette darkens resolves to its high-contrast value.
+    expect(ZenTokens.instance.hex(ZenToken.colorContentAccentLight, ZenContext.highContrast), isNot(ZenTokens.instance.hex(ZenToken.colorContentAccentLight)));
   });
 }
