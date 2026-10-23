@@ -530,6 +530,9 @@ Branch zen/feat/voice-proposals-20261023 from main 9fe063d2. Review `docs/resear
   did not catch". Chat example seeks.
 - Labels (en, vi): voiceThinking, voiceThinkingHeading, voiceThinkingGuidance, voiceYouSaid, voicePosition,
   voicePositionValue. Generated docs rebuilt (guidelines, api, ai-ui). Test tests/interaction/voice-proposals.test.tsx.
-- Overlap: the AppShell session's data-* forwarding branch edits the same component signatures (Voice.tsx, Chat.tsx);
-  told it the file list first; whichever lands second merges the signature lines by hand.
+- Overlap: the AppShell session's data-* forwarding branch (#246) edits the same component signatures (Voice.tsx,
+  Chat.tsx); merged it in early, ChatVoice keeps `onSeek` and `...rest`.
+- Gate (slot from debt-320px, Giám sát's GO; `--isolated --pages=voice,chat`): **PASS** — Vitest 83/83 (the new test
+  6/6), audits 1512 / 390 / 320, dark, keyboard / APG, voice 8 and chat 10 examples; contact sheets looked at (the narrow
+  recorder footer wraps "Live levels · 7 a second" as the existing "48 kHz · Mono" one does).
 
