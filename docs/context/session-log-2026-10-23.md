@@ -546,3 +546,8 @@ anchored to this element", no variables. Asked once more here: filter Chip / Sea
   ways too); `tests/interaction/studio-option-c.test.tsx` (4: DatePicker 4px below its Chip and closed by a day and by
   the Chip, Manual Card below its Button, Chip and Search filters, Stepper Next/Previous/passed step + state target);
   E2E PT-18…PT-21 (prototype group: the Prototype tab writes them, Play runs them).
+- Gate (Giám sát's slot after picture-drops; `--isolated`, 21 files, main 17b4ee93): **PASS** — static, Studio
+  self-tests, Vitest 83/83, Studio E2E 344 works / 1 broken (4 shards, 1815 s). The broken row was PT-21: its seeded
+  page placed the state frame at x 1600, so both frames opened out of view and the first click selected nothing; the row
+  now fits the board (⇧1) first and its steps name themselves on failure. PT-19 passed on retry in the gate. Then
+  `studio:e2e --rows=PT-18…PT-21 --no-retry` twice: 4/4 both times. CI quick steps all 0.

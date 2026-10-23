@@ -21,6 +21,15 @@ async function drag(page, from, to) {
   await page.mouse.up();
 }
 
+/** Runs one step of a row; a failure names the step (a bare "locator.click: Timeout" says nothing of where). */
+async function step(label, run) {
+  try {
+    return await run();
+  } catch (error) {
+    throw new Error(`${label}: ${String(error?.message ?? error).split("\n")[0]}`);
+  }
+}
+
 const frameCenter = async (page, frameId) => center(await page.locator(`[data-studio-frame="${frameId}"]`).boundingBox());
 
 async function prototypeTab(page) {
@@ -194,7 +203,7 @@ export default function Page() {
           <Button>Finish</Button>
         </Stack>
       </Screen>
-      <Screen id="checkout" title="Checkout · done" state="done" x={1600} y={0}>
+      <Screen id="checkout" title="Checkout · done" state="done">
         <Stack gap="md" padding="lg">
           <Text>All done</Text>
         </Stack>
@@ -812,7 +821,7 @@ export const rows = [
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+Alt+Enter");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
-      await playing(page).getByRole("button", { name: "Sort" }).click();
+      await step("tap the Sort chip", () => playing(page).getByRole("button", { name: "Sort" }).click());
       const sheet = playing(page).getByRole("dialog", { name: "Sort by" });
       await sheet.waitFor({ state: "visible", timeout: 3000 });
       await sleep(500);
@@ -820,7 +829,7 @@ export const rows = [
       const box = await sheet.boundingBox();
       const gap = device.y + device.height - (box.y + box.height);
       if (gap > 40 || box.y < device.y + device.height / 3) throw new Error(`the sheet is not at the bottom (gap ${Math.round(gap)}, top ${Math.round(box.y - device.y)})`);
-      await sheet.getByRole("button", { name: "Done" }).click();
+      await step("press the sheet's Done", () => sheet.getByRole("button", { name: "Done" }).click());
       await until(async () => (await sheet.count()) === 0, { message: "Done closes the sheet" });
       await page.keyboard.press("Escape");
       return `Chip → Bottom Sheet at the device's bottom (gap ${Math.round(gap)}) → Done closes it`;
@@ -866,13 +875,17 @@ export const rows = [
     id: "PT-21", feature: "Option C Change step and a Screen state as a target: the Prototype tab sets Next to Change step (Next/Previous segmented); the Finish Button's ⊕ dropped on the Screen's \"done\" state frame navigates to that state (Figma: every frame is a target); in Play Next and Previous move the Stepper, a passed step goes back, Finish shows the done state and Back returns to the first step", wp: "option C 2026-10-23", timeout: 50_000,
     async run(ctx) {
       const { page, id, text: source } = await seededPage(ctx, stepPage, /state="done"/);
+      // Both frames in view (the seeded page opens wherever the board starts).
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Digit1");
+      await sleep(400);
       await clickNamed(page, id, "Button", 0);
       await prototypeTab(page);
-      await pickOption(page, "proto:onClick", "Change step");
+      await step("pick Change step", () => pickOption(page, "proto:onClick", "Change step"));
       await until(async () => /<Button onClick=\{proto\.step\("next"\)\}>Next/.test(await source()), { message: 'proto.step("next") on Next' });
-      await pickOption(page, "proto:onClick:step", "Previous");
+      await step("pick Previous", () => pickOption(page, "proto:onClick:step", "Previous"));
       await until(async () => /<Button onClick=\{proto\.step\("previous"\)\}>Next/.test(await source()), { message: "Previous" });
-      await pickOption(page, "proto:onClick:step", "Next");
+      await step("pick Next", () => pickOption(page, "proto:onClick:step", "Next"));
       await until(async () => /<Button onClick=\{proto\.step\("next"\)\}>Next/.test(await source()), { message: "Next again" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Shift+Digit1");
@@ -888,7 +901,7 @@ export const rows = [
       await page.keyboard.press("ControlOrMeta+Alt+Enter");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
       const currentStep = async () => (await playing(page).locator('.zen-stepper__step[aria-current="step"]').innerText().catch(() => "")).trim();
-      const press = (name) => playing(page).getByRole("button", { name, exact: true }).click();
+      const press = (name) => step(`press ${name} in Play`, () => playing(page).getByRole("button", { name, exact: true }).click());
       await until(async () => /Cart/.test(await currentStep()), { message: "Cart first" });
       await press("Next");
       await until(async () => /Pay/.test(await currentStep()), { message: "Next → Pay" });
@@ -897,12 +910,12 @@ export const rows = [
       await until(async () => /Ship/.test(await currentStep()), { message: "Next twice more → Ship (the last stays)" });
       await press("Previous");
       await until(async () => /Pay/.test(await currentStep()), { message: "Previous → Pay" });
-      await playing(page).locator(".zen-stepper__step").first().locator("button").click();
+      await step("press the passed Cart step", () => playing(page).locator(".zen-stepper__step").first().locator("button").click());
       await until(async () => /Cart/.test(await currentStep()), { message: "the passed Cart step goes back" });
       await press("Finish");
       await until(async () => (await playScreen(page)) === "checkout:done", { message: "Finish → the done state" });
       await playing(page).getByText("All done").waitFor({ state: "visible", timeout: 3000 });
-      await playing(page).getByRole("button", { name: "Back", exact: true }).click();
+      await step("press Play's Back", () => playing(page).getByRole("button", { name: "Back", exact: true }).click());
       await until(async () => (await playScreen(page)) === "checkout", { message: "Play's Back → checkout" });
       await until(async () => /Cart/.test(await currentStep()), { message: "a new visit starts on Cart" });
       await page.keyboard.press("Escape");
