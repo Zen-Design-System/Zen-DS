@@ -20,7 +20,7 @@ export const STYLE_ON_ROOT = new Set([
   "ListItem", "NumberField", "PageHeader", "PaginationItem", "Popover", "PopoverBunkAction", "PopoverBunkActionDivider",
   "PopoverBunkActionGroup", "PopoverItem", "PopoverManualAddNew", "PopoverSearch", "PropertyField",
   "ScheduleDayPlanner", "ScheduleEventCard", "ScheduleHourLabel", "ScheduleItinerary", "ScheduleItineraryItem",
-  "ScheduleResource", "ScheduleResourceGrid", "ScheduleSlotPicker", "Search", "SegmentedItem", "SelectField",
+  "ScheduleResource", "ScheduleResourceGrid", "ScheduleSlotPicker", "Search", "SegmentedItem", "SelectField", "SheetTable",
   "SkeletonHeading", "SkeletonShape", "SkeletonText", "Stepper", "TabItem", "Table", "Tag", "TextAreaField",
   "TimelineActivity", "TimelineGantt", "TimelineGanttBar", "TimelineGanttLabel", "TimelineItem", "TimelineMarker",
   "TimelineMilestone", "TimelineMilestones", "ToggleListItem", "TooltipSurface",

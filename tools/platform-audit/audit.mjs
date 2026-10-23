@@ -129,7 +129,9 @@ function allPages() {
 }
 const PAGES = arg("pages", null) ? String(arg("pages")).split(",") : allPages();
 
-const IGNORED_CONSOLE = /\[vite\]|Download the React DevTools|favicon|ResizeObserver loop/i;
+// HMR noise: Vite's own [vite] lines, and the browser's error when the HMR socket drops ("WebSocket connection to
+// 'ws://localhost:5173/?token=…' failed", CI 2026-10-23 tabs@1512-dark).
+const IGNORED_CONSOLE = /\[vite\]|WebSocket connection to 'ws:\/\/[^']*\?token=|Download the React DevTools|favicon|ResizeObserver loop/i;
 
 /** In-page checks, scoped to `scopeSel` (defaults to the whole platform). Runs in the browser. */
 function pageChecks({ scopeSel, mobile }) {

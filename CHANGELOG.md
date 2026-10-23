@@ -22,6 +22,15 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   the example. `overflow` and `fit` could not see these. The gate now also fails on `counts`, `card-gap` and
   `legend-column`, which the audit already called errors. `npm run platform:audit:selftest` runs every in-page quality,
   outline and clip check on fixtures, in the gate and in CI (user, 2026-10-24).
+- **SheetTable** (Figma Table/Sheet, approved 2026-10-23): reference rows that grow with their content — props and their
+  types, API signatures, keyboard shortcuts, token values — read in full instead of cut by a Table's ellipsis.
+  `SheetCode` (Body/Code/Regular) and `SheetKeys` / `SheetKey` (key chips) fill its cells beside `TableText`; columns
+  take a `cell` function or a declarative `content` (text, code, keys) from a `field`; `minWidth` scrolls a wide sheet
+  sideways, `empty` fills a sheet with no rows. The docs Props, API and Keyboard references are SheetTables now (the
+  `.platform-ref` override is gone); new docs page, guideline, harness `sheet-table/needs-name` and
+  `table/reference-in-sheet` (code or keys in a Table's cells), Studio palette entry. Studio push / pull: a SheetTable
+  goes to Figma as Table/Cell/Header and Table/Sheet/Cell rows (Code, Key chips or a Text-Cell in each cell) and comes
+  back as a SheetTable with declarative columns.
 - Zen Studio → Figma: a page goes to Figma with every Screen, Screen state and Overlay as a frame of its own (an
   Overlay as big as what it holds), and its Prototype actions as Figma interactions: On click, While hovering and After
   delay; Navigate to, Open overlay, Close overlay and Back, with their animation, direction and Zen's duration and curve
