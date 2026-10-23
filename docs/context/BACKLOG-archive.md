@@ -2,6 +2,14 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-24 (native packages compiled in CI)
+
+- Done 2026-10-24 (user: "thêm job CI macOS chạy swift test và flutter test cho platforms/"; .github/workflows/native.yml,
+  PR #267):
+  **P3 · Native packages never compiled (2026-10-23, #238):** run `swift test` (platforms/swift) and `flutter test`
+  (platforms/flutter) on a machine with the toolchains; #238's Swift/Dart (Zen-High-Contrast mapping) has never been
+  compiled (this Mac's Command Line Tools SDK does not match the compiler, no Flutter, and CI runs neither).
+
 ## Archived 2026-10-24 (prototypes pushed to Figma, `zen/feat/push-prototype-20261024`, plugin dcd3af3)
 
 - Done 2026-10-24 (user, via the progress session: "push mọi Screen và Overlay thành frame, kèm reaction Navigate /

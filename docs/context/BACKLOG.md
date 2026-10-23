@@ -48,9 +48,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (§8.3; proposed). Examples get every language too (user, 2026-10-03). Nothing built.
 - **P3 · Studio UX polish N1–N11 — deferred by the user 2026-10-08 ("để sau"):** `docs/research/studio-ux-audit-2026-10-04.md`.
   Written before the UI3 shell (#63) and F0–F10, so re-check each note in the Studio UI design check (next phase).
-- **P3 · Native packages never compiled (2026-10-23, #238):** run `swift test` (platforms/swift) and `flutter test`
-  (platforms/flutter) on a machine with the toolchains; #238's Swift/Dart (Zen-High-Contrast mapping) has never been
-  compiled (this Mac's Command Line Tools SDK does not match the compiler, no Flutter, and CI runs neither).
 
 ## Backlog (plan before opening sessions)
 Triaged 2026-10-24 against main 545216b6: every entry was checked against the code and git history. Done, stale,
