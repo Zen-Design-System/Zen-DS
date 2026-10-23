@@ -148,11 +148,13 @@ export const fixtures: Record<string, Fixture> = {
   SheetTable: {
     props: {
       "aria-label": "Card props",
-      rows: [{ id: "theme", type: '"shadow" | "default" | "pale" | "border"', description: "Picked by where the card sits on the page." }, { id: "surface", type: '"default" | "alt"', description: "Surface/Alt on a white Canvas/Alt page." }],
+      // Declarative columns (the AI UI catalog renders the same props from a spec); no row field is named \`type\`,
+      // which a spec reads as a component.
+      rows: [{ id: "theme", values: '"shadow" | "default" | "pale" | "border"', description: "Picked by where the card sits on the page." }, { id: "surface", values: '"default" | "alt"', description: "Surface/Alt on a white Canvas/Alt page." }],
       columns: [
-        { id: "prop", header: "Prop", width: "20%", cell: (row: { id: string }) => <code>{row.id}</code> },
-        { id: "type", header: "Type", width: "40%", cell: (row: { type: string }) => <code>{row.type}</code> },
-        { id: "description", header: "Description", cell: (row: { description: string }) => row.description },
+        { id: "prop", header: "Prop", width: "20%", content: "code", field: "id" },
+        { id: "values", header: "Type", width: "40%", content: "code" },
+        { id: "description", header: "Description" },
       ],
     },
   },
