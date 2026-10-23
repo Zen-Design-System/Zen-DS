@@ -372,6 +372,10 @@ export const Bad = () => <>
   <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" data={combo} barLabel="Revenue" lineLabel="" />
   {/* expect: chart/funnel-stages */}
   <FunnelChart aria-label="Leads to signed projects, Q3 2026" data={[{ label: "Leads", value: 480 }, { label: "Proposal", value: 168 }, { label: "Qualified", value: 312 }, { label: "Signed", value: 62 }]} />
+  {/* expect: chart/palette-by-hand */}
+  <BarChart aria-label="Revenue per month, Apr – Sep 2026" data={data} color="var(--zen-chart-sector-secondary)" activeColor="var(--zen-chart-sector-primary)" />
+  {/* expect: chart/palette-by-hand */}
+  <GroupedBarChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={data} series={[{ id: "invoiced", label: "Invoiced", color: chartPalette[1] }, { id: "collected", label: "Collected", color: chartPalette[0] }]} />
   {/* expect: table/media-size-by-subtext */}
   <TableMedia media={<Avatar size="small" theme="photo" src={photo} alt="" />}>Ava Chen</TableMedia>
   {/* expect: uploader/no-noop-replace */}

@@ -13,10 +13,10 @@ import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import {
   ChartBlock, ChartFade, ChartLegend, PlotFrame, SeriesValues, chartFades, colourAt, defaultFormat, meanOf, niceScale, signatureOf, staggerStyle, useChartId, useChartSelection,
-  type ChartCompare, type ChartDatum, type ChartFill, type ChartPoint, type ChartSeries,
+  type ChartCompare, type ChartDatum, type ChartFill, type ChartPaletteName, type ChartPoint, type ChartSeries,
 } from "./chartCore";
 
-export { chartPalette, type ChartCompare, type ChartDatum, type ChartFill, type ChartLegendPosition, type ChartPoint, type ChartSeries, type ChartSlice, type ChartStack } from "./chartCore";
+export { chartPalette, type ChartCompare, type ChartDatum, type ChartFill, type ChartLegendPosition, type ChartPaletteName, type ChartPoint, type ChartSeries, type ChartSlice, type ChartStack } from "./chartCore";
 
 /** Smooth (Figma's curve: a horizontal tangent at each point) or straight segments through the points. */
 function linePath(pts: readonly (readonly [number, number])[], curve: "smooth" | "linear") {
@@ -155,23 +155,26 @@ export interface StackBarChartProps {
   animate?: boolean;
   /** A dotted line at the mean of the column totals, tagged "Avg 5.9K h" (Figma Show Average). */
   showAverage?: boolean;
+  /** Figma Color: `primary` (default) stacks the series in palette order; `secondary` swaps the first two (the bottom
+   *  segment Color Chart Sector/Secondary, the next Sector/Primary). A series' own `color` still wins. */
+  palette?: ChartPaletteName;
 }
 
 /**
- * Figma Chart/Stack-Bar-Chart (6643:73471): one column per sector (2px side padding, Corner-Radius/Small on the column),
+ * Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector (2px side padding, Corner-Radius/Small on the column),
  * segments in series order from the bottom, a 12px-dot legend (Caption/Regular), and a Tooltip with the active total.
  */
-export function StackBarChart({ data, series, format = defaultFormat, height = 236, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, showAverage = false, ref }: StackBarChartProps) {
+export function StackBarChart({ data, series, format = defaultFormat, height = 236, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, showAverage = false, palette = "primary", ref }: StackBarChartProps) {
   const t = useZenLabels();
   const totals = data.map((d) => series.reduce((sum, s) => sum + (d.values[s.id] ?? 0), 0));
   const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...totals)), [totals.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps -- deliberate content-hash memo: keyed on the data signature, not its identity
   const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? data.length - 1);
   const current = active === null ? undefined : data[active];
-  const legend = showLegend ? <ChartLegend items={series.map((s, si) => ({ id: s.id, label: s.label, color: colourAt(s, si) }))} /> : undefined;
+  const legend = showLegend ? <ChartLegend items={series.map((s, si) => ({ id: s.id, label: s.label, color: colourAt(s, si, palette) }))} /> : undefined;
   const mean = showAverage ? meanOf(totals) : undefined;
   const summary = current ? `${current.label}: ${t.chartTotal(format(totals[active!]))}; ${series.map((s) => `${s.label} ${format(current.values[s.id] ?? 0)}`).join(", ")}` : t.noData;
   return (
-    <ChartBlock ref={ref} kind="stack" legend={legend} position={legendPosition} className="zen-chart-stack">
+    <ChartBlock ref={ref} kind="stack" legend={legend} position={legendPosition} className="zen-chart-stack" palette={palette}>
       <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel} activeLine="neutral" className={className} kind="stack" animate={animate}
         tooltip={current ? format(totals[active!]) : null}
         summary={mean === undefined ? summary : `${summary}; ${t.chartAverageLong(format(mean))}`} average={mean === undefined ? undefined : { value: mean, label: t.chartAverage(format(mean)) }}>
@@ -181,7 +184,7 @@ export function StackBarChart({ data, series, format = defaultFormat, height = 2
               <span className="zen-chart__stack" style={staggerStyle(i, { height: `${(totals[i] / top) * 100}%` })}>
                 {series.map((s, si) => {
                   const v = d.values[s.id] ?? 0;
-                  return v > 0 ? <span key={s.id} className="zen-chart__segment" style={{ flexGrow: v, background: colourAt(s, si) }} /> : null;
+                  return v > 0 ? <span key={s.id} className="zen-chart__segment" style={{ flexGrow: v, background: colourAt(s, si, palette) }} /> : null;
                 })}
               </span>
             </span>

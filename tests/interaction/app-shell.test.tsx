@@ -157,11 +157,11 @@ describe("AppShell drawer", () => {
 });
 
 /** A page that runs on desktop, an upright iPad and phones (component-usage-rules §17): the header and its mobile parts. */
-function Responsive({ width, mobileTop = "bar", band, actions = false }: { width: number; mobileTop?: AppShellMobileTop; band?: AppShellBand; actions?: boolean }) {
+function Responsive({ width, mobileTop = "bar", band, actions = false, canvas }: { width: number; mobileTop?: AppShellMobileTop; band?: AppShellBand; actions?: boolean; canvas?: "default" | "alt" | "flat" }) {
   return (
     <div style={{ width }}>
       <ZenProvider>
-        <AppShell mainId="phone-main" mobileTop={mobileTop} band={band}
+        <AppShell mainId="phone-main" mobileTop={mobileTop} band={band} canvas={canvas}
           sidebar={<Sidebar sections={sections} selectedId="members" />}
           header={<AppShellHeader leading={<Breadcrumbs master={false} items={[{ id: "home", label: "Home" }]} />} actions={<AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} />}
             main={<PageHeader title="Members" actions={<Button level="primary">Invite member</Button>} />} />}
@@ -199,6 +199,22 @@ describe("AppShell mobile patterns", () => {
     expect(shell?.querySelector(".zen-app-shell__bottom-nav .zen-bottom-nav, .zen-app-shell__bottom-nav nav")).toBeTruthy();
     // One h1 on the phone: the bar's title.
     expect(document.querySelectorAll("h1").length).toBe(1);
+  });
+
+  it("gives the Bar the canvas's twin surface (Figma theme pairing)", async () => {
+    const typeOn = async (canvas: "default" | "alt" | "flat") => {
+      const screen = await render(<Responsive width={390} canvas={canvas} />);
+      const bar = document.querySelector<HTMLElement>(".zen-app-shell__top-nav .zen-top-nav");
+      const out = { type: bar?.getAttribute("data-type"), fill: bar ? getComputedStyle(bar).backgroundColor : "", canvas: getComputedStyle(document.querySelector(".zen-app-shell")!).backgroundColor };
+      await screen.unmount();
+      return out;
+    };
+    // Canvas/Default ↔ Surface/Alt, Canvas/Alt ↔ Surface/Default, Canvas/Flat ↔ Surface/Flat: the bar melts into the page.
+    for (const [canvas, type] of [["default", "alt"], ["alt", "default"], ["flat", "default"]] as const) {
+      const bar = await typeOn(canvas);
+      expect(bar.type).toBe(type);
+      expect(bar.fill).toBe(bar.canvas);
+    }
   });
 
   it("uses the mobile pattern on an iPad held upright (narrower than 1024)", async () => {

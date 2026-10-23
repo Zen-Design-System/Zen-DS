@@ -2,7 +2,7 @@ import type { CSSProperties, Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartLegend, ChartSummary, chartPalette, defaultFormat, niceScale, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartLegendPosition } from "./chartCore";
+import { ChartBlock, ChartLegend, ChartSummary, defaultFormat, niceScale, sectorAt, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartLegendPosition, type ChartPaletteName } from "./chartCore";
 
 /** One goal of a BulletChart: what it measures, where it stands and where it should be. */
 export interface ChartBullet {
@@ -43,6 +43,9 @@ export interface BulletChartProps {
   /** Grow the bars from the start and fade the ticks in on mount and when the data changes (default true; reduced
    *  motion fades). */
   animate?: boolean;
+  /** Figma Color: `primary` (default) draws the bars in Color Chart Sector/Primary and the target ticks in Sector/Secondary;
+   *  `secondary` the bars in Sector/Secondary and the ticks in Sector/Primary. */
+  palette?: ChartPaletteName;
 }
 
 /**
@@ -52,9 +55,10 @@ export interface BulletChartProps {
  * 4px, and the target as a 3px Color Chart Sector/Secondary tick 24px tall; rows Spacing/Gap/Medium apart, label and
  * track Spacing/Gap/XSmall. A legend (Spacing/Gap/Small between items) names the bar and the tick. ↑/↓ and Home/End
  * pick a row (the others' marks dim), hover too; the summary reads "Revenue: $798K of $900K (1 of 3)".
- * Figma Chart/Bullet-Chart 15487:2516 (the chart body and Show Legend; the header is ChartCard's).
+ * Figma Chart/Bullet-Chart 15968:130554 (Color=Primary 15487:2516 · Secondary ↔ `palette`; the chart body and Show Legend; the
+ * header is ChartCard's).
  */
-export function BulletChart({ data, actualLabel, targetLabel, showLegend = true, legendPosition = "bottom", format, "aria-label": ariaLabel, className, initialIndex, animate = true, ref }: BulletChartProps) {
+export function BulletChart({ data, actualLabel, targetLabel, showLegend = true, legendPosition = "bottom", format, "aria-label": ariaLabel, className, initialIndex, animate = true, palette = "primary", ref }: BulletChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? null, "vertical");
@@ -69,10 +73,10 @@ export function BulletChart({ data, actualLabel, targetLabel, showLegend = true,
     ? `${current.d.label}: ${current.reading} (${t.chartPoint(current.i + 1, rows.length)})`
     : rows.map((row) => `${row.d.label} ${row.reading}`).join(", ");
   const legend = showLegend ? (
-    <ChartLegend gap="small" align="start" items={[{ id: "actual", label: actualLabel ?? t.chartActual, color: chartPalette[0] }, { id: "target", label: targetLabel ?? t.chartTarget, color: chartPalette[1] }]} />
+    <ChartLegend gap="small" align="start" items={[{ id: "actual", label: actualLabel ?? t.chartActual, color: sectorAt(0, palette) }, { id: "target", label: targetLabel ?? t.chartTarget, color: sectorAt(1, palette) }]} />
   ) : undefined;
   return (
-    <ChartBlock ref={ref} kind="bullet" legend={legend} position={legendPosition}>
+    <ChartBlock ref={ref} kind="bullet" legend={legend} position={legendPosition} palette={palette}>
       <div className={["zen-chart", "zen-chart--bullet", className].filter(Boolean).join(" ")} data-kind="bullet" data-animate={animate ? undefined : "false"}>
         <div className="zen-chart__bullets" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
           onKeyDown={onKeyDown} onBlur={() => setActive(null)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(null); }}

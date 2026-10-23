@@ -1,7 +1,7 @@
 import { useMemo, type CSSProperties, type Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import "./chart.css";
-import { ChartBlock, ChartLegend, PlotFrame, SeriesValues, colourAt, defaultFormat, niceScale, signatureOf, staggerStyle, useChartSelection, type ChartDatum, type ChartSeries } from "./chartCore";
+import { ChartBlock, ChartLegend, PlotFrame, SeriesValues, colourAt, defaultFormat, niceScale, signatureOf, staggerStyle, useChartSelection, type ChartDatum, type ChartPaletteName, type ChartSeries } from "./chartCore";
 
 export interface GroupedBarChartProps {
   /** One group per period or category, a value per series id (`{ label: "Sep", values: { invoiced: 105700, collected: 88300 } }`).
@@ -28,10 +28,13 @@ export interface GroupedBarChartProps {
   legendPosition?: "top" | "bottom";
   /** Grow the bars from the baseline on mount and when the data changes (default true; reduced motion fades). */
   animate?: boolean;
+  /** Figma Color: `primary` (default) walks the palette in order; `secondary` swaps the first two series (the first
+   *  Color Chart Sector/Secondary, the second Sector/Primary). A series' own `color` still wins. */
+  palette?: ChartPaletteName;
 }
 
 /**
- * Figma Chart/Grouped-Bar-Chart (15485:2457): per period a group of 12px bars, one per series, Spacing/Gap/2XSmall
+ * Figma Chart/Grouped-Bar-Chart (15485:2457; Color=Primary · Secondary ↔ `palette`): per period a group of 12px bars, one per series, Spacing/Gap/2XSmall
  * apart, centred in the period's column (with room to spare the group grows to 70% of the column, bars up to 32px); each bar takes its series' Color Chart Sector style (`chartPalette`) with
  * Corner-Radius/XSmall on its top corners. The bar charts' frame: Y labels (Label/Small/Medium, Content/Neutral/Light)
  * right-aligned Spacing/Padding/XSmall before the plot, dashed 4 / 4 Border/Neutral/Pale gridlines over a solid
@@ -40,7 +43,7 @@ export interface GroupedBarChartProps {
  * which reads every series' value after its dot. The legend (Figma Show Legend) sits Spacing/Gap/Medium under the plot,
  * its items Spacing/Gap/Small apart. ←/→ and Home/End move between groups; hover picks one.
  */
-export function GroupedBarChart({ data, series, format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, ref }: GroupedBarChartProps) {
+export function GroupedBarChart({ data, series, format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, palette = "primary", ref }: GroupedBarChartProps) {
   const t = useZenLabels();
   const values = data.map((d) => series.map((s) => Math.max(0, d.values[s.id] ?? 0)));
   const signature = signatureOf([series.map((s) => s.id), values]);
@@ -49,16 +52,16 @@ export function GroupedBarChart({ data, series, format = defaultFormat, height =
   const current = active === null ? undefined : data[active];
   const valueOf = (s: ChartSeries) => format(current?.values[s.id] ?? 0);
   const summary = current && series.length ? `${current.label}: ${series.map((s) => `${s.label} ${valueOf(s)}`).join(", ")} (${t.chartPoint(active! + 1, data.length)})` : t.noData;
-  const legend = showLegend && series.length ? <ChartLegend gap="small" items={series.map((s, si) => ({ id: s.id, label: s.label, color: colourAt(s, si) }))} /> : undefined;
+  const legend = showLegend && series.length ? <ChartLegend gap="small" items={series.map((s, si) => ({ id: s.id, label: s.label, color: colourAt(s, si, palette) }))} /> : undefined;
   return (
-    <ChartBlock ref={ref} kind="grouped-bar" legend={legend} position={legendPosition}>
+    <ChartBlock ref={ref} kind="grouped-bar" legend={legend} position={legendPosition} palette={palette}>
       <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel}
         activeLine="neutral" className={["zen-chart--grouped", className].filter(Boolean).join(" ")} kind="bar" animate={animate} summary={summary}
-        tooltip={current ? <SeriesValues items={series.map((s, si) => ({ id: s.id, color: colourAt(s, si), value: valueOf(s) }))} /> : null}>
+        tooltip={current ? <SeriesValues items={series.map((s, si) => ({ id: s.id, color: colourAt(s, si, palette), value: valueOf(s) }))} /> : null}>
         <div className="zen-chart__bars" key={signature} style={{ "--zen-chart-series": series.length } as CSSProperties}>
           {data.map((d, i) => (
             <span key={d.label + i} className="zen-chart__group" data-active={i === active ? "true" : undefined}>
-              {series.map((s, si) => <span key={s.id} className="zen-chart__group-bar" style={staggerStyle(i, { height: `${(values[i][si] / top) * 100}%`, background: colourAt(s, si) })} />)}
+              {series.map((s, si) => <span key={s.id} className="zen-chart__group-bar" style={staggerStyle(i, { height: `${(values[i][si] / top) * 100}%`, background: colourAt(s, si, palette) })} />)}
             </span>
           ))}
         </div>
