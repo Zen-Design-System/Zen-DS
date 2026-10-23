@@ -68,6 +68,7 @@ type DockIconTheme = (typeof dockIconThemes)[number]
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
+| `theme/on-solid-content` | error | Content on a Card theme="solid" takes the fill's family (Figma audit theme/on-solid-content): on Neutral/Solid a Badge or DockIcon is theme="inverse", on Accent and the colour solids theme="on-color"; text and icons keep a neutral tone (the card re-points it to Inverse, On-Accent, On-Brights or On-Colors) or that family's own tone, never a colour tone. | `zen-allow-on-solid-content: <reason>` |
 | `dock-icon/emoji-needs-glyph` | warn | Theme=Emoji needs the emoji prop (otherwise a placeholder face renders). | `zen-allow-dock-emoji: <reason>` |
 | `icon/unknown-name` | error | Icon names must exist (1,598 names that follow the Figma layer path, e.g. icon-search-medium-line); search them instead of guessing (MCP search_icons, or the Iconography page). | `zen-allow-icon-name: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |

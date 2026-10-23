@@ -17,6 +17,21 @@ function card({ what, use = [], instead = [], props = [], rules = [], code }) {
 /** A building block that sits inside another component. */
 const part = (what, owner, extra = "") => `${what}\n\nBuilding block of ${owner}: place ${owner}, not this primitive${extra ? `, ${extra}` : ""}.`;
 
+/** Figma chart Color (Primary | Secondary, code `palette`; the chart Color session wrote it in Figma 2026-10-23): what
+ *  Secondary swaps on this chart. */
+const chartColor = (swap) => ["Color", `Primary (default) · Secondary — Secondary swaps Color Chart Sector/Primary and /Secondary (${swap}), for a chart led by Neutral Deep with the brand as its highlight. Code: palette="secondary"`];
+
+/** A chart widget with its own header (the 2026-10-13 widget charts): the header properties, where it sits and its marks. */
+const chartWidget = (what, code, props = []) => card({
+  what,
+  props: [...props, ["Header", "Show Icon · Title (Body/Extra/Medium) · Show Description (Body/Small/Regular) · Show Value (Display/4) · Show Ranges (Segmented) · Show Open, as on Chart-Card"]],
+  rules: [
+    "Draws no surface of its own: it sits in a Card's Content slot, and the Card's Theme, Surface and Color give the widget its surface by the Card rules for the page's Canvas (Default, Shadow, Border, Flat-Border, Pale or Subtle; Solid for the one widget that stands out). No gradient surface.",
+    "Marks take the Color Chart Sector styles in chartPalette order; on a Solid card, the Color Chart Sector/On-Color styles.",
+  ],
+  code: `${code} in a \`<ChartCard>\``,
+});
+
 const LEVELS = "Primary: the one main action of an area · Tertiary: every other action, the most common · Secondary: rare, a highlight that must stay visible · Accent: promoted CTAs only (upsell, onboarding) · Danger / Danger Subtle: destructive · Positive / Positive Subtle: confirming · Surface: on imagery or a coloured fill";
 const STATE_REAL = "Hover, Pressed and Focused show the real interaction; pick Disabled only while a precondition is unmet, and say why nearby";
 
@@ -119,8 +134,19 @@ export const componentDescriptions = {
     what: "A surface that groups the content about one object: a project, a plan, a KPI, a widget.",
     use: ["Grids of objects people scan and pick.", "Dashboard widgets (title in Heading/Subheading).", "A selectable option with rich content (Active=Yes marks the choice).", "Non-row content inside overlays (Description List, labelled toggles)."],
     instead: ["Page sections that are only spacing → auto layout, no card.", "Rows of List-Items → Component/List-Box.", "Comparable rows → a Table on the canvas.", "Messages → Inline-Message."],
-    props: [["Theme", "pick by where it sits — Default on Canvas/Default (the default pairing) · Shadow beside a default (shadowed) Sidebar · Border on a white page, inside another surface or when clickable · Flat-Border on Canvas/Flat (Surface/Flat in a Pale border) · On-Container inside a Modal, Side-Panel or Bottom-Sheet · colour: Subtle on Canvas/Default (Pale fades into the grey), Pale on a white page or imagery"], ["Spacing", "Medium (Card-padding-medium, 2XLarge corners) · Small (Card-padding-small, Large corners) · XSmall (Card-padding-xsmall, Base corners) for compact tiles, e.g. a row of choices on a phone"], ["Active", "Yes only for the selected card of a choice; never as decoration"]],
-    rules: ["One theme per grid.", "No card inside a card, and no shadow on a Pale or Subtle card.", "A clickable card holds no buttons, links or inputs."],
+    props: [
+      ["Theme", "pick by where it sits — Default on Canvas/Default (the default pairing) · Shadow beside a default (shadowed) Sidebar · Border on a white page, inside another surface or when clickable · Flat-Border on Canvas/Flat (Surface/Flat in a Pale border) · On-Container inside a Modal, Side-Panel or Bottom-Sheet · colour: Subtle on Canvas/Default (Pale fades into the grey), Pale on a white page or imagery · Solid: the one widget of a row that stands out"],
+      ["Color", "the hue of Pale and Subtle (Neutral and eight hues) and of Solid (Neutral, Brand, Cyan, Yellow, Orange, Accent); the other themes are Neutral. Content on a Solid fill takes the fill's family: Neutral → Inverse, Accent → On-Accent, Yellow → On-Brights, the other hues → On-Colors"],
+      ["Surface", "Default · Alt, on Default and Border: Alt on a white Canvas/Alt page, where Surface/Default is the canvas itself"],
+      ["Spacing", "Medium (Card-padding-medium, 2XLarge corners) · Small (Card-padding-small, Large corners) · XSmall (Card-padding-xsmall, Base corners) for compact tiles, e.g. a row of choices on a phone"],
+      ["Active", "Yes only for the selected card of a choice; never as decoration"],
+    ],
+    rules: [
+      "Pick the page's Canvas first: one box family per screen (Default, Border, Flat-Border, Pale or Subtle; colours may vary inside Pale or Subtle) and one elevation (every box Shadow with the Sidebar's shadow, or none; never a shadow on Canvas/Alt or Canvas/Flat).",
+      "No gradient box. A dark widget is Theme=Solid, Color=Neutral, never a Dark mode set on the card.",
+      "No card inside a card, and no shadow on a Pale or Subtle card.",
+      "A clickable card holds no buttons, links or inputs.",
+    ],
     code: "`<Card>`",
   }),
 
@@ -244,8 +270,13 @@ export const componentDescriptions = {
     what: "The box that holds a group of List-Item rows, with an optional header and footer; one component for every device.",
     use: ["Lists of people, approvals, files, settings groups on desktop and phones."],
     instead: ["Content that is not List-Item rows (a Description List, labelled toggles, a form) → Card."],
-    props: [["Theme", "pick by where it sits — Default on Canvas/Default and on a Surface-Alt phone screen · Shadow beside a default Sidebar · Border on a white page or inside another surface · Flat-Border on Canvas/Flat (Surface/Flat in a Pale border) · On-Container inside a Modal, Side-Panel or Bottom-Sheet · Pale on imagery"], ["Header / Footer", "a title row (kicker or Subheading) and a footer action (View all)"]],
-    rules: ["Grouped settings: one List-Box per group, a kicker (Body/Small/Bold, Light) above it.", "Rows are spaced by its Body-Slot; never add padding to rows."],
+    props: [
+      ["Theme", "pick by where it sits — Default on Canvas/Default and on a Surface-Alt phone screen · Shadow beside a default Sidebar · Border on a white page or inside another surface · Flat-Border on Canvas/Flat (Surface/Flat in a Pale border) · On-Container inside a Modal, Side-Panel or Bottom-Sheet · Pale on a white page or imagery (List-Box has no Subtle: on Canvas/Default a list stays Default, Shadow or Border)"],
+      ["Color", "the hue of a Pale box (Neutral and eight hues); the other themes are Neutral"],
+      ["Surface", "Default · Alt, on Default and Border: Alt on a white Canvas/Alt page, where Surface/Default is the canvas itself"],
+      ["Header / Footer", "a title row (kicker or Subheading) and a footer action (View all)"],
+    ],
+    rules: ["Follow the Card rules for the page's Canvas: one box family and one elevation per screen.", "Grouped settings: one List-Box per group, a kicker (Body/Small/Bold, Light) above it.", "Rows are spaced by its Body-Slot; never add padding to rows."],
     code: "`<ListBox>`",
   }),
 
@@ -275,7 +306,11 @@ export const componentDescriptions = {
     what: "A dashboard KPI tile: one key number with its label, an identifying icon and how it changed.",
     use: ["KPI rows at the top of a dashboard, next to Chart cards."],
     instead: ["A series over time → Chart.", "Many comparable numbers → Table.", "Progress toward a goal → Progress-Bar."],
-    rules: ["Theme follows the screen's pairing (Default on Canvas/Default, Shadow beside a default Sidebar, Flat-Border on Canvas/Flat).", "Type=KPI is a Title-Highlight Metric (Large), laid out like the other types: the title on top, the number and trend at the foot, the Dock-Icon in the corner.", "Its Dock-Icon is Background=Solid.", "The value is not a heading; the trend says up or down in text, not only colour."],
+    props: [
+      ["Type", "KPI (the number, its trend and Dock-Icon) · Sparkline (a trend line) · Spark-Bars (bars, the last one current) · Goal-Progress (a stacked progress bar to a goal) · Comparison (columns side by side) · Category-Bar (a bar of shares and a row per category) · Hero (the large figure on a Pale Brand card, with a button) · Tile (a phone stat tile, two-up Medium or three-up Small)"],
+      ["Card", "the nested Card is exposed — set Theme, Color, Surface and Spacing on it by the Card rules for the page's Canvas; on a Solid card the Metric parts take the fill's content family"],
+    ],
+    rules: ["Theme follows the screen's pairing (Default on Canvas/Default, Shadow beside a default Sidebar, Border or Surface=Alt on Canvas/Alt, Flat-Border on Canvas/Flat; colour Subtle on Canvas/Default, Pale on a white page).", "Type=KPI is a Title-Highlight Metric (Large), laid out like the other types: the title on top, the number and trend at the foot, the Dock-Icon in the corner.", "Its Dock-Icon is Background=Solid.", "The value is not a heading; the trend says up or down in text, not only colour."],
     code: "`<MetricCard>`",
   }),
   "Primitives/Metric/Metric-Inline/Icon-Highlight": card({
@@ -799,7 +834,16 @@ export const componentDescriptions = {
     code: "`<ChartCard>`",
   }),
   "Chart/Line-Chart": card({ what: "How a value changes over a few periods (4–12 points).", code: "`<LineChart>`" }),
-  "Chart/Stack-Bar-Chart": card({ what: "How parts make up a total across periods, with a legend.", code: "`<StackBarChart>`" }),
+  "Chart/Stack-Bar-Chart": card({ what: "How parts make up a total across periods, with a legend.", props: [chartColor("the first two series swap")], code: "`<StackBarChart>`" }),
+  // The chart widgets of the 2026-10-13 widget themes (with their own header): their surface comes from the Card around
+  // them; no gradient themes since 2026-10-14; the header reads as Chart-Card's (2026-10-21).
+  "Chart/Area-Chart": chartWidget("Area chart: one measure over time as a 2px line (Color Chart Sector/Primary) over a 30% fade of its colour (its Solid at the line to its Subtle at the baseline); Type=Stacked stacks 2–4 series as bands, each with its top line, and a legend. 6–12 periods on a dashed grid with a solid baseline, the last point marked with a Dot, Rule and Tooltip.", "`<AreaChart>`", [["Type", "Area (one series) · Stacked (2–4 series that add up)"], chartColor("the first two lines and fades swap; one area draws a Secondary line over the Neutral fade")]),
+  "Chart/Grouped-Bar-Chart": chartWidget("Grouped bar chart: 2–3 series side by side per period (12px bars, 4px apart, Corner-Radius/XSmall top corners) in Chart/Sector/Primary, Secondary, Tertiary, with a legend. Compare series per period; for parts of a whole use the Stack-Bar chart.", "`<GroupedBarChart>`", [chartColor("the first two series swap")]),
+  "Chart/Combo-Chart": chartWidget("Combo chart: an amount as bars (Chart/Sector/Primary, 20px) and a rate as a line with dots (Chart/Sector/Secondary) on a second axis at the end. Both axes label their unit; the legend names the bar and the line.", "`<ComboChart>`", [chartColor("Secondary bars, a Primary line and dots")]),
+  "Chart/Bar-List": chartWidget("Bar list: a ranking of 3–8 items, each a 32px row whose Chart/Sector/Primary bar (24%, the leader 48%) is as long as its share of the leader, the name inside the bar and the value at the end; column labels above (Caption/Medium).", "`<BarList>`"),
+  "Chart/Gauge-Chart": chartWidget("Gauge: one measure against a 0–100% scale as a half ring (24px, track Background/Neutral/Subtle, value Chart/Sector/Primary), a target tick in Chart/Sector/Secondary, the reading (Heading/2) and target (Body/Small) in the centre, 0% and 100% at the ends.", "`<GaugeChart>`", [chartColor("the value in Secondary, the target tick in Primary")]),
+  "Chart/Funnel-Chart": chartWidget("Funnel: 3–6 stages from first contact to outcome, each a centred bar (32px, Corner-Radius/Small) as wide as its share of the first stage, the stage name and count on the start, the share on the end. The last stage takes Chart/Sector/Secondary.", "`<FunnelChart>`", [chartColor("Secondary stages, the last stage Primary")]),
+  "Chart/Bullet-Chart": chartWidget("Bullet chart: 1–4 goals, each a label with 'actual of target', a 16px track (On-Color/Tertiary at 50%), the actual as an 8px Chart/Sector/Primary bar and the target as a 3px Chart/Sector/Secondary tick; a legend names both.", "`<BulletChart>`", [chartColor("Secondary bars, Primary target ticks")]),
 
   // ◇ Master-Layout
   "Patterns/Pages/Density-Medium": card({
@@ -837,5 +881,7 @@ export const GENERIC = [/\*\*Overview:\*\*/, /Original Notes/, /^Data visualizat
 // Sets whose Figma description is replaced even when it is specific: the property-panel sets drafted in Figma on
 // 2026-10-14 ("Draft …, not yet in code"), in code since #53–#55; Accordion/Text since Size=Small (2026-10-15);
 // Search/Default since Shape (2026-10-17); Card, List-Box and Metric-Card since the Theme rename (Flat → Default,
-// Flat-Border; 2026-10-21).
-export const FORCE = new Set(["Card", "Component/List-Box", "Metric-Card", "Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview", "Accordion/Text", "Search/Default", "Empty-State"]);
+// Flat-Border; 2026-10-21); the seven chart widgets of 2026-10-13, whose Figma text still named the gradient themes, and
+// Stack-Bar-Chart, whose Color line was written in Figma
+// (2026-10-23).
+export const FORCE = new Set(["Card", "Component/List-Box", "Metric-Card", "Chart/Area-Chart", "Chart/Grouped-Bar-Chart", "Chart/Combo-Chart", "Chart/Bar-List", "Chart/Gauge-Chart", "Chart/Funnel-Chart", "Chart/Bullet-Chart", "Chart/Stack-Bar-Chart", "Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview", "Accordion/Text", "Search/Default", "Empty-State"]);

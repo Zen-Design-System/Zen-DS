@@ -62,16 +62,24 @@ function collectLiterals(files) {
   // Array bodies first, then resolved with their spreads (`["neutral", ...dockIconSupportColors, "emoji"]`), so a union
   // built from another const array keeps every member.
   const bodies = new Map();
+  // The token mode lists (src/tokens/modes.generated.ts, tokens:build): ZenProvider's axes read them as
+  // `[...tokenModes.theme, "system"]` or `tokenModes.density` (Studio Variables v2, mode lists from the tokens).
+  const modesFile = path.join(root, "src/tokens/modes.generated.ts");
+  if (fs.existsSync(modesFile)) {
+    const json = /export const tokenModes = (\{[\s\S]*?\}) as const;/.exec(fs.readFileSync(modesFile, "utf8"))?.[1];
+    for (const [axis, modes] of Object.entries(json ? JSON.parse(json) : {})) arrays.set(`tokenModes.${axis}`, modes);
+  }
   for (const file of files) {
     const source = fs.readFileSync(file, "utf8");
     for (const match of source.matchAll(/(?:export\s+)?const\s+(\w+)\s*=\s*\[([^\]]*)\]\s*as\s+const/g)) bodies.set(match[1], match[2]);
+    for (const match of source.matchAll(/(?:export\s+)?const\s+(\w+)\s*=\s*(tokenModes\.\w+)\s*;/g)) if (arrays.has(match[2])) arrays.set(match[1], arrays.get(match[2]));
   }
   const resolve = (name, seen = new Set()) => {
     if (arrays.has(name)) return arrays.get(name);
     const body = bodies.get(name);
     if (body === undefined || seen.has(name)) return [];
     seen.add(name);
-    const values = [...body.matchAll(/"([^"]*)"|'([^']*)'|\.\.\.\s*(\w+)/g)].flatMap((token) => (token[3] ? resolve(token[3], seen) : [token[1] ?? token[2]]));
+    const values = [...body.matchAll(/"([^"]*)"|'([^']*)'|\.\.\.\s*([\w.]+)/g)].flatMap((token) => (token[3] ? resolve(token[3], seen) : [token[1] ?? token[2]]));
     if (values.length) arrays.set(name, values);
     return values;
   };

@@ -42,7 +42,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "style" | "className" | "childre
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `theme` | `"light" \| "dark" \| "system"` | — | Colour mode. `system` follows the OS (prefers-color-scheme). Unset: inherit (the page default is light). |
-| `componentTheme` | `"neutral-s1" \| "neutral-s2" \| "neutral-s3" \| "neutral-s4" \| "neutral-s5" \| "neutral-s6" \| "neutral-s7" \| "brand-s1" \| "brand-s2"` | — | Component colour theme (Figma "Component Theme" mode). Default neutral-s1. |
+| `componentTheme` | `"neutral-s1" \| "brand-s1" \| "neutral-s2" \| "brand-s2" \| "neutral-s3" \| "neutral-s4" \| "neutral-s5" \| "neutral-s6" \| "neutral-s7"` | — | Component colour theme (Figma "Component Theme" mode). Default neutral-s1. |
 | `density` | `"compact" \| "comfortable" \| "studio"` | — | Spacing density. Default compact (dashboards); comfortable for touch-first or marketing layouts. |
 | `radius` | `"rounded" \| "smooth" \| "standard" \| "luxury" \| "studio"` | — | Corner-radius scale. Default rounded. |
 | `emphasis` | `"medium" \| "strong" \| "light"` | — | Font weights and active stroke widths (Figma "Emphasis Level" mode). Default medium; light is lighter, strong heavier. |
@@ -96,6 +96,8 @@ type ZenLabels = { close: string; closePanel: string; dismiss: string; remove: s
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `theme/mixed-boxes` | warn | One box family per page (Figma audit theme/mixed-boxes): Default (with or without Shadow), Border, Flat-Border, Pale or Subtle; vary the Color inside Pale or Subtle instead. A Solid box, and Subtle on a white page, stand out and are not counted. | `zen-allow-mixed-boxes: <reason>` |
+| `theme/mode-override` | error | Only the page picks Light or Dark (Figma audit theme/mode-override, user 2026-10-14): a ZenProvider with theme inside a page (AppShell, PlatformPhone) or a box mixes two palettes on one screen. A dark widget is Card theme="solid" color="neutral" (Background/Neutral/Solid + Inverse content). | `zen-allow-mode-override: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 
 ## References
