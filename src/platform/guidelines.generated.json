@@ -3507,7 +3507,7 @@
     "purpose": "Move through a large, ordered result set one page at a time.",
     "use": [
       "Tables and result lists where position matters (\"page 3 of 10\").",
-      "Inline/Manually themes for data tables with a page-size choice or a jump-to-page field."
+      "Inline/Manually themes for data tables with a page-size choice: a Chip in Inline, a typed number in Manually."
     ],
     "avoid": [
       "Short lists that fit on one screen; show everything.",
@@ -3517,7 +3517,7 @@
       [
         "Theme",
         "theme",
-        "primary · secondary (numbered) · inline (page size + range) · manually (jump field + range)"
+        "primary · secondary (numbered) · inline (page size + range) · manually (typed page size + range)"
       ],
       [
         "Size",
@@ -3545,8 +3545,8 @@
         "Go to the page"
       ],
       [
-        "Enter (page field)",
-        "Jump to the typed page (Manually)"
+        "Enter (page-size field)",
+        "Apply the typed page size (Manually; blur applies it too)"
       ]
     ],
     "do": [
@@ -7013,8 +7013,8 @@
     ],
     "refs": [
       [
-        "Apple HIG — Navigation bars",
-        "https://developer.apple.com/design/human-interface-guidelines/navigation-bars"
+        "Apple HIG — Toolbars (formerly Navigation bars)",
+        "https://developer.apple.com/design/human-interface-guidelines/toolbars"
       ],
       [
         "Material 3 — Top app bar",
@@ -7141,6 +7141,7 @@
       "Keep 3–5 destinations (harness: bottom-navigation/destinations).",
       "Use a solid glyph for the selected state (selectedIcon) and keep the label as the accessible name.",
       "Use Floating Glass over imagery: idle icons are Neutral/Strongest and the selection defaults to Subtle; switch to Solid only for extra emphasis.",
+      "Tapping the current destination again scrolls its root screen back to the top (the large title opens again): onValueChange also fires for the current id, so compare and scroll.",
       "Clear the dot as soon as the destination is opened.",
       "Over photos or video, pass backdrop=\"none\" so the pill floats on the image; the Surface fade is for plain screens."
     ],
