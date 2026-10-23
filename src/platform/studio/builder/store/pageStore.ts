@@ -50,7 +50,12 @@ export type PageRecord = {
  * What a Figma frame is compared with: `base`, the pull of the frame as it was; `synced`, the page as it stood then (a
  * pushed page holds what Figma cannot, figma-diff.mjs); `version`, the export the frame came from.
  */
-export type FigmaBase = { base: PageDoc; synced?: PageDoc; version?: string };
+export type FigmaBase = { base: PageDoc; synced?: PageDoc; version?: string; at?: number };
+/**
+ * A page's Figma bases as the folder keeps them beside it (`<id>.figma-base.json`, tools/studio/pages-folder.mjs): a page
+ * opened in another browser on the folder compares its Figma frame three ways too (takeMirroredFigmaBase).
+ */
+export type FigmaBaseRecord = { format: 1; figma: FigmaBase | null; exports: NonNullable<PageRecord["figmaExports"]> };
 export type PageMeta = Omit<PageRecord, "text" | "sync" | "doc" | "figma" | "figmaExports">;
 export type Revision = { key: number; page: string; text: string; at: number; reason: RevisionReason };
 
@@ -75,6 +80,10 @@ export interface PageMirror {
   readComments?(id: string): Promise<unknown | null>;
   /** Writes a page's comments beside it. */
   writeComments?(id: string, comments: unknown): Promise<void>;
+  /** What a page's Update from Figma compares with, beside it (`<id>.figma-base.json`: FigmaBaseRecord); null when none. */
+  readFigmaBase?(id: string): Promise<unknown | null>;
+  /** Writes it beside the page. */
+  writeFigmaBase?(id: string, record: FigmaBaseRecord): Promise<void>;
 }
 
 /** Where the pages are kept, for the Pages panel. */
@@ -357,6 +366,8 @@ export async function importPage(text: string, wantedId: string | null, { doc, f
  */
 export async function findPulledPage(source: { file: string | null; node: string; page?: string; version?: string }): Promise<string | null> {
   await loadAll();
+  // An export made in another browser on the folder: its record beside the page.
+  if (source.page && cache.get(source.page)) await takeMirroredFigmaBase(source.page);
   const pushed = source.page ? cache.get(source.page) : undefined;
   if (pushed && isLive(pushed)) {
     const exported = source.version
@@ -376,9 +387,10 @@ export async function findPulledPage(source: { file: string | null; node: string
 export async function setFigmaBase(id: string, base: PageDoc, { synced, version }: { synced?: PageDoc; version?: string } = {}): Promise<void> {
   const record = cache.get(id) ?? (await readRecord(id));
   if (!record) return;
-  const next: PageRecord = { ...record, figma: { base, ...(synced ? { synced } : {}), ...(version ? { version } : {}) } };
+  const next: PageRecord = { ...record, figma: { base, ...(synced ? { synced } : {}), ...(version ? { version } : {}), at: Date.now() } };
   cache.set(id, next);
   await writeRecord(next);
+  void mirrorFigmaBase(next);
 }
 
 /** Keeps an export to Figma (its version, the pull of its frame, the page it came from): the five latest, newest first. */
@@ -387,6 +399,54 @@ export async function keepFigmaExport(id: string, entry: { version: string; base
   if (!record || record.figmaExports?.[0]?.version === entry.version) return;
   const others = (record.figmaExports ?? []).filter((kept) => kept.version !== entry.version);
   const next: PageRecord = { ...record, figmaExports: [{ ...entry, at: Date.now() }, ...others].slice(0, 5) };
+  cache.set(id, next);
+  await writeRecord(next);
+  void mirrorFigmaBase(next);
+}
+
+/** The folder's limit for a page's Figma bases (pages-folder.mjs MAX_FIGMA_BASE, 6 MB), with room for wide characters. */
+const MIRRORED_FIGMA_BASE = 5 * 1024 * 1024;
+
+/** Keeps the page's Figma bases beside it in the folder, the oldest exports left out over its limit (best effort). */
+async function mirrorFigmaBase(record: PageRecord): Promise<void> {
+  const target = mirror;
+  if (!target?.writeFigmaBase || (!record.figma && !record.figmaExports?.length)) return;
+  const exports = [...(record.figmaExports ?? [])];
+  const out = (): FigmaBaseRecord => ({ format: 1, figma: record.figma ?? null, exports });
+  while (exports.length && JSON.stringify(out()).length > MIRRORED_FIGMA_BASE) exports.pop();
+  if (JSON.stringify(out()).length > MIRRORED_FIGMA_BASE) return;
+  try {
+    await target.writeFigmaBase(record.id, out());
+  } catch {
+    // This browser's copy stands; another browser compares two ways.
+  }
+}
+
+/**
+ * Takes in the Figma bases the folder keeps beside the page (written by another browser on it): its exports by version
+ * (the latest of each, five at most) and the later last pull. Update from Figma then compares three ways here too.
+ */
+export async function takeMirroredFigmaBase(id: string): Promise<void> {
+  const target = mirror;
+  if (!target?.readFigmaBase) return;
+  let kept: Partial<FigmaBaseRecord> | null = null;
+  try {
+    kept = (await target.readFigmaBase(id)) as Partial<FigmaBaseRecord> | null;
+  } catch {
+    return;
+  }
+  const record = cache.get(id) ?? (await readRecord(id));
+  if (!record || !kept || kept.format !== 1 || !Array.isArray(kept.exports)) return;
+  const latest = new Map<string, NonNullable<PageRecord["figmaExports"]>[number]>();
+  for (const entry of [...(record.figmaExports ?? []), ...kept.exports]) {
+    const other = latest.get(entry.version);
+    if (!other || entry.at > other.at) latest.set(entry.version, entry);
+  }
+  const exports = [...latest.values()].sort((a, b) => b.at - a.at).slice(0, 5);
+  const figma = kept.figma && (kept.figma.at ?? 0) > (record.figma?.at ?? -1) ? kept.figma : record.figma;
+  const sameExports = exports.length === (record.figmaExports?.length ?? 0) && exports.every((entry, index) => entry === record.figmaExports?.[index]);
+  if (sameExports && figma === record.figma) return;
+  const next: PageRecord = { ...record, figmaExports: exports, ...(figma ? { figma } : {}) };
   cache.set(id, next);
   await writeRecord(next);
 }

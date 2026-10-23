@@ -2,6 +2,13 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-23 (Update from Figma in another browser, `zen/fix/studio-figma-base-mirror-20261023`)
+
+- Done 2026-10-23: an export's base and the last pull are kept beside the page in its folder (`<id>.figma-base.json`),
+  and a pull in another browser on that folder takes them in (E2E HO-13).
+- **P3 · Update from Figma in another browser (2026-10-13, P6b leftover):** a pull in a browser that kept no export
+  falls back to a two-way comparison. Pointer: `docs/research/studio-figma-push-spec-2026-10-12.md` §8 "P6b".
+
 ## Archived 2026-10-23 (320px debt)
 
 - Done 2026-10-23 (user: "xử hết"; re-measured on main 4b96bbb8: the 13 Chat findings were already gone after the

@@ -281,6 +281,21 @@ export const studioApi = {
       throw new StudioApiError(code, error);
     }
   },
+  /** What a page's Update from Figma compares with, beside it (GET /pages/figma-base): the record, or null when it has none. */
+  async pageFigmaBase(id: string): Promise<unknown | null> {
+    const reply = await authorized<{ ok?: unknown; record?: unknown }>(`/pages/figma-base?id=${encodeURIComponent(id)}`);
+    if (!reply || reply.status !== 200 || reply.body?.ok === false) return null;
+    return reply.body?.record ?? null;
+  },
+  /** POST /pages/figma-base-write { id, record }; rejects with a StudioApiError when refused. */
+  async pageFigmaBaseWrite(id: string, record: unknown): Promise<void> {
+    const reply = await post<{ ok?: unknown }>("/pages/figma-base-write", { id, record });
+    if (!reply) throw new StudioApiError("invalid", NO_SERVER);
+    if (reply.status !== 200 || reply.body?.ok === false) {
+      const { code, error } = errorOf(reply.body, "Figma base not saved");
+      throw new StudioApiError(code, error);
+    }
+  },
   /** POST /pages/asset-write { id, data: base64 } or /pages/asset-trash { id }; rejects with a StudioApiError when refused. */
   async pageAssetWrite(action: "write" | "trash", id: string, bytes?: Uint8Array): Promise<void> {
     let data: string | undefined;

@@ -3,7 +3,7 @@ import type { FigmaChange, FigmaSource } from "../../../../tools/studio/figma-di
 import { applyEdit } from "../api";
 import { loadEngine, zenComponents } from "./engine";
 import { ensurePageDoc } from "./localApi";
-import { findPulledPage, getPage, importPage, pageFile, setFigmaBase, type FigmaBase, type PageRecord } from "./store/pageStore";
+import { findPulledPage, getPage, importPage, pageFile, setFigmaBase, takeMirroredFigmaBase, type FigmaBase, type PageRecord } from "./store/pageStore";
 
 /*
  * Pages pulled from Figma (core rebuild M6; tools/studio/figma-pull.mjs makes them, figma-diff.mjs compares two pulls).
@@ -39,7 +39,7 @@ export const importPulled = (pulled: PulledPage, wantedId: string | null) => imp
 
 /**
  * What the pull is compared with: for a frame placed from an export of this page, that export's pull (or the last update
- * from that same export); else the last pull. Null: none kept in this browser (two ways).
+ * from that same export); else the last pull. Null: none kept in this browser nor beside the page in its folder (two ways).
  */
 export function figmaBaseOf(record: PageRecord, version: string | undefined): FigmaBase | null {
   if (version !== undefined && record.figma?.version === version) return record.figma;
@@ -53,6 +53,8 @@ const versionOf = (incoming: PageDoc) => (incoming.header as { figma?: { version
 /** What the pull changes on the page, three ways when this browser kept the last pull: { changes, threeWay }. */
 export async function pulledChanges(pageId: string, incoming: PageDoc): Promise<{ changes: FigmaChange[]; threeWay: boolean }> {
   await ensurePageDoc(pageId);
+  // An export or update made in another browser on the folder (its record beside the page).
+  await takeMirroredFigmaBase(pageId);
   const record = await getPage(pageId);
   if (!record?.doc) throw new Error("The page cannot be read as a document (fix its dialect errors first)");
   const { figmaChanges } = await diff();

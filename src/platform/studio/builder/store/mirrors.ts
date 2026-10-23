@@ -21,6 +21,9 @@ const DEV = import.meta.env.DEV;
 const FOLDER_KEY = "folder";
 const SUFFIX = ".zen.tsx";
 const COMMENTS_SUFFIX = ".comments.json";
+/** What a page's Update from Figma compares with, beside it (pageStore.ts FigmaBaseRecord; pages-folder.mjs MAX_FIGMA_BASE). */
+const FIGMA_BASE_SUFFIX = ".figma-base.json";
+const MAX_FIGMA_BASE = 6 * 1024 * 1024;
 
 /* File System Access, as far as the Studio uses it (lib.dom lacks the iteration and permission parts). */
 type Permission = "granted" | "denied" | "prompt";
@@ -63,6 +66,9 @@ function devMirror(dir: string): PageMirror {
     // A page's comments beside it (GET /pages/comments, POST /pages/comments-write; comments/commentStore.ts).
     readComments: (id) => studioApi.pageComments(id),
     writeComments: (id, comments) => studioApi.pageCommentsWrite(id, comments),
+    // What its Update from Figma compares with (GET /pages/figma-base, POST /pages/figma-base-write).
+    readFigmaBase: (id) => studioApi.pageFigmaBase(id),
+    writeFigmaBase: (id, record) => studioApi.pageFigmaBaseWrite(id, record),
   };
 }
 
@@ -109,6 +115,20 @@ function folderMirror(handle: DirHandle): PageMirror {
     async writeComments(id, comments) {
       const out = await (await handle.getFileHandle(`${id}${COMMENTS_SUFFIX}`, { create: true })).createWritable();
       await out.write(`${JSON.stringify(comments, null, 2)}\n`);
+      await out.close();
+    },
+    // What its Update from Figma compares with (`<id>.figma-base.json`).
+    async readFigmaBase(id) {
+      try {
+        const file = await (await handle.getFileHandle(`${id}${FIGMA_BASE_SUFFIX}`)).getFile();
+        return file.size > MAX_FIGMA_BASE ? null : JSON.parse(await file.text());
+      } catch {
+        return null;
+      }
+    },
+    async writeFigmaBase(id, record) {
+      const out = await (await handle.getFileHandle(`${id}${FIGMA_BASE_SUFFIX}`, { create: true })).createWritable();
+      await out.write(`${JSON.stringify(record)}\n`);
       await out.close();
     },
     async trash(id) {

@@ -54,6 +54,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio: ⇧⌘G with several layers selected ungroups every selected group or frame, as Figma's (one ⌘Z takes it
   back); their layers and the other selected layers stay selected, and the canvas menu offers Ungroup on several layers
   (2026-10-23).
+- Zen Studio ↔ Figma: Update from Figma lists only what the designer changed in another browser too: an export's base
+  and the last pull are kept beside the page in its folder (`<id>.figma-base.json`), not only in the browser that
+  exported it (2026-10-23).
 - Zen Studio ↔ Figma: an instance's layer name (data-name) is its Figma name and comes back with Pull from Figma, and so
   does a name changed in Figma since; an instance's accessible name (aria-label, an icon button's label) stays its Figma
   name first (2026-10-23).

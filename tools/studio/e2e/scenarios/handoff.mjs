@@ -4,7 +4,7 @@ import fs from "node:fs";
 import { unzipFiles } from "../../zip.mjs";
 import path from "node:path";
 import { pagesDirOf, promoteDirOf } from "../lib/server.mjs";
-import { openAssetLibrary, openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { openAssetLibrary, openStudio, openStudioSpace, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, focusScreen, newPage, pageText, selectStack } from "./builder.mjs";
 import { packageFromClip } from "../../figma-clip.mjs";
 
@@ -644,6 +644,54 @@ export const rows = [
       if (Object.values(landed).some((value) => !value)) throw new Error(`after Apply: ${JSON.stringify(landed)}`);
       await page.screenshot({ path: ".qa/studio-e2e/handoff-HO-11.png" }).catch(() => undefined);
       return `export ${pkg.page.version} kept; the read back: Update from Figma on ${id}, 2 changes applied; Container, titleLines, ListBox theme, aria kept`;
+    },
+  },
+  {
+    id: "HO-13", feature: "Update from Figma in another browser (figma P6b leftover): Export › Figma keeps its base beside the page in the dev server's folder (<id>.figma-base.json); a second browser on the server, which kept no export, imports the frame read back after a designer's two edits: Update from Figma on that page compares three ways and lists the two changes",
+    timeout: 90000,
+    async run(ctx) {
+      const { pageFromFigma, repoMapping } = await import("../../figma-pull.mjs");
+      const { printPage } = await import("../../doc.mjs");
+      const fixture = JSON.parse(fs.readFileSync(new URL("../../fixtures/figma-pushed.json", import.meta.url), "utf8"));
+      const { page } = await ctx.studio();
+      const id = await importHtmlPage(page, fixture.page, "screen:screen-1");
+      const panel = await openExport(page);
+      await panel.getByRole("button", { name: "Figma", exact: true }).click();
+      await until(async () => /zen-studio-figma/.test(await panel.innerText()), { timeout: 10_000, message: "the Figma JSON in the panel" });
+      const downloading = page.waitForEvent("download");
+      await panel.getByRole("button", { name: `Download ${id}.figma.json` }).click();
+      const pkg = JSON.parse(fs.readFileSync(await (await downloading).path(), "utf8"));
+      await page.keyboard.press("Escape");
+      const beside = path.join(ctx.root, pagesDirOf(ctx.server.port), `${id}.figma-base.json`);
+      await until(() => { try { return JSON.parse(fs.readFileSync(beside, "utf8")).exports?.[0]?.version === pkg.page.version; } catch { return false; } }, { timeout: 10_000, message: "the export's base beside the page" });
+      // In Figma (as HO-11): the plugin places the frame, a designer renames a list row and the heading, the frame is read back.
+      const read = JSON.parse(JSON.stringify({ ...pkg.frame, id: `9${Date.now() % 1e6}:4`, file: "9nZv4uW2LT21yuHabMTCh1", page: pkg.page.id, version: pkg.page.version }));
+      const nodes = (node) => [node, ...(node.children ?? []).flatMap(nodes), ...(node.slots ?? []).flatMap((slot) => slot.children.flatMap(nodes))];
+      nodes(read).find((node) => node.texts?.Title === "Loyalty app").texts.Title = "Loyalty app v2";
+      nodes(read).find((node) => node.type === "TEXT" && node.characters === "Projects").characters = "Your projects";
+      const pulled = printPage(pageFromFigma(read, { mapping: await repoMapping() }).doc, { ids: true });
+      // Another browser on the same server: its own IndexedDB, the page from the folder, no export of its own.
+      const other = await openStudio(ctx.browser, { url: ctx.server.url, page: ctx.host });
+      try {
+        const store = "/src/platform/studio/builder/store/pageStore.ts";
+        const kept = await until(() => other.page.evaluate(async ({ store, pageId }) => {
+          const record = await (await import(store)).getPage(pageId);
+          return record ? { exports: record.figmaExports?.length ?? 0 } : null;
+        }, { store, pageId: id }), { timeout: 20_000, message: "the page in the second browser" });
+        if (kept.exports) throw new Error("the second browser kept the export before the pull");
+        await showLeftTab(other.page, "pages");
+        await openStudioSpace(other.page);
+        await other.page.locator('[data-e2e="import-pages"]').setInputFiles({ name: `${id}-from-figma.zen.tsx`, mimeType: "text/plain", buffer: Buffer.from(pulled, "utf8") });
+        const dialog = other.page.getByRole("dialog", { name: "Update from Figma" });
+        await dialog.waitFor({ state: "visible", timeout: 15000 });
+        await until(async () => (await dialog.locator("[data-change]").count()) === 2 && /What changed in Figma since/.test(await dialog.innerText()), { timeout: 15000, message: "two changes, three ways" })
+          .catch(async (error) => { throw new Error(`${error.message} (${(await dialog.innerText()).replace(/\s+/g, " ").slice(0, 400)})`); });
+        await other.page.screenshot({ path: ".qa/studio-e2e/handoff-HO-13.png" }).catch(() => undefined);
+        await dialog.getByRole("button", { name: "Cancel" }).click().catch(() => other.page.keyboard.press("Escape"));
+      } finally {
+        await other.context.close();
+      }
+      return `${id}.figma-base.json beside the page (version ${pkg.page.version}); a second browser lists the designer's 2 changes three ways`;
     },
   },
   {

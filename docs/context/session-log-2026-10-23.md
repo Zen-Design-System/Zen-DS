@@ -310,3 +310,16 @@ Branch claude/eloquent-mclean-8f4974 from main 4b96bbb8. BACKLOG P1 "320px debt 
   dark, behaviour 0 errors, 0 new warnings → PASS. Contact sheets: templates 390/1512 keep the photo row whole.
   Visual diff templates 1512 + 390, old vs new template: 32 identical. Baseline: the 28 @320 keys gate 2 no longer finds
   removed (13 Chat, 10 layout, the Show-all target, 4 Text-page heading demos); 16 @320 keys left, all also at 1512/390.
+
+## Session C · Update from Figma in another browser (tier S; G3 item 3 from Giám sát, user-approved triage)
+Branch `zen/fix/studio-figma-base-mirror-20261023`; BACKLOG P3 archived.
+- An export's base (`figmaExports`) and the last pull (`figma`) lived in IndexedDB only, so a pull in another browser
+  compared two ways. They now go beside the page in its folder as `<id>.figma-base.json` ({ format 1, figma, exports }),
+  as comments do: pages-folder.mjs readFigmaBase / writeFigmaBase (≤ 6 MB, checked, trashed with the page), routes
+  GET /pages/figma-base and POST /pages/figma-base-write, both mirrors (dev server, linked folder).
+- pageStore: keepFigmaExport and setFigmaBase write it (best effort; the oldest exports left out over 5 MB);
+  `takeMirroredFigmaBase` merges it in (exports by version, the later last pull by `at`) before findPulledPage and
+  pulledChanges. A page kept only in a browser (no folder) still compares two ways elsewhere.
+- E2E HO-13 (new): export → the file beside the page carries the version; a second browser context (own IndexedDB)
+  imports the frame read back after two edits → Update from Figma on that page, 2 changes, three ways.
+  pages-folder selftest 13.

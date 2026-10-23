@@ -400,4 +400,7 @@ vào vẫn giữ mọi thứ Figma không giữ được.
   với bản Figma đọc).
 - E2E HO-11 (Studio thật): Export › Figma giữ export; frame kéo về sau 2 chỗ sửa → hộp thoại trên đúng trang, 2 thay đổi,
   áp vào giữ chi tiết code. Lỗi gặp và sửa: Vite chèn import trước shebang của `figma-pull.mjs` (bỏ shebang).
-- Còn lại: frame designer tự dựng (không từ export) vẫn kéo về như trước; trình duyệt khác không có export → so hai chiều.
+- Còn lại: frame designer tự dựng (không từ export) vẫn kéo về như trước. Trình duyệt khác (2026-10-23): export và lần
+  kéo gần nhất được giữ cạnh trang trong thư mục (`<id>.figma-base.json`: pages-folder.mjs, mirrors.ts); kéo về ở trình
+  duyệt khác cùng thư mục thì lấy vào (`takeMirroredFigmaBase`) và so ba chiều. E2E HO-13. Trang chỉ ở trong trình duyệt
+  (không thư mục) vẫn so hai chiều ở trình duyệt khác.

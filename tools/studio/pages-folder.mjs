@@ -4,7 +4,7 @@
 // (src/platform/studio/builder/store/pageStore.ts syncs the two).
 //
 //   pagesFolder(root, { validate }) → { list(), read(id), write(id, text), trash(id), readComments(id), writeComments(id, doc),
-//                                       writeAsset(id, bytes), readAsset(id),
+//                                       readFigmaBase(id), writeFigmaBase(id, record), writeAsset(id, bytes), readAsset(id),
 //                                       trashAsset(id) }  (uploaded photos in <pages>/assets/, 2026-10-08: a page opened in
 //                                       another browser on the dev server finds them there)
 //
@@ -25,12 +25,37 @@ export const MAX_PAGE = 2 * 1024 * 1024;
 /** A page's comments file, beside it (docs/research/studio-comments-spec-2026-10-22.md), is at most 1 MB. */
 export const MAX_COMMENTS = 1024 * 1024;
 const COMMENTS_SUFFIX = ".comments.json";
+/**
+ * What a page's Update from Figma compares with (its Figma exports and last pull, builder/store/pageStore.ts), beside it
+ * so another browser on this folder compares three ways too: at most 6 MB (the request body's limit is 8).
+ */
+export const MAX_FIGMA_BASE = 6 * 1024 * 1024;
+const FIGMA_BASE_SUFFIX = ".figma-base.json";
 export const PAGES_DIR = ".zen-studio/pages";
 export const TRASH_DIR = ".zen-studio/trash";
 const SUFFIX = ".zen.tsx";
 
 export class PagesError extends Error {
   constructor(code, message) { super(message); this.code = code; }
+}
+
+/** Why a `.figma-base.json` record is not one ({ format: 1, figma: base | null, exports: [{ version, at, base, synced? }] }). */
+export function figmaBaseErrors(record) {
+  const isDoc = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
+  const baseErrors = (entry, where) => [
+    !isDoc(entry) && `${where} is not an object`,
+    isDoc(entry) && !isDoc(entry.base) && `${where}.base is not a document`,
+    isDoc(entry) && entry.synced !== undefined && !isDoc(entry.synced) && `${where}.synced is not a document`,
+    isDoc(entry) && entry.version !== undefined && typeof entry.version !== "string" && `${where}.version is not a string`,
+  ].filter(Boolean);
+  if (!isDoc(record) || record.format !== 1) return ["not a { format: 1 } object"];
+  return [
+    ...(record.figma === null || record.figma === undefined ? [] : baseErrors(record.figma, "figma")),
+    ...(Array.isArray(record.exports) ? record.exports.flatMap((entry, index) => [
+      ...baseErrors(entry, `exports[${index}]`),
+      ...(isDoc(entry) && (typeof entry.version !== "string" || typeof entry.at !== "number") ? [`exports[${index}] needs its version and at`] : []),
+    ]) : ["exports is not a list"]),
+  ];
 }
 
 /** `dir`: the pages folder relative to the root (the E2E server uses its own); its trash is the sibling `trash/`. */
@@ -183,6 +208,51 @@ export function pagesFolder(root, { validate = () => [], dir = PAGES_DIR } = {})
       return { id, threads: doc.threads.length };
     },
 
+    /** What a page's Update from Figma compares with (`<id>.figma-base.json` beside it), or null when it has none. */
+    async readFigmaBase(id) {
+      checkId(id);
+      const abs = path.join(pagesAbs, `${id}${FIGMA_BASE_SUFFIX}`);
+      let stat;
+      try {
+        stat = await fsp.lstat(abs);
+      } catch {
+        return null;
+      }
+      if (stat.isSymbolicLink() || !stat.isFile()) throw new PagesError("forbidden", `${id}${FIGMA_BASE_SUFFIX} is a link or not a file`);
+      if (stat.size > MAX_FIGMA_BASE) throw new PagesError("invalid", `${id}${FIGMA_BASE_SUFFIX} is over ${MAX_FIGMA_BASE / 1024 / 1024} MB`);
+      try {
+        return JSON.parse(await fsp.readFile(abs, "utf8"));
+      } catch {
+        throw new PagesError("invalid", `${id}${FIGMA_BASE_SUFFIX} is not JSON`);
+      }
+    },
+
+    /** Writes it beside the page, atomically, after its check (figmaBaseErrors). */
+    async writeFigmaBase(id, record) {
+      checkId(id);
+      const errors = figmaBaseErrors(record);
+      if (errors.length) throw new PagesError("invalid", `Not a Figma base: ${errors[0]}`);
+      const text = `${JSON.stringify(record)}\n`;
+      if (Buffer.byteLength(text, "utf8") > MAX_FIGMA_BASE) throw new PagesError("invalid", `A page's Figma base is at most ${MAX_FIGMA_BASE / 1024 / 1024} MB`);
+      await ensureDir(pagesAbs);
+      const abs = path.join(pagesAbs, `${id}${FIGMA_BASE_SUFFIX}`);
+      try {
+        const stat = await fsp.lstat(abs);
+        if (stat.isSymbolicLink() || !stat.isFile()) throw new PagesError("forbidden", `${id}${FIGMA_BASE_SUFFIX} is a link or not a file`);
+      } catch (error) {
+        if (error instanceof PagesError) throw error;
+      }
+      const temp = path.join(pagesAbs, `.${id}.figma-base.${process.pid}-${Date.now()}.tmp`);
+      await fsp.writeFile(temp, text, "utf8");
+      try {
+        await fsp.rename(temp, abs);
+      } catch (error) {
+        await fsp.rm(temp, { force: true });
+        throw error;
+      }
+      return { id, exports: record.exports.length };
+    },
+
     /** Keeps an uploaded photo in assets/ (atomically; an existing one with the same id holds the same bytes). */
     async writeAsset(id, bytes) {
       checkAsset(id);
@@ -228,13 +298,15 @@ export function pagesFolder(root, { validate = () => [], dir = PAGES_DIR } = {})
       const stamp = new Date().toISOString().replace(/[:.]/g, "-");
       const to = path.join(trashAbs, `${id}-${stamp}${SUFFIX}`);
       await fsp.rename(abs, to);
-      // Its comments go with it.
-      const comments = path.join(pagesAbs, `${id}${COMMENTS_SUFFIX}`);
-      try {
-        const stat = await fsp.lstat(comments);
-        if (stat.isFile() && !stat.isSymbolicLink()) await fsp.rename(comments, path.join(trashAbs, `${id}-${stamp}${COMMENTS_SUFFIX}`));
-      } catch {
-        // no comments
+      // Its comments and its Figma base go with it.
+      for (const suffix of [COMMENTS_SUFFIX, FIGMA_BASE_SUFFIX]) {
+        const beside = path.join(pagesAbs, `${id}${suffix}`);
+        try {
+          const stat = await fsp.lstat(beside);
+          if (stat.isFile() && !stat.isSymbolicLink()) await fsp.rename(beside, path.join(trashAbs, `${id}-${stamp}${suffix}`));
+        } catch {
+          // none beside it
+        }
       }
       return { id, trashed: true, to: path.relative(root, to).split(path.sep).join("/") };
     },
