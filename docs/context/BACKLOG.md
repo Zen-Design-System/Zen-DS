@@ -29,11 +29,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   paste (instances by `componentKey`, as Figma's own copies carry). The rest of the parity list closed on 2026-10-23
   (Copy for Figma in a copy event, grid cards' heights, the pack at 7.7 MB; the slot and alias differences kept by
   design). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §8.
-- **P3 · A bare horizontal BarChart in Figma keeps its 290px height (2026-10-23, found in the live check of the chart
-  push; plugin repo):** a chart pushed without a ChartCard hides its Heading, but the instance stays at the component's
-  fixed height, so the Chart fills it and the Values column (space between) drifts from the rows (vertical charts just
-  grow their plot). The fix is the plugin importer's: shrink an instance by a layer it hides, or hug it once its Plot is
-  back to the sample's size (`studio-import.js` INSTANCE branch). In a ChartCard the rows line up.
 - **ListItem Value in Figma — decided, not built (user, 2026-10-23: "not now"; 2026-10-13: "code first"):** code has
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
