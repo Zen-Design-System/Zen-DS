@@ -1,0 +1,352 @@
+{
+ "note": "Pull from Figma reader output (figmaReadCode) of a QA frame in the Zen file, 2026-10-23: a Badge-Status with its ring at 80, Property-Field rows whose Status ring is at 60 and whose Value-Slot holds three people and three labels (figma-property.mjs). The bed had no icon library, so Icon-Src kept its sample.",
+ "frame": {
+  "type": "FRAME",
+  "id": "17093:3",
+  "name": "QA Props",
+  "file": "9nZv4uW2LT21yuHabMTCh1",
+  "width": 390,
+  "height": 844,
+  "key": "nmvklyzgq3dth",
+  "page": "qa-props",
+  "children": [
+   {
+    "type": "INSTANCE",
+    "id": "17094:139",
+    "name": "Badge-Status",
+    "set": {
+     "id": "16932:195",
+     "name": "Badge-Status"
+    },
+    "props": {
+     "Status": "In Review",
+     "Size": "Medium"
+    },
+    "text": "In Review",
+    "arcs": [
+     {
+      "path": "Leading",
+      "name": "Progress",
+      "arc": {
+       "start": 4.71238899230957,
+       "end": 9.738937377929688,
+       "inner": 0
+      }
+     }
+    ],
+    "texts": [
+     {
+      "name": "Label",
+      "characters": "In Review"
+     }
+    ],
+    "key": "nmvklyzgq4d6j",
+    "nameGiven": false,
+    "minW": 28
+   },
+   {
+    "type": "INSTANCE",
+    "id": "17094:150",
+    "name": "Input/Property-Field",
+    "set": {
+     "id": "16923:6031",
+     "name": "Input/Property-Field"
+    },
+    "props": {
+     "Action": false,
+     "Icon-Src": "icon-loading-02-line",
+     "Icon": true,
+     "Label": "Status"
+    },
+    "text": "Status",
+    "nested": [
+     {
+      "path": "Value/Status",
+      "set": {
+       "id": "16932:195",
+       "name": "Badge-Status"
+      },
+      "props": {
+       "Status": "In Progress",
+       "Size": "Medium"
+      },
+      "text": "In Progress"
+     }
+    ],
+    "texts": [
+     {
+      "name": "Label",
+      "characters": "Status"
+     }
+    ],
+    "arcs": [
+     {
+      "path": "Value/Status/Leading",
+      "name": "Progress",
+      "arc": {
+       "start": 4.71238899230957,
+       "end": 8.4822998046875,
+       "inner": 0
+      }
+     }
+    ],
+    "key": "nmvklyzgq5q02",
+    "nameGiven": false
+   },
+   {
+    "type": "INSTANCE",
+    "id": "17094:173",
+    "name": "Input/Property-Field",
+    "set": {
+     "id": "16923:6031",
+     "name": "Input/Property-Field"
+    },
+    "props": {
+     "Action": false,
+     "Icon-Src": "icon-loading-02-line",
+     "Icon": true,
+     "Label": "Assignee"
+    },
+    "text": "Assignee",
+    "nested": [
+     {
+      "path": "Value",
+      "set": {
+       "id": "16921:6022",
+       "name": ".Primitives/Input/Property-Value"
+      },
+      "props": {
+       "Type": "Person",
+       "State": "Inputted"
+      },
+      "text": "Alex Duong"
+     }
+    ],
+    "texts": [
+     {
+      "name": "Label",
+      "characters": "Assignee"
+     }
+    ],
+    "innerSlots": [
+     {
+      "name": "Value-Slot",
+      "within": "Value",
+      "children": [
+       {
+        "type": "INSTANCE",
+        "id": "a",
+        "name": "Person",
+        "set": {
+         "id": "288:32046",
+         "name": "Tag"
+        },
+        "props": {
+         "Icon-Src": "icon-marker-pin-01-solid",
+         "Label": true,
+         "Theme": "Leading-Photo",
+         "State": "Default",
+         "Remove": "Yes"
+        },
+        "text": "Alex Duong",
+        "texts": [
+         {
+          "name": "Label",
+          "characters": "Alex Duong"
+         }
+        ],
+        "key": "k0",
+        "nameGiven": false
+       },
+       {
+        "type": "INSTANCE",
+        "id": "b",
+        "name": "Person",
+        "set": {
+         "id": "288:32046",
+         "name": "Tag"
+        },
+        "props": {
+         "Icon-Src": "icon-marker-pin-01-solid",
+         "Label": true,
+         "Theme": "Leading-Photo",
+         "State": "Default",
+         "Remove": "Yes"
+        },
+        "text": "Sun Hung",
+        "texts": [
+         {
+          "name": "Label",
+          "characters": "Sun Hung"
+         }
+        ],
+        "key": "k1",
+        "nameGiven": false
+       },
+       {
+        "type": "INSTANCE",
+        "id": "c",
+        "name": "Person",
+        "set": {
+         "id": "288:32046",
+         "name": "Tag"
+        },
+        "props": {
+         "Icon-Src": "icon-marker-pin-01-solid",
+         "Label": true,
+         "Theme": "Leading-Photo",
+         "State": "Default",
+         "Remove": "Yes"
+        },
+        "text": "Lan Pham",
+        "texts": [
+         {
+          "name": "Label",
+          "characters": "Lan Pham"
+         }
+        ],
+        "key": "k2",
+        "nameGiven": false
+       }
+      ]
+     }
+    ],
+    "key": "nmvklyzgq7h6n",
+    "nameGiven": false
+   },
+   {
+    "type": "INSTANCE",
+    "id": "17094:259",
+    "name": "Input/Property-Field",
+    "set": {
+     "id": "16923:6031",
+     "name": "Input/Property-Field"
+    },
+    "props": {
+     "Action": false,
+     "Icon-Src": "icon-loading-02-line",
+     "Icon": true,
+     "Label": "Labels"
+    },
+    "text": "Labels",
+    "nested": [
+     {
+      "path": "Value",
+      "set": {
+       "id": "16921:6022",
+       "name": ".Primitives/Input/Property-Value"
+      },
+      "props": {
+       "Type": "Tags",
+       "State": "Inputted"
+      },
+      "text": "Design System"
+     }
+    ],
+    "texts": [
+     {
+      "name": "Label",
+      "characters": "Labels"
+     }
+    ],
+    "innerSlots": [
+     {
+      "name": "Value-Slot",
+      "within": "Value",
+      "children": [
+       {
+        "type": "INSTANCE",
+        "id": "d",
+        "name": "Tag-1",
+        "set": {
+         "id": "260:4825",
+         "name": "Badge"
+        },
+        "props": {
+         "Text": "Design System",
+         "Remove": true,
+         "Size": "Medium",
+         "Theme": "Blue",
+         "Background": "Subtle"
+        },
+        "text": "Design System",
+        "texts": [
+         {
+          "name": "Label",
+          "characters": "Design System"
+         }
+        ],
+        "key": "k3",
+        "nameGiven": false
+       },
+       {
+        "type": "INSTANCE",
+        "id": "e",
+        "name": "Tag-2",
+        "set": {
+         "id": "260:4825",
+         "name": "Badge"
+        },
+        "props": {
+         "Text": "UI Design",
+         "Remove": true,
+         "Size": "Medium",
+         "Theme": "Orange",
+         "Background": "Subtle"
+        },
+        "text": "UI Design",
+        "texts": [
+         {
+          "name": "Label",
+          "characters": "UI Design"
+         }
+        ],
+        "key": "k4",
+        "nameGiven": false
+       },
+       {
+        "type": "INSTANCE",
+        "id": "f",
+        "name": "Tag-3",
+        "set": {
+         "id": "260:4825",
+         "name": "Badge"
+        },
+        "props": {
+         "Text": "QA",
+         "Remove": true,
+         "Size": "Medium",
+         "Theme": "Neutral",
+         "Background": "Subtle"
+        },
+        "text": "QA",
+        "texts": [
+         {
+          "name": "Label",
+          "characters": "QA"
+         }
+        ],
+        "key": "k5",
+        "nameGiven": false
+       }
+      ]
+     }
+    ],
+    "key": "nmvklyzgq9zp5",
+    "nameGiven": false
+   }
+  ],
+  "layout": {
+   "mode": "VERTICAL",
+   "gap": 8,
+   "gapVar": "Spacing/Gap/XSmall",
+   "padding": [
+    20,
+    20,
+    20,
+    20
+   ],
+   "paddingVar": "Spacing/Padding/Large"
+  }
+ }
+}

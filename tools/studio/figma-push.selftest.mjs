@@ -522,7 +522,7 @@ export default function Page() {
   check("ChartCard ranges: items Medium Secondary (Figma's item starts Small Primary), splitting the full-width switch", line.slots[0].children.map((item) => [item.props.Size, item.props.Level, item.fillW]), [["Medium", "Secondary", true], ["Medium", "Secondary", true]]);
   const hugging = push(DASH.replace('range="revenue"', 'range="revenue" rangesFullWidth={false}'));
   const hugLine = find(hugging.frame, (node) => node.set?.name === "Chart/Line-Chart");
-  check("ChartCard rangesFullWidth={false}: the Segmented and its Item-List hug, items hug", [hugLine.nested, hugLine.slots[0].hugW, hugLine.slots[0].children.map((item) => Boolean(item.fillW))], [[{ path: "Segmented", hugW: true }], true, [false, false]]);
+  check("ChartCard rangesFullWidth={false}: the Segmented and its Item-List hug, items hug", [hugLine.nested.filter((item) => !/^Sector-/.test(item.path)), hugLine.slots[0].hugW, hugLine.slots[0].children.map((item) => Boolean(item.fillW))], [[{ path: "Segmented", hugW: true }], true, [false, false]]);
   const segmented = push(DASH.replace("<Text>One</Text>", '<Segmented level="primary" size="sm" defaultValue="w" options={[{ id: "d", label: "Day" }, { id: "w", label: "Week" }]} />'));
   const seg = find(segmented.frame, (node) => node.set?.name === "Segmented");
   check("Segmented: as wide as its items (not fullWidth), its items its Level and Size, the selected one Select Yes", [seg.hugW, seg.slots[0].hugW, seg.slots[0].children.map((item) => [item.text, item.props.Level, item.props.Size, item.props.Select])], [true, true, [["Day", "Primary", "Small", "No"], ["Week", "Primary", "Small", "Yes"]]]);
@@ -1864,7 +1864,7 @@ export default function Page() {
   check("palette=\"secondary\": the drawn marks swap Sector/Primary and /Secondary (a stack's first series, a donut's first slice)", [styles(charts[2])[0], styles(charts[4])[0]], ["Color Chart Sector/Secondary", "Color Chart Sector/Secondary"]);
   check("a chart on its own: every header toggle off, its Heading hidden, the code's defaults (Area: no legend, Bar: Vertical)", bare.map((chart) => [chart.props["Show Icon"], chart.props["Show Ranges"], chart.props["Show Open"], chart.hide, chart.props["Show Legend"] ?? chart.props.Orientation]), [[false, false, false, ["Heading"], false], [false, false, false, ["Heading"], "Vertical"]]);
   check("a chart in a ChartCard keeps its own key (its element id); the card the ChartCard's", cards.every((card) => card.key && card.slots[0].children[0].key && card.key !== card.slots[0].children[0].key), true);
-  ok("notes: Figma draws its own sample data, once per kind", notes.some((note) => /^LineChart: Figma's Chart\/Line-Chart draws its own sample data/.test(note)) && notes.some((note) => /^BulletChart: Figma's Chart\/Bullet-Chart draws its own sample data/.test(note)));
+  ok("notes: Figma draws its own sample data (Bullet), or its sample marks under the page's labels (Line), once per kind", notes.some((note) => /^LineChart: Figma's Chart\/Line-Chart draws its own sample marks \(the page's labels, axis and Tooltip are written\)/.test(note)) && notes.some((note) => /^BulletChart: Figma's Chart\/Bullet-Chart draws its own sample data/.test(note)));
   ok("no note that a chart has no Figma component", !notes.some((note) => /Chart.*no Figma component/.test(note)));
   const five = push(CHARTS.replace('{ label: "Mar", value: 1 }, { label: "Apr", value: 1 }, ', "").replace("[1, 1, 1, 1, 1, 1, 1]", "[1, 1, 1, 1, 1]"));
   check("LineChart compare, 5 points: the nearest Sector (4 or 6), with a note", [five.frame.children[1].slots[0].children[0].props.Sector, five.notes.some((note) => /5 points; Figma's Chart\/Multi-Line-Chart has 4, 6, 7 or 12 sectors \(4 drawn\)/.test(note))], ["4-Sectors", true]);
@@ -1891,6 +1891,50 @@ export default function Page() {
   const again = push(back).frame;
   const sets = (node) => [node.set?.name?.startsWith("Chart/") ? [node.set.name, node.props.Sector ?? node.props.Orientation ?? node.props.Type ?? node.props.Legend ?? "", node.props.Title ?? ""] : null, ...[...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)].flatMap(sets)].filter(Boolean);
   check("round trip twice: the same sets, variants and titles", sets(again), sets(frame));
+}
+
+// Line, Bar, Area, Grouped-Bar and Combo with the page's data (the user, 2026-10-23): X labels, six Y labels, the active
+// Tooltip, in the page's number format; the marks stay Figma's sample shapes.
+{
+  const LABELLED = `// @zen-page {"format":1,"title":"Labels"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AreaChart, BarChart, ComboChart, GroupedBarChart, LineChart, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Labels" device="desktop">
+        <Stack gap="md">
+          <LineChart aria-label="Revenue" format="currency" data={[{ label: "Apr", value: 82300 }, { label: "May", value: 91800 }, { label: "Jun", value: 88400 }, { label: "Jul", value: 94100 }, { label: "Aug", value: 97000 }, { label: "Sep", value: 105700 }]} />
+          <BarChart aria-label="Hours" data={[{ label: "Mon", value: 6 }, { label: "Tue", value: 7 }, { label: "Wed", value: 8 }, { label: "Thu", value: 5 }, { label: "Fri", value: 9 }, { label: "Sat", value: 3 }, { label: "Sun", value: 2 }]} />
+          <BarChart orientation="horizontal" aria-label="Capacity" data={[{ label: "Design", value: 2650 }, { label: "Engineering", value: 1990 }, { label: "Delivery", value: 750 }]} />
+          <AreaChart aria-label="Billable hours" currency="EUR" series={[{ id: "h", label: "Hours" }]} data={[{ label: "Q1", values: { h: 1500 } }, { label: "Q2", values: { h: 1700 } }, { label: "Q3", values: { h: 2210 } }]} />
+          <GroupedBarChart aria-label="Invoiced vs collected" series={[{ id: "a", label: "A" }, { id: "b", label: "B" }]} data={[{ label: "Apr", values: { a: 82300, b: 79500 } }, { label: "May", values: { a: 91800, b: 90100 } }, { label: "Jun", values: { a: 88400, b: 86000 } }, { label: "Jul", values: { a: 94100, b: 91700 } }, { label: "Aug", values: { a: 97000, b: 95800 } }, { label: "Sep", values: { a: 105700, b: 88300 } }]} />
+          <ComboChart aria-label="Revenue and margin" barLabel="Revenue" lineLabel="Margin" format="currency" lineFormat="percent" lineMax={100} data={[{ label: "Q1", bar: 82300, line: 31 }, { label: "Q2", bar: 91800, line: 34 }, { label: "Q3", bar: 88400, line: 29 }, { label: "Q4", bar: 105700, line: 41 }]} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(LABELLED);
+  const [line, bar, hbar, area, grouped, combo] = frame.children;
+  const edit = (node, ...layer) => node.edits?.find((item) => JSON.stringify(item.layer) === JSON.stringify(layer))?.characters;
+  const prop = (node, path, name) => node.nested?.find((item) => item.path === path)?.props?.[name];
+  check("Line: Sector labels from the data, the last period selected with its Tooltip in the page's format", [prop(line, "Sector-1", "Label"), prop(line, "Sector-6", "Select"), prop(line, "Sector-5", "Select"), prop(line, "Sector-6/Tooltip/Text", "Text")], ["Apr", "Selected Highlight", "Default", "$105.7K"]);
+  check("Line: six Y labels top to bottom, formatted", [0, 5].map((i) => edit(line, ".Chart/Line-Chart/Trend", `>Label[${i}]`)), ["$125K", "$0"]);
+  check("Bar (vertical): X labels on the ticks, six Y labels", [edit(bar, "X-Axis", ">Tick[0]", "Label"), edit(bar, "X-Axis", ">Tick[6]", "Label"), edit(bar, "Y-Axis", ">Label[0]"), edit(bar, "Y-Axis", ">Label[5]")], ["Mon", "Sun", "10", "0"]);
+  check("Bar (vertical): the Tooltip reads the column Figma highlights (Sat in 7-Sectors)", prop(bar, "Tooltip/Text", "Text"), "3");
+  ok("Bar (vertical): a note when the page's active bar is another", notes.some((note) => /Chart\/Bar-Chart highlights period 6; the page's active period is 7/.test(note)));
+  const hidden = (node, ...layer) => node.edits?.find((item) => JSON.stringify(item.layer) === JSON.stringify(layer))?.visible;
+  check("Bar (horizontal): category labels, values, four value-axis labels; a row past the data hidden, its value empty", [edit(hbar, "Categories", ">Category[0]", "Label"), edit(hbar, "Values", ">Value[2]", "Label"), edit(hbar, "Grid", ">Tick[3]", "Label"), hidden(hbar, "Categories", ">Category[3]"), hidden(hbar, "Bars", ">Track[3]"), edit(hbar, "Values", ">Value[3]", "Label")], ["Design", "750", "3K", false, false, ""]);
+  check("Area: X ticks by Figma's sample names (Q1 …) in EUR (currency alone); the Tooltip on Figma's last period, past the data, hidden", [edit(area, "X-Axis", ">Tick[0]", ">Q1"), edit(area, "X-Axis", ">Tick[3]", ">Q4"), edit(area, "Y-Axis", ">2.5K"), prop(area, "Tooltip/Text", "Text"), area.edits.find((item) => item.layer[0] === "Tooltip-Anchor")?.visible], ["Q1", "", "\u20ac2.5K", undefined, false]);
+  const fullArea = push(LABELLED.replace('{ label: "Q3", values: { h: 2210 } }]', '{ label: "Q3", values: { h: 2210 } }, { label: "Q4", values: { h: 2400 } }]')).frame.children[3];
+  check("Area: four periods in 4-Sectors, the Tooltip reads the last", prop(fullArea, "Tooltip/Text", "Text"), "\u20ac2.4K");
+  check("Grouped-Bar: X ticks named Apr … Sep in 6-Sectors, Y labels named $125K …", [edit(grouped, "X-Axis", ">Tick[5]", ">Sep"), edit(grouped, "Y-Axis", ">$125K"), grouped.nested?.length ?? 0], ["Sep", "125K", 0]);
+  check("Combo: both axes, the line's in lineFormat on lineMax", [edit(combo, "Y-Axis", ">$125K"), edit(combo, "Y-Axis-End", ">50%"), edit(combo, "Y-Axis-End", ">0%")], ["$125K", "100%", "0%"]);
 }
 
 // Card Theme=Solid and Color (2026-10-14): written as Figma's variant, Neutral where Figma has none (a Solid hue it does
@@ -2417,13 +2461,38 @@ export default function Page() {
   check("PropertyField: one Input/Property-Field per row, Label in its text property", rows.map((row) => row.props.Label), ["Status", "Priority", "Start Date", "Due Date", "Assignee", "Labels", "Sprint"]);
   check("PropertyField: Icon on with an icon (its swap), off without; Action on with action", [rows[0].props.Icon, rows[0].props["Icon-Src"], rows[6].props.Icon, rows[4].props.Action, rows[0].props.Action], [true, "icon-loading-02-line", false, true, false]);
   check("PropertyField: the nested Value's Type and State from the cell", rows.map((row) => row.nested?.[0]?.props && [row.nested[0].path, row.nested[0].props.Type, row.nested[0].props.State]), [["Value", "Status", "Inputted"], ["Value", "Select", "Inputted"], ["Value", "Date", "Default"], ["Value", "Date", "Inputted"], ["Value", "Person", "Inputted"], ["Value", "Tags", "Inputted"], ["Value", "Text", "Editing"]]);
-  check("PropertyField: the content in the Value's layers", [rows[0].nested[1], rows[1].nested[0].texts, rows[1].nested[1], rows[3].nested[0].texts, rows[4].nested[1], rows[5].nested[1], rows[5].hide, rows[6].nested[0].texts],
-    [{ path: "Value/Status", props: { Status: "Done" } }, { Value: "Urgent" }, { path: "Value/Leading", props: { Tone: "Negative" }, swapIcon: "icon-flag-01-solid" }, { Value: "June 7, 2026" }, { path: "Value/Person", props: {}, text: "Alex Duong" }, { path: "Value/Tag-1", props: { Theme: "Blue" }, text: "Design System" }, ["Tag-2"], { Value: "Sprint 42" }]);
+  check("PropertyField: the content in the Value's layers", [rows[0].nested[1], rows[1].nested[0].texts, rows[1].nested[1], rows[3].nested[0].texts, rows[6].nested[0].texts],
+    [{ path: "Value/Status", props: { Status: "Done" } }, { Value: "Urgent" }, { path: "Value/Leading", props: { Tone: "Negative" }, swapIcon: "icon-flag-01-solid" }, { Value: "June 7, 2026" }, { Value: "Sprint 42" }]);
+  // People and Tags fill the Value's Value-Slot (Figma since 2026-10-23): a Person Tag per person, a Badge per label.
+  const slotted = (row) => row.slots?.filter((slot) => slot.name === "Value-Slot" && slot.within === "Value").flatMap((slot) => slot.children.map((child) => [child.set.name, child.text ?? child.textList?.[0], child.props.Theme]));
+  check("PropertyField: People and Tags in the Value-Slot", [slotted(rows[4]), slotted(rows[5]), rows[5].hide ?? []], [[["Tag", "Alex Duong", "Leading-Photo"]], [["Badge", "Design System", "Blue"]], []]);
   ok("PropertyField: no note about its cell (every cell drawn)", !notes.some((note) => /PropertyField/.test(note) && /value cell/.test(note)));
   const back = pageFromFigma(frame, { mapping }).text;
   ok("pull: BadgeStatus comes back (Size as its long spelling)", /<BadgeStatus status="in-review" size="small" \/>/.test(back));
   ok("pull: a row whose label is Figma's default keeps it (label is required)", back.includes('<PropertyField label="Status" icon="icon-loading-02-line">'));
   ok("pull: PropertyField rows come back with their cells", ['<PropertyStatus defaultValue="done" />', '<PropertyDate defaultValue="2026-06-07" />', '<PropertyText state="editing" defaultValue="Sprint 42" />', "<PropertyDate />"].every((cell) => back.includes(cell)) && /<PropertyTags defaultValue=\{\["design-system"\]\} options=\{\[\{ value: "design-system", label: "Design System", theme: "blue" \}\]\} \/>/.test(back));
+}
+
+{
+  // PropertyField ↔ Figma gaps (BACKLOG P3, 2026-10-23): every person and label goes in the Value-Slot, and a ring's
+  // progress (BadgeStatus, the Status cell) is the Progress arc; both come back.
+  const many = PROPERTIES.replace('<PropertyPeople defaultValue={["alex"]} options={[{ value: "alex", label: "Alex Duong" }]} />', '<PropertyPeople defaultValue={["alex", "sun", "lan"]} options={[{ value: "alex", label: "Alex Duong" }, { value: "sun", label: "Sun Hung" }, { value: "lan", label: "Lan Pham" }]} />')
+    .replace('<PropertyTags defaultValue={["ds"]} options={[{ value: "ds", label: "Design System", theme: "blue" }]} />', '<PropertyTags defaultValue={["ds", "ui", "qa"]} options={[{ value: "ds", label: "Design System", theme: "blue" }, { value: "ui", label: "UI Design", theme: "orange" }, { value: "qa", label: "QA" }]} />')
+    .replace('<PropertyStatus defaultValue="done" />', '<PropertyStatus defaultValue="in-progress" progress={60} />')
+    .replace('<BadgeStatus status="in-review" size="sm" />', '<BadgeStatus status="in-review" size="sm" progress={80} />\n          <BadgeStatus status="done" progress={100} />');
+  const { frame, notes } = push(many);
+  const all = []; const walk = (node) => { all.push(node); (node.children ?? []).forEach(walk); (node.slots ?? []).forEach((slot) => slot.children.forEach(walk)); }; walk(frame);
+  const rows = all.filter((node) => node.set?.name === "Input/Property-Field");
+  const [ring, own] = all.filter((node) => node.set?.name === "Badge-Status");
+  const names = (row) => row.slots?.[0]?.children.map((child) => child.text ?? child.textList?.[0]);
+  check("push: a Person Tag's avatar shows the person's first letter", rows[4].slots?.[0]?.children.map((child) => child.nested?.[0]?.text), ["A", "S", "L"]);
+  check("push: three people, three labels in the Value-Slot (no note)", [names(rows[4]), names(rows[5]), rows[5].slots?.[0]?.children.map((child) => child.props.Theme), notes.filter((note) => /shows the first/.test(note)).length], [["Alex Duong", "Sun Hung", "Lan Pham"], ["Design System", "UI Design", "QA"], ["Blue", "Orange", "Neutral"], 0]);
+  const arcOf = (node, path) => node.nested?.find((entry) => entry.path === path)?.arcs?.Progress;
+  const turn = (arc) => arc && Math.round(((arc.end - arc.start) / (2 * Math.PI)) * 100);
+  check("push: a ring's progress is its Progress arc from the top (BadgeStatus, the Status cell); a status' own value writes none", [arcOf(ring, "Leading")?.start, turn(arcOf(ring, "Leading")), turn(arcOf(rows[0], "Value/Status/Leading")), arcOf(own, "Leading")], [1.5 * Math.PI, 80, 60, undefined]);
+  const back = pageFromFigma(frame, { mapping }).text;
+  ok("pull: the people and labels come back, each an option", back.includes('<PropertyPeople defaultValue={["alex-duong", "sun-hung", "lan-pham"]}') && back.includes('{ value: "ui-design", label: "UI Design", theme: "orange" }') && back.includes('{ value: "qa", label: "QA", theme: "neutral" }'));
+  ok("pull: the progress comes back on BadgeStatus and the Status cell", /<BadgeStatus status="in-review" size="small" progress=\{80\} \/>/.test(back) && back.includes('<PropertyStatus defaultValue="in-progress" progress={60} />') && /<BadgeStatus status="done" \/>/.test(back));
 }
 
 {
