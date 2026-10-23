@@ -25,6 +25,8 @@ import { detachShown, rowOf, useDetachPlan } from "./detach";
 import { cellDataTarget } from "../table/tableCells";
 import { pictureCode, pictureExpression, resolveMedia } from "../builder/library/media";
 import { UPLOAD_ONLY_LOCAL } from "../edit/assets/picture";
+import { repoValueFor } from "../edit/assets/repoMedia";
+import { ASSET_PREFIX } from "../builder/assets/uploads";
 import { writeAtUse } from "./callSite";
 import { DetachAction } from "./DetachAction";
 import { ExportSection } from "./ExportSection";
@@ -547,6 +549,11 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
     },
     setProp: (name, value) => {
       if (!element) return;
+      // An upload picked on a repo page is saved in the repo first (edit/assets/repoMedia.ts), then written as that file.
+      if (typeof value === "string" && value.startsWith(ASSET_PREFIX) && !element.file.startsWith("local:") && propSpecs(element.name).find((spec) => spec.name === name)?.editor.kind === "photo") {
+        void repoValueFor(element.file, value).then((next) => (typeof next === "string" ? api.setProp(name, next) : inspectorStatus.set("negative", next.error)));
+        return;
+      }
       const current = overrides[name] ?? displayValueOf(element.name, element.attributes, name, live);
       // A .map row on a page you made: "This row" makes a fixed value this row's own (op setRowProp: the rows get a
       // field, the element reads it); "All rows" writes the value on the layer, a binding to the row's field included.
@@ -670,7 +677,8 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   const sizingSpecs = sizing ? specs.filter((spec) => sizingPropNames.has(spec.name)) : [];
   // position, constraintX/Y and inset* of Stack, Grid and Box go to the Position section (ActionBar keeps its own position).
   const positioned = ["Stack", "Grid", "Box", "Shape"].includes(name);
-  const positionSpecs = positioned ? specs.filter((spec) => (positionProps as readonly string[]).includes(spec.name)) : [];
+  // sticky is Figma's Scroll behavior: the Prototype tab's (PrototypePanel), so it is no Properties row either.
+  const positionSpecs = positioned ? specs.filter((spec) => (positionProps as readonly string[]).includes(spec.name) || spec.name === "sticky") : [];
   const layoutSpecs = isLayout ? specs.filter((spec) => isLayoutProp(name, spec.name) && !sizingSpecs.includes(spec) && !positionSpecs.includes(spec)) : [];
   const textSpecs = isText ? specs.filter((spec) => textProps.has(spec.name)) : [];
   // Box fill, border, corners and effect; Image corners: the Appearance and Effects sections (Figma UI3), not Properties.

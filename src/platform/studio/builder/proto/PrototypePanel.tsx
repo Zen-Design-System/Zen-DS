@@ -20,7 +20,7 @@ import { playStartOf, startPlay } from "./playStart";
 import { defaultTarget, writeAction, writeItemTargets, writeProp, type ProtoLayer } from "./protoEdit";
 import { selectedItem } from "./protoDom";
 import {
-  ACTIONS, actionsFor, ANIMATIONS, choiceItemsOf, columnsOf, DEFAULT_ANIMATION, DEFAULT_DELAY, DEFAULT_DIRECTION, DEFAULT_DURATION, DELAY_TRIGGER, filterOf, frameNodeOf, framesOf,
+  ACTIONS, actionsFor, ANIMATIONS, choiceItemsOf, columnsOf, DEFAULT_ANIMATION, DEFAULT_DELAY, DEFAULT_DIRECTION, DEFAULT_DURATION, DELAY_TRIGGER, filterOf, findNode, frameNodeOf, framesOf,
   HOVER_TRIGGER, isItemTrigger, layerNameOf, layersIn, literalOf, moves, openerOf, optionsOf, protoOf, stepOf, targetLayerOf, targetsByItem, triggerLabel,
   type ChoiceItem, type ProtoAction, type ProtoAnimation, type ProtoDirection, type ProtoDuration, type ProtoFilter, type ProtoFrame, type ProtoOptions, type ProtoStep,
 } from "./protoModel";
@@ -43,6 +43,8 @@ import { anchorsItself, placesItself, protoSubject, takesText, type ProtoSubject
  * - Option C (user, 2026-10-23): Navigate to lists each Screen's states (Figma: every frame is a target); Filter table
  *   names the Table, its column and the value (none: what the trigger hands over); Change step goes Next or Previous on
  *   the Screen's Stepper.
+ * - Scroll behavior of a selected frame (Stack, Grid, Box, Shape): Figma's Position when scrolling, written as `sticky`
+ *   (spec docs/research/layout-sticky-spec-2026-10-23.md). The canvas draws it in place; Play and Present stick it.
  */
 
 /** What Add overlay puts in the new Overlay: a component that places itself, or a Card the Overlay places. */
@@ -67,6 +69,8 @@ export function PrototypePanel() {
   const frameNode = selection?.kind === "frame" ? frameNodeOf(tree, selection.frameId) : null;
   const subject = src && src.file === file ? protoSubject(tree, src.loc) : frameNode ? protoSubject(tree, frameNode.loc) : null;
   const overlayNode = subject?.node.name === "Overlay" ? subject.node : null;
+  const selectedNode = src && src.file === file ? findNode(tree, src.loc) : null;
+  const scrolls = selectedNode && STICKY_LAYERS.has(selectedNode.name) ? selectedNode : null;
   // An item of a choice control (a SidebarMenuItem) shows its control's interactions, that item marked.
   const via = subject?.item ? choiceItemsOf(subject.node).find((item) => item.value === subject.item)?.label ?? subject.item : null;
   const selectedFrame = selection?.kind === "frame" ? selection.frameId : selection?.kind === "node" ? selection.frameId : null;
@@ -104,6 +108,7 @@ export function PrototypePanel() {
           <Text tone="base" textStyle="Body/Small/Regular">Select a layer, then drag its ⊕ onto a screen.</Text>
         </InspectorSection>
       )}
+      {scrolls ? <ScrollBehavior key={`scroll:${scrolls.loc}`} node={scrolls} file={file} disabled={!editable} /> : null}
     </div>
   );
 }
@@ -448,5 +453,29 @@ function OverlayFields({ node, file, disabled }: { node: PageNode; file: string;
       <InspectorFields name="overlay:closeOnOutside" fields={[<Toggle key="close" label="Close on outside press" checked={closes} disabled={disabled} onCheckedChange={(next) => void writeProp(layer, "closeOnOutside", next ? null : { kind: "boolean", value: false }, next ? "Close on outside press" : "Stay open on outside press")} />]} />
       <InspectorFields name="overlay:background" fields={[<Toggle key="background" label="Dim the screen behind" checked={background} disabled={disabled} onCheckedChange={(next) => void writeProp(layer, "background", next ? { kind: "boolean", value: true } : null, next ? "Dim behind the overlay" : "No dim behind the overlay")} />]} />
     </div>
+  );
+}
+
+/** The frames that take `sticky` (position.ts): Figma lets any frame or shape fix its position when scrolling. */
+const STICKY_LAYERS = new Set(["Stack", "Grid", "Box", "Shape"]);
+const STICKY_OPTIONS = [
+  { value: "none", label: "Scroll with parent" },
+  { value: "top", label: "Stick to top" },
+  { value: "bottom", label: "Stick to bottom" },
+];
+
+/** Figma's Scroll behavior › Position: the layer scrolls with its parent, or sticks to the top or bottom of the page
+ *  while it scrolls (`sticky`). */
+function ScrollBehavior({ node, file, disabled }: { node: PageNode; file: string; disabled: boolean }) {
+  const layer: ProtoLayer = { file, loc: node.loc, name: node.name };
+  const written = literalOf(node, "sticky");
+  const value = written === "top" || written === "bottom" ? written : "none";
+  return (
+    <InspectorSection title="Scroll behavior">
+      <InspectorRow label="Position" name="scroll:sticky">
+        <RowSelectField aria-label="Position when scrolling" size="sm" disabled={disabled} value={value} options={STICKY_OPTIONS}
+          onValueChange={(next) => void writeProp(layer, "sticky", next === "none" ? null : { kind: "string", value: next }, STICKY_OPTIONS.find((entry) => entry.value === next)?.label ?? next)} />
+      </InspectorRow>
+    </InspectorSection>
   );
 }

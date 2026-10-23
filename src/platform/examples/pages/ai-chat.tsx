@@ -329,7 +329,7 @@ function AssistantHomeExample() {
                 ))}
               </AiChatThread>
             </Box>
-            <Box className="px-ai-chat-dock">{field}</Box>
+            <Box sticky="bottom" surface="canvas">{field}</Box>
           </>
         ) : (
           <Box className="px-ai-chat-home">
@@ -621,8 +621,8 @@ const field = <AiChatField fieldStyle="surface" placeholder="Ask Zen AI" model={
           </AiChatBubble>
         ))}
       </AiChatThread>
-      {/* position: sticky at the bottom of the window, on the page's Canvas */}
-      {field}
+      {/* Docked at the bottom of the window, on the page's Canvas */}
+      <Box sticky="bottom" surface="canvas">{field}</Box>
     </>
   )}
 </AppShell>`,

@@ -6,6 +6,7 @@ import { scaleKey } from "../_shared/scale";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./slider.css";
 import "../Icon/core";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const sliderThemes = ["neutral", "accent", "white"] as const;
 export const sliderSizes = ["small", "medium", "large"] as const;
@@ -47,7 +48,7 @@ export interface SliderProps {
  * Figma Slider/Horizontal (4010:35946): a rounded Neutral/Subtle rail with a filled track inset 1px that ends at the
  * thumb (.Primitives/Slider/Slide-Dot). A native range input on top provides keyboard, pointer and screen-reader support.
  */
-export function Slider({ value, defaultValue = 50, onValueChange, onChange, min = 0, max = 100, step = 1, theme = "neutral", size: sizeProp = "md", disabled = false, icon = "icon-star-93-solid", showLimits = false, valueText, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, className, ref }: SliderProps) {
+export function Slider({ value, defaultValue = 50, onValueChange, onChange, min = 0, max = 100, step = 1, theme = "neutral", size: sizeProp = "md", disabled = false, icon = "icon-star-93-solid", showLimits = false, valueText, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, className, ref, ...rest }: SliderProps) {
   const size = scaleKey(sizeProp, sliderSizes);
   const [raw, setValue] = useControllableState({ value, defaultValue, onChange: (next: number) => { onValueChange?.(next); onChange?.(next); }, name: "Slider value" });
   const current = Math.min(max, Math.max(min, raw));
@@ -55,7 +56,7 @@ export function Slider({ value, defaultValue = 50, onValueChange, onChange, min 
   const resolvedTheme = theme === "white" && size === "small" ? "neutral" : theme;
   const limitsId = useId();
   return (
-    <div ref={ref} className={["zen-slider", className].filter(Boolean).join(" ")} data-tone={resolvedTheme} data-size={size} data-disabled={disabled ? "true" : undefined} style={{ "--zen-slider-ratio": ratio } as CSSProperties}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-slider", className].filter(Boolean).join(" ")} data-tone={resolvedTheme} data-size={size} data-disabled={disabled ? "true" : undefined} style={{ "--zen-slider-ratio": ratio } as CSSProperties}>
       <div className="zen-slider__control">
         <input
           className="zen-slider__input"

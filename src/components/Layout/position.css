@@ -30,3 +30,9 @@
 :is(.zen-stack, .zen-grid, .zen-box, .zen-shape)[data-position="absolute"][data-constraint-y="center"] { top: 0; bottom: 0; margin-block: auto; }
 /* As above. Block-axis fit-content is already relied on by layout.css (data-h="hug"). */
 :is(.zen-stack, .zen-grid, .zen-box, .zen-shape)[data-position="absolute"][data-constraint-y="center"]:not([data-h="fixed"]) { height: fit-content; }
+
+/* Figma "Fix position when scrolling" (position.ts `sticky`): in flow, stuck to the nearest scrolling ancestor's edge,
+   above the content that scrolls under it (the docks' layer). Absolute wins: the rule skips absolute layers. */
+:is(.zen-stack, .zen-grid, .zen-box, .zen-shape)[data-sticky]:not([data-position="absolute"]) { position: sticky; z-index: 3; }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-shape)[data-sticky="top"]:not([data-position="absolute"]) { top: 0; }
+:is(.zen-stack, .zen-grid, .zen-box, .zen-shape)[data-sticky="bottom"]:not([data-position="absolute"]) { bottom: 0; }

@@ -2,6 +2,7 @@ import { useMemo, type CSSProperties, type Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import "./chart.css";
 import { ChartBlock, ChartLegend, PlotFrame, SeriesValues, colourAt, defaultFormat, niceScale, signatureOf, staggerStyle, useChartSelection, type ChartDatum, type ChartPaletteName, type ChartSeries } from "./chartCore";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export interface GroupedBarChartProps {
   /** One group per period or category, a value per series id (`{ label: "Sep", values: { invoiced: 105700, collected: 88300 } }`).
@@ -43,7 +44,7 @@ export interface GroupedBarChartProps {
  * which reads every series' value after its dot. The legend (Figma Show Legend) sits Spacing/Gap/Medium under the plot,
  * its items Spacing/Gap/Small apart. ←/→ and Home/End move between groups; hover picks one.
  */
-export function GroupedBarChart({ data, series, format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, palette = "primary", ref }: GroupedBarChartProps) {
+export function GroupedBarChart({ data, series, format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, palette = "primary", ref, ...rest }: GroupedBarChartProps) {
   const t = useZenLabels();
   const values = data.map((d) => series.map((s) => Math.max(0, d.values[s.id] ?? 0)));
   const signature = signatureOf([series.map((s) => s.id), values]);
@@ -54,7 +55,7 @@ export function GroupedBarChart({ data, series, format = defaultFormat, height =
   const summary = current && series.length ? `${current.label}: ${series.map((s) => `${s.label} ${valueOf(s)}`).join(", ")} (${t.chartPoint(active! + 1, data.length)})` : t.noData;
   const legend = showLegend && series.length ? <ChartLegend gap="small" items={series.map((s, si) => ({ id: s.id, label: s.label, color: colourAt(s, si, palette) }))} /> : undefined;
   return (
-    <ChartBlock ref={ref} kind="grouped-bar" legend={legend} position={legendPosition} palette={palette}>
+    <ChartBlock {...dataAttributes(rest)} ref={ref} kind="grouped-bar" legend={legend} position={legendPosition} palette={palette}>
       <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel}
         activeLine="neutral" className={["zen-chart--grouped", className].filter(Boolean).join(" ")} kind="bar" animate={animate} summary={summary}
         tooltip={current ? <SeriesValues items={series.map((s, si) => ({ id: s.id, color: colourAt(s, si, palette), value: valueOf(s) }))} /> : null}>

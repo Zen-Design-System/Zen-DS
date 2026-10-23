@@ -3,6 +3,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
 import { ChartBlock, ChartLegend, ChartSummary, defaultFormat, niceScale, sectorAt, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartLegendPosition, type ChartPaletteName } from "./chartCore";
+import { dataAttributes } from "../_shared/data-attributes";
 
 /** One goal of a BulletChart: what it measures, where it stands and where it should be. */
 export interface ChartBullet {
@@ -58,7 +59,7 @@ export interface BulletChartProps {
  * Figma Chart/Bullet-Chart 15968:130554 (Color=Primary 15487:2516 · Secondary ↔ `palette`; the chart body and Show Legend; the
  * header is ChartCard's).
  */
-export function BulletChart({ data, actualLabel, targetLabel, showLegend = true, legendPosition = "bottom", format, "aria-label": ariaLabel, className, initialIndex, animate = true, palette = "primary", ref }: BulletChartProps) {
+export function BulletChart({ data, actualLabel, targetLabel, showLegend = true, legendPosition = "bottom", format, "aria-label": ariaLabel, className, initialIndex, animate = true, palette = "primary", ref, ...rest }: BulletChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? null, "vertical");
@@ -76,7 +77,7 @@ export function BulletChart({ data, actualLabel, targetLabel, showLegend = true,
     <ChartLegend gap="small" align="start" items={[{ id: "actual", label: actualLabel ?? t.chartActual, color: sectorAt(0, palette) }, { id: "target", label: targetLabel ?? t.chartTarget, color: sectorAt(1, palette) }]} />
   ) : undefined;
   return (
-    <ChartBlock ref={ref} kind="bullet" legend={legend} position={legendPosition} palette={palette}>
+    <ChartBlock {...dataAttributes(rest)} ref={ref} kind="bullet" legend={legend} position={legendPosition} palette={palette}>
       <div className={["zen-chart", "zen-chart--bullet", className].filter(Boolean).join(" ")} data-kind="bullet" data-animate={animate ? undefined : "false"}>
         <div className="zen-chart__bullets" role="group" aria-roledescription="chart" aria-label={ariaLabel} aria-describedby={`${id}-summary`} tabIndex={0}
           onKeyDown={onKeyDown} onBlur={() => setActive(null)} onPointerLeave={(event) => { if (!event.currentTarget.contains(document.activeElement)) setActive(null); }}

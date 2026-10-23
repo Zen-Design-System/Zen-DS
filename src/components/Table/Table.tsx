@@ -20,6 +20,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./table.css";
 import "../Motion/motion.css";
 import "../Icon/core";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export type TableAlign = "left" | "right";
 export type TableSortDirection = "asc" | "desc";
@@ -728,7 +729,7 @@ function fixedWidth(width: string | undefined) {
 
 /** Figma Primitives/Table/Cell/Text-Cell (1603:3247): Label (Body/Base Regular or Bold, Strongest) + optional Subtext
  * (Caption/Regular 11/16, Light), gap 3XSmall — the same Subtext every Avatar/Photo/Icon/Dock cell renders. */
-export function TableText({ ref, children, caption, bold = false }: {
+export function TableText({ ref, children, caption, bold = false, ...rest }: {
   /** Forwarded to the root `<span>` element. */
   ref?: Ref<HTMLSpanElement>;
   /** The cell's label. */
@@ -739,7 +740,7 @@ export function TableText({ ref, children, caption, bold = false }: {
   bold?: boolean;
 }) {
   return (
-    <span ref={ref} className="zen-table-text">
+    <span {...dataAttributes(rest)} ref={ref} className="zen-table-text">
       <span className={`zen-table-text__label ${typographyStyles[bold ? "Body/Base/Bold" : "Body/Base/Regular"]}`}>{children}</span>
       {caption ? <span className={`zen-table-text__caption ${typographyStyles["Caption/Regular"]}`}>{caption}</span> : null}
     </span>
@@ -749,7 +750,7 @@ export function TableText({ ref, children, caption, bold = false }: {
 /** Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a visual + Text-Cell (gap Small). The visual follows
  * the Subtext: Avatar/Photo/Dock Icon XSmall 24px (Icon base 20px) without a caption, Small 32px (Icon lg 28px) with one.
  * `bold` (Figma Bold, default No in every media cell): the label in Body/Base/Bold instead of Body/Base/Regular. */
-export function TableMedia({ ref, media, children, caption, bold = false }: {
+export function TableMedia({ ref, media, children, caption, bold = false, ...rest }: {
   /** Forwarded to the root `<span>` element. */
   ref?: Ref<HTMLSpanElement>;
   /** The visual: Avatar, photo, Icon or DockIcon. */
@@ -762,7 +763,7 @@ export function TableMedia({ ref, media, children, caption, bold = false }: {
   bold?: boolean;
 }) {
   return (
-    <span ref={ref} className="zen-table-media">
+    <span {...dataAttributes(rest)} ref={ref} className="zen-table-media">
       <span className="zen-table-media__visual">{media}</span>
       <TableText caption={caption} bold={bold}>{children}</TableText>
     </span>
@@ -772,7 +773,7 @@ export function TableMedia({ ref, media, children, caption, bold = false }: {
 export type TableTrendDirection = "up" | "down" | "neutral";
 /** Figma Trend-Cell (1603:14279): a Medium Subtle Badge — Up green with icon-trend-up-01-line, Down red with
  * icon-trend-down-01-line, Neutral grey with icon-minus-line. */
-export function TableTrend({ ref, trend, children }: {
+export function TableTrend({ ref, trend, children, ...rest }: {
   /** Forwarded to the root `<span>` element (the Badge). */
   ref?: Ref<HTMLSpanElement>;
   /** Direction: up (green), down (red) or neutral (grey). */
@@ -780,34 +781,34 @@ export function TableTrend({ ref, trend, children }: {
   /** The Badge text. */
   children: ReactNode;
 }) {
-  return trendBadge(trend, children, ref);
+  return trendBadge(trend, children, ref, rest);
 }
 
 /** The Badge of a Trend-Cell (TableTrend, and a column's `content: "trend"`, where it is the cell's own layer). */
-function trendBadge(trend: TableTrendDirection, children: ReactNode, ref?: Ref<HTMLSpanElement>) {
+function trendBadge(trend: TableTrendDirection, children: ReactNode, ref?: Ref<HTMLSpanElement>, data?: object) {
   const theme = trend === "up" ? "green" : trend === "down" ? "red" : "neutral";
   const icon: IconName = trend === "up" ? "icon-trend-up-01-line" : trend === "down" ? "icon-trend-down-01-line" : "icon-minus-line";
-  return <Badge ref={ref} size="medium" theme={theme} background="subtle" leading={<Icon name={icon} decorative />}>{children}</Badge>;
+  return <Badge {...dataAttributes(data ?? {})} ref={ref} size="medium" theme={theme} background="subtle" leading={<Icon name={icon} decorative />}>{children}</Badge>;
 }
 
 /** Figma Badge-Cell (1603:6158): an Items slot of Badge/Size=Medium, gap 2XSmall. */
-export function TableBadges({ ref, children }: {
+export function TableBadges({ ref, children, ...rest }: {
   /** Forwarded to the root `<span>` element. */
   ref?: Ref<HTMLSpanElement>;
   /** The Badges. */
   children: ReactNode;
 }) {
-  return <span ref={ref} className="zen-table-items">{children}</span>;
+  return <span {...dataAttributes(rest)} ref={ref} className="zen-table-items">{children}</span>;
 }
 
 /** Figma Tag-Cell (1603:23304): an Items slot of Tag (Medium), gap 2XSmall. */
-export function TableTags({ ref, children }: {
+export function TableTags({ ref, children, ...rest }: {
   /** Forwarded to the root `<span>` element. */
   ref?: Ref<HTMLSpanElement>;
   /** The Tags. */
   children: ReactNode;
 }) {
-  return <span ref={ref} className="zen-table-items">{children}</span>;
+  return <span {...dataAttributes(rest)} ref={ref} className="zen-table-items">{children}</span>;
 }
 
 /** A row field as text: a string or a number, else nothing. */
@@ -931,11 +932,11 @@ function RowActions<T>({ actions, row, index, nest }: { actions: TableRowAction<
 }
 
 /** Figma Actions-Cell: icon buttons (Button/Icon-Flat Medium), gap XSmall, aligned to the cell's end. */
-export function TableActions({ ref, children }: {
+export function TableActions({ ref, children, ...rest }: {
   /** Forwarded to the root `<span>` element. */
   ref?: Ref<HTMLSpanElement>;
   /** The icon buttons. */
   children: ReactNode;
 }) {
-  return <span ref={ref} className="zen-table-actions">{children}</span>;
+  return <span {...dataAttributes(rest)} ref={ref} className="zen-table-actions">{children}</span>;
 }

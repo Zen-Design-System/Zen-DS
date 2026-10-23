@@ -3,6 +3,7 @@ import { Icon, type IconName } from "../Icon";
 import { scaleKey } from "../_shared/scale";
 import "./dock-icon.css";
 import "../Icon/core";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const dockIconSizes = ["xsmall", "small", "medium", "large", "xlarge", "2xlarge"] as const;
 export const dockIconSupportColors = ["blue", "bronze", "brown", "crimson", "cyan", "golden", "green", "indigo", "mint", "orange", "pink", "plum", "purple", "red", "sky", "teal", "violet", "yellow"] as const;
@@ -36,12 +37,12 @@ export interface DockIconProps {
  * marks in lists, tables and cards. Solid → Content/On-Colors (Neutral: Inverse/Strongest); Subtle → Content/<colour>/Light
  * (Neutral: Neutral/Base). Re-synced from the live file 2026-10-09.
  */
-export function DockIcon({ icon = "icon-star-93-solid", emoji, size: sizeProp = "md", theme = "neutral", background = "solid", label, className, ref }: DockIconProps) {
+export function DockIcon({ icon = "icon-star-93-solid", emoji, size: sizeProp = "md", theme = "neutral", background = "solid", label, className, ref, ...rest }: DockIconProps) {
   const size = scaleKey(sizeProp, dockIconSizes);
   const resolvedBackground = theme === "pale" ? "subtle" : ["inverse", "on-color", "surface", "emoji"].includes(theme) ? "solid" : background;
   const glyph = theme === "emoji" ? <span className="zen-dock-icon__emoji">{emoji ?? "😊"}</span> : <Icon name={icon} decorative />;
   return (
-    <span ref={ref} className={["zen-dock-icon", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-background={resolvedBackground} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
+    <span {...dataAttributes(rest)} ref={ref} className={["zen-dock-icon", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-background={resolvedBackground} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
       {glyph}
     </span>
   );

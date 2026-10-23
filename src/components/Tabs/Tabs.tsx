@@ -9,6 +9,7 @@ import "./tabs.css";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useControllableState } from "../_shared/use-controllable-state";
 import { useMergedRefs } from "../_shared/merge-refs";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const tabSizes = ["medium", "small", "large"] as const;
 export const tabVariants = ["indicator", "subtle"] as const;
@@ -109,7 +110,7 @@ export interface TabsProps {
 }
 
 /** Figma Tab-Bar (1577:5477). Roving tabindex: ←/→ move and select, Home/End jump, disabled tabs are skipped. */
-export function Tabs({ ref, items: itemsProp, children, value, defaultValue, onValueChange, onChange, size: sizeProp = "md", variant = "indicator", fullWidth = false, "aria-label": ariaLabel, idPrefix, className, overrides }: TabsProps) {
+export function Tabs({ ref, items: itemsProp, children, value, defaultValue, onValueChange, onChange, size: sizeProp = "md", variant = "indicator", fullWidth = false, "aria-label": ariaLabel, idPrefix, className, overrides, ...rest }: TabsProps) {
   const nest = useNested(overrides);
   const size = scaleKey(sizeProp, tabSizes);
   const items: TabOption[] = itemsProp ?? slotItems(children, TabItem).map((tab, index) => ({
@@ -140,7 +141,7 @@ export function Tabs({ ref, items: itemsProp, children, value, defaultValue, onV
     listRef.current?.querySelector<HTMLElement>(`[id="${CSS.escape(`${prefix}-tab-${next.id}`)}"]`)?.focus();
   };
   return (
-    <div ref={rootRef} role="tablist" aria-label={ariaLabel} aria-orientation="horizontal" className={["zen-tabs", className].filter(Boolean).join(" ")} data-variant={variant} data-size={size} data-full-width={fullWidth ? "true" : undefined} onKeyDown={onKeyDown}>
+    <div {...dataAttributes(rest)} ref={rootRef} role="tablist" aria-label={ariaLabel} aria-orientation="horizontal" className={["zen-tabs", className].filter(Boolean).join(" ")} data-variant={variant} data-size={size} data-full-width={fullWidth ? "true" : undefined} onKeyDown={onKeyDown}>
       {items.map((item) => nest("Tab-Item", (
         <TabItem
           key={item.id}
@@ -163,7 +164,7 @@ export function Tabs({ ref, items: itemsProp, children, value, defaultValue, onV
 }
 
 /** Panel paired with a tab: `<TabPanel idPrefix="settings" id="general" hidden={tab !== "general"}>`. */
-export function TabPanel({ idPrefix, id, children, hidden, className, ref }: {
+export function TabPanel({ idPrefix, id, children, hidden, className, ref, ...rest }: {
   idPrefix: string;
   id: string;
   children: ReactNode;
@@ -172,5 +173,5 @@ export function TabPanel({ idPrefix, id, children, hidden, className, ref }: {
   /** Ref to the panel's root `<div>`. */
   ref?: Ref<HTMLDivElement>;
 }) {
-  return <div ref={ref} role="tabpanel" id={`${idPrefix}-panel-${id}`} aria-labelledby={`${idPrefix}-tab-${id}`} hidden={hidden} tabIndex={0} className={["zen-tab-panel", className].filter(Boolean).join(" ")}>{children}</div>;
+  return <div {...dataAttributes(rest)} ref={ref} role="tabpanel" id={`${idPrefix}-panel-${id}`} aria-labelledby={`${idPrefix}-tab-${id}`} hidden={hidden} tabIndex={0} className={["zen-tab-panel", className].filter(Boolean).join(" ")}>{children}</div>;
 }

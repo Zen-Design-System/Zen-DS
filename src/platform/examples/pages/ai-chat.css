@@ -1,13 +1,10 @@
 /* AI Chat examples. */
 
 /* Assistant home (AppShell desktop): the Body pads the page. The greeting sits in the middle of the free space; once a
-   conversation starts, the thread fills the page and the field docks at the bottom of the window on the shell's Canvas,
-   keeping the page margin below it in place of the Body's, so the answers scroll under it. */
+   conversation starts, the thread fills the page and the field docks at the bottom of the window on the shell's Canvas
+   (Box sticky="bottom" surface="canvas": the Body's bottom margin moves inside it), so the answers scroll under it. */
 .px-ai-chat-home { display: flex; min-height: 0; flex: 1 1 auto; align-items: center; justify-content: center; }
 .px-ai-chat-desk__thread { flex: 1 1 auto; padding-block-end: var(--zen-spacing-padding-xlarge, 24px); }
-/* zen-allow-canvas-layer: the dock is the page itself continuing under the docked field (the shell's own Canvas), so the
-   answers scroll under the field instead of showing through the margin below it. */
-.px-ai-chat-dock { position: sticky; z-index: 3; bottom: 0; margin-block-end: calc(-1 * var(--zen-margin-comfortable, 24px)); padding-block-end: var(--zen-margin-comfortable, 24px); background: var(--zen-app-shell-canvas, var(--zen-color-background-canvas-default, #f7f7f7)); }
 /* The docked field lines up with the conversation column (AiChatThread: max 800, centred). */
 .px-ai-chat-column { width: 100%; max-width: 800px; margin-inline: auto; }
 
