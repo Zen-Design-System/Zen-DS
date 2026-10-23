@@ -2,6 +2,34 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-24 (B: the Studio editor group, PR #265)
+
+- Done / closed 2026-10-24 (#265): (2) built (a `.map` row's resize previews every row, E2E DA-10); (1) closed by the user ("Theo đề xuất": keep the resize as Figma does it).
+  **P3 · Studio resize leftovers (2026-10-03/06; rewritten 2026-10-24):** (1) an item with a Fixed width alone in a px
+  Grid column still edits its own width on a drag (`select/ResizeLayer.tsx` ~732: no grid cell while that width would
+  stay); resizing the column and clearing that width needs one request touching two elements (server op), M. (2) A
+  `.map` drag previews only the pressed instance while its pill says "all N" (`preview()` ~367 sizes `drag.host` only),
+  S–M.
+- Done 2026-10-24 (#265): the dev server sends `zen-studio:drafts`; E2E D-07.
+  **P3 · Studio drafts, live push (2026-10-02):** other browsers learn about a draft or a stale disk by the 10 s poll,
+  focus or visibility (`src/platform/studio/sourceDrafts.ts` ~31, ~121); a Vite ws event (`zen-studio:drafts`) from the
+  plugin, as `zen-studio:pages-changed` does (`tools/studio/vite-plugin-zen-studio.mjs` ~173), would show it at once. S.
+- Done / closed 2026-10-24 (#265, user "Theo đề xuất"): (b) A built (a const shown on a condition moves with its `{…}`; slot-audit --op=move 22 → 4, the 4 are a const shown twice in one Stack; E2E ST-29); (b) computed `.map` rows not built (they keep "edit it in the code"); the atom-string slots closed (swapped in Properties); (a) closed (a remove + insert gives the same draft as an edit).
+  **P3 · Studio slots: what still says "edit it in the code" (2026-10-08/09; rewritten 2026-10-24):** (a) remove +
+  insert of a same-named element in one slot is matched as the same element by "Modified" (`tools/studio/slots.mjs`
+  matchElements ~2109; a selftest case first), S–M. (b) `node tools/studio/slot-audit.mjs --ops` lists the moves still
+  refused with the reason (`tools/studio/items.mjs` ~59–89): an element of a condition held in a const (12 on 10-09), an
+  atom slot holding a string (41: EmptyState `icon="…"`, swapped in Properties), `.map` rows whose list is computed
+  (33). Re-run the counts; decision (user): which to build (M–L each).
+- Closed 2026-10-24 (#265, user "Theo đề xuất": not wanted); editability-audit's B4 classes relabelled.
+  **P3 · Studio object props: a per-row override (2026-10-04; rewritten 2026-10-24):** bound, conditional and loop-bound
+  props are editable since 10b1b91c (a fixed value, the data item at its source, or every row; E2E I-09…I-11, IN-18,
+  IN-19). Left from B4: an override of one row that leaves the shared data alone. Decision (user): wanted (L)? If not,
+  relabel the "B4" classes of `tools/studio/editability-audit.mjs` (~210).
+- Done 2026-10-24 (#265): E2E ST-28.
+  **P3 · Studio E2E row for ungroup (2026-10-05; rewritten 2026-10-24):** TopNavigation item ops have E2E ST-23 (drag
+  swap) and ST-24 (drop to group); `ungroupItem` has only a selftest (`tools/studio/items.selftest.mjs` ~278). S.
+
 ## Archived 2026-10-24 (triage of "Backlog (plan before opening sessions)")
 
 Every entry checked against main 545216b6 (code, git history, two Figma variable reads); its verdict precedes it. Kept
