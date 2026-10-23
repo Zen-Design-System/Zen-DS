@@ -21,6 +21,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Global Colors' Zen-High-Contrast mode under Increase Contrast — with `.zenSystemContext()` / `with(colorScheme:contrast:)`
   / `with(traits:)` in Swift and `ZenContext.fromMediaQuery` / `withSystem` in Dart, plus `ZenContext.highContrast`; the
   test vectors cover the high-contrast mode (1218 vectors, from 830) (2026-10-23).
+- Charts take `palette="primary" | "secondary"`, Figma's Color on Bar, Stack-Bar, Area, Grouped-Bar, Combo, Donut,
+  Radial, Gauge, Funnel and Bullet: `secondary` leads with Chart/Sector/Secondary (Neutral Deep) and keeps
+  Sector/Primary for the highlight (the active bar, the target, the second series; one area takes the Neutral fade).
+  Zen Studio pushes and pulls it as Color; the harness warns (`chart/palette-by-hand`) when the two sector colours are
+  set by hand (2026-10-23).
 - ChatComposer: the default quick action (👍 "Send a like", when an app passes no `quickAction`) sends "👍" through
   `onSend`; it was a button that did nothing (2026-10-23).
 - AppShell: on a phone the Bar's TopNavigation takes the canvas's twin, as Figma pairs them: Alt on the default canvas

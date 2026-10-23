@@ -2,7 +2,7 @@ import { useMemo, type CSSProperties, type Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartLegend, PlotFrame, SeriesValues, chartPalette, defaultFormat, niceScale, signatureOf, staggerStyle, useChartSelection } from "./chartCore";
+import { ChartBlock, ChartLegend, PlotFrame, SeriesValues, defaultFormat, niceScale, sectorAt, signatureOf, staggerStyle, useChartSelection, type ChartPaletteName } from "./chartCore";
 
 /** One period of a ComboChart: the bar's value (start axis) and the line's value (end axis). */
 export interface ChartComboDatum { label: string; bar: number; line: number }
@@ -38,11 +38,10 @@ export interface ComboChartProps {
   /** Grow the bars from the baseline and wipe the line in from the left on mount and when the data changes (default
    *  true; reduced motion fades). */
   animate?: boolean;
+  /** Figma Color: `primary` (default) draws Color Chart Sector/Primary bars and a Sector/Secondary line; `secondary`
+   *  draws Sector/Secondary bars and a Sector/Primary line and dots. */
+  palette?: ChartPaletteName;
 }
-
-/** The bars and the line: Figma Color Chart Sector/Primary and Secondary. */
-const BAR = chartPalette[0];
-const LINE = chartPalette[1];
 
 /** The end axis' step for `count` steps that reach `max`: 1 · 2 · 2.5 · 5 × 10ⁿ, as niceScale picks the start axis'. */
 function stepFor(max: number, count: number) {
@@ -53,7 +52,7 @@ function stepFor(max: number, count: number) {
 const round = (value: number) => Math.round(value * 1e6) / 1e6;
 
 /**
- * Figma Chart/Combo-Chart (15485:2519): two measures over the same periods on two axes. Bars (Color Chart Sector/Primary,
+ * Figma Chart/Combo-Chart (15485:2519; Color=Primary · Secondary ↔ `palette`): two measures over the same periods on two axes. Bars (Color Chart Sector/Primary,
  * 20px, half the period's column with room to spare, up to 40px; Corner-Radius/XSmall on the top corners) read the start axis; a straight 2px Color Chart Sector/Secondary line
  * (round caps) with an 8px dot on every period (Surface/Default, 2px ring) reads the end axis. Both axes take
  * Label/Small/Medium in Content/Neutral/Light, Spacing/Padding/XSmall from the plot (the start one right-aligned, the end
@@ -63,8 +62,12 @@ const round = (value: number) => Math.round(value * 1e6) / 1e6;
  * Legend) names both measures Spacing/Gap/Medium under the plot, its items Spacing/Gap/Small apart. ←/→ and Home/End
  * move between periods; hover picks one.
  */
-export function ComboChart({ data, barLabel, lineLabel, format = defaultFormat, lineFormat = defaultFormat, lineMax, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, ref }: ComboChartProps) {
+export function ComboChart({ data, barLabel, lineLabel, format = defaultFormat, lineFormat = defaultFormat, lineMax, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, palette = "primary", ref }: ComboChartProps) {
   const t = useZenLabels();
+  // The bars and the line: Figma Color Chart Sector/Primary and Secondary, swapped by `palette` (CSS reads chart.css
+  // --zen-chart-lead / -second).
+  const BAR = sectorAt(0, palette);
+  const LINE = sectorAt(1, palette);
   const bars = data.map((d) => Math.max(0, d.bar));
   const line = data.map((d) => Math.max(0, d.line));
   const signature = signatureOf([bars, line, lineMax ?? null]);
@@ -80,7 +83,7 @@ export function ComboChart({ data, barLabel, lineLabel, format = defaultFormat, 
   const summary = current ? `${current.label}: ${barLabel} ${format(current.bar)}, ${lineLabel} ${lineFormat(current.line)} (${t.chartPoint(active! + 1, data.length)})` : t.noData;
   const legend = showLegend ? <ChartLegend gap="small" items={[{ id: "bar", label: barLabel, color: BAR }, { id: "line", label: lineLabel, color: LINE }]} /> : undefined;
   return (
-    <ChartBlock ref={ref} kind="combo" legend={legend} position={legendPosition}>
+    <ChartBlock ref={ref} kind="combo" legend={legend} position={legendPosition} palette={palette}>
       <div className={["zen-chart-combo", className].filter(Boolean).join(" ")} style={{ "--zen-chart-height": `calc(${height}px + var(--zen-chart-grow, 0px))` } as CSSProperties}>
         <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel}
           activeLine="neutral" className="zen-chart--combo" kind="bar" animate={animate} summary={summary}
