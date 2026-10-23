@@ -1066,6 +1066,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     const drawn = chartFigma(element.name, values, notes, where);
     if (!drawn) return null;
     if (!drawn.drawn) notes.push(`${element.name}: Figma's ${drawn.set.name} draws its own sample data`);
+    else if (drawn.drawn === "labels") notes.push(`${element.name}: Figma's ${drawn.set.name} draws its own sample marks (the page's labels, axis and Tooltip are written)`);
     const { set } = drawn;
     // The page's data in the set's slots, nested instances and own layers (Stack-Bar, Donut: figma-charts.mjs marks).
     const marks = { ...(drawn.edits ? { edits: drawn.edits } : {}) };

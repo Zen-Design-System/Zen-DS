@@ -1,7 +1,7 @@
 import { useMemo, type CSSProperties, type Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import "./chart.css";
-import { ChartBlock, ChartLegend, PlotFrame, SeriesValues, colourAt, defaultFormat, niceScale, signatureOf, staggerStyle, useChartSelection, type ChartDatum, type ChartPaletteName, type ChartSeries } from "./chartCore";
+import { ChartBlock, ChartLegend, PlotFrame, SeriesValues, colourAt, formatOf, niceScale, signatureOf, staggerStyle, useChartSelection, type ChartDatum, type ChartFormat, type ChartPaletteName, type ChartSeries } from "./chartCore";
 import { dataAttributes } from "../_shared/data-attributes";
 
 export interface GroupedBarChartProps {
@@ -11,8 +11,12 @@ export interface GroupedBarChartProps {
   /** The compared series, 2–3, side by side in each group in this order (harness: chart/grouped-series-count). Colours
    *  walk the Figma styles Color Chart Sector/Primary · Secondary · Tertiary unless a series sets `color`. */
   series: ChartSeries[];
-  /** Formats axis labels, the Tooltip and the summary. Default: 1.2K. */
-  format?: (value: number) => string;
+  /** How axis labels, the Tooltip and the summary read: a function, or a preset a Zen Studio page can write as
+   *  text: `"compact"` 1.2K, `"currency"` $1.2K (in `currency`), `"percent"` 41%. Default: 1.2K. */
+  format?: ChartFormat;
+  /** The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies
+   *  `format="currency"`. */
+  currency?: string;
   /** Height of the plot in px, lanes included (36px above the grid for the Tooltip, 28px below it for the X labels). */
   height?: number;
   /** What the chart shows and over which range ("Invoiced and collected per month, Apr – Sep 2026"). */
@@ -44,7 +48,8 @@ export interface GroupedBarChartProps {
  * which reads every series' value after its dot. The legend (Figma Show Legend) sits Spacing/Gap/Medium under the plot,
  * its items Spacing/Gap/Small apart. ←/→ and Home/End move between groups; hover picks one.
  */
-export function GroupedBarChart({ data, series, format = defaultFormat, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, palette = "primary", ref, ...rest }: GroupedBarChartProps) {
+export function GroupedBarChart({ data, series, format: formatProp, currency, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, palette = "primary", ref, ...rest }: GroupedBarChartProps) {
+  const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   const values = data.map((d) => series.map((s) => Math.max(0, d.values[s.id] ?? 0)));
   const signature = signatureOf([series.map((s) => s.id), values]);

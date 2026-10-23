@@ -1294,6 +1294,23 @@
           "default": "area",
           "description": "Figma Type: `area` (default) — one measure as a line over its fading area; `stacked` — 2–4 series as fading bands stacked bottom-up with a line on top of each band, so the top line"
         },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How axis labels, the Tooltip and the summary read (`2,210 h`, `$23.4K`): a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `curr"
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+        },
         "height": {
           "type": "number",
           "default": 280,
@@ -1337,7 +1354,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "format ((value: number) => string)",
         "className (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
@@ -1899,6 +1915,23 @@
           "default": "vertical",
           "description": "`vertical` columns over periods (default) or `horizontal` bars for categories with longer names (Q1–Q4, teams)."
         },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How axis labels, the Tooltip and the summary read: a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41"
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+        },
         "height": {
           "type": "number",
           "default": 280,
@@ -1943,7 +1976,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "format ((value: number) => string)",
         "className (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
@@ -2022,6 +2054,23 @@
           "additionalProperties": false,
           "description": "Column labels above the rows: what the items are (start) and what the values measure (end), e.g."
         },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How each row's value and the summary read: a function (`(v) => \"$\" + v.toLocaleString(\"en-US\")` → \"$96,400\"), or a preset a Zen Studio page can write as text — `\"compact\"` 96.4K (t"
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+        },
         "aria-label": {
           "type": "string",
           "x-required": true,
@@ -2041,7 +2090,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "format ((value: number) => string)",
         "className (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
@@ -3366,6 +3414,23 @@
           "default": "bottom",
           "description": "Legend below the rows (default) or above them."
         },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How the value and the target of a row (\"$798K of $900K\") and the summary read."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+        },
         "aria-label": {
           "type": "string",
           "x-required": true,
@@ -3392,7 +3457,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "format ((value: number, row: ChartBullet) => string)",
         "className (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
@@ -6541,6 +6605,36 @@
           "x-required": true,
           "description": "What the line measures (\"Margin\"), named in the legend and the summary."
         },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How the bars' values and the start axis read (`$105.7K`): a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"perce"
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+        },
+        "lineFormat": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How the line's values and the end axis read (`41%`): a function or a preset, as `format`."
+        },
         "lineMax": {
           "type": "number",
           "description": "The top of the end axis (100 for a share in %)."
@@ -6589,8 +6683,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "format ((value: number) => string)",
-        "lineFormat ((value: number) => string)",
         "className (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
@@ -8097,6 +8189,23 @@
           "x-required": true,
           "description": "The shares of one total (`{ id, label, value }`), drawn clockwise from 12 o'clock in palette order."
         },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How the centre figure and the summary read: a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41%."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+        },
         "size": {
           "anyOf": [
             {
@@ -8176,7 +8285,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "format ((value: number) => string)",
         "className (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
@@ -9210,6 +9318,23 @@
           "x-required": true,
           "description": "One stage per step, first contact first (`{ label, value }`): each bar is as wide as its share of the first stage."
         },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How the counts under the stage names and in the summary read (the shares are whole percent of the first stage): a function, or a preset a Zen Studio page can write as text: `\"compa"
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+        },
         "aria-label": {
           "type": "string",
           "x-required": true,
@@ -9236,7 +9361,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "format ((value: number) => string)",
         "className (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
@@ -9321,6 +9445,23 @@
           "default": 240,
           "description": "Width of the half ring in px (default 240, as Figma); the ring is a tenth of it thick."
         },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How the figure, the target and the end labels read: a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 4"
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+        },
         "showLegend": {
           "type": "boolean",
           "description": "The legend names the value and the target (Figma Show Legend)."
@@ -9357,7 +9498,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "format ((value: number) => string)",
         "className (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
@@ -10202,6 +10342,23 @@
           "x-required": true,
           "description": "The compared series, 2–3, side by side in each group in this order (harness: chart/grouped-series-count)."
         },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How axis labels, the Tooltip and the summary read: a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41"
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+        },
         "height": {
           "type": "number",
           "default": 280,
@@ -10246,7 +10403,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "format ((value: number) => string)",
         "className (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
@@ -10619,6 +10775,23 @@
           "x-required": true,
           "description": "One value per row per column: `values[row][column]`."
         },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How the Tooltip and the summary read (\"14 sessions\"): a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"`"
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+        },
         "max": {
           "type": "number",
           "description": "The value of the deepest step."
@@ -10642,7 +10815,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "format ((value: number) => string)",
         "className (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
@@ -11516,6 +11688,23 @@
           "$ref": "#/$defs/ChartCompare",
           "description": "A comparison over the same periods — last year, the plan, what was collected — drawn as a 2px Border/Neutral/Solid line at 40%, dashed 4 / 5, with a legend (Figma Chart/Multi-Line-"
         },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How axis labels, the Tooltip and the summary read: a function (`(v) => v + \" GB\"`), or a preset a Zen Studio page can write as text — `\"compact\"` 1.2K (the default), `\"currency\"` $"
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+        },
         "height": {
           "type": "number",
           "default": 280,
@@ -11574,7 +11763,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "format ((value: number) => string)",
         "className (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
@@ -12589,6 +12777,23 @@
         "categories": {
           "description": "category-bar: the parts of the card's `value`, largest first (two to seven: the chart palette has seven colours)."
         },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How a number of `series`, `goal` and `categories` reads (the summary, the goal's label, each category's amount): a function, or a preset a Zen Studio page can write as text — `\"com"
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+        },
         "footer": {
           "x-kind": "node",
           "description": "Content under the type's own (Figma Hero: a Small Button — level=\"primary\" on a hue card, appearance=\"overlay\" level=\"inverse\" on Solid Neutral, as Figma's Button/Overlay Inverse)."
@@ -12749,7 +12954,6 @@
       "bindings": [],
       "excluded": [
         "ref (not for a generated UI)",
-        "format ((value: number) => string)",
         "className (not for a generated UI)",
         "overrides (not for a generated UI)"
       ]
@@ -14572,6 +14776,23 @@
           "default": 100,
           "description": "The value a full ring stands for (default 100: the values are percentages)."
         },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How the centre figure and the summary read: a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percent\"` 41% (the"
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+        },
         "size": {
           "anyOf": [
             {
@@ -14638,7 +14859,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "format ((value: number) => string)",
         "className (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
@@ -19372,6 +19592,23 @@
           "x-required": true,
           "description": "The stacked series, bottom first, in palette order unless a series sets `color`."
         },
+        "format": {
+          "anyOf": [
+            {
+              "enum": [
+                "compact",
+                "currency",
+                "percent"
+              ]
+            },
+            {}
+          ],
+          "description": "How axis labels, the Tooltip total and the summary read: a function, or a preset a Zen Studio page can write as text: `\"compact\"` 1.2K, `\"currency\"` $1.2K (in `currency`), `\"percen"
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of `format=\"currency\"`: an ISO 4217 code (\"USD\", the default; \"EUR\", \"VND\")."
+        },
         "height": {
           "type": "number",
           "default": 236,
@@ -19421,7 +19658,6 @@
       "requiredActions": [],
       "bindings": [],
       "excluded": [
-        "format ((value: number) => string)",
         "className (not for a generated UI)",
         "ref (not for a generated UI)"
       ]
@@ -24127,6 +24363,7 @@
         "Rank a BarList yourself, largest first, and fold the tail into \"Other\" past 8 rows (harness: chart/bar-list-ranked, chart/bar-list-rows); keep a BulletChart to 1–4 goals (harness: chart/bullet-rows); pass a GaugeChart its `max` when the value isn't a percentage (harness: chart/gauge-in-range); give a FunnelChart 3–6 stages in order, each no larger than the one before (harness: chart/funnel-stages).",
         "Give an AreaChart one series, or 2–4 with type=\"stacked\" (harness: chart/area-series-count); keep a GroupedBarChart to 2–3 series (harness: chart/grouped-series-count); name both measures of a ComboChart with barLabel and lineLabel (harness: chart/combo-needs-labels).",
         "Lead the card with the figure the chart explains (`value`) and say what it is (`description`).",
+        "Write money as money: format=\"currency\" (currency=\"EUR\" for another currency) or a function on code pages; a Zen Studio page holds only text, so there the preset is the way to show \"$128.4K\".",
         "Lead a chart with Sector/Secondary through palette=\"secondary\", never by passing the sector colours to color, activeColor or a series (harness: chart/palette-by-hand)."
       ],
       "dont": [

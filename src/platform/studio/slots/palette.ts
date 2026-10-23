@@ -147,19 +147,21 @@ const ref = (name: string, type: string): StateDecl => ({ name, initial: "null",
  * Widgets (docs/research/widget-patterns-spec-2026-10-14.md): one whole dashboard widget each, the code the platform's
  * Widgets page shows (examples/pages/widgets.tsx renders the same JSX; palette.selftest.mjs compares the two). The data is
  * Đìzai Studio's (examples/data.ts: its months, teams, clients and projects). A `format` callback is code a builder page
- * cannot hold: there (`builder`) the widget keeps the chart's own number format, and Figma draws its own sample data.
+ * cannot hold: there (`builder`) a money or percent callback becomes its text preset (`format="currency"`, `"percent"`),
+ * any other the chart's own number format; Figma draws its own sample data.
  */
 type WidgetSpec = Pick<PaletteItem, "id" | "label" | "caption" | "root" | "components" | "requires"> & {
   /** A control inside (the Hero's button): never in a click target. */
   interactive?: boolean;
-  /** The JSX; `fmt(prop, fn)` writes ` prop={fn}` in the code and nothing on a builder page; `act(args)` an action that
-   *  shows a toast: `() => toast(args)` in the code, `proto.toast(args)` on a builder page (its prototype runtime). */
+  /** The JSX; `fmt(prop, fn)` writes ` prop={fn}` in the code and its PRESETS text (or nothing) on a builder page;
+   *  `act(args)` an action that shows a toast: `() => toast(args)` in the code, `proto.toast(args)` on a builder page (its
+   *  prototype runtime). */
   code: (ctx: PaletteContext, fmt: (prop: string, fn: string) => string, act: (args: string) => string) => string;
 };
 const widget = ({ code, interactive = false, ...item }: WidgetSpec): PaletteItem => ({
   ...item, group: "Widgets", interactive, input: false,
   build: (ctx) => code(ctx, (prop, fn) => ` ${prop}={${fn}}`, (args) => `() => toast(${args})`),
-  builder: (ctx) => code(ctx, () => "", (args) => `proto.toast(${args})`),
+  builder: (ctx) => code(ctx, (prop, fn) => (PRESETS[fn] ? ` ${prop}="${PRESETS[fn]}"` : ""), (args) => `proto.toast(${args})`),
 });
 /** A ChartCard's headingLevel, written only when it is not its default 3. */
 const cardLevel = (ctx: PaletteContext) => { const n = Math.min(4, level(ctx)); return n === 3 ? "" : ` headingLevel={${n}}`; };
@@ -169,6 +171,8 @@ const MONEY = '(value) => `$${value.toLocaleString("en-US")}`';
 const HOURS = '(value) => `${value.toLocaleString("en-US")} h`';
 const PERCENT = '(value) => `${value}%`';
 const GOALS = '(value, row) => (row.label === "Revenue" ? `$${value / 1000}K` : row.label === "Utilisation" ? `${value}%` : `${value}`)';
+/** The text preset a builder page writes for a callback (chartCore ChartFormatPreset): money reads "$105.7K", a share "41%". */
+const PRESETS: Readonly<Record<string, "currency" | "percent">> = { [MONEY_K]: "currency", [MONEY]: "currency", [PERCENT]: "percent" };
 
 /** Everything the InsertPicker can add, in group order. */
 export const PALETTE: readonly PaletteItem[] = [

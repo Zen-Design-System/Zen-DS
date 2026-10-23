@@ -236,6 +236,9 @@ export const Good = () => <>
   <GroupedBarChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={data} series={[{ id: "invoiced", label: "Invoiced" }, { id: "collected", label: "Collected" }]} />
   <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" data={combo} barLabel="Revenue" lineLabel="Margin" lineMax={100} />
   <BarChart palette="secondary" aria-label="Revenue per month, Apr – Sep 2026" data={data} />
+  <LineChart aria-label="Revenue per month, Apr – Sep 2026" data={data} format="currency" />
+  <BarList aria-label="Revenue by client, 2026 so far" data={[{ label: "Lumen Bank", value: 96400 }, { label: "Phin & Co", value: 71200 }, { label: "Mekong Freight", value: 54800 }]} currency="EUR" />
+  <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" data={combo} barLabel="Revenue" lineLabel="Margin" format="currency" lineFormat="percent" />
   <GroupedBarChart palette="secondary" aria-label="Invoiced and collected per month, Apr – Sep 2026" data={data} series={[{ id: "invoiced", label: "Invoiced" }, { id: "collected", label: "Collected" }]} />
   <BarChart aria-label="Revenue per month, Apr – Sep 2026" data={data} color="var(--zen-color-background-support-cyan-solid)" />
   <TableMedia media={<Avatar size="small" theme="photo" src={photo} alt="" />} caption="Designer">Ava Chen</TableMedia>
