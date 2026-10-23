@@ -73,12 +73,25 @@ test("create: a default per mode, after its group's last variable; names unique 
   refused(() => applyVariableOps(semantic, [{ op: "create", name: "Color//Base", type: "COLOR" }], context()), "invalid", /between its/);
 });
 
-test("rename and delete are refused while something reads the variable; free ones go", () => {
+test("delete is refused while something reads the variable; a rename keeps a read name as formerNames (v2); free ones go", () => {
   const variables = variablesOf(files);
   assert.deepEqual(aliasReaders(variables, "Color/Content/Accent/Base"), ["Color/Border/Accent/Base"]);
   const readers = (name) => aliasReaders(variables, name);
-  refused(() => applyVariableOps(semantic, [{ op: "rename", name: "Color/Content/Accent/Base", to: "Color/Content/Accent/Main" }], context(readers)), "conflict", /read by Color\/Border\/Accent\/Base/);
   refused(() => applyVariableOps(semantic, [{ op: "delete", name: "Color/Content/Accent/Base" }], context(readers)), "conflict", /deleting it would break/);
+  // v2 (user 2026-10-23): renamed while aliased → the old name stays; code reading the Figma name by quotes refuses it.
+  const kept = applyVariableOps(semantic, [{ op: "rename", name: "Color/Content/Accent/Base", to: "Color/Content/Accent/Main" }], context(readers));
+  const main = readCollection(kept.text).tokens[0];
+  assert.deepEqual([main.name, main.formerNames], ["Color/Content/Accent/Main", ["Color/Content/Accent/Base"]]);
+  refused(() => applyVariableOps(semantic, [{ op: "rename", name: "Color/Content/Accent/Base", to: "Color/Content/Accent/Main" }], { ...context(readers), nameReaders: () => ["components/Link/Link.tsx"] }), "conflict", /by its name: renaming it would break/);
+  // The old name still resolves and still has its readers; another variable may not take it; renaming back frees it.
+  const after = variablesOf(new Map([...files, ["tokens/source/figma/mode-colors-semantic.json", kept.text]]));
+  assert.equal(resolveValue(after, "Color/Content/Accent/Base", "Light"), "#0090FF");
+  assert.deepEqual(aliasReaders(after, "Color/Content/Accent/Main"), ["Color/Border/Accent/Base"]);
+  refused(() => applyVariableOps(kept.text, [{ op: "rename", name: "Color/Border/Accent/Base", to: "Color/Content/Accent/Base" }], { variables: after, readers: () => [] }), "conflict", /old name of Color\/Content\/Accent\/Main/);
+  const back = applyVariableOps(kept.text, [{ op: "rename", name: "Color/Content/Accent/Main", to: "Color/Content/Accent/Base" }], { variables: after, readers: () => [] });
+  assert.deepEqual(Object.keys(readCollection(back.text).tokens[0]), ["name", "type", "valuesByMode"]);
+  // The plugin sees a rename (twin), formerNames being repo-only.
+  assert.deepEqual(variablesPackage(new Map([["s", semantic]]), new Map([["s", kept.text]])).changes.map((change) => [change.op, change.from, change.name]), [["rename", "Color/Content/Accent/Base", "Color/Content/Accent/Main"]]);
   const renamed = applyVariableOps(semantic, [{ op: "rename", name: "Color/Border/Accent/Base", to: "Color/Border/Accent/Main" }], context(readers));
   assert.equal(readCollection(renamed.text).tokens[1].name, "Color/Border/Accent/Main");
   const deleted = applyVariableOps(semantic, [{ op: "delete", name: "Color/Border/Accent/Base" }], context(readers));

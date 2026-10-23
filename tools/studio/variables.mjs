@@ -8,7 +8,9 @@
 //   applyVariableOps(text, ops, context) → { text, changed: [name], label }
 //   ops: { op: "setValue", name, mode, value }     value: "#RRGGBB[AA]" | number | string | boolean | { alias: name }
 //        { op: "create", name, type, after? }       type COLOR | FLOAT | STRING | BOOLEAN; every mode gets a default
-//        { op: "rename", name, to }                 refused while something reads it (context.readers)
+//        { op: "rename", name, to }                 refused while code reads its Figma name (context.nameReaders); a
+//                                                   name code reads by its CSS name or another variable aliases stays as
+//                                                   `formerNames` (v2: the build keeps --zen-old: var(--zen-new))
 //        { op: "duplicate", name, to? }             "<name> copy", numbered when taken
 //        { op: "delete", name }                     refused while something reads it
 //        { op: "meta", name, description?, scopes?, hiddenFromPublishing? }   Figma's Edit variable (Studio Variables v2,
@@ -30,7 +32,7 @@ export const VARIABLE_SCOPES = {
   BOOLEAN: [],
 };
 /** A token's fields in the order the files (and the Zen plugin's Push to GitHub) write them. */
-const TOKEN_FIELDS = ["name", "type", "valuesByMode", "scopes", "description", "hiddenFromPublishing", "codeSyntax"];
+const TOKEN_FIELDS = ["name", "type", "valuesByMode", "scopes", "description", "hiddenFromPublishing", "codeSyntax", "formerNames"];
 
 export class VariableEditError extends Error {
   constructor(code, message) {
@@ -135,7 +137,9 @@ function checkedName(variables, name, except) {
   const clean = parts.join("/");
   if (!/[a-z0-9]/i.test(clean)) refuse("A name needs a letter or a digit");
   for (const [other, variable] of variables) {
-    if (other === except) continue;
+    // A variable's own old names are free for it (renaming back).
+    if (other === except || (except !== undefined && variable.renamedTo === except)) continue;
+    if (other === clean && variable.renamedTo) refuse(`${clean} is the old name of ${variable.renamedTo}, kept for the code that reads it`, "conflict");
     if (other === clean) refuse(`${clean} already exists${variable.collection ? ` in ${variable.collection}` : ""}`, "conflict");
     if (cssNameOf(other) === cssNameOf(clean)) refuse(`${clean} would be --zen-${cssNameOf(clean)} in code, as ${other} is already`, "conflict");
   }
@@ -160,7 +164,9 @@ export function applyVariableOps(text, ops, context) {
   };
   const sync = (token, from) => {
     if (from !== undefined) variables.delete(from);
-    variables.set(token.name, { type: token.type, collection: collection.name, valuesByMode: token.valuesByMode });
+    const entry = { type: token.type, collection: collection.name, valuesByMode: token.valuesByMode };
+    variables.set(token.name, entry);
+    for (const former of token.formerNames ?? []) variables.set(former, { ...entry, renamedTo: token.name });
   };
   let label = "";
   for (const op of ops) {
@@ -186,13 +192,21 @@ export function applyVariableOps(text, ops, context) {
       changed.push(name);
       label ||= `Create variable ${name}`;
     } else if (op?.op === "rename") {
-      const token = collection.tokens[indexOf(op.name)];
+      const at = indexOf(op.name);
+      const token = { ...collection.tokens[at] };
       const to = checkedName(variables, op.to, op.name);
       if (to === token.name) continue;
-      const reading = readers(op.name);
-      if (reading.length) refuse(`${readersSentence(op.name, reading)}: renaming it would break them. Point them at another variable first`, "conflict");
+      // Code that looks the variable up by its Figma name ("Spacing/Gap/Small") would break: refused. Code reading its
+      // CSS name and variables aliasing it keep the old name (v2, user 2026-10-23: rename and keep an alias).
+      const byName = (context.nameReaders ?? (() => []))(op.name);
+      if (byName.length) refuse(`${readersSentence(op.name, byName)} by its name: renaming it would break them. Point them at another variable first`, "conflict");
       const from = token.name;
+      const formers = (token.formerNames ?? []).filter((name) => name !== to);
+      if (readers(op.name).length) formers.push(from);
       token.name = to;
+      if (formers.length) token.formerNames = [...new Set(formers)];
+      else delete token.formerNames;
+      collection.tokens[at] = ordered(token);
       sync(token, from);
       changed.push(to);
       label ||= `Rename ${from} → ${to}`;
@@ -253,18 +267,27 @@ export function applyVariableOps(text, ops, context) {
 /** Every variable of the collections (Map file → text): name → { type, collection, file, valuesByMode }. */
 export function variablesOf(texts) {
   const variables = new Map();
+  const formers = [];
   for (const [file, text] of texts) {
     const collection = readCollection(text);
-    for (const token of collection.tokens) variables.set(token.name, { type: token.type, collection: collection.name, file, valuesByMode: token.valuesByMode, ...metaOf(token) });
+    for (const token of collection.tokens) {
+      const entry = { type: token.type, collection: collection.name, file, valuesByMode: token.valuesByMode, ...metaOf(token), ...(token.formerNames?.length ? { formerNames: token.formerNames } : {}) };
+      variables.set(token.name, entry);
+      for (const former of token.formerNames ?? []) formers.push([former, { ...entry, renamedTo: token.name }]);
+    }
   }
+  // A renamed variable answers to its old names too (an alias "{Old/Name}" resolves), unless a variable has that name.
+  for (const [former, entry] of formers) if (!variables.has(former)) variables.set(former, entry);
   return variables;
 }
 
 /** The variables whose values alias `name` (by name), as "Collection › Variable". */
 export function aliasReaders(variables, name) {
+  const names = new Set([name, ...(variables.get(name)?.formerNames ?? [])]);
   const out = [];
   for (const [other, variable] of variables) {
-    if (Object.values(variable.valuesByMode ?? {}).some((value) => aliasOf(value) === name)) out.push(other);
+    if (variable.renamedTo) continue;
+    if (Object.values(variable.valuesByMode ?? {}).some((value) => names.has(aliasOf(value)))) out.push(other);
   }
   return out;
 }

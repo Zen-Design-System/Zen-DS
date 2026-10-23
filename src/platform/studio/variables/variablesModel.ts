@@ -7,7 +7,7 @@
 export type VariableType = "COLOR" | "FLOAT" | "STRING" | "BOOLEAN";
 export type VariableValue = string | number | boolean;
 /** Figma's Edit variable fields (Studio Variables v2): unset = no description, every scope, published. */
-export type Variable = { name: string; type: VariableType; valuesByMode: Record<string, VariableValue>; description?: string; scopes?: string[]; hiddenFromPublishing?: boolean };
+export type Variable = { name: string; type: VariableType; valuesByMode: Record<string, VariableValue>; description?: string; scopes?: string[]; hiddenFromPublishing?: boolean; formerNames?: string[] };
 export type Collection = { file: string; name: string; modes: string[]; tokens: Variable[]; hash?: string; draft?: boolean };
 export type Entry = { variable: Variable; collection: Collection };
 
@@ -21,6 +21,8 @@ export const groupOf = (name: string) => (name.includes("/") ? name.slice(0, nam
 export function indexOf(collections: readonly Collection[]): Map<string, Entry> {
   const index = new Map<string, Entry>();
   for (const collection of collections) for (const variable of collection.tokens) index.set(variable.name, { variable, collection });
+  // A renamed variable answers to its old names too (an alias "{Old/Name}" still resolves; tools/studio/variables.mjs).
+  for (const collection of collections) for (const variable of collection.tokens) for (const former of variable.formerNames ?? []) if (!index.has(former)) index.set(former, { variable, collection });
   return index;
 }
 
@@ -124,9 +126,10 @@ export function aliasOptions(index: ReadonlyMap<string, Entry>, type: VariableTy
     if (trail.has(name)) return false;
     trail.add(name);
     const entry = index.get(name);
-    const result = Boolean(entry && Object.values(entry.variable.valuesByMode).some((value) => { const next = aliasOf(value); return next ? readsSelf(next, trail) : false; }));
+    const result = Boolean(entry && Object.values(entry.variable.valuesByMode).some((value) => { const next = aliasOf(value); return next ? readsSelf(index.get(next)?.variable.name ?? next, trail) : false; }));
     reaches.set(name, result);
     return result;
   };
-  return [...index.values()].filter((entry) => entry.variable.type === type && entry.variable.name !== self && !readsSelf(entry.variable.name, new Set()));
+  // Once per variable: its old names (formerNames) are not options of their own.
+  return [...index].filter(([name, entry]) => name === entry.variable.name).map(([, entry]) => entry).filter((entry) => entry.variable.type === type && entry.variable.name !== self && !readsSelf(entry.variable.name, new Set()));
 }

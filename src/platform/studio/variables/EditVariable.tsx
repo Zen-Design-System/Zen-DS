@@ -78,6 +78,11 @@ export function EditVariable({ variable, rect, disabled, onRename, onMeta, onClo
       <div className="studio-vars__code">
         <Text as="span" textStyle="Body/Small/Medium">Code syntax</Text>
         <Text as="span" textStyle="Body/Small/Regular" tone="base" title="From the variable's name: the CSS custom property code reads">Web · {codeSyntaxOf(variable.name)}</Text>
+        {variable.formerNames?.length ? (
+          <Text as="span" textStyle="Caption/Regular" tone="light" title="Renamed while code or a variable read it: the old CSS names still point here">
+            Also {variable.formerNames.map((former) => codeSyntaxOf(former)).join(", ")}
+          </Text>
+        ) : null}
       </div>
       <Checkbox label="Hide from publishing" checked={variable.hiddenFromPublishing === true} disabled={disabled} onCheckedChange={(on) => onMeta({ hiddenFromPublishing: on })} />
     </div>

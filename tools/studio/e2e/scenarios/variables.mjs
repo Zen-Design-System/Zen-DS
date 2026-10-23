@@ -164,5 +164,29 @@ export const rows = [
       await until(async () => (await token())?.scopes?.length === 2 && (await token()).scopes.includes("GAP"), { timeout: 10_000, message: "⌘Z: one scope back" });
       return `description + scopes → ${JSON.stringify((await token()).scopes)} after ⌘Z · ${code.trim().slice(0, 60)}`;
     },
+  },  {
+    id: "VA-06", feature: "Rename a variable code reads (v2, user 2026-10-23): Spacing/Gap/Large → E2E Roomy is written with formerNames, the canvas's --zen-spacing-gap-large still resolves (the build's alias), ⌘Z takes it back", wp: "Variables v2 2026-10-23",
+    async run(ctx) {
+      const { page, win } = await openVariables(ctx);
+      await collection(page, win, "Spacing");
+      await win.getByRole("searchbox", { name: "Search variables" }).fill("gap large");
+      const row = win.locator('[data-variable="Spacing/Gap/Large"]');
+      await row.hover();
+      await row.getByRole("button", { name: "Large actions" }).click();
+      await page.getByRole("menuitem", { name: "Rename" }).click();
+      const rename = win.getByRole("textbox", { name: /^Rename / });
+      await rename.waitFor({ timeout: 5000 });
+      await rename.fill("E2E Roomy");
+      await rename.press("Enter");
+      const file = "tokens/source/figma/spacing.json";
+      const token = async (name) => JSON.parse(await source(ctx, file)).Spacing.tokens.find((each) => each.name === name);
+      await until(async () => JSON.stringify((await token("Spacing/Gap/E2E Roomy"))?.formerNames) === JSON.stringify(["Spacing/Gap/Large"]), { timeout: 10_000, message: "renamed, the old name kept" });
+      await until(async () => (await cssVar(page, "--zen-spacing-gap-e2e-roomy")) !== "" && (await cssVar(page, "--zen-spacing-gap-large")) === (await cssVar(page, "--zen-spacing-gap-e2e-roomy")), { timeout: 15_000, message: "the old CSS name resolves to the new one" });
+      const value = await cssVar(page, "--zen-spacing-gap-large");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyZ");
+      await until(async () => Boolean(await token("Spacing/Gap/Large")) && !(await token("Spacing/Gap/Large")).formerNames, { timeout: 10_000, message: "⌘Z: Large again" });
+      return `renamed with formerNames · --zen-spacing-gap-large = ${value} · ⌘Z`;
+    },
   },
 ];

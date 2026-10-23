@@ -22,6 +22,9 @@ for (const token of tokens) {
 }
 
 const duplicateNames = [...byName.entries()].filter(([, matches]) => matches.length > 1);
+// Old names of variables renamed in Zen Studio (`formerNames`): aliases may still write them; their CSS names stay in
+// tokens.css as deprecated aliases, so they count against CSS name collisions too.
+const renamed = new Map(tokens.flatMap((token) => (Array.isArray(token.formerNames) ? token.formerNames : []).filter((former) => !byName.has(former)).map((former) => [former, token.name])));
 const toKebab = (value) =>
   value
     .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
@@ -29,10 +32,10 @@ const toKebab = (value) =>
     .replace(/^-|-$/g, "")
     .toLowerCase();
 const byCssName = new Map();
-for (const token of tokens) {
-  const cssName = toKebab(token.name);
+for (const name of [...tokens.map((token) => token.name), ...renamed.keys()]) {
+  const cssName = toKebab(name);
   const matches = byCssName.get(cssName) ?? [];
-  matches.push(token.name);
+  matches.push(name);
   byCssName.set(cssName, matches);
 }
 const cssNameCollisions = [...byCssName.entries()].filter(([, matches]) => matches.length > 1);
@@ -48,7 +51,7 @@ for (const token of tokens) {
   }
   for (const [mode, value] of Object.entries(token.valuesByMode)) {
     const alias = typeof value === "string" ? value.match(aliasPattern)?.[1] : null;
-    if (alias && !byName.has(alias)) missingAliases.push(`${token.name} / ${mode} → ${alias}`);
+    if (alias && !byName.has(alias) && !renamed.has(alias)) missingAliases.push(`${token.name} / ${mode} → ${alias}`);
     const valid =
       token.type === "COLOR"
         ? Boolean(alias) || (typeof value === "string" && /^#[0-9a-f]{6,8}$/i.test(value))
@@ -68,7 +71,7 @@ const edges = new Map(
     token.name,
     Object.values(token.valuesByMode).flatMap((value) => {
       const alias = typeof value === "string" ? value.match(aliasPattern)?.[1] : null;
-      return alias ? [alias] : [];
+      return alias ? [renamed.get(alias) ?? alias] : [];
     }),
   ]),
 );

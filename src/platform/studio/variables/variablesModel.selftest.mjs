@@ -65,4 +65,13 @@ test("alias options: same type, never itself or a variable that reads it", () =>
   assert.ok(!names.includes("Spacing/Gap"), "another type");
 });
 
+test("a renamed variable answers to its old names (v2): aliases resolve, options list it once", () => {
+  const renamedGlobal = { ...global, tokens: [{ ...global.tokens[0], name: "Light/Blue/Nine", formerNames: ["Light/Blue/9"] }, global.tokens[1]] };
+  const renamedIndex = indexOf([renamedGlobal, semantic]);
+  assert.equal(resolved(renamedIndex, "Color/Content/Accent/Base", "Light"), "#0F73FF");
+  const names = aliasOptions(renamedIndex, "COLOR", "Color/Border/Accent/Base").map((entry) => entry.variable.name);
+  assert.equal(names.filter((name) => name === "Light/Blue/Nine").length, 1);
+  assert.ok(!names.includes("Light/Blue/9"));
+});
+
 console.log(`✓ variables model: ${count} checks pass`);
