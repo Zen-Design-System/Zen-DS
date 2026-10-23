@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio → Figma: a page goes to Figma with every Screen, Screen state and Overlay as a frame of its own (an
+  Overlay as big as what it holds), and its Prototype actions as Figma interactions: On click, While hovering and After
+  delay; Navigate to, Open overlay, Close overlay and Back, with their animation, direction and Zen's duration and curve
+  (a Dialog's or Side Panel's buttons too). Pull from Figma reads them back. Show toast, Open link, Filter table,
+  Change step and the overlay's position, background and click-outside stay in the Studio, each named in the notes
+  (2026-10-24).
 - Zen Studio → Figma: a phone AppShell is Figma's Pattern/AppShell/Mobile (2026-10-23). Its TopNavigation takes the
   Bar type the canvas gives it (default → Alt, alt → Default, flat → Default on Surface/Flat), a band's bar
   Transparent (on an accent band Transparent-On-Color) and the media bar Liquid-Overaly; its tabs, ActionBar, band

@@ -24,6 +24,7 @@ import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./fig
 import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma, subActionFromFigma } from "./figma-metric.mjs";
 import { BADGE_STATUS, changedProgress, propertyValueElement } from "./figma-property.mjs";
 import { runsFromSegments } from "./text-runs.mjs";
+import { ACTION_LAYERS, protoOfReaction } from "./figma-proto.mjs";
 import { instanceLayerPaths } from "./instance-paths.mjs";
 import { gradientFillProps, READ_GRADIENT_FILL } from "./figma-gradient.mjs";
 import { imageFillProps, READ_IMAGE_FILL } from "./figma-image.mjs";
@@ -288,6 +289,45 @@ const readInstance = async (instance) => {
 // What the Zen plugin's Import from Studio left on a layer (shared plugin data "zenstudio"): its Studio key (the element
 // id it draws), and on the frame the Studio page and the export it came from.
 const studioData = (node, name) => { try { return node.getSharedPluginData("zenstudio", name) || null; } catch (e) { return null; } };
+// Prototype interactions (Zen-DS figma-proto.mjs's shape): a destination frame is named by the Studio frame id the Zen
+// plugin kept on it ("screen:…", "overlay:…"), else "figma:<id>"; layer: a nested layer of an instance.
+const destinationFrames = new Map();
+const destinationOf = async (id) => {
+  if (!id) return null;
+  if (!destinationFrames.has(id)) {
+    const dest = await figma.getNodeByIdAsync(id);
+    destinationFrames.set(id, (dest && studioData(dest, "frame")) || "figma:" + id);
+  }
+  return destinationFrames.get(id);
+};
+const reactionsOf = async (node, layer) => {
+  let list = [];
+  try { list = node.reactions || []; } catch (e) { list = []; }
+  const out = [];
+  for (const reaction of list) {
+    const trigger = reaction.trigger || {};
+    for (const action of reaction.actions || (reaction.action ? [reaction.action] : [])) {
+      if (!action) continue;
+      const entry = { trigger: trigger.type || null };
+      if (trigger.type === "AFTER_TIMEOUT") entry.timeout = trigger.timeout;
+      if (action.type === "CLOSE" || action.type === "BACK") entry.action = action.type;
+      else if (action.type === "NODE" && (action.navigation === "NAVIGATE" || action.navigation === "OVERLAY")) {
+        entry.action = action.navigation;
+        entry.to = await destinationOf(action.destinationId);
+        const t = action.transition;
+        if (t) {
+          const curve = t.easing && t.easing.easingFunctionCubicBezier;
+          entry.transition = { type: t.type, duration: t.duration };
+          if (t.direction) entry.transition.direction = t.direction;
+          if (curve) entry.transition.easing = [curve.x1, curve.y1, curve.x2, curve.y2];
+        }
+      } else entry.action = action.type + (action.navigation ? ":" + action.navigation : "");
+      if (layer) entry.layer = layer;
+      out.push(entry);
+    }
+  }
+  return out;
+};
 const ROOT_ID = ${JSON.stringify(nodeId)};
 // The Studio page the frame read was imported as (set once the frame is found, below).
 let READ_PAGE = null;
@@ -472,6 +512,16 @@ const read = async (node) => {
   let refs = null;
   try { refs = out ? node.componentPropertyReferences : null; } catch (e) { refs = null; }
   if (refs && Object.keys(refs).length) out.propRefs = Object.fromEntries(Object.entries(refs).map(([field, key]) => [field, String(key).split("#")[0]]));
+  // Its Prototype interactions, and an instance's on its own layers (a Dialog's Primary button), by their path.
+  const reactions = out ? await reactionsOf(node) : [];
+  if (out && node.type === "INSTANCE") {
+    for (const inner of node.findAll((layer) => { try { return (layer.reactions || []).length > 0; } catch (e) { return false; } })) {
+      const names = [];
+      for (let at = inner; at && at !== node; at = at.parent) names.unshift(at.name);
+      reactions.push(...(await reactionsOf(inner, names.join("/"))));
+    }
+  }
+  if (reactions.length) out.reactions = reactions;
   return out;
 };
 const readLayer = async (node) => {
@@ -3054,6 +3104,12 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
     if (frame.minH !== (deviceOf(frame.width) === "phone" ? 844 : 900)) screenProps.height = literal(frame.minH);
     delete frame.minH;
   }
+  // The frame's After delay (figma-proto.mjs): the Screen's onDelay.
+  for (const reaction of frame?.reactions ?? []) {
+    const made = protoOfReaction(reaction);
+    if (made.prop === "onDelay") screenProps.onDelay = { kind: "proto", action: made.action, args: made.args };
+    else ctx.notes.push(`the frame's ${made.note ?? `${made.prop} interaction`}: a Screen takes After delay only`);
+  }
   const chrome = screenChrome(frame, ctx);
   let root = chrome ? chrome.root : convert(frame, ctx);
   settleOverrides(ctx);
@@ -3070,7 +3126,12 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   // Elements no layer stands for take their place under their parent (deterministic: the same frame, the same ids).
   // The layers' own names (data-name) on the elements that are left once wrappers fold away; the page frame's name is
   // the Screen's title.
-  const named = (element) => { const source = SOURCE.get(element); if (source && source !== frame) givenName(element, source); };
+  const acted = new Set();
+  const named = (element) => {
+    const source = SOURCE.get(element);
+    if (source && source !== frame) givenName(element, source);
+    if (source && source !== frame && source.reactions && !acted.has(source)) { acted.add(source); pulledReactions(element, source, ctx); }
+  };
   const walk = (node) => {
     node.children.forEach((child, index) => { if (child.kind === "element") { child.id ??= `${node.id}.${index}`; named(child); walk(child); } });
     for (const [name, value] of Object.entries(node.props)) if (value.kind === "element") { value.node.id ??= `${node.id}.${name}`; named(value.node); walk(value.node); }
@@ -3081,6 +3142,28 @@ export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapp
   const source = frame?.id ? { figma: { file: frame.file ?? file, node: frame.id, ...pushed } } : {};
   const doc = { header: { format: 1, title, ...source }, mock: {}, board };
   return { text: printPage(doc), notes: ctx.notes, doc };
+}
+
+/**
+ * A layer's Prototype interactions (figma-proto.mjs) as the element's proto props: On click → onClick, While hovering →
+ * whileHovering; one on a Dialog's button → its action prop's onClick, when the page has that prop. What the Studio has
+ * no word for (a reaction to a frame that is no Studio frame, a Smart animate) is a note.
+ */
+function pulledReactions(element, node, ctx) {
+  for (const reaction of node.reactions ?? []) {
+    const made = protoOfReaction(reaction);
+    if (made.note) { ctx.notes.push(`${element.name}: ${made.note}`); continue; }
+    const value = { kind: "proto", action: made.action, args: made.args };
+    if (reaction.layer) {
+      const field = Object.entries(ACTION_LAYERS[element.name] ?? {}).find(([, layer]) => layer === reaction.layer)?.[0];
+      const holder = field ? element.props[field] : null;
+      if (holder?.kind === "object") holder.fields[made.prop] = value;
+      else ctx.notes.push(`${element.name}: the interaction on its ${String(reaction.layer).split("/").pop()} layer stays as the page has it`);
+      continue;
+    }
+    if (made.prop === "onDelay") { ctx.notes.push(`${element.name}: After delay is a Screen's (on its frame), not a layer's`); continue; }
+    element.props[made.prop] = value;
+  }
 }
 
 /**
