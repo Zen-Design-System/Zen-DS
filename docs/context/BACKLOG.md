@@ -24,16 +24,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   collections, description / scoping / code syntax, rename of a variable code reads (rewrite its CSS readers), Change
   variable mode per frame / section / page (E6; today a frame's Theme Light/Dark, for the session only). Pointer:
   `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
-- **P1 · 320px debt left: designer calls (2026-10-16):** 197 → 33 baselined 320 findings (docs grids, small-phone docs
-  chrome, ListItem / Toast / Stepper text fixed; session log). Left, each a call for the user or the designer: Chat desktop
-  examples at Comfortable on a 288px screen (13: composer send button, call button, the fixed 32px file-text box, read
-  receipts, file size/time); Voice actions at Comfortable need 192px, a Voice in a Card on a 320 phone has 168 (5; it
-  overflowed at both densities before the wider stage, now only at Comfortable); 4–13px at Comfortable in a 208px card:
-  DatePicker "October 2026" (2), Small Pagination 216px (1), Rating "Freelance illustrators" + Sort chip (1), Settings form
-  Avatar 2XL + FileUpload (1) — a `wrap` there changes 390/1512, so stack them on phones or accept. Not 320 layout:
-  templates "Show all" target (1, the audit counts a link clipped inside a template's scroll frame), text-style
-  rhythm/scale debt also recorded at 390/1512 (8) and widgets "8 text styles" (1; the same gallery is now recorded at 1512 / 390 / dark too, 9 → 8 after the user's Heading/1 call: 7 widget types in one
-  example, a designer call whether a gallery may exceed 7 styles).
 
 - **P2 · Studio option C, waiting for the user (2026-10-15):** links between components on a template page (a Chip
   that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
@@ -112,11 +102,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 
 - **Questions for the designer and decisions for the user** are collected in [`QUESTIONS.md`](QUESTIONS.md) (moved
   there 2026-10-08). Code keeps its current behaviour until each is answered.
-- **P3 · Zen-High-Contrast in the native packages (2026-10-05):** Global Colors carries the Zen-High-Contrast mode since
-  the export "Zen-Variables 2" (it equals the algorithm on all 960 values; tokens:check verifies it). The native packages
-  carry the second mode as data (resolver default Zen); mapping it to iOS accessibilityContrast / Flutter highContrast is
-  still open. Pointer: `platforms/README.md`.
-
 - **Code view in other languages — on hold (user, 2026-10-08: "tạm lưu backlog, sẽ làm giai đoạn sau"):** order chosen:
   HTML/CSS → Vue → Swift → Flutter → Svelte. Plan `docs/research/code-languages-plan-2026-10-03.md`, phases P1–P9, each
   approved on its own. Still to answer when it starts: web strategy (§8.1; proposed A, native Vue/Svelte on the shared

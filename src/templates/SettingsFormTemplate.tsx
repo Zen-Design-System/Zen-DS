@@ -24,6 +24,7 @@ import {
   AppShellHeader,
   Avatar,
   Badge,
+  Box,
   Breadcrumbs,
   Button,
   Card,
@@ -332,11 +333,15 @@ export function SettingsFormTemplate() {
         <SettingsSection title="Profile" description="How you appear to the studio in projects, comments and mentions.">
           <Card>
             <Form form={profile} id={formId}>
-              <Stack direction="row" gap="lg" align="center">
+              {/* The upload drops under the photo only on a small phone (320): its button needs 119px at Comfortable, and
+                  136 keeps the row whole at 390, where 150 is left beside the photo. */}
+              <Stack direction="row" wrap gap="lg" align="center">
                 <Avatar size="2xl" theme={photo ? "photo" : "neutral"} background="subtle" src={photo?.previewUrl} alt="">{initials(profile.values.name.trim() || saved.name)}</Avatar>
-                <FileUpload label="Profile photo" type="button" buttonLabel="Upload photo" accept="image/jpeg,image/png" helpText="JPG or PNG, up to 2 MB"
-                  thumbnail="none" files={photo ? [photo] : []} onFilesAdd={addPhoto} error={profile.fieldError("photo")}
-                  onRemove={() => profile.setValue("photo", null)} />
+                <Box width="fill" minWidth={136}>
+                  <FileUpload label="Profile photo" type="button" buttonLabel="Upload photo" accept="image/jpeg,image/png" helpText="JPG or PNG, up to 2 MB"
+                    thumbnail="none" files={photo ? [photo] : []} onFilesAdd={addPhoto} error={profile.fieldError("photo")}
+                    onRemove={() => profile.setValue("photo", null)} />
+                </Box>
               </Stack>
               <Stack gap="md">
                 <InputField ref={nameRef} label="Full name" autoComplete="name" {...profile.field("name")} />
