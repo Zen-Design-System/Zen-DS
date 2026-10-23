@@ -667,3 +667,24 @@ in as a new page, or compared two ways.
   ⇧1 once the Assets panel is open, boxes read when the canvas is still, the drop in the slot's room below its Empty.
 - Left: pulling the pattern back to AppShell, and a standalone ActionBar in Figma → BACKLOG P3. Archived BACKLOG
   "Example className, round 2" and "AppShell phone bars"; the sticky native paste line is C's (tried live).
+
+## Chart contract suites (tier M; BACKLOG P3, the user's go 2026-10-23)
+- 15 suites in `tools/figma-contract/suites/chart-*.mjs`: Line, Multi-Line, Chart-Card, Stack-Bar, Bar, Area,
+  Grouped-Bar, Combo, Donut, Radial, Gauge, Funnel, Bullet, Heatmap, Bar-List; `run-all.mjs` 39 suites + 25 interaction
+  checks pass. Each renders the set as a ChartCard body (cases.tsx `chartCard`), reads the card props and the data back
+  from the variant (labels, bar heights, shares), and maps heading, metric, legend, grid, labels and marks. A mutation
+  check (radius XSmall on BarList, Neutral/Subtle gridlines) fails both suites, as it should.
+- check.mjs: `cx`/`cy`, `strokeSide`, `strokeVia: "svg"` + `strokeScale`, `fillVia: "gradient"` (SVG stops through their
+  variables) and `"stroke"`, `figmaRoot`, `*` path parts, numeric exception pins, opacity to three decimals (README).
+- Code drifts found and fixed at their owners: Donut Total=Start figure Heading/2 → Display/4 and Gap/3XSmall under its
+  caption (Figma's Total = the card's Metric since 10-21); Donut + Radial XLarge centre Heading/3 → Display/4; Heatmap
+  row labels in Figma's FIXED 40px column, BarList values in its FIXED 64px column (`minmax`, as the Funnel's 84/40).
+  Told chart-color-phase2 (its two chart PRs touch other lines of the same files).
+- Exceptions pin the open QUESTIONS.md Charts (P2) (a) items (X pill, lanes, 88% dim, axis gaps, Area/Grouped/Combo
+  without an active state) and the Figma slips, listed for the designer as (e) with the one open call: Radial Large
+  Display/4 vs Donut Large Heading/4. BACKLOG P3 line rewritten to the next batch (seven non-chart contracts).
+- CI's Linux runs Inter a pixel or two wider: the horizontal bars, the heatmap scale and the radial Bottom legend now
+  compare widths in % of their frame (`xr`/`wr`/`cxr`) or from their neighbours. Merged main 425b5733 (#250/#251: only
+  docs conflicted). Gate (isolated, chart): static, TypeScript, Vitest 81/81, Figma contracts (all suites), audit
+  1512/390/320 0 errors, dark 0, behaviour 0, Build-QA PASS; contact sheets: the Donut total reads as the card's value,
+  the heatmap rows line up after the 40px labels, the BarList values end on one column.

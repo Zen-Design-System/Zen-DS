@@ -1,0 +1,69 @@
+// Figma Chart/Combo-Chart 15934:7580 (docs/figma-contracts/chart-combo.json): Sector 4 · 6 · 7 · 12 × Color Primary ·
+// Secondary, a ComboChart (`palette`) in a Chart Card (Heading · Metric · Chart · Legend; the Segmented is hidden). Bars
+// (Color Chart Sector/Primary, half the column inside its 2px padding, Corner-Radius/XSmall on the top corners) on the
+// start axis; a 2px Sector/Secondary line with an 8px dot on every period (Surface/Default, 2px ring) on the end axis
+// (Y-Axis-End: left-aligned, Spacing/Padding/XSmall after the plot); the first two swapped under Secondary. Figma draws no
+// active state (chart-parity-audit-2026-10-17 §3); code grows the active period's dot to 12px and eases the other bars to
+// 88% (QUESTIONS.md Charts (P2) (a)). Bar heights and dot centres are read back as values.
+import { cardMap, cardProps, child, legendMap, textOf } from "./_chart-shared.mjs";
+import { barFrameExceptions, barFrameMap } from "./_chart-bars.mjs";
+
+const count = (vp) => Number(vp.Sector.split("-")[0]);
+const GRID = 158;
+const fromGrid = { figmaRoot: "Chart > Plot > Grid", root: ".zen-chart__grid" };
+const has = (k) => (vp) => count(vp) > k;
+const last = (k) => (vp) => count(vp) === k + 1;
+export default {
+  contract: "docs/figma-contracts/chart-combo.json",
+  setId: "15934:7580",
+  kind: "chartCard",
+  root: ".zen-chart-card__body",
+  cases: (vp, { spec }) => {
+    const plot = child(child(spec, "Chart"), "Plot");
+    const marks = child(plot, "Marks");
+    const columns = child(marks, "Bars").c;
+    const dots = marks.c.filter((node) => node.n === "Dot-Anchor");
+    const legend = child(spec, "Legend").c.map((item) => textOf(child(item, "Label")));
+    // $0 … $125K on the start axis, 0 … 50% on the end axis: a bar's height and a dot's centre are their values.
+    const data = child(plot, "X-Axis").c.map((tick, i) => ({
+      label: textOf(tick),
+      bar: Math.round((child(child(child(columns[i], "Bars"), "Lane"), "Revenue").h / GRID) * 125000),
+      line: Math.round(((GRID - (dots[i].y + 3)) / GRID) * 50 * 100) / 100,
+    }));
+    return {
+      ...cardProps(spec),
+      chart: "combo",
+      chartProps: { data, barLabel: legend[0], lineLabel: legend[1], height: 36 + GRID + 28, format: "usdK", lineFormat: "pct", palette: vp.Color === "Secondary" ? "secondary" : "primary", initialIndex: data.length - 1 },
+    };
+  },
+  figmaExceptions: [
+    ...barFrameExceptions({ grid: GRID, tooltipLane: true }).map((item) => (item.layer === "Chart" ? { ...item, code: "222" } : item)),
+    { vp: {}, layer: "Legend", prop: "y", code: "364", note: "Code's 36 / 28 lanes (Figma 6 / 26, see Chart.h) move the legend 32px down." },
+    // Figma-side inconsistency, as Grouped-Bar's: 6-Sectors makes each bar half the whole 46.67px column (23.33), where
+    // 4-Sectors takes half the column inside its 2px padding (66 → 33), as code does (42.67 → 21.33, centred).
+    ...Array.from({ length: 6 }, (_, k) => [
+      { vp: { Sector: "6-Sectors" }, layer: `Chart > Plot > Marks > Bars > Column#${k} > Bars > Lane > Revenue`, prop: "w", code: (280 / 6 - 4) / 2,
+        note: "6-Sectors bars are half the whole column; 4-Sectors (and code) half of it inside its 2px padding." },
+      { vp: { Sector: "6-Sectors" }, layer: `Chart > Plot > Marks > Bars > Column#${k} > Bars > Lane > Revenue`, prop: "x", code: (k * 280) / 6 + 2 + (280 / 6 - 4) / 4,
+        note: "6-Sectors bars are half the whole column (see w), so they start 1px further out." },
+    ]).flat(),
+    ...Array.from({ length: 12 }, (_, k) => ({ vp: {}, layer: `Chart > Plot > Marks > Bars > Column#${k} > Bars > Lane > Revenue`, prop: "op", code: "0.88",
+      note: "Bars that aren't active ease to 88% in code; Figma keeps them at 100% (QUESTIONS.md Charts (P2) (a))." })),
+    ...Array.from({ length: 12 }, (_, k) => ["w", "h"].map((prop) => ({ vp: { Sector: `${k + 1}-Sectors` }, layer: `Chart > Plot > Marks > Dot-Anchor#${k} > Dot`, prop, code: "12",
+      note: "The active period's dot grows to 12px (Element-Size/Popular/2XSmall) in code; Figma draws no active state." }))).flat(),
+  ],
+  map: [
+    ...cardMap(),
+    ...barFrameMap({ yLabels: ["$0", "$25K", "$50K", "$75K", "$100K", "$125K"], count, chartDom: ".zen-chart-combo" }),
+    // The end axis: left-aligned Spacing/Padding/XSmall after the plot, on the same gridlines.
+    { figma: "Chart > Y-Axis-End", dom: ".zen-chart__y-end", check: ["w", "x"] },
+    ...["0%", "10%", "20%", "30%", "40%", "50%"].map((label, i) => ({ figma: `Chart > Y-Axis-End > ${label}`, dom: `.zen-chart__y-end > span:nth-child(${i + 1})`, check: ["text", "x", "cy"], ...fromGrid })),
+    ...Array.from({ length: 12 }, (_, k) => [
+      { figma: `Chart > Plot > Marks > Bars > Column#${k}`, dom: `.zen-chart__combo-column:nth-child(${k + 1})`, check: ["w", "x"], ...fromGrid, when: has(k) },
+      { figma: `Chart > Plot > Marks > Bars > Column#${k} > Bars > Lane > Revenue`, dom: `.zen-chart__combo-column:nth-child(${k + 1}) > .zen-chart__combo-bar`, check: ["size", "x", "y", "fill", "radius", "opacity"], ...fromGrid, when: has(k) },
+      { figma: `Chart > Plot > Marks > Dot-Anchor#${k} > Dot`, dom: `.zen-chart__marks > .zen-chart__combo-dot:nth-of-type(${k + 1})`, check: ["size", "cx", "cy", "fill", "stroke"], ...fromGrid, when: has(k) },
+    ]).flat(),
+    { figma: "Chart > Plot > Marks > Margin", dom: ".zen-chart__combo-line", check: ["size", "x", "y", "stroke"], strokeVia: "svg", ...fromGrid },
+    ...legendMap("Legend"),
+  ],
+};
