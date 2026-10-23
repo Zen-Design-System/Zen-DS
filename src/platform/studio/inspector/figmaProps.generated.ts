@@ -1995,6 +1995,280 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
     ],
     "toggles": []
   },
+  "LineChart": {
+    "figma": "15929:120139",
+    "own": [
+      {
+        "prop": "showAverage",
+        "label": "Show Average",
+        "type": "BOOLEAN"
+      }
+    ],
+    "toggles": []
+  },
+  "StackBarChart": {
+    "figma": "15930:4271",
+    "own": [
+      {
+        "prop": "showAverage",
+        "label": "Show Average",
+        "type": "BOOLEAN"
+      },
+      {
+        "prop": "palette",
+        "label": "Color",
+        "type": "VARIANT",
+        "options": {
+          "Primary": "primary",
+          "Secondary": "secondary"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "BarChart": {
+    "figma": "15321:84071",
+    "own": [
+      {
+        "prop": "showAverage",
+        "label": "Show Average",
+        "type": "BOOLEAN"
+      },
+      {
+        "prop": "orientation",
+        "label": "Orientation",
+        "type": "VARIANT",
+        "options": {
+          "Vertical": "vertical",
+          "Horizontal": "horizontal"
+        }
+      },
+      {
+        "prop": "palette",
+        "label": "Color",
+        "type": "VARIANT",
+        "options": {
+          "Primary": "primary",
+          "Secondary": "secondary"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "AreaChart": {
+    "figma": "15484:2663",
+    "own": [
+      {
+        "prop": "showLegend",
+        "label": "Show Legend",
+        "type": "BOOLEAN"
+      },
+      {
+        "prop": "type",
+        "label": "Type",
+        "type": "VARIANT",
+        "options": {
+          "Area": "area",
+          "Stacked": "stacked"
+        }
+      },
+      {
+        "prop": "palette",
+        "label": "Color",
+        "type": "VARIANT",
+        "options": {
+          "Primary": "primary",
+          "Secondary": "secondary"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "GroupedBarChart": {
+    "figma": "15933:120083",
+    "own": [
+      {
+        "prop": "showLegend",
+        "label": "Show Legend",
+        "type": "BOOLEAN"
+      },
+      {
+        "prop": "palette",
+        "label": "Color",
+        "type": "VARIANT",
+        "options": {
+          "Primary": "primary",
+          "Secondary": "secondary"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "ComboChart": {
+    "figma": "15934:7580",
+    "own": [
+      {
+        "prop": "showLegend",
+        "label": "Show Legend",
+        "type": "BOOLEAN"
+      },
+      {
+        "prop": "palette",
+        "label": "Color",
+        "type": "VARIANT",
+        "options": {
+          "Primary": "primary",
+          "Secondary": "secondary"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "DonutChart": {
+    "figma": "15324:80365",
+    "own": [
+      {
+        "prop": "label",
+        "label": "Total Label",
+        "type": "TEXT"
+      },
+      {
+        "prop": "value",
+        "label": "Total Value",
+        "type": "TEXT"
+      },
+      {
+        "prop": "legendPosition",
+        "label": "Legend",
+        "type": "VARIANT",
+        "options": {
+          "Bottom": "bottom",
+          "Start": "start",
+          "End": "end"
+        }
+      },
+      {
+        "prop": "totalPosition",
+        "label": "Total",
+        "type": "VARIANT",
+        "options": {
+          "Centre": "centre",
+          "Start": "start"
+        }
+      },
+      {
+        "prop": "size",
+        "label": "Size",
+        "type": "VARIANT",
+        "options": {
+          "Medium": "medium",
+          "Large": "large",
+          "Small": "small",
+          "XLarge": "xlarge"
+        }
+      },
+      {
+        "prop": "palette",
+        "label": "Color",
+        "type": "VARIANT",
+        "options": {
+          "Primary": "primary",
+          "Secondary": "secondary"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "RadialChart": {
+    "figma": "15325:1135",
+    "own": [
+      {
+        "prop": "legendPosition",
+        "label": "Legend",
+        "type": "VARIANT",
+        "options": {
+          "Bottom": "bottom",
+          "End": "end"
+        }
+      },
+      {
+        "prop": "size",
+        "label": "Size",
+        "type": "VARIANT",
+        "options": {
+          "Medium": "medium",
+          "Small": "small",
+          "Large": "large",
+          "XLarge": "xlarge"
+        }
+      },
+      {
+        "prop": "palette",
+        "label": "Color",
+        "type": "VARIANT",
+        "options": {
+          "Primary": "primary",
+          "Secondary": "secondary"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "GaugeChart": {
+    "figma": "15968:130382",
+    "own": [
+      {
+        "prop": "showLegend",
+        "label": "Show Legend",
+        "type": "BOOLEAN"
+      },
+      {
+        "prop": "palette",
+        "label": "Color",
+        "type": "VARIANT",
+        "options": {
+          "Primary": "primary",
+          "Secondary": "secondary"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "FunnelChart": {
+    "figma": "15968:130460",
+    "own": [
+      {
+        "prop": "palette",
+        "label": "Color",
+        "type": "VARIANT",
+        "options": {
+          "Primary": "primary",
+          "Secondary": "secondary"
+        }
+      }
+    ],
+    "toggles": []
+  },
+  "BulletChart": {
+    "figma": "15968:130554",
+    "own": [
+      {
+        "prop": "showLegend",
+        "label": "Show Legend",
+        "type": "BOOLEAN"
+      },
+      {
+        "prop": "palette",
+        "label": "Color",
+        "type": "VARIANT",
+        "options": {
+          "Primary": "primary",
+          "Secondary": "secondary"
+        }
+      }
+    ],
+    "toggles": []
+  },
   "SliderField": {
     "figma": "15662:108207",
     "own": [
