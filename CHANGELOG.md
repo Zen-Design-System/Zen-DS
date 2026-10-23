@@ -24,6 +24,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   group (Primitive, Semantic, Component, Layout) and a purpose: `tokens:build` lists it on the Design Tokens page. A
   collection made in Studio is renamed and deleted from its ⋯ menu (a delete asks first while code reads its variables;
   another collection's alias refuses it); the 11 Figma exports keep their names.
+- Zen Studio → Figma (Zen plugin): a chart pushed on its own (no ChartCard) keeps its rows in Figma. A horizontal
+  BarChart no longer stretches to the component's 290px once its Heading is hidden, so its values sit beside their bars
+  (2026-10-23).
 - Charts now follow their Figma sets where a new parity suite found them apart: DonutChart's total beside the ring
   (`totalPosition="start"`) is Display/4, Gap/3XSmall under its caption, as the Chart Card's value; Donut and Radial
   XLarge set their centre figure in Display/4 (was Heading/3); HeatmapChart's row labels sit in a 40px column and
