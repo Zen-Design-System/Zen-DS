@@ -125,6 +125,79 @@ export default function Page() {
 }
 `;
 
+/**
+ * A phone page whose root AppShell has its bars (figma-push mobileShellNode: Pattern/AppShell/Mobile). `phoneLinked={[]}`:
+ * its Screen's phone parts are decided, so the Studio draws no phone header of its own over them as the page opens.
+ */
+const PHONE_SHELL_PAGE = `// @zen-page {"format":1,"title":"Inbox app"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, BottomNavigation, Text, TopNavigation } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Inbox app" device="phone" phoneLinked={[]}>
+        <AppShell topNavigation={<TopNavigation title="Inbox" />} bottomNavigation={<BottomNavigation items={[{ id: "home", label: "Home", icon: "icon-home-02-line" }, { id: "alerts", label: "Alerts", icon: "icon-bell-01-line" }]} value="home" showLabels />}>
+          <Text>Three new messages</Text>
+        </AppShell>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/** A phone page with an ActionBar of its own, outside any AppShell (figma-push actionBarNode: Action-Bar/Mobile). */
+const ACTION_BAR_PAGE = `// @zen-page {"format":1,"title":"Confirm order"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { ActionBar, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Confirm order" device="phone">
+        <Stack padding="lg" gap="md">
+          <Text>Two items, 48.00</Text>
+          <ActionBar primaryAction={{ label: "Place order" }} secondaryAction={{ label: "Back" }} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/** Export › Figma of the open page: the .figma.json the Zen plugin places. */
+async function figmaExport(page, id) {
+  const panel = await openExport(page);
+  await panel.getByRole("button", { name: "Figma", exact: true }).click();
+  await until(async () => /zen-studio-figma/.test(await panel.innerText()), { timeout: 10_000, message: "the Figma JSON in the panel" });
+  const downloading = page.waitForEvent("download");
+  await panel.getByRole("button", { name: `Download ${id}.figma.json` }).click();
+  const pkg = JSON.parse(fs.readFileSync(await (await downloading).path(), "utf8"));
+  await page.keyboard.press("Escape");
+  return pkg;
+}
+
+/**
+ * The exported frame read back from Figma as a new design (no Studio page or export named: Import pages… makes a page
+ * of it) and imported; returns the new page's id and its text.
+ */
+async function pullAsNewPage(page, pkg, name) {
+  const { pageFromFigma, repoMapping } = await import("../../figma-pull.mjs");
+  const { printPage } = await import("../../doc.mjs");
+  const read = JSON.parse(JSON.stringify({ ...pkg.frame, id: `9${Date.now() % 1e6}:7`, file: "9nZv4uW2LT21yuHabMTCh1" }));
+  const pulled = printPage(pageFromFigma(read, { mapping: await repoMapping(), title: name }).doc, { ids: true });
+  const before = page.url();
+  await page.locator('[data-e2e="import-pages"]').setInputFiles({ name: `${name}.zen.tsx`, mimeType: "text/plain", buffer: Buffer.from(pulled, "utf8") });
+  await until(async () => page.url() !== before && decodeURIComponent(page.url()).includes("page=local:"), { timeout: 10_000, message: "the pulled page opened" });
+  const pulledId = decodeURIComponent(page.url()).match(/page=local:([\w-]+)/)?.[1];
+  await page.locator('[data-studio-frame="screen:screen-1"]').waitFor({ state: "attached", timeout: 10_000 });
+  return { id: pulledId, text: (await pageText(page, pulledId)) ?? "" };
+}
+
 /** Imports a page (HTML_PAGE unless given; Pages › Import) and opens it once `frame` is on the canvas; returns its id. */
 async function importHtmlPage(page, text = HTML_PAGE, frame = "overlay:invite") {
   const id = `html-check-${Date.now().toString(36)}`;
@@ -710,6 +783,46 @@ export const rows = [
         await other.context.close();
       }
       return `export ${pkg.page.version} beside the page; another browser (no export of its own): Update from Figma three ways, 2 changes applied, Container / titleLines / ListBox theme / aria kept, its pull written back`;
+    },
+  },
+  {
+    id: "HO-14", feature: "A phone app frame round trip (Pattern/AppShell/Mobile): Export › Figma draws a phone page's root AppShell as Figma's phone pattern; that frame read back from Figma imports as a page whose root AppShell has its TopNavigation and tabs again (no Stack, no note), and the canvas shows both bars around the page", wp: "phone AppShell pull 2026-10-23 (B's P3)",
+    timeout: 60000,
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const id = await importHtmlPage(page, PHONE_SHELL_PAGE, "screen:screen-1");
+      const pkg = await figmaExport(page, id);
+      const sets = JSON.stringify(pkg.frame).match(/"name":"(Pattern\/AppShell\/Mobile|Top-Navigation\/Mobile|Bottom-Navigation\/Mobile\/Default)"/g) ?? [];
+      if (sets.length < 3) throw new Error(`the export draws ${sets.join(", ") || "no phone pattern"}`);
+      const back = await pullAsNewPage(page, pkg, `${id}-pulled`);
+      // The AppShell's opening tag runs to the page inside it (its bars hold `/>` of their own).
+      const shell = back.text.match(/<AppShell\b[^]*?>(?=\s*<Text)/)?.[0] ?? "";
+      const landed = { shell: /topNavigation=\{<TopNavigation title="Inbox"/.test(shell) && /bottomNavigation=\{<BottomNavigation /.test(shell), page: /<Text>Three new messages<\/Text>/.test(back.text), noStack: !/data-name="AppShell"/.test(back.text), decided: /<Screen [^>]*phoneLinked=\{\[\]\}/.test(back.text) };
+      if (Object.values(landed).some((value) => !value)) throw new Error(`pulled page: ${JSON.stringify(landed)} ${shell.slice(0, 200)}`);
+      const frame = page.locator('[data-studio-frame="screen:screen-1"]');
+      await until(async () => (await frame.locator(".zen-top-nav").count()) > 0 && (await frame.locator(".zen-bottom-nav").count()) > 0, { timeout: 10_000, message: "both bars on the canvas" })
+        .catch(async (error) => {
+          await page.screenshot({ path: ".qa/studio-e2e/handoff-HO-14-fail.png" }).catch(() => undefined);
+          const seen = await page.evaluate(() => ({ url: location.search, frames: [...document.querySelectorAll("[data-studio-frame]")].map((f) => f.getAttribute("data-studio-frame")), top: document.querySelectorAll(".zen-top-nav").length, bottom: document.querySelectorAll(".zen-bottom-nav").length, shell: document.querySelectorAll(".zen-app-shell").length }));
+          throw new Error(`${error.message} ${JSON.stringify(seen)}`);
+        });
+      await page.screenshot({ path: ".qa/studio-e2e/handoff-HO-14.png" }).catch(() => undefined);
+      return `export → Pattern/AppShell/Mobile; pulled back as ${back.id}: root AppShell with TopNavigation "Inbox" and its tabs, both bars on the canvas`;
+    },
+  },
+  {
+    id: "HO-15", feature: "An ActionBar on its own round trip: Export › Figma draws it as Figma's Action-Bar/Mobile (no \"left out\" note), and the frame read back imports as a page with the same ActionBar (its two actions)", wp: "ActionBar alone 2026-10-23 (B's P3)",
+    timeout: 60000,
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const id = await importHtmlPage(page, ACTION_BAR_PAGE, "screen:screen-1");
+      const pkg = await figmaExport(page, id);
+      if (!JSON.stringify(pkg.frame).includes('"name":"Action-Bar/Mobile"')) throw new Error("the export has no Action-Bar/Mobile");
+      if ((pkg.notes ?? []).some((note) => /ActionBar/.test(note))) throw new Error(`notes: ${pkg.notes.join("; ")}`);
+      const back = await pullAsNewPage(page, pkg, `${id}-pulled`);
+      const bar = back.text.match(/<ActionBar\b[^]*?\/>/)?.[0]?.replace(/\s+/g, " ") ?? "";
+      if (bar !== '<ActionBar primaryAction={{ label: "Place order" }} secondaryAction={{ label: "Back" }} />') throw new Error(`pulled: ${bar || back.text.slice(0, 300)}`);
+      return `export → Action-Bar/Mobile; pulled back as ${back.id}: ${bar}`;
     },
   },
   {
