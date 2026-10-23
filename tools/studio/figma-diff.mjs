@@ -7,7 +7,8 @@
 //   incoming  the page the new pull makes
 // What Figma changed is base → incoming; a change whose spot the Studio changed too (current ≠ base there) is a
 // conflict, shown unticked. Without a base (another browser), current stands in for it and nothing is a conflict.
-// Elements the Studio added (ids not from Figma) are never touched. Isomorphic, no imports.
+// Elements the Studio added (ids not from Figma) are never touched, nor the prototype actions the Studio wrote (Figma
+// holds none of them). Isomorphic, no imports.
 //
 //   figmaSource(header) → { file, node } | null
 //   figmaChanges({ base, current, incoming, synced }) → { changes, threeWay }
@@ -150,6 +151,9 @@ export function figmaChanges({ base, current, incoming, synced = null }) {
       if (canon(from) === canon(to)) continue;
       const mine = here.node.props[name];
       if (canon(mine) === canon(to)) continue;
+      // Figma holds no prototype action (the Prototype tab's proto.*: push sends none): one the page has and the pull
+      // lacks is the Studio's own, never a removal (without a base the page stands in for it and would offer one).
+      if (to === undefined && (from?.kind === "proto" || mine?.kind === "proto")) continue;
       // A list of the same length (a Table's rows) says it changed; the rest say from → to.
       const what = from?.kind === "array" && to?.kind === "array" && from.items.length === to.items.length ? "changed" : `${showValue(from)} → ${showValue(to)}`;
       add({ kind: "prop", id, name, before: from, after: to, current: mine, conflict: threeWay && canon(mine) !== canon(then.get(id)?.node.props[name]), label: `${describeNode(after.node)} · ${name}: ${what}` });

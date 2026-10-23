@@ -9,7 +9,8 @@ import * as Zen from "../../../../index";
 import { typographyStyles } from "../../../../tokens/typography.generated";
 import { NestedContext, overridesAt } from "../../../../components/_shared/nested";
 import { resolveMediaDeep } from "../library/media";
-import { Board, Overlay, protoHandler, Screen, Section, Slice, type ProtoActions } from "../proto/runtime";
+import { filterRows, stepperOf } from "../proto/protoModel";
+import { Board, eventElement, Overlay, protoHandler, Screen, Section, Slice, type PlayLive, type ProtoActions } from "../proto/runtime";
 
 /*
  * The builder page renderer (spec docs/research/studio-builder-pages-spec-2026-10-06.md §3 2b): the neutral tree of
@@ -47,6 +48,8 @@ export type RenderContext = {
   file: string;
   mock: Record<string, unknown>;
   proto: ProtoActions;
+  /** Play's live Tables and Steppers (Filter table, Change step): a Table's filter and a Stepper's step by its place. */
+  play?: PlayLive;
   /** Props written on the root of an overlay frame so it shows open while designing ({ open: true }). */
   forceOpen?: boolean;
   /** The elements of the last render, by what their node says: an unchanged node gives the same element (renderCache). */
@@ -223,8 +226,35 @@ function prototypeProps(node: PageNode, props: Record<string, unknown>, ctx: Ren
   const actions = ctx.proto.hover;
   if (hover.kind !== "proto" || hover.action !== "open" || typeof hover.args[0] !== "string" || !actions) return;
   const [overlay, options] = hover.args;
-  props.onPointerEnter = () => actions.enter(overlay, options);
+  props.onPointerEnter = (event: unknown) => actions.enter(overlay, options, eventElement(event));
   props.onPointerLeave = () => actions.leave();
+}
+
+/**
+ * Play's Filter table and Change step on their way to a component: a filtered Table shows the rows its filter keeps (by
+ * the column's field and caption, or every field), a Stepper a Change step drives shows Play's step and goes back to a
+ * passed step on a press, as it does on its own.
+ */
+function livePlayProps(node: PageNode, props: Record<string, unknown>, ctx: RenderContext) {
+  const play = ctx.play;
+  if (!play || ctx.instance) return;
+  if (node.name === "Table") {
+    const filter = play.filters.get(node.loc);
+    if (!filter) return;
+    const columns = Array.isArray(props.columns) ? (props.columns as Array<Record<string, unknown>>) : [];
+    const column = filter.column ? columns.find((entry) => entry?.id === filter.column) : undefined;
+    const fields = column ? [column.field ?? column.id, column.captionField].filter((field): field is string => typeof field === "string") : undefined;
+    for (const prop of ["rows", "data"]) if (Array.isArray(props[prop])) props[prop] = filterRows(props[prop] as unknown[], filter.values, filter.match, fields);
+  } else if (node.name === "Stepper" && play.stepTargets.has(node.loc)) {
+    const current = play.steps.get(node.loc) ?? stepperOf(node).start;
+    const own = props.onStepClick;
+    props.current = current;
+    delete props.defaultCurrent;
+    props.onStepClick = (step: unknown, index: number) => {
+      if (typeof own === "function") own(step, index);
+      if (index < current) play.onStep(node.loc, index);
+    };
+  }
 }
 
 const INITIAL_PROP = /^(default|initial)[A-Z]/;
@@ -488,6 +518,7 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
   const lookStyle = look ? instanceLookStyle({ opacity: literalOf(node.props.opacity), blendMode: literalOf(node.props.blendMode) }) : null;
   if (lookStyle) props.style = lookStyle;
   prototypeProps(node, props, ctx);
+  livePlayProps(node, props, ctx);
   withStandIns(node.name, props);
   if (bound && typeof bound.swap === "string" && node.name === "Icon" && typeof ctx.values?.[bound.swap] === "string") props.name = ctx.values[bound.swap];
   if (bound && typeof bound.text === "string" && ctx.values?.[bound.text] !== undefined && !ownWords) {

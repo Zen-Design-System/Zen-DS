@@ -58,6 +58,9 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const flow = usePlayFlow(tree, start, { onLeave: exit });
   const { screen, base, alone, presentedNode, current, history, overlay, overlayNode, closeOverlay, actions, restart } = flow;
   const layerRef = useRef<HTMLDivElement>(null);
+  // Escape closes an open overlay before it leaves Play (a DatePicker by its trigger handles no Escape of its own here).
+  const overlayOpen = useRef(false);
+  overlayOpen.current = Boolean(overlay);
   // Preview modes change here and in Present only (the toolbar has none): Play's own, light/dark included, over the
   // canvas modes. They change the page being played, never the Studio's UI (its bar keeps the chrome modes).
   const { preview: canvasModes, brand } = useCanvasPreview();
@@ -117,10 +120,10 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
       const target = event.target instanceof HTMLElement ? event.target : null;
       if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
       if (event.key === "Escape") {
-        // An open overlay (Dialog, Menu…) takes Escape first; one the Overlay places (a Card…) closes. Open on phone's
-        // dialog sits in the chrome's portal, outside the layer.
+        // An open overlay (Dialog, Menu…) takes Escape first; any other one Play shows (a Card the Overlay places, a
+        // DatePicker by its trigger) closes. Open on phone's dialog sits in the chrome's portal, outside the layer.
         if (layerRef.current?.querySelector(presentEscapeOwners) || document.querySelector(".studio-open-phone")) return;
-        if (layerRef.current?.querySelector(".studio-player__overlay")) { event.preventDefault(); closeOverlay(); return; }
+        if (overlayOpen.current || layerRef.current?.querySelector(".studio-player__overlay")) { event.preventDefault(); closeOverlay(); return; }
         event.preventDefault();
         exit();
       } else if (event.key.toLowerCase() === "r" && !event.shiftKey) {
