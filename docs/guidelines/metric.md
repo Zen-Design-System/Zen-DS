@@ -91,7 +91,8 @@ Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric
 | `goal` | `MetricGoal` | — | goal-progress: the amount reached and the goal. |
 | `comparison` | _HTML attribute_ | — | comparison: two to four columns side by side (Spacing/Gap/Medium, a Border/Neutral/Subtle rule before each but the first); they stack on a narrow card. |
 | `categories` | _HTML attribute_ | — | category-bar: the parts of the card's `value`, largest first (two to seven: the chart palette has seven colours). |
-| `format` | `(value: number) => string` | `(value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 100) / 10}K` : `${Math.round(value * 10) / 10}`)` | How a number of `series`, `goal` and `categories` reads (the summary, the goal's label, each category's amount). Default "1.2K". |
+| `format` | `((value: number) => string) \| ChartFormatPreset` | — | How a number of `series`, `goal` and `categories` reads (the summary, the goal's label, each category's amount): a function, or a preset a Zen Studio page can write as text — `"compact"` 1.2K (the default), `"currency"` $1.2K (in `currency`), `"percent"` 41%. `value` is shown as you pass it. |
+| `currency` | `string` | — | The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies `format="currency"`. |
 | `footer` | `ReactNode` | — | Content under the type's own (Figma Hero: a Small Button — level="primary" on a hue card, appearance="overlay" level="inverse" on Solid Neutral, as Figma's Button/Overlay Inverse). |
 | `headingLevel` | `2 \| 3 \| 4` | `3` | comparison: heading level of the title (default 3: a card inside an h2 section; 2 when the card sits directly under the page h1), as ChartCard's. The look stays Body/Extra/Medium: the level follows the outline, not the size. |
 | `animate` | `boolean` | `true` | Draw the marks in on mount and when their data changes (default true; reduced motion fades). |
@@ -117,6 +118,7 @@ Object shapes the props above refer to.
 
 ```ts
 interface CardSubAction { label: string; icon?: IconName | ReactElement; onClick?: () => void; }
+type ChartFormatPreset = "compact" | "currency" | "percent"
 type DockIconTheme = (typeof dockIconThemes)[number]
 interface MetricGoal { value: number; target: number; label?: ReactNode; valueLabel?: ReactNode; }
 type MetricTrendDirection = "positive" | "negative" | "normal"

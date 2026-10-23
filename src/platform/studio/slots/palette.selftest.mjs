@@ -450,7 +450,8 @@ check("searchPalette: every word", searchPalette(PALETTE, "data list").map((item
     check(`widgets: ${id} renders through ${name}`, Boolean(page), true);
     if (page) check(`widgets: ${name} on the page = the ${id} entry's code`, JSON.stringify(shapeOf(page)) === JSON.stringify(shapeOf(parseExpression(item.build(WIDGET_PAGE_CONTEXT), { plugins: ["jsx", "typescript"] }))), true);
     check(`widgets: ${id} code on the page starts with its import line`, widgetCode(id).split("\n")[0], `import { ${[...new Set(item.components)].sort((a, b) => a.localeCompare(b)).join(", ")} } from "@zen-ds/react";`);
-    // A builder page keeps no functions: its version is the code without the format callbacks.
+    // A builder page keeps no functions: its version is the code with money and percent callbacks as their text preset
+    // (format="currency" / "percent", 2026-10-23) and the others left out.
     check(`widgets: ${id} builder version has no callback`, /=>/.test(item.builder(WIDGET_PAGE_CONTEXT)), false);
   }
 }

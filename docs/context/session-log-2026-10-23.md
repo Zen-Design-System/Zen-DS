@@ -359,6 +359,23 @@ Branch claude/eloquent-mclean-8f4974 from main 4b96bbb8. BACKLOG P1 "320px debt 
   Visual diff templates 1512 + 390, old vs new template: 32 identical. Baseline: the 28 @320 keys gate 2 no longer finds
   removed (13 Chat, 10 layout, the Show-all target, 4 Text-page heading demos); 16 @320 keys left, all also at 1512/390.
 
+## Session C · PropertyField ↔ Figma gaps (BACKLOG P3; Giám sát's G3 queue, tier M)
+Branch `zen/fix/studio-property-field-figma-20261023`.
+- Figma (user's choice "Make Container a Slot"): in the 8 Person / Tags variants of `.Primitives/Input/Property-Value`
+  (16921:6022) Person / Tag-1 / Tag-2 now sit in `Value-Slot` (one SLOT property, gap bound like Container's, hidden in
+  Default so "Empty" keeps its place) inside Container; sizes unchanged (280 × 40), the 7 example instances kept their
+  people and labels. component-properties.json has the slot; native pack re-probed for the two sets (probe frame,
+  clipboard saved and restored, merge-property.mjs replaces the sets and 25 symbols). Needs the library publish.
+- Push: People / Tags fill the Value-Slot (a Person Tag per person: its name in its own text — Tag's Label property and
+  first text are its avatar's — the avatar's first letter; a Badge per label); a ring's progress (BadgeStatus, the Status
+  cell) is the Progress arc (`arcs` on the nested Leading; from 3π/2, as the set's own 0 / 25 / 50 / 100). Plugin
+  `applyArcs` (landed inside B's 09849d4 in the shared checkout); native paste writes the arc override too.
+- Pull: the reader records changed arcs (`arcs`); People / Tags from `innerSlots` (old files: Person, Tag-1/2). Found on
+  the live read and fixed: the Value's parts became PropertyField `overrides` (a note per row), and a BadgeStatus' own
+  label came back as children.
+- Real Figma (QA page): import → arcs 80 / 60, 3 people, 3 labels; the real reader + pull give them back
+  (fixture figma-property-values.json). Selftests: push 411, pull 134, native 141; plugin `npm test` ✓.
+
 ## Session B · Studio Variables v2 (G4, tier L; user decisions: modes prop, mode lists from tokens, rename keeps an alias)
 
 - Spec docs/research/studio-variables-v2-spec-2026-10-23.md. Chunks 1–4 in one PR: Edit variable (meta op, plugin
@@ -422,6 +439,48 @@ Branch zen/feat/box-theme-rules-20261023 (worktree festive-archimedes-176df5). #
   new ListBox examples shrank (.pe-shell is a 480-tall row for app windows): their page is now a column of its content's
   height (list-item.css), re-shot after the slot came back: `qa --only=list-item --isolated` PASS (audit, dark,
   behaviour 0); at 1512 the three Pale groups fill their columns and the flat page hugs its list, 390 unchanged.
+
+## Chart number format presets (tier M; user G2 2026-10-23: "literal preset format="currency" + currency"; scope widened by the user to every chart with `format`)
+
+Branch zen/feat/chart-format-presets-20261023 from main 9fe063d2. BACKLOG P2 "Charts in Studio pages show no currency".
+- chartCore: `ChartFormatPreset` ("compact" | "currency" | "percent"), `ChartFormat` (function or preset), `formatOf(format,
+  currency)`. Currency: Intl's narrow symbol before defaultFormat's compact figure ("$128.4K", "€950", "-₫1.2K"; a code
+  with no symbol keeps a no-break space: "CHF 5K"; a code Intl refuses is written as its letters). `currency` alone
+  implies the currency preset; percent appends "%" to the value as it is.
+- `format` + `currency` on LineChart, StackBarChart, BarChart, AreaChart, GroupedBarChart, ComboChart (`lineFormat` too,
+  sharing `currency`), DonutChart, RadialChart and GaugeChart (their default stays the share of `max`), FunnelChart,
+  HeatmapChart, BarList, BulletChart (a row function or a preset) and MetricCard. The user widened the scope from the
+  approved three (LineChart, BarList, MetricCard): a preset only some charts take would crash a page that writes it on
+  another (format is called as a function).
+- Studio palette: on a builder page a money callback becomes `format="currency"`, a share `"percent"` (PRESETS); hours
+  and goals keep the chart's own format. figma-widgets selftest: number formats come back like data (Figma has no format
+  property). part-props: PlotFrame no longer maps `format` (the chart resolves it first).
+- Guideline row "Number format" + a do line; good-fixture cases; example "Money as a preset" (LineChart + BarList).
+
+## Chart push: the page's labels, axis and Tooltip (tier M; user G2 2026-10-23: "push the page's real data … X labels, six Y ticks, active tooltip")
+
+Branch zen/feat/chart-push-real-data-20261023 (stacked on the format presets: labels use the page's preset). BACKLOG P2
+"Studio push of Line, Bar, Area, Grouped and Combo charts draws Figma's sample data".
+- Read live (read-only): Line's periods are .Primitives/Chart/Sector instances (Label, Select "Selected Highlight",
+  Tooltip) beside six Trend Label texts; Bar vertical Y-Axis › Label × 6, X-Axis › Tick › Label, a Tooltip-Anchor at a
+  fixed column (x / column width: 4→2, 6→2, 7→5, 12→8); Bar horizontal Categories / Values / Grid › Tick × 4; Area,
+  Grouped-Bar and Combo name their axis texts after Figma's sample (Q1…, Apr–Sep, Mon–Sun, Jan–Dec; 2.5K…, $125K…, 50%…);
+  Area's anchor sits on the last Sector (constraint MAX); Multi-Line's comparison Tooltip at Compare › Active; Grouped and
+  Combo have no active state. The importer resolves edits by exact names (`>` direct child, `[i]`), so the push names them.
+- figma-charts.mjs: `formatFor` (chartCore formatOf in Node: presets, currency, lineFormat), `sixTicks` (shared with
+  Stack-Bar; fifths of the top when the code has another step count), `lineMarks`, `barMarks`, `axisMarks`,
+  `fixedTooltip` (the highlighted period's value, hidden past the data, noted when the page's active one differs).
+  Stack-Bar's tooltip and Donut's total use the page's format too. `drawn: "labels"` → note "draws its own sample marks".
+- Live check in the Zen file (QA page 15872:3, frame removed after): the plugin's own applyProperties / applyNested /
+  applyEdits / nestedAt / layerIn (verbatim from studio-import.js) on six instances: every path resolved (0 notes), every
+  text read back as written. Found and fixed: Area's tooltip with fewer periods than its Sector sat on an empty period
+  (now hidden); a horizontal row past the data kept an empty pill and a sample bar (now hidden, its value empty). Found,
+  BACKLOG P3 (plugin repo): a bare horizontal Bar keeps 290px after its Heading hides, so Values drift from the rows.
+- figma-push selftest 420 (a page of six labelled charts: Line, Bar V/H, Area in EUR, Grouped, Combo with lineFormat).
+- Gate for both chart PRs (isolated, top branch c6bb2bfd after main b8c4241e; pages chart, widgets, metric): static ✓,
+  Vitest 80 / 80, audit 1512 / 390 / 320 + dark + behaviour 0 new, Studio E2E 340 / 341 — B-10 (Export → Import the
+  same text) timed out on a click while the machine was loaded (C's E2E ran beside it ~25 s) and passed alone right
+  after (1 / 1). Contact sheets: "Money as a preset" reads "$" on the axis, Tooltip and list at 390 and 1512.
 
 ## Update from Figma in another browser (tier M; BACKLOG P3, P6b leftover; user "chia như đề xuất", via the parent session)
 
