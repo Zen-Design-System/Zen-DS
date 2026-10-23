@@ -130,11 +130,15 @@ export interface SidebarProps {
   /** Figma instance overrides: props of the rows (by item id, a child row inside its parent) it draws, by layer (`{ "Item[inbox]/Badge-Counter": { theme: "accent" }, "Item[team]/Item[members]/Icon": { name: "icon-users-line" } }`). Written by Zen Studio;
    *  app code sets the sections. */
   overrides?: NestedOverrides;
-  /** Default = Surface with a shadow (a Canvas/Default page; cards on the page take the same shadow, no border). Alt
-   *  (Surface/Alt) and Flat are the only choices on a Canvas/Alt (white) page, where cards are bordered. */
+  /** The Sidebar's fill, matched to the page's Canvas (Figma theme pairing, harness theme/navigation-surface): Default =
+   *  Surface/Default, with a shadow on a Canvas/Default page (cards there take the same shadow) or `shadow={false}` on a
+   *  Canvas/Alt (white) page, where Surface/Default is the canvas's own colour and cards are bordered (add `divider`) ·
+   *  Alt = Surface/Alt, seamless on Canvas/Default · Flat = Surface/Flat, the Sidebar of a Canvas/Flat page · Inverse =
+   *  the dark Sidebar. */
   background?: SidebarBackground;
-  /** A Pale divider on the Sidebar's inner edge, the full height of the block: separates an Alt or Flat Sidebar from the
-   *  page on a Canvas/Alt (white) page. Not with the default Sidebar, whose shadow already separates it. */
+  /** A Pale divider on the Sidebar's inner edge, the full height of the block: separates a Sidebar that sits on the
+   *  canvas (no shadow) from the page, as on a Canvas/Alt (white) page. Not with a shadowed Sidebar, whose shadow already
+   *  separates it. */
   divider?: boolean;
   /**
    * Figma Patterns/Sidebar/Density-Medium Shadow (6040:67524: Yes · No, default Yes). Yes: the Surface/Default Sidebar

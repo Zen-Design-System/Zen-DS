@@ -384,6 +384,14 @@ function figmaProps(entry, code, mapping, notes, where, only = null, filled = nu
 /** The set of a code component: by its set prop (Button appearance="flat" → Button/Flat), else its only set. */
 /** Layers an override of names directly (words, visibility, a page instance's values), never a Zen component's set. */
 const NOT_LIBRARY = new Set(["Use", "Text", "Heading", "Stack", "Grid", "Box", "Shape"]);
+/** The ZenProvider axes a frame's `modes` may set (components/_shared/zen-context.ts zenModeAttributes). */
+const MODE_AXES = new Set(["theme", "componentTheme", "density", "radius", "emphasis", "breakpoint", "typography", "brand"]);
+/** A frame's `modes` as the push writes them ({ axis: mode id }), or null when there are none. */
+const frameModes = (value) => {
+  if (!value || typeof value !== "object") return null;
+  const modes = Object.fromEntries(Object.entries(value).filter(([axis, mode]) => MODE_AXES.has(axis) && typeof mode === "string"));
+  return Object.keys(modes).length ? modes : null;
+};
 /** The layers that take `sticky` (Layout/position.ts): Figma's Scroll behavior on a frame or a shape. */
 const STICKY_FRAMES = new Set(["Stack", "Grid", "Box", "Shape"]);
 /** An AppShell's phone bars (AppShell.tsx mobile Top / Bottom): figma-push draws the Screen's own bars instead (BACKLOG
@@ -723,7 +731,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     // A typed MetricCard is Figma's Metric-Card of that Type (figma-metric.mjs); a KPI one a Card around Metric-Inline.
     else if (element.name === "MetricCard" && metricCardTyped({ type: literalOf(element.props.type) })) node = metricCardNode(element, code, id);
     // A KPI MetricCard is a Card around Metric-Inline (Metric's set; Figma Metric-Card is the typed ones').
-    else if (element.name === "MetricCard") node = cardAround(instanceNode({ ...element, name: "Metric" }, code), code.theme ?? "shadow", id, typeof code.label === "string" ? code.label : "MetricCard", code.color);
+    else if (element.name === "MetricCard") node = cardAround(instanceNode({ ...element, name: "Metric" }, code), code.theme ?? "shadow", id, typeof code.label === "string" ? code.label : "MetricCard", code.color, code.surface, code.spacing);
     else if (element.name === "AiChatBlock") node = aiChatBlockNode(element, code, id);
     // Metric is MetricCard's content without its Card: the same Metric-Inline set and parts.
     else if (element.name === "Metric") node = instanceNode(element, code, id);
@@ -1115,7 +1123,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     const drawing = chartNode(chart, header, null);
     if (!drawing) return null;
     if (chart.id) drawing.key = chart.id;
-    return cardAround(drawing, code.theme ?? "default", id, title || "ChartCard", code.color, code.surface);
+    return cardAround(drawing, code.theme ?? "default", id, title || "ChartCard", code.color, code.surface, code.spacing);
   }
 
   /**
@@ -1163,14 +1171,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     return { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code.label === "string" ? code.label : "MetricCard", ...drawn };
   }
 
-  /** A layer in a Card of `theme`, `color` and `surface` (MetricCard and ChartCard are a Card around their content:
-   *  Figma Metric-Card, Chart-Card). */
-  function cardAround(content, theme, id, name, color, surface) {
+  /** A layer in a Card of `theme`, `color`, `surface` and `spacing` (MetricCard and ChartCard are a Card around their
+   *  content: Figma Metric-Card, Chart-Card). */
+  function cardAround(content, theme, id, name, color, surface, spacing) {
     if (!content) return null;
     const card = entryFor("Card", { theme }, byCode, mapping);
     if (!card) return { ...content, ...(id ? { id } : {}) };
     const set = { id: card.id, name: card.name };
-    const own = { theme, ...(color !== undefined ? { color } : {}), ...(surface !== undefined ? { surface } : {}) };
+    const own = { theme, ...(color !== undefined ? { color } : {}), ...(surface !== undefined ? { surface } : {}), ...(spacing !== undefined ? { spacing } : {}) };
     const props = cardVariant({ ...figmaProps(card, own, mapping, notes, name, new Set(Object.keys(own))), ...onlyOwn(set, { "Sub-Action": false }) }, notes, name);
     return { type: "INSTANCE", ...(id ? { id } : {}), name, set, props, slots: [{ name: "Content", children: [{ ...content, fillW: true }] }] };
   }
@@ -1706,7 +1714,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     // without auto layout (layoutMode NONE), its layers at their X / Y (F4, A found it 2026-10-19).
     const layers = element.children.filter((child) => child.kind === "element");
     const free = element.name === "Box" && !group && fixedWidth !== null && fixedHeight !== null && layers.every((child) => literalOf(child.props.position) === "absolute");
-    return { type: "FRAME", ...(id ? { id } : {}), name: group ? (mask ? "Mask group" : "Group") : element.name, ...(group ? { group: true } : {}), ...(mask ? { mask: true } : {}), layout: free ? { mode: "NONE" } : layout, children, ...frameLook(code, element), ...(fixedWidth !== null ? { fixedWidth } : {}), ...(fixedHeight !== null ? { fixedHeight } : {}), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
+    // A frame's own variable modes (Studio Variables v2): Figma's explicit mode per collection, by axis and mode id
+    // (the importer finds the collection and the mode whose name has that id).
+    const modes = frameModes(plain(element.props.modes));
+    return { type: "FRAME", ...(id ? { id } : {}), ...(modes ? { modes } : {}), name: group ? (mask ? "Mask group" : "Group") : element.name, ...(group ? { group: true } : {}), ...(mask ? { mask: true } : {}), layout: free ? { mode: "NONE" } : layout, children, ...frameLook(code, element), ...(fixedWidth !== null ? { fixedWidth } : {}), ...(fixedHeight !== null ? { fixedHeight } : {}), ...(maxW && /^\d+(px)?$/.test(String(code.maxWidth)) ? { maxW } : {}), ...(maxH ? { maxH } : {}), ...(code.clip === true || scroll ? { clip: true } : {}), ...(scroll ? { scroll } : {}) };
   }
 
   /** A node prop's layers as a slot's: a Stack the pull made of a slot's several layers gives its layers back. */
@@ -2338,7 +2349,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     body = [part("topNavigation", { direction: "column", stretch: true }), column("Content", page, { fillW: true }), part("bottomNavigation", { direction: "column", stretch: true })].filter(Boolean).map(filled);
   }
   const root = rootStack ? frameNode(layers[0], codeProps(layers[0]), figmaIdOf(layers[0].id), { direction: "column", stretch: true, width: frameWidth }) : { type: "FRAME", name: title, layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: body };
-  for (const element of [doc.board, screen]) for (const name of Object.keys(element.props)) if (!["id", "title", "device", "layout", "canvas", "height", ...chromeProps].includes(name) && !DRAWN_BY_PULL.has(name)) notes.push(`${element.name} ${name}: not pushed`);
+  // The Screen's own variable modes go on its frame (Studio Variables v2).
+  const screenModes = frameModes(plain(screen.props.modes));
+  if (screenModes) root.modes = { ...screenModes, ...(root.modes ?? {}) };
+  for (const element of [doc.board, screen]) for (const name of Object.keys(element.props)) if (!["id", "title", "device", "layout", "canvas", "height", "modes", ...chromeProps].includes(name) && !DRAWN_BY_PULL.has(name)) notes.push(`${element.name} ${name}: not pushed`);
   // The frame is keyed by the Stack it draws, else by the Screen (its layers keep their own keys).
   if (rootStack && layers[0].id) root.key = layers[0].id;
   else if (screen.id) root.key = screen.id;
