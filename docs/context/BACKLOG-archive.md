@@ -2,6 +2,27 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-23 (B: example className round 2, AppShell phone bars)
+
+- Done 2026-10-23 (the three PRs merged: #224, #231 Card / ListBox content column, #232 `sticky`):
+  **P2 · Example className, round 2 (2026-10-23, session B; user: "theo bạn cái nào lợi hơn lâu dài, chính xác nhất"):**
+  the 2026-10-12 coverage plan's P3 (TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem,
+  DatePickerSheet, chat, Metric) and P4/P5 (className 219 → 112) were merged on 2026-10-13 (spec
+  `docs/research/studio-figma-push-spec-2026-10-12.md` §8). Examples added since carry 177 className and 74 raw tags
+  again. Doing now (branch `zen/chore/examples-classnames-20261023`): classes with a Figma-equivalent Zen prop (Fill
+  container, Absolute, max size, scroll, Grid stackBelow) become props, bleed margins become structure, dead classes go;
+  docs-only CSS (ch widths, component internals, motion, media, demo focus rings) stays. User decisions 2026-10-23: Card /
+  ListBox content becomes an auto layout column, Box / Stack get `sticky`, wrapping rows use Fill + min width. Three PRs;
+  spec card `docs/research/examples-classnames-round2-spec-2026-10-23.md`.
+- Done 2026-10-23 (user-approved through the progress session; figma-push `mobileShellNode`, plugin 84b6d1e `edit.fill`,
+  checked with the real importer in the Zen file):
+  **P3 · AppShell phone bars in Figma (2026-10-23, B; found by AppShell, needs the user's OK):** figma-push draws a
+  phone frame's top and bottom bars only from the builder Screen's own `topNavigation` / `bottomNavigation`. An
+  AppShell's own phone bars are named in the push notes and not drawn: a root AppShell on a phone Screen keeps only its
+  content, as the runtime shows it, and an AppShell inside a page draws only its desktop parts. Drawing them (Figma
+  Pattern/AppShell/Mobile, its Bar type by canvas: default→Alt, alt→Default, flat→Default on Surface/Flat) is new scope.
+  Pointer: `tools/studio/figma-push.mjs` `appShellNode` (~852) and the Screen's mobile chrome (~2232).
+
 ## Archived 2026-10-23 (320px debt)
 
 - Done 2026-10-23 (user: "xử hết"; re-measured on main 4b96bbb8: the 13 Chat findings were already gone after the

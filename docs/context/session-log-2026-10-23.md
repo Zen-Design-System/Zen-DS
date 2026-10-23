@@ -422,3 +422,23 @@ Branch zen/feat/box-theme-rules-20261023 (worktree festive-archimedes-176df5). #
   new ListBox examples shrank (.pe-shell is a 480-tall row for app windows): their page is now a column of its content's
   height (list-item.css), re-shot after the slot came back: `qa --only=list-item --isolated` PASS (audit, dark,
   behaviour 0); at 1512 the three Pale groups fill their columns and the flat page hugs its list, 390 unchanged.
+
+## Session B · AppShell phone bars in Figma (tier M; BACKLOG P3, user-approved through the progress session)
+
+- figma-push `mobileShellNode`: a phone AppShell (root or inside the page) with phone parts → Pattern/AppShell/Mobile
+  16261:136204 (Device · Top Bar/Band/Band-Sheet/Media · Bottom Tab-Bar/Floating/Actions/None), layers per Top read
+  from the set. Bar type by canvas as AppShell.tsx BAR_TYPE; flat repaints the Default bar Surface/Flat (edit `fill`,
+  plugin 84b6d1e, figma-native too); band colour on Band / Stage; hero/backdrop slot hidden and emptied when unset
+  (Figma's sample Placeholder kept its 192px). ActionBar → Action-Bar/Mobile (Type, Actions Dual/Single × direction,
+  buttons in Figma's order). A Screen with its own bars keeps them and notes the AppShell's.
+- BottomNavigation tabs (were "no item set yet"): Items/Default · Floating · Floating-Glass, Theme by selection,
+  selectedIcon, showLabels, dot, the Default bar's action as Type=Action, the floating CTA's glyph. Pull reads them back
+  (labels kept while hidden, value, theme, selection, action): round trip exact in the selftest.
+- library-keys.json + 4 sets (keys read live). TOP_NAV_TYPES + transparent / transparent-on-color.
+- Native paste: native-pack `write --merge` of a probe copy (+3 sets: the pattern, Action-Bar/Mobile, Status-bar/IOS/
+  Tablet; 36 symbols, 23.6 MB, no pictures); figma-native nestedAt looks into a frame on the path (Band › Top-Navigation),
+  as the importer does, and writes an edit's fill. The capture switched the user's Figma tab (they were on Home); the
+  clipboard was saved and restored (6/6 types).
+- Live, real importer in the Zen file (QA page 15872:3, frames removed): flat bar + 3 tabs; band accent + ActionBar.
+- Left: pulling the pattern back to AppShell, and a standalone ActionBar in Figma → BACKLOG P3. Archived BACKLOG
+  "Example className, round 2" and "AppShell phone bars"; the sticky native paste line is C's (tried live).

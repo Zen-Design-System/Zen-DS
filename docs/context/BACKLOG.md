@@ -28,15 +28,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   that opens a DatePicker or Bottom Sheet, a filter Chip or Search that filters a Table, a Stepper's Next button): a
   Prototype action "open this popover, anchored to this element" and/or Figma-like variables. B (components keep their
   own state) is done: session log 2026-10-15 "Self-managed state".
-- **P2 · Example className, round 2 (2026-10-23, session B; user: "theo bạn cái nào lợi hơn lâu dài, chính xác nhất"):**
-  the 2026-10-12 coverage plan's P3 (TopNavigation, ColorSelector, TabItem, InputConditions, UploaderFileItem,
-  DatePickerSheet, chat, Metric) and P4/P5 (className 219 → 112) were merged on 2026-10-13 (spec
-  `docs/research/studio-figma-push-spec-2026-10-12.md` §8). Examples added since carry 177 className and 74 raw tags
-  again. Doing now (branch `zen/chore/examples-classnames-20261023`): classes with a Figma-equivalent Zen prop (Fill
-  container, Absolute, max size, scroll, Grid stackBelow) become props, bleed margins become structure, dead classes go;
-  docs-only CSS (ch widths, component internals, motion, media, demo focus rings) stays. User decisions 2026-10-23: Card /
-  ListBox content becomes an auto layout column, Box / Stack get `sticky`, wrapping rows use Fill + min width. Three PRs;
-  spec card `docs/research/examples-classnames-round2-spec-2026-10-23.md`.
 - **P3 · Figma: publish the renamed layers (user, 2026-10-12):** 186 layers in the Zen file were renamed to Zen's names
   (and Inline-Message's slot property Visual → Leading, same id), names only, checked before/after
   (`docs/figma-contracts/layer-renames-2026-10-12.json`, with the undo map). Other files see them once the library is
@@ -53,12 +44,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (FIXED_WHEN_CHILD_OF_SCROLLING_FRAME on the absolute dock, STICKY_SCROLLS in flow) from Figma's own clipboard schema;
   the plugin path was checked live. Still to see in a real ⌘V: Figma keeps both, and whether it also wants
   `fixedChildrenDivider` on the parent. Pointer: `docs/research/layout-sticky-spec-2026-10-23.md` § Figma.
-- **P3 · AppShell phone bars in Figma (2026-10-23, B; found by AppShell, needs the user's OK):** figma-push draws a
-  phone frame's top and bottom bars only from the builder Screen's own `topNavigation` / `bottomNavigation`. An
-  AppShell's own phone bars are named in the push notes and not drawn: a root AppShell on a phone Screen keeps only its
-  content, as the runtime shows it, and an AppShell inside a page draws only its desktop parts. Drawing them (Figma
-  Pattern/AppShell/Mobile, its Bar type by canvas: default→Alt, alt→Default, flat→Default on Surface/Flat) is new scope.
-  Pointer: `tools/studio/figma-push.mjs` `appShellNode` (~852) and the Screen's mobile chrome (~2232).
+- **P3 · Pull the phone AppShell back from Figma (2026-10-23, B):** the push draws a phone AppShell as Figma's
+  Pattern/AppShell/Mobile (its bar, tabs or ActionBar, band, page); figma-pull has no reader for that pattern yet, so a
+  pull gives the page in a Stack named AppShell and notes the rest (as before the push drew it). An ActionBar outside an
+  AppShell still has no Figma set (Action-Bar/Mobile, 16326:6489). Pointer: `tools/studio/figma-push.mjs`
+  `mobileShellNode`, `actionBarParts`; `figma-pull.mjs` masterLayout reader (~1980) as the pattern to follow.
 - **P2 · Studio push of Line, Bar, Area, Grouped and Combo charts draws Figma's sample data (user, 2026-10-13: "sync lại
   component của figma lẫn studio"; re-checked 2026-10-23):** the push picks each chart's Sector (4 / 6 / 7 / 12) by the
   point count since 2026-10-17, and Stack-Bar and Donut draw the page's data (`stackBarMarks`, `donutMarks` in

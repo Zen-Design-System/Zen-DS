@@ -1023,7 +1023,7 @@ function sidebarBrandLayers(slot, ctx, where) {
 /** Primitive rows that stand as code elements where the code takes nodes (Sidebar footer: `<SidebarMenuItem>`). */
 const ROW_ELEMENTS = { "Primitives/Side-Bar/Menu-Item/Master": "SidebarMenuItem" };
 /** The prop that names a data slot's selected item (Figma's Select = Yes on the item). */
-const SELECTED_PROP = { Sidebar: "selectedId", Segmented: "defaultValue", Tabs: "defaultValue" };
+const SELECTED_PROP = { Sidebar: "selectedId", Segmented: "defaultValue", Tabs: "defaultValue", BottomNavigation: "value" };
 /** Components whose text prop is a plain text layer of their set (figma-push TEXT_PROP): the instance's text is it. */
 const TEXT_PROP = { InputConditionItem: "label" };
 /** An item's icon field where it is not `icon` (SegmentedOption `leading`). */
@@ -1341,6 +1341,28 @@ function itemFields(item, ctx, { labelKey = "label", iconKey = "icon", where }) 
 }
 
 /**
+ * BottomNavigation's look from its tabs (figma-push draws it on each): Label on is showLabels, an Accent Theme the accent
+ * theme, a floating tab's -Surface / -Solid / plain Theme the selection (written where it is not the bar's default), and
+ * the Default bar's Type=Action tab its action.
+ */
+function bottomNavLook(tabs, props, setName, ctx) {
+  const type = /Floating-Glass$/.test(setName) ? "floating-glass" : /Floating$/.test(setName) ? "floating" : "default";
+  const items = tabs.filter((tab) => tab.props?.Type !== "Action");
+  if (items.some((tab) => tab.props?.Label === true)) props.showLabels = literal(true);
+  const theme = String(items[0]?.props?.Theme ?? "");
+  if (/^Accent/.test(theme)) props.theme = literal("accent");
+  if (type !== "default" && theme) {
+    const selection = /-Solid$/.test(theme) ? "solid" : /-Surface$/.test(theme) ? "surface" : "subtle";
+    if (selection !== (type === "floating-glass" ? "subtle" : "surface")) props.selection = literal(selection);
+  }
+  const action = tabs.find((tab) => tab.props?.Type === "Action");
+  const icon = action?.props?.["Icon-Src"];
+  if (type === "default" && action && typeof icon === "string" && isZenIcon(icon, ctx.mapping)) {
+    props.action = { kind: "object", fields: { icon: literal(icon), label: literal(action.name && action.name !== action.set?.name ? action.name : iconWords(icon)) } };
+  }
+}
+
+/**
  * Breadcrumbs' look from its crumbs' Item primitives (figma-push writes Level and Emphasis there; Sub and Default are
  * the primitive's own): a first crumb that is not Master turns `master` off, every crumb Medium is the trail's emphasis.
  */
@@ -1373,16 +1395,20 @@ function dataSlotValue(slot, dataSlot, ctx, where, rail = false) {
   const labelKey = /\btitle:/.test(dataSlot.newItem(0).code) ? "title" : "label";
   const iconKey = ITEM_ICON[dataSlot.component] ?? "icon";
   let selected = null;
+  // A Bottom-Navigation tab keeps its label while Figma hides it (Label off is showLabels off, bottomNavLook).
+  const tab = dataSlot.component === "BottomNavigation";
   const toItem = (item) => {
-    const shown = rail ? { ...item, props: { ...item.props, Label: true }, text: item.text || item.name } : item;
+    const shown = rail || tab ? { ...item, props: { ...item.props, Label: true }, text: item.text || item.name } : item;
     const fields = itemFields(shown, ctx, { labelKey, iconKey, where: `${where} › ${dataSlot.itemName}` });
+    if (tab && item.props?.Noti === true) fields.dot = literal(true);
     // A count in its Badge-Counter (a Tab-Item with Badge on).
     const count = item.props?.Badge === true ? (item.nested ?? []).find((nested) => nested.path === "Badge-Counter")?.text : null;
     if (count) fields.badge = literal(/^\d+$/.test(count) ? Number(count) : count);
     if (isSelected(item)) selected ??= fields.id.value;
     return { kind: "object", fields };
   };
-  if (!dataSlot.nested) return { value: { kind: "array", items: rowsOf(slot.children ?? []).map(toItem) }, selected };
+  // The Default bar's action is its Type=Action tab (bottomNavLook), not a destination.
+  if (!dataSlot.nested) return { value: { kind: "array", items: rowsOf(slot.children ?? []).filter((row) => !(tab && row.props?.Type === "Action")).map(toItem) }, selected };
   // Rows straight in the slot form a section of their own, each frame one.
   const groups = [];
   for (const child of slot.children ?? []) {
@@ -2132,6 +2158,7 @@ function convertNode(node, ctx) {
         if ((set.code === "Tabs" || set.code === "Segmented") && look.Size === "Small") props.size = literal("sm");
         if (set.code === "Segmented" && look.Level && look.Level !== "Secondary") props.level = literal(look.Level.toLowerCase());
         if (set.code === "Breadcrumbs") breadcrumbsLook(rowsOf(slot.children ?? []), props);
+        if (set.code === "BottomNavigation") bottomNavLook(rowsOf(slot.children ?? []), props, node.set?.name ?? "", ctx);
         continue;
       }
       if (slotProps[slot.name]) {

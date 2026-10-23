@@ -1631,7 +1631,12 @@ class InstanceBuild {
       const instances = this.descendants(current).filter((ref) => ref.type === "INSTANCE");
       let found = instances.filter((ref) => ref.name === name || layerKey(ref.name) === name);
       if (found.length <= index) found = instances.filter((ref) => { const shown = this.w.index.tree(this.shownSymbolOf(ref)); const set = shown?.set ? this.w.index.pack.sets[shown.set]?.name : shown?.name; return ref.name === name || layerKey(ref.name) === name || layerKey(set) === name; });
-      if (!found[index]) return null;
+      // A frame on the way (the AppShell phone pattern's Band › Top-Navigation): looked into, as the importer's nestedAt.
+      if (!found[index]) {
+        const frame = this.descendants(current).filter((ref) => (ref.type === "FRAME" || ref.type === "GROUP") && ref.name === name)[index];
+        if (frame && i < segments.length - 1) { current = frame; continue; }
+        return null;
+      }
       current = found[index];
     }
     return current;
@@ -1697,6 +1702,8 @@ class InstanceBuild {
     if (!ref) { this.w.note(`${at}: no such layer`); return; }
     if (typeof edit.visible === "boolean") this.setVisible(ref, edit.visible);
     if (typeof edit.characters === "string" && ref.type === "TEXT") this.setText(ref, edit.characters);
+    // Its fill as a colour variable (an AppShell phone pattern's bar on a Flat canvas, its band's colour).
+    if (typeof edit.fill === "string") this.target(ref).fillPaints = this.w.paint(edit.fill, at);
     if (edit.hugW || edit.hugH || edit.fillW || edit.fillH) this.sizeLayer(ref, edit, at);
     if (Array.isArray(edit.padding)) {
       // A component layer's padding: the override names the sides it binds and, without variableData, the sides it
