@@ -2,6 +2,12 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-23 (PropertyField ↔ Figma, done on `zen/fix/studio-property-field-figma-20261023`)
+
+- **P3 · PropertyField ↔ Figma gaps (2026-10-21):** a People / Labels cell pushes one person and two tags (the
+  Property-Value variants hold that many), and `BadgeStatus progress` is not pushed (Progress-Icon's arc is set by hand in
+  Figma). Pointer: `tools/studio/figma-property.mjs`.
+
 ## Archived 2026-10-23 (320px debt)
 
 - Done 2026-10-23 (user: "xử hết"; re-measured on main 4b96bbb8: the 13 Chat findings were already gone after the

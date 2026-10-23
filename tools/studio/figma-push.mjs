@@ -23,7 +23,7 @@ import { pruneHidden } from "./visibility.mjs";
 import { FIGMA_NAMED, LABEL_NAMED, givenNameOf } from "./layer-meta.mjs";
 import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFigma } from "./figma-charts.mjs";
 import { SUB_ACTION_ICON, metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
-import { PROPERTY_TYPE as PROPERTY_CELL_TYPE, propertyValueFigma } from "./figma-property.mjs";
+import { PROPERTY_TYPE as PROPERTY_CELL_TYPE, propertyValueFigma, statusArcs } from "./figma-property.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { textSegments } from "./text-runs.mjs";
@@ -2186,8 +2186,14 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
         const drawn = propertyValueFigma(cell.name, Object.fromEntries(Object.entries(cell.props).map(([name, value]) => [name, plain(value)])));
         node.nested = [...(node.nested ?? []), ...drawn.nested];
         if (drawn.hide.length) node.hide = [...(node.hide ?? []), ...drawn.hide];
+        if (drawn.slots.length) node.slots = [...(node.slots ?? []), ...drawn.slots];
         for (const note of drawn.notes) notes.push(`${where}: ${note}`);
       }
+    }
+    // BadgeStatus' progress: its ring's Progress arc (Figma holds no property for it), where it is not the status' own.
+    if (element.name === "BadgeStatus") {
+      const arcs = statusArcs(code.status, code.progress);
+      if (arcs) (node.nested ??= []).push({ path: "Leading", props: {}, arcs });
     }
     // InlineMessage: its title in Title, its words in Caption (not the first text layer), its action's label.
     if (element.name === "InlineMessage") {
