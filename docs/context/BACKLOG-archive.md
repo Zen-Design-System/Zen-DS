@@ -22,6 +22,11 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   content, as the runtime shows it, and an AppShell inside a page draws only its desktop parts. Drawing them (Figma
   Pattern/AppShell/Mobile, its Bar type by canvas: default→Alt, alt→Default, flat→Default on Surface/Flat) is new scope.
   Pointer: `tools/studio/figma-push.mjs` `appShellNode` (~852) and the Screen's mobile chrome (~2232).
+## Archived 2026-10-23 (PropertyField ↔ Figma, done on `zen/fix/studio-property-field-figma-20261023`)
+
+- **P3 · PropertyField ↔ Figma gaps (2026-10-21):** a People / Labels cell pushes one person and two tags (the
+  Property-Value variants hold that many), and `BadgeStatus progress` is not pushed (Progress-Icon's arc is set by hand in
+  Figma). Pointer: `tools/studio/figma-property.mjs`.
 
 ## Archived 2026-10-23 (320px debt)
 

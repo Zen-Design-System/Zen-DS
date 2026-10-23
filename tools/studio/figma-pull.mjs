@@ -22,7 +22,7 @@ import { apiPropsOf, figmaMapping } from "./figma-map.mjs";
 import { TOP_NAV_SET, TOP_NAV_TYPE_OF } from "./figma-top-nav.mjs";
 import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./figma-charts.mjs";
 import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma, subActionFromFigma } from "./figma-metric.mjs";
-import { propertyValueElement } from "./figma-property.mjs";
+import { BADGE_STATUS, changedProgress, propertyValueElement } from "./figma-property.mjs";
 import { runsFromSegments } from "./text-runs.mjs";
 import { instanceLayerPaths } from "./instance-paths.mjs";
 import { gradientFillProps, READ_GRADIENT_FILL } from "./figma-gradient.mjs";
@@ -208,9 +208,15 @@ const readInstance = async (instance) => {
   const changed = new Set((instance.overrides || []).filter((o) => o.overriddenFields.some((f) => f === "componentProperties" || f === "characters")).map((o) => o.id));
   // Avatars the push named after their person (a chat message's author, a read list's readers).
   const renamed = new Set((instance.overrides || []).filter((o) => o.overriddenFields.includes("name")).map((o) => o.id));
+  // Ellipses whose arc the page changed (a Badge-Status ring's Progress: figma-property.mjs), by the instances they sit in.
+  const arced = new Set((instance.overrides || []).filter((o) => o.overriddenFields.includes("arcData")).map((o) => o.id));
   const walk = async (node, trail, owner) => {
     for (const child of node.children || []) {
       if (!child.visible) continue;
+      if (child.type === "ELLIPSE" && arced.has(child.id) && child.arcData) {
+        out.arcs = out.arcs || [];
+        out.arcs.push({ path: trail.join("/"), name: child.name, arc: { start: child.arcData.startingAngle, end: child.arcData.endingAngle, inner: child.arcData.innerRadius } });
+      }
       // A slot of a nested instance (a chat bubble's Chat/Reaction/Status › Emoji-Items): its layers, by the instance it
       // sits in (figma-push writes it as \`within\`). Its layers are walked on as before.
       if (child.type === "SLOT" && trail.length && child.children && child.children.length) {
@@ -2204,6 +2210,14 @@ function convertNode(node, ctx) {
       children = [cell.element];
       for (const note of cell.notes) notes.push(`${where}: ${note}`);
     }
+    // BadgeStatus' progress: its ring's Progress arc where the page changed it (figma-property.mjs); its label is its
+    // children only where it is not the status' own word in Figma ("In Review").
+    if (set.code === "BadgeStatus") {
+      const progress = changedProgress(node, "Leading");
+      if (progress !== null) props.progress = literal(progress);
+      const own = BADGE_STATUS[props.status?.value ?? "to-do"];
+      if (children.length === 1 && children[0].kind === "text" && children[0].value === own) children = [];
+    }
     const overrides = {};
     // Date-Picker/Mobile: range mode for its Multiple variants, its heading's text the title (unless the default).
     if (set.code === "DatePickerSheet") {
@@ -2218,8 +2232,9 @@ function convertNode(node, ctx) {
     const metric = METRIC_SET.test(setName);
     if (metric) metricParts(node, props, ctx);
     // A File-Item's Help-Text and Progress-Bar are its file's error and progress, a date picker's heading its title, a
-    // chat message's Avatar and reaction pill its author and reactions (read above).
-    const ownParts = (nested) => own.nested.has(nested) || set.code === "UploaderFileItem" || set.code === "DatePickerSheet" || (set.code === "ChatMessage" && (isAvatar(nested) || /^Bubble(\/|$)/.test(nested.path))) || (metric && /^(Trend|Metric-Icon)(\/|$)/.test(nested.path));
+    // chat message's Avatar and reaction pill its author and reactions (read above), a PropertyField's Value its cell
+    // (below).
+    const ownParts = (nested) => own.nested.has(nested) || set.code === "UploaderFileItem" || set.code === "DatePickerSheet" || (set.code === "PropertyField" && /^Value(\/|$)/.test(nested.path)) || (set.code === "ChatMessage" && (isAvatar(nested) || /^Bubble(\/|$)/.test(nested.path))) || (metric && /^(Trend|Metric-Icon)(\/|$)/.test(nested.path));
     for (const nested of (node.nested ?? []).filter((nested) => !ownParts(nested))) {
       const inner = nested.set ? mapping.sets.get(nested.set.id) ?? mapping.sets.get(nested.set.name) : null;
       if (!inner) { notes.push(`${where} › ${nested.path}: ${nested.set?.name ?? "?"} has no Zen component`); continue; }
