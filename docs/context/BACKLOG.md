@@ -7,17 +7,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P3 · Figma instances of a workflow step still drawn as themed Badges (2026-10-21; code done 2026-10-23):** the
-  code side moved to BadgeStatus (platform examples, the app-layer AppShell playground, the HR Tasks template); Figma
-  screens that show a task's or project's step with a themed Badge instance still need swapping to Badge-Status. Waits
-  for the user: a write to the Zen Figma file.
-- **P3 · PropertyField ↔ Figma gaps (2026-10-21):** a People / Labels cell pushes one person and two tags (the
-  Property-Value variants hold that many), and `BadgeStatus progress` is not pushed (Progress-Icon's arc is set by hand in
-  Figma). Pointer: `tools/studio/figma-property.mjs`.
-- **P2 · Charts in Studio pages show no currency (2026-10-18, V-1 of the vibe agent; new API, user):** `format` on
-  LineChart / BarList / MetricCard is a function, which the page dialect cannot write, so a revenue chart reads "128.4K",
-  not "$128.4K". Needs a literal preset (e.g. `format="currency"` + `currency`) or a dialect form. Pointer:
-  `docs/research/studio-vibe-agent-2026-10-18.md` §7.
 - **P3 · Studio Variables: new collections (2026-10-23, B; waits for the user):** v2 (chunks 1–4: Edit variable,
   rename with an alias, modes, per-frame `modes`) is on branch zen/feat/studio-variables-v2-20261023. Creating a
   collection in Studio is left: the build reads a fixed list of 11 sources (`scripts/token-outputs.mjs` SOURCE_FILES,
@@ -42,6 +31,8 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (`docs/figma-contracts/layer-renames-2026-10-12.json`, with the undo map). Other files see them once the library is
   published. What `ALLOWED` in nested-paths.mjs still lists is structure, not naming: unnamed bottom-navigation items
   and stepper steps, pages named by number, ChatComposer actions named by job, code-only layers (Retry, Counter…).
+  Also waiting on the publish since 2026-10-23: `.Primitives/Input/Property-Value`'s Value-Slot (Person / Tags), which
+  Import from Studio fills with every person and label (the user's choice of a slot).
 - **P2 · Direct paste (⌘V on the canvas), what is left (merged 2026-10-23 from the 2026-10-17 P2 and P3):** it binds by
   node id, so only the Zen file takes it; other files need the published library and full component definitions in the
   paste (instances by `componentKey`, as Figma's own copies carry). The frame menu's Copy for Figma writes async
@@ -59,11 +50,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   content, as the runtime shows it, and an AppShell inside a page draws only its desktop parts. Drawing them (Figma
   Pattern/AppShell/Mobile, its Bar type by canvas: default→Alt, alt→Default, flat→Default on Surface/Flat) is new scope.
   Pointer: `tools/studio/figma-push.mjs` `appShellNode` (~852) and the Screen's mobile chrome (~2232).
-- **P2 · Studio push of Line, Bar, Area, Grouped and Combo charts draws Figma's sample data (user, 2026-10-13: "sync lại
-  component của figma lẫn studio"; re-checked 2026-10-23):** the push picks each chart's Sector (4 / 6 / 7 / 12) by the
-  point count since 2026-10-17, and Stack-Bar and Donut draw the page's data (`stackBarMarks`, `donutMarks` in
-  `tools/studio/figma-charts.mjs`). Left, once the user confirms the scope: X labels, the six Y ticks and the active
-  tooltip for Line, Bar, Area, Grouped and Combo (the pull takes the matching palette sample's data).
+- **P3 · A bare horizontal BarChart in Figma keeps its 290px height (2026-10-23, found in the live check of the chart
+  push; plugin repo):** a chart pushed without a ChartCard hides its Heading, but the instance stays at the component's
+  fixed height, so the Chart fills it and the Values column (space between) drifts from the rows (vertical charts just
+  grow their plot). The fix is the plugin importer's: shrink an instance by a layer it hides, or hug it once its Plot is
+  back to the sample's size (`studio-import.js` INSTANCE branch). In a ChartCard the rows line up.
 - **P2 · Voice proposals awaiting the user's approval (2026-10-13):** Discard confirm or Undo (R4), a silence warning and
   auto end-of-turn in the guideline (R6, A5, A8), `useVoiceLevels(stream)` so real apps move like the sample (R7),
   `state="thinking"` (A4), ChatVoice `onSeek` (C3). Pointer: `docs/research/voice-usability-review-2026-10-13.md`.

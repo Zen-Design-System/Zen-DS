@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode, Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartSummary, defaultFormat, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartPoint } from "./chartCore";
+import { ChartBlock, ChartSummary, formatOf, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartFormat, type ChartPoint } from "./chartCore";
 import { dataAttributes } from "../_shared/data-attributes";
 
 export interface BarListProps {
@@ -12,8 +12,13 @@ export interface BarListProps {
   /** Column labels above the rows: what the items are (start) and what the values measure (end), e.g.
    *  `{ label: "Client", value: "Revenue" }`. Caption/Medium, Content/Neutral/Light. */
   headers?: { label: ReactNode; value: ReactNode };
-  /** Formats each row's value and the summary ("$96,400"). */
-  format?: (value: number) => string;
+  /** How each row's value and the summary read: a function (`(v) => "$" + v.toLocaleString("en-US")` → "$96,400"), or a
+   *  preset a Zen Studio page can write as text — `"compact"` 96.4K (the default), `"currency"` $96.4K (in `currency`),
+   *  `"percent"` 41%. */
+  format?: ChartFormat;
+  /** The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies
+   *  `format="currency"`. */
+  currency?: string;
   /** What the list ranks and over which range ("Revenue by client, 2026 so far"). */
   "aria-label": string;
   /** Extra class on the chart. */
@@ -34,7 +39,8 @@ export interface BarListProps {
  * Content/Neutral/Light). ↑/↓ and Home/End move the active row, hover picks one; the summary reads its name and value.
  * Figma Chart/Bar-List 15487:2473 (the chart body; the header is ChartCard's).
  */
-export function BarList({ data, headers, format = defaultFormat, "aria-label": ariaLabel, className, initialIndex = 0, animate = true, ref, ...rest }: BarListProps) {
+export function BarList({ data, headers, format: formatProp, currency, "aria-label": ariaLabel, className, initialIndex = 0, animate = true, ref, ...rest }: BarListProps) {
+  const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   const id = useChartId();
   const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex, "vertical");

@@ -2,7 +2,7 @@ import type { CSSProperties, Ref } from "react";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
-import { ChartBlock, ChartLegend, ChartSummary, defaultFormat, niceScale, sectorAt, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartLegendPosition, type ChartPaletteName } from "./chartCore";
+import { ChartBlock, ChartLegend, ChartSummary, formatOf, niceScale, sectorAt, signatureOf, staggerStyle, useChartId, useChartSelection, type ChartFormatPreset, type ChartLegendPosition, type ChartPaletteName } from "./chartCore";
 import { dataAttributes } from "../_shared/data-attributes";
 
 /** One goal of a BulletChart: what it measures, where it stands and where it should be. */
@@ -30,9 +30,14 @@ export interface BulletChartProps {
   showLegend?: boolean;
   /** Legend below the rows (default) or above them. */
   legendPosition?: Extract<ChartLegendPosition, "top" | "bottom">;
-  /** Formats the value and the target of a row ("$798K of $900K") and the summary. It gets the row too, so each goal can
-   *  take its own unit: `(v, row) => (row.label === "Utilisation" ? v + "%" : String(v))`. */
-  format?: (value: number, row: ChartBullet) => string;
+  /** How the value and the target of a row ("$798K of $900K") and the summary read. A function gets the row too, so
+   *  each goal can take its own unit: `(v, row) => (row.label === "Utilisation" ? v + "%" : String(v))`; or a
+   *  preset a Zen Studio page can write as text: `"compact"` 1.2K (the default), `"currency"` $1.2K (in
+   *  `currency`), `"percent"` 41%. */
+  format?: ((value: number, row: ChartBullet) => string) | ChartFormatPreset;
+  /** The currency of `format="currency"`: an ISO 4217 code ("USD", the default; "EUR", "VND"). Set alone it implies
+   *  `format="currency"`. */
+  currency?: string;
   /** What the goals are and for which period ("Quarter goals, Q3 2026"). */
   "aria-label": string;
   /** Extra class on the chart (not the legend). */
@@ -59,11 +64,12 @@ export interface BulletChartProps {
  * Figma Chart/Bullet-Chart 15968:130554 (Color=Primary 15487:2516 · Secondary ↔ `palette`; the chart body and Show Legend; the
  * header is ChartCard's).
  */
-export function BulletChart({ data, actualLabel, targetLabel, showLegend = true, legendPosition = "bottom", format, "aria-label": ariaLabel, className, initialIndex, animate = true, palette = "primary", ref, ...rest }: BulletChartProps) {
+export function BulletChart({ data, actualLabel, targetLabel, showLegend = true, legendPosition = "bottom", format, currency, "aria-label": ariaLabel, className, initialIndex, animate = true, palette = "primary", ref, ...rest }: BulletChartProps) {
   const t = useZenLabels();
   const id = useChartId();
   const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? null, "vertical");
-  const show = (value: number, row: ChartBullet) => (format ? format(value, row) : defaultFormat(value));
+  const preset = typeof format === "function" ? null : formatOf(format, currency);
+  const show = (value: number, row: ChartBullet) => (typeof format === "function" ? format(value, row) : preset!(value));
   const rows = data.map((d, i) => {
     const max = d.max ?? niceScale(Math.max(d.value, d.target) * 1.1).top;
     const share = (v: number) => (max > 0 && Number.isFinite(v / max) ? Math.max(0, Math.min(1, v / max)) : 0);
