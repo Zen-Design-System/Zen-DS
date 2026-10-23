@@ -10,7 +10,8 @@
   "sideEffects": [
     "**/*.css",
     "./dist/icons/all.js",
-    "./dist/components/Icon/core.js"
+    "./dist/components/Icon/core.js",
+    "./dist/css/*.js"
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -23,6 +24,12 @@
     },
     "./styles.css": "./dist/styles.css",
     "./reset.css": "./dist/reset.css",
+    "./styles/base.css": "./dist/css/base.css",
+    "./styles/manifest.json": "./dist/css/manifest.json",
+    "./styles/*": {
+      "types": "./dist/css/*.d.ts",
+      "default": "./dist/css/*.js"
+    },
     "./icons/all": {
       "types": "./dist/icons/all.d.ts",
       "import": "./dist/icons/all.js",

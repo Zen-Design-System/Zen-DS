@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Per-component CSS (user, 2026-10-24): `import "@zen-ds/react/styles/Button";` loads the shared base (font, tokens,
+  text styles, effects) and only the CSS that component and the components it renders need, instead of all of
+  `styles.css`; one entry per component you render, each file loaded once. A Button-only app drops from all component
+  CSS to about a fifth. `styles.css` is unchanged; `styles/base.css` is the base alone; `npx zen-ds doctor` names
+  components whose entry is missing (docs/getting-started.md, "Load only the CSS you use").
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in

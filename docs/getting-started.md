@@ -129,11 +129,35 @@ Your licence terms are in `LICENSE.md`, which ships with the package. Questions:
 | Import | What it is |
 | --- | --- |
 | `@zen-ds/react` | Components, hooks, `typographyStyles`, `IconName`, `preloadIcons` |
-| `@zen-ds/react/styles.css` | Required, import once: Inter font, tokens, text styles, effects, all component CSS |
+| `@zen-ds/react/styles.css` | Import once: Inter font, tokens, text styles, effects, all component CSS (or the style entries below) |
+| `@zen-ds/react/styles/<Component>` | Instead of `styles.css`: only the CSS one component needs, e.g. `@zen-ds/react/styles/Dialog` (see "Load only the CSS you use") |
+| `@zen-ds/react/styles/base.css` | The shared base alone: Inter font, tokens, text styles, effects (pages that use the tokens without components) |
 | `@zen-ds/react/reset.css` | Optional page reset (margins, box-sizing, Canvas background, Figma-matching text rendering) |
 | `@zen-ds/react/tokens` | Typed map of every Figma variable: `tokens["Color/Background/Surface/Default"]` |
 | `@zen-ds/react/icons/names` | `iconNames` (all 1,598) and the `IconName` type, without SVG data |
 | `@zen-ds/react/icons/all` | Registers every icon up front (docs, icon pickers). Apps usually skip it |
+
+## Load only the CSS you use
+
+`styles.css` holds every component. An app that renders a few of them can import their style entries instead, one per
+component, named as you import it from `@zen-ds/react`:
+
+```tsx
+// src/main.tsx, instead of import "@zen-ds/react/styles.css"
+import "@zen-ds/react/styles/Button";
+import "@zen-ds/react/styles/Dialog";
+import "@zen-ds/react/styles/InputField";
+```
+
+- Each entry loads the shared base (font, tokens, text styles, effects), the CSS of `ZenProvider` (every app renders
+  it), and the CSS of its component and of every component it renders (Dialog brings Button's). The bundler loads each file once, however many entries name it.
+- A Button-only app loads about a fifth of the CSS (`npm run verify:package` measures both).
+- Use either `styles.css` or entries, not both. Add an entry when you start rendering a new component;
+  `npx zen-ds doctor` names every component you import from `@zen-ds/react` whose CSS no entry loads.
+- Keep `styles.css` when the app renders components it never imports by name (AI UI, a CMS choosing components at
+  runtime).
+- Entries are CSS imported from JavaScript, so they need a bundler that loads CSS (Vite, webpack, Next.js), as
+  `styles.css` does. The components' own JavaScript imports no CSS, so server rendering and tests are unchanged.
 
 ## The app root: `ZenProvider`
 
@@ -246,7 +270,7 @@ Every colour token has a dark value. Only use `var(--zen-color-…)` tokens in y
 
 ## Fonts
 
-- `styles.css` loads Inter (variable, normal + italic, WOFF2: about 360 + 400 KB) from `./fonts/` inside the package;
+- `styles.css` (and `styles/base.css`) loads Inter (variable, normal + italic, WOFF2: about 360 + 400 KB) from `./fonts/` inside the package;
   the bundler copies the files, and a page only downloads the italic file when it shows italic text.
 - Code text uses the Dev font-family token (JetBrains Mono). Load that font yourself if you show code.
 
@@ -255,6 +279,7 @@ Every colour token has a dark value. Only use `var(--zen-color-…)` tokens in y
 | Symptom | Fix |
 | --- | --- |
 | No styles at all | `import "@zen-ds/react/styles.css"` once, in the app entry |
+| One component unstyled with style entries | Import its entry, `import "@zen-ds/react/styles/<Component>"`; `npx zen-ds doctor` lists the missing ones |
 | Dialog/Toast/Tooltip light inside a dark region | Render them inside the region's `ZenProvider` (its portal keeps the modes) |
 | Page background stays light in dark mode | Use `reset.css`, or keep the outermost `ZenProvider` painting (`paint` default on) |
 | An icon is blank | Check the name (TypeScript lists the valid ones); `npx zen-usage` and the dev-mode warning suggest the closest names |
