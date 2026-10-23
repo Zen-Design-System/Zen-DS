@@ -73,12 +73,25 @@ test("create: a default per mode, after its group's last variable; names unique 
   refused(() => applyVariableOps(semantic, [{ op: "create", name: "Color//Base", type: "COLOR" }], context()), "invalid", /between its/);
 });
 
-test("rename and delete are refused while something reads the variable; free ones go", () => {
+test("delete is refused while something reads the variable; a rename keeps a read name as formerNames (v2); free ones go", () => {
   const variables = variablesOf(files);
   assert.deepEqual(aliasReaders(variables, "Color/Content/Accent/Base"), ["Color/Border/Accent/Base"]);
   const readers = (name) => aliasReaders(variables, name);
-  refused(() => applyVariableOps(semantic, [{ op: "rename", name: "Color/Content/Accent/Base", to: "Color/Content/Accent/Main" }], context(readers)), "conflict", /read by Color\/Border\/Accent\/Base/);
   refused(() => applyVariableOps(semantic, [{ op: "delete", name: "Color/Content/Accent/Base" }], context(readers)), "conflict", /deleting it would break/);
+  // v2 (user 2026-10-23): renamed while aliased → the old name stays; code reading the Figma name by quotes refuses it.
+  const kept = applyVariableOps(semantic, [{ op: "rename", name: "Color/Content/Accent/Base", to: "Color/Content/Accent/Main" }], context(readers));
+  const main = readCollection(kept.text).tokens[0];
+  assert.deepEqual([main.name, main.formerNames], ["Color/Content/Accent/Main", ["Color/Content/Accent/Base"]]);
+  refused(() => applyVariableOps(semantic, [{ op: "rename", name: "Color/Content/Accent/Base", to: "Color/Content/Accent/Main" }], { ...context(readers), nameReaders: () => ["components/Link/Link.tsx"] }), "conflict", /by its name: renaming it would break/);
+  // The old name still resolves and still has its readers; another variable may not take it; renaming back frees it.
+  const after = variablesOf(new Map([...files, ["tokens/source/figma/mode-colors-semantic.json", kept.text]]));
+  assert.equal(resolveValue(after, "Color/Content/Accent/Base", "Light"), "#0090FF");
+  assert.deepEqual(aliasReaders(after, "Color/Content/Accent/Main"), ["Color/Border/Accent/Base"]);
+  refused(() => applyVariableOps(kept.text, [{ op: "rename", name: "Color/Border/Accent/Base", to: "Color/Content/Accent/Base" }], { variables: after, readers: () => [] }), "conflict", /old name of Color\/Content\/Accent\/Main/);
+  const back = applyVariableOps(kept.text, [{ op: "rename", name: "Color/Content/Accent/Main", to: "Color/Content/Accent/Base" }], { variables: after, readers: () => [] });
+  assert.deepEqual(Object.keys(readCollection(back.text).tokens[0]), ["name", "type", "valuesByMode"]);
+  // The plugin sees a rename (twin), formerNames being repo-only.
+  assert.deepEqual(variablesPackage(new Map([["s", semantic]]), new Map([["s", kept.text]])).changes.map((change) => [change.op, change.from, change.name]), [["rename", "Color/Content/Accent/Base", "Color/Content/Accent/Main"]]);
   const renamed = applyVariableOps(semantic, [{ op: "rename", name: "Color/Border/Accent/Base", to: "Color/Border/Accent/Main" }], context(readers));
   assert.equal(readCollection(renamed.text).tokens[1].name, "Color/Border/Accent/Main");
   const deleted = applyVariableOps(semantic, [{ op: "delete", name: "Color/Border/Accent/Base" }], context(readers));
@@ -108,14 +121,59 @@ test("the plugin package: set, create, delete, and a rename read from a deleted 
   const pkg = variablesPackage(new Map([["s", semantic]]), new Map([["s", after]]));
   assert.equal(pkg.format, "zen-studio-variables");
   assert.deepEqual(pkg.changes, [
-    { op: "rename", collection: "Mode Colors (Semantic)", name: "Color/Border/Accent/Main", from: "Color/Border/Accent/Base", type: "COLOR" },
-    { op: "create", collection: "Mode Colors (Semantic)", name: "Color/Content/Accent/Strong", type: "COLOR", values: { Light: "#FFFFFF", Dark: "#FFFFFF" } },
+    { op: "rename", collection: "Mode Colors (Semantic)", name: "Color/Border/Accent/Main", from: "Color/Border/Accent/Base", type: "COLOR", codeSyntax: { WEB: "var(--zen-color-border-accent-main)" } },
+    { op: "create", collection: "Mode Colors (Semantic)", name: "Color/Content/Accent/Strong", type: "COLOR", values: { Light: "#FFFFFF", Dark: "#FFFFFF" }, codeSyntax: { WEB: "var(--zen-color-content-accent-strong)" }, description: "", scopes: ["ALL_SCOPES"], hiddenFromPublishing: false },
     { op: "set", collection: "Mode Colors (Semantic)", name: "Color/Content/Accent/Base", type: "COLOR", values: { Dark: "#FF0000" } },
   ]);
   const gone = applyVariableOps(spacing, [{ op: "delete", name: "Spacing/Gap/Small" }], context()).text;
   assert.deepEqual(variablesPackage(new Map([["p", spacing]]), new Map([["p", gone]])).changes, [{ op: "delete", collection: "Spacing", name: "Spacing/Gap/Small", type: "FLOAT" }]);
   const aliased = applyVariableOps(semantic, [{ op: "setValue", name: "Color/Border/Accent/Base", mode: "Dark", value: { alias: "Light/Blue/9" } }], context()).text;
   assert.deepEqual(variablesPackage(new Map([["s", semantic]]), new Map([["s", aliased]])).changes[0].values, { Dark: { alias: "Light/Blue/9" } });
+});
+
+test("Edit variable (v2): description, scopes by type, hidden from publishing; written in the plugin's field order", () => {
+  const edited = applyVariableOps(semantic, [{ op: "meta", name: "Color/Content/Accent/Base", description: "  Links and accents  ", scopes: ["TEXT_FILL", "STROKE_COLOR", "TEXT_FILL"], hiddenFromPublishing: true }], context());
+  const token = readCollection(edited.text).tokens[0];
+  assert.deepEqual(Object.keys(token), ["name", "type", "valuesByMode", "scopes", "description", "hiddenFromPublishing"]);
+  assert.deepEqual([token.description, token.scopes, token.hiddenFromPublishing, edited.label], ["Links and accents", ["TEXT_FILL", "STROKE_COLOR"], true, "Edit variable Color/Content/Accent/Base"]);
+  refused(() => applyVariableOps(semantic, [{ op: "meta", name: "Color/Content/Accent/Base", scopes: ["GAP"] }], context()), "invalid", /is a colour: it has no scope GAP/);
+  // Clearing: an empty description, ALL_SCOPES and false write nothing; an empty list hides it from every picker.
+  const cleared = applyVariableOps(edited.text, [{ op: "meta", name: "Color/Content/Accent/Base", description: "", scopes: ["ALL_SCOPES"], hiddenFromPublishing: false }], context());
+  assert.deepEqual(Object.keys(readCollection(cleared.text).tokens[0]), ["name", "type", "valuesByMode"]);
+  assert.deepEqual(readCollection(applyVariableOps(semantic, [{ op: "meta", name: "Color/Content/Accent/Base", scopes: [] }], context()).text).tokens[0].scopes, []);
+  // The package: a meta change with the three fields as they are now; a duplicate keeps them.
+  const pkg = variablesPackage(new Map([["s", semantic]]), new Map([["s", edited.text]]));
+  assert.deepEqual(pkg.changes, [{ op: "meta", collection: "Mode Colors (Semantic)", name: "Color/Content/Accent/Base", type: "COLOR", description: "Links and accents", scopes: ["TEXT_FILL", "STROKE_COLOR"], hiddenFromPublishing: true }]);
+  const twin = applyVariableOps(edited.text, [{ op: "duplicate", name: "Color/Content/Accent/Base" }], context());
+  assert.equal(readCollection(twin.text).tokens[1].description, "Links and accents");
+  // A collection's own fields stay where they were.
+  const hidden = `${JSON.stringify({ Spacing: { hiddenFromPublishing: true, modes: ["Standard"], tokens: [{ name: "Spacing/Gap/Small", type: "FLOAT", valuesByMode: { Standard: 12 } }] } }, null, 2)}\n`;
+  const kept = applyVariableOps(hidden, [{ op: "setValue", name: "Spacing/Gap/Small", mode: "Standard", value: 14 }], context()).text;
+  assert.deepEqual(Object.keys(JSON.parse(kept).Spacing), ["hiddenFromPublishing", "modes", "tokens"]);
+});
+
+test("modes (v2): add (first mode's values, Figma's Mode N), duplicate beside, rename, delete; refused while used; axis collections only", () => {
+  const added = applyVariableOps(semantic, [{ op: "addMode" }], context());
+  const read = readCollection(added.text);
+  assert.deepEqual([read.modes, read.tokens[0].valuesByMode["Mode 3"], added.label], [["Light", "Dark", "Mode 3"], "{Light/Blue/9}", "Add mode Mode 3"]);
+  const twin = readCollection(applyVariableOps(semantic, [{ op: "addMode", from: "Light" }], context()).text);
+  assert.deepEqual(twin.modes, ["Light", "Light copy", "Dark"]);
+  assert.deepEqual(Object.keys(twin.tokens[0].valuesByMode), ["Light", "Light copy", "Dark"]);
+  refused(() => applyVariableOps(semantic, [{ op: "addMode", name: "dark" }], context()), "conflict", /would be dark in code, as Dark is already/);
+  const renamed = readCollection(applyVariableOps(added.text, [{ op: "renameMode", mode: "Mode 3", to: "Dim" }], context()).text);
+  assert.deepEqual([renamed.modes, Object.keys(renamed.tokens[1].valuesByMode)], [["Light", "Dark", "Dim"], ["Light", "Dark", "Dim"]]);
+  const used = { ...context(), modeReaders: (collection, mode) => (mode === "Dark" ? ["components/Provider/provider.css"] : []) };
+  refused(() => applyVariableOps(semantic, [{ op: "deleteMode", mode: "Dark" }], used), "conflict", /Dark is used by components\/Provider\/provider.css: deleting it/);
+  refused(() => applyVariableOps(semantic, [{ op: "renameMode", mode: "Dark", to: "Night" }], used), "conflict", /renaming it would break/);
+  // A case-only rename keeps the code id: allowed while used.
+  assert.deepEqual(readCollection(applyVariableOps(semantic, [{ op: "renameMode", mode: "Dark", to: "DARK" }], used).text).modes, ["Light", "DARK"]);
+  const gone = readCollection(applyVariableOps(semantic, [{ op: "deleteMode", mode: "Dark" }], context()).text);
+  assert.deepEqual([gone.modes, Object.keys(gone.tokens[0].valuesByMode)], [["Light"], ["Light"]]);
+  refused(() => applyVariableOps(spacing, [{ op: "addMode" }], context()), "invalid", /not a ZenProvider mode/);
+  // The plugin package: renameMode / addMode / deleteMode, the new mode's values as set changes.
+  const pkg = variablesPackage(new Map([["s", semantic]]), new Map([["s", applyVariableOps(semantic, [{ op: "renameMode", mode: "Dark", to: "Night" }, { op: "addMode", name: "Dim", from: "Light" }], context()).text]]));
+  assert.deepEqual(pkg.changes.filter((change) => /Mode$/.test(change.op)), [{ op: "renameMode", collection: "Mode Colors (Semantic)", mode: "Night", from: "Dark" }, { op: "addMode", collection: "Mode Colors (Semantic)", mode: "Dim" }]);
+  assert.ok(pkg.changes.filter((change) => change.op === "set").every((change) => Object.keys(change.values).join() === "Dim"), "only the new mode's values are sets (the renamed one kept them)");
 });
 
 test("the repo's own token sources read, and a no-op edit gives the same text back", () => {

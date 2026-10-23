@@ -46,7 +46,7 @@ const EXTRA = {
   "❖ Input": [".Primitives/Input/Color-Swatch"],
   "❖ Table ": ["Primitives/Table/Cell/Group-Avatar-Cell"],
   "❖ Voice": ["Voice Recorder", "AI Voice Conversation"],
-  "❖ Chart": ["Chart/Chart-Card", "Chart/Line-Chart", "Chart/Stack-Bar-Chart"],
+  "❖ Chart": ["Chart/Chart-Card", "Chart/Line-Chart", "Chart/Stack-Bar-Chart", "Chart/Area-Chart", "Chart/Grouped-Bar-Chart", "Chart/Combo-Chart", "Chart/Bar-List", "Chart/Gauge-Chart", "Chart/Funnel-Chart", "Chart/Bullet-Chart"],
   "◇ Master-Layout": ["Patterns/Pages/Density-Medium", "Patterns/Sidebar/Density-Medium", "Header/Dashboard", "Primitives/Notification-Dot"],
 };
 const setsOf = (pageName) => [...new Set([...(contract.pages.find((page) => page.page === pageName)?.sets.map((set) => set.name) ?? []), ...(EXTRA[pageName] ?? [])])];

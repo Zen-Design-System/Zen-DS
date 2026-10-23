@@ -19,7 +19,7 @@ function moduleOf(file) {
   } catch {
     ast = null;
   }
-  const info = { file, aliases: new Map(), interfaces: new Map(), arrays: new Map(), imports: new Map() };
+  const info = { file, aliases: new Map(), interfaces: new Map(), arrays: new Map(), objects: new Map(), members: new Map(), imports: new Map() };
   for (const statement of ast?.program.body ?? []) {
     const node = statement.type === "ExportNamedDeclaration" && statement.declaration ? statement.declaration : statement;
     if (node.type === "TSTypeAliasDeclaration") info.aliases.set(node.id.name, node.typeAnnotation);
@@ -29,6 +29,9 @@ function moduleOf(file) {
         let init = decl.init;
         if (init?.type === "TSAsExpression" || init?.type === "TSSatisfiesExpression") init = init.expression;
         if (decl.id.type === "Identifier" && init?.type === "ArrayExpression") info.arrays.set(decl.id.name, init);
+        // `tokenModes = { theme: [...] } as const` (src/tokens/modes.generated.ts) and `zenDensities = tokenModes.density`.
+        else if (decl.id.type === "Identifier" && init?.type === "ObjectExpression") info.objects.set(decl.id.name, init);
+        else if (decl.id.type === "Identifier" && init?.type === "MemberExpression" && init.object.type === "Identifier") info.members.set(decl.id.name, init);
       }
     } else if (statement.type === "ImportDeclaration" && statement.source.value.startsWith(".")) {
       for (const spec of statement.specifiers) {
@@ -48,7 +51,7 @@ function resolveImport(info, name) {
   if (!file) return null;
   let mod = moduleOf(file);
   // Follow one `export … from` hop (component index files).
-  if (!mod.aliases.has(target.name) && !mod.arrays.has(target.name)) {
+  if (!mod.aliases.has(target.name) && !mod.arrays.has(target.name) && !mod.objects.has(target.name)) {
     const source = fs.readFileSync(file, "utf8");
     const re = new RegExp(`export\\s*(?:\\*|\\{[^}]*\\b${target.name}\\b[^}]*\\})\\s*from\\s*["'](\\.[^"']+)["']`, "g");
     for (const match of source.matchAll(re)) {
@@ -62,10 +65,26 @@ function resolveImport(info, name) {
   return { mod, name: target.name };
 }
 
+/** The string values of `object.property` where the object is an `as const` object of arrays (here or imported), or null. */
+function memberValues(info, member, depth) {
+  const key = member.property.type === "Identifier" ? member.property.name : member.property.value;
+  const objectName = member.object.name;
+  const object = info.objects.get(objectName);
+  if (!object) {
+    const imported = resolveImport(info, objectName);
+    return imported ? memberValues(imported.mod, { ...member, object: { type: "Identifier", name: imported.name } }, depth + 1) : null;
+  }
+  const property = object.properties.find((each) => (each.key.type === "Identifier" ? each.key.name : each.key.value) === key);
+  if (property?.value.type !== "ArrayExpression") return null;
+  const values = property.value.elements.map((element) => (element?.type === "StringLiteral" ? element.value : null));
+  return values.every((value) => value !== null) ? values : null;
+}
+
 /** The string values of an `as const` array (spreads of other arrays included), or null. */
 function arrayValues(info, name, depth = 0) {
   if (depth > 6) return null;
   const array = info.arrays.get(name);
+  if (!array && info.members.has(name)) return memberValues(info, info.members.get(name), depth + 1);
   if (!array) {
     const imported = resolveImport(info, name);
     return imported ? arrayValues(imported.mod, imported.name, depth + 1) : null;
@@ -75,6 +94,10 @@ function arrayValues(info, name, depth = 0) {
     if (element?.type === "StringLiteral") out.push(element.value);
     else if (element?.type === "SpreadElement" && element.argument.type === "Identifier") {
       const inner = arrayValues(info, element.argument.name, depth + 1);
+      if (!inner) return null;
+      out.push(...inner);
+    } else if (element?.type === "SpreadElement" && element.argument.type === "MemberExpression" && element.argument.object.type === "Identifier") {
+      const inner = memberValues(info, element.argument, depth + 1);
       if (!inner) return null;
       out.push(...inner);
     } else return null;

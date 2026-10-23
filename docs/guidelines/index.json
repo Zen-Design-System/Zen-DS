@@ -943,6 +943,7 @@
         "removable/needs-handler",
         "badge-counter/cap",
         "flag/no-emoji-flag",
+        "theme/on-solid-content",
         "badge/count-uses-counter",
         "badge/workflow-status-uses-badge-status",
         "badge/count-text-uses-counter",
@@ -1214,7 +1215,7 @@
         ]
       },
       "do": [
-        "One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards with no border; Canvas alt (white) + a Surface-alt or Flat Sidebar (add divider for a full-height line inside the Sidebar) + bordered cards; Canvas flat + a Flat Sidebar + bordered cards. Never a shadowed Sidebar on a white Canvas.",
+        "One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards with no border; Canvas alt (white) + a Sidebar on the canvas (background default with shadow={false}: Surface/Default is the white canvas's own colour; add divider for a full-height line inside it) + bordered cards; Canvas flat + a Flat Sidebar + Flat-Border cards. Never a shadowed Sidebar on a white Canvas (harness theme/mixed-elevation, theme/navigation-surface).",
         "Give destinations an href so rows are real links (open in a new tab, copy the address), and pass the current route's id as selectedId instead of remapping selected in sections.",
         "Put footer destinations (Settings, Help) in footer as <SidebarMenuItem> rows, as Figma's Footer-Content holds Menu-Items: the same row, selection and rail tooltip as the body.",
         "Move selection with onItemClick; exactly one selected item.",
@@ -1228,7 +1229,7 @@
         "Show the Workspace variant only when users belong to more than one workspace; mark exactly one workspace item selected so its Focus-Ring shows which one is active.",
         "Fill a SidebarSubMenu flyout with a `<Search variant=\"popover\">` and Master items.",
         "Wire onSubMenuClose so Escape and an outside press close the flyout, and give it a subMenuLabel.",
-        "Match background to the page Canvas (background layers): Canvas/Default → default, Canvas/Alt (white page) → alt, Canvas/Flat → flat so the navigation and page read as one surface in light and dark. Cards on that page use the same Surface.",
+        "Match background to the page Canvas, as Figma's theme pairing does (harness theme/navigation-surface): Canvas/Default → default (the Surface panel) or alt (Surface/Alt, seamless with the grey canvas), Canvas/Alt (white page) → default with shadow={false} (Surface/Default is the canvas's own colour), Canvas/Flat → flat, so the navigation and page read as one surface in light and dark.",
         "Give a section title at most one action, as a Button/Icon-Flat Small (IconButton appearance=\"flat\" level=\"primary\" size=\"sm\" with aria-label). Don't resize it — the sidebar centres it in a 16px wrapper so the title row keeps its height."
       ],
       "dont": [
@@ -1242,6 +1243,8 @@
       ],
       "rules": [
         "sidebar/submenu-close",
+        "theme/mixed-elevation",
+        "theme/navigation-surface",
         "api/deprecated-prop",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
@@ -2951,8 +2954,8 @@
       },
       "do": [
         "On a phone, count the cards in the group: three or more side by side (a row of stats, a grid of projects, a list of choices) take spacing=\"small\"; one or two cards, such as a single box around a list, keep Spacing=Medium, the default (harness card/spacing-by-count). A card around a Voice frame stays Small: the frame pads itself (Spacing/Padding/XLarge). Desktop cards keep Medium whatever their number.",
-        "Use one theme per grid. With nothing else deciding (examples, a page with no Sidebar), theme=\"default\" on Canvas/Default: no border, no shadow (usage rules §16). On a Canvas/Flat page, Flat-Border: Surface/Flat inside a Pale frame. Shadow when the screen's Sidebar casts one, Border on a white page, inside another surface or on a clickable card, On-Container inside a Dialog, ModalForm, SidePanel or BottomSheet (on their Container fill; harness card/on-container-in-overlay), Pale/Semi-Pale on imagery.",
-        "Match the screen's elevation to its Sidebar: the default Sidebar (Surface + shadow) on the grey Canvas takes Shadow cards with no border; a white Canvas takes a Surface-alt or Flat Sidebar (optionally with divider) and Border cards. Never a shadowed Sidebar on a white Canvas.",
+        "Use one theme per grid. With nothing else deciding (examples, a page with no Sidebar), theme=\"default\" on Canvas/Default: no border, no shadow (usage rules §16). On a Canvas/Flat page, Flat-Border: Surface/Flat inside a Pale frame. Shadow when the screen's Sidebar casts one, Border on a white page, inside another surface or on a clickable card, On-Container inside a Dialog, ModalForm, SidePanel or BottomSheet (on their Container fill; harness card/on-container-in-overlay), Pale on imagery. No gradient box: theme=\"semi-pale\" is a deprecated alias of pale (harness theme/box-on-canvas).",
+        "Match the screen's elevation to its Sidebar: the default Sidebar (Surface + shadow) on the grey Canvas takes Shadow cards with no border; a white Canvas takes a Sidebar on the canvas (shadow={false}, optionally with divider) and Border cards. Never a shadowed Sidebar on a white Canvas, and on the grey Canvas every box casts the shadow or none does (harness theme/mixed-elevation).",
         "Title a widget card with Heading/Subheading (heading level from the outline); page sections outside cards use Heading/4.",
         "Make the whole card clickable when it opens one thing, and name it with aria-label when the content doesn't start with a title.",
         "Use Active for the selected card in a single-choice grid, together with aria-pressed or a radio inside.",
@@ -2961,7 +2964,7 @@
         "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"flat-border\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Default cards only, which is what a Canvas/Alt page takes anyway.",
         "Put colour on a box by the page's Canvas: theme=\"subtle\" and a color on the grey Canvas/Default (Pale fades into it), theme=\"pale\" on a white Canvas/Alt or Canvas/Flat page (any of the nine hues, content stays neutral), e.g. a card per project or client (harness card/pale-on-canvas-default).",
         "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) or accent suits one time-sensitive figure.",
-        "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read the fill's own family by themselves (content follows the fill, user 2026-10-17): Content/Inverse/* on Neutral, Content/On-Colors on Brand, Cyan and Orange, Content/On-Brights on Yellow, Content/On-Accent on Accent. MetricTrend and a MetricCard tile's Dock-Icon follow too (Inverse on Neutral, On-Color on the others). Pick Button appearance=\"overlay\" level=\"inverse\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero).",
+        "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read the fill's own family by themselves (content follows the fill, user 2026-10-17): Content/Inverse/* on Neutral, Content/On-Colors on Brand, Cyan and Orange, Content/On-Brights on Yellow, Content/On-Accent on Accent. MetricTrend and a MetricCard tile's Dock-Icon follow too (Inverse on Neutral, On-Color on the others). Pick Button appearance=\"overlay\" level=\"inverse\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero), and a Badge or DockIcon theme=\"inverse\" on Solid Neutral, theme=\"on-color\" on Accent and the hues; keep text in a neutral tone (or the family's own), never a colour tone (harness theme/on-solid-content).",
         "On Brand, Cyan, Orange and Accent the white On-Colors text measures about 3:1: keep what you write there short and large (the number, a title), and put long or small text on another card.",
         "Pricing plans: Default cards in an auto-fit grid; Active marks the current plan, an Accent Badge marks the recommended one, and each card ends with one md CTA pinned to the bottom whose label says what happens (Upgrade to Pro · Switch · Manage plan)."
       ],
@@ -2983,6 +2986,10 @@
         "card/surface-ignored",
         "card/solid-color",
         "card/pale-on-canvas-default",
+        "theme/box-on-canvas",
+        "theme/mixed-elevation",
+        "theme/mixed-boxes",
+        "theme/on-solid-content",
         "card/spacing-by-count",
         "api/deprecated-prop",
         "api/overrides-studio-only",
@@ -3034,6 +3041,7 @@
       ],
       "rules": [
         "flag/no-emoji-flag",
+        "theme/on-solid-content",
         "dock-icon/emoji-needs-glyph",
         "icon/unknown-name",
         "interaction/no-noop-handler"
@@ -3234,6 +3242,8 @@
         "list-item/inset-not-padding",
         "listbox/color-ignored",
         "listbox/surface-ignored",
+        "theme/box-on-canvas",
+        "theme/mixed-elevation",
         "listbox/on-container-in-overlay",
         "listbox/footer-action-tertiary",
         "listbox/closing-list-on-phone",
@@ -3611,6 +3621,7 @@
           "value?: ReactNode",
           "theme?: shadow|default|pale|border|flat-border|on-container|solid|subtle|semi-pale",
           "color?: neutral|brand|cyan|violet|green|yellow|orange|blue|purple|accent",
+          "surface?: default|alt",
           "subAction?: CardSubAction|ReactNode",
           "spacing?: md|sm|xs|medium|small|xsmall",
           "ref?: Ref<HTMLDivElement>",
@@ -3660,6 +3671,8 @@
         "card/color-ignored",
         "card/solid-color",
         "card/pale-on-canvas-default",
+        "theme/box-on-canvas",
+        "theme/mixed-elevation",
         "card/spacing-by-count",
         "metric/formatted-value",
         "metric/type-data",
@@ -3883,6 +3896,8 @@
         "Don't use Background/Popover for in-flow content (harness: layer/popover-is-overlay)."
       ],
       "rules": [
+        "theme/mode-override",
+        "theme/navigation-surface",
         "layer/root-is-canvas",
         "layer/canvas-is-page",
         "layer/surface-flat-is-navigation",
@@ -4053,6 +4068,7 @@
         "Don't pass size names from other components (\"small\", \"medium\"); any other string reaches CSS and the SVG falls back to its intrinsic size (harness: icon/size-token)."
       ],
       "rules": [
+        "theme/on-solid-content",
         "icon/unknown-name",
         "icon/size-token",
         "interaction/no-noop-handler"
@@ -4137,6 +4153,7 @@
       ],
       "rules": [
         "navigation/back-chevron",
+        "theme/navigation-surface",
         "segmented/control-bar-full-width",
         "top-navigation/max-three-trailing",
         "top-navigation/search-folds-to-action",
@@ -4768,6 +4785,7 @@
           "theme?: shadow|default|pale|border|flat-border|on-container|solid|subtle|semi-pale = default",
           "color?: neutral|brand|cyan|violet|green|yellow|orange|blue|purple|accent",
           "surface?: default|alt",
+          "spacing?: md|sm|xs|medium|small|xsmall = medium",
           "children: ReactNode",
           "className?: string",
           "ref?: Ref<HTMLDivElement>",
@@ -4799,6 +4817,8 @@
         "card/surface-ignored",
         "card/solid-color",
         "card/pale-on-canvas-default",
+        "theme/box-on-canvas",
+        "theme/mixed-elevation",
         "chart/stack-needs-legend",
         "chart/needs-name",
         "chart/shares-need-legend",
@@ -4879,6 +4899,7 @@
           "rotation?: number",
           "flip?: horizontal|vertical|both",
           "effectStyle?: Shadow/Bottom/Level-1|Shadow/Bottom/Level-2|Shadow/Bottom/Level-3|Shadow/Bottom/Level-4|Shadow/Top/Level-1|Shadow/Top/Level-2|Shadow/Top/Level-3|Shadow/Top/Level-4|Effect/Overlay",
+          "modes?: { theme?: light|dark; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, auto>; typography?: ZenTypography; brand?: ZenBrand; }",
           "direction?: column|row = column",
           "gap?: none|ZenScaleInput|giant|xgiant|2xgiant = md",
           "align?: start|center|end|stretch|baseline",
@@ -4931,6 +4952,7 @@
           "rotation?: number",
           "flip?: horizontal|vertical|both",
           "effectStyle?: Shadow/Bottom/Level-1|Shadow/Bottom/Level-2|Shadow/Bottom/Level-3|Shadow/Bottom/Level-4|Shadow/Top/Level-1|Shadow/Top/Level-2|Shadow/Top/Level-3|Shadow/Top/Level-4|Effect/Overlay",
+          "modes?: { theme?: light|dark; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, auto>; typography?: ZenTypography; brand?: ZenBrand; }",
           "columns?: GridTracks|{ mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks }",
           "minColumnWidth?: number|string = 240",
           "gap?: none|ZenScaleInput|giant|xgiant|2xgiant = md",
@@ -4982,6 +5004,7 @@
           "blendMode?: pass-through|normal|darken|multiply|plus-darker|color-burn|lighten|screen|plus-lighter|color-dodge|overlay|soft-light|hard-light|difference|exclusion|hue|saturation|color|luminosity",
           "rotation?: number",
           "flip?: horizontal|vertical|both",
+          "modes?: { theme?: light|dark; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, auto>; typography?: ZenTypography; brand?: ZenBrand; }",
           "padding?: none|ZenScaleInput|4xl|ZenMargin",
           "paddingX?: none|ZenScaleInput|4xl|ZenMargin",
           "paddingY?: none|ZenScaleInput|4xl|ZenMargin",
@@ -5147,6 +5170,7 @@
         "text-run/inside-text",
         "flag/no-emoji-flag",
         "content/lights-no-light-text",
+        "theme/on-solid-content",
         "heading/h1-is-heading-1",
         "heading/title-not-light",
         "table/title-heading-4",
@@ -5251,8 +5275,8 @@
       },
       "do": [
         "Put one AppShell at the root of each app screen, inside ZenProvider, and pick the pattern from the screen's job (see Use).",
-        "With pattern=\"grid\", build the page from Boxes and Flat Cards (MetricCard, ChartCard and Card keep theme flat) on the grey Canvas, and give Subtle only to a metric card that should stand out (◇ Master-Layout Rule, 16823:85229).",
-        "One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards and panes; Canvas alt (white) + a Surface-alt or Flat Sidebar + bordered cards and panes (theme=\"border\"); Canvas flat + a Flat Sidebar + bordered cards. Never a shadowed Sidebar on a white Canvas.",
+        "With pattern=\"grid\", build the page from Boxes and Flat Cards (MetricCard, ChartCard and Card take theme=\"default\", no shadow) on the grey Canvas, and give Subtle only to a metric card that should stand out (◇ Master-Layout Rule, 16823:85229).",
+        "One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards and panes; Canvas alt (white) + a Sidebar on the canvas (shadow={false}) + bordered cards and panes (theme=\"border\"); Canvas flat + a Flat Sidebar + Flat-Border cards. Never a shadowed Sidebar on a white Canvas (harness theme/mixed-elevation, theme/navigation-surface).",
         "Lead the header's top row with Breadcrumbs (master={false} beside the toggle) or a Search, and keep its right side to utilities in this order: a plan Badge, AppShellAction buttons, the account menu last.",
         "Put the page's PageHeader in the header's main (one h1) and its views (Tabs) in sections; the Body holds the content at the page margin, with no Container.",
         "Give both side panes the same width (workspace and docs size them for you) and one theme.",
@@ -5281,6 +5305,7 @@
         "app-shell/top-navigation-title",
         "app-shell/collapse-beside-master-crumb",
         "app-shell/pattern-parts",
+        "theme/mixed-boxes",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"
@@ -5659,7 +5684,7 @@
       "props": {
         "ZenProvider": [
           "theme?: light|dark|system",
-          "componentTheme?: neutral-s1|neutral-s2|neutral-s3|neutral-s4|neutral-s5|neutral-s6|neutral-s7|brand-s1|brand-s2",
+          "componentTheme?: neutral-s1|brand-s1|neutral-s2|brand-s2|neutral-s3|neutral-s4|neutral-s5|neutral-s6|neutral-s7",
           "density?: compact|comfortable|studio",
           "radius?: rounded|smooth|standard|luxury|studio",
           "emphasis?: medium|strong|light",
@@ -5698,6 +5723,8 @@
         "Don't give a nested provider paint when it only changes typography or density inside a card; pass paint={false}."
       ],
       "rules": [
+        "theme/mixed-boxes",
+        "theme/mode-override",
         "interaction/no-noop-handler"
       ]
     },

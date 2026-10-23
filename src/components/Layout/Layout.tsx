@@ -8,6 +8,7 @@ import { frameAppearance, frameCorners, type FrameAppearanceProps, type FrameTra
 import { useImageFill } from "../_shared/image-fill";
 import { cornerRadiusValue, cornerSmoothingStyle } from "../_shared/corners";
 import { useMergedRefs } from "../_shared/merge-refs";
+import { useModeScope, type ZenModes } from "../_shared/zen-context";
 import { useBoxMask } from "./mask";
 
 export type { ZenCornerRadius, ZenGap, ZenMargin, ZenPadding };
@@ -31,7 +32,18 @@ const withVars = (style: CSSProperties | undefined, vars: Record<`--${string}`, 
 
 /* ───────────── Stack ───────────── */
 
-export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps {
+/** Figma's Change variable mode on a frame (Studio Variables v2, user 2026-10-23). */
+export interface FrameModeProps {
+  /**
+   * The frame's own variable modes, one per ZenProvider axis: `{ theme: "dark" }` draws a dark card on a light page,
+   * `{ density: "comfortable", breakpoint: "mobile" }` a phone-sized block on a desktop page. Written as the data-*
+   * attributes tokens.css reads, and given to the components inside as their ZenProvider context (a component reading
+   * the breakpoint or the theme sees the frame's). Unset axes inherit. Figma: Layer › Apply variable mode.
+   */
+  modes?: ZenModes;
+}
+
+export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps {
   /** column (default) stacks top to bottom; row lays items side by side. */
   direction?: "column" | "row";
   /** Space between items (Figma Spacing/Gap). Default md (16px). */
@@ -84,7 +96,8 @@ export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingPro
  *   <Stack gap="lg">…sections…</Stack>
  *   <Stack direction="row" gap="sm" align="center" justify="between">…toolbar…</Stack>
  */
-export function Stack({ direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, clip = false, scroll, padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, ...rest }: StackProps) {
+export function Stack({ direction = "column", gap = "md", align, justify, wrap = false, fillChildren = false, clip = false, scroll, padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, modes, ...rest }: StackProps) {
+  const scope = useModeScope(modes);
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky });
   const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, gradient, opacity, blendMode, rotation, flip });
@@ -94,6 +107,7 @@ export function Stack({ direction = "column", gap = "md", align, justify, wrap =
   return (
     <Element
       {...rest}
+      {...scope.attributes}
       ref={ref as never}
       className={["zen-stack", className].filter(Boolean).join(" ")}
       data-direction={direction}
@@ -112,7 +126,7 @@ export function Stack({ direction = "column", gap = "md", align, justify, wrap =
       {...boxEffects({ effectStyle, clip })}
       style={withVars(style, { "--zen-stack-gap": gapValue(gap), "--zen-stack-padding-block": own(paddingValue(paddingY ?? padding)), "--zen-stack-padding-inline": own(paddingValue(paddingX ?? padding)), ...sizing.vars, ...placed.vars, ...look.vars, ...picture.vars, ...corners.vars, ...smooth.vars })}
     >
-      {children}
+      {scope.wrap(children)}
     </Element>
   );
 }
@@ -123,7 +137,7 @@ export function Stack({ direction = "column", gap = "md", align, justify, wrap =
 export type GridTracks = number | string;
 export type GridColumns = GridTracks | { mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks };
 
-export interface GridProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps {
+export interface GridProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps {
   /**
    * Fixed column count, or per breakpoint (`{ mobile: 1, tablet: 2, desktop: 3 }`, following ZenProvider's
    * breakpoint). A string is a track list for unequal columns: `{ mobile: 1, desktop: "2fr 1fr" }` puts a main column
@@ -187,7 +201,8 @@ function useStackBelow(below: number | undefined, forwarded: Ref<HTMLElement> | 
  *   <Grid columns={{ mobile: 1, desktop: 2 }} gap="lg">…fields…</Grid>
  *   <Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} gap="lg" align="start">…main…aside…</Grid>
  */
-export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, stackBelow, padding, clip = false, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, ...rest }: GridProps) {
+export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, columnGap, align, stackBelow, padding, clip = false, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, modes, ...rest }: GridProps) {
+  const scope = useModeScope(modes);
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky });
   const perBreakpoint = typeof columns === "object" ? columns : undefined;
@@ -202,6 +217,7 @@ export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, column
   return (
     <Element
       {...rest}
+      {...scope.attributes}
       ref={measure as never}
       className={["zen-grid", className].filter(Boolean).join(" ")}
       data-mode={desktop === undefined ? "fill" : perBreakpoint ? "responsive" : "fixed"}
@@ -229,14 +245,14 @@ export function Grid({ columns, minColumnWidth = 240, gap = "md", rowGap, column
         ...smooth.vars,
       })}
     >
-      {children}
+      {scope.wrap(children)}
     </Element>
   );
 }
 
 /* ───────────── Box ───────────── */
 
-export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps {
+export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps, FrameModeProps {
   padding?: ZenPadding;
   paddingX?: ZenPadding;
   paddingY?: ZenPadding;
@@ -265,7 +281,8 @@ export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps
  * around content that flows as blocks, or layers placed at X / Y. With auto layout the same frame is a Stack or Grid,
  * which take the same appearance props. For clickable or selectable tiles use Card; for page width use Container.
  */
-export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, group, mask, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, clip, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, ...rest }: BoxProps) {
+export function Box({ padding, paddingX, paddingY, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, group, mask, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, clip, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, modes, ...rest }: BoxProps) {
+  const scope = useModeScope(modes);
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky });
   // A group (Figma's) has no look of its own: only its opacity, rotation and flip.
@@ -279,6 +296,7 @@ export function Box({ padding, paddingX, paddingY, surface = "none", border = "n
   return (
     <Element
       {...rest}
+      {...scope.attributes}
       ref={merged as never}
       className={["zen-box", className].filter(Boolean).join(" ")}
       data-group={group ? "true" : undefined}
@@ -302,7 +320,7 @@ export function Box({ padding, paddingX, paddingY, surface = "none", border = "n
         ...masked.vars,
       })}
     >
-      {children}
+      {scope.wrap(children)}
       {masked.defs}
     </Element>
   );

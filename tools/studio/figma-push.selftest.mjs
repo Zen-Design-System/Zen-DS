@@ -248,6 +248,34 @@ export default function Page() {
   check("round trip: subAction comes back with its icon (and none for the default ⋮)", [back.includes('<Card width={280} subAction={{ label: "More actions", icon: "icon-share-01-line" }}>'), back.includes('<Card subAction={{ label: "More actions" }}>'), back.includes('subAction={{ label: "More actions", icon: "icon-share-01-line" }} label="Revenue"')], [true, true, true]);
   ok("round trip: no Sub-Action override is left from what Card draws (flat, Secondary, Small)", !/"Sub-Action": \{/.test(back));
 }
+{
+  // MetricCard surface / spacing and a Subtle card's Color (box themes, 2026-10-23): the Metric-Card's exposed Card takes
+  // Surface=Alt (code's Shadow on alt is Figma's Default on Alt), a Spacing off its type's default, and Color on Subtle.
+  const page = `// @zen-page {"format":1,"title":"Box"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { MetricCard, Stack } from "@zen-ds/react";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Box" device="desktop">
+        <Stack>
+          <MetricCard type="sparkline" theme="border" surface="alt" spacing="sm" label="Revenue" value="$12k" />
+          <MetricCard type="sparkline" surface="alt" label="Costs" value="$4k" />
+          <MetricCard type="sparkline" theme="subtle" color="cyan" label="Invoiced" value="$9k" />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(page);
+  const cardOf = (node) => node.nested?.find((entry) => entry.path === "Card")?.props;
+  const [border, shadow, subtle] = frame.children.map(cardOf);
+  check("MetricCard surface/spacing: Border on Alt at Small; Shadow on alt is Default on Alt; Subtle keeps its Color", [border, shadow, subtle], [{ "Sub-Action": false, Theme: "Border", Surface: "Alt", Spacing: "Small" }, { "Sub-Action": false, Surface: "Alt", Theme: "Default" }, { "Sub-Action": false, Theme: "Subtle", Color: "Cyan" }]);
+  const back = pageFromFigma(frame, { mapping }).text;
+  ok("round trip: surface, spacing and the Subtle colour come back", back.includes('theme="border" surface="alt" spacing="sm"') && back.includes('theme="default" surface="alt"') && back.includes('theme="subtle" color="cyan"'));
+}
 
 // 8. A component with no Figma set keeps what it holds (2026-10-12: an AppShell page imported as an empty frame): the
 //    AppShell as the Zen components it renders, the Screen's app frame, PageHeader as the Dashboard header Type=Main,
@@ -2500,6 +2528,40 @@ export default function Page() {
   check("push: sticky top is Figma's Sticky, in flow", head && [head.scrollBehavior, "absolute" in head], ["STICKY_SCROLLS", false]);
   const back = pageFromFigma(frame, { mapping }).text;
   check("round trip: both come back as sticky, in flow", [/<Box [^>]*sticky="bottom"/.test(back), /<Stack [^>]*sticky="top"/.test(back), back.includes('position="absolute"')], [true, true, false]);
+}
+
+// A frame's own variable modes (Studio Variables v2, user 2026-10-23: `modes={{ … }}`): push writes { axis: mode id } on
+// the frame (the Screen's on the page frame), pull reads Figma's { collection: mode name } back as `modes`.
+{
+  const page = `// @zen-page {"format":1,"title":"Modes"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Modes" device="desktop" modes={{ theme: "dark" }}>
+        <Stack padding="xl" gap="md">
+          <Box modes={{ density: "comfortable", theme: "light" }} padding="md"><Text>Light card</Text></Box>
+          <Text>Body</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(page);
+  const box = find(frame, (node) => node.name === "Box");
+  check("push: the Screen's modes on the page frame, a Box's on its frame", [frame.modes, box?.modes, notes.some((note) => /modes/.test(note))], [{ theme: "dark" }, { density: "comfortable", theme: "light" }, false]);
+  const back = pageFromFigma(frame, { mapping }).text;
+  check("round trip: modes come back on the Screen and the Box", [/<Screen [^>]*modes=\{\{ theme: "dark" \}\}/.test(back), /modes=\{\{ density: "comfortable", theme: "light" \}\}/.test(back)], [true, true]);
+  const read = { type: "FRAME", name: "Read", width: 1440, layout: { mode: "VERTICAL" }, modes: { "Mode Colors (Semantic)": "Dark", "Spacing": "Standard" }, children: [
+    { type: "FRAME", name: "Card", layout: { mode: "VERTICAL" }, modes: { "Component Size": "Comfortable" }, children: [{ type: "TEXT", characters: "Hi" }] },
+  ] };
+  const readBack = pageFromFigma(read, { mapping }).text;
+  check("pull of a read: Figma's collection modes as `modes` (a collection that is no axis is left)", [/<Screen [^>]*modes=\{\{ theme: "dark" \}\}/.test(readBack), /modes=\{\{ density: "comfortable" \}\}/.test(readBack)], [true, true]);
 }
 
 if (failures.length) {
