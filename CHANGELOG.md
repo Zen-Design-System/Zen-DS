@@ -24,6 +24,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio: an element held in a `const` and shown on a condition (`{view === "list" ? listView : boardView}`, or
   also in a prop) moves up, down and by dragging, with its condition, as one written in place does; it said "edit it in
   the code" (user, 2026-10-24). A const shown twice in one element still asks for the code.
+- Zen Studio → Figma: a page goes to Figma with every Screen, Screen state and Overlay as a frame of its own (an
+  Overlay as big as what it holds), and its Prototype actions as Figma interactions: On click, While hovering and After
+  delay; Navigate to, Open overlay, Close overlay and Back, with their animation, direction and Zen's duration and curve
+  (a Dialog's, Side Panel's or Bottom Sheet's buttons too). Pull from Figma reads them back. Show toast, Open link, Filter table,
+  Change step and the overlay's position, background and click-outside stay in the Studio, each named in the notes
+  (2026-10-24).
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in

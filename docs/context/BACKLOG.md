@@ -7,10 +7,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
 `BACKLOG-archive.md` (text unchanged).
 
 ## Open items
-- **P3 · Push Overlays and prototype actions to Figma (user 2026-10-23, option C: later):** the push sends the first
-  Screen only and names the Prototype tab's actions it drops; Figma could hold Navigate to, Open / Close overlay and Back
-  as reactions (plugin `setReactionsAsync`) once Screens and Overlays push as frames. Manual's `overlayPositionType` is
-  read-only in the plugin API (a hand step in Figma). Session log 2026-10-23 "Studio option C".
 - **P3 · Figma: publish the renamed layers (user, 2026-10-12):** 186 layers in the Zen file were renamed to Zen's names
   (and Inline-Message's slot property Visual → Leading, same id), names only, checked before/after
   (`docs/figma-contracts/layer-renames-2026-10-12.json`, with the undo map). Other files see them once the library is
