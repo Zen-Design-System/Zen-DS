@@ -23,10 +23,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
   asks for it.
-- **P3 · Sheet-style table for long content (user, 2026-10-13; 2026-10-23: Figma first, then code):** Table rows are
-  FIXED at Table/Cell/Size (one line, ellipsis). The docs Props / API / Keyboard references still need multi-line rows:
-  a temporary `.platform-ref` override in `src/platform/platform.css` lets them grow. Replace it with a sheet component,
-  designed in Figma first for the user's review, then built in code.
 - **P3 · Figma contract suites, next batch (2026-10-23):** the 14 chart sets and Chart/Chart-Card have passing suites
   (`tools/figma-contract/suites/chart-*.mjs`, user's go 2026-10-23, done the same day). Still without one: the re-read
   avatar-single, chat-bubbles, input-search-primitives, table-cells, datepicker-sidebar, input-search and

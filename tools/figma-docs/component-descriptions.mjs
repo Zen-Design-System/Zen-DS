@@ -511,6 +511,16 @@ export const componentDescriptions = {
     props: [["Type", "None · Sort · Checkbox (select all) · Custom"], ["Align", "match the column: Right for numbers"]],
     code: "`<Table columns>`",
   }),
+  "Table/Sheet/Cell": card({
+    what: "One cell of a Sheet: a reference row whose text runs long (props and their types, API signatures, keyboard shortcuts, token values). It hugs its content from a Table/Cell/Size minimum, aligned to the top, so every line is read.",
+    use: ["A props or API reference.", "Keyboard shortcuts beside what each one does.", "Token or setting references whose values and notes run to several lines."],
+    instead: ["Records people scan, sort, select or open → Table/Cell/Default (one-line rows at Table/Cell/Size).", "Key/value details of one record → Description List."],
+    props: [["Divider", "Yes · No for the last row"], ["Content", "slot: Primitives/Table/Cell/Text-Cell (Bold for the row's name), .Primitives/Table/Sheet/Code or .Primitives/Table/Sheet/Key chips; set the content to Fill width"]],
+    rules: ["In a row every cell takes Fill height, so the rules line up; the header row is Table/Cell/Header Type=None.", "Give the name and value columns a fixed width and let the long one fill the rest.", "Static rows: no sorting, selection or row clicks — those rows belong in a Table."],
+    code: "`<SheetTable>`",
+  }),
+  ".Primitives/Table/Sheet/Code": part("A code value in a Table/Sheet/Cell: a prop name, a type union, a signature, a default. Body/Code/Regular in Content/Neutral/Strongest; it wraps, never cuts (code: `<SheetCode>`).", "Table/Sheet/Cell", "with Fill width"),
+  ".Primitives/Table/Sheet/Key": part("One keyboard key (Tab, Shift, \u2192, Esc) as a chip. Keys of one shortcut sit Spacing/Gap/2XSmall apart with a + or / between them in Body/Small/Regular, Content/Neutral/Light (code: `<SheetKeys>`).", "Table/Sheet/Cell"),
   "Primitives/Table/Header": card({ what: "The header row of a table: one Table/Cell/Header per column, aligned like the body cells under it (Right for numbers)." }),
   "Primitives/Table/Data-Row": card({ what: "One body row of a table: one Table/Cell/Default per column, one row per record.", rules: ["One primary text per row (Bold in the main column) and at most one caption.", "Inside a surface, the last row has no bottom stroke."] }),
   "Primitives/Table/Cell/Text-Cell": part("Text content of a cell: one primary text (Bold for the row's main column) and an optional caption.", "Table/Cell/Default"),
@@ -882,6 +892,6 @@ export const GENERIC = [/\*\*Overview:\*\*/, /Original Notes/, /^Data visualizat
 // 2026-10-14 ("Draft …, not yet in code"), in code since #53–#55; Accordion/Text since Size=Small (2026-10-15);
 // Search/Default since Shape (2026-10-17); Card, List-Box and Metric-Card since the Theme rename (Flat → Default,
 // Flat-Border; 2026-10-21); the seven chart widgets of 2026-10-13, whose Figma text still named the gradient themes, and
-// Stack-Bar-Chart, whose Color line was written in Figma
-// (2026-10-23).
-export const FORCE = new Set(["Card", "Component/List-Box", "Metric-Card", "Chart/Area-Chart", "Chart/Grouped-Bar-Chart", "Chart/Combo-Chart", "Chart/Bar-List", "Chart/Gauge-Chart", "Chart/Funnel-Chart", "Chart/Bullet-Chart", "Chart/Stack-Bar-Chart", "Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview", "Accordion/Text", "Search/Default", "Empty-State"]);
+// Stack-Bar-Chart, whose Color line was written in Figma (2026-10-23); the Table/Sheet parts, whose draft text said
+// "not yet in code" (2026-10-23).
+export const FORCE = new Set(["Card", "Component/List-Box", "Metric-Card", "Chart/Area-Chart", "Chart/Grouped-Bar-Chart", "Chart/Combo-Chart", "Chart/Bar-List", "Chart/Gauge-Chart", "Chart/Funnel-Chart", "Chart/Bullet-Chart", "Chart/Stack-Bar-Chart", "Table/Sheet/Cell", ".Primitives/Table/Sheet/Code", ".Primitives/Table/Sheet/Key", "Input/Inline-Field", "Input/Color-Field", "Color-Picker", ".Primitives/Input/Color-Swatch", "Slider/Field", "Chart/Curve-Preview", "Accordion/Text", "Search/Default", "Empty-State"]);

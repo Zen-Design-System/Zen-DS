@@ -52,6 +52,7 @@ export * from "./components/Card";
 export * from "./components/ListItem";
 export * from "./components/Portal";
 export * from "./components/Table";
+export * from "./components/SheetTable";
 export * from "./components/Rating";
 export * from "./components/ColorSelector";
 export * from "./components/ColorPicker";

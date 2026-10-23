@@ -1028,6 +1028,21 @@
       "name": ".Primitives/Bottom-Navigation/Items/Floating-Glass",
       "type": "COMPONENT_SET",
       "key": "5f0c978e202362bb4967f6984f8d8ab4d894953d"
+    },
+    "17100:8013": {
+      "name": ".Primitives/Table/Sheet/Code",
+      "type": "COMPONENT",
+      "key": "24af63cd914c193d59873561bb7cea3f1b0be844"
+    },
+    "17100:8015": {
+      "name": ".Primitives/Table/Sheet/Key",
+      "type": "COMPONENT",
+      "key": "372863ae653968f67413f13d95ba33afcfd36403"
+    },
+    "17100:8027": {
+      "name": "Table/Sheet/Cell",
+      "type": "COMPONENT_SET",
+      "key": "cbe7bfa578a31f060972ae97dfae29cc10359743"
     }
   },
   "missing": [
