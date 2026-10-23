@@ -97,3 +97,16 @@ The questions as asked:
 - E2E group `variables` (VA-05…) and FW-212…219 for the Design panel parts;
 - plugin `npm test` and a live import into the Zen file (QA page, removed after);
 - the scoped gate.
+
+## Status (2026-10-23, branch zen/feat/studio-variables-v2-20261023)
+
+- Chunks 1–4 are built, one PR: Edit variable, rename with an alias, modes, per-frame modes.
+  - Plugin commits: 217d5c6, 09849d4, 1d3f0e3.
+  - Every Figma write was checked live on throwaway nodes.
+  - E2E: VA-05…07 and FW-212/213.
+- Chunk 1 needed fixes after review: a create checked no name while `except` was undefined, and the old-name rename
+  needed the build's alias resolution (byName) too. Both are fixed and in the selftests.
+- Chunk 5 (new collections) is moved to BACKLOG. It was my own default, not one of the user's three answers, and it is
+  wider than the S it was given: the build's fixed list of 11 sources, dev-server drafts of a file that does not exist
+  yet, and the native token generator.
+

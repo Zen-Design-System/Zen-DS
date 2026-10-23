@@ -23,12 +23,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   LineChart / BarList / MetricCard is a function, which the page dialect cannot write, so a revenue chart reads "128.4K",
   not "$128.4K". Needs a literal preset (e.g. `format="currency"` + `currency`) or a dialect form. Pointer:
   `docs/research/studio-vibe-agent-2026-10-18.md` §7.
-- **P2 · Studio Variables v2 (2026-10-17; re-checked 2026-10-23):** v1 is on main (#116: Local variables window, edit /
-  alias / create / rename / duplicate / delete, drafts + live tokens.css, Save builds the tokens, Copy for Figma →
-  plugin); Apply / Detach variable on Inspector fields (E5) came with F5b (#151). Open: modes (add / rename / delete), new
-  collections, description / scoping / code syntax, rename of a variable code reads (rewrite its CSS readers), Change
-  variable mode per frame / section / page (E6; today a frame's Theme Light/Dark, for the session only). Pointer:
-  `docs/research/studio-figma-native-parity-2026-10-17.md` §10.
+- **P3 · Studio Variables: new collections (2026-10-23, B; waits for the user):** v2 (chunks 1–4: Edit variable,
+  rename with an alias, modes, per-frame `modes`) is on branch zen/feat/studio-variables-v2-20261023. Creating a
+  collection in Studio is left: the build reads a fixed list of 11 sources (`scripts/token-outputs.mjs` SOURCE_FILES,
+  variables-host TOKEN_FILES), drafts cannot create a file yet, and the native token generator would see a new slug.
+  Single-mode only (`:root`) is the proposal. Pointer: `docs/research/studio-variables-v2-spec-2026-10-23.md` § Status.
 - **P3 · Metric Title-Highlight Figma slips (2026-10-17, for the designer):** in 7523:507049, the Header gap of 12 is
   unbound (should be Spacing/Gap/Small) and Medium's Metric-Number has paragraphSpacing bound to Font-Size/Heading-3
   (session log 2026-10-17, "Metric-Inline/Title-Highlight"; the Custom-Slot padding is fixed).
