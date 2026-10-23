@@ -97,6 +97,23 @@ await test("comments: write then read beside the page; refused when not valid; t
   assert.equal(await folder.readComments("gamma"), null);
   assert.ok(fs.readdirSync(path.join(root, ".zen-studio/trash")).some((name) => name.startsWith("gamma-") && name.endsWith(".comments.json")));
 });
+// A page's Figma bases (page-figma.mjs, P6b leftover): written and read back for another browser, an invalid file is
+// refused, never listed as a page, and it goes to the trash with its page.
+await test("figma bases: write then read beside the page; refused when not valid; trashed with the page", async () => {
+  const doc = (title) => ({ header: { format: 1, title }, board: { id: "board", children: [] } });
+  const figma = { format: 1, exports: [{ version: "a1b2c3d4e5f6", at: 1, base: doc("pull"), synced: doc("page") }] };
+  await folder.write("delta", text);
+  assert.equal(await folder.readFigma("delta"), null);
+  assert.equal((await folder.writeFigma("delta", figma)).exports, 1);
+  assert.deepEqual(await folder.readFigma("delta"), figma);
+  assert.ok(fs.existsSync(path.join(root, PAGES_DIR, "delta.figma-base.json")));
+  assert.ok((await folder.list()).every((page) => !page.id.includes("figma")));
+  await rejects(folder.writeFigma("delta", { format: 1, exports: [{ version: "x" }] }), "invalid");
+  await rejects(folder.writeFigma("../x", figma), "invalid");
+  await folder.trash("delta");
+  assert.equal(await folder.readFigma("delta"), null);
+  assert.ok(fs.readdirSync(path.join(root, ".zen-studio/trash")).some((name) => name.startsWith("delta-") && name.endsWith(".figma-base.json")));
+});
 
 fs.rmSync(root, { recursive: true, force: true });
 console.log(`pages-folder selftest: ${passed} passed${process.exitCode ? ", some failed" : ""}`);

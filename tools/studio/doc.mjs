@@ -11,6 +11,7 @@
 //   docFromText(text, { components, newId }) → { doc, errors }
 //   locsOf(doc, text, { components }) → { idAt, locOf }  where each element of `doc` sits in `text` (any text of that page)
 //   editDoc(doc, text, request, { applyOps, dataFieldEdit, sha1, options }) → { doc, text, answer, ids } | { error, code }
+//   carryIds(doc, from, { newId }) → doc                `doc` with `from`'s ids where the two trees line up
 //   newDocId() → "n…"
 import { parsePage } from "./dialect.mjs";
 
@@ -333,6 +334,54 @@ export function editDoc(doc, text, request, { components, applyOps, dataFieldEdi
 }
 
 /** The document without its ids (two documents of the same page compare equal). */
+/**
+ * `doc` with the ids of `from` wherever the two trees line up, from the Board down: the same component at the same place,
+ * and below it only where its element children (and a prop's elements, a list's items) are the same components in the
+ * same order, so a change of structure never lends an id to the wrong element. Another browser's document of the same
+ * page (the page a Figma export came from) lends its ids, and a pull keyed by them finds its layers here (figma round
+ * trip P6b). Elements that do not line up keep their own ids; one that would repeat a lent id takes a new one.
+ */
+export function carryIds(doc, from, { newId = newDocId } = {}) {
+  const lent = new Map();
+  const isChild = (child) => child.kind === "element" || child.kind === "map";
+  const shape = (child) => (child.kind === "map" ? `map:${child.node.name}` : child.name);
+  const pair = (node, other) => {
+    if (!node || !other || node.kind !== "element" || other.kind !== "element" || node.name !== other.name) return;
+    lent.set(node, other.id);
+    pairChildren(node.children, other.children);
+    for (const [name, value] of Object.entries(node.props)) pairValue(value, other.props[name]);
+  };
+  const pairChildren = (children, others) => {
+    const mine = children.filter(isChild), theirs = others.filter(isChild);
+    if (mine.length !== theirs.length || mine.some((child, index) => shape(child) !== shape(theirs[index]))) return;
+    mine.forEach((child, index) => (child.kind === "map" ? pair(child.node, theirs[index].node) : pair(child, theirs[index])));
+  };
+  const pairValue = (value, other) => {
+    if (!value || !other || value.kind !== other.kind) return;
+    if (value.kind === "element") pair(value.node, other.node);
+    else if (value.kind === "fragment") pairChildren(value.children, other.children);
+    else if (value.kind === "array" && value.items.length === other.items.length) value.items.forEach((item, index) => pairValue(item, other.items[index]));
+    else if (value.kind === "object") for (const [name, field] of Object.entries(value.fields)) pairValue(field, other.fields[name]);
+  };
+  pair(doc.board, from?.board);
+  const taken = new Set(lent.values());
+  const value = (item) => {
+    if (item.kind === "element") return { ...item, node: node(item.node) };
+    if (item.kind === "fragment") return { ...item, children: item.children.map(child) };
+    if (item.kind === "array") return { ...item, items: item.items.map(value) };
+    if (item.kind === "object") return { ...item, fields: Object.fromEntries(Object.entries(item.fields).map(([name, field]) => [name, value(field)])) };
+    return item;
+  };
+  const node = (element) => ({
+    ...element,
+    id: lent.get(element) ?? (taken.has(element.id) ? newId() : element.id),
+    props: Object.fromEntries(Object.entries(element.props).map(([name, prop]) => [name, value(prop)])),
+    children: element.children.map(child),
+  });
+  const child = (item) => (item.kind === "element" ? node(item) : item.kind === "map" ? { ...item, node: node(item.node) } : item);
+  return { ...doc, board: node(doc.board) };
+}
+
 export function withoutIds(doc) {
   return JSON.parse(JSON.stringify(doc, (name, value) => (name === "id" || name === "loc" ? undefined : value)));
 }
