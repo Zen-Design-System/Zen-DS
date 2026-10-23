@@ -17,7 +17,7 @@ Rows of structured records that users scan, compare, sort and act on.
 - Layout grids → CSS grid.
 - Key/value details of one record → a description list.
 - Editing many fields of one record, or edits that need review → a form or Side Panel (use onOpen to get there).
-- Long, multi-line cell content (notes, full descriptions, a spreadsheet-like grid) → not Table: its rows stay one line at Table/Cell/Size; a separate sheet-style component will cover it.
+- Long, multi-line cell content (props and their types, signatures, keyboard shortcuts, full descriptions) → SheetTable: a Table's rows stay one line at Table/Cell/Size.
 
 ## Figma → React
 | Figma | Prop | Values / notes |
@@ -192,6 +192,7 @@ type TableSortDirection = "asc" | "desc"
 | `table/actions-flat` | warn | Row actions in TableActions are Button/Icon-Flat Medium (IconButton appearance="flat" level="primary"), so rows don't fill with outlined buttons. | `zen-allow-table-action-style: <reason>` |
 | `table/title-heading-4` | warn | A table that is its own page section is titled by a <Heading level={2} textStyle="Heading/4"> right above it (the Table points to it with aria-labelledby); a table inside a widget Card is titled by the widget title, <Heading textStyle="Heading/Subheading"> (every widget title is Subheading); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading. | `zen-allow-table-title: <reason>` |
 | `table/needs-name` | error | A Table is named by a caption or aria-label. | `zen-allow-table-name: <reason>` |
+| `table/reference-in-sheet` | warn | Reference rows — code values, type unions, keyboard shortcuts — belong in a SheetTable: a Table's rows stay one line at Table/Cell/Size and cut them with an ellipsis (user rule 2026-10-13). | `zen-allow-table-reference: <reason>` |
 | `table/interaction-needs-handler` | warn | A selectable Table with selectedIds needs onSelectionChange — without it the checkboxes are dead (leave selectedIds out, or pass defaultSelectedIds, for a selection the Table keeps itself); sortable columns need onSortChange. | `zen-allow-table-handler: <reason>` |
 | `table/media-size-by-subtext` | warn | TableMedia follows the Figma cell primitives: with a caption (Subtext=Yes) Avatar/Photo is Small 32px and a basic Icon lg 28px; without one Avatar is XSmall 24px and Icon base 20px; Dock Icon follows Avatar (XSmall 24px → Small 32px with a caption). | `zen-allow-table-media-size: <reason>` |
 | `table/editor-needs-commit` | error | An editable column (edit: { … }) saves through onCommit; without it edits are silently lost. | `zen-allow-editor-commit: <reason>` |

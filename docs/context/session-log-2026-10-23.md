@@ -460,6 +460,36 @@ Branch zen/feat/box-theme-rules-20261023 (worktree festive-archimedes-176df5). #
   height (list-item.css), re-shot after the slot came back: `qa --only=list-item --isolated` PASS (audit, dark,
   behaviour 0); at 1512 the three Pale groups fill their columns and the flat page hugs its list, 390 unchanged.
 
+## SheetTable: the Figma Table/Sheet in code (tier L: a new component, and every page's Props / API / Keyboard)
+
+Branch zen/feat/sheet-table-20261023 (worktree festive-archimedes-176df5). User approved the Figma draft (doc frame
+17100:7996, now "Table/Sheet"): code name SheetTable, minimum row height one Table row.
+- Component: SheetTable (Table/Cell/Header row; cells hug their content from Table/Cell/Size, top-aligned, padding
+  Small × Medium, last row without its rule), SheetCode, SheetKeys / SheetKey; columns take `cell` or a declarative
+  `content` (text | code | keys) + `field` + `bold`, so Studio's palette (no functions) and AI UI specs can place it.
+- Docs: PlatformReference's Keyboard, API and Props sections are SheetTables (the .platform-ref Table override, the
+  kbd / code / separator styles and their official-platform and Studio-board selector copies are gone); page Sheet
+  Table (playground, 5 examples: props, keyboard, tokens, phone, empty), Do/Don't, guideline, Table's "avoid" points
+  to it.
+- Harness: sheet-table/needs-name (error), table/reference-in-sheet (warn: SheetCode / SheetKeys / kbd in a Table).
+- Tests: smoke fixtures (axe baseline color-contrast for the header's Content/Neutral/Light, as Table's), STYLE_ON_ROOT;
+  the AI UI catalog test read a fixture row field named `type` as a spec node, so the fixture uses declarative columns.
+- Figma: descriptions of Table/Sheet/Cell and the Code / Key primitives name the code (backup on ARCHIVED).
+- Studio push / pull (coordinator's follow-up, same branch): figma-push sheetTableNode writes a frame of rows, a
+  Table/Cell/Header row then Table/Sheet/Cell per column (Fill height, Divider=No on the last row) holding a Text-Cell, a
+  .Primitives/Table/Sheet/Code or a Keys frame of Key chips and separators; px widths fixed, % or none Fill (noted).
+  figma-pull reads a frame whose first row is all Table/Cell/Header and the rest all Table/Sheet/Cell as SHEET and
+  prints `<SheetTable columns rows>` with declarative columns. library-keys has the three keys (read with use_figma),
+  the contract has Table/Sheet/Cell (Content slot, Divider), the native pack the three sets (probe on the QA page,
+  `capture --merge`, probe removed). No figma-props map entry: like Table's cells, the push draws them.
+- Live test in the Zen file: the real importer (studio-import.js, unused paths stubbed, one use_figma call) placed two
+  sheets with no notes (fixed / Fill widths, Divider Yes/No, a row 72 high where a type union wraps); the real pull
+  reader read both back as SHEET and the page printed from it passes validateDialect with the component list. QA frame
+  removed. Checks: studio:selftest (push 425, pull 135), library-keys / native-pack / figma-props checks.
+- CI Platform audit on 41a45c36 failed on one console error, Vite's HMR socket dropping on tabs@1512-dark ("WebSocket
+  connection to 'ws://localhost:5173/?token=…' failed"): audit.mjs IGNORED_CONSOLE meant to skip HMR noise but matched
+  only `[vite]`; it now also skips that socket error (an app's own WebSocket without the HMR token still counts).
+
 ## Figma: workflow steps drawn as themed Badges → Badge-Status (tier S, Figma-only; BACKLOG P3, user approved the write)
 
 Zen file 9nZv4uW2LT21yuHabMTCh1. Scan: every page's text for the harness's step words (To Do … Cancelled, vi) and the
