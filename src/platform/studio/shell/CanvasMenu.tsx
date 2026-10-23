@@ -25,7 +25,7 @@ import { flipMenuItems } from "../edit/flipLayers";
 import { renameShortcut, startRename } from "../edit/rename";
 import { findFrame } from "../board/frames";
 import { newPageFromFrame } from "../builder/starters/newPageFromFrame";
-import { copyFrameForFigma } from "../builder/export/figmaClipboard";
+import { copyFrameForFigma, readFrameAhead } from "../builder/export/figmaClipboard";
 import { presentFrame, zoomToFrame } from "../board/presentFrame";
 import { canvasApi } from "../canvas/viewport";
 import { duplicateShortcut, removeShortcut } from "../slots/actions";
@@ -121,6 +121,14 @@ export function CanvasMenu() {
     void studioApi.detachPlan(parsed.file, parsed.loc, selection.name, renderCount(selection) || undefined).then((reply) => { if (alive) setPlan({ at: menu.at, reply: withRowCheck(reply, selection) }); });
     return () => { alive = false; };
   }, [menu, offered, selection]);
+
+  // Copy for Figma on a frame of a page you made: its code and Figma export read as the menu opens, so the click writes
+  // them in a copy event, which Figma's canvas takes (builder/export/figmaClipboard.ts).
+  useEffect(() => {
+    const localPage = studioStore.getState().localPage;
+    const frameId = menu?.target.kind === "frame" ? menu.target.frameId : null;
+    if (localPage && frameId && !/^(section|slice):/.test(frameId)) readFrameAhead(localPage, frameId);
+  }, [menu]);
 
   // Paste here on the empty canvas is on when something can be pasted (the clipboard may take a moment to read).
   const [pasteReady, setPasteReady] = useState<{ at: number; ready: boolean } | null>(null);
