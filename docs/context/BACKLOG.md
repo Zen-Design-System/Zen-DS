@@ -11,9 +11,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   platform pages and the HR templates show a task's step as `Badge theme={taskStatusTheme[…]}`; the new rule
   `badge/workflow-status-uses-badge-status` flags new ones only. Move them to `<BadgeStatus>` (and Figma instances to
   Badge-Status). Pointer: `grep -rn taskStatusTheme src/platform`.
-- **P3 · PropertyField ↔ Figma gaps (2026-10-21):** a People / Labels cell pushes one person and two tags (the
-  Property-Value variants hold that many), and `BadgeStatus progress` is not pushed (Progress-Icon's arc is set by hand in
-  Figma). Pointer: `tools/studio/figma-property.mjs`.
 - **P2 · Calendar/Toolbar Mobile in the Mobile typography — question for the designer (2026-10-21, Calendar in code):**
   Figma drew the Mobile variant (16125:399) in the desktop type sizes; with Mobile typography Heading/3 is 26px, so
   "September 2026" (~200px) and a fourth view label ("Agenda") no longer fit 358px beside Today and the arrows, in
@@ -93,6 +90,8 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   (`docs/figma-contracts/layer-renames-2026-10-12.json`, with the undo map). Other files see them once the library is
   published. What `ALLOWED` in nested-paths.mjs still lists is structure, not naming: unnamed bottom-navigation items
   and stepper steps, pages named by number, ChatComposer actions named by job, code-only layers (Retry, Counter…).
+  Also waiting on the publish since 2026-10-23: `.Primitives/Input/Property-Value`'s Value-Slot (Person / Tags), which
+  Import from Studio fills with every person and label (the user's choice of a slot).
 - **P2 · Code-side rules for the Figma theme audit — waits for the user (2026-10-13, rest of "Box theme vocabulary in
   code"; re-checked 2026-10-23):** the vocabulary is in code: Card / ListBox `theme` · `color` · `surface`, MetricCard
   and ChartCard pass it through, the Studio map and the Card contract follow #210 (no Semi-Pale; `semi-pale` is a

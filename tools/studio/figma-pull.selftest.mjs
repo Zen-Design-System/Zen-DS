@@ -512,6 +512,17 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("project component: an instance of another page's component pulls as <Use of page>", /<Use of="chip" page="chips" variant=\{\{ Size: "Small" \}\} props=\{\{ Label: "Go" \}\} \/>/.test(crossText));
 }
 
+// PropertyField ↔ Figma (2026-10-23, live read): People and Tags from the Value's Value-Slot, a ring's progress from its
+// Progress arc (BadgeStatus and the Status cell); the Value's parts are the cell's (no overrides), a status' own label
+// is not BadgeStatus' children.
+{
+  const live = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-property-values.json", import.meta.url), "utf8"));
+  const pulled = pageFromFigma(live.frame, { mapping });
+  ok("property values (live): progress on BadgeStatus and the Status cell, no label as children", pulled.text.includes('<BadgeStatus status="in-review" progress={80} />') && pulled.text.includes('<PropertyStatus defaultValue="in-progress" progress={60} />'));
+  ok("property values (live): three people and three labels from the Value-Slot", pulled.text.includes('<PropertyPeople defaultValue={["alex-duong", "sun-hung", "lan-pham"]}') && pulled.text.includes('{ value: "ui-design", label: "UI Design", theme: "orange" }'));
+  check("property values (live): no overrides on the rows, no notes", [/overrides=/.test(pulled.text), pulled.notes], [false, []]);
+}
+
 if (failures.length) {
   console.error(`✗ figma-pull selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}\n--- page ---\n${text}\n--- notes ---\n${notes.join("\n")}`);
   process.exit(1);

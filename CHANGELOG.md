@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio ↔ Figma: a PropertyField's people and labels all reach Figma (Property-Value's Person and Tags cells now
+  hold a Value-Slot, the user's choice; once the library is published other files see it), and a BadgeStatus' or Status
+  cell's `progress` is its ring's Progress arc; both come back with Pull from Figma and a direct paste carries them
+  (2026-10-23).
 - Zen Studio: ⇧⌘G with several layers selected ungroups every selected group or frame, as Figma's (one ⌘Z takes it
   back); their layers and the other selected layers stay selected, and the canvas menu offers Ungroup on several layers
   (2026-10-23).

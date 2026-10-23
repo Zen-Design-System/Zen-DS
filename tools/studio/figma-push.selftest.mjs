@@ -2384,13 +2384,38 @@ export default function Page() {
   check("PropertyField: one Input/Property-Field per row, Label in its text property", rows.map((row) => row.props.Label), ["Status", "Priority", "Start Date", "Due Date", "Assignee", "Labels", "Sprint"]);
   check("PropertyField: Icon on with an icon (its swap), off without; Action on with action", [rows[0].props.Icon, rows[0].props["Icon-Src"], rows[6].props.Icon, rows[4].props.Action, rows[0].props.Action], [true, "icon-loading-02-line", false, true, false]);
   check("PropertyField: the nested Value's Type and State from the cell", rows.map((row) => row.nested?.[0]?.props && [row.nested[0].path, row.nested[0].props.Type, row.nested[0].props.State]), [["Value", "Status", "Inputted"], ["Value", "Select", "Inputted"], ["Value", "Date", "Default"], ["Value", "Date", "Inputted"], ["Value", "Person", "Inputted"], ["Value", "Tags", "Inputted"], ["Value", "Text", "Editing"]]);
-  check("PropertyField: the content in the Value's layers", [rows[0].nested[1], rows[1].nested[0].texts, rows[1].nested[1], rows[3].nested[0].texts, rows[4].nested[1], rows[5].nested[1], rows[5].hide, rows[6].nested[0].texts],
-    [{ path: "Value/Status", props: { Status: "Done" } }, { Value: "Urgent" }, { path: "Value/Leading", props: { Tone: "Negative" }, swapIcon: "icon-flag-01-solid" }, { Value: "June 7, 2026" }, { path: "Value/Person", props: {}, text: "Alex Duong" }, { path: "Value/Tag-1", props: { Theme: "Blue" }, text: "Design System" }, ["Tag-2"], { Value: "Sprint 42" }]);
+  check("PropertyField: the content in the Value's layers", [rows[0].nested[1], rows[1].nested[0].texts, rows[1].nested[1], rows[3].nested[0].texts, rows[6].nested[0].texts],
+    [{ path: "Value/Status", props: { Status: "Done" } }, { Value: "Urgent" }, { path: "Value/Leading", props: { Tone: "Negative" }, swapIcon: "icon-flag-01-solid" }, { Value: "June 7, 2026" }, { Value: "Sprint 42" }]);
+  // People and Tags fill the Value's Value-Slot (Figma since 2026-10-23): a Person Tag per person, a Badge per label.
+  const slotted = (row) => row.slots?.filter((slot) => slot.name === "Value-Slot" && slot.within === "Value").flatMap((slot) => slot.children.map((child) => [child.set.name, child.text ?? child.textList?.[0], child.props.Theme]));
+  check("PropertyField: People and Tags in the Value-Slot", [slotted(rows[4]), slotted(rows[5]), rows[5].hide ?? []], [[["Tag", "Alex Duong", "Leading-Photo"]], [["Badge", "Design System", "Blue"]], []]);
   ok("PropertyField: no note about its cell (every cell drawn)", !notes.some((note) => /PropertyField/.test(note) && /value cell/.test(note)));
   const back = pageFromFigma(frame, { mapping }).text;
   ok("pull: BadgeStatus comes back (Size as its long spelling)", /<BadgeStatus status="in-review" size="small" \/>/.test(back));
   ok("pull: a row whose label is Figma's default keeps it (label is required)", back.includes('<PropertyField label="Status" icon="icon-loading-02-line">'));
   ok("pull: PropertyField rows come back with their cells", ['<PropertyStatus defaultValue="done" />', '<PropertyDate defaultValue="2026-06-07" />', '<PropertyText state="editing" defaultValue="Sprint 42" />', "<PropertyDate />"].every((cell) => back.includes(cell)) && /<PropertyTags defaultValue=\{\["design-system"\]\} options=\{\[\{ value: "design-system", label: "Design System", theme: "blue" \}\]\} \/>/.test(back));
+}
+
+{
+  // PropertyField ↔ Figma gaps (BACKLOG P3, 2026-10-23): every person and label goes in the Value-Slot, and a ring's
+  // progress (BadgeStatus, the Status cell) is the Progress arc; both come back.
+  const many = PROPERTIES.replace('<PropertyPeople defaultValue={["alex"]} options={[{ value: "alex", label: "Alex Duong" }]} />', '<PropertyPeople defaultValue={["alex", "sun", "lan"]} options={[{ value: "alex", label: "Alex Duong" }, { value: "sun", label: "Sun Hung" }, { value: "lan", label: "Lan Pham" }]} />')
+    .replace('<PropertyTags defaultValue={["ds"]} options={[{ value: "ds", label: "Design System", theme: "blue" }]} />', '<PropertyTags defaultValue={["ds", "ui", "qa"]} options={[{ value: "ds", label: "Design System", theme: "blue" }, { value: "ui", label: "UI Design", theme: "orange" }, { value: "qa", label: "QA" }]} />')
+    .replace('<PropertyStatus defaultValue="done" />', '<PropertyStatus defaultValue="in-progress" progress={60} />')
+    .replace('<BadgeStatus status="in-review" size="sm" />', '<BadgeStatus status="in-review" size="sm" progress={80} />\n          <BadgeStatus status="done" progress={100} />');
+  const { frame, notes } = push(many);
+  const all = []; const walk = (node) => { all.push(node); (node.children ?? []).forEach(walk); (node.slots ?? []).forEach((slot) => slot.children.forEach(walk)); }; walk(frame);
+  const rows = all.filter((node) => node.set?.name === "Input/Property-Field");
+  const [ring, own] = all.filter((node) => node.set?.name === "Badge-Status");
+  const names = (row) => row.slots?.[0]?.children.map((child) => child.text ?? child.textList?.[0]);
+  check("push: a Person Tag's avatar shows the person's first letter", rows[4].slots?.[0]?.children.map((child) => child.nested?.[0]?.text), ["A", "S", "L"]);
+  check("push: three people, three labels in the Value-Slot (no note)", [names(rows[4]), names(rows[5]), rows[5].slots?.[0]?.children.map((child) => child.props.Theme), notes.filter((note) => /shows the first/.test(note)).length], [["Alex Duong", "Sun Hung", "Lan Pham"], ["Design System", "UI Design", "QA"], ["Blue", "Orange", "Neutral"], 0]);
+  const arcOf = (node, path) => node.nested?.find((entry) => entry.path === path)?.arcs?.Progress;
+  const turn = (arc) => arc && Math.round(((arc.end - arc.start) / (2 * Math.PI)) * 100);
+  check("push: a ring's progress is its Progress arc from the top (BadgeStatus, the Status cell); a status' own value writes none", [arcOf(ring, "Leading")?.start, turn(arcOf(ring, "Leading")), turn(arcOf(rows[0], "Value/Status/Leading")), arcOf(own, "Leading")], [1.5 * Math.PI, 80, 60, undefined]);
+  const back = pageFromFigma(frame, { mapping }).text;
+  ok("pull: the people and labels come back, each an option", back.includes('<PropertyPeople defaultValue={["alex-duong", "sun-hung", "lan-pham"]}') && back.includes('{ value: "ui-design", label: "UI Design", theme: "orange" }') && back.includes('{ value: "qa", label: "QA", theme: "neutral" }'));
+  ok("pull: the progress comes back on BadgeStatus and the Status cell", /<BadgeStatus status="in-review" size="small" progress=\{80\} \/>/.test(back) && back.includes('<PropertyStatus defaultValue="in-progress" progress={60} />') && /<BadgeStatus status="done" \/>/.test(back));
 }
 
 {
