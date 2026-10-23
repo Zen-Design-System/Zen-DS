@@ -9524,6 +9524,14 @@
           "deprecated": null
         },
         {
+          "name": "decorative",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The ring only repeats what a visible word beside it already says (a status heading, a task's step): it is hidden\nfrom screen readers instead of being a second progressbar. Its own `label` text still shows.",
+          "deprecated": null
+        },
+        {
           "name": "className",
           "type": "string",
           "required": false,
@@ -9782,7 +9790,23 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "Figma Default-Header.",
+          "description": "Figma Default-Header. Off, the title still names the modal for screen readers (kept as a visually hidden heading) and\nthe description is not read; with no title, give `aria-label` or `aria-labelledby`.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the modal when it has no `title` (or overrides it), e.g. with `header={false}` and a Stepper on `top`.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The id of a visible element that names the modal (a heading in `top`, say); wins over `title` and `aria-label`.",
           "deprecated": null
         },
         {
@@ -12954,6 +12978,14 @@
           "deprecated": null
         },
         {
+          "name": "currentRowId",
+          "type": "string | null",
+          "required": false,
+          "default": null,
+          "description": "The row whose item is open beside the table, in a docked Side Panel or a detail pane: `aria-current=\"true\"` and the\nSelected fill (Figma Table/Cell State=Selected), apart from the checkbox selection.",
+          "deprecated": null
+        },
+        {
           "name": "className",
           "type": "string",
           "required": false,
@@ -15458,7 +15490,7 @@
           "type": "(id: string) => void",
           "required": false,
           "default": null,
-          "description": "Pressing the quote; defaults to scrolling to `[data-message-id]` in the same thread and flashing it. The quote of a\ndeleted message (`replyTo.kind` \"deleted\") is not pressable.",
+          "description": "Pressing the quote; defaults to scrolling to `[data-message-id]` in the same thread and flashing it. The default finds\nonly messages the thread has rendered: a thread that loads older messages on demand passes this to load the original\nand then scroll to it. The quote of a deleted message (`replyTo.kind` \"deleted\") is not pressable.",
           "deprecated": null
         },
         {

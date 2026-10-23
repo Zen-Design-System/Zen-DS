@@ -2027,6 +2027,7 @@
           "theme?: neutral|accent|red|orange|yellow|green|blue = accent",
           "label?: ReactNode|true",
           "aria-label?: string",
+          "decorative?: boolean = false",
           "className?: string",
           "ref?: Ref<HTMLDivElement>"
         ]
@@ -2103,6 +2104,8 @@
           "side?: ReactNode",
           "top?: ReactNode",
           "header?: boolean = true",
+          "aria-label?: string",
+          "aria-labelledby?: string",
           "closeButton?: boolean = true",
           "closeLabel?: string",
           "children?: ReactNode",
@@ -3303,6 +3306,7 @@
           "onSortChange?: (sort: TableSort|null) => void",
           "empty?: ReactNode",
           "onRowClick?: (row: T) => void",
+          "currentRowId?: string|null",
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
@@ -4427,7 +4431,7 @@
         "Use ChatAvatarGroup for group conversations: Medium (40px, 28px avatars) in lists, Small (32px, 20px avatars) in compact rows.",
         "Use one action list for both inputs: the same holdActions drive the mobile hold menu and the desktop hover toolbar (its More menu).",
         "Pick hold/hover actions with chatHoldActionsFor(kind, side): text & photos by side, files get Reply · Forward · Pin · Delete (Figma Focused/File), calls Call back · (Report) · Delete.",
-        "Reply: the Reply action sets the composer's replyTo (“Replying to …” bar, × / Escape cancel via onCancelReply — harness: chat/reply-cancellable); attach it to the sent message as replyTo and give every message an id so the quote can jump back. The quote previews the original by kind — text (2 lines), photo(s) with a thumbnail, file, call, voice, or “Message unavailable”. The composer moves focus into its field when a reply is set or switched (not on mount), so apps add no focus code of their own.",
+        "Reply: the Reply action sets the composer's replyTo (“Replying to …” bar, × / Escape cancel via onCancelReply — harness: chat/reply-cancellable); attach it to the sent message as replyTo and give every message an id so the quote can jump back. A thread that loads older messages on demand passes onJumpToReply to load the original first: the default jump only finds messages already rendered, so a quote of an unloaded one would do nothing. The quote previews the original by kind — text (2 lines), photo(s) with a thumbnail, file, call, voice, or “Message unavailable”. The composer moves focus into its field when a reply is set or switched (not on mount), so apps add no focus code of their own.",
         "Keep the Reaction-Bar \"+\": let it open the built-in emoji panel, or pass onMore only when you ship a fuller picker; never wire it to a placeholder.",
         "Keep every interaction live wherever Chat is shown: each message can be held (mobile) / hovered (desktop) for its Figma action set and reactions, Reply fills the composer and the sent quote jumps back, cards open, calls call back, the composer's actions and send work — never a no-op handler (harness: chat/no-locked-interaction; platform examples use useChatDemo).",
         "Make deleting a message undoable: remove it at once and show a Toast with Undo (title 'Message deleted'); don't ask first. Move focus to the next message, and on Undo back to the restored one. Platform examples get this from useChatDemo().",

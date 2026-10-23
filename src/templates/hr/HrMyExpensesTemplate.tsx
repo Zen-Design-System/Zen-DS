@@ -394,8 +394,7 @@ export function HrMyExpensesTemplate() {
                 {activeFilters >= 2 ? <Button level="tertiary" onClick={clearFilters}>Clear all</Button> : null}
               </Stack>
             </Grid>
-            <Table aria-label="My expenses" rows={shown} getRowId={(row) => row.id} sort={sort} onSortChange={setSort} onRowClick={(row) => setOpenId(row.id)} empty={emptyState}
-              selectedIds={opened ? [opened.id] : []}
+            <Table aria-label="My expenses" rows={shown} getRowId={(row) => row.id} sort={sort} onSortChange={setSort} currentRowId={openId} onRowClick={(row) => setOpenId(row.id)} empty={emptyState}
               columns={[
                 { id: "expense", header: "Expense", cell: (row) => {
                   const category = expenseCategories[row.category];

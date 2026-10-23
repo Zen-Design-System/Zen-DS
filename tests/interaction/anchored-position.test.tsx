@@ -6,7 +6,7 @@ import { useRef } from "react";
 import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
 import { Popover, ZenProvider, type PopoverProps } from "../../src/index";
-import { clampAnchoredLeft, resolveAnchoredSide } from "../../src/components/Popover/useAnchoredPosition";
+import { clampAnchoredLeft, resolveAnchoredAlign, resolveAnchoredSide } from "../../src/components/Popover/useAnchoredPosition";
 import { fixedLayerSpace } from "../../src/components/_shared/layer-space";
 
 describe("clampAnchoredLeft", () => {
@@ -21,6 +21,22 @@ describe("clampAnchoredLeft", () => {
   });
   it("pins a surface wider than the bounds to the left margin", () => {
     expect(clampAnchoredLeft(100, 500, 0, 390)).toBe(8);
+  });
+});
+
+describe("resolveAnchoredAlign", () => {
+  it("opens on the preferred edge, on the other one when only that fits", () => {
+    expect(resolveAnchoredAlign(null, "start", true, true)).toBe("start");
+    expect(resolveAnchoredAlign(null, "start", false, true)).toBe("end");
+    expect(resolveAnchoredAlign(null, "end", true, false)).toBe("start");
+  });
+  it("keeps its edge while open, even when only the other one fits: shifted into view, it never jumps across", () => {
+    expect(resolveAnchoredAlign("start", "start", false, true)).toBe("start");
+    expect(resolveAnchoredAlign("end", "start", true, false)).toBe("end");
+    // A 310px surface from a 40px anchor in a 390px window (margins 8): pinned at the right margin from its start edge, it
+    // stays there as the anchor scrolls right; at anchor x 278 the flip to the end edge put it at 8, 64px left in one frame.
+    const left = (anchorLeft: number) => clampAnchoredLeft(anchorLeft, 310, 0, 390);
+    expect([left(72), left(80), left(120), left(340)]).toEqual([72, 72, 72, 72]);
   });
 });
 

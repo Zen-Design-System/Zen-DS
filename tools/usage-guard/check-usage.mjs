@@ -2012,8 +2012,8 @@ export const rules = [
       return prop && `transitions \`${prop[1]}\`, a layout property — animate transform (scale/translate) or grid-template-rows instead.`;
     } },
   { id: "progress/needs-label", components: ["ProgressBar", "ProgressCircle"], severity: "error", allow: "progress-label", guideline: "docs/guidelines/progress.md",
-    summary: "Progress needs a visible label or an aria-label.",
-    check: ({ attrs }) => !present(attrs, "label") && !named(attrs) && "has neither label nor aria-label." },
+    summary: "Progress needs a visible label or an aria-label; a ProgressCircle that only repeats a visible word beside it (a status heading) is `decorative` instead.",
+    check: ({ tag, attrs }) => !present(attrs, "label") && !named(attrs) && !(tag === "ProgressCircle" && present(attrs, "decorative")) && "has neither label nor aria-label (a ring beside its own status word: decorative)." },
   { id: "progress/quota-scale", components: ["ProgressBar"], severity: "warn", allow: "progress-scale", guideline: "docs/guidelines/progress.md",
     summary: "A Status bar that measures usage against a limit (storage, quota, seats, credits) uses scale=\"quota\" so high values turn Warning/Negative, not green.",
     check: ({ attrs }) => literal(attrs, "theme") === "status" && !has(attrs, "scale") && /storage|quota|usage|used|seats|credits|limit|disk|bandwidth/i.test(`${value(attrs, "label") ?? ""} ${value(attrs, "aria-label") ?? ""}`) && "measures usage against a limit on the completion scale (high = green) — add scale=\"quota\"." },

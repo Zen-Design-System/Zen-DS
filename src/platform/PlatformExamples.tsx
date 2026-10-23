@@ -1038,7 +1038,7 @@ const rules = [
           <PlaygroundToggle label="Bold" selected={toggleBold} onChange={setToggleBold} />
           <PlaygroundToggle label="Disabled" selected={toggleDisabled} onChange={setToggleDisabled} />
         </PlaygroundControls>
-        <div data-typography={previewTypography} className="platform-example-row"><Toggle size={resolvedSize} icon={resolvedSize === "xlarge" ? "icon-bell-01-line" : undefined} disabled={toggleDisabled} theme={resolvedTheme} selected={toggleSelected} onSelectedChange={setToggleSelected} label="Enable notifications" caption={toggleCaption ? "Receive updates for this workspace." : undefined} bold={toggleBold} /></div>
+        <div data-typography={previewTypography} className="platform-example-row"><Toggle size={resolvedSize} icon={resolvedSize === "xlarge" ? "icon-bell-01-line" : undefined} disabled={toggleDisabled} theme={resolvedTheme} checked={toggleSelected} onCheckedChange={setToggleSelected} label="Enable notifications" caption={toggleCaption ? "Receive updates for this workspace." : undefined} bold={toggleBold} /></div>
         <PlatformCode code={`import { Toggle } from "@zen-ds/react";
 
 <Toggle
@@ -1046,8 +1046,8 @@ const rules = [
   icon="icon-bell-01-line"` : ""}
   theme="${resolvedTheme}"${toggleDisabled ? `
   disabled` : ""}
-  selected={selected}
-  onSelectedChange={setSelected}
+  checked={checked}
+  onCheckedChange={setChecked}
   label="Enable notifications"${toggleCaption ? `
   caption="Receive updates for this workspace."` : ""}${toggleBold ? `
   bold` : ""}

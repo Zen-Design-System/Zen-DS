@@ -6,7 +6,7 @@
     {
       "name": "Toggle",
       "file": "src/components/Toggle/Toggle.tsx",
-      "description": "",
+      "description": "Figma Toggle (1526:5703, page ❖ Toggle): a ToggleButton beside its Content, a label (Body/Base/Regular, Bold with\n`bold`, Content/Neutral/Strongest) and an optional caption (Caption/Regular, Content/Neutral/Light), Spacing/Gap/Medium\napart (Small: Gap/Small). Theme text-first puts the label before the switch, as in a settings row; toggle-first after.\nIt applies at once: no Save.",
       "deprecated": null,
       "extends": "ToggleButtonProps",
       "props": [
@@ -127,7 +127,7 @@
     {
       "name": "ToggleButton",
       "file": "src/components/Toggle/Toggle.tsx",
-      "description": "",
+      "description": "Figma Toggle-Button (1523:104, page ❖ Toggle): the switch alone. A track two dots wide plus Spacing/Padding/3XSmall\naround a dot of Toggle/Item/Size (Small 12 · Medium 16 · Large 20 · XLarge 44, with an icon in its dot); the track\ntakes Toggle/Bar/Background/Unselected|Seclected (Default, Hover, Disabled), the dot Toggle/Dot/Background. Select=Yes\nslides the dot to the end. Name it with `aria-label` or a visible label (`aria-labelledby`); Toggle adds that label.",
       "deprecated": null,
       "extends": "Omit<InputHTMLAttributes<HTMLInputElement>, \"size\" | \"type\">",
       "props": [
