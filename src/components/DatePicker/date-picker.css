@@ -3,13 +3,13 @@
    in-place calendar without the popover surface (.Primitives/Date-Picker/Calendar 478:30561 and Date-Picker/Mobile
    9923:3576 carry no fill, stroke or effect), so it has no Effect/Popover shadow or blur, no Popover fill or border and
    no surface padding: its days line up with the container's content. */
-.zen-date-picker[data-placement="inline"] { position: relative; z-index: auto; min-width: 0; padding: 0; border: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
+.zen-date-picker[data-placement="inline"] { position: relative; z-index: auto; min-width: 0; max-width: 100%; padding: 0; border: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
 /* Day cells are Figma's Select-Item/Size (Component Size collection): Medium 32 (Small 24) in Compact, the default;
    40 (32) in Comfortable; 28 (24) in the Studio density. A panel is seven of them (224 at 32). */
 /* Calendar panels: Single = one 224px panel; Dual-Calendar = two panels with Spacing/Gap/Small between.
    Inside a panel the Header and Calendar-Table are 12 apart (Spacing/Gap/Small). */
 .zen-date-picker__panels { display: flex; gap: var(--zen-spacing-gap-small, 12px); align-items: flex-start; }
-.zen-date-picker__panel { display: flex; width: calc(7 * var(--zen-select-item-size-medium, 32px)); flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-date-picker__panel { display: flex; width: calc(7 * var(--zen-select-item-size-medium, 32px)); max-width: 100%; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
 .zen-date-picker__header { display: flex; width: 100%; height: var(--zen-button-size-small, 32px); align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* A hidden Back/Next (Dual headers) keeps its 32px Button-Wrapper so the label stays centred. */
 .zen-date-picker__nav-slot { width: var(--zen-button-size-small, 32px); height: var(--zen-button-size-small, 32px); flex: 0 0 var(--zen-button-size-small, 32px); }
@@ -21,7 +21,9 @@ button.zen-date-picker__month:hover:not(:disabled) { border-radius: var(--zen-co
 .zen-date-picker__month:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 0; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-flat-hover); }
 span.zen-date-picker__month { cursor: default; }
 .zen-date-picker__calendar { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
-.zen-date-picker__weekdays, .zen-date-picker__grid { display: grid; width: 100%; grid-template-columns: repeat(7, var(--zen-select-item-size-medium, 32px)); justify-content: center; }
+.zen-date-picker__weekdays, .zen-date-picker__grid { display: grid; width: 100%; grid-template-columns: repeat(7, minmax(0, var(--zen-select-item-size-medium, 32px))); justify-content: center; }
+/* Narrower than seven cells (Comfortable's 40 on a 320px phone): the columns give way and the days stay square. */
+.zen-date-picker__grid > .zen-date-picker__day:not([data-device="mobile"]) { max-width: 100%; height: auto; aspect-ratio: 1; }
 .zen-date-picker__grid { row-gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .zen-date-picker__weekdays { padding-block: var(--zen-spacing-padding-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: center; }
 /* .Primitives/Date-Picker/Item 455:33517 has two layers: the root paints the In-Range strip and its Container (the

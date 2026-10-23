@@ -5,7 +5,7 @@
    a Search in its top row and the page's PageHeader in its Main row, and the Body at the page margin (no Container).
    Below 1024px the shell opens the Sidebar as a drawer from the header's menu button; on a phone, from the Top
    Navigation's. */
-import { createContext, useContext, useEffect, useId, useRef, useState, type AnchorHTMLAttributes, type ReactElement, type ReactNode, type Ref } from "react";
+import { cloneElement, createContext, useContext, useEffect, useId, useRef, useState, type AnchorHTMLAttributes, type ReactElement, type ReactNode, type Ref } from "react";
 import { AppShell, AppShellAccount, AppShellAction, AppShellHeader, useAppShell, type AppShellLayout } from "../../../components/AppShell";
 import { Avatar } from "../../../components/Avatar";
 import { Badge, type BadgeTheme } from "../../../components/Badge";
@@ -1070,7 +1070,7 @@ function AccountHeaderExample() {
         <Text as="span" textStyle="Caption/Regular" tone="light" truncate>{`${workspace.role} · ${plural(workspace.members, "member")}`}</Text>
       </Stack>
       <Menu align="end" aria-label="Switch workspace" trigger={<IconButton appearance="flat" level="primary" size="sm" aria-label="Switch workspace" icon="icon-chevron-selector-vertical-line" />}
-        items={baseWorkspaces.map((w) => ({ id: w.id, label: w.label, icon: w.mark as ReactElement, caption: w.id === active ? "Current workspace" : w.role, onSelect: () => { setActive(w.id); setModule(null); toast({ title: `Switched to ${w.label}` }); } }))} />
+        items={baseWorkspaces.map((w) => ({ id: w.id, label: w.label, icon: cloneElement(w.mark as ReactElement<{ size?: string }>, { size: "2xsmall" }), caption: w.id === active ? "Current workspace" : w.role, onSelect: () => { setActive(w.id); setModule(null); toast({ title: `Switched to ${w.label}` }); } }))} />
     </Stack>
   );
   const label = (current?.sections ?? home).flatMap((section) => section.items).find((item) => item.id === (current ? page : "home"))?.label ?? "Home";
@@ -1234,7 +1234,7 @@ const open = (id) => { setPage(id); setFlyout(false); setQuery(""); };
       </Stack>
       <Menu align="end" aria-label="Switch workspace"
         trigger={<IconButton appearance="flat" level="primary" size="sm" aria-label="Switch workspace" icon="icon-chevron-selector-vertical-line" />}
-        items={workspaces.map((w) => ({ id: w.id, label: w.name, icon: w.mark, onSelect: () => switchTo(w.id) }))} />
+        items={workspaces.map((w) => ({ id: w.id, label: w.name, icon: <Avatar size="2xsmall" shape="square" src={w.logo} alt="" />, onSelect: () => switchTo(w.id) }))} />
     </Stack>
   }
   logoCollapsed={<Avatar size="medium" shape="square" theme="photo" src={workspace.logo} alt={workspace.name} />}
