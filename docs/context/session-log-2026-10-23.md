@@ -266,3 +266,8 @@ browser's uploads, so a dropped photo is saved in the repo first.
   "Your uploads" on a repo page (click, drop, the Inspector's and a table cell's Picture) are saved the same way.
 - E2E FW-239 (drop on a helper row's avatar → people.bao.photo is the saved file, CREDITS row, ⌘Z) and FW-240 (drop into
   the Stack → an Image reading the file, ⌘Z); both remove what they saved.
+- Finding met on the way, fixed at its owner (FW-240's first run): pasted or inserted code could not read a repo
+  picture. `arrange.mjs` / `slots.mjs` parsed it as a script (`import.meta` refused) and took `URL` for a component to
+  import; they parse as a module now, `URL` is a JS global and `import.meta` reads no name (arrange selftest +1 case).
+- Gate (slot from box-themes; `--isolated`, the branch's 13 files): **PASS**, Studio E2E 338/0. FW-235…240: 5/1 (FW-240,
+  the paste finding above); after the fix FW-239/240 2/0 and a second gate on arrange.mjs + slots.mjs **PASS** 338/0.
