@@ -151,7 +151,8 @@ import "@zen-ds/react/styles/InputField";
 
 - Each entry loads the shared base (font, tokens, text styles, effects), the CSS of `ZenProvider` (every app renders
   it), and the CSS of its component and of every component it renders (Dialog brings Button's). The bundler loads each file once, however many entries name it.
-- A Button-only app loads about a fifth of the CSS (`npm run verify:package` measures both).
+- A Button-only app loads 34 KB of CSS (gzip) instead of 96 KB; most of what is left is the tokens
+  (`npm run verify:package` measures both).
 - Use either `styles.css` or entries, not both. Add an entry when you start rendering a new component;
   `npx zen-ds doctor` names every component you import from `@zen-ds/react` whose CSS no entry loads.
 - Keep `styles.css` when the app renders components it never imports by name (AI UI, a CMS choosing components at
