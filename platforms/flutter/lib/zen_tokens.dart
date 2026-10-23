@@ -1,7 +1,8 @@
 import 'dart:convert';
-import 'dart:ui' show Color;
+import 'dart:ui' show Brightness, Color;
 
 import 'package:flutter/painting.dart' show FontWeight, TextStyle;
+import 'package:flutter/widgets.dart' show MediaQueryData;
 
 import 'src/zen_token_data.dart';
 
@@ -18,7 +19,23 @@ class ZenContext {
   static const ZenContext standard = ZenContext();
   static const ZenContext dark = ZenContext({'mode-colors-semantic': 'Dark'});
 
+  /// Global Colors in its Zen-High-Contrast mode: the palette the web uses under prefers-contrast: more (ZenProvider contrast).
+  static const ZenContext highContrast = ZenContext({'global-colors': 'Zen-High-Contrast'});
+
   ZenContext withMode(String collection, String mode) => ZenContext({...modes, collection: mode});
+
+  /// The system's appearance on top of this context: Dark for a dark brightness, Zen-High-Contrast when the platform asks
+  /// for more contrast. Other modes stay.
+  ZenContext withSystem({required Brightness brightness, required bool highContrast}) => ZenContext({
+        ...modes,
+        'mode-colors-semantic': brightness == Brightness.dark ? 'Dark' : 'Light',
+        'global-colors': highContrast ? 'Zen-High-Contrast' : 'Zen',
+      });
+
+  /// From the app's MediaQuery: platformBrightness and highContrast (iOS Increase Contrast; Flutter reports it on iOS),
+  /// on top of base: ZenContext.fromMediaQuery(MediaQuery.of(context)).
+  static ZenContext fromMediaQuery(MediaQueryData data, [ZenContext base = standard]) =>
+      base.withSystem(brightness: data.platformBrightness, highContrast: data.highContrast);
 }
 
 class ZenResolved {

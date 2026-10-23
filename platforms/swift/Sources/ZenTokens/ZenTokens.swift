@@ -9,10 +9,18 @@ public struct ZenContext: Equatable {
     public init(_ modes: [String: String] = [:]) { self.modes = modes }
     public static let standard = ZenContext()
     public static let dark = ZenContext([ZenCollection.modeColorsSemantic: "Dark"])
+    /// Global Colors in its Zen-High-Contrast mode: the palette the web uses under prefers-contrast: more (ZenProvider contrast).
+    public static let highContrast = ZenContext([ZenCollection.globalColors: "Zen-High-Contrast"])
     public func with(_ collection: String, _ mode: String) -> ZenContext {
         var copy = self
         copy.modes[collection] = mode
         return copy
+    }
+    /// The system's appearance on top of this context: Dark for a dark color scheme, Zen-High-Contrast when Increase
+    /// Contrast is on (SwiftUI colorSchemeContrast; UIKit accessibilityContrast, see with(traits:)). Other modes stay.
+    public func with(colorScheme: ColorScheme, contrast: ColorSchemeContrast) -> ZenContext {
+        with(ZenCollection.modeColorsSemantic, colorScheme == .dark ? "Dark" : "Light")
+            .with(ZenCollection.globalColors, contrast == .increased ? "Zen-High-Contrast" : "Zen")
     }
 }
 
@@ -177,6 +185,31 @@ public extension EnvironmentValues {
     }
 }
 
+/// Follows the system: the base context plus Dark when the color scheme is dark and Zen-High-Contrast when Increase Contrast is on.
+private struct ZenSystemContext: ViewModifier {
+    let base: ZenContext
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.colorSchemeContrast) private var contrast
+    func body(content: Content) -> some View {
+        content.environment(\.zenContext, base.with(colorScheme: colorScheme, contrast: contrast))
+    }
+}
+
 public extension View {
     func zenContext(_ context: ZenContext) -> some View { environment(\.zenContext, context) }
+    /// Like the web's ZenProvider following the system: the color scheme picks Light or Dark and Increase Contrast picks
+    /// Zen-High-Contrast, on top of the base context (a theme, a density, a radius). Set it once near the root.
+    func zenSystemContext(_ base: ZenContext = .standard) -> some View { modifier(ZenSystemContext(base: base)) }
 }
+
+#if canImport(UIKit)
+import UIKit
+
+public extension ZenContext {
+    /// UIKit: the trait collection's interface style (Dark) and accessibilityContrast (high → Zen-High-Contrast).
+    func with(traits: UITraitCollection) -> ZenContext {
+        with(ZenCollection.modeColorsSemantic, traits.userInterfaceStyle == .dark ? "Dark" : "Light")
+            .with(ZenCollection.globalColors, traits.accessibilityContrast == .high ? "Zen-High-Contrast" : "Zen")
+    }
+}
+#endif

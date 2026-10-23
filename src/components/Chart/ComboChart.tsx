@@ -3,6 +3,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
 import { ChartBlock, ChartLegend, PlotFrame, SeriesValues, formatOf, niceScale, sectorAt, signatureOf, staggerStyle, useChartSelection, type ChartFormat, type ChartPaletteName } from "./chartCore";
+import { dataAttributes } from "../_shared/data-attributes";
 
 /** One period of a ComboChart: the bar's value (start axis) and the line's value (end axis). */
 export interface ChartComboDatum { label: string; bar: number; line: number }
@@ -66,7 +67,7 @@ const round = (value: number) => Math.round(value * 1e6) / 1e6;
  * Legend) names both measures Spacing/Gap/Medium under the plot, its items Spacing/Gap/Small apart. ←/→ and Home/End
  * move between periods; hover picks one.
  */
-export function ComboChart({ data, barLabel, lineLabel, format: formatProp, currency, lineFormat: lineFormatProp, lineMax, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, palette = "primary", ref }: ComboChartProps) {
+export function ComboChart({ data, barLabel, lineLabel, format: formatProp, currency, lineFormat: lineFormatProp, lineMax, height = 280, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, palette = "primary", ref, ...rest }: ComboChartProps) {
   const format = formatOf(formatProp, currency);
   const lineFormat = formatOf(lineFormatProp ?? "compact", currency);
   const t = useZenLabels();
@@ -89,7 +90,7 @@ export function ComboChart({ data, barLabel, lineLabel, format: formatProp, curr
   const summary = current ? `${current.label}: ${barLabel} ${format(current.bar)}, ${lineLabel} ${lineFormat(current.line)} (${t.chartPoint(active! + 1, data.length)})` : t.noData;
   const legend = showLegend ? <ChartLegend gap="small" items={[{ id: "bar", label: barLabel, color: BAR }, { id: "line", label: lineLabel, color: LINE }]} /> : undefined;
   return (
-    <ChartBlock ref={ref} kind="combo" legend={legend} position={legendPosition} palette={palette}>
+    <ChartBlock {...dataAttributes(rest)} ref={ref} kind="combo" legend={legend} position={legendPosition} palette={palette}>
       <div className={["zen-chart-combo", className].filter(Boolean).join(" ")} style={{ "--zen-chart-height": `calc(${height}px + var(--zen-chart-grow, 0px))` } as CSSProperties}>
         <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel}
           activeLine="neutral" className="zen-chart--combo" kind="bar" animate={animate} summary={summary}

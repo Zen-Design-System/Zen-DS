@@ -3,6 +3,7 @@ import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./chart.css";
 import { ChartBlock, ChartLegend, ChartSummary, colourAt, formatOf, ringSize, signatureOf, useChartId, useChartSelection, type ChartFormat, type ChartLegendPosition, type ChartPaletteName, type ChartRingSize, type ChartSlice } from "./chartCore";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export interface DonutChartProps {
   /** The shares of one total (`{ id, label, value }`), drawn clockwise from 12 o'clock in palette order. Keep 2–7 slices. */
@@ -78,7 +79,7 @@ function slicePath(from: number, to: number, outer: number, inner: number, halfG
  * to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365
  * (Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).
  */
-export function DonutChart({ data, format: formatProp, currency, size = "medium", "aria-label": ariaLabel, value, label, totalPosition = "centre", showPercent = true, showLegend = true, legendPosition = "bottom", className, animate = true, palette = "primary", ref }: DonutChartProps) {
+export function DonutChart({ data, format: formatProp, currency, size = "medium", "aria-label": ariaLabel, value, label, totalPosition = "centre", showPercent = true, showLegend = true, legendPosition = "bottom", className, animate = true, palette = "primary", ref, ...rest }: DonutChartProps) {
   const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   const id = useChartId();
@@ -148,7 +149,7 @@ export function DonutChart({ data, format: formatProp, currency, size = "medium"
   );
   if (totalPosition === "start") {
     return (
-      <ChartBlock ref={ref} kind="donut" className="zen-chart-round" layout="total-start" palette={palette}>
+      <ChartBlock {...dataAttributes(rest)} ref={ref} kind="donut" className="zen-chart-round" layout="total-start" palette={palette}>
         <div className="zen-chart__side">
           <div className="zen-chart__total" aria-hidden="true">
             <span className={`zen-chart__total-label ${typographyStyles["Body/Small/Regular"]}`}>{caption}</span>
@@ -161,7 +162,7 @@ export function DonutChart({ data, format: formatProp, currency, size = "medium"
     );
   }
   return (
-    <ChartBlock ref={ref} kind="donut" legend={legend} position={legendPosition} className="zen-chart-round" palette={palette}>
+    <ChartBlock {...dataAttributes(rest)} ref={ref} kind="donut" legend={legend} position={legendPosition} className="zen-chart-round" palette={palette}>
       {ring}
     </ChartBlock>
   );

@@ -3,6 +3,7 @@ import { Icon } from "../Icon";
 import { useZenLabels } from "../_shared/zen-context";
 import "./color-selector.css";
 import "../Icon/core";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export interface ColorOption {
   /** Any CSS colour — prefer a token, e.g. "var(--zen-color-background-support-blue-solid)". */
@@ -33,12 +34,12 @@ export interface ColorSelectorProps {
  * Border/Neutral/Subtle/Hover so light colours stay visible). Select=Yes shows a 16px check; Hover draws a 2px
  * Focus/Neutral/Solid ring (40px); keyboard focus shows the 48px Neutral/Flat/Hover halo. One radio per swatch.
  */
-export function ColorSelector({ colors, value, onValueChange, onChange, "aria-label": ariaLabelProp, name, className, ref }: ColorSelectorProps) {
+export function ColorSelector({ colors, value, onValueChange, onChange, "aria-label": ariaLabelProp, name, className, ref, ...rest }: ColorSelectorProps) {
   const t = useZenLabels();
   const ariaLabel = ariaLabelProp ?? t.colour;
   const autoName = useId();
   return (
-    <div ref={ref} className={["zen-color-selector", className].filter(Boolean).join(" ")} role="radiogroup" aria-label={ariaLabel}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-color-selector", className].filter(Boolean).join(" ")} role="radiogroup" aria-label={ariaLabel}>
       {colors.map((color) => {
         const selected = value === color.value;
         return (

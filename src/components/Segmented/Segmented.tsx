@@ -10,6 +10,7 @@ import "./segmented.css";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useControllableState } from "../_shared/use-controllable-state";
 import { useMergedRefs } from "../_shared/merge-refs";
+import { dataAttributes } from "../_shared/data-attributes";
 
 // Black-Overlay and White-Overlay: the control on a colour band or photo, in static tokens (as Button's overlay levels).
 export const segmentedLevels = ["primary", "secondary", "black-overlay", "white-overlay"] as const;
@@ -81,7 +82,7 @@ export interface SegmentedProps {
  * On-White-Overlay text and a Border/Overlay/Solid focus ring. An icon-only segment (Item Label=false:
  * `label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.
  */
-export function Segmented({ ref, options, value, defaultValue, onValueChange, onChange, level: levelProp = "secondary", size: sizeProp = "md", children, className, disabled = false, fullWidth = false, "aria-label": ariaLabelProp, overrides }: SegmentedProps) {
+export function Segmented({ ref, options, value, defaultValue, onValueChange, onChange, level: levelProp = "secondary", size: sizeProp = "md", children, className, disabled = false, fullWidth = false, "aria-label": ariaLabelProp, overrides, ...rest }: SegmentedProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const level = resolveLevel(levelProp);
@@ -114,7 +115,7 @@ export function Segmented({ ref, options, value, defaultValue, onValueChange, on
     else if (rect.right > box.right - inset) group.scrollLeft += (rect.right - (box.right - inset)) / scale;
   });
   return (
-    <div ref={rootRef} className={["zen-segmented", className].filter(Boolean).join(" ")} data-level={level} data-size={size} data-full-width={fullWidth ? "true" : undefined} role="group" aria-label={ariaLabel}>
+    <div {...dataAttributes(rest)} ref={rootRef} className={["zen-segmented", className].filter(Boolean).join(" ")} data-level={level} data-size={size} data-full-width={fullWidth ? "true" : undefined} role="group" aria-label={ariaLabel}>
       {options ? options.map((option) => nest("Item", <SegmentedItem key={option.id} level={levelProp} selected={selectedValue === option.id} disabled={disabled || option.disabled || option.state === "disabled"} leading={option.leading} badge={option.badge} state={disabled ? "disabled" : option.state} size={size} aria-label={option["aria-label"]} onClick={() => select(option.id)}>{option.label}</SegmentedItem>, option.id)) : nest.slot(children)}
     </div>
   );

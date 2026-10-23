@@ -63,7 +63,12 @@ check("sheet top", cornerRadiusValue(undefined, { radiusTopLeft: "3xl", radiusTo
 check("image md fallback", cornerRadiusValue("md", { radiusTopLeft: "none" }), "0 var(--zen-corner-radius-base) var(--zen-corner-radius-base) var(--zen-corner-radius-base)");
 
 // Owned prop sets (Studio filters them out of the generic Properties list).
-check("position props", [...positionPropNames].sort(), ["constraintX", "constraintY", "insetBottom", "insetLeft", "insetRight", "insetTop", "position"]);
+check("position props", [...positionPropNames].sort(), ["constraintX", "constraintY", "insetBottom", "insetLeft", "insetRight", "insetTop", "position", "sticky"]);
+// sticky (Figma Fix position when scrolling): in flow, data-sticky only; absolute wins; an unknown edge renders nothing.
+check("sticky bottom", layoutPosition({ sticky: "bottom" }), { attributes: { "data-sticky": "bottom" }, vars: {} });
+check("sticky top", layoutPosition({ sticky: "top" }), { attributes: { "data-sticky": "top" }, vars: {} });
+check("sticky with absolute: absolute wins", Object.keys(layoutPosition({ position: "absolute", sticky: "bottom" }).attributes).includes("data-sticky"), false);
+check("sticky of an unknown edge", layoutPosition({ sticky: "middle" }), inert);
 check("radius props (corner smoothing goes with them)", [...radiusPropNames].sort(), ["cornerSmoothing", "radius", "radiusBottomLeft", "radiusBottomRight", "radiusTopLeft", "radiusTopRight"]);
 
 if (failures.length) {

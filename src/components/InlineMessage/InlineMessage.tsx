@@ -9,6 +9,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./inline-message.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
+import { dataAttributes } from "../_shared/data-attributes";
 
 export const inlineMessageThemes = ["neutral", "info", "positive", "warning", "negative", "custom"] as const;
 export type InlineMessageTheme = (typeof inlineMessageThemes)[number];
@@ -50,7 +51,7 @@ export interface InlineMessageProps {
  * Figma Inline-Message (595:54857): a Subtle-surface message inside the content it describes.
  * Padding Medium, gap Small, Corner-Radius/Large. Icon Content/<theme>/Light, title Strongest, caption Base.
  */
-export function InlineMessage({ theme: themeProp, status, title, children, icon = true, action, onClose, closeLabel: closeLabelProp, className, overrides, ref }: InlineMessageProps) {
+export function InlineMessage({ theme: themeProp, status, title, children, icon = true, action, onClose, closeLabel: closeLabelProp, className, overrides, ref, ...rest }: InlineMessageProps) {
   const nest = useNested(overrides);
   const theme: InlineMessageTheme = themeProp ?? toneFromStatus(status) ?? "neutral";
   const t = useZenLabels();
@@ -61,7 +62,7 @@ export function InlineMessage({ theme: themeProp, status, title, children, icon 
   const urgent = theme === "negative" || theme === "warning";
   const closeTip = useIconTooltip(onClose ? closeLabel : false);
   return (
-    <div ref={ref} className={["zen-inline-message", className].filter(Boolean).join(" ")} data-tone={theme} role={urgent ? "alert" : "status"}>
+    <div {...dataAttributes(rest)} ref={ref} className={["zen-inline-message", className].filter(Boolean).join(" ")} data-tone={theme} role={urgent ? "alert" : "status"}>
       <div className="zen-inline-message__container">
         {leading ? <span className="zen-inline-message__icon" aria-hidden="true">{nest("Leading", leading)}</span> : null}
         <div className="zen-inline-message__content">

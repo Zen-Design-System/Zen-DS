@@ -9,6 +9,9 @@
  * `style` on the root: Zen Studio gives an instance of the components that forward it Figma's layer opacity and blend
  * (tools/studio/instance-look.mjs STYLE_ON_ROOT). The list stays exact: a component that starts or stops forwarding
  * `style` to its root fails here until the list says so.
+ *
+ * `data-*` reaches the DOM on every component (user, 2026-10-23: the AI UI renderer's `data-ai-ui-id`, test ids, analytics
+ * hooks), except the ones in NO_DATA, which render no element of their own to carry it.
  */
 import { StrictMode, createElement, createRef, type ComponentType, type ReactElement, type ReactNode } from "react";
 import { describe, expect, it } from "vitest";
@@ -24,6 +27,12 @@ const NO_REF: Record<string, string> = {
   ZenPortal: "portal",
   Tooltip: "wraps its trigger (the trigger keeps its own ref)",
   Menu: "wraps its trigger (the trigger keeps its own ref)",
+};
+/** Components with no element of their own for a `data-*` attribute (context providers, portals). */
+const NO_DATA: Record<string, string> = {
+  ZenPortalProvider: "context provider",
+  ToastProvider: "context provider",
+  ZenPortal: "portal",
 };
 /** Props this test adds so the element that carries `className` exists (a menu's surface only renders while open). */
 const OPEN: Record<string, Record<string, unknown>> = {
@@ -49,6 +58,7 @@ describe("every public component conforms", () => {
       props.ref = ref;
       if (documents("className")) props.className = "zen-conformance";
       props.style = { outlineOffset: "13px" };
+      props["data-zen-conformance"] = component.name;
 
       const element = createElement(Component!, props) as ReactElement;
       const content: ReactNode = fixture.wrap ? fixture.wrap(element) : element;
@@ -68,6 +78,10 @@ describe("every public component conforms", () => {
       if (documents("className")) {
         expect(document.querySelector(".zen-conformance"), `${component.name} dropped className`).not.toBeNull();
       }
+      const carried = document.querySelector(`[data-zen-conformance="${component.name}"]`) !== null;
+      expect(carried, carried
+        ? `${component.name} now puts data-* in the DOM: take it out of NO_DATA`
+        : `${component.name} dropped a data-* attribute: spread its other props (...rest) onto its root`).toBe(!NO_DATA[component.name]);
       await screen.unmount();
       // StrictMode mounts, unmounts and mounts again: nothing may stay behind once the component is gone.
       expect(document.querySelector(".zen-conformance"), `${component.name} left nodes in the page after unmount`).toBeNull();
