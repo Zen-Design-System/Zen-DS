@@ -24,7 +24,7 @@
  *   npm run qa -- --tokens-base=HEAD~1  diff the token files against another ref (default HEAD) for the token scope
  *
  * ① Static     tsc · style-guard (spacing/radius/type/colour/shadow tokens) · usage-guard · guidelines (stale docs of
- *              your components are regenerated) · harness self-tests (when tools/usage-guard or tools/style-guard changed)
+ *              your components are regenerated) · harness self-tests (when tools/usage-guard, tools/style-guard, tools/qa or tools/platform-audit changed)
  *              · Layout self-test (npm run layout:selftest, when src/components/Layout, _shared/corners.ts or scale.ts, or the
  *              effect styles and token sources are in scope)
  *              · figma-contract suites of the components in scope · Vitest related to the edited files · tokens/styles
@@ -287,7 +287,7 @@ const where = (file, line) => { const r = ledger.files?.[file]?.ranges; if (!r?.
   } else step("static", "Usage guard", "skip", "no TSX/CSS in scope");
 }
 // Harness self-tests: only when the harness itself changed (S5a).
-for (const [name, script, dir] of [["Usage-guard self-test", "tools/usage-guard/selftest.mjs", "tools/usage-guard"], ["Style-guard self-test", "tools/style-guard/selftest.mjs", "tools/style-guard"], ["QA gate self-test", "tools/qa/selftest.mjs", "tools/qa"]]) {
+for (const [name, script, dir] of [["Usage-guard self-test", "tools/usage-guard/selftest.mjs", "tools/usage-guard"], ["Style-guard self-test", "tools/style-guard/selftest.mjs", "tools/style-guard"], ["QA gate self-test", "tools/qa/selftest.mjs", "tools/qa"], ["Platform-audit self-test", "tools/platform-audit/selftest.mjs", "tools/platform-audit"]]) {
   if (!ALL && !aux.some((f) => f.startsWith(`${dir}/`))) { step("static", name, "skip", `no ${dir} edits since the last pass`); continue; }
   const r = run(process.execPath, [script]);
   step("static", name, r.code === 0 ? "pass" : "fail", "", r.code === 0 ? [] : tail(r.out, /✗/));
@@ -438,7 +438,8 @@ const studioDrafts = serverUp ? await (async () => {
     return [];
   }
 })() : [];
-const ERROR_KINDS = new Set(["errors", "overflow", "images", "names", "nesting", "surfaces", "edges", "sizes", "typography", "device", "outline", "playground", "smoke", "scale", "hierarchy", "density", "fit"]);
+// The audit's error kinds (audit.mjs SEVERITY, plus playground and smoke); the platform-audit self-test checks they match.
+const ERROR_KINDS = new Set(["errors", "overflow", "counts", "images", "names", "nesting", "surfaces", "edges", "sizes", "typography", "device", "outline", "playground", "smoke", "scale", "hierarchy", "density", "fit", "card-gap", "legend-column", "clip"]);
 const auditItems = (report) => { const errs = [], warns = []; for (const [key, entry] of Object.entries(report?.pages ?? {})) for (const [kind, items] of Object.entries(entry)) for (const item of items) (ERROR_KINDS.has(kind) ? errs : warns).push(`[${kind}] ${key}: ${item}`); return { errs, warns }; };
 // The pages the browser steps run on: all of them, or under --failed the pages that had an error or no report last time
 // ([] when the last run's browser steps all passed; all of them when they never ran).

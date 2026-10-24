@@ -39,6 +39,7 @@ export function auxKind(rel) {
   if (/^tools\/figma-contract\//.test(rel)) return "figma-contract";
   if (/^tools\/studio\//.test(rel)) return "studio";
   if (/^tools\/qa\//.test(rel)) return "qa";
+  if (/^tools\/platform-audit\//.test(rel)) return "platform-audit";
   if (/^tests\//.test(rel)) return "tests";
   if (/^(tokens\/source|src\/tokens)\//.test(rel)) return "tokens";
   if (/^styles\/source\//.test(rel)) return "styles-source";
