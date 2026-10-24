@@ -2248,6 +2248,10 @@
           "x-required": true,
           "description": "Figma Header-Bar heading (Heading-Text H3)."
         },
+        "header": {
+          "x-kind": "node",
+          "description": "Your own header in place of the Header-Bar (Heading + Close), e.g."
+        },
         "type": {
           "enum": [
             "modal",
@@ -7465,6 +7469,24 @@
         "title": {
           "x-kind": "node",
           "description": "Figma Header heading (Heading/3)."
+        },
+        "header": {
+          "enum": [
+            "bar",
+            "selection"
+          ],
+          "default": "bar",
+          "description": "`bar` (default): the Bottom-Sheet Header-Bar, the title and Close."
+        },
+        "onEdit": {
+          "x-kind": "action",
+          "params": [],
+          "description": "Single `header=\"selection\"`: the edit action beside the picked date (Figma Action), e.g."
+        },
+        "onClear": {
+          "x-kind": "action",
+          "params": [],
+          "description": "Range `header=\"selection\"`: Clear dates empties the draft range; set the `summary` back to its hint here."
         },
         "selectionMode": {
           "enum": [
@@ -13916,6 +13938,14 @@
           ],
           "default": "start",
           "description": "Preferred horizontal edge against the anchor box; flips when it would overflow the viewport."
+        },
+        "placement": {
+          "enum": [
+            "adjacent",
+            "cover"
+          ],
+          "default": "adjacent",
+          "description": "Where it opens against its anchor: `adjacent` (default) 4px below it, above when there is more room there; `cover` over it, its top edge on the anchor's top (its bottom on the anch"
         },
         "multiple": {
           "type": "boolean",
@@ -23249,7 +23279,7 @@
         "On a phone, put an inline calendar in the screen or a Bottom Sheet: at the mobile breakpoint it takes the Figma mobile primitives by itself and fills the width; pass device=\"mobile\" only to force them (a popover, a narrow preview).",
         "Disable impossible dates (past check-in) with minDate / maxDate (earlier or later days disabled); in a DateField a typed date outside them is kept and marked aria-invalid, so pair the range with an `error` message.",
         "Pass `today` (your app's date: a server, business or demo date) when it is not the device's; the Today ring and the month the calendar opens on follow it. DateField forwards `today`, `minDate` and `maxDate` to its calendar.",
-        "Show the chosen range and its consequence (nights, price) next to the calendar.",
+        "Show the chosen range and its consequence (nights, price) next to the calendar. In a sheet, header=\"selection\" puts the picked dates on top; with a range, reset the `summary` in onClear.",
         "Let users type the date in the DateField; the calendar is a shortcut, not the only input.",
         "Use calendar=\"dual\" for ranges longer than a few days; single for one date.",
         "Use the month-year picker for dates far from today (billing periods, expiries).",

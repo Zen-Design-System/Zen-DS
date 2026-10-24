@@ -119,7 +119,7 @@ export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenCh
       <div className="zen-date-picker-sheet__title-row">
         <p className={`zen-date-picker-sheet__title ${typographyStyles["Heading/3"]}`} aria-hidden="true">{heading}</p>
         <span className="zen-date-picker-sheet__close">
-          {nest("Close", <IconButton appearance="flat" size="sm" aria-label={t.close} icon="icon-x-small-line" onClick={() => onOpenChange(false)} />)}
+          {nest("Close-Container", <IconButton appearance="flat" size="sm" aria-label={t.close} icon="icon-x-small-line" onClick={() => onOpenChange(false)} />)}
         </span>
       </div>
       <div className="zen-date-picker-sheet__range-row">

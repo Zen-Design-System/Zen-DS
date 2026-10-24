@@ -51,7 +51,8 @@ span.zen-date-picker__month { cursor: default; }
 /* Event (.Primitives/Date-Picker/Item/Event-List 510:36577): a 4px Corner-Radius/Rounded dot, 4px (Medium) or 2px (Small) above the bottom edge. */
 /* Figma Event-List (510:36577): 1–4 dots, 4px, Spacing/Gap/3XSmall apart, centred 4px above the bottom (Small: 2px);
    Content/Accent/Light, Date-Picker-Item/Content/Selected on a selected day (Variant=On-Selected). */
-.zen-date-picker__events { position: absolute; right: 0; bottom: 4px; left: 0; display: flex; justify-content: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); pointer-events: none; }
+/* Event-List hugs its dots (Figma 510:36577: 4 dots are 22 wide), centred under the day by auto margins. */
+.zen-date-picker__events { position: absolute; right: 0; bottom: 4px; left: 0; display: flex; width: max-content; margin-inline: auto; gap: var(--zen-spacing-gap-3-xsmall, 2px); pointer-events: none; }
 .zen-date-picker__events i { width: 4px; height: 4px; flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-content-accent-light); }
 .zen-date-picker__day[data-size="small"] .zen-date-picker__events { bottom: 2px; }
 .zen-date-picker__day:is([data-state="single-selected"], [data-state="range-selected-start"], [data-state="range-selected-end"]) .zen-date-picker__events i { background: var(--zen-date-picker-item-content-selected); }
@@ -149,6 +150,8 @@ h3.zen-date-picker__month { margin: 0; }
 .zen-date-picker-sheet__date, .zen-date-picker-sheet__title { flex: 1 1 0; color: var(--zen-color-content-neutral-strongest, #121212); }
 .zen-date-picker-sheet__edit { display: flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; align-items: center; justify-content: center; }
 .zen-date-picker-sheet__title-row { display: flex; align-items: flex-start; gap: var(--zen-spacing-gap-medium, 16px); }
+/* Figma binds both header Icon-Flats' Leading-Icon to Element-Size/Popular/Base (20), over the Small button's 16. */
+:is(.zen-date-picker-sheet__edit, .zen-date-picker-sheet__close) > .zen-button.zen-button--icon-only { --zen-button-icon-size: var(--zen-element-size-popular-base, 20px); }
 .zen-date-picker-sheet__close { display: flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); box-sizing: content-box; flex: 0 0 auto; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-2-xsmall, 4px); }
 .zen-date-picker-sheet__range-row { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-date-picker-sheet__range { flex: 0 1 auto; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 69%)); }

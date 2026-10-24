@@ -234,7 +234,9 @@ for (const mode of modes) {
           }
         }
         if (need.includes("stroke")) {
-          const expected = want.stroke ? `${want.sw}px ${colorOf(want.stroke)}` : "none";
+          // A one-sided Figma stroke stores its weights per side ([top, right, bottom, left]): compare strokeSide's.
+          const sideWeight = Array.isArray(want.sw) ? want.sw[["top", "right", "bottom", "left"].indexOf(entry.strokeSide ?? "top")] : want.sw;
+          const expected = want.stroke ? `${sideWeight}px ${colorOf(want.stroke)}` : "none";
           let actual = "none";
           const via = entry.strokeVia ?? "border";
           // strokeSide: the border side that draws a one-sided stroke (a vertical rule drawn by border-left); default top.

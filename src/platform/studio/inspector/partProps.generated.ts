@@ -306,9 +306,6 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     }
   },
   "DatePickerSheet": {
-    "BottomSheet": {
-      "title": "title"
-    },
     "DatePicker": {
       "maxDate": "maxDate",
       "minDate": "minDate",

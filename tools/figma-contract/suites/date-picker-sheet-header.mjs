@@ -2,8 +2,8 @@
 // for `header="selection"`. Option=1 (single): Caption over the picked date in Heading/3 and the edit Action
 // (Button/Icon-Flat Small in a 20px wrapper, `onEdit`). Option=2 (range): the Heading/3 title beside Close, the picked
 // range with Clear dates, and the Day-Header weekday row. Both pad by the sheet inset over an inside Border/Neutral/
-// Subtle rule. The sheet opens in a 430 frame, so the header is 390 like Figma's (the sheet's Margin-Compact on both
-// sides). Text-hugging widths (the range text, the date beside the edit action) are not asserted.
+// Subtle rule. The sheet opens full width in a 390 frame, Figma's width. Text-hugging widths (the range text, the date
+// beside the edit action) are not asserted.
 const iconFlat = "Button/Icon-Flat";
 export default {
   contract: "docs/figma-contracts/datepicker-sidebar.json",
@@ -11,8 +11,8 @@ export default {
   kind: "dpSheet",
   root: ".zen-date-picker-sheet__header",
   cases: (vp) => (vp.Option === "1"
-    ? { width: 430, height: 760, header: "selection", today: "2026-01-06", value: "2026-01-06", edit: true }
-    : { width: 430, height: 760, header: "selection", selectionMode: "range", today: "2026-01-06", range: { start: "2026-01-06", end: null } }),
+    ? { width: 390, height: 760, header: "selection", today: "2026-01-06", value: "2026-01-06", edit: true }
+    : { width: 390, height: 760, header: "selection", selectionMode: "range", today: "2026-01-06", range: { start: "2026-01-06", end: null } }),
   map: [
     { figma: "", dom: ":root", check: ["size", "stroke"], strokeVia: "after", strokeSide: "bottom" },
     // Option=1
