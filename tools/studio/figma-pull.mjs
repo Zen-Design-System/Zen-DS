@@ -1495,6 +1495,8 @@ const SIZED = new Set(["Stack", "Grid", "Box", "Text", "Card", "ListBox"]);
 /** Components sized like a layout layer whose Figma min / max width comes back as minWidth / maxWidth (Card.tsx, ListBox). */
 const SIZED_INSTANCES = new Set(["Card", "ListBox"]);
 const LAYOUT_FRAMES = new Set(["Stack", "Grid", "Box"]);
+/** A toolbar Search's widest (the user 2026-10-24; harness search/toolbar-width). */
+const TOOLBAR_SEARCH_MAX = 240;
 /** Layers the page has no element for: drawings, kept out with one note. */
 const DRAWINGS = new Set(["VECTOR", "RECTANGLE", "ELLIPSE", "LINE", "STAR", "POLYGON", "BOOLEAN_OPERATION"]);
 
@@ -2939,6 +2941,16 @@ function frameElement(node, children, ctx) {
         if (!SIZED.has(child.name)) return;
         if (along(sources[index])) child.props[row ? "width" : "height"] = literal("fill");
         if (across(sources[index]) && aligned) child.props[row ? "height" : "width"] = literal("fill");
+      });
+      // A toolbar Search is at most 240 wide (the user 2026-10-24, harness search/toolbar-width). Search has no width in
+      // code (it fills its container), so one beside other layers sits in Zen's toolbar cell: Fixed at its Figma width
+      // when that is 240 or less, else Fill up to 240. A phone Search (rounded) fills its row.
+      if (row && children.length > 1) children.forEach((child, index) => {
+        if (child.kind !== "element" || child.name !== "Search" || child.props.shape?.value === "rounded") return;
+        const fixed = sources[index]?.fixedWidth;
+        const fits = typeof fixed === "number" && fixed <= TOOLBAR_SEARCH_MAX;
+        if (typeof fixed === "number" && !fits) ctx.notes.push(`Search in "${node.name}": ${fixed} px wide in Figma; a toolbar Search is at most ${TOOLBAR_SEARCH_MAX}, so the page caps it`);
+        children[index] = { kind: "element", name: "Box", props: fits ? { width: literal(fixed) } : { width: literal("fill"), maxWidth: literal(TOOLBAR_SEARCH_MAX) }, children: [child] };
       });
     }
   } else if (children.length > 1) ctx.notes.push(`Frame "${node.name}" has no auto layout: its layers are stacked in order`);

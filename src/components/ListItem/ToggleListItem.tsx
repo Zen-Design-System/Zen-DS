@@ -14,7 +14,7 @@ export interface ToggleListItemProps extends Omit<HTMLAttributes<HTMLElement>, "
   title: ReactNode;
   /** One line under the title (Body/Small/Regular, Content/Neutral/Base): what the setting does. It describes the switch. */
   caption?: ReactNode;
-  /** Icon name or element before the text, as in ListItem. */
+  /** Before the text, as in ListItem: a Dock Icon (`<DockIcon icon size="md" background="subtle" />`), not a bare icon name. */
   leading?: IconName | ReactNode;
   /** Controlled on/off state. */
   checked?: boolean;

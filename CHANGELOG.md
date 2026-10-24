@@ -44,6 +44,25 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   calls them (uncontrolled + notify). Zen Studio Play: a filter Chip wired to Filter table shows its pick, the same pick
   again or its × shows every row again, filters on different columns (a Search, several chips) narrow the Table
   together, and Restart starts the Screen over.
+- House rule (user, 2026-10-24): a Search in a toolbar row, beside filters or buttons, is at most 240px wide
+  (`<Box width="fill" maxWidth={240}>`, or a Grid column `minmax(0, 240px)`); a phone Search fills its row. The Search,
+  Layout and skill docs say so (they used to say 320), and three checks catch it: harness `search/toolbar-width`, audit
+  kind `toolbar-search` and the Figma audit's `search/toolbar-width`. Platform examples, templates, the Zen Agent prompt
+  and Figma → Studio pulls follow it. DashboardHeader's Control-Bar keeps Figma's 320 for now (BACKLOG question).
+- House rules (user, 2026-10-24, the same task page), each in the guidelines, skills, harness and Figma audit: a
+  ListItem leads with a DockIcon, an Avatar or a thumbnail, never a bare icon (`list-item/leading-dock-icon`); status
+  and priority Badges keep a leading icon, priority the solid flag `icon-flag-03-solid` (`badge/status-priority-icon`,
+  and `table/badge-column-icon` for a Table's badge column); a desktop AppShellHeader's top row is never empty
+  (`app-shell/top-row-filled`). Examples follow them (date-picker, voice, app layer, avatar, badge, AppShell, Sidebar).
+- House rules (user, 2026-10-24): a status MetricCard's Dock Icon is solid in the colour of what it counts (total
+  accent, in progress blue, overdue red, done green; `metric/dock-icon-by-meaning`); priority has one palette, Urgent and
+  High red, Medium yellow, Low neutral with `icon-flag-03-solid`, PropertySelect tones negative / warning / neutral
+  (`priority/palette`). The examples' and templates' priority data follow it.
+- House rule (user, 2026-10-24): a popover that picks a person shows each person's avatar (`photoSrc`, theme
+  `avatar-small`, or an initials Avatar as `leading`); harness `popover/people-have-avatars`. The Chip and Card examples'
+  assignee and lead pickers follow it.
+- Usage harness: an element's slot props are read from its own attributes only, so `app-shell/primary-in-top-bar` no
+  longer takes a PageHeader's actions inside `main` for the top row's (a false positive on valid code).
 - Usage harness and audit (user, 2026-10-24, from the harness inventory): `listbox/grouped-on-phone` (error) flags a
   phone settings or profile screen that puts several kicker groups of rows in one block, or bare Lists under kickers
   (usage rules §15: each group is its own ListBox); `table/titled-box` (warn) flags a Table in a Card or ListBox that

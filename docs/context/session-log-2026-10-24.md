@@ -302,7 +302,6 @@ gate, so they looked green. They were written without being run, which was the s
 - **Baseline:** my new rows (D-07, DA-10, ST-28, ST-29, VA-05…09) went into matrix.baseline.json as works, so a
   regression now fails the gate. The other teams' new rows (PT-16…21, HO-13…16, K-24…27) are left to their owners.
 
-
 ## Contract checker gaps (tier M, harness; user 2026-10-24 "Làm", BACKLOG P3)
 
 Branch zen/feat/contract-checker-gaps-20261024.
@@ -458,3 +457,76 @@ tạo task được", Play started with the Danh sách frame selected and the fr
   Open overlay runs), E2E FW-174 rewritten (Design › Present and the toolbar ▷ on a Screen play; it asserted the old
   still frame, an agent's choice of 10-21, not the user's).
 - Handed off mid-task: the filter Chip clear work went to its own session (play-filter-chip-clear).
+
+## Toolbar Search ≤ 240 (tier S–M; the user: "chúng ta vẫn quên rule thanh search trên tool bar tối đa nên để rộng 240")
+
+Caught on the Studio page DEMO-MEET › Quản lý task (Search stretched beside the filter Chips; fixed there in Studio).
+The guidelines said `minmax(0, 320px)`, so agents kept copying 320. Made a lasting rule (every mistake becomes a rule).
+- **Docs:** Search Do/Don't, Layout Do (Box width="fill" maxWidth={240}), DashboardHeader Control-Bar row now says
+  "320px, Figma Control-Bar"; skills (zen-figma-design SKILL §2 + screen-rules §3/§4, zen-component-usage), AGENTS.consumer
+  rule 2, the Zen Agent prompt, build-qa-process kind table.
+- **Checks:** harness `search/toolbar-width` (error; a row Stack or Grid with a Search, or a one-Search wrapper, beside
+  another element and no cap ≤ 240; rounded, className / variable / hugging wrappers left alone); audit kind
+  `toolbar-search` (widgetLayout, --quality, ≥ 768px, error, baselined; skips phone frames, top bars, DashboardHeader's
+  slot), 6 selftest fixtures; Figma audit `search/toolbar-width` (tablet/desktop screens; ran read-only on HR-Platform:
+  12 Searches all ≤ 240; on ◇ Master-Layout · Example it finds B1 · Column's 280 Search, logged in BACKLOG).
+- **Fixed (19 harness findings):** examples chip, link, list-item, search, segmented, table (live + code samples),
+  app-shell a-compositions / g-grid (Box 250 → 240), templates AdminList, EmptyError, HR LeaveTypes, MyExpenses,
+  MyLeaves, Tasks (Grid 320 / 280 → 240).
+- **Figma → Studio pull:** a Search beside other layers in a row now lands in `<Box width="fill" maxWidth={240}>` (or
+  Fixed at its Figma width ≤ 240): code Search has no width, so the pulled Table-Example toolbar stretched (the
+  figma-pull selftest's harness case caught it).
+- **DashboardHeader:** Figma 4122:33401 Control-Bar Search is FIXED 320, so the component stays; BACKLOG asks whether
+  it moves to 240.
+- Checks run: usage:selftest + check, guidelines:check, ai-ui:check, ai-kit:check, platform-audit selftest (47),
+  qa:selftest, mcp:selftest, studio:selftest, tsc.
+
+## Three more rules from the task page (same PR #282; the user via "Full prototype tạo task": "báo session khác ghi nhớ vào harness và rule (tương tự rule search ở control bar)")
+
+- **ListItem leading** ("các list item hạn chế dùng icon không. Thường nên dùng dock icon"): harness
+  `list-item/leading-dock-icon` (warn; a literal icon name or a bare `<Icon>` in ListItem / ToggleListItem `leading`),
+  Figma audit `list-item/leading-dock-icon` (a bare icon instance in List-Item's Wrapper); ListItem / ToggleListItem
+  JSDoc and guideline (Leading row, Do, Don't). Fixed: date-picker (live + sample), voice (live + sample), app layer
+  handbook chapters → `<DockIcon size="md" background="subtle">`.
+- **Status and priority badges:** harness `badge/status-priority-icon` (warn; a literal priority label not led by
+  `icon-flag-03-solid`, a literal status label with `leadingIcon={false}`; workflow steps stay
+  `badge/workflow-status-uses-badge-status`) and `table/badge-column-icon` (warn; a `content: "badge"` column named
+  status / priority without overrides). App code may not set `overrides` (`api/overrides-studio-only`), so its fix is a
+  `cell` with `<Badge leading>`; Studio pages use the overrides. Figma audit `badge/status-priority-icon` (Text +
+  Leading-Icon + Leading-Icon-Src, Badges in Table cells too). Fixed: avatar Invited, AppShell B desktop 2
+  Published / Draft ×2 (icon back on), badge task table priority → the flag.
+- **Desktop header top row:** harness `app-shell/top-row-filled` (warn; an AppShellHeader with no leading / center /
+  actions in an AppShell with a sidebar and the default collapse, i.e. a top row with only the toggle; the account
+  not last in actions), Figma audit `app-shell/top-row-filled` (Top-Header on, Top-Elements empty). Main-only headers
+  with `collapse="sidebar"` (Figma Top-Header off) stay valid. Fixed: Sidebar's account-header recipe →
+  `collapse="sidebar"`.
+- Figma (read-only) runs: List-Item 58 / Header 32 clean; badges: HR-Platform 6 Paid / Unpaid and Master-Layout
+  Example B4 Draft with Leading-Icon off (BACKLOG P3, the designer's file).
+- Guideline-only parts: help / notifications contents of the top row, a Search in its centre, a status icon per step
+  (BadgeStatus covers workflow steps), Table badge icons when the column is computed.
+
+## Metric Dock Icons, the priority palette, a harness false positive (same PR #282)
+
+- **Harness fix** (reported by the prototype session): `expr(attrs, name)` matched `name={` anywhere in the opening tag,
+  so `app-shell/primary-in-top-bar` read a PageHeader's `actions` inside `main` as the header's own. `expr` now reads
+  the element's own attributes only (`ownExpr`); findings on src, tools/studio, fixtures, examples before / after:
+  377 / 377 (no other rule relied on the nested match). Repro is a clean case in fixtures/good.tsx.
+- **MetricCard Dock Icon** ("Dock icon dùng trong các metric card nên có màu tương ứng", "metric card dùng dock icon
+  solid"): harness `metric/dock-icon-by-meaning` (warn; label total / in progress / overdue / done needs
+  iconBackground="solid" + accent / blue / red / green; tiles, icon={false} and emoji skipped). Figma audit same id
+  (any Subtle Metric-Icon, theme by meaning). Fixed rows in chart, layout (live + sample), skeleton, tabs,
+  visually-hidden (live + sample): every card of the row solid, Overdue red, Done green, Due today yellow. Figma's
+  Metric-Card KPI default is Neutral Subtle, as code: the default question is in BACKLOG (P2).
+- **Priority palette** ("badge ưu tiên trung bình nên đồng bộ dùng yellow thay vì orange"): harness `priority/palette`
+  (warn; Badge theme for a literal level, "Normal" skipped on Badges; PropertySelect literal options with two or more
+  levels: tone + icon). Figma audit same id. Fixed: platform data High orange → red; HR data High → red / negative,
+  Medium → yellow / warning; Input page, PropertyField stories and the Studio palette sample → icon-flag-03-solid with
+  tones negative / negative / warning / neutral (Urgent / High / Normal / Low). Urgent stays red like High.
+- Figma read-only: priority Badges clean on HR-Platform, Master-Layout Example, Finance; Master-Layout Example E2, F1,
+  F2: 10 Subtle Metric-Cards (BACKLOG P3 line).
+- **People pickers show avatars** ("popover để chọn nếu là người thì nên có avatar"): harness
+  `popover/people-have-avatars` (warn; Chip popoverItems, Popover items, PropertyPeople and AutocompleteField options
+  of a picker named for people — assignee, owner, lead, reviewers, người, thành viên… — whose literal items or inline
+  `.map(() => ({…}))` give neither photoSrc nor an Avatar leading). Fixed: chip (assignee filter live + sample), card
+  (lead filter). Guideline (Popover Do), skills, AGENTS.consumer, Zen Agent prompt. No Figma audit (names are not
+  detectable); the Table select editor is the table-select-media session's (PR #285).

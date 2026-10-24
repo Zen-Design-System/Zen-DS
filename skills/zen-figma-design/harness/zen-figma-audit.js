@@ -81,6 +81,17 @@
 //                                     gap is at least what each control lacks of 44 on that side (two 32px Chips → 12)
 //   spacing/controls-to-content  warning  a control row (Chips, Segmented, Tabs, Search) closer than Gap/Medium (16)
 //                                     to the content it controls: they are blocks, not a label pair
+//   search/toolbar-width     error    a Search wider than 240 in a toolbar row beside other controls, on a tablet or
+//                                     desktop screen (a phone Search fills its row; a top bar's or the Control-Bar's own
+//                                     Search is sized by its component)
+//   list-item/leading-dock-icon  warning  a List-Item whose leading is a bare icon instance: a Dock-Icon, an Avatar or a
+//                                     thumbnail leads a row
+//   badge/status-priority-icon   warning  a priority Badge (Urgent, High, Medium, Low) not led by icon-flag-03-solid, or a
+//                                     status Badge (Paid, Active, Overdue…) with its Leading-Icon off
+//   app-shell/top-row-filled     warning  a Header/AppShell on a tablet or desktop screen whose top row is on and empty
+//   priority/palette             warning  a priority Badge outside the one palette: Urgent and High Red, Medium Yellow, Low Neutral
+//   metric/dock-icon-by-meaning  warning  a Metric-Card whose Dock-Icon is Subtle, or a status card (total, in progress, overdue,
+//                                     done) whose Dock-Icon is not Accent, Blue, Red or Green
 //   navigation/icon-style    error    a Bottom-Navigation item whose icon style does not match its selection: the
 //                                     selected item shows the solid icon, every other item the line icon
 //   navigation/floating-fit  error    a Floating or Floating-Glass Bottom-Navigation whose tabs leave the 64–88 range:
@@ -768,6 +779,94 @@ async function checkTouchSpacing(root) {
   }
 }
 
+// Toolbar Search (user 2026-10-24: "thanh search trên tool bar tối đa nên để rộng 240"; code harness search/toolbar-width):
+// a Search beside Chips, buttons or other controls in a row is at most 240 wide on a tablet or desktop screen. Its cell is
+// the outermost wrapper holding only the Search. A phone Search (Shape=Rounded, or a phone screen) fills its row, and the
+// bars that size their own Search are left out: a top bar's centre (Nav-Center-Block, up to 400) and the Dashboard
+// header's Control-Bar (320, Figma).
+const SEARCH_SET = /^Search\//;
+const OWN_SEARCH_BAR = /Nav-Center|Center-Slot|Leading-Slot|Top-Navigation|Dashboard\/Header|Header\/Dashboard|Control-Bar/;
+async function checkToolbarSearch(root) {
+  for (const screen of screensOf(root)) {
+    if (!("findAll" in screen) || screen.width < 744) continue;
+    for (const node of screen.findAll((child) => child.type === "INSTANCE")) {
+      if (!shownIn(node, screen) || ownedByComponent(node, screen) || node.width <= 240 + TOLERANCE) continue;
+      if (!SEARCH_SET.test(await setNameOf(node)) || (node.variantProperties ?? {}).Shape === "Rounded") continue;
+      let own = false;
+      for (let current = node.parent; current && current !== screen; current = current.parent) if (OWN_SEARCH_BAR.test(current.name)) { own = true; break; }
+      if (own) continue;
+      let cell = node;
+      while (cell.parent && cell.parent !== screen && cell.parent.type === "FRAME" && cell.parent.children.filter((child) => child.visible !== false).length === 1) cell = cell.parent;
+      const row = cell.parent;
+      if (!row || !("layoutMode" in row) || !["HORIZONTAL", "GRID"].includes(row.layoutMode)) continue;
+      const c = box(cell);
+      let beside = null;
+      for (const sibling of row.children) {
+        if (sibling === cell || sibling.visible === false) continue;
+        const s = box(sibling);
+        if (!c || !s || s.y >= c.y + c.height - TOLERANCE || s.y + s.height <= c.y + TOLERANCE) continue;
+        const candidates = sibling.type === "INSTANCE" ? [sibling] : "findAll" in sibling ? sibling.findAll((child) => child.type === "INSTANCE").slice(0, 8) : [];
+        for (const candidate of candidates) if (INTERACTIVE.test(await setNameOf(candidate))) { beside = sibling; break; }
+        if (beside) break;
+      }
+      if (beside) report("search/toolbar-width", ERROR, node, `${Math.round(node.width)} wide beside ${beside.name}: a Search in a toolbar row is at most 240 — set it Fixed 240, or Fill with a max width of 240`);
+    }
+  }
+}
+
+// Three rules from the user's task page (2026-10-24; code harness list-item/leading-dock-icon, badge/status-priority-icon,
+// app-shell/top-row-filled): a List-Item leads with a Dock-Icon, an Avatar or a thumbnail, never a bare icon ("các list
+// item hạn chế dùng icon không. Thường nên dùng dock icon"); a priority Badge leads with the solid flag of .Task/Priority
+// and a status Badge keeps its Leading-Icon; a desktop Header/AppShell never shows its top row empty.
+const ICON_MAIN = /^(icon|ic)-/;
+const PRIORITY_FLAG = "icon-flag-03-solid";
+const PRIORITY_TEXT = /^(urgent|critical|high|medium|low|khẩn cấp|cao|trung bình|thấp)( priority)?$/i;
+const STATUS_TEXT = /^(active|inactive|pending|approved|rejected|declined|paid|unpaid|overdue|draft|published|live|failed|completed|open|closed|online|offline|invited|expired|archived|scheduled|on hold|on track|at risk|off track|đã duyệt|chờ duyệt|từ chối|đã thanh toán|chưa thanh toán|quá hạn|bản nháp|đang hoạt động)$/i;
+// Later the same day: "Dock icon dùng trong các metric card nên có màu tương ứng", "metric card dùng dock icon solid", and
+// "badge ưu tiên trung bình nên đồng bộ dùng yellow thay vì orange" (one priority palette).
+const PRIORITY_THEME = [[/^(urgent|critical|high|khẩn cấp|cao)( priority)?$/i, "Red"], [/^(medium|trung bình)( priority)?$/i, "Yellow"], [/^(low|thấp)( priority)?$/i, "Neutral"]];
+const METRIC_THEME = [[/\b(overdue|late|blocked|failed)\b|quá hạn|trễ hạn|bị chặn/i, "Red"], [/\b(done|completed|finished|resolved)\b|hoàn thành|đã xong/i, "Green"], [/\bin progress\b|\bongoing\b|đang làm|đang thực hiện/i, "Blue"], [/^(total|all)( (tasks?|items?|requests?|tickets?|issues?|projects?))?$|^(tổng|tất cả)( số)?( (task|công việc|việc|yêu cầu))?$/i, "Accent"]];
+const propValue = (node, name) => Object.entries(node.componentProperties ?? {}).find(([key]) => key === name || key.startsWith(`${name}#`))?.[1]?.value;
+async function checkTaskPageRules(root) {
+  for (const screen of screensOf(root)) {
+    if (!("findAll" in screen)) continue;
+    for (const node of screen.findAll((child) => child.type === "INSTANCE")) {
+      if (!shownIn(node, screen)) continue;
+      const set = await setNameOf(node);
+      if (set === "List-Item" && !ownedByComponent(node, screen)) {
+        const wrapper = node.children.find((child) => child.name === "Wrapper");
+        for (const child of wrapper && "children" in wrapper ? wrapper.children : []) {
+          if (child.visible === false || child.type !== "INSTANCE") continue;
+          const main = await child.getMainComponentAsync();
+          if (main && ICON_MAIN.test(main.name)) report("list-item/leading-dock-icon", WARNING, node, `leads with the bare icon ${main.name}: swap it for a Dock-Icon (Size Medium, Background Subtle) holding that icon, an Avatar or a thumbnail`);
+        }
+      } else if (set === "Badge") {
+        // A Badge inside a Table cell counts too: its words and its icon are the designer's overrides.
+        const text = String(propValue(node, "Text") ?? "").trim();
+        const on = propValue(node, "Leading-Icon") !== false;
+        if (PRIORITY_TEXT.test(text)) {
+          const src = propValue(node, "Leading-Icon-Src");
+          const icon = typeof src === "string" ? (await figma.getNodeByIdAsync(src))?.name : null;
+          if (!on || icon !== PRIORITY_FLAG) report("badge/status-priority-icon", WARNING, node, `the priority "${text}" ${on ? `leads with ${icon ?? "another icon"}` : "has its Leading-Icon off"}: turn Leading-Icon on and swap Leading-Icon-Src to ${PRIORITY_FLAG} (.Task/Priority)`);
+        } else if (STATUS_TEXT.test(text) && !on) report("badge/status-priority-icon", WARNING, node, `the status "${text}" has its Leading-Icon off: a status Badge keeps its icon (the dot, or an icon for the state)`);
+        const level = PRIORITY_THEME.find(([re]) => re.test(text));
+        const theme = (node.variantProperties ?? {}).Theme;
+        if (level && theme && theme !== level[1]) report("priority/palette", WARNING, node, `the priority "${text}" is ${theme}: priority has one palette, Urgent and High Red, Medium Yellow, Low Neutral`);
+      } else if (set === "Metric-Card") {
+        const dock = node.findOne((child) => child.type === "INSTANCE" && child.name === "Metric-Icon");
+        const label = node.findOne((child) => child.type === "TEXT" && child.name === "Label");
+        const { Background: background, Theme: theme } = dock?.variantProperties ?? {};
+        const meaning = label ? METRIC_THEME.find(([re]) => re.test(label.characters.trim())) : null;
+        if (dock && dock.visible !== false && (background === "Subtle" || (meaning && theme && theme !== meaning[1]))) report("metric/dock-icon-by-meaning", WARNING, node, `its Dock-Icon is ${background} ${theme}${meaning ? ` for "${label.characters.trim()}"` : ""}: a Metric-Card's Dock-Icon is Background Solid${meaning ? `, Theme ${meaning[1]} (total Accent, in progress Blue, overdue Red, done Green)` : " in the colour of what it counts"}`);
+      } else if (set === "Header/AppShell" && screen.width >= 744 && propValue(node, "Top-Header") !== false) {
+        const slot = node.findOne((child) => child.type === "SLOT" && child.name === "Top-Elements");
+        const filled = slot && slot.findAll((child) => (child.type === "INSTANCE" || child.type === "TEXT") && shownIn(child, slot)).length > 0;
+        if (!filled) report("app-shell/top-row-filled", WARNING, node, "its top row is on with nothing in Top-Elements: put Breadcrumbs or a Search on the left, a Search in the centre (up to 400) when it helps, and help, notifications (Header/Action-Item with its count) and the account Avatar last on the right; or turn Top-Header off for a Main-only header");
+      }
+    }
+  }
+}
+
 // Phone sections (user 2026-10-17: "thêm rule spacing giữa các section trong mobile tối [thiểu] ở chế độ comfortable luôn
 // là 32px. Compact là 24px. tạo token để áp dụng"): the Body that stacks a phone screen's sections binds its gap to
 // Component Size's Layout-Mobile/Section-Gap (Compact 24, Comfortable 32), so it follows the mode the domain picks.
@@ -1282,6 +1381,8 @@ for (const root of roots) await checkModeOverrides(root);
 for (const root of roots) await checkBackChevron(root);
 for (const root of roots) await checkButtonRoles(root);
 for (const root of roots) await checkTouchSpacing(root);
+for (const root of roots) await checkToolbarSearch(root);
+for (const root of roots) await checkTaskPageRules(root);
 for (const root of roots) await checkSectionGap(root);
 for (const root of roots) await checkModalForms(root);
 for (const root of roots) await checkClosingList(root);

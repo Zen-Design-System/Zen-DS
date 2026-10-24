@@ -116,7 +116,7 @@ ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageCheck
   await fixture("fit: a label that ellipsizes", docsPage(example("Ellipsis", button("display: block; text-overflow: ellipsis"))), "textFit", "fit", { clean: true });
 }
 
-/* ── card-gap, legend-column (widgetLayout) ─────────────────────────────────────────────────────────────────────── */
+/* ── card-gap, legend-column, toolbar-search (widgetLayout) ─────────────────────────────────────────────────────────────────────── */
 {
   const card = (height) => `<div class="zen-metric-card" style="padding: 0"><p class="zen-metric-card__title zen-type-body-small-regular" style="margin: 0; height: ${height}px">Metric</p></div>`;
   const cards = (a, b) => `<div style="display: flex; align-items: stretch; gap: 16px">${card(a)}${card(b)}</div>`;
@@ -125,6 +125,16 @@ ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageCheck
   const legend = (display) => `<div class="zen-chart-block" style="width: 600px"><div style="height: 80px">chart</div><div class="zen-chart__legend" style="display: ${display}; gap: 8px">${["North", "South", "East"].map((name) => `<span style="display: block; width: 80px">${name}</span>`).join("")}</div></div>`;
   await fixture("legend-column: three items one per line under the chart", docsPage(example("Legend column", legend("block"))), "widgetLayout", "legend-column", { finds: ["a chart legend stacks its 3 items in a column"] });
   await fixture("legend-column: a legend that wraps as a row", docsPage(example("Legend row", legend("flex"))), "widgetLayout", "legend-column", { clean: true });
+  // A Search is width 100% (search.css): in a toolbar row it fills whatever its cell gives it.
+  const search = (cls = "") => `<div class="zen-search ${cls}" style="width: 100%"><input type="search" aria-label="Search tasks"></div>`;
+  const chip = `<button type="button" style="width: 80px; flex: none">Status</button>`;
+  const toolbar = (cell) => `<div style="display: flex; gap: 8px; width: 800px">${cell}${chip}</div>`;
+  await fixture("toolbar-search: a Search that fills the toolbar row", docsPage(example("Stretched", toolbar(`<div style="flex: 1 1 0">${search()}</div>`))), "widgetLayout", "toolbar-search", { finds: ['the toolbar Search "Search tasks" is 712px wide'] });
+  await fixture("toolbar-search: a Grid column of 320px", docsPage(example("Wide column", `<div style="display: grid; grid-template-columns: minmax(0, 320px) 1fr; gap: 8px; width: 800px">${search()}<div>${chip}</div></div>`)), "widgetLayout", "toolbar-search", { finds: ["is 320px wide beside other controls"] });
+  await fixture("toolbar-search: capped at 240", docsPage(example("Capped", toolbar(`<div style="flex: 1 1 0; max-width: 240px">${search()}</div>`))), "widgetLayout", "toolbar-search", { clean: true });
+  await fixture("toolbar-search: a Search alone on its row", docsPage(example("Alone", `<div style="display: flex; width: 800px"><div style="flex: 1 1 0">${search()}</div></div>${chip}`)), "widgetLayout", "toolbar-search", { clean: true });
+  await fixture("toolbar-search: a phone Search (rounded)", docsPage(example("Rounded", toolbar(`<div style="flex: 1 1 0">${search("zen-search--rounded")}</div>`))), "widgetLayout", "toolbar-search", { clean: true });
+  await fixture("toolbar-search: DashboardHeader's own Control-Bar slot", docsPage(example("Control bar", toolbar(`<div class="zen-dashboard-header__search" style="flex: 0 1 320px">${search()}</div>`))), "widgetLayout", "toolbar-search", { clean: true });
 }
 
 /* ── outline, outline-h1 / -start / -card / -siblings (audit.mjs pageChecks) ────────────────────────────────────── */

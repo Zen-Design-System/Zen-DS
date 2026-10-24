@@ -24457,7 +24457,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Leading slot: an Avatar (Image-Size/Medium), Dock Icon, thumbnail or an icon name (`\"icon-clock-line\"`)."
+                "description": "Figma Leading slot: a Dock Icon (`<DockIcon icon=\"icon-clock-line\" size=\"md\" background=\"subtle\" />`), an Avatar (Image-Size/Medium) or a thumbnail."
               },
               "value": {
                 "anyOf": [
@@ -44627,7 +44627,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Icon name or element before the text, as in ListItem."
+                "description": "Before the text, as in ListItem: a Dock Icon (`<DockIcon icon size=\"md\" background=\"subtle\" />`), not a bare icon name."
               },
               "checked": {
                 "anyOf": [

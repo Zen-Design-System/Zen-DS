@@ -315,7 +315,7 @@ export function HrTasksTemplate() {
       );
   };
   const toolbar = (
-    <Grid columns={{ mobile: 1, desktop: "minmax(0, 280px) minmax(0, 1fr) auto" }} gap="sm" align="start">
+    <Grid columns={{ mobile: 1, desktop: "minmax(0, 240px) minmax(0, 1fr) auto" }} gap="sm" align="start">
       <Search ref={searchRef} aria-label="Search tasks" placeholder="Search tasks" value={query} onValueChange={setQuery} />
       {/* On a phone the chips stay on one row that scrolls sideways. */}
       <Stack direction="row" gap="xs" align="center" wrap={!phone} paddingY={phone ? "2xs" : undefined} style={phone ? { overflowX: "auto" } : undefined}>

@@ -495,7 +495,7 @@ function StayOnPhoneExample() {
         <ListBox>
           <List aria-label="Your stay">
             <ListItem title="Dates" caption={stay?.start && stay.end ? `${formatRange(stay.start, stay.end)} · ${plural(nights, "night")}` : "Add your check-in and check-out"}
-              leading="icon-calendar-line" trailing={<Icon name="icon-chevron-right-line-small" decorative />} onClick={() => { setDraft(stay); setPicking(true); }} />
+              leading={<DockIcon icon="icon-calendar-line" size="md" background="subtle" />} trailing={<Icon name="icon-chevron-right-line-small" decorative />} onClick={() => { setDraft(stay); setPicking(true); }} />
           </List>
         </ListBox>
         {/* On a phone a DateField opens the same sheet (Variant=Single) instead of the desktop popover. */}
@@ -726,7 +726,7 @@ const nights = nightsOf(draft);
 <ListBox>
   <List aria-label="Your stay">
     <ListItem title="Dates" caption={stay ? formatRange(stay.start, stay.end) : "Add your check-in and check-out"}
-      leading="icon-calendar-line" trailing={<Icon name="icon-chevron-right-line-small" decorative />}
+      leading={<DockIcon icon="icon-calendar-line" size="md" background="subtle" />} trailing={<Icon name="icon-chevron-right-line-small" decorative />}
       onClick={() => { setDraft(stay); setPicking(true); }} />
   </List>
 </ListBox>

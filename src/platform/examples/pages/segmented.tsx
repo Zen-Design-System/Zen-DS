@@ -64,7 +64,7 @@ function FileViewsExample() {
           <Text role="status" textStyle="Body/Small/Regular" tone="base">{`Saola Outdoor · ${plural(shown.length, "file")}`}</Text>
         </Stack>
         <Stack direction="row" justify="between" align="center" gap="xs">
-          <Box width="fill" maxWidth={320}><Search placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
+          <Box width="fill" maxWidth={240}><Search placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
           {/* Icon-only segments: each option carries its own name, the icon is decorative. */}
           <Segmented className="px-segmented-hug" aria-label="Layout" value={view} onValueChange={setView} options={[
             { id: "grid", label: null, "aria-label": "Grid view", leading: <Icon name="icon-grid-01-line" decorative /> },
@@ -448,7 +448,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 <Heading level={4} textStyle="Heading/Subheading">Brand refresh files</Heading>
 <Text role="status">{\`Saola Outdoor · \${plural(shown.length, "file")}\`}</Text>
 <Stack direction="row" justify="between" align="center" gap="xs">
-  <Box className="toolbar-search"><Search placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
+  <Box width="fill" maxWidth={240}><Search placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
   {/* .view-switch { flex: none }: beside a shrinking Search the two icons keep their width. */}
   <Segmented className="view-switch" aria-label="Layout" value={view} onValueChange={setView} options={[
     { id: "grid", label: null, "aria-label": "Grid view", leading: <Icon name="icon-grid-01-line" decorative /> },

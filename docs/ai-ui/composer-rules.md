@@ -30,6 +30,8 @@ a rejected spec comes back with the error paths and hints, fix those and resend.
    rare; `accent` only for a promoted action; `danger` for irreversible ones. Labels name the outcome
    ("Save changes"), never "OK" / "Submit".
 2. **Filters, sort, scope, status and owner pickers** are `<Chip variant="advanced">`, never a Button or Segmented.
+   A Search in that toolbar row is at most 240px wide: `<Box width="fill" maxWidth={240}><Search … /></Box>` (Search
+   is width 100%, so on its own it stretches across the row); on a phone it fills its row.
 3. **Fields** always have a `label`; a value people may see but not change is `readOnly`; `disabled` only when the
    field is unavailable for a reason the page shows (Text, Select, Date, Number, TextArea and Search; Autocomplete and
    RichText are `readOnly` only); `placeholder` shows an example value, not the label; errors go in `error`.
@@ -38,7 +40,13 @@ a rejected spec comes back with the error paths and hints, fix those and resend.
 5. **Compose, don't rebuild:** rows → `List` + `ListItem`; tiles → `Card`; data → `Table`; nothing to show →
    `EmptyState`; inline feedback → `InlineMessage`; page-level notice → `AlertBanner`; separators → `Divider`;
    counts → `BadgeCounter`; files → `FileIcon`; term → value facts and totals → `DescriptionList`; pictures →
-   `Image` / `Thumbnail`; a phone footer CTA → `ActionBar`; screen-reader-only text → `VisuallyHidden`.
+   `Image` / `Thumbnail`; a phone footer CTA → `ActionBar`; screen-reader-only text → `VisuallyHidden`. A row's
+   `leading` is a `<DockIcon icon size="md" background="subtle" />`, an `Avatar` or a thumbnail, never a bare icon
+   name. Status and priority Badges keep a leading icon: priority leads with `leading="icon-flag-03-solid"` in one
+   palette (Urgent and High `red`, Medium `yellow`, Low `neutral`; PropertySelect tones negative / warning / neutral),
+   a workflow step is a `BadgeStatus`. A `MetricCard`'s Dock Icon is `iconBackground="solid"` in the colour of what it
+   counts (total `accent`, in progress `blue`, overdue `red`, done `green`). A popover that picks a person shows each
+   person's avatar: `photoSrc` (theme `avatar-small`) or an initials `<Avatar>` as `leading`.
 6. **Overlays are controlled:** `open` + `onOpenChange` on Dialog, SidePanel, BottomSheet and Popover (the first
    three also call `onClose` on every close request). A Popover is closed by default. Actions are objects:
    `primaryAction={{ label: "Delete project", onClick }}`.
@@ -63,7 +71,9 @@ a rejected spec comes back with the error paths and hints, fix those and resend.
 13. **Desktop and phone:** a page that runs on both gives AppShell its phone chrome, `topNavigation` and
    `bottomNavigation` (drawn under 744px instead of the top bar and `sections`), mapped from the desktop header
    (`docs/guidelines/app-shell.md` Do): the page title in `sections` and the bar (one h1 each layout), at most 3
-   trailing actions, every desktop header action still reachable.
+   trailing actions, every desktop header action still reachable. The desktop header's top row is never empty:
+   Breadcrumbs or a Search (`leading`), then help, notifications (`AppShellAction` with its `count`) and the account
+   `Menu` last (`actions`); a Main-only header moves the Sidebar toggle into the Sidebar (`collapse="sidebar"`).
 
 ## Per component
 

@@ -523,7 +523,7 @@ export function AdminListTemplate() {
       <Stack gap="md">
         <MobileOnly><Text tone="base">{description}</Text></MobileOnly>
         {/* Search fills its column; the filter chips (and Clear all, once both are on) share the rest. */}
-        <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} gap="sm" align="center">
+        <Grid columns={{ mobile: 1, desktop: "minmax(0, 240px) 1fr" }} gap="sm" align="center">
           <Search ref={searchRef} aria-label="Search members" placeholder="Search members" value={query} onValueChange={(value) => refine(() => setQuery(value))} />
           <Stack direction="row" gap="xs" align="center" wrap>
             {filterChip("Role")}

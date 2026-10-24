@@ -129,8 +129,8 @@ function WorkspaceEditorApp() {
                 <VisuallyHidden as="h1">Checkout flow</VisuallyHidden>
                 <Text as="span" textStyle="Body/Base/Bold" aria-hidden="true">Checkout flow</Text>
                 {published
-                  ? <Badge size="sm" theme="green" background="subtle" leadingIcon={false}>Published</Badge>
-                  : <Badge size="sm" theme="neutral" background="solid" leadingIcon={false}>Draft</Badge>}
+                  ? <Badge size="sm" theme="green" background="subtle">Published</Badge>
+                  : <Badge size="sm" theme="neutral" background="solid">Draft</Badge>}
               </Brand>
             )}
             center={(
@@ -582,7 +582,7 @@ export const examples: ExampleDef[] = [
   header={
     <AppShellHeader
       // The file name is a small label; the screen's h1 is a hidden one that says the same.
-      leading={<><Avatar size="sm" shape="square" theme="neutral" alt="">Z</Avatar><VisuallyHidden as="h1">Checkout flow</VisuallyHidden><Text as="span" textStyle="Body/Base/Bold" aria-hidden="true">Checkout flow</Text><Badge size="sm" leadingIcon={false}>Draft</Badge></>}
+      leading={<><Avatar size="sm" shape="square" theme="neutral" alt="">Z</Avatar><VisuallyHidden as="h1">Checkout flow</VisuallyHidden><Text as="span" textStyle="Body/Base/Bold" aria-hidden="true">Checkout flow</Text><Badge size="sm">Draft</Badge></>}
       center={<Segmented aria-label="Mode" options={modes} value={mode} onValueChange={setMode} />}
       actions={<>
         <AvatarStack size="sm" background="subtle" items={editors} />

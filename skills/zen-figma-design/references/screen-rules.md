@@ -117,7 +117,7 @@ Components own their inner padding and gap; never change them. Between elements,
 | Destructive action | Level=Danger or Danger Subtle | a red-painted Primary |
 | Filter, sort, scope, status, owner, period | `Chip/Advanced` (with its popover), in the header's `Type=Control-Bar` row | a Button or a Segmented |
 | Switching views or sections | `Segmented` or `Tab-Bar` | Chips |
-| Search | `Search/Default`; on phone screens `Shape=Rounded` (a pill) is the default: Bottom-Sheet's search has it, and a Search you put in Top-Navigation/Mobile's Control-Slot or a phone screen takes it; Default stays allowed | a Text-Field with a magnifier |
+| Search | `Search/Default`, at most 240 wide in a toolbar row on tablet and desktop (§4 Toolbar Search); on phone screens `Shape=Rounded` (a pill) is the default: Bottom-Sheet's search has it, and a Search you put in Top-Navigation/Mobile's Control-Slot or a phone screen takes it; Default stays allowed | a Text-Field with a magnifier |
 | A list of people, items, approvals, settings | `Component/List-Box` holding `List-Item` rows | a Card with hand-made rows |
 | The list that closes a phone screen (transactions, tasks, activity: nothing after it, not in a widget grid) | an open section as `◆ Finance` Transactions: a `Heading` row (Heading/4 + See All, `Margin-Comfortable` sideways, `Spacing/Padding/Medium` above and below) over the `List-Item` rows in a frame padded `Margin-Comfortable` sideways, gap 0, straight on the Canvas (audit `list-box/closing-list-on-phone`) | a `Component/List-Box` at the end of the phone screen |
 | Tabular data | Table cells (`Table/Cell/*`, `Primitives/Table/*`) on the canvas, full width | a Table inside a Card (unless it is a dashboard widget) |
@@ -144,6 +144,21 @@ Pick each component's guideline (`guidelines/<slug>.md`) before placing it.
 
 - **Header control bar.** Filters, the period picker and the search sit in the header's `Type=Control-Bar` row, not
   in the content. A period picker is a Chip/Advanced, never a Button.
+- **List rows, badges and the desktop header** (user 2026-10-24, the task page). A List-Item leads with a `Dock-Icon`
+  (Size Medium, Background Subtle), an Avatar or a thumbnail, never a bare icon. Status and priority Badges keep their
+  Leading-Icon: priority leads with `icon-flag-03-solid` (`.Task/Priority`), a status with its dot or an icon per
+  state, a workflow step is `Badge-Status`; badges in Table cells too. Priority has one palette: Urgent and High Red,
+  Medium Yellow, Low Neutral (`priority/palette`). A Metric-Card's Dock-Icon is Solid in the colour of what it counts:
+  total Accent, in progress Blue, overdue Red, done Green (`metric/dock-icon-by-meaning`). A desktop `Header/AppShell` never shows an empty
+  top row: Breadcrumbs or a Search on the left, a Search in the centre (≤ 400) when it helps, and help, notifications
+  (`Header/Action-Item` with its count) and the account Avatar last on the right; or Top-Header off. Audit
+  `list-item/leading-dock-icon`, `badge/status-priority-icon`, `app-shell/top-row-filled`.
+- **Toolbar Search** (user 2026-10-24: "chúng ta vẫn quên rule thanh search trên tool bar tối đa nên để rộng 240").
+  A Search you place in a toolbar row, beside Chips, buttons or a view switch, is at most 240 wide on tablet and
+  desktop screens: set it (or the wrapper that holds only it) to Fixed 240, or Fill with a max width of 240. Never let
+  it fill the row: a toolbar Search that runs across the page reads as the page's main task. A phone Search
+  (`Shape=Rounded`) fills its row. The header's own `Type=Control-Bar` row sizes its Search (320, the library's) and a
+  top bar's centre search goes up to 400. Audit `search/toolbar-width`; code harness `search/toolbar-width`.
 - **Sidebar selection.** Every page shows its current row with `Select=Yes`. A selected child opens its parent group
   (children visible, chevron up), and child rows carry no icon. Child rows (`Level=Child`) go in a gap-0 `Child` frame
   after the parent row, as Zen's HR-Platform sidebar does. Check the selection on every frame, not only the new one.
