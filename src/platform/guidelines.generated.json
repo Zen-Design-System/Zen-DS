@@ -5339,8 +5339,8 @@
       ],
       [
         "Editable cells",
-        "column.edit {type: text · number · select · tags, value, onCommit, validate, disabled, options, suggestions, multiline} · column.edit: \"text\" | \"number\" | \"select\" | \"tags\" | true · editable · onCellCommit",
-        "Figma Table/Cell/Default State=Edit · Editabled-Cell; Focused ring Focus/Accent/Subtle. A type alone (or `editable` on the Table: every value column) edits the row's field in place — the Table keeps the edit or hands it to onCellCommit(row, columnId, value)"
+        "column.edit {type: text · number · select · tags, value, onCommit, validate, disabled, options [{value, label, photoSrc}], suggestions, multiline} · column.edit: \"text\" | \"number\" | \"select\" | \"tags\" | true · editable · onCellCommit",
+        "Figma Table/Cell/Default State=Edit · Editabled-Cell; Focused ring Focus/Accent/Subtle. A type alone (or `editable` on the Table: every value column) edits the row's field in place — the Table keeps the edit or hands it to onCellCommit(row, columnId, value). A select draws its options as the cells draw them: an avatar or photo column's people with their picture from mediaField (initials without one; options[].photoSrc on an edit object), a badge column's values as their Badges with the colour and icon the rows' overrides give each value; a value picked in the Table takes that picture or Badge look (with onCellCommit the app updates the picture field and the row's override)"
       ],
       [
         "Open button",
@@ -5409,6 +5409,7 @@
       "Wire onCommit to save, and validate numbers and required text; the error stays in the cell until fixed (harness: table/editor-needs-commit, table/editor-number-validate).",
       "Right-align number editors like the numbers they edit (harness: table/editor-number-right).",
       "Use select for closed sets and tags for open sets; lock rows that can't change with edit.disabled.",
+      "Pick people by their faces: give a person column `content: \"avatar\"` and its mediaField, so its select shows each person's avatar; a custom select editor gives its people options[].photoSrc.",
       "Offer onOpen when the full record of an editable row needs a detail view; a read-only table that opens records uses onRowClick, so the whole row is the click target.",
       "Let clickable content inside an editable cell (Tag onClick, links, buttons) keep its own action — clicking the cell around it edits. Leave room (padding, gaps) so the edit target stays easy to hit.",
       "A table that is the page content or a section of it sits straight on the page: no Card, Box or other container and no Surface fill, and it spans the page width with no max: wrap that page in <Container maxWidth=\"full\"> (not the default lg 1280). Only a table that is a widget (a dashboard tile with its own title and a few rows beside other widgets) goes in a Card.",
