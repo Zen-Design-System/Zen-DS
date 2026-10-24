@@ -8,7 +8,10 @@
  *   node tools/platform-audit/selftest.mjs            (npm run platform:audit:selftest)
  *   node tools/platform-audit/selftest.mjs --print    also prints every finding of every fixture
  */
+import { execFile } from "node:child_process";
 import fs from "node:fs";
+import http from "node:http";
+import os from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { controlClip, qualityChecks, textFit, widgetLayout } from "./quality-checks.mjs";
@@ -131,6 +134,29 @@ ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageCheck
 }
 
 await browser.close();
+
+/* ── the audit's page watchdog (audit.mjs --page-timeout; CI hung 45 min on one page, 2026-10-24) ───────────────────
+ * A page that never answers (its script spins after load) is audited again in a new tab, then reported by name, and the
+ * pages after it are still audited. The fixture site is served here: audit.mjs runs against it as CI runs it. */
+{
+  const html = (body) => `<!doctype html><html><head><meta charset="utf-8"></head><body><div class="official-platform">${body}</div></body></html>`;
+  const server = http.createServer((req, res) => {
+    const id = new URL(req.url, "http://localhost").searchParams.get("page");
+    res.writeHead(200, { "content-type": "text/html" });
+    res.end(id === "hang" ? html(`<p>Spins</p><script>setTimeout(() => { for (;;) {} }, 50);</script>`) : html(example(id ?? "home", "<p>Fine</p>")));
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "zen-audit-watchdog-")), "report.json");
+  const args = ["tools/platform-audit/audit.mjs", `--url=http://127.0.0.1:${server.address().port}`, "--pages=before,hang,after", "--viewports=1512", "--no-playground", "--no-baseline", "--page-timeout=3", `--out=${out}`];
+  const run = await new Promise((resolve) => execFile(process.execPath, args, { cwd: root, timeout: 120_000 }, (error, stdout) => resolve({ code: error?.code ?? 0, stdout })));
+  server.close();
+  const report = (() => { try { return JSON.parse(fs.readFileSync(out, "utf8")); } catch { return null; } })();
+  const pages = report?.pages ?? {};
+  ok("watchdog: the run ends and fails on the hung page", run.code === 1, `exit ${run.code}\n    ${run.stdout.split("\n").slice(-4).join("\n    ")}`);
+  ok("watchdog: the hung page is reported by name", (pages["hang@1512"]?.errors ?? []).some((e) => /did not answer within 3s, twice/.test(e)), JSON.stringify(pages["hang@1512"] ?? null));
+  ok("watchdog: it is audited again in a new tab first", /↻ hang@1512: no answer in 3s/.test(run.stdout), run.stdout.split("\n").slice(0, 6).join("\n    "));
+  ok("watchdog: the pages around it are still audited", Boolean(pages["before@1512"]) && Boolean(pages["after@1512"]), Object.keys(pages).join(", "));
+}
 if (failures.length) {
   console.log(`Platform-audit self-test: ${passed} passed, ${failures.length} failed`);
   for (const failure of failures) console.log(`  ✗ ${failure}`);
