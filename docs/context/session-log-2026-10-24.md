@@ -648,3 +648,7 @@ its `Content#4081:111` SLOT (read from the live file: 1603:23604).
   - **Live check:** the real importer placed the frame with 0 notes; Figma shows 10/25 · 03/02/2024 · —. The real reader
     marked both days. The read is `fixtures/figma-table-dates.json`, and the QA page was removed.
   - **Open (user's call, asked via the progress session):** a project language setting, so Vietnamese pages show 25/10.
+- **B-47 / B-48 failed in train C (B ran them, 2026-10-25).** Cause: the seeded page has no project, and the canvas keeps
+  no library for a draft (useProjectLibrary returns undefined), so `libraryOf(page)` was empty. The Cell's Content had no
+  "Status", and the insert refused with "has no variants". Fix: `cellLibrary(page)` in cellInstance.ts falls back to the
+  page's own components (`pageComponents`); TableCellPanel and setOf use it.

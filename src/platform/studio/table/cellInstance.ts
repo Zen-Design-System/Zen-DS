@@ -1,5 +1,6 @@
 import { parseSrc, studioApi } from "../api";
-import { libraryOf } from "../project/projectLibrary";
+import { libraryOf, pageComponents } from "../project/projectLibrary";
+import type { LocalComponents } from "../builder/render/renderPage";
 import type { EditOp } from "../types";
 import { axisFor, cellsCode, cellsComponent, slotComponents } from "./cellComponents";
 import { columnShape, edit, fieldOf, rowOp } from "./columnSource";
@@ -16,10 +17,22 @@ import { fieldText, tableData, type TableCellHit } from "./tableCells";
 /** A project component as Assets lists it: its id and the page that holds it (null: the Table's own page). */
 export type CellComponent = { id: string; page: string | null; name: string };
 
+/**
+ * The components a page's Table cells can hold: its project's library (every page of the project, by page id), else the
+ * page's own (a draft has no project, and the canvas keeps no library for it: projectLibrary.ts useProjectLibrary).
+ */
+export function cellLibrary(localPage: string | null): ReadonlyMap<string, LocalComponents> | undefined {
+  if (!localPage) return undefined;
+  const library = libraryOf(localPage);
+  if (library) return library;
+  const own = pageComponents(localPage);
+  return own?.size ? new Map([[localPage, own]]) : undefined;
+}
+
 /** The project's set `component` names (Assets' page id → null for the Table's own page), or null for a lone main. */
 const setOf = (component: CellComponent, localPage: string | null) => {
   const page = component.page === localPage ? null : component.page;
-  return slotComponents(localPage ? libraryOf(localPage) : undefined, localPage).find((candidate) => candidate.id === component.id && candidate.page === page) ?? null;
+  return slotComponents(cellLibrary(localPage), localPage).find((candidate) => candidate.id === component.id && candidate.page === page) ?? null;
 };
 
 /** Why `component` can't go in the cell's slot, known without reading the file (a drag says it at once), or null. */
