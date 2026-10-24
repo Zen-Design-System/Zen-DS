@@ -414,3 +414,20 @@ the Table, but nothing brought every row back short of Restart.
 - **Prototype panel:** Filter table on a Chip's popover pick said "Value" as if a fixed value were needed (`choiceItemsOf`
   reads `items` / `options`, not `popoverItems`); `onPopoverSelect` always hands over the chosen item, so its Value
   placeholder now says "The chosen item".
+
+## Studio: Present on a page's Screen plays it (tier S, branch `claude/play-chip-clear-92436e`)
+
+User (DEMO-MEET › Quản lý task): "mở modal và side panel từ trang Danh sách vẫn chưa được — không mở task detail và
+tạo task được", Play started with the Danh sách frame selected and the frame toolbar's ▷.
+- Cause: a page's Screens are canvas frames of kind "example", so the frame toolbar's ▷ (and the Design tab's Present,
+  ⌘K › Present) ran `presentFrame`, which sent only an Overlay to Play (FW-170…174, 2026-10-21) and presented a Screen as
+  a still example frame (`.studio-present`, inert proto): "Tạo task" and the rows' "Mở" did nothing. ⌥⌘↵, the canvas
+  menu and the Prototype tab already played it. The page and Play itself were fine (Playwright on :5174 as
+  viewer/admin, 1512/1280/1024 windows; the page's flow in the Play harness).
+- Fix: `board/presentFrame.ts` plays any Screen or Overlay frame of a page you made (Figma's Present always runs the
+  prototype). `playStartOf` keeps a Screen's state ("screen:tasks:created" → "tasks:created"), so ▷ on "Đã tạo task"
+  starts there, not on Danh sách. The old still-frame path stays for examples.
+- Tests: protoModel selftest (state start), studio-option-c.test.tsx (presentFrame → play:<start>, a state start, an
+  Open overlay runs), E2E FW-174 rewritten (Design › Present and the toolbar ▷ on a Screen play; it asserted the old
+  still frame, an agent's choice of 10-21, not the user's).
+- Handed off mid-task: the filter Chip clear work went to its own session (play-filter-chip-clear).
