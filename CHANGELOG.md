@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio Play (2026-10-24): the hotspot hints no longer flash on a press that does something: a layer with a
+  prototype action (a Box or Card with `proto.navigate`, now outlined itself in the hints), or a part a component works
+  itself (a field's padding, a chart bar, a calendar slot). Only a press that changes nothing shows them, as in Figma.
 - Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,
   auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
   the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are
