@@ -23,13 +23,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
   asks for it.
-- **P3 · New APIs the contract suites asked for (2026-10-24; each needs the user's go):** Figma draws what code has no
-  prop for, so those variants return null in their suites (`tools/figma-contract/suites/*.mjs`). Popover placement that
-  covers its anchor (Input/Autocomplete-Field Focused opens the list over the Add slot; code 4px below it); the sheet
-  header of `.Primitives/Date-Picker` 9923:2323 (Option 1 caption + picked date + edit, Option 2 range + Clear dates); the
-  Workspace Sidebar rail's Master-Background Flat / Inverse; Avatar status Disabled / Pending / Inactive and the 4px
-  XSmall dot. DatePicker event counts are code since #266 (`event` takes 1–4): only the suite is left, mapping Event-List
-  Number-Event 2–4 in `date-picker-event-list.mjs` with its root on `.zen-date-picker__events` (no user go needed).
+- **P3 · New APIs the contract suites asked for (2026-10-24; the user picked all four):** Figma draws what code has no
+  prop for, so those variants return null in their suites (`tools/figma-contract/suites/*.mjs`). Left: the Workspace
+  Sidebar rail's Master-Background Flat / Inverse; Avatar status Disabled / Pending / Inactive and the 4px XSmall dot
+  (session chart-contract-suites). Done on zen/feat/datepicker-sheet-popover-cover-20261024: Popover
+  `placement="cover"` (Autocomplete-Field), DatePickerSheet `header="selection"` (9923:2323, suite
+  date-picker-sheet-header), Event-List Number-Event 1–4 in `date-picker-event-list.mjs`.
 - **P3 · Contract checker gaps (2026-10-24; harness work, the user's go):** `tools/figma-contract/check.mjs` reads the
   first visible paint only (second fills and background-image overlays: Toggle bar, Social Others bubble, Editable
   cell), compares `fx` only without a spread ring in the same shadow list (Toggle-Button dot), one corner radius (bubble
