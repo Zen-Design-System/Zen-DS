@@ -232,5 +232,8 @@ gate, so they looked green. They were written without being run, which was the s
 - **DA-10:** a ListItem in a List can never be resized (cloning.json: it cannot be wrapped, so no handles). The data
   fixture now has a `.map` of Boxes (`crew-tile`), and DA-10 resizes those (3 rows, height 53 → 78 on every row,
   Escape writes nothing).
-- **Runs:** both rows pass alone; the structural and data groups pass together (32); the full default E2E passes (below).
+- **Runs:** both rows pass alone; the structural and data groups pass together (32); the full default E2E gives 355 works,
+  0 broken (1562 s).
+- **Baseline:** my new rows (D-07, DA-10, ST-28, ST-29, VA-05…09) went into matrix.baseline.json as works, so a
+  regression now fails the gate. The other teams' new rows (PT-16…21, HO-13…16, K-24…27) are left to their owners.
 
