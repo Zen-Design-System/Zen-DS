@@ -746,11 +746,12 @@ export function segmentedFit({ scopeSel, regionSel }) {
       const name = `Segmented "${seg.getAttribute("aria-label") ?? ""}"`;
       const fix = "use a single-choice row of Normal Chips that scrolls (segmented guideline: on a phone every label fits its equal share)";
       if (seg.scrollWidth > seg.clientWidth + 1) {
-        out["segmented-fit"].push(`${label(seg)}: ${name} slides sideways on a phone (its ${items.length} items need ${seg.scrollWidth}px of ${seg.clientWidth}px) — ${fix}`);
+        // No px in the message: it is a baseline key, and text widths move with fonts.
+        out["segmented-fit"].push(`${label(seg)}: ${name} slides sideways on a phone (its ${items.length} items are wider than the screen gives them) — ${fix}`);
         continue;
       }
       const cut = [...seg.querySelectorAll(".zen-segmented__label")].filter((l) => l.closest(".zen-segmented") === seg && shown(l) && l.scrollWidth > l.clientWidth + 1);
-      if (cut.length) out["segmented-fit"].push(`${label(seg)}: ${name} cuts ${cut.length} of its ${items.length} labels on a phone ("${cut[0].textContent.trim().slice(0, 20)}" needs ${cut[0].scrollWidth}px of ${cut[0].clientWidth}px) — ${fix}`);
+      if (cut.length) out["segmented-fit"].push(`${label(seg)}: ${name} cuts ${cut.length} of its ${items.length} labels on a phone ("${cut[0].textContent.trim().slice(0, 20)}"${cut.length > 1 ? " and more" : ""}) — ${fix}`);
     }
   }
   return out;

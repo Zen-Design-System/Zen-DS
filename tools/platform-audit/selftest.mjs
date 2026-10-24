@@ -88,8 +88,8 @@ ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageCheck
   const segmented = (names, full) => `<div class="zen-segmented" role="group" aria-label="Period" style="display: flex; width: ${full ? "100%" : "max-content"}; max-width: 100%; overflow-x: auto">${names.map((n) => item(n, full)).join("")}</div>`;
   const phone = (inner) => `<div class="platform-phone" style="width: 240px">${inner}</div>`;
   const S = "segmentedFit";
-  await fixture("segmented-fit: slides sideways in a phone", docsPage(example("Four periods", phone(segmented(["Day", "Week", "Month", "Quarter"], false)))), S, "segmented-fit", { finds: ['Segmented "Period" slides sideways on a phone (its 4 items need'] });
-  await fixture("segmented-fit: a fullWidth label cut to an ellipsis", docsPage(example("Long labels", phone(segmented(["Everything that happened", "Mentions only"], true)))), S, "segmented-fit", { finds: ['Segmented "Period" cuts', '("Everything that happ" needs'] });
+  await fixture("segmented-fit: slides sideways in a phone", docsPage(example("Four periods", phone(segmented(["Day", "Week", "Month", "Quarter"], false)))), S, "segmented-fit", { finds: ['Segmented "Period" slides sideways on a phone (its 4 items are wider'] });
+  await fixture("segmented-fit: a fullWidth label cut to an ellipsis", docsPage(example("Long labels", phone(segmented(["Everything that happened", "Mentions only"], true)))), S, "segmented-fit", { finds: ['Segmented "Period" cuts', '("Everything that happ")'] });
   await fixture("segmented-fit: every label fits its share", docsPage(example("Two views", phone(segmented(["List", "Board"], true)))), S, "segmented-fit", { clean: true });
   await fixture("segmented-fit: wide on a desktop page is no phone", docsPage(example("Desktop", `<div style="width: 240px">${segmented(["Day", "Week", "Month", "Quarter"], false)}</div>`)), S, "segmented-fit", { clean: true });
 }
