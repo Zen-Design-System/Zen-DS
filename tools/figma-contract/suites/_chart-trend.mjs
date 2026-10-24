@@ -16,7 +16,7 @@ export function trendMap(T, { count = sectorCount, lines = 6, labels = `${T} > L
   const entries = [{ figma: T, dom: ".zen-chart", check: ["size", "x", "y"] }];
   // Gridlines bottom-up: Line-1 is the baseline (tick 0, the grid's first span). Figma centres the 1px stroke on the line,
   // code's border-top sits just above it, so the lines compare by their centre, half a pixel apart (tolerance 1).
-  for (let k = 1; k <= lines; k += 1) entries.push({ figma: `${T} > Line-${k}`, dom: `.zen-chart__grid > span:nth-child(${k})`, check: ["w", "x", "cy", "stroke"], tolerance: 1 });
+  for (let k = 1; k <= lines; k += 1) entries.push({ figma: `${T} > Line-${k}`, dom: `.zen-chart__grid > span:nth-child(${k})`, check: ["w", "x", "cy", "stroke", "dash"], tolerance: 1 });
   // Y labels top first in Figma, ticks bottom-up in code; each centred on its gridline.
   for (let i = 0; i < lines; i += 1) entries.push({ figma: `${labels}#${i}`, dom: `.zen-chart__y > span:nth-child(${lines - i})`, check: ["text", "cy", "x"] });
   for (let k = 1; k <= MAX_SECTORS; k += 1) {

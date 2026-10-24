@@ -153,6 +153,10 @@ for (const mode of modes) {
         w: node.w, h: node.h, x: figma.x - (origin?.x ?? 0), y: figma.y - (origin?.y ?? 0), rootW: (origin?.node ?? spec).w,
         fill: visiblePaint(node.fill), stroke: visiblePaint(node.stroke), sw: node.sw, sa: node.sa,
         r: node.r, bvR: node.bv?.topLeftRadius, op: node.op,
+        // Mixed corners: Figma's [top-left, top-right, bottom-right, bottom-left] and each corner's own binding.
+        bvRs: Array.isArray(node.r) ? ["topLeftRadius", "topRightRadius", "bottomRightRadius", "bottomLeftRadius"].map((corner) => node.bv?.[corner] ?? null) : null,
+        fills: (node.fill ?? []).filter((paint) => !paint.hidden), image: (node.fill ?? []).some((paint) => paint.t === "IMAGE" && !paint.hidden),
+        minW: node.minW, maxW: node.maxW, minH: node.minH, dash: node.dash,
         fxStyle: node.fxStyle, ts: node.ts, textFill: node.t === "TEXT" ? visiblePaint(node.fill) : null,
         // Figma applies shadow spread only on rectangles/ellipses or on filled frames that clip content.
         spreadApplies: ["RECTANGLE", "ELLIPSE"].includes(node.t) || (Boolean(node.clip) && Boolean(visiblePaint(node.fill))),
@@ -233,8 +237,55 @@ for (const mode of modes) {
             out.fill = [wanted + (paint?.stops ? `  [${paint.stops.map((stop) => stop.v ?? stop.c).join(" → ")}]` : ""), got];
           }
         }
+        if (need.includes("fills")) {
+          // Figma paints its fills list in order, the last on top. Code: background-color at the bottom, then the
+          // background-image layers (CSS lists the top one first); a solid overlay is a one-colour gradient.
+          const paintOf = (paint) => (paint.t === "SOLID" ? colorOf(paint) : paint.t === "IMAGE" ? "image" : colorOf(paint));
+          const expected = want.fills.length ? want.fills.map(paintOf).join(" | ") : "none";
+          const layers = [];
+          let depth = 0, start = 0;
+          const images = cs.backgroundImage === "none" ? "" : cs.backgroundImage;
+          for (let i = 0; i <= images.length; i += 1) {
+            const ch = images[i];
+            if (ch === "(") depth += 1;
+            else if (ch === ")") depth -= 1;
+            else if ((ch === "," && depth === 0) || i === images.length) { if (images.slice(start, i).trim() && images.slice(start, i).trim() !== "none") layers.push(images.slice(start, i).trim()); start = i + 1; }
+          }
+          const layerPaint = (layer) => {
+            if (/^url\(/.test(layer)) return "image";
+            const stops = layer.match(/^linear-gradient\((.*)\)$/)?.[1].split(/,(?![^(]*\))/).map((part) => part.trim().replace(/\s+\d+(\.\d+)?%$/, "")).filter((part) => !/^(to |\d+deg)/.test(part));
+            return stops && stops.length && stops.every((stop) => stop === stops[0]) ? stops[0] : layer;
+          };
+          const stack = [...(/rgba\(\d+, \d+, \d+, 0\)/.test(cs.backgroundColor) ? [] : [cs.backgroundColor]), ...layers.reverse().map(layerPaint)];
+          out.fills = [expected + (want.fills.some((paint) => paint.v) ? `  [${want.fills.map((paint) => paint.v ?? paint.c ?? paint.t).join(" | ")}]` : ""), stack.length ? stack.join(" | ") : "none"];
+        }
+        // image: a Figma IMAGE fill is a picture in code (an <img>, itself or inside, or a background url()).
+        if (need.includes("image")) {
+          const picture = el.tagName === "IMG" || Boolean(el.querySelector?.("img")) || /url\(/.test(cs.backgroundImage);
+          out.image = [want.image ? "image" : "none", picture ? "image" : "none"];
+        }
+        // minw / maxw / minh: Figma's min and max width and min height (auto layout), against the computed CSS.
+        const px = (value) => (value === undefined || value === null ? null : `${+Number(value).toFixed(2)}px`);
+        const cssSize = (value, none) => (value === "auto" || value === "none" || value === "0px" ? none : `${+parseFloat(value).toFixed(2)}px`);
+        if (need.includes("minw")) out.minw = [px(want.minW) ?? "none", cssSize(cs.minWidth, "none")];
+        if (need.includes("maxw")) out.maxw = [px(want.maxW) ?? "none", cssSize(cs.maxWidth, "none")];
+        if (need.includes("minh")) out.minh = [px(want.minH) ?? "none", cssSize(cs.minHeight, "none")];
+        // dash: a dashed Figma stroke. An SVG shape's stroke-dasharray (times dashScale for shapes in viewBox units), else
+        // a dashed border (CSS cannot set the dash lengths, so only the style compares).
+        if (need.includes("dash")) {
+          const svg = el instanceof SVGElement;
+          const scale = entry.dashScale ?? 1;
+          const expected = !want.dash ? "none" : svg ? want.dash.map((n) => +(n).toFixed(2)).join(" ") : "dashed";
+          const actual = svg
+            ? (cs.strokeDasharray === "none" ? "none" : cs.strokeDasharray.split(/[,\s]+/).filter(Boolean).map((n) => +(parseFloat(n) * scale).toFixed(2)).join(" "))
+            : cs.borderTopStyle === "dashed" || cs.borderBottomStyle === "dashed" || cs.borderLeftStyle === "dashed" || cs.outlineStyle === "dashed" ? "dashed" : "none";
+          out.dash = [expected, actual];
+        }
         if (need.includes("stroke")) {
-          const expected = want.stroke ? `${want.sw}px ${colorOf(want.stroke)}` : "none";
+          // Per-side weights ([top, right, bottom, left]: a one-sided stroke) compare the side's weight.
+          const sideIndex = { top: 0, right: 1, bottom: 2, left: 3 }[entry.strokeSide ?? "top"];
+          const weight = Array.isArray(want.sw) ? want.sw[sideIndex] : want.sw;
+          const expected = want.stroke ? `${weight}px ${colorOf(want.stroke)}` : "none";
           let actual = "none";
           const via = entry.strokeVia ?? "border";
           // strokeSide: the border side that draws a one-sided stroke (a vertical rule drawn by border-left); default top.
@@ -251,6 +302,18 @@ for (const mode of modes) {
             const m = cs.boxShadow.match(/(rgba?\([^)]*\))\s+0px\s+0px\s+0px\s+([\d.]+)px/);
             if (m) actual = `${parseFloat(m[2])}px ${m[1]}`;
           }
+          // "inset": an INSIDE stroke drawn as an inset box-shadow, an edge (0 -2px 0 0 inset: the bottom side, offset away
+          // from it) or a spread ring (0 0 0 1px inset: every side).
+          if (via === "inset") {
+            const side = entry.strokeSide ?? "top";
+            for (const layer of cs.boxShadow.split(/,(?![^(]*\))/).map((part) => part.trim()).filter((part) => /\binset\b/.test(part))) {
+              const color = layer.match(/rgba?\([^)]*\)/)?.[0];
+              const [x, y, blur, spread] = (layer.replace(/rgba?\([^)]*\)/, "").match(/-?[\d.]+px/g) ?? []).map(parseFloat);
+              const edge = { top: y > 0 && !x, bottom: y < 0 && !x, left: x > 0 && !y, right: x < 0 && !y }[side];
+              if (!blur && !spread && edge) { actual = `${Math.abs(x || y)}px ${color}`; break; }
+              if (!blur && !x && !y && spread > 0) { actual = `${spread}px ${color}`; break; }
+            }
+          }
           // "mask": a ring painted by a masked ::after (padding = stroke width, background = the paint), for gradient strokes.
           if (via === "mask") {
             const ps = getComputedStyle(el, "::after");
@@ -263,8 +326,15 @@ for (const mode of modes) {
           out.stroke = [expected + (want.stroke?.v ? `  [${want.stroke.v}]` : "") + (want.sa ? `  [${want.sa}]` : ""), actual];
         }
         if (need.includes("radius")) {
-          const expected = want.bvR ? probe("width", `var(${cssVars[want.bvR]})`) : `${want.r ?? 0}px`;
-          out.r = [expected + (want.bvR ? `  [${want.bvR}]` : ""), cs.borderTopLeftRadius];
+          if (Array.isArray(want.r)) {
+            // Mixed corners (a chat bubble's tail, a range's end day): top-left, top-right, bottom-right, bottom-left.
+            const expected = want.r.map((r, i) => (want.bvRs?.[i] ? probe("width", `var(${cssVars[want.bvRs[i]]})`) : `${r}px`)).join(" ");
+            const actual = ["TopLeft", "TopRight", "BottomRight", "BottomLeft"].map((corner) => cs[`border${corner}Radius`]).join(" ");
+            out.r = [expected + (want.bvRs?.some(Boolean) ? `  [${want.bvRs.map((name) => name ?? "-").join(" · ")}]` : ""), actual];
+          } else {
+            const expected = want.bvR ? probe("width", `var(${cssVars[want.bvR]})`) : `${want.r ?? 0}px`;
+            out.r = [expected + (want.bvR ? `  [${want.bvR}]` : ""), cs.borderTopLeftRadius];
+          }
         }
         if (need.includes("fx")) {
           const base = `--zen-style-${styleTokens[want.fxStyle]}-shadow`;
@@ -272,10 +342,12 @@ for (const mode of modes) {
           const expected = want.fxStyle ? probe("box-shadow", `var(${unclipped ? `${base}-unclipped` : base})`) : "none";
           // fxIgnoreInset: components that paint their stroke as an inset ring in the same box-shadow list (Button) compare
           // only the outer shadows; fully transparent zero shadows ("0 0 #0000" placeholders) count as none.
+          // fxIgnoreRing: a stroke drawn as a spread ring in the same list (0 0 0 Npx, Toggle-Button's dot) is not a shadow.
           const outer = (value) => {
-            if (!entry.fxIgnoreInset || value === "none") return value;
+            if ((!entry.fxIgnoreInset && !entry.fxIgnoreRing) || value === "none") return value;
             const layers = value.split(/,(?![^(]*\))/).map((layer) => layer.trim())
-              .filter((layer) => !/\binset\b/.test(layer) && !/^rgba\(\d+, \d+, \d+, 0\)(\s+0px)+$/.test(layer));
+              .filter((layer) => !(entry.fxIgnoreInset && /\binset\b/.test(layer)) && !/^rgba\(\d+, \d+, \d+, 0\)(\s+0px)+$/.test(layer))
+              .filter((layer) => !(entry.fxIgnoreRing && /^rgba?\([^)]*\)\s+0px\s+0px\s+0px\s+[\d.]+px$/.test(layer)));
             return layers.length ? layers.join(", ") : "none";
           };
           out.fx = [outer(expected) + (want.fxStyle ? `  [${want.fxStyle}${unclipped ? ", spread ignored: no clip" : ""}]` : ""), outer(cs.boxShadow)];
@@ -300,8 +372,8 @@ for (const mode of modes) {
         if (need.includes("opacity")) out.op = [op3(want.op ?? 1), op3(cs.opacity)];
         return out;
       }, {
-        id: item.id, sel: entry.dom, want, entry: { check: entry.check, fillVia: entry.fillVia, strokeVia: entry.strokeVia, strokeSide: entry.strokeSide, strokeScale: entry.strokeScale, fxIgnoreInset: entry.fxIgnoreInset, fxBackdrop: entry.fxBackdrop, root: entry.root ?? suite.root },
-        cssVars: Object.fromEntries([want.fill?.v, want.stroke?.v, want.textFill?.v, want.bvR, ...(want.fill?.stops ?? []).map((stop) => stop.v)].filter(Boolean).map((name) => [name, cssVar(name)])),
+        id: item.id, sel: entry.dom, want, entry: { check: entry.check, fillVia: entry.fillVia, strokeVia: entry.strokeVia, strokeSide: entry.strokeSide, strokeScale: entry.strokeScale, fxIgnoreInset: entry.fxIgnoreInset, fxIgnoreRing: entry.fxIgnoreRing, fxBackdrop: entry.fxBackdrop, dashScale: entry.dashScale, root: entry.root ?? suite.root },
+        cssVars: Object.fromEntries([want.fill?.v, want.stroke?.v, want.textFill?.v, want.bvR, ...(want.bvRs ?? []), ...want.fills.map((paint) => paint.v), ...(want.fill?.stops ?? []).map((stop) => stop.v)].filter(Boolean).map((name) => [name, cssVar(name)])),
         styleTokens: Object.fromEntries([want.fxStyle, want.ts].filter(Boolean).map((name) => [name, styleToken(name)])),
       });
       if (got.missing) { checks.push({ layer: entry.figma, prop: "exists", figma: "present", dom: `missing ${entry.dom}`, ok: false }); continue; }
@@ -312,8 +384,9 @@ for (const mode of modes) {
         if (typeof expected === "number") ok = Math.abs(expected - actual) <= tolerance;
         else ok = norm(expected) === norm(actual) || (norm(expected) === "none" && String(actual).startsWith("none"));
         if (prop === "r" && !ok) {
-          const e = parseFloat(expected); const a = parseFloat(actual);
-          ok = e >= 999 && a >= 999; // "rounded" pill tokens
+          // "rounded" pill tokens (1000px vs a computed 9999px), corner by corner for mixed corners.
+          const es = norm(expected).split(" ").map(parseFloat); const as = String(actual).split(" ").map(parseFloat);
+          ok = es.length === as.length && es.every((e, i) => e === as[i] || (e >= 999 && as[i] >= 999));
         }
         checks.push({ layer: entry.figma || "(root)", dom: entry.dom, prop, figma: expected, actual, ok });
       }

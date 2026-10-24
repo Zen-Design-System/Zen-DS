@@ -7,7 +7,8 @@
 //  - Toggle-Button Size=Medium: the 36×20 bar (Toggle/Bar/Background/Unselected/Default, Spacing/Padding/3XSmall in) and the
 //    16px dot (Toggle/Item/Size/Medium, Toggle/Dot/Background/Unselected-Default, a 0.5px OUTSIDE Border/Neutral/Pale ring);
 //  - Radio-Mark: the 16px ring (Rounded) with the checkbox's paints.
-// The dot's Shadow/Action/Basic shares its box-shadow list with the 0.5px ring, so its `fx` is not compared here.
+// The bar's two fills compare as a stack; the dot's Shadow/Action/Basic shares its box-shadow list with the 0.5px ring,
+// which `fxIgnoreRing` leaves out.
 import { cellCase } from "./_table-shared.mjs";
 
 const is = (type) => (vp) => vp.Type === type;
@@ -50,8 +51,9 @@ export default {
     // Toggle
     { figma: "", dom: ":root", root: ".zen-toggle-button", check: ["size"], when: is("Toggle") },
     { figma: "Container", dom: ":root", root: ".zen-toggle-button", check: ["size", "x", "y"], when: is("Toggle") },
-    { figma: BAR, dom: ".zen-toggle-button__track", root: ".zen-toggle-button", check: ["size", "x", "y", "fill", "radius"], when: is("Toggle") },
+    { figma: BAR, dom: ".zen-toggle-button__track", root: ".zen-toggle-button", check: ["size", "x", "y", "fills", "radius"], when: is("Toggle") },
     { figma: `${BAR} > Toggle-Dot`, dom: ".zen-toggle-button__dot", root: ".zen-toggle-button", check: ["size", "x", "y", "fill", "radius"], when: is("Toggle") },
+    { figma: `${BAR} > Toggle-Dot`, dom: ".zen-toggle-button__dot", root: ".zen-toggle-button", check: ["fx"], fxIgnoreRing: true, when: is("Toggle") },
     { figma: `${BAR} > Toggle-Dot`, dom: ".zen-toggle-button__dot", root: ".zen-toggle-button", check: ["stroke"], strokeVia: "shadow", when: is("Toggle") },
     // Radio-Button
     { figma: "", dom: ":root", root: ".zen-radio-button", check: ["size"], when: is("Radio-Button") },

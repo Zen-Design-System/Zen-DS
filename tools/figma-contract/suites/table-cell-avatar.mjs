@@ -13,6 +13,7 @@ export default mediaSuite({
     { figma: "Avatar", dom: ".zen-avatar", check: ["size", "x", "y", "fill", "radius"] },
     { figma: "Avatar", dom: ".zen-avatar", check: ["stroke"], strokeVia: "shadow" },
     { figma: "Avatar > Image", dom: ".zen-avatar__inner::after", check: ["size", "stroke", "radius"] },
+    { figma: "Avatar > Image", dom: ".zen-avatar__inner", check: ["image"] },
     { figma: "Avatar > Focus-Ring", dom: ".zen-avatar::before", check: [] },
     { figma: "Avatar > Text", dom: ".zen-avatar__initials", check: [] },
     { figma: "Avatar > Status", dom: ".zen-avatar__status", check: [] },

@@ -17,8 +17,8 @@ export default {
   },
   map: [
     { figma: "", dom: ":root", check: ["size", "fill"] },
-    // Range-Selected-End's corners are mixed with no binding (0 · 1000 · 1000 · 0); the checker reads one corner only.
-    { figma: "", dom: ":root", check: ["radius"], when: (vp) => stripStates.includes(vp.State) && !vp.State.startsWith("Range-Selected-End") },
+    // Range-Selected-End's corners are mixed with no binding (0 · 1000 · 1000 · 0): compared corner by corner.
+    { figma: "", dom: ":root", check: ["radius"], when: (vp) => stripStates.includes(vp.State) },
     { figma: "Container", dom: ".zen-date-picker__day > span", check: ["size", "x", "y", "radius", "stroke"], strokeVia: "shadow" },
     { figma: "Container", dom: ".zen-date-picker__day > span", check: ["fill"], when: (vp) => !itemState(vp.State).atRest },
     // Weekend-Hover darkens the label to Strongest on hover only.
