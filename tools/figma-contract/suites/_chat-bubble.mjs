@@ -73,8 +73,13 @@ export const chatBubbleSuite = ({ setId, side }) => {
       { figma: "", dom: ":root", check: ["h"] },
       // fx is not compared: the Business lifts, the pill's lift and the Social You background blur (on an opaque fill) are
       // local Figma effects, not an Effect style, which is all the checker reads (QUESTIONS.md; chat.css mirrors the lifts).
-      // `radius` reads the top-left corner; the 4px tail corner is not compared.
-      { figma: "Container", dom: ":root", check: ["fill", "radius"] },
+      // Fills compare as a stack (Social Others lays Neutral/Subtle over Surface/Default), radius corner by corner (the 4px
+      // tail), and Business's 66px minimum width.
+      { figma: "Container", dom: ":root", check: ["fills", "radius"] },
+      { figma: "Container", dom: ":root", check: ["minw"], when: (vp) => vp.Domain === "Business" },
+      // The text's cap (Message max 220 Mobile / 516 Desktop) and Business's 42px minimum.
+      { figma: "Container > Message-Text > Message", dom: ".zen-chat-bubble__text", check: ["maxw"] },
+      { figma: "Container > Message-Text > Message", dom: ".zen-chat-bubble__text", check: ["minw"], when: (vp) => vp.Domain === "Business" },
       { figma: "Container > Message-Text", dom: ".zen-chat-bubble__text", check: ["h", "x", "y"], when: (vp) => vp.Domain === "Social" },
       { figma: "Container > Message-Text", dom: ".zen-chat-bubble__text", check: ["x", "y"], when: (vp) => vp.Domain === "Business" },
       { figma: "Container > Message-Text > Message", dom: ".zen-chat-bubble__text", check: ["text", "h", "y"] },

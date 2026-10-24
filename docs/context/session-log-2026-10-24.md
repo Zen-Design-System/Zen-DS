@@ -255,3 +255,19 @@ gate, so they looked green. They were written without being run, which was the s
 - **Baseline:** my new rows (D-07, DA-10, ST-28, ST-29, VA-05…09) went into matrix.baseline.json as works, so a
   regression now fails the gate. The other teams' new rows (PT-16…21, HO-13…16, K-24…27) are left to their owners.
 
+
+## Contract checker gaps (tier M, harness; user 2026-10-24 "Làm", BACKLOG P3)
+
+Branch zen/feat/contract-checker-gaps-20261024.
+- `tools/figma-contract/check.mjs`: `fills` (every visible paint, bottom to top: background-color under the
+  background-image layers, one-colour gradients as solids, `none` layers skipped), `image` (IMAGE fill = an `<img>` or a
+  `url()`), `radius` on mixed corners (all four, each binding; pills ≥ 999 per corner), `minw` / `maxw` / `minh`, `dash`
+  (SVG dasharray × dashScale, else a dashed border), `fxIgnoreRing`, `strokeVia: "inset"` (edge or ring), per-side `sw`
+  read at `strokeSide`. README lists them.
+- A full run-all with only the semantic changes (per-corner radius, per-side weight) passed: no suite regressed.
+- Un-skipped: Toggle-Button / Toggle / Control-Cell bar fills, the dot's fx (fxIgnoreRing); Editable cell fills (Surface |
+  Pale pinned: code's opaque Surface under Figma's Pale) and its 2px bottom underline (inset); Range-Selected-End
+  corners (Item, Mobile Item); chat bubble fills (Social Others: Surface | Neutral/Subtle), tail corners, Business
+  min 66, Message max 220 / 516, min 42; gridline dashes (bar, area, trend charts); Read-Only dashes (fields, text area);
+  photos (Avatar/Single, Chip Normal / Advanced, Avatar / Photo cells, Popover item content). No drift found.
+- Negative checks: a 500px text cap and a 1px underline (CSS edited, restored) fail as `maxw` and `stroke`.

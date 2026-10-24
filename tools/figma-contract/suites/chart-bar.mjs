@@ -71,7 +71,7 @@ export default {
     ...Array.from({ length: 6 }, (_, i) => ({ figma: `Chart > Y-Axis > Label#${i}`, dom: `.zen-chart__y > span:nth-child(${6 - i})`, check: ["text", "right", "cy"], when: vertical })),
     { figma: "Chart > Plot", dom: ".zen-chart__plot", check: ["size", "x", "y"], when: vertical },
     { figma: "Chart > Plot > Grid", dom: ".zen-chart__grid", check: ["size", "x", "y"], when: vertical },
-    ...[1, 2, 3, 4, 5, 6].map((k) => ({ figma: `Chart > Plot > Grid > Line-${k}`, dom: `.zen-chart__grid > span:nth-child(${k})`, check: ["w", "x", "cy", "stroke"], tolerance: 1, when: vertical })),
+    ...[1, 2, 3, 4, 5, 6].map((k) => ({ figma: `Chart > Plot > Grid > Line-${k}`, dom: `.zen-chart__grid > span:nth-child(${k})`, check: ["w", "x", "cy", "stroke", "dash"], tolerance: 1, when: vertical })),
     { figma: "Chart > Plot > Rule", dom: ".zen-chart__sector[data-active]", check: ["stroke"], strokeVia: "before", strokeSide: "left", when: vertical },
     ...Array.from({ length: 12 }, (_, k) => [
       { figma: `Chart > Plot > Bars > Column#${k}`, dom: `.zen-chart__column:nth-child(${k + 1})`, check: ["w", "x"], when: has(k, vertical) },
@@ -90,7 +90,7 @@ export default {
     // (`xr` / `wr` / `cxr` from the Bars frame) and the pills by their end against the plot's start.
     { figma: "Chart > Plot > Bars", dom: ".zen-chart__hgrid", check: ["h", "y"], when: horizontal },
     ...[0, 1, 2, 3].map((k) => [
-      { figma: `Chart > Plot > Grid > Tick#${k} > Line-${k + 1}`, dom: `.zen-chart__hgrid > span:nth-child(${k + 1})`, check: ["h", "y", "stroke"], strokeSide: "left", when: horizontal },
+      { figma: `Chart > Plot > Grid > Tick#${k} > Line-${k + 1}`, dom: `.zen-chart__hgrid > span:nth-child(${k + 1})`, check: ["h", "y", "stroke", "dash"], strokeSide: "left", when: horizontal },
       { figma: `Chart > Plot > Grid > Tick#${k} > Line-${k + 1}`, dom: `.zen-chart__hgrid > span:nth-child(${k + 1})`, check: ["cxr"], tolerance: 1, ...fromPlot, when: horizontal },
       { figma: `Chart > Plot > Grid > Tick#${k} > Label`, dom: `.zen-chart__haxis > span:nth-child(${k + 1})`, check: ["text", "y"], when: horizontal },
       // Figma centres a tick label on its 1px line, code on the line's start edge: half a pixel apart (tolerance 1%).
