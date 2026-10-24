@@ -386,7 +386,7 @@ export function HrMyExpensesTemplate() {
           // container here would need the Sidebar's shadow; the page reads cleaner without one).
           <Stack gap="md">
             {/* Search fills its column; the filter chips (and Clear all, once two filters are on) share the rest. */}
-            <Grid columns="minmax(0, 320px) 1fr" gap="sm" align="center">
+            <Grid columns="minmax(0, 240px) 1fr" gap="sm" align="center">
               <Search aria-label="Search expenses" placeholder="Search expenses" value={query} onValueChange={setQuery} />
               <Stack direction="row" gap="xs" align="center" wrap>
                 {filterChip("status")}

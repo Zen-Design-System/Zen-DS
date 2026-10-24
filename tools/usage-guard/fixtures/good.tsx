@@ -14,6 +14,23 @@ export const Good = () => <>
   <InputField aria-label="Share link" readOnly value={link} />
   <InputField {...sharedFieldProps} />
   <Search placeholder="Search components" />
+  <Chip variant="advanced" dropdown popoverLabel="Assignee" popoverItems={[{ id: "ava", label: "Ava Chen", photoSrc: avaPhoto }, { id: "bao", label: "Bao Nguyen", theme: "avatar-small", leading: <Avatar size="sm" theme="teal" background="subtle" alt="">BN</Avatar> }]}>Assignee</Chip>
+  <MetricCard theme="default" label="Overdue" value="$12.9K" icon="icon-alarm-clock-line" iconTheme="red" iconBackground="solid" />
+  <Badge theme="yellow" background="subtle" leading="icon-flag-03-solid">Medium</Badge>
+  <PropertyField label="Priority" icon="icon-flag-01-line"><PropertySelect options={[{ value: "high", label: "High", icon: "icon-flag-03-solid", tone: "negative" }, { value: "low", label: "Low", icon: "icon-flag-03-solid", tone: "neutral" }]} /></PropertyField>
+  <List aria-label="Settings"><ListItem title="Calendar" leading={<DockIcon icon="icon-calendar-line" size="md" background="subtle" />} /></List>
+  <Badge theme="red" background="subtle" leading="icon-flag-03-solid">Urgent</Badge>
+  <Badge theme="green" background="subtle">Paid</Badge>
+  <Table aria-label="Tasks" rows={tasks} columns={[{ id: "title", header: "Task" }, { id: "priority", header: "Priority", cell: (task) => <TableBadges><Badge theme="red" background="subtle" leading="icon-flag-03-solid">{task.priority}</Badge></TableBadges> }]} />
+  <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader main={<PageHeader title="Tasks" />} />}>{page}</AppShell>
+  {/* The Main row's PageHeader actions are its own: app-shell/primary-in-top-bar reads only the header's own actions. */}
+  <AppShellHeader main={<PageHeader title="Tasks" actions={<Button level="primary" onClick={addTask}>New task</Button>} />} leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} />
+  <AppShell sidebar={nav} header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} actions={<><AppShellAction icon="icon-help-circle-line" aria-label="Help" onClick={openHelp} /><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} onClick={openNotifications} /><Menu aria-label="Account" trigger={<AppShellAccount name="Ava Chen" />} items={accountItems} /></>} />}>{page}</AppShell>
+  <Stack direction="row" gap="xs" align="center"><Box width="fill" maxWidth={240}><Search placeholder="Search tasks" /></Box><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></Stack>
+  <Grid columns={{ mobile: 1, desktop: "minmax(0, 240px) 1fr" }} gap="sm"><Search placeholder="Search members" /><Chip variant="advanced" dropdown popoverItems={items}>Role</Chip></Grid>
+  <Stack direction="row" gap="xs" align="center"><Search shape="rounded" placeholder="Search messages" /><Chip variant="advanced" dropdown popoverItems={items}>Unread</Chip></Stack>
+  {/* zen-allow-search-toolbar-width: a search results page, where the query is the page's task */}
+  <Stack direction="row" gap="xs" align="center"><Search placeholder="Search the help centre" /><Chip variant="advanced" dropdown popoverItems={items}>Topic</Chip></Stack>
   <Checkbox label="Remember me" checked={on} onChange={setOn} />
   <RadioButton name="plan" label="Monthly" checked />
   <Badge remove onRemove={() => drop("design")}>Design</Badge>
@@ -203,7 +220,7 @@ export const Good = () => <>
   {/* The Master crumb stays when the toggle moves into the Sidebar; each pattern gets the panes it draws. */}
   <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader leading={<Breadcrumbs items={crumbs} onNavigate={go} />} />}>{page}</AppShell>
   {/* A part's content carries its own props: the header's BadgeStatus progress is not the shell's progress. */}
-  <AppShell sidebar={nav} header={<AppShellHeader main={<PageHeader title="Loyalty app" meta={<BadgeStatus status="in-progress" progress={64}>Active</BadgeStatus>} />} />}>{page}</AppShell>
+  <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader main={<PageHeader title="Loyalty app" meta={<BadgeStatus status="in-progress" progress={64}>Active</BadgeStatus>} />} />}>{page}</AppShell>
   <AppShell pattern="workspace" header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} />} leadingPane={<AppShellPane title="Files">{fileList}</AppShellPane>} trailingPane={<AppShellPane title="Comments">{comments}</AppShellPane>}>{page}</AppShell>
   {/* A comment with an apostrophe inside an attribute's expression is no string: the tag still reads as one AppShell. */}
   <AppShell sidebar={(

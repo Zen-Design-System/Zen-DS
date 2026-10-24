@@ -17,6 +17,25 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- House rule (user, 2026-10-24): a Search in a toolbar row, beside filters or buttons, is at most 240px wide
+  (`<Box width="fill" maxWidth={240}>`, or a Grid column `minmax(0, 240px)`); a phone Search fills its row. The Search,
+  Layout and skill docs say so (they used to say 320), and three checks catch it: harness `search/toolbar-width`, audit
+  kind `toolbar-search` and the Figma audit's `search/toolbar-width`. Platform examples, templates, the Zen Agent prompt
+  and Figma → Studio pulls follow it. DashboardHeader's Control-Bar keeps Figma's 320 for now (BACKLOG question).
+- House rules (user, 2026-10-24, the same task page), each in the guidelines, skills, harness and Figma audit: a
+  ListItem leads with a DockIcon, an Avatar or a thumbnail, never a bare icon (`list-item/leading-dock-icon`); status
+  and priority Badges keep a leading icon, priority the solid flag `icon-flag-03-solid` (`badge/status-priority-icon`,
+  and `table/badge-column-icon` for a Table's badge column); a desktop AppShellHeader's top row is never empty
+  (`app-shell/top-row-filled`). Examples follow them (date-picker, voice, app layer, avatar, badge, AppShell, Sidebar).
+- House rules (user, 2026-10-24): a status MetricCard's Dock Icon is solid in the colour of what it counts (total
+  accent, in progress blue, overdue red, done green; `metric/dock-icon-by-meaning`); priority has one palette, Urgent and
+  High red, Medium yellow, Low neutral with `icon-flag-03-solid`, PropertySelect tones negative / warning / neutral
+  (`priority/palette`). The examples' and templates' priority data follow it.
+- House rule (user, 2026-10-24): a popover that picks a person shows each person's avatar (`photoSrc`, theme
+  `avatar-small`, or an initials Avatar as `leading`); harness `popover/people-have-avatars`. The Chip and Card examples'
+  assignee and lead pickers follow it.
+- Usage harness: an element's slot props are read from its own attributes only, so `app-shell/primary-in-top-bar` no
+  longer takes a PageHeader's actions inside `main` for the top row's (a false positive on valid code).
 - Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,
   auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
   the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are

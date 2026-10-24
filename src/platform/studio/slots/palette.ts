@@ -883,7 +883,7 @@ export const PALETTE: readonly PaletteItem[] = [
       `    <PropertyStatus defaultValue="in-progress" />`,
       `  </PropertyField>`,
       `  <PropertyField label="Priority" icon="icon-flag-01-line">`,
-      `    <PropertySelect defaultValue="urgent" options={[{ value: "urgent", label: "Urgent", icon: "icon-flag-01-solid", tone: "negative" }, { value: "low", label: "Low", icon: "icon-flag-01-solid", tone: "neutral" }]} />`,
+      `    <PropertySelect defaultValue="urgent" options={[{ value: "urgent", label: "Urgent", icon: "icon-flag-03-solid", tone: "negative" }, { value: "low", label: "Low", icon: "icon-flag-03-solid", tone: "neutral" }]} />`,
       `  </PropertyField>`,
       `  <PropertyField label="Due Date" icon="icon-calendar-line">`,
       `    <PropertyDate defaultValue="2026-06-07" />`,

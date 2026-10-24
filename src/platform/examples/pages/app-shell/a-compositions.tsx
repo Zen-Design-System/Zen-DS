@@ -294,7 +294,7 @@ function Workspace({ look }: { look: Look }) {
                     <Heading level={2} id={projectsId} textStyle="Heading/4">Projects</Heading>
                     <BadgeCounter size="sm" theme="neutral" background="subtle" value={projects.length} />
                   </Stack>
-                  <Box width={250}>
+                  <Box width={240}>
                     <Search placeholder="Search projects" aria-label="Search projects" value={query} onValueChange={(value) => { setQuery(value); setPage(1); }} />
                   </Box>
                 </Stack>
@@ -357,7 +357,7 @@ const codeFor = ({ canvas, sidebarShadow, cards, lists, hue }: Look & { hue?: bo
       <DashboardHeader type="custom">
         <Stack direction="row" gap="md" width="fill">
           <Stack direction="row" gap="xs" width="fill"><Heading level={2} textStyle="Heading/4">Projects</Heading><BadgeCounter value={12} /></Stack>
-          <Box width={250}><Search placeholder="Search projects" value={query} onValueChange={setQuery} /></Box>
+          <Box width={240}><Search placeholder="Search projects" value={query} onValueChange={setQuery} /></Box>
         </Stack>
       </DashboardHeader>
       <Table aria-label="Projects" rows={shown} columns={columns} sort={sort} onSortChange={setSort} /> {/* Project · Owner · Team · Progress · Due date · ⋮ */}

@@ -12072,7 +12072,7 @@
         "leading": {
           "x-kind": "node",
           "x-icon": true,
-          "description": "Figma Leading slot: an Avatar (Image-Size/Medium), Dock Icon, thumbnail or an icon name (`\"icon-clock-line\"`)."
+          "description": "Figma Leading slot: a Dock Icon (`<DockIcon icon=\"icon-clock-line\" size=\"md\" background=\"subtle\" />`), an Avatar (Image-Size/Medium) or a thumbnail."
         },
         "value": {
           "x-kind": "node",
@@ -22025,7 +22025,7 @@
         "leading": {
           "x-kind": "node",
           "x-icon": true,
-          "description": "Icon name or element before the text, as in ListItem."
+          "description": "Before the text, as in ListItem: a Dock Icon (`<DockIcon icon size=\"md\" background=\"subtle\" />`), not a bare icon name."
         },
         "checked": {
           "type": "boolean",
@@ -22937,6 +22937,7 @@
         "chip/multiple-needs-count",
         "chip/radio-is-chip-group",
         "chip/needs-action",
+        "popover/people-have-avatars",
         "api/deprecated-prop",
         "api/overrides-studio-only",
         "copy/plural-count",
@@ -22986,6 +22987,8 @@
         "input/needs-label",
         "input/placeholder-not-label",
         "richtext/value-not-onchange",
+        "priority/palette",
+        "popover/people-have-avatars",
         "property-field/one-value",
         "color-picker/hex-value",
         "api/deprecated-prop",
@@ -23003,7 +23006,7 @@
         "On phone screens prefer shape=\"rounded\" (a pill, Figma Shape=Rounded); a Search in a TopNavigation control bar, a BottomSheet or an AppShell on a phone is rounded by default (set shape=\"default\" to keep the square field). Desktop toolbars keep the default shape.",
         "Filter live and show an empty state that echoes the query.",
         "Let Enter open the first result; the clear button resets to recent items.",
-        "Pair Search with Chip filters in table toolbars. Search fills its container, so give it a Grid column: columns={{ mobile: 1, desktop: \"minmax(0, 320px) 1fr\" }} with the chips in the second cell.",
+        "Pair Search with Chip filters in table toolbars. Search fills its container, so cap it in a toolbar row at 240px (the user's rule, 2026-10-24): <Box width=\"fill\" maxWidth={240}> around it beside the chips and buttons, or a Grid column: columns={{ mobile: 1, desktop: \"minmax(0, 240px) 1fr\" }} with the chips in the second cell (harness: search/toolbar-width). On a phone it fills its row.",
         "Debounce remote search (~250ms) and keep the query when results refresh.",
         "Show the result count in an aria-live region (\"12 results\").",
         "When the filter opens a Bottom Sheet, panel or Popover, pass filterHasPopup (\"dialog\", \"menu\", \"listbox\") and filterExpanded={open}; aria-expanded on Search itself lands on the input.",
@@ -23014,10 +23017,12 @@
         "Don't clear the query when results update.",
         "Don't disable Search because there is nothing to find yet; keep it with an empty state, or hide it where search never applies. Disable it only while something blocks searching (a bulk edit, a sync), and say why.",
         "Don't trigger search only on Enter for small, local lists; filter as the user types.",
-        "Don't use a vague placeholder (\"Type here…\")."
+        "Don't use a vague placeholder (\"Type here…\").",
+        "Don't let a toolbar Search stretch across the row or grow past 240px beside filters and buttons (harness: search/toolbar-width)."
       ],
       "rules": [
         "search/needs-name",
+        "search/toolbar-width",
         "api/overrides-studio-only",
         "interaction/no-noop-handler"
       ]
@@ -23135,12 +23140,14 @@
         "Make counts agree with their noun — \"1 file\" / \"3 files\" — with a plural helper; never print {list.length} straight before a noun (harness: copy/plural-count).",
         "Show a workflow step with BadgeStatus, never a Badge themed by hand: the step sets the colour and the ring, so every screen reads one workflow the same way (harness: badge/workflow-status-uses-badge-status).",
         "Keep one workflow per product, in order: To Do → In Progress → In Review → Done; Blocked and Cancelled sit outside it. Rename a step only by its label (children), never by repainting another step.",
-        "Pass progress only when you know the exact share of the work done (a project at 60%); otherwise the step's own ring says enough."
+        "Pass progress only when you know the exact share of the work done (a project at 60%); otherwise the step's own ring says enough.",
+        "Lead a priority badge (Urgent, High, Medium, Low) with the solid flag, leading=\"icon-flag-03-solid\" (Figma .Task/Priority), in the one priority palette: Urgent and High red, Medium yellow, Low neutral — the same everywhere, PropertySelect tones negative / warning / neutral (harness: priority/palette); keep a status badge's leading icon (the dot, or an icon per state) — the user 2026-10-24 (harness: badge/status-priority-icon)."
       ],
       "dont": [
         "Don't make a badge clickable (use Chip).",
         "Don't make a BadgeStatus removable or clickable: a status changes in its picker (a Popover of BadgeStatus items, Input/Property-Field Type=Status).",
         "Don't rely on colour alone; keep the text.",
+        "Don't hide the icon of a status or priority badge (leadingIcon={false}), and don't leave a Table's status or priority badge column without one (harness: badge/status-priority-icon, table/badge-column-icon).",
         "Don't use more than two badges on one row item; summarise the rest.",
         "Don't show counters at zero."
       ],
@@ -23151,6 +23158,8 @@
         "theme/on-solid-content",
         "badge/count-uses-counter",
         "badge/workflow-status-uses-badge-status",
+        "badge/status-priority-icon",
+        "priority/palette",
         "badge/count-text-uses-counter",
         "api/deprecated-prop",
         "api/overrides-studio-only",
@@ -23207,6 +23216,7 @@
       "do": [
         "Pass `open`: a Popover is closed by default. Controlled `open={isOpen}` goes with `onOpenChange` (harness: popover/explicit-open, popover/controlled-close).",
         "Pass images via photoSrc; the item renders the Figma size for its theme.",
+        "Show the person in a popover that picks people (an assignee, an owner, reviewers): each item takes photoSrc (theme avatar-small), or an initials <Avatar> as leading when there is no photo; PropertyPeople and AutocompleteField options for people too (the user 2026-10-24: \"popover để chọn nếu là người thì nên có avatar\"; harness: popover/people-have-avatars).",
         "Avatar items are 32px (Avatar Small) or 40px (Avatar Big); long labels and captions stay on one line and end in \"…\".",
         "Give it anchorRef + onOpenChange so outside-click and Escape close it and focus returns.",
         "Keep one popover open at a time: opening a popover for another object closes the open one. Popover (with onOpenChange), Chip, Select and DatePicker do this for you; a custom popup joins with useExclusivePopover(open, close, rootRef). A popover opened from inside another popover is nested and keeps its parent open.",
@@ -23227,6 +23237,7 @@
         "popover/controlled-close",
         "popover/explicit-open",
         "popover/bulk-action-limit",
+        "popover/people-have-avatars",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/action-without-handler",
@@ -23910,6 +23921,7 @@
       "do": [
         "Give a ListBox footer action (\"Open calendar\", \"Go to Inbox\") as a Tertiary Button (the Button default), straight in the footer: it fills the box on desktop and tablet and hugs its label on mobile (harness: listbox/footer-action-tertiary).",
         "Make a settings row that is one on/off switch a <ToggleListItem>, not a ListItem with a Toggle in its trailing slot.",
+        "Lead a row that needs an icon with a Dock Icon: leading={<DockIcon icon=\"icon-calendar-line\" size=\"md\" background=\"subtle\" />} (the user 2026-10-24: \"các list item hạn chế dùng icon không. Thường nên dùng dock icon\"; harness: list-item/leading-dock-icon).",
         "Wrap rows in <List aria-label> so the group is named.",
         "Put a box of List-Item rows in <ListBox> (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.",
         "Pick the ListBox theme by where it sits (usage rules §16): default on Canvas/Default and on a Surface-Alt phone screen; flat-border on a Canvas/Flat page; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card); on-container inside a Dialog, ModalForm, SidePanel or BottomSheet (their Container fill; harness listbox/on-container-in-overlay).",
@@ -23933,6 +23945,7 @@
         "Don't put a Toggle or Checkbox on a clickable row: the row click and the switch compete. Make the row flip the switch, or keep the row static (harness: list-item/clickable-row-toggle).",
         "Don't use Small or text buttons in the trailing slot; trailing actions are Medium icon buttons (harness: list-item/trailing-button-medium).",
         "Don't mix leading sizes in one list — row heights stop lining up.",
+        "Don't lead a row with a bare icon (leading=\"icon-…\" or an <Icon>): it floats beside the title without Figma's 40px leading box. Use a Dock Icon, an Avatar or a thumbnail (harness: list-item/leading-dock-icon).",
         "Don't put a Main (bordered) Button for See all / Show all in a section head; it is underlined text (a Link).",
         "Don't pad the rows — no padding on .zen-list-item, no <List inset> (deprecated); inset the List with its container (harness: list-item/inset-not-padding).",
         "Don't put a list of clickable rows flush against an edge or a clipping scroller: its fill hangs 12px outside the content; leave Padding/Small (12px) or more around it.",
@@ -23956,6 +23969,7 @@
         "listbox/footer-action-tertiary",
         "listbox/closing-list-on-phone",
         "list-item/clickable-row-toggle",
+        "list-item/leading-dock-icon",
         "list-item/switch-row",
         "list-item/trailing-button-medium",
         "api/deprecated-prop",
@@ -23973,6 +23987,7 @@
         "Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4).",
         "Right-align numbers and amounts; keep text left.",
         "Give each row one primary text (bold) and at most one caption.",
+        "A status or priority column of content \"badge\" draws its Badges with no icon: render the cell with <TableBadges><Badge leading=\"icon-flag-03-solid\"> for priority (a status: its state's icon, or BadgeStatus for a workflow step); on a Zen Studio page give each row's Badge leadingIcon and leading through overrides, \"Row[id]/priority/Badge\" (the user 2026-10-24; harness: table/badge-column-icon).",
         "Put row actions in the last column as Button/Icon-Flat Medium: `content: \"actions\"` with the column's `actions` (no cell function), or TableActions with IconButton appearance=\"flat\" level=\"primary\" in a `cell`; a ⋯ Menu trigger for several (harness: table/actions-flat).",
         "Give a selectable table its bulk actions through bulkActions: at most 5 actions (icon + label + onClick, grouped by `group`) whose labels say how many rows they touch (\"Archive 3 projects\"); the Table draws the buttons, adds Clear selection and the count, and moves what doesn't fit into a More menu.",
         "Show an Empty State row when filters return nothing.",
@@ -24004,6 +24019,7 @@
         "table/needs-name",
         "table/reference-in-sheet",
         "table/interaction-needs-handler",
+        "table/badge-column-icon",
         "table/media-size-by-subtext",
         "table/editor-needs-commit",
         "table/editor-number-right",
@@ -24107,6 +24123,7 @@
       "file": "docs/guidelines/metric.md",
       "do": [
         "Format the value with units and separators (harness: metric/formatted-value).",
+        "Give a MetricCard's Dock Icon iconBackground=\"solid\" and the colour of what it counts: total accent, in progress blue, overdue red, done green (the user 2026-10-24: \"metric card dùng dock icon solid\"; harness: metric/dock-icon-by-meaning for the status cards).",
         "Give a typed MetricCard the data its type draws: series, goal, comparison or categories (harness: metric/type-data).",
         "Pass categories largest first and keep them to 2–7 (harness: metric/category-count).",
         "Pass format so the series summary, the goal's label and the category amounts read like the number (\"$105.7K\", \"1,284 h\").",
@@ -24118,6 +24135,7 @@
       ],
       "dont": [
         "Don't colour the number itself to show good/bad — the trend badge carries it.",
+        "Don't leave a status card's Dock Icon (total, in progress, overdue, done) at the default Neutral Subtle.",
         "Don't show more than ~4 KPI cards in a row; group or prioritise.",
         "Don't round away meaningful precision in finance values.",
         "Don't give every tile a different colour for decoration, or rely on the icon colour alone for good/bad; the trend badge carries the status."
@@ -24130,6 +24148,7 @@
         "theme/mixed-elevation",
         "card/spacing-by-count",
         "metric/formatted-value",
+        "metric/dock-icon-by-meaning",
         "metric/type-data",
         "metric/category-count",
         "api/overrides-studio-only",
@@ -24489,7 +24508,7 @@
         "Put page content in a Container so its margin follows the breakpoint.",
         "Give a frame a surface only when it really is a separate layer; a Surface frame on a white (Alt) canvas needs border=\"pale\".",
         "Put the fill, stroke and corners of an auto layout frame on the Stack or Grid itself (Figma's frame with a fill is one layer): <Stack surface=\"surface\" padding=\"lg\" gap=\"md\" radius=\"lg\">, not a Box around a Stack.",
-        "Size like Figma auto layout: Hug for content-sized pieces, Fill for what takes the rest of a row or the full width (a main column; a Search next to buttons goes in a Box width=\"fill\", since Search has no sizing props), maxWidth to cap a Fill line of text; use Fixed (a number) only for widths that really are fixed, such as a side column or a preview frame.",
+        "Size like Figma auto layout: Hug for content-sized pieces, Fill for what takes the rest of a row or the full width (a main column; a Search next to buttons or filters goes in a Box width=\"fill\" maxWidth={240}, since Search has no sizing props and a toolbar Search is at most 240px wide), maxWidth to cap a Fill line of text; use Fixed (a number) only for widths that really are fixed, such as a side column or a preview frame.",
         "Pin a media overlay with position=\"absolute\" and a constraint on token insets: a corner action on a photo is constraintX=\"right\" insetRight=\"sm\" constraintY=\"top\" insetTop=\"sm\"; a caption bar is constraintX=\"left-right\" constraintY=\"bottom\".",
         "Put background media first and the content after it: the media is absolute (left-right × top-bottom), and the later in-flow content paints above it (Figma auto layout \"Last on top\").",
         "Lift a Surface panel on Canvas/Default with effectStyle=\"Shadow/Bottom/Level-1\" and no border: elevation follows the Sidebar, and it is the Card shadow.",
@@ -24509,6 +24528,7 @@
         "Don't mix radius=\"full\" with a finite corner (radius=\"full\" radiusBottomRight=\"xs\"): full is 1000px, so the browser scales every corner down to fit and the small corner renders square. Use a finite radius (radius=\"xl\" radiusBottomRight=\"xs\"); full mixes only with none (harness: radius/full-mixed)."
       ],
       "rules": [
+        "search/toolbar-width",
         "box/border-matches-action",
         "layout/constraint-needs-absolute",
         "layout/inset-not-read",
@@ -24574,6 +24594,7 @@
       "file": "docs/guidelines/app-shell.md",
       "do": [
         "Put one AppShell at the root of each app screen, inside ZenProvider, and pick the pattern from the screen's job (see Use).",
+        "Never leave a desktop header's top row empty (the user 2026-10-24): Breadcrumbs or a Search on the left (leading), a Search in the centre (center, up to 400) when it helps, and the utilities on the right (actions): help, notifications (AppShellAction with its count), the account Menu last. A header that is its Main row alone puts the Sidebar toggle in the Sidebar, collapse=\"sidebar\" (harness: app-shell/top-row-filled).",
         "With pattern=\"grid\", build the page from Boxes and Flat Cards (MetricCard, ChartCard and Card take theme=\"default\", no shadow) on the grey Canvas, and give Subtle only to a metric card that should stand out (◇ Master-Layout Rule, 16823:85229).",
         "One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards and panes; Canvas alt (white) + a Sidebar on the canvas (shadow={false}) + bordered cards and panes (theme=\"border\"); Canvas flat + a Flat Sidebar + Flat-Border cards. Never a shadowed Sidebar on a white Canvas (harness theme/mixed-elevation, theme/navigation-surface).",
         "Lead the header's top row with Breadcrumbs (master={false} beside the toggle) or a Search, and keep its right side to utilities in this order: a plan Badge, AppShellAction buttons, the account menu last.",
@@ -24597,6 +24618,7 @@
       "rules": [
         "icon-button/needs-action",
         "app-shell/primary-in-top-bar",
+        "app-shell/top-row-filled",
         "app-shell/nested",
         "app-shell/breadcrumbs-once",
         "app-shell/forced-layout",

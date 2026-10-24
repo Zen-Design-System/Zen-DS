@@ -21,7 +21,7 @@ One row of a vertical list: a leading visual, a title with an optional caption, 
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Switch row | `ToggleListItem title · caption · checked · onCheckedChange` | a settings row that is one switch: a press anywhere flips it, the title names it and the caption describes it (composed; no Figma master yet) |
-| Leading | `leading` | Avatar (Image-Size/Medium, 40px), Dock Icon, thumbnail — Figma Leading on/off |
+| Leading | `leading` | Dock Icon (<DockIcon icon size="md" background="subtle" />, the way to show an icon), Avatar (Image-Size/Medium, 40px) or thumbnail — Figma Leading on/off; never a bare icon |
 | Contents | `title · caption · children · titleLines` | Title Body/Base/Bold, one line that truncates (Figma); titleLines={2} lets it wrap to a second line before it truncates; caption Body/Small/Regular Light (may wrap), Spacing/Gap/3XSmall (2px) under the title (Info-Content); children replace the stack |
 | Value | `value · valueCaption · valueTone` | an amount, total or count at the row's end, mirrored Info-Content: value Body/Base/Bold level with the title, valueCaption Body/Small/Regular Light level with the caption, right-aligned, tabular figures, never cut (the title truncates). valueTone = a Content tone (strongest default; positive-light / negative-light for a signed amount). Inside the row's button or link, so a clickable row reads it. Code-only: in Figma a text stack in the Trailing slot |
 | Trailing | `trailing` | Figma Slot-Actions: Button/Icon-Flat Medium (IconButton appearance="flat" size="md", 40px), gap Small; or a passive chevron or Badge (after the value) |
@@ -57,7 +57,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onClick">`.
 | `title` (required) | `ReactNode` | — | Figma Info-Content Title (Body/Base/Bold, Content/Neutral/Strongest). |
 | `titleLines` | `1 \| 2` | `1` | Lines the title may take before it truncates with an ellipsis. 1 (default) = Figma's one line (Title, textTruncation ENDING, maxLines 1); 2 when the title must be read in full, e.g. a long task or document name in a narrow list. |
 | `caption` | `ReactNode` | — | Figma Info-Content Subtitle (Body/Small/Regular, Content/Neutral/Light). |
-| `leading` | `IconName \| ReactNode` | — | Figma Leading slot: an Avatar (Image-Size/Medium), Dock Icon, thumbnail or an icon name (`"icon-clock-line"`). |
+| `leading` | `IconName \| ReactNode` | — | Figma Leading slot: a Dock Icon (`<DockIcon icon="icon-clock-line" size="md" background="subtle" />`), an Avatar (Image-Size/Medium) or a thumbnail. An icon name (`"icon-clock-line"`) still draws a bare glyph, which the harness warns about (list-item/leading-dock-icon): a row leads with a Dock Icon. |
 | `value` | `ReactNode` | — | A value at the row's end, read with the title: an amount, a total, a count ("+94,860,000 VND", "92 h"). Body/Base/Bold like the title, right-aligned and never cut: the title truncates first. With `valueCaption` it is a second Info-Content mirrored to the right (code-only; in Figma, a text stack in the Trailing slot). It is part of the row's button or link, so a clickable row reads it out. |
 | `valueCaption` | `ReactNode` | — | The line under `value` (Body/Small/Regular, Content/Neutral/Light), level with the caption: the amount in another currency, a date, a unit ("3,600.00 USD"). |
 | `valueTone` | `ContentTone` | `"strongest"` | Colour of `value`, a Color/Content tone as Text's `tone`: "strongest" (default, like the title); "positive-light" / "negative-light" for a signed amount or delta that must stand out (money in, a drop). Keep the sign in the text too: the colour never carries the meaning alone. |
@@ -101,7 +101,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onChange">`.
 | `ref` | `Ref<HTMLElement>` | — | The root row element. |
 | `title` (required) | `ReactNode` | — | What the switch turns on or off (Body/Base/Bold, one line); it names the switch. |
 | `caption` | `ReactNode` | — | One line under the title (Body/Small/Regular, Content/Neutral/Base): what the setting does. It describes the switch. |
-| `leading` | `IconName \| ReactNode` | — | Icon name or element before the text, as in ListItem. |
+| `leading` | `IconName \| ReactNode` | — | Before the text, as in ListItem: a Dock Icon (`<DockIcon icon size="md" background="subtle" />`), not a bare icon name. |
 | `checked` | `boolean` | — | Controlled on/off state. |
 | `defaultChecked` | `boolean` | — | Initial state when uncontrolled. Default false. |
 | `onCheckedChange` | `(checked: boolean) => void` | — | Called with the new state on a press anywhere on the row, or Space / Enter on the switch. |
@@ -128,6 +128,7 @@ type ContentTone = (typeof contentTones)[number]
 ## ✅ Do
 - Give a ListBox footer action ("Open calendar", "Go to Inbox") as a Tertiary Button (the Button default), straight in the footer: it fills the box on desktop and tablet and hugs its label on mobile (harness: listbox/footer-action-tertiary).
 - Make a settings row that is one on/off switch a `<ToggleListItem>`, not a ListItem with a Toggle in its trailing slot.
+- Lead a row that needs an icon with a Dock Icon: leading={<DockIcon icon="icon-calendar-line" size="md" background="subtle" />} (the user 2026-10-24: "các list item hạn chế dùng icon không. Thường nên dùng dock icon"; harness: list-item/leading-dock-icon).
 - Wrap rows in <List aria-label> so the group is named.
 - Put a box of List-Item rows in `<ListBox>` (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.
 - Pick the ListBox theme by where it sits (usage rules §16): default on Canvas/Default and on a Surface-Alt phone screen; flat-border on a Canvas/Flat page; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card); on-container inside a Dialog, ModalForm, SidePanel or BottomSheet (their Container fill; harness listbox/on-container-in-overlay).
@@ -151,6 +152,7 @@ type ContentTone = (typeof contentTones)[number]
 - Don't put a Toggle or Checkbox on a clickable row: the row click and the switch compete. Make the row flip the switch, or keep the row static (harness: list-item/clickable-row-toggle).
 - Don't use Small or text buttons in the trailing slot; trailing actions are Medium icon buttons (harness: list-item/trailing-button-medium).
 - Don't mix leading sizes in one list — row heights stop lining up.
+- Don't lead a row with a bare icon (leading="icon-…" or an `<Icon>`): it floats beside the title without Figma's 40px leading box. Use a Dock Icon, an Avatar or a thumbnail (harness: list-item/leading-dock-icon).
 - Don't put a Main (bordered) Button for See all / Show all in a section head; it is underlined text (a Link).
 - Don't pad the rows — no padding on .zen-list-item, no <List inset> (deprecated); inset the List with its container (harness: list-item/inset-not-padding).
 - Don't put a list of clickable rows flush against an edge or a clipping scroller: its fill hangs 12px outside the content; leave Padding/Small (12px) or more around it.
@@ -183,6 +185,7 @@ type ContentTone = (typeof contentTones)[number]
 | `listbox/footer-action-tertiary` | error | A ListBox footer action ("Open calendar", "Go to Inbox") is a Tertiary Button, the Button default: it fills the box on desktop and tablet and hugs its label on mobile, never plain text or a Link (user rule 2026-10-16). | `zen-allow-footer-action: <reason>` |
 | `listbox/closing-list-on-phone` | error | On a phone, a list that closes the page (tasks, transactions, activity: nothing after it, not in a widget grid) is an open section, not a ListBox: a title row (Heading + See all Link) over a <List> inset by the page margin, straight on the screen (Figma ◆ Finance Transactions; usage rules §19, user rule 2026-10-21). Lists in a widget grid and grouped lists (§15) keep their ListBox. | `zen-allow-closing-list: <reason>` |
 | `list-item/clickable-row-toggle` | warn | A clickable row (onClick/href) doesn't also carry a Toggle or Checkbox — the row click and the switch compete. Trailing icon buttons are fine (Figma Slot-Actions). | `zen-allow-row-toggle: <reason>` |
+| `list-item/leading-dock-icon` | warn | A list row's leading is a DockIcon (<DockIcon icon="…" size="md" background="subtle" />), an Avatar or a thumbnail, never a bare icon name or <Icon>. | `zen-allow-list-item-bare-icon: <reason>` |
 | `list-item/switch-row` | warn | A settings row that is one switch is <ToggleListItem>, not a ListItem with a Toggle in its trailing slot: a press anywhere on the row flips it and the title names the switch. | `zen-allow-switch-row: <reason>` |
 | `list-item/trailing-button-medium` | warn | Buttons in a List-Item trailing slot are size Medium (md). | `zen-allow-trailing-size: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |

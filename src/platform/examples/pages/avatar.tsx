@@ -166,7 +166,7 @@ function ProjectPeople() {
                       trailing={(
                         <Stack direction="row" gap="xs" align="center">
                           {member.guest ? <Badge size="sm" theme="neutral" background="subtle" leadingIcon={false}>Guest</Badge> : null}
-                          {member.invited ? <Badge size="sm" theme="yellow" background="subtle" leadingIcon={false}>Invited</Badge> : null}
+                          {member.invited ? <Badge size="sm" theme="yellow" background="subtle">Invited</Badge> : null}
                           <Menu align="end" trigger={<IconButton appearance="flat" level="secondary" size="md" icon="icon-dots-vertical-line" aria-label={`More for ${member.name}`} />} items={[
                             // Your own row offers your profile, not a message to yourself: a menu whose items are all disabled reaches nothing.
                             member.id === me.id

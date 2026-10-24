@@ -1075,7 +1075,8 @@ function AccountHeaderExample() {
   );
   const label = (current?.sections ?? home).flatMap((section) => section.items).find((item) => item.id === (current ? page : "home"))?.label ?? "Home";
   return (
-    <AppShell
+    // The header is its Main row alone, so the rail's toggle sits in the Sidebar (an empty top row is never drawn).
+    <AppShell collapse="sidebar"
       sidebar={(
         <Sidebar aria-label={current ? `${current.title} navigation` : "Workspace navigation"} brand={brand} logoCollapsed={workspace.mark}
           subHeader={current ? <SidebarSubHeader title={current.title} backLabel="Back to Home" onBack={() => setModule(null)} /> : undefined}
