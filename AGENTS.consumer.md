@@ -26,6 +26,10 @@ createRoot(document.getElementById("root")!).render(
 );
 ```
 
+- Lighter CSS: instead of `styles.css`, import one style entry per component the app renders
+  (`import "@zen-ds/react/styles/Button";`). Each entry brings the shared base and the CSS of the components it renders.
+  Never mix the two. Add the entry together with the component, and run `npx zen-ds doctor` to list missing ones
+  (`docs/getting-started.md`, "Load only the CSS you use").
 - `ZenProvider` sets the token modes, paints the page Canvas and hosts the overlay portal. Phone apps:
   `<ZenProvider typography="mobile" density="comfortable">`. Every mode and value: `docs/getting-started.md`.
 - Language: `<ZenProvider locale="vi">` translates every built-in label (Close, Next page, "3 results", toolbar and

@@ -756,21 +756,17 @@ function constJsx(nodePath, name) {
   return null;
 }
 
-/** The places that show a `const name = <JSX>`: each `prop={name}` attribute or `{name}` child, as a path; null when the code also reads it otherwise. */
-function constUses(ctx, bound) {
-  const uses = [];
-  let other = false;
+/** Every place the code reads a `const name = <JSX>` (not its declaration, not a key of that name), as a path. */
+function constReads(ctx, bound) {
+  const reads = [];
   const visit = (node, path) => {
-    if (!node || typeof node.type !== "string" || other) return;
+    if (!node || typeof node.type !== "string") return;
     // A function that binds the name itself sees its own.
     if (FUNCTION_TYPES.has(node.type) && node.params.some((param) => { const names = new Set(); patternNames(param, names); return names.has(bound.name); })) return;
     if (node.type === "Identifier" && node.name === bound.name && node !== bound.declarator.id) {
       const parent = path.at(-1);
-      const holder = path.at(-2);
       const isKey = (parent?.type === "ObjectProperty" && parent.key === node && !parent.computed) || ((parent?.type === "MemberExpression" || parent?.type === "OptionalMemberExpression") && parent.property === node && !parent.computed);
-      if (isKey) return;
-      if (parent?.type === "JSXExpressionContainer" && (holder?.type === "JSXAttribute" || holder?.type === "JSXElement" || holder?.type === "JSXFragment")) uses.push([...path, node]);
-      else other = true;
+      if (!isKey) reads.push([...path, node]);
       return;
     }
     for (const [key, value] of Object.entries(node)) {
@@ -781,7 +777,14 @@ function constUses(ctx, bound) {
   };
   const scopePath = pathTo(ctx.ast.program, bound.scope) ?? [ctx.ast.program];
   visit(bound.scope, scopePath.slice(0, -1));
-  return other ? null : uses;
+  return reads;
+}
+
+/** The places that show a `const name = <JSX>`: each `prop={name}` attribute or `{name}` child, as a path; null when the code also reads it otherwise. */
+function constUses(ctx, bound) {
+  const reads = constReads(ctx, bound);
+  const shows = (use) => use.at(-2)?.type === "JSXExpressionContainer" && (use.at(-3)?.type === "JSXAttribute" || use.at(-3)?.type === "JSXElement" || use.at(-3)?.type === "JSXFragment");
+  return reads.every(shows) ? reads : null;
 }
 
 /** Removing the whole JSX of a `const name = <JSX>`: the const goes, with every `prop={name}` and `{name}` that shows it. */
@@ -1801,9 +1804,10 @@ function childUnitAt(nodePath, at) {
 }
 
 /**
- * A const's whole JSX that exactly one `{name}` child shows (`{summary}` with `const summary = <Card …/>`): the path to
- * that `{name}` and its index there, so Move up / down and a drag move the `{name}` among its siblings (the const stays
- * where it is written). Null for anything else.
+ * A const's whole JSX that a `{…}` child shows (`{summary}`, `{phone ? card : null}`, `{open && panel}` with
+ * `const summary = <Card …/>`): the path to that `{…}` and its index there, so Move up / down and a drag move it among
+ * its siblings, its condition with it (the const stays where it is written). The one inside the element at `holderLoc`
+ * (the Studio sends where the selected one shows); without it, only a const the code reads once. Null for anything else.
  */
 function constChildUse(ctx, nodePath, holderLoc) {
   let i = nodePath.length - 1;
@@ -1812,19 +1816,20 @@ function constChildUse(ctx, nodePath, holderLoc) {
   if (declarator?.type !== "VariableDeclarator" || declarator.id.type !== "Identifier") return null;
   const bound = constJsx(nodePath.slice(0, i - 1), declarator.id.name);
   if (!bound || bound.declarator !== declarator || bound.exported) return null;
-  const uses = constUses(ctx, bound);
-  if (!uses?.length) return null;
-  const childUses = uses.filter((use) => use.at(-3)?.type === "JSXElement" || use.at(-3)?.type === "JSXFragment");
-  // Shown in several places (`{summary}` in a phone and a desktop branch): the one inside the element at `holderLoc`.
-  const atHolder = (use) => {
-    const holder = use.at(-3);
+  const reads = constReads(ctx, bound);
+  const units = reads.map((use) => ({ path: use, at: childUnitAt(use, use.length - 1) })).filter((unit) => unit.at >= 0);
+  if (typeof holderLoc !== "string") return reads.length === 1 ? units[0] ?? null : null;
+  const atHolder = units.filter(({ path, at }) => {
+    const holder = path[at - 1];
     const start = holder.type === "JSXElement" ? holder.openingElement.loc.start : null;
     return Boolean(start) && `${start.line}:${start.column}` === holderLoc;
-  };
-  const use = typeof holderLoc === "string" ? childUses.find(atHolder) : uses.length === 1 ? childUses[0] : null;
-  if (!use) return null;
-  const path = use.slice(0, -1);
-  return { path, at: path.length - 1 };
+  });
+  // Shown twice there (`{wide ? field : card}{wide ? card : field}`): which one the canvas shows is not in the code.
+  if (atHolder.length > 1) {
+    const holder = atHolder[0].path[atHolder[0].at - 1];
+    refuse(`<${jsxName(ctx.element.openingElement.name)}> is the value of \`${bound.name}\`, shown ${atHolder.length} times in <${jsxName(holder.openingElement.name)}>; move it in the code.`);
+  }
+  return atHolder[0] ?? null;
 }
 
 function movePlan(ctx, nodePath, to, holderLoc) {
@@ -1833,7 +1838,7 @@ function movePlan(ctx, nodePath, to, holderLoc) {
   const what = `<${name}>`;
   if (to !== "prev" && to !== "next") refuse('moveElement needs `to`: "prev" or "next"');
   let i = childUnitAt(nodePath, nodePath.length - 1);
-  // A const shown by one `{name}` child: that `{name}` moves.
+  // A const a `{…}` child shows (`{summary}`, `{phone ? card : null}`): that `{…}` moves.
   const shown = i < 0 ? constChildUse(ctx, nodePath, holderLoc) : null;
   if (shown) i = shown.at;
   const path = shown ? shown.path : nodePath;
@@ -3051,6 +3056,11 @@ export function applySlotOp(code, loc, name, op, options = {}) {
 
 /** The outermost JSX elements under `root` (fragments flattened), as { name, loc }, in source order. */
 function outerElements(root) {
+  return outerRefs(root).sort((a, b) => a.at - b.at).map(({ at, ...ref }) => ref);
+}
+
+/** outerElements with each element's offset (`at`), unsorted. */
+function outerRefs(root) {
   const out = [];
   // The elements a `.map` callback returns (its rows' roots: `row`, removed and copied in the list's data).
   const rows = new Set();
@@ -3066,7 +3076,28 @@ function outerElements(root) {
     out.push({ name: jsxName(node.openingElement.name), loc: `${start.line}:${start.column}`, at: node.start, ...(rows.has(node) ? { row: true } : {}) });
     return false;
   });
-  return out.sort((a, b) => a.at - b.at).map(({ at, ...ref }) => ref);
+  return out;
+}
+
+/**
+ * The elements an expression shows, in its order: its own JSX and the JSX of a same-file const a branch names
+ * (`{phone ? card : null}`, `{open && panel}`, `const card = <Card …/>`), where the const writes them.
+ */
+function shownElements(expression, hostPath) {
+  const names = [];
+  const branches = (node) => {
+    const value = unwrapTs(node);
+    if (value?.type === "Identifier") names.push(value);
+    else if (value?.type === "LogicalExpression") branches(value.right);
+    else if (value?.type === "ConditionalExpression") { branches(value.consequent); branches(value.alternate); }
+  };
+  branches(expression);
+  const refs = outerRefs(expression);
+  for (const id of names) {
+    const bound = constJsx(hostPath(), id.name);
+    if (bound && !bound.exported) refs.push(...outerRefs(bound.init).map((ref, k) => ({ ...ref, at: id.start + k / 1000 })));
+  }
+  return refs.sort((a, b) => a.at - b.at).map(({ at, ...ref }) => ref);
 }
 
 /** How an expression renders its JSX: "map" (a .map list), "and" (cond && …), "ternary" (? :), "other". */
@@ -3108,7 +3139,7 @@ export function describeSlots(code, file, loc, { base } = {}) {
     // `prop={name}` with `const name = <JSX>`: its elements, edited where the const writes them (`const`: the name).
     const bound = bare.type === "Identifier" ? constJsx(hostPath(), bare.name) : null;
     if (bound && !bound.exported) return { elements: outerElements(bound.init), form: bound.init.type === "JSXElement" ? "element" : "fragment", const: bound.name };
-    const elements = outerElements(value);
+    const elements = shownElements(value, hostPath);
     if (!elements.length) return null;
     return { elements, form: bare.type === "JSXElement" ? "element" : bare.type === "JSXFragment" ? "fragment" : formOf(bare) };
   });
@@ -3118,7 +3149,7 @@ export function describeSlots(code, file, loc, { base } = {}) {
     const bare = unwrapTs(expression);
     const bound = bare?.type === "Identifier" ? constJsx(hostPath(), bare.name) : null;
     if (bound && !bound.exported) return { elements: outerElements(bound.init), form: "other", const: bound.name };
-    return { elements: outerElements(expression), form: formOf(expression) };
+    return { elements: shownElements(expression, hostPath), form: formOf(expression) };
   });
   const out = { file, loc: `${target.line}:${target.column}`, selfClosing: opening.selfClosing, attributes, children };
   if (typeof base !== "string") return out;

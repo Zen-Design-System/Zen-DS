@@ -117,7 +117,11 @@ export function PlatformPhone({ children, device = "iphone", canvas = "default",
       const styles = getComputedStyle(host);
       // Room inside the stage, minus the 16px margin each side that holds the black bezel ring.
       const room = host.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight) - 32;
-      setScale(Math.min(base, room > 0 ? room / spec.width : 1));
+      // No room (a host not laid out yet, or one sized by its content): keep the last scale. Falling back to full size
+      // would widen such a host and measure again in a loop.
+      if (room <= 0) return;
+      // A whole-pixel width, so a phone that fills the stage sits on whole pixels.
+      setScale(Math.min(base, Math.floor(room) / spec.width));
     };
     update();
     const observer = new ResizeObserver(update);
@@ -129,7 +133,7 @@ export function PlatformPhone({ children, device = "iphone", canvas = "default",
     // An AppShell anywhere in the screen (a template wraps it in its own provider) fills the screen and sticks its bars to it.
     ...(header || footer ? {} : { "--zen-app-shell-height": `${spec.height}px` }) } as CSSProperties;
   return (
-    <div ref={fitRef} className="platform-phone-fit" style={{ width: spec.width * scale, height: spec.height * scale, "--platform-phone-radius": `${spec.radius}px` } as CSSProperties}>
+    <div ref={fitRef} className="platform-phone-fit" style={{ width: Math.round(spec.width * scale), height: Math.round(spec.height * scale), "--platform-phone-radius": `${spec.radius}px` } as CSSProperties}>
       {/* The bezel is its own layer, outside the screen's backdrop root (platform.css › PlatformPhone). */}
       <span className="platform-phone-fit__bezel" style={frame} aria-hidden="true" />
       <div className={["platform-phone", className].filter(Boolean).join(" ")} data-device={device} data-canvas={canvas} data-typography={presented.typography ?? typography} data-density={presented.density ?? density} data-breakpoint="mobile" data-footer={footer ? "true" : undefined} data-header-overlay={headerOverlay && header ? "true" : undefined} data-zen-overlay-root="" style={vars} role="group" aria-label={`${label} (${spec.label}, ${spec.width}×${spec.height})`}>

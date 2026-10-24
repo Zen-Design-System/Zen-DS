@@ -22,6 +22,28 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   the example. `overflow` and `fit` could not see these. The gate now also fails on `counts`, `card-gap` and
   `legend-column`, which the audit already called errors. `npm run platform:audit:selftest` runs every in-page quality,
   outline and clip check on fixtures, in the gate and in CI (user, 2026-10-24).
+- Zen Studio: a draft made, saved or discarded in another browser (or a drafted file changed on disk) shows in every
+  open Studio tab at once; it waited for the 10 s poll, a focus or a tab switch (2026-10-24).
+- Zen Studio: resizing a row a `.map` draws previews every row it draws, as its pill's "all N" says; only the pressed row
+  moved before (2026-10-24).
+- Zen Studio: an element held in a `const` and shown on a condition (`{view === "list" ? listView : boardView}`, or
+  also in a prop) moves up, down and by dragging, with its condition, as one written in place does; it said "edit it in
+  the code" (user, 2026-10-24). A const shown twice in one element still asks for the code.
+- Figma parity fixes from the second batch of contract suites (2026-10-24): Avatar's focus ring sits 4px outside the
+  avatar (it was drawn inside that box) and square avatars put the status dot in the corner; Badge's Subtle Remove icon
+  is Content/Neutral/Light; Input Large and XLarge fields draw 20 / 24px icons (pickers 20), Read-Only fields grey their
+  slots, TextAreaField takes Figma's padding and the Small text style, icon-only Leading-Trailing slots lose an extra
+  gap, fields set the caret colour, and ControlBarSelectItem follows Button/Size/Medium in every density; Table toggle
+  columns draw Toggle-Button Medium; DatePicker days keep their letter-spacing, a selected day's event dot follows the
+  selected label, DatePickerHeader icons are 20px outside a DatePicker too, a Display header starts its month, and the
+  Time-Picker's fields fill the row; Sidebar selected rows' counters are Background/Inverse/Solid, group chevrons
+  Content/Neutral/Light, Small-density section titles 32px, and the Workspace panel is Sidebar/Default-Width (320px in
+  all in Compact, was 340). 66 more Figma contract suites run in `tools/figma-contract/run-all.mjs`.
+- Menu and Chip open as a Bottom Sheet on phones by themselves, the rule SelectField follows (the nearest
+  `data-breakpoint`, else ZenProvider's, is mobile; user 2026-10-24). A Menu becomes an action sheet titled by its
+  `aria-label` or its trigger's name, with captions, group labels and separators (no shortcuts); a Chip's `popoverItems`
+  become a sheet List with its Search, the picked rows Selected, and Done for `popoverMultiple`. BottomSheet items take a
+  `caption` (Figma Subtext), and a Popover item's caption is Caption/Regular, as in Figma (was Body/Small/Regular).
 - Usage harness (`zen-usage`, ESLint plugin; 2026-10-24): `chip/needs-action` warns on a Normal or Advanced Chip that
   does nothing when pressed; `table/bulk-actions-max` on more than five bulk actions; `top-navigation/max-three-trailing`
   also flags three or more actions in one group (Figma's grouped pill holds two); `top-navigation/search-folds-to-action`
@@ -54,6 +76,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (a Dialog's, Side Panel's or Bottom Sheet's buttons too). Pull from Figma reads them back. Show toast, Open link, Filter table,
   Change step and the overlay's position, background and click-outside stay in the Studio, each named in the notes
   (2026-10-24).
+- Per-component CSS (user, 2026-10-24): `import "@zen-ds/react/styles/Button";` loads the shared base (font, tokens,
+  text styles, effects) and only the CSS that component and the components it renders need, instead of all of
+  `styles.css`; one entry per component you render, each file loaded once. A Button-only app loads 34 KB of CSS (gzip)
+  instead of 96 KB. `styles.css` is unchanged; `styles/base.css` is the base alone; `npx zen-ds doctor` names
+  components whose entry is missing (docs/getting-started.md, "Load only the CSS you use").
 - Zen Studio Variables: Create collection (user, 2026-10-23: one mode, `:root`). The Collections menu names it in
   place; it is a draft of its new file `tokens/source/figma/<name>.json` until Save (⌘Z removes it), then a `:root`
   block in tokens.css, a catalog collection and a native `ZenCollection` key. The token build reads every collection in

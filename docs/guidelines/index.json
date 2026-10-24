@@ -181,7 +181,7 @@
         "Offer \"Clear all\" (Tertiary button) when two or more filters are active.",
         "Keep Advanced chips' Popover open while toggling multiple options (popoverMultiple).",
         "Show the count on multiple-selection chips (harness: chip/multiple-needs-count).",
-        "On a phone, keep filter chips in one horizontally scrolling row (no wrapping) and open choices in a Bottom Sheet of List + ListItem rows (the picked one `selected`) instead of a Popover; show the result count with a plural label and offer Clear filters on an empty result."
+        "On a phone, keep filter chips in one horizontally scrolling row (no wrapping). With popoverItems the choices open in a Bottom Sheet by themselves (SelectField's rule): List + ListItem rows, the picked one `selected` with a check, titled popoverLabel; a pick closes it, popoverMultiple keeps it open until Done. Show the result count with a plural label and offer Clear filters on an empty result."
       ],
       "dont": [
         "Don't use Secondary or any Button to open a filter list.",
@@ -2345,7 +2345,7 @@
       "purpose": "Move through a large, ordered result set one page at a time.",
       "use": [
         "Tables and result lists where position matters (\"page 3 of 10\").",
-        "Inline/Manually themes for data tables with a page-size choice or a jump-to-page field."
+        "Inline/Manually themes for data tables with a page-size choice: a Chip in Inline, a typed number in Manually."
       ],
       "avoid": [
         "Short lists that fit on one screen; show everything.",
@@ -4275,6 +4275,7 @@
         "Keep 3–5 destinations (harness: bottom-navigation/destinations).",
         "Use a solid glyph for the selected state (selectedIcon) and keep the label as the accessible name.",
         "Use Floating Glass over imagery: idle icons are Neutral/Strongest and the selection defaults to Subtle; switch to Solid only for extra emphasis.",
+        "Tapping the current destination again scrolls its root screen back to the top (the large title opens again): onValueChange also fires for the current id, so compare and scroll.",
         "Clear the dot as soon as the destination is opened.",
         "Over photos or video, pass backdrop=\"none\" so the pill floats on the image; the Surface fade is for plain screens."
       ],
@@ -5684,7 +5685,6 @@
         "Choosing a value (sort order, status, assignee) → SelectField, Segmented or Chip variant=\"advanced\" + Popover.",
         "Moving between pages → Sidebar, Tabs or Link.",
         "One or two actions → show them as buttons.",
-        "A long or titled list of actions on a phone → BottomSheet type=\"action\".",
         "Forms or rich content → Dialog or SidePanel."
       ],
       "props": {
@@ -5729,7 +5729,7 @@
         "Use align=\"end\" when the trigger sits at the right end of a row or card.",
         "Confirm a destructive choice in a negative Dialog, or offer Undo, after the menu closes; focus returns to the trigger.",
         "Put menus straight into Table rows and Cards: the menu floats in the overlay layer, so overflow never clips it.",
-        "On a phone, keep menus to a few short actions; longer lists, or ones that need a title, are an Action BottomSheet."
+        "On a phone, use the same Menu: it opens as an action BottomSheet by itself (SelectField's rule: the nearest data-breakpoint, else ZenProvider's, is mobile), titled by aria-label or the trigger's name, captions as Subtext, group labels and separators kept, shortcuts left out. Don't build a second sheet for phones."
       ],
       "dont": [
         "Don't use a Menu to pick a value or show a checked state; that is SelectField, Segmented or a Chip + Popover (harness: menu/not-for-selection).",
