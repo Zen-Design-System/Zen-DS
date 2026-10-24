@@ -42,9 +42,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Table `cells` (user 2026-10-24, Figma's Content slot holds one instance per value): a column maps each value to its
   layer, typically an instance of the project's own component set (`<Use of="status" variant={{ Status: "Done" }} />`).
   Cells draw it, the column edits as a select whose options draw the same instances, and a pick swaps the instance. Zen
-  Studio: a Cell's Content lists the project's sets and writes `cells` from the set's variants, and a set from Assets or
-  ⇧I with a Cell selected, or dragged onto a cell, goes into that cell's slot as in Figma; Figma push puts the
-  instance in Table/Cell/Default's Content slot and pull reads it back (checked with the real importer in the Zen file).
+  Studio: a Cell's Content lists the project's sets and writes `cells` from the set's variants (importing `Use`), and a
+  set from Assets or ⇧I with a Cell selected, or dragged onto a cell, goes into that cell's slot as in Figma; Figma push
+  puts the instance in Table/Cell/Default's Content slot and pull reads it back (checked with the real importer in the
+  Zen file).
 - Table: an editable column's select draws its options as its cells (user 2026-10-24: "popover để chọn nếu là người thì
   nên có avatar"): people with their avatar (initials without a photo; `options[].photoSrc` on an `edit` object), badge
   values with the colour and icon the rows' overrides give them. A value picked in the Table brings its picture or Badge
@@ -85,12 +86,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   switch follows, so the docs' 14 phone `segmented-fit` findings are gone (baseline emptied).
 - Spacing and Table rules (the user, 2026-10-24): chips side by side sit 8px apart (`gap="xs"`, harness `chip/row-gap`),
   tags 4px (`gap="2xs"`, `tag/row-gap`); the Avatar in a Table's first column is Solid, never Subtle (Table's own avatar
-  cells and the Figma push draw it so; harness `table/first-column-avatar-solid`). Six examples and templates fixed.
+  cells, the Figma push and pull and Studio's mirrors draw it so; a photo stays Subtle, as Figma has no Photo × Solid;
+  harness `table/first-column-avatar-solid`). Six examples and templates fixed.
 - Usage harness and audit (user, 2026-10-24, from the harness inventory): `listbox/grouped-on-phone` (error) flags a
   phone settings or profile screen that puts several kicker groups of rows in one block, or bare Lists under kickers
   (usage rules §15: each group is its own ListBox); `table/titled-box` (warn) flags a Table in a Card or ListBox that
   does not name it; the audit's `segmented-fit` (`--quality`, warn) flags a phone Segmented that slides sideways or cuts
-  a fullWidth label (a Chip row instead).
+  a fullWidth label (a Chip row instead). A phone is what the Segmented reads: its nearest `data-breakpoint` says mobile
+  (a ZenProvider under 744px or a phone frame), at any viewport.
 - Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,
   auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
   the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are
