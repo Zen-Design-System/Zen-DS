@@ -28,8 +28,8 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   covers its anchor (Input/Autocomplete-Field Focused opens the list over the Add slot; code 4px below it); the sheet
   header of `.Primitives/Date-Picker` 9923:2323 (Option 1 caption + picked date + edit, Option 2 range + Clear dates); the
   Workspace Sidebar rail's Master-Background Flat / Inverse; Avatar status Disabled / Pending / Inactive and the 4px
-  XSmall dot. DatePicker event counts are code since #266 (`event` takes 1–4): only the suite is left, mapping Event-List
-  Number-Event 2–4 in `date-picker-event-list.mjs` with its root on `.zen-date-picker__events` (no user go needed).
+  XSmall dot; DatePicker event days on the calendar (the Single calendars' day-1 dot: DatePicker has no events prop,
+  while DatePickerItem takes `event` 1–4 since #266 and Event-List 1–4 is compared).
 - **P3 · Contract checker gaps (2026-10-24; harness work, the user's go):** `tools/figma-contract/check.mjs` reads the
   first visible paint only (second fills and background-image overlays: Toggle bar, Social Others bubble, Editable
   cell), compares `fx` only without a spread ring in the same shadow list (Toggle-Button dot), one corner radius (bubble
