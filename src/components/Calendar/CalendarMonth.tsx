@@ -91,7 +91,7 @@ export function CalendarMonth({ month: monthProp, value, defaultValue = null, on
                   day={date.getDate()}
                   date={date}
                   state={isSelected(date) ? "single-selected" : dayKey(date) === dayKey(today) ? "today" : "default"}
-                  event={eventsOnDay(list, date).length > 0}
+                  event={eventsOnDay(list, date).length}
                   aria-pressed={isSelected(date)}
                   aria-current={dayKey(date) === dayKey(today) ? "date" : undefined}
                   tabIndex={dayKey(date) === dayKey(focusKey) ? 0 : -1}

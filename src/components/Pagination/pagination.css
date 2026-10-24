@@ -50,3 +50,10 @@ span.zen-pagination__item { cursor: default; }
 /* Manually: Input/Text-Field Small at 133px; the "results" unit sits in the trailing slot (the slot hugs its content). */
 .zen-pagination__page-size { width: 133px; flex: 0 0 auto; }
 .zen-pagination__page-size-unit { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); white-space: nowrap; }
+
+/* Phones (data-breakpoint="mobile"): the 24px Previous / Next arrows keep Figma's look and take a 44px hit area
+   (component-usage-rules "Touch targets") that grows outward only, so it never covers the pages or the other arrow.
+   zen-allow-slot-size: the 44px touch hit area is the usage rule's number; no size token holds it. */
+[data-breakpoint="mobile"] .zen-pagination [data-arrow][data-size="xs"]::after { position: absolute; top: 50%; width: 44px; height: 44px; content: ""; transform: translateY(-50%); }
+[data-breakpoint="mobile"] .zen-pagination [data-arrow="previous"][data-size="xs"]::after { inset-inline-end: 0; }
+[data-breakpoint="mobile"] .zen-pagination [data-arrow="next"][data-size="xs"]::after { inset-inline-start: 0; }

@@ -184,6 +184,11 @@ export interface TableProps<T> extends Omit<HTMLAttributes<HTMLDivElement>, "chi
    * clicks. For read-only rows — an editable table opens a row with its column's `onOpen` button instead.
    */
   onRowClick?: (row: T) => void;
+  /**
+   * The row whose item is open beside the table, in a docked Side Panel or a detail pane: `aria-current="true"` and the
+   * Selected fill (Figma Table/Cell State=Selected), apart from the checkbox selection.
+   */
+  currentRowId?: string | null;
   className?: string;
   /**
    * Figma instance overrides: props of the Zen components the table draws in its cells, row by row, by layer —
@@ -402,7 +407,7 @@ function TableCellEditorView<T>({ editor, row, initial, align, onDone, onMove }:
  * Content layer, and long text ends in an ellipsis instead of growing the row. Long, multi-line content (a sheet-like
  * grid) is not this component's job.
  */
-export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowIdProp, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, caption, selectable = false, selectedIds: selectedIdsProp, defaultSelectedIds, onSelectionChange, bulkActions, sort, onSortChange, empty, onRowClick, editable: editableProp = false, onCellCommit, className, overrides, ...rest }: TableProps<T>) {
+export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowIdProp, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, caption, selectable = false, selectedIds: selectedIdsProp, defaultSelectedIds, onSelectionChange, bulkActions, sort, onSortChange, empty, onRowClick, currentRowId, editable: editableProp = false, onCellCommit, className, overrides, ...rest }: TableProps<T>) {
   const t = useZenLabels();
   const nest = useNested(overrides);
   // Edits made through a shorthand `edit` / `editable` without onCellCommit: the Table's own copy of the changed fields,
@@ -535,9 +540,10 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
           {rows.map((row, index) => {
             const id = getRowId(row);
             const isSelected = selected.has(id);
+            const isCurrent = currentRowId != null && id === currentRowId;
             const rowNest = nest.at("Row", id);
             return (
-              <tr key={id} className="zen-table__row" data-selected={isSelected ? "true" : undefined} aria-selected={selectable ? isSelected : undefined}
+              <tr key={id} className="zen-table__row" data-selected={isSelected || isCurrent ? "true" : undefined} aria-selected={selectable ? isSelected : undefined} aria-current={isCurrent ? "true" : undefined}
                 data-clickable={onRowClick ? "true" : undefined} tabIndex={onRowClick ? 0 : undefined}
                 // The row opens its item unless the click belongs to a control inside it, ends a text selection, or comes
                 // from a portal (a Menu, Popover or Dialog opened from the row bubbles through React but is not in the row).

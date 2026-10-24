@@ -7,6 +7,7 @@
  * the page's neutral content back. Axe checks the text contrast in light and dark of every combination but the white
  * On-Colors / On-Accent solids, which measure about 3:1 (the user accepted it, 2026-10-17).
  */
+import type { CSSProperties } from "react";
 import axe from "axe-core";
 import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
@@ -171,4 +172,21 @@ describe("Card colour", () => {
       expect(failures).toEqual([]);
     });
   }
+});
+
+describe("Card Shadow on an alt page scope", () => {
+  // A page scope that makes its cards Surface/Alt (the platform's .pe-shell[data-canvas="alt"]) sets --zen-card-shadow
+  // with it: Surface-Alt casts no shadow (component-usage-rules §9); a card that picks surface="default" gets it back.
+  const scope = { "--zen-card-surface": "var(--zen-color-background-surface-alt)", "--zen-card-shadow": "0 0 transparent" } as CSSProperties;
+  const shadowOf = (testId: string) => getComputedStyle(document.querySelector(`[data-testid="${testId}"]`)!).boxShadow;
+
+  it("drops the shadow for an inherited alt surface, keeps it for an explicit default", async () => {
+    await render(<ZenProvider><div style={scope}>
+      <Card theme="shadow" data-testid="inherited"><Text>Inherited alt</Text></Card>
+      <Card theme="shadow" surface="default" data-testid="default"><Text>Explicit default</Text></Card>
+    </div><Card theme="shadow" data-testid="page"><Text>No scope</Text></Card></ZenProvider>);
+    expect(shadowOf("inherited")).toMatch(/^rgba\(0, 0, 0, 0\) 0px 0px 0px 0px$|^none$/);
+    expect(shadowOf("default")).not.toMatch(/^none$|^rgba\(0, 0, 0, 0\) 0px 0px 0px 0px$/);
+    expect(shadowOf("default")).toBe(shadowOf("page"));
+  });
 });

@@ -59,6 +59,7 @@ export const Good = () => <>
   <Box border="subtle" padding="md" onClick={open}>Clickable tile</Box>
   <ProgressBar value={40} label />
   <ProgressCircle value={40} aria-label="Upload" />
+  <Stack direction="row" gap="xs"><ProgressCircle value={50} decorative /><Heading level={2}>In progress</Heading></Stack>
   <Toast type="positive" title="Changes saved" action={{ label: "Undo", onClick: undo }} />
   <AlertBanner size="medium" theme="warning" action={{ label: "Upgrade", onClick: upgrade }}>Your trial ends in 3 days.</AlertBanner>
   <AlertBanner size="small">Scheduled maintenance tonight.</AlertBanner>

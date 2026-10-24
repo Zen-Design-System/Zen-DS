@@ -4671,7 +4671,7 @@
             "$ref": "#/$defs/CalendarEventData"
           },
           "default": [],
-          "description": "The events of the period: a day with any shows the event dot (Dot style)."
+          "description": "The events of the period: a day shows a dot per event, up to 4 (Dot style; Figma Event-List)."
         },
         "variant": {
           "enum": [
@@ -8486,6 +8486,24 @@
           ],
           "default": "dropzone",
           "description": "Figma Type: Drag & Drop (dropzone) or Browse Button."
+        },
+        "buttonSize": {
+          "enum": [
+            "2xs",
+            "xs",
+            "sm",
+            "md",
+            "lg",
+            "xl",
+            "2xsmall",
+            "xsmall",
+            "small",
+            "medium",
+            "large",
+            "xlarge"
+          ],
+          "default": "sm",
+          "description": "Type=Button: the Choose File button's size."
         },
         "text": {
           "x-kind": "node",
@@ -13035,6 +13053,14 @@
           "default": true,
           "description": "Figma Default-Header."
         },
+        "aria-label": {
+          "type": "string",
+          "description": "Names the modal when it has no `title` (or overrides it), e.g."
+        },
+        "aria-labelledby": {
+          "type": "string",
+          "description": "The id of a visible element that names the modal (a heading in `top`, say); wins over `title` and `aria-label`."
+        },
         "closeButton": {
           "type": "boolean",
           "default": true,
@@ -14050,6 +14076,11 @@
         },
         "aria-label": {
           "type": "string"
+        },
+        "decorative": {
+          "type": "boolean",
+          "default": false,
+          "description": "The ring only repeats what a visible word beside it already says (a status heading, a task's step): it is hidden from screen readers instead of being a second progressbar."
         }
       },
       "requiredActions": [],
@@ -19987,6 +20018,11 @@
             }
           ],
           "description": "Rows that open something (a detail page, a Side Panel, a dialog): the whole row is the click target, keyboard focus reaches each row and Enter or Space opens it; buttons, links, ch"
+        },
+        "currentRowId": {
+          "type": "string",
+          "x-nullable": true,
+          "description": "The row whose item is open beside the table, in a docked Side Panel or a detail pane: `aria-current=\"true\"` and the Selected fill (Figma Table/Cell State=Selected), apart from the"
         }
       },
       "requiredActions": [],
@@ -21884,7 +21920,7 @@
         "Choices that need a Save/Submit → Checkbox.",
         "Mutually exclusive options → RadioButton or Segmented."
       ],
-      "description": "",
+      "description": "Figma Toggle (1526:5703, page ❖ Toggle): a ToggleButton beside its Content, a label (Body/Base/Regular, Bold with `bold`, Content/Neutral/Strongest) and an optional caption (Captio",
       "props": {
         "checked": {
           "type": "boolean",
@@ -23755,7 +23791,7 @@
         "Use Active for the selected card in a single-choice grid, together with aria-pressed or a radio inside.",
         "Put secondary card actions in the Sub-Action menu.",
         "Card shadow = Box effectStyle=\"Shadow/Bottom/Level-1\": a static elevated panel may be a Box with that style; a clickable or selectable panel is a Card.",
-        "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"flat-border\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Default cards only, which is what a Canvas/Alt page takes anyway.",
+        "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"flat-border\" on a Canvas/Flat page. An explicit alt drops the Shadow theme's shadow; a page scope that sets an alt --zen-card-surface sets --zen-card-shadow: 0 0 transparent with it, so its Shadow cards drop it too.",
         "Put colour on a box by the page's Canvas: theme=\"subtle\" and a color on the grey Canvas/Default (Pale fades into it), theme=\"pale\" on a white Canvas/Alt or Canvas/Flat page (any of the nine hues, content stays neutral), e.g. a card per project or client (harness card/pale-on-canvas-default).",
         "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) or accent suits one time-sensitive figure.",
         "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read the fill's own family by themselves (content follows the fill, user 2026-10-17): Content/Inverse/* on Neutral, Content/On-Colors on Brand, Cyan and Orange, Content/On-Brights on Yellow, Content/On-Accent on Accent. MetricTrend and a MetricCard tile's Dock-Icon follow too (Inverse on Neutral, On-Color on the others). Pick Button appearance=\"overlay\" level=\"inverse\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero), and a Badge or DockIcon theme=\"inverse\" on Solid Neutral, theme=\"on-color\" on Accent and the hues; keep text in a neutral tone (or the family's own), never a colour tone (harness theme/on-solid-content).",
@@ -24303,7 +24339,7 @@
         "Use ChatAvatarGroup for group conversations: Medium (40px, 28px avatars) in lists, Small (32px, 20px avatars) in compact rows.",
         "Use one action list for both inputs: the same holdActions drive the mobile hold menu and the desktop hover toolbar (its More menu).",
         "Pick hold/hover actions with chatHoldActionsFor(kind, side): text & photos by side, files get Reply · Forward · Pin · Delete (Figma Focused/File), calls Call back · (Report) · Delete.",
-        "Reply: the Reply action sets the composer's replyTo (“Replying to …” bar, × / Escape cancel via onCancelReply — harness: chat/reply-cancellable); attach it to the sent message as replyTo and give every message an id so the quote can jump back. The quote previews the original by kind — text (2 lines), photo(s) with a thumbnail, file, call, voice, or “Message unavailable”. The composer moves focus into its field when a reply is set or switched (not on mount), so apps add no focus code of their own.",
+        "Reply: the Reply action sets the composer's replyTo (“Replying to …” bar, × / Escape cancel via onCancelReply — harness: chat/reply-cancellable); attach it to the sent message as replyTo and give every message an id so the quote can jump back. A thread that loads older messages on demand passes onJumpToReply to load the original first: the default jump only finds messages already rendered, so a quote of an unloaded one would do nothing. The quote previews the original by kind — text (2 lines), photo(s) with a thumbnail, file, call, voice, or “Message unavailable”. The composer moves focus into its field when a reply is set or switched (not on mount), so apps add no focus code of their own.",
         "Keep the Reaction-Bar \"+\": let it open the built-in emoji panel, or pass onMore only when you ship a fuller picker; never wire it to a placeholder.",
         "Keep every interaction live wherever Chat is shown: each message can be held (mobile) / hovered (desktop) for its Figma action set and reactions, Reply fills the composer and the sent quote jumps back, cards open, calls call back, the composer's actions and send work — never a no-op handler (harness: chat/no-locked-interaction; platform examples use useChatDemo).",
         "Make deleting a message undoable: remove it at once and show a Toast with Undo (title 'Message deleted'); don't ask first. Move focus to the next message, and on Undo back to the restored one. Platform examples get this from useChatDemo().",

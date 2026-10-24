@@ -153,6 +153,15 @@ describe("TopNavigation actions (up to three per Trailing-Slot)", () => {
     await expect.element(screen.getByRole("button", { name: "More" })).toBeVisible();
   });
 
+  it("pairs large-title actions with the same group in one pill, as in the bar (Header-Trailing holds the same Nav-Slot/Action)", async () => {
+    const call = (label: string) => ({ ...act(label), group: "call" });
+    await render(<ZenProvider><TopNavigation topBar title="Chi" largeTitle="Chi" largeTitleAction={[call("Audio call"), call("Video call"), act("More")]} /></ZenProvider>);
+    const row = header().querySelector(".zen-top-nav__expand-trailing")!;
+    const pill = row.querySelector('.zen-top-nav__group[role="group"]')!;
+    expect([...pill.querySelectorAll("button")].map((button) => button.getAttribute("aria-label"))).toEqual(["Audio call", "Video call"]);
+    expect([...row.children].length).toBe(2);
+  });
+
   it("still takes one large-title action as an object", async () => {
     const screen = await render(<ZenProvider><TopNavigation topBar title="Inbox" largeTitle="Inbox" largeTitleAction={act("New")} /></ZenProvider>);
     await expect.element(screen.getByRole("button", { name: "New" })).toBeVisible();

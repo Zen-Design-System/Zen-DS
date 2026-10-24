@@ -27,6 +27,8 @@ Turn a setting on or off with immediate effect.
 Generated from the TypeScript source; full JSON in `docs/api/toggle.json`.
 
 ### Toggle
+Figma Toggle (1526:5703, page ❖ Toggle): a ToggleButton beside its Content, a label (Body/Base/Regular, Bold with `bold`, Content/Neutral/Strongest) and an optional caption (Caption/Regular, Content/Neutral/Light), Spacing/Gap/Medium apart (Small: Gap/Small). Theme text-first puts the label before the switch, as in a settings row; toggle-first after. It applies at once: no Save.
+
 Also accepts `ToggleButtonProps`.
 
 | Prop | Type | Default | Description |
@@ -47,6 +49,8 @@ Also accepts `ToggleButtonProps`.
 | `theme` | `"text-first" \| "toggle-first"` | `"text-first"` |  |
 
 ### ToggleButton
+Figma Toggle-Button (1523:104, page ❖ Toggle): the switch alone. A track two dots wide plus Spacing/Padding/3XSmall around a dot of Toggle/Item/Size (Small 12 · Medium 16 · Large 20 · XLarge 44, with an icon in its dot); the track takes Toggle/Bar/Background/Unselected|Seclected (Default, Hover, Disabled), the dot Toggle/Dot/Background. Select=Yes slides the dot to the end. Name it with `aria-label` or a visible label (`aria-labelledby`); Toggle adds that label.
+
 Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size" | "type">`.
 
 | Prop | Type | Default | Description |

@@ -37,6 +37,7 @@ Figma Uploader/File-Upload (1581:22708): Label → Drag & Drop field (Primitives
 | `helpText` | `ReactNode` | — | Figma hasHelperText (or the error text when `error` is set). |
 | `error` | `ReactNode` | — | Field-level error (State=Alert on the drop zone), e.g. "Max 800 KB". |
 | `type` | `"dropzone" \| "button"` | `"dropzone"` | Figma Type: Drag & Drop (dropzone) or Browse Button. |
+| `buttonSize` | `"2xs" \| "xs" \| "sm" \| "md" \| "lg" \| "xl" \| "2xsmall" \| "xsmall" \| "small" \| "medium" \| "large" \| "xlarge"` | `"sm"` | Type=Button: the Choose File button's size. Small by default, as Figma draws it; `md` (40) or `lg` on a phone, where a Small button needs 6px free above and below for its 44px touch area. |
 | `text` | `ReactNode` | — | Dropzone text and caption (Figma Text / Caption). Default text: the locale's “Drag & Drop or Choose file to upload”. |
 | `caption` | `ReactNode` | — |  |
 | `accept` | `string` | — |  |
