@@ -107,13 +107,22 @@
    that box (a border would sit inside it, 3px closer to the avatar). */
 .zen-avatar[data-focus="true"]::before { position: absolute; border-radius: inherit; content: ""; inset: -4px; outline: 3px solid var(--zen-color-border-active-accent-solid, var(--zen-color-focus-accent-solid, #ff66d4)); pointer-events: none; }
 .zen-avatar[data-shape="square"][data-focus="true"]::before { border-radius: var(--zen-avatar-focus-radius); }
-/* .Primitives/Avatar/Status (Active): dot + OUTSIDE Border/Inverse stroke, inset from the bottom-right per avatar size
-   (L–2XS: 8px dot, 2px stroke; XL: 12/2; 2XL/3XL: 16/3). */
-.zen-avatar__status { --zen-avatar-status-size: 8px; --zen-avatar-status-stroke: 2px; --zen-avatar-status-inset: 1px; position: absolute; right: var(--zen-avatar-status-inset); bottom: var(--zen-avatar-status-inset); width: var(--zen-avatar-status-size); height: var(--zen-avatar-status-size); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-positive-solid-default, #3fab53); box-shadow: 0 0 0 var(--zen-avatar-status-stroke) var(--zen-color-border-inverse, #fff); }
+/* .Primitives/Avatar/Status (217:7418): a Corner-Radius/Rounded dot with an OUTSIDE Color/Border/Inverse stroke (a spread
+   shadow, so the dot keeps its box). Size XSmall 4px / 1px ring · Small 8/2 · Medium 12/2 · Large 16/3; Status Active
+   Positive/Solid/Default · Disabled Solid-Disabled · Pending Warning/Solid/Default · Inactive Negative/Solid/Default. */
+.zen-avatar-status { --zen-avatar-status-size: 8px; --zen-avatar-status-stroke: 2px; display: inline-block; width: var(--zen-avatar-status-size); height: var(--zen-avatar-status-size); flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-positive-solid-default, #3fab53); box-shadow: 0 0 0 var(--zen-avatar-status-stroke) var(--zen-color-border-inverse, #fff); }
+.zen-avatar-status[data-size="xsmall"] { --zen-avatar-status-size: 4px; --zen-avatar-status-stroke: 1px; }
+.zen-avatar-status[data-size="medium"] { --zen-avatar-status-size: 12px; }
+.zen-avatar-status[data-size="large"] { --zen-avatar-status-size: 16px; --zen-avatar-status-stroke: 3px; }
+.zen-avatar-status[data-status="disabled"] { background: var(--zen-color-background-solid-disabled, #d7d7d7); }
+.zen-avatar-status[data-status="pending"] { background: var(--zen-color-background-warning-solid-default, #ffba1a); }
+.zen-avatar-status[data-status="inactive"] { background: var(--zen-color-background-negative-solid-default, #e5532e); }
+/* In an Avatar (Figma Avatar/Single Status): bottom-right, inset per avatar size; the dot's size comes from the avatar
+   (Small on L–2XS, Medium on XL, Large on 2XL/3XL; Avatar.tsx). */
+.zen-avatar__status { --zen-avatar-status-inset: 1px; position: absolute; right: var(--zen-avatar-status-inset); bottom: var(--zen-avatar-status-inset); }
 .zen-avatar[data-size="large"] .zen-avatar__status { --zen-avatar-status-inset: 3px; }
-.zen-avatar[data-size="xlarge"] .zen-avatar__status { --zen-avatar-status-size: 12px; }
-.zen-avatar[data-size="2xlarge"] .zen-avatar__status { --zen-avatar-status-size: 16px; --zen-avatar-status-stroke: 3px; --zen-avatar-status-inset: 2px; }
-.zen-avatar[data-size="3xlarge"] .zen-avatar__status { --zen-avatar-status-size: 16px; --zen-avatar-status-stroke: 3px; --zen-avatar-status-inset: 8px; }
+.zen-avatar[data-size="2xlarge"] .zen-avatar__status { --zen-avatar-status-inset: 2px; }
+.zen-avatar[data-size="3xlarge"] .zen-avatar__status { --zen-avatar-status-inset: 8px; }
 /* A square avatar puts the dot in its corner, inset 0 (Figma Avatar/Single Shape=Square at every size). */
 .zen-avatar[data-shape="square"] .zen-avatar__status { --zen-avatar-status-inset: 0px; }
 

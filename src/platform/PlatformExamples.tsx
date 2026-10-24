@@ -4,7 +4,7 @@ import { Chip, type ChipLevel, type ChipSize, type ChipState, type ChipTheme, ty
 import { Icon, type IconName } from "../components/Icon";
 import { AutocompleteField, ColorField, ControlBarSelectItem, DateField, HeadingField, headingInputSizes, type HeadingInputSize, InputConditionItem, InputConditions, InputContent, InputField, InputHelpText, InputLabel, InputLeadingTrailing, NumberField, type InputHelpTheme, RichTextEditorBar, RichTextField, SelectField, TextAreaField, type InputSize, type InputState } from "../components/Input";
 import { Search, type SearchShape, type SearchSize, type SearchTheme, type SearchVariant } from "../components/Search";
-import { Sidebar, SidebarSubMenu, type SidebarBackground, type SidebarSection, type SidebarVariant } from "../components/Sidebar";
+import { Sidebar, SidebarSubMenu, type SidebarBackground, type SidebarRailBackground, type SidebarSection, type SidebarVariant } from "../components/Sidebar";
 import { Segmented, type SegmentedLevel, type SegmentedSize } from "../components/Segmented";
 import { Avatar, AvatarStack, avatarThemes, type AvatarBackground, type AvatarShape, type AvatarSize, type AvatarTheme } from "../components/Avatar";
 import { Menu } from "../components/Menu";
@@ -279,6 +279,7 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
   const [sidebarBackground, setSidebarBackground] = useState<string | undefined>(undefined);
   const [sidebarCanvas, setSidebarCanvas] = useState<string | undefined>(undefined);
   const [sidebarWorkspaceBar, setSidebarWorkspaceBar] = useState(true);
+  const [sidebarRailBackground, setSidebarRailBackground] = useState<SidebarRailBackground>("default");
   const [sidebarSubMenu, setSidebarSubMenu] = useState(false);
   const [sidebarWorkspace, setSidebarWorkspace] = useState("workspace-a");
   const [sidebarSelected, setSidebarSelected] = useState("dashboard");
@@ -657,8 +658,9 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
               <PlaygroundFilterChip label="Variant" value={sidebarVariant} onChange={(value) => setSidebarVariant(String(value) || undefined)} options={["basic", "small-density", "workspace"].map((id) => ({ id, label: id }))} />
               {resolvedSidebarVariant !== "workspace" ? <PlaygroundToggle label="Expand" selected={!sidebarCollapsed} onChange={(selected) => setSidebarCollapsed(!selected)} /> : null}
               <PlaygroundFilterChip label="Canvas" value={sidebarCanvas} onChange={(value) => { setSidebarCanvas(String(value) || undefined); setSidebarBackground(undefined); }} options={["default", "alt", "flat"].map((id) => ({ id, label: id }))} />
-              <PlaygroundFilterChip label={resolvedSidebarVariant === "workspace" ? "Master Background" : "Background"} value={sidebarBackground} onChange={(value) => setSidebarBackground(String(value) || undefined)} options={["default", "alt", "flat", "inverse"].map((id) => ({ id, label: id }))} />
+              <PlaygroundFilterChip label="Background" value={sidebarBackground} onChange={(value) => setSidebarBackground(String(value) || undefined)} options={["default", "alt", "flat", "inverse"].map((id) => ({ id, label: id }))} />
               {resolvedSidebarVariant === "workspace" ? <PlaygroundToggle label="Workspace Bar" selected={sidebarWorkspaceBar} onChange={setSidebarWorkspaceBar} /> : null}
+              {resolvedSidebarVariant === "workspace" && sidebarWorkspaceBar ? <PlaygroundFilterChip label="Master Background" value={sidebarRailBackground} onChange={(value) => setSidebarRailBackground((String(value) || "default") as SidebarRailBackground)} options={["default", "flat", "inverse"].map((id) => ({ id, label: id }))} /> : null}
               <PlaygroundToggle label="Sub Menu" selected={sidebarSubMenu} onChange={setSidebarSubMenu} />
           </PlaygroundControls>
           <div data-typography={previewTypography} className="platform-example-row platform-sidebar-stage" data-canvas={resolvedSidebarCanvas}>
@@ -669,8 +671,9 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
               onCollapsedChange={setSidebarCollapsed}
               background={resolvedSidebarBackground}
               workspaceBar={sidebarWorkspaceBar}
+              railBackground={sidebarRailBackground}
               workspaceItems={[{ id: "workspace-a", label: "Workspace A", selected: sidebarWorkspace === "workspace-a", icon: <Avatar size="medium" shape="square" theme="brown" background="solid" alt="">A</Avatar> }, { id: "workspace-b", label: "Workspace B", selected: sidebarWorkspace === "workspace-b", icon: <Avatar size="medium" shape="square" theme="indigo" background="solid" alt="">B</Avatar> }, ...sidebarNewWorkspaces.map((id, index) => ({ id, label: `Workspace ${String.fromCharCode(67 + index)}`, selected: sidebarWorkspace === id, icon: <Avatar size="medium" shape="square" theme="purple" background="solid" alt="">{String.fromCharCode(67 + index)}</Avatar> }))]}
-              workspaceAction={<IconButton appearance="main" level="tertiary" size="md" aria-label="Add workspace" icon={<Icon name="icon-plus-line" />} onClick={addSidebarWorkspace} />}
+              workspaceAction={<IconButton appearance={sidebarRailBackground === "inverse" ? "overlay" : "main"} level={sidebarRailBackground === "inverse" ? "white-overlay" : "tertiary"} size="md" aria-label="Add workspace" icon={<Icon name="icon-plus-line" />} onClick={addSidebarWorkspace} />}
               headerAction={(
                 <Menu align="end" aria-label="Workspace settings"
                   trigger={<IconButton appearance="flat" level="primary" size="sm" aria-label="Workspace settings" icon={<Icon name="icon-settings-01-line" />} />}
@@ -705,7 +708,8 @@ export function PlatformComponentPage({ page, activeCollection, onCollectionClic
 <Sidebar
   variant="${resolvedSidebarVariant}"
   background="${resolvedSidebarBackground}" // page: Canvas/${resolvedSidebarCanvas[0].toUpperCase() + resolvedSidebarCanvas.slice(1)}${resolvedSidebarVariant === "workspace" ? `
-  workspaceBar={${sidebarWorkspaceBar}}` : `
+  workspaceBar={${sidebarWorkspaceBar}}${sidebarRailBackground === "default" ? "" : `
+  railBackground="${sidebarRailBackground}"`}` : `
   collapsed={${sidebarCollapsed}}
   onCollapsedChange={setCollapsed}`}
   sections={sections}

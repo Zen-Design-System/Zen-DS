@@ -1,1 +1,1 @@
-export { Avatar, AvatarStack, avatarSizes, avatarThemes, type AvatarProps, type AvatarStackProps, type AvatarSize, type AvatarTheme, type AvatarShape, type AvatarBackground } from "./Avatar";
+export { Avatar, AvatarStack, AvatarStatus, avatarSizes, avatarThemes, avatarStatuses, avatarStatusSizes, type AvatarProps, type AvatarStackProps, type AvatarStatusProps, type AvatarSize, type AvatarTheme, type AvatarShape, type AvatarBackground, type AvatarStatusValue, type AvatarStatusSize } from "./Avatar";

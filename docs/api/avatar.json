@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "avatar",
-  "import": "import { Avatar, AvatarStack } from \"@zen-ds/react\";",
+  "import": "import { Avatar, AvatarStack, AvatarStatus } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Avatar",
@@ -44,10 +44,10 @@
         },
         {
           "name": "status",
-          "type": "boolean",
+          "type": "boolean | AvatarStatusValue",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "The status dot (Figma Avatar/Single Status + .Primitives/Avatar/Status 217:7418) at the bottom-right: `true` or\n`\"active\"` (Positive, read as \"Online\"), `\"disabled\"` (Solid-Disabled), `\"pending\"` (Warning) or `\"inactive\"`\n(Negative). Its size follows the avatar (Small on 2XSmall–Large, Medium on XLarge, Large on 2XLarge / 3XLarge). The\ndot is never the only signal: say the status in text beside the avatar too.",
           "deprecated": null
         },
         {
@@ -148,7 +148,66 @@
           "deprecated": null
         }
       ]
+    },
+    {
+      "name": "AvatarStatus",
+      "file": "src/components/Avatar/Avatar.tsx",
+      "description": "Figma .Primitives/Avatar/Status (217:7418): a Corner-Radius/Rounded dot with an OUTSIDE Color/Border/Inverse ring, on\nits own (a presence mark beside a name) or as an Avatar's `status`. Fills: Color/Background/Positive/Solid/Default,\nSolid-Disabled, Warning/Solid/Default, Negative/Solid/Default.",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "status",
+          "type": "\"active\" | \"disabled\" | \"pending\" | \"inactive\"",
+          "required": false,
+          "default": "\"active\"",
+          "description": "Figma Status: Active (Positive) · Disabled (Solid-Disabled) · Pending (Warning) · Inactive (Negative).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"lg\" | \"xsmall\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"sm\"",
+          "description": "Figma Size: XSmall 4px with a 1px ring · Small 8/2 · Medium 12/2 · Large 16/3. Short or Figma spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "What a screen reader says. Default: the status word from the labels (\"Online\", \"Disabled\", \"Pending\", \"Inactive\").",
+          "deprecated": null
+        },
+        {
+          "name": "decorative",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Hide the dot from assistive technology when the status is said in text beside it.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>`.",
+          "deprecated": null
+        }
+      ]
     }
   ],
-  "types": {}
+  "types": {
+    "AvatarStatusValue": "type AvatarStatusValue = \"active\" | \"disabled\" | \"pending\" | \"inactive\""
+  }
 }
