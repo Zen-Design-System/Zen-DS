@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, type ButtonHTMLAttributes, type MouseEvent, type ReactNode, type Ref } from "react";
 import { Icon, type IconName } from "../Icon";
 import { Popover, PopoverManualAddNew, useExclusivePopover, type PopoverItemData } from "../Popover";
+import { BottomSheet } from "../BottomSheet";
+import { List, ListItem } from "../ListItem";
+import { Search } from "../Search";
 import { ZenPortal } from "../Portal";
 import { BadgeCounter } from "../Badge";
 import { Avatar, type AvatarSize } from "../Avatar";
@@ -13,6 +16,7 @@ import "./chip.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useDismissableLayer } from "../_shared/layers";
+import { sheetLeading, usePhoneSheet } from "../_shared/phone-sheet";
 import { useMergedRefs } from "../_shared/merge-refs";
 import { composeEventHandlers } from "../_shared/compose-event-handlers";
 
@@ -90,6 +94,10 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
    * nothing picked at first) is then Selected, counts several for `selectionMode` "multiple" and clears them with its
    * close affordance; a chip that starts on a value (a period) only changes it. Pass `onPopoverSelect` to keep the choice
    * in your own state.
+   * On a phone (the nearest `data-breakpoint`, else ZenProvider's, is "mobile"; SelectField's rule) the items open in a
+   * Bottom Sheet instead, titled `popoverLabel` (else the chip's label): picked rows are Selected with a check, the Search
+   * comes with `popoverSearch`, a pick closes it, and with `popoverMultiple` picks keep it open until Done. A chip with
+   * `onPopoverCreate` keeps its popover.
    */
   popoverItems?: PopoverItemData[];
   /** Controlled open state for the advanced chip menu. */
@@ -242,6 +250,11 @@ export function Chip({
   // opens an external surface (a Bottom Sheet, a filter panel) passes its own onClick / aria-haspopup / aria-expanded.
   const canOpenPopover = !isNumberOnly && !isDisabled && (popoverItems !== undefined || onPopoverCreate !== undefined);
   const isPopoverOpen = popoverOpen ?? uncontrolledPopoverOpen;
+  // A phone: the items open in a Bottom Sheet (its scrim, Escape, focus trap and focus return), as SelectField's do.
+  const asSheet = usePhoneSheet(buttonRef, isPopoverOpen) && canOpenPopover && !onPopoverCreate;
+  // The sheet's own query when the app does not filter (as the Popover's uncontrolled Search), reset on every opening.
+  const [sheetQuery, setSheetQuery] = useState(popoverSearchValue);
+  useEffect(() => { if (isPopoverOpen) setSheetQuery(popoverSearchValue); }, [isPopoverOpen, popoverSearchValue]);
   const showDropdown = !isNumberOnly && !select && !trailing && (dropdown ?? variant === "advanced");
   // The Advanced set owns the removable trailing primitive. Normal's Select
   // axis only changes its selected styling; it does not add a close icon.
@@ -326,15 +339,15 @@ export function Chip({
     onPopoverSelect?.(item);
     if (!popoverMultiple) setPopoverOpen(false, { restoreFocus: true });
   };
-  const isOutside = useDismissableLayer(isPopoverOpen && canOpenPopover, () => [dropdownRef.current, layerRef.current]);
+  const isOutside = useDismissableLayer(isPopoverOpen && canOpenPopover && !asSheet, () => [dropdownRef.current, layerRef.current]);
   useEffect(() => {
-    if (!isPopoverOpen || !canOpenPopover) return undefined;
+    if (!isPopoverOpen || !canOpenPopover || asSheet) return undefined;
     const handleOutsidePointer = (event: PointerEvent) => {
       if (isOutside(event.target as Node)) setPopoverOpen(false);
     };
     document.addEventListener("pointerdown", handleOutsidePointer);
     return () => document.removeEventListener("pointerdown", handleOutsidePointer);
-  }, [canOpenPopover, isPopoverOpen, onPopoverOpenChange]);
+  }, [canOpenPopover, isPopoverOpen, asSheet, onPopoverOpenChange]);
 
   if (isStatic) {
     // A count: the Default state of the chip, not a control. Button-only attributes stay off the span.
@@ -365,7 +378,7 @@ export function Chip({
       disabled={isDisabled}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      aria-haspopup={canOpenPopover ? "listbox" : buttonProps["aria-haspopup"]}
+      aria-haspopup={canOpenPopover ? (asSheet ? "dialog" : "listbox") : buttonProps["aria-haspopup"]}
       aria-expanded={canOpenPopover ? isPopoverOpen : buttonProps["aria-expanded"]}
       aria-pressed={!canOpenPopover && variant !== "advanced" && buttonProps.role !== "radio" ? select : undefined}
       aria-keyshortcuts={select && clearSelection ? "Delete Backspace" : undefined}
@@ -388,6 +401,31 @@ export function Chip({
   );
 
   if (!canOpenPopover) return button;
+  if (asSheet) {
+    // The phone's sheet: the items as List rows (SelectField's sheet), Selected with a check; the Search filters them by
+    // their text unless the app does (onPopoverSearchChange). Several picks keep it open until Done.
+    const sheetItems = usedItems ?? popoverItems ?? [];
+    const query = onPopoverSearchChange ? "" : sheetQuery.trim().toLowerCase();
+    const shown = query ? sheetItems.filter((item) => (textOf(item.label) ?? "").toLowerCase().includes(query)) : sheetItems;
+    const title = popoverLabel ?? label;
+    return (
+      <span ref={dropdownRef} className="zen-chip__dropdown">
+        {button}
+        <BottomSheet open={isPopoverOpen} onOpenChange={(next) => { if (!next) setPopoverOpen(false); }} title={title}
+          search={popoverSearch ? <Search value={onPopoverSearchChange ? popoverSearchValue : sheetQuery} onValueChange={(next) => { setSheetQuery(next); onPopoverSearchChange?.(next); }} placeholder={popoverSearchPlaceholder} /> : undefined}
+          primaryAction={popoverMultiple ? { label: t.done } : undefined}>
+          <List aria-label={textOf(title) ?? undefined}>
+            {shown.map((item) => (
+              <ListItem key={item.id} title={item.label} caption={item.caption} leading={sheetLeading(item)} selected={Boolean(item.selected)}
+                className={item.disabled ? "zen-chip__sheet-option--disabled" : undefined} aria-disabled={item.disabled || undefined}
+                trailing={item.selected ? <Icon name="icon-check-line" size="base" decorative /> : undefined}
+                onClick={item.disabled ? undefined : () => handlePopoverSelect(item)} />
+            ))}
+          </List>
+        </BottomSheet>
+      </span>
+    );
+  }
   const anchor = popoverPortal ? buttonRef : undefined;
   const popover = onPopoverCreate ? (
         <PopoverManualAddNew

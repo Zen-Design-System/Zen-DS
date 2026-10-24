@@ -20,6 +20,7 @@ import {
   type RefObject,
 } from "react";
 import { createPortal, flushSync } from "react-dom";
+import { BottomSheet, SheetActionRow } from "../BottomSheet/BottomSheet";
 import { Divider } from "../Divider";
 import { Icon, type IconName } from "../Icon";
 import { PopoverItem, useExclusivePopover } from "../Popover";
@@ -29,7 +30,10 @@ import { usePresence } from "../Motion";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./menu.css";
 import { useNested, type Nest, type NestedOverrides } from "../_shared/nested";
+import { renderIcon } from "../_shared/icon";
 import { useDismissableLayer } from "../_shared/layers";
+import { usePhoneSheet } from "../_shared/phone-sheet";
+import { useZenLabels } from "../_shared/zen-context";
 import { useMergedRefs } from "../_shared/merge-refs";
 import { useControllableState } from "../_shared/use-controllable-state";
 import { useStableCallback } from "../_shared/use-stable-callback";
@@ -92,7 +96,8 @@ export interface MenuProps {
 
 }
 
-type MenuContextValue = { choose: (item: MenuItemData) => void };
+/** `sheet`: the menu is a phone's Bottom Sheet, so its entries draw Sheet-Actions rows; `autoFocusId` starts there. */
+type MenuContextValue = { choose: (item: MenuItemData) => void; sheet?: boolean; autoFocusId?: string };
 const MenuContext = createContext<MenuContextValue | null>(null);
 
 type TriggerProps = {
@@ -102,9 +107,21 @@ type TriggerProps = {
   onKeyDown?: (event: KeyboardEvent<HTMLElement>) => void;
 };
 
-const ITEM = ".zen-popover__item";
+/** A row of the popover (Popover/Item) or of the phone's sheet (Sheet-Actions/Item). */
+const ITEM = ":is(.zen-popover__item, .zen-bottom-sheet__item)";
 const enabledItems = (list: HTMLElement | null) => Array.from(list?.querySelectorAll<HTMLButtonElement>(`${ITEM}:not(:disabled)`) ?? []);
 const idFrom = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, "");
+/** The items of `entries`, groups opened up and separators left out. */
+const flatItems = (entries: MenuEntry[]): MenuItemData[] => entries.flatMap((entry) => (entry.type === "separator" ? [] : entry.type === "group" ? flatItems(entry.items) : [entry]));
+/** The trigger's accessible name (aria-label, aria-labelledby or its text): the sheet's title when the Menu has no aria-label. */
+const nameOf = (element: HTMLElement | null) => {
+  if (!element) return "";
+  const label = element.getAttribute("aria-label");
+  if (label) return label.trim();
+  const by = element.getAttribute("aria-labelledby");
+  const text = by ? by.split(/\s+/).map((id) => document.getElementById(id)?.textContent ?? "").join(" ") : element.textContent;
+  return (text ?? "").trim();
+};
 
 type MenuPlacement = { side: "bottom" | "top"; style?: CSSProperties };
 const MENU_GAP = 4; // Spacing/Gap/2XSmall between the trigger and the surface
@@ -194,6 +211,10 @@ function useMenuPlacement(surfaceRef: RefObject<HTMLElement | null>, triggerRef:
  * The menu renders in the overlay portal (inside a device frame marked `data-zen-overlay-root`, in that frame), so a
  * table or card that clips its overflow never cuts it off; it attaches 4px below the trigger and flips above it (or to
  * the other edge) when there is no room.
+ * On a phone (the nearest `data-breakpoint`, else ZenProvider's, is "mobile"; the rule SelectField follows) the same
+ * entries open in an action Bottom Sheet instead (Figma Bottom-Sheet Type=Action, 4059:14161): Sheet-Actions rows with
+ * their caption as Subtext, group labels and separators between them, titled by `aria-label` or the trigger's name.
+ * Shortcuts are left out there (no keyboard to press them); choosing, `onSelect` and `onOpenChange` work as above.
  *
  *   <Menu trigger={<IconButton aria-label="Actions for Invoice 1024" icon={<Icon name="icon-dots-horizontal-line" />} />}
  *     items={[{ id: "duplicate", label: "Duplicate" }, { type: "separator" }, { id: "delete", label: "Delete", danger: true }]}
@@ -223,15 +244,23 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
     emitOpenChange(next);
   }, [setOpenState, emitOpenChange]);
 
-  const placement = useMenuPlacement(surfaceRef, triggerRef, open, align);
+  // A phone: the entries open in an action Bottom Sheet (its modal focus, Escape, scrim and focus return), not the popover.
+  const asSheet = usePhoneSheet(triggerRef, open);
+  const t = useZenLabels();
+  const sheetListRef = useRef<HTMLUListElement | null>(null);
+  /** The sheet opened from the keyboard starts on its first or last item (as the popover does), else on the sheet. */
+  const [sheetStart, setSheetStart] = useState<"first" | "last" | null>(null);
+  const [sheetTitle, setSheetTitle] = useState("");
+  useLayoutEffect(() => { if (open && asSheet && !ariaLabel) setSheetTitle(nameOf(triggerRef.current)); }, [open, asSheet, ariaLabel]);
+  const placement = useMenuPlacement(surfaceRef, triggerRef, open && !asSheet, align);
   // Closing keeps the surface for its Fast exit fade (popover.css), inert so it takes no clicks or focus meanwhile.
-  const presence = usePresence(open, 120);
+  const presence = usePresence(open && !asSheet, 120);
   // One popover at a time: opening this menu closes another object's popover or menu, and the other way round.
   useExclusivePopover(open, () => setOpen(false), surfaceRef, triggerRef);
 
   // Opening moves focus into the menu; closing while focus was inside gives it back to the trigger.
   useLayoutEffect(() => {
-    if (!open) return undefined;
+    if (!open || asSheet) return undefined;
     closedOutside.current = false;
     const list = listRef.current;
     const options = enabledItems(list);
@@ -243,12 +272,13 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
       const active = document.activeElement;
       if (!closedOutside.current && (!active || active === document.body)) triggerRef.current?.focus({ preventScroll: true });
     };
-  }, [open]);
+  }, [open, asSheet]);
 
-  // Light dismiss: a press outside the menu and its trigger closes it (the trigger toggles on its own click).
-  const isOutside = useDismissableLayer(open, () => [surfaceRef.current, triggerRef.current]);
+  // Light dismiss: a press outside the menu and its trigger closes it (the trigger toggles on its own click). The sheet
+  // has its own: the scrim, Escape and drag-down.
+  const isOutside = useDismissableLayer(open && !asSheet, () => [surfaceRef.current, triggerRef.current]);
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open || asSheet) return undefined;
     const onPointerDown = (event: globalThis.PointerEvent) => {
       if (!isOutside(event.target as Node | null)) return;
       closedOutside.current = true;
@@ -256,7 +286,7 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
     };
     document.addEventListener("pointerdown", onPointerDown, true);
     return () => document.removeEventListener("pointerdown", onPointerDown, true);
-  }, [open, setOpen]);
+  }, [open, asSheet, setOpen]);
 
   useEffect(() => () => window.clearTimeout(typeahead.current.timer), []);
 
@@ -269,9 +299,10 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
     item.onSelect?.();
     emitSelect(item);
     setOpen(false);
-    // Back to the trigger, unless the action already moved focus somewhere else (an inline editor, a dialog).
+    // Back to the trigger, unless the action already moved focus somewhere else (an inline editor, a dialog). The sheet
+    // gives it back as it closes.
     const active = document.activeElement;
-    if (!active || active === document.body || listRef.current?.contains(active)) triggerRef.current?.focus({ preventScroll: true });
+    if (!active || active === document.body || listRef.current?.contains(active) || sheetListRef.current?.contains(active)) triggerRef.current?.focus({ preventScroll: true });
   };
 
   const focusItem = (options: HTMLButtonElement[], index: number) => options[index]?.focus();
@@ -286,15 +317,17 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
     const repeated = [...state.text].every((char) => char === state.text[0]);
     const query = repeated ? state.text[0] : state.text;
     const start = repeated ? current + 1 : Math.max(current, 0);
-    const labelOf = (option: HTMLElement) => (option.querySelector(".zen-popover__item-label")?.textContent ?? option.textContent ?? "").trim().toLowerCase();
+    const labelOf = (option: HTMLElement) => (option.querySelector(".zen-popover__item-label, .zen-bottom-sheet__item-label")?.textContent ?? option.textContent ?? "").trim().toLowerCase();
     for (let step = 0; step < options.length; step += 1) {
       const index = (start + step) % options.length;
       if (labelOf(options[index]).startsWith(query)) { focusItem(options, index); return; }
     }
   };
 
-  const onListKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const options = enabledItems(listRef.current);
+  const onListKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    // In the sheet, Escape and Tab belong to the modal (it closes, Tab stays inside); the arrows and typing still move.
+    if (asSheet && (event.key === "Escape" || event.key === "Tab")) return;
+    const options = enabledItems(asSheet ? sheetListRef.current : listRef.current);
     const current = options.indexOf(document.activeElement as HTMLButtonElement);
     const last = options.length - 1;
     switch (event.key) {
@@ -330,7 +363,7 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
   };
 
   // Focus follows the mouse, so the keyboard continues from the hovered item and only one row is highlighted.
-  const onListPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+  const onListPointerMove = (event: PointerEvent<HTMLElement>) => {
     if (event.pointerType === "touch") return;
     const option = (event.target as Element).closest<HTMLButtonElement>(ITEM);
     if (option && !option.disabled && document.activeElement !== option) option.focus({ preventScroll: true });
@@ -349,15 +382,17 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
     ? cloneElement(trigger, {
       ref: mergedTriggerRef,
       id: triggerId,
-      "aria-haspopup": "menu",
+      // A phone's sheet is a dialog (as SelectField's), so the trigger says so and controls no menu element.
+      "aria-haspopup": asSheet ? "dialog" : "menu",
       "aria-expanded": open,
-      "aria-controls": open ? menuId : undefined,
+      "aria-controls": open && !asSheet ? menuId : undefined,
       onClick: (event: MouseEvent<HTMLElement>) => {
         triggerProps.onClick?.(event);
         if (event.defaultPrevented) return;
         if (open) { setOpen(false); return; }
         // Enter / Space fire a click with detail 0: open on the first item. A pointer opens on the menu itself.
         focusOnOpen.current = event.detail === 0 ? "first" : "menu";
+        setSheetStart(event.detail === 0 ? "first" : null);
         setOpen(true);
       },
       onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
@@ -366,8 +401,9 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
         if (event.key === "ArrowDown" || event.key === "ArrowUp") {
           event.preventDefault();
           const where = event.key === "ArrowDown" ? "first" : "last";
-          if (open) { const options = enabledItems(listRef.current); focusItem(options, where === "first" ? 0 : options.length - 1); return; }
+          if (open) { const options = enabledItems(asSheet ? sheetListRef.current : listRef.current); focusItem(options, where === "first" ? 0 : options.length - 1); return; }
           focusOnOpen.current = where;
+          setSheetStart(where);
           setOpen(true);
         } else if (event.key === "Escape" && open) {
           event.preventDefault();
@@ -401,9 +437,23 @@ export function Menu({ trigger, items, children, onSelect, align = "start", open
     </div>
   ) : null;
 
+  // The sheet: the same entries as Sheet-Actions rows (MenuContext `sheet`), titled like the menu.
+  const enabledIds = items && sheetStart ? flatItems(items).filter((item) => !item.disabled).map((item) => item.id) : [];
+  const autoFocusId = sheetStart === "first" ? enabledIds[0] : sheetStart === "last" ? enabledIds[enabledIds.length - 1] : undefined;
+  const sheet = asSheet ? (
+    // zen-allow-sheet-items: Menu draws its own Sheet-Actions rows (groups, separators, captions) in the Items slot.
+    <BottomSheet {...dataAttributes(rest)} type="action" open={open} onOpenChange={(next) => { if (!next) setOpen(false); }} title={ariaLabel ?? (sheetTitle || t.moreActions)}
+      className={["zen-menu-sheet", className].filter(Boolean).join(" ")}>
+      <ul ref={sheetListRef} id={menuId} className="zen-bottom-sheet__items" role="list" onKeyDown={onListKeyDown} onPointerMove={onListPointerMove}>
+        <MenuContext value={{ choose, sheet: true, autoFocusId }}>{items ? renderEntries(items, nest) : nest.slot(children)}</MenuContext>
+      </ul>
+    </BottomSheet>
+  ) : null;
+
   return (
     <>
       {triggerElement}
+      {sheet}
       {surface ? overlayRoot ? createPortal(surface, overlayRoot) : <ZenPortal>{surface}</ZenPortal> : null}
     </>
   );
@@ -444,6 +494,17 @@ export interface MenuItemProps {
 export function MenuItem({ id, label, icon, caption, shortcut, danger = false, disabled = false, onSelect, className, ...rest }: MenuItemProps) {
   const menu = useContext(MenuContext);
   const nest = useNested();
+  const choose = () => (menu ? menu.choose({ id: id ?? label, label, icon, caption, shortcut, danger, disabled, onSelect }) : onSelect?.());
+  if (menu?.sheet) {
+    // A phone's sheet: a Sheet-Actions row (24px icon, the caption as Subtext); the shortcut is left out.
+    return (
+      <li>
+        <SheetActionRow {...dataAttributes(rest)} className={["zen-menu__item", className].filter(Boolean).join(" ")} label={label} caption={caption}
+          icon={nest("Icon", renderIcon(icon))} destructive={danger} disabled={disabled}
+          data-autofocus={menu.autoFocusId !== undefined && menu.autoFocusId === (id ?? label) ? "" : undefined} onClick={choose} />
+      </li>
+    );
+  }
   const leading = nest("Icon", icon === undefined ? undefined : typeof icon === "string" ? <Icon name={icon} size="base" decorative /> : icon);
   return (
     <PopoverItem {...dataAttributes(rest)}
@@ -456,14 +517,16 @@ export function MenuItem({ id, label, icon, caption, shortcut, danger = false, d
       leading={leading}
       trailing={shortcut ? <span className={`zen-menu__shortcut ${typographyStyles["Body/Small/Regular"]}`}>{shortcut}</span> : undefined}
       disabled={disabled}
-      onSelect={() => (menu ? menu.choose({ id: id ?? label, label, icon, caption, shortcut, danger, disabled, onSelect }) : onSelect?.())}
+      onSelect={choose}
     />
   );
 }
 
 /** A Divider between groups of items (role=separator). */
 export function MenuSeparator({ className, ...rest }: { /** Extra class on the line. */ className?: string }) {
-  return <Divider {...dataAttributes(rest)} className={["zen-menu__separator", className].filter(Boolean).join(" ")} />;
+  const sheet = useContext(MenuContext)?.sheet;
+  const line = <Divider {...dataAttributes(rest)} className={["zen-menu__separator", className].filter(Boolean).join(" ")} />;
+  return sheet ? <li>{line}</li> : line;
 }
 
 export interface MenuGroupProps {
@@ -480,6 +543,17 @@ export interface MenuGroupProps {
  *  menu). The label is a plain element, never a heading (h1–h6 or role=heading). */
 export function MenuGroup({ label, children, className, ...rest }: MenuGroupProps) {
   const labelId = `zen-menu-group-${idFrom(useId())}`;
+  if (useContext(MenuContext)?.sheet) {
+    // A phone's sheet: the label over its own list of rows, named by it.
+    return (
+      <li>
+        <div {...dataAttributes(rest)} role="group" aria-labelledby={labelId} className={["zen-menu__group", className].filter(Boolean).join(" ")}>
+          <div id={labelId} className={`zen-bottom-sheet__label ${typographyStyles["Body/Small/Medium"]}`}>{label}</div>
+          <ul className="zen-bottom-sheet__group" role="list">{children}</ul>
+        </div>
+      </li>
+    );
+  }
   return (
     <div {...dataAttributes(rest)} role="group" aria-labelledby={labelId} className={["zen-menu__group", className].filter(Boolean).join(" ")}>
       <div id={labelId} className={`zen-popover__label ${typographyStyles["Body/Small/Medium"]}`}>{label}</div>

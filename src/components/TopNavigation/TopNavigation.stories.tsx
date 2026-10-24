@@ -24,6 +24,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
+/** The screen keeps one title heading: the large title is the h1 (Heading/1) while it shows; collapsed, or with no large
+ *  title, the bar title is the h1 in its own Body/Extra/Bold, so content headings start at h2. */
 export const Collapsed: Story = { args: { collapsed: true } };
 export const Compact: Story = { args: { type: "compact" } };
 
@@ -67,6 +69,7 @@ export const TrailingVisuals: Story = {
     leading: undefined,
     largeTitleAction: undefined,
     trailing: [
+      // zen-allow-badge-count: a 3-day streak, not a count to clear (Figma Header-Trailing: Badge Medium Orange Solid with its zap).
       <Badge key="streak" size="md" theme="orange" background="solid" leading="icon-zap-line">3</Badge>,
       <Avatar key="me" size="md" alt="Max Rivera">MR</Avatar>,
     ],
@@ -83,3 +86,7 @@ export const TrailingLargeAvatar: Story = {
     trailing: [<Avatar key="me" size="lg" shape="square" status alt="Max Rivera">MR</Avatar>],
   },
 };
+
+/** A navigation stack nested in a screen that already has its h1: `headingLevel` h2 draws the large title Heading/2
+ *  (h3 → Heading/3); the bar title keeps Body/Extra/Bold at every level. */
+export const NestedHeadingLevel: Story = { args: { headingLevel: "h2", title: "Members", largeTitle: "Members", largeTitleAction: undefined } };

@@ -55,9 +55,12 @@
 .zen-badge[data-size="xsmall"] .zen-badge__leading { display: none; }
 .zen-badge__leading > .zen-icon, .zen-badge__remove > .zen-icon { width: 100%; height: 100%; }
 .zen-badge__remove { padding: 0; border: 0; background: transparent; color: inherit; cursor: pointer; }
+/* Figma Badge Remove: Content/Neutral/Light on every Subtle theme; a Solid badge's takes its label colour. */
+.zen-badge[data-background="subtle"]:not([data-tone="inverse"], [data-tone="on-color"]) .zen-badge__remove { color: var(--zen-color-content-neutral-light); }
 .zen-badge__remove:focus-visible { outline: 2px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; border-radius: 50%; }
 .zen-badge__text { min-width: 0; overflow: hidden; padding-inline: var(--zen-badge-spacing-medium-text-wrapper-padding, 2px); text-overflow: ellipsis; }
-.zen-badge[data-size="small"] .zen-badge__text, .zen-badge[data-size="xsmall"] .zen-badge__text { padding-inline: var(--zen-badge-spacing-small-text-wrapper-padding, 4px); }
+.zen-badge[data-size="small"] .zen-badge__text { padding-inline: var(--zen-badge-spacing-small-text-wrapper-padding, 4px); }
+.zen-badge[data-size="xsmall"] .zen-badge__text { padding-inline: var(--zen-badge-spacing-xsmall-text-wrapper-padding, 4px); }
 
 /* Badge-Counter (9535:33812), bound variables per live Figma (2026-09-26):
    XSmall — container Badge/Spacing/XSmall/Vertical-Padding · Spacing/Padding/2XSmall; Text-Wrapper 0.

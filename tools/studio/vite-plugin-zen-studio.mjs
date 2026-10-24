@@ -1069,6 +1069,8 @@ export function zenStudio() {
     if (!drafts.size) return;
     const file = toPosix(path.relative(realRoot, abs));
     if (!drafts.has(file)) return;
+    // A drafted file changed on disk: the tabs show it as stale (or rebased) at once.
+    announceDrafts();
     try {
       await exclusive(async () => {
         const draft = drafts.get(file);
@@ -1162,8 +1164,21 @@ export function zenStudio() {
     if (drafts.size) logger.info?.(`[zen-studio] ${drafts.size} unsaved admin draft(s) restored: ${[...drafts.keys()].join(", ")}`, { timestamp: true });
   }
 
+  /**
+   * Every open Studio tab hears at once that the drafts changed (a draft made, changed, saved or discarded, here or in
+   * another browser) or that a drafted file changed on disk: sourceDrafts.ts reads GET /drafts again, where it waited for
+   * its 10 s poll, focus or visibility before (BACKLOG "Studio drafts, live push").
+   */
+  let draftsTimer = null;
+  function announceDrafts() {
+    if (!devServer?.ws) return;
+    clearTimeout(draftsTimer);
+    draftsTimer = setTimeout(() => devServer?.ws?.send({ type: "custom", event: "zen-studio:drafts", data: {} }), 150);
+  }
+
   /** Writes the drafts file after every change (in order, atomically); no drafts = no file. */
   function persist() {
+    announceDrafts();
     if (!draftsFile) return persistQueue;
     const target = draftsFile;
     const snapshot = drafts.size ? serializeDrafts(drafts) : null;

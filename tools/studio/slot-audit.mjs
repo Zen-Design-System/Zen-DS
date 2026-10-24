@@ -239,8 +239,8 @@ if (runOps) {
       }
       if (finding.slot === "children" && finding.targets.length > 1 && wants("move")) {
         for (const to of ["prev", "next"]) {
-          // A const shown in several places moves where this slot shows it (the Studio sends that holder as `parent`).
-          const holder = target.cls === "const-jsx" ? { parent: finding.host.loc } : {};
+          // A const shown in several places (`{name}`, or on a condition) moves where this slot shows it (the Studio sends that holder as `parent`).
+          const holder = target.cls === "const-jsx" || target.cls === "condition" ? { parent: finding.host.loc } : {};
           const response = applySlotOp(text, target.loc, target.name, { op: "moveElement", to, ...holder }, options);
           // First and last items have nowhere to go one way: not a refusal of the item.
           if (!/is already the (first|last) item/.test(String(response.error ?? ""))) { note(`move · ${target.cls}`, response, at); count += 1; }

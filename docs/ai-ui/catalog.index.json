@@ -174,73 +174,73 @@
     },
     {
       "name": "CalendarAgenda",
-      "status": "stable",
+      "status": "verified",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "props": "events? from? days? device? today? empty? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "CalendarAgendaItem",
-      "status": "stable",
+      "status": "verified",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "props": "start end? title meta? color? attendees? device? onClick? aria-label? aria-labelledby? aria-describedby? disabled?"
     },
     {
       "name": "CalendarDate",
-      "status": "stable",
+      "status": "verified",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "props": "day size? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "CalendarDayCell",
-      "status": "stable",
+      "status": "verified",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "props": "day label? today? children? more? onMoreClick? onSelect? focusable? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "CalendarDayTile",
-      "status": "stable",
+      "status": "verified",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "props": "weekday day selected? today? label? aria-label? aria-labelledby? aria-describedby? disabled? onClick?"
     },
     {
       "name": "CalendarEvent",
-      "status": "stable",
+      "status": "verified",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "props": "title time? kind? color? selected? onClick? aria-label? aria-labelledby? aria-describedby? disabled?"
     },
     {
       "name": "CalendarEventBlock",
-      "status": "stable",
+      "status": "verified",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "props": "title time? showTime? titleLines? color? selected? onClick? aria-label? aria-labelledby? aria-describedby? disabled?"
     },
     {
       "name": "CalendarMonth",
-      "status": "stable",
+      "status": "verified",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "props": "month? value? defaultValue? onValueChange? events? selectedEventId? onMoreClick? device? today? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "CalendarNowLine",
-      "status": "stable",
+      "status": "verified",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "props": "orientation? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "CalendarTimeGrid",
-      "status": "stable",
+      "status": "verified",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "props": "view? date? events? startHour? endHour? now? today? selectedEventId? onSlotPress? device? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "CalendarToolbar",
-      "status": "stable",
+      "status": "verified",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "props": "title? date? today? titleLevel? view? views? onViewChange? onToday? onPrevious? onNext? device? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "CalendarWeekStrip",
-      "status": "stable",
+      "status": "verified",
       "purpose": "Show events over time: a month of days, a week or day of hours, or an agenda list, with the Toolbar that moves the period and switches the view. The views take the events as data (id, title, start, end, allDay, color, meta, attendees) and draw the Figma primitives (Event chips, Event-Blocks, Agenda-Items, Day-Cells).",
       "props": "week? value? defaultValue? onValueChange? events? variant? device? today? aria-label? aria-labelledby? aria-describedby?"
     },
@@ -410,13 +410,13 @@
     },
     {
       "name": "Divider",
-      "status": "stable",
+      "status": "verified",
       "purpose": "A 1px line that separates groups of content. Default (Pale) is the everyday rule; Medium and High add emphasis only when the design calls for it.",
       "props": "color? orientation? dashed? decorative?"
     },
     {
       "name": "DockIcon",
-      "status": "stable",
+      "status": "verified",
       "purpose": "A round, filled icon tile that identifies an app, category, file type or object.",
       "props": "icon? emoji? size? theme? background? label?"
     },
@@ -572,25 +572,25 @@
     },
     {
       "name": "Menu",
-      "status": "stable",
+      "status": "verified",
       "purpose": "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
       "props": "trigger items? children? onSelect? align? open? defaultOpen? onOpenChange? aria-label?"
     },
     {
       "name": "MenuGroup",
-      "status": "stable",
+      "status": "verified",
       "purpose": "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
       "props": "label children"
     },
     {
       "name": "MenuItem",
-      "status": "stable",
+      "status": "verified",
       "purpose": "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
       "props": "id? label icon? caption? shortcut? danger? disabled? onSelect?"
     },
     {
       "name": "MenuSeparator",
-      "status": "stable",
+      "status": "verified",
       "purpose": "A button that opens a list of actions for an object: row actions in a table, a card's ⋯, an Edit or New menu. It uses the Popover surface and Popover/Item rows, follows the WAI-ARIA menu button pattern and floats in the overlay layer.",
       "props": ""
     },
@@ -651,13 +651,13 @@
     },
     {
       "name": "ProgressBar",
-      "status": "stable",
+      "status": "verified",
       "purpose": "Show determinate progress of a task or a step.",
       "props": "value theme? layout? label? valueLabel? aria-label? scale?"
     },
     {
       "name": "ProgressCircle",
-      "status": "stable",
+      "status": "verified",
       "purpose": "Show determinate progress of a task or a step.",
       "props": "value theme? label? aria-label? decorative?"
     },
@@ -934,7 +934,7 @@
     },
     {
       "name": "Tag",
-      "status": "stable",
+      "status": "verified",
       "purpose": "A chosen value inside a field (keywords, recipients), usually removable.",
       "props": "children leading? photoSrc? error? disabled? remove? onRemove? removeLabel? aria-label? aria-labelledby? aria-describedby?"
     },

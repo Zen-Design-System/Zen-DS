@@ -866,7 +866,7 @@ const onKeyDown = (event) => {
   },
   {
     title: "Row menu on a phone",
-    description: "Each file row opens the file, and its ⋯ is a separate target with four short actions; the menu opens inside the phone, lined up with the button. Rename opens a Bottom Sheet form, and Delete removes the row with Undo in the toast. The files sit on a tab root of the Zen app, grouped by when they changed.",
+    description: "Each file row opens the file, and its ⋯ is a separate target with four short actions; on a phone the menu opens as an action Bottom Sheet by itself (titled by the button's name, Delete last after a separator). Rename opens a Bottom Sheet form, and Delete removes the row with Undo in the toast. The files sit on a tab root of the Zen app, grouped by when they changed.",
     render: () => <PhoneFileMenu />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 

@@ -139,5 +139,5 @@ interface TopNavigationAction { icon: IconName | ReactElement; label: string; on
 | `interaction/action-without-handler` | warn | Screens, examples and templates (apps too since 2026-10-07; component source is skipped): every action does something when pressed. Flags a `Button` or `<button>` without onClick / href / type="submit" (IconButton: icon-button/needs-action), an action object ({ icon, label }) in leading, trailing, action, primaryAction, secondaryAction, subAction or actions without onClick, and pressable items whose list has no onSelect / onNavigate / onItemClick / onValueChange. Documented defaults pass: Dialog, ModalForm, SidePanel and BottomSheet actions close the overlay; a Menu opens from its trigger. Apps are not judged. | `zen-allow-action-handler: <reason>` |
 
 ## References
-- [Apple HIG — Navigation bars](https://developer.apple.com/design/human-interface-guidelines/navigation-bars)
+- [Apple HIG — Toolbars (formerly Navigation bars)](https://developer.apple.com/design/human-interface-guidelines/toolbars)
 - [Material 3 — Top app bar](https://m3.material.io/components/top-app-bar/guidelines)

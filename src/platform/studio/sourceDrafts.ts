@@ -12,7 +12,8 @@ import { srcAttr, srcProp } from "./select/srcIds";
  * Admin drafts (spec: drafts until Save). The dev server keeps every Studio edit of a file as a draft (shown to every
  * browser on that server) until an admin saves it to disk or discards it. This module mirrors GET /drafts for the
  * toolbar's Unsaved · Save all and the code view's Draft badge, and runs Save and Discard. Refreshes: on mount,
- * after every edit/undo/redo, Vite update, Save, Discard, window focus, and every 10 s while drafts exist.
+ * after every edit/undo/redo, Vite update, Save, Discard, the dev server's `zen-studio:drafts` event (any browser's
+ * draft change, a drafted file changed on disk), window focus, and every 10 s while drafts exist.
  * Per frame (2026-10-03): which canvas frames own which changes (POST /frame-drafts), and each frame's own Save and
  * Discard, which write or drop only that frame's changes. Save all and Discard all name the files they were shown,
  * so drafts another admin made meanwhile are never written or dropped unseen.
@@ -122,12 +123,16 @@ if (typeof window !== "undefined") {
   document.addEventListener("visibilitychange", onVisible);
   const hot = import.meta.hot;
   hot?.on("vite:afterUpdate", soon);
+  // The dev server says when the drafts change or a drafted file changes on disk (vite-plugin-zen-studio.mjs
+  // announceDrafts): another browser's draft or Save shows here at once, not on the next poll.
+  hot?.on("zen-studio:drafts", soon);
   hot?.dispose(() => {
     unsubscribeWrites();
     unsubscribeRole();
     window.removeEventListener("focus", soon);
     document.removeEventListener("visibilitychange", onVisible);
     hot.off?.("vite:afterUpdate", soon);
+    hot.off?.("zen-studio:drafts", soon);
     window.clearTimeout(debounce);
     if (poll !== undefined) window.clearInterval(poll);
   });

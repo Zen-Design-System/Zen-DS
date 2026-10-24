@@ -207,9 +207,9 @@ const classes = {
   "array-literal": { fix: "— (plain values)", what: "prop={[…]} of plain values" },
   "data-const": { fix: "B2+ (edit the const)", what: "prop={NAME}: data a top-level const of the same file holds" },
   "data-expression": { fix: "— (inherent)", what: "object/array/other-typed prop computed or imported (state, props, helpers)" },
-  "loop-bound": { fix: "B4 (per-item data)", what: "scalar prop fed by a .map() item (`status={one.online}`): one element renders every row" },
-  "bound-value": { fix: "B4 (override)", what: "scalar prop bound to a variable/state (`checked={on}`, `size={size}`)" },
-  conditional: { fix: "B4 (override)", what: "scalar prop written as `a ? b : c` / `a && b`" },
+  "loop-bound": { fix: "✓ the data item at its source, or every row (E2E I-10); no override of one row (user, 2026-10-24)", what: "scalar prop fed by a .map() item (`status={one.online}`): one element renders every row" },
+  "bound-value": { fix: "✓ the useState initializer (I-09) or a fixed value", what: "scalar prop bound to a variable/state (`checked={on}`, `size={size}`)" },
+  conditional: { fix: "✓ a fixed value (I-11; read-only when it reads state)", what: "scalar prop written as `a ? b : c` / `a && b`" },
   "render-function": { fix: "— (inherent)", what: "a function-valued prop that is not a handler (cell, render…)" },
   spread: { fix: "— (read-only by design)", what: "{...rest}: props a spread feeds stay read-only" },
 };

@@ -172,7 +172,7 @@ export function moveToPlan(ctx, nodePath, op, h) {
   let unit = nodePath[i];
   let holderAt = i - 1;
   let unitAt = h.childUnitAt(nodePath, nodePath.length - 1);
-  // A const's JSX that one `{name}` child shows: that `{name}` goes (the const stays where it is written).
+  // A const's JSX that a `{…}` child shows (`{summary}`, `{phone ? card : null}`): that `{…}` goes (the const stays where it is written).
   const shown = unitAt < 0 ? h.constChildUse(ctx, nodePath) : null;
   const path = shown ? shown.path : nodePath;
   if (shown) unitAt = shown.at;

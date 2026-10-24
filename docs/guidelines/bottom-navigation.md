@@ -70,6 +70,7 @@ interface BottomNavigationItem { id: string; label: string; icon: IconName | Rea
 - Keep 3–5 destinations (harness: bottom-navigation/destinations).
 - Use a solid glyph for the selected state (selectedIcon) and keep the label as the accessible name.
 - Use Floating Glass over imagery: idle icons are Neutral/Strongest and the selection defaults to Subtle; switch to Solid only for extra emphasis.
+- Tapping the current destination again scrolls its root screen back to the top (the large title opens again): onValueChange also fires for the current id, so compare and scroll.
 - Clear the dot as soon as the destination is opened.
 - Over photos or video, pass backdrop="none" so the pill floats on the image; the Surface fade is for plain screens.
 

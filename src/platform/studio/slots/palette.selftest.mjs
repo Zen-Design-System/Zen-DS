@@ -134,7 +134,7 @@ for (const [name, def] of Object.entries(CONTENT_SLOTS)) {
 // ModalForm side: the layouts with a side column are modalFormLayouts minus basic and big (hasSide in Dialog.tsx).
 const layouts = JSON.parse(`[${/modalFormLayouts = \[([^\]]*)\]/.exec(read("Dialog/Dialog.tsx"))?.[1] ?? ""}]`);
 check("ModalForm side layouts", slotOf("ModalForm", "side")?.activeWhen?.[0]?.is, layouts.filter((layout) => layout !== "basic" && layout !== "big"));
-check("BottomSheet type=action renders items instead of children", read("BottomSheet/BottomSheet.tsx").includes(`{type === "action" ? (`), true);
+check("BottomSheet type=action renders items instead of children", read("BottomSheet/BottomSheet.tsx").includes(`{type === "action" && items.length ? (`), true);
 
 // Data slots (dataSlots.ts): the prop is documented, the source passes each item object itself to the part that draws
 // it (the Studio finds an item on the canvas by identity), draws `max` of them, and a new item is valid code.
