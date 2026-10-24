@@ -526,7 +526,7 @@ function DeliveryDayExample() {
       <Stack gap="lg" padding="lg">
         <ListBox>
           <List aria-label="Delivery">
-            <ListItem title="Delivery day" caption={formatDate(delivery)} leading="icon-package-line"
+            <ListItem title="Delivery day" caption={formatDate(delivery)} leading={<DockIcon icon="icon-package-line" size="md" background="subtle" />}
               trailing={<Icon name="icon-chevron-right-line-small" decorative />} onClick={() => setPicking(true)} />
           </List>
         </ListBox>
@@ -709,7 +709,7 @@ const [time, setTime] = useState<DatePickerTime>({ from: "14:00", to: "14:30" })
     code: `const [delivery, setDelivery] = useState(inThreeDays);
 const [typing, setTyping] = useState(false);
 
-<ListItem title="Delivery day" caption={formatDate(delivery)} leading="icon-package-line"
+<ListItem title="Delivery day" caption={formatDate(delivery)} leading={<DockIcon icon="icon-package-line" size="md" background="subtle" />}
   trailing={<Icon name="icon-chevron-right-line-small" decorative />} onClick={() => setPicking(true)} />
 {typing ? <DateField size="lg" label="Delivery day" value={typed} onValueChange={setTyped} autoFocus /> : null}
 
