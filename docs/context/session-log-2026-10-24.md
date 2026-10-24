@@ -380,3 +380,15 @@ Branch claude/table-select-media-00c331, from "Full prototype tạo task" (Studi
 - **Figma:** the Table contract covers the text editor only (Editabled-Cell); Popover/Item content themes are its own.
 - **Tests:** tests/interaction/table-select-looks.test.tsx (avatars + initials + photo follows the pick; badges + look
   follows the pick; `edit` object options with photoSrc). Guideline: Table › Editable cells + one Do line.
+
+## Play: hotspot hints on presses that do something (tier S; the user: "prototype lỗi luôn hiện placeholder touch khi click vào các elenment có tương tác sẵn")
+
+- Cause: `Player.tsx` flashed the hints on pointerdown unless the target was a native control (`CLICKABLE`). A Box or
+  Card given `proto.navigate` (an onClick, no role) and component parts that work by their own handlers (the field's
+  control padding, chart bars, calendar slots) counted as "nothing", so the hints flashed on top of the navigation.
+  Such a Box was also never outlined itself (only controls inside a source were).
+- Fix: the press is judged at its click, two frames later: no hints when the device's DOM changed (MutationObserver,
+  the hints' own layer left out), the focus moved into a control, or the press landed in a layer with a whole action;
+  a source layer with no control inside is its own hotspot.
+- E2E PT-22 (prototype group): plain text → 1 hint (the Box), field padding → focus and no hints, Box → screen-2 and
+  no hints. studio:selftest 1795/0 (560 rows). The browser rows run in the gate slot.
