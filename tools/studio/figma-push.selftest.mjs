@@ -892,6 +892,35 @@ export default function Page() {
   const back = shape(pageFromFigma(frame, { mapping }).text);
   check("round trip: the Screen's topNavigation and the page's TopNavigations come back the same", back, shape(nav.replace(/, group: "call"/g, "")));
 }
+// Figma Heading-Text Dropdown and Badges (2026-10-24): titleMenu / titleDropdown draw the bar title's chevron, and
+// largeTitleBadges the Badges row under the large title; the pull reads the chevron back as titleDropdown.
+{
+  const nav = `// @zen-page {"format":1,"title":"Mail"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Stack, Text, TopNavigation } from "@zen-ds/react";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Mail" device="phone">
+        <Stack>
+          <TopNavigation type="alt" title="Inbox" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} titleMenu={[{ id: "inbox", label: "Inbox" }]} />
+          <TopNavigation type="alt" largeTitle="Living room" largeTitleBadges={<Text>4 on</Text>} scrolledType="default" />
+          <Text>Body</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(nav);
+  const navs = find(frame, (node) => node.type === "FRAME" && (node.children ?? []).filter((child) => child.set?.name === "Top-Navigation/Mobile").length === 2)?.children.filter((child) => child.set?.name === "Top-Navigation/Mobile") ?? [];
+  const [mail, room] = navs;
+  check("TopNavigation: titleMenu draws Heading-Text's Dropdown; largeTitleBadges the Badges row", [mail.nested.find((entry) => entry.path === "Top-Heading-Text")?.props.Dropdown, room.nested.find((entry) => entry.path === "Main-Heading-Text")?.props.Badges], [true, true]);
+  ok("TopNavigation: notes for the menu's items, the sample Badge and scrolledType", ["titleMenu draws", "largeTitleBadges draws", "scrolledType is the look"].every((text) => notes.some((note) => note.includes(text))));
+  const back = pageFromFigma(frame, { mapping }).text;
+  ok("pull: the Dropdown chevron comes back as titleDropdown", /<TopNavigation[^>]*title="Inbox"[^>]*titleDropdown/.test(back));
+}
 // A Search in a TopNavigation's control bar is a pill by default (SearchShapeContext, user 2026-10-17: "mặc định nhưng
 // cho sửa"): the push writes Shape=Rounded unless the page sets shape, and the pull leaves Rounded unsaid there.
 {

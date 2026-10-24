@@ -22341,7 +22341,19 @@
         "onTitleClick": {
           "x-kind": "action",
           "params": [],
-          "description": "Makes the identity a button (open the profile / group info)."
+          "description": "Makes the bar title a button (open the profile / group info, a picker of your own)."
+        },
+        "titleMenu": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MenuEntry"
+          },
+          "description": "Figma Heading-Text Type=Sub Dropdown (`.Primitives/Heading-Text/Basic` 4060:17984): the bar title is a button with a chevron-down (icon-chevron-down-line, 20) Spacing/Gap/2XSmall a"
+        },
+        "titleDropdown": {
+          "type": "boolean",
+          "default": false,
+          "description": "The Dropdown chevron on an `onTitleClick` title that opens the app's own picker (a Bottom Sheet, a dialog)."
         },
         "titleLabel": {
           "type": "string"
@@ -22361,6 +22373,10 @@
         "largeTitleSubheading": {
           "x-kind": "node",
           "description": "Figma Expand-Heading › Main-Heading-Text Subheading (Subheading on): a line under the large title — \"6 devices · 4 on\" under \"Living room\" (F2), \"Living room\" under \"HomePod mini\""
+        },
+        "largeTitleBadges": {
+          "x-kind": "node",
+          "description": "Figma Main-Heading-Text Badges (Badges on): a row of Badges under the large title (Badge Medium, Spacing/Gap/XSmall apart and below the heading), e.g."
         },
         "headingLevel": {
           "enum": [
@@ -22442,6 +22458,23 @@
           ],
           "additionalProperties": false,
           "description": "For a Search control bar: while `collapsed`, the bar folds away and this Search action appears at the start of the trailing slot (top-right); it leaves again when the bar expands."
+        },
+        "scrolledType": {
+          "enum": [
+            "default",
+            "alt",
+            "default-blurring",
+            "alt-blurring",
+            "liquid-glass",
+            "default-overlay",
+            "liquid-overlay",
+            "compact",
+            "compact-alt",
+            "compact-overlay",
+            "transparent",
+            "transparent-on-color"
+          ],
+          "description": "With `scrollRef`: the type the bar takes once content scrolls under it (iOS's standard appearance), `type` being its look at the top (the scroll-edge appearance)."
         },
         "collapsed": {
           "type": "boolean",
@@ -24300,6 +24333,10 @@
       "title": "Top Navigation",
       "file": "docs/guidelines/top-navigation.md",
       "do": [
+        "A bar title that switches what the screen shows (a mailbox, a project) is a Dropdown: give it titleMenu (Figma Heading-Text Dropdown, a chevron-down after the title). titleDropdown draws the chevron on an onTitleClick title that opens your own picker.",
+        "Over a hero photo, start on the photo and turn opaque as the page scrolls: type=\"default-overlay\" (its dark gradient keeps the white title readable) with scrolledType=\"default\" and scrollRef.",
+        "State badges for the screen (a plan, how many devices are on) go under the large title in largeTitleBadges (Figma's Badges row); a Badge beside the title goes in largeTitleAction.",
+        "Selection mode is a second TopNavigation, not a prop: Cancel as leading, the count as the title, the selection's actions (disabled until something is picked) as trailing — the Top Navigation page's Selection mode example.",
         "An Avatar in the bar or beside the large title (the account, a profile photo) is drawn at the action size, Navigation-Action/Size 44, whatever Avatar size you pass (user 2026-10-19).",
         "Give the bar the colour of the screen under it (user rule 2026-10-08): on Canvas/Default or Surface/Alt (the same colour in light and dark; a phone screen by default) use alt, compact-alt or alt-blurring; on a white Surface screen default, compact or default-blurring; an overlay type only on media.",
         "Match the type to the page Canvas: Default on Surface, Alt on an Alt canvas, Compact on dense detail screens, an overlay type only on media.",
