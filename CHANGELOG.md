@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Segmented on a phone (user, 2026-10-24, option A): when its labels do not fit their equal share or it would slide
+  sideways, a Segmented with `options` shows as a single-choice chip row (ChipGroup, Medium) that scrolls sideways, with
+  the same options, value and onValueChange, and comes back once it fits. Desktop never changes. ChartCard's range
+  switch follows, so the docs' 14 phone `segmented-fit` findings are gone (baseline emptied).
 - Usage harness and audit (user, 2026-10-24, from the harness inventory): `listbox/grouped-on-phone` (error) flags a
   phone settings or profile screen that puts several kicker groups of rows in one block, or bare Lists under kickers
   (usage rules §15: each group is its own ListBox); `table/titled-box` (warn) flags a Table in a Card or ListBox that

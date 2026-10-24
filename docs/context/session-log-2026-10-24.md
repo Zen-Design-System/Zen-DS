@@ -298,3 +298,24 @@ Branch zen/feat/contract-checker-gaps-20261024.
   min 66, Message max 220 / 516, min 42; gridline dashes (bar, area, trend charts); Read-Only dashes (fields, text area);
   photos (Avatar/Single, Chip Normal / Advanced, Avatar / Photo cells, Popover item content). No drift found.
 - Negative checks: a 500px text cap and a 1px underline (CSS edited, restored) fail as `maxw` and `stroke`.
+
+## Session B · Segmented becomes a chip row on a phone (tier S–M; user picked option A via the progress session)
+
+- **Segmented.tsx:** on a phone, a Segmented with `options` turns into a ChipGroup (size md, level primary, one row
+  that scrolls sideways; `.zen-segmented-chips` in segmented.css). The phone test is `usePhoneSheet`'s: the nearest
+  `data-breakpoint`, else ZenProvider's.
+  - It switches when a label is cut (scrollWidth > clientWidth) or the track overflows.
+  - It keeps the same options, value, onValueChange and aria-label.
+  - It switches back when the chips' width reaches the segments' natural width, measured while they showed
+    (ResizeObserver).
+  - It never switches: on a desktop, for segments drawn as children, for icon-only segments, or for counters.
+- **ChartCard:** its range switch draws a Segmented, so the docs' 14 `segmented-fit` hits (app-shell B3/B4/G1, chart,
+  Studio analytics, the Segmented playground) go away with no example change. The playground keeps its Segmented
+  demo, and its phone view now follows the rule.
+- **Checks:**
+  - tests/interaction/segmented-phone-chips.test.tsx (3): a fullWidth Segmented that doesn't fit becomes chips and
+    picks; four periods become chips and come back at 900px; a Segmented that fits, and a desktop one, stay.
+  - Smoke + related tests: 454 pass.
+- The segmented guideline (Overflow row, phone Do line) and the audit's comment were updated. The segmented-fit
+  baseline is emptied, and the BACKLOG line is closed.
+
