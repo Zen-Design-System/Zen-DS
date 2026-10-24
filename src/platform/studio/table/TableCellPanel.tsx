@@ -137,7 +137,7 @@ function tag(name: string, props: Array<[string, string | true]>, children?: str
 const quoted = (value: string) => JSON.stringify(value);
 
 /** The new element for `content`, carrying the label, Subtext and Bold of the written one (`header`: a control's name). */
-function contentCode(content: Content, element: SourceElement, inner: SourceElement | null, header: string): string {
+function contentCode(content: Content, element: SourceElement, inner: SourceElement | null, header: string, lead = false): string {
   const label = labelCode(element, inner);
   const expression = label.startsWith("{") && label.endsWith("}") ? label.slice(1, -1) : JSON.stringify(label);
   const caption = attr(element, "caption");
@@ -151,7 +151,8 @@ function contentCode(content: Content, element: SourceElement, inner: SourceElem
     case "text": return tag("TableText", [], label, carried);
     case "avatar":
     case "photo":
-      return media(tag("Avatar", [["size", size("xs", "sm")], ["shape", quoted(content === "photo" ? "square" : "circle")], ["background", quoted("subtle")], ["alt", quoted("")]]));
+      // Solid in the first column, the row's name (Table.tsx cellVisual); Subtle elsewhere.
+      return media(tag("Avatar", [["size", size("xs", "sm")], ["shape", quoted(content === "photo" ? "square" : "circle")], ...(lead ? [] : [["background", quoted("subtle")] as [string, string]]), ["alt", quoted("")]]));
     case "icon": return media(tag("Icon", [["name", quoted("icon-face-smile-line")], ["size", size("base", "lg")], ["decorative", true]]));
     case "dock-icon": return media(tag("DockIcon", [["size", size("xs", "sm")], ["theme", quoted("neutral")], ["background", quoted("subtle")]]));
     case "badge": return tag("TableBadges", [], tag("Badge", [["size", quoted("medium")], ["theme", quoted("neutral")], ["background", quoted("subtle")], ["leadingIcon", "{false}"]], label));
@@ -395,7 +396,7 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
       return;
     }
     if (!content || !CONTENTS.includes(next as Content)) return;
-    const code = contentCode(next as Content, content, inner, header);
+    const code = contentCode(next as Content, content, inner, header, cell.column === 0);
     if (code) void edit(content, [{ op: "replaceElement", code }], `${header} column: Content → ${CONTENT_LABELS[next]}`);
   };
   const bold = drawn ? Boolean(column?.bold) : Boolean(content && attr(content, "bold") && !/\{\s*false\s*\}/.test(attr(content, "bold")!.raw));

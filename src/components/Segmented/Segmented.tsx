@@ -151,7 +151,13 @@ export function Segmented({ ref, options, value, defaultValue, onValueChange, on
     measure();
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
     observer?.observe(root);
-    return () => observer?.disconnect();
+    // Labels widen once the web fonts load (the first read can see a narrower fallback) without the track resizing:
+    // read again then (train C's gate, 2026-10-25: segments a phone cuts stayed segments).
+    const fonts = typeof document === "undefined" ? undefined : document.fonts;
+    let alive = true;
+    fonts?.ready.then(() => { if (alive) measure(); });
+    fonts?.addEventListener?.("loadingdone", measure);
+    return () => { alive = false; observer?.disconnect(); fonts?.removeEventListener?.("loadingdone", measure); };
   }, [phone, chipable, chips, options]);
   if (chips && options) {
     return (
