@@ -3,7 +3,6 @@ import { useControllableState } from "../_shared/use-controllable-state";
 import { useMergedRefs } from "../_shared/merge-refs";
 import { Icon, type IconName } from "../Icon";
 import { Popover, PopoverManualAddNew, useExclusivePopover, type PopoverWidth } from "../Popover";
-import { Avatar } from "../Avatar";
 import type { BadgeTheme } from "../Badge";
 import { BottomSheet } from "../BottomSheet";
 import { List, ListItem } from "../ListItem";
@@ -18,13 +17,14 @@ import { Tooltip, useIconTooltip } from "../Tooltip";
 import { renderIcon } from "../_shared/icon";
 import type { ZenLabels } from "../_shared/labels";
 import { scaleKey } from "../_shared/scale";
-import { useZen, useZenLabels } from "../_shared/zen-context";
+import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./input.css";
 import "../Icon/core";
 import { useNested, type Nest, type NestedOverrides } from "../_shared/nested";
 import { sanitizeHtml } from "../_shared/sanitize-html";
 import { useDismissableLayer } from "../_shared/layers";
+import { sheetLeading, usePhoneSheet } from "../_shared/phone-sheet";
 import { dataAttributes } from "../_shared/data-attributes";
 
 export const inputSizes = ["small", "medium", "large", "xlarge"] as const;
@@ -214,16 +214,21 @@ export function InputLeadingTrailing({ size: sizeProp = "md", active: activeProp
   const isPicker = interactive && hasOptions;
   const resolvedDropdown = isPicker || (showDropdown ?? dropdown);
   const current = options?.find((option) => option.value === value);
+  // Figma's Elements frame (label · children · chevron) only exists with content: an empty one would add the root gap
+  // after an icon-only or flag-only slot (Label=No, Dropdown=No: 16 / 20 / 24 wide).
+  const hasElements = hasLabel || resolvedDropdown || (children !== undefined && children !== null && children !== false);
   // Icon names draw at the slot's Element-Size/Popular: Small 16 · Medium 20 · Large 24.
   const iconSize = size === "small" ? "sm" : size === "large" ? "md" : "base";
   const content = (
     <>
       {current?.flag ?? flag}{renderIcon(current?.icon ?? icon, { size: iconSize })}
-      <span className="zen-input-leading-trailing__elements">
-        {hasLabel ? <span className={`zen-input-leading-trailing__label ${typographyStyles[size === "large" ? "Heading/4" : "Body/Base/Medium"]}`}>{current ? current.label : label}</span> : null}
-        {children}
-        {resolvedDropdown ? <span className="zen-input-leading-trailing__dropdown"><Icon name={open ? "icon-chevron-up-line" : "icon-chevron-down-line"} size={size === "small" ? "sm" : "base"} decorative /></span> : null}
-      </span>
+      {hasElements ? (
+        <span className="zen-input-leading-trailing__elements">
+          {hasLabel ? <span className={`zen-input-leading-trailing__label ${typographyStyles[size === "large" ? "Heading/4" : "Body/Base/Medium"]}`}>{current ? current.label : label}</span> : null}
+          {children}
+          {resolvedDropdown ? <span className="zen-input-leading-trailing__dropdown"><Icon name={open ? "icon-chevron-up-line" : "icon-chevron-down-line"} size={size === "small" ? "sm" : "base"} decorative /></span> : null}
+        </span>
+      ) : null}
     </>
   );
   const common = { "data-size": size, "data-active": active ? "true" : "false", "data-label": showLabel ? "true" : "false", "data-dropdown": resolvedDropdown ? "true" : "false", "data-icon-only": hasLabel ? undefined : "true" };
@@ -394,8 +399,8 @@ function FieldShell({ children, id, label, labelOptional, labelTooltip, labelAct
   const resolvedState = normalizeInputState(state, error);
   const disabled = resolvedState === "disabled";
   const inline = layout === "inline";
-  // Icon names draw at the affordance size: Element-Size/Popular Small 16 · Base 20 · Medium 24 · Large 28.
-  const iconSize = size === "small" ? "sm" : size === "large" ? "md" : size === "xlarge" ? "lg" : "base";
+  // Icon names draw at the affordance size, Field-Only's Leading-Trailing icon: Small 16 · Medium and Large 20 · XLarge 24.
+  const iconSize = size === "small" ? "sm" : size === "xlarge" ? "md" : "base";
   return (
     <div className={["zen-input-field", className].filter(Boolean).join(" ")} data-size={size ?? "medium"} data-state={resolvedState} data-layout={inline ? "inline" : undefined}>
       {inline ? null : <FieldLabel id={id} label={label} required={required} optional={labelOptional} tooltip={labelTooltip} action={labelAction} disabled={disabled} nest={nest} />}
@@ -463,7 +468,8 @@ export function TextAreaField(
         ref={ref}
         id={id}
         rows={rows}
-        className={`zen-input__native zen-input__native--textarea ${typographyStyles["Body/Base/Medium"]}`}
+        // Figma Input/Text-Area: Small takes Input-Content Size=Small (Body/Small/Medium), Medium and Large Body/Base/Medium.
+        className={`zen-input__native zen-input__native--textarea ${typographyStyles[size === "small" ? "Body/Small/Medium" : "Body/Base/Medium"]}`}
         required={required}
         disabled={disabled || normalizeInputState(state, error) === "disabled"}
         readOnly={textareaProps.readOnly || normalizeInputState(state, error) === "read-only"}
@@ -500,13 +506,6 @@ export type SelectFieldOption = {
 const optionContent = (option: SelectFieldOption) => ({
   theme: option.theme, leading: option.leading, caption: option.caption, photoSrc: option.photoSrc, photoAlt: option.photoAlt, badgeTheme: option.badgeTheme,
 });
-/** The same content in a phone's sheet row: the icon or the picture leads, the Subtext is the row's caption. */
-const optionSheetLeading = (option: SelectFieldOption): ReactNode => {
-  if (option.leading) return renderIcon(option.leading);
-  if (!option.photoSrc) return undefined;
-  const avatar = option.theme === "avatar-small" || option.theme === "avatar-big";
-  return <Avatar size={option.theme === "avatar-big" || option.theme === "photo-big" ? "medium" : "small"} shape={avatar ? "circle" : "square"} theme="photo" src={option.photoSrc} alt={option.photoAlt ?? ""} />;
-};
 export type SelectFieldProps = CommonFieldProps & Omit<SelectHTMLAttributes<HTMLSelectElement>, "size"> & {
   options?: SelectFieldOption[];
   /** Called with the picked value and its option, next to the native `onChange(event)` (which still runs). */
@@ -568,14 +567,8 @@ export function SelectField(
   // (popoverOpen) leaves focus where it is.
   const [openedFromTrigger, setOpenedFromTrigger] = useState(false);
   const closeAndRestore = () => { setOpen(false); triggerRef.current?.focus(); };
-  // Mobile: the options open in a Bottom Sheet. The nearest data-breakpoint decides (ZenProvider's, or a phone frame
-  // that only sets the attribute), else the provider's breakpoint; read again whenever the list opens or closes.
-  const zen = useZen();
-  const [domBreakpoint, setDomBreakpoint] = useState<string | null>(null);
-  useLayoutEffect(() => {
-    setDomBreakpoint(triggerRef.current?.parentElement?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") ?? null);
-  }, [open, zen?.breakpoint]);
-  const asSheet = (domBreakpoint ?? zen?.breakpoint) === "mobile";
+  // Mobile: the options open in a Bottom Sheet (usePhoneSheet: the nearest data-breakpoint, else the provider's).
+  const asSheet = usePhoneSheet(triggerRef, open);
   const [sheetQuery, setSheetQuery] = useState("");
   useEffect(() => { if (!open) setSheetQuery(""); }, [open]);
   useExclusivePopover(open, () => setOpen(false), triggerRef);
@@ -638,7 +631,7 @@ export function SelectField(
     onBlur?.(selectFocusEvent(event, nativeRef.current));
   };
   return (
-    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={characterLimit === true ? undefined : characterLimit} size={size} state={isDisabled ? "disabled" : isReadOnly ? "read-only" : state} leading={leading} trailing={trailing ?? <Icon name="icon-chevron-down-line" size="2xs" />} layout={layout} className={[className, open ? "zen-input-field--popover-open" : ""].filter(Boolean).join(" ")} overrides={overrides}>
+    <FieldShell id={id} label={label} labelOptional={labelOptional} labelTooltip={labelTooltip} labelAction={labelAction} required={required} messageId={messageId} error={error} helpText={helpText} helpTheme={helpTheme} helpIcon={helpIcon} characterLimit={characterLimit === true ? undefined : characterLimit} size={size} state={isDisabled ? "disabled" : isReadOnly ? "read-only" : state} leading={leading} trailing={trailing ?? <Icon name="icon-chevron-down-line" size="2xs" className="zen-input__picker-icon" />} layout={layout} className={[className, open ? "zen-input-field--popover-open" : ""].filter(Boolean).join(" ")} overrides={overrides}>
       <button
         id={`${id}-trigger`}
         className={`zen-input__native zen-select__trigger ${fieldTextStyle(size)}`}
@@ -713,7 +706,7 @@ export function SelectField(
             {options.filter((option) => !sheetQuery.trim() || option.label.toLowerCase().includes(sheetQuery.trim().toLowerCase())).map((option) => {
               const picked = option.value === (controlledValue ?? selectedValue);
               return (
-                <ListItem key={option.value} title={option.label} caption={option.caption} leading={optionSheetLeading(option)} selected={picked} className={option.disabled ? "zen-select__sheet-option--disabled" : undefined} aria-disabled={option.disabled || undefined}
+                <ListItem key={option.value} title={option.label} caption={option.caption} leading={sheetLeading(option)} selected={picked} className={option.disabled ? "zen-select__sheet-option--disabled" : undefined} aria-disabled={option.disabled || undefined}
                   trailing={option.meta || picked ? <>{option.meta ? <span className={`zen-select__option-meta ${typographyStyles["Body/Small/Regular"]}`}>{option.meta}</span> : null}{picked ? <Icon name="icon-check-line" size="base" decorative /> : null}</> : undefined}
                   onClick={option.disabled ? undefined : () => { pick(option.value); setOpen(false); }} />
               );
@@ -825,9 +818,7 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
   const canOpen = !props.readOnly && props.state !== "read-only" && !props.disabled && props.state !== "disabled";
   // Phones (the nearest data-breakpoint, else ZenProvider's) get the Date-Picker/Mobile sheet instead of the desktop
   // popover (Figma has no mobile popover). A modal sheet opens on a tap or ArrowDown, not on Tab focus.
-  const zenBreakpoint = useZen()?.breakpoint;
-  const [phone, setPhone] = useState(false);
-  useLayoutEffect(() => { setPhone((fieldRef.current?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") ?? zenBreakpoint) === "mobile"); }, [zenBreakpoint]);
+  const phone = usePhoneSheet(fieldRef, open);
   // Controlled: setInternalValue leaves the prop alone. onValueChange is reported by InputField (typing) and handleDateChange (a pick).
   const [currentValue, setInternalValue] = useControllableState<DateFieldProps["value"]>({ value, defaultValue: () => String(defaultValue ?? ""), name: "DateField value" });
   const parsedValue = parseDateFieldValue(currentValue);
@@ -876,7 +867,7 @@ export function DateField({ trailing, datePicker = true, datePickerActions = fal
         role={props.role ?? (datePicker ? "combobox" : undefined)}
         aria-haspopup={props["aria-haspopup"] ?? (datePicker ? "dialog" : undefined)}
         aria-expanded={props["aria-expanded"] ?? (datePicker ? open : undefined)}
-        trailing={trailing ?? <Icon name="icon-calendar-line" size="sm" />}
+        trailing={trailing ?? <Icon name="icon-calendar-line" size="sm" className="zen-input__picker-icon" />}
         onFocus={(event) => { if (canOpen && tabbing.current && !closing.current && !phone) setOpen(true); onFocus?.(event); }}
         onClick={onClick}
         onKeyDown={(event) => {

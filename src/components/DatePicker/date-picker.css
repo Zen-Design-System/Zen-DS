@@ -13,13 +13,15 @@
 .zen-date-picker__header { display: flex; width: 100%; height: var(--zen-button-size-small, 32px); align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* A hidden Back/Next (Dual headers) keeps its 32px Button-Wrapper so the label stays centred. */
 .zen-date-picker__nav-slot { width: var(--zen-button-size-small, 32px); height: var(--zen-button-size-small, 32px); flex: 0 0 var(--zen-button-size-small, 32px); }
-/* Figma overrides the Small icon button's Leading-Icon to Element-Size/Popular/Base. */
-.zen-date-picker .zen-date-picker__nav.zen-button { flex: 0 0 auto; --zen-button-icon-size: var(--zen-element-size-popular-base, 20px); }
+/* Figma overrides the Small icon button's Leading-Icon to Element-Size/Popular/Base (a standalone DatePickerHeader too). */
+.zen-date-picker__header .zen-date-picker__nav.zen-button { flex: 0 0 auto; --zen-button-icon-size: var(--zen-element-size-popular-base, 20px); }
 .zen-date-picker__month { display: inline-flex; min-width: 0; flex: 1; height: 32px; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0; border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-color-background-neutral-flat-default); color: var(--zen-color-content-neutral-strongest, #111); cursor: pointer; }
 /* Header 458:34317: the Date-Container is Corner-Radius/Small at rest and Corner-Radius/Base once it shows a fill (Hover, Focused). */
 button.zen-date-picker__month:hover:not(:disabled) { border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-flat-hover); }
 .zen-date-picker__month:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 0; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-flat-hover); }
 span.zen-date-picker__month { cursor: default; }
+/* Type=Display (no Back / Next): the month and year start the row (Header 458:34317). */
+.zen-date-picker__header[data-type="display"] .zen-date-picker__month { justify-content: flex-start; }
 .zen-date-picker__calendar { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .zen-date-picker__weekdays, .zen-date-picker__grid { display: grid; width: 100%; grid-template-columns: repeat(7, minmax(0, var(--zen-select-item-size-medium, 32px))); justify-content: center; }
 /* Narrower than seven cells (Comfortable's 40 on a 320px phone): the columns give way and the days stay square. */
@@ -29,7 +31,7 @@ span.zen-date-picker__month { cursor: default; }
 /* .Primitives/Date-Picker/Item 455:33517 has two layers: the root paints the In-Range strip and its Container (the
    label span) paints the day with Corner-Radius/Action/Small (Medium, 32) or Action/XSmall (Small, 24), so a selected
    day follows the Corner Radius mode: a rounded square in Smooth, Standard and Luxury, not always a circle. */
-.zen-date-picker__day { --zen-date-picker-day-radius: var(--zen-corner-radius-action-small, 1000px); position: relative; display: inline-flex; width: var(--zen-select-item-size-medium, 32px); height: var(--zen-select-item-size-medium, 32px); padding: 0; border: 0; border-radius: var(--zen-date-picker-day-radius); background: transparent; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; cursor: pointer; }
+.zen-date-picker__day { --zen-date-picker-day-radius: var(--zen-corner-radius-action-small, 1000px); position: relative; display: inline-flex; width: var(--zen-select-item-size-medium, 32px); height: var(--zen-select-item-size-medium, 32px); padding: 0; border: 0; border-radius: var(--zen-date-picker-day-radius); background: transparent; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-small, -0.12px); cursor: pointer; }
 .zen-date-picker__day[data-size="small"] { --zen-date-picker-day-radius: var(--zen-corner-radius-action-xsmall, 1000px); width: var(--zen-select-item-size-small, 24px); height: var(--zen-select-item-size-small, 24px); }
 .zen-date-picker__day > span { display: flex; flex: 1; align-items: center; justify-content: center; border-radius: var(--zen-date-picker-day-radius); background: var(--zen-date-picker-item-background-unselected-default); }
 .zen-date-picker__day:hover:not(:disabled) > span, .zen-date-picker__day[data-state="hover"] > span { background: var(--zen-date-picker-item-background-unselected-hover); }
@@ -54,6 +56,8 @@ span.zen-date-picker__month { cursor: default; }
 .zen-date-picker__day[data-size="small"] .zen-date-picker__events { bottom: 2px; }
 .zen-date-picker__day:is([data-state="single-selected"], [data-state="range-selected-start"], [data-state="range-selected-end"]) .zen-date-picker__events i { background: var(--zen-date-picker-item-content-selected); }
 .zen-date-picker__day[data-state="weekend"] { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+/* Weekend-Hover (Item 455:33517, Mobile Item 9921:3283): the label turns Strongest under the hover fill. */
+.zen-date-picker__day[data-state="weekend"]:hover:not(:disabled) { color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-date-picker__actions { display: flex; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* Select-Month-Year (Calendar Type=Select-Month-Year, 224 × 228): the Header in its Focused state —
    Date-Container fills the row, Neutral/Flat/Hover, Corner-Radius/Base, 12px inline padding, month at
@@ -93,6 +97,8 @@ span.zen-date-picker__month { cursor: default; }
 .zen-date-picker__time, .zen-date-picker__time-fields { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); }
 .zen-date-picker__time[data-type="range"] { flex-direction: row; }
 .zen-date-picker__time-side { display: flex; min-width: 0; flex: 1 1 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* The time fields FILL the Time-Picker's width (Input fields otherwise keep align-self: start, their content's width). */
+.zen-date-picker__time .zen-input-field { align-self: stretch; }
 
 /* Mobile primitives (Date-Picker/Mobile 9923:3576, device="mobile"): the calendar fills its container and the days
    share the width, each a square (.Primitives/Mobile-Date-Picker/Item 9921:3283: Container Fill, aspect 1:1) with the

@@ -2,6 +2,83 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-24 (train A: Platform examples #263, per-component CSS #268)
+
+- Done 2026-10-24 (#263): the chat inbox-row key left behaviour-baseline.json and train A's --all behaviour run found no new dead click (0 errors); the HR pages' 9 text styles went to QUESTIONS.md (designer batch 2026-10-24):
+  **P3 · Example audit baselines (2026-10-08; rewritten 2026-10-24):** `behaviour-baseline.json` still holds the chat
+  inbox-row dead click, a probe race closed 2026-10-08: re-measure (in progress on
+  zen/fix/platform-examples-backlog-20261024). The HR pages' 9 text styles moved to QUESTIONS.md (designer batch
+  2026-10-24). S.
+
+- Done 2026-10-24 (#263): Pagination's Manually rows (use, Theme, keyboard; Figma description source), the TopNavigation HIG link → Toolbars, Bottom Navigation's tap-to-top Do line, the stepper Pickup order snippet with its Orders root:
+  **P3 · Guideline and snippet wording (2026-10-01/06; gathered 2026-10-24), S:** Pagination's "jump to page" wording
+  and Enter row (`tools/usage-guard/guidelines.source.mjs` ~337, ~1020; Manually is a page-size input); the
+  TopNavigation guideline's HIG "Navigation bars" link redirects to "Toolbars"; the Bottom Navigation guideline lacks
+  "tapping the current tab scrolls to the top" (R14); the stepper "Pickup order" snippet names its Orders list only in a
+  comment (`stepper.tsx` ~695).
+
+- Done / answered 2026-10-24 (#263: Text "Headings" story labels, TopNavigation heading stories; user 2026-10-24, option A "Giữ nguyên": the docs platform's own outline stays, docs pages are reference pages and the audit scores each example's own outline through data-screen):
+  **P3 · Typography outline leftovers (2026-09-29; rewritten 2026-10-24):** the docs platform's own outline (section h2s
+  in Heading/3, ExampleCard titles h3: `PlatformShowcases.tsx` ~46, ~110; decision), TopNavigation stories for the
+  heading behaviour, and the Text "Headings" story labelling each level's default style. Review:
+  `docs/context/typography-hierarchy-review-2026-09-29.md`. S–M.
+
+- Done 2026-10-24 (#263): PlatformPhone keeps its last scale when its host has no room and sizes the fit box on whole pixels:
+  **P3 · PlatformPhone sizing (2026-10-03):** the scale falls back to 1 when its parent leaves no room
+  (`src/platform/PlatformPhone.tsx` ~119: keep the last scale, or measure a host whose width does not depend on the
+  phone), and the fit box lands on fractional px (~132: round it). Latent, S.
+
+- Closed 2026-10-24 (train A's --all run): action-bar › Unsaved changes keeps its sticky bar inside its own cell in the 390 sheet; the HR · Home Settings menu observation is stale (HrShell is on AppShell since 71d3a22c, the smoke run passes; it was never reproduced by the smoke):
+  **P3 · One browser run settles each (2026-10-02/03; gathered 2026-10-24):** the HR · Home Settings menu closing in the
+  full smoke flow (HrShell is on AppShell since 71d3a22c: likely gone); action-bar › Unsaved changes' sticky bar drawn
+  over its neighbours in the 390 sheet (a screen card since a50da8a9). Close each if clean. S.
+
+- Done 2026-10-24 (#268, user: "tách CSS theo component"): per-component style entries, import "@zen-ds/react/styles/<Component>"; a Button-only app loads 34 KB of CSS gz instead of 97 KB:
+  **P3 · Package weight:** every app loads the whole 63 KB gz stylesheet. Consider per-component CSS entry points.
+  Decision (user), L.
+
+## Archived 2026-10-24 (B: the Studio editor group, PR #265)
+
+- Done / closed 2026-10-24 (#265): (2) built (a `.map` row's resize previews every row, E2E DA-10); (1) closed by the user ("Theo đề xuất": keep the resize as Figma does it).
+  **P3 · Studio resize leftovers (2026-10-03/06; rewritten 2026-10-24):** (1) an item with a Fixed width alone in a px
+  Grid column still edits its own width on a drag (`select/ResizeLayer.tsx` ~732: no grid cell while that width would
+  stay); resizing the column and clearing that width needs one request touching two elements (server op), M. (2) A
+  `.map` drag previews only the pressed instance while its pill says "all N" (`preview()` ~367 sizes `drag.host` only),
+  S–M.
+- Done 2026-10-24 (#265): the dev server sends `zen-studio:drafts`; E2E D-07.
+  **P3 · Studio drafts, live push (2026-10-02):** other browsers learn about a draft or a stale disk by the 10 s poll,
+  focus or visibility (`src/platform/studio/sourceDrafts.ts` ~31, ~121); a Vite ws event (`zen-studio:drafts`) from the
+  plugin, as `zen-studio:pages-changed` does (`tools/studio/vite-plugin-zen-studio.mjs` ~173), would show it at once. S.
+- Done / closed 2026-10-24 (#265, user "Theo đề xuất"): (b) A built (a const shown on a condition moves with its `{…}`; slot-audit --op=move 22 → 4, the 4 are a const shown twice in one Stack; E2E ST-29); (b) computed `.map` rows not built (they keep "edit it in the code"); the atom-string slots closed (swapped in Properties); (a) closed (a remove + insert gives the same draft as an edit).
+  **P3 · Studio slots: what still says "edit it in the code" (2026-10-08/09; rewritten 2026-10-24):** (a) remove +
+  insert of a same-named element in one slot is matched as the same element by "Modified" (`tools/studio/slots.mjs`
+  matchElements ~2109; a selftest case first), S–M. (b) `node tools/studio/slot-audit.mjs --ops` lists the moves still
+  refused with the reason (`tools/studio/items.mjs` ~59–89): an element of a condition held in a const (12 on 10-09), an
+  atom slot holding a string (41: EmptyState `icon="…"`, swapped in Properties), `.map` rows whose list is computed
+  (33). Re-run the counts; decision (user): which to build (M–L each).
+- Closed 2026-10-24 (#265, user "Theo đề xuất": not wanted); editability-audit's B4 classes relabelled.
+  **P3 · Studio object props: a per-row override (2026-10-04; rewritten 2026-10-24):** bound, conditional and loop-bound
+  props are editable since 10b1b91c (a fixed value, the data item at its source, or every row; E2E I-09…I-11, IN-18,
+  IN-19). Left from B4: an override of one row that leaves the shared data alone. Decision (user): wanted (L)? If not,
+  relabel the "B4" classes of `tools/studio/editability-audit.mjs` (~210).
+- Done 2026-10-24 (#265): E2E ST-28.
+  **P3 · Studio E2E row for ungroup (2026-10-05; rewritten 2026-10-24):** TopNavigation item ops have E2E ST-23 (drag
+  swap) and ST-24 (drop to group); `ungroupItem` has only a selftest (`tools/studio/items.selftest.mjs` ~278). S.
+
+## Archived 2026-10-24 (Menu and Chip on phones, `zen/feat/menu-chip-phone-sheet-20261024`)
+
+- Done 2026-10-24 (user, option A: automatic, the rule SelectField follows; handed from box-themes to C): Menu opens as
+  an action Bottom Sheet on a phone (Sheet-Actions rows, captions as Subtext, group labels and separators), a Chip's
+  popoverItems as a Bottom Sheet List (Search, Done for several picks); `_shared/phone-sheet.tsx` holds the rule.
+  The sheet part of **P3 · Phone targets and sheets (2026-10-01):** "Menu and Chip popovers have no phone sheet mode,
+  so templates build their own sheets: a design decision, L." The targets part stays open in `BACKLOG.md`.
+
+
+- Done 2026-10-24 (#271, landed with merge train A #274; this is the line #266 rewrote while #271 was open):
+  **P3 · Menu and Chip popovers as phone sheets (2026-10-01; user 2026-10-24: option A, automatic as SelectField):**
+  templates build their own sheets today. In progress: session C, draft PR #271. (The 24px phone targets and FileUpload
+  `buttonSize` are done in #266.) L.
+
 ## Archived 2026-10-24 (Components group, #266 `zen/fix/components-backlog-20261024`; user 2026-10-24 "Theo đề xuất")
 
 - Done 2026-10-24 in #266: ModalForm keeps its name without the header (`aria-label` / `aria-labelledby`); the seven

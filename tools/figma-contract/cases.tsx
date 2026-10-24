@@ -14,6 +14,14 @@ import { DashboardHeader } from "../../src/components/DashboardHeader";
 import { Search } from "../../src/components/Search";
 import { AreaChart, BarChart, BarList, BulletChart, ChartCard, ComboChart, DonutChart, FunnelChart, GaugeChart, GroupedBarChart, HeatmapChart, LineChart, RadialChart, StackBarChart } from "../../src/components/Chart";
 
+import { cases as AvatarBadge } from "./cases/avatar-badge";
+import { cases as SegmentedToggleBreadcrumbs } from "./cases/segmented-toggle-breadcrumbs";
+import { cases as InputFields } from "./cases/input-fields";
+import { cases as InputPartsSearch } from "./cases/input-parts-search";
+import { cases as TableCells } from "./cases/table-cells";
+import { cases as DatePickerSidebar } from "./cases/date-picker-sidebar";
+import { cases as Chat } from "./cases/chat";
+
 type Props = Record<string, any>;
 // Chart suites pass data as JSON, so a formatter travels by name: the Figma axis labels ("$25K", "$0", "45%", "1,000 h").
 const formats: Record<string, (value: number) => string> = {
@@ -127,6 +135,14 @@ export const cases: Record<string, (props: Props) => ReactNode> = {
       </ChartCard>
     </div>
   ),
+  // Each suite group's own kinds (tools/figma-contract/cases/*.tsx), one file per group so parallel work never collides.
+  ...AvatarBadge,
+  ...SegmentedToggleBreadcrumbs,
+  ...InputFields,
+  ...InputPartsSearch,
+  ...TableCells,
+  ...DatePickerSidebar,
+  ...Chat,
   // Stateful demos used by interactions.mjs (behaviour, not visuals).
   interactive: () => <InteractiveDemo />,
 };

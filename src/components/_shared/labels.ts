@@ -66,6 +66,8 @@ export type ZenLabels = {
   apply: string;
   /** DatePickerSheet: confirms the picked date or range (Figma Date-Picker/Mobile "OK"). */
   ok: string;
+  /** A phone's multi-select sheet (Chip popoverMultiple): picks apply at once, Done closes it. */
+  done: string;
   previousMonth: string;
   nextMonth: string;
   backToCalendar: string;
@@ -459,6 +461,7 @@ const en: ZenLabels = {
   cancel: "Cancel",
   apply: "Submit",
   ok: "OK",
+  done: "Done",
   previousMonth: "Previous month",
   nextMonth: "Next month",
   backToCalendar: "Back to calendar",
@@ -761,6 +764,7 @@ const vi: ZenLabels = {
   cancel: "Huỷ",
   apply: "Áp dụng",
   ok: "Xong",
+  done: "Xong",
   previousMonth: "Tháng trước",
   nextMonth: "Tháng sau",
   backToCalendar: "Quay lại lịch",

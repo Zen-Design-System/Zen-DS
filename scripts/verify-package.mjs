@@ -20,7 +20,7 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const args = new Set(process.argv.slice(2));
-const BUDGET = { buttonOnlyJsGz: 90 * 1024, cssGz: 110 * 1024 };
+const BUDGET = { buttonOnlyJsGz: 90 * 1024, cssGz: 110 * 1024, splitButtonCssGz: 45 * 1024 };
 const results = [];
 const pass = (label, detail = "") => results.push({ ok: true, label, detail });
 const fail = (label, detail = "") => results.push({ ok: false, label, detail });
@@ -79,7 +79,8 @@ const pkgDir = path.join(modules, "@zen-ds/react");
 const packageJson = JSON.parse(fs.readFileSync(path.join(pkgDir, "package.json"), "utf8"));
 const missing = Object.entries(packageJson.exports).flatMap(([key, value]) => {
   const targets = typeof value === "string" ? [value] : Object.values(value);
-  return targets.filter((target) => !fs.existsSync(path.join(pkgDir, target))).map((target) => `${key} → ${target}`);
+  // A pattern ("./styles/*") must resolve for a real name: Button.
+  return targets.filter((target) => !fs.existsSync(path.join(pkgDir, target.replace("*", "Button")))).map((target) => `${key} → ${target}`);
 });
 missing.length ? fail("exports resolve", missing.join("\n")) : pass("exports resolve", `${Object.keys(packageJson.exports).length} entry points`);
 
@@ -114,6 +115,11 @@ if (build.ok) {
   const lazyChunks = allJs.length - scripts.length;
   (jsGz <= BUDGET.buttonOnlyJsGz ? pass : fail)("budget: Button-only JS (incl. React) ≤ 90 KB gz", `${kb(jsGz)} in ${scripts.length} files (${lazyChunks} other chunks, e.g. lazy icon buckets)`);
   (cssGz <= BUDGET.cssGz ? pass : fail)("budget: CSS ≤ 110 KB gz", kb(cssGz));
+  // Per-component CSS: the stylesheets each page links (split.html imports @zen-ds/react/styles/Button instead of styles.css).
+  const linkedCssGz = (page) => [...fs.readFileSync(path.join(out, page), "utf8").matchAll(/<link[^>]+rel="stylesheet"[^>]+href="\/([^"]+\.css)"/g)].reduce((sum, match) => sum + gz(path.join(out, match[1])), 0);
+  const wholeCss = linkedCssGz("button-only.html");
+  const splitCss = linkedCssGz("split.html");
+  (splitCss > 0 && splitCss <= BUDGET.splitButtonCssGz ? pass : fail)("budget: Button with its style entry ≤ 45 KB CSS gz", `${kb(splitCss)}, against ${kb(wholeCss)} with styles.css`);
   const fontData = cssFiles.some((file) => /data:font|base64,d09G/.test(fs.readFileSync(file, "utf8")));
   fontData ? fail("no inlined font data in CSS") : pass("no inlined font data in CSS", `${walk(out).filter((file) => /\.woff2?$/.test(file)).length} font files emitted`);
   const platformInJs = allJs.filter((file) => /official-platform|PlatformApp|TASA Explorer/.test(fs.readFileSync(file, "utf8")));

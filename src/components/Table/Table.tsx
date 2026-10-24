@@ -914,7 +914,8 @@ function cellOf<T>(column: TableColumn<T>, row: T, index: number, nest: Nest): R
     case "checkbox":
       return nest("Checkbox", <Checkbox defaultChecked={value === true} aria-label={name} />);
     case "toggle":
-      return nest("Toggle-Button", <ToggleButton size="sm" defaultChecked={value === true} aria-label={name} />);
+      // Figma Control-Cell Type=Toggle (1603:14284): Toggle-Button Size=Medium (36 × 20, the default size).
+      return nest("Toggle-Button", <ToggleButton defaultChecked={value === true} aria-label={name} />);
     case "actions":
       return column.actions?.length ? <RowActions actions={column.actions} row={row} index={index} nest={nest} /> : null;
     default:

@@ -15,14 +15,13 @@ A button that opens a list of actions for an object: row actions in a table, a c
 - Choosing a value (sort order, status, assignee) → SelectField, Segmented or Chip variant="advanced" + Popover.
 - Moving between pages → Sidebar, Tabs or Link.
 - One or two actions → show them as buttons.
-- A long or titled list of actions on a phone → BottomSheet type="action".
 - Forms or rich content → Dialog or SidePanel.
 
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Popover/Default | `Menu (surface)` | 240px, 4px padding, Large radius, Effect/Popover; portalled (or inside a [data-zen-overlay-root] device frame), 4px from the trigger, flips when there is no room |
-| Trigger | `trigger` | an IconButton whose aria-label names the object, or a Button; it gets aria-haspopup="menu", aria-expanded and aria-controls |
+| Trigger | `trigger` | an IconButton whose aria-label names the object, or a Button; it gets aria-haspopup="menu" ("dialog" on a phone, where the menu is a sheet), aria-expanded and aria-controls |
 | Items | `items[] {id, label, icon, caption, shortcut, danger, disabled, onSelect} · { type: "separator" } · { type: "group", label, items }` | or compose MenuItem / MenuSeparator / MenuGroup children |
 | Primitives/Popover/Item | `MenuItem` | role=menuitem rows (PopoverItem itemRole="menuitem"); icon = an icon name (20px) or any element |
 | Danger | `danger` | Content/Negative text and icon; last, after a separator |
@@ -33,7 +32,7 @@ A button that opens a list of actions for an object: row actions in a table, a c
 Generated from the TypeScript source; full JSON in `docs/api/menu.json`.
 
 ### Menu
-An action menu (WAI-ARIA menu button): a trigger opens a list of actions on the Popover surface — Duplicate, Rename, Move to…, Delete. It is not a selection list: to pick a value use SelectField, or Chip + Popover for filters. The menu renders in the overlay portal (inside a device frame marked `data-zen-overlay-root`, in that frame), so a table or card that clips its overflow never cuts it off; it attaches 4px below the trigger and flips above it (or to the other edge) when there is no room. <Menu trigger={<IconButton aria-label="Actions for Invoice 1024" icon={<Icon name="icon-dots-horizontal-line" />} />} items={[{ id: "duplicate", label: "Duplicate" }, { type: "separator" }, { id: "delete", label: "Delete", danger: true }]} onSelect={(item) => run(item.id)} />
+An action menu (WAI-ARIA menu button): a trigger opens a list of actions on the Popover surface — Duplicate, Rename, Move to…, Delete. It is not a selection list: to pick a value use SelectField, or Chip + Popover for filters. The menu renders in the overlay portal (inside a device frame marked `data-zen-overlay-root`, in that frame), so a table or card that clips its overflow never cuts it off; it attaches 4px below the trigger and flips above it (or to the other edge) when there is no room. On a phone (the nearest `data-breakpoint`, else ZenProvider's, is "mobile"; the rule SelectField follows) the same entries open in an action Bottom Sheet instead (Figma Bottom-Sheet Type=Action, 4059:14161): Sheet-Actions rows with their caption as Subtext, group labels and separators between them, titled by `aria-label` or the trigger's name. Shortcuts are left out there (no keyboard to press them); choosing, `onSelect` and `onOpenChange` work as above. <Menu trigger={<IconButton aria-label="Actions for Invoice 1024" icon={<Icon name="icon-dots-horizontal-line" />} />} items={[{ id: "duplicate", label: "Duplicate" }, { type: "separator" }, { id: "delete", label: "Delete", danger: true }]} onSelect={(item) => run(item.id)} />
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -101,6 +100,7 @@ type MenuSeparatorData = { type: "separator"; id?: string }
 | Enter / Space | Run the focused item and close |
 | Escape | Close and return focus to the trigger |
 | Tab | Close and move on from the trigger |
+| (phone) | The menu is a Bottom Sheet: the arrows and typeahead still move, Tab stays inside, Escape closes and returns focus |
 
 ## ✅ Do
 - Name an icon-only trigger after its object, aria-label="Actions for INV-1042"; the name also labels the menu.
@@ -110,7 +110,7 @@ type MenuSeparatorData = { type: "separator"; id?: string }
 - Use align="end" when the trigger sits at the right end of a row or card.
 - Confirm a destructive choice in a negative Dialog, or offer Undo, after the menu closes; focus returns to the trigger.
 - Put menus straight into Table rows and Cards: the menu floats in the overlay layer, so overflow never clips it.
-- On a phone, keep menus to a few short actions; longer lists, or ones that need a title, are an Action BottomSheet.
+- On a phone, use the same Menu: it opens as an action BottomSheet by itself (SelectField's rule: the nearest data-breakpoint, else ZenProvider's, is mobile), titled by aria-label or the trigger's name, captions as Subtext, group labels and separators kept, shortcuts left out. Don't build a second sheet for phones.
 
 ## ❌ Don't
 - Don't use a Menu to pick a value or show a checked state; that is SelectField, Segmented or a Chip + Popover (harness: menu/not-for-selection).
@@ -126,6 +126,7 @@ type MenuSeparatorData = { type: "separator"; id?: string }
 - Escape closes and returns focus to the trigger (a Dialog around it stays open); Tab closes and moves on from the trigger; choosing runs the item, closes and returns focus to the trigger unless the action moved it.
 - Disabled items are skipped by the arrow keys; their caption explains why.
 - Danger is never colour alone: the label says Delete or Remove.
+- On a phone the sheet is a modal dialog named by its title: focus starts on the sheet (the first item from the keyboard), ↑/↓ and typeahead still move, Tab stays inside, Escape, the scrim or a drag down close it and focus returns to the trigger.
 
 ## Content
 - Verb first, sentence case, 1–3 words (“Duplicate”, “Move to…”, “Delete invoice”).

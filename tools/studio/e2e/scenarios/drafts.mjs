@@ -97,5 +97,30 @@ export const rows = [
       return "undone after a reload";
     },
   },
+  {
+    id: "D-07", feature: "A draft made outside this tab (another browser, the API) shows in its drafts button at once, without focus or the 10 s poll; its discard too (the dev server's zen-studio:drafts event)", wp: "BACKLOG 2026-10-24", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      await ctx.api.discard([ctx.saveFile]);
+      // The files the drafts button counts ("2 files with unsaved changes"; none: 0).
+      const files = async () => {
+        const label = (await page.locator(".studio-drafts__count").first().getAttribute("aria-label", { timeout: 1000 }).catch(() => "")) ?? "";
+        return Number(/^(\d+) files? with unsaved changes/.exec(label)?.[1] ?? 0);
+      };
+      const expected = (await ctx.api.drafts()).drafts.length;
+      await until(async () => (await files()) === expected, { timeout: 12_000, message: `the button counts the ${expected} drafts there are` });
+      // Written by the API (another client): the tab is not focused and makes no edit of its own.
+      const current = (await ctx.api.source(ctx.saveFile)).content;
+      const t0 = Date.now();
+      await ctx.api.put(ctx.saveFile, current.replace('data-e2e="save-a"', 'data-e2e="save-a" aria-label="Live push"'));
+      await until(async () => (await files()) === expected + 1, { timeout: 8000, message: "the outside draft counted" });
+      const shown = Date.now() - t0;
+      await ctx.api.discard([ctx.saveFile]);
+      await until(async () => (await files()) === expected, { timeout: 8000, message: "the outside discard counted" });
+      const gone = Date.now() - t0 - shown;
+      if (shown > 2500 || gone > 2500) throw new Error(`the tab heard it after ${(shown / 1000).toFixed(1)} s / ${(gone / 1000).toFixed(1)} s (the poll), not at once`);
+      return `outside draft shown in ${shown} ms, its discard in ${gone} ms`;
+    },
+  },
 ];
 

@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent, type ReactElement, type ReactNode, type Ref } from "react";
+import { useId, useRef, useState, type ButtonHTMLAttributes, type FormEvent, type PointerEvent as ReactPointerEvent, type ReactElement, type ReactNode, type Ref } from "react";
 import { usePresence } from "../Motion";
 import { Button } from "../Button";
 import { type DialogAction } from "../Dialog";
@@ -24,6 +24,8 @@ export type BottomSheetSize = "flex" | "max";
 export interface BottomSheetItem {
   id: string;
   label: ReactNode;
+  /** A second line under the label (Figma Subtext: Caption/Regular), a short consequence or why the item is off. */
+  caption?: ReactNode;
   /** Leading icon: an icon name or an element. */
   icon?: IconName | ReactElement;
   /** Trailing content (Figma Trailing): a hint, badge or chevron. */
@@ -40,14 +42,14 @@ export interface BottomSheetProps extends OverlayOpenProps {
   size?: BottomSheetSize;
   /** Figma Search slot (a Search, under the header). The Search takes focus when the sheet opens (`data-autofocus` elsewhere wins). */
   search?: ReactNode;
-  /** Action type: Figma Items slot. */
+  /** Action type: Figma Items slot. Without items, the action body holds `children` (a Menu's groups and separators). */
   items?: BottomSheetItem[];
   /** Action type: the item shown as Single-Selected (Active/Accent/Subtle + check). */
   selectedId?: string;
   /** Action type: called with the item; the sheet closes unless `keepOpen` is set. */
   onSelect?: (item: BottomSheetItem) => void;
   keepOpen?: boolean;
-  /** Modal type: Figma Contents slot. */
+  /** Modal type: Figma Contents slot. Action type without `items`: the Items slot (a Menu's rows on a phone). */
   children?: ReactNode;
   primaryAction?: DialogAction;
   secondaryAction?: DialogAction;
@@ -147,19 +149,16 @@ export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChange
   ) : null;
   const body = (
     <div className="zen-bottom-sheet__body">
-      {type === "action" ? (
+      {type === "action" && items.length ? (
         <ul className="zen-bottom-sheet__items" role="list">
           {items.map((item) => {
             const selected = item.id === selectedId;
             return (
               <li key={item.id}>
-                <button type="button" className="zen-bottom-sheet__item" data-selected={selected ? "true" : undefined} data-destructive={item.destructive ? "true" : undefined} aria-pressed={selectedId !== undefined ? selected : undefined} disabled={item.disabled}
-                  onClick={() => { onSelect?.(item); if (!keepOpen) onOpenChange(false); }}>
-                  {item.icon ? nest.at("Item", item.id)("Icon", renderIcon(item.icon)) : null}
-                  <span className={`zen-bottom-sheet__item-label ${typographyStyles["Body/Base/Medium"]}`}>{item.label}</span>
-                  {item.trailing ? <span className="zen-bottom-sheet__item-trailing">{nest.slot(item.trailing)}</span> : null}
-                  {selected ? <Icon className="zen-bottom-sheet__check" name="icon-check-line" decorative /> : null}
-                </button>
+                <SheetActionRow label={item.label} caption={item.caption} selected={selected} destructive={item.destructive} aria-pressed={selectedId !== undefined ? selected : undefined} disabled={item.disabled}
+                  icon={item.icon ? nest.at("Item", item.id)("Icon", renderIcon(item.icon)) : null}
+                  trailing={item.trailing ? nest.slot(item.trailing) : null}
+                  onClick={() => { onSelect?.(item); if (!keepOpen) onOpenChange(false); }} />
               </li>
             );
           })}
@@ -203,4 +202,36 @@ export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChange
     <div className="zen-bottom-sheet-overlay" data-state={phase} data-inline={inline || host.contained ? "true" : undefined} onPointerDown={(event) => { if (!closing && dismissible && event.target === event.currentTarget) onOpenChange(false); }}>{sheet}</div>
   );
   return inline ? overlay : <>{host.anchor}{host.ready ? host.place(overlay) : null}</>;
+}
+
+export interface SheetActionRowProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+  label: ReactNode;
+  /** Figma Subtext: a second line in Caption/Regular. */
+  caption?: ReactNode;
+  /** The leading icon, already drawn (24px in the sheet). */
+  icon?: ReactNode;
+  /** Figma Trailing: a hint, badge or chevron. */
+  trailing?: ReactNode;
+  /** Figma State=Single-Selected: Active/Accent/Subtle and a check. */
+  selected?: boolean;
+  /** Content/Negative/Light (Delete, Remove). */
+  destructive?: boolean;
+  ref?: Ref<HTMLButtonElement>;
+}
+
+/**
+ * One Figma Primitives/Sheet-Actions/Item (4059:17214): a 48px row whose Content is the Popover item's
+ * (.Primitives/Popover/Item/Content: icon, Label Body/Base/Medium, Subtext Caption/Regular 2px under it). The action
+ * sheet's `items` draw it, and so does Menu on a phone (its groups and separators between the rows).
+ */
+export function SheetActionRow({ label, caption, icon, trailing, selected = false, destructive = false, className, type = "button", ref, ...button }: SheetActionRowProps) {
+  const labelText = <span className={`zen-bottom-sheet__item-label ${typographyStyles["Body/Base/Medium"]}`}>{label}</span>;
+  return (
+    <button {...button} ref={ref} type={type} className={["zen-bottom-sheet__item", className].filter(Boolean).join(" ")} data-selected={selected ? "true" : undefined} data-destructive={destructive ? "true" : undefined}>
+      {icon}
+      {caption ? <span className="zen-bottom-sheet__item-content">{labelText}<span className={`zen-bottom-sheet__item-caption ${typographyStyles["Caption/Regular"]}`}>{caption}</span></span> : labelText}
+      {trailing ? <span className="zen-bottom-sheet__item-trailing">{trailing}</span> : null}
+      {selected ? <Icon className="zen-bottom-sheet__check" name="icon-check-line" decorative /> : null}
+    </button>
+  );
 }

@@ -163,7 +163,8 @@ const sidePanel: ContentSlot = {
 
 const bottomSheet: ContentSlot = {
   // BottomSheet.tsx: <div className="zen-bottom-sheet__body"> always (inside form.zen-bottom-sheet__form with onSubmit);
-  // type="action" renders its items there instead of children. bottom-sheet.css: flex column, gap Medium.
+  // type="action" renders its items there instead of children (without items, Menu's phone rows: not a Studio slot).
+  // bottom-sheet.css: flex column, gap Medium.
   component: "BottomSheet", prop: "children", name: "Contents", figma: { property: "Contents#4060:0", node: "4059:14161", native: true },
   kind: "content", container: ":scope > .zen-bottom-sheet__body, :scope > .zen-bottom-sheet__form > .zen-bottom-sheet__body", mountsWhenEmpty: true, flow: "column", gap: "md",
   accepts: { deny: [...overlayDeny] }, activeWhen: [{ prop: "type", not: ["action"], default: "modal" }], overlay: true,

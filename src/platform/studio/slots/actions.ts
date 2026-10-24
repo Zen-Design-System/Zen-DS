@@ -14,7 +14,7 @@ import { stackTagBefore, studioWrapper, wrappedChildLoc, wrapperCandidate } from
 import { studioDrafts } from "../sourceDrafts";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { SourceElement, StateDecl, StudioSelection, StudioWrite } from "../types";
-import { attributeFormOf, constOf, clearCountOf, clearedLayers, formOf, hostLocAfter, lastElementName, locatedElements, onlyFrame, slotContentOf, slotModifiedOf, tagAt, type SlotContent, type SlotLayer, type SlotSourceElement } from "./content";
+import { attributeFormOf, clearCountOf, clearedLayers, formOf, hostLocAfter, lastElementName, locatedElements, onlyFrame, slotContentOf, slotModifiedOf, tagAt, type SlotContent, type SlotLayer, type SlotSourceElement } from "./content";
 import { itemParts, renderedSignature, slotGroupsAt, sourceItems, computedCaption } from "./dataItems";
 import { itemGroup, itemTitle, type DataSlot } from "./dataSlots";
 import { containerOf, frameElement, hasExtraSelection, hostRootOf, lastHeadingLevel, selectedHit } from "./dom";
@@ -1115,9 +1115,10 @@ export async function moveSlotLayer(host: NodeSelection, layer: { name: string; 
 }
 
 /**
- * The element whose children show the selection through a const's `{name}` (`{summary}` with `const summary = <…/>`),
- * read up from the canvas as readBlock reads: its loc, so the server moves that `{name}` when the const shows in several
- * places. Null when the selection is not a const's JSX shown as a child.
+ * The element whose children show the selection through a `{…}` (a const's `{summary}` or `{phone ? card : null}` with
+ * `const summary = <…/>`, or a condition written in place), read up from the canvas as readBlock reads: its loc, so the
+ * server moves that `{…}` when a const shows in several places (it reads it only for a const). Null when no `{…}` child
+ * shows it.
  */
 export async function constHolderOf(selection: NodeSelection): Promise<string | null> {
   const world = canvasApi.getWorldElement();
@@ -1132,7 +1133,7 @@ export async function constHolderOf(selection: NodeSelection): Promise<string | 
     reads += 1;
     const element = await studioApi.element(at.file, at.loc);
     if (!element) return null;
-    if (element.children.some((child) => child.kind === "expression" && constOf(child) && locatedElements(child)?.some((ref) => ref.loc === parsed.loc))) return at.loc;
+    if (element.children.some((child) => child.kind === "expression" && locatedElements(child)?.some((ref) => ref.loc === parsed.loc))) return at.loc;
     if (placeIn(element, parsed.loc) !== null) return null;
   }
   return null;

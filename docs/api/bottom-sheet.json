@@ -79,7 +79,7 @@
           "type": "BottomSheetItem[]",
           "required": false,
           "default": "[]",
-          "description": "Action type: Figma Items slot.",
+          "description": "Action type: Figma Items slot. Without items, the action body holds `children` (a Menu's groups and separators).",
           "deprecated": null
         },
         {
@@ -111,7 +111,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Modal type: Figma Contents slot.",
+          "description": "Modal type: Figma Contents slot. Action type without `items`: the Items slot (a Menu's rows on a phone).",
           "deprecated": null
         },
         {
@@ -206,7 +206,7 @@
     }
   ],
   "types": {
-    "BottomSheetItem": "interface BottomSheetItem { id: string; label: ReactNode; icon?: IconName | ReactElement; trailing?: ReactNode; disabled?: boolean; destructive?: boolean; }",
+    "BottomSheetItem": "interface BottomSheetItem { id: string; label: ReactNode; caption?: ReactNode; icon?: IconName | ReactElement; trailing?: ReactNode; disabled?: boolean; destructive?: boolean; }",
     "ButtonLevel": "type ButtonLevel = \"primary\" | \"accent\" | \"secondary\" | \"tertiary\" | \"danger\" | \"danger-subtle\" | \"positive\" | \"positive-subtle\" | \"surface\" | \"danger-secondary\" | \"positive-secondary\" | \"inverse\" | \"white\" | \"white-overlay\" | \"black-overlay\" | \"inverse-subtle\""
   }
 }

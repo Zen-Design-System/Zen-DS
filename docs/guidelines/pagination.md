@@ -8,7 +8,7 @@ Move through a large, ordered result set one page at a time.
 
 ## Use it for
 - Tables and result lists where position matters ("page 3 of 10").
-- Inline/Manually themes for data tables with a page-size choice or a jump-to-page field.
+- Inline/Manually themes for data tables with a page-size choice: a Chip in Inline, a typed number in Manually.
 
 ## Use something else for
 - Short lists that fit on one screen; show everything.
@@ -17,7 +17,7 @@ Move through a large, ordered result set one page at a time.
 ## Figma → React
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
-| Theme | `theme` | primary · secondary (numbered) · inline (page size + range) · manually (jump field + range) |
+| Theme | `theme` | primary · secondary (numbered) · inline (page size + range) · manually (typed page size + range) |
 | Size | `size` | sets both the page items and the ‹ › arrows: xsmall = 24 (Icon-Main XSmall, Figma) · small = 32 (Icon-Main Small) |
 | Pages | `page or defaultPage / onPageChange / pageCount` | ellipsis collapses the middle; with defaultPage Pagination keeps the page itself |
 | Range | `pageSize or defaultPageSize / total / pageSizeOptions / onPageSizeChange` | “1–50 of 100 results”; a page size Pagination keeps itself keeps the page's first row in view |
@@ -66,7 +66,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | --- | --- |
 | Tab / Shift+Tab | Move between pages and arrows |
 | Enter / Space | Go to the page |
-| Enter (page field) | Jump to the typed page (Manually) |
+| Enter (page-size field) | Apply the typed page size (Manually; blur applies it too) |
 
 ## ✅ Do
 - Keep the current page visible and marked (aria-current).
