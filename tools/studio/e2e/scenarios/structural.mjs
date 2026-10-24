@@ -344,11 +344,9 @@ export const rows = [
       const trailing = async () => /trailing=\{\[([\s\S]*?)\]\}/.exec(await ctx.text())?.[1] ?? "";
       const groups = async () => ((await trailing()).match(/group:/g) ?? []).length;
       if (await groups()) throw new Error("the fixture's actions start grouped");
-      const press = async (label) => {
-        const button = panel.getByRole("button", { name: label, exact: true });
-        await button.scrollIntoViewIfNeeded();
-        await button.click();
-      };
+      // The Inspector re-renders on every source update, so a held button can detach (gate under load, 2026-10-24):
+      // click re-resolves the locator and scrolls the button into view itself.
+      const press = async (label) => panel.getByRole("button", { name: label, exact: true }).click({ timeout: 10_000 });
       await press("Group Favourite with Share");
       await until(async () => (await groups()) === 2, { message: "Favourite and Share in one group in the source" });
       await press("Take Favourite out of its group");

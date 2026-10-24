@@ -240,6 +240,33 @@ Branch zen/feat/top-nav-props-20261024, stacked on #266 (the WIP from `wip/top-n
   styles.css), screenshots identical; 58.9 KB against 97.2 KB CSS gz.
 - BACKLOG: the Platform examples group (#263) and Package weight (#268) closed to the archive.
 
+## Session B · harness inventory candidates (tier S; user picked all three, 2026-10-24, via the progress session)
+
+- **`listbox/grouped-on-phone` (error):**
+  - On a phone screen, it flags a ListBox, Card or bare List that holds two or more kicker groups (Body/Small/Bold)
+    of rows.
+  - It also flags a kicker + bare List group straight on the screen when the screen has two or more of them.
+  - One kicker over one bare list is the open section of listbox/closing-list-on-phone, so it is left alone.
+  - 0 hits in the repo.
+- **`table/titled-box` (warn):**
+  - It flags a Table in a Card or ListBox with no heading above it in the box, no ListBox header and no caption.
+  - Read as "the box names it": the literal "every Table in a titled box" contradicts §14 (a page table sits bare
+    under its Heading/4). The progress session was told.
+  - 0 hits.
+- **`segmented-fit` (audit, `--quality`, warn, baselined):** on a phone (viewport < 768 or `.platform-phone`), it flags
+  a Segmented that scrolls sideways, or a fullWidth one with an ellipsized label. Self-test: 4 fixtures, 46 checks.
+- **Guidelines:** list-item, segmented and table name the checks; guidelines and ai-ui were rebuilt.
+- **E2E baseline:** PT-16…21, HO-13…16 and K-24…27 are now works (all ✓ without retry in the 355/0 full run; their
+  owners are archived; Giám sát's ask).
+- **Gate slot:**
+  - The first segmented-fit scan (every page at 1512, 390, 320 and dark) found 12 hits in the desktop compositions at
+    phone widths (app-shell B3/B4/G1, chart Range ×2, Studio analytics) and in the Segmented playground. All are
+    baselined (14 keys with the playground's "Full width toggled"). A BACKLOG line holds the example fixes (Chip rows on
+    phones, a design call).
+  - The messages carry no px, because they are baseline keys.
+  - The gate also caught ST-28 failing under load (the Inspector re-rendered while the row held its button). It now
+    clicks through the locator: 3/3 alone, structural 22/22.
+
 ## Session B · E2E ST-29 and DA-10, broken since #265 (tier S; Giám sát, fix-now rule)
 
 Both rows were broken in every run since #265: train A's gate, #275's gate and a local run. New rows don't fail the

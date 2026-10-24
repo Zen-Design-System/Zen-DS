@@ -14,7 +14,7 @@ import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
-import { controlClip, qualityChecks, textFit, widgetLayout } from "./quality-checks.mjs";
+import { controlClip, qualityChecks, segmentedFit, textFit, widgetLayout } from "./quality-checks.mjs";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const require = createRequire(path.join(root, "package.json"));
@@ -41,7 +41,7 @@ const docsPage = (...examples) => `<!doctype html><html><head><meta charset="utf
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1000, height: 800 } });
 const pageChecks = (args) => page.evaluate(`(${pageChecksSource})(${JSON.stringify(args)})`);
-const CHECKS = { pageChecks, qualityChecks: (args) => page.evaluate(qualityChecks, args), textFit: (args) => page.evaluate(textFit, args), widgetLayout: (args) => page.evaluate(widgetLayout, args), controlClip: (args) => page.evaluate(controlClip, args) };
+const CHECKS = { pageChecks, qualityChecks: (args) => page.evaluate(qualityChecks, args), textFit: (args) => page.evaluate(textFit, args), widgetLayout: (args) => page.evaluate(widgetLayout, args), controlClip: (args) => page.evaluate(controlClip, args), segmentedFit: (args) => page.evaluate(segmentedFit, args) };
 
 /**
  * One fixture: its page, the check, the kind, and what it must report (`finds`: substrings, each in some finding) or
@@ -82,6 +82,19 @@ ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageCheck
   await fixture("clip: a bar over the scroll container", docsPage(example("Bar", `<div style="position: relative; height: 150px"><div style="height: 150px; overflow: auto"><div style="height: 400px; padding-top: 110px"><button>Row</button></div></div><div style="position: absolute; left: 0; right: 0; bottom: 0; height: 50px; background: #eee">Bar</div></div>`)), "controlClip", "clip", { clean: true });
   await fixture("clip: content under a sticky bottom bar", docsPage(example("Sticky bar", `<div style="height: 400px"><div style="height: 300px"></div><button style="height: 40px">Under the bar</button><div style="position: sticky; bottom: 0; height: 120px; margin-top: -60px; background: #eee">Bar</div></div>`)), "controlClip", "clip", { clean: true });
   await fixture("clip: data-audit-skip-quality", docsPage(example("Skipped", `<div data-audit-skip-quality>${row("hidden")}</div>`)), "controlClip", "clip", { clean: true });
+}
+
+/* ── segmented-fit (segmentedFit) ─────────────────────────────────────────────────────────────────────────────── */
+{
+  // The Segmented's own layout (segmented.css), inline: the root scrolls sideways; fullWidth items share it and ellipsize.
+  const item = (name, full) => `<button class="zen-segmented__item" style="${full ? "flex: 1 1 0; min-width: 0" : "flex: none; width: 96px"}"><span class="zen-segmented__label" style="display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${name}</span></button>`;
+  const segmented = (names, full) => `<div class="zen-segmented" role="group" aria-label="Period" style="display: flex; width: ${full ? "100%" : "max-content"}; max-width: 100%; overflow-x: auto">${names.map((n) => item(n, full)).join("")}</div>`;
+  const phone = (inner) => `<div class="platform-phone" style="width: 240px">${inner}</div>`;
+  const S = "segmentedFit";
+  await fixture("segmented-fit: slides sideways in a phone", docsPage(example("Four periods", phone(segmented(["Day", "Week", "Month", "Quarter"], false)))), S, "segmented-fit", { finds: ['Segmented "Period" slides sideways on a phone (its 4 items are wider'] });
+  await fixture("segmented-fit: a fullWidth label cut to an ellipsis", docsPage(example("Long labels", phone(segmented(["Everything that happened", "Mentions only"], true)))), S, "segmented-fit", { finds: ['Segmented "Period" cuts', '("Everything that happ")'] });
+  await fixture("segmented-fit: every label fits its share", docsPage(example("Two views", phone(segmented(["List", "Board"], true)))), S, "segmented-fit", { clean: true });
+  await fixture("segmented-fit: wide on a desktop page is no phone", docsPage(example("Desktop", `<div style="width: 240px">${segmented(["Day", "Week", "Month", "Quarter"], false)}</div>`)), S, "segmented-fit", { clean: true });
 }
 
 /* ── quality (qualityChecks): scale, roles, hierarchy, rhythm, ladder ───────────────────────────────────────────── */
