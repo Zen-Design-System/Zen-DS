@@ -21,6 +21,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   tinted), so a component theme nested inside a tinted one (Neutral-S4 inside Neutral-S3) keeps its Figma shadow;
   `tokens:check` counts missing companions. Usage harness: `avatar/solid-initials-contrast` follows today's tokens (golden,
   teal, cyan and orange Solid fall below 3:1 with white initials; green now passes at 3.48) (2026-10-24).
+- Components backlog (2026-10-24): ModalForm `header={false}` keeps its title as the modal's name, and takes
+  `aria-label` / `aria-labelledby`; ProgressCircle `decorative` for a ring beside its own status word; Table
+  `currentRowId` marks the row whose item is open beside the table (aria-current, Selected fill); FileUpload
+  `buttonSize`; DatePicker days show 1–4 event dots (`event` takes a count) and grow with the density (Select-Item/Size);
+  TopNavigation `largeTitleAction` pairs a `group` in one pill. Popover and Menu no longer jump across when their anchor
+  scrolls; read-only text areas lose the resize grip; the Chat bubble focus ring follows the bubble's corners; Shadow
+  cards on an alt page scope drop their shadow; small ChartCard, MetricCard and Pagination buttons take a 44px touch
+  area on phones.
 - **SheetTable** (Figma Table/Sheet, approved 2026-10-23): reference rows that grow with their content — props and their
   types, API signatures, keyboard shortcuts, token values — read in full instead of cut by a Table's ellipsis.
   `SheetCode` (Body/Code/Regular) and `SheetKeys` / `SheetKey` (key chips) fill its cells beside `TableText`; columns

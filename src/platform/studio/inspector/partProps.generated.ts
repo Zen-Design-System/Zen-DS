@@ -381,6 +381,9 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     }
   },
   "FileUpload": {
+    "Button": {
+      "size": "buttonSize"
+    },
     "UploaderFileItem": {
       "thumbnail": "thumbnail"
     }

@@ -87,7 +87,8 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
    *  Unset follows an inherited --zen-card-surface (a page scope can set it once), else Surface/Default. Pale /
    *  Flat-Border / On-Container / Solid / Subtle keep their own fill (harness card/surface-ignored). With theme="shadow",
    *  `alt` drops the drop shadow (Surface-Alt never casts one, §9) and the card renders as Figma Theme=Default
-   *  (6643:51018) on Surface/Alt; an inherited alt surface cannot do this, so pass surface="alt" explicitly on an alt page. */
+   *  (6643:51018) on Surface/Alt. A page scope that sets an alt --zen-card-surface sets `--zen-card-shadow: 0 0 transparent`
+   *  with it, so its Shadow cards drop the shadow too; `surface="default"` on a card brings it back. */
   surface?: CardSurface;
   /** Makes the whole card one action (role=button, Enter/Space). Keep other controls out of clickable cards. */
   onClick?: (event: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>) => void;

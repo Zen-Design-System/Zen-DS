@@ -124,6 +124,14 @@
           "deprecated": null
         },
         {
+          "name": "decorative",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "The ring only repeats what a visible word beside it already says (a status heading, a task's step): it is hidden\nfrom screen readers instead of being a second progressbar. Its own `label` text still shows.",
+          "deprecated": null
+        },
+        {
           "name": "className",
           "type": "string",
           "required": false,

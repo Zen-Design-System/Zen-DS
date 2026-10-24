@@ -114,6 +114,26 @@ describe("Pagination", () => {
   });
 });
 
+describe("Phone hit areas on 24px buttons (component-usage-rules: Touch targets)", () => {
+  const hit = (element: Element) => { const style = getComputedStyle(element, "::after"); return { width: style.width, height: style.height, content: style.content }; };
+  it("Pagination's ‹ › arrows take a 44px hit area on a phone, grown outward; none on a desktop", async () => {
+    const screen = await render(
+      <ZenProvider>
+        <div data-breakpoint="mobile" data-testid="phone"><Pagination page={2} pageCount={5} onPageChange={() => {}} /></div>
+        <div data-breakpoint="desktop" data-testid="desktop"><Pagination page={2} pageCount={5} onPageChange={() => {}} /></div>
+      </ZenProvider>,
+    );
+    const phone = screen.getByTestId("phone");
+    for (const name of ["Previous page", "Next page"]) expect(hit(phone.getByRole("button", { name }).element())).toEqual({ width: "44px", height: "44px", content: '""' });
+    const next = phone.getByRole("button", { name: "Next page" }).element() as HTMLElement;
+    const last = phone.getByRole("button", { name: "Page 5" }).element() as HTMLElement;
+    // Grown outward: the Next arrow's hit area starts at its own left edge, clear of the last page.
+    const nextRect = next.getBoundingClientRect();
+    expect(document.elementFromPoint(last.getBoundingClientRect().right - 1, nextRect.top + nextRect.height / 2)).toBe(last);
+    expect(hit(screen.getByTestId("desktop").getByRole("button", { name: "Next page" }).element()).content).toBe("none");
+  });
+});
+
 describe("Badge remove", () => {
   it("names the remove button after the badge (Remove <label>), like Tag", async () => {
     const onRemove = vi.fn();

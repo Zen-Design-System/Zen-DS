@@ -108,11 +108,12 @@ function ChatReplyBody({ target, lines = 1, dock = "xsmall" }: { target: ChatRep
   );
 }
 
-/** Find the original message in the same thread, scroll to it and flash it. */
-export function jumpToChatMessage(from: HTMLElement | null, id: string) {
+/** Find the original message in the same thread, scroll to it and flash it. False when the thread has not rendered it
+ * (older messages not loaded yet): the app's `onJumpToReply` loads it. */
+export function jumpToChatMessage(from: HTMLElement | null, id: string): boolean {
   const scope = from?.closest(".zen-chat-thread") ?? document;
   const target = scope.querySelector<HTMLElement>(`[data-message-id="${CSS.escape(id)}"]`);
-  if (!target) return;
+  if (!target) return false;
   const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   target.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
   target.removeAttribute("data-flash");
@@ -120,6 +121,7 @@ export function jumpToChatMessage(from: HTMLElement | null, id: string) {
   target.setAttribute("data-flash", "true");
   window.setTimeout(() => target.removeAttribute("data-flash"), 1600);
   target.querySelector<HTMLElement>("[data-holdable], .zen-chat-message__content")?.focus({ preventScroll: true });
+  return true;
 }
 
 /**

@@ -431,3 +431,8 @@
 @media (prefers-reduced-motion: reduce) {
   .zen-chart:not([data-animate="false"]) :is(.zen-chart__group-bar, .zen-chart__combo-bar) { animation-name: zen-chart-fade; }
 }
+
+/* Phones (data-breakpoint="mobile": ZenProvider's or the nearest frame's): the 24px Open button keeps Figma's look and
+   takes a 44px hit area (component-usage-rules "Touch targets"); nothing else sits within it in the title bar.
+   zen-allow-slot-size: the 44px touch hit area is the usage rule's number; no size token holds it. */
+[data-breakpoint="mobile"] .zen-chart-card__titlebar > .zen-button--icon-only::after { position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; content: ""; transform: translate(-50%, -50%); }

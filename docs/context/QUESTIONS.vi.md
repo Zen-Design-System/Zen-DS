@@ -198,6 +198,12 @@ làm hiện tại; khi có câu trả lời, việc cần làm sẽ vào `BACKLO
   (`tests/ai-ui/narrow.test.tsx`): giữ, hay chế độ gọn gập bớt cột? (5) Prose chưa có khối code: `markdownToSpec` hiện
   code rào bằng `Text as="code"`; chưa có text style đơn cách hay component CodeBlock / Prose. (6) Keycap (Kbd) cho gợi ý
   phím tắt ("Tab to keep as booking"; demo đang dùng Tag).
+- **Hover của Card và Table (24/10/2026; từ backlog đã phân loại, bạn chuyển cả hai câu sang đây; code giữ nguyên tới
+  khi có câu trả lời):** (1) Card Theme=Default (trước #210 là Flat) chưa có biến thể Hover hay Pressed, nên một card
+  Default bấm được trong code không đổi trạng thái, trong khi Border và Flat-Border thì đậm viền lên (`card.css` ~175).
+  Có thêm Hover / Pressed cho Default không (phủ màu Neutral/Flat/Hover như các bề mặt không nền khác)? (2) Hàng của
+  Table không có `onRowClick` vẫn nhận nền Table/Cell Hover trong code (`table.css` ~57). Cell Hover dành cho mọi hàng
+  (Table/Cell/Default State=Hover của Figma), hay chỉ cho hàng mở, chọn hoặc sửa được thứ gì đó?
 
 ### Đợt hỏi designer 24/10/2026 (chuyển từ `BACKLOG.md`, khi rà phần backlog kế hoạch; code giữ cách làm hiện tại đến khi có câu trả lời)
 

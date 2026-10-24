@@ -196,11 +196,20 @@
 .zen-chat-message__retry:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; border-radius: var(--zen-corner-radius-xsmall, 4px); }
 
 
-/* Hold to react (Figma Chat/Bubble/Focused on Chat/Mobile/Bubble/Overlay). */
-.zen-chat-message__content[data-holdable="true"] { border-radius: var(--zen-corner-radius-xlarge, 20px); outline: 0; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+/* Hold to react (Figma Chat/Bubble/Focused on Chat/Mobile/Bubble/Overlay). The focus ring takes the corners of what it
+   rings: a text bubble's (Social XLarge, Business Large, the tail corner XSmall), a card's or a voice note's. */
+.zen-chat-message__content { --zen-chat-ring-radius: var(--zen-corner-radius-xlarge, 20px); }
+.zen-chat-message[data-side="others"] .zen-chat-message__content:has(> .zen-chat-bubble) { --zen-chat-ring-radius: var(--zen-corner-radius-xlarge, 20px) var(--zen-corner-radius-xlarge, 20px) var(--zen-corner-radius-xlarge, 20px) var(--zen-corner-radius-xsmall, 4px); }
+.zen-chat-message[data-side="you"] .zen-chat-message__content:has(> .zen-chat-bubble) { --zen-chat-ring-radius: var(--zen-corner-radius-xlarge, 20px) var(--zen-corner-radius-xlarge, 20px) var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xlarge, 20px); }
+.zen-chat-message[data-domain="business"][data-side="others"] .zen-chat-message__content:has(> .zen-chat-bubble) { --zen-chat-ring-radius: var(--zen-corner-radius-large, 16px) var(--zen-corner-radius-large, 16px) var(--zen-corner-radius-large, 16px) var(--zen-corner-radius-xsmall, 4px); }
+.zen-chat-message[data-domain="business"][data-side="you"] .zen-chat-message__content:has(> .zen-chat-bubble) { --zen-chat-ring-radius: var(--zen-corner-radius-large, 16px) var(--zen-corner-radius-large, 16px) var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-large, 16px); }
+.zen-chat-message[data-domain="business"] .zen-chat-message__content:has(> .zen-chat-card),
+.zen-chat-message__content:has(> .zen-chat-voice) { --zen-chat-ring-radius: var(--zen-corner-radius-large, 16px); }
+.zen-chat-message[data-domain] .zen-chat-message__content:has(> .zen-chat-photo-card) { --zen-chat-ring-radius: var(--zen-corner-radius-2-xlarge, 24px); }
+.zen-chat-message__content[data-holdable="true"] { border-radius: var(--zen-chat-ring-radius); outline: 0; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 .zen-chat-message__content[data-holdable="true"]:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #0a84ff); }
 /* Desktop: no hold — the focusable bubble opens the Hover toolbar's More menu (right-click / Shift+F10 / Enter); text stays selectable. */
-.zen-chat-message__content[data-menu="true"] { border-radius: var(--zen-corner-radius-xlarge, 20px); outline: 0; }
+.zen-chat-message__content[data-menu="true"] { border-radius: var(--zen-chat-ring-radius); outline: 0; }
 .zen-chat-message__content[data-menu="true"]:focus-visible { box-shadow: 0 0 0 3px var(--zen-color-focus-accent-solid, #0a84ff); }
 .zen-chat-message__content[data-holding="true"] { transform: scale(.97); }
 @media (prefers-reduced-motion: no-preference) { .zen-chat-message__content[data-holdable="true"] { transition: transform var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease); } }

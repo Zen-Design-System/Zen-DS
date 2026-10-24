@@ -18,7 +18,7 @@ export interface CalendarWeekStripProps extends Omit<HTMLAttributes<HTMLDivEleme
   defaultValue?: CalendarDateInput | null;
   /** Called with the day the person picks. */
   onValueChange?: (date: Date) => void;
-  /** The events of the period: a day with any shows the event dot (Dot style). */
+  /** The events of the period: a day shows a dot per event, up to 4 (Dot style; Figma Event-List). */
   events?: CalendarEventData[];
   /** Figma Style: `dot` (date-picker days with an event dot, default) or `tile` (weekday and date in one tile; the
    * selected day a bordered Surface tile, as Schedule/Day-Planner uses it). */
@@ -80,7 +80,7 @@ export function CalendarWeekStrip({ week, value, defaultValue, onValueChange, ev
               day={date.getDate()}
               date={date}
               state={isSelected ? "single-selected" : isToday ? "today" : "default"}
-              event={eventsOnDay(list, date).length > 0}
+              event={eventsOnDay(list, date).length}
               aria-pressed={isSelected}
               aria-current={isToday ? "date" : undefined}
               onClick={() => pick(date)}

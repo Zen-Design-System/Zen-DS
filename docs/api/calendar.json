@@ -475,7 +475,7 @@
           "type": "CalendarEventData[]",
           "required": false,
           "default": "[]",
-          "description": "The events of the period: a day with any shows the event dot (Dot style).",
+          "description": "The events of the period: a day shows a dot per event, up to 4 (Dot style; Figma Event-List).",
           "deprecated": null
         },
         {
