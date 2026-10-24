@@ -297,6 +297,15 @@ export const Bad = () => <>
   {/* An apostrophe in a prop's JSX text ("I'm") opens no string: the AppShell still ends where its tag does. */}
   {/* expect: listbox/closing-list-on-phone */}
   <PlatformPhone label="Coach"><AppShell hero={<Text>I'm Blinky, your buddy</Text>}><Card theme="default">Coach Avo</Card><ListBox><List aria-label="Today's plan"><ListItem title="Breakfast" /></List></ListBox></AppShell></PlatformPhone>
+  {/* A phone settings screen's groups: each is its own ListBox with its kicker above it (usage rules §15). */}
+  {/* expect: listbox/grouped-on-phone */}
+  <PlatformPhone label="Settings"><Card theme="default"><Text textStyle="Body/Small/Bold">Account</Text><List aria-label="Account"><ListItem title="Email" /></List><Text textStyle="Body/Small/Bold">Privacy</Text><List aria-label="Privacy"><ListItem title="Blocked people" /></List></Card></PlatformPhone>
+  {/* expect: listbox/grouped-on-phone */}
+  {/* expect: listbox/grouped-on-phone */}
+  <PlatformPhone label="Profile"><Stack gap="lg"><Box paddingX="lg"><Text textStyle="Body/Small/Bold">Account</Text></Box><List aria-label="Account"><ListItem title="Email" /></List><Box paddingX="lg"><Text textStyle="Body/Small/Bold">Privacy</Text></Box><List aria-label="Privacy"><ListItem title="Blocked people" /></List></Stack></PlatformPhone>
+  {/* A table in a box is a widget the box names (usage rules §14). */}
+  {/* expect: table/titled-box */}
+  <Card theme="default"><Table aria-label="Recent claims" columns={[]} rows={[]} getRowId={(r) => r.id} /></Card>
   {/* expect: list-item/switch-row */}
   <ListItem title="Daily digest" trailing={<ToggleButton aria-label="Daily digest" />} />
   {/* expect: chip/radio-is-chip-group */}

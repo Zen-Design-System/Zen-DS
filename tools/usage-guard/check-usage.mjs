@@ -637,6 +637,58 @@ const closingListFinding = (attrs, src, start, end) => {
   const where = sites[0] === me ? "" : ` (where <${me.owner}> is used)`;
   return `closes a phone screen${where}: a list at the end of a phone page (tasks, transactions, activity) is an open section, not a box — its title row (Heading, See all Link) over a <List> at the page margin (the AppShell body's own padding, or <Box paddingX="lg"> on a bare screen), straight on the screen, as Figma's ◆ Finance Transactions (usage rules §19). Lists in a widget grid and grouped lists (§15) keep their ListBox.`;
 };
+/**
+ * listbox/grouped-on-phone (usage rules §15, the user 2026-10-02; harness inventory 2026-10-24): on a phone settings or
+ * profile screen each group of rows is its own inset ListBox block with its kicker (Body/Small/Bold) above it. Reports a
+ * block (ListBox, Card, or a List outside any box) that holds two or more kicker groups of rows, and a kicker group whose
+ * rows sit in a bare List straight on the screen when the screen has two or more such groups. Message, or false.
+ */
+const KICKER_STYLE = /textStyle="Body\/Small\/Bold"/;
+const groupedListFinding = (tag, attrs, src, start) => {
+  if (inCodeSample(src, start) || opaque(attrs)) return false;
+  const { nodes } = cardTree(src);
+  const me = nodes.find((n) => n.start === start);
+  if (!me) return false;
+  const upTo = (n, stop) => { const out = []; for (let p = n.parent; p >= 0 && !stop(nodes[p]); p = nodes[p].parent) out.push(nodes[p]); return out; };
+  const phoneOf = (n) => { for (let p = n.parent; p >= 0; p = nodes[p].parent) if (isPhoneScreen(src, nodes[p])) return nodes[p]; return null; };
+  const phone = phoneOf(me);
+  if (!phone) return false;
+  const boxed = (n) => upTo(n, (a) => a.id === phone.id).some((a) => a.name === "ListBox" || a.name === "Card");
+  const within = (n, root) => { for (let p = n.parent; p >= 0; p = nodes[p].parent) if (p === root.id) return n.start >= root.body; return false; };
+  const isKicker = (n) => n.name === "Text" && KICKER_STYLE.test(src.slice(n.start, n.body));
+  const rows = (root) => nodes.filter((n) => n.name === "ListItem" && within(n, root)).reduce((sum, n) => sum + (Number.isFinite(n.count) ? n.count : 2), 0);
+  // One block, several groups: kickers between its rows (a wrapper around ListBoxes or Cards is not that block).
+  if (tag !== "List" || !boxed(me)) {
+    if (nodes.some((n) => (n.name === "ListBox" || n.name === "Card") && within(n, me))) return false;
+    const kickers = nodes.filter((n) => isKicker(n) && within(n, me)).length;
+    if (kickers >= 2 && rows(me) >= 2) return `holds ${kickers} groups of rows under kickers in one ${tag === "List" ? "list on the screen" : "block"}: on a phone settings or profile screen each group is its own <ListBox> with its kicker (Body/Small/Bold) above it, on a Surface-Alt screen (canvas="alt") — never thin kickers over one run of rows (usage rules §15)`;
+  }
+  // Bare groups: a kicker right before a List that sits straight on the screen, twice or more on that screen.
+  const kickerBefore = (n) => {
+    const prev = nodes.filter((o) => o.parent === n.parent && o.start < n.start && (n.parent < 0 || o.start >= nodes[n.parent].body)).at(-1);
+    return Boolean(prev) && (isKicker(prev) || nodes.some((o) => isKicker(o) && within(o, prev)));
+  };
+  const bareGroup = (n) => n.name === "List" && !boxed(n) && kickerBefore(n);
+  if (tag === "List" && bareGroup(me)) {
+    const groups = nodes.filter((n) => bareGroup(n) && phoneOf(n)?.id === phone.id).length;
+    if (groups >= 2) return `is one of ${groups} groups of rows under kickers straight on a phone screen: each group of a settings or profile screen is its own <ListBox> block with its kicker above it, on a Surface-Alt screen (canvas="alt") (usage rules §15)`;
+  }
+  return false;
+};
+/**
+ * table/titled-box (table guideline, usage rules §14; harness inventory 2026-10-24): a Table inside a Card or ListBox is
+ * a widget, and the box names it: a heading above the table in the box (Heading/Subheading, a widget title) or the
+ * ListBox header. A Table that is page content sits on the page under its Heading/4 (table/title-heading-4), so it is
+ * not this rule's business. Message, or false.
+ */
+const tableBoxFinding = (attrs, src, start) => {
+  if (inCodeSample(src, start) || opaque(attrs) || has(attrs, "caption")) return false;
+  const box = nearestBoxOpening(src, start, ["Card", "ListBox"]);
+  if (!box) return false;
+  const before = src.slice(box.index, start);
+  if (/<Heading\b|<h[1-6][\s>]|textStyle="Heading\/|\sheader=\{/.test(before)) return false;
+  return `sits in a <${box.tag}> with no title: a table in a box is a widget, named by the box — a <Heading textStyle="Heading/Subheading"> above the table${box.tag === "ListBox" ? " or the ListBox header" : ""}; a table that is page content sits straight on the page under its Heading/4 (usage rules §14)`;
+};
 /** A bare boolean or `{true}`: the state is pinned for the whole example. */
 const pinnedOn = (own, name) => own.get(name)?.bare === true || /^\s*true\s*$/.test(own.get(name)?.expr ?? "");
 /* Layout position, Box effects and per-corner radius (Studio Phase 2 spec 2026-10-03 §3.6; position.ts, effects.ts,
@@ -1754,6 +1806,9 @@ export const rules = [
       const label = footer.match(/<Text\b[^>]*>\s*([^<{]+)/)?.[1] ?? footer.match(/^\s*["'`]([^"'`]+)/)?.[1];
       return Boolean(label) && /^(open|go to|view|see|show|manage|browse|all)\b/i.test(label.trim()) && `writes the footer action "${label.trim()}" as text: use a Tertiary Button (it fills the box on desktop and tablet, hugs on mobile).`;
     } },
+  { id: "listbox/grouped-on-phone", components: ["ListBox", "Card", "List"], severity: "error", allow: "grouped-list", guideline: "docs/guidelines/list-item.md",
+    summary: "On a phone settings or profile screen, each group of rows is its own inset <ListBox> block with its kicker (Body/Small/Bold) above it, on a Surface-Alt screen: never several kicker groups in one block, nor bare Lists under kickers straight on the screen (usage rules §15).",
+    check: ({ tag, attrs, src, start }) => groupedListFinding(tag, attrs, src, start) },
   { id: "listbox/closing-list-on-phone", components: ["ListBox"], severity: "error", allow: "closing-list", guideline: "docs/guidelines/list-item.md",
     summary: "On a phone, a list that closes the page (tasks, transactions, activity: nothing after it, not in a widget grid) is an open section, not a ListBox: a title row (Heading + See all Link) over a <List> inset by the page margin, straight on the screen (Figma ◆ Finance Transactions; usage rules §19, user rule 2026-10-21). Lists in a widget grid and grouped lists (§15) keep their ListBox.",
     check: ({ attrs, src, start, end }) => closingListFinding(attrs, src, start, end) },
@@ -1850,6 +1905,9 @@ export const rules = [
       if (acts.some((name) => has(attrs, name)) || /submit|reset/.test(literal(attrs, "type") ?? "")) return null;
       return "renders a button that does nothing — give it onClick, popoverItems or a selection (select / selected / defaultSelected); a static label is a Badge, a count a Number-only Chip.";
     } },
+  { id: "table/titled-box", components: ["Table"], severity: "warn", allow: "table-box-title", guideline: "docs/guidelines/table.md",
+    summary: "A Table inside a Card or ListBox is a widget the box names: a <Heading textStyle=\"Heading/Subheading\"> above the table in the box, or the ListBox header. A table that is page content sits straight on the page under its Heading/4 (usage rules §14).",
+    check: ({ attrs, src, start }) => tableBoxFinding(attrs, src, start) },
   { id: "table/needs-name", components: ["Table"], severity: "error", allow: "table-name", guideline: "docs/guidelines/table.md",
     summary: "A Table is named by a caption or aria-label.",
     check: ({ attrs }) => !present(attrs, "caption") && !named(attrs) && "has neither caption nor aria-label." },

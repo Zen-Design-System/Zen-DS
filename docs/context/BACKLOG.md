@@ -88,12 +88,14 @@ starts.
 
 ### Components
 
+### Platform examples and docs
+- **P3 · Phone Segmenteds that do not fit (2026-10-24, B, audit `segmented-fit`, 12 baseline keys):** at 390 / 320 the
+  desktop compositions' Segmenteds slide sideways or ellipsize: app-shell B3 Top-bar analytics (Period, Range), B4
+  Workspace editor (Mode), G1 Grid (Range), chart's Range (`chart.tsx` ~368, ~1091) and Studio analytics. The
+  guideline's phone fix is a single-choice Chip row (as `segmented.tsx` ~414). Each example needs its phone pattern
+  (a design call for the dashboard headers), S–M. The Segmented page's own playground (Section) slides on purpose.
+
 ### Tooling / harness / contracts
-- **P3 · Harness candidates from the 2026-10-24 inventory (the user picks which become rules):**
-  `docs/research/harness-inventory-2026-10-24.md` (grouped lists on phones, a table without a container, phone Chips
-  instead of a Segmented that does not fit; a bare `<Container>` around a Table has 0 cases). The four approved rules
-  (`table/bulk-actions-max`, `chip/needs-action`, three actions in one TopNavigation group, `search-folds-to-action` on
-  `scrollRef` bars) shipped 2026-10-24.
 
 ### Next-phase Studio design check
 - **P3 · Studio panels in dark chrome and at 280px (2026-10-03; rewritten 2026-10-24):** no screenshot pass of the

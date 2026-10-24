@@ -36,6 +36,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   assignee and lead pickers follow it.
 - Usage harness: an element's slot props are read from its own attributes only, so `app-shell/primary-in-top-bar` no
   longer takes a PageHeader's actions inside `main` for the top row's (a false positive on valid code).
+- Usage harness and audit (user, 2026-10-24, from the harness inventory): `listbox/grouped-on-phone` (error) flags a
+  phone settings or profile screen that puts several kicker groups of rows in one block, or bare Lists under kickers
+  (usage rules §15: each group is its own ListBox); `table/titled-box` (warn) flags a Table in a Card or ListBox that
+  does not name it; the audit's `segmented-fit` (`--quality`, warn) flags a phone Segmented that slides sideways or cuts
+  a fullWidth label (a Chip row instead).
 - Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,
   auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
   the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are
