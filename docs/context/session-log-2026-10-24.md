@@ -200,6 +200,8 @@ went to the coordinator as one list.
 - 2c: `toolServer()` in tools/qa/isolated-server.mjs; audit, shoot and visual-diff warn on :5173 and take `--isolated`.
 - 3c: `tokenScope` reads `var(--zen-…)` in TSX/TS (component folders → their page, example pages → the page); against
   228897cd it finds 19 TSX consumers. 3d documented in skills/zen-build-qa §3. B.2 is its own PR.
+- Follow-up (#276, Giám sát 2026-10-24): `date-picker-event-list.mjs` compares Event-List Number-Event 1–4 (offsets from
+  the first dot; 256/256 over 8 variants × 2 modes); BACKLOG Tooling lines closed, Gate details archived.
 
 ## Native packages compiled in CI (tier S, CI only; BACKLOG P3; user: "thêm job CI macOS chạy swift test và flutter test cho platforms/")
 
