@@ -25,6 +25,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   instead); a range with Clear dates (`onClear`) and the weekday row under the title and Close. BottomSheet takes a
   `header` slot in place of its Header-Bar (the title stays the dialog's name). Popover `placement="cover"` lays the
   surface over its anchor; AutocompleteField's list now opens over the Add slot, as Figma draws it.
+- Zen Studio Play (2026-10-24): the device is the app's window. In Auto it is as tall as the page under the bar, the
+  Screen scrolls inside it and fills it at least, and overlays cover the window you see. A Side Panel or Dialog opened on
+  a scrolled Screen now shows in full and the page no longer jumps under it.
 - Dialog, ModalForm, modal SidePanel and BottomSheet (2026-10-24): an open modal also holds still every box that
   scrolls around the place it renders in, not only the page: in Zen Studio's Play and Present a wheel over a modal no
   longer scrolls the page under it (the stage scrolls a device frame, the user's "Quản lý task" prototype), and a phone
