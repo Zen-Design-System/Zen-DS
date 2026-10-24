@@ -89,12 +89,15 @@ ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageCheck
   // The Segmented's own layout (segmented.css), inline: the root scrolls sideways; fullWidth items share it and ellipsize.
   const item = (name, full) => `<button class="zen-segmented__item" style="${full ? "flex: 1 1 0; min-width: 0" : "flex: none; width: 96px"}"><span class="zen-segmented__label" style="display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${name}</span></button>`;
   const segmented = (names, full) => `<div class="zen-segmented" role="group" aria-label="Period" style="display: flex; width: ${full ? "100%" : "max-content"}; max-width: 100%; overflow-x: auto">${names.map((n) => item(n, full)).join("")}</div>`;
-  const phone = (inner) => `<div class="platform-phone" style="width: 240px">${inner}</div>`;
+  // A docs phone frame writes the phone breakpoint, as PlatformPhone and a ZenProvider under 744px do.
+  const phone = (inner) => `<div class="platform-phone" data-breakpoint="mobile" style="width: 240px">${inner}</div>`;
   const S = "segmentedFit";
   await fixture("segmented-fit: slides sideways in a phone", docsPage(example("Four periods", phone(segmented(["Day", "Week", "Month", "Quarter"], false)))), S, "segmented-fit", { finds: ['Segmented "Period" slides sideways on a phone (its 4 items are wider'] });
   await fixture("segmented-fit: a fullWidth label cut to an ellipsis", docsPage(example("Long labels", phone(segmented(["Everything that happened", "Mentions only"], true)))), S, "segmented-fit", { finds: ['Segmented "Period" cuts', '("Everything that happ")'] });
   await fixture("segmented-fit: every label fits its share", docsPage(example("Two views", phone(segmented(["List", "Board"], true)))), S, "segmented-fit", { clean: true });
   await fixture("segmented-fit: wide on a desktop page is no phone", docsPage(example("Desktop", `<div style="width: 240px">${segmented(["Day", "Week", "Month", "Quarter"], false)}</div>`)), S, "segmented-fit", { clean: true });
+  await fixture("segmented-fit: a ZenProvider's mobile breakpoint is a phone at any viewport", docsPage(example("Phone card", `<div data-breakpoint="mobile" style="width: 240px">${segmented(["Day", "Week", "Month", "Quarter"], false)}</div>`)), S, "segmented-fit", { finds: ['Segmented "Period" slides sideways on a phone'] });
+  await fixture("segmented-fit: the nearest breakpoint wins (a desktop provider inside a phone frame)", docsPage(example("Nested", phone(`<div data-breakpoint="desktop">${segmented(["Day", "Week", "Month", "Quarter"], false)}</div>`))), S, "segmented-fit", { clean: true });
 }
 
 /* ── quality (qualityChecks): scale, roles, hierarchy, rhythm, ladder ───────────────────────────────────────────── */

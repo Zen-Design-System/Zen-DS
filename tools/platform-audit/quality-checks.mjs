@@ -748,10 +748,11 @@ export function controlClip({ scopeSel, regionSel }) {
  * Segmented on a phone (`segmented-fit`, warn; segmented guideline, the user 2026-10-24 from the harness inventory): on a
  * phone a Segmented is used only when every label fits its equal share. It reports one that slides sideways (its items
  * are wider than the screen gives them) or a `fullWidth` one that cuts a label to an ellipsis: both want a single-choice
- * row of Normal Chips that scrolls. A phone is a viewport under 768px or a docs phone frame (`.platform-phone`).
- * A Segmented with `options` turns into that chip row by itself on a phone (Segmented.tsx, 2026-10-24), so what is left
- * here is one it cannot turn (segments drawn as children, icon-only segments, counters) or one outside a phone
- * breakpoint. `data-audit-skip-quality` opts one out.
+ * row of Normal Chips that scrolls. A phone is what the Segmented itself reads (Segmented.tsx, usePhoneSheet): its
+ * nearest `data-breakpoint` says mobile, written by a ZenProvider (auto under 744px) or a docs phone frame. A Segmented
+ * with `options` turns into that chip row by itself there (2026-10-24), so what is left here is one it cannot turn
+ * (segments drawn as children, icon-only segments, counters). One with no breakpoint around it (a docs playground no
+ * ZenProvider wraps) is its app's call, at any viewport (train C, 2026-10-25). `data-audit-skip-quality` opts one out.
  */
 export function segmentedFit({ scopeSel, regionSel }) {
   const out = { "segmented-fit": [] };
@@ -767,7 +768,7 @@ export function segmentedFit({ scopeSel, regionSel }) {
     for (const seg of region.querySelectorAll(".zen-segmented")) {
       if (seen.has(seg) || !shown(seg) || seg.closest("[data-audit-skip-quality]")) continue;
       seen.add(seg);
-      if (innerWidth >= 768 && !seg.closest(".platform-phone")) continue;
+      if (seg.parentElement?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") !== "mobile") continue;
       const items = [...seg.querySelectorAll(".zen-segmented__item")].filter((item) => item.closest(".zen-segmented") === seg);
       const name = `Segmented "${seg.getAttribute("aria-label") ?? ""}"`;
       const fix = "use a single-choice row of Normal Chips that scrolls (segmented guideline: on a phone every label fits its equal share)";
