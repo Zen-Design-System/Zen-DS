@@ -159,10 +159,6 @@ starts.
   over its neighbours in the 390 sheet (a screen card since a50da8a9). Close each if clean. S.
 
 ### Tooling / harness / contracts
-- **P2 · Seed the contrast/targets baseline (2026-09-29):** `node tools/platform-audit/audit.mjs --quality
-  --viewports=1512,390 --baseline-update=contrast,targets` over all pages, plus a `--dark` pass (≈20 min, a browser
-  slot). `quality-baseline.json` holds 3 contrast and 0 targets keys (2026-10-24), so those known warnings still show as
-  new.
 - **P3 · Harness candidates from the 2026-10-24 inventory (the user picks which become rules):**
   `docs/research/harness-inventory-2026-10-24.md` (grouped lists on phones, a table without a container, phone Chips
   instead of a Segmented that does not fit; a bare `<Container>` around a Table has 0 cases). The four approved rules

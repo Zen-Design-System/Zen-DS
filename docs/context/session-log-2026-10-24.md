@@ -45,6 +45,11 @@ reaction Navigate / Open / Close overlay / Back."
   `tokens:check` counts gaps (66 on main, 0 here).
 - Audit `edges`: a focused element's outline / ring is not a frame. Gate: `pidIsQaRun` (a reused pid is stale).
   Baseline notes follow fix-at-once. Playground empty slots → example-patterns §3c; APFS backups → zen-build-qa §2.
+- BACKLOG P2 seeding: `audit.mjs --quality --viewports=1512,390 --baseline-update=contrast,targets` over all 73
+  pages, light (636 s) and `--dark` (658 s), isolated: no new key. The three contrast keys (app-shell E7 2.90:1 at
+  1512/390/320) were all there were; targets 0. Baseline unchanged. The dark pass with playgrounds also lists
+  rhythm/roles/scale/outline-siblings findings the light keys hold; the gate's dark step (`--no-playground`) never sees
+  most of them.
 
 ## Tooling: approved harness rules, inventory, :5173 warning, token scope in TSX (tier S–M; the user's decisions 2026-10-24)
 - Rules (each with an `expect:` case in fixtures/bad.tsx and a clean case in good.tsx): `table/bulk-actions-max` (array
