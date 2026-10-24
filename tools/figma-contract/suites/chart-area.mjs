@@ -61,7 +61,7 @@ export default {
     { figma: "Chart > Plot", dom: ".zen-chart__plot", check: ["size", "x", "y"] },
     { figma: "Chart > Plot > Grid", dom: ".zen-chart__grid", check: ["size", "x", "y"] },
     // Gridlines bottom-up: the Baseline is tick 0; centred strokes, code's border just above (tolerance 1, as the Trend).
-    ...["Baseline", "Line-1", "Line-2", "Line-3", "Line-4", "Line-5"].map((name, i) => ({ figma: `Chart > Plot > Grid > ${name}`, dom: `.zen-chart__grid > span:nth-child(${i + 1})`, check: ["w", "x", "cy", "stroke"], tolerance: 1 })),
+    ...["Baseline", "Line-1", "Line-2", "Line-3", "Line-4", "Line-5"].map((name, i) => ({ figma: `Chart > Plot > Grid > ${name}`, dom: `.zen-chart__grid > span:nth-child(${i + 1})`, check: ["w", "x", "cy", "stroke", "dash"], tolerance: 1 })),
     ...Array.from({ length: 12 }, (_, k) => [
       { figma: `Chart > Plot > X-Axis > Tick#${k}`, dom: `.zen-chart__sector:nth-child(${k + 1})`, check: ["w", "x"], when: (vp) => count(vp) > k },
       { figma: `Chart > Plot > X-Axis > Tick#${k} > *`, dom: `.zen-chart__sector:nth-child(${k + 1}) .zen-chart__x`, check: ["text", "cx", "cy"], when: (vp) => count(vp) > k },

@@ -33,7 +33,7 @@ export default {
     { figma: `${CONTENT} > Label`, dom: ".zen-toggle__label", check: ["size", "x", "y", "text"] },
     { figma: `${CONTENT} > Subtext`, dom: ".zen-toggle__caption", check: ["size", "x", "y", "text"] },
     { figma: "Toggle-Button", dom: ".zen-toggle-button", check: ["size", "x", "y"] },
-    { figma: "Toggle-Button", dom: ".zen-toggle-button__track", check: ["fill", "radius"] },
+    { figma: "Toggle-Button", dom: ".zen-toggle-button__track", check: ["fills", "radius"] },
     { figma: "Toggle-Button > Toggle-Dot", dom: ".zen-toggle-button__dot", check: ["size", "x", "y", "fill", "stroke"], strokeVia: "shadow" },
     { figma: "Toggle-Button > Toggle-Dot > Icon", dom: ".zen-toggle-button__dot > .zen-icon", check: ["size", "x", "y"], when: xl },
     { figma: "Toggle-Button > Toggle-Dot > Icon > Vector", dom: ".zen-toggle-button__dot > .zen-icon", check: ["fill"], fillVia: "color", when: xl },

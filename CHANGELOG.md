@@ -22,6 +22,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Layout and skill docs say so (they used to say 320), and three checks catch it: harness `search/toolbar-width`, audit
   kind `toolbar-search` and the Figma audit's `search/toolbar-width`. Platform examples, templates, the Zen Agent prompt
   and Figma → Studio pulls follow it. DashboardHeader's Control-Bar keeps Figma's 320 for now (BACKLOG question).
+- Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,
+  auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
+  the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are
+  compared, with no drift found.
 - Zen Studio: moving a layer that a `const` shows in several places (`{phone ? card : null}` and `trailing={card}`) no
   longer asks "Move in all N places?": only the `{…}` where this one shows moves (2026-10-24).
 - TopNavigation (2026-10-24): `titleMenu` makes the bar title a Dropdown (Figma Heading-Text Dropdown: the title and a

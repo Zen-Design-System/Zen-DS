@@ -46,7 +46,7 @@ export function fieldMap({ field = "Field", content = "Content", native = ".zen-
     { figma: F("Container"), dom: ".zen-input__control", check: ["size", "x", "y", "radius"] },
     { figma: F("Container"), dom: ".zen-input__control::before", check: ["fill", "fx"] },
     { figma: F("Container"), dom: ".zen-input__control::after", check: ["stroke"], when: (vp) => vp.State !== "Read-Only" },
-    { figma: F("Container"), dom: ".zen-input__dash rect", check: ["stroke"], strokeVia: "svg", strokeScale: 0.5, when: (vp) => vp.State === "Read-Only" },
+    { figma: F("Container"), dom: ".zen-input__dash rect", check: ["stroke", "dash"], strokeVia: "svg", strokeScale: 0.5, when: (vp) => vp.State === "Read-Only" },
     // Placeholder: the control's box is the FILL text's box (Focused: the caret sits before it, so the box starts at the Cursor).
     { figma: text, dom: native, check: textBox, when: (vp, props) => !typed(vp, props) && vp.State !== "Focused" },
     { figma: text, dom: placeholder, check: ["text"], when: (vp, props) => !typed(vp, props) },

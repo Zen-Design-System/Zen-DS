@@ -61,7 +61,7 @@ live in `styles/source/figma/figma-styles.full.json`; `npm run styles:build` gen
 `suites/*.mjs` export `{ contract, setId, kind, cases(vp) → props | props[] | null, map[] }`.
 A map entry pairs a Figma layer path (`A/B/C`, or `A > B/Slash-Name > C` when names contain `/`,
 `A|B` for alternatives) with a DOM selector (`::before`/`::after` allowed) and a list of checks:
-`size | w | h | x | y | pos | fill | stroke | radius | fx | text | opacity`.
+`size | w | h | x | y | pos | fill | fills | image | stroke | radius | fx | text | opacity | minw | maxw | minh | dash`.
 Record genuine Figma inconsistencies in `figmaExceptions` with a note instead of copying them. An exception matches
 `vp` (a subset of the variant props), `layer` and `prop`; add `code` (the exact value code renders instead) so a later
 drift still fails.
@@ -84,6 +84,16 @@ so a plot's insides compare to their own frame when a lane above them differs; `
 centre in % of that frame's width, for a row whose width follows text-hugging neighbours (Inter's advances differ by a
 pixel or two between macOS and CI's Linux, so suites never assert a width that a label's text decides). An exception's `code` may be a number,
 matched within 0.05px (a width code derives from its column); opacities compare to three decimals.
+
+More checks (2026-10-24): `fills` compares every visible paint as a stack, bottom to top (Figma's fills list; code's
+background-color under its background-image layers, a solid overlay being a one-colour gradient); `image` a Figma IMAGE
+fill against a picture in code (an `<img>`, itself or inside, or a background `url()`); `radius` on mixed corners
+compares all four (each through its own binding); `minw` / `maxw` / `minh` Figma's auto-layout minimum and maximum
+sizes against the computed CSS; `dash` a dashed stroke (an SVG shape's `stroke-dasharray`, times `dashScale`, else a
+dashed border, whose lengths CSS cannot set). `fxIgnoreRing: true` leaves a spread ring (`0 0 0 Npx`, a stroke drawn
+in the same box-shadow list) out of `fx`; `strokeVia: "inset"` reads an INSIDE stroke drawn as an inset box-shadow edge
+(`0 -2px 0 0 inset` = the bottom side) or ring; a per-side stroke (`sw` [top, right, bottom, left]) compares the weight
+of `strokeSide`.
 
 The chart suites (`chart-*.mjs`, 2026-10-23) render each Figma Chart/* set as the body of a Chart Card (cases.tsx
 `chartCard`, helpers in `suites/_chart-*.mjs`) and read the case's data back from the variant (labels, bar heights,
