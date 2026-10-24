@@ -898,7 +898,7 @@
       "Keep 2–5 options (harness: segmented/option-count; options computed at run time are counted on the rendered page by the platform audit, kind counts). Past five, pick with a SelectField.",
       "Name icon-only segments with \"aria-label\" on the option and mark the icon decorative (harness: segmented/icon-only-needs-name).",
       "On mobile, stretch a Segmented to its container (fullWidth) in a Top Navigation control bar, a Bottom Sheet or a narrow panel, so the items share the width equally (harness: segmented/control-bar-full-width).",
-      "On a phone, use a Segmented only when every label fits its equal share (fullWidth). When the options are wider than the screen (four periods, long labels), switch to a single-choice row of Normal Chips (Medium, the pressed one Primary) that scrolls sideways, not a sliding Segmented."
+      "On a phone, use a Segmented only when every label fits its equal share (fullWidth). When the options are wider than the screen (four periods, long labels), switch to a single-choice row of Normal Chips (Medium, the pressed one Primary) that scrolls sideways, not a sliding Segmented (audit: segmented-fit)."
     ],
     "dont": [
       "Don't use Segmented as a filter.",
@@ -4810,6 +4810,12 @@
         "allow": "card-spacing"
       },
       {
+        "id": "listbox/grouped-on-phone",
+        "severity": "error",
+        "summary": "On a phone settings or profile screen, each group of rows is its own inset <ListBox> block with its kicker (Body/Small/Bold) above it, on a Surface-Alt screen: never several kicker groups in one block, nor bare Lists under kickers straight on the screen (usage rules §15).",
+        "allow": "grouped-list"
+      },
+      {
         "id": "api/deprecated-prop",
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
@@ -5135,6 +5141,7 @@
       "Pick the Figma case by what the row does: Interactive (onClick or href) when the whole row opens, selects or navigates; static (neither) when it only shows information, even with trailing buttons. Both pad Padding/Small (12px) above and below and nothing at the sides; Interactive only adds the fill and its states.",
       "Give every list its side inset from the container: a ListBox (Card-padding-medium), or the page margin on a full-bleed phone screen (Box paddingX=\"lg\" paddingY=\"xs\"). Leave at least 12px beside clickable rows so the fill is not clipped.",
       "On a phone, make the list that closes the page (transactions, tasks, activity: nothing after it, not in a widget grid) an open section, as Figma's ◆ Finance Transactions: a title row (Heading/4 and its See all Link) over a <List> at the page margin, straight on the screen, no ListBox (usage rules §19, user rule 2026-10-21; harness: listbox/closing-list-on-phone). Lists in a widget grid, inside a box, and grouped settings lists (§15) keep their ListBox.",
+      "On a phone settings or profile screen, give each group of rows its own inset ListBox with its kicker (Body/Small/Bold, Light) above it, on a Surface-Alt screen: never several kicker groups in one block, nor bare Lists under kickers (usage rules §15; harness: listbox/grouped-on-phone).",
       "Split long settings into groups: a visible group header per group and one List per group named after it (aria-label or aria-labelledby). The header is a Heading one level below the nearest heading above (h2 on a screen whose h1 is the title), Body/Small/Bold in tone \"light\" (Content/Neutral/Light, 3.7:1 — Apple's 3:1 for bold text): a kicker label, not a Strongest title.",
       "Keep the row title in its Body/Base/Bold (Figma Info-Content Title) on read and unread rows alike. Mark unread with a dot or Badge plus a visually hidden \"Unread\" (WCAG 1.3.1); the caption may go Strongest.",
       "A kicker above a ListBox lines up with the row text: Box paddingX=\"xl\" (24px) on desktop, paddingX=\"lg\" (20px) on a phone, xs (8px) above the box."
@@ -5223,6 +5230,12 @@
         "severity": "error",
         "summary": "A ListBox footer action (\"Open calendar\", \"Go to Inbox\") is a Tertiary Button, the Button default: it fills the box on desktop and tablet and hugs its label on mobile, never plain text or a Link (user rule 2026-10-16).",
         "allow": "footer-action"
+      },
+      {
+        "id": "listbox/grouped-on-phone",
+        "severity": "error",
+        "summary": "On a phone settings or profile screen, each group of rows is its own inset <ListBox> block with its kicker (Body/Small/Bold) above it, on a Surface-Alt screen: never several kicker groups in one block, nor bare Lists under kickers straight on the screen (usage rules §15).",
+        "allow": "grouped-list"
       },
       {
         "id": "listbox/closing-list-on-phone",
@@ -5394,7 +5407,7 @@
     ],
     "do": [
       "Name the table (aria-labelledby pointing at its section heading, a caption, or aria-label; harness: table/needs-name).",
-      "Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4).",
+      "Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4). A table in a Card or ListBox always has that title, or the ListBox header (harness: table/titled-box).",
       "Right-align numbers and amounts; keep text left.",
       "Give each row one primary text (bold) and at most one caption.",
       "Put row actions in the last column as Button/Icon-Flat Medium: `content: \"actions\"` with the column's `actions` (no cell function), or TableActions with IconButton appearance=\"flat\" level=\"primary\" in a `cell`; a ⋯ Menu trigger for several (harness: table/actions-flat).",
@@ -5464,6 +5477,12 @@
         "severity": "warn",
         "summary": "A Table's bulk-action bar holds at most five actions (icon-only Button/Icon-Flat Medium; on a phone the ones that don't fit move into More): pick the five that matter for a selection.",
         "allow": "table-bulk-actions"
+      },
+      {
+        "id": "table/titled-box",
+        "severity": "warn",
+        "summary": "A Table inside a Card or ListBox is a widget the box names: a <Heading textStyle=\"Heading/Subheading\"> above the table in the box, or the ListBox header. A table that is page content sits straight on the page under its Heading/4 (usage rules §14).",
+        "allow": "table-box-title"
       },
       {
         "id": "table/needs-name",

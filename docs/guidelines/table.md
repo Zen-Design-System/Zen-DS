@@ -150,7 +150,7 @@ type TableSortDirection = "asc" | "desc"
 
 ## ✅ Do
 - Name the table (aria-labelledby pointing at its section heading, a caption, or aria-label; harness: table/needs-name).
-- Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4).
+- Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4). A table in a Card or ListBox always has that title, or the ListBox header (harness: table/titled-box).
 - Right-align numbers and amounts; keep text left.
 - Give each row one primary text (bold) and at most one caption.
 - Put row actions in the last column as Button/Icon-Flat Medium: `content: "actions"` with the column's `actions` (no cell function), or TableActions with IconButton appearance="flat" level="primary" in a `cell`; a ⋯ Menu trigger for several (harness: table/actions-flat).
@@ -193,6 +193,7 @@ type TableSortDirection = "asc" | "desc"
 | `table/actions-flat` | warn | Row actions in TableActions are Button/Icon-Flat Medium (IconButton appearance="flat" level="primary"), so rows don't fill with outlined buttons. | `zen-allow-table-action-style: <reason>` |
 | `table/title-heading-4` | warn | A table that is its own page section is titled by a <Heading level={2} textStyle="Heading/4"> right above it (the Table points to it with aria-labelledby); a table inside a widget Card is titled by the widget title, <Heading textStyle="Heading/Subheading"> (every widget title is Subheading); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading. | `zen-allow-table-title: <reason>` |
 | `table/bulk-actions-max` | warn | A Table's bulk-action bar holds at most five actions (icon-only Button/Icon-Flat Medium; on a phone the ones that don't fit move into More): pick the five that matter for a selection. | `zen-allow-table-bulk-actions: <reason>` |
+| `table/titled-box` | warn | A Table inside a Card or ListBox is a widget the box names: a <Heading textStyle="Heading/Subheading"> above the table in the box, or the ListBox header. A table that is page content sits straight on the page under its Heading/4 (usage rules §14). | `zen-allow-table-box-title: <reason>` |
 | `table/needs-name` | error | A Table is named by a caption or aria-label. | `zen-allow-table-name: <reason>` |
 | `table/reference-in-sheet` | warn | Reference rows — code values, type unions, keyboard shortcuts — belong in a SheetTable: a Table's rows stay one line at Table/Cell/Size and cut them with an ellipsis (user rule 2026-10-13). | `zen-allow-table-reference: <reason>` |
 | `table/interaction-needs-handler` | warn | A selectable Table with selectedIds needs onSelectionChange — without it the checkboxes are dead (leave selectedIds out, or pass defaultSelectedIds, for a selection the Table keeps itself); sortable columns need onSortChange. | `zen-allow-table-handler: <reason>` |
