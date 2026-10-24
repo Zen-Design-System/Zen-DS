@@ -5400,7 +5400,7 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   {
-    id: "FW-174", feature: "Normal frames present as before: ⌥⌘↵ on a layer in a Screen plays from that Screen with no Overlay; the Prototype tab's Present on a Screen frame plays from it; the Design tab's Present on a Screen frame still presents the frame", wp: "present overlay 2026-10-21", timeout: 60_000,
+    id: "FW-174", feature: "Screen frames play as Figma presents them: ⌥⌘↵ on a layer in a Screen plays from that Screen with no Overlay; the Prototype tab's Present, the Design tab's Present and the frame toolbar's ▷ on a Screen frame play from it (user 2026-10-24: the toolbar's ▷ presented a still frame where Open overlay never ran)", wp: "present overlay 2026-10-21 · present plays 2026-10-24", timeout: 60_000,
     async run(ctx) {
       const { page, id } = await presentOverlayPage(ctx);
       await clickNamed(page, id, "Button", 2);
@@ -5418,12 +5418,20 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       await leavePlay(page);
       await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
       await page.locator("#studio-right").getByRole("button", { name: "Present", exact: true }).click();
-      const present = page.locator(".studio-present");
-      await present.waitFor({ state: "visible", timeout: 5000 });
-      if (await player(page).count()) throw new Error("the Design tab's Present on a Screen frame started Play");
-      await page.keyboard.press("Escape");
-      await present.waitFor({ state: "hidden", timeout: 5000 });
-      return "⌥⌘↵ on Undo → Deleted, no Overlay · Prototype › Present on Files → Files · Design › Present on Files → the frame presented";
+      await player(page).waitFor({ state: "visible", timeout: 10_000 });
+      await until(async () => { const shows = await playShows(page); return shows.screen === "home" && !shows.overlay; }, { message: "Design › Present on Files → Play on Files" });
+      await playerDevice(page).getByRole("button", { name: "Delete", exact: true }).click();
+      await until(async () => (await playShows(page)).overlay === "confirm", { message: "Delete opens its Overlay in that Play" });
+      await leavePlay(page, 2);
+      // The frame toolbar's ▷ (the selected frame's Present) plays from that Screen too.
+      await selectFrameRow(page, "screen:done");
+      await page.keyboard.press("Shift+Digit2");
+      await sleep(400);
+      await page.getByRole("toolbar", { name: "Deleted frame" }).getByRole("button", { name: "Present", exact: true }).click();
+      await player(page).waitFor({ state: "visible", timeout: 10_000 });
+      await until(async () => (await playShows(page)).screen === "done", { message: "the toolbar's ▷ on Deleted → Play on Deleted" });
+      await leavePlay(page);
+      return "⌥⌘↵ on Undo → Deleted, no Overlay · Prototype › Present on Files → Files · Design › Present on Files → Play, Delete opens confirm · toolbar ▷ on Deleted → Play on Deleted";
     },
   },
   // A photo dropped on one row or one item (BACKLOG P1 2026-10-10): figma/pictures.mjs.

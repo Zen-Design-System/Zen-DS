@@ -2,6 +2,8 @@
  * Zen Studio option C (user, 2026-10-23: links between components are prototype actions): in Play an Overlay's DatePicker
  * opens next to the Chip that opens it and an Overlay at Position Manual next to its Button (Figma's Manual, by the
  * trigger); Filter table filters the Screen's Table; Change step moves its Stepper; Navigate to reaches a Screen's state.
+ * Present on a Screen or Overlay frame (the frame toolbar's ▷, the Design tab's) plays from that frame, a state too
+ * (user 2026-10-24: the toolbar's ▷ showed a still frame where Open overlay never ran).
  * The page is parsed by the Studio's engine and played by playFlow.tsx, as Play does. Real browser (Chromium).
  */
 import { describe, expect, it } from "vitest";
@@ -9,6 +11,8 @@ import { render } from "vitest-browser-react";
 import { userEvent } from "vitest/browser";
 import { ToastProvider } from "../../src/components/Toast";
 import { ZenProvider } from "../../src/index";
+import { presentFrame } from "../../src/platform/studio/board/presentFrame";
+import { studioStore } from "../../src/platform/studio/store";
 import type { PageTree } from "../../src/platform/studio/builder/render/renderPage";
 import { PlayScreens, usePlayFlow } from "../../src/platform/studio/builder/proto/playFlow";
 import { parsePage } from "../../tools/studio/browser-engine.mjs";
@@ -29,8 +33,8 @@ ${body}
 }
 `;
 
-function Play({ tree }: { tree: PageTree }) {
-  const flow = usePlayFlow(tree, null);
+function Play({ tree, start }: { tree: PageTree; start: string | null }) {
+  const flow = usePlayFlow(tree, start);
   return (
     <div className="studio-player__device" data-screen-id={flow.current} style={{ width: 1024, height: 700 }}>
       <PlayScreens flow={flow} file="local:option-c.zen.tsx" />
@@ -38,10 +42,10 @@ function Play({ tree }: { tree: PageTree }) {
   );
 }
 
-async function play(text: string) {
+async function play(text: string, start: string | null = null) {
   const tree = parsePage(text) as unknown as PageTree & { errors: unknown[] };
   expect(tree.errors).toEqual([]);
-  return await render(<ZenProvider><ToastProvider><Play tree={tree} /></ToastProvider></ZenProvider>);
+  return await render(<ZenProvider><ToastProvider><Play tree={tree} start={start} /></ToastProvider></ZenProvider>);
 }
 
 const box = (element: Element) => element.getBoundingClientRect();
@@ -138,5 +142,39 @@ describe("Studio option C in Play", () => {
     await screen.getByRole("button", { name: "Finish" }).click();
     await expect.poll(() => device().getAttribute("data-screen-id")).toBe("checkout:done");
     await expect.element(screen.getByText("All done")).toBeVisible();
+  });
+
+  it("plays a page's Screen frame from Present (a state too) and an Overlay frame over its Screen; an Open overlay then runs", async () => {
+    const before = studioStore.getState();
+    studioStore.setState({ localPage: "option-c", presenting: null });
+    try {
+      presentFrame("screen:tasks");
+      expect(studioStore.getState().presenting).toBe("play:tasks");
+      presentFrame("screen:tasks:created");
+      expect(studioStore.getState().presenting).toBe("play:tasks:created");
+      presentFrame("overlay:create-task");
+      expect(studioStore.getState().presenting).toBe("play:overlay:create-task");
+    } finally {
+      studioStore.setState({ localPage: before.localPage, presenting: before.presenting });
+    }
+    const screen = await play(page(`      <Screen id="tasks" title="Tasks">
+        <Stack gap="md" padding="lg">
+          <Text>Every task</Text>
+          <Button onClick={proto.open("create-task")}>New task</Button>
+        </Stack>
+      </Screen>
+      <Screen id="tasks" title="Tasks · created" state="created">
+        <Stack gap="md" padding="lg">
+          <Text>Task created</Text>
+          <Button onClick={proto.open("create-task")}>New task</Button>
+        </Stack>
+      </Screen>
+      <Overlay id="create-task">
+        <Dialog title="Create a task" primaryAction={{ label: "Create", onClick: proto.close() }} secondaryAction={{ label: "Cancel", onClick: proto.close() }} />
+      </Overlay>`, "Button, Dialog, Stack, Text"), "tasks:created");
+    await expect.poll(() => device().getAttribute("data-screen-id")).toBe("tasks:created");
+    await expect.element(screen.getByText("Task created")).toBeVisible();
+    await screen.getByRole("button", { name: "New task" }).click();
+    await expect.element(screen.getByRole("dialog", { name: "Create a task" })).toBeVisible();
   });
 });

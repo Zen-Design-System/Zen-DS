@@ -107,7 +107,7 @@ check("links: a hover and an animated click lead somewhere", linksOf(motion).fil
 check("the opener of an Overlay: none, a hovered Button's Screen", [openerOf(tree, "confirm"), openerOf(motion, "confirm"), openerOf(motion, "nope")], [null, "home", null]);
 const delayed = parsePage(page.replace('<Screen id="files" title="Files" device="phone" state="empty" />', '<Screen id="files" title="Files" device="phone" state="empty" onDelay={proto.open("confirm", { delay: 500 })} />'), { components: new Set(["BottomNavigation", "Button", "Dialog", "Segmented", "Sidebar", "SidebarMenuItem", "Stack"]) });
 check("the opener of an Overlay: a Screen state's After delay", openerOf(delayed, "confirm"), "files");
-check("playStartOf: a Screen, an Overlay, anything else", [playStartOf("screen:checkout:paid"), playStartOf("overlay:confirm"), playStartOf("section:s1"), playStartOf(null)], ["checkout", "overlay:confirm", null, null]);
+check("playStartOf: a Screen, a Screen's state, an Overlay, anything else", [playStartOf("screen:checkout"), playStartOf("screen:checkout:paid"), playStartOf("overlay:confirm"), playStartOf("section:s1"), playStartOf(null)], ["checkout", "checkout:paid", "overlay:confirm", null, null]);
 
 // Option C (user 2026-10-23): a Screen's states as targets, Manual overlays by their trigger, Filter table, Change step.
 check("a Navigate to target: a Screen, or one of its states", [screenTargetOf("orders"), screenTargetOf("orders:filtered"), screenTargetOf("orders:")], [{ id: "orders" }, { id: "orders", state: "filtered" }, { id: "orders" }]);
