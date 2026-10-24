@@ -93,6 +93,28 @@ slots (b) A built and B not (computed `.map` rows keep "edit it in the code"), n
   pinned to `breakpoint="desktop"`. Chip's "Filters on a phone" example now uses `popoverItems` instead of a hand-built
   sheet. Generated: guidelines/api docs, Studio compile-api and partProps.
 
+## Gate: `--failed` re-runs only what failed (process audit B.2; the user's go 2026-10-24) (tier S, tools/qa)
+- `npm run qa -- --failed`: after a failing full run with nothing in its scope edited since (the ledger's editedAt), the
+  gate keeps TypeScript, the Figma contracts and Vitest where they passed, runs the quick static gates again, the browser
+  steps only on the pages that had an error or no report (`retryPagesFrom` in lib.mjs reads the last run's audit /
+  dark / behaviour JSON), and the Studio E2E only if it failed; a pass marks the files passed as a full run would.
+  Anything edited, a passing or quick last run, or a missing report → it says why and runs everything.
+- qa:selftest 26 → 30 checks (the page choice); a static-only run against a fake failed ledger skipped TypeScript and
+  re-ran the failed self-test (the fake ledger and its report removed after).
+## Tooling fixes (#264; tier S–M; the user's go 2026-10-24)
+- `avatar/solid-initials-contrast`: measured today's tokens (both themes the same): golden 2.58, teal 2.70, cyan 2.96,
+  orange 2.98 below 3:1; green 3.48 and bronze 3.38 pass, so the rule lists golden | teal | cyan | orange (fixtures,
+  guideline, the sidebar example's comment).
+- `-shadow-off`: `token-outputs.mjs` declares each companion in every component theme (`initial` where not tinted);
+  tokens.css +66 lines, no value changed; Chromium check of a Neutral-S4 chip inside Neutral-S3: the shadow is back.
+  `tokens:check` counts gaps (66 on main, 0 here).
+- Audit `edges`: a focused element's outline / ring is not a frame. Gate: `pidIsQaRun` (a reused pid is stale).
+  Baseline notes follow fix-at-once. Playground empty slots → example-patterns §3c; APFS backups → zen-build-qa §2.
+- BACKLOG P2 seeding: `audit.mjs --quality --viewports=1512,390 --baseline-update=contrast,targets` over all 73
+  pages, light (636 s) and `--dark` (658 s), isolated: no new key. The three contrast keys (app-shell E7 2.90:1 at
+  1512/390/320) were all there were; targets 0. Baseline unchanged. The dark pass with playgrounds also lists
+  rhythm/roles/scale/outline-siblings findings the light keys hold; the gate's dark step (`--no-playground`) never sees
+  most of them.
 ## Components group of the triaged backlog (tier M; user 2026-10-24 via the coordinator: "Giao 35 mục theo đề xuất … Phần không cần quyết làm ngay; phần cần quyết gom lại hỏi tôi một lượt")
 
 Branch zen/fix/components-backlog-20261024 from main 6e4e6605 (worktree festive-archimedes-176df5, beside PR #248's
@@ -134,6 +156,19 @@ went to the coordinator as one list.
   (Gap/XSmall, Badge Medium Neutral Solid), so `largeTitleAction` does not cover it. BACKLOG: 7 Components entries
   archived, TopNavigation and the sheet line rewritten.
 - CI: the library CSS check reads comments (`.pe-` in card.css's comment failed "Gates, tests and package"); reworded.
+
+## Tooling: approved harness rules, inventory, :5173 warning, token scope in TSX (tier S–M; the user's decisions 2026-10-24)
+- Rules (each with an `expect:` case in fixtures/bad.tsx and a clean case in good.tsx): `table/bulk-actions-max` (array
+  literal or `(ids) => [ … ]` with more than five), `chip/needs-action` (Normal/Advanced with no handler, popover or
+  selection; code samples, stories and component source skipped), `max-three-trailing` flags a group of three or more
+  (my "count each item" recommendation meant this: a grouped pair stays one place, as Figma's dual Nav-Action),
+  `search-folds-to-action` also on `scrollRef`. `chip/needs-action` found two dead chips in Studio's ThemePreview
+  specimen: they now press like the buttons beside them.
+- 1e/1f: `docs/research/harness-inventory-2026-10-24.md` (0 bare Containers around a Table; 887 Do/Don't lines, 161
+  checked; three candidates for the user).
+- 2c: `toolServer()` in tools/qa/isolated-server.mjs; audit, shoot and visual-diff warn on :5173 and take `--isolated`.
+- 3c: `tokenScope` reads `var(--zen-…)` in TSX/TS (component folders → their page, example pages → the page); against
+  228897cd it finds 19 TSX consumers. 3d documented in skills/zen-build-qa §3. B.2 is its own PR.
 
 ## Native packages compiled in CI (tier S, CI only; BACKLOG P3; user: "thêm job CI macOS chạy swift test và flutter test cho platforms/")
 

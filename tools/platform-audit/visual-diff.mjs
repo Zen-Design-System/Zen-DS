@@ -4,7 +4,7 @@
  * page, then compares two captures pixel by pixel. Run it around refactors that must not change the UI — API renames,
  * attribute renames, default fixes — and look at the sheets it writes for every changed card.
  *
- *   node tools/platform-audit/visual-diff.mjs capture <dir> [--url=http://localhost:5173] [--pages=a,b] [--widths=1512,390] [--dark]
+ *   node tools/platform-audit/visual-diff.mjs capture <dir> [--url=http://localhost:5173 | --isolated] [--pages=a,b] [--widths=1512,390] [--dark]
  *   node tools/platform-audit/visual-diff.mjs compare <before-dir> <after-dir> [--sheets=<dir>] [--tolerance=0]
  *
  * capture: animations and transitions are frozen (reduced motion + an injected stylesheet), videos are paused at 0 and
@@ -43,7 +43,9 @@ const FREEZE_CSS = `*, *::before, *::after { animation-duration: 0s !important; 
   transition-duration: 0s !important; transition-delay: 0s !important; caret-color: transparent !important; }`;
 
 async function capture(dir) {
-  const base = String(opt("url", "http://localhost:5173")).replace(/\/$/, "");
+  // --isolated: a private dev server (as the gate); the shared :5173 by default, with a warning.
+  const { toolServer } = await import(new URL("../qa/isolated-server.mjs", import.meta.url).href);
+  const base = (await toolServer(root, { url: opt("url"), isolated: flag("isolated"), tool: "visual-diff" })).base;
   const pages = opt("pages") ? String(opt("pages")).split(",") : allPages();
   const widths = String(opt("widths", "1512,390")).split(",").map(Number);
   const dark = flag("dark");

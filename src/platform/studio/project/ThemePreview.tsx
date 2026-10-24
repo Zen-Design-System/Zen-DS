@@ -366,8 +366,8 @@ function ComponentsGallery({ theme }: { theme: Theme }) {
           <Tabs aria-label="Invoices" defaultValue="open" items={[{ id: "open", label: "Open", badge: 4 }, { id: "paid", label: "Paid" }, { id: "draft", label: "Drafts" }]} />
           <Stack direction="row" gap="xs" wrap>
             <Chip selected>All clients</Chip>
-            <Chip>Retainers</Chip>
-            <Chip>Projects</Chip>
+            <Chip onClick={press("Retainers")}>Retainers</Chip>
+            <Chip onClick={press("Projects")}>Projects</Chip>
           </Stack>
         </Stack>
       </Card>

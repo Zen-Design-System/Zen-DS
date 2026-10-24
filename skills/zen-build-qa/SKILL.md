@@ -90,6 +90,12 @@ Whether you need a card, and for which elements, follows your tier (`AGENTS.md` 
 - Warnings in the hook context need a decision, not a shrug: fix, or keep with a reason you will state on delivery.
 - Run `npm run qa:quick` after a visible change for fast runtime feedback (text styles, hierarchy, token scale).
 - Keep examples on DS components and tokens; grep `platform.css` before naming a new `pe-*` class.
+- A temporary revert (a negative test, a before/after shot) never uses `git stash` (the stack is shared by every
+  worktree) and backs each file up under a name that differs by more than case: macOS (APFS) is case-insensitive, so
+  `Chat.bak` and `chat.bak` are one file (2026-09-27: the second backup overwrote the first and the restore wrote CSS
+  into `Chat.tsx`). Keep the extension (`Chat.tsx.orig`, `chat.css.orig`) or one folder per file, `cmp` each backup
+  before restoring, and recover an uncommitted file from `~/.claude/file-history/*/` (grep a unique symbol, newest
+  `@vN`).
 
 ## 3. Run the gate
 
@@ -98,12 +104,16 @@ npm run qa                        # scope = UI files this session edited since i
 npm run qa -- --only=card,chip    # exactly these pages (ignores the pages inferred from the ledger)
 npm run qa -- --pages=card        # add pages the mapping could not infer (it tells you when)
 npm run qa -- --keep-going        # still run the browser steps when a static gate failed
+npm run qa -- --failed            # after a failing run, nothing edited since: re-run only what failed (a flaky shard or row)
 npm run qa -- --all               # every page: tier L (AGENTS.md §C)
 ```
 
 What the scope means:
 
 - **Pages** come from edits made after the last passing run; after a pass, older edits and their notes stop counting.
+- **Bash edits** count only for the changed files the command itself names (the hook cannot tell a script's writes from
+  another session's): after a script, `sed -i` on a glob or a code generator other than tokens/styles/icons:build, pass
+  the files with `--files=` (or `--since=<minutes>`). Kept on purpose (the user, 2026-10-24).
 - **Tokens** (`src/styles/tokens.css`, `tokens/source/**`, `src/tokens/**`): the gate diffs the changed custom
   properties against git HEAD, adds every `--zen-*` var that aliases them, finds the component and platform CSS that
   reads those names and checks those files' pages. It prints the consumer pages, or says none was found and falls back

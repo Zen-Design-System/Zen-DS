@@ -292,10 +292,13 @@ export function tokenScope(root, { base = "HEAD", pages = allPages(root) } = {})
     const abs = path.join(root, dir);
     for (const f of fs.readdirSync(abs, { recursive: true })) {
       const rel = `${dir}/${String(f).split(path.sep).join("/")}`;
-      if (!rel.endsWith(".css") || /\.stories\.|\.generated\./.test(rel)) continue;
+      // CSS, and TSX/TS for the inline `var(--zen-…)` a style prop or a string writes (BACKLOG gate details 3c, the user
+      // 2026-10-24: read them; importers stay one level).
+      const script = /\.tsx?$/.test(rel);
+      if (!(rel.endsWith(".css") || script) || /\.stories\.|\.generated\.|\.test\./.test(rel)) continue;
       const text = fs.readFileSync(path.join(root, rel), "utf8");
       if (!text.includes("--zen-")) continue;
-      const hits = [...text.matchAll(/--zen-[\w-]+/g)].filter((m) => names.has(m[0]));
+      const hits = (script ? [...text.matchAll(/var\(\s*(--zen-[\w-]+)/g)].map((m) => Object.assign([m[1]], { index: m.index })) : [...text.matchAll(/--zen-[\w-]+/g)]).filter((m) => names.has(m[0]));
       if (!hits.length) continue;
       res.consumers.push({ file: rel, vars: [...new Set(hits.map((m) => m[0]))] });
       const comp = rel.match(/^src\/components\/([^/]+)\//)?.[1];
@@ -304,6 +307,12 @@ export function tokenScope(root, { base = "HEAD", pages = allPages(root) } = {})
         folders.add(comp);
         const page = folderPage(comp);
         if (pages.includes(page)) { out.add(page); primary.add(page); } else res.unmapped.push(rel);
+        continue;
+      }
+      // A platform page's own TSX (an example's inline style) → that page; other platform scripts are not mapped.
+      if (script) {
+        const page = rel.match(/^src\/platform\/examples\/pages\/([^/]+)\.tsx?$/)?.[1];
+        if (page && pages.includes(page)) out.add(page); else res.unmapped.push(rel);
         continue;
       }
       // Platform CSS: the selectors of the rules that use a changed name → the pages whose examples use those classes.
@@ -463,16 +472,50 @@ export const dirtyFiles = (ledger, root = ledger.repo) => Object.entries(ledger.
   .filter(([rel, f]) => f && typeof f === "object" && (!f.passedAt || f.editedAt > f.passedAt) && (!root || fs.existsSync(path.join(root, rel))))
   .map(([rel]) => rel);
 
+/* ── --failed (process audit B.2) ───────────────────────────────────────────────────────────────────────────── */
+/**
+ * The pages a `--failed` run audits again, from the last run's steps and its runtime reports in `runDir` (audit.json,
+ * audit-dark.json, behaviour.json, keyed page@width): [] when its browser steps all passed, every page when they never
+ * ran (a static ✗ skipped them), else the pages with an error finding or missing from a report (a shard that stopped).
+ */
+export function retryPagesFrom({ steps, runDir, pages, errorKinds, behaviour = true }) {
+  const ran = steps.filter((x) => (x.group === "runtime" || x.group === "behaviour") && !/^(Studio E2E|Unsaved Zen Studio drafts)/.test(x.name));
+  if (!ran.length || ran.some((x) => x.name === "Browser steps" && x.status === "skip")) return pages;
+  if (!ran.some((x) => x.status === "fail")) return [];
+  const redo = new Set();
+  for (const [file, audit] of [["audit.json", true], ["audit-dark.json", true], ["behaviour.json", false]]) {
+    if (!audit && !behaviour) continue;
+    let rep = null; try { rep = JSON.parse(fs.readFileSync(path.join(runDir, file), "utf8")); } catch { /* not written */ }
+    const seen = new Set(Object.keys(rep?.pages ?? {}).map((key) => key.split("@")[0]));
+    for (const page of pages) if (!seen.has(page)) redo.add(page);
+    for (const [key, entry] of Object.entries(rep?.pages ?? {})) {
+      const bad = audit ? Object.entries(entry ?? {}).some(([kind, items]) => errorKinds.has(kind) && items?.length) : (entry ?? []).some((f) => f.severity === "error" && f.new !== false);
+      if (bad) redo.add(key.split("@")[0]);
+    }
+  }
+  return pages.filter((page) => redo.has(page));
+}
+
 /* ── run in progress (S2) ───────────────────────────────────────────────────────────────────────────────────────── */
 export function pidAlive(pid) {
   if (!Number.isInteger(pid) || pid <= 0) return false;
   try { process.kill(pid, 0); return true; } catch (e) { return e?.code === "EPERM"; }
 }
-/** The ledger's run in progress, or null; a marker whose process is gone (or older than 6 h) is stale. */
+/** Whether `pid` is still a Build-QA run: the OS reuses pids, so a live pid that runs another command is a stale marker.
+ *  Where `ps` cannot say (Windows, a sandbox), a live pid counts, as before. */
+export function pidIsQaRun(pid) {
+  if (!pidAlive(pid)) return false;
+  const ps = spawnSync("ps", ["-o", "command=", "-p", String(pid)], { encoding: "utf8" });
+  if (ps.error) return true; // no ps here: cannot tell
+  if (ps.status !== 0) return false; // gone since pidAlive
+  return /tools[\\/]qa[\\/]run\.mjs/.test(ps.stdout);
+}
+/** The ledger's run in progress, or null; a marker whose process is gone, now runs something else (a reused pid), or is
+ *  older than 6 h is stale. */
 export function runningRun(ledger) {
   const r = ledger.running;
   if (!r || typeof r !== "object") return null;
-  const alive = pidAlive(r.pid) && Date.now() - (r.startedAt ?? 0) < 6 * 3600 * 1000;
+  const alive = pidIsQaRun(r.pid) && Date.now() - (r.startedAt ?? 0) < 6 * 3600 * 1000;
   return alive ? r : null;
 }
 

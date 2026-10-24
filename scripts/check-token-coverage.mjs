@@ -125,7 +125,18 @@ const highContrastFailures = verifyHighContrast(globalSource, highContrast, neut
 console.log(`${HIGH_CONTRAST_MODE} (${figmaHighContrast ? "Figma" : "generated"}): ${highContrastFailures.length} rule failure(s)`);
 for (const failure of highContrastFailures.slice(0, 20)) console.log(`  ${failure}`);
 
+// No-shadow companions (`<background>-shadow-off`, scripts/token-outputs.mjs): every component theme declares each one,
+// as the empty shadow where the fill is tinted or `initial` elsewhere, so a theme nested in a tinted one never inherits
+// the outer theme's empty shadow (2026-09-29 finding, fixed 2026-10-24).
+const tokensCss = fs.readFileSync("src/styles/tokens.css", "utf8");
+const themeBlocks = [...tokensCss.matchAll(/\[data-component-theme="([a-z0-9-]+)"\],[^{]*\{([^}]*)\}/g)].map(([, theme, body]) => ({ theme, body }));
+const companions = new Set(themeBlocks.flatMap(({ body }) => [...body.matchAll(/(--zen-[a-z0-9-]+-shadow-off):/g)].map((match) => match[1])));
+const shadowOffGaps = [...companions].flatMap((name) => themeBlocks.filter(({ body }) => !body.includes(`${name}:`)).map(({ theme }) => `${name} in ${theme}`));
+console.log(`Shadow-off companions: ${companions.size} in ${themeBlocks.length} component themes, ${shadowOffGaps.length} missing`);
+for (const gap of shadowOffGaps.slice(0, 20)) console.log(`  ${gap}`);
+
 if (
+  shadowOffGaps.length ||
   missingSources.length ||
   multiModeCreated.length ||
   manifestStale ||

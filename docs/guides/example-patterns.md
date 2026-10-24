@@ -98,6 +98,14 @@ Riêng Chat, các example dùng `useChatDemo()` (`src/platform/chatDemo.tsx`) đ
 
 Harness `chat/no-locked-interaction` cảnh báo handler rỗng, và `ChatMessage` không có hold/hover hay reaction. Code mẫu nằm trong template string được bỏ qua.
 
+## 3c. Playground để slot trống
+
+Playground của component có content slot (Card Content, Dialog Custom / Main-Contents / Side-Content, Side Panel, Bottom
+Sheet Contents, Accordion content) hiện slot **trống** bằng `PlaygroundSlot` (`src/platform/appLayer/playgroundParts.tsx`,
+class `.platform-slot`: viền dashed Border/Neutral/Subtle, tên slot Body/Small/Medium Light; `--tall`, `--fill`), để người
+dùng thấy slot thay được. Code mẫu ghi `{/* Content slot: your own content */}`. Nội dung thật chỉ có trong example
+(user, 2026-09-30). Figma cũng để trống các slot này. `PlaygroundSlot` là phần của trang docs, không phải component DS.
+
 ## 4. Nội dung (copy)
 
 - Số lượng phải khớp với danh từ: `plural(n, "item")` hoặc `plural(n, "address", "addresses")`, không viết `{list.length} items` (harness `copy/plural-count`).

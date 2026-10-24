@@ -93,4 +93,23 @@ export async function startIsolatedServer(root, { timeout = 90000 } = {}) {
   };
 }
 
+/**
+ * The dev server a platform tool (platform:audit, platform:shoot, visual-diff) measures: `--url`, else the shared :5173,
+ * else with `isolated` a private server like the gate's. On the shared :5173 it says so, since other sessions' hot reloads
+ * and unsaved Zen Studio drafts can change what the tool sees (BACKLOG Tooling 2c, the user 2026-10-24: warn, keep the
+ * default). Returns { base, close }.
+ */
+export async function toolServer(root, { url, isolated = false, tool }) {
+  if (isolated && !url) {
+    const server = await startIsolatedServer(root);
+    process.stderr.write(`${tool}: private dev server ${server.url} (--isolated): no HMR from other sessions, no Studio drafts\n`);
+    return { base: server.url, close: server.close };
+  }
+  const base = String(url ?? "http://localhost:5173").replace(/\/$/, "");
+  if (/^https?:\/\/(localhost|127\.0\.0\.1):5173$/.test(base)) {
+    process.stderr.write(`${tool}: measuring the shared dev server ${base}; other sessions' hot reloads and unsaved Zen Studio drafts can change what it sees. Pass --isolated for a private server (as the gate).\n`);
+  }
+  return { base, close: async () => {} };
+}
+
 if (process.argv[2] === "--serve") await serve(process.argv[3] ?? process.cwd());
