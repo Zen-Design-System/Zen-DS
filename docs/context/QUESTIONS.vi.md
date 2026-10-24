@@ -237,6 +237,13 @@ làm hiện tại; khi có câu trả lời, việc cần làm sẽ vào `BACKLO
   dùng ngần ấy không (chấp nhận), hay mỗi trang nên bỏ kiểu nào?
 - **Sửa trong Figma (P3, 06/10):** bố cục List trên trang Demo 14730:79268 ("My Leaves") vẫn dùng padding List cũ (trên
   / dưới 12, hai bên 0, gap 2); với master mới các hàng chạm cạnh khung và nền chồng lên nhau.
+- **Avatar Status (P3, 24/10, AvatarStatus):** (a) Sửa trong Figma: .Primitives/Avatar/Status 217:7418 ở XSmall và
+  Small Disabled gắn Color/Background/Solid-Disabled-Alt (VariableID:7286:1241, Light/Neutral/4), một biến đã bị xoá khỏi
+  Mode Colors (Semantic); Medium và Large gắn Solid-Disabled, code dùng biến này ở mọi cỡ (figmaException trong
+  `suites/avatar-status.mjs`). Gắn lại, hay khôi phục biến nếu Disabled trên chấm nhỏ cần nhạt hơn? (b) Disabled, Pending
+  và Inactive nghĩa là gì với một người? Trình đọc màn hình đọc đúng chữ Figma ("Disabled", "Pending", "Inactive"; Active
+  đọc "Online"); ví dụ Member access hiểu là tài khoản bị tắt, lời mời chưa nhận và 90 ngày không đăng nhập. Nếu ý định
+  là trạng thái hiện diện khác (offline · away · busy?) thì ghi rõ.
 
 ## Cho bạn (quyết định và việc cần làm)
 

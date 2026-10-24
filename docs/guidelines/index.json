@@ -1007,7 +1007,7 @@
       "title": "Avatar & Avatar Stack",
       "file": "docs/guidelines/avatar.md",
       "apiFile": "docs/api/avatar.json",
-      "figma": "Avatar/Single, Avatar/Stack (page 211:19487)",
+      "figma": "Avatar/Single, Avatar/Stack, .Primitives/Avatar/Status 217:7418 (page 211:19487)",
       "import": "import { Avatar, AvatarStack, AvatarStatus } from \"@zen-ds/react\";",
       "purpose": "Represent a person or workspace with a photo or initials.",
       "use": [
@@ -1036,13 +1036,22 @@
           "max?: number = 5",
           "showMore?: boolean = false",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
+        ],
+        "AvatarStatus": [
+          "status?: active|disabled|pending|inactive = active",
+          "size?: xs|sm|md|lg|xsmall|small|medium|large = sm",
+          "label?: string",
+          "decorative?: boolean = false",
+          "className?: string",
+          "ref?: Ref<HTMLSpanElement>"
         ]
       },
       "do": [
         "Set alt to the person's name; use alt=\"\" only when the name is shown next to the avatar.",
         "Use 2 initials (1 on xsmall/2xsmall).",
         "Use square avatars for workspaces and organisations.",
-        "Popover items (Theme=Avatar Small) use Avatar Size=Small (32px); Avatar Big uses Medium (40px) — PopoverItem sizes them for you."
+        "Popover items (Theme=Avatar Small) use Avatar Size=Small (32px); Avatar Big uses Medium (40px) — PopoverItem sizes them for you.",
+        "A status beside a name without an avatar (a compact row, a list of people) is <AvatarStatus size=\"xs\"> or \"sm\" before the text; the Avatar's own dot follows its size."
       ],
       "dont": [
         "Don't show more than 5 avatars in a stack; summarise the rest in text.",

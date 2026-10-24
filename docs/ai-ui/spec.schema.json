@@ -75,6 +75,9 @@
           "$ref": "#/$defs/components/AvatarStack"
         },
         {
+          "$ref": "#/$defs/components/AvatarStatus"
+        },
+        {
           "$ref": "#/$defs/components/Badge"
         },
         {
@@ -4598,6 +4601,95 @@
             "required": [
               "items"
             ],
+            "additionalProperties": false
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/child"
+            }
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "AvatarStatus": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "AvatarStatus"
+          },
+          "id": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "boolean"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "active",
+                      "disabled",
+                      "pending",
+                      "inactive"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Status: Active (Positive) · Disabled (Solid-Disabled) · Pending (Warning) · Inactive (Negative)."
+              },
+              "size": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "xs",
+                      "sm",
+                      "md",
+                      "lg",
+                      "xsmall",
+                      "small",
+                      "medium",
+                      "large"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Size: XSmall 4px with a 1px ring · Small 8/2 · Medium 12/2 · Large 16/3."
+              },
+              "label": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "What a screen reader says."
+              },
+              "decorative": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Hide the dot from assistive technology when the status is said in text beside it."
+              }
+            },
+            "required": [],
             "additionalProperties": false
           },
           "children": {

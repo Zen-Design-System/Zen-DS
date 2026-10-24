@@ -100,6 +100,12 @@
       "props": "items max? showMore? size?"
     },
     {
+      "name": "AvatarStatus",
+      "status": "verified",
+      "purpose": "Represent a person or workspace with a photo or initials.",
+      "props": "status? size? label? decorative?"
+    },
+    {
       "name": "Badge",
       "status": "verified",
       "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
