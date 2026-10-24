@@ -20,6 +20,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Avatar (2026-10-24): `status` also takes `"disabled"`, `"pending"` or `"inactive"` (Figma .Primitives/Avatar/Status),
   read by screen readers in words; `AvatarStatus` is the dot on its own, XSmall (4px) to Large. Sidebar: `railBackground`
   sets the workspace rail's fill (Figma Master-Background Default · Flat · Inverse).
+- DatePickerSheet (2026-10-24): `header="selection"` (Figma `.Primitives/Date-Picker` 9923:2323) puts the picked dates
+  on top of the sheet: one date as a Heading/3 under the title with an edit action (`onEdit`, e.g. to type the date
+  instead); a range with Clear dates (`onClear`) and the weekday row under the title and Close. BottomSheet takes a
+  `header` slot in place of its Header-Bar (the title stays the dialog's name). Popover `placement="cover"` lays the
+  surface over its anchor; AutocompleteField's list now opens over the Add slot, as Figma draws it.
 - Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,
   auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
   the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are

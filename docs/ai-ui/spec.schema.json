@@ -5811,6 +5811,36 @@
                 ],
                 "description": "Figma Header-Bar heading (Heading-Text H3)."
               },
+              "header": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Your own header in place of the Header-Bar (Heading + Close), e.g."
+              },
               "type": {
                 "anyOf": [
                   {
@@ -16180,6 +16210,64 @@
                   }
                 ],
                 "description": "Figma Header heading (Heading/3)."
+              },
+              "header": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "bar",
+                      "selection"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "`bar` (default): the Bottom-Sheet Header-Bar, the title and Close."
+              },
+              "onEdit": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "$action": {
+                        "type": "string"
+                      },
+                      "args": {
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "$action"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Single `header=\"selection\"`: the edit action beside the picked date (Figma Action), e.g."
+              },
+              "onClear": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "$action": {
+                        "type": "string"
+                      },
+                      "args": {
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "$action"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Range `header=\"selection\"`: Clear dates empties the draft range; set the `summary` back to its hint here."
               },
               "selectionMode": {
                 "anyOf": [
@@ -28592,6 +28680,20 @@
                   }
                 ],
                 "description": "Preferred horizontal edge against the anchor box; flips when it would overflow the viewport."
+              },
+              "placement": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "adjacent",
+                      "cover"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Where it opens against its anchor: `adjacent` (default) 4px below it, above when there is more room there; `cover` over it, its top edge on the anchor's top (its bottom on the anch"
               },
               "multiple": {
                 "anyOf": [

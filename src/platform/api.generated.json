@@ -4957,6 +4957,14 @@
           "deprecated": null
         },
         {
+          "name": "placement",
+          "type": "\"adjacent\" | \"cover\"",
+          "required": false,
+          "default": "\"adjacent\"",
+          "description": "Where it opens against its anchor: `adjacent` (default) 4px below it, above when there is more room there; `cover`\nover it, its top edge on the anchor's top (its bottom on the anchor's bottom when it opens upward), as Figma\nInput/Autocomplete-Field Focused draws the list over the Add slot.",
+          "deprecated": null
+        },
+        {
           "name": "multiple",
           "type": "boolean",
           "required": false,
@@ -6286,7 +6294,31 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Header heading (Heading/3). Default: the locale's \"Choose date\" (\"Choose dates\" for a range).",
+          "description": "Figma Header heading (Heading/3). Default: the locale's \"Choose date\" (\"Choose dates\" for a range). With\n `header=\"selection\"`, the caption over the picked date (single) or the heading beside Close (range).",
+          "deprecated": null
+        },
+        {
+          "name": "header",
+          "type": "\"bar\" | \"selection\"",
+          "required": false,
+          "default": "\"bar\"",
+          "description": "`bar` (default): the Bottom-Sheet Header-Bar, the title and Close. `selection`: Figma `.Primitives/Date-Picker`\n (9923:2323), the picked dates lead the sheet. Single (Option=1): the title as a caption over the picked date in\n Heading/3 and, with `onEdit`, an edit action beside it. Range (Option=2): the title and Close, the picked range\n with Clear dates, and the weekday row, all above the scrolling months.",
+          "deprecated": null
+        },
+        {
+          "name": "onEdit",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Single `header=\"selection\"`: the edit action beside the picked date (Figma Action), e.g. to type the date in a\n field instead. Without it the action is hidden.",
+          "deprecated": null
+        },
+        {
+          "name": "onClear",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Range `header=\"selection\"`: Clear dates empties the draft range; set the `summary` back to its hint here.",
           "deprecated": null
         },
         {
@@ -15458,7 +15490,15 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "Figma Header-Bar heading (Heading-Text H3).",
+          "description": "Figma Header-Bar heading (Heading-Text H3). With `header`, the sheet's accessible name only (a visually hidden heading).",
+          "deprecated": null
+        },
+        {
+          "name": "header",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Your own header in place of the Header-Bar (Heading + Close), e.g. `.Primitives/Date-Picker` (9923:2323): the\n picked dates lead the sheet. The grabber stays above it and a drag on it still dismisses the sheet; `title` stays\n the dialog's name. Draw a close in it when the design has one (Escape, the scrim and the drag close it anyway).",
           "deprecated": null
         },
         {

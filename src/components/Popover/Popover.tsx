@@ -161,6 +161,12 @@ export interface PopoverProps extends Omit<HTMLAttributes<HTMLDivElement>, "chil
   searchClearable?: boolean;
   /** Preferred horizontal edge against the anchor box; flips when it would overflow the viewport. */
   align?: "start" | "end";
+  /**
+   * Where it opens against its anchor: `adjacent` (default) 4px below it, above when there is more room there; `cover`
+   * over it, its top edge on the anchor's top (its bottom on the anchor's bottom when it opens upward), as Figma
+   * Input/Autocomplete-Field Focused draws the list over the Add slot.
+   */
+  placement?: "adjacent" | "cover";
   /** Multi-select list: every item gets a trailing Checkbox/Mark (Figma multi-select Popover). */
   multiple?: boolean;
   /**
@@ -204,6 +210,7 @@ export function Popover(
     anchorRef,
     searchClearable = true,
     align = "start",
+    placement: coverOrAdjacent = "adjacent",
     multiple = false,
     width,
     maxWidth,
@@ -223,7 +230,7 @@ export function Popover(
   const [internalSearchValue, setInternalSearchValue] = useState(searchValue);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const mergedRef = useMergedRefs(rootRef, ref);
-  // Attach 4px below the trigger / input box, flipping above it near the bottom of the viewport.
+  // Attach 4px below the trigger / input box (or over it, `placement="cover"`), flipping above it near the bottom of the viewport.
   // Inside an Input the box is the enclosing control (SelectField, field pickers); otherwise the trigger.
   const presence = usePresence(open, 120);
   const widthMode = width === "fill" || width === "hug" ? width : typeof width === "number" && Number.isFinite(width) ? "fixed" : undefined;
@@ -231,6 +238,7 @@ export function Popover(
     align,
     anchor: () => rootRef.current?.parentElement?.closest<HTMLElement>(".zen-input__control") ?? anchorRef?.current,
     trackAnchorWidth: widthMode === "fill" || widthMode === "hug",
+    cover: coverOrAdjacent === "cover",
   });
   // One popover at a time: opening this one closes another object's open popover (nested ones keep their parent).
   useExclusivePopover(open, onOpenChange ? () => onOpenChange(false) : undefined, rootRef, anchorRef);
