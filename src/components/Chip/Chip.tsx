@@ -59,7 +59,8 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
   /** Selected (Figma Select=Yes): Advanced chips show the close affordance, Normal chips the selected styling. */
   selected?: boolean;
   /** Uncontrolled start for `selected`: a Normal chip then turns itself on and off when pressed, and an Advanced chip's
-   *  close affordance clears it. Leave `selected` out to use it. */
+   *  close affordance clears it. Leave `selected` out to use it. An Advanced chip with it keeps its own choice of
+   *  `popoverItems` even while `onPopoverSelect` / `onClearSelection` listen: it updates itself, then calls them. */
   defaultSelected?: boolean;
   /**
    * Figma's Select property. Selected chips show the close affordance in Advanced.
@@ -91,9 +92,10 @@ export interface ChipProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>,
    * Items rendered by the shared Figma Popover/Default composition. Without `onPopoverSelect` (and `onPopoverCreate`) the
    * chip keeps the choice itself, starting from the items marked `selected`: a pick marks it (`popoverMultiple` toggles)
    * and the chip shows the one picked value as its label (and its photo or icon). A filter chip (`defaultSelected`, or
-   * nothing picked at first) is then Selected, counts several for `selectionMode` "multiple" and clears them with its
-   * close affordance; a chip that starts on a value (a period) only changes it. Pass `onPopoverSelect` to keep the choice
-   * in your own state.
+   * nothing picked at first) is then Selected, counts several for `selectionMode` "multiple", clears its one value when
+   * it is picked again and clears them all with its close affordance; a chip that starts on a value (a period) only
+   * changes it. Pass `onPopoverSelect` to keep the choice in your own state (with `defaultSelected` as well, the chip
+   * keeps it too and reports each pick).
    * On a phone (the nearest `data-breakpoint`, else ZenProvider's, is "mobile"; SelectField's rule) the items open in a
    * Bottom Sheet instead, titled `popoverLabel` (else the chip's label): picked rows are Selected with a check, the Search
    * comes with `popoverSearch`, a pick closes it, and with `popoverMultiple` picks keep it open until Done. A chip with
@@ -191,9 +193,11 @@ export function Chip({
   const t = useZenLabels();
   const isNumberOnly = variant === "number-only";
   const controlledSelect = selectedProp ?? selectProp;
-  // The chip keeps the choice itself when nobody listens to picks (see popoverItems). What it starts from is its key: when
-  // those props change (an edit in Zen Studio, new data), it starts from them again.
-  const ownsChoice = !isNumberOnly && popoverItems !== undefined && !onPopoverSelect && !onPopoverCreate;
+  // The chip keeps the choice itself when nobody listens to picks (see popoverItems), or when it is uncontrolled
+  // (defaultSelected without selected) and only told about them. What it starts from is its key: when those props change
+  // (an edit in Zen Studio, new data), it starts from them again.
+  const uncontrolled = controlledSelect === undefined && defaultSelected !== undefined;
+  const ownsChoice = !isNumberOnly && popoverItems !== undefined && !onPopoverCreate && (!onPopoverSelect || uncontrolled);
   const startItems = ownsChoice ? (popoverItems ?? []).filter((item) => item.selected) : [];
   const startKey = `${controlledSelect}|${defaultSelected}|${startItems.map((item) => item.id).join("\u0000")}`;
   const [own, setOwn] = useState<{ key: string; selected: boolean; ids: string[] } | null>(null);
@@ -203,10 +207,11 @@ export function Chip({
   // picked. A chip that starts on a value without being Selected (a period picker) only changes that value.
   const picksSelect = controlledSelect !== undefined || defaultSelected !== undefined || startItems.length === 0;
   const select = mine && (picksSelect || !ownsChoice) ? mine.selected : controlledSelect ?? defaultSelected ?? false;
-  // Uncontrolled (defaultSelected): a Normal or Number-only chip turns itself on and off; an Advanced chip clears itself.
-  const ownsToggle = !ownsChoice && variant !== "advanced" && controlledSelect === undefined && defaultSelected !== undefined;
-  const ownsClear = variant === "advanced" && !onClearSelection && (ownsChoice || (controlledSelect === undefined && defaultSelected !== undefined));
-  const clearSelection = onClearSelection ?? (ownsClear ? () => setOwnChoice(false, []) : undefined);
+  // Uncontrolled (defaultSelected): a Normal or Number-only chip turns itself on and off; an Advanced chip clears itself,
+  // then tells onClearSelection.
+  const ownsToggle = !ownsChoice && variant !== "advanced" && uncontrolled;
+  const ownsClear = variant === "advanced" && (ownsChoice || uncontrolled);
+  const clearSelection = ownsClear ? () => { setOwnChoice(false, []); onClearSelection?.(); } : onClearSelection;
   // Once a chip that keeps the choice is used, what it shows comes from that choice (until then, from its props): the one
   // picked value as its label, with its photo or icon, else its placeholder. The placeholder is the label it was given,
   // unless that label is the value it started with (a page captured with one value on), then the popover's label.
@@ -333,7 +338,9 @@ export function Chip({
   });
   const handlePopoverSelect = (item: PopoverItemData) => {
     if (ownsChoice) {
-      const next = popoverMultiple ? (ids.includes(item.id) ? ids.filter((id) => id !== item.id) : [...ids, item.id]) : [item.id];
+      // A filter chip's one value picked again clears it (the apps' `x === item.id ? null : item.id`); a period stays.
+      const again = picksSelect && select && ids.length === 1 && ids[0] === item.id;
+      const next = popoverMultiple ? (ids.includes(item.id) ? ids.filter((id) => id !== item.id) : [...ids, item.id]) : again ? [] : [item.id];
       setOwnChoice(next.length > 0, next);
     }
     onPopoverSelect?.(item);

@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
-import { userEvent } from "vitest/browser";
+import { page as browser, userEvent } from "vitest/browser";
 import { ToastProvider } from "../../src/components/Toast";
 import { ZenProvider } from "../../src/index";
 import type { PageTree } from "../../src/platform/studio/builder/render/renderPage";
@@ -32,9 +32,12 @@ ${body}
 function Play({ tree }: { tree: PageTree }) {
   const flow = usePlayFlow(tree, null);
   return (
-    <div className="studio-player__device" data-screen-id={flow.current} style={{ width: 1024, height: 700 }}>
-      <PlayScreens flow={flow} file="local:option-c.zen.tsx" />
-    </div>
+    <>
+      <button type="button" onClick={flow.restart}>Restart</button>
+      <div className="studio-player__device" data-screen-id={flow.current} style={{ width: 1024, height: 700 }}>
+        <PlayScreens flow={flow} file="local:option-c.zen.tsx" />
+      </div>
+    </>
   );
 }
 
@@ -110,6 +113,48 @@ describe("Studio option C in Play", () => {
     await expect.poll(clients).toEqual(["Globex"]);
     await screen.getByLabelText("Search orders").fill("");
     await expect.poll(clients).toEqual(["Acme", "Globex", "Initech"]);
+  });
+
+  it("a filter Chip shows its pick and clears it (picked again, ×), narrows with a Search and another chip; Restart starts over", async () => {
+    const screen = await play(page(`      <Screen id="tasks" title="Tasks">
+        <Stack gap="md" padding="lg">
+          <Search aria-label="Search tasks" onValueChange={proto.filter({ column: "title", match: "contains" })} />
+          <Chip dropdown popoverItems={[{ id: "todo", label: "To do" }, { id: "doing", label: "Doing" }]} onPopoverSelect={proto.filter({ column: "status" })}>Status</Chip>
+          <Chip dropdown popoverItems={[{ id: "high", label: "High" }, { id: "low", label: "Low" }]} onPopoverSelect={proto.filter({ column: "priority" })}>Priority</Chip>
+          <Table aria-label="Tasks" columns={[{ id: "title", header: "Task" }, { id: "status", header: "Status" }, { id: "priority", header: "Priority" }]} rows={[{ id: "1", title: "Alpha", status: "Doing", priority: "High" }, { id: "2", title: "Beta", status: "To do", priority: "High" }, { id: "3", title: "Gamma", status: "Doing", priority: "Low" }, { id: "4", title: "Delta", status: "Doing", priority: "High" }]} />
+        </Stack>
+      </Screen>`, "Chip, Search, Stack, Table"));
+    const titles = () => [...document.querySelectorAll(".zen-table tbody tr.zen-table__row")].map((row) => row.textContent?.match(/Alpha|Beta|Gamma|Delta/)?.[0]);
+    const chip = (index: number) => document.querySelectorAll<HTMLElement>(".zen-chip")[index];
+    const label = (index: number) => chip(index).querySelector(".zen-chip__label")?.textContent;
+    const pick = async (index: number, option: string) => {
+      await userEvent.click(chip(index));
+      await browser.getByRole("option", { name: option }).click();
+    };
+    const all = ["Alpha", "Beta", "Gamma", "Delta"];
+    await expect.poll(titles).toEqual(all);
+    await pick(0, "Doing");
+    await expect.poll(titles).toEqual(["Alpha", "Gamma", "Delta"]);
+    expect(label(0)).toBe("Doing");
+    expect(chip(0).getAttribute("data-select")).toBe("true");
+    await pick(0, "Doing");
+    await expect.poll(titles).toEqual(all);
+    expect(label(0)).toBe("Status");
+    await pick(0, "Doing");
+    await pick(1, "High");
+    await expect.poll(titles).toEqual(["Alpha", "Delta"]);
+    await screen.getByLabelText("Search tasks").fill("del");
+    await expect.poll(titles).toEqual(["Delta"]);
+    await screen.getByLabelText("Search tasks").fill("");
+    await expect.poll(titles).toEqual(["Alpha", "Delta"]);
+    chip(0).querySelector<HTMLElement>(".zen-chip__remove")!.click();
+    await expect.poll(titles).toEqual(["Alpha", "Beta", "Delta"]);
+    expect(label(0)).toBe("Status");
+    expect(chip(0).getAttribute("data-select")).toBe("false");
+    expect(label(1)).toBe("High");
+    await screen.getByRole("button", { name: "Restart" }).click();
+    await expect.poll(titles).toEqual(all);
+    await expect.poll(() => label(1)).toBe("Priority");
   });
 
   it("moves the Screen's Stepper with Next and Previous, back to a passed step, and navigates to a Screen's state", async () => {

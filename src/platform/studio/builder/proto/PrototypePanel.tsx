@@ -292,7 +292,7 @@ function TriggerRow({ trigger, label, value, items, tree, layer, frames, home, d
           />
         </InspectorRow>
       ) : null}
-      {action === "filter" && proto ? <FilterRows trigger={trigger} filter={filterOf(proto.args)} screen={screenFor(tree, home)} hands={items.length > 0 || typed} typed={typed} layer={layer} disabled={disabled} /> : null}
+      {action === "filter" && proto ? <FilterRows trigger={trigger} filter={filterOf(proto.args)} screen={screenFor(tree, home)} hands={items.length > 0 || typed || trigger === "onPopoverSelect"} typed={typed} layer={layer} disabled={disabled} /> : null}
       {action === "step" && proto ? <StepRows trigger={trigger} step={stepOf(proto.args)} screen={screenFor(tree, home)} layer={layer} disabled={disabled} /> : null}
       {animates ? <AnimationRows trigger={trigger} options={options} disabled={disabled} onChange={writeOptions} /> : null}
       {target && !selfPlaced ? <OverlayFields node={target} file={layer.file} disabled={disabled} /> : null}

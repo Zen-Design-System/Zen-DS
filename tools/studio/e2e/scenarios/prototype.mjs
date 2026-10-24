@@ -185,6 +185,28 @@ export default function Page() {
 }
 `;
 
+/** A filter Chip whose pick filters the Table's Status column, a second one on Priority, and four tasks (PT-23). */
+const filterChipPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { Chip, Stack, Table } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Tasks">
+        <Stack gap="md" padding="lg">
+          <Chip dropdown popoverItems={[{ id: "todo", label: "To do" }, { id: "doing", label: "Doing" }]} onPopoverSelect={proto.filter({ column: "status" })}>Status</Chip>
+          <Chip dropdown popoverItems={[{ id: "high", label: "High" }, { id: "low", label: "Low" }]} onPopoverSelect={proto.filter({ column: "priority" })}>Priority</Chip>
+          <Table aria-label="Tasks" columns={[{ id: "title", header: "Task" }, { id: "status", header: "Status" }, { id: "priority", header: "Priority" }]} rows={[{ id: "1", title: "Alpha", status: "Doing", priority: "High" }, { id: "2", title: "Beta", status: "To do", priority: "High" }, { id: "3", title: "Gamma", status: "Doing", priority: "Low" }, { id: "4", title: "Delta", status: "To do", priority: "Low" }]} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
 /** A Stepper with Next (no action yet), Previous and Finish (no action yet), and a "done" state of the Screen (PT-21). */
 const stepPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Screen, proto } from "@zen-ds/react/builder";
@@ -920,6 +942,37 @@ export const rows = [
       await until(async () => /Cart/.test(await currentStep()), { message: "a new visit starts on Cart" });
       await page.keyboard.press("Escape");
       return "Next → Change step (Previous/Next) · Finish ⊕ → checkout:done · Play: Cart → Pay → Ship (stays) → Previous → Pay → Cart (passed step) → done state → Back → Cart";
+    },
+  },
+  {
+    id: "PT-23", feature: "Filter table from a filter Chip's pick (user 2026-10-24, the Quản lý task prototype: every filter works in Play): the Chip shows its pick and keeps the Table's Doing rows; the same pick again shows every row; × shows every row and the Chip its placeholder; two chips narrow together; Restart starts both over", wp: "play chip clear 2026-10-24", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, filterChipPage, /onPopoverSelect=\{proto\.filter\(/);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      const titles = async () => (await playing(page).locator(".zen-table tbody tr.zen-table__row").allInnerTexts()).map((row) => row.match(/Alpha|Beta|Gamma|Delta/)?.[0]).join();
+      const chip = (index) => playing(page).locator(".zen-chip").nth(index);
+      const label = async (index) => ((await chip(index).locator(".zen-chip__label").textContent()) ?? "").trim();
+      const pick = (index, option) => step(`pick ${option}`, async () => {
+        await chip(index).click();
+        await playing(page).getByRole("option", { name: option, exact: true }).click();
+      });
+      await until(async () => (await titles()) === "Alpha,Beta,Gamma,Delta", { message: "four tasks at first" });
+      await pick(0, "Doing");
+      await until(async () => (await titles()) === "Alpha,Gamma" && (await label(0)) === "Doing", { message: "Doing: Alpha and Gamma, the chip says Doing" });
+      await pick(0, "Doing");
+      await until(async () => (await titles()) === "Alpha,Beta,Gamma,Delta" && (await label(0)) === "Status", { message: "Doing again: every task, the chip says Status" });
+      await pick(0, "Doing");
+      await pick(1, "High");
+      await until(async () => (await titles()) === "Alpha", { message: "Doing and High: Alpha" });
+      await step("press the Status chip's ×", () => chip(0).locator(".zen-chip__remove").click());
+      await until(async () => (await titles()) === "Alpha,Beta" && (await label(0)) === "Status" && (await chip(0).getAttribute("data-select")) === "false", { message: "×: High only (Alpha, Beta), the Status chip shows its placeholder" });
+      await page.keyboard.press("r");
+      await until(async () => (await titles()) === "Alpha,Beta,Gamma,Delta" && (await label(1)) === "Priority", { message: "Restart: every task, the Priority chip shows its placeholder" });
+      await page.keyboard.press("Escape");
+      return "Play: Doing → 2 rows (chip says Doing) → Doing again → 4 rows (chip says Status) → Doing + High → 1 row → × → High only, chip placeholder → R → 4 rows";
     },
   },
 ];
