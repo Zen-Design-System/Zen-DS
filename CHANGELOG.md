@@ -22,6 +22,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   instead); a range with Clear dates (`onClear`) and the weekday row under the title and Close. BottomSheet takes a
   `header` slot in place of its Header-Bar (the title stays the dialog's name). Popover `placement="cover"` lays the
   surface over its anchor; AutocompleteField's list now opens over the Add slot, as Figma draws it.
+- Zen Studio: moving a layer that a `const` shows in several places (`{phone ? card : null}` and `trailing={card}`) no
+  longer asks "Move in all N places?": only the `{…}` where this one shows moves (2026-10-24).
 - TopNavigation (2026-10-24): `titleMenu` makes the bar title a Dropdown (Figma Heading-Text Dropdown: the title and a
   chevron-down open a Menu; `titleDropdown` draws the chevron on an `onTitleClick` title); `largeTitleBadges` puts a row
   of Badges under the large title; `scrolledType` gives a scroll-linked bar its look once content scrolls under it (a

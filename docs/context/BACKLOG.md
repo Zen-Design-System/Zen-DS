@@ -23,12 +23,13 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
   asks for it.
-- **P3 · New APIs the contract suites asked for (2026-10-24; the user picked all four):** Figma draws what code has no
-  prop for, so those variants return null in their suites (`tools/figma-contract/suites/*.mjs`). Left: the Workspace
-  Sidebar rail's Master-Background Flat / Inverse; Avatar status Disabled / Pending / Inactive and the 4px XSmall dot
-  (session chart-contract-suites). Done on zen/feat/datepicker-sheet-popover-cover-20261024: Popover
-  `placement="cover"` (Autocomplete-Field), DatePickerSheet `header="selection"` (9923:2323, suite
-  date-picker-sheet-header), Event-List Number-Event 1–4 in `date-picker-event-list.mjs`.
+- **P3 · New APIs the contract suites asked for (2026-10-24; the user picked the first four):** Figma draws what code
+  has no prop for, so those variants return null in their suites (`tools/figma-contract/suites/*.mjs`). Left: the
+  Workspace Sidebar rail's Master-Background Flat / Inverse; Avatar status Disabled / Pending / Inactive and the 4px
+  XSmall dot (session chart-contract-suites). Needs the user's go: DatePicker event days on the calendar (the Single
+  calendars' day-1 dot: DatePicker has no events prop, while DatePickerItem takes `event` 1–4 since #266 and Event-List
+  1–4 is compared). Done on zen/feat/datepicker-sheet-popover-cover-20261024 (#280): Popover `placement="cover"`
+  (Autocomplete-Field), DatePickerSheet `header="selection"` (9923:2323, suite date-picker-sheet-header).
 - **P3 · Contract checker gaps (2026-10-24; harness work, the user's go):** `tools/figma-contract/check.mjs` reads the
   first visible paint only (second fills and background-image overlays: Toggle bar, Social Others bubble, Editable
   cell), compares `fx` only without a spread ring in the same shadow list (Toggle-Button dot), one corner radius (bubble
@@ -84,12 +85,6 @@ starts.
   instead of a Segmented that does not fit; a bare `<Container>` around a Table has 0 cases). The four approved rules
   (`table/bulk-actions-max`, `chip/needs-action`, three actions in one TopNavigation group, `search-folds-to-action` on
   `scrollRef` bars) shipped 2026-10-24.
-- **P3 · Gate details (the user's decisions 2026-10-24), in flight:** baseline notes follow the fix-at-once rule and a
-  reused pid no longer keeps a stale "running" marker (PR #264); B.2, re-run only the steps that failed when nothing
-  changed (next PR). Done 2026-10-24: token scope reads inline `var()` in TSX (importers stay one level); a Bash
-  script's edits counting only when the command names the file is documented (`skills/zen-build-qa` §3). Kept on
-  purpose: partial `--only` runs and mixed stale guidelines fail. Not now: B.4, C.4, C.6, C.7; no global text-width
-  tolerance (the suites' `xr` / `wr` / `cxr` checks replace it).
 
 ### Next-phase Studio design check
 - **P3 · Studio panels in dark chrome and at 280px (2026-10-03; rewritten 2026-10-24):** no screenshot pass of the
