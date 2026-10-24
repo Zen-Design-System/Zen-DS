@@ -314,5 +314,5 @@ Branch claude/play-overlay-window-ecdb17, stacked on #284.
   the window and goes back unchanged. iPad landscape: the ModalForm opens at scroll 280 in the box and moves nothing.
   iPhone: the Screen scrolls inside. A 400px Screen with canvas="alt" on a 1300px window fills the device, and its Dialog
   is centred in the window.
-- E2E PT-22 (prototype group, id asked of Giám sát): long desktop Screen, scroll 150, open a modal SidePanel. Checks: no
+- E2E PT-24 (prototype group, id from Giám sát): long desktop Screen, scroll 150, open a modal SidePanel. Checks: no
   move, in the window, wheel held, closed → it scrolls again.

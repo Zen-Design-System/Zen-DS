@@ -163,7 +163,7 @@ export default function Page() {
 }
 `;
 
-/** A desktop Screen taller than Play's window, with a Button below a few rows that opens a modal Side Panel (PT-22). */
+/** A desktop Screen taller than Play's window, with a Button below a few rows that opens a modal Side Panel (PT-24). */
 const longScreenPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
 import { Button, SidePanel, Stack, Text } from "@zen-ds/react";
@@ -949,7 +949,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-22", feature: "Play draws a Screen as an app in a window: the Screen scrolls inside the device, and a modal Side Panel opened on a scrolled Screen shows in full in the window, moves nothing, and a wheel over it or its scrim leaves the Screen still", wp: "modal scroll lock 2026-10-24", timeout: 40_000,
+    id: "PT-24", feature: "Play draws a Screen as an app in a window: the Screen scrolls inside the device, and a modal Side Panel opened on a scrolled Screen shows in full in the window, moves nothing, and a wheel over it or its scrim leaves the Screen still", wp: "modal scroll lock 2026-10-24", timeout: 40_000,
     async run(ctx) {
       const { page } = await seededPage(ctx, longScreenPage, /proto\.open\("details"\)/);
       await page.locator(".studio-viewport").focus();
