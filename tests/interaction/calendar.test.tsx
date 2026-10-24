@@ -6,7 +6,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import { userEvent } from "vitest/browser";
-import { CalendarAgenda, CalendarMonth, CalendarTimeGrid, CalendarToolbar, CalendarWeekStrip, ZenProvider, type CalendarEventData } from "../../src/index";
+import { CalendarAgenda, CalendarMonth, CalendarTimeGrid, CalendarToolbar, CalendarWeekStrip, DatePickerItem, ZenProvider, type CalendarEventData } from "../../src/index";
 import { layoutDay, monthWeeks, readEvents, toDate } from "../../src/components/Calendar/calendarDates";
 
 const today = new Date(2026, 8, 30);
@@ -111,5 +111,38 @@ describe("CalendarAgenda", () => {
     expect(document.querySelectorAll(".zen-calendar-agenda-item")).toHaveLength(5);
     await screen.rerender(<ZenProvider><CalendarAgenda device="desktop" from={new Date(2026, 9, 5)} days={7} events={events} today={today} /></ZenProvider>);
     await expect.element(screen.getByText("No events")).toBeVisible();
+  });
+});
+
+describe("Event dots (Figma .Primitives/Date-Picker/Item/Event-List 510:36577)", () => {
+  const dotsOf = (testId: string) => [...document.querySelectorAll(`[data-testid="${testId}"] .zen-date-picker__events i`)];
+  it("draws a dot per event, up to four, 2px apart; a selected day takes Date-Picker-Item/Content/Selected", async () => {
+    await render(<ZenProvider>
+      <DatePickerItem day={3} event data-testid="one" />
+      <DatePickerItem day={4} event={3} data-testid="three" />
+      <DatePickerItem day={5} event={9} data-testid="many" />
+      <DatePickerItem day={6} event={0} data-testid="none" />
+      <DatePickerItem day={7} event={2} state="single-selected" data-testid="selected" />
+    </ZenProvider>);
+    expect([dotsOf("one").length, dotsOf("three").length, dotsOf("many").length, dotsOf("none").length]).toEqual([1, 3, 4, 0]);
+    const [first, second] = dotsOf("three").map((dot) => dot.getBoundingClientRect());
+    expect([first.width, first.height, second.left - first.right]).toEqual([4, 4, 2]);
+    const selected = getComputedStyle(dotsOf("selected")[0]).backgroundColor;
+    expect(selected).not.toBe(getComputedStyle(dotsOf("one")[0]).backgroundColor);
+    const probe = document.querySelector<HTMLElement>('[data-testid="selected"]')!;
+    probe.style.setProperty("color", "var(--zen-date-picker-item-content-selected)");
+    expect(selected).toBe(getComputedStyle(probe).color);
+  });
+});
+
+describe("Day cells follow the density (Figma Select-Item/Size)", () => {
+  const size = (id: string) => document.querySelector<HTMLElement>(`[data-testid="${id}"]`)!.offsetWidth;
+  it("Medium 32 / Small 24 in Compact", async () => {
+    await render(<ZenProvider density="compact"><DatePickerItem day={1} data-testid="md" /><DatePickerItem day={2} size="sm" data-testid="sm" /></ZenProvider>);
+    expect([size("md"), size("sm")]).toEqual([32, 24]);
+  });
+  it("Medium 40 / Small 32 in Comfortable", async () => {
+    await render(<ZenProvider density="comfortable"><DatePickerItem day={1} data-testid="md" /><DatePickerItem day={2} size="sm" data-testid="sm" /></ZenProvider>);
+    expect([size("md"), size("sm")]).toEqual([40, 32]);
   });
 });

@@ -667,7 +667,7 @@ export function DashboardTemplate() {
               ) : (
                 // The open project's row stays selected while its panel is open.
                 <Table aria-labelledby="dashboard-projects" rows={rows} getRowId={(row) => row.id} columns={columns}
-                  sort={sort} onSortChange={setSort} selectedIds={opened ? [opened.id] : []} onRowClick={(row) => openProject(row.id)} empty={noRows} />
+                  sort={sort} onSortChange={setSort} currentRowId={opened?.id} onRowClick={(row) => openProject(row.id)} empty={noRows} />
               )}
               {rows.length ? (
                 <Text textStyle="Body/Small/Regular" tone="base">{plural(rows.length, "project")} · {money(sum(rows.map((row) => row.earned)))} in {period.name}</Text>

@@ -61,6 +61,7 @@ Figma Table (page 1595:2631): Primitives/Table/Header (Table/Header/Size) over P
 | `onSortChange` | `(sort: TableSort \| null) => void` | — |  |
 | `empty` | `ReactNode` | — | Rendered in a full-width row when `rows` is empty (e.g. an EmptyState). |
 | `onRowClick` | `(row: T) => void` | — | Rows that open something (a detail page, a Side Panel, a dialog): the whole row is the click target, keyboard focus reaches each row and Enter or Space opens it; buttons, links, checkboxes and fields inside the row keep their own clicks. For read-only rows — an editable table opens a row with its column's `onOpen` button instead. |
+| `currentRowId` | `string \| null` | — | The row whose item is open beside the table, in a docked Side Panel or a detail pane: `aria-current="true"` and the Selected fill (Figma Table/Cell State=Selected), apart from the checkbox selection. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the Zen components the table draws in its cells, row by row, by layer — `{ "Row[alex]/status/Badge": { theme: "red" } }` (the row's id, the column's id, the layer), `Row[alex]/Checkbox`, `Header/Checkbox`. Written by Zen Studio; app code changes the rows or the column instead. |
 

@@ -46,11 +46,11 @@ export interface TopNavigationAction {
   dot?: boolean;
   disabled?: boolean;
   /**
-   * In `trailing`: actions next to each other with the same `group` share one pill, Figma's Nav-Action with a trailing
+   * In `trailing` and `largeTitleAction`: actions next to each other with the same `group` share one pill, Figma's Nav-Action with a trailing
    * icon (iOS's paired bar buttons), e.g. audio + video call with `group: "call"`. The pill takes the bar's action style:
    * Tertiary (Icon-Main), Liquid Glass, or Liquid Glass Black Overlay on the overlay types; each half keeps its own label
    * and tooltip. Figma's pill holds two. A pill counts as one of the bar's three places. The compact types keep their Flat
-   * actions apart (Figma's Nav-Action/Icon-Flat has no trailing icon). Ignored outside `trailing`.
+   * actions apart (Figma's Nav-Action/Icon-Flat has no trailing icon). Ignored elsewhere (`leading`).
    */
   group?: string;
 }
@@ -201,7 +201,6 @@ type TrailingItem = TopNavigationAction | ReactNode;
 type TrailingPlace = { actions: TopNavigationAction[] } | { node: ReactNode };
 /** `null`, `false`, `undefined` and "" items (`cond && <Badge …/>`) take no place. */
 const isDrawn = (item: TrailingItem) => item !== null && item !== undefined && typeof item !== "boolean" && item !== "";
-const placeOf = (item: TrailingItem): TrailingPlace => (isAction(item) ? { actions: [item] } : { node: item });
 
 /**
  * The trailing slot in Figma Trailing-Slot terms (up to `slots` places): one action or one visual per place, or a run of
@@ -211,8 +210,14 @@ const placeOf = (item: TrailingItem): TrailingPlace => (isAction(item) ? { actio
  * false). A visual between two actions keeps them apart.
  */
 function trailingItems(lead: TrailingItem[], trailing: TrailingItem[], pairs: boolean, firstTwo: boolean, slots: number): TrailingPlace[] {
+  return [...groupedPlaces(lead, pairs, false), ...groupedPlaces(trailing, pairs, firstTwo)].slice(0, slots);
+}
+
+/** One list's places (`trailing`, or `largeTitleAction` whose Header-Trailing holds the same Nav-Slot/Action, so the
+ *  same dual pill): an action or a visual each, actions next to each other with the same `group` sharing one. */
+function groupedPlaces(list: TrailingItem[], pairs: boolean, firstTwo: boolean): TrailingPlace[] {
   const own: TrailingPlace[] = [];
-  const items = trailing.filter(isDrawn);
+  const items = list.filter(isDrawn);
   const named = items.some((item) => isAction(item) && Boolean(item.group));
   items.forEach((item, index) => {
     if (!isAction(item)) { own.push({ node: item }); return; }
@@ -221,7 +226,7 @@ function trailingItems(lead: TrailingItem[], trailing: TrailingItem[], pairs: bo
     if (pairs && last && "actions" in last && isAction(prev) && (named ? Boolean(item.group) && item.group === prev.group : firstTwo && index === 1)) last.actions.push(item);
     else own.push({ actions: [item] });
   });
-  return [...lead.filter(isDrawn).map(placeOf), ...own].slice(0, slots);
+  return own;
 }
 
 /** Figma D3 / D4: a visual in a Trailing-Slot place, as it is (a Badge, an Avatar), centred in the 64px row. */
@@ -369,7 +374,6 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
   const lead = barFolds ? titleActions : [];
   const pairs = variant !== "flat";
   // Each action object is passed on as it is (the Studio ties a rendered button to its item by identity).
-  const expandTrailing = titleActions.length ? <div className="zen-top-nav__expand-trailing">{titleActions.slice(0, MAX_ACTIONS).map((item, index) => isAction(item) ? <TopNavigationActionButton key={index} action={item} variant={variant} /> : <TrailingVisual key={index} node={item} />)}</div> : null;
   // Figma Top-bar=false with Expand-Heading off (D2): no navigator-bar row, only the status inset (and a control bar or
   // banner). The title stays the screen's heading for screen readers; with nothing left the root is not a landmark.
   const noBar = topBar === false && !largeTitle;
@@ -397,6 +401,8 @@ export function TopNavigation({ type = "default", margin = "comfortable", subtit
       // The dual Nav-Action: one pill in the bar's action style, two halves that each keep their target and name.
       ? <span key={index} ref={groupGlass} className="zen-top-nav__group" data-style={variant} role="group">{place.actions.map((action, half) => <TopNavigationActionButton key={half} action={action} variant="flat-group" />)}</span>
       : <TopNavigationActionButton key={index} action={place.actions[0]} variant={variant} />;
+  // Figma Expand-Trailing (Header-Trailing): the same places as the bar's, up to three, a `group` pair as one pill.
+  const expandTrailing = titleActions.length ? <div className="zen-top-nav__expand-trailing">{groupedPlaces(titleActions, pairs, false).slice(0, MAX_ACTIONS).map(renderPlace)}</div> : null;
   const barTitle = title ?? (collapsed ? largeTitle : undefined);
   // One title heading at all times: the large title while it shows, else the bar title (the copy under a large title is aria-hidden).
   const barIsTitle = Boolean(barTitle) && !showLarge;

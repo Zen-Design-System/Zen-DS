@@ -146,6 +146,28 @@ describe("useModal: Escape goes to the innermost open thing", () => {
   });
 });
 
+describe("ModalForm without its Default-Header (header={false}) keeps a name", () => {
+  const modal = () => document.querySelector<HTMLElement>(".zen-modal-form")!;
+
+  it("the title names the modal as a visually hidden heading; the unshown description is not read", async () => {
+    const screen = await render(<ZenProvider><ModalForm open onOpenChange={() => undefined} header={false} title="Invite member" description="They get an email." primaryAction={{ label: "Send" }}><InputField label="Email" /></ModalForm></ZenProvider>);
+    await expect.element(screen.getByRole("dialog", { name: "Invite member" })).toBeVisible();
+    await expect.element(screen.getByRole("heading", { name: "Invite member", level: 2 })).toBeInTheDocument();
+    expect(document.querySelector(".zen-modal-form__header")).toBeNull();
+    expect(modal().hasAttribute("aria-describedby")).toBe(false);
+  });
+
+  it("with no title, aria-label names it", async () => {
+    const screen = await render(<ZenProvider><ModalForm open onOpenChange={() => undefined} header={false} aria-label="New project" primaryAction={{ label: "Create" }}><InputField label="Name" /></ModalForm></ZenProvider>);
+    await expect.element(screen.getByRole("dialog", { name: "New project" })).toBeVisible();
+  });
+
+  it("aria-labelledby wins over the title and aria-label", async () => {
+    const screen = await render(<ZenProvider><h2 id="step-title">Step 1 of 3</h2><ModalForm open onOpenChange={() => undefined} title="Invite member" aria-label="Ignored" aria-labelledby="step-title" primaryAction={{ label: "Next" }}><InputField label="Email" /></ModalForm></ZenProvider>);
+    await expect.element(screen.getByRole("dialog", { name: "Step 1 of 3" })).toBeVisible();
+  });
+});
+
 describe("ModalForm: a blocked submit focuses the first invalid field", () => {
   function EditMember({ delay = 0, late = 0 }: { delay?: number; late?: number }) {
     const [errors, setErrors] = useState<{ name?: string; email?: string }>({});

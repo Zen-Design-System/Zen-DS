@@ -142,6 +142,8 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
   flex: 1 1 auto;
   resize: vertical;
 }
+/* A read-only or disabled text area cannot be edited, so it draws no resize grip. */
+.zen-input__native--textarea:is(:read-only, :disabled) { resize: none; }
 
 /* Leading/Trailing slots hug their content (icon, label, picker, steppers, "results"…). The field size only
    sets the icon size: Element-Size/Popular Small 16 · Base 20 · Medium 24 · Large 28. */

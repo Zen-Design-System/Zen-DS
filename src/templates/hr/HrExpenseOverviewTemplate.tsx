@@ -489,8 +489,8 @@ export function HrExpenseOverviewTemplate() {
             ) : noClaims
           ) : (
             // The opened claim's row stays selected while its panel is open.
-            <Table aria-labelledby={claimsTitle} rows={shown} getRowId={(row) => row.id} sort={sort} onSortChange={setSort} onRowClick={(row) => openClaim(row.id)}
-              selectedIds={opened ? [opened.id] : []} empty={noClaims}
+            <Table aria-labelledby={claimsTitle} rows={shown} getRowId={(row) => row.id} sort={sort} onSortChange={setSort} currentRowId={openId} onRowClick={(row) => openClaim(row.id)}
+              empty={noClaims}
               columns={[
                 { id: "claim", header: "Claim", cell: (row) => {
                   const category = expenseCategories[row.category];

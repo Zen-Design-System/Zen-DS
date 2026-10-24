@@ -73,7 +73,9 @@ Also accepts `OverlayOpenProps`.
 | `layout` | `"basic" \| "1-3" \| "half-half" \| "3-4" \| "big"` | `"basic"` | Figma `Layout`: Basic 440 · 1-3 876 (240px side) · Half-Half 876 · 3-4 767 · Big 960. |
 | `side` | `ReactNode` | — | Figma Side-Content slot (1-3, Half-Half, 3-4): an illustration, preview, steps or summary beside the form. |
 | `top` | `ReactNode` | — | Figma Top-Customize slot, rendered above the header (e.g. a Stepper or a banner). |
-| `header` | `boolean` | `true` | Figma Default-Header. |
+| `header` | `boolean` | `true` | Figma Default-Header. Off, the title still names the modal for screen readers (kept as a visually hidden heading) and the description is not read; with no title, give `aria-label` or `aria-labelledby`. |
+| `aria-label` | `string` | — | Names the modal when it has no `title` (or overrides it), e.g. with `header={false}` and a Stepper on `top`. |
+| `aria-labelledby` | `string` | — | The id of a visible element that names the modal (a heading in `top`, say); wins over `title` and `aria-label`. |
 | `closeButton` | `boolean` | `true` | Figma Close: the 32px Button/Icon-Flat in the top-right corner. |
 | `closeLabel` | `string` | — | Accessible name of the close button. Default: the locale's “Close”. |
 | `children` | `ReactNode` | — | Figma Main-Contents slot: the form fields (gap Medium). |

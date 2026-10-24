@@ -193,6 +193,12 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
     that folds columns? (5) Prose has no code block: `markdownToSpec` renders fenced code as `Text as="code"`; no mono
     text style or CodeBlock / Prose component. (6) A Keycap (Kbd) for keyboard hints ("Tab to keep as booking"; the
     demo uses Tag).
+- **Card and Table hover (2026-10-24; from the triaged backlog, the user sent both here; code unchanged until answered):**
+  (1) Card Theme=Default (Flat before #210) has no Hover or Pressed variant, so a clickable Default card in code shows no
+  state change while Border and Flat-Border darken their stroke (`card.css` ~175). Add Default Hover / Pressed (a
+  Neutral/Flat/Hover tint, as other no-fill surfaces take)? (2) A Table row with no `onRowClick` still takes Table/Cell
+  Hover in code (`table.css` ~57). Is Cell Hover for every row (Figma's Table/Cell/Default State=Hover), or only rows
+  that open, select or edit something?
 
 - For the designer, one review (moved from `BACKLOG.md` on 2026-10-24, triage of the planned backlog; code keeps its
   current behaviour until answered):

@@ -123,7 +123,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange">`
 | `value` | `CalendarDateInput \| null` | — | The selected day (controlled). |
 | `defaultValue` | `CalendarDateInput \| null` | — | The selected day at first (uncontrolled). Default: today. |
 | `onValueChange` | `(date: Date) => void` | — | Called with the day the person picks. |
-| `events` | `CalendarEventData[]` | `[]` | The events of the period: a day with any shows the event dot (Dot style). |
+| `events` | `CalendarEventData[]` | `[]` | The events of the period: a day shows a dot per event, up to 4 (Dot style; Figma Event-List). |
 | `variant` | `"dot" \| "tile"` | `"dot"` | Figma Style: `dot` (date-picker days with an event dot, default) or `tile` (weekday and date in one tile; the selected day a bordered Surface tile, as Schedule/Day-Planner uses it). |
 | `device` | `"desktop" \| "mobile"` | — | Figma Device: `desktop` (32px days, a side panel or picker) or `mobile` (40px days, above the day's events on a phone). Default: from the breakpoint. |
 | `today` | `Date \| string` | — | The day treated as today (Today ring / Accent date). Default: the device clock. |
