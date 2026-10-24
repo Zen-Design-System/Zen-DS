@@ -22,6 +22,7 @@ export default {
     { figma: "Leading", dom: ".zen-chip__slot:not(.zen-chip__trailing) > .zen-icon", check: ["size", "x", "y"], when: (vp) => vp.Theme === "Leading-Icon" },
     { figma: "Leading/Vector", dom: ".zen-chip__slot:not(.zen-chip__trailing) > .zen-icon", check: ["fill"], fillVia: "color", when: (vp) => vp.Theme === "Leading-Icon" },
     { figma: "Leading", dom: ".zen-chip__slot .zen-avatar", check: ["size", "x", "y"], when: (vp) => vp.Theme === "Leading-Photo" },
+    { figma: "Leading > Image", dom: ".zen-chip__slot .zen-avatar__inner", check: ["image"], when: (vp) => vp.Theme === "Leading-Photo" },
     { figma: "Trailing", dom: ".zen-chip__trailing > .zen-icon", check: ["size", "y"], when: (vp) => vp.Select === "No" && vp.State !== "Press" },
     { figma: "Trailing > Vector", dom: ".zen-chip__trailing > .zen-icon", check: ["fill"], fillVia: "color", when: (vp) => vp.Select === "No" },
     { figma: ".Chip/Trailing|Trailing", dom: ".zen-chip__trailing .zen-icon", check: ["size", "y"], when: (vp) => vp.Select === "Yes" },

@@ -57,6 +57,8 @@ export default {
     { figma: "Text", dom: ".zen-avatar__initials", check: ["size"], when: (vp, p) => plain(vp, p) && photo(vp) },
     { figma: "Image", dom: ".zen-avatar__inner", check: ["size", "x", "y", "radius", "fx"], fxBackdrop: true, when: (vp, p) => plain(vp, p) && photo(vp) },
     { figma: "Image", dom: ".zen-avatar__inner img", check: ["size", "radius"], when: (vp, p) => plain(vp, p) && photo(vp) },
+    // The photo: Figma's IMAGE fill is the <img>.
+    { figma: "Image", dom: ".zen-avatar__inner", check: ["image"], when: (vp, p) => plain(vp, p) && photo(vp) },
     { figma: "Image", dom: ".zen-avatar__inner::after", check: ["size", "stroke", "radius"], when: (vp, p) => plain(vp, p) && photo(vp) },
     // Focus and Status default to off: hidden in Figma, not drawn in code.
     { figma: "Focus-Ring", dom: ".zen-avatar::before", check: ["size"], when: plain },

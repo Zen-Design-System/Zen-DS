@@ -17,6 +17,7 @@ export default mediaSuite({
     { figma: "Photo", dom: ".zen-avatar", check: ["size", "x", "y", "radius"] },
     { figma: "Photo", dom: ".zen-avatar", check: ["stroke"], strokeVia: "shadow" },
     { figma: "Photo", dom: ".zen-avatar__inner::after", check: ["stroke"] },
+    { figma: "Photo", dom: ".zen-avatar__inner", check: ["image"] },
   ],
   figmaExceptions: pinned.map((code) => ({ vp: {}, layer: "01 > Content-Div > Photo", prop: "stroke", code, note })),
 });

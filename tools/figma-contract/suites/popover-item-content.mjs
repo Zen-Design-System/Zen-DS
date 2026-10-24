@@ -9,6 +9,9 @@ export default {
   // Offsets are measured from the Item edge, so Figma values get the 8px Container padding (dx/dy).
   map: [
     { figma: "Icon|Avatar|Photo", dom: ".zen-popover__item-leading", check: ["size"], when: (vp) => vp.Theme !== "Text-Only" },
+    // Photo themes: Figma's IMAGE fill (the Photo frame, or the Avatar's Image) is a picture in code.
+    { figma: "Photo", dom: ".zen-popover__item-leading", check: ["image"], when: (vp) => /Photo/.test(vp.Theme) },
+    { figma: "Avatar > Image", dom: ".zen-popover__item-leading", check: ["image"], when: (vp) => /Avatar/.test(vp.Theme) },
     { figma: "Content", dom: ".zen-popover__item-content", check: ["h"] },
     { figma: "Content/Label", dom: ".zen-popover__item-label", check: ["h", "text"] },
   ],

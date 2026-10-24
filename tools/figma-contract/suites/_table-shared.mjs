@@ -10,7 +10,7 @@ import { at, child, textOf } from "./_chart-shared.mjs";
 export { at, child, textOf };
 export const contract = "docs/figma-contracts/table-cells.json";
 const PAD = 16; // Spacing/Padding/Medium, each side of Table/Cell/Default.
-/** A solid 8×8 picture for Avatar/Photo cells (Figma's IMAGE fill is not compared). */
+/** A solid 8×8 picture for Avatar/Photo cells (Figma's IMAGE fill compares as a picture: the `image` check). */
 export const PHOTO = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="#c8a"/></svg>');
 /** The `tableCell` case of a variant: its Table column (JSON) and row, in a box the Figma cell's width. */
 export const cellCase = (spec, column, row = {}, extra = {}) => ({ width: spec.w + 2 * PAD, column, row, ...extra });
