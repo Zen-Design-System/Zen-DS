@@ -56,6 +56,12 @@ reaction Navigate / Open / Close overlay / Back."
 - **Gate bug fixed:** tools/qa/run.mjs ERROR_KINDS missed `counts` (an error since 2026-10-15), and `card-gap` and
   `legend-column` (since 10-16), so the gate passed them as warnings. The self-test now checks that the list equals
   audit.mjs SEVERITY's errors.
+- **First full run (gate slot):** controlClip alone ran on every page at 1512, 390, 320 and dark 1512 (isolated server).
+  - It found 137 covers. All of them were content passing under a sticky layer: an AppShell bottom bar, a docked
+    ActionBar, a header, or a Gantt / Schedule label column. That is by design, so a cover inside a sticky or fixed
+    layer is no finding now (self-test fixture added, 41 checks).
+  - The re-run found nothing, before and after merging train A (#274). `clip` needs no baseline entries.
+  - Scoped gate (`--isolated`, 10 pages): PASS, 0 errors and 0 new warnings at 1512, 390 and 320 and in dark.
 
 ## Session B · Studio editor group of the planned backlog (tier S; user: "Giao 35 mục theo đề xuất … Phần không cần quyết làm ngay")
 
