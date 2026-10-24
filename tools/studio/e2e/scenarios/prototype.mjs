@@ -5,6 +5,9 @@ import { openAssetLibrary, selectAt, showLeftTab, sleep, until } from "../lib/st
 import { pickOption } from "./inspector.mjs";
 import { clickNamed, newPage, pageText, seededPage, selectStack } from "./builder.mjs";
 
+/** The presented device's viewport: Present's still frame, or Play's device (a Screen presented from its frame plays
+ *  since #288, Figma's Present). */
+const PRESENT_VIEWPORT = ".studio-present__fit > :is(.studio-present__viewport, .studio-player__device)";
 const text = async (page, id) => (await pageText(page, id)) ?? "";
 const center = (box) => ({ x: box.x + box.width / 2, y: box.y + box.height / 2 });
 const playing = (page) => page.locator(".studio-player");
@@ -740,7 +743,7 @@ export const rows = [
       await pick("iPad, portrait");
       await until(async () => (await screen.getAttribute("data-device")) === "tablet" && (await screen.getAttribute("data-layout")) === "mobile", { message: "iPad, portrait lays the Screen out as a portrait tablet" });
       await present.locator('.studio-device-status[data-device="tablet"]').waitFor({ state: "attached", timeout: 5000 });
-      const fit = await present.locator(".studio-present__viewport").boundingBox();
+      const fit = await present.locator(PRESENT_VIEWPORT).boundingBox();
       if (!fit || Math.abs(fit.width / fit.height - 744 / 1133) > 0.01) throw new Error(`the iPad viewport is not 744 × 1133 (${fit ? `${Math.round(fit.width)} × ${Math.round(fit.height)}` : "none"})`);
       await present.getByRole("switch", { name: "Device frame" }).click();
       await until(async () => (await present.locator(".studio-device-frame").count()) === 0, { message: "Device frame off drops the hardware" });
@@ -774,7 +777,7 @@ export const rows = [
         return got;
       };
       const ratio = async (width, height, what) => {
-        const box = await present.locator(".studio-present__viewport").boundingBox();
+        const box = await present.locator(PRESENT_VIEWPORT).boundingBox();
         if (!box || Math.abs(box.width / box.height - width / height) > 0.01) throw new Error(`the ${what} viewport is not ${width} × ${height} (${box ? `${Math.round(box.width)} × ${Math.round(box.height)}` : "none"})`);
       };
       // Auto: the Android page's Screen plays on the Android phone, not the iPhone of its size.
