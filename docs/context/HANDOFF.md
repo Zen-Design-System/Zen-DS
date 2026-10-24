@@ -10,7 +10,8 @@ Last updated: 2026-10-21.
 
 1. This file.
 2. [`AGENTS.md`](../../AGENTS.md): tier table (§C), how to build or change a component, the gate commands.
-3. [`BACKLOG.md`](BACKLOG.md): only when picking up work or logging a follow-up.
+3. [`BACKLOG.md`](BACKLOG.md): only when picking up work or logging a follow-up. Items that wait on the user or the
+   next phase are in [`BACKLOG-user-and-later.md`](BACKLOG-user-and-later.md) (since 2026-10-25).
 4. [`HANDOFF-details.md`](HANDOFF-details.md): full state (versions, token syncs, contracts, harness), gate detail, house
    rules. `grep -n` it by topic.
 5. On demand for the area you touch: [`CHANGELOG.md`](../../CHANGELOG.md), [`component-usage-rules.md`](../component-usage-rules.md),
