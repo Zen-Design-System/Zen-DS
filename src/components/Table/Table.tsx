@@ -2,19 +2,19 @@ import { Fragment, useCallback, useEffect, useId, useLayoutEffect, useRef, useSt
 import { usePortalContainer, ZenPortal } from "../Portal";
 import { fixedLayerSpace } from "../_shared/layer-space";
 import { Avatar } from "../Avatar";
-import { Badge } from "../Badge";
+import { Badge, type BadgeTheme } from "../Badge";
 import { Button, IconButton, type ButtonLevel, type ButtonSize } from "../Button";
 import { Checkbox } from "../Checkbox";
 import { DockIcon } from "../DockIcon";
 import { Menu, type MenuEntry } from "../Menu";
-import { Popover, PopoverBulkAction, PopoverBulkActionDivider, PopoverBulkActionGroup } from "../Popover";
+import { Popover, PopoverBulkAction, PopoverBulkActionDivider, PopoverBulkActionGroup, type PopoverItemData } from "../Popover";
 import { ProgressBar } from "../Progress";
 import { Tag } from "../Tag";
 import { ToggleButton } from "../Toggle";
 import { Icon, type IconName } from "../Icon";
 import { VisuallyHidden } from "../VisuallyHidden";
 import { renderIcon } from "../_shared/icon";
-import { useNested, type Nest, type NestedOverrides } from "../_shared/nested";
+import { nestedSegment, useNested, type Nest, type NestedOverrides } from "../_shared/nested";
 import { useZenLabels } from "../_shared/zen-context";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./table.css";
@@ -112,7 +112,10 @@ export type TableCellEditor<T> =
   | (TableEditorBase<T> & { type?: "text" | "number"; value: (row: T) => string; onCommit: (row: T, value: string) => void;
       /** Text only: Shift+Enter inserts a line break (Enter still saves). */
       multiline?: boolean })
-  | (TableEditorBase<T> & { type: "select"; value: (row: T) => string; options: Array<{ value: string; label: ReactNode }>; onCommit: (row: T, value: string) => void })
+  | (TableEditorBase<T> & { type: "select"; value: (row: T) => string;
+      /** `photoSrc`: the option's picture (a person's photo), drawn as Popover/Item Avatar-Small. A shorthand select on an
+       *  avatar or photo column takes each value's picture from its rows' `mediaField`. */
+      options: Array<{ value: string; label: ReactNode; photoSrc?: string }>; onCommit: (row: T, value: string) => void })
   | (Omit<TableEditorBase<T>, "validate"> & { type: "tags"; value: (row: T) => string[]; onCommit: (row: T, value: string[]) => void; suggestions?: string[] });
 
 /** One action of a Table's bulk-action bar (`bulkActions`). */
@@ -244,12 +247,16 @@ type EditEnd = { refocus: boolean };
  * follows Notion's database cells: one click edits, text grows to show long values, Enter saves (Shift+Enter adds a
  * line), Escape leaves and keeps what was typed, select/tags open a searchable list at once, Enter picks the top
  * match or creates the typed tag. */
-function TableCellEditorView<T>({ editor, row, initial, align, onDone, onMove }: {
+function TableCellEditorView<T>({ editor, row, initial, align, content, looks, onDone, onMove }: {
   editor: TableCellEditor<T>;
   row: T;
   /** Seed for a text/number edit started by typing a character (replaces the value) or Backspace (""). */
   initial?: string;
   align: TableAlign;
+  /** What the column's cells draw (none for a column with its own `cell`): a select draws its options alike. */
+  content?: TableCellContent;
+  /** The column's look per value (pictures, badge overrides). */
+  looks?: ValueLooks;
   onDone: (end: EditEnd) => void;
   onMove: (direction: 1 | -1) => void;
 }) {
@@ -300,10 +307,28 @@ function TableCellEditorView<T>({ editor, row, initial, align, onDone, onMove }:
 
   // ── select: a searchable list opens at once (Notion select); Enter picks the top match.
   if (type === "select") {
-    const options = (editor as { options: Array<{ value: string; label: ReactNode }> }).options;
+    const options = (editor as Extract<TableCellEditor<T>, { type: "select" }>).options;
     const current = original;
     const textOf = (label: ReactNode) => (typeof label === "string" || typeof label === "number" ? String(label) : "");
     const visible = options.filter((option) => textOf(option.label).toLowerCase().includes(query.trim().toLowerCase()) || option.value.toLowerCase().includes(query.trim().toLowerCase()));
+    // Each option draws as its cell will: a person with their avatar (initials without a photo), a square photo, or the
+    // Badge with the colour and icon the column's cells give that value.
+    const square = content === "photo";
+    const pictured = content === "avatar" || square || options.some((option) => option.photoSrc);
+    const items = visible.map((option): PopoverItemData => {
+      const item = { id: option.value, label: option.label, selected: option.value === current };
+      const look = looks?.get(option.value);
+      if (content === "badge") return { ...item, theme: "badge", badgeTheme: look?.badge?.theme as BadgeTheme | undefined };
+      if (!pictured) return item;
+      const photoSrc = option.photoSrc ?? look?.photo;
+      const theme = square ? "photo-small" : "avatar-small";
+      return photoSrc ? { ...item, theme, photoSrc }
+        : { ...item, theme, leading: <Avatar size={square ? "2xs" : "sm"} shape={square ? "square" : "circle"} theme="neutral" background="subtle" alt="">{initialsOf(textOf(option.label) || option.value)}</Avatar> };
+    });
+    // The option's Badge as the cell draws it (Medium Subtle, no icon) with the value's overrides on top.
+    const badgeLooks = content === "badge"
+      ? Object.fromEntries(visible.map((option) => [`${nestedSegment("Item", option.value)}/Badge`, { background: "subtle", ...looks?.get(option.value)?.badge }]))
+      : undefined;
     const currentLabel = options.find((option) => option.value === current)?.label ?? current;
     const pick = (value: string) => { if (value !== current) (editor.onCommit as (row: T, value: string) => void)(row, value); finish({ refocus: true }); };
     return (
@@ -319,7 +344,7 @@ function TableCellEditorView<T>({ editor, row, initial, align, onDone, onMove }:
               if (event.key === "Tab") { event.preventDefault(); const direction = event.shiftKey ? -1 : 1; finish({ refocus: true }); onMove(direction); }
             }}
             onOpenChange={(next) => { if (!next && !done.current) revert({ refocus: false }); setOpen(next); }}
-            items={visible.map((option) => ({ id: option.value, label: option.label, selected: option.value === current }))}
+            items={items} overrides={badgeLooks}
             onSelect={(item) => pick(item.id)} />
         </EditorLayer>
       </div>
@@ -409,15 +434,19 @@ function TableCellEditorView<T>({ editor, row, initial, align, onDone, onMove }:
  */
 export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowIdProp, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, caption, selectable = false, selectedIds: selectedIdsProp, defaultSelectedIds, onSelectionChange, bulkActions, sort, onSortChange, empty, onRowClick, currentRowId, editable: editableProp = false, onCellCommit, className, overrides, ...rest }: TableProps<T>) {
   const t = useZenLabels();
-  const nest = useNested(overrides);
   // Edits made through a shorthand `edit` / `editable` without onCellCommit: the Table's own copy of the changed fields,
   // by row id, laid over the rows it is given.
   const [edits, setEdits] = useState<Map<string, Record<string, unknown>>>(() => new Map());
   const given = rowsProp ?? data ?? [];
+  const givenId = (row: T, index: number) => (getRowIdProp ? getRowIdProp(row) : defaultRowId(row, index));
   const rows = edits.size === 0 ? given : given.map((row, index) => {
-    const patch = edits.get(getRowIdProp ? getRowIdProp(row) : defaultRowId(row, index));
+    const patch = edits.get(givenId(row, index));
     return patch && row !== null && typeof row === "object" ? { ...row, ...patch } : row;
   });
+  // What each value of a picture or badge column looks like, from the rows as given: the select lists it, and a value
+  // picked here takes it (a row's own Badge override was written for the value the row had).
+  const looks = new Map(columns.map((column) => [column.id, valueLooks(column, given, givenId, overrides)]));
+  const nest = useNested(restyled(overrides, columns, edits, looks));
   // Without getRowId: each row's `id` field, else its position (one lookup table per render, not a search per row).
   const positions = getRowIdProp ? undefined : new Map(rows.map((row, index) => [row, index]));
   const getRowId = getRowIdProp ?? ((row: T) => defaultRowId(row, positions?.get(row)));
@@ -434,15 +463,17 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
   const hintId = useId();
   const [editing, setEditing] = useState<(ActiveCell & { initial?: string }) | null>(null);
   /** The edit a shorthand editor commits: to onCellCommit, else into the Table's own copy of the row (numbers stay numbers). */
-  const commitShorthand = (row: T, column: TableColumn<T>, field: string, value: string | string[]) => {
+  const commitShorthand = (row: T, column: TableColumn<T>, field: string, value: string | string[], also?: Record<string, unknown>) => {
     if (onCellCommit) { onCellCommit(row, column.id, value); return; }
     const was = (row as Record<string, unknown>)[field];
     const next = typeof was === "number" && typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value)) ? Number(value) : value;
     const id = getRowId(row);
-    setEdits((current) => new Map(current).set(id, { ...(current.get(id) ?? {}), [field]: next }));
+    setEdits((current) => new Map(current).set(id, { ...(current.get(id) ?? {}), [field]: next, ...also }));
   };
-  // Each column's editor: as written, or built from its shorthand type / the Table's `editable` (null: read-only).
-  const editors = new Map(columns.map((column) => [column.id, editorOf(column, rows, editableProp, commitShorthand)]));
+  // Each column's editor: as written, or built from its shorthand type / the Table's `editable` (null: read-only). Its
+  // values come from the rows as given and as edited: a value picked away from its last row stays in the list.
+  const valueRows = edits.size === 0 ? given : [...given, ...rows];
+  const editors = new Map(columns.map((column) => [column.id, editorOf(column, valueRows, editableProp, commitShorthand, looks.get(column.id))]));
   const editableCols = columns.filter((column) => editors.get(column.id)).map((column) => column.id);
   const canEdit = (row: T, column: TableColumn<T>) => { const editor = editors.get(column.id); return Boolean(editor && !editor.disabled?.(row)); };
   /** `quiet`: focus returns to the cell after an edit (keyboard users continue from it) without the focus ring;
@@ -592,6 +623,7 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                         // The original content stays (hidden) so the column width and row height never change;
                         // the editor overlays the cell.
                         ? <><div className="zen-table__content zen-table__cell-ghost" aria-hidden="true">{cellOf(column, row, index, cellNest)}</div><TableCellEditorView editor={editor} row={row} initial={editing?.initial} align={column.align ?? "left"}
+                            content={column.cell ? undefined : column.content} looks={looks.get(column.id)}
                             onDone={({ refocus }) => { setEditing((current) => (current?.row === id && current.col === column.id ? null : current)); if (refocus) focusCell(cell, true); }}
                             onMove={(direction) => { const next = neighbour(cell, 0, direction, true); if (next) focusCell(next); }} /></>
                         : <>{content}{open}</>}
@@ -837,7 +869,7 @@ export function tableEditorTypeFor(column: { cell?: unknown; content?: string; f
 }
 
 /** A column's editor: as written, else built from its shorthand type or the Table's `editable` over the row's field. */
-function editorOf<T>(column: TableColumn<T>, rows: T[], tableEditable: boolean, commit: (row: T, column: TableColumn<T>, field: string, value: string | string[]) => void): TableCellEditor<T> | null {
+function editorOf<T>(column: TableColumn<T>, rows: T[], tableEditable: boolean, commit: (row: T, column: TableColumn<T>, field: string, value: string | string[], also?: Record<string, unknown>) => void, looks?: ValueLooks): TableCellEditor<T> | null {
   const edit = column.edit;
   if (edit && typeof edit === "object") return edit;
   const type = edit === true ? "text" : edit ?? (tableEditable ? tableEditorTypeFor(column, rows) : null);
@@ -851,11 +883,59 @@ function editorOf<T>(column: TableColumn<T>, rows: T[], tableEditable: boolean, 
     return { type, value: list, suggestions, "aria-label": label, onCommit: (row, value) => commit(row, column, field, value) };
   }
   if (type === "select") {
-    const options = [...new Set(rows.flatMap(list))].map((value) => ({ value, label: value }));
-    return { type, value: (row) => textOf(read(row)), options, "aria-label": label, onCommit: (row, value) => commit(row, column, field, value) };
+    // An avatar or photo column: each option shows its value's picture, and a pick brings that picture to the row.
+    const media = (column.content === "avatar" || column.content === "photo") && column.mediaField ? column.mediaField : null;
+    const options = [...new Set(rows.flatMap(list))].map((value) => {
+      const photo = media ? looks?.get(value)?.photo : undefined;
+      return photo ? { value, label: value, photoSrc: photo } : { value, label: value };
+    });
+    return { type, value: (row) => textOf(read(row)), options, "aria-label": label,
+      onCommit: (row, value) => commit(row, column, field, value, media ? { [media]: looks?.get(value)?.photo ?? "" } : undefined) };
   }
   return { type, value: (row) => textOf(read(row)), "aria-label": label, onCommit: (row, value) => commit(row, column, field, value) };
 }
+/** Per value of a picture or badge column, how its cells draw it (valueLooks). */
+type ValueLooks = Map<string, { photo?: string; badge?: Readonly<Record<string, unknown>> }>;
+
+/**
+ * How each value of an avatar or photo column (with `mediaField`) or a badge column draws: its picture, or the Badge
+ * overrides its row was given (`Row[<id>]/<column>/Badge`), from the first row of that value that has one. Undefined for
+ * any other column.
+ */
+function valueLooks<T>(column: TableColumn<T>, rows: T[], rowId: (row: T, index: number) => string, overrides: NestedOverrides | undefined): ValueLooks | undefined {
+  const picture = (column.content === "avatar" || column.content === "photo") && column.mediaField ? column.mediaField : null;
+  if (column.cell || (!picture && column.content !== "badge")) return undefined;
+  const field = column.field ?? column.id;
+  const looks: ValueLooks = new Map();
+  rows.forEach((row, index) => {
+    const record = (row ?? {}) as Record<string, unknown>;
+    const value = textOf(record[field]);
+    if (!value || looks.has(value)) return;
+    if (picture) { const photo = textOf(record[picture]); if (photo) looks.set(value, { photo }); return; }
+    const badge = overrides?.[`${nestedSegment("Row", rowId(row, index))}/${column.id}/Badge`];
+    if (badge) looks.set(value, { badge });
+  });
+  return looks;
+}
+
+/** The Table's overrides with each badge value picked in the Table drawn as that value is elsewhere in its column. */
+function restyled<T>(overrides: NestedOverrides | undefined, columns: TableColumn<T>[], edits: Map<string, Record<string, unknown>>, looks: Map<string, ValueLooks | undefined>): NestedOverrides | undefined {
+  let out: Record<string, Readonly<Record<string, unknown>>> | undefined;
+  for (const [id, patch] of edits) {
+    for (const column of columns) {
+      const field = column.field ?? column.id;
+      if (column.content !== "badge" || !looks.get(column.id) || !(field in patch)) continue;
+      const layer = `${nestedSegment("Row", id)}/${column.id}/Badge`;
+      const look = looks.get(column.id)?.get(textOf(patch[field]))?.badge;
+      if (!look && !overrides?.[layer]) continue;
+      out ??= { ...overrides };
+      // A value no row shows with a look draws as the plain cell Badge.
+      out[layer] = look ?? {};
+    }
+  }
+  return out ?? overrides;
+}
+
 const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]?.toUpperCase() ?? "").join("");
 
 /** A media cell's visual (Figma Avatar / Photo / Basic-Icon / Dock-Icon cell): Small over a Subtext, XSmall without. */
