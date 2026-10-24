@@ -23,13 +23,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
   asks for it.
-- **P3 · New APIs the contract suites asked for (2026-10-24; the user picked the first four):** Figma draws what code
-  has no prop for, so those variants return null in their suites (`tools/figma-contract/suites/*.mjs`). Needs the user's
-  go: DatePicker event days on the calendar (the Single calendars' day-1 dot: DatePicker has no events prop, while
-  DatePickerItem takes `event` 1–4 since #266 and Event-List 1–4 is compared). Done 2026-10-24 (train B): Popover
-  `placement="cover"` (Autocomplete-Field) and DatePickerSheet `header="selection"` (9923:2323, suite
-  date-picker-sheet-header) in #280; Avatar status Disabled / Pending / Inactive and the 4px XSmall dot (`AvatarStatus`)
-  and the workspace rail's Master-Background (`railBackground`) in #279.
 
 - **P3 · New APIs the contract suites asked for (2026-10-24; the user approved all five):** every item is built and
   waits to land; close this line when the last one merges. Train B (#289): Popover `placement="cover"` and
