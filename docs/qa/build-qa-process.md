@@ -185,6 +185,7 @@ Các bước:
    | `card-gap` | lỗi | MetricCard hoặc ChartCard bị hàng kéo cao mà nội dung dừng sớm, chừa một dải trống ≥ 12px ở đáy trong khi thẻ bên cạnh lấp đầy (2026-10-16). Sửa ở component: phần sau tiêu đề bám xuống đáy |
    | `legend-column` | lỗi | legend chart ≥ 3 mục xếp mỗi mục một dòng dưới (hoặc trên) chart, không có gì bên cạnh, trong khi đủ chỗ cho một hàng (2026-10-16). Sửa: cho legend thành hàng tự xuống dòng như auto layout Wrap của Figma |
    | `clip` | lỗi | control vừa chữ của nó nhưng không thấy trọn (2026-10-24): bị tổ tiên `overflow: hidden` cắt mất một phần, nằm hẳn ngoài mép đó trong khi control anh em vẫn hiện, hoặc bị phần tử khác của example che. Check `overflow` và `fit` không thấy các ca này. Không báo: vùng cuộn, mép dưới của khung điện thoại, lớp nổi (dialog, menu, popover, tooltip, toast, sheet, scrim), thanh nằm trên vùng cuộn. Sửa: cho hàng đủ chỗ, wrap hoặc cuộn; thứ che phải đứng bên cạnh |
+   | `segmented-fit` | cảnh báo | trên điện thoại (viewport dưới 768px hoặc khung phone), Segmented phải trượt ngang, hoặc Segmented `fullWidth` cắt nhãn thành dấu "…" (2026-10-24). Sửa: dùng một hàng Chip Normal chọn một, cuộn ngang (segmented guideline) |
 
 3. **Hành vi** (`npm run platform:behaviour`): focus ring nhìn thấy khi Tab, mọi control tới được bằng bàn phím, không
    có phần tử chỉ bấm được bằng chuột, phím APG (tabs, menu button, dialog: focus trap + Escape + trả focus, slider,
