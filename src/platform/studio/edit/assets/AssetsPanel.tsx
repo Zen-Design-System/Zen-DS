@@ -146,7 +146,7 @@ function useLocalComponents(): LocalAsset[] {
 }
 
 /** An instance of a page's own component, as an asset: a click or a drag places `<Use of>` there. */
-const instanceInsertable = (asset: LocalAsset): Insertable => ({ label: asset.name, root: "Use", code: (file) => (file && /^local:/.test(file) ? `<Use of="${asset.id}" />` : null), refusal: "Instances of a page's own components go on that page" });
+const instanceInsertable = (asset: LocalAsset): Insertable => ({ label: asset.name, root: "Use", use: { id: asset.id, page: null, name: asset.name }, code: (file) => (file && /^local:/.test(file) ? `<Use of="${asset.id}" />` : null), refusal: "Instances of a page's own components go on that page" });
 
 /** Figma's Assets › Local components: the page's component sets (one tile each) and lone mains, first. Hover reads the
  *  component's description (Figma's tooltip on an asset). */

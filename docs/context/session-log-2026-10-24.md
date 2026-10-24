@@ -318,3 +318,14 @@ its `Content#4081:111` SLOT (read from the live file: 1603:23604).
   `loadAllPagesAsync` needs the proxy (use_figma refuses it).
 - **Tests:** table-select-looks (+cells row), figma-push §30, figma-pull (hand-built + live), cellComponents selftest,
   E2E B-47 (Content → Status, cells drawn, Value → Done) — not run yet: needs the gate slot.
+- **Follow-up (user 2026-10-25, relayed):** "to show a kind of value, add that instance into the cell's slot", like Figma,
+  and a rule that an editable cell's value kind decides its popover.
+  - **Canvas:** with a Cell selected, a project set from Assets or ⇧I (Insertable `use`) goes into the cell's slot. A drag
+    of the set onto a `td.zen-table__cell` does the same (`cellAt` in assets.ts).
+  - **What it writes** (`table/cellInstance.ts`): the column takes the set's `cells` when it holds another, and the row keeps
+    a value a variant names, else it takes the set's first. A lone main is refused, with the reason given.
+  - **Refactor:** the column-source helpers moved to `table/columnSource.ts`.
+  - **Guideline:** Do lines for the slot insert and the rule "value kind decides the popover". The harness rule is
+    proposed, not added (scope lock).
+  - **Not done:** date → DatePicker (it needs the user's call on the date format).
+  - **E2E:** B-48 written (click and drag), not run yet.

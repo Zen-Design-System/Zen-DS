@@ -20,7 +20,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Table `cells` (user 2026-10-24, Figma's Content slot holds one instance per value): a column maps each value to its
   layer, typically an instance of the project's own component set (`<Use of="status" variant={{ Status: "Done" }} />`).
   Cells draw it, the column edits as a select whose options draw the same instances, and a pick swaps the instance. Zen
-  Studio: a Cell's Content lists the project's sets and writes `cells` from the set's variants; Figma push puts the
+  Studio: a Cell's Content lists the project's sets and writes `cells` from the set's variants, and a set from Assets or
+  ⇧I with a Cell selected, or dragged onto a cell, goes into that cell's slot as in Figma; Figma push puts the
   instance in Table/Cell/Default's Content slot and pull reads it back (checked with the real importer in the Zen file).
 - Table: an editable column's select draws its options as its cells (user 2026-10-24: "popover để chọn nếu là người thì
   nên có avatar"): people with their avatar (initials without a photo; `options[].photoSrc` on an `edit` object), badge

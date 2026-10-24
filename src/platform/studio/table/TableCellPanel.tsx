@@ -8,7 +8,7 @@ import { Icon } from "../../../components/Icon";
 import { Heading } from "../../../components/Text";
 import { ToggleButton } from "../../../components/Toggle";
 import { typographyStyles } from "../../../tokens/typography.generated";
-import { applyEdit, parseSrc, studioApi, useStudioServer } from "../api";
+import { parseSrc, studioApi, useStudioServer } from "../api";
 import { PartPanel } from "../inspector/PartPanel";
 import { EnumControl, IconControl, NumberControl, TextControl } from "../inspector/PropField";
 import { InspectorRow, InspectorSection } from "../inspector/Section";
@@ -20,9 +20,10 @@ import { useWords } from "../useWords";
 import { nestedPathOf, selectedPartStore, withoutPart, type PartHit, ownsText } from "../select/parts";
 import { OverrideProperties } from "../inspector/OverrideProperties";
 import { canEdit, studioStore, useStudio } from "../store";
-import type { EditOp, EditValue, ObjectShape, SourceAttr, SourceElement, StudioSelection } from "../types";
+import type { EditOp, EditValue, SourceElement, StudioSelection } from "../types";
 import { bodyRows, fieldText, rowFieldsOf, tableCellOf, tableData, tableFiberOf, TABLE_PARTS, type TableCellHit, type TableColumnInfo } from "./tableCells";
 import { axisFor, cellsCode, cellsComponent, slotComponents, slotKey } from "./cellComponents";
+import { attr, columnShape, edit, fieldOf, rowOp } from "./columnSource";
 import { libraryOf } from "../project/projectLibrary";
 
 /*
@@ -86,33 +87,7 @@ function useEditable(): boolean {
   return canEdit() && role === "admin" && server.writable;
 }
 
-/** One edit on an element, its answer reported in the status line when refused. */
-async function edit(element: SourceElement | null, ops: EditOp[], label: string): Promise<boolean> {
-  if (!element) return false;
-  const response = await applyEdit({ file: element.file, loc: element.loc, name: element.name, ops, hash: element.hash }, label);
-  if (!response.ok) inspectorStatus.set("negative", ("error" in response && response.error) || "Not saved");
-  return response.ok;
-}
 
-/* ───────────── The column as written ───────────── */
-
-const attr = (element: SourceElement | null, name: string): SourceAttr | undefined => element?.attributes.filter((candidate) => candidate.name === name).at(-1);
-
-/**
- * The column's object literal in the Table's `columns` (written in place or in a same-file const): its index there and
- * its fields, found by the column's id. Null with why when the columns are not written as a list the Studio edits.
- */
-function columnShape(table: SourceElement | null, id: string): { index: number; shape: ObjectShape } | { reason: string } | null {
-  if (!table) return null;
-  const columns = attr(table, "columns");
-  const shape = columns?.shape;
-  if (shape?.type !== "array") return { reason: columns ? `The columns come from {${(columns.value ?? "").slice(0, 40)}}; edit them in the code` : "The Table has no columns" };
-  const index = shape.items.findIndex((item) => item.type === "object" && item.fields.some((field) => field.key === "id" && field.kind === "string" && field.value === id));
-  const item = shape.items[index];
-  return item?.type === "object" ? { index, shape: item } : { reason: `The column "${id}" is not written in the list; edit it in the code` };
-}
-
-const fieldOf = (shape: ObjectShape, key: string) => [...shape.fields].reverse().find((field) => field.key === key);
 
 /* ───────────── A column's `cell` content (a column whose `cell` writes it) ───────────── */
 
@@ -273,9 +248,6 @@ function ValueField({ label, value, disabled, onSet }: { label: string; value: u
 }
 
 /** The row's own data (op setDataField { field } on the Table): where the Table reads its rows. */
-function rowOp(cell: { row: number; rowKey: string | null; item: unknown }, field: string[], value: EditValue): EditOp {
-  return { op: "setDataField", field, row: cell.row, ...(cell.rowKey !== null ? { rowKey: cell.rowKey } : {}), rowFields: rowFieldsOf(cell.item), value };
-}
 
 /* ───────────── The Table's selection and editing as written (Figma Table/Cell/Default State=Selected · State=Edit) ───────────── */
 
