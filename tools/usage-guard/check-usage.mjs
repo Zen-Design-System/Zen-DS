@@ -2096,6 +2096,13 @@ export const rules = [
   { id: "table/editor-number-validate", components: ["Table"], severity: "warn", allow: "editor-validate", guideline: "docs/guidelines/table.md",
     summary: "Number editors validate input (range, integer) and explain the error inline.",
     check: ({ attrs }) => { const col = arrayObjects(expr(attrs, "columns")).find((c) => /type:\s*"number"/.test(c) && !/validate/.test(c)); return col && `has a number editor without validate (${(col.match(/id:\s*"([^"]+)"/) ?? [])[1] ?? "column"}).`; } },
+  { id: "table/person-edit-needs-media", components: ["Table"], severity: "warn", allow: "table-person-media", guideline: "docs/guidelines/table.md",
+    summary: "An editable person column (content \"avatar\" or \"photo\") names its picture field (mediaField): its select then lists people with their avatars, and a pick brings the person's photo.",
+    check: ({ attrs }) => {
+      const tableEditable = has(topLevel(attrs), "editable") && !/\beditable=\{\s*false\s*\}/.test(attrs);
+      const col = arrayObjects(expr(attrs, "columns")).find((c) => /content:\s*"(avatar|photo)"/.test(c) && !/\bmediaField:/.test(c) && !/\bcell:/.test(c) && (tableEditable || /\bedit:/.test(c)));
+      return col && `has an editable person column without mediaField (${(col.match(/id:\s*"([^"]+)"/) ?? [])[1] ?? "column"}) — its picker would list names with no faces; add mediaField: "<photo field>".`;
+    } },
   { id: "rating/needs-name", components: ["Rating", "OpinionScale", "NpsScale", "ColorSelector"], severity: "warn", allow: "choice-name", guideline: "docs/guidelines/rating.md",
     summary: "Rating, Opinion/NPS scales and Color Selector are radio groups: name them with aria-label (the question or the setting).",
     check: ({ attrs }) => !named(attrs) && "has no aria-label — screen readers would only hear a generic group name." },

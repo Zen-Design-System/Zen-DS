@@ -593,3 +593,58 @@ rail and Avatar status items: both are already built in #279 (train B), so not r
 - Example: Schedule a review marks the days that already have reviews. Guideline api + a11y lines.
 - Checks: tsc, usage, style, guidelines / ai-ui / Studio maps, studio:selftest, mcp; smoke + date tests 539/539.
 
+
+## Table `cells`: a project component per value (tier M; user 2026-10-24 "Duyệt hướng cells", after #285)
+
+Branch claude/table-cells-instances (stacked on #285's aa07ad60). The user: status/priority looks belong to the project
+("component này thuộc quản lý của dự án không thuộc Zen DS"); Figma's Table/Cell/Default holds one instance per value in
+its `Content#4081:111` SLOT (read from the live file: 1603:23604).
+- **Table.tsx:** `cells?: Record<string, ReactNode>` on TableColumn. cellOf puts the value's layer in the Content slot
+  (`nest.slot`, the page's own scope); a value without one draws by `content`. `tableEditorTypeFor` makes it a select;
+  options = cells keys first, then row values; each option's label is its layer; the editor field shows the current one.
+- **Studio:** `table/cellComponents.ts` (+ selftest): the project's sets from the canvas library, the variant property
+  that names the column's values, `cellsCode` → `{ "V": <Use of page variant /> … }`. TableCellPanel: Content lists the
+  sets beside the Zen cells (a pick writes `cells`, a Zen content removes it); Value is an enum of the cells' keys.
+  Dialect, canvas render and React export needed no change once compile-api knew the field (`<Status status="…" />`).
+- **Figma push:** tableNode converts the raw `cells` element of the row's value (`convert`) into the Content slot.
+  **Pull:** readTable reads a project/local instance in the Content slot as `layer`; `layerColumn` writes `cells` (every
+  variant of a set on the page, in its order) and the rows' values from the varying variant property.
+- **Live Figma check** (rule test-in-real-figma): the real importer (minified, unused paths stubbed, `figma` proxied for
+  loadAllPagesAsync) placed the package on a QA page: 0 notes, row 1's Content slot held `Status=Done` (set local
+  `status`), row 2 a Badge-Cell. The real reader read it back as `layer`; pull → `cells: { Doing, Done }`. The read is
+  fixtures/figma-table-cells.json. QA frame and page removed. Two bed lessons: `missingNote` stub must return [], and
+  `loadAllPagesAsync` needs the proxy (use_figma refuses it).
+- **Tests:** table-select-looks (+cells row), figma-push §30, figma-pull (hand-built + live), cellComponents selftest,
+  E2E B-47 (Content → Status, cells drawn, Value → Done) — not run yet: needs the gate slot.
+- **Follow-up (user 2026-10-25, relayed):** "to show a kind of value, add that instance into the cell's slot", like Figma,
+  and a rule that an editable cell's value kind decides its popover.
+  - **Canvas:** with a Cell selected, a project set from Assets or ⇧I (Insertable `use`) goes into the cell's slot. A drag
+    of the set onto a `td.zen-table__cell` does the same (`cellAt` in assets.ts).
+  - **What it writes** (`table/cellInstance.ts`): the column takes the set's `cells` when it holds another, and the row keeps
+    a value a variant names, else it takes the set's first. A lone main is refused, with the reason given.
+  - **Refactor:** the column-source helpers moved to `table/columnSource.ts`.
+  - **Guideline:** Do lines for the slot insert and the rule "value kind decides the popover". The harness rule is
+    proposed, not added (scope lock).
+  - **Not done:** date → DatePicker (it needs the user's call on the date format).
+  - **E2E:** B-48 written (click and drag), not run yet.
+- **Date + harness (user 2026-10-25, via the progress session):** "Làm luôn trong #294" and "Thêm rule".
+  - **Table:** `TableCellEditorType` gains "date"; the editor union gains a date variant (value/commit are ISO days).
+    `tableEditorTypeFor` gives "date" for ISO samples.
+  - **Display:** cells of a date editor show `dayText`, the locale's numeric date with this year's year cut out of the
+    full date. Asking Intl for day+month alone gives vi "25-10".
+  - **Editor:** a DatePicker popover in the EditorLayer, or a DatePickerSheet on phones (`usePhoneSheet`). The picked or
+    today's day takes the focus; a pick commits the ISO day; Escape or an outside click leaves the cell unchanged.
+  - **Harness:** `table/person-edit-needs-media` (warn), with bad/good fixtures, plus guideline lines.
+  - **Gap, noted:** Figma push still writes a date cell's ISO text (pull reads it back as the value).
+  - **Still to do:** the DEMO-MEET page's "25/10" texts move to ISO after train C lands. Until then the page renders with
+    main's Table, which would show the ISO text raw.
+- **Date push/pull (user 2026-10-25: "Làm vòng ngày đẩy/kéo Figma ngay trong #294 … kèm kiểm tra thật trong Figma"):**
+  - **Shared helpers:** the date helpers moved to `src/components/Table/tableDates.ts` (`dayText`, plus the inverse
+    `dayFromText`), so the Table, figma-push and figma-pull share one form.
+  - **Push:** a date column's day goes out as shown, in a Text-Cell named "Date-Cell". The locale defaults to en-US:
+    Studio sets no locale on its pages, so the canvas shows the same.
+  - **Reader:** it keeps `date: true` for a Date-Cell. Pull writes `edit: "date"` and reads the text back as the ISO day
+    in the locale's order.
+  - **Live check:** the real importer placed the frame with 0 notes; Figma shows 10/25 · 03/02/2024 · —. The real reader
+    marked both days. The read is `fixtures/figma-table-dates.json`, and the QA page was removed.
+  - **Open (user's call, asked via the progress session):** a project language setting, so Vietnamese pages show 25/10.

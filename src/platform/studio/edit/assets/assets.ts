@@ -19,6 +19,8 @@ import { annotatedAt, findBySrc, fiberOf, frameOf, hitOf, instanceOf, nameOf, pa
 import { partHit, selectPart, selectedPartStore, withoutPart, type PartHit } from "../../select/parts";
 import { itemPictureOf, nestedPicture, PICTURED, writePicture } from "./picture";
 import { REPO_PICTURE_TYPES, saveRepoPicture, type RepoPicture } from "./repoMedia";
+import { cellRefusal, putInCell, type CellComponent } from "../../table/cellInstance";
+import { tableCellOf, TABLE_PARTS, type TableCellHit } from "../../table/tableCells";
 
 /*
  * Assets, Figma-like (docs/research/studio-figma-editing-plan-2026-10-03.md, Phase 6): the Zen components of the slot
@@ -69,6 +71,9 @@ export type Insertable = {
   refuseIn?: (src: string) => string | null;
   /** A photo this browser holds, for a repo page: saved in the repo first, then the item that adds it (or why not). */
   toRepo?: () => Promise<Insertable | string>;
+  /** A component of the project (`<Use>`): with a Table Cell selected, or dropped on one, it goes into the cell's Content
+   *  slot (the column's cells, table/cellInstance.ts) instead of beside it. */
+  use?: CellComponent;
 };
 
 export const paletteInsertable = (item: PaletteItem): Insertable => ({ label: item.label, root: item.root, state: item.state, code: (file) => codeOf(item, file), refusal: builderRefusal(item) });
@@ -158,6 +163,23 @@ function picturedAt(x: number, y: number): { selection: NodeSelection; box: DOMR
   return null;
 }
 
+/** The selected Table Cell (Figma's Table/Cell/Default: a component goes into its Content slot), or null. */
+function selectedCell(): TableCellHit | null {
+  const selection = studioStore.getState().selection;
+  if (selection?.kind !== "node" || selection.part?.name !== TABLE_PARTS.cell) return null;
+  const part = selectedPartStore.get();
+  return part && part.name === TABLE_PARTS.cell ? tableCellOf(part.element) : null;
+}
+
+/** The Table cell under the pointer a component goes into (its Content slot), with its box; null over anything else. */
+function cellAt(x: number, y: number): { hit: TableCellHit; box: DOMRect } | null {
+  const world = canvasApi.getWorldElement();
+  const under = world ? document.elementsFromPoint(x, y).find((element) => world.contains(element) && element !== world) : null;
+  const td = under?.closest<HTMLTableCellElement>("td.zen-table__cell");
+  const hit = td ? tableCellOf(td) : null;
+  return hit && td ? { hit, box: td.getBoundingClientRect() } : null;
+}
+
 /** The selected Icon layer (an icon from the library swaps its glyph), or null. */
 export function selectedIcon(): NodeSelection | null {
   const selection = studioStore.getState().selection;
@@ -183,6 +205,9 @@ export function insertItem(item: Insertable) {
   if (icon && item.icon) { void swapIcon(icon, item.icon); return; }
   const image = item.photo ? selectedImage() : null;
   if (image && item.photo) { void swapPhoto(image, item.photo, item.label); return; }
+  // A component with a Table Cell selected goes into that cell's Content slot, as Figma's slot takes an instance.
+  const cell = item.use ? selectedCell() : null;
+  if (cell && item.use) { void putInCell(cell, item.use, studioStore.getState().localPage, fail); return; }
   const target = insertTarget();
   if (typeof target === "string") { fail(target); return; }
   // A Top / Bottom Navigation goes to the bar of the Screen the insert would go to.
@@ -397,7 +422,7 @@ function freeDropAt(target: DropTarget, pointer: { x: number; y: number }, noSna
 
 const NOTHING: DropContext = { hosts: [], frame: undefined, parentHost: null, origin: null, layerSrc: null, copy: false, slots: true };
 
-type Drag = { item: Insertable; start: { x: number; y: number }; dragging: boolean; target: DropTarget | null; refusal: string | null; swap: ReturnType<typeof picturedAt>; bar: BarTarget | null; free: FreeDrop | null };
+type Drag = { item: Insertable; start: { x: number; y: number }; dragging: boolean; target: DropTarget | null; refusal: string | null; swap: ReturnType<typeof picturedAt>; bar: BarTarget | null; free: FreeDrop | null; cell: ReturnType<typeof cellAt> };
 let drag: Drag | null = null;
 
 const overCanvas = (x: number, y: number) => {
@@ -428,6 +453,15 @@ function onMove(event: PointerEvent) {
     current.refusal = null;
     const { box, selection } = current.swap;
     publishDragView({ line: null, into: { x: box.x, y: box.y, w: box.width, h: box.height }, pointer, label: `Picture of ${current.swap.part?.name ?? selection.name}`, tone: "info" });
+    return;
+  }
+  // A project component over a Table cell: that cell's Content slot (the column's cells).
+  current.cell = current.item.use ? cellAt(pointer.x, pointer.y) : null;
+  if (current.cell && current.item.use) {
+    current.target = null;
+    current.refusal = cellRefusal(current.cell.hit, current.item.use, studioStore.getState().localPage);
+    const { box, hit } = current.cell;
+    publishDragView({ line: null, into: { x: box.x, y: box.y, w: box.width, h: box.height }, pointer, label: current.refusal ?? `${current.item.label} → Cell content · row ${hit.row + 1}`, tone: current.refusal ? "negative" : "info" });
     return;
   }
   // A Top / Bottom Navigation over a phone Screen: its bar.
@@ -495,6 +529,11 @@ function stop(commit: boolean) {
     return;
   }
   if (commit && current.bar && !current.refusal) { void dropBar(current.item, current.bar); return; }
+  if (current.cell && current.item.use) {
+    if (commit && !current.refusal) void putInCell(current.cell.hit, current.item.use, studioStore.getState().localPage, fail);
+    else if (commit && current.refusal) fail(current.refusal);
+    return;
+  }
   if (commit && current.target && !current.refusal) void dropAsset(current.item, current.target, current.free);
 }
 
@@ -531,7 +570,7 @@ export function pressAsset(event: PointerEvent, item: Insertable) {
   if (event.button !== 0 || drag) return;
   if (!canEdit()) { fail("View only"); return; }
   event.preventDefault();
-  drag = { item, start: { x: event.clientX, y: event.clientY }, dragging: false, target: null, refusal: null, swap: null, bar: null, free: null };
+  drag = { item, start: { x: event.clientX, y: event.clientY }, dragging: false, target: null, refusal: null, swap: null, bar: null, free: null, cell: null };
   window.addEventListener("pointermove", onMove, true);
   window.addEventListener("pointerup", onUp, true);
   window.addEventListener("pointercancel", onCancel, true);

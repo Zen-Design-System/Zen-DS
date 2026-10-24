@@ -5,6 +5,7 @@ import { Avatar } from "../Avatar";
 import { Badge, type BadgeTheme } from "../Badge";
 import { Button, IconButton, type ButtonLevel, type ButtonSize } from "../Button";
 import { Checkbox } from "../Checkbox";
+import { DatePicker, DatePickerSheet } from "../DatePicker";
 import { DockIcon } from "../DockIcon";
 import { Menu, type MenuEntry } from "../Menu";
 import { Popover, PopoverBulkAction, PopoverBulkActionDivider, PopoverBulkActionGroup, type PopoverItemData } from "../Popover";
@@ -15,7 +16,9 @@ import { Icon, type IconName } from "../Icon";
 import { VisuallyHidden } from "../VisuallyHidden";
 import { renderIcon } from "../_shared/icon";
 import { nestedSegment, useNested, type Nest, type NestedOverrides } from "../_shared/nested";
-import { useZenLabels } from "../_shared/zen-context";
+import { useZenLabels, useZenLocale } from "../_shared/zen-context";
+import { usePhoneSheet } from "../_shared/phone-sheet";
+import { dayOf, dayText, isoOf, ISO_DAY } from "./tableDates";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./table.css";
 import "../Motion/motion.css";
@@ -90,14 +93,23 @@ export interface TableColumn<T> {
    *  then reads and writes the row's `field` itself (select lists the column's values, tags suggest them) and keeps the
    *  edit, or hands it to the Table's `onCellCommit`. */
   edit?: TableCellEditor<T> | TableCellEditorType | true;
+  /**
+   * Figma Table/Cell/Default › Content slot by value: the layer a cell holds for each value of the row's `field`, such as
+   * an instance of the project's own Status component whose variant is that value (Figma's cells hold one instance per
+   * value in their Content slot). A cell whose value has no entry draws by `content`. The column's select lists these
+   * values first (`editable` makes it a select) and draws each option with its layer; a pick shows the new value's layer.
+   * One value per cell; a column's `cell` function wins.
+   */
+  cells?: Record<string, ReactNode>;
   /** Figma Open-Button: an XSmall Tertiary "Open" button on the right of the cell while its row is hovered. */
   onOpen?: (row: T) => void;
   /** Label of the Open button (default: the locale's "Open"). */
   openLabel?: ReactNode;
 }
 
-/** The shorthand `edit` of a column: the editor's type alone (`true` on the column means `"text"`). */
-export type TableCellEditorType = "text" | "number" | "select" | "tags";
+/** The shorthand `edit` of a column: the editor's type alone (`true` on the column means `"text"`). `"date"`: the row's
+ *  field holds an ISO day ("2026-10-25"), shown in the locale's short form ("25/10") and picked in a DatePicker. */
+export type TableCellEditorType = "text" | "number" | "select" | "tags" | "date";
 
 type TableEditorBase<T> = {
   placeholder?: string;
@@ -116,7 +128,9 @@ export type TableCellEditor<T> =
       /** `photoSrc`: the option's picture (a person's photo), drawn as Popover/Item Avatar-Small. A shorthand select on an
        *  avatar or photo column takes each value's picture from its rows' `mediaField`. */
       options: Array<{ value: string; label: ReactNode; photoSrc?: string }>; onCommit: (row: T, value: string) => void })
-  | (Omit<TableEditorBase<T>, "validate"> & { type: "tags"; value: (row: T) => string[]; onCommit: (row: T, value: string[]) => void; suggestions?: string[] });
+  | (Omit<TableEditorBase<T>, "validate"> & { type: "tags"; value: (row: T) => string[]; onCommit: (row: T, value: string[]) => void; suggestions?: string[] })
+  /** A day: a DatePicker under the cell (a DatePickerSheet on a phone); `value` and the commit are ISO days ("2026-10-25"). */
+  | (Omit<TableEditorBase<T>, "validate"> & { type: "date"; value: (row: T) => string; onCommit: (row: T, value: string) => void });
 
 /** One action of a Table's bulk-action bar (`bulkActions`). */
 export interface TableBulkAction {
@@ -247,7 +261,7 @@ type EditEnd = { refocus: boolean };
  * follows Notion's database cells: one click edits, text grows to show long values, Enter saves (Shift+Enter adds a
  * line), Escape leaves and keeps what was typed, select/tags open a searchable list at once, Enter picks the top
  * match or creates the typed tag. */
-function TableCellEditorView<T>({ editor, row, initial, align, content, looks, onDone, onMove }: {
+function TableCellEditorView<T>({ editor, row, initial, align, content, looks, cells, onDone, onMove }: {
   editor: TableCellEditor<T>;
   row: T;
   /** Seed for a text/number edit started by typing a character (replaces the value) or Backspace (""). */
@@ -257,10 +271,13 @@ function TableCellEditorView<T>({ editor, row, initial, align, content, looks, o
   content?: TableCellContent;
   /** The column's look per value (pictures, badge overrides). */
   looks?: ValueLooks;
+  /** The column's Content-slot layer per value: a select draws each option with it. */
+  cells?: Record<string, ReactNode>;
   onDone: (end: EditEnd) => void;
   onMove: (direction: 1 | -1) => void;
 }) {
   const t = useZenLabels();
+  const locale = useZenLocale();
   const type = editor.type ?? "text";
   const original = type === "tags" ? "" : String((editor.value as (row: T) => string)(row) ?? "");
   const [text, setText] = useState(() => initial ?? original);
@@ -273,13 +290,27 @@ function TableCellEditorView<T>({ editor, row, initial, align, content, looks, o
   const errorId = useId();
   const done = useRef(false);
   const rect = useRect(fieldRef, Boolean(error));
+  // A date opens Figma's Date-Picker/Mobile sheet on a phone, the calendar popover elsewhere (DateField's rule).
+  const phone = usePhoneSheet(fieldRef, open);
   const autosize = () => { const el = inputRef.current; if (el instanceof HTMLTextAreaElement) { el.style.height = "auto"; el.style.height = `${el.scrollHeight}px`; } };
   // Focus + caret at the end on open; list editors open their Popover after mount (the cell ref must exist first).
   useEffect(() => {
     const input = inputRef.current;
     if (input) { input.focus(); const end = input.value.length; input.setSelectionRange(end, end); autosize(); }
-    if (type === "select" || type === "tags") setOpen(true);
+    if (type === "select" || type === "tags" || type === "date") setOpen(true);
   }, [type]);
+  // The calendar takes the focus once open (APG Date Picker Dialog): the picked day, else today, else the first day.
+  useEffect(() => {
+    if (type !== "date" || !open || phone) return undefined;
+    const frame = requestAnimationFrame(() => {
+      const grid = document.querySelector(".zen-table-editor__layer .zen-date-picker__panels");
+      const day = grid?.querySelector<HTMLElement>(".zen-date-picker__day[data-state='single-selected']:not(:disabled)")
+        ?? grid?.querySelector<HTMLElement>(".zen-date-picker__day[aria-current='date']:not(:disabled)")
+        ?? grid?.querySelector<HTMLElement>(".zen-date-picker__day:not(:disabled):not(.is-blank)");
+      day?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [type, open, phone]);
 
   // Keep the newest tag and the input in view when the chips overflow the cell.
   const tagsRef = useRef<HTMLSpanElement>(null);
@@ -305,6 +336,28 @@ function TableCellEditorView<T>({ editor, row, initial, align, content, looks, o
   };
   const revert = (end: EditEnd) => finish(end);
 
+  // ── date: the calendar opens at once; a pick saves the ISO day, Escape or a click outside leaves the cell as it was.
+  if (type === "date") {
+    const day = dayOf(original);
+    const pick = (next: Date | null) => {
+      const value = next ? isoOf(next) : "";
+      if (value !== original) (editor.onCommit as (row: T, value: string) => void)(row, value);
+      finish({ refocus: true });
+    };
+    const leave = () => { if (!done.current) revert({ refocus: true }); };
+    return (
+      <div ref={fieldRef} className="zen-table-editor" data-align={align} data-type="date" onMouseDown={(event) => { event.preventDefault(); setOpen(true); }}>
+        <span className={`zen-table-editor__value ${typographyStyles["Body/Base/Medium"]}`}>{original ? dayText(original, locale) : editor.placeholder ?? ""}</span>
+        <Icon name="icon-calendar-line" decorative />
+        <EditorLayer>
+          {phone
+            ? <DatePickerSheet open={open} title={editor["aria-label"]} value={day} onApply={(next) => pick(next)} onOpenChange={(next) => { if (!next) leave(); }} />
+            : <DatePicker open={open} value={day} anchorRef={fieldRef} aria-label={editor["aria-label"]} onValueChange={(next) => pick(next)} onClose={leave} />}
+        </EditorLayer>
+      </div>
+    );
+  }
+
   // ── select: a searchable list opens at once (Notion select); Enter picks the top match.
   if (type === "select") {
     const options = (editor as Extract<TableCellEditor<T>, { type: "select" }>).options;
@@ -317,6 +370,9 @@ function TableCellEditorView<T>({ editor, row, initial, align, content, looks, o
     const pictured = content === "avatar" || square || options.some((option) => option.photoSrc);
     const items = visible.map((option): PopoverItemData => {
       const item = { id: option.value, label: option.label, selected: option.value === current };
+      // A value with its own layer (`cells`, e.g. the project's Status instance) draws as that layer.
+      const layer = layerOf(cells, option.value);
+      if (layer !== undefined) return { ...item, label: layer };
       const look = looks?.get(option.value);
       if (content === "badge") return { ...item, theme: "badge", badgeTheme: look?.badge?.theme as BadgeTheme | undefined };
       if (!pictured) return item;
@@ -327,9 +383,9 @@ function TableCellEditorView<T>({ editor, row, initial, align, content, looks, o
     });
     // The option's Badge as the cell draws it (Medium Subtle, no icon) with the value's overrides on top.
     const badgeLooks = content === "badge"
-      ? Object.fromEntries(visible.map((option) => [`${nestedSegment("Item", option.value)}/Badge`, { background: "subtle", ...looks?.get(option.value)?.badge }]))
+      ? Object.fromEntries(visible.filter((option) => layerOf(cells, option.value) === undefined).map((option) => [`${nestedSegment("Item", option.value)}/Badge`, { background: "subtle", ...looks?.get(option.value)?.badge }]))
       : undefined;
-    const currentLabel = options.find((option) => option.value === current)?.label ?? current;
+    const currentLabel = layerOf(cells, current) ?? options.find((option) => option.value === current)?.label ?? current;
     const pick = (value: string) => { if (value !== current) (editor.onCommit as (row: T, value: string) => void)(row, value); finish({ refocus: true }); };
     return (
       <div ref={fieldRef} className="zen-table-editor" data-align={align} data-type="select" onMouseDown={(event) => { event.preventDefault(); setOpen(true); }}>
@@ -435,6 +491,7 @@ function TableCellEditorView<T>({ editor, row, initial, align, content, looks, o
  */
 export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowIdProp, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, "aria-describedby": ariaDescribedBy, caption, selectable = false, selectedIds: selectedIdsProp, defaultSelectedIds, onSelectionChange, bulkActions, sort, onSortChange, empty, onRowClick, currentRowId, editable: editableProp = false, onCellCommit, className, overrides, ...rest }: TableProps<T>) {
   const t = useZenLabels();
+  const locale = useZenLocale();
   // Edits made through a shorthand `edit` / `editable` without onCellCommit: the Table's own copy of the changed fields,
   // by row id, laid over the rows it is given.
   const [edits, setEdits] = useState<Map<string, Record<string, unknown>>>(() => new Map());
@@ -603,7 +660,9 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                   ) : null;
                   const editor = editors.get(column.id);
                   // Figma Table/Cell/Default › Content: the one-line slot that keeps the row at Table/Cell/Size.
-                  const content = <div className="zen-table__content">{cellOf(column, row, index, cellNest, columnIndex === 0)}</div>;
+                  // A date column shows its ISO days in the locale's short form ("25/10").
+                  const dayLocale = editor?.type === "date" ? locale : null;
+                  const content = <div className="zen-table__content">{cellOf(column, row, index, cellNest, dayLocale, columnIndex === 0)}</div>;
                   if (!editor) return <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-open={open ? "true" : undefined}>{content}{open}</td>;
                   return (
                     <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-editable={editable ? "true" : "false"} data-editing={isEditing ? "true" : undefined} data-open={open ? "true" : undefined}
@@ -623,8 +682,8 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                       {isEditing
                         // The original content stays (hidden) so the column width and row height never change;
                         // the editor overlays the cell.
-                        ? <><div className="zen-table__content zen-table__cell-ghost" aria-hidden="true">{cellOf(column, row, index, cellNest, columnIndex === 0)}</div><TableCellEditorView editor={editor} row={row} initial={editing?.initial} align={column.align ?? "left"}
-                            content={column.cell ? undefined : column.content} looks={looks.get(column.id)}
+                        ? <><div className="zen-table__content zen-table__cell-ghost" aria-hidden="true">{cellOf(column, row, index, cellNest, dayLocale, columnIndex === 0)}</div><TableCellEditorView editor={editor} row={row} initial={editing?.initial} align={column.align ?? "left"}
+                            content={column.cell ? undefined : column.content} looks={looks.get(column.id)} cells={column.cell ? undefined : column.cells}
                             onDone={({ refocus }) => { setEditing((current) => (current?.row === id && current.col === column.id ? null : current)); if (refocus) focusCell(cell, true); }}
                             onMove={(direction) => { const next = neighbour(cell, 0, direction, true); if (next) focusCell(next); }} /></>
                         : <>{content}{open}</>}
@@ -853,19 +912,23 @@ export function TableTags({ ref, children, ...rest }: {
 /** A row field as text: a string or a number, else nothing. */
 const textOf = (value: unknown) => (typeof value === "string" || typeof value === "number" ? String(value) : "");
 
+
 /**
  * The editor type a column takes from the Table's `editable`, by what it draws (Figma Table/Cell/Default State=Edit):
  * null for a column with its own `cell`, a checkbox or a toggle. A list of values edits as tags, a badge as a select
  * among the column's values, a number as a number, anything else as text. Zen Studio writes the same type on a column.
  */
-export function tableEditorTypeFor(column: { cell?: unknown; content?: string; field?: string; id: string }, rows: readonly unknown[]): TableCellEditorType | null {
+export function tableEditorTypeFor(column: { cell?: unknown; cells?: unknown; content?: string; field?: string; id: string }, rows: readonly unknown[]): TableCellEditorType | null {
   if (column.cell) return null;
+  // A layer per value is a closed set, like a component's variants.
+  if (column.cells && typeof column.cells === "object") return "select";
   const content = column.content ?? "text";
   if (content === "checkbox" || content === "toggle" || content === "actions") return null;
   const field = column.field ?? column.id;
   const sample = rows.map((row) => (row as Record<string, unknown> | null)?.[field]).find((value) => value !== undefined && value !== null);
   if (content === "badge" || content === "tag") return Array.isArray(sample) ? "tags" : content === "badge" ? "select" : "text";
   if (content === "progress") return "number";
+  if (typeof sample === "string" && ISO_DAY.test(sample.trim())) return "date";
   return typeof sample === "number" ? "number" : "text";
 }
 
@@ -886,15 +949,22 @@ function editorOf<T>(column: TableColumn<T>, rows: T[], tableEditable: boolean, 
   if (type === "select") {
     // An avatar or photo column: each option shows its value's picture, and a pick brings that picture to the row.
     const media = (column.content === "avatar" || column.content === "photo") && column.mediaField ? column.mediaField : null;
-    const options = [...new Set(rows.flatMap(list))].map((value) => {
+    const options = [...new Set([...Object.keys(column.cell ? {} : column.cells ?? {}), ...rows.flatMap(list)])].map((value) => {
       const photo = media ? looks?.get(value)?.photo : undefined;
       return photo ? { value, label: value, photoSrc: photo } : { value, label: value };
     });
     return { type, value: (row) => textOf(read(row)), options, "aria-label": label,
       onCommit: (row, value) => commit(row, column, field, value, media ? { [media]: looks?.get(value)?.photo ?? "" } : undefined) };
   }
+  if (type === "date") return { type, value: (row) => textOf(read(row)), "aria-label": label, onCommit: (row, value) => commit(row, column, field, value) };
   return { type, value: (row) => textOf(read(row)), "aria-label": label, onCommit: (row, value) => commit(row, column, field, value) };
 }
+/** A column's Content-slot layer for a value (`cells`), or undefined when it has none. */
+function layerOf(cells: Record<string, ReactNode> | undefined, value: unknown): ReactNode | undefined {
+  const key = textOf(value);
+  return cells && key && Object.hasOwn(cells, key) && cells[key] !== null && cells[key] !== undefined ? cells[key] : undefined;
+}
+
 /** Per value of a picture or badge column, how its cells draw it (valueLooks). */
 type ValueLooks = Map<string, { photo?: string; badge?: Readonly<Record<string, unknown>> }>;
 
@@ -966,10 +1036,13 @@ function cellVisual(content: "avatar" | "photo" | "icon" | "dock-icon", captione
  * A column's cell from its row: its own `cell` (the page's content, outside the nested scope), else its `content` drawn
  * from the row's fields (TableCellContent), each drawn component a nested layer of the cell (`nest`).
  */
-function cellOf<T>(column: TableColumn<T>, row: T, index: number, nest: Nest, lead = false): ReactNode {
+function cellOf<T>(column: TableColumn<T>, row: T, index: number, nest: Nest, dayLocale: string | null = null, lead = false): ReactNode {
   if (column.cell) return nest.slot(column.cell(row, index));
   const record = (row ?? {}) as Record<string, unknown>;
   const value = record[column.field ?? column.id];
+  // The Content slot's layer for this value (the page's own instance, outside the Table's nested scope).
+  const layer = layerOf(column.cells, value);
+  if (layer !== undefined) return nest.slot(layer);
   const label = textOf(value);
   const caption = column.captionField ? textOf(record[column.captionField]) || undefined : undefined;
   const media = column.mediaField ? textOf(record[column.mediaField]) : "";
@@ -1005,7 +1078,7 @@ function cellOf<T>(column: TableColumn<T>, row: T, index: number, nest: Nest, le
     case "actions":
       return column.actions?.length ? <RowActions actions={column.actions} row={row} index={index} nest={nest} /> : null;
     default:
-      return label ? <TableText caption={caption} bold={bold}>{label}</TableText> : null;
+      return label ? <TableText caption={caption} bold={bold}>{dayLocale ? dayText(label, dayLocale) : label}</TableText> : null;
   }
 }
 

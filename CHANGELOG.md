@@ -34,6 +34,17 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   scrolls around the place it renders in, not only the page: in Zen Studio's Play and Present a wheel over a modal no
   longer scrolls the page under it (the stage scrolls a device frame, the user's "Quản lý task" prototype), and a phone
   preview on a scrolling pane stays put. Each box is padded by its scrollbar's width while locked, as the page is.
+- Table date cells (user 2026-10-25): `edit: "date"` (and `editable` on a column of ISO days) shows the day in the
+  locale's short form (25/10, with the year when it is another one) and edits it in a DatePicker under the cell
+  (Date-Picker/Mobile sheet on a phone), saving an ISO day; Zen Studio's Figma push writes the day as shown (a
+  Date-Cell) and pull reads it back as the ISO day. Harness `table/person-edit-needs-media` (warn): an editable
+  avatar or photo column without `mediaField`, whose picker would list names with no faces.
+- Table `cells` (user 2026-10-24, Figma's Content slot holds one instance per value): a column maps each value to its
+  layer, typically an instance of the project's own component set (`<Use of="status" variant={{ Status: "Done" }} />`).
+  Cells draw it, the column edits as a select whose options draw the same instances, and a pick swaps the instance. Zen
+  Studio: a Cell's Content lists the project's sets and writes `cells` from the set's variants, and a set from Assets or
+  ⇧I with a Cell selected, or dragged onto a cell, goes into that cell's slot as in Figma; Figma push puts the
+  instance in Table/Cell/Default's Content slot and pull reads it back (checked with the real importer in the Zen file).
 - Table: an editable column's select draws its options as its cells (user 2026-10-24: "popover để chọn nếu là người thì
   nên có avatar"): people with their avatar (initials without a photo; `options[].photoSrc` on an `edit` object), badge
   values with the colour and icon the rows' overrides give them. A value picked in the Table brings its picture or Badge
