@@ -2,7 +2,7 @@
 // AutocompleteField. Label; the wrapping Tag list (Spacing/Gap/2XSmall, Padding/2XSmall top and bottom: each Tag's
 // height and fill, error tags on Negative, each row's place); the Add slot (Padding/2XSmall) with the "Add Item"
 // Button/Main XSmall Secondary; Popover/Default over the Add slot (Focused); the error Help-Text. Tag, Button and Popover
-// insides are their own suites'. Tag widths hug the copy, so x is asserted only for a row's first tag, and where Figma's
+// insides are their own suites'. The list covers the Add slot (Popover placement="cover", 2026-10-24), as Figma draws it. Tag widths hug the copy, so x is asserted only for a row's first tag, and where Figma's
 // row breaks with less than 8px to spare (Inputted*: 3 × 110px tags in 451, a 4th misses by 1px) the copy decides the
 // rows, so the rows' y and everything below them are not asserted there.
 // Harness limitation: one popover is open per page (useExclusivePopover closes the others), so only Focused opens it;
@@ -37,11 +37,6 @@ export default {
       fragileWrap: slack.some((room) => room < 8),
     };
   },
-  figmaExceptions: [
-    // Reported (needs a Popover placement outside Input): code opens the list 4px below the Add slot (the shared
-    // anchored placement, which flips near the viewport edge); Figma draws it over the slot, at the Add frame's top.
-    { vp: { State: "Focused" }, layer: "Add > Popover/Default", prop: "y", code: 56, note: "Code opens the list 4px below the Add slot (Popover's anchored placement); Figma draws it over the slot. Reported." },
-  ],
   map: [
     { figma: "", dom: ":root", check: ["w"] },
     { figma: "", dom: ":root", check: ["h"], when: stable },

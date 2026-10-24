@@ -86,6 +86,36 @@ ${Array.from({ length: 40 }, (_, index) => `          <Text>Expense ${index + 1}
 }
 `;
 
+/** A phone Screen with a Box that leads to Screen 2 (proto.navigate on a layer with no control of its own), a field and
+ *  plain text (PT-22). */
+const pressedPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { Box, InputField, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title=${JSON.stringify(title)} device="phone">
+        <Stack gap="xl" padding="lg">
+          <Box padding="lg" surface="surface" radius="lg" onClick={proto.navigate("screen-2")}>
+            <Text>Open the details</Text>
+          </Box>
+          <InputField label="Note" />
+          <Text>Nothing happens here</Text>
+        </Stack>
+      </Screen>
+      <Screen id="screen-2" title="Details" device="phone">
+        <Stack padding="lg">
+          <Text>The details</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
 /** An Android page (header `os`) whose phone Screen is at the iPhone's size (PT-16). */
 const androidPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title, os: "android" })}
 import { Board, Screen } from "@zen-ds/react/builder";
@@ -163,6 +193,32 @@ export default function Page() {
 }
 `;
 
+/** A desktop Screen taller than Play's window, with a Button below a few rows that opens a modal Side Panel (PT-24). */
+const longScreenPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { Button, SidePanel, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Tasks" device="desktop" height={2400}>
+        <Stack gap="md" padding="lg">
+          ${Array.from({ length: 8 }, (_, index) => `<Text>Task ${index + 1}</Text>`).join("\n          ")}
+          <Button onClick={proto.open("details")}>Details</Button>
+        </Stack>
+      </Screen>
+      <Overlay id="details">
+        <SidePanel type="modal" title="Task details" onOpenChange={proto.close()}>
+          <Text>Due Friday</Text>
+        </SidePanel>
+      </Overlay>
+    </Board>
+  );
+}
+`;
+
 /** A Table, a Chip with no action yet and a Search that filters the client column (PT-20). */
 const filterPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Screen, proto } from "@zen-ds/react/builder";
@@ -178,6 +234,28 @@ export default function Page() {
           <Chip>Paid</Chip>
           <Search aria-label="Search orders" onValueChange={proto.filter({ column: "client", match: "contains" })} />
           <Table aria-label="Orders" columns={[{ id: "client", header: "Client" }, { id: "status", header: "Status" }]} rows={[{ id: "1", client: "Acme", status: "Paid" }, { id: "2", client: "Globex", status: "Overdue" }, { id: "3", client: "Initech", status: "Paid" }]} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/** A filter Chip whose pick filters the Table's Status column, a second one on Priority, and four tasks (PT-23). */
+const filterChipPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { Chip, Stack, Table } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Tasks">
+        <Stack gap="md" padding="lg">
+          <Chip dropdown popoverItems={[{ id: "todo", label: "To do" }, { id: "doing", label: "Doing" }]} onPopoverSelect={proto.filter({ column: "status" })}>Status</Chip>
+          <Chip dropdown popoverItems={[{ id: "high", label: "High" }, { id: "low", label: "Low" }]} onPopoverSelect={proto.filter({ column: "priority" })}>Priority</Chip>
+          <Table aria-label="Tasks" columns={[{ id: "title", header: "Task" }, { id: "status", header: "Status" }, { id: "priority", header: "Priority" }]} rows={[{ id: "1", title: "Alpha", status: "Doing", priority: "High" }, { id: "2", title: "Beta", status: "To do", priority: "High" }, { id: "3", title: "Gamma", status: "Doing", priority: "Low" }, { id: "4", title: "Delta", status: "To do", priority: "Low" }]} />
         </Stack>
       </Screen>
     </Board>
@@ -920,6 +998,111 @@ export const rows = [
       await until(async () => /Cart/.test(await currentStep()), { message: "a new visit starts on Cart" });
       await page.keyboard.press("Escape");
       return "Next → Change step (Previous/Next) · Finish ⊕ → checkout:done · Play: Cart → Pay → Ship (stays) → Previous → Pay → Cart (passed step) → done state → Back → Cart";
+    },
+  },
+  {
+    id: "PT-22", feature: "Play's hotspot hints stay back on a press that does something (the user 2026-10-24: they showed on every element that already had an interaction): a Box with proto.navigate goes to its Screen with no hints and is itself the hotspot; a press on a field's padding focuses the field with no hints; a press on plain text still outlines the Box", wp: "prototype 2026-10-24", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, pressedPage, /proto\.navigate\("screen-2"\)/);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      const hints = () => playing(page).locator(".studio-player__hotspot").count();
+      // Hints show within two frames of the click and stay ~0.9 s: none over 600 ms means none.
+      const noHints = async (what) => { for (let n = 0; n < 6; n += 1) { if (await hints()) throw new Error(`hotspot hints after ${what}`); await sleep(100); } };
+      const pressAt = async (locator, dx = 0.5) => { const b = await locator.boundingBox(); await page.mouse.click(b.x + b.width * dx, b.y + b.height / 2); };
+      await pressAt(playing(page).getByText("Nothing happens here"));
+      const shown = await until(async () => hints(), { message: "hints after a press on plain text" });
+      const hint = await playing(page).locator(".studio-player__hotspot").first().boundingBox();
+      const card = await playing(page).getByText("Open the details").locator("xpath=..").boundingBox();
+      if (shown !== 1 || Math.abs(hint.width - card.width) > 2 || Math.abs(hint.height - card.height) > 2) throw new Error(`${shown} hints, the first ${Math.round(hint.width)}×${Math.round(hint.height)}: the Box (${Math.round(card.width)}×${Math.round(card.height)}) is the hotspot`);
+      await until(async () => (await hints()) === 0, { timeout: 3000, message: "the hints fade" });
+      // The field's control, at its left padding (not the input): the field focuses itself.
+      await pressAt(playing(page).locator(".zen-input__control").first(), 0.02);
+      await noHints("a press on the field's padding");
+      const focused = await page.evaluate(() => document.activeElement?.tagName);
+      if (focused !== "INPUT") throw new Error(`the field's padding focused ${focused}`);
+      await pressAt(playing(page).getByText("Open the details"));
+      await until(async () => (await playScreen(page)) === "screen-2", { message: "the Box → Screen 2" });
+      await noHints("a press on the Box that navigates");
+      await page.keyboard.press("Escape");
+      return "plain text → 1 hint (the Box) · field padding → focus, no hints · Box → screen-2, no hints";
+    },
+  },
+  {
+    id: "PT-23", feature: "Filter table from a filter Chip's pick (user 2026-10-24, the Quản lý task prototype: every filter works in Play): the Chip shows its pick and keeps the Table's Doing rows; the same pick again shows every row; × shows every row and the Chip its placeholder; two chips narrow together; Restart starts both over", wp: "play chip clear 2026-10-24", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, filterChipPage, /onPopoverSelect=\{proto\.filter\(/);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      const titles = async () => (await playing(page).locator(".zen-table tbody tr.zen-table__row").allInnerTexts()).map((row) => row.match(/Alpha|Beta|Gamma|Delta/)?.[0]).join();
+      const chip = (index) => playing(page).locator(".zen-chip").nth(index);
+      const label = async (index) => ((await chip(index).locator(".zen-chip__label").textContent()) ?? "").trim();
+      const pick = (index, option) => step(`pick ${option}`, async () => {
+        await chip(index).click();
+        await playing(page).getByRole("option", { name: option, exact: true }).click();
+      });
+      await until(async () => (await titles()) === "Alpha,Beta,Gamma,Delta", { message: "four tasks at first" });
+      await pick(0, "Doing");
+      await until(async () => (await titles()) === "Alpha,Gamma" && (await label(0)) === "Doing", { message: "Doing: Alpha and Gamma, the chip says Doing" });
+      await pick(0, "Doing");
+      await until(async () => (await titles()) === "Alpha,Beta,Gamma,Delta" && (await label(0)) === "Status", { message: "Doing again: every task, the chip says Status" });
+      await pick(0, "Doing");
+      await pick(1, "High");
+      await until(async () => (await titles()) === "Alpha", { message: "Doing and High: Alpha" });
+      await step("press the Status chip's ×", () => chip(0).locator(".zen-chip__remove").click());
+      await until(async () => (await titles()) === "Alpha,Beta" && (await label(0)) === "Status" && (await chip(0).getAttribute("data-select")) === "false", { message: "×: High only (Alpha, Beta), the Status chip shows its placeholder" });
+      await page.keyboard.press("r");
+      await until(async () => (await titles()) === "Alpha,Beta,Gamma,Delta" && (await label(1)) === "Priority", { message: "Restart: every task, the Priority chip shows its placeholder" });
+      await page.keyboard.press("Escape");
+      return "Play: Doing → 2 rows (chip says Doing) → Doing again → 4 rows (chip says Status) → Doing + High → 1 row → × → High only, chip placeholder → R → 4 rows";
+    },
+  },
+  {
+    id: "PT-24", feature: "Play draws a Screen as an app in a window: the Screen scrolls inside the device, and a modal Side Panel opened on a scrolled Screen shows in full in the window, moves nothing, and a wheel over it or its scrim leaves the Screen still", wp: "modal scroll lock 2026-10-24", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, longScreenPage, /proto\.open\("details"\)/);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      const scroll = () => page.evaluate(() => {
+        const inner = document.querySelector(".studio-player__device > .studio-player__screens");
+        const stage = document.querySelector(".studio-player .studio-present__scroll");
+        return { top: inner.scrollTop, max: inner.scrollHeight - inner.clientHeight, stage: stage.scrollHeight - stage.clientHeight };
+      });
+      const start = await scroll();
+      if (start.max < 200 || start.stage > 1) throw new Error(`the Screen does not scroll inside the device: ${JSON.stringify(start)}`);
+      const device = await playing(page).locator(".studio-player__device").boundingBox();
+      await page.mouse.move(device.x + device.width / 2, device.y + device.height / 2);
+      await page.mouse.wheel(0, 150);
+      await until(async () => (await scroll()).top >= 150, { message: "a wheel scrolls the Screen" });
+      const top = (await scroll()).top;
+      await step("open the Side Panel", () => playing(page).getByRole("button", { name: "Details" }).click());
+      const panel = playing(page).getByRole("dialog", { name: "Task details" });
+      await panel.waitFor({ state: "visible", timeout: 3000 });
+      await sleep(400);
+      if ((await scroll()).top !== top) throw new Error(`opening the Side Panel moved the Screen: ${top} → ${(await scroll()).top}`);
+      const box = await panel.boundingBox();
+      if (box.y < device.y - 1 || box.y + box.height > device.y + device.height + 1) throw new Error(`the Side Panel is not in the window: panel ${JSON.stringify(box)}, device ${JSON.stringify(device)}`);
+      for (const [x, y] of [[device.x + 40, device.y + device.height / 2], [box.x + box.width / 2, box.y + box.height / 2]]) {
+        for (const dy of [600, -600]) {
+          await page.mouse.move(x, y);
+          await page.mouse.wheel(0, dy);
+          await sleep(200);
+          if ((await scroll()).top !== top) throw new Error(`a wheel over the open Side Panel moved the Screen: ${top} → ${(await scroll()).top}`);
+        }
+      }
+      await page.keyboard.press("Escape");
+      await until(async () => (await panel.count()) === 0, { message: "Escape closes the Side Panel" });
+      if ((await scroll()).top !== top) throw new Error(`closing moved the Screen: ${top} → ${(await scroll()).top}`);
+      await page.mouse.move(device.x + device.width / 2, device.y + device.height / 2);
+      await page.mouse.wheel(0, -600);
+      await until(async () => (await scroll()).top === 0, { message: "the Screen scrolls again once the panel is closed" });
+      await page.keyboard.press("Escape");
+      return `Screen scrolls inside the device (range ${start.max}); Side Panel opened at ${top}: in the window, nothing moved, wheel held; closed, the Screen scrolls`;
     },
   },
 ];

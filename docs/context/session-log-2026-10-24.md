@@ -132,6 +132,7 @@ slots (b) A built and B not (computed `.map` rows keep "edit it in the code"), n
   Anything edited, a passing or quick last run, or a missing report → it says why and runs everything.
 - qa:selftest 26 → 30 checks (the page choice); a static-only run against a fake failed ledger skipped TypeScript and
   re-ran the failed self-test (the fake ledger and its report removed after).
+
 ## Tooling fixes (#264; tier S–M; the user's go 2026-10-24)
 - `avatar/solid-initials-contrast`: measured today's tokens (both themes the same): golden 2.58, teal 2.70, cyan 2.96,
   orange 2.98 below 3:1; green 3.48 and bronze 3.38 pass, so the rule lists golden | teal | cyan | orange (fixtures,
@@ -146,6 +147,7 @@ slots (b) A built and B not (computed `.map` rows keep "edit it in the code"), n
   1512/390/320) were all there were; targets 0. Baseline unchanged. The dark pass with playgrounds also lists
   rhythm/roles/scale/outline-siblings findings the light keys hold; the gate's dark step (`--no-playground`) never sees
   most of them.
+
 ## Components group of the triaged backlog (tier M; user 2026-10-24 via the coordinator: "Giao 35 mục theo đề xuất … Phần không cần quyết làm ngay; phần cần quyết gom lại hỏi tôi một lượt")
 
 Branch zen/fix/components-backlog-20261024 from main 6e4e6605 (worktree festive-archimedes-176df5, beside PR #248's
@@ -240,6 +242,24 @@ Branch zen/feat/top-nav-props-20261024, stacked on #266 (the WIP from `wip/top-n
   styles.css), screenshots identical; 58.9 KB against 97.2 KB CSS gz.
 - BACKLOG: the Platform examples group (#263) and Package weight (#268) closed to the archive.
 
+## Avatar status + Sidebar rail background (tier M; user 2026-10-24, the "New APIs" line, two of four)
+
+Branch zen/feat/avatar-status-rail-20261024.
+- Figma read (use_figma, 9nZv4uW2…): .Primitives/Avatar/Status 217:7418, Size XSmall 4/1 · Small 8/2 · Medium 12/2 ·
+  Large 16/3, OUTSIDE Border/Inverse; Active Positive, Pending Warning, Inactive Negative, Disabled Solid-Disabled on
+  Medium/Large but, on XSmall/Small, VariableID:7286:1241 "Solid-Disabled-Alt" (Light/Neutral/4): deleted from Mode
+  Colors (Semantic) (not in its variableIds, not in getLocalVariablesAsync), so not in tokens/source. Code uses
+  Solid-Disabled everywhere; figmaException + QUESTIONS (designer, with the words' meaning).
+- `AvatarStatus` (new export, role=img named by `online` / `statusDisabled` / `statusPending` / `statusInactive`, en +
+  vi; `label`, `decorative`); Avatar `status: boolean | "active" | "disabled" | "pending" | "inactive"` draws it
+  (dot size from the avatar size, as before; the avatar keeps only the inset). Studio push writes the Status layer's own
+  option, pull reads it back (figma-push selftest +2).
+- Sidebar `railBackground` (Master-Background 4218:9166): Flat no fill, Inverse Active/Neutral/Solid with the mark in
+  Content/Inverse/Strongest; the add action is the app's (overlay White Overlay in the playground and the case).
+  The playground's "Master Background" chip drove the Main panel's `background`; it now drives the rail, Background the panel.
+- Suites: avatar-status 160/160 (16 variants, was 4), sidebar-workspace 1308/1308 (3 variants, was 1; the workspace-name
+  exception now on every variant), avatar-single and table-cell-avatar unchanged. Example "Member access" on the Avatar page.
+
 ## Session B · E2E ST-29 and DA-10, broken since #265 (tier S; Giám sát, fix-now rule)
 
 Both rows were broken in every run since #265: train A's gate, #275's gate and a local run. New rows don't fail the
@@ -271,3 +291,143 @@ Branch zen/feat/contract-checker-gaps-20261024.
   min 66, Message max 220 / 516, min 42; gridline dashes (bar, area, trend charts); Read-Only dashes (fields, text area);
   photos (Avatar/Single, Chip Normal / Advanced, Avatar / Photo cells, Popover item content). No drift found.
 - Negative checks: a 500px text cap and a 1px underline (CSS edited, restored) fail as `maxw` and `stroke`.
+
+## Popover cover + DatePicker sheet header (tier M; user 2026-10-24 via the coordinator: "all four APIs", these two mine)
+
+Branch zen/feat/datepicker-sheet-popover-cover-20261024 (from main 92300d66, main 5cfc05a1 merged).
+- Popover `placement="cover"` (useAnchoredPosition `cover`: top edge on the anchor's top below, bottom on its bottom
+  when flipped); AutocompleteField uses it, the only default that changes. input-autocomplete-field 436/436 with no
+  exception left.
+- DatePickerSheet `header="selection"` from Figma `.Primitives/Date-Picker` 9923:2323 (read from the contract):
+  Option=1 caption Body/Base/Medium Light + Heading/3 date + edit Icon-Flat Small (icon-edit-02-solid, Light, 20px icon
+  bound to Element-Size/Popular/Base) when `onEdit`; Option=2 Heading/3 title + Close Icon-Flat (icon-x-small-line) in a
+  2XSmall box, range Body/Base/Regular Base + Clear dates Body/Base/Bold right-aligned (`onClear`), the weekday row moved
+  from the calendar's sticky row into the header. Inside stroke drawn by ::after (no extra height). BottomSheet `header`
+  slot with the title as a visually hidden h2 (the dialog's name). Labels noDateSelected / noDatesSelected / editDate /
+  clearDates (en, vi).
+- Suites: new date-picker-sheet-header 136/136; Event-List 1–4 came from main's suite (offsets from the first dot), so the
+  dots' row keeps spanning the day. check.mjs's per-side stroke weight came from main's
+  checker-gaps change (the same fix; mine dropped in the merge). Neighbouring DatePicker, chart and Popover suites
+  unchanged (all match). nested-paths: DatePickerSheet "Close-Container" allowed (Option=2's layer; the sheet's own
+  sets close from the Header-Bar).
+- Examples: A delivery day on a phone (single, edit → type the date); A stay on a phone now uses the range header.
+- Tests: date-picker-sheet (header single/range, Clear, Close), input-date-autocomplete-popover (cover vs adjacent).
+- Checks: tsc, usage:check / selftest, style:check, guidelines / ai-ui / Studio maps, studio:selftest, related
+  interaction tests 81/81.
+
+## Modal scroll lock around the overlay (tier S, library `_shared`; the user's bug "không khoá scroll khi mở modal")
+
+Branch claude/modal-scroll-lock-ecdb17. Found in Play on "Quản lý task": `.studio-present__scroll` moved 67px under an
+open ModalForm.
+- Cause: `lockScroll()` (`_shared/modal-isolation.ts`) set `overflow: hidden` on `<body>` only. Play and Present scroll a
+  stage that holds the device frame (`[data-zen-overlay-root]`); a modal opens in that frame, so a wheel over it chains
+  to the stage. Real apps were fine: AppShell scrolls the window, and a body-portalled scrim is fixed, so no box between
+  it and the viewport scrolls.
+- Fix: `lockScroll(around)` locks the document and every box with `overflow` auto|scroll|overlay from the element the
+  modal is portalled into up to `<body>` or a `[data-zen-isolation-root]` (Studio's canvas layer stays live). Each box is
+  reference counted and padded by its own scrollbar (skipped with a stable gutter). `useModal` passes the parent of
+  `modalRoot(panel, container)` (split out of `inertOutside`); inline modals (AppShell drawer, Chat picker, inline sheet)
+  lock the page as before. No Studio code changed.
+- Test `tests/interaction/modal-scroll-lock.test.tsx` (8): Dialog, ModalForm, modal SidePanel, BottomSheet in a frame in
+  a scrolling stage (wheel both ways, then the stage scrolls again once closed), Dialog over ModalForm, no content shift,
+  isolation root, window. On the old code the 4 wheel cases fail (stage 0 → 40).
+- Walk (user's flow, private server from the worktree, a copy of the page): Danh sách → Mở → Tạo task → typing → Hủy
+  (Dialog) → Tiếp tục sửa → submit (tasks:created) → Mở task mới → Bỏ task: no wheel moves the page in any of the 6
+  modal states; no lock is left after close, submit or discard. The notifications Overlay (a top-right Card, not modal)
+  lets the page scroll, as a dropdown does.
+- Found, not fixed (pre-existing, Play layout): with the page scrolled, opening a modal SidePanel moves the page (67 → 54,
+  119 → 0 on tasks:created) because Play anchors overlays to the whole screen, taller than the window, and focus scrolls
+  the close button into view; closing leaves the page there. Fix = Play draws overlays over the visible window (screen
+  scrolls inside the device frame); asked the user.
+
+### Play: the device is the window (tier M, Studio Play; the user's "Fix it here" after the walk above)
+
+Branch claude/play-overlay-window-ecdb17, stacked on #284.
+- Cause: in Auto viewport, Play's device was as tall as the Screen, and `.studio-present__scroll` scrolled the whole
+  device. Overlays render in the device (`[data-zen-overlay-root]`), so they covered the whole Screen, not the window. A
+  SidePanel opened on a scrolled Screen had its top above the window; focusing its close button scrolled the page, 67 → 54.
+- Fix (CSS only): `.studio-player__device` is `calc(100cqh - 2 × stage padding)` tall in Auto (the fixed box keeps its
+  inline size), clips, and is a size container, so AppShell's 100cqh resolves to it. `.studio-player__screens` is the
+  scroll box: a flex column whose shown Screen fills the window at least. A fixed viewport no longer makes the device
+  scroll; board.css keeps `overflow: auto` for Present's `.studio-present__viewport` only. Overlays, hotspots and the
+  hover layer stay device children, so they lie over the window. The TopNavigation scroll link
+  (runtime `usePresentScroller`) finds the inner box itself.
+- Walks on a private server: the user's flow passes in full. A SidePanel opened at 67 and at 119 stays put, lies inside
+  the window and goes back unchanged. iPad landscape: the ModalForm opens at scroll 280 in the box and moves nothing.
+  iPhone: the Screen scrolls inside. A 400px Screen with canvas="alt" on a 1300px window fills the device, and its Dialog
+  is centred in the window.
+- E2E PT-24 (prototype group, id from Giám sát): long desktop Screen, scroll 150, open a modal SidePanel. Checks: no
+  move, in the window, wheel held, closed → it scrolls again.
+
+## Table select draws its options as its cells (tier S; user 2026-10-24 "popover để chọn nếu là người thì nên có avatar")
+
+Branch claude/table-select-media-00c331, from "Full prototype tạo task" (Studio page quan-ly-task, editable Table).
+- **Bug:** the select editor handed the Popover `{ id, label, selected }` only: an avatar column (`mediaField`) listed bare
+  names, a badge column plain words while its cells are coloured Badges with icons (per-row `overrides`). After a pick
+  the row kept the old photo (`mediaField` untouched) and the old Badge look (the override is keyed by row id), and a
+  value picked away from its last row left the list (options came from the edited rows only).
+- **Fix (Table.tsx, no new prop):** `valueLooks` reads each value's look from the rows as given: the picture from
+  `mediaField`, or the row's `Row[<id>]/<column>/Badge` override, first row of that value that has one. The select draws
+  avatar/photo columns as Popover/Item Avatar-Small / Photo-Small (`photoSrc`, else an initials Avatar) and badge columns
+  as Theme=Badge with `badgeTheme` and the cell's Badge through Popover `overrides` (`Item[<value>]/Badge`: Subtle,
+  the value's theme and icon). A pick in a Table-kept edit also writes the value's picture into `mediaField`, and
+  `restyled` replaces the edited row's Badge override with the value's look. Options come from given + edited rows.
+- **API:** the select editor's options take an optional `photoSrc` (an `edit` object's people). Controlled tables
+  (`onCellCommit`) still update the picture field and override themselves; a column-level per-value badge map would
+  cover that, proposed to the user, not built (scope lock).
+- **Studio:** the Table cell inspector writes the same column fields (`edit`, `content`, `mediaField`) and Badge
+  overrides; nothing it reads changed.
+- **Figma:** the Table contract covers the text editor only (Editabled-Cell); Popover/Item content themes are its own.
+- **Tests:** tests/interaction/table-select-looks.test.tsx (avatars + initials + photo follows the pick; badges + look
+  follows the pick; `edit` object options with photoSrc). Guideline: Table › Editable cells + one Do line.
+
+## Play: hotspot hints on presses that do something (tier S; the user: "prototype lỗi luôn hiện placeholder touch khi click vào các elenment có tương tác sẵn")
+
+- Cause: `Player.tsx` flashed the hints on pointerdown unless the target was a native control (`CLICKABLE`). A Box or
+  Card given `proto.navigate` (an onClick, no role) and component parts that work by their own handlers (the field's
+  control padding, chart bars, calendar slots) counted as "nothing", so the hints flashed on top of the navigation.
+  Such a Box was also never outlined itself (only controls inside a source were).
+- Fix: the press is judged at its click, two frames later: no hints when the device's DOM changed (MutationObserver,
+  the hints' own layer left out), the focus moved into a control, or the press landed in a layer with a whole action;
+  a source layer with no control inside is its own hotspot.
+- E2E PT-22 (prototype group): plain text → 1 hint (the Box), field padding → focus and no hints, Box → screen-2 and
+  no hints. studio:selftest 1795/0 (560 rows). The browser rows run in the gate slot.
+
+## Play: a filter Chip can be cleared (tier S; user 2026-10-24, the Quản lý task prototype in DEMO-MEET)
+
+Branch claude/busy-davinci-996858. The user asked that every search and filter work in Play; picking a status filtered
+the Table, but nothing brought every row back short of Restart.
+- **Measured:** in Play a `<Chip dropdown popoverItems onPopoverSelect={proto.filter({ column: "status" })}>` filtered
+  3 → 2 rows but never showed the pick (label stayed "Status", no ×): Play hands the Chip a function, so the Chip left the
+  choice to the app (`ownsChoice` false). Play also kept one filter per Table, so the Status chip, the Priority chip and
+  the Search replaced each other.
+- **Chip:** uncontrolled + notify. With `defaultSelected` (no `selected`) an Advanced chip keeps its choice even when
+  `onPopoverSelect` / `onClearSelection` are given: it updates itself, then calls them. A filter chip's one value picked
+  again clears it (the apps' `x === item.id ? null : item.id`); a period chip keeps its value. Controlled chips unchanged.
+- **Play:** `livePlayProps` gives a Chip whose pick runs Filter table `defaultSelected={false}` and an `onClearSelection`
+  that clears that filter (after the page's own). The filter action keeps one filter per column and match on each Table
+  (AND), and the same fixed value or chosen item again drops it (typed text never toggles). Restart bumps the Screen's
+  key, so components drawn on it (the chip's pick, typed text) start over with Play's state.
+- **Tests:** self-managed-state (picked again, period keeps, uncontrolled + notify, controlled left to the app);
+  studio-option-c (pick, again, two chips + Search, ×, Restart); E2E PT-23 (id from Giám sát) works alone and in the
+  prototype group.
+- **Prototype panel:** Filter table on a Chip's popover pick said "Value" as if a fixed value were needed (`choiceItemsOf`
+  reads `items` / `options`, not `popoverItems`); `onPopoverSelect` always hands over the chosen item, so its Value
+  placeholder now says "The chosen item".
+
+## Studio: Present on a page's Screen plays it (tier S, branch `claude/play-chip-clear-92436e`)
+
+User (DEMO-MEET › Quản lý task): "mở modal và side panel từ trang Danh sách vẫn chưa được — không mở task detail và
+tạo task được", Play started with the Danh sách frame selected and the frame toolbar's ▷.
+- Cause: a page's Screens are canvas frames of kind "example", so the frame toolbar's ▷ (and the Design tab's Present,
+  ⌘K › Present) ran `presentFrame`, which sent only an Overlay to Play (FW-170…174, 2026-10-21) and presented a Screen as
+  a still example frame (`.studio-present`, inert proto): "Tạo task" and the rows' "Mở" did nothing. ⌥⌘↵, the canvas
+  menu and the Prototype tab already played it. The page and Play itself were fine (Playwright on :5174 as
+  viewer/admin, 1512/1280/1024 windows; the page's flow in the Play harness).
+- Fix: `board/presentFrame.ts` plays any Screen or Overlay frame of a page you made (Figma's Present always runs the
+  prototype). `playStartOf` keeps a Screen's state ("screen:tasks:created" → "tasks:created"), so ▷ on "Đã tạo task"
+  starts there, not on Danh sách. The old still-frame path stays for examples.
+- Tests: protoModel selftest (state start), studio-option-c.test.tsx (presentFrame → play:<start>, a state start, an
+  Open overlay runs), E2E FW-174 rewritten (Design › Present and the toolbar ▷ on a Screen play; it asserted the old
+  still frame, an agent's choice of 10-21, not the user's).
+- Handed off mid-task: the filter Chip clear work went to its own session (play-filter-chip-clear).

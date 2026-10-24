@@ -488,7 +488,7 @@
     {
       "name": "DatePickerSheet",
       "file": "src/components/DatePicker/DatePickerSheet.tsx",
-      "description": "Figma Date-Picker/Mobile (9923:3576): the phone date picker, a Bottom Sheet (Heading + Close) around the mobile\ncalendar (`device=\"mobile\"`: days fill the width). Variant=Single shows one month with Back / Next and the sheet's\nCancel / OK; Variant=Multiple stacks the months (`calendar=\"stacked\"`, one weekday row at the top of the scroll) and\nends in `.Primitives/Date-Picker/Footer-Actions` (9923:2791): the summary beside a Large Primary, Spacing/Gap/Small\napart. Picks are a draft until OK. DateField opens it on phones in place of the desktop popover.",
+      "description": "Figma Date-Picker/Mobile (9923:3576): the phone date picker, a Bottom Sheet (Heading + Close) around the mobile\ncalendar (`device=\"mobile\"`: days fill the width). Variant=Single shows one month with Back / Next and the sheet's\nCancel / OK; Variant=Multiple stacks the months (`calendar=\"stacked\"`, one weekday row at the top of the scroll) and\nends in `.Primitives/Date-Picker/Footer-Actions` (9923:2791): the summary beside a Large Primary, Spacing/Gap/Small\napart. Picks are a draft until OK. DateField opens it on phones in place of the desktop popover.\n`header=\"selection\"` swaps the Header-Bar for `.Primitives/Date-Picker` (9923:2323): Option=1 (single) Caption\nBody/Base/Medium Neutral/Light, Spacing/Gap/XSmall over the date in Heading/3 and an edit Button/Icon-Flat Small\n(icon-edit-02-solid, Neutral/Light) in a 20px wrapper; Option=2 (range) the Heading/3 title beside a Close\nIcon-Flat (icon-x-small-line) in a 2XSmall-padded 28px box, Spacing/Gap/Large over the range (Body/Base/Regular,\nNeutral/Base) and Clear dates (Body/Base/Bold, Strongest, right-aligned), then the weekday row (Body/Small/Medium,\nNeutral/Light, padding Medium / 2XSmall). Both pad by the sheet inset (Option=2: dm-8 at the bottom) over a 1px\nBorder/Neutral/Subtle/Default rule.",
       "deprecated": null,
       "extends": "OverlayOpenProps",
       "props": [
@@ -529,7 +529,31 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Header heading (Heading/3). Default: the locale's \"Choose date\" (\"Choose dates\" for a range).",
+          "description": "Figma Header heading (Heading/3). Default: the locale's \"Choose date\" (\"Choose dates\" for a range). With\n `header=\"selection\"`, the caption over the picked date (single) or the heading beside Close (range).",
+          "deprecated": null
+        },
+        {
+          "name": "header",
+          "type": "\"bar\" | \"selection\"",
+          "required": false,
+          "default": "\"bar\"",
+          "description": "`bar` (default): the Bottom-Sheet Header-Bar, the title and Close. `selection`: Figma `.Primitives/Date-Picker`\n (9923:2323), the picked dates lead the sheet. Single (Option=1): the title as a caption over the picked date in\n Heading/3 and, with `onEdit`, an edit action beside it. Range (Option=2): the title and Close, the picked range\n with Clear dates, and the weekday row, all above the scrolling months.",
+          "deprecated": null
+        },
+        {
+          "name": "onEdit",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Single `header=\"selection\"`: the edit action beside the picked date (Figma Action), e.g. to type the date in a\n field instead. Without it the action is hidden.",
+          "deprecated": null
+        },
+        {
+          "name": "onClear",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Range `header=\"selection\"`: Clear dates empties the draft range; set the `summary` back to its hint here.",
           "deprecated": null
         },
         {

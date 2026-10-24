@@ -2538,12 +2538,16 @@ function convertNode(node, ctx) {
       if (text && !["Choose date", "Choose dates", "Heading"].includes(text)) props.title = literal(text);
     }
     if (set.code === "ChatMessage") chatMessageParts(node, props, ctx);
+    // An Avatar's Status layer: its .Primitives/Avatar/Status option is the status (figma-push writes it there).
+    const avatarDot = set.code === "Avatar" && props.status?.value === true ? (node.nested ?? []).find((nested) => nested.path === "Status") : null;
+    const dotStatus = String(avatarDot?.props?.Status ?? "").toLowerCase();
+    if (["disabled", "pending", "inactive"].includes(dotStatus)) props.status = literal(dotStatus);
     const metric = METRIC_SET.test(setName);
     if (metric) metricParts(node, props, ctx);
     // A File-Item's Help-Text and Progress-Bar are its file's error and progress, a date picker's heading its title, a
     // chat message's Avatar and reaction pill its author and reactions (read above), a PropertyField's Value its cell
     // (below).
-    const ownParts = (nested) => own.nested.has(nested) || set.code === "UploaderFileItem" || set.code === "DatePickerSheet" || (set.code === "PropertyField" && /^Value(\/|$)/.test(nested.path)) || (set.code === "ChatMessage" && (isAvatar(nested) || /^Bubble(\/|$)/.test(nested.path))) || (metric && /^(Trend|Metric-Icon)(\/|$)/.test(nested.path));
+    const ownParts = (nested) => own.nested.has(nested) || (set.code === "Avatar" && nested.path === "Status") || set.code === "UploaderFileItem" || set.code === "DatePickerSheet" || (set.code === "PropertyField" && /^Value(\/|$)/.test(nested.path)) || (set.code === "ChatMessage" && (isAvatar(nested) || /^Bubble(\/|$)/.test(nested.path))) || (metric && /^(Trend|Metric-Icon)(\/|$)/.test(nested.path));
     for (const nested of (node.nested ?? []).filter((nested) => !ownParts(nested))) {
       const inner = nested.set ? mapping.sets.get(nested.set.id) ?? mapping.sets.get(nested.set.name) : null;
       if (!inner) { notes.push(`${where} › ${nested.path}: ${nested.set?.name ?? "?"} has no Zen component`); continue; }

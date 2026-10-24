@@ -15,6 +15,12 @@ export type AvatarSize = "2xs" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl
 export type AvatarTheme = (typeof avatarThemes)[number];
 export type AvatarShape = "circle" | "square";
 export type AvatarBackground = "solid" | "subtle";
+/** Figma .Primitives/Avatar/Status Status axis (217:7418). */
+export const avatarStatuses = ["active", "disabled", "pending", "inactive"] as const;
+export type AvatarStatusValue = (typeof avatarStatuses)[number];
+export const avatarStatusSizes = ["xsmall", "small", "medium", "large"] as const;
+/** Short (xs, sm, md, lg) or Figma (xsmall … large) spelling. */
+export type AvatarStatusSize = "xs" | "sm" | "md" | "lg" | "xsmall" | "small" | "medium" | "large";
 
 /** Figma Avatar/Single label text style per size. */
 const initialsStyle: Record<AvatarSizeKey, TypographyStyleName> = {
@@ -34,7 +40,13 @@ export interface AvatarProps {
   theme?: AvatarTheme;
   background?: AvatarBackground;
   shape?: AvatarShape;
-  status?: boolean;
+  /**
+   * The status dot (Figma Avatar/Single Status + .Primitives/Avatar/Status 217:7418) at the bottom-right: `true` or
+   * `"active"` (Positive, read as "Online"), `"disabled"` (Solid-Disabled), `"pending"` (Warning) or `"inactive"`
+   * (Negative). Its size follows the avatar (Small on 2XSmall–Large, Medium on XLarge, Large on 2XLarge / 3XLarge). The
+   * dot is never the only signal: say the status in text beside the avatar too.
+   */
+  status?: boolean | AvatarStatusValue;
   focus?: boolean;
   src?: string;
   /**
@@ -47,6 +59,48 @@ export interface AvatarProps {
   className?: string;
   /** Forwarded to the root `<span>`. */
   ref?: Ref<HTMLSpanElement>;
+}
+
+/** The dot size Figma Avatar/Single puts on each avatar size. */
+const statusDotSize: Record<AvatarSizeKey, (typeof avatarStatusSizes)[number]> = {
+  "2xsmall": "small",
+  xsmall: "small",
+  small: "small",
+  medium: "small",
+  large: "small",
+  xlarge: "medium",
+  "2xlarge": "large",
+  "3xlarge": "large",
+};
+
+export interface AvatarStatusProps {
+  /** Figma Status: Active (Positive) · Disabled (Solid-Disabled) · Pending (Warning) · Inactive (Negative). */
+  status?: AvatarStatusValue;
+  /** Figma Size: XSmall 4px with a 1px ring · Small 8/2 · Medium 12/2 · Large 16/3. Short or Figma spelling. */
+  size?: AvatarStatusSize;
+  /** What a screen reader says. Default: the status word from the labels ("Online", "Disabled", "Pending", "Inactive"). */
+  label?: string;
+  /** Hide the dot from assistive technology when the status is said in text beside it. */
+  decorative?: boolean;
+  className?: string;
+  /** Forwarded to the root `<span>`. */
+  ref?: Ref<HTMLSpanElement>;
+}
+
+/**
+ * Figma .Primitives/Avatar/Status (217:7418): a Corner-Radius/Rounded dot with an OUTSIDE Color/Border/Inverse ring, on
+ * its own (a presence mark beside a name) or as an Avatar's `status`. Fills: Color/Background/Positive/Solid/Default,
+ * Solid-Disabled, Warning/Solid/Default, Negative/Solid/Default.
+ */
+export function AvatarStatus({ status = "active", size: sizeProp = "sm", label, decorative = false, className, ref, ...rest }: AvatarStatusProps) {
+  const t = useZenLabels();
+  const size = scaleKey(sizeProp, avatarStatusSizes);
+  const word = label ?? statusWord(t, status);
+  return <span {...dataAttributes(rest)} ref={ref} className={["zen-avatar-status", className].filter(Boolean).join(" ")} data-size={size} data-status={status} role={decorative ? undefined : "img"} aria-label={decorative ? undefined : word} aria-hidden={decorative ? true : undefined} />;
+}
+
+function statusWord(t: ReturnType<typeof useZenLabels>, status: AvatarStatusValue) {
+  return status === "disabled" ? t.statusDisabled : status === "pending" ? t.statusPending : status === "inactive" ? t.statusInactive : t.online;
 }
 
 /** Figma Avatar/Single (Medium 223:8784 … 3XLarge 223:8714): photo or initials on the theme fill, optional status dot. */
@@ -65,13 +119,14 @@ export function Avatar({ size: sizeProp = "md", theme = "neutral", background = 
   // not read); alt="" hides the initials, as an empty alt hides a photo.
   const name = alt.trim();
   const named = !src && Boolean(name);
+  const statusValue: AvatarStatusValue | null = status === true ? "active" : status || null;
   return (
     <span {...dataAttributes(rest)} ref={ref} className={["zen-avatar", className].filter(Boolean).join(" ")} data-size={size} data-tone={theme} data-background={background} data-shape={shape} data-focus={focus ? "true" : "false"}
-      role={named ? "img" : undefined} aria-label={named ? [name, status ? t.online : null].filter(Boolean).join(", ") : undefined}>
+      role={named ? "img" : undefined} aria-label={named ? [name, statusValue ? statusWord(t, statusValue) : null].filter(Boolean).join(", ") : undefined}>
       <span className="zen-avatar__inner">
         {src ? <img src={src} alt={alt} /> : <span className={`zen-avatar__initials ${typographyStyles[initialsStyle[size]]}`} aria-hidden={named || !name ? true : undefined}>{initials}</span>}
       </span>
-      {status ? <span className="zen-avatar__status" aria-label={named ? undefined : t.online} /> : null}
+      {statusValue ? <AvatarStatus className="zen-avatar__status" status={statusValue} size={statusDotSize[size]} decorative={named} /> : null}
     </span>
   );
 }

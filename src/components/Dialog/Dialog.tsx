@@ -13,7 +13,7 @@ import { typographyStyles } from "../../tokens/typography.generated";
 import "./dialog.css";
 import "../Icon/core";
 import { useNested, type NestedOverrides } from "../_shared/nested";
-import { inertOutside, lockScroll } from "../_shared/modal-isolation";
+import { inertOutside, lockScroll, modalRoot } from "../_shared/modal-isolation";
 import { useMergedRefs } from "../_shared/merge-refs";
 import { dataAttributes } from "../_shared/data-attributes";
 
@@ -85,7 +85,7 @@ export const modalIsOpen = () => modalStack.length > 0;
 const topModal = () => [...modalStack].reverse().find((entry) => !entry.panel?.parentElement?.closest("[inert]"));
 
 /**
- * Shared modal behaviour: focus the first target, trap Tab, Escape closes, body scroll is locked, focus returns to the opener.
+ * Shared modal behaviour: focus the first target, trap Tab, Escape closes, page scroll is locked (lockScroll), focus returns to the opener.
  * Internal to the design system (Dialog, ModalForm, SidePanel): imported from "../Dialog/Dialog", not re-exported publicly.
  *
  * Escape belongs to the innermost thing that is open. The modal ignores it when an inner popup already handled it
@@ -118,7 +118,9 @@ export function useModal(open: boolean, panelRef: RefObject<HTMLElement | null>,
     const field = pick(initialSelector) ?? (hasPreferred ? pick(focusableSelector) : undefined);
     const initial = pick("[data-autofocus]") ?? (field && panel ? tabStopOf(field, panel) : field) ?? panel;
     initial?.focus();
-    const unlockScroll = lockScroll();
+    // A portalled modal also holds still every box that scrolls around the place it renders in (a device frame in
+    // Studio's Play stage); an inline one, the page.
+    const unlockScroll = lockScroll(isolate && panel ? modalRoot(panel, container).parentElement : null);
     const restoreOutside = isolate && panel ? inertOutside(panel, container) : null;
     // Captured before React or any popup handles the key: a Select trigger closes its list on Escape (aria-expanded turns
     // false) before the bubbling listener below runs, so the open state is read here.

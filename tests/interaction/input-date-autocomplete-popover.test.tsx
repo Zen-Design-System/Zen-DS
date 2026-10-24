@@ -222,3 +222,25 @@ describe("Popover: the Escape that closes it is used up", () => {
     expect(windowKeys).toEqual([]);
   });
 });
+
+describe("Popover placement=\"cover\" (Figma Input/Autocomplete-Field Focused, 2026-10-24)", () => {
+  const options = [{ id: "design", label: "Design" }, { id: "research", label: "Research" }, { id: "sales", label: "Sales" }];
+  it("AutocompleteField opens its list over the Add slot, its top on the slot's top", async () => {
+    const screen = await render(<ZenProvider><AutocompleteField label="Teams" options={options} defaultValue={["design"]} /></ZenProvider>);
+    await screen.getByRole("button", { name: /add/i }).click();
+    const list = document.querySelector<HTMLElement>(".zen-autocomplete__add > .zen-popover")!;
+    await expect.poll(() => list.getBoundingClientRect().height).toBeGreaterThan(0);
+    const slot = document.querySelector<HTMLElement>(".zen-autocomplete__add")!.getBoundingClientRect();
+    expect(Math.round(list.getBoundingClientRect().top)).toBe(Math.round(slot.top));
+  });
+  it("a Popover keeps the adjacent placement by default: 4px below its anchor", async () => {
+    function Anchored() {
+      const ref = useRef<HTMLButtonElement>(null);
+      return <div style={{ position: "relative" }}><Button ref={ref} data-testid="anchor">Open</Button><Popover open anchorRef={ref} items={options.map((item) => ({ ...item }))} /></div>;
+    }
+    await render(<ZenProvider><Anchored /></ZenProvider>);
+    const anchor = document.querySelector<HTMLElement>("[data-testid='anchor']")!.getBoundingClientRect();
+    const list = document.querySelector<HTMLElement>(".zen-popover")!.getBoundingClientRect();
+    expect(Math.round(list.top - anchor.bottom)).toBe(4);
+  });
+});

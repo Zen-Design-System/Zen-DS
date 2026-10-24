@@ -23,7 +23,7 @@ The shared floating list used by Chip, Select, Autocomplete and Leading/Trailing
 | Manual-Add-New | `PopoverManualAddNew · Chip onPopoverCreate · AutocompleteField onCreate` | Create + Accent Badge row for a new value; Enter creates |
 | Items | `items[] {id,label,caption,leading,photoSrc,theme,badgeTheme,selected}` | Content themes: icon, text-only, avatar-small/big, photo-small/big, dock-icon, badge |
 | Open | `open / onOpenChange / anchorRef / autoFocus` | outside click + Escape close |
-| Placement | `align` | 4px below the trigger, above it when there is no room below; while open it keeps that side until it would be cut off, so scrolling never makes it jump back and forth, and it follows the trigger in the same frame |
+| Placement | `align · placement` | adjacent (default): 4px below the trigger, above it when there is no room below; while open it keeps that side until it would be cut off, so scrolling never makes it jump back and forth, and it follows the trigger in the same frame. cover: over the anchor, its top edge on the anchor's (bottom edge when above), as Input/Autocomplete-Field Focused opens its list over the Add slot |
 | Width | `width · maxWidth (SelectField popoverWidth)` | unset = Figma's Fixed 240 · fill (the anchor's width) · hug (the longest row, never narrower than the anchor) · a number (Fixed px); never below Figma's 240 min width, never wider than the window |
 
 ## Props
@@ -54,6 +54,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children" | "onSelect">`.
 | `anchorRef` | `RefObject<HTMLElement \| null>` | — | The trigger element; pointer-downs on it are left to the trigger's own toggle. |
 | `searchClearable` | `boolean` | `true` | Show the Search clear button while it has a value (Figma Search/Popover Typing/Inputted). |
 | `align` | `"start" \| "end"` | `"start"` | Preferred horizontal edge against the anchor box; flips when it would overflow the viewport. |
+| `placement` | `"adjacent" \| "cover"` | `"adjacent"` | Where it opens against its anchor: `adjacent` (default) 4px below it, above when there is more room there; `cover` over it, its top edge on the anchor's top (its bottom on the anchor's bottom when it opens upward), as Figma Input/Autocomplete-Field Focused draws the list over the Add slot. |
 | `multiple` | `boolean` | `false` | Multi-select list: every item gets a trailing Checkbox/Mark (Figma multi-select Popover). |
 | `width` | `"fill" \| "hug" \| number` | — | Horizontal resizing. Unset keeps Figma Popover/Default's Fixed 240px. Figma gives the set a 240px min width, so every value below stays at least 240px wide, and at most the viewport less 16px on each side. `"fill"`: as wide as the anchor box (the trigger, or the field's input box): suggestions under a long search bar. `"hug"`: as wide as its longest row, never narrower than the anchor box: long names (domains, file paths) stay whole. A number: a Fixed width in px. |
 | `maxWidth` | `number` | — | Maximum width in px when `width` is set (never below 240): a longer row ends in "…". |
