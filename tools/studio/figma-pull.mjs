@@ -3245,11 +3245,14 @@ function topNavigationElement(node, ctx) {
   const barTitle = bar && shown["Top-Heading-Text"] !== false ? read.bar ?? {} : null;
   if (barTitle?.texts?.["Header-Text"]) props.title = literal(barTitle.texts["Header-Text"]);
   if (barTitle?.props?.Subheading === true && barTitle.texts?.Subheading) props.subtitle = literal(barTitle.texts.Subheading);
+  // Figma Heading-Text Dropdown: the chevron comes back as titleDropdown (a menu's items are not in Figma).
+  if (barTitle?.props?.Dropdown === true) { props.titleDropdown = literal(true); ctx.notes.push(`${where}: its title shows Figma's Dropdown chevron: give the title a titleMenu or an onTitleClick in the Studio`); }
   const large = shown["Expand-Heading"] === true ? read.large?.texts?.["Header-Text"] : undefined;
   if (large) {
     props.largeTitle = literal(large);
     const level = { H2: "h2", H3: "h3" }[read.large?.props?.Type];
     if (level) props.headingLevel = literal(level);
+    if (read.large?.props?.Badges === true) ctx.notes.push(`${where}: the large title shows Figma's Badges row: give the TopNavigation largeTitleBadges in the Studio`);
   }
   const leading = bar && shown["Top-Leading"] !== false ? read.leading : null;
   if (leading?.props?.Type === "Visual") ctx.notes.push(`${where}: its leading visual (Nav-Slot/Visual) is left out: give the TopNavigation a leading in the Studio`);

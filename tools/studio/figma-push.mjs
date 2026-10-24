@@ -1600,9 +1600,16 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     if (props["Top-Heading-Text"]) {
       const titleLeading = element.props.titleLeading?.kind === "element";
       if (titleLeading) notes.push(`${where}: titleLeading is drawn as Heading-Text's Leading sample`);
-      nested.push({ path: "Top-Heading-Text", props: { Type: "Sub", Header: true, Subheading: Boolean(subtitle), Leading: titleLeading }, texts: { "Header-Text": layout.identity ? title : layout.barTitle, ...(subtitle ? { Subheading: subtitle } : {}) } });
+      // Figma Heading-Text Dropdown: the chevron of a titleMenu (its items stay in the Studio) or of titleDropdown.
+      const dropdown = element.props.titleMenu !== undefined || code.titleDropdown === true;
+      if (element.props.titleMenu !== undefined) notes.push(`${where}: titleMenu draws Heading-Text's Dropdown chevron; its items stay in the Studio`);
+      nested.push({ path: "Top-Heading-Text", props: { Type: "Sub", Header: true, Subheading: Boolean(subtitle), Leading: titleLeading, ...(dropdown ? { Dropdown: true } : {}) }, texts: { "Header-Text": layout.identity ? title : layout.barTitle, ...(subtitle ? { Subheading: subtitle } : {}) } });
     }
-    if (layout.showLarge) nested.push({ path: "Main-Heading-Text", props: { Type: TOP_NAV_HEADING[code.headingLevel ?? "h1"] ?? "H1" }, texts: { "Header-Text": largeTitle } });
+    // Figma Main-Heading-Text Badges: the row under the large title (Figma's sample Badge; the page's Badges stay in the Studio).
+    const badges = element.props.largeTitleBadges !== undefined;
+    if (badges && layout.showLarge) notes.push(`${where}: largeTitleBadges draws Main-Heading-Text's Badges row with Figma's sample Badge`);
+    if (code.scrolledType) notes.push(`${where}: scrolledType is the look once the page scrolls; Figma draws the resting type`);
+    if (layout.showLarge) nested.push({ path: "Main-Heading-Text", props: { Type: TOP_NAV_HEADING[code.headingLevel ?? "h1"] ?? "H1", ...(badges ? { Badges: true } : {}) }, texts: { "Header-Text": largeTitle } });
     if (props["Top-Leading"]) {
       const action = leading.kind === "object" ? plain(leading) : null;
       // The Action layer takes the action's label (its name, read back by the pull).
