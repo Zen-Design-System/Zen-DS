@@ -28,8 +28,8 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   covers its anchor (Input/Autocomplete-Field Focused opens the list over the Add slot; code 4px below it); the sheet
   header of `.Primitives/Date-Picker` 9923:2323 (Option 1 caption + picked date + edit, Option 2 range + Clear dates); the
   Workspace Sidebar rail's Master-Background Flat / Inverse; Avatar status Disabled / Pending / Inactive and the 4px
-  XSmall dot. DatePicker event counts are code since #266 (`event` takes 1–4): only the suite is left, mapping Event-List
-  Number-Event 2–4 in `date-picker-event-list.mjs` with its root on `.zen-date-picker__events` (no user go needed).
+  XSmall dot; DatePicker event days on the calendar (the Single calendars' day-1 dot: DatePicker has no events prop,
+  while DatePickerItem takes `event` 1–4 since #266 and Event-List 1–4 is compared).
 - **P3 · Contract checker gaps (2026-10-24; harness work, the user's go):** `tools/figma-contract/check.mjs` reads the
   first visible paint only (second fills and background-image overlays: Toggle bar, Social Others bubble, Editable
   cell), compares `fx` only without a spread ring in the same shadow list (Toggle-Button dot), one corner radius (bubble
@@ -87,12 +87,6 @@ starts.
   (a design call for the dashboard headers), S–M. The Segmented page's own playground (Section) slides on purpose.
 
 ### Tooling / harness / contracts
-- **P3 · Gate details (the user's decisions 2026-10-24), in flight:** baseline notes follow the fix-at-once rule and a
-  reused pid no longer keeps a stale "running" marker (PR #264); B.2, re-run only the steps that failed when nothing
-  changed (next PR). Done 2026-10-24: token scope reads inline `var()` in TSX (importers stay one level); a Bash
-  script's edits counting only when the command names the file is documented (`skills/zen-build-qa` §3). Kept on
-  purpose: partial `--only` runs and mixed stale guidelines fail. Not now: B.4, C.4, C.6, C.7; no global text-width
-  tolerance (the suites' `xr` / `wr` / `cxr` checks replace it).
 
 ### Next-phase Studio design check
 - **P3 · Studio panels in dark chrome and at 280px (2026-10-03; rewritten 2026-10-24):** no screenshot pass of the

@@ -73,6 +73,12 @@ function DataFixture() {
         <Button data-e2e="cond" level={loud ? "primary" : "secondary"} onClick={() => setLoud(!loud)}>Loud</Button>
         <Button data-e2e="cond-const" level={featured ? "primary" : "secondary"}>Featured</Button>
       </Stack>
+      {/* Boxes a .map draws (DA-10: a resize previews every row; a ListItem in a List cannot be wrapped to resize). */}
+      <Stack data-e2e="crew-tiles" direction="row" gap="sm">
+        {crew.map((one) => (
+          <Box key={one.id} data-e2e="crew-tile" surface="pale" padding="sm"><Text>{one.name}</Text></Box>
+        ))}
+      </Stack>
     </Stack>
   );
 }

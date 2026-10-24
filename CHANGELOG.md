@@ -22,6 +22,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (usage rules §15: each group is its own ListBox); `table/titled-box` (warn) flags a Table in a Card or ListBox that
   does not name it; the audit's `segmented-fit` (`--quality`, warn) flags a phone Segmented that slides sideways or cuts
   a fullWidth label (a Chip row instead).
+- Zen Studio: moving a layer that a `const` shows in several places (`{phone ? card : null}` and `trailing={card}`) no
+  longer asks "Move in all N places?": only the `{…}` where this one shows moves (2026-10-24).
 - TopNavigation (2026-10-24): `titleMenu` makes the bar title a Dropdown (Figma Heading-Text Dropdown: the title and a
   chevron-down open a Menu; `titleDropdown` draws the chevron on an `onTitleClick` title); `largeTitleBadges` puts a row
   of Badges under the large title; `scrolledType` gives a scroll-linked bar its look once content scrolls under it (a

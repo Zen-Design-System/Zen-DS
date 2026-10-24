@@ -141,16 +141,16 @@ export const rows = [
   {
     id: "DA-10", feature: "Resizing a .map row previews every row it draws, as the pill's \"all N\" says (not only the pressed one); Escape takes the preview away and writes nothing", wp: "BACKLOG 2026-10-24", timeout: 40_000,
     async run(ctx) {
-      const page = await freshSelect(ctx, "crew-row", { frame: 1 });
+      const page = await freshSelect(ctx, "crew-tile", { frame: 1 });
       await sleep(400);
       const before = await ctx.text();
       const handle = page.locator('.studio-resize__handle[data-handle="e"], .studio-resize__handle[data-handle="s"]').first();
       await handle.waitFor({ state: "visible", timeout: 5000 }).catch(() => { throw new Error("the .map row shows no width or height handle"); });
       const side = await handle.getAttribute("data-handle");
       const axis = side === "e" ? "width" : "height";
-      const sizes = () => page.locator('[data-studio-frame="example:1"] [data-e2e="crew-row"]').evaluateAll((nodes, which) => nodes.map((node) => Math.round(node.getBoundingClientRect()[which])), axis);
+      const sizes = () => page.locator('[data-studio-frame="example:1"] [data-e2e="crew-tile"]').evaluateAll((nodes, which) => nodes.map((node) => Math.round(node.getBoundingClientRect()[which])), axis);
       const start = await sizes();
-      if (start.length < 2) throw new Error(`the fixture draws ${start.length} crew row(s)`);
+      if (start.length < 2) throw new Error(`the fixture draws ${start.length} crew tile(s)`);
       const box = await handle.boundingBox();
       const x = box.x + box.width / 2;
       const y = box.y + box.height / 2;
