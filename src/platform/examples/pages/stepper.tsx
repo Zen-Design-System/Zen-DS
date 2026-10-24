@@ -691,8 +691,34 @@ toast({ title: "Invoice approved", children: "INV-2026-0143",
     description: "On a phone, a vertical stepper with icons (Style=Icon) tracks an order the customer can't change. The order opens from the Orders list (Back returns to it); it moves on by itself when the order is ready, and the ActionBar then offers Confirm pickup, and after that Order again.",
     render: () => <PickupOrderExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
+const row = (item: PickupOrder) => (
+  <ListItem key={item.id} title={item.store} onClick={() => open(item.id)}
+    leading={<DockIcon icon="icon-coffee-cup-line" theme="orange" background="subtle" />}
+    caption={\`\${item.id} · \${item.count} items · \${item.placedAgo}\`}
+    trailing={item.stage === 4
+      ? <Text as="span" textStyle="Body/Small/Regular" tone="base">{formatMoney(item.total, true)}</Text>
+      : <Badge theme={stageBadge[item.stage].theme} background="subtle">{stageBadge[item.stage].label}</Badge>} />
+);
 
-// The Orders root is a grouped list on Surface-Alt (In progress, Past orders: a kicker over a white block each).
+// The Orders root is a grouped list on Surface-Alt: a kicker over a white block per group.
+<PlatformPhone key="root" canvas="alt" headerOverlay screenRef={screenRef}
+  header={<TopNavigation type="alt" title="Orders" largeTitle="Orders" scrollRef={screenRef} />}>
+  <Stack gap="lg" padding="lg">
+    <Stack as="section" gap="xs" aria-labelledby="active">
+      <Box paddingX="lg"><Heading level={2} id="active" textStyle="Body/Small/Bold" tone="light">In progress</Heading></Box>
+      <ListBox>
+        <List aria-labelledby="active">{active.map(row)}</List>
+      </ListBox>
+    </Stack>
+    <Stack as="section" gap="xs" aria-labelledby="past">
+      <Box paddingX="lg"><Heading level={2} id="past" textStyle="Body/Small/Bold" tone="light">Past orders</Heading></Box>
+      <ListBox>
+        <List aria-labelledby="past">{past.map(row)}</List>
+      </ListBox>
+    </Stack>
+  </Stack>
+</PlatformPhone>
+
 // The order is its child: compact bar, Back, one key per screen.
 <PlatformPhone key={order.id} headerOverlay screenRef={screenRef}
   header={<TopNavigation type="compact-alt" title="Order A-248" scrollRef={screenRef}

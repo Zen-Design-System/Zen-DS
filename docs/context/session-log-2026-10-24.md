@@ -36,6 +36,71 @@ reaction Navigate / Open / Close overlay / Back."
   contrast/targets baseline seeding. "## Open items" untouched; nothing P1-urgent found. No work started.
 - User "Giao 35 mục theo đề xuất": the Designer entry moved to QUESTIONS.md / .vi.md as the 2026-10-24 designer batch.
 
+## Session B · Studio editor group of the planned backlog (tier S; user: "Giao 35 mục theo đề xuất … Phần không cần quyết làm ngay")
+
+The group's six entries (BACKLOG rewritten in #262), each checked against the code first:
+- **Drafts live push** (built): the dev server sends `zen-studio:drafts` over its HMR socket whenever the drafts change
+  (`persist`) or a drafted file changes on disk (`diskChanged`); `sourceDrafts.ts` reads GET /drafts at once. E2E D-07:
+  a draft written by the API (another client) and its discard show in the tab's drafts button within 2.5 s.
+- **Resize leftovers (2)** (built): a `.map` row's resize previews every row it draws (`copiesOf`: the same
+  data-zen-src in its frame; restored with the drag). E2E DA-10 (drag without release, all rows alike, Escape writes
+  nothing).
+- **Ungroup E2E** (built): ST-28 groups Favourite with Share from the Inspector's item row, then takes Favourite out
+  (ungroupItem: a group of one is no group, Favourite keeps its place).
+- **Resize leftovers (1)**, **slots (a)**, **slots (b)**, **per-row override**: questions for the user (sent to the progress
+  session as one list). Slots (a) turned out not to be told apart by text: a remove + insert of a same-named element
+  in its place and an edit of the original's words give the same draft, byte for byte.
+- **Link folder**: a hand check in Chromium (an OS folder picker), asked of the user with the list.
+
+The user's answers (through the progress session, "Theo đề xuất"): resize (1) stays as Figma does it, slots (a) closed,
+slots (b) A built and B not (computed `.map` rows keep "edit it in the code"), no per-row override (relabelled).
+- **Slots (b) A** (built): `constChildUse` (slots.mjs) finds the `{…}` child unit that shows a const through a condition
+  (`childUnitAt` on each read), the one at the Studio's `parent` when the const is read elsewhere too; two at one holder
+  are refused by name. `describeSlots` lists a condition's const elements, so the client's `constHolderOf` and
+  `readBlock` place them. `slot-audit --op=move`: 22 → 4 refused (ai-ui `field`, shown twice in one Stack). Selftest
+  +16, E2E ST-29 (fixture ConstFixture: Send backward on `{view === "list" ? note : null}`, `trailing={note}` stays).
+- **Per-row override**: editability-audit's three "B4" classes name what the Studio edits (I-09, I-10, I-11).
+
+## Contract suites, batch 2 (tier L; BACKLOG P3, the user's go 2026-10-24 through the progress session)
+- 66 suites, written by seven parallel helpers (one per group, case kinds in `tools/figma-contract/cases/<group>.tsx`,
+  merged by cases.tsx so they never shared a file): Avatar/Single, Avatar/Stack, Avatar status, Badge, Badge-Counter;
+  Segmented Item (a SegmentedItem-in-Segmented kind), Segmented, Toggle, Toggle-Button, Toggle Content, Breadcrumbs (3);
+  nine Input fields; eleven Input parts, Search/Default, Search/Popover (+ a light/neutral-s4 mode), Divider; thirteen
+  Table cells; seventeen DatePicker and Sidebar parts; three Chat sets. `.Primitives/Date-Picker` 9923:2323 has none
+  (code has no sheet header): BACKLOG. All 105 suites + 25 interaction checks pass (one by one, niced, beside another session's --all gate).
+- Code drifts fixed at their owners (CHANGELOG): Avatar, Badge, Input (six), Table toggle columns, DatePicker (six),
+  Sidebar (four, incl. the Workspace width 340 → 320 Compact). I read every diff before the commit; tsc, style:check,
+  usage:check clean.
+- Figma-side inconsistencies → `figmaExceptions` + QUESTIONS.md "From the contract suites, batch 2"; resolved:
+  QUESTIONS Segmented (P2) binding, the BACKLOG Breadcrumbs "4px list padding" (both captures pad 0). New BACKLOG: the
+  APIs the suites asked for, the checker gaps. Linux fonts (#252): no text-decided width or x is asserted.
+
+## Menu and Chip on phones (C, tier L; branch `zen/feat/menu-chip-phone-sheet-20261024`)
+
+- User decision 2026-10-24 (option A, automatic), handed from box-themes. `_shared/phone-sheet.tsx` holds SelectField's
+  rule (`usePhoneSheet`: the nearest `data-breakpoint` above the control, else ZenProvider's) and `sheetLeading`;
+  SelectField and DateField now use it too.
+- Figma, read with use_figma: Primitives/Sheet-Actions/Item (4059:17214) holds `.Primitives/Popover/Item/Content`
+  (829:20006), whose Subtext is Caption/Regular 11px, 2px under the label. So BottomSheet items got `caption`, and the
+  Popover's own caption, Body/Small/Regular 12px since v0.2, was fixed to Caption/Regular at its owner.
+- Menu on a phone: `<BottomSheet type="action">` holding the Menu's own rows (`SheetActionRow`, MenuContext `sheet`),
+  so `children` composition, groups (a labelled `role=group` with its own list) and separators survive; shortcuts are
+  dropped. Trigger `aria-haspopup="dialog"`; keyboard opening starts on the first / last item (`data-autofocus`). The
+  sheet's modal owns Escape, Tab and focus return. The deliberate action-sheet-without-items is `zen-allow-sheet-items`.
+- Chip on a phone: SelectField's sheet (List + ListItem, Selected + check, Search filtering by text unless the app
+  filters, `done` label for `popoverMultiple`). `onPopoverCreate` chips keep their popover.
+- Tests: `tests/interaction/menu-chip-sheet.test.tsx` (7). Two backlog-fixes tests that test the popovers at 390px are
+  pinned to `breakpoint="desktop"`. Chip's "Filters on a phone" example now uses `popoverItems` instead of a hand-built
+  sheet. Generated: guidelines/api docs, Studio compile-api and partProps.
+
+## Gate: `--failed` re-runs only what failed (process audit B.2; the user's go 2026-10-24) (tier S, tools/qa)
+- `npm run qa -- --failed`: after a failing full run with nothing in its scope edited since (the ledger's editedAt), the
+  gate keeps TypeScript, the Figma contracts and Vitest where they passed, runs the quick static gates again, the browser
+  steps only on the pages that had an error or no report (`retryPagesFrom` in lib.mjs reads the last run's audit /
+  dark / behaviour JSON), and the Studio E2E only if it failed; a pass marks the files passed as a full run would.
+  Anything edited, a passing or quick last run, or a missing report → it says why and runs everything.
+- qa:selftest 26 → 30 checks (the page choice); a static-only run against a fake failed ledger skipped TypeScript and
+  re-ran the failed self-test (the fake ledger and its report removed after).
 ## Tooling fixes (#264; tier S–M; the user's go 2026-10-24)
 - `avatar/solid-initials-contrast`: measured today's tokens (both themes the same): golden 2.58, teal 2.70, cyan 2.96,
   orange 2.98 below 3:1; green 3.48 and bronze 3.38 pass, so the rule lists golden | teal | cyan | orange (fixtures,
@@ -131,3 +196,13 @@ Branch zen/feat/top-nav-props-20261024, stacked on #266 (the WIP from `wip/top-n
 - Tests: navigation.test (titleMenu opens its menu, titleDropdown, badges 8px under the heading, scrolledType both ways).
 - Checks: tsc, usage:check / selftest, style:check, guidelines / ai-ui / Studio maps, studio:selftest, push / pull.
 
+## Merge train A (#274: #263, #265, #268, #269, #271; tier L gate)
+- Built on main 9143769d, then merged main 6999a5f3, 454b9374 and 59baff82 (date-picker.css combined as #266's and
+  #269's owners OK'd; #269's DatePicker suites read `.zen-date-picker__events > i`). Member heads re-merged as they moved.
+- `npm run qa -- --all --isolated`: PASS (static, Vitest 85/85, all contract suites, audit 1512/390/320 0 errors,
+  dark 0, behaviour 0, Studio E2E 4 shards); 12 new contact sheets reviewed, nothing to fix.
+- verify:package: all checks pass; Button with its style entry 34.1 KB CSS gz against 97.2 KB with styles.css.
+- #268 style comparison: a 19-entry page (entries imported in reverse order) against styles.css: 1,247,556 computed
+  values, 0 differences (12 registered custom properties of Voice / PageHeader / DashboardHeader exist only with
+  styles.css), screenshots identical; 58.9 KB against 97.2 KB CSS gz.
+- BACKLOG: the Platform examples group (#263) and Package weight (#268) closed to the archive.

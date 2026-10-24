@@ -130,12 +130,14 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar__item-label { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Figma Menu-Item Counter = Badge-Counter Small · Neutral · Subtle (BadgeCounter owns size, padding, type and fill). */
 .zen-sidebar__counter { flex: 0 0 auto; }
-.zen-sidebar__item[data-tone="accent"][data-selected="true"] .zen-sidebar__counter { background: var(--zen-color-background-inverse-solid-default, #fff); }
+/* Menu-Item 1536:27473: on every selected row (Neutral and Accent) the Counter sits on Background/Inverse/Solid. */
+.zen-sidebar__item[data-selected="true"] .zen-sidebar__counter { background: var(--zen-color-background-inverse-solid-default, #fff); }
 /* The dot is the shared Notification-Dot (_shared/notification-dot.css), on the Icon-Wrapper at Figma (16, −4); a row
    without an icon keeps it at the row's top-left icon spot. */
 .zen-sidebar__notification-dot { top: -4px; left: 16px; }
 .zen-sidebar__notification-dot--row { top: 8px; left: 26px; }
-.zen-sidebar__item-dropdown { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; color: inherit; transition: transform var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease); }
+/* Menu-Item 1536:27473: the Dropdown chevron is Content/Neutral/Light in every Theme, State and Select. */
+.zen-sidebar__item-dropdown { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); transition: transform var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-standard, ease); }
 .zen-sidebar__item-dropdown[data-open="true"] { transform: rotate(180deg); }
 .zen-sidebar__trailing-action { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); align-items: center; justify-content: center; }
 
@@ -148,7 +150,7 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar__footer-content > button:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
 .zen-sidebar__footer-content > button > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 var(--zen-element-size-popular-base, 20px); }
 
-/* Figma Side-Bar/Master/Small-Density: 260px, 32px search, 36px menu items. */
+/* Figma Side-Bar/Master/Small-Density ("Component" 5974:20590): Sidebar/Default-Width (240 Compact), 32px search, 36px menu items. */
 .zen-sidebar[data-variant="small-density"] { --zen-sidebar-item-padding: var(--zen-spacing-padding-xsmall, 8px); --zen-sidebar-item-gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0; }
 .zen-sidebar[data-variant="small-density"] .zen-sidebar__surface { border-radius: 0; backdrop-filter: blur(40px); box-shadow: none; }
 /* Figma Header (5974:20593): 12px padding around a 20px row → 44px. The .Primitives/Sidebar/LOGO instance is the
@@ -175,6 +177,8 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar[data-variant="small-density"] .zen-sidebar__items { gap: 0; }
 .zen-sidebar[data-sidebar-density="small"] { --zen-sidebar-item-padding: var(--zen-spacing-padding-xsmall, 8px); --zen-sidebar-item-gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-sidebar[data-sidebar-density="small"] .zen-sidebar__item { min-height: 36px; }
+/* Section-Title 6044:81281 Density=Small: the title stays 32px high and pads Padding/XSmall at the sides. */
+.zen-sidebar[data-sidebar-density="small"] .zen-sidebar__item.zen-sidebar__section-item { min-height: 32px; padding-inline: var(--zen-spacing-padding-xsmall, 8px); }
 .zen-sidebar[data-variant="small-density"] .zen-sidebar__footer { padding: var(--zen-spacing-padding-small, 12px); }
 
 /* Patterns/Sidebar Density=Small on the Basic panel (AppShell pattern="grid", or variant="basic" density="small"): the
@@ -263,9 +267,10 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__footer-content > button { position: relative; }
 .zen-sidebar[data-collapsed="true"] .zen-sidebar__footer-content > button > span:not(.zen-icon) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-/* Figma Side-Bar/Master/Workspace: workspace rail + 260px child panel. */
-/* Workspace rail = the 40px (Compact) / 48px (Comfortable) avatar tile + 14px each side; the panel keeps its 272px. */
-.zen-sidebar[data-variant="workspace"] { --zen-sidebar-rail-width: calc(var(--zen-image-size-medium, 40px) + 28px); width: calc(var(--zen-sidebar-rail-width) + 272px); flex-basis: calc(var(--zen-sidebar-rail-width) + 272px); }
+/* Figma Side-Bar/Master/Workspace (4218:9166): workspace rail + the child panel (Main), Sidebar/Default-Width wide (240
+   Compact, 260 Comfortable), Gap/2XSmall after the rail; Padding/XSmall on the outer edge (8 + rail + 4 + panel).
+   Workspace rail = the 40px (Compact) / 48px (Comfortable) avatar tile + 14px each side. */
+.zen-sidebar[data-variant="workspace"] { --zen-sidebar-rail-width: calc(var(--zen-image-size-medium, 40px) + 28px); width: calc(var(--zen-sidebar-rail-width) + var(--zen-sidebar-default-width, 240px) + var(--zen-spacing-padding-xsmall, 8px) + var(--zen-spacing-gap-2-xsmall, 4px)); flex-basis: calc(var(--zen-sidebar-rail-width) + var(--zen-sidebar-default-width, 240px) + var(--zen-spacing-padding-xsmall, 8px) + var(--zen-spacing-gap-2-xsmall, 4px)); }
 .zen-sidebar__workspace-rail { display: flex; width: var(--zen-sidebar-rail-width, 68px); min-height: 0; flex: 0 0 var(--zen-sidebar-rail-width, 68px); flex-direction: column; overflow: hidden; border-radius: var(--zen-corner-radius-xlarge, 20px); background: var(--zen-color-background-surface-default, #fff); backdrop-filter: blur(40px); }
 .zen-sidebar__workspace-header { display: flex; min-height: 68px; align-items: center; justify-content: center; box-sizing: border-box; padding: var(--zen-margin-compact, 20px); }
 .zen-sidebar__workspace-body { display: flex; min-height: 0; flex: 1; flex-direction: column; align-items: center; padding: var(--zen-spacing-padding-small, 12px); }
@@ -275,7 +280,7 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
 .zen-sidebar__workspace-items .zen-sidebar__item { width: var(--zen-image-size-medium, 40px); min-height: var(--zen-image-size-medium, 40px); justify-content: center; padding: 0; border: 0; border-radius: var(--zen-corner-radius-base, 12px); box-shadow: 0 0 0 1px var(--zen-color-border-inverse, #fff); }
 .zen-sidebar__workspace-items .zen-sidebar__item-label, .zen-sidebar__workspace-items .zen-sidebar__item-dropdown { display: none; }
 .zen-sidebar__workspace-footer { display: flex; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-small, 12px); }
-.zen-sidebar__workspace-main { width: 260px; flex: 0 0 260px; }
+.zen-sidebar__workspace-main { width: var(--zen-sidebar-default-width, 240px); flex: 0 0 var(--zen-sidebar-default-width, 240px); }
 /* Figma Side-Bar/Sub: a Sidebar/Default-Width flyout OUTSIDE the sidebar's right edge (Spacing/Padding/XSmall away),
    inset XSmall top/bottom like the master surface. Basic: Popover surface + Effect/Popover, Corner-Radius/XLarge;
    Small-Density and Workspace: Popover fill + Background-Blur only, Corner-Radius/2XLarge. */

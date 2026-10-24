@@ -75,7 +75,7 @@ edit at once and block finishing a turn until the gate passed (not while your ow
 
 | Gate | Command |
 | --- | --- |
-| **Build-QA gate** | `npm run qa` (scope = this session's edits since its last pass; `--only=` exactly these pages, `--pages=` add pages, `--all`, `--keep-going` browser steps even after a static ✗) · `npm run qa:quick` while iterating |
+| **Build-QA gate** | `npm run qa` (scope = this session's edits since its last pass; `--only=` exactly these pages, `--pages=` add pages, `--all`, `--keep-going` browser steps even after a static ✗, `--failed` re-run only what failed when nothing changed) · `npm run qa:quick` while iterating |
 | Style tokens | `npm run style:check` (`--list`, `--all`, `--baseline-update`) · `npm run style:selftest` |
 | Types | `npx tsc --noEmit -p .` |
 | Usage harness | `npm run usage:selftest` · `npm run usage:check` (the CLI, ESLint plugin and app mode are checked by the selftest) |

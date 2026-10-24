@@ -113,6 +113,9 @@ type Drag = {
   cross: CrossFits;
   /** How many times the element renders (a .map row): every instance changes. */
   count: number;
+  /** The element's other rendered instances in its frame (a .map row), which the preview sizes as the write will, and
+   *  the inline styles it replaced on each (the pill says "all N": the canvas shows all N). */
+  copies: Array<{ host: HTMLElement; saved: Saved }>;
   /** A floating layout (position="absolute"): its pins and offsets at the press (CSS px from its containing block). */
   float: FloatAxes | null;
   /** The insets the drag moves (a pinned or stretched edge under the pointer), snapped. */
@@ -330,6 +333,14 @@ function useSourceElement(src: string | null, enabled: boolean): SourceElement |
   return read && read.src === src ? read.element : undefined;
 }
 
+/** The element's other rendered instances in its frame: the same element (data-zen-src) a .map draws again. */
+function copiesOf(host: HTMLElement): Array<{ host: HTMLElement; saved: Saved }> {
+  const raw = host.getAttribute("data-zen-src");
+  const frame = host.closest("[data-studio-frame]");
+  if (!raw || !frame) return [];
+  return [...frame.querySelectorAll<HTMLElement>(`[data-zen-src="${CSS.escape(raw)}"]`)].filter((element) => element !== host).map((element) => ({ host: element, saved: new Map() }));
+}
+
 function restore(host: HTMLElement, saved: Saved) {
   for (const [property, before] of saved) {
     if (before.value) host.style.setProperty(property, before.value, before.priority);
@@ -376,19 +387,22 @@ function preview(drag: Drag, values: Values) {
       if (list && drag.grid) setStyle(drag.grid.element, drag.grid.saved, "grid-template-columns", list);
       continue;
     }
-    fixAxis(drag.host, drag.saved, axis, `${value}px`, drag.mainAxis);
     const rule = drag.target[axis];
     const cap = axis === "width" ? "max-width" : "max-height";
-    // Only a cap relative to the parent (max-width: 100%): a px cap (a number Chip's 40px) also holds in the Stack.
-    if (rule && (rule.kind === "wrap" || rule.kind === "wrapper" || rule.kind === "fullWidth") && /%$/.test(drag.host.style.getPropertyValue(cap) || getComputedStyle(drag.host).getPropertyValue(cap))) setStyle(drag.host, drag.saved, cap, "none");
+    for (const { host, saved } of [{ host: drag.host, saved: drag.saved }, ...drag.copies]) {
+      fixAxis(host, saved, axis, `${value}px`, drag.mainAxis);
+      // Only a cap relative to the parent (max-width: 100%): a px cap (a number Chip's 40px) also holds in the Stack.
+      if (rule && (rule.kind === "wrap" || rule.kind === "wrapper" || rule.kind === "fullWidth") && /%$/.test(host.style.getPropertyValue(cap) || getComputedStyle(host).getPropertyValue(cap))) setStyle(host, saved, cap, "none");
+    }
   }
   // A floating layout's moved edges, at their snapped insets (on the floating Box that holds the layer, if any).
   for (const inset of drag.insets) setStyle(drag.floatBox?.element ?? drag.host, drag.floatBox?.saved ?? drag.saved, inset.css, `${inset.snap.px}px`);
 }
 
-/** The drag's preview styles go: the element's, the Grid's track list and the floating Box's insets. */
-function restoreDrag(drag: Pick<Drag, "host" | "saved" | "grid" | "floatBox">) {
+/** The drag's preview styles go: the element's (and its other instances'), the Grid's track list and the floating Box's insets. */
+function restoreDrag(drag: Pick<Drag, "host" | "saved" | "grid" | "floatBox" | "copies">) {
   restore(drag.host, drag.saved);
+  for (const copy of drag.copies) restore(copy.host, copy.saved);
   if (drag.grid) restore(drag.grid.element, drag.grid.saved);
   if (drag.floatBox) restore(drag.floatBox.element, drag.floatBox.saved);
 }
@@ -1171,7 +1185,7 @@ export function ResizeLayer({ box, hit, interactive, viewport, onPassContextMenu
     dragRef.current = {
       pointerId, captor, handle, start: { x: event.clientX, y: event.clientY }, last: { x: event.clientX, y: event.clientY, shift: event.shiftKey, alt: event.altKey, mod: event.metaKey || event.ctrlKey },
       scale, zoom, w0, h0, host, hit, element, target: shown, selection, parentWidth: contentWidth(parent), mainAxis,
-      values: {}, active: false, saved: new Map(), stack: false, min, cross, count,
+      values: {}, active: false, saved: new Map(), stack: false, min, cross, count, copies: count > 1 ? copiesOf(host) : [],
       float, insets: [], floatBox: float ? floatBox : null, snap: snapTo, guides: [], guidesShown: false,
       grid: shown.width?.kind === "column" && gridCellNow ? { element: gridCellNow.element, saved: new Map() } : null,
     };

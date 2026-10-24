@@ -131,6 +131,9 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
   opacity: 1;
 }
 
+/* .Primitives/Input/Cursor: Color/Background/Active/Neutral/Solid, as HeadingField and the Table cell editor. */
+.zen-input__native { caret-color: var(--zen-color-background-active-neutral-solid, #111); }
+
 /* Search uses the shared Search clear affordance. Do not let the browser paint
    its native gradient X on top of the tokenised input surface. */
 .zen-input__native[type="search"] { appearance: none; -webkit-appearance: none !important; background-image: none; }
@@ -146,7 +149,8 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 .zen-input__native--textarea:is(:read-only, :disabled) { resize: none; }
 
 /* Leading/Trailing slots hug their content (icon, label, picker, steppers, "results"…). The field size only
-   sets the icon size: Element-Size/Popular Small 16 · Base 20 · Medium 24 · Large 28. */
+   sets the icon size, as Field-Only (374:103464) picks its Leading-Trailing: Small → LT Small (Element-Size/Popular/Small
+   16), Medium and Large → LT Medium (Base 20), XLarge → LT Large (Popular/Medium 24). */
 .zen-input__affordance {
   --zen-input-affordance-icon: var(--zen-element-size-popular-base, 20px);
   display: inline-flex;
@@ -160,8 +164,10 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 }
 
 .zen-input-field[data-size="small"] .zen-input__affordance { --zen-input-affordance-icon: var(--zen-element-size-popular-small, 16px); }
-.zen-input-field[data-size="large"] .zen-input__affordance { --zen-input-affordance-icon: var(--zen-element-size-popular-medium, 24px); }
-.zen-input-field[data-size="xlarge"] .zen-input__affordance { --zen-input-affordance-icon: var(--zen-element-size-popular-large, 28px); }
+.zen-input-field[data-size="xlarge"] .zen-input__affordance { --zen-input-affordance-icon: var(--zen-element-size-popular-medium, 24px); }
+/* The Select chevron and the Date calendar are the Leading-Trailing's Dropdown / Elements glyph: Base 20 in an XLarge
+   field too (Input/Select-Field 421:7303, Input/Date-Field 421:8388). */
+.zen-input-field[data-size="xlarge"] .zen-input__affordance:has(> .zen-input__picker-icon) { --zen-input-affordance-icon: var(--zen-element-size-popular-base, 20px); }
 
 .zen-input__affordance > .zen-icon {
   width: var(--zen-input-affordance-icon);
@@ -275,23 +281,25 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
   border-radius: var(--zen-corner-radius-input-xlarge, 16px);
 }
 
+/* .Primitives/Input/Text-Area (421:9077): Text-Area/Size height; its Container binds the Input/Spacing padding and
+   Inside-Field-Gap of the same size (like Field-Only), with the content at the top. */
 .zen-input__control:has(.zen-input__native--textarea) {
   height: var(--zen-text-area-size-medium, 112px);
   align-items: stretch;
-  gap: var(--zen-text-area-spacing-medium-gap, 8px);
-  padding: var(--zen-text-area-spacing-medium-vertical-padding, 12px) var(--zen-text-area-spacing-medium-horizontal-padding, 12px);
+  gap: var(--zen-input-spacing-medium-inside-field-gap, 8px);
+  padding: var(--zen-input-spacing-medium-vertical-padding, 10px) var(--zen-input-spacing-medium-horizontal-padding, 12px);
 }
 
 .zen-input-field[data-size="small"] .zen-input__control:has(.zen-input__native--textarea) {
   height: var(--zen-text-area-size-small, 96px);
-  gap: var(--zen-text-area-spacing-small-gap, 8px);
-  padding: var(--zen-text-area-spacing-small-vertical-padding, 6px) var(--zen-text-area-spacing-small-horizontal-padding, 8px);
+  gap: var(--zen-input-spacing-small-inside-field-gap, 8px);
+  padding: var(--zen-input-spacing-small-vertical-padding, 6px) var(--zen-input-spacing-small-horizontal-padding, 8px);
 }
 
 .zen-input-field[data-size="large"] .zen-input__control:has(.zen-input__native--textarea) {
   height: var(--zen-text-area-size-large, 144px);
-  gap: var(--zen-text-area-spacing-large-gap, 8px);
-  padding: var(--zen-text-area-spacing-large-vertical-padding, 12px) var(--zen-text-area-spacing-large-horizontal-padding, 16px);
+  gap: var(--zen-input-spacing-large-inside-field-gap, 8px);
+  padding: var(--zen-input-spacing-large-vertical-padding, 12px) var(--zen-input-spacing-large-horizontal-padding, 16px);
 }
 
 /* Hover in Figma uses a 2px active border, even when the border token is transparent. */
@@ -374,6 +382,10 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 /* Field-Only State=Disabled puts its slots at Leading-Trailing Active=No (373:101815): plain slot icons (Search, Date
    calendar, Select chevron) turn Content/Disabled. */
 .zen-input-field[data-state="disabled"] .zen-input__affordance { color: var(--zen-color-content-disabled, #00000045); }
+/* State=Read-Only puts them at Active=No too (Field-Only, Select-Field and Date-Field Read-Only): Content/Disabled glyphs
+   and the Flag at 50%; the value itself stays Content/Neutral/Strongest. */
+.zen-input-field[data-state="read-only"] .zen-input__affordance { color: var(--zen-color-content-disabled, #00000045); }
+.zen-input-field[data-state="read-only"] .zen-input-leading-trailing > .zen-flag { opacity: .5; }
 
 .zen-input__control > select {
   appearance: none;
@@ -414,7 +426,7 @@ textarea.zen-heading-field__native { resize: none; overflow: hidden; }
 .zen-rich-text-editor-bar__group { display: inline-flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 /* Divider/Default rotated to a 1×40 vertical rule (Border/Neutral/Pale). */
 .zen-rich-text-editor-bar__divider { width: 1px; height: var(--zen-button-size-medium, 40px); flex: 0 0 1px; background: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
-.zen-control-bar-item { display: inline-flex; width: 40px; height: 40px; flex: 0 0 40px; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-small, 12px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-flat-default, transparent); color: var(--zen-color-content-neutral-strongest, #111); cursor: pointer; }
+.zen-control-bar-item { display: inline-flex; width: var(--zen-button-size-medium, 40px); height: var(--zen-button-size-medium, 40px); flex: 0 0 var(--zen-button-size-medium, 40px); align-items: center; justify-content: center; padding: var(--zen-spacing-padding-small, 12px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-flat-default, transparent); color: var(--zen-color-content-neutral-strongest, #111); cursor: pointer; }
 .zen-control-bar-item:hover, .zen-control-bar-item[data-state="hover"] { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
 .zen-control-bar-item[data-state="selected"][data-tone="subtle"] { background: var(--zen-color-background-active-neutral-subtle, rgb(1 1 1 / 6%)); }
 .zen-control-bar-item[data-state="selected"][data-tone="solid"] { background: var(--zen-color-background-active-neutral-solid, #111); color: var(--zen-color-content-inverse-strongest, #fff); }

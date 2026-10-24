@@ -2,7 +2,6 @@ import { useId, useMemo, useRef, useState } from "react";
 import { Avatar } from "../../../components/Avatar";
 import { Badge } from "../../../components/Badge";
 import { BadgeStatus } from "../../../components/BadgeStatus";
-import { BottomSheet } from "../../../components/BottomSheet";
 import { Button } from "../../../components/Button";
 import { Card } from "../../../components/Card";
 import { Chip } from "../../../components/Chip";
@@ -11,7 +10,6 @@ import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
 import { FileIcon, fileIconFormatOf } from "../../../components/FileIcon";
 import { Form, FormActions, FormFieldset } from "../../../components/Form";
-import { Icon } from "../../../components/Icon";
 import { Box, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
 import { Search } from "../../../components/Search";
@@ -274,7 +272,6 @@ function RepeatReminderExample() {
 function PhoneFiltersExample() {
   const screenRef = useRef<HTMLDivElement>(null);
   const [sort, setSort] = useState<SortId>("name");
-  const [sheet, setSheet] = useState(false);
   const [on, setOn] = useState<string[]>([]);
   const toggle = (id: string) => setOn((list) => list.includes(id) ? list.filter((item) => item !== id) : [...list, id]);
   const rows = useMemo(() => peopleList
@@ -285,9 +282,10 @@ function PhoneFiltersExample() {
     // The whole studio is listed, so the screen scrolls and the large title folds under the bar.
     <PlatformPhone label="Team" headerOverlay screenRef={screenRef} header={<TopNavigation type="alt" title="Team" largeTitle="Team" scrollRef={screenRef} />}>
       <Stack gap="md" paddingY="xs">
-        {/* One row that scrolls sideways; Sort opens an Action Bottom Sheet instead of a Popover. */}
+        {/* One row that scrolls sideways; on a phone Sort's items open in a Bottom Sheet by themselves, not a Popover. */}
         <Stack direction="row" gap="xs" scroll="x" paddingX="lg" paddingY="2xs" role="group" aria-label="Filters">
-          <Chip variant="advanced" aria-haspopup="dialog" aria-expanded={sheet} popoverOpen={sheet} onClick={() => setSheet(true)}>
+          <Chip variant="advanced" popoverLabel="Sort by" popoverItems={sorts.map((item) => ({ id: item.id, label: item.label, selected: item.id === sort }))}
+            onPopoverSelect={(item) => setSort(item.id as SortId)}>
             {`Sort: ${sortLabel}`}
           </Chip>
           {quickFilters.map((filter) => (
@@ -316,15 +314,6 @@ function PhoneFiltersExample() {
           )}
         </Stack>
       </Stack>
-      <BottomSheet inline open={sheet} onOpenChange={setSheet} title="Sort by">
-        <List aria-label="Sort by">
-          {sorts.map((item) => (
-            <ListItem key={item.id} title={item.label} selected={item.id === sort}
-              trailing={item.id === sort ? <Icon name="icon-check-line" size="base" decorative /> : undefined}
-              onClick={() => { setSort(item.id); setSheet(false); }} />
-          ))}
-        </List>
-      </BottomSheet>
     </PlatformPhone>
   );
 }
@@ -459,15 +448,18 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Filters on a phone",
-    description: "On a phone the chips sit in one row that scrolls sideways above the whole team. Quick filters are Normal toggles, and Sort opens a Bottom Sheet with a List instead of a Popover. The count updates and an empty result offers Clear filters.",
+    description: "On a phone the chips sit in one row that scrolls sideways above the whole team. Quick filters are Normal toggles, and Sort's items open in a Bottom Sheet by themselves (a phone gets a sheet, not a Popover), the picked one Selected with a check. The count updates and an empty result offers Clear filters.",
     render: () => <PhoneFiltersExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone headerOverlay screenRef={screenRef}
   header={<TopNavigation type="alt" title="Team" largeTitle="Team" scrollRef={screenRef} />}>
   <div className="chip-row" role="group" aria-label="Filters"> {/* overflow-x: auto; nowrap */}
-    <Chip variant="advanced" aria-haspopup="dialog" aria-expanded={sheet} popoverOpen={sheet}
-      onClick={() => setSheet(true)}>{\`Sort: \${sortLabel}\`}</Chip>
+    {/* On a phone the items open in a Bottom Sheet titled "Sort by"; a pick closes it. */}
+    <Chip variant="advanced" popoverLabel="Sort by" onPopoverSelect={(item) => setSort(item.id)}
+      popoverItems={sorts.map((item) => ({ id: item.id, label: item.label, selected: item.id === sort }))}>
+      {\`Sort: \${sortLabel}\`}
+    </Chip>
     {quickFilters.map((filter) => (
       <Chip key={filter.id} variant="normal" level="secondary"
         selected={on.includes(filter.id)} onClick={() => toggle(filter.id)}>{filter.label}</Chip>
@@ -477,15 +469,6 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     <Box paddingX="lg"><Text role="status" textStyle="Body/Small/Regular" tone="base">{plural(rows.length, "person", "people")}</Text></Box>
     <Box paddingX="lg"><List aria-label="People">{/* Avatar rows (padding 0): the screen margin insets them */}</List></Box>
   </Stack>
-  <BottomSheet inline open={sheet} onOpenChange={setSheet} title="Sort by">
-    <List aria-label="Sort by">
-      {sorts.map((item) => (
-        <ListItem key={item.id} title={item.label} selected={item.id === sort}
-          trailing={item.id === sort ? <Icon name="icon-check-line" size="base" decorative /> : undefined}
-          onClick={() => { setSort(item.id); setSheet(false); }} />
-      ))}
-    </List>
-  </BottomSheet>
 </PlatformPhone>`,
   },
   {
