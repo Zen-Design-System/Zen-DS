@@ -104,6 +104,7 @@ npm run qa                        # scope = UI files this session edited since i
 npm run qa -- --only=card,chip    # exactly these pages (ignores the pages inferred from the ledger)
 npm run qa -- --pages=card        # add pages the mapping could not infer (it tells you when)
 npm run qa -- --keep-going        # still run the browser steps when a static gate failed
+npm run qa -- --failed            # after a failing run, nothing edited since: re-run only what failed (a flaky shard or row)
 npm run qa -- --all               # every page: tier L (AGENTS.md §C)
 ```
 

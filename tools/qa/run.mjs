@@ -10,6 +10,9 @@
  *                                     spacing scale, platform shell)
  *   npm run qa -- --since=90          add every UI file modified in the last 90 minutes (or --since=<ISO time>)
  *   npm run qa -- --keep-going        run the browser steps even when a static gate failed (default: skip them)
+ *   npm run qa -- --failed            after a failing run, with nothing in its scope edited since: re-run only what failed
+ *                                     (a flaky shard or E2E row): the browser steps on the pages that had an error or no
+ *                                     report, the Studio E2E only if it failed; TypeScript, contracts and Vitest stay passed
  *   npm run qa -- --isolated          run the browser steps on a private dev server (port 5200+, no HMR, no Studio
  *                                     drafts); used by itself when the shared server does not answer
  *   npm run qa -- --quick             fast loop while building: static gates + audit at 1512 (never counts as a pass)
@@ -48,7 +51,7 @@ import { spawnSync, spawn } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   INTERACTION_FOLDERS, LABELS_FILE, PAGE_SECONDS, REPRESENTATIVE, TOKEN_STYLE_FILES, allPages, auxKind, contractSuites, dirtyFiles,
-  e2eRowSeconds, guidelineOwners, guidelineSlugOf, isExampleSource, markPassed, pageEstimator, pageSeconds, pagesForEdit, pendingAux,
+  e2eRowSeconds, guidelineOwners, guidelineSlugOf, isExampleSource, markPassed, pageEstimator, pageSeconds, pagesForEdit, pendingAux, retryPagesFrom,
   pendingEdits, planE2E, planShards, primaryPages, readLedger, readTimings, sha1File, shardCapS, sheetsToReview, tokenScope, uiKind,
   writeLedger, writeTimings,
 } from "./lib.mjs";
@@ -140,6 +143,26 @@ if (!files.length && !aux.length && !pages.size) {
   process.exit(0);
 }
 const P = [...pages];
+// --failed (process audit B.2, the user 2026-10-24): after a failing full run, with nothing in its scope edited since, re-run
+// only what failed. TypeScript, the Figma contracts and Vitest keep their pass (the other static gates are quick and run
+// again); the browser steps run on the pages that had an error or wrote no report; the Studio E2E only when it failed. A
+// pass then completes the last run, so its files count as passed.
+const RETRY = (() => {
+  if (!flag("failed")) return null;
+  const last = SESSION ? (ledger.runs ?? []).at(-1) : null;
+  let report = null; try { report = last?.report ? JSON.parse(fs.readFileSync(path.join(root, last.report.replace(/\.md$/, ".json")), "utf8")) : null; } catch { /* gone */ }
+  const scope = new Set([...(last?.files ?? []), ...(last?.aux ?? [])]);
+  const editedAt = (f) => Math.max(ledger.files?.[f]?.editedAt ?? 0, ledger.aux?.[f]?.editedAt ?? 0);
+  const edited = last ? [...files, ...aux].filter((f) => !scope.has(f) || editedAt(f) > last.at) : [];
+  const why = !SESSION ? "no session" : !last ? "no earlier run in this session" : last.ok ? "the last run passed" : !last.full ? "the last run was not a full run"
+    : !report ? "the last run's report is gone" : edited.length ? `${edited.length} file(s) edited since the last run: ${brief(edited, 4)}` : null;
+  if (why) { notes.push(`--failed: running everything (${why})`); return null; }
+  const lastStamp = new Date(last.at).toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  notes.push(`--failed: re-running what failed in the last run (${new Date(last.at).toLocaleString("en-GB")}): ${(last.failed ?? []).join(", ") || "—"}`);
+  return { last, steps: report.steps ?? [], runDir: path.join(root, ".qa", "runs", `${lastStamp}-${SESSION.slice(0, 8)}`) };
+})();
+/** A static step that passed in the last run and is not re-run under --failed (its name, or the start of it). */
+const passedBefore = (prefix) => Boolean(RETRY?.steps.some((x) => x.group === "static" && x.status === "pass" && x.name.startsWith(prefix)));
 // Token fast path: only token values changed (no scale token, no other UI file). Consumers pick the new values up by
 // themselves, so behaviour, smoke clicks and TypeScript cannot change; what can is contrast (colours) and fit, overflow
 // and concentric corners (sizes). Figma suites of the consumers and tokens:check still run. `npm run tokens:build`
@@ -232,6 +255,7 @@ say("\n① Static gates");
 const staticJobs = [], serialJobs = []; // heavy static gates run beside the cheap synchronous ones; --serial runs them one by one
 const addJob = (fn) => { if (SERIAL) serialJobs.push(fn); else staticJobs.push(fn()); };
 if (TOKEN_ONLY) step("static", "TypeScript", "skip", "token-only change");
+else if (passedBefore("TypeScript")) step("static", "TypeScript", "skip", "passed in the last run (--failed)");
 else addJob(async () => {
   const r = await runAsync("npx", ["tsc", "--noEmit", "-p", "."]);
   step("static", "TypeScript", r.code === 0 ? "pass" : "fail", r.code === 0 ? "" : "type errors", r.code === 0 ? [] : tail(r.out, /error TS/));
@@ -325,6 +349,7 @@ addJob(async () => {
   const inScope = new Set([...compFolders, ...(tokens?.folders ?? [])]);
   const everything = ALL || auxHas(/^tools\/figma-contract\//) || SHARED_LOGIC;
   if (QUICK) step("static", "Figma contracts", "skip", "quick run");
+  else if (passedBefore("Figma contracts")) step("static", "Figma contracts", "skip", "passed in the last run (--failed)");
   else if (everything) {
     const r = await runAsync(process.execPath, ["tools/figma-contract/run-all.mjs"], 900000);
     step("static", "Figma contracts (all suites)", r.code === 0 ? "pass" : "fail", `${ALL ? "--all" : auxHas(/^tools\/figma-contract\//) ? "tools/figma-contract changed" : "_shared changed"}${r.code === 0 ? "" : " — a component no longer matches its Figma contract"}`, r.code === 0 ? [] : tail(r.out, /✗|FAIL|mismatch/i));
@@ -360,6 +385,7 @@ if (!QUICK && fs.existsSync(path.join(root, "node_modules/.bin/vitest"))) addJob
   const hint = "npm test fails (after a deliberate a11y fix: ZEN_UPDATE_AXE=1 npm test -- tests/smoke)";
   const failRe = /FAIL|×|AssertionError|expected|Error:/;
   const counted = (out) => out.replace(/\x1b\[[0-9;]*m/g, "").match(/Test Files\s+([^\n]*)/)?.[1]?.trim() ?? "";
+  if (passedBefore("Browser tests")) { step("static", name, "skip", "passed in the last run (--failed)"); return; }
   const full = ALL || auxHas(/^tests\//) || SHARED_LOGIC;
   const related = [...new Set([...files.filter((f) => /^src\/components\//.test(f)), ...(tokens?.consumers ?? []).map((c) => c.file).filter((f) => /^src\/components\//.test(f))])];
   if (full) {
@@ -415,6 +441,10 @@ const studioDrafts = serverUp ? await (async () => {
 // The audit's error kinds (audit.mjs SEVERITY, plus playground and smoke); the platform-audit self-test checks they match.
 const ERROR_KINDS = new Set(["errors", "overflow", "counts", "images", "names", "nesting", "surfaces", "edges", "sizes", "typography", "device", "outline", "playground", "smoke", "scale", "hierarchy", "density", "fit", "card-gap", "legend-column", "clip"]);
 const auditItems = (report) => { const errs = [], warns = []; for (const [key, entry] of Object.entries(report?.pages ?? {})) for (const [kind, items] of Object.entries(entry)) for (const item of items) (ERROR_KINDS.has(kind) ? errs : warns).push(`[${kind}] ${key}: ${item}`); return { errs, warns }; };
+// The pages the browser steps run on: all of them, or under --failed the pages that had an error or no report last time
+// ([] when the last run's browser steps all passed; all of them when they never ran).
+let RP = P;
+const retryPages = () => (RETRY ? retryPagesFrom({ steps: RETRY.steps, runDir: RETRY.runDir, pages: P, errorKinds: ERROR_KINDS, behaviour: fs.existsSync(path.join(root, "tools/platform-audit/behaviour.mjs")) }) : P);
 const sheets = [];
 let review = { required: [], optional: [], unchanged: [], overwritten: [] };
 const skipped = [];
@@ -425,14 +455,16 @@ if (failFast) {
   step("runtime", "Page mapping", "fail", "the edited UI files could not be mapped to a platform page, so nothing was rendered — re-run with --pages=<ids> (see the notes above)");
 } else if (P.length && !serverUp) {
   step("runtime", "Dev server", "fail", `${BASE} does not answer — start it (preview_start "zen-platform", or npm run dev in Zen-DS) and re-run`);
+} else if (P.length && !(RP = retryPages()).length) {
+  step("runtime", "Browser steps", "skip", "passed in the last run (--failed)");
 } else if (P.length) {
-  say("\n② Runtime audit");
+  say(`\n② Runtime audit${RP.length < P.length ? ` (--failed: ${RP.length} of ${P.length} page(s))` : ""}`);
   if (studioDrafts.length) {
     const lines = studioDrafts.map((d) => `${d.file} (+${d.changedLines?.added ?? 0} −${d.changedLines?.removed ?? 0}${files.includes(d.file) ? ", a file you edited" : ""})`);
     step("runtime", "Unsaved Zen Studio drafts", "warn", `${studioDrafts.length} file(s) on ${BASE} render from an unsaved Studio draft, not the disk: the browser checks and contact sheets show those drafts (Save or Discard them in the Studio toolbar's Unsaved list)`, lines);
   }
   const main = path.join(runDir, "audit.json");
-  const args = ["tools/platform-audit/audit.mjs", `--url=${BASE}`, `--pages=${P.join(",")}`, `--out=${main}`, "--quality"];
+  const args = ["tools/platform-audit/audit.mjs", `--url=${BASE}`, `--pages=${RP.join(",")}`, `--out=${main}`, "--quality"];
   if (QUICK) args.push("--viewports=1512", "--no-playground");
   // 320 (a small phone, the user 2026-10-16): what 390 hides — labels that overlap, rows that no longer fit.
   else if (TOKEN_ONLY) args.push("--viewports=1512,390,320", ...(TOKEN_SIZES ? ["--density"] : []));
@@ -442,9 +474,9 @@ if (failFast) {
   const behOut = path.join(runDir, "behaviour.json");
   const withBeh = !QUICK && !TOKEN_ONLY && fs.existsSync(behScript);
   runtimePool = makePool(SERIAL ? 1 : SHARDS * (QUICK ? 1 : withBeh ? 3 : 2));
-  const jobMain = launchSharded(QUICK ? "audit-quick" : TOKEN_ONLY ? "audit-token" : "audit", process.execPath, args, P, main);
-  const jobDark = QUICK ? null : launchSharded("dark", process.execPath, ["tools/platform-audit/audit.mjs", `--url=${BASE}`, `--pages=${P.join(",")}`, "--viewports=1512", "--dark", "--no-playground", "--quality", `--out=${darkOut}`], P, darkOut);
-  const jobBeh = withBeh ? launchSharded("behaviour", process.execPath, [behScript, `--url=${BASE}`, `--pages=${P.join(",")}`, `--out=${behOut}`], P, behOut) : null;
+  const jobMain = launchSharded(QUICK ? "audit-quick" : TOKEN_ONLY ? "audit-token" : "audit", process.execPath, args, RP, main);
+  const jobDark = QUICK ? null : launchSharded("dark", process.execPath, ["tools/platform-audit/audit.mjs", `--url=${BASE}`, `--pages=${RP.join(",")}`, "--viewports=1512", "--dark", "--no-playground", "--quality", `--out=${darkOut}`], RP, darkOut);
+  const jobBeh = withBeh ? launchSharded("behaviour", process.execPath, [behScript, `--url=${BASE}`, `--pages=${RP.join(",")}`, `--out=${behOut}`], RP, behOut) : null;
   // A job's shard count, and the shards that wrote no report (each one fails the step).
   const shardNote = (x) => `${x.shards > 1 ? ` · ${x.shards} shards` : ""}${x.trouble.length ? ` · ${x.trouble.length} shard(s) without a report` : ""}`;
   const shardItems = (x) => x.trouble.map((t) => `✗ ${t}`);
@@ -483,7 +515,9 @@ if (failFast) {
 // "no summary". Its rows now run in shards one after another (they share the save fixture), each planned at about 10 min
 // from the last run's seconds per row (lib.mjs planE2E), with a --budget after which a shard starts no row (those are
 // reported as not run, a ✗) and a hard stop 10 min later; one combined report and regression list come out.
-if (studioInScope && !staticFailed.length) {
+if (studioInScope && !staticFailed.length && RETRY?.steps.some((x) => x.name.startsWith("Studio E2E") && x.status === "pass")) {
+  step("runtime", "Studio E2E (feature matrix)", "skip", "passed in the last run (--failed)");
+} else if (studioInScope && !staticFailed.length) {
   say("\n② Studio E2E");
   const t0 = Date.now();
   const e2e = "tools/studio/e2e/run.mjs";
@@ -578,11 +612,12 @@ if (known.length) step("coverage", `${known.length} page${known.length === 1 ? "
 else if (!coverage.some((x) => examplePages.has(x.page))) step("coverage", "Example matrix", "skip", "no example source edited for the pages in scope");
 
 /* ── ⑤ screenshots ──────────────────────────────────────────────────────────────────────────────────────────────── */
-if (!QUICK && serverUp && P.length && !failFast) {
+if (RETRY && P.length && !RP.length && !failFast) step("visual", "Contact sheets", "skip", "no page re-run (--failed): the last run's sheets stand");
+else if (!QUICK && serverUp && P.length && !failFast) {
   say("\n⑤ Screenshots to review");
   // One folder per session (backlog batch C): sessions running the gate at once no longer overwrite each other's sheets.
   const shots = path.join(root, ".platform-shots", SESSION ? String(SESSION).slice(0, 8) : "manual");
-  for (const page of P) for (const width of [1512, 390]) {
+  for (const page of RP) for (const width of [1512, 390]) {
     run(process.execPath, ["tools/platform-audit/shoot.mjs", page, `--width=${width}`, `--url=${BASE}`, `--out=${shots}`], 600000);
     const sheet = path.join(shots, `${page}-${width}.png`);
     let mtime = 0; try { mtime = fs.statSync(sheet).mtimeMs; } catch { /* not shot */ }
