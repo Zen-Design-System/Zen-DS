@@ -31,8 +31,8 @@ export default {
     { figma: "Container", dom: ".zen-date-picker__day > span", check: ["fill"], when: (vp) => !atRest(vp) },
     // Weekend-Hover darkens the label to Strongest on hover only.
     { figma: "Container > Label", dom: ".zen-date-picker__day > span", check: ["text"], when: (vp) => vp.State !== "Blank" && vp.State !== "Weekend-Hover" },
-    { figma: "Container > Event", dom: ".zen-date-picker__day > i", check: [], when: (vp, props) => vp.State !== "Blank" && !props.event },
-    { figma: "Container > Event", dom: ".zen-date-picker__day > i", check: ["size", "x", "y"], forceVisible: true, when: (vp, props) => Boolean(props.event) },
-    { figma: "Container > Event > Event", dom: ".zen-date-picker__day > i", check: ["fill", "radius"], when: (vp, props) => Boolean(props.event) },
+    { figma: "Container > Event", dom: ".zen-date-picker__day .zen-date-picker__events > i", check: [], when: (vp, props) => vp.State !== "Blank" && !props.event },
+    { figma: "Container > Event", dom: ".zen-date-picker__day .zen-date-picker__events > i", check: ["size", "x", "y"], forceVisible: true, when: (vp, props) => Boolean(props.event) },
+    { figma: "Container > Event > Event", dom: ".zen-date-picker__day .zen-date-picker__events > i", check: ["fill", "radius"], when: (vp, props) => Boolean(props.event) },
   ],
 };

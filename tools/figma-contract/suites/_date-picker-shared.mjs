@@ -88,7 +88,7 @@ export function tableMap(route, scope, { t = 0, when = () => true, size = ["size
         { figma: day, dom: cell, check: [...size, "fill"], when: has },
         { figma: `${day} > Container`, dom: `${cell} > span`, check: ["fill", "radius", "stroke"], strokeVia: "shadow", when: has },
         { figma: `${day} > Container > Label`, dom: `${cell} > span`, check: ["text"], when: (vp, props) => has(vp, props) && state(props, r, c) !== "Blank" },
-        { figma: `${day} > Container > Event|.Primitives/Date-Picker/Item/Event-List`, dom: `${cell} > i`, check: [], when: (vp, props) => has(vp, props) && props.hiddenEvents?.[t]?.[r]?.[c] },
+        { figma: `${day} > Container > Event|.Primitives/Date-Picker/Item/Event-List`, dom: `${cell} .zen-date-picker__events > i`, check: [], when: (vp, props) => has(vp, props) && props.hiddenEvents?.[t]?.[r]?.[c] },
       );
     }
   }
