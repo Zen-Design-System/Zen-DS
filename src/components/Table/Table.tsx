@@ -336,6 +336,7 @@ function TableCellEditorView<T>({ editor, row, initial, align, content, looks, o
         <span className={`zen-table-editor__value ${typographyStyles["Body/Base/Medium"]}`}>{currentLabel}</span>
         <Icon name="icon-chevron-up-line" decorative />
         <EditorLayer>
+          {/* zen-allow-overrides: the Table passes the Badge overrides Zen Studio wrote on its rows on to each option's Badge. */}
           <Popover className="zen-table-editor__popover" open={open} anchorRef={fieldRef} autoFocus search searchPlaceholder={t.searchOptions} searchValue={query} onSearchChange={setQuery}
             align={align === "right" ? "end" : "start"} style={{ minWidth: fieldRef.current?.offsetWidth }} emptyState={t.noOptionMatches(query)}
             onKeyDown={(event) => {
