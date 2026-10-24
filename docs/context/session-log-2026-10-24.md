@@ -317,3 +317,23 @@ The guidelines said `minmax(0, 320px)`, so agents kept copying 320. Made a lasti
   Example B4 Draft with Leading-Icon off (BACKLOG P3, the designer's file).
 - Guideline-only parts: help / notifications contents of the top row, a Search in its centre, a status icon per step
   (BadgeStatus covers workflow steps), Table badge icons when the column is computed.
+
+## Metric Dock Icons, the priority palette, a harness false positive (same PR #282)
+
+- **Harness fix** (reported by the prototype session): `expr(attrs, name)` matched `name={` anywhere in the opening tag,
+  so `app-shell/primary-in-top-bar` read a PageHeader's `actions` inside `main` as the header's own. `expr` now reads
+  the element's own attributes only (`ownExpr`); findings on src, tools/studio, fixtures, examples before / after:
+  377 / 377 (no other rule relied on the nested match). Repro is a clean case in fixtures/good.tsx.
+- **MetricCard Dock Icon** ("Dock icon dùng trong các metric card nên có màu tương ứng", "metric card dùng dock icon
+  solid"): harness `metric/dock-icon-by-meaning` (warn; label total / in progress / overdue / done needs
+  iconBackground="solid" + accent / blue / red / green; tiles, icon={false} and emoji skipped). Figma audit same id
+  (any Subtle Metric-Icon, theme by meaning). Fixed rows in chart, layout (live + sample), skeleton, tabs,
+  visually-hidden (live + sample): every card of the row solid, Overdue red, Done green, Due today yellow. Figma's
+  Metric-Card KPI default is Neutral Subtle, as code: the default question is in BACKLOG (P2).
+- **Priority palette** ("badge ưu tiên trung bình nên đồng bộ dùng yellow thay vì orange"): harness `priority/palette`
+  (warn; Badge theme for a literal level, "Normal" skipped on Badges; PropertySelect literal options with two or more
+  levels: tone + icon). Figma audit same id. Fixed: platform data High orange → red; HR data High → red / negative,
+  Medium → yellow / warning; Input page, PropertyField stories and the Studio palette sample → icon-flag-03-solid with
+  tones negative / negative / warning / neutral (Urgent / High / Normal / Low). Urgent stays red like High.
+- Figma read-only: priority Badges clean on HR-Platform, Master-Layout Example, Finance; Master-Layout Example E2, F1,
+  F2: 10 Subtle Metric-Cards (BACKLOG P3 line).

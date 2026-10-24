@@ -30,6 +30,12 @@ export const Bad = () => <>
   <AppShell sidebar={nav} header={<AppShellHeader main={<PageHeader title="Tasks" />} />}>{page}</AppShell>
   {/* expect: app-shell/top-row-filled */}
   <AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} actions={<><Menu aria-label="Account" trigger={<AppShellAccount name="Ava Chen" />} items={accountItems} /><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} onClick={openNotifications} /></>} />
+  {/* expect: metric/dock-icon-by-meaning */}
+  <MetricCard theme="default" label="Overdue" value="$12.9K" icon="icon-alarm-clock-line" iconTheme="orange" />
+  {/* expect: priority/palette */}
+  <Badge theme="orange" background="subtle" leading="icon-flag-03-solid">Medium</Badge>
+  {/* expect: priority/palette */}
+  <PropertyField label="Priority" icon="icon-flag-01-line"><PropertySelect options={[{ value: "high", label: "High", icon: "icon-flag-01-solid", tone: "warning" }, { value: "low", label: "Low", icon: "icon-flag-03-solid", tone: "neutral" }]} /></PropertyField>
   {/* expect: search/toolbar-width */}
   <Stack direction="row" gap="xs" align="center"><Search placeholder="Search tasks" /><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></Stack>
   {/* expect: search/toolbar-width */}

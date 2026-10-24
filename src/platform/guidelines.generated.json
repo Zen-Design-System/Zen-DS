@@ -531,7 +531,7 @@
       ],
       [
         "Property-Value Type",
-        "PropertyText · PropertySelect (options with icon + tone) · PropertyStatus (BadgeStatus; statuses, labels, progress) · PropertyDate (format) · PropertyPeople (single) · PropertyTags (onCreate)",
+        "PropertyText · PropertySelect (options with icon + tone; priority: icon-flag-03-solid, tone negative / warning / neutral for High / Medium / Low, harness priority/palette) · PropertyStatus (BadgeStatus; statuses, labels, progress) · PropertyDate (format) · PropertyPeople (single) · PropertyTags (onCreate)",
         "value / defaultValue / onValueChange each; placeholder (\"Empty\"), readOnly, state (default · inputted · hover · editing, only to draw a fixed state)"
       ]
     ],
@@ -648,6 +648,12 @@
         "severity": "error",
         "summary": "RichTextField reports content through onValueChange(html, text); it has no onChange(event).",
         "allow": "richtext-onchange"
+      },
+      {
+        "id": "priority/palette",
+        "severity": "warn",
+        "summary": "Priority has one palette: Urgent and High red (tone negative), Medium yellow (warning), Low neutral, each led by icon-flag-03-solid; on a Badge (theme) and on PropertySelect options (tone, icon).",
+        "allow": "priority-palette"
       },
       {
         "id": "property-field/one-value",
@@ -1380,7 +1386,7 @@
       "Show a workflow step with BadgeStatus, never a Badge themed by hand: the step sets the colour and the ring, so every screen reads one workflow the same way (harness: badge/workflow-status-uses-badge-status).",
       "Keep one workflow per product, in order: To Do → In Progress → In Review → Done; Blocked and Cancelled sit outside it. Rename a step only by its label (children), never by repainting another step.",
       "Pass progress only when you know the exact share of the work done (a project at 60%); otherwise the step's own ring says enough.",
-      "Lead a priority badge (Urgent, High, Medium, Low) with the solid flag, leading=\"icon-flag-03-solid\" (Figma .Task/Priority), its theme by the level; keep a status badge's leading icon (the dot, or an icon per state) — the user 2026-10-24 (harness: badge/status-priority-icon)."
+      "Lead a priority badge (Urgent, High, Medium, Low) with the solid flag, leading=\"icon-flag-03-solid\" (Figma .Task/Priority), in the one priority palette: Urgent and High red, Medium yellow, Low neutral — the same everywhere, PropertySelect tones negative / warning / neutral (harness: priority/palette); keep a status badge's leading icon (the dot, or an icon per state) — the user 2026-10-24 (harness: badge/status-priority-icon)."
     ],
     "dont": [
       "Don't make a badge clickable (use Chip).",
@@ -1451,6 +1457,12 @@
         "severity": "warn",
         "summary": "A priority badge (Urgent, High, Medium, Low) leads with the solid flag, leading=\"icon-flag-03-solid\" (Figma .Task/Priority); a status badge (Active, Paid, Overdue…) keeps its leading icon: the dot, or an icon per state, never leadingIcon={false}.",
         "allow": "badge-status-icon"
+      },
+      {
+        "id": "priority/palette",
+        "severity": "warn",
+        "summary": "Priority has one palette: Urgent and High red (tone negative), Medium yellow (warning), Low neutral, each led by icon-flag-03-solid; on a Badge (theme) and on PropertySelect options (tone, icon).",
+        "allow": "priority-palette"
       },
       {
         "id": "badge/count-text-uses-counter",
@@ -6109,6 +6121,7 @@
     "keyboard": [],
     "do": [
       "Format the value with units and separators (harness: metric/formatted-value).",
+      "Give a MetricCard's Dock Icon iconBackground=\"solid\" and the colour of what it counts: total accent, in progress blue, overdue red, done green (the user 2026-10-24: \"metric card dùng dock icon solid\"; harness: metric/dock-icon-by-meaning for the status cards).",
       "Give a typed MetricCard the data its type draws: series, goal, comparison or categories (harness: metric/type-data).",
       "Pass categories largest first and keep them to 2–7 (harness: metric/category-count).",
       "Pass format so the series summary, the goal's label and the category amounts read like the number (\"$105.7K\", \"1,284 h\").",
@@ -6120,6 +6133,7 @@
     ],
     "dont": [
       "Don't colour the number itself to show good/bad — the trend badge carries it.",
+      "Don't leave a status card's Dock Icon (total, in progress, overdue, done) at the default Neutral Subtle.",
       "Don't show more than ~4 KPI cards in a row; group or prioritise.",
       "Don't round away meaningful precision in finance values.",
       "Don't give every tile a different colour for decoration, or rely on the icon colour alone for good/bad; the trend badge carries the status."
@@ -6184,6 +6198,12 @@
         "severity": "warn",
         "summary": "Metric values are passed pre-formatted with units and separators (\"$1,680.68\", \"2.1%\"), never a raw number.",
         "allow": "metric-format"
+      },
+      {
+        "id": "metric/dock-icon-by-meaning",
+        "severity": "warn",
+        "summary": "A MetricCard that stands for a status shows a solid Dock Icon in its colour: iconBackground=\"solid\" with iconTheme accent for a total, blue for in progress, red for overdue, green for done; never the default Neutral Subtle.",
+        "allow": "metric-icon-meaning"
       },
       {
         "id": "metric/type-data",

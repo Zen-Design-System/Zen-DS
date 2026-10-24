@@ -14,11 +14,16 @@ export const Good = () => <>
   <InputField aria-label="Share link" readOnly value={link} />
   <InputField {...sharedFieldProps} />
   <Search placeholder="Search components" />
+  <MetricCard theme="default" label="Overdue" value="$12.9K" icon="icon-alarm-clock-line" iconTheme="red" iconBackground="solid" />
+  <Badge theme="yellow" background="subtle" leading="icon-flag-03-solid">Medium</Badge>
+  <PropertyField label="Priority" icon="icon-flag-01-line"><PropertySelect options={[{ value: "high", label: "High", icon: "icon-flag-03-solid", tone: "negative" }, { value: "low", label: "Low", icon: "icon-flag-03-solid", tone: "neutral" }]} /></PropertyField>
   <List aria-label="Settings"><ListItem title="Calendar" leading={<DockIcon icon="icon-calendar-line" size="md" background="subtle" />} /></List>
   <Badge theme="red" background="subtle" leading="icon-flag-03-solid">Urgent</Badge>
   <Badge theme="green" background="subtle">Paid</Badge>
   <Table aria-label="Tasks" rows={tasks} columns={[{ id: "title", header: "Task" }, { id: "priority", header: "Priority", cell: (task) => <TableBadges><Badge theme="red" background="subtle" leading="icon-flag-03-solid">{task.priority}</Badge></TableBadges> }]} />
   <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader main={<PageHeader title="Tasks" />} />}>{page}</AppShell>
+  {/* The Main row's PageHeader actions are its own: app-shell/primary-in-top-bar reads only the header's own actions. */}
+  <AppShellHeader main={<PageHeader title="Tasks" actions={<Button level="primary" onClick={addTask}>New task</Button>} />} leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} />
   <AppShell sidebar={nav} header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} actions={<><AppShellAction icon="icon-help-circle-line" aria-label="Help" onClick={openHelp} /><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} onClick={openNotifications} /><Menu aria-label="Account" trigger={<AppShellAccount name="Ava Chen" />} items={accountItems} /></>} />}>{page}</AppShell>
   <Stack direction="row" gap="xs" align="center"><Box width="fill" maxWidth={240}><Search placeholder="Search tasks" /></Box><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></Stack>
   <Grid columns={{ mobile: 1, desktop: "minmax(0, 240px) 1fr" }} gap="sm"><Search placeholder="Search members" /><Chip variant="advanced" dropdown popoverItems={items}>Role</Chip></Grid>

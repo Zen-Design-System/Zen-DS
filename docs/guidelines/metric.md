@@ -126,6 +126,7 @@ type MetricTrendDirection = "positive" | "negative" | "normal"
 
 ## ✅ Do
 - Format the value with units and separators (harness: metric/formatted-value).
+- Give a MetricCard's Dock Icon iconBackground="solid" and the colour of what it counts: total accent, in progress blue, overdue red, done green (the user 2026-10-24: "metric card dùng dock icon solid"; harness: metric/dock-icon-by-meaning for the status cards).
 - Give a typed MetricCard the data its type draws: series, goal, comparison or categories (harness: metric/type-data).
 - Pass categories largest first and keep them to 2–7 (harness: metric/category-count).
 - Pass format so the series summary, the goal's label and the category amounts read like the number ("$105.7K", "1,284 h").
@@ -137,6 +138,7 @@ type MetricTrendDirection = "positive" | "negative" | "normal"
 
 ## ❌ Don't
 - Don't colour the number itself to show good/bad — the trend badge carries it.
+- Don't leave a status card's Dock Icon (total, in progress, overdue, done) at the default Neutral Subtle.
 - Don't show more than ~4 KPI cards in a row; group or prioritise.
 - Don't round away meaningful precision in finance values.
 - Don't give every tile a different colour for decoration, or rely on the icon colour alone for good/bad; the trend badge carries the status.
@@ -158,6 +160,7 @@ type MetricTrendDirection = "positive" | "negative" | "normal"
 | `theme/mixed-elevation` | error | One elevation per page (Figma audit theme/mixed-elevation): nothing casts a shadow on a Canvas/Alt or Canvas/Flat page; on Canvas/Default every box and the Sidebar panel cast Shadow/Bottom/Level-1, or none does. Solid (the stand-out, which has no shadow variant) is not counted. | `zen-allow-mixed-elevation: <reason>` |
 | `card/spacing-by-count` | warn | On a phone (a PlatformPhone frame or a BottomSheet), three or more cards side by side (a row or grid of stats, a list of choices) take spacing="small" (Card-padding-small, Corner-Radius/Large); one or two keep Spacing=Medium, the default. Desktop cards keep Medium and are not judged. MetricCard counts as a card (type="tile" is Small by default). User rule 2026-10-17, mobile only. | `zen-allow-card-spacing: <reason>` |
 | `metric/formatted-value` | warn | Metric values are passed pre-formatted with units and separators ("$1,680.68", "2.1%"), never a raw number. | `zen-allow-metric-format: <reason>` |
+| `metric/dock-icon-by-meaning` | warn | A MetricCard that stands for a status shows a solid Dock Icon in its colour: iconBackground="solid" with iconTheme accent for a total, blue for in progress, red for overdue, green for done; never the default Neutral Subtle. | `zen-allow-metric-icon-meaning: <reason>` |
 | `metric/type-data` | error | A typed MetricCard gets the data its type draws (sparkline, spark-bars, hero → series; goal-progress → goal; comparison → comparison; category-bar → categories), and no data another type draws. | `zen-allow-metric-type-data: <reason>` |
 | `metric/category-count` | warn | A category-bar MetricCard splits its total into 2–7 parts (the chart palette's seven colours); fold the smallest into an "Other" part. | `zen-allow-metric-categories: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |

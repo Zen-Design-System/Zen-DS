@@ -115,6 +115,10 @@ Files in this skill:
     - A priority Badge leads with `icon-flag-03-solid` (`.Task/Priority`); a status Badge keeps Leading-Icon on (the
       dot or an icon per state); a workflow step is `Badge-Status`. Badges in Table cells too (audit
       `badge/status-priority-icon`).
+    - Priority has one palette: Urgent and High `Red`, Medium `Yellow`, Low `Neutral`, each led by `icon-flag-03-solid`;
+      Property-Field priority icons take tone Negative / Warning / Neutral (audit `priority/palette`).
+    - A Metric-Card's Dock-Icon is Background Solid in the colour of what it counts: total Accent, in progress Blue,
+      overdue Red, done Green ("metric card dùng dock icon solid"; audit `metric/dock-icon-by-meaning`).
     - A desktop `Header/AppShell` never shows an empty top row: Breadcrumbs or a Search on the left, a Search in the
       centre (≤ 400) when it helps, help, notifications (`Header/Action-Item` with its count) and the account Avatar
       last on the right; or Top-Header off for a Main-only header (audit `app-shell/top-row-filled`).

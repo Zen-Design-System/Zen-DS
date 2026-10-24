@@ -503,8 +503,8 @@ export type TaskPriority = (typeof taskPriorities)[number];
 /** Priority mark: the flag icon in its family's Light content colour (`<Icon name={icon} tone={tone} />`: Light is the icon level), or a Badge theme. */
 export const taskPriorityMeta: Record<TaskPriority, { icon: IconName; tone: TextTone; theme: BadgeTheme }> = {
   Urgent: { icon: "icon-flag-03-solid", tone: "negative-light", theme: "red" },
-  High: { icon: "icon-flag-03-solid", tone: "warning-light", theme: "orange" },
-  Medium: { icon: "icon-flag-03-solid", tone: "info-light", theme: "blue" },
+  High: { icon: "icon-flag-03-solid", tone: "negative-light", theme: "red" },
+  Medium: { icon: "icon-flag-03-solid", tone: "warning-light", theme: "yellow" },
   Low: { icon: "icon-flag-03-solid", tone: "light", theme: "neutral" },
 };
 

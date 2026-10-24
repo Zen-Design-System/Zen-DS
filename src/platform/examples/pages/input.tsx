@@ -488,10 +488,10 @@ function TimeOffPhoneExample() {
 // ——— Examples ———————————————————————————————————————————————————————————————————————————————————
 // ——— PropertyField: a record's properties, each edited in place ———————————————————————————————————————
 const priorityOptions: PropertyFieldOption[] = [
-  { value: "urgent", label: "Urgent", icon: "icon-flag-01-solid", tone: "negative" },
-  { value: "high", label: "High", icon: "icon-flag-01-solid", tone: "warning" },
-  { value: "normal", label: "Normal", icon: "icon-flag-01-solid", tone: "info" },
-  { value: "low", label: "Low", icon: "icon-flag-01-solid", tone: "neutral" },
+  { value: "urgent", label: "Urgent", icon: "icon-flag-03-solid", tone: "negative" },
+  { value: "high", label: "High", icon: "icon-flag-03-solid", tone: "negative" },
+  { value: "normal", label: "Normal", icon: "icon-flag-03-solid", tone: "warning" },
+  { value: "low", label: "Low", icon: "icon-flag-03-solid", tone: "neutral" },
 ];
 const personOptions: PropertyFieldOption[] = peopleList.map((person) => ({ value: person.id, label: person.name, photoSrc: person.photo }));
 const labelOptions: PropertyFieldOption[] = [
@@ -756,8 +756,8 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     description: "A task's properties are PropertyFields in two columns: click a value to change it in place. Status opens its steps, Priority its flags, dates the calendar, People and Labels add with the + after the label; Start Date says Empty until it is set.",
     render: () => <TaskProperties />,
     code: `const priorities = [
-  { value: "urgent", label: "Urgent", icon: "icon-flag-01-solid", tone: "negative" },
-  { value: "high", label: "High", icon: "icon-flag-01-solid", tone: "warning" },
+  { value: "urgent", label: "Urgent", icon: "icon-flag-03-solid", tone: "negative" },
+  { value: "high", label: "High", icon: "icon-flag-03-solid", tone: "negative" },
   …
 ];
 
