@@ -65,8 +65,6 @@ starts.
   licence exists (5afe9ea2: developers, CI keys, IPs and installs per month; `usage-report.js` sorts by IP count). Left:
   a warning when one key goes far beyond its `seats`, and the package version of each install
   (`tools/registry/plugins/verdaccio-zen-license/index.js`). Decision (user): is the monthly report enough?
-- **P3 · Package weight:** every app loads the whole 63 KB gz stylesheet. Consider per-component CSS entry points.
-  Decision (user), L.
 - **P3 · Code Connect for Description List (blocked, 2026-10-04):** Figma answers "You need a Dev or Full seat on an
   Organization or Enterprise plan to use Code Connect" for this account. Once a seat is available: map
   `Description List` 14859:79180 (Layout → `layout`, Items slot → `items`) and `.Primitives/Description-List/Item`
@@ -85,27 +83,6 @@ starts.
   Heading-Text Dropdown), a hero header that turns opaque on scroll (`scrolledType`), large-title Badges
   (`largeTitleBadges`: Figma's Badges row sits under the heading, so `largeTitleAction` does not cover it) and a
   selection-mode docs recipe. In progress (box-themes, branch `wip/top-nav-20261024`), M.
-
-### Platform examples and docs
-- **P3 · Example audit baselines (2026-10-08; rewritten 2026-10-24):** `behaviour-baseline.json` still holds the chat
-  inbox-row dead click, a probe race closed 2026-10-08: re-measure (in progress on
-  zen/fix/platform-examples-backlog-20261024). The HR pages' 9 text styles moved to QUESTIONS.md (designer batch
-  2026-10-24). S.
-- **P3 · Guideline and snippet wording (2026-10-01/06; gathered 2026-10-24), S:** Pagination's "jump to page" wording
-  and Enter row (`tools/usage-guard/guidelines.source.mjs` ~337, ~1020; Manually is a page-size input); the
-  TopNavigation guideline's HIG "Navigation bars" link redirects to "Toolbars"; the Bottom Navigation guideline lacks
-  "tapping the current tab scrolls to the top" (R14); the stepper "Pickup order" snippet names its Orders list only in a
-  comment (`stepper.tsx` ~695).
-- **P3 · Typography outline leftovers (2026-09-29; rewritten 2026-10-24):** the docs platform's own outline (section h2s
-  in Heading/3, ExampleCard titles h3: `PlatformShowcases.tsx` ~46, ~110; decision), TopNavigation stories for the
-  heading behaviour, and the Text "Headings" story labelling each level's default style. Review:
-  `docs/context/typography-hierarchy-review-2026-09-29.md`. S–M.
-- **P3 · PlatformPhone sizing (2026-10-03):** the scale falls back to 1 when its parent leaves no room
-  (`src/platform/PlatformPhone.tsx` ~119: keep the last scale, or measure a host whose width does not depend on the
-  phone), and the fit box lands on fractional px (~132: round it). Latent, S.
-- **P3 · One browser run settles each (2026-10-02/03; gathered 2026-10-24):** the HR · Home Settings menu closing in the
-  full smoke flow (HrShell is on AppShell since 71d3a22c: likely gone); action-bar › Unsaved changes' sticky bar drawn
-  over its neighbours in the 390 sheet (a screen card since a50da8a9). Close each if clean. S.
 
 ### Tooling / harness / contracts
 - **P2 · Seed the contrast/targets baseline (2026-09-29):** `node tools/platform-audit/audit.mjs --quality

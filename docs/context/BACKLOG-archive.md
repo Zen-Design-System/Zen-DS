@@ -2,6 +2,41 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-24 (train A: Platform examples #263, per-component CSS #268)
+
+- Done 2026-10-24 (#263): the chat inbox-row key left behaviour-baseline.json and train A's --all behaviour run found no new dead click (0 errors); the HR pages' 9 text styles went to QUESTIONS.md (designer batch 2026-10-24):
+  **P3 · Example audit baselines (2026-10-08; rewritten 2026-10-24):** `behaviour-baseline.json` still holds the chat
+  inbox-row dead click, a probe race closed 2026-10-08: re-measure (in progress on
+  zen/fix/platform-examples-backlog-20261024). The HR pages' 9 text styles moved to QUESTIONS.md (designer batch
+  2026-10-24). S.
+
+- Done 2026-10-24 (#263): Pagination's Manually rows (use, Theme, keyboard; Figma description source), the TopNavigation HIG link → Toolbars, Bottom Navigation's tap-to-top Do line, the stepper Pickup order snippet with its Orders root:
+  **P3 · Guideline and snippet wording (2026-10-01/06; gathered 2026-10-24), S:** Pagination's "jump to page" wording
+  and Enter row (`tools/usage-guard/guidelines.source.mjs` ~337, ~1020; Manually is a page-size input); the
+  TopNavigation guideline's HIG "Navigation bars" link redirects to "Toolbars"; the Bottom Navigation guideline lacks
+  "tapping the current tab scrolls to the top" (R14); the stepper "Pickup order" snippet names its Orders list only in a
+  comment (`stepper.tsx` ~695).
+
+- Done / answered 2026-10-24 (#263: Text "Headings" story labels, TopNavigation heading stories; user 2026-10-24, option A "Giữ nguyên": the docs platform's own outline stays, docs pages are reference pages and the audit scores each example's own outline through data-screen):
+  **P3 · Typography outline leftovers (2026-09-29; rewritten 2026-10-24):** the docs platform's own outline (section h2s
+  in Heading/3, ExampleCard titles h3: `PlatformShowcases.tsx` ~46, ~110; decision), TopNavigation stories for the
+  heading behaviour, and the Text "Headings" story labelling each level's default style. Review:
+  `docs/context/typography-hierarchy-review-2026-09-29.md`. S–M.
+
+- Done 2026-10-24 (#263): PlatformPhone keeps its last scale when its host has no room and sizes the fit box on whole pixels:
+  **P3 · PlatformPhone sizing (2026-10-03):** the scale falls back to 1 when its parent leaves no room
+  (`src/platform/PlatformPhone.tsx` ~119: keep the last scale, or measure a host whose width does not depend on the
+  phone), and the fit box lands on fractional px (~132: round it). Latent, S.
+
+- Closed 2026-10-24 (train A's --all run): action-bar › Unsaved changes keeps its sticky bar inside its own cell in the 390 sheet; the HR · Home Settings menu observation is stale (HrShell is on AppShell since 71d3a22c, the smoke run passes; it was never reproduced by the smoke):
+  **P3 · One browser run settles each (2026-10-02/03; gathered 2026-10-24):** the HR · Home Settings menu closing in the
+  full smoke flow (HrShell is on AppShell since 71d3a22c: likely gone); action-bar › Unsaved changes' sticky bar drawn
+  over its neighbours in the 390 sheet (a screen card since a50da8a9). Close each if clean. S.
+
+- Done 2026-10-24 (#268, user: "tách CSS theo component"): per-component style entries, import "@zen-ds/react/styles/<Component>"; a Button-only app loads 34 KB of CSS gz instead of 97 KB:
+  **P3 · Package weight:** every app loads the whole 63 KB gz stylesheet. Consider per-component CSS entry points.
+  Decision (user), L.
+
 ## Archived 2026-10-24 (B: the Studio editor group, PR #265)
 
 - Done / closed 2026-10-24 (#265): (2) built (a `.map` row's resize previews every row, E2E DA-10); (1) closed by the user ("Theo đề xuất": keep the resize as Figma does it).

@@ -144,3 +144,14 @@ Branch zen/ci/native-platform-tests-20261024 from main 6a7e872a, PR #267.
 - First run (0608e651): Apple Swift 5.10 builds the package (20 s) and passes 4/4 tests; Flutter 3.24.5 passes 4/4. #238's
   Zen-High-Contrast Swift and Dart compile — nothing to fix in the generator's templates.
 - This Mac still cannot run either locally (memory native-toolchains-broken-locally, updated): the PR's run is the check.
+
+## Merge train A (#274: #263, #265, #268, #269, #271; tier L gate)
+- Built on main 9143769d, then merged main 6999a5f3, 454b9374 and 59baff82 (date-picker.css combined as #266's and
+  #269's owners OK'd; #269's DatePicker suites read `.zen-date-picker__events > i`). Member heads re-merged as they moved.
+- `npm run qa -- --all --isolated`: PASS (static, Vitest 85/85, all contract suites, audit 1512/390/320 0 errors,
+  dark 0, behaviour 0, Studio E2E 4 shards); 12 new contact sheets reviewed, nothing to fix.
+- verify:package: all checks pass; Button with its style entry 34.1 KB CSS gz against 97.2 KB with styles.css.
+- #268 style comparison: a 19-entry page (entries imported in reverse order) against styles.css: 1,247,556 computed
+  values, 0 differences (12 registered custom properties of Voice / PageHeader / DashboardHeader exist only with
+  styles.css), screenshots identical; 58.9 KB against 97.2 KB CSS gz.
+- BACKLOG: the Platform examples group (#263) and Package weight (#268) closed to the archive.
