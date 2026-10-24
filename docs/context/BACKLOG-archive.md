@@ -2,6 +2,16 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-24 (B: Audit gaps, PR #270)
+
+- Done 2026-10-24: the focused-heading `edges` frame and the :5173 warning (#264); the `clip` check (a control cut off
+  by an `overflow: hidden` ancestor, hidden past its edge while its siblings show, or covered) and
+  `npm run platform:audit:selftest` (#270):
+  **P3 · Audit gaps (2026-10-02/03; the user's go 2026-10-24), in flight:** the focused-heading `edges` frame (PR #264);
+  `fit` / `overflow` also catch a control clipped by an `overflow: hidden` ancestor or covered by a sibling, and a durable
+  selftest for the quality / outline checks (B, PR #270). Done: `platform:audit`, `platform:shoot` and `visual-diff` warn
+  on the shared :5173 and take `--isolated` (2026-10-24).
+
 ## Archived 2026-10-24 (Components group, #266 `zen/fix/components-backlog-20261024`; user 2026-10-24 "Theo đề xuất")
 
 - Done 2026-10-24 in #266: ModalForm keeps its name without the header (`aria-label` / `aria-labelledby`); the seven

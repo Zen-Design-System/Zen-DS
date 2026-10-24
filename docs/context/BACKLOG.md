@@ -128,10 +128,6 @@ starts.
   instead of a Segmented that does not fit; a bare `<Container>` around a Table has 0 cases). The four approved rules
   (`table/bulk-actions-max`, `chip/needs-action`, three actions in one TopNavigation group, `search-folds-to-action` on
   `scrollRef` bars) shipped 2026-10-24.
-- **P3 · Audit gaps (2026-10-02/03; the user's go 2026-10-24), in flight:** the focused-heading `edges` frame (PR #264);
-  `fit` / `overflow` also catch a control clipped by an `overflow: hidden` ancestor or covered by a sibling, and a durable
-  selftest for the quality / outline checks (B, PR #270). Done: `platform:audit`, `platform:shoot` and `visual-diff` warn
-  on the shared :5173 and take `--isolated` (2026-10-24).
 - **P3 · Gate details (the user's decisions 2026-10-24), in flight:** baseline notes follow the fix-at-once rule and a
   reused pid no longer keeps a stale "running" marker (PR #264); B.2, re-run only the steps that failed when nothing
   changed (next PR). Done 2026-10-24: token scope reads inline `var()` in TSX (importers stay one level); a Bash
