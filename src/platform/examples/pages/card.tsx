@@ -82,7 +82,7 @@ function BrowseProjects() {
           {status ?? "Status"}
         </Chip>
         <Chip variant="advanced" dropdown selected={lead !== null} popoverLabel="Lead"
-          popoverItems={leads.map((id) => ({ id, label: people[id].name, selected: id === lead }))}
+          popoverItems={leads.map((id) => ({ id, label: people[id].name, selected: id === lead, ...(people[id].photo ? { photoSrc: people[id].photo } : { leading: <Avatar size="sm" theme={people[id].theme} alt="">{initials(people[id].name)}</Avatar>, theme: "avatar-small" as const }) }))}
           onPopoverSelect={(item) => setLead(item.id === lead ? null : (item.id as PersonId))}
           onClearSelection={() => setLead(null)}>
           {lead ? people[lead].name : "Lead"}

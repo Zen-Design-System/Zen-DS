@@ -31,6 +31,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   accent, in progress blue, overdue red, done green; `metric/dock-icon-by-meaning`); priority has one palette, Urgent and
   High red, Medium yellow, Low neutral with `icon-flag-03-solid`, PropertySelect tones negative / warning / neutral
   (`priority/palette`). The examples' and templates' priority data follow it.
+- House rule (user, 2026-10-24): a popover that picks a person shows each person's avatar (`photoSrc`, theme
+  `avatar-small`, or an initials Avatar as `leading`); harness `popover/people-have-avatars`. The Chip and Card examples'
+  assignee and lead pickers follow it.
 - Usage harness: an element's slot props are read from its own attributes only, so `app-shell/primary-in-top-bar` no
   longer takes a PageHeader's actions inside `main` for the top row's (a false positive on valid code).
 - Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,

@@ -45,7 +45,8 @@ a rejected spec comes back with the error paths and hints, fix those and resend.
    name. Status and priority Badges keep a leading icon: priority leads with `leading="icon-flag-03-solid"` in one
    palette (Urgent and High `red`, Medium `yellow`, Low `neutral`; PropertySelect tones negative / warning / neutral),
    a workflow step is a `BadgeStatus`. A `MetricCard`'s Dock Icon is `iconBackground="solid"` in the colour of what it
-   counts (total `accent`, in progress `blue`, overdue `red`, done `green`).
+   counts (total `accent`, in progress `blue`, overdue `red`, done `green`). A popover that picks a person shows each
+   person's avatar: `photoSrc` (theme `avatar-small`) or an initials `<Avatar>` as `leading`.
 6. **Overlays are controlled:** `open` + `onOpenChange` on Dialog, SidePanel, BottomSheet and Popover (the first
    three also call `onClose` on every close request). A Popover is closed by default. Actions are objects:
    `primaryAction={{ label: "Delete project", onClick }}`.

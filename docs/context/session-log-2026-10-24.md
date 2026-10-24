@@ -337,3 +337,9 @@ The guidelines said `minmax(0, 320px)`, so agents kept copying 320. Made a lasti
   tones negative / negative / warning / neutral (Urgent / High / Normal / Low). Urgent stays red like High.
 - Figma read-only: priority Badges clean on HR-Platform, Master-Layout Example, Finance; Master-Layout Example E2, F1,
   F2: 10 Subtle Metric-Cards (BACKLOG P3 line).
+- **People pickers show avatars** ("popover để chọn nếu là người thì nên có avatar"): harness
+  `popover/people-have-avatars` (warn; Chip popoverItems, Popover items, PropertyPeople and AutocompleteField options
+  of a picker named for people — assignee, owner, lead, reviewers, người, thành viên… — whose literal items or inline
+  `.map(() => ({…}))` give neither photoSrc nor an Avatar leading). Fixed: chip (assignee filter live + sample), card
+  (lead filter). Guideline (Popover Do), skills, AGENTS.consumer, Zen Agent prompt. No Figma audit (names are not
+  detectable); the Table select editor is the table-select-media session's (PR #285).

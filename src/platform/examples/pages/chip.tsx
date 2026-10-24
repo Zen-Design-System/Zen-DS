@@ -343,7 +343,7 @@ function ColourBandExample() {
           </Stack>
           <Stack direction="row" gap="xs" align="center" wrap role="group" aria-label="Filters">
             <Chip variant="advanced" level="black-overlay" selected={assignee !== null} popoverLabel="Assignee"
-              popoverItems={openAssignees.map((id) => ({ id, label: people[id].name, selected: id === assignee }))}
+              popoverItems={openAssignees.map((id) => ({ id, label: people[id].name, selected: id === assignee, ...(people[id].photo ? { photoSrc: people[id].photo } : { leading: <Avatar size="sm" {...avatarOf(people[id])} />, theme: "avatar-small" as const }) }))}
               onPopoverSelect={(item) => setAssignee(item.id as PersonId)} onClearSelection={() => setAssignee(null)}>
               {assignee ? people[assignee].name : "Assignee"}
             </Chip>
@@ -487,7 +487,7 @@ const [assignee, setAssignee] = useState(null);
     </Stack>
     <Stack direction="row" gap="xs" align="center" wrap role="group" aria-label="Filters">
       <Chip variant="advanced" level="black-overlay" selected={assignee !== null} popoverLabel="Assignee"
-        popoverItems={assignees.map((id) => ({ id, label: people[id].name, selected: id === assignee }))}
+        popoverItems={assignees.map((id) => ({ id, label: people[id].name, selected: id === assignee, photoSrc: people[id].photo }))}
         onPopoverSelect={(item) => setAssignee(item.id)} onClearSelection={() => setAssignee(null)}>
         {assignee ? people[assignee].name : "Assignee"}
       </Chip>

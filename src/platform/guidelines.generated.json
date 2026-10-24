@@ -412,6 +412,12 @@
         "allow": "chip-action"
       },
       {
+        "id": "popover/people-have-avatars",
+        "severity": "warn",
+        "summary": "A popover that picks a person shows each person's avatar: Chip popoverItems and Popover items for people take photoSrc (theme avatar-small) or an initials Avatar as leading; PropertyPeople options take photoSrc.",
+        "allow": "people-without-avatars"
+      },
+      {
         "id": "api/deprecated-prop",
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
@@ -654,6 +660,12 @@
         "severity": "warn",
         "summary": "Priority has one palette: Urgent and High red (tone negative), Medium yellow (warning), Low neutral, each led by icon-flag-03-solid; on a Badge (theme) and on PropertySelect options (tone, icon).",
         "allow": "priority-palette"
+      },
+      {
+        "id": "popover/people-have-avatars",
+        "severity": "warn",
+        "summary": "A popover that picks a person shows each person's avatar: Chip popoverItems and Popover items for people take photoSrc (theme avatar-small) or an initials Avatar as leading; PropertyPeople options take photoSrc.",
+        "allow": "people-without-avatars"
       },
       {
         "id": "property-field/one-value",
@@ -1778,6 +1790,7 @@
     "do": [
       "Pass `open`: a Popover is closed by default. Controlled `open={isOpen}` goes with `onOpenChange` (harness: popover/explicit-open, popover/controlled-close).",
       "Pass images via photoSrc; the item renders the Figma size for its theme.",
+      "Show the person in a popover that picks people (an assignee, an owner, reviewers): each item takes photoSrc (theme avatar-small), or an initials <Avatar> as leading when there is no photo; PropertyPeople and AutocompleteField options for people too (the user 2026-10-24: \"popover để chọn nếu là người thì nên có avatar\"; harness: popover/people-have-avatars).",
       "Avatar items are 32px (Avatar Small) or 40px (Avatar Big); long labels and captions stay on one line and end in \"…\".",
       "Give it anchorRef + onOpenChange so outside-click and Escape close it and focus returns.",
       "Keep one popover open at a time: opening a popover for another object closes the open one. Popover (with onOpenChange), Chip, Select and DatePicker do this for you; a custom popup joins with useExclusivePopover(open, close, rootRef). A popover opened from inside another popover is nested and keeps its parent open.",
@@ -1835,6 +1848,12 @@
         "severity": "warn",
         "summary": "Popover/Bulk-Action is a named toolbar (aria-label) of at most 6 Button/Icon-Flat Medium actions — more belongs in a context menu or side panel.",
         "allow": "bulk-action"
+      },
+      {
+        "id": "popover/people-have-avatars",
+        "severity": "warn",
+        "summary": "A popover that picks a person shows each person's avatar: Chip popoverItems and Popover items for people take photoSrc (theme avatar-small) or an initials Avatar as leading; PropertyPeople options take photoSrc.",
+        "allow": "people-without-avatars"
       },
       {
         "id": "api/overrides-studio-only",

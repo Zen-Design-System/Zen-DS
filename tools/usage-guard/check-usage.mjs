@@ -997,6 +997,8 @@ const PRIORITY_PALETTE = [
   [/^(medium|normal|trung bình)( priority)?$/i, "yellow", "warning"],
   [/^(low|thấp)( priority)?$/i, "neutral", "neutral"],
 ];
+/** popover/people-have-avatars (the user 2026-10-24): a picker named for people (en, vi). */
+const PEOPLE_WORD = /\b(assignees?|owners?|leads?|people|persons?|members?|reviewers?|authors?|reporters?|teammates?|staff|employees?|approvers?|attendees?|guests?)\b|người|thành viên|phụ trách|giao cho|nhân viên|đồng nghiệp|người duyệt/i;
 /** A Badge's text when its children are one literal label ("Paid", {"Paid"}); null for anything computed. */
 const badgeLabel = (children) => { const c = (children ?? "").trim().replace(/^\{\s*["'`]|["'`]\s*\}$/g, "").trim(); return c && !/[<{}$]/.test(c) ? c : null; };
 /** metric/dock-icon-by-meaning (the user 2026-10-24): a status metric's Dock Icon colour, by what its label counts. */
@@ -1920,6 +1922,23 @@ export const rules = [
         return (tone && tone !== level[2]) || (icon && icon !== PRIORITY_FLAG) ? [`${label} (${tone ?? "no tone"}, ${icon ?? "no icon"})`] : [];
       });
       return wrong.length ? `gives priority options another palette: ${wrong.join(", ")} — Urgent/High tone "negative", Medium/Normal "warning", Low "neutral", each icon "${PRIORITY_FLAG}".` : null;
+    } },
+  // The user (2026-10-24): "popover để chọn nếu là người thì nên có avatar".
+  { id: "popover/people-have-avatars", components: ["Chip", "Popover", "PropertyPeople", "AutocompleteField"], severity: "warn", allow: "people-without-avatars", guideline: "docs/guidelines/popover.md",
+    summary: "A popover that picks a person shows each person's avatar: Chip popoverItems and Popover items for people take photoSrc (theme avatar-small) or an initials Avatar as leading; PropertyPeople options take photoSrc.",
+    check: ({ tag, attrs, children }) => {
+      const own = topAttrs(attrs);
+      const prop = { Chip: "popoverItems", Popover: "items", PropertyPeople: "options", AutocompleteField: "options" }[tag];
+      const list = expr(attrs, prop);
+      if (!list) return null;
+      const named = [fixedProp(own, "popoverLabel"), fixedProp(own, "aria-label"), fixedProp(own, "label"), tag === "Chip" ? text(children ?? "") : null].filter(Boolean).join(" ");
+      if (tag !== "PropertyPeople" && !PEOPLE_WORD.test(named)) return null;
+      // A photo, or an initials Avatar as leading (written out, or from a helper such as personMark(person)).
+      const avatar = (object) => /\bphotoSrc\s*:|\bleading\s*:\s*(<Avatar\b|\w*(avatar|person|mark)\w*\()/i.test(object);
+      const objects = arrayObjects(list);
+      // A list mapped by an inline arrow is read; one mapped by a helper (people.map(personOption)) is not judged.
+      const bare = objects.length ? objects.some((object) => !avatar(object)) : /\.map\(\s*\(?[\w\s,]*\)?\s*=>\s*\(\{/.test(list) && !avatar(list);
+      return bare ? `lists people with no avatar — give each ${tag === "PropertyPeople" ? "option" : "item"} photoSrc${tag === "PropertyPeople" ? "" : " (theme avatar-small), or an initials <Avatar> as leading when there is no photo"}.` : null;
     } },
   { id: "table/badge-column-icon", components: ["Table"], severity: "warn", allow: "table-badge-icon", guideline: "docs/guidelines/table.md",
     summary: "A status or priority column of content \"badge\" draws its Badges with no icon: render the cell with <TableBadges><Badge leading> (priority: icon-flag-03-solid), or on a Zen Studio page give each row's Badge leadingIcon and leading through overrides (\"Row[<id>]/priority/Badge\").",

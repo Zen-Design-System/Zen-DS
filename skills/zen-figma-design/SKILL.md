@@ -119,6 +119,9 @@ Files in this skill:
       Property-Field priority icons take tone Negative / Warning / Neutral (audit `priority/palette`).
     - A Metric-Card's Dock-Icon is Background Solid in the colour of what it counts: total Accent, in progress Blue,
       overdue Red, done Green ("metric card dùng dock icon solid"; audit `metric/dock-icon-by-meaning`).
+    - A popover that picks a person shows each person's avatar: Popover items Theme Avatar Small with the photo, or
+      the initials Avatar ("popover để chọn nếu là người thì nên có avatar"; no audit check: names are not
+      detectable, check it on the screenshot).
     - A desktop `Header/AppShell` never shows an empty top row: Breadcrumbs or a Search on the left, a Search in the
       centre (≤ 400) when it helps, help, notifications (`Header/Action-Item` with its count) and the account Avatar
       last on the right; or Top-Header off for a Main-only header (audit `app-shell/top-row-filled`).

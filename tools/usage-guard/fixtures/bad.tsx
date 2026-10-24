@@ -36,6 +36,8 @@ export const Bad = () => <>
   <Badge theme="orange" background="subtle" leading="icon-flag-03-solid">Medium</Badge>
   {/* expect: priority/palette */}
   <PropertyField label="Priority" icon="icon-flag-01-line"><PropertySelect options={[{ value: "high", label: "High", icon: "icon-flag-01-solid", tone: "warning" }, { value: "low", label: "Low", icon: "icon-flag-03-solid", tone: "neutral" }]} /></PropertyField>
+  {/* expect: popover/people-have-avatars */}
+  <Chip variant="advanced" dropdown popoverLabel="Assignee" popoverItems={[{ id: "ava", label: "Ava Chen" }, { id: "bao", label: "Bao Nguyen" }]}>Assignee</Chip>
   {/* expect: search/toolbar-width */}
   <Stack direction="row" gap="xs" align="center"><Search placeholder="Search tasks" /><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></Stack>
   {/* expect: search/toolbar-width */}

@@ -14,6 +14,7 @@ export const Good = () => <>
   <InputField aria-label="Share link" readOnly value={link} />
   <InputField {...sharedFieldProps} />
   <Search placeholder="Search components" />
+  <Chip variant="advanced" dropdown popoverLabel="Assignee" popoverItems={[{ id: "ava", label: "Ava Chen", photoSrc: avaPhoto }, { id: "bao", label: "Bao Nguyen", theme: "avatar-small", leading: <Avatar size="sm" theme="teal" background="subtle" alt="">BN</Avatar> }]}>Assignee</Chip>
   <MetricCard theme="default" label="Overdue" value="$12.9K" icon="icon-alarm-clock-line" iconTheme="red" iconBackground="solid" />
   <Badge theme="yellow" background="subtle" leading="icon-flag-03-solid">Medium</Badge>
   <PropertyField label="Priority" icon="icon-flag-01-line"><PropertySelect options={[{ value: "high", label: "High", icon: "icon-flag-03-solid", tone: "negative" }, { value: "low", label: "Low", icon: "icon-flag-03-solid", tone: "neutral" }]} /></PropertyField>
