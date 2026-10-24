@@ -378,7 +378,7 @@ function NoMatchesExample() {
     <Stack as="section" gap="md" aria-labelledby={headingId}>
       <Heading level={4} id={headingId} textStyle="Heading/4">Files</Heading>
       <Stack direction="row" gap="xs" align="center" wrap>
-        <Box width="fill" minWidth={220} maxWidth={320}><Search ref={searchRef} placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
+        <Box width="fill" minWidth={220} maxWidth={240}><Search ref={searchRef} placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
         <Chip variant="advanced" selected={Boolean(type)} popoverLabel="Type"
           popoverItems={fileTypes.map((item) => ({ id: item.id, label: item.label, selected: item.id === typeId }))}
           onPopoverSelect={(item) => setTypeId(item.id)} onClearSelection={() => setTypeId(null)}>
@@ -682,7 +682,7 @@ const opened = projects.find((project) => project.id === openId);
     code: `const rows = files.filter((file) => (!type || type.test(file.name)) && (!ownerId || file.owner === ownerId) && matches(file, query));
 
 <Stack direction="row" gap="xs" align="center" wrap>
-  <Search placeholder="Search files" value={query} onValueChange={setQuery} />
+  <Box width="fill" minWidth={220} maxWidth={240}><Search placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
   <Chip variant="advanced" selected={Boolean(type)} popoverLabel="Type" popoverItems={typeItems}
     onPopoverSelect={(item) => setTypeId(item.id)} onClearSelection={() => setTypeId(null)}>{type?.label ?? "Type"}</Chip>
   <Chip variant="advanced" selected={Boolean(owner)} popoverLabel="Owner" popoverItems={ownerItems}

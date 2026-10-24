@@ -14,6 +14,11 @@ export const Good = () => <>
   <InputField aria-label="Share link" readOnly value={link} />
   <InputField {...sharedFieldProps} />
   <Search placeholder="Search components" />
+  <Stack direction="row" gap="xs" align="center"><Box width="fill" maxWidth={240}><Search placeholder="Search tasks" /></Box><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></Stack>
+  <Grid columns={{ mobile: 1, desktop: "minmax(0, 240px) 1fr" }} gap="sm"><Search placeholder="Search members" /><Chip variant="advanced" dropdown popoverItems={items}>Role</Chip></Grid>
+  <Stack direction="row" gap="xs" align="center"><Search shape="rounded" placeholder="Search messages" /><Chip variant="advanced" dropdown popoverItems={items}>Unread</Chip></Stack>
+  {/* zen-allow-search-toolbar-width: a search results page, where the query is the page's task */}
+  <Stack direction="row" gap="xs" align="center"><Search placeholder="Search the help centre" /><Chip variant="advanced" dropdown popoverItems={items}>Topic</Chip></Stack>
   <Checkbox label="Remember me" checked={on} onChange={setOn} />
   <RadioButton name="plan" label="Monthly" checked />
   <Badge remove onRemove={() => drop("design")}>Design</Badge>

@@ -255,3 +255,26 @@ gate, so they looked green. They were written without being run, which was the s
 - **Baseline:** my new rows (D-07, DA-10, ST-28, ST-29, VA-05…09) went into matrix.baseline.json as works, so a
   regression now fails the gate. The other teams' new rows (PT-16…21, HO-13…16, K-24…27) are left to their owners.
 
+
+## Toolbar Search ≤ 240 (tier S–M; the user: "chúng ta vẫn quên rule thanh search trên tool bar tối đa nên để rộng 240")
+
+Caught on the Studio page DEMO-MEET › Quản lý task (Search stretched beside the filter Chips; fixed there in Studio).
+The guidelines said `minmax(0, 320px)`, so agents kept copying 320. Made a lasting rule (every mistake becomes a rule).
+- **Docs:** Search Do/Don't, Layout Do (Box width="fill" maxWidth={240}), DashboardHeader Control-Bar row now says
+  "320px, Figma Control-Bar"; skills (zen-figma-design SKILL §2 + screen-rules §3/§4, zen-component-usage), AGENTS.consumer
+  rule 2, the Zen Agent prompt, build-qa-process kind table.
+- **Checks:** harness `search/toolbar-width` (error; a row Stack or Grid with a Search, or a one-Search wrapper, beside
+  another element and no cap ≤ 240; rounded, className / variable / hugging wrappers left alone); audit kind
+  `toolbar-search` (widgetLayout, --quality, ≥ 768px, error, baselined; skips phone frames, top bars, DashboardHeader's
+  slot), 6 selftest fixtures; Figma audit `search/toolbar-width` (tablet/desktop screens; ran read-only on HR-Platform:
+  12 Searches all ≤ 240; on ◇ Master-Layout · Example it finds B1 · Column's 280 Search, logged in BACKLOG).
+- **Fixed (19 harness findings):** examples chip, link, list-item, search, segmented, table (live + code samples),
+  app-shell a-compositions / g-grid (Box 250 → 240), templates AdminList, EmptyError, HR LeaveTypes, MyExpenses,
+  MyLeaves, Tasks (Grid 320 / 280 → 240).
+- **Figma → Studio pull:** a Search beside other layers in a row now lands in `<Box width="fill" maxWidth={240}>` (or
+  Fixed at its Figma width ≤ 240): code Search has no width, so the pulled Table-Example toolbar stretched (the
+  figma-pull selftest's harness case caught it).
+- **DashboardHeader:** Figma 4122:33401 Control-Bar Search is FIXED 320, so the component stays; BACKLOG asks whether
+  it moves to 240.
+- Checks run: usage:selftest + check, guidelines:check, ai-ui:check, ai-kit:check, platform-audit selftest (47),
+  qa:selftest, mcp:selftest, studio:selftest, tsc.

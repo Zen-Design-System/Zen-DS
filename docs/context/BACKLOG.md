@@ -36,6 +36,12 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   tails, Range-Selected-End), no max / min width (chat 220 / 516, Business 66 / 42), no inset edge shadows (Editable
   cell underline), dash patterns or IMAGE fills. The suites name each skipped layer.
 
+- **P2 · Toolbar Search 240 vs DashboardHeader's 320 (2026-10-24; a user / designer question):** the user's rule caps
+  a toolbar Search at 240 (harness `search/toolbar-width`, audit kinds `toolbar-search` / Figma
+  `search/toolbar-width`), but Figma's `Primitives/Dashboard/Header` Type=Control-Bar (4122:33401) has its Search
+  FIXED 320, and code follows it (`dashboard-header.css` `--zen-dashboard-header-search-basis`); all three checks
+  leave that slot out. Move the component (and Figma) to 240? Also seen: ◇ Master-Layout · Example › B1 · Column has a
+  280 Search in Trailing-Slots (Figma audit `search/toolbar-width`).
 - **Questions for the designer and decisions for the user** are collected in [`QUESTIONS.md`](QUESTIONS.md) (moved
   there 2026-10-08). Code keeps its current behaviour until each is answered.
 - **Code view in other languages — on hold (user, 2026-10-08: "tạm lưu backlog, sẽ làm giai đoạn sau"):** order chosen:

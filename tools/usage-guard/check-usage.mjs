@@ -10,7 +10,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { classesOf, interactionRe, layoutClasses, learnLayoutClasses, loadLayoutClasses } from "./engine.mjs";
+import { classesOf, interactionRe, layoutClasses, learnLayoutClasses, loadLayoutClasses, readChildren, readTag } from "./engine.mjs";
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 /** A Zen-DS checkout (sources present) rather than the installed package (dist + docs only). */
@@ -971,6 +971,54 @@ const headingLevelOf = (attrs) => { const v = value(attrs, "level")?.replace(/["
 const HEADING_DEFAULT_STYLE = { 1: "Heading/1", 2: "Heading/4", 3: "Heading/Subheading", 4: "Body/Extra/Bold", 5: "Body/Base/Bold", 6: "Body/Base/Bold" };
 // Text styles that read as a title (a <Text> in one of them right above a Table is a visual title, not a heading).
 const TITLE_STYLE = /^(Heading|Display)\/|\/(Bold|Semi-?Bold)$/;
+/** The elements right inside a JSX children string, as { tag, attrs, children }; those in a `{cond && …}` or `.map()`
+ *  expression count too, the ones inside a child (its props or its own children) do not. */
+const childElements = (children) => {
+  const out = [], re = /<([A-Za-z][\w.]*)\b/g; let m;
+  while ((m = re.exec(children ?? ""))) {
+    const read = readTag(children, m.index + m[0].length); if (!read) break;
+    const inner = read.selfClosing ? "" : readChildren(children, m[1], read.end);
+    const close = read.selfClosing ? -1 : children.indexOf(`</${m[1]}>`, read.end + inner.length);
+    out.push({ tag: m[1], attrs: read.attrs, children: inner });
+    re.lastIndex = close < 0 ? read.end : close + m[1].length + 3;
+  }
+  return out;
+};
+/** search/toolbar-width: the user's cap (2026-10-24) on a Search in a toolbar row. */
+const TOOLBAR_SEARCH_MAX = 240;
+/** The width cap an element sets itself: maxWidth / width as a number, or the same in its style; null when there is none,
+ *  undefined when the source does not fix it (a variable, a class whose CSS may size it, a spread). */
+const widthCap = (attrs) => {
+  const own = topAttrs(attrs);
+  if (own.has("className") || /\{\s*\.\.\./.test(topLevel(attrs))) return undefined;
+  const caps = [];
+  for (const name of ["maxWidth", "width"]) {
+    const v = fixedProp(own, name);
+    if (v === null) return undefined;
+    if (v !== undefined && /^\d+(\.\d+)?$/.test(v)) caps.push(Number(v));
+  }
+  for (const [, , n] of (expr(attrs, "style") ?? "").matchAll(/\b(maxWidth|width)\s*:\s*["'`]?(\d+(?:\.\d+)?)(?:px)?["'`]?\s*[,}]/g)) caps.push(Number(n));
+  return caps.length ? Math.min(...caps) : null;
+};
+/** The widest track a Grid's desktop columns give the cell at `index`: a px number, Infinity for an fr track or an equal
+ *  share (columns={2}), undefined when the source does not fix it (auto tracks, a variable, phone-only columns). */
+const gridTrackMax = (attrs, index) => {
+  const own = topAttrs(attrs), columns = own.get("columns");
+  if (!columns) return undefined;
+  let list = fixedProp(own, "columns");
+  if (list === null) {
+    const object = columns.expr ?? "";
+    list = object.match(/\b(?:desktop|tablet)\s*:\s*(?:(["'`])([^"'`$]*)\1|(\d+))/)?.slice(2).find((v) => v !== undefined);
+  }
+  if (list === undefined) return undefined;
+  if (/^\d+$/.test(list)) return Infinity;
+  const tracks = []; let depth = 0, from = 0;
+  for (let i = 0; i <= list.length; i++) { const ch = list[i]; if (ch === "(") depth++; else if (ch === ")") depth--; else if ((ch === " " || ch === undefined) && depth === 0) { if (i > from) tracks.push(list.slice(from, i)); from = i + 1; } }
+  if (!tracks.length || tracks.some((t) => /^repeat\(/.test(t))) return undefined;
+  const track = tracks[index % tracks.length], max = track.match(/^minmax\([^,]+,\s*([^)]+)\)$/)?.[1] ?? track;
+  if (/^\d+(\.\d+)?px$/.test(max.trim())) return parseFloat(max);
+  return /fr$/.test(max.trim()) ? Infinity : undefined;
+};
 export const rules = [
   { id: "button/secondary-justified", components: ["Button", "IconButton"], severity: "error", allow: "secondary", guideline: "docs/guidelines/button.md",
     summary: "Secondary is a rare highlight; default to Primary (main CTA) or Tertiary. A flat IconButton is exempt: flat Secondary is Figma's quiet ⋮ trigger (Card Sub-Action).",
@@ -1027,6 +1075,27 @@ export const rules = [
   { id: "search/needs-name", components: ["Search"], severity: "warn", allow: "unnamed", guideline: "docs/guidelines/search.md",
     summary: "Search needs a placeholder that says what is searched, or an aria-label.",
     check: ({ attrs }) => !present(attrs, "placeholder") && !named(attrs) && "has no placeholder/aria-label describing what it searches." },
+  // The user's rule (2026-10-24): Search is width 100%, so beside filters or buttons it stretches across the toolbar
+  // unless its cell is capped. A phone Search (shape="rounded") fills its row on purpose.
+  { id: "search/toolbar-width", components: ["Stack", "Grid"], severity: "error", allow: "search-toolbar-width", guideline: "docs/guidelines/search.md",
+    summary: `A Search in a toolbar row (beside Chips, buttons or other controls) is at most ${TOOLBAR_SEARCH_MAX}px wide: wrap it in <Box width="fill" maxWidth={${TOOLBAR_SEARCH_MAX}}>, or give it a Grid column minmax(0, ${TOOLBAR_SEARCH_MAX}px). A phone Search (shape="rounded") fills its row.`,
+    check: ({ tag, attrs, children }) => {
+      if (tag === "Stack" && fixedProp(topAttrs(attrs), "direction") !== "row") return null;
+      const kids = childElements(children);
+      if (kids.length < 2) return null;
+      const index = kids.findIndex((k) => k.tag === "Search" || (["Box", "Stack"].includes(k.tag) && childElements(k.children).length === 1 && childElements(k.children)[0].tag === "Search"));
+      if (index < 0) return null;
+      const cell = kids[index], search = cell.tag === "Search" ? cell : childElements(cell.children)[0];
+      if (literal(search.attrs, "shape") === "rounded") return null;
+      const caps = [widthCap(search.attrs), cell === search ? null : widthCap(cell.attrs)];
+      if (caps.includes(undefined)) return null;
+      // A wrapper that hugs (no width="fill") takes the Search's own width in a row; only a Grid cell stretches it.
+      if (tag === "Stack" && cell !== search && caps[1] === null && fixedProp(topAttrs(cell.attrs), "width") !== "fill") return null;
+      const cap = Math.min(...caps.filter((c) => c !== null), tag === "Grid" ? gridTrackMax(attrs, index) ?? NaN : Infinity);
+      if (Number.isNaN(cap) || cap <= TOOLBAR_SEARCH_MAX) return null;
+      const fix = tag === "Grid" ? `give its column minmax(0, ${TOOLBAR_SEARCH_MAX}px)` : `wrap it in <Box width="fill" maxWidth={${TOOLBAR_SEARCH_MAX}}>`;
+      return `${cap === Infinity ? "lets its Search fill the toolbar row" : `gives its Search ${cap}px in the toolbar row`} — a toolbar Search is at most ${TOOLBAR_SEARCH_MAX}px wide: ${fix}.`;
+    } },
   { id: "choice/needs-label", components: ["Checkbox", "RadioButton", "Toggle"], severity: "error", allow: "unlabelled-choice", guideline: "docs/guidelines/checkbox.md",
     summary: "Checkbox, Radio and Toggle always carry a label.",
     check: ({ attrs }) => !present(attrs, "label") && !named(attrs) && "has no label (the Figma default text would render)." },

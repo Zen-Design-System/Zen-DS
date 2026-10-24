@@ -81,7 +81,7 @@ type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: R
 - On phone screens prefer shape="rounded" (a pill, Figma Shape=Rounded); a Search in a TopNavigation control bar, a BottomSheet or an AppShell on a phone is rounded by default (set shape="default" to keep the square field). Desktop toolbars keep the default shape.
 - Filter live and show an empty state that echoes the query.
 - Let Enter open the first result; the clear button resets to recent items.
-- Pair Search with Chip filters in table toolbars. Search fills its container, so give it a Grid column: columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} with the chips in the second cell.
+- Pair Search with Chip filters in table toolbars. Search fills its container, so cap it in a toolbar row at 240px (the user's rule, 2026-10-24): <Box width="fill" maxWidth={240}> around it beside the chips and buttons, or a Grid column: columns={{ mobile: 1, desktop: "minmax(0, 240px) 1fr" }} with the chips in the second cell (harness: search/toolbar-width). On a phone it fills its row.
 - Debounce remote search (~250ms) and keep the query when results refresh.
 - Show the result count in an aria-live region ("12 results").
 - When the filter opens a Bottom Sheet, panel or Popover, pass filterHasPopup ("dialog", "menu", "listbox") and filterExpanded={open}; aria-expanded on Search itself lands on the input.
@@ -93,6 +93,7 @@ type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: R
 - Don't disable Search because there is nothing to find yet; keep it with an empty state, or hide it where search never applies. Disable it only while something blocks searching (a bulk edit, a sync), and say why.
 - Don't trigger search only on Enter for small, local lists; filter as the user types.
 - Don't use a vague placeholder ("Type here…").
+- Don't let a toolbar Search stretch across the row or grow past 240px beside filters and buttons (harness: search/toolbar-width).
 
 ## Accessibility
 - type=search; aria-label defaults to the placeholder.
@@ -106,6 +107,7 @@ type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: R
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `search/needs-name` | warn | Search needs a placeholder that says what is searched, or an aria-label. | `zen-allow-unnamed: <reason>` |
+| `search/toolbar-width` | error | A Search in a toolbar row (beside Chips, buttons or other controls) is at most 240px wide: wrap it in <Box width="fill" maxWidth={240}>, or give it a Grid column minmax(0, 240px). A phone Search (shape="rounded") fills its row. | `zen-allow-search-toolbar-width: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 

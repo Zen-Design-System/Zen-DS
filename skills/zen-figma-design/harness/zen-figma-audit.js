@@ -81,6 +81,9 @@
 //                                     gap is at least what each control lacks of 44 on that side (two 32px Chips → 12)
 //   spacing/controls-to-content  warning  a control row (Chips, Segmented, Tabs, Search) closer than Gap/Medium (16)
 //                                     to the content it controls: they are blocks, not a label pair
+//   search/toolbar-width     error    a Search wider than 240 in a toolbar row beside other controls, on a tablet or
+//                                     desktop screen (a phone Search fills its row; a top bar's or the Control-Bar's own
+//                                     Search is sized by its component)
 //   navigation/icon-style    error    a Bottom-Navigation item whose icon style does not match its selection: the
 //                                     selected item shows the solid icon, every other item the line icon
 //   navigation/floating-fit  error    a Floating or Floating-Glass Bottom-Navigation whose tabs leave the 64–88 range:
@@ -768,6 +771,41 @@ async function checkTouchSpacing(root) {
   }
 }
 
+// Toolbar Search (user 2026-10-24: "thanh search trên tool bar tối đa nên để rộng 240"; code harness search/toolbar-width):
+// a Search beside Chips, buttons or other controls in a row is at most 240 wide on a tablet or desktop screen. Its cell is
+// the outermost wrapper holding only the Search. A phone Search (Shape=Rounded, or a phone screen) fills its row, and the
+// bars that size their own Search are left out: a top bar's centre (Nav-Center-Block, up to 400) and the Dashboard
+// header's Control-Bar (320, Figma).
+const SEARCH_SET = /^Search\//;
+const OWN_SEARCH_BAR = /Nav-Center|Center-Slot|Leading-Slot|Top-Navigation|Dashboard\/Header|Header\/Dashboard|Control-Bar/;
+async function checkToolbarSearch(root) {
+  for (const screen of screensOf(root)) {
+    if (!("findAll" in screen) || screen.width < 744) continue;
+    for (const node of screen.findAll((child) => child.type === "INSTANCE")) {
+      if (!shownIn(node, screen) || ownedByComponent(node, screen) || node.width <= 240 + TOLERANCE) continue;
+      if (!SEARCH_SET.test(await setNameOf(node)) || (node.variantProperties ?? {}).Shape === "Rounded") continue;
+      let own = false;
+      for (let current = node.parent; current && current !== screen; current = current.parent) if (OWN_SEARCH_BAR.test(current.name)) { own = true; break; }
+      if (own) continue;
+      let cell = node;
+      while (cell.parent && cell.parent !== screen && cell.parent.type === "FRAME" && cell.parent.children.filter((child) => child.visible !== false).length === 1) cell = cell.parent;
+      const row = cell.parent;
+      if (!row || !("layoutMode" in row) || !["HORIZONTAL", "GRID"].includes(row.layoutMode)) continue;
+      const c = box(cell);
+      let beside = null;
+      for (const sibling of row.children) {
+        if (sibling === cell || sibling.visible === false) continue;
+        const s = box(sibling);
+        if (!c || !s || s.y >= c.y + c.height - TOLERANCE || s.y + s.height <= c.y + TOLERANCE) continue;
+        const candidates = sibling.type === "INSTANCE" ? [sibling] : "findAll" in sibling ? sibling.findAll((child) => child.type === "INSTANCE").slice(0, 8) : [];
+        for (const candidate of candidates) if (INTERACTIVE.test(await setNameOf(candidate))) { beside = sibling; break; }
+        if (beside) break;
+      }
+      if (beside) report("search/toolbar-width", ERROR, node, `${Math.round(node.width)} wide beside ${beside.name}: a Search in a toolbar row is at most 240 — set it Fixed 240, or Fill with a max width of 240`);
+    }
+  }
+}
+
 // Phone sections (user 2026-10-17: "thêm rule spacing giữa các section trong mobile tối [thiểu] ở chế độ comfortable luôn
 // là 32px. Compact là 24px. tạo token để áp dụng"): the Body that stacks a phone screen's sections binds its gap to
 // Component Size's Layout-Mobile/Section-Gap (Compact 24, Comfortable 32), so it follows the mode the domain picks.
@@ -1282,6 +1320,7 @@ for (const root of roots) await checkModeOverrides(root);
 for (const root of roots) await checkBackChevron(root);
 for (const root of roots) await checkButtonRoles(root);
 for (const root of roots) await checkTouchSpacing(root);
+for (const root of roots) await checkToolbarSearch(root);
 for (const root of roots) await checkSectionGap(root);
 for (const root of roots) await checkModalForms(root);
 for (const root of roots) await checkClosingList(root);

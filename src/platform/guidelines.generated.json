@@ -770,7 +770,7 @@
       "On phone screens prefer shape=\"rounded\" (a pill, Figma Shape=Rounded); a Search in a TopNavigation control bar, a BottomSheet or an AppShell on a phone is rounded by default (set shape=\"default\" to keep the square field). Desktop toolbars keep the default shape.",
       "Filter live and show an empty state that echoes the query.",
       "Let Enter open the first result; the clear button resets to recent items.",
-      "Pair Search with Chip filters in table toolbars. Search fills its container, so give it a Grid column: columns={{ mobile: 1, desktop: \"minmax(0, 320px) 1fr\" }} with the chips in the second cell.",
+      "Pair Search with Chip filters in table toolbars. Search fills its container, so cap it in a toolbar row at 240px (the user's rule, 2026-10-24): <Box width=\"fill\" maxWidth={240}> around it beside the chips and buttons, or a Grid column: columns={{ mobile: 1, desktop: \"minmax(0, 240px) 1fr\" }} with the chips in the second cell (harness: search/toolbar-width). On a phone it fills its row.",
       "Debounce remote search (~250ms) and keep the query when results refresh.",
       "Show the result count in an aria-live region (\"12 results\").",
       "When the filter opens a Bottom Sheet, panel or Popover, pass filterHasPopup (\"dialog\", \"menu\", \"listbox\") and filterExpanded={open}; aria-expanded on Search itself lands on the input.",
@@ -781,7 +781,8 @@
       "Don't clear the query when results update.",
       "Don't disable Search because there is nothing to find yet; keep it with an empty state, or hide it where search never applies. Disable it only while something blocks searching (a bulk edit, a sync), and say why.",
       "Don't trigger search only on Enter for small, local lists; filter as the user types.",
-      "Don't use a vague placeholder (\"Type here…\")."
+      "Don't use a vague placeholder (\"Type here…\").",
+      "Don't let a toolbar Search stretch across the row or grow past 240px beside filters and buttons (harness: search/toolbar-width)."
     ],
     "a11y": [
       "type=search; aria-label defaults to the placeholder.",
@@ -808,6 +809,12 @@
         "severity": "warn",
         "summary": "Search needs a placeholder that says what is searched, or an aria-label.",
         "allow": "unnamed"
+      },
+      {
+        "id": "search/toolbar-width",
+        "severity": "error",
+        "summary": "A Search in a toolbar row (beside Chips, buttons or other controls) is at most 240px wide: wrap it in <Box width=\"fill\" maxWidth={240}>, or give it a Grid column minmax(0, 240px). A phone Search (shape=\"rounded\") fills its row.",
+        "allow": "search-toolbar-width"
       },
       {
         "id": "api/overrides-studio-only",
@@ -8364,7 +8371,7 @@
       "Put page content in a Container so its margin follows the breakpoint.",
       "Give a frame a surface only when it really is a separate layer; a Surface frame on a white (Alt) canvas needs border=\"pale\".",
       "Put the fill, stroke and corners of an auto layout frame on the Stack or Grid itself (Figma's frame with a fill is one layer): <Stack surface=\"surface\" padding=\"lg\" gap=\"md\" radius=\"lg\">, not a Box around a Stack.",
-      "Size like Figma auto layout: Hug for content-sized pieces, Fill for what takes the rest of a row or the full width (a main column; a Search next to buttons goes in a Box width=\"fill\", since Search has no sizing props), maxWidth to cap a Fill line of text; use Fixed (a number) only for widths that really are fixed, such as a side column or a preview frame.",
+      "Size like Figma auto layout: Hug for content-sized pieces, Fill for what takes the rest of a row or the full width (a main column; a Search next to buttons or filters goes in a Box width=\"fill\" maxWidth={240}, since Search has no sizing props and a toolbar Search is at most 240px wide), maxWidth to cap a Fill line of text; use Fixed (a number) only for widths that really are fixed, such as a side column or a preview frame.",
       "Pin a media overlay with position=\"absolute\" and a constraint on token insets: a corner action on a photo is constraintX=\"right\" insetRight=\"sm\" constraintY=\"top\" insetTop=\"sm\"; a caption bar is constraintX=\"left-right\" constraintY=\"bottom\".",
       "Put background media first and the content after it: the media is absolute (left-right × top-bottom), and the later in-flow content paints above it (Figma auto layout \"Last on top\").",
       "Lift a Surface panel on Canvas/Default with effectStyle=\"Shadow/Bottom/Level-1\" and no border: elevation follows the Sidebar, and it is the Card shadow.",
@@ -8404,6 +8411,12 @@
     ],
     "file": "docs/guidelines/layout.md",
     "rules": [
+      {
+        "id": "search/toolbar-width",
+        "severity": "error",
+        "summary": "A Search in a toolbar row (beside Chips, buttons or other controls) is at most 240px wide: wrap it in <Box width=\"fill\" maxWidth={240}>, or give it a Grid column minmax(0, 240px). A phone Search (shape=\"rounded\") fills its row.",
+        "allow": "search-toolbar-width"
+      },
       {
         "id": "box/border-matches-action",
         "severity": "warn",
@@ -9039,7 +9052,7 @@
       [
         "Control-Bar",
         "search · controls · subheading · actions",
-        "a Search (320px) · filter Chips · the result count (Body/Base/Regular) · Tertiary buttons then one Primary, right-aligned"
+        "a Search (320px, Figma Control-Bar) · filter Chips · the result count (Body/Base/Regular) · Tertiary buttons then one Primary, right-aligned"
       ],
       [
         "Navigation",

@@ -20,6 +20,7 @@ The Zen usage harness checks the page: after a turn that changed it, the Studio 
 Zen design rules to keep:
 - Spacing follows the relationship, the same step everywhere: 2xs inside one inline item, xs a thing and its label or a toolbar row, sm a group of buttons or choices, md blocks inside one surface, lg columns and groups inside a surface, xl page sections. The gap between groups is larger than the gap inside them.
 - A button next to text or another button sits at least Gap/XSmall (xs, 8px) away.
+- A Search in a toolbar row (beside filters or buttons) is at most 240px wide: wrap it in a Box with width="fill" and maxWidth={240}. On a phone it fills its row.
 - Brand / Accent is the main colour of a screen; other hues support, never lead.
 - Status reads as a Badge with words and a theme: green for done or paid, yellow for attention, red for failure, neutral for inactive. Colour is never the only signal.
 - Content on a Solid fill follows the fill (Inverse on Neutral Solid, On-Accent on Accent Solid).

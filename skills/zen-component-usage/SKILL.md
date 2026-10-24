@@ -21,6 +21,7 @@ principles, not rules: no harness checks them, and the brief, a template or the 
 2. Apply the house rules that most often go wrong:
    - **Buttons:** Primary = the one main CTA; Tertiary for everything else; Secondary is rare (a justified highlight); Accent only for promoted CTAs; Danger for irreversible actions.
    - **Filters, sort, scope, status and owner pickers** are `Chip variant="advanced"`, never a Button or Segmented.
+   - **Toolbar Search** (user rule 2026-10-24): a Search beside filters or buttons in one row is at most 240px wide: `<Box width="fill" maxWidth={240}>` around it, or a Grid column `minmax(0, 240px)`. Search is width 100%, so it otherwise stretches across the toolbar. A phone Search (`shape="rounded"`) fills its row; DashboardHeader's Control-Bar sizes its own (harness `search/toolbar-width`, audit kind `toolbar-search`).
    - **Inputs**: Read-only for a value to read or copy; Disabled (Text, Select, Date, Number, Text-Area, Search) only while something else blocks the field, with the reason in help text. Autocomplete and Rich-Text have no Disabled. Every field has a label.
    - **Background layers**: page = Canvas (`canvas-default`, or `canvas-alt` for a white page); cards on it = Surface (`surface-default`/`-alt`); top/bottom nav on a `canvas-flat` page = `surface-flat`; Modal/Bottom-Sheet = Container; floating overlays = Popover. Components never paint Canvas.
    - **Popover items** take `photoSrc` (the item sizes the avatar); captioned items use Avatar ≥ Small (32px).

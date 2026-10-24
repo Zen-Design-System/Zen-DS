@@ -104,6 +104,10 @@ Files in this skill:
     - Labels name the outcome: never "OK", "Submit" or "Yes".
   - **Not a button:** switching views is Segmented or Tabs; choosing a filter, sort or scope (an address, a period) is
     a Chip; Back is `icon-chevron-left-line-medium`.
+  - **Toolbar Search:** a Search beside Chips, buttons or a view switch in one row is at most 240 wide on tablet and
+    desktop screens: Fixed 240, or Fill with a max width of 240, never stretched across the toolbar. A phone Search
+    (Shape=Rounded) fills its row; the `Type=Control-Bar` row of `Primitives/Dashboard/Header` sizes its own. Audit
+    `search/toolbar-width` (user 2026-10-24: "thanh search trên tool bar tối đa nên để rộng 240").
   - **Navigation icons:** in a Bottom-Navigation the selected item shows the solid icon and every other item the line
     icon of the same family (audit `navigation/icon-style`). Never set a solid icon on every screen's Home; pick tab
     icons that have both styles.

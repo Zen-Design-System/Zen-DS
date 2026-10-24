@@ -18,6 +18,12 @@ export const Bad = () => <>
   <SelectField options={[]} />
   {/* expect: search/needs-name */}
   <Search />
+  {/* expect: search/toolbar-width */}
+  <Stack direction="row" gap="xs" align="center"><Search placeholder="Search tasks" /><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></Stack>
+  {/* expect: search/toolbar-width */}
+  <Stack direction="row" gap="xs" align="center"><Box width="fill" maxWidth={320}><Search placeholder="Search tasks" /></Box><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></Stack>
+  {/* expect: search/toolbar-width */}
+  <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} gap="sm"><Search placeholder="Search members" /><Chip variant="advanced" dropdown popoverItems={items}>Role</Chip></Grid>
   {/* expect: choice/needs-label */}
   <Checkbox checked={on} onChange={setOn} />
   {/* expect: radio/needs-name */}

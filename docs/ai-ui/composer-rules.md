@@ -30,6 +30,8 @@ a rejected spec comes back with the error paths and hints, fix those and resend.
    rare; `accent` only for a promoted action; `danger` for irreversible ones. Labels name the outcome
    ("Save changes"), never "OK" / "Submit".
 2. **Filters, sort, scope, status and owner pickers** are `<Chip variant="advanced">`, never a Button or Segmented.
+   A Search in that toolbar row is at most 240px wide: `<Box width="fill" maxWidth={240}><Search … /></Box>` (Search
+   is width 100%, so on its own it stretches across the row); on a phone it fills its row.
 3. **Fields** always have a `label`; a value people may see but not change is `readOnly`; `disabled` only when the
    field is unavailable for a reason the page shows (Text, Select, Date, Number, TextArea and Search; Autocomplete and
    RichText are `readOnly` only); `placeholder` shows an example value, not the label; errors go in `error`.

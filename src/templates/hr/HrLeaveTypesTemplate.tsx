@@ -240,7 +240,7 @@ export function HrLeaveTypesTemplate() {
       pageHeader={{ title: "Leave types", description: "The kinds of time off people can request. Allowances reset every Jan 1.", primary: { label: "Add leave type", onClick: addType } }}>
       <Stack gap="md">
         {/* Search fills its column; the filter chips (and Clear all, once two filters are on) share the rest. */}
-        <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} gap="sm" align="center">
+        <Grid columns={{ mobile: 1, desktop: "minmax(0, 240px) 1fr" }} gap="sm" align="center">
           <Search aria-label="Search leave types" placeholder="Search leave types" value={query} onValueChange={setQuery} />
           {/* On a phone the chips stay on one row that scrolls sideways. */}
           <Stack direction="row" gap="xs" align="center" wrap={!phone} role="group" aria-label="Filter leave types" style={phone ? { overflowX: "auto" } : undefined}>

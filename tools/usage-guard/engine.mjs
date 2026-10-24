@@ -42,7 +42,7 @@ export function loadLayoutClasses(json) {
 }
 
 /** Scan `<Tag …>` from index `start`; returns { attrs, end, selfClosing } honouring {…}, strings and template literals. */
-function readTag(src, start) {
+export function readTag(src, start) {
   let i = start, depth = 0, quote = null;
   while (i < src.length) {
     const ch = src[i];
@@ -63,7 +63,7 @@ function readTag(src, start) {
 }
 
 /** Children source of a non-self-closing element, balancing nested tags of the same name. */
-function readChildren(src, tag, from) {
+export function readChildren(src, tag, from) {
   const open = new RegExp(`<${tag.replace(".", "\\.")}\\b`, "g"), close = `</${tag}>`;
   let depth = 1, i = from;
   while (depth > 0) {
