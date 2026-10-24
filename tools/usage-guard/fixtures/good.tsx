@@ -182,6 +182,11 @@ export const Good = () => <>
   <div style={{ display: "flex", flexDirection: "column" }}><Button level="tertiary" size="sm" style={{ alignSelf: "flex-start" }} onClick={simulate}>Simulate an upload</Button></div>
   <div className="pe-stack"><Button level="primary" size="sm" style={{ justifySelf: "start" }} onClick={reserve}>Reserve</Button></div>
   <div style={{ display: "flex", gap: 8 }}><Button level="tertiary" size="sm" onClick={cancel}>Cancel</Button></div>
+  {/* listbox/grouped-on-phone: each group of a phone settings screen is its own ListBox under its kicker; one kicker over one bare list is an open section. */}
+  <PlatformPhone label="Settings" canvas="alt"><Stack gap="lg"><Stack gap="xs"><Box paddingX="lg"><Text textStyle="Body/Small/Bold" tone="light">Account</Text></Box><ListBox><List aria-label="Account"><ListItem title="Email" /></List></ListBox></Stack><Stack gap="xs"><Box paddingX="lg"><Text textStyle="Body/Small/Bold" tone="light">Privacy</Text></Box><ListBox><List aria-label="Privacy"><ListItem title="Blocked people" /></List></ListBox></Stack></Stack></PlatformPhone>
+  <PlatformPhone label="Inbox"><Stack gap="lg"><Box paddingX="lg"><Text textStyle="Body/Small/Bold">Today</Text></Box><List aria-label="Today"><ListItem title="Standup notes" /></List></Stack></PlatformPhone>
+  {/* table/titled-box: a ListBox header names its table. */}
+  <ListBox header={<Heading level={3} textStyle="Heading/Subheading">Top clients</Heading>}><Table aria-label="Top clients" columns={[]} rows={[]} getRowId={(r) => r.id} /></ListBox>
   {/* A table that is its own section: an h2 Heading/4 above it, and the Table points to it. */}
   {/* A table inside a widget Card: the widget title is Heading/Subheading. */}
   <div><Card>

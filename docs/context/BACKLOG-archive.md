@@ -2,6 +2,17 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-24 (B: the harness inventory candidates)
+
+- Done 2026-10-24 (user, through the progress session: all three): `listbox/grouped-on-phone` and `table/titled-box`
+  (usage harness, fixtures in bad/good.tsx), the audit's `segmented-fit` (platform-audit self-test). `table/titled-box`
+  reads the candidate as "a table in a box is named by it": a page table stays bare under its Heading/4 (usage rules §14).
+  **P3 · Harness candidates from the 2026-10-24 inventory (the user picks which become rules):**
+  `docs/research/harness-inventory-2026-10-24.md` (grouped lists on phones, a table without a container, phone Chips
+  instead of a Segmented that does not fit; a bare `<Container>` around a Table has 0 cases). The four approved rules
+  (`table/bulk-actions-max`, `chip/needs-action`, three actions in one TopNavigation group, `search-folds-to-action` on
+  `scrollRef` bars) shipped 2026-10-24.
+
 ## Archived 2026-10-24 (contract checker gaps, `zen/feat/contract-checker-gaps-20261024`; user 2026-10-24 "Làm")
 
 - Done 2026-10-24: `check.mjs` checks `fills`, `image`, per-corner `radius`, `minw` / `maxw` / `minh`, `dash`,
