@@ -194,8 +194,9 @@ export interface TopNavigationProps {
   scrollRef?: RefObject<HTMLElement | null> | "window";
   /**
    * With `scrollRef`: the type the bar takes once content scrolls under it (iOS's standard appearance), `type` being its
-   * look at the top (the scroll-edge appearance). A hero header: type="transparent-on-color" over the hero photo, and
-   * scrolledType="default" for the opaque bar once the page scrolls; the change is a colour fade, also with reduced motion.
+   * look at the top (the scroll-edge appearance). A hero header: type="default-overlay" over the hero photo (its dark
+   * gradient keeps the white title readable), and scrolledType="default" for the opaque bar once the page scrolls; the
+   * change is a colour fade, also with reduced motion.
    */
   scrolledType?: TopNavigationType;
   /** Collapsed by hand: hides the large title and shows `title` (or the large title) in the navigator bar. Prefer

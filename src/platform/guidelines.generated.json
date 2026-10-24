@@ -7088,7 +7088,7 @@
     ],
     "do": [
       "A bar title that switches what the screen shows (a mailbox, a project) is a Dropdown: give it titleMenu (Figma Heading-Text Dropdown, a chevron-down after the title). titleDropdown draws the chevron on an onTitleClick title that opens your own picker.",
-      "Over a hero photo, start clear and turn opaque as the page scrolls: type=\"transparent-on-color\" with scrolledType=\"default\" and scrollRef.",
+      "Over a hero photo, start on the photo and turn opaque as the page scrolls: type=\"default-overlay\" (its dark gradient keeps the white title readable) with scrolledType=\"default\" and scrollRef.",
       "State badges for the screen (a plan, how many devices are on) go under the large title in largeTitleBadges (Figma's Badges row); a Badge beside the title goes in largeTitleAction.",
       "Selection mode is a second TopNavigation, not a prop: Cancel as leading, the count as the title, the selection's actions (disabled until something is picked) as trailing — the Top Navigation page's Selection mode example.",
       "An Avatar in the bar or beside the large title (the account, a profile photo) is drawn at the action size, Navigation-Action/Size 44, whatever Avatar size you pass (user 2026-10-19).",

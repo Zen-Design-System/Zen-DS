@@ -92,7 +92,7 @@
 @media (prefers-reduced-motion: no-preference) { .zen-top-nav__title { transition: opacity var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
 /* Figma Heading-Text Type=Sub Dropdown (titleMenu / titleDropdown): the bar title as a button, its chevron-down
    (Element-Size/Popular/Base) Spacing/Gap/2XSmall after the words, in the title's colour. */
-.zen-top-nav__title-button { display: inline-flex; overflow: hidden; max-width: 100%; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); padding: var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: transparent; color: inherit; cursor: pointer; font: inherit; text-overflow: ellipsis; white-space: nowrap; }
+.zen-top-nav__title-button { display: inline-flex; overflow: hidden; max-width: 100%; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); padding: var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: transparent; color: inherit; cursor: pointer; font: inherit; letter-spacing: inherit; text-overflow: ellipsis; white-space: nowrap; }
 .zen-top-nav__title-button:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
 .zen-top-nav__title-button:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: -3px; }
 .zen-top-nav__chevron { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; }

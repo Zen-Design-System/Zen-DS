@@ -723,7 +723,9 @@ function HeroHeaderExample() {
   const hero = platformMedia.mountainRoad;
   return (
     <PlatformPhone label="Saola Lodge" canvas="alt" headerOverlay screenRef={screenRef} header={
-      <TopNavigation type="transparent-on-color" scrolledType="default" title="Saola Lodge" scrollRef={screenRef}
+      // The audit reads the white title against the phone's white canvas: the Default-Overlay gradient (on the bar's
+      // ::before while scroll-linked) and the photo under it are not in its background walk, so it is skipped here.
+      <TopNavigation data-audit-skip-contrast="" type="default-overlay" scrolledType="default" title="Saola Lodge" scrollRef={screenRef}
         leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Back to stays" }) }}
         trailing={[{ icon: "icon-share-01-line", label: "Share", onClick: () => toast({ title: "Link copied" }) }]} />
     }>
@@ -731,7 +733,7 @@ function HeroHeaderExample() {
       <Stack gap="md" padding="lg">
         <Heading level={2} textStyle="Heading/3">A lodge above the valley</Heading>
         <Text tone="base">Twelve rooms on the ridge road, an hour from the airport. Every room looks over the valley, and breakfast is served on the terrace from seven.</Text>
-        <Text tone="base">Scroll down: the bar starts clear over the photo, in white, and turns into the Default bar as the page moves under it.</Text>
+        <Text tone="base">Scroll down: the bar starts over the photo, in white on its dark gradient, and turns into the Default bar as the page moves under it.</Text>
         <Text tone="base">Check-in from 2 pm, check-out until 11 am. The lodge arranges pickup at the airport on request.</Text>
       </Stack>
     </PlatformPhone>
@@ -937,12 +939,12 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   },
   {
     title: "Hero header",
-    description: "Over a hero photo the bar is clear (Transparent-On-Color: white title and Liquid Glass actions); with scrolledType it becomes the Default bar once the page scrolls under it, as iOS's scroll-edge and standard appearances. The change is a colour fade.",
+    description: "Over a hero photo the bar takes the Default-Overlay type (a dark gradient under a white title and Liquid Glass actions, readable on any photo); with scrolledType it becomes the Default bar once the page scrolls under it, as iOS's scroll-edge and standard appearances. The change is a colour fade.",
     render: () => <HeroHeaderExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 
 <PlatformPhone canvas="alt" headerOverlay screenRef={screenRef} header={
-  <TopNavigation type="transparent-on-color" scrolledType="default" title="Saola Lodge" scrollRef={screenRef}
+  <TopNavigation type="default-overlay" scrolledType="default" title="Saola Lodge" scrollRef={screenRef}
     leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: back }}
     trailing={[{ icon: "icon-share-01-line", label: "Share", onClick: share }]} />
 }>
