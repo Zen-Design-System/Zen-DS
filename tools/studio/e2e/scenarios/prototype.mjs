@@ -163,6 +163,32 @@ export default function Page() {
 }
 `;
 
+/** A desktop Screen taller than Play's window, with a Button below a few rows that opens a modal Side Panel (PT-22). */
+const longScreenPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { Button, SidePanel, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Tasks" device="desktop" height={2400}>
+        <Stack gap="md" padding="lg">
+          ${Array.from({ length: 8 }, (_, index) => `<Text>Task ${index + 1}</Text>`).join("\n          ")}
+          <Button onClick={proto.open("details")}>Details</Button>
+        </Stack>
+      </Screen>
+      <Overlay id="details">
+        <SidePanel type="modal" title="Task details" onOpenChange={proto.close()}>
+          <Text>Due Friday</Text>
+        </SidePanel>
+      </Overlay>
+    </Board>
+  );
+}
+`;
+
 /** A Table, a Chip with no action yet and a Search that filters the client column (PT-20). */
 const filterPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Screen, proto } from "@zen-ds/react/builder";
@@ -920,6 +946,50 @@ export const rows = [
       await until(async () => /Cart/.test(await currentStep()), { message: "a new visit starts on Cart" });
       await page.keyboard.press("Escape");
       return "Next → Change step (Previous/Next) · Finish ⊕ → checkout:done · Play: Cart → Pay → Ship (stays) → Previous → Pay → Cart (passed step) → done state → Back → Cart";
+    },
+  },
+  {
+    id: "PT-22", feature: "Play draws a Screen as an app in a window: the Screen scrolls inside the device, and a modal Side Panel opened on a scrolled Screen shows in full in the window, moves nothing, and a wheel over it or its scrim leaves the Screen still", wp: "modal scroll lock 2026-10-24", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, longScreenPage, /proto\.open\("details"\)/);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      const scroll = () => page.evaluate(() => {
+        const inner = document.querySelector(".studio-player__device > .studio-player__screens");
+        const stage = document.querySelector(".studio-player .studio-present__scroll");
+        return { top: inner.scrollTop, max: inner.scrollHeight - inner.clientHeight, stage: stage.scrollHeight - stage.clientHeight };
+      });
+      const start = await scroll();
+      if (start.max < 200 || start.stage > 1) throw new Error(`the Screen does not scroll inside the device: ${JSON.stringify(start)}`);
+      const device = await playing(page).locator(".studio-player__device").boundingBox();
+      await page.mouse.move(device.x + device.width / 2, device.y + device.height / 2);
+      await page.mouse.wheel(0, 150);
+      await until(async () => (await scroll()).top >= 150, { message: "a wheel scrolls the Screen" });
+      const top = (await scroll()).top;
+      await step("open the Side Panel", () => playing(page).getByRole("button", { name: "Details" }).click());
+      const panel = playing(page).getByRole("dialog", { name: "Task details" });
+      await panel.waitFor({ state: "visible", timeout: 3000 });
+      await sleep(400);
+      if ((await scroll()).top !== top) throw new Error(`opening the Side Panel moved the Screen: ${top} → ${(await scroll()).top}`);
+      const box = await panel.boundingBox();
+      if (box.y < device.y - 1 || box.y + box.height > device.y + device.height + 1) throw new Error(`the Side Panel is not in the window: panel ${JSON.stringify(box)}, device ${JSON.stringify(device)}`);
+      for (const [x, y] of [[device.x + 40, device.y + device.height / 2], [box.x + box.width / 2, box.y + box.height / 2]]) {
+        for (const dy of [600, -600]) {
+          await page.mouse.move(x, y);
+          await page.mouse.wheel(0, dy);
+          await sleep(200);
+          if ((await scroll()).top !== top) throw new Error(`a wheel over the open Side Panel moved the Screen: ${top} → ${(await scroll()).top}`);
+        }
+      }
+      await page.keyboard.press("Escape");
+      await until(async () => (await panel.count()) === 0, { message: "Escape closes the Side Panel" });
+      if ((await scroll()).top !== top) throw new Error(`closing moved the Screen: ${top} → ${(await scroll()).top}`);
+      await page.mouse.move(device.x + device.width / 2, device.y + device.height / 2);
+      await page.mouse.wheel(0, -600);
+      await until(async () => (await scroll()).top === 0, { message: "the Screen scrolls again once the panel is closed" });
+      await page.keyboard.press("Escape");
+      return `Screen scrolls inside the device (range ${start.max}); Side Panel opened at ${top}: in the window, nothing moved, wheel held; closed, the Screen scrolls`;
     },
   },
 ];
