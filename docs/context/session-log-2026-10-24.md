@@ -200,6 +200,8 @@ went to the coordinator as one list.
 - 2c: `toolServer()` in tools/qa/isolated-server.mjs; audit, shoot and visual-diff warn on :5173 and take `--isolated`.
 - 3c: `tokenScope` reads `var(--zen-…)` in TSX/TS (component folders → their page, example pages → the page); against
   228897cd it finds 19 TSX consumers. 3d documented in skills/zen-build-qa §3. B.2 is its own PR.
+- Follow-up (#276, Giám sát 2026-10-24): `date-picker-event-list.mjs` compares Event-List Number-Event 1–4 (offsets from
+  the first dot; 256/256 over 8 variants × 2 modes); BACKLOG Tooling lines closed, Gate details archived.
 
 ## Native packages compiled in CI (tier S, CI only; BACKLOG P3; user: "thêm job CI macOS chạy swift test và flutter test cho platforms/")
 
@@ -237,3 +239,19 @@ Branch zen/feat/top-nav-props-20261024, stacked on #266 (the WIP from `wip/top-n
   values, 0 differences (12 registered custom properties of Voice / PageHeader / DashboardHeader exist only with
   styles.css), screenshots identical; 58.9 KB against 97.2 KB CSS gz.
 - BACKLOG: the Platform examples group (#263) and Package weight (#268) closed to the archive.
+
+## Session B · E2E ST-29 and DA-10, broken since #265 (tier S; Giám sát, fix-now rule)
+
+Both rows were broken in every run since #265: train A's gate, #275's gate and a local run. New rows don't fail the
+gate, so they looked green. They were written without being run, which was the slip.
+- **ST-29:** Send backward on a const shown on a condition and in a prop opened "Move in all 2 places?". The move only
+  touches the `{…}` at the holder (constHolderOf), so runMove now counts only the renders the holder shows directly
+  (`moveRepeats`, slots/actions.ts). That is a UI fix as well: the dialog was wrong there.
+- **DA-10:** a ListItem in a List can never be resized (cloning.json: it cannot be wrapped, so no handles). The data
+  fixture now has a `.map` of Boxes (`crew-tile`), and DA-10 resizes those (3 rows, height 53 → 78 on every row,
+  Escape writes nothing).
+- **Runs:** both rows pass alone; the structural and data groups pass together (32); the full default E2E gives 355 works,
+  0 broken (1562 s).
+- **Baseline:** my new rows (D-07, DA-10, ST-28, ST-29, VA-05…09) went into matrix.baseline.json as works, so a
+  regression now fails the gate. The other teams' new rows (PT-16…21, HO-13…16, K-24…27) are left to their owners.
+

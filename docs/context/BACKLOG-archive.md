@@ -2,6 +2,17 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-24 (Tooling group: #264, #272, #273; user 2026-10-24 "Theo đề xuất")
+
+- Done 2026-10-24 (baseline notes and the reused-pid marker in #264, B.2 `qa --failed` in #273; the kept and not-now
+  items are the user's decisions):
+  **P3 · Gate details (the user's decisions 2026-10-24), in flight:** baseline notes follow the fix-at-once rule and a
+  reused pid no longer keeps a stale "running" marker (PR #264); B.2, re-run only the steps that failed when nothing
+  changed (next PR). Done 2026-10-24: token scope reads inline `var()` in TSX (importers stay one level); a Bash
+  script's edits counting only when the command names the file is documented (`skills/zen-build-qa` §3). Kept on
+  purpose: partial `--only` runs and mixed stale guidelines fail. Not now: B.4, C.4, C.6, C.7; no global text-width
+  tolerance (the suites' `xr` / `wr` / `cxr` checks replace it).
+
 ## Archived 2026-10-24 (TopNavigation props, `zen/feat/top-nav-props-20261024`; user 2026-10-24 "Theo đề xuất")
 
 - Done 2026-10-24: `titleMenu` / `titleDropdown` (Figma Heading-Text Dropdown), `largeTitleBadges` (Main-Heading-Text
