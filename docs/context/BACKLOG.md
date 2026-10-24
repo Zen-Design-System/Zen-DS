@@ -90,10 +90,6 @@ starts.
   instead of a Segmented that does not fit; a bare `<Container>` around a Table has 0 cases). The four approved rules
   (`table/bulk-actions-max`, `chip/needs-action`, three actions in one TopNavigation group, `search-folds-to-action` on
   `scrollRef` bars) shipped 2026-10-24.
-- **P3 · Audit gaps (2026-10-02/03; the user's go 2026-10-24), in flight:** `fit` / `overflow` also catch a control
-  clipped by an `overflow: hidden` ancestor or covered by a sibling, and a durable selftest for the quality / outline
-  checks (B, PR #270). Done 2026-10-24: the focused-heading `edges` frame (#264); `platform:audit`, `platform:shoot` and
-  `visual-diff` warn on the shared :5173 and take `--isolated` (#272).
 
 ### Next-phase Studio design check
 - **P3 · Studio panels in dark chrome and at 280px (2026-10-03; rewritten 2026-10-24):** no screenshot pass of the

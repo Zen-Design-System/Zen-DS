@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- QA gate: a new `clip` check (`--quality`, error, baselined) reports a control that fits its own text but is cut off by
+  an `overflow: hidden` ancestor, hidden past its edge while its sibling controls show, or covered by another element of
+  the example. `overflow` and `fit` could not see these. The gate now also fails on `counts`, `card-gap` and
+  `legend-column`, which the audit already called errors. `npm run platform:audit:selftest` runs every in-page quality,
+  outline and clip check on fixtures, in the gate and in CI (user, 2026-10-24).
 - Zen Studio: a draft made, saved or discarded in another browser (or a drafted file changed on disk) shows in every
   open Studio tab at once; it waited for the 10 s poll, a focus or a tab switch (2026-10-24).
 - Zen Studio: resizing a row a `.map` draws previews every row it draws, as its pill's "all N" says; only the pressed row

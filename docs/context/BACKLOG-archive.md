@@ -13,6 +13,16 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   purpose: partial `--only` runs and mixed stale guidelines fail. Not now: B.4, C.4, C.6, C.7; no global text-width
   tolerance (the suites' `xr` / `wr` / `cxr` checks replace it).
 
+## Archived 2026-10-24 (B: Audit gaps, PR #270)
+
+- Done 2026-10-24: the focused-heading `edges` frame and the :5173 warning (#264); the `clip` check (a control cut off
+  by an `overflow: hidden` ancestor, hidden past its edge while its siblings show, or covered) and
+  `npm run platform:audit:selftest` (#270):
+  **P3 · Audit gaps (2026-10-02/03; the user's go 2026-10-24), in flight:** the focused-heading `edges` frame (PR #264);
+  `fit` / `overflow` also catch a control clipped by an `overflow: hidden` ancestor or covered by a sibling, and a durable
+  selftest for the quality / outline checks (B, PR #270). Done: `platform:audit`, `platform:shoot` and `visual-diff` warn
+  on the shared :5173 and take `--isolated` (2026-10-24).
+
 ## Archived 2026-10-24 (train A: Platform examples #263, per-component CSS #268)
 
 - Done 2026-10-24 (#263): the chat inbox-row key left behaviour-baseline.json and train A's --all behaviour run found no new dead click (0 errors); the HR pages' 9 text styles went to QUESTIONS.md (designer batch 2026-10-24):

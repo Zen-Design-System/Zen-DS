@@ -611,3 +611,111 @@ export function widgetLayout({ scopeSel, regionSel }) {
   }
   return out;
 }
+
+/**
+ * Control reach (`clip`, BACKLOG "fit follow-ups", the user 2026-10-24): a control that fits its own text but cannot be
+ * seen whole where it stands. `overflow` skips anything inside a clipping ancestor and `fit` measures text against its
+ * own box, so neither sees these:
+ *   - cut off: an `overflow: hidden | clip` (or `contain: paint`) ancestor hides part of it (a `flex-shrink: 0`
+ *     Segmented in a clipping row loses the end of its last item);
+ *   - hidden: it lies wholly past that edge while a sibling control of the same parent shows (the items after it);
+ *   - covered: the middle of what shows of it is under another element of the example (a docked Side Panel over a card).
+ *
+ * Not reported: what a scroll container (`auto` / `scroll`) hides, since it scrolls into view; a device frame's bottom
+ * edge (a phone screen shows the top of a longer page); a group hidden as a whole (a collapsed accordion); covers that
+ * are floating layers (dialogs, menus, listboxes, popovers, tooltips, toasts, sheets, scrims), invisible hit areas, the
+ * control's own label, the docs' chrome, a bar over a scroll container the control scrolls in, or a sticky or fixed
+ * layer the content scrolls under (the first full run, 2026-10-24: all 137 covers were bottom bars, ActionBars,
+ * headers and Gantt / Schedule label columns); `data-audit-skip-quality`.
+ *
+ * It scrolls the window to sample each control's middle with elementFromPoint, then scrolls it back.
+ */
+export function controlClip({ scopeSel, regionSel }) {
+  const out = { clip: [] };
+  const scope = scopeSel ? document.querySelector(scopeSel) : document;
+  if (!scope) return out;
+  const REGION = regionSel ?? ".pe-card__stage, .platform-example-panel .platform-example-row, .official-portal-root > *";
+  const regions = [...(scope.matches?.(REGION) ? [scope] : []), ...scope.querySelectorAll(REGION)]
+    .filter((r) => !r.closest(".platform-guideline-visual__dont, [data-verdict='dont']"));
+  const label = (el) => (el.closest("[data-audit-label]")?.getAttribute("data-audit-label") ?? el.closest(".pe-card")?.querySelector("h3")?.textContent ?? el.closest(".platform-example-panel")?.querySelector("h2")?.textContent ?? (el.closest(".official-portal-root") ? "overlay" : "page")).trim().slice(0, 40);
+  const describe = (el) => `${el.tagName.toLowerCase()}${typeof el.className === "string" && el.className.trim() ? "." + el.className.trim().split(/\s+/).filter((c) => !/^zen-type-/.test(c)).slice(0, 2).join(".") : ""}`;
+  const px = (v) => parseFloat(v) || 0;
+  const CONTROL = "button, a[href], summary, input:not([type='hidden']), select, textarea, [role='button'], [role='tab'], [role='option'], [role='menuitem'], [role='menuitemradio'], [role='menuitemcheckbox'], [role='switch'], [role='checkbox'], [role='radio'], [role='link']";
+  const SKIP = "[aria-hidden='true'], [inert], .zen-visually-hidden:not(:focus-within), [data-audit-skip-quality]";
+  const FLOATING = "[role='dialog']:not(.pe-card), [role='alertdialog'], [aria-modal='true'], [role='menu'], [role='listbox'], [role='tooltip'], .zen-popover, .zen-toast, .zen-bottom-sheet, [class*='scrim'], [class*='backdrop']";
+  const FRAME = ".platform-phone, .pe-chat-desktop, .pf-app-frame";
+  const shown = (el) => { const s = getComputedStyle(el); return s.visibility !== "hidden" && s.display !== "none"; };
+  const opaque = (el) => { for (let a = el; a && a !== document.body; a = a.parentElement) if (px(getComputedStyle(a).opacity) <= 0.05) return false; return true; };
+  const nameOf = (el) => (el.getAttribute("aria-label") || el.textContent || el.getAttribute("value") || el.getAttribute("placeholder") || "").replace(/\s+/g, " ").trim().slice(0, 24);
+  // What shows of `el`: its box cut by every clipping ancestor below the region, and the first ancestor that hides part of
+  // it without scrolling (a frame's bottom edge aside), with the nearest scroll container (covers above it scroll by).
+  const reach = (el, region) => {
+    const r = el.getBoundingClientRect(); const k = el.offsetWidth ? r.width / el.offsetWidth : 1;
+    const vis = { l: r.left, r: r.right, t: r.top, b: r.bottom };
+    let cutBy = null, hidden = 0, axis = "", scroller = null;
+    for (let a = el.parentElement; a && a !== region && a !== document.body; a = a.parentElement) {
+      const s = getComputedStyle(a);
+      const paint = /\b(paint|strict|content)\b/.test(s.contain);
+      const clipX = s.overflowX !== "visible" || paint, clipY = s.overflowY !== "visible" || paint;
+      if (!clipX && !clipY) continue;
+      const scrollX = /auto|scroll/.test(s.overflowX), scrollY = /auto|scroll/.test(s.overflowY);
+      if (scrollX || scrollY) scroller ??= a;
+      const q = a.getBoundingClientRect(); const ka = a.offsetWidth ? q.width / a.offsetWidth : 1;
+      const box = { l: q.left + px(s.borderLeftWidth) * ka, r: q.right - px(s.borderRightWidth) * ka, t: q.top + px(s.borderTopWidth) * ka, b: q.bottom - px(s.borderBottomWidth) * ka };
+      const w = Math.max(0, vis.r - vis.l), h = Math.max(0, vis.b - vis.t);
+      if (clipX) { vis.l = Math.max(vis.l, box.l); vis.r = Math.min(vis.r, box.r); }
+      if (clipY) { vis.t = Math.max(vis.t, box.t); vis.b = Math.min(vis.b, box.b); }
+      if (cutBy) continue;
+      const hidX = clipX && !scrollX ? w - Math.max(0, vis.r - vis.l) : 0;
+      const hidY = clipY && !scrollY && !a.matches(FRAME) ? h - Math.max(0, vis.b - vis.t) : 0;
+      if (Math.max(hidX, hidY) > 2 * k) { cutBy = a; hidden = Math.max(hidX, hidY) / k; axis = hidX >= hidY ? "x" : "y"; }
+    }
+    return { vis, area: Math.max(0, vis.r - vis.l) * Math.max(0, vis.b - vis.t), cutBy, hidden, axis, scroller, k };
+  };
+  const candidates = [];
+  for (const region of regions) {
+    for (const el of region.querySelectorAll(CONTROL)) {
+      if (el.closest(SKIP) || !shown(el) || !opaque(el)) continue;
+      // A control inside another (a chip's remove button) is the outer one's business.
+      const outer = el.parentElement?.closest(CONTROL);
+      if (outer && region.contains(outer)) continue;
+      const r = el.getBoundingClientRect(); if (r.width <= 2 || r.height <= 2) continue;
+      candidates.push({ el, region, ...reach(el, region) });
+    }
+  }
+  const flagged = new Set();
+  const say = (el, msg) => { if (flagged.has(el)) return; flagged.add(el); if (!out.clip.includes(msg)) out.clip.push(msg); };
+  for (const c of candidates) {
+    if (!c.cutBy) continue;
+    const what = `${label(c.el)}: ${describe(c.el)} "${nameOf(c.el)}"`;
+    if (c.area > 0) { say(c.el, `${what} is cut off by ${describe(c.cutBy)} (${Math.round(c.hidden)}px of it hidden, ${c.axis === "x" ? "across" : "down"}) — give it room (flex-shrink / min-width), wrap the row, or let it scroll`); continue; }
+    const siblings = candidates.filter((o) => o !== c && o.el.parentElement === c.el.parentElement);
+    if (siblings.some((o) => o.area > 0)) say(c.el, `${what} is hidden past the edge of ${describe(c.cutBy)} while ${siblings.filter((o) => o.area > 0).length} of its siblings show — give the row room, wrap it, or let it scroll`);
+  }
+  // Covered: sample the middle of what shows, top to bottom, scrolling the window to it.
+  const startX = scrollX, startY = scrollY;
+  const pageY = (c) => (c.vis.t + c.vis.b) / 2 + scrollY;
+  const order = candidates.filter((c) => c.area > 4 && !flagged.has(c.el)).map((c) => ({ c, y: pageY(c) })).sort((a, b) => a.y - b.y);
+  for (const { c } of order) {
+    let at = reach(c.el, c.region);
+    let x = (at.vis.l + at.vis.r) / 2, y = (at.vis.t + at.vis.b) / 2;
+    if (y < 96 || y > innerHeight - 24) { scrollBy(0, y - innerHeight / 2); at = reach(c.el, c.region); x = (at.vis.l + at.vis.r) / 2; y = (at.vis.t + at.vis.b) / 2; }
+    if (at.area <= 4 || x < 0 || x > innerWidth || y < 0 || y > innerHeight) continue;
+    const hit = document.elementFromPoint(x, y);
+    if (!hit || hit === c.el || c.el.contains(hit) || hit.contains(c.el)) continue;
+    // Only another element of an example (or an overlay layer), never the docs' own bars.
+    if (!hit.closest(REGION) && !hit.closest(".official-portal-root")) continue;
+    if (hit.closest(FLOATING) || hit.closest(SKIP) || !opaque(hit)) continue;
+    if (hit.closest("label") && hit.closest("label").control === c.el) continue;
+    // A bar over a scroll container: what scrolls under it is reached by scrolling. So is what passes under a sticky or
+    // fixed layer (an AppShell's bottom bar, a docked ActionBar, a header, a Gantt's label column): that layer stays put
+    // while the content scrolls.
+    if (at.scroller && !at.scroller.contains(hit)) continue;
+    let pinned = false;
+    for (let a = hit; a && !a.contains(c.el); a = a.parentElement) if (/^(sticky|fixed)$/.test(getComputedStyle(a).position)) { pinned = true; break; }
+    if (pinned) continue;
+    say(c.el, `${label(c.el)}: ${describe(c.el)} "${nameOf(c.el)}" is covered by ${describe(hit)} — it cannot be seen or pressed there`);
+  }
+  scrollTo(startX, startY);
+  return out;
+}
