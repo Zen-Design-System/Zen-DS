@@ -2,6 +2,18 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-25 (merge train C: DatePicker events, #293)
+
+- Done 2026-10-25 (train C, #293: DatePicker `events`, the calendars' day-1 dot; the other four landed in train B):
+  **P3 · New APIs the contract suites asked for (2026-10-24; the user picked the first four):** Figma draws what code
+  has no prop for, so those variants return null in their suites (`tools/figma-contract/suites/*.mjs`). Needs the user's
+  go: DatePicker event days on the calendar (the Single calendars' day-1 dot: DatePicker has no events prop, while
+  DatePickerItem takes `event` 1–4 since #266 and Event-List 1–4 is compared). Done 2026-10-24 (train B): Popover
+  `placement="cover"` (Autocomplete-Field) and DatePickerSheet `header="selection"` (9923:2323, suite
+  date-picker-sheet-header) in #280; Avatar status Disabled / Pending / Inactive and the 4px XSmall dot (`AvatarStatus`)
+  and the workspace rail's Master-Background (`railBackground`) in #279.
+  (2026-10-25: the user said "Làm luôn" to the event days; built in #293, train C.)
+
 ## Archived 2026-10-24 (B: phone Segmenteds become chip rows)
 
 - Done 2026-10-24 (user, option A: "Segmented tự hiện thành hàng Chip chọn một trên điện thoại khi nhãn không vừa"): Segmented

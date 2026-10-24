@@ -652,3 +652,11 @@ its `Content#4081:111` SLOT (read from the live file: 1603:23604).
   no library for a draft (useProjectLibrary returns undefined), so `libraryOf(page)` was empty. The Cell's Content had no
   "Status", and the insert refused with "has no variants". Fix: `cellLibrary(page)` in cellInstance.ts falls back to the
   page's own components (`pageComponents`); TableCellPanel and setOf use it.
+
+## BACKLOG split (tier XS, docs only; user 2026-10-24 23:40 "clear the BACKLOG once", via Giám sát)
+- New `docs/context/BACKLOG-user-and-later.md`: "For the user (Việc của anh/chị)" — library publish (+ direct paste),
+  LICENSE, registry steps / Phase 6, shared-key warning, Code Connect seat, Link folder hand check; "Later phase (Giai
+  đoạn sau)" — code languages, Studio UX N1–N11, dark/280 panels, ListItem Value in Figma, and the new project
+  language setting (user 2026-10-25 "Để đợt sau"). Entry text unchanged.
+- `BACKLOG.md` keeps only dev work in flight (train C: DatePicker event days #293, phone Segmenteds #291); it is empty
+  once train C lands. HANDOFF points at the new file.
