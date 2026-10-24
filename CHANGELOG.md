@@ -25,6 +25,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   instead); a range with Clear dates (`onClear`) and the weekday row under the title and Close. BottomSheet takes a
   `header` slot in place of its Header-Bar (the title stays the dialog's name). Popover `placement="cover"` lays the
   surface over its anchor; AutocompleteField's list now opens over the Add slot, as Figma draws it.
+- Dialog, ModalForm, modal SidePanel and BottomSheet (2026-10-24): an open modal also holds still every box that
+  scrolls around the place it renders in, not only the page: in Zen Studio's Play and Present a wheel over a modal no
+  longer scrolls the page under it (the stage scrolls a device frame, the user's "Quản lý task" prototype), and a phone
+  preview on a scrolling pane stays put. Each box is padded by its scrollbar's width while locked, as the page is.
 - Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,
   auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
   the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are

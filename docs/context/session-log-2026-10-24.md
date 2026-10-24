@@ -132,6 +132,7 @@ slots (b) A built and B not (computed `.map` rows keep "edit it in the code"), n
   Anything edited, a passing or quick last run, or a missing report → it says why and runs everything.
 - qa:selftest 26 → 30 checks (the page choice); a static-only run against a fake failed ledger skipped TypeScript and
   re-ran the failed self-test (the fake ledger and its report removed after).
+
 ## Tooling fixes (#264; tier S–M; the user's go 2026-10-24)
 - `avatar/solid-initials-contrast`: measured today's tokens (both themes the same): golden 2.58, teal 2.70, cyan 2.96,
   orange 2.98 below 3:1; green 3.48 and bronze 3.38 pass, so the rule lists golden | teal | cyan | orange (fixtures,
@@ -146,6 +147,7 @@ slots (b) A built and B not (computed `.map` rows keep "edit it in the code"), n
   1512/390/320) were all there were; targets 0. Baseline unchanged. The dark pass with playgrounds also lists
   rhythm/roles/scale/outline-siblings findings the light keys hold; the gate's dark step (`--no-playground`) never sees
   most of them.
+
 ## Components group of the triaged backlog (tier M; user 2026-10-24 via the coordinator: "Giao 35 mục theo đề xuất … Phần không cần quyết làm ngay; phần cần quyết gom lại hỏi tôi một lượt")
 
 Branch zen/fix/components-backlog-20261024 from main 6e4e6605 (worktree festive-archimedes-176df5, beside PR #248's
@@ -257,6 +259,7 @@ Branch zen/feat/avatar-status-rail-20261024.
   The playground's "Master Background" chip drove the Main panel's `background`; it now drives the rail, Background the panel.
 - Suites: avatar-status 160/160 (16 variants, was 4), sidebar-workspace 1308/1308 (3 variants, was 1; the workspace-name
   exception now on every variant), avatar-single and table-cell-avatar unchanged. Example "Member access" on the Avatar page.
+
 ## Session B · E2E ST-29 and DA-10, broken since #265 (tier S; Giám sát, fix-now rule)
 
 Both rows were broken in every run since #265: train A's gate, #275's gate and a local run. New rows don't fail the
@@ -311,3 +314,28 @@ Branch zen/feat/datepicker-sheet-popover-cover-20261024 (from main 92300d66, mai
 - Tests: date-picker-sheet (header single/range, Clear, Close), input-date-autocomplete-popover (cover vs adjacent).
 - Checks: tsc, usage:check / selftest, style:check, guidelines / ai-ui / Studio maps, studio:selftest, related
   interaction tests 81/81.
+
+## Modal scroll lock around the overlay (tier S, library `_shared`; the user's bug "không khoá scroll khi mở modal")
+
+Branch claude/modal-scroll-lock-ecdb17. Found in Play on "Quản lý task": `.studio-present__scroll` moved 67px under an
+open ModalForm.
+- Cause: `lockScroll()` (`_shared/modal-isolation.ts`) set `overflow: hidden` on `<body>` only. Play and Present scroll a
+  stage that holds the device frame (`[data-zen-overlay-root]`); a modal opens in that frame, so a wheel over it chains
+  to the stage. Real apps were fine: AppShell scrolls the window, and a body-portalled scrim is fixed, so no box between
+  it and the viewport scrolls.
+- Fix: `lockScroll(around)` locks the document and every box with `overflow` auto|scroll|overlay from the element the
+  modal is portalled into up to `<body>` or a `[data-zen-isolation-root]` (Studio's canvas layer stays live). Each box is
+  reference counted and padded by its own scrollbar (skipped with a stable gutter). `useModal` passes the parent of
+  `modalRoot(panel, container)` (split out of `inertOutside`); inline modals (AppShell drawer, Chat picker, inline sheet)
+  lock the page as before. No Studio code changed.
+- Test `tests/interaction/modal-scroll-lock.test.tsx` (8): Dialog, ModalForm, modal SidePanel, BottomSheet in a frame in
+  a scrolling stage (wheel both ways, then the stage scrolls again once closed), Dialog over ModalForm, no content shift,
+  isolation root, window. On the old code the 4 wheel cases fail (stage 0 → 40).
+- Walk (user's flow, private server from the worktree, a copy of the page): Danh sách → Mở → Tạo task → typing → Hủy
+  (Dialog) → Tiếp tục sửa → submit (tasks:created) → Mở task mới → Bỏ task: no wheel moves the page in any of the 6
+  modal states; no lock is left after close, submit or discard. The notifications Overlay (a top-right Card, not modal)
+  lets the page scroll, as a dropdown does.
+- Found, not fixed (pre-existing, Play layout): with the page scrolled, opening a modal SidePanel moves the page (67 → 54,
+  119 → 0 on tasks:created) because Play anchors overlays to the whole screen, taller than the window, and focus scrolls
+  the close button into view; closing leaves the page there. Fix = Play draws overlays over the visible window (screen
+  scrolls inside the device frame); asked the user.
