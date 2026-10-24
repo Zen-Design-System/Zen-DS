@@ -141,7 +141,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `day` | `number \| string` | `""` |  |
 | `date` | `Date` | — | The full date of this day. It names the button in the locale ("Wednesday, September 30, 2026"); without it the name is the locale's "Day N". The calendar passes it for every day. |
 | `state` | `\| "default" \| "hover" \| "single-selected" \| "range-selected-start" \| "range-selected-end" \| "in-range" \| "today" \| "blank" \| "weekend" \| "disabled"` | `"default"` |  |
-| `event` | `boolean` | `false` |  |
+| `event` | `boolean \| number` | `false` | Events on this day, drawn as dots under it (Figma `.Primitives/Date-Picker/Item/Event-List` 510:36577): `true` or a count, 1–4 dots (more show 4), 4px apart by Spacing/Gap/3XSmall; Content/Accent/Light, Date-Picker-Item/Content/ Selected on a selected day (Variant=On-Selected). |
 | `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Medium 32px (default) or Small 24px; short (sm, md…) or Figma (small, medium…) spelling. Ignored on mobile. |
 | `device` | `"desktop" \| "mobile"` | `"desktop"` | `mobile`: `.Primitives/Mobile-Date-Picker/Item` (9921:3283), a square that fills its grid column (40px in the component, 50px in the 350px table of a 390px phone) with the day in Body/Base/Medium; same states and tokens as desktop. |
 

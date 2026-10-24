@@ -499,7 +499,7 @@ function DockedDetailsExample() {
         )}
       >
         <Stack ref={measure} gap="md">
-          <Table aria-label="Files" columns={width > 0 && width < 560 ? narrowFileColumns : fileColumns} rows={rows} onRowClick={(row) => { setSelectedId(row.id); setChoice(true); }}
+          <Table aria-label="Files" columns={width > 0 && width < 560 ? narrowFileColumns : fileColumns} rows={rows} currentRowId={open ? selectedId : null} onRowClick={(row) => { setSelectedId(row.id); setChoice(true); }}
             empty={<EmptyState size="sm" headingLevel={2} icon="icon-search-medium-line" title="No files match" secondaryAction={{ label: "Clear filters", onClick: clear }}>Try a file name, its owner or another type.</EmptyState>} />
         </Stack>
       </AppShell>
@@ -780,7 +780,7 @@ const [open, setOpen] = useState(false);
     </SidePanel>
   }
 >
-  <Table aria-label="Files" columns={columns} rows={files} onRowClick={(file) => { setSelectedId(file.id); setChoice(true); }} />
+  <Table aria-label="Files" columns={columns} rows={files} currentRowId={open ? selectedId : null} onRowClick={(file) => { setSelectedId(file.id); setChoice(true); }} />
 </AppShell>`,
   },
   {

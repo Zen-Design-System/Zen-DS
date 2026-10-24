@@ -126,9 +126,10 @@ const spaceNames = spaceList.map((space) => space.name);
 const toggle = (list: string[], value: string) => (list.includes(value) ? list.filter((item) => item !== value) : [...list, value]);
 
 /* ── Small pieces shared by the list, the board and the panel ──────────────────────────────────────────────────── */
-/** The status mark: an empty ring for To do, a quarter, a half, and a tick when Done (the Badge themes are ring themes too). */
+/** The status mark: an empty ring for To do, a quarter, a half, and a tick when Done (the Badge themes are ring themes too).
+ *  Decorative: the status heading beside it says the same word. */
 const StatusMark = ({ status }: { status: TaskStatus }) => (
-  <ProgressCircle value={taskStatusProgress[status]} theme={taskStatusTheme[status] as "neutral" | "blue" | "yellow" | "green"} aria-label={status} />
+  <ProgressCircle value={taskStatusProgress[status]} theme={taskStatusTheme[status] as "neutral" | "blue" | "yellow" | "green"} decorative />
 );
 /** The step as a BadgeStatus: its ring fills as the task moves on; the label is the status word. */
 const StatusBadge = ({ status }: { status: TaskStatus }) => <BadgeStatus status={taskStep[status]}>{status}</BadgeStatus>;
@@ -381,7 +382,7 @@ export function HrTasksTemplate() {
             ) : (
               // The open task's row stays selected while its panel is open.
               <Table aria-labelledby={headingId} rows={rows} getRowId={(task) => task.id} columns={columns} sort={sort} onSortChange={setSort}
-                selectedIds={openId ? [openId] : []} onRowClick={(task) => openTask(task.id)} />
+                currentRowId={openId} onRowClick={(task) => openTask(task.id)} />
             )}
           </Stack>
         );

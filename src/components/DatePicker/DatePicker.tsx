@@ -28,7 +28,10 @@ export interface DatePickerItemProps extends Omit<ButtonHTMLAttributes<HTMLButto
    * name is the locale's "Day N". The calendar passes it for every day. */
   date?: Date;
   state?: DatePickerItemState;
-  event?: boolean;
+  /** Events on this day, drawn as dots under it (Figma `.Primitives/Date-Picker/Item/Event-List` 510:36577): `true` or a
+   *  count, 1–4 dots (more show 4), 4px apart by Spacing/Gap/3XSmall; Content/Accent/Light, Date-Picker-Item/Content/
+   *  Selected on a selected day (Variant=On-Selected). */
+  event?: boolean | number;
   /** Medium 32px (default) or Small 24px; short (sm, md…) or Figma (small, medium…) spelling. Ignored on mobile. */
   size?: "md" | "sm" | "medium" | "small";
   /** `mobile`: `.Primitives/Mobile-Date-Picker/Item` (9921:3283), a square that fills its grid column (40px in the
@@ -63,6 +66,7 @@ export function DatePickerItem({ day = "", date, state = "default", event = fals
   const locale = useZenLocale();
   const size = scaleKey(sizeProp, datePickerItemSizes);
   const blank = state === "blank" || day === "";
+  const dots = event === true ? 1 : typeof event === "number" && event > 0 ? Math.min(4, Math.floor(event)) : 0;
   return (
     <button
       {...props}
@@ -79,7 +83,7 @@ export function DatePickerItem({ day = "", date, state = "default", event = fals
       disabled={blank || state === "disabled" || props.disabled}
     >
       <span>{day}</span>
-      {event ? <i aria-hidden="true" /> : null}
+      {dots ? <span className="zen-date-picker__events" aria-hidden="true">{Array.from({ length: dots }, (_, index) => <i key={index} />)}</span> : null}
     </button>
   );
 }

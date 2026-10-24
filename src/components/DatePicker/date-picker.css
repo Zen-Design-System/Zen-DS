@@ -3,11 +3,13 @@
    in-place calendar without the popover surface (.Primitives/Date-Picker/Calendar 478:30561 and Date-Picker/Mobile
    9923:3576 carry no fill, stroke or effect), so it has no Effect/Popover shadow or blur, no Popover fill or border and
    no surface padding: its days line up with the container's content. */
-.zen-date-picker[data-placement="inline"] { position: relative; z-index: auto; min-width: 0; padding: 0; border: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
+.zen-date-picker[data-placement="inline"] { position: relative; z-index: auto; min-width: 0; max-width: 100%; padding: 0; border: 0; background: transparent; box-shadow: none; backdrop-filter: none; }
+/* Day cells are Figma's Select-Item/Size (Component Size collection): Medium 32 (Small 24) in Compact, the default;
+   40 (32) in Comfortable; 28 (24) in the Studio density. A panel is seven of them (224 at 32). */
 /* Calendar panels: Single = one 224px panel; Dual-Calendar = two panels with Spacing/Gap/Small between.
    Inside a panel the Header and Calendar-Table are 12 apart (Spacing/Gap/Small). */
 .zen-date-picker__panels { display: flex; gap: var(--zen-spacing-gap-small, 12px); align-items: flex-start; }
-.zen-date-picker__panel { display: flex; width: 224px; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
+.zen-date-picker__panel { display: flex; width: calc(7 * var(--zen-select-item-size-medium, 32px)); max-width: 100%; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
 .zen-date-picker__header { display: flex; width: 100%; height: var(--zen-button-size-small, 32px); align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* A hidden Back/Next (Dual headers) keeps its 32px Button-Wrapper so the label stays centred. */
 .zen-date-picker__nav-slot { width: var(--zen-button-size-small, 32px); height: var(--zen-button-size-small, 32px); flex: 0 0 var(--zen-button-size-small, 32px); }
@@ -19,14 +21,16 @@ button.zen-date-picker__month:hover:not(:disabled) { border-radius: var(--zen-co
 .zen-date-picker__month:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 0; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-flat-hover); }
 span.zen-date-picker__month { cursor: default; }
 .zen-date-picker__calendar { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
-.zen-date-picker__weekdays, .zen-date-picker__grid { display: grid; width: 100%; grid-template-columns: repeat(7, 32px); justify-content: center; }
+.zen-date-picker__weekdays, .zen-date-picker__grid { display: grid; width: 100%; grid-template-columns: repeat(7, minmax(0, var(--zen-select-item-size-medium, 32px))); justify-content: center; }
+/* Narrower than seven cells (Comfortable's 40 on a 320px phone): the columns give way and the days stay square. */
+.zen-date-picker__grid > .zen-date-picker__day:not([data-device="mobile"]) { max-width: 100%; height: auto; aspect-ratio: 1; }
 .zen-date-picker__grid { row-gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .zen-date-picker__weekdays { padding-block: var(--zen-spacing-padding-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: center; }
 /* .Primitives/Date-Picker/Item 455:33517 has two layers: the root paints the In-Range strip and its Container (the
    label span) paints the day with Corner-Radius/Action/Small (Medium, 32) or Action/XSmall (Small, 24), so a selected
    day follows the Corner Radius mode: a rounded square in Smooth, Standard and Luxury, not always a circle. */
-.zen-date-picker__day { --zen-date-picker-day-radius: var(--zen-corner-radius-action-small, 1000px); position: relative; display: inline-flex; width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--zen-date-picker-day-radius); background: transparent; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; cursor: pointer; }
-.zen-date-picker__day[data-size="small"] { --zen-date-picker-day-radius: var(--zen-corner-radius-action-xsmall, 1000px); width: 24px; height: 24px; }
+.zen-date-picker__day { --zen-date-picker-day-radius: var(--zen-corner-radius-action-small, 1000px); position: relative; display: inline-flex; width: var(--zen-select-item-size-medium, 32px); height: var(--zen-select-item-size-medium, 32px); padding: 0; border: 0; border-radius: var(--zen-date-picker-day-radius); background: transparent; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; cursor: pointer; }
+.zen-date-picker__day[data-size="small"] { --zen-date-picker-day-radius: var(--zen-corner-radius-action-xsmall, 1000px); width: var(--zen-select-item-size-small, 24px); height: var(--zen-select-item-size-small, 24px); }
 .zen-date-picker__day > span { display: flex; flex: 1; align-items: center; justify-content: center; border-radius: var(--zen-date-picker-day-radius); background: var(--zen-date-picker-item-background-unselected-default); }
 .zen-date-picker__day:hover:not(:disabled) > span, .zen-date-picker__day[data-state="hover"] > span { background: var(--zen-date-picker-item-background-unselected-hover); }
 .zen-date-picker__day:is([data-state="single-selected"], [data-state="range-selected-start"], [data-state="range-selected-end"]) > span { background: var(--zen-date-picker-item-background-seclected-default); color: var(--zen-date-picker-item-content-selected); }
@@ -43,18 +47,22 @@ span.zen-date-picker__month { cursor: default; }
 .zen-date-picker__day[data-state="today"] > span { box-shadow: inset 0 0 0 2px var(--zen-date-picker-item-border-today); }
 .zen-date-picker__day[data-state="disabled"], .zen-date-picker__day.is-blank { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: default; }
 /* Event (.Primitives/Date-Picker/Item/Event-List 510:36577): a 4px Corner-Radius/Rounded dot, 4px (Medium) or 2px (Small) above the bottom edge. */
-.zen-date-picker__day i { position: absolute; right: 0; bottom: 4px; left: 0; width: 4px; height: 4px; margin-inline: auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-content-accent-light); }
-.zen-date-picker__day[data-size="small"] i { bottom: 2px; }
+/* Figma Event-List (510:36577): 1–4 dots, 4px, Spacing/Gap/3XSmall apart, centred 4px above the bottom (Small: 2px);
+   Content/Accent/Light, Date-Picker-Item/Content/Selected on a selected day (Variant=On-Selected). */
+.zen-date-picker__events { position: absolute; right: 0; bottom: 4px; left: 0; display: flex; justify-content: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); pointer-events: none; }
+.zen-date-picker__events i { width: 4px; height: 4px; flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-content-accent-light); }
+.zen-date-picker__day[data-size="small"] .zen-date-picker__events { bottom: 2px; }
+.zen-date-picker__day:is([data-state="single-selected"], [data-state="range-selected-start"], [data-state="range-selected-end"]) .zen-date-picker__events i { background: var(--zen-date-picker-item-content-selected); }
 .zen-date-picker__day[data-state="weekend"] { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-date-picker__actions { display: flex; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* Select-Month-Year (Calendar Type=Select-Month-Year, 224 × 228): the Header in its Focused state —
    Date-Container fills the row, Neutral/Flat/Hover, Corner-Radius/Base, 12px inline padding, month at
    the start and year at the end — then two wheels (Heading/4, 28px rows, gap 4, 4px block padding)
    between 16px blank rows. Rows fade 1 / 0.25 / 0.1 away from the selection. */
-.zen-date-picker__month-year { display: flex; width: 224px; flex-direction: column; }
+.zen-date-picker__month-year { display: flex; width: calc(7 * var(--zen-select-item-size-medium, 32px)); flex-direction: column; }
 .zen-date-picker__header[data-state="focused"] .zen-date-picker__month { justify-content: space-between; padding: 0 var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-neutral-flat-hover); }
 .zen-date-picker__wheels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-block: var(--zen-spacing-padding-medium, 16px); }
-.zen-date-picker[data-view="month-year"] .zen-date-picker__actions { width: 224px; }
+.zen-date-picker[data-view="month-year"] .zen-date-picker__actions { width: calc(7 * var(--zen-select-item-size-medium, 32px)); }
 /* Carousel wheel: rows are absolutely placed from the continuous position (translateY set inline),
    so drag, momentum and wheel input slide instead of stepping. 164 = 4 + 5 × 28 + 4 × 4 + 4. */
 /* The wheel columns carry no corner radius in Figma (Calendar 478:30561, Type=Select-Month-Year). */

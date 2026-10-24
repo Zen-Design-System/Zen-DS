@@ -43,6 +43,14 @@
           "deprecated": null
         },
         {
+          "name": "buttonSize",
+          "type": "\"2xs\" | \"xs\" | \"sm\" | \"md\" | \"lg\" | \"xl\" | \"2xsmall\" | \"xsmall\" | \"small\" | \"medium\" | \"large\" | \"xlarge\"",
+          "required": false,
+          "default": "\"sm\"",
+          "description": "Type=Button: the Choose File button's size. Small by default, as Figma draws it; `md` (40) or `lg` on a phone,\n where a Small button needs 6px free above and below for its 44px touch area.",
+          "deprecated": null
+        },
+        {
           "name": "text",
           "type": "ReactNode",
           "required": false,

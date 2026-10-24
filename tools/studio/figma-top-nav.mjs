@@ -46,20 +46,24 @@ export const TOP_NAV_HEADING = { h1: "H1", h2: "H2", h3: "H3" };
 export const TOP_NAV_MAX_ACTIONS = 3;
 
 /**
- * The actions a trailing slot draws (TopNavigation.tsx trailingItems): `lead` first, then `trailing`, where actions that
- * share a `group` (or the first two with `firstTwo`) are one pill unless the style is flat; three items at most. Figma
- * has no shared pill, so each item's actions come back one by one, with `grouped` set when a pill joined some.
+ * The actions a trailing slot draws (TopNavigation.tsx trailingItems / groupedPlaces): `lead` (the large-title actions)
+ * first, then `trailing`, where actions that share a `group` (in `trailing`, also the first two with `firstTwo`) are one
+ * pill unless the style is flat; three items at most. The push draws no shared pill, so each item's actions come back
+ * one by one, with `grouped` set when a pill joined some.
  */
 export function topNavActions(lead, trailing, { flat = false, firstTwo = false } = {}) {
-  const own = [];
-  const named = trailing.some((action) => action.group);
-  trailing.forEach((action, index) => {
-    const last = own[own.length - 1];
-    const joins = !flat && last && (named ? Boolean(action.group) && action.group === trailing[index - 1]?.group : firstTwo && index === 1);
-    if (joins) last.push(action);
-    else own.push([action]);
-  });
-  const items = [...lead.map((action) => [action]), ...own].slice(0, TOP_NAV_MAX_ACTIONS);
+  const placesOf = (list, pairFirstTwo) => {
+    const own = [];
+    const named = list.some((action) => action.group);
+    list.forEach((action, index) => {
+      const last = own[own.length - 1];
+      const joins = !flat && last && (named ? Boolean(action.group) && action.group === list[index - 1]?.group : pairFirstTwo && index === 1);
+      if (joins) last.push(action);
+      else own.push([action]);
+    });
+    return own;
+  };
+  const items = [...placesOf(lead, false), ...placesOf(trailing, firstTwo)].slice(0, TOP_NAV_MAX_ACTIONS);
   return { actions: items.flat(), grouped: items.some((item) => item.length > 1) };
 }
 
