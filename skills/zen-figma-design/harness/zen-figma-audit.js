@@ -84,6 +84,11 @@
 //   search/toolbar-width     error    a Search wider than 240 in a toolbar row beside other controls, on a tablet or
 //                                     desktop screen (a phone Search fills its row; a top bar's or the Control-Bar's own
 //                                     Search is sized by its component)
+//   list-item/leading-dock-icon  warning  a List-Item whose leading is a bare icon instance: a Dock-Icon, an Avatar or a
+//                                     thumbnail leads a row
+//   badge/status-priority-icon   warning  a priority Badge (Urgent, High, Medium, Low) not led by icon-flag-03-solid, or a
+//                                     status Badge (Paid, Active, Overdue…) with its Leading-Icon off
+//   app-shell/top-row-filled     warning  a Header/AppShell on a tablet or desktop screen whose top row is on and empty
 //   navigation/icon-style    error    a Bottom-Navigation item whose icon style does not match its selection: the
 //                                     selected item shows the solid icon, every other item the line icon
 //   navigation/floating-fit  error    a Floating or Floating-Glass Bottom-Navigation whose tabs leave the 64–88 range:
@@ -806,6 +811,46 @@ async function checkToolbarSearch(root) {
   }
 }
 
+// Three rules from the user's task page (2026-10-24; code harness list-item/leading-dock-icon, badge/status-priority-icon,
+// app-shell/top-row-filled): a List-Item leads with a Dock-Icon, an Avatar or a thumbnail, never a bare icon ("các list
+// item hạn chế dùng icon không. Thường nên dùng dock icon"); a priority Badge leads with the solid flag of .Task/Priority
+// and a status Badge keeps its Leading-Icon; a desktop Header/AppShell never shows its top row empty.
+const ICON_MAIN = /^(icon|ic)-/;
+const PRIORITY_FLAG = "icon-flag-03-solid";
+const PRIORITY_TEXT = /^(urgent|critical|high|medium|low|khẩn cấp|cao|trung bình|thấp)( priority)?$/i;
+const STATUS_TEXT = /^(active|inactive|pending|approved|rejected|declined|paid|unpaid|overdue|draft|published|live|failed|completed|open|closed|online|offline|invited|expired|archived|scheduled|on hold|on track|at risk|off track|đã duyệt|chờ duyệt|từ chối|đã thanh toán|chưa thanh toán|quá hạn|bản nháp|đang hoạt động)$/i;
+const propValue = (node, name) => Object.entries(node.componentProperties ?? {}).find(([key]) => key === name || key.startsWith(`${name}#`))?.[1]?.value;
+async function checkTaskPageRules(root) {
+  for (const screen of screensOf(root)) {
+    if (!("findAll" in screen)) continue;
+    for (const node of screen.findAll((child) => child.type === "INSTANCE")) {
+      if (!shownIn(node, screen)) continue;
+      const set = await setNameOf(node);
+      if (set === "List-Item" && !ownedByComponent(node, screen)) {
+        const wrapper = node.children.find((child) => child.name === "Wrapper");
+        for (const child of wrapper && "children" in wrapper ? wrapper.children : []) {
+          if (child.visible === false || child.type !== "INSTANCE") continue;
+          const main = await child.getMainComponentAsync();
+          if (main && ICON_MAIN.test(main.name)) report("list-item/leading-dock-icon", WARNING, node, `leads with the bare icon ${main.name}: swap it for a Dock-Icon (Size Medium, Background Subtle) holding that icon, an Avatar or a thumbnail`);
+        }
+      } else if (set === "Badge") {
+        // A Badge inside a Table cell counts too: its words and its icon are the designer's overrides.
+        const text = String(propValue(node, "Text") ?? "").trim();
+        const on = propValue(node, "Leading-Icon") !== false;
+        if (PRIORITY_TEXT.test(text)) {
+          const src = propValue(node, "Leading-Icon-Src");
+          const icon = typeof src === "string" ? (await figma.getNodeByIdAsync(src))?.name : null;
+          if (!on || icon !== PRIORITY_FLAG) report("badge/status-priority-icon", WARNING, node, `the priority "${text}" ${on ? `leads with ${icon ?? "another icon"}` : "has its Leading-Icon off"}: turn Leading-Icon on and swap Leading-Icon-Src to ${PRIORITY_FLAG} (.Task/Priority)`);
+        } else if (STATUS_TEXT.test(text) && !on) report("badge/status-priority-icon", WARNING, node, `the status "${text}" has its Leading-Icon off: a status Badge keeps its icon (the dot, or an icon for the state)`);
+      } else if (set === "Header/AppShell" && screen.width >= 744 && propValue(node, "Top-Header") !== false) {
+        const slot = node.findOne((child) => child.type === "SLOT" && child.name === "Top-Elements");
+        const filled = slot && slot.findAll((child) => (child.type === "INSTANCE" || child.type === "TEXT") && shownIn(child, slot)).length > 0;
+        if (!filled) report("app-shell/top-row-filled", WARNING, node, "its top row is on with nothing in Top-Elements: put Breadcrumbs or a Search on the left, a Search in the centre (up to 400) when it helps, and help, notifications (Header/Action-Item with its count) and the account Avatar last on the right; or turn Top-Header off for a Main-only header");
+      }
+    }
+  }
+}
+
 // Phone sections (user 2026-10-17: "thêm rule spacing giữa các section trong mobile tối [thiểu] ở chế độ comfortable luôn
 // là 32px. Compact là 24px. tạo token để áp dụng"): the Body that stacks a phone screen's sections binds its gap to
 // Component Size's Layout-Mobile/Section-Gap (Compact 24, Comfortable 32), so it follows the mode the domain picks.
@@ -1321,6 +1366,7 @@ for (const root of roots) await checkBackChevron(root);
 for (const root of roots) await checkButtonRoles(root);
 for (const root of roots) await checkTouchSpacing(root);
 for (const root of roots) await checkToolbarSearch(root);
+for (const root of roots) await checkTaskPageRules(root);
 for (const root of roots) await checkSectionGap(root);
 for (const root of roots) await checkModalForms(root);
 for (const root of roots) await checkClosingList(root);

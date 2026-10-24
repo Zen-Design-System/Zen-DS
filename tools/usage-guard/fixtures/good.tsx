@@ -14,6 +14,12 @@ export const Good = () => <>
   <InputField aria-label="Share link" readOnly value={link} />
   <InputField {...sharedFieldProps} />
   <Search placeholder="Search components" />
+  <List aria-label="Settings"><ListItem title="Calendar" leading={<DockIcon icon="icon-calendar-line" size="md" background="subtle" />} /></List>
+  <Badge theme="red" background="subtle" leading="icon-flag-03-solid">Urgent</Badge>
+  <Badge theme="green" background="subtle">Paid</Badge>
+  <Table aria-label="Tasks" rows={tasks} columns={[{ id: "title", header: "Task" }, { id: "priority", header: "Priority", cell: (task) => <TableBadges><Badge theme="red" background="subtle" leading="icon-flag-03-solid">{task.priority}</Badge></TableBadges> }]} />
+  <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader main={<PageHeader title="Tasks" />} />}>{page}</AppShell>
+  <AppShell sidebar={nav} header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} actions={<><AppShellAction icon="icon-help-circle-line" aria-label="Help" onClick={openHelp} /><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} onClick={openNotifications} /><Menu aria-label="Account" trigger={<AppShellAccount name="Ava Chen" />} items={accountItems} /></>} />}>{page}</AppShell>
   <Stack direction="row" gap="xs" align="center"><Box width="fill" maxWidth={240}><Search placeholder="Search tasks" /></Box><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></Stack>
   <Grid columns={{ mobile: 1, desktop: "minmax(0, 240px) 1fr" }} gap="sm"><Search placeholder="Search members" /><Chip variant="advanced" dropdown popoverItems={items}>Role</Chip></Grid>
   <Stack direction="row" gap="xs" align="center"><Search shape="rounded" placeholder="Search messages" /><Chip variant="advanced" dropdown popoverItems={items}>Unread</Chip></Stack>
@@ -208,7 +214,7 @@ export const Good = () => <>
   {/* The Master crumb stays when the toggle moves into the Sidebar; each pattern gets the panes it draws. */}
   <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader leading={<Breadcrumbs items={crumbs} onNavigate={go} />} />}>{page}</AppShell>
   {/* A part's content carries its own props: the header's BadgeStatus progress is not the shell's progress. */}
-  <AppShell sidebar={nav} header={<AppShellHeader main={<PageHeader title="Loyalty app" meta={<BadgeStatus status="in-progress" progress={64}>Active</BadgeStatus>} />} />}>{page}</AppShell>
+  <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader main={<PageHeader title="Loyalty app" meta={<BadgeStatus status="in-progress" progress={64}>Active</BadgeStatus>} />} />}>{page}</AppShell>
   <AppShell pattern="workspace" header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} />} leadingPane={<AppShellPane title="Files">{fileList}</AppShellPane>} trailingPane={<AppShellPane title="Comments">{comments}</AppShellPane>}>{page}</AppShell>
   {/* A comment with an apostrophe inside an attribute's expression is no string: the tag still reads as one AppShell. */}
   <AppShell sidebar={(

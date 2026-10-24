@@ -85,11 +85,13 @@ Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "children">`.
 - Show a workflow step with BadgeStatus, never a Badge themed by hand: the step sets the colour and the ring, so every screen reads one workflow the same way (harness: badge/workflow-status-uses-badge-status).
 - Keep one workflow per product, in order: To Do → In Progress → In Review → Done; Blocked and Cancelled sit outside it. Rename a step only by its label (children), never by repainting another step.
 - Pass progress only when you know the exact share of the work done (a project at 60%); otherwise the step's own ring says enough.
+- Lead a priority badge (Urgent, High, Medium, Low) with the solid flag, leading="icon-flag-03-solid" (Figma .Task/Priority), its theme by the level; keep a status badge's leading icon (the dot, or an icon per state) — the user 2026-10-24 (harness: badge/status-priority-icon).
 
 ## ❌ Don't
 - Don't make a badge clickable (use Chip).
 - Don't make a BadgeStatus removable or clickable: a status changes in its picker (a Popover of BadgeStatus items, Input/Property-Field Type=Status).
 - Don't rely on colour alone; keep the text.
+- Don't hide the icon of a status or priority badge (leadingIcon={false}), and don't leave a Table's status or priority badge column without one (harness: badge/status-priority-icon, table/badge-column-icon).
 - Don't use more than two badges on one row item; summarise the rest.
 - Don't show counters at zero.
 
@@ -110,6 +112,7 @@ Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "children">`.
 | `theme/on-solid-content` | error | Content on a Card theme="solid" takes the fill's family (Figma audit theme/on-solid-content): on Neutral/Solid a Badge or DockIcon is theme="inverse", on Accent and the colour solids theme="on-color"; text and icons keep a neutral tone (the card re-points it to Inverse, On-Accent, On-Brights or On-Colors) or that family's own tone, never a colour tone. | `zen-allow-on-solid-content: <reason>` |
 | `badge/count-uses-counter` | error | A bare count (a number, or an expression like count / length / total / unread) is a Badge-Counter, not a Badge — BadgeCounter keeps the round pill and a min width equal to its height. | `zen-allow-badge-count: <reason>` |
 | `badge/workflow-status-uses-badge-status` | error | A workflow step (To Do, In Progress, In Review, Done, Blocked, Cancelled; vi Cần làm, Đang làm, Đang duyệt, Hoàn thành, Bị chặn, Đã huỷ) is a BadgeStatus: its ring shows how far the work has moved and the step picks its colours. Other statuses (Live, Paid, Draft) stay Badges. | `zen-allow-badge-workflow-status: <reason>` |
+| `badge/status-priority-icon` | warn | A priority badge (Urgent, High, Medium, Low) leads with the solid flag, leading="icon-flag-03-solid" (Figma .Task/Priority); a status badge (Active, Paid, Overdue…) keeps its leading icon: the dot, or an icon per state, never leadingIcon={false}. | `zen-allow-badge-status-icon: <reason>` |
 | `badge/count-text-uses-counter` | error | A count shown on its own beside a label (a section's, a tab's or a filter's item count: an element whose class names a count) is a BadgeCounter, not bare text — the same round pill everywhere a number counts something. | `zen-allow-count-text: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |

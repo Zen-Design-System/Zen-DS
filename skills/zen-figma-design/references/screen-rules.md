@@ -144,6 +144,13 @@ Pick each component's guideline (`guidelines/<slug>.md`) before placing it.
 
 - **Header control bar.** Filters, the period picker and the search sit in the header's `Type=Control-Bar` row, not
   in the content. A period picker is a Chip/Advanced, never a Button.
+- **List rows, badges and the desktop header** (user 2026-10-24, the task page). A List-Item leads with a `Dock-Icon`
+  (Size Medium, Background Subtle), an Avatar or a thumbnail, never a bare icon. Status and priority Badges keep their
+  Leading-Icon: priority leads with `icon-flag-03-solid` (`.Task/Priority`), a status with its dot or an icon per
+  state, a workflow step is `Badge-Status`; badges in Table cells too. A desktop `Header/AppShell` never shows an empty
+  top row: Breadcrumbs or a Search on the left, a Search in the centre (≤ 400) when it helps, and help, notifications
+  (`Header/Action-Item` with its count) and the account Avatar last on the right; or Top-Header off. Audit
+  `list-item/leading-dock-icon`, `badge/status-priority-icon`, `app-shell/top-row-filled`.
 - **Toolbar Search** (user 2026-10-24: "chúng ta vẫn quên rule thanh search trên tool bar tối đa nên để rộng 240").
   A Search you place in a toolbar row, beside Chips, buttons or a view switch, is at most 240 wide on tablet and
   desktop screens: set it (or the wrapper that holds only it) to Fixed 240, or Fill with a max width of 240. Never let

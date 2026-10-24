@@ -75,7 +75,10 @@ Props are strict literal unions: let TypeScript autocomplete values instead of g
 5. **Compose, don't rebuild:** rows → `List` + `ListItem`; tiles → `Card`; data → `Table`; nothing to show →
    `EmptyState`; inline feedback → `InlineMessage`; page-level notice → `AlertBanner`; separators → `Divider`;
    counts → `BadgeCounter`; files → `FileIcon`; term → value facts and totals → `DescriptionList`; pictures →
-   `Image` / `Thumbnail`; a phone footer CTA → `ActionBar`; screen-reader-only text → `VisuallyHidden`.
+   `Image` / `Thumbnail`; a phone footer CTA → `ActionBar`; screen-reader-only text → `VisuallyHidden`. A row's
+   `leading` is a `<DockIcon icon size="md" background="subtle" />`, an `Avatar` or a thumbnail, never a bare icon
+   name. Status and priority Badges keep a leading icon: priority leads with `leading="icon-flag-03-solid"`, a
+   workflow step is a `BadgeStatus`.
 6. **Overlays are controlled:** `open` + `onOpenChange` on Dialog, SidePanel, BottomSheet and Popover (the first
    three also call `onClose` on every close request). A Popover is closed by default. Actions are objects:
    `primaryAction={{ label: "Delete project", onClick }}`.
@@ -100,7 +103,9 @@ Props are strict literal unions: let TypeScript autocomplete values instead of g
 13. **Desktop and phone:** a page that runs on both gives AppShell its phone chrome, `topNavigation` and
     `bottomNavigation` (drawn under 744px instead of the top bar and `sections`), mapped from the desktop header
     (`docs/guidelines/app-shell.md` Do): the page title in `sections` and the bar (one h1 each layout), at most 3
-    trailing actions, every desktop header action still reachable.
+    trailing actions, every desktop header action still reachable. The desktop header's top row is never empty:
+    Breadcrumbs or a Search (`leading`), then help, notifications (`AppShellAction` with its `count`) and the account
+    `Menu` last (`actions`); a Main-only header moves the Sidebar toggle into the Sidebar (`collapse="sidebar"`).
 
 ## 4. API facts that save a round trip
 

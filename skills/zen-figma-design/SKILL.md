@@ -108,6 +108,16 @@ Files in this skill:
     desktop screens: Fixed 240, or Fill with a max width of 240, never stretched across the toolbar. A phone Search
     (Shape=Rounded) fills its row; the `Type=Control-Bar` row of `Primitives/Dashboard/Header` sizes its own. Audit
     `search/toolbar-width` (user 2026-10-24: "thanh search trên tool bar tối đa nên để rộng 240").
+  - **List rows, badges, the desktop header** (user 2026-10-24, the task page):
+    - A List-Item leads with a `Dock-Icon` (Size Medium, Background Subtle), an Avatar or a thumbnail, never a bare
+      icon instance ("các list item hạn chế dùng icon không. Thường nên dùng dock icon"; audit
+      `list-item/leading-dock-icon`).
+    - A priority Badge leads with `icon-flag-03-solid` (`.Task/Priority`); a status Badge keeps Leading-Icon on (the
+      dot or an icon per state); a workflow step is `Badge-Status`. Badges in Table cells too (audit
+      `badge/status-priority-icon`).
+    - A desktop `Header/AppShell` never shows an empty top row: Breadcrumbs or a Search on the left, a Search in the
+      centre (≤ 400) when it helps, help, notifications (`Header/Action-Item` with its count) and the account Avatar
+      last on the right; or Top-Header off for a Main-only header (audit `app-shell/top-row-filled`).
   - **Navigation icons:** in a Bottom-Navigation the selected item shows the solid icon and every other item the line
     icon of the same family (audit `navigation/icon-style`). Never set a solid icon on every screen's Home; pick tab
     icons that have both styles.

@@ -4,6 +4,7 @@
    phone. Every action works. */
 import { useEffect, useRef, useState } from "react";
 import { Card } from "../../../components/Card";
+import { DockIcon } from "../../../components/DockIcon";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { Stack } from "../../../components/Layout";
 import { List, ListItem } from "../../../components/ListItem";
@@ -77,7 +78,7 @@ function TaskVoiceNote() {
       <Text as="p" textStyle="Body/Small/Regular" tone="base" role="status">{status}</Text>
       <List aria-label="Voice notes on Rewards screens">
         {notes.map((note, index) => (
-          <ListItem key={note.id} title={`Voice note ${notes.length - index}`} caption={`${note.length} · Alex Duong`} leading="icon-microphone-line" />
+          <ListItem key={note.id} title={`Voice note ${notes.length - index}`} caption={`${note.length} · Alex Duong`} leading={<DockIcon icon="icon-microphone-line" size="md" background="subtle" />} />
         ))}
       </List>
     </Stack>
@@ -318,7 +319,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
 </Card>
 <Text as="p" textStyle="Body/Small/Regular" tone="base" role="status">{status}</Text>
 <List aria-label="Voice notes on Rewards screens">
-  {notes.map((note) => <ListItem key={note.id} title={note.name} caption={note.length} leading="icon-microphone-line" />)}
+  {notes.map((note) => <ListItem key={note.id} title={note.name} caption={note.length} leading={<DockIcon icon="icon-microphone-line" size="md" background="subtle" />} />)}
 </List>`,
     render: () => <TaskVoiceNote />,
   },

@@ -984,6 +984,13 @@ const childElements = (children) => {
   }
   return out;
 };
+/** badge/status-priority-icon (the user 2026-10-24): priority levels lead with Figma .Task/Priority's solid flag. */
+const PRIORITY_FLAG = "icon-flag-03-solid";
+const PRIORITY_LEVELS = "Urgent, High, Medium, Low";
+const PRIORITY_WORD = /^(urgent|critical|high|medium|low|khẩn cấp|cao|trung bình|thấp)( priority)?$/i;
+const STATUS_WORD = /^(active|inactive|pending|approved|rejected|declined|paid|unpaid|overdue|draft|published|live|failed|completed|open|closed|online|offline|invited|expired|archived|scheduled|on hold|on track|at risk|off track|đã duyệt|chờ duyệt|từ chối|đã thanh toán|chưa thanh toán|quá hạn|bản nháp|đang hoạt động)$/i;
+/** A Badge's text when its children are one literal label ("Paid", {"Paid"}); null for anything computed. */
+const badgeLabel = (children) => { const c = (children ?? "").trim().replace(/^\{\s*["'`]|["'`]\s*\}$/g, "").trim(); return c && !/[<{}$]/.test(c) ? c : null; };
 /** search/toolbar-width: the user's cap (2026-10-24) on a Search in a toolbar row. */
 const TOOLBAR_SEARCH_MAX = 240;
 /** The width cap an element sets itself: maxWidth / width as a number, or the same in its style; null when there is none,
@@ -1334,6 +1341,23 @@ export const rules = [
       const top = [expr(attrs, "leading"), expr(attrs, "center"), expr(attrs, "actions")].filter(Boolean).join(" ");
       const main = openingTags(top, "Button").find((a) => /level=(?:"|\{\s*")(primary|accent)"/.test(a) && !/appearance="(flat|overlay)"/.test(a));
       return main ? `puts a ${/accent/.test(main) ? "Accent" : "Primary"} Button in the header's top row — page actions go in the PageHeader's actions (main); the top row keeps search, notifications and the account menu.` : null;
+    } },
+  // The user (2026-10-24, the DEMO-MEET task page): a desktop header's top row is never empty.
+  { id: "app-shell/top-row-filled", components: ["AppShellHeader"], severity: "warn", allow: "empty-top-row", guideline: "docs/guidelines/app-shell.md",
+    summary: "A desktop AppShellHeader's top row is never empty: Breadcrumbs or a Search on the left (leading), a Search in the centre (center, up to 400) when it helps, and the utilities on the right (actions): help, notifications (AppShellAction with its count), the account Menu last.",
+    check: ({ attrs, src, end, parent }) => {
+      if (inCodeSample(src, end) || opaque(topLevel(attrs))) return null;
+      const own = topAttrs(attrs);
+      if (!["leading", "center", "actions"].some((name) => own.has(name))) {
+        // Only a shell whose Sidebar toggle starts the header (collapse="header", the default) draws a top row for it; with
+        // collapse="sidebar" or "none" the header is its Main row alone (Figma Top-Header off).
+        const shell = parent();
+        if (shell?.tag !== "AppShell" || !has(topLevel(shell.attrs), "sidebar") || ["sidebar", "none"].includes(literal(topLevel(shell.attrs), "collapse") ?? "header")) return null;
+        return "leaves the top row with only the Sidebar toggle — give it Breadcrumbs or a Search (leading) and the utilities (actions): help, notifications (AppShellAction count), the account Menu last; or move the toggle into the Sidebar (AppShell collapse=\"sidebar\") for a Main-only header.";
+      }
+      const items = childElements(expr(attrs, "actions") ?? "");
+      const at = items.findIndex((item) => item.tag === "AppShellAccount" || /<AppShellAccount\b/.test(item.attrs));
+      return at >= 0 && at < items.length - 1 ? `puts ${items.slice(at + 1).map((item) => `<${item.tag}>`).join(", ")} after the account — the account Menu goes last in actions.` : null;
     } },
   { id: "app-shell/nested", components: ["AppShell"], severity: "error", allow: "nested-shell", guideline: "docs/guidelines/app-shell.md",
     summary: "One AppShell per screen: a shell inside another shell repeats the navigation, the header and <main>.",
@@ -1718,6 +1742,17 @@ export const rules = [
   { id: "list-item/clickable-row-toggle", components: ["ListItem"], severity: "warn", allow: "row-toggle", guideline: "docs/guidelines/list-item.md",
     summary: "A clickable row (onClick/href) doesn't also carry a Toggle or Checkbox — the row click and the switch compete. Trailing icon buttons are fine (Figma Slot-Actions).",
     check: ({ attrs }) => (has(topLevel(attrs), "onClick") || has(topLevel(attrs), "href")) && !opaque(attrs) && /<(Toggle|ToggleButton|Checkbox|RadioButton)\b/.test(`${value(attrs, "trailing") ?? ""} ${value(attrs, "leading") ?? ""}`) && "is clickable and also holds a Toggle/Checkbox/Radio (leading or trailing) — an input inside the row button is invalid; keep the row static and let the control own the click." },
+  // The user (2026-10-24): "các list item hạn chế dùng icon không. Thường nên dùng dock icon". A bare glyph in the
+  // leading slot floats beside the title; a Dock Icon gives it Figma's 40px leading box and a background.
+  { id: "list-item/leading-dock-icon", components: ["ListItem", "ToggleListItem"], severity: "warn", allow: "list-item-bare-icon", guideline: "docs/guidelines/list-item.md",
+    summary: "A list row's leading is a DockIcon (<DockIcon icon=\"…\" size=\"md\" background=\"subtle\" />), an Avatar or a thumbnail, never a bare icon name or <Icon>.",
+    check: ({ attrs }) => {
+      const own = topAttrs(attrs), leading = own.get("leading");
+      if (!leading) return null;
+      const name = leading.literal ?? leading.expr?.trim().match(/^(["'`])(icon-[\w-]+)\1$/)?.[2] ?? leading.expr?.trim().match(/^<Icon\b[^>]*\bname=["{]?["'`]?(icon-[\w-]+)/)?.[1];
+      if (!name || !/^icon-/.test(name)) return null;
+      return `leads with a bare icon (${name}) — use <DockIcon icon="${name}" size="md" background="subtle" /> (or an Avatar / a thumbnail), Figma List-Item's Leading.`;
+    } },
   { id: "list-item/switch-row", components: ["ListItem"], severity: "warn", allow: "switch-row", guideline: "docs/guidelines/list-item.md",
     summary: "A settings row that is one switch is <ToggleListItem>, not a ListItem with a Toggle in its trailing slot: a press anywhere on the row flips it and the title names the switch.",
     check: ({ attrs }) => !has(topLevel(attrs), "onClick") && !has(topLevel(attrs), "href") && !opaque(attrs) && /<(Toggle|ToggleButton)\b/.test(value(attrs, "trailing") ?? "") && "holds a switch in its trailing slot — use <ToggleListItem title caption checked onCheckedChange> so the whole row flips it and names it." },
@@ -1832,6 +1867,31 @@ export const rules = [
       const c = (children ?? "").trim().replace(/^\{\s*["'`]|["'`]\s*\}$/g, "").trim().toLowerCase();
       const step = { "to do": "to-do", todo: "to-do", "cần làm": "to-do", "in progress": "in-progress", "đang làm": "in-progress", "in review": "in-review", "đang duyệt": "in-review", done: "done", "hoàn thành": "done", blocked: "blocked", "bị chặn": "blocked", cancelled: "cancelled", canceled: "cancelled", "đã huỷ": "cancelled", "đã hủy": "cancelled" }[c];
       return step && `shows the workflow step \`${c}\` — use <BadgeStatus status="${step}" /> (its ring and colours come from the step).`;
+    } },
+  // The user (2026-10-24, the DEMO-MEET task page): status and priority badges carry a leading icon; priority is the
+  // solid flag of Figma's .Task/Priority. Workflow steps are badge/workflow-status-uses-badge-status's.
+  { id: "badge/status-priority-icon", components: ["Badge"], severity: "warn", allow: "badge-status-icon", guideline: "docs/guidelines/badge.md",
+    summary: `A priority badge (${PRIORITY_LEVELS}) leads with the solid flag, leading="${PRIORITY_FLAG}" (Figma .Task/Priority); a status badge (Active, Paid, Overdue…) keeps its leading icon: the dot, or an icon per state, never leadingIcon={false}.`,
+    check: ({ attrs, children }) => {
+      const label = badgeLabel(children);
+      if (!label || opaque(attrs)) return null;
+      const own = topAttrs(attrs), hidden = own.get("leadingIcon")?.expr?.trim() === "false", leading = own.get("leading");
+      if (PRIORITY_WORD.test(label)) {
+        if (leading && leading.literal === undefined && fixedProp(own, "leading") === null) return null;
+        const icon = fixedProp(own, "leading");
+        return (hidden || icon !== PRIORITY_FLAG) && `shows the priority \`${label}\` ${hidden ? "with no icon" : icon ? `led by ${icon}` : "led by the dot"} — a priority badge leads with leading="${PRIORITY_FLAG}" (Figma .Task/Priority).`;
+      }
+      return STATUS_WORD.test(label) && hidden && `shows the status \`${label}\` with leadingIcon={false} — a status badge keeps its leading icon (the dot, or an icon for the state).`;
+    } },
+  { id: "table/badge-column-icon", components: ["Table"], severity: "warn", allow: "table-badge-icon", guideline: "docs/guidelines/table.md",
+    summary: "A status or priority column of content \"badge\" draws its Badges with no icon: render the cell with <TableBadges><Badge leading> (priority: icon-flag-03-solid), or on a Zen Studio page give each row's Badge leadingIcon and leading through overrides (\"Row[<id>]/priority/Badge\").",
+    check: ({ attrs }) => {
+      const col = arrayObjects(expr(attrs, "columns")).find((c) => /content:\s*["']badge["']/.test(c) && /(?:id|header):\s*["'][^"']*(status|priority|state|trạng thái|ưu tiên)/i.test(c));
+      if (!col) return null;
+      const id = col.match(/\bid:\s*["']([^"']+)["']/)?.[1];
+      const overrides = topAttrs(attrs).get("overrides");
+      if (overrides && !(id && /^\s*\{/.test(overrides.expr ?? "") && !/\.\.\.|\bfromEntries\b|\.map\(/.test(overrides.expr) && !new RegExp(`/${id}/Badge`).test(overrides.expr))) return null;
+      return `draws its "${id ?? "status"}" Badges with no icon — a status or priority badge carries one: render the cell with <TableBadges><Badge leading="${PRIORITY_FLAG}"> (priority; a status its state's icon), or on a Zen Studio page give each row's Badge leadingIcon and leading through overrides ("Row[<id>]/${id ?? "col"}/Badge").`;
     } },
   { id: "property-field/one-value", components: ["PropertyField"], severity: "error", allow: "property-value", guideline: "docs/guidelines/input.md",
     summary: "A PropertyField holds exactly one value cell — PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople or PropertyTags — the borderless cell that edits the value in place; a bordered field or loose text breaks the row's alignment and its keyboard pattern.",

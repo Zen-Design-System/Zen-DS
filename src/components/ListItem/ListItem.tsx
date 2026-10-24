@@ -41,7 +41,9 @@ export interface ListItemProps extends Omit<HTMLAttributes<HTMLElement>, "title"
   titleLines?: 1 | 2;
   /** Figma Info-Content Subtitle (Body/Small/Regular, Content/Neutral/Light). */
   caption?: ReactNode;
-  /** Figma Leading slot: an Avatar (Image-Size/Medium), Dock Icon, thumbnail or an icon name (`"icon-clock-line"`). */
+  /** Figma Leading slot: a Dock Icon (`<DockIcon icon="icon-clock-line" size="md" background="subtle" />`), an Avatar
+   *  (Image-Size/Medium) or a thumbnail. An icon name (`"icon-clock-line"`) still draws a bare glyph, which the harness
+   *  warns about (list-item/leading-dock-icon): a row leads with a Dock Icon. */
   leading?: IconName | ReactNode;
   /** A value at the row's end, read with the title: an amount, a total, a count ("+94,860,000 VND", "92 h"). Body/Base/Bold
    *  like the title, right-aligned and never cut: the title truncates first. With `valueCaption` it is a second

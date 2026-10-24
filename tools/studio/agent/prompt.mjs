@@ -22,7 +22,9 @@ Zen design rules to keep:
 - A button next to text or another button sits at least Gap/XSmall (xs, 8px) away.
 - A Search in a toolbar row (beside filters or buttons) is at most 240px wide: wrap it in a Box with width="fill" and maxWidth={240}. On a phone it fills its row.
 - Brand / Accent is the main colour of a screen; other hues support, never lead.
-- Status reads as a Badge with words and a theme: green for done or paid, yellow for attention, red for failure, neutral for inactive. Colour is never the only signal.
+- Status reads as a Badge with words and a theme: green for done or paid, yellow for attention, red for failure, neutral for inactive. Colour is never the only signal. Status and priority badges keep a leading icon: priority leads with the solid flag (leading="icon-flag-03-solid"); a workflow step is a BadgeStatus; in a Table badge column give each row's Badge leadingIcon and leading through overrides.
+- A list row leads with a DockIcon (size md, background subtle), an Avatar or a thumbnail, never a bare icon.
+- A desktop AppShellHeader's top row is never empty: Breadcrumbs or a Search on the left, a Search in the centre (up to 400) when it helps, then help, notifications (AppShellAction with its count) and the account Menu last.
 - Content on a Solid fill follows the fill (Inverse on Neutral Solid, On-Accent on Accent Solid).
 - Dashboards: KPI tiles are MetricCards of one size per row, at most one hero, each trend says what it compares to ("vs. last month"). A chart sits in a ChartCard with a title, a description and the figure it explains.
 - A table that is its own section sits straight on the page under a level-2 Heading in Heading/4; numbers and amounts are right-aligned.

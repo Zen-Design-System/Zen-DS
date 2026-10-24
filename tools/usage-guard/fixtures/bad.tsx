@@ -18,6 +18,18 @@ export const Bad = () => <>
   <SelectField options={[]} />
   {/* expect: search/needs-name */}
   <Search />
+  {/* expect: list-item/leading-dock-icon */}
+  <List aria-label="Settings"><ListItem title="Calendar" leading="icon-calendar-line" /></List>
+  {/* expect: badge/status-priority-icon */}
+  <Badge theme="red" background="subtle">Urgent</Badge>
+  {/* expect: badge/status-priority-icon */}
+  <Badge theme="green" background="subtle" leadingIcon={false}>Paid</Badge>
+  {/* expect: table/badge-column-icon */}
+  <Table aria-label="Tasks" rows={tasks} columns={[{ id: "title", header: "Task" }, { id: "priority", header: "Priority", content: "badge" }]} />
+  {/* expect: app-shell/top-row-filled */}
+  <AppShell sidebar={nav} header={<AppShellHeader main={<PageHeader title="Tasks" />} />}>{page}</AppShell>
+  {/* expect: app-shell/top-row-filled */}
+  <AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} actions={<><Menu aria-label="Account" trigger={<AppShellAccount name="Ava Chen" />} items={accountItems} /><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} onClick={openNotifications} /></>} />
   {/* expect: search/toolbar-width */}
   <Stack direction="row" gap="xs" align="center"><Search placeholder="Search tasks" /><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></Stack>
   {/* expect: search/toolbar-width */}
@@ -79,7 +91,7 @@ export const Bad = () => <>
   {/* expect: app-shell/page-header-in-main */}
   <AppShell sidebar={nav} topNavigation={<TopNavigation title="Invoices" />}><PageHeader title="Invoices" /></AppShell>
   {/* expect: app-shell/top-navigation-title */}
-  <AppShell sidebar={nav} header={<AppShellHeader main={<PageHeader title="Invoices" />} />} topNavigation={<TopNavigation title="Billing" />}>{page}</AppShell>
+  <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader main={<PageHeader title="Invoices" />} />} topNavigation={<TopNavigation title="Billing" />}>{page}</AppShell>
   {/* expect: app-shell/collapse-beside-master-crumb */}
   <AppShell sidebar={nav} header={<AppShellHeader leading={<Breadcrumbs items={crumbs} onNavigate={go} />} />}>{page}</AppShell>
   {/* expect: app-shell/pattern-parts */}

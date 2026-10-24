@@ -293,3 +293,27 @@ The guidelines said `minmax(0, 320px)`, so agents kept copying 320. Made a lasti
   it moves to 240.
 - Checks run: usage:selftest + check, guidelines:check, ai-ui:check, ai-kit:check, platform-audit selftest (47),
   qa:selftest, mcp:selftest, studio:selftest, tsc.
+
+## Three more rules from the task page (same PR #282; the user via "Full prototype tạo task": "báo session khác ghi nhớ vào harness và rule (tương tự rule search ở control bar)")
+
+- **ListItem leading** ("các list item hạn chế dùng icon không. Thường nên dùng dock icon"): harness
+  `list-item/leading-dock-icon` (warn; a literal icon name or a bare `<Icon>` in ListItem / ToggleListItem `leading`),
+  Figma audit `list-item/leading-dock-icon` (a bare icon instance in List-Item's Wrapper); ListItem / ToggleListItem
+  JSDoc and guideline (Leading row, Do, Don't). Fixed: date-picker (live + sample), voice (live + sample), app layer
+  handbook chapters → `<DockIcon size="md" background="subtle">`.
+- **Status and priority badges:** harness `badge/status-priority-icon` (warn; a literal priority label not led by
+  `icon-flag-03-solid`, a literal status label with `leadingIcon={false}`; workflow steps stay
+  `badge/workflow-status-uses-badge-status`) and `table/badge-column-icon` (warn; a `content: "badge"` column named
+  status / priority without overrides). App code may not set `overrides` (`api/overrides-studio-only`), so its fix is a
+  `cell` with `<Badge leading>`; Studio pages use the overrides. Figma audit `badge/status-priority-icon` (Text +
+  Leading-Icon + Leading-Icon-Src, Badges in Table cells too). Fixed: avatar Invited, AppShell B desktop 2
+  Published / Draft ×2 (icon back on), badge task table priority → the flag.
+- **Desktop header top row:** harness `app-shell/top-row-filled` (warn; an AppShellHeader with no leading / center /
+  actions in an AppShell with a sidebar and the default collapse, i.e. a top row with only the toggle; the account
+  not last in actions), Figma audit `app-shell/top-row-filled` (Top-Header on, Top-Elements empty). Main-only headers
+  with `collapse="sidebar"` (Figma Top-Header off) stay valid. Fixed: Sidebar's account-header recipe →
+  `collapse="sidebar"`.
+- Figma (read-only) runs: List-Item 58 / Header 32 clean; badges: HR-Platform 6 Paid / Unpaid and Master-Layout
+  Example B4 Draft with Leading-Icon off (BACKLOG P3, the designer's file).
+- Guideline-only parts: help / notifications contents of the top row, a Search in its centre, a status icon per step
+  (BadgeStatus covers workflow steps), Table badge icons when the column is computed.

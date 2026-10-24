@@ -12072,7 +12072,7 @@
         "leading": {
           "x-kind": "node",
           "x-icon": true,
-          "description": "Figma Leading slot: an Avatar (Image-Size/Medium), Dock Icon, thumbnail or an icon name (`\"icon-clock-line\"`)."
+          "description": "Figma Leading slot: a Dock Icon (`<DockIcon icon=\"icon-clock-line\" size=\"md\" background=\"subtle\" />`), an Avatar (Image-Size/Medium) or a thumbnail."
         },
         "value": {
           "x-kind": "node",
@@ -22025,7 +22025,7 @@
         "leading": {
           "x-kind": "node",
           "x-icon": true,
-          "description": "Icon name or element before the text, as in ListItem."
+          "description": "Before the text, as in ListItem: a Dock Icon (`<DockIcon icon size=\"md\" background=\"subtle\" />`), not a bare icon name."
         },
         "checked": {
           "type": "boolean",
@@ -23137,12 +23137,14 @@
         "Make counts agree with their noun — \"1 file\" / \"3 files\" — with a plural helper; never print {list.length} straight before a noun (harness: copy/plural-count).",
         "Show a workflow step with BadgeStatus, never a Badge themed by hand: the step sets the colour and the ring, so every screen reads one workflow the same way (harness: badge/workflow-status-uses-badge-status).",
         "Keep one workflow per product, in order: To Do → In Progress → In Review → Done; Blocked and Cancelled sit outside it. Rename a step only by its label (children), never by repainting another step.",
-        "Pass progress only when you know the exact share of the work done (a project at 60%); otherwise the step's own ring says enough."
+        "Pass progress only when you know the exact share of the work done (a project at 60%); otherwise the step's own ring says enough.",
+        "Lead a priority badge (Urgent, High, Medium, Low) with the solid flag, leading=\"icon-flag-03-solid\" (Figma .Task/Priority), its theme by the level; keep a status badge's leading icon (the dot, or an icon per state) — the user 2026-10-24 (harness: badge/status-priority-icon)."
       ],
       "dont": [
         "Don't make a badge clickable (use Chip).",
         "Don't make a BadgeStatus removable or clickable: a status changes in its picker (a Popover of BadgeStatus items, Input/Property-Field Type=Status).",
         "Don't rely on colour alone; keep the text.",
+        "Don't hide the icon of a status or priority badge (leadingIcon={false}), and don't leave a Table's status or priority badge column without one (harness: badge/status-priority-icon, table/badge-column-icon).",
         "Don't use more than two badges on one row item; summarise the rest.",
         "Don't show counters at zero."
       ],
@@ -23153,6 +23155,7 @@
         "theme/on-solid-content",
         "badge/count-uses-counter",
         "badge/workflow-status-uses-badge-status",
+        "badge/status-priority-icon",
         "badge/count-text-uses-counter",
         "api/deprecated-prop",
         "api/overrides-studio-only",
@@ -23912,6 +23915,7 @@
       "do": [
         "Give a ListBox footer action (\"Open calendar\", \"Go to Inbox\") as a Tertiary Button (the Button default), straight in the footer: it fills the box on desktop and tablet and hugs its label on mobile (harness: listbox/footer-action-tertiary).",
         "Make a settings row that is one on/off switch a <ToggleListItem>, not a ListItem with a Toggle in its trailing slot.",
+        "Lead a row that needs an icon with a Dock Icon: leading={<DockIcon icon=\"icon-calendar-line\" size=\"md\" background=\"subtle\" />} (the user 2026-10-24: \"các list item hạn chế dùng icon không. Thường nên dùng dock icon\"; harness: list-item/leading-dock-icon).",
         "Wrap rows in <List aria-label> so the group is named.",
         "Put a box of List-Item rows in <ListBox> (header and footer optional) instead of a Box or Card you pad yourself: its Card-padding-medium and 2XLarge corners are right on every device. Content that is not rows (a DescriptionList, labelled Toggles, a form) goes in a Card.",
         "Pick the ListBox theme by where it sits (usage rules §16): default on Canvas/Default and on a Surface-Alt phone screen; flat-border on a Canvas/Flat page; shadow beside a default Sidebar (elevation follows the Sidebar); border on a white page (Canvas/Alt, a white phone screen) or inside another Surface (a Card); on-container inside a Dialog, ModalForm, SidePanel or BottomSheet (their Container fill; harness listbox/on-container-in-overlay).",
@@ -23935,6 +23939,7 @@
         "Don't put a Toggle or Checkbox on a clickable row: the row click and the switch compete. Make the row flip the switch, or keep the row static (harness: list-item/clickable-row-toggle).",
         "Don't use Small or text buttons in the trailing slot; trailing actions are Medium icon buttons (harness: list-item/trailing-button-medium).",
         "Don't mix leading sizes in one list — row heights stop lining up.",
+        "Don't lead a row with a bare icon (leading=\"icon-…\" or an <Icon>): it floats beside the title without Figma's 40px leading box. Use a Dock Icon, an Avatar or a thumbnail (harness: list-item/leading-dock-icon).",
         "Don't put a Main (bordered) Button for See all / Show all in a section head; it is underlined text (a Link).",
         "Don't pad the rows — no padding on .zen-list-item, no <List inset> (deprecated); inset the List with its container (harness: list-item/inset-not-padding).",
         "Don't put a list of clickable rows flush against an edge or a clipping scroller: its fill hangs 12px outside the content; leave Padding/Small (12px) or more around it.",
@@ -23958,6 +23963,7 @@
         "listbox/footer-action-tertiary",
         "listbox/closing-list-on-phone",
         "list-item/clickable-row-toggle",
+        "list-item/leading-dock-icon",
         "list-item/switch-row",
         "list-item/trailing-button-medium",
         "api/deprecated-prop",
@@ -23975,6 +23981,7 @@
         "Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4).",
         "Right-align numbers and amounts; keep text left.",
         "Give each row one primary text (bold) and at most one caption.",
+        "A status or priority column of content \"badge\" draws its Badges with no icon: render the cell with <TableBadges><Badge leading=\"icon-flag-03-solid\"> for priority (a status: its state's icon, or BadgeStatus for a workflow step); on a Zen Studio page give each row's Badge leadingIcon and leading through overrides, \"Row[id]/priority/Badge\" (the user 2026-10-24; harness: table/badge-column-icon).",
         "Put row actions in the last column as Button/Icon-Flat Medium: `content: \"actions\"` with the column's `actions` (no cell function), or TableActions with IconButton appearance=\"flat\" level=\"primary\" in a `cell`; a ⋯ Menu trigger for several (harness: table/actions-flat).",
         "Give a selectable table its bulk actions through bulkActions: at most 5 actions (icon + label + onClick, grouped by `group`) whose labels say how many rows they touch (\"Archive 3 projects\"); the Table draws the buttons, adds Clear selection and the count, and moves what doesn't fit into a More menu.",
         "Show an Empty State row when filters return nothing.",
@@ -24006,6 +24013,7 @@
         "table/needs-name",
         "table/reference-in-sheet",
         "table/interaction-needs-handler",
+        "table/badge-column-icon",
         "table/media-size-by-subtext",
         "table/editor-needs-commit",
         "table/editor-number-right",
@@ -24577,6 +24585,7 @@
       "file": "docs/guidelines/app-shell.md",
       "do": [
         "Put one AppShell at the root of each app screen, inside ZenProvider, and pick the pattern from the screen's job (see Use).",
+        "Never leave a desktop header's top row empty (the user 2026-10-24): Breadcrumbs or a Search on the left (leading), a Search in the centre (center, up to 400) when it helps, and the utilities on the right (actions): help, notifications (AppShellAction with its count), the account Menu last. A header that is its Main row alone puts the Sidebar toggle in the Sidebar, collapse=\"sidebar\" (harness: app-shell/top-row-filled).",
         "With pattern=\"grid\", build the page from Boxes and Flat Cards (MetricCard, ChartCard and Card take theme=\"default\", no shadow) on the grey Canvas, and give Subtle only to a metric card that should stand out (◇ Master-Layout Rule, 16823:85229).",
         "One elevation per screen, set by the Sidebar: Canvas default (grey) + the default Sidebar (Surface + shadow) + Shadow cards and panes; Canvas alt (white) + a Sidebar on the canvas (shadow={false}) + bordered cards and panes (theme=\"border\"); Canvas flat + a Flat Sidebar + Flat-Border cards. Never a shadowed Sidebar on a white Canvas (harness theme/mixed-elevation, theme/navigation-surface).",
         "Lead the header's top row with Breadcrumbs (master={false} beside the toggle) or a Search, and keep its right side to utilities in this order: a plan Badge, AppShellAction buttons, the account menu last.",
@@ -24600,6 +24609,7 @@
       "rules": [
         "icon-button/needs-action",
         "app-shell/primary-in-top-bar",
+        "app-shell/top-row-filled",
         "app-shell/nested",
         "app-shell/breadcrumbs-once",
         "app-shell/forced-layout",

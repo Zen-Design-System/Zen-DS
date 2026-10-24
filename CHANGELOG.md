@@ -22,6 +22,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Layout and skill docs say so (they used to say 320), and three checks catch it: harness `search/toolbar-width`, audit
   kind `toolbar-search` and the Figma audit's `search/toolbar-width`. Platform examples, templates, the Zen Agent prompt
   and Figma → Studio pulls follow it. DashboardHeader's Control-Bar keeps Figma's 320 for now (BACKLOG question).
+- House rules (user, 2026-10-24, the same task page), each in the guidelines, skills, harness and Figma audit: a
+  ListItem leads with a DockIcon, an Avatar or a thumbnail, never a bare icon (`list-item/leading-dock-icon`); status
+  and priority Badges keep a leading icon, priority the solid flag `icon-flag-03-solid` (`badge/status-priority-icon`,
+  and `table/badge-column-icon` for a Table's badge column); a desktop AppShellHeader's top row is never empty
+  (`app-shell/top-row-filled`). Examples follow them (date-picker, voice, app layer, avatar, badge, AppShell, Sidebar).
 - Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,
   auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
   the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are
