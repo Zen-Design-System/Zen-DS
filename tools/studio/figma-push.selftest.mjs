@@ -815,7 +815,8 @@ export default function Page() {
   check("selectable: a 48px checkbox column first (header Type=Checkbox, a Control-Cell checkbox per row)", [head.slots[0].children[0].props.Type, head.slots[0].children[0].fixedWidth, rows.map((row) => [row.slots[0].children[0].fixedWidth, row.slots[0].children[0].slots[0].children[0].props.Type])], ["Checkbox", 48, [[48, "Checkbox"], [48, "Checkbox"]]]);
   check("the sorted column's header shows its direction, the other sortable one keeps ↕", head.slots[0].children.slice(1).map((cell) => /^icon-arrow-up-line/.test(cell.nested?.[0]?.set?.name ?? "") || (cell.nested?.[0] ?? null)), [true, null]);
   const avatars = rows.map((row) => row.slots[0].children[1].slots[0].children[0].nested.find((part) => part.path === "Avatar"));
-  check("an avatar cell's Avatar: Small over its Subtext, Subtle, initials on Neutral (the page's own when its override has them), the row's override (Bao: Green)", avatars.map((avatar) => [avatar.props.Size, avatar.props.Background, avatar.props.Theme, avatar.text]), [["Small", "Subtle", "Neutral", "MA"], ["Small", "Subtle", "Green", "BN"]]);
+  // The first column is the row's name: its Avatar is Solid (the user 2026-10-24; Table.tsx cellVisual).
+  check("an avatar cell's Avatar: Small over its Subtext, Solid in the first column, initials on Neutral (the page's own when its override has them), the row's override (Bao: Green)", avatars.map((avatar) => [avatar.props.Size, avatar.props.Background, avatar.props.Theme, avatar.text]), [["Small", "Solid", "Neutral", "MA"], ["Small", "Solid", "Green", "BN"]]);
   check("Form: its fields Gap/Large apart (Form.tsx's default)", find(frame, (node) => node.name === "Form")?.layout.gap, 24);
   check("AppShellAccount: a Subtle Avatar, as AppShell.tsx draws it", find(frame, (node) => node.name === "Linh Hoang")?.props.Background, "Subtle");
   const back = pageFromFigma(frame, { mapping }).text;

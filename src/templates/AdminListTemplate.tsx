@@ -412,7 +412,7 @@ export function AdminListTemplate() {
 
   const columns: TableColumn<Member>[] = [
     { id: "member", header: "Member", sortable: true, cell: (row) => (
-      <TableMedia bold caption={row.email} media={<Avatar size="sm" theme={row.theme} background="subtle" src={row.photo} alt="">{initials(row.name)}</Avatar>}>
+      <TableMedia bold caption={row.email} media={<Avatar size="sm" theme={row.theme} src={row.photo} alt="">{initials(row.name)}</Avatar>}>
         {row.id === ME ? `${row.name} (you)` : row.name}
       </TableMedia>
     ) },

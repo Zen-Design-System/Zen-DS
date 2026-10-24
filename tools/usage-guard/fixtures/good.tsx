@@ -185,6 +185,10 @@ export const Good = () => <>
   {/* listbox/grouped-on-phone: each group of a phone settings screen is its own ListBox under its kicker; one kicker over one bare list is an open section. */}
   <PlatformPhone label="Settings" canvas="alt"><Stack gap="lg"><Stack gap="xs"><Box paddingX="lg"><Text textStyle="Body/Small/Bold" tone="light">Account</Text></Box><ListBox><List aria-label="Account"><ListItem title="Email" /></List></ListBox></Stack><Stack gap="xs"><Box paddingX="lg"><Text textStyle="Body/Small/Bold" tone="light">Privacy</Text></Box><ListBox><List aria-label="Privacy"><ListItem title="Blocked people" /></List></ListBox></Stack></Stack></PlatformPhone>
   <PlatformPhone label="Inbox"><Stack gap="lg"><Box paddingX="lg"><Text textStyle="Body/Small/Bold">Today</Text></Box><List aria-label="Today"><ListItem title="Standup notes" /></List></Stack></PlatformPhone>
+  {/* chip/row-gap, tag/row-gap: chips 8px apart, tags 4px; a later column's Avatar may be Subtle. */}
+  <Stack direction="row" gap="xs" wrap>{periods.map((p) => <Chip key={p.id} variant="normal" onClick={pick}>{p.label}</Chip>)}</Stack>
+  <Stack as="ul" direction="row" gap="2xs" wrap aria-label="Skills">{skills.map((skill) => <li key={skill}><Tag>{skill}</Tag></li>)}</Stack>
+  <Table aria-label="Members" rows={rows} getRowId={getId} columns={[{ id: "member", header: "Member", cell: (row) => <TableMedia bold caption={row.role} media={<Avatar size="sm" theme="neutral" alt="">{row.initials}</Avatar>}>{row.name}</TableMedia> }, { id: "owner", header: "Owner", cell: (row) => <Avatar size="xs" background="subtle" alt="">{row.owner}</Avatar> }]} />
   {/* table/titled-box: a ListBox header names its table. */}
   <ListBox header={<Heading level={3} textStyle="Heading/Subheading">Top clients</Heading>}><Table aria-label="Top clients" columns={[]} rows={[]} getRowId={(r) => r.id} /></ListBox>
   {/* A table that is its own section: an h2 Heading/4 above it, and the Table points to it. */}

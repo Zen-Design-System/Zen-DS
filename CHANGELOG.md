@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Spacing and Table rules (the user, 2026-10-24): chips side by side sit 8px apart (`gap="xs"`, harness `chip/row-gap`),
+  tags 4px (`gap="2xs"`, `tag/row-gap`); the Avatar in a Table's first column is Solid, never Subtle (Table's own avatar
+  cells and the Figma push draw it so; harness `table/first-column-avatar-solid`). Six examples and templates fixed.
 - Usage harness and audit (user, 2026-10-24, from the harness inventory): `listbox/grouped-on-phone` (error) flags a
   phone settings or profile screen that puts several kicker groups of rows in one block, or bare Lists under kickers
   (usage rules §15: each group is its own ListBox); `table/titled-box` (warn) flags a Table in a Card or ListBox that

@@ -298,3 +298,21 @@ Branch zen/feat/contract-checker-gaps-20261024.
   min 66, Message max 220 / 516, min 42; gridline dashes (bar, area, trend charts); Read-Only dashes (fields, text area);
   photos (Avatar/Single, Chip Normal / Advanced, Avatar / Photo cells, Popover item content). No drift found.
 - Negative checks: a 500px text cap and a 1px underline (CSS edited, restored) fail as `maxw` and `stroke`.
+
+## Session B · chip / tag gaps and the first column's Avatar (tier S; the user's rules, "bổ sung vào harness và guideline")
+
+- **Chips side by side:** 8px, Gap/XSmall, `gap="xs"`. ChipGroup already uses it. Harness `chip/row-gap` (error):
+  a Stack whose items are all Chips, two or more as rendered, must use gap="xs"; a gap that varies is skipped.
+- **Tags side by side:** 4px, Gap/2XSmall, `gap="2xs"`. Harness `tag/row-gap` (error), the same rule for Tags. An item
+  may be the Tag or a li/Stack/Box that holds only it.
+- **First column's Avatar is Solid:** Table.tsx cellVisual and figma-push draw the first column's avatar cell Solid;
+  later columns stay Subtle. Harness `table/first-column-avatar-solid` (error) flags `background="subtle"` on an Avatar
+  inside the first `{ id: … }` object of a `columns` array.
+- **Hits fixed at their owner:**
+  - HrHomeTemplate's phone period chips: 2xs → xs.
+  - layout.tsx's skills tags: xs → 2xs.
+  - The first-column Avatars of app-shell, page-header, table.tsx and AdminListTemplate: `background="subtle"` dropped.
+- **Checks:** fixtures in bad/good.tsx (251 rules); the chip, tag and table guidelines name the rules;
+  figma-push.selftest expects Solid in the first column; tests/interaction/table-first-column-avatar.test.tsx; smoke
+  + table tests pass (491).
+

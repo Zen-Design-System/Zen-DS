@@ -277,6 +277,14 @@ export const Bad = () => <>
   {/* expect: listbox/grouped-on-phone */}
   {/* expect: listbox/grouped-on-phone */}
   <PlatformPhone label="Profile"><Stack gap="lg"><Box paddingX="lg"><Text textStyle="Body/Small/Bold">Account</Text></Box><List aria-label="Account"><ListItem title="Email" /></List><Box paddingX="lg"><Text textStyle="Body/Small/Bold">Privacy</Text></Box><List aria-label="Privacy"><ListItem title="Blocked people" /></List></Stack></PlatformPhone>
+  {/* Chips side by side sit 8px apart, tags 4px (the user 2026-10-24). */}
+  {/* expect: chip/row-gap */}
+  <Stack direction="row" gap="2xs" wrap>{periods.map((p) => <Chip key={p.id} variant="normal" onClick={pick}>{p.label}</Chip>)}</Stack>
+  {/* expect: tag/row-gap */}
+  <Stack as="ul" direction="row" gap="xs" wrap aria-label="Skills">{skills.map((skill) => <li key={skill}><Tag>{skill}</Tag></li>)}</Stack>
+  {/* The row's name column takes a Solid Avatar (the user 2026-10-24). */}
+  {/* expect: table/first-column-avatar-solid */}
+  <Table aria-label="Members" rows={rows} getRowId={getId} columns={[{ id: "member", header: "Member", cell: (row) => <TableMedia bold caption={row.role} media={<Avatar size="sm" theme="neutral" background="subtle" alt="">{row.initials}</Avatar>}>{row.name}</TableMedia> }]} />
   {/* A table in a box is a widget the box names (usage rules §14). */}
   {/* expect: table/titled-box */}
   <Card theme="default"><Table aria-label="Recent claims" columns={[]} rows={[]} getRowId={(r) => r.id} /></Card>

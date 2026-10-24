@@ -2146,12 +2146,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
         if (dock) node.nested.push({ path: "Dock-Icon", set: dock.set, props: dock.props, ...(typeof own("Dock-Icon").emoji === "string" ? { text: own("Dock-Icon").emoji } : {}) });
       }
       if (kind === "icon" && typeof media === "string") node.swapIcon = media;
-      // Its Avatar as Table.tsx draws it (cellVisual): Subtle, Small over a Subtext (XSmall alone), a photo or the
+      // Its Avatar as Table.tsx draws it (cellVisual): Subtle (Solid in the first column), Small over a Subtext (XSmall alone), a photo or the
       // label's initials on Neutral, the row's Avatar override on top (Figma's sample is a Photo placeholder). A photo
       // cell with its picture has no Avatar in Figma: the picture fills Photo-Cell's Photo.
       if (kind === "avatar" || (kind === "photo" && !pictured)) {
         const mine = own("Avatar");
-        const avatar = instanceOf("Avatar", { size: caption ? "sm" : "xs", shape: kind === "photo" ? "square" : "circle", background: "subtle", theme: pictured ? "photo" : "neutral", ...mine }, where);
+        const avatar = instanceOf("Avatar", { size: caption ? "sm" : "xs", shape: kind === "photo" ? "square" : "circle", background: columns[0] === column ? "solid" : "subtle", theme: pictured ? "photo" : "neutral", ...mine }, where);
         // The page's own initials (an override's children: "Bich Ngoc Ha" → BH) win over the label's first two words.
         if (avatar) node.nested.push({ path: "Avatar", props: avatar.props, ...(pictured ? {} : { text: avatarInitials(typeof mine.children === "string" ? mine.children : initialsOf(label), mine.size ?? (caption ? "sm" : "xs")) }) });
       }

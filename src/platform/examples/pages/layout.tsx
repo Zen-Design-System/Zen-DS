@@ -429,7 +429,7 @@ function ProfileSkills() {
           <Heading level={5} id={skillsId} textStyle="Body/Small/Bold" tone="light">Skills</Heading>
           {skills.length ? (
             // A row Stack with wrap: Tags flow onto as many lines as they need, 2xs apart across and down.
-            <Stack as="ul" direction="row" gap="xs" wrap aria-labelledby={skillsId}>
+            <Stack as="ul" direction="row" gap="2xs" wrap aria-labelledby={skillsId}>
               {skills.map((skill) => <li key={skill}><Tag remove onRemove={() => remove(skill)}>{skill}</Tag></li>)}
             </Stack>
           ) : <Text textStyle="Body/Small/Regular" tone="base">No skills yet</Text>}

@@ -561,7 +561,7 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                     <div className="zen-table__content">{rowNest("Checkbox", <Checkbox className="zen-table__checkbox" label={<VisuallyHidden>{t.selectRow(index + 1)}</VisuallyHidden>} checked={isSelected} onCheckedChange={() => toggle(id)} />)}</div>
                   </td>
                 ) : null}
-                {columns.map((column) => {
+                {columns.map((column, columnIndex) => {
                   const cell = { row: id, col: column.id };
                   const cellNest = rowNest.at(column.id);
                   const editable = canEdit(row, column);
@@ -571,7 +571,7 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                   ) : null;
                   const editor = editors.get(column.id);
                   // Figma Table/Cell/Default › Content: the one-line slot that keeps the row at Table/Cell/Size.
-                  const content = <div className="zen-table__content">{cellOf(column, row, index, cellNest)}</div>;
+                  const content = <div className="zen-table__content">{cellOf(column, row, index, cellNest, columnIndex === 0)}</div>;
                   if (!editor) return <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-open={open ? "true" : undefined}>{content}{open}</td>;
                   return (
                     <td key={column.id} className="zen-table__cell" data-align={column.align ?? "left"} data-editable={editable ? "true" : "false"} data-editing={isEditing ? "true" : undefined} data-open={open ? "true" : undefined}
@@ -591,7 +591,7 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                       {isEditing
                         // The original content stays (hidden) so the column width and row height never change;
                         // the editor overlays the cell.
-                        ? <><div className="zen-table__content zen-table__cell-ghost" aria-hidden="true">{cellOf(column, row, index, cellNest)}</div><TableCellEditorView editor={editor} row={row} initial={editing?.initial} align={column.align ?? "left"}
+                        ? <><div className="zen-table__content zen-table__cell-ghost" aria-hidden="true">{cellOf(column, row, index, cellNest, columnIndex === 0)}</div><TableCellEditorView editor={editor} row={row} initial={editing?.initial} align={column.align ?? "left"}
                             onDone={({ refocus }) => { setEditing((current) => (current?.row === id && current.col === column.id ? null : current)); if (refocus) focusCell(cell, true); }}
                             onMove={(direction) => { const next = neighbour(cell, 0, direction, true); if (next) focusCell(next); }} /></>
                         : <>{content}{open}</>}
@@ -858,8 +858,12 @@ function editorOf<T>(column: TableColumn<T>, rows: T[], tableEditable: boolean, 
 }
 const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]?.toUpperCase() ?? "").join("");
 
-/** A media cell's visual (Figma Avatar / Photo / Basic-Icon / Dock-Icon cell): Small over a Subtext, XSmall without. */
-function cellVisual(content: "avatar" | "photo" | "icon" | "dock-icon", captioned: boolean, media: string, label: string, nest: Nest): ReactNode {
+/**
+ * A media cell's visual (Figma Avatar / Photo / Basic-Icon / Dock-Icon cell): Small over a Subtext, XSmall without. An
+ * Avatar is Subtle, but Solid in the first column, the row's name (the user 2026-10-24: "cột giá trị đầu tiên trong bảng
+ * nếu có dùng avatar thì không dùng subtle"; harness table/first-column-avatar-solid).
+ */
+function cellVisual(content: "avatar" | "photo" | "icon" | "dock-icon", captioned: boolean, media: string, label: string, nest: Nest, lead = false): ReactNode {
   if (content === "icon") {
     // Without a picture field, Figma's Basic-Icon-Cell default (icon-face-smile-line).
     const name = (media || "icon-face-smile-line") as IconName;
@@ -871,16 +875,17 @@ function cellVisual(content: "avatar" | "photo" | "icon" | "dock-icon", captione
   }
   const shape = content === "photo" ? "square" : "circle";
   const picture = { theme: media ? ("photo" as const) : ("neutral" as const), src: media || undefined, children: media ? null : initialsOf(label) };
+  const background = lead ? "solid" : "subtle";
   return nest("Avatar", captioned
-    ? <Avatar size="sm" shape={shape} background="subtle" alt="" {...picture} />
-    : <Avatar size="xs" shape={shape} background="subtle" alt="" {...picture} />);
+    ? <Avatar size="sm" shape={shape} background={background} alt="" {...picture} />
+    : <Avatar size="xs" shape={shape} background={background} alt="" {...picture} />);
 }
 
 /**
  * A column's cell from its row: its own `cell` (the page's content, outside the nested scope), else its `content` drawn
  * from the row's fields (TableCellContent), each drawn component a nested layer of the cell (`nest`).
  */
-function cellOf<T>(column: TableColumn<T>, row: T, index: number, nest: Nest): ReactNode {
+function cellOf<T>(column: TableColumn<T>, row: T, index: number, nest: Nest, lead = false): ReactNode {
   if (column.cell) return nest.slot(column.cell(row, index));
   const record = (row ?? {}) as Record<string, unknown>;
   const value = record[column.field ?? column.id];
@@ -896,7 +901,7 @@ function cellOf<T>(column: TableColumn<T>, row: T, index: number, nest: Nest): R
     case "photo":
     case "icon":
     case "dock-icon":
-      return <TableMedia caption={caption} bold={bold} media={cellVisual(content, Boolean(caption), media, label, nest)}>{label}</TableMedia>;
+      return <TableMedia caption={caption} bold={bold} media={cellVisual(content, Boolean(caption), media, label, nest, lead)}>{label}</TableMedia>;
     case "badge":
     case "tag": {
       const items = (Array.isArray(value) ? value : [value]).map(textOf).filter(Boolean);
