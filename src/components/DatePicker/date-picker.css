@@ -135,3 +135,25 @@ h3.zen-date-picker__month { margin: 0; }
 .zen-date-picker-sheet__footer { display: flex; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
 .zen-date-picker-sheet__summary { display: flex; min-width: 0; flex: 1 1 0; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-date-picker-sheet__apply.zen-button { width: 140px; height: 56px; flex: 0 0 auto; }
+/* header="selection" (Figma .Primitives/Date-Picker 9923:2323): pads by the sheet inset over a Border/Neutral/Subtle rule.
+   Option=1 (single): Caption, Spacing/Gap/XSmall, the date row (dm-8 right) with the edit Icon-Flat in a 20px wrapper.
+   Option=2 (range): title row (Close in a 2XSmall-padded box), range row and weekday row, Spacing/Gap/Large apart,
+   dm-8 at the bottom; the weekday row moves here from the calendar's sticky row. */
+.zen-date-picker-sheet__header { position: relative; display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-bottom-sheet-inset, 20px); }
+/* Figma's rule is an inside stroke: drawn over the bottom padding, so it adds no height. */
+.zen-date-picker-sheet__header::after { position: absolute; inset: auto 0 0; border-bottom: 1px solid var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 13%)); content: ""; pointer-events: none; }
+.zen-date-picker-sheet__header[data-selection="range"] { gap: var(--zen-spacing-gap-large, 24px); padding-bottom: var(--zen-dm-8, 8px); }
+.zen-date-picker-sheet__header p { min-width: 0; margin: 0; }
+.zen-date-picker-sheet__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-date-picker-sheet__date-row { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding-right: var(--zen-dm-8, 8px); }
+.zen-date-picker-sheet__date, .zen-date-picker-sheet__title { flex: 1 1 0; color: var(--zen-color-content-neutral-strongest, #121212); }
+.zen-date-picker-sheet__edit { display: flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; align-items: center; justify-content: center; }
+.zen-date-picker-sheet__title-row { display: flex; align-items: flex-start; gap: var(--zen-spacing-gap-medium, 16px); }
+.zen-date-picker-sheet__close { display: flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); box-sizing: content-box; flex: 0 0 auto; align-items: center; justify-content: center; padding: var(--zen-spacing-padding-2-xsmall, 4px); }
+.zen-date-picker-sheet__range-row { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.zen-date-picker-sheet__range { flex: 0 1 auto; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 69%)); }
+.zen-date-picker-sheet__clear { flex: 1 0 auto; margin: 0; padding: 0; border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: none; color: var(--zen-color-content-neutral-strongest, #121212); text-align: end; cursor: pointer; }
+.zen-date-picker-sheet__clear:disabled { color: var(--zen-color-content-disabled); cursor: default; }
+.zen-date-picker-sheet__clear:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
+.zen-date-picker-sheet__weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); padding: var(--zen-spacing-padding-medium, 16px) 0 var(--zen-spacing-padding-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-align: center; }
+.zen-date-picker-sheet[data-header="selection"] .zen-date-picker__sticky-weekdays { display: none; }

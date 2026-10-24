@@ -111,7 +111,7 @@ const monthName = (month: Date, locale: string) => new Intl.DateTimeFormat(local
 /** The 12 month names in `locale`, January first. */
 const monthNamesFor = (locale: string) => Array.from({ length: 12 }, (_, index) => monthName(new Date(2026, index, 1), locale));
 /** Monday-first narrow weekday names in `locale` (en M T W T F S S, vi T2 … CN); 5 January 2026 is a Monday. */
-const weekdayInitials = (locale: string) => {
+export const weekdayInitials = (locale: string) => {
   const format = new Intl.DateTimeFormat(locale, { weekday: "narrow" });
   return Array.from({ length: 7 }, (_, index) => format.format(new Date(2026, 0, 5 + index)));
 };

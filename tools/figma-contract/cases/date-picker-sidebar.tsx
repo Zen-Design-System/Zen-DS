@@ -58,11 +58,12 @@ export const cases: Record<string, (props: Props) => ReactNode> = {
     return <div data-density={density} data-typography={typography} style={{ position: "relative", width, height }}>{body}</div>;
   },
   // DatePickerSheet (range: the Footer-Actions footer) open in a device frame (`data-zen-overlay-root`, as a phone
-  // preview), so the sheet is contained in the case; `width` is the frame's.
-  dpSheet: ({ width, height, range, today, ...p }) => (
+  // preview), so the sheet is contained in the case; `width` is the frame's. `edit` gives `header="selection"` its
+  // onEdit (the Figma Action).
+  dpSheet: ({ width, height, range, today, value, edit, ...p }) => (
     <div data-zen-overlay-root="" style={{ position: "relative", width, height, overflow: "hidden" }}>
-      <DatePickerSheet open onOpenChange={() => {}} {...p} today={day(today) as Date} range={rangeOf(range)} monthCount={1}
-        summary={<span style={{ display: "block", height: 40 }} />} />
+      <DatePickerSheet open onOpenChange={() => {}} {...p} today={day(today) as Date} value={day(value) ?? null} range={rangeOf(range)} monthCount={1}
+        onEdit={edit ? () => {} : undefined} summary={<span style={{ display: "block", height: 40 }} />} />
     </div>
   ),
   // `Primitives/Side-Bar/Menu-Item/Master`: one row in a Sidebar of that density (the row reads its padding and gap from
