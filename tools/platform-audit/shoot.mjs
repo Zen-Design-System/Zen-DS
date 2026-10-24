@@ -24,7 +24,9 @@ const argv = process.argv.slice(2);
 const opt = (name) => argv.filter((a) => a.startsWith(`--${name}=`)).map((a) => a.slice(name.length + 3));
 const flag = (name) => argv.includes(`--${name}`);
 const positional = argv.filter((a) => !a.startsWith("--"));
-const BASE = (opt("url")[0] ?? "http://localhost:5173").replace(/\/$/, "");
+// --isolated: a private dev server (as the gate); the shared :5173 by default, with a warning.
+const { toolServer } = await import(new URL("../qa/isolated-server.mjs", import.meta.url).href);
+const BASE = (await toolServer(root, { url: opt("url")[0], isolated: flag("isolated"), tool: "platform:shoot" })).base;
 const WIDTH = Number(opt("width")[0] ?? 1512);
 const OUT = path.resolve(opt("out")[0] ?? path.join(root, ".platform-shots"));
 const TIMEOUT = Number(opt("timeout")[0] ?? 30000);

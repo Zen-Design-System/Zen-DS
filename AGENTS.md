@@ -86,7 +86,7 @@ edit at once and block finishing a turn until the gate passed (not while your ow
 | Guidelines + props docs | `npm run guidelines:build` then `npm run guidelines:check` |
 | Tokens / styles / icons | `npm run tokens:check` · `npm run styles:check` · `npm run icons:check` |
 | Figma parity | `node tools/figma-contract/run-all.mjs` (the gate runs only the suites of the components you edited) · re-capture: `tools/figma-contract/README.md` |
-| Platform (dev server on :5173) | `npm run platform:audit` (`:full`, `--dark`, `--quality`, `--density`) · `npm run platform:behaviour` · `npm run platform:shoot -- <page>`, and look at the images |
+| Platform (dev server on :5173) | `npm run platform:audit` (`:full`, `--dark`, `--quality`, `--density`) · `npm run platform:behaviour` · `npm run platform:shoot -- <page>`, and look at the images (`--isolated` on audit, shoot and visual-diff: a private server, as the gate) |
 | Package | `npm run build:lib` · `npm run pack:local` · `npm run verify:package` |
 | Everything | `npm run build` (library + platform) |
 

@@ -402,6 +402,12 @@
         "allow": "chip-radio"
       },
       {
+        "id": "chip/needs-action",
+        "severity": "warn",
+        "summary": "A Normal or Advanced Chip is a button: give it something to do (onClick, popoverItems / onPopoverCreate, a selection via select / selected / defaultSelected, or onClearSelection). A count is a Number-only Chip, a label a Badge.",
+        "allow": "chip-action"
+      },
+      {
         "id": "api/deprecated-prop",
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
@@ -5439,6 +5445,12 @@
         "allow": "table-title"
       },
       {
+        "id": "table/bulk-actions-max",
+        "severity": "warn",
+        "summary": "A Table's bulk-action bar holds at most five actions (icon-only Button/Icon-Flat Medium; on a phone the ones that don't fit move into More): pick the five that matter for a selection.",
+        "allow": "table-bulk-actions"
+      },
+      {
         "id": "table/needs-name",
         "severity": "error",
         "summary": "A Table is named by a caption or aria-label.",
@@ -7148,7 +7160,7 @@
       {
         "id": "top-navigation/search-folds-to-action",
         "severity": "warn",
-        "summary": "A collapsing Top Navigation whose control bar is a Search passes searchAction, so Search stays one tap away (top-right) while the bar is folded.",
+        "summary": "A collapsing Top Navigation (collapsed, or a scrollRef that folds it) whose control bar is a Search passes searchAction, so Search stays one tap away (top-right) while the bar is folded.",
         "allow": "nav-search-fold"
       },
       {

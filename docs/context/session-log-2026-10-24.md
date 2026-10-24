@@ -92,6 +92,19 @@ went to the coordinator as one list.
   archived, TopNavigation and the sheet line rewritten.
 - CI: the library CSS check reads comments (`.pe-` in card.css's comment failed "Gates, tests and package"); reworded.
 
+## Tooling: approved harness rules, inventory, :5173 warning, token scope in TSX (tier S–M; the user's decisions 2026-10-24)
+- Rules (each with an `expect:` case in fixtures/bad.tsx and a clean case in good.tsx): `table/bulk-actions-max` (array
+  literal or `(ids) => [ … ]` with more than five), `chip/needs-action` (Normal/Advanced with no handler, popover or
+  selection; code samples, stories and component source skipped), `max-three-trailing` flags a group of three or more
+  (my "count each item" recommendation meant this: a grouped pair stays one place, as Figma's dual Nav-Action),
+  `search-folds-to-action` also on `scrollRef`. `chip/needs-action` found two dead chips in Studio's ThemePreview
+  specimen: they now press like the buttons beside them.
+- 1e/1f: `docs/research/harness-inventory-2026-10-24.md` (0 bare Containers around a Table; 887 Do/Don't lines, 161
+  checked; three candidates for the user).
+- 2c: `toolServer()` in tools/qa/isolated-server.mjs; audit, shoot and visual-diff warn on :5173 and take `--isolated`.
+- 3c: `tokenScope` reads `var(--zen-…)` in TSX/TS (component folders → their page, example pages → the page); against
+  228897cd it finds 19 TSX consumers. 3d documented in skills/zen-build-qa §3. B.2 is its own PR.
+
 ## Native packages compiled in CI (tier S, CI only; BACKLOG P3; user: "thêm job CI macOS chạy swift test và flutter test cho platforms/")
 
 Branch zen/ci/native-platform-tests-20261024 from main 6a7e872a, PR #267.

@@ -197,6 +197,7 @@
         "flag/no-emoji-flag",
         "chip/multiple-needs-count",
         "chip/radio-is-chip-group",
+        "chip/needs-action",
         "api/deprecated-prop",
         "api/overrides-studio-only",
         "copy/plural-count",
@@ -3343,6 +3344,7 @@
       "rules": [
         "table/actions-flat",
         "table/title-heading-4",
+        "table/bulk-actions-max",
         "table/needs-name",
         "table/reference-in-sheet",
         "table/interaction-needs-handler",

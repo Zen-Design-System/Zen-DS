@@ -59,7 +59,7 @@
  * check catches it, without editing the shared tree. It cannot be combined with --baseline-update.
  *
  * Usage:
- *   node tools/platform-audit/audit.mjs [--url=http://localhost:5173] [--pages=button,chip] [--viewports=1512,390]
+ *   node tools/platform-audit/audit.mjs [--url=http://localhost:5173 | --isolated] [--pages=button,chip] [--viewports=1512,390]
  *                                       [--dark] [--no-playground] [--smoke] [--quality] [--density] [--out=report.json]
  *                                       (the gate runs 1512,390,320; at 320 every kind is baselined, see BASELINE_ALL_KINDS)
  *                                       [--baseline-update[=kinds]] [--no-baseline] [--css=file]
@@ -75,7 +75,9 @@ const require = createRequire(path.join(root, "package.json"));
 const { chromium } = require("playwright");
 
 const arg = (name, fallback) => { const hit = process.argv.find((a) => a === `--${name}` || a.startsWith(`--${name}=`)); if (!hit) return fallback; return hit.includes("=") ? hit.slice(hit.indexOf("=") + 1) : true; };
-const BASE = String(arg("url", "http://localhost:5173")).replace(/\/$/, "");
+// --isolated: a private dev server (tools/qa/isolated-server.mjs, as the gate); the shared :5173 by default, with a warning.
+const { toolServer } = await import(new URL("../qa/isolated-server.mjs", import.meta.url).href);
+const BASE = (await toolServer(root, { url: arg("url", undefined), isolated: Boolean(arg("isolated", false)), tool: "platform:audit" })).base;
 const VIEWPORTS = String(arg("viewports", "1512,390")).split(",").map(Number);
 const DARK = Boolean(arg("dark", false));
 const PLAYGROUND = !arg("no-playground", false);
