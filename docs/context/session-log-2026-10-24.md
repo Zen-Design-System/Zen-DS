@@ -271,3 +271,26 @@ Branch zen/feat/contract-checker-gaps-20261024.
   min 66, Message max 220 / 516, min 42; gridline dashes (bar, area, trend charts); Read-Only dashes (fields, text area);
   photos (Avatar/Single, Chip Normal / Advanced, Avatar / Photo cells, Popover item content). No drift found.
 - Negative checks: a 500px text cap and a 1px underline (CSS edited, restored) fail as `maxw` and `stroke`.
+
+
+## Table select draws its options as its cells (tier S; user 2026-10-24 "popover để chọn nếu là người thì nên có avatar")
+
+Branch claude/table-select-media-00c331, from "Full prototype tạo task" (Studio page quan-ly-task, editable Table).
+- **Bug:** the select editor handed the Popover `{ id, label, selected }` only: an avatar column (`mediaField`) listed bare
+  names, a badge column plain words while its cells are coloured Badges with icons (per-row `overrides`). After a pick
+  the row kept the old photo (`mediaField` untouched) and the old Badge look (the override is keyed by row id), and a
+  value picked away from its last row left the list (options came from the edited rows only).
+- **Fix (Table.tsx, no new prop):** `valueLooks` reads each value's look from the rows as given: the picture from
+  `mediaField`, or the row's `Row[<id>]/<column>/Badge` override, first row of that value that has one. The select draws
+  avatar/photo columns as Popover/Item Avatar-Small / Photo-Small (`photoSrc`, else an initials Avatar) and badge columns
+  as Theme=Badge with `badgeTheme` and the cell's Badge through Popover `overrides` (`Item[<value>]/Badge`: Subtle,
+  the value's theme and icon). A pick in a Table-kept edit also writes the value's picture into `mediaField`, and
+  `restyled` replaces the edited row's Badge override with the value's look. Options come from given + edited rows.
+- **API:** the select editor's options take an optional `photoSrc` (an `edit` object's people). Controlled tables
+  (`onCellCommit`) still update the picture field and override themselves; a column-level per-value badge map would
+  cover that, proposed to the user, not built (scope lock).
+- **Studio:** the Table cell inspector writes the same column fields (`edit`, `content`, `mediaField`) and Badge
+  overrides; nothing it reads changed.
+- **Figma:** the Table contract covers the text editor only (Editabled-Cell); Popover/Item content themes are its own.
+- **Tests:** tests/interaction/table-select-looks.test.tsx (avatars + initials + photo follows the pick; badges + look
+  follows the pick; `edit` object options with photoSrc). Guideline: Table › Editable cells + one Do line.

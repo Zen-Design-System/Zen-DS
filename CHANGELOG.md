@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Table: an editable column's select draws its options as its cells (user 2026-10-24: "popover để chọn nếu là người thì
+  nên có avatar"): people with their avatar (initials without a photo; `options[].photoSrc` on an `edit` object), badge
+  values with the colour and icon the rows' overrides give them. A value picked in the Table brings its picture or Badge
+  look to the row, and a value picked away from its last row stays in the list.
 - Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,
   auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
   the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are
