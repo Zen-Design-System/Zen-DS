@@ -257,3 +257,18 @@ Branch zen/feat/avatar-status-rail-20261024.
   The playground's "Master Background" chip drove the Main panel's `background`; it now drives the rail, Background the panel.
 - Suites: avatar-status 160/160 (16 variants, was 4), sidebar-workspace 1308/1308 (3 variants, was 1; the workspace-name
   exception now on every variant), avatar-single and table-cell-avatar unchanged. Example "Member access" on the Avatar page.
+## Session B · E2E ST-29 and DA-10, broken since #265 (tier S; Giám sát, fix-now rule)
+
+Both rows were broken in every run since #265: train A's gate, #275's gate and a local run. New rows don't fail the
+gate, so they looked green. They were written without being run, which was the slip.
+- **ST-29:** Send backward on a const shown on a condition and in a prop opened "Move in all 2 places?". The move only
+  touches the `{…}` at the holder (constHolderOf), so runMove now counts only the renders the holder shows directly
+  (`moveRepeats`, slots/actions.ts). That is a UI fix as well: the dialog was wrong there.
+- **DA-10:** a ListItem in a List can never be resized (cloning.json: it cannot be wrapped, so no handles). The data
+  fixture now has a `.map` of Boxes (`crew-tile`), and DA-10 resizes those (3 rows, height 53 → 78 on every row,
+  Escape writes nothing).
+- **Runs:** both rows pass alone; the structural and data groups pass together (32); the full default E2E gives 355 works,
+  0 broken (1562 s).
+- **Baseline:** my new rows (D-07, DA-10, ST-28, ST-29, VA-05…09) went into matrix.baseline.json as works, so a
+  regression now fails the gate. The other teams' new rows (PT-16…21, HO-13…16, K-24…27) are left to their owners.
+
