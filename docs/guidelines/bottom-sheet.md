@@ -21,7 +21,7 @@ A surface that slides up from the bottom for supplementary content, a short task
 | --- | --- | --- |
 | Type | `type` | modal (contents + Actions footer) · action (Sheet-Actions items) |
 | Size | `size` | flex (hugs content) · max (full height minus the top gap) |
-| Header | `title · search` | title h2 in Heading/3 (never Heading/1) + 44px Tertiary close; optional Search slot |
+| Header | `title · search · header` | title h2 in Heading/3 (never Heading/1) + 44px Tertiary close; optional Search slot; `header` draws your own header in their place (DatePickerSheet's selection header) and keeps the title as the dialog's name |
 | Items | `items[] {id, label, caption, icon, trailing, destructive} · selectedId · onSelect · keepOpen` | 48px rows (24px icon, 12px gap); caption = Figma Subtext (Caption/Regular, 2px under the label); Single-Selected = Accent/Subtle + check |
 | Actions | `primaryAction · secondaryAction · actionsDirection` | Large buttons; horizontal (Tertiary · Primary, equal widths) or vertical (Primary over Tertiary, each at its own 48px height) |
 | Form | `onSubmit` | Modal type: body + Actions footer become a <form>; Enter in a field or the primary action submits (primary = type=submit, closes only from your handler); pass form.handleSubmit; the Search slot stays outside |
@@ -41,7 +41,8 @@ Also accepts `OverlayOpenProps`.
 | `isOpen` | `boolean` | — | **Deprecated:** Use open (same meaning).  |
 | `onOpenChange` | `(open: boolean) => void` | — | Called with false on Escape, a scrim click, the close button, or an action without its own handler. |
 | `onClose` | `() => void` | — | Called at the same moments as `onOpenChange(false)`: the overlay asks to close. |
-| `title` (required) | `ReactNode` | — | Figma Header-Bar heading (Heading-Text H3). |
+| `title` (required) | `ReactNode` | — | Figma Header-Bar heading (Heading-Text H3). With `header`, the sheet's accessible name only (a visually hidden heading). |
+| `header` | `ReactNode` | — | Your own header in place of the Header-Bar (Heading + Close), e.g. `.Primitives/Date-Picker` (9923:2323): the picked dates lead the sheet. The grabber stays above it and a drag on it still dismisses the sheet; `title` stays the dialog's name. Draw a close in it when the design has one (Escape, the scrim and the drag close it anyway). |
 | `type` | `"modal" \| "action"` | `"modal"` |  |
 | `size` | `"flex" \| "max"` | `"flex"` |  |
 | `search` | `ReactNode` | — | Figma Search slot (a Search, under the header). The Search takes focus when the sheet opens (`data-autofocus` elsewhere wins). |

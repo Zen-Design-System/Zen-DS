@@ -142,7 +142,9 @@ export const NESTED_LAYERS: Readonly<Record<string, Readonly<Record<string, stri
     "Submit": "Button"
   },
   "DatePickerSheet": {
-    "Apply": "Button"
+    "Action": "IconButton",
+    "Apply": "Button",
+    "Close-Container": "IconButton"
   },
   "Dialog": {
     "Actions": "ModalActions",

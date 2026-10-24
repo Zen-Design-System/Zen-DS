@@ -44,7 +44,7 @@ const ALLOWED = {
   Tag: { Avatar: "Figma's Tag shows its photo through Leading (Image, Status inside), no Avatar layer" },
   Toast: { Leading: "Figma draws the icon in Icon-Wrapper › Icon; the code's Leading (icon prop) takes any node" },
   FileUpload: { Retry: "Figma's File-Item shows Replace and Remove; Retry is the code's, for a failed upload" },
-  DatePickerSheet: { Apply: "unnamed in Figma: Date-Picker/Mobile's Footer › Buttons (.Primitives/Bottom-Sheet/Actions) › Button/Main (read 2026-10-13)" },
+  DatePickerSheet: { Apply: "unnamed in Figma: Date-Picker/Mobile's Footer › Buttons (.Primitives/Bottom-Sheet/Actions) › Button/Main (read 2026-10-13)", "Close-Container": "header=\"selection\" range: .Primitives/Date-Picker (9923:2323) Option=2's Close-Container › Wrapper › Button/Icon-Flat; the sheet's sets (Date-Picker/Mobile) close from the Bottom-Sheet Header-Bar (read 2026-10-24)" },
 };
 
 /** Every layer name in a contract set, by name → the layer types it has there. */

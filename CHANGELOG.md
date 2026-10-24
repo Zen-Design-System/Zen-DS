@@ -17,6 +17,33 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Avatar (2026-10-24): `status` also takes `"disabled"`, `"pending"` or `"inactive"` (Figma .Primitives/Avatar/Status),
+  read by screen readers in words; `AvatarStatus` is the dot on its own, XSmall (4px) to Large. Sidebar: `railBackground`
+  sets the workspace rail's fill (Figma Master-Background Default · Flat · Inverse).
+- DatePickerSheet (2026-10-24): `header="selection"` (Figma `.Primitives/Date-Picker` 9923:2323) puts the picked dates
+  on top of the sheet: one date as a Heading/3 under the title with an edit action (`onEdit`, e.g. to type the date
+  instead); a range with Clear dates (`onClear`) and the weekday row under the title and Close. BottomSheet takes a
+  `header` slot in place of its Header-Bar (the title stays the dialog's name). Popover `placement="cover"` lays the
+  surface over its anchor; AutocompleteField's list now opens over the Add slot, as Figma draws it.
+- Zen Studio Play (2026-10-24): the device is the app's window. In Auto it is as tall as the page under the bar, the
+  Screen scrolls inside it and fills it at least, and overlays cover the window you see. A Side Panel or Dialog opened on
+  a scrolled Screen now shows in full and the page no longer jumps under it.
+- Dialog, ModalForm, modal SidePanel and BottomSheet (2026-10-24): an open modal also holds still every box that
+  scrolls around the place it renders in, not only the page: in Zen Studio's Play and Present a wheel over a modal no
+  longer scrolls the page under it (the stage scrolls a device frame, the user's "Quản lý task" prototype), and a phone
+  preview on a scrolling pane stays put. Each box is padded by its scrollbar's width while locked, as the page is.
+- Table: an editable column's select draws its options as its cells (user 2026-10-24: "popover để chọn nếu là người thì
+  nên có avatar"): people with their avatar (initials without a photo; `options[].photoSrc` on an `edit` object), badge
+  values with the colour and icon the rows' overrides give them. A value picked in the Table brings its picture or Badge
+  look to the row, and a value picked away from its last row stays in the list.
+- Zen Studio Play (2026-10-24): the hotspot hints no longer flash on a press that does something: a layer with a
+  prototype action (a Box or Card with `proto.navigate`, now outlined itself in the hints), or a part a component works
+  itself (a field's padding, a chart bar, a calendar slot). Only a press that changes nothing shows them, as in Figma.
+- Chip (2026-10-24): a filter chip that keeps its own choice clears its one value when it is picked again, and with
+  `defaultSelected` it keeps its choice even while `onPopoverSelect` / `onClearSelection` listen: it updates itself, then
+  calls them (uncontrolled + notify). Zen Studio Play: a filter Chip wired to Filter table shows its pick, the same pick
+  again or its × shows every row again, filters on different columns (a Search, several chips) narrow the Table
+  together, and Restart starts the Screen over.
 - Usage harness and audit (user, 2026-10-24, from the harness inventory): `listbox/grouped-on-phone` (error) flags a
   phone settings or profile screen that puts several kicker groups of rows in one block, or bare Lists under kickers
   (usage rules §15: each group is its own ListBox); `table/titled-box` (warn) flags a Table in a Card or ListBox that
@@ -26,6 +53,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
   the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are
   compared, with no drift found.
+- Zen Studio: Present on a Screen of a page you made (the frame toolbar's ▷, the Design tab's Present, ⌘K › Present)
+  plays its prototype from that frame, as ⌥⌘↵ does, instead of showing it as a still frame where Open overlay never ran;
+  a Screen state's frame starts in that state (2026-10-24).
 - Zen Studio: moving a layer that a `const` shows in several places (`{phone ? card : null}` and `trailing={card}`) no
   longer asks "Move in all N places?": only the `{…}` where this one shows moves (2026-10-24).
 - TopNavigation (2026-10-24): `titleMenu` makes the bar title a Dropdown (Figma Heading-Text Dropdown: the title and a

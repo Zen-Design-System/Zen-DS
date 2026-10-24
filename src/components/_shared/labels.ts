@@ -80,6 +80,12 @@ export type ZenLabels = {
   chooseDate: string;
   /** The calendar's name: dual calendar. */
   chooseDates: string;
+  /** DatePickerSheet `header="selection"`: the heading while no date (single) or no dates (range) are picked, the edit
+   *  action beside the picked date, and the action that empties a picked range. */
+  noDateSelected: string;
+  noDatesSelected: string;
+  editDate: string;
+  clearDates: string;
   /** Date Picker Time-Picker: the start and end time fields, their placeholder, the day halves and "All day". */
   timeFrom: string;
   timeTo: string;
@@ -177,6 +183,10 @@ export type ZenLabels = {
   opensInNewTab: string;
   // Status
   online: string;
+  /** Avatar / AvatarStatus words for Figma .Primitives/Avatar/Status Disabled, Pending and Inactive (Active is `online`). */
+  statusDisabled: string;
+  statusPending: string;
+  statusInactive: string;
   progress: string;
   /** Stepper's screen-reader status after a failed step's title. */
   stepError: string;
@@ -471,6 +481,10 @@ const en: ZenLabels = {
   chooseMonthAndYear: (month) => `${month}, choose month and year`,
   chooseDate: "Choose date",
   chooseDates: "Choose dates",
+  noDateSelected: "No date selected",
+  noDatesSelected: "No dates selected",
+  editDate: "Edit date",
+  clearDates: "Clear dates",
   timeFrom: "From",
   timeTo: "To",
   timePlaceholder: "hh:mm",
@@ -540,6 +554,9 @@ const en: ZenLabels = {
   back: "Back",
   opensInNewTab: "(opens in a new tab)",
   online: "Online",
+  statusDisabled: "Disabled",
+  statusPending: "Pending",
+  statusInactive: "Inactive",
   progress: "Progress",
   stepError: "(error)",
   stepCompleted: "(completed)",
@@ -774,6 +791,10 @@ const vi: ZenLabels = {
   chooseMonthAndYear: (month) => `${month}, chọn tháng và năm`,
   chooseDate: "Chọn ngày",
   chooseDates: "Chọn các ngày",
+  noDateSelected: "Chưa chọn ngày",
+  noDatesSelected: "Chưa chọn ngày nào",
+  editDate: "Sửa ngày",
+  clearDates: "Xoá ngày đã chọn",
   timeFrom: "Từ",
   timeTo: "Đến",
   timePlaceholder: "hh:mm",
@@ -843,6 +864,9 @@ const vi: ZenLabels = {
   back: "Quay lại",
   opensInNewTab: "(mở trong thẻ mới)",
   online: "Đang hoạt động",
+  statusDisabled: "Đã tắt",
+  statusPending: "Đang chờ",
+  statusInactive: "Không hoạt động",
   progress: "Tiến độ",
   stepError: "(lỗi)",
   stepCompleted: "(đã hoàn thành)",

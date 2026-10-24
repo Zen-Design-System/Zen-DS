@@ -267,7 +267,7 @@
       [
         "Own state",
         "popoverItems without onPopoverSelect · defaultSelected · defaultPopoverOpen",
-        "uncontrolled: the chip keeps the choice from the items marked selected (the one picked value as its label, a count for multiple, × clears); a Normal chip with defaultSelected turns itself on and off. Pass onPopoverSelect / selected when the app filters with it"
+        "uncontrolled: the chip keeps the choice from the items marked selected (the one picked value as its label, picked again it clears, a count for multiple, × clears); a Normal chip with defaultSelected turns itself on and off. Pass onPopoverSelect / selected when the app filters with it; with defaultSelected as well the chip keeps its choice and reports each pick and clear (uncontrolled + notify)"
       ],
       [
         "Size",
@@ -1612,7 +1612,12 @@
       [
         "Status",
         "status",
-        "presence dot"
+        "true / active · disabled · pending · inactive (the dot)"
+      ],
+      [
+        "AvatarStatus",
+        "size · status",
+        "the dot on its own: xsmall (4px) · small · medium · large"
       ]
     ],
     "keyboard": [],
@@ -1620,7 +1625,8 @@
       "Set alt to the person's name; use alt=\"\" only when the name is shown next to the avatar.",
       "Use 2 initials (1 on xsmall/2xsmall).",
       "Use square avatars for workspaces and organisations.",
-      "Popover items (Theme=Avatar Small) use Avatar Size=Small (32px); Avatar Big uses Medium (40px) — PopoverItem sizes them for you."
+      "Popover items (Theme=Avatar Small) use Avatar Size=Small (32px); Avatar Big uses Medium (40px) — PopoverItem sizes them for you.",
+      "A status beside a name without an avatar (a compact row, a list of people) is <AvatarStatus size=\"xs\"> or \"sm\" before the text; the Avatar's own dot follows its size."
     ],
     "dont": [
       "Don't show more than 5 avatars in a stack; summarise the rest in text.",
@@ -1628,7 +1634,7 @@
       "Don't put initials on a Solid golden, teal, cyan or orange avatar: the white initials measure 2.6–3.0:1. Use background=\"subtle\" or a theme such as indigo, violet or purple; photos are fine (harness: avatar/solid-initials-contrast)."
     ],
     "a11y": [
-      "Without a photo, an avatar with alt is one image named by it (role=img): an AvatarStack of initials reads \"Ava Nguyen, Minh Tran\", not \"AN MT\". The status joins the name (\"Ava Nguyen, Online\"), alt=\"\" hides the initials, and the stack's overflow avatar reads \"+N\"."
+      "Without a photo, an avatar with alt is one image named by it (role=img): an AvatarStack of initials reads \"Ava Nguyen, Minh Tran\", not \"AN MT\". The status joins the name (\"Ava Nguyen, Online\" · \"Pending\" · \"Disabled\" · \"Inactive\"), alt=\"\" hides the initials, and the stack's overflow avatar reads \"+N\". AvatarStatus is an image named by its status word (label= to change it); mark it decorative when the status is in the text beside it."
     ],
     "content": [
       "Initials from given + family name."
@@ -1721,8 +1727,8 @@
       ],
       [
         "Placement",
-        "align",
-        "4px below the trigger, above it when there is no room below; while open it keeps that side until it would be cut off, so scrolling never makes it jump back and forth, and it follows the trigger in the same frame"
+        "align · placement",
+        "adjacent (default): 4px below the trigger, above it when there is no room below; while open it keeps that side until it would be cut off, so scrolling never makes it jump back and forth, and it follows the trigger in the same frame. cover: over the anchor, its top edge on the anchor's (bottom edge when above), as Input/Autocomplete-Field Focused opens its list over the Add slot"
       ],
       [
         "Width",
@@ -1855,6 +1861,11 @@
         "Variant",
         "variant",
         "basic · small-density · workspace"
+      ],
+      [
+        "Rail background",
+        "railBackground",
+        "workspace rail: default (Surface/Default) · flat (no fill) · inverse (Active/Neutral/Solid; pass an overlay add action, appearance=\"overlay\" level=\"white-overlay\")"
       ],
       [
         "Density",
@@ -2059,6 +2070,11 @@
         "Phone sheet",
         "DatePickerSheet: open / onOpenChange · selectionMode · value / range · onRangeChange (draft) · onApply · summary · applyLabel",
         "Figma Date-Picker/Mobile 9923:3576 in a Bottom Sheet; picks are a draft until OK; DateField opens it by itself on a phone"
+      ],
+      [
+        "Sheet header",
+        "DatePickerSheet header · onEdit · onClear",
+        "bar (default): Header-Bar title + Close · selection (Figma .Primitives/Date-Picker 9923:2323): the picked dates lead the sheet; single: the title as a caption over the date in Heading/3 and, with onEdit, a pencil to type it instead; range: the title + Close, the range with Clear dates (onClear) and the weekday row"
       ]
     ],
     "keyboard": [
@@ -2084,7 +2100,7 @@
       "On a phone, put an inline calendar in the screen or a Bottom Sheet: at the mobile breakpoint it takes the Figma mobile primitives by itself and fills the width; pass device=\"mobile\" only to force them (a popover, a narrow preview).",
       "Disable impossible dates (past check-in) with minDate / maxDate (earlier or later days disabled); in a DateField a typed date outside them is kept and marked aria-invalid, so pair the range with an `error` message.",
       "Pass `today` (your app's date: a server, business or demo date) when it is not the device's; the Today ring and the month the calendar opens on follow it. DateField forwards `today`, `minDate` and `maxDate` to its calendar.",
-      "Show the chosen range and its consequence (nights, price) next to the calendar.",
+      "Show the chosen range and its consequence (nights, price) next to the calendar. In a sheet, header=\"selection\" puts the picked dates on top; with a range, reset the `summary` in onClear.",
       "Let users type the date in the DateField; the calendar is a shortcut, not the only input.",
       "Use calendar=\"dual\" for ranges longer than a few days; single for one date.",
       "Use the month-year picker for dates far from today (billing periods, expiries).",
@@ -5336,8 +5352,8 @@
       ],
       [
         "Editable cells",
-        "column.edit {type: text · number · select · tags, value, onCommit, validate, disabled, options, suggestions, multiline} · column.edit: \"text\" | \"number\" | \"select\" | \"tags\" | true · editable · onCellCommit",
-        "Figma Table/Cell/Default State=Edit · Editabled-Cell; Focused ring Focus/Accent/Subtle. A type alone (or `editable` on the Table: every value column) edits the row's field in place — the Table keeps the edit or hands it to onCellCommit(row, columnId, value)"
+        "column.edit {type: text · number · select · tags, value, onCommit, validate, disabled, options [{value, label, photoSrc}], suggestions, multiline} · column.edit: \"text\" | \"number\" | \"select\" | \"tags\" | true · editable · onCellCommit",
+        "Figma Table/Cell/Default State=Edit · Editabled-Cell; Focused ring Focus/Accent/Subtle. A type alone (or `editable` on the Table: every value column) edits the row's field in place — the Table keeps the edit or hands it to onCellCommit(row, columnId, value). A select draws its options as the cells draw them: an avatar or photo column's people with their picture from mediaField (initials without one; options[].photoSrc on an edit object), a badge column's values as their Badges with the colour and icon the rows' overrides give each value; a value picked in the Table takes that picture or Badge look (with onCellCommit the app updates the picture field and the row's override)"
       ],
       [
         "Open button",
@@ -5406,6 +5422,7 @@
       "Wire onCommit to save, and validate numbers and required text; the error stays in the cell until fixed (harness: table/editor-needs-commit, table/editor-number-validate).",
       "Right-align number editors like the numbers they edit (harness: table/editor-number-right).",
       "Use select for closed sets and tags for open sets; lock rows that can't change with edit.disabled.",
+      "Pick people by their faces: give a person column `content: \"avatar\"` and its mediaField, so its select shows each person's avatar; a custom select editor gives its people options[].photoSrc.",
       "Offer onOpen when the full record of an editable row needs a detail view; a read-only table that opens records uses onRowClick, so the whole row is the click target.",
       "Let clickable content inside an editable cell (Tag onClick, links, buttons) keep its own action — clicking the cell around it edits. Leave room (padding, gaps) so the edit target stays easy to hit.",
       "A table that is the page content or a section of it sits straight on the page: no Card, Box or other container and no Surface fill, and it spans the page width with no max: wrap that page in <Container maxWidth=\"full\"> (not the default lg 1280). Only a table that is a widget (a dashboard tile with its own title and a few rows beside other widgets) goes in a Card.",
@@ -7366,8 +7383,8 @@
       ],
       [
         "Header",
-        "title · search",
-        "title h2 in Heading/3 (never Heading/1) + 44px Tertiary close; optional Search slot"
+        "title · search · header",
+        "title h2 in Heading/3 (never Heading/1) + 44px Tertiary close; optional Search slot; `header` draws your own header in their place (DatePickerSheet's selection header) and keeps the title as the dialog's name"
       ],
       [
         "Items",

@@ -247,6 +247,13 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
     many (accept), or which style should each page drop?
   - **Fix in Figma (P3, 2026-10-06):** the Demo page's List composition 14730:79268 ("My Leaves") still has the old List
     padding (12 top / bottom, 0 sides, gap 2); with the new master its rows touch the frame sides and the fills overlap.
+  - **Avatar Status (P3, 2026-10-24, AvatarStatus):** (a) Fix in Figma: .Primitives/Avatar/Status 217:7418 XSmall and
+    Small Disabled bind Color/Background/Solid-Disabled-Alt (VariableID:7286:1241, Light/Neutral/4), a variable deleted
+    from Mode Colors (Semantic); Medium and Large bind Solid-Disabled, which code uses at every size (a figmaException in
+    `suites/avatar-status.mjs`). Rebind them, or restore the variable if Disabled should be lighter on small dots?
+    (b) What do Disabled, Pending and Inactive mean for a person? Screen readers say the Figma words ("Disabled",
+    "Pending", "Inactive"; Active reads "Online"); the Member access example reads them as an account turned off, an
+    invite not yet accepted and no sign-in for 90 days. Name the intended presence (offline · away · busy?) if different.
 
 ## For the user (decisions and actions)
 

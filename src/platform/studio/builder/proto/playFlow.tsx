@@ -4,9 +4,9 @@ import { componentsOf, renderNode, type LocalComponents, type PageNode, type Pag
 import { frameMotion, motionProps } from "./playMotion";
 import { useAnchoredPosition } from "../../../../components/Popover/useAnchoredPosition";
 import { itemElement, layerElements } from "./protoDom";
-import { choiceItemsOf, DEFAULT_DELAY, filterOf, filterValuesOf, findNode, linksOf, openerOf, optionsOf, OVERLAY_START, screenTargetOf, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, type FilterMatch, type ProtoOptions } from "./protoModel";
+import { choiceItemsOf, DEFAULT_DELAY, filterOf, filterValuesOf, findNode, linksOf, openerOf, optionsOf, OVERLAY_START, screenTargetOf, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, type ProtoOptions } from "./protoModel";
 import { anchorsItself, placesItself } from "./protoTriggers";
-import { protoHandler, Screen, type PageDevice, type PlayLive, type ProtoActions, type ScreenCanvas, type ScreenLayout } from "./runtime";
+import { protoHandler, Screen, type PageDevice, type PlayFilter, type PlayLive, type ProtoActions, type ScreenCanvas, type ScreenLayout } from "./runtime";
 
 /*
  * A page's prototype flow, shared by Play (Player.tsx, in the Studio) and the phone (device/DevicePlay.tsx, Open on phone):
@@ -31,7 +31,7 @@ type Step = { screen: string; options?: ProtoOptions };
  *  the presented frame (`start`). */
 export type OpenOverlay = { id: string; options?: ProtoOptions; hover?: boolean; start?: boolean; from?: Element | null };
 /** The shown Screen's live Tables and Steppers (Filter table, Change step), for the visit `key`. */
-type Live = { key: string; filters: Map<string, { column?: string; values: string[]; match: FilterMatch }>; steps: Map<string, number> };
+type Live = { key: string; filters: Map<string, Map<string, PlayFilter>>; steps: Map<string, number> };
 /** The frame going away while the next one comes in (`reverse`: Back). */
 type Leaving = { key: string; screen: string; options?: ProtoOptions; reverse: boolean };
 /** A frame going away is dropped after this long even if its animation never reports its end (no animation running). */
@@ -62,8 +62,11 @@ export function usePlayFlow(tree: PageTree | null, start: string | null, { onLea
   const first = presentedNode ? opener ?? "" : start && screenOf(start) ? start : firstScreen;
   const [history, setHistory] = useState<Step[]>([]);
   const [overlay, setOverlay] = useState<OpenOverlay | null>(startOverlay);
+  // Restart draws the Screen again even when it is already the first: what its components kept (a filter chip's pick,
+  // typed text) goes with Play's own state.
+  const [run, setRun] = useState(0);
   const current = history.at(-1)?.screen ?? first;
-  const currentKey = `${history.length}:${current}`;
+  const currentKey = `${run}:${history.length}:${current}`;
   // The animation between two frames: the one going away stays drawn under (or over) the one coming in until it ends.
   const [leaving, setLeaving] = useState<Leaving | null>(null);
   const [entering, setEntering] = useState<{ options?: ProtoOptions; reverse: boolean } | null>(null);
@@ -78,7 +81,7 @@ export function usePlayFlow(tree: PageTree | null, start: string | null, { onLea
 
   // Filter table and Change step: the shown Screen's live state, dropped when another Screen shows (or on Restart).
   const [live, setLive] = useState<Live>({ key: "", filters: new Map(), steps: new Map() });
-  const restart = useCallback(() => { setHistory([]); setOverlay(startOverlay); setLeaving(null); setEntering(null); setLive({ key: "", filters: new Map(), steps: new Map() }); }, [startOverlay]);
+  const restart = useCallback(() => { setHistory([]); setRun((count) => count + 1); setOverlay(startOverlay); setLeaving(null); setEntering(null); setLive({ key: "", filters: new Map(), steps: new Map() }); }, [startOverlay]);
   // An overlay closing over nothing (the presented Overlay alone, before any Screen) ends the flow.
   const closeOverlay = useCallback(() => {
     const { alone: lone, history: stack, onLeave: leave } = flow.current;
@@ -120,21 +123,29 @@ export function usePlayFlow(tree: PageTree | null, start: string | null, { onLea
     },
     toast: (options) => toast((options && typeof options === "object" ? options : { title: String(options ?? "") }) as ToastOptions),
     link: (url) => { if (/^(https?:|mailto:)/i.test(String(url))) window.open(String(url), "_blank", "noopener,noreferrer"); },
-    // Filter table: the shown Screen's Table (the one named, else its first) keeps the rows the filter matches; the same
-    // fixed value again (a filter chip pressed twice), or nothing to match, shows every row.
+    // Filter table: the shown Screen's Table (the one named, else its first) keeps the rows its filters match, one per
+    // column and match (a Search and the filter chips beside it narrow together). The same fixed value or chosen item
+    // again (a filter chip pressed or picked twice), or nothing to match (a chip's ×, a cleared Search), drops that one.
     filter: (raw, choice) => {
       const { current: shown, currentKey: key } = flow.current;
       const filter = filterOf([raw]);
       const table = targetLayerOf(screenOf(shown), "Table", filter.table);
       if (!table) { toast({ title: "No Table on this screen", type: "warning" }); return; }
       const values = filter.value !== undefined ? [filter.value] : filterValuesOf(choice);
+      // What is typed never toggles: only a pressed value or a chosen item does.
+      const toggles = filter.value !== undefined || (choice !== null && typeof choice === "object");
+      const match = filter.match ?? "is";
+      const slot = `${filter.column ?? ""}|${match}`;
       setLive((state) => {
         const now = liveNow(state, key);
         const filters = new Map(now.filters);
-        const was = filters.get(table.loc);
-        const again = filter.value !== undefined && was !== undefined && was.column === filter.column && was.values.length === 1 && was.values[0] === filter.value;
-        if (again || !values.some((value) => value.trim())) filters.delete(table.loc);
-        else filters.set(table.loc, { column: filter.column, values, match: filter.match ?? "is" });
+        const own = new Map(filters.get(table.loc));
+        const was = own.get(slot);
+        const again = toggles && was !== undefined && was.values.join("\u0000") === values.join("\u0000");
+        if (again || !values.some((value) => value.trim())) own.delete(slot);
+        else own.set(slot, { column: filter.column, values, match });
+        if (own.size) filters.set(table.loc, own);
+        else filters.delete(table.loc);
         return { ...now, filters };
       });
     },

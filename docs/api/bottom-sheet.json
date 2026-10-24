@@ -47,7 +47,15 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "Figma Header-Bar heading (Heading-Text H3).",
+          "description": "Figma Header-Bar heading (Heading-Text H3). With `header`, the sheet's accessible name only (a visually hidden heading).",
+          "deprecated": null
+        },
+        {
+          "name": "header",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Your own header in place of the Header-Bar (Heading + Close), e.g. `.Primitives/Date-Picker` (9923:2323): the\n picked dates lead the sheet. The grabber stays above it and a drag on it still dismisses the sheet; `title` stays\n the dialog's name. Draw a close in it when the design has one (Escape, the scrim and the drag close it anyway).",
           "deprecated": null
         },
         {

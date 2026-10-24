@@ -18,6 +18,10 @@ export interface AnchoredPositionOptions {
   /** Also write the anchor box's width (layout px) to the placement style as `--zen-anchor-width`, kept in step while the
    * anchor resizes, for a surface sized from its anchor (Popover `width="fill"` / `"hug"`). */
   trackAnchorWidth?: boolean;
+  /** Cover the anchor instead of attaching `gap` px beside it: below, the surface's top edge on the anchor's top edge;
+   * flipped above, its bottom edge on the anchor's bottom edge (Figma Input/Autocomplete-Field Focused draws its list
+   * over the Add slot). */
+  cover?: boolean;
 }
 
 const VIEWPORT_MARGIN = 8;
@@ -84,7 +88,7 @@ export function visibleBounds(from: HTMLElement, { viewport = true }: { viewport
  * anchor in a scrolling panel), and keeps the side it opened on until that side would cut it off
  * (resolveAnchoredSide). Surfaces that are not `position: absolute` (inline pickers, Bunk-Action bars) are left alone.
  */
-export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, active: boolean, { anchor, gap = 4, align = "start", trackAnchorWidth = false }: AnchoredPositionOptions = {}) {
+export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, active: boolean, { anchor, gap = 4, align = "start", trackAnchorWidth = false, cover = false }: AnchoredPositionOptions = {}) {
   const [placement, setPlacement] = useState<{ side: AnchoredSide; align: AnchoredAlign; style?: CSSProperties }>({ side: "bottom", align });
   // Stable identity, always the latest `anchor` (updated in an insertion effect, so before this layout effect runs): an
   // inline anchor function on every render neither re-runs the measuring effect nor is read stale.
@@ -131,10 +135,13 @@ export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, a
       const bounds = visibleBounds(container);
       const height = surface.offsetHeight * scale;
       const width = surface.offsetWidth * scale;
-      const below = bounds.bottom - box.bottom - gap * scale - VIEWPORT_MARGIN;
-      const above = box.top - bounds.top - gap * scale - VIEWPORT_MARGIN;
+      // Covering, the surface starts at the anchor's own edge (its top below, its bottom above), with no gap.
+      const startBelow = cover ? box.top : box.bottom + gap * scale;
+      const endAbove = cover ? box.bottom : box.top - gap * scale;
+      const below = bounds.bottom - startBelow - VIEWPORT_MARGIN;
+      const above = endAbove - bounds.top - VIEWPORT_MARGIN;
       const clip = visibleBounds(container, { viewport: false });
-      const reachable = { bottom: clip.bottom - box.bottom - gap * scale - VIEWPORT_MARGIN >= height, top: box.top - clip.top - gap * scale - VIEWPORT_MARGIN >= height };
+      const reachable = { bottom: clip.bottom - startBelow - VIEWPORT_MARGIN >= height, top: endAbove - clip.top - VIEWPORT_MARGIN >= height };
       const side = resolveAnchoredSide(lastSide, below, above, height, reachable);
       const fitsStart = box.left + width <= bounds.right - VIEWPORT_MARGIN;
       const fitsEnd = box.right - width >= bounds.left + VIEWPORT_MARGIN;
@@ -152,8 +159,8 @@ export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, a
         ? null
         : clampAnchoredLeft(resolvedAlign === "start" ? box.left : box.right - width, width, bounds.left, bounds.right);
       const style: CSSProperties = {
-        top: side === "bottom" ? (box.bottom - originTop) / scale + gap : "auto",
-        bottom: side === "top" ? (originBottom - box.top) / scale + gap : "auto",
+        top: side === "bottom" ? (startBelow - originTop) / scale : "auto",
+        bottom: side === "top" ? (originBottom - endAbove) / scale : "auto",
         left: shifted !== null ? (shifted - originLeft) / scale : resolvedAlign === "start" ? (box.left - originLeft) / scale : "auto",
         right: shifted === null && resolvedAlign === "end" ? (originRight - box.right) / scale : "auto",
         ...(anchorWidth ? { [ANCHOR_WIDTH]: anchorWidth } : null),
@@ -186,7 +193,7 @@ export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, a
       window.removeEventListener("resize", sync);
       window.removeEventListener("scroll", sync, true);
     };
-  }, [active, surfaceRef, gap, align, getAnchor, trackAnchorWidth]);
+  }, [active, surfaceRef, gap, align, getAnchor, trackAnchorWidth, cover]);
 
   return placement;
 }

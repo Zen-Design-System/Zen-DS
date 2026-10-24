@@ -36,8 +36,12 @@ export interface BottomSheetItem {
 }
 
 export interface BottomSheetProps extends OverlayOpenProps {
-  /** Figma Header-Bar heading (Heading-Text H3). */
+  /** Figma Header-Bar heading (Heading-Text H3). With `header`, the sheet's accessible name only (a visually hidden heading). */
   title: ReactNode;
+  /** Your own header in place of the Header-Bar (Heading + Close), e.g. `.Primitives/Date-Picker` (9923:2323): the
+   *  picked dates lead the sheet. The grabber stays above it and a drag on it still dismisses the sheet; `title` stays
+   *  the dialog's name. Draw a close in it when the design has one (Escape, the scrim and the drag close it anyway). */
+  header?: ReactNode;
   type?: BottomSheetType;
   size?: BottomSheetSize;
   /** Figma Search slot (a Search, under the header). The Search takes focus when the sheet opens (`data-autofocus` elsewhere wins). */
@@ -91,7 +95,7 @@ export interface BottomSheetProps extends OverlayOpenProps {
  * Initial focus: `data-autofocus`, else the Search or first field of a form sheet, else the sheet itself.
  * Modal + `onSubmit`: body and footer become a `<form>` (Form rule: Enter submits; the primary action is the submit button).
  */
-export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, type = "modal", size = "flex", search, items = [], selectedId, onSelect, keepOpen = false, children, primaryAction, secondaryAction, actionsDirection = "horizontal", footer: footerContent, onSubmit, dismissible = true, inline = false, closeLabel: closeLabelProp, className, overrides, ref, ...rest }: BottomSheetProps) {
+export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, header, type = "modal", size = "flex", search, items = [], selectedId, onSelect, keepOpen = false, children, primaryAction, secondaryAction, actionsDirection = "horizontal", footer: footerContent, onSubmit, dismissible = true, inline = false, closeLabel: closeLabelProp, className, overrides, ref, ...rest }: BottomSheetProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
@@ -187,10 +191,17 @@ export function BottomSheet({ open: openProp, isOpen, onOpenChange: onOpenChange
     >
       <div className="zen-bottom-sheet__top" onPointerDown={onDragStart} onPointerMove={onDragMove} onPointerUp={onDragEnd} onPointerCancel={onDragEnd}>
         <span className="zen-bottom-sheet__grabber" aria-hidden="true" />
-        <div className="zen-bottom-sheet__header">
-          <h2 id={`${id}-title`} className={`zen-bottom-sheet__title ${typographyStyles["Heading/3"]}`}>{title}</h2>
-          <div className="zen-bottom-sheet__close"><TopNavigationActionButton action={{ icon: "icon-x-medium-line", label: closeLabel, onClick: () => onOpenChange(false) }} variant="default" /></div>
-        </div>
+        {header ? (
+          <>
+            <h2 id={`${id}-title`} className="zen-bottom-sheet__hidden-title">{title}</h2>
+            {header}
+          </>
+        ) : (
+          <div className="zen-bottom-sheet__header">
+            <h2 id={`${id}-title`} className={`zen-bottom-sheet__title ${typographyStyles["Heading/3"]}`}>{title}</h2>
+            <div className="zen-bottom-sheet__close"><TopNavigationActionButton action={{ icon: "icon-x-medium-line", label: closeLabel, onClick: () => onOpenChange(false) }} variant="default" /></div>
+          </div>
+        )}
       </div>
       {search ? <div className="zen-bottom-sheet__search"><SearchShapeContext.Provider value="rounded">{search}</SearchShapeContext.Provider></div> : null}
       {isForm && onSubmit ? (

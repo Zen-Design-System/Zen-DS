@@ -25,6 +25,7 @@ Pick a date or a date range. DatePicker is the calendar panel itself and is visi
 | Actions | `showActions / action · onApply(value, range) · onCancel` | none · single · dual; picks are a draft that Submit applies and Cancel drops |
 | Stacked | `calendar="stacked" · monthCount` | Date-Picker/Mobile Variant=Multiple: months one under another with Display headers and one weekday row pinned at the top of the scroll |
 | Phone sheet | `DatePickerSheet: open / onOpenChange · selectionMode · value / range · onRangeChange (draft) · onApply · summary · applyLabel` | Figma Date-Picker/Mobile 9923:3576 in a Bottom Sheet; picks are a draft until OK; DateField opens it by itself on a phone |
+| Sheet header | `DatePickerSheet header · onEdit · onClear` | bar (default): Header-Bar title + Close · selection (Figma .Primitives/Date-Picker 9923:2323): the picked dates lead the sheet; single: the title as a caption over the date in Heading/3 and, with onEdit, a pencil to type it instead; range: the title + Close, the range with Clear dates (onClear) and the weekday row |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/date-picker.json`.
@@ -100,7 +101,7 @@ Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size">`.
 | `today` | `Date` | — | The day the calendar treats as today (DatePicker `today`): its Today ring and the month it opens on while empty. Default: the device clock. |
 
 ### DatePickerSheet
-Figma Date-Picker/Mobile (9923:3576): the phone date picker, a Bottom Sheet (Heading + Close) around the mobile calendar (`device="mobile"`: days fill the width). Variant=Single shows one month with Back / Next and the sheet's Cancel / OK; Variant=Multiple stacks the months (`calendar="stacked"`, one weekday row at the top of the scroll) and ends in `.Primitives/Date-Picker/Footer-Actions` (9923:2791): the summary beside a Large Primary, Spacing/Gap/Small apart. Picks are a draft until OK. DateField opens it on phones in place of the desktop popover.
+Figma Date-Picker/Mobile (9923:3576): the phone date picker, a Bottom Sheet (Heading + Close) around the mobile calendar (`device="mobile"`: days fill the width). Variant=Single shows one month with Back / Next and the sheet's Cancel / OK; Variant=Multiple stacks the months (`calendar="stacked"`, one weekday row at the top of the scroll) and ends in `.Primitives/Date-Picker/Footer-Actions` (9923:2791): the summary beside a Large Primary, Spacing/Gap/Small apart. Picks are a draft until OK. DateField opens it on phones in place of the desktop popover. `header="selection"` swaps the Header-Bar for `.Primitives/Date-Picker` (9923:2323): Option=1 (single) Caption Body/Base/Medium Neutral/Light, Spacing/Gap/XSmall over the date in Heading/3 and an edit Button/Icon-Flat Small (icon-edit-02-solid, Neutral/Light) in a 20px wrapper; Option=2 (range) the Heading/3 title beside a Close Icon-Flat (icon-x-small-line) in a 2XSmall-padded 28px box, Spacing/Gap/Large over the range (Body/Base/Regular, Neutral/Base) and Clear dates (Body/Base/Bold, Strongest, right-aligned), then the weekday row (Body/Small/Medium, Neutral/Light, padding Medium / 2XSmall). Both pad by the sheet inset (Option=2: dm-8 at the bottom) over a 1px Border/Neutral/Subtle/Default rule.
 
 Also accepts `OverlayOpenProps`.
 
@@ -110,7 +111,10 @@ Also accepts `OverlayOpenProps`.
 | `isOpen` | `boolean` | — | **Deprecated:** Use open (same meaning).  |
 | `onOpenChange` | `(open: boolean) => void` | — | Called with false on Escape, a scrim click, the close button, or an action without its own handler. |
 | `onClose` | `() => void` | — | Called at the same moments as `onOpenChange(false)`: the overlay asks to close. |
-| `title` | `ReactNode` | — | Figma Header heading (Heading/3). Default: the locale's "Choose date" ("Choose dates" for a range). |
+| `title` | `ReactNode` | — | Figma Header heading (Heading/3). Default: the locale's "Choose date" ("Choose dates" for a range). With `header="selection"`, the caption over the picked date (single) or the heading beside Close (range). |
+| `header` | `"bar" \| "selection"` | `"bar"` | `bar` (default): the Bottom-Sheet Header-Bar, the title and Close. `selection`: Figma `.Primitives/Date-Picker` (9923:2323), the picked dates lead the sheet. Single (Option=1): the title as a caption over the picked date in Heading/3 and, with `onEdit`, an edit action beside it. Range (Option=2): the title and Close, the picked range with Clear dates, and the weekday row, all above the scrolling months. |
+| `onEdit` | `() => void` | — | Single `header="selection"`: the edit action beside the picked date (Figma Action), e.g. to type the date in a field instead. Without it the action is hidden. |
+| `onClear` | `() => void` | — | Range `header="selection"`: Clear dates empties the draft range; set the `summary` back to its hint here. |
 | `selectionMode` | `"single" \| "range"` | `"single"` | `single` (Figma Variant=Single): one month with Back / Next, Cancel and OK. `range` (Variant=Multiple): the months stacked in a scrolling list, a start and an end day, and the Footer-Actions (your `summary` next to OK). |
 | `value` | `Date \| null` | — | Applied date (single). The sheet picks a draft over it; OK applies the draft. |
 | `defaultValue` | `Date \| null` | `null` | Applied date when uncontrolled (single). |
@@ -214,7 +218,7 @@ interface DatePickerTime { from: string | null; to: string | null; fromAllDay?: 
 - On a phone, put an inline calendar in the screen or a Bottom Sheet: at the mobile breakpoint it takes the Figma mobile primitives by itself and fills the width; pass device="mobile" only to force them (a popover, a narrow preview).
 - Disable impossible dates (past check-in) with minDate / maxDate (earlier or later days disabled); in a DateField a typed date outside them is kept and marked aria-invalid, so pair the range with an `error` message.
 - Pass `today` (your app's date: a server, business or demo date) when it is not the device's; the Today ring and the month the calendar opens on follow it. DateField forwards `today`, `minDate` and `maxDate` to its calendar.
-- Show the chosen range and its consequence (nights, price) next to the calendar.
+- Show the chosen range and its consequence (nights, price) next to the calendar. In a sheet, header="selection" puts the picked dates on top; with a range, reset the `summary` in onClear.
 - Let users type the date in the DateField; the calendar is a shortcut, not the only input.
 - Use calendar="dual" for ranges longer than a few days; single for one date.
 - Use the month-year picker for dates far from today (billing periods, expiries).

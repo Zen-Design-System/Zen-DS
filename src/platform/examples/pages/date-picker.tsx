@@ -501,8 +501,47 @@ function StayOnPhoneExample() {
         {/* On a phone a DateField opens the same sheet (Variant=Single) instead of the desktop popover. */}
         <DateField size="lg" label="Airport pickup" today={TODAY} minDate={TODAY} value={pickup} onValueChange={setPickup} helpText="Optional. We meet you at arrivals." />
       </Stack>
-      <DatePickerSheet open={picking} onOpenChange={setPicking} selectionMode="range" title="Your stay" today={TODAY} minDate={TODAY} monthCount={6}
-        range={stay} onRangeChange={setDraft} onApply={(_, range) => setStay(range)} summary={summary(draftNights)} />
+      <DatePickerSheet open={picking} onOpenChange={setPicking} selectionMode="range" header="selection" title="Your stay" today={TODAY} minDate={TODAY} monthCount={6}
+        range={stay} onRangeChange={setDraft} onClear={() => setDraft(null)} onApply={(_, range) => setStay(range)} summary={summary(draftNights)} />
+    </PlatformPhone>
+  );
+}
+
+// ——— A delivery day on a phone: DatePickerSheet header="selection" (Figma .Primitives/Date-Picker Option=1) ——————————
+
+function DeliveryDayExample() {
+  const { toast } = useToast();
+  const screenRef = useRef<HTMLDivElement>(null);
+  const [delivery, setDelivery] = useState<Date>(daysFromToday(3));
+  const [picking, setPicking] = useState(false);
+  // The header's edit action trades the calendar for typing the date.
+  const [typing, setTyping] = useState(false);
+  const [typed, setTyped] = useState("");
+  const typedDate = parseTyped(typed);
+  const move = (date: Date) => { setDelivery(date); setTyping(false); toast({ type: "positive", title: "Delivery moved", children: formatDate(date) }); };
+  return (
+    <PlatformPhone label="Your order" headerOverlay screenRef={screenRef}
+      header={<TopNavigation type="compact-alt" title="Order 4821" scrollRef={screenRef} />}>
+      <Stack gap="lg" padding="lg">
+        <ListBox>
+          <List aria-label="Delivery">
+            <ListItem title="Delivery day" caption={formatDate(delivery)} leading="icon-package-line"
+              trailing={<Icon name="icon-chevron-right-line-small" decorative />} onClick={() => setPicking(true)} />
+          </List>
+        </ListBox>
+        {typing ? (
+          <Form onSubmit={() => { if (typedDate) move(typedDate); }} gap="md">
+            <DateField size="lg" label="Delivery day" today={TODAY} minDate={TODAY} value={typed} onValueChange={setTyped} autoFocus
+              error={typed && !typedDate ? "Type the day as MM/DD/YYYY." : undefined} />
+            <FormActions>
+              <Button level="tertiary" onClick={() => setTyping(false)}>Cancel</Button>
+              <Button level="primary" type="submit" disabled={!typedDate}>Move delivery</Button>
+            </FormActions>
+          </Form>
+        ) : null}
+      </Stack>
+      <DatePickerSheet open={picking} onOpenChange={setPicking} header="selection" title="Select a date" today={TODAY} minDate={TODAY}
+        value={delivery} onApply={(date) => { if (date) move(date); }} onEdit={() => { setPicking(false); setTyped(""); setTyping(true); }} />
     </PlatformPhone>
   );
 }
@@ -662,6 +701,21 @@ const [time, setTime] = useState<DatePickerTime>({ from: "14:00", to: "14:30" })
 </PlatformPhone>`,
   },
   {
+    title: "A delivery day on a phone",
+    description: "The picked day leads the sheet (header=\"selection\", Figma .Primitives/Date-Picker): the title is a caption over the date, which changes as you pick, and OK moves the delivery. The pencil trades the calendar for typing the date.",
+    render: () => <DeliveryDayExample />,
+    code: `const [delivery, setDelivery] = useState(inThreeDays);
+const [typing, setTyping] = useState(false);
+
+<ListItem title="Delivery day" caption={formatDate(delivery)} leading="icon-package-line"
+  trailing={<Icon name="icon-chevron-right-line-small" decorative />} onClick={() => setPicking(true)} />
+{typing ? <DateField size="lg" label="Delivery day" value={typed} onValueChange={setTyped} autoFocus /> : null}
+
+<DatePickerSheet open={picking} onOpenChange={setPicking} header="selection" title="Select a date"
+  minDate={today} value={delivery} onApply={(date) => setDelivery(date)}
+  onEdit={() => { setPicking(false); setTyping(true); }} />`,
+  },
+  {
     title: "A stay on a phone",
     description: "On a phone dates open in a Bottom Sheet (Figma Date-Picker/Mobile). The stay's months scroll one under another with the weekdays pinned on top; the footer prices the nights as you pick and OK applies the range. The pickup date is a DateField, which opens the one-month sheet with Cancel and OK on a phone.",
     render: () => <StayOnPhoneExample />,
@@ -679,8 +733,10 @@ const nights = nightsOf(draft);
 {/* A DateField on a phone opens the one-month sheet (Cancel / OK) by itself. */}
 <DateField size="lg" label="Airport pickup" value={pickup} onValueChange={setPickup} />
 
-<DatePickerSheet open={picking} onOpenChange={setPicking} selectionMode="range" title="Your stay"
-  minDate={today} monthCount={6} range={stay} onRangeChange={setDraft} onApply={(_, range) => setStay(range)}
+{/* header="selection": the picked nights and Clear dates lead the sheet, the weekdays under them. */}
+<DatePickerSheet open={picking} onOpenChange={setPicking} selectionMode="range" header="selection" title="Your stay"
+  minDate={today} monthCount={6} range={stay} onRangeChange={setDraft} onClear={() => setDraft(null)}
+  onApply={(_, range) => setStay(range)}
   summary={<>
     <Text as="span" textStyle="Body/Extra/Bold" tone={nights ? "strongest" : "light"}>
       {nights ? formatMoney(nights * nightly) : "Add dates for prices"}

@@ -271,7 +271,7 @@
           "type": "boolean",
           "required": false,
           "default": null,
-          "description": "Uncontrolled start for `selected`: a Normal chip then turns itself on and off when pressed, and an Advanced chip's\n close affordance clears it. Leave `selected` out to use it.",
+          "description": "Uncontrolled start for `selected`: a Normal chip then turns itself on and off when pressed, and an Advanced chip's\n close affordance clears it. Leave `selected` out to use it. An Advanced chip with it keeps its own choice of\n `popoverItems` even while `onPopoverSelect` / `onClearSelection` listen: it updates itself, then calls them.",
           "deprecated": null
         },
         {
@@ -359,7 +359,7 @@
           "type": "PopoverItemData[]",
           "required": false,
           "default": null,
-          "description": "Items rendered by the shared Figma Popover/Default composition. Without `onPopoverSelect` (and `onPopoverCreate`) the\nchip keeps the choice itself, starting from the items marked `selected`: a pick marks it (`popoverMultiple` toggles)\nand the chip shows the one picked value as its label (and its photo or icon). A filter chip (`defaultSelected`, or\nnothing picked at first) is then Selected, counts several for `selectionMode` \"multiple\" and clears them with its\nclose affordance; a chip that starts on a value (a period) only changes it. Pass `onPopoverSelect` to keep the choice\nin your own state.\nOn a phone (the nearest `data-breakpoint`, else ZenProvider's, is \"mobile\"; SelectField's rule) the items open in a\nBottom Sheet instead, titled `popoverLabel` (else the chip's label): picked rows are Selected with a check, the Search\ncomes with `popoverSearch`, a pick closes it, and with `popoverMultiple` picks keep it open until Done. A chip with\n`onPopoverCreate` keeps its popover.",
+          "description": "Items rendered by the shared Figma Popover/Default composition. Without `onPopoverSelect` (and `onPopoverCreate`) the\nchip keeps the choice itself, starting from the items marked `selected`: a pick marks it (`popoverMultiple` toggles)\nand the chip shows the one picked value as its label (and its photo or icon). A filter chip (`defaultSelected`, or\nnothing picked at first) is then Selected, counts several for `selectionMode` \"multiple\", clears its one value when\nit is picked again and clears them all with its close affordance; a chip that starts on a value (a period) only\nchanges it. Pass `onPopoverSelect` to keep the choice in your own state (with `defaultSelected` as well, the chip\nkeeps it too and reports each pick).\nOn a phone (the nearest `data-breakpoint`, else ZenProvider's, is \"mobile\"; SelectField's rule) the items open in a\nBottom Sheet instead, titled `popoverLabel` (else the chip's label): picked rows are Selected with a check, the Search\ncomes with `popoverSearch`, a pick closes it, and with `popoverMultiple` picks keep it open until Done. A chip with\n`onPopoverCreate` keeps its popover.",
           "deprecated": null
         },
         {
@@ -4650,10 +4650,10 @@
         },
         {
           "name": "status",
-          "type": "boolean",
+          "type": "boolean | AvatarStatusValue",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "The status dot (Figma Avatar/Single Status + .Primitives/Avatar/Status 217:7418) at the bottom-right: `true` or\n`\"active\"` (Positive, read as \"Online\"), `\"disabled\"` (Solid-Disabled), `\"pending\"` (Warning) or `\"inactive\"`\n(Negative). Its size follows the avatar (Small on 2XSmall–Large, Medium on XLarge, Large on 2XLarge / 3XLarge). The\ndot is never the only signal: say the status in text beside the avatar too.",
           "deprecated": null
         },
         {
@@ -4748,6 +4748,60 @@
           "required": false,
           "default": "\"md\"",
           "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AvatarStatus",
+      "extends": null,
+      "props": [
+        {
+          "name": "status",
+          "type": "\"active\" | \"disabled\" | \"pending\" | \"inactive\"",
+          "required": false,
+          "default": "\"active\"",
+          "description": "Figma Status: Active (Positive) · Disabled (Solid-Disabled) · Pending (Warning) · Inactive (Negative).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"lg\" | \"xsmall\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"sm\"",
+          "description": "Figma Size: XSmall 4px with a 1px ring · Small 8/2 · Medium 12/2 · Large 16/3. Short or Figma spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "What a screen reader says. Default: the status word from the labels (\"Online\", \"Disabled\", \"Pending\", \"Inactive\").",
+          "deprecated": null
+        },
+        {
+          "name": "decorative",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Hide the dot from assistive technology when the status is said in text beside it.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>`.",
           "deprecated": null
         }
       ]
@@ -4900,6 +4954,14 @@
           "required": false,
           "default": "\"start\"",
           "description": "Preferred horizontal edge against the anchor box; flips when it would overflow the viewport.",
+          "deprecated": null
+        },
+        {
+          "name": "placement",
+          "type": "\"adjacent\" | \"cover\"",
+          "required": false,
+          "default": "\"adjacent\"",
+          "description": "Where it opens against its anchor: `adjacent` (default) 4px below it, above when there is more room there; `cover`\nover it, its top edge on the anchor's top (its bottom on the anchor's bottom when it opens upward), as Figma\nInput/Autocomplete-Field Focused draws the list over the Add slot.",
           "deprecated": null
         },
         {
@@ -5373,6 +5435,14 @@
           "required": false,
           "default": "true",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "railBackground",
+          "type": "\"default\" | \"flat\" | \"inverse\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "The workspace rail's fill (Figma Side-Bar/Master/Workspace Master-Background, 4218:9166): Default = Surface/Default ·\nFlat = no fill (the rail sits on the page's canvas) · Inverse = Background/Active/Neutral/Solid, the default mark in\nContent/Inverse/Strongest; pair it with an overlay add action (`<IconButton appearance=\"overlay\"\nlevel=\"white-overlay\">`, Figma Button/Icon-Overlay White Overlay). `background` paints the Main panel.",
           "deprecated": null
         },
         {
@@ -6224,7 +6294,31 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Header heading (Heading/3). Default: the locale's \"Choose date\" (\"Choose dates\" for a range).",
+          "description": "Figma Header heading (Heading/3). Default: the locale's \"Choose date\" (\"Choose dates\" for a range). With\n `header=\"selection\"`, the caption over the picked date (single) or the heading beside Close (range).",
+          "deprecated": null
+        },
+        {
+          "name": "header",
+          "type": "\"bar\" | \"selection\"",
+          "required": false,
+          "default": "\"bar\"",
+          "description": "`bar` (default): the Bottom-Sheet Header-Bar, the title and Close. `selection`: Figma `.Primitives/Date-Picker`\n (9923:2323), the picked dates lead the sheet. Single (Option=1): the title as a caption over the picked date in\n Heading/3 and, with `onEdit`, an edit action beside it. Range (Option=2): the title and Close, the picked range\n with Clear dates, and the weekday row, all above the scrolling months.",
+          "deprecated": null
+        },
+        {
+          "name": "onEdit",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Single `header=\"selection\"`: the edit action beside the picked date (Figma Action), e.g. to type the date in a\n field instead. Without it the action is hidden.",
+          "deprecated": null
+        },
+        {
+          "name": "onClear",
+          "type": "() => void",
+          "required": false,
+          "default": null,
+          "description": "Range `header=\"selection\"`: Clear dates empties the draft range; set the `summary` back to its hint here.",
           "deprecated": null
         },
         {
@@ -15396,7 +15490,15 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "Figma Header-Bar heading (Heading-Text H3).",
+          "description": "Figma Header-Bar heading (Heading-Text H3). With `header`, the sheet's accessible name only (a visually hidden heading).",
+          "deprecated": null
+        },
+        {
+          "name": "header",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Your own header in place of the Header-Bar (Heading + Close), e.g. `.Primitives/Date-Picker` (9923:2323): the\n picked dates lead the sheet. The grabber stays above it and a drag on it still dismisses the sheet; `title` stays\n the dialog's name. Draw a close in it when the design has one (Escape, the scrim and the drag close it anyway).",
           "deprecated": null
         },
         {
