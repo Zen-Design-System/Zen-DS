@@ -67,6 +67,8 @@
  *                                       [--dark] [--no-playground] [--smoke] [--quality] [--density] [--out=report.json]
  *                                       (the gate runs 1512,390,320; at 320 every kind is baselined, see BASELINE_ALL_KINDS)
  *                                       [--baseline-update[=kinds]] [--no-baseline] [--css=file]
+ *                                       [--page-timeout=s] (one page's limit: 180, 420 with --quality/--density, 900 with
+ *                                       --smoke; a page past it is audited again in a new tab, then reported)
  * Exit code 1 when any error-level finding exists. See docs/qa/platform-audit.md and docs/qa/build-qa-process.md.
  */
 import fs from "node:fs";
@@ -89,6 +91,10 @@ const SMOKE = Boolean(arg("smoke", false));
 const OUT = arg("out", null);
 const QUALITY = Boolean(arg("quality", false));
 const DENSITY = Boolean(arg("density", false));
+// One page's time limit (s): a page that never answers (page.evaluate has no timeout) would hold the whole run — CI
+// cancelled a run after 45 min on one page (text@390, 2026-10-24). Past it the tab is closed, the page is audited once
+// more in a new tab, then reported as an error, and the run goes on. Smoke clicks every button, so it gets longer.
+const PAGE_BUDGET_S = Number(arg("page-timeout", SMOKE ? 900 : QUALITY || DENSITY ? 420 : 180));
 const BASELINE_FILE = path.join(root, "tools/platform-audit/quality-baseline.json");
 // Motion (2026-10-01): reduced motion keeps fades (tokens/source/motion.json sets only the movement to 0), so every
 // animation and transition is frozen at its end state: the checks read final colours, sizes and positions.
@@ -556,12 +562,22 @@ async function run() {
     const mobile = width < 768;
     const context = await browser.newContext({ viewport: { width, height: mobile ? 844 : 1000 }, reducedMotion: "reduce", deviceScaleFactor: 1 });
     await context.addInitScript(freezeMotionInit, FREEZE_MOTION);
-    const page = await context.newPage();
     let errors = [];
-    page.on("pageerror", (e) => errors.push(e.message.split("\n")[0]));
-    page.on("console", (m) => { if (m.type() === "error" && !IGNORED_CONSOLE.test(m.text())) errors.push(m.text().split("\n")[0].slice(0, 200)); });
-    page.on("filechooser", (fc) => fc.setFiles([]).catch(() => undefined));
+    const openPage = async () => {
+      const tab = await context.newPage();
+      tab.on("pageerror", (e) => errors.push(e.message.split("\n")[0]));
+      tab.on("console", (m) => { if (m.type() === "error" && !IGNORED_CONSOLE.test(m.text())) errors.push(m.text().split("\n")[0].slice(0, 200)); });
+      tab.on("filechooser", (fc) => fc.setFiles([]).catch(() => undefined));
+      return tab;
+    };
+    let page = await openPage();
+    // PAGE_BUDGET_S: the watchdog closes a tab that holds one page too long (its pending calls then throw).
+    let stalled = false;
+    let watchdog = null;
     for (const id of PAGES) for (let attempt = 1; attempt <= 3; attempt++) try {
+      stalled = false;
+      clearTimeout(watchdog);
+      watchdog = setTimeout(() => { stalled = true; page.close().catch(() => undefined); }, PAGE_BUDGET_S * 1000);
       // Other sessions edit the shared tree, so Vite HMR may reload the page mid-check: the page is then audited again.
       errors = [];
       if (report.baselined?.[`${id}@${width}${DARK ? "-dark" : ""}`]) delete report.baselined[`${id}@${width}${DARK ? "-dark" : ""}`];
@@ -765,8 +781,18 @@ async function run() {
       if (smokeStats) (report.smokeStats ??= {})[key] = smokeStats;
       const n = sum(entry);
       console.log(`${n ? "✗" : "✓"} ${key.padEnd(30)} ${n ? Object.entries(entry).filter(([, l]) => l.length).map(([k, l]) => `${k}:${l.length}`).join(" ") : "clean"}${known ? ` (+${known} baseline)` : ""}`);
+      clearTimeout(watchdog);
       break;
     } catch (e) {
+      clearTimeout(watchdog);
+      if (stalled) {
+        page = await openPage();
+        if (attempt < 2) { console.log(`↻ ${id}@${width}: no answer in ${PAGE_BUDGET_S}s — auditing it again in a new tab`); continue; }
+        const key = `${id}@${width}${DARK ? "-dark" : ""}`;
+        report.pages[key] = { errors: [`the page did not answer within ${PAGE_BUDGET_S}s, twice (audit watchdog, --page-timeout): it hangs, or it is too slow to audit`] };
+        console.log(`✗ ${key.padEnd(30)} errors:1 (no answer in ${PAGE_BUDGET_S}s, twice)`);
+        break;
+      }
       if (attempt < 3 && /Execution context was destroyed|navigation|Target (page|closed)|frame was detached/i.test(e.message)) { console.log(`↻ ${id}@${width}: the page reloaded during the audit (HMR from another session?) — auditing it again`); await page.waitForTimeout(1500); continue; }
       throw e;
     }
