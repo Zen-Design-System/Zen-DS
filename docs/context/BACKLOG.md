@@ -128,16 +128,10 @@ starts.
   instead of a Segmented that does not fit; a bare `<Container>` around a Table has 0 cases). The four approved rules
   (`table/bulk-actions-max`, `chip/needs-action`, three actions in one TopNavigation group, `search-folds-to-action` on
   `scrollRef` bars) shipped 2026-10-24.
-- **P3 · Audit gaps (2026-10-02/03; the user's go 2026-10-24), in flight:** the focused-heading `edges` frame (PR #264);
-  `fit` / `overflow` also catch a control clipped by an `overflow: hidden` ancestor or covered by a sibling, and a durable
-  selftest for the quality / outline checks (B, PR #270). Done: `platform:audit`, `platform:shoot` and `visual-diff` warn
-  on the shared :5173 and take `--isolated` (2026-10-24).
-- **P3 · Gate details (the user's decisions 2026-10-24), in flight:** baseline notes follow the fix-at-once rule and a
-  reused pid no longer keeps a stale "running" marker (PR #264); B.2, re-run only the steps that failed when nothing
-  changed (next PR). Done 2026-10-24: token scope reads inline `var()` in TSX (importers stay one level); a Bash
-  script's edits counting only when the command names the file is documented (`skills/zen-build-qa` §3). Kept on
-  purpose: partial `--only` runs and mixed stale guidelines fail. Not now: B.4, C.4, C.6, C.7; no global text-width
-  tolerance (the suites' `xr` / `wr` / `cxr` checks replace it).
+- **P3 · Audit gaps (2026-10-02/03; the user's go 2026-10-24), in flight:** `fit` / `overflow` also catch a control
+  clipped by an `overflow: hidden` ancestor or covered by a sibling, and a durable selftest for the quality / outline
+  checks (B, PR #270). Done 2026-10-24: the focused-heading `edges` frame (#264); `platform:audit`, `platform:shoot` and
+  `visual-diff` warn on the shared :5173 and take `--isolated` (#272).
 - **P3 · Figma contract suites from the 2026-09-29 parity list (merged 2026-10-24):** the Open-items entry "Figma
   contract suites, next batch" holds the plan; it should also name Breadcrumbs (a figmaExceptions entry for the 4px list
   padding; `breadcrumbs.json` was not in the 2026-10-23 re-read), a harness kind that renders SegmentedItem inside
