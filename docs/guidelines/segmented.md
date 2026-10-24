@@ -89,7 +89,7 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 - Keep 2–5 options (harness: segmented/option-count; options computed at run time are counted on the rendered page by the platform audit, kind counts). Past five, pick with a SelectField.
 - Name icon-only segments with "aria-label" on the option and mark the icon decorative (harness: segmented/icon-only-needs-name).
 - On mobile, stretch a Segmented to its container (fullWidth) in a Top Navigation control bar, a Bottom Sheet or a narrow panel, so the items share the width equally (harness: segmented/control-bar-full-width).
-- On a phone, use a Segmented only when every label fits its equal share (fullWidth). When the options are wider than the screen (four periods, long labels), switch to a single-choice row of Normal Chips (Medium, the pressed one Primary) that scrolls sideways, not a sliding Segmented.
+- On a phone, use a Segmented only when every label fits its equal share (fullWidth). When the options are wider than the screen (four periods, long labels), switch to a single-choice row of Normal Chips (Medium, the pressed one Primary) that scrolls sideways, not a sliding Segmented (audit: segmented-fit).
 
 ## ❌ Don't
 - Don't use Segmented as a filter.
