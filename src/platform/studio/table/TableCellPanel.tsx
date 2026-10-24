@@ -24,7 +24,7 @@ import type { EditOp, EditValue, SourceElement, StudioSelection } from "../types
 import { bodyRows, fieldText, rowFieldsOf, tableCellOf, tableData, tableFiberOf, TABLE_PARTS, type TableCellHit, type TableColumnInfo } from "./tableCells";
 import { axisFor, cellsCode, cellsComponent, slotComponents, slotKey } from "./cellComponents";
 import { attr, columnShape, edit, fieldOf, rowOp } from "./columnSource";
-import { libraryOf } from "../project/projectLibrary";
+import { cellLibrary } from "./cellInstance";
 
 /*
  * The Inspector of a Table's Data-Row and Cell (user, 2026-10-10: "phải chọn được loại dữ liệu của cell", "giống Figma
@@ -364,7 +364,7 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
   // Figma's Content slot may hold an instance of the project's own component, one per value (`cells`): the project's
   // component sets are Content options beside the Zen cells.
   const localPage = useStudio((state) => state.localPage);
-  const slotSets = drawn ? slotComponents(localPage ? libraryOf(localPage) : undefined, localPage) : [];
+  const slotSets = drawn ? slotComponents(cellLibrary(localPage), localPage) : [];
   const cellsField = shape && !("reason" in shape) ? fieldOf(shape.shape, "cells") : undefined;
   const holding = cellsComponent(cellsField && "value" in cellsField ? String(cellsField.value) : undefined);
   const kind = holding ? "component" : drawn ? (column?.content ?? "text") : contentOfWritten(content);
