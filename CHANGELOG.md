@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Chip (2026-10-24): a filter chip that keeps its own choice clears its one value when it is picked again, and with
+  `defaultSelected` it keeps its choice even while `onPopoverSelect` / `onClearSelection` listen: it updates itself, then
+  calls them (uncontrolled + notify). Zen Studio Play: a filter Chip wired to Filter table shows its pick, the same pick
+  again or its × shows every row again, filters on different columns (a Search, several chips) narrow the Table
+  together, and Restart starts the Screen over.
 - Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,
   auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
   the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are

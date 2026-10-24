@@ -41,10 +41,14 @@ export type ProtoActions = {
 };
 const inert: ProtoActions = { navigate: () => undefined, open: () => undefined, close: () => undefined, back: () => undefined, toast: () => undefined, link: () => undefined };
 
+/** One Filter table filter on a Table: the column it reads (none: every field), the values it keeps, how it compares. */
+export type PlayFilter = { column?: string; values: string[]; match: FilterMatch };
+
 /** Play's live state of the shown Screen (Filter table, Change step), by the layer's place: each filtered Table's
- *  filter, each driven Stepper's step (`stepTargets`: the Steppers a Change step drives, which Play then holds). */
+ *  filters (one per column and match, all applied: a Search and the filter chips beside it narrow together), each
+ *  driven Stepper's step (`stepTargets`: the Steppers a Change step drives, which Play then holds). */
 export type PlayLive = {
-  filters: ReadonlyMap<string, { column?: string; values: string[]; match: FilterMatch }>;
+  filters: ReadonlyMap<string, ReadonlyMap<string, PlayFilter>>;
   steps: ReadonlyMap<string, number>;
   stepTargets: ReadonlySet<string>;
   onStep: (loc: string, index: number) => void;

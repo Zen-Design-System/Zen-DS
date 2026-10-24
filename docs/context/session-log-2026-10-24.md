@@ -271,3 +271,26 @@ Branch zen/feat/contract-checker-gaps-20261024.
   min 66, Message max 220 / 516, min 42; gridline dashes (bar, area, trend charts); Read-Only dashes (fields, text area);
   photos (Avatar/Single, Chip Normal / Advanced, Avatar / Photo cells, Popover item content). No drift found.
 - Negative checks: a 500px text cap and a 1px underline (CSS edited, restored) fail as `maxw` and `stroke`.
+
+
+## Play: a filter Chip can be cleared (tier S; user 2026-10-24, the Quản lý task prototype in DEMO-MEET)
+
+Branch claude/busy-davinci-996858. The user asked that every search and filter work in Play; picking a status filtered
+the Table, but nothing brought every row back short of Restart.
+- **Measured:** in Play a `<Chip dropdown popoverItems onPopoverSelect={proto.filter({ column: "status" })}>` filtered
+  3 → 2 rows but never showed the pick (label stayed "Status", no ×): Play hands the Chip a function, so the Chip left the
+  choice to the app (`ownsChoice` false). Play also kept one filter per Table, so the Status chip, the Priority chip and
+  the Search replaced each other.
+- **Chip:** uncontrolled + notify. With `defaultSelected` (no `selected`) an Advanced chip keeps its choice even when
+  `onPopoverSelect` / `onClearSelection` are given: it updates itself, then calls them. A filter chip's one value picked
+  again clears it (the apps' `x === item.id ? null : item.id`); a period chip keeps its value. Controlled chips unchanged.
+- **Play:** `livePlayProps` gives a Chip whose pick runs Filter table `defaultSelected={false}` and an `onClearSelection`
+  that clears that filter (after the page's own). The filter action keeps one filter per column and match on each Table
+  (AND), and the same fixed value or chosen item again drops it (typed text never toggles). Restart bumps the Screen's
+  key, so components drawn on it (the chip's pick, typed text) start over with Play's state.
+- **Tests:** self-managed-state (picked again, period keeps, uncontrolled + notify, controlled left to the app);
+  studio-option-c (pick, again, two chips + Search, ×, Restart); E2E PT-23 (id from Giám sát) works alone and in the
+  prototype group.
+- **Prototype panel:** Filter table on a Chip's popover pick said "Value" as if a fixed value were needed (`choiceItemsOf`
+  reads `items` / `options`, not `popoverItems`); `onPopoverSelect` always hands over the chosen item, so its Value
+  placeholder now says "The chosen item".
