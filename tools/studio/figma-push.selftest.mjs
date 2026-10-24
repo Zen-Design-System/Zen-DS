@@ -2852,6 +2852,32 @@ export default function Tasks() {
   check("cells: a value without a layer draws by content (Badge-Cell)", statusCell(2)?.slots[0].children[0]?.name, "Badge-Cell");
 }
 
+// 31. A date column (user, 2026-10-25): its ISO days go to Figma as the Table shows them (the locale's short form, the
+// year only when it is not this one), in Text-Cells named Date-Cell, which the pull reads back as ISO days.
+{
+  const year = new Date().getFullYear();
+  const datesPage = `// @zen-page {"format":1,"title":"Due"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Table } from "@zen-ds/react";
+
+export default function Due() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Due" device="desktop">
+        <Table aria-label="Due" editable columns={[{ id: "title", header: "Task" }, { id: "due", header: "Due" }, { id: "start", header: "Start", edit: "date" }]} rows={[{ id: "a", title: "Agenda", due: "${year}-10-25", start: "2024-03-02" }, { id: "b", title: "Minutes", due: "${year}-01-07", start: "—" }]} />
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(datesPage);
+  const table = find(frame, (node) => node.type === "FRAME" && node.children?.[0]?.name === "Header");
+  const cellOf = (row, name) => table?.children[row].slots[0].children.find((cell) => cell.name === name)?.slots[0].children[0];
+  check("dates: `editable` on ISO days and `edit: \"date\"` push Date-Cells in the locale's short form", [cellOf(1, "due")?.name, cellOf(1, "due")?.textList, cellOf(2, "due")?.textList, cellOf(1, "start")?.name, cellOf(1, "start")?.textList], ["Date-Cell", ["10/25"], ["01/07"], "Date-Cell", ["03/02/2024"]]);
+  check("dates: a value that is no day stays a Text-Cell with its text; a text column stays a Text-Cell", [cellOf(2, "start")?.name, cellOf(2, "start")?.textList, cellOf(1, "title")?.name], ["Text-Cell", ["—"], "Text-Cell"]);
+  check("dates: another locale writes its own order", find(figmaFromPage(datesPage, { mapping, nestedLayers: NESTED_LAYERS, locale: "vi-VN" }).frame, (node) => node.name === "Date-Cell")?.textList, ["25/10"]);
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

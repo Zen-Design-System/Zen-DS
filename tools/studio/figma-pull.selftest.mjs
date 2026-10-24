@@ -535,6 +535,25 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("table cells (live): valid dialect", validateDialect(livePulled.text, { components: new Set(["Badge", "Stack", "Table"]) }), []);
 }
 
+// A date column pushed as Date-Cells (figma-push §31): the column edits as a date, its days come back as ISO days in the
+// locale's order; a cell that is no day keeps its text.
+{
+  const year = new Date().getFullYear();
+  const layout = { mode: "VERTICAL", gap: 0, gapVar: null, padding: [0, 0, 0, 0], paddingVar: null, primary: "MIN", counter: "MIN", wrap: false };
+  const text = (value, date = false) => ({ id: `c-${value}`, w: 200, kind: "Text-Cell", props: { Bold: "No" }, ...(date ? { date: true } : {}), texts: [value] });
+  const due = { type: "FRAME", name: "Due", width: 1200, height: 300, layout, children: [{ type: "TABLE", id: "2:1", name: "Due", header: [{ id: "h1", w: 200, label: "Task" }, { id: "h2", w: 200, label: "Due" }],
+    rows: [{ id: "r1", cells: [text("Agenda"), text("10/25", true)] }, { id: "r2", cells: [text("Minutes"), text("03/02/2024", true)] }, { id: "r3", cells: [text("Roadmap"), text("—")] }] }] };
+  const { text: dueText } = pageFromFigma(due, { mapping });
+  ok("dates: the column edits as a date", /\{ id: "due", header: "Due"[^}]*edit: "date" \}/.test(dueText));
+  ok("dates: Date-Cells come back as ISO days (this year when none), other text as it is", dueText.includes(`due: "${year}-10-25"`) && dueText.includes('due: "2024-03-02"') && dueText.includes('due: "—"'));
+  ok("dates: another locale reads its own order", pageFromFigma(JSON.parse(JSON.stringify(due).replace('"10/25"', '"25/10"')), { mapping, locale: "vi-VN" }).text.includes(`due: "${year}-10-25"`));
+  check("dates: valid dialect", validateDialect(dueText, { components: new Set(["Stack", "Table"]) }), []);
+  // Live (fixtures/figma-table-dates.json): pushed, placed by the real importer and read back in the Zen file.
+  const liveDates = pageFromFigma(JSON.parse(fs.readFileSync(new URL("./fixtures/figma-table-dates.json", import.meta.url), "utf8")).frame, { mapping });
+  check("dates (live): the column edits as a date, its days come back as ISO days, the dash as it is, no notes",
+    [/\{ id: "due", header: "Due"[^}]*edit: "date" \}/.test(liveDates.text), liveDates.text.includes(`due: "${year}-10-25"`) && liveDates.text.includes('due: "2024-03-02"') && liveDates.text.includes('due: "—"'), liveDates.notes], [true, true, []]);
+}
+
 {
   // Figma Table/Sheet (figmaReadCode's SHEET) → <SheetTable>: a column per header cell (its label, fixed width or Fill),
   // its content from the first row (keys, code, Bold text), the rows under the columns' ids.

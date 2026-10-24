@@ -24,6 +24,7 @@ import { chartFromFigma, chartHeaderOf, chartSetKey, headingHidden } from "./fig
 import { READ_METRIC_CARD, isMetricCard, metricCardFromFigma, subActionFromFigma } from "./figma-metric.mjs";
 import { BADGE_STATUS, changedProgress, propertyValueElement } from "./figma-property.mjs";
 import { runsFromSegments } from "./text-runs.mjs";
+import { dayFromText } from "../../src/components/Table/tableDates.ts";
 import { ACTION_LAYERS, protoOfReaction } from "./figma-proto.mjs";
 import { instanceLayerPaths } from "./instance-paths.mjs";
 import { gradientFillProps, READ_GRADIENT_FILL } from "./figma-gradient.mjs";
@@ -714,15 +715,17 @@ const readTable = async (node, rows, root) => {
       }
       let kind = null;
       let kindProps = {};
+      let kindName = null;
       const parts = [];
       for (const inner of cell.findAll((n) => n.type === "INSTANCE" && n.visible)) {
         const innerSet = await setOf(inner);
         if (!innerSet || /^(icon|ic)-/.test(innerSet.name)) continue;
-        if (innerSet.name.startsWith("Primitives/Table/Cell/")) { if (!kind) { kind = innerSet.name.split("/").pop(); kindProps = await propsOf(inner); } continue; }
+        if (innerSet.name.startsWith("Primitives/Table/Cell/")) { if (!kind) { kind = innerSet.name.split("/").pop(); kindProps = await propsOf(inner); kindName = inner.name; } continue; }
         const text = firstText(inner);
         parts.push({ id: inner.id, set: innerSet, props: await propsOf(inner), ...(text !== null ? { text } : {}) });
       }
-      cells.push({ ...base, kind, props: kindProps, ...(props["Open-Button"] === true ? { open: true } : {}), texts: cell.findAll((t) => t.type === "TEXT" && t.visible).map((t) => t.characters), ...(parts.length ? { parts } : {}) });
+      // A Text-Cell named Date-Cell holds a date column's day (figma-push tableNode).
+      cells.push({ ...base, kind, props: kindProps, ...(kindName === "Date-Cell" ? { date: true } : {}), ...(props["Open-Button"] === true ? { open: true } : {}), texts: cell.findAll((t) => t.type === "TEXT" && t.visible).map((t) => t.characters), ...(parts.length ? { parts } : {}) });
     }
     if (header && !out.header) out.header = cells;
     else out.rows.push({ id: row.id, cells });
@@ -1323,6 +1326,9 @@ function tableElement(node, ctx) {
     if ((cell.align ?? head.align) === "Right") fields.align = literal("right");
     if (!(cell.fill ?? head.fill) && (cell.w ?? head.w)) fields.width = literal(`${cell.w ?? head.w}px`);
     if (content !== "text") fields.content = literal(content);
+    // Date-Cells (figma-push: a date column's days in the locale's short form): the column edits as a date.
+    const dated = content === "text" && node.rows.some((row) => row.cells[index]?.date);
+    if (dated) fields.edit = literal("date");
     if (actions) fields.actions = { kind: "array", items: actions.map((action) => ({ kind: "object", fields: action.fields })) };
     if (cell.props?.Bold === "Yes") fields.bold = literal(true);
     const caption = cell.props?.Subtext === "Yes" || cell.props?.Caption === true;
@@ -1331,7 +1337,7 @@ function tableElement(node, ctx) {
       if (isZenIcon(head.icon, mapping)) fields.icon = literal(head.icon);
       else notes.push(`${where}: ${named}'s header icon "${head.icon}" is not a Zen icon (left out)`);
     }
-    columns.push({ index, id, content, caption, fields, actions });
+    columns.push({ index, id, content, caption, fields, actions, dated });
   }
   // The rows: each cell's value under its column's id.
   const overrides = {};
@@ -1369,7 +1375,8 @@ function tableElement(node, ctx) {
       } else {
         // A picture's own text (an emoji Dock-Icon's) is not the label.
         const shown = MEDIA_CONTENT.has(column.content) ? texts.filter((text) => !own.has(text)) : texts;
-        record[column.id] = shown[0] ?? "";
+        // A date column's day back as its ISO day ("10/25" → 2026-10-25, in the locale's order).
+        record[column.id] = column.dated && cell.date ? dayFromText(shown[0] ?? "", ctx.locale) ?? shown[0] ?? "" : shown[0] ?? "";
         if (column.caption && shown[1]) record[`${column.id}Caption`] = shown[1];
       }
       // The Zen instances the cell draws, where Figma's differ from the Table's: that row's overrides.
@@ -3394,8 +3401,8 @@ const deviceOf = (width) => (typeof width === "number" && width <= 480 ? "phone"
  * a pulled page imported again finds its page and its layers (figma-diff.mjs). `text` is the plain page; the print with
  * ids, `printPage(doc, { ids: true })`, is what the Studio imports. `file`: the Figma file key when the read has none.
  */
-export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapping, file = null }) {
-  const ctx = { mapping, notes: [], ids: new Set(), drawings: [], keyOwners: new Map() };
+export function pageFromFigma(frame, { title = frame?.name ?? "From Figma", mapping, file = null, locale = "en-US" }) {
+  const ctx = { mapping, notes: [], ids: new Set(), drawings: [], keyOwners: new Map(), locale };
   // A copy: the slots take their owner's key (slotKeys), and a push's frame read back here stays as it was.
   frame = frame ? JSON.parse(JSON.stringify(frame)) : frame;
   slotKeys(frame);

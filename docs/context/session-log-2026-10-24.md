@@ -340,3 +340,13 @@ its `Content#4081:111` SLOT (read from the live file: 1603:23604).
   - **Gap, noted:** Figma push still writes a date cell's ISO text (pull reads it back as the value).
   - **Still to do:** the DEMO-MEET page's "25/10" texts move to ISO after train C lands. Until then the page renders with
     main's Table, which would show the ISO text raw.
+- **Date push/pull (user 2026-10-25: "Làm vòng ngày đẩy/kéo Figma ngay trong #294 … kèm kiểm tra thật trong Figma"):**
+  - **Shared helpers:** the date helpers moved to `src/components/Table/tableDates.ts` (`dayText`, plus the inverse
+    `dayFromText`), so the Table, figma-push and figma-pull share one form.
+  - **Push:** a date column's day goes out as shown, in a Text-Cell named "Date-Cell". The locale defaults to en-US:
+    Studio sets no locale on its pages, so the canvas shows the same.
+  - **Reader:** it keeps `date: true` for a Date-Cell. Pull writes `edit: "date"` and reads the text back as the ISO day
+    in the locale's order.
+  - **Live check:** the real importer placed the frame with 0 notes; Figma shows 10/25 · 03/02/2024 · —. The real reader
+    marked both days. The read is `fixtures/figma-table-dates.json`, and the QA page was removed.
+  - **Open (user's call, asked via the progress session):** a project language setting, so Vietnamese pages show 25/10.

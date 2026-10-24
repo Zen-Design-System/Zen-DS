@@ -18,6 +18,7 @@ import { renderIcon } from "../_shared/icon";
 import { nestedSegment, useNested, type Nest, type NestedOverrides } from "../_shared/nested";
 import { useZenLabels, useZenLocale } from "../_shared/zen-context";
 import { usePhoneSheet } from "../_shared/phone-sheet";
+import { dayOf, dayText, isoOf, ISO_DAY } from "./tableDates";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./table.css";
 import "../Motion/motion.css";
@@ -911,28 +912,6 @@ export function TableTags({ ref, children, ...rest }: {
 /** A row field as text: a string or a number, else nothing. */
 const textOf = (value: unknown) => (typeof value === "string" || typeof value === "number" ? String(value) : "");
 
-/** An ISO calendar day ("2026-10-25"), the value a date column holds (Zen Studio pages write dates so too). */
-const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
-/** An ISO day as a local Date, or null for anything else (or a day that does not exist). */
-function dayOf(value: string): Date | null {
-  const match = ISO_DAY.exec(value.trim());
-  if (!match) return null;
-  const day = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
-  return day.getMonth() === Number(match[2]) - 1 ? day : null;
-}
-const isoOf = (day: Date) => `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
-/** An ISO day in the locale's short numeric form ("25/10/2024" in Vietnamese, "10/25/2024" in US English), without the
- *  year this year ("25/10"); any other text as it is. The year is cut from the full date rather than asking for day and
- *  month alone, which some locales write with another separator (Vietnamese "25-10"). */
-function dayText(value: string, locale: string): string {
-  const day = dayOf(value);
-  if (!day) return value;
-  const parts = new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "numeric" }).formatToParts(day);
-  if (day.getFullYear() !== new Date().getFullYear()) return parts.map((part) => part.value).join("");
-  const year = parts.findIndex((part) => part.type === "year");
-  const literal = parts[year - 1]?.type === "literal" ? year - 1 : parts[year + 1]?.type === "literal" ? year + 1 : -1;
-  return parts.filter((_, index) => index !== year && index !== literal).map((part) => part.value).join("").trim();
-}
 
 /**
  * The editor type a column takes from the Table's `editable`, by what it draws (Figma Table/Cell/Default State=Edit):
