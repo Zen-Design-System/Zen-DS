@@ -211,6 +211,22 @@ Branch zen/ci/native-platform-tests-20261024 from main 6a7e872a, PR #267.
   Zen-High-Contrast Swift and Dart compile — nothing to fix in the generator's templates.
 - This Mac still cannot run either locally (memory native-toolchains-broken-locally, updated): the PR's run is the check.
 
+## TopNavigation props (tier M; user 2026-10-24 "Theo đề xuất", Components decision 1)
+
+Branch zen/feat/top-nav-props-20261024, stacked on #266 (the WIP from `wip/top-nav-20261024` re-applied).
+- Figma (read live): `.Primitives/Heading-Text/Basic` 4060:17984 — Type=Sub's Dropdown is icon-chevron-down-line 20,
+  Spacing/Gap/2XSmall after the title; H1's Badges are a row under the heading (Contents gap XSmall, Badge Medium
+  Neutral Solid), so `largeTitleAction` (beside the title) does not cover it.
+- `titleMenu` (Menu around a title button, `aria-haspopup="menu"`; the button sits inside the heading, out of the tab
+  order while the large title shows), `titleDropdown` (the chevron on an `onTitleClick` title), `largeTitleBadges`
+  (heading-stack + badges row), `scrolledType` (type switches with `scroll.scrolled`; `data-scrolled-type` fades the
+  ::before fill and the content colour, also under reduced motion).
+- Examples: Title menu, Large title with badges, Hero header, Selection mode (recipe). Guideline do-lines.
+- Studio: push writes Top-Heading-Text Dropdown and Main-Heading-Text Badges (only when on, notes for the menu's items,
+  the sample Badge and scrolledType); pull reads Dropdown back as `titleDropdown`. Selftest case.
+- Tests: navigation.test (titleMenu opens its menu, titleDropdown, badges 8px under the heading, scrolledType both ways).
+- Checks: tsc, usage:check / selftest, style:check, guidelines / ai-ui / Studio maps, studio:selftest, push / pull.
+
 ## Merge train A (#274: #263, #265, #268, #269, #271; tier L gate)
 - Built on main 9143769d, then merged main 6999a5f3, 454b9374 and 59baff82 (date-picker.css combined as #266's and
   #269's owners OK'd; #269's DatePicker suites read `.zen-date-picker__events > i`). Member heads re-merged as they moved.

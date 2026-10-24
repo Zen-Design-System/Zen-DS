@@ -850,6 +850,9 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
     }
   },
   "TopNavigation": {
+    "Menu": {
+      "items": "titleMenu"
+    },
     "TopNavigationActionButton": {
       "action": "leading"
     },

@@ -1051,7 +1051,7 @@
       "status": "stable",
       "chrome": true,
       "purpose": "The mobile app bar: where you are (title), how to go back (leading) and up to three actions for this screen (trailing).",
-      "props": "type? margin? subtitle? titleLeading? onTitleClick? titleLabel? title? largeTitle? largeTitleCapline? largeTitleSubheading? headingLevel? leading? trailing? largeTitleAction? topBar? controlBar? banner? searchAction? collapsed? sticky? aria-label?"
+      "props": "type? margin? subtitle? titleLeading? onTitleClick? titleMenu? titleDropdown? titleLabel? title? largeTitle? largeTitleCapline? largeTitleSubheading? largeTitleBadges? headingLevel? leading? trailing? largeTitleAction? topBar? controlBar? banner? searchAction? scrolledType? collapsed? sticky? aria-label?"
     },
     {
       "name": "UploaderFileItem",

@@ -78,11 +78,6 @@ starts.
   Reconnect button path (`mirrors.ts` reconnectFolder → requestPermission) needs one check by hand in Chromium.
 
 ### Components
-- **P3 · TopNavigation follow-ups (2026-10-01/05; rewritten 2026-10-24; user 2026-10-24 "Theo đề xuất"):** (1) done
-  (#266: `largeTitleAction` pairs a `group`). (2) Approved: a bar-title Dropdown (`titleMenu` / `titleDropdown`, Figma
-  Heading-Text Dropdown), a hero header that turns opaque on scroll (`scrolledType`), large-title Badges
-  (`largeTitleBadges`: Figma's Badges row sits under the heading, so `largeTitleAction` does not cover it) and a
-  selection-mode docs recipe. In progress (box-themes, branch `wip/top-nav-20261024`), M.
 
 ### Tooling / harness / contracts
 - **P3 · Harness candidates from the 2026-10-24 inventory (the user picks which become rules):**
