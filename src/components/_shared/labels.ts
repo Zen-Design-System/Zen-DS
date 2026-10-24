@@ -80,6 +80,12 @@ export type ZenLabels = {
   chooseDate: string;
   /** The calendar's name: dual calendar. */
   chooseDates: string;
+  /** DatePickerSheet `header="selection"`: the heading while no date (single) or no dates (range) are picked, the edit
+   *  action beside the picked date, and the action that empties a picked range. */
+  noDateSelected: string;
+  noDatesSelected: string;
+  editDate: string;
+  clearDates: string;
   /** Date Picker Time-Picker: the start and end time fields, their placeholder, the day halves and "All day". */
   timeFrom: string;
   timeTo: string;
@@ -471,6 +477,10 @@ const en: ZenLabels = {
   chooseMonthAndYear: (month) => `${month}, choose month and year`,
   chooseDate: "Choose date",
   chooseDates: "Choose dates",
+  noDateSelected: "No date selected",
+  noDatesSelected: "No dates selected",
+  editDate: "Edit date",
+  clearDates: "Clear dates",
   timeFrom: "From",
   timeTo: "To",
   timePlaceholder: "hh:mm",
@@ -774,6 +784,10 @@ const vi: ZenLabels = {
   chooseMonthAndYear: (month) => `${month}, chọn tháng và năm`,
   chooseDate: "Chọn ngày",
   chooseDates: "Chọn các ngày",
+  noDateSelected: "Chưa chọn ngày",
+  noDatesSelected: "Chưa chọn ngày nào",
+  editDate: "Sửa ngày",
+  clearDates: "Xoá ngày đã chọn",
   timeFrom: "Từ",
   timeTo: "Đến",
   timePlaceholder: "hh:mm",

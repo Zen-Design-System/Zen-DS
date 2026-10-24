@@ -1,17 +1,31 @@
-import { useEffect, useEffectEvent, useState, type ReactNode, type Ref } from "react";
+import { useEffect, useEffectEvent, useMemo, useState, type ReactNode, type Ref } from "react";
 import { BottomSheet } from "../BottomSheet";
-import { Button } from "../Button";
+import { Button, IconButton } from "../Button";
+import { Icon } from "../Icon";
+import "../Icon/core";
 import { useOverlayOpen, type OverlayOpenProps } from "../_shared/overlay";
-import { useZenLabels } from "../_shared/zen-context";
+import { useZenLabels, useZenLocale } from "../_shared/zen-context";
 import { useControllableState } from "../_shared/use-controllable-state";
-import { DatePicker, type DatePickerRange } from "./DatePicker";
+import { typographyStyles } from "../../tokens/typography.generated";
+import { DatePicker, weekdayInitials, type DatePickerRange } from "./DatePicker";
 import "./date-picker.css";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { dataAttributes } from "../_shared/data-attributes";
 
 export interface DatePickerSheetProps extends OverlayOpenProps {
-  /** Figma Header heading (Heading/3). Default: the locale's "Choose date" ("Choose dates" for a range). */
+  /** Figma Header heading (Heading/3). Default: the locale's "Choose date" ("Choose dates" for a range). With
+   *  `header="selection"`, the caption over the picked date (single) or the heading beside Close (range). */
   title?: ReactNode;
+  /** `bar` (default): the Bottom-Sheet Header-Bar, the title and Close. `selection`: Figma `.Primitives/Date-Picker`
+   *  (9923:2323), the picked dates lead the sheet. Single (Option=1): the title as a caption over the picked date in
+   *  Heading/3 and, with `onEdit`, an edit action beside it. Range (Option=2): the title and Close, the picked range
+   *  with Clear dates, and the weekday row, all above the scrolling months. */
+  header?: "bar" | "selection";
+  /** Single `header="selection"`: the edit action beside the picked date (Figma Action), e.g. to type the date in a
+   *  field instead. Without it the action is hidden. */
+  onEdit?: () => void;
+  /** Range `header="selection"`: Clear dates empties the draft range; set the `summary` back to its hint here. */
+  onClear?: () => void;
   /** `single` (Figma Variant=Single): one month with Back / Next, Cancel and OK. `range` (Variant=Multiple): the months
    *  stacked in a scrolling list, a start and an end day, and the Footer-Actions (your `summary` next to OK). */
   selectionMode?: "single" | "range";
@@ -58,8 +72,15 @@ export interface DatePickerSheetProps extends OverlayOpenProps {
  * Cancel / OK; Variant=Multiple stacks the months (`calendar="stacked"`, one weekday row at the top of the scroll) and
  * ends in `.Primitives/Date-Picker/Footer-Actions` (9923:2791): the summary beside a Large Primary, Spacing/Gap/Small
  * apart. Picks are a draft until OK. DateField opens it on phones in place of the desktop popover.
+ * `header="selection"` swaps the Header-Bar for `.Primitives/Date-Picker` (9923:2323): Option=1 (single) Caption
+ * Body/Base/Medium Neutral/Light, Spacing/Gap/XSmall over the date in Heading/3 and an edit Button/Icon-Flat Small
+ * (icon-edit-02-solid, Neutral/Light) in a 20px wrapper; Option=2 (range) the Heading/3 title beside a Close
+ * Icon-Flat (icon-x-small-line) in a 2XSmall-padded 28px box, Spacing/Gap/Large over the range (Body/Base/Regular,
+ * Neutral/Base) and Clear dates (Body/Base/Bold, Strongest, right-aligned), then the weekday row (Body/Small/Medium,
+ * Neutral/Light, padding Medium / 2XSmall). Both pad by the sheet inset (Option=2: dm-8 at the bottom) over a 1px
+ * Border/Neutral/Subtle/Default rule.
  */
-export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, selectionMode = "single", value, defaultValue = null, range, defaultRange = null, onApply, onValueChange, onRangeChange, onCancel, minDate, maxDate, today, monthCount = 12, summary, applyLabel, cancelLabel, className, overrides, ref, ...rest }: DatePickerSheetProps) {
+export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, header = "bar", onEdit, onClear, selectionMode = "single", value, defaultValue = null, range, defaultRange = null, onApply, onValueChange, onRangeChange, onCancel, minDate, maxDate, today, monthCount = 12, summary, applyLabel, cancelLabel, className, overrides, ref, ...rest }: DatePickerSheetProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
@@ -86,13 +107,54 @@ export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenCh
   };
   const cancel = () => { onCancel?.(); onOpenChange(false); };
   const ok = applyLabel ?? t.ok;
+  const heading = title ?? (rangeMode ? t.chooseDates : t.chooseDate);
+  const locale = useZenLocale();
+  const formats = useMemo(() => ({
+    date: new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", year: "numeric" }),
+    rangeDay: new Intl.DateTimeFormat(locale, { weekday: "short", month: "short", day: "numeric" }),
+  }), [locale]);
+  const weekdays = useMemo(() => weekdayInitials(locale), [locale]);
+  // The visible heading text is aria-hidden: BottomSheet keeps `title` as the dialog's name in a hidden h2.
+  const selectionHeader = header !== "selection" ? undefined : rangeMode ? (
+    <div className="zen-date-picker-sheet__header" data-selection="range">
+      <div className="zen-date-picker-sheet__title-row">
+        <p className={`zen-date-picker-sheet__title ${typographyStyles["Heading/3"]}`} aria-hidden="true">{heading}</p>
+        <span className="zen-date-picker-sheet__close">
+          {nest("Close-Container", <IconButton appearance="flat" size="sm" aria-label={t.close} icon="icon-x-small-line" onClick={() => onOpenChange(false)} />)}
+        </span>
+      </div>
+      <div className="zen-date-picker-sheet__range-row">
+        <p className={`zen-date-picker-sheet__range ${typographyStyles["Body/Base/Regular"]}`}>
+          {draftRange?.start ? (draftRange.end ? formats.rangeDay.formatRange(draftRange.start, draftRange.end) : `${formats.rangeDay.format(draftRange.start)} –`) : t.noDatesSelected}
+        </p>
+        <button type="button" className={`zen-date-picker-sheet__clear ${typographyStyles["Body/Base/Bold"]}`} disabled={!draftRange} onClick={() => { setDraftRange(null); onClear?.(); }}>{t.clearDates}</button>
+      </div>
+      <div className={`zen-date-picker-sheet__weekdays ${typographyStyles["Body/Small/Medium"]}`} aria-hidden="true">
+        {weekdays.map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}
+      </div>
+    </div>
+  ) : (
+    <div className="zen-date-picker-sheet__header" data-selection="single">
+      <p className={`zen-date-picker-sheet__caption ${typographyStyles["Body/Base/Medium"]}`} aria-hidden="true">{heading}</p>
+      <div className="zen-date-picker-sheet__date-row">
+        <p className={`zen-date-picker-sheet__date ${typographyStyles["Heading/3"]}`}>{draftValue ? formats.date.format(draftValue) : t.noDateSelected}</p>
+        {onEdit ? (
+          <span className="zen-date-picker-sheet__edit">
+            {nest("Action", <IconButton appearance="flat" size="sm" aria-label={t.editDate} icon={<Icon name="icon-edit-02-solid" tone="light" />} onClick={onEdit} />)}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
   return (
     <BottomSheet {...dataAttributes(rest)}
       ref={ref}
       className={["zen-date-picker-sheet", className].filter(Boolean).join(" ")}
+      data-header={header}
       open={open}
       onOpenChange={onOpenChange}
-      title={title ?? (rangeMode ? t.chooseDates : t.chooseDate)}
+      title={heading}
+      header={selectionHeader}
       size={rangeMode ? "max" : "flex"}
       primaryAction={rangeMode ? undefined : { label: ok, onClick: apply, disabled: !complete }}
       secondaryAction={rangeMode ? undefined : { label: cancelLabel ?? t.cancel, onClick: cancel }}

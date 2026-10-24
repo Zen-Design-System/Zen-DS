@@ -1721,8 +1721,8 @@
       ],
       [
         "Placement",
-        "align",
-        "4px below the trigger, above it when there is no room below; while open it keeps that side until it would be cut off, so scrolling never makes it jump back and forth, and it follows the trigger in the same frame"
+        "align · placement",
+        "adjacent (default): 4px below the trigger, above it when there is no room below; while open it keeps that side until it would be cut off, so scrolling never makes it jump back and forth, and it follows the trigger in the same frame. cover: over the anchor, its top edge on the anchor's (bottom edge when above), as Input/Autocomplete-Field Focused opens its list over the Add slot"
       ],
       [
         "Width",
@@ -2059,6 +2059,11 @@
         "Phone sheet",
         "DatePickerSheet: open / onOpenChange · selectionMode · value / range · onRangeChange (draft) · onApply · summary · applyLabel",
         "Figma Date-Picker/Mobile 9923:3576 in a Bottom Sheet; picks are a draft until OK; DateField opens it by itself on a phone"
+      ],
+      [
+        "Sheet header",
+        "DatePickerSheet header · onEdit · onClear",
+        "bar (default): Header-Bar title + Close · selection (Figma .Primitives/Date-Picker 9923:2323): the picked dates lead the sheet; single: the title as a caption over the date in Heading/3 and, with onEdit, a pencil to type it instead; range: the title + Close, the range with Clear dates (onClear) and the weekday row"
       ]
     ],
     "keyboard": [
@@ -2084,7 +2089,7 @@
       "On a phone, put an inline calendar in the screen or a Bottom Sheet: at the mobile breakpoint it takes the Figma mobile primitives by itself and fills the width; pass device=\"mobile\" only to force them (a popover, a narrow preview).",
       "Disable impossible dates (past check-in) with minDate / maxDate (earlier or later days disabled); in a DateField a typed date outside them is kept and marked aria-invalid, so pair the range with an `error` message.",
       "Pass `today` (your app's date: a server, business or demo date) when it is not the device's; the Today ring and the month the calendar opens on follow it. DateField forwards `today`, `minDate` and `maxDate` to its calendar.",
-      "Show the chosen range and its consequence (nights, price) next to the calendar.",
+      "Show the chosen range and its consequence (nights, price) next to the calendar. In a sheet, header=\"selection\" puts the picked dates on top; with a range, reset the `summary` in onClear.",
       "Let users type the date in the DateField; the calendar is a shortcut, not the only input.",
       "Use calendar=\"dual\" for ranges longer than a few days; single for one date.",
       "Use the month-year picker for dates far from today (billing periods, expiries).",
@@ -7347,8 +7352,8 @@
       ],
       [
         "Header",
-        "title · search",
-        "title h2 in Heading/3 (never Heading/1) + 44px Tertiary close; optional Search slot"
+        "title · search · header",
+        "title h2 in Heading/3 (never Heading/1) + 44px Tertiary close; optional Search slot; `header` draws your own header in their place (DatePickerSheet's selection header) and keeps the title as the dialog's name"
       ],
       [
         "Items",

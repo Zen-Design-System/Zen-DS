@@ -271,3 +271,26 @@ Branch zen/feat/contract-checker-gaps-20261024.
   min 66, Message max 220 / 516, min 42; gridline dashes (bar, area, trend charts); Read-Only dashes (fields, text area);
   photos (Avatar/Single, Chip Normal / Advanced, Avatar / Photo cells, Popover item content). No drift found.
 - Negative checks: a 500px text cap and a 1px underline (CSS edited, restored) fail as `maxw` and `stroke`.
+
+## Popover cover + DatePicker sheet header (tier M; user 2026-10-24 via the coordinator: "all four APIs", these two mine)
+
+Branch zen/feat/datepicker-sheet-popover-cover-20261024 (from main 92300d66, main 5cfc05a1 merged).
+- Popover `placement="cover"` (useAnchoredPosition `cover`: top edge on the anchor's top below, bottom on its bottom
+  when flipped); AutocompleteField uses it, the only default that changes. input-autocomplete-field 436/436 with no
+  exception left.
+- DatePickerSheet `header="selection"` from Figma `.Primitives/Date-Picker` 9923:2323 (read from the contract):
+  Option=1 caption Body/Base/Medium Light + Heading/3 date + edit Icon-Flat Small (icon-edit-02-solid, Light, 20px icon
+  bound to Element-Size/Popular/Base) when `onEdit`; Option=2 Heading/3 title + Close Icon-Flat (icon-x-small-line) in a
+  2XSmall box, range Body/Base/Regular Base + Clear dates Body/Base/Bold right-aligned (`onClear`), the weekday row moved
+  from the calendar's sticky row into the header. Inside stroke drawn by ::after (no extra height). BottomSheet `header`
+  slot with the title as a visually hidden h2 (the dialog's name). Labels noDateSelected / noDatesSelected / editDate /
+  clearDates (en, vi).
+- Suites: new date-picker-sheet-header 136/136; Event-List 1–4 came from main's suite (offsets from the first dot), so the
+  dots' row keeps spanning the day. check.mjs's per-side stroke weight came from main's
+  checker-gaps change (the same fix; mine dropped in the merge). Neighbouring DatePicker, chart and Popover suites
+  unchanged (all match). nested-paths: DatePickerSheet "Close-Container" allowed (Option=2's layer; the sheet's own
+  sets close from the Header-Bar).
+- Examples: A delivery day on a phone (single, edit → type the date); A stay on a phone now uses the range header.
+- Tests: date-picker-sheet (header single/range, Clear, Close), input-date-autocomplete-popover (cover vs adjacent).
+- Checks: tsc, usage:check / selftest, style:check, guidelines / ai-ui / Studio maps, studio:selftest, related
+  interaction tests 81/81.
