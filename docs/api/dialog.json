@@ -248,7 +248,23 @@
           "type": "boolean",
           "required": false,
           "default": "true",
-          "description": "Figma Default-Header.",
+          "description": "Figma Default-Header. Off, the title still names the modal for screen readers (kept as a visually hidden heading) and\nthe description is not read; with no title, give `aria-label` or `aria-labelledby`.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "Names the modal when it has no `title` (or overrides it), e.g. with `header={false}` and a Stepper on `top`.",
+          "deprecated": null
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "The id of a visible element that names the modal (a heading in `top`, say); wins over `title` and `aria-label`.",
           "deprecated": null
         },
         {

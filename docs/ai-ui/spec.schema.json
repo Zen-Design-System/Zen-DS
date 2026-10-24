@@ -10198,7 +10198,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The events of the period: a day with any shows the event dot (Dot style)."
+                "description": "The events of the period: a day shows a dot per event, up to 4 (Dot style; Figma Event-List)."
               },
               "variant": {
                 "anyOf": [
@@ -18126,6 +18126,30 @@
                   }
                 ],
                 "description": "Figma Type: Drag & Drop (dropzone) or Browse Button."
+              },
+              "buttonSize": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "2xs",
+                      "xs",
+                      "sm",
+                      "md",
+                      "lg",
+                      "xl",
+                      "2xsmall",
+                      "xsmall",
+                      "small",
+                      "medium",
+                      "large",
+                      "xlarge"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Type=Button: the Choose File button's size."
               },
               "text": {
                 "anyOf": [
@@ -26447,6 +26471,28 @@
                 ],
                 "description": "Figma Default-Header."
               },
+              "aria-label": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Names the modal when it has no `title` (or overrides it), e.g."
+              },
+              "aria-labelledby": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The id of a visible element that names the modal (a heading in `top`, say); wins over `title` and `aria-label`."
+              },
               "closeButton": {
                 "anyOf": [
                   {
@@ -28750,6 +28796,17 @@
                     "$ref": "#/$defs/marker"
                   }
                 ]
+              },
+              "decorative": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The ring only repeats what a visible word beside it already says (a status heading, a task's step): it is hidden from screen readers instead of being a second progressbar."
               }
             },
             "required": [
@@ -40374,6 +40431,18 @@
                   }
                 ],
                 "description": "Rows that open something (a detail page, a Side Panel, a dialog): the whole row is the click target, keyboard focus reaches each row and Enter or Space opens it; buttons, links, ch"
+              },
+              "currentRowId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The row whose item is open beside the table, in a docked Side Panel or a detail pane: `aria-current=\"true\"` and the Selected fill (Figma Table/Cell State=Selected), apart from the"
               }
             },
             "required": [

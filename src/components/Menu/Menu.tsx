@@ -177,9 +177,10 @@ function useMenuPlacement(surfaceRef: RefObject<HTMLElement | null>, triggerRef:
       lastEnd = end;
       const x = (value: number) => (value - originX) / scale;
       const y = (value: number) => (value - originY) / scale;
-      // Fits on neither edge of its trigger (a wide menu near a phone's edge): shifted into the bounds, `margin` from each
-      // side, as Popover's clampAnchoredLeft does; it opened at x −51 on a 390px window before (2026-10-02).
-      const shifted = !fitsStart && !fitsEnd ? Math.max(bounds.left + margin, Math.min(box.left, bounds.right - margin - width)) : null;
+      // Its edge does not fit (a wide menu near a phone's edge, or a trigger that scrolled while open): shifted into the
+      // bounds from that edge, `margin` from each side, as Popover's clampAnchoredLeft does; it opened at x −51 on a 390px
+      // window before (2026-10-02).
+      const shifted = !(end ? fitsEnd : fitsStart) ? Math.max(bounds.left + margin, Math.min(end ? box.right - width : box.left, bounds.right - margin - width)) : null;
       const style: CSSProperties = {
         top: side === "bottom" ? y(box.bottom + gap) : "auto",
         bottom: side === "top" ? containerHeight - y(box.top - gap) : "auto",

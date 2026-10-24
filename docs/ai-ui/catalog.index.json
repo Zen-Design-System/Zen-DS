@@ -442,7 +442,7 @@
       "name": "FileUpload",
       "status": "stable",
       "purpose": "Let users add files by dropping or browsing, then track each file's upload.",
-      "props": "label? helpText? error? type? text? caption? accept? multiple? onFilesAdd? files? thumbnail? onRemove? onReplace? onRetry? buttonLabel? extended?"
+      "props": "label? helpText? error? type? buttonSize? text? caption? accept? multiple? onFilesAdd? files? thumbnail? onRemove? onReplace? onRetry? buttonLabel? extended?"
     },
     {
       "name": "Flag",
@@ -610,7 +610,7 @@
       "name": "ModalForm",
       "status": "stable",
       "purpose": "Interrupt to confirm a decision or deliver critical information.",
-      "props": "open? onOpenChange? onClose? title? headingLevel? description? layout? side? top? header? closeButton? closeLabel? children? primaryAction? secondaryAction? tertiaryAction? actionsDirection? onSubmit? noValidate? dismissible?"
+      "props": "open? onOpenChange? onClose? title? headingLevel? description? layout? side? top? header? aria-label? aria-labelledby? closeButton? closeLabel? children? primaryAction? secondaryAction? tertiaryAction? actionsDirection? onSubmit? noValidate? dismissible?"
     },
     {
       "name": "NpsScale",
@@ -659,7 +659,7 @@
       "name": "ProgressCircle",
       "status": "verified",
       "purpose": "Show determinate progress of a task or a step.",
-      "props": "value theme? label? aria-label?"
+      "props": "value theme? label? aria-label? decorative?"
     },
     {
       "name": "PropertyDate",
@@ -924,7 +924,7 @@
       "name": "Table",
       "status": "verified",
       "purpose": "Rows of structured records that users scan, compare, sort and act on.",
-      "props": "columns rows? aria-label? caption? selectable? selectedIds? defaultSelectedIds? onSelectionChange? editable? onCellCommit? bulkActions? sort? onSortChange? empty? onRowClick?"
+      "props": "columns rows? aria-label? caption? selectable? selectedIds? defaultSelectedIds? onSelectionChange? editable? onCellCommit? bulkActions? sort? onSortChange? empty? onRowClick? currentRowId?"
     },
     {
       "name": "Tabs",

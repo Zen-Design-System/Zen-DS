@@ -338,7 +338,7 @@ export function SettingsFormTemplate() {
               <Stack direction="row" wrap gap="lg" align="center">
                 <Avatar size="2xl" theme={photo ? "photo" : "neutral"} background="subtle" src={photo?.previewUrl} alt="">{initials(profile.values.name.trim() || saved.name)}</Avatar>
                 <Box width="fill" minWidth={136}>
-                  <FileUpload label="Profile photo" type="button" buttonLabel="Upload photo" accept="image/jpeg,image/png" helpText="JPG or PNG, up to 2 MB"
+                  <FileUpload label="Profile photo" type="button" buttonLabel="Upload photo" buttonSize={phone ? "md" : "sm"} accept="image/jpeg,image/png" helpText="JPG or PNG, up to 2 MB"
                     thumbnail="none" files={photo ? [photo] : []} onFilesAdd={addPhoto} error={profile.fieldError("photo")}
                     onRemove={() => profile.setValue("photo", null)} />
                 </Box>

@@ -2027,6 +2027,7 @@
           "theme?: neutral|accent|red|orange|yellow|green|blue = accent",
           "label?: ReactNode|true",
           "aria-label?: string",
+          "decorative?: boolean = false",
           "className?: string",
           "ref?: Ref<HTMLDivElement>"
         ]
@@ -2103,6 +2104,8 @@
           "side?: ReactNode",
           "top?: ReactNode",
           "header?: boolean = true",
+          "aria-label?: string",
+          "aria-labelledby?: string",
           "closeButton?: boolean = true",
           "closeLabel?: string",
           "children?: ReactNode",
@@ -2961,7 +2964,7 @@
         "Use Active for the selected card in a single-choice grid, together with aria-pressed or a radio inside.",
         "Put secondary card actions in the Sub-Action menu.",
         "Card shadow = Box effectStyle=\"Shadow/Bottom/Level-1\": a static elevated panel may be a Box with that style; a clickable or selectable panel is a Card.",
-        "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"flat-border\" on a Canvas/Flat page. Only an explicit alt drops the Shadow theme's shadow; a page-scope --zen-card-surface suits Border or Default cards only, which is what a Canvas/Alt page takes anyway.",
+        "Pick surface from the page Canvas: default on Canvas/Default, surface=\"alt\" passed explicitly on a white Canvas/Alt page, theme=\"flat-border\" on a Canvas/Flat page. An explicit alt drops the Shadow theme's shadow; a page scope that sets an alt --zen-card-surface sets --zen-card-shadow: 0 0 transparent with it, so its Shadow cards drop it too.",
         "Put colour on a box by the page's Canvas: theme=\"subtle\" and a color on the grey Canvas/Default (Pale fades into it), theme=\"pale\" on a white Canvas/Alt or Canvas/Flat page (any of the nine hues, content stays neutral), e.g. a card per project or client (harness card/pale-on-canvas-default).",
         "Let at most one widget per row stand out with theme=\"solid\"; the dark widget is Solid Neutral, a hue (brand, cyan, yellow, orange) or accent suits one time-sensitive figure.",
         "Write a Solid card's content as on any card: Text, Heading, Icon, charts, ProgressBar and the ⋮ read the fill's own family by themselves (content follows the fill, user 2026-10-17): Content/Inverse/* on Neutral, Content/On-Colors on Brand, Cyan and Orange, Content/On-Brights on Yellow, Content/On-Accent on Accent. MetricTrend and a MetricCard tile's Dock-Icon follow too (Inverse on Neutral, On-Color on the others). Pick Button appearance=\"overlay\" level=\"inverse\" on Solid Neutral, a Primary button on a Solid hue (Figma Metric-Card Hero), and a Badge or DockIcon theme=\"inverse\" on Solid Neutral, theme=\"on-color\" on Accent and the hues; keep text in a neutral tone (or the family's own), never a colour tone (harness theme/on-solid-content).",
@@ -3303,6 +3306,7 @@
           "onSortChange?: (sort: TableSort|null) => void",
           "empty?: ReactNode",
           "onRowClick?: (row: T) => void",
+          "currentRowId?: string|null",
           "className?: string",
           "overrides?: Readonly<Record<string, Readonly<Record<string, unknown>>>>"
         ]
@@ -3771,6 +3775,7 @@
           "helpText?: ReactNode",
           "error?: ReactNode",
           "type?: dropzone|button = dropzone",
+          "buttonSize?: 2xs|xs|sm|md|lg|xl|2xsmall|xsmall|small|medium|large|xlarge = sm",
           "text?: ReactNode",
           "caption?: ReactNode",
           "accept?: string",
@@ -4488,7 +4493,7 @@
         "Use ChatAvatarGroup for group conversations: Medium (40px, 28px avatars) in lists, Small (32px, 20px avatars) in compact rows.",
         "Use one action list for both inputs: the same holdActions drive the mobile hold menu and the desktop hover toolbar (its More menu).",
         "Pick hold/hover actions with chatHoldActionsFor(kind, side): text & photos by side, files get Reply · Forward · Pin · Delete (Figma Focused/File), calls Call back · (Report) · Delete.",
-        "Reply: the Reply action sets the composer's replyTo (“Replying to …” bar, × / Escape cancel via onCancelReply — harness: chat/reply-cancellable); attach it to the sent message as replyTo and give every message an id so the quote can jump back. The quote previews the original by kind — text (2 lines), photo(s) with a thumbnail, file, call, voice, or “Message unavailable”. The composer moves focus into its field when a reply is set or switched (not on mount), so apps add no focus code of their own.",
+        "Reply: the Reply action sets the composer's replyTo (“Replying to …” bar, × / Escape cancel via onCancelReply — harness: chat/reply-cancellable); attach it to the sent message as replyTo and give every message an id so the quote can jump back. A thread that loads older messages on demand passes onJumpToReply to load the original first: the default jump only finds messages already rendered, so a quote of an unloaded one would do nothing. The quote previews the original by kind — text (2 lines), photo(s) with a thumbnail, file, call, voice, or “Message unavailable”. The composer moves focus into its field when a reply is set or switched (not on mount), so apps add no focus code of their own.",
         "Keep the Reaction-Bar \"+\": let it open the built-in emoji panel, or pass onMore only when you ship a fuller picker; never wire it to a placeholder.",
         "Keep every interaction live wherever Chat is shown: each message can be held (mobile) / hovered (desktop) for its Figma action set and reactions, Reply fills the composer and the sent quote jumps back, cards open, calls call back, the composer's actions and send work — never a no-op handler (harness: chat/no-locked-interaction; platform examples use useChatDemo).",
         "Make deleting a message undoable: remove it at once and show a Toast with Undo (title 'Message deleted'); don't ask first. Move focus to the next message, and on Undo back to the restored one. Platform examples get this from useChatDemo().",

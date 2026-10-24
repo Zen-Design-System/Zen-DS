@@ -157,7 +157,9 @@ for (const [name, slots] of Object.entries(DATA_SLOTS)) {
 // Figma's Trailing-Slot takes 3 (Top-Trailing and Header-Trailing): the component's MAX_ACTIONS and both data slots agree.
 check("TopNavigation draws MAX_ACTIONS = 3 trailing actions", /const MAX_ACTIONS = 3;/.test(read("TopNavigation/TopNavigation.tsx")) && /trailingItems\([^)]*search\.mounted && searchButton \? MAX_ACTIONS - 1 : MAX_ACTIONS\)/.test(read("TopNavigation/TopNavigation.tsx")), true);
 // Nodes (a Badge, an Avatar) sit beside the action items since 2026-10-19; an action item is still passed as it is.
-check("TopNavigation passes each action object itself", /titleActions\.slice\(0, MAX_ACTIONS\)\.map\(\((\w+), index\) => (?:isAction\(\1\) \? )?<TopNavigationActionButton key=\{index\} action=\{\1\}/.test(read("TopNavigation/TopNavigation.tsx")) && /<TopNavigationActionButton key=\{index\} action=\{(?:action|place\.actions\[0\])\}/.test(read("TopNavigation/TopNavigation.tsx")), true);
+// Since 2026-10-24 the large-title actions go through the same places as the bar's (groupedPlaces → renderPlace), so a
+// `group` pair is one pill there too; renderPlace hands each action object on as it is.
+check("TopNavigation passes each action object itself", /groupedPlaces\(titleActions, pairs, false\)\.slice\(0, MAX_ACTIONS\)\.map\(renderPlace\)/.test(read("TopNavigation/TopNavigation.tsx")) && /<TopNavigationActionButton key=\{index\} action=\{place\.actions\[0\]\}/.test(read("TopNavigation/TopNavigation.tsx")) && /<TopNavigationActionButton key=\{half\} action=\{action\}/.test(read("TopNavigation/TopNavigation.tsx")), true);
 check("dataSlotOf", [dataSlotOf("TopNavigation", "trailing")?.max, dataSlotOf("TopNavigation", "largeTitleAction")?.form, dataSlotOf("TopNavigation", "largeTitleAction")?.max, dataSlotOf("Card", "x")], [3, "list", 3, null]);
 check("itemTitle", [itemTitle(dataSlotOf("TopNavigation", "trailing"), [{ key: "label", kind: "string", value: " Bell " }], 0), itemTitle(dataSlotOf("TopNavigation", "trailing"), [{ key: "label", kind: "expression", value: "x" }], 1)], ["Bell", "Action 2"]);
 

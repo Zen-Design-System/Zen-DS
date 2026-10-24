@@ -400,7 +400,7 @@ export function EmptyErrorTemplate() {
       <Stack gap="md">
         {toolbar}
         {/* The open project's row stays selected while its panel shows. */}
-        {!phone ? <Table aria-label="Projects" rows={shown} getRowId={(row) => row.id} columns={columns} selectedIds={peek ? [peek.id] : []} onRowClick={(row) => openProject(row.id)} empty={noMatch} />
+        {!phone ? <Table aria-label="Projects" rows={shown} getRowId={(row) => row.id} columns={columns} currentRowId={peek?.id} onRowClick={(row) => openProject(row.id)} empty={noMatch} />
           : shown.length ? (
             <List aria-label="Projects">
               {shown.map((project) => (

@@ -127,7 +127,7 @@
           "type": "(id: string) => void",
           "required": false,
           "default": null,
-          "description": "Pressing the quote; defaults to scrolling to `[data-message-id]` in the same thread and flashing it. The quote of a\ndeleted message (`replyTo.kind` \"deleted\") is not pressable.",
+          "description": "Pressing the quote; defaults to scrolling to `[data-message-id]` in the same thread and flashing it. The default finds\nonly messages the thread has rendered: a thread that loads older messages on demand passes this to load the original\nand then scroll to it. The quote of a deleted message (`replyTo.kind` \"deleted\") is not pressable.",
           "deprecated": null
         },
         {

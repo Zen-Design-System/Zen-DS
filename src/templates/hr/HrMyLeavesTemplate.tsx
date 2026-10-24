@@ -399,8 +399,8 @@ export function HrMyLeavesTemplate() {
             ) : noRequests
           ) : (
             // The opened request's row stays selected while its panel is open.
-            <Table aria-labelledby={tableTitleId} rows={shown} getRowId={(row) => row.id} sort={sort} onSortChange={setSort} onRowClick={(row) => setOpenId(row.id)}
-              selectedIds={opened ? [opened.id] : []} empty={noRequests}
+            <Table aria-labelledby={tableTitleId} rows={shown} getRowId={(row) => row.id} sort={sort} onSortChange={setSort} currentRowId={openId} onRowClick={(row) => setOpenId(row.id)}
+              empty={noRequests}
               columns={[
                 { id: "leave", header: "Leave", cell: (row) => (
                   <TableMedia bold media={<DockIcon theme="emoji" emoji={leaveKinds[row.kind].emoji} size="sm" />} caption={reasonOf(row)}>{leaveKinds[row.kind].name}</TableMedia>
