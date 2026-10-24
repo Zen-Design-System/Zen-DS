@@ -188,7 +188,7 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   // figma-push draws `selectable` as a first checkbox column, the sorted column's direction in its Sort glyph and an
   // avatar cell's Avatar (theme from the row's override): they come back as the Table's props, not as columns.
   const avatarSet = [...mapping.sets.values()].find((set) => set.code === "Avatar");
-  const person = (texts, props, initials) => ({ kind: "Avatar-Cell", props: { Bold: "No", Subtext: "Yes" }, w: 400, fill: true, texts, parts: [{ id: "a", set: { id: avatarSet.id, name: avatarSet.name }, props: { Size: "Small", Shape: "Circle", Background: "Subtle", ...props }, text: initials }] });
+  const person = (texts, props, initials) => ({ kind: "Avatar-Cell", props: { Bold: "No", Subtext: "Yes" }, w: 400, fill: true, texts, parts: [{ id: "a", set: { id: avatarSet.id, name: avatarSet.name }, props: { Size: "Small", Shape: "Circle", Background: "Solid", ...props }, text: initials }] });
   const frame = { type: "FRAME", name: "T", layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: [{ type: "TABLE", name: "Members", header: [{ label: "", checkbox: true, w: 48 }, { label: "Member", sort: true, sorted: "asc", fill: true }, { label: "Role", sort: true, w: 120 }],
     rows: [["An Mai", "Neutral", "AM"], ["Bao Nguyen", "Green", "BX"]].map(([name, theme, initials]) => ({ cells: [{ kind: "Control-Cell", props: { Type: "Checkbox" }, w: 48 }, person([name, "mail"], { Theme: theme }, initials), { kind: "Text-Cell", props: {}, w: 120, texts: ["Member"] }] })) }] };
   const back = pageFromFigma(frame, { mapping }).text;
@@ -200,6 +200,13 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   square.children[0].rows.forEach((row) => { row.cells[1].parts[0].props.Shape = "Square"; });
   const photos = pageFromFigma(square, { mapping }).text;
   ok("table: an Avatar-Cell with a Square Avatar is a photo column; the square is not a row's override", /content: "photo"/.test(photos) && photos.includes('"Row[row-2]/member/Avatar": { theme: "green", children: "BX" }') && !/shape: "square"/.test(photos));
+  // The first column's Avatar is Solid (Table.tsx cellVisual): a Subtle one is that row's override; a Photo one is
+  // Subtle as drawn (Figma has no Photo × Solid), so its background is no override.
+  const subtle = JSON.parse(JSON.stringify(frame));
+  subtle.children[0].rows[0].cells[1].parts[0].props.Background = "Subtle";
+  subtle.children[0].rows[1].cells[1].parts[0].props = { ...subtle.children[0].rows[1].cells[1].parts[0].props, Theme: "Photo", Background: "Subtle" };
+  const leads = pageFromFigma(subtle, { mapping }).text;
+  ok("table: a Subtle Avatar in the first column is its row's override; a Photo one's Subtle is as drawn", leads.includes('"Row[row-1]/member/Avatar": { background: "subtle" }') && /"Row\[row-2\]\/member\/Avatar": \{[^}]*theme: "photo"/.test(leads) && !/"Row\[row-2\]\/member\/Avatar": \{[^}]*background/.test(leads));
 }
 
 // Charts (chart family phase 2, 2026-10-14; figma-charts.mjs), as figmaReadCode reads them: a ❖ Chart instance is its

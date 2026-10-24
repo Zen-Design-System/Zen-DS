@@ -1224,7 +1224,7 @@ const TABLE_DRAWS = {
 /** Table.tsx initialsOf: the first letters of the first two words. */
 const tableInitials = (name) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]?.toUpperCase() ?? "").join("");
 /** What the Table draws for a cell's instance: an Avatar is Small over a Subtext (XSmall alone), square in a photo cell,
- *  Solid in the first column (`lead`) and Subtle elsewhere. */
+ *  Solid in the first column (`lead`, never a photo: Figma has no Photo × Solid) and Subtle elsewhere. */
 const drawnProps = (code, column, lead = false) => (code === "Avatar" ? { ...TABLE_DRAWS.Avatar.props, ...(lead ? { background: "solid" } : {}), size: column.caption ? "sm" : "xs", shape: column.content === "photo" ? "square" : "circle" } : TABLE_DRAWS[code].props);
 
 /** Figma Actions-Cell's default button icon (docs/figma-contracts/table-cells.json). */
@@ -1387,7 +1387,7 @@ function tableElement(node, ctx) {
         const figma = instanceProps(part, set, mapping, notes, `${where} › ${column.id}`);
         const defaults = mapping.apiProps[set.code];
         const fields = {};
-        const expected = drawnProps(set.code, column, column === columns[0]);
+        const expected = drawnProps(set.code, column, column === columns[0] && figma.theme?.value !== "photo");
         for (const [prop, value] of Object.entries(expected)) {
           const mine = figma[prop]?.value ?? defaults?.get(prop);
           if (mine !== undefined && !sameValue(mine, value)) fields[prop] = literal(mine);

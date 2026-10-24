@@ -715,10 +715,12 @@ const rowGapFinding = (kind, attrs, src, start) => {
 /**
  * table/first-column-avatar-solid (the user 2026-10-24: "cột giá trị đầu tiên trong bảng nếu có dùng avatar thì không
  * dùng subtle"): the Avatar of a Table's first column, the row's name, is Solid. Finds the column object (`{ id: … }`)
- * around the Avatar and whether it opens a `columns` array. Table.tsx draws its own avatar cells so. Message, or false.
+ * around the Avatar and whether it opens a `columns` array. Table.tsx draws its own avatar cells so. A photo Avatar
+ * (`src`, theme="photo") stays Subtle: Figma has no Theme=Photo × Background=Solid. Message, or false.
  */
 const firstColumnAvatarFinding = (attrs, src, start) => {
   if (inCodeSample(src, start) || literal(attrs, "background") !== "subtle") return false;
+  if (literal(attrs, "theme") === "photo" || literal(attrs, "src") !== undefined || expr(attrs, "src") !== undefined) return false;
   let depth = 0;
   for (let i = start - 1; i >= Math.max(0, start - 4000); i -= 1) {
     const c = src[i];

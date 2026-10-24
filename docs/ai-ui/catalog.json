@@ -24119,7 +24119,7 @@
       "title": "Table",
       "file": "docs/guidelines/table.md",
       "do": [
-        "Give the first column, the row's name, a Solid Avatar, never Subtle: the Table's own avatar cells draw it so, and a cell you write drops background=\"subtle\" there (the user 2026-10-24; harness: table/first-column-avatar-solid).",
+        "Give the first column, the row's name, a Solid Avatar, never Subtle: the Table's own avatar cells draw it so, and a cell you write drops background=\"subtle\" there; a photo Avatar stays Subtle (Figma has no Photo × Solid) (the user 2026-10-24; harness: table/first-column-avatar-solid).",
         "Name the table (aria-labelledby pointing at its section heading, a caption, or aria-label; harness: table/needs-name).",
         "Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4). A table in a Card or ListBox always has that title, or the ListBox header (harness: table/titled-box).",
         "Right-align numbers and amounts; keep text left.",

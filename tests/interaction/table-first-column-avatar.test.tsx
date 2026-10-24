@@ -20,4 +20,11 @@ describe("Table avatar cells", () => {
     const avatars = [...screen.container.querySelectorAll("tbody .zen-avatar")].map((avatar) => avatar.getAttribute("data-background"));
     expect(avatars).toEqual(["solid", "subtle"]);
   });
+
+  it("keeps a first-column photo Avatar Subtle (Figma has no Photo × Solid)", async () => {
+    const photos = [{ id: "a", name: "Mai Anh", photo: "/avatar.jpg" }];
+    const screen = await render(<Table aria-label="Team" rows={photos} getRowId={(row) => row.id} columns={[{ id: "name", header: "Member", content: "avatar", mediaField: "photo" }]} />);
+    await expect.element(screen.getByText("Mai Anh")).toBeVisible();
+    expect(screen.container.querySelector("tbody .zen-avatar")?.getAttribute("data-background")).toBe("subtle");
+  });
 });

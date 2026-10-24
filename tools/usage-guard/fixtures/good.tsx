@@ -207,6 +207,8 @@ export const Good = () => <>
   <Stack direction="row" gap="xs" wrap>{periods.map((p) => <Chip key={p.id} variant="normal" onClick={pick}>{p.label}</Chip>)}</Stack>
   <Stack as="ul" direction="row" gap="2xs" wrap aria-label="Skills">{skills.map((skill) => <li key={skill}><Tag>{skill}</Tag></li>)}</Stack>
   <Table aria-label="Members" rows={rows} getRowId={getId} columns={[{ id: "member", header: "Member", cell: (row) => <TableMedia bold caption={row.role} media={<Avatar size="sm" theme="neutral" alt="">{row.initials}</Avatar>}>{row.name}</TableMedia> }, { id: "owner", header: "Owner", cell: (row) => <Avatar size="xs" background="subtle" alt="">{row.owner}</Avatar> }]} />
+  {/* A photo Avatar stays Subtle in the first column: Figma has no Photo × Solid. */}
+  <Table aria-label="Team" rows={rows} getRowId={getId} columns={[{ id: "member", header: "Member", cell: (row) => <TableMedia media={<Avatar size="xs" theme="photo" src={row.photo} background="subtle" alt="" />}>{row.name}</TableMedia> }]} />
   {/* table/titled-box: a ListBox header names its table. */}
   <ListBox header={<Heading level={3} textStyle="Heading/Subheading">Top clients</Heading>}><Table aria-label="Top clients" columns={[]} rows={[]} getRowId={(r) => r.id} /></ListBox>
   {/* A table that is its own section: an h2 Heading/4 above it, and the Table points to it. */}

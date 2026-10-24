@@ -1026,7 +1026,8 @@ function cellVisual(content: "avatar" | "photo" | "icon" | "dock-icon", captione
   }
   const shape = content === "photo" ? "square" : "circle";
   const picture = { theme: media ? ("photo" as const) : ("neutral" as const), src: media || undefined, children: media ? null : initialsOf(label) };
-  const background = lead ? "solid" : "subtle";
+  // Solid in the first column, the row's name; a photo stays Subtle there (Figma has no Theme=Photo × Background=Solid).
+  const background = lead && !media ? "solid" : "subtle";
   return nest("Avatar", captioned
     ? <Avatar size="sm" shape={shape} background={background} alt="" {...picture} />
     : <Avatar size="xs" shape={shape} background={background} alt="" {...picture} />);
