@@ -2,6 +2,7 @@ import { useEffect, useEffectEvent, useMemo, useState, type ReactNode, type Ref 
 import { BottomSheet } from "../BottomSheet";
 import { Button, IconButton } from "../Button";
 import { Icon } from "../Icon";
+import "../Icon/core";
 import { useOverlayOpen, type OverlayOpenProps } from "../_shared/overlay";
 import { useZenLabels, useZenLocale } from "../_shared/zen-context";
 import { useControllableState } from "../_shared/use-controllable-state";
