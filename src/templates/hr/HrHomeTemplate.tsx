@@ -519,10 +519,10 @@ export function HrHomeTemplate() {
               <ListBox as="section" theme="shadow" aria-labelledby="home-out"
                 header={<>
                   <Heading level={3} id="home-out">Who's out</Heading>
-                  {/* A phone can't fit three equal segments, so it gets a single-choice row of Normal chips: Small and
-                      2xs apart, so the three periods share one line inside the card (they wrap only on a narrower phone). */}
+                  {/* A phone can't fit three equal segments, so it gets a single-choice row of Normal chips: Small, and
+                      Gap/XSmall (8px) apart as every chip row (user 2026-10-24); they wrap on a narrower phone. */}
                   {phone ? (
-                    <Stack direction="row" gap="2xs" wrap role="group" aria-label="Period">
+                    <Stack direction="row" gap="xs" wrap role="group" aria-label="Period">
                       {(Object.keys(periods) as Period[]).map((id) => (
                         <Chip key={id} variant="normal" size="sm" level="primary" selected={id === period} onClick={() => setPeriod(id)}>{periods[id].label}</Chip>
                       ))}

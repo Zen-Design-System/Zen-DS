@@ -23017,6 +23017,7 @@
       "title": "Chip / Pill",
       "file": "docs/guidelines/chip.md",
       "do": [
+        "Space chips side by side Gap/XSmall (8px): a row Stack of Chips takes gap=\"xs\", and ChipGroup spaces its chips so already (the user 2026-10-24; harness: chip/row-gap).",
         "On a colour band, a Solid hue card or a photo, give every chip an overlay level (ChipGroup too): black-overlay by default (level=\"overlay\"), white-overlay on a solid colour. Primary and Secondary take mode tokens that flip in dark mode, and their Accent focus ring vanishes on the band.",
         "When exactly one value applies (Repeat: Daily / Weekly / Monthly), use <ChipGroup>: it is a radio group with roving focus and aria-checked; never hand-set role=\"radio\" on Chips.",
         "Pick the level by how many can be on (user rule 2026-10-04): a multi-select group of toggles is Secondary for every chip (Selected = the 2px dark outline), a single-select group is Primary for every chip (Selected = the dark fill). Never switch a chip's level when it is selected.",
@@ -23044,6 +23045,7 @@
         "chip/popover-needs-advanced",
         "flag/no-emoji-flag",
         "chip/multiple-needs-count",
+        "chip/row-gap",
         "chip/radio-is-chip-group",
         "chip/needs-action",
         "popover/people-have-avatars",
@@ -23280,6 +23282,7 @@
       "title": "Tag",
       "file": "docs/guidelines/tag.md",
       "do": [
+        "Space tags side by side Gap/2XSmall (4px): a row Stack of Tags (or of list items holding one Tag each) takes gap=\"2xs\" (the user 2026-10-24; harness: tag/row-gap).",
         "Let Backspace in an empty field remove the last tag.",
         "Flag invalid values with error and explain in the field's error text.",
         "Keep tag labels short (≤ 24 characters) and truncate with a tooltip beyond that."
@@ -23292,6 +23295,7 @@
       "rules": [
         "removable/needs-handler",
         "flag/no-emoji-flag",
+        "tag/row-gap",
         "api/overrides-studio-only",
         "copy/plural-count",
         "interaction/no-noop-handler"
@@ -23316,6 +23320,7 @@
         "avatar/needs-alt",
         "avatar/solid-initials-contrast",
         "flag/no-emoji-flag",
+        "table/first-column-avatar-solid",
         "api/overrides-studio-only",
         "interaction/no-noop-handler"
       ]
@@ -24096,6 +24101,7 @@
       "title": "Table",
       "file": "docs/guidelines/table.md",
       "do": [
+        "Give the first column, the row's name, a Solid Avatar, never Subtle: the Table's own avatar cells draw it so, and a cell you write drops background=\"subtle\" there (the user 2026-10-24; harness: table/first-column-avatar-solid).",
         "Name the table (aria-labelledby pointing at its section heading, a caption, or aria-label; harness: table/needs-name).",
         "Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4). A table in a Card or ListBox always has that title, or the ListBox header (harness: table/titled-box).",
         "Right-align numbers and amounts; keep text left.",
@@ -24130,6 +24136,7 @@
         "table/actions-flat",
         "table/title-heading-4",
         "table/bulk-actions-max",
+        "table/first-column-avatar-solid",
         "table/titled-box",
         "table/needs-name",
         "table/reference-in-sheet",
@@ -24660,6 +24667,8 @@
         "radius/redundant-corners",
         "radius/full-mixed",
         "shape/px-offset-in-auto-layout",
+        "chip/row-gap",
+        "tag/row-gap",
         "layout/use-stack",
         "interaction/no-noop-handler"
       ]

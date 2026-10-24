@@ -689,6 +689,50 @@ const tableBoxFinding = (attrs, src, start) => {
   if (/<Heading\b|<h[1-6][\s>]|textStyle="Heading\/|\sheader=\{/.test(before)) return false;
   return `sits in a <${box.tag}> with no title: a table in a box is a widget, named by the box — a <Heading textStyle="Heading/Subheading"> above the table${box.tag === "ListBox" ? " or the ListBox header" : ""}; a table that is page content sits straight on the page under its Heading/4 (usage rules §14)`;
 };
+/**
+ * chip/row-gap and tag/row-gap (the user 2026-10-24: "spacing giữa các chip là 8px, giữa các tag là 4px"): chips side by
+ * side sit Gap/XSmall (8px, gap="xs") apart, tags Gap/2XSmall (4px, gap="2xs"). A Stack whose children are all Chips (or
+ * all Tags), two or more as rendered, takes that gap; one whose gap varies is left alone. Message, or false.
+ */
+const ROW_GAP = { Chip: { want: "xs", what: "chips", token: "Gap/XSmall (8px)" }, Tag: { want: "2xs", what: "tags", token: "Gap/2XSmall (4px)" } };
+const rowGapFinding = (kind, attrs, src, start) => {
+  if (inCodeSample(src, start) || opaque(attrs)) return false;
+  const { nodes } = cardTree(src);
+  const me = nodes.find((n) => n.start === start);
+  if (!me) return false;
+  const childrenOf = (n) => nodes.filter((o) => o.parent === n.id && o.start >= n.body);
+  // Each item is the Chip / Tag itself, or a list item (li, a Stack or Box) that holds only it.
+  const holds = (n) => n.name === kind || (["li", "Stack", "Box", "span", "div"].includes(n.name) && childrenOf(n).length === 1 && childrenOf(n)[0].name === kind);
+  const kids = childrenOf(me);
+  if (!kids.length || !kids.every(holds)) return false;
+  if (kids.reduce((sum, n) => sum + (Number.isFinite(n.count) ? n.count : 2), 0) < 2) return false;
+  const gap = literal(attrs, "gap");
+  if (gap === undefined && expr(attrs, "gap") !== undefined) return false;
+  const { want, what, token } = ROW_GAP[kind];
+  if (gap === want) return false;
+  return `spaces its ${what} with ${gap ? `gap="${gap}"` : "no gap"}: ${what} side by side sit ${token} apart — gap="${want}"`;
+};
+/**
+ * table/first-column-avatar-solid (the user 2026-10-24: "cột giá trị đầu tiên trong bảng nếu có dùng avatar thì không
+ * dùng subtle"): the Avatar of a Table's first column, the row's name, is Solid. Finds the column object (`{ id: … }`)
+ * around the Avatar and whether it opens a `columns` array. Table.tsx draws its own avatar cells so. Message, or false.
+ */
+const firstColumnAvatarFinding = (attrs, src, start) => {
+  if (inCodeSample(src, start) || literal(attrs, "background") !== "subtle") return false;
+  let depth = 0;
+  for (let i = start - 1; i >= Math.max(0, start - 4000); i -= 1) {
+    const c = src[i];
+    if (c === "}") depth += 1;
+    else if (c === "{") {
+      if (depth > 0) { depth -= 1; continue; }
+      if (!/^\s*id\s*:/.test(src.slice(i + 1, i + 40))) continue;
+      const before = src.slice(Math.max(0, i - 300), i);
+      if (!/\[\s*$/.test(before) || !/(?:\bcolumns\s*=\s*\{\s*|\bcolumns\s*:\s*|\b\w*[cC]olumns\w*(?:\s*:\s*[^=;]+)?\s*=\s*)\[\s*$/.test(before)) return false;
+      return "is Subtle in the table's first column: the row's name column takes a Solid Avatar — drop background=\"subtle\" (Solid is the default)";
+    }
+  }
+  return false;
+};
 /** A bare boolean or `{true}`: the state is pinned for the whole example. */
 const pinnedOn = (own, name) => own.get(name)?.bare === true || /^\s*true\s*$/.test(own.get(name)?.expr ?? "");
 /* Layout position, Box effects and per-corner radius (Studio Phase 2 spec 2026-10-03 §3.6; position.ts, effects.ts,
@@ -1829,6 +1873,12 @@ export const rules = [
   { id: "list-item/switch-row", components: ["ListItem"], severity: "warn", allow: "switch-row", guideline: "docs/guidelines/list-item.md",
     summary: "A settings row that is one switch is <ToggleListItem>, not a ListItem with a Toggle in its trailing slot: a press anywhere on the row flips it and the title names the switch.",
     check: ({ attrs }) => !has(topLevel(attrs), "onClick") && !has(topLevel(attrs), "href") && !opaque(attrs) && /<(Toggle|ToggleButton)\b/.test(value(attrs, "trailing") ?? "") && "holds a switch in its trailing slot — use <ToggleListItem title caption checked onCheckedChange> so the whole row flips it and names it." },
+  { id: "chip/row-gap", components: ["Stack"], severity: "error", allow: "chip-gap", guideline: "docs/guidelines/chip.md",
+    summary: "Chips side by side sit Gap/XSmall (8px) apart: a Stack of Chips takes gap=\"xs\" (ChipGroup spaces its chips so already).",
+    check: ({ attrs, src, start }) => rowGapFinding("Chip", attrs, src, start) },
+  { id: "tag/row-gap", components: ["Stack"], severity: "error", allow: "tag-gap", guideline: "docs/guidelines/tag.md",
+    summary: "Tags side by side sit Gap/2XSmall (4px) apart: a Stack of Tags takes gap=\"2xs\".",
+    check: ({ attrs, src, start }) => rowGapFinding("Tag", attrs, src, start) },
   { id: "chip/radio-is-chip-group", components: ["Chip"], severity: "warn", allow: "chip-radio", guideline: "docs/guidelines/chip.md",
     summary: "Chips where exactly one is picked are a <ChipGroup> (radio group: one Tab stop, arrow keys), not Chips given role=\"radio\" by hand.",
     check: ({ attrs }) => literal(attrs, "role") === "radio" && "is a hand-made radio chip — use <ChipGroup options value onValueChange> (roving focus, arrow keys, aria-checked)." },
@@ -1905,6 +1955,9 @@ export const rules = [
       if (acts.some((name) => has(attrs, name)) || /submit|reset/.test(literal(attrs, "type") ?? "")) return null;
       return "renders a button that does nothing — give it onClick, popoverItems or a selection (select / selected / defaultSelected); a static label is a Badge, a count a Number-only Chip.";
     } },
+  { id: "table/first-column-avatar-solid", components: ["Avatar"], severity: "error", allow: "table-avatar", guideline: "docs/guidelines/table.md",
+    summary: "The Avatar in a Table's first column (the row's name) is Solid, never Subtle; the Table's own avatar cells draw it so.",
+    check: ({ attrs, src, start }) => firstColumnAvatarFinding(attrs, src, start) },
   { id: "table/titled-box", components: ["Table"], severity: "warn", allow: "table-box-title", guideline: "docs/guidelines/table.md",
     summary: "A Table inside a Card or ListBox is a widget the box names: a <Heading textStyle=\"Heading/Subheading\"> above the table in the box, or the ListBox header. A table that is page content sits straight on the page under its Heading/4 (usage rules §14).",
     check: ({ attrs, src, start }) => tableBoxFinding(attrs, src, start) },

@@ -425,7 +425,7 @@ function FirstRunExample() {
     focusInvite();
   };
   const columns: TableColumn<Guest>[] = [
-    { id: "guest", header: "Guest", cell: (guest) => <TableMedia bold media={<Avatar size="sm" theme="green" background="subtle" alt="">{guest.email[0].toUpperCase()}</Avatar>} caption="Can comment">{guest.email}</TableMedia> },
+    { id: "guest", header: "Guest", cell: (guest) => <TableMedia bold media={<Avatar size="sm" theme="green" alt="">{guest.email[0].toUpperCase()}</Avatar>} caption="Can comment">{guest.email}</TableMedia> },
     { id: "invited", header: "Invited", width: "150px", cell: (guest) => <TableText>{formatRelative(guest.invited)}</TableText> },
     { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", width: "72px", cell: (guest) => (
       <TableActions><IconButton appearance="flat" level="primary" size="md" icon="icon-trash-line" aria-label={`Remove ${guest.email}`} onClick={() => remove(guest)} /></TableActions>

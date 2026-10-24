@@ -334,7 +334,7 @@ function PeopleDirectoryApp() {
   const shown = rows.filter((row) => !q || `${row.name} ${row.role} ${row.team} ${row.location}`.toLowerCase().includes(q));
   const columns: TableColumn<Row>[] = [
     { id: "person", header: "Person", cell: (row) => (
-      <TableMedia bold caption={row.role} media={row.person ? <Avatar size="small" {...avatarOf(row.person)} /> : <Avatar size="small" theme="neutral" background="subtle" alt="">{row.name.slice(0, 2).toUpperCase()}</Avatar>}>{row.name}</TableMedia>
+      <TableMedia bold caption={row.role} media={row.person ? <Avatar size="small" {...avatarOf(row.person)} /> : <Avatar size="small" theme="neutral" alt="">{row.name.slice(0, 2).toUpperCase()}</Avatar>}>{row.name}</TableMedia>
     ) },
     { id: "team", header: "Team", width: narrow ? undefined : "176px", cell: (row) => <TableText>{row.team}</TableText> },
     ...(narrow ? [] : [{ id: "office", header: "Office", width: "176px", cell: (row: Row) => <TableText>{row.location}</TableText> }]),

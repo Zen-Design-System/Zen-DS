@@ -70,6 +70,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   sideways, a Segmented with `options` shows as a single-choice chip row (ChipGroup, Medium) that scrolls sideways, with
   the same options, value and onValueChange, and comes back once it fits. Desktop never changes. ChartCard's range
   switch follows, so the docs' 14 phone `segmented-fit` findings are gone (baseline emptied).
+- Spacing and Table rules (the user, 2026-10-24): chips side by side sit 8px apart (`gap="xs"`, harness `chip/row-gap`),
+  tags 4px (`gap="2xs"`, `tag/row-gap`); the Avatar in a Table's first column is Solid, never Subtle (Table's own avatar
+  cells and the Figma push draw it so; harness `table/first-column-avatar-solid`). Six examples and templates fixed.
 - Usage harness and audit (user, 2026-10-24, from the harness inventory): `listbox/grouped-on-phone` (error) flags a
   phone settings or profile screen that puts several kicker groups of rows in one block, or bare Lists under kickers
   (usage rules §15: each group is its own ListBox); `table/titled-box` (warn) flags a Table in a Card or ListBox that

@@ -328,6 +328,7 @@
       ]
     ],
     "do": [
+      "Space chips side by side Gap/XSmall (8px): a row Stack of Chips takes gap=\"xs\", and ChipGroup spaces its chips so already (the user 2026-10-24; harness: chip/row-gap).",
       "On a colour band, a Solid hue card or a photo, give every chip an overlay level (ChipGroup too): black-overlay by default (level=\"overlay\"), white-overlay on a solid colour. Primary and Secondary take mode tokens that flip in dark mode, and their Accent focus ring vanishes on the band.",
       "When exactly one value applies (Repeat: Daily / Weekly / Monthly), use <ChipGroup>: it is a radio group with roving focus and aria-checked; never hand-set role=\"radio\" on Chips.",
       "Pick the level by how many can be on (user rule 2026-10-04): a multi-select group of toggles is Secondary for every chip (Selected = the 2px dark outline), a single-select group is Primary for every chip (Selected = the dark fill). Never switch a chip's level when it is selected.",
@@ -398,6 +399,12 @@
         "severity": "warn",
         "summary": "A multiple-selection Chip shows how many values are active with selectionCount (a chip that keeps its own choice, popoverItems without onPopoverSelect, counts them itself).",
         "allow": "chip-count"
+      },
+      {
+        "id": "chip/row-gap",
+        "severity": "error",
+        "summary": "Chips side by side sit Gap/XSmall (8px) apart: a Stack of Chips takes gap=\"xs\" (ChipGroup spaces its chips so already).",
+        "allow": "chip-gap"
       },
       {
         "id": "chip/radio-is-chip-group",
@@ -1561,6 +1568,7 @@
       ]
     ],
     "do": [
+      "Space tags side by side Gap/2XSmall (4px): a row Stack of Tags (or of list items holding one Tag each) takes gap=\"2xs\" (the user 2026-10-24; harness: tag/row-gap).",
       "Let Backspace in an empty field remove the last tag.",
       "Flag invalid values with error and explain in the field's error text.",
       "Keep tag labels short (≤ 24 characters) and truncate with a tooltip beyond that."
@@ -1596,6 +1604,12 @@
         "severity": "warn",
         "summary": "Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters.",
         "allow": "emoji-flag"
+      },
+      {
+        "id": "tag/row-gap",
+        "severity": "error",
+        "summary": "Tags side by side sit Gap/2XSmall (4px) apart: a Stack of Tags takes gap=\"2xs\".",
+        "allow": "tag-gap"
       },
       {
         "id": "api/overrides-studio-only",
@@ -1707,6 +1721,12 @@
         "severity": "warn",
         "summary": "Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters.",
         "allow": "emoji-flag"
+      },
+      {
+        "id": "table/first-column-avatar-solid",
+        "severity": "error",
+        "summary": "The Avatar in a Table's first column (the row's name) is Solid, never Subtle; the Table's own avatar cells draw it so.",
+        "allow": "table-avatar"
       },
       {
         "id": "api/overrides-studio-only",
@@ -5465,6 +5485,7 @@
       ]
     ],
     "do": [
+      "Give the first column, the row's name, a Solid Avatar, never Subtle: the Table's own avatar cells draw it so, and a cell you write drops background=\"subtle\" there (the user 2026-10-24; harness: table/first-column-avatar-solid).",
       "Name the table (aria-labelledby pointing at its section heading, a caption, or aria-label; harness: table/needs-name).",
       "Title a table that is its own page section with a Heading/4 h2 right above it; a table inside a widget Card takes the widget title, Heading/Subheading, like every widget title (harness: table/title-heading-4). A table in a Card or ListBox always has that title, or the ListBox header (harness: table/titled-box).",
       "Right-align numbers and amounts; keep text left.",
@@ -5538,6 +5559,12 @@
         "severity": "warn",
         "summary": "A Table's bulk-action bar holds at most five actions (icon-only Button/Icon-Flat Medium; on a phone the ones that don't fit move into More): pick the five that matter for a selection.",
         "allow": "table-bulk-actions"
+      },
+      {
+        "id": "table/first-column-avatar-solid",
+        "severity": "error",
+        "summary": "The Avatar in a Table's first column (the row's name) is Solid, never Subtle; the Table's own avatar cells draw it so.",
+        "allow": "table-avatar"
       },
       {
         "id": "table/titled-box",
@@ -8610,6 +8637,18 @@
         "severity": "warn",
         "summary": "px insets are Figma's X / Y in a free frame (a Box without auto layout); inside a Stack or Grid an absolute layer's offsets are Spacing/Padding steps.",
         "allow": "px-offset"
+      },
+      {
+        "id": "chip/row-gap",
+        "severity": "error",
+        "summary": "Chips side by side sit Gap/XSmall (8px) apart: a Stack of Chips takes gap=\"xs\" (ChipGroup spaces its chips so already).",
+        "allow": "chip-gap"
+      },
+      {
+        "id": "tag/row-gap",
+        "severity": "error",
+        "summary": "Tags side by side sit Gap/2XSmall (4px) apart: a Stack of Tags takes gap=\"2xs\".",
+        "allow": "tag-gap"
       },
       {
         "id": "layout/use-stack",

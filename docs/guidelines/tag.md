@@ -52,6 +52,7 @@ Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "children">`.
 | Enter / Space on × | Remove the tag |
 
 ## ✅ Do
+- Space tags side by side Gap/2XSmall (4px): a row Stack of Tags (or of list items holding one Tag each) takes gap="2xs" (the user 2026-10-24; harness: tag/row-gap).
 - Let Backspace in an empty field remove the last tag.
 - Flag invalid values with error and explain in the field's error text.
 - Keep tag labels short (≤ 24 characters) and truncate with a tooltip beyond that.
@@ -73,6 +74,7 @@ Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "children">`.
 | --- | --- | --- | --- |
 | `removable/needs-handler` | error | A remove affordance must be wired to onRemove. | `zen-allow-remove-handler: <reason>` |
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
+| `tag/row-gap` | error | Tags side by side sit Gap/2XSmall (4px) apart: a Stack of Tags takes gap="2xs". | `zen-allow-tag-gap: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
