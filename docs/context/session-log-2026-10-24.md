@@ -62,6 +62,10 @@ reaction Navigate / Open / Close overlay / Back."
     layer is no finding now (self-test fixture added, 41 checks).
   - The re-run found nothing, before and after merging train A (#274). `clip` needs no baseline entries.
   - Scoped gate (`--isolated`, 10 pages): PASS, 0 errors and 0 new warnings at 1512, 390 and 320 and in dark.
+- **Own wiring bug, found in the gate's output:** the gate skipped the new Platform-audit self-test, because
+  `auxKind` (tools/qa/lib.mjs) did not count tools/platform-audit as a tool folder. Fixed. qa:selftest now checks
+  that every folder in the gate's harness list is an auxKind (it fails without the fix). The static gate then ran
+  the step: PASS.
 
 ## Session B · Studio editor group of the planned backlog (tier S; user: "Giao 35 mục theo đề xuất … Phần không cần quyết làm ngay")
 
