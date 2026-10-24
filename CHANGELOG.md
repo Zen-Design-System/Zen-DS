@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Avatar (2026-10-24): `status` also takes `"disabled"`, `"pending"` or `"inactive"` (Figma .Primitives/Avatar/Status),
+  read by screen readers in words; `AvatarStatus` is the dot on its own, XSmall (4px) to Large. Sidebar: `railBackground`
+  sets the workspace rail's fill (Figma Master-Background Default · Flat · Inverse).
 - TopNavigation (2026-10-24): `titleMenu` makes the bar title a Dropdown (Figma Heading-Text Dropdown: the title and a
   chevron-down open a Menu; `titleDropdown` draws the chevron on an `onTitleClick` title); `largeTitleBadges` puts a row
   of Badges under the large title; `scrolledType` gives a scroll-linked bar its look once content scrolls under it (a

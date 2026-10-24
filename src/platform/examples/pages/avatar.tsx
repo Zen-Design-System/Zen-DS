@@ -435,7 +435,7 @@ function MemberAccess() {
               leading={person.photo
                 ? <Avatar size="md" theme="photo" src={person.photo} alt="" status={status} />
                 : <Avatar size="md" theme={person.theme} alt="" status={status}>{initials(person.name)}</Avatar>}
-              trailing={status === "pending" ? <Button level="tertiary" size="sm" onClick={() => toast({ title: "Invite sent again", children: `${person.name} gets a new link by email.` })}>Resend</Button> : undefined} />
+              trailing={status === "pending" ? <Button level="tertiary" size="md" onClick={() => toast({ title: "Invite sent again", children: `${person.name} gets a new link by email.` })}>Resend</Button> : undefined} />
           ))}
         </List>
       </ListBox>
@@ -628,7 +628,7 @@ const themeOf = (name: string) => themes[[...name].reduce((sum, c) => sum + c.ch
     {access.map(({ person, status, word, detail }) => (
       <ListItem key={person.id} title={person.name} caption={\`\${word} · \${detail}\`}
         leading={<Avatar size="md" theme="photo" src={person.photo} alt="" status={status} />}
-        trailing={status === "pending" ? <Button level="tertiary" size="sm" onClick={resend}>Resend</Button> : undefined} />
+        trailing={status === "pending" ? <Button level="tertiary" size="md" onClick={resend}>Resend</Button> : undefined} />
     ))}
   </List>
 </ListBox>`,
