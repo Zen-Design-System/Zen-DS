@@ -49,6 +49,7 @@ Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px rin
 | `theme` | `"neutral" \| "accent" \| "red" \| "orange" \| "yellow" \| "green" \| "blue"` | `"accent"` |  |
 | `label` | `ReactNode \| true` | — |  |
 | `aria-label` | `string` | — |  |
+| `decorative` | `boolean` | `false` | The ring only repeats what a visible word beside it already says (a status heading, a task's step): it is hidden from screen readers instead of being a second progressbar. Its own `label` text still shows. |
 | `className` | `string` | — |  |
 | `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>`. |
 
@@ -78,7 +79,7 @@ Figma Progress-Circle (1531:13954) + Progress-Circle/Icon (6915:62964): 20px rin
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `progress/value-range` | error | Progress value is a percentage between 0 and 100. | `zen-allow-progress-range: <reason>` |
-| `progress/needs-label` | error | Progress needs a visible label or an aria-label. | `zen-allow-progress-label: <reason>` |
+| `progress/needs-label` | error | Progress needs a visible label or an aria-label; a ProgressCircle that only repeats a visible word beside it (a status heading) is `decorative` instead. | `zen-allow-progress-label: <reason>` |
 | `progress/quota-scale` | warn | A Status bar that measures usage against a limit (storage, quota, seats, credits) uses scale="quota" so high values turn Warning/Negative, not green. | `zen-allow-progress-scale: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 

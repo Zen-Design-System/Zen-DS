@@ -99,7 +99,7 @@ export function PlaygroundFilterChip({
 export function PlaygroundToggle({ label, selected, onChange }: { label: string; selected: boolean; onChange: (selected: boolean) => void }) {
   return <div className="platform-property-row" data-kind="boolean">
     <span className="platform-property-row__label">{label}</span>
-    <ToggleButton aria-label={label} selected={selected} onSelectedChange={onChange} size="medium" />
+    <ToggleButton aria-label={label} checked={selected} onCheckedChange={onChange} size="medium" />
   </div>;
 }
 

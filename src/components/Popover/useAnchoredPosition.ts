@@ -11,8 +11,9 @@ export interface AnchoredPositionOptions {
   anchor?: () => HTMLElement | null | undefined;
   /** Distance between the anchor box and the surface (Spacing/Gap/2XSmall = 4). */
   gap?: number;
-  /** Preferred horizontal edge; flips when the surface would overflow the viewport. When neither edge fits, the surface is
-   * shifted into the visible bounds instead (clampAnchoredLeft) and the returned `align` only records the edge it came from. */
+  /** Preferred horizontal edge; the other one on opening when only that fits. When its edge does not fit (neither does on
+   * opening, or the anchor moved while open), the surface is shifted into the visible bounds instead (clampAnchoredLeft)
+   * and the returned `align` only records the edge it came from. */
   align?: AnchoredAlign;
   /** Also write the anchor box's width (layout px) to the placement style as `--zen-anchor-width`, kept in step while the
    * anchor resizes, for a surface sized from its anchor (Popover `width="fill"` / `"hug"`). */
@@ -41,11 +42,12 @@ export function resolveAnchoredSide(previous: AnchoredSide | null, below: number
   return below >= above ? "bottom" : "top";
 }
 
-/** The horizontal edge, with the same memory as resolveAnchoredSide: the preferred edge on opening, flipping to the other
- * one only when it would overflow and the other one fits. */
+/** The horizontal edge: the preferred edge on opening, the other one when only that fits. While open it keeps the edge it
+ * opened on; when that edge no longer fits, the surface is shifted into view from it (clampAnchoredLeft) rather than
+ * flipped. A flip moved a surface pinned at one margin to the other edge's spot at once, a 64–96px jump as its anchor
+ * scrolled past (2026-10-24); shifted, it stays at the margin until the anchor brings it back. */
 export function resolveAnchoredAlign(previous: AnchoredAlign | null, preferred: AnchoredAlign, fitsStart: boolean, fitsEnd: boolean): AnchoredAlign {
-  const fits: Record<AnchoredAlign, boolean> = { start: fitsStart, end: fitsEnd };
-  if (previous && (fits[previous] || !fits[previous === "start" ? "end" : "start"])) return previous;
+  if (previous) return previous;
   return preferred === "end" ? (fitsEnd || !fitsStart ? "end" : "start") : (fitsStart || !fitsEnd ? "start" : "end");
 }
 
@@ -76,8 +78,8 @@ export function visibleBounds(from: HTMLElement, { viewport = true }: { viewport
 /**
  * Places an absolutely positioned surface (Popover, Date Picker) against its anchor box: below it,
  * `gap` px away, or above it when there is not enough room below and more room above. Horizontally
- * it aligns to the anchor's start edge, or its end edge when the start would overflow the viewport, and is shifted into
- * view when it fits on neither edge (clampAnchoredLeft).
+ * it aligns to the anchor's start edge, or its end edge when only that fits on opening, and is shifted into view when its
+ * edge does not fit (clampAnchoredLeft; resolveAnchoredAlign keeps the edge while open).
  * It re-measures while open on scroll, resize and when the surface changes size, in the same frame (no lag behind an
  * anchor in a scrolling panel), and keeps the side it opened on until that side would cut it off
  * (resolveAnchoredSide). Surfaces that are not `position: absolute` (inline pickers, Bunk-Action bars) are left alone.
@@ -139,13 +141,13 @@ export function useAnchoredPosition(surfaceRef: RefObject<HTMLElement | null>, a
       const resolvedAlign = resolveAnchoredAlign(lastAlign, align, fitsStart, fitsEnd);
       lastSide = side;
       lastAlign = resolvedAlign;
-      // It fits on neither edge (wider than the room on both sides of its anchor): shift it into view instead.
       if (trackAnchorWidth) {
         // offsetWidth is layout px, so the width is right inside a transform-scaled frame too.
         const measured = `${target.offsetWidth}px`;
         if (measureAnchor || anchorWidth === undefined) anchorWidth = measured;
         else if (measured !== anchorWidth) remeasureAnchor();
       }
+      // Its edge does not fit (wider than the room on that side of its anchor): shifted into view from that edge.
       const shifted = (resolvedAlign === "start" ? fitsStart : fitsEnd)
         ? null
         : clampAnchoredLeft(resolvedAlign === "start" ? box.left : box.right - width, width, bounds.left, bounds.right);

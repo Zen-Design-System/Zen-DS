@@ -19,11 +19,13 @@
    (backlog batch 6, user 2026-10-07). */
 [data-breakpoint="mobile"] .zen-card[data-spacing="medium"] { --zen-card-radius: var(--zen-corner-radius-xlarge, 20px); }
 /* Shadow: Shadow/Bottom/Level-1 (the card clips its content, so the spread-aware token applies). */
-.zen-card[data-tone="shadow"] { box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
+/* --zen-card-shadow: a page scope that sets an alt --zen-card-surface also sets it to `0 0 transparent` (a Shadow card on
+   Surface/Alt casts none, §9); an explicit surface puts it back to the token. */
+.zen-card[data-tone="shadow"] { box-shadow: var(--zen-card-shadow, var(--zen-style-shadow-bottom-level-1-shadow)); }
 /* Border: a static card is framed with Neutral/Pale (non-actionable container, §6); the clickable variant below steps up to Subtle.
    zen-allow-pale-actionable-box: this rule styles the static card only. */
 .zen-card[data-tone="border"] { box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
-.zen-card[data-surface="default"] { --zen-card-surface: var(--zen-color-background-surface-default, #fff); }
+.zen-card[data-surface="default"] { --zen-card-surface: var(--zen-color-background-surface-default, #fff); --zen-card-shadow: initial; }
 .zen-card[data-surface="alt"] { --zen-card-surface: var(--zen-color-background-surface-alt, #f7f7f7); }
 /* Flat-Border (Figma Theme=Flat-Border 15530:502–520, Border × Surface=Flat until 2026-10-21): the card of a Canvas/Flat
    page, Surface/Flat (the page colour in both modes) inside a Border/Neutral/Pale frame; its own fill, whatever the
@@ -163,10 +165,11 @@
 .zen-card[data-tone="on-container"], .zen-card[data-tone="on-container"][data-active="true"] { background: var(--zen-color-background-surface-flat, #fff); }
 /* Active=Yes: Surface fill + 2px INSIDE Card/Border/Active, on every theme (Shadow keeps its shadow). */
 .zen-card[data-active="true"] { background: var(--zen-card-surface, var(--zen-color-background-surface-default, #fff)); box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111); }
-.zen-card[data-tone="shadow"][data-active="true"] { box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111), var(--zen-style-shadow-bottom-level-1-shadow); }
+.zen-card[data-tone="shadow"][data-active="true"] { box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111), var(--zen-card-shadow, var(--zen-style-shadow-bottom-level-1-shadow)); }
 /* Shadow on Surface/Alt: Surface-Alt never casts an outer shadow (component-usage-rules §9), so the card renders as Figma
    Theme=Default (6643:51018) on Surface/Alt, which already stands apart from a white Canvas/Alt page (§11); Selected keeps
-   its 2px inside stroke. CSS cannot read an inherited --zen-card-surface value: on an alt page scope pass surface="alt". */
+   its 2px inside stroke. CSS cannot read an inherited --zen-card-surface value, so an alt page scope sets
+   --zen-card-shadow too (the docs platform's alt canvas does); surface="alt" does it on the card itself. */
 .zen-card[data-tone="shadow"][data-surface="alt"] { box-shadow: none; }
 .zen-card[data-tone="shadow"][data-surface="alt"][data-active="true"] { box-shadow: inset 0 0 0 2px var(--zen-card-border-active, #111); }
 

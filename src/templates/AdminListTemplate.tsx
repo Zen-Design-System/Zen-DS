@@ -9,7 +9,8 @@
  * - Table: select rows, sort by member, role, status or last active; each row's Menu copies the email, resends or revokes an
  *   invite, changes the role, suspends or restores access and removes the member (negative Dialog). Undoable changes
  *   act at once and offer Undo in a Toast. Inline Pagination below.
- * - Selected rows bring up a sticky ActionBar: Change role and Remove members for the whole selection.
+ * - Selected rows bring up the Table's bulk-action bar (Figma Popover/Bulk-Action): Change role and Remove for the
+ *   whole selection, skipping you and the owner.
  * - Phone and upright tablet (the shell's mobile layout, below 1024px): a TopNavigation with the account (its menu in a
  *   Bottom Sheet), Invite members, Notifications and More (Export), the seat usage at the top of the page, and a Bottom
  *   Navigation with the Sidebar's first four rows and More (the rest in a sheet). On a phone the members are a List; a row
@@ -17,7 +18,6 @@
  */
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  ActionBar,
   AppShell,
   AppShellAccount,
   AppShellAction,
@@ -553,7 +553,16 @@ export function AdminListTemplate() {
         ) : (
           <Table ref={tableRef} aria-label="Team members" rows={rows} getRowId={(row) => row.id} columns={columns}
             sort={sort} onSortChange={(next) => { setSort(next); setPage(1); }}
-            selectable selectedIds={selected} onSelectionChange={setSelected} empty={empty} />
+            selectable selectedIds={selected} onSelectionChange={setSelected} empty={empty}
+            // Figma Popover/Bulk-Action under the table: Change role and Remove for the selection; you and the owner are
+            // skipped (their names say so), and an action with nobody left to act on is disabled.
+            bulkActions={() => {
+              const skip = skipped.length ? ` (skips ${skipped.join(" and ")})` : "";
+              return [
+                { id: "role", icon: "icon-user-edit-line", label: `Change role for ${plural(pickedEditable.length, "member")}${skip}`, disabled: !pickedEditable.length, onClick: () => openRole(pickedEditable) },
+                { id: "remove", icon: "icon-user-x-line", label: `Remove ${plural(pickedEditable.length, "member")}${skip}`, disabled: !pickedEditable.length, onClick: () => openRemove(pickedEditable) },
+              ];
+            }} />
         )}
 
         {shown.length > 10 ? (
@@ -564,20 +573,6 @@ export function AdminListTemplate() {
           </Stack>
         ) : null}
       </Stack>
-
-      {picked.length ? (
-        <ActionBar direction="horizontal" aria-label="Selected members"
-          summary={(
-            <Stack direction="row" gap="xs" align="center">
-              <IconButton appearance="flat" level="primary" aria-label="Clear selection" icon="icon-x-line" onClick={() => setSelected([])} />
-              <Text as="span" role="status" textStyle="Body/Base/Medium">
-                {plural(picked.length, "member")} selected{skipped.length ? ` · Actions skip ${skipped.join(" and ")}` : ""}
-              </Text>
-            </Stack>
-          )}
-          secondaryAction={{ label: "Change role", disabled: !pickedEditable.length, onClick: () => openRole(pickedEditable) }}
-          primaryAction={{ label: pickedEditable.length === 1 ? "Remove member" : "Remove members", level: "danger", disabled: !pickedEditable.length, onClick: () => openRemove(pickedEditable) }} />
-      ) : null}
 
       {/* Phone filters: picks keep the sheet open; Show closes it on the filtered list. */}
       <BottomSheet open={sheet !== null} onOpenChange={(open) => { if (!open) setSheet(null); }} title={sheet ?? "Filter"}

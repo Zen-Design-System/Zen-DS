@@ -305,8 +305,15 @@ export interface ModalFormProps extends OverlayOpenProps {
   side?: ReactNode;
   /** Figma Top-Customize slot, rendered above the header (e.g. a Stepper or a banner). */
   top?: ReactNode;
-  /** Figma Default-Header. */
+  /**
+   * Figma Default-Header. Off, the title still names the modal for screen readers (kept as a visually hidden heading) and
+   * the description is not read; with no title, give `aria-label` or `aria-labelledby`.
+   */
   header?: boolean;
+  /** Names the modal when it has no `title` (or overrides it), e.g. with `header={false}` and a Stepper on `top`. */
+  "aria-label"?: string;
+  /** The id of a visible element that names the modal (a heading in `top`, say); wins over `title` and `aria-label`. */
+  "aria-labelledby"?: string;
   /** Figma Close: the 32px Button/Icon-Flat in the top-right corner. */
   closeButton?: boolean;
   /** Accessible name of the close button. Default: the locale's “Close”. */
@@ -345,7 +352,7 @@ export interface ModalFormProps extends OverlayOpenProps {
  * Half-Half and 3-4 layouts add a Side-Content column 4px apart. Below 720px the side column stacks above the form.
  * Inside a device frame (`[data-zen-overlay-root]`) it opens in that frame, like Dialog. With `onSubmit` it is a
  * `<form noValidate>` that behaves like Form: a blocked submit focuses the first invalid field and announces the count. */
-export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, layout = "basic", side, top, header = true, closeButton = true, closeLabel: closeLabelProp, children, primaryAction, secondaryAction, tertiaryAction, actionsDirection = "horizontal", onSubmit, noValidate = true, invalidMessage: invalidMessageProp, dismissible = true, className, overrides, ref, ...rest }: ModalFormProps) {
+export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, headingLevel = 2, description, layout = "basic", side, top, header = true, "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, closeButton = true, closeLabel: closeLabelProp, children, primaryAction, secondaryAction, tertiaryAction, actionsDirection = "horizontal", onSubmit, noValidate = true, invalidMessage: invalidMessageProp, dismissible = true, className, overrides, ref, ...rest }: ModalFormProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
@@ -375,6 +382,8 @@ export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangePr
           {description ? <p id={`${id}-desc`} className={`zen-modal-form__description ${typographyStyles["Body/Base/Regular"]}`}>{description}</p> : null}
         </header>
       ) : null}
+      {/* No Default-Header: the title stays in the outline and names the modal, for screen readers only. */}
+      {!header && title ? <VisuallyHidden><Title id={`${id}-title`}>{title}</Title></VisuallyHidden> : null}
       {children ? <div className="zen-modal-form__body">{nest.slot(children)}</div> : null}
       {nest("Actions", <ModalActions className="zen-modal-form__footer" primaryAction={primaryAction} secondaryAction={secondaryAction} tertiaryAction={tertiaryAction} direction={actionsDirection} onDefault={() => onOpenChange(false)} submitPrimary={Boolean(onSubmit)} />)}
       {closeButton ? nest("Close", <IconButton className="zen-modal-form__close" appearance="flat" level="primary" size="sm" aria-label={closeLabel} icon={<Icon name="icon-x-medium-line" />} onClick={() => onOpenChange(false)} />) : null}
@@ -408,7 +417,7 @@ export function ModalForm({ open: openProp, isOpen, onOpenChange: onOpenChangePr
   };
   const overlay = (
     <div className="zen-dialog-overlay" data-state={phase} data-contained={host.contained ? "true" : undefined} onPointerDown={(event) => { if (!closing && dismissible && event.target === event.currentTarget) onOpenChange(false); }}>
-      <div {...dataAttributes(rest)} ref={mergedPanelRef} data-state={phase} inert={closing} aria-hidden={closing || undefined} role="dialog" aria-modal="true" aria-labelledby={title ? `${id}-title` : undefined} aria-describedby={description ? `${id}-desc` : undefined} tabIndex={-1}
+      <div {...dataAttributes(rest)} ref={mergedPanelRef} data-state={phase} inert={closing} aria-hidden={closing || undefined} role="dialog" aria-modal="true" aria-label={ariaLabelledBy ? undefined : ariaLabel} aria-labelledby={ariaLabelledBy ?? (title && !ariaLabel ? `${id}-title` : undefined)} aria-describedby={header && description ? `${id}-desc` : undefined} tabIndex={-1}
         className={["zen-modal-form", className].filter(Boolean).join(" ")} data-layout={layout} data-side={hasSide ? "true" : "false"}>
         {onSubmit
           ? <form className="zen-modal-form__content" noValidate={noValidate} onSubmit={submit}>{inner}</form>

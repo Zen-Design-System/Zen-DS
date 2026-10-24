@@ -3,7 +3,9 @@
    (Element-Size/Popular/Base 20) + Spacing/Gap/XSmall (8) + label; label Body/Base Regular|Medium, Neutral/Strongest.
    Hover: an absolute Hover-Base plate (Neutral/Flat/Hover, Corner-Radius/Small) that bleeds past the item without
    moving the layout — Sub −8 / −4 (52×28 around a 36×20 label), Master −4 left, −8 right, −4 top/bottom (76×28).
-   The plate is a ::before, so it is also the pointer target (28px tall) and carries the focus ring.
+   The plate is a ::before, so it is also the pointer target (28px tall) and carries the focus ring. With the Dash 4px
+   away, the Sub plate's 8px bleed tints the chevron's first 4px on hover: Figma's own geometry (the values above),
+   kept; the chevron paints above the plate, so it stays whole.
    Primitives/Breadcrumbs/Item/Slot (4031:20158): the item and its Dash (icon-chevron-right-line-small, Popular/Base 20,
    Neutral/Light) sit Spacing/Gap/2XSmall (4) apart; the Item-List slot spaces slots by Spacing/Gap/XSmall (8).
    (Breadcrumbs' own Spacing/Gap/3XSmall (2) only spaces the single Item-List child, so it never renders.) */
