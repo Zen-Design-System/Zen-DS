@@ -21,6 +21,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
   the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are
   compared, with no drift found.
+- Zen Studio: Present on a Screen of a page you made (the frame toolbar's ▷, the Design tab's Present, ⌘K › Present)
+  plays its prototype from that frame, as ⌥⌘↵ does, instead of showing it as a still frame where Open overlay never ran;
+  a Screen state's frame starts in that state (2026-10-24).
 - Zen Studio: moving a layer that a `const` shows in several places (`{phone ? card : null}` and `trailing={card}`) no
   longer asks "Move in all N places?": only the `{…}` where this one shows moves (2026-10-24).
 - TopNavigation (2026-10-24): `titleMenu` makes the bar title a Dropdown (Figma Heading-Text Dropdown: the title and a
