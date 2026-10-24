@@ -22,6 +22,8 @@ import { OverrideProperties } from "../inspector/OverrideProperties";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { EditOp, EditValue, ObjectShape, SourceAttr, SourceElement, StudioSelection } from "../types";
 import { bodyRows, fieldText, rowFieldsOf, tableCellOf, tableData, tableFiberOf, TABLE_PARTS, type TableCellHit, type TableColumnInfo } from "./tableCells";
+import { axisFor, cellsCode, cellsComponent, slotComponents, slotKey } from "./cellComponents";
+import { libraryOf } from "../project/projectLibrary";
 
 /*
  * The Inspector of a Table's Data-Row and Cell (user, 2026-10-10: "phải chọn được loại dữ liệu của cell", "giống Figma
@@ -386,8 +388,14 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
   const innerChild = content?.children.find((child) => child.kind === "element");
   const inner = useElement(content && innerChild?.kind === "element" ? `${content.file}:${innerChild.loc}` : null);
   const drawn = !column?.cell;
-  const kind = drawn ? (column?.content ?? "text") : contentOfWritten(content);
   const shape = drawn && column ? columnShape(table, column.id) : null;
+  // Figma's Content slot may hold an instance of the project's own component, one per value (`cells`): the project's
+  // component sets are Content options beside the Zen cells.
+  const localPage = useStudio((state) => state.localPage);
+  const slotSets = drawn ? slotComponents(localPage ? libraryOf(localPage) : undefined, localPage) : [];
+  const cellsField = shape && !("reason" in shape) ? fieldOf(shape.shape, "cells") : undefined;
+  const holding = cellsComponent(cellsField && "value" in cellsField ? String(cellsField.value) : undefined);
+  const kind = holding ? "component" : drawn ? (column?.content ?? "text") : contentOfWritten(content);
   const columnLocked = !editable || (drawn ? !shape || "reason" in shape : !content);
   // A text the cell draws reads as Figma's text layer (⌘-click's deep select lands on it).
   const title = part.name === TABLE_PARTS.cell ? "Cell" : !part.isComponent && ownsText(part.element) ? "Text" : part.name;
@@ -400,10 +408,18 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
     void edit(table, ops, `${header} column: ${label}`);
   };
   const setContent = (next: string) => {
+    const component = slotSets.find((candidate) => slotKey(candidate) === next);
+    if (drawn && component && column) {
+      // One instance per value: the variant property whose values name the column's values, every value of it.
+      const field = column.field ?? column.id;
+      const values = tableData(cell.table).rows.map((row) => fieldText((row as Record<string, unknown> | null)?.[field])).filter((value): value is string => Boolean(value));
+      setColumn({ cells: { kind: "expression", code: cellsCode(component, axisFor(component, values)) } }, `Content → ${component.name}`);
+      return;
+    }
     if (drawn) {
       // Actions starts with Figma's default button; leaving it drops the column's buttons.
       const actions = next === "actions" ? (column?.actions?.length ? undefined : { kind: "expression" as const, code: DEFAULT_ACTIONS }) : column?.actions ? null : undefined;
-      setColumn({ content: next === "text" ? null : { kind: "string", value: next }, ...(actions === undefined ? {} : { actions }) }, `Content → ${CONTENT_LABELS[next] ?? next}`);
+      setColumn({ content: next === "text" ? null : { kind: "string", value: next }, ...(actions === undefined ? {} : { actions }), ...(cellsField ? { cells: null } : {}) }, `Content → ${CONTENT_LABELS[next] ?? next}`);
       return;
     }
     if (!content || !CONTENTS.includes(next as Content)) return;
@@ -489,7 +505,11 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
       // page you made; example code keeps a text field). A row without the field gets it (data-source.mjs).
       const text = typeof record[key] === "string" || record[key] === undefined;
       const value = typeof record[key] === "string" ? (record[key] as string) : undefined;
-      const field = <ValueField label={label} value={record[key]} disabled={rowsLocked} onSet={set} />;
+      // A column of component instances (`cells`) takes one of its values, as Figma swaps the variant in the slot.
+      const choices = holding && label === "Label" ? Object.keys(column.cells ?? {}) : null;
+      const field = choices?.length
+        ? <EnumControl label={label} value={value ?? ""} fallback="" disabled={rowsLocked} options={value && !choices.includes(value) ? [value, ...choices] : choices} onSet={(next) => set({ kind: "string", value: next })} />
+        : <ValueField label={label} value={record[key]} disabled={rowsLocked} onSet={set} />;
       valueRows.push(
         <InspectorRow key={key} label={label} labelTitle={key} name={`value-${key}`}>
           {label === "Icon" && text
@@ -515,7 +535,9 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
         <InspectorRow label="Content" name="content">
           {!drawn && (kind === "actions" || kind === "custom")
             ? <span className={typographyStyles["Body/Small/Regular"]}>{CONTENT_LABELS[kind]}</span>
-            : <EnumControl label="Content" value={kind} fallback="text" disabled={columnLocked} options={drawn ? [...CONTENTS] : CONTENTS.filter((option) => option !== "actions")} labels={CONTENT_LABELS} onSet={setContent} />}
+            : <EnumControl label="Content" value={holding ? slotKey(holding) : kind} fallback="text" disabled={columnLocked}
+                options={drawn ? [...CONTENTS, ...slotSets.map(slotKey), ...(holding && !slotSets.some((set) => slotKey(set) === slotKey(holding)) ? [slotKey(holding)] : [])] : CONTENTS.filter((option) => option !== "actions")}
+                labels={{ ...CONTENT_LABELS, ...Object.fromEntries(slotSets.map((set) => [slotKey(set), set.name])), ...(holding ? { [slotKey(holding)]: slotSets.find((set) => slotKey(set) === slotKey(holding))?.name ?? holding.id } : {}) }} onSet={setContent} />}
         </InspectorRow>
         <InspectorRow label="Align" name="align" hint={columnShapeForAlign && "reason" in columnShapeForAlign ? columnShapeForAlign.reason : undefined}>
           <EnumControl label="Align" value={align} fallback="left" disabled={!editable || !columnShapeForAlign || "reason" in columnShapeForAlign} options={["left", "right"]} labels={{ left: "Left", right: "Right" }} onSet={setAlign} />

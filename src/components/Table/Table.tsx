@@ -90,6 +90,14 @@ export interface TableColumn<T> {
    *  then reads and writes the row's `field` itself (select lists the column's values, tags suggest them) and keeps the
    *  edit, or hands it to the Table's `onCellCommit`. */
   edit?: TableCellEditor<T> | TableCellEditorType | true;
+  /**
+   * Figma Table/Cell/Default › Content slot by value: the layer a cell holds for each value of the row's `field`, such as
+   * an instance of the project's own Status component whose variant is that value (Figma's cells hold one instance per
+   * value in their Content slot). A cell whose value has no entry draws by `content`. The column's select lists these
+   * values first (`editable` makes it a select) and draws each option with its layer; a pick shows the new value's layer.
+   * One value per cell; a column's `cell` function wins.
+   */
+  cells?: Record<string, ReactNode>;
   /** Figma Open-Button: an XSmall Tertiary "Open" button on the right of the cell while its row is hovered. */
   onOpen?: (row: T) => void;
   /** Label of the Open button (default: the locale's "Open"). */
@@ -247,7 +255,7 @@ type EditEnd = { refocus: boolean };
  * follows Notion's database cells: one click edits, text grows to show long values, Enter saves (Shift+Enter adds a
  * line), Escape leaves and keeps what was typed, select/tags open a searchable list at once, Enter picks the top
  * match or creates the typed tag. */
-function TableCellEditorView<T>({ editor, row, initial, align, content, looks, onDone, onMove }: {
+function TableCellEditorView<T>({ editor, row, initial, align, content, looks, cells, onDone, onMove }: {
   editor: TableCellEditor<T>;
   row: T;
   /** Seed for a text/number edit started by typing a character (replaces the value) or Backspace (""). */
@@ -257,6 +265,8 @@ function TableCellEditorView<T>({ editor, row, initial, align, content, looks, o
   content?: TableCellContent;
   /** The column's look per value (pictures, badge overrides). */
   looks?: ValueLooks;
+  /** The column's Content-slot layer per value: a select draws each option with it. */
+  cells?: Record<string, ReactNode>;
   onDone: (end: EditEnd) => void;
   onMove: (direction: 1 | -1) => void;
 }) {
@@ -317,6 +327,9 @@ function TableCellEditorView<T>({ editor, row, initial, align, content, looks, o
     const pictured = content === "avatar" || square || options.some((option) => option.photoSrc);
     const items = visible.map((option): PopoverItemData => {
       const item = { id: option.value, label: option.label, selected: option.value === current };
+      // A value with its own layer (`cells`, e.g. the project's Status instance) draws as that layer.
+      const layer = layerOf(cells, option.value);
+      if (layer !== undefined) return { ...item, label: layer };
       const look = looks?.get(option.value);
       if (content === "badge") return { ...item, theme: "badge", badgeTheme: look?.badge?.theme as BadgeTheme | undefined };
       if (!pictured) return item;
@@ -327,9 +340,9 @@ function TableCellEditorView<T>({ editor, row, initial, align, content, looks, o
     });
     // The option's Badge as the cell draws it (Medium Subtle, no icon) with the value's overrides on top.
     const badgeLooks = content === "badge"
-      ? Object.fromEntries(visible.map((option) => [`${nestedSegment("Item", option.value)}/Badge`, { background: "subtle", ...looks?.get(option.value)?.badge }]))
+      ? Object.fromEntries(visible.filter((option) => layerOf(cells, option.value) === undefined).map((option) => [`${nestedSegment("Item", option.value)}/Badge`, { background: "subtle", ...looks?.get(option.value)?.badge }]))
       : undefined;
-    const currentLabel = options.find((option) => option.value === current)?.label ?? current;
+    const currentLabel = layerOf(cells, current) ?? options.find((option) => option.value === current)?.label ?? current;
     const pick = (value: string) => { if (value !== current) (editor.onCommit as (row: T, value: string) => void)(row, value); finish({ refocus: true }); };
     return (
       <div ref={fieldRef} className="zen-table-editor" data-align={align} data-type="select" onMouseDown={(event) => { event.preventDefault(); setOpen(true); }}>
@@ -624,7 +637,7 @@ export function Table<T>({ ref, columns, rows: rowsProp, data, getRowId: getRowI
                         // The original content stays (hidden) so the column width and row height never change;
                         // the editor overlays the cell.
                         ? <><div className="zen-table__content zen-table__cell-ghost" aria-hidden="true">{cellOf(column, row, index, cellNest)}</div><TableCellEditorView editor={editor} row={row} initial={editing?.initial} align={column.align ?? "left"}
-                            content={column.cell ? undefined : column.content} looks={looks.get(column.id)}
+                            content={column.cell ? undefined : column.content} looks={looks.get(column.id)} cells={column.cell ? undefined : column.cells}
                             onDone={({ refocus }) => { setEditing((current) => (current?.row === id && current.col === column.id ? null : current)); if (refocus) focusCell(cell, true); }}
                             onMove={(direction) => { const next = neighbour(cell, 0, direction, true); if (next) focusCell(next); }} /></>
                         : <>{content}{open}</>}
@@ -858,8 +871,10 @@ const textOf = (value: unknown) => (typeof value === "string" || typeof value ==
  * null for a column with its own `cell`, a checkbox or a toggle. A list of values edits as tags, a badge as a select
  * among the column's values, a number as a number, anything else as text. Zen Studio writes the same type on a column.
  */
-export function tableEditorTypeFor(column: { cell?: unknown; content?: string; field?: string; id: string }, rows: readonly unknown[]): TableCellEditorType | null {
+export function tableEditorTypeFor(column: { cell?: unknown; cells?: unknown; content?: string; field?: string; id: string }, rows: readonly unknown[]): TableCellEditorType | null {
   if (column.cell) return null;
+  // A layer per value is a closed set, like a component's variants.
+  if (column.cells && typeof column.cells === "object") return "select";
   const content = column.content ?? "text";
   if (content === "checkbox" || content === "toggle" || content === "actions") return null;
   const field = column.field ?? column.id;
@@ -886,7 +901,7 @@ function editorOf<T>(column: TableColumn<T>, rows: T[], tableEditable: boolean, 
   if (type === "select") {
     // An avatar or photo column: each option shows its value's picture, and a pick brings that picture to the row.
     const media = (column.content === "avatar" || column.content === "photo") && column.mediaField ? column.mediaField : null;
-    const options = [...new Set(rows.flatMap(list))].map((value) => {
+    const options = [...new Set([...Object.keys(column.cell ? {} : column.cells ?? {}), ...rows.flatMap(list)])].map((value) => {
       const photo = media ? looks?.get(value)?.photo : undefined;
       return photo ? { value, label: value, photoSrc: photo } : { value, label: value };
     });
@@ -895,6 +910,12 @@ function editorOf<T>(column: TableColumn<T>, rows: T[], tableEditable: boolean, 
   }
   return { type, value: (row) => textOf(read(row)), "aria-label": label, onCommit: (row, value) => commit(row, column, field, value) };
 }
+/** A column's Content-slot layer for a value (`cells`), or undefined when it has none. */
+function layerOf(cells: Record<string, ReactNode> | undefined, value: unknown): ReactNode | undefined {
+  const key = textOf(value);
+  return cells && key && Object.hasOwn(cells, key) && cells[key] !== null && cells[key] !== undefined ? cells[key] : undefined;
+}
+
 /** Per value of a picture or badge column, how its cells draw it (valueLooks). */
 type ValueLooks = Map<string, { photo?: string; badge?: Readonly<Record<string, unknown>> }>;
 
@@ -965,6 +986,9 @@ function cellOf<T>(column: TableColumn<T>, row: T, index: number, nest: Nest): R
   if (column.cell) return nest.slot(column.cell(row, index));
   const record = (row ?? {}) as Record<string, unknown>;
   const value = record[column.field ?? column.id];
+  // The Content slot's layer for this value (the page's own instance, outside the Table's nested scope).
+  const layer = layerOf(column.cells, value);
+  if (layer !== undefined) return nest.slot(layer);
   const label = textOf(value);
   const caption = column.captionField ? textOf(record[column.captionField]) || undefined : undefined;
   const media = column.mediaField ? textOf(record[column.mediaField]) : "";

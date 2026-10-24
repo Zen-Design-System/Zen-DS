@@ -294,3 +294,27 @@ Branch claude/table-select-media-00c331, from "Full prototype tạo task" (Studi
 - **Figma:** the Table contract covers the text editor only (Editabled-Cell); Popover/Item content themes are its own.
 - **Tests:** tests/interaction/table-select-looks.test.tsx (avatars + initials + photo follows the pick; badges + look
   follows the pick; `edit` object options with photoSrc). Guideline: Table › Editable cells + one Do line.
+
+
+## Table `cells`: a project component per value (tier M; user 2026-10-24 "Duyệt hướng cells", after #285)
+
+Branch claude/table-cells-instances (stacked on #285's aa07ad60). The user: status/priority looks belong to the project
+("component này thuộc quản lý của dự án không thuộc Zen DS"); Figma's Table/Cell/Default holds one instance per value in
+its `Content#4081:111` SLOT (read from the live file: 1603:23604).
+- **Table.tsx:** `cells?: Record<string, ReactNode>` on TableColumn. cellOf puts the value's layer in the Content slot
+  (`nest.slot`, the page's own scope); a value without one draws by `content`. `tableEditorTypeFor` makes it a select;
+  options = cells keys first, then row values; each option's label is its layer; the editor field shows the current one.
+- **Studio:** `table/cellComponents.ts` (+ selftest): the project's sets from the canvas library, the variant property
+  that names the column's values, `cellsCode` → `{ "V": <Use of page variant /> … }`. TableCellPanel: Content lists the
+  sets beside the Zen cells (a pick writes `cells`, a Zen content removes it); Value is an enum of the cells' keys.
+  Dialect, canvas render and React export needed no change once compile-api knew the field (`<Status status="…" />`).
+- **Figma push:** tableNode converts the raw `cells` element of the row's value (`convert`) into the Content slot.
+  **Pull:** readTable reads a project/local instance in the Content slot as `layer`; `layerColumn` writes `cells` (every
+  variant of a set on the page, in its order) and the rows' values from the varying variant property.
+- **Live Figma check** (rule test-in-real-figma): the real importer (minified, unused paths stubbed, `figma` proxied for
+  loadAllPagesAsync) placed the package on a QA page: 0 notes, row 1's Content slot held `Status=Done` (set local
+  `status`), row 2 a Badge-Cell. The real reader read it back as `layer`; pull → `cells: { Doing, Done }`. The read is
+  fixtures/figma-table-cells.json. QA frame and page removed. Two bed lessons: `missingNote` stub must return [], and
+  `loadAllPagesAsync` needs the proxy (use_figma refuses it).
+- **Tests:** table-select-looks (+cells row), figma-push §30, figma-pull (hand-built + live), cellComponents selftest,
+  E2E B-47 (Content → Status, cells drawn, Value → Done) — not run yet: needs the gate slot.

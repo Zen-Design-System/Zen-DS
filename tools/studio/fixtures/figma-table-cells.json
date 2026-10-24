@@ -1,0 +1,246 @@
+{
+ "note": "Live read (figmaReadCode) of a page pushed by figma-push and placed by the real Studio importer in the Zen file, 2026-10-24: a Status set and a Table whose status cell holds a Status instance in its Content slot (the other row a Badge-Cell). The QA frame was removed after the read.",
+ "frame": {
+  "type": "FRAME",
+  "id": "17183:4",
+  "name": "Tasks",
+  "file": "9nZv4uW2LT21yuHabMTCh1",
+  "width": 1440,
+  "height": 900,
+  "key": "nmvmm92p32jc3",
+  "page": "qa-table-cells",
+  "children": [
+   {
+    "type": "COMPONENT_SET",
+    "id": "17183:40",
+    "name": "Status",
+    "children": [
+     {
+      "type": "COMPONENT",
+      "id": "17183:6",
+      "name": "Status=Doing",
+      "children": [
+       {
+        "type": "INSTANCE",
+        "id": "17183:7",
+        "name": "Badge",
+        "set": {
+         "id": "260:4825",
+         "name": "Badge"
+        },
+        "props": {
+         "Leading-Icon-Src": "icon-circle-small-solid",
+         "Text": "Doing",
+         "Leading-Icon": true,
+         "Remove": false,
+         "Size": "Medium",
+         "Theme": "Blue",
+         "Background": "Subtle"
+        },
+        "text": "Doing",
+        "texts": [
+         {
+          "name": "Label",
+          "characters": "Doing"
+         }
+        ],
+        "key": "nmvmm92p35ii1",
+        "nameGiven": false,
+        "minW": 28
+       }
+      ],
+      "local": "status-doing",
+      "variant": {
+       "Status": "Doing"
+      },
+      "layout": {
+       "mode": "VERTICAL"
+      },
+      "key": "nmvmm92p34bvw"
+     },
+     {
+      "type": "COMPONENT",
+      "id": "17183:24",
+      "name": "Status=Done",
+      "children": [
+       {
+        "type": "INSTANCE",
+        "id": "17183:25",
+        "name": "Badge",
+        "set": {
+         "id": "260:4825",
+         "name": "Badge"
+        },
+        "props": {
+         "Leading-Icon-Src": "icon-circle-small-solid",
+         "Text": "Done",
+         "Leading-Icon": true,
+         "Remove": false,
+         "Size": "Medium",
+         "Theme": "Green",
+         "Background": "Subtle"
+        },
+        "text": "Done",
+        "texts": [
+         {
+          "name": "Label",
+          "characters": "Done"
+         }
+        ],
+        "key": "nmvmm92p379vo",
+        "nameGiven": false,
+        "minW": 28
+       }
+      ],
+      "local": "status-done",
+      "variant": {
+       "Status": "Done"
+      },
+      "layout": {
+       "mode": "VERTICAL"
+      },
+      "key": "nmvmm92p363s4"
+     }
+    ],
+    "local": "status",
+    "clip": true,
+    "radii": [
+     5,
+     5,
+     5,
+     5
+    ],
+    "radiiVars": [
+     null,
+     null,
+     null,
+     null
+    ],
+    "layout": {
+     "mode": "HORIZONTAL",
+     "gap": 24,
+     "padding": [
+      24,
+      24,
+      24,
+      24
+     ],
+     "wrap": true
+    },
+    "key": "nmvmm92p33s8r"
+   },
+   {
+    "type": "TABLE",
+    "id": "17183:41",
+    "name": "Tasks",
+    "header": [
+     {
+      "id": "I17183:42;4035:10637;17183:87",
+      "w": 720,
+      "fill": true,
+      "label": "Task"
+     },
+     {
+      "id": "I17183:42;4035:10637;17183:121",
+      "w": 720,
+      "fill": true,
+      "label": "Status"
+     }
+    ],
+    "rows": [
+     {
+      "id": "17183:122",
+      "cells": [
+       {
+        "id": "I17183:122;4035:10637;17183:158",
+        "w": 720,
+        "fill": true,
+        "kind": "Text-Cell",
+        "props": {
+         "Caption": false,
+         "Bold": "No"
+        },
+        "texts": [
+         "Agenda"
+        ]
+       },
+       {
+        "id": "I17183:122;4035:10637;17183:205",
+        "w": 720,
+        "fill": true,
+        "kind": null,
+        "props": {},
+        "layer": {
+         "type": "INSTANCE",
+         "id": "I17183:122;4035:10637;17183:205;4081:18370;17183:203",
+         "name": "Status",
+         "local": "status",
+         "variant": {
+          "Status": "Done"
+         }
+        },
+        "texts": [
+         "Done"
+        ]
+       }
+      ]
+     },
+     {
+      "id": "17183:213",
+      "cells": [
+       {
+        "id": "I17183:213;4035:10637;17183:247",
+        "w": 720,
+        "fill": true,
+        "kind": "Text-Cell",
+        "props": {
+         "Caption": false,
+         "Bold": "No"
+        },
+        "texts": [
+         "Minutes"
+        ]
+       },
+       {
+        "id": "I17183:213;4035:10637;17183:325",
+        "w": 720,
+        "fill": true,
+        "kind": "Badge-Cell",
+        "props": {
+         "Variant": "Default"
+        },
+        "texts": [
+         "Late"
+        ],
+        "parts": [
+         {
+          "id": "I17183:213;4035:10637;17183:325;4081:18370;17183:317;4035:11662;17183:314",
+          "set": {
+           "id": "260:4825",
+           "name": "Badge"
+          },
+          "props": {
+           "Leading-Icon-Src": "icon-circle-small-solid",
+           "Leading-Icon": false,
+           "Text": "Late",
+           "Remove": false,
+           "Size": "Medium",
+           "Theme": "Neutral",
+           "Background": "Subtle"
+          },
+          "text": "Late"
+         }
+        ]
+       }
+      ]
+     }
+    ],
+    "key": "nmvmm92p38ob3",
+    "fillW": true
+   }
+  ],
+  "layout": {
+   "mode": "VERTICAL"
+  }
+ }
+}

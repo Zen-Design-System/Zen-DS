@@ -703,6 +703,15 @@ const readTable = async (node, rows, root) => {
         cells.push({ ...base, label: props.Label === false ? "" : named ? named[1] : firstText(cell) || "", ...(props.Type === "Sort" ? { sort: true } : {}), ...(sorted ? { sorted } : {}), ...(props.Type === "Checkbox" ? { checkbox: true } : {}), ...(props.Icon === true && swap ? { icon: swap[1] } : {}) });
         continue;
       }
+      // A project component's instance in the Content slot (one per value, figma-push tableNode): the layer itself.
+      const content = cell.findOne((n) => n.type === "SLOT");
+      const held = content ? content.children.find((child) => child.visible) : null;
+      const heldOwner = held && held.type === "INSTANCE" ? ownerOf(await held.getMainComponentAsync()) : null;
+      if (heldOwner && (pageOwn(heldOwner) || projectOwn(heldOwner))) {
+        const layer = pageOwn(heldOwner) ? await readLocalInstance(held, heldOwner) : await readProjectInstance(held, heldOwner);
+        cells.push({ ...base, kind: null, props: {}, layer, ...(props["Open-Button"] === true ? { open: true } : {}), texts: held.findAll((t) => t.type === "TEXT" && t.visible).map((t) => t.characters) });
+        continue;
+      }
       let kind = null;
       let kindProps = {};
       const parts = [];
@@ -1241,6 +1250,34 @@ function cellActions(cell, mapping, notes, where) {
 }
 
 /**
+ * A Table column whose cells hold a project component's instance in their Content slot (figma-push tableNode, one per
+ * value): `cells` (each value → its `<Use>`) and the rows' values, read from the variant property that differs from row
+ * to row. Null for any other column.
+ */
+function layerColumn(cells, ctx) {
+  const layers = cells.map((cell) => cell?.layer ?? null);
+  if (!layers.some(Boolean)) return null;
+  // The variant property that tells the values apart (the one whose value changes from row to row), else the first.
+  const axes = [...new Set(layers.flatMap((layer) => Object.keys(layer?.variant ?? {})))];
+  const axis = axes.find((name) => new Set(layers.map((layer) => layer?.variant?.[name])).size > 1) ?? axes[0];
+  const values = cells.map((cell, at) => (layers[at] ? String(layers[at].variant?.[axis] ?? cell.texts?.[0] ?? "") : cell?.texts?.[0] ?? ""));
+  const shown = new Map();
+  layers.forEach((layer, at) => { if (layer && values[at] && !shown.has(values[at])) shown.set(values[at], layer); });
+  // A set of this page lends every value of its variants, in its order, so a value no row shows stays in the select
+  // (the Studio writes all of them; Figma's rows show only the used ones).
+  const first = [...shown.values()][0];
+  const set = first && !first.page ? ctx.local.variants.get(pageValue(first.local, ctx)) ?? [] : [];
+  const order = [...new Set([...set.map((main) => main.variant?.[axis]).filter((value) => typeof value === "string" && value), ...shown.keys()])];
+  const fields = {};
+  for (const value of order) {
+    const layer = shown.get(value) ?? { type: "INSTANCE", name: first.name, local: first.local, variant: { [axis]: value } };
+    const element = useElement(layer, ctx);
+    if (element) fields[value] = { kind: "element", node: element };
+  }
+  return Object.keys(fields).length ? { values, cells: { kind: "object", fields } } : null;
+}
+
+/**
  * Figma's Table (a frame of Primitives/Table/Data-Row instances, read by figmaReadCode as one TABLE) → the code's
  * <Table>: a column per header cell (its label, Sort, Align, a fixed width or Fill; its content from the first row's cell
  * primitive, Bold and Subtext from it), the rows written in the Table (as a design copy writes them: a later pull of the
@@ -1261,6 +1298,17 @@ function tableElement(node, ctx) {
   for (let index = selectable ? 1 : 0; index < Math.max(header.length, sample.length); index += 1) {
     const head = header[index] ?? {};
     const cell = sample[index] ?? {};
+    // Cells that hold a project component's instance in their Content slot, one per value: the column's `cells`.
+    const held = layerColumn(node.rows.map((row) => row.cells[index]), ctx);
+    if (held) {
+      const id = uniqueId(slug(head.label || `column ${index + 1}`), ids);
+      const fields = { id: literal(id), header: literal(head.label ?? ""), cells: held.cells };
+      if (head.sort) fields.sortable = literal(true);
+      if ((cell.align ?? head.align) === "Right") fields.align = literal("right");
+      if (!(cell.fill ?? head.fill) && (cell.w ?? head.w)) fields.width = literal(`${cell.w ?? head.w}px`);
+      columns.push({ index, id, content: "layer", caption: false, fields, actions: null, values: held.values });
+      continue;
+    }
     // An Avatar-Cell with a Square Avatar is a photo cell without its picture (Table.tsx cellVisual; figma-push draws it so).
     const squareAvatar = cell.kind === "Avatar-Cell" && (cell.parts ?? []).some((part) => /^Avatar\b/.test(part.set?.name ?? "") && part.props?.Shape === "Square");
     const content = cell.kind === "Control-Cell" ? { Checkbox: "checkbox", Toggle: "toggle" }[cell.props?.Type] ?? null : squareAvatar ? "photo" : cell.kind ? CELL_CONTENT[cell.kind] ?? null : "text";
@@ -1293,6 +1341,7 @@ function tableElement(node, ctx) {
     for (const column of columns) {
       const cell = row.cells[column.index];
       if (!cell) continue;
+      if (column.values) { record[column.id] = column.values[at] ?? ""; continue; }
       const parts = cell.parts ?? [];
       const own = new Set(parts.map((part) => part.text).filter((text) => typeof text === "string"));
       const texts = (cell.texts ?? []).map((text) => text.replace(/\u2028/g, " "));

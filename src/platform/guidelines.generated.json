@@ -5327,6 +5327,11 @@
         "Figma Table/Cell/Default State=Edit · Editabled-Cell; Focused ring Focus/Accent/Subtle. A type alone (or `editable` on the Table: every value column) edits the row's field in place — the Table keeps the edit or hands it to onCellCommit(row, columnId, value). A select draws its options as the cells draw them: an avatar or photo column's people with their picture from mediaField (initials without one; options[].photoSrc on an edit object), a badge column's values as their Badges with the colour and icon the rows' overrides give each value; a value picked in the Table takes that picture or Badge look (with onCellCommit the app updates the picture field and the row's override)"
       ],
       [
+        "Cells by value",
+        "column.cells: Record<value, ReactNode>",
+        "Figma Table/Cell/Default › Content slot holding one instance per value: each value of the row's field → its layer, typically an instance of the project's own component set whose variant is the value (`<Use of=\"status\" variant={{ Status: \"Done\" }} />` on a Studio page). A cell draws its value's layer (a value without one draws by content); the column edits as a select of these values (editable or edit: \"select\"), the list draws each option with its layer, and a pick shows the new value's layer. Zen Studio writes it from Content → a project set (variant names = the values); push/pull keep the instances in Figma's Content slot"
+      ],
+      [
         "Open button",
         "column.onOpen · openLabel",
         "Figma Open-Button: XSmall Tertiary “Open” on row hover — editable tables only"
@@ -5394,6 +5399,7 @@
       "Right-align number editors like the numbers they edit (harness: table/editor-number-right).",
       "Use select for closed sets and tags for open sets; lock rows that can't change with edit.disabled.",
       "Pick people by their faces: give a person column `content: \"avatar\"` and its mediaField, so its select shows each person's avatar; a custom select editor gives its people options[].photoSrc.",
+      "Give a status or priority column the project's own look with cells: one instance of the project's component set per value (its variant names the value), so cells, the select's options and a changed value all draw the same component — not one Badge override per row.",
       "Offer onOpen when the full record of an editable row needs a detail view; a read-only table that opens records uses onRowClick, so the whole row is the click target.",
       "Let clickable content inside an editable cell (Tag onClick, links, buttons) keep its own action — clicking the cell around it edits. Leave room (padding, gaps) so the edit target stays easy to hit.",
       "A table that is the page content or a section of it sits straight on the page: no Card, Box or other container and no Surface fill, and it spans the page width with no max: wrap that page in <Container maxWidth=\"full\"> (not the default lg 1280). Only a table that is a widget (a dashboard tile with its own title and a few rows beside other widgets) goes in a Card.",

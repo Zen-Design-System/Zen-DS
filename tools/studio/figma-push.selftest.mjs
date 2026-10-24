@@ -2823,6 +2823,35 @@ export default function Page() {
   ok("SheetTable: a percentage width is noted (Fill in Figma)", notes.some((note) => /percentage widths draw as Fill/.test(note)));
 }
 
+// 30. A column's cells (user, 2026-10-24: "figma đang làm mỗi loại giá trị của cell là 1 instance và cell có slot nối với
+// các giá trị đó"): each row's Table/Cell/Default holds its value's project-component instance in its Content slot.
+{
+  const statusPage = `// @zen-page {"format":1,"title":"Tasks","project":"acme"}
+import { Board, Component, ComponentSet, Screen, Use } from "@zen-ds/react/builder";
+import { Badge, Table } from "@zen-ds/react";
+
+export default function Tasks() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Tasks" device="desktop">
+        <ComponentSet id="status" name="Status" properties={{}}>
+          <Component id="status-doing" variant={{ Status: "Doing" }}><Badge theme="blue" background="subtle">Doing</Badge></Component>
+          <Component id="status-done" variant={{ Status: "Done" }}><Badge theme="green" background="subtle">Done</Badge></Component>
+        </ComponentSet>
+        <Table aria-label="Tasks" columns={[{ id: "title", header: "Task" }, { id: "status", header: "Status", content: "badge", cells: { "Doing": <Use of="status" variant={{ Status: "Doing" }} />, "Done": <Use of="status" variant={{ Status: "Done" }} /> } }]} rows={[{ id: "a", title: "Agenda", status: "Done" }, { id: "b", title: "Minutes", status: "Late" }]} />
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(statusPage);
+  const table = find(frame, (node) => node.type === "FRAME" && node.children?.[0]?.name === "Header");
+  const statusCell = (row) => table?.children[row].slots[0].children.find((cell) => cell.name === "status");
+  const [done] = statusCell(1)?.slots[0].children ?? [];
+  check("cells: the Content slot holds the value's project instance, its variant", [statusCell(1)?.slots[0].name, done?.type, done?.local, done?.variant], ["Content", "INSTANCE", "status", { Status: "Done" }]);
+  check("cells: a value without a layer draws by content (Badge-Cell)", statusCell(2)?.slots[0].children[0]?.name, "Badge-Cell");
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

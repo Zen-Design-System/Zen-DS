@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Table `cells` (user 2026-10-24, Figma's Content slot holds one instance per value): a column maps each value to its
+  layer, typically an instance of the project's own component set (`<Use of="status" variant={{ Status: "Done" }} />`).
+  Cells draw it, the column edits as a select whose options draw the same instances, and a pick swaps the instance. Zen
+  Studio: a Cell's Content lists the project's sets and writes `cells` from the set's variants; Figma push puts the
+  instance in Table/Cell/Default's Content slot and pull reads it back (checked with the real importer in the Zen file).
 - Table: an editable column's select draws its options as its cells (user 2026-10-24: "popover để chọn nếu là người thì
   nên có avatar"): people with their avatar (initials without a photo; `options[].photoSrc` on an `edit` object), badge
   values with the colour and icon the rows' overrides give them. A value picked in the Table brings its picture or Badge

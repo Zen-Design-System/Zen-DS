@@ -305,6 +305,30 @@ const screenTag = (text, id) => {
   return text.slice(at);
 };
 
+/** A page with the project's own Status set and an editable Table whose status column draws Badges (user, 2026-10-24:
+ *  a Table cell's Content slot holds one instance of the project's component per value). */
+const statusSetPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Component, ComponentSet, Screen } from "@zen-ds/react/builder";
+import { Badge, Stack, Table } from "@zen-ds/react";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="${title}" device="desktop">
+        <Stack gap="xl" padding="xl">
+          <ComponentSet id="status" name="Status">
+            <Component id="status-todo" variant={{ Status: "To do" }}><Badge theme="neutral" background="subtle">To do</Badge></Component>
+            <Component id="status-doing" variant={{ Status: "Doing" }}><Badge theme="blue" background="subtle">Doing</Badge></Component>
+            <Component id="status-done" variant={{ Status: "Done" }}><Badge theme="green" background="subtle">Done</Badge></Component>
+          </ComponentSet>
+          <Table aria-label="Tasks" editable columns={[{ id: "title", header: "Task" }, { id: "status", header: "Status", content: "badge", width: "160px" }]} rows={[{ id: "t1", title: "Agenda", status: "Doing" }, { id: "t2", title: "Minutes", status: "Done" }]} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
 export const rows = [
   {
     id: "B-01", feature: "New page: a blank phone page opens on the canvas, listed under My pages", wp: "GĐ2 M1",
@@ -1346,6 +1370,35 @@ export const rows = [
       await reset.click();
       await until(async () => /title="Invoices" largeTitle="Invoices"/.test(await phoneBar()) && /phoneLinked=\{\[[^\]]*"topNavigation"/.test(screenCode(await text(), "screen-2")), { message: "Reset to desktop: the bar follows its desktop again" });
       return "desktop title → its bar; the phone's bar set to Compact → its own; Reset to desktop → linked again";
+    },
+  },
+  {
+    id: "B-47", feature: "A Table cell's Content takes the project's own component set, one instance per value (Figma's Content slot): Content → Status writes the column's cells from the set's variants, the cells draw them, and the cell's Value picks among them", wp: "table cells 2026-10-24", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, text } = await seededPage(ctx, statusSetPage, /<ComponentSet id="status"/);
+      await focusScreen(page);
+      // Table → Data-Row → Cell, as Figma: the status cell of the first row.
+      const cell = page.locator(`[data-studio-frame="screen:screen-1"] td.zen-table__cell[data-cell="t1::status"]`);
+      await cell.waitFor({ state: "attached", timeout: 5000 });
+      const box = await cell.boundingBox();
+      const at = { x: box.x + 24, y: box.y + box.height / 2 };
+      await page.mouse.click(at.x, at.y);
+      for (const name of ["Data-Row", "Cell"]) {
+        if ((await selectedName(page)).startsWith("Cell")) break;
+        await page.mouse.dblclick(at.x, at.y);
+        await until(async () => (await selectedName(page)).startsWith(name) || (await selectedName(page)).startsWith("Cell"), { message: `${name} selected (selected: ${await selectedName(page)})` });
+      }
+      await until(async () => (await selectedName(page)).startsWith("Cell"), { message: "the status Cell selected" });
+      await pickOption(page, "content", "Status");
+      await until(async () => /cells: \{ "To do": <Use of="status" variant=\{\{ "?Status"?: "To do" \}\} \/>, "?Doing"?: <Use of="status" variant=\{\{ "?Status"?: "Doing" \}\} \/>, "?Done"?: <Use of="status" variant=\{\{ "?Status"?: "Done" \}\} \/> \}/.test(await text()), { message: "the column's cells: one Status instance per variant" })
+        .catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)}; column: ${/\{ id: "status"[^\n]*?\}\] rows/.exec(await text())?.[0]?.slice(0, 300)})`); });
+      // The cells draw the instances: row 1 Doing (blue), row 2 Done (green).
+      const tone = (row) => page.locator(`[data-studio-frame="screen:screen-1"] td.zen-table__cell[data-cell="${row}::status"] .zen-badge`).first().getAttribute("data-tone");
+      await until(async () => (await tone("t1")) === "blue" && (await tone("t2")) === "green", { message: "the cells draw their value's Status instance" });
+      // The cell's Value is one of the set's values: Done swaps the instance, as Figma swaps the variant.
+      await pickOption(page, "value-status", "Done");
+      await until(async () => /\{ id: "t1", title: "Agenda", status: "Done" \}/.test(await text()) && (await tone("t1")) === "green", { message: "row 1's value Done, its cell the Done instance" });
+      return "Cell › Content → Status: cells = 3 instances; cells draw Doing/Done; Value → Done swaps row 1's instance";
     },
   },
 ];

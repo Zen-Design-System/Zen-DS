@@ -48968,6 +48968,31 @@
             }
           ]
         },
+        "cells": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "$ref": "#/$defs/node"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/child"
+                }
+              }
+            ]
+          }
+        },
         "onOpen": {
           "type": "object",
           "properties": {

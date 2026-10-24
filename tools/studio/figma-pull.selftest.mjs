@@ -513,6 +513,28 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ok("project component: an instance of another page's component pulls as <Use of page>", /<Use of="chip" page="chips" variant=\{\{ Size: "Small" \}\} props=\{\{ Label: "Go" \}\} \/>/.test(crossText));
 }
 
+// A Table whose cells hold a project component's instance in their Content slot, one per value (user, 2026-10-24: "cell
+// có slot nối với các giá trị đó"): the column's `cells`, each value → its `<Use>`, the rows' values from the variant.
+{
+  const layout = { mode: "VERTICAL", gap: 0, gapVar: null, padding: [0, 0, 0, 0], paddingVar: null, primary: "MIN", counter: "MIN", wrap: false };
+  const status = (value) => ({ id: `s-${value}`, w: 152, kind: null, props: {}, layer: { type: "INSTANCE", name: "Status", local: "status", page: "components", variant: { Status: value } }, texts: [value] });
+  const title = (text) => ({ id: `t-${text}`, w: 300, fill: true, kind: "Text-Cell", props: { Bold: "No" }, texts: [text] });
+  const tasks = { type: "FRAME", name: "Tasks", width: 1200, height: 400, layout, children: [{ type: "TABLE", id: "1:1", name: "Tasks", header: [{ id: "h1", w: 300, fill: true, label: "Task" }, { id: "h2", w: 152, label: "Status" }],
+    rows: [{ id: "r1", cells: [title("Agenda"), status("Doing")] }, { id: "r2", cells: [title("Minutes"), status("Done")] }, { id: "r3", cells: [title("Roadmap"), status("Doing")] }] }] };
+  const { text: tasksText } = pageFromFigma(tasks, { mapping });
+  ok("table cells: the column's cells map each value to its project instance", tasksText.includes('cells: { Doing: <Use of="status" page="components" variant={{ Status: "Doing" }} />, Done: <Use of="status" page="components" variant={{ Status: "Done" }} /> }'));
+  ok("table cells: each row's value is its instance's variant", /status: "Doing"[^}]*\}, \{[^}]*status: "Done"/.test(tasksText.replace(/\s+/g, " ")));
+  ok("table cells: no Badge overrides from the instances", !tasksText.includes("overrides="));
+  check("table cells: the page is valid dialect, with the Zen components", validateDialect(tasksText, { components: new Set(["Stack", "Table"]) }), []);
+  // Live (fixtures/figma-table-cells.json): pushed, placed by the real importer and read back in the Zen file. The set
+  // on the page lends the value no row shows (Doing), so the select keeps it.
+  const live = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-table-cells.json", import.meta.url), "utf8"));
+  const livePulled = pageFromFigma(live.frame, { mapping });
+  check("table cells (live): every variant of the page's set is a value, a Badge-Cell row keeps its text, no notes",
+    [/cells: \{ Doing: <Use of="status" \/>, Done: <Use of="status" variant=\{\{ Status: "Done" \}\} \/> \}/.test(livePulled.text), /status: "Late"/.test(livePulled.text), livePulled.notes], [true, true, []]);
+  check("table cells (live): valid dialect", validateDialect(livePulled.text, { components: new Set(["Badge", "Stack", "Table"]) }), []);
+}
+
 {
   // Figma Table/Sheet (figmaReadCode's SHEET) → <SheetTable>: a column per header cell (its label, fixed width or Fill),
   // its content from the first row (keys, code, Bold text), the rows under the columns' ids.

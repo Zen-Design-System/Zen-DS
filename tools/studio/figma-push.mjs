@@ -2101,12 +2101,20 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
       if (!entry) { notes.push(`${where}: no Figma set for ${name}`); return null; }
       return { type: "INSTANCE", name, set: { id: entry.id, name: entry.name }, props: figmaProps(entry, codeValues, mapping, notes, where) };
     };
+    // A column's `cells`: the layer its Content slot holds per value (a project component's instance), as written.
+    const layersOf = new Map((element.props.columns?.kind === "array" ? element.props.columns.items : []).map((item, index) => [columns[index]?.id, item?.kind === "object" && item.fields.cells?.kind === "object" ? item.fields.cells.fields : null]));
     const content = (column, row, rowId) => {
       const kind = column.content ?? "text";
       const set = CELL_SETS[kind];
       const field = column.field ?? column.id;
       const value = row[field];
       const label = typeof value === "string" || typeof value === "number" ? String(value) : "";
+      // Figma's cell holds that value's instance in its Content slot (Table.tsx cellOf); a value without one draws by content.
+      const layer = label && Object.hasOwn(layersOf.get(column.id) ?? {}, label) ? layersOf.get(column.id)[label] : null;
+      if (layer?.kind === "element") {
+        const node = convert(layer.node, { direction: "row" });
+        if (node) return node;
+      }
       const caption = column.captionField && typeof row[column.captionField] === "string" ? row[column.captionField] : "";
       const own = (name) => overrides[`Row[${rowId}]/${column.id}/${name}`] ?? {};
       const where = `Table › ${column.id} › row ${rowId}`;
