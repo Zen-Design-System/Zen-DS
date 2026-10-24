@@ -624,7 +624,9 @@ export function widgetLayout({ scopeSel, regionSel }) {
  * Not reported: what a scroll container (`auto` / `scroll`) hides, since it scrolls into view; a device frame's bottom
  * edge (a phone screen shows the top of a longer page); a group hidden as a whole (a collapsed accordion); covers that
  * are floating layers (dialogs, menus, listboxes, popovers, tooltips, toasts, sheets, scrims), invisible hit areas, the
- * control's own label, the docs' chrome, or a bar over a scroll container the control scrolls in; `data-audit-skip-quality`.
+ * control's own label, the docs' chrome, a bar over a scroll container the control scrolls in, or a sticky or fixed
+ * layer the content scrolls under (the first full run, 2026-10-24: all 137 covers were bottom bars, ActionBars,
+ * headers and Gantt / Schedule label columns); `data-audit-skip-quality`.
  *
  * It scrolls the window to sample each control's middle with elementFromPoint, then scrolls it back.
  */
@@ -705,8 +707,13 @@ export function controlClip({ scopeSel, regionSel }) {
     if (!hit.closest(REGION) && !hit.closest(".official-portal-root")) continue;
     if (hit.closest(FLOATING) || hit.closest(SKIP) || !opaque(hit)) continue;
     if (hit.closest("label") && hit.closest("label").control === c.el) continue;
-    // A bar over a scroll container: what scrolls under it is reached by scrolling.
+    // A bar over a scroll container: what scrolls under it is reached by scrolling. So is what passes under a sticky or
+    // fixed layer (an AppShell's bottom bar, a docked ActionBar, a header, a Gantt's label column): that layer stays put
+    // while the content scrolls.
     if (at.scroller && !at.scroller.contains(hit)) continue;
+    let pinned = false;
+    for (let a = hit; a && !a.contains(c.el); a = a.parentElement) if (/^(sticky|fixed)$/.test(getComputedStyle(a).position)) { pinned = true; break; }
+    if (pinned) continue;
     say(c.el, `${label(c.el)}: ${describe(c.el)} "${nameOf(c.el)}" is covered by ${describe(hit)} — it cannot be seen or pressed there`);
   }
   scrollTo(startX, startY);

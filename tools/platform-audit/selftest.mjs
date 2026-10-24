@@ -77,6 +77,7 @@ ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageCheck
   await fixture("clip: a modal dialog over the page", docsPage(example("Modal", covered(panel('role="dialog" aria-modal="true"')))), "controlClip", "clip", { clean: true });
   await fixture("clip: an invisible hit area", docsPage(example("Hit area", covered(`<div style="position: absolute; inset: 0; opacity: 0"></div>`))), "controlClip", "clip", { clean: true });
   await fixture("clip: a bar over the scroll container", docsPage(example("Bar", `<div style="position: relative; height: 150px"><div style="height: 150px; overflow: auto"><div style="height: 400px; padding-top: 110px"><button>Row</button></div></div><div style="position: absolute; left: 0; right: 0; bottom: 0; height: 50px; background: #eee">Bar</div></div>`)), "controlClip", "clip", { clean: true });
+  await fixture("clip: content under a sticky bottom bar", docsPage(example("Sticky bar", `<div style="height: 400px"><div style="height: 300px"></div><button style="height: 40px">Under the bar</button><div style="position: sticky; bottom: 0; height: 120px; margin-top: -60px; background: #eee">Bar</div></div>`)), "controlClip", "clip", { clean: true });
   await fixture("clip: data-audit-skip-quality", docsPage(example("Skipped", `<div data-audit-skip-quality>${row("hidden")}</div>`)), "controlClip", "clip", { clean: true });
 }
 
