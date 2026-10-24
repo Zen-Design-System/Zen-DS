@@ -4,7 +4,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { E2E_ROW_SECONDS, SHARD_TARGET_S, e2eRowSeconds, pageEstimator, pageSeconds, planE2E, planShards, readTimings, retryPagesFrom, shardCapS, writeTimings } from "./lib.mjs";
+import { E2E_ROW_SECONDS, SHARD_TARGET_S, auxKind, e2eRowSeconds, pageEstimator, pageSeconds, planE2E, planShards, readTimings, retryPagesFrom, shardCapS, writeTimings } from "./lib.mjs";
 
 const failures = [];
 let passed = 0;
@@ -110,6 +110,16 @@ ok("cap: 3× a long plan", shardCapS(900) === 2700);
   } finally {
     fs.rmSync(runDir, { recursive: true, force: true });
   }
+}
+
+// The harness self-tests run when their folder is in scope: an edit there must count as a tool file (auxKind), or the
+// step never runs (2026-10-24: tools/platform-audit was not one, so its self-test was always skipped).
+{
+  const source = fs.readFileSync(path.join(path.dirname(new URL(import.meta.url).pathname), "run.mjs"), "utf8");
+  const list = source.match(/for \(const \[name, script, dir\] of (\[\[.*?\]\])\)/)?.[1];
+  const dirs = list ? JSON.parse(list).map(([, , dir]) => dir) : [];
+  ok("run.mjs lists the harness self-tests", dirs.length >= 4);
+  for (const dir of dirs) ok(`${dir} edits count as tool files (auxKind)`, Boolean(auxKind(`${dir}/x.mjs`)));
 }
 
 if (failures.length) {

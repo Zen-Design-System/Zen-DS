@@ -36,6 +36,37 @@ reaction Navigate / Open / Close overlay / Back."
   contrast/targets baseline seeding. "## Open items" untouched; nothing P1-urgent found. No work started.
 - User "Giao 35 mục theo đề xuất": the Designer entry moved to QUESTIONS.md / .vi.md as the 2026-10-24 designer batch.
 
+## Session B · platform-audit `clip` check and self-test (tier S; Tooling 2a + 2b, user "Theo đề xuất", handed over by chart-contract-suites)
+
+- **2a `clip`** (`tools/platform-audit/quality-checks.mjs` controlClip, wired in audit.mjs like `fit`: `--quality`,
+  error, baselined). It reports three cases:
+  - a control (button, link, tab, option, input…) cut off by an `overflow: hidden | clip` or `contain: paint` ancestor
+    (> 2px);
+  - a control wholly past that edge while a sibling control of the same parent shows;
+  - a control whose visible middle is under another element of the example (elementFromPoint, the window scrolled to it
+    and back).
+
+  Not reported: scroll containers, a device frame's bottom edge, a group hidden as a whole, floating layers and scrims,
+  invisible hit areas, the docs chrome, and a bar over the scroll container the control scrolls in.
+- **2b** `tools/platform-audit/selftest.mjs` (`npm run platform:audit:selftest`, gate harness list, CI):
+  - fixtures with the real tokens.css and typography.css in headless Chromium, no dev server;
+  - each kind, with a clean twin: scale, roles, hierarchy, rhythm, ladder, fit, card-gap, legend-column, outline,
+    outline-h1/-start/-card/-siblings, clip (10 fixtures);
+  - pageChecks is cut out of audit.mjs by its top-level braces (the script runs when imported).
+- **Gate bug fixed:** tools/qa/run.mjs ERROR_KINDS missed `counts` (an error since 2026-10-15), and `card-gap` and
+  `legend-column` (since 10-16), so the gate passed them as warnings. The self-test now checks that the list equals
+  audit.mjs SEVERITY's errors.
+- **First full run (gate slot):** controlClip alone ran on every page at 1512, 390, 320 and dark 1512 (isolated server).
+  - It found 137 covers. All of them were content passing under a sticky layer: an AppShell bottom bar, a docked
+    ActionBar, a header, or a Gantt / Schedule label column. That is by design, so a cover inside a sticky or fixed
+    layer is no finding now (self-test fixture added, 41 checks).
+  - The re-run found nothing, before and after merging train A (#274). `clip` needs no baseline entries.
+  - Scoped gate (`--isolated`, 10 pages): PASS, 0 errors and 0 new warnings at 1512, 390 and 320 and in dark.
+- **Own wiring bug, found in the gate's output:** the gate skipped the new Platform-audit self-test, because
+  `auxKind` (tools/qa/lib.mjs) did not count tools/platform-audit as a tool folder. Fixed. qa:selftest now checks
+  that every folder in the gate's harness list is an auxKind (it fails without the fix). The static gate then ran
+  the step: PASS.
+
 ## Session B · Studio editor group of the planned backlog (tier S; user: "Giao 35 mục theo đề xuất … Phần không cần quyết làm ngay")
 
 The group's six entries (BACKLOG rewritten in #262), each checked against the code first:

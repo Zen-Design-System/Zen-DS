@@ -43,6 +43,8 @@ jobs:
         run: npm run mcp:selftest
       - name: AI UI catalog is up to date and the runtime self-test passes
         run: npm run ai-ui:check && npm run ai-ui:selftest
+      - name: Platform-audit self-test (the in-page quality, outline and clip checks on fixtures)
+        run: npm run platform:audit:selftest
       - name: Browser tests (smoke + axe baseline, sizes, interactions)
         run: npm test
       - name: Figma parity
