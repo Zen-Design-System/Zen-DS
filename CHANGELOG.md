@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Usage harness and audit (user, 2026-10-24, from the harness inventory): `listbox/grouped-on-phone` (error) flags a
+  phone settings or profile screen that puts several kicker groups of rows in one block, or bare Lists under kickers
+  (usage rules §15: each group is its own ListBox); `table/titled-box` (warn) flags a Table in a Card or ListBox that
+  does not name it; the audit's `segmented-fit` (`--quality`, warn) flags a phone Segmented that slides sideways or cuts
+  a fullWidth label (a Chip row instead).
 - TopNavigation (2026-10-24): `titleMenu` makes the bar title a Dropdown (Figma Heading-Text Dropdown: the title and a
   chevron-down open a Menu; `titleDropdown` draws the chevron on an `onTitleClick` title); `largeTitleBadges` puts a row
   of Badges under the large title; `scrolledType` gives a scroll-linked bar its look once content scrolls under it (a

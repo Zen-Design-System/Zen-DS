@@ -719,3 +719,39 @@ export function controlClip({ scopeSel, regionSel }) {
   scrollTo(startX, startY);
   return out;
 }
+
+/**
+ * Segmented on a phone (`segmented-fit`, warn; segmented guideline, the user 2026-10-24 from the harness inventory): on a
+ * phone a Segmented is used only when every label fits its equal share. It reports one that slides sideways (its items
+ * are wider than the screen gives them) or a `fullWidth` one that cuts a label to an ellipsis: both want a single-choice
+ * row of Normal Chips that scrolls. A phone is a viewport under 768px or a docs phone frame (`.platform-phone`).
+ * `data-audit-skip-quality` opts one out.
+ */
+export function segmentedFit({ scopeSel, regionSel }) {
+  const out = { "segmented-fit": [] };
+  const scope = scopeSel ? document.querySelector(scopeSel) : document;
+  if (!scope) return out;
+  const REGION = regionSel ?? ".pe-card__stage, .platform-example-panel .platform-example-row, .official-portal-root > *";
+  const regions = [...(scope.matches?.(REGION) ? [scope] : []), ...scope.querySelectorAll(REGION)]
+    .filter((r) => !r.closest(".platform-guideline-visual__dont, [data-verdict='dont']"));
+  const label = (el) => (el.closest("[data-audit-label]")?.getAttribute("data-audit-label") ?? el.closest(".pe-card")?.querySelector("h3")?.textContent ?? el.closest(".platform-example-panel")?.querySelector("h2")?.textContent ?? (el.closest(".official-portal-root") ? "overlay" : "page")).trim().slice(0, 40);
+  const shown = (el) => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.display !== "none" && !el.closest("[aria-hidden='true'], [inert]"); };
+  const seen = new Set();
+  for (const region of regions) {
+    for (const seg of region.querySelectorAll(".zen-segmented")) {
+      if (seen.has(seg) || !shown(seg) || seg.closest("[data-audit-skip-quality]")) continue;
+      seen.add(seg);
+      if (innerWidth >= 768 && !seg.closest(".platform-phone")) continue;
+      const items = [...seg.querySelectorAll(".zen-segmented__item")].filter((item) => item.closest(".zen-segmented") === seg);
+      const name = `Segmented "${seg.getAttribute("aria-label") ?? ""}"`;
+      const fix = "use a single-choice row of Normal Chips that scrolls (segmented guideline: on a phone every label fits its equal share)";
+      if (seg.scrollWidth > seg.clientWidth + 1) {
+        out["segmented-fit"].push(`${label(seg)}: ${name} slides sideways on a phone (its ${items.length} items need ${seg.scrollWidth}px of ${seg.clientWidth}px) — ${fix}`);
+        continue;
+      }
+      const cut = [...seg.querySelectorAll(".zen-segmented__label")].filter((l) => l.closest(".zen-segmented") === seg && shown(l) && l.scrollWidth > l.clientWidth + 1);
+      if (cut.length) out["segmented-fit"].push(`${label(seg)}: ${name} cuts ${cut.length} of its ${items.length} labels on a phone ("${cut[0].textContent.trim().slice(0, 20)}" needs ${cut[0].scrollWidth}px of ${cut[0].clientWidth}px) — ${fix}`);
+    }
+  }
+  return out;
+}
