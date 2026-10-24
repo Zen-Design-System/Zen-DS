@@ -267,7 +267,7 @@
       [
         "Own state",
         "popoverItems without onPopoverSelect · defaultSelected · defaultPopoverOpen",
-        "uncontrolled: the chip keeps the choice from the items marked selected (the one picked value as its label, a count for multiple, × clears); a Normal chip with defaultSelected turns itself on and off. Pass onPopoverSelect / selected when the app filters with it"
+        "uncontrolled: the chip keeps the choice from the items marked selected (the one picked value as its label, picked again it clears, a count for multiple, × clears); a Normal chip with defaultSelected turns itself on and off. Pass onPopoverSelect / selected when the app filters with it; with defaultSelected as well the chip keeps its choice and reports each pick and clear (uncontrolled + notify)"
       ],
       [
         "Size",

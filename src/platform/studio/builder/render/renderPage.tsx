@@ -231,20 +231,34 @@ function prototypeProps(node: PageNode, props: Record<string, unknown>, ctx: Ren
 }
 
 /**
- * Play's Filter table and Change step on their way to a component: a filtered Table shows the rows its filter keeps (by
- * the column's field and caption, or every field), a Stepper a Change step drives shows Play's step and goes back to a
- * passed step on a press, as it does on its own.
+ * Play's Filter table and Change step on their way to a component: a filtered Table shows the rows its filters keep (by
+ * each column's field and caption, or every field), a filter Chip (its pick → Filter table) shows its pick and clears
+ * it and its filter with ×, a Stepper a Change step drives shows Play's step and goes back to a passed step on a press,
+ * as it does on its own.
  */
 function livePlayProps(node: PageNode, props: Record<string, unknown>, ctx: RenderContext) {
   const play = ctx.play;
   if (!play || ctx.instance) return;
+  const pick = node.props.onPopoverSelect;
   if (node.name === "Table") {
-    const filter = play.filters.get(node.loc);
-    if (!filter) return;
+    const filters = play.filters.get(node.loc);
+    if (!filters) return;
     const columns = Array.isArray(props.columns) ? (props.columns as Array<Record<string, unknown>>) : [];
-    const column = filter.column ? columns.find((entry) => entry?.id === filter.column) : undefined;
-    const fields = column ? [column.field ?? column.id, column.captionField].filter((field): field is string => typeof field === "string") : undefined;
-    for (const prop of ["rows", "data"]) if (Array.isArray(props[prop])) props[prop] = filterRows(props[prop] as unknown[], filter.values, filter.match, fields);
+    for (const filter of filters.values()) {
+      const column = filter.column ? columns.find((entry) => entry?.id === filter.column) : undefined;
+      const fields = column ? [column.field ?? column.id, column.captionField].filter((field): field is string => typeof field === "string") : undefined;
+      for (const prop of ["rows", "data"]) if (Array.isArray(props[prop])) props[prop] = filterRows(props[prop] as unknown[], filter.values, filter.match, fields);
+    }
+  } else if (node.name === "Chip" && pick?.kind === "proto" && pick.action === "filter") {
+    // Uncontrolled + notify (Chip defaultSelected): the chip keeps its pick (a pick again clears it, as the filter does);
+    // its × clears the filter too. A chip the page sets Selected keeps that.
+    if (props.selected === undefined && props.select === undefined && props.defaultSelected === undefined) props.defaultSelected = false;
+    const own = props.onClearSelection;
+    const clear = protoHandler(ctx.proto, "filter", pick.args);
+    props.onClearSelection = () => {
+      if (typeof own === "function") own();
+      clear();
+    };
   } else if (node.name === "Stepper" && play.stepTargets.has(node.loc)) {
     const current = play.steps.get(node.loc) ?? stepperOf(node).start;
     const own = props.onStepClick;

@@ -39,6 +39,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio Play (2026-10-24): the hotspot hints no longer flash on a press that does something: a layer with a
   prototype action (a Box or Card with `proto.navigate`, now outlined itself in the hints), or a part a component works
   itself (a field's padding, a chart bar, a calendar slot). Only a press that changes nothing shows them, as in Figma.
+- Chip (2026-10-24): a filter chip that keeps its own choice clears its one value when it is picked again, and with
+  `defaultSelected` it keeps its choice even while `onPopoverSelect` / `onClearSelection` listen: it updates itself, then
+  calls them (uncontrolled + notify). Zen Studio Play: a filter Chip wired to Filter table shows its pick, the same pick
+  again or its × shows every row again, filters on different columns (a Search, several chips) narrow the Table
+  together, and Restart starts the Screen over.
 - Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,
   auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
   the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are

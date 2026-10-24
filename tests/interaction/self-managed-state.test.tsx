@@ -83,6 +83,57 @@ describe("Chip keeps its own choice without onPopoverSelect", () => {
     expect(chipLabel(screen)).toBe("Priority");
   });
 
+  it("clears its one value when it is picked again (a filter chip)", async () => {
+    const screen = await render(<ZenProvider><Chip variant="advanced" popoverLabel="Priority" popoverItems={priorities}>Priority</Chip></ZenProvider>);
+    const chip = screen.getByRole("button", { name: /Priority/ }).element() as HTMLElement;
+    await userEvent.click(chip);
+    await userEvent.click(page.getByRole("option", { name: "High" }));
+    await expect.poll(() => chipLabel(screen)).toBe("High");
+    await userEvent.click(chip);
+    await userEvent.click(page.getByRole("option", { name: "High" }));
+    await expect.poll(() => chipLabel(screen)).toBe("Priority");
+    expect(chip.getAttribute("data-select")).toBe("false");
+  });
+
+  it("keeps a period's value when it is picked again", async () => {
+    const periods = [{ id: "7", label: "Last 7 days" }, { id: "30", label: "Last 30 days", selected: true }];
+    const period = await render(<ZenProvider><Chip variant="advanced" dropdown popoverLabel="Period" popoverItems={periods}>Last 30 days</Chip></ZenProvider>);
+    await userEvent.click(period.getByRole("button", { name: /Last 30 days/ }));
+    await userEvent.click(page.getByRole("option", { name: "Last 30 days" }));
+    await expect.poll(() => chipLabel(period)).toBe("Last 30 days");
+  });
+
+  it("keeps its own choice with defaultSelected while onPopoverSelect and onClearSelection listen (uncontrolled + notify)", async () => {
+    const onPopoverSelect = vi.fn();
+    const onClearSelection = vi.fn();
+    const screen = await render(<ZenProvider><Chip variant="advanced" defaultSelected={false} popoverLabel="Priority" popoverItems={priorities} onPopoverSelect={onPopoverSelect} onClearSelection={onClearSelection}>Priority</Chip></ZenProvider>);
+    const chip = screen.getByRole("button", { name: /Priority/ }).element() as HTMLElement;
+    await userEvent.click(chip);
+    await userEvent.click(page.getByRole("option", { name: "High" }));
+    await expect.poll(() => chipLabel(screen)).toBe("High");
+    expect(chip.getAttribute("data-select")).toBe("true");
+    expect(onPopoverSelect).toHaveBeenLastCalledWith(expect.objectContaining({ id: "high" }));
+    screen.container.querySelector<HTMLElement>(".zen-chip__remove")!.click();
+    await expect.poll(() => chipLabel(screen)).toBe("Priority");
+    expect(chip.getAttribute("data-select")).toBe("false");
+    expect(onClearSelection).toHaveBeenCalledTimes(1);
+    await userEvent.click(chip);
+    await userEvent.click(page.getByRole("option", { name: "Low" }));
+    await expect.poll(() => chipLabel(screen)).toBe("Low");
+    chip.focus();
+    await userEvent.keyboard("{Delete}");
+    await expect.poll(() => chipLabel(screen)).toBe("Priority");
+    expect(onClearSelection).toHaveBeenCalledTimes(2);
+  });
+
+  it("leaves a controlled chip's selection to the app: onClearSelection alone runs", async () => {
+    const onClearSelection = vi.fn();
+    const screen = await render(<ZenProvider><Chip variant="advanced" selected onClearSelection={onClearSelection}>Status: Open</Chip></ZenProvider>);
+    screen.container.querySelector<HTMLElement>(".zen-chip__remove")!.click();
+    expect(onClearSelection).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: /Status/ }).element().getAttribute("data-select")).toBe("true");
+  });
+
   it("opens its menu from defaultPopoverOpen", async () => {
     await render(<ZenProvider><Chip variant="advanced" defaultPopoverOpen popoverLabel="Priority" popoverItems={priorities}>Priority</Chip></ZenProvider>);
     await expect.element(page.getByRole("option", { name: "High" })).toBeInTheDocument();
