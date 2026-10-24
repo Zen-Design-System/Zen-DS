@@ -58,16 +58,26 @@ export function calendarProps(tables, from = new Date(2026, 0, 1)) {
     range: rangeStart ? { start: rangeStart, end: find("Range-Selected-End") } : null,
     cells: tables.map((table) => rowsOf(table).map((row) => row.map(dayState))),
     hiddenEvents: tables.map(hiddenEventsOf),
+    // The days Figma shows an Event-List on (Single calendars: the 1st), as DatePicker `events` with their dot count.
+    events: tables.flatMap((table, t) => rowsOf(table).flat().flatMap((cell, index) => {
+      const dots = shownEventOf(cell);
+      return dots && dayState(cell) !== "Blank" ? [{ date: iso(new Date(start.getFullYear(), start.getMonth() + t, index - grids[t].blanks + 1)), count: Number(dots.props?.["Number-Event"] ?? 1) }] : [];
+    })),
+    // Per cell: how many dots Figma shows (0 when none), for the map.
+    shownEvents: tables.map((table) => rowsOf(table).map((row) => row.map((cell) => (shownEventOf(cell) ? Number(shownEventOf(cell).props?.["Number-Event"] ?? 1) : 0)))),
   };
 }
 /** Per cell of a Calendar-Table: true when its Event dot is hidden (most are; Figma shows one on some days). */
 export const hiddenEventsOf = (table) => rowsOf(table).map((row) => row.map((cell) => (child(cell, "Container")?.c ?? []).some((node) => node.t === "INSTANCE" && node.hidden)));
+/** A day cell's visible Event-List instance, if Figma shows one. */
+const shownEventOf = (cell) => (child(cell, "Container")?.c ?? []).find((node) => node.t === "INSTANCE" && !node.hidden && /Event/.test(node.n));
 
 /**
  * Map entries for the Calendar-Table at Figma `route` (a ` > ` path) and its DOM `scope` (a panel's
  * .zen-date-picker__calendar): the table, the weekday row and its seven labels, then each day cell of the `t`-th table
  * in `props.cells`: its place, the root's In-Range strip, the Container's fill / radius / Today ring and the Label's text
- * style and colour (none for a Blank cell), and a hidden Event dot's absence (code has no event API on the calendar).
+ * style and colour (none for a Blank cell), a hidden Event dot's absence, and a shown one's dots (DatePicker `events`,
+ * passed by calendarProps): each dot's size, place, fill and radius.
  * `weekdays: false`: Figma hides the weekday row (a stacked month), so only its absence is compared.
  */
 export function tableMap(route, scope, { t = 0, when = () => true, size = ["size", "x", "y"], weekdays = true } = {}) {
@@ -89,6 +99,7 @@ export function tableMap(route, scope, { t = 0, when = () => true, size = ["size
         { figma: `${day} > Container`, dom: `${cell} > span`, check: ["fill", "radius", "stroke"], strokeVia: "shadow", when: has },
         { figma: `${day} > Container > Label`, dom: `${cell} > span`, check: ["text"], when: (vp, props) => has(vp, props) && state(props, r, c) !== "Blank" },
         { figma: `${day} > Container > Event|.Primitives/Date-Picker/Item/Event-List`, dom: `${cell} .zen-date-picker__events > i`, check: [], when: (vp, props) => has(vp, props) && props.hiddenEvents?.[t]?.[r]?.[c] },
+        ...[0, 1, 2, 3].map((k) => ({ figma: `${day} > Container > Event|.Primitives/Date-Picker/Item/Event-List > Event#${k}`, dom: `${cell} .zen-date-picker__events > i:nth-child(${k + 1})`, check: ["size", "x", "y", "fill", "radius"], when: (vp, props) => has(vp, props) && k < (props.shownEvents?.[t]?.[r]?.[c] ?? 0) })),
       );
     }
   }

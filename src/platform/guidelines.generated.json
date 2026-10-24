@@ -2046,6 +2046,11 @@
         "disabled days"
       ],
       [
+        "Events",
+        "events (DatePicker, DatePickerSheet) · DatePickerItem event",
+        "a dot per event under the day (Figma Item Event, Event-List 1–4; more show 4): a date or { date, count }; the day's name ends with the count"
+      ],
+      [
         "Actions",
         "showActions / action · onApply(value, range) · onCancel",
         "none · single · dual; picks are a draft that Submit applies and Cancel drops"
@@ -2105,7 +2110,8 @@
     ],
     "a11y": [
       "Nav buttons are labelled; each day is a button named with its full date in the locale (\"Wednesday, September 30, 2026\").",
-      "An inline calendar is role=\"group\" and a popover calendar role=\"dialog\"; both are named \"Choose date\" (\"Choose dates\" dual) unless aria-label or aria-labelledby names them. Name each inline calendar after what it sets when a form shows more than one. Today's day carries aria-current=\"date\", selected or not."
+      "An inline calendar is role=\"group\" and a popover calendar role=\"dialog\"; both are named \"Choose date\" (\"Choose dates\" dual) unless aria-label or aria-labelledby names them. Name each inline calendar after what it sets when a form shows more than one. Today's day carries aria-current=\"date\", selected or not.",
+      "Event dots are drawn, not read: a day with `events` adds the count to its name (\"Thursday, October 1, 2026, 2 events\")."
     ],
     "content": [
       "Use the locale's date format in the field placeholder."

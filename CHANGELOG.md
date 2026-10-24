@@ -17,6 +17,8 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- DatePicker (2026-10-24): `events` puts dots under the days that have events (a date, or `{ date, count }` for 1–4
+  dots; DatePickerSheet forwards it), and a day's name now says its count ("Thursday, October 1, 2026, 2 events").
 - DatePickerSheet (2026-10-24): `header="selection"` (Figma `.Primitives/Date-Picker` 9923:2323) puts the picked dates
   on top of the sheet: one date as a Heading/3 under the title with an edit action (`onEdit`, e.g. to type the date
   instead); a range with Clear dates (`onClear`) and the weekday row under the title and Close. BottomSheet takes a

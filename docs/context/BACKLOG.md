@@ -23,13 +23,10 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
   asks for it.
-- **P3 · New APIs the contract suites asked for (2026-10-24; the user picked the first four):** Figma draws what code
-  has no prop for, so those variants return null in their suites (`tools/figma-contract/suites/*.mjs`). Left: the
-  Workspace Sidebar rail's Master-Background Flat / Inverse; Avatar status Disabled / Pending / Inactive and the 4px
-  XSmall dot (session chart-contract-suites). Needs the user's go: DatePicker event days on the calendar (the Single
-  calendars' day-1 dot: DatePicker has no events prop, while DatePickerItem takes `event` 1–4 since #266 and Event-List
-  1–4 is compared). Done on zen/feat/datepicker-sheet-popover-cover-20261024 (#280): Popover `placement="cover"`
-  (Autocomplete-Field), DatePickerSheet `header="selection"` (9923:2323, suite date-picker-sheet-header).
+- **P3 · New APIs the contract suites asked for (2026-10-24; the user approved all five):** every item is built and
+  waits to land; close this line when the last one merges. Train B (#289): Popover `placement="cover"` and
+  DatePickerSheet `header="selection"` (#280); AvatarStatus + Avatar status values and Sidebar `railBackground` (#279).
+  zen/feat/datepicker-events-20261024: DatePicker `events` (the calendars' day-1 dot; user OK 2026-10-24).
 
 - **Questions for the designer and decisions for the user** are collected in [`QUESTIONS.md`](QUESTIONS.md) (moved
   there 2026-10-08). Code keeps its current behaviour until each is answered.

@@ -7377,6 +7377,21 @@
           "type": "string",
           "x-kind": "date"
         },
+        "events": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string",
+                "x-kind": "date"
+              },
+              {
+                "$ref": "#/$defs/DatePickerEvent"
+              }
+            ]
+          },
+          "description": "Days with events: dots under each day (Figma `.Primitives/Date-Picker/Item` Event, `Event-List` 510:36577), a date for one dot or `{ date, count }` for 1–4 (more show 4; a date lis"
+        },
         "today": {
           "type": "string",
           "x-kind": "date",
@@ -7570,6 +7585,9 @@
         "maxDate": {
           "type": "string",
           "x-kind": "date"
+        },
+        "events": {
+          "description": "Days with events: dots under each day (DatePicker `events`)."
         },
         "today": {
           "type": "string",
@@ -25661,6 +25679,22 @@
       "required": [
         "value",
         "label"
+      ],
+      "additionalProperties": false
+    },
+    "DatePickerEvent": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "x-kind": "date"
+        },
+        "count": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "date"
       ],
       "additionalProperties": false
     },

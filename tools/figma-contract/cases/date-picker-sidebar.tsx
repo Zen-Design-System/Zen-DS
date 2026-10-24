@@ -44,14 +44,15 @@ export const cases: Record<string, (props: Props) => ReactNode> = {
   dpTime: ({ width, ...p }) => <div style={{ width }}><DatePickerTimePicker {...p} onValueChange={() => {}} /></div>,
   // The calendar: inline (no surface) by default; `popover` gives it the Single-Calendar surface (an onClose, no trigger),
   // in a box of its size so the absolutely placed surface keeps its own room. `monthYear` opens Select-Month-Year;
-  // `monthYearOnly` is that view alone (`<DatePickerMonthYear>`). `cells` / `hiddenEvents` (the Figma cells' States and
-  // hidden dots) are for the suite's map only. `density` / `typography`: the token modes of a Figma frame drawn in other
-  // modes than the page's (Date-Picker/Mobile: Comfortable, Mobile), set on the case's frame as a phone app's
-  // ZenProvider sets them.
-  dpCalendar: ({ width, height, density, typography, popover, monthYear, monthYearOnly, month, today, value, range, cells: _cells, hiddenEvents: _hiddenEvents, ...p }) => {
+  // `monthYearOnly` is that view alone (`<DatePickerMonthYear>`). `events` (ISO days) are the dots Figma shows; `cells` /
+  // `hiddenEvents` / `shownEvents` (the Figma cells' States and dots) are for the suite's map only. `density` /
+  // `typography`: the token modes of a Figma frame drawn in other modes than the page's (Date-Picker/Mobile:
+  // Comfortable, Mobile), set on the case's frame as a phone app's ZenProvider sets them.
+  dpCalendar: ({ width, height, density, typography, popover, monthYear, monthYearOnly, month, today, value, range, events, cells: _cells, hiddenEvents: _hiddenEvents, shownEvents: _shownEvents, ...p }) => {
     if (monthYearOnly) return <DatePickerMonthYear month={day(month) as Date} />;
     const picker = (
       <DatePicker {...p} month={day(month)} today={day(today)} value={day(value)} range={rangeOf(range)}
+        events={(events as { date: string; count: number }[] | undefined)?.map((event) => ({ date: day(event.date) as Date, count: event.count }))}
         onClose={popover ? () => {} : undefined} />
     );
     const body = monthYear ? <OpenMonthYear>{picker}</OpenMonthYear> : picker;

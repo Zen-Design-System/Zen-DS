@@ -7,6 +7,7 @@ export {
   DatePickerTimePicker,
   type DatePickerActionProps,
   type DatePickerDevice,
+  type DatePickerEvent,
   type DatePickerHeaderProps,
   type DatePickerItemProps,
   type DatePickerItemState,

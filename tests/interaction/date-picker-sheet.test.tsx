@@ -4,7 +4,7 @@
  */
 import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
-import { DateField, DatePickerSheet } from "../../src/index";
+import { DateField, DatePicker, DatePickerSheet } from "../../src/index";
 
 const today = new Date(2026, 0, 4);
 
@@ -71,6 +71,24 @@ describe("DatePickerSheet header=\"selection\"", () => {
     await expect.element(screen.getByRole("button", { name: "OK" })).toBeDisabled();
     await screen.getByRole("button", { name: "Close" }).click();
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+});
+
+// DatePicker `events`: dots under the days (Figma .Primitives/Date-Picker/Item Event, Event-List 1–4), named in the day.
+describe("DatePicker events", () => {
+  it("draws 1–4 dots and says the count in the day's name", async () => {
+    const screen = await render(<DatePicker month={today} today={today} events={[new Date(2026, 0, 6), { date: new Date(2026, 0, 8), count: 6 }, new Date(2026, 0, 8)]} />);
+    const sixth = screen.getByRole("button", { name: "Tuesday, January 6, 2026, 1 event" });
+    await expect.element(sixth).toBeInTheDocument();
+    expect(sixth.element().querySelectorAll(".zen-date-picker__events > i").length).toBe(1);
+    const eighth = screen.getByRole("button", { name: "Thursday, January 8, 2026, 7 events" });
+    expect(eighth.element().querySelectorAll(".zen-date-picker__events > i").length).toBe(4);
+    expect(screen.getByRole("button", { name: "Wednesday, January 7, 2026" }).element().querySelector(".zen-date-picker__events")).toBeNull();
+  });
+
+  it("the sheet forwards events to its calendar", async () => {
+    const screen = await render(<DatePickerSheet open onOpenChange={() => {}} today={today} events={[{ date: new Date(2026, 0, 9), count: 2 }]} />);
+    await expect.element(screen.getByRole("button", { name: "Friday, January 9, 2026, 2 events" })).toBeInTheDocument();
   });
 });
 

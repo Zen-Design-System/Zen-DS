@@ -30,7 +30,7 @@ export interface DatePickerItemProps extends Omit<ButtonHTMLAttributes<HTMLButto
   state?: DatePickerItemState;
   /** Events on this day, drawn as dots under it (Figma `.Primitives/Date-Picker/Item/Event-List` 510:36577): `true` or a
    *  count, 1–4 dots (more show 4), 4px apart by Spacing/Gap/3XSmall; Content/Accent/Light, Date-Picker-Item/Content/
-   *  Selected on a selected day (Variant=On-Selected). */
+   *  Selected on a selected day (Variant=On-Selected). The day's name ends with the count ("…, 2 events"). */
   event?: boolean | number;
   /** Medium 32px (default) or Small 24px; short (sm, md…) or Figma (small, medium…) spelling. Ignored on mobile. */
   size?: "md" | "sm" | "medium" | "small";
@@ -66,7 +66,10 @@ export function DatePickerItem({ day = "", date, state = "default", event = fals
   const locale = useZenLocale();
   const size = scaleKey(sizeProp, datePickerItemSizes);
   const blank = state === "blank" || day === "";
-  const dots = event === true ? 1 : typeof event === "number" && event > 0 ? Math.min(4, Math.floor(event)) : 0;
+  const count = event === true ? 1 : typeof event === "number" && event > 0 ? Math.floor(event) : 0;
+  const dots = Math.min(4, count);
+  // The dots are drawn, not read: the day's name says how many events it has ("…, 2 events").
+  const name = date ? fullDateName(date, locale) : t.day(day);
   return (
     <button
       {...props}
@@ -75,7 +78,7 @@ export function DatePickerItem({ day = "", date, state = "default", event = fals
       data-size={device === "mobile" ? undefined : size}
       data-device={device === "mobile" ? "mobile" : undefined}
       type="button"
-      aria-label={blank ? undefined : date ? fullDateName(date, locale) : t.day(day)}
+      aria-label={blank ? undefined : count ? `${name}, ${t.eventCount(count)}` : name}
       aria-current={blank ? undefined : ariaCurrent ?? (state === "today" ? "date" : undefined)}
       // Padding cells before the 1st / after the last day are layout only: keep them out of the accessibility tree.
       aria-hidden={blank || undefined}
@@ -428,6 +431,12 @@ export interface DatePickerRange {
   end: Date | null;
 }
 
+/** A day with events on the calendar (DatePicker `events`): `count` dots under it, 1–4 (more show 4; default 1). */
+export interface DatePickerEvent {
+  date: Date;
+  count?: number;
+}
+
 /** What the Time-Picker holds: 24-hour "HH:mm" times (null while a field is empty) and the All day checks. */
 export interface DatePickerTime {
   /** Start time, "HH:mm" (24-hour), or null. */
@@ -637,6 +646,12 @@ export interface DatePickerProps {
   minDate?: Date;
   maxDate?: Date;
   /**
+   * Days with events: dots under each day (Figma `.Primitives/Date-Picker/Item` Event, `Event-List` 510:36577), a date
+   * for one dot or `{ date, count }` for 1–4 (more show 4; a date listed twice counts twice). The day's name says how
+   * many ("Thursday, October 1, 2026, 2 events"). Mark what the person is choosing around (a busy day, a booked night).
+   */
+  events?: ReadonlyArray<Date | DatePickerEvent>;
+  /**
    * The day the calendar treats as today: the Today ring (`.Primitives/Date-Picker/Item` State=Today) and the month it
    * opens on without a value. Default: the device clock. Pass your app's date when it is not the device's (a server or
    * business date, a demo world, a test).
@@ -695,6 +710,7 @@ export function DatePicker({
   onTimeChange,
   minDate,
   maxDate,
+  events,
   today: todayProp,
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
@@ -706,6 +722,15 @@ export function DatePicker({
   const t = useZenLabels();
   const locale = useZenLocale();
   const weekdays = useMemo(() => weekdayInitials(locale), [locale]);
+  // Events per day (dateKey → count), for the dots under each day.
+  const eventCounts = useMemo(() => {
+    const counts = new Map<number, number>();
+    for (const entry of events ?? []) {
+      const date = entry instanceof Date ? entry : entry.date;
+      counts.set(dateKey(date), (counts.get(dateKey(date)) ?? 0) + (entry instanceof Date ? 1 : Math.max(0, entry.count ?? 1)));
+    }
+    return counts;
+  }, [events]);
   // The app's today when given, else the device clock (read each render, so an open calendar crosses midnight).
   const today = todayProp ?? new Date();
   // The applied value / range / time: the prop when controlled (null = controlled "none"), else kept here. No onChange:
@@ -954,7 +979,7 @@ export function DatePicker({
                     />, index)}
                     <div className={`zen-date-picker__calendar ${typographyStyles["Body/Small/Medium"]}`}>
                       {stacked ? null : weekdayRow()}
-                      <div className="zen-date-picker__grid">{monthDays(month).map((date, dayIndex) => date ? <DatePickerItem key={date.toISOString()} device={device} day={date.getDate()} date={date} state={stateFor(date)} aria-current={dateKey(date) === dateKey(today) ? "date" : undefined} disabled={isDisabled(date)} onClick={() => selectDate(date)} /> : <DatePickerItem key={`blank-${dayIndex}`} device={device} state="blank" />)}</div>
+                      <div className="zen-date-picker__grid">{monthDays(month).map((date, dayIndex) => date ? <DatePickerItem key={date.toISOString()} device={device} day={date.getDate()} date={date} state={stateFor(date)} event={eventCounts.get(dateKey(date))} aria-current={dateKey(date) === dateKey(today) ? "date" : undefined} disabled={isDisabled(date)} onClick={() => selectDate(date)} /> : <DatePickerItem key={`blank-${dayIndex}`} device={device} state="blank" />)}</div>
                     </div>
                   </div>
                 ))}
