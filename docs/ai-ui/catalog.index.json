@@ -100,6 +100,12 @@
       "props": "items max? showMore? size?"
     },
     {
+      "name": "AvatarStatus",
+      "status": "verified",
+      "purpose": "Represent a person or workspace with a photo or initials.",
+      "props": "status? size? label? decorative?"
+    },
+    {
       "name": "Badge",
       "status": "verified",
       "purpose": "Non-interactive status, category or count labels; BadgeStatus for the steps of a task or project workflow.",
@@ -840,7 +846,7 @@
       "status": "verified",
       "chrome": true,
       "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
-      "props": "variant? density? collapsed? onCollapsedChange? brand? logo? logoCollapsed? productName? aria-label? sections? selectedId? children? footer? search? searchCollapsed? onItemClick? background? divider? shadow? theme? subHeader? workspaceBrand? workspaceItems? workspaceFooter? workspaceAction? headerAction? workspaceBar? subMenu? subMenuLabel? onSubMenuClose?"
+      "props": "variant? density? collapsed? onCollapsedChange? brand? logo? logoCollapsed? productName? aria-label? sections? selectedId? children? footer? search? searchCollapsed? onItemClick? background? divider? shadow? theme? subHeader? workspaceBrand? workspaceItems? workspaceFooter? workspaceAction? headerAction? workspaceBar? railBackground? subMenu? subMenuLabel? onSubMenuClose?"
     },
     {
       "name": "SidebarMenuItem",

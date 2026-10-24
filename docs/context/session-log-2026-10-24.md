@@ -240,6 +240,23 @@ Branch zen/feat/top-nav-props-20261024, stacked on #266 (the WIP from `wip/top-n
   styles.css), screenshots identical; 58.9 KB against 97.2 KB CSS gz.
 - BACKLOG: the Platform examples group (#263) and Package weight (#268) closed to the archive.
 
+## Avatar status + Sidebar rail background (tier M; user 2026-10-24, the "New APIs" line, two of four)
+
+Branch zen/feat/avatar-status-rail-20261024.
+- Figma read (use_figma, 9nZv4uW2…): .Primitives/Avatar/Status 217:7418, Size XSmall 4/1 · Small 8/2 · Medium 12/2 ·
+  Large 16/3, OUTSIDE Border/Inverse; Active Positive, Pending Warning, Inactive Negative, Disabled Solid-Disabled on
+  Medium/Large but, on XSmall/Small, VariableID:7286:1241 "Solid-Disabled-Alt" (Light/Neutral/4): deleted from Mode
+  Colors (Semantic) (not in its variableIds, not in getLocalVariablesAsync), so not in tokens/source. Code uses
+  Solid-Disabled everywhere; figmaException + QUESTIONS (designer, with the words' meaning).
+- `AvatarStatus` (new export, role=img named by `online` / `statusDisabled` / `statusPending` / `statusInactive`, en +
+  vi; `label`, `decorative`); Avatar `status: boolean | "active" | "disabled" | "pending" | "inactive"` draws it
+  (dot size from the avatar size, as before; the avatar keeps only the inset). Studio push writes the Status layer's own
+  option, pull reads it back (figma-push selftest +2).
+- Sidebar `railBackground` (Master-Background 4218:9166): Flat no fill, Inverse Active/Neutral/Solid with the mark in
+  Content/Inverse/Strongest; the add action is the app's (overlay White Overlay in the playground and the case).
+  The playground's "Master Background" chip drove the Main panel's `background`; it now drives the rail, Background the panel.
+- Suites: avatar-status 160/160 (16 variants, was 4), sidebar-workspace 1308/1308 (3 variants, was 1; the workspace-name
+  exception now on every variant), avatar-single and table-cell-avatar unchanged. Example "Member access" on the Avatar page.
 ## Session B · E2E ST-29 and DA-10, broken since #265 (tier S; Giám sát, fix-now rule)
 
 Both rows were broken in every run since #265: train A's gate, #275's gate and a local run. New rows don't fail the
