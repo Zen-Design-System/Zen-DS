@@ -530,3 +530,11 @@ tạo task được", Play started with the Danh sách frame selected and the fr
   Open overlay runs), E2E FW-174 rewritten (Design › Present and the toolbar ▷ on a Screen play; it asserted the old
   still frame, an agent's choice of 10-21, not the user's).
 - Handed off mid-task: the filter Chip clear work went to its own session (play-filter-chip-clear).
+
+## BACKLOG split (tier XS, docs only; user 2026-10-24 23:40 "clear the BACKLOG once", via Giám sát)
+- New `docs/context/BACKLOG-user-and-later.md`: "For the user (Việc của anh/chị)" — library publish (+ direct paste),
+  LICENSE, registry steps / Phase 6, shared-key warning, Code Connect seat, Link folder hand check; "Later phase (Giai
+  đoạn sau)" — code languages, Studio UX N1–N11, dark/280 panels, ListItem Value in Figma, and the new project
+  language setting (user 2026-10-25 "Để đợt sau"). Entry text unchanged.
+- `BACKLOG.md` keeps only dev work in flight (train C: DatePicker event days #293, phone Segmenteds #291); it is empty
+  once train C lands. HANDOFF points at the new file.
