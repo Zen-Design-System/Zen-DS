@@ -5998,6 +5998,14 @@
           "deprecated": null
         },
         {
+          "name": "events",
+          "type": "ReadonlyArray<Date | DatePickerEvent>",
+          "required": false,
+          "default": null,
+          "description": "Days with events: dots under each day (Figma `.Primitives/Date-Picker/Item` Event, `Event-List` 510:36577), a date\nfor one dot or `{ date, count }` for 1–4 (more show 4; a date listed twice counts twice). The day's name says how\nmany (\"Thursday, October 1, 2026, 2 events\"). Mark what the person is choosing around (a busy day, a booked night).",
+          "deprecated": null
+        },
+        {
           "name": "today",
           "type": "Date",
           "required": false,
@@ -6410,6 +6418,14 @@
           "deprecated": null
         },
         {
+          "name": "events",
+          "type": "DatePickerProps[\"events\"]",
+          "required": false,
+          "default": null,
+          "description": "Days with events: dots under each day (DatePicker `events`).",
+          "deprecated": null
+        },
+        {
           "name": "today",
           "type": "Date",
           "required": false,
@@ -6508,7 +6524,7 @@
           "type": "boolean | number",
           "required": false,
           "default": "false",
-          "description": "Events on this day, drawn as dots under it (Figma `.Primitives/Date-Picker/Item/Event-List` 510:36577): `true` or a\n count, 1–4 dots (more show 4), 4px apart by Spacing/Gap/3XSmall; Content/Accent/Light, Date-Picker-Item/Content/\n Selected on a selected day (Variant=On-Selected).",
+          "description": "Events on this day, drawn as dots under it (Figma `.Primitives/Date-Picker/Item/Event-List` 510:36577): `true` or a\n count, 1–4 dots (more show 4), 4px apart by Spacing/Gap/3XSmall; Content/Accent/Light, Date-Picker-Item/Content/\n Selected on a selected day (Variant=On-Selected). The day's name ends with the count (\"…, 2 events\").",
           "deprecated": null
         },
         {

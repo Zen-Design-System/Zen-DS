@@ -22,6 +22,7 @@ Pick a date or a date range. DatePicker is the calendar panel itself and is visi
 | Device | `device · DatePickerItem device · DatePickerHeader device` | desktop · mobile (Date-Picker/Mobile 9923:3576: days fill the width as squares in Body/Base/Medium, Heading/Subheading month with Back / Next at the end); unset, an inline calendar follows the breakpoint and a popover stays desktop |
 | Time | `timePicker · time / defaultTime · onTimeChange · DatePickerTimePicker` | Figma Time-Picker (460:38628) under a Divider: From / To as Input Small hh:mm with an AM/PM picker plus All day (Read-only times); stacked on the single calendar (Type=Single), side by side on the dual one (Type=Range, an All day each). Values are 24-hour "HH:mm"; with showActions they are part of the draft and reach onApply as its third argument; a date pick no longer closes the popover |
 | Bounds | `minDate / maxDate` | disabled days |
+| Events | `events (DatePicker, DatePickerSheet) · DatePickerItem event` | a dot per event under the day (Figma Item Event, Event-List 1–4; more show 4): a date or { date, count }; the day's name ends with the count |
 | Actions | `showActions / action · onApply(value, range) · onCancel` | none · single · dual; picks are a draft that Submit applies and Cancel drops |
 | Stacked | `calendar="stacked" · monthCount` | Date-Picker/Mobile Variant=Multiple: months one under another with Display headers and one weekday row pinned at the top of the scroll |
 | Phone sheet | `DatePickerSheet: open / onOpenChange · selectionMode · value / range · onRangeChange (draft) · onApply · summary · applyLabel` | Figma Date-Picker/Mobile 9923:3576 in a Bottom Sheet; picks are a draft until OK; DateField opens it by itself on a phone |
@@ -62,6 +63,7 @@ Figma `Date-Picker/Single-Calendar` (895:31954) and `Date-Picker/Dual-Calendar` 
 | `onTimeChange` | `(time: DatePickerTime) => void` | — | Called with each time change; with `showActions` it is a draft, read the applied one in `onApply`. |
 | `minDate` | `Date` | — |  |
 | `maxDate` | `Date` | — |  |
+| `events` | `ReadonlyArray<Date \| DatePickerEvent>` | — | Days with events: dots under each day (Figma `.Primitives/Date-Picker/Item` Event, `Event-List` 510:36577), a date for one dot or `{ date, count }` for 1–4 (more show 4; a date listed twice counts twice). The day's name says how many ("Thursday, October 1, 2026, 2 events"). Mark what the person is choosing around (a busy day, a booked night). |
 | `today` | `Date` | — | The day the calendar treats as today: the Today ring (`.Primitives/Date-Picker/Item` State=Today) and the month it opens on without a value. Default: the device clock. Pass your app's date when it is not the device's (a server or business date, a demo world, a test). |
 | `aria-label` | `string` | — | Accessible name of the calendar. Default: the locale's "Choose date" ("Choose dates" for the dual calendar). Name an inline calendar after what it sets ("Start date") when a form shows more than one. |
 | `aria-labelledby` | `string` | — | id of a visible element that names the calendar (a heading or label next to an inline calendar); wins over `aria-label`. |
@@ -126,6 +128,7 @@ Also accepts `OverlayOpenProps`.
 | `onCancel` | `() => void` | — | Cancel (single): the draft is dropped and the sheet closes. Closing by the X, the scrim or Escape drops it too. |
 | `minDate` | `Date` | — |  |
 | `maxDate` | `Date` | — |  |
+| `events` | `DatePickerProps["events"]` | — | Days with events: dots under each day (DatePicker `events`). |
 | `today` | `Date` | — | The day the calendar treats as today (DatePicker `today`). |
 | `monthCount` | `number` | `12` | Range mode: how many months the list shows from the first one (DatePicker `monthCount`). Default 12. |
 | `summary` | `ReactNode` | — | Range mode: Figma Footer-Actions Content beside OK, e.g. a price in Body/Extra/Bold over a Body/Small line ("$605.50" · "7 nights"), or a hint while no range is picked ("Add dates for prices"). |
@@ -145,7 +148,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | `day` | `number \| string` | `""` |  |
 | `date` | `Date` | — | The full date of this day. It names the button in the locale ("Wednesday, September 30, 2026"); without it the name is the locale's "Day N". The calendar passes it for every day. |
 | `state` | `\| "default" \| "hover" \| "single-selected" \| "range-selected-start" \| "range-selected-end" \| "in-range" \| "today" \| "blank" \| "weekend" \| "disabled"` | `"default"` |  |
-| `event` | `boolean \| number` | `false` | Events on this day, drawn as dots under it (Figma `.Primitives/Date-Picker/Item/Event-List` 510:36577): `true` or a count, 1–4 dots (more show 4), 4px apart by Spacing/Gap/3XSmall; Content/Accent/Light, Date-Picker-Item/Content/ Selected on a selected day (Variant=On-Selected). |
+| `event` | `boolean \| number` | `false` | Events on this day, drawn as dots under it (Figma `.Primitives/Date-Picker/Item/Event-List` 510:36577): `true` or a count, 1–4 dots (more show 4), 4px apart by Spacing/Gap/3XSmall; Content/Accent/Light, Date-Picker-Item/Content/ Selected on a selected day (Variant=On-Selected). The day's name ends with the count ("…, 2 events"). |
 | `size` | `"md" \| "sm" \| "medium" \| "small"` | `"md"` | Medium 32px (default) or Small 24px; short (sm, md…) or Figma (small, medium…) spelling. Ignored on mobile. |
 | `device` | `"desktop" \| "mobile"` | `"desktop"` | `mobile`: `.Primitives/Mobile-Date-Picker/Item` (9921:3283), a square that fills its grid column (40px in the component, 50px in the 350px table of a 390px phone) with the day in Body/Base/Medium; same states and tokens as desktop. |
 
@@ -201,6 +204,7 @@ Figma `.Primitives/Date-Picker/Time-Picker` (460:38628): Input/Text-Field Small 
 Object shapes the props above refer to.
 
 ```ts
+interface DatePickerEvent { date: Date; count?: number; }
 interface DatePickerRange { start: Date; end: Date | null; }
 interface DatePickerTime { from: string | null; to: string | null; fromAllDay?: boolean; toAllDay?: boolean; }
 ```
@@ -235,6 +239,7 @@ interface DatePickerTime { from: string | null; to: string | null; fromAllDay?: 
 ## Accessibility
 - Nav buttons are labelled; each day is a button named with its full date in the locale ("Wednesday, September 30, 2026").
 - An inline calendar is role="group" and a popover calendar role="dialog"; both are named "Choose date" ("Choose dates" dual) unless aria-label or aria-labelledby names them. Name each inline calendar after what it sets when a form shows more than one. Today's day carries aria-current="date", selected or not.
+- Event dots are drawn, not read: a day with `events` adds the count to its name ("Thursday, October 1, 2026, 2 events").
 
 ## Content
 - Use the locale's date format in the field placeholder.

@@ -20,6 +20,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Avatar (2026-10-24): `status` also takes `"disabled"`, `"pending"` or `"inactive"` (Figma .Primitives/Avatar/Status),
   read by screen readers in words; `AvatarStatus` is the dot on its own, XSmall (4px) to Large. Sidebar: `railBackground`
   sets the workspace rail's fill (Figma Master-Background Default · Flat · Inverse).
+- DatePicker (2026-10-24): `events` puts dots under the days that have events (a date, or `{ date, count }` for 1–4
+  dots; DatePickerSheet forwards it), and a day's name now says its count ("Thursday, October 1, 2026, 2 events").
 - DatePickerSheet (2026-10-24): `header="selection"` (Figma `.Primitives/Date-Picker` 9923:2323) puts the picked dates
   on top of the sheet: one date as a Heading/3 under the title with an edit action (`onEdit`, e.g. to type the date
   instead); a range with Clear dates (`onClear`) and the weekday row under the title and Close. BottomSheet takes a

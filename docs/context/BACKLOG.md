@@ -31,6 +31,11 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   date-picker-sheet-header) in #280; Avatar status Disabled / Pending / Inactive and the 4px XSmall dot (`AvatarStatus`)
   and the workspace rail's Master-Background (`railBackground`) in #279.
 
+- **P3 · New APIs the contract suites asked for (2026-10-24; the user approved all five):** every item is built and
+  waits to land; close this line when the last one merges. Train B (#289): Popover `placement="cover"` and
+  DatePickerSheet `header="selection"` (#280); AvatarStatus + Avatar status values and Sidebar `railBackground` (#279).
+  zen/feat/datepicker-events-20261024: DatePicker `events` (the calendars' day-1 dot; user OK 2026-10-24).
+
 - **P2 · Toolbar Search 240 vs DashboardHeader's 320 (2026-10-24; a user / designer question):** the user's rule caps
   a toolbar Search at 240 (harness `search/toolbar-width`, audit kinds `toolbar-search` / Figma
   `search/toolbar-width`), but Figma's `Primitives/Dashboard/Header` Type=Control-Bar (4122:33401) has its Search

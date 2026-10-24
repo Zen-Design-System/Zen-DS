@@ -580,3 +580,16 @@ audit without `--quality`. audit.mjs had no per-page limit, because page.evaluat
   figma-push.selftest expects Solid in the first column; tests/interaction/table-first-column-avatar.test.tsx; smoke
   + table tests pass (491).
 
+## DatePicker events (tier S; user 2026-10-24 "OK" on the BACKLOG item)
+
+Branch zen/feat/datepicker-events-20261024, stacked on #280 (5335f130, train B). The user also asked for the Sidebar
+rail and Avatar status items: both are already built in #279 (train B), so not redone.
+- `events?: ReadonlyArray<Date | DatePickerEvent>` (`{ date, count }`, exported type) on DatePicker, forwarded by
+  DatePickerSheet: counts per day (a date listed twice counts twice) feed DatePickerItem `event` (1–4 dots).
+- a11y: the dots are aria-hidden, so DatePickerItem's name ends with the existing `eventCount` label ("…, 2 events").
+- Suites: calendarProps passes the days Figma shows an Event-List on (Number-Event as count) and tableMap compares each
+  dot (size, place, fill, radius): Calendar 2830/2830, Single-Calendar 1212/1212, Mobile 2722/2722; the other DatePicker
+  suites unchanged.
+- Example: Schedule a review marks the days that already have reviews. Guideline api + a11y lines.
+- Checks: tsc, usage, style, guidelines / ai-ui / Studio maps, studio:selftest, mcp; smoke + date tests 539/539.
+
