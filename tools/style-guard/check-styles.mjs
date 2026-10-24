@@ -430,7 +430,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const findings = checkFiles(targets.length ? targets : DEFAULT_TARGETS);
   if (flags.has("--baseline-update")) {
     const keys = {}; for (const f of findings) keys[f.key] = (keys[f.key] ?? 0) + 1;
-    fs.writeFileSync(BASELINE_FILE, JSON.stringify({ generated: new Date().toISOString(), note: "Pre-existing style-guard debt. New findings fail; fix these when you touch them, then run --baseline-update.", total: findings.length, keys }, null, 2) + "\n");
+    fs.writeFileSync(BASELINE_FILE, JSON.stringify({ generated: new Date().toISOString(), note: "Pre-existing style-guard debt. New findings fail; one met while working on its file is fixed in the same change (AGENTS.md, fix at once), then run --baseline-update.", total: findings.length, keys }, null, 2) + "\n");
     console.log(`Baseline → ${rel(BASELINE_FILE)} (${findings.length} findings in ${new Set(findings.map((f) => f.file)).size} files)`);
     process.exit(0);
   }

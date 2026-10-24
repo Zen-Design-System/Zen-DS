@@ -402,6 +402,12 @@
         "allow": "chip-radio"
       },
       {
+        "id": "chip/needs-action",
+        "severity": "warn",
+        "summary": "A Normal or Advanced Chip is a button: give it something to do (onClick, popoverItems / onPopoverCreate, a selection via select / selected / defaultSelected, or onClearSelection). A count is a Number-only Chip, a label a Badge.",
+        "allow": "chip-action"
+      },
+      {
         "id": "api/deprecated-prop",
         "severity": "warn",
         "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
@@ -1615,7 +1621,7 @@
     "dont": [
       "Don't show more than 5 avatars in a stack; summarise the rest in text.",
       "Don't use status without a text equivalent nearby (\"Online\").",
-      "Don't put initials on a Solid green, teal, orange or cyan avatar: the white initials measure 2.6–2.9:1. Use background=\"subtle\" or a theme such as indigo, violet or purple; photos are fine (harness: avatar/solid-initials-contrast)."
+      "Don't put initials on a Solid golden, teal, cyan or orange avatar: the white initials measure 2.6–3.0:1. Use background=\"subtle\" or a theme such as indigo, violet or purple; photos are fine (harness: avatar/solid-initials-contrast)."
     ],
     "a11y": [
       "Without a photo, an avatar with alt is one image named by it (role=img): an AvatarStack of initials reads \"Ava Nguyen, Minh Tran\", not \"AN MT\". The status joins the name (\"Ava Nguyen, Online\"), alt=\"\" hides the initials, and the stack's overflow avatar reads \"+N\"."
@@ -1644,7 +1650,7 @@
       {
         "id": "avatar/solid-initials-contrast",
         "severity": "warn",
-        "summary": "Initials on a Solid green, teal, orange or cyan Avatar fall below 3:1 contrast; use background=\"subtle\" or another theme (photos are fine).",
+        "summary": "Initials on a Solid golden, teal, cyan or orange Avatar fall below 3:1 contrast; use background=\"subtle\" or another theme (photos are fine).",
         "allow": "avatar-contrast"
       },
       {
@@ -5439,6 +5445,12 @@
         "allow": "table-title"
       },
       {
+        "id": "table/bulk-actions-max",
+        "severity": "warn",
+        "summary": "A Table's bulk-action bar holds at most five actions (icon-only Button/Icon-Flat Medium; on a phone the ones that don't fit move into More): pick the five that matter for a selection.",
+        "allow": "table-bulk-actions"
+      },
+      {
         "id": "table/needs-name",
         "severity": "error",
         "summary": "A Table is named by a caption or aria-label.",
@@ -7152,7 +7164,7 @@
       {
         "id": "top-navigation/search-folds-to-action",
         "severity": "warn",
-        "summary": "A collapsing Top Navigation whose control bar is a Search passes searchAction, so Search stays one tap away (top-right) while the bar is folded.",
+        "summary": "A collapsing Top Navigation (collapsed, or a scrollRef that folds it) whose control bar is a Search passes searchAction, so Search stays one tap away (top-right) while the bar is folded.",
         "allow": "nav-search-fold"
       },
       {

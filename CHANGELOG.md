@@ -21,6 +21,15 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   chevron-down open a Menu; `titleDropdown` draws the chevron on an `onTitleClick` title); `largeTitleBadges` puts a row
   of Badges under the large title; `scrolledType` gives a scroll-linked bar its look once content scrolls under it (a
   hero header that starts clear and turns opaque), as a colour fade. A Selection mode recipe on the docs page.
+- Usage harness (`zen-usage`, ESLint plugin; 2026-10-24): `chip/needs-action` warns on a Normal or Advanced Chip that
+  does nothing when pressed; `table/bulk-actions-max` on more than five bulk actions; `top-navigation/max-three-trailing`
+  also flags three or more actions in one group (Figma's grouped pill holds two); `top-navigation/search-folds-to-action`
+  also checks bars that fold through `scrollRef`. `platform:audit`, `platform:shoot` and `visual-diff` say when they
+  measure the shared :5173 dev server and take `--isolated` for a private one.
+- Tokens: every component theme declares each `<background>-shadow-off` companion (`initial` where the fill is not
+  tinted), so a component theme nested inside a tinted one (Neutral-S4 inside Neutral-S3) keeps its Figma shadow;
+  `tokens:check` counts missing companions. Usage harness: `avatar/solid-initials-contrast` follows today's tokens (golden,
+  teal, cyan and orange Solid fall below 3:1 with white initials; green now passes at 3.48) (2026-10-24).
 - Components backlog (2026-10-24): ModalForm `header={false}` keeps its title as the modal's name, and takes
   `aria-label` / `aria-labelledby`; ProgressCircle `decorative` for a ring beside its own status word; Table
   `currentRowId` marks the row whose item is open beside the table (aria-current, Selected fill); FileUpload

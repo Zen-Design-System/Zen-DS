@@ -27,6 +27,7 @@ export const Good = () => <>
   <Avatar theme="photo" src={url} alt="Ava Chen" />
   <Avatar theme="blue" alt="">AC</Avatar>
   <Avatar theme="green" background="subtle" alt="Ava Chen">AC</Avatar>
+  <Avatar theme="green" alt="Ava Chen">AC</Avatar>
   <Avatar theme="teal" background="solid" src={url} alt="Minh Tran" />
   <Avatar theme="indigo" background="solid" alt="Bao Le">BL</Avatar>
   <Tooltip content="Duplicate"><IconButton onClick={act} aria-label="Duplicate" icon={<Icon name="icon-copy-line" />} /></Tooltip>
@@ -280,6 +281,10 @@ export const Good = () => <>
   <PopoverBulkAction aria-label="Selection actions"><PopoverBulkActionGroup aria-label="Edit"><IconButton onClick={act} appearance="flat" size="md" aria-label="Copy" icon={copy} /></PopoverBulkActionGroup></PopoverBulkAction>
   <TopNavigation title="Inbox" largeTitle="Inbox" collapsed={collapsed} controlBar={<Search placeholder="Search messages" />} searchAction={{ label: "Search messages", onClick: openSearch }} trailing={[{ icon: "icon-edit-02-line", label: "New message", onClick: compose }]} />
   <TopNavigation title="Files" collapsed={collapsed} controlBar={<Segmented fullWidth options={tabs} value={tab} onChange={setTab} aria-label="Filter files" />} />
+  <TopNavigation title="Inbox" largeTitle="Inbox" scrollRef={scroller} controlBar={<Search placeholder="Search messages" />} searchAction={{ label: "Search messages", onClick: openSearch }} />
+  <Table aria-label="Files" rows={rows} getRowId={getId} columns={columns} selectable selectedIds={ids} onSelectionChange={setIds} bulkActions={(selected) => [{ id: "a1", icon: "icon-archive-line", label: "Action 1", onClick: act }, { id: "a2", icon: "icon-archive-line", label: "Action 2", onClick: act }, { id: "a3", icon: "icon-archive-line", label: "Action 3", onClick: act }, { id: "a4", icon: "icon-archive-line", label: "Action 4", onClick: act }, { id: "a5", icon: "icon-archive-line", label: "Action 5", onClick: act }]} />
+  <Chip variant="normal" onClick={act}>Design</Chip>
+  <Chip variant="normal" defaultSelected>Remote</Chip>
   <ChatMessage side="you" holdActions={[{ id: "copy", label: "Copy", icon: "icon-copy-solid" }, { id: "delete", label: "Delete", icon: "icon-trash-solid", destructive: true }]}>Hi</ChatMessage>
   <IconButton onClick={act} appearance="flat" level="primary" size="md" aria-label="Archive" icon={<Icon name="icon-archive-line" />} />
   <IconButton onClick={act} appearance="flat" level="primary" size="md" aria-label="Archive" tooltip="Archive (E)" icon={<Icon name="icon-archive-line" />} />
