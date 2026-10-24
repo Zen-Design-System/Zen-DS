@@ -91,12 +91,12 @@ export const cases: Record<string, (props: Props) => ReactNode> = {
   ),
   // Side-Bar/Master/Workspace: the workspace rail (the brand mark box, Avatar/Single Square Medium tiles, the add action)
   // beside the child panel (the current workspace's name, its settings action, `body` / `footer` rows).
-  sbWorkspace: ({ height, mark, workspaces = [], body = [], footer = [], ...p }) => (
+  sbWorkspace: ({ height, mark, workspaces = [], body = [], footer = [], overlayAdd, ...p }) => (
     <div style={{ display: "flex", height }}>
       <Sidebar {...p} variant="workspace"
         workspaceBrand={mark ? <span style={{ display: "inline-flex", width: 28, height: 28, alignItems: "center", justifyContent: "center" }}><svg width={mark[0]} height={mark[1]} viewBox={`0 0 ${mark[0]} ${mark[1]}`} aria-hidden="true"><rect width={mark[0]} height={mark[1]} fill="currentColor" /></svg></span> : undefined}
         workspaceItems={workspaces.map(({ initials, theme, ...item }: Props) => ({ ...item, icon: <Avatar shape="square" size="md" theme={theme} background="solid">{initials}</Avatar> }))}
-        workspaceAction={<IconButton appearance="main" level="tertiary" size="md" aria-label="Add workspace" tooltip={false} icon={<Icon name="icon-plus-line" decorative />} />}
+        workspaceAction={<IconButton appearance={overlayAdd ? "overlay" : "main"} level={overlayAdd ? "white-overlay" : "tertiary"} size="md" aria-label="Add workspace" tooltip={false} icon={<Icon name="icon-plus-line" decorative />} />}
         headerAction={<IconButton appearance="flat" level="primary" size="sm" aria-label="Settings" tooltip={false} icon={<Icon name="icon-settings-01-line" decorative />} />}
         sections={[{ items: body }]}
         footer={footer.length ? <>{footer.map((item: Props) => <SidebarMenuItem key={item.id} {...item} />)}</> : undefined} />

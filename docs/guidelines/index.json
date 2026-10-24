@@ -1008,7 +1008,7 @@
       "file": "docs/guidelines/avatar.md",
       "apiFile": "docs/api/avatar.json",
       "figma": "Avatar/Single, Avatar/Stack (page 211:19487)",
-      "import": "import { Avatar, AvatarStack } from \"@zen-ds/react\";",
+      "import": "import { Avatar, AvatarStack, AvatarStatus } from \"@zen-ds/react\";",
       "purpose": "Represent a person or workspace with a photo or initials.",
       "use": [
         "People lists, assignees, account switchers, shared-with stacks (max 5)."
@@ -1023,7 +1023,7 @@
           "theme?: photo|accent|blue|brown|crimson|cyan|green|indigo|neutral|orange|pink|plum|purple|red|teal|violet|yellow|sky|mint|bronze|golden = neutral",
           "background?: solid|subtle = solid",
           "shape?: circle|square = circle",
-          "status?: boolean = false",
+          "status?: boolean|AvatarStatusValue = false",
           "focus?: boolean = false",
           "src?: string",
           "alt?: string = ",
@@ -1176,6 +1176,7 @@
           "workspaceAction?: ReactNode",
           "headerAction?: ReactNode",
           "workspaceBar?: boolean = true",
+          "railBackground?: default|flat|inverse = default",
           "subMenu?: ReactNode",
           "subMenuLabel?: string",
           "onSubMenuClose?: (event: KeyboardEvent|globalThis.PointerEvent) => void",

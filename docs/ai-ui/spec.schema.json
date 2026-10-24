@@ -4444,12 +4444,25 @@
               "status": {
                 "anyOf": [
                   {
-                    "type": "boolean"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "active",
+                          "disabled",
+                          "pending",
+                          "inactive"
+                        ]
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
-                ]
+                ],
+                "description": "The status dot (Figma Avatar/Single Status + .Primitives/Avatar/Status 217:7418) at the bottom-right: `true` or `\"active\"` (Positive, read as \"Online\"), `\"disabled\"` (Solid-Disable"
               },
               "focus": {
                 "anyOf": [
@@ -36774,6 +36787,21 @@
                     "$ref": "#/$defs/marker"
                   }
                 ]
+              },
+              "railBackground": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "default",
+                      "flat",
+                      "inverse"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The workspace rail's fill (Figma Side-Bar/Master/Workspace Master-Background, 4218:9166): Default = Surface/Default · Flat = no fill (the rail sits on the page's canvas) · Inverse"
               },
               "subMenu": {
                 "anyOf": [

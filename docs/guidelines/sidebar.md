@@ -64,6 +64,7 @@ Generated from the TypeScript source; full JSON in `docs/api/sidebar.json`.
 | `workspaceAction` | `ReactNode` | — | Figma Workspace rail: the action after the workspace avatars (usually an "Add workspace" Button/Icon-Main). |
 | `headerAction` | `ReactNode` | — | Workspace panel header action on the right (Figma: settings Button/Icon-Flat). |
 | `workspaceBar` | `boolean` | `true` |  |
+| `railBackground` | `"default" \| "flat" \| "inverse"` | `"default"` | The workspace rail's fill (Figma Side-Bar/Master/Workspace Master-Background, 4218:9166): Default = Surface/Default · Flat = no fill (the rail sits on the page's canvas) · Inverse = Background/Active/Neutral/Solid, the default mark in Content/Inverse/Strongest; pair it with an overlay add action (`<IconButton appearance="overlay" level="white-overlay">`, Figma Button/Icon-Overlay White Overlay). `background` paints the Main panel. |
 | `subMenu` | `ReactNode` | — | Figma Side-Bar/Sub: a 260px flyout panel opened beside the sidebar (usually a `<SidebarSubMenu>`). |
 | `subMenuLabel` | `string` | — | Accessible name of the flyout panel. Default: the locale's “Sub menu”. |
 | `onSubMenuClose` | `(event: KeyboardEvent \| globalThis.PointerEvent) => void` | — | Called on Escape or a pointer press outside the sidebar and its flyout, so the owner can close it. |

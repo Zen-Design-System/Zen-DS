@@ -2501,6 +2501,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
       // A photo Avatar only comes with a Subtle background in Figma (Theme=Photo, Background=Solid is no variant).
       if (element.name === "Avatar") Object.assign(node.props, { Theme: "Photo", ...("Background" in node.props ? { Background: "Subtle" } : {}) });
     }
+    // An Avatar's status other than Active is its Status layer's own option (.Primitives/Avatar/Status 217:7418).
+    if (element.name === "Avatar" && ["disabled", "pending", "inactive"].includes(code.status)) node.nested = [...(node.nested ?? []), { path: "Status", props: { Status: code.status[0].toUpperCase() + code.status.slice(1) } }];
     // A PropertyField's cell is its nested Value (above), not slot content.
     const layers = element.name === "PropertyField" ? [] : element.children.filter((child) => child.kind === "element");
     if (layers.length) {

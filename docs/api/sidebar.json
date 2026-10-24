@@ -251,6 +251,14 @@
           "deprecated": null
         },
         {
+          "name": "railBackground",
+          "type": "\"default\" | \"flat\" | \"inverse\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "The workspace rail's fill (Figma Side-Bar/Master/Workspace Master-Background, 4218:9166): Default = Surface/Default ·\nFlat = no fill (the rail sits on the page's canvas) · Inverse = Background/Active/Neutral/Solid, the default mark in\nContent/Inverse/Strongest; pair it with an overlay add action (`<IconButton appearance=\"overlay\"\nlevel=\"white-overlay\">`, Figma Button/Icon-Overlay White Overlay). `background` paints the Main panel.",
+          "deprecated": null
+        },
+        {
           "name": "subMenu",
           "type": "ReactNode",
           "required": false,

@@ -30,6 +30,9 @@ export type SidebarTheme = (typeof sidebarThemes)[number];
  *  (on a white Canvas/Alt page), flat = Surface/Flat (navigation on a Canvas/Flat page, seamless in both modes),
  *  inverse = Inverse/Solid. */
 export type SidebarBackground = "default" | "alt" | "flat" | "inverse";
+/** Figma Side-Bar/Master/Workspace Master-Background (4218:9166). */
+export const sidebarRailBackgrounds = ["default", "flat", "inverse"] as const;
+export type SidebarRailBackground = (typeof sidebarRailBackgrounds)[number];
 export type SidebarItemState = "default" | "hover" | "focus" | "disabled";
 export type SidebarItemTheme = "neutral" | "accent";
 
@@ -170,6 +173,13 @@ export interface SidebarProps {
   /** Workspace panel header action on the right (Figma: settings Button/Icon-Flat). */
   headerAction?: ReactNode;
   workspaceBar?: boolean;
+  /**
+   * The workspace rail's fill (Figma Side-Bar/Master/Workspace Master-Background, 4218:9166): Default = Surface/Default ·
+   * Flat = no fill (the rail sits on the page's canvas) · Inverse = Background/Active/Neutral/Solid, the default mark in
+   * Content/Inverse/Strongest; pair it with an overlay add action (`<IconButton appearance="overlay"
+   * level="white-overlay">`, Figma Button/Icon-Overlay White Overlay). `background` paints the Main panel.
+   */
+  railBackground?: SidebarRailBackground;
   /** Figma Side-Bar/Sub: a 260px flyout panel opened beside the sidebar (usually a <SidebarSubMenu>). */
   subMenu?: ReactNode;
   /** Accessible name of the flyout panel. Default: the locale's “Sub menu”. */
@@ -660,7 +670,7 @@ function SidebarFlyout({ children, label, onClose, rootRef }: { children: ReactN
   return <div className="zen-sidebar__submenu" role="region" aria-label={label}>{children}</div>;
 }
 
-export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed: collapsedArg, onCollapsedChange: onCollapsedChangeProp, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, children, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, shadow = true, theme: themeProp, subHeader, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose, overrides, ref, ...rest }: SidebarProps) {
+export function Sidebar({ variant: requestedVariant, density: requestedDensity, collapsed: collapsedArg, onCollapsedChange: onCollapsedChangeProp, brand, logo, logoCollapsed, productName, "aria-label": ariaLabel, sections = [], selectedId, linkAs, children, footer, search, searchCollapsed, onItemClick, className, background = "default", divider = false, shadow = true, theme: themeProp, subHeader, workspaceBrand, workspaceItems = [], workspaceFooter, workspaceAction, headerAction, workspaceBar = true, railBackground = "default", subMenu, subMenuLabel: subMenuLabelProp, onSubMenuClose, overrides, ref, ...rest }: SidebarProps) {
   // Unset is not "expanded": an AppShell's pattern decides where the rail starts (List-Detail on the rail), so the
   // shell hears `collapsed` only when it was given.
   const collapsedProp = collapsedArg ?? false;
@@ -706,7 +716,7 @@ export function Sidebar({ variant: requestedVariant, density: requestedDensity, 
   if (variant === "workspace") {
     return (
       <nav {...dataAttributes(rest)} ref={navRef} className={rootClassName} data-variant="workspace" data-background={background} data-divider={divider ? "true" : undefined} data-collapsed="false" aria-label={ariaLabel ?? t.workspaceNavigation}>
-        {workspaceBar ? <div className="zen-sidebar__workspace-rail">
+        {workspaceBar ? <div className="zen-sidebar__workspace-rail" data-background={railBackground === "default" ? undefined : railBackground}>
           <div className="zen-sidebar__workspace-header">{workspaceBrand ?? <span className="zen-sidebar__workspace-default-mark" aria-hidden="true"><Icon name="icon-zen" size="lg" /></span>}</div>
           <div className="zen-sidebar__workspace-body"><div className="zen-sidebar__workspace-items">
             {workspaceItems.map((item) => nest("Workspace", <SidebarItemView key={item.id} item={{ ...item, icon: item.icon ?? <span /> }} depth={0} collapsed openItems={openItems} setOpenItems={setOpenItems} onItemClick={onItemClick} />, item.id))}

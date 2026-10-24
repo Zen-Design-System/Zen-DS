@@ -34,7 +34,7 @@ Figma Avatar/Single (Medium 223:8784 … 3XLarge 223:8714): photo or initials on
 | `theme` | `"photo" \| "accent" \| "blue" \| "brown" \| "crimson" \| "cyan" \| "green" \| "indigo" \| "neutral" \| "orange" \| "pink" \| "plum" \| "purple" \| "red" \| "teal" \| "violet" \| "yellow" \| "sky" \| "mint" \| "bronze" \| "golden"` | `"neutral"` |  |
 | `background` | `"solid" \| "subtle"` | `"solid"` |  |
 | `shape` | `"circle" \| "square"` | `"circle"` |  |
-| `status` | `boolean` | `false` |  |
+| `status` | `boolean \| AvatarStatusValue` | `false` | The status dot (Figma Avatar/Single Status + .Primitives/Avatar/Status 217:7418) at the bottom-right: `true` or `"active"` (Positive, read as "Online"), `"disabled"` (Solid-Disabled), `"pending"` (Warning) or `"inactive"` (Negative). Its size follows the avatar (Small on 2XSmall–Large, Medium on XLarge, Large on 2XLarge / 3XLarge). The dot is never the only signal: say the status in text beside the avatar too. |
 | `focus` | `boolean` | `false` |  |
 | `src` | `string` | — |  |
 | `alt` | `string` | `""` | The person's name. With `src` it is the photo's alt text; without it the initials avatar is named by it (`role="img"`, `aria-label`), so screen readers say "Ava Chen", not "AC" (an AvatarStack of initials reads names). `alt=""` makes the avatar decorative: use it only when the name is shown next to it. |
@@ -54,6 +54,25 @@ Also accepts `Omit<AvatarProps, "children" | "alt" | "src">`.
 | `showMore` | `boolean` | `false` |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of each avatar the stack draws, by layer (`{ "Avatar[0]": { src: "…" } }`, `More` for the overflow chip). Written by Zen Studio; app code sets `items`. |
 | `size` | _HTML attribute_ | `"md"` |  |
+
+### AvatarStatus
+Figma .Primitives/Avatar/Status (217:7418): a Corner-Radius/Rounded dot with an OUTSIDE Color/Border/Inverse ring, on its own (a presence mark beside a name) or as an Avatar's `status`. Fills: Color/Background/Positive/Solid/Default, Solid-Disabled, Warning/Solid/Default, Negative/Solid/Default.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `status` | `"active" \| "disabled" \| "pending" \| "inactive"` | `"active"` | Figma Status: Active (Positive) · Disabled (Solid-Disabled) · Pending (Warning) · Inactive (Negative). |
+| `size` | `"xs" \| "sm" \| "md" \| "lg" \| "xsmall" \| "small" \| "medium" \| "large"` | `"sm"` | Figma Size: XSmall 4px with a 1px ring · Small 8/2 · Medium 12/2 · Large 16/3. Short or Figma spelling. |
+| `label` | `string` | — | What a screen reader says. Default: the status word from the labels ("Online", "Disabled", "Pending", "Inactive"). |
+| `decorative` | `boolean` | `false` | Hide the dot from assistive technology when the status is said in text beside it. |
+| `className` | `string` | — |  |
+| `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>`. |
+
+### Types
+Object shapes the props above refer to.
+
+```ts
+type AvatarStatusValue = "active" | "disabled" | "pending" | "inactive"
+```
 
 ## ✅ Do
 - Set alt to the person's name; use alt="" only when the name is shown next to the avatar.

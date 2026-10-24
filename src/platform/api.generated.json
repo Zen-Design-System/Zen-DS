@@ -4650,10 +4650,10 @@
         },
         {
           "name": "status",
-          "type": "boolean",
+          "type": "boolean | AvatarStatusValue",
           "required": false,
           "default": "false",
-          "description": "",
+          "description": "The status dot (Figma Avatar/Single Status + .Primitives/Avatar/Status 217:7418) at the bottom-right: `true` or\n`\"active\"` (Positive, read as \"Online\"), `\"disabled\"` (Solid-Disabled), `\"pending\"` (Warning) or `\"inactive\"`\n(Negative). Its size follows the avatar (Small on 2XSmall–Large, Medium on XLarge, Large on 2XLarge / 3XLarge). The\ndot is never the only signal: say the status in text beside the avatar too.",
           "deprecated": null
         },
         {
@@ -4748,6 +4748,60 @@
           "required": false,
           "default": "\"md\"",
           "description": "",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "AvatarStatus",
+      "extends": null,
+      "props": [
+        {
+          "name": "status",
+          "type": "\"active\" | \"disabled\" | \"pending\" | \"inactive\"",
+          "required": false,
+          "default": "\"active\"",
+          "description": "Figma Status: Active (Positive) · Disabled (Solid-Disabled) · Pending (Warning) · Inactive (Negative).",
+          "deprecated": null
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\" | \"md\" | \"lg\" | \"xsmall\" | \"small\" | \"medium\" | \"large\"",
+          "required": false,
+          "default": "\"sm\"",
+          "description": "Figma Size: XSmall 4px with a 1px ring · Small 8/2 · Medium 12/2 · Large 16/3. Short or Figma spelling.",
+          "deprecated": null
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "What a screen reader says. Default: the status word from the labels (\"Online\", \"Disabled\", \"Pending\", \"Inactive\").",
+          "deprecated": null
+        },
+        {
+          "name": "decorative",
+          "type": "boolean",
+          "required": false,
+          "default": "false",
+          "description": "Hide the dot from assistive technology when the status is said in text beside it.",
+          "deprecated": null
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>`.",
           "deprecated": null
         }
       ]
@@ -5373,6 +5427,14 @@
           "required": false,
           "default": "true",
           "description": "",
+          "deprecated": null
+        },
+        {
+          "name": "railBackground",
+          "type": "\"default\" | \"flat\" | \"inverse\"",
+          "required": false,
+          "default": "\"default\"",
+          "description": "The workspace rail's fill (Figma Side-Bar/Master/Workspace Master-Background, 4218:9166): Default = Surface/Default ·\nFlat = no fill (the rail sits on the page's canvas) · Inverse = Background/Active/Neutral/Solid, the default mark in\nContent/Inverse/Strongest; pair it with an overlay add action (`<IconButton appearance=\"overlay\"\nlevel=\"white-overlay\">`, Figma Button/Icon-Overlay White Overlay). `background` paints the Main panel.",
           "deprecated": null
         },
         {

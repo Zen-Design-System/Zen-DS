@@ -202,6 +202,13 @@ check("figmaIdOf: the other way of figmaDocId", [figmaIdOf(figmaDocId("14243:648
   const avatar = find(pkg.frame, (node) => node.image);
   check("a picture: the Avatar names it, Theme Photo, and the package lists it for the caller to fill", { image: avatar?.image, theme: avatar?.props.Theme, images: pkg.images }, { image: "zen-media:abc123", theme: "Photo", images: { "zen-media:abc123": null } });
 }
+{
+  const away = PAGE.replace('<Icon name="icon-star-01-line" />', '<Avatar alt="Alex" status="pending">AX</Avatar>').replace("import { Button, Card, Grid, Icon, IconButton, Stack, Text }", "import { Avatar, Button, Card, Grid, Icon, IconButton, Stack, Text }");
+  const { frame } = figmaFromPage(away, { mapping, nestedLayers: NESTED_LAYERS });
+  const avatar = find(frame, (node) => node.set?.name === "Avatar/Single");
+  check("Avatar status=\"pending\": the Status layer shown, its own Status option Pending", [Object.entries(avatar?.props ?? {}).find(([name]) => name.startsWith("Status"))?.[1], avatar?.nested?.find((nested) => nested.path === "Status")?.props], [true, { Status: "Pending" }]);
+  check("Avatar status=\"pending\" comes back from Figma as it went", /<Avatar\b[^>]*status="pending"/.test(pageFromFigma(frame, { mapping }).text), true);
+}
 
 // 7. What is not written yet is named, never dropped silently.
 {

@@ -177,6 +177,10 @@ export type ZenLabels = {
   opensInNewTab: string;
   // Status
   online: string;
+  /** Avatar / AvatarStatus words for Figma .Primitives/Avatar/Status Disabled, Pending and Inactive (Active is `online`). */
+  statusDisabled: string;
+  statusPending: string;
+  statusInactive: string;
   progress: string;
   /** Stepper's screen-reader status after a failed step's title. */
   stepError: string;
@@ -540,6 +544,9 @@ const en: ZenLabels = {
   back: "Back",
   opensInNewTab: "(opens in a new tab)",
   online: "Online",
+  statusDisabled: "Disabled",
+  statusPending: "Pending",
+  statusInactive: "Inactive",
   progress: "Progress",
   stepError: "(error)",
   stepCompleted: "(completed)",
@@ -843,6 +850,9 @@ const vi: ZenLabels = {
   back: "Quay lại",
   opensInNewTab: "(mở trong thẻ mới)",
   online: "Đang hoạt động",
+  statusDisabled: "Đã tắt",
+  statusPending: "Đang chờ",
+  statusInactive: "Không hoạt động",
   progress: "Tiến độ",
   stepError: "(lỗi)",
   stepCompleted: "(đã hoàn thành)",

@@ -1497,7 +1497,7 @@
       "slug": "avatar",
       "folder": "Avatar",
       "status": "verified",
-      "import": "import { Avatar, AvatarStack } from \"@zen-ds/react\";",
+      "import": "import { Avatar, AvatarStack, AvatarStatus } from \"@zen-ds/react\";",
       "purpose": "Represent a person or workspace with a photo or initials.",
       "use": [
         "People lists, assignees, account switchers, shared-with stacks (max 5)."
@@ -1571,8 +1571,21 @@
           "default": "circle"
         },
         "status": {
-          "type": "boolean",
-          "default": false
+          "anyOf": [
+            {
+              "enum": [
+                "active",
+                "disabled",
+                "pending",
+                "inactive"
+              ]
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "default": false,
+          "description": "The status dot (Figma Avatar/Single Status + .Primitives/Avatar/Status 217:7418) at the bottom-right: `true` or `\"active\"` (Positive, read as \"Online\"), `\"disabled\"` (Solid-Disable"
         },
         "focus": {
           "type": "boolean",
@@ -1602,7 +1615,7 @@
       "slug": "avatar",
       "folder": "Avatar",
       "status": "verified",
-      "import": "import { Avatar, AvatarStack } from \"@zen-ds/react\";",
+      "import": "import { Avatar, AvatarStack, AvatarStatus } from \"@zen-ds/react\";",
       "purpose": "Represent a person or workspace with a photo or initials.",
       "use": [
         "People lists, assignees, account switchers, shared-with stacks (max 5)."
@@ -17999,6 +18012,15 @@
         "workspaceBar": {
           "type": "boolean",
           "default": true
+        },
+        "railBackground": {
+          "enum": [
+            "default",
+            "flat",
+            "inverse"
+          ],
+          "default": "default",
+          "description": "The workspace rail's fill (Figma Side-Bar/Master/Workspace Master-Background, 4218:9166): Default = Surface/Default · Flat = no fill (the rail sits on the page's canvas) · Inverse"
         },
         "subMenu": {
           "x-kind": "node",

@@ -840,7 +840,7 @@
       "status": "verified",
       "chrome": true,
       "purpose": "Primary app navigation with sections, nested items and a collapsible rail.",
-      "props": "variant? density? collapsed? onCollapsedChange? brand? logo? logoCollapsed? productName? aria-label? sections? selectedId? children? footer? search? searchCollapsed? onItemClick? background? divider? shadow? theme? subHeader? workspaceBrand? workspaceItems? workspaceFooter? workspaceAction? headerAction? workspaceBar? subMenu? subMenuLabel? onSubMenuClose?"
+      "props": "variant? density? collapsed? onCollapsedChange? brand? logo? logoCollapsed? productName? aria-label? sections? selectedId? children? footer? search? searchCollapsed? onItemClick? background? divider? shadow? theme? subHeader? workspaceBrand? workspaceItems? workspaceFooter? workspaceAction? headerAction? workspaceBar? railBackground? subMenu? subMenuLabel? onSubMenuClose?"
     },
     {
       "name": "SidebarMenuItem",

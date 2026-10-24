@@ -272,6 +272,11 @@ a.zen-sidebar__item, .zen-sidebar__item[href] { text-decoration: none; }
    Workspace rail = the 40px (Compact) / 48px (Comfortable) avatar tile + 14px each side. */
 .zen-sidebar[data-variant="workspace"] { --zen-sidebar-rail-width: calc(var(--zen-image-size-medium, 40px) + 28px); width: calc(var(--zen-sidebar-rail-width) + var(--zen-sidebar-default-width, 240px) + var(--zen-spacing-padding-xsmall, 8px) + var(--zen-spacing-gap-2-xsmall, 4px)); flex-basis: calc(var(--zen-sidebar-rail-width) + var(--zen-sidebar-default-width, 240px) + var(--zen-spacing-padding-xsmall, 8px) + var(--zen-spacing-gap-2-xsmall, 4px)); }
 .zen-sidebar__workspace-rail { display: flex; width: var(--zen-sidebar-rail-width, 68px); min-height: 0; flex: 0 0 var(--zen-sidebar-rail-width, 68px); flex-direction: column; overflow: hidden; border-radius: var(--zen-corner-radius-xlarge, 20px); background: var(--zen-color-background-surface-default, #fff); backdrop-filter: blur(40px); }
+/* Master-Background (4218:9166): Flat drops the rail's fill (the Background-Blur stays); Inverse is
+   Background/Active/Neutral/Solid with the mark (and a currentColor brand) in Content/Inverse/Strongest. */
+.zen-sidebar__workspace-rail[data-background="flat"] { background: transparent; }
+.zen-sidebar__workspace-rail[data-background="inverse"] { background: var(--zen-color-background-active-neutral-solid, #121212); color: var(--zen-color-content-inverse-strongest, #fdfdfd); }
+.zen-sidebar__workspace-rail[data-background="inverse"] .zen-sidebar__workspace-default-mark { color: inherit; }
 .zen-sidebar__workspace-header { display: flex; min-height: 68px; align-items: center; justify-content: center; box-sizing: border-box; padding: var(--zen-margin-compact, 20px); }
 .zen-sidebar__workspace-body { display: flex; min-height: 0; flex: 1; flex-direction: column; align-items: center; padding: var(--zen-spacing-padding-small, 12px); }
 .zen-sidebar__workspace-items { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-small, 12px); }
