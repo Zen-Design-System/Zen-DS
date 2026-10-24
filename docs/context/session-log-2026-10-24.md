@@ -258,6 +258,14 @@ Branch zen/feat/top-nav-props-20261024, stacked on #266 (the WIP from `wip/top-n
 - **Guidelines:** list-item, segmented and table name the checks; guidelines and ai-ui were rebuilt.
 - **E2E baseline:** PT-16…21, HO-13…16 and K-24…27 are now works (all ✓ without retry in the 355/0 full run; their
   owners are archived; Giám sát's ask).
+- **Gate slot:**
+  - The first segmented-fit scan (every page at 1512, 390, 320 and dark) found 12 hits in the desktop compositions at
+    phone widths (app-shell B3/B4/G1, chart Range ×2, Studio analytics) and in the Segmented playground. All are
+    baselined (14 keys with the playground's "Full width toggled"). A BACKLOG line holds the example fixes (Chip rows on
+    phones, a design call).
+  - The messages carry no px, because they are baseline keys.
+  - The gate also caught ST-28 failing under load (the Inspector re-rendered while the row held its button). It now
+    clicks through the locator: 3/3 alone, structural 22/22.
 
 ## Session B · E2E ST-29 and DA-10, broken since #265 (tier S; Giám sát, fix-now rule)
 
