@@ -749,7 +749,9 @@ export function controlClip({ scopeSel, regionSel }) {
  * phone a Segmented is used only when every label fits its equal share. It reports one that slides sideways (its items
  * are wider than the screen gives them) or a `fullWidth` one that cuts a label to an ellipsis: both want a single-choice
  * row of Normal Chips that scrolls. A phone is a viewport under 768px or a docs phone frame (`.platform-phone`).
- * `data-audit-skip-quality` opts one out.
+ * A Segmented with `options` turns into that chip row by itself on a phone (Segmented.tsx, 2026-10-24), so what is left
+ * here is one it cannot turn (segments drawn as children, icon-only segments, counters) or one outside a phone
+ * breakpoint. `data-audit-skip-quality` opts one out.
  */
 export function segmentedFit({ scopeSel, regionSel }) {
   const out = { "segmented-fit": [] };

@@ -2,6 +2,16 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-24 (B: phone Segmenteds become chip rows)
+
+- Done 2026-10-24 (user, option A: "Segmented tự hiện thành hàng Chip chọn một trên điện thoại khi nhãn không vừa"): Segmented
+  switches itself on a phone; ChartCard ranges follow with no example change; the 14 baseline keys are removed:
+  **P3 · Phone Segmenteds that do not fit (2026-10-24, B, audit `segmented-fit`, 12 baseline keys):** at 390 / 320 the
+  desktop compositions' Segmenteds slide sideways or ellipsize: app-shell B3 Top-bar analytics (Period, Range), B4
+  Workspace editor (Mode), G1 Grid (Range), chart's Range (`chart.tsx` ~368, ~1091) and Studio analytics. The
+  guideline's phone fix is a single-choice Chip row (as `segmented.tsx` ~414). Each example needs its phone pattern
+  (a design call for the dashboard headers), S–M. The Segmented page's own playground (Section) slides on purpose.
+
 ## Archived 2026-10-24 (B: the harness inventory candidates)
 
 - Done 2026-10-24 (user, through the progress session: all three): `listbox/grouped-on-phone` and `table/titled-box`

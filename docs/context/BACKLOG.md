@@ -89,12 +89,6 @@ starts.
 ### Components
 
 ### Platform examples and docs
-- **P3 · Phone Segmenteds that do not fit (2026-10-24, B, audit `segmented-fit`, 12 baseline keys):** at 390 / 320 the
-  desktop compositions' Segmenteds slide sideways or ellipsize: app-shell B3 Top-bar analytics (Period, Range), B4
-  Workspace editor (Mode), G1 Grid (Range), chart's Range (`chart.tsx` ~368, ~1091) and Studio analytics. The
-  guideline's phone fix is a single-choice Chip row (as `segmented.tsx` ~414). Each example needs its phone pattern
-  (a design call for the dashboard headers), S–M. The Segmented page's own playground (Section) slides on purpose.
-
 ### Tooling / harness / contracts
 
 ### Next-phase Studio design check

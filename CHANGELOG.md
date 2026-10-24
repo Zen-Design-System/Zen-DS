@@ -66,6 +66,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - QA: the platform audit has a per-page time limit (`--page-timeout`: 180 s; 420 with `--quality`/`--density`; 900
   with `--smoke`). A page that never answers is audited once more in a new tab, then reported by name, and the run goes
   on. One hung page held CI's audit for the whole 45 minutes on 2026-10-24.
+- Segmented on a phone (user, 2026-10-24, option A): when its labels do not fit their equal share or it would slide
+  sideways, a Segmented with `options` shows as a single-choice chip row (ChipGroup, Medium) that scrolls sideways, with
+  the same options, value and onValueChange, and comes back once it fits. Desktop never changes. ChartCard's range
+  switch follows, so the docs' 14 phone `segmented-fit` findings are gone (baseline emptied).
 - Usage harness and audit (user, 2026-10-24, from the harness inventory): `listbox/grouped-on-phone` (error) flags a
   phone settings or profile screen that puts several kicker groups of rows in one block, or bare Lists under kickers
   (usage rules §15: each group is its own ListBox); `table/titled-box` (warn) flags a Table in a Card or ListBox that
