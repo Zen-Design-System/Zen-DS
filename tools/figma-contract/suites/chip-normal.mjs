@@ -31,5 +31,6 @@ export default {
     { figma: "Leading/Vector", dom: ".zen-chip__slot > .zen-icon", check: ["fill"], fillVia: "color", when: (vp) => vp.Theme === "Leading-Icon" },
     { figma: "Avatar/Single|Leading", dom: ".zen-chip__slot .zen-avatar", check: ["size", "x", "y", "fill", "radius"], when: (vp) => vp.Theme === "Leading-Photo" },
     { figma: "Avatar/Single|Leading > Image", dom: ".zen-chip__slot .zen-avatar__inner::after", check: ["size", "stroke"], strokeVia: "border", when: (vp) => vp.Theme === "Leading-Photo" },
+    { figma: "Avatar/Single|Leading > Image", dom: ".zen-chip__slot .zen-avatar__inner", check: ["image"], when: (vp) => vp.Theme === "Leading-Photo" },
   ],
 };

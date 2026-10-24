@@ -22,6 +22,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   instead); a range with Clear dates (`onClear`) and the weekday row under the title and Close. BottomSheet takes a
   `header` slot in place of its Header-Bar (the title stays the dialog's name). Popover `placement="cover"` lays the
   surface over its anchor; AutocompleteField's list now opens over the Add slot, as Figma draws it.
+- Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,
+  auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
+  the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are
+  compared, with no drift found.
 - Zen Studio: moving a layer that a `const` shows in several places (`{phone ? card : null}` and `trailing={card}`) no
   longer asks "Move in all N places?": only the `{…}` where this one shows moves (2026-10-24).
 - TopNavigation (2026-10-24): `titleMenu` makes the bar title a Dropdown (Figma Heading-Text Dropdown: the title and a

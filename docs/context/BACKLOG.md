@@ -30,11 +30,6 @@ Read this file only when picking up work or logging a follow-up. Done, closed an
   calendars' day-1 dot: DatePicker has no events prop, while DatePickerItem takes `event` 1–4 since #266 and Event-List
   1–4 is compared). Done on zen/feat/datepicker-sheet-popover-cover-20261024 (#280): Popover `placement="cover"`
   (Autocomplete-Field), DatePickerSheet `header="selection"` (9923:2323, suite date-picker-sheet-header).
-- **P3 · Contract checker gaps (2026-10-24; harness work, the user's go):** `tools/figma-contract/check.mjs` reads the
-  first visible paint only (second fills and background-image overlays: Toggle bar, Social Others bubble, Editable
-  cell), compares `fx` only without a spread ring in the same shadow list (Toggle-Button dot), one corner radius (bubble
-  tails, Range-Selected-End), no max / min width (chat 220 / 516, Business 66 / 42), no inset edge shadows (Editable
-  cell underline), dash patterns or IMAGE fills. The suites name each skipped layer.
 
 - **Questions for the designer and decisions for the user** are collected in [`QUESTIONS.md`](QUESTIONS.md) (moved
   there 2026-10-08). Code keeps its current behaviour until each is answered.
