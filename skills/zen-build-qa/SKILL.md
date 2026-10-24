@@ -142,6 +142,7 @@ It prints ✗ / ⚠ per step and writes `.qa/reports/<stamp>.md`. Read the repor
 | `density` | wrapper sized in px around a token-sized child |
 | `fit` | text wider than its own box, no ellipsis, no scroll (it runs into its neighbours even under `overflow: hidden`): let the item keep its width (`flex-shrink: 0` / `min-width: auto`), wrap, ellipsize, or scroll the row |
 | `clip` | a control that fits its text but is cut off by an `overflow: hidden` ancestor, hidden past that edge while its siblings show, or covered by another element: give the row room or let it scroll or wrap; move what covers it beside it (a docked panel takes room, it does not sit on the page) |
+| `segmented-fit` (warn) | a phone Segmented that slides sideways or cuts a fullWidth label: a single-choice row of Normal Chips that scrolls (segmented guideline) |
 | `edges`, `sizes`, `overflow`, `surfaces`, `outline`, `typography` | see `docs/qa/platform-audit.md` |
 | behaviour ✗ | focus ring, keyboard reach, APG keys, dialog focus trap / Escape / focus return |
 | coverage ⚠ (only pages whose examples you edited; other pages' known gaps are one summary line) | write one Backlog line (priority + pointer) in `docs/context/BACKLOG.md`; add the example only if it is in the approved task |
