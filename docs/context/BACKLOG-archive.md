@@ -12,6 +12,7 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   script's edits counting only when the command names the file is documented (`skills/zen-build-qa` §3). Kept on
   purpose: partial `--only` runs and mixed stale guidelines fail. Not now: B.4, C.4, C.6, C.7; no global text-width
   tolerance (the suites' `xr` / `wr` / `cxr` checks replace it).
+
 ## Archived 2026-10-24 (train A: Platform examples #263, per-component CSS #268)
 
 - Done 2026-10-24 (#263): the chat inbox-row key left behaviour-baseline.json and train A's --all behaviour run found no new dead click (0 errors); the HR pages' 9 text styles went to QUESTIONS.md (designer batch 2026-10-24):
