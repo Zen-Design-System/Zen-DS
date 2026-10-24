@@ -329,3 +329,14 @@ its `Content#4081:111` SLOT (read from the live file: 1603:23604).
     proposed, not added (scope lock).
   - **Not done:** date → DatePicker (it needs the user's call on the date format).
   - **E2E:** B-48 written (click and drag), not run yet.
+- **Date + harness (user 2026-10-25, via the progress session):** "Làm luôn trong #294" and "Thêm rule".
+  - **Table:** `TableCellEditorType` gains "date"; the editor union gains a date variant (value/commit are ISO days).
+    `tableEditorTypeFor` gives "date" for ISO samples.
+  - **Display:** cells of a date editor show `dayText`, the locale's numeric date with this year's year cut out of the
+    full date. Asking Intl for day+month alone gives vi "25-10".
+  - **Editor:** a DatePicker popover in the EditorLayer, or a DatePickerSheet on phones (`usePhoneSheet`). The picked or
+    today's day takes the focus; a pick commits the ISO day; Escape or an outside click leaves the cell unchanged.
+  - **Harness:** `table/person-edit-needs-media` (warn), with bad/good fixtures, plus guideline lines.
+  - **Gap, noted:** Figma push still writes a date cell's ISO text (pull reads it back as the value).
+  - **Still to do:** the DEMO-MEET page's "25/10" texts move to ISO after train C lands. Until then the page renders with
+    main's Table, which would show the ISO text raw.

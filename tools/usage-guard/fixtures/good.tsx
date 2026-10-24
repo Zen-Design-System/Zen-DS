@@ -164,6 +164,7 @@ export const Good = () => <>
   <SheetTable aria-labelledby="keyboard" rows={rows} columns={[{ id: "keys", header: "Key", width: "32%", cell: (row) => <SheetKeys value={row.keys} /> }, { id: "action", header: "Action", cell: (row) => <TableText>{row.action}</TableText> }]} />
   <Table caption="Invoices" rows={rows} getRowId={getId} columns={[{ id: "n", header: "Name", sortable: true, cell: render }]} onSortChange={setSort} />
   <Table aria-label="Stock" rows={rows} getRowId={getId} columns={[{ id: "name", header: "Name", cell: render, edit: { value: getName, onCommit: save } }, { id: "qty", header: "Qty", align: "right", cell: render, edit: { type: "number", value: getQty, onCommit: save, validate: check } }]} />
+  <Table aria-label="Tasks" rows={rows} getRowId={getId} columns={[{ id: "owner", header: "Owner", content: "avatar", mediaField: "photo", edit: "select" }, { id: "author", header: "Author", content: "avatar" }]} />
   <IconButton onClick={act} level="tertiary" aria-label="More actions" aria-haspopup="menu" icon={<Icon name="icon-dots-horizontal-line" />} />
   <Rating aria-label="Rate this template" value={stars} onChange={setStars} />
   <ColorSelector aria-label="Label colour" colors={colors} value={color} onChange={setColor} />

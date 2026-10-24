@@ -106,4 +106,22 @@ describe("Table › a select draws its options as the cells draw them", () => {
     await vi.waitFor(() => expect(cell(0).querySelector<HTMLElement>("[data-status]")?.dataset.status).toBe("Done"));
     expect(cell(0).querySelector<HTMLElement>(".zen-badge")?.dataset.tone).toBe("green");
   });
+
+  it("a date column (ISO days) shows the locale's short form and edits in a DatePicker that saves an ISO day", async () => {
+    const year = new Date().getFullYear();
+    const tasks = [{ id: "a", title: "Agenda", due: `${year}-10-25` }, { id: "b", title: "Minutes", due: "2024-03-02" }];
+    const screen = await render(<ZenProvider locale="vi-VN"><Table aria-label="Tasks" rows={tasks} editable columns={[{ id: "title", header: "Task" }, { id: "due", header: "Due" }]} /></ZenProvider>);
+    const cell = (row: number) => screen.container.querySelectorAll<HTMLTableCellElement>("tbody tr.zen-table__row")[row].querySelectorAll<HTMLTableCellElement>("td.zen-table__cell")[1];
+    // This year's day without its year; another year's with it.
+    expect(cell(0).textContent).toBe("25/10");
+    expect(cell(1).textContent).toBe("02/03/2024");
+    await userEvent.click(cell(0));
+    const calendar = await vi.waitFor(() => { const dialog = document.querySelector<HTMLElement>(".zen-table-editor__layer .zen-date-picker"); if (!dialog) throw new Error("no calendar"); return dialog; });
+    // The picked day has the focus (APG Date Picker Dialog).
+    await vi.waitFor(() => expect(document.activeElement?.closest(".zen-date-picker")).toBe(calendar));
+    const day27 = [...calendar.querySelectorAll<HTMLButtonElement>(".zen-date-picker__day:not(:disabled)")].find((button) => button.textContent?.trim() === "27");
+    await userEvent.click(day27!);
+    await vi.waitFor(() => expect(cell(0).textContent).toBe("27/10"));
+    expect(document.querySelector(".zen-table-editor__layer .zen-date-picker")).toBeNull();
+  });
 });

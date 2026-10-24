@@ -48960,6 +48960,7 @@
                 "number",
                 "select",
                 "tags",
+                "date",
                 true
               ]
             },

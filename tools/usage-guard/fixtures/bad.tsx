@@ -299,6 +299,10 @@ export const Bad = () => <>
   <Table aria-label="Stock" rows={rows} getRowId={getId} columns={[{ id: "qty", header: "Qty", cell: render, edit: { type: "number", value: getQty, onCommit: save, validate: check } }]} />
   {/* expect: table/editor-number-validate */}
   <Table aria-label="Stock" rows={rows} getRowId={getId} columns={[{ id: "qty", header: "Qty", align: "right", cell: render, edit: { type: "number", value: getQty, onCommit: save } }]} />
+  {/* expect: table/person-edit-needs-media */}
+  <Table aria-label="Tasks" rows={rows} getRowId={getId} editable columns={[{ id: "owner", header: "Owner", content: "avatar" }]} />
+  {/* expect: table/person-edit-needs-media */}
+  <Table aria-label="Tasks" rows={rows} getRowId={getId} columns={[{ id: "owner", header: "Owner", content: "avatar", edit: "select" }]} />
   {/* expect: rating/needs-name */}
   <Rating value={stars} onChange={setStars} />
   {/* expect: metric/formatted-value */}

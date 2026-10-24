@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Table date cells (user 2026-10-25): `edit: "date"` (and `editable` on a column of ISO days) shows the day in the
+  locale's short form (25/10, with the year when it is another one) and edits it in a DatePicker under the cell
+  (Date-Picker/Mobile sheet on a phone), saving an ISO day. Harness `table/person-edit-needs-media` (warn): an editable
+  avatar or photo column without `mediaField`, whose picker would list names with no faces.
 - Table `cells` (user 2026-10-24, Figma's Content slot holds one instance per value): a column maps each value to its
   layer, typically an instance of the project's own component set (`<Use of="status" variant={{ Status: "Done" }} />`).
   Cells draw it, the column edits as a select whose options draw the same instances, and a pick swaps the instance. Zen
