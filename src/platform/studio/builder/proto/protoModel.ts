@@ -458,12 +458,13 @@ export function targetOfFrame(frameId: string): { action: "navigate" | "open"; t
 /** Play's start for an Overlay presented as a frame ("overlay:<id>"; a Screen's start is its id). */
 export const OVERLAY_START = "overlay:";
 
-/** Where Figma's Present starts from a selected frame: a Screen ("screen:<id>[:<state>]") at that Screen, an Overlay
- *  ("overlay:<id>") as itself; anything else (a Section, nothing) at the first Screen (null). */
+/** Where Figma's Present starts from a selected frame: a Screen ("screen:<id>[:<state>]") at that Screen, in that state
+ *  ("<id>:<state>", as Navigate to names it), an Overlay ("overlay:<id>") as itself; anything else (a Section, nothing)
+ *  at the first Screen (null). */
 export function playStartOf(frameId: string | null | undefined): string | null {
-  const [kind, id] = frameId?.split(":") ?? [];
+  const [kind, id, state] = frameId?.split(":") ?? [];
   if (!id) return null;
-  return kind === "screen" ? id : kind === "overlay" ? `${OVERLAY_START}${id}` : null;
+  return kind === "screen" ? (state ? `${id}:${state}` : id) : kind === "overlay" ? `${OVERLAY_START}${id}` : null;
 }
 
 /** Every navigate / open action of the page: the layer's loc, its trigger, and the frame it leads to. `own`: the action is

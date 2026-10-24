@@ -1133,6 +1133,8 @@ export function AutocompleteField({ id: providedId, label, helpText, helpTheme =
               open={open}
               onOpenChange={(next) => { if (next) setOpen(true); else closePopover(); }}
               anchorRef={addRef}
+              // Figma Autocomplete-Field Focused draws the list over the Add slot, not below it.
+              placement="cover"
               autoFocus
               searchPlaceholder={searchPlaceholder}
               searchValue={query}
@@ -1158,6 +1160,8 @@ export function AutocompleteField({ id: providedId, label, helpText, helpTheme =
               open={open}
               onOpenChange={(next) => { if (next) setOpen(true); else closePopover(); }}
               anchorRef={addRef}
+              // Figma Autocomplete-Field Focused draws the list over the Add slot, not below it.
+              placement="cover"
               autoFocus
               search
               searchPlaceholder={searchPlaceholder}

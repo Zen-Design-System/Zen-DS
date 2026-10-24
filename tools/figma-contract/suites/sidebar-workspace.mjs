@@ -3,8 +3,9 @@
 // Avatar/Single Square Medium tiles with a 1px Border/Inverse ring, the current one's Border/Active/Accent/Solid Focus-Ring
 // — and the add action, Button/Icon-Main Medium Tertiary, Gap/Small apart) Gap/2XSmall beside the Main panel
 // (Sidebar/Default-Width: the current workspace's name with its chevron and the settings action in the header, then
-// Body-Content rows, the Divider and Footer rows). Only Master-Background=Default renders: code's rail is always
-// Surface/Default (no prop sets it Flat or Inverse; `background` paints the Main panel), so Flat and Inverse are skipped.
+// Body-Content rows, the Divider and Footer rows). Master-Background is `railBackground`: Default Surface/Default, Flat no
+// fill, Inverse Background/Active/Neutral/Solid with the mark in Content/Inverse/Strongest and the add action a
+// Button/Icon-Overlay White Overlay (the case passes it, as an app would).
 import { child, findAll, itemsOf, logoOf, rowsMap, textOf } from "./_sidebar-shared.mjs";
 
 const rail = ".zen-sidebar__workspace-rail";
@@ -17,7 +18,6 @@ export default {
   kind: "sbWorkspace",
   root: ".zen-sidebar",
   cases: (vp, { spec }) => {
-    if (vp["Master-Background"] !== "Default") return null;
     const master = child(spec, "Master");
     const mainNode = child(spec, "Main");
     const frame = child(child(child(master, "Center-Container"), "Master-Body-Content"), "Frame 1");
@@ -29,7 +29,10 @@ export default {
       theme: (node.main.match(/Theme=(\w+)/) ?? [])[1]?.toLowerCase(),
       selected: !child(node, "Focus-Ring")?.hidden,
     }));
+    const railBackground = vp["Master-Background"].toLowerCase();
     return {
+      railBackground,
+      overlayAdd: railBackground === "inverse",
       height: spec.h,
       mark: logoOf(child(child(child(master, "Header"), "Master-Header-Content"), "Logo")).mark,
       workspaces,
@@ -41,7 +44,7 @@ export default {
   // WorkspaceHeader sets the name in Heading/4 after Figma's Workspace Child-Header 4233:5950 (Sidebar.tsx): ask the
   // designer which the workspace name takes.
   figmaExceptions: [["text", "Inter 600 20px/28px ls=-0.6px none"], ["h", 28], ["y", 28]].map(([prop, code]) => ({
-    vp: { "Master-Background": "Default" }, layer: "Main > Header > Child-Header-Content > Frame 1 > Workspace", prop, code,
+    vp: {}, layer: "Main > Header > Child-Header-Content > Frame 1 > Workspace", prop, code,
     note: "workspace name: the slot sample is Heading/Subheading, code's WorkspaceHeader Heading/4 (Child-Header 4233:5950); ask the designer",
   })),
   map: [
@@ -51,6 +54,7 @@ export default {
     { figma: "Master > Header", dom: ".zen-sidebar__workspace-header", check: ["size", "x", "y"] },
     { figma: "Master > Header > Master-Header-Content > Logo", dom: ".zen-sidebar__workspace-header > span", check: ["size", "x", "y"] },
     { figma: "Master > Header > Master-Header-Content > Logo > logo-Zen", dom: ".zen-sidebar__workspace-header svg", check: ["size", "x", "y"] },
+    { figma: "Master > Header > Master-Header-Content > Logo > logo-Zen > Vector", dom: ".zen-sidebar__workspace-header svg rect", check: ["fill"], fillVia: "fill" },
     { figma: "Master > Center-Container", dom: ".zen-sidebar__workspace-body", check: ["size", "x", "y"] },
     { figma: "Master > Center-Container > Master-Body-Content > Frame 1", dom: ".zen-sidebar__workspace-items", check: ["size", "x", "y"] },
     ...[0, 1].flatMap((k) => [
@@ -60,8 +64,8 @@ export default {
       { figma: `${W(k)} > Text > Label`, dom: `${tile(k)} .zen-avatar__initials`, check: ["text"] },
       { figma: `${W(k)} > Focus-Ring`, dom: `${tile(k)}::after`, check: ["stroke"], strokeVia: "after", when: (vp, props) => props.workspaces[k]?.selected },
     ]),
-    { figma: "Master > Center-Container > Master-Body-Content > Frame 1 > Button/Icon-Main", dom: ".zen-sidebar__workspace-action-slot .zen-button", check: ["size", "x", "y"] },
-    { figma: "Master > Center-Container > Master-Body-Content > Frame 1 > Button/Icon-Main > Container", dom: ".zen-sidebar__workspace-action-slot .zen-button", check: ["fill", "radius"] },
+    { figma: "Master > Center-Container > Master-Body-Content > Frame 1 > Button/Icon-Main|Button/Icon-Overlay", dom: ".zen-sidebar__workspace-action-slot .zen-button", check: ["size", "x", "y"] },
+    { figma: "Master > Center-Container > Master-Body-Content > Frame 1 > Button/Icon-Main|Button/Icon-Overlay > Container", dom: ".zen-sidebar__workspace-action-slot .zen-button", check: ["fill", "radius"] },
     { figma: "Main", dom: main, check: ["size", "x", "y", "fill", "radius"] },
     { figma: "Main > Header", dom: `${main} .zen-sidebar__header`, check: ["size", "x", "y"] },
     { figma: "Main > Header > Child-Header-Content > Frame 1 > Workspace", dom: ".zen-sidebar__workspace-name", check: ["text", "h", "x", "y"] },

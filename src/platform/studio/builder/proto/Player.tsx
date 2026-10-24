@@ -72,7 +72,11 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
   const [viewport, setViewport] = useState<PresentViewport>(null);
   const [framed, setFramed] = useState(true);
   const stageRef = useRef<HTMLDivElement>(null);
-  // Figma's hotspot hints: a press on nothing clickable flashes what has an action on this screen (and its overlay).
+  // Figma's hotspot hints: a press that does nothing flashes what has an action on this screen (and its overlay). A press
+  // does something when it lands on a control (CLICKABLE), on a layer the page gave an action (a Box or Card with
+  // proto.navigate: no control of its own), or on a part a component works itself (a chart's bar, a field's padding, a
+  // calendar slot): the page then changes, or the focus moves into a control, and the hints stay back (the user
+  // 2026-10-24: they showed on every press of an element that already had an interaction).
   const deviceRef = useRef<HTMLDivElement>(null);
   const sources = useMemo(() => protoSourcesOf(tree), [tree]);
   const [hints, setHints] = useState<{ key: number; boxes: HintBox[] } | null>(null);
@@ -81,23 +85,60 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
     const timer = window.setTimeout(() => setHints(null), HINT_MS);
     return () => window.clearTimeout(timer);
   }, [hints]);
-  const showHotspots = (event: ReactPointerEvent<HTMLDivElement>) => {
+  const press = useRef<{ target: Element; focus: Element | null; changed: boolean; observer: MutationObserver } | null>(null);
+  useEffect(() => () => press.current?.observer.disconnect(), []);
+  const startPress = (event: ReactPointerEvent<HTMLDivElement>) => {
+    press.current?.observer.disconnect();
+    press.current = null;
     const device = deviceRef.current;
-    if (!device || (event.target instanceof Element && event.target.closest(CLICKABLE))) return;
+    const target = event.target instanceof Element ? event.target : null;
+    if (!device || !target || target.closest(CLICKABLE)) return;
+    // The hints' own layer (shown or fading) is not the page changing.
+    const ours = (node: Node) => (node instanceof Element ? node : node.parentElement)?.closest(".studio-player__hotspots");
+    const state = { target, focus: document.activeElement, changed: false, observer: new MutationObserver((records) => {
+      if (records.some((record) => !ours(record.target) && ![...record.addedNodes, ...record.removedNodes].every(ours))) state.changed = true;
+    }) };
+    state.observer.observe(device, { subtree: true, childList: true, attributes: true, characterData: true });
+    press.current = state;
+  };
+  // At the click (React has run the press's handlers), then one frame more for what they start: a navigate's next
+  // Screen, an overlay opening.
+  const endPress = () => {
+    const state = press.current;
+    if (!state) return;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      state.observer.disconnect();
+      if (press.current !== state) return;
+      press.current = null;
+      const focused = document.activeElement;
+      const focusMoved = focused !== state.focus && focused instanceof Element && focused.matches(CLICKABLE) && Boolean(deviceRef.current?.contains(focused));
+      if (!state.changed && !focusMoved) showHotspots(state.target);
+    }));
+  };
+  const showHotspots = (target: Element) => {
+    const device = deviceRef.current;
+    if (!device || !device.contains(target)) return;
     const box = device.getBoundingClientRect();
     // A fixed viewport scales the device down: boxes are in its own CSS px.
     const scale = device.offsetWidth ? box.width / device.offsetWidth : 1;
     const file = pageFile(id);
     const hot = new Set<Element>();
     const drawn = layerElements(device, new Set([...sources.keys()].map((loc) => `${file}:${loc}`)));
+    let operated = false;
     sources.forEach((items, loc) => {
       for (const element of drawn.get(`${file}:${loc}`) ?? []) {
         // A choice control whose items lead somewhere by item: those items only.
         if (items) items.forEach((item) => { const at = itemElement(element, item); if (at) hot.add(at); });
-        else if (element.matches(CLICKABLE)) hot.add(element);
-        else element.querySelectorAll(CLICKABLE).forEach((inner) => hot.add(inner));
+        else {
+          // A layer with an action of its own (proto.openUrl changes nothing on the page): a press on it is no miss.
+          if (element.contains(target)) operated = true;
+          const inner = element.matches(CLICKABLE) ? [] : [...element.querySelectorAll(CLICKABLE)];
+          // A Box or Card the page made clickable has no control inside: the layer itself is the hotspot.
+          (inner.length ? inner : [element]).forEach((at) => hot.add(at));
+        }
       }
     });
+    if (operated || [...hot].some((element) => element.contains(target))) return;
     const boxes = [...hot].flatMap((element) => {
       const rect = element.getBoundingClientRect();
       if (!rect.width || !rect.height) return [];
@@ -175,7 +216,7 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
         <div ref={stageRef} className="studio-player__stage">
           <div className="studio-present__fit" data-viewport={fit.mode} data-frame={fit.bezel ? "" : undefined} style={fit.fitStyle}>
             <DeviceFrame device={shownDevice} fit={fit} part="body" />
-            <div ref={deviceRef} onPointerDownCapture={showHotspots} className="studio-player__device" style={fit.boxStyle ?? { width: `min(${DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}px, 100%)` }} data-viewport={fit.mode} data-zen-overlay-root="" data-screen-id={current} data-overlay={overlay?.id} data-hover-overlay={overlay?.hover || undefined}>
+            <div ref={deviceRef} onPointerDownCapture={startPress} onClick={endPress} className="studio-player__device" style={fit.boxStyle ?? { width: `min(${DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}px, 100%)` }} data-viewport={fit.mode} data-zen-overlay-root="" data-screen-id={current} data-overlay={overlay?.id} data-hover-overlay={overlay?.hover || undefined}>
               <SimulatedDeviceContext value={shownDevice ?? null}>
               <PlayScreens flow={flow} file={pageFile(id)} overlaySafe={overlaySafe} library={libraryOf(id)} />
               {hints ? (

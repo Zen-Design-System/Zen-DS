@@ -44,8 +44,10 @@ export function stepPresent(delta: -1 | 1, focus: "prev" | "next" | null = null)
  * document frames are page-sized, so Present zooms the canvas to fit them instead.
  */
 export function presentFrame(frameId: string) {
-  // An Overlay of a page you made plays as Figma presents any frame: open over the Screen that opens it (Player.tsx).
-  if (frameId.startsWith("overlay:") && studioStore.getState().localPage) { startPlay(playStartOf(frameId)); return; }
+  // A Screen or Overlay of a page you made plays from that frame, as Figma presents any frame (Player.tsx): its prototype
+  // runs (an Overlay opens over the Screen that opens it). The frame toolbar's ▷ presented a Screen as a still frame,
+  // where no Open overlay ran (user 2026-10-24: "không mở task detail và tạo task được").
+  if (/^(screen|overlay):/.test(frameId) && studioStore.getState().localPage) { startPlay(playStartOf(frameId)); return; }
   const frame = findFrame(frameId);
   if (!frame) return;
   if (frame.kind === "example" && frame.example) {

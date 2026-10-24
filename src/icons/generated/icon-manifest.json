@@ -2,7 +2,7 @@
   "count": 1598,
   "monochrome": 1598,
   "multicolor": 0,
-  "core": 109,
+  "core": 110,
   "buckets": 256,
   "aliases": {
     "icon-chevron-left-line": "icon-chevron-left-line-medium",
@@ -4505,7 +4505,7 @@
       "viewBox": "0 0 20 20",
       "colorMode": "monochrome",
       "bucket": 126,
-      "core": false
+      "core": true
     },
     {
       "name": "icon-equal-line",
