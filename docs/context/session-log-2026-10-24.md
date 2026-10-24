@@ -36,6 +36,14 @@ reaction Navigate / Open / Close overlay / Back."
   contrast/targets baseline seeding. "## Open items" untouched; nothing P1-urgent found. No work started.
 - User "Giao 35 mục theo đề xuất": the Designer entry moved to QUESTIONS.md / .vi.md as the 2026-10-24 designer batch.
 
+## Gate: `--failed` re-runs only what failed (process audit B.2; the user's go 2026-10-24) (tier S, tools/qa)
+- `npm run qa -- --failed`: after a failing full run with nothing in its scope edited since (the ledger's editedAt), the
+  gate keeps TypeScript, the Figma contracts and Vitest where they passed, runs the quick static gates again, the browser
+  steps only on the pages that had an error or no report (`retryPagesFrom` in lib.mjs reads the last run's audit /
+  dark / behaviour JSON), and the Studio E2E only if it failed; a pass marks the files passed as a full run would.
+  Anything edited, a passing or quick last run, or a missing report → it says why and runs everything.
+- qa:selftest 26 → 30 checks (the page choice); a static-only run against a fake failed ledger skipped TypeScript and
+  re-ran the failed self-test (the fake ledger and its report removed after).
 ## Tooling fixes (#264; tier S–M; the user's go 2026-10-24)
 - `avatar/solid-initials-contrast`: measured today's tokens (both themes the same): golden 2.58, teal 2.70, cyan 2.96,
   orange 2.98 below 3:1; green 3.48 and bronze 3.38 pass, so the rule lists golden | teal | cyan | orange (fixtures,
