@@ -17,6 +17,8 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio: moving a layer that a `const` shows in several places (`{phone ? card : null}` and `trailing={card}`) no
+  longer asks "Move in all N places?": only the `{…}` where this one shows moves (2026-10-24).
 - QA gate: a new `clip` check (`--quality`, error, baselined) reports a control that fits its own text but is cut off by
   an `overflow: hidden` ancestor, hidden past its edge while its sibling controls show, or covered by another element of
   the example. `overflow` and `fit` could not see these. The gate now also fails on `counts`, `card-gap` and

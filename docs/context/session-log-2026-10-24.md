@@ -221,3 +221,16 @@ Branch zen/ci/native-platform-tests-20261024 from main 6a7e872a, PR #267.
   values, 0 differences (12 registered custom properties of Voice / PageHeader / DashboardHeader exist only with
   styles.css), screenshots identical; 58.9 KB against 97.2 KB CSS gz.
 - BACKLOG: the Platform examples group (#263) and Package weight (#268) closed to the archive.
+
+## Session B · E2E ST-29 and DA-10, broken since #265 (tier S; Giám sát, fix-now rule)
+
+Both rows were broken in every run since #265: train A's gate, #275's gate and a local run. New rows don't fail the
+gate, so they looked green. They were written without being run, which was the slip.
+- **ST-29:** Send backward on a const shown on a condition and in a prop opened "Move in all 2 places?". The move only
+  touches the `{…}` at the holder (constHolderOf), so runMove now counts only the renders the holder shows directly
+  (`moveRepeats`, slots/actions.ts). That is a UI fix as well: the dialog was wrong there.
+- **DA-10:** a ListItem in a List can never be resized (cloning.json: it cannot be wrapped, so no handles). The data
+  fixture now has a `.map` of Boxes (`crew-tile`), and DA-10 resizes those (3 rows, height 53 → 78 on every row,
+  Escape writes nothing).
+- **Runs:** both rows pass alone; the structural and data groups pass together (32); the full default E2E passes (below).
+

@@ -191,9 +191,23 @@ export function repeatsOf(selection: NodeSelection): { count: number; unit: "row
 }
 
 /** Asks first when the edit changes every render of the element; true to go on. */
-async function confirmRepeats(selection: NodeSelection, question: Omit<SlotConfirmQuestion, "count" | "unit">) {
-  const { count, unit } = repeatsOf(selection);
+async function confirmRepeats(selection: NodeSelection, question: Omit<SlotConfirmQuestion, "count" | "unit">, repeats = repeatsOf(selection)) {
+  const { count, unit } = repeats;
   return count <= 1 || ask({ ...question, count, unit });
+}
+
+/**
+ * The renders a move changes. A const shown in several places (`{phone ? card : null}` and `trailing={card}`) moves
+ * only the `{…}` inside `holder` (constHolderOf), so only the renders that element shows directly count; without a
+ * holder, every render does (repeatsOf).
+ */
+function moveRepeats(selection: NodeSelection, holder: string | null): { count: number; unit: "rows" | "places" } {
+  const all = repeatsOf(selection);
+  const parsed = parseSrc(selection.src);
+  const world = canvasApi.getWorldElement();
+  if (!holder || all.count <= 1 || !parsed || !world) return all;
+  const count = findBySrc(world, selection.src).filter((hit) => parentHit(hit)?.src === `${parsed.file}:${holder}`).length;
+  return { ...all, count };
 }
 
 /* ───────────── Status line, carried over the full reload a write may cause ───────────── */
@@ -1154,14 +1168,14 @@ async function runMove(selection: NodeSelection, to: "prev" | "next", rows = tru
   if (!element) return null;
   const block = await structuralBlock(target, "move");
   if (block) { fail(block); return null; }
-  if (!(await confirmRepeats(selection, { verb: "move", name: selection.name }))) return null;
+  // A const shown in several places: the `{name}` this one is shown by moves (and only where that one shows).
+  const holder = await constHolderOf(target);
+  if (!(await confirmRepeats(selection, { verb: "move", name: selection.name }, moveRepeats(selection, holder)))) return null;
   writing("Moving…");
   const direction = to === "prev" ? "up" : "down";
   // What the canvas shows before the write: the selection waits for the re-render instead of outlining the sibling that
   // still stands at the new place (as edit/arrange.ts stepLayer does; BACKLOG "Move up/down drops the selection").
   const before = renderedNow(canvasApi.getWorldElement());
-  // A const shown in several places: the `{name}` this one is shown by moves.
-  const holder = await constHolderOf(target);
   const response = await write(targetOf(element), { op: "moveElement", to, ...(holder ? { parent: holder } : {}) }, `Move ${selection.name} ${direction}`);
   if (!response) return null;
   announce(outcomeOf(`Moved ${selection.name} ${direction}`, response));
