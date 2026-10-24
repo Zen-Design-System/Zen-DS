@@ -63,6 +63,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   assignee and lead pickers follow it.
 - Usage harness: an element's slot props are read from its own attributes only, so `app-shell/primary-in-top-bar` no
   longer takes a PageHeader's actions inside `main` for the top row's (a false positive on valid code).
+- QA: the platform audit has a per-page time limit (`--page-timeout`: 180 s; 420 with `--quality`/`--density`; 900
+  with `--smoke`). A page that never answers is audited once more in a new tab, then reported by name, and the run goes
+  on. One hung page held CI's audit for the whole 45 minutes on 2026-10-24.
 - Usage harness and audit (user, 2026-10-24, from the harness inventory): `listbox/grouped-on-phone` (error) flags a
   phone settings or profile screen that puts several kicker groups of rows in one block, or bare Lists under kickers
   (usage rules §15: each group is its own ListBox); `table/titled-box` (warn) flags a Table in a Card or ListBox that

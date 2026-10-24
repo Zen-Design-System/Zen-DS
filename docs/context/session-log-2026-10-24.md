@@ -530,3 +530,16 @@ The guidelines said `minmax(0, 320px)`, so agents kept copying 320. Made a lasti
   `.map(() => ({…}))` give neither photoSrc nor an Avatar leading). Fixed: chip (assignee filter live + sample), card
   (lead filter). Guideline (Popover Do), skills, AGENTS.consumer, Zen Agent prompt. No Figma audit (names are not
   detectable); the Table select editor is the table-select-media session's (PR #285).
+
+## Session B · platform audit per-page watchdog (tier S; bug at its owner, Giám sát + progress session)
+
+#278's CI "Platform audit" was cancelled at 45 min. It audited ~4–5 s per page up to templates@390, then nothing for
+32 min on text@390, which the green run on 4b8f626e did in seconds. It was not #278's segmented-fit: CI runs the
+audit without `--quality`. audit.mjs had no per-page limit, because page.evaluate has no timeout.
+- **`--page-timeout`** (180 s; 420 with `--quality`/`--density`; 900 with `--smoke`): a watchdog closes the tab of a page
+  past it (its pending calls throw). The page is audited once more in a new tab, then reported as an `errors` finding
+  by name, and the run goes on.
+- **Self-test fault injection:** tools/platform-audit/selftest.mjs serves three pages, the middle one spinning after
+  load, and runs audit.mjs as CI does with `--page-timeout=3`. The hung page is re-tried, then reported, and the
+  others are audited: 10 s. With the watchdog disabled, the self-test hangs to its 120 s cap and fails.
+
