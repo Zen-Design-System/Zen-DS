@@ -32,7 +32,7 @@ export default {
     { figma: "Container", dom: ":root", check: ["size", "x", "y", "radius"] },
     { figma: "Container", dom: ".zen-input__control::before", check: ["fill", "fx"] },
     { figma: "Container", dom: ".zen-input__control", check: ["stroke"], strokeVia: "after", when: (vp) => vp.State !== "Read-Only" },
-    { figma: "Container", dom: ".zen-input__dash rect", check: ["stroke"], strokeVia: "svg", strokeScale: 0.5, when: (vp) => vp.State === "Read-Only" },
+    { figma: "Container", dom: ".zen-input__dash rect", check: ["stroke", "dash"], strokeVia: "svg", strokeScale: 0.5, when: (vp) => vp.State === "Read-Only" },
     { figma: text, dom: "textarea", check: ["y"] },
     // Focused draws the Cursor before the placeholder (the text 1.5px later); code's caret sits where the text starts.
     { figma: text, dom: "textarea", check: ["x"], when: (vp) => vp.State !== "Focused" },

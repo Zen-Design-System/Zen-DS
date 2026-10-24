@@ -13,6 +13,16 @@ Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), n
   (`table/bulk-actions-max`, `chip/needs-action`, three actions in one TopNavigation group, `search-folds-to-action` on
   `scrollRef` bars) shipped 2026-10-24.
 
+## Archived 2026-10-24 (contract checker gaps, `zen/feat/contract-checker-gaps-20261024`; user 2026-10-24 "Làm")
+
+- Done 2026-10-24: `check.mjs` checks `fills`, `image`, per-corner `radius`, `minw` / `maxw` / `minh`, `dash`,
+  `fxIgnoreRing` and `strokeVia: "inset"`; the named layers compare again and no drift showed:
+  **P3 · Contract checker gaps (2026-10-24; harness work, the user's go):** `tools/figma-contract/check.mjs` reads the
+  first visible paint only (second fills and background-image overlays: Toggle bar, Social Others bubble, Editable
+  cell), compares `fx` only without a spread ring in the same shadow list (Toggle-Button dot), one corner radius (bubble
+  tails, Range-Selected-End), no max / min width (chat 220 / 516, Business 66 / 42), no inset edge shadows (Editable
+  cell underline), dash patterns or IMAGE fills. The suites name each skipped layer.
+
 ## Archived 2026-10-24 (Tooling group: #264, #272, #273; user 2026-10-24 "Theo đề xuất")
 
 - Done 2026-10-24 (baseline notes and the reused-pid marker in #264, B.2 `qa --failed` in #273; the kept and not-now

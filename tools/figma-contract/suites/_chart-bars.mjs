@@ -16,7 +16,7 @@ export function barFrameMap({ yLabels, count, axis = "Chart > Y-Axis", chartDom 
     { figma: "Chart > Plot", dom: ".zen-chart__plot", check: ["size", "x", "y"] },
     { figma: GRID, dom: ".zen-chart__grid", check: ["size", "x", "y"] },
     // Centred strokes in Figma, code's border just above the line: half a pixel apart (tolerance 1).
-    ...LINES.map((name, i) => ({ figma: `${GRID} > ${name}`, dom: `.zen-chart__grid > span:nth-child(${i + 1})`, check: ["w", "x", "cy", "stroke"], tolerance: 1, ...fromGrid })),
+    ...LINES.map((name, i) => ({ figma: `${GRID} > ${name}`, dom: `.zen-chart__grid > span:nth-child(${i + 1})`, check: ["w", "x", "cy", "stroke", "dash"], tolerance: 1, ...fromGrid })),
     ...yLabels.map((label, i) => ({ figma: `${axis} > ${label}`, dom: `.zen-chart > .zen-chart__y > span:nth-child(${i + 1})`, check: ["text", "right", "cy"], ...fromGrid })),
     ...Array.from({ length: 12 }, (_, k) => [
       { figma: `Chart > Plot > X-Axis > Tick#${k}`, dom: `.zen-chart__sector:nth-child(${k + 1})`, check: ["w", "x"], when: (vp) => count(vp) > k },
