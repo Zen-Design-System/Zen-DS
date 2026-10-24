@@ -167,3 +167,52 @@ describe("TopNavigation actions (up to three per Trailing-Slot)", () => {
     await expect.element(screen.getByRole("button", { name: "New" })).toBeVisible();
   });
 });
+
+describe("TopNavigation title Dropdown, large-title Badges and scrolledType (2026-10-24)", () => {
+  it("titleMenu: the bar title is a button with Figma's chevron-down that opens the menu", async () => {
+    const screen = await render(<ZenProvider><TopNavigation title="Inbox" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => undefined }}
+      titleMenu={[{ id: "inbox", label: "Inbox" }, { id: "archive", label: "Archive" }]} /></ZenProvider>);
+    const button = screen.getByRole("button", { name: "Inbox" });
+    await expect.element(button).toHaveAttribute("aria-haspopup", "menu");
+    expect(button.element().querySelector(".zen-top-nav__chevron")).not.toBeNull();
+    // The heading is still the title, the button inside it.
+    expect(button.element().closest("[role='heading']")).not.toBeNull();
+    await button.click();
+    await expect.element(screen.getByRole("menuitem", { name: "Archive" })).toBeVisible();
+  });
+
+  it("titleDropdown + onTitleClick: the chevron on a title that opens the app's own picker", async () => {
+    let opened = 0;
+    const screen = await render(<ZenProvider><TopNavigation title="Projects" titleDropdown onTitleClick={() => { opened += 1; }} /></ZenProvider>);
+    const button = screen.getByRole("button", { name: "Projects" });
+    expect(button.element().querySelector(".zen-top-nav__chevron")).not.toBeNull();
+    await button.click();
+    expect(opened).toBe(1);
+  });
+
+  it("largeTitleBadges: a row under the large title, Spacing/Gap/XSmall below it", async () => {
+    const screen = await render(<ZenProvider><TopNavigation largeTitle="Living room" largeTitleBadges={<span data-testid="badge">4 on</span>} /></ZenProvider>);
+    const heading = screen.getByRole("heading", { name: "Living room" }).element().getBoundingClientRect();
+    const badges = document.querySelector(".zen-top-nav__badges")!.getBoundingClientRect();
+    expect(Math.round(badges.top - heading.bottom)).toBe(8);
+    await expect.element(screen.getByTestId("badge")).toBeVisible();
+  });
+
+  it("scrolledType: the scroll-edge type at the top, the scrolled type once content runs under the bar", async () => {
+    function Hero() {
+      const ref = useRef<HTMLDivElement>(null);
+      return (
+        <div ref={ref} data-testid="screen" style={{ height: 480, overflow: "auto" }}>
+          <TopNavigation sticky scrollRef={ref} type="transparent-on-color" scrolledType="default" title="Saola Lodge" leading={{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => undefined }} />
+          <div style={{ height: 2400 }} />
+        </div>
+      );
+    }
+    await render(<ZenProvider><Hero /></ZenProvider>);
+    expect(header().dataset.type).toBe("transparent-on-color");
+    scrollScreen(200);
+    await expect.poll(() => header().dataset.type).toBe("default");
+    scrollScreen(0);
+    await expect.poll(() => header().dataset.type).toBe("transparent-on-color");
+  });
+});
