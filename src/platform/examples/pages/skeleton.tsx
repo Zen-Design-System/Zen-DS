@@ -179,9 +179,9 @@ function InvoicesPageExample() {
           box takes its elevation (Shadow); the table lies on the page. */}
       <Stack gap="xl" aria-busy={loading}>
         <Grid minColumnWidth={240} gap="md">
-          <MetricCard theme="shadow" size="md" icon="icon-clock-line" iconTheme="blue" label="Outstanding" value={value(sum(due))} />
-          <MetricCard theme="shadow" size="md" icon="icon-alert-circle-line" iconTheme="red" label="Overdue" value={value(sum(overdue))} />
-          <MetricCard theme="shadow" size="md" icon="icon-check-circle-line" iconTheme="green" label="Paid in Q3" value={value(formatMoney(paidInQ3, false))} />
+          <MetricCard iconBackground="solid" theme="shadow" size="md" icon="icon-clock-line" iconTheme="blue" label="Outstanding" value={value(sum(due))} />
+          <MetricCard iconBackground="solid" theme="shadow" size="md" icon="icon-alert-circle-line" iconTheme="red" label="Overdue" value={value(sum(overdue))} />
+          <MetricCard iconBackground="solid" theme="shadow" size="md" icon="icon-check-circle-line" iconTheme="green" label="Paid in Q3" value={value(formatMoney(paidInQ3, false))} />
         </Grid>
         <Stack gap="md">
           <Heading level={2} id={tableTitleId}>Recent invoices</Heading>

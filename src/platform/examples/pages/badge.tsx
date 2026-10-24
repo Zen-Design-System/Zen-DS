@@ -13,7 +13,6 @@ import { Chip } from "../../../components/Chip";
 import { DescriptionList } from "../../../components/DescriptionList";
 import { DockIcon } from "../../../components/DockIcon";
 import { EmptyState } from "../../../components/EmptyState";
-import type { IconName } from "../../../components/Icon";
 import { Grid, Stack } from "../../../components/Layout";
 import { List, ListBox, ListItem } from "../../../components/ListItem";
 import { Menu } from "../../../components/Menu";
@@ -37,8 +36,6 @@ const taskStatuses: TaskStatus[] = ["To do", "In progress", "In review", "Done"]
 /** A task's workflow step is a BadgeStatus: the step picks the colour and the ring (harness: badge/workflow-status-uses-badge-status). */
 const taskStep: Record<TaskStatus, BadgeStatusValue> = { "To do": "to-do", "In progress": "in-progress", "In review": "in-review", Done: "done" };
 const priorities: Priority[] = ["Urgent", "High", "Medium", "Low"];
-/** Priority reads without colour: an arrow for the direction, an octagon for Urgent. */
-const priorityIcon: Record<Priority, IconName> = { Urgent: "icon-alert-octagon-solid", High: "icon-arrow-up-line", Medium: "icon-equal-line", Low: "icon-arrow-down-line" };
 
 // ——— 1. Task status in a table: Subtle badges, one vocabulary, at most two per row ——————————————————
 function TaskStatusTable() {
@@ -64,7 +61,7 @@ function TaskStatusTable() {
       const person = people[task.assignee];
       return <TableMedia bold={false} media={person.photo ? <Avatar size="xs" theme="photo" src={person.photo} alt="" /> : <Avatar size="xs" theme={person.theme} alt="">{initials(person.name)}</Avatar>}>{person.name}</TableMedia>;
     } },
-    { id: "priority", header: "Priority", width: "128px", cell: (task) => <TableBadges><Badge size="md" theme={priorityTheme[task.priority]} background="subtle" leading={priorityIcon[task.priority]}>{task.priority}</Badge></TableBadges> },
+    { id: "priority", header: "Priority", width: "128px", cell: (task) => <TableBadges><Badge size="md" theme={priorityTheme[task.priority]} background="subtle" leading="icon-flag-03-solid">{task.priority}</Badge></TableBadges> },
     { id: "status", header: "Status", width: "136px", cell: (task) => <TableBadges><BadgeStatus status={taskStep[task.status]}>{task.status}</BadgeStatus></TableBadges> },
     { id: "due", header: "Due", width: "132px", cell: (task) => <TableText>{formatDate(task.due)}</TableText> },
   ];
@@ -406,15 +403,14 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
   {
     title: "Task status",
     wide: true,
-    description: "A task table shows the workflow step as a BadgeStatus, whose ring fills as the task moves on, and priority as a Subtle badge with an icon so it reads without colour; two per row at most. Filtering is a Chip, never a clickable badge.",
+    description: "A task table shows the workflow step as a BadgeStatus, whose ring fills as the task moves on, and priority as a Subtle badge led by the solid flag (Figma .Task/Priority), its level in words so it reads without colour; two per row at most. Filtering is a Chip, never a clickable badge.",
     render: () => <TaskStatusTable />,
     code: `const step = { "To do": "to-do", "In progress": "in-progress", "In review": "in-review", Done: "done" };
-const priorityIcon = { Urgent: "icon-alert-octagon-solid", High: "icon-arrow-up-line", Medium: "icon-equal-line", Low: "icon-arrow-down-line" };
 
 const columns = [
   { id: "task", header: "Task", cell: (t) => <TableText caption={t.key}>{t.title}</TableText> },
   { id: "priority", header: "Priority", width: "128px", cell: (t) => <TableBadges>
-    <Badge size="md" theme={priorityTheme[t.priority]} background="subtle" leading={priorityIcon[t.priority]}>{t.priority}</Badge>
+    <Badge size="md" theme={priorityTheme[t.priority]} background="subtle" leading="icon-flag-03-solid">{t.priority}</Badge>
   </TableBadges> },
   { id: "status", header: "Status", width: "136px", cell: (t) => <TableBadges>
     <BadgeStatus status={step[t.status]}>{t.status}</BadgeStatus>

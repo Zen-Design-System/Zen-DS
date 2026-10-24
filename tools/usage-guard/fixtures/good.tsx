@@ -14,6 +14,23 @@ export const Good = () => <>
   <InputField aria-label="Share link" readOnly value={link} />
   <InputField {...sharedFieldProps} />
   <Search placeholder="Search components" />
+  <Chip variant="advanced" dropdown popoverLabel="Assignee" popoverItems={[{ id: "ava", label: "Ava Chen", photoSrc: avaPhoto }, { id: "bao", label: "Bao Nguyen", theme: "avatar-small", leading: <Avatar size="sm" theme="teal" background="subtle" alt="">BN</Avatar> }]}>Assignee</Chip>
+  <MetricCard theme="default" label="Overdue" value="$12.9K" icon="icon-alarm-clock-line" iconTheme="red" iconBackground="solid" />
+  <Badge theme="yellow" background="subtle" leading="icon-flag-03-solid">Medium</Badge>
+  <PropertyField label="Priority" icon="icon-flag-01-line"><PropertySelect options={[{ value: "high", label: "High", icon: "icon-flag-03-solid", tone: "negative" }, { value: "low", label: "Low", icon: "icon-flag-03-solid", tone: "neutral" }]} /></PropertyField>
+  <List aria-label="Settings"><ListItem title="Calendar" leading={<DockIcon icon="icon-calendar-line" size="md" background="subtle" />} /></List>
+  <Badge theme="red" background="subtle" leading="icon-flag-03-solid">Urgent</Badge>
+  <Badge theme="green" background="subtle">Paid</Badge>
+  <Table aria-label="Tasks" rows={tasks} columns={[{ id: "title", header: "Task" }, { id: "priority", header: "Priority", cell: (task) => <TableBadges><Badge theme="red" background="subtle" leading="icon-flag-03-solid">{task.priority}</Badge></TableBadges> }]} />
+  <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader main={<PageHeader title="Tasks" />} />}>{page}</AppShell>
+  {/* The Main row's PageHeader actions are its own: app-shell/primary-in-top-bar reads only the header's own actions. */}
+  <AppShellHeader main={<PageHeader title="Tasks" actions={<Button level="primary" onClick={addTask}>New task</Button>} />} leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} />
+  <AppShell sidebar={nav} header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} actions={<><AppShellAction icon="icon-help-circle-line" aria-label="Help" onClick={openHelp} /><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} onClick={openNotifications} /><Menu aria-label="Account" trigger={<AppShellAccount name="Ava Chen" />} items={accountItems} /></>} />}>{page}</AppShell>
+  <Stack direction="row" gap="xs" align="center"><Box width="fill" maxWidth={240}><Search placeholder="Search tasks" /></Box><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></Stack>
+  <Grid columns={{ mobile: 1, desktop: "minmax(0, 240px) 1fr" }} gap="sm"><Search placeholder="Search members" /><Chip variant="advanced" dropdown popoverItems={items}>Role</Chip></Grid>
+  <Stack direction="row" gap="xs" align="center"><Search shape="rounded" placeholder="Search messages" /><Chip variant="advanced" dropdown popoverItems={items}>Unread</Chip></Stack>
+  {/* zen-allow-search-toolbar-width: a search results page, where the query is the page's task */}
+  <Stack direction="row" gap="xs" align="center"><Search placeholder="Search the help centre" /><Chip variant="advanced" dropdown popoverItems={items}>Topic</Chip></Stack>
   <Checkbox label="Remember me" checked={on} onChange={setOn} />
   <RadioButton name="plan" label="Monthly" checked />
   <Badge remove onRemove={() => drop("design")}>Design</Badge>
@@ -164,6 +181,7 @@ export const Good = () => <>
   <SheetTable aria-labelledby="keyboard" rows={rows} columns={[{ id: "keys", header: "Key", width: "32%", cell: (row) => <SheetKeys value={row.keys} /> }, { id: "action", header: "Action", cell: (row) => <TableText>{row.action}</TableText> }]} />
   <Table caption="Invoices" rows={rows} getRowId={getId} columns={[{ id: "n", header: "Name", sortable: true, cell: render }]} onSortChange={setSort} />
   <Table aria-label="Stock" rows={rows} getRowId={getId} columns={[{ id: "name", header: "Name", cell: render, edit: { value: getName, onCommit: save } }, { id: "qty", header: "Qty", align: "right", cell: render, edit: { type: "number", value: getQty, onCommit: save, validate: check } }]} />
+  <Table aria-label="Tasks" rows={rows} getRowId={getId} columns={[{ id: "owner", header: "Owner", content: "avatar", mediaField: "photo", edit: "select" }, { id: "author", header: "Author", content: "avatar" }]} />
   <IconButton onClick={act} level="tertiary" aria-label="More actions" aria-haspopup="menu" icon={<Icon name="icon-dots-horizontal-line" />} />
   <Rating aria-label="Rate this template" value={stars} onChange={setStars} />
   <ColorSelector aria-label="Label colour" colors={colors} value={color} onChange={setColor} />
@@ -185,6 +203,12 @@ export const Good = () => <>
   {/* listbox/grouped-on-phone: each group of a phone settings screen is its own ListBox under its kicker; one kicker over one bare list is an open section. */}
   <PlatformPhone label="Settings" canvas="alt"><Stack gap="lg"><Stack gap="xs"><Box paddingX="lg"><Text textStyle="Body/Small/Bold" tone="light">Account</Text></Box><ListBox><List aria-label="Account"><ListItem title="Email" /></List></ListBox></Stack><Stack gap="xs"><Box paddingX="lg"><Text textStyle="Body/Small/Bold" tone="light">Privacy</Text></Box><ListBox><List aria-label="Privacy"><ListItem title="Blocked people" /></List></ListBox></Stack></Stack></PlatformPhone>
   <PlatformPhone label="Inbox"><Stack gap="lg"><Box paddingX="lg"><Text textStyle="Body/Small/Bold">Today</Text></Box><List aria-label="Today"><ListItem title="Standup notes" /></List></Stack></PlatformPhone>
+  {/* chip/row-gap, tag/row-gap: chips 8px apart, tags 4px; a later column's Avatar may be Subtle. */}
+  <Stack direction="row" gap="xs" wrap>{periods.map((p) => <Chip key={p.id} variant="normal" onClick={pick}>{p.label}</Chip>)}</Stack>
+  <Stack as="ul" direction="row" gap="2xs" wrap aria-label="Skills">{skills.map((skill) => <li key={skill}><Tag>{skill}</Tag></li>)}</Stack>
+  <Table aria-label="Members" rows={rows} getRowId={getId} columns={[{ id: "member", header: "Member", cell: (row) => <TableMedia bold caption={row.role} media={<Avatar size="sm" theme="neutral" alt="">{row.initials}</Avatar>}>{row.name}</TableMedia> }, { id: "owner", header: "Owner", cell: (row) => <Avatar size="xs" background="subtle" alt="">{row.owner}</Avatar> }]} />
+  {/* A photo Avatar stays Subtle in the first column: Figma has no Photo × Solid. */}
+  <Table aria-label="Team" rows={rows} getRowId={getId} columns={[{ id: "member", header: "Member", cell: (row) => <TableMedia media={<Avatar size="xs" theme="photo" src={row.photo} background="subtle" alt="" />}>{row.name}</TableMedia> }]} />
   {/* table/titled-box: a ListBox header names its table. */}
   <ListBox header={<Heading level={3} textStyle="Heading/Subheading">Top clients</Heading>}><Table aria-label="Top clients" columns={[]} rows={[]} getRowId={(r) => r.id} /></ListBox>
   {/* A table that is its own section: an h2 Heading/4 above it, and the Table points to it. */}
@@ -208,7 +232,7 @@ export const Good = () => <>
   {/* The Master crumb stays when the toggle moves into the Sidebar; each pattern gets the panes it draws. */}
   <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader leading={<Breadcrumbs items={crumbs} onNavigate={go} />} />}>{page}</AppShell>
   {/* A part's content carries its own props: the header's BadgeStatus progress is not the shell's progress. */}
-  <AppShell sidebar={nav} header={<AppShellHeader main={<PageHeader title="Loyalty app" meta={<BadgeStatus status="in-progress" progress={64}>Active</BadgeStatus>} />} />}>{page}</AppShell>
+  <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader main={<PageHeader title="Loyalty app" meta={<BadgeStatus status="in-progress" progress={64}>Active</BadgeStatus>} />} />}>{page}</AppShell>
   <AppShell pattern="workspace" header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} />} leadingPane={<AppShellPane title="Files">{fileList}</AppShellPane>} trailingPane={<AppShellPane title="Comments">{comments}</AppShellPane>}>{page}</AppShell>
   {/* A comment with an apostrophe inside an attribute's expression is no string: the tag still reads as one AppShell. */}
   <AppShell sidebar={(

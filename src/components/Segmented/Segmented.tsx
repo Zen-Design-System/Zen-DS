@@ -1,6 +1,7 @@
-import { useLayoutEffect, useRef, type ButtonHTMLAttributes, type ReactNode, type Ref } from "react";
+import { useLayoutEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode, type Ref } from "react";
 import { typographyStyles } from "../../tokens/typography.generated";
 import { BadgeCounter } from "../Badge";
+import { ChipGroup } from "../ChipGroup";
 import type { IconName } from "../Icon";
 import { renderIcon } from "../_shared/icon";
 import { useIconTooltip } from "../Tooltip";
@@ -11,6 +12,7 @@ import { useNested, type NestedOverrides } from "../_shared/nested";
 import { useControllableState } from "../_shared/use-controllable-state";
 import { useMergedRefs } from "../_shared/merge-refs";
 import { dataAttributes } from "../_shared/data-attributes";
+import { usePhoneSheet } from "../_shared/phone-sheet";
 
 // Black-Overlay and White-Overlay: the control on a colour band or photo, in static tokens (as Button's overlay levels).
 export const segmentedLevels = ["primary", "secondary", "black-overlay", "white-overlay"] as const;
@@ -81,6 +83,12 @@ export interface SegmentedProps {
  * Background/White/Solid selected segment with
  * On-White-Overlay text and a Border/Overlay/Solid focus ring. An icon-only segment (Item Label=false:
  * `label: null` + `aria-label`) names itself with the shared icon tooltip, the Zen rule for icon-only actions.
+ *
+ * On a phone a Segmented is used only when every label fits its equal share (segmented guideline; the user 2026-10-24,
+ * option A): when its labels are cut or it would slide sideways there, it shows as a single-choice row of Normal chips
+ * (ChipGroup, Medium, the picked one Primary) that scrolls sideways, with the same options, value and onValueChange, and
+ * comes back once its segments fit again. Desktop never switches; nor do segments drawn as children, icon-only
+ * segments or segments with a counter. A phone is the nearest `data-breakpoint`, else ZenProvider's (as the phone sheets).
  */
 export function Segmented({ ref, options, value, defaultValue, onValueChange, onChange, level: levelProp = "secondary", size: sizeProp = "md", children, className, disabled = false, fullWidth = false, "aria-label": ariaLabelProp, overrides, ...rest }: SegmentedProps) {
   const nest = useNested(overrides);
@@ -114,6 +122,50 @@ export function Segmented({ ref, options, value, defaultValue, onValueChange, on
     if (rect.left < box.left + inset) group.scrollLeft -= (box.left + inset - rect.left) / scale;
     else if (rect.right > box.right - inset) group.scrollLeft += (rect.right - (box.right - inset)) / scale;
   });
+  // Phone: chips while the segments do not fit (see above). `needed` is the width the segments take side by side, read
+  // while they show, so the chips know when there is room for them again.
+  const phone = usePhoneSheet(groupRef, false);
+  const chipable = Boolean(options?.length) && options!.every((option) => option.badge === undefined && option.label !== null && option.label !== undefined && option.label !== false && option.label !== "");
+  const [chips, setChips] = useState(false);
+  const neededRef = useRef(0);
+  useLayoutEffect(() => {
+    const root = groupRef.current;
+    if (!phone || !chipable) { if (chips) setChips(false); return undefined; }
+    if (!root) return undefined;
+    const measure = () => {
+      const el = groupRef.current;
+      if (!el) return;
+      if (el.classList.contains("zen-chip-group")) {
+        if (neededRef.current && el.clientWidth >= neededRef.current) setChips(false);
+        return;
+      }
+      const items = [...el.children].filter((child): child is HTMLElement => child instanceof HTMLElement && child.classList.contains("zen-segmented__item"));
+      const labelOf = (item: HTMLElement) => item.querySelector<HTMLElement>(".zen-segmented__label");
+      const cut = items.some((item) => { const label = labelOf(item); return Boolean(label) && label!.scrollWidth > label!.clientWidth + 1; });
+      if (!cut && el.scrollWidth <= el.clientWidth + 1) return;
+      const style = getComputedStyle(el);
+      neededRef.current = items.reduce((sum, item) => { const label = labelOf(item); return sum + item.offsetWidth + (label ? Math.max(0, label.scrollWidth - label.clientWidth) : 0); }, 0)
+        + (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
+      setChips(true);
+    };
+    measure();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
+    observer?.observe(root);
+    // Labels widen once the web fonts load (the first read can see a narrower fallback) without the track resizing:
+    // read again then (train C's gate, 2026-10-25: segments a phone cuts stayed segments).
+    const fonts = typeof document === "undefined" ? undefined : document.fonts;
+    let alive = true;
+    fonts?.ready.then(() => { if (alive) measure(); });
+    fonts?.addEventListener?.("loadingdone", measure);
+    return () => { alive = false; observer?.disconnect(); fonts?.removeEventListener?.("loadingdone", measure); };
+  }, [phone, chipable, chips, options]);
+  if (chips && options) {
+    return (
+      <ChipGroup {...dataAttributes(rest)} ref={rootRef} className={["zen-segmented-chips", className].filter(Boolean).join(" ")} size="md" level="primary" aria-label={ariaLabel}
+        options={options.map((option) => ({ value: option.id, label: option.label, leading: option.leading, disabled: disabled || option.disabled || option.state === "disabled" }))}
+        value={selectedValue ?? null} onValueChange={select} />
+    );
+  }
   return (
     <div {...dataAttributes(rest)} ref={rootRef} className={["zen-segmented", className].filter(Boolean).join(" ")} data-level={level} data-size={size} data-full-width={fullWidth ? "true" : undefined} role="group" aria-label={ariaLabel}>
       {options ? options.map((option) => nest("Item", <SegmentedItem key={option.id} level={levelProp} selected={selectedValue === option.id} disabled={disabled || option.disabled || option.state === "disabled"} leading={option.leading} badge={option.badge} state={disabled ? "disabled" : option.state} size={size} aria-label={option["aria-label"]} onClick={() => select(option.id)}>{option.label}</SegmentedItem>, option.id)) : nest.slot(children)}

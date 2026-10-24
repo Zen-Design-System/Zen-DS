@@ -31,6 +31,8 @@
  *              64px sparklines left a 16px gap under it)
  *   legend-column (error) (widgetLayout) a chart legend of three or more items stacked one per line under (or over) its
  *              chart, with room for a row beside nothing (the user 2026-10-16: wrap it like Figma's auto layout)
+ *   toolbar-search (error) (widgetLayout) a Search wider than 240px in a toolbar row beside other controls, at 768px
+ *              and wider (the user 2026-10-24: a toolbar Search stretched across the row; harness search/toolbar-width)
  *
  * Opt out one element (with a reason in code) by `data-audit-skip-quality`.
  */
@@ -535,10 +537,11 @@ export function textFit({ scopeSel, regionSel }) {
  * Widget layout (the user's review 2026-10-16): `card-gap` — a MetricCard or ChartCard stretched by its row (siblings of
  * one parent at the same top and height) whose content stops 12px or more above its foot while a neighbour's reaches
  * its own (within 4px); `legend-column` — a chart legend of three or more items one per line, under or over its chart
- * with nothing beside it, in a box wide enough for two items side by side (it should wrap as a row).
+ * with nothing beside it, in a box wide enough for two items side by side (it should wrap as a row); `toolbar-search` —
+ * a Search wider than 240px in a toolbar row, beside other controls (the user 2026-10-24), at a desktop or tablet width.
  */
 export function widgetLayout({ scopeSel, regionSel }) {
-  const out = { "card-gap": [], "legend-column": [] };
+  const out = { "card-gap": [], "legend-column": [], "toolbar-search": [] };
   const scope = scopeSel ? document.querySelector(scopeSel) : document;
   if (!scope) return out;
   const REGION = regionSel ?? ".pe-card__stage, .platform-example-panel .platform-example-row, .official-portal-root > *";
@@ -607,6 +610,27 @@ export function widgetLayout({ scopeSel, regionSel }) {
       const widest = Math.max(...rects.map((q) => q.width)) / k;
       if (block.getBoundingClientRect().width / k < 2 * widest + 8) continue;                   // no room for a row
       out["legend-column"].push(`${label(legend)}: a chart legend stacks its ${items.length} items in a column under its chart with room for a row — let it wrap as a row (Figma auto layout Wrap)`);
+    }
+    // toolbar-search: a Search in a toolbar row is at most 240px wide (the user 2026-10-24). Its cell is the outermost
+    // wrapper that holds only the Search; the row is the cell's parent laid out as a flex row or a grid, with a control
+    // beside the cell on the same line. Phone searches fill their row, and the bars that size their own Search are left
+    // out: an app's top bar (≤ 400, Figma Nav-Center-Block) and DashboardHeader's Control-Bar (320, Figma; BACKLOG).
+    if (innerWidth < 768) continue;
+    const SKIP_SEARCH = ".platform-phone, [data-breakpoint='mobile'], .zen-top-navigation, .zen-app-shell-header__bar, .zen-dashboard-header__search, .zen-dashboard-header__center, .platform-guideline-visual__dont, [data-verdict='dont'], [data-audit-skip-quality]";
+    const CONTROL = "button, a[href], input, select, textarea, [role='button'], [role='radio'], [role='tab'], [role='combobox'], [role='switch'], [role='checkbox']";
+    for (const search of region.querySelectorAll(".zen-search:not(.zen-search--rounded):not(.zen-search--popover)")) {
+      if (!visible(search) || search.closest(SKIP_SEARCH)) continue;
+      let cell = search;
+      while (cell.parentElement && cell.parentElement !== region && [...cell.parentElement.children].filter(visible).length === 1) cell = cell.parentElement;
+      const row = cell.parentElement, rs = row && getComputedStyle(row);
+      if (!rs || !((rs.display.includes("flex") && rs.flexDirection.startsWith("row")) || rs.display.includes("grid"))) continue;
+      const C = cell.getBoundingClientRect();
+      const beside = [...row.children].find((c) => c !== cell && visible(c) && (c.matches(CONTROL) || c.querySelector(CONTROL)) && (() => { const q = c.getBoundingClientRect(); return q.top < C.bottom - 1 && q.bottom > C.top + 1; })());
+      if (!beside) continue;
+      const width = search.getBoundingClientRect().width / scaleOf(search);
+      if (width <= 240.5) continue;
+      const name = search.querySelector("input")?.getAttribute("aria-label") || search.querySelector("input")?.getAttribute("placeholder") || "Search";
+      out["toolbar-search"].push(`${label(search)}: the toolbar Search "${name.slice(0, 28)}" is ${Math.round(width)}px wide beside other controls — a toolbar Search is at most 240px: wrap it in <Box width="fill" maxWidth={240}>, or give it a Grid column minmax(0, 240px)`);
     }
   }
   return out;
@@ -724,8 +748,11 @@ export function controlClip({ scopeSel, regionSel }) {
  * Segmented on a phone (`segmented-fit`, warn; segmented guideline, the user 2026-10-24 from the harness inventory): on a
  * phone a Segmented is used only when every label fits its equal share. It reports one that slides sideways (its items
  * are wider than the screen gives them) or a `fullWidth` one that cuts a label to an ellipsis: both want a single-choice
- * row of Normal Chips that scrolls. A phone is a viewport under 768px or a docs phone frame (`.platform-phone`).
- * `data-audit-skip-quality` opts one out.
+ * row of Normal Chips that scrolls. A phone is what the Segmented itself reads (Segmented.tsx, usePhoneSheet): its
+ * nearest `data-breakpoint` says mobile, written by a ZenProvider (auto under 744px) or a docs phone frame. A Segmented
+ * with `options` turns into that chip row by itself there (2026-10-24), so what is left here is one it cannot turn
+ * (segments drawn as children, icon-only segments, counters). One with no breakpoint around it (a docs playground no
+ * ZenProvider wraps) is its app's call, at any viewport (train C, 2026-10-25). `data-audit-skip-quality` opts one out.
  */
 export function segmentedFit({ scopeSel, regionSel }) {
   const out = { "segmented-fit": [] };
@@ -741,7 +768,7 @@ export function segmentedFit({ scopeSel, regionSel }) {
     for (const seg of region.querySelectorAll(".zen-segmented")) {
       if (seen.has(seg) || !shown(seg) || seg.closest("[data-audit-skip-quality]")) continue;
       seen.add(seg);
-      if (innerWidth >= 768 && !seg.closest(".platform-phone")) continue;
+      if (seg.parentElement?.closest("[data-breakpoint]")?.getAttribute("data-breakpoint") !== "mobile") continue;
       const items = [...seg.querySelectorAll(".zen-segmented__item")].filter((item) => item.closest(".zen-segmented") === seg);
       const name = `Segmented "${seg.getAttribute("aria-label") ?? ""}"`;
       const fix = "use a single-choice row of Normal Chips that scrolls (segmented guideline: on a phone every label fits its equal share)";

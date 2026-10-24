@@ -193,7 +193,7 @@ function TeamPerformance() {
                     <Heading level={2} id={membersId} textStyle="Heading/4">Members</Heading>
                     <BadgeCounter size="sm" theme="neutral" background="subtle" value={members.length} />
                   </Stack>
-                  <Box width={250}>
+                  <Box width={240}>
                     <Search placeholder="Search members" aria-label="Search members" value={query} onValueChange={(value) => { setQuery(value); setPage(1); }} />
                   </Box>
                 </Stack>
@@ -308,7 +308,7 @@ function TimeOff() {
             <DashboardHeader type="custom">
               <Stack direction="row" gap="md" align="center" justify="between" width="fill" wrap>
                 <Stack direction="row" gap="xs" align="center">
-                  <Box width={250}><Search placeholder="Search" aria-label="Search leave requests" value={query} onValueChange={setQuery} /></Box>
+                  <Box width={240}><Search placeholder="Search" aria-label="Search leave requests" value={query} onValueChange={setQuery} /></Box>
                   <Chip variant="advanced" popoverLabel="Status" popoverItems={statusOptions.map((option) => ({ ...option, selected: option.id === status }))} onPopoverSelect={(item) => setStatus(item.id)}>
                     {statusOptions.find((option) => option.id === status)!.label}
                   </Chip>

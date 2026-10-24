@@ -445,10 +445,11 @@ function ReviewScheduleExample() {
             onValueChange={(next) => { setName(next); setNameError(undefined); }} />
           <Stack gap="xs">
             <Heading level={2} textStyle="Body/Small/Bold" tone="light">Date and time</Heading>
-            {/* The calendar keeps its Figma width (Items stay 32px), centred in the phone column. */}
+            {/* The calendar keeps its Figma width (Items stay 32px), centred in the phone column. A dot marks a day that
+                already has reviews (one per review), so a free day is easy to spot. */}
             <Stack align="center">
               <DatePicker today={TODAY} minDate={TODAY} value={date} onValueChange={setDate} month={month} onMonthChange={setMonth}
-                timePicker time={time} onTimeChange={setTime} />
+                events={reviews.map((review) => review.date)} timePicker time={time} onTimeChange={setTime} />
             </Stack>
           </Stack>
         </Form>
@@ -495,7 +496,7 @@ function StayOnPhoneExample() {
         <ListBox>
           <List aria-label="Your stay">
             <ListItem title="Dates" caption={stay?.start && stay.end ? `${formatRange(stay.start, stay.end)} · ${plural(nights, "night")}` : "Add your check-in and check-out"}
-              leading="icon-calendar-line" trailing={<Icon name="icon-chevron-right-line-small" decorative />} onClick={() => { setDraft(stay); setPicking(true); }} />
+              leading={<DockIcon icon="icon-calendar-line" size="md" background="subtle" />} trailing={<Icon name="icon-chevron-right-line-small" decorative />} onClick={() => { setDraft(stay); setPicking(true); }} />
           </List>
         </ListBox>
         {/* On a phone a DateField opens the same sheet (Variant=Single) instead of the desktop popover. */}
@@ -525,7 +526,7 @@ function DeliveryDayExample() {
       <Stack gap="lg" padding="lg">
         <ListBox>
           <List aria-label="Delivery">
-            <ListItem title="Delivery day" caption={formatDate(delivery)} leading="icon-package-line"
+            <ListItem title="Delivery day" caption={formatDate(delivery)} leading={<DockIcon icon="icon-package-line" size="md" background="subtle" />}
               trailing={<Icon name="icon-chevron-right-line-small" decorative />} onClick={() => setPicking(true)} />
           </List>
         </ListBox>
@@ -656,7 +657,7 @@ const [month, setMonth] = useState(august);
   },
   {
     title: "Schedule a review",
-    description: "On a phone the calendar sits in the screen with the Time-Picker under it. The footer shows the picked slot and schedules the review once there is a date; the review lands in its week of the list, and Back asks before it drops a filled-in draft.",
+    description: "On a phone the calendar sits in the screen with the Time-Picker under it, a dot under each day that already has reviews. The footer shows the picked slot and schedules the review once there is a date; the review lands in its week of the list, and Back asks before it drops a filled-in draft.",
     render: () => <ReviewScheduleExample />,
     code: `const screenRef = useRef<HTMLDivElement>(null);
 const [date, setDate] = useState<Date | null>(null);
@@ -694,8 +695,9 @@ const [time, setTime] = useState<DatePickerTime>({ from: "14:00", to: "14:30" })
   <Form id={formId} onSubmit={schedule} gap="md">
     <InputField size="lg" label="Review" value={name} onValueChange={setName} error={nameError} />
     <Stack align="center"> {/* the calendar keeps its width, centred */}
+      {/* A dot per review already on that day */}
       <DatePicker today={today} minDate={today} value={date} onValueChange={setDate} month={month} onMonthChange={setMonth}
-        timePicker time={time} onTimeChange={setTime} />
+        events={reviews.map((review) => review.date)} timePicker time={time} onTimeChange={setTime} />
     </Stack>
   </Form>
 </PlatformPhone>`,
@@ -707,7 +709,7 @@ const [time, setTime] = useState<DatePickerTime>({ from: "14:00", to: "14:30" })
     code: `const [delivery, setDelivery] = useState(inThreeDays);
 const [typing, setTyping] = useState(false);
 
-<ListItem title="Delivery day" caption={formatDate(delivery)} leading="icon-package-line"
+<ListItem title="Delivery day" caption={formatDate(delivery)} leading={<DockIcon icon="icon-package-line" size="md" background="subtle" />}
   trailing={<Icon name="icon-chevron-right-line-small" decorative />} onClick={() => setPicking(true)} />
 {typing ? <DateField size="lg" label="Delivery day" value={typed} onValueChange={setTyped} autoFocus /> : null}
 
@@ -726,7 +728,7 @@ const nights = nightsOf(draft);
 <ListBox>
   <List aria-label="Your stay">
     <ListItem title="Dates" caption={stay ? formatRange(stay.start, stay.end) : "Add your check-in and check-out"}
-      leading="icon-calendar-line" trailing={<Icon name="icon-chevron-right-line-small" decorative />}
+      leading={<DockIcon icon="icon-calendar-line" size="md" background="subtle" />} trailing={<Icon name="icon-chevron-right-line-small" decorative />}
       onClick={() => { setDraft(stay); setPicking(true); }} />
   </List>
 </ListBox>

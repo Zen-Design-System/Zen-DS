@@ -58,3 +58,9 @@
 .zen-segmented[data-full-width="true"] { display: flex; width: 100%; }
 .zen-segmented[data-full-width="true"] > .zen-segmented__item { flex: 1 1 0; }
 .zen-segmented[data-full-width="true"] .zen-segmented__label, .zen-top-nav__control .zen-segmented__label { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* On a phone, a Segmented whose segments do not fit shows as a single-choice chip row (Segmented.tsx): one row that
+   scrolls sideways, as the guideline's phone chip rows do, with room above and below for the focus ring. */
+.zen-chip-group.zen-segmented-chips { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; padding-block: var(--zen-spacing-padding-3-xsmall, 2px); }
+.zen-chip-group.zen-segmented-chips::-webkit-scrollbar { display: none; }
+.zen-chip-group.zen-segmented-chips > * { flex: none; }
+

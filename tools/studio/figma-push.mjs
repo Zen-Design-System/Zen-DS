@@ -33,6 +33,7 @@ import { imageFillOf } from "./figma-image.mjs";
 import { arcData, fitVectorPath, normalizeArc, parseVectorPath, parseViewBox, STAR_RATIO, vectorBounds } from "../../src/components/Shape/geometry.ts";
 import { DEFAULT_LINE_STROKE, DEFAULT_SHAPE_FILL, shapeFillTokens, shapeStrokeTokens } from "../../src/components/Shape/paint.ts";
 import { zenLabels } from "../../src/components/_shared/labels.ts";
+import { dayOf, dayText, ISO_DAY } from "../../src/components/Table/tableDates.ts";
 import { iconAliases } from "../../src/icons/generated/aliases.ts";
 import { libraryKeysFor } from "./library-keys.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
@@ -494,7 +495,7 @@ export function boardFrameId(element) {
   return `${element.name === "Overlay" ? "overlay" : "screen"}:${literal("id") ?? ""}${state ? `:${state}` : ""}`;
 }
 
-export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: given = {}, pageId, componentOf, components: shared, rootPageId = pageId, frame: frameId = null } = {}) {
+export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: given = {}, pageId, componentOf, components: shared, rootPageId = pageId, frame: frameId = null, locale = "en-US" } = {}) {
   // The pushing page is one of the pages too (another page's component may hold one of its).
   const pages = pageId && typeof given[pageId] !== "string" ? { ...given, [pageId]: text } : given;
   const notes = [];
@@ -2101,15 +2102,34 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
       if (!entry) { notes.push(`${where}: no Figma set for ${name}`); return null; }
       return { type: "INSTANCE", name, set: { id: entry.id, name: entry.name }, props: figmaProps(entry, codeValues, mapping, notes, where) };
     };
+    // A date column (Table.tsx tableEditorTypeFor): `edit: "date"`, or `editable` on a text column of ISO days.
+    const datedColumn = (column) => {
+      if (column.edit === "date" || column.edit?.type === "date") return true;
+      if (column.edit !== undefined || code.editable !== true || (column.content ?? "text") !== "text") return false;
+      const field = column.field ?? column.id;
+      const sample = rows.map((row) => row?.[field]).find((value) => value !== undefined && value !== null);
+      return typeof sample === "string" && ISO_DAY.test(sample.trim());
+    };
+    // A column's `cells`: the layer its Content slot holds per value (a project component's instance), as written.
+    const layersOf = new Map((element.props.columns?.kind === "array" ? element.props.columns.items : []).map((item, index) => [columns[index]?.id, item?.kind === "object" && item.fields.cells?.kind === "object" ? item.fields.cells.fields : null]));
     const content = (column, row, rowId) => {
       const kind = column.content ?? "text";
       const set = CELL_SETS[kind];
       const field = column.field ?? column.id;
       const value = row[field];
       const label = typeof value === "string" || typeof value === "number" ? String(value) : "";
+      // Figma's cell holds that value's instance in its Content slot (Table.tsx cellOf); a value without one draws by content.
+      const layer = label && Object.hasOwn(layersOf.get(column.id) ?? {}, label) ? layersOf.get(column.id)[label] : null;
+      if (layer?.kind === "element") {
+        const node = convert(layer.node, { direction: "row" });
+        if (node) return node;
+      }
       const caption = column.captionField && typeof row[column.captionField] === "string" ? row[column.captionField] : "";
       const own = (name) => overrides[`Row[${rowId}]/${column.id}/${name}`] ?? {};
       const where = `Table › ${column.id} › row ${rowId}`;
+      // A date column's day as the Table shows it (Table.tsx dayText), in a Text-Cell named Date-Cell: the pull reads the
+      // text back as the ISO day (figma-pull tableElement).
+      if (kind === "text" && datedColumn(column) && dayOf(label)) return { type: "INSTANCE", name: "Date-Cell", set, props: onlyOwn(set, { Bold: column.bold ? "Yes" : "No", Caption: Boolean(caption) }), textList: caption ? [dayText(label, locale), caption] : [dayText(label, locale)] };
       if (kind === "text") return { type: "INSTANCE", name: "Text-Cell", set, props: onlyOwn(set, { Bold: column.bold ? "Yes" : "No", Caption: Boolean(caption) }), textList: caption ? [label, caption] : [label] };
       if (kind === "badge" || kind === "tag") {
         const labels = (Array.isArray(value) ? value : [value]).filter((item) => item !== undefined && item !== null && item !== "").map(String);
@@ -2146,12 +2166,13 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
         if (dock) node.nested.push({ path: "Dock-Icon", set: dock.set, props: dock.props, ...(typeof own("Dock-Icon").emoji === "string" ? { text: own("Dock-Icon").emoji } : {}) });
       }
       if (kind === "icon" && typeof media === "string") node.swapIcon = media;
-      // Its Avatar as Table.tsx draws it (cellVisual): Subtle, Small over a Subtext (XSmall alone), a photo or the
+      // Its Avatar as Table.tsx draws it (cellVisual): Subtle (Solid in the first column unless a photo: Figma has no
+      // Photo × Solid), Small over a Subtext (XSmall alone), a photo or the
       // label's initials on Neutral, the row's Avatar override on top (Figma's sample is a Photo placeholder). A photo
       // cell with its picture has no Avatar in Figma: the picture fills Photo-Cell's Photo.
       if (kind === "avatar" || (kind === "photo" && !pictured)) {
         const mine = own("Avatar");
-        const avatar = instanceOf("Avatar", { size: caption ? "sm" : "xs", shape: kind === "photo" ? "square" : "circle", background: "subtle", theme: pictured ? "photo" : "neutral", ...mine }, where);
+        const avatar = instanceOf("Avatar", { size: caption ? "sm" : "xs", shape: kind === "photo" ? "square" : "circle", background: columns[0] === column && !pictured ? "solid" : "subtle", theme: pictured ? "photo" : "neutral", ...mine }, where);
         // The page's own initials (an override's children: "Bich Ngoc Ha" → BH) win over the label's first two words.
         if (avatar) node.nested.push({ path: "Avatar", props: avatar.props, ...(pictured ? {} : { text: avatarInitials(typeof mine.children === "string" ? mine.children : initialsOf(label), mine.size ?? (caption ? "sm" : "xs")) }) });
       }
@@ -2752,8 +2773,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
  * `libraryKeys` (docs/figma-contracts/library-keys.json) it also carries `library`, the keys of the sets, icons, styles
  * and variable collections it uses, so the plugin imports them from the published library in a file other than Zen's.
  */
-export function figmaPackage(text, { mapping, nestedLayers = {}, page = {}, newId, libraryKeys, pages } = {}) {
-  const { frame, notes: firstNotes, images: firstImages, components: firstComponents } = figmaFromPage(text, { mapping, nestedLayers, newId, pages, pageId: page.id });
+export function figmaPackage(text, { mapping, nestedLayers = {}, page = {}, newId, libraryKeys, pages, locale } = {}) {
+  const { frame, notes: firstNotes, images: firstImages, components: firstComponents } = figmaFromPage(text, { mapping, nestedLayers, newId, pages, pageId: page.id, locale });
   if (!frame) return { pkg: null, notes: firstNotes, images: [] };
   // Every Screen, Screen state and Overlay of the Board, each a frame (the first Screen is `frame`, as before): the
   // Prototype tab's actions lead from one to another (figma-proto.mjs reactions name the frame by its id).

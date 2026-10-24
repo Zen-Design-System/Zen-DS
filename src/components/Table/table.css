@@ -119,8 +119,8 @@
 .zen-table__cell[data-editing="true"] > .zen-table-editor[data-type="text"] { z-index: 3; bottom: auto; min-height: 100%; height: auto; align-items: flex-start; padding-block: calc((var(--zen-table-cell-size, 52px) - var(--zen-typography-line-height-body-base, 20px)) / 2); }
 .zen-table-editor[data-type="text"]:has(textarea[style*="height"]:not([style*="height: 20px"])) { box-shadow: var(--zen-table-editor-underline-shadow), var(--zen-style-effect-popover-shadow); }
 textarea.zen-table-editor__input { display: block; width: 100%; height: 20px; min-height: 20px; max-height: 240px; resize: none; overflow-y: auto; line-height: var(--zen-typography-line-height-body-base, 20px); white-space: pre-wrap; overflow-wrap: anywhere; }
-.zen-table-editor[data-type="select"] { justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); cursor: pointer; }
-.zen-table-editor[data-type="select"] > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
+.zen-table-editor:is([data-type="select"], [data-type="date"]) { justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); cursor: pointer; }
+.zen-table-editor:is([data-type="select"], [data-type="date"]) > .zen-icon { width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-table-editor {
   /* Figma strokes the underline INSIDE the field: an inset shadow draws it without taking layout space, so the
      content centres in the full cell height like Figma (text 16px from the top in Compact). */

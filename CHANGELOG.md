@@ -20,6 +20,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Avatar (2026-10-24): `status` also takes `"disabled"`, `"pending"` or `"inactive"` (Figma .Primitives/Avatar/Status),
   read by screen readers in words; `AvatarStatus` is the dot on its own, XSmall (4px) to Large. Sidebar: `railBackground`
   sets the workspace rail's fill (Figma Master-Background Default · Flat · Inverse).
+- DatePicker (2026-10-24): `events` puts dots under the days that have events (a date, or `{ date, count }` for 1–4
+  dots; DatePickerSheet forwards it), and a day's name now says its count ("Thursday, October 1, 2026, 2 events").
 - DatePickerSheet (2026-10-24): `header="selection"` (Figma `.Primitives/Date-Picker` 9923:2323) puts the picked dates
   on top of the sheet: one date as a Heading/3 under the title with an edit action (`onEdit`, e.g. to type the date
   instead); a range with Clear dates (`onClear`) and the weekday row under the title and Close. BottomSheet takes a
@@ -32,6 +34,18 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   scrolls around the place it renders in, not only the page: in Zen Studio's Play and Present a wheel over a modal no
   longer scrolls the page under it (the stage scrolls a device frame, the user's "Quản lý task" prototype), and a phone
   preview on a scrolling pane stays put. Each box is padded by its scrollbar's width while locked, as the page is.
+- Table date cells (user 2026-10-25): `edit: "date"` (and `editable` on a column of ISO days) shows the day in the
+  locale's short form (25/10, with the year when it is another one) and edits it in a DatePicker under the cell
+  (Date-Picker/Mobile sheet on a phone), saving an ISO day; Zen Studio's Figma push writes the day as shown (a
+  Date-Cell) and pull reads it back as the ISO day. Harness `table/person-edit-needs-media` (warn): an editable
+  avatar or photo column without `mediaField`, whose picker would list names with no faces.
+- Table `cells` (user 2026-10-24, Figma's Content slot holds one instance per value): a column maps each value to its
+  layer, typically an instance of the project's own component set (`<Use of="status" variant={{ Status: "Done" }} />`).
+  Cells draw it, the column edits as a select whose options draw the same instances, and a pick swaps the instance. Zen
+  Studio: a Cell's Content lists the project's sets and writes `cells` from the set's variants (importing `Use`), and a
+  set from Assets or ⇧I with a Cell selected, or dragged onto a cell, goes into that cell's slot as in Figma; Figma push
+  puts the instance in Table/Cell/Default's Content slot and pull reads it back (checked with the real importer in the
+  Zen file).
 - Table: an editable column's select draws its options as its cells (user 2026-10-24: "popover để chọn nếu là người thì
   nên có avatar"): people with their avatar (initials without a photo; `options[].photoSrc` on an `edit` object), badge
   values with the colour and icon the rows' overrides give them. A value picked in the Table brings its picture or Badge
@@ -44,11 +58,42 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   calls them (uncontrolled + notify). Zen Studio Play: a filter Chip wired to Filter table shows its pick, the same pick
   again or its × shows every row again, filters on different columns (a Search, several chips) narrow the Table
   together, and Restart starts the Screen over.
+- House rule (user, 2026-10-24): a Search in a toolbar row, beside filters or buttons, is at most 240px wide
+  (`<Box width="fill" maxWidth={240}>`, or a Grid column `minmax(0, 240px)`); a phone Search fills its row. The Search,
+  Layout and skill docs say so (they used to say 320), and three checks catch it: harness `search/toolbar-width`, audit
+  kind `toolbar-search` and the Figma audit's `search/toolbar-width`. Platform examples, templates, the Zen Agent prompt
+  and Figma → Studio pulls follow it. DashboardHeader's Control-Bar keeps Figma's 320 for now (BACKLOG question).
+- House rules (user, 2026-10-24, the same task page), each in the guidelines, skills, harness and Figma audit: a
+  ListItem leads with a DockIcon, an Avatar or a thumbnail, never a bare icon (`list-item/leading-dock-icon`); status
+  and priority Badges keep a leading icon, priority the solid flag `icon-flag-03-solid` (`badge/status-priority-icon`,
+  and `table/badge-column-icon` for a Table's badge column); a desktop AppShellHeader's top row is never empty
+  (`app-shell/top-row-filled`). Examples follow them (date-picker, voice, app layer, avatar, badge, AppShell, Sidebar).
+- House rules (user, 2026-10-24): a status MetricCard's Dock Icon is solid in the colour of what it counts (total
+  accent, in progress blue, overdue red, done green; `metric/dock-icon-by-meaning`); priority has one palette, Urgent and
+  High red, Medium yellow, Low neutral with `icon-flag-03-solid`, PropertySelect tones negative / warning / neutral
+  (`priority/palette`). The examples' and templates' priority data follow it.
+- House rule (user, 2026-10-24): a popover that picks a person shows each person's avatar (`photoSrc`, theme
+  `avatar-small`, or an initials Avatar as `leading`); harness `popover/people-have-avatars`. The Chip and Card examples'
+  assignee and lead pickers follow it.
+- Usage harness: an element's slot props are read from its own attributes only, so `app-shell/primary-in-top-bar` no
+  longer takes a PageHeader's actions inside `main` for the top row's (a false positive on valid code).
+- QA: the platform audit has a per-page time limit (`--page-timeout`: 180 s; 420 with `--quality`/`--density`; 900
+  with `--smoke`). A page that never answers is audited once more in a new tab, then reported by name, and the run goes
+  on. One hung page held CI's audit for the whole 45 minutes on 2026-10-24.
+- Segmented on a phone (user, 2026-10-24, option A): when its labels do not fit their equal share or it would slide
+  sideways, a Segmented with `options` shows as a single-choice chip row (ChipGroup, Medium) that scrolls sideways, with
+  the same options, value and onValueChange, and comes back once it fits. Desktop never changes. ChartCard's range
+  switch follows, so the docs' 14 phone `segmented-fit` findings are gone (baseline emptied).
+- Spacing and Table rules (the user, 2026-10-24): chips side by side sit 8px apart (`gap="xs"`, harness `chip/row-gap`),
+  tags 4px (`gap="2xs"`, `tag/row-gap`); the Avatar in a Table's first column is Solid, never Subtle (Table's own avatar
+  cells, the Figma push and pull and Studio's mirrors draw it so; a photo stays Subtle, as Figma has no Photo × Solid;
+  harness `table/first-column-avatar-solid`). Six examples and templates fixed.
 - Usage harness and audit (user, 2026-10-24, from the harness inventory): `listbox/grouped-on-phone` (error) flags a
   phone settings or profile screen that puts several kicker groups of rows in one block, or bare Lists under kickers
   (usage rules §15: each group is its own ListBox); `table/titled-box` (warn) flags a Table in a Card or ListBox that
   does not name it; the audit's `segmented-fit` (`--quality`, warn) flags a phone Segmented that slides sideways or cuts
-  a fullWidth label (a Chip row instead).
+  a fullWidth label (a Chip row instead). A phone is what the Segmented reads: its nearest `data-breakpoint` says mobile
+  (a ZenProvider under 744px or a phone frame), at any viewport.
 - Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,
   auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
   the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are

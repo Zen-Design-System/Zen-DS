@@ -40,6 +40,20 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   an OPFS folder, which the browser always grants; a folder the person picks is usually "prompt" after a reload, so the
   Reconnect button path (`mirrors.ts` reconnectFolder → requestPermission) needs one check by hand in Chromium.
   (2026-10-25: about 2 minutes, optional; close the line if the user skips it.)
+- **P2 · Toolbar Search 240 vs DashboardHeader's 320 (2026-10-24; a user / designer question):** the user's rule caps
+  a toolbar Search at 240 (harness `search/toolbar-width`, audit kinds `toolbar-search` / Figma
+  `search/toolbar-width`), but Figma's `Primitives/Dashboard/Header` Type=Control-Bar (4122:33401) has its Search
+  FIXED 320, and code follows it (`dashboard-header.css` `--zen-dashboard-header-search-basis`); all three checks
+  leave that slot out. Move the component (and Figma) to 240?
+- **P3 · Figma screens older than the 2026-10-24 rules (the designer's file; audit warnings):** ◇ Master-Layout ·
+  Example › B1 · Column has a 280 Search in Trailing-Slots (`search/toolbar-width`); ◆ HR-Platform has 6 Paid / Unpaid
+  Badges and Master-Layout Example › B4 · Column a Draft Badge with Leading-Icon off (`badge/status-priority-icon`);
+  Master-Layout Example E2, F1, F2 have 10 Metric-Cards with a Subtle Neutral Dock-Icon
+  (`metric/dock-icon-by-meaning`). Update them in Figma, or keep them with the user's OK.
+- **P2 · Metric-Card Dock-Icon Solid by default? (2026-10-24; a user / designer question):** the user's "metric card
+  dùng dock icon solid" is checked only on status cards in code (`metric/dock-icon-by-meaning`: total, in progress,
+  overdue, done), because Figma's Metric-Card Type=KPI (6643:64008) and code default to Neutral Subtle and ~100
+  example cards use it. Make Solid the default in Figma and code, each card coloured by what it counts?
 
 ## Later phase (Giai đoạn sau)
 - **Code view in other languages — on hold (user, 2026-10-08: "tạm lưu backlog, sẽ làm giai đoạn sau"):** order chosen:

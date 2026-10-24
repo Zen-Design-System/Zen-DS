@@ -116,6 +116,7 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 | (phone) | popoverItems open in a Bottom Sheet: Tab stays inside, Escape closes and returns focus |
 
 ## ✅ Do
+- Space chips side by side Gap/XSmall (8px): a row Stack of Chips takes gap="xs", and ChipGroup spaces its chips so already (the user 2026-10-24; harness: chip/row-gap).
 - On a colour band, a Solid hue card or a photo, give every chip an overlay level (ChipGroup too): black-overlay by default (level="overlay"), white-overlay on a solid colour. Primary and Secondary take mode tokens that flip in dark mode, and their Accent focus ring vanishes on the band.
 - When exactly one value applies (Repeat: Daily / Weekly / Monthly), use `<ChipGroup>`: it is a radio group with roving focus and aria-checked; never hand-set role="radio" on Chips.
 - Pick the level by how many can be on (user rule 2026-10-04): a multi-select group of toggles is Secondary for every chip (Selected = the 2px dark outline), a single-select group is Primary for every chip (Selected = the dark fill). Never switch a chip's level when it is selected.
@@ -154,8 +155,10 @@ type PopoverItemData = { id: string; label: ReactNode; value?: string; caption?:
 | `chip/popover-needs-advanced` | error | Only Chip variant=advanced opens a Popover. | `zen-allow-chip-variant: <reason>` |
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
 | `chip/multiple-needs-count` | warn | A multiple-selection Chip shows how many values are active with selectionCount (a chip that keeps its own choice, popoverItems without onPopoverSelect, counts them itself). | `zen-allow-chip-count: <reason>` |
+| `chip/row-gap` | error | Chips side by side sit Gap/XSmall (8px) apart: a Stack of Chips takes gap="xs" (ChipGroup spaces its chips so already). | `zen-allow-chip-gap: <reason>` |
 | `chip/radio-is-chip-group` | warn | Chips where exactly one is picked are a <ChipGroup> (radio group: one Tab stop, arrow keys), not Chips given role="radio" by hand. | `zen-allow-chip-radio: <reason>` |
 | `chip/needs-action` | warn | A Normal or Advanced Chip is a button: give it something to do (onClick, popoverItems / onPopoverCreate, a selection via select / selected / defaultSelected, or onClearSelection). A count is a Number-only Chip, a label a Badge. | `zen-allow-chip-action: <reason>` |
+| `popover/people-have-avatars` | warn | A popover that picks a person shows each person's avatar: Chip popoverItems and Popover items for people take photoSrc (theme avatar-small) or an initials Avatar as leading; PropertyPeople options take photoSrc. | `zen-allow-people-without-avatars: <reason>` |
 | `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `copy/plural-count` | warn | Counts agree with their noun (1 item · 2 items): build the phrase with a plural helper, never `{list.length} items`. | `zen-allow-plural: <reason>` |

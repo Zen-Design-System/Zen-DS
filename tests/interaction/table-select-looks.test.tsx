@@ -6,7 +6,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import { userEvent } from "vitest/browser";
-import { Table, ZenProvider, type TableColumn } from "../../src/index";
+import { Badge, Table, ZenProvider, type TableColumn } from "../../src/index";
 
 const photo = (fill: string) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="${fill}"/></svg>`)}`;
 type Task = { id: string; title: string; assignee: string; photo?: string; status: string };
@@ -85,5 +85,43 @@ describe("Table › a select draws its options as the cells draw them", () => {
     expect(items()[1].querySelector(".zen-avatar__initials")?.textContent).toBe("ML");
     await userEvent.click(items()[1]);
     await vi.waitFor(() => expect(edit.onCommit).toHaveBeenCalledWith(rows[0], "minh"));
+  });
+
+  it("a column's cells put each value's layer in the cell's Content slot, and the select lists and draws those layers", async () => {
+    // The project's own Status component, one instance per value (as Figma's cells hold one instance per value).
+    const status = (tone: "neutral" | "blue" | "green", label: string) => <Badge size="medium" theme={tone} background="subtle" data-status={label}>{label}</Badge>;
+    const cells = { "To do": status("neutral", "To do"), Doing: status("blue", "Doing"), Done: status("green", "Done") };
+    const screen = await render(<ZenProvider><Table aria-label="Tasks" rows={rows} editable columns={[{ id: "title", header: "Task" }, { id: "status", header: "Status", cells }]} /></ZenProvider>);
+    const cell = (row: number) => screen.container.querySelectorAll<HTMLTableCellElement>("tbody tr.zen-table__row")[row].querySelectorAll<HTMLTableCellElement>("td.zen-table__cell")[1];
+    expect([0, 1, 2].map((row) => cell(row).querySelector<HTMLElement>("[data-status]")?.dataset.status)).toEqual(["Doing", "Done", "Doing"]);
+    expect(cell(0).querySelector<HTMLElement>(".zen-badge")?.dataset.tone).toBe("blue");
+    // `editable` makes it a select of the column's values, the unused "To do" first (the cells' order).
+    expect(cell(0).dataset.editable).toBe("true");
+    await openCell(cell(0));
+    expect(items().map((item) => item.querySelector<HTMLElement>("[data-status]")?.dataset.status)).toEqual(["To do", "Doing", "Done"]);
+    // Typing filters by the value.
+    await userEvent.keyboard("don");
+    await vi.waitFor(() => expect(items().map((item) => item.textContent)).toEqual(["Done"]));
+    await userEvent.keyboard("{Enter}");
+    await vi.waitFor(() => expect(cell(0).querySelector<HTMLElement>("[data-status]")?.dataset.status).toBe("Done"));
+    expect(cell(0).querySelector<HTMLElement>(".zen-badge")?.dataset.tone).toBe("green");
+  });
+
+  it("a date column (ISO days) shows the locale's short form and edits in a DatePicker that saves an ISO day", async () => {
+    const year = new Date().getFullYear();
+    const tasks = [{ id: "a", title: "Agenda", due: `${year}-10-25` }, { id: "b", title: "Minutes", due: "2024-03-02" }];
+    const screen = await render(<ZenProvider locale="vi-VN"><Table aria-label="Tasks" rows={tasks} editable columns={[{ id: "title", header: "Task" }, { id: "due", header: "Due" }]} /></ZenProvider>);
+    const cell = (row: number) => screen.container.querySelectorAll<HTMLTableCellElement>("tbody tr.zen-table__row")[row].querySelectorAll<HTMLTableCellElement>("td.zen-table__cell")[1];
+    // This year's day without its year; another year's with it.
+    expect(cell(0).textContent).toBe("25/10");
+    expect(cell(1).textContent).toBe("02/03/2024");
+    await userEvent.click(cell(0));
+    const calendar = await vi.waitFor(() => { const dialog = document.querySelector<HTMLElement>(".zen-table-editor__layer .zen-date-picker"); if (!dialog) throw new Error("no calendar"); return dialog; });
+    // The picked day has the focus (APG Date Picker Dialog).
+    await vi.waitFor(() => expect(document.activeElement?.closest(".zen-date-picker")).toBe(calendar));
+    const day27 = [...calendar.querySelectorAll<HTMLButtonElement>(".zen-date-picker__day:not(:disabled)")].find((button) => button.textContent?.trim() === "27");
+    await userEvent.click(day27!);
+    await vi.waitFor(() => expect(cell(0).textContent).toBe("27/10"));
+    expect(document.querySelector(".zen-table-editor__layer .zen-date-picker")).toBeNull();
   });
 });

@@ -618,7 +618,7 @@ function AppShellPlayground() {
     leadingPane = withLeading ? part(
       <AppShellPane title="Contents" theme="canvas">
         <List aria-label="Chapters">
-          {chapters.map((item) => <ListItem key={item.id} selected={item.id === chapter.id} title={item.title} leading="icon-book-open-line" onClick={() => setChapterId(item.id)} />)}
+          {chapters.map((item) => <ListItem key={item.id} selected={item.id === chapter.id} title={item.title} leading={<DockIcon icon="icon-book-open-line" size="md" background="subtle" />} onClick={() => setChapterId(item.id)} />)}
         </List>
       </AppShellPane>,
       `<AppShellPane title="Contents" theme="canvas">\n  <List aria-label="Chapters">{chapterRows}</List>\n</AppShellPane>`,

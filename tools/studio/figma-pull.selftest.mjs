@@ -188,7 +188,7 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   // figma-push draws `selectable` as a first checkbox column, the sorted column's direction in its Sort glyph and an
   // avatar cell's Avatar (theme from the row's override): they come back as the Table's props, not as columns.
   const avatarSet = [...mapping.sets.values()].find((set) => set.code === "Avatar");
-  const person = (texts, props, initials) => ({ kind: "Avatar-Cell", props: { Bold: "No", Subtext: "Yes" }, w: 400, fill: true, texts, parts: [{ id: "a", set: { id: avatarSet.id, name: avatarSet.name }, props: { Size: "Small", Shape: "Circle", Background: "Subtle", ...props }, text: initials }] });
+  const person = (texts, props, initials) => ({ kind: "Avatar-Cell", props: { Bold: "No", Subtext: "Yes" }, w: 400, fill: true, texts, parts: [{ id: "a", set: { id: avatarSet.id, name: avatarSet.name }, props: { Size: "Small", Shape: "Circle", Background: "Solid", ...props }, text: initials }] });
   const frame = { type: "FRAME", name: "T", layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: [{ type: "TABLE", name: "Members", header: [{ label: "", checkbox: true, w: 48 }, { label: "Member", sort: true, sorted: "asc", fill: true }, { label: "Role", sort: true, w: 120 }],
     rows: [["An Mai", "Neutral", "AM"], ["Bao Nguyen", "Green", "BX"]].map(([name, theme, initials]) => ({ cells: [{ kind: "Control-Cell", props: { Type: "Checkbox" }, w: 48 }, person([name, "mail"], { Theme: theme }, initials), { kind: "Text-Cell", props: {}, w: 120, texts: ["Member"] }] })) }] };
   const back = pageFromFigma(frame, { mapping }).text;
@@ -200,6 +200,13 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   square.children[0].rows.forEach((row) => { row.cells[1].parts[0].props.Shape = "Square"; });
   const photos = pageFromFigma(square, { mapping }).text;
   ok("table: an Avatar-Cell with a Square Avatar is a photo column; the square is not a row's override", /content: "photo"/.test(photos) && photos.includes('"Row[row-2]/member/Avatar": { theme: "green", children: "BX" }') && !/shape: "square"/.test(photos));
+  // The first column's Avatar is Solid (Table.tsx cellVisual): a Subtle one is that row's override; a Photo one is
+  // Subtle as drawn (Figma has no Photo × Solid), so its background is no override.
+  const subtle = JSON.parse(JSON.stringify(frame));
+  subtle.children[0].rows[0].cells[1].parts[0].props.Background = "Subtle";
+  subtle.children[0].rows[1].cells[1].parts[0].props = { ...subtle.children[0].rows[1].cells[1].parts[0].props, Theme: "Photo", Background: "Subtle" };
+  const leads = pageFromFigma(subtle, { mapping }).text;
+  ok("table: a Subtle Avatar in the first column is its row's override; a Photo one's Subtle is as drawn", leads.includes('"Row[row-1]/member/Avatar": { background: "subtle" }') && /"Row\[row-2\]\/member\/Avatar": \{[^}]*theme: "photo"/.test(leads) && !/"Row\[row-2\]\/member\/Avatar": \{[^}]*background/.test(leads));
 }
 
 // Charts (chart family phase 2, 2026-10-14; figma-charts.mjs), as figmaReadCode reads them: a ❖ Chart instance is its
@@ -511,6 +518,47 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   ] };
   const { text: crossText } = pageFromFigma(cross, { mapping });
   ok("project component: an instance of another page's component pulls as <Use of page>", /<Use of="chip" page="chips" variant=\{\{ Size: "Small" \}\} props=\{\{ Label: "Go" \}\} \/>/.test(crossText));
+}
+
+// A Table whose cells hold a project component's instance in their Content slot, one per value (user, 2026-10-24: "cell
+// có slot nối với các giá trị đó"): the column's `cells`, each value → its `<Use>`, the rows' values from the variant.
+{
+  const layout = { mode: "VERTICAL", gap: 0, gapVar: null, padding: [0, 0, 0, 0], paddingVar: null, primary: "MIN", counter: "MIN", wrap: false };
+  const status = (value) => ({ id: `s-${value}`, w: 152, kind: null, props: {}, layer: { type: "INSTANCE", name: "Status", local: "status", page: "components", variant: { Status: value } }, texts: [value] });
+  const title = (text) => ({ id: `t-${text}`, w: 300, fill: true, kind: "Text-Cell", props: { Bold: "No" }, texts: [text] });
+  const tasks = { type: "FRAME", name: "Tasks", width: 1200, height: 400, layout, children: [{ type: "TABLE", id: "1:1", name: "Tasks", header: [{ id: "h1", w: 300, fill: true, label: "Task" }, { id: "h2", w: 152, label: "Status" }],
+    rows: [{ id: "r1", cells: [title("Agenda"), status("Doing")] }, { id: "r2", cells: [title("Minutes"), status("Done")] }, { id: "r3", cells: [title("Roadmap"), status("Doing")] }] }] };
+  const { text: tasksText } = pageFromFigma(tasks, { mapping });
+  ok("table cells: the column's cells map each value to its project instance", tasksText.includes('cells: { Doing: <Use of="status" page="components" variant={{ Status: "Doing" }} />, Done: <Use of="status" page="components" variant={{ Status: "Done" }} /> }'));
+  ok("table cells: each row's value is its instance's variant", /status: "Doing"[^}]*\}, \{[^}]*status: "Done"/.test(tasksText.replace(/\s+/g, " ")));
+  ok("table cells: no Badge overrides from the instances", !tasksText.includes("overrides="));
+  check("table cells: the page is valid dialect, with the Zen components", validateDialect(tasksText, { components: new Set(["Stack", "Table"]) }), []);
+  // Live (fixtures/figma-table-cells.json): pushed, placed by the real importer and read back in the Zen file. The set
+  // on the page lends the value no row shows (Doing), so the select keeps it.
+  const live = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-table-cells.json", import.meta.url), "utf8"));
+  const livePulled = pageFromFigma(live.frame, { mapping });
+  check("table cells (live): every variant of the page's set is a value, a Badge-Cell row keeps its text, no notes",
+    [/cells: \{ Doing: <Use of="status" \/>, Done: <Use of="status" variant=\{\{ Status: "Done" \}\} \/> \}/.test(livePulled.text), /status: "Late"/.test(livePulled.text), livePulled.notes], [true, true, []]);
+  check("table cells (live): valid dialect", validateDialect(livePulled.text, { components: new Set(["Badge", "Stack", "Table"]) }), []);
+}
+
+// A date column pushed as Date-Cells (figma-push §31): the column edits as a date, its days come back as ISO days in the
+// locale's order; a cell that is no day keeps its text.
+{
+  const year = new Date().getFullYear();
+  const layout = { mode: "VERTICAL", gap: 0, gapVar: null, padding: [0, 0, 0, 0], paddingVar: null, primary: "MIN", counter: "MIN", wrap: false };
+  const text = (value, date = false) => ({ id: `c-${value}`, w: 200, kind: "Text-Cell", props: { Bold: "No" }, ...(date ? { date: true } : {}), texts: [value] });
+  const due = { type: "FRAME", name: "Due", width: 1200, height: 300, layout, children: [{ type: "TABLE", id: "2:1", name: "Due", header: [{ id: "h1", w: 200, label: "Task" }, { id: "h2", w: 200, label: "Due" }],
+    rows: [{ id: "r1", cells: [text("Agenda"), text("10/25", true)] }, { id: "r2", cells: [text("Minutes"), text("03/02/2024", true)] }, { id: "r3", cells: [text("Roadmap"), text("—")] }] }] };
+  const { text: dueText } = pageFromFigma(due, { mapping });
+  ok("dates: the column edits as a date", /\{ id: "due", header: "Due"[^}]*edit: "date" \}/.test(dueText));
+  ok("dates: Date-Cells come back as ISO days (this year when none), other text as it is", dueText.includes(`due: "${year}-10-25"`) && dueText.includes('due: "2024-03-02"') && dueText.includes('due: "—"'));
+  ok("dates: another locale reads its own order", pageFromFigma(JSON.parse(JSON.stringify(due).replace('"10/25"', '"25/10"')), { mapping, locale: "vi-VN" }).text.includes(`due: "${year}-10-25"`));
+  check("dates: valid dialect", validateDialect(dueText, { components: new Set(["Stack", "Table"]) }), []);
+  // Live (fixtures/figma-table-dates.json): pushed, placed by the real importer and read back in the Zen file.
+  const liveDates = pageFromFigma(JSON.parse(fs.readFileSync(new URL("./fixtures/figma-table-dates.json", import.meta.url), "utf8")).frame, { mapping });
+  check("dates (live): the column edits as a date, its days come back as ISO days, the dash as it is, no notes",
+    [/\{ id: "due", header: "Due"[^}]*edit: "date" \}/.test(liveDates.text), liveDates.text.includes(`due: "${year}-10-25"`) && liveDates.text.includes('due: "2024-03-02"') && liveDates.text.includes('due: "—"'), liveDates.notes], [true, true, []]);
 }
 
 {

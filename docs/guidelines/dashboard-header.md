@@ -22,7 +22,7 @@ One row of a dashboard page's header: a control bar (Search, filter Chips, a res
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Type | `type` | control-bar (default) · navigation · main · custom |
-| Control-Bar | `search · controls · subheading · actions` | a Search (320px) · filter Chips · the result count (Body/Base/Regular) · Tertiary buttons then one Primary, right-aligned |
+| Control-Bar | `search · controls · subheading · actions` | a Search (320px, Figma Control-Bar) · filter Chips · the result count (Body/Base/Regular) · Tertiary buttons then one Primary, right-aligned |
 | Navigation | `leading · center · trailing` | Breadcrumbs (fills the start) · up to 400px in the middle · AppShellAction buttons then the account, right-aligned |
 | Main | `title · childTitle · subheading · actions · trailing · headingLevel` | a PageHeader: h1 Heading/1, a second title in Light, one line under it, the actions, icon actions |
 | Custom | `children` | your own row, Gap/Medium apart, centred |

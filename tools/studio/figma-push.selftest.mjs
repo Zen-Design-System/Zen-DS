@@ -822,7 +822,8 @@ export default function Page() {
   check("selectable: a 48px checkbox column first (header Type=Checkbox, a Control-Cell checkbox per row)", [head.slots[0].children[0].props.Type, head.slots[0].children[0].fixedWidth, rows.map((row) => [row.slots[0].children[0].fixedWidth, row.slots[0].children[0].slots[0].children[0].props.Type])], ["Checkbox", 48, [[48, "Checkbox"], [48, "Checkbox"]]]);
   check("the sorted column's header shows its direction, the other sortable one keeps ↕", head.slots[0].children.slice(1).map((cell) => /^icon-arrow-up-line/.test(cell.nested?.[0]?.set?.name ?? "") || (cell.nested?.[0] ?? null)), [true, null]);
   const avatars = rows.map((row) => row.slots[0].children[1].slots[0].children[0].nested.find((part) => part.path === "Avatar"));
-  check("an avatar cell's Avatar: Small over its Subtext, Subtle, initials on Neutral (the page's own when its override has them), the row's override (Bao: Green)", avatars.map((avatar) => [avatar.props.Size, avatar.props.Background, avatar.props.Theme, avatar.text]), [["Small", "Subtle", "Neutral", "MA"], ["Small", "Subtle", "Green", "BN"]]);
+  // The first column is the row's name: its Avatar is Solid (the user 2026-10-24; Table.tsx cellVisual).
+  check("an avatar cell's Avatar: Small over its Subtext, Solid in the first column, initials on Neutral (the page's own when its override has them), the row's override (Bao: Green)", avatars.map((avatar) => [avatar.props.Size, avatar.props.Background, avatar.props.Theme, avatar.text]), [["Small", "Solid", "Neutral", "MA"], ["Small", "Solid", "Green", "BN"]]);
   check("Form: its fields Gap/Large apart (Form.tsx's default)", find(frame, (node) => node.name === "Form")?.layout.gap, 24);
   check("AppShellAccount: a Subtle Avatar, as AppShell.tsx draws it", find(frame, (node) => node.name === "Linh Hoang")?.props.Background, "Subtle");
   const back = pageFromFigma(frame, { mapping }).text;
@@ -2828,6 +2829,61 @@ export default function Page() {
   check("SheetTable: keys are Key chips with their separators, in a wrapping Keys frame", [keys.name, keys.layout.wrap, keys.children.map((part) => part.type === "TEXT" ? part.characters : part.props.Key)], ["Keys", true, ["Tab", "/", "Shift", "+", "Tab"]]);
   check("SheetTable: code is .Primitives/Table/Sheet/Code with its text; words a Bold Text-Cell", [prop.set.name, prop.props.Code, action.set.name, action.props.Bold, action.textList], [".Primitives/Table/Sheet/Code", "onKeyDown", "Primitives/Table/Cell/Text-Cell", "Yes", ["Moves focus."]]);
   ok("SheetTable: a percentage width is noted (Fill in Figma)", notes.some((note) => /percentage widths draw as Fill/.test(note)));
+}
+
+// 30. A column's cells (user, 2026-10-24: "figma đang làm mỗi loại giá trị của cell là 1 instance và cell có slot nối với
+// các giá trị đó"): each row's Table/Cell/Default holds its value's project-component instance in its Content slot.
+{
+  const statusPage = `// @zen-page {"format":1,"title":"Tasks","project":"acme"}
+import { Board, Component, ComponentSet, Screen, Use } from "@zen-ds/react/builder";
+import { Badge, Table } from "@zen-ds/react";
+
+export default function Tasks() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Tasks" device="desktop">
+        <ComponentSet id="status" name="Status" properties={{}}>
+          <Component id="status-doing" variant={{ Status: "Doing" }}><Badge theme="blue" background="subtle">Doing</Badge></Component>
+          <Component id="status-done" variant={{ Status: "Done" }}><Badge theme="green" background="subtle">Done</Badge></Component>
+        </ComponentSet>
+        <Table aria-label="Tasks" columns={[{ id: "title", header: "Task" }, { id: "status", header: "Status", content: "badge", cells: { "Doing": <Use of="status" variant={{ Status: "Doing" }} />, "Done": <Use of="status" variant={{ Status: "Done" }} /> } }]} rows={[{ id: "a", title: "Agenda", status: "Done" }, { id: "b", title: "Minutes", status: "Late" }]} />
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(statusPage);
+  const table = find(frame, (node) => node.type === "FRAME" && node.children?.[0]?.name === "Header");
+  const statusCell = (row) => table?.children[row].slots[0].children.find((cell) => cell.name === "status");
+  const [done] = statusCell(1)?.slots[0].children ?? [];
+  check("cells: the Content slot holds the value's project instance, its variant", [statusCell(1)?.slots[0].name, done?.type, done?.local, done?.variant], ["Content", "INSTANCE", "status", { Status: "Done" }]);
+  check("cells: a value without a layer draws by content (Badge-Cell)", statusCell(2)?.slots[0].children[0]?.name, "Badge-Cell");
+}
+
+// 31. A date column (user, 2026-10-25): its ISO days go to Figma as the Table shows them (the locale's short form, the
+// year only when it is not this one), in Text-Cells named Date-Cell, which the pull reads back as ISO days.
+{
+  const year = new Date().getFullYear();
+  const datesPage = `// @zen-page {"format":1,"title":"Due"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Table } from "@zen-ds/react";
+
+export default function Due() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Due" device="desktop">
+        <Table aria-label="Due" editable columns={[{ id: "title", header: "Task" }, { id: "due", header: "Due" }, { id: "start", header: "Start", edit: "date" }]} rows={[{ id: "a", title: "Agenda", due: "${year}-10-25", start: "2024-03-02" }, { id: "b", title: "Minutes", due: "${year}-01-07", start: "—" }]} />
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(datesPage);
+  const table = find(frame, (node) => node.type === "FRAME" && node.children?.[0]?.name === "Header");
+  const cellOf = (row, name) => table?.children[row].slots[0].children.find((cell) => cell.name === name)?.slots[0].children[0];
+  check("dates: `editable` on ISO days and `edit: \"date\"` push Date-Cells in the locale's short form", [cellOf(1, "due")?.name, cellOf(1, "due")?.textList, cellOf(2, "due")?.textList, cellOf(1, "start")?.name, cellOf(1, "start")?.textList], ["Date-Cell", ["10/25"], ["01/07"], "Date-Cell", ["03/02/2024"]]);
+  check("dates: a value that is no day stays a Text-Cell with its text; a text column stays a Text-Cell", [cellOf(2, "start")?.name, cellOf(2, "start")?.textList, cellOf(1, "title")?.name], ["Text-Cell", ["—"], "Text-Cell"]);
+  check("dates: another locale writes its own order", find(figmaFromPage(datesPage, { mapping, nestedLayers: NESTED_LAYERS, locale: "vi-VN" }).frame, (node) => node.name === "Date-Cell")?.textList, ["25/10"]);
 }
 
 if (failures.length) {

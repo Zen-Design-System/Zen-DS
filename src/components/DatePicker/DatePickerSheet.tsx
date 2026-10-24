@@ -7,7 +7,7 @@ import { useOverlayOpen, type OverlayOpenProps } from "../_shared/overlay";
 import { useZenLabels, useZenLocale } from "../_shared/zen-context";
 import { useControllableState } from "../_shared/use-controllable-state";
 import { typographyStyles } from "../../tokens/typography.generated";
-import { DatePicker, weekdayInitials, type DatePickerRange } from "./DatePicker";
+import { DatePicker, weekdayInitials, type DatePickerProps, type DatePickerRange } from "./DatePicker";
 import "./date-picker.css";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { dataAttributes } from "../_shared/data-attributes";
@@ -47,6 +47,8 @@ export interface DatePickerSheetProps extends OverlayOpenProps {
   onCancel?: () => void;
   minDate?: Date;
   maxDate?: Date;
+  /** Days with events: dots under each day (DatePicker `events`). */
+  events?: DatePickerProps["events"];
   /** The day the calendar treats as today (DatePicker `today`). */
   today?: Date;
   /** Range mode: how many months the list shows from the first one (DatePicker `monthCount`). Default 12. */
@@ -80,7 +82,7 @@ export interface DatePickerSheetProps extends OverlayOpenProps {
  * Neutral/Light, padding Medium / 2XSmall). Both pad by the sheet inset (Option=2: dm-8 at the bottom) over a 1px
  * Border/Neutral/Subtle/Default rule.
  */
-export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, header = "bar", onEdit, onClear, selectionMode = "single", value, defaultValue = null, range, defaultRange = null, onApply, onValueChange, onRangeChange, onCancel, minDate, maxDate, today, monthCount = 12, summary, applyLabel, cancelLabel, className, overrides, ref, ...rest }: DatePickerSheetProps) {
+export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose, title, header = "bar", onEdit, onClear, selectionMode = "single", value, defaultValue = null, range, defaultRange = null, onApply, onValueChange, onRangeChange, onCancel, minDate, maxDate, events, today, monthCount = 12, summary, applyLabel, cancelLabel, className, overrides, ref, ...rest }: DatePickerSheetProps) {
   const nest = useNested(overrides);
   const [open, onOpenChange] = useOverlayOpen({ open: openProp, isOpen, onOpenChange: onOpenChangeProp, onClose });
   const t = useZenLabels();
@@ -176,6 +178,7 @@ export function DatePickerSheet({ open: openProp, isOpen, onOpenChange: onOpenCh
         onRangeChange={rangeMode ? (next) => { setDraftRange(next); onRangeChange?.(next); } : undefined}
         minDate={minDate}
         maxDate={maxDate}
+        events={events}
         today={today}
         aria-label={typeof title === "string" ? title : undefined}
       />

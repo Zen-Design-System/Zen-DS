@@ -42,11 +42,12 @@ import "./table.css";
 
 export const page: PlatformPage = "table";
 
-/** People are Avatars: a photo when there is one, otherwise initials on the person's steady theme. */
-function PersonAvatar({ person, size }: { person: Person; size: AvatarSize }) {
+/** People are Avatars: a photo when there is one, otherwise initials on the person's steady theme. Subtle beside other
+ *  content; `lead` in a table's first column, the row's name, where initials are Solid (table/first-column-avatar-solid). */
+function PersonAvatar({ person, size, lead = false }: { person: Person; size: AvatarSize; lead?: boolean }) {
   return person.photo
     ? <Avatar size={size} theme="photo" src={person.photo} alt="" />
-    : <Avatar size={size} theme={person.theme} background="subtle" alt="">{initials(person.name)}</Avatar>;
+    : <Avatar size={size} theme={person.theme} background={lead ? "solid" : "subtle"} alt="">{initials(person.name)}</Avatar>;
 }
 
 /* ───────────── 1. Sort by column: the studio's design and engineering people ───────────── */
@@ -79,7 +80,7 @@ function sortMembers(rows: Member[], sort: TableSort | null) {
   });
 }
 const memberColumns: TableColumn<Member>[] = [
-  { id: "name", header: "Name", sortable: true, cell: (member) => <TableMedia bold media={<PersonAvatar person={people[member.id]} size="sm" />} caption={people[member.id].role}>{people[member.id].name}</TableMedia> },
+  { id: "name", header: "Name", sortable: true, cell: (member) => <TableMedia bold media={<PersonAvatar person={people[member.id]} size="sm" lead />} caption={people[member.id].role}>{people[member.id].name}</TableMedia> },
   { id: "team", header: "Team", width: "150px", cell: (member) => <TableText>{people[member.id].team}</TableText> },
   { id: "location", header: "Location", width: "180px", cell: (member) => <TableText>{people[member.id].location}</TableText> },
   { id: "joined", header: "Joined", sortable: true, width: "150px", cell: (member) => <TableText>{formatDate(member.joined)}</TableText> },
@@ -378,7 +379,7 @@ function NoMatchesExample() {
     <Stack as="section" gap="md" aria-labelledby={headingId}>
       <Heading level={4} id={headingId} textStyle="Heading/4">Files</Heading>
       <Stack direction="row" gap="xs" align="center" wrap>
-        <Box width="fill" minWidth={220} maxWidth={320}><Search ref={searchRef} placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
+        <Box width="fill" minWidth={220} maxWidth={240}><Search ref={searchRef} placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
         <Chip variant="advanced" selected={Boolean(type)} popoverLabel="Type"
           popoverItems={fileTypes.map((item) => ({ id: item.id, label: item.label, selected: item.id === typeId }))}
           onPopoverSelect={(item) => setTypeId(item.id)} onClearSelection={() => setTypeId(null)}>
@@ -425,7 +426,7 @@ function FirstRunExample() {
     focusInvite();
   };
   const columns: TableColumn<Guest>[] = [
-    { id: "guest", header: "Guest", cell: (guest) => <TableMedia bold media={<Avatar size="sm" theme="green" background="subtle" alt="">{guest.email[0].toUpperCase()}</Avatar>} caption="Can comment">{guest.email}</TableMedia> },
+    { id: "guest", header: "Guest", cell: (guest) => <TableMedia bold media={<Avatar size="sm" theme="green" alt="">{guest.email[0].toUpperCase()}</Avatar>} caption="Can comment">{guest.email}</TableMedia> },
     { id: "invited", header: "Invited", width: "150px", cell: (guest) => <TableText>{formatRelative(guest.invited)}</TableText> },
     { id: "actions", header: <VisuallyHidden>Actions</VisuallyHidden>, align: "right", width: "72px", cell: (guest) => (
       <TableActions><IconButton appearance="flat" level="primary" size="md" icon="icon-trash-line" aria-label={`Remove ${guest.email}`} onClick={() => remove(guest)} /></TableActions>
@@ -535,7 +536,7 @@ const timesheets: Timesheet[] = [
 ].sort((a, b) => a.person.name.localeCompare(b.person.name));
 const weekTotal = (sheet: Timesheet) => sheet.hours.reduce((sum, hours) => sum + hours, 0);
 const timesheetColumns: TableColumn<Timesheet>[] = [
-  { id: "person", header: "Person", width: "176px", cell: (sheet) => <TableMedia bold={false} media={<PersonAvatar person={sheet.person} size="xs" />}>{sheet.person.name}</TableMedia> },
+  { id: "person", header: "Person", width: "176px", cell: (sheet) => <TableMedia bold={false} media={<PersonAvatar person={sheet.person} size="xs" lead />}>{sheet.person.name}</TableMedia> },
   ...weekDays.map((day, index): TableColumn<Timesheet> => ({ id: day, header: day, align: "right", width: "64px", cell: (sheet) => <TableText>{sheet.hours[index].toFixed(1)}</TableText> })),
   { id: "total", header: "Total", align: "right", width: "80px", cell: (sheet) => <TableText bold>{weekTotal(sheet).toFixed(1)}</TableText> },
 ];
@@ -682,7 +683,7 @@ const opened = projects.find((project) => project.id === openId);
     code: `const rows = files.filter((file) => (!type || type.test(file.name)) && (!ownerId || file.owner === ownerId) && matches(file, query));
 
 <Stack direction="row" gap="xs" align="center" wrap>
-  <Search placeholder="Search files" value={query} onValueChange={setQuery} />
+  <Box width="fill" minWidth={220} maxWidth={240}><Search placeholder="Search files" value={query} onValueChange={setQuery} /></Box>
   <Chip variant="advanced" selected={Boolean(type)} popoverLabel="Type" popoverItems={typeItems}
     onPopoverSelect={(item) => setTypeId(item.id)} onClearSelection={() => setTypeId(null)}>{type?.label ?? "Type"}</Chip>
   <Chip variant="advanced" selected={Boolean(owner)} popoverLabel="Owner" popoverItems={ownerItems}

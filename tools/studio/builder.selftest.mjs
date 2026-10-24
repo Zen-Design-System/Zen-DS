@@ -52,6 +52,20 @@ const data = dataFieldEdit(listPage, FILE, row.loc, "ListItem", { op: "setDataFi
 check("setDataField on a mock row", [data.error ?? null, data.file, data.source], [null, FILE, "mock.items[1].name"]);
 check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(data.code ?? ""), /title=\{item\.name\}/.test(data.code ?? "")], [true, true]);
 
+// A Table column's `cells` written as the page's own instances (`<Use>`, cellComponents.ts; #294 B-47/B-48, train C
+// 2026-10-25): the page imports Use from the builder, else the dialect refuses the page.
+{
+  const table = newPageText({ title: "Tasks", device: "desktop", chrome: false })
+    .replace(/import \{ ([^}]*) \} from "@zen-ds\/react";/, (_, names) => `import { ${[...names.split(", "), "Table"].sort().join(", ")} } from "@zen-ds/react";`)
+    .replace(/(<Stack[^>]*>)/, '$1\n          <Table aria-label="Tasks" rows={[{ id: "a", status: "Done" }]} getRowId={(row) => row.id} columns={[{ id: "status", header: "Status" }]} />');
+  const at = parsePage(table).board.children[0].children[0].children.find((child) => child.name === "Table");
+  const cells = '{ "Done": <Use of="status" variant={{ "Status": "Done" }} /> }';
+  const written = applyOps(table, at.loc, "Table", [{ op: "setField", name: "columns", index: 0, key: "cells", value: { kind: "expression", code: cells } }], options(table));
+  check("setField writing <Use> cells", written.error ?? null, null);
+  check("the page imports Use from the builder", /import \{[^}]*\bUse\b[^}]*\} from "@zen-ds\/react\/builder";/.test(written.code ?? ""), true);
+  check("the page stays valid", validateDialect(written.code ?? "", { components: new Set([...components, "Table"]) }).filter((error) => /not imported/.test(error.message ?? String(error))), []);
+}
+
 // insertChild (a click, the MCP) refuses what a drag refuses (dnd-matrix, 2026-10-17): no children into a component
 // that draws none (the API documents no `children`), no block into text.
 {

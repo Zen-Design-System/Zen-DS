@@ -66,7 +66,7 @@ function TaskFiltersExample() {
     // The table is the section's content, so it lies on the stage with its toolbar: no Card or Box around it.
     <Stack gap="md">
       <Stack direction="row" gap="xs" align="center" wrap>
-        <Box width="fill" minWidth={220} maxWidth={320}><Search placeholder="Search tasks" value={query} onValueChange={setQuery} /></Box>
+        <Box width="fill" minWidth={220} maxWidth={240}><Search placeholder="Search tasks" value={query} onValueChange={setQuery} /></Box>
         <Stack direction="row" gap="xs" align="center" wrap role="group" aria-label="Filters">
           {/* Multiple: the counter shows how many values are on; one value shows as the label. */}
           <Chip variant="advanced" selectionMode="multiple" selectionCount={status.length} selected={status.length > 0} popoverMultiple
@@ -343,7 +343,7 @@ function ColourBandExample() {
           </Stack>
           <Stack direction="row" gap="xs" align="center" wrap role="group" aria-label="Filters">
             <Chip variant="advanced" level="black-overlay" selected={assignee !== null} popoverLabel="Assignee"
-              popoverItems={openAssignees.map((id) => ({ id, label: people[id].name, selected: id === assignee }))}
+              popoverItems={openAssignees.map((id) => ({ id, label: people[id].name, selected: id === assignee, ...(people[id].photo ? { photoSrc: people[id].photo } : { leading: <Avatar size="sm" {...avatarOf(people[id])} />, theme: "avatar-small" as const }) }))}
               onPopoverSelect={(item) => setAssignee(item.id as PersonId)} onClearSelection={() => setAssignee(null)}>
               {assignee ? people[assignee].name : "Assignee"}
             </Chip>
@@ -377,7 +377,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     render: () => <TaskFiltersExample />,
     code: `{/* The toolbar and the table lie on the page: no Card around a table that is the page's content */}
 <Stack direction="row" gap="xs" align="center" wrap>
-  <Search placeholder="Search tasks" value={query} onValueChange={setQuery} />
+  <Box width="fill" minWidth={220} maxWidth={240}><Search placeholder="Search tasks" value={query} onValueChange={setQuery} /></Box>
   <Chip variant="advanced" selectionMode="multiple" selectionCount={status.length} selected={status.length > 0}
     popoverMultiple popoverLabel="Status"
     popoverItems={statuses.map((value) => ({ id: value, label: value, selected: status.includes(value) }))}
@@ -487,7 +487,7 @@ const [assignee, setAssignee] = useState(null);
     </Stack>
     <Stack direction="row" gap="xs" align="center" wrap role="group" aria-label="Filters">
       <Chip variant="advanced" level="black-overlay" selected={assignee !== null} popoverLabel="Assignee"
-        popoverItems={assignees.map((id) => ({ id, label: people[id].name, selected: id === assignee }))}
+        popoverItems={assignees.map((id) => ({ id, label: people[id].name, selected: id === assignee, photoSrc: people[id].photo }))}
         onPopoverSelect={(item) => setAssignee(item.id)} onClearSelection={() => setAssignee(null)}>
         {assignee ? people[assignee].name : "Assignee"}
       </Chip>

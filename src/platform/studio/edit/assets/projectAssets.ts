@@ -45,6 +45,7 @@ export const projectInsertable = (asset: ProjectAsset): Insertable => ({
   root: "Use",
   code: (file) => (file && /^local:/.test(file) ? `<Use of="${asset.id}" page="${asset.page}" />` : null),
   refusal: "Project components go on a page of the project",
+  use: { id: asset.id, page: asset.page, name: asset.name },
   refuseIn: (src) => {
     const world = canvasApi.getWorldElement();
     const main = world ? findBySrc(world, src)[0]?.hosts[0]?.closest("[data-zen-main]") : null;

@@ -117,9 +117,9 @@ function InvoiceToolbarExample() {
     // The table is the content here, not a widget: it lies on the page under its toolbar, with no container.
     <Stack gap="md">
       <Stack direction="row" gap="xs" align="center" justify="between" wrap>
-        {/* Search grows up to 320px; the filters sit beside it and wrap under it when the toolbar is narrow. */}
+        {/* Search grows up to 240px; the filters sit beside it and wrap under it when the toolbar is narrow. */}
         <Stack direction="row" gap="xs" align="center" wrap className="px-search-toolbar">
-          <Box width="fill" minWidth={240} maxWidth={320}>
+          <Box width="fill" minWidth={220} maxWidth={240}>
             <Search ref={searchRef} placeholder="Search invoices" value={query} onValueChange={setQuery} />
           </Box>
           <Stack direction="row" gap="xs" align="center" wrap role="group" aria-label="Filters">
@@ -482,15 +482,14 @@ const rows = people.filter((p) => matches(query, p.name, p.role, p.team, p.locat
   },
   {
     title: "Table toolbar",
-    description: "Over a table, Search grows up to 320px and the filters sit beside it as Chip Advanced, wrapping under it when the toolbar is narrow. The query matches the invoice number, client or project; the chips narrow further, and the count and total follow.",
+    description: "Over a table, Search grows up to 240px and the filters sit beside it as Chip Advanced, wrapping under it when the toolbar is narrow. The query matches the invoice number, client or project; the chips narrow further, and the count and total follow.",
     wide: true,
     render: () => <InvoiceToolbarExample />,
     code: `{/* No container: the table lies on the page under its toolbar. */}
 <Stack gap="md">
   <Stack direction="row" gap="xs" align="center" justify="between" wrap>
     <Stack direction="row" gap="xs" align="center" wrap>
-      {/* .toolbar-search { flex: 1 1 240px; max-width: 320px } */}
-      <Box className="toolbar-search">
+      <Box width="fill" minWidth={220} maxWidth={240}>
         <Search placeholder="Search invoices" value={query} onValueChange={setQuery} />
       </Box>
       <Stack direction="row" gap="xs" wrap role="group" aria-label="Filters">

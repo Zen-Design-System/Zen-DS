@@ -15,10 +15,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const priorities: PropertyFieldOption[] = [
-  { value: "urgent", label: "Urgent", icon: "icon-flag-01-solid", tone: "negative" },
-  { value: "high", label: "High", icon: "icon-flag-01-solid", tone: "warning" },
-  { value: "normal", label: "Normal", icon: "icon-flag-01-solid", tone: "info" },
-  { value: "low", label: "Low", icon: "icon-flag-01-solid", tone: "neutral" },
+  { value: "urgent", label: "Urgent", icon: "icon-flag-03-solid", tone: "negative" },
+  { value: "high", label: "High", icon: "icon-flag-03-solid", tone: "negative" },
+  { value: "normal", label: "Normal", icon: "icon-flag-03-solid", tone: "warning" },
+  { value: "low", label: "Low", icon: "icon-flag-03-solid", tone: "neutral" },
 ];
 const people: PropertyFieldOption[] = [
   { value: "alex", label: "Alex Duong" },

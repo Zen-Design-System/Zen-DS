@@ -18,6 +18,32 @@ export const Bad = () => <>
   <SelectField options={[]} />
   {/* expect: search/needs-name */}
   <Search />
+  {/* expect: list-item/leading-dock-icon */}
+  <List aria-label="Settings"><ListItem title="Calendar" leading="icon-calendar-line" /></List>
+  {/* expect: badge/status-priority-icon */}
+  <Badge theme="red" background="subtle">Urgent</Badge>
+  {/* expect: badge/status-priority-icon */}
+  <Badge theme="green" background="subtle" leadingIcon={false}>Paid</Badge>
+  {/* expect: table/badge-column-icon */}
+  <Table aria-label="Tasks" rows={tasks} columns={[{ id: "title", header: "Task" }, { id: "priority", header: "Priority", content: "badge" }]} />
+  {/* expect: app-shell/top-row-filled */}
+  <AppShell sidebar={nav} header={<AppShellHeader main={<PageHeader title="Tasks" />} />}>{page}</AppShell>
+  {/* expect: app-shell/top-row-filled */}
+  <AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} actions={<><Menu aria-label="Account" trigger={<AppShellAccount name="Ava Chen" />} items={accountItems} /><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} onClick={openNotifications} /></>} />
+  {/* expect: metric/dock-icon-by-meaning */}
+  <MetricCard theme="default" label="Overdue" value="$12.9K" icon="icon-alarm-clock-line" iconTheme="orange" />
+  {/* expect: priority/palette */}
+  <Badge theme="orange" background="subtle" leading="icon-flag-03-solid">Medium</Badge>
+  {/* expect: priority/palette */}
+  <PropertyField label="Priority" icon="icon-flag-01-line"><PropertySelect options={[{ value: "high", label: "High", icon: "icon-flag-01-solid", tone: "warning" }, { value: "low", label: "Low", icon: "icon-flag-03-solid", tone: "neutral" }]} /></PropertyField>
+  {/* expect: popover/people-have-avatars */}
+  <Chip variant="advanced" dropdown popoverLabel="Assignee" popoverItems={[{ id: "ava", label: "Ava Chen" }, { id: "bao", label: "Bao Nguyen" }]}>Assignee</Chip>
+  {/* expect: search/toolbar-width */}
+  <Stack direction="row" gap="xs" align="center"><Search placeholder="Search tasks" /><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></Stack>
+  {/* expect: search/toolbar-width */}
+  <Stack direction="row" gap="xs" align="center"><Box width="fill" maxWidth={320}><Search placeholder="Search tasks" /></Box><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></Stack>
+  {/* expect: search/toolbar-width */}
+  <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} gap="sm"><Search placeholder="Search members" /><Chip variant="advanced" dropdown popoverItems={items}>Role</Chip></Grid>
   {/* expect: choice/needs-label */}
   <Checkbox checked={on} onChange={setOn} />
   {/* expect: radio/needs-name */}
@@ -73,7 +99,7 @@ export const Bad = () => <>
   {/* expect: app-shell/page-header-in-main */}
   <AppShell sidebar={nav} topNavigation={<TopNavigation title="Invoices" />}><PageHeader title="Invoices" /></AppShell>
   {/* expect: app-shell/top-navigation-title */}
-  <AppShell sidebar={nav} header={<AppShellHeader main={<PageHeader title="Invoices" />} />} topNavigation={<TopNavigation title="Billing" />}>{page}</AppShell>
+  <AppShell sidebar={nav} collapse="sidebar" header={<AppShellHeader main={<PageHeader title="Invoices" />} />} topNavigation={<TopNavigation title="Billing" />}>{page}</AppShell>
   {/* expect: app-shell/collapse-beside-master-crumb */}
   <AppShell sidebar={nav} header={<AppShellHeader leading={<Breadcrumbs items={crumbs} onNavigate={go} />} />}>{page}</AppShell>
   {/* expect: app-shell/pattern-parts */}
@@ -277,6 +303,14 @@ export const Bad = () => <>
   {/* expect: listbox/grouped-on-phone */}
   {/* expect: listbox/grouped-on-phone */}
   <PlatformPhone label="Profile"><Stack gap="lg"><Box paddingX="lg"><Text textStyle="Body/Small/Bold">Account</Text></Box><List aria-label="Account"><ListItem title="Email" /></List><Box paddingX="lg"><Text textStyle="Body/Small/Bold">Privacy</Text></Box><List aria-label="Privacy"><ListItem title="Blocked people" /></List></Stack></PlatformPhone>
+  {/* Chips side by side sit 8px apart, tags 4px (the user 2026-10-24). */}
+  {/* expect: chip/row-gap */}
+  <Stack direction="row" gap="2xs" wrap>{periods.map((p) => <Chip key={p.id} variant="normal" onClick={pick}>{p.label}</Chip>)}</Stack>
+  {/* expect: tag/row-gap */}
+  <Stack as="ul" direction="row" gap="xs" wrap aria-label="Skills">{skills.map((skill) => <li key={skill}><Tag>{skill}</Tag></li>)}</Stack>
+  {/* The row's name column takes a Solid Avatar (the user 2026-10-24). */}
+  {/* expect: table/first-column-avatar-solid */}
+  <Table aria-label="Members" rows={rows} getRowId={getId} columns={[{ id: "member", header: "Member", cell: (row) => <TableMedia bold caption={row.role} media={<Avatar size="sm" theme="neutral" background="subtle" alt="">{row.initials}</Avatar>}>{row.name}</TableMedia> }]} />
   {/* A table in a box is a widget the box names (usage rules §14). */}
   {/* expect: table/titled-box */}
   <Card theme="default"><Table aria-label="Recent claims" columns={[]} rows={[]} getRowId={(r) => r.id} /></Card>
@@ -308,6 +342,10 @@ export const Bad = () => <>
   <Table aria-label="Stock" rows={rows} getRowId={getId} columns={[{ id: "qty", header: "Qty", cell: render, edit: { type: "number", value: getQty, onCommit: save, validate: check } }]} />
   {/* expect: table/editor-number-validate */}
   <Table aria-label="Stock" rows={rows} getRowId={getId} columns={[{ id: "qty", header: "Qty", align: "right", cell: render, edit: { type: "number", value: getQty, onCommit: save } }]} />
+  {/* expect: table/person-edit-needs-media */}
+  <Table aria-label="Tasks" rows={rows} getRowId={getId} editable columns={[{ id: "owner", header: "Owner", content: "avatar" }]} />
+  {/* expect: table/person-edit-needs-media */}
+  <Table aria-label="Tasks" rows={rows} getRowId={getId} columns={[{ id: "owner", header: "Owner", content: "avatar", edit: "select" }]} />
   {/* expect: rating/needs-name */}
   <Rating value={stars} onChange={setStars} />
   {/* expect: metric/formatted-value */}

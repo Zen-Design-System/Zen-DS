@@ -51,6 +51,7 @@
  *   card-gap    (--quality) a MetricCard / ChartCard stretched by its row that stops ≥ 12px above its foot beside one that
  *               fills it (widgetLayout)
  *   legend-column (--quality) a chart legend of ≥ 3 items one per line under its chart, with room for a row (widgetLayout)
+ *   toolbar-search (--quality) a Search wider than 240px in a toolbar row beside other controls, at 768px and wider (widgetLayout)
  *   clip        (--quality) a control that fits its own text but is cut off by an `overflow: hidden` ancestor, hidden past
  *               its edge while its sibling controls show, or covered by another element of the example (controlClip):
  *               what `overflow` and `fit` cannot see. Scroll containers, a phone frame's bottom edge and floating layers
@@ -69,6 +70,8 @@
  *                                       [--dark] [--no-playground] [--smoke] [--quality] [--density] [--out=report.json]
  *                                       (the gate runs 1512,390,320; at 320 every kind is baselined, see BASELINE_ALL_KINDS)
  *                                       [--baseline-update[=kinds]] [--no-baseline] [--css=file]
+ *                                       [--page-timeout=s] (one page's limit: 180, 420 with --quality/--density, 900 with
+ *                                       --smoke; a page past it is audited again in a new tab, then reported)
  * Exit code 1 when any error-level finding exists. See docs/qa/platform-audit.md and docs/qa/build-qa-process.md.
  */
 import fs from "node:fs";
@@ -91,6 +94,10 @@ const SMOKE = Boolean(arg("smoke", false));
 const OUT = arg("out", null);
 const QUALITY = Boolean(arg("quality", false));
 const DENSITY = Boolean(arg("density", false));
+// One page's time limit (s): a page that never answers (page.evaluate has no timeout) would hold the whole run — CI
+// cancelled a run after 45 min on one page (text@390, 2026-10-24). Past it the tab is closed, the page is audited once
+// more in a new tab, then reported as an error, and the run goes on. Smoke clicks every button, so it gets longer.
+const PAGE_BUDGET_S = Number(arg("page-timeout", SMOKE ? 900 : QUALITY || DENSITY ? 420 : 180));
 const BASELINE_FILE = path.join(root, "tools/platform-audit/quality-baseline.json");
 // Motion (2026-10-01): reduced motion keeps fades (tokens/source/motion.json sets only the movement to 0), so every
 // animation and transition is frozen at its end state: the checks read final colours, sizes and positions.
@@ -110,7 +117,7 @@ const OUTLINE_KINDS = ["outline-h1", "outline-start", "outline-card", "outline-s
 // captions with no ellipsis, a few examples): there every kind is compared with the baseline, so only new findings fail
 // while the recorded ones wait in BACKLOG. 1512 and 390 keep the rule below.
 const BASELINE_ALL_KINDS = new Set([320]);
-const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "ladder", "density", "fit", "card-gap", "legend-column", "clip", "segmented-fit", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings", "elevation"]; // contrast, targets, outline-* and elevation stay warnings; baselined so only NEW ones are listed. surfaces (§11 border, shadow on Canvas/Alt) is never baselined: it found no existing debt, and --baseline-update must not accept it
+const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "ladder", "density", "fit", "card-gap", "legend-column", "toolbar-search", "clip", "segmented-fit", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings", "elevation"]; // contrast, targets, outline-* and elevation stay warnings; baselined so only NEW ones are listed. surfaces (§11 border, shadow on Canvas/Alt) is never baselined: it found no existing debt, and --baseline-update must not accept it
 const CSS = arg("css", null) ? fs.readFileSync(path.resolve(String(arg("css"))), "utf8") : null;
 if (CSS && BASELINE_UPDATE) { console.error("--css cannot be combined with --baseline-update: the injected CSS is not the page's real state."); process.exit(2); }
 const baseline = arg("no-baseline", false) ? {} : (() => { try { return JSON.parse(fs.readFileSync(BASELINE_FILE, "utf8")).keys ?? {}; } catch { return {}; } })();
@@ -549,7 +556,7 @@ function pageChecks({ scopeSel, mobile }) {
 }
 
 const sum = (r) => Object.values(r).reduce((n, list) => n + list.length, 0);
-const SEVERITY = { errors: "error", overflow: "error", counts: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", elevation: "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error", "card-gap": "error", "legend-column": "error", clip: "error", "segmented-fit": "warn" };
+const SEVERITY = { errors: "error", overflow: "error", counts: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", elevation: "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error", "card-gap": "error", "legend-column": "error", "toolbar-search": "error", clip: "error", "segmented-fit": "warn" };
 
 async function run() {
   const browser = await chromium.launch();
@@ -558,12 +565,22 @@ async function run() {
     const mobile = width < 768;
     const context = await browser.newContext({ viewport: { width, height: mobile ? 844 : 1000 }, reducedMotion: "reduce", deviceScaleFactor: 1 });
     await context.addInitScript(freezeMotionInit, FREEZE_MOTION);
-    const page = await context.newPage();
     let errors = [];
-    page.on("pageerror", (e) => errors.push(e.message.split("\n")[0]));
-    page.on("console", (m) => { if (m.type() === "error" && !IGNORED_CONSOLE.test(m.text())) errors.push(m.text().split("\n")[0].slice(0, 200)); });
-    page.on("filechooser", (fc) => fc.setFiles([]).catch(() => undefined));
+    const openPage = async () => {
+      const tab = await context.newPage();
+      tab.on("pageerror", (e) => errors.push(e.message.split("\n")[0]));
+      tab.on("console", (m) => { if (m.type() === "error" && !IGNORED_CONSOLE.test(m.text())) errors.push(m.text().split("\n")[0].slice(0, 200)); });
+      tab.on("filechooser", (fc) => fc.setFiles([]).catch(() => undefined));
+      return tab;
+    };
+    let page = await openPage();
+    // PAGE_BUDGET_S: the watchdog closes a tab that holds one page too long (its pending calls then throw).
+    let stalled = false;
+    let watchdog = null;
     for (const id of PAGES) for (let attempt = 1; attempt <= 3; attempt++) try {
+      stalled = false;
+      clearTimeout(watchdog);
+      watchdog = setTimeout(() => { stalled = true; page.close().catch(() => undefined); }, PAGE_BUDGET_S * 1000);
       // Other sessions edit the shared tree, so Vite HMR may reload the page mid-check: the page is then audited again.
       errors = [];
       if (report.baselined?.[`${id}@${width}${DARK ? "-dark" : ""}`]) delete report.baselined[`${id}@${width}${DARK ? "-dark" : ""}`];
@@ -578,9 +595,9 @@ async function run() {
       if (docOverflow) base.overflow.unshift("document scrolls horizontally");
       const entry = { ...base, errors: [...errors], playground: [], smoke: [] };
       // Build-QA: token scale, text styles, content hierarchy, rhythm (quality-checks.mjs). Playground and smoke add theirs below.
-      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "ladder", "fit", "card-gap", "legend-column", "clip", "segmented-fit"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
+      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "ladder", "fit", "card-gap", "legend-column", "toolbar-search", "clip", "segmented-fit"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
       // One scope's quality kinds: qualityChecks (text styles, tokens, hierarchy, rhythm), textFit (text wider than its box),
-      // widgetLayout (card-gap, legend-column), controlClip (a control cut off or covered) and segmentedFit (a phone
+      // widgetLayout (card-gap, legend-column, toolbar-search), controlClip (a control cut off or covered) and segmentedFit (a phone
       // Segmented that does not fit).
       const quality = async (scopeSel, crash = false) => ({
         ...await page.evaluate(qualityChecks, { scopeSel }).catch((e) => (crash ? { scale: [`quality checks crashed: ${e.message.split("\n")[0]}`] } : null)),
@@ -589,7 +606,7 @@ async function run() {
         ...await page.evaluate(controlClip, { scopeSel }).catch((e) => (crash ? { clip: [`control clip check crashed: ${e.message.split("\n")[0]}`] } : null)),
         ...await page.evaluate(segmentedFit, { scopeSel }).catch((e) => (crash ? { "segmented-fit": [`segmented fit check crashed: ${e.message.split("\n")[0]}`] } : null)),
       });
-      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], density: [], fit: [], "card-gap": [], "legend-column": [], clip: [], "segmented-fit": [] });
+      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], density: [], fit: [], "card-gap": [], "legend-column": [], "toolbar-search": [], clip: [], "segmented-fit": [] });
       if (QUALITY) addQuality(await quality(".official-platform", true));
       if (DENSITY) {
         // Component Size: compare every Zen box Compact vs Comfortable; content that outgrows its box only in Comfortable is a
@@ -769,8 +786,18 @@ async function run() {
       if (smokeStats) (report.smokeStats ??= {})[key] = smokeStats;
       const n = sum(entry);
       console.log(`${n ? "✗" : "✓"} ${key.padEnd(30)} ${n ? Object.entries(entry).filter(([, l]) => l.length).map(([k, l]) => `${k}:${l.length}`).join(" ") : "clean"}${known ? ` (+${known} baseline)` : ""}`);
+      clearTimeout(watchdog);
       break;
     } catch (e) {
+      clearTimeout(watchdog);
+      if (stalled) {
+        page = await openPage();
+        if (attempt < 2) { console.log(`↻ ${id}@${width}: no answer in ${PAGE_BUDGET_S}s — auditing it again in a new tab`); continue; }
+        const key = `${id}@${width}${DARK ? "-dark" : ""}`;
+        report.pages[key] = { errors: [`the page did not answer within ${PAGE_BUDGET_S}s, twice (audit watchdog, --page-timeout): it hangs, or it is too slow to audit`] };
+        console.log(`✗ ${key.padEnd(30)} errors:1 (no answer in ${PAGE_BUDGET_S}s, twice)`);
+        break;
+      }
       if (attempt < 3 && /Execution context was destroyed|navigation|Target (page|closed)|frame was detached/i.test(e.message)) { console.log(`↻ ${id}@${width}: the page reloaded during the audit (HMR from another session?) — auditing it again`); await page.waitForTimeout(1500); continue; }
       throw e;
     }

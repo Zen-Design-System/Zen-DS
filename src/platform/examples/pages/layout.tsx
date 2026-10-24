@@ -429,7 +429,7 @@ function ProfileSkills() {
           <Heading level={5} id={skillsId} textStyle="Body/Small/Bold" tone="light">Skills</Heading>
           {skills.length ? (
             // A row Stack with wrap: Tags flow onto as many lines as they need, 2xs apart across and down.
-            <Stack as="ul" direction="row" gap="xs" wrap aria-labelledby={skillsId}>
+            <Stack as="ul" direction="row" gap="2xs" wrap aria-labelledby={skillsId}>
               {skills.map((skill) => <li key={skill}><Tag remove onRemove={() => remove(skill)}>{skill}</Tag></li>)}
             </Stack>
           ) : <Text textStyle="Body/Small/Regular" tone="base">No skills yet</Text>}
@@ -593,8 +593,8 @@ function PhoneTasks() {
         {screen.anchor}
         {/* Two metrics in a fixed two-column Grid, md apart. */}
         <Grid columns={2} gap="md">
-          <MetricCard theme="shadow" size="lg" label="Due today" value={String(dueToday)} icon="icon-calendar-line" />
-          <MetricCard theme="shadow" size="lg" label="Done this week" value={String(doneThisWeek)} icon="icon-check-done-line" />
+          <MetricCard iconBackground="solid" theme="shadow" size="lg" label="Due today" value={String(dueToday)} icon="icon-calendar-line" iconTheme="yellow" />
+          <MetricCard iconBackground="solid" theme="shadow" size="lg" label="Done this week" value={String(doneThisWeek)} icon="icon-check-done-line" iconTheme="green" />
         </Grid>
         {(Object.keys(whenLabels) as When[]).map((when) => {
           const rows = tasks.filter((item) => item.when === when);
@@ -1099,8 +1099,8 @@ function SettingsSection({ id, title, description, children }) {
     {/* The Body pads 20 (Margin-Comfortable) and spaces its sections Layout-Mobile/Section-Gap apart */}
     {/* Cards in a grid: md */}
     <Grid columns={2} gap="md">
-      <MetricCard theme="shadow" size="lg" label="Due today" value={String(dueToday)} icon="icon-calendar-line" />
-      <MetricCard theme="shadow" size="lg" label="Done this week" value={String(done)} icon="icon-check-done-line" />
+      <MetricCard iconBackground="solid" theme="shadow" size="lg" label="Due today" value={String(dueToday)} icon="icon-calendar-line" iconTheme="yellow" />
+      <MetricCard iconBackground="solid" theme="shadow" size="lg" label="Done this week" value={String(done)} icon="icon-check-done-line" iconTheme="green" />
     </Grid>
     {/* Kicker → its ListBox: xs; rows pad 0 at the sides, so the ListBox pads 20px on a phone with 2XLarge corners (24px = the fill's
         16px + 8px) and the kicker lines up with the row text (lg, 20px) */}

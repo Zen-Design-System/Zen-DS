@@ -24,6 +24,8 @@ export type TableColumnInfo = {
   bold?: boolean;
   onOpen?: unknown;
   edit?: unknown;
+  /** Figma Table/Cell/Default › Content slot by value: the layer (a project component's instance) each value draws. */
+  cells?: Record<string, unknown>;
   /** Figma Actions-Cell's buttons (`content: "actions"`). */
   actions?: readonly unknown[];
 };

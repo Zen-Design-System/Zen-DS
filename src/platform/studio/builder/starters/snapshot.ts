@@ -295,7 +295,7 @@ function defaultsOf(name: string, keys: string[]): CellLook {
 }
 
 /** A cell's drawing as a Table column draws it from row fields (`content`), or null: kept as its text. */
-function readCell(drawn: unknown): DrawnCell | null {
+function readCell(drawn: unknown, lead = false): DrawnCell | null {
   const part = drawnZen(drawn, CELL_PARTS);
   const text = (value: unknown) => drawnText(value).join(" · ");
   if (!part) return null;
@@ -315,7 +315,8 @@ function readCell(drawn: unknown): DrawnCell | null {
     // An Avatar (or a page's own wrapper around one): its photo, else the initials the Table draws from the label.
     const photo = drawnPhoto(media) ?? (media && typeof media.props.src === "string" && media.props.src ? media.props.src : null);
     const square = media?.props.shape === "square";
-    const look = media && mediaName === "Avatar" && !photo ? lookOf(media, { theme: "neutral", background: "subtle" }, defaultsOf("Avatar", ["theme", "background"])) : {};
+    // The Table draws the first column's Avatar Solid, the others Subtle (Table.tsx cellVisual).
+    const look = media && mediaName === "Avatar" && !photo ? lookOf(media, { theme: "neutral", background: lead ? "solid" : "subtle" }, defaultsOf("Avatar", ["theme", "background"])) : {};
     // Initials the page made its own way ("Bich Ngoc Ha" → BH) where the Table's would differ (Table.tsx initialsOf: BN).
     const initials = media && mediaName === "Avatar" && !photo ? text(media.props.children) : "";
     const tableInitials = label.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]?.toUpperCase() ?? "").join("");
@@ -368,7 +369,7 @@ function cellsAsText(props: Record<string, unknown>, out: Array<[string, SnapVal
     if (!item || item.kind !== "object") return;
     item.fields = [...item.fields.filter(([name]) => name !== key), [key, value]];
   };
-  for (const column of columns) {
+  for (const [columnIndex, column] of columns.entries()) {
     const cell = column && typeof column === "object" ? (column as { cell?: unknown; id?: unknown }).cell : undefined;
     const id = column && typeof column === "object" ? (column as { id?: unknown }).id : undefined;
     if (typeof cell !== "function" || typeof id !== "string") continue;
@@ -377,7 +378,7 @@ function cellsAsText(props: Record<string, unknown>, out: Array<[string, SnapVal
       if (!raw || typeof raw !== "object") return;
       let element: unknown;
       try { element = (cell as (row: unknown, at: number) => unknown)(raw, index); } catch { return; }
-      drawn.push({ index, raw, cell: readCell(element), text: drawnText(element).join(" · ") });
+      drawn.push({ index, raw, cell: readCell(element, columnIndex === 0), text: drawnText(element).join(" · ") });
     });
     if (!drawn.length) continue;
     const kinds = new Set(drawn.map((entry) => entry.cell?.kind ?? "text"));

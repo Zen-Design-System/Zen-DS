@@ -157,7 +157,7 @@ export const projectProgress = (project: { status: ProjectStatus; progress?: num
 
 // ——— Status → Badge theme (one vocabulary per domain, always a Badge) ——————————————————————
 export const invoiceStatusTheme: Record<InvoiceStatus, BadgeTheme> = { Draft: "neutral", Sent: "blue", Paid: "green", Overdue: "red" };
-export const priorityTheme: Record<Priority, BadgeTheme> = { Low: "neutral", Medium: "yellow", High: "orange", Urgent: "red" };
+export const priorityTheme: Record<Priority, BadgeTheme> = { Low: "neutral", Medium: "yellow", High: "red", Urgent: "red" };
 
 // ——— Formatters (brief §3: month names, the timestamp ladder, full amounts in tables) ————————
 const month = (d: Date) => d.toLocaleString("en-US", { month: "short" });

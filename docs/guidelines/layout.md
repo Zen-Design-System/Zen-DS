@@ -265,7 +265,7 @@ type ZenTypography = "dashboard" | "popular" | "mobile" | "studio"
 - Put page content in a Container so its margin follows the breakpoint.
 - Give a frame a surface only when it really is a separate layer; a Surface frame on a white (Alt) canvas needs border="pale".
 - Put the fill, stroke and corners of an auto layout frame on the Stack or Grid itself (Figma's frame with a fill is one layer): <Stack surface="surface" padding="lg" gap="md" radius="lg">, not a Box around a Stack.
-- Size like Figma auto layout: Hug for content-sized pieces, Fill for what takes the rest of a row or the full width (a main column; a Search next to buttons goes in a Box width="fill", since Search has no sizing props), maxWidth to cap a Fill line of text; use Fixed (a number) only for widths that really are fixed, such as a side column or a preview frame.
+- Size like Figma auto layout: Hug for content-sized pieces, Fill for what takes the rest of a row or the full width (a main column; a Search next to buttons or filters goes in a Box width="fill" maxWidth={240}, since Search has no sizing props and a toolbar Search is at most 240px wide), maxWidth to cap a Fill line of text; use Fixed (a number) only for widths that really are fixed, such as a side column or a preview frame.
 - Pin a media overlay with position="absolute" and a constraint on token insets: a corner action on a photo is constraintX="right" insetRight="sm" constraintY="top" insetTop="sm"; a caption bar is constraintX="left-right" constraintY="bottom".
 - Put background media first and the content after it: the media is absolute (left-right × top-bottom), and the later in-flow content paints above it (Figma auto layout "Last on top").
 - Lift a Surface panel on Canvas/Default with effectStyle="Shadow/Bottom/Level-1" and no border: elevation follows the Sidebar, and it is the Card shadow.
@@ -291,6 +291,7 @@ type ZenTypography = "dashboard" | "popular" | "mobile" | "studio"
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `search/toolbar-width` | error | A Search in a toolbar row (beside Chips, buttons or other controls) is at most 240px wide: wrap it in <Box width="fill" maxWidth={240}>, or give it a Grid column minmax(0, 240px). A phone Search (shape="rounded") fills its row. | `zen-allow-search-toolbar-width: <reason>` |
 | `box/border-matches-action` | warn | A frame's border (Box, Stack, Grid) follows the border rule: subtle only when the frame is actionable (onClick, href, role=button), pale when it is static; a dashed border is always subtle (box/dashed-is-subtle). | `zen-allow-box-border: <reason>` |
 | `layout/constraint-needs-absolute` | warn | constraintX, constraintY and insetTop/Right/Bottom/Left are read only with position="absolute" (Figma: constraints apply once a layer ignores auto layout). | `zen-allow-constraint-in-flow: <reason>` |
 | `layout/inset-not-read` | warn | An inset offsets only an edge its constraint pins: insetLeft with left or left-right, insetRight with right or left-right, insetTop with top or top-bottom, insetBottom with bottom or top-bottom (center reads none). | `zen-allow-inset-not-read: <reason>` |
@@ -307,6 +308,8 @@ type ZenTypography = "dashboard" | "popular" | "mobile" | "studio"
 | `radius/redundant-corners` | warn | Write radius alone when the corners match, and set radiusTopLeft/TopRight/BottomRight/BottomLeft only where they differ from radius (Image's radius defaults to md). | `zen-allow-redundant-corners: <reason>` |
 | `radius/full-mixed` | warn | radius="full" takes no finite corner (radiusTopLeft/TopRight/BottomRight/BottomLeft other than full or none): use one token for all corners, or a finite radius with corner overrides. | `zen-allow-full-mixed: <reason>` |
 | `shape/px-offset-in-auto-layout` | warn | px insets are Figma's X / Y in a free frame (a Box without auto layout); inside a Stack or Grid an absolute layer's offsets are Spacing/Padding steps. | `zen-allow-px-offset: <reason>` |
+| `chip/row-gap` | error | Chips side by side sit Gap/XSmall (8px) apart: a Stack of Chips takes gap="xs" (ChipGroup spaces its chips so already). | `zen-allow-chip-gap: <reason>` |
+| `tag/row-gap` | error | Tags side by side sit Gap/2XSmall (4px) apart: a Stack of Tags takes gap="2xs". | `zen-allow-tag-gap: <reason>` |
 | `layout/use-stack` | warn | Arrange children with Stack or Grid (gap, padding and columns come from spacing tokens), not a div with an inline flex/grid style. (App mode only.) | `zen-allow-raw-layout: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 

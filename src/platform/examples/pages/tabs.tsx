@@ -744,9 +744,9 @@ function WorkspaceTopNavExample() {
         {panel("invoices", (
           <Stack gap="xl">
             <Grid columns="repeat(auto-fit, minmax(min(100%, 200px), 1fr))" gap="md">
-              <MetricCard label="Outstanding" value={formatMoney(unpaidTotal)} icon="icon-hourglass-line" iconTheme="blue" theme="default" />
-              <MetricCard label="Overdue" value={formatMoney(overdueTotal)} icon="icon-alert-triangle-line" iconTheme="red" theme="default" />
-              <MetricCard label="Paid this quarter" value={formatMoney(paidTotal)} icon="icon-check-circle-line" iconTheme="green" theme="default" />
+              <MetricCard iconBackground="solid" label="Outstanding" value={formatMoney(unpaidTotal)} icon="icon-hourglass-line" iconTheme="blue" theme="default" />
+              <MetricCard iconBackground="solid" label="Overdue" value={formatMoney(overdueTotal)} icon="icon-alert-triangle-line" iconTheme="red" theme="default" />
+              <MetricCard iconBackground="solid" label="Paid this quarter" value={formatMoney(paidTotal)} icon="icon-check-circle-line" iconTheme="green" theme="default" />
             </Grid>
             <Stack as="section" gap="md" aria-labelledby={unpaidId}>
               <Heading level={2} id={unpaidId} textStyle="Heading/4">Waiting for payment</Heading>
