@@ -1803,13 +1803,17 @@ export function applyOps(code, loc, name, ops, { snippets = true, typographyKeys
   let next;
   let edits;
   // A setTextStyle that adds the file's first typographyStyles use imports it; one that removes the last use drops the
-  // import (an edit above the element, not part of the element's change).
+  // import (an edit above the element, not part of the element's change). A value that writes a page's own instance
+  // (`<Use>`, a Table column's `cells`: cellComponents.ts) imports Use from the builder.
   let importEdit = null;
+  let builderImports = [];
   try {
     edits = [];
     let addsUse = false;
     let removedUses = 0;
+    let writesInstance = false;
     for (const op of ops) {
+      if (op?.value?.kind === "expression" && /<Use\b/.test(String(op.value.code ?? ""))) writesInstance = true;
       if (op?.op === "setProp") edits.push(...setPropEdits(element, text, op, eol, true));
       else if (op?.op === "removeProp") edits.push(...removePropEdits(element, text, op, lineCommentEnds));
       else if (op?.op === "setStateInit") edits.push(...setStateInitEdits(ast, element, text, op));
@@ -1825,7 +1829,8 @@ export function applyOps(code, loc, name, ops, { snippets = true, typographyKeys
     }
     if (addsUse) importEdit = typographyImportEdit(ast, text, eol, file);
     else if (removedUses && typographyReferences(ast) === removedUses) importEdit = typographyImportRemoval(ast, text);
-    next = applyEdits(text, importEdit ? [...edits, importEdit] : edits);
+    if (writesInstance) builderImports = builderImportEdits(ast, text, eol, ["Use"]);
+    next = applyEdits(text, [...edits, ...(importEdit ? [importEdit] : []), ...builderImports]);
   } catch (error) {
     if (error instanceof EditError) return fail(error.code, error.message);
     throw error;
@@ -1836,13 +1841,14 @@ export function applyOps(code, loc, name, ops, { snippets = true, typographyKeys
   const after = parseSource(next);
   if (!after || after.errors.length > ast.errors.length) return fail("invalid", "The edit would break the file's syntax");
   // The element's lines (an added import above it is not part of the change it reports).
-  const changed = changedRange(importEdit ? applyEdits(text, [importEdit]) : text, next);
+  const imported = [...(importEdit ? [importEdit] : []), ...builderImports];
+  const changed = changedRange(imported.length ? applyEdits(text, imported) : text, next);
   if (!snippets) return { code: bom + next, changed };
 
   // The same change in the file's hand-written example snippets.
   const pieces = [];
   const opening = element.openingElement;
-  const moved = importEdit && importEdit.end <= element.start ? countLines(importEdit.text) - countLines(text.slice(importEdit.start, importEdit.end)) : 0;
+  const moved = imported.filter((edit) => edit.end <= element.start).reduce((sum, edit) => sum + countLines(edit.text) - countLines(text.slice(edit.start, edit.end)), 0);
   const newElement = findElement(after, { line: target.line + moved, column: target.column });
   const newOpening = newElement?.openingElement;
   const indent = indentAt(text, element.start);
