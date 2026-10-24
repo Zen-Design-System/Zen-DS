@@ -468,11 +468,21 @@ export function pidAlive(pid) {
   if (!Number.isInteger(pid) || pid <= 0) return false;
   try { process.kill(pid, 0); return true; } catch (e) { return e?.code === "EPERM"; }
 }
-/** The ledger's run in progress, or null; a marker whose process is gone (or older than 6 h) is stale. */
+/** Whether `pid` is still a Build-QA run: the OS reuses pids, so a live pid that runs another command is a stale marker.
+ *  Where `ps` cannot say (Windows, a sandbox), a live pid counts, as before. */
+export function pidIsQaRun(pid) {
+  if (!pidAlive(pid)) return false;
+  const ps = spawnSync("ps", ["-o", "command=", "-p", String(pid)], { encoding: "utf8" });
+  if (ps.error) return true; // no ps here: cannot tell
+  if (ps.status !== 0) return false; // gone since pidAlive
+  return /tools[\\/]qa[\\/]run\.mjs/.test(ps.stdout);
+}
+/** The ledger's run in progress, or null; a marker whose process is gone, now runs something else (a reused pid), or is
+ *  older than 6 h is stale. */
 export function runningRun(ledger) {
   const r = ledger.running;
   if (!r || typeof r !== "object") return null;
-  const alive = pidAlive(r.pid) && Date.now() - (r.startedAt ?? 0) < 6 * 3600 * 1000;
+  const alive = pidIsQaRun(r.pid) && Date.now() - (r.startedAt ?? 0) < 6 * 3600 * 1000;
   return alive ? r : null;
 }
 

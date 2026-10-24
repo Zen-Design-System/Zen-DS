@@ -36,6 +36,20 @@ reaction Navigate / Open / Close overlay / Back."
   contrast/targets baseline seeding. "## Open items" untouched; nothing P1-urgent found. No work started.
 - User "Giao 35 mục theo đề xuất": the Designer entry moved to QUESTIONS.md / .vi.md as the 2026-10-24 designer batch.
 
+## Tooling fixes (#264; tier S–M; the user's go 2026-10-24)
+- `avatar/solid-initials-contrast`: measured today's tokens (both themes the same): golden 2.58, teal 2.70, cyan 2.96,
+  orange 2.98 below 3:1; green 3.48 and bronze 3.38 pass, so the rule lists golden | teal | cyan | orange (fixtures,
+  guideline, the sidebar example's comment).
+- `-shadow-off`: `token-outputs.mjs` declares each companion in every component theme (`initial` where not tinted);
+  tokens.css +66 lines, no value changed; Chromium check of a Neutral-S4 chip inside Neutral-S3: the shadow is back.
+  `tokens:check` counts gaps (66 on main, 0 here).
+- Audit `edges`: a focused element's outline / ring is not a frame. Gate: `pidIsQaRun` (a reused pid is stale).
+  Baseline notes follow fix-at-once. Playground empty slots → example-patterns §3c; APFS backups → zen-build-qa §2.
+- BACKLOG P2 seeding: `audit.mjs --quality --viewports=1512,390 --baseline-update=contrast,targets` over all 73
+  pages, light (636 s) and `--dark` (658 s), isolated: no new key. The three contrast keys (app-shell E7 2.90:1 at
+  1512/390/320) were all there were; targets 0. Baseline unchanged. The dark pass with playgrounds also lists
+  rhythm/roles/scale/outline-siblings findings the light keys hold; the gate's dark step (`--no-playground`) never sees
+  most of them.
 ## Components group of the triaged backlog (tier M; user 2026-10-24 via the coordinator: "Giao 35 mục theo đề xuất … Phần không cần quyết làm ngay; phần cần quyết gom lại hỏi tôi một lượt")
 
 Branch zen/fix/components-backlog-20261024 from main 6e4e6605 (worktree festive-archimedes-176df5, beside PR #248's

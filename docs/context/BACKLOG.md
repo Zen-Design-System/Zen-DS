@@ -123,10 +123,6 @@ starts.
   over its neighbours in the 390 sheet (a screen card since a50da8a9). Close each if clean. S.
 
 ### Tooling / harness / contracts
-- **P2 · Seed the contrast/targets baseline (2026-09-29):** `node tools/platform-audit/audit.mjs --quality
-  --viewports=1512,390 --baseline-update=contrast,targets` over all pages, plus a `--dark` pass (≈20 min, a browser
-  slot). `quality-baseline.json` holds 3 contrast and 0 targets keys (2026-10-24), so those known warnings still show as
-  new.
 - **P3 · Harness rules waiting for the user's OK (new scope, S each; gathered 2026-10-24):** `bulkActions` over 5
   (documented only, `Table.tsx` ~176); three items in one TopNavigation group (`top-navigation/max-three-trailing`
   counts a group as one place, `check-usage.mjs` ~1808; or a Studio drop warning);
@@ -135,9 +131,6 @@ starts.
   cases today); a bare `<Container>` holding a non-Card Table; the AI-readiness list of documented-but-unchecked rules
   (grouped lists, a table without a container, phone Chips not Segmented; elevation-follows-Sidebar is
   `theme/mixed-elevation` + `theme/navigation-surface` now): inventory first.
-- **P3 · `avatar/solid-initials-contrast` misses `golden` (2026-10-05):** Golden Solid draws white initials at 2.58:1
-  (Bronze 3.38:1), but the rule and the avatar guideline's Don't list green | teal | orange | cyan only
-  (`check-usage.mjs` ~1054, `guidelines.source.mjs`). A fix to an existing rule, S.
 - **P3 · Audit gaps (2026-10-02/03; gathered 2026-10-24):** `edges` counts the focus outline of a programmatically
   focused `tabIndex={-1}` heading as a frame (`tools/platform-audit/audit.mjs` ~293), S; `fit` / `overflow` miss a
   control that fits its text but is clipped by an `overflow: hidden` ancestor or covered by a sibling (~150), M;
@@ -152,20 +145,11 @@ starts.
   only failed steps, B.4 `--all` as a visual-diff pass, C.3 `check.mjs` flags, a coverage ratchet and a global
   text-width tolerance, C.4 `measure.mjs`, C.6 live token reads, C.7 `fallbacks:sync`
   (`docs/context/process-audit-2026-09-29.md`).
-- **P3 · `-shadow-off` leaks into nested component themes** (found 2026-09-29, token update): companions are emitted
-  only in the modes whose fill is tinted, so a Neutral-S4 scope inside a Neutral-S3 scope inherits S3's `0 0 #0000`
-  and its selected chip loses the Figma shadow. Nothing in the repo nests component themes, but `ZenProvider` allows
-  it. Fix idea: `scripts/build-tokens.mjs` emits `<token>-shadow-off: initial` in the other modes.
-  (2026-10-24: the companions are emitted by `scripts/token-outputs.mjs` ~139 now.)
 - **P3 · Figma contract suites from the 2026-09-29 parity list (merged 2026-10-24):** the Open-items entry "Figma
   contract suites, next batch" holds the plan; it should also name Breadcrumbs (a figmaExceptions entry for the 4px list
   padding; `breadcrumbs.json` was not in the 2026-10-23 re-read), a harness kind that renders SegmentedItem inside
   Segmented, and Search/Popover with Neutral-S4 (`popover-search.mjs` checks Default only). Fold in when that entry
   starts.
-- **P3 · Memory-only notes → repo (2026-10-02):** the playground empty-slot and APFS backup-naming notes live only in
-  the Mac's memory; copy them into the repo's skills. S.
-
-### Next-phase Studio design check
 - **P3 · Studio panels in dark chrome and at 280px (2026-10-03; rewritten 2026-10-24):** no screenshot pass of the
   rebuilt UI3 panels in dark chrome (`chromeTheme`, `src/platform/studio/store.ts` ~21) or at their 280px minimum width
   (`inspector/inspector.css` ~3). Goes with N1–N11 (Open items).

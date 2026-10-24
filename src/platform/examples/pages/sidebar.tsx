@@ -524,7 +524,7 @@ const feedbackRows: Row[] = [
   { id: "fb1", title: "Lan Tran", caption: "Can the points balance sit above the fold? · 13 minutes ago", leading: <Avatar size="medium" theme="crimson" alt="">LT</Avatar> },
   { id: "fb2", title: "Quang Ho", caption: "Approved the rewards screens for the pilot · Yesterday at 4:40 pm", leading: <Avatar size="medium" theme="indigo" alt="">QH</Avatar> },
 ];
-/** Initials marks use themes whose white initials reach 3:1 (orange, cyan, green, teal and yellow do not). */
+/** Initials marks use themes whose white initials reach 3:1 (golden, teal, cyan, orange and yellow do not). */
 const newWorkspaceThemes = ["purple", "plum", "violet"] as const;
 /** The role reads as a Badge in the header’s top row: what Alex may do in this workspace. */
 const roleTheme: Record<string, BadgeTheme> = { Admin: "accent", Owner: "accent", Member: "neutral", Guest: "yellow" };

@@ -90,6 +90,12 @@ Whether you need a card, and for which elements, follows your tier (`AGENTS.md` 
 - Warnings in the hook context need a decision, not a shrug: fix, or keep with a reason you will state on delivery.
 - Run `npm run qa:quick` after a visible change for fast runtime feedback (text styles, hierarchy, token scale).
 - Keep examples on DS components and tokens; grep `platform.css` before naming a new `pe-*` class.
+- A temporary revert (a negative test, a before/after shot) never uses `git stash` (the stack is shared by every
+  worktree) and backs each file up under a name that differs by more than case: macOS (APFS) is case-insensitive, so
+  `Chat.bak` and `chat.bak` are one file (2026-09-27: the second backup overwrote the first and the restore wrote CSS
+  into `Chat.tsx`). Keep the extension (`Chat.tsx.orig`, `chat.css.orig`) or one folder per file, `cmp` each backup
+  before restoring, and recover an uncommitted file from `~/.claude/file-history/*/` (grep a unique symbol, newest
+  `@vN`).
 
 ## 3. Run the gate
 
