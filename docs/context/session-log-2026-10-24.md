@@ -271,3 +271,48 @@ Branch zen/feat/contract-checker-gaps-20261024.
   min 66, Message max 220 / 516, min 42; gridline dashes (bar, area, trend charts); Read-Only dashes (fields, text area);
   photos (Avatar/Single, Chip Normal / Advanced, Avatar / Photo cells, Popover item content). No drift found.
 - Negative checks: a 500px text cap and a 1px underline (CSS edited, restored) fail as `maxw` and `stroke`.
+
+
+## Modal scroll lock around the overlay (tier S, library `_shared`; the user's bug "không khoá scroll khi mở modal")
+
+Branch claude/modal-scroll-lock-ecdb17. Found in Play on "Quản lý task": `.studio-present__scroll` moved 67px under an
+open ModalForm.
+- Cause: `lockScroll()` (`_shared/modal-isolation.ts`) set `overflow: hidden` on `<body>` only. Play and Present scroll a
+  stage that holds the device frame (`[data-zen-overlay-root]`); a modal opens in that frame, so a wheel over it chains
+  to the stage. Real apps were fine: AppShell scrolls the window, and a body-portalled scrim is fixed, so no box between
+  it and the viewport scrolls.
+- Fix: `lockScroll(around)` locks the document and every box with `overflow` auto|scroll|overlay from the element the
+  modal is portalled into up to `<body>` or a `[data-zen-isolation-root]` (Studio's canvas layer stays live). Each box is
+  reference counted and padded by its own scrollbar (skipped with a stable gutter). `useModal` passes the parent of
+  `modalRoot(panel, container)` (split out of `inertOutside`); inline modals (AppShell drawer, Chat picker, inline sheet)
+  lock the page as before. No Studio code changed.
+- Test `tests/interaction/modal-scroll-lock.test.tsx` (8): Dialog, ModalForm, modal SidePanel, BottomSheet in a frame in
+  a scrolling stage (wheel both ways, then the stage scrolls again once closed), Dialog over ModalForm, no content shift,
+  isolation root, window. On the old code the 4 wheel cases fail (stage 0 → 40).
+- Walk (user's flow, private server from the worktree, a copy of the page): Danh sách → Mở → Tạo task → typing → Hủy
+  (Dialog) → Tiếp tục sửa → submit (tasks:created) → Mở task mới → Bỏ task: no wheel moves the page in any of the 6
+  modal states; no lock is left after close, submit or discard. The notifications Overlay (a top-right Card, not modal)
+  lets the page scroll, as a dropdown does.
+- Found, not fixed (pre-existing, Play layout): with the page scrolled, opening a modal SidePanel moves the page (67 → 54,
+  119 → 0 on tasks:created) because Play anchors overlays to the whole screen, taller than the window, and focus scrolls
+  the close button into view; closing leaves the page there. Fix = Play draws overlays over the visible window (screen
+  scrolls inside the device frame); asked the user.
+
+### Play: the device is the window (tier M, Studio Play; the user's "Fix it here" after the walk above)
+
+Branch claude/play-overlay-window-ecdb17, stacked on #284.
+- Cause: in Auto viewport, Play's device was as tall as the Screen, and `.studio-present__scroll` scrolled the whole
+  device. Overlays render in the device (`[data-zen-overlay-root]`), so they covered the whole Screen, not the window. A
+  SidePanel opened on a scrolled Screen had its top above the window; focusing its close button scrolled the page, 67 → 54.
+- Fix (CSS only): `.studio-player__device` is `calc(100cqh - 2 × stage padding)` tall in Auto (the fixed box keeps its
+  inline size), clips, and is a size container, so AppShell's 100cqh resolves to it. `.studio-player__screens` is the
+  scroll box: a flex column whose shown Screen fills the window at least. A fixed viewport no longer makes the device
+  scroll; board.css keeps `overflow: auto` for Present's `.studio-present__viewport` only. Overlays, hotspots and the
+  hover layer stay device children, so they lie over the window. The TopNavigation scroll link
+  (runtime `usePresentScroller`) finds the inner box itself.
+- Walks on a private server: the user's flow passes in full. A SidePanel opened at 67 and at 119 stays put, lies inside
+  the window and goes back unchanged. iPad landscape: the ModalForm opens at scroll 280 in the box and moves nothing.
+  iPhone: the Screen scrolls inside. A 400px Screen with canvas="alt" on a 1300px window fills the device, and its Dialog
+  is centred in the window.
+- E2E PT-24 (prototype group, id from Giám sát): long desktop Screen, scroll 150, open a modal SidePanel. Checks: no
+  move, in the window, wheel held, closed → it scrolls again.

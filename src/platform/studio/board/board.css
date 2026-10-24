@@ -286,13 +286,14 @@
   top: 0;
   left: 0;
   box-sizing: border-box;
-  overflow: auto;
   contain: layout;
   transform-origin: top left;
   border-radius: var(--zen-corner-radius-large, 16px);
   background: var(--zen-color-background-canvas-default, #f7f7f7);
   box-shadow: 0 0 0 1px var(--zen-color-border-neutral-subtle-default, rgb(1 1 1 / 11%)), var(--zen-style-shadow-bottom-level-1-shadow);
 }
+/* Present's box scrolls its example; Play's device clips and its Screen scrolls inside (builder.css .studio-player__device). */
+.studio-present__fit[data-viewport="fixed"] > .studio-present__viewport { overflow: auto; }
 /* Device frame (presentViewport.tsx DeviceFrame): the box takes the device's screen corners and the bezel under it
    carries the shadow; the bezel is concentric with the screen (its radius is the screen's plus its width) and black in
    both themes (hardware: it sits in Light). The iPhone Duo's hinge is a soft band over the screen where

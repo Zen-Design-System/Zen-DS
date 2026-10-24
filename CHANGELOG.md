@@ -17,6 +17,13 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio Play (2026-10-24): the device is the app's window. In Auto it is as tall as the page under the bar, the
+  Screen scrolls inside it and fills it at least, and overlays cover the window you see. A Side Panel or Dialog opened on
+  a scrolled Screen now shows in full and the page no longer jumps under it.
+- Dialog, ModalForm, modal SidePanel and BottomSheet (2026-10-24): an open modal also holds still every box that
+  scrolls around the place it renders in, not only the page: in Zen Studio's Play and Present a wheel over a modal no
+  longer scrolls the page under it (the stage scrolls a device frame, the user's "Quản lý task" prototype), and a phone
+  preview on a scrolling pane stays put. Each box is padded by its scrollbar's width while locked, as the page is.
 - Figma contract checker (2026-10-24): suites also compare stacked fills, IMAGE fills, each corner of a mixed radius,
   auto-layout min / max sizes, dashed strokes, a shadow beside a spread-ring stroke and an inset-shadow edge; the layers
   the suites skipped for these (Toggle bar, chat bubbles, Editable cell, Range-Selected-End, chart gridlines, photos) are
