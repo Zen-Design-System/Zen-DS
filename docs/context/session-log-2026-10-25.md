@@ -217,8 +217,20 @@ The user published the Zen library; Studio's ⌘C → ⌘V now lands in any Figm
 - `tools/studio/e2e/run.mjs`: "✗ New rows broken (not in the baseline): …" and exit 1; new rows that work are listed
   to record with `--update-baseline`. `tools/qa/run.mjs`: the Studio E2E step fails on them through
   `lib.mjs e2eVerdictLines` (also on its own, not only through a shard's exit code); not-run rows keep their own ✗ line.
-- Note: the opt-in groups (`dnd`, `figma`) have no baseline rows, so a standalone `--only=figma` run now exits 1 on any
-  broken row. The default gate groups had 5 new rows, 0 broken, in the last gate run (studio-chart-perf, 10:27).
-- Tests: `tools/studio/e2e/selftest.mjs` (+7 compare cases) 1830 ✓ exit 0; `npm run qa:selftest` (+5 verdict cases)
-  40 ✓ exit 0; `node --check` on the five .mjs files, exit 0. No gate browser run (tool files only; the selftests
-  cover the verdict).
+- The opt-in groups (`dnd`, `figma`) had no baseline rows, so this change alone made every standalone opt-in run fail
+  on any row (Giám sát's review). Recorded them, with the gate slot from Giám sát, on main 8607b803:
+  - `figma`: `--only=figma --update-baseline` 195 works, 840 s. FW-186 (Pick color) timed out in the group, as in the
+    #302 run, and goes in `flaky` ("times out inside --only=figma and passes alone"), so it is baselined broken.
+  - `dnd`: DND-01, 02, 04 work and are recorded. Five rows stay out on purpose, so a standalone `--only=dnd` fails
+    until they are fixed (Giám sát takes them to the user; not in this change):
+    - DND-03 (Assets drag, items 89–132): ✗ in the group and alone (`--only=dnd --rows=DND-03,DND-06 --no-retry`):
+      "locator.boundingBox: Timeout 10000ms exceeded".
+    - DND-06 (Layers panel drags): ✗ in the group and alone: "Box → the List box row's upper half: wrong place;
+      Text → the empty Screen's own row: no target in Layers".
+    - DND-07 (Auto layout on every Assets item): hung past its 40-min row limit (no line for 53 min); the run was
+      stopped (SIGTERM, disk restored).
+    - DND-08 and DND-05 never ran (after DND-07).
+  - That rerun printed "✗ New rows broken (not in the baseline): DND-03, DND-06" and exited 1: the new rule, live.
+  - The default gate groups had 5 new rows, 0 broken, in the last gate run (studio-chart-perf, 10:27).
+- Tests: `tools/studio/e2e/selftest.mjs` (+7 compare cases) ✓ exit 0; `npm run qa:selftest` (+5 verdict cases)
+  ✓ exit 0; `node --check` on the five .mjs files, exit 0. Merged main 8afa40cd (#303) before the push.
