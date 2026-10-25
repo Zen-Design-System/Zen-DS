@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Segmented (2026-10-26): on a phone, a full-width Segmented in a box that hugs its content (a floating layer, the
+  Calendar toolbar in a column that does not stretch) settles on its chip row instead of switching back and forth until
+  React stopped with "Maximum update depth exceeded", which blanked the Zen Studio canvas after such a drop.
 - Zen Studio Copy for Figma (2026-10-25): ⌘C on a frame, then ⌘V on any Figma canvas (not only the Zen file's) places
   it as instances of the published Zen library, with its variables and text styles bound: the paste carries the
   library's full definitions, as Figma's own copies do (`docs/figma-contracts/native-defs.json.gz`).
