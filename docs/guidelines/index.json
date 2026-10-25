@@ -3771,7 +3771,7 @@
       },
       "do": [
         "Format the value with units and separators (harness: metric/formatted-value).",
-        "Give a MetricCard's Dock Icon iconBackground=\"solid\" and the colour of what it counts: total accent, in progress blue, overdue red, done green (the user 2026-10-24: \"metric card dùng dock icon solid\"; harness: metric/dock-icon-by-meaning for the status cards).",
+        "Give a status MetricCard a solid Dock Icon in the colour of what it counts: total accent, in progress blue, overdue red, done green (the user 2026-10-24). Generated screens do this; the designer may change it, and no harness rule checks it (the user 2026-10-25).",
         "Give a typed MetricCard the data its type draws: series, goal, comparison or categories (harness: metric/type-data).",
         "Pass categories largest first and keep them to 2–7 (harness: metric/category-count).",
         "Pass format so the series summary, the goal's label and the category amounts read like the number (\"$105.7K\", \"1,284 h\").",
@@ -3796,7 +3796,6 @@
         "theme/mixed-elevation",
         "card/spacing-by-count",
         "metric/formatted-value",
-        "metric/dock-icon-by-meaning",
         "metric/type-data",
         "metric/category-count",
         "api/overrides-studio-only",

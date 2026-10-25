@@ -118,8 +118,9 @@ Files in this skill:
       `badge/status-priority-icon`).
     - Priority has one palette: Urgent and High `Red`, Medium `Yellow`, Low `Neutral`, each led by `icon-flag-03-solid`;
       Property-Field priority icons take tone Negative / Warning / Neutral (audit `priority/palette`).
-    - A Metric-Card's Dock-Icon is Background Solid in the colour of what it counts: total Accent, in progress Blue,
-      overdue Red, done Green ("metric card dùng dock icon solid"; audit `metric/dock-icon-by-meaning`).
+    - When you build a screen, give a status Metric-Card's Dock-Icon Background Solid in the colour of what it counts:
+      total Accent, in progress Blue, overdue Red, done Green ("metric card dùng dock icon solid"). The designer may
+      change it; no audit check (the user 2026-10-25).
     - A popover that picks a person shows each person's avatar: Popover items Theme Avatar Small with the photo, or
       the initials Avatar ("popover để chọn nếu là người thì nên có avatar"; no audit check: names are not
       detectable, check it on the screenshot).

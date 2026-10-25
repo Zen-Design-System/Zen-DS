@@ -1099,14 +1099,6 @@ const PRIORITY_PALETTE = [
 const PEOPLE_WORD = /\b(assignees?|owners?|leads?|people|persons?|members?|reviewers?|authors?|reporters?|teammates?|staff|employees?|approvers?|attendees?|guests?)\b|người|thành viên|phụ trách|giao cho|nhân viên|đồng nghiệp|người duyệt/i;
 /** A Badge's text when its children are one literal label ("Paid", {"Paid"}); null for anything computed. */
 const badgeLabel = (children) => { const c = (children ?? "").trim().replace(/^\{\s*["'`]|["'`]\s*\}$/g, "").trim(); return c && !/[<{}$]/.test(c) ? c : null; };
-/** metric/dock-icon-by-meaning (the user 2026-10-24): a status metric's Dock Icon colour, by what its label counts. */
-const METRIC_MEANINGS = [
-  [/\b(overdue|late|blocked|failed)\b|quá hạn|trễ hạn|bị chặn/i, "red"],
-  [/\b(done|completed|finished|resolved)\b|hoàn thành|đã xong/i, "green"],
-  [/\bin progress\b|\bongoing\b|đang làm|đang thực hiện/i, "blue"],
-  // A total of the counted things ("Total", "All tasks"), not any sum ("Total balance" is money).
-  [/^(total|all)( (tasks?|items?|requests?|tickets?|issues?|projects?))?$|^(tổng|tất cả)( số)?( (task|công việc|việc|yêu cầu))?$/i, "accent"],
-];
 /** search/toolbar-width: the user's cap (2026-10-24) on a Search in a toolbar row. */
 const TOOLBAR_SEARCH_MAX = 240;
 /** The width cap an element sets itself: maxWidth / width as a number, or the same in its style; null when there is none,
@@ -2142,20 +2134,6 @@ export const rules = [
     summary: "Metric values are passed pre-formatted with units and separators (\"$1,680.68\", \"2.1%\"), never a raw number.",
     // Only the Metric's own value: a ProgressBar `value={79}` inside `custom` (or any other nested element) is not it.
     check: ({ attrs }) => { const own = ownExpr(attrs, "value"); return /^\s*-?\d+(\.\d+)?\s*$/.test(own ?? "") && `passes a raw number (${own.trim()}) — format it with units and separators.`; } },
-  // The user (2026-10-24, the task page): "Dock icon dùng trong các metric card nên có màu tương ứng", "metric card dùng
-  // dock icon solid". A card that stands for a status says it with a solid Dock Icon in that status's colour.
-  { id: "metric/dock-icon-by-meaning", components: ["MetricCard"], severity: "warn", allow: "metric-icon-meaning", guideline: "docs/guidelines/metric.md",
-    summary: "A MetricCard that stands for a status shows a solid Dock Icon in its colour: iconBackground=\"solid\" with iconTheme accent for a total, blue for in progress, red for overdue, green for done; never the default Neutral Subtle.",
-    check: ({ attrs }) => {
-      const own = topAttrs(attrs), label = fixedProp(own, "label");
-      if (!label || fixedProp(own, "type") === "tile" || fixedProp(own, "icon") === "false" || own.get("icon")?.expr?.trim() === "false" || own.has("iconEmoji")) return null;
-      const theme = METRIC_MEANINGS.find(([re]) => re.test(label))?.[1];
-      if (!theme) return null;
-      const background = fixedProp(own, "iconBackground"), current = fixedProp(own, "iconTheme");
-      if (background === null || current === null) return null;
-      if (background === "solid" && current === theme) return null;
-      return `stands for "${label}" with a ${background ?? "subtle"} ${current ?? "neutral"} Dock Icon — a status metric shows it solid in its colour: iconBackground="solid" iconTheme="${theme}".`;
-    } },
   { id: "metric/type-data", components: ["MetricCard"], severity: "error", allow: "metric-type-data", guideline: "docs/guidelines/metric.md",
     summary: "A typed MetricCard gets the data its type draws (sparkline, spark-bars, hero → series; goal-progress → goal; comparison → comparison; category-bar → categories), and no data another type draws.",
     check: ({ attrs }) => {

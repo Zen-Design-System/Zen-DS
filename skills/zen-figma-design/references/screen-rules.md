@@ -148,8 +148,8 @@ Pick each component's guideline (`guidelines/<slug>.md`) before placing it.
   (Size Medium, Background Subtle), an Avatar or a thumbnail, never a bare icon. Status and priority Badges keep their
   Leading-Icon: priority leads with `icon-flag-03-solid` (`.Task/Priority`), a status with its dot or an icon per
   state, a workflow step is `Badge-Status`; badges in Table cells too. Priority has one palette: Urgent and High Red,
-  Medium Yellow, Low Neutral (`priority/palette`). A Metric-Card's Dock-Icon is Solid in the colour of what it counts:
-  total Accent, in progress Blue, overdue Red, done Green (`metric/dock-icon-by-meaning`). A desktop `Header/AppShell` never shows an empty
+  Medium Yellow, Low Neutral (`priority/palette`). A status Metric-Card you build gets a Solid Dock-Icon in the colour of
+  what it counts: total Accent, in progress Blue, overdue Red, done Green (the designer may change it; no audit check). A desktop `Header/AppShell` never shows an empty
   top row: Breadcrumbs or a Search on the left, a Search in the centre (≤ 400) when it helps, and help, notifications
   (`Header/Action-Item` with its count) and the account Avatar last on the right; or Top-Header off. Audit
   `list-item/leading-dock-icon`, `badge/status-priority-icon`, `app-shell/top-row-filled`.

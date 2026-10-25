@@ -90,8 +90,6 @@
 //                                     status Badge (Paid, Active, Overdue…) with its Leading-Icon off
 //   app-shell/top-row-filled     warning  a Header/AppShell on a tablet or desktop screen whose top row is on and empty
 //   priority/palette             warning  a priority Badge outside the one palette: Urgent and High Red, Medium Yellow, Low Neutral
-//   metric/dock-icon-by-meaning  warning  a Metric-Card whose Dock-Icon is Subtle, or a status card (total, in progress, overdue,
-//                                     done) whose Dock-Icon is not Accent, Blue, Red or Green
 //   navigation/icon-style    error    a Bottom-Navigation item whose icon style does not match its selection: the
 //                                     selected item shows the solid icon, every other item the line icon
 //   navigation/floating-fit  error    a Floating or Floating-Glass Bottom-Navigation whose tabs leave the 64–88 range:
@@ -822,10 +820,9 @@ const ICON_MAIN = /^(icon|ic)-/;
 const PRIORITY_FLAG = "icon-flag-03-solid";
 const PRIORITY_TEXT = /^(urgent|critical|high|medium|low|khẩn cấp|cao|trung bình|thấp)( priority)?$/i;
 const STATUS_TEXT = /^(active|inactive|pending|approved|rejected|declined|paid|unpaid|overdue|draft|published|live|failed|completed|open|closed|online|offline|invited|expired|archived|scheduled|on hold|on track|at risk|off track|đã duyệt|chờ duyệt|từ chối|đã thanh toán|chưa thanh toán|quá hạn|bản nháp|đang hoạt động)$/i;
-// Later the same day: "Dock icon dùng trong các metric card nên có màu tương ứng", "metric card dùng dock icon solid", and
-// "badge ưu tiên trung bình nên đồng bộ dùng yellow thay vì orange" (one priority palette).
+// Later the same day: "badge ưu tiên trung bình nên đồng bộ dùng yellow thay vì orange" (one priority palette). The Metric-Card
+// Dock-Icon colour by meaning is a skill preference, not a check (the user 2026-10-25: the designer may choose).
 const PRIORITY_THEME = [[/^(urgent|critical|high|khẩn cấp|cao)( priority)?$/i, "Red"], [/^(medium|trung bình)( priority)?$/i, "Yellow"], [/^(low|thấp)( priority)?$/i, "Neutral"]];
-const METRIC_THEME = [[/\b(overdue|late|blocked|failed)\b|quá hạn|trễ hạn|bị chặn/i, "Red"], [/\b(done|completed|finished|resolved)\b|hoàn thành|đã xong/i, "Green"], [/\bin progress\b|\bongoing\b|đang làm|đang thực hiện/i, "Blue"], [/^(total|all)( (tasks?|items?|requests?|tickets?|issues?|projects?))?$|^(tổng|tất cả)( số)?( (task|công việc|việc|yêu cầu))?$/i, "Accent"]];
 const propValue = (node, name) => Object.entries(node.componentProperties ?? {}).find(([key]) => key === name || key.startsWith(`${name}#`))?.[1]?.value;
 async function checkTaskPageRules(root) {
   for (const screen of screensOf(root)) {
@@ -852,12 +849,6 @@ async function checkTaskPageRules(root) {
         const level = PRIORITY_THEME.find(([re]) => re.test(text));
         const theme = (node.variantProperties ?? {}).Theme;
         if (level && theme && theme !== level[1]) report("priority/palette", WARNING, node, `the priority "${text}" is ${theme}: priority has one palette, Urgent and High Red, Medium Yellow, Low Neutral`);
-      } else if (set === "Metric-Card") {
-        const dock = node.findOne((child) => child.type === "INSTANCE" && child.name === "Metric-Icon");
-        const label = node.findOne((child) => child.type === "TEXT" && child.name === "Label");
-        const { Background: background, Theme: theme } = dock?.variantProperties ?? {};
-        const meaning = label ? METRIC_THEME.find(([re]) => re.test(label.characters.trim())) : null;
-        if (dock && dock.visible !== false && (background === "Subtle" || (meaning && theme && theme !== meaning[1]))) report("metric/dock-icon-by-meaning", WARNING, node, `its Dock-Icon is ${background} ${theme}${meaning ? ` for "${label.characters.trim()}"` : ""}: a Metric-Card's Dock-Icon is Background Solid${meaning ? `, Theme ${meaning[1]} (total Accent, in progress Blue, overdue Red, done Green)` : " in the colour of what it counts"}`);
       } else if (set === "Header/AppShell" && screen.width >= 744 && propValue(node, "Top-Header") !== false) {
         const slot = node.findOne((child) => child.type === "SLOT" && child.name === "Top-Elements");
         const filled = slot && slot.findAll((child) => (child.type === "INSTANCE" || child.type === "TEXT") && shownIn(child, slot)).length > 0;

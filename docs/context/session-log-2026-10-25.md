@@ -24,3 +24,18 @@ opened its 12 contact sheets plus segmented, table and chart. The table sheet sh
 the scoped gate on table passed after the fix.
 Open (needs the user): an audit check for a table's first-column Avatar seen at runtime would catch helper components
 the harness misses. It is a new check, so it waits for approval.
+
+## Giám sát · the user answers four backlog items (library publish, Code Connect, Dock-Icon default, old Figma screens)
+
+The user (2026-10-25): "Publish thư viện là việc ngoài studio không đưa vào backlog". The entry "P3 · Figma: publish
+the renamed layers" moved from `BACKLOG-user-and-later.md` to `BACKLOG-archive.md` (text unchanged, with the reason).
+"Direct paste into other files" stays in the user's list: it is Studio work that the publish unblocks.
+"P3 · Code Connect for Description List" moved to the archive too (user: "Cái này không cần thiết cho studio"):
+it only adds Zen code to Figma's Dev Mode panel; Studio pull/push and `map_figma_component` already give Zen code.
+"P2 · Metric-Card Dock-Icon Solid by default?" answered: no default change. The user: generated screens still colour
+a status card's Dock-Icon by meaning (skills), but no harness binds it, so `metric/dock-icon-by-meaning` left
+check-usage.mjs (+ its bad.tsx case) and zen-figma-audit.js; skills and the guideline say it as what generation does.
+"P3 · Figma screens older than the 2026-10-24 rules" moved to "Later phase" (user: "sẽ làm sau"), minus the metric part.
+"P2 · Direct paste into other files" moved back to BACKLOG.md Open items: the user published the library (2026-10-25).
+Two more answers took items back to BACKLOG.md as dev work. Private registry: "giao session làm". Toolbar Search vs
+DashboardHeader 320: "ở control bar thì tối đa là 240". Each item gets its own session.
