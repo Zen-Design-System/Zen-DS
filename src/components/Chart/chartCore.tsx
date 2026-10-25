@@ -213,7 +213,9 @@ export function ChartLegend({ items, className, gap = "xsmall", align = "center"
 /**
  * A round chart's legend (or total column) beside the ring: true once the box is too narrow and the flex row has put it
  * under or over the ring, so chart.css turns that column into a centred row that wraps (Figma auto layout Wrap) instead
- * of a tall list beside nothing. The flex basis decides the wrap, not the legend's content, so the switch never loops.
+ * of a tall list beside nothing. It is always decided in the beside layout (the wrapped look taken off while it reads):
+ * in a box as wide as its content (a max-content cell, Zen Studio's Main component) the wrapped row widens the box, and
+ * an answer read there flipped back on the next pass, about three times a second (2026-10-25).
  */
 function useBesideWrapped(block: RefObject<HTMLDivElement | null>, on: boolean) {
   const [wrapped, setWrapped] = useState(false);
@@ -224,8 +226,11 @@ function useBesideWrapped(block: RefObject<HTMLDivElement | null>, on: boolean) 
       const ring = node.querySelector(":scope > .zen-chart--round");
       const beside = Array.from(node.children).find((child) => child !== ring);
       if (!ring || !beside) return;
+      const shown = node.getAttribute("data-wrapped");
+      if (shown !== null) node.removeAttribute("data-wrapped");
       const a = ring.getBoundingClientRect();
       const b = beside.getBoundingClientRect();
+      if (shown !== null) node.setAttribute("data-wrapped", shown);
       setWrapped(b.top >= a.bottom - 1 || b.bottom <= a.top + 1);
     };
     measure();
