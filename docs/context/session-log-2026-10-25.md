@@ -97,7 +97,7 @@ three toolbar Search checks stop skipping it.
   1512/390/320 0 new, dark 0, behaviour 0). I opened its 6 contact sheets: the search is 240 at 1512 and fills its row
   at 390. Merged main 7d95ef7b (#297) and removed the BACKLOG line (archived); then main 4e218464 (#298) and 5c31f566 (#299), registry and docs only.
 
-## Studio performance audit: Chart board and Main component frames (investigation only, no code change)
+## Studio performance audit: Chart board and Main component frames (investigation, then the P0 fixes in PR #301)
 
 Measured with Playwright on :5173 (`?ui=studio`, read-only: no inspector clicks, no drafts), a fake React DevTools hook
 for render counts and CDP for the load profile. Findings, all reproduced:
@@ -118,4 +118,26 @@ for render counts and CDP for the load profile. Findings, all reproduced:
 - **Off-screen frames cost every pan:** `content-visibility: auto` on `.studio-frame` (injected) took Input's pan from
   40 → 2–4 frames over 20 ms (p95 50 → 17 ms); `will-change: transform` on the world did nothing.
 
-Proposals and priorities went to the user; nothing is changed until they approve.
+Proposals and priorities went to the user, who approved the P0 group (below).
+
+### P0 fixes (tier S; user: "Sửa nhóm P0 … trên worktree riêng, xin slot QA từ Giám sát, mở PR"; PR #301, slot from Giám sát)
+
+- `useBesideWrapped` (chartCore.tsx) decides in the beside layout every time (the wrapped look is taken off while it
+  reads). Main component: Chart/Donut-Chart and Chart/Radial-Chart take their Figma FIXED widths (352–600 by
+  Legend/Total/Size, from chart-donut.json / chart-radial.json), so Legend=Start/End shows the legend beside the ring.
+- `useChartGrow` (Chart.tsx): layout px (`getComputedStyle` height, as StudioBoard's `frameHeight`); every card on the
+  page measured together (all grows off → read → write), which also fixed a lock-in found while re-measuring: two
+  cards of a row held each other up, so a card briefly 50 px taller left its row 50 px taller for good (old code at
+  any zoom). Children are observed by border box (a padding change was invisible); mounts measure after the commit,
+  later changes on the next frame (no "ResizeObserver loop … undelivered notifications").
+- MainComponentFrame: `SetGrid` subscribes to its own selected cell key, `Stage` observes once per cell,
+  `ComponentSets` is memoised.
+- New `tests/interaction/chart-measure-scaled.test.tsx`; on the old code it fails (120 wrap flips, grow off by 135).
+- Re-measured on a private :5291: Chart idle 0 commits / 0 long tasks (was 22 / 3.2 s per 3 s); Main component
+  height the same at every zoom; grow 10/102/78/156 at 54 % and at 240 % (was 0/39/27/68 and 80 M px); a frame click
+  re-renders 0 cells (was 268 on Input); Chart load Style recalc 14.5 → 9.2 s, pan worst frame 950 → 133 ms.
+- Gate: `npm run qa -- --isolated --pages=chart --files=…` PASS (static, Vitest 90/90, 33 Chart contract suites, audit
+  1512/390/320 + dark + behaviour 0 new, Studio E2E 360/360). Main component Donut/Radial cells shot at 100 %: the
+  legends and totals sit beside the ring, as in Figma.
+- Left for P1 (not approved yet): `placeTip` is now the largest load cost (6.7 s), AppShellHeader/AppShell measures,
+  `content-visibility` on frames; the Inspector still takes ~200–340 ms after a frame click.
