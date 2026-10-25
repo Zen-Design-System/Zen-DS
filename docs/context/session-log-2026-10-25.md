@@ -234,3 +234,46 @@ The user published the Zen library; Studio's ⌘C → ⌘V now lands in any Figm
   - The default gate groups had 5 new rows, 0 broken, in the last gate run (studio-chart-perf, 10:27).
 - Tests: `tools/studio/e2e/selftest.mjs` (+7 compare cases) ✓ exit 0; `npm run qa:selftest` (+5 verdict cases)
   ✓ exit 0; `node --check` on the five .mjs files, exit 0. Merged main 8afa40cd (#303) before the push.
+
+## Table first column: Dock Icon Small, runtime check `table-lead` (tier M; branch zen/feat/table-first-column-runtime-20261025; PR #305)
+
+The user's two decisions:
+1. "có": a runtime check for the first-column Avatar that a helper draws.
+2. "Dock Icon của cột đầu trong table mặc định là size Small và khi có thêm caption thì phải luôn là size Small".
+
+| Where | Before | After |
+| --- | --- | --- |
+| Table.tsx `cellVisual`, first column `content: "dock-icon"` | xs alone, sm with a caption | sm either way; later columns unchanged (Figma Dock-Icon-Cell) |
+| figma-push dock-icon cell | always XSmall (a captioned one overrode Figma's Small) | Small with a caption or in the first column, XSmall otherwise |
+| figma-pull `drawnProps` / `TABLE_DRAWS.DockIcon` | xs always | by caption and column: a first-column XSmall is that row's override |
+| TableCellPanel `contentCode` | `size("xs","sm")` | `"sm"` in the first column |
+| Harness | `table/first-column-avatar-solid` only | + `table/first-column-dock-icon-small` (error); `inFirstColumn` shared; `media-size-by-subtext` exempts the first column |
+| Runtime audit | none | `table-lead` (error, widgetLayout): rendered first cells, an initials Avatar Solid and a Dock Icon `small`; stacks, edit ghost and Don't visuals skipped |
+| Figma audit | none | `table/first-column-dock-icon-small` (warning): Data-Row tables you placed, select column skipped |
+| Contract suite table-cell-dock-icon | measured in the Table's only (first) column | measured in the second column (`second: true`, cases/table-cells.tsx) |
+
+- **Figma (read-only):** the primitive Dock-Icon-Cell 1603:5099 is column-less: Subtext=No is XSmall and Subtext=Yes is
+  Small. The HR-Platform leave tables (7378:38418, 7379:36025, 15794:50838, 15794:50856) lead with an Emoji Dock-Icon at
+  Medium 40, and the Dock-Icon set 308:45902 has Theme=Emoji only at Medium and Large. The user decided:
+  - Keep the library; the Figma audit warns and screens set the size.
+  - "Emoji thì mặc định dùng medium".
+
+  The check expects Medium for Emoji and Small otherwise. It found 0 on the four screens (24 first-column Emoji
+  Dock-Icons, all Medium). The full 104 KB audit does not fit a `use_figma` call, so only the new check ran.
+- **Pages:** `usage:check` flagged the leave tables of g-grid (emoji `xsmall`) and the HR templates Leave types and My
+  leaves (emoji `sm`). All three are now `md`. `table/media-size-by-subtext` asks Medium of an emoji Dock Icon in any
+  column; a bad.tsx flag fixture moved from xs to md. The Table page's `PersonAvatar` already draws `lead` Solid. Studio
+  push draws a row's emoji Dock-Icon at Medium when its override gives no size.
+- **Checks:** usage selftest (260 rules), platform:audit:selftest 70 (11 table-lead fixtures), figma-push 486,
+  figma-pull 151, cellComponents, ai-kit:check, guidelines:check and tsc all pass; tests/interaction/table-first-column.test.tsx
+  was renamed from table-first-column-avatar and gained 2 dock-icon cases.
+- **Gate (Giám sát's slot):**
+  - First run, `qa --isolated` on the 32 pages that render Table: static gates, Vitest 91/91, all Figma contract
+    suites, behaviour 0 and Studio E2E 363/0 passed. The new kind `table-lead` found one real helper slip, at
+    templates@1512 (+ dark): Dashboard's "Active projects" drew its client initials Subtle in the first column
+    (`clientMark`, 8 rows). Fixed at the helper (`lead` → Solid; the phone ListItem keeps Subtle).
+  - Auto-fix started a host-side main merge during the run; I aborted it and merged after the gate (1c0c7342, #304:
+    conflicts in CHANGELOG and this log, both sides kept).
+  - The rerun on templates with the Studio files, under #304's new-row rule: PASS (audit 0, dark 0, behaviour 0,
+    E2E 363 works / 0 broken). I opened the table, app-shell G2, HR My leaves and templates sheets. The Medium emoji Dock
+    Icons sit inside their rows, as in Figma.
