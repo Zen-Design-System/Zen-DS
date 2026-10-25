@@ -118,6 +118,11 @@ const isSlot = (node) => refsOf(node).some(([, field]) => field === "SLOT_CONTEN
 /** Whether a layer shows a picture (an IMAGE fill): a paste's `image` on its instance fills the first such layer. */
 const showsPicture = (node) => (node.fillPaints ?? []).some((paint) => paint.type === "IMAGE");
 const round = (value) => Math.round((value ?? 0) * 100) / 100;
+/**
+ * A copy's value as JSON can hold it: a bigint as a number, Figma's non-finite floats (Infinity: an unset max size; NaN:
+ * an auto counter spacing) as text, which figma-kiwi.mjs writes back as the number (JSON would make them null, then 0).
+ */
+const storable = (value) => (typeof value === "bigint" ? Number(value) : typeof value === "number" && !Number.isFinite(value) ? String(value) : value);
 
 /** The use_figma code that adds part `part` of `ids` to the probe: frames of up to PROBE_FRAME_SIZE instances. */
 export function probeCode(ids, part) {
@@ -260,7 +265,7 @@ export function packFrom(copies, { read }) {
   for (const node of nodes.values()) if (node.key && (node.styleType || node.type === "VARIABLE" || node.type === "VARIABLE_SET") && !ownOf.has(id(node.guid))) byKey.set(node.key, node.guid);
   const localRefs = (value) => {
     if (Array.isArray(value)) return value.map(localRefs);
-    if (!value || typeof value !== "object") return typeof value === "bigint" ? Number(value) : value;
+    if (!value || typeof value !== "object") return storable(value);
     const out = {};
     for (const [field, inner] of Object.entries(value)) {
       if (field === "assetRef" && inner?.key && byKey.has(inner.key)) { out.guid = byKey.get(inner.key); continue; }
@@ -398,8 +403,8 @@ const DEFS_SKIP = new Set(["phase", "pluginData", "derivedTextData", "derivedSym
  * The Zen library's full definitions from the same copies (docs/research/studio-native-paste-2026-10-17.md §9): a paste
  * into a file other than Zen's carries them, as Figma's own copies do, since Figma builds a library component it has not
  * seen from the clipboard and never fetches it by key (2026-10-25: skeletons pasted empty; values-less variables white).
- * `nodes` {id: node}: every component set (its shell), component and layer under one, variable collection, variable
- * and style, as Figma's copy has them (refs by `assetRef`, `sourceLibraryKey` written 1: `library` holds it), less
+ * `nodes` {id: node}: every component set (its shell), component and layer under one, slot content a component sets
+ * (and its layers), variable collection, variable and style, as Figma's copy has them (refs by `assetRef`, `sourceLibraryKey` written 1: `library` holds it), less
  * DEFS_SKIP; vector data inline (`{blob: base64}`). A variable or style the file also holds as a library copy keeps
  * only its own node (packFrom's rule).
  */
@@ -408,20 +413,21 @@ export function defsFrom(copies, { read }) {
   for (const copy of copies) for (const node of copy.message.nodeChanges) if (!nodes.has(id(node.guid))) { nodes.set(id(node.guid), node); blobsOf.set(id(node.guid), copy.message.blobs ?? []); }
   const isOwn = (node) => { if (!node.publishID || id(node.guid) === id(node.publishID)) return true; const own = nodes.get(id(node.publishID)); return !own || own.type !== node.type; };
   const isAsset = (node) => node.type === "VARIABLE" || node.type === "VARIABLE_SET" || Boolean(node.styleType && node.styleType !== "NONE" && node.key);
+  // A component's layers, and the slot contents components set (frames on the internal canvas their slots name).
   const underSymbol = new Map();
   const inSymbol = (node) => {
     const key = id(node.guid);
     if (!underSymbol.has(key)) {
       underSymbol.set(key, false);
       const parent = nodes.get(id(node.parentIndex?.guid));
-      underSymbol.set(key, node.type === "SYMBOL" || Boolean(parent && !parent.isStateGroup && inSymbol(parent)));
+      underSymbol.set(key, node.type === "SYMBOL" || Boolean(node.isSlotContent) || Boolean(parent && !parent.isStateGroup && inSymbol(parent)));
     }
     return underSymbol.get(key);
   };
   let library = "";
   const clean = (value, blobs) => {
     if (Array.isArray(value)) return value.map((item) => clean(item, blobs));
-    if (!value || typeof value !== "object") return typeof value === "bigint" ? Number(value) : value;
+    if (!value || typeof value !== "object") return storable(value);
     const out = {};
     for (const [field, inner] of Object.entries(value)) {
       if (DEFS_SKIP.has(field)) continue;

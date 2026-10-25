@@ -1209,21 +1209,36 @@ class Writer {
   }
 
   /**
-   * The symbols the paste uses and every symbol their definitions name (nested instances, swaps, a swap property's
-   * default) in full, from the library definitions (`defs`, indexDefs), each variant under its set's shell; a symbol the
-   * definitions lack comes as a skeleton (the Zen file takes it, another file shows it empty).
+   * The symbols the paste uses and every symbol and slot content their definitions name (nested instances, swaps, a
+   * swap property's default, the contents components set in their slots) in full, from the library definitions
+   * (`defs`, indexDefs), each variant under its set's shell; a symbol the definitions lack comes as a skeleton (the Zen
+   * file takes it, another file shows it empty). Without its slot contents a component pasted into another file showed
+   * empty slots (Metric-Card, List-Box, charts: 2026-10-25).
    */
   definitions(defs) {
     const out = [], done = new Set(), sets = new Set(), lacking = [];
     const queue = [...this.symbolsUsed];
     const named = (node) => {
-      for (const id of symbolsNamed(node)) if (!done.has(id)) queue.push(id);
+      for (const id of namedBy(node)) if (!done.has(id)) queue.push(id);
     };
+    // Contents the paste's own layers name by id (a slot it leaves as the component set it).
+    for (const node of [...this.internal, ...this.scene]) named(node);
     while (queue.length) {
       const id = queue.shift();
       if (done.has(id)) continue;
       done.add(id);
-      if (defs.raw(id)?.type !== "SYMBOL") { if (this.index.tree(id)) lacking.push(id); continue; }
+      const raw = defs.raw(id);
+      if (raw?.isSlotContent) {
+        const walk = (nodeId, parentIndex) => {
+          const node = fromDefs(defs, nodeId, parentIndex);
+          named(node);
+          out.push(node);
+          for (const child of defs.kids.get(nodeId) ?? []) walk(child);
+        };
+        walk(id, { guid: INTERNAL, position: this.place(INTERNAL) });
+        continue;
+      }
+      if (raw?.type !== "SYMBOL") { if (this.index.tree(id)) lacking.push(id); continue; }
       const parent = defs.parent(id);
       const shell = defs.raw(parent)?.isStateGroup ? parent : null;
       if (shell && !sets.has(shell)) {
@@ -1248,10 +1263,19 @@ class Writer {
   }
 }
 
-/** The symbols a definition node names: its instance's component, the swaps it sets and a swap property's default. */
-function symbolsNamed(node) {
+/**
+ * What a definition node names by id: its instance's component, the swaps it sets, a swap property's default and the
+ * slot contents it assigns.
+ */
+function namedBy(node) {
   const out = [];
-  const assigned = (list) => { for (const a of list ?? []) if (a.varValue?.value?.symbolIdValue?.guid) out.push(key(a.varValue.value.symbolIdValue.guid)); };
+  const assigned = (list) => {
+    for (const a of list ?? []) {
+      const value = a.varValue?.value;
+      if (value?.symbolIdValue?.guid) out.push(key(value.symbolIdValue.guid));
+      if (value?.slotContentIdValue?.guid) out.push(key(value.slotContentIdValue.guid));
+    }
+  };
   if (node.symbolData?.symbolID) out.push(key(node.symbolData.symbolID));
   for (const entry of node.symbolData?.symbolOverrides ?? []) {
     if (entry.overriddenSymbolID) out.push(key(entry.overriddenSymbolID));

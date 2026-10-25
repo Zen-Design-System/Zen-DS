@@ -46,7 +46,9 @@ class Writer {
   int64(v) { v = BigInt(v); this.uint64(v < 0n ? ((-v) << 1n) - 1n : v << 1n); }
   float(v) {
     const view = new DataView(new ArrayBuffer(4));
-    view.setFloat32(0, v, true);
+    // A stored copy keeps Figma's non-finite floats as text ("Infinity": an unset max height, "NaN"), which JSON cannot
+    // hold: as null they came back 0 and squeezed a chart's slot flat (2026-10-25).
+    view.setFloat32(0, typeof v === "string" ? Number(v) : v, true);
     let bits = view.getInt32(0, true);
     bits = (bits >>> 23) | (bits << 9);
     if ((bits & 255) === 0) { this.byte(0); return; }
