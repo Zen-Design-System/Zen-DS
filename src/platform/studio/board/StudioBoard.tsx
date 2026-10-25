@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, type ReactNode, type RefObject } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type ReactNode, type RefObject } from "react";
 import { Heading, Text } from "../../../components/Text";
 import { ExampleCard } from "../../PlatformShowcases";
 // From the registry itself: an example edit then hot-updates the board, and Fast Refresh re-renders its frames.
@@ -43,6 +43,10 @@ type SectionLayoutState = {
   /** The section size last written ("width height"), and one waiting for the next frame (see place). */
   size: string;
   sizeFrame: number;
+  /** Set once this mount has measured its frames (fonts loaded, two frames painted): from then on a frame off screen
+   *  skips its content (data-cv, board.css), at the height measured here. Per mount, not per page like `settled`: a
+   *  frame never measured would skip at a guessed height and move its column when it comes into view. */
+  skipOffscreen: boolean;
 };
 
 /** A frame's layout height: world px, unscaled by the zoom, as precise as the layout (offsetHeight rounds). */
@@ -128,7 +132,7 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
   if (!stateRef.current || keyRef.current !== key) {
     const opening = openingFor(key);
     keyRef.current = key;
-    stateRef.current = { observer: stateRef.current?.observer ?? null, observed: stateRef.current?.observed ?? new Set(), heights: new Map(), widths: new Map(), base: opening.base, placed: new WeakMap(), settled: opening.settled, size: "", sizeFrame: 0 };
+    stateRef.current = { observer: stateRef.current?.observer ?? null, observed: stateRef.current?.observed ?? new Set(), heights: new Map(), widths: new Map(), base: opening.base, placed: new WeakMap(), settled: opening.settled, size: "", sizeFrame: 0, skipOffscreen: false };
   }
 
   /** `fromObserver`: called back by the ResizeObserver, where a new section size would resize the section and the world
@@ -155,6 +159,12 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
     let moved = false;
     list.forEach(({ id }, index) => {
       const element = elements.get(id)!;
+      if (state.skipOffscreen) {
+        // The height it keeps while its content is skipped (contain-intrinsic-block-size in board.css).
+        const height = `${items[index].height}px`;
+        if (element.style.getPropertyValue("--studio-frame-h") !== height) element.style.setProperty("--studio-frame-h", height);
+        if (element.dataset.cv !== "true") element.dataset.cv = "true";
+      }
       const { x, y } = layout.positions[index];
       const key = `${x},${y}`;
       if (state.placed.get(element) === key) return;
@@ -235,6 +245,29 @@ function useSectionLayout(containerRef: RefObject<HTMLDivElement | null>, frames
       stop();
     };
   }, [place]);
+
+  // This mount's frames are measured once the fonts have loaded and two frames have painted: then a frame off screen may
+  // skip its content (skipOffscreen; pan and zoom stop paying for the whole board, Input's pan went from 40 slow frames
+  // to 3, 2026-10-25). Again for each page shown.
+  useEffect(() => {
+    let frame = 0;
+    let gone = false;
+    void (document.fonts?.ready ?? Promise.resolve()).then(() => {
+      if (gone) return;
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(() => {
+          const state = stateRef.current;
+          if (!state) return;
+          state.skipOffscreen = true;
+          place();
+        });
+      });
+    });
+    return () => {
+      gone = true;
+      cancelAnimationFrame(frame);
+    };
+  }, [key, place]);
 
   // Every render: the frames there are now (an example added, renamed or remounted) are measured, watched and placed
   // before the browser paints, so no frame ever shows on top of another.
