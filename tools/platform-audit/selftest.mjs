@@ -140,7 +140,8 @@ ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageCheck
   await fixture("toolbar-search: capped at 240", docsPage(example("Capped", toolbar(`<div style="flex: 1 1 0; max-width: 240px">${search()}</div>`))), "widgetLayout", "toolbar-search", { clean: true });
   await fixture("toolbar-search: a Search alone on its row", docsPage(example("Alone", `<div style="display: flex; width: 800px"><div style="flex: 1 1 0">${search()}</div></div>${chip}`)), "widgetLayout", "toolbar-search", { clean: true });
   await fixture("toolbar-search: a phone Search (rounded)", docsPage(example("Rounded", toolbar(`<div style="flex: 1 1 0">${search("zen-search--rounded")}</div>`))), "widgetLayout", "toolbar-search", { clean: true });
-  await fixture("toolbar-search: DashboardHeader's own Control-Bar slot", docsPage(example("Control bar", toolbar(`<div class="zen-dashboard-header__search" style="flex: 0 1 320px">${search()}</div>`))), "widgetLayout", "toolbar-search", { clean: true });
+  await fixture("toolbar-search: a DashboardHeader Control-Bar slot widened to 320", docsPage(example("Control bar", toolbar(`<div class="zen-dashboard-header__search" style="display: flex; flex: 0 1 320px">${search()}</div>`))), "widgetLayout", "toolbar-search", { finds: ['the toolbar Search "Search tasks" is 320px wide'] });
+  await fixture("toolbar-search: DashboardHeader's Control-Bar slot at 240", docsPage(example("Control bar", toolbar(`<div class="zen-dashboard-header__search" style="display: flex; flex: 0 1 240px">${search()}</div>`))), "widgetLayout", "toolbar-search", { clean: true });
 }
 
 /* ── outline, outline-h1 / -start / -card / -siblings (audit.mjs pageChecks) ────────────────────────────────────── */

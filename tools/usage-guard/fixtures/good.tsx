@@ -28,6 +28,8 @@ export const Good = () => <>
   <AppShell sidebar={nav} header={<AppShellHeader leading={<Breadcrumbs master={false} items={crumbs} onNavigate={go} />} actions={<><AppShellAction icon="icon-help-circle-line" aria-label="Help" onClick={openHelp} /><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} onClick={openNotifications} /><Menu aria-label="Account" trigger={<AppShellAccount name="Ava Chen" />} items={accountItems} /></>} />}>{page}</AppShell>
   <Stack direction="row" gap="xs" align="center"><Box width="fill" maxWidth={240}><Search placeholder="Search tasks" /></Box><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></Stack>
   <Grid columns={{ mobile: 1, desktop: "minmax(0, 240px) 1fr" }} gap="sm"><Search placeholder="Search members" /><Chip variant="advanced" dropdown popoverItems={items}>Role</Chip></Grid>
+  <DashboardHeader type="custom"><Box width="fill" maxWidth={240}><Search placeholder="Search tasks" /></Box><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></DashboardHeader>
+  <DashboardHeader search={<Box width={200}><Search placeholder="Search tasks" /></Box>} controls={<Chip variant="advanced" dropdown popoverItems={items}>Status</Chip>} />
   <Stack direction="row" gap="xs" align="center"><Search shape="rounded" placeholder="Search messages" /><Chip variant="advanced" dropdown popoverItems={items}>Unread</Chip></Stack>
   {/* zen-allow-search-toolbar-width: a search results page, where the query is the page's task */}
   <Stack direction="row" gap="xs" align="center"><Search placeholder="Search the help centre" /><Chip variant="advanced" dropdown popoverItems={items}>Topic</Chip></Stack>

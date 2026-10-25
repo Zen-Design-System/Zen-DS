@@ -42,6 +42,12 @@ export const Bad = () => <>
   <Stack direction="row" gap="xs" align="center"><Box width="fill" maxWidth={320}><Search placeholder="Search tasks" /></Box><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></Stack>
   {/* expect: search/toolbar-width */}
   <Grid columns={{ mobile: 1, desktop: "minmax(0, 320px) 1fr" }} gap="sm"><Search placeholder="Search members" /><Chip variant="advanced" dropdown popoverItems={items}>Role</Chip></Grid>
+  {/* expect: search/toolbar-width */}
+  <DashboardHeader search={<Box width={320}><Search placeholder="Search tasks" /></Box>} controls={<Chip variant="advanced" dropdown popoverItems={items}>Status</Chip>} />
+  {/* expect: search/toolbar-width */}
+  <DashboardHeader style={{ "--zen-dashboard-header-search-basis": "320px" }} search={<Search placeholder="Search tasks" />} controls={<Chip variant="advanced" dropdown popoverItems={items}>Status</Chip>} />
+  {/* expect: search/toolbar-width */}
+  <DashboardHeader type="custom"><Search placeholder="Search tasks" /><Chip variant="advanced" dropdown popoverItems={items}>Status</Chip></DashboardHeader>
   {/* expect: choice/needs-label */}
   <Checkbox checked={on} onChange={setOn} />
   {/* expect: radio/needs-name */}

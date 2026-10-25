@@ -69,3 +69,30 @@ DashboardHeader 320: "ở control bar thì tối đa là 240". Each item gets it
   the cache). `npm test` in tools/registry: 43/43. Probes for the deploy check: no hook 404, no secret 503, ready 401.
 - Runbook Bước 5 (Vietnamese): Polar products + metadata, sandbox test against a local PocketBase with
   `polar webhook listen`, production deploy, check, rollback.
+
+## DashboardHeader Search ≤ 240 (tier M; branch zen/feat/dashboard-header-search-240-20261025; slot from Giám sát)
+
+The user: "ở control bar thì tối đa là 240". The Control-Bar Search follows the toolbar cap in code and Figma, and the
+three toolbar Search checks stop skipping it.
+
+| Where | Before | After |
+| --- | --- | --- |
+| `dashboard-header.css` `--zen-dashboard-header-search-basis` | 320px (phone 100%) | 240px (phone 100%) |
+| Figma 4122:33401 `Elements > Search/Default` | FIXED 320 | FIXED 240 (Control-Slots x 256, Action-Slots 872 wide) |
+| Harness `search/toolbar-width` | Stack, Grid | + DashboardHeader: a width forced past 240 on the search slot's Search or its one wrapper, the slot variable in `style`, a custom row's Search (3 bad + 2 good cases) |
+| Audit kind `toolbar-search` (`SKIP_SEARCH`) | skipped `.zen-dashboard-header__search` | checked (self-test: 320 slot found, 240 clean) |
+| Figma audit `OWN_SEARCH_BAR` | skipped Dashboard/Header, Header/Dashboard, Control-Bar | only a top bar's centre (Nav-Center, Center-Slot, Leading-Slot, Top-Navigation) |
+
+- **Figma:** the only variant with a Search is Control-Bar. A focused audit of the variant (binding, overflow,
+  toolbar width) found 0, and the screenshot looks right. The full 103 KB audit does not fit a `use_figma` call
+  (50,000 characters, 46 KB minified), so only the rules this edit touches ran. Not published: the library publish
+  stays with the designer.
+- **Contract:** re-captured with `mcp-capture` (one chunk, `assemble.cjs`). It also brings in drift from before this
+  change: the set descriptions (HTML escapes decoded) and the Action-Item count badge (2XSmall 12px → XSmall 16px,
+  Caption/Regular), which `notification-dot.css` already draws.
+- **Lock (Giám sát's request: fix the finding in this change):** `contracts.lock.json` had fallen behind the contracts
+  on main (58 stale sets, 15 sets missing). Regenerated with `figma-call.mjs lock`; `lock --check` passes (109 sets,
+  3339 variants). `lock --check` stays out of CI and the gate: adding it is a new check, so it needs the user's approval.
+- **Gate:** `qa --isolated --pages=dashboard-header,app-shell,side-panel` PASS (suite 64/64, Vitest 87/87, audit
+  1512/390/320 0 new, dark 0, behaviour 0). I opened its 6 contact sheets: the search is 240 at 1512 and fills its row
+  at 390. Merged main 7d95ef7b (#297) and removed the BACKLOG line (archived); then main 4e218464 (#298) and 5c31f566 (#299), registry and docs only.
