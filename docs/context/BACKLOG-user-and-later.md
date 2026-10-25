@@ -8,12 +8,6 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
 ## For the user (Việc của anh/chị)
 - **P2 · LICENSE.md is a draft: legal review before selling (2026-10-08):** drafted on PR #5 (Dizai Studio, Vietnam law, subscription, apps-not-kits, per company + member limit); a lawyer must review it and remove its "Draft" note. Was: package.json has no `license` field and the repo no
   LICENSE/EULA; needed before selling (legal text from the user).
-- **P2 · Private registry: the user's steps, then Phase 6 (2026-10-08; rewritten 2026-10-24):** Phase 3: the kit is
-  ready (`tools/registry/deploy/`, Podman since 01b198b9); the user creates the VPS, DNS `npm.dizai.studio`, the R2
-  bucket + `backup.env`, runs `deploy.sh`, adds an uptime check and tries one real `npm login`. Phase 4: the user sets
-  `ZEN_REGISTRY_PUBLISH_KEY` (read by `.github/workflows/release.yml`) and deprecates the public npmjs `@zen-ds/*`
-  packages. Phase 5 is done (PR #5). Phase 6, a payment webhook (nothing in `tools/registry` yet): the user picks the
-  provider, then L.
 - **P3 · Private registry: warn on shared license keys (2026-10-08; rewritten 2026-10-24):** the usage report per
   licence exists (5afe9ea2: developers, CI keys, IPs and installs per month; `usage-report.js` sorts by IP count). Left:
   a warning when one key goes far beyond its `seats`, and the package version of each install
@@ -23,11 +17,6 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   an OPFS folder, which the browser always grants; a folder the person picks is usually "prompt" after a reload, so the
   Reconnect button path (`mirrors.ts` reconnectFolder → requestPermission) needs one check by hand in Chromium.
   (2026-10-25: about 2 minutes, optional; close the line if the user skips it.)
-- **P2 · Toolbar Search 240 vs DashboardHeader's 320 (2026-10-24; a user / designer question):** the user's rule caps
-  a toolbar Search at 240 (harness `search/toolbar-width`, audit kinds `toolbar-search` / Figma
-  `search/toolbar-width`), but Figma's `Primitives/Dashboard/Header` Type=Control-Bar (4122:33401) has its Search
-  FIXED 320, and code follows it (`dashboard-header.css` `--zen-dashboard-header-search-basis`); all three checks
-  leave that slot out. Move the component (and Figma) to 240?
 
 ## Later phase (Giai đoạn sau)
 - **Code view in other languages — on hold (user, 2026-10-08: "tạm lưu backlog, sẽ làm giai đoạn sau"):** order chosen:
