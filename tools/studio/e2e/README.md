@@ -71,6 +71,10 @@ the engine modules or the build config.
 - **The baseline.** `matrix.baseline.json` maps each row id to `works` or `broken`.
   - A row that moves from works to broken is a regression, and the run exits 1.
   - A row that moves from broken to works is reported as fixed: record it with `--update-baseline`.
+  - A row not in the baseline is new. If it works, it is listed: record it with `--update-baseline`. If it comes back
+    broken, the run exits 1 and the QA gate fails, as for a regression (user, 2026-10-25). The opt-in groups (`dnd`,
+    `figma`) are in the baseline too, so a standalone `--only=figma` judges them the same way. DND-03 and DND-05…08
+    are left out until they are fixed, so `--only=dnd` fails until then.
   - Rows listed under `flaky` are known races. They stay `broken` until the race is fixed.
 - **Reports.** They go to `.qa/studio-e2e/<stamp>.{md,json}`, with one screenshot per failing row. The 10 latest runs
   are kept.

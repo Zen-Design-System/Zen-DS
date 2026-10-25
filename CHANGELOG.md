@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- QA gate (user, 2026-10-25): a Studio E2E row that is not in `matrix.baseline.json` and comes back broken now fails the
+  gate step and `npm run studio:e2e` (exit 1), marked "✗ New rows broken". New rows that work stay a pass, listed to
+  record with `--update-baseline`; rows the baseline marks broken and flaky rows are still allowed. The opt-in `figma`
+  and `dnd` groups are now in the baseline (FW-186 flaky; DND-03 and DND-05…08 left out until they are fixed).
 - Zen Studio phone chrome (user, 2026-10-25): the phone bars drawn from a desktop AppShellHeader now work in Play. The
   top bar's Search becomes the bar's Search control bar (doing what the desktop's does; a root's folds into the Search
   action), ⋯ More opens a sheet of the folded actions, the account avatar keeps its menu, and the tab bar goes where the

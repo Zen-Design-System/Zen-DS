@@ -51,7 +51,7 @@ import { spawnSync, spawn } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   INTERACTION_FOLDERS, LABELS_FILE, PAGE_SECONDS, REPRESENTATIVE, TOKEN_STYLE_FILES, allPages, auxKind, contractSuites, dirtyFiles,
-  e2eRowSeconds, guidelineOwners, guidelineSlugOf, isExampleSource, markPassed, pageEstimator, pageSeconds, pagesForEdit, pendingAux, retryPagesFrom,
+  e2eRowSeconds, e2eVerdictLines, guidelineOwners, guidelineSlugOf, isExampleSource, markPassed, pageEstimator, pageSeconds, pagesForEdit, pendingAux, retryPagesFrom,
   pendingEdits, planE2E, planShards, primaryPages, readLedger, readTimings, sha1File, shardCapS, sheetsToReview, tokenScope, uiKind,
   writeLedger, writeTimings,
 } from "./lib.mjs";
@@ -510,7 +510,8 @@ if (failFast) {
 }
 
 // Zen Studio E2E (tools/studio/e2e): drives the Studio UI on its own dev server (port 5190+, its own drafts), so it needs
-// neither 5173 nor a page. A row that worked in matrix.baseline.json and now fails is a regression (exit 1).
+// neither 5173 nor a page. A row that worked in matrix.baseline.json and now fails is a regression (exit 1), and a row
+// not in it that comes back broken fails too (user, 2026-10-25); lib.mjs e2eVerdictLines.
 // Shards (2026-10-22): the full matrix (338 rows) took 25 min alone and passed its 40-min limit under load, ending with
 // "no summary". Its rows now run in shards one after another (they share the save fixture), each planned at about 10 min
 // from the last run's seconds per row (lib.mjs planE2E), with a --budget after which a shard starts no row (those are
@@ -545,12 +546,13 @@ if (studioInScope && !staticFailed.length && RETRY?.steps.some((x) => x.name.sta
     report = rel(writeReport(path.join(root, ".qa/studio-e2e"), `${stamp}-gate`, rows, verdict, { host: first?.host, groups: first?.groups, ms, shards: shards.map((x) => ({ shard: `${x.k}/${plan.n}`, report: x.md ?? null, exit: x.r.code, ms: x.r.ms })), viteErrors: union(shards.map((x) => x.rep?.viteErrors ?? [])), viteErrorDetails: shards.flatMap((x) => x.rep?.viteErrorDetails ?? []).filter((entry, index, all) => all.findIndex((other) => other.line === entry.line) === index) }).md);
   }
   const trouble = shards.filter((x) => !x.rep || x.r.code === 2).map((x) => `✗ ${plan.n > 1 ? `shard ${x.k}/${plan.n}` : "the run"}: ${x.r.killed ? `stopped at its ${Math.round(plan.cap / 60)}-min limit` : `exit ${x.r.code}`}${x.rep ? "" : ", no report"}${x.r.code === 2 ? ` — ${tail(x.r.out, /error|Error|Stopped/).slice(0, 4).join(" | ")}` : ""}`);
-  const failed = trouble.length || shards.some((x) => x.r.code !== 0);
+  const lines = e2eVerdictLines(verdict);
+  const failed = trouble.length || shards.some((x) => x.r.code !== 0) || lines.fail;
   step("runtime", "Studio E2E (feature matrix)", failed ? "fail" : verdict.fixed.length ? "warn" : "pass",
     `${count("works")} works · ${count("broken")} broken${count("skip") ? ` · ${count("skip")} skipped` : ""}${report ? ` · ${report}` : ""}${plan.n > 1 ? ` · ${plan.n} shards` : ""} · ${Math.round(ms / 1000)}s`, [
-      verdict.regressions.length ? `✗ Regressions (worked in the baseline): ${verdict.regressions.map((row) => row.id).join(", ")}` : "",
+      ...lines.failed,
       notRun.length ? `✗ Not run (a shard reached its ${Math.round(plan.budget / 60)}-min budget): ${notRun.length} row(s): ${brief(notRun.map((row) => row.id), 12)}` : "",
-      verdict.fixed.length ? `✓ Fixed since the baseline (run with --update-baseline to record): ${verdict.fixed.map((row) => row.id).join(", ")}` : "",
+      ...lines.listed,
       ...trouble,
       ...(plan.n > 1 ? shards.map((x) => `shard ${x.k}/${plan.n}: ${x.rep?.rows?.length ?? 0} row(s) · ${Math.round(x.r.ms / 1000)}s${x.md ? ` · ${x.md}` : ""}`) : []),
     ].filter(Boolean));

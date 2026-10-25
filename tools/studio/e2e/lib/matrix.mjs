@@ -1,6 +1,8 @@
 // Zen Studio E2E: the feature matrix. Every row ends as works / broken / skip; the baseline (matrix.baseline.json) says
 // what each row did last time it was accepted. works → broken is a regression (exit 1); broken → works is a fix the
-// baseline should record (`--update-baseline`). Rows not in the baseline are new: reported, never a failure.
+// baseline should record (`--update-baseline`). Rows not in the baseline are new: one that works is listed (record it
+// with `--update-baseline`), one that comes back broken fails as a regression does (user, 2026-10-25: ST-29 and DA-10
+// broke unseen as new rows on 2026-10-24).
 import fs from "node:fs";
 import path from "node:path";
 
@@ -34,19 +36,25 @@ export function readFlaky(file) {
   }
 }
 
-/** { regressions, fixed, fresh } against the baseline (id → status). */
+/**
+ * { regressions, fixed, fresh, newBroken } against the baseline (id → status). `fresh`: every row not in the baseline;
+ * `newBroken`: those that came back broken (a failure). A flaky id counts as baselined broken, as writeBaseline keeps it.
+ */
 export function compare(rows, baseline, flaky = new Set()) {
   const regressions = [];
   const fixed = [];
   const fresh = [];
+  const newBroken = [];
   for (const row of rows) {
     if (row.status === "skip") continue;
-    const before = baseline[row.id];
-    if (!before) fresh.push(row);
-    else if (before === "works" && row.status === "broken") regressions.push(row);
+    const before = baseline[row.id] ?? (flaky.has(row.id) ? "broken" : undefined);
+    if (!before) {
+      fresh.push(row);
+      if (row.status === "broken") newBroken.push(row);
+    } else if (before === "works" && row.status === "broken") regressions.push(row);
     else if (before === "broken" && row.status === "works" && !flaky.has(row.id)) fixed.push(row);
   }
-  return { regressions, fixed, fresh };
+  return { regressions, fixed, fresh, newBroken };
 }
 
 export function writeBaseline(file, rows, previous) {
@@ -64,7 +72,7 @@ export function writeReport(dir, stamp, rows, verdict, meta) {
   fs.mkdirSync(dir, { recursive: true });
   const json = path.join(dir, `${stamp}.json`);
   const md = path.join(dir, `${stamp}.md`);
-  fs.writeFileSync(json, `${JSON.stringify({ stamp, ...meta, verdict: { regressions: verdict.regressions.map((r) => r.id), fixed: verdict.fixed.map((r) => r.id), fresh: verdict.fresh.map((r) => r.id) }, rows }, null, 2)}\n`);
+  fs.writeFileSync(json, `${JSON.stringify({ stamp, ...meta, verdict: { regressions: verdict.regressions.map((r) => r.id), newBroken: verdict.newBroken.map((r) => r.id), fixed: verdict.fixed.map((r) => r.id), fresh: verdict.fresh.map((r) => r.id) }, rows }, null, 2)}\n`);
   const count = (status) => rows.filter((row) => row.status === status).length;
   const lines = [
     `# Zen Studio E2E — ${stamp}`,
@@ -72,6 +80,7 @@ export function writeReport(dir, stamp, rows, verdict, meta) {
     `${count("works")} works · ${count("broken")} broken · ${count("skip")} skipped · host page \`${meta.host}\` · ${Math.round(meta.ms / 1000)} s`,
     "",
     verdict.regressions.length ? `**Regressions:** ${verdict.regressions.map((r) => r.id).join(", ")}` : "No regressions against the baseline.",
+    verdict.newBroken.length ? `**New rows broken (not in the baseline):** ${verdict.newBroken.map((r) => r.id).join(", ")}` : "",
     verdict.fixed.length ? `**Fixed since the baseline:** ${verdict.fixed.map((r) => r.id).join(", ")}` : "",
     "",
     "| Row | Area | Feature | WP | Status | Evidence |",
