@@ -138,6 +138,9 @@
 .zen-top-nav__control { display: flex; box-sizing: border-box; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-top-nav-side); }
 .zen-top-nav__control > * { min-width: 0; }
 .zen-top-nav__control:has(> .zen-tabs) { padding-block: 0; }
+/* A Search over the tabs (Control-Bar's Search and Controls, one column): the Search keeps the padding above, the Tab-Bar
+   still takes none below. */
+.zen-top-nav__control:has(> .zen-stack > .zen-tabs:last-child) { padding-block-end: 0; }
 /* A Segmented in the Control-Bar always spans the bar with equal items (mobile pattern), even without fullWidth. */
 .zen-top-nav__control > .zen-segmented { display: flex; width: 100%; }
 .zen-top-nav__control > .zen-segmented > .zen-segmented__item { flex: 1 1 0; }

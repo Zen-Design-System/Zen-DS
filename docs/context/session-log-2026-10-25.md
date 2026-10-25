@@ -182,3 +182,30 @@ The user published the Zen library; Studio's ⌘C → ⌘V now lands in any Figm
   "(target)", "(target 2)", "(target 3)" stay in the team for the user to delete.
 - **Not mine, noted:** the Zen plugin's ⌘V import hung once, and in a non-Zen file gave a partial frame (plugin repo); it draws no "Other"
   segment in the Expenses stacked bars where the direct paste does.
+
+## Studio phone chrome controls (tier M; branch zen/fix/studio-phone-chrome-20261025; user: "Có, làm thẻ phone chrome đi")
+
+The phone bars `tools/studio/responsive-header.mjs` draws from a desktop AppShellHeader left four dead controls on the
+DEMO-MEET page `quan-ly-task` (a copy gave `interaction/action-without-handler` ×3, `icon-button/needs-action`,
+`interaction/controlled-needs-handler`). Now:
+- **Search:** the top bar's Search (its props, without `shortcut` / `size`) is the TopNavigation `controlBar`, above
+  the tabs on a child (`<Stack gap="xs">`); a root adds `searchAction={{ label }}` and keeps two trailing places
+  (rule 1). TopNavigation: `searchAction.onClick` is optional — with `scrollRef` it scrolls up and focuses the field
+  (so the export writes no stand-in; compile selftest now shows the stand-in on PageHeader `back`).
+- **More:** TopNavigationAction `menu?: MenuEntry[]` wraps the action in a Menu (a sheet on a phone). The folded
+  actions are rows running their own onClick; a folded Menu trigger (Help) is a group whose rows take the Menu's
+  `onSelect`, a per-item navigate narrowed to each row's target. A kept Menu trigger becomes an action with `menu`.
+- **Account:** `leading` is the desktop's Menu (items, onSelect; `align` dropped) around the AppShellAccount; a bare
+  account keeps its onClick.
+- **Tab bar:** `onValueChange` = the Sidebar's `onItemClick`, else the rows' own `proto.navigate` as one per-item navigate.
+- **Met while fixing:** a linked part redrawn with a component the page does not import (Stack, Menu) was refused
+  ("not imported") and withPhoneSync stopped silently. planPhoneSync swaps such a part in (`replaceElement`, which
+  imports), alone in its request. Harness: an action with `menu` counts as handled (`handlesPress`; good.tsx case).
+- **Open:** the tab bar's More tab (> 5 Sidebar rows) has no sheet: BottomNavigation needs an API →
+  BACKLOG-user-and-later (P3).
+
+Checks: responsive-header selftest 40 (Search root/child, More rows + group, account Menu / onClick, tabs onItemClick /
+row navigates, the import swap); a synced copy of `quan-ly-task` → 0 findings from derived parts (1 left:
+`table/titled-box`, page content). New E2E rows PT-25 (tab bar navigates in phone Play), PT-26 (Search filters + folded
+Search action, More sheet rows, account menu).
+

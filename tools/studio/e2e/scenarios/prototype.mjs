@@ -350,6 +350,64 @@ async function checkSidebarSticks(root, { rows = true } = {}) {
 
 /** Scrolls what scrolls the shown Screen (the nearest ancestor of its Top Navigation that scrolls its overflow) and checks
  *  the large title folds, the system bars stay at that box's edges, and the title opens again at the top. */
+/** Two phone Screens on one master layout, their phone chrome drawn from it as the page opens (PT-25, PT-26; the DEMO-MEET
+ *  task page, 2026-10-24): the Sidebar leads Overview and Tasks by item, the header has a Search that filters the task
+ *  Table, a Help Menu, notifications, the account's Menu and an Export button, more than the phone bar holds. */
+const phoneChromePage = (title) => {
+  const shell = (selected, heading, content) => `        <AppShell
+          sidebar={<Sidebar aria-label="Main" selectedId="${selected}" onItemClick={proto.navigate({ home: "overview", tasks: "tasks" })}>
+            <SidebarMenuItem id="home" label="Overview" icon="icon-home-03-line" />
+            <SidebarMenuItem id="tasks" label="Tasks" icon="icon-check-square-line" />
+            <SidebarMenuItem id="people" label="People" icon="icon-users-line" />
+          </Sidebar>}
+          header={<AppShellHeader
+            center={<Search aria-label="Search tasks" placeholder="Search" shortcut="K" onValueChange={proto.filter({ column: "title", match: "contains" })} />}
+            actions={<Stack direction="row" gap="sm" align="center">
+              <Menu align="end" onSelect={proto.toast("Guide opened")} trigger={<AppShellAction icon="icon-help-circle-line" aria-label="Help" />} items={[{ id: "guide", label: "Open the guide", icon: "icon-file-doc-line" }]} />
+              <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} onClick={proto.toast("3 new")} />
+              <Menu align="end" onSelect={proto.toast("Not in this demo")} trigger={<AppShellAccount name="Ha Tran" />} items={[{ id: "profile", label: "My profile", icon: "icon-user-circle-line" }]} />
+            </Stack>}
+            main={<PageHeader title="${heading}" actions={<Button level="tertiary" startIcon="icon-download-01-line" onClick={proto.toast("Exported")}>Export</Button>} />}
+          />}
+        >
+${content}
+        </AppShell>`;
+  return `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { AppShell, AppShellAccount, AppShellAction, AppShellHeader, Button, Menu, PageHeader, Search, Sidebar, SidebarMenuItem, Stack, Table, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="overview" title="Overview" device="phone">
+${shell("home", "Overview", `          <Stack gap="md" padding="lg">
+            <Table aria-label="Tasks" columns={[{ id: "title", header: "Task" }]} rows={[{ id: "1", title: "Alpha" }, { id: "2", title: "Beta" }, { id: "3", title: "Gamma" }, { id: "4", title: "Delta" }]} />
+            ${Array.from({ length: 30 }, (_, index) => `<Text>Note ${index + 1}</Text>`).join("\n            ")}
+          </Stack>`)}
+      </Screen>
+      <Screen id="tasks" title="Tasks" device="phone" x={480}>
+${shell("tasks", "Tasks", `          <Stack padding="lg">
+            <Text>Every task</Text>
+          </Stack>`)}
+      </Screen>
+    </Board>
+  );
+}
+`;
+};
+
+/** Seeds the phone chrome page and waits for both Screens' phone parts drawn from the desktop header, linked. */
+async function phoneChromeSeeded(ctx) {
+  const seeded = await seededPage(ctx, phoneChromePage, /<Screen id="tasks"/);
+  await until(async () => {
+    const page = await seeded.text();
+    return (page.match(/phoneLinked=\{\["topNavigation", ?"bottomNavigation"\]\}/g) ?? []).length === 2 && /onValueChange=\{proto\.navigate\(\{ home: "overview", tasks: "tasks" \}\)\}/.test(page) && /searchAction=\{\{ label: "Search tasks" \}\}/.test(page);
+  }, { message: "both Screens' phone chrome drawn and linked" }).catch(async (error) => { throw new Error(`${error.message} (${(await seeded.text()).match(/topNavigation=\{.{0,300}/)?.[0] ?? "no topNavigation"})`); });
+  return seeded;
+}
+
 async function checkFold(root) {
   const nav = root.locator(".zen-top-nav").first();
   await nav.waitFor({ state: "visible", timeout: 5000 });
@@ -1106,6 +1164,78 @@ export const rows = [
       await until(async () => (await scroll()).top === 0, { message: "the Screen scrolls again once the panel is closed" });
       await page.keyboard.press("Escape");
       return `Screen scrolls inside the device (range ${start.max}); Side Panel opened at ${top}: in the window, nothing moved, wheel held; closed, the Screen scrolls`;
+    },
+  },
+  {
+    id: "PT-25", feature: "Phone chrome from the desktop header (the DEMO-MEET task page, 2026-10-24: a frozen tab bar): the phone tab bar goes where the Sidebar's rows go (its per-item onItemClick as onValueChange); in phone Play the Tasks tab opens Tasks and Overview comes back", wp: "phone chrome 2026-10-25", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await phoneChromeSeeded(ctx);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      await until(async () => (await playScreen(page)) === "overview", { message: "Play starts on Overview" });
+      const tab = (name) => playing(page).locator(".zen-bottom-nav__item", { hasText: name });
+      await step("press the Tasks tab", () => tab("Tasks").click());
+      await until(async () => (await playScreen(page)) === "tasks", { message: "the Tasks tab → Tasks" });
+      await until(async () => (await tab("Tasks").getAttribute("aria-current")) === "page", { message: "Tasks' bar marks Tasks" });
+      await step("press the Overview tab", () => tab("Overview").click());
+      await until(async () => (await playScreen(page)) === "overview", { message: "the Overview tab → Overview" });
+      await page.keyboard.press("Escape");
+      return "phone parts linked with onValueChange = the Sidebar's onItemClick · Play: Tasks tab → tasks → Overview tab → overview";
+    },
+  },
+  {
+    id: "PT-26", feature: "Phone chrome from the desktop header does what the desktop does: the Search is the control bar and filters the Table, scrolled away its Search action scrolls back and focuses it; More opens a sheet whose rows run the folded actions (Export, Help's menu); the account opens its menu", wp: "phone chrome 2026-10-25", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await phoneChromeSeeded(ctx);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      await until(async () => (await playScreen(page)) === "overview", { message: "Play starts on Overview" });
+      const nav = playing(page).locator(".zen-top-nav").first();
+      // The task names the shown Screen lists (a phone Table may draw its rows as a list).
+      const tasks = async () => (await playing(page).locator(".studio-player__device").innerText()).split("\n").map((line) => line.trim()).filter((line) => /^(Alpha|Beta|Gamma|Delta)$/.test(line)).join();
+      // Search: the control bar's field filters the Table as the desktop's does.
+      const field = nav.getByLabel("Search tasks");
+      await until(async () => (await tasks()) === "Alpha,Beta,Gamma,Delta", { message: "four tasks at first" });
+      await step("type in the control bar's Search", () => field.fill("gam"));
+      await until(async () => (await tasks()) === "Gamma", { message: "“gam” keeps Gamma" });
+      await field.fill("");
+      await until(async () => (await tasks()) === "Alpha,Beta,Gamma,Delta", { message: "cleared: every task" });
+      // Scrolled away, the Search folds into the bar's Search action, which scrolls back up and focuses the field.
+      // What scrolls the shown Screen (as checkFold finds it): its scrollTop, set first when `to` is given.
+      const scroller = (to = null) => playing(page).evaluate((root, to) => {
+        let box = root.querySelector(".zen-top-nav");
+        while (box && box !== root && !(box.scrollHeight > box.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(box).overflowY))) box = box.parentElement;
+        if (!box || box === root) return null;
+        if (to !== null) box.scrollTop = to;
+        return box.scrollTop;
+      }, to);
+      await scroller(600);
+      const searchAction = nav.locator(".zen-top-nav__search");
+      await until(async () => (await searchAction.count()) === 1 && (await scroller()) > 100, { message: "scrolled: the Search action in the bar" });
+      await step("press the Search action", () => searchAction.click());
+      await until(async () => (await scroller()) === 0 && (await page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? document.activeElement?.closest("[aria-label]")?.getAttribute("aria-label"))) === "Search tasks", { message: "the Search action scrolls up and focuses the field" });
+      // More: a sheet of the folded actions, each doing what it does on desktop.
+      const more = nav.getByRole("button", { name: "More" });
+      const sheet = page.getByRole("dialog", { name: "More" });
+      await step("open More", () => more.click());
+      await sheet.waitFor({ state: "visible", timeout: 3000 });
+      await step("press Export in the sheet", () => sheet.getByText("Export", { exact: true }).click());
+      await page.getByText("Exported", { exact: true }).first().waitFor({ state: "visible", timeout: 3000 });
+      await until(async () => (await sheet.count()) === 0, { message: "the sheet closes after a row" });
+      await step("open More again", () => more.click());
+      await step("press Help › Open the guide", () => sheet.getByText("Open the guide", { exact: true }).click());
+      await page.getByText("Guide opened", { exact: true }).first().waitFor({ state: "visible", timeout: 3000 });
+      // The account keeps its menu (the account sheet on a phone).
+      await until(async () => (await sheet.count()) === 0, { message: "the sheet closes" });
+      await step("press the account", () => nav.locator(".zen-top-nav__leading button").first().click());
+      await step("press My profile", () => page.getByRole("dialog").getByText("My profile", { exact: true }).click());
+      await page.getByText("Not in this demo", { exact: true }).first().waitFor({ state: "visible", timeout: 3000 });
+      await page.keyboard.press("Escape");
+      return "Search “gam” → Gamma · scrolled → Search action → top, field focused · More sheet: Export → toast, Help › Open the guide → toast · account → My profile → toast";
     },
   },
 ];

@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio phone chrome (user, 2026-10-25): the phone bars drawn from a desktop AppShellHeader now work in Play. The
+  top bar's Search becomes the bar's Search control bar (doing what the desktop's does; a root's folds into the Search
+  action), ⋯ More opens a sheet of the folded actions, the account avatar keeps its menu, and the tab bar goes where the
+  Sidebar's rows go. TopNavigation: an action takes `menu` (a Menu, an action sheet on a phone), and `searchAction`
+  without `onClick` scrolls back up and focuses the Search itself.
 - Zen Studio Copy for Figma (2026-10-25): ⌘C on a frame, then ⌘V on any Figma canvas (not only the Zen file's) places
   it as instances of the published Zen library, with its variables and text styles bound: the paste carries the
   library's full definitions, as Figma's own copies do (`docs/figma-contracts/native-defs.json.gz`).

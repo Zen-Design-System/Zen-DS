@@ -25,6 +25,11 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   Reconnect button path (`mirrors.ts` reconnectFolder → requestPermission) needs one check by hand in Chromium.
   (2026-10-25: about 2 minutes, optional; close the line if the user skips it.)
 
+- **P3 · Studio phone tab bar: the More tab does nothing (2026-10-25, phone chrome PR):** a Sidebar with more than five
+  rows gives the derived BottomNavigation four tabs + More (§17: "the full list in a sheet"), but BottomNavigation has no
+  sheet for More, so in Play it goes nowhere (DEMO-MEET: Quản lý task sits under it). Needs a new BottomNavigation API
+  (e.g. a `more` sheet of the other rows); waits for the user's OK. `tools/studio/responsive-header.mjs` BOTTOM_ROOTS.
+
 ## Later phase (Giai đoạn sau)
 - **Code view in other languages — on hold (user, 2026-10-08: "tạm lưu backlog, sẽ làm giai đoạn sau"):** order chosen:
   HTML/CSS → Vue → Swift → Flutter → Svelte. Plan `docs/research/code-languages-plan-2026-10-03.md`, phases P1–P9, each
