@@ -5568,9 +5568,11 @@
         "Don't make the result count a Heading or give it a heading or display text style: a count beside the filters is body text, not a title.",
         "Don't put more than one Primary in actions.",
         "Don't stack two navigation rows, or a navigation row under AppShell's top bar.",
-        "Don't leave type=\"main\" without a title (harness: dashboard-header/main-needs-title)."
+        "Don't leave type=\"main\" without a title (harness: dashboard-header/main-needs-title).",
+        "Don't widen the control-bar Search: the row draws it 240px wide, a toolbar Search's cap (the user's rule, 2026-10-25), and full width on a phone (harness: search/toolbar-width)."
       ],
       "rules": [
+        "search/toolbar-width",
         "dashboard-header/props-of-type",
         "dashboard-header/count-body",
         "dashboard-header/one-primary",

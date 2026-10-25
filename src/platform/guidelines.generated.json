@@ -838,7 +838,7 @@
       {
         "id": "search/toolbar-width",
         "severity": "error",
-        "summary": "A Search in a toolbar row (beside Chips, buttons or other controls) is at most 240px wide: wrap it in <Box width=\"fill\" maxWidth={240}>, or give it a Grid column minmax(0, 240px). A phone Search (shape=\"rounded\") fills its row.",
+        "summary": "A Search in a toolbar row (beside Chips, buttons or other controls) is at most 240px wide: wrap it in <Box width=\"fill\" maxWidth={240}>, or give it a Grid column minmax(0, 240px). A phone Search (shape=\"rounded\") fills its row. DashboardHeader's Control-Bar draws its Search 240px wide: never force it wider.",
         "allow": "search-toolbar-width"
       },
       {
@@ -8558,7 +8558,7 @@
       {
         "id": "search/toolbar-width",
         "severity": "error",
-        "summary": "A Search in a toolbar row (beside Chips, buttons or other controls) is at most 240px wide: wrap it in <Box width=\"fill\" maxWidth={240}>, or give it a Grid column minmax(0, 240px). A phone Search (shape=\"rounded\") fills its row.",
+        "summary": "A Search in a toolbar row (beside Chips, buttons or other controls) is at most 240px wide: wrap it in <Box width=\"fill\" maxWidth={240}>, or give it a Grid column minmax(0, 240px). A phone Search (shape=\"rounded\") fills its row. DashboardHeader's Control-Bar draws its Search 240px wide: never force it wider.",
         "allow": "search-toolbar-width"
       },
       {
@@ -9215,7 +9215,7 @@
       [
         "Control-Bar",
         "search · controls · subheading · actions",
-        "a Search (320px, Figma Control-Bar) · filter Chips · the result count (Body/Base/Regular) · Tertiary buttons then one Primary, right-aligned"
+        "a Search (240px, Figma Control-Bar; a phone gives it its own line) · filter Chips · the result count (Body/Base/Regular) · Tertiary buttons then one Primary, right-aligned"
       ],
       [
         "Navigation",
@@ -9248,7 +9248,8 @@
       "Don't make the result count a Heading or give it a heading or display text style: a count beside the filters is body text, not a title.",
       "Don't put more than one Primary in actions.",
       "Don't stack two navigation rows, or a navigation row under AppShell's top bar.",
-      "Don't leave type=\"main\" without a title (harness: dashboard-header/main-needs-title)."
+      "Don't leave type=\"main\" without a title (harness: dashboard-header/main-needs-title).",
+      "Don't widen the control-bar Search: the row draws it 240px wide, a toolbar Search's cap (the user's rule, 2026-10-25), and full width on a phone (harness: search/toolbar-width)."
     ],
     "a11y": [
       "Rows are plain groups: the Search, Chips and buttons carry their own names, and Breadcrumbs its own navigation landmark.",
@@ -9279,6 +9280,12 @@
     ],
     "file": "docs/guidelines/dashboard-header.md",
     "rules": [
+      {
+        "id": "search/toolbar-width",
+        "severity": "error",
+        "summary": "A Search in a toolbar row (beside Chips, buttons or other controls) is at most 240px wide: wrap it in <Box width=\"fill\" maxWidth={240}>, or give it a Grid column minmax(0, 240px). A phone Search (shape=\"rounded\") fills its row. DashboardHeader's Control-Bar draws its Search 240px wide: never force it wider.",
+        "allow": "search-toolbar-width"
+      },
       {
         "id": "dashboard-header/props-of-type",
         "severity": "error",

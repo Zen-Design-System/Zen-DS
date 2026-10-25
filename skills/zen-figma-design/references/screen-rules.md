@@ -157,8 +157,8 @@ Pick each component's guideline (`guidelines/<slug>.md`) before placing it.
   A Search you place in a toolbar row, beside Chips, buttons or a view switch, is at most 240 wide on tablet and
   desktop screens: set it (or the wrapper that holds only it) to Fixed 240, or Fill with a max width of 240. Never let
   it fill the row: a toolbar Search that runs across the page reads as the page's main task. A phone Search
-  (`Shape=Rounded`) fills its row. The header's own `Type=Control-Bar` row sizes its Search (320, the library's) and a
-  top bar's centre search goes up to 400. Audit `search/toolbar-width`; code harness `search/toolbar-width`.
+  (`Shape=Rounded`) fills its row. The header's own `Type=Control-Bar` row draws its Search Fixed 240 (user
+  2026-10-25: "ở control bar thì tối đa là 240") and a top bar's centre search goes up to 400. Audit `search/toolbar-width`; code harness `search/toolbar-width`.
 - **Sidebar selection.** Every page shows its current row with `Select=Yes`. A selected child opens its parent group
   (children visible, chevron up), and child rows carry no icon. Child rows (`Level=Child`) go in a gap-0 `Child` frame
   after the parent row, as Zen's HR-Platform sidebar does. Check the selection on every frame, not only the new one.

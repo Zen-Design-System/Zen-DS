@@ -24,7 +24,7 @@ export interface DashboardHeaderProps extends Omit<HTMLAttributes<HTMLElement>, 
    * Spacing/Gap/Small apart — <AppShellAction> buttons (notifications with a dot or count) and an Avatar or account menu.
    */
   trailing?: ReactNode;
-  /** Control-Bar · Figma Search: a <Search size="md"> that filters the page, 320px wide. */
+  /** Control-Bar · Figma Search: a <Search size="md"> that filters the page, 240px wide (a toolbar Search's cap; full width on a phone). */
   search?: ReactNode;
   /** Control-Bar · Figma Control-Slots: filter Chips (`<Chip variant="advanced">`), Spacing/Gap/XSmall apart. */
   controls?: ReactNode;

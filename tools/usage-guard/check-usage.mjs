@@ -1142,6 +1142,48 @@ const gridTrackMax = (attrs, index) => {
   if (/^\d+(\.\d+)?px$/.test(max.trim())) return parseFloat(max);
   return /fr$/.test(max.trim()) ? Infinity : undefined;
 };
+/** search/toolbar-width in a row of controls (a row Stack, a Grid, a custom DashboardHeader): the cap its wrapper or Grid
+ *  track gives the Search, against TOOLBAR_SEARCH_MAX. */
+const toolbarRowSearch = (kind, attrs, children) => {
+  const kids = childElements(children);
+  if (kids.length < 2) return null;
+  const index = kids.findIndex((k) => k.tag === "Search" || (["Box", "Stack"].includes(k.tag) && childElements(k.children).length === 1 && childElements(k.children)[0].tag === "Search"));
+  if (index < 0) return null;
+  const cell = kids[index], search = cell.tag === "Search" ? cell : childElements(cell.children)[0];
+  if (literal(search.attrs, "shape") === "rounded") return null;
+  const caps = [widthCap(search.attrs), cell === search ? null : widthCap(cell.attrs)];
+  if (caps.includes(undefined)) return null;
+  // A wrapper that hugs (no width="fill") takes the Search's own width in a row; only a Grid cell stretches it.
+  if (kind === "row" && cell !== search && caps[1] === null && fixedProp(topAttrs(cell.attrs), "width") !== "fill") return null;
+  const cap = Math.min(...caps.filter((c) => c !== null), kind === "grid" ? gridTrackMax(attrs, index) ?? NaN : Infinity);
+  if (Number.isNaN(cap) || cap <= TOOLBAR_SEARCH_MAX) return null;
+  const fix = kind === "grid" ? `give its column minmax(0, ${TOOLBAR_SEARCH_MAX}px)` : `wrap it in <Box width="fill" maxWidth={${TOOLBAR_SEARCH_MAX}}>`;
+  return `${cap === Infinity ? "lets its Search fill the toolbar row" : `gives its Search ${cap}px in the toolbar row`} — a toolbar Search is at most ${TOOLBAR_SEARCH_MAX}px wide: ${fix}.`;
+};
+/** search/toolbar-width on a DashboardHeader (the user 2026-10-25: "ở control bar thì tối đa là 240"). The Control-Bar
+ *  slot is TOOLBAR_SEARCH_MAX wide (dashboard-header.css), so only a width forced past it widens the Search: on the Search
+ *  or its one wrapper, or the slot's --zen-dashboard-header-search-basis. A custom row lays its children out as a row. */
+const dashboardHeaderSearch = (attrs, children) => {
+  const type = literal(attrs, "type") ?? (has(attrs, "type") ? null : "control-bar");
+  if (type === "custom") return toolbarRowSearch("row", attrs, children);
+  if (type !== "control-bar") return null;
+  const basis = (expr(attrs, "style") ?? "").match(/["'`]--zen-dashboard-header-search-basis["'`]\s*:\s*["'`]?(\d+(?:\.\d+)?)(?:px)?["'`]?\s*[,}]/)?.[1];
+  if (basis && Number(basis) > TOOLBAR_SEARCH_MAX) return `sets its Search slot to ${basis}px — a toolbar Search is at most ${TOOLBAR_SEARCH_MAX}px wide: drop --zen-dashboard-header-search-basis and let the row size its Search.`;
+  const cell = childElements(expr(attrs, "search") ?? "")[0];
+  const only = cell && ["Box", "Stack"].includes(cell.tag) && childElements(cell.children);
+  const search = cell?.tag === "Search" ? cell : only?.length === 1 && only[0].tag === "Search" ? only[0] : null;
+  if (!search || literal(search.attrs, "shape") === "rounded") return null;
+  const forced = Math.max(forcedWidth(search.attrs), forcedWidth(cell.attrs));
+  return forced > TOOLBAR_SEARCH_MAX ? `gives its Control-Bar Search ${forced}px — a toolbar Search is at most ${TOOLBAR_SEARCH_MAX}px wide: drop the width; the row draws its Search ${TOOLBAR_SEARCH_MAX}px wide.` : null;
+};
+/** The widest width an element forces on itself (width / minWidth as a px number, or the same in its style); -Infinity
+ *  when it forces none. */
+const forcedWidth = (attrs) => {
+  const own = topAttrs(attrs), widths = [];
+  for (const name of ["width", "minWidth"]) { const v = fixedProp(own, name); if (v && /^\d+(\.\d+)?$/.test(v)) widths.push(Number(v)); }
+  for (const [, , n] of (expr(attrs, "style") ?? "").matchAll(/\b(minWidth|width)\s*:\s*["'`]?(\d+(?:\.\d+)?)(?:px)?["'`]?\s*[,}]/g)) widths.push(Number(n));
+  return Math.max(...widths);
+};
 export const rules = [
   { id: "button/secondary-justified", components: ["Button", "IconButton"], severity: "error", allow: "secondary", guideline: "docs/guidelines/button.md",
     summary: "Secondary is a rare highlight; default to Primary (main CTA) or Tertiary. A flat IconButton is exempt: flat Secondary is Figma's quiet ⋮ trigger (Card Sub-Action).",
@@ -1200,24 +1242,12 @@ export const rules = [
     check: ({ attrs }) => !present(attrs, "placeholder") && !named(attrs) && "has no placeholder/aria-label describing what it searches." },
   // The user's rule (2026-10-24): Search is width 100%, so beside filters or buttons it stretches across the toolbar
   // unless its cell is capped. A phone Search (shape="rounded") fills its row on purpose.
-  { id: "search/toolbar-width", components: ["Stack", "Grid"], severity: "error", allow: "search-toolbar-width", guideline: "docs/guidelines/search.md",
-    summary: `A Search in a toolbar row (beside Chips, buttons or other controls) is at most ${TOOLBAR_SEARCH_MAX}px wide: wrap it in <Box width="fill" maxWidth={${TOOLBAR_SEARCH_MAX}}>, or give it a Grid column minmax(0, ${TOOLBAR_SEARCH_MAX}px). A phone Search (shape="rounded") fills its row.`,
+  { id: "search/toolbar-width", components: ["Stack", "Grid", "DashboardHeader"], severity: "error", allow: "search-toolbar-width", guideline: "docs/guidelines/search.md",
+    summary: `A Search in a toolbar row (beside Chips, buttons or other controls) is at most ${TOOLBAR_SEARCH_MAX}px wide: wrap it in <Box width="fill" maxWidth={${TOOLBAR_SEARCH_MAX}}>, or give it a Grid column minmax(0, ${TOOLBAR_SEARCH_MAX}px). A phone Search (shape="rounded") fills its row. DashboardHeader's Control-Bar draws its Search ${TOOLBAR_SEARCH_MAX}px wide: never force it wider.`,
     check: ({ tag, attrs, children }) => {
+      if (tag === "DashboardHeader") return dashboardHeaderSearch(attrs, children);
       if (tag === "Stack" && fixedProp(topAttrs(attrs), "direction") !== "row") return null;
-      const kids = childElements(children);
-      if (kids.length < 2) return null;
-      const index = kids.findIndex((k) => k.tag === "Search" || (["Box", "Stack"].includes(k.tag) && childElements(k.children).length === 1 && childElements(k.children)[0].tag === "Search"));
-      if (index < 0) return null;
-      const cell = kids[index], search = cell.tag === "Search" ? cell : childElements(cell.children)[0];
-      if (literal(search.attrs, "shape") === "rounded") return null;
-      const caps = [widthCap(search.attrs), cell === search ? null : widthCap(cell.attrs)];
-      if (caps.includes(undefined)) return null;
-      // A wrapper that hugs (no width="fill") takes the Search's own width in a row; only a Grid cell stretches it.
-      if (tag === "Stack" && cell !== search && caps[1] === null && fixedProp(topAttrs(cell.attrs), "width") !== "fill") return null;
-      const cap = Math.min(...caps.filter((c) => c !== null), tag === "Grid" ? gridTrackMax(attrs, index) ?? NaN : Infinity);
-      if (Number.isNaN(cap) || cap <= TOOLBAR_SEARCH_MAX) return null;
-      const fix = tag === "Grid" ? `give its column minmax(0, ${TOOLBAR_SEARCH_MAX}px)` : `wrap it in <Box width="fill" maxWidth={${TOOLBAR_SEARCH_MAX}}>`;
-      return `${cap === Infinity ? "lets its Search fill the toolbar row" : `gives its Search ${cap}px in the toolbar row`} — a toolbar Search is at most ${TOOLBAR_SEARCH_MAX}px wide: ${fix}.`;
+      return toolbarRowSearch(tag === "Grid" ? "grid" : "row", attrs, children);
     } },
   { id: "choice/needs-label", components: ["Checkbox", "RadioButton", "Toggle"], severity: "error", allow: "unlabelled-choice", guideline: "docs/guidelines/checkbox.md",
     summary: "Checkbox, Radio and Toggle always carry a label.",

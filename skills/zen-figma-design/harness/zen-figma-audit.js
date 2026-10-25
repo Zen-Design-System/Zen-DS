@@ -82,8 +82,8 @@
 //   spacing/controls-to-content  warning  a control row (Chips, Segmented, Tabs, Search) closer than Gap/Medium (16)
 //                                     to the content it controls: they are blocks, not a label pair
 //   search/toolbar-width     error    a Search wider than 240 in a toolbar row beside other controls, on a tablet or
-//                                     desktop screen (a phone Search fills its row; a top bar's or the Control-Bar's own
-//                                     Search is sized by its component)
+//                                     desktop screen, the Dashboard header's Control-Bar included (a phone Search fills
+//                                     its row; a top bar's centre Search is sized by its component, up to 400)
 //   list-item/leading-dock-icon  warning  a List-Item whose leading is a bare icon instance: a Dock-Icon, an Avatar or a
 //                                     thumbnail leads a row
 //   badge/status-priority-icon   warning  a priority Badge (Urgent, High, Medium, Low) not led by icon-flag-03-solid, or a
@@ -781,11 +781,11 @@ async function checkTouchSpacing(root) {
 
 // Toolbar Search (user 2026-10-24: "thanh search trên tool bar tối đa nên để rộng 240"; code harness search/toolbar-width):
 // a Search beside Chips, buttons or other controls in a row is at most 240 wide on a tablet or desktop screen. Its cell is
-// the outermost wrapper holding only the Search. A phone Search (Shape=Rounded, or a phone screen) fills its row, and the
-// bars that size their own Search are left out: a top bar's centre (Nav-Center-Block, up to 400) and the Dashboard
-// header's Control-Bar (320, Figma).
+// the outermost wrapper holding only the Search. A phone Search (Shape=Rounded, or a phone screen) fills its row, and a
+// top bar's centre sizes its own Search (Nav-Center-Block, up to 400). The Dashboard header's Control-Bar is a toolbar
+// like any other: its Search is Fixed 240 (the user 2026-10-25: "ở control bar thì tối đa là 240").
 const SEARCH_SET = /^Search\//;
-const OWN_SEARCH_BAR = /Nav-Center|Center-Slot|Leading-Slot|Top-Navigation|Dashboard\/Header|Header\/Dashboard|Control-Bar/;
+const OWN_SEARCH_BAR = /Nav-Center|Center-Slot|Leading-Slot|Top-Navigation/;
 async function checkToolbarSearch(root) {
   for (const screen of screensOf(root)) {
     if (!("findAll" in screen) || screen.width < 744) continue;

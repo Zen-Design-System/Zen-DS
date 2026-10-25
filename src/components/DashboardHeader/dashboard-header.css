@@ -10,9 +10,9 @@
 /* Trailing never shrinks below its icon actions (Comfortable makes them 48px): the leading side gives way first. */
 .zen-dashboard-header__trailing { display: flex; min-width: max-content; flex: 1 1 0; align-items: center; justify-content: flex-end; gap: var(--zen-spacing-gap-small, 12px); }
 
-/* Control-Bar: Search FIXED 320, Control-Slots Gap/XSmall, the count in Body/Base/Regular, Action-Slots FILL to the end
-   (Gap/Small). */
-.zen-dashboard-header__search { display: flex; min-width: 0; flex: 0 1 var(--zen-dashboard-header-search-basis, 320px); }
+/* Control-Bar: Search FIXED 240 (a toolbar Search's cap; the user 2026-10-25: "ở control bar thì tối đa là 240"),
+   Control-Slots Gap/XSmall, the count in Body/Base/Regular, Action-Slots FILL to the end (Gap/Small). */
+.zen-dashboard-header__search { display: flex; min-width: 0; flex: 0 1 var(--zen-dashboard-header-search-basis, 240px); }
 .zen-dashboard-header__search > * { width: 100%; min-width: 0; }
 .zen-dashboard-header__controls { display: flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-dashboard-header__subheading { min-width: 0; flex: 0 1 auto; overflow: hidden; color: var(--zen-color-content-neutral-strongest, #121212); text-overflow: ellipsis; white-space: nowrap; }
@@ -25,6 +25,6 @@
    provider wins (a desktop preview inside a phone frame keeps its row). The Primary comes first on a phone, as in
    PageHeader (visual order only: DOM and focus order stay). */
 .zen-dashboard-header[data-type="control-bar"], .zen-dashboard-header[data-type="custom"] { flex-wrap: wrap; row-gap: var(--zen-spacing-gap-xsmall, 8px); }
-[data-breakpoint] { --zen-dashboard-header-search-basis: 320px; --zen-dashboard-header-primary-order: 0; }
+[data-breakpoint] { --zen-dashboard-header-search-basis: 240px; --zen-dashboard-header-primary-order: 0; }
 [data-breakpoint="mobile"] { --zen-dashboard-header-search-basis: 100%; --zen-dashboard-header-primary-order: -1; }
 .zen-dashboard-header__actions > .zen-button[data-level="primary"] { order: var(--zen-dashboard-header-primary-order, 0); }
