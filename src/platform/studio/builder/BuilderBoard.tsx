@@ -8,8 +8,11 @@ import { announceEditStatus } from "../api";
 import { zoomToFrame } from "../board/presentFrame";
 import { usePageTree } from "./usePageTree";
 import { ProtoLinks } from "./proto/ProtoLinks";
-import { PageOsContext, pageOsOf, ProtoContext, type ProtoActions } from "./proto/runtime";
-import { frameOf, isSectionNode, isSliceNode } from "./render/frames";
+import { PageOsContext, pageOsOf, ProtoContext, ScreenCanvasContext, SimulatedDeviceContext, type ProtoActions, type ScreenCanvasEdit } from "./proto/runtime";
+import { frameOf, isSectionNode, isSliceNode, literalOf, type PageFrame } from "./render/frames";
+import { viewDevice } from "../../../../tools/studio/screen-devices.mjs";
+import { shownBreakpoint, useScreenView } from "./screenViews";
+import { addScreenPart, isChildScreen } from "./screenParts";
 import { SectionFrame } from "./SectionFrame";
 import { SliceFrame } from "./SliceFrame";
 import { placeFrames } from "./render/framePlace";
@@ -30,7 +33,7 @@ const protoKeys = new WeakMap<object, number>();
 let protoCount = 0;
 const protoKey = (proto: object) => { if (!protoKeys.has(proto)) protoKeys.set(proto, (protoCount += 1)); return protoKeys.get(proto); };
 import { Button } from "../../../components/Button";
-import { studioStore, useStudio } from "../store";
+import { canEdit, studioStore, useStudio } from "../store";
 import { pageFile, pagesPersist, restorePage, usePage, useStorage, useTrash } from "./store/pageStore";
 import "./builder.css";
 
@@ -124,6 +127,16 @@ export function BuilderBoard({ id }: { id: string }) {
   if (tree) setLayerMeta(file, tree);
   const framesRef = useRef<HTMLDivElement>(null);
   useFrameKeys(id, text);
+  // The canvas's placeholders for missing phone parts (runtime ScreenCanvasContext; studio-responsive-breakpoints §3.6):
+  // for those who may edit the page, never in the Trash.
+  const editable = useStudio((state) => canEdit(state)) && !inTrash;
+  const treeRef = useRef(tree);
+  treeRef.current = tree;
+  const screenEdit = useMemo<ScreenCanvasEdit | null>(() => {
+    if (!editable || !tree?.board) return null;
+    const children = new Set(tree.board.children.flatMap((child) => (child.kind === "element" && child.name === "Screen" && isChildScreen(child, tree.mock) ? [String(literalOf(child, "id"))] : [])));
+    return { addPart: (screen, part, layout) => addScreenPart(file, treeRef.current, screen, part, layout), child: (screen) => children.has(screen) };
+  }, [editable, tree, file]);
   const frames = useMemo(() => {
     if (!tree?.board) return [];
     // Proto handlers act on the canvas only with the Interact tool (Play runs the flow); in Select they are inert.
@@ -133,7 +146,10 @@ export function BuilderBoard({ id }: { id: string }) {
     const os = pageOsOf(tree.header);
     return tree.board.children.filter((child): child is PageNode => child.kind === "element" && !isSectionNode(child) && !isSliceNode(child)).map((node) => {
       const frame = frameOf(node);
-      const example: StudioExample = { title: frame.label, description: "", code: text ?? "", screen: true, render: () => <PageOsContext value={os}>{renderFrame(node, ctx)}</PageOsContext> };
+      const height = literalOf(node, "height");
+      const versionOf = literalOf(node, "versionOf");
+      const shape = frame.kind === "screen" ? { device: frame.device, width: frame.width, height: typeof height === "number" ? height : undefined, os, id: String(literalOf(node, "id") ?? ""), versionOf: typeof versionOf === "string" ? versionOf : undefined } : undefined;
+      const example: StudioExample = { title: frame.label, description: "", code: text ?? "", screen: true, shape, render: () => <PageOsContext value={os}>{renderFrame(node, ctx)}</PageOsContext> };
       return { ...frame, example };
     });
   }, [tree, file, text, proto, places, library]);
@@ -217,16 +233,31 @@ export function BuilderBoard({ id }: { id: string }) {
         ) : null}
         <div ref={framesRef} className="studio-builder-board__frames">
           {sections.map((section) => <SectionFrame key={section.id} id={section.id} label={section.label} width={section.width} height={section.height ?? 100} />)}
-          {frames.map((frame) => (
-            <StudioFrame key={frame.id} id={frame.id} kind="example" label={frame.label} width={frame.width} example={frame.example}>
-              {frame.example.render()}
-            </StudioFrame>
-          ))}
+          <ScreenCanvasContext value={screenEdit}>
+            {frames.map((frame) => <BuilderFrame key={frame.id} frame={frame} />)}
+          </ScreenCanvasContext>
           {slices.map((slice) => <SliceFrame key={slice.id} id={slice.id} label={slice.label} width={slice.width} height={slice.height ?? 100} />)}
         </div>
         {showLinks ? <ProtoLinks tree={tree} file={file} boardRef={boardRef} /> : null}
       </div>
       </PageOsContext>
     </ProtoContext>
+  );
+}
+
+/**
+ * A Screen or Overlay of the page as a Studio frame. A Screen shown on another breakpoint (the view switch on its label,
+ * screenViews.ts) takes that device's width and renders on it as Present's simulator does (SimulatedDeviceContext: device
+ * type, layout, bars, height); the page does not change. The frame carries the breakpoint it shows.
+ */
+function BuilderFrame({ frame }: { frame: PageFrame & { example: StudioExample } }) {
+  const view = useScreenView(frame.id);
+  const shape = frame.example.shape;
+  const device = shape ? viewDevice(view, shape.height) : undefined;
+  const breakpoint = shape ? shownBreakpoint(shape, view) : undefined;
+  return (
+    <StudioFrame id={frame.id} kind="example" label={frame.label} width={frame.width} example={frame.example} breakpoint={breakpoint} view={device?.width}>
+      <SimulatedDeviceContext value={device ?? null}>{frame.example.render()}</SimulatedDeviceContext>
+    </StudioFrame>
   );
 }

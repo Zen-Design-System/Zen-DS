@@ -125,3 +125,45 @@ export const FRAME_PRESET_GROUPS = Object.freeze(FIGMA_PRESETS.map((group) => {
 
 /** The preset `id` names, or undefined. */
 export const framePreset = (id) => FRAME_PRESET_GROUPS.flatMap((group) => group.presets).find((entry) => entry.id === id);
+
+/*
+ * Zen's breakpoints (Studio responsive breakpoints, user 2026-10-26; docs/research/studio-responsive-breakpoints-2026-10-26.md
+ * §2): the three token modes of Breakpoint & Grids with ZenProvider `auto`'s thresholds (mobile below 744, tablet below
+ * 1024, desktop from 1024), never custom ones. A phone or tablet Screen keeps its device's breakpoint; a desktop Screen
+ * (a web page) takes its width's, so dragging its edge to 390 shows the mobile one. The view switch on a Screen's label
+ * shows it on another breakpoint's device without changing the page (`view`: a device id, or a typed width).
+ */
+
+/** The breakpoints, widest first (a narrower one inherits the wider one's responsive values). */
+export const BREAKPOINTS = Object.freeze(["desktop", "tablet", "mobile"]);
+export const BREAKPOINT_LABELS = Object.freeze({ desktop: "Desktop", tablet: "Tablet", mobile: "Mobile" });
+/** Zen's device icons (the Screen section's Device). */
+export const BREAKPOINT_ICONS = Object.freeze({ desktop: "icon-monitor-01-line", tablet: "icon-tablet-line", mobile: "icon-mobile-line" });
+/** The least width of each breakpoint (ZenProvider `auto`; iPad portrait is 744). */
+export const BREAKPOINT_MIN = Object.freeze({ mobile: 0, tablet: 744, desktop: 1024 });
+
+/** The breakpoint of a width in CSS px. */
+export const breakpointOfWidth = (width) => (width < BREAKPOINT_MIN.tablet ? "mobile" : width < BREAKPOINT_MIN.desktop ? "tablet" : "desktop");
+
+/** A desktop Screen's width when it has none of its own (runtime DEVICE_WIDTH.desktop). */
+const DESKTOP_SCREEN_WIDTH = 1440;
+
+/** A Screen's breakpoint: a phone's mobile and a tablet's tablet (their device's), a desktop Screen its width's. */
+export const screenBreakpoint = (device, width) => (device === "phone" ? "mobile" : device === "tablet" ? "tablet" : breakpointOfWidth(typeof width === "number" && Number.isFinite(width) && width > 0 ? width : DESKTOP_SCREEN_WIDTH));
+
+/** The device a breakpoint is viewed on: the page OS's phone, its tablet in portrait, or Desktop. */
+export const breakpointDevice = (breakpoint, os = "ios") => {
+  const own = OWN_DEVICES[os === "android" ? "android" : "ios"];
+  return screenDevice(breakpoint === "mobile" ? own.phone : breakpoint === "tablet" ? own.portrait : "desktop");
+};
+
+/** A typed view width no device has: a web page that wide (no bars), `height` tall. */
+export const widthDevice = (width, height) => ({ id: "width", label: `${width} wide`, short: String(width), device: "desktop", width, height, icon: "icon-scale-01-line", bars: "none", radius: 0 });
+
+/** A Screen's view (`{ device, width }`: a device's id, or "width" and a typed width) as the device it renders on;
+ *  `height` is the Screen's own (a typed width keeps it). Undefined without a view. */
+export const viewDevice = (view, height = 982) => {
+  if (!view) return undefined;
+  const entry = view.device === "width" ? undefined : screenDevice(view.device);
+  return entry ?? widthDevice(view.width, height);
+};

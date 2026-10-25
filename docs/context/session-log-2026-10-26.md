@@ -10,3 +10,34 @@ responsive layout props (the Grid `columns` shape) + "Make a separate Screen". P
 six components follow the window width with `@media`, not their frame's breakpoint. Nothing built yet.
 Then (user): P1 is a per-Screen view switch Desktop · Tablet · Mobile (a view through `frameOverrides`, never saved;
 edge drags stay real resizes, a desktop Screen's breakpoint follows its width) instead of three frames side by side.
+
+## Studio responsive breakpoints · P1 build (bp-studio, tier L; branch claude/responsive-studio-b28ea5)
+
+Approved 2026-10-26 (D1–D4; no harness rule). Built the Studio half's PR 1 (P1 + P3 of the plan):
+- **Six window media queries** → the frame's breakpoint: AiChat model picker, AlertBanner Medium wrap, DatePicker
+  dual months, Pagination optional pages, modal SidePanel width now read `[data-breakpoint="mobile"]`; Dialog's and
+  ModalForm's 480 / 720 rules apply only to an uncontained overlay (one in a device frame already follows the frame
+  through `@container zen-modal-frame`).
+- **The Screen's breakpoint** (`runtime.tsx`): `screenBreakpoint(device, width)` (`tools/studio/screen-devices.mjs`):
+  phone → mobile, tablet → tablet, desktop → its width's (744 / 1024), the rendered width once laid out (Present
+  viewports, a phone's window; one shared ResizeObserver). Published through `useModeScope` (`useZen().breakpoint`) and
+  on the frame (`data-breakpoint`), so overlays in the frame's portal follow it. Export frames take it too.
+- **View switch** (`board/ScreenViewSwitch.tsx`, `builder/screenViews.ts`): Segmented Desktop · Tablet · Mobile + More
+  views (every device, Make a separate Screen) in a Screen's toolbar; frame override `view` (sessionStorage, never the
+  page); `BuilderFrame` renders the Screen in `SimulatedDeviceContext` at the view's width, above its neighbours.
+  While viewing: "Viewing Mobile · W 390 · Back to Desktop" stays on the label row, the label shows the breakpoint icon,
+  Escape on the name ends it, resize handles and W / H are off, Figma copies take no canvas heights.
+- **Changes on <breakpoint>** (`inspector/breakpointBehaviours.ts` registry + `BreakpointSection.tsx`): phone modes,
+  page margins, mobile layout, AppShell below 1024, phone sheets, Grid columns per breakpoint, phone looks.
+- **Placeholders** (`ScreenCanvasContext`, `builder/screenParts.ts`, `screenModel.ts`): on the mobile breakpoint a
+  missing Top / Bottom Navigation shows a dashed "Add …" (frame chrome to the selection layer; dropped by exports); the
+  part goes to the root AppShell (Bottom from its Sidebar rows, D3, else four blank items) unless the Screen draws its
+  own phone parts; child screens get no Bottom placeholder.
+- **Make a separate Screen**: `copyFrame(…, { as })` → `<id>-mobile`, the device's size, `<title> · Mobile`,
+  `versionOf` (dialect-validated, Studio-only prop). D4: `proto/versions.ts versionFor` — Play's fixed viewport, Open on
+  phone (ZenProvider's breakpoint) and Present show the version for the breakpoint. Handoff lists "Breakpoint versions".
+- **Play / Present**: open on the viewed device; the viewport drags from the left edge too, the tag reads
+  `W × H · Mobile`.
+- Checks: `screenModel.selftest.mjs` (27, in studio:selftest), builder selftest (versionOf), studio:selftest all pass,
+  tsc clean, style:check clean. E2E BP-01…08 in `scenarios/breakpoints.mjs` (new default group) — to run by id in the
+  gate slot.

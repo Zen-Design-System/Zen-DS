@@ -28,7 +28,9 @@ export type StudioPreviewSettings = PlatformShellSettings;
 export type StudioFrameKind = "playground" | "main-component" | "example" | "docs" | "document" | "section" | "slice";
 /** "auto" = the rule width; a number = px, a toolbar preset (390…1440) or a free width dragged on the frame's right edge. */
 export type StudioFrameWidth = "auto" | number;
-export type StudioFrameOverride = { width?: StudioFrameWidth; theme?: "light" | "dark" };
+/** `view`: a builder Screen shown on another breakpoint's device (the view switch on its label; builder/screenViews.ts): a
+ *  device's id, or "width" with a typed width. A view of this tab only, never the page's. */
+export type StudioFrameOverride = { width?: StudioFrameWidth; theme?: "light" | "dark"; view?: { device: string; width: number } };
 
 /**
  * A selected JSX element. `src` is the data-zen-src value "<file>:<line>:<column>" (line 1-based, column 0-based,

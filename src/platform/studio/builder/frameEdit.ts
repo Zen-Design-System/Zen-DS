@@ -109,10 +109,10 @@ function besidePlace(board: Board, index: number, heights: ReadonlyMap<string, n
   return place;
 }
 
-/** A frame's element under a new frame id and place (the rest as written). */
-const copyOf = (node: PageNode, props: Record<string, string | number>): PageNode => ({
+/** A frame's element under a new frame id and place (the rest as written, less the props in `drop`). */
+const copyOf = (node: PageNode, props: Record<string, string | number>, drop: readonly string[] = []): PageNode => ({
   ...node,
-  props: { ...node.props, ...Object.fromEntries(Object.entries(props).map(([name, value]) => [name, { kind: "literal" as const, value }])) },
+  props: { ...Object.fromEntries(Object.entries(node.props).filter(([name]) => !drop.includes(name))), ...Object.fromEntries(Object.entries(props).map(([name, value]) => [name, { kind: "literal" as const, value }])) },
 });
 
 /** A layer of the board at its place (what a Section's copy carries). */
@@ -126,9 +126,10 @@ export type FrameClip = { page: string; frameId: string; node: PageNode; code: s
 
 /**
  * Adds a copy of `frameId` at `at` (null: beside the original) on `localPage`, after the original in Layers; selects it.
- * `source` copies a frame from another page (⌘C there, ⌘V here). Returns the copy's frame id.
+ * `source` copies a frame from another page (⌘C there, ⌘V here). `as` gives the copy an id (when free), props and
+ * props it drops (Make a separate Screen: builder/screenViews.ts). Returns the copy's frame id.
  */
-export async function copyFrame(localPage: string, frameId: string, at: FramePlace | null, options: { label?: string; heights?: ReadonlyMap<string, number>; source?: FrameClip } = {}): Promise<string | null> {
+export async function copyFrame(localPage: string, frameId: string, at: FramePlace | null, options: { label?: string; heights?: ReadonlyMap<string, number>; source?: FrameClip; as?: { id: string; props: Record<string, string | number>; drop?: readonly string[] } } = {}): Promise<string | null> {
   const board = await readBoard(localPage);
   if (!board) return null;
   const { engine } = board;
@@ -141,7 +142,8 @@ export async function copyFrame(localPage: string, frameId: string, at: FramePla
     return copySection(localPage, frameId, at ? { dx: at.x - own.x, dy: at.y - own.y } : null, { ...options, label: options.label?.replace("frame", "section") });
   }
   const kind = original.name === "Overlay" ? "overlay" : original.name === "Slice" ? "slice" : "screen";
-  const id = engine.freeFrameId(kind, board.nodes.map((node) => String(literalOf(node, "id") ?? "")));
+  const ids = board.nodes.map((node) => String(literalOf(node, "id") ?? ""));
+  const id = options.as && !ids.includes(options.as.id) ? options.as.id : engine.freeFrameId(kind, ids);
   const place = at ?? (index >= 0 ? besidePlace(board, index, options.heights ?? new Map()) : placeFrames([...board.frames, { width: 0, place: null }]).at(-1)!);
   const where = { id, x: Math.round(place.x), y: Math.round(place.y) };
   const state = literalOf(original, "state");
@@ -153,7 +155,7 @@ export async function copyFrame(localPage: string, frameId: string, at: FramePla
   const fresh = pinned ? await readBoard(localPage) : board;
   if (!fresh) return null;
   // The original's element printed again without document ids: the engine gives the copy and its layers their own.
-  const code = engine.elementText(copyOf(original, where), { ids: false });
+  const code = engine.elementText(copyOf(original, { ...options.as?.props, ...where }, options.as?.drop), { ids: false });
   const after = index >= 0 ? fresh.nodes[index]?.loc : undefined;
   const response = await applyEdit({ file: fresh.file, loc: fresh.tree.board.loc, name: "Board", ops: [{ op: "insertChild", code, ...(after ? { after } : {}) }], hash: fresh.hash }, label);
   joinPin(pinned, response, label);

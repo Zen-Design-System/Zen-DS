@@ -26,6 +26,10 @@ import { getStudioFrames, getStudioSections, onFramesMoved, useStudioFrames, use
 import { presentFrame, zoomToFrame } from "./presentFrame";
 import { pressFrame } from "../builder/frameMove";
 import { presentKeys, presentShortcut } from "../shell/modKey";
+import { BREAKPOINT_ICONS } from "../../../../tools/studio/screen-devices.mjs";
+import { isScreenFrame, setScreenView, viewLabel, type ScreenView } from "../builder/screenViews";
+import { ScreenViewStatus, ScreenViewTools } from "./ScreenViewSwitch";
+import type { IconName } from "../../../icons/generated/names";
 import "./board.css";
 
 /** The toolbar needs this much screen width above a frame; narrower frames show it only while selected. */
@@ -88,6 +92,11 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
   // Frames with unsaved draft changes keep their toolbar (Save · Discard) and a dot on their label.
   const frameDrafts = useFrameDrafts();
   const draftOf = (id: string) => (frameDrafts.frames[id]?.changes ? frameDrafts.frames[id] : null);
+  // A Screen shown on another breakpoint (builder/screenViews.ts) keeps its toolbar too ("Viewing Mobile · 390 · Back to
+  // Desktop"), shows that breakpoint's icon on its label and no resize handles (a drag would resize the saved Screen from
+  // a width it does not have).
+  const overrides = useStudio((state) => state.frameOverrides[pageKey(state.page, state.collection, state.localPage)]);
+  const viewOf = (id: string): ScreenView | undefined => (localPage && isScreenFrame(id) ? overrides?.[id]?.view : undefined);
   // Screen-space chrome elements and their sizes, keyed "label:<frame>", "toolbar:<frame>", "tab:<section>".
   const elements = useRef(new Map<string, HTMLElement>());
   const sizes = useRef(new Map<string, Size>());
@@ -336,7 +345,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
     return callback;
   };
 
-  useLayoutEffect(layout, [hovered, menuFrame, selectedFrame, frameSelected, frameDrafts, layout]);
+  useLayoutEffect(layout, [hovered, menuFrame, selectedFrame, frameSelected, frameDrafts, overrides, layout]);
 
   // Hover is hit-tested from the pointer position (the Select layer covers the frames, so they never see the pointer),
   // in world coordinates against the cached boxes.
@@ -378,7 +387,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
   }, [labelHovered, frames]);
 
   const toolbarFor = new Set([hovered, menuFrame, frameSelected ? selectedFrame : null].filter(Boolean) as string[]);
-  const draftedFrames = frames.filter((frame) => draftOf(frame.id));
+  const draftedFrames = frames.filter((frame) => draftOf(frame.id) || viewOf(frame.id));
   // A frame with unsaved changes adds its tools on hover only when the whole toolbar fits above it (else the toolbar
   // would move beside the frame or hide, taking Save away from the pointer); selected or with its menu open, always.
   const withTools = (id: string) => {
@@ -428,8 +437,10 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
           onFocus={(event) => revealLabel(event.currentTarget)}
           // Double-click: rename a frame of a page you made (Figma's), else zoom to it.
           onDoubleClick={() => { if (localPage && editable && /^(screen|overlay|section):/.test(frame.id)) setRenamingFrame(frame.id); else zoomToFrame(frame.element); }}
+          // Escape on a viewed Screen's name ends the view (the Screen as saved).
+          onKeyDown={(event) => { if (event.key === "Escape" && viewOf(frame.id)) { event.preventDefault(); event.stopPropagation(); setScreenView(frame.id, null); } }}
         >
-          <Icon name={frameIcon(frame.id)} size="xs" decorative />
+          <Icon name={viewIcon(frame, viewOf(frame.id)) ?? frameIcon(frame.id)} size="xs" decorative />
           <span className="studio-frame-label__text">{frame.label}</span>
           {draftOf(frame.id) ? <span className="studio-frame-label__dot" role="img" aria-label="Unsaved changes" /> : null}
         </button>
@@ -438,7 +449,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
           its view width. */}
       {frames.filter((frame) => !isBuilderFrame(frame.id) && frameSelected && selectedFrame === frame.id).map((frame) => <FrameEdge key={frame.id} frame={frame} setRef={trackEdge(frame.id)} />)}
       {/* A locked frame (edit/lock.ts) shows no handles: it changes in the right panel only, as in Figma. */}
-      {localPage && editable && frameSelected && selectedFrame && /^(screen|section|slice):/.test(selectedFrame) && !isLockedFrame(pageFile(localPage), selectedFrame) ? <FrameHandles key={selectedFrame} frameId={selectedFrame} localPage={localPage} /> : null}
+      {localPage && editable && frameSelected && selectedFrame && /^(screen|section|slice):/.test(selectedFrame) && !isLockedFrame(pageFile(localPage), selectedFrame) && !viewOf(selectedFrame) ? <FrameHandles key={selectedFrame} frameId={selectedFrame} localPage={localPage} /> : null}
       {/* A Section and a Slice have their name only (Figma's): no toolbar. */}
       {frames.filter((frame) => frame.kind !== "section" && frame.kind !== "slice" && (toolbarFor.has(frame.id) || draftedFrames.includes(frame))).map((frame) => (
         <FrameToolbar
@@ -449,6 +460,7 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
           // Shown only for its unsaved changes (not hovered or selected): the Save · Discard group alone.
           tools={withTools(frame.id)}
           draft={draftOf(frame.id)}
+          view={viewOf(frame.id)}
           setRef={track(`toolbar:${frame.id}`)}
           setToolsRef={track(`tools:${frame.id}`)}
           setDraftsRef={track(`drafts:${frame.id}`)}
@@ -457,6 +469,11 @@ export function FrameChrome({ viewport }: { viewport: HTMLElement | null }) {
       ))}
     </ChromeScope>
   );
+}
+
+/** A viewed Screen's label icon: the breakpoint it shows (undefined: no view, the frame's own icon). */
+function viewIcon(frame: StudioFrameEntry, view: ScreenView | undefined): IconName | undefined {
+  return view ? BREAKPOINT_ICONS[viewLabel(view, frame.example?.shape?.height).breakpoint] as IconName : undefined;
 }
 
 /** A label that takes keyboard focus off screen (Tab through the frames) pans the canvas to itself. */
@@ -500,7 +517,7 @@ function FrameDraftActions({ frame, draft, setRef }: { frame: StudioFrameEntry; 
 
 type ChromeRef = (node: HTMLElement | null) => void;
 
-function FrameToolbar({ frame, selected, menuOpen, tools, draft, setRef, setToolsRef, setDraftsRef, onMenuOpenChange }: { frame: StudioFrameEntry; selected: boolean; menuOpen: boolean; tools: boolean; draft: FrameDraft | null; setRef: ChromeRef; setToolsRef: ChromeRef; setDraftsRef: ChromeRef; onMenuOpenChange: (open: boolean) => void }) {
+function FrameToolbar({ frame, selected, menuOpen, tools, draft, view, setRef, setToolsRef, setDraftsRef, onMenuOpenChange }: { frame: StudioFrameEntry; selected: boolean; menuOpen: boolean; tools: boolean; draft: FrameDraft | null; view?: ScreenView; setRef: ChromeRef; setToolsRef: ChromeRef; setDraftsRef: ChromeRef; onMenuOpenChange: (open: boolean) => void }) {
   const key = useStudio((state) => pageKey(state.page, state.collection, state.localPage));
   const override = useStudio((state) => state.frameOverrides[key]?.[frame.id]);
   const previewTheme = useStudio((state) => state.preview.theme);
@@ -532,10 +549,16 @@ function FrameToolbar({ frame, selected, menuOpen, tools, draft, setRef, setTool
     }
   };
   const example = frame.kind === "example";
+  // A builder Screen's view switch (Desktop · Tablet · Mobile, More views) and, while a view is on, its status.
+  const shape = isScreenFrame(frame.id) ? frame.example?.shape : undefined;
+  const editable = useStudio((state) => canEdit(state));
   return (
-    <div ref={setRef} className="studio-frame-toolbar" role="toolbar" aria-label={`${frame.label} frame`} data-chrome-key={`toolbar:${frame.id}`} data-selected={selected ? "true" : undefined} data-menu={menuOpen ? "true" : undefined} data-drafted={draft ? "true" : undefined} data-tools={tools ? "true" : undefined}>
+    // A frame with unsaved changes or a view on keeps that group (data-drafted) when it is neither hovered nor selected.
+    <div ref={setRef} className="studio-frame-toolbar" role="toolbar" aria-label={`${frame.label} frame`} data-chrome-key={`toolbar:${frame.id}`} data-selected={selected ? "true" : undefined} data-menu={menuOpen ? "true" : undefined} data-drafted={draft || (shape && view) ? "true" : undefined} data-tools={tools ? "true" : undefined}>
+      {shape && view ? <ScreenViewStatus frame={frame} shape={shape} view={view} /> : null}
       {tools ? (
         <div ref={setToolsRef} className="studio-frame-toolbar__tools" data-chrome-key={`tools:${frame.id}`}>
+          {shape ? <ScreenViewTools frame={frame} shape={shape} view={view} editable={editable} onMenuOpenChange={onMenuOpenChange} /> : null}
           {/* A view width for example frames; a frame of a page you made has its own (handles, Layout › W). */}
           {isBuilderFrame(frame.id) ? null : (
             <Menu

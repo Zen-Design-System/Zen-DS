@@ -8,7 +8,7 @@ import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { fullScreenEscapeOwners } from "../../PlatformFullScreen";
-import { deviceOfSize, deviceSize, SCREEN_DEVICES, screenDevice, type ScreenDevice } from "../../../../tools/studio/screen-devices.mjs";
+import { BREAKPOINT_LABELS, deviceOfSize, deviceSize, SCREEN_DEVICES, screenBreakpoint, screenDevice, type ScreenDevice } from "../../../../tools/studio/screen-devices.mjs";
 import { InspectorRow } from "../inspector/Section";
 import { RowSelectField } from "../inspector/rowFields";
 import { ChromeScope } from "../shell/ChromeScope";
@@ -184,17 +184,18 @@ export const presentEscapeOwners = `${fullScreenEscapeOwners}, .studio-present-b
 const SIZE_STEP = 8;
 /** px the pointer moves before a press on a handle becomes a drag. */
 const DRAG_START = 2;
-type Axis = "x" | "y" | "xy";
+type Axis = "x" | "x-start" | "y" | "xy";
 
 /**
  * Drag handles of a fixed viewport (user, 2026-10-15: grab the corner and drag), as a browser's responsive mode: the
- * right edge sets W, the bottom edge H, the bottom-right corner both. The box is centred across and pinned at the top,
- * so W grows by twice the pointer's move; px are the box's CSS px at the scale the drag started at (past the window, the
- * fit scales the box down instead). Hover and drag ring the box in Info blue, a tag at its bottom reads the size;
- * Shift snaps to 8, Escape puts the size back, a double-click goes back to Auto. A pointer affordance, hidden from
- * assistive tech: the W and H fields are the keyboard way, and the result is announced.
+ * left and right edges set W, the bottom edge H, the bottom-right corner both. The box is centred across and pinned at
+ * the top, so W grows by twice the pointer's move; px are the box's CSS px at the scale the drag started at (past the
+ * window, the fit scales the box down instead). Hover and drag ring the box in Info blue, a tag at its bottom reads the
+ * size and the breakpoint it shows ("390 × 844 · Mobile": a device's own, else the width's for a Screen of `device`;
+ * studio-responsive-breakpoints §3.7); Shift snaps to 8, Escape puts the size back, a double-click goes back to Auto. A
+ * pointer affordance, hidden from assistive tech: the W and H fields are the keyboard way, and the result is announced.
  */
-export function ViewportHandles({ viewport, fit, onChange }: { viewport: PresentViewport; fit: ViewportFit; onChange: (viewport: PresentViewport) => void }) {
+export function ViewportHandles({ viewport, fit, onChange, device }: { viewport: PresentViewport; fit: ViewportFit; onChange: (viewport: PresentViewport) => void; device?: "phone" | "tablet" | "desktop" }) {
   const [live, setLive] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const stop = useRef<() => void>(() => undefined);
@@ -208,7 +209,12 @@ export function ViewportHandles({ viewport, fit, onChange }: { viewport: Present
     setAnnouncement("");
     window.setTimeout(() => setAnnouncement(text), 60);
   };
-  const sizeLabel = (next: PresentViewport) => (next ? `${next.width} × ${next.height ?? "Fill"}` : "Auto");
+  const sizeLabel = (next: PresentViewport) => {
+    if (!next) return "Auto";
+    const shownOn = viewportDevice(next);
+    const breakpoint = screenBreakpoint(shownOn?.device ?? device ?? "desktop", next.width);
+    return `${next.width} × ${next.height ?? "Fill"} · ${BREAKPOINT_LABELS[breakpoint]}`;
+  };
 
   const onPointerDown = (axis: Axis) => (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
@@ -228,8 +234,8 @@ export function ViewportHandles({ viewport, fit, onChange }: { viewport: Present
     const snap = (value: number) => clampSize(last.shift ? Math.round(value / SIZE_STEP) * SIZE_STEP : Math.round(value));
     const apply = () => {
       request = 0;
-      const width = axis === "y" ? before.width : snap(origin.width + (2 * (last.x - origin.x)) / origin.scale);
-      const height = axis === "x" ? before.height : snap(origin.height + (last.y - origin.y) / origin.scale);
+      const width = axis === "y" ? before.width : snap(origin.width + ((axis === "x-start" ? -2 : 2) * (last.x - origin.x)) / origin.scale);
+      const height = axis === "x" || axis === "x-start" ? before.height : snap(origin.height + (last.y - origin.y) / origin.scale);
       written = { width, height };
       onChange(written);
       setLive(sizeLabel(written));
@@ -300,6 +306,7 @@ export function ViewportHandles({ viewport, fit, onChange }: { viewport: Present
   return (
     <>
       <ChromeScope className="studio-viewport-handles" aria-hidden="true" data-dragging={live ? "true" : undefined}>
+        {handle("x-start")}
         {handle("x")}
         {handle("y")}
         {handle("xy")}

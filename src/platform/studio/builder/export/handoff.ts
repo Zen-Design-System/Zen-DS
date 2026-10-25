@@ -18,6 +18,9 @@ export type HandoffFrame = {
   png: string | null;
   html: string;
   focus: FocusStop[];
+  /** Make a separate Screen (studio-responsive-breakpoints §5): the Screen this one is a version of, and the breakpoint it
+   *  is drawn for ("mobile", "tablet"). */
+  version?: { of: string; breakpoint: string };
 };
 /** `options`: the action's animation and delay (protoModel.ts ProtoOptions), as the design wrote them. */
 export type HandoffAction = { frame: string | null; where: string; action: string; target: unknown; options?: Record<string, unknown> };
@@ -207,6 +210,13 @@ export function handoffMarkdown(input: HandoffInput): string {
   list("Color roles and variants", input.names.colour);
   list("Shape", input.names.shape);
   add("");
+
+  const versions = screens.filter((frame) => frame.version);
+  if (versions.length) {
+    add("## Breakpoint versions", "", `Screens drawn again for a breakpoint (Zen Studio's Make a separate Screen). Show the version where the breakpoint matches, with ${code("useZen().breakpoint")} inside the app's ZenProvider (breakpoint ${code("auto")}: mobile below 744px, tablet below 1024px):`, "");
+    for (const frame of versions) add(`- ${code(frameName(frame.frame))} is the ${frame.version!.breakpoint} version of ${code(frame.version!.of)}: render it when ${code(`useZen().breakpoint === "${frame.version!.breakpoint}"`)}.`);
+    add("");
+  }
 
   add("## Prototype flow", "");
   add("| Frame | Device | Picture | HTML |", "| --- | --- | --- | --- |");

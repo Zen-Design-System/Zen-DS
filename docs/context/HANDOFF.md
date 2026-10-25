@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-21.
+Last updated: 2026-10-26.
 
 ## Read order
 
@@ -19,6 +19,13 @@ Last updated: 2026-10-21.
 
 ## State in short
 
+- **Studio responsive breakpoints (2026-10-26):** plan `docs/research/studio-responsive-breakpoints-2026-10-26.md`
+  approved (D1–D4; D5, a harness rule, not). Session bp-studio builds the Studio half: PR 1 (view switch Desktop ·
+  Tablet · Mobile on a Screen's label, the Screen's breakpoint in ZenContext and following a desktop Screen's width,
+  Changes on this breakpoint, Add Top / Bottom Navigation placeholders, Make a separate Screen + `versionOf`, Play's
+  width drag; six component CSS files on `[data-breakpoint]`) on `claude/responsive-studio-b28ea5`, merged as one train
+  with bp-layout's responsive Stack / Grid / Box props (`zen/train/responsive-20261026`). PR 2 (ResponsiveField, Hide on
+  <breakpoint> in Studio) starts once the train is in main. E2E rows BP-01…08 (PR 1), BP-09+ (PR 2).
 - **BadgeStatus + PropertyField (2026-10-21):** branch `zen/feat/property-field-20261021` (worktree
   `../Zen-DS-badge-status`): Figma Badge-Status 16932:195 and Input/Property-Field 16923:6031 approved by the user, then
   code, platform pages (Badge, Input), harness rules, Studio palette + push/pull. Rule since then: new components go

@@ -17,6 +17,15 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio breakpoints (2026-10-26, PR 1 of the responsive plan): a Screen's label row switches it between Desktop ·
+  Tablet · Mobile as a view (the page OS's phone or tablet, never saved, no undo step), with More views, a typed width
+  and Make a separate Screen (`versionOf`, which Play and Open on phone show at its breakpoint). A desktop Screen's
+  breakpoint follows its width, and the Screen gives it to the components inside (`useZen().breakpoint`). The Inspector
+  lists what changes on the breakpoint shown; dashed placeholders add a missing Top or Bottom Navigation to the
+  AppShell; Play's viewport drags from both sides with a `W × H · Mobile` tag.
+- AiChat, AlertBanner, DatePicker, Pagination and SidePanel take their phone look from the frame's breakpoint
+  (`[data-breakpoint="mobile"]`, below 744) instead of the window's width (480 or 560); Dialog and ModalForm inside a
+  device frame no longer read the window's width.
 - Zen Studio Copy for Figma (2026-10-25): ⌘C on a frame, then ⌘V on any Figma canvas (not only the Zen file's) places
   it as instances of the published Zen library, with its variables and text styles bound: the paste carries the
   library's full definitions, as Figma's own copies do (`docs/figma-contracts/native-defs.json.gz`).

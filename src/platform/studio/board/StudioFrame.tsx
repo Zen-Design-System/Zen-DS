@@ -18,7 +18,7 @@ import "./board.css";
  * ZenPortal (Popover, Tooltip, the toast stack). Both sit in the world, so they zoom with the frame and take its theme;
  * the components place them in the frame's own px (layer-space.ts, Menu, useAnchoredPosition).
  */
-export function StudioFrame({ id, kind, label, width, example, children }: { id: string; kind: StudioFrameKind; label: string; width: number; example?: StudioExample; children: ReactNode }) {
+export function StudioFrame({ id, kind, label, width, example, breakpoint, view, children }: { id: string; kind: StudioFrameKind; label: string; width: number; example?: StudioExample; breakpoint?: string; view?: number; children: ReactNode }) {
   const key = useStudio((state) => pageKey(state.page, state.collection, state.localPage));
   const override = useStudio((state) => state.frameOverrides[key]?.[id]);
   const primary = useStudio((state) => state.selection?.kind === "frame" && state.selection.frameId === id);
@@ -35,8 +35,9 @@ export function StudioFrame({ id, kind, label, width, example, children }: { id:
     return element ? registerFrame({ id, kind, label, element, baseWidth: width, example }) : undefined;
   }, [id, kind, label, width, example]);
   // A frame of a page you made has its own width in the page (F4: handles, Layout › W); a view width set on it before
-  // that (the old width menu) no longer applies.
-  const viewWidth = /^(screen|overlay):/.test(id) ? undefined : override?.width;
+  // that (the old width menu) no longer applies. A Screen shown on another breakpoint (builder/screenViews.ts) takes the
+  // view's width (`view`), keeps its place and draws above the frames beside it until the view ends.
+  const viewWidth = /^(screen|overlay):/.test(id) ? view : override?.width;
   const style = { "--studio-frame-width": `${resolveFrameWidth(width, viewWidth)}px` } as CSSProperties;
   return (
     <div
@@ -48,6 +49,10 @@ export function StudioFrame({ id, kind, label, width, example, children }: { id:
       data-studio-frame={id}
       data-selected={selected ? "true" : undefined}
       data-width-override={viewWidth && viewWidth !== "auto" ? "true" : undefined}
+      data-view={view ? "" : undefined}
+      // A Screen's breakpoint (its view's, else its own) on the frame too: what opens in the frame's portal and overlay
+      // root (a Menu, a modal Side Panel, a Dialog) is outside the Screen and takes it from here.
+      data-breakpoint={breakpoint}
       data-theme={override?.theme}
       data-zen-overlay-root=""
       style={style}
