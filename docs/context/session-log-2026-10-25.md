@@ -36,3 +36,4 @@ it only adds Zen code to Figma's Dev Mode panel; Studio pull/push and `map_figma
 a status card's Dock-Icon by meaning (skills), but no harness binds it, so `metric/dock-icon-by-meaning` left
 check-usage.mjs (+ its bad.tsx case) and zen-figma-audit.js; skills and the guideline say it as what generation does.
 "P3 · Figma screens older than the 2026-10-24 rules" moved to "Later phase" (user: "sẽ làm sau"), minus the metric part.
+"P2 · Direct paste into other files" moved back to BACKLOG.md Open items: the user published the library (2026-10-25).

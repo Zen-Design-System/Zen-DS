@@ -6,11 +6,6 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
 [`QUESTIONS.md`](QUESTIONS.md).
 
 ## For the user (Việc của anh/chị)
-- **P2 · Direct paste (⌘V on the canvas) into other files (2026-10-17; waits on the library publish):** it binds by
-  node id, so only the Zen file takes it; other files need the published library and full component definitions in the
-  paste (instances by `componentKey`, as Figma's own copies carry). The rest of the parity list closed on 2026-10-23
-  (Copy for Figma in a copy event, grid cards' heights, the pack at 7.7 MB; the slot and alias differences kept by
-  design). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §8.
 - **P2 · LICENSE.md is a draft: legal review before selling (2026-10-08):** drafted on PR #5 (Dizai Studio, Vietnam law, subscription, apps-not-kits, per company + member limit); a lawyer must review it and remove its "Draft" note. Was: package.json has no `license` field and the repo no
   LICENSE/EULA; needed before selling (legal text from the user).
 - **P2 · Private registry: the user's steps, then Phase 6 (2026-10-08; rewritten 2026-10-24):** Phase 3: the kit is
