@@ -202,11 +202,16 @@ The user's two decisions:
 
 - **Figma (read-only):** the primitive Dock-Icon-Cell 1603:5099 is column-less: Subtext=No is XSmall and Subtext=Yes is
   Small. The HR-Platform leave tables (7378:38418, 7379:36025, 15794:50838, 15794:50856) lead with an Emoji Dock-Icon at
-  Medium 40. The new check found 12 instances on the first two screens; the full 104 KB audit does not fit a `use_figma`
-  call, so only the new check ran. Asked the user (override per screen, a variant, or an Emoji exception); the library
-  is unchanged.
-- **Pages:** `usage:check` flagged g-grid's leave table (emoji Dock Icon `xsmall`), which is now `sm`. The Table page's
-  `PersonAvatar` already draws `lead` Solid.
-- **Checks:** usage selftest (260 rules), platform:audit:selftest 68 (9 table-lead fixtures), figma-push 485,
+  Medium 40, and the Dock-Icon set 308:45902 has Theme=Emoji only at Medium and Large. The user decided:
+  - Keep the library; the Figma audit warns and screens set the size.
+  - "Emoji thì mặc định dùng medium".
+
+  The check expects Medium for Emoji and Small otherwise. It found 0 on the four screens (24 first-column Emoji
+  Dock-Icons, all Medium). The full 104 KB audit does not fit a `use_figma` call, so only the new check ran.
+- **Pages:** `usage:check` flagged the leave tables of g-grid (emoji `xsmall`) and the HR templates Leave types and My
+  leaves (emoji `sm`). All three are now `md`. `table/media-size-by-subtext` asks Medium of an emoji Dock Icon in any
+  column; a bad.tsx flag fixture moved from xs to md. The Table page's `PersonAvatar` already draws `lead` Solid. Studio
+  push draws a row's emoji Dock-Icon at Medium when its override gives no size.
+- **Checks:** usage selftest (260 rules), platform:audit:selftest 70 (11 table-lead fixtures), figma-push 486,
   figma-pull 151, cellComponents, ai-kit:check, guidelines:check and tsc all pass; tests/interaction/table-first-column.test.tsx
   was renamed from table-first-column-avatar and gained 2 dock-icon cases.

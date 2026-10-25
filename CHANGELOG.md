@@ -18,7 +18,8 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
 - Table (user, 2026-10-25): a Dock Icon in the first column, the row's name, is Small with or without a caption
-  (`content: "dock-icon"` drew XSmall without one); Zen Studio's Figma push and pull and the cell panel follow. Harness
+  (`content: "dock-icon"` drew XSmall without one); an emoji Dock Icon is Medium (Figma has Emoji only at Medium and
+  Large), so the HR leave tables draw theirs at Medium. Zen Studio's Figma push and pull and the cell panel follow. Harness
   `table/first-column-dock-icon-small`, Figma audit `table/first-column-dock-icon-small` (warning), and a runtime audit
   kind `table-lead` that checks the rendered first column (an initials Avatar Solid, a Dock Icon Small), so a page's
   helper component no longer hides it.
