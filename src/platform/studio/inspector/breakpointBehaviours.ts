@@ -24,6 +24,10 @@ export type BreakpointFacts = {
   shell: { root: boolean; mobileParts: boolean };
   /** Each Grid's `columns` written per breakpoint. */
   grids: ReadonlyArray<Partial<Record<ZenBreakpointKey, number | string>>>;
+  /** Stack, Grid and Box props written per breakpoint (P2): the layer, the prop, its values. */
+  layoutProps: ReadonlyArray<{ layer: string; prop: string; values: Partial<Record<ZenBreakpointKey, string | number | boolean>> }>;
+  /** Each Stack, Grid or Box `hideOn` list. */
+  hideOn: ReadonlyArray<readonly ZenBreakpointKey[]>;
 };
 
 /** One change: a short line, and what it means (the row's tooltip). */
@@ -50,6 +54,13 @@ function eachElement(node: PageNode, visit: (node: PageNode) => void) {
 }
 
 const MARGIN = /^margin-(comfortable|compact)$/;
+/** The props Stack, Grid and Box take per breakpoint (tools/studio/responsive-props.mjs RESPONSIVE_PROPS; columns apart). */
+const LAYOUT_PROPS: Record<string, string[]> = {
+  Stack: ["direction", "gap", "align", "justify", "wrap", "padding", "paddingX", "paddingY"],
+  Grid: ["gap", "rowGap", "columnGap", "padding"],
+  Box: ["padding", "paddingX", "paddingY"],
+};
+const BREAKPOINT_KEYS: readonly string[] = ["desktop", "tablet", "mobile"];
 const MOBILE_PARTS = ["topNavigation", "bottomNavigation", "actionBar", "hero", "backdrop"];
 
 /** The facts of a Screen's dialect node as it shows (`shown`: its breakpoint, device, width and layout). */
@@ -57,6 +68,8 @@ export function screenFacts(screen: PageNode, shown: Pick<BreakpointFacts, "brea
   const names = new Set<string>();
   const margins = new Set<"comfortable" | "compact">();
   const grids: Array<Partial<Record<ZenBreakpointKey, number | string>>> = [];
+  const layoutProps: Array<{ layer: string; prop: string; values: Partial<Record<ZenBreakpointKey, string | number | boolean>> }> = [];
+  const hideOn: ZenBreakpointKey[][] = [];
   const content = screen.children.filter((child) => !(child.kind === "text" && !child.value.trim()));
   const root = content.length === 1 && content[0].kind === "element" && content[0].name === "AppShell" ? content[0] : null;
   eachElement(screen, (node) => {
@@ -66,6 +79,14 @@ export function screenFacts(screen: PageNode, shown: Pick<BreakpointFacts, "brea
       const margin = typeof text === "string" ? MARGIN.exec(text) : null;
       if (margin) margins.add(margin[1] as "comfortable" | "compact");
     }
+    for (const prop of LAYOUT_PROPS[node.name] ?? []) {
+      const value = node.props[prop];
+      if (value?.kind !== "object") continue;
+      const values = Object.fromEntries(Object.entries(value.fields).flatMap(([key, field]) => { const at = literal(field); return BREAKPOINT_KEYS.includes(key) && (typeof at === "string" || typeof at === "number" || typeof at === "boolean") ? [[key, at]] : []; }));
+      if (Object.keys(values).length) layoutProps.push({ layer: node.name, prop, values });
+    }
+    const hide = LAYOUT_PROPS[node.name] ? node.props.hideOn : undefined;
+    if (hide?.kind === "array") hideOn.push(hide.items.flatMap((item) => { const at = literal(item); return typeof at === "string" && BREAKPOINT_KEYS.includes(at) ? [at as ZenBreakpointKey] : []; }));
     const columns = node.name === "Grid" ? node.props.columns : undefined;
     if (columns?.kind === "object") {
       const keys = Object.fromEntries(Object.entries(columns.fields).flatMap(([key, field]) => {
@@ -75,7 +96,7 @@ export function screenFacts(screen: PageNode, shown: Pick<BreakpointFacts, "brea
       if (Object.keys(keys).length) grids.push(keys);
     }
   });
-  return { ...shown, names, margins, shell: { root: Boolean(root), mobileParts: Boolean(root && MOBILE_PARTS.some((prop) => root.props[prop])) }, grids };
+  return { ...shown, names, margins, shell: { root: Boolean(root), mobileParts: Boolean(root && MOBILE_PARTS.some((prop) => root.props[prop])) }, grids, layoutProps, hideOn };
 }
 
 /** A per-breakpoint value at `breakpoint`, as the library resolves it (_shared/responsive.ts resolveAt): its own key, then
@@ -124,6 +145,20 @@ const BEHAVIOURS: Array<{ id: string; at: (facts: BreakpointFacts) => Omit<Break
       return here !== undefined && here !== wide ? [`${wide} → ${here}`] : [];
     });
     return changed.length ? { label: `Grid columns: ${changed.join(", ")}`, detail: `Grids with columns written per breakpoint show their ${BREAKPOINT_LABELS[facts.breakpoint]} value (a breakpoint without its own takes the next wider one's).` } : null;
+  } },
+  { id: "layout-props", at: (facts) => {
+    if (facts.breakpoint === "desktop") return null;
+    const changed = facts.layoutProps.flatMap(({ layer, prop, values }) => {
+      const wide = valueAt(values, "desktop");
+      const here = valueAt(values, facts.breakpoint);
+      return here !== undefined && here !== wide ? [`${layer} ${prop} ${wide} → ${here}`] : [];
+    });
+    if (!changed.length) return null;
+    return { label: `Layout: ${changed.slice(0, 3).join(", ")}${changed.length > 3 ? ` +${changed.length - 3}` : ""}`, detail: `Stack, Grid and Box props written per breakpoint show their ${BREAKPOINT_LABELS[facts.breakpoint]} value (Inspector › Auto layout › Breakpoint).` };
+  } },
+  { id: "hidden-here", at: (facts) => {
+    const count = facts.hideOn.filter((list) => list.includes(facts.breakpoint)).length;
+    return count ? { label: `${count} ${count === 1 ? "frame" : "frames"} hidden here`, detail: `Frames set to Hide on ${BREAKPOINT_LABELS[facts.breakpoint]}: not drawn here, still in Layers (dimmed).` } : null;
   } },
   { id: "phone-looks", at: (facts) => {
     const looks = facts.breakpoint === "mobile" ? PHONE_LOOKS.filter(([name]) => facts.names.has(name)).map(([, text]) => text) : [];

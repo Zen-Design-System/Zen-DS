@@ -23,6 +23,10 @@ import { InspectorFields, InspectorSection } from "./Section";
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../edit/autoLayout";
 import { autoLayoutShortcut } from "../select/wrapSelection";
 import { useStudio } from "../store";
+import { breakpointOf } from "../select/gridTracks";
+import { BREAKPOINT_ICONS, BREAKPOINT_LABELS, BREAKPOINTS } from "../../../../tools/studio/screen-devices.mjs";
+import { HIDE_ON_LAYERS, hideOnOp, toggledHideOn } from "../edit/hideOn";
+import { breakpointsWithOwn, ownProps, resetOps, responsiveOps, responsivePropsOf, responsiveRead, sameEverywhereOps, shownAt, widerOf, type Breakpoint, type RLiteral } from "./responsiveModel";
 
 /*
  * The Auto layout / Layout section in Figma UI3's words and field grid (docs/research/studio-inspector-figma-spec-2026-10-09.md
@@ -124,16 +128,42 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
   const selection = useStudio((state) => state.selection);
   const [splitView, setSplitView] = useState(false);
   const spec = (name: string) => specs.find((candidate) => candidate.name === name);
-  const state = (name: string) => api.valueFor(name).state;
+  // Per-breakpoint props (responsiveModel.ts; studio-responsive-breakpoints §4): the controls show the value at the
+  // editing breakpoint (the one the Screen shows, or the one picked in the Breakpoint row) and write that breakpoint's
+  // key. A per-breakpoint value reads as the literal it shows there, so the grouped controls take it as a plain one.
+  const responsive = responsivePropsOf(component);
+  const selected = selection?.kind === "node" ? selection.src : "";
+  const frameBreakpoint: Breakpoint = host ? breakpointOf(host) : "desktop";
+  const [picked, setPicked] = useState<{ breakpoint: Breakpoint; for: string } | null>(null);
+  const editing: Breakpoint = picked && picked.for === `${selected}|${frameBreakpoint}` ? picked.breakpoint : frameBreakpoint;
+  const reads = Object.fromEntries(responsive.map((name) => [name, responsiveRead(attributes, name)]));
+  const perBreakpoint = responsive.filter((name) => reads[name].kind === "responsive");
+  const valueFor = (name: string): PropValue => {
+    const read = reads[name];
+    if (read?.kind !== "responsive") return api.valueFor(name);
+    const shown = shownAt(read, editing);
+    return shown === undefined ? { state: "unset" } : { state: "literal", value: shown, raw: "" };
+  };
+  const state = (name: string) => valueFor(name).state;
   const literal = (name: string): Literal | undefined => {
-    const value = api.valueFor(name);
+    const value = valueFor(name);
     return value.state === "literal" ? value.value : undefined;
   };
   // Only literals (or nothing) are grouped: a bound or spread value keeps its own row.
   const plain = (...names: string[]) => names.every((name) => !spec(name) || state(name) === "literal" || state(name) === "unset");
   const written: Written = Object.fromEntries(READ.map((name) => [name, literal(name)]));
   const disabled = api.disabled;
-  const apply = (ops: EditOp[], label: string) => { if (ops.length) void api.apply(ops, `${component} ${label}`, optimisticOf(ops)); };
+  const defaults: Record<string, RLiteral | undefined> = Object.fromEntries(responsive.map((name) => {
+    const fallback = spec(name)?.defaultValue;
+    return [name, typeof fallback === "string" || typeof fallback === "number" || typeof fallback === "boolean" ? fallback : undefined];
+  }));
+  const where = editing === "desktop" && !perBreakpoint.length ? "" : ` on ${BREAKPOINT_LABELS[editing]}`;
+  const apply = (ops: EditOp[], label: string) => {
+    const planned = responsive.length ? responsiveOps(ops, { component, attributes, breakpoint: editing, defaults }) : ops;
+    if (planned.length) void api.apply(planned, `${component} ${label}${where}`, optimisticOf(planned));
+  };
+  /** ⌫ on a grouped field: the prop's default at the editing breakpoint (its key goes on a per-breakpoint prop). */
+  const removeProp = (name: string) => { if (responsive.includes(name)) apply([{ op: "removeProp", name }], `${name} reset`); else api.removeProp(name); };
   const handled = new Set<string>();
   const groups: ReactNode[] = [];
 
@@ -179,7 +209,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
           actions={extra?.actions}
           placeholder={extra?.placeholder}
           onSet={onSet}
-          onReset={extra?.onReset ?? (value !== undefined ? () => api.removeProp(name) : undefined)}
+          onReset={extra?.onReset ?? (value !== undefined ? () => removeProp(name) : undefined)}
         />
       </div>
     );
@@ -187,6 +217,51 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
 
   const row = (written.direction === "row");
   const view = alignView(written);
+
+  // ── Breakpoint: which breakpoint the fields edit (shown while the Screen is narrower than desktop, or once the element
+  // writes per-breakpoint values); a dot marks a breakpoint with values of its own. ──
+  const own = new Set(ownProps(component, attributes, editing));
+  const ownOf = (...names: string[]) => editing !== "desktop" && names.some((name) => own.has(name));
+  if (responsive.length && (frameBreakpoint !== "desktop" || perBreakpoint.length || picked)) {
+    const marked = new Set(breakpointsWithOwn(component, attributes));
+    groups.push(
+      <InspectorFields
+        key="breakpoint"
+        name="breakpoint"
+        labels={["Breakpoint"]}
+        code={`${component} per breakpoint: { desktop, tablet, mobile }`}
+        icon={perBreakpoint.length ? <IconButton icon="icon-link-01-line" appearance="flat" level="primary" size="xs" aria-label="Same on every breakpoint" tooltip={`Same on every breakpoint (${BREAKPOINT_LABELS[editing]}'s values)`} disabled={disabled} onClick={() => { const ops = sameEverywhereOps(component, attributes, editing); if (ops.length) void api.apply(ops, `${component} same on every breakpoint`, optimisticOf(ops)); }} /> : undefined}
+        fields={[(
+          <Segmented
+            key="breakpoint"
+            aria-label="Edit the breakpoint"
+            size="sm"
+            fullWidth
+            value={editing}
+            onValueChange={(next) => setPicked({ breakpoint: next as Breakpoint, for: `${selected}|${frameBreakpoint}` })}
+            options={BREAKPOINTS.map((key) => ({
+              id: key,
+              label: null,
+              leading: BREAKPOINT_ICONS[key] as never,
+              badge: marked.has(key) && key !== "desktop" ? <span className="studio-layout-own-dot" aria-hidden="true" /> : undefined,
+              "aria-label": `${BREAKPOINT_LABELS[key]}${key === frameBreakpoint ? " (shown)" : ""}${marked.has(key) && key !== "desktop" ? ", has its own values" : ""}`,
+            }))}
+          />
+        )]}
+      />,
+    );
+    if (editing !== "desktop") {
+      const ownNames = [...own].map((name) => figmaWords[name] ?? name);
+      groups.push(
+        <div key="breakpoint-note" className="studio-layout-breakpoint" data-prop="breakpoint-note">
+          <p className={`studio-inspector__note ${typographyStyles["Caption/Regular"]}`}>
+            {ownNames.length ? `Own on ${BREAKPOINT_LABELS[editing]}: ${ownNames.join(", ")}` : `${BREAKPOINT_LABELS[editing]} shows ${BREAKPOINT_LABELS[widerOf(editing, component, attributes)]}'s values; a change here is its own`}
+          </p>
+          {ownNames.length ? <Button appearance="flat" level="primary" size="sm" disabled={disabled} onClick={() => { const ops = resetOps(component, attributes, editing); if (ops.length) void api.apply(ops, `${component} reset ${BREAKPOINT_LABELS[editing]} to ${BREAKPOINT_LABELS[widerOf(editing, component, attributes)]}`, optimisticOf(ops)); }}>{`Reset to ${BREAKPOINT_LABELS[widerOf(editing, component, attributes)]}`}</Button> : null}
+        </div>,
+      );
+    }
+  }
 
   // ── Flow ──
   if ((component === "Stack" || component === "FormFieldset") && spec("direction") && plain("direction", "wrap")) {
@@ -205,6 +280,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
       <InspectorFields
         key="flow"
         name="direction"
+        own={ownOf("direction", "wrap")}
         labels={["Flow"]}
         code={wraps ? "Stack direction · wrap" : `${component} direction`}
         fields={[<Seg key="flow" label="Flow" value={wraps ? flow : flow === "wrap" ? "horizontal" : flow} unset={!anyWritten} disabled={disabled} options={items} onPick={(next) => apply(flowOps(written, next as Flow), `Flow → ${optionLabel(next)}`)} />]}
@@ -225,12 +301,13 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
     const gapField = gapPlain ? scale("gap", "Gap", row ? "icon-spacing-width-01-line" : "icon-spacing-height-01-line", (key) => apply(key === "auto" ? gapAutoOps(written) : gapOps(written, key), key === "auto" ? "Gap → Auto" : `Gap → ${tokenName(key)}`), {
       value: view.auto ? "auto" : undefined,
       extras: [{ key: "auto", label: "Auto" }],
-      onReset: view.auto ? () => apply([{ op: "removeProp", name: "justify" }], "Auto off") : written.gap !== undefined ? () => api.removeProp("gap") : undefined,
+      onReset: view.auto ? () => apply([{ op: "removeProp", name: "justify" }], "Auto off") : written.gap !== undefined ? () => removeProp("gap") : undefined,
     }) : null;
     groups.push(
       <InspectorFields
         key="align"
         name="align justify"
+        own={ownOf("align", "justify", "gap")}
         labels={gapField ? ["Alignment", "Gap"] : ["Alignment"]}
         code="Stack align · justify · gap"
         icon={<CrossMenu view={view} disabled={disabled} onPick={(mode) => apply(crossOps(written, mode), `Alignment → ${optionLabel(mode)}`)} />}
@@ -290,6 +367,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
       groups.push(
         <InspectorFields
           key="grid-gap"
+          own={ownOf("gap", "rowGap", "columnGap")}
           labels={split ? ["Column gap", "Row gap"] : ["Gap"]}
           code={split ? "Grid columnGap · rowGap" : "Grid gap"}
           fields={split ? [
@@ -322,10 +400,10 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
       return scale(name, axis === "x" ? "Horizontal padding" : "Vertical padding", axis === "x" ? "icon-spacing-width-02-line" : "icon-spacing-height-02-line", (key) => apply(axisPaddingOps(written, axis, key), `${axis === "x" ? "Horizontal" : "Vertical"} padding → ${tokenName(key, "padding")}`), {
         value: typeof shown === "string" ? shown : undefined,
         // ⌫ removes the axis's own value (it falls back to padding); a value it only inherits stays.
-        onReset: written[name] !== undefined ? () => api.removeProp(name) : undefined,
+        onReset: written[name] !== undefined ? () => removeProp(name) : undefined,
       });
     };
-    groups.push(<InspectorFields key="padding" labels={["Padding"]} code={`${component} paddingX · paddingY (padding when equal)`} fields={[axisField("x"), axisField("y")]} />);
+    groups.push(<InspectorFields key="padding" own={ownOf("padding", "paddingX", "paddingY")} labels={["Padding"]} code={`${component} paddingX · paddingY (padding when equal)`} fields={[axisField("x"), axisField("y")]} />);
     handled.add("padding");
     handled.add("paddingX");
     handled.add("paddingY");
@@ -333,7 +411,30 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
 
   // Grid's one padding (no per-axis props).
   if (component === "Grid" && spec("padding") && !spec("paddingX") && plain("padding")) {
-    groups.push(<InspectorFields key="grid-padding" labels={["Padding"]} code="Grid padding" fields={[scale("padding", "Padding", "icon-grid-dots-outer-line", (key) => apply([{ op: "setProp", name: "padding", value: { kind: "string", value: key } }], `Padding → ${tokenName(key, "padding")}`)), <span key="none" />]} />);
+    groups.push(<InspectorFields key="grid-padding" own={ownOf("padding")} labels={["Padding"]} code="Grid padding" fields={[scale("padding", "Padding", "icon-grid-dots-outer-line", (key) => apply([{ op: "setProp", name: "padding", value: { kind: "string", value: key } }], `Padding → ${tokenName(key, "padding")}`)), <span key="none" />]} />);
+  }
+
+  // ── Hide on <breakpoint> (edit/hideOn.ts): the library's hideOn, shown with the Breakpoint row or once written ──
+  const hideOnAttr = attributes.filter((attr) => attr.kind !== "spread" && attr.name === "hideOn").at(-1);
+  const hideOnList = hideOnAttr?.kind === "expression" && /^\[\s*(?:(["'])(?:desktop|tablet|mobile)\1\s*,?\s*)*\]$/.test((hideOnAttr.value ?? "").trim())
+    ? [...(hideOnAttr.value ?? "").matchAll(/(desktop|tablet|mobile)/g)].map((match) => match[1] as Breakpoint) : hideOnAttr ? null : [];
+  if (HIDE_ON_LAYERS.has(component) && hideOnList && (hideOnList.length || frameBreakpoint !== "desktop" || perBreakpoint.length || picked)) {
+    handled.add("hideOn");
+    groups.push(
+      <InspectorFields
+        key="hide-on"
+        name="hideOn"
+        labels={["Hide on"]}
+        code={`${component} hideOn`}
+        fields={[(
+          <div key="hide-on" className="studio-layout-hide-on">
+            {BREAKPOINTS.map((key) => (
+              <Checkbox key={key} label={BREAKPOINT_LABELS[key]} checked={hideOnList.includes(key)} disabled={disabled} onCheckedChange={(next) => { const ops = [hideOnOp(toggledHideOn(hideOnList, key, next))]; void api.apply(ops, `${component} ${next ? "hidden" : "shown"} on ${BREAKPOINT_LABELS[key]}`, optimisticOf(ops)); }} />
+            ))}
+          </div>
+        )]}
+      />,
+    );
   }
 
   // ── Clip content (Stack, Grid and Box clip: any frame, as in Figma), under Padding ──
@@ -399,7 +500,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
         {null}
       </InspectorSection>
     ) : null}
-    <InspectorSection title={component === "Stack" || component === "Grid" || component === "FormFieldset" ? "Auto layout" : "Layout"} note={note} fieldGrid actions={removeAction}>
+    <InspectorSection title={component === "Stack" || component === "Grid" || component === "FormFieldset" ? "Auto layout" : "Layout"} note={note} fieldGrid actions={removeAction} responsive={responsive.length > 0}>
       {groups}
       {rest}
       {warnings.map((warning) => (

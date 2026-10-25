@@ -21,7 +21,10 @@ import { layerSlotsOf } from "../slots/layers";
 import { dataItemRootOf, itemParts, renderedItemTitle } from "../slots/dataItems";
 import { itemSelection, useItemSelection } from "../slots/itemSelection";
 import { dataSlotsOf } from "../slots/dataSlots";
-import { canEdit, studioStore, useStudio } from "../store";
+import { canEdit, pageKey, studioStore, useStudio } from "../store";
+import { HIDE_ON_LAYERS } from "../edit/hideOn";
+import { breakpointOf } from "./gridTracks";
+import { BREAKPOINT_ICONS, BREAKPOINT_LABELS, type ZenBreakpointKey } from "../../../../tools/studio/screen-devices.mjs";
 import { componentSchema } from "../inspector/propSchema";
 import { elementFiber, hitOf, hostsOf, isHostFiber, isPortalFiber, isTypingTarget, layerHover, nameOf, onSourceUpdate, panelOf, rectOf, rendersPortal, shortSrc, srcOf, type Fiber, type FiberHit } from "./picker";
 import { classHint, elementAt, isComponentFiber, nestedPathOf, ownsText, partChildren, partForElement, selectedPartStore, type PartHit } from "./parts";
@@ -705,6 +708,14 @@ function flatten(tree: Tree, isOpen: (node: LayerNode) => boolean, query: string
   return { rows, hidden };
 }
 
+/** The breakpoint a Stack, Grid or Box row is hidden on now (its `hideOn` names the breakpoint its frame shows: the
+ *  library writes data-hidden), else null. */
+function breakpointHidden(node: LayerNode): ZenBreakpointKey | null {
+  if (node.kind !== "node" || !HIDE_ON_LAYERS.has(node.name)) return null;
+  const host = hitForNode(node)?.hosts[0];
+  return host?.getAttribute("data-hidden") === "true" ? breakpointOf(host) : null;
+}
+
 function hitForNode(node: LayerNode): FiberHit | null {
   if (node.kind === "frame") return node.frame ? { src: "", name: node.name, hosts: [node.frame], isComponent: false, props: {} } : null;
   if (node.kind === "panel" || node.kind === "variant") return node.element?.isConnected ? { src: "", name: node.name, hosts: [node.element], isComponent: false, props: {} } : null;
@@ -815,6 +826,10 @@ export function LayersPanel() {
   const [focusId, setFocusId] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(readShowAll);
   const localPage = useStudio((state) => state.localPage);
+  // A Screen viewed on another breakpoint shows other layers hidden by hideOn: the rows read them again once it is drawn.
+  const views = useStudio((state) => state.frameOverrides[pageKey(state.page, state.collection, state.localPage)]);
+  const [, setViewsDrawn] = useState(0);
+  useEffect(() => { const frame = requestAnimationFrame(() => setViewsDrawn((count) => count + 1)); return () => cancelAnimationFrame(frame); }, [views]);
   // A name changed or a layer (un)locked: rows read their names and padlocks again (select/layerMeta.ts).
   const metaVersion = useLayerMeta();
   /** The row whose name is being edited (Figma's rename: double-click, ⌘R). */
@@ -1195,6 +1210,7 @@ export function LayersPanel() {
           {rows.map(({ node, open, hasChildren }) => {
             const lockable = Boolean(localPage) && ((node.kind === "node" && canLockSrc(node.src)) || (node.kind === "frame" && /^(screen|overlay):/.test(node.frameId)));
             const locked = lockable && (node.kind === "frame" ? isLockedFrame(pageFile(localPage!), node.frameId) : isOwnLock(node.src));
+            const hiddenHere = breakpointHidden(node);
             return (
             <div
               key={node.id}
@@ -1209,6 +1225,7 @@ export function LayersPanel() {
               data-component={node.isComponent || undefined}
               data-wrapped={node.wrap ? "true" : undefined}
               data-hidden={node.hiddenLayer === undefined ? undefined : String(node.hiddenLayer)}
+              data-hidden-on={hiddenHere ?? undefined}
               data-locked={locked || undefined}
               className={`studio-layers__row ${typographyStyles[node.kind === "frame" ? "Body/Small/Bold" : node.kind === "panel" ? "Body/Small/Medium" : "Body/Small/Regular"]}`}
               style={{ ["--studio-depth" as string]: node.depth }}
@@ -1241,6 +1258,12 @@ export function LayersPanel() {
                   onTab={(backward) => renameNext(node, backward)}
                 />
               ) : <span className="studio-layers__name">{rowLabel(node)}</span>}
+              {hiddenHere ? (
+                <span className="studio-layers__hidden-on" title={`Hidden on ${BREAKPOINT_LABELS[hiddenHere]}`} aria-label={`Hidden on ${BREAKPOINT_LABELS[hiddenHere]}`} role="img">
+                  <Icon name="icon-eye-off-line" size={16} decorative />
+                  <Icon name={BREAKPOINT_ICONS[hiddenHere] as IconName} size={16} decorative />
+                </span>
+              ) : null}
               {node.meta ? <span className={`studio-layers__hint ${typographyStyles["Caption/Regular"]}`}>{node.meta}</span> : null}
               {node.count > 1 ? <span className={`studio-layers__count ${typographyStyles["Caption/Regular"]}`} aria-label={`${node.count} instances`}>×{node.count}</span> : null}
               {lockable ? (

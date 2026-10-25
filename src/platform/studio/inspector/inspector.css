@@ -61,6 +61,8 @@
 .studio-inspector__description { color: var(--zen-color-content-neutral-base); }
 .studio-inspector__meta { color: var(--zen-color-content-neutral-base); white-space: nowrap; }
 .studio-inspector__note { color: var(--zen-color-content-neutral-base); }
+/* A layer's section whose fields are not per breakpoint, while its frame shows Tablet or Mobile. */
+.studio-inspector__everywhere { margin-inline-start: auto; color: var(--zen-color-content-neutral-base); white-space: nowrap; }
 /* Changes on <breakpoint> (BreakpointSection): one line per change, its meaning in the tooltip. */
 .studio-breakpoint-section__list { display: grid; margin: 0; padding: 0 0 0 var(--zen-spacing-padding-medium, 16px); gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-strongest); }
 .studio-inspector__empty { padding: var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-base); }

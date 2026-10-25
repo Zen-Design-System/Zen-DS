@@ -20,6 +20,7 @@ import { findBySrc } from "../select/picker";
 import { duplicateLayers, removeLayers, stepLayers } from "../edit/multi";
 import { toggleIgnoreAutoLayout } from "../edit/ignoreAutoLayout";
 import { visibilityMenuItems } from "../edit/visibility";
+import { hideOnMenuItems } from "../edit/hideOn";
 import { lockMenuItems } from "../edit/lock";
 import { flipMenuItems } from "../edit/flipLayers";
 import { renameShortcut, startRename } from "../edit/rename";
@@ -179,6 +180,8 @@ export function CanvasMenu() {
   const renameItem = (label: string): MenuItemData => ({ id: "rename", label, icon: "icon-text-input-line", shortcut: renameShortcut, disabled: Boolean(canEdit() ? undefined : "View only"), onSelect: () => { requestAnimationFrame(startRename); } });
   // Flip horizontal ⇧H / vertical ⇧V after Lock, as in Figma's layer menu (edit/flipLayers.ts).
   const visibility: MenuEntry[] = menu?.target.kind === "node" ? [...visibilityMenuItems(selection), ...lockMenuItems(selection), ...flipMenuItems(), ...(studioStore.getState().localPage && selection && !selection.part ? [renameItem("Rename")] : [])] : [];
+  // Hide on <breakpoint> (edit/hideOn.ts): the library's hideOn, its own group after the layer items.
+  const hideOn: MenuEntry[] = menu?.target.kind === "node" && !several ? hideOnMenuItems(selection) : [];
   // Copy / Cut / Paste / Paste to replace / properties first, as in Figma's layer menu (edit/clipboard.ts).
   const clipboard = clipboardMenuItems(selection, menu ? { x: menu.x, y: menu.y } : null);
   // Figma's Copy/Paste as ›: one item opens the list in place (the Menu has no submenus), as Select layer does (F3).
@@ -314,7 +317,7 @@ export function CanvasMenu() {
     : menu?.target.kind === "canvas" ? canvasItems
     : menu?.target.kind === "frame" ? frameItems
       : several ? severalItems
-        : [...selectLayer, ...selectItems, ...clipboard, ...copyAsEntry, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...componentItems, ...zenInstanceItems, ...shapeItems, ...visibility, ...(offered ? [detach] : []), ...slotItems.trailing];
+        : [...selectLayer, ...selectItems, ...clipboard, ...copyAsEntry, ...(clipboard.length ? [{ type: "separator" as const, id: "clip-separator" }] : []), ...slotItems.leading, ...wrapItems, ...componentItems, ...zenInstanceItems, ...shapeItems, ...visibility, ...hideOn, ...(offered ? [detach] : []), ...slotItems.trailing];
   // A disabled item shows its label only, as Figma's menu does: no reason line under it (user, 2026-10-09).
   const items = entries.map((entry) => ("disabled" in entry && entry.disabled && entry.caption ? { ...entry, caption: undefined } : entry));
 
