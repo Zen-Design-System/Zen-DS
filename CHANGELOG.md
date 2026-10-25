@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio Play (2026-10-26): a desktop Screen plays full screen again (the whole window under the bar, as Present
+  did), not a 1440 px card with a margin; and in a dark Play the page's Table popovers, tooltips, Chip popovers and
+  toasts are dark too (they draw in Play's own portal layer, no longer in the Studio's `<body>`).
 - AI skills (user, 2026-10-26): UX principles (`ux-principles.md`: each screen's states, forms, navigation, WCAG 2.2
   access, touch, motion) and product patterns (`product-patterns.md`: the screens a product family needs, mapped to
   Zen's templates) join the design principles in `skills/zen-component-usage`; the AI kit for Figma ships both, and

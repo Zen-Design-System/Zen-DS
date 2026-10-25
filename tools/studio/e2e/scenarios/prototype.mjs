@@ -437,6 +437,40 @@ async function checkFold(root) {
   return `scrolled ${down.scrolled}px: title folded, status bar at ${Math.round(down.status)}px, home indicator ${Math.round(down.home)}px from the bottom; open again at 0`;
 }
 
+/** A desktop Screen with an editable Table and a toast, and a modal Side Panel holding another editable Table (PT-28). */
+const darkPopoverPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { Button, SidePanel, Stack, Table } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Orders" device="desktop">
+        <Stack gap="md" padding="lg">
+          <Button onClick={proto.toast({ title: "Report exported" })}>Export</Button>
+          <Button onClick={proto.open("details")}>Details</Button>
+          <Table aria-label="Orders" editable columns={[{ id: "client", header: "Client" }, { id: "status", header: "Status", content: "badge" }]} rows={[{ id: "1", client: "Acme", status: "Paid" }, { id: "2", client: "Globex", status: "Overdue" }]} />
+        </Stack>
+      </Screen>
+      <Overlay id="details">
+        <SidePanel type="modal" title="Order details" onOpenChange={proto.close()}>
+          <Table aria-label="Lines" editable columns={[{ id: "item", header: "Item" }, { id: "state", header: "State", content: "badge" }]} rows={[{ id: "a", item: "Desk", state: "Packed" }, { id: "b", item: "Lamp", state: "Shipped" }]} />
+        </SidePanel>
+      </Overlay>
+    </Board>
+  );
+}
+`;
+
+/** Where a popover, tooltip or toast of the played page draws, and whether it is dark: its theme scope, its background's
+ *  brightness (0–255) and whether anything inert holds it. */
+const layerLook = (locator) => locator.evaluate((element) => {
+  const [r, g, b] = (getComputedStyle(element).backgroundColor.match(/[\d.]+/g) ?? ["255", "255", "255"]).map(Number);
+  return { theme: element.closest("[data-theme]")?.getAttribute("data-theme") ?? null, brightness: Math.round((r + g + b) / 3), inPlay: Boolean(element.closest(".studio-player")), inert: Boolean(element.closest("[inert]")) };
+});
+
 export const rows = [
   {
     id: "PT-01", feature: "Prototype ⊕: drag a Button's ⊕ onto Screen 2 (Navigate to), click the arrow (selects the Button), drag its end onto the overlay (Open overlay), off every frame (removed), ⌘Z", wp: "prototype 2026-10-15", timeout: 40_000,
@@ -1237,6 +1271,83 @@ export const rows = [
       await page.getByText("Not in this demo", { exact: true }).first().waitFor({ state: "visible", timeout: 3000 });
       await page.keyboard.press("Escape");
       return "Search “gam” → Gamma · scrolled → Search action → top, field focused · More sheet: Export → toast, Help › Open the guide → toast · account → My profile → toast";
+    },
+  },
+  {
+    id: "PT-27", feature: "Play shows a desktop Screen full screen (the user 2026-10-26: \"không hiện full màn hình desktop\"): in Auto the device is the whole page under the bar, edge to edge with square corners, the Screen still scrolls inside it; a device picked in Viewport sits on the padded stage again", wp: "play desktop full screen 2026-10-26", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await step("seed the page", () => seededPage(ctx, longScreenPage, /proto\.open\("details"\)/));
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      const measure = () => page.evaluate(() => {
+        const box = (element) => { const rect = element.getBoundingClientRect(); return { x: rect.x, y: rect.y, width: rect.width, height: rect.height }; };
+        const device = document.querySelector(".studio-player__device");
+        const screens = device.querySelector(".studio-player__screens");
+        return { device: box(device), page: box(document.querySelector(".studio-player .studio-present__page")), radius: getComputedStyle(device).borderTopLeftRadius, mode: device.dataset.viewport, scroll: screens.scrollHeight - screens.clientHeight };
+      });
+      const auto = await measure();
+      const off = ["x", "y", "width", "height"].filter((key) => Math.abs(auto.device[key] - auto.page[key]) > 1);
+      if (off.length) throw new Error(`the device does not fill the page under the bar (${off.join(", ")}): device ${JSON.stringify(auto.device)}, page ${JSON.stringify(auto.page)}`);
+      if (auto.radius !== "0px") throw new Error(`the full-screen device keeps rounded corners (${auto.radius})`);
+      if (auto.scroll < 200) throw new Error(`the Screen does not scroll inside the full-screen device (range ${auto.scroll})`);
+      await step("Viewport › iPad, landscape", async () => {
+        await playing(page).getByRole("button", { name: /^Viewport:/ }).click();
+        await playing(page).locator('[id$="-viewport-device-trigger"]').click();
+        await page.getByRole("option", { name: /^iPad, landscape/ }).first().click();
+        await page.keyboard.press("Escape");
+      });
+      await until(async () => (await measure()).mode === "fixed", { message: "the iPad viewport" });
+      const fixed = await measure();
+      if (fixed.device.x < 8 || fixed.device.y - fixed.page.y < 8) throw new Error(`the iPad sits on no stage padding: device ${JSON.stringify(fixed.device)}, page ${JSON.stringify(fixed.page)}`);
+      await page.keyboard.press("Escape");
+      return `Auto: device ${Math.round(auto.device.width)} × ${Math.round(auto.device.height)} = the page under the bar, corners ${auto.radius}, Screen scrolls ${auto.scroll}px; iPad at ${Math.round(fixed.device.x)}, ${Math.round(fixed.device.y - fixed.page.y)} on the stage`;
+    },
+  },
+  {
+    id: "PT-28", feature: "A dark Play keeps the page's popovers dark (the user 2026-10-26: a Table popover stayed light): the Table editor's popover, a tooltip and a toast draw in Play's portal layer in its theme, and a Table popover opened in a modal Side Panel stays live and picks", wp: "play portal 2026-10-26", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await step("seed the page", () => seededPage(ctx, darkPopoverPage, /proto\.open\("details"\)/));
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      await step("Dark mode", () => playing(page).getByRole("button", { name: "Dark mode" }).click());
+      // Off the bar: its own hover tooltip (the Studio's chrome, in the Studio's modes) is not the page's.
+      await page.mouse.move(page.viewportSize().width - 8, page.viewportSize().height - 8);
+      const dark = (look, what) => { if (look.theme !== "dark" || !look.inPlay || look.inert) throw new Error(`${what} is not in the dark Play: ${JSON.stringify(look)}`); };
+      await step("edit a Status cell", () => playing(page).locator("td.zen-table__cell[data-editable='true']").filter({ hasText: "Paid" }).first().click());
+      const popover = page.locator(".zen-table-editor__popover");
+      await popover.waitFor({ state: "visible", timeout: 3000 });
+      const look = await layerLook(popover);
+      dark(look, "the Table popover");
+      if (look.brightness > 60) throw new Error(`the Table popover is light in a dark Play (background ${look.brightness}/255)`);
+      await page.keyboard.press("Escape");
+      await until(async () => (await popover.count()) === 0, { message: "Escape closes the popover" });
+      if ((await playing(page).count()) !== 1) throw new Error("Escape on the popover left Play");
+      await step("Export (toast)", () => playing(page).getByRole("button", { name: "Export" }).click());
+      const toast = page.locator(".zen-toast").filter({ hasText: "Report exported" });
+      await toast.waitFor({ state: "visible", timeout: 3000 });
+      dark(await layerLook(toast), "the toast");
+      await step("Details (modal Side Panel)", () => playing(page).getByRole("button", { name: "Details" }).click());
+      const panel = playing(page).getByRole("dialog", { name: "Order details" });
+      await panel.waitFor({ state: "visible", timeout: 3000 });
+      await step("edit a State cell in the panel", () => panel.locator("td.zen-table__cell[data-editable='true']").filter({ hasText: "Packed" }).first().click());
+      await popover.waitFor({ state: "visible", timeout: 3000 });
+      dark(await layerLook(popover), "the Table popover over the Side Panel");
+      await step("pick Shipped", () => popover.getByRole("option", { name: /Shipped/ }).click());
+      await until(async () => (await panel.locator("td.zen-table__cell").filter({ hasText: "Packed" }).count()) === 0, { message: "the pick reaches the panel's Table" });
+      const tip = await step("tooltip on the panel's close button", async () => {
+        await panel.getByRole("button", { name: "Close panel" }).focus();
+        await page.keyboard.press("Shift+Tab");
+        await page.keyboard.press("Tab");
+        const layer = page.locator(".zen-tooltip-layer").filter({ hasText: "Close panel" });
+        await layer.waitFor({ state: "visible", timeout: 3000 });
+        return layerLook(layer);
+      });
+      dark(tip, "the tooltip");
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      return `dark Play: Table popover dark (${look.brightness}/255), Escape kept Play; toast and tooltip in the dark layer; in the modal Side Panel the popover stayed live and picked Shipped`;
     },
   },
 ];
