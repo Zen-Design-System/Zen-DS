@@ -10,7 +10,7 @@ import { dropLivePlace, livePlace, showLivePlace } from "./frameMove";
  * Keys for a selected frame on a page you made (Figma's): ⌘D duplicates it beside itself, ⌘C / ⌘V copy and paste it
  * (onto this page or another page you made; a Section with everything it holds), the arrow keys nudge it 1 px (⇧ 10 px; one undo step per burst). Taken
  * in the capture phase before the Studio's layer keys and clipboard, which act on layers only. ⌘C also carries the
- * frame's Figma export (export/figmaClipboard.ts), which ⌘V on the Zen file's canvas or in the Zen plugin places in Figma.
+ * frame's Figma export (export/figmaClipboard.ts), which ⌘V on a Figma canvas or in the Zen plugin places in Figma.
  */
 
 const NUDGE_SETTLE_MS = 400;
@@ -104,7 +104,7 @@ export function useFrameKeys(localPage: string, text: string | undefined) {
       clip = ready;
       copiedAt = Date.now();
       event.clipboardData?.setData("text/plain", ready.code);
-      const copied = "Copied frame — ⌘V pastes it here, on another page you made, on the Zen file's canvas or in the Zen plugin";
+      const copied = "Copied frame — ⌘V pastes it here, on another page you made, on a Figma canvas or in the Zen plugin";
       if (readyFigma && readyFigma.frameId === frame.frameId) {
         event.clipboardData?.setData("text/html", readyFigma.html);
         announceEditStatus({ kind: "unchanged", message: copied, at: Date.now() });
@@ -115,7 +115,7 @@ export function useFrameKeys(localPage: string, text: string | undefined) {
       const html = frameFigmaClip(localPage, frame.frameId).then((next) => ("html" in next ? next.html : Promise.reject(new Error(next.error))));
       announceEditStatus({ kind: "unchanged", message: "Copied frame — preparing it for Figma…", at: Date.now() });
       void writeFrameClip(code, html).then(
-        () => announceEditStatus({ kind: "unchanged", message: "Copied frame — ⌘V in the Zen plugin places it; copy again for the Zen file's canvas", at: Date.now() }),
+        () => announceEditStatus({ kind: "unchanged", message: "Copied frame — ⌘V in the Zen plugin places it; copy again for a Figma canvas", at: Date.now() }),
         (error: unknown) => announceEditStatus({ kind: "error", message: `Copied for the Studio only — not for Figma: ${error instanceof Error ? error.message : String(error)}`, at: Date.now() }),
       );
     };

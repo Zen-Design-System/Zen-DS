@@ -166,7 +166,8 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
 
 // --- AppShell as the master layout (Figma's own copy of a master that grows with its page, 2026-10-17) -------------
 {
-  const inner = ["Patterns/Sidebar/Density-Medium", "Patterns/Density/Comfortable/Sidebar/Yes"];
+  // The master's Side-Bar layer is "Patterns/Sidebar" since the library renamed it (figma-push MASTER_SIDEBAR_PATTERN).
+  const inner = ["Patterns/Sidebar", "Patterns/Density/Comfortable/Sidebar/Yes"];
   const pads = ["Margin-Comfortable", "Margin-Comfortable", "Spacing/Padding/XSmall", "Margin-Comfortable"];
   const shell = {
     type: "INSTANCE", name: "AppShell", set: { id: "4122:41886", name: "Patterns/Pages/Density-Medium" }, props: { Level: "Master", Sidebar: true, "Side-Panel": false, "Floating-Actions": false }, fillW: true, minH: 982,

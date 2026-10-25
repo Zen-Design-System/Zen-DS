@@ -80,6 +80,8 @@ export function compactPack(full) {
 }
 
 export const PACK_FILE = "docs/figma-contracts/native-pack.json";
+/** The full definitions (defsFrom), compact and gzipped: ~41 MB of JSON, 3.5 MB stored (2026-10-25). */
+export const DEFS_FILE = "docs/figma-contracts/native-defs.json.gz";
 export const SCHEMA_MODULE = "tools/studio/figma-clipboard-schema.generated.mjs";
 export const PACK_FILE_KEY = "9nZv4uW2LT21yuHabMTCh1";
 export const PROBE_PAGE = "15872:3";
@@ -389,6 +391,62 @@ export function packFrom(copies, { read }) {
   };
 }
 
+/** Fields the full definitions leave out at any depth: what Figma derives again on paste, plugin data and descriptions. */
+const DEFS_SKIP = new Set(["phase", "pluginData", "derivedTextData", "derivedSymbolData", "derivedSymbolDataLayoutVersion", "editInfo", "description", "symbolDescription", "styleDescription", "userFacingVersion"]);
+
+/**
+ * The Zen library's full definitions from the same copies (docs/research/studio-native-paste-2026-10-17.md §9): a paste
+ * into a file other than Zen's carries them, as Figma's own copies do, since Figma builds a library component it has not
+ * seen from the clipboard and never fetches it by key (2026-10-25: skeletons pasted empty; values-less variables white).
+ * `nodes` {id: node}: every component set (its shell), component and layer under one, variable collection, variable
+ * and style, as Figma's copy has them (refs by `assetRef`, `sourceLibraryKey` written 1: `library` holds it), less
+ * DEFS_SKIP; vector data inline (`{blob: base64}`). A variable or style the file also holds as a library copy keeps
+ * only its own node (packFrom's rule).
+ */
+export function defsFrom(copies, { read }) {
+  const nodes = new Map(), blobsOf = new Map();
+  for (const copy of copies) for (const node of copy.message.nodeChanges) if (!nodes.has(id(node.guid))) { nodes.set(id(node.guid), node); blobsOf.set(id(node.guid), copy.message.blobs ?? []); }
+  const isOwn = (node) => { if (!node.publishID || id(node.guid) === id(node.publishID)) return true; const own = nodes.get(id(node.publishID)); return !own || own.type !== node.type; };
+  const isAsset = (node) => node.type === "VARIABLE" || node.type === "VARIABLE_SET" || Boolean(node.styleType && node.styleType !== "NONE" && node.key);
+  const underSymbol = new Map();
+  const inSymbol = (node) => {
+    const key = id(node.guid);
+    if (!underSymbol.has(key)) {
+      underSymbol.set(key, false);
+      const parent = nodes.get(id(node.parentIndex?.guid));
+      underSymbol.set(key, node.type === "SYMBOL" || Boolean(parent && !parent.isStateGroup && inSymbol(parent)));
+    }
+    return underSymbol.get(key);
+  };
+  let library = "";
+  const clean = (value, blobs) => {
+    if (Array.isArray(value)) return value.map((item) => clean(item, blobs));
+    if (!value || typeof value !== "object") return typeof value === "bigint" ? Number(value) : value;
+    const out = {};
+    for (const [field, inner] of Object.entries(value)) {
+      if (DEFS_SKIP.has(field)) continue;
+      if (field === "sourceLibraryKey") { library ||= inner; out[field] = 1; continue; }
+      if ((field === "commandsBlob" || field === "vectorNetworkBlob") && typeof inner === "number") { out[field] = { blob: base64Of(Uint8Array.from(blobs[inner]?.bytes ?? [])) }; continue; }
+      out[field] = clean(inner, blobs);
+    }
+    return out;
+  };
+  const out = {};
+  for (const [key, node] of nodes) {
+    if (node.isDeleted) continue;
+    if (isAsset(node) ? !isOwn(node) : !(node.isStateGroup || inSymbol(node))) continue;
+    const { guid, ...rest } = clean(node, blobsOf.get(key));
+    out[key] = rest;
+  }
+  return {
+    note: "Full definitions of the Zen library's components, variables and styles for a direct paste into any Figma file, from the same Figma desktop copies as native-pack.json. Rebuild: node tools/studio/native-pack.mjs --help.",
+    file: PACK_FILE_KEY,
+    read,
+    library,
+    nodes: Object.fromEntries(Object.entries(out).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))),
+  };
+}
+
 /**
  * The use_figma code that lists, for part `part` of `ids` (sets and lone components), the layers of each component that
  * show a picture (an IMAGE fill) and their fills: "symbol>layer=fills;" (layer "" for the component itself; fills
@@ -450,6 +508,28 @@ export function withImages(pack, answers) {
     counts.symbols.add(symbolId);
   }
   return { pack, layers: counts.layers, symbols: counts.symbols.size, skipped: counts.skipped };
+}
+
+/** The stored definitions (DEFS_FILE) as written, compact (figma-native.mjs indexDefs reads them so), or null. */
+export async function readDefs(file) {
+  const { default: fs } = await nodeModule("fs");
+  const { gunzipSync } = await nodeModule("zlib");
+  return fs.existsSync(file) ? JSON.parse(gunzipSync(fs.readFileSync(file)).toString("utf8")) : null;
+}
+
+/** Definitions written compact and gzipped (deterministic: Node's gzip header carries no time). */
+export async function writeDefs(file, defs) {
+  const { default: fs } = await nodeModule("fs");
+  const { gzipSync } = await nodeModule("zlib");
+  fs.writeFileSync(file, gzipSync(`${JSON.stringify(compactPack(defs))}\n`, { level: 9 }));
+}
+
+/** `added` (defsFrom of new copies) over `base` (stored, possibly compact): the copies' nodes replace the same ids. */
+export function mergeDefs(base, added) {
+  if (!base) return added;
+  const full = expandPack(base);
+  const nodes = { ...full.nodes, ...added.nodes };
+  return { ...full, read: added.read, library: added.library || full.library, nodes: Object.fromEntries(Object.entries(nodes).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) };
 }
 
 /**
@@ -585,6 +665,11 @@ if (typeof process !== "undefined" && process.argv?.[1] && import.meta.url === (
     const pack = merge ? mergePacks(expandPack(JSON.parse(fs.readFileSync(path.join(root, PACK_FILE), "utf8"))), fresh) : fresh;
     fs.writeFileSync(path.join(root, PACK_FILE), `${JSON.stringify(compactPack(pack))}\n`);
     if (!merge) fs.writeFileSync(path.join(root, SCHEMA_MODULE), schemaModule(copies[copies.length - 1], read));
+    // The full definitions from the same copies (a paste into any file); --merge lays them over the stored ones.
+    const freshDefs = defsFrom(copies, { read });
+    const defs = merge ? mergeDefs(await readDefs(path.join(root, DEFS_FILE)), freshDefs) : freshDefs;
+    await writeDefs(path.join(root, DEFS_FILE), defs);
+    console.log(`native-pack: full definitions of ${Object.keys(defs.nodes).length} nodes; ${(fs.statSync(path.join(root, DEFS_FILE)).size / 1e6).toFixed(1)} MB gzipped`);
     if (merge) { const last = pack.merged[pack.merged.length - 1]; console.log(`native-pack: added ${last.sets.length} sets (${last.sets.join(", ") || "none"}) and ${last.symbols} symbols from the copies; the ${Object.keys(fresh.symbols).length - last.symbols} the pack had stay`); }
     const missing = ids.filter((key) => !pack.sets[key] && !pack.symbols[key]);
     console.log(`native-pack: ${Object.keys(pack.symbols).length} symbols in ${Object.keys(pack.sets).length} sets, ${Object.keys(pack.styles).length} styles, ${Object.keys(pack.variables).length} variables; ${(fs.statSync(path.join(root, PACK_FILE)).size / 1e6).toFixed(1)} MB${missing.length ? `; missing: ${missing.join(", ")}` : ""}`);
