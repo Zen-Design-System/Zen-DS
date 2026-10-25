@@ -23,7 +23,7 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - QA gate (user, 2026-10-25): a Studio E2E row that is not in `matrix.baseline.json` and comes back broken now fails the
   gate step and `npm run studio:e2e` (exit 1), marked "✗ New rows broken". New rows that work stay a pass, listed to
   record with `--update-baseline`; rows the baseline marks broken and flaky rows are still allowed. The opt-in `figma`
-  and `dnd` groups are now in the baseline (FW-186 flaky; DND-03 and DND-05…08 left out until they are fixed).
+  and `dnd` groups are now in the baseline (FW-186 flaky; all eight dnd rows since 2026-10-26).
 - Table (user, 2026-10-25): a Dock Icon in the first column, the row's name, is Small with or without a caption
   (`content: "dock-icon"` drew XSmall without one); an emoji Dock Icon is Medium (Figma has Emoji only at Medium and
   Large), so the HR leave tables draw theirs at Medium. Zen Studio's Figma push and pull and the cell panel follow. Harness

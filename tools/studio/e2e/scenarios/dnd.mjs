@@ -1,7 +1,7 @@
 // Drag-and-drop campaign (user, 2026-10-17: "test hết mọi case kéo thả, kéo component vào mà không có box(frame) hoặc
 // stack. Kéo top navigation vào rồi đặt lên top, test list box, content dài quá trang mobile… scroll thử"): real pointer
 // drags from Assets onto a builder page, every Assets item at every kind of place, layers moved by drag, and a long phone
-// page scrolled in Play. Opt-in (about 30 minutes): npm run studio:e2e -- --only=dnd. The engine half (every item at every
+// page scrolled in Play. Opt-in (about 17 minutes): npm run studio:e2e -- --only=dnd. The engine half (every item at every
 // place of several pages, 18,000+ cases in a minute) is tools/studio/dnd-matrix.mjs.
 import fs from "node:fs";
 import path from "node:path";
