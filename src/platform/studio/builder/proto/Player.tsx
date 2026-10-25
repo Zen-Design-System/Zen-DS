@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { IconButton } from "../../../../components/Button";
 import { Icon } from "../../../../components/Icon";
+import { ZenPortalProvider } from "../../../../components/Portal";
 import { ToastProvider } from "../../../../components/Toast";
 import { PresentBar } from "../../board/PresentBar";
 import { deviceOfScreen, deviceOs, viewDevice } from "../../../../../tools/studio/screen-devices.mjs";
@@ -43,15 +44,21 @@ type HintBox = { x: number; y: number; width: number; height: number; radius: st
 export function Player() {
   const presenting = useStudio((state) => state.presenting);
   const localPage = useStudio((state) => state.localPage);
+  // The played page's portal layer, in Play's modes (PlayLayer draws it, as Present does): the Table editor's popover,
+  // tooltips, a Chip's popover and the toasts go there, so they follow Play's light/dark, never the Studio's <body> (the
+  // user 2026-10-26: a Table popover stayed light in a dark Play).
+  const [portalRoot, setPortalRoot] = useState<HTMLDivElement | null>(null);
   if (!localPage || !isPlaying(presenting)) return null;
   return (
-    <ToastProvider placement="bottom-center">
-      <PlayLayer key={localPage} id={localPage} start={presenting!.slice(PLAY_PREFIX.length) || null} />
-    </ToastProvider>
+    <ZenPortalProvider container={portalRoot}>
+      <ToastProvider placement="bottom-center">
+        <PlayLayer key={localPage} id={localPage} start={presenting!.slice(PLAY_PREFIX.length) || null} portalRef={setPortalRoot} />
+      </ToastProvider>
+    </ZenPortalProvider>
   );
 }
 
-function PlayLayer({ id, start }: { id: string; start: string | null }) {
+function PlayLayer({ id, start, portalRef }: { id: string; start: string | null; portalRef: (element: HTMLDivElement | null) => void }) {
   const page = usePage(id);
   const tree = usePageTree(page?.text);
   // Uploaded photos show once they have loaded.
@@ -217,10 +224,12 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
       <ProtoContext value={actions}>
       <PageOsContext value={os}>
       <div className="studio-present__scroll">
-        <div ref={stageRef} className="studio-player__stage">
+        {/* Auto (a desktop Screen, no device to simulate): the device fills the page under the bar (builder.css). Set from
+            the viewport asked for, not fit.mode, which is auto too until a fixed box has measured its room. */}
+        <div ref={stageRef} className="studio-player__stage" data-viewport={shown ? "fixed" : "auto"}>
           <div className="studio-present__fit" data-viewport={fit.mode} data-frame={fit.bezel ? "" : undefined} style={fit.fitStyle}>
             <DeviceFrame device={shownDevice} fit={fit} part="body" />
-            <div ref={deviceRef} onPointerDownCapture={startPress} onClick={endPress} className="studio-player__device" style={fit.boxStyle ?? { width: `min(${DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop}px, 100%)` }} data-viewport={fit.mode} data-zen-overlay-root="" data-screen-id={current} data-overlay={overlay?.id} data-hover-overlay={overlay?.hover || undefined}>
+            <div ref={deviceRef} onPointerDownCapture={startPress} onClick={endPress} className="studio-player__device" style={fit.boxStyle ?? (shown ? { width: `min(${shown.width}px, 100%)` } : undefined)} data-viewport={fit.mode} data-zen-overlay-root="" data-screen-id={current} data-overlay={overlay?.id} data-hover-overlay={overlay?.hover || undefined}>
               <SimulatedDeviceContext value={shownDevice ?? null}>
               <PlayScreens flow={flow} file={pageFile(id)} overlaySafe={overlaySafe} library={libraryOf(id)} />
               {hints ? (
@@ -237,6 +246,9 @@ function PlayLayer({ id, start }: { id: string; start: string | null }) {
       </div>
       </PageOsContext>
       </ProtoContext>
+      {/* The page's portal layer (Player's ZenPortalProvider), in its modes. Beside the device, not in it: a modal the page
+          opens there (a Side Panel) makes the device's other children inert, and a popover opened from it must stay live. */}
+      <div ref={portalRef} className="official-portal-root studio-portal-root" {...previewAttributes(modes, brand)} />
       </div>
     </div>
   );

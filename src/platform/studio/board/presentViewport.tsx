@@ -16,7 +16,7 @@ import { FRAME_MAX_WIDTH, FRAME_MIN_WIDTH } from "./frameLayout";
 
 /*
  * The viewport of Present and Play (user, 2026-10-15): Auto shows the example as before (a card at its frame width, a
- * desktop screen filling the window; a Play screen at its device's width); Desktop, Tablet, Phone or a typed W × H put it
+ * desktop screen filling the window, in Play too; a phone or tablet Screen on its device); Desktop, Tablet, Phone or a typed W × H put it
  * in a box of that many CSS px. The box is the screen's overlay root (Dialog, SidePanel and Menu open inside it, at its
  * width) and holds its fixed layers; it scales down as a whole when the window is smaller, never up. Its right edge,
  * bottom edge and corner drag to a free size (ViewportHandles).
