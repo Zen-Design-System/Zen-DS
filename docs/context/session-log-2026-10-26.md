@@ -35,5 +35,7 @@ harness rule for hiding on every breakpoint, is not approved: no rule or audit c
   prop's default or drops the key), collapses a value equal everywhere to plain, never offers hideOn or a hidden layer
   as removed. The pull itself needs no change (it writes a new page; merging is figma-diff's). Selftests: figma-push
   (+5), figma-diff (+8).
+- **CI audit fix (#309 run 40218954024):** 4 `outline` errors, the phone copies of both examples had their card heading
+  as h4 right under the bar's h1. `OnPageAndPhone` now passes the level: h4 on the page, h2 in the phone.
 - **Merge order:** bp-studio's PR 1 makes the Studio Screen give its breakpoint through ZenContext. Until it is in main,
   Grid columns and the new props inside a phone Screen on the canvas read the app's desktop breakpoint.
