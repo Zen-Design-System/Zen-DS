@@ -107,7 +107,7 @@ type InputLeadingTrailingOption = { value: string; label: ReactNode; caption?: R
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
 | `search/needs-name` | warn | Search needs a placeholder that says what is searched, or an aria-label. | `zen-allow-unnamed: <reason>` |
-| `search/toolbar-width` | error | A Search in a toolbar row (beside Chips, buttons or other controls) is at most 240px wide: wrap it in <Box width="fill" maxWidth={240}>, or give it a Grid column minmax(0, 240px). A phone Search (shape="rounded") fills its row. | `zen-allow-search-toolbar-width: <reason>` |
+| `search/toolbar-width` | error | A Search in a toolbar row (beside Chips, buttons or other controls) is at most 240px wide: wrap it in <Box width="fill" maxWidth={240}>, or give it a Grid column minmax(0, 240px). A phone Search (shape="rounded") fills its row. DashboardHeader's Control-Bar draws its Search 240px wide: never force it wider. | `zen-allow-search-toolbar-width: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 

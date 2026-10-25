@@ -14785,7 +14785,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Control-Bar · Figma Search: a <Search size=\"md\"> that filters the page, 320px wide."
+                "description": "Control-Bar · Figma Search: a <Search size=\"md\"> that filters the page, 240px wide (a toolbar Search's cap; full width on a phone)."
               },
               "controls": {
                 "anyOf": [

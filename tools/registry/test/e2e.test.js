@@ -4,7 +4,8 @@
 // the zen-license plugin, driven by the real npm CLI. The license store runs the live schema (fixture) plus
 // the registry migrations. Covered: a deactivated license stops installs with a token issued before; developers
 // sign in through `npm login` (web) and hold seats (owner + members up to max_members); the licence key gives
-// at most three CI tokens; usage is counted per license.
+// at most three CI tokens; usage is counted per license. The license store also runs the Polar hook
+// (pocketbase/pb_hooks, Phase 6): a purchase through the webhook gives a working key and its revocation cuts it.
 //
 // ZEN_E2E_STACK=1 (`npm run test:stack`, needs Docker) runs the registry as deployed instead: the image from
 // deploy/Dockerfile behind Caddy via deploy/docker-compose.yml, plus a backup → wipe → restore round trip of
@@ -12,6 +13,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { spawn, execFile } = require('node:child_process');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const net = require('node:net');
 const path = require('node:path');
@@ -28,6 +30,7 @@ const PKG = '@zen-ds/e2e-fixture';
 const SU = { email: 'su@test.local', password: 'su-password-123' };
 const CLIENT = { email: 'registry@test.local', password: 'client-password-123' };
 const PUBLISHER_KEY = 'publisher-key-e2e';
+const POLAR_SECRET = `whsec_${crypto.randomBytes(32).toString('base64')}`;
 const basicAuth = (user, password) => `:_auth=${Buffer.from(`${user}:${password}`).toString('base64')}`;
 
 const children = [];
@@ -176,10 +179,13 @@ test('license-gated registry, end to end', { timeout: 300_000 }, async (t) => {
   // --- license store -------------------------------------------------------------------------------
   const pbPort = await freePort();
   const pbBase = `http://127.0.0.1:${pbPort}`;
-  const pbDir = ['--dir', path.join(TMP, 'pb_data'), '--migrationsDir', path.join(__dirname, 'pocketbase', 'pb_migrations')];
+  const pbDir = ['--dir', path.join(TMP, 'pb_data'), '--migrationsDir', path.join(__dirname, 'pocketbase', 'pb_migrations'),
+    '--hooksDir', path.join(ROOT, 'pocketbase', 'pb_hooks'), '--hooksWatch=false'];
   assert.equal((await run(pocketbase, ['superuser', 'upsert', SU.email, SU.password, ...pbDir])).code, 0);
   // The stack's container reaches PocketBase through the host, so it listens beyond loopback there.
-  const pbProc = start(pocketbase, ['serve', `--http=${STACK ? '0.0.0.0' : '127.0.0.1'}:${pbPort}`, ...pbDir]);
+  const pbProc = start(pocketbase, ['serve', `--http=${STACK ? '0.0.0.0' : '127.0.0.1'}:${pbPort}`, ...pbDir], {
+    env: { ...process.env, POLAR_WEBHOOK_SECRET: POLAR_SECRET },
+  });
   await waitFor(`${pbBase}/api/health`, pbProc);
   const su = (await pb(pbBase, null, 'POST', '/api/collections/_superusers/auth-with-password', { identity: SU.email, password: SU.password })).token;
   await pb(pbBase, su, 'POST', '/api/collections/registry_clients/records', { ...CLIENT, passwordConfirm: CLIENT.password });
@@ -420,6 +426,41 @@ test('license-gated registry, end to end', { timeout: 300_000 }, async (t) => {
     const report = await run(process.execPath, [path.join(ROOT, 'plugins/verdaccio-zen-license/usage-report.js'), month, path.join(TMP, 'zen-usage.json')]);
     assert.equal(report.code, 0, report.stderr);
     assert.match(report.stdout, new RegExp(KEY));
+  });
+
+  await t.test('Polar: a purchase through the webhook gives a key that installs; revoking it cuts access', async () => {
+    await pb(pbBase, su, 'POST', '/api/collections/users/records', {
+      email: 'buyer@shop.test', password: 'buyer-password-123', passwordConfirm: 'buyer-password-123', verified: true,
+    });
+    const polar = async (type, status, modifiedAt) => {
+      const body = JSON.stringify({ type, data: {
+        id: 'sub_e2e', status, created_at: '2026-10-25T10:00:00Z', modified_at: modifiedAt, started_at: '2026-10-25T10:00:00Z',
+        product_id: 'prod_pro', metadata: {}, customer: { id: 'cus_e2e', email: 'buyer@shop.test' },
+        product: { id: 'prod_pro', name: 'Zen Pro', metadata: { zen_type: 'pro', zen_max_members: '3', zen_credits: '100' } },
+      } });
+      const id = `msg_${modifiedAt}`;
+      const ts = String(Math.floor(Date.now() / 1000));
+      const sig = crypto.createHmac('sha256', Buffer.from(POLAR_SECRET.slice(6), 'base64')).update(`${id}.${ts}.${body}`).digest('base64');
+      const res = await fetch(`${pbBase}/api/zen/billing/polar`, {
+        method: 'POST', body,
+        headers: { 'content-type': 'application/json', 'webhook-id': id, 'webhook-timestamp': ts, 'webhook-signature': `v1,${sig}` },
+      });
+      assert.equal(res.status, 200, await res.clone().text());
+      return res.json();
+    };
+    const bought = await polar('subscription.active', 'active', '2026-10-25T10:00:00Z');
+    assert.match(bought.license, /^[a-z0-9]{15}$/);
+    const login = await fetch(`${registry}-/user/org.couchdb.user:buyer-ci`, {
+      method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: 'buyer-ci', password: bought.license }),
+    });
+    assert.equal(login.status, 201, await login.clone().text());
+    const buyerToken = (await login.json()).token;
+    const installed = await install(registry, `:_authToken=${buyerToken}`, 'install-polar');
+    assert.equal(installed.code, 0, installed.stderr);
+    await polar('subscription.revoked', 'canceled', '2026-11-25T10:00:00Z');
+    await new Promise((r) => setTimeout(r, (CACHE_SECONDS + 1) * 1000));
+    const res = await fetch(`${registry}${PKG.replace('/', '%2f')}`, { headers: { authorization: `Bearer ${buyerToken}` } });
+    assert.equal(res.status, 403);
   });
 
   if (!stack) return;
