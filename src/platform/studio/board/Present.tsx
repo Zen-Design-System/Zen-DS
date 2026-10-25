@@ -12,7 +12,8 @@ import type { StudioPreviewSettings } from "../types";
 import { useStudioFrames, type StudioExample, type StudioFrameEntry } from "./frames";
 import { PresentBar } from "./PresentBar";
 import { stepFocusFor, stepPresent, takeReturnFocus } from "./presentFrame";
-import { screenDevice } from "../../../../tools/studio/screen-devices.mjs";
+import { screenDevice, viewDevice } from "../../../../tools/studio/screen-devices.mjs";
+import { versionFor, viewportBreakpoint } from "../builder/proto/versions";
 import { SimulatedDeviceContext } from "../builder/proto/runtime";
 import { bezelOf, DeviceFrame, deviceViewport, presentEscapeOwners, useViewportFit, viewportDevice, ViewportHandles, type PresentViewport } from "./presentViewport";
 import "./board.css";
@@ -38,8 +39,20 @@ export function Present() {
     if (!presenting) { setOwn({}); setViewport(null); setFramed(true); }
   }, [presenting]);
   const setMode = useCallback((key: ModeKey, value: string) => setOwn((modes) => ({ ...modes, [key]: value })), []);
-  const frame = presenting ? frames.find((entry) => entry.id === presenting) : undefined;
+  const presented = presenting ? frames.find((entry) => entry.id === presenting) : undefined;
+  // A builder Screen with a version drawn for the fixed viewport's breakpoint (Make a separate Screen, decision D4) shows
+  // that version; Auto shows the Screen presented.
+  const frame = presented && viewport ? versionFrame(frames, presented, viewport) : presented;
   return frame?.example ? <PresentLayer key={frame.id} frame={frame} example={frame.example} own={own} onModeChange={setMode} viewport={viewport} onViewportChange={setViewport} framed={framed} onFramedChange={setFramed} /> : null;
+}
+
+/** The frame of the version of `frame`'s Screen for `viewport`'s breakpoint, else `frame` (builder/proto/versions.ts). */
+function versionFrame(frames: ReadonlyArray<StudioFrameEntry>, frame: StudioFrameEntry, viewport: NonNullable<PresentViewport>): StudioFrameEntry {
+  const shape = frame.example?.shape;
+  if (!shape) return frame;
+  const screens = frames.flatMap((entry) => (entry.id.startsWith("screen:") && entry.example?.shape && entry.id.split(":").length === 2 ? [{ ...entry.example.shape, frame: entry }] : []));
+  const id = versionFor(screens, shape.id, viewportBreakpoint(viewport.width, viewportDevice(viewport)?.device));
+  return id === shape.id ? frame : screens.find((screen) => screen.id === id)?.frame ?? frame;
 }
 
 function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportChange, framed, onFramedChange }: { frame: StudioFrameEntry; example: StudioExample; own: PresentModes; onModeChange: (key: ModeKey, value: string) => void; viewport: PresentViewport; onViewportChange: (viewport: PresentViewport) => void; framed: boolean; onFramedChange: (framed: boolean) => void }) {
@@ -111,7 +124,9 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
   }, [exit, frame.id]);
 
   const width = resolveFrameWidth(frame.baseWidth, override?.width);
-  const shown: PresentViewport = viewport ?? deviceViewport(screenDevice(hardware));
+  // A Screen viewed on another breakpoint on the canvas (builder/screenViews.ts) opens on that device.
+  const viewed = viewDevice(override?.view, example.shape?.height);
+  const shown: PresentViewport = viewport ?? deviceViewport(viewed ?? screenDevice(hardware));
   // The device simulator: a builder Screen takes the shown device's type, layout and bars; Device frame draws it.
   const device = viewportDevice(shown);
   const fit = useViewportFit(shown, stageRef, bezelOf(device, framed), device?.radius);
@@ -134,7 +149,7 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
                       </SimulatedDeviceContext>
                     </div>
                     <DeviceFrame device={device} fit={fit} part="fold" />
-                    <ViewportHandles viewport={shown} fit={fit} onChange={onViewportChange} />
+                    <ViewportHandles viewport={shown} fit={fit} onChange={onViewportChange} device={example.shape?.device} />
                   </div>
                 </div>
               </div>

@@ -198,6 +198,11 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   check("a place is a number", errors(free.replace("x={-120}", 'x="left"')), ["x is a number from -100000 to 100000"]);
   check("a size has limits", errors(free.replace("width={800}", "width={40}")), ["width is a number from 100 to 4096"]);
   check("an Overlay has no size", errors((overlay.code ?? "").replace('<Overlay id="confirm" x={10} y={20}>', '<Overlay id="confirm" width={400}>')), ["An Overlay takes its dialog's size (no width or height)"]);
+  // Make a separate Screen (studio-responsive-breakpoints §5): versionOf names another Screen by its id.
+  const versionError = "versionOf is the id of another Screen (the one this Screen is a version of)";
+  check("versionOf names another Screen", errors(free.replace("width={800}", 'width={800} versionOf="home"')), []);
+  check("versionOf is an id", errors(free.replace("width={800}", 'width={800} versionOf="Home page"')), [versionError]);
+  check("a Screen is no version of itself", errors(free.replace(/<Screen id="([a-z0-9-]+)"([^>]*?)width=\{800\}/, '<Screen id="$1"$2width={800} versionOf="$1"')), [versionError]);
 }
 
 if (failures.length) {

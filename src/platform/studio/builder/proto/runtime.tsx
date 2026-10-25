@@ -2,7 +2,8 @@ import { useModeScope, type ZenModes } from "../../../../components/_shared/zen-
 import { Children, cloneElement, createContext, isValidElement, useContext, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactElement, type ReactNode, type RefObject } from "react";
 import { AppShell } from "../../../../components/AppShell";
 import { ZenPortalProvider } from "../../../../components/Portal";
-import { deviceOfScreen, deviceOs, type ScreenDevice } from "../../../../../tools/studio/screen-devices.mjs";
+import { typographyStyles } from "../../../../tokens/typography.generated";
+import { BREAKPOINT_LABELS, deviceOfScreen, deviceOs, screenBreakpoint, type ScreenDevice, type ZenBreakpointKey } from "../../../../../tools/studio/screen-devices.mjs";
 import { DeviceBars, duoStatusOf, safeAreasOf, type DeviceOs } from "./DeviceBars";
 import type { FilterMatch } from "./protoModel";
 
@@ -71,6 +72,19 @@ export const pageOsOf = (header: Record<string, unknown> | null | undefined): De
  *  type and layout, its bars and safe areas, and its height. `null` (the canvas, a typed size): the Screen's own. */
 export const SimulatedDeviceContext = createContext<ScreenDevice | null>(null);
 
+/** The phone parts a Screen can be given from the canvas (its dashed placeholders): the root AppShell's prop, else the
+ *  Screen's own. */
+export type ScreenPart = "topNavigation" | "bottomNavigation";
+
+/**
+ * What only the Studio's canvas gives a Screen (docs/research/studio-responsive-breakpoints-2026-10-26.md §3.6): on the
+ * mobile breakpoint, a Screen without a Top or Bottom Navigation shows a dashed placeholder whose click adds one
+ * (`addPart`); `child` names the Screens that take no Bottom Navigation (a child screen: Back, two crumbs or more;
+ * component-usage-rules §17). Null in Present, Play, the exports and for viewers: no placeholders there.
+ */
+export type ScreenCanvasEdit = { addPart: (screen: string, part: ScreenPart, layout: ScreenLayout) => void; child: (screen: string) => boolean };
+export const ScreenCanvasContext = createContext<ScreenCanvasEdit | null>(null);
+
 /** A real phone's browser (Open on phone, device/DevicePlay.tsx): no simulated bars, the phone's own safe areas
  *  (viewport-fit=cover) and the window's height. */
 export const RealDeviceContext = createContext(false);
@@ -128,7 +142,37 @@ type ScreenProps = HTMLAttributes<HTMLDivElement> & {
   /** A drawn Screen's width (the frame takes it, render/frames.ts) and height (the screen's least height). */
   width?: number;
   height?: number;
+  /** "Make a separate Screen" (§5): the id of the Screen this one is the phone or tablet version of. Play, Present and
+   *  Open on phone show it in place of that Screen at its breakpoint (builder/screenViews.ts); nothing on the screen. */
+  versionOf?: string;
 };
+
+/** The widths desktop Screens render at, from one observer for all of them (a page holds many Screens). */
+const widthListeners = new Map<Element, (width: number) => void>();
+let widthObserver: ResizeObserver | null = null;
+function observeWidth(element: Element, listener: (width: number) => void) {
+  if (typeof ResizeObserver === "undefined") return () => undefined;
+  widthObserver ??= new ResizeObserver((entries) => {
+    for (const entry of entries) widthListeners.get(entry.target)?.((entry.target as HTMLElement).offsetWidth);
+  });
+  widthListeners.set(element, listener);
+  widthObserver.observe(element);
+  return () => { widthListeners.delete(element); widthObserver?.unobserve(element); };
+}
+
+/** The width a desktop Screen renders at (CSS px, transforms aside): a Present viewport, a phone's window or a frame
+ *  narrower than the Screen's own width; null before it is laid out, or when `on` is false. */
+function useRenderedWidth(rootRef: RefObject<HTMLDivElement | null>, on: boolean) {
+  const [width, setWidth] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!on || !root) { setWidth(null); return undefined; }
+    const take = (next: number) => setWidth((last) => (next > 0 && next !== last ? next : last));
+    take(root.offsetWidth);
+    return observeWidth(root, take);
+  }, [on, rootRef]);
+  return on ? width : null;
+}
 
 /** What scrolls this screen in Present / Play (inside board/board.css .studio-present__scroll; none on the canvas): the
  *  nearest ancestor that scrolls its overflow (the example stage), else the present page itself. Linking the page while
@@ -160,17 +204,26 @@ function withScrollLink(topNavigation: ReactNode, scrollRef: RefObject<HTMLEleme
   return cloneElement(topNavigation as ReactElement<{ scrollRef?: RefObject<HTMLElement | null> }>, { scrollRef });
 }
 
-export function Screen({ id, title, device: drawnDevice = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, x: _x, y: _y, width, height, modes, ...rest }: ScreenProps) {
+export function Screen({ id, title, device: drawnDevice = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, x: _x, y: _y, width, height, modes, versionOf: _versionOf, ...rest }: ScreenProps) {
   const rootRef = useRef<HTMLDivElement>(null);
-  const scope = useModeScope(modes);
   const presentScroll = usePresentScroller(rootRef);
-  // The hardware: the device Present or Play simulates, else the one the Screen is drawn for (its size, its type's own).
+  // The hardware: the device Present or Play simulates (the canvas's view switch too), else the one the Screen is drawn
+  // for (its size, its type's own).
   const simulated = useContext(SimulatedDeviceContext);
   const os = useContext(PageOsContext);
   const own = deviceOfScreen(drawnDevice, layout, width, height, os);
   const hardware = simulated ?? own;
   const device: PageDevice = simulated?.device ?? drawnDevice;
   const phone = device === "phone";
+  // The breakpoint (docs/research/studio-responsive-breakpoints-2026-10-26.md §2): a phone's mobile, a tablet's tablet, a
+  // desktop Screen (a web page) its width's: the simulated device's or its own on the first render, then the width it
+  // renders at (a typed or dragged Present viewport, a phone's window). It is the Screen's mode for the components inside
+  // (useZen().breakpoint, the [data-breakpoint] tokens); the Screen's own `modes` win.
+  const rendered = useRenderedWidth(rootRef, device === "desktop");
+  const breakpoint: ZenBreakpointKey = screenBreakpoint(device, rendered ?? simulated?.width ?? width ?? DEVICE_WIDTH[device]);
+  const scope = useModeScope(modes?.breakpoint ? modes : { ...modes, breakpoint });
+  const shown = (modes?.breakpoint as ZenBreakpointKey | undefined) ?? breakpoint;
+  const edit = useContext(ScreenCanvasContext);
   // A phone or tablet shows its OS's bars; the app runs under them and pads by the safe areas (as in PlatformPhone).
   // The page's OS on the canvas; the simulated device's in Present and Play (an Android phone, an iPad); an iPhone Duo
   // is iOS whatever the page's OS.
@@ -194,6 +247,12 @@ export function Screen({ id, title, device: drawnDevice = "desktop", layout, can
   // Present and Play scroll the whole screen in the page: its system bars stay at the edges of the window, as a phone's
   // do (a canvas frame draws them on its own edges).
   const pinBars = Boolean(presentScroll && bars && device !== "desktop" && chrome && !desktop);
+  // The canvas's placeholders for the phone parts the mobile breakpoint lacks (§3.6): in the mobile layout, a part neither
+  // the Screen nor its root AppShell has; a desktop Screen narrowed to a phone's width shows its root AppShell, so only
+  // that AppShell's parts count there (the Screen's own show in the mobile layout only).
+  const shell = edit && id && shown === "mobile" ? rootShellParts(children) : null;
+  const missing = (part: ScreenPart) => Boolean(shell && (desktop ? shell.root && !shell[part] : !shell[part] && !(part === "topNavigation" ? topNavigation : bottomNavigation)) && !(part === "bottomNavigation" && edit?.child(id!)));
+  const placeholders = edit && id ? (["topNavigation", "bottomNavigation"] as const).filter(missing) : [];
   return (
     <div
       {...rest}
@@ -206,7 +265,6 @@ export function Screen({ id, title, device: drawnDevice = "desktop", layout, can
       data-layout={active}
       data-chrome={chrome ? "" : undefined}
       data-canvas={canvas === "default" ? undefined : canvas}
-      data-breakpoint={device === "desktop" ? undefined : device === "phone" ? "mobile" : "tablet"}
       data-density={phone ? "comfortable" : undefined}
       data-typography={phone ? "mobile" : undefined}
       data-os={bars ? barsOs : undefined}
@@ -235,8 +293,28 @@ export function Screen({ id, title, device: drawnDevice = "desktop", layout, can
       )}
       {/* Last, beside the app (never inside __main, where the Screen's slots are found; Present and Play pin them there). */}
       {bars && device !== "desktop" && !pinBars ? <DeviceBars os={barsOs} device={device} duo={duo} /> : null}
+      {placeholders.map((part) => <PartPlaceholder key={part} part={part} breakpoint={shown} onAdd={() => edit!.addPart(id!, part, active)} />)}
       </>)}
     </div>
+  );
+}
+
+/** A Screen's lone root AppShell and the phone parts it has (`root` false: no root AppShell). */
+function rootShellParts(children: ReactNode): { root: boolean } & Record<ScreenPart, boolean> {
+  const nodes = Children.toArray(children).filter((child) => !(typeof child === "string" && !child.trim()));
+  const [only] = nodes;
+  if (nodes.length !== 1 || !isValidElement<{ topNavigation?: ReactNode; bottomNavigation?: ReactNode }>(only) || only.type !== AppShell) return { root: false, topNavigation: false, bottomNavigation: false };
+  return { root: true, topNavigation: Boolean(only.props.topNavigation), bottomNavigation: Boolean(only.props.bottomNavigation) };
+}
+
+/** The canvas's dashed "Add Top / Bottom Navigation" over the edge the part takes (it changes no layout, and nothing of
+ *  it reaches Present, Play or an export). Frame chrome to the selection layer, so the press is the button's. */
+function PartPlaceholder({ part, breakpoint, onAdd }: { part: ScreenPart; breakpoint: ZenBreakpointKey; onAdd: () => void }) {
+  const label = part === "topNavigation" ? "Add Top Navigation" : "Add Bottom Navigation";
+  return (
+    <button type="button" className={`studio-builder-screen__placeholder ${typographyStyles["Body/Small/Medium"]}`} data-edge={part === "topNavigation" ? "top" : "bottom"} data-studio-frame-chrome="" data-studio-placeholder="" title={`${BREAKPOINT_LABELS[breakpoint]} has no ${part === "topNavigation" ? "Top" : "Bottom"} Navigation`} onClick={onAdd}>
+      <span aria-hidden="true">+</span>{label}
+    </button>
   );
 }
 

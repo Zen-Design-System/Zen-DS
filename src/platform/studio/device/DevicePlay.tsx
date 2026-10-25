@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ZenProvider, type ZenBrand } from "../../../components/Provider";
 import { Text } from "../../../components/Text";
 import { ToastProvider } from "../../../components/Toast";
+import { useZen } from "../../../components/_shared/zen-context";
 import { rememberUploads } from "../builder/assets/uploads";
 import { PlayScreens, usePlayFlow } from "../builder/proto/playFlow";
 import { PageOsContext, pageOsOf, ProtoContext, RealDeviceContext } from "../builder/proto/runtime";
@@ -81,7 +82,9 @@ function DevicePage({ page }: { page: SharedPage }) {
 }
 
 function DeviceFlow({ tree, start, library }: { tree: PageTree | null; start: string | null; library?: ReadonlyMap<string, LocalComponents> }) {
-  const flow = usePlayFlow(tree, start);
+  // The phone's own breakpoint (ZenProvider auto, the window's width): a Screen with a version drawn for it shows that
+  // version (Make a separate Screen, decision D4).
+  const flow = usePlayFlow(tree, start, { breakpoint: useZen()?.breakpoint ?? null });
   return (
     <ProtoContext value={flow.actions}>
       <PageOsContext value={pageOsOf(tree?.header)}>

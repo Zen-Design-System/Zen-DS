@@ -4,6 +4,8 @@
    x / y, render/framePlace.ts places the rest in a row 96 apart); the box spans them for the board's size. */
 .studio-builder-board__frames { position: relative; }
 .studio-builder-board__frames > .studio-frame { position: absolute; top: 0; left: 0; }
+/* A Screen shown on another breakpoint (screenViews.ts) keeps its left edge and draws above the frames next to it. */
+.studio-builder-board__frames > .studio-frame[data-view] { z-index: 1; }
 /* A frame gesture (frameMove.ts), in screen space over the frame chrome: Figma's red smart guides, the copy a ⌥-drag
    drops or the box the Frame tool draws, and that box's size under it. */
 .studio-frame-move { position: absolute; z-index: 25; inset: 0; overflow: hidden; pointer-events: none; }
@@ -67,6 +69,15 @@
 .studio-builder-screen[data-canvas="alt"] { background: var(--zen-color-background-canvas-alt); }
 .studio-builder-screen[data-canvas="flat"] { background: var(--zen-color-background-canvas-flat); }
 .studio-builder-screen[data-device="tablet"] { min-height: 1024px; }
+/* The canvas's "Add Top / Bottom Navigation" (runtime PartPlaceholder; studio-responsive-breakpoints §3.6): a dashed bar
+   over the edge the part would take, inside the system bars, above the content and the bars (they stay where they are, so
+   the canvas keeps the layout Play shows). */
+/* zen-allow-dashed-color: canvas chrome, not a content divider — the Studio marks what it adds in Info blue. */
+.studio-builder-screen__placeholder { position: absolute; z-index: 21; right: var(--zen-spacing-padding-small, 12px); left: var(--zen-spacing-padding-small, 12px); display: flex; box-sizing: border-box; height: var(--zen-button-size-medium, 40px); align-items: center; justify-content: center; gap: var(--zen-spacing-gap-xsmall, 8px); padding: 0 var(--zen-spacing-padding-small, 12px); border: 1px dashed var(--zen-color-border-info-solid-default, #0a85ff); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-info-subtle-default); color: var(--zen-color-content-info-base, #0a85ff); cursor: pointer; font: inherit; }
+.studio-builder-screen__placeholder:hover { background: var(--zen-color-background-info-subtle-hover); }
+.studio-builder-screen__placeholder:focus-visible { outline: 2px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
+.studio-builder-screen__placeholder[data-edge="top"] { top: calc(var(--zen-safe-area-top, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
+.studio-builder-screen__placeholder[data-edge="bottom"] { bottom: calc(var(--zen-safe-area-bottom, 0px) + var(--zen-spacing-padding-xsmall, 8px)); }
 /* An Overlay frame holds its overlay open; its portal node is where the overlay renders, inside the frame. */
 .studio-builder-overlay { position: relative; min-height: 640px; overflow: hidden; border-radius: inherit; }
 .studio-builder-overlay__portal { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; }

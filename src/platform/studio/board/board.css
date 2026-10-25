@@ -325,9 +325,10 @@
 .studio-viewport-handles { position: absolute; z-index: 1; inset: 0; pointer-events: none; }
 .studio-viewport-handles__hit { position: absolute; pointer-events: auto; touch-action: none; }
 .studio-viewport-handles__hit[data-axis="x"] { top: 0; bottom: 0; left: 100%; width: 16px; translate: -6px 0; cursor: ew-resize; }
+.studio-viewport-handles__hit[data-axis="x-start"] { top: 0; right: 100%; bottom: 0; width: 16px; translate: 6px 0; cursor: ew-resize; }
 .studio-viewport-handles__hit[data-axis="y"] { top: 100%; right: 0; left: 0; height: 16px; translate: 0 -6px; cursor: ns-resize; }
 .studio-viewport-handles__hit[data-axis="xy"] { top: 100%; left: 100%; width: 20px; height: 20px; translate: -8px -8px; cursor: nwse-resize; }
-.studio-viewport-handles__hit:is([data-axis="x"], [data-axis="y"])::after {
+.studio-viewport-handles__hit:is([data-axis="x"], [data-axis="x-start"], [data-axis="y"])::after {
   position: absolute;
   border-radius: var(--zen-corner-radius-rounded, 1000px);
   background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 11%));
@@ -335,6 +336,7 @@
   transition: background-color var(--zen-motion-duration-fast) var(--zen-motion-ease-standard);
 }
 .studio-viewport-handles__hit[data-axis="x"]::after { top: 50%; left: 10px; width: 4px; height: 32px; translate: 0 -50%; }
+.studio-viewport-handles__hit[data-axis="x-start"]::after { top: 50%; right: 10px; width: 4px; height: 32px; translate: 0 -50%; }
 .studio-viewport-handles__hit[data-axis="y"]::after { top: 10px; left: 50%; width: 32px; height: 4px; translate: -50% 0; }
 .studio-viewport-handles:is(:has(.studio-viewport-handles__hit:hover), [data-dragging="true"]) .studio-viewport-handles__hit::after { background: var(--zen-color-background-info-solid-default, #0a85ff); }
 .studio-present__fit:has(> .studio-viewport-handles:is(:has(.studio-viewport-handles__hit:hover), [data-dragging="true"])) > :is(.studio-present__viewport, .studio-player__device) {
@@ -443,6 +445,11 @@
   color: var(--zen-color-content-neutral-strongest, #111);
   white-space: nowrap;
 }
+/* A Screen shown on another breakpoint (ScreenViewSwitch ScreenViewStatus): "Viewing Mobile · W 390 · Back to Desktop",
+   first in its toolbar, in Info blue as the Studio's own marks; the width field takes four digits. */
+.studio-frame-view { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding-inline-start: var(--zen-spacing-padding-xsmall, 8px); }
+.studio-frame-view__text { color: var(--zen-color-content-info-base, #0a85ff); white-space: nowrap; }
+.studio-frame-view > :not(.studio-frame-view__text, .zen-button) { width: 80px; flex: none; }
 .studio-frame-toolbar__divider { width: 1px; height: 16px; flex: none; margin: 0 var(--zen-spacing-gap-2-xsmall, 4px); background: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
 /* The selected frame's right edge (FrameChrome FrameEdge): a strip centred on the edge, along the frame's visible height
    (placed by FrameChrome). A drag sets a free frame width (view only); hover shows the edge in Info blue. */

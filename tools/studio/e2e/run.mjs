@@ -36,7 +36,7 @@ const args = process.argv.slice(2);
 const flag = (name) => args.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3);
 const has = (name) => args.includes(`--${name}`);
 
-const GROUPS = ["shell", "select", "inspector", "appearance", "layout", "builder", "prototype", "library", "instance", "starters", "handoff", "keyboard", "structural", "data", "overlays", "drafts", "gate", "main", "device", "nested", "mcp", "draw", "variables", "agent", "board"];
+const GROUPS = ["shell", "select", "inspector", "appearance", "layout", "builder", "prototype", "library", "instance", "starters", "handoff", "keyboard", "structural", "data", "overlays", "drafts", "gate", "main", "device", "nested", "mcp", "draw", "variables", "agent", "board", "breakpoints"];
 /** Groups that run only when named: --only=dnd (the drag-and-drop campaign, about half an hour), --only=figma (the Figma walk, plan §6). */
 const OPT_IN = ["dnd", "figma"];
 const only = flag("only")?.split(",").map((g) => g.trim()).filter(Boolean) ?? GROUPS;

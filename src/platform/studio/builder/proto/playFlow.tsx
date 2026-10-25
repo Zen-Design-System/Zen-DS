@@ -6,6 +6,8 @@ import { useAnchoredPosition } from "../../../../components/Popover/useAnchoredP
 import { itemElement, layerElements } from "./protoDom";
 import { choiceItemsOf, DEFAULT_DELAY, filterOf, filterValuesOf, findNode, linksOf, openerOf, optionsOf, OVERLAY_START, screenTargetOf, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, type ProtoOptions } from "./protoModel";
 import { anchorsItself, placesItself } from "./protoTriggers";
+import { versionFor, versionScreensOf } from "./versions";
+import type { ZenBreakpointKey } from "../../../../../tools/studio/screen-devices.mjs";
 import { protoHandler, Screen, type PageDevice, type PlayFilter, type PlayLive, type ProtoActions, type ScreenCanvas, type ScreenLayout } from "./runtime";
 
 /*
@@ -43,7 +45,7 @@ const liveNow = (state: Live, key: string): Live => (state.key === key ? state :
 export const literal = (node: PageNode, prop: string) => { const value = node.props[prop]; return value?.kind === "literal" ? value.value : undefined; };
 const elements = (tree: PageTree | null) => (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element");
 
-export function usePlayFlow(tree: PageTree | null, start: string | null, { onLeave }: { onLeave?: () => void } = {}) {
+export function usePlayFlow(tree: PageTree | null, start: string | null, { onLeave, breakpoint = null }: { onLeave?: () => void; breakpoint?: ZenBreakpointKey | null } = {}) {
   const frames = useMemo(() => elements(tree), [tree]);
   const screens = useMemo(() => frames.filter((node) => node.name === "Screen"), [frames]);
   const firstScreen = String(literal(screens[0] ?? { props: {} } as PageNode, "id") ?? "");
@@ -53,12 +55,15 @@ export function usePlayFlow(tree: PageTree | null, start: string | null, { onLea
   const opener = useMemo(() => (presented ? openerOf(tree, presented) : null), [presented, tree]);
   const alone = Boolean(presentedNode) && !opener;
   const startOverlay = useMemo<OpenOverlay | null>(() => (presented ? { id: presented, options: { animation: "instant" }, start: true } : null), [presented]);
-  // A Screen's id finds its default state (else its first); "<id>:<state>" that state.
+  // A Screen's id finds its default state (else its first); "<id>:<state>" that state. With a `breakpoint` (a fixed
+  // viewport's), a Screen drawn as a version of it for that breakpoint shows in its place (./versions.ts, decision D4).
+  const versions = useMemo(() => versionScreensOf(tree), [tree]);
   const screenOf = useCallback((target: string) => {
-    const { id, state } = screenTargetOf(target);
-    if (state) return screens.find((node) => literal(node, "id") === id && literal(node, "state") === state);
+    const { id: asked, state } = screenTargetOf(target);
+    const id = breakpoint ? versionFor(versions, asked, breakpoint) : asked;
+    if (state) return screens.find((node) => literal(node, "id") === id && literal(node, "state") === state) ?? screens.find((node) => literal(node, "id") === asked && literal(node, "state") === state);
     return screens.find((node) => literal(node, "id") === id && literal(node, "state") === undefined) ?? screens.find((node) => literal(node, "id") === id);
-  }, [screens]);
+  }, [screens, versions, breakpoint]);
   const first = presentedNode ? opener ?? "" : start && screenOf(start) ? start : firstScreen;
   const [history, setHistory] = useState<Step[]>([]);
   const [overlay, setOverlay] = useState<OpenOverlay | null>(startOverlay);

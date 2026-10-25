@@ -1,5 +1,6 @@
 import { Badge } from "../../../components/Badge";
 import { ExportSection } from "./ExportSection";
+import { BreakpointSection } from "./BreakpointSection";
 import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Segmented } from "../../../components/Segmented";
@@ -187,6 +188,7 @@ function ScreenSection({ frameId }: { frameId: string }) {
     void applyEdit({ file: pageFile(localPage), loc: node.loc, name: node.name, ops: [op] }, `Screen canvas → ${next}`);
   };
   return (
+    <>
     <InspectorSection title="Screen" fieldGrid actions={<VariableModesPicker modes={screenModes} disabled={!admin} onChange={writeModes} />}>
       <InspectorRow label="Size" name="screen-size">
         <RowSelectField
@@ -281,6 +283,8 @@ function ScreenSection({ frameId }: { frameId: string }) {
         )]}
       />
     </InspectorSection>
+    <BreakpointSection frameId={frameId} node={node} tree={tree} />
+    </>
   );
 }
 
