@@ -1217,7 +1217,8 @@ export const rows = [
       const searchAction = nav.locator(".zen-top-nav__search");
       await until(async () => (await searchAction.count()) === 1 && (await scroller()) > 100, { message: "scrolled: the Search action in the bar" });
       await step("press the Search action", () => searchAction.click());
-      await until(async () => (await scroller()) === 0 && (await page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? document.activeElement?.closest("[aria-label]")?.getAttribute("aria-label"))) === "Search tasks", { message: "the Search action scrolls up and focuses the field" });
+      // The field itself takes focus (the Search action shares its name, so the tag and the control bar say which).
+      await until(async () => (await scroller()) === 0 && (await page.evaluate(() => document.activeElement?.tagName === "INPUT" && Boolean(document.activeElement.closest(".zen-top-nav__control")))), { message: "the Search action scrolls up and focuses the field" });
       // More: a sheet of the folded actions, each doing what it does on desktop.
       const more = nav.getByRole("button", { name: "More" });
       const sheet = page.getByRole("dialog", { name: "More" });
