@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Table (user, 2026-10-25): a Dock Icon in the first column, the row's name, is Small with or without a caption
+  (`content: "dock-icon"` drew XSmall without one); Zen Studio's Figma push and pull and the cell panel follow. Harness
+  `table/first-column-dock-icon-small`, Figma audit `table/first-column-dock-icon-small` (warning), and a runtime audit
+  kind `table-lead` that checks the rendered first column (an initials Avatar Solid, a Dock Icon Small), so a page's
+  helper component no longer hides it.
 - Zen Studio Copy for Figma (2026-10-25): ⌘C on a frame, then ⌘V on any Figma canvas (not only the Zen file's) places
   it as instances of the published Zen library, with its variables and text styles bound: the paste carries the
   library's full definitions, as Figma's own copies do (`docs/figma-contracts/native-defs.json.gz`).
