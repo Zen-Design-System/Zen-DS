@@ -167,7 +167,14 @@ function useElementSize(element: HTMLElement | null, axis: "width" | "height"): 
     const read = () => { const value = axis === "width" ? element.offsetWidth : element.offsetHeight; if (value > 0) setSize(value); };
     read();
     if (typeof ResizeObserver === "undefined") return undefined;
-    const observer = new ResizeObserver(read);
+    // After a resize the observer's own border box: reading offsetWidth there laid the page out again whenever another
+    // callback had written a style first (3.3 s on the App Shell board, 2026-10-25). Rounded as offsetWidth is.
+    const observer = new ResizeObserver((entries) => {
+      const box = entries[entries.length - 1]?.borderBoxSize?.[0];
+      if (!box) { read(); return; }
+      const value = Math.round(axis === "width" ? box.inlineSize : box.blockSize);
+      if (value > 0) setSize(value);
+    });
     observer.observe(element);
     return () => observer.disconnect();
   }, [element, axis]);

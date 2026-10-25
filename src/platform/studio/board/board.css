@@ -126,6 +126,12 @@
 /* zen-allow-raw-spacing: canvas coordinates; the width holds two 1440 screens side by side (until the layout sizes it). */
 .studio-section__frames { position: relative; width: 2944px; }
 .studio-section__frames > .studio-frame { position: absolute; top: 0; left: 0; }
+/* Off screen, a frame skips its content's style, layout and paint once the board has measured it (StudioBoard sets
+   data-cv and the height it measured): it keeps that height, so nothing on the board moves. The frame already clips
+   (overflow: clip below), so the paint containment shows nothing new. */
+.studio-section__frames > .studio-frame[data-cv="true"] { content-visibility: auto; contain-intrinsic-block-size: auto var(--studio-frame-h, 640px); }
+/* A full-screen screen in a frame is position: fixed; content-visibility's layout containment would hold it inside. */
+.studio-viewport[data-world-fullscreen="true"] .studio-section__frames > .studio-frame[data-cv="true"] { content-visibility: visible; }
 
 /* ── Frames ── */
 .studio-frame {
