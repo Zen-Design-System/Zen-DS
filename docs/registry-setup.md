@@ -1,6 +1,6 @@
 # Registry riêng npm.dizai.studio: các bước của bạn
 
-Runbook cho phần việc chỉ bạn làm được (tài khoản, khoá bí mật, DNS, npmjs). Mỗi bước có lệnh để dán; xong bước
+Runbook cho phần việc chỉ bạn hoặc developer của bạn làm được (tài khoản, khoá bí mật, DNS, npmjs, deploy). Mỗi bước có lệnh để dán; xong bước
 nào thì nhắn Claude "xong bước N" để Claude kiểm tra kết quả. Chi tiết kỹ thuật của bộ kit (tiếng Anh):
 [`tools/registry/README.md`](../tools/registry/README.md).
 
@@ -21,7 +21,7 @@ runbook này được merge: bản deploy Podman cũ chưa biết backup). Khôn
 | Theo dõi uptime | ✗ chưa có → **Bước 2** |
 | `npm login` thật (Google + licence key) | ✗ chưa thử với tài khoản thật → **Bước 3** |
 | Gói cũ trên npmjs | ✗ `@zen-ds/react@0.1.0` và `@zen-ds/tokens@0.1.0` vẫn công khai, chưa deprecate → **Bước 4** |
-| Phase 6 (webhook thanh toán) | bạn đã chọn Polar (2026-10-25); webhook làm ở PR riêng, các bước Polar sẽ thêm vào đây |
+| Phase 6 (webhook thanh toán) | Polar (bạn chọn 2026-10-25); webhook đã viết và test, developer deploy theo **Bước 5** |
 
 ## Bước 0: quyền SSH vào máy chủ
 
@@ -221,6 +221,143 @@ rm -f ~/npmjs-zen.npmrc
 ```
 
 Nhắn Claude "xong bước 4"; Claude kiểm tra bằng `npm view @zen-ds/react@0.1.0 deprecated`.
+
+## Bước 5: webhook Polar (Phase 6, developer làm)
+
+Khách trả tiền trên Polar thì licence tự được tạo; huỷ hoặc hết hạn thì licence tắt và registry chặn trong vòng 5
+phút. Webhook là một hook chạy ngay trong kho licence PocketBase (`zen-license-management` trên PocketBase Cloud),
+không thêm máy chủ. Mã: `tools/registry/pocketbase/pb_hooks/`; cách nó quyết định (chủ licence, điều khoản, trạng
+thái): mục "Payments" trong [`tools/registry/README.md`](../tools/registry/README.md).
+
+**Cần có trước:** tài khoản Polar của Dizai Studio (bạn tạo), quyền vào project PocketBase Cloud của kho licence và
+một tài khoản superuser riêng cho developer (bạn cấp), `pbc` trên máy developer (`pbc --version`).
+
+### 5.1 Sản phẩm trên Polar
+
+Mỗi gói bán là một sản phẩm thuê bao (Products → New product, Recurring). Giá và số credits do bạn quyết định. Mỗi
+sản phẩm cần **Metadata** (cuối trang sản phẩm) để webhook biết cấp licence gì:
+
+| Key | Giá trị | Bắt buộc |
+| --- | --- | --- |
+| `zen_type` | `business` hoặc `pro` | có |
+| `zen_max_members` | số seat (chủ + thành viên), ví dụ `5`. Bỏ qua nếu sản phẩm bán theo seat: khi đó lấy số seat khách mua | có, trừ gói bán theo seat |
+| `zen_credits` | `credits_total` của licence, ví dụ `100` | có |
+| `zen_reset_day` | ngày trong tháng reset credits (1–28); mặc định là ngày mua | không |
+
+Thiếu metadata thì khách vẫn trả tiền được nhưng không có licence: dòng `billing_subscriptions` của giao dịch đó ghi
+lý do ở cột `problem`. Sửa metadata rồi bấm gửi lại (Redeliver) sự kiện đó trong Polar.
+
+### 5.2 Khách được gắn với tài khoản nào
+
+Khách mua bằng **email của tài khoản Zen** của mình (tài khoản Google đăng nhập trang licence). Chưa có tài khoản thì
+licence chờ, và được tạo ngay khi email đó đăng ký và đã xác minh. Trang licence muốn gắn chắc chắn hơn thì mở
+checkout link kèm id người dùng: `<checkout link>?reference_id=<id users>&customer_email=<email>`.
+
+### 5.3 Thử trên máy với Polar sandbox (trước khi lên thật)
+
+Chạy PocketBase cục bộ có hook, rồi để Polar CLI chuyển sự kiện sandbox về máy. Không đụng tới kho licence thật.
+
+1. Tạo tổ chức sandbox ở [sandbox.polar.sh](https://sandbox.polar.sh), thêm một sản phẩm có metadata như 5.1.
+2. Cài [Polar CLI](https://polar.sh/docs/integrate/cli/introduction) rồi đăng nhập vào sandbox:
+
+```bash
+npm install -g @polar-sh/cli
+```
+
+```bash
+polar auth login --sandbox
+```
+
+3. Mở chuyển tiếp sự kiện về PocketBase cục bộ; CLI in một webhook secret `whsec_…` trong banner, giữ terminal mở:
+
+```bash
+polar webhook listen http://127.0.0.1:8090/api/zen/billing/polar
+```
+
+4. Ở terminal khác, tại thư mục `tools/registry`: tải PocketBase (in đường dẫn) và tạo superuser cục bộ:
+
+```bash
+node scripts/fetch-pocketbase.mjs
+```
+
+```bash
+.bin/pocketbase-0.39.11/pocketbase superuser upsert dev@local.test dev-password-123 --dir .test-tmp/polar-dev --migrationsDir test/pocketbase/pb_migrations
+```
+
+5. Chạy PocketBase với hook, thay `<secret>` bằng secret ở bước 3:
+
+```bash
+POLAR_WEBHOOK_SECRET='<secret>' .bin/pocketbase-0.39.11/pocketbase serve --dir .test-tmp/polar-dev --migrationsDir test/pocketbase/pb_migrations --hooksDir pocketbase/pb_hooks
+```
+
+6. Mở `http://127.0.0.1:8090/_/`, tạo một user trong `users` có email bạn sẽ dùng khi mua, tick **verified**.
+7. Mua sản phẩm sandbox bằng email đó, thẻ thử `4242 4242 4242 4242`, hạn bất kỳ trong tương lai, CVC bất kỳ.
+   Đúng là: `licenses` có licence mới (`active` bật, đúng `type`, `max_members`, `credits_total`);
+   `billing_subscriptions` có một dòng trỏ tới nó, cột `problem` trống. Nếu mở checkout kèm `?reference_id=`, cột
+   `reference` có id đó.
+8. Trong Polar sandbox, huỷ thuê bao ngay (Revoke). Đúng là licence đó tắt `active`.
+9. Xoá dữ liệu thử:
+
+```bash
+rm -rf .test-tmp/polar-dev
+```
+
+### 5.4 Deploy lên kho licence thật
+
+1. Đăng nhập PocketBase Cloud và tìm tên instance của kho licence (URL `flrhpbeu1gj0js1.fbjc.pocketbasecloud.com`):
+
+```bash
+pbc login
+```
+
+```bash
+pbc pocketbase ls
+```
+
+2. Trên Polar (production) → Settings → Webhooks → **Add endpoint**:
+   - URL: `https://flrhpbeu1gj0js1.fbjc.pocketbasecloud.com/api/zen/billing/polar`
+   - Format: **Raw**
+   - Events: mọi sự kiện `subscription.*` (created, active, updated, canceled, uncanceled, cycled, past_due, revoked,
+     paused, resumed, migrated). Không cần sự kiện order hay checkout.
+   - Secret: để Polar tạo, chép chuỗi `whsec_…`.
+3. Ghi secret vào file chỉ bạn đọc được (dán vào sau `POLAR_WEBHOOK_SECRET=`):
+
+```bash
+install -m 600 /dev/null ~/.config/zen-registry/polar.env && nano ~/.config/zen-registry/polar.env
+```
+
+4. Đặt secret lên instance (thay `<instance>`; lệnh chỉ thêm biến này, giữ nguyên các biến khác. Đừng thêm
+   `--delete-missing`):
+
+```bash
+pbc env import ~/.config/zen-registry/polar.env --target pocketbase --name <instance>
+```
+
+5. Xem các hook đang có (để biết không trùng tên), rồi đẩy hook:
+
+```bash
+pbc pocketbase hooks ls --name <instance>
+```
+
+```bash
+pbc pocketbase hooks push tools/registry/pocketbase/pb_hooks --name <instance>
+```
+
+6. Kiểm tra. Đúng là `401` (route chạy, secret đã đặt); `503` là chưa có secret; `404` là hook chưa chạy:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' -X POST https://flrhpbeu1gj0js1.fbjc.pocketbasecloud.com/api/zen/billing/polar
+```
+
+7. Một giao dịch thật nhỏ: tạo mã giảm giá 100% trên Polar, mua một gói bằng email một tài khoản Zen thử.
+   Đúng là: licence mới `active`; `npm login --auth-type=legacy` với id licence đó cài được gói (như Bước 3); Revoke
+   thuê bao trong Polar thì sau tối đa 5 phút `npm view @zen-ds/react` báo 403. Xong thì xoá licence thử.
+
+Nhắn Claude "xong bước 5"; Claude kiểm tra lại bước 6 từ bên ngoài.
+
+**Gỡ ra nếu cần:** tắt endpoint trong Polar, rồi
+`pbc pocketbase hooks rm zen_polar.pb.js --name <instance>` và tương tự với `zen_polar.js`. Collection
+`billing_subscriptions` ở lại (chỉ superuser đọc được), xoá trong trang quản trị nếu muốn.
 
 ## Lựa chọn của bạn (kèm đề xuất)
 
