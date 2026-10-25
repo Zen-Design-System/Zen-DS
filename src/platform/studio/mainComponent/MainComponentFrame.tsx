@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
+import { memo, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from "react";
 import { Heading, Text } from "../../../components/Text";
 import api from "../../api.generated.json";
 import { platformMedia } from "../../PlatformMedia";
@@ -87,14 +87,26 @@ const FILL_WIDTHS: Readonly<Record<string, number | ((variant: Readonly<Record<s
 /** Sets of full-width rows (Figma FIXED 1232: a Dashboard header's Navigation, Main, Control-Bar and Custom rows): every
  *  cell takes that width, and the first variant property runs down the rows as Figma stacks them. */
 const ROW_SETS: Readonly<Record<string, number | undefined>> = { "Primitives/Dashboard/Header": 1232 };
+/** Figma's ring chart widths past 352, by Size: Donut with Total=Start, Donut beside its legend, Radial beside its legend
+ *  (a legend below keeps 352 at every Size). */
+const RING_WIDTHS: Readonly<Record<"below" | "donutTotal" | "donutBeside" | "radialBeside", Readonly<Record<string, number>>>> = {
+  below: {},
+  donutTotal: { medium: 400, large: 512, xlarge: 600 },
+  donutBeside: { large: 400, xlarge: 480 },
+  radialBeside: { large: 440, xlarge: 520 },
+};
 /** Sets drawn at their Figma width (FIXED there, the code fills its container): a phone's bottom bar is 390
  *  (Bottom-Navigation width = Viewport-Width). */
-const FIXED_WIDTHS: Readonly<Record<string, number | undefined>> = {
+const FIXED_WIDTHS: Readonly<Record<string, number | ((variant: Readonly<Record<string, string>>) => number) | undefined>> = {
   // Header/AppShell is FIXED 1272 (a 1512 desktop beside its 240 Sidebar).
   "Header/AppShell": 1272,
   "Bottom-Navigation/Mobile/Default": 390,
   "Bottom-Navigation/Mobile/Floating": 390,
   "Bottom-Navigation/Mobile/Floating-Glass": 390,
+  // Every Chart/Donut-Chart (15324:80365) and Chart/Radial-Chart (15325:1135) variant is FIXED (chart-donut.json,
+  // chart-radial.json): a ring beside its legend or total needs that width, not a max-content cell's. 352 unless listed.
+  "Chart/Donut-Chart": (variant) => (variant.totalPosition === "start" ? RING_WIDTHS.donutTotal : variant.legendPosition === "bottom" ? RING_WIDTHS.below : RING_WIDTHS.donutBeside)[variant.size] ?? 352,
+  "Chart/Radial-Chart": (variant) => (variant.legendPosition === "bottom" ? RING_WIDTHS.below : RING_WIDTHS.radialBeside)[variant.size] ?? 352,
 };
 /** The grid's axes: columns, rows, then the filters (a row set puts its first property on the rows). */
 const gridAxes = (set: VariantSet): [VariantAxis | undefined, VariantAxis | undefined, ...VariantAxis[]] =>
@@ -114,6 +126,8 @@ function Stage({ component, set, variant, children }: { component: string; set: 
   const ref = useRef<HTMLDivElement>(null);
   const [fill, setFill] = useState(false);
   const screen = OVERLAY_SCREENS[component];
+  // Once per cell, not per render: the stage observer sees a new variant collapse it (children are new elements on
+  // every render, which re-created this observer and forced a layout per cell each time).
   useLayoutEffect(() => {
     const stage = ref.current;
     if (!stage || fill || screen) return undefined;
@@ -125,7 +139,7 @@ function Stage({ component, set, variant, children }: { component: string; set: 
     const observer = new ResizeObserver(check);
     observer.observe(stage);
     return () => observer.disconnect();
-  }, [fill, children, screen]);
+  }, [fill, screen]);
   if (screen) {
     return (
       <div ref={ref} className="studio-mc__stage studio-mc__screen" data-zen-overlay-root="" style={{ "--studio-mc-screen-width": `${screen.width}px`, "--studio-mc-screen-height": `${screen.height}px` } as CSSProperties}>
@@ -164,7 +178,8 @@ export function MainComponentFrame({ page }: { page: PlatformPage }) {
   );
 }
 
-function ComponentSets({ component }: { component: string }) {
+/** Memoised: the frame's width measure re-renders MainComponentFrame, which never changes what a component draws. */
+const ComponentSets = memo(function ComponentSets({ component }: { component: string }) {
   const item = paletteFor(component);
   const parsed = useItemNode(item!);
   const node = useMemo(() => nodeOf(parsed, component), [parsed, component]);
@@ -178,15 +193,19 @@ function ComponentSets({ component }: { component: string }) {
       <div ref={setPortal} className="studio-mc__portal" />
     </section>
   );
-}
+});
 
 function SetGrid({ component, set, base, portal }: { component: string; set: VariantSet; base: PageNode | null | undefined; portal: HTMLDivElement | null }) {
   const filters = useSyncExternalStore(filterStore.subscribe, () => filterStore.get(set.name), () => filterStore.get(set.name));
-  const selection = useStudio((state) => state.selection);
+  // Only this set's selected cell (a string): any other selection change (a frame, a layer, another set) leaves every
+  // cell of this set alone (a click on Input re-rendered all 268 cells, 2026-10-25).
+  const selectedCell = useStudio((state) => {
+    const selection = state.selection;
+    return selection?.kind === "variant" && selection.component === component && selection.set === set.name ? cellKey(component, set.name, selection.variant) : null;
+  });
   const [columns, rows, ...rest] = gridAxes(set);
   const rowValues = rows ? rows.values : [null];
   const fixedRest = Object.fromEntries(rest.map((axis) => [axis.prop, filters[axis.prop] ?? axis.default]));
-  const selectedCell = selection?.kind === "variant" && selection.component === component && selection.set === set.name ? cellKey(component, set.name, selection.variant) : null;
   return (
     // An overlay set is drawn on a photo, what it is made for (its White levels vanish on a plain light or dark surface).
     <section className="studio-mc__set" aria-label={set.name} data-backdrop={overlaySet(set) ? "photo" : undefined} style={overlaySet(set) ? ({ "--studio-mc-photo": `url("${platformMedia.mountainRoad.src}")` } as CSSProperties) : undefined}>
