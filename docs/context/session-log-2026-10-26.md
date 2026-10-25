@@ -62,8 +62,12 @@ Approved 2026-10-26 (D1–D4; no harness rule). Built the Studio half's PR 1 (P1
 - **Play / Present**: open on the viewed device; the viewport drags from the left edge too, the tag reads
   `W × H · Mobile`.
 - Checks: `screenModel.selftest.mjs` (27, in studio:selftest), builder selftest (versionOf), studio:selftest all pass,
-  tsc clean, style:check clean. E2E BP-01…08 in `scenarios/breakpoints.mjs` (new default group) — to run by id in the
-  gate slot.
+  tsc clean, style:check clean. E2E BP-01…08 in `scenarios/breakpoints.mjs` (new default group, in the baseline).
+- **Train gate** (`zen/train/responsive-20261026`, PR #310; `npm run qa -- --all --isolated` on 92a1c217): every static
+  step, platform audit 1512/390/320 (0 errors), dark, behaviour, browser tests 92/92 pass; Studio E2E 372/373 — HO-03
+  regressed (placeholders on every phone Screen; Overlay exports at 720 → mobile), fixed in 480b59df. After merging
+  main 2e94ad76 (#307, #308; conflicts in docs and the E2E group list): HO-03, PT-27/28, BP-01…08 by id 11/11, then the
+  builder, handoff and breakpoints groups 74/74. Contact sheets (12) reviewed: phone looks at 390, desktop at 1512.
 
 ## bp-library · responsive Layout props (P2 library half of the responsive-breakpoints plan)
 
