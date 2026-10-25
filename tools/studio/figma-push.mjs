@@ -2161,8 +2161,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
       // Figma's Avatar-Cell with a Square Avatar, since Photo-Cell's Photo is a rectangle (figma-pull reads it back as photo).
       const cellSet = kind === "photo" && !pictured ? CELL_SETS.avatar : set;
       const node = { type: "INSTANCE", name: cellSet.name.split("/").pop(), set: cellSet, props: onlyOwn(cellSet, { Bold: column.bold ? "Yes" : "No", Subtext: caption ? "Yes" : "No" }), nested: [{ path: "Text-Cell", props: { Caption: Boolean(caption) }, textList: caption ? [label, caption] : [label] }] };
+      // Its Dock Icon as Table.tsx draws it (cellVisual): Small over a Subtext and always in the first column (the user
+      // 2026-10-25), XSmall otherwise.
       if (kind === "dock-icon") {
-        const dock = instanceOf("DockIcon", { size: "xs", theme: "neutral", background: "subtle", ...(typeof media === "string" ? { icon: media } : {}), ...own("Dock-Icon") }, where);
+        const dock = instanceOf("DockIcon", { size: caption || columns[0] === column ? "sm" : "xs", theme: "neutral", background: "subtle", ...(typeof media === "string" ? { icon: media } : {}), ...own("Dock-Icon") }, where);
         if (dock) node.nested.push({ path: "Dock-Icon", set: dock.set, props: dock.props, ...(typeof own("Dock-Icon").emoji === "string" ? { text: own("Dock-Icon").emoji } : {}) });
       }
       if (kind === "icon" && typeof media === "string") node.swapIcon = media;

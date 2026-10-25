@@ -315,6 +315,11 @@ export const Bad = () => <>
   {/* The row's name column takes a Solid Avatar (the user 2026-10-24). */}
   {/* expect: table/first-column-avatar-solid */}
   <Table aria-label="Members" rows={rows} getRowId={getId} columns={[{ id: "member", header: "Member", cell: (row) => <TableMedia bold caption={row.role} media={<Avatar size="sm" theme="neutral" background="subtle" alt="">{row.initials}</Avatar>}>{row.name}</TableMedia> }]} />
+  {/* The row's name column takes a Small Dock Icon, with or without a caption (the user 2026-10-25). */}
+  {/* expect: table/first-column-dock-icon-small */}
+  <Table aria-label="Apps" rows={rows} getRowId={getId} columns={[{ id: "app", header: "App", cell: (row) => <TableMedia media={<DockIcon icon="icon-grid-01-line" size="xs" theme="neutral" background="subtle" />}>{row.name}</TableMedia> }]} />
+  {/* expect: table/first-column-dock-icon-small */}
+  <Table aria-label="Files" rows={rows} getRowId={getId} columns={[{ id: "file", header: "File", cell: (row) => <TableMedia caption={row.size} media={<DockIcon icon="icon-file-doc-line" theme="neutral" background="subtle" />}>{row.name}</TableMedia> }]} />
   {/* A table in a box is a widget the box names (usage rules §14). */}
   {/* expect: table/titled-box */}
   <Card theme="default"><Table aria-label="Recent claims" columns={[]} rows={[]} getRowId={(r) => r.id} /></Card>
