@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- QA gate (user, 2026-10-25): a Studio E2E row that is not in `matrix.baseline.json` and comes back broken now fails the
+  gate step and `npm run studio:e2e` (exit 1), marked "✗ New rows broken". New rows that work stay a pass, listed to
+  record with `--update-baseline`; rows the baseline marks broken and flaky rows are still allowed.
 - Zen Studio Copy for Figma (2026-10-25): ⌘C on a frame, then ⌘V on any Figma canvas (not only the Zen file's) places
   it as instances of the published Zen library, with its variables and text styles bound: the paste carries the
   library's full definitions, as Figma's own copies do (`docs/figma-contracts/native-defs.json.gz`).

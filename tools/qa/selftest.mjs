@@ -4,7 +4,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { E2E_ROW_SECONDS, SHARD_TARGET_S, auxKind, e2eRowSeconds, pageEstimator, pageSeconds, planE2E, planShards, readTimings, retryPagesFrom, shardCapS, writeTimings } from "./lib.mjs";
+import { E2E_ROW_SECONDS, SHARD_TARGET_S, auxKind, e2eRowSeconds, e2eVerdictLines, pageEstimator, pageSeconds, planE2E, planShards, readTimings, retryPagesFrom, shardCapS, writeTimings } from "./lib.mjs";
 
 const failures = [];
 let passed = 0;
@@ -110,6 +110,24 @@ ok("cap: 3× a long plan", shardCapS(900) === 2700);
   } finally {
     fs.rmSync(runDir, { recursive: true, force: true });
   }
+}
+
+// The Studio E2E step's verdict (user, 2026-10-25): a new row that comes back broken fails the gate like a regression; a
+// new row that works passes and is listed to record; a row the baseline marks broken stays allowed.
+{
+  const { compare } = await import(new URL("../studio/e2e/lib/matrix.mjs", import.meta.url).href);
+  const baseline = { "OLD-1": "works", "OLD-2": "broken" };
+  const verdictOf = (rows) => e2eVerdictLines(compare(rows, baseline, new Set()));
+  const newBroken = verdictOf([{ id: "OLD-1", status: "works" }, { id: "NEW-1", status: "broken" }]);
+  ok("E2E verdict: a new row broken fails", newBroken.fail && newBroken.failed.join() === "✗ New rows broken (not in the baseline): NEW-1");
+  const newWorks = verdictOf([{ id: "OLD-1", status: "works" }, { id: "NEW-2", status: "works" }]);
+  ok("E2E verdict: a new row that works passes, listed to record", !newWorks.fail && !newWorks.failed.length && /^✓ New rows that work .*--update-baseline\): NEW-2$/.test(newWorks.listed.join()));
+  const knownBroken = verdictOf([{ id: "OLD-1", status: "works" }, { id: "OLD-2", status: "broken" }]);
+  ok("E2E verdict: a baselined-broken row stays allowed", !knownBroken.fail && !knownBroken.failed.length && !knownBroken.listed.length);
+  const regression = verdictOf([{ id: "OLD-1", status: "broken" }]);
+  ok("E2E verdict: a regression still fails", regression.fail && /^✗ Regressions .*: OLD-1$/.test(regression.failed.join()));
+  const budget = verdictOf([{ id: "NEW-3", status: "skip", notRun: true }]);
+  ok("E2E verdict: a new row past the budget is not a new-row failure", !budget.fail && !budget.failed.length);
 }
 
 // The harness self-tests run when their folder is in scope: an edit there must count as a tool file (auxKind), or the

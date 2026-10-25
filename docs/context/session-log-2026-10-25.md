@@ -182,3 +182,20 @@ The user published the Zen library; Studio's ⌘C → ⌘V now lands in any Figm
   "(target)", "(target 2)", "(target 3)" stay in the team for the user to delete.
 - **Not mine, noted:** the Zen plugin's ⌘V import hung once, and in a non-Zen file gave a partial frame (plugin repo); it draws no "Other"
   segment in the Expenses stacked bars where the direct paste does.
+
+## New E2E rows that break fail the gate (tier S tooling; branch zen/fix/gate-new-e2e-rows-20261025)
+
+- User decision 2026-10-25 ("Hàng E2E mới khi fail có làm fail gate luôn không?" → "có"). Before: only regressions
+  (works in the baseline → broken) failed; a broken row missing from `matrix.baseline.json` passed silently (ST-29 and
+  DA-10 on 2026-10-24).
+- `tools/studio/e2e/lib/matrix.mjs` `compare()` also returns `newBroken` (rows not in the baseline that came back
+  broken; a flaky id counts as baselined broken; skipped / not-run rows never count). The report's JSON and Markdown
+  list it.
+- `tools/studio/e2e/run.mjs`: "✗ New rows broken (not in the baseline): …" and exit 1; new rows that work are listed
+  to record with `--update-baseline`. `tools/qa/run.mjs`: the Studio E2E step fails on them through
+  `lib.mjs e2eVerdictLines` (also on its own, not only through a shard's exit code); not-run rows keep their own ✗ line.
+- Note: the opt-in groups (`dnd`, `figma`) have no baseline rows, so a standalone `--only=figma` run now exits 1 on any
+  broken row. The default gate groups had 5 new rows, 0 broken, in the last gate run (studio-chart-perf, 10:27).
+- Tests: `tools/studio/e2e/selftest.mjs` (+7 compare cases) 1830 ✓ exit 0; `npm run qa:selftest` (+5 verdict cases)
+  40 ✓ exit 0; `node --check` on the five .mjs files, exit 0. No gate browser run (tool files only; the selftests
+  cover the verdict).
