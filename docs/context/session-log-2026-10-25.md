@@ -139,8 +139,31 @@ Proposals and priorities went to the user, who approved the P0 group (below).
 - Gate: `npm run qa -- --isolated --pages=chart --files=…` PASS (static, Vitest 90/90, 33 Chart contract suites, audit
   1512/390/320 + dark + behaviour 0 new, Studio E2E 360/360). Main component Donut/Radial cells shot at 100 %: the
   legends and totals sit beside the ring, as in Figma.
-- Left for P1 (not approved yet): `placeTip` is now the largest load cost (6.7 s), AppShellHeader/AppShell measures,
+- Left for P1 (approved after #301; done below): `placeTip` is now the largest load cost (6.7 s), AppShellHeader/AppShell measures,
   `content-visibility` on frames; the Inspector still takes ~200–340 ms after a frame click.
+
+### P1: batched measures and off-screen frames (tier L; user: "Làm tiếp nhóm P1 … xin slot từ Giám sát"; PR #303)
+
+- `placeTip` (chartCore.tsx): every Tooltip of a commit is placed in one pass after it (read every rectangle, then
+  write the shifts); the shift is read back (it moves the Tooltip 1:1) instead of written 0 and read again. One
+  ResizeObserver for all.
+- AppShellHeader `useStackedRow`: every header's top row measured in one pass (all one-line → all read → all put
+  back); the answer is written on `data-stacked` before the paint and into state; a resize measures on the next frame.
+  AppShell `useElementSize` reads the observer's `borderBoxSize` (offsetWidth there laid the page out again).
+- Studio board: once a mount has measured its frames (fonts + two frames), each frame gets `data-cv` and
+  `--studio-frame-h`; off screen it skips its content (`content-visibility: auto`, `contain-intrinsic-block-size: auto
+  <measured>`). Not while a full-screen screen is open (layout containment would hold `position: fixed`). Per mount,
+  not per page, so a never-measured frame never skips at a guessed height.
+- Re-measured (private :5291): Chart load Style 9.2 → 2.4 s (14.5 s before #301), App Shell 15.1 → 3.8 s; placeTip
+  6.7 → 0.26 s, AppShellHeader 6.9 → 0.32 s. Pan: Input 41 → 5 frames over 20 ms, Chart worst 150 → 50 ms, App Shell
+  0 frames over 50 ms. Panning the chart, app-shell, input, date-picker and dialog boards end to end moved no frame or
+  section; a full-screen example card still covers the window (also in a frame that was skipped).
+- New `tests/interaction/measure-batching.test.tsx` (header stack at two widths, scaled, after a resize; Tooltip
+  inside its chart at the last item, scaled, after a resize).
+- Gate `npm run qa -- --all --isolated`: every step passed but Studio E2E (361/363: LB-15 and SP-09 timed out at their
+  20 s row budget under the --all load). Alone 2/2 and in their groups (library, starters) 39/39; `--all --failed`
+  then PASS (Studio E2E 363/363). `studio:e2e --only=figma` 196/196 (FW-186 included). Copy for Figma and export only
+  work on pages you made (BuilderBoard, no data-cv); Present of a skipped off-screen frame draws it (shot checked).
 
 ## Direct paste into other files (tier L; branch zen/feat/paste-other-files-20261025; BACKLOG P2 via #297)
 

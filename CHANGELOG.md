@@ -1533,6 +1533,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Faster pages of many charts and app shells (2026-10-25, Studio performance audit, part 2): chart Tooltips and the
+  AppShellHeader's top row measure together instead of laying the page out once or twice each, and the App Shell reads
+  its sizes from its observer. Zen Studio: a frame off screen skips drawing its content once the board has measured it,
+  so panning and zooming a large board stays smooth.
 - Charts in scaled or content-sized boxes (2026-10-25, Studio performance audit): a Donut or Radial chart beside its
   legend in a box as wide as its content no longer flips between beside and wrapped a few times a second, and a
   ChartCard's chart takes the same free height at any zoom (below 100 % it left a band under the chart; above it a
