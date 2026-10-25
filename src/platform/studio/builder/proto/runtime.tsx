@@ -312,7 +312,7 @@ function rootShellParts(children: ReactNode): { root: boolean } & Record<ScreenP
 function PartPlaceholder({ part, breakpoint, onAdd }: { part: ScreenPart; breakpoint: ZenBreakpointKey; onAdd: () => void }) {
   const label = part === "topNavigation" ? "Add Top Navigation" : "Add Bottom Navigation";
   return (
-    <button type="button" className={`studio-builder-screen__placeholder ${typographyStyles["Body/Small/Medium"]}`} data-edge={part === "topNavigation" ? "top" : "bottom"} data-studio-frame-chrome="" data-studio-placeholder="" title={`${BREAKPOINT_LABELS[breakpoint]} has no ${part === "topNavigation" ? "Top" : "Bottom"} Navigation: add one to the Screen's AppShell`} onClick={onAdd}>
+    <button type="button" className={`studio-builder-screen__placeholder ${typographyStyles["Body/Small/Medium"]}`} data-edge={part === "topNavigation" ? "top" : "bottom"} data-studio-frame-chrome="" data-studio-placeholder="" title={`${BREAKPOINT_LABELS[breakpoint]} has no ${part === "topNavigation" ? "Top" : "Bottom"} Navigation`} onClick={onAdd}>
       <span aria-hidden="true">+</span>{label}
     </button>
   );
