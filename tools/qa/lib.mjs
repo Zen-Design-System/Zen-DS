@@ -680,3 +680,24 @@ export function planE2E(rows, perRow, { target = SHARD_TARGET_S } = {}) {
   const budget = shardCapS(planned);
   return { n, planned, budget, cap: budget + 600 };
 }
+
+/**
+ * The Studio E2E step's lines from tools/studio/e2e/lib/matrix.mjs compare(). `fail`: a regression, or a new row (not in
+ * the baseline) that came back broken (user, 2026-10-25: ST-29 and DA-10 broke unseen as new rows on 2026-10-24).
+ * `listed`: rows fixed since the baseline and new rows that work, both to record with --update-baseline; never a failure.
+ */
+export function e2eVerdictLines(verdict) {
+  const ids = (rows) => rows.map((row) => row.id).join(", ");
+  const newWorks = verdict.fresh.filter((row) => row.status === "works");
+  return {
+    fail: verdict.regressions.length + verdict.newBroken.length > 0,
+    failed: [
+      verdict.regressions.length ? `✗ Regressions (worked in the baseline): ${ids(verdict.regressions)}` : "",
+      verdict.newBroken.length ? `✗ New rows broken (not in the baseline): ${ids(verdict.newBroken)}` : "",
+    ].filter(Boolean),
+    listed: [
+      verdict.fixed.length ? `✓ Fixed since the baseline (run with --update-baseline to record): ${ids(verdict.fixed)}` : "",
+      newWorks.length ? `✓ New rows that work (not in the baseline; record with --update-baseline): ${ids(newWorks)}` : "",
+    ].filter(Boolean),
+  };
+}
