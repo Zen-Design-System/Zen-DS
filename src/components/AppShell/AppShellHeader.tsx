@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState, type ButtonHTMLAttributes, type FocusEvent, type HTMLAttributes, type ReactNode, type Ref } from "react";
+import { useContext, useMemo, useState, type ButtonHTMLAttributes, type FocusEvent, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { Avatar, type AvatarTheme } from "../Avatar";
 import { IconButton } from "../Button";
 import { DashboardHeader } from "../DashboardHeader";
@@ -51,42 +51,91 @@ export interface AppShellHeaderProps extends Omit<HTMLAttributes<HTMLElement>, "
   ref?: Ref<HTMLElement>;
 }
 
+/** One header's top row to measure (useStackedRow), and how its answer is shown. */
+type StackedRow = { row: HTMLElement; content: HTMLElement; toggle: HTMLElement | null; actions: HTMLElement | null; show: (stacked: boolean) => void };
+
+/**
+ * The top rows waiting to be measured, all in one pass: every `leading` content is set to its one-line width, every
+ * width is read, then every style is put back (one layout for a page of headers; measured one at a time, each write
+ * then read laid the page out twice per header, ~7 s on the App Shell board, 2026-10-25). After a commit the pass runs
+ * before the paint; after a resize, on the next frame (shown inside the observer's callback, the new row height could
+ * not be reported that frame).
+ */
+const stackedRows = (() => {
+  let waiting = new Set<StackedRow>();
+  let mountQueued = false;
+  let frame = 0;
+  const flush = () => {
+    const rows = [...waiting].filter(({ row, content }) => row.isConnected && content.isConnected);
+    waiting = new Set();
+    const saved = rows.map(({ content }) => {
+      const { flex, width } = content.style;
+      content.style.flex = "none"; content.style.width = "max-content";
+      return { flex, width };
+    });
+    const answers = rows.map(({ row, content, toggle, actions }) => {
+      // The row's own padding is not room (theme="border-divider" or "borderless" pads the top row Margin-Comfortable on both sides).
+      const rowStyle = getComputedStyle(row);
+      const room = row.clientWidth - (parseFloat(rowStyle.paddingLeft) || 0) - (parseFloat(rowStyle.paddingRight) || 0);
+      if (room <= 0) return null;
+      const leading = content.parentElement;
+      const leadingGap = leading ? parseFloat(getComputedStyle(leading).columnGap) || 0 : 0;
+      const rowGap = parseFloat(rowStyle.columnGap) || 0;
+      // Rendered widths ÷ the scale the row is drawn at (a CSS transform around the shell): CSS px, as `room` is.
+      const scale = row.offsetWidth > 0 ? row.getBoundingClientRect().width / row.offsetWidth || 1 : 1;
+      const toggleWidth = (toggle?.getBoundingClientRect().width ?? 0) / scale;
+      const actionsWidth = (actions?.getBoundingClientRect().width ?? 0) / scale;
+      const natural = content.getBoundingClientRect().width / scale;
+      const needed = natural + (toggleWidth ? toggleWidth + rowGap : 0) + (actionsWidth ? actionsWidth + leadingGap : 0);
+      // Fits only with a pixel to spare: a trail that fills the row exactly wraps anyway once its sub-pixel width rounds
+      // (layout page, 390: 158 + 20 + 16 + 92 + 16 = 302 in a 302 row broke "Settings › Workspace" onto two lines).
+      return needed > room - 1;
+    });
+    rows.forEach(({ content }, index) => { content.style.flex = saved[index].flex; content.style.width = saved[index].width; });
+    rows.forEach(({ show }, index) => { const answer = answers[index]; if (answer !== null) show(answer); });
+  };
+  return {
+    afterCommit(row: StackedRow) {
+      waiting.add(row);
+      if (mountQueued) return;
+      mountQueued = true;
+      queueMicrotask(() => { mountQueued = false; flush(); });
+    },
+    nextFrame(row: StackedRow) {
+      waiting.add(row);
+      if (!frame) frame = requestAnimationFrame(() => { frame = 0; flush(); });
+    },
+    cancel(row: StackedRow) { waiting.delete(row); },
+  };
+})();
+
 /**
  * Whether the top row's `leading` content does not fit on one line beside the toggle and the actions. It is measured at
- * its own one-line width, so the answer does not depend on the current layout; then it takes a row of its own.
+ * its own one-line width, so the answer does not depend on the current layout; then it takes a row of its own. The
+ * answer goes on the header at once (`data-stacked`, before the paint) and into the state that renders it.
  */
-function useStackedRow(row: HTMLElement | null, content: HTMLElement | null, toggle: HTMLElement | null, actions: HTMLElement | null): boolean {
+function useStackedRow(header: HTMLElement | null, row: HTMLElement | null, content: HTMLElement | null, toggle: HTMLElement | null, actions: HTMLElement | null): boolean {
   const [stacked, setStacked] = useState(false);
-  const measure = useCallback(() => {
-    if (!row || !content) { setStacked(false); return; }
-    // The row's own padding is not room (theme="border-divider" or "borderless" pads the top row Margin-Comfortable on both sides).
-    const rowStyle = getComputedStyle(row);
-    const room = row.clientWidth - (parseFloat(rowStyle.paddingLeft) || 0) - (parseFloat(rowStyle.paddingRight) || 0);
-    if (room <= 0) return;
-    const leading = content.parentElement;
-    const leadingGap = leading ? parseFloat(getComputedStyle(leading).columnGap) || 0 : 0;
-    const rowGap = parseFloat(rowStyle.columnGap) || 0;
-    // Rendered widths ÷ the scale the row is drawn at (a CSS transform around the shell): CSS px, as `room` is.
-    const scale = row.offsetWidth > 0 ? row.getBoundingClientRect().width / row.offsetWidth || 1 : 1;
-    const toggleWidth = (toggle?.getBoundingClientRect().width ?? 0) / scale;
-    const actionsWidth = (actions?.getBoundingClientRect().width ?? 0) / scale;
-    const { flex, width } = content.style;
-    content.style.flex = "none"; content.style.width = "max-content";
-    const natural = content.getBoundingClientRect().width / scale;
-    content.style.flex = flex; content.style.width = width;
-    const needed = natural + (toggleWidth ? toggleWidth + rowGap : 0) + (actionsWidth ? actionsWidth + leadingGap : 0);
-    // Fits only with a pixel to spare: a trail that fills the row exactly wraps anyway once its sub-pixel width rounds
-    // (layout page, 390: 158 + 20 + 16 + 92 + 16 = 302 in a 302 row broke "Settings › Workspace" onto two lines).
-    setStacked(needed > room - 1);
-  }, [row, content, toggle, actions]);
-  useIsomorphicLayoutEffect(measure);
+  const entry = useMemo<StackedRow | null>(() => (row && content ? {
+    row, content, toggle, actions,
+    show: (next) => {
+      if (header) { if (next) header.setAttribute("data-stacked", "true"); else header.removeAttribute("data-stacked"); }
+      setStacked(next);
+    },
+  } : null), [header, row, content, toggle, actions]);
+  // Every render (the trail's text may have changed): measured with the other headers of this commit.
   useIsomorphicLayoutEffect(() => {
-    if (!row || typeof ResizeObserver === "undefined") return undefined;
+    if (!entry) { setStacked(false); return undefined; }
+    stackedRows.afterCommit(entry);
+    return () => stackedRows.cancel(entry);
+  });
+  useIsomorphicLayoutEffect(() => {
+    if (!entry || typeof ResizeObserver === "undefined") return undefined;
     // The row keeps its width when a density switch grows the trail or the actions: watch them too.
-    const observer = new ResizeObserver(() => measure());
-    for (const element of [row, content, actions]) if (element) observer.observe(element);
+    const observer = new ResizeObserver(() => stackedRows.nextFrame(entry));
+    for (const element of [entry.row, entry.content, entry.actions]) if (element) observer.observe(element);
     return () => observer.disconnect();
-  }, [row, content, actions, measure]);
+  }, [entry]);
   return stacked;
 }
 
@@ -117,7 +166,7 @@ export function AppShellHeader({ leading, center, actions, main, sections, theme
   const headerRef = useMergedRefs(ref, setHeaderEl);
   // The shell measures its header (the panes and the Sidebar stick under it).
   useIsomorphicLayoutEffect(() => chrome?.registerHeader(headerEl), [chrome, headerEl]);
-  const stacked = useStackedRow(rowEl, shownLeading ? contentEl : null, toggleEl, actions ? actionsEl : null);
+  const stacked = useStackedRow(headerEl, rowEl, shownLeading ? contentEl : null, toggleEl, actions ? actionsEl : null);
   const toggleKind = chrome?.toggle ?? null;
   const toggle = toggleKind ? (
     <span ref={setToggleEl} className="zen-app-shell-header__toggle">
