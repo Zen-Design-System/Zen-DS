@@ -128,6 +128,12 @@ export function Segmented({ ref, options, value, defaultValue, onValueChange, on
   const chipable = Boolean(options?.length) && options!.every((option) => option.badge === undefined && option.label !== null && option.label !== undefined && option.label !== false && option.label !== "");
   const [chips, setChips] = useState(false);
   const neededRef = useRef(0);
+  // A box that hugs its content (a floating layer, a toolbar in a column that does not stretch) is as wide as what it
+  // shows: the chip row can reach `needed` while the segments, back in the same box, are cut again. That flip-flop ran
+  // until React stopped it (Maximum update depth, dnd campaign DND-03, 2026-10-26). The chips' width at which the
+  // segments came back and were cut at once is kept: they try again only once the chips have more room than that.
+  const returnedAtRef = useRef(0);
+  const blockedAtRef = useRef(0);
   useLayoutEffect(() => {
     const root = groupRef.current;
     if (!phone || !chipable) { if (chips) setChips(false); return undefined; }
@@ -136,15 +142,22 @@ export function Segmented({ ref, options, value, defaultValue, onValueChange, on
       const el = groupRef.current;
       if (!el) return;
       if (el.classList.contains("zen-chip-group")) {
-        if (neededRef.current && el.clientWidth >= neededRef.current) setChips(false);
+        if (neededRef.current && el.clientWidth >= neededRef.current && el.clientWidth > blockedAtRef.current) {
+          returnedAtRef.current = el.clientWidth;
+          setChips(false);
+        }
         return;
       }
       const items = [...el.children].filter((child): child is HTMLElement => child instanceof HTMLElement && child.classList.contains("zen-segmented__item"));
       const labelOf = (item: HTMLElement) => item.querySelector<HTMLElement>(".zen-segmented__label");
       const cut = items.some((item) => { const label = labelOf(item); return Boolean(label) && label!.scrollWidth > label!.clientWidth + 1; });
-      if (!cut && el.scrollWidth <= el.clientWidth + 1) return;
+      if (!cut && el.scrollWidth <= el.clientWidth + 1) { returnedAtRef.current = 0; blockedAtRef.current = 0; return; }
+      if (returnedAtRef.current) blockedAtRef.current = returnedAtRef.current;
+      returnedAtRef.current = 0;
       const style = getComputedStyle(el);
-      neededRef.current = items.reduce((sum, item) => { const label = labelOf(item); return sum + item.offsetWidth + (label ? Math.max(0, label.scrollWidth - label.clientWidth) : 0); }, 0)
+      // Each segment's own width, its label uncut. Full width shares the row equally, so every segment needs the widest one's.
+      const widths = items.map((item) => { const label = labelOf(item); return item.offsetWidth + (label ? Math.max(0, label.scrollWidth - label.clientWidth) : 0); });
+      neededRef.current = (fullWidth ? Math.max(0, ...widths) * widths.length : widths.reduce((sum, width) => sum + width, 0))
         + (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
       setChips(true);
     };
@@ -158,7 +171,7 @@ export function Segmented({ ref, options, value, defaultValue, onValueChange, on
     fonts?.ready.then(() => { if (alive) measure(); });
     fonts?.addEventListener?.("loadingdone", measure);
     return () => { alive = false; observer?.disconnect(); fonts?.removeEventListener?.("loadingdone", measure); };
-  }, [phone, chipable, chips, options]);
+  }, [phone, chipable, chips, options, fullWidth]);
   if (chips && options) {
     return (
       <ChipGroup {...dataAttributes(rest)} ref={rootRef} className={["zen-segmented-chips", className].filter(Boolean).join(" ")} size="md" level="primary" aria-label={ariaLabel}
