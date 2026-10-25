@@ -8379,7 +8379,8 @@
       "Card and tile grids that reflow (Grid minColumnWidth) or form columns (Grid columns={{ mobile: 1, desktop: 2 }}).",
       "Wells and plain panels (Box surface + padding).",
       "A panel that lays out its content, Figma's auto layout frame with a fill: one Stack (or Grid) with surface, padding, gap and radius.",
-      "Page content width with the breakpoint margin (Container)."
+      "Page content width with the breakpoint margin (Container).",
+      "A structure that changes with the breakpoint: a row that stacks on phones (Stack direction={{ desktop: \"row\", mobile: \"column\" }}), a side panel that drops on phones (hideOn={[\"mobile\"]})."
     ],
     "avoid": [
       "A clickable or selectable tile → Card.",
@@ -8412,6 +8413,16 @@
         "Direction / alignment",
         "direction · align · justify · wrap",
         "column (default) or row; start · center · end · stretch · baseline; between · around"
+      ],
+      [
+        "Per breakpoint",
+        "direction · gap · align · justify · wrap · padding · paddingX · paddingY (Stack); columns · gap · rowGap · columnGap · padding (Grid); padding · paddingX · paddingY (Box)",
+        "a value, or { desktop, tablet, mobile } (the columns shape): a breakpoint without its own value takes the next wider one's (desktop → tablet → mobile); resolved at the nearest ZenProvider's breakpoint (auto in apps) or a frame's modes={{ breakpoint }}"
+      ],
+      [
+        "Hide on",
+        "hideOn (Stack, Grid, Box)",
+        "breakpoints the frame is hidden at, e.g. [\"mobile\"]: display none there, still in the DOM (Studio lists it)"
       ],
       [
         "Columns",
@@ -8507,6 +8518,7 @@
       "Use Grid minColumnWidth for card grids so they reflow from phone to desktop.",
       "Put a main column next to an aside with Grid columns={{ mobile: 1, desktop: \"2fr 1fr\" }} align=\"start\"; on phones the aside moves under the main column.",
       "Put page content in a Container so its margin follows the breakpoint.",
+      "Use per-breakpoint values for structure (direction, columns, wrap, hideOn on a side panel) and leave sizes to tokens and modes: gap and padding steps, page margins and type already follow the breakpoint and density, so a per-breakpoint gap or padding is for a structure that changes with it.",
       "Give a frame a surface only when it really is a separate layer; a Surface frame on a white (Alt) canvas needs border=\"pale\".",
       "Put the fill, stroke and corners of an auto layout frame on the Stack or Grid itself (Figma's frame with a fill is one layer): <Stack surface=\"surface\" padding=\"lg\" gap=\"md\" radius=\"lg\">, not a Box around a Stack.",
       "Size like Figma auto layout: Hug for content-sized pieces, Fill for what takes the rest of a row or the full width (a main column; a Search next to buttons or filters goes in a Box width=\"fill\" maxWidth={240}, since Search has no sizing props and a toolbar Search is at most 240px wide), maxWidth to cap a Fill line of text; use Fixed (a number) only for widths that really are fixed, such as a side column or a preview frame.",
@@ -8522,6 +8534,7 @@
       "Don't make a Box clickable; clickable tiles are Card (or a Box with border=\"subtle\" and role=\"button\") (harness: box/border-matches-action).",
       "Don't paint Canvas, Flat or Container on a Box: Canvas is the page, Flat is navigation, Container is modals and sheets.",
       "Don't nest Containers.",
+      "Don't hide a frame on every breakpoint (hideOn={[\"desktop\", \"tablet\", \"mobile\"]}): it never shows, so delete it; and don't keep two copies of one part hidden in turn when a per-breakpoint direction or columns changes the one part.",
       "Don't use position=\"absolute\" for what gap, justify or alignSelf can do: an absolute layer leaves the flow and no longer reflows with its siblings.",
       "Don't place status dots, badges or Card sub-actions by hand with absolute layers; they are component props (Avatar status, BadgeCounter, Card subAction).",
       "Don't put a shadow on a tinted fill (Subtle, Pale, Surface-Alt) or on a Canvas/Alt page; there a closed border separates the box.",

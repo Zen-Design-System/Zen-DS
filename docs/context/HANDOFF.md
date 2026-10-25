@@ -128,6 +128,10 @@ Last updated: 2026-10-26.
   Since 2026-10-03 Stack/Grid/Box (and Text/Heading on the width axis) take Figma sizing: `width`/`height` hug · fill ·
   px, min/max, `alignSelf`, Stack `fillChildren` (`src/components/Layout/sizing.ts`, rules at the end of `layout.css`);
   since 2026-10-13 Card and ListBox take the width half (`width`, `minWidth`, `maxWidth`, `alignSelf`).
+  Since 2026-10-26 (responsive-breakpoints plan P2, `docs/research/studio-responsive-breakpoints-2026-10-26.md`) Stack,
+  Grid and Box structure props take `{ desktop?, tablet?, mobile? }` plus `hideOn`, resolved in JS from the frame's
+  breakpoint (`_shared/responsive.ts` `resolveAt`; Grid `columns` too); push/pull rules in `tools/studio/responsive-props.mjs`.
+  The Studio half (view switch, ResponsiveField, the Screen giving its breakpoint as context) is session bp-studio's.
   Since 2026-10-05 Text/Heading/Icon `tone` takes every resting Color/Content token by its path (81 tones, old names are
   aliases; `src/components/_shared/contentTone.ts` + `content-tone.css`, test `tests/content-tone.test.tsx`).
 - **Tokens:** repo-only modes 2026-10-09 (user): Component Size, Typography Configuration and Corner Radius have a mode

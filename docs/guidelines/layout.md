@@ -13,6 +13,7 @@ Token-based layout primitives: Stack (one direction), Grid (columns), Box (a fra
 - Wells and plain panels (Box surface + padding).
 - A panel that lays out its content, Figma's auto layout frame with a fill: one Stack (or Grid) with surface, padding, gap and radius.
 - Page content width with the breakpoint margin (Container).
+- A structure that changes with the breakpoint: a row that stacks on phones (Stack direction={{ desktop: "row", mobile: "column" }}), a side panel that drops on phones (hideOn={["mobile"]}).
 
 ## Use something else for
 - A clickable or selectable tile → Card.
@@ -28,6 +29,8 @@ Token-based layout primitives: Stack (one direction), Grid (columns), Box (a fra
 | Gap (Spacing/Gap) | `gap · rowGap · columnGap` | none · 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 (default) · lg 24 · xl 32 · 2xl 40 · 3xl 48 · giant 64 · xgiant 88 · 2xgiant 144 (long names like small also work) |
 | Padding (Spacing/Padding) | `padding · paddingX · paddingY` | 3xs 2 · 2xs 4 · xs 8 · sm 12 · md 16 · lg 20 · xl 24 · 2xl 32 · 3xl 40 · 4xl 48; or a page margin that follows the breakpoint (Figma Breakpoint & Grids): margin-comfortable 24 (20 on a phone) for a page or screen body, margin-compact 20 (16 on a phone) |
 | Direction / alignment | `direction · align · justify · wrap` | column (default) or row; start · center · end · stretch · baseline; between · around |
+| Per breakpoint | `direction · gap · align · justify · wrap · padding · paddingX · paddingY (Stack); columns · gap · rowGap · columnGap · padding (Grid); padding · paddingX · paddingY (Box)` | a value, or { desktop, tablet, mobile } (the columns shape): a breakpoint without its own value takes the next wider one's (desktop → tablet → mobile); resolved at the nearest ZenProvider's breakpoint (auto in apps) or a frame's modes={{ breakpoint }} |
+| Hide on | `hideOn (Stack, Grid, Box)` | breakpoints the frame is hidden at, e.g. ["mobile"]: display none there, still in the DOM (Studio lists it) |
 | Columns | `columns · minColumnWidth · stackBelow` | a number, a track list for unequal columns ("2fr 1fr"), per breakpoint { mobile, tablet, desktop }, or auto-fill at ≥ minColumnWidth (240 default); stackBelow={640}: one column while the Grid itself is narrower than 640px (a side column in a narrow card or window), whatever the breakpoint |
 | Background layer (Figma Fill) | `surface (Box, Stack, Grid)` | surface · surface-alt · subtle · pale · canvas (a whole screen or page area drawn inside something else, never a card) |
 | Image fill (Figma's Image paint) | `image · imageFit · imageCrop · imageScale (Box, Stack, Grid)` | a picture over the fill, under the layers: fill (default, covers) · fit · crop (imageCrop, % of the picture) · tile (imageScale %); a picture in the content is an Image, not a fill |
@@ -50,9 +53,9 @@ Token-based layout primitives: Stack (one direction), Grid (columns), Box (a fra
 Generated from the TypeScript source; full JSON in `docs/api/layout.json`.
 
 ### Stack
-One-dimensional layout with token spacing. Use it instead of hand-written flex CSS. <Stack gap="lg">…sections…`</Stack>` <Stack direction="row" gap="sm" align="center" justify="between">…toolbar…`</Stack>`
+One-dimensional layout with token spacing. Use it instead of hand-written flex CSS. <Stack gap="lg">…sections…`</Stack>` <Stack direction="row" gap="sm" align="center" justify="between">…toolbar…`</Stack>` <Stack direction={{ desktop: "row", mobile: "column" }} gap="md">…stacks on phones…`</Stack>`
 
-Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps`.
+Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -93,17 +96,18 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `flip` | `"horizontal" \| "vertical" \| "both"` | — | Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept. |
 | `effectStyle` | `"Shadow/Bottom/Level-1" \| "Shadow/Bottom/Level-2" \| "Shadow/Bottom/Level-3" \| "Shadow/Bottom/Level-4" \| "Shadow/Top/Level-1" \| "Shadow/Top/Level-2" \| "Shadow/Top/Level-3" \| "Shadow/Top/Level-4" \| "Effect/Overlay"` | — | Figma effect style (the whole style is the token, one per layer as in Figma). Drop shadows (`Shadow/Bottom/Level-1…4`, `Shadow/Top/Level-1…4`) render only on `surface="surface"`, never on Subtle, Pale or Surface-Alt (component-usage-rules §9) nor without a fill, and a shadowed surface takes no border (elevation follows the Sidebar). `Shadow/Bottom/Level-1` is the Card (Theme=Shadow 7063:62203) and Sidebar elevation; the Top levels cast upward for bottom-pinned bars (Bottom-Sheet 4059:14162 uses Top/Level-2). `Effect/Overlay` is the background blur behind a translucent fill and renders only on `surface="subtle"` or `"pale"`. The shadows use the spread tokens, which Figma draws on a filled, clipped frame: pair them with `clip` when children could overflow. |
 | `modes` | `{ theme?: "light" \| "dark"; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, "auto">; typography?: ZenTypography; brand?: ZenBrand; }` | — | The frame's own variable modes, one per ZenProvider axis: `{ theme: "dark" }` draws a dark card on a light page, `{ density: "comfortable", breakpoint: "mobile" }` a phone-sized block on a desktop page. Written as the data-* attributes tokens.css reads, and given to the components inside as their ZenProvider context (a component reading the breakpoint or the theme sees the frame's). Unset axes inherit. Figma: Layer › Apply variable mode. |
-| `direction` | `"column" \| "row"` | `"column"` | column (default) stacks top to bottom; row lays items side by side. |
-| `gap` | `"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant"` | `"md"` | Space between items (Figma Spacing/Gap). Default md (16px). |
-| `align` | `"start" \| "center" \| "end" \| "stretch" \| "baseline"` | — | Cross-axis alignment. Default: rows center their items; columns stretch fields, cards and lists to the full width while buttons, chips, badges, tags and avatars keep their own width (pass `align="stretch"` to stretch those too, e.g. full-width buttons in a mobile footer). |
-| `justify` | `"start" \| "center" \| "end" \| "between" \| "around"` | — | Main-axis distribution. `between` pushes the first and last items to the edges. |
-| `wrap` | `boolean` | `false` | Let row items wrap onto new lines. |
+| `hideOn` | `ResponsiveBreakpoint[]` | — | Hides the frame at these breakpoints (`display: none`; it stays in the DOM, so Studio still lists it): `hideOn={["mobile"]}` drops a side panel on phones. The breakpoint is the nearest ZenProvider's or a frame's `modes`. Keep it visible on at least one breakpoint; a part that differs across breakpoints is better a responsive prop (`direction`, `columns`) than two copies hidden in turn. |
+| `direction` | `Responsive<"column" \| "row">` | `"column"` | column (default) stacks top to bottom; row lays items side by side. Per breakpoint too: `{ desktop: "row", mobile: "column" }` puts a row's items under each other on phones (a breakpoint without its own value takes the next wider one's). |
+| `gap` | `Responsive<"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant">` | `"md"` | Space between items (Figma Spacing/Gap). Default md (16px). Per breakpoint too: `{ desktop: "lg", mobile: "md" }`. |
+| `align` | `Responsive<"start" \| "center" \| "end" \| "stretch" \| "baseline">` | — | Cross-axis alignment. Default: rows center their items; columns stretch fields, cards and lists to the full width while buttons, chips, badges, tags and avatars keep their own width (pass `align="stretch"` to stretch those too, e.g. full-width buttons in a mobile footer). Per breakpoint too: `{ desktop: "center", mobile: "stretch" }`. |
+| `justify` | `Responsive<"start" \| "center" \| "end" \| "between" \| "around">` | — | Main-axis distribution. `between` pushes the first and last items to the edges. Per breakpoint too: `{ desktop: "between", mobile: "start" }`. |
+| `wrap` | `Responsive<boolean>` | `false` | Let row items wrap onto new lines. Per breakpoint too: `{ desktop: false, tablet: true }`. |
 | `clip` | `boolean` | `false` | Figma "Clip content" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame. Off by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll container). |
 | `scroll` | `"x" \| "y"` | — | Figma "Overflow scrolling": `"y"` scrolls the content vertically, `"x"` sideways, inside the stack's own box (it needs a height or a maxHeight for `"y"`, a width for `"x"`); the scroll stays inside (overscroll-behavior: contain). |
 | `fillChildren` | `boolean` | `false` | Every child takes an equal share along the direction (Figma: all children Fill container), for children that have no sizing props of their own (Button, Input, Card… but also a Divider or an Icon: wrap those in `<Box width="hug">`). A child's own `width` (row) or `height` (column) wins; in a row children keep their own minimum width (a Button never shrinks below its label). A column shares equally only when its height is Fixed or Fill (Buttons get taller); with only a maxHeight the children keep their content height and shrink once it caps; without a height they keep their content height. |
-| `padding` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — | Space inside the stack (Figma Spacing/Padding), or a page margin that follows the breakpoint (`margin-comfortable`: 24, 20 on a phone; `margin-compact`: 20, 16 on a phone). |
-| `paddingX` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — | Horizontal padding (overrides `padding` on the sides). |
-| `paddingY` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — | Vertical padding (overrides `padding` top and bottom), e.g. page content inside a Container that already has side margins. |
+| `padding` | `Responsive<"none" \| ZenScaleInput \| "4xl" \| ZenMargin>` | — | Space inside the stack (Figma Spacing/Padding), or a page margin that follows the breakpoint (`margin-comfortable`: 24, 20 on a phone; `margin-compact`: 20, 16 on a phone). Per breakpoint too: `{ desktop: "xl", mobile: "md" }`. |
+| `paddingX` | `Responsive<"none" \| ZenScaleInput \| "4xl" \| ZenMargin>` | — | Horizontal padding (overrides `padding` on the sides). Per breakpoint too, as `padding`. |
+| `paddingY` | `Responsive<"none" \| ZenScaleInput \| "4xl" \| ZenMargin>` | — | Vertical padding (overrides `padding` top and bottom), e.g. page content inside a Container that already has side margins. Per breakpoint too, as `padding`. |
 | `as` | `"div" \| "section" \| "article" \| "aside" \| "header" \| "footer" \| "main" \| "nav" \| "form" \| "fieldset" \| "ul" \| "ol" \| "li"` | `"div"` |  |
 | `children` | `ReactNode` | — |  |
 | `ref` | `Ref<HTMLElement>` | — | Ref to the rendered DOM element (the `as` element when set). |
@@ -111,7 +115,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 ### Grid
 Two-dimensional layout for cards, tiles and form columns. <Grid minColumnWidth={280}>…cards…`</Grid>` <Grid columns={{ mobile: 1, desktop: 2 }} gap="lg">…fields…`</Grid>` <Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} gap="lg" align="start">…main…aside…`</Grid>`
 
-Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps`.
+Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -152,14 +156,15 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `flip` | `"horizontal" \| "vertical" \| "both"` | — | Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept. |
 | `effectStyle` | `"Shadow/Bottom/Level-1" \| "Shadow/Bottom/Level-2" \| "Shadow/Bottom/Level-3" \| "Shadow/Bottom/Level-4" \| "Shadow/Top/Level-1" \| "Shadow/Top/Level-2" \| "Shadow/Top/Level-3" \| "Shadow/Top/Level-4" \| "Effect/Overlay"` | — | Figma effect style (the whole style is the token, one per layer as in Figma). Drop shadows (`Shadow/Bottom/Level-1…4`, `Shadow/Top/Level-1…4`) render only on `surface="surface"`, never on Subtle, Pale or Surface-Alt (component-usage-rules §9) nor without a fill, and a shadowed surface takes no border (elevation follows the Sidebar). `Shadow/Bottom/Level-1` is the Card (Theme=Shadow 7063:62203) and Sidebar elevation; the Top levels cast upward for bottom-pinned bars (Bottom-Sheet 4059:14162 uses Top/Level-2). `Effect/Overlay` is the background blur behind a translucent fill and renders only on `surface="subtle"` or `"pale"`. The shadows use the spread tokens, which Figma draws on a filled, clipped frame: pair them with `clip` when children could overflow. |
 | `modes` | `{ theme?: "light" \| "dark"; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, "auto">; typography?: ZenTypography; brand?: ZenBrand; }` | — | The frame's own variable modes, one per ZenProvider axis: `{ theme: "dark" }` draws a dark card on a light page, `{ density: "comfortable", breakpoint: "mobile" }` a phone-sized block on a desktop page. Written as the data-* attributes tokens.css reads, and given to the components inside as their ZenProvider context (a component reading the breakpoint or the theme sees the frame's). Unset axes inherit. Figma: Layer › Apply variable mode. |
-| `columns` | `GridTracks \| { mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks }` | — | Fixed column count, or per breakpoint (`{ mobile: 1, tablet: 2, desktop: 3 }`, following ZenProvider's breakpoint). A string is a track list for unequal columns: `{ mobile: 1, desktop: "2fr 1fr" }` puts a main column next to an aside. Omit it to fit as many `minColumnWidth` columns as the width allows. |
+| `hideOn` | `ResponsiveBreakpoint[]` | — | Hides the frame at these breakpoints (`display: none`; it stays in the DOM, so Studio still lists it): `hideOn={["mobile"]}` drops a side panel on phones. The breakpoint is the nearest ZenProvider's or a frame's `modes`. Keep it visible on at least one breakpoint; a part that differs across breakpoints is better a responsive prop (`direction`, `columns`) than two copies hidden in turn. |
+| `columns` | `Responsive<number \| string>` | — | Fixed column count, or per breakpoint (`{ mobile: 1, tablet: 2, desktop: 3 }`, following ZenProvider's or a frame's `modes` breakpoint; a breakpoint without its own value takes the next wider one's). A string is a track list for unequal columns: `{ mobile: 1, desktop: "2fr 1fr" }` puts a main column next to an aside. Omit it to fit as many `minColumnWidth` columns as the width allows. |
 | `minColumnWidth` | `number \| string` | `240` | Responsive auto-fill: every column is at least this wide (px or CSS length). Default 240. |
-| `gap` | `"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant"` | `"md"` | Space between cells. Default md (16px). |
-| `rowGap` | `"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant"` | — |  |
-| `columnGap` | `"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant"` | — |  |
+| `gap` | `Responsive<"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant">` | `"md"` | Space between cells. Default md (16px). Per breakpoint too: `{ desktop: "lg", mobile: "md" }`. |
+| `rowGap` | `Responsive<"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant">` | — | Space between rows (overrides `gap` vertically). Per breakpoint too, as `gap`. |
+| `columnGap` | `Responsive<"none" \| ZenScaleInput \| "giant" \| "xgiant" \| "2xgiant">` | — | Space between columns (overrides `gap` sideways). Per breakpoint too, as `gap`. |
 | `align` | `"start" \| "center" \| "end" \| "stretch"` | — | Vertical alignment of cells. Default stretch (equal-height cards). |
 | `stackBelow` | `number` | — | One column whenever the Grid itself is narrower than this many px — its own width, not the page's breakpoint: a two-column card that stacks in a narrow panel, a side panel or a phone-sized column. `columns` applies above it. |
-| `padding` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
+| `padding` | `Responsive<"none" \| ZenScaleInput \| "4xl" \| ZenMargin>` | — | Space inside the grid (Figma Spacing/Padding). Per breakpoint too: `{ desktop: "xl", mobile: "md" }`. |
 | `as` | `"div" \| "section" \| "article" \| "aside" \| "header" \| "footer" \| "main" \| "nav" \| "form" \| "fieldset" \| "ul" \| "ol" \| "li"` | `"div"` |  |
 | `children` | `ReactNode` | — |  |
 | `clip` | `boolean` | `false` | Figma "Clip content" (frame clipsContent): children are clipped to the frame's padding box, as Figma clips a frame. Off by default, so the shadow of a card inside shows past the frame's edge. Uses `overflow: clip` (no scroll container). |
@@ -168,7 +173,7 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 ### Box
 A frame without auto layout (Figma's Frame): token padding, fill (background layer), stroke, corner radius and effect around content that flows as blocks, or layers placed at X / Y. With auto layout the same frame is a Stack or Grid, which take the same appearance props. For clickable or selectable tiles use Card; for page width use Container.
 
-Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps, FrameModeProps`.
+Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps, FrameModeProps, FrameHideOnProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -210,9 +215,10 @@ Also accepts `HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProp
 | `rotation` | `number` | — | Rotation in degrees, counter-clockwise positive, as Figma's rotation field. Turns the frame about its centre; its place in the layout stays (the rotated frame may overlap its neighbours, as in Figma). |
 | `flip` | `"horizontal" \| "vertical" \| "both"` | — | Figma's Flip horizontal (⇧H) or Flip vertical (⇧V): the frame mirrored on that axis, its place in the layout kept. |
 | `modes` | `{ theme?: "light" \| "dark"; componentTheme?: ZenComponentTheme; density?: ZenDensity; radius?: ZenRadius; emphasis?: ZenEmphasis; breakpoint?: Exclude<ZenBreakpoint, "auto">; typography?: ZenTypography; brand?: ZenBrand; }` | — | The frame's own variable modes, one per ZenProvider axis: `{ theme: "dark" }` draws a dark card on a light page, `{ density: "comfortable", breakpoint: "mobile" }` a phone-sized block on a desktop page. Written as the data-* attributes tokens.css reads, and given to the components inside as their ZenProvider context (a component reading the breakpoint or the theme sees the frame's). Unset axes inherit. Figma: Layer › Apply variable mode. |
-| `padding` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
-| `paddingX` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
-| `paddingY` | `"none" \| ZenScaleInput \| "4xl" \| ZenMargin` | — |  |
+| `hideOn` | `ResponsiveBreakpoint[]` | — | Hides the frame at these breakpoints (`display: none`; it stays in the DOM, so Studio still lists it): `hideOn={["mobile"]}` drops a side panel on phones. The breakpoint is the nearest ZenProvider's or a frame's `modes`. Keep it visible on at least one breakpoint; a part that differs across breakpoints is better a responsive prop (`direction`, `columns`) than two copies hidden in turn. |
+| `padding` | `Responsive<"none" \| ZenScaleInput \| "4xl" \| ZenMargin>` | — | Space inside the box (Figma Spacing/Padding). Per breakpoint too: `{ desktop: "xl", mobile: "md" }`. |
+| `paddingX` | `Responsive<"none" \| ZenScaleInput \| "4xl" \| ZenMargin>` | — | Horizontal padding (overrides `padding` on the sides). Per breakpoint too, as `padding`. |
+| `paddingY` | `Responsive<"none" \| ZenScaleInput \| "4xl" \| ZenMargin>` | — | Vertical padding (overrides `padding` top and bottom). Per breakpoint too, as `padding`. |
 | `scroll` | `"x" \| "y"` | — | Figma "Overflow scrolling": `"y"` scrolls vertically, `"x"` sideways, inside the box (the scroll stays inside). |
 | `group` | `boolean` | — | Figma's Group (Zen Studio ⌘G): a box that only holds its layers together, at their X / Y inside it and sized to them (Zen Studio writes its box). It has no look of its own: fill, stroke, corners, effect, padding, scroll and clip are ignored. It moves, turns, flips, fades (opacity) and blends (blendMode) as one. |
 | `mask` | `boolean` | — | Figma's mask (Zen Studio ⌃⌘M "Use as mask", Figma `isMask` on the group's bottom layer): the box's first layer is the mask and the layers after it show only inside its outline (a Shape's outline, or a layer's box with its corners, turned and flipped as drawn). The mask layer itself draws nothing. Mostly on a `group`. |
@@ -239,7 +245,8 @@ Object shapes the props above refer to.
 ```ts
 interface GradientStop { color: Exclude<ShapeFill, "none">; at: number; }
 type GradientType = "linear" | "radial" | "angular" | "diamond"
-type GridTracks = number | string
+type Responsive<T> = T | { desktop?: T; tablet?: T; mobile?: T }
+type ResponsiveBreakpoint = "desktop" | "tablet" | "mobile"
 type ShapeFill = (typeof shapeFills)[number]
 type ZenBrand = "zen"
 type ZenBreakpoint = "auto" | "desktop" | "tablet" | "mobile"
@@ -263,6 +270,7 @@ type ZenTypography = "dashboard" | "popular" | "mobile" | "studio"
 - Use Grid minColumnWidth for card grids so they reflow from phone to desktop.
 - Put a main column next to an aside with Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} align="start"; on phones the aside moves under the main column.
 - Put page content in a Container so its margin follows the breakpoint.
+- Use per-breakpoint values for structure (direction, columns, wrap, hideOn on a side panel) and leave sizes to tokens and modes: gap and padding steps, page margins and type already follow the breakpoint and density, so a per-breakpoint gap or padding is for a structure that changes with it.
 - Give a frame a surface only when it really is a separate layer; a Surface frame on a white (Alt) canvas needs border="pale".
 - Put the fill, stroke and corners of an auto layout frame on the Stack or Grid itself (Figma's frame with a fill is one layer): <Stack surface="surface" padding="lg" gap="md" radius="lg">, not a Box around a Stack.
 - Size like Figma auto layout: Hug for content-sized pieces, Fill for what takes the rest of a row or the full width (a main column; a Search next to buttons or filters goes in a Box width="fill" maxWidth={240}, since Search has no sizing props and a toolbar Search is at most 240px wide), maxWidth to cap a Fill line of text; use Fixed (a number) only for widths that really are fixed, such as a side column or a preview frame.
@@ -278,6 +286,7 @@ type ZenTypography = "dashboard" | "popular" | "mobile" | "studio"
 - Don't make a Box clickable; clickable tiles are Card (or a Box with border="subtle" and role="button") (harness: box/border-matches-action).
 - Don't paint Canvas, Flat or Container on a Box: Canvas is the page, Flat is navigation, Container is modals and sheets.
 - Don't nest Containers.
+- Don't hide a frame on every breakpoint (hideOn={["desktop", "tablet", "mobile"]}): it never shows, so delete it; and don't keep two copies of one part hidden in turn when a per-breakpoint direction or columns changes the one part.
 - Don't use position="absolute" for what gap, justify or alignSelf can do: an absolute layer leaves the flow and no longer reflows with its siblings.
 - Don't place status dots, badges or Card sub-actions by hand with absolute layers; they are component props (Avatar status, BadgeCounter, Card subAction).
 - Don't put a shadow on a tinted fill (Subtle, Pale, Surface-Alt) or on a Canvas/Alt page; there a closed border separates the box.

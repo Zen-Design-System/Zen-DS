@@ -26,6 +26,13 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - AiChat, AlertBanner, DatePicker, Pagination and SidePanel take their phone look from the frame's breakpoint
   (`[data-breakpoint="mobile"]`, below 744) instead of the window's width (480 or 560); Dialog and ModalForm inside a
   device frame no longer read the window's width.
+- Layout (2026-10-26): per-breakpoint props, the Grid `columns` shape — Stack `direction`, `gap`, `align`, `justify`,
+  `wrap`, `padding`, `paddingX`, `paddingY`; Grid `gap`, `rowGap`, `columnGap`, `padding`; Box `padding`, `paddingX`,
+  `paddingY` take `{ desktop?, tablet?, mobile? }` (a breakpoint without its own value takes the next wider one's), and
+  `hideOn={["mobile"]}` hides a Stack, Grid or Box there (`display: none`, still in the DOM). They resolve at the nearest
+  ZenProvider's breakpoint or a frame's `modes`; Grid `columns` now does too, so a desktop frame inside a phone page keeps
+  its desktop columns. `Responsive<T>` and `resolveAt` are exported. Zen Studio's Figma push draws a Screen's breakpoint
+  and Update from Figma changes only that breakpoint's value.
 - QA gate (user, 2026-10-25): a Studio E2E row that is not in `matrix.baseline.json` and comes back broken now fails the
   gate step and `npm run studio:e2e` (exit 1), marked "✗ New rows broken". New rows that work stay a pass, listed to
   record with `--update-baseline`; rows the baseline marks broken and flaky rows are still allowed. The opt-in `figma`

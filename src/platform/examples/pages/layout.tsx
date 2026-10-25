@@ -4,7 +4,8 @@
    width, cards that reflow and keep equal heights, a cluster that wraps, a panel that centres its empty state, and the
    same ladder on a phone. Two more place layers like Figma constraints and effects: a panel at the Sidebar's elevation,
    and photos with layers on a phone (a feed whose photo frames clip their corners and pin Save and a caption bar,
-   opening on the AppShell's Media pattern). The screens sit in the studio's AppShell (pattern sidebar on desktop, the
+   opening on the AppShell's Media pattern). Two more change with the breakpoint, each shown on the page and in a phone:
+   a row that stacks on phones and a panel hidden on phones (per-breakpoint props, hideOn). The screens sit in the studio's AppShell (pattern sidebar on desktop, the
    mobile parts on a phone), whose Body pads the page, so no layout here adds a page margin of its own. */
 import { Fragment, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { ActionBar } from "../../../components/ActionBar";
@@ -850,6 +851,75 @@ function StudioEvents() {
   );
 }
 
+// ——— 9. Per breakpoint ——————————————————————————————————————————————————————————————————————————————————
+// Stack, Grid and Box take { desktop, tablet, mobile } for their structure props, resolved at the nearest
+// ZenProvider's breakpoint: on the page, the window's; in PlatformPhone, mobile. A breakpoint without its own value
+// takes the next wider one's, so { desktop, mobile } covers tablet too.
+
+/** The same layout twice: on the page at the window's breakpoint, and in a phone at the mobile breakpoint. */
+function OnPageAndPhone({ label, title, children }: { label: string; title: string; children: ReactNode }) {
+  return (
+    <Grid columns={{ mobile: 1, desktop: "minmax(0, 1fr) auto" }} gap="xl" align="center">
+      <Box>{children}</Box>
+      {/* The phone screen has no AppShell Body here: the page margin pads it. */}
+      <PlatformPhone label={label} canvas="default" header={<TopNavigation type="compact-alt" title={title} />}>
+        <Box paddingX="margin-comfortable" paddingY="sm">{children}</Box>
+      </PlatformPhone>
+    </Grid>
+  );
+}
+
+const overdueInvoice = invoices.find((invoice) => invoice.status === "Overdue") ?? invoices[0];
+
+function InvoiceSummary() {
+  const { toast } = useToast();
+  const titleId = useId();
+  const invoice = overdueInvoice;
+  return (
+    <Card as="section" theme="default" aria-labelledby={titleId}>
+      {/* One row on desktop and tablet; on a phone the parts go under each other and the button takes the width. */}
+      <Stack direction={{ desktop: "row", mobile: "column" }} align={{ desktop: "center", mobile: "stretch" }} gap="md">
+        <Stack gap="2xs" width="fill">
+          <Heading level={4} id={titleId} textStyle="Heading/Subheading">{invoice.number}</Heading>
+          <Text textStyle="Body/Small/Regular" tone="base">{`${invoice.client} · Overdue since ${formatDate(invoice.due)}`}</Text>
+        </Stack>
+        <Text textStyle="Body/Extra/Bold">{formatMoney(invoice.amount)}</Text>
+        <Button level="primary" onClick={() => toast({ title: "Reminder sent", children: `${invoice.client} · ${invoice.number}` })}>Send reminder</Button>
+      </Stack>
+    </Card>
+  );
+}
+
+/** The three open tasks due first. */
+const openTasks = tasks.filter((task) => task.status !== "Done").sort((a, b) => a.due.getTime() - b.due.getTime()).slice(0, 3);
+
+function TasksAndActivity() {
+  const tasksId = useId();
+  const activityId = useId();
+  return (
+    // Desktop and tablet: the open tasks beside what changed; a phone keeps only the tasks.
+    <Grid columns={{ mobile: 1, desktop: "minmax(0, 3fr) minmax(0, 2fr)" }} gap="lg" align="start">
+      <ListBox as="section" theme="default" aria-labelledby={tasksId} header={<Heading level={4} id={tasksId} textStyle="Heading/Subheading">Open tasks</Heading>}>
+        <List aria-labelledby={tasksId}>
+          {openTasks.map((task) => <ListItem key={task.id} title={task.title} titleLines={2} caption={wholeValues(task.key, formatDue(task.due))}
+            leading={<Avatar size="md" {...avatarOf(people[task.assignee])} />} />)}
+        </List>
+      </ListBox>
+      {/* Secondary on a phone: hidden there (display none), still in the DOM. ListBox has no hideOn: a Box holds it. */}
+      <Box as="aside" hideOn={["mobile"]} aria-labelledby={activityId}>
+        <ListBox theme="default" header={<Heading level={4} id={activityId} textStyle="Heading/Subheading">Since yesterday</Heading>}>
+          <List aria-labelledby={activityId}>
+            {activity.slice(0, 3).map((item) => (
+              <ListItem key={item.id} title={people[item.actor].name} titleLines={1} caption={`${item.verb} ${item.object} · ${formatRelative(item.at)}`}
+                leading={<Avatar size="md" {...avatarOf(people[item.actor])} />} />
+            ))}
+          </List>
+        </ListBox>
+      </Box>
+    </Grid>
+  );
+}
+
 export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples", [
   {
     title: "Main column and aside",
@@ -1204,5 +1274,39 @@ const save = (event) => {
     </Stack>
   </AppShell>
 </PlatformPhone>`,
+  },
+  {
+    title: "A row that stacks on phones",
+    description: "One invoice summary for every screen: direction and align take a value per breakpoint, so the number, the amount and Send reminder share one row on desktop and tablet and go under each other on a phone, where the button takes the full width. The phone shows the same code at the mobile breakpoint; a breakpoint without its own value takes the next wider one's.",
+    wide: true,
+    render: () => <OnPageAndPhone label="Invoice on a phone" title="Invoice"><InvoiceSummary /></OnPageAndPhone>,
+    code: `<Card as="section" theme="default" aria-labelledby="invoice">
+  {/* One row on desktop and tablet (tablet takes desktop's value); on a phone a column whose button takes the width */}
+  <Stack direction={{ desktop: "row", mobile: "column" }} align={{ desktop: "center", mobile: "stretch" }} gap="md">
+    <Stack gap="2xs" width="fill">
+      <Heading level={4} id="invoice" textStyle="Heading/Subheading">INV-2026-0139</Heading>
+      <Text textStyle="Body/Small/Regular" tone="base">Mekong Freight · Overdue since {formatDate(due)}</Text>
+    </Stack>
+    <Text textStyle="Body/Extra/Bold">$12,880</Text>
+    <Button level="primary" onClick={remind}>Send reminder</Button>
+  </Stack>
+</Card>`,
+  },
+  {
+    title: "A panel hidden on phones",
+    description: "Open tasks beside what changed since yesterday on desktop and tablet; a phone keeps only the tasks. hideOn={[\"mobile\"]} hides the aside there (display none: it stays in the DOM, so Studio still lists it), and the Grid's columns go from two to one at the same breakpoint. Hide only what is secondary, and never on every breakpoint.",
+    wide: true,
+    render: () => <OnPageAndPhone label="Open tasks on a phone" title="Home"><TasksAndActivity /></OnPageAndPhone>,
+    code: `<Grid columns={{ mobile: 1, desktop: "minmax(0, 3fr) minmax(0, 2fr)" }} gap="lg" align="start">
+  <ListBox as="section" theme="default" aria-labelledby="tasks" header={<Heading level={4} id="tasks" textStyle="Heading/Subheading">Open tasks</Heading>}>
+    <List aria-labelledby="tasks">{openTasks.map((task) => <ListItem key={task.id} title={task.title} titleLines={2} caption={\`\${task.key} · \${formatDue(task.due)}\`} leading={<Avatar size="md" {...task.avatar} />} />)}</List>
+  </ListBox>
+  {/* Hidden on a phone, still in the DOM. ListBox has no hideOn: a Box holds it. */}
+  <Box as="aside" hideOn={["mobile"]} aria-labelledby="activity">
+    <ListBox theme="default" header={<Heading level={4} id="activity" textStyle="Heading/Subheading">Since yesterday</Heading>}>
+      <List aria-labelledby="activity">{activity.map((item) => <ListItem key={item.id} title={item.name} caption={item.change} leading={<Avatar size="md" {...item.avatar} />} />)}</List>
+    </ListBox>
+  </Box>
+</Grid>`,
   },
 ]);

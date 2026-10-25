@@ -149,6 +149,11 @@ const union = (values) => values.map((value) => JSON.stringify(value)).join(" | 
 
 function typeText(tsType, literals) {
   if (!tsType) return "unknown";
+  // Responsive<X> (_shared/responsive.ts): react-docgen gives the alias body with its parameter as the raw text
+  // ("T | { desktop?: T; … }") and X only in the elements, so the docs name the alias around X.
+  if (tsType.name === "union" && tsType.elements?.length === 2 && String(tsType.raw ?? "").replace(/\s+/g, " ").trim() === "T | { desktop?: T; tablet?: T; mobile?: T }") {
+    return `Responsive<${typeText(tsType.elements[0], literals)}>`;
+  }
   let text = tsType.raw ?? (tsType.name === "literal" ? tsType.value : tsType.name);
   if (tsType.name === "union" && !tsType.raw && tsType.elements) text = tsType.elements.map((element) => typeText(element, literals)).join(" | ");
   text = String(text).replace(/\(typeof\s+(\w+)\)\[number\]/g, (whole, name) => {

@@ -2886,6 +2886,51 @@ export default function Due() {
   check("dates: another locale writes its own order", find(figmaFromPage(datesPage, { mapping, nestedLayers: NESTED_LAYERS, locale: "vi-VN" }).frame, (node) => node.name === "Date-Cell")?.textList, ["25/10"]);
 }
 
+// Per-breakpoint layout props (responsive-props.mjs; P2 of docs/research/studio-responsive-breakpoints-2026-10-26.md):
+// Figma has no breakpoints, so a frame is drawn at its Screen's breakpoint (a desktop Screen's from its width), a frame
+// with its own modes={{ breakpoint }} at that one, and a layer hidden there (hideOn) is left out. Both are noted.
+{
+  const responsivePage = (screen) => `// @zen-page {"format":1,"title":"Responsive"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Grid, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Home" ${screen}>
+        <Stack gap={{ desktop: "xl", mobile: "md" }}>
+          <Stack direction={{ desktop: "row", mobile: "column" }} padding={{ desktop: "lg", tablet: "md" }}>
+            <Text>One</Text>
+            <Text>Two</Text>
+          </Stack>
+          <Box hideOn={["mobile"]}><Text>Aside</Text></Box>
+          <Box modes={{ breakpoint: "mobile" }}>
+            <Stack direction={{ desktop: "row", mobile: "column" }}><Text>Three</Text></Stack>
+          </Box>
+          <Grid columns={{ mobile: 1, desktop: 3 }}><Text>Cell</Text></Grid>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const drawn = (screen) => {
+    const { frame, notes } = push(responsivePage(screen));
+    const [row, ...rest] = frame.children;
+    const grid = rest.find((node) => node.name === "Grid");
+    const boxes = rest.filter((node) => node.name === "Box");
+    return { gap: frame.layout.gapVar, row: [row.layout.mode, row.layout.padding[0]], boxes: boxes.length, inner: boxes.at(-1).children[0].layout.mode, columns: grid.layout.grid.columns, notes };
+  };
+  check("responsive push: a desktop Screen draws the desktop values; a frame with modes mobile draws its own", drawn('device="desktop"'), { gap: "Spacing/Gap/XLarge", row: ["HORIZONTAL", 20], boxes: 2, inner: "VERTICAL", columns: 3, notes: ["per-breakpoint values: drawn at Desktop, the Screen's breakpoint (Figma has no breakpoints)"] });
+  check("responsive push: a tablet Screen takes its tablet keys, else desktop's", drawn('device="tablet"'), { gap: "Spacing/Gap/XLarge", row: ["HORIZONTAL", 16], boxes: 2, inner: "VERTICAL", columns: 3, notes: ["per-breakpoint values: drawn at Tablet, the Screen's breakpoint (Figma has no breakpoints)"] });
+  const mobileValues = { gap: "Spacing/Gap/Medium", row: ["VERTICAL", 16], boxes: 1, inner: "VERTICAL", columns: 1, notes: ["per-breakpoint values: drawn at Mobile, the Screen's breakpoint (Figma has no breakpoints)", "1 layer hidden on Mobile (hideOn): not pushed"] };
+  check("responsive push: a phone Screen draws the mobile values (tablet's padding inherited) and leaves out what hides on mobile", drawn('device="phone"'), mobileValues);
+  check("responsive push: a desktop Screen 390 wide is at the mobile breakpoint", drawn('device="desktop" width={390}'), { ...mobileValues, notes: [...mobileValues.notes, "Screen width: not pushed"] });
+  check("responsive push: a page without per-breakpoint values has no breakpoint note", push(responsivePage('device="desktop"').replace(/\{\{ desktop: "xl", mobile: "md" \}\}/, '"xl"').replace(/direction=\{\{[^}]*\}\}/g, 'direction="row"').replace(' padding={{ desktop: "lg", tablet: "md" }}', "").replace(' hideOn={["mobile"]}', "").replace("columns={{ mobile: 1, desktop: 3 }}", "columns={3}")).notes, []);
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);
