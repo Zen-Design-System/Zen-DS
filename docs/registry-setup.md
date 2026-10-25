@@ -21,7 +21,7 @@ runbook này được merge: bản deploy Podman cũ chưa biết backup). Khôn
 | Theo dõi uptime | ✗ chưa có → **Bước 2** |
 | `npm login` thật (Google + licence key) | ✗ chưa thử với tài khoản thật → **Bước 3** |
 | Gói cũ trên npmjs | ✗ `@zen-ds/react@0.1.0` và `@zen-ds/tokens@0.1.0` vẫn công khai, chưa deprecate → **Bước 4** |
-| Phase 6 (webhook thanh toán) | chờ bạn chọn nhà cung cấp → **Lựa chọn** ở cuối |
+| Phase 6 (webhook thanh toán) | bạn đã chọn Polar (2026-10-25); webhook làm ở PR riêng, các bước Polar sẽ thêm vào đây |
 
 ## Bước 0: quyền SSH vào máy chủ
 
@@ -223,6 +223,9 @@ rm -f ~/npmjs-zen.npmrc
 Nhắn Claude "xong bước 4"; Claude kiểm tra bằng `npm view @zen-ds/react@0.1.0 deprecated`.
 
 ## Lựa chọn của bạn (kèm đề xuất)
+
+**Đã chốt (2026-10-25):** giữ OVH VPS hiện tại, backup lên R2, theo dõi bằng UptimeRobot, thanh toán qua Polar. Phần
+dưới giữ lại lý do.
 
 **1. Máy chủ.** Đề xuất: **giữ OVH VPS Singapore hiện tại** (`51.79.205.10`). Nó đang chạy ổn, cùng khu vực với kho
 licence, không tốn thêm tiền; registry vốn đã phụ thuộc kho licence nên chung máy không thêm rủi ro đáng kể. Chuyển
