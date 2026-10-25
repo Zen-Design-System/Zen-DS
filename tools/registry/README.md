@@ -89,6 +89,10 @@ Rollback: remove that part from both rules (developer sign-ins then fail with 50
 
 ## Deploy (VPS, `npm.dizai.studio`)
 
+**Live (checked 2026-10-25):** the Podman variant below on 51.79.205.10 (OVH VPS Singapore) since 2026-10-14; the
+owner's remaining steps (SSH access, R2 backups, uptime check, real `npm login`, deprecating the old npmjs packages)
+and the open choices are in the Vietnamese runbook [`docs/registry-setup.md`](../../docs/registry-setup.md).
+
 The stack: `deploy/docker-compose.yml` runs the registry image (`deploy/Dockerfile`: Verdaccio 6.10.5 + plugin +
 `config.yaml`, health-checked) behind Caddy 2.11.7, which gets the HTTPS certificate by itself. Packages live in
 the `zen-registry_storage` volume, backed up nightly to R2 (03:17 UTC, kept 30 days).
@@ -117,7 +121,10 @@ existing ones are kept), then runs `deploy/setup.sh` on the server: security upd
 system Caddy on 80/443, so the stack there runs under Podman instead: `deploy/podman/deploy.sh root@51.79.205.10 -i
 ~/.ssh/tungnt620` installs the Quadlet unit `zen-registry.service` (Verdaccio on 127.0.0.1:4873, volume
 `zen-registry-storage`) and appends `deploy/podman/Caddyfile.snippet` to `/etc/caddy/Caddyfile` once (backup kept
-next to it). Logs: `journalctl -u zen-registry`.
+next to it). It also copies `~/.config/zen-registry/backup.env` (first time only) and, once the server has one,
+installs the same nightly backup; without it the deploy warns that nothing is backed up. `backup.sh` and
+`restore.sh` find the Quadlet unit and use `podman`, its volume and the host network (ufw's forward policy drops
+bridged traffic); set `ZEN_CONTAINER_ENGINE` to override. Logs: `journalctl -u zen-registry`.
 
 **Check**
 
@@ -134,8 +141,8 @@ you: when the registry is down, customers' installs and CI fail.
 
 | Task | Command (on the server, in `/opt/zen-registry/deploy`) |
 | --- | --- |
-| Logs | `docker compose logs -f registry` (Caddy: `caddy`); backups: `/var/log/zen-registry-backup.log` |
-| Restore | `./restore.sh latest` or `./restore.sh storage-<stamp>.tar.gz` (stops, replaces, starts the registry) |
+| Logs | `docker compose logs -f registry` (Caddy: `caddy`); Podman: `journalctl -u zen-registry -f`; backups: `/var/log/zen-registry-backup.log` |
+| Restore | `./restore.sh latest` or `./restore.sh storage-<stamp>.tar.gz` (stops, replaces, starts the registry; Docker or Podman) |
 | Rotate the license-store password | change it in PocketBase, edit `/etc/zen-registry/registry.env`, `docker compose up -d` |
 | Upgrade Verdaccio / Caddy | bump the tags in `deploy/Dockerfile` / `docker-compose.yml`, `npm run test:stack`, redeploy |
 

@@ -39,3 +39,16 @@ check-usage.mjs (+ its bad.tsx case) and zen-figma-audit.js; skills and the guid
 "P2 · Direct paste into other files" moved back to BACKLOG.md Open items: the user published the library (2026-10-25).
 Two more answers took items back to BACKLOG.md as dev work. Private registry: "giao session làm". Toolbar Search vs
 DashboardHeader 320: "ở control bar thì tối đa là 240". Each item gets its own session.
+
+## Private registry: state check, Podman backups, owner runbook (tier S; user: "Dựng registry riêng -> giao session làm")
+
+- Live since 2026-10-14, not waiting on a VPS: `npm.dizai.studio` → 51.79.205.10 (OVH VPS Singapore, Podman), ping 200,
+  `@zen-ds/react` 401 without a token, Let's Encrypt until 2027-01-12, `ZEN_REGISTRY_PUBLISH_KEY` set, v0.3.0 (3.8 MB)
+  published; the live sign-in page matches `main`. `npm test` in `tools/registry`: 28/28.
+- Gap: the Podman deploy had no backups. `backup.sh`/`restore.sh` only spoke Docker (compose volume name, bridge
+  network, `docker compose stop`). They now find the Quadlet unit and use `podman`, `zen-registry-storage`, the host
+  network and `systemctl`; images fully qualified. `podman/deploy.sh` copies `backup.env` and installs the cron, or
+  warns. Dry runs with stub engines/ssh (this Mac has neither Podman nor Docker): both engines, both deploy branches.
+- `docs/registry-setup.md` (Vietnamese): SSH access (this Mac has no key; the 10-14 deploy ran from Tung's), R2,
+  UptimeRobot, real `npm login`, `npm deprecate` (npmjs also has `@zen-ds/tokens@0.1.0`), choices with
+  recommendations (keep the OVH VPS, R2, UptimeRobot, Polar for Phase 6: pays out to Vietnam via Stripe Connect Express).
