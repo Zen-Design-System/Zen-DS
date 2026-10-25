@@ -182,3 +182,31 @@ The user published the Zen library; Studio's ⌘C → ⌘V now lands in any Figm
   "(target)", "(target 2)", "(target 3)" stay in the team for the user to delete.
 - **Not mine, noted:** the Zen plugin's ⌘V import hung once, and in a non-Zen file gave a partial frame (plugin repo); it draws no "Other"
   segment in the Expenses stacked bars where the direct paste does.
+
+## Table first column: Dock Icon Small, runtime check `table-lead` (tier M; branch zen/feat/table-first-column-runtime-20261025; PR #305)
+
+The user's two decisions:
+1. "có": a runtime check for the first-column Avatar that a helper draws.
+2. "Dock Icon của cột đầu trong table mặc định là size Small và khi có thêm caption thì phải luôn là size Small".
+
+| Where | Before | After |
+| --- | --- | --- |
+| Table.tsx `cellVisual`, first column `content: "dock-icon"` | xs alone, sm with a caption | sm either way; later columns unchanged (Figma Dock-Icon-Cell) |
+| figma-push dock-icon cell | always XSmall (a captioned one overrode Figma's Small) | Small with a caption or in the first column, XSmall otherwise |
+| figma-pull `drawnProps` / `TABLE_DRAWS.DockIcon` | xs always | by caption and column: a first-column XSmall is that row's override |
+| TableCellPanel `contentCode` | `size("xs","sm")` | `"sm"` in the first column |
+| Harness | `table/first-column-avatar-solid` only | + `table/first-column-dock-icon-small` (error); `inFirstColumn` shared; `media-size-by-subtext` exempts the first column |
+| Runtime audit | none | `table-lead` (error, widgetLayout): rendered first cells, an initials Avatar Solid and a Dock Icon `small`; stacks, edit ghost and Don't visuals skipped |
+| Figma audit | none | `table/first-column-dock-icon-small` (warning): Data-Row tables you placed, select column skipped |
+| Contract suite table-cell-dock-icon | measured in the Table's only (first) column | measured in the second column (`second: true`, cases/table-cells.tsx) |
+
+- **Figma (read-only):** the primitive Dock-Icon-Cell 1603:5099 is column-less: Subtext=No is XSmall and Subtext=Yes is
+  Small. The HR-Platform leave tables (7378:38418, 7379:36025, 15794:50838, 15794:50856) lead with an Emoji Dock-Icon at
+  Medium 40. The new check found 12 instances on the first two screens; the full 104 KB audit does not fit a `use_figma`
+  call, so only the new check ran. Asked the user (override per screen, a variant, or an Emoji exception); the library
+  is unchanged.
+- **Pages:** `usage:check` flagged g-grid's leave table (emoji Dock Icon `xsmall`), which is now `sm`. The Table page's
+  `PersonAvatar` already draws `lead` Solid.
+- **Checks:** usage selftest (260 rules), platform:audit:selftest 68 (9 table-lead fixtures), figma-push 485,
+  figma-pull 151, cellComponents, ai-kit:check, guidelines:check and tsc all pass; tests/interaction/table-first-column.test.tsx
+  was renamed from table-first-column-avatar and gained 2 dock-icon cases.
