@@ -2,8 +2,16 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
-## Archived 2026-10-25 (user: the library publish and Code Connect are not backlog items)
+## Archived 2026-10-25 (user: the library publish and Code Connect leave; the Dock-Icon default is answered)
 
+- Answered 2026-10-25 (user: "tuỳ chỉnh của designer", "chỉ ưu tiên trong skill, vẫn cho designer chọn lại", "lúc tự gen
+  design skill vẫn làm nhưng không ràng buộc trong harness"): no library default change, Figma's Metric-Card and code keep
+  Neutral Subtle. Generated screens still colour a status card's Dock-Icon by meaning (skills), and the harness and Figma
+  audit check `metric/dock-icon-by-meaning` is removed:
+  **P2 · Metric-Card Dock-Icon Solid by default? (2026-10-24; a user / designer question):** the user's "metric card
+  dùng dock icon solid" is checked only on status cards in code (`metric/dock-icon-by-meaning`: total, in progress,
+  overdue, done), because Figma's Metric-Card Type=KPI (6643:64008) and code default to Neutral Subtle and ~100
+  example cards use it. Make Solid the default in Figma and code, each card coloured by what it counts?
 - Closed 2026-10-25 (user: "Cái này không cần thiết cho studio"; Code Connect only adds Zen code to Figma's own Dev
   Mode panel, while Studio already turns Figma frames into Zen code through pull, push and `map_figma_component`):
   **P3 · Code Connect for Description List (blocked, 2026-10-04):** Figma answers "You need a Dev or Full seat on an

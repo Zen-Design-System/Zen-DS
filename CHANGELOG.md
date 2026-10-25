@@ -17,6 +17,8 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Harness (user, 2026-10-25): `metric/dock-icon-by-meaning` is removed from the usage harness and the Figma audit. A
+  status MetricCard's Dock Icon coloured by meaning is now what generated screens do (skills), and the designer may change it.
 - Avatar (2026-10-24): `status` also takes `"disabled"`, `"pending"` or `"inactive"` (Figma .Primitives/Avatar/Status),
   read by screen readers in words; `AvatarStatus` is the dot on its own, XSmall (4px) to Large. Sidebar: `railBackground`
   sets the workspace rail's fill (Figma Master-Background Default · Flat · Inverse).
