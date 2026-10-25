@@ -19,7 +19,8 @@ Zen DS repo.
 
 Before you pick a colour or a box, answer three questions in one line each:
 
-1. **The job.** Who uses the screen, the one main action, the one thing to read first.
+1. **The job.** Who uses the screen, the one main action, the one thing to read first. For a whole product, list its
+   screens from `product-patterns.md` and each screen's states and flow from `ux-principles.md` §0.
 2. **The mood.** It picks the modes before any colour:
    - data work (dashboards, admin): Compact density, Typography Dashboard, calm, neutral;
    - a consumer app: Comfortable density, Typography Mobile, more imagery and colour;
@@ -200,6 +201,13 @@ These are questions, not checks:
   space.
 - **Compare with a Zen template.** Does the screen feel like the same product: one mood, one surface pairing?
 - **Switch the modes.** Dark, Comfortable density and the other Typography mode: does the screen still hold?
+- **Push the data.** The longest name, the largest amount, a Vietnamese label next to its English one; 0, 1 and many
+  items; a value missing. Does anything cut, wrap badly or jump?
+- **Break it on purpose.** A slow load, a failed save, no network, no permission: does each show its state
+  (`ux-principles.md` §1) and keep what the person typed?
+- **Walk it as a user.** From the way in to the way out, by mouse, by keyboard and on a phone: can the job be done,
+  and does Back return to the same place?
 
-For layouts across widths, read `responsive-principles.md` (in the repo: `skills/zen-responsive-screens/references/`;
+For states, forms, navigation and access, read `ux-principles.md`; to plan the screens of a product from its brief,
+`product-patterns.md` (both next to this file). For layouts across widths, read `responsive-principles.md` (in the repo: `skills/zen-responsive-screens/references/`;
 in the Figma AI kit it sits next to this file).

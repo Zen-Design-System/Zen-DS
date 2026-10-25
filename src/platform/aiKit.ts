@@ -11,6 +11,8 @@ const textFiles = import.meta.glob<string>(
     "/docs/component-usage-rules.md",
     "/skills/zen-component-usage/references/design-principles.md",
     "/skills/zen-responsive-screens/references/responsive-principles.md",
+    "/skills/zen-component-usage/references/ux-principles.md",
+    "/skills/zen-component-usage/references/product-patterns.md",
     "/docs/guidelines/*.md",
   ],
   { query: "?raw", import: "default" },

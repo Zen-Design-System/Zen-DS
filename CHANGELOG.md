@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- AI skills (user, 2026-10-26): UX principles (`ux-principles.md`: each screen's states, forms, navigation, WCAG 2.2
+  access, touch, motion) and product patterns (`product-patterns.md`: the screens a product family needs, mapped to
+  Zen's templates) join the design principles in `skills/zen-component-usage`; the AI kit for Figma ships both, and
+  Zen Agent in Studio plans states, forms and navigation. Taken from the UI/UX Pro Max skill's UX layer, without its
+  palettes, fonts or styles.
 - Segmented (2026-10-26): on a phone, a full-width Segmented in a box that hugs its content (a floating layer, the
   Calendar toolbar in a column that does not stretch) settles on its chip row instead of switching back and forth until
   React stopped with "Maximum update depth exceeded", which blanked the Zen Studio canvas after such a drop.
