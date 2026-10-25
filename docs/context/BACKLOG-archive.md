@@ -2,6 +2,33 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-25 (user: the library publish and Code Connect leave; the Dock-Icon default is answered)
+
+- Answered 2026-10-25 (user: "tuỳ chỉnh của designer", "chỉ ưu tiên trong skill, vẫn cho designer chọn lại", "lúc tự gen
+  design skill vẫn làm nhưng không ràng buộc trong harness"): no library default change, Figma's Metric-Card and code keep
+  Neutral Subtle. Generated screens still colour a status card's Dock-Icon by meaning (skills), and the harness and Figma
+  audit check `metric/dock-icon-by-meaning` is removed:
+  **P2 · Metric-Card Dock-Icon Solid by default? (2026-10-24; a user / designer question):** the user's "metric card
+  dùng dock icon solid" is checked only on status cards in code (`metric/dock-icon-by-meaning`: total, in progress,
+  overdue, done), because Figma's Metric-Card Type=KPI (6643:64008) and code default to Neutral Subtle and ~100
+  example cards use it. Make Solid the default in Figma and code, each card coloured by what it counts?
+- Closed 2026-10-25 (user: "Cái này không cần thiết cho studio"; Code Connect only adds Zen code to Figma's own Dev
+  Mode panel, while Studio already turns Figma frames into Zen code through pull, push and `map_figma_component`):
+  **P3 · Code Connect for Description List (blocked, 2026-10-04):** Figma answers "You need a Dev or Full seat on an
+  Organization or Enterprise plan to use Code Connect" for this account. Once a seat is available: map
+  `Description List` 14859:79180 (Layout → `layout`, Items slot → `items`) and `.Primitives/Description-List/Item`
+  14859:78890 (Term → `term`, Value → `description`, Emphasis → `emphasis`, Action/Action Button → `action`) with
+  `.figma.ts` templates (the repo has no figma.config.json yet).
+- Closed 2026-10-25 (user: "Publish thư viện là việc ngoài studio không đưa vào backlog"; the publish is the
+  user's own step in Figma, outside Studio, and is not tracked here):
+  **P3 · Figma: publish the renamed layers (user, 2026-10-12):** 186 layers in the Zen file were renamed to Zen's names
+  (and Inline-Message's slot property Visual → Leading, same id), names only, checked before/after
+  (`docs/figma-contracts/layer-renames-2026-10-12.json`, with the undo map). Other files see them once the library is
+  published. What `ALLOWED` in nested-paths.mjs still lists is structure, not naming: unnamed bottom-navigation items
+  and stepper steps, pages named by number, ChatComposer actions named by job, code-only layers (Retry, Counter…).
+  Also waiting on the publish since 2026-10-23: `.Primitives/Input/Property-Value`'s Value-Slot (Person / Tags), which
+  Import from Studio fills with every person and label (the user's choice of a slot).
+
 ## Archived 2026-10-25 (merge train C: DatePicker events, #293)
 
 - Done 2026-10-25 (train C, #293: DatePicker `events`, the calendars' day-1 dot; the other four landed in train B):
