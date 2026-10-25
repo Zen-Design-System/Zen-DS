@@ -449,7 +449,7 @@
    first in its toolbar, in Info blue as the Studio's own marks; the width field takes four digits. */
 .studio-frame-view { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding-inline-start: var(--zen-spacing-padding-xsmall, 8px); }
 .studio-frame-view__text { color: var(--zen-color-content-info-base, #0a85ff); white-space: nowrap; }
-.studio-frame-view > :not(.studio-frame-view__text, .zen-button) { width: 80px; flex: none; }
+.studio-frame-view > :not(.studio-frame-view__text, .zen-button) { width: 88px; flex: none; }
 .studio-frame-toolbar__divider { width: 1px; height: 16px; flex: none; margin: 0 var(--zen-spacing-gap-2-xsmall, 4px); background: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
 /* The selected frame's right edge (FrameChrome FrameEdge): a strip centred on the edge, along the frame's visible height
    (placed by FrameChrome). A drag sets a free frame width (view only); hover shows the edge in Info blue. */

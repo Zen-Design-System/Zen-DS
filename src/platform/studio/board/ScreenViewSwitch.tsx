@@ -1,12 +1,12 @@
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
-import { NumberField } from "../../../components/Input";
 import { Menu, type MenuEntry } from "../../../components/Menu";
 import { Segmented } from "../../../components/Segmented";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import type { IconName } from "../../../icons/generated/names";
 import { BREAKPOINT_ICONS, BREAKPOINT_LABELS, BREAKPOINTS, FRAME_DEVICES, deviceSize, screenBreakpoint, type ZenBreakpointKey } from "../../../../tools/studio/screen-devices.mjs";
 import { makeSeparateScreen, setScreenView, shownBreakpoint, viewForBreakpoint, viewLabel, type ScreenView } from "../builder/screenViews";
+import { ScrubNumberField } from "../inspector/controls/ScrubNumberField";
 import { FRAME_MAX_WIDTH, FRAME_MIN_WIDTH } from "./frameLayout";
 import type { StudioFrameEntry } from "./frames";
 
@@ -67,16 +67,7 @@ export function ScreenViewStatus({ frame, shape, view }: { frame: StudioFrameEnt
   return (
     <div className="studio-frame-view" role="group" aria-label={`${frame.label}: ${text}`} data-chrome-key={`view:${frame.id}`} onKeyDown={(event) => { if (event.key === "Escape" && !(event.target instanceof HTMLInputElement)) { event.stopPropagation(); setScreenView(frame.id, null); } }}>
       <span className={`studio-frame-view__text ${typographyStyles["Caption/Medium"]}`}>{text.replace(/ · \d+$/, "")}</span>
-      <NumberField
-        aria-label="View width"
-        size="sm"
-        layout="inline"
-        label="W"
-        min={FRAME_MIN_WIDTH}
-        max={FRAME_MAX_WIDTH}
-        value={view.width}
-        onValueChange={(next) => { if (next !== null && next >= FRAME_MIN_WIDTH && next <= FRAME_MAX_WIDTH && next !== view.width) setScreenView(frame.id, { device: "width", width: next }); }}
-      />
+      <ScrubNumberField label="W" name="View width" value={view.width} min={FRAME_MIN_WIDTH} max={FRAME_MAX_WIDTH} onCommit={(next) => { if (next !== view.width) setScreenView(frame.id, { device: "width", width: Math.round(next) }); }} />
       <Button appearance="flat" level="primary" size="sm" onClick={() => setScreenView(frame.id, null)}>{`Back to ${own}`}</Button>
     </div>
   );

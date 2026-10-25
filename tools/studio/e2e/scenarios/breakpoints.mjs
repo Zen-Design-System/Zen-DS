@@ -43,8 +43,11 @@ async function selectScreen(page, frame = FRAME) {
 async function desktopPage(ctx) {
   const { page, id } = await newPage(ctx, { device: "desktop" });
   await page.locator(`[data-studio-frame="${FRAME}"] .studio-builder-screen`).waitFor({ state: "attached", timeout: 8000 });
+  // The page links its phone parts to the desktop header as it opens (responsive-header.mjs): wait for that write.
+  const text = await until(async () => { const now = (await pageText(page, id)) ?? ""; return /phoneLinked=/.test(now) ? now : null; }, { message: "the phone parts linked as the page opens" });
+  await sleep(300);
   await selectScreen(page);
-  return { page, id, text: (await pageText(page, id)) ?? "", saved: await frameOf(page) };
+  return { page, id, text: (await pageText(page, id)) ?? text, saved: await frameOf(page) };
 }
 
 const viewOn = async (page, name) => { await toolbar(page).getByRole("button", { name: `View on ${name}` }).click(); };
@@ -92,7 +95,7 @@ export const rows = [
       if (await page.locator(".studio-frame-handle").count()) throw new Error("the Screen shows resize handles while viewed");
       if (!(await page.locator('#studio-right [data-prop="frame-size"] input[aria-label="Width"]').isDisabled())) throw new Error("W is editable while viewed");
       await page.locator("#studio-right").getByRole("button", { name: /^Alt canvas/ }).click();
-      await until(async () => /<Screen [^>]*canvas="alt"/.test((await pageText(page, id)) ?? ""), { message: 'Canvas › Alt written as canvas="alt"' });
+      await until(async () => /\scanvas="alt"/.test((await pageText(page, id)) ?? ""), { message: 'Canvas › Alt written as canvas="alt"' });
       await expectFrame(page, { view: true, breakpoint: "mobile", width: 390 }, "the view stays after the edit");
       await label(page).focus();
       await page.keyboard.press("Escape");
@@ -121,7 +124,8 @@ export const rows = [
       const { page, id } = await desktopPage(ctx);
       await typeWidth(page, 390);
       await expectFrame(page, { breakpoint: "mobile", placeholders: ["top", "bottom"] }, "both placeholders at 390");
-      await page.locator('[data-studio-frame="screen:screen-1"] .studio-builder-screen__placeholder[data-edge="bottom"]').click();
+      // The selection layer covers the canvas; the placeholder is frame chrome it hands the press to.
+      await page.locator('[data-studio-frame="screen:screen-1"] .studio-builder-screen__placeholder[data-edge="bottom"]').click({ force: true });
       const shellText = async () => { const text = (await pageText(page, id)) ?? ""; const start = text.indexOf("<AppShell"); return start < 0 ? "" : text.slice(start); };
       const written = await until(async () => { const text = await shellText(); return /bottomNavigation=\{<BottomNavigation/.test(text) ? text : null; }, { message: "the AppShell's bottomNavigation written" });
       const labels = [...written.slice(written.indexOf("bottomNavigation=")).matchAll(/label: "([^"]+)"/g)].slice(0, 3).map((match) => match[1]);
