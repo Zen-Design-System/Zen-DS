@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import type { MenuEntry } from "../../../components/Menu";
 import { announceEditStatus, applyEdit, currentEditStatus, parseSrc, studioApi, subscribeStudioWrites } from "../api";
 import { canvasApi, getViewport, getViewportBox } from "../canvas/viewport";
-import { copyFrameForFigma, copyFrameNow, frameFigmaClip, writeFrameClip } from "../builder/export/figmaClipboard";
+import { copyFrameForFigma, copyFrameNow, copyFrameWhenRead, frameFigmaClip } from "../builder/export/figmaClipboard";
 import { openQuickInsert } from "../builder/library/quickInsertState";
 import { frameInView, rootSelection } from "../builder/library/target";
 import { nodeKind, propSpecs } from "../inspector/propSchema";
@@ -116,7 +116,12 @@ function prefetch() {
   void readLayer(selection).then((read) => { if (read && readFor === selection.src) ready = { src: selection.src, ...read }; });
   // A Screen of a page you made: its Figma export too, as ⌘C on its frame carries it (builder/frameKeys.ts).
   const screen = screenOf(selection);
-  if (screen) void frameFigmaClip(screen.localPage, screen.frameId).then((next) => { if (readFor === selection.src && "html" in next) figmaReady = { src: selection.src, html: next.html }; });
+  figmaReading = null;
+  if (screen) {
+    const html = frameFigmaClip(screen.localPage, screen.frameId).then((next) => ("html" in next ? next.html : Promise.reject(new Error(next.error))));
+    figmaReading = { src: selection.src, html };
+    html.then((done) => { if (readFor === selection.src) figmaReady = { src: selection.src, html: done }; }, () => undefined);
+  }
 }
 
 /** The selected Screen (or Overlay) of a page you made, which copies for Figma too; null for any other layer. */
@@ -126,6 +131,8 @@ function screenOf(selection: NodeSelection): { localPage: string; frameId: strin
 }
 /** The selected Screen's Figma export, read ahead for the copy event (the clipboard's HTML: export/figmaClipboard.ts). */
 let figmaReady: { src: string; html: string } | null = null;
+/** That read itself, for a ⌘C that comes before it is done. */
+let figmaReading: { src: string; html: Promise<string> } | null = null;
 
 /** The menu's Copy for Figma on a selected Screen: what ⌘C reads ahead goes in a copy event (Figma's canvas takes it). */
 function copyScreenForFigma(node: NodeSelection) {
@@ -151,6 +158,7 @@ async function copyLayers(cut: boolean) {
 
 /** Copies the selected layer (`text`: the clipboard event's data to fill, else the async clipboard API). */
 async function copyLayer(selection: NodeSelection, data: DataTransfer | null, cut: boolean): Promise<boolean> {
+  const pressedAt = Date.now();
   const cached = ready && ready.src === selection.src ? ready : null;
   if (cached && data) data.setData("text/plain", cached.code);
   const read = cached ?? (await readLayer(selection));
@@ -167,9 +175,10 @@ async function copyLayer(selection: NodeSelection, data: DataTransfer | null, cu
   if (!screen) { done(`Copied ${read.element.name} · ${clipboardShortcuts.paste} to paste`); return true; }
   const copied = `Copied ${read.element.name} · ${clipboardShortcuts.paste} pastes it here, on a Figma canvas or in the Zen plugin`;
   if (cached && data && figmaReady?.src === selection.src) { data.setData("text/html", figmaReady.html); done(copied); return true; }
-  const html = frameFigmaClip(screen.localPage, screen.frameId).then((next) => ("html" in next ? next.html : Promise.reject(new Error(next.error))));
+  // Its Figma export is still being read: both go in a copy event of their own once it is (figmaClipboard.ts).
+  const html = figmaReading?.src === selection.src ? figmaReading.html : frameFigmaClip(screen.localPage, screen.frameId).then((next) => ("html" in next ? next.html : Promise.reject(new Error(next.error))));
   done(`Copied ${read.element.name} — preparing it for Figma…`);
-  void writeFrameClip(read.code, html).then(() => done(`Copied ${read.element.name} · ${clipboardShortcuts.paste} in the Zen plugin places it; copy again for a Figma canvas`), (error: unknown) => announceEditStatus({ kind: "error", message: `Copied for the Studio only — not for Figma: ${error instanceof Error ? error.message : String(error)}`, at: Date.now() }));
+  void copyFrameWhenRead(read.code, html, pressedAt).then((canvas) => done(canvas ? copied : `Copied ${read.element.name} · ${clipboardShortcuts.paste} in the Zen plugin places it; copy again for a Figma canvas`), (error: unknown) => announceEditStatus({ kind: "error", message: `Copied for the Studio only — not for Figma: ${error instanceof Error ? error.message : String(error)}`, at: Date.now() }));
   return true;
 }
 

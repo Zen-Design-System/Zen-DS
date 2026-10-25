@@ -142,6 +142,7 @@ export async function writeFrameClip(code: string | Promise<string>, html: Promi
  */
 export function copyFrameNow(code: string, html: string): boolean {
   let written = false;
+  copyingNow = true;
   const onCopy = (event: ClipboardEvent) => {
     if (!event.clipboardData) return;
     event.preventDefault();
@@ -156,9 +157,29 @@ export function copyFrameNow(code: string, html: string): boolean {
   } catch {
     written = false;
   } finally {
+    copyingNow = false;
     document.removeEventListener("copy", onCopy, true);
   }
   return written;
+}
+
+/** True while copyFrameNow's own copy event runs: the Studio's ⌘C handlers leave that event to it. */
+let copyingNow = false;
+export const isCopyingForFigma = () => copyingNow;
+
+/**
+ * ⌘C that came before the frame's Figma export was read (the first copy of a session also loads the library's
+ * definitions): the code is on the clipboard already. The export goes in a copy event of its own once read, while the
+ * key press still allows one (GESTURE_MS from `pressedAt`), so Figma's canvas takes it; read later than that, the
+ * clipboard takes both for the Zen plugin only (an async write escapes `<!--`, which Figma's canvas refuses). True when
+ * Figma's canvas can take the copy.
+ */
+export async function copyFrameWhenRead(code: string, html: Promise<string>, pressedAt: number): Promise<boolean> {
+  const wait = Math.max(0, GESTURE_MS - (Date.now() - pressedAt));
+  const read = await Promise.race([html.catch(() => null), new Promise<null>((resolve) => window.setTimeout(() => resolve(null), wait))]);
+  if (read && copyFrameNow(code, read)) return true;
+  await writeFrameClip(code, html);
+  return false;
 }
 
 /** A frame's code and Figma export read ahead (the frame menu opening), for its Copy for Figma. */

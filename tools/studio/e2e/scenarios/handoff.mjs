@@ -281,27 +281,30 @@ async function openExport(page) {
 const clipboard = (page) => page.evaluate(() => navigator.clipboard.readText());
 
 /**
- * ⌘C on FIGMA_PAGE's frame, then Figma's own clipboard as written (the html unsanitized) read back: its meta and
- * NODE_CHANGES message. The frame is selected by its label, as HO-12 does. ⌘C writes Figma's html as written only once
- * the frame's export is read ahead (the first copy also loads the library's definitions); until then it copies for the
- * plugin and says "copy again for a Figma canvas", so the row copies again, as a person would.
+ * One ⌘C on FIGMA_PAGE's frame right after selecting it (no retry), then Figma's own clipboard as written (the html
+ * unsanitized) read back: its meta and NODE_CHANGES message, and whether the copy came before the frame's Figma export
+ * was read (`late`: the first copy of a session also loads the library's definitions). Either way the copy must be one
+ * Figma's canvas takes: a late one goes in a copy event of its own once read (figmaClipboard.ts copyFrameWhenRead).
  */
 async function copyFrameForFigma(page) {
   await importHtmlPage(page, FIGMA_PAGE, "screen:screen-1");
   await page.locator('.studio-frame-label[data-chrome-key="label:screen:screen-1"]').evaluate((element) => element.click());
-  await until(async () => {
-    await page.evaluate(() => navigator.clipboard.writeText("before"));
-    await page.locator(".studio-viewport").focus();
-    await page.keyboard.press(process.platform === "darwin" ? "Meta+c" : "Control+c");
-    await sleep(500);
-    return /Copied frame — ⌘V pastes it here, on another page you made, on a Figma canvas or in the Zen plugin/.test(await statusText(page));
-  }, { timeout: 40_000, interval: 1500, message: "⌘C with the frame's Figma export read ahead (Figma's html as written)" });
+  await page.locator(".studio-viewport").focus();
+  await page.evaluate(() => navigator.clipboard.writeText("before"));
+  await page.keyboard.press(process.platform === "darwin" ? "Meta+c" : "Control+c");
+  const first = await statusText(page);
+  const canvas = /Copied frame — ⌘V pastes it here, on another page you made, on a Figma canvas or in the Zen plugin/;
+  try {
+    await until(async () => canvas.test(await statusText(page)), { timeout: 20_000, message: "the copy ready for a Figma canvas" });
+  } catch {
+    throw new Error(`one ⌘C: not copied for a Figma canvas (status "${await statusText(page)}", first "${first}")`);
+  }
   const raw = () => page.evaluate(async () => {
     for (const item of await navigator.clipboard.read({ unsanitized: ["text/html"] })) if (item.types.includes("text/html")) return (await item.getType("text/html")).text();
     return "";
   });
-  await until(async () => (await raw()).includes('<span data-buffer="<!--(figma)'), { timeout: 20_000, message: "Figma's own clipboard after ⌘C" });
-  return readFigmaClipboard(await raw());
+  await until(async () => (await raw()).includes('<span data-buffer="<!--(figma)'), { timeout: 10_000, message: "Figma's own clipboard as written after one ⌘C" });
+  return { ...(await readFigmaClipboard(await raw())), late: /preparing it for Figma/.test(first) };
 }
 
 /** What a paste names by id that is not in it: components, swaps and slot contents. */
@@ -961,11 +964,12 @@ export const rows = [
     },
   },
   {
-    id: "HO-18", feature: "Copy for Figma pastes into any Figma file (the published Zen library, 2026-10-25): ⌘C writes Figma's clipboard as Figma copies from the Zen file — each published component with its key and the library's (sourceLibraryKey, publishID, version), each variable and style it binds as a node with its values and collection, refs by key — so ⌘V in a file other than Zen's lands instances of the published library", wp: "paste into other files 2026-10-25",
+    id: "HO-18", feature: "Copy for Figma pastes into any Figma file (the published Zen library, 2026-10-25): one ⌘C right after selecting the frame in a fresh Studio (before the library's definitions load) writes Figma's clipboard as Figma copies from the Zen file — each published component with its key and the library's (sourceLibraryKey, publishID, version), each variable and style it binds as a node with its values and collection, refs by key — so ⌘V in a file other than Zen's lands instances of the published library", wp: "paste into other files 2026-10-25",
     timeout: 90_000,
     async run(ctx) {
-      const { page } = await ctx.studio();
-      const { meta, message } = await copyFrameForFigma(page);
+      // A fresh Studio: the one ⌘C comes before the library's definitions are loaded, as a person's first copy can.
+      const { page } = await ctx.studio({ fresh: true });
+      const { meta, message, late } = await copyFrameForFigma(page);
       const nodes = message.nodeChanges;
       const symbols = nodes.filter((n) => n.type === "SYMBOL");
       const keyed = symbols.filter((n) => n.componentKey);
@@ -994,7 +998,7 @@ export const rows = [
         !styles.length && "no styles",
       ].filter(Boolean);
       if (problems.length) throw new Error(`Copy for Figma, library form: ${problems.join(" · ")}`);
-      return `${keyed.length}/${symbols.length} components with library keys, ${variables.length} variables and ${styles.length} styles as nodes, ${refs.length} refs by key, all resolved`;
+      return `one ⌘C${late ? " before the read-ahead (written once read)" : ""}: ${keyed.length}/${symbols.length} components with library keys, ${variables.length} variables and ${styles.length} styles as nodes, ${refs.length} refs by key, all resolved`;
     },
   },
   {

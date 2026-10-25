@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { announceEditStatus } from "../api";
 import { isTypingTarget } from "../select/picker";
 import { canEdit, studioStore } from "../store";
-import { frameFigmaClip, writeFrameClip } from "./export/figmaClipboard";
+import { copyFrameWhenRead, frameFigmaClip, isCopyingForFigma } from "./export/figmaClipboard";
 import { copyFrame, frameClip, moveFrames, type FrameClip } from "./frameEdit";
 import { dropLivePlace, livePlace, showLivePlace } from "./frameMove";
 
@@ -41,15 +41,20 @@ export function useFrameKeys(localPage: string, text: string | undefined) {
     let ready: FrameClip | null = null;
     // Its Figma export, read ahead as well (the copy event takes only what is ready); null while it is read or failed.
     let readyFigma: { frameId: string; html: string } | null = null;
+    // The read itself, for a ⌘C that comes before it is done.
+    let readingFigma: { frameId: string; html: Promise<string> } | null = null;
     let reading = 0;
     const prefetch = () => {
       const state = studioStore.getState();
       const frameId = state.localPage === localPage && state.selection?.kind === "frame" ? state.selection.frameId : null;
       const run = (reading += 1);
       readyFigma = null;
+      readingFigma = null;
       if (!frameId) { ready = null; return; }
       void frameClip(localPage, frameId).then((next) => { if (run === reading) ready = next; });
-      void frameFigmaClip(localPage, frameId).then((next) => { if (run === reading && "html" in next) readyFigma = { frameId, html: next.html }; });
+      const html = frameFigmaClip(localPage, frameId).then((next) => ("html" in next ? next.html : Promise.reject(new Error(next.error))));
+      readingFigma = { frameId, html };
+      html.then((done) => { if (run === reading) readyFigma = { frameId, html: done }; }, () => undefined);
     };
     prefetch();
     let selection = studioStore.getState().selection;
@@ -93,6 +98,7 @@ export function useFrameKeys(localPage: string, text: string | undefined) {
     };
 
     const onCopy = (event: ClipboardEvent) => {
+      if (isCopyingForFigma()) return;
       const frame = selectedFrame(localPage, document.activeElement);
       if (!frame) return;
       event.preventDefault();
@@ -110,12 +116,15 @@ export function useFrameKeys(localPage: string, text: string | undefined) {
         announceEditStatus({ kind: "unchanged", message: copied, at: Date.now() });
         return;
       }
-      // Its Figma export is still being read: the clipboard takes both once it is ready (the code is already there).
+      // Its Figma export is still being read (a session's first copy also loads the library's definitions): the code
+      // now, then both in a copy event of their own once read, which Figma's canvas takes (figmaClipboard.ts).
       const code = ready.code;
-      const html = frameFigmaClip(localPage, frame.frameId).then((next) => ("html" in next ? next.html : Promise.reject(new Error(next.error))));
+      const pressedAt = Date.now();
+      event.clipboardData?.setData("text/plain", code);
+      const html = readingFigma?.frameId === frame.frameId ? readingFigma.html : frameFigmaClip(localPage, frame.frameId).then((next) => ("html" in next ? next.html : Promise.reject(new Error(next.error))));
       announceEditStatus({ kind: "unchanged", message: "Copied frame — preparing it for Figma…", at: Date.now() });
-      void writeFrameClip(code, html).then(
-        () => announceEditStatus({ kind: "unchanged", message: "Copied frame — ⌘V in the Zen plugin places it; copy again for a Figma canvas", at: Date.now() }),
+      void copyFrameWhenRead(code, html, pressedAt).then(
+        (canvas) => announceEditStatus({ kind: "unchanged", message: canvas ? copied : "Copied frame — ⌘V in the Zen plugin places it; copy again for a Figma canvas", at: Date.now() }),
         (error: unknown) => announceEditStatus({ kind: "error", message: `Copied for the Studio only — not for Figma: ${error instanceof Error ? error.message : String(error)}`, at: Date.now() }),
       );
     };
