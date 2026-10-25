@@ -439,8 +439,10 @@ export function DashboardTemplate() {
   };
 
   /* ── Rows and marks ── */
-  const clientMark = (client: ClientId, size: "sm" | "md") => (
-    <Avatar size={size} shape="square" theme={clients[client].theme} background="subtle" alt="">{clients[client].initials}</Avatar>
+  /** A client's square initials; Solid in the table's first column, the row's name (`lead`; harness and audit
+   *  table/first-column-avatar-solid, table-lead), Subtle elsewhere. */
+  const clientMark = (client: ClientId, size: "sm" | "md", lead = false) => (
+    <Avatar size={size} shape="square" theme={clients[client].theme} background={lead ? "solid" : "subtle"} alt="">{clients[client].initials}</Avatar>
   );
   const activityMark = (item: Activity) => ("by" in item
     ? <Avatar size="md" theme={people[item.by].theme} background="subtle" alt="">{people[item.by].initials}</Avatar>
@@ -467,7 +469,7 @@ export function DashboardTemplate() {
   const statusLabel = statusFilter.length === 1 ? statusFilter[0] : "Status";
 
   const columns: TableColumn<Row>[] = [
-    { id: "project", header: "Project", sortable: true, cell: (row) => <TableMedia bold media={clientMark(row.client, "sm")} caption={clients[row.client].name}>{row.name}</TableMedia> },
+    { id: "project", header: "Project", sortable: true, cell: (row) => <TableMedia bold media={clientMark(row.client, "sm", true)} caption={clients[row.client].name}>{row.name}</TableMedia> },
     { id: "revenue", header: "Revenue", width: "128px", align: "right", sortable: true, cell: (row) => <TableText>{money(row.earned)}</TableText> },
     { id: "status", header: "Status", width: "136px", sortable: true, cell: (row) => <TableBadges><Badge theme={healthTheme[row.health]} background="subtle">{row.health}</Badge></TableBadges> },
   ];

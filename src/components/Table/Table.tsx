@@ -847,6 +847,7 @@ export function TableText({ ref, children, caption, bold = false, ...rest }: {
 
 /** Figma Avatar-Cell / Photo-Cell / Basic-Icon-Cell / Dock-Icon-Cell: a visual + Text-Cell (gap Small). The visual follows
  * the Subtext: Avatar/Photo/Dock Icon XSmall 24px (Icon base 20px) without a caption, Small 32px (Icon lg 28px) with one.
+ * In the first column a Dock Icon is Small with or without a caption (harness table/first-column-dock-icon-small).
  * `bold` (Figma Bold, default No in every media cell): the label in Body/Base/Bold instead of Body/Base/Regular. */
 export function TableMedia({ ref, media, children, caption, bold = false, ...rest }: {
   /** Forwarded to the root `<span>` element. */
@@ -1012,7 +1013,9 @@ const initialsOf = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 
 /**
  * A media cell's visual (Figma Avatar / Photo / Basic-Icon / Dock-Icon cell): Small over a Subtext, XSmall without. An
  * Avatar is Subtle, but Solid in the first column, the row's name (the user 2026-10-24: "cột giá trị đầu tiên trong bảng
- * nếu có dùng avatar thì không dùng subtle"; harness table/first-column-avatar-solid).
+ * nếu có dùng avatar thì không dùng subtle"; harness table/first-column-avatar-solid). A Dock Icon in the first column is
+ * Small with or without a Subtext (the user 2026-10-25: "mặc định là size Small và khi có thêm caption thì phải luôn là
+ * size Small"; harness table/first-column-dock-icon-small).
  */
 function cellVisual(content: "avatar" | "photo" | "icon" | "dock-icon", captioned: boolean, media: string, label: string, nest: Nest, lead = false): ReactNode {
   if (content === "icon") {
@@ -1022,7 +1025,7 @@ function cellVisual(content: "avatar" | "photo" | "icon" | "dock-icon", captione
   }
   if (content === "dock-icon") {
     const icon = (media || undefined) as IconName | undefined;
-    return nest("Dock-Icon", captioned ? <DockIcon icon={icon} size="sm" theme="neutral" background="subtle" /> : <DockIcon icon={icon} size="xs" theme="neutral" background="subtle" />);
+    return nest("Dock-Icon", captioned || lead ? <DockIcon icon={icon} size="sm" theme="neutral" background="subtle" /> : <DockIcon icon={icon} size="xs" theme="neutral" background="subtle" />);
   }
   const shape = content === "photo" ? "square" : "circle";
   const picture = { theme: media ? ("photo" as const) : ("neutral" as const), src: media || undefined, children: media ? null : initialsOf(label) };

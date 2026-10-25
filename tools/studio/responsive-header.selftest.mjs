@@ -59,8 +59,9 @@ const screenOf = (text) => parsePage(text).board.children.find((child) => child.
   const code = phoneChromeCode(screenOf(ROOT));
   check("root: kind", code.kind, "root");
   ok("root: the large title, the bar's colour on a phone screen (alt)", /<TopNavigation type="alt" title="Expenses" largeTitle="Expenses"/.test(code.topNavigation));
-  ok("root: the account leads the bar", /leading=\{<AppShellAccount name="Khoa Dang" \/>\}/.test(code.topNavigation));
-  ok("root: Search, the Primary as + (its prototype link kept), notifications", /trailing=\{\[\{ icon: "icon-search-medium-line", label: "Search" \}, \{ icon: "icon-plus-line", label: "New expense", onClick: proto\.open\("new-expense"\) \}, \{ icon: "icon-bell-01-line", label: "Notifications", dot: true, onClick: proto\.toast\("4 new"\) \}\]\}/.test(code.topNavigation));
+  ok("root: the account leads the bar, in its Menu", /leading=\{<Menu items=\{\[\]\} trigger=\{<AppShellAccount name="Khoa Dang" \/>\} \/>\}/.test(code.topNavigation));
+  ok("root: the Primary as + (its prototype link kept), notifications; the Search action takes the third place", /trailing=\{\[\{ icon: "icon-plus-line", label: "New expense", onClick: proto\.open\("new-expense"\) \}, \{ icon: "icon-bell-01-line", label: "Notifications", dot: true, onClick: proto\.toast\("4 new"\) \}\]\}/.test(code.topNavigation));
+  ok("root: the Search is the control bar, folding into the Search action", /controlBar=\{<Search aria-label="Search" placeholder="Search expenses" \/>\} searchAction=\{\{ label: "Search" \}\}/.test(code.topNavigation));
   ok("root: the Sidebar's first 4 rows + More, the selected one, a counter as a dot", /<BottomNavigation value="expenses" showLabels items=\{\[\{ id: "home", label: "Overview"[^\]]*\{ id: "approvals", label: "Approvals", icon: "icon-check-circle-line", dot: true \}[^\]]*\{ id: "more", label: "More", icon: "icon-dots-horizontal-line" \}\]\} \/>/.test(code.bottomNavigation));
   ok("root: notes say what stays or folds", code.notes.some((note) => note.includes("Pro Badge")) && code.notes.some((note) => note.includes("Vendors, Reports go into More")));
 }
@@ -70,9 +71,41 @@ const screenOf = (text) => parsePage(text).board.children.find((child) => child.
   const busy = page({ shellProps: `${SIDEBAR}
           header={<AppShellHeader leading={<Search aria-label="Search" placeholder="Search" />} actions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={4} /><AppShellAction icon="icon-settings-01-line" aria-label="Settings" /></>} main={<PageHeader title="Expenses" actions={<><Button level="tertiary">Export</Button><Button level="primary">New expense</Button></>} />} />}` });
   const code = phoneChromeCode(screenOf(busy));
-  const trailing = code.topNavigation.match(/label: "([^"]+)"/g).map((item) => item.slice(8, -1));
-  check("busy: three places, More holds the rest", trailing, ["Search", "New expense", "More"]);
+  ok("busy: the Search action's place, +, then More", /trailing=\{\[\{ icon: "icon-plus-line", label: "New expense" \}, \{ icon: "icon-dots-horizontal-line", label: "More", dot: true, menu: /.test(code.topNavigation));
   ok("busy: More shows the dot of an item inside", /label: "More", dot: true/.test(code.topNavigation));
+  ok("busy: More's sheet lists the rest", /label: "More", dot: true, menu: \[\{ id: "notifications", label: "Notifications", icon: "icon-bell-01-line" \}, \{ id: "export", label: "Export", icon: "icon-dots-horizontal-line" \}, \{ id: "settings", label: "Settings", icon: "icon-settings-01-line" \}\] \}\]/.test(code.topNavigation));
+}
+
+/* ── the four phone controls do what the desktop's do (DEMO-MEET, 2026-10-24) ─────────────────────────────────── */
+{
+  const HELP = '<Menu align="end" onSelect={proto.navigate({ guide: "help-guide" })} trigger={<AppShellAction icon="icon-help-circle-line" aria-label="Help" />} items={[{ id: "guide", label: "Open the guide", icon: "icon-file-doc-line" }, { id: "feedback", label: "Send feedback", icon: "icon-message-chat-circle-line", onSelect: proto.toast("Thanks") }]} />';
+  const ACCOUNT = '<Menu align="end" onSelect={proto.toast("Not in this demo")} trigger={<AppShellAccount name="Ha Tran" theme="accent" />} items={[{ id: "profile", label: "My profile", icon: "icon-user-circle-line" }, { type: "separator" }, { id: "sign-out", label: "Sign out", icon: "icon-log-out-01-line" }]} />';
+  const demo = page({ shellProps: `          sidebar={<Sidebar aria-label="Main" selectedId="home" onItemClick={proto.navigate({ home: "overview", tasks: "tasks" })}>
+            <SidebarMenuItem id="home" label="Overview" icon="icon-home-03-line" />
+            <SidebarMenuItem id="tasks" label="Tasks" icon="icon-check-square-line" />
+            <SidebarMenuItem id="people" label="People" icon="icon-users-line" />
+          </Sidebar>}
+          header={<AppShellHeader center={<Search aria-label="Search the workspace" placeholder="Search" shortcut="K" size="sm" onValueChange={proto.filter({ column: "title", match: "contains" })} />} actions={<Stack direction="row" gap="sm" align="center">${HELP}<AppShellAction icon="icon-bell-01-line" aria-label="Notifications" count={3} onClick={proto.open("notifications")} />${ACCOUNT}</Stack>} main={<PageHeader title="Overview" actions={<Button level="tertiary" startIcon="icon-download-01-line" onClick={proto.toast("Exported")}>Export</Button>} />} />}` });
+  check("demo page is valid", parsePage(demo).errors, []);
+  const code = phoneChromeCode(screenOf(demo));
+  // Search: the desktop's own Search (its filter kept, no keyboard shortcut or desktop size) as the control bar.
+  ok("search: the control bar is the desktop's Search, filtering as it does", /controlBar=\{<Search aria-label="Search the workspace" placeholder="Search" onValueChange=\{proto\.filter\(\{ column: "title", match: "contains" \}\)\} \/>\}/.test(code.topNavigation));
+  ok("search: a root's folds into TopNavigation's own Search action (no trailing Search without a handler)", /searchAction=\{\{ label: "Search the workspace" \}\}/.test(code.topNavigation) && !/icon-search-medium-line/.test(code.topNavigation));
+  // More: a sheet running each folded action; a folded Menu is a group whose rows keep the Menu's per-item targets.
+  ok("more: notifications keep their place, More takes the last", /trailing=\{\[\{ icon: "icon-bell-01-line", label: "Notifications", dot: true, onClick: proto\.open\("notifications"\) \}, \{ icon: "icon-dots-horizontal-line", label: "More", menu: /.test(code.topNavigation));
+  ok("more: Export runs its own action from the sheet", /\{ id: "export", label: "Export", icon: "icon-download-01-line", onSelect: proto\.toast\("Exported"\) \}/.test(code.topNavigation));
+  ok("more: Help's menu is a group, each row with its own target", /\{ type: "group", label: "Help", items: \[\{ id: "guide", label: "Open the guide", icon: "icon-file-doc-line", onSelect: proto\.navigate\("help-guide"\) \}, \{ id: "feedback", label: "Send feedback", icon: "icon-message-chat-circle-line", onSelect: proto\.toast\("Thanks"\) \}\] \}/.test(code.topNavigation));
+  // The account keeps its Menu (the account sheet on a phone).
+  ok("account: the avatar opens its Menu (items and handler kept, no desktop align)", /leading=\{<Menu onSelect=\{proto\.toast\("Not in this demo"\)\} items=\{\[\{ id: "profile"[^\]]*\{ type: "separator" \}[^\]]*\]\} trigger=\{<AppShellAccount name="Ha Tran" theme="accent" \/>\} \/>\}/.test(code.topNavigation) && !/align=/.test(code.topNavigation));
+  const bare = phoneChromeCode(screenOf(demo.replace(ACCOUNT, '<AppShellAccount name="Ha Tran" onClick={proto.open("account")} />')));
+  ok("account: a bare account keeps its onClick", /leading=\{<AppShellAccount name="Ha Tran" onClick=\{proto\.open\("account"\)\} \/>\}/.test(bare.topNavigation));
+  // The tab bar goes where the Sidebar's rows go.
+  ok("tabs: onValueChange is the Sidebar's per-item navigate", /<BottomNavigation value="home" onValueChange=\{proto\.navigate\(\{ home: "overview", tasks: "tasks" \}\)\} showLabels/.test(code.bottomNavigation));
+  const rowsOwn = phoneChromeCode(screenOf(demo.replace(' onItemClick={proto.navigate({ home: "overview", tasks: "tasks" })}', "").replace('id="home" label="Overview"', 'id="home" label="Overview" onClick={proto.navigate("overview")}').replace('id="people" label="People"', 'id="people" label="People" onClick={proto.navigate("people")}')));
+  ok("tabs: without onItemClick, the rows' own navigates as one per-item navigate", /onValueChange=\{proto\.navigate\(\{ home: "overview", people: "people" \}\)\}/.test(rowsOwn.bottomNavigation));
+  // A child with tabs: the Search above the tabs, no Search action (a child's bar does not fold).
+  const child = phoneChromeCode(screenOf(demo.replace('<PageHeader title="Overview"', '<PageHeader title="Overview" back tabs={<Tabs aria-label="Views" items={[{ id: "a", label: "All" }, { id: "b", label: "Mine" }]} />}')));
+  ok("search: a child's Search sits above its tabs", /controlBar=\{<Stack gap="xs"><Search aria-label="Search the workspace"[^>]*\/><Tabs aria-label="Views"/.test(child.topNavigation) && !/searchAction/.test(child.topNavigation));
 }
 
 /* ── a child ────────────────────────────────────────────────────────────────────────────────────────────────────── */
@@ -136,6 +169,15 @@ function synced(before, text) {
   const custom = ROOT.replace('device="desktop"', 'device="desktop" bottomNavigation={<BottomNavigation value="x" items={[{ id: "x", label: "Mine", icon: "icon-home-03-line" }]} />}');
   const opened = synced(null, custom);
   ok("older page: its own bottom bar stays, the top bar links", /phoneLinked=\{\["topNavigation"\]\}/.test(opened) && /label: "Mine"/.test(opened));
+}
+{
+  // A linked part redrawn with a component the page does not import (the control bar's Stack) is swapped in, imported.
+  const bare = page({ shellProps: `${SIDEBAR}
+          header={<AppShellHeader leading={<Search aria-label="Search" placeholder="Search expenses" />} main={<PageHeader title="Expenses" tabs={<Tabs aria-label="Views" items={[{ id: "a", label: "All" }, { id: "b", label: "Mine" }]} />} />} />}` }).replace("Screen id=\"screen-1\"", "Screen id=\"screen-1\" phoneLinked={[\"topNavigation\"]} topNavigation={<TopNavigation type=\"compact\" title=\"Expenses\" />}").replace("SidebarMenuItem, Stack, ", "SidebarMenuItem, ");
+  const unstacked = bare.replace('<Stack gap="md"><Text>Rows</Text></Stack>', "<Text>Rows</Text>");
+  check("import: the page imports no Stack", /\bStack\b/.test(unstacked.split("export const mock")[0]), false);
+  const opened = synced(null, unstacked);
+  ok("import: the redrawn bar's Stack is imported and the page stays valid", parsePage(opened).errors.length === 0 && /import \{[^}]*\bStack\b[^}]*\} from "@zen-ds\/react"/.test(opened) && /controlBar=\{<Stack gap="xs"><Search/.test(opened));
 }
 check("no AppShell: nothing to draw", planPhoneSync(null, ROOT.replace(/<AppShell[\s\S]*<\/AppShell>/, '<Stack gap="md"><Text>Plain</Text></Stack>')), []);
 

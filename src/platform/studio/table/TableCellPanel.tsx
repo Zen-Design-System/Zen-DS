@@ -154,7 +154,8 @@ function contentCode(content: Content, element: SourceElement, inner: SourceElem
       // Solid in the first column, the row's name (Table.tsx cellVisual); Subtle elsewhere.
       return media(tag("Avatar", [["size", size("xs", "sm")], ["shape", quoted(content === "photo" ? "square" : "circle")], ...(lead ? [] : [["background", quoted("subtle")] as [string, string]]), ["alt", quoted("")]]));
     case "icon": return media(tag("Icon", [["name", quoted("icon-face-smile-line")], ["size", size("base", "lg")], ["decorative", true]]));
-    case "dock-icon": return media(tag("DockIcon", [["size", size("xs", "sm")], ["theme", quoted("neutral")], ["background", quoted("subtle")]]));
+    // Small in the first column with or without a Subtext (Table.tsx cellVisual); by the Subtext elsewhere.
+    case "dock-icon": return media(tag("DockIcon", [["size", lead ? quoted("sm") : size("xs", "sm")], ["theme", quoted("neutral")], ["background", quoted("subtle")]]));
     case "badge": return tag("TableBadges", [], tag("Badge", [["size", quoted("medium")], ["theme", quoted("neutral")], ["background", quoted("subtle")], ["leadingIcon", "{false}"]], label));
     case "tag": return tag("TableTags", [], tag("Tag", [], label));
     case "trend": return tag("TableTrend", [["trend", quoted("up")]], label);

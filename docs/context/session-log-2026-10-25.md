@@ -234,3 +234,80 @@ The user published the Zen library; Studio's ⌘C → ⌘V now lands in any Figm
   - The default gate groups had 5 new rows, 0 broken, in the last gate run (studio-chart-perf, 10:27).
 - Tests: `tools/studio/e2e/selftest.mjs` (+7 compare cases) ✓ exit 0; `npm run qa:selftest` (+5 verdict cases)
   ✓ exit 0; `node --check` on the five .mjs files, exit 0. Merged main 8afa40cd (#303) before the push.
+
+## Table first column: Dock Icon Small, runtime check `table-lead` (tier M; branch zen/feat/table-first-column-runtime-20261025; PR #305)
+
+The user's two decisions:
+1. "có": a runtime check for the first-column Avatar that a helper draws.
+2. "Dock Icon của cột đầu trong table mặc định là size Small và khi có thêm caption thì phải luôn là size Small".
+
+| Where | Before | After |
+| --- | --- | --- |
+| Table.tsx `cellVisual`, first column `content: "dock-icon"` | xs alone, sm with a caption | sm either way; later columns unchanged (Figma Dock-Icon-Cell) |
+| figma-push dock-icon cell | always XSmall (a captioned one overrode Figma's Small) | Small with a caption or in the first column, XSmall otherwise |
+| figma-pull `drawnProps` / `TABLE_DRAWS.DockIcon` | xs always | by caption and column: a first-column XSmall is that row's override |
+| TableCellPanel `contentCode` | `size("xs","sm")` | `"sm"` in the first column |
+| Harness | `table/first-column-avatar-solid` only | + `table/first-column-dock-icon-small` (error); `inFirstColumn` shared; `media-size-by-subtext` exempts the first column |
+| Runtime audit | none | `table-lead` (error, widgetLayout): rendered first cells, an initials Avatar Solid and a Dock Icon `small`; stacks, edit ghost and Don't visuals skipped |
+| Figma audit | none | `table/first-column-dock-icon-small` (warning): Data-Row tables you placed, select column skipped |
+| Contract suite table-cell-dock-icon | measured in the Table's only (first) column | measured in the second column (`second: true`, cases/table-cells.tsx) |
+
+- **Figma (read-only):** the primitive Dock-Icon-Cell 1603:5099 is column-less: Subtext=No is XSmall and Subtext=Yes is
+  Small. The HR-Platform leave tables (7378:38418, 7379:36025, 15794:50838, 15794:50856) lead with an Emoji Dock-Icon at
+  Medium 40, and the Dock-Icon set 308:45902 has Theme=Emoji only at Medium and Large. The user decided:
+  - Keep the library; the Figma audit warns and screens set the size.
+  - "Emoji thì mặc định dùng medium".
+
+  The check expects Medium for Emoji and Small otherwise. It found 0 on the four screens (24 first-column Emoji
+  Dock-Icons, all Medium). The full 104 KB audit does not fit a `use_figma` call, so only the new check ran.
+- **Pages:** `usage:check` flagged the leave tables of g-grid (emoji `xsmall`) and the HR templates Leave types and My
+  leaves (emoji `sm`). All three are now `md`. `table/media-size-by-subtext` asks Medium of an emoji Dock Icon in any
+  column; a bad.tsx flag fixture moved from xs to md. The Table page's `PersonAvatar` already draws `lead` Solid. Studio
+  push draws a row's emoji Dock-Icon at Medium when its override gives no size.
+- **Checks:** usage selftest (260 rules), platform:audit:selftest 70 (11 table-lead fixtures), figma-push 486,
+  figma-pull 151, cellComponents, ai-kit:check, guidelines:check and tsc all pass; tests/interaction/table-first-column.test.tsx
+  was renamed from table-first-column-avatar and gained 2 dock-icon cases.
+- **Gate (Giám sát's slot):**
+  - First run, `qa --isolated` on the 32 pages that render Table: static gates, Vitest 91/91, all Figma contract
+    suites, behaviour 0 and Studio E2E 363/0 passed. The new kind `table-lead` found one real helper slip, at
+    templates@1512 (+ dark): Dashboard's "Active projects" drew its client initials Subtle in the first column
+    (`clientMark`, 8 rows). Fixed at the helper (`lead` → Solid; the phone ListItem keeps Subtle).
+  - Auto-fix started a host-side main merge during the run; I aborted it and merged after the gate (1c0c7342, #304:
+    conflicts in CHANGELOG and this log, both sides kept).
+  - The rerun on templates with the Studio files, under #304's new-row rule: PASS (audit 0, dark 0, behaviour 0,
+    E2E 363 works / 0 broken). I opened the table, app-shell G2, HR My leaves and templates sheets. The Medium emoji Dock
+    Icons sit inside their rows, as in Figma.
+
+## Studio phone chrome controls (tier M; branch zen/fix/studio-phone-chrome-20261025; user: "Có, làm thẻ phone chrome đi")
+
+The phone bars `tools/studio/responsive-header.mjs` draws from a desktop AppShellHeader left four dead controls on the
+DEMO-MEET page `quan-ly-task` (a copy gave `interaction/action-without-handler` ×3, `icon-button/needs-action`,
+`interaction/controlled-needs-handler`). Now:
+- **Search:** the top bar's Search (its props, without `shortcut` / `size`) is the TopNavigation `controlBar`, above
+  the tabs on a child (`<Stack gap="xs">`); a root adds `searchAction={{ label }}` and keeps two trailing places
+  (rule 1). TopNavigation: `searchAction.onClick` is optional — with `scrollRef` it scrolls up and focuses the field
+  (so the export writes no stand-in; compile selftest now shows the stand-in on PageHeader `back`).
+- **More:** TopNavigationAction `menu?: MenuEntry[]` wraps the action in a Menu (a sheet on a phone). The folded
+  actions are rows running their own onClick; a folded Menu trigger (Help) is a group whose rows take the Menu's
+  `onSelect`, a per-item navigate narrowed to each row's target. A kept Menu trigger becomes an action with `menu`.
+- **Account:** `leading` is the desktop's Menu (items, onSelect; `align` dropped) around the AppShellAccount; a bare
+  account keeps its onClick.
+- **Tab bar:** `onValueChange` = the Sidebar's `onItemClick`, else the rows' own `proto.navigate` as one per-item navigate.
+- **Met while fixing:** a linked part redrawn with a component the page does not import (Stack, Menu) was refused
+  ("not imported") and withPhoneSync stopped silently. planPhoneSync swaps such a part in (`replaceElement`, which
+  imports), alone in its request. Harness: an action with `menu` counts as handled (`handlesPress`; good.tsx case).
+- **Open:** the tab bar's More tab (> 5 Sidebar rows) has no sheet: BottomNavigation needs an API →
+  BACKLOG-user-and-later (P3).
+
+Checks: responsive-header selftest 40 (Search root/child, More rows + group, account Menu / onClick, tabs onItemClick /
+row navigates, the import swap); a synced copy of `quan-ly-task` → 0 findings from derived parts (1 left:
+`table/titled-box`, page content). New E2E rows PT-25 (tab bar navigates in phone Play), PT-26 (Search filters + folded
+Search action, More sheet rows, account menu).
+
+Gate (slot from Giám sát, 2026-10-26 ~02:00): PT-25/PT-26 by id first broke on the fixture (a Screen with `x` and no
+`y` does not parse), then 2 works; group prototype 26 works. `qa --isolated` (page top-navigation): every step passed
+but the Studio E2E, B-39 regressed. It was this change: the linked phone bar now holds a real `<Search>` (its control
+bar) and B-39's ⌘Z step counted every `<Search>` on the page; it now reads the header's `leading`. B-39…B-43 by id
+pass, then `qa --failed`: Studio E2E 365 works · 0 broken → **Build-QA PASS**. Mid-gate, Auto-fix started a host-side
+main merge in the worktree; aborted at once (sync abort), main merged after the run.
+

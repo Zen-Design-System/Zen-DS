@@ -207,6 +207,14 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   subtle.children[0].rows[1].cells[1].parts[0].props = { ...subtle.children[0].rows[1].cells[1].parts[0].props, Theme: "Photo", Background: "Subtle" };
   const leads = pageFromFigma(subtle, { mapping }).text;
   ok("table: a Subtle Avatar in the first column is its row's override; a Photo one's Subtle is as drawn", leads.includes('"Row[row-1]/member/Avatar": { background: "subtle" }') && /"Row\[row-2\]\/member\/Avatar": \{[^}]*theme: "photo"/.test(leads) && !/"Row\[row-2\]\/member\/Avatar": \{[^}]*background/.test(leads));
+  // The first column's Dock Icon is Small with or without a Subtext (the user 2026-10-25): an XSmall one there is its row's
+  // override; a later column's XSmall without a Subtext is as drawn.
+  const dockSet = [...mapping.sets.values()].find((set) => set.code === "DockIcon");
+  const dockCell = (texts, size) => ({ kind: "Dock-Icon-Cell", props: { Bold: "No", Subtext: "No" }, w: 200, texts, parts: [{ id: "d", set: { id: dockSet.id, name: dockSet.name }, props: { Size: size, Theme: "Neutral", Background: "Subtle" } }] });
+  const docks = { type: "FRAME", name: "T", layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0] }, children: [{ type: "TABLE", name: "Apps", header: [{ label: "App", w: 200 }, { label: "Kind", w: 200 }],
+    rows: [["Small", "XSmall"], ["XSmall", "XSmall"]].map(([first, second], at) => ({ cells: [dockCell([`App ${at + 1}`], first), dockCell(["Tool"], second)] })) }] };
+  const dockBack = pageFromFigma(docks, { mapping }).text;
+  ok("table: an XSmall Dock-Icon in the first column is its row's override; a later column's XSmall is as drawn", /"Row\[row-2\]\/app\/Dock-Icon": \{ size: "xs(?:mall)?" \}/.test(dockBack) && !/"Row\[row-1\]\/app\/Dock-Icon"/.test(dockBack) && !/\/kind\/Dock-Icon/.test(dockBack));
 }
 
 // Charts (chart family phase 2, 2026-10-14; figma-charts.mjs), as figmaReadCode reads them: a ❖ Chart instance is its

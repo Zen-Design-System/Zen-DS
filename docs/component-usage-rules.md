@@ -473,7 +473,7 @@ a **modal or form** screen has Close and its Primary in an ActionBar footer.
 | PageHeader `tabs` | `controlBar`: Tabs or Segmented `fullWidth` |
 | PageHeader Primary | a list root: a trailing "+" action labelled as the button · a detail or form: ActionBar footer |
 | PageHeader Tertiary and Danger buttons | ⋯ More → an action BottomSheet (Danger last) |
-| Top bar Search | a list root: `controlBar` Search + `searchAction` · elsewhere: a Search trailing action |
+| Top bar Search | a list root: `controlBar` Search + `searchAction` · elsewhere: a Search trailing action that opens your search (Studio, which has no search screen to open: the `controlBar` Search, above the tabs) |
 | Notifications (`AppShellAction`) | root: a trailing action with `dot` (a count becomes the dot) · child: none (a child's trailing holds only that screen's actions) |
 | Other `AppShellAction`s, the plan Badge | root: ⋯ More or the account sheet · child: none |
 | Account (`AppShellAccount` + Menu) | root: the avatar in `leading`, opening the account menu as an action BottomSheet · child: none (Back holds `leading`) · none when the BottomNavigation has a Profile tab |

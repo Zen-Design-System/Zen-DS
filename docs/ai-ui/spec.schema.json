@@ -45533,9 +45533,7 @@
                         ]
                       }
                     },
-                    "required": [
-                      "onClick"
-                    ],
+                    "required": [],
                     "additionalProperties": false
                   },
                   {
@@ -49692,6 +49690,12 @@
         },
         "disabled": {
           "type": "boolean"
+        },
+        "menu": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MenuEntry"
+          }
         },
         "group": {
           "type": "string"
