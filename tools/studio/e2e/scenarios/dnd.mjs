@@ -332,7 +332,9 @@ async function moves(ctx) {
 
 /**
  * Layers panel drags (Figma's): a layer's row onto the empty Screen's frame row goes into that Screen; onto another row's
- * upper half goes before it. One ⌘Z each.
+ * upper half goes above it in Layers, which lists the front-most layer first (data-order="front"), so after it in the
+ * code; onto the middle of a layout row (a Card) goes inside it, last. One ⌘Z each. A Screen has no row of its own
+ * under its frame row: the frame row is the Screen's.
  */
 async function layersMoves(ctx) {
   await ctx.studio();
@@ -347,8 +349,8 @@ async function layersMoves(ctx) {
   const box = async (locator) => locator.boundingBox({ timeout: 3000 }).catch(() => null);
   const plan = [
     ["Card", "the empty Screen's frame row", async () => { const at = await box(frameRow("screen-2")); return at && center(at); }, (after) => chains(after).some(({ chain }) => chain === "Board>Screen#screen-2>Card")],
-    ["Box", "the List box row's upper half", async () => { const at = await box(nodeRow("ListBox")); return at && { x: at.x + at.width / 2, y: at.y + at.height * 0.2 }; }, (after) => { const kids = kidNames(bodyOf(after)); return kids.indexOf("Box") === kids.indexOf("ListBox") - 1; }],
-    ["Text", "the empty Screen's own row", async () => { const at = await box(tree.locator('[role="treeitem"][data-kind="node"]').filter({ hasText: /^\s*Screen\b/ }).nth(1)); return at && center(at); }, (after) => chains(after).some(({ chain }) => chain === "Board>Screen#screen-2>Text")],
+    ["Box", "the List box row's upper half", async () => { const at = await box(nodeRow("ListBox")); return at && { x: at.x + at.width / 2, y: at.y + at.height * 0.2 }; }, (after) => { const kids = kidNames(bodyOf(after)); return kids.indexOf("Box") === kids.indexOf("ListBox") + 1; }],
+    ["Text", "the middle of the Card's row", async () => { const at = await box(nodeRow("Card")); return at && center(at); }, (after) => chains(after).some(({ chain }) => chain === "Board>Screen#screen-1>Stack>Card>Text") && !kidNames(bodyOf(after)).includes("Text")],
   ];
   for (const [name, where, at, right] of plan) {
     // Selected on the canvas, its row shows (Layers opens to the selection) and is the selected row.
@@ -367,7 +369,7 @@ async function layersMoves(ctx) {
     if (back !== "same" && back !== "undo") failures.push(`${name} → ${where}: ⌘Z did not bring the page back (${back})`);
   }
   if (failures.length) throw new Error(`${failures.length} of ${plan.length} Layers drags wrong · ${failures.join(" | ")}`);
-  return `${plan.length} Layers drags right (into a Screen's row, before a row), each one ⌘Z`;
+  return `${plan.length} Layers drags right (into a Screen's row, above a row, into a Card's row), each one ⌘Z`;
 }
 
 /**
@@ -517,9 +519,10 @@ async function autoLayoutItems(ctx, all) {
       const dropped = await next(page, id, seed, `${item.id} dropped`);
       const placed = layersOf(frameIn(dropped));
       if (placed.length !== 2 || !placed.every((layer) => layer.props.position?.value === "absolute")) throw new Error(`${item.id}: the drop did not float in the Frame (${placed.map((layer) => layer.name).join(", ")})`);
-      // The Frame selected from its Layers row (the first Box: its layers' rows follow it), then ⇧A.
+      // The Frame selected from its Layers row, then ⇧A. Layers names a Box "Frame N" (Figma's word), so the row is found
+      // by its layer id (the Box's source place), not its text.
       await showLeftTab(page, "layers");
-      await page.locator('.studio-layers__tree [role="treeitem"][data-kind="node"]').filter({ hasText: /^\s*Box\b/ }).first().click();
+      await page.locator(`.studio-layers__tree [role="treeitem"][data-layer-id="local:${id}.zen.tsx:${frameIn(dropped).loc}#0"]`).click({ timeout: 3000 });
       await until(async () => (await selectedName(page)) === "Frame", { timeout: 3000 }).catch(() => undefined);
       await key(page, "Shift+A");
       const added = await next(page, id, dropped, `${item.id} ⇧A`);
@@ -672,7 +675,7 @@ export const rows = [
   { id: "DND-02", feature: `Assets drag, items ${third + 1}–${2 * third}: the same places`, wp: "dnd campaign 2026-10-17", timeout: 1_800_000, run: (ctx) => campaign(ctx, ITEMS.slice(third, 2 * third), "b") },
   { id: "DND-03", feature: `Assets drag, items ${2 * third + 1}–${ITEMS.length}: the same places`, wp: "dnd campaign 2026-10-17", timeout: 1_800_000, run: (ctx) => campaign(ctx, ITEMS.slice(2 * third), "c") },
   { id: "DND-04", feature: "Canvas moves: Text, List box, Card and Box dragged to an empty Screen and to the top of the body (moved, not copied, one ⌘Z)", wp: "dnd campaign 2026-10-17", timeout: 300_000, run: moves },
-  { id: "DND-06", feature: "Layers panel drags: a row onto an empty Screen's frame row goes into that Screen; onto a row's upper half goes before it (one ⌘Z each)", wp: "dnd campaign 2026-10-17", timeout: 300_000, run: layersMoves },
+  { id: "DND-06", feature: "Layers panel drags: a row onto an empty Screen's frame row goes into that Screen; onto a row's upper half goes above it (after it in the code: Layers lists the front-most first); onto a Card's row goes inside it (one ⌘Z each)", wp: "dnd campaign 2026-10-17", timeout: 300_000, run: layersMoves },
   { id: "DND-07", feature: "Auto layout on every Assets item: dropped into an empty Frame (floats there), ⇧A (a column, item then caption, no X / Y), ⌥⇧A (a Box of its size, nothing moves on the canvas), three ⌘Z back", wp: "auto layout campaign 2026-10-17", timeout: 2_400_000, run: (ctx) => autoLayoutItems(ctx, ITEMS) },
   { id: "DND-08", feature: "Auto layout cases: 3 Shapes drawn out of order in a centred row (Inspector + → row, left to right, centred; −), a painted empty Frame (canvas menu → Box > Stack), an Action bar keeps position, a row ⌥⇧A then ⇧A comes back the same, ⇧A on one Text wraps it", wp: "auto layout campaign 2026-10-17", timeout: 600_000, run: autoLayoutCases },
   { id: "DND-05", feature: "The user's story on an empty phone page: Top navigation dropped on the top becomes the Screen's bar, a List box, content past the phone; the canvas draws it whole, Play scrolls to the end with the bar in place", wp: "dnd campaign 2026-10-17", timeout: 300_000, run: story },
