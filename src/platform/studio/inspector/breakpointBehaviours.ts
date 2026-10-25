@@ -78,11 +78,11 @@ export function screenFacts(screen: PageNode, shown: Pick<BreakpointFacts, "brea
   return { ...shown, names, margins, shell: { root: Boolean(root), mobileParts: Boolean(root && MOBILE_PARTS.some((prop) => root.props[prop])) }, grids };
 }
 
-/** A per-breakpoint value at `breakpoint`: its own key, else the nearest wider one's (desktop → tablet → mobile). */
+/** A per-breakpoint value at `breakpoint`, as the library resolves it (_shared/responsive.ts resolveAt): its own key, then
+ *  the wider ones, a narrower key only when no wider one is set. */
 export function valueAt<T>(values: Partial<Record<ZenBreakpointKey, T>>, breakpoint: ZenBreakpointKey): T | undefined {
-  const order: ZenBreakpointKey[] = breakpoint === "mobile" ? ["mobile", "tablet", "desktop"] : breakpoint === "tablet" ? ["tablet", "desktop"] : ["desktop"];
+  const order: ZenBreakpointKey[] = breakpoint === "mobile" ? ["mobile", "tablet", "desktop"] : breakpoint === "tablet" ? ["tablet", "desktop", "mobile"] : ["desktop", "tablet", "mobile"];
   for (const key of order) if (values[key] !== undefined) return values[key];
-  // Written only for narrower breakpoints: Grid's own default (Layout.tsx) shows above them.
   return undefined;
 }
 
@@ -121,7 +121,7 @@ const BEHAVIOURS: Array<{ id: string; at: (facts: BreakpointFacts) => Omit<Break
     const changed = facts.grids.flatMap((values) => {
       const wide = valueAt(values, "desktop");
       const here = valueAt(values, facts.breakpoint);
-      return here !== undefined && here !== wide ? [`${wide ?? "auto"} → ${here}`] : [];
+      return here !== undefined && here !== wide ? [`${wide} → ${here}`] : [];
     });
     return changed.length ? { label: `Grid columns: ${changed.join(", ")}`, detail: `Grids with columns written per breakpoint show their ${BREAKPOINT_LABELS[facts.breakpoint]} value (a breakpoint without its own takes the next wider one's).` } : null;
   } },

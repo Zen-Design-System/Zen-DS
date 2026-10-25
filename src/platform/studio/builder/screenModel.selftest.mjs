@@ -61,7 +61,7 @@ const mobile = behavioursAt(screenFacts(screen, { breakpoint: "mobile", device: 
 check("the margins' steps", mobile.find((change) => change.id === "margins")?.label, "Page margins: Comfortable 24 → 20");
 check("the Grid's columns", mobile.find((change) => change.id === "grid-columns")?.label, "Grid columns: 3 → 1");
 check("an iPad landscape keeps the AppShell's desktop structure", ids({ breakpoint: "tablet", device: "tablet", width: 1133, layout: "desktop" }), []);
-check("valueAt inherits desktop → tablet → mobile", [valueAt({ desktop: 3 }, "mobile"), valueAt({ desktop: 3, tablet: 2 }, "mobile"), valueAt({ mobile: 1 }, "desktop")], [3, 2, undefined]);
+check("valueAt as resolveAt: own, wider, then narrower", [valueAt({ desktop: 3 }, "mobile"), valueAt({ desktop: 3, tablet: 2 }, "mobile"), valueAt({ mobile: 1 }, "desktop"), valueAt({ desktop: 3, mobile: 1 }, "tablet")], [3, 2, 1, 3]);
 
 // ── Where a placeholder's part goes.
 const parts = page(`<Screen id="a"><AppShell><Text>A</Text></AppShell></Screen>

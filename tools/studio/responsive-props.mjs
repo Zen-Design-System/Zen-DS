@@ -3,9 +3,12 @@
 // library's resolveAt: a breakpoint without its own value takes the next wider one's) and `hideOn`. Figma has no
 // breakpoints, so the push draws a page at its Screen's breakpoint (figma-push.mjs) and Update from Figma writes only
 // that breakpoint's key, keeping the others (figma-diff.mjs). Values here are dialect values ({ kind, … }, doc.mjs).
-// Isomorphic, no imports.
+// Isomorphic; the breakpoints and a Screen's breakpoint are screen-devices.mjs's (one rule for the Studio canvas, Play
+// and the push).
 
-export const BREAKPOINTS = ["desktop", "tablet", "mobile"];
+import { BREAKPOINTS, screenBreakpoint } from "./screen-devices.mjs";
+
+export { BREAKPOINTS, screenBreakpoint };
 
 /** The props that take one value per breakpoint (Layout.tsx). */
 export const RESPONSIVE_PROPS = {
@@ -33,17 +36,6 @@ const LOOKUP = { desktop: ["desktop", "tablet", "mobile"], tablet: ["tablet", "d
 
 /** Whether `component`'s `prop` takes one value per breakpoint. */
 export const isResponsiveProp = (component, prop) => Boolean(RESPONSIVE_PROPS[component]?.includes(prop));
-
-/**
- * A Screen's breakpoint as saved (§2 of the plan): a phone's mobile, a tablet's tablet, a desktop Screen the breakpoint
- * of its width (ZenProvider's thresholds: mobile < 744, tablet < 1024), desktop when it has none.
- */
-export function screenBreakpoint(device, width) {
-  if (device === "phone") return "mobile";
-  if (device === "tablet") return "tablet";
-  if (typeof width === "number" && Number.isFinite(width)) return width < 744 ? "mobile" : width < 1024 ? "tablet" : "desktop";
-  return "desktop";
-}
 
 /** A frame's own breakpoint mode (`modes={{ breakpoint }}`), or null. */
 export function modesBreakpoint(value) {
