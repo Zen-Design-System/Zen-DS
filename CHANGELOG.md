@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- AI skills (user, 2026-10-26): UX principles (`ux-principles.md`: each screen's states, forms, navigation, WCAG 2.2
+  access, touch, motion) and product patterns (`product-patterns.md`: the screens a product family needs, mapped to
+  Zen's templates) join the design principles in `skills/zen-component-usage`; the AI kit for Figma ships both, and
+  Zen Agent in Studio plans states, forms and navigation. Taken from the UI/UX Pro Max skill's UX layer, without its
+  palettes, fonts or styles.
 - QA gate (user, 2026-10-25): a Studio E2E row that is not in `matrix.baseline.json` and comes back broken now fails the
   gate step and `npm run studio:e2e` (exit 1), marked "✗ New rows broken". New rows that work stay a pass, listed to
   record with `--update-baseline`; rows the baseline marks broken and flaky rows are still allowed. The opt-in `figma`
