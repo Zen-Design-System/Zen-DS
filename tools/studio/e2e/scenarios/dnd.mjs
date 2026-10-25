@@ -670,13 +670,14 @@ async function autoLayoutCases(ctx) {
 }
 
 const third = Math.ceil(ITEMS.length / 3);
+// DND-07 takes about 2.5 s an item (10 items in 24 s, 2026-10-26): every item well inside its 10 minutes.
 export const rows = [
   { id: "DND-01", feature: `Assets drag, items 1–${third}: each onto an empty Screen (no frame, no Stack), before a Card, onto the Top navigation, into a Card, into a free Box, onto the board; checked in the page, across the phone, one ⌘Z each`, wp: "dnd campaign 2026-10-17", timeout: 1_800_000, run: (ctx) => campaign(ctx, ITEMS.slice(0, third), "a") },
   { id: "DND-02", feature: `Assets drag, items ${third + 1}–${2 * third}: the same places`, wp: "dnd campaign 2026-10-17", timeout: 1_800_000, run: (ctx) => campaign(ctx, ITEMS.slice(third, 2 * third), "b") },
   { id: "DND-03", feature: `Assets drag, items ${2 * third + 1}–${ITEMS.length}: the same places`, wp: "dnd campaign 2026-10-17", timeout: 1_800_000, run: (ctx) => campaign(ctx, ITEMS.slice(2 * third), "c") },
   { id: "DND-04", feature: "Canvas moves: Text, List box, Card and Box dragged to an empty Screen and to the top of the body (moved, not copied, one ⌘Z)", wp: "dnd campaign 2026-10-17", timeout: 300_000, run: moves },
   { id: "DND-06", feature: "Layers panel drags: a row onto an empty Screen's frame row goes into that Screen; onto a row's upper half goes above it (after it in the code: Layers lists the front-most first); onto a Card's row goes inside it (one ⌘Z each)", wp: "dnd campaign 2026-10-17", timeout: 300_000, run: layersMoves },
-  { id: "DND-07", feature: "Auto layout on every Assets item: dropped into an empty Frame (floats there), ⇧A (a column, item then caption, no X / Y), ⌥⇧A (a Box of its size, nothing moves on the canvas), three ⌘Z back", wp: "auto layout campaign 2026-10-17", timeout: 2_400_000, run: (ctx) => autoLayoutItems(ctx, ITEMS) },
+  { id: "DND-07", feature: "Auto layout on every Assets item: dropped into an empty Frame (floats there), ⇧A (a column, item then caption, no X / Y), ⌥⇧A (a Box of its size, nothing moves on the canvas), three ⌘Z back", wp: "auto layout campaign 2026-10-17", timeout: 600_000, run: (ctx) => autoLayoutItems(ctx, ITEMS) },
   { id: "DND-08", feature: "Auto layout cases: 3 Shapes drawn out of order in a centred row (Inspector + → row, left to right, centred; −), a painted empty Frame (canvas menu → Box > Stack), an Action bar keeps position, a row ⌥⇧A then ⇧A comes back the same, ⇧A on one Text wraps it", wp: "auto layout campaign 2026-10-17", timeout: 600_000, run: autoLayoutCases },
   { id: "DND-05", feature: "The user's story on an empty phone page: Top navigation dropped on the top becomes the Screen's bar, a List box, content past the phone; the canvas draws it whole, Play scrolls to the end with the bar in place", wp: "dnd campaign 2026-10-17", timeout: 300_000, run: story },
 ];
