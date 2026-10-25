@@ -9,6 +9,9 @@ import { validateDialect } from "./dialect.mjs";
 import { docFromText, printPage } from "./doc.mjs";
 import { figmaChanges, figmaSource, mergeFigma, sameFigmaSource } from "./figma-diff.mjs";
 import { pageFromFigma, repoMapping } from "./figma-pull.mjs";
+import { figmaPackage } from "./figma-push.mjs";
+import { withBreakpointValue } from "./responsive-props.mjs";
+import { NESTED_LAYERS } from "../../src/platform/studio/inspector/nestedLayers.generated.ts";
 
 let passed = 0;
 const failures = [];
@@ -151,6 +154,64 @@ check("ticking the conflict too gives Figma's theme", element(mergeFigma(current
   const mergedRuns = printPage(mergeFigma(JSON.parse(JSON.stringify(plainDoc)), boldDoc, runChanges).doc);
   ok("merged: the words and the run in their order", mergedRuns.includes("<Text>Renews on <TextRun bold>Nov 2</TextRun> for 3 seats</Text>"));
   check("a pull of the same runs again: no change", figmaChanges({ base: boldDoc, current: JSON.parse(JSON.stringify(boldDoc)), incoming: pageDoc(text([{ start: 10, end: 15, textStyle: "Body/Base/Bold" }])) }).changes.length, 0);
+}
+
+// F7. Per-breakpoint layout props (responsive-props.mjs; P2 of docs/research/studio-responsive-breakpoints-2026-10-26.md).
+//     Figma has no breakpoints: a phone Screen pushes its mobile values and leaves out what hides on mobile; pulled back,
+//     nothing changed; a designer's edit there changes only the mobile key, the others stay (a reset writes the prop's
+//     own default), and hideOn is the Studio's own.
+{
+  const phonePage = `// @zen-page {"format":1,"title":"Responsive"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board data-zen-id="f1">
+      <Screen id="screen-1" title="Home" device="phone" data-zen-id="f2">
+        <Stack data-zen-id="f3">
+          <Stack direction={{ desktop: "row", mobile: "column" }} gap={{ desktop: "lg", mobile: "sm" }} padding={{ desktop: "xl", mobile: "md" }} data-zen-id="f4">
+            <Text data-zen-id="f5">One</Text>
+            <Text data-zen-id="f6">Two</Text>
+          </Stack>
+          <Box hideOn={["mobile"]} data-zen-id="f7">
+            <Text data-zen-id="f8">Aside</Text>
+          </Box>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const current = docFromText(phonePage).doc;
+  const { pkg } = figmaPackage(phonePage, { mapping, nestedLayers: NESTED_LAYERS, page: { id: "responsive", title: "Responsive" } });
+  const placed = { ...pkg.frame, page: "responsive", version: "v1" };
+  const base = pageFromFigma(placed, { mapping }).doc;
+  const row = (doc) => element(doc, "f4");
+  check("responsive: the pull of the phone push holds the mobile values (gap Small, padding Medium, a column) and no hidden Box", [row(base).props.gap?.value, row(base).props.padding?.value, row(base).props.direction, Boolean(element(base, "f7"))], ["sm", "md", undefined, false]);
+  check("responsive: the frame as placed is no change, three ways and two (no base)", [figmaChanges({ base, current, incoming: base, synced: current }).changes.map((change) => change.label), figmaChanges({ current, incoming: base }).changes.map((change) => change.label)], [[], []]);
+  // The designer: the row's gap to XSmall and its padding off.
+  const edited = JSON.parse(JSON.stringify(placed));
+  const rowFrame = (function find(node) { return node.key === "f4" ? node : (node.children ?? []).map(find).find(Boolean) ?? null; })(edited);
+  Object.assign(rowFrame.layout, { gap: 8, gapVar: "Spacing/Gap/XSmall", padding: [0, 0, 0, 0], paddingVar: null });
+  const incoming = pageFromFigma(edited, { mapping }).doc;
+  const { changes: responsive } = figmaChanges({ base, current, incoming, synced: current });
+  check("responsive: Figma's edits are changes on Mobile only", responsive.map((change) => `${change.kind}${change.conflict ? "!" : ""}: ${change.label}`), [
+    "prop: Stack (2 layers) · gap on Mobile: “sm” → “xs”",
+    "prop: Stack (2 layers) · padding on Mobile: “md” → default",
+  ]);
+  const merged = printPage(mergeFigma(current, incoming, responsive).doc);
+  ok("responsive: merged, the mobile keys take Figma's values (a reset its default) and the desktop keys, direction and hideOn stay",
+    ['direction={{ desktop: "row", mobile: "column" }}', 'gap={{ desktop: "lg", mobile: "xs" }}', 'padding={{ desktop: "xl", mobile: "none" }}', 'hideOn={["mobile"]}'].every((part) => merged.includes(part)));
+  // Writing one key: the others stay; a value equal on every breakpoint collapses to a plain one; no key left, no prop.
+  const literal = (value) => ({ kind: "literal", value });
+  const object = (fields) => ({ kind: "object", fields: Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, literal(value)])) });
+  check("withBreakpointValue: one key written, the others kept, in desktop → mobile order", withBreakpointValue(object({ mobile: "column", desktop: "row" }), literal("row"), "tablet"), object({ desktop: "row", tablet: "row", mobile: "column" }));
+  check("withBreakpointValue: the same value on every breakpoint is a plain value", withBreakpointValue(object({ desktop: "row", mobile: "column" }), literal("row"), "mobile"), literal("row"));
+  check("withBreakpointValue: a reset without a default drops the key (the breakpoint takes the next wider one's)", withBreakpointValue(object({ desktop: "center", mobile: "end" }), undefined, "mobile"), literal("center"));
+  check("withBreakpointValue: a reset with a default writes it", withBreakpointValue(object({ desktop: "xl", mobile: "md" }), undefined, "mobile", "none"), object({ desktop: "xl", mobile: "none" }));
 }
 
 if (failures.length) {
