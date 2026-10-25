@@ -59,8 +59,10 @@ three toolbar Search checks stop skipping it.
   stays with the designer.
 - **Contract:** re-captured with `mcp-capture` (one chunk, `assemble.cjs`). It also brings in drift from before this
   change: the set descriptions (HTML escapes decoded) and the Action-Item count badge (2XSmall 12px → XSmall 16px,
-  Caption/Regular), which `notification-dot.css` already draws. `contracts.lock.json`: only these two sets changed.
-  73 other sets in the lock are stale on main, and nothing checks it.
+  Caption/Regular), which `notification-dot.css` already draws.
+- **Lock (Giám sát's request: fix the finding in this change):** `contracts.lock.json` had fallen behind the contracts
+  on main (58 stale sets, 15 sets missing). Regenerated with `figma-call.mjs lock`; `lock --check` passes (109 sets,
+  3339 variants). `lock --check` stays out of CI and the gate: adding it is a new check, so it needs the user's approval.
 - **Gate:** `qa --isolated --pages=dashboard-header,app-shell,side-panel` PASS (suite 64/64, Vitest 87/87, audit
   1512/390/320 0 new, dark 0, behaviour 0). I opened its 6 contact sheets: the search is 240 at 1512 and fills its row
   at 390. Merged main 7d95ef7b (#297) and removed the BACKLOG line (archived).
