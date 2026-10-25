@@ -47,6 +47,26 @@ if (fs.existsSync(baselineFile)) {
   for (const id of Object.keys(baseline)) ok(`baseline row ${id} still exists`, rowIds.has(id));
 }
 
+// compare() against the baseline (user, 2026-10-25): a new row that comes back broken fails like a regression; a new row
+// that works, a baselined-broken row, a flaky one and a row past the --budget (skip) do not.
+{
+  const { compare } = await import(pathToFileURL(path.join(here, "lib/matrix.mjs")).href);
+  const baseline = { "OLD-1": "works", "OLD-2": "broken", "OLD-3": "broken" };
+  const v = compare([
+    { id: "OLD-1", status: "broken" }, { id: "OLD-2", status: "broken" }, { id: "OLD-3", status: "works" },
+    { id: "NEW-1", status: "broken" }, { id: "NEW-2", status: "works" }, { id: "NEW-3", status: "skip", notRun: true },
+    { id: "FLAKY-1", status: "broken" },
+  ], baseline, new Set(["FLAKY-1"]));
+  const ids = (rows) => rows.map((row) => row.id).join();
+  ok("compare: a new row broken is in newBroken", ids(v.newBroken) === "NEW-1");
+  ok("compare: a new row that works is fresh, not newBroken", ids(v.fresh) === "NEW-1,NEW-2");
+  ok("compare: a baselined-broken row stays allowed", !ids(v.regressions).includes("OLD-2") && !ids(v.newBroken).includes("OLD-2"));
+  ok("compare: works → broken is still the regression", ids(v.regressions) === "OLD-1");
+  ok("compare: broken → works is fixed", ids(v.fixed) === "OLD-3");
+  ok("compare: a flaky row missing from the rows counts as baselined broken", ![...v.newBroken, ...v.fresh, ...v.fixed].some((row) => row.id === "FLAKY-1"));
+  ok("compare: a row past the --budget is never a new-row failure", ![...v.newBroken, ...v.fresh].some((row) => row.id === "NEW-3"));
+}
+
 // The run's watcher (lib/server.mjs peerIgnore, 2026-10-08): the files the harness writes and their folders are watched,
 // everything else under src/ and tools/ is not, and the rest of the tree is left to Vite's own rules.
 {

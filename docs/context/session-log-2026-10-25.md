@@ -205,3 +205,32 @@ The user published the Zen library; Studio's ⌘C → ⌘V now lands in any Figm
   "(target)", "(target 2)", "(target 3)" stay in the team for the user to delete.
 - **Not mine, noted:** the Zen plugin's ⌘V import hung once, and in a non-Zen file gave a partial frame (plugin repo); it draws no "Other"
   segment in the Expenses stacked bars where the direct paste does.
+
+## New E2E rows that break fail the gate (tier S tooling; branch zen/fix/gate-new-e2e-rows-20261025)
+
+- User decision 2026-10-25 ("Hàng E2E mới khi fail có làm fail gate luôn không?" → "có"). Before: only regressions
+  (works in the baseline → broken) failed; a broken row missing from `matrix.baseline.json` passed silently (ST-29 and
+  DA-10 on 2026-10-24).
+- `tools/studio/e2e/lib/matrix.mjs` `compare()` also returns `newBroken` (rows not in the baseline that came back
+  broken; a flaky id counts as baselined broken; skipped / not-run rows never count). The report's JSON and Markdown
+  list it.
+- `tools/studio/e2e/run.mjs`: "✗ New rows broken (not in the baseline): …" and exit 1; new rows that work are listed
+  to record with `--update-baseline`. `tools/qa/run.mjs`: the Studio E2E step fails on them through
+  `lib.mjs e2eVerdictLines` (also on its own, not only through a shard's exit code); not-run rows keep their own ✗ line.
+- The opt-in groups (`dnd`, `figma`) had no baseline rows, so this change alone made every standalone opt-in run fail
+  on any row (Giám sát's review). Recorded them, with the gate slot from Giám sát, on main 8607b803:
+  - `figma`: `--only=figma --update-baseline` 195 works, 840 s. FW-186 (Pick color) timed out in the group, as in the
+    #302 run, and goes in `flaky` ("times out inside --only=figma and passes alone"), so it is baselined broken.
+  - `dnd`: DND-01, 02, 04 work and are recorded. Five rows stay out on purpose, so a standalone `--only=dnd` fails
+    until they are fixed (Giám sát takes them to the user; not in this change):
+    - DND-03 (Assets drag, items 89–132): ✗ in the group and alone (`--only=dnd --rows=DND-03,DND-06 --no-retry`):
+      "locator.boundingBox: Timeout 10000ms exceeded".
+    - DND-06 (Layers panel drags): ✗ in the group and alone: "Box → the List box row's upper half: wrong place;
+      Text → the empty Screen's own row: no target in Layers".
+    - DND-07 (Auto layout on every Assets item): hung past its 40-min row limit (no line for 53 min); the run was
+      stopped (SIGTERM, disk restored).
+    - DND-08 and DND-05 never ran (after DND-07).
+  - That rerun printed "✗ New rows broken (not in the baseline): DND-03, DND-06" and exited 1: the new rule, live.
+  - The default gate groups had 5 new rows, 0 broken, in the last gate run (studio-chart-perf, 10:27).
+- Tests: `tools/studio/e2e/selftest.mjs` (+7 compare cases) ✓ exit 0; `npm run qa:selftest` (+5 verdict cases)
+  ✓ exit 0; `node --check` on the five .mjs files, exit 0. Merged main 8afa40cd (#303) before the push.
