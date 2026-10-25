@@ -282,14 +282,20 @@ const clipboard = (page) => page.evaluate(() => navigator.clipboard.readText());
 
 /**
  * ⌘C on FIGMA_PAGE's frame, then Figma's own clipboard as written (the html unsanitized) read back: its meta and
- * NODE_CHANGES message. The frame is selected by its label, as HO-12 does.
+ * NODE_CHANGES message. The frame is selected by its label, as HO-12 does. ⌘C writes Figma's html as written only once
+ * the frame's export is read ahead (the first copy also loads the library's definitions); until then it copies for the
+ * plugin and says "copy again for a Figma canvas", so the row copies again, as a person would.
  */
 async function copyFrameForFigma(page) {
   await importHtmlPage(page, FIGMA_PAGE, "screen:screen-1");
   await page.locator('.studio-frame-label[data-chrome-key="label:screen:screen-1"]').evaluate((element) => element.click());
-  await page.locator(".studio-viewport").focus();
-  await page.evaluate(() => navigator.clipboard.writeText("before"));
-  await page.keyboard.press(process.platform === "darwin" ? "Meta+c" : "Control+c");
+  await until(async () => {
+    await page.evaluate(() => navigator.clipboard.writeText("before"));
+    await page.locator(".studio-viewport").focus();
+    await page.keyboard.press(process.platform === "darwin" ? "Meta+c" : "Control+c");
+    await sleep(500);
+    return /Copied frame — ⌘V pastes it here, on another page you made, on a Figma canvas or in the Zen plugin/.test(await statusText(page));
+  }, { timeout: 40_000, interval: 1500, message: "⌘C with the frame's Figma export read ahead (Figma's html as written)" });
   const raw = () => page.evaluate(async () => {
     for (const item of await navigator.clipboard.read({ unsanitized: ["text/html"] })) if (item.types.includes("text/html")) return (await item.getType("text/html")).text();
     return "";
@@ -956,7 +962,7 @@ export const rows = [
   },
   {
     id: "HO-18", feature: "Copy for Figma pastes into any Figma file (the published Zen library, 2026-10-25): ⌘C writes Figma's clipboard as Figma copies from the Zen file — each published component with its key and the library's (sourceLibraryKey, publishID, version), each variable and style it binds as a node with its values and collection, refs by key — so ⌘V in a file other than Zen's lands instances of the published library", wp: "paste into other files 2026-10-25",
-    timeout: 60_000,
+    timeout: 90_000,
     async run(ctx) {
       const { page } = await ctx.studio();
       const { meta, message } = await copyFrameForFigma(page);
@@ -993,7 +999,7 @@ export const rows = [
   },
   {
     id: "HO-19", feature: "Copy for Figma carries full definitions, not skeletons (a file without the library builds each component from the paste; skeletons pasted empty, 2026-10-25): the components' own layers with their vector data and text styles, every component, swap and slot content the paste names (the Metric-Cards' Card slot contents), and a slot's unset max height as Figma's Infinity (stored as null it came back 0 and squeezed the stacked bars flat)", wp: "paste into other files 2026-10-25",
-    timeout: 60_000,
+    timeout: 90_000,
     async run(ctx) {
       const { page } = await ctx.studio();
       const { message } = await copyFrameForFigma(page);
@@ -1019,7 +1025,7 @@ export const rows = [
   },
   {
     id: "HO-20", feature: "Without the library definitions (native-defs.json.gz does not load) Copy for Figma still writes the Zen file's form (skeletons, refs by id, no library keys) beside the plugin's export: the copy does not fail, only another file's canvas cannot take it", wp: "paste into other files 2026-10-25",
-    timeout: 90_000,
+    timeout: 120_000,
     async run(ctx) {
       // A fresh Studio: the definitions load once per page, on its first copy for Figma.
       const { page } = await ctx.studio({ fresh: true });
