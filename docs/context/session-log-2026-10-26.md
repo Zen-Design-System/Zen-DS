@@ -43,3 +43,7 @@ a private Studio server (a copy of `.zen-studio/pages`).
   the task Side Panel picks; tooltip and toast in the dark layer. Present already had its own portal root.
 - E2E rows PT-27 (desktop Auto fills, iPad on the padded stage) and PT-28 (dark Table popover, toast, tooltip, a Table
   popover in a modal Side Panel picks), ids from Giám sát. tsc, studio:selftest, style:check, usage:check pass.
+- Gate (Giám sát's GO, main 9c517538 merged): rows PT-27/28 passed only on retry at first (PT-28 read the Present bar's
+  hover tooltip, from the Studio chrome; the row now reads the panel's "Close panel" tip and moves the pointer off the
+  bar), then 2/2 first try; prototype group 28/28; `npm run qa -- --isolated` PASS, Studio E2E 367 works · 0 broken
+  (report .qa/reports/2026-10-25T21-01-44-68156075.md).
