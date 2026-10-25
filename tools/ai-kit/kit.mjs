@@ -19,8 +19,14 @@ export const KIT_SOURCES = {
   skill: `${SKILL_DIR}/`,
   /** The Zen screen and component rules, copied into the skill's references. */
   rules: "docs/component-usage-rules.md",
-  /** The design principles (colour and composition, responsive and adaptive) the code skills keep, copied into the skill's references. */
-  principles: ["skills/zen-component-usage/references/design-principles.md", "skills/zen-responsive-screens/references/responsive-principles.md"],
+  /** The principles the code skills keep (colour and composition, responsive and adaptive, UX states and flows, product
+   *  patterns), copied into the skill's references. */
+  principles: [
+    "skills/zen-component-usage/references/design-principles.md",
+    "skills/zen-responsive-screens/references/responsive-principles.md",
+    "skills/zen-component-usage/references/ux-principles.md",
+    "skills/zen-component-usage/references/product-patterns.md",
+  ],
   guidelines: "docs/guidelines/",
   /** Data the generated references are written from. */
   contract: "docs/figma-contracts/component-properties.json",
