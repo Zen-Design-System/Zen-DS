@@ -261,3 +261,10 @@ row navigates, the import swap); a synced copy of `quan-ly-task` → 0 findings 
 `table/titled-box`, page content). New E2E rows PT-25 (tab bar navigates in phone Play), PT-26 (Search filters + folded
 Search action, More sheet rows, account menu).
 
+Gate (slot from Giám sát, 2026-10-26 ~02:00): PT-25/PT-26 by id first broke on the fixture (a Screen with `x` and no
+`y` does not parse), then 2 works; group prototype 26 works. `qa --isolated` (page top-navigation): every step passed
+but the Studio E2E, B-39 regressed. It was this change: the linked phone bar now holds a real `<Search>` (its control
+bar) and B-39's ⌘Z step counted every `<Search>` on the page; it now reads the header's `leading`. B-39…B-43 by id
+pass, then `qa --failed`: Studio E2E 365 works · 0 broken → **Build-QA PASS**. Mid-gate, Auto-fix started a host-side
+main merge in the worktree; aborted at once (sync abort), main merged after the run.
+
