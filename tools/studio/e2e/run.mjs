@@ -19,7 +19,8 @@
 // after the run. Any other disk change to the host page or examples/data.ts made by the harness is undone; a change
 // made meanwhile by someone else is reported, never overwritten. A run that was killed (its lock file
 // .qa/studio-e2e/.running-<pid>.json left behind, the process gone) is put right at the next start: its snapshot, else
-// git's HEAD, restores what it had written. Exit 0 = no regression, 1 = regression, 2 = safety.
+// git's HEAD, restores what it had written. Exit 0 = no regression, 1 = a regression, a new row (not in the baseline)
+// that came back broken, or a row past the --budget; 2 = safety.
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -436,8 +437,10 @@ console.log(`\n${count("works")} works · ${count("broken")} broken · ${count("
 const notRun = matrix.rows.filter((row) => row.notRun);
 if (notRun.length) console.log(`⚠ Not run (past the --budget of ${budget / 1000} s): ${notRun.length} row(s): ${notRun.map((r) => r.id).join(", ")}`);
 if (verdict.regressions.length) console.log(`✗ Regressions (worked in the baseline): ${verdict.regressions.map((r) => r.id).join(", ")}`);
+if (verdict.newBroken.length) console.log(`✗ New rows broken (not in the baseline): ${verdict.newBroken.map((r) => r.id).join(", ")}`);
 if (verdict.fixed.length) console.log(`✓ Fixed since the baseline (run with --update-baseline to record): ${verdict.fixed.map((r) => r.id).join(", ")}`);
-if (verdict.fresh.length && !has("update-baseline")) console.log(`  New rows (not in the baseline): ${verdict.fresh.map((r) => r.id).join(", ")}`);
+const newWorks = verdict.fresh.filter((row) => row.status === "works");
+if (newWorks.length && !has("update-baseline")) console.log(`  New rows that work (not in the baseline; record with --update-baseline): ${newWorks.map((r) => r.id).join(", ")}`);
 console.log(`Report: ${path.relative(root, report.md)}`);
-if (exitCode === 0 && (verdict.regressions.length || notRun.length)) exitCode = 1;
+if (exitCode === 0 && (verdict.regressions.length || verdict.newBroken.length || notRun.length)) exitCode = 1;
 process.exit(exitCode);
