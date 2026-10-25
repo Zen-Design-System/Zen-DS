@@ -15,7 +15,10 @@ edge drags stay real resizes, a desktop Screen's breakpoint follows its width) i
 
 Approved 2026-10-26 (D1–D4; no harness rule). Built the Studio half's PR 1 (P1 + P3 of the plan):
 - **Six window media queries** → the frame's breakpoint: AiChat model picker, AlertBanner Medium wrap, DatePicker
-  dual months, Pagination optional pages, modal SidePanel width now read `[data-breakpoint="mobile"]`; Dialog's and
+  dual months, Pagination optional pages, modal SidePanel width now read `[data-breakpoint="mobile"]`, with the old
+  window query kept only where no ancestor says desktop or tablet (`:not(:is([data-breakpoint="desktop"],
+  [data-breakpoint="tablet"]) *)`: the docs platform has no root breakpoint, and train CI's audit caught
+  date-picker / pagination @390 overflowing without it); Dialog's and
   ModalForm's 480 / 720 rules apply only to an uncontained overlay (one in a device frame already follows the frame
   through `@container zen-modal-frame`).
 - **The Screen's breakpoint** (`runtime.tsx`): `screenBreakpoint(device, width)` (`tools/studio/screen-devices.mjs`):

@@ -24,8 +24,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   lists what changes on the breakpoint shown; dashed placeholders add a missing Top or Bottom Navigation to the
   AppShell; Play's viewport drags from both sides with a `W × H · Mobile` tag.
 - AiChat, AlertBanner, DatePicker, Pagination and SidePanel take their phone look from the frame's breakpoint
-  (`[data-breakpoint="mobile"]`, below 744) instead of the window's width (480 or 560); Dialog and ModalForm inside a
-  device frame no longer read the window's width.
+  (`[data-breakpoint="mobile"]`, below 744); the window's width (480 or 560) counts only where no frame says desktop or
+  tablet (a page without a ZenProvider breakpoint). Dialog and ModalForm inside a device frame no longer read the
+  window's width.
 - Layout (2026-10-26): per-breakpoint props, the Grid `columns` shape — Stack `direction`, `gap`, `align`, `justify`,
   `wrap`, `padding`, `paddingX`, `paddingY`; Grid `gap`, `rowGap`, `columnGap`, `padding`; Box `padding`, `paddingX`,
   `paddingY` take `{ desktop?, tablet?, mobile? }` (a breakpoint without its own value takes the next wider one's), and
