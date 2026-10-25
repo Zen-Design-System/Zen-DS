@@ -45,7 +45,8 @@ type SpecNode = { type?: string; key?: string; fillH?: boolean; minH?: number; l
  */
 function withCanvasHeights<T extends { frame: unknown }>(pkg: T, localPage: string, frameId: string): T {
   const frame = document.querySelector<HTMLElement>(`[data-studio-frame="${CSS.escape(frameId)}"]`);
-  if (!frame?.offsetWidth) return pkg;
+  // A Screen viewed on another breakpoint (builder/screenViews.ts) has the view's heights, not its own: none are taken.
+  if (!frame?.offsetWidth || frame.hasAttribute("data-view")) return pkg;
   const scale = frame.getBoundingClientRect().width / frame.offsetWidth || 1;
   const file = pageFile(localPage);
   const heightOf = (key: string) => {

@@ -214,6 +214,9 @@ function scaleMembers(member: string): string[] | null {
 
 /** Type string → editor (string-literal unions, scales, booleans, text styles, icons, plain values). */
 export function editorFor(type: string): PropEditor {
+  // A per-breakpoint prop (Layout's Responsive<X>, _shared/responsive.ts) edits its plain value X here.
+  const responsive = /^Responsive<([\s\S]+)>$/.exec(type.trim());
+  if (responsive) return editorFor(responsive[1]);
   const members = splitUnion(type);
   if (members.some((member) => member === "keyof typeof typographyStyles" || member === "TypographyStyleName")) return { kind: "typography" };
   if (members.includes("IconName")) return members.some((member) => member === "boolean" || member === "false" || member === "true") ? { kind: "icon-toggle" } : { kind: "icon" };

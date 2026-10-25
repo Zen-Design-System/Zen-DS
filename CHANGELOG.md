@@ -17,6 +17,23 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio breakpoints (2026-10-26, PR 1 of the responsive plan): a Screen's label row switches it between Desktop ·
+  Tablet · Mobile as a view (the page OS's phone or tablet, never saved, no undo step), with More views, a typed width
+  and Make a separate Screen (`versionOf`, which Play and Open on phone show at its breakpoint). A desktop Screen's
+  breakpoint follows its width, and the Screen gives it to the components inside (`useZen().breakpoint`). The Inspector
+  lists what changes on the breakpoint shown; dashed placeholders add a missing Top or Bottom Navigation to the
+  AppShell; Play's viewport drags from both sides with a `W × H · Mobile` tag.
+- AiChat, AlertBanner, DatePicker, Pagination and SidePanel take their phone look from the frame's breakpoint
+  (`[data-breakpoint="mobile"]`, below 744); the window's width (480 or 560) counts only where no frame says desktop or
+  tablet (a page without a ZenProvider breakpoint). Dialog and ModalForm inside a device frame no longer read the
+  window's width.
+- Layout (2026-10-26): per-breakpoint props, the Grid `columns` shape — Stack `direction`, `gap`, `align`, `justify`,
+  `wrap`, `padding`, `paddingX`, `paddingY`; Grid `gap`, `rowGap`, `columnGap`, `padding`; Box `padding`, `paddingX`,
+  `paddingY` take `{ desktop?, tablet?, mobile? }` (a breakpoint without its own value takes the next wider one's), and
+  `hideOn={["mobile"]}` hides a Stack, Grid or Box there (`display: none`, still in the DOM). They resolve at the nearest
+  ZenProvider's breakpoint or a frame's `modes`; Grid `columns` now does too, so a desktop frame inside a phone page keeps
+  its desktop columns. `Responsive<T>` and `resolveAt` are exported. Zen Studio's Figma push draws a Screen's breakpoint
+  and Update from Figma changes only that breakpoint's value.
 - Zen Studio Play (2026-10-26): a desktop Screen plays full screen again (the whole window under the bar, as Present
   did), not a 1440 px card with a margin; and in a dark Play the page's Table popovers, tooltips, Chip popovers and
   toasts are dark too (they draw in Play's own portal layer, no longer in the Studio's `<body>`).

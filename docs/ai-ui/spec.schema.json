@@ -7110,104 +7110,392 @@
                 ],
                 "description": "The frame's own variable modes, one per ZenProvider axis: `{ theme: \"dark\" }` draws a dark card on a light page, `{ density: \"comfortable\", breakpoint: \"mobile\" }` a phone-sized bl"
               },
+              "hideOn": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "desktop",
+                        "tablet",
+                        "mobile"
+                      ]
+                    }
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Hides the frame at these breakpoints (`display: none`; it stays in the DOM, so Studio still lists it): `hideOn={[\"mobile\"]}` drops a side panel on phones."
+              },
               "padding": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "none",
-                      "3xs",
-                      "2xs",
-                      "xs",
-                      "sm",
-                      "md",
-                      "lg",
-                      "xl",
-                      "2xl",
-                      "3xl",
-                      "3xsmall",
-                      "2xsmall",
-                      "xsmall",
-                      "small",
-                      "medium",
-                      "large",
-                      "xlarge",
-                      "2xlarge",
-                      "3xlarge",
-                      "4xl",
-                      "margin-comfortable",
-                      "margin-compact"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "none",
+                          "3xs",
+                          "2xs",
+                          "xs",
+                          "sm",
+                          "md",
+                          "lg",
+                          "xl",
+                          "2xl",
+                          "3xl",
+                          "3xsmall",
+                          "2xsmall",
+                          "xsmall",
+                          "small",
+                          "medium",
+                          "large",
+                          "xlarge",
+                          "2xlarge",
+                          "3xlarge",
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          },
+                          "tablet": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          },
+                          "mobile": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
-                ]
+                ],
+                "description": "Space inside the box (Figma Spacing/Padding)."
               },
               "paddingX": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "none",
-                      "3xs",
-                      "2xs",
-                      "xs",
-                      "sm",
-                      "md",
-                      "lg",
-                      "xl",
-                      "2xl",
-                      "3xl",
-                      "3xsmall",
-                      "2xsmall",
-                      "xsmall",
-                      "small",
-                      "medium",
-                      "large",
-                      "xlarge",
-                      "2xlarge",
-                      "3xlarge",
-                      "4xl",
-                      "margin-comfortable",
-                      "margin-compact"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "none",
+                          "3xs",
+                          "2xs",
+                          "xs",
+                          "sm",
+                          "md",
+                          "lg",
+                          "xl",
+                          "2xl",
+                          "3xl",
+                          "3xsmall",
+                          "2xsmall",
+                          "xsmall",
+                          "small",
+                          "medium",
+                          "large",
+                          "xlarge",
+                          "2xlarge",
+                          "3xlarge",
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          },
+                          "tablet": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          },
+                          "mobile": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
-                ]
+                ],
+                "description": "Horizontal padding (overrides `padding` on the sides)."
               },
               "paddingY": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "none",
-                      "3xs",
-                      "2xs",
-                      "xs",
-                      "sm",
-                      "md",
-                      "lg",
-                      "xl",
-                      "2xl",
-                      "3xl",
-                      "3xsmall",
-                      "2xsmall",
-                      "xsmall",
-                      "small",
-                      "medium",
-                      "large",
-                      "xlarge",
-                      "2xlarge",
-                      "3xlarge",
-                      "4xl",
-                      "margin-comfortable",
-                      "margin-compact"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "none",
+                          "3xs",
+                          "2xs",
+                          "xs",
+                          "sm",
+                          "md",
+                          "lg",
+                          "xl",
+                          "2xl",
+                          "3xl",
+                          "3xsmall",
+                          "2xsmall",
+                          "xsmall",
+                          "small",
+                          "medium",
+                          "large",
+                          "xlarge",
+                          "2xlarge",
+                          "3xlarge",
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          },
+                          "tablet": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          },
+                          "mobile": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
-                ]
+                ],
+                "description": "Vertical padding (overrides `padding` top and bottom)."
               },
               "scroll": {
                 "anyOf": [
@@ -20990,24 +21278,70 @@
                 ],
                 "description": "The frame's own variable modes, one per ZenProvider axis: `{ theme: \"dark\" }` draws a dark card on a light page, `{ density: \"comfortable\", breakpoint: \"mobile\" }` a phone-sized bl"
               },
+              "hideOn": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "desktop",
+                        "tablet",
+                        "mobile"
+                      ]
+                    }
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Hides the frame at these breakpoints (`display: none`; it stays in the DOM, so Studio still lists it): `hideOn={[\"mobile\"]}` drops a side panel on phones."
+              },
               "columns": {
                 "anyOf": [
                   {
                     "anyOf": [
                       {
-                        "$ref": "#/$defs/GridTracks"
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
                       },
                       {
                         "type": "object",
                         "properties": {
-                          "mobile": {
-                            "$ref": "#/$defs/GridTracks"
+                          "desktop": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "string"
+                              }
+                            ]
                           },
                           "tablet": {
-                            "$ref": "#/$defs/GridTracks"
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "string"
+                              }
+                            ]
                           },
-                          "desktop": {
-                            "$ref": "#/$defs/GridTracks"
+                          "mobile": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "string"
+                              }
+                            ]
                           }
                         },
                         "required": [],
@@ -21019,7 +21353,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Fixed column count, or per breakpoint (`{ mobile: 1, tablet: 2, desktop: 3 }`, following ZenProvider's breakpoint)."
+                "description": "Fixed column count, or per breakpoint (`{ mobile: 1, tablet: 2, desktop: 3 }`, following ZenProvider's or a frame's `modes` breakpoint; a breakpoint without its own value takes the"
               },
               "minColumnWidth": {
                 "anyOf": [
@@ -21042,29 +21376,118 @@
               "gap": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "none",
-                      "3xs",
-                      "2xs",
-                      "xs",
-                      "sm",
-                      "md",
-                      "lg",
-                      "xl",
-                      "2xl",
-                      "3xl",
-                      "3xsmall",
-                      "2xsmall",
-                      "xsmall",
-                      "small",
-                      "medium",
-                      "large",
-                      "xlarge",
-                      "2xlarge",
-                      "3xlarge",
-                      "giant",
-                      "xgiant",
-                      "2xgiant"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "none",
+                          "3xs",
+                          "2xs",
+                          "xs",
+                          "sm",
+                          "md",
+                          "lg",
+                          "xl",
+                          "2xl",
+                          "3xl",
+                          "3xsmall",
+                          "2xsmall",
+                          "xsmall",
+                          "small",
+                          "medium",
+                          "large",
+                          "xlarge",
+                          "2xlarge",
+                          "3xlarge",
+                          "giant",
+                          "xgiant",
+                          "2xgiant"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "giant",
+                              "xgiant",
+                              "2xgiant"
+                            ]
+                          },
+                          "tablet": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "giant",
+                              "xgiant",
+                              "2xgiant"
+                            ]
+                          },
+                          "mobile": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "giant",
+                              "xgiant",
+                              "2xgiant"
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
                     ]
                   },
                   {
@@ -21076,68 +21499,248 @@
               "rowGap": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "none",
-                      "3xs",
-                      "2xs",
-                      "xs",
-                      "sm",
-                      "md",
-                      "lg",
-                      "xl",
-                      "2xl",
-                      "3xl",
-                      "3xsmall",
-                      "2xsmall",
-                      "xsmall",
-                      "small",
-                      "medium",
-                      "large",
-                      "xlarge",
-                      "2xlarge",
-                      "3xlarge",
-                      "giant",
-                      "xgiant",
-                      "2xgiant"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "none",
+                          "3xs",
+                          "2xs",
+                          "xs",
+                          "sm",
+                          "md",
+                          "lg",
+                          "xl",
+                          "2xl",
+                          "3xl",
+                          "3xsmall",
+                          "2xsmall",
+                          "xsmall",
+                          "small",
+                          "medium",
+                          "large",
+                          "xlarge",
+                          "2xlarge",
+                          "3xlarge",
+                          "giant",
+                          "xgiant",
+                          "2xgiant"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "giant",
+                              "xgiant",
+                              "2xgiant"
+                            ]
+                          },
+                          "tablet": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "giant",
+                              "xgiant",
+                              "2xgiant"
+                            ]
+                          },
+                          "mobile": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "giant",
+                              "xgiant",
+                              "2xgiant"
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
-                ]
+                ],
+                "description": "Space between rows (overrides `gap` vertically)."
               },
               "columnGap": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "none",
-                      "3xs",
-                      "2xs",
-                      "xs",
-                      "sm",
-                      "md",
-                      "lg",
-                      "xl",
-                      "2xl",
-                      "3xl",
-                      "3xsmall",
-                      "2xsmall",
-                      "xsmall",
-                      "small",
-                      "medium",
-                      "large",
-                      "xlarge",
-                      "2xlarge",
-                      "3xlarge",
-                      "giant",
-                      "xgiant",
-                      "2xgiant"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "none",
+                          "3xs",
+                          "2xs",
+                          "xs",
+                          "sm",
+                          "md",
+                          "lg",
+                          "xl",
+                          "2xl",
+                          "3xl",
+                          "3xsmall",
+                          "2xsmall",
+                          "xsmall",
+                          "small",
+                          "medium",
+                          "large",
+                          "xlarge",
+                          "2xlarge",
+                          "3xlarge",
+                          "giant",
+                          "xgiant",
+                          "2xgiant"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "giant",
+                              "xgiant",
+                              "2xgiant"
+                            ]
+                          },
+                          "tablet": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "giant",
+                              "xgiant",
+                              "2xgiant"
+                            ]
+                          },
+                          "mobile": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "giant",
+                              "xgiant",
+                              "2xgiant"
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
-                ]
+                ],
+                "description": "Space between columns (overrides `gap` sideways)."
               },
               "align": {
                 "anyOf": [
@@ -21169,35 +21772,125 @@
               "padding": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "none",
-                      "3xs",
-                      "2xs",
-                      "xs",
-                      "sm",
-                      "md",
-                      "lg",
-                      "xl",
-                      "2xl",
-                      "3xl",
-                      "3xsmall",
-                      "2xsmall",
-                      "xsmall",
-                      "small",
-                      "medium",
-                      "large",
-                      "xlarge",
-                      "2xlarge",
-                      "3xlarge",
-                      "4xl",
-                      "margin-comfortable",
-                      "margin-compact"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "none",
+                          "3xs",
+                          "2xs",
+                          "xs",
+                          "sm",
+                          "md",
+                          "lg",
+                          "xl",
+                          "2xl",
+                          "3xl",
+                          "3xsmall",
+                          "2xsmall",
+                          "xsmall",
+                          "small",
+                          "medium",
+                          "large",
+                          "xlarge",
+                          "2xlarge",
+                          "3xlarge",
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          },
+                          "tablet": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          },
+                          "mobile": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
                     ]
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
-                ]
+                ],
+                "description": "Space inside the grid (Figma Spacing/Padding)."
               },
               "as": {
                 "anyOf": [
@@ -39496,12 +40189,59 @@
                 ],
                 "description": "The frame's own variable modes, one per ZenProvider axis: `{ theme: \"dark\" }` draws a dark card on a light page, `{ density: \"comfortable\", breakpoint: \"mobile\" }` a phone-sized bl"
               },
+              "hideOn": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "enum": [
+                        "desktop",
+                        "tablet",
+                        "mobile"
+                      ]
+                    }
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Hides the frame at these breakpoints (`display: none`; it stays in the DOM, so Studio still lists it): `hideOn={[\"mobile\"]}` drops a side panel on phones."
+              },
               "direction": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "column",
-                      "row"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "column",
+                          "row"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "enum": [
+                              "column",
+                              "row"
+                            ]
+                          },
+                          "tablet": {
+                            "enum": [
+                              "column",
+                              "row"
+                            ]
+                          },
+                          "mobile": {
+                            "enum": [
+                              "column",
+                              "row"
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
                     ]
                   },
                   {
@@ -39513,29 +40253,118 @@
               "gap": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "none",
-                      "3xs",
-                      "2xs",
-                      "xs",
-                      "sm",
-                      "md",
-                      "lg",
-                      "xl",
-                      "2xl",
-                      "3xl",
-                      "3xsmall",
-                      "2xsmall",
-                      "xsmall",
-                      "small",
-                      "medium",
-                      "large",
-                      "xlarge",
-                      "2xlarge",
-                      "3xlarge",
-                      "giant",
-                      "xgiant",
-                      "2xgiant"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "none",
+                          "3xs",
+                          "2xs",
+                          "xs",
+                          "sm",
+                          "md",
+                          "lg",
+                          "xl",
+                          "2xl",
+                          "3xl",
+                          "3xsmall",
+                          "2xsmall",
+                          "xsmall",
+                          "small",
+                          "medium",
+                          "large",
+                          "xlarge",
+                          "2xlarge",
+                          "3xlarge",
+                          "giant",
+                          "xgiant",
+                          "2xgiant"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "giant",
+                              "xgiant",
+                              "2xgiant"
+                            ]
+                          },
+                          "tablet": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "giant",
+                              "xgiant",
+                              "2xgiant"
+                            ]
+                          },
+                          "mobile": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "giant",
+                              "xgiant",
+                              "2xgiant"
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
                     ]
                   },
                   {
@@ -39547,12 +40376,50 @@
               "align": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "start",
-                      "center",
-                      "end",
-                      "stretch",
-                      "baseline"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "start",
+                          "center",
+                          "end",
+                          "stretch",
+                          "baseline"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "enum": [
+                              "start",
+                              "center",
+                              "end",
+                              "stretch",
+                              "baseline"
+                            ]
+                          },
+                          "tablet": {
+                            "enum": [
+                              "start",
+                              "center",
+                              "end",
+                              "stretch",
+                              "baseline"
+                            ]
+                          },
+                          "mobile": {
+                            "enum": [
+                              "start",
+                              "center",
+                              "end",
+                              "stretch",
+                              "baseline"
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
                     ]
                   },
                   {
@@ -39564,12 +40431,50 @@
               "justify": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "start",
-                      "center",
-                      "end",
-                      "between",
-                      "around"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "start",
+                          "center",
+                          "end",
+                          "between",
+                          "around"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "enum": [
+                              "start",
+                              "center",
+                              "end",
+                              "between",
+                              "around"
+                            ]
+                          },
+                          "tablet": {
+                            "enum": [
+                              "start",
+                              "center",
+                              "end",
+                              "between",
+                              "around"
+                            ]
+                          },
+                          "mobile": {
+                            "enum": [
+                              "start",
+                              "center",
+                              "end",
+                              "between",
+                              "around"
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
                     ]
                   },
                   {
@@ -39581,7 +40486,27 @@
               "wrap": {
                 "anyOf": [
                   {
-                    "type": "boolean"
+                    "anyOf": [
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "type": "boolean"
+                          },
+                          "tablet": {
+                            "type": "boolean"
+                          },
+                          "mobile": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
                   },
                   {
                     "$ref": "#/$defs/marker"
@@ -39628,29 +40553,118 @@
               "padding": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "none",
-                      "3xs",
-                      "2xs",
-                      "xs",
-                      "sm",
-                      "md",
-                      "lg",
-                      "xl",
-                      "2xl",
-                      "3xl",
-                      "3xsmall",
-                      "2xsmall",
-                      "xsmall",
-                      "small",
-                      "medium",
-                      "large",
-                      "xlarge",
-                      "2xlarge",
-                      "3xlarge",
-                      "4xl",
-                      "margin-comfortable",
-                      "margin-compact"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "none",
+                          "3xs",
+                          "2xs",
+                          "xs",
+                          "sm",
+                          "md",
+                          "lg",
+                          "xl",
+                          "2xl",
+                          "3xl",
+                          "3xsmall",
+                          "2xsmall",
+                          "xsmall",
+                          "small",
+                          "medium",
+                          "large",
+                          "xlarge",
+                          "2xlarge",
+                          "3xlarge",
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          },
+                          "tablet": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          },
+                          "mobile": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
                     ]
                   },
                   {
@@ -39662,29 +40676,118 @@
               "paddingX": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "none",
-                      "3xs",
-                      "2xs",
-                      "xs",
-                      "sm",
-                      "md",
-                      "lg",
-                      "xl",
-                      "2xl",
-                      "3xl",
-                      "3xsmall",
-                      "2xsmall",
-                      "xsmall",
-                      "small",
-                      "medium",
-                      "large",
-                      "xlarge",
-                      "2xlarge",
-                      "3xlarge",
-                      "4xl",
-                      "margin-comfortable",
-                      "margin-compact"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "none",
+                          "3xs",
+                          "2xs",
+                          "xs",
+                          "sm",
+                          "md",
+                          "lg",
+                          "xl",
+                          "2xl",
+                          "3xl",
+                          "3xsmall",
+                          "2xsmall",
+                          "xsmall",
+                          "small",
+                          "medium",
+                          "large",
+                          "xlarge",
+                          "2xlarge",
+                          "3xlarge",
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          },
+                          "tablet": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          },
+                          "mobile": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
                     ]
                   },
                   {
@@ -39696,29 +40799,118 @@
               "paddingY": {
                 "anyOf": [
                   {
-                    "enum": [
-                      "none",
-                      "3xs",
-                      "2xs",
-                      "xs",
-                      "sm",
-                      "md",
-                      "lg",
-                      "xl",
-                      "2xl",
-                      "3xl",
-                      "3xsmall",
-                      "2xsmall",
-                      "xsmall",
-                      "small",
-                      "medium",
-                      "large",
-                      "xlarge",
-                      "2xlarge",
-                      "3xlarge",
-                      "4xl",
-                      "margin-comfortable",
-                      "margin-compact"
+                    "anyOf": [
+                      {
+                        "enum": [
+                          "none",
+                          "3xs",
+                          "2xs",
+                          "xs",
+                          "sm",
+                          "md",
+                          "lg",
+                          "xl",
+                          "2xl",
+                          "3xl",
+                          "3xsmall",
+                          "2xsmall",
+                          "xsmall",
+                          "small",
+                          "medium",
+                          "large",
+                          "xlarge",
+                          "2xlarge",
+                          "3xlarge",
+                          "4xl",
+                          "margin-comfortable",
+                          "margin-compact"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          },
+                          "tablet": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          },
+                          "mobile": {
+                            "enum": [
+                              "none",
+                              "3xs",
+                              "2xs",
+                              "xs",
+                              "sm",
+                              "md",
+                              "lg",
+                              "xl",
+                              "2xl",
+                              "3xl",
+                              "3xsmall",
+                              "2xsmall",
+                              "xsmall",
+                              "small",
+                              "medium",
+                              "large",
+                              "xlarge",
+                              "2xlarge",
+                              "3xlarge",
+                              "4xl",
+                              "margin-comfortable",
+                              "margin-compact"
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
                     ]
                   },
                   {
@@ -47798,16 +48990,6 @@
         "at"
       ],
       "additionalProperties": false
-    },
-    "GridTracks": {
-      "anyOf": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "string"
-        }
-      ]
     },
     "InputLeadingTrailingOption": {
       "type": "object",

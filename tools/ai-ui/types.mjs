@@ -271,6 +271,13 @@ function memberSchema(member, ctx) {
     if (base?.enum && other?.enum) return { enum: base.enum.filter((value) => (exclude[1] === "Exclude") !== other.enum.includes(value)) };
     return base;
   }
+  // A per-breakpoint prop (Layout's Responsive<X>, src/components/_shared/responsive.ts): X, or X per breakpoint.
+  const responsive = /^Responsive<([\s\S]+)>$/.exec(text);
+  if (responsive) {
+    const value = typeSchema(responsive[1], ctx);
+    if (value === null) return null;
+    return { anyOf: [value, { type: "object", properties: { desktop: value, tablet: value, mobile: value }, required: [], additionalProperties: false }] };
+  }
   const generic = /^([A-Z]\w*)<.*>$/.exec(text);
   const name = generic ? generic[1] : /^[A-Z]\w*$/.test(text) ? text : null;
   if (name) return namedSchema(name, ctx);

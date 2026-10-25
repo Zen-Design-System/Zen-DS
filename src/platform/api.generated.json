@@ -19127,7 +19127,7 @@
   "layout": [
     {
       "name": "Stack",
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps",
       "props": [
         {
           "name": "width",
@@ -19426,43 +19426,51 @@
           "deprecated": null
         },
         {
+          "name": "hideOn",
+          "type": "ResponsiveBreakpoint[]",
+          "required": false,
+          "default": null,
+          "description": "Hides the frame at these breakpoints (`display: none`; it stays in the DOM, so Studio still lists it):\n`hideOn={[\"mobile\"]}` drops a side panel on phones. The breakpoint is the nearest ZenProvider's or a frame's\n`modes`. Keep it visible on at least one breakpoint; a part that differs across breakpoints is better a responsive\nprop (`direction`, `columns`) than two copies hidden in turn.",
+          "deprecated": null
+        },
+        {
           "name": "direction",
-          "type": "\"column\" | \"row\"",
+          "type": "Responsive<\"column\" | \"row\">",
           "required": false,
           "default": "\"column\"",
-          "description": "column (default) stacks top to bottom; row lays items side by side.",
+          "description": "column (default) stacks top to bottom; row lays items side by side. Per breakpoint too: `{ desktop: \"row\", mobile:\n\"column\" }` puts a row's items under each other on phones (a breakpoint without its own value takes the next wider\none's).",
           "deprecated": null
         },
         {
           "name": "gap",
-          "type": "\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\"",
+          "type": "Responsive<\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\">",
           "required": false,
           "default": "\"md\"",
-          "description": "Space between items (Figma Spacing/Gap). Default md (16px).",
+          "description": "Space between items (Figma Spacing/Gap). Default md (16px). Per breakpoint too: `{ desktop: \"lg\", mobile: \"md\" }`.",
           "deprecated": null
         },
         {
           "name": "align",
-          "type": "\"start\" | \"center\" | \"end\" | \"stretch\" | \"baseline\"",
+          "type": "Responsive<\"start\" | \"center\" | \"end\" | \"stretch\" | \"baseline\">",
           "required": false,
           "default": null,
-          "description": "Cross-axis alignment. Default: rows center their items; columns stretch fields, cards and lists to the full width\nwhile buttons, chips, badges, tags and avatars keep their own width (pass `align=\"stretch\"` to stretch those too,\ne.g. full-width buttons in a mobile footer).",
+          "description": "Cross-axis alignment. Default: rows center their items; columns stretch fields, cards and lists to the full width\nwhile buttons, chips, badges, tags and avatars keep their own width (pass `align=\"stretch\"` to stretch those too,\ne.g. full-width buttons in a mobile footer). Per breakpoint too: `{ desktop: \"center\", mobile: \"stretch\" }`.",
           "deprecated": null
         },
         {
           "name": "justify",
-          "type": "\"start\" | \"center\" | \"end\" | \"between\" | \"around\"",
+          "type": "Responsive<\"start\" | \"center\" | \"end\" | \"between\" | \"around\">",
           "required": false,
           "default": null,
-          "description": "Main-axis distribution. `between` pushes the first and last items to the edges.",
+          "description": "Main-axis distribution. `between` pushes the first and last items to the edges. Per breakpoint too: `{ desktop: \"between\", mobile: \"start\" }`.",
           "deprecated": null
         },
         {
           "name": "wrap",
-          "type": "boolean",
+          "type": "Responsive<boolean>",
           "required": false,
           "default": "false",
-          "description": "Let row items wrap onto new lines.",
+          "description": "Let row items wrap onto new lines. Per breakpoint too: `{ desktop: false, tablet: true }`.",
           "deprecated": null
         },
         {
@@ -19491,26 +19499,26 @@
         },
         {
           "name": "padding",
-          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
+          "type": "Responsive<\"none\" | ZenScaleInput | \"4xl\" | ZenMargin>",
           "required": false,
           "default": null,
-          "description": "Space inside the stack (Figma Spacing/Padding), or a page margin that follows the breakpoint (`margin-comfortable`: 24, 20 on a phone; `margin-compact`: 20, 16 on a phone).",
+          "description": "Space inside the stack (Figma Spacing/Padding), or a page margin that follows the breakpoint (`margin-comfortable`:\n24, 20 on a phone; `margin-compact`: 20, 16 on a phone). Per breakpoint too: `{ desktop: \"xl\", mobile: \"md\" }`.",
           "deprecated": null
         },
         {
           "name": "paddingX",
-          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
+          "type": "Responsive<\"none\" | ZenScaleInput | \"4xl\" | ZenMargin>",
           "required": false,
           "default": null,
-          "description": "Horizontal padding (overrides `padding` on the sides).",
+          "description": "Horizontal padding (overrides `padding` on the sides). Per breakpoint too, as `padding`.",
           "deprecated": null
         },
         {
           "name": "paddingY",
-          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
+          "type": "Responsive<\"none\" | ZenScaleInput | \"4xl\" | ZenMargin>",
           "required": false,
           "default": null,
-          "description": "Vertical padding (overrides `padding` top and bottom), e.g. page content inside a Container that already has side margins.",
+          "description": "Vertical padding (overrides `padding` top and bottom), e.g. page content inside a Container that already has side margins. Per breakpoint too, as `padding`.",
           "deprecated": null
         },
         {
@@ -19541,7 +19549,7 @@
     },
     {
       "name": "Grid",
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps",
       "props": [
         {
           "name": "width",
@@ -19840,11 +19848,19 @@
           "deprecated": null
         },
         {
-          "name": "columns",
-          "type": "GridTracks | { mobile?: GridTracks; tablet?: GridTracks; desktop?: GridTracks }",
+          "name": "hideOn",
+          "type": "ResponsiveBreakpoint[]",
           "required": false,
           "default": null,
-          "description": "Fixed column count, or per breakpoint (`{ mobile: 1, tablet: 2, desktop: 3 }`, following ZenProvider's\nbreakpoint). A string is a track list for unequal columns: `{ mobile: 1, desktop: \"2fr 1fr\" }` puts a main column\nnext to an aside. Omit it to fit as many `minColumnWidth` columns as the width allows.",
+          "description": "Hides the frame at these breakpoints (`display: none`; it stays in the DOM, so Studio still lists it):\n`hideOn={[\"mobile\"]}` drops a side panel on phones. The breakpoint is the nearest ZenProvider's or a frame's\n`modes`. Keep it visible on at least one breakpoint; a part that differs across breakpoints is better a responsive\nprop (`direction`, `columns`) than two copies hidden in turn.",
+          "deprecated": null
+        },
+        {
+          "name": "columns",
+          "type": "Responsive<number | string>",
+          "required": false,
+          "default": null,
+          "description": "Fixed column count, or per breakpoint (`{ mobile: 1, tablet: 2, desktop: 3 }`, following ZenProvider's or a\nframe's `modes` breakpoint; a breakpoint without its own value takes the next wider one's). A string is a track list for unequal columns: `{ mobile: 1, desktop: \"2fr 1fr\" }` puts a main column\nnext to an aside. Omit it to fit as many `minColumnWidth` columns as the width allows.",
           "deprecated": null
         },
         {
@@ -19857,26 +19873,26 @@
         },
         {
           "name": "gap",
-          "type": "\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\"",
+          "type": "Responsive<\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\">",
           "required": false,
           "default": "\"md\"",
-          "description": "Space between cells. Default md (16px).",
+          "description": "Space between cells. Default md (16px). Per breakpoint too: `{ desktop: \"lg\", mobile: \"md\" }`.",
           "deprecated": null
         },
         {
           "name": "rowGap",
-          "type": "\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\"",
+          "type": "Responsive<\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\">",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Space between rows (overrides `gap` vertically). Per breakpoint too, as `gap`.",
           "deprecated": null
         },
         {
           "name": "columnGap",
-          "type": "\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\"",
+          "type": "Responsive<\"none\" | ZenScaleInput | \"giant\" | \"xgiant\" | \"2xgiant\">",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Space between columns (overrides `gap` sideways). Per breakpoint too, as `gap`.",
           "deprecated": null
         },
         {
@@ -19897,10 +19913,10 @@
         },
         {
           "name": "padding",
-          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
+          "type": "Responsive<\"none\" | ZenScaleInput | \"4xl\" | ZenMargin>",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Space inside the grid (Figma Spacing/Padding). Per breakpoint too: `{ desktop: \"xl\", mobile: \"md\" }`.",
           "deprecated": null
         },
         {
@@ -19939,7 +19955,7 @@
     },
     {
       "name": "Box",
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps, FrameModeProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps, FrameModeProps, FrameHideOnProps",
       "props": [
         {
           "name": "width",
@@ -20246,27 +20262,35 @@
           "deprecated": null
         },
         {
-          "name": "padding",
-          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
+          "name": "hideOn",
+          "type": "ResponsiveBreakpoint[]",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Hides the frame at these breakpoints (`display: none`; it stays in the DOM, so Studio still lists it):\n`hideOn={[\"mobile\"]}` drops a side panel on phones. The breakpoint is the nearest ZenProvider's or a frame's\n`modes`. Keep it visible on at least one breakpoint; a part that differs across breakpoints is better a responsive\nprop (`direction`, `columns`) than two copies hidden in turn.",
+          "deprecated": null
+        },
+        {
+          "name": "padding",
+          "type": "Responsive<\"none\" | ZenScaleInput | \"4xl\" | ZenMargin>",
+          "required": false,
+          "default": null,
+          "description": "Space inside the box (Figma Spacing/Padding). Per breakpoint too: `{ desktop: \"xl\", mobile: \"md\" }`.",
           "deprecated": null
         },
         {
           "name": "paddingX",
-          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
+          "type": "Responsive<\"none\" | ZenScaleInput | \"4xl\" | ZenMargin>",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Horizontal padding (overrides `padding` on the sides). Per breakpoint too, as `padding`.",
           "deprecated": null
         },
         {
           "name": "paddingY",
-          "type": "\"none\" | ZenScaleInput | \"4xl\" | ZenMargin",
+          "type": "Responsive<\"none\" | ZenScaleInput | \"4xl\" | ZenMargin>",
           "required": false,
           "default": null,
-          "description": "",
+          "description": "Vertical padding (overrides `padding` top and bottom). Per breakpoint too, as `padding`.",
           "deprecated": null
         },
         {

@@ -29,3 +29,16 @@ export type FramePreset = { id: string; label: string; width: number; height: nu
 export type FramePresetGroup = { id: string; label: string; icon: string; presets: ReadonlyArray<FramePreset> };
 export const FRAME_PRESET_GROUPS: ReadonlyArray<FramePresetGroup>;
 export function framePreset(id: string): FramePreset | undefined;
+
+export type ZenBreakpointKey = "desktop" | "tablet" | "mobile";
+export const BREAKPOINTS: ReadonlyArray<ZenBreakpointKey>;
+export const BREAKPOINT_LABELS: Readonly<Record<ZenBreakpointKey, string>>;
+export const BREAKPOINT_ICONS: Readonly<Record<ZenBreakpointKey, string>>;
+export const BREAKPOINT_MIN: Readonly<Record<ZenBreakpointKey, number>>;
+export function breakpointOfWidth(width: number): ZenBreakpointKey;
+export function screenBreakpoint(device: string | undefined, width: unknown): ZenBreakpointKey;
+export function breakpointDevice(breakpoint: ZenBreakpointKey, os?: "ios" | "android"): ScreenDevice | undefined;
+export function widthDevice(width: number, height: number): ScreenDevice;
+/** A Screen's view: a device's id (screenDevice), or "width" with a typed width. */
+export type ScreenView = { device: string; width: number };
+export function viewDevice(view: ScreenView | null | undefined, height?: number): ScreenDevice | undefined;

@@ -2,12 +2,17 @@
 .zen-pagination { display: inline-flex; max-width: 100%; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-small, 12px) var(--zen-spacing-gap-medium, 16px); }
 /* Numbered themes never wrap: on phones the optional pages fold away instead (1 … 5 … 12), so the row stays one line. */
 .zen-pagination:is([data-tone="primary"], [data-tone="secondary"]) { flex-wrap: nowrap; }
+/* A phone: a frame on the mobile breakpoint (ZenProvider's, a Studio Screen's), else a narrow window where no frame says
+   desktop or tablet (a page without a ZenProvider breakpoint). */
+[data-breakpoint="mobile"] .zen-pagination__item[data-optional="true"] { display: none; }
+/* Phones also tighten the row so Comfortable density (40px items) still fits one line: the arrows sit 4px from the
+   pages and the "…" gaps take the XSmall item width. */
+[data-breakpoint="mobile"] .zen-pagination:is([data-tone="primary"], [data-tone="secondary"]) { column-gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+[data-breakpoint="mobile"] .zen-pagination:is([data-tone="primary"], [data-tone="secondary"]) span.zen-pagination__item { min-width: var(--zen-select-item-size-small, 24px); }
 @media (max-width: 480px) {
-  .zen-pagination__item[data-optional="true"] { display: none; }
-  /* Phones also tighten the row so Comfortable density (40px items) still fits one line: the arrows sit 4px from the
-     pages and the "…" gaps take the XSmall item width. */
-  .zen-pagination:is([data-tone="primary"], [data-tone="secondary"]) { column-gap: var(--zen-spacing-gap-2-xsmall, 4px); }
-  .zen-pagination:is([data-tone="primary"], [data-tone="secondary"]) span.zen-pagination__item { min-width: var(--zen-select-item-size-small, 24px); }
+  .zen-pagination__item[data-optional="true"]:not(:is([data-breakpoint="desktop"], [data-breakpoint="tablet"]) *) { display: none; }
+  .zen-pagination:is([data-tone="primary"], [data-tone="secondary"]):not(:is([data-breakpoint="desktop"], [data-breakpoint="tablet"]) *) { column-gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+  .zen-pagination:is([data-tone="primary"], [data-tone="secondary"]):not(:is([data-breakpoint="desktop"], [data-breakpoint="tablet"]) *) span.zen-pagination__item { min-width: var(--zen-select-item-size-small, 24px); }
 }
 .zen-pagination__pages { display: flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-pagination__navigator { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }

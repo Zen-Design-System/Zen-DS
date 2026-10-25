@@ -10,6 +10,7 @@ import { assetBlob, assetOfUrl, loadUploads } from "../assets/uploads";
 import { MEDIA_FILES, mediaSrc } from "../library/media";
 import { PageOsContext, pageOsOf, ProtoContext, type PageDevice, type ProtoActions } from "../proto/runtime";
 import { frameOf, literalOf, type PageFrame } from "../render/frames";
+import { screenBreakpoint } from "../../../../../tools/studio/screen-devices.mjs";
 import { componentsOf, renderFrame, type PageNode, type PageTree } from "../render/renderPage";
 import { pageKey, studioStore } from "../../store";
 import { designNames, guidelineNotes, handoffMarkdown, type FocusStop, type GuidelineNotes, type HandoffFrame } from "./handoff";
@@ -117,6 +118,8 @@ export function exportCopy(root: HTMLElement, mapUrl: (url: string) => string): 
   const copy = root.cloneNode(true) as HTMLElement;
   syncFields(root, copy);
   for (const anchor of copy.querySelectorAll("template[data-zen-overlay-anchor]")) anchor.remove();
+  // The canvas's "Add Top / Bottom Navigation" (runtime.tsx PartPlaceholder) is the Studio's, never the design's.
+  for (const placeholder of copy.querySelectorAll("[data-studio-placeholder]")) placeholder.remove();
   for (const element of [copy, ...copy.querySelectorAll("*")]) {
     for (const name of element.getAttributeNames()) if (STUDIO_ATTRIBUTE.test(name)) element.removeAttribute(name);
     for (const [from, to] of Object.entries(RENAMED_CLASS)) if (element.classList.contains(from)) element.classList.replace(from, to);
@@ -293,7 +296,6 @@ function fileOf(node: PageNode): string {
   return `screens/${slug(literalOf(node, "id"))}${typeof state === "string" ? `.${slug(state)}` : ""}.html`;
 }
 
-const BREAKPOINT: Record<PageDevice, "mobile" | "tablet" | "desktop"> = { phone: "mobile", tablet: "tablet", desktop: "desktop" };
 
 type RenderedFrame = { node: PageNode; frame: PageFrame; file: string; title: string; root: HTMLElement | null };
 type Rendered = { tree: PageTree; frames: RenderedFrame[]; dispose: () => void };
@@ -336,7 +338,7 @@ async function renderFrames(id: string, text: string): Promise<Rendered | { erro
         <PageOsContext value={pageOsOf(tree.header)}>
         {frames.map(({ node, frame }) => (
           <div key={frame.id} data-export-frame={frame.id} style={{ width: frame.width }}>
-            <ZenProvider {...canvasModes(id, frame.id)} breakpoint={BREAKPOINT[frame.device]} syncDocument={false}>{renderFrame(node, ctx)}</ZenProvider>
+            <ZenProvider {...canvasModes(id, frame.id)} breakpoint={frame.kind === "screen" ? screenBreakpoint(frame.device, frame.width) : "desktop"} syncDocument={false}>{renderFrame(node, ctx)}</ZenProvider>
           </div>
         ))}
         </PageOsContext>
@@ -585,7 +587,8 @@ export async function prepareHandoff({ id, title, text }: { id: string; title: s
     const pictures: ZipInput[] = [];
     for (const entry of rendered.frames) {
       const png = entry.file.replace(/\.html$/, ".png");
-      const handoffFrame: HandoffFrame = { frame: entry.frame.id, title: entry.title, kind: entry.frame.kind === "overlay" ? "overlay" : "screen", device: entry.frame.device, png: null, html: `html/${entry.file}`, focus: entry.root ? focusStops(entry.root) : [] };
+      const versionOf = literalOf(entry.node, "versionOf");
+      const handoffFrame: HandoffFrame = { frame: entry.frame.id, title: entry.title, kind: entry.frame.kind === "overlay" ? "overlay" : "screen", device: entry.frame.device, png: null, html: `html/${entry.file}`, focus: entry.root ? focusStops(entry.root) : [], ...(typeof versionOf === "string" ? { version: { of: versionOf, breakpoint: screenBreakpoint(entry.frame.device, entry.frame.width) } } : {}) };
       frames.push(handoffFrame);
       const picture = await drawFrame(entry, pictureCss, photos, pictureNotes, () => 2);
       if (!picture) continue;

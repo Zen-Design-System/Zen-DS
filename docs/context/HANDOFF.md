@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-21.
+Last updated: 2026-10-26.
 
 ## Read order
 
@@ -19,6 +19,13 @@ Last updated: 2026-10-21.
 
 ## State in short
 
+- **Studio responsive breakpoints (2026-10-26):** plan `docs/research/studio-responsive-breakpoints-2026-10-26.md`
+  approved (D1–D4; D5, a harness rule, not). Session bp-studio builds the Studio half: PR 1 (view switch Desktop ·
+  Tablet · Mobile on a Screen's label, the Screen's breakpoint in ZenContext and following a desktop Screen's width,
+  Changes on this breakpoint, Add Top / Bottom Navigation placeholders, Make a separate Screen + `versionOf`, Play's
+  width drag; six component CSS files on `[data-breakpoint]`) on `claude/responsive-studio-b28ea5`, merged as one train
+  with bp-layout's responsive Stack / Grid / Box props (`zen/train/responsive-20261026`). PR 2 (ResponsiveField, Hide on
+  <breakpoint> in Studio) starts once the train is in main. E2E rows BP-01…08 (PR 1), BP-09+ (PR 2).
 - **BadgeStatus + PropertyField (2026-10-21):** branch `zen/feat/property-field-20261021` (worktree
   `../Zen-DS-badge-status`): Figma Badge-Status 16932:195 and Input/Property-Field 16923:6031 approved by the user, then
   code, platform pages (Badge, Input), harness rules, Studio palette + push/pull. Rule since then: new components go
@@ -121,6 +128,10 @@ Last updated: 2026-10-21.
   Since 2026-10-03 Stack/Grid/Box (and Text/Heading on the width axis) take Figma sizing: `width`/`height` hug · fill ·
   px, min/max, `alignSelf`, Stack `fillChildren` (`src/components/Layout/sizing.ts`, rules at the end of `layout.css`);
   since 2026-10-13 Card and ListBox take the width half (`width`, `minWidth`, `maxWidth`, `alignSelf`).
+  Since 2026-10-26 (responsive-breakpoints plan P2, `docs/research/studio-responsive-breakpoints-2026-10-26.md`) Stack,
+  Grid and Box structure props take `{ desktop?, tablet?, mobile? }` plus `hideOn`, resolved in JS from the frame's
+  breakpoint (`_shared/responsive.ts` `resolveAt`; Grid `columns` too); push/pull rules in `tools/studio/responsive-props.mjs`.
+  The Studio half (view switch, ResponsiveField, the Screen giving its breakpoint as context) is session bp-studio's.
   Since 2026-10-05 Text/Heading/Icon `tone` takes every resting Color/Content token by its path (81 tones, old names are
   aliases; `src/components/_shared/contentTone.ts` + `content-tone.css`, test `tests/content-tone.test.tsx`).
 - **Tokens:** repo-only modes 2026-10-09 (user): Component Size, Typography Configuration and Corner Radius have a mode

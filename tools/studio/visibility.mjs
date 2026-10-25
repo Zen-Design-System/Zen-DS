@@ -12,8 +12,9 @@ export const HIDDEN_SLOTS_PROP = "hiddenSlots";
 /** The layouts a layer can be hidden on alone (screen-chrome.mjs SCREEN_LAYOUTS). */
 export const HIDDEN_LAYOUTS = ["mobile", "desktop"];
 /** Props a builder page writes for the Studio only: never passed to a component, never exported. */
-// phoneLinked: a Screen's phone parts that follow its desktop header (responsive-header.mjs).
-export const STUDIO_ONLY_PROPS = new Set([HIDDEN_PROP, HIDDEN_SLOTS_PROP, "phoneLinked"]);
+// phoneLinked: a Screen's phone parts that follow its desktop header (responsive-header.mjs). versionOf: the Screen a
+// separate Screen is the phone or tablet version of (Make a separate Screen, studio-responsive-breakpoints §5).
+export const STUDIO_ONLY_PROPS = new Set([HIDDEN_PROP, HIDDEN_SLOTS_PROP, "phoneLinked", "versionOf"]);
 
 /** The literal value of a `hidden` prop (dialect Value or plain value) → true | "mobile" | "desktop" | null. */
 export function hiddenValueOf(value) {

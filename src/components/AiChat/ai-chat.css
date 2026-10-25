@@ -61,7 +61,10 @@
 .zen-ai-field__model:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); }
 .zen-ai-field__model:active { background: var(--zen-color-background-neutral-flat-pressed, rgb(1 1 1 / 9%)); }
 .zen-ai-field__model:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
-@media (max-width: 480px) { .zen-ai-field__model { display: none; } }
+/* Phones hide the model picker: a frame on the mobile breakpoint (ZenProvider's, a Studio Screen's), else a narrow
+   window where no frame says desktop or tablet (a page without a ZenProvider breakpoint). */
+[data-breakpoint="mobile"] .zen-ai-field__model { display: none; }
+@media (max-width: 480px) { .zen-ai-field__model:not(:is([data-breakpoint="desktop"], [data-breakpoint="tablet"]) *) { display: none; } }
 
 /* Bubbles: You = Neutral/Subtle, radius 24, padding 12/16, right; AI = plain text, padding 2/0. */
 .zen-ai-bubble { display: flex; max-width: 100%; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }

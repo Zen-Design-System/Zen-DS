@@ -8,11 +8,14 @@
 // What Figma changed is base → incoming; a change whose spot the Studio changed too (current ≠ base there) is a
 // conflict, shown unticked. Without a base (another browser), current stands in for it and nothing is a conflict.
 // Elements the Studio added (ids not from Figma) are never touched, nor the prototype actions the Studio wrote (Figma
-// holds none of them). Isomorphic, no imports.
+// holds none of them). Figma has no breakpoints: a per-breakpoint layout prop (responsive-props.mjs) compares and takes
+// Figma's value at the layer's breakpoint only, keeping its other keys, and `hideOn` is the Studio's own. Isomorphic; its
+// one import has none.
 //
 //   figmaSource(header) → { file, node } | null
 //   figmaChanges({ base, current, incoming, synced }) → { changes, threeWay }
 //   mergeFigma(current, incoming, changes) → { doc, skipped }    the chosen changes applied to a copy of `current`
+import { HIDE_ON_PROP, RESPONSIVE_DEFAULTS, hiddenAt, isResponsiveProp, modesBreakpoint, perBreakpoint, screenBreakpoint, valueAt, withBreakpointValue } from "./responsive-props.mjs";
 
 /** The Figma frame a page was pulled from (its header's `figma`), or null. */
 export function figmaSource(header) {
@@ -75,6 +78,24 @@ function indexDoc(doc) {
   if (doc?.board) visit(doc.board, null, "root");
   return index;
 }
+
+const literal = (node, name) => (node.props[name]?.kind === "literal" ? node.props[name].value : undefined);
+
+/**
+ * The breakpoint an element of an indexed page draws at: the nearest frame's own `modes={{ breakpoint }}` (its own
+ * included), else its Screen's (responsive-props.mjs screenBreakpoint; an Overlay's: the page's first Screen), else desktop.
+ */
+function breakpointIn(index, id) {
+  for (let entry = index.get(id); entry; entry = entry.parent ? index.get(entry.parent) : null) {
+    const own = modesBreakpoint(entry.node.props.modes);
+    if (own) return own;
+    const screen = entry.node.name === "Screen" ? entry.node : entry.node.name === "Overlay" ? [...index.values()].find((item) => item.node.name === "Screen")?.node : null;
+    if (screen) return screenBreakpoint(literal(screen, "device") ?? "desktop", literal(screen, "width"));
+  }
+  return "desktop";
+}
+
+const breakpointLabel = (breakpoint) => breakpoint[0].toUpperCase() + breakpoint.slice(1);
 
 /** The ids of an element's element children, in order. */
 const childIds = (node) => node.children.filter((child) => child.kind === "element" && !isRun(child)).map((child) => child.id);
@@ -154,6 +175,19 @@ export function figmaChanges({ base, current, incoming, synced = null }) {
       // Figma holds no prototype action (the Prototype tab's proto.*: push sends none): one the page has and the pull
       // lacks is the Studio's own, never a removal (without a base the page stands in for it and would offer one).
       if (to === undefined && (from?.kind === "proto" || mine?.kind === "proto")) continue;
+      // Nor a hideOn (the push leaves it out).
+      if (to === undefined && name === HIDE_ON_PROP) continue;
+      // A per-breakpoint value: Figma's is the value at the layer's breakpoint; only that key changes.
+      if (isResponsiveProp(after.node.name, name) && (perBreakpoint(from) || perBreakpoint(mine))) {
+        const breakpoint = breakpointIn(now, id);
+        const shownBefore = valueAt(from, breakpoint);
+        // The pull leaves a default out: Figma at the default is the default's value.
+        const fallback = RESPONSIVE_DEFAULTS[after.node.name]?.[name];
+        const shownAfter = canon(to ?? (fallback === undefined ? undefined : { kind: "literal", value: fallback }));
+        if (canon(shownBefore) === shownAfter || canon(valueAt(mine, breakpoint)) === shownAfter) continue;
+        add({ kind: "prop", id, name, breakpoint, before: from, after: to, current: mine, conflict: threeWay && canon(mine) !== canon(then.get(id)?.node.props[name]), label: `${describeNode(after.node)} · ${name} on ${breakpointLabel(breakpoint)}: ${showValue(shownBefore)} → ${showValue(to)}` });
+        continue;
+      }
       // A list of the same length (a Table's rows) says it changed; the rest say from → to.
       const what = from?.kind === "array" && to?.kind === "array" && from.items.length === to.items.length ? "changed" : `${showValue(from)} → ${showValue(to)}`;
       add({ kind: "prop", id, name, before: from, after: to, current: mine, conflict: threeWay && canon(mine) !== canon(then.get(id)?.node.props[name]), label: `${describeNode(after.node)} · ${name}: ${what}` });
@@ -188,6 +222,8 @@ export function figmaChanges({ base, current, incoming, synced = null }) {
     if (before.parent && !next.has(before.parent) && was.has(before.parent) && tracked(before.parent)) continue;
     if (before.place !== "children") continue;
     const here = now.get(id);
+    // A layer hidden at its breakpoint (hideOn) is not pushed, so Figma never had it.
+    if (hiddenAt(here.node, breakpointIn(now, id))) continue;
     add({ kind: "remove", id, conflict: threeWay && canon(here.node) !== canon((then.get(id) ?? before).node), label: `${describeNode(before.node)} removed` });
   }
   return { changes, threeWay };
@@ -224,7 +260,12 @@ export function mergeFigma(current, incoming, changes) {
     let done = true;
     if (change.kind === "prop") {
       if (!entry) done = false;
-      else if (change.after === undefined) delete entry.node.props[change.name];
+      else if (change.breakpoint && perBreakpoint(entry.node.props[change.name])) {
+        // Only the breakpoint's key: Figma's value, or the prop's own default when Figma reset it (responsive-props.mjs).
+        const value = withBreakpointValue(entry.node.props[change.name], change.after === undefined ? undefined : clone(change.after), change.breakpoint, RESPONSIVE_DEFAULTS[entry.node.name]?.[change.name]);
+        if (value === undefined) delete entry.node.props[change.name];
+        else entry.node.props[change.name] = value;
+      } else if (change.after === undefined) delete entry.node.props[change.name];
       else entry.node.props[change.name] = clone(change.after);
     } else if (change.kind === "text") {
       if (!entry) done = false;

@@ -64,22 +64,23 @@
    the 440px dialog is centred and the side padding never shows. */
 .zen-dialog-overlay[data-modal="dialog"] { padding-inline: var(--zen-spacing-padding-large, 20px); }
 
-/* Device=Mobile */
+/* Device=Mobile: a modal on the page (the window is the screen). One inside a device frame (data-contained: a Studio
+   Screen, a phone preview) takes the frame's width instead (the container queries below), never the window's. */
 @media (max-width: 480px) {
   /* The panel sits at the bottom of the screen and clears the home indicator and the status bar (safe areas), as it does
      inside a device frame (below); Padding/Medium stays the floor. Code-only: Figma has no placement for the Mobile device. */
-  .zen-dialog-overlay {
+  .zen-dialog-overlay:not([data-contained="true"]) {
     align-items: flex-end;
     padding-top: max(var(--zen-spacing-padding-medium, 16px), var(--zen-safe-area-top, env(safe-area-inset-top, 0px)));
     padding-bottom: max(var(--zen-spacing-padding-medium, 16px), var(--zen-safe-area-bottom, env(safe-area-inset-bottom, 0px)));
   }
-  .zen-dialog__content { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+  .zen-dialog-overlay:not([data-contained="true"]) .zen-dialog__content { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
   /* Device=Mobile uses Heading/4; out-rank the generated .zen-type-heading-3 class. */
-  .zen-dialog .zen-dialog__title { font-size: var(--zen-typography-font-size-heading-4, 20px); line-height: var(--zen-typography-line-height-heading-4, 28px); letter-spacing: var(--zen-typography-letter-spacing-heading-4, normal); }
+  .zen-dialog-overlay:not([data-contained="true"]) .zen-dialog .zen-dialog__title { font-size: var(--zen-typography-font-size-heading-4, 20px); line-height: var(--zen-typography-line-height-heading-4, 28px); letter-spacing: var(--zen-typography-letter-spacing-heading-4, normal); }
   /* Device=Mobile always uses Direction=Vertical. */
-  .zen-dialog__actions.zen-modal-actions { flex-direction: column-reverse; align-items: stretch; }
-  .zen-dialog__actions .zen-modal-actions__main { flex-direction: column-reverse; align-items: stretch; }
-  .zen-dialog__actions .zen-button { width: 100%; }
+  .zen-dialog-overlay:not([data-contained="true"]) .zen-dialog__actions.zen-modal-actions { flex-direction: column-reverse; align-items: stretch; }
+  .zen-dialog-overlay:not([data-contained="true"]) .zen-dialog__actions .zen-modal-actions__main { flex-direction: column-reverse; align-items: stretch; }
+  .zen-dialog-overlay:not([data-contained="true"]) .zen-dialog__actions .zen-button { width: 100%; }
 }
 @keyframes zen-dialog-in { from { opacity: 0; transform: translateY(calc(12px * var(--zen-motion-movement, 1))) scale(calc(1 - .04 * var(--zen-motion-movement, 1))); } to { opacity: 1; transform: none; } }
 @keyframes zen-dialog-out { to { opacity: 0; transform: translateY(calc(6px * var(--zen-motion-movement, 1))) scale(calc(1 - .02 * var(--zen-motion-movement, 1))); } }
@@ -135,11 +136,12 @@
 /* Figma: "DO NOT use for mobile" (a phone opens the form in a BottomSheet) — below 720px the side column stacks above the
    form so it still works. The footer keeps its actions in a row at every width: a form never stacks them (user rule
    2026-10-21, "form thì không dùng Action direction vertical"); where three do not fit, the row wraps instead of
-   running out of the panel. */
+   running out of the panel. A form inside a device frame (data-contained) follows the frame's width (below), never the
+   window's. */
 @media (max-width: 720px) {
-  .zen-modal-form__footer.zen-modal-actions, .zen-modal-form__footer .zen-modal-actions__main { flex-wrap: wrap; justify-content: flex-end; }
-  .zen-modal-form[data-side="true"] .zen-modal-form__content { grid-template-columns: minmax(0, 1fr) !important; }
-  .zen-modal-form__side { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
+  .zen-dialog-overlay:not([data-contained="true"]) :is(.zen-modal-form__footer.zen-modal-actions, .zen-modal-form__footer .zen-modal-actions__main) { flex-wrap: wrap; justify-content: flex-end; }
+  .zen-dialog-overlay:not([data-contained="true"]) .zen-modal-form[data-side="true"] .zen-modal-form__content { grid-template-columns: minmax(0, 1fr) !important; }
+  .zen-dialog-overlay:not([data-contained="true"]) .zen-modal-form__side { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
 }
 
 /* Device frame ([data-zen-overlay-root]: PlatformPhone and app device previews). Dialog and ModalForm open inside the

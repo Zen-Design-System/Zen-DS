@@ -123,10 +123,11 @@ span.zen-date-picker__month { cursor: default; }
 h3.zen-date-picker__month { margin: 0; }
 .zen-date-picker__header[data-device="mobile"] .zen-date-picker__month { height: var(--zen-button-size-small, 32px); justify-content: flex-start; }
 
-/* Phones: Dual-Calendar stacks its two months vertically instead of overflowing (2 × 224 + gap > a 390px screen). */
-@media (max-width: 560px) {
-  .zen-date-picker__panels, .zen-date-picker__time[data-type="range"] { flex-direction: column; }
-}
+/* Phones: Dual-Calendar stacks its two months vertically instead of overflowing (2 × 224 + gap > a 390px screen): a frame
+   on the mobile breakpoint (ZenProvider's, a Studio Screen's), else a narrow window where no frame says desktop or
+   tablet (a page without a ZenProvider breakpoint). */
+[data-breakpoint="mobile"] :is(.zen-date-picker__panels, .zen-date-picker__time[data-type="range"]) { flex-direction: column; }
+@media (max-width: 560px) { :is(.zen-date-picker__panels, .zen-date-picker__time[data-type="range"]):not(:is([data-breakpoint="desktop"], [data-breakpoint="tablet"]) *) { flex-direction: column; } }
 
 /* DatePickerSheet (Figma Date-Picker/Mobile 9923:3576): the stacked list's weekday row sits on the sheet's
    Background/Container, and the range footer is .Primitives/Date-Picker/Footer-Actions (9923:2791): the summary takes the

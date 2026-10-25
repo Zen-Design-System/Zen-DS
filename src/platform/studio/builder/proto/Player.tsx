@@ -4,7 +4,7 @@ import { Icon } from "../../../../components/Icon";
 import { ZenPortalProvider } from "../../../../components/Portal";
 import { ToastProvider } from "../../../../components/Toast";
 import { PresentBar } from "../../board/PresentBar";
-import { deviceOfScreen, deviceOs } from "../../../../../tools/studio/screen-devices.mjs";
+import { deviceOfScreen, deviceOs, viewDevice } from "../../../../../tools/studio/screen-devices.mjs";
 import { bezelOf, DeviceFrame, deviceViewport, presentEscapeOwners, useViewportFit, viewportDevice, ViewportHandles, type PresentViewport } from "../../board/presentViewport";
 import { canvasApi } from "../../canvas/viewport";
 import { OpenOnPhone } from "../../device/OpenOnPhone";
@@ -20,6 +20,8 @@ import { overlayTitleOf, protoSourcesOf } from "./protoModel";
 import { literal, PlayScreens, usePlayFlow } from "./playFlow";
 import { isPlaying, PLAY_PREFIX, stopPlay } from "./playStart";
 import { DEVICE_WIDTH, PageOsContext, pageOsOf, ProtoContext, SimulatedDeviceContext, type PageDevice } from "./runtime";
+import { viewportBreakpoint } from "./versions";
+import { screenViewOf } from "../screenViews";
 import { useCanvasPreview } from "../../project/activeProject";
 import { libraryOf } from "../../project/projectLibrary";
 
@@ -62,7 +64,12 @@ function PlayLayer({ id, start, portalRef }: { id: string; start: string | null;
   // Uploaded photos show once they have loaded.
   useUploadsVersion();
   const exit = useCallback(() => stopPlay(), []);
-  const flow = usePlayFlow(tree, start, { onLeave: exit });
+  // Auto plays each Screen on the device it is drawn for (a desktop one at its device's width); a device or a typed
+  // W × H holds for the whole Play (Restart keeps it), and so does Device frame. Play opens on the device the start
+  // Screen is viewed on (the canvas's view switch, builder/screenViews.ts).
+  const [viewport, setViewport] = useState<PresentViewport>(() => deviceViewport(start ? viewDevice(screenViewOf(`screen:${start}`)) : undefined));
+  // A fixed viewport's breakpoint: where the flow reaches a Screen with a version for it, the version shows (D4).
+  const flow = usePlayFlow(tree, start, { onLeave: exit, breakpoint: viewport ? viewportBreakpoint(viewport.width, viewportDevice(viewport)?.device) : null });
   const { screen, base, alone, presentedNode, current, history, overlay, overlayNode, closeOverlay, actions, restart } = flow;
   const layerRef = useRef<HTMLDivElement>(null);
   // Escape closes an open overlay before it leaves Play (a DatePicker by its trigger handles no Escape of its own here).
@@ -74,9 +81,6 @@ function PlayLayer({ id, start, portalRef }: { id: string; start: string | null;
   const [own, setOwn] = useState<Partial<StudioPreviewSettings>>({});
   const modes: StudioPreviewSettings = { ...canvasModes, ...own };
   const setMode = useCallback((key: ModeKey, value: string) => setOwn((current) => ({ ...current, [key]: value })), []);
-  // Auto plays each Screen on the device it is drawn for (a desktop one at its device's width); a device or a typed
-  // W × H holds for the whole Play (Restart keeps it), and so does Device frame.
-  const [viewport, setViewport] = useState<PresentViewport>(null);
   const [framed, setFramed] = useState(true);
   const stageRef = useRef<HTMLDivElement>(null);
   // Figma's hotspot hints: a press that does nothing flashes what has an action on this screen (and its overlay). A press
@@ -236,7 +240,7 @@ function PlayLayer({ id, start, portalRef }: { id: string; start: string | null;
               </SimulatedDeviceContext>
             </div>
             <DeviceFrame device={shownDevice} fit={fit} part="fold" />
-            <ViewportHandles viewport={shown} fit={fit} onChange={setViewport} />
+            <ViewportHandles viewport={shown} fit={fit} onChange={setViewport} device={device} />
           </div>
         </div>
       </div>

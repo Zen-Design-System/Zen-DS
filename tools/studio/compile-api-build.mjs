@@ -128,6 +128,9 @@ function literalUnion(type, types, seen = new Set()) {
   const alternatives = splitTop(type.replace(/^\|/, ""), "|").filter((alternative) => !/^(undefined|null)$/.test(alternative));
   return alternatives.length > 0 && alternatives.every((alternative) => {
     if (/^"[^"]*"$|^'[^']*'$/.test(alternative)) return true;
+    // A per-breakpoint prop (Responsive<X>, _shared/responsive.ts) holds X's literals: data read into it is typed as the prop.
+    const responsive = /^Responsive<([\s\S]+)>$/.exec(alternative);
+    if (responsive) return literalUnion(responsive[1], types, seen);
     const name = /^[A-Z]\w*$/.exec(alternative)?.[0];
     if (!name || seen.has(name) || !types[name]) return false;
     seen.add(name);

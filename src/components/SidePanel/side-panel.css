@@ -71,7 +71,10 @@
   .zen-side-panel[data-type="modal"] { animation-name: zen-motion-fade-in !important; }
   .zen-side-panel[data-type="modal"][data-state="closing"] { animation-name: zen-motion-fade-out !important; }
 }
-@media (max-width: 480px) { .zen-side-panel[data-type="modal"] { width: 100%; } }
+/* Phones: a modal panel takes the screen's width: a frame on the mobile breakpoint, else a narrow window where no frame
+   says desktop or tablet. */
+[data-breakpoint="mobile"] .zen-side-panel[data-type="modal"] { width: 100%; }
+@media (max-width: 480px) { .zen-side-panel[data-type="modal"]:not(:is([data-breakpoint="desktop"], [data-breakpoint="tablet"]) *) { width: 100%; } }
 /* The Contents slot is a form/detail column: direct children span its width. */
 /* Content blocks (fields, lists, cards…) fill the panel; fixed-size visuals keep their own size (an Avatar stretched to 376×56).
    The body scrolls, so its children never shrink: a child that clips its own overflow (Segmented, a code block) or has

@@ -20,6 +20,7 @@ import { INSTANCE_LOOK_PROPS, instanceLookStyle, takesInstanceLook } from "./ins
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
+import { atBreakpoint, screenBreakpoint } from "./responsive-props.mjs";
 import { FIGMA_NAMED, LABEL_NAMED, givenNameOf } from "./layer-meta.mjs";
 import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFigma } from "./figma-charts.mjs";
 import { SUB_ACTION_ICON, metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
@@ -505,7 +506,21 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   // Each frame as its layout draws it: hidden layers and switched-off slots are not pushed (tools/studio/visibility.mjs).
   const lit = (node, name) => (node.props[name]?.kind === "literal" ? node.props[name].value : undefined);
   const shown = { ...read.doc, board: { ...read.doc.board, children: read.doc.board.children.map((node) => (node.kind === "element" ? pruneHidden(node, node.name === "Screen" ? screenLayout(lit(node, "device") ?? "desktop", lit(node, "layout")) : undefined) : node)).filter(Boolean) } };
-  const doc = fragmentsAsRows(shown);
+  // Figma has no breakpoints (responsive-props.mjs): each frame at its Screen's breakpoint (an Overlay at the page's first
+  // Screen's, the rest of the board at desktop), per-breakpoint props as that value, layers hidden there (hideOn) left out.
+  const shownScreen = shown.board.children.find((node) => node.kind === "element" && node.name === "Screen") ?? null;
+  const breakpointOf = (node) => {
+    const owner = node.name === "Screen" ? node : node.name === "Overlay" ? shownScreen : null;
+    return owner ? screenBreakpoint(lit(owner, "device") ?? "desktop", lit(owner, "width")) : "desktop";
+  };
+  const perBreakpoint = new Map();
+  const atItsBreakpoint = (node) => {
+    const count = { resolved: 0, hidden: 0 };
+    const next = atBreakpoint(node, breakpointOf(node), count);
+    perBreakpoint.set(boardFrameId(node), { breakpoint: breakpointOf(node), ...count });
+    return next;
+  };
+  const doc = fragmentsAsRows({ ...shown, board: { ...shown.board, children: shown.board.children.map((node) => (node.kind === "element" && (node.name === "Screen" || node.name === "Overlay") ? atItsBreakpoint(node) : node.kind === "element" ? atBreakpoint(node, "desktop") : node)).filter(Boolean) } });
   const byCode = setsByCode(mapping);
   // The frame to draw: the first Screen, or the one `frame` names (a Screen, a Screen's state, an Overlay; boardFrameId).
   const boardFrames = doc.board.children.filter((child) => child.kind === "element" && (child.name === "Screen" || child.name === "Overlay"));
@@ -525,6 +540,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   if (sections) notes.push(`${sections} Section${sections > 1 ? "s" : ""} (areas of the board): not pushed`);
   const slices = boardElements.filter((child) => child.name === "Slice").length;
   if (slices) notes.push(`${slices} Slice${slices > 1 ? "s" : ""} (export areas of the board): not pushed`);
+  const drawnAt = perBreakpoint.get(boardFrameId(screen));
+  if (drawnAt?.resolved || drawnAt?.hidden) {
+    const label = drawnAt.breakpoint[0].toUpperCase() + drawnAt.breakpoint.slice(1);
+    if (drawnAt.resolved) notes.push(`per-breakpoint values: drawn at ${label}, the Screen's breakpoint (Figma has no breakpoints)`);
+    if (drawnAt.hidden) notes.push(`${drawnAt.hidden} layer${drawnAt.hidden > 1 ? "s" : ""} hidden on ${label} (hideOn): not pushed`);
+  }
   // The Prototype tab's actions as Figma's reactions (figma-proto.mjs): on the layer each sits on, a Dialog's button for
   // its primaryAction; the Screen's After delay on its frame. What Figma has no reaction for is a note; `handled` counts
   // both, so an action left in a part the push does not draw is named too.

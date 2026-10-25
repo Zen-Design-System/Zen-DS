@@ -484,6 +484,9 @@ export function parsePage(text, { components } = {}) {
         if (state && !(state.kind === "literal" && typeof state.value === "string" && SCREEN_STATE.test(state.value))) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: `state is a lowercase name (${SCREEN_STATES.join(", ")}, filtered…; no state = the default)` });
         number("width", FRAME_SIZE.min, FRAME_SIZE.max);
         number("height", FRAME_SIZE.min, FRAME_SIZE.max);
+        // Make a separate Screen (studio-responsive-breakpoints §5): the id of the Screen this one is a version of.
+        const versionOf = child.props.versionOf;
+        if (versionOf && !(versionOf.kind === "literal" && typeof versionOf.value === "string" && /^[a-z0-9][a-z0-9-]*$/.test(versionOf.value) && versionOf.value !== id?.value)) errors.push({ line: Number(child.loc.split(":")[0]), column: 0, message: "versionOf is the id of another Screen (the one this Screen is a version of)" });
       }
     }
   }

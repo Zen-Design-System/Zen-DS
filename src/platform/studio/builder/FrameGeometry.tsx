@@ -5,6 +5,7 @@ import { ScrubNumberField } from "../inspector/controls/ScrubNumberField";
 import { onSourceUpdate } from "../select/picker";
 import { canEdit, useStudio } from "../store";
 import { setFrameBoxes, type FrameBoxChange } from "./frameEdit";
+import { useScreenView } from "./screenViews";
 
 /*
  * A frame's or Section's X, Y, W and H on a page you made (Figma's Position and Layout fields for a top-level frame, F4):
@@ -53,6 +54,9 @@ export function FrameGeometry({ frameId }: { frameId: string }) {
   const sized = !frameId.startsWith("overlay:");
   const write = (change: FrameBoxChange, label: string) => { if (localPage) void setFrameBoxes(localPage, new Map([[frameId, change]]), label); };
   const off = !editable || !localPage;
+  // A Screen shown on another breakpoint (screenViews.ts) has the view's size on the canvas, not its own: W and H wait
+  // until the view ends, as its resize handles do.
+  const viewing = Boolean(useScreenView(frameId));
   return (
     <>
       <InspectorSection title="Position">
@@ -63,8 +67,8 @@ export function FrameGeometry({ frameId }: { frameId: string }) {
       </InspectorSection>
       <InspectorSection title="Layout">
         <div className="studio-frame-geometry__pair" data-prop="frame-size">
-          <ScrubNumberField label="W" name="Width" value={box?.width ?? null} min={100} disabled={off || !sized} onCommit={(width) => write({ width }, "Resize frame")} />
-          <ScrubNumberField label="H" name="Height" value={box?.height ?? null} min={100} disabled={off || !sized} onCommit={(height) => write({ height }, "Resize frame")} />
+          <ScrubNumberField label="W" name="Width" value={viewing ? null : box?.width ?? null} min={100} disabled={off || !sized || viewing} onCommit={(width) => write({ width }, "Resize frame")} />
+          <ScrubNumberField label="H" name="Height" value={viewing ? null : box?.height ?? null} min={100} disabled={off || !sized || viewing} onCommit={(height) => write({ height }, "Resize frame")} />
         </div>
       </InspectorSection>
     </>
