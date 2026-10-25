@@ -254,13 +254,26 @@ export interface ChartCardProps {
   overrides?: NestedOverrides;
 }
 
+/** An element's border-box height in layout px: as precise as the layout (offsetHeight rounds) and unscaled by any
+ *  transform around it (getBoundingClientRect is not). */
+function layoutHeight(element: HTMLElement) {
+  const style = getComputedStyle(element);
+  const height = Number.parseFloat(style.height);
+  if (!Number.isFinite(height)) return element.offsetHeight;
+  if (style.boxSizing === "border-box") return height;
+  return height + (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0) + (parseFloat(style.borderTopWidth) || 0) + (parseFloat(style.borderBottomWidth) || 0);
+}
+
 /**
  * A Chart Card stretched by its grid row (Figma's cards hug, so this is code's call; the user 2026-10-16: "scale the
  * chart"): the free height under the content goes to the chart as `--zen-chart-grow`. Plots add it to their height, rings
  * to their size, row charts spread their rows (chart.css); what cannot grow sits in the middle of what is left. Measured
- * with the grow off, so a card that only grew itself shrinks back with its row.
+ * with the grow off, so a card that only grew itself shrinks back with its row. Measured in layout px (layoutHeight):
+ * inside a scaled preview (Zen Studio's canvas) getBoundingClientRect is the zoom times larger, and mixed with the CSS gap
+ * the grow came out the zoom times too small, or, above 100 %, fed itself (80 M px at 240 %, 2026-10-25).
  */
 function useChartGrow(body: RefObject<HTMLDivElement | null>) {
+  const observerRef = useRef<{ observer: ResizeObserver; watched: WeakSet<Element> } | null>(null);
   useLayoutEffect(() => {
     const node = body.current;
     if (!node || typeof ResizeObserver === "undefined") return undefined;
@@ -269,16 +282,32 @@ function useChartGrow(body: RefObject<HTMLDivElement | null>) {
       const children = Array.from(node.children) as HTMLElement[];
       if (children.length < 2) return;
       const gap = parseFloat(getComputedStyle(node).rowGap) || 0;
-      const natural = children.reduce((sum, child) => sum + child.getBoundingClientRect().height, 0) + gap * (children.length - 1);
-      const free = Math.floor(node.getBoundingClientRect().height - natural);
+      const natural = children.reduce((sum, child) => sum + layoutHeight(child), 0) + gap * (children.length - 1);
+      const free = Math.floor(layoutHeight(node) - natural);
       if (free > 0) node.style.setProperty("--zen-chart-grow", `${free}px`);
     };
-    measure();
     // The card (its row) and each child (data, a wrapping legend, late fonts): a change in either moves the free height.
+    // One observer for the card's life; its first notification measures (after layout, no write-then-read per render).
     const observer = new ResizeObserver(measure);
+    const watched = new WeakSet<Element>([node]);
     observer.observe(node);
-    for (const child of Array.from(node.children)) observer.observe(child);
-    return () => observer.disconnect();
+    observerRef.current = { observer, watched };
+    return () => {
+      observer.disconnect();
+      observerRef.current = null;
+    };
+  }, [body]);
+  // Every render: watch the children there are now (a range switch, a metric or an EmptyState may come and go). Observing
+  // one again would report it again, so each is observed once.
+  useLayoutEffect(() => {
+    const node = body.current;
+    const current = observerRef.current;
+    if (!node || !current) return;
+    for (const child of Array.from(node.children)) {
+      if (current.watched.has(child)) continue;
+      current.watched.add(child);
+      current.observer.observe(child);
+    }
   });
 }
 

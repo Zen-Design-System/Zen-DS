@@ -1521,6 +1521,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   height, and its items scroll inside it (it scrolled away with the page).
 
 ### Fixed
+- Charts in scaled or content-sized boxes (2026-10-25, Studio performance audit): a Donut or Radial chart beside its
+  legend in a box as wide as its content no longer flips between beside and wrapped a few times a second, and a
+  ChartCard's chart takes the same free height at any zoom (below 100 % it left a band under the chart; above it a
+  1 px change could stretch the chart out of sight). Zen Studio: the Chart page's Main component frame stops shaking the
+  sections below it; its Donut and Radial variants take their Figma widths; selecting no longer re-renders every Main
+  component cell.
 - 320px phones, the last recorded debt (2026-10-23, user: "xử hết"): under 375px the docs stage spans the example card
   with an 8px inset, so an example gets 272px (an app on a 320 phone has 288): Voice actions, the inline DatePicker's
   "October 2026", a Small Pagination and the Rating list's Sort chip fit at Comfortable. Settings form template: the
