@@ -267,3 +267,13 @@ The user's two decisions:
 - **Checks:** usage selftest (260 rules), platform:audit:selftest 70 (11 table-lead fixtures), figma-push 486,
   figma-pull 151, cellComponents, ai-kit:check, guidelines:check and tsc all pass; tests/interaction/table-first-column.test.tsx
   was renamed from table-first-column-avatar and gained 2 dock-icon cases.
+- **Gate (Giám sát's slot):**
+  - First run, `qa --isolated` on the 32 pages that render Table: static gates, Vitest 91/91, all Figma contract
+    suites, behaviour 0 and Studio E2E 363/0 passed. The new kind `table-lead` found one real helper slip, at
+    templates@1512 (+ dark): Dashboard's "Active projects" drew its client initials Subtle in the first column
+    (`clientMark`, 8 rows). Fixed at the helper (`lead` → Solid; the phone ListItem keeps Subtle).
+  - Auto-fix started a host-side main merge during the run; I aborted it and merged after the gate (1c0c7342, #304:
+    conflicts in CHANGELOG and this log, both sides kept).
+  - The rerun on templates with the Studio files, under #304's new-row rule: PASS (audit 0, dark 0, behaviour 0,
+    E2E 363 works / 0 broken). I opened the table, app-shell G2, HR My leaves and templates sheets. The Medium emoji Dock
+    Icons sit inside their rows, as in Figma.
