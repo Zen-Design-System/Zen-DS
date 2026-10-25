@@ -64,11 +64,12 @@ function rootShell(screen) {
   return kids.length === 1 && kids[0].kind === "element" && kids[0].name === "AppShell" ? kids[0] : null;
 }
 
-/** The Sidebar's top-level rows in order (group titles and sub-rows skipped): { id, label, icon, dot }. */
+/** The Sidebar's top-level rows in order (group titles and sub-rows skipped): { id, label, icon, dot, onClick } (onClick:
+ *  a row's own handler, as the page writes it). */
 function sidebarRows(sidebar, scope) {
   if (!sidebar) return [];
   const rows = [];
-  const add = (item) => { if (item && typeof item.id === "string" && typeof item.label === "string") rows.push({ id: item.id, label: item.label, icon: typeof item.icon === "string" ? item.icon : "icon-circle-line", dot: Boolean(item.counter) || item.dot === true }); };
+  const add = (item, onClick) => { if (item && typeof item.id === "string" && typeof item.label === "string") rows.push({ id: item.id, label: item.label, icon: typeof item.icon === "string" ? item.icon : "icon-circle-line", dot: Boolean(item.counter) || item.dot === true, onClick }); };
   // Data: sections={[{ label, items: [{ id, label, icon, counter }] }]} or items={[…]}.
   const sections = plain(sidebar.props.sections, scope);
   if (Array.isArray(sections)) for (const section of sections) for (const item of section?.items ?? []) add(item);
@@ -80,7 +81,7 @@ function sidebarRows(sidebar, scope) {
       if (child.kind === "map" && child.node.name === "SidebarMenuItem") {
         const list = read(at[child.source.root], child.source.path);
         if (Array.isArray(list)) for (const row of list) add(Object.fromEntries(Object.keys(child.node.props).map((name) => [name, plain(child.node.props[name], { ...at, [child.item]: row })])));
-      } else if (child.kind === "element" && child.name === "SidebarMenuItem") add(Object.fromEntries(Object.keys(child.props).map((name) => [name, plain(child.props[name], at)])));
+      } else if (child.kind === "element" && child.name === "SidebarMenuItem") add(Object.fromEntries(Object.keys(child.props).map((name) => [name, plain(child.props[name], at)])), child.props.onClick);
       else if (child.kind === "element" && child.name === "SidebarMenuSection") visit(child.children, at);
     }
   };
@@ -91,6 +92,50 @@ function sidebarRows(sidebar, scope) {
 /** Whether an icon action is the notifications one (it keeps its own trailing place, with its dot). */
 const isNotifications = (icon, label) => /bell|inbox|notification/i.test(`${icon ?? ""} ${label ?? ""}`);
 
+/** A per-item navigate / open's first argument (`proto.navigate({ home: "overview" })`), or null. */
+const targetMap = (handler) => {
+  const [first] = handler?.kind === "proto" && ["navigate", "open"].includes(handler.action) ? handler.args : [];
+  return first && typeof first === "object" && !Array.isArray(first) ? first : null;
+};
+
+/** One item's handler from its list's: a per-item navigate / open narrowed to the item's own target (undefined: the item
+ *  has none), any other handler as it is. */
+function itemHandler(handler, id) {
+  const targets = targetMap(handler);
+  if (!targets) return handler;
+  return typeof targets[id] === "string" ? { kind: "proto", action: handler.action, args: [targets[id], ...handler.args.slice(1)] } : undefined;
+}
+
+/** A desktop Menu's entries as a phone action's `menu` (an action sheet on a phone): each item keeps its own onSelect or
+ *  takes the Menu's for it, groups too. Undefined when the Menu lists no items. */
+function menuOf(menu) {
+  const items = menu?.props.items;
+  if (items?.kind !== "array") return undefined;
+  const entries = (list) => list.map((entry) => {
+    if (entry.kind !== "object") return entry;
+    const type = literalOf({ props: entry.fields }, "type");
+    if (type === "group" && entry.fields.items?.kind === "array") return obj({ ...entry.fields, items: { kind: "array", items: entries(entry.fields.items.items) } });
+    const id = literalOf({ props: entry.fields }, "id");
+    return type === "separator" || entry.fields.onSelect || typeof id !== "string" ? entry : obj({ ...entry.fields, onSelect: itemHandler(menu.props.onSelect, id) });
+  });
+  return { kind: "array", items: entries(items.items) };
+}
+
+/** A Menu item id from an action's label (the More sheet's rows). */
+const itemId = (label, index) => label.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[đĐ]/g, "d").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `action-${index + 1}`;
+
+/** The ⋯ More sheet's entries: an action as a row running its onClick, an action with a menu as a group of its rows. */
+function moreMenu(folded) {
+  const ids = new Set();
+  return { kind: "array", items: folded.map((item, index) => {
+    const { icon, label, onClick, menu } = item.entry.fields;
+    if (menu) return obj({ type: lit("group"), label, items: menu });
+    const id = ids.has(itemId(item.label, index)) ? `action-${index + 1}` : itemId(item.label, index);
+    ids.add(id);
+    return obj({ id: lit(id), label, icon, onSelect: onClick });
+  }) };
+}
+
 /* ── writing the phone parts ────────────────────────────────────────────────────────────────────────────────────── */
 
 const lit = (value) => ({ kind: "literal", value });
@@ -100,8 +145,10 @@ const el = (name, props, children = []) => ({ kind: "element", name, loc: "0:0",
 /**
  * The phone's TopNavigation and BottomNavigation for a Screen, by §17: a root (no Back, Breadcrumbs of one crumb or
  * none) gets the large title, the account in leading and the BottomNavigation; a child (Breadcrumbs of two or more, or
- * a PageHeader `back`) gets Back, the bar title and no BottomNavigation. Trailing: Search, the Primary as "+",
- * notifications, then More for the rest (three places). Null parts when the Screen has no desktop AppShell.
+ * a PageHeader `back`) gets Back, the bar title and no BottomNavigation. The top bar's Search becomes the Search control
+ * bar (above the tabs), a root's folding into the Search action. Trailing: the Primary as "+", notifications, then More
+ * for the rest (three places, the Search action taking one), its sheet running each folded action. The account keeps its
+ * Menu and the tabs go where the Sidebar's rows go. Null parts when the Screen has no desktop AppShell.
  */
 export function derivePhoneChrome(screen, { mock = {} } = {}) {
   const shell = rootShell(screen);
@@ -119,36 +166,44 @@ export function derivePhoneChrome(screen, { mock = {} } = {}) {
   const child = crumbCount >= 2 || Boolean(pageHeader?.props.back);
   const titleValue = pageHeader?.props.title ?? screen.props.title ?? lit("Untitled");
 
-  // Trailing candidates, by priority.
+  // The top bar's Search: the phone's Search control bar, doing what the desktop's does (its props, without the desktop's
+  // keyboard shortcut and size). A root's folds into TopNavigation's own Search action as the large title scrolls away.
   const search = [...header, ...center].find((node) => node.name === "Search");
+  const phoneSearch = search ? el("Search", Object.fromEntries(Object.entries(search.props).filter(([name]) => !["shortcut", "size"].includes(name))), search.children) : null;
+  // Trailing candidates, by priority. A Menu's trigger becomes an action that opens the Menu's items (a sheet on a phone).
   const primary = [];
   const rest = [];
   for (const action of elementsIn(pageHeader?.props.actions)) {
-    if (action.name === "Button") {
-      const label = textOf(action, scope) || "Action";
-      const entry = obj({ icon: lit(literalOf(action, "level") === "primary" ? "icon-plus-line" : typeof literalOf(action, "startIcon") === "string" ? literalOf(action, "startIcon") : "icon-dots-horizontal-line"), label: lit(label), onClick: action.props.onClick });
-      (literalOf(action, "level") === "primary" ? primary : rest).push({ entry, label, dot: false });
-    } else if (action.name === "IconButton") rest.push({ entry: obj({ icon: action.props.icon ?? lit("icon-dots-horizontal-line"), label: action.props["aria-label"] ?? lit("More"), onClick: action.props.onClick }), label: String(literalOf(action, "aria-label") ?? "More"), dot: false });
+    const menu = action.name === "Menu" ? menuOf(action) : undefined;
+    const button = action.name === "Menu" ? elementsIn(action.props.trigger)[0] ?? null : action;
+    if (button?.name === "Button") {
+      const label = textOf(button, scope) || "Action";
+      const entry = obj({ icon: lit(literalOf(button, "level") === "primary" ? "icon-plus-line" : typeof literalOf(button, "startIcon") === "string" ? literalOf(button, "startIcon") : "icon-dots-horizontal-line"), label: lit(label), onClick: button.props.onClick, menu });
+      (literalOf(button, "level") === "primary" ? primary : rest).push({ entry, label, dot: false });
+    } else if (button?.name === "IconButton") rest.push({ entry: obj({ icon: button.props.icon ?? lit("icon-dots-horizontal-line"), label: button.props["aria-label"] ?? lit("More"), onClick: button.props.onClick, menu }), label: String(literalOf(button, "aria-label") ?? "More"), dot: false });
     else rest.push({ entry: null, label: action.name, dot: false });
   }
   let account = null;
   let notifications = null;
   for (const action of elementsIn(appHeader?.props.actions)) {
-    const trigger = action.name === "Menu" ? elementsIn(action.props.trigger)[0] ?? null : action;
+    const menu = action.name === "Menu" ? action : null;
+    const trigger = menu ? elementsIn(action.props.trigger)[0] ?? null : action;
     if (!trigger) continue;
-    if (trigger.name === "AppShellAccount" || trigger.name === "Avatar") { account = account ?? trigger; continue; }
+    if (trigger.name === "AppShellAccount" || trigger.name === "Avatar") { account = account ?? { trigger, menu }; continue; }
     if (trigger.name === "AppShellAction" || trigger.name === "IconButton") {
       const label = String(literalOf(trigger, "aria-label") ?? "Action");
       const dot = Boolean(literalOf(trigger, "count")) || literalOf(trigger, "dot") === true || trigger.props.count?.kind === "ref";
-      const entry = obj({ icon: trigger.props.icon ?? lit("icon-dots-horizontal-line"), label: lit(label), dot: dot ? lit(true) : undefined, onClick: trigger.props.onClick });
+      const entry = obj({ icon: trigger.props.icon ?? lit("icon-dots-horizontal-line"), label: lit(label), dot: dot ? lit(true) : undefined, onClick: trigger.props.onClick, menu: menuOf(menu) });
       if (!child && !notifications && isNotifications(literalOf(trigger, "icon"), label)) notifications = { entry, label, dot };
       else if (!child) rest.push({ entry, label, dot });
       continue;
     }
     if (trigger.name === "Badge") notes.push(`the ${textOf(trigger, scope) || "plan"} Badge stays on desktop (the account sheet's on a phone)`);
   }
+  // A root's Search action takes a trailing place once its Search folds (rule 1): two places stay for the rest.
+  const searchAction = phoneSearch && !child;
+  const placesLeft = TRAILING_PLACES - (searchAction ? 1 : 0);
   const places = [
-    ...(search ? [{ entry: obj({ icon: lit("icon-search-medium-line"), label: lit(String(literalOf(search, "aria-label") ?? "Search")) }), label: "Search", dot: false }] : []),
     // A child screen's Primary goes to its footer (R15); a root's is "+".
     ...(child ? [] : primary),
     ...(notifications ? [notifications] : []),
@@ -156,21 +211,27 @@ export function derivePhoneChrome(screen, { mock = {} } = {}) {
   if (child && primary.length) notes.push(`${primary.map((item) => item.label).join(", ")} belongs in the screen's ActionBar footer on a phone`);
   const more = rest.filter((item) => item.entry);
   let trailing = [...places, ...more];
-  if (trailing.length > TRAILING_PLACES) {
-    const kept = trailing.slice(0, TRAILING_PLACES - 1);
-    const folded = trailing.slice(TRAILING_PLACES - 1);
-    trailing = [...kept, { entry: obj({ icon: lit("icon-dots-horizontal-line"), label: lit("More"), dot: folded.some((item) => item.dot) ? lit(true) : undefined }), label: "More", dot: false }];
+  if (trailing.length > placesLeft) {
+    const kept = trailing.slice(0, placesLeft - 1);
+    const folded = trailing.slice(placesLeft - 1);
+    trailing = [...kept, { entry: obj({ icon: lit("icon-dots-horizontal-line"), label: lit("More"), dot: folded.some((item) => item.dot) ? lit(true) : undefined, menu: moreMenu(folded) }), label: "More", dot: false }];
     notes.push(`${folded.map((item) => item.label).join(", ")} go into More`);
   }
   const tabs = elementsIn(pageHeader?.props.tabs).find((node) => node.name === "Tabs");
+  // The control bar: the Search above the tabs (Figma Control-Bar's Search and Controls, a column 8 apart).
+  const controls = [phoneSearch, tabs].filter(Boolean);
+  // The account keeps its menu (the account sheet on a phone).
+  const avatar = account ? el("AppShellAccount", Object.fromEntries(["name", "src", "theme", ...(account.menu ? [] : ["onClick"])].filter((name) => account.trigger.props[name]).map((name) => [name, account.trigger.props[name]]))) : null;
+  const accountNode = avatar && account.menu ? el("Menu", { ...Object.fromEntries(Object.entries(account.menu.props).filter(([name]) => !["trigger", "align"].includes(name))), trigger: { kind: "element", node: avatar } }, account.menu.children) : avatar;
   const topNavigation = el("TopNavigation", {
     type: lit(child ? "compact-alt" : "alt"),
     title: titleValue,
     largeTitle: child ? undefined : titleValue,
     leading: child ? obj({ icon: lit("icon-chevron-left-line-medium"), label: lit("Back"), onClick: { kind: "proto", action: "back", args: [] } })
-      : account ? { kind: "element", node: el("AppShellAccount", Object.fromEntries(["name", "src", "theme"].filter((name) => account.props[name]).map((name) => [name, account.props[name]]))) } : undefined,
+      : accountNode ? { kind: "element", node: accountNode } : undefined,
     trailing: trailing.length ? { kind: "array", items: trailing.map((item) => item.entry) } : undefined,
-    controlBar: tabs ? { kind: "element", node: tabs } : undefined,
+    controlBar: controls.length > 1 ? { kind: "element", node: el("Stack", { gap: lit("xs") }, controls) } : controls.length ? { kind: "element", node: controls[0] } : undefined,
+    searchAction: searchAction ? obj({ label: search.props["aria-label"] ?? lit("Search") }) : undefined,
   });
 
   // The roots: a child screen shows none (R14).
@@ -181,8 +242,13 @@ export function derivePhoneChrome(screen, { mock = {} } = {}) {
     const shown = rows.length > BOTTOM_ROOTS ? [...rows.slice(0, BOTTOM_ROOTS - 1), { id: "more", label: "More", icon: "icon-dots-horizontal-line", dot: rows.slice(BOTTOM_ROOTS - 1).some((row) => row.dot) }] : rows;
     const selected = literalOf(sidebar, "selectedId");
     const value = shown.some((row) => row.id === selected) ? selected : rows.length > BOTTOM_ROOTS && rows.some((row) => row.id === selected) ? "more" : shown[0].id;
+    // A tab goes where its Sidebar row goes: the Sidebar's onItemClick (a per-item navigate keyed by the same ids), else
+    // the rows' own navigates as one per-item navigate.
+    const rowTargets = Object.fromEntries(rows.map((row) => [row.id, row.onClick?.kind === "proto" && row.onClick.action === "navigate" && typeof row.onClick.args[0] === "string" ? row.onClick.args[0] : null]).filter(([, target]) => target));
+    const onValueChange = sidebar.props.onItemClick ?? (Object.keys(rowTargets).length ? { kind: "proto", action: "navigate", args: [rowTargets] } : undefined);
     bottomNavigation = el("BottomNavigation", {
       value: lit(value),
+      onValueChange,
       showLabels: lit(true),
       items: { kind: "array", items: shown.map((row) => obj({ id: lit(row.id), label: lit(row.label), icon: lit(row.icon), dot: row.dot ? lit(true) : undefined })) },
     });
@@ -207,6 +273,9 @@ const linkedOf = (screen) => {
   return list.filter((name) => PHONE_PARTS.includes(name));
 };
 const screensOf = (tree) => (tree?.board?.children ?? []).filter((child) => child.kind === "element" && child.name === "Screen");
+/** The Zen components a page imports, and the ones a part's code draws (its tags). */
+const importedOf = (text) => new Set([...text.matchAll(/import\s*\{([^}]*)\}\s*from\s*["']@zen-ds\/react["']/g)].flatMap((match) => match[1].split(",").map((name) => name.trim().split(/\s+as\s+/).pop()).filter(Boolean)));
+const tagsOf = (code) => [...code.matchAll(/<([A-Z][\w.]*)/g)].map((match) => match[1].split(".")[0]);
 const idOf = (screen) => `${literalOf(screen, "id") ?? ""}|${literalOf(screen, "state") ?? ""}`;
 
 /** The starting code of a phone part (screen-chrome.mjs), as the page would print it. */
@@ -228,6 +297,7 @@ export function planPhoneSync(before, after, { components } = {}) {
   if (!now.board || now.errors.length) return [];
   const was = before === null ? null : parsePage(before, { components });
   const earlier = new Map(screensOf(was).map((screen) => [idOf(screen), screen]));
+  const imported = importedOf(after);
   const plans = [];
   for (const screen of screensOf(now)) {
     if (!rootShell(screen)) continue;
@@ -244,12 +314,18 @@ export function planPhoneSync(before, after, { components } = {}) {
       // Changed on the phone by this edit (and not to what the desktop draws): the person's own from now on.
       if (decided && previous && code !== partCode(previous, prop) && code !== derived[prop]) { linked = linked.filter((name) => name !== prop); continue; }
       if (code === derived[prop]) continue;
-      // A part written for the first time goes in as a slot insert, which imports its components (setProp does not).
-      ops.push(derived[prop] === null ? { op: "removeProp", name: prop } : code === null ? { op: "insertChild", prop, code: derived[prop] } : { op: "setProp", name: prop, value: { kind: "expression", code: derived[prop] } });
+      // A part written for the first time goes in as a slot insert, which imports its components (setProp does not); a part
+      // redrawn with a component the page does not import yet (a Menu, the control bar's Stack) is swapped in its place,
+      // which imports it too.
+      const unimported = derived[prop] !== null && code !== null && tagsOf(derived[prop]).some((name) => !imported.has(name));
+      ops.push(derived[prop] === null ? { op: "removeProp", name: prop } : code === null ? { op: "insertChild", prop, code: derived[prop] }
+        : unimported ? { op: "replaceElement", code: derived[prop], part: screen.props[prop].node } : { op: "setProp", name: prop, value: { kind: "expression", code: derived[prop] } });
     }
-    // A slot insert goes alone in its request (the engine's rule): one now, the rest planned again on the new text.
+    // A slot insert or swap goes alone in its request (the engine's rule): one now, the rest planned again on the new text.
     const insert = ops.find((op) => op.op === "insertChild");
     if (insert) { plans.push({ loc: screen.loc, name: "Screen", ops: [insert], notes: derived.notes }); continue; }
+    const swap = ops.find((op) => op.op === "replaceElement");
+    if (swap) { plans.push({ loc: swap.part.loc, name: swap.part.name, ops: [{ op: "replaceElement", code: swap.code }], notes: derived.notes }); continue; }
     const listChanged = !decided || linked.length !== decided.length;
     if (listChanged) ops.push({ op: "setProp", name: PHONE_LINKED_PROP, value: { kind: "expression", code: JSON.stringify(linked) } });
     if (ops.length) plans.push({ loc: screen.loc, name: "Screen", ops, notes: derived.notes });

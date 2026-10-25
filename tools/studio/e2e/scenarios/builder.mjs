@@ -1287,7 +1287,8 @@ export const rows = [
       const bar = page.locator('[data-studio-frame="screen:screen-1"] .zen-app-shell__header');
       await until(async () => (await bar.locator(".zen-search").count()) === 2, { message: "two Searches drawn in the bar" });
       await page.keyboard.press("ControlOrMeta+KeyZ");
-      await until(async () => ((await text()).match(/<Search\b/g) ?? []).length === 1, { message: "⌘Z: one Search again" });
+      // The top bar's prop holds one Search again (the linked phone bar draws its own copy in its control bar since 2026-10-25).
+      await until(async () => /leading=\{<Search aria-label="Search" placeholder="Search expenses" \/>\}/.test(await text()) && !/leading=\{<>/.test(await text()), { message: "⌘Z: one Search again" });
       return "⌘D in a one-layer slot → <>Search Search</> in the bar; ⌘Z → one";
     },
   },

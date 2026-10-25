@@ -180,10 +180,10 @@
         },
         {
           "name": "searchAction",
-          "type": "{ onClick: () => void; label?: string; icon?: IconName | ReactElement }",
+          "type": "{ onClick?: () => void; label?: string; icon?: IconName | ReactElement }",
           "required": false,
           "default": null,
-          "description": "For a Search control bar: while `collapsed`, the bar folds away and this Search action appears at the start of the\ntrailing slot (top-right); it leaves again when the bar expands. Its `onClick` usually scrolls back up and focuses\nthe field. Counts toward the three trailing actions, so keep at most two others. `label` defaults to the locale's\n“Search”, `icon` to icon-search-medium-line (an icon name or an element).",
+          "description": "For a Search control bar: while `collapsed`, the bar folds away and this Search action appears at the start of the\ntrailing slot (top-right); it leaves again when the bar expands. Its `onClick` usually scrolls back up and focuses\nthe field. Counts toward the three trailing actions, so keep at most two others. `label` defaults to the locale's\n“Search”, `icon` to icon-search-medium-line (an icon name or an element). Without `onClick` (with `scrollRef`) it\ndoes that itself: it scrolls the content back to the top and focuses the Search once it is back.",
           "deprecated": null
         },
         {
@@ -299,6 +299,6 @@
     "MenuGroupData": "type MenuGroupData = { type: \"group\"; id?: string; label: string; items: Array<MenuItemData | MenuSeparatorData> }",
     "MenuItemData": "type MenuItemData = { type?: \"item\"; id: string; label: string; icon?: IconName | ReactElement; caption?: ReactNode; shortcut?: string; danger?: boolean; disabled?: boolean; onSelect?: () => void; }",
     "MenuSeparatorData": "type MenuSeparatorData = { type: \"separator\"; id?: string }",
-    "TopNavigationAction": "interface TopNavigationAction { icon: IconName | ReactElement; label: string; onClick?: () => void; dot?: boolean; disabled?: boolean; group?: string; }"
+    "TopNavigationAction": "interface TopNavigationAction { icon: IconName | ReactElement; label: string; onClick?: () => void; dot?: boolean; disabled?: boolean; menu?: MenuEntry[]; group?: string; }"
   }
 }

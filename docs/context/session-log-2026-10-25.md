@@ -277,3 +277,37 @@ The user's two decisions:
   - The rerun on templates with the Studio files, under #304's new-row rule: PASS (audit 0, dark 0, behaviour 0,
     E2E 363 works / 0 broken). I opened the table, app-shell G2, HR My leaves and templates sheets. The Medium emoji Dock
     Icons sit inside their rows, as in Figma.
+
+## Studio phone chrome controls (tier M; branch zen/fix/studio-phone-chrome-20261025; user: "Có, làm thẻ phone chrome đi")
+
+The phone bars `tools/studio/responsive-header.mjs` draws from a desktop AppShellHeader left four dead controls on the
+DEMO-MEET page `quan-ly-task` (a copy gave `interaction/action-without-handler` ×3, `icon-button/needs-action`,
+`interaction/controlled-needs-handler`). Now:
+- **Search:** the top bar's Search (its props, without `shortcut` / `size`) is the TopNavigation `controlBar`, above
+  the tabs on a child (`<Stack gap="xs">`); a root adds `searchAction={{ label }}` and keeps two trailing places
+  (rule 1). TopNavigation: `searchAction.onClick` is optional — with `scrollRef` it scrolls up and focuses the field
+  (so the export writes no stand-in; compile selftest now shows the stand-in on PageHeader `back`).
+- **More:** TopNavigationAction `menu?: MenuEntry[]` wraps the action in a Menu (a sheet on a phone). The folded
+  actions are rows running their own onClick; a folded Menu trigger (Help) is a group whose rows take the Menu's
+  `onSelect`, a per-item navigate narrowed to each row's target. A kept Menu trigger becomes an action with `menu`.
+- **Account:** `leading` is the desktop's Menu (items, onSelect; `align` dropped) around the AppShellAccount; a bare
+  account keeps its onClick.
+- **Tab bar:** `onValueChange` = the Sidebar's `onItemClick`, else the rows' own `proto.navigate` as one per-item navigate.
+- **Met while fixing:** a linked part redrawn with a component the page does not import (Stack, Menu) was refused
+  ("not imported") and withPhoneSync stopped silently. planPhoneSync swaps such a part in (`replaceElement`, which
+  imports), alone in its request. Harness: an action with `menu` counts as handled (`handlesPress`; good.tsx case).
+- **Open:** the tab bar's More tab (> 5 Sidebar rows) has no sheet: BottomNavigation needs an API →
+  BACKLOG-user-and-later (P3).
+
+Checks: responsive-header selftest 40 (Search root/child, More rows + group, account Menu / onClick, tabs onItemClick /
+row navigates, the import swap); a synced copy of `quan-ly-task` → 0 findings from derived parts (1 left:
+`table/titled-box`, page content). New E2E rows PT-25 (tab bar navigates in phone Play), PT-26 (Search filters + folded
+Search action, More sheet rows, account menu).
+
+Gate (slot from Giám sát, 2026-10-26 ~02:00): PT-25/PT-26 by id first broke on the fixture (a Screen with `x` and no
+`y` does not parse), then 2 works; group prototype 26 works. `qa --isolated` (page top-navigation): every step passed
+but the Studio E2E, B-39 regressed. It was this change: the linked phone bar now holds a real `<Search>` (its control
+bar) and B-39's ⌘Z step counted every `<Search>` on the page; it now reads the header's `leading`. B-39…B-43 by id
+pass, then `qa --failed`: Studio E2E 365 works · 0 broken → **Build-QA PASS**. Mid-gate, Auto-fix started a host-side
+main merge in the worktree; aborted at once (sync abort), main merged after the run.
+
