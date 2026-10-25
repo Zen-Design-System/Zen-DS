@@ -170,6 +170,14 @@ The user published the Zen library; Studio's ⌘C → ⌘V now lands in any Figm
   Chromium escaped `<!--`; the rows now copy again until the status says the read-ahead path, as a person would).
   After merging main 35d76fcc (#301; session log conflict, both kept): `studio:e2e --rows=HO-18,HO-19,HO-20,HO-12`
   4/4 and `--only=handoff` 19/19.
+- **Race found by Giám sát's review, fixed in the product (9ef5427a):** a ⌘C before the frame's Figma export was read (a
+  session's first copy also loads the definitions) wrote the html with an async clipboard write, which escapes `<!--`:
+  Figma's canvas pasted nothing (older than this PR, longer with the definitions). Now the code goes at once and both
+  go in a copy event of their own once read, within the key press's 3 s (`copyFrameWhenRead`, as the frame menu's Copy
+  for Figma); frame ⌘C and a Screen layer's ⌘C; `isCopyingForFigma` keeps the frame keys off that event. HO-18 copies
+  once, at once, in a fresh Studio ("one ⌘C before the read-ahead (written once read)"). Rows HO-18/19/20/12 4/4,
+  handoff 19/19, frame-key rows B-39 + FW-106/153/154/192/195 6/6, `--only=figma` 195/196 (FW-186, Pick color, timed
+  out in the group and passes alone).
 - **Cleanup:** probe frames and test frames removed from the Zen file's QA page. The scratch files "Zen paste test",
   "(target)", "(target 2)", "(target 3)" stay in the team for the user to delete.
 - **Not mine, noted:** the Zen plugin's ⌘V import hung once, and in a non-Zen file gave a partial frame (plugin repo); it draws no "Other"
