@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 # Nightly backup: tars the registry storage volume (packages + Verdaccio's token secret) and uploads it to
-# R2/S3, then deletes copies older than BACKUP_KEEP_DAYS. Run by cron as root (setup.sh installs it).
+# R2/S3, then deletes copies older than BACKUP_KEEP_DAYS. Run by cron as root (setup.sh or podman/deploy.sh installs it).
 set -euo pipefail
 ENV_FILE=${ZEN_BACKUP_ENV:-/etc/zen-registry/backup.env}
-VOLUME=${ZEN_STORAGE_VOLUME:-zen-registry_storage}
-NETWORK=${ZEN_BACKUP_NETWORK:-bridge}
+# Docker compose stack (setup.sh) or Podman Quadlet (podman/deploy.sh): its volume name and a network that reaches R2
+# (ufw's forward policy drops bridged Podman traffic, see podman/zen-registry.container).
+ENGINE=${ZEN_CONTAINER_ENGINE:-$([ -f /etc/containers/systemd/zen-registry.container ] && echo podman || echo docker)}
+if [ "$ENGINE" = podman ]; then
+  VOLUME=${ZEN_STORAGE_VOLUME:-zen-registry-storage}; NETWORK=${ZEN_BACKUP_NETWORK:-host}
+else
+  VOLUME=${ZEN_STORAGE_VOLUME:-zen-registry_storage}; NETWORK=${ZEN_BACKUP_NETWORK:-bridge}
+fi
 set -a
 # shellcheck source=/dev/null
 . "$ENV_FILE"
@@ -24,9 +30,9 @@ RCLONE_CONFIG_DEST_NO_CHECK_BUCKET=true
 VARS
 )
 mkdir "$work/out"
-rclone() { docker run --rm --network "$NETWORK" --env-file "$work/rclone.env" -v "$work/out":/out rclone/rclone:1.75.1 "$@"; }
+rclone() { "$ENGINE" run --rm --network "$NETWORK" --env-file "$work/rclone.env" -v "$work/out":/out docker.io/rclone/rclone:1.75.1 "$@"; }
 
-docker run --rm -v "$VOLUME":/data:ro -v "$work/out":/out alpine:3.24.2 \
+"$ENGINE" run --rm -v "$VOLUME":/data:ro -v "$work/out":/out docker.io/library/alpine:3.24.2 \
   tar -C /data -czf "/out/storage-$stamp.tar.gz" .
 rclone copyto "/out/storage-$stamp.tar.gz" "dest:$S3_BUCKET/registry/storage-$stamp.tar.gz"
 rclone delete "dest:$S3_BUCKET/registry" --min-age "${BACKUP_KEEP_DAYS:-30}d"

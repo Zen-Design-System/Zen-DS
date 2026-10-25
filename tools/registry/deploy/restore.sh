@@ -4,8 +4,15 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 ENV_FILE=${ZEN_BACKUP_ENV:-/etc/zen-registry/backup.env}
-VOLUME=${ZEN_STORAGE_VOLUME:-zen-registry_storage}
-NETWORK=${ZEN_BACKUP_NETWORK:-bridge}
+# Same engine choice as backup.sh: the Docker compose stack, or the Podman Quadlet unit zen-registry.service.
+ENGINE=${ZEN_CONTAINER_ENGINE:-$([ -f /etc/containers/systemd/zen-registry.container ] && echo podman || echo docker)}
+if [ "$ENGINE" = podman ]; then
+  VOLUME=${ZEN_STORAGE_VOLUME:-zen-registry-storage}; NETWORK=${ZEN_BACKUP_NETWORK:-host}
+  registry() { systemctl "$1" zen-registry.service; }
+else
+  VOLUME=${ZEN_STORAGE_VOLUME:-zen-registry_storage}; NETWORK=${ZEN_BACKUP_NETWORK:-bridge}
+  registry() { docker compose "$1" registry; }
+fi
 set -a
 # shellcheck source=/dev/null
 . "$ENV_FILE"
@@ -23,7 +30,7 @@ RCLONE_CONFIG_DEST_NO_CHECK_BUCKET=true
 VARS
 )
 mkdir "$work/in"
-rclone() { docker run --rm --network "$NETWORK" --env-file "$work/rclone.env" -v "$work/in":/in rclone/rclone:1.75.1 "$@"; }
+rclone() { "$ENGINE" run --rm --network "$NETWORK" --env-file "$work/rclone.env" -v "$work/in":/in docker.io/rclone/rclone:1.75.1 "$@"; }
 
 name=${1:-latest}
 if [ "$name" = latest ]; then
@@ -33,8 +40,8 @@ fi
 echo "restoring $name"
 rclone copyto "dest:$S3_BUCKET/registry/$name" "/in/$name"
 
-docker compose stop registry
-docker run --rm -v "$VOLUME":/data -v "$work/in":/in:ro alpine:3.24.2 sh -c \
+registry stop
+"$ENGINE" run --rm -v "$VOLUME":/data -v "$work/in":/in:ro docker.io/library/alpine:3.24.2 sh -c \
   "find /data -mindepth 1 -delete && tar -C /data -xzf '/in/$name' && chown -R 10001:65533 /data"
-docker compose start registry
+registry start
 echo "restored $name"

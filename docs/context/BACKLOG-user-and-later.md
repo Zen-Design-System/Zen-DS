@@ -8,6 +8,12 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
 ## For the user (Việc của anh/chị)
 - **P2 · LICENSE.md is a draft: legal review before selling (2026-10-08):** drafted on PR #5 (Dizai Studio, Vietnam law, subscription, apps-not-kits, per company + member limit); a lawyer must review it and remove its "Draft" note. Was: package.json has no `license` field and the repo no
   LICENSE/EULA; needed before selling (legal text from the user).
+- **P2 · Private registry: the user's steps, then Phase 6 (2026-10-08; rewritten 2026-10-25):** live since 2026-10-14
+  (Podman on 51.79.205.10, DNS, HTTPS, `ZEN_REGISTRY_PUBLISH_KEY`, v0.3.0 published). Left, as copy-paste steps in
+  [`docs/registry-setup.md`](../registry-setup.md) (Vietnamese runbook): SSH access from the user's Mac, the R2 bucket +
+  `backup.env` + Podman redeploy (no backups exist yet), an uptime check, one real `npm login` (Google + licence key),
+  and `npm deprecate` of npmjs `@zen-ds/react@0.1.0` and `@zen-ds/tokens@0.1.0`. Phase 6, a payment webhook: the user
+  picked Polar (2026-10-25); built in a follow-up PR.
 - **P3 · Private registry: warn on shared license keys (2026-10-08; rewritten 2026-10-24):** the usage report per
   licence exists (5afe9ea2: developers, CI keys, IPs and installs per month; `usage-report.js` sorts by IP count). Left:
   a warning when one key goes far beyond its `seats`, and the package version of each install
