@@ -114,14 +114,17 @@
 .studio-page-list__text { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
 .studio-page-list__text > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Play (proto/Player.tsx): the page's current Screen at its device width, its overlays inside that device. The device is
-   the app's window: in Auto as tall as the page under the bar less the stage's padding, else the fixed viewport's box.
-   The Screen scrolls inside it (__screens) and the device clips, as a browser window does. Its overlays (a Dialog, a Side
-   Panel, an Overlay's layer) render beside that scroll box, so they cover the window, never the whole page: opened on a
-   scrolled page, one shows in full and nothing moves (the user 2026-10-24, "Quản lý task"). As a size container, the
-   device gives AppShell its height (100cqh, see above). */
+/* Play (proto/Player.tsx): the page's current Screen on its device, its overlays inside that device. The device is the
+   app's window: in Auto (a desktop Screen) the whole page under the bar, edge to edge, as a web app fills a browser and
+   as Present's full-screen card does (the user 2026-10-26: it was a 1440 px card with a margin, "không hiện full màn hình
+   desktop"); else the fixed viewport's box on the padded stage. The Screen scrolls inside it (__screens) and the device
+   clips, as a browser window does. Its overlays (a Dialog, a Side Panel, an Overlay's layer) render beside that scroll
+   box, so they cover the window, never the whole page: opened on a scrolled page, one shows in full and nothing moves
+   (the user 2026-10-24, "Quản lý task"). As a size container, the device gives AppShell its height (100cqh, see above). */
 .studio-player__stage { display: flex; min-height: 100%; box-sizing: border-box; justify-content: center; padding: var(--zen-spacing-padding-xlarge, 24px); }
 .studio-player__device { position: relative; height: calc(100cqh - 2 * var(--zen-spacing-padding-xlarge, 24px)); overflow: clip; align-self: flex-start; container-type: size; border-radius: var(--zen-corner-radius-large, 16px); box-shadow: var(--zen-style-shadow-bottom-level-1-shadow); }
+.studio-player__stage[data-viewport="auto"] { padding: 0; }
+.studio-player__stage[data-viewport="auto"] .studio-player__device { width: 100%; height: 100cqh; border-radius: 0; box-shadow: none; }
 .studio-player__device > .studio-player__screens { display: flex; height: 100%; flex-direction: column; overflow: auto; }
 /* A Screen shorter than the window still fills it, as a page fills a browser window. */
 .studio-player__device > .studio-player__screens > .studio-player__screen:not([data-leaving]) { display: flex; flex: 1 0 auto; flex-direction: column; }

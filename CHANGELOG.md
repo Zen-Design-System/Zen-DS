@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio Play (2026-10-26): a desktop Screen plays full screen again (the whole window under the bar, as Present
+  did), not a 1440 px card with a margin; and in a dark Play the page's Table popovers, tooltips, Chip popovers and
+  toasts are dark too (they draw in Play's own portal layer, no longer in the Studio's `<body>`).
 - Zen Studio Copy for Figma (2026-10-25): ⌘C on a frame, then ⌘V on any Figma canvas (not only the Zen file's) places
   it as instances of the published Zen library, with its variables and text styles bound: the paste carries the
   library's full definitions, as Figma's own copies do (`docs/figma-contracts/native-defs.json.gz`).
