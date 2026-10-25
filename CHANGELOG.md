@@ -20,6 +20,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Segmented (2026-10-26): on a phone, a full-width Segmented in a box that hugs its content (a floating layer, the
   Calendar toolbar in a column that does not stretch) settles on its chip row instead of switching back and forth until
   React stopped with "Maximum update depth exceeded", which blanked the Zen Studio canvas after such a drop.
+- QA gate (user, 2026-10-25): a Studio E2E row that is not in `matrix.baseline.json` and comes back broken now fails the
+  gate step and `npm run studio:e2e` (exit 1), marked "✗ New rows broken". New rows that work stay a pass, listed to
+  record with `--update-baseline`; rows the baseline marks broken and flaky rows are still allowed. The opt-in `figma`
+  and `dnd` groups are now in the baseline (FW-186 flaky; DND-03 and DND-05…08 left out until they are fixed).
 - Zen Studio Copy for Figma (2026-10-25): ⌘C on a frame, then ⌘V on any Figma canvas (not only the Zen file's) places
   it as instances of the published Zen library, with its variables and text styles bound: the paste carries the
   library's full definitions, as Figma's own copies do (`docs/figma-contracts/native-defs.json.gz`).
