@@ -165,6 +165,11 @@ The user published the Zen library; Studio's ⌘C → ⌘V now lands in any Figm
 - **Tests:** `figma-native.selftest` 162 (library form: keys, full layers, nothing named missing, refs resolve, values,
   Infinity kept, skeleton fallback; defsFrom, mergeDefs); E2E HO-18 (library form), HO-19 (full definitions, slot
   contents, Infinity), HO-20 (definitions blocked → Zen file form).
+- **Gate (slot from Giám sát):** `qa --isolated --files=<the PR's 18 files>` PASS (static ✓, Studio E2E 360 works; the
+  3 new rows broke there: a first ⌘C ran before the read-ahead had loaded the definitions, took the async path and
+  Chromium escaped `<!--`; the rows now copy again until the status says the read-ahead path, as a person would).
+  After merging main 35d76fcc (#301; session log conflict, both kept): `studio:e2e --rows=HO-18,HO-19,HO-20,HO-12`
+  4/4 and `--only=handoff` 19/19.
 - **Cleanup:** probe frames and test frames removed from the Zen file's QA page. The scratch files "Zen paste test",
   "(target)", "(target 2)", "(target 3)" stay in the team for the user to delete.
 - **Not mine, noted:** the Zen plugin's ⌘V import hung once, and in a non-Zen file gave a partial frame (plugin repo); it draws no "Other"
