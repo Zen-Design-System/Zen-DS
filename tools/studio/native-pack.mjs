@@ -12,7 +12,8 @@
 //                                                           then write the pack (needs Accessibility for the terminal app);
 //                                                           --keep saves the copies to .qa/native-pack/<frame>.html (write
 //                                                           --files reads them again). A copy of another node is refused
-//   node tools/studio/native-pack.mjs write --files=a.html,b.html   copies saved by hand → the pack
+//   node tools/studio/native-pack.mjs write --files=a.html,b.html   copies saved by hand → the pack (capture and write
+//                                                           also write the full definitions, native-defs.json.gz)
 //   node tools/studio/native-pack.mjs probe-code --ids=a:b,c:d   use_figma code: a probe of just these sets / components
 //   … capture --frames=… --merge | write --files=… --merge      add what the existing pack lacks (a set added to the
 //                                                           library): the copies' new sets, symbols, styles, variables and
@@ -37,6 +38,10 @@
 // does); their style and variable refs are node ids, their vector data inline (`{blob: base64}`). The schema Figma wrote
 // rides along as figma-clipboard-schema.generated.mjs. The file stores every repeated subtree once (`shared`, written
 // `{$: n}`: compactPack); read it through figma-native.mjs expandPack.
+//
+// Definitions (docs/figma-contracts/native-defs.json.gz, defsFrom): the same copies' components, slot contents,
+// variables and styles in full, gzipped compact JSON, for a paste into a file other than Zen's (figma-native.mjs
+// libraryForm). Copies must be fresh after a library publish: a paste carries the versions they hold.
 
 import { readFigmaClipboard, base64Of } from "./figma-kiwi.mjs";
 import { expandPack } from "./figma-native.mjs";

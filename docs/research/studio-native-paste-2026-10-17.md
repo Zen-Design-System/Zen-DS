@@ -170,7 +170,7 @@ ghi chú.
 
 ## 8. Còn mở
 
-Dán vào file khác ngoài Zen: chờ thư viện publish (instance theo `componentKey`, định nghĩa đầy đủ trong bản dán).
+Không còn mục mở. Dán vào file khác ngoài Zen: xong 2026-10-25 (§9).
 
 Đã đóng 2026-10-23 (session C):
 - Menu "Copy for Figma" đọc trước khung khi menu mở và ghi trong copy event như ⌘C (trước đó ghi bất đồng bộ, Chromium
@@ -185,3 +185,49 @@ Dán vào file khác ngoài Zen: chờ thư viện publish (instance theo `compo
 - Giữ theo thiết kế: slot ghi override vào layer mặc định của slot thay vì nội dung ở cấp ngoài như Figma (hiện như
   nhau, sửa trong Figma như nhau); phần giữ lại ghi biến alias của component (Button-Tertiary/Content/Default) thay vì
   biến đích Figma tự ghi (Strongest): cùng màu, và theo đúng ngữ nghĩa component ở mọi mode.
+
+## 9. Dán vào file khác (2026-10-25, user publish thư viện; nhánh zen/feat/paste-other-files-20261025)
+
+Đo bằng dán thật vào file thử ngoài Zen ("Zen paste test …", team Đìzai Studio Official) và bản Figma tự copy:
+
+| Thử | Kết quả |
+| --- | --- |
+| Figma tự copy instance thư viện trong một file dùng thư viện | SYMBOL mang `componentKey`, `sourceLibraryKey` (thư viện "ZEN Kaiz (Official-Sep2026)", `lk-3fd76b…`), `publishID` = id trong file Zen, `sharedSymbolVersion`; biến/style theo `assetRef {key, version}` kèm node VARIABLE / VARIABLE_SET / style |
+| Bản Figma tự copy **trong file Zen** | cùng dạng đó (guid = id file Zen, `publishID` = chính nó); dán sang file khác: 54/54 instance thư viện, 529 liên kết biến, 18/18 chữ có style |
+| Chỉ variant đang dùng (không cả set) | đủ |
+| Khung xương có `componentKey` (có hay không `sharedSymbolVersion`, cả "1:1") | Figma dựng component từ bản dán, **không tải theo key**: icon trống, nút không màu |
+| Biến chỉ có key, không node; hoặc node VARIABLE không có giá trị | không gắn / màu trắng |
+| Text style chỉ có key | không gắn |
+
+Vậy bản dán vào file khác phải mang định nghĩa đầy đủ như Figma. Làm:
+
+- `native-pack.mjs defsFrom` → `docs/figma-contracts/native-defs.json.gz`: từ chính các bản chụp của gói (probe → Figma
+  desktop copy), mọi component (vỏ set, variant, layer), nội dung slot component đặt sẵn, biến, bộ biến, style, như
+  Figma copy; bỏ pluginData, mô tả, dữ liệu dẫn xuất (`derived*`). 45.854 node: JSON thô ~100 MB, nén trùng lặp
+  (`compactPack`) 41 MB, gzip 3,4 MB. `capture` / `write` ghi cả gói lẫn định nghĩa; `--merge` đè node cùng id.
+- `figma-native.mjs`: có định nghĩa thì `definitions()` thay khung xương bằng định nghĩa đầy đủ (theo dấu symbol lồng,
+  swap, mặc định của thuộc tính swap, nội dung slot), `libraryForm()` đổi tham chiếu biến/style sang `assetRef` (trừ
+  liên kết biến trong override, Figma ghi theo id) và thêm node của mọi biến (kể cả alias), bộ biến, style. Thiếu định
+  nghĩa thì dùng khung xương và ghi chú. `indexDefs` chỉ mở các node bản dán dùng (đọc gói 0,2 s, một trang 0,1 s).
+- Studio (`figmaClipboard.ts`): ⌘C nạp `native-defs.json.gz` một lần (fetch + `DecompressionStream`); không nạp được
+  thì vẫn dán được vào file Zen như cũ.
+
+Hai lỗi chỉ lộ ra khi dán thật (component trong file Zen là của chính nó nên định nghĩa không dùng tới):
+
+- Nội dung slot component đặt sẵn (Metric-Card, List-Box, biểu đồ, Side-Bar, hàng bảng) là frame `isSlotContent` trên
+  Internal Only Canvas: phải đi kèm, không thì slot trống ở file khác.
+- Figma ghi "không giới hạn" bằng `Infinity` (`maxSize`) và `NaN` (`stackCounterSpacing`); JSON biến thành `null`, ghi
+  lại thành 0: slot `Value` của cột Stack-Bar bị ép cao 0. Gói giờ giữ chúng dạng chuỗi (`"Infinity"`), `figma-kiwi`
+  ghi lại thành số.
+
+Kết quả (Expenses, fixture `figma-expenses.json`, dán vào file mới "Zen paste test (target 3)"): 484 frame, 615 instance
+(615/615 instance thư viện), 151 slot, 277 chữ (277/277 style thư viện), 191 vector, 225 biến thư viện, 6.357 liên kết
+biến, 0 không gắn; cây layer trùng bản dán trong file Zen 728/728 (0 khác về loại, tên, kích thước, vị trí, ẩn hiện);
+1.741/1.741 node định nghĩa giống bản Figma tự copy. Trong file Zen: 615 instance của chính file, biến/style của chính
+file (không tạo bản sao thư viện). So với bản plugin import trong file Zen: cùng số layer; khác có sẵn từ trước (không do
+dạng thư viện): thẻ Metric trong grid 236 (chiều cao trên canvas Studio, 2026-10-23) và đoạn "Other" của cột chồng mà
+plugin không vẽ.
+
+Lưu ý: định nghĩa là của file Zen lúc chụp. Sửa component trong file Zen chưa publish thì bản dán mang bản sửa với
+version cũ; chụp lại gói sau mỗi lần publish (`native-pack.mjs probe-code` … `capture`). File đã có component cùng key
+(từ lần dán trước) giữ bản của nó, như Figma.

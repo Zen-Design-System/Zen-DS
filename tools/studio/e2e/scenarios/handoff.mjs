@@ -280,6 +280,37 @@ async function openExport(page) {
 }
 const clipboard = (page) => page.evaluate(() => navigator.clipboard.readText());
 
+/**
+ * ⌘C on FIGMA_PAGE's frame, then Figma's own clipboard as written (the html unsanitized) read back: its meta and
+ * NODE_CHANGES message. The frame is selected by its label, as HO-12 does.
+ */
+async function copyFrameForFigma(page) {
+  await importHtmlPage(page, FIGMA_PAGE, "screen:screen-1");
+  await page.locator('.studio-frame-label[data-chrome-key="label:screen:screen-1"]').evaluate((element) => element.click());
+  await page.locator(".studio-viewport").focus();
+  await page.evaluate(() => navigator.clipboard.writeText("before"));
+  await page.keyboard.press(process.platform === "darwin" ? "Meta+c" : "Control+c");
+  const raw = () => page.evaluate(async () => {
+    for (const item of await navigator.clipboard.read({ unsanitized: ["text/html"] })) if (item.types.includes("text/html")) return (await item.getType("text/html")).text();
+    return "";
+  });
+  await until(async () => (await raw()).includes('<span data-buffer="<!--(figma)'), { timeout: 20_000, message: "Figma's own clipboard after ⌘C" });
+  return readFigmaClipboard(await raw());
+}
+
+/** What a paste names by id that is not in it: components, swaps and slot contents. */
+function namedMissing(nodes) {
+  const ids = new Set(nodes.map((n) => `${n.guid.sessionID}:${n.guid.localID}`));
+  const named = [];
+  const key = (g) => `${g.sessionID}:${g.localID}`;
+  for (const n of nodes) {
+    if (n.symbolData?.symbolID) named.push(key(n.symbolData.symbolID));
+    for (const o of n.symbolData?.symbolOverrides ?? []) if (o.overriddenSymbolID) named.push(key(o.overriddenSymbolID));
+    for (const a of [...(n.componentPropAssignments ?? []), ...(n.symbolData?.symbolOverrides ?? []).flatMap((o) => o.componentPropAssignments ?? [])]) if (a.varValue?.value?.slotContentIdValue) named.push(key(a.varValue.value.slotContentIdValue.guid));
+  }
+  return [...new Set(named)].filter((id) => !ids.has(id));
+}
+
 export const rows = [
   {
     id: "HO-09", feature: "Export › Figma (core rebuild Q4): the page as the .figma.json the Zen plugin's Import from Studio places — format zen-studio-figma, the page's id, a frame of library instances (Button/Flat by its appearance, gap bound to its Spacing variable); its keys stay the same from one download to the next", wp: "figma push P1 2026-10-12",
@@ -921,6 +952,98 @@ export const rows = [
       await page.keyboard.press(process.platform === "darwin" ? "Meta+c" : "Control+c");
       await check("⌘C on the Screen layer");
       return `⌘C on the frame and on its Screen layer, Copy for Figma (Figma's own clipboard as written, grid cards at their canvas heights): ${Object.keys(copied.library.sets).length} sets with keys, frame screen:screen-1, code beside it`;
+    },
+  },
+  {
+    id: "HO-18", feature: "Copy for Figma pastes into any Figma file (the published Zen library, 2026-10-25): ⌘C writes Figma's clipboard as Figma copies from the Zen file — each published component with its key and the library's (sourceLibraryKey, publishID, version), each variable and style it binds as a node with its values and collection, refs by key — so ⌘V in a file other than Zen's lands instances of the published library", wp: "paste into other files 2026-10-25",
+    timeout: 60_000,
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const { meta, message } = await copyFrameForFigma(page);
+      const nodes = message.nodeChanges;
+      const symbols = nodes.filter((n) => n.type === "SYMBOL");
+      const keyed = symbols.filter((n) => n.componentKey);
+      const keys = new Set(nodes.filter((n) => n.key).map((n) => n.key));
+      const refs = [];
+      const walk = (value) => {
+        if (Array.isArray(value)) return value.forEach(walk);
+        if (!value || typeof value !== "object") return;
+        for (const [field, inner] of Object.entries(value)) {
+          if ((field === "alias" || field.startsWith("styleIdFor") || field === "variableSetID") && inner?.assetRef) refs.push(inner.assetRef.key);
+          else walk(inner);
+        }
+      };
+      nodes.forEach(walk);
+      const variables = nodes.filter((n) => n.type === "VARIABLE");
+      const styles = nodes.filter((n) => n.styleType && n.key);
+      const problems = [
+        meta?.fileKey !== "9nZv4uW2LT21yuHabMTCh1" && `copied from ${meta?.fileKey}`,
+        !symbols.length && "no components",
+        keyed.length < symbols.length * 0.9 && `${symbols.length - keyed.length} of ${symbols.length} components without a key`,
+        keyed.some((n) => !/^lk-/.test(n.sourceLibraryKey ?? "") || !n.sharedSymbolVersion || `${n.publishID?.sessionID}:${n.publishID?.localID}` !== `${n.guid.sessionID}:${n.guid.localID}`) && "a component without its library, version or publish id",
+        !refs.length && "no variable or style by key",
+        refs.some((key) => !keys.has(key)) && `${refs.filter((key) => !keys.has(key)).length} refs by key without their node`,
+        !variables.length && "no variables",
+        variables.some((v) => !v.variableDataValues?.entries?.length || !keys.has(v.variableSetID?.assetRef?.key)) && "a variable without its values or collection",
+        !styles.length && "no styles",
+      ].filter(Boolean);
+      if (problems.length) throw new Error(`Copy for Figma, library form: ${problems.join(" · ")}`);
+      return `${keyed.length}/${symbols.length} components with library keys, ${variables.length} variables and ${styles.length} styles as nodes, ${refs.length} refs by key, all resolved`;
+    },
+  },
+  {
+    id: "HO-19", feature: "Copy for Figma carries full definitions, not skeletons (a file without the library builds each component from the paste; skeletons pasted empty, 2026-10-25): the components' own layers with their vector data and text styles, every component, swap and slot content the paste names (the Metric-Cards' Card slot contents), and a slot's unset max height as Figma's Infinity (stored as null it came back 0 and squeezed the stacked bars flat)", wp: "paste into other files 2026-10-25",
+    timeout: 60_000,
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const { message } = await copyFrameForFigma(page);
+      const nodes = message.nodeChanges;
+      const byId = new Map(nodes.map((n) => [`${n.guid.sessionID}:${n.guid.localID}`, n]));
+      const inSymbol = (n) => { for (let at = n; at; at = at.parentIndex ? byId.get(`${at.parentIndex.guid.sessionID}:${at.parentIndex.guid.localID}`) : null) if (at.type === "SYMBOL") return true; return false; };
+      const layers = nodes.filter((n) => n.type !== "SYMBOL" && inSymbol(n));
+      const missing = namedMissing(nodes);
+      const contents = nodes.filter((n) => n.isSlotContent);
+      const unbounded = nodes.filter((n) => inSymbol(n) && n.maxSize && (n.maxSize.value.y === Infinity || n.maxSize.value.x === Infinity));
+      const zeroed = nodes.filter((n) => inSymbol(n) && n.maxSize && (n.maxSize.value.y === 0 || n.maxSize.value.x === 0));
+      const problems = [
+        !layers.some((n) => n.type === "VECTOR" && n.vectorData?.vectorNetworkBlob !== undefined) && "no component layer with vector data",
+        !layers.some((n) => n.type === "TEXT" && n.styleIdForText?.assetRef) && "no component text with its style",
+        !layers.some((n) => (n.fillPaints ?? []).some((paint) => paint.colorVar?.value?.alias?.assetRef)) && "no component layer with a bound fill",
+        missing.length && `${missing.length} named but not in the paste (${missing.slice(0, 3).join(", ")})`,
+        !contents.length && "no slot contents",
+        zeroed.length && `${zeroed.length} max sizes of 0 (an unset one lost)`,
+      ].filter(Boolean);
+      if (problems.length) throw new Error(`Copy for Figma, full definitions: ${problems.join(" · ")}`);
+      return `${layers.length} component layers in full, ${contents.length} slot contents, nothing named missing, ${unbounded.length} unset max sizes kept as Infinity`;
+    },
+  },
+  {
+    id: "HO-20", feature: "Without the library definitions (native-defs.json.gz does not load) Copy for Figma still writes the Zen file's form (skeletons, refs by id, no library keys) beside the plugin's export: the copy does not fail, only another file's canvas cannot take it", wp: "paste into other files 2026-10-25",
+    timeout: 90_000,
+    async run(ctx) {
+      // A fresh Studio: the definitions load once per page, on its first copy for Figma.
+      const { page } = await ctx.studio({ fresh: true });
+      const blocked = "**/native-defs.json.gz*";
+      await page.route(blocked, (route) => route.abort());
+      try {
+        const { message } = await copyFrameForFigma(page);
+        const nodes = message.nodeChanges;
+        const symbols = nodes.filter((n) => n.type === "SYMBOL");
+        const html = await page.evaluate(async () => {
+          for (const item of await navigator.clipboard.read({ unsanitized: ["text/html"] })) if (item.types.includes("text/html")) return (await item.getType("text/html")).text();
+          return "";
+        });
+        const problems = [
+          !symbols.length && "no components",
+          symbols.some((n) => n.componentKey || n.sourceLibraryKey) && "a component with library keys (the definitions were blocked)",
+          nodes.some((n) => n.type === "VARIABLE") && "variable nodes (the Zen file's form binds by id)",
+          !packageFromClip({ html }) && "no plugin export beside it",
+        ].filter(Boolean);
+        if (problems.length) throw new Error(`Copy for Figma without the definitions: ${problems.join(" · ")}`);
+        return `${symbols.length} skeleton components bound by id, the plugin's export beside them`;
+      } finally {
+        await page.unroute(blocked);
+      }
     },
   },
 ];

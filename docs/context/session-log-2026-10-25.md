@@ -96,3 +96,31 @@ three toolbar Search checks stop skipping it.
 - **Gate:** `qa --isolated --pages=dashboard-header,app-shell,side-panel` PASS (suite 64/64, Vitest 87/87, audit
   1512/390/320 0 new, dark 0, behaviour 0). I opened its 6 contact sheets: the search is 240 at 1512 and fills its row
   at 390. Merged main 7d95ef7b (#297) and removed the BACKLOG line (archived); then main 4e218464 (#298) and 5c31f566 (#299), registry and docs only.
+
+## Direct paste into other files (tier L; branch zen/feat/paste-other-files-20261025; BACKLOG P2 via #297)
+
+The user published the Zen library; Studio's ⌘C → ⌘V now lands in any Figma file as library instances. Research doc
+`studio-native-paste-2026-10-17.md` §9 has the measurements.
+
+- **What Figma needs (pastes into new team files "Zen paste test …", user picked "Tạo file mới"):** full definitions in
+  the paste. Figma builds a component it has not seen from the clipboard and never fetches it by key: a skeleton with
+  `componentKey` pasted empty (with or without `sharedSymbolVersion`), a key-only or value-less variable pasted white, a
+  key-only text style unbound. Only the used variants are needed.
+- **Built:** `native-pack.mjs defsFrom` → `docs/figma-contracts/native-defs.json.gz` (45,854 nodes, 3.4 MB gzipped,
+  from the same 18 probe copies as the pack, which a full capture refreshed: `Button/Main-Old` left the library);
+  `figma-native.mjs definitions()` + `libraryForm()`; Studio loads the definitions on the first ⌘C (`figmaClipboard.ts`).
+  Status copy says "a Figma canvas".
+- **Found by real pastes:** slot contents components set had to ride along (Metric-Card, List-Box, charts pasted with
+  empty slots); `Infinity` / `NaN` floats became `null` → 0 through JSON (stacked bars flat): stored as text now, and
+  `figma-kiwi` writes them back. Two stale test inputs fixed with the refreshed pack: the Expenses fixture's
+  `Child-Heading` (Figma dropped it) and the selftest's `Patterns/Sidebar/Density-Medium` (renamed `Patterns/Sidebar`).
+- **Result:** Expenses in a fresh file: 615/615 library instances, 225 library variables (6,357 bindings, 0 unresolved),
+  277/277 library text styles, layer tree = the Zen file's paste 728/728; screenshot right (stacked bars included). In
+  the Zen file the same paste binds to the file's own components, variables and styles.
+- **Tests:** `figma-native.selftest` 162 (library form: keys, full layers, nothing named missing, refs resolve, values,
+  Infinity kept, skeleton fallback; defsFrom, mergeDefs); E2E HO-18 (library form), HO-19 (full definitions, slot
+  contents, Infinity), HO-20 (definitions blocked → Zen file form).
+- **Cleanup:** probe frames and test frames removed from the Zen file's QA page. The scratch files "Zen paste test",
+  "(target)", "(target 2)", "(target 3)" stay in the team for the user to delete.
+- **Not mine, noted:** the Zen plugin's ⌘V import hung once, and in a non-Zen file gave a partial frame (plugin repo); it draws no "Other"
+  segment in the Expenses stacked bars where the direct paste does.

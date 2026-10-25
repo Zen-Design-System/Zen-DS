@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { expandPack, nativeMessage, nativePictures, pictureKind, figmaPasteHtml, parsePath, pathBounds, vectorNetwork } from "./figma-native.mjs";
 import { readFigmaClipboard } from "./figma-kiwi.mjs";
-import { compactPack, mergePacks, copiedNode, effectFromPlugin, withEffects } from "./native-pack.mjs";
+import { compactPack, mergePacks, copiedNode, effectFromPlugin, withEffects, readDefs, defsFrom, mergeDefs, DEFS_FILE } from "./native-pack.mjs";
 import { diffMessages } from "./native-diff.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -520,6 +520,18 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   try { compactPack({ ...small, contents: { "2:1": [{ $: 1 }] } }); } catch { refused = true; }
   check(refused, "a pack object with a `$` key is refused (it would read as a reference)");
   check(Array.isArray(stored.shared) && stored.shared.length > 1000 && `${JSON.stringify(compactPack(stored))}` === JSON.stringify(stored), "native-pack.json is stored compact, as compactPack writes it (a refresh diffs only what changed)");
+  // The full definitions keep what JSON cannot hold as text, and the library key once.
+  const g = (localID) => ({ sessionID: 1, localID });
+  const copy = { message: { blobs: [], nodeChanges: [
+    { guid: g(1), type: "SYMBOL", name: "C", sourceLibraryKey: "lk-a", publishID: g(1), maxSize: { value: { x: 40, y: Infinity } }, stackCounterSpacing: NaN, pluginData: [{ key: "k", value: "v" }] },
+    { guid: g(2), parentIndex: { guid: g(1), position: "!" }, type: "TEXT", name: "T", derivedTextData: { layoutSize: { x: 1, y: 1 } } },
+    { guid: g(3), type: "FRAME", name: "Not a component" },
+  ] } };
+  const defs = defsFrom([copy], { read: "r" });
+  const c = defs.nodes["1:1"];
+  check(defs.library === "lk-a" && c.sourceLibraryKey === 1 && c.maxSize.value.y === "Infinity" && c.stackCounterSpacing === "NaN" && !c.pluginData && !defs.nodes["1:2"].derivedTextData && !defs.nodes["1:3"], "defsFrom: a component and its layers, Infinity / NaN as text, the library key once, no plugin or derived data, nothing outside a component");
+  const merged = mergeDefs({ read: "a", library: "lk-a", nodes: { "1:1": { name: "old" }, "1:2": { name: "kept" } } }, { read: "b", library: "lk-a", nodes: { "1:1": { name: "new" }, "1:3": { name: "added" } } });
+  check(JSON.stringify(Object.entries(merged.nodes).map(([key, node]) => `${key}=${node.name}`)) === JSON.stringify(["1:1=new", "1:2=kept", "1:3=added"]) && merged.read === "b", "native-defs --merge: the copies' nodes replace the same ids, the rest stay");
 }
 
 // --- the Expenses page, end to end ---------------------------------------------------------------------------------
@@ -544,6 +556,68 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   // native-diff (the comparison with Figma's own copy of the plugin's import) finds nothing between a paste and itself.
   const same = diffMessages(pack, message, message.clipboardSelectionRegions[0].nodes[0], message);
   check(same.kinds.length === 0 && same.counts.INSTANCE > 150, `native-diff: a paste equals itself (${same.kinds.slice(0, 3).map((k) => k.kind).join("; ")})`);
+}
+
+// --- Figma's library form (2026-10-25): with the full definitions the paste lands in any file, as library instances ---
+{
+  const defs = await readDefs(path.join(root, DEFS_FILE));
+  check(defs?.library?.startsWith("lk-") && Object.keys(defs.nodes ?? {}).length > 40000 && defs.shared?.length > 1000, "native-defs.json.gz holds the library's definitions, compact, with its library key");
+  const pkg = JSON.parse(fs.readFileSync(path.join(root, "tools/studio/fixtures/figma-expenses.json"), "utf8"));
+  const { message, notes } = nativeMessage(pkg, pack, new Map(), defs);
+  check(notes.length === 0, `library form: no notes (${notes.slice(0, 3).join("; ")})`);
+  const nodes = message.nodeChanges;
+  const byId = new Map(nodes.map((n) => [id(n.guid), n]));
+  const symbols = nodes.filter((n) => n.type === "SYMBOL");
+  // A component the library does not publish (a private primitive) has no key in Figma's copies either: it pastes as a
+  // local copy, as Figma's own paste does.
+  const keyed = symbols.filter((n) => n.componentKey);
+  check(symbols.length > 150 && keyed.length > symbols.length * 0.95 && keyed.every((n) => /^[0-9a-f]{40}$/.test(n.componentKey) && n.sourceLibraryKey === defs.library && id(n.publishID) === id(n.guid) && n.sharedSymbolVersion), `library form: each published component carries its key, the library and its version, as Figma's own copy from the Zen file (${keyed.length} of ${symbols.length})`);
+  // Full definitions: a file without the library builds each component from them (a skeleton pasted empty).
+  const inSymbol = (n) => { for (let at = n; at; at = byId.get(id(at.parentIndex?.guid))) if (at.type === "SYMBOL") return true; return false; };
+  check(nodes.some((n) => n.type === "VECTOR" && inSymbol(n) && n.vectorData?.vectorNetworkBlob !== undefined) && nodes.some((n) => n.type === "TEXT" && inSymbol(n) && n.styleIdForText?.assetRef), "library form: the components' own layers carry their vector data and text styles");
+  const named = [];
+  for (const n of nodes) {
+    if (n.symbolData?.symbolID) named.push(id(n.symbolData.symbolID));
+    for (const o of n.symbolData?.symbolOverrides ?? []) if (o.overriddenSymbolID) named.push(id(o.overriddenSymbolID));
+    for (const a of [...(n.componentPropAssignments ?? []), ...(n.symbolData?.symbolOverrides ?? []).flatMap((o) => o.componentPropAssignments ?? [])]) if (a.varValue?.value?.slotContentIdValue) named.push(id(a.varValue.value.slotContentIdValue.guid));
+  }
+  const absent = [...new Set(named)].filter((key) => !byId.has(key));
+  check(absent.length === 0, `library form: every component, swap and slot content the paste names rides along (${absent.length} missing: ${absent.slice(0, 3).join(", ")}): without its slot contents a Metric-Card pasted empty`);
+  // Variables and styles by key, each with its node (a key alone binds to nothing in another file); an override's
+  // variable links by id, as Figma writes them, to a node that rides along too.
+  const keys = new Set(nodes.filter((n) => n.key).map((n) => n.key));
+  const loose = [];
+  const walk = (value, override, ids) => {
+    if (Array.isArray(value)) { for (const item of value) walk(item, override, ids); return; }
+    if (!value || typeof value !== "object") return;
+    for (const [field, inner] of Object.entries(value)) {
+      if (!inner || typeof inner !== "object") continue;
+      if ((field === "alias" || field.startsWith("styleIdFor") || field === "variableSetID") && (inner.assetRef || inner.guid)) {
+        if (inner.assetRef && !keys.has(inner.assetRef.key)) loose.push(`${field} key ${inner.assetRef.key}`);
+        if (inner.guid && field === "alias" && !(ids && byId.has(id(inner.guid)))) loose.push(`${field} id ${id(inner.guid)}`);
+        continue;
+      }
+      walk(inner, override || field === "symbolOverrides", ids || (override && field === "variableConsumptionMap"));
+    }
+  };
+  for (const n of nodes) walk(n, false, false);
+  check(loose.length === 0, `library form: every variable and style ref has its node in the paste (${loose.length} do not: ${loose.slice(0, 3).join(", ")})`);
+  const variables = nodes.filter((n) => n.type === "VARIABLE");
+  check(variables.length > 100 && variables.every((v) => v.variableDataValues?.entries?.length && keys.has(v.variableSetID?.assetRef?.key)), "library form: each variable comes with its values and its collection (a value-less one pasted white)");
+  // The same frame as the Zen file's form: only the components and the refs change.
+  const plain = nativeMessage(pkg, pack).message.nodeChanges.filter((n) => n.guid.sessionID === 2147480000).length;
+  check(nodes.filter((n) => n.guid.sessionID === 2147480000).length === plain, "library form: the paste's own layers are the Zen file form's");
+  // Figma's non-finite floats survive the stored definitions: the stacked bar's Value slot has no max height (Infinity);
+  // stored as null it came back 0 and the bars pasted flat (2026-10-25).
+  const back = await readFigmaClipboard((await figmaPasteHtml(pkg, pack, { defs })).html);
+  const valueSlot = back?.message.nodeChanges.find((n) => n.name === "Value" && n.maxSize && byId.get(id(n.guid)) && inSymbol(byId.get(id(n.guid))));
+  check(back?.message.nodeChanges.length === nodes.length && valueSlot?.maxSize.value.y === Infinity, `library form: the html reads back whole, a slot's unset max height still Infinity (${valueSlot?.maxSize.value.y})`);
+  // A component the definitions lack falls back to its skeleton, with a note (the Zen file still takes it).
+  const lacking = symbols.find((n) => byId.get(id(n.parentIndex.guid))?.isStateGroup);
+  const fewer = { ...defs, nodes: { ...defs.nodes } };
+  delete fewer.nodes[id(lacking.guid)];
+  const partial = nativeMessage(pkg, pack, new Map(), fewer);
+  check(partial.notes.some((note) => /without a full definition/.test(note)) && partial.message.nodeChanges.some((n) => n.type === "SYMBOL" && id(n.guid) === id(lacking.guid)), "library form: a component without a full definition comes as its skeleton, and the note says so");
 }
 
 // --- PropertyField ↔ Figma (2026-10-23): a ring's progress as its Progress arc, every person and label in the Value-Slot -----

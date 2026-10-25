@@ -6,9 +6,13 @@
 // skeletons of every variant used ride along so Figma maps the overrides onto the file's own components
 // (docs/figma-contracts/native-pack.json). Variables bind by id, styles by their node id. Figma lays out auto layout and
 // text again when it pastes, so sizes here are first guesses.
+// With the library's full definitions (docs/figma-contracts/native-defs.json.gz) the paste is Figma's library form, as
+// Figma copies from the Zen file: every component in full with its key and the published library's, variables and
+// styles by key with their nodes. ⌘V then lands in any Figma file as instances of the published Zen library (Figma
+// builds a component it has not seen from the paste and never fetches it by key); in the Zen file it binds as before.
 //
-//   nativeMessage(pkg, pack, pictures?) → { message, root, notes }  the NODE_CHANGES message (pure, for selftests)
-//   figmaPasteHtml(pkg, pack, { toPng }) → { html, notes }  the text/html Figma pastes (pictures ride in it as blobs)
+//   nativeMessage(pkg, pack, pictures?, defs?) → { message, root, notes }  the NODE_CHANGES message (pure, for selftests)
+//   figmaPasteHtml(pkg, pack, { toPng, defs }) → { html, notes }  the text/html Figma pastes (pictures ride in it as blobs)
 
 import { decodeSchema, inflateRaw, bytesOf, base64Of, figmaClipboardHtml } from "./figma-kiwi.mjs";
 import { FIGMA_CLIPBOARD_SCHEMA } from "./figma-clipboard-schema.generated.mjs";
