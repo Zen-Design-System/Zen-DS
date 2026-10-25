@@ -24,3 +24,9 @@ opened its 12 contact sheets plus segmented, table and chart. The table sheet sh
 the scoped gate on table passed after the fix.
 Open (needs the user): an audit check for a table's first-column Avatar seen at runtime would catch helper components
 the harness misses. It is a new check, so it waits for approval.
+
+## Giám sát · the library publish leaves the backlog (user)
+
+The user (2026-10-25): "Publish thư viện là việc ngoài studio không đưa vào backlog". The entry "P3 · Figma: publish
+the renamed layers" moved from `BACKLOG-user-and-later.md` to `BACKLOG-archive.md` (text unchanged, with the reason).
+"Direct paste into other files" stays in the user's list: it is Studio work that the publish unblocks.

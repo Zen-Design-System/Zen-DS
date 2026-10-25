@@ -2,6 +2,18 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-25 (user: the library publish is not a backlog item)
+
+- Closed 2026-10-25 (user: "Publish thư viện là việc ngoài studio không đưa vào backlog"; the publish is the
+  user's own step in Figma, outside Studio, and is not tracked here):
+  **P3 · Figma: publish the renamed layers (user, 2026-10-12):** 186 layers in the Zen file were renamed to Zen's names
+  (and Inline-Message's slot property Visual → Leading, same id), names only, checked before/after
+  (`docs/figma-contracts/layer-renames-2026-10-12.json`, with the undo map). Other files see them once the library is
+  published. What `ALLOWED` in nested-paths.mjs still lists is structure, not naming: unnamed bottom-navigation items
+  and stepper steps, pages named by number, ChatComposer actions named by job, code-only layers (Retry, Counter…).
+  Also waiting on the publish since 2026-10-23: `.Primitives/Input/Property-Value`'s Value-Slot (Person / Tags), which
+  Import from Studio fills with every person and label (the user's choice of a slot).
+
 ## Archived 2026-10-25 (merge train C: DatePicker events, #293)
 
 - Done 2026-10-25 (train C, #293: DatePicker `events`, the calendars' day-1 dot; the other four landed in train B):

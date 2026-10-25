@@ -6,13 +6,6 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
 [`QUESTIONS.md`](QUESTIONS.md).
 
 ## For the user (Việc của anh/chị)
-- **P3 · Figma: publish the renamed layers (user, 2026-10-12):** 186 layers in the Zen file were renamed to Zen's names
-  (and Inline-Message's slot property Visual → Leading, same id), names only, checked before/after
-  (`docs/figma-contracts/layer-renames-2026-10-12.json`, with the undo map). Other files see them once the library is
-  published. What `ALLOWED` in nested-paths.mjs still lists is structure, not naming: unnamed bottom-navigation items
-  and stepper steps, pages named by number, ChatComposer actions named by job, code-only layers (Retry, Counter…).
-  Also waiting on the publish since 2026-10-23: `.Primitives/Input/Property-Value`'s Value-Slot (Person / Tags), which
-  Import from Studio fills with every person and label (the user's choice of a slot).
 - **P2 · Direct paste (⌘V on the canvas) into other files (2026-10-17; waits on the library publish):** it binds by
   node id, so only the Zen file takes it; other files need the published library and full component definitions in the
   paste (instances by `componentKey`, as Figma's own copies carry). The rest of the parity list closed on 2026-10-23
