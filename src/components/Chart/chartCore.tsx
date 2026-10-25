@@ -263,27 +263,67 @@ export function ChartSummary({ id, children }: { id: string; children: ReactNode
 
 export const useChartId = () => useId().replace(/:/g, "");
 
+/** The mounted floating Tooltips and their charts; one observer watches them all, and every placing reads first, then
+ *  writes (tipPlacer). */
+const tipCharts = new Map<HTMLElement, HTMLElement>();
+let tipObserver: ResizeObserver | null = null;
+let tipsWaiting = new Set<HTMLElement>();
+
+/** Places `tips`: every rectangle is read before any shift is written, so a page of charts pays one layout, not one per
+ *  Tooltip (writing 0 then reading, per Tooltip, was 5.6 s of the Chart board's load, 2026-10-25). The shift moves the
+ *  Tooltip 1:1 (translateX in chart.css), so its unshifted place is its place now minus the shift it has. */
+function placeTips(tips: Iterable<HTMLElement>) {
+  const moves: [HTMLElement, string][] = [];
+  for (const tip of tips) {
+    const box = tipCharts.get(tip);
+    if (!box || !tip.isConnected) continue;
+    const t = tip.getBoundingClientRect();
+    const b = box.getBoundingClientRect();
+    const scale = (tip.offsetWidth ? t.width / tip.offsetWidth : 1) || 1;
+    const had = parseFloat(tip.style.getPropertyValue("--zen-chart-shift")) || 0;
+    const left = t.left - had * scale;
+    const right = t.right - had * scale;
+    const shift = t.width >= b.width ? b.left - left : left < b.left ? b.left - left : right > b.right ? b.right - right : 0;
+    const next = shift / scale;
+    if (Math.abs(next - had) > 0.01) moves.push([tip, `${next}px`]);
+  }
+  for (const [tip, value] of moves) tip.style.setProperty("--zen-chart-shift", value);
+}
+
 /** Ref for a floating Tooltip centred on its item (Figma: the Tooltip CENTER on the active sector's rule, the active
  *  cell). It moves off that centre only by what it would cross the chart's edge, as `--zen-chart-shift` in CSS px (the
- *  screen overflow divided by the chart's scale, so a zoomed Studio frame shifts it right too); it measures again when the
- *  chart or the Tooltip resizes. */
+ *  screen overflow divided by the chart's scale, so a zoomed Studio frame shifts it right too); it is placed once the
+ *  commit is done (with every Tooltip of that commit) and again when the chart or the Tooltip resizes. */
 export const placeTip = (tip: HTMLElement | null) => {
   const box = tip?.closest<HTMLElement>(".zen-chart");
   if (!tip || !box) return;
-  const place = () => {
-    tip.style.setProperty("--zen-chart-shift", "0px");
-    const t = tip.getBoundingClientRect();
-    const b = box.getBoundingClientRect();
-    const scale = tip.offsetWidth ? t.width / tip.offsetWidth : 1;
-    const shift = t.width >= b.width ? b.left - t.left : t.left < b.left ? b.left - t.left : t.right > b.right ? b.right - t.right : 0;
-    tip.style.setProperty("--zen-chart-shift", `${shift / (scale || 1)}px`);
+  tipCharts.set(tip, box);
+  if (!tipsWaiting.size) {
+    queueMicrotask(() => {
+      const waiting = tipsWaiting;
+      tipsWaiting = new Set();
+      placeTips(waiting);
+    });
+  }
+  tipsWaiting.add(tip);
+  if (typeof ResizeObserver === "undefined") return () => { tipCharts.delete(tip); };
+  tipObserver ??= new ResizeObserver((entries) => {
+    const tips = new Set<HTMLElement>();
+    for (const { target } of entries) {
+      if (tipCharts.has(target as HTMLElement)) tips.add(target as HTMLElement);
+      else for (const [each, chart] of tipCharts) if (chart === target) tips.add(each);
+    }
+    placeTips(tips);
+  });
+  tipObserver.observe(box);
+  tipObserver.observe(tip);
+  return () => {
+    tipCharts.delete(tip);
+    tipObserver?.unobserve(tip);
+    // A chart holds one Tooltip at a time, but another may already have taken this chart over.
+    if (![...tipCharts.values()].includes(box)) tipObserver?.unobserve(box);
+    if (!tipCharts.size) { tipObserver?.disconnect(); tipObserver = null; }
   };
-  place();
-  if (typeof ResizeObserver === "undefined") return;
-  const observer = new ResizeObserver(place);
-  observer.observe(box);
-  observer.observe(tip);
-  return () => observer.disconnect();
 };
 
 /** `--zen-chart-i`: the stagger index of a mark (its delay is a multiple of a motion token, see chart.css). */
