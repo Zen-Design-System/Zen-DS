@@ -17,6 +17,13 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Layout (2026-10-26): per-breakpoint props, the Grid `columns` shape — Stack `direction`, `gap`, `align`, `justify`,
+  `wrap`, `padding`, `paddingX`, `paddingY`; Grid `gap`, `rowGap`, `columnGap`, `padding`; Box `padding`, `paddingX`,
+  `paddingY` take `{ desktop?, tablet?, mobile? }` (a breakpoint without its own value takes the next wider one's), and
+  `hideOn={["mobile"]}` hides a Stack, Grid or Box there (`display: none`, still in the DOM). They resolve at the nearest
+  ZenProvider's breakpoint or a frame's `modes`; Grid `columns` now does too, so a desktop frame inside a phone page keeps
+  its desktop columns. `Responsive<T>` and `resolveAt` are exported. Zen Studio's Figma push draws a Screen's breakpoint
+  and Update from Figma changes only that breakpoint's value.
 - Zen Studio Copy for Figma (2026-10-25): ⌘C on a frame, then ⌘V on any Figma canvas (not only the Zen file's) places
   it as instances of the published Zen library, with its variables and text styles bound: the paste carries the
   library's full definitions, as Figma's own copies do (`docs/figma-contracts/native-defs.json.gz`).

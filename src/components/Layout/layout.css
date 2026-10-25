@@ -20,12 +20,11 @@
 
 .zen-grid { display: grid; min-width: 0; row-gap: var(--zen-grid-row-gap, var(--zen-spacing-gap-medium, 16px)); column-gap: var(--zen-grid-column-gap, var(--zen-spacing-gap-medium, 16px)); padding: var(--zen-grid-padding, 0); }
 .zen-grid[data-mode="fill"] { grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--zen-grid-min, 240px)), 1fr)); }
-/* --zen-grid-cols* hold whole track lists (Grid writes a count as repeat(n, minmax(0, 1fr))). */
+/* --zen-grid-cols holds a whole track list, already resolved at the Grid's breakpoint (Grid writes a count as
+   repeat(n, minmax(0, 1fr))). */
 .zen-grid:is([data-mode="fixed"], [data-mode="responsive"]) { grid-template-columns: var(--zen-grid-cols, minmax(0, 1fr)); }
-[data-breakpoint="tablet"] .zen-grid[data-mode="responsive"] { grid-template-columns: var(--zen-grid-cols-tablet, var(--zen-grid-cols, minmax(0, 1fr))); }
-[data-breakpoint="mobile"] .zen-grid[data-mode="responsive"] { grid-template-columns: var(--zen-grid-cols-mobile, minmax(0, 1fr)); }
 /* stackBelow: one column while the Grid is narrower than its threshold (Layout.tsx measures it), at any breakpoint. */
-:is(.zen-grid, [data-breakpoint] .zen-grid)[data-stacked="true"] { grid-template-columns: minmax(0, 1fr); }
+.zen-grid[data-stacked="true"] { grid-template-columns: minmax(0, 1fr); }
 .zen-grid[data-align="start"] { align-items: start; }
 .zen-grid[data-align="center"] { align-items: center; }
 .zen-grid[data-align="end"] { align-items: end; }
@@ -40,6 +39,8 @@
 /* scroll (Figma Overflow scrolling): one axis scrolls inside the frame, and the scroll stays inside it. */
 :is(.zen-stack, .zen-box)[data-scroll="y"] { overflow-y: auto; overscroll-behavior: contain; }
 :is(.zen-stack, .zen-box)[data-scroll="x"] { overflow-x: auto; overscroll-behavior-x: contain; }
+/* hideOn: hidden at the frame's breakpoint (Layout.tsx resolves it); the element stays in the DOM for Studio's layers. */
+:is(.zen-box, .zen-stack, .zen-grid)[data-hidden="true"] { display: none; }
 
 /* ───────────── Frame appearance (appearance.ts): Box, Stack and Grid alike, Figma's frame fill / stroke / corners ─────────────
    A Figma auto layout frame with a fill is one element (decision 2, docs/research/studio-figma-design-parity-2026-10-18.md).
