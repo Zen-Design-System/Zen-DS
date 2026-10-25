@@ -65,6 +65,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Layout and skill docs say so (they used to say 320), and three checks catch it: harness `search/toolbar-width`, audit
   kind `toolbar-search` and the Figma audit's `search/toolbar-width`. Platform examples, templates, the Zen Agent prompt
   and Figma → Studio pulls follow it. DashboardHeader's Control-Bar keeps Figma's 320 for now (BACKLOG question).
+- DashboardHeader (user, 2026-10-25: "ở control bar thì tối đa là 240"): the Control-Bar Search is 240px wide, not 320
+  (a phone still gives it a line of its own), in code and in Figma (4122:33401). The three toolbar Search checks cover
+  the Control-Bar now: harness `search/toolbar-width` reads a DashboardHeader (a wider width on its Search, the slot
+  variable, a custom row), and the audit kind `toolbar-search` and the Figma audit no longer skip it.
 - House rules (user, 2026-10-24, the same task page), each in the guidelines, skills, harness and Figma audit: a
   ListItem leads with a DockIcon, an Avatar or a thumbnail, never a bare icon (`list-item/leading-dock-icon`); status
   and priority Badges keep a leading icon, priority the solid flag `icon-flag-03-solid` (`badge/status-priority-icon`,

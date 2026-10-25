@@ -428,7 +428,7 @@ Live file `9nZv4uW2LT21yuHabMTCh1`, page ◇ Master-Layout (1128:29541), read on
 | Leading-Slots (Navigation) | — | `leading` |
 | Center-Slots + Nav-Center-Block (Navigation) | off | `center` (up to 400px, centred) |
 | Trailing-Slots + Nav-Trailing-Block (Navigation, Main) | on | `trailing` |
-| Search (Control-Bar) | on | `search` (a Search, 320px) |
+| Search (Control-Bar) | on | `search` (a Search, 240px) |
 | Control-Slots + Controls (Control-Bar) | on | `controls` |
 | Subheading (Control-Bar: Body/Base/Regular count; Main: Body/Base/Regular line) | off | `subheading` |
 | Action-Slots + Actions (Control-Bar, Main) | on | `actions` |

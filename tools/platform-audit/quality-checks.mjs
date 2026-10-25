@@ -613,10 +613,11 @@ export function widgetLayout({ scopeSel, regionSel }) {
     }
     // toolbar-search: a Search in a toolbar row is at most 240px wide (the user 2026-10-24). Its cell is the outermost
     // wrapper that holds only the Search; the row is the cell's parent laid out as a flex row or a grid, with a control
-    // beside the cell on the same line. Phone searches fill their row, and the bars that size their own Search are left
-    // out: an app's top bar (≤ 400, Figma Nav-Center-Block) and DashboardHeader's Control-Bar (320, Figma; BACKLOG).
+    // beside the cell on the same line. Phone searches fill their row, and an app's top bar sizes its own centre Search
+    // (≤ 400, Figma Nav-Center-Block). DashboardHeader's Control-Bar slot is checked like any toolbar (240, the user
+    // 2026-10-25: "ở control bar thì tối đa là 240").
     if (innerWidth < 768) continue;
-    const SKIP_SEARCH = ".platform-phone, [data-breakpoint='mobile'], .zen-top-navigation, .zen-app-shell-header__bar, .zen-dashboard-header__search, .zen-dashboard-header__center, .platform-guideline-visual__dont, [data-verdict='dont'], [data-audit-skip-quality]";
+    const SKIP_SEARCH = ".platform-phone, [data-breakpoint='mobile'], .zen-top-navigation, .zen-app-shell-header__bar, .zen-dashboard-header__center, .platform-guideline-visual__dont, [data-verdict='dont'], [data-audit-skip-quality]";
     const CONTROL = "button, a[href], input, select, textarea, [role='button'], [role='radio'], [role='tab'], [role='combobox'], [role='switch'], [role='checkbox']";
     for (const search of region.querySelectorAll(".zen-search:not(.zen-search--rounded):not(.zen-search--popover)")) {
       if (!visible(search) || search.closest(SKIP_SEARCH)) continue;

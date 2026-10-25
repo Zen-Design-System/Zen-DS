@@ -2,6 +2,16 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-25 (DashboardHeader Search ≤ 240, branch zen/feat/dashboard-header-search-240-20261025)
+
+- **P2 · Toolbar Search 240 vs DashboardHeader's 320 (2026-10-24; answered 2026-10-25, user: "ở control bar thì tối đa là 240"):** the user's rule caps
+  a toolbar Search at 240 (harness `search/toolbar-width`, audit kinds `toolbar-search` / Figma
+  `search/toolbar-width`), but Figma's `Primitives/Dashboard/Header` Type=Control-Bar (4122:33401) has its Search
+  FIXED 320, and code follows it (`dashboard-header.css` `--zen-dashboard-header-search-basis`); all three checks
+  leave that slot out. Move the component (and Figma) to 240?
+  Answer: yes. DashboardHeader Type=Control-Bar caps its Search at 240 in code and Figma, and the three checks cover it.
+  Done: code and Figma at 240, the contract re-captured, no check skips the Control-Bar.
+
 ## Archived 2026-10-25 (user: the library publish and Code Connect leave; the Dock-Icon default is answered)
 
 - Answered 2026-10-25 (user: "tuỳ chỉnh của designer", "chỉ ưu tiên trong skill, vẫn cho designer chọn lại", "lúc tự gen

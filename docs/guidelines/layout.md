@@ -291,7 +291,7 @@ type ZenTypography = "dashboard" | "popular" | "mobile" | "studio"
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
-| `search/toolbar-width` | error | A Search in a toolbar row (beside Chips, buttons or other controls) is at most 240px wide: wrap it in <Box width="fill" maxWidth={240}>, or give it a Grid column minmax(0, 240px). A phone Search (shape="rounded") fills its row. | `zen-allow-search-toolbar-width: <reason>` |
+| `search/toolbar-width` | error | A Search in a toolbar row (beside Chips, buttons or other controls) is at most 240px wide: wrap it in <Box width="fill" maxWidth={240}>, or give it a Grid column minmax(0, 240px). A phone Search (shape="rounded") fills its row. DashboardHeader's Control-Bar draws its Search 240px wide: never force it wider. | `zen-allow-search-toolbar-width: <reason>` |
 | `box/border-matches-action` | warn | A frame's border (Box, Stack, Grid) follows the border rule: subtle only when the frame is actionable (onClick, href, role=button), pale when it is static; a dashed border is always subtle (box/dashed-is-subtle). | `zen-allow-box-border: <reason>` |
 | `layout/constraint-needs-absolute` | warn | constraintX, constraintY and insetTop/Right/Bottom/Left are read only with position="absolute" (Figma: constraints apply once a layer ignores auto layout). | `zen-allow-constraint-in-flow: <reason>` |
 | `layout/inset-not-read` | warn | An inset offsets only an edge its constraint pins: insetLeft with left or left-right, insetRight with right or left-right, insetTop with top or top-bottom, insetBottom with bottom or top-bottom (center reads none). | `zen-allow-inset-not-read: <reason>` |

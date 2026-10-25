@@ -22,7 +22,7 @@ One row of a dashboard page's header: a control bar (Search, filter Chips, a res
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Type | `type` | control-bar (default) · navigation · main · custom |
-| Control-Bar | `search · controls · subheading · actions` | a Search (320px, Figma Control-Bar) · filter Chips · the result count (Body/Base/Regular) · Tertiary buttons then one Primary, right-aligned |
+| Control-Bar | `search · controls · subheading · actions` | a Search (240px, Figma Control-Bar; a phone gives it its own line) · filter Chips · the result count (Body/Base/Regular) · Tertiary buttons then one Primary, right-aligned |
 | Navigation | `leading · center · trailing` | Breadcrumbs (fills the start) · up to 400px in the middle · AppShellAction buttons then the account, right-aligned |
 | Main | `title · childTitle · subheading · actions · trailing · headingLevel` | a PageHeader: h1 Heading/1, a second title in Light, one line under it, the actions, icon actions |
 | Custom | `children` | your own row, Gap/Medium apart, centred |
@@ -41,7 +41,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 | `leading` | `ReactNode` | — | Navigation · Figma Leading-Slots: usually `<Breadcrumbs>`. It fills the row's start. |
 | `center` | `ReactNode` | — | Navigation · Figma Center-Slots (Nav-Center-Block): up to 400px in the middle of the row, e.g. a Search. |
 | `trailing` | `ReactNode` | — | Navigation and Main · Figma Trailing-Slots (Nav-Trailing-Block): icon actions then the account, right-aligned, Spacing/Gap/Small apart — `<AppShellAction>` buttons (notifications with a dot or count) and an Avatar or account menu. |
-| `search` | `ReactNode` | — | Control-Bar · Figma Search: a <Search size="md"> that filters the page, 320px wide. |
+| `search` | `ReactNode` | — | Control-Bar · Figma Search: a <Search size="md"> that filters the page, 240px wide (a toolbar Search's cap; full width on a phone). |
 | `controls` | `ReactNode` | — | Control-Bar · Figma Control-Slots: filter Chips (`<Chip variant="advanced">`), Spacing/Gap/XSmall apart. |
 | `subheading` | `ReactNode` | — | Figma Subheading. Control-Bar: what the filters leave, e.g. "96 results" (Body/Base/Regular: a count, not a title; user 2026-10-16). Main: one line under the title (the PageHeader description). |
 | `actions` | `ReactNode` | — | Control-Bar and Main · Figma Action-Slots: the page's buttons, right-aligned — Tertiary first, then at most one Primary. |
@@ -67,6 +67,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 - Don't put more than one Primary in actions.
 - Don't stack two navigation rows, or a navigation row under AppShell's top bar.
 - Don't leave type="main" without a title (harness: dashboard-header/main-needs-title).
+- Don't widen the control-bar Search: the row draws it 240px wide, a toolbar Search's cap (the user's rule, 2026-10-25), and full width on a phone (harness: search/toolbar-width).
 
 ## Accessibility
 - Rows are plain groups: the Search, Chips and buttons carry their own names, and Breadcrumbs its own navigation landmark.
@@ -80,6 +81,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">`.
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |
 | --- | --- | --- | --- |
+| `search/toolbar-width` | error | A Search in a toolbar row (beside Chips, buttons or other controls) is at most 240px wide: wrap it in <Box width="fill" maxWidth={240}>, or give it a Grid column minmax(0, 240px). A phone Search (shape="rounded") fills its row. DashboardHeader's Control-Bar draws its Search 240px wide: never force it wider. | `zen-allow-search-toolbar-width: <reason>` |
 | `dashboard-header/props-of-type` | error | A DashboardHeader draws only its type's slots: control-bar search · controls · subheading · actions; navigation leading · center · trailing; main title · childTitle · subheading · actions · trailing; custom its children. | `zen-allow-dashboard-header-type: <reason>` |
 | `dashboard-header/count-body` | error | A control-bar DashboardHeader's result count (subheading) is plain text, drawn in Body/Base/Regular: no Heading, no heading or display text style (user rule 2026-10-16). | `zen-allow-dashboard-header-count: <reason>` |
 | `dashboard-header/one-primary` | error | DashboardHeader actions hold at most one Primary button (the page's main action), after the Tertiary ones. | `zen-allow-dashboard-header-primary: <reason>` |

@@ -17,13 +17,6 @@ questions for the designer in [`QUESTIONS.md`](QUESTIONS.md). Code keeps its cur
   (Copy for Figma in a copy event, grid cards' heights, the pack at 7.7 MB; the slot and alias differences kept by
   design). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §8.
 
-- **P2 · Toolbar Search 240 vs DashboardHeader's 320 (2026-10-24; answered 2026-10-25, user: "ở control bar thì tối đa là 240"):** the user's rule caps
-  a toolbar Search at 240 (harness `search/toolbar-width`, audit kinds `toolbar-search` / Figma
-  `search/toolbar-width`), but Figma's `Primitives/Dashboard/Header` Type=Control-Bar (4122:33401) has its Search
-  FIXED 320, and code follows it (`dashboard-header.css` `--zen-dashboard-header-search-basis`); all three checks
-  leave that slot out. Move the component (and Figma) to 240?
-  Answer: yes. DashboardHeader Type=Control-Bar caps its Search at 240 in code and Figma, and the three checks cover it.
-
 ## Backlog (plan before opening sessions)
 Empty since 2026-10-25. The 2026-10-24 triage's entries are done and archived (`BACKLOG-archive.md`, "Archived
 2026-10-24" and "2026-10-25") or moved to `BACKLOG-user-and-later.md`.

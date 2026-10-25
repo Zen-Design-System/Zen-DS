@@ -1,5 +1,5 @@
-// Figma Primitives/Dashboard/Header 4122:33402 (docs/figma-contracts/dashboard-header.json, read 2026-10-11): Type
-// Control-Bar · Navigation · Main · Custom, a 40px row of slots. Geometry of each group (its size and offset from the
+// Figma Primitives/Dashboard/Header 4122:33402 (docs/figma-contracts/dashboard-header.json, re-captured 2026-10-25):
+// Type Control-Bar · Navigation · Main · Custom, a 40px row of slots. Geometry of each group (its size and offset from the
 // row) and the Main title's text style; the slots' own components have suites of their own (Chip, Button…).
 const type = (vp) => ({ "Control-Bar": "control-bar", Navigation: "navigation", Main: "main", Custom: "custom" })[vp.Type];
 export default {
@@ -10,7 +10,7 @@ export default {
   cases: (vp) => ({ type: type(vp) }),
   map: [
     { figma: "", dom: ":root", check: ["size"] },
-    // Control-Bar: Search FIXED 320, Control-Slots Gap/Medium after it, Action-Slots FILL to the end. Control-Slots HUGs
+    // Control-Bar: Search FIXED 240 (user 2026-10-25), Control-Slots Gap/Medium after it, Action-Slots FILL to the end. Control-Slots HUGs
     // its Chip, whose width is its text's (not asserted, as in chip-normal: it differs by ~1px between font
     // rasterisers), so Action-Slots is checked by its end edge rather than its start and width.
     { figma: "Elements > Search/Default", dom: ".zen-dashboard-header__search", check: ["size", "x", "y"], when: (vp) => vp.Type === "Control-Bar" },

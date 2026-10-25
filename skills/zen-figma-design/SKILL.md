@@ -106,7 +106,8 @@ Files in this skill:
     a Chip; Back is `icon-chevron-left-line-medium`.
   - **Toolbar Search:** a Search beside Chips, buttons or a view switch in one row is at most 240 wide on tablet and
     desktop screens: Fixed 240, or Fill with a max width of 240, never stretched across the toolbar. A phone Search
-    (Shape=Rounded) fills its row; the `Type=Control-Bar` row of `Primitives/Dashboard/Header` sizes its own. Audit
+    (Shape=Rounded) fills its row; the `Type=Control-Bar` row of `Primitives/Dashboard/Header` has its Search Fixed 240
+    (user 2026-10-25: "ở control bar thì tối đa là 240"). Audit
     `search/toolbar-width` (user 2026-10-24: "thanh search trên tool bar tối đa nên để rộng 240").
   - **List rows, badges, the desktop header** (user 2026-10-24, the task page):
     - A List-Item leads with a `Dock-Icon` (Size Medium, Background Subtle), an Avatar or a thumbnail, never a bare
