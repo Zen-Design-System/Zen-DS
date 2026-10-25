@@ -387,7 +387,7 @@ ${shell("home", "Overview", `          <Stack gap="md" padding="lg">
             ${Array.from({ length: 30 }, (_, index) => `<Text>Note ${index + 1}</Text>`).join("\n            ")}
           </Stack>`)}
       </Screen>
-      <Screen id="tasks" title="Tasks" device="phone" x={480}>
+      <Screen id="tasks" title="Tasks" device="phone">
 ${shell("tasks", "Tasks", `          <Stack padding="lg">
             <Text>Every task</Text>
           </Stack>`)}
