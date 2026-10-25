@@ -24,7 +24,9 @@ These instructions apply to every agent (Claude, ChatGPT/Codex, others) that rea
 
 The rules say what is wrong. To choose well among the options they leave open (which colours, how much, what leads,
 how a layout changes with the width), use the principles in `skills/zen-figma-design/references/design-principles.md`
-and `skills/zen-figma-design/references/responsive-principles.md`. They guide judgement; the audit does not check them.
+and `skills/zen-figma-design/references/responsive-principles.md`. To turn a brief into screens and plan each screen's
+states and flows (loading, empty, failed, forms, navigation, access), use `product-patterns.md` and `ux-principles.md`
+in the same folder. They guide judgement; the audit does not check them.
 
 ## Done means
 

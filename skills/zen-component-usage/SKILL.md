@@ -8,15 +8,18 @@ description: Compose screens, examples or templates with Zen Design System compo
 Zen components have written usage rules. Follow them when you **use** components, and extend them when you **build** one.
 
 The rules say what is wrong. To choose well among the options they leave open, use the design principles:
-`references/design-principles.md` (colour pairing and balance, hierarchy, composition) and
-`skills/zen-responsive-screens/references/responsive-principles.md` (responsive and adaptive layouts). They are
+`references/design-principles.md` (colour pairing and balance, hierarchy, composition),
+`skills/zen-responsive-screens/references/responsive-principles.md` (responsive and adaptive layouts),
+`references/ux-principles.md` (each screen's states, forms, navigation, access, touch, motion) and
+`references/product-patterns.md` (the screens a product family usually needs, mapped to Zen's templates). They are
 principles, not rules: no harness checks them, and the brief, a template or the designer may choose otherwise.
 
 ## When composing UI with Zen components
 
 0. **Plan the screen before the JSX** (design-principles §0): its job, its mood (density and Typography mode), what
-   must carry colour, the focal point, and how it changes across widths. Then build structure → spacing → type →
-   colour → effects, in that order.
+   must carry colour, the focal point, and how it changes across widths; its states and flow (ux-principles §0–§1:
+   loading, empty, failed, done, where Back goes). For a whole product, list the screens from product-patterns first.
+   Then build structure → spacing → type → colour → effects, in that order.
 1. Read `docs/guidelines/index.json` (compact) or the relevant `docs/guidelines/<component>.md` before choosing a component. Check the "Use something else for" list first: picking the right component matters more than configuring it.
 2. Apply the house rules that most often go wrong:
    - **Buttons:** Primary = the one main CTA; Tertiary for everything else; Secondary is rare (a justified highlight); Accent only for promoted CTAs; Danger for irreversible actions.
