@@ -173,3 +173,9 @@ a private Studio server (a copy of `.zen-studio/pages`).
   hover tooltip, from the Studio chrome; the row now reads the panel's "Close panel" tip and moves the pointer off the
   bar), then 2/2 first try; prototype group 28/28; `npm run qa -- --isolated` PASS, Studio E2E 367 works · 0 broken
   (report .qa/reports/2026-10-25T21-01-44-68156075.md).
+
+## Giám sát · twelve new E2E rows recorded in the baseline
+
+Since #304 a new row only guards against regressions once it is in `matrix.baseline.json`. B-47, B-48, PT-22…28 and
+HO-18…20 (from #286/#287/#294/#302/#306/#307) passed in every gate since and were listed as "new, work". Run
+`studio:e2e -- --rows=<those 12> --update-baseline` on main 9fa8ef52: 12 works, 0 broken, 98 s.
