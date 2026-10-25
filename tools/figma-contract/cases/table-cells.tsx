@@ -36,15 +36,21 @@ function Editing({ children }: { children: ReactNode }) {
   return <div ref={ref} style={{ display: "contents" }}>{children}</div>;
 }
 
+/** The empty first column of a `second` case (its cells are plain text, so the suite's root is the measured cell's). */
+const LEAD_WIDTH = 64;
+
 export const cases: Record<string, (props: Props) => ReactNode> = {
-  tableCell: ({ width, column, row = {}, cell, editing }) => {
+  // `second`: the column is the Table's second, after an empty one: the first column, the row's name, draws some media
+  // larger than Figma's primitive does (Table.tsx cellVisual: a Dock Icon is Small there with or without a Subtext).
+  tableCell: ({ width, column, row = {}, cell, editing, second }) => {
     const draw = cell ? cells[cell] : undefined;
     // A JSON `edit` object (a placeholder, say) becomes a text editor over the column's field.
     const edit = column.edit && typeof column.edit === "object"
       ? { ...column.edit, value: (r: Row) => String(r[column.field ?? "cell"] ?? ""), onCommit: () => {} }
       : column.edit;
-    const columns: TableColumn<Row>[] = [{ id: "cell", header: "", width: `${width}px`, ...column, edit, ...(draw ? { cell: draw } : {}) }];
+    const columns: TableColumn<Row>[] = [...(second ? [{ id: "lead", header: "", width: `${LEAD_WIDTH}px` }] : []), { id: "cell", header: "", width: `${width}px`, ...column, edit, ...(draw ? { cell: draw } : {}) }];
     const table = <Table aria-label="Cell" columns={columns} rows={[{ id: "r1", ...row }]} />;
-    return <div style={{ width, minWidth: width }}>{editing ? <Editing>{table}</Editing> : table}</div>;
+    const box = second ? width + LEAD_WIDTH : width;
+    return <div style={{ width: box, minWidth: box }}>{editing ? <Editing>{table}</Editing> : table}</div>;
   },
 };

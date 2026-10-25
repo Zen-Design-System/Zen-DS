@@ -261,7 +261,7 @@ function TimeOff() {
   const shown = leaves.filter((leave) => (status === "all" || leave.status === status) && (!q || `${leaveKinds[leave.kind].name} ${leave.dates} ${leave.status}`.toLowerCase().includes(q)));
 
   const columns: TableColumn<Leave>[] = [
-    { id: "type", header: "Type", cell: (row) => <TableMedia bold media={<DockIcon theme="emoji" emoji={leaveKinds[row.kind].emoji} size="xsmall" />}>{leaveKinds[row.kind].name}</TableMedia> },
+    { id: "type", header: "Type", cell: (row) => <TableMedia bold media={<DockIcon theme="emoji" emoji={leaveKinds[row.kind].emoji} size="md" />}>{leaveKinds[row.kind].name}</TableMedia> },
     { id: "submitted", header: "Submitted on", width: "180px", cell: (row) => <TableText>{row.submitted}</TableText> },
     { id: "dates", header: "From – to", width: "240px", cell: (row) => <TableText>{row.dates}</TableText> },
     { id: "total", header: "Total", width: "120px", align: "right", cell: (row) => <TableText>{`${row.days} days`}</TableText> },

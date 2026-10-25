@@ -842,6 +842,22 @@ export default function Page() {
   check("a photo cell without one: Avatar-Cell with the square Avatar the Table draws (Small, the row's Green, initials)", [initials.set.name, avatar.props.Shape, avatar.props.Size, avatar.props.Theme, avatar.text], ["Primitives/Table/Cell/Avatar-Cell", "Square", "Small", "Green", "BN"]);
 }
 {
+  // The first column's Dock Icon is Small with or without a Subtext (the user 2026-10-25; Table.tsx cellVisual); a later
+  // column's is XSmall alone and Small over a Subtext, as Figma's Dock-Icon-Cell.
+  const DOCKS = MEMBERS.replace('{ id: "member", header: "Member", sortable: true, content: "avatar", captionField: "email" }, { id: "role", header: "Role", width: "120px", sortable: true }', '{ id: "member", header: "Member", sortable: true, content: "dock-icon" }, { id: "role", header: "Role", width: "120px", content: "dock-icon" }, { id: "mail", header: "Mail", width: "200px", field: "role", content: "dock-icon", captionField: "email" }').replace(' overrides={{ "Row[a]/member/Avatar": { children: "MA" }, "Row[b]/member/Avatar": { theme: "green" } }}', "");
+  const { frame } = push(DOCKS);
+  const [, ...rows] = find(frame, (node) => node.name === "Members").children;
+  const sizes = rows.map((row) => row.slots[0].children.slice(1).map((cell) => cell.slots[0].children[0].nested.find((part) => part.path === "Dock-Icon")?.props.Size));
+  check("a Dock-Icon cell: Small in the first column without a Subtext, XSmall in a later one, Small over a Subtext", sizes, [["Small", "XSmall", "Small"], ["Small", "XSmall", "Small"]]);
+  const back = pageFromFigma(frame, { mapping }).text;
+  ok("round trip: the Dock Icons the Table draws come back with no size override", !/\/Dock-Icon": \{[^}]*size/.test(back));
+  // A row's emoji Dock Icon with no size of its own is Medium (Figma has Emoji only at Medium and Large).
+  const emoji = push(DOCKS.replace("<Table ", '<Table overrides={{ "Row[a]/member/Dock-Icon": { theme: "emoji", emoji: "🏝️" } }} ')).frame;
+  const [, firstRow] = find(emoji, (node) => node.name === "Members").children;
+  const emojiDock = firstRow.slots[0].children[1].slots[0].children[0].nested.find((part) => part.path === "Dock-Icon");
+  check("a row's emoji Dock-Icon without a size: Medium, Theme Emoji", [emojiDock?.props.Size, emojiDock?.props.Theme], ["Medium", "Emoji"]);
+}
+{
   // HR Home's hero (2026-10-12): AiChatBlock was a bare frame of its field (no greeting, no chips, Figma's model shown).
   const HERO = MEMBERS.replace(/<Stack gap="lg">[\s\S]*<\/Stack>\n        <\/AppShell>/, `<Stack gap="lg"><AiChatBlock headingLevel={1} greeting="Good morning, Alex. How can I help?" suggestions={[{ label: "Request time off", icon: "icon-calendar-plus-line" }, { label: "Open my tasks" }]}><Box><AiChatField fieldStyle="surface" placeholder="Ask Zen AI" /></Box></AiChatBlock></Stack>
         </AppShell>`).replace("import { AppShell,", "import { AiChatBlock, AiChatField, Box, AppShell,");

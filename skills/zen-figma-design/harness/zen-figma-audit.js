@@ -86,6 +86,9 @@
 //                                     its row; a top bar's centre Search is sized by its component, up to 400)
 //   list-item/leading-dock-icon  warning  a List-Item whose leading is a bare icon instance: a Dock-Icon, an Avatar or a
 //                                     thumbnail leads a row
+//   table/first-column-dock-icon-small  warning  a Dock-Icon in a table's first column (the row's name) that is not
+//                                     Size=Small, with or without a Subtext; an Emoji one not Medium (tables built from
+//                                     Primitives/Table/Data-Row)
 //   badge/status-priority-icon   warning  a priority Badge (Urgent, High, Medium, Low) not led by icon-flag-03-solid, or a
 //                                     status Badge (Paid, Active, Overdue…) with its Leading-Icon off
 //   app-shell/top-row-filled     warning  a Header/AppShell on a tablet or desktop screen whose top row is on and empty
@@ -858,6 +861,40 @@ async function checkTaskPageRules(root) {
   }
 }
 
+// table/first-column-dock-icon-small (the user 2026-10-25: "Dock Icon của cột đầu trong table mặc định là size Small và
+// khi có thêm caption thì phải luôn là size Small"; code harness table/first-column-dock-icon-small, Table.tsx draws it
+// so): a table's first column, the row's name, holds a Dock-Icon Size=Small, with or without a Subtext. The library's
+// Dock-Icon-Cell draws XSmall without a Subtext: set its nested Dock-Icon's Size to Small there. A Theme=Emoji Dock-Icon
+// is Medium ("Emoji thì mặc định dùng medium": the set has Emoji only at Medium and Large). Only tables built from
+// the library: Primitives/Table/Data-Row instances you placed (on the screen or in a slot), not rows a placed component
+// owns. The select or expand column before it (a Control-Cell, or a cell with no cell primitive) is skipped.
+const DATA_ROW = "Primitives/Table/Data-Row";
+const CELL_PRIMITIVE = /^Primitives\/Table\/Cell\//;
+async function checkTableFirstColumn(root) {
+  for (const screen of screensOf(root)) {
+    if (!("findAll" in screen)) continue;
+    const rows = screen.findAll((node) => node.type === "INSTANCE" && node.children.some((child) => child.type === "SLOT" && child.name === "Columns"));
+    for (const row of rows) {
+      if (!shownIn(row, screen) || ownedByComponent(row, screen) || (await setNameOf(row)) !== DATA_ROW) continue;
+      const columns = row.children.find((child) => child.type === "SLOT" && child.name === "Columns");
+      for (const cell of columns.children) {
+        if (cell.visible === false || !("findAll" in cell)) continue;
+        const instances = cell.findAll((child) => child.type === "INSTANCE" && shownIn(child, cell));
+        let primitive = "";
+        for (const inner of instances) { const name = await setNameOf(inner); if (CELL_PRIMITIVE.test(name)) { primitive = name; break; } }
+        if (!primitive || primitive.endsWith("/Control-Cell")) continue;
+        for (const dock of instances) {
+          if ((await setNameOf(dock)) !== "Dock-Icon") continue;
+          const { Size: size, Theme: theme } = dock.variantProperties ?? {};
+          const want = theme === "Emoji" ? "Medium" : "Small";
+          if (size && size !== want) report("table/first-column-dock-icon-small", WARNING, dock, theme === "Emoji" ? `the first column's Emoji Dock-Icon is Size=${size}: an Emoji Dock-Icon is Medium — set its Size to Medium` : `the first column's Dock-Icon is Size=${size}: the row's name column takes a Small Dock-Icon, with or without a Subtext — set its Size to Small`);
+        }
+        break;
+      }
+    }
+  }
+}
+
 // Phone sections (user 2026-10-17: "thêm rule spacing giữa các section trong mobile tối [thiểu] ở chế độ comfortable luôn
 // là 32px. Compact là 24px. tạo token để áp dụng"): the Body that stacks a phone screen's sections binds its gap to
 // Component Size's Layout-Mobile/Section-Gap (Compact 24, Comfortable 32), so it follows the mode the domain picks.
@@ -1374,6 +1411,7 @@ for (const root of roots) await checkButtonRoles(root);
 for (const root of roots) await checkTouchSpacing(root);
 for (const root of roots) await checkToolbarSearch(root);
 for (const root of roots) await checkTaskPageRules(root);
+for (const root of roots) await checkTableFirstColumn(root);
 for (const root of roots) await checkSectionGap(root);
 for (const root of roots) await checkModalForms(root);
 for (const root of roots) await checkClosingList(root);

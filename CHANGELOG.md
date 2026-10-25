@@ -37,6 +37,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   gate step and `npm run studio:e2e` (exit 1), marked "✗ New rows broken". New rows that work stay a pass, listed to
   record with `--update-baseline`; rows the baseline marks broken and flaky rows are still allowed. The opt-in `figma`
   and `dnd` groups are now in the baseline (FW-186 flaky; DND-03 and DND-05…08 left out until they are fixed).
+- Table (user, 2026-10-25): a Dock Icon in the first column, the row's name, is Small with or without a caption
+  (`content: "dock-icon"` drew XSmall without one); an emoji Dock Icon is Medium (Figma has Emoji only at Medium and
+  Large), so the HR leave tables draw theirs at Medium. Zen Studio's Figma push and pull and the cell panel follow. Harness
+  `table/first-column-dock-icon-small`, Figma audit `table/first-column-dock-icon-small` (warning), and a runtime audit
+  kind `table-lead` that checks the rendered first column (an initials Avatar Solid, a Dock Icon Small), so a page's
+  helper component no longer hides it.
 - Zen Studio Copy for Figma (2026-10-25): ⌘C on a frame, then ⌘V on any Figma canvas (not only the Zen file's) places
   it as instances of the published Zen library, with its variables and text styles bound: the paste carries the
   library's full definitions, as Figma's own copies do (`docs/figma-contracts/native-defs.json.gz`).

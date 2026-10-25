@@ -33,6 +33,10 @@
  *              chart, with room for a row beside nothing (the user 2026-10-16: wrap it like Figma's auto layout)
  *   toolbar-search (error) (widgetLayout) a Search wider than 240px in a toolbar row beside other controls, at 768px
  *              and wider (the user 2026-10-24: a toolbar Search stretched across the row; harness search/toolbar-width)
+ *   table-lead (error) (widgetLayout) a Table's first column, the row's name, drawing an initials Avatar that is not
+ *              Solid (the user 2026-10-24) or a Dock Icon that is not Small, an emoji one not Medium (the user
+ *              2026-10-25), what a page's helper component draws included (harness table/first-column-avatar-solid,
+ *              table/first-column-dock-icon-small)
  *
  * Opt out one element (with a reason in code) by `data-audit-skip-quality`.
  */
@@ -541,7 +545,7 @@ export function textFit({ scopeSel, regionSel }) {
  * a Search wider than 240px in a toolbar row, beside other controls (the user 2026-10-24), at a desktop or tablet width.
  */
 export function widgetLayout({ scopeSel, regionSel }) {
-  const out = { "card-gap": [], "legend-column": [], "toolbar-search": [] };
+  const out = { "card-gap": [], "legend-column": [], "toolbar-search": [], "table-lead": [] };
   const scope = scopeSel ? document.querySelector(scopeSel) : document;
   if (!scope) return out;
   const REGION = regionSel ?? ".pe-card__stage, .platform-example-panel .platform-example-row, .official-portal-root > *";
@@ -610,6 +614,43 @@ export function widgetLayout({ scopeSel, regionSel }) {
       const widest = Math.max(...rects.map((q) => q.width)) / k;
       if (block.getBoundingClientRect().width / k < 2 * widest + 8) continue;                   // no room for a row
       out["legend-column"].push(`${label(legend)}: a chart legend stacks its ${items.length} items in a column under its chart with room for a row — let it wrap as a row (Figma auto layout Wrap)`);
+    }
+    // table-lead: a Table's first column is the row's name. An Avatar drawn there with initials (no photo) is Background
+    // Solid (the user 2026-10-24), a Dock Icon is Small, with or without a caption (the user 2026-10-25). The Table's
+    // own cells draw them so (an emoji Dock Icon is Medium); this sees what a page's helper component draws (the 2026-10-24 slip: the Table page's
+    // PersonAvatar drew Subtle initials), which the source harness (table/first-column-avatar-solid,
+    // table/first-column-dock-icon-small) cannot. Avatar stacks (Group-Avatar-Cell) and a cell's edit ghost are skipped.
+    for (const table of region.querySelectorAll(".zen-table")) {
+      if (seen.has(table) || !visible(table) || table.closest(".platform-guideline-visual__dont, [data-verdict='dont'], [data-audit-skip-quality]")) continue;
+      seen.add(table);
+      const subtle = [], docks = new Map();
+      for (const row of table.querySelectorAll("tbody tr.zen-table__row")) {
+        const cell = row.querySelector(":scope > td.zen-table__cell:not(.zen-table__select)");
+        if (!cell) continue;
+        const own = (el) => !el.closest(".zen-table__cell-ghost, .zen-avatar-stack, [data-audit-skip-quality]") && el.closest("td") === cell;
+        for (const avatar of cell.querySelectorAll(".zen-avatar")) {
+          if (!own(avatar) || avatar.querySelector("img") || avatar.dataset.tone === "photo" || avatar.dataset.background === "solid") continue;
+          subtle.push((avatar.textContent ?? "").trim() || "?");
+        }
+        // An emoji Dock Icon is Medium (Figma has Emoji only at Medium and Large; the user 2026-10-25).
+        for (const dock of cell.querySelectorAll(".zen-dock-icon")) {
+          const emoji = dock.dataset.tone === "emoji";
+          if (!own(dock) || dock.dataset.size === (emoji ? "medium" : "small")) continue;
+          const key = `${emoji ? "emoji " : ""}${dock.dataset.size ?? "?"}`;
+          docks.set(key, (docks.get(key) ?? 0) + 1);
+        }
+      }
+      if (!subtle.length && !docks.size) continue;
+      const grid = table.querySelector("table");
+      const named = grid?.getAttribute("aria-label") || (grid?.getAttribute("aria-labelledby") ?? "").split(/\s+/).map((id) => id && document.getElementById(id)?.textContent?.trim()).filter(Boolean).join(" ") || grid?.querySelector("caption")?.textContent?.trim() || "Table";
+      const name = `table "${named.slice(0, 28)}"`;
+      if (subtle.length) out["table-lead"].push(`${label(table)}: ${name} draws its first column's Avatar Subtle with initials (${[...new Set(subtle)].slice(0, 3).join(", ")}${subtle.length > 3 ? "…" : ""}; ${subtle.length} row${subtle.length > 1 ? "s" : ""}) — the row's name column takes a Solid Avatar: drop background="subtle" (a photo stays Subtle)`);
+      for (const [key, count] of docks) {
+        const rows = `${count} row${count > 1 ? "s" : ""}`;
+        out["table-lead"].push(key.startsWith("emoji ")
+          ? `${label(table)}: ${name} draws its first column's emoji Dock Icon ${key.slice(6)} (${rows}) — an emoji Dock Icon is Medium (Figma has Emoji only at Medium and Large): size="md"`
+          : `${label(table)}: ${name} draws its first column's Dock Icon ${key} (${rows}) — the row's name column takes a Small Dock Icon, with or without a caption: size="sm"`);
+      }
     }
     // toolbar-search: a Search in a toolbar row is at most 240px wide (the user 2026-10-24). Its cell is the outermost
     // wrapper that holds only the Search; the row is the cell's parent laid out as a flex row or a grid, with a control
