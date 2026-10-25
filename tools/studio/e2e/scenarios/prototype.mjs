@@ -1276,7 +1276,7 @@ export const rows = [
   {
     id: "PT-27", feature: "Play shows a desktop Screen full screen (the user 2026-10-26: \"không hiện full màn hình desktop\"): in Auto the device is the whole page under the bar, edge to edge with square corners, the Screen still scrolls inside it; a device picked in Viewport sits on the padded stage again", wp: "play desktop full screen 2026-10-26", timeout: 40_000,
     async run(ctx) {
-      const { page } = await seededPage(ctx, longScreenPage, /proto\.open\("details"\)/);
+      const { page } = await step("seed the page", () => seededPage(ctx, longScreenPage, /proto\.open\("details"\)/));
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+Alt+Enter");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
@@ -1307,11 +1307,13 @@ export const rows = [
   {
     id: "PT-28", feature: "A dark Play keeps the page's popovers dark (the user 2026-10-26: a Table popover stayed light): the Table editor's popover, a tooltip and a toast draw in Play's portal layer in its theme, and a Table popover opened in a modal Side Panel stays live and picks", wp: "play portal 2026-10-26", timeout: 60_000,
     async run(ctx) {
-      const { page } = await seededPage(ctx, darkPopoverPage, /proto\.open\("details"\)/);
+      const { page } = await step("seed the page", () => seededPage(ctx, darkPopoverPage, /proto\.open\("details"\)/));
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+Alt+Enter");
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
       await step("Dark mode", () => playing(page).getByRole("button", { name: "Dark mode" }).click());
+      // Off the bar: its own hover tooltip (the Studio's chrome, in the Studio's modes) is not the page's.
+      await page.mouse.move(page.viewportSize().width - 8, page.viewportSize().height - 8);
       const dark = (look, what) => { if (look.theme !== "dark" || !look.inPlay || look.inert) throw new Error(`${what} is not in the dark Play: ${JSON.stringify(look)}`); };
       await step("edit a Status cell", () => playing(page).locator("td.zen-table__cell[data-editable='true']").filter({ hasText: "Paid" }).first().click());
       const popover = page.locator(".zen-table-editor__popover");
@@ -1338,7 +1340,7 @@ export const rows = [
         await panel.getByRole("button", { name: "Close panel" }).focus();
         await page.keyboard.press("Shift+Tab");
         await page.keyboard.press("Tab");
-        const layer = page.locator(".zen-tooltip-layer");
+        const layer = page.locator(".zen-tooltip-layer").filter({ hasText: "Close panel" });
         await layer.waitFor({ state: "visible", timeout: 3000 });
         return layerLook(layer);
       });
