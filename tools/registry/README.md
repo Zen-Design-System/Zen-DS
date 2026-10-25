@@ -14,14 +14,16 @@ deactivated licence or a removed team member stops working with a token issued e
 | `test/pocketbase/pb_migrations/` | A copy of the live license schema + the registry-access changes (licenses, team_members) |
 | `scripts/build-login-page.mjs` | Renders the sign-in page from Zen DS (real components + the CSS they use + Inter) into `plugins/verdaccio-zen-license/login/` (committed). Rerun after Zen changes: `npm run build:lib` in the root, then this script |
 | `scripts/fetch-pocketbase.mjs` | Downloads the pinned PocketBase (0.39.11) into `.bin/` for the e2e test |
+| `pocketbase/pb_hooks/` | Phase 6: the Polar payment webhook, a PocketBase JS hook for the license store (`zen_polar.pb.js` wires it, `zen_polar.js` holds the logic); tests in `test/polar.test.js` and the e2e |
 | `deploy/` | Dockerfile, docker-compose (Verdaccio + Caddy), server setup, backup/restore to R2, deploy script |
 
 ```bash
 cd tools/registry
 npm install
-npm test            # unit + e2e (about 15 s; the first run downloads PocketBase)
+npm test            # unit + e2e + Polar webhook (about 30 s; the first run downloads PocketBase)
 npm run test:unit
 npm run test:stack  # the same e2e against the Docker stack + backup → wipe → restore (needs Docker, ~1 min)
+node --test test/polar.test.js  # the Polar webhook alone (PocketBase + the hook, ~2 s)
 ```
 
 ## How access works
@@ -86,6 +88,36 @@ Rollback: set `licenses.viewRule` back to
 Seats (2026-10-14, `1791500002_registry_members.js`): `team_members.listRule` and `viewRule` gain
 `|| @request.auth.collectionName = "registry_clients"`, so the registry can count a licence's members (read-only).
 Rollback: remove that part from both rules (developer sign-ins then fail with 503; CI tokens keep working).
+
+## Payments (Polar, Phase 6)
+
+Polar (merchant of record, picked by the owner on 2026-10-25) sells the subscriptions; a webhook turns them into
+licences. It runs inside the license store as a PocketBase JS hook (`pocketbase/pb_hooks/`), so there is no
+other server: `POST <license store>/api/zen/billing/polar`.
+
+- **Signature:** Standard Webhooks (`webhook-id`, `webhook-timestamp`, `webhook-signature`), checked against
+  `POLAR_WEBHOOK_SECRET` on the instance, 5 minutes of clock skew; both Polar secret formats (before and after
+  2026-09-08) verify. Unsigned or stale deliveries get 401; no secret set gives 503; non-`subscription.*` events
+  get 202 and are ignored.
+- **State:** every `subscription.*` event carries the whole subscription and is applied the same way, so retries
+  and duplicates are harmless; an event older than the stored `modified_at` is skipped. One row per subscription in
+  `billing_subscriptions` (created by the hook at start, superuser-only), pointing at its licence.
+- **Owner:** the users id passed as `?reference_id=` on the checkout link (or the Polar customer's `external_id`),
+  else the account whose **verified** email is the customer's email, else the row waits and the licence is created
+  when that email signs up verified (`users` create/update hooks).
+- **Terms:** from the Polar product's metadata: `zen_type` (`business`/`pro`), `zen_max_members` (or the
+  subscription's seats on seat-based pricing), `zen_credits`, optional `zen_reset_day` (default: the day of
+  purchase, at most 28). A product without them is recorded in the row's `problem` and gets no licence (200, so
+  Polar does not retry it into disabling the endpoint).
+- **Access:** `active` while the status is `active`, `trialing` or `past_due` (Polar retries a failed renewal for up
+  to 21 days, then revokes). A cancellation keeps access until the period ends; revocation turns `active` off and
+  the registry refuses within `cache_seconds`. Upgrades update type, seats and credits; `credits_used`,
+  `reset_day` and `purchase_date` are set once.
+
+Deploy (the owner's developer; steps with commands in `docs/registry-setup.md`, Phase 6): set
+`POLAR_WEBHOOK_SECRET` with `pbc env import … --target pocketbase`, then `pbc pocketbase hooks push
+tools/registry/pocketbase/pb_hooks --name <instance>`; in Polar, a Raw webhook to the URL above with every
+`subscription.*` event. `curl -X POST <url>` answering 401 means the route is live and the secret is set.
 
 ## Deploy (VPS, `npm.dizai.studio`)
 

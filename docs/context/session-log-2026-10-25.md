@@ -52,3 +52,20 @@ DashboardHeader 320: "ở control bar thì tối đa là 240". Each item gets it
 - `docs/registry-setup.md` (Vietnamese): SSH access (this Mac has no key; the 10-14 deploy ran from Tung's), R2,
   UptimeRobot, real `npm login`, `npm deprecate` (npmjs also has `@zen-ds/tokens@0.1.0`), choices with
   recommendations (keep the OVH VPS, R2, UptimeRobot, Polar for Phase 6: pays out to Vietnam via Stripe Connect Express).
+
+## Private registry Phase 6: Polar webhook (tier M; user: "Chọn Polar cho Phase 6", then via Giám sát "Phiên làm, developer deploy")
+
+- Where it runs: a PocketBase JS hook in the license store (`tools/registry/pocketbase/pb_hooks/`), deployed with
+  `pbc pocketbase hooks push`; no new server. Nothing was pushed to the live PocketBase or Polar (developer's step).
+- Design (README "Payments"): `POST /api/zen/billing/polar`, Standard Webhooks signature (both Polar secret formats;
+  the key is binary, so SHA-256/HMAC are in JS: `$security.hs256` takes a string key). Every `subscription.*` event
+  applies the whole subscription to one `billing_subscriptions` row (created at bootstrap, superuser-only) and its
+  licence; older `modified_at` skipped. Owner: `reference_id` / `external_id`, else verified email, else pending until
+  that email signs up verified. Terms from product metadata `zen_type`, `zen_max_members` (or seats), `zen_credits`,
+  `zen_reset_day`. Active while active/trialing/past_due.
+- Tests: `test/polar.test.js` (crypto vs node:crypto, signature cases, terms; then a real PocketBase 0.39.11 with the
+  hook: create, retries, upgrade, stale event, cancel/past_due/revoke/renew, bad signature, reference_id, pending →
+  verified claim, bare product, incomplete) and one e2e case (webhook purchase → CI key installs → revoke → 403 after
+  the cache). `npm test` in tools/registry: 43/43. Probes for the deploy check: no hook 404, no secret 503, ready 401.
+- Runbook Bước 5 (Vietnamese): Polar products + metadata, sandbox test against a local PocketBase with
+  `polar webhook listen`, production deploy, check, rollback.
