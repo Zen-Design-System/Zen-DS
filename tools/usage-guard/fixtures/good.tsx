@@ -211,6 +211,12 @@ export const Good = () => <>
   <Table aria-label="Members" rows={rows} getRowId={getId} columns={[{ id: "member", header: "Member", cell: (row) => <TableMedia bold caption={row.role} media={<Avatar size="sm" theme="neutral" alt="">{row.initials}</Avatar>}>{row.name}</TableMedia> }, { id: "owner", header: "Owner", cell: (row) => <Avatar size="xs" background="subtle" alt="">{row.owner}</Avatar> }]} />
   {/* A photo Avatar stays Subtle in the first column: Figma has no Photo × Solid. */}
   <Table aria-label="Team" rows={rows} getRowId={getId} columns={[{ id: "member", header: "Member", cell: (row) => <TableMedia media={<Avatar size="xs" theme="photo" src={row.photo} background="subtle" alt="" />}>{row.name}</TableMedia> }]} />
+  {/* table/first-column-dock-icon-small: Small in the first column with or without a caption; a later column's follows
+      its caption (XSmall alone). */}
+  <Table aria-label="Apps" rows={rows} getRowId={getId} columns={[{ id: "app", header: "App", cell: (row) => <TableMedia media={<DockIcon icon="icon-grid-01-line" size="sm" theme="neutral" background="subtle" />}>{row.name}</TableMedia> }, { id: "kind", header: "Kind", cell: (row) => <TableMedia media={<DockIcon icon="icon-tag-line" size="xs" theme="neutral" background="subtle" />}>{row.kind}</TableMedia> }]} />
+  <Table aria-label="Files" rows={rows} getRowId={getId} columns={[{ id: "file", header: "File", cell: (row) => <TableMedia caption={row.size} media={<DockIcon icon="icon-file-doc-line" size="small" theme="neutral" background="subtle" />}>{row.name}</TableMedia> }]} />
+  {/* An emoji Dock Icon is Medium, in the first column and later ones (Figma has Emoji only at Medium and Large). */}
+  <Table aria-label="Leaves" rows={rows} getRowId={getId} columns={[{ id: "type", header: "Type", cell: (row) => <TableMedia bold media={<DockIcon theme="emoji" emoji={row.emoji} size="md" />}>{row.kind}</TableMedia> }, { id: "mood", header: "Mood", cell: (row) => <TableMedia media={<DockIcon theme="emoji" emoji={row.mood} />}>{row.note}</TableMedia> }]} />
   {/* table/titled-box: a ListBox header names its table. */}
   <ListBox header={<Heading level={3} textStyle="Heading/Subheading">Top clients</Heading>}><Table aria-label="Top clients" columns={[]} rows={[]} getRowId={(r) => r.id} /></ListBox>
   {/* A table that is its own section: an h2 Heading/4 above it, and the Table points to it. */}

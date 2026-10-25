@@ -22,9 +22,11 @@ const subtext = (vp) => vp.Subtext === "Yes";
  * Avatar-, Photo-, Basic-Icon- and Dock-Icon-Cell (Bold × Subtext): `01 > Content-Div` (gap Spacing/Gap/Small) holds the
  * visual, XSmall without a Subtext and Small with one, then a Text-Cell (Label Body/Base Regular|Bold · Strongest over the
  * Subtext Caption/Regular · Light, gap 3XSmall). Drawn by a column's `content` (TableMedia + cellVisual); `visual` gives
- * the visual's map entries (paths under `01 > Content-Div`) and `media(spec)` the row's picture or icon name.
+ * the visual's map entries (paths under `01 > Content-Div`) and `media(spec)` the row's picture or icon name. `second`
+ * measures the cell in the Table's second column, where it draws as the primitive (the first column draws a Dock Icon
+ * Small with or without a Subtext).
  */
-export function mediaSuite({ setId, content, media, visual, figmaExceptions = [] }) {
+export function mediaSuite({ setId, content, media, visual, figmaExceptions = [], second = false }) {
   return {
     contract,
     setId,
@@ -33,7 +35,7 @@ export function mediaSuite({ setId, content, media, visual, figmaExceptions = []
     cases: (vp, { spec }) => {
       const text = at(spec, TEXT);
       const column = { content, field: "name", mediaField: "media", bold: vp.Bold === "Yes", ...(subtext(vp) ? { captionField: "caption" } : {}) };
-      return cellCase(spec, column, { name: textOf(child(text, "Label")), caption: textOf(child(text, "Subtext")), media: media(spec) });
+      return cellCase(spec, column, { name: textOf(child(text, "Label")), caption: textOf(child(text, "Subtext")), media: media(spec) }, second ? { second: true } : {});
     },
     figmaExceptions,
     map: [

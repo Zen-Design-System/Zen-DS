@@ -1217,15 +1217,21 @@ const MEDIA_CONTENT = new Set(["avatar", "photo", "icon", "dock-icon"]);
 const TABLE_DRAWS = {
   Badge: { layer: "Badge", props: { size: "medium", theme: "neutral", background: "subtle", leadingIcon: false } },
   IconButton: { layer: "Button", props: { size: "md", level: "primary", appearance: "flat" } },
-  DockIcon: { layer: "Dock-Icon", props: { size: "xs", theme: "neutral", background: "subtle" } },
+  // Its size follows the cell and the column (see drawnProps).
+  DockIcon: { layer: "Dock-Icon", props: { theme: "neutral", background: "subtle" } },
   // An avatar / photo cell's Avatar (Table.tsx cellVisual): its size and shape follow the cell (see drawnProps).
   Avatar: { layer: "Avatar", props: { background: "subtle", theme: "neutral" } },
 };
 /** Table.tsx initialsOf: the first letters of the first two words. */
 const tableInitials = (name) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0]?.toUpperCase() ?? "").join("");
 /** What the Table draws for a cell's instance: an Avatar is Small over a Subtext (XSmall alone), square in a photo cell,
- *  Solid in the first column (`lead`, never a photo: Figma has no Photo × Solid) and Subtle elsewhere. */
-const drawnProps = (code, column, lead = false) => (code === "Avatar" ? { ...TABLE_DRAWS.Avatar.props, ...(lead ? { background: "solid" } : {}), size: column.caption ? "sm" : "xs", shape: column.content === "photo" ? "square" : "circle" } : TABLE_DRAWS[code].props);
+ *  Solid in the first column (`lead`, never a photo: Figma has no Photo × Solid) and Subtle elsewhere; a Dock Icon is
+ *  Small over a Subtext and always in the first column, XSmall otherwise. */
+const drawnProps = (code, column, lead = false) => {
+  if (code === "Avatar") return { ...TABLE_DRAWS.Avatar.props, ...(lead ? { background: "solid" } : {}), size: column.caption ? "sm" : "xs", shape: column.content === "photo" ? "square" : "circle" };
+  if (code === "DockIcon") return { size: column.caption || lead ? "sm" : "xs", ...TABLE_DRAWS.DockIcon.props };
+  return TABLE_DRAWS[code].props;
+};
 
 /** Figma Actions-Cell's default button icon (docs/figma-contracts/table-cells.json). */
 const ACTION_ICON = "icon-dots-vertical-line";

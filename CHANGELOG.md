@@ -21,6 +21,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   gate step and `npm run studio:e2e` (exit 1), marked "✗ New rows broken". New rows that work stay a pass, listed to
   record with `--update-baseline`; rows the baseline marks broken and flaky rows are still allowed. The opt-in `figma`
   and `dnd` groups are now in the baseline (FW-186 flaky; DND-03 and DND-05…08 left out until they are fixed).
+- Table (user, 2026-10-25): a Dock Icon in the first column, the row's name, is Small with or without a caption
+  (`content: "dock-icon"` drew XSmall without one); an emoji Dock Icon is Medium (Figma has Emoji only at Medium and
+  Large), so the HR leave tables draw theirs at Medium. Zen Studio's Figma push and pull and the cell panel follow. Harness
+  `table/first-column-dock-icon-small`, Figma audit `table/first-column-dock-icon-small` (warning), and a runtime audit
+  kind `table-lead` that checks the rendered first column (an initials Avatar Solid, a Dock Icon Small), so a page's
+  helper component no longer hides it.
 - Zen Studio phone chrome (user, 2026-10-25): the phone bars drawn from a desktop AppShellHeader now work in Play. The
   top bar's Search becomes the bar's Search control bar (doing what the desktop's does; a root's folds into the Search
   action), ⋯ More opens a sheet of the folded actions, the account avatar keeps its menu, and the tab bar goes where the
