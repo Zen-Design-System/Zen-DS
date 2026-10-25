@@ -1,4 +1,4 @@
-// Figma Primitives/Dashboard/Header 4122:33402 (docs/figma-contracts/dashboard-header.json, read 2026-10-11): Type
+// Figma Primitives/Dashboard/Header 4122:33402 (docs/figma-contracts/dashboard-header.json, read 2026-10-11, re-captured 2026-10-25): Type
 // Control-Bar · Navigation · Main · Custom, a 40px row of slots. Geometry of each group (its size and offset from the
 // row) and the Main title's text style; the slots' own components have suites of their own (Chip, Button…).
 const type = (vp) => ({ "Control-Bar": "control-bar", Navigation: "navigation", Main: "main", Custom: "custom" })[vp.Type];
