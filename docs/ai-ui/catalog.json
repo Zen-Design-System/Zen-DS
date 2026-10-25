@@ -23676,9 +23676,7 @@
               ]
             }
           },
-          "required": [
-            "onClick"
-          ],
+          "required": [],
           "additionalProperties": false,
           "description": "For a Search control bar: while `collapsed`, the bar folds away and this Search action appears at the start of the trailing slot (top-right); it leaves again when the bar expands."
         },
@@ -25614,7 +25612,8 @@
         "Keep the Figma rhythm: leading actions 16 apart, two flat trailing actions 20 apart; an H2 expand heading has 14px vertical padding.",
         "Put a Segmented in the control bar with fullWidth; its items split the bar equally.",
         "For a conversation header use the identity: Default type, compact margin, Tertiary back chevron, Avatar Large (or ChatAvatarGroup size=\"large\") as titleLeading, presence as subtitle (\"Active now\" / \"Active 2h ago\") and the calls as one grouped pill (trailingGroup).",
-        "When the control bar is a Search and the bar collapses on scroll, pass searchAction: the Search folds into a top-right Search action and comes back as a bar on scroll up. Its onClick scrolls back up and focuses the field (harness: top-navigation/search-folds-to-action)."
+        "When the control bar is a Search and the bar collapses on scroll, pass searchAction: the Search folds into a top-right Search action and comes back as a bar on scroll up. With scrollRef and no onClick it scrolls back up and focuses the field itself (harness: top-navigation/search-folds-to-action).",
+        "Put what does not fit the three trailing places in a ⋯ More action with menu: its entries open as an action Bottom Sheet on a phone (a popover menu elsewhere), each running its own onSelect; an account avatar in leading keeps its Menu the same way."
       ],
       "dont": [
         "Don't mix action styles in one bar (a Tertiary back with Flat trailing actions).",
@@ -28402,6 +28401,12 @@
         },
         "disabled": {
           "type": "boolean"
+        },
+        "menu": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MenuEntry"
+          }
         },
         "group": {
           "type": "string"

@@ -47,6 +47,12 @@ export interface TopNavigationAction {
   dot?: boolean;
   disabled?: boolean;
   /**
+   * The action opens a Menu of these entries (on a phone an action Bottom Sheet, as every Menu): the ⋯ More action that
+   * holds what does not fit the bar, or the account's menu. Each entry runs its own `onSelect`; `onClick` still runs
+   * first when given.
+   */
+  menu?: MenuEntry[];
+  /**
    * In `trailing` and `largeTitleAction`: actions next to each other with the same `group` share one pill, Figma's Nav-Action with a trailing
    * icon (iOS's paired bar buttons), e.g. audio + video call with `group: "call"`. The pill takes the bar's action style:
    * Tertiary (Icon-Main), Liquid Glass, or Liquid Glass Black Overlay on the overlay types; each half keeps its own label
@@ -180,9 +186,10 @@ export interface TopNavigationProps {
    * For a Search control bar: while `collapsed`, the bar folds away and this Search action appears at the start of the
    * trailing slot (top-right); it leaves again when the bar expands. Its `onClick` usually scrolls back up and focuses
    * the field. Counts toward the three trailing actions, so keep at most two others. `label` defaults to the locale's
-   * “Search”, `icon` to icon-search-medium-line (an icon name or an element).
+   * “Search”, `icon` to icon-search-medium-line (an icon name or an element). Without `onClick` (with `scrollRef`) it
+   * does that itself: it scrolls the content back to the top and focuses the Search once it is back.
    */
-  searchAction?: { onClick: () => void; label?: string; icon?: IconName | ReactElement };
+  searchAction?: { onClick?: () => void; label?: string; icon?: IconName | ReactElement };
   /**
    * Scroll-linked collapse (the iOS large-title behaviour): the element whose scroll moves the screen's content, or
    * "window". The large title (and a Search Control-Bar with `searchAction`) slide up under the bar with the content,
@@ -268,13 +275,15 @@ export function TopNavigationActionButton({ action, variant, className, state, r
   // Figma Nav-Action/Liquid-Glass (12015:46174): its Container has Liquid-Glass/Normal's GLASS effect.
   const glass = useLiquidGlass("liquid-glass-normal", variant === "glass" || variant === "glass-dark");
   const buttonRef = useMergedRefs<HTMLButtonElement>(ref, glass);
-  return (
+  const button = (
     <button {...dataAttributes(rest)} ref={buttonRef} type="button" className={["zen-top-nav__action", className].filter(Boolean).join(" ")} data-style={variant} data-state={state} aria-label={action.label} disabled={action.disabled} {...tip.bind({ onClick: action.onClick })}>
       {renderIcon(action.icon)}
       {action.dot ? <NotificationDot className="zen-top-nav__dot" /> : null}
       {tip.tooltip}
     </button>
   );
+  // The Menu clones the button as its trigger (its ref and click kept) and opens a sheet on a phone.
+  return action.menu?.length ? <Menu trigger={button} items={action.menu} align="end" /> : button;
 }
 
 /**
@@ -381,6 +390,7 @@ export function TopNavigation({ type: restingType = "default", margin = "comfort
   const [foldNode, setFoldNode] = useState<HTMLDivElement | null>(null);
   const expandRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
+  const controlRef = useRef<HTMLDivElement>(null);
   const linked = collapsedProp === undefined && scrollRef !== undefined;
   // Figma Top-bar=false (root screens): the bar row folds into the large-title row instead of sitting above it.
   const barFolds = Boolean(largeTitle) && !identity && (topBar === false || (topBar === undefined && !leading));
@@ -452,7 +462,20 @@ export function TopNavigation({ type: restingType = "default", margin = "comfort
   // once the Search has slid fully under the bar).
   const foldsSearch = Boolean(searchAction && controlBar);
   const search = usePresence(foldsSearch && (linked ? scroll.folded : collapsed), 120);
-  const searchButton: TopNavigationAction | null = searchAction ? { icon: searchAction.icon ?? "icon-search-medium-line", label: searchAction.label ?? t.search, onClick: searchAction.onClick } : null;
+  // Without its own onClick the Search action scrolls back up and focuses the field once it is no longer inert under the bar.
+  const openSearch = () => {
+    const scroller = scrollRef === "window" ? window : scrollRef?.current;
+    const reduce = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    scroller?.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+    const started = performance.now();
+    const focusWhenBack = () => {
+      const field = controlRef.current?.querySelector<HTMLElement>("input, textarea");
+      if (field && !field.closest("[inert]")) field.focus({ preventScroll: true });
+      else if (performance.now() - started < 1500) requestAnimationFrame(focusWhenBack);
+    };
+    requestAnimationFrame(focusWhenBack);
+  };
+  const searchButton: TopNavigationAction | null = searchAction ? { icon: searchAction.icon ?? "icon-search-medium-line", label: searchAction.label ?? t.search, onClick: searchAction.onClick ?? openSearch } : null;
   return (
     <Root {...dataAttributes(rest)} ref={headerRef} className={["zen-top-nav", className].filter(Boolean).join(" ")} data-type={type} data-margin={margin} data-collapsed={collapsed ? "true" : undefined} data-sticky={sticky ? "true" : undefined} data-scroll-linked={linked ? "true" : undefined} data-scrolled={linked && scroll.scrolled ? "true" : undefined} data-scrolled-type={scrolledType && linked ? "true" : undefined} data-bar={barOverlay ? "overlay" : undefined} aria-label={Root === "header" ? ariaLabel : undefined}>
       {progressive ? <ProgressiveBlur className="zen-top-nav__progressive" strong="top" /> : null}
@@ -510,7 +533,7 @@ export function TopNavigation({ type: restingType = "default", margin = "comfort
                   {barFolds ? <ActionsRoom items={trailingItems(lead, trailing, pairs, trailingGroup, MAX_ACTIONS)} variant={variant} /> : expandTrailing}
                 </div>
               ) : null}
-              {foldsSearch ? <div className="zen-top-nav__control" inert={scroll.folded || undefined}><SearchShapeContext.Provider value="rounded">{controlBar}</SearchShapeContext.Provider></div> : null}
+              {foldsSearch ? <div ref={controlRef} className="zen-top-nav__control" inert={scroll.folded || undefined}><SearchShapeContext.Provider value="rounded">{controlBar}</SearchShapeContext.Provider></div> : null}
             </div>
           ) : null}
           {/* A Segmented or Tabs Control-Bar stays pinned under the bar; it moves up with the fold. So does a banner. */}
