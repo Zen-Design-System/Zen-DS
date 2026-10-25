@@ -125,10 +125,16 @@ function menuOf(menu) {
 const itemId = (label, index) => label.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[đĐ]/g, "d").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `action-${index + 1}`;
 
 /** The ⋯ More sheet's entries: an action as a row running its onClick, an action with a menu as a group of its rows. */
-const moreMenu = (folded) => ({ kind: "array", items: folded.map((item, index) => {
-  const { icon, label, onClick, menu } = item.entry.fields;
-  return menu ? obj({ type: lit("group"), label, items: menu }) : obj({ id: lit(itemId(item.label, index)), label, icon, onSelect: onClick });
-}) });
+function moreMenu(folded) {
+  const ids = new Set();
+  return { kind: "array", items: folded.map((item, index) => {
+    const { icon, label, onClick, menu } = item.entry.fields;
+    if (menu) return obj({ type: lit("group"), label, items: menu });
+    const id = ids.has(itemId(item.label, index)) ? `action-${index + 1}` : itemId(item.label, index);
+    ids.add(id);
+    return obj({ id: lit(id), label, icon, onSelect: onClick });
+  }) };
+}
 
 /* ── writing the phone parts ────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -311,9 +317,9 @@ export function planPhoneSync(before, after, { components } = {}) {
       // A part written for the first time goes in as a slot insert, which imports its components (setProp does not); a part
       // redrawn with a component the page does not import yet (a Menu, the control bar's Stack) is swapped in its place,
       // which imports it too.
-      const swap = derived[prop] !== null && code !== null && tagsOf(derived[prop]).some((name) => !imported.has(name));
+      const unimported = derived[prop] !== null && code !== null && tagsOf(derived[prop]).some((name) => !imported.has(name));
       ops.push(derived[prop] === null ? { op: "removeProp", name: prop } : code === null ? { op: "insertChild", prop, code: derived[prop] }
-        : swap ? { op: "replaceElement", code: derived[prop], part: screen.props[prop].node } : { op: "setProp", name: prop, value: { kind: "expression", code: derived[prop] } });
+        : unimported ? { op: "replaceElement", code: derived[prop], part: screen.props[prop].node } : { op: "setProp", name: prop, value: { kind: "expression", code: derived[prop] } });
     }
     // A slot insert or swap goes alone in its request (the engine's rule): one now, the rest planned again on the new text.
     const insert = ops.find((op) => op.op === "insertChild");
