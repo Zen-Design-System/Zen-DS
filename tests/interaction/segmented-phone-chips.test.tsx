@@ -5,7 +5,7 @@
  */
 import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
-import { Segmented, ZenProvider } from "../../src/index";
+import { CalendarToolbar, Segmented, ZenProvider } from "../../src/index";
 
 const filters = [{ id: "everything", label: "Everything that happened" }, { id: "mentions", label: "Mentions only" }];
 const periods = [{ id: "day", label: "Day" }, { id: "week", label: "Week" }, { id: "month", label: "Month" }, { id: "quarter", label: "Quarter" }];
@@ -33,6 +33,30 @@ describe("Segmented on a phone", () => {
     await expect.poll(() => screen.getByRole("group", { name: "Period" }).elements().length).toBe(1);
     expect(screen.getByRole("radiogroup").elements()).toHaveLength(0);
     await expect.element(screen.getByRole("button", { name: "Week" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("settles in a box that hugs its content: no chips ↔ segments loop (a floating layer, a Calendar toolbar in a column that does not stretch)", async () => {
+    // The equal shares of a full-width Segmented cut its widest label in a box as wide as its content; the chip row is
+    // wider than the segments' sum, so the segments came back and were cut again until React stopped (DND-03, 2026-10-26).
+    const errors: unknown[] = [];
+    const onError = (event: ErrorEvent) => errors.push(event.error ?? event.message);
+    window.addEventListener("error", onError);
+    try {
+      const screen = await render(<ZenProvider breakpoint="mobile">
+        <div style={{ position: "relative", width: 358, height: 400 }}>
+          <div data-testid="floating" style={{ position: "absolute", left: 16, top: 16 }}><Segmented fullWidth aria-label="Floating" options={periods} defaultValue="week" /></div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", width: 358 }}><CalendarToolbar title="September 2026" view="month" /></div>
+      </ZenProvider>);
+      await expect.element(screen.getByTestId("floating")).toBeVisible();
+      await expect.element(screen.getByRole("heading", { name: "September 2026" })).toBeVisible();
+      // Two frames later each control still shows one look (a Segmented or its chip row), and nothing threw.
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      expect(screen.getByRole("radiogroup").elements().length + screen.getByRole("group").elements().length).toBe(2);
+      expect(errors).toEqual([]);
+    } finally {
+      window.removeEventListener("error", onError);
+    }
   });
 
   it("keeps the Segmented when every label fits, and on a desktop whatever the width", async () => {
