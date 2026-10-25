@@ -30,6 +30,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   `table/first-column-dock-icon-small`, Figma audit `table/first-column-dock-icon-small` (warning), and a runtime audit
   kind `table-lead` that checks the rendered first column (an initials Avatar Solid, a Dock Icon Small), so a page's
   helper component no longer hides it.
+- Zen Studio phone chrome (user, 2026-10-25): the phone bars drawn from a desktop AppShellHeader now work in Play. The
+  top bar's Search becomes the bar's Search control bar (doing what the desktop's does; a root's folds into the Search
+  action), ⋯ More opens a sheet of the folded actions, the account avatar keeps its menu, and the tab bar goes where the
+  Sidebar's rows go. TopNavigation: an action takes `menu` (a Menu, an action sheet on a phone), and `searchAction`
+  without `onClick` scrolls back up and focuses the Search itself.
 - Zen Studio Copy for Figma (2026-10-25): ⌘C on a frame, then ⌘V on any Figma canvas (not only the Zen file's) places
   it as instances of the published Zen library, with its variables and text styles bound: the paste carries the
   library's full definitions, as Figma's own copies do (`docs/figma-contracts/native-defs.json.gz`).

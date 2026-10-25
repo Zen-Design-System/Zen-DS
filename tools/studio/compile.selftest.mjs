@@ -123,22 +123,25 @@ ok("full: the data type", team.dataType?.startsWith("export type TeamMock = {"))
 ok("full: the TODO block", code.includes(" * TODO(dev): the design's interactions, to wire to the app:"));
 
 // What a component requires but a page cannot write (standins.mjs): a stand-in, and a Table column shows its row's field.
-const required = compileReact(page("Orders", "AiChatField, Table, TopNavigation", [
+const required = compileReact(page("Orders", "AiChatField, PageHeader, Table, TopNavigation", [
   '<Screen id="orders" title="Orders" device="phone">',
   '  <TopNavigation title="Orders" searchAction={{ label: "Search orders" }} />',
+  '  <PageHeader title="Orders" back={{ label: "Shop" }} />',
   '  <Table aria-label="Orders" columns={[{ id: "name", header: "Name" }, { id: "total", header: "Total" }, { id: "note", header: "Note" }]} rows={mock.orders} />',
   '  <Table aria-label="Lines" columns={[{ id: "item", header: "Item" }]} rows={[{ id: "1", item: "Tea" }, { id: "2", item: "Cake" }]} />',
   '  <AiChatField placeholder="Ask" />',
   '  <SelectField label="Slot" options={[{ value: "a", label: "Thursday at 4 pm", at: "2026-10-01T16:00" }]} />',
   "</Screen>",
-], '{ orders: [{ id: "o1", name: "Ava", total: 12, tags: ["new"] }] }').replace("AiChatField, Table", "AiChatField, SelectField, Table"), { file: "orders.zen.tsx" });
+], '{ orders: [{ id: "o1", name: "Ava", total: 12, tags: ["new"] }] }').replace("AiChatField, PageHeader, Table", "AiChatField, PageHeader, SelectField, Table"), { file: "orders.zen.tsx" });
 const requiredCode = required.code ?? "";
-ok("stand-ins: an action object's onClick", requiredCode.includes('searchAction={{ label: "Search orders", onClick: () => {} }}'));
+ok("stand-ins: an action object's onClick", requiredCode.includes('back={{ label: "Shop", onClick: () => {} }}'));
+// TopNavigation's Search action needs no onClick since 2026-10-25: it scrolls back up and focuses the Search itself.
+ok("no stand-in for an optional onClick (TopNavigation searchAction)", requiredCode.includes('searchAction={{ label: "Search orders" }}'));
 // A Table column needs no cell (2026-10-10): the Table draws its row's field (and a `content` type) itself.
 ok("a column without a cell is written as it is: the Table draws its row's field", ['{ id: "name", header: "Name" }', '{ id: "total", header: "Total" }', '{ id: "note", header: "Note" }', '{ id: "item", header: "Item" }'].every((column) => requiredCode.includes(column)) && !/\bcell:/.test(requiredCode));
 ok("known fields: an option's own data is left out", requiredCode.includes('options={[{ value: "a", label: "Thursday at 4 pm" }]}'));
 ok("stand-ins: a required handler", requiredCode.includes('<AiChatField placeholder="Ask" onSubmit={() => {}} />'));
-check("stand-ins: listed for the developer", required.handlers, ["<TopNavigation> searchAction.onClick: not in the design (a stand-in does nothing)", "<AiChatField> onSubmit: not in the design (a stand-in does nothing)"]);
+check("stand-ins: listed for the developer", required.handlers, ["<PageHeader> back.onClick: not in the design (a stand-in does nothing)", "<AiChatField> onSubmit: not in the design (a stand-in does nothing)"]);
 
 // Core rebuild M5: what the Studio writes on a page you made — a nested instance's overrides (M1/M3) and a row's own
 // value (op setRowProp, M4: the rows carry the field, the layer reads it) — exports as app code that type-checks.

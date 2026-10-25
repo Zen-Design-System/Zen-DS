@@ -178,7 +178,7 @@ const objectProps = (literal) => {
   return props;
 };
 /** Pressing it does something: its own handler or link, a submit, or props spread in from elsewhere. */
-const handlesPress = (props) => ["onClick", "onSelect", "href", "to", "..."].some((key) => props.has(key)) || /["'`]submit["'`]/.test(props.get("type") ?? "");
+const handlesPress = (props) => ["onClick", "onSelect", "href", "to", "menu", "..."].some((key) => props.has(key)) || /["'`]submit["'`]/.test(props.get("type") ?? "");
 /** An entry someone can press: a label or an icon, not a section/group holding other entries, not pinned disabled. */
 const pressable = (props) => (props.has("label") || props.has("icon")) && !props.has("items") && !props.has("children")
   && !/^["'`](separator|group)["'`]$/.test(props.get("type") ?? "") && props.get("disabled") !== "true";
