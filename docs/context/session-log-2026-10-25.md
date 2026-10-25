@@ -69,3 +69,26 @@ DashboardHeader 320: "ở control bar thì tối đa là 240". Each item gets it
   the cache). `npm test` in tools/registry: 43/43. Probes for the deploy check: no hook 404, no secret 503, ready 401.
 - Runbook Bước 5 (Vietnamese): Polar products + metadata, sandbox test against a local PocketBase with
   `polar webhook listen`, production deploy, check, rollback.
+
+## Studio performance audit: Chart board and Main component frames (investigation only, no code change)
+
+Measured with Playwright on :5173 (`?ui=studio`, read-only: no inspector clicks, no drafts), a fake React DevTools hook
+for render counts and CDP for the load profile. Findings, all reproduced:
+
+- **Chart board never settles.** In the Main component frame five round-chart cells (Donut/Radial, Legend=Start/End or
+  Total=Start, Size=Small) flip `data-wrapped` every ~370 ms: `useBesideWrapped` (chartCore.tsx) decides inside a
+  max-content cell, so its own answer changes the width it measured (frame 1083 ↔ 1711 px, height 6620 ↔ 6886). The
+  Examples and Docs sections jump 266 px ~3×/s; each flip re-renders all 35 cells, FrameChrome and Present (≈1 s of long
+  tasks per second at idle). Pan on Chart: 82/82 frames > 50 ms, worst 717 ms. Only the Chart page loops (66 pages swept).
+- **`useChartGrow` (Chart.tsx) is zoom-dependent.** It subtracts CSS-px gaps from `getBoundingClientRect` heights
+  (screen px, × zoom): at 54 % "Budget used" grows 68 px instead of 156 (empty band under the chart); above 100 % the
+  feedback gain is the zoom, a 1 px content change sent `--zen-chart-grow` to 80 788 553 px at 240 % (charts vanish).
+- **Layout thrash on load** (Style recalc 14.5 s of 16 s on Chart; 15 s on App Shell): write-then-read measures per
+  instance — `placeTip` 5.6 s, `useChartGrow` 3.3 s (runs every render, new ResizeObserver each time), Main component
+  `Stage.check` 1.5 s (RO re-created on every render: `children` in its deps), AppShellHeader 6.9 s, AppShell `read` 3.3 s.
+- **Selection re-renders every Main component cell:** `SetGrid` reads the whole `state.selection`; one frame click on
+  Input re-renders 268 cells (5 118 component renders, 274 ms long task).
+- **Off-screen frames cost every pan:** `content-visibility: auto` on `.studio-frame` (injected) took Input's pan from
+  40 → 2–4 frames over 20 ms (p95 50 → 17 ms); `will-change: transform` on the world did nothing.
+
+Proposals and priorities went to the user; nothing is changed until they approve.
