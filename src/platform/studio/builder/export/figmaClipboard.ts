@@ -11,8 +11,8 @@ import { getPage, pageFile } from "../store/pageStore";
  * A frame of a page you made on the system clipboard for Figma (docs/research/studio-copy-to-figma-2026-10-16.md P2):
  * its code (text/plain, the Studio's own frame paste) and its Figma export (text/html, tools/studio/figma-clip.mjs),
  * which the Zen plugin places when ⌘V lands in its window. The same html also carries Figma's own clipboard
- * (tools/studio/figma-native.mjs, docs/research/studio-native-paste-2026-10-17.md): ⌘V on the Zen file's canvas places
- * the layers without the plugin. builder/frameKeys.ts reads it ahead for ⌘C; the frame menu reads it ahead when it
+ * (tools/studio/figma-native.mjs, docs/research/studio-native-paste-2026-10-17.md): ⌘V on any Figma canvas places the
+ * layers as instances of the published Zen library, without the plugin. builder/frameKeys.ts reads it ahead for ⌘C; the frame menu reads it ahead when it
  * opens (readFrameAhead), so its Copy for Figma writes both in a copy event as ⌘C does.
  */
 
@@ -89,12 +89,33 @@ async function pictureAsPng(bytes: Uint8Array, mime: string): Promise<Uint8Array
   }
 }
 
+/**
+ * The library's full definitions (docs/figma-contracts/native-defs.json.gz, read once): with them the direct paste is
+ * Figma's library form and lands in any Figma file as instances of the published Zen library; without them (the file
+ * did not load) it binds by node id, in the Zen file only. Gzipped JSON, unpacked here unless the server already did.
+ */
+let libraryDefs: Promise<unknown> | null = null;
+async function readLibraryDefs(): Promise<unknown> {
+  const { default: url } = await import("../../../../../docs/figma-contracts/native-defs.json.gz?url");
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`the library definitions did not load (${response.status})`);
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  const gzipped = bytes[0] === 0x1f && bytes[1] === 0x8b;
+  const text = gzipped ? await new Response(new Blob([bytes as BlobPart]).stream().pipeThrough(new DecompressionStream("gzip"))).text() : new TextDecoder().decode(bytes);
+  return JSON.parse(text);
+}
+
 /** Figma's own clipboard ahead of the plugin's span; without it (the pack or the writer failed) the plugin paste stands. */
 async function withNativePaste(pluginHtml: string, pkg: unknown, notes: string[]): Promise<string> {
   try {
     pack ??= import("../../../../../docs/figma-contracts/native-pack.json").then((module) => module.default);
-    const [{ figmaPasteHtml }, definitions] = await Promise.all([import("../../../../../tools/studio/figma-native.mjs"), pack]);
-    const native = await figmaPasteHtml(pkg, definitions, { toPng: pictureAsPng });
+    libraryDefs ??= readLibraryDefs().catch((error) => {
+      libraryDefs = null;
+      notes.push(`direct paste: Zen file only (${error instanceof Error ? error.message : String(error)})`);
+      return null;
+    });
+    const [{ figmaPasteHtml }, definitions, defs] = await Promise.all([import("../../../../../tools/studio/figma-native.mjs"), pack, libraryDefs]);
+    const native = await figmaPasteHtml(pkg, definitions, { toPng: pictureAsPng, defs });
     for (const note of native.notes) notes.push(`direct paste: ${note}`);
     return native.html + pluginHtml.replace(/^<meta charset="utf-8">/, "");
   } catch (error) {
@@ -121,6 +142,7 @@ export async function writeFrameClip(code: string | Promise<string>, html: Promi
  */
 export function copyFrameNow(code: string, html: string): boolean {
   let written = false;
+  copyingNow = true;
   const onCopy = (event: ClipboardEvent) => {
     if (!event.clipboardData) return;
     event.preventDefault();
@@ -135,9 +157,29 @@ export function copyFrameNow(code: string, html: string): boolean {
   } catch {
     written = false;
   } finally {
+    copyingNow = false;
     document.removeEventListener("copy", onCopy, true);
   }
   return written;
+}
+
+/** True while copyFrameNow's own copy event runs: the Studio's ⌘C handlers leave that event to it. */
+let copyingNow = false;
+export const isCopyingForFigma = () => copyingNow;
+
+/**
+ * ⌘C that came before the frame's Figma export was read (the first copy of a session also loads the library's
+ * definitions): the code is on the clipboard already. The export goes in a copy event of its own once read, while the
+ * key press still allows one (GESTURE_MS from `pressedAt`), so Figma's canvas takes it; read later than that, the
+ * clipboard takes both for the Zen plugin only (an async write escapes `<!--`, which Figma's canvas refuses). True when
+ * Figma's canvas can take the copy.
+ */
+export async function copyFrameWhenRead(code: string, html: Promise<string>, pressedAt: number): Promise<boolean> {
+  const wait = Math.max(0, GESTURE_MS - (Date.now() - pressedAt));
+  const read = await Promise.race([html.catch(() => null), new Promise<null>((resolve) => window.setTimeout(() => resolve(null), wait))]);
+  if (read && copyFrameNow(code, read)) return true;
+  await writeFrameClip(code, html);
+  return false;
 }
 
 /** A frame's code and Figma export read ahead (the frame menu opening), for its Copy for Figma. */
@@ -154,7 +196,7 @@ export function readFrameAhead(localPage: string, frameId: string) {
 
 /** How long a click waits for the read: Chromium keeps the click's copy right for a few seconds. */
 const GESTURE_MS = 3000;
-const COPIED = "Copied for Figma — ⌘V on the Zen file's canvas or in the Zen plugin places it; ⌘V here pastes the frame";
+const COPIED = "Copied for Figma — ⌘V on a Figma canvas or in the Zen plugin places it; ⌘V here pastes the frame";
 
 /**
  * The frame menu's Copy for Figma: the frame's code and its Figma export on the clipboard. Read ahead (readFrameAhead,
@@ -172,7 +214,7 @@ export async function copyFrameForFigma(localPage: string, frameId: string): Pro
   const html = frameFigmaClip(localPage, frameId).then((next) => ("html" in next ? next.html : Promise.reject(new Error(next.error))));
   announceEditStatus({ kind: "unchanged", message: "Preparing the frame for Figma…", at: Date.now() });
   return writeFrameClip(code, html).then(
-    () => announceEditStatus({ kind: "unchanged", message: "Copied for Figma — ⌘V in the Zen plugin places it; copy again for the Zen file's canvas", at: Date.now() }),
+    () => announceEditStatus({ kind: "unchanged", message: "Copied for Figma — ⌘V in the Zen plugin places it; copy again for a Figma canvas", at: Date.now() }),
     (error: unknown) => announceEditStatus({ kind: "error", message: `Not copied for Figma: ${error instanceof Error ? error.message : String(error)}`, at: Date.now() }),
   );
 }

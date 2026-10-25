@@ -1,4 +1,4 @@
-// Types for figma-native.mjs (a Studio export as Figma's own clipboard: ⌘V on the Zen file's canvas).
+// Types for figma-native.mjs (a Studio export as Figma's own clipboard: ⌘V on a Figma canvas).
 
 /** The definition pack (docs/figma-contracts/native-pack.json, tools/studio/native-pack.mjs). */
 export type NativePack = {
@@ -18,15 +18,20 @@ export type ToPng = (bytes: Uint8Array, mime: string) => Promise<Uint8Array | nu
 /** The pack as stored (`shared` subtrees written `{$: n}`, native-pack.mjs compactPack) in full; a full pack as it is. */
 export function expandPack<T>(pack: T): T;
 /** The paste's NODE_CHANGES message for an export (pure): its root frame's id and what could not be written. */
-export function nativeMessage(pkg: unknown, pack: unknown, pictures?: Map<string, NativePicture>): { message: Record<string, unknown>; root: { sessionID: number; localID: number }; notes: string[] };
+export function nativeMessage(pkg: unknown, pack: unknown, pictures?: Map<string, NativePicture>, defs?: unknown): { message: Record<string, unknown>; root: { sessionID: number; localID: number }; notes: string[] };
 /** The export's pictures (src → base64 bytes) by src, with their SHA-1, size and bytes. */
 export function nativePictures(images: Record<string, string | null> | null | undefined, options?: { toPng?: ToPng | null }): Promise<Map<string, NativePicture>>;
 /** A picture file's type and pixel size from its header, or null. */
 export function pictureKind(bytes: Uint8Array): { mime: string; width: number; height: number } | null;
 /** An image fill as Figma's IMAGE paint. */
 export function imagePaint(fill: { scaleMode?: string; crop?: { x: number; y: number; width: number; height: number }; scale?: number }, picture: { hash: number[]; name: string; width?: number; height?: number }): Record<string, unknown>;
-/** The text/html Figma pastes for an export; `toPng` turns a WebP picture into PNG bytes. */
-export function figmaPasteHtml(pkg: unknown, pack: unknown, options?: { toPng?: ToPng | null }): Promise<{ html: string; notes: string[] }>;
+/**
+ * The text/html Figma pastes for an export; `toPng` turns a WebP picture into PNG bytes; `defs` (the parsed
+ * native-defs.json.gz) writes Figma's library form, which pastes into any file, not only the Zen file.
+ */
+export function figmaPasteHtml(pkg: unknown, pack: unknown, options?: { toPng?: ToPng | null; defs?: unknown }): Promise<{ html: string; notes: string[] }>;
+/** The stored definitions read for lookups (only the nodes a paste uses are expanded), or null without them. */
+export function indexDefs(defs: unknown): unknown;
 export function layerKey(name: string): string;
 export function parsePath(d: string, sx?: number, sy?: number): { start: [number, number]; segments: { c1?: [number, number]; c2?: [number, number]; to: [number, number] }[]; closed: boolean }[];
 export function pathBounds(subpaths: ReturnType<typeof parsePath>): { minX: number; minY: number; maxX: number; maxY: number };

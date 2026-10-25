@@ -6,9 +6,13 @@
 // skeletons of every variant used ride along so Figma maps the overrides onto the file's own components
 // (docs/figma-contracts/native-pack.json). Variables bind by id, styles by their node id. Figma lays out auto layout and
 // text again when it pastes, so sizes here are first guesses.
+// With the library's full definitions (docs/figma-contracts/native-defs.json.gz) the paste is Figma's library form, as
+// Figma copies from the Zen file: every component in full with its key and the published library's, variables and
+// styles by key with their nodes. ⌘V then lands in any Figma file as instances of the published Zen library (Figma
+// builds a component it has not seen from the paste and never fetches it by key); in the Zen file it binds as before.
 //
-//   nativeMessage(pkg, pack, pictures?) → { message, root, notes }  the NODE_CHANGES message (pure, for selftests)
-//   figmaPasteHtml(pkg, pack, { toPng }) → { html, notes }  the text/html Figma pastes (pictures ride in it as blobs)
+//   nativeMessage(pkg, pack, pictures?, defs?) → { message, root, notes }  the NODE_CHANGES message (pure, for selftests)
+//   figmaPasteHtml(pkg, pack, { toPng, defs }) → { html, notes }  the text/html Figma pastes (pictures ride in it as blobs)
 
 import { decodeSchema, inflateRaw, bytesOf, base64Of, figmaClipboardHtml } from "./figma-kiwi.mjs";
 import { FIGMA_CLIPBOARD_SCHEMA } from "./figma-clipboard-schema.generated.mjs";
@@ -1155,10 +1159,11 @@ class Writer {
     if (this.localCopies) this.note(`${this.localCopies} instance${this.localCopies > 1 ? "s" : ""} of the page's own components came as frames (Figma links a pasted instance only to a component already in the file): Import from Studio places linked instances`);
   }
 
-  skeletons() {
+  /** The symbols `ids` (the paste's own by default) and every symbol they nest, as skeletons; `sets`: shells already written. */
+  skeletons(ids = [...this.symbolsUsed], sets = new Set()) {
     const out = [];
-    const done = new Set(), sets = new Set();
-    const queue = [...this.symbolsUsed];
+    const done = new Set();
+    const queue = [...ids];
     while (queue.length) {
       const id = queue.shift();
       if (done.has(id)) continue;
@@ -1206,6 +1211,174 @@ class Writer {
     }
     return out;
   }
+
+  /**
+   * The symbols the paste uses and every symbol and slot content their definitions name (nested instances, swaps, a
+   * swap property's default, the contents components set in their slots) in full, from the library definitions
+   * (`defs`, indexDefs), each variant under its set's shell; a symbol the definitions lack comes as a skeleton (the Zen
+   * file takes it, another file shows it empty). Without its slot contents a component pasted into another file showed
+   * empty slots (Metric-Card, List-Box, charts: 2026-10-25).
+   */
+  definitions(defs) {
+    const out = [], done = new Set(), sets = new Set(), lacking = [];
+    const queue = [...this.symbolsUsed];
+    const named = (node) => {
+      for (const id of namedBy(node)) if (!done.has(id)) queue.push(id);
+    };
+    // Contents the paste's own layers name by id (a slot it leaves as the component set it).
+    for (const node of [...this.internal, ...this.scene]) named(node);
+    while (queue.length) {
+      const id = queue.shift();
+      if (done.has(id)) continue;
+      done.add(id);
+      const raw = defs.raw(id);
+      if (raw?.isSlotContent) {
+        const walk = (nodeId, parentIndex) => {
+          const node = fromDefs(defs, nodeId, parentIndex);
+          named(node);
+          out.push(node);
+          for (const child of defs.kids.get(nodeId) ?? []) walk(child);
+        };
+        walk(id, { guid: INTERNAL, position: this.place(INTERNAL) });
+        continue;
+      }
+      if (raw?.type !== "SYMBOL") { if (this.index.tree(id)) lacking.push(id); continue; }
+      const parent = defs.parent(id);
+      const shell = defs.raw(parent)?.isStateGroup ? parent : null;
+      if (shell && !sets.has(shell)) {
+        sets.add(shell);
+        const node = fromDefs(defs, shell, { guid: INTERNAL, position: this.place(INTERNAL) });
+        named(node);
+        out.push(node);
+      }
+      const walk = (nodeId, parentIndex) => {
+        const node = fromDefs(defs, nodeId, parentIndex);
+        named(node);
+        out.push(node);
+        for (const child of defs.kids.get(nodeId) ?? []) walk(child);
+      };
+      walk(id, shell ? undefined : { guid: INTERNAL, position: this.place(INTERNAL) });
+    }
+    if (lacking.length) {
+      out.push(...this.skeletons(lacking, sets));
+      this.note(`${lacking.length} component${lacking.length > 1 ? "s" : ""} without a full definition (${lacking.map((id) => this.index.pack.symbols[id]?.name ?? id).slice(0, 3).join(", ")}${lacking.length > 3 ? "…" : ""}): outside the Zen file they paste empty; rebuild native-defs.json`);
+    }
+    return out;
+  }
+}
+
+/**
+ * What a definition node names by id: its instance's component, the swaps it sets, a swap property's default and the
+ * slot contents it assigns.
+ */
+function namedBy(node) {
+  const out = [];
+  const assigned = (list) => {
+    for (const a of list ?? []) {
+      const value = a.varValue?.value;
+      if (value?.symbolIdValue?.guid) out.push(key(value.symbolIdValue.guid));
+      if (value?.slotContentIdValue?.guid) out.push(key(value.slotContentIdValue.guid));
+    }
+  };
+  if (node.symbolData?.symbolID) out.push(key(node.symbolData.symbolID));
+  for (const entry of node.symbolData?.symbolOverrides ?? []) {
+    if (entry.overriddenSymbolID) out.push(key(entry.overriddenSymbolID));
+    assigned(entry.componentPropAssignments);
+  }
+  assigned(node.componentPropAssignments);
+  for (const def of node.componentPropDefs ?? []) if (def.initialValue?.guidValue) out.push(key(def.initialValue.guidValue));
+  return out;
+}
+
+/**
+ * The definitions (native-defs.json.gz, compact as native-pack.mjs compactPack writes them) read for lookups, once:
+ * `raw(id)` a node as stored (its plain fields: type, key, version), `node(id)` a full fresh copy (only the nodes a paste
+ * uses are expanded: the whole file is ~100 MB expanded), each node's children in layer order, assets by key.
+ */
+const indexedDefs = new WeakMap();
+export function indexDefs(stored) {
+  if (!stored?.nodes) return null;
+  if (indexedDefs.has(stored)) return indexedDefs.get(stored);
+  const shared = stored.shared ?? [];
+  const build = (value) => {
+    if (!value || typeof value !== "object") return value;
+    if (Array.isArray(value)) return value.map(build);
+    if ("$" in value) return build(shared[value.$]);
+    const out = {};
+    for (const field in value) out[field] = field === "sourceLibraryKey" ? stored.library : build(value[field]);
+    return out;
+  };
+  const raw = (id) => { const node = stored.nodes[id]; return node && "$" in node ? shared[node.$] : node; };
+  const kids = new Map(), byKey = new Map(), positions = new Map(), parents = new Map();
+  for (const id of Object.keys(stored.nodes)) {
+    const node = raw(id);
+    const parentIndex = build(node.parentIndex);
+    const parent = parentIndex ? key(parentIndex.guid) : "";
+    positions.set(id, parentIndex?.position ?? "");
+    parents.set(id, parent);
+    if (!kids.has(parent)) kids.set(parent, []);
+    kids.get(parent).push(id);
+    if (node.key && (node.type === "VARIABLE" || node.type === "VARIABLE_SET" || node.styleType)) byKey.set(node.key, id);
+  }
+  const at = (id) => positions.get(id);
+  for (const list of kids.values()) list.sort((a, b) => (at(a) < at(b) ? -1 : at(a) > at(b) ? 1 : 0));
+  const index = { raw, node: (id) => (stored.nodes[id] ? build(stored.nodes[id]) : null), parent: (id) => parents.get(id), kids, byKey };
+  indexedDefs.set(stored, index);
+  return index;
+}
+
+/** A definition node as a paste writes it: a fresh copy, its library key and versions as Figma's copies carry them. */
+function fromDefs(defs, id, parentIndex) {
+  const node = { guid: guid(id), phase: "CREATED", ...defs.node(id) };
+  if (parentIndex) node.parentIndex = parentIndex;
+  const version = node.sharedSymbolVersion ?? node.version;
+  if (version) node.userFacingVersion = version;
+  return node;
+}
+
+/**
+ * The paste in Figma's library form (docs/research/studio-native-paste-2026-10-17.md §9), as Figma copies from the Zen
+ * file itself: variables, variable collections and styles by `assetRef` (key + version), each with its node on the
+ * internal canvas (a file without the library binds to those; a key alone binds to nothing), every variable an alias
+ * names too. An override's variable links stay by id, as Figma writes them. Returns the asset nodes to add.
+ */
+function libraryForm(nodeChanges, defs, place) {
+  const assetRef = (id) => { const node = defs.raw(id); return node?.key ? { key: node.key, version: node.version } : null; };
+  const queue = [];
+  const want = (id) => { if (id && defs.raw(id)) queue.push(id); };
+  // `ids`: inside an override's variable links (symbolOverrides → variableConsumptionMap), which Figma's copies write by id.
+  const visit = (value, override, ids) => {
+    if (Array.isArray(value)) { for (const item of value) visit(item, override, ids); return; }
+    if (!value || typeof value !== "object") return;
+    for (const [field, inner] of Object.entries(value)) {
+      if (!inner || typeof inner !== "object") continue;
+      const ref = field === "alias" || field === "variableSetID" || field === "variableSetExtensionID" || field.startsWith("styleIdFor");
+      if (ref && inner.guid) {
+        const id = key(inner.guid);
+        want(id);
+        const asset = field === "alias" && ids ? null : assetRef(id);
+        if (asset) value[field] = { assetRef: asset };
+        continue;
+      }
+      if (ref && inner.assetRef?.key) { want(defs.byKey.get(inner.assetRef.key)); continue; }
+      visit(inner, override || field === "symbolOverrides", ids || (override && field === "variableConsumptionMap"));
+    }
+  };
+  for (const node of nodeChanges) visit(node, false, false);
+  const out = [], done = new Set();
+  while (queue.length) {
+    const id = queue.shift();
+    if (done.has(id)) continue;
+    done.add(id);
+    const node = fromDefs(defs, id, null);
+    visit(node, false, false);
+    out.push(node);
+  }
+  // Collections first, then variables, then styles: each before what names it.
+  const rank = (node) => (node.type === "VARIABLE_SET" ? 0 : node.type === "VARIABLE" ? 1 : 2);
+  out.sort((a, b) => rank(a) - rank(b));
+  for (const node of out) node.parentIndex = { guid: INTERNAL, position: place() };
+  return out;
 }
 
 /**
@@ -1832,8 +2005,9 @@ function swappedPath(pathText, setName) {
 /** A main's record key: its Studio id, after its page when it is another page's (Libraries' project components). */
 const localKey = (spec) => (spec.page ? `${spec.page}/${spec.local}` : String(spec.local));
 
-export function nativeMessage(pkg, pack, pictures = new Map()) {
+export function nativeMessage(pkg, pack, pictures = new Map(), stored = null) {
   if (!pkg || pkg.format !== "zen-studio-figma" || !pkg.frame) throw new Error("Not a Zen Studio export");
+  const defs = indexDefs(stored);
   const writer = new Writer(pkg, indexPack(pack), pictures);
   writer.planLocals(pkg.frame);
   // Another page's components (figma-push `components`): their instances come as frames of their layers, as a page's own.
@@ -1844,12 +2018,16 @@ export function nativeMessage(pkg, pack, pictures = new Map()) {
   if (interactions) writer.note(`${interactions} interaction${interactions > 1 ? "s" : ""} (Prototype tab): a direct paste carries none; import the page with the Zen plugin for them`);
   writer.finishLocals();
   writer.finishContents();
-  const skeletons = writer.skeletons();
+  // With the library's definitions (native-defs.json) the paste is Figma's library form and lands in any file;
+  // without them, skeletons whose ids bind only in the Zen file.
+  const symbols = defs ? writer.definitions(defs) : writer.skeletons();
+  const content = [...symbols, ...writer.internal, ...writer.scene];
+  const assets = defs ? libraryForm(content, defs, () => writer.place(INTERNAL)) : [];
   const nodeChanges = [
     { guid: DOCUMENT, phase: "CREATED", type: "DOCUMENT", name: "Document", visible: true, opacity: 1, transform: IDENTITY },
     { guid: PAGE, phase: "CREATED", parentIndex: { guid: DOCUMENT, position: "!" }, type: "CANVAS", name: "Page 1", visible: true, opacity: 1, transform: IDENTITY, backgroundOpacity: 1, backgroundEnabled: true },
     { guid: INTERNAL, phase: "CREATED", parentIndex: { guid: DOCUMENT, position: "\"" }, type: "CANVAS", name: "Internal Only Canvas", visible: false, opacity: 1, transform: IDENTITY, backgroundOpacity: 1, backgroundEnabled: true, internalOnly: true },
-    ...skeletons, ...writer.internal, ...writer.scene,
+    ...assets, ...content,
   ];
   const message = {
     type: "NODE_CHANGES", sessionID: 0, ackID: 0, pasteID: Math.floor(Math.random() * 2 ** 31), pasteFileKey: pack.file, pasteIsPartiallyOutsideEnclosingFrame: false,
@@ -1857,12 +2035,18 @@ export function nativeMessage(pkg, pack, pictures = new Map()) {
     clipboardSelectionRegions: [{ parent: PAGE, nodes: [root.guid], pasteIsPartiallyOutsideEnclosingFrame: false, focusType: "NONE" }],
     nodeChanges,
   };
-  // Vector data rides inline in the pack ({blob: base64}): the message keeps it in `blobs`, by index.
+  // Vector data rides inline in the pack and the definitions ({blob: base64}, at any depth: an override's too): the
+  // message keeps it in `blobs`, by index.
   const blobIndex = (value) => { message.blobs.push({ bytes: Array.from(bytesOf(value.blob)) }); return message.blobs.length - 1; };
-  for (const node of nodeChanges) {
-    if (node.vectorData?.vectorNetworkBlob?.blob !== undefined) node.vectorData.vectorNetworkBlob = blobIndex(node.vectorData.vectorNetworkBlob);
-    for (const geometry of [...(node.fillGeometry ?? []), ...(node.strokeGeometry ?? [])]) if (geometry.commandsBlob?.blob !== undefined) geometry.commandsBlob = blobIndex(geometry.commandsBlob);
-  }
+  const inlineBlobs = (value) => {
+    if (Array.isArray(value)) { for (const item of value) inlineBlobs(item); return; }
+    if (!value || typeof value !== "object") return;
+    for (const [field, inner] of Object.entries(value)) {
+      if ((field === "vectorNetworkBlob" || field === "commandsBlob") && inner?.blob !== undefined) value[field] = blobIndex(inner);
+      else if (inner && typeof inner === "object") inlineBlobs(inner);
+    }
+  };
+  for (const node of nodeChanges) inlineBlobs(node);
   // A picture's bytes: one blob, which its paints' image and thumbnail name.
   const pictureBlobs = new Map();
   const pictureBlob = (hex) => {
@@ -1876,11 +2060,14 @@ export function nativeMessage(pkg, pack, pictures = new Map()) {
 }
 
 let schemaPromise = null;
-/** The text/html Figma pastes for an export; `toPng` turns a WebP picture into PNG bytes (nativePictures). */
-export async function figmaPasteHtml(pkg, pack, { toPng = null } = {}) {
+/**
+ * The text/html Figma pastes for an export; `toPng` turns a WebP picture into PNG bytes (nativePictures), `defs` (the
+ * stored native-defs.json.gz, parsed) makes it Figma's library form, which pastes into any file.
+ */
+export async function figmaPasteHtml(pkg, pack, { toPng = null, defs = null } = {}) {
   schemaPromise ??= (async () => { const deflated = bytesOf(FIGMA_CLIPBOARD_SCHEMA.deflated); return { deflated, schema: decodeSchema(await inflateRaw(deflated)) }; })();
   const { deflated, schema } = await schemaPromise;
-  const { message, root, notes } = nativeMessage(pkg, pack, await nativePictures(pkg?.images, { toPng }));
+  const { message, root, notes } = nativeMessage(pkg, pack, await nativePictures(pkg?.images, { toPng }), defs);
   const html = await figmaClipboardHtml({ version: FIGMA_CLIPBOARD_SCHEMA.version, schemaDeflated: deflated, schema, message, meta: { fileKey: pack.file, pasteID: message.pasteID, selectedNodeData: `${key(root)}|4|0|0` } });
   return { html, notes };
 }

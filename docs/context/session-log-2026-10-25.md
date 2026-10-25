@@ -141,3 +141,44 @@ Proposals and priorities went to the user, who approved the P0 group (below).
   legends and totals sit beside the ring, as in Figma.
 - Left for P1 (not approved yet): `placeTip` is now the largest load cost (6.7 s), AppShellHeader/AppShell measures,
   `content-visibility` on frames; the Inspector still takes ~200–340 ms after a frame click.
+
+## Direct paste into other files (tier L; branch zen/feat/paste-other-files-20261025; BACKLOG P2 via #297)
+
+The user published the Zen library; Studio's ⌘C → ⌘V now lands in any Figma file as library instances. Research doc
+`studio-native-paste-2026-10-17.md` §9 has the measurements.
+
+- **What Figma needs (pastes into new team files "Zen paste test …", user picked "Tạo file mới"):** full definitions in
+  the paste. Figma builds a component it has not seen from the clipboard and never fetches it by key: a skeleton with
+  `componentKey` pasted empty (with or without `sharedSymbolVersion`), a key-only or value-less variable pasted white, a
+  key-only text style unbound. Only the used variants are needed.
+- **Built:** `native-pack.mjs defsFrom` → `docs/figma-contracts/native-defs.json.gz` (45,854 nodes, 3.4 MB gzipped,
+  from the same 18 probe copies as the pack, which a full capture refreshed: `Button/Main-Old` left the library);
+  `figma-native.mjs definitions()` + `libraryForm()`; Studio loads the definitions on the first ⌘C (`figmaClipboard.ts`).
+  Status copy says "a Figma canvas".
+- **Found by real pastes:** slot contents components set had to ride along (Metric-Card, List-Box, charts pasted with
+  empty slots); `Infinity` / `NaN` floats became `null` → 0 through JSON (stacked bars flat): stored as text now, and
+  `figma-kiwi` writes them back. Two stale test inputs fixed with the refreshed pack: the Expenses fixture's
+  `Child-Heading` (Figma dropped it) and the selftest's `Patterns/Sidebar/Density-Medium` (renamed `Patterns/Sidebar`).
+- **Result:** Expenses in a fresh file: 615/615 library instances, 225 library variables (6,357 bindings, 0 unresolved),
+  277/277 library text styles, layer tree = the Zen file's paste 728/728; screenshot right (stacked bars included). In
+  the Zen file the same paste binds to the file's own components, variables and styles.
+- **Tests:** `figma-native.selftest` 162 (library form: keys, full layers, nothing named missing, refs resolve, values,
+  Infinity kept, skeleton fallback; defsFrom, mergeDefs); E2E HO-18 (library form), HO-19 (full definitions, slot
+  contents, Infinity), HO-20 (definitions blocked → Zen file form).
+- **Gate (slot from Giám sát):** `qa --isolated --files=<the PR's 18 files>` PASS (static ✓, Studio E2E 360 works; the
+  3 new rows broke there: a first ⌘C ran before the read-ahead had loaded the definitions, took the async path and
+  Chromium escaped `<!--`; the rows now copy again until the status says the read-ahead path, as a person would).
+  After merging main 35d76fcc (#301; session log conflict, both kept): `studio:e2e --rows=HO-18,HO-19,HO-20,HO-12`
+  4/4 and `--only=handoff` 19/19.
+- **Race found by Giám sát's review, fixed in the product (9ef5427a):** a ⌘C before the frame's Figma export was read (a
+  session's first copy also loads the definitions) wrote the html with an async clipboard write, which escapes `<!--`:
+  Figma's canvas pasted nothing (older than this PR, longer with the definitions). Now the code goes at once and both
+  go in a copy event of their own once read, within the key press's 3 s (`copyFrameWhenRead`, as the frame menu's Copy
+  for Figma); frame ⌘C and a Screen layer's ⌘C; `isCopyingForFigma` keeps the frame keys off that event. HO-18 copies
+  once, at once, in a fresh Studio ("one ⌘C before the read-ahead (written once read)"). Rows HO-18/19/20/12 4/4,
+  handoff 19/19, frame-key rows B-39 + FW-106/153/154/192/195 6/6, `--only=figma` 195/196 (FW-186, Pick color, timed
+  out in the group and passes alone).
+- **Cleanup:** probe frames and test frames removed from the Zen file's QA page. The scratch files "Zen paste test",
+  "(target)", "(target 2)", "(target 3)" stay in the team for the user to delete.
+- **Not mine, noted:** the Zen plugin's ⌘V import hung once, and in a non-Zen file gave a partial frame (plugin repo); it draws no "Other"
+  segment in the Expenses stacked bars where the direct paste does.

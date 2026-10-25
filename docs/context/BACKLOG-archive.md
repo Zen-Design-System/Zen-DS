@@ -2,6 +2,16 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-25 (direct paste into other files, branch zen/feat/paste-other-files-20261025)
+
+- **P2 · Direct paste (⌘V on the canvas) into other files (2026-10-17; unblocked 2026-10-25: the user published the library):** it binds by
+  node id, so only the Zen file takes it; other files need the published library and full component definitions in the
+  paste (instances by `componentKey`, as Figma's own copies carry). The rest of the parity list closed on 2026-10-23
+  (Copy for Figma in a copy event, grid cards' heights, the pack at 7.7 MB; the slot and alias differences kept by
+  design). Pointer: `docs/research/studio-native-paste-2026-10-17.md` §8.
+  Done: the paste is Figma's library form with full definitions (`docs/figma-contracts/native-defs.json.gz`); pasted
+  into a file other than Zen's it gives instances of the published library (research studio-native-paste §9).
+
 ## Archived 2026-10-25 (DashboardHeader Search ≤ 240, branch zen/feat/dashboard-header-search-240-20261025)
 
 - **P2 · Toolbar Search 240 vs DashboardHeader's 320 (2026-10-24; answered 2026-10-25, user: "ở control bar thì tối đa là 240"):** the user's rule caps

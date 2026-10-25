@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio Copy for Figma (2026-10-25): ⌘C on a frame, then ⌘V on any Figma canvas (not only the Zen file's) places
+  it as instances of the published Zen library, with its variables and text styles bound: the paste carries the
+  library's full definitions, as Figma's own copies do (`docs/figma-contracts/native-defs.json.gz`).
 - Harness (user, 2026-10-25): `metric/dock-icon-by-meaning` is removed from the usage harness and the Figma audit. A
   status MetricCard's Dock Icon coloured by meaning is now what generated screens do (skills), and the designer may change it.
 - Avatar (2026-10-24): `status` also takes `"disabled"`, `"pending"` or `"inactive"` (Figma .Primitives/Avatar/Status),
