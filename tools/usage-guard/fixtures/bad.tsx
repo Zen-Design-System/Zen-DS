@@ -318,6 +318,9 @@ export const Bad = () => <>
   {/* The row's name column takes a Small Dock Icon, with or without a caption (the user 2026-10-25). */}
   {/* expect: table/first-column-dock-icon-small */}
   <Table aria-label="Apps" rows={rows} getRowId={getId} columns={[{ id: "app", header: "App", cell: (row) => <TableMedia media={<DockIcon icon="icon-grid-01-line" size="xs" theme="neutral" background="subtle" />}>{row.name}</TableMedia> }]} />
+  {/* An emoji Dock Icon is Medium in the first column: Figma has Emoji only at Medium and Large. */}
+  {/* expect: table/first-column-dock-icon-small */}
+  <Table aria-label="Leaves" rows={rows} getRowId={getId} columns={[{ id: "type", header: "Type", cell: (row) => <TableMedia bold media={<DockIcon theme="emoji" emoji={row.emoji} size="sm" />}>{row.kind}</TableMedia> }]} />
   {/* expect: table/first-column-dock-icon-small */}
   <Table aria-label="Files" rows={rows} getRowId={getId} columns={[{ id: "file", header: "File", cell: (row) => <TableMedia caption={row.size} media={<DockIcon icon="icon-file-doc-line" theme="neutral" background="subtle" />}>{row.name}</TableMedia> }]} />
   {/* A table in a box is a widget the box names (usage rules §14). */}
@@ -376,7 +379,7 @@ export const Bad = () => <>
   {/* expect: flag/unknown-name */}
   <Flag name="Viet Nam" />
   {/* expect: flag/no-emoji-flag */}
-  <TableMedia media={<DockIcon theme="emoji" emoji="🇻🇳" size="xs" />}>Vietnam</TableMedia>
+  <TableMedia media={<DockIcon theme="emoji" emoji="🇻🇳" size="md" />}>Vietnam</TableMedia>
   {/* expect: file-icon/not-an-action */}
   <IconButton onClick={act} appearance="flat" level="primary" aria-label="Download" icon={<FileIcon format="pdf" />} />
   {/* expect: button/small-full-width  expect: button/compact-size-special */}

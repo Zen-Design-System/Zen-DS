@@ -87,7 +87,8 @@
 //   list-item/leading-dock-icon  warning  a List-Item whose leading is a bare icon instance: a Dock-Icon, an Avatar or a
 //                                     thumbnail leads a row
 //   table/first-column-dock-icon-small  warning  a Dock-Icon in a table's first column (the row's name) that is not
-//                                     Size=Small, with or without a Subtext (tables built from Primitives/Table/Data-Row)
+//                                     Size=Small, with or without a Subtext; an Emoji one not Medium (tables built from
+//                                     Primitives/Table/Data-Row)
 //   badge/status-priority-icon   warning  a priority Badge (Urgent, High, Medium, Low) not led by icon-flag-03-solid, or a
 //                                     status Badge (Paid, Active, Overdue…) with its Leading-Icon off
 //   app-shell/top-row-filled     warning  a Header/AppShell on a tablet or desktop screen whose top row is on and empty
@@ -863,7 +864,8 @@ async function checkTaskPageRules(root) {
 // table/first-column-dock-icon-small (the user 2026-10-25: "Dock Icon của cột đầu trong table mặc định là size Small và
 // khi có thêm caption thì phải luôn là size Small"; code harness table/first-column-dock-icon-small, Table.tsx draws it
 // so): a table's first column, the row's name, holds a Dock-Icon Size=Small, with or without a Subtext. The library's
-// Dock-Icon-Cell draws XSmall without a Subtext: set its nested Dock-Icon's Size to Small there. Only tables built from
+// Dock-Icon-Cell draws XSmall without a Subtext: set its nested Dock-Icon's Size to Small there. A Theme=Emoji Dock-Icon
+// is Medium ("Emoji thì mặc định dùng medium": the set has Emoji only at Medium and Large). Only tables built from
 // the library: Primitives/Table/Data-Row instances you placed (on the screen or in a slot), not rows a placed component
 // owns. The select or expand column before it (a Control-Cell, or a cell with no cell primitive) is skipped.
 const DATA_ROW = "Primitives/Table/Data-Row";
@@ -883,8 +885,9 @@ async function checkTableFirstColumn(root) {
         if (!primitive || primitive.endsWith("/Control-Cell")) continue;
         for (const dock of instances) {
           if ((await setNameOf(dock)) !== "Dock-Icon") continue;
-          const size = (dock.variantProperties ?? {}).Size;
-          if (size && size !== "Small") report("table/first-column-dock-icon-small", WARNING, dock, `the first column's Dock-Icon is Size=${size}: the row's name column takes a Small Dock-Icon, with or without a Subtext — set its Size to Small`);
+          const { Size: size, Theme: theme } = dock.variantProperties ?? {};
+          const want = theme === "Emoji" ? "Medium" : "Small";
+          if (size && size !== want) report("table/first-column-dock-icon-small", WARNING, dock, theme === "Emoji" ? `the first column's Emoji Dock-Icon is Size=${size}: an Emoji Dock-Icon is Medium — set its Size to Medium` : `the first column's Dock-Icon is Size=${size}: the row's name column takes a Small Dock-Icon, with or without a Subtext — set its Size to Small`);
         }
         break;
       }

@@ -745,14 +745,21 @@ const firstColumnAvatarFinding = (attrs, src, start) => {
 /**
  * table/first-column-dock-icon-small (the user 2026-10-25: "Dock Icon của cột đầu trong table mặc định là size Small và
  * khi có thêm caption thì phải luôn là size Small"): the Dock Icon of a Table's first column is Small, with or without a
- * caption. Table.tsx draws its own dock-icon cells so. A size written as an expression is not judged. Message, or false.
+ * caption. Table.tsx draws its own dock-icon cells so. An emoji Dock Icon (theme="emoji") is Medium there ("Emoji thì
+ * mặc định dùng medium": Figma's Dock-Icon has Theme=Emoji only at Medium and Large). A size or theme written as an
+ * expression is not judged. Message, or false.
  */
 const firstColumnDockIconFinding = (attrs, src, start) => {
   if (inCodeSample(src, start)) return false;
   const size = literal(attrs, "size");
-  if (size === undefined && expr(attrs, "size") !== undefined) return false;
-  if (step(size) === "sm" || !inFirstColumn(src, start)) return false;
-  return `is ${size ? `size="${size}"` : "Medium (no size)"} in the table's first column: the row's name column takes a Small Dock Icon, with or without a caption — size="sm"`;
+  if ((size === undefined && expr(attrs, "size") !== undefined) || (literal(attrs, "theme") === undefined && expr(attrs, "theme") !== undefined)) return false;
+  const emoji = literal(attrs, "theme") === "emoji";
+  const got = step(size) ?? "md";
+  if (got === (emoji ? "md" : "sm") || !inFirstColumn(src, start)) return false;
+  const shown = size ? `size="${size}"` : "Medium (no size)";
+  return emoji
+    ? `is an emoji Dock Icon at ${shown} in the table's first column: an emoji Dock Icon is Medium (Figma has Emoji only at Medium and Large) — size="md"`
+    : `is ${shown} in the table's first column: the row's name column takes a Small Dock Icon, with or without a caption — size="sm"`;
 };
 /** A bare boolean or `{true}`: the state is pinned for the whole example. */
 const pinnedOn = (own, name) => own.get(name)?.bare === true || /^\s*true\s*$/.test(own.get(name)?.expr ?? "");
@@ -2002,7 +2009,7 @@ export const rules = [
     summary: "The Avatar in a Table's first column (the row's name) is Solid, never Subtle; the Table's own avatar cells draw it so.",
     check: ({ attrs, src, start }) => firstColumnAvatarFinding(attrs, src, start) },
   { id: "table/first-column-dock-icon-small", components: ["DockIcon"], severity: "error", allow: "table-dock-icon", guideline: "docs/guidelines/table.md",
-    summary: "The Dock Icon in a Table's first column (the row's name) is Small (32px), with or without a caption; the Table's own dock-icon cells draw it so.",
+    summary: "The Dock Icon in a Table's first column (the row's name) is Small (32px), with or without a caption; the Table's own dock-icon cells draw it so. An emoji Dock Icon (theme=\"emoji\") is Medium (40px) there: Figma has Emoji only at Medium and Large.",
     check: ({ attrs, src, start }) => firstColumnDockIconFinding(attrs, src, start) },
   { id: "table/titled-box", components: ["Table"], severity: "warn", allow: "table-box-title", guideline: "docs/guidelines/table.md",
     summary: "A Table inside a Card or ListBox is a widget the box names: a <Heading textStyle=\"Heading/Subheading\"> above the table in the box, or the ListBox header. A table that is page content sits straight on the page under its Heading/4 (usage rules §14).",
@@ -2124,13 +2131,18 @@ export const rules = [
       return lone && countClass && `shows a count (\`${c.slice(0, 40)}\`) as text — use <BadgeCounter value={…} theme="neutral" background="subtle" />.`;
     } },
   { id: "table/media-size-by-subtext", components: ["TableMedia"], severity: "warn", allow: "table-media-size", guideline: "docs/guidelines/table.md",
-    summary: "TableMedia follows the Figma cell primitives: with a caption (Subtext=Yes) Avatar/Photo is Small 32px and a basic Icon lg 28px; without one Avatar is XSmall 24px and Icon base 20px; Dock Icon follows Avatar (XSmall 24px → Small 32px with a caption), except in a Table's first column, where it is always Small.",
+    summary: "TableMedia follows the Figma cell primitives: with a caption (Subtext=Yes) Avatar/Photo is Small 32px and a basic Icon lg 28px; without one Avatar is XSmall 24px and Icon base 20px; Dock Icon follows Avatar (XSmall 24px → Small 32px with a caption), except in a Table's first column, where it is always Small; an emoji Dock Icon is Medium.",
     check: ({ attrs, src, start }) => {
       const media = value(attrs, "media") ?? ""; const captioned = has(topLevel(attrs), "caption");
       const size = (tag) => (media.match(new RegExp(`<${tag}\\b[^>]*?\\bsize="([^"]+)"`)) ?? [])[1];
       if (/<Avatar\b/.test(media)) { const want = captioned ? "small" : "xsmall"; const got = size("Avatar"); if (step(got) !== step(want)) return `uses Avatar size "${got ?? "default"}" ${captioned ? "with" : "without"} a caption — use "${want}".`; }
-      // A Table's first column takes a Small Dock Icon either way (table/first-column-dock-icon-small reports it there).
-      if (/<DockIcon\b/.test(media) && !inFirstColumn(src, start)) { const want = captioned ? "small" : "xsmall"; const got = size("DockIcon"); if (step(got) !== step(want)) return `uses DockIcon size "${got ?? "default"}" ${captioned ? "with" : "without"} a caption — use "${want}".`; }
+      // A Table's first column takes a Small Dock Icon either way (table/first-column-dock-icon-small reports it there); an
+      // emoji Dock Icon is Medium in any column (Figma has Emoji only at Medium and Large; the user 2026-10-25).
+      if (/<DockIcon\b/.test(media) && !inFirstColumn(src, start)) {
+        const emoji = /<DockIcon\b[^>]*?\btheme="emoji"/.test(media);
+        const want = emoji ? "medium" : captioned ? "small" : "xsmall"; const got = size("DockIcon");
+        if (step(got ?? (emoji ? "md" : undefined)) !== step(want)) return emoji ? `uses an emoji DockIcon at size "${got}" — an emoji Dock Icon is "medium" (Figma has Emoji only at Medium and Large).` : `uses DockIcon size "${got ?? "default"}" ${captioned ? "with" : "without"} a caption — use "${want}".`;
+      }
       if (/<Icon\b/.test(media)) { const want = captioned ? "lg" : "base"; const got = size("Icon"); if ((got ?? "base") !== want) return `uses Icon size "${got ?? "default"}" ${captioned ? "with" : "without"} a caption — use "${want}".`; }
       return null;
     } },

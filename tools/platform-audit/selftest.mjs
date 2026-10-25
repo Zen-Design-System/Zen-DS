@@ -149,7 +149,7 @@ ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageCheck
   // A Table as Table.tsx renders it: rows of cells, a selectable table's checkbox cell first.
   const avatar = (background, initials = "MA", extra = "") => `<span class="zen-avatar" data-size="small" data-tone="neutral" data-background="${background}" data-shape="circle">${extra}<span class="zen-avatar__initials">${initials}</span></span>`;
   const photo = `<span class="zen-avatar" data-size="small" data-tone="photo" data-background="subtle" data-shape="circle"><img alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="></span>`;
-  const dock = (size) => `<span class="zen-dock-icon" data-size="${size}" data-tone="neutral" data-background="subtle" aria-hidden="true"></span>`;
+  const dock = (size, tone = "neutral") => `<span class="zen-dock-icon" data-size="${size}" data-tone="${tone}" data-background="subtle" aria-hidden="true"></span>`;
   const media = (visual, text) => `<span class="zen-table-media">${visual}<span class="zen-table-text">${text}</span></span>`;
   const table = (rows, { selectable = false, name = "Members" } = {}) => `<div class="zen-table"><table class="zen-table__table" aria-label="${name}"><tbody>${rows.map((cells) => `<tr class="zen-table__row">${selectable ? '<td class="zen-table__cell zen-table__select"><input type="checkbox" aria-label="Select row"></td>' : ""}${cells.map((cell) => `<td class="zen-table__cell"><div class="zen-table__content">${cell}</div></td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   const W = "widgetLayout", K = "table-lead";
@@ -161,6 +161,8 @@ ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageCheck
   await fixture("table-lead: an XSmall Dock Icon in the first column", docsPage(example("XSmall dock", table([[media(dock("xsmall"), "Payroll"), media(dock("xsmall"), "Finance")]], { name: "Apps" }))), W, K, { finds: ['table "Apps" draws its first column\'s Dock Icon xsmall (1 row)'] });
   await fixture("table-lead: a Medium Dock Icon in the first column", docsPage(example("Medium dock", table([[media(dock("medium"), "Payroll")], [media(dock("medium"), "Billing")]], { name: "Apps" }))), W, K, { finds: ["Dock Icon medium (2 rows)"] });
   await fixture("table-lead: a Small first-column Dock Icon, an XSmall one later", docsPage(example("Small dock", table([[media(dock("small"), "Payroll"), media(dock("xsmall"), "Finance")]], { name: "Apps" }))), W, K, { clean: true });
+  await fixture("table-lead: an emoji Dock Icon at Small in the first column", docsPage(example("Emoji small", table([[media(dock("small", "emoji"), "Annual leave")]], { name: "Leaves" }))), W, K, { finds: ['table "Leaves" draws its first column\'s emoji Dock Icon small (1 row)'] });
+  await fixture("table-lead: an emoji Dock Icon at Medium in the first column", docsPage(example("Emoji medium", table([[media(dock("medium", "emoji"), "Annual leave")]], { name: "Leaves" }))), W, K, { clean: true });
   await fixture("table-lead: a Don't visual is not judged", docsPage(example("Dont", `<div data-verdict="dont">${table([[media(dock("xsmall"), "Payroll")]])}</div>`)), W, K, { clean: true });
 }
 
