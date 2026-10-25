@@ -25,8 +25,10 @@ the scoped gate on table passed after the fix.
 Open (needs the user): an audit check for a table's first-column Avatar seen at runtime would catch helper components
 the harness misses. It is a new check, so it waits for approval.
 
-## Giám sát · the library publish leaves the backlog (user)
+## Giám sát · the library publish and Code Connect leave the backlog (user)
 
 The user (2026-10-25): "Publish thư viện là việc ngoài studio không đưa vào backlog". The entry "P3 · Figma: publish
 the renamed layers" moved from `BACKLOG-user-and-later.md` to `BACKLOG-archive.md` (text unchanged, with the reason).
 "Direct paste into other files" stays in the user's list: it is Studio work that the publish unblocks.
+"P3 · Code Connect for Description List" moved to the archive too (user: "Cái này không cần thiết cho studio"):
+it only adds Zen code to Figma's Dev Mode panel; Studio pull/push and `map_figma_component` already give Zen code.

@@ -2,8 +2,15 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
-## Archived 2026-10-25 (user: the library publish is not a backlog item)
+## Archived 2026-10-25 (user: the library publish and Code Connect are not backlog items)
 
+- Closed 2026-10-25 (user: "Cái này không cần thiết cho studio"; Code Connect only adds Zen code to Figma's own Dev
+  Mode panel, while Studio already turns Figma frames into Zen code through pull, push and `map_figma_component`):
+  **P3 · Code Connect for Description List (blocked, 2026-10-04):** Figma answers "You need a Dev or Full seat on an
+  Organization or Enterprise plan to use Code Connect" for this account. Once a seat is available: map
+  `Description List` 14859:79180 (Layout → `layout`, Items slot → `items`) and `.Primitives/Description-List/Item`
+  14859:78890 (Term → `term`, Value → `description`, Emphasis → `emphasis`, Action/Action Button → `action`) with
+  `.figma.ts` templates (the repo has no figma.config.json yet).
 - Closed 2026-10-25 (user: "Publish thư viện là việc ngoài studio không đưa vào backlog"; the publish is the
   user's own step in Figma, outside Studio, and is not tracked here):
   **P3 · Figma: publish the renamed layers (user, 2026-10-12):** 186 layers in the Zen file were renamed to Zen's names

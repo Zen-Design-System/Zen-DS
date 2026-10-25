@@ -23,11 +23,6 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   licence exists (5afe9ea2: developers, CI keys, IPs and installs per month; `usage-report.js` sorts by IP count). Left:
   a warning when one key goes far beyond its `seats`, and the package version of each install
   (`tools/registry/plugins/verdaccio-zen-license/index.js`). Decision (user): is the monthly report enough?
-- **P3 · Code Connect for Description List (blocked, 2026-10-04):** Figma answers "You need a Dev or Full seat on an
-  Organization or Enterprise plan to use Code Connect" for this account. Once a seat is available: map
-  `Description List` 14859:79180 (Layout → `layout`, Items slot → `items`) and `.Primitives/Description-List/Item`
-  14859:78890 (Term → `term`, Value → `description`, Emphasis → `emphasis`, Action/Action Button → `action`) with
-  `.figma.ts` templates (the repo has no figma.config.json yet).
 - **P3 · Builder Link folder: the permission prompt of a real folder is untested (2026-10-06, GĐ2 M4):**
   `npm run studio:build-check` covers link, write, Trash (trash/ copy), Restore and the reconnect after a reload through
   an OPFS folder, which the browser always grants; a folder the person picks is usually "prompt" after a reload, so the
