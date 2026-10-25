@@ -25,10 +25,13 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   Zen's templates) join the design principles in `skills/zen-component-usage`; the AI kit for Figma ships both, and
   Zen Agent in Studio plans states, forms and navigation. Taken from the UI/UX Pro Max skill's UX layer, without its
   palettes, fonts or styles.
+- Segmented (2026-10-26): on a phone, a full-width Segmented in a box that hugs its content (a floating layer, the
+  Calendar toolbar in a column that does not stretch) settles on its chip row instead of switching back and forth until
+  React stopped with "Maximum update depth exceeded", which blanked the Zen Studio canvas after such a drop.
 - QA gate (user, 2026-10-25): a Studio E2E row that is not in `matrix.baseline.json` and comes back broken now fails the
   gate step and `npm run studio:e2e` (exit 1), marked "✗ New rows broken". New rows that work stay a pass, listed to
   record with `--update-baseline`; rows the baseline marks broken and flaky rows are still allowed. The opt-in `figma`
-  and `dnd` groups are now in the baseline (FW-186 flaky; DND-03 and DND-05…08 left out until they are fixed).
+  and `dnd` groups are now in the baseline (FW-186 flaky; all eight dnd rows since 2026-10-26).
 - Table (user, 2026-10-25): a Dock Icon in the first column, the row's name, is Small with or without a caption
   (`content: "dock-icon"` drew XSmall without one); an emoji Dock Icon is Medium (Figma has Emoji only at Medium and
   Large), so the HR leave tables draw theirs at Medium. Zen Studio's Figma push and pull and the cell panel follow. Harness
