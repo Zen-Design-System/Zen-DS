@@ -64,6 +64,15 @@ describe("chart measures settle", () => {
     header.style.paddingBottom = "";
     await frames(10);
     expect(Math.abs(grow(2.4) - expected)).toBeLessThanOrEqual(1);
+    // The tall card is briefly 50 px taller (a range switch): its row shrinks back after, the two cards of the row do
+    // not hold each other up.
+    const tall = document.querySelector(`[aria-label="Line 1"]`)!.closest(".zen-chart-card__body")!.querySelector(".zen-chart-card__header") as HTMLElement;
+    tall.style.paddingBottom = "50px";
+    await frames(3);
+    expect(grow(1)).toBeGreaterThan(expected + 40);
+    tall.style.paddingBottom = "";
+    await frames(10);
+    expect(Math.abs(grow(1) - expected)).toBeLessThanOrEqual(1);
     // The short card's chart takes the free height, at every scale: no band is left under it.
     for (const scale of [1, 0.5, 2.4]) {
       const body = document.querySelector(`[aria-label="List ${scale}"]`)!.closest(".zen-chart-card__body") as HTMLElement;

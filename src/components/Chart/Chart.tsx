@@ -267,49 +267,89 @@ function layoutHeight(element: HTMLElement) {
 /**
  * A Chart Card stretched by its grid row (Figma's cards hug, so this is code's call; the user 2026-10-16: "scale the
  * chart"): the free height under the content goes to the chart as `--zen-chart-grow`. Plots add it to their height, rings
- * to their size, row charts spread their rows (chart.css); what cannot grow sits in the middle of what is left. Measured
- * with the grow off, so a card that only grew itself shrinks back with its row. Measured in layout px (layoutHeight):
- * inside a scaled preview (Zen Studio's canvas) getBoundingClientRect is the zoom times larger, and mixed with the CSS gap
- * the grow came out the zoom times too small, or, above 100 %, fed itself (80 M px at 240 %, 2026-10-25).
+ * to their size, row charts spread their rows (chart.css); what cannot grow sits in the middle of what is left.
+ *
+ * Every card on the page is measured together, with every grow off (growCards): measured alone with the other cards still
+ * grown, two cards of a row held each other up, so a card that was briefly taller (a range switch, a late font) left its
+ * row that much taller for good; and the page paid one layout per card. Measured in layout px (layoutHeight): inside a
+ * scaled preview (Zen Studio's canvas) getBoundingClientRect is the zoom times larger, and mixed with the CSS gap the grow
+ * came out the zoom times too small, or, above 100 %, fed itself (80 M px at 240 %, 2026-10-25).
  */
 function useChartGrow(body: RefObject<HTMLDivElement | null>) {
-  const observerRef = useRef<{ observer: ResizeObserver; watched: WeakSet<Element> } | null>(null);
   useLayoutEffect(() => {
     const node = body.current;
     if (!node || typeof ResizeObserver === "undefined") return undefined;
-    const measure = () => {
-      node.style.setProperty("--zen-chart-grow", "0px");
-      const children = Array.from(node.children) as HTMLElement[];
-      if (children.length < 2) return;
-      const gap = parseFloat(getComputedStyle(node).rowGap) || 0;
-      const natural = children.reduce((sum, child) => sum + layoutHeight(child), 0) + gap * (children.length - 1);
-      const free = Math.floor(layoutHeight(node) - natural);
-      if (free > 0) node.style.setProperty("--zen-chart-grow", `${free}px`);
-    };
-    // The card (its row) and each child (data, a wrapping legend, late fonts): a change in either moves the free height.
-    // One observer for the card's life; its first notification measures (after layout, no write-then-read per render).
-    const observer = new ResizeObserver(measure);
-    const watched = new WeakSet<Element>([node]);
-    observer.observe(node);
-    observerRef.current = { observer, watched };
-    return () => {
-      observer.disconnect();
-      observerRef.current = null;
-    };
+    growCards.add(node);
+    return () => growCards.remove(node);
   }, [body]);
-  // Every render: watch the children there are now (a range switch, a metric or an EmptyState may come and go). Observing
-  // one again would report it again, so each is observed once.
+  // Every render: watch the children there are now (a range switch, a metric or an EmptyState may come and go).
   useLayoutEffect(() => {
-    const node = body.current;
-    const current = observerRef.current;
-    if (!node || !current) return;
-    for (const child of Array.from(node.children)) {
-      if (current.watched.has(child)) continue;
-      current.watched.add(child);
-      current.observer.observe(child);
-    }
+    if (body.current) growCards.sync(body.current);
   });
 }
+
+/** The ChartCard bodies on the page and the one observer that watches them and their children: a change to any of them
+ *  measures them all (every grow off, every height read, every grow written: one layout). */
+const growCards = (() => {
+  const children = new Map<HTMLElement, Set<Element>>();
+  let observer: ResizeObserver | null = null;
+  const measure = () => {
+    const bodies = Array.from(children.keys()).filter((node) => node.isConnected);
+    for (const node of bodies) node.style.setProperty("--zen-chart-grow", "0px");
+    const frees = bodies.map((node) => {
+      const items = Array.from(node.children) as HTMLElement[];
+      if (items.length < 2) return 0;
+      const gap = parseFloat(getComputedStyle(node).rowGap) || 0;
+      const natural = items.reduce((sum, item) => sum + layoutHeight(item), 0) + gap * (items.length - 1);
+      return Math.floor(layoutHeight(node) - natural);
+    });
+    bodies.forEach((node, index) => { if (frees[index] > 0) node.style.setProperty("--zen-chart-grow", `${frees[index]}px`); });
+  };
+  // Cards that mount measure once the commit is done, before the first paint (one layout for all of them). A change
+  // after that measures on the next frame: measured inside the observer's callback, a change to a card's child (a
+  // header, the chart) resized the bodies above it, which the observer can no longer report that frame ("ResizeObserver
+  // loop completed with undelivered notifications").
+  let mountQueued = false;
+  let frame = 0;
+  const measureAfterCommit = () => {
+    if (mountQueued) return;
+    mountQueued = true;
+    queueMicrotask(() => { mountQueued = false; measure(); });
+  };
+  const measureNextFrame = () => {
+    if (!frame) frame = requestAnimationFrame(() => { frame = 0; measure(); });
+  };
+  /** Observes the card's new children once (observing one again would report it again) and lets go of the gone. Border
+   *  boxes: a padding change (a density mode, the metric's top padding) moves the free height too. */
+  const sync = (node: HTMLElement) => {
+    const watched = children.get(node);
+    if (!watched || !observer) return;
+    const now = new Set<Element>(Array.from(node.children));
+    for (const child of watched) if (!now.has(child)) { observer.unobserve(child); watched.delete(child); }
+    for (const child of now) if (!watched.has(child)) { observer.observe(child, { box: "border-box" }); watched.add(child); }
+  };
+  const add = (node: HTMLElement) => {
+    observer ??= new ResizeObserver(measureNextFrame);
+    children.set(node, new Set());
+    observer.observe(node, { box: "border-box" });
+    sync(node);
+    measureAfterCommit();
+  };
+  const remove = (node: HTMLElement) => {
+    const watched = children.get(node);
+    if (!watched || !observer) return;
+    for (const child of watched) observer.unobserve(child);
+    observer.unobserve(node);
+    children.delete(node);
+    if (!children.size) {
+      observer.disconnect();
+      observer = null;
+      cancelAnimationFrame(frame);
+      frame = 0;
+    }
+  };
+  return { add, sync, remove };
+})();
 
 /**
  * Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) → header · Segmented · chart, gap 16.
