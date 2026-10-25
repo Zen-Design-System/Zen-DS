@@ -54,7 +54,8 @@ Approved 2026-10-26 (D1–D4; no harness rule). Built the Studio half's PR 1 (P1
 - **Placeholders** (`ScreenCanvasContext`, `builder/screenParts.ts`, `screenModel.ts`): on the mobile breakpoint a
   missing Top / Bottom Navigation shows a dashed "Add …" (frame chrome to the selection layer; dropped by exports); the
   part goes to the root AppShell (Bottom from its Sidebar rows, D3, else four blank items) unless the Screen draws its
-  own phone parts; child screens get no Bottom placeholder.
+  own phone parts; child screens get no Bottom placeholder. Only on the Screen being worked on (selected, or viewed):
+  the train gate's HO-03 (canvas vs exported HTML, pixel comparison) caught them on every phone Screen.
 - **Make a separate Screen**: `copyFrame(…, { as })` → `<id>-mobile`, the device's size, `<title> · Mobile`,
   `versionOf` (dialect-validated, Studio-only prop). D4: `proto/versions.ts versionFor` — Play's fixed viewport, Open on
   phone (ZenProvider's breakpoint) and Present show the version for the breakpoint. Handoff lists "Breakpoint versions".

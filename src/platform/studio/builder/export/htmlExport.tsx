@@ -338,7 +338,7 @@ async function renderFrames(id: string, text: string): Promise<Rendered | { erro
         <PageOsContext value={pageOsOf(tree.header)}>
         {frames.map(({ node, frame }) => (
           <div key={frame.id} data-export-frame={frame.id} style={{ width: frame.width }}>
-            <ZenProvider {...canvasModes(id, frame.id)} breakpoint={screenBreakpoint(frame.device, frame.width)} syncDocument={false}>{renderFrame(node, ctx)}</ZenProvider>
+            <ZenProvider {...canvasModes(id, frame.id)} breakpoint={frame.kind === "screen" ? screenBreakpoint(frame.device, frame.width) : "desktop"} syncDocument={false}>{renderFrame(node, ctx)}</ZenProvider>
           </div>
         ))}
         </PageOsContext>

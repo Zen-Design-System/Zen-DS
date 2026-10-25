@@ -233,9 +233,7 @@ export function BuilderBoard({ id }: { id: string }) {
         ) : null}
         <div ref={framesRef} className="studio-builder-board__frames">
           {sections.map((section) => <SectionFrame key={section.id} id={section.id} label={section.label} width={section.width} height={section.height ?? 100} />)}
-          <ScreenCanvasContext value={screenEdit}>
-            {frames.map((frame) => <BuilderFrame key={frame.id} frame={frame} />)}
-          </ScreenCanvasContext>
+          {frames.map((frame) => <BuilderFrame key={frame.id} frame={frame} edit={screenEdit} />)}
           {slices.map((slice) => <SliceFrame key={slice.id} id={slice.id} label={slice.label} width={slice.width} height={slice.height ?? 100} />)}
         </div>
         {showLinks ? <ProtoLinks tree={tree} file={file} boardRef={boardRef} /> : null}
@@ -250,14 +248,19 @@ export function BuilderBoard({ id }: { id: string }) {
  * screenViews.ts) takes that device's width and renders on it as Present's simulator does (SimulatedDeviceContext: device
  * type, layout, bars, height); the page does not change. The frame carries the breakpoint it shows.
  */
-function BuilderFrame({ frame }: { frame: PageFrame & { example: StudioExample } }) {
+function BuilderFrame({ frame, edit }: { frame: PageFrame & { example: StudioExample }; edit: ScreenCanvasEdit | null }) {
   const view = useScreenView(frame.id);
+  // The placeholders for missing phone parts show on the Screen being worked on (it, or a layer in it, selected) or
+  // viewed on another breakpoint; the rest of the board shows the design alone.
+  const active = useStudio((state) => state.selection?.frameId === frame.id) || Boolean(view);
   const shape = frame.example.shape;
   const device = shape ? viewDevice(view, shape.height) : undefined;
   const breakpoint = shape ? shownBreakpoint(shape, view) : undefined;
   return (
     <StudioFrame id={frame.id} kind="example" label={frame.label} width={frame.width} example={frame.example} breakpoint={breakpoint} view={device?.width}>
-      <SimulatedDeviceContext value={device ?? null}>{frame.example.render()}</SimulatedDeviceContext>
+      <ScreenCanvasContext value={active ? edit : null}>
+        <SimulatedDeviceContext value={device ?? null}>{frame.example.render()}</SimulatedDeviceContext>
+      </ScreenCanvasContext>
     </StudioFrame>
   );
 }

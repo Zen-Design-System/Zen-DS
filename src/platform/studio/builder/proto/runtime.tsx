@@ -80,7 +80,8 @@ export type ScreenPart = "topNavigation" | "bottomNavigation";
  * What only the Studio's canvas gives a Screen (docs/research/studio-responsive-breakpoints-2026-10-26.md §3.6): on the
  * mobile breakpoint, a Screen without a Top or Bottom Navigation shows a dashed placeholder whose click adds one
  * (`addPart`); `child` names the Screens that take no Bottom Navigation (a child screen: Back, two crumbs or more;
- * component-usage-rules §17). Null in Present, Play, the exports and for viewers: no placeholders there.
+ * component-usage-rules §17). Given to the Screen being worked on (selected, or viewed on another breakpoint); null on
+ * the rest of the board, in Present, Play, the exports and for viewers: no placeholders there.
  */
 export type ScreenCanvasEdit = { addPart: (screen: string, part: ScreenPart, layout: ScreenLayout) => void; child: (screen: string) => boolean };
 export const ScreenCanvasContext = createContext<ScreenCanvasEdit | null>(null);
