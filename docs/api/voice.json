@@ -6,7 +6,7 @@
     {
       "name": "VoiceRecorder",
       "file": "src/components/Voice/Voice.tsx",
-      "description": "Figma Voice Recorder (15084:79711): a header (Body/Base/Medium name + a Small Subtle Badge: Neutral Ready / Paused,\nRed Recording with its dot), the audio monitor (Background/Surface/Alt, Corner-Radius/Base, Spacing/Padding/Medium:\nthe elapsed time in Heading/Subheading, an 80px waveform — Content/Neutral/Strongest while recording, Neutral/Light\npaused, a flat Border/Neutral/Subtle line when ready — and its start / end times in Caption/Regular Neutral/Light),\nthe guidance (Body/Small/Regular Neutral/Base), the transport (Discard · Record/Pause/Resume · Finish; Discard and\nFinish disabled until there is a take), a Border/Neutral/Pale divider and the input details.",
+      "description": "Figma Voice Recorder (15084:79711): a header (Body/Base/Medium name + a Small Subtle Badge: Neutral Ready / Paused,\nRed Recording with its dot), the audio monitor (Background/Surface/Alt, Corner-Radius/Base, Spacing/Padding/Medium:\nthe elapsed time in Heading/Subheading, an 80px waveform — Content/Neutral/Strongest while recording, Neutral/Light\npaused, a flat Border/Neutral/Subtle line when ready — and its start / end times in Caption/Regular Neutral/Light),\nthe guidance (Body/Small/Regular Neutral/Light), the transport (Discard · Record/Pause/Resume · Finish; Discard and\nFinish disabled until there is a take), a Border/Neutral/Pale divider and the input details.",
       "deprecated": null,
       "extends": null,
       "props": [

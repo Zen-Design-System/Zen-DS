@@ -13,7 +13,7 @@
   display: flex; max-width: 100%; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px);
   margin-bottom: calc(-1 * (var(--zen-chat-reply-tuck) + var(--zen-spacing-gap-2-xsmall, 4px))); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-small, 12px) calc(var(--zen-spacing-padding-xsmall, 8px) + var(--zen-chat-reply-tuck));
   border: 0; border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-neutral-pale-default, rgb(1 1 1 / 6%));
-  color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); cursor: pointer; font: inherit; text-align: start;
+  color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); cursor: pointer; font: inherit; text-align: start;
 }
 /* Figma Chat/Reply/Quote: a quote that leads with a photo, a file or an icon starts 8 in; a text-only quote keeps 12. */
 .zen-chat-reply__quote:not([data-kind="text"]) { padding-inline-start: var(--zen-spacing-padding-xsmall, 8px); }

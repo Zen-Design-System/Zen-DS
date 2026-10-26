@@ -51,7 +51,7 @@ Also accepts `Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt" | "loading
 | `frame` | `boolean` | `true` | The frame behind the picture: Neutral/Pale with a 1px Border/Neutral/Pale hairline (default true), so a light photo keeps its edge. `false` for a cut-out picture on a transparent background (a mascot, a product without its backdrop, Figma's bare image fill): no fill and no hairline, so no faint square shows around it. The Skeleton and the error placeholder still fill the box. |
 | `radius` | `"none" \| Exclude<ZenScaleInput, "3xs" \| "3xsmall"> \| "full"` | `"md"` | Corner radius on the Zen scale (Corner-Radius): none · 2xs · xs · sm · md (default, 12) · lg · xl · 2xl · 3xl · full. `radiusTopLeft` … `radiusBottomLeft` override single corners (Figma per-corner radius, e.g. top media in a card: `radius="none" radiusTopLeft="2xl" radiusTopRight="2xl"`); unset corners keep this radius (md by default). |
 | `loading` | `"lazy" \| "eager"` | `"lazy"` | Native loading: lazy (default) waits until the picture nears the viewport; eager for the first picture on screen. |
-| `caption` | `ReactNode` | — | A caption under the picture (Body/Small/Regular, Content/Neutral/Base); the picture becomes a figure with a figcaption. |
+| `caption` | `ReactNode` | — | A caption under the picture (Body/Small/Regular, Content/Neutral/Light); the picture becomes a figure with a figcaption. |
 | `className` | `string` | — | On the root (figure or div). |
 | `style` | `CSSProperties` | — | On the root (figure or div). |
 | `ref` | `Ref<HTMLImageElement>` | — | Ref to the inner `<img>` element (not the root). |

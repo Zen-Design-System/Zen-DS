@@ -65,7 +65,7 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 .zen-select__native { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; opacity: 0; pointer-events: none; }
 /* layout="inline" (Figma Input/Inline-Field 15659:110823): the label is the first slot of the field (Content/Neutral/Base,
    Disabled: Content/Disabled) and the value sits at the end; a Select's chevron and a Color swatch stay after it. */
-.zen-input__inline-label { position: relative; z-index: 1; flex: none; max-width: 60%; overflow: hidden; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 60%)); text-overflow: ellipsis; white-space: nowrap; cursor: text; }
+.zen-input__inline-label { position: relative; z-index: 1; flex: none; max-width: 60%; overflow: hidden; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-overflow: ellipsis; white-space: nowrap; cursor: text; }
 .zen-input-field[data-state="disabled"] .zen-input__inline-label { color: var(--zen-color-content-disabled, rgb(0 0 0 / 27%)); cursor: not-allowed; }
 .zen-input-field[data-layout="inline"] .zen-input__native { text-align: end; }
 .zen-input-field[data-layout="inline"] .zen-select__trigger { justify-content: flex-end; }
@@ -76,7 +76,7 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
    the selected check moves after it, to the end of the row. */
 .zen-popover__item-trailing:has(> .zen-select__option-meta) { width: auto; height: auto; flex-basis: auto; }
 .zen-popover__item:has(> .zen-popover__item-trailing > .zen-select__option-meta) > .zen-popover__item-check { order: 1; }
-.zen-select__option-meta { color: var(--zen-color-content-neutral-base); white-space: nowrap; }
+.zen-select__option-meta { color: var(--zen-color-content-neutral-light); white-space: nowrap; }
 .zen-popover__item:disabled .zen-select__option-meta { color: inherit; }
 
 /* Keep fill and Effect/Input on ONE painted layer. A child backdrop-filter
@@ -470,7 +470,9 @@ textarea.zen-heading-field__native { resize: none; overflow: hidden; }
 .zen-input-conditions { display: grid; gap: var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; }
 .zen-input-condition { display: flex; min-width: 0; align-items: flex-start; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
 .zen-input-condition > .zen-icon { flex: 0 0 auto; }
+/* An unmet rule's words are a meta line: Neutral/Light (the user 2026-10-26); its minus icon stays Neutral/Base (Figma). */
 .zen-input-condition__text { min-width: 0; }
+.zen-input-condition:not([data-state="success"], [data-state="wrong"]) .zen-input-condition__text { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-input-condition[data-state="success"] { color: var(--zen-color-content-positive-light, #16845b); }
 .zen-input-condition[data-state="wrong"] { color: var(--zen-color-content-negative-light, #d03e19); }
 

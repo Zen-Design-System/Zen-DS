@@ -16934,7 +16934,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The label (dt): Body/Small/Regular, Content/Neutral/Base."
+                "description": "The label (dt): Body/Small/Regular, Content/Neutral/Light."
               },
               "description": {
                 "anyOf": [
@@ -23490,7 +23490,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "A caption under the picture (Body/Small/Regular, Content/Neutral/Base); the picture becomes a figure with a figcaption."
+                "description": "A caption under the picture (Body/Small/Regular, Content/Neutral/Light); the picture becomes a figure with a figcaption."
               },
               "aria-label": {
                 "anyOf": [
@@ -29958,7 +29958,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Base, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so every"
+                "description": "The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Light, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so ever"
               },
               "icon": {
                 "anyOf": [

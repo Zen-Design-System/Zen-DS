@@ -20,7 +20,7 @@
 .zen-timeline-item__header { display: flex; min-width: 0; align-items: baseline; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-timeline-item__title { min-width: 0; flex: 1 1 auto; color: var(--zen-color-content-neutral-strongest); }
 .zen-timeline-item__time { flex: 0 0 auto; color: var(--zen-color-content-neutral-light); white-space: nowrap; }
-.zen-timeline-item__description { color: var(--zen-color-content-neutral-base); }
+.zen-timeline-item__description { color: var(--zen-color-content-neutral-light); }
 .zen-timeline-item__comment { display: block; padding: var(--zen-spacing-padding-small, 12px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-alt); color: var(--zen-color-content-neutral-strongest); }
 
 /* .Primitives/Timeline/Milestone (16130:147) */

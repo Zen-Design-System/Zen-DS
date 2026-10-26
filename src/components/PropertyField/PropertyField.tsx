@@ -44,7 +44,7 @@ const PropertyFieldContext = createContext<RowContextValue | null>(null);
 export interface PropertyFieldProps extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   /** The root `<div role="group">`, named by the label. */
   ref?: Ref<HTMLDivElement>;
-  /** The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Base, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so every row's value lines up. */
+  /** The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Light, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so every row's value lines up. */
   label: ReactNode;
   /** Figma Icon + Icon-Src: the property's line icon (Content/Neutral/Light). */
   icon?: IconName | ReactNode;

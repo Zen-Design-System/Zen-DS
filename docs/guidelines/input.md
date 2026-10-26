@@ -63,7 +63,7 @@ Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size">`.
 | `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
 | `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
 | `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
-| `layout` | `"stacked" \| "inline"` | — | `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the value on the right. labelOptional, labelTooltip and labelAction are not drawn inline. |
+| `layout` | `"stacked" \| "inline"` | — | `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Light) and the value on the right. labelOptional, labelTooltip and labelAction are not drawn inline. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 | `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
@@ -88,7 +88,7 @@ Also accepts `Omit<SelectHTMLAttributes<HTMLSelectElement>, "size">`.
 | `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
 | `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
 | `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
-| `layout` | `"stacked" \| "inline"` | — | `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the value on the right. labelOptional, labelTooltip and labelAction are not drawn inline. |
+| `layout` | `"stacked" \| "inline"` | — | `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Light) and the value on the right. labelOptional, labelTooltip and labelAction are not drawn inline. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 | `options` | `SelectFieldOption[]` | `[]` |  |
@@ -125,7 +125,7 @@ Also accepts `Omit<InputHTMLAttributes<HTMLInputElement>, "size">`.
 | `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
 | `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
 | `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
-| `layout` | `"stacked" \| "inline"` | — | `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the value on the right. labelOptional, labelTooltip and labelAction are not drawn inline. |
+| `layout` | `"stacked" \| "inline"` | — | `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Light) and the value on the right. labelOptional, labelTooltip and labelAction are not drawn inline. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 | `onValueChange` | `(value: string) => void` | — | Called with the new text on every change (next to the native `onChange(event)`, which still runs). |
@@ -161,7 +161,7 @@ Figma Input/Color-Field (15660:8643): pick or type any colour. The Text-Field an
 | `errorMessage` | `ReactNode` | — | **Deprecated:** Use error (same meaning).  |
 | `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
 | `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
-| `layout` | `"stacked" \| "inline"` | — | `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the value on the right. labelOptional, labelTooltip and labelAction are not drawn inline. |
+| `layout` | `"stacked" \| "inline"` | — | `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Light) and the value on the right. labelOptional, labelTooltip and labelAction are not drawn inline. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 | `ref` | `Ref<HTMLInputElement>` | — | The native `<input>` element. |
@@ -194,7 +194,7 @@ Figma Input/Number-Align-Left (421:10057) and Number-Align-Center (450:7900): Bu
 | `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
 | `leading` | `IconName \| ReactNode` | — | Before the value: an icon name (`"icon-mail-01-line"`, sized to the field) or any node (a unit, a picker). |
 | `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
-| `layout` | `"stacked" \| "inline"` | — | `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the value on the right. labelOptional, labelTooltip and labelAction are not drawn inline. |
+| `layout` | `"stacked" \| "inline"` | — | `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Light) and the value on the right. labelOptional, labelTooltip and labelAction are not drawn inline. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 | `ref` | `Ref<HTMLInputElement>` | — | The native `<input>` element. |
@@ -294,7 +294,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "children">`.
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `ref` | `Ref<HTMLDivElement>` | — | The root `<div role="group">`, named by the label. |
-| `label` (required) | `ReactNode` | — | The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Base, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so every row's value lines up. |
+| `label` (required) | `ReactNode` | — | The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Light, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so every row's value lines up. |
 | `icon` | `IconName \| ReactNode` | — | Figma Icon + Icon-Src: the property's line icon (Content/Neutral/Light). |
 | `action` | `{ label: string; onClick?: () => void }` | — | Figma Action: the + after the label (Button/Icon-Main XSmall Tertiary). PropertyPeople and PropertyTags show it by themselves, opening their picker; pass `action` to add something else. |
 | `children` | `ReactNode` | — | The value: one cell — PropertyText, PropertySelect, PropertyStatus, PropertyDate, PropertyPeople or PropertyTags. |
@@ -522,7 +522,7 @@ Figma Input/Heading (694:13062): an inline-editable heading (no field chrome). H
 | `ref` | `Ref<HTMLInputElement \| HTMLTextAreaElement>` | — | The native `<input>` (or `<textarea>` with `multiline`). |
 
 ### InputConditionItem
-Figma Primitives/Input/Input-Conditions/Condition-Item: 16px icon (Element-Size/Popular/Small) + Body/Small/Regular, gap 2XSmall. Default Content/Neutral/Base (minus), Success Positive/Light (check), Wrong Negative/Light (x-small).
+Figma Primitives/Input/Input-Conditions/Condition-Item: 16px icon (Element-Size/Popular/Small) + Body/Small/Regular, gap 2XSmall. Default: the minus Content/Neutral/Base, the words Neutral/Light; Success Positive/Light (check), Wrong Negative/Light (x-small).
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |

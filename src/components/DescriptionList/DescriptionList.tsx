@@ -12,7 +12,7 @@ export type DescriptionListLayout = (typeof descriptionListLayouts)[number];
 export interface DescriptionListItem {
   /** React key. Defaults to the term when it is a string, otherwise the index. */
   id?: string;
-  /** The label (dt): Body/Small/Regular, Content/Neutral/Base. A noun or short phrase ("Shipping", "Order number"). */
+  /** The label (dt): Body/Small/Regular, Content/Neutral/Light (a label is Light, the user 2026-10-26). A noun or short phrase ("Shipping", "Order number"). */
   term: ReactNode;
   /** The value (dd): Body/Base/Medium, Content/Neutral/Strongest. Format it for people ("$1,280.40", "2 Oct 2026"). */
   description: ReactNode;
@@ -23,7 +23,7 @@ export interface DescriptionListItem {
 }
 
 export interface DescriptionItemProps {
-  /** The label (dt): Body/Small/Regular, Content/Neutral/Base. */
+  /** The label (dt): Body/Small/Regular, Content/Neutral/Light. */
   term: ReactNode;
   /** The value (dd): Body/Base/Medium, Content/Neutral/Strongest. */
   description: ReactNode;
@@ -45,7 +45,7 @@ export interface DescriptionItemProps {
 export function DescriptionItem({ term, description, action, emphasis = false, className, ref, ...rest }: DescriptionItemProps) {
   return (
     <div {...dataAttributes(rest)} ref={ref} className={["zen-description-list__item", className].filter(Boolean).join(" ")} data-emphasis={emphasis ? "true" : undefined} data-action={action ? "true" : undefined}>
-      <Text as="dt" className="zen-description-list__term" textStyle={emphasis ? "Body/Base/Bold" : "Body/Small/Regular"} tone={emphasis ? "strongest" : "base"}>{term}</Text>
+      <Text as="dt" className="zen-description-list__term" textStyle={emphasis ? "Body/Base/Bold" : "Body/Small/Regular"} tone={emphasis ? "strongest" : "light"}>{term}</Text>
       <Text as="dd" className="zen-description-list__description" textStyle={emphasis ? "Body/Base/Bold" : "Body/Base/Medium"}>{description}</Text>
       {action ? <dd className="zen-description-list__action">{action}</dd> : null}
     </div>

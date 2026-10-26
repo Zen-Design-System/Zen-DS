@@ -49,7 +49,7 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
  * arrow keys step (Shift: ten steps, Home / End: the limits). Input tokens: Input/Size Medium 40 · Small 32,
  * Input/Spacing paddings and gap, Corner-Radius/Input, Input/Background and Input/Border per state, Effect/Input; the
  * fill is Background/Neutral/Subtle/Hover (Dragging: Pressed), Accent: Background/Accent/Subtle/Hover (Pressed); the
- * label Body/Base/Medium in Content/Neutral/Base, the number in Content/Neutral/Strongest. For a value tuned by feel
+ * label Body/Base/Medium in Content/Neutral/Light, the number in Content/Neutral/Strongest. For a value tuned by feel
  * without a number use Slider; for an exact quantity with steppers, NumberField.
  */
 export function SliderField({

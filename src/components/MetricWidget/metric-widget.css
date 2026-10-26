@@ -119,7 +119,7 @@
 .zen-metric-categories__name { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-metric-categories__dot { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); }
 .zen-metric-categories__amount { color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; text-align: end; }
-.zen-metric-categories__share { min-width: 4ch; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 69%)); font-variant-numeric: tabular-nums; text-align: end; }
+.zen-metric-categories__share { min-width: 4ch; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); font-variant-numeric: tabular-nums; text-align: end; }
 
 /* Motion (the chart family's, docs/research/chart-family-spec-2026-10-12.md §3): the line wipes in left → right over
    Slow × 2.5 (Standard); bars rise from the baseline and segments grow from the start (Slow, Emphasized, staggered

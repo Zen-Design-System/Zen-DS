@@ -6,7 +6,7 @@
    label than to the next row. */
 .zen-property-field { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0 var(--zen-spacing-gap-xsmall, 8px); min-width: 0; }
 .zen-property-field > .zen-property-value { flex-basis: calc(var(--zen-element-size-popular-base, 20px) * 5); }
-.zen-property-field__label { display: flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); width: var(--zen-property-field-label-width, calc(var(--zen-element-size-popular-base, 20px) * 6.4)); height: var(--zen-input-size-medium, 40px); min-width: 0; color: var(--zen-color-content-neutral-base); }
+.zen-property-field__label { display: flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); width: var(--zen-property-field-label-width, calc(var(--zen-element-size-popular-base, 20px) * 6.4)); height: var(--zen-input-size-medium, 40px); min-width: 0; color: var(--zen-color-content-neutral-light); }
 .zen-property-field__icon { display: inline-flex; flex-shrink: 0; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); color: var(--zen-color-content-neutral-light); }
 .zen-property-field__icon > .zen-icon { width: 100%; height: 100%; }
 .zen-property-field__name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

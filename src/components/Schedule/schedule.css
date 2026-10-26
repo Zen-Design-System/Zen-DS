@@ -35,7 +35,7 @@
 .zen-schedule-stop__meta { color: var(--zen-color-content-neutral-light); }
 .zen-schedule-stop[data-status="past"] :is(.zen-schedule-stop__start, .zen-schedule-stop__meta) { color: var(--zen-color-content-neutral-light); }
 /* zen-allow-title-level: Figma Itinerary-Item Status=Past (16133:1131) quiets the title to Neutral/Base. */
-.zen-schedule-stop[data-status="past"] .zen-schedule-stop__title { color: var(--zen-color-content-neutral-base); }
+.zen-schedule-stop[data-status="past"] .zen-schedule-stop__title { color: var(--zen-color-content-neutral-light); }
 .zen-schedule-stop[data-status="past"] .zen-schedule-stop__marker { border: 0; background: var(--zen-color-background-accent-solid-default); }
 .zen-schedule-stop[data-status="past"] .zen-schedule-stop__connector { background: var(--zen-color-background-accent-solid-default); }
 .zen-schedule-stop[data-status="now"] .zen-schedule-stop__marker { display: grid; width: 16px; height: 16px; place-items: center; border-color: var(--zen-color-background-accent-solid-default); }

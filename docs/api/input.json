@@ -127,7 +127,7 @@
           "type": "\"stacked\" | \"inline\"",
           "required": false,
           "default": null,
-          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
+          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Light) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
           "deprecated": null
         },
         {
@@ -288,7 +288,7 @@
           "type": "\"stacked\" | \"inline\"",
           "required": false,
           "default": null,
-          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
+          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Light) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
           "deprecated": null
         },
         {
@@ -545,7 +545,7 @@
           "type": "\"stacked\" | \"inline\"",
           "required": false,
           "default": null,
-          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
+          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Light) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
           "deprecated": null
         },
         {
@@ -794,7 +794,7 @@
           "type": "\"stacked\" | \"inline\"",
           "required": false,
           "default": null,
-          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
+          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Light) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
           "deprecated": null
         },
         {
@@ -1019,7 +1019,7 @@
           "type": "\"stacked\" | \"inline\"",
           "required": false,
           "default": null,
-          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
+          "description": "`stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property\npanels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Light) and the\nvalue on the right. labelOptional, labelTooltip and labelAction are not drawn inline.",
           "deprecated": null
         },
         {
@@ -1647,7 +1647,7 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Base, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so every row's value lines up.",
+          "description": "The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Light, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so every row's value lines up.",
           "deprecated": null
         },
         {
@@ -2836,7 +2836,7 @@
     {
       "name": "InputConditionItem",
       "file": "src/components/Input/Input.tsx",
-      "description": "Figma Primitives/Input/Input-Conditions/Condition-Item: 16px icon (Element-Size/Popular/Small) + Body/Small/Regular,\ngap 2XSmall. Default Content/Neutral/Base (minus), Success Positive/Light (check), Wrong Negative/Light (x-small).",
+      "description": "Figma Primitives/Input/Input-Conditions/Condition-Item: 16px icon (Element-Size/Popular/Small) + Body/Small/Regular,\ngap 2XSmall. Default: the minus Content/Neutral/Base, the words Neutral/Light; Success Positive/Light (check), Wrong\nNegative/Light (x-small).",
       "deprecated": null,
       "extends": null,
       "props": [

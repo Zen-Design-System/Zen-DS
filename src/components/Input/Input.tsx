@@ -76,7 +76,7 @@ type CommonFieldProps = {
   trailing?: IconName | ReactNode;
   /**
    * `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property
-   * panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the
+   * panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Light) and the
    * value on the right. labelOptional, labelTooltip and labelAction are not drawn inline.
    */
   layout?: InputLayout;
@@ -484,7 +484,7 @@ export type SelectFieldOption = {
   label: string;
   value: string;
   disabled?: boolean;
-  /** Short text at the end of the option's row in the list, on the same line (Body/Small/Regular, Neutral/Base), e.g. the
+  /** Short text at the end of the option's row in the list, on the same line (Body/Small/Regular, Neutral/Light), e.g. the
    *  value a token stands for: `{ label: "md", meta: "16px" }`. The field itself shows only the label. */
   meta?: string;
   /** Figma .Primitives/Popover/Item/Content Theme of the option's row in the list: `icon` (with `leading`), `text-only`,
@@ -1986,7 +1986,8 @@ export function HeadingField({ headingSize = "h3", multiline = false, onValueCha
 
 export type InputConditionState = "default" | "success" | "wrong";
 /** Figma Primitives/Input/Input-Conditions/Condition-Item: 16px icon (Element-Size/Popular/Small) + Body/Small/Regular,
- * gap 2XSmall. Default Content/Neutral/Base (minus), Success Positive/Light (check), Wrong Negative/Light (x-small). */
+ * gap 2XSmall. Default: the minus Content/Neutral/Base, the words Neutral/Light; Success Positive/Light (check), Wrong
+ * Negative/Light (x-small). */
 export function InputConditionItem({ label, state = "default", ref, ...rest }: { label: ReactNode; state?: InputConditionState; /** The root `<li>` element. */ ref?: Ref<HTMLLIElement> }) {
   return <li {...dataAttributes(rest)} ref={ref} className="zen-input-condition" data-state={state}><Icon name={state === "success" ? "icon-check-line" : state === "wrong" ? "icon-x-small-line" : "icon-minus-line"} size="sm" decorative /><span className={`zen-input-condition__text ${typographyStyles["Body/Small/Regular"]}`}>{label}</span></li>;
 }

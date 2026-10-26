@@ -8015,7 +8015,7 @@
         "term": {
           "x-kind": "node",
           "x-required": true,
-          "description": "The label (dt): Body/Small/Regular, Content/Neutral/Base."
+          "description": "The label (dt): Body/Small/Regular, Content/Neutral/Light."
         },
         "description": {
           "x-kind": "node",
@@ -12094,7 +12094,7 @@
         },
         "caption": {
           "x-kind": "node",
-          "description": "A caption under the picture (Body/Small/Regular, Content/Neutral/Base); the picture becomes a figure with a figcaption."
+          "description": "A caption under the picture (Body/Small/Regular, Content/Neutral/Light); the picture becomes a figure with a figcaption."
         },
         "aria-label": {
           "type": "string",
@@ -15000,7 +15000,7 @@
         "label": {
           "x-kind": "node",
           "x-required": true,
-          "description": "The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Base, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so every"
+          "description": "The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Light, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so ever"
         },
         "icon": {
           "x-kind": "node",

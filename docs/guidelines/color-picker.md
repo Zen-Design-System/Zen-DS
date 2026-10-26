@@ -75,7 +75,7 @@ Figma Input/Color-Field (15660:8643): pick or type any colour. The Text-Field an
 | `errorMessage` | `ReactNode` | — | **Deprecated:** Use error (same meaning).  |
 | `state` | `"default" \| "hover" \| "focused" \| "typing" \| "inputted" \| "read-only" \| "disabled" \| "inputted-error" \| "blank-error" \| "error"` | — |  |
 | `trailing` | `IconName \| ReactNode` | — | After the value: an icon name (sized to the field) or any node (a unit, a picker, an action). |
-| `layout` | `"stacked" \| "inline"` | — | `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Base) and the value on the right. labelOptional, labelTooltip and labelAction are not drawn inline. |
+| `layout` | `"stacked" \| "inline"` | — | `stacked` (default): Label → Field → Help-Text. `inline`: Figma Input/Inline-Field (15659:110823), for dense property panels and inspectors: the label sits inside the field on the left (Body/Base/Medium, Content/Neutral/Light) and the value on the right. labelOptional, labelTooltip and labelAction are not drawn inline. |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the label, help text and Leading/Trailing icons it draws, by layer (`{ Label: { optional: true }, "Help-Text": { theme: "warning" }, Leading: { name: "icon-mail-01-line" } }`). Written by Zen Studio; app code sets label / helpText / leading / trailing. |
 | `ref` | `Ref<HTMLInputElement>` | — | The native `<input>` element. |

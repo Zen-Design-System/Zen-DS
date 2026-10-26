@@ -49,7 +49,7 @@ One row of a DescriptionList: a dt + dd group (plus a dd for the action). Use it
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `term` (required) | `ReactNode` | — | The label (dt): Body/Small/Regular, Content/Neutral/Base. |
+| `term` (required) | `ReactNode` | — | The label (dt): Body/Small/Regular, Content/Neutral/Light. |
 | `description` (required) | `ReactNode` | — | The value (dd): Body/Base/Medium, Content/Neutral/Strongest. |
 | `action` | `ReactNode` | — | An action for this row only (rendered in its own dd at the end of the row). |
 | `emphasis` | `boolean` | `false` | The total row: Body/Base/Bold with a High rule above it. One per list. |
