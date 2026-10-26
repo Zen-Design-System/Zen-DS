@@ -63,7 +63,9 @@ in the Figma AI kit it sits next to this file).
 | Dashboard (Zen) | summary numbers and one main view | a KPI row, the main chart or table, a side list | KPIs two up or in a scrolling row, then the main view, then the lists |
 | Form or record | reading or editing one thing | a readable column (cap its width) with an aside for help or a summary | one column; the Primary in a footer ActionBar |
 
-The first three are Material 3's canonical layouts; the dashboard and form rows are Zen's common screens.
+The first three are Material 3's canonical layouts; the dashboard and form rows are Zen's common screens. How a
+dashboard's widgets take their spans and reflow at each width: `dashboard-layout.md` (in the repo:
+`skills/zen-component-usage/references/`; in the Figma AI kit it sits next to this file).
 
 ## 4. Navigation follows the width; the destinations stay the same
 

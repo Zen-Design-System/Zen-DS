@@ -10,7 +10,8 @@ table and the rules are `docs/component-usage-rules.md` §17; read it first. Thi
 
 For the decisions the mapping leaves open (responsive or adaptive, which canonical layout and how it folds, what to
 drop when the space shrinks, touch versus pointer, text that must flex), read `references/responsive-principles.md`.
-It holds principles, not rules: nothing checks them, and the brief or the designer may choose otherwise.
+It holds principles, not rules: nothing checks them, and the brief or the designer may choose otherwise. A screen of
+widgets (KPIs, charts, lists, tables) reflows by `skills/zen-component-usage/references/dashboard-layout.md` §6.
 
 ## 1. Read the desktop screen as parts
 
