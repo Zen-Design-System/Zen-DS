@@ -197,7 +197,13 @@ From main 9fa8ef52 (train #310 with bp-layout's library half in). Built:
 - Not done (on purpose): direction arrows on the canvas (none exist), a per-field Reset (one Reset per element, per
   breakpoint, keeps the panel short), the Studio-only `hidden="mobile"` (a Screen's layout) kept as it is.
 - E2E BP-09…13 (Inspector flow + Same, Reset, canvas gap pick, Hide on + Wrap and hide + Layers dimming, All
-  breakpoints + Changes) — first run in Giám sát's window.
+  breakpoints + Changes): 5/5 on their first run, in the baseline.
+- **Gate** (`qa --isolated --pages=layout` + 15 files): static, audit 1512/390/320, dark, behaviour pass; Studio E2E 378/380
+  — B-04 (a phone Screen's gap wrote `{ desktop, mobile }`) and ST-03 (the layer menu off screen). Fixed: the frame
+  carries its Screen's **primary breakpoint** (`data-primary-breakpoint`: a web page's desktop, a phone's mobile), where
+  edits stay plain (a plain value becomes the primary's key once another breakpoint differs); the layer menu has one Hide
+  on item (builder pages only). Merged main 389a0992 (#312), reran builder + structural + breakpoints + select: 109/109.
+  Contact sheets (layout 390 / 1512) reviewed.
 
 ## Giám sát · twelve new E2E rows recorded in the baseline
 
