@@ -1445,11 +1445,12 @@ async function checkTextTone(node) {
   const kicker = style === "Body/Small/Bold" || /^All-Caps\//.test(style ?? "");
   // The Dashboard header's Control-Bar "Subheading" is the result count ("96 results"), a value (the user 2026-10-16).
   const countLine = owner && /Dashboard\/Header$/.test(owner.set) && /Control-Bar/.test(owner.variant);
-  const role = TITLE_LAYER.test(node.name) && !kicker ? "title" : SUBTEXT_LAYER.test(node.name) && !countLine ? "subtext" : label ? "label" : /^Caption\//.test(style ?? "") ? "caption" : null;
+  const role = TITLE_LAYER.test(node.name) ? "title" : SUBTEXT_LAYER.test(node.name) && !countLine ? "subtext" : label ? "label" : /^Caption\//.test(style ?? "") ? "caption" : null;
   if (!role) return;
   const paint = isMixed(node.fills) ? null : visiblePaints(node.fills).find((candidate) => candidate.type === "SOLID");
   const name = paint ? await paintVar(paint) : null;
   if (!name || (role === "title" ? TITLE_OK : CAPTION_OK).test(name)) return; // a raw colour is paint/unbound's
+  if (role === "title" && kicker && /\/Light$/.test(name)) return; // a kicker keeps Light; in any other tone it is a title
   // A state's variant keeps its state's tokens: today, now, the current, selected or past one, unread, pressed, disabled.
   if (owner && STATE_VARIANT.test(owner.variant)) return;
   if (role !== "title") {

@@ -208,7 +208,7 @@ export function qualityChecks({ scopeSel, regionSel }) {
       const style = typedName ?? b.st.name ?? "";
       const part = (re) => { for (let a = b.el; a && a !== region; a = a.parentElement) if (typeof a.className === "string" && re.test(a.className)) return a; return null; };
       const titleEl = b.el.closest("h1, h2, h3, h4, h5, h6, [role='heading']") ?? part(/(^|\s)zen-[a-z-]+__title(\s|$)/);
-      const role = titleEl && !/^(body-small-bold|all-caps-.*)$/.test(style) ? "title"
+      const role = titleEl ? "title"
         : part(/(^|\s)zen-[a-z-]+__(subtitle|subtext|subheading|capline)(\s|$)|(^|\s)zen-page-header__description(\s|$)/) && !b.el.closest(".zen-dashboard-header__subheading") ? "subtext"
         : b.el.closest(".zen-metric__label, .zen-metric-tile__label, .zen-property-field__label, .zen-slider-field__label, .zen-input__inline-label") ? "label"
         : /^caption-/.test(style) ? "caption" : null;
@@ -219,6 +219,8 @@ export function qualityChecks({ scopeSel, regionSel }) {
       const named = toneName(b.el);
       const candidates = named ? [named] : b.tone.filter((n) => n.startsWith("content-"));
       if (!candidates.length || candidates.some((n) => OK.test(n))) continue;
+      // A kicker keeps Light: a Body/Small/Bold group header, an All-Caps column title. In any other tone it is a title.
+      if (role === "title" && /^(body-small-bold|all-caps-.*)$/.test(style) && candidates.some((n) => /-light$/.test(n))) continue;
       // A Caption that is its item's main value, alone, is not a caption (the user 2026-10-26: "Các chữ này không được gọi
       // là label… giá trị chính và là giá trị một mình": a slot's time, an opinion's word, a resource's name under its
       // avatar, a milestone's title): the largest box around it that holds no other text is a control, a component, or
