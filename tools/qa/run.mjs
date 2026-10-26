@@ -439,7 +439,7 @@ const studioDrafts = serverUp ? await (async () => {
   }
 })() : [];
 // The audit's error kinds (audit.mjs SEVERITY, plus playground and smoke); the platform-audit self-test checks they match.
-const ERROR_KINDS = new Set(["errors", "overflow", "counts", "images", "names", "nesting", "surfaces", "edges", "sizes", "typography", "device", "outline", "playground", "smoke", "scale", "hierarchy", "density", "fit", "card-gap", "legend-column", "toolbar-search", "table-lead", "clip"]);
+const ERROR_KINDS = new Set(["errors", "overflow", "counts", "images", "names", "nesting", "surfaces", "edges", "sizes", "typography", "device", "outline", "playground", "smoke", "scale", "hierarchy", "density", "fit", "card-gap", "legend-column", "toolbar-search", "table-lead", "item-row-gap", "clip"]);
 const auditItems = (report) => { const errs = [], warns = []; for (const [key, entry] of Object.entries(report?.pages ?? {})) for (const [kind, items] of Object.entries(entry)) for (const item of items) (ERROR_KINDS.has(kind) ? errs : warns).push(`[${kind}] ${key}: ${item}`); return { errs, warns }; };
 // The pages the browser steps run on: all of them, or under --failed the pages that had an error or no report last time
 // ([] when the last run's browser steps all passed; all of them when they never ran).

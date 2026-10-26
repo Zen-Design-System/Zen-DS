@@ -210,3 +210,40 @@ From main 9fa8ef52 (train #310 with bp-layout's library half in). Built:
 Since #304 a new row only guards against regressions once it is in `matrix.baseline.json`. B-47, B-48, PT-22…28 and
 HO-18…20 (from #286/#287/#294/#302/#306/#307) passed in every gate since and were listed as "new, work". Run
 `studio:e2e -- --rows=<those 12> --update-baseline` on main 9fa8ef52: 12 works, 0 broken, 98 s.
+
+## tag-badge-gap · Tags and Badges side by side are 4px (tier M)
+
+The user: "Vẫn đang bị lỗi rule. Spacing giữa tag phải là 4px" (a PropertyField "Phụ trách" with three person Tags 8px
+apart), then "áp dụng rule tương tự cho badge". Cause: `property-field.css` set Gap/XSmall on the cell and its row gap;
+the harness `tag/row-gap` reads only an app's Stack, so a component's own CSS slipped through.
+
+Spec card (changed elements only):
+
+| Element | Token | Figma |
+| --- | --- | --- |
+| PropertyPeople / PropertyTags items (`.zen-property-value__slot`) | Spacing/Gap/2XSmall across and down; the cell's + stays Gap/XSmall | Property-Value Value-Slot |
+| TopNavigation `largeTitleBadges` row | Gap/2XSmall apart, Gap/XSmall below the heading | Heading-Text/Basic › Badges |
+| PageHeader `meta`, ListItem `trailing` of Badges/Tags only | Gap/2XSmall (other content keeps XSmall / Small) | — |
+
+- **Code:** the chips sit in a Value-Slot span (Figma's structure) so the + keeps 8px (control gap ladder). Table items,
+  the Table tag editor and Autocomplete tags were already 2XSmall. Examples fixed by the new rule: shape, ThemePreview,
+  app-shell d-expressive-1 / -2.
+- **Harness:** `badge/row-gap` (error, Badge + BadgeStatus), bad/good fixtures; Badge guideline Do/Don't, Tag Do names
+  the runtime kind. `usage:selftest` 261 rules.
+- **Runtime audit:** `item-row-gap` in `widgetLayout`: adjacent Tag–Tag / Badge–Badge in a flex or grid row, across and
+  down a wrap, ≠ the row's `--zen-spacing-gap-2-xsmall`; chips, counters, absolute items, space-* rows and gaps ≥ 32 are
+  not judged. 11 fixtures; audit selftest 81/81. Registered in audit.mjs (BASELINED, SEVERITY), qa ERROR_KINDS,
+  build-qa-process.md.
+- **Figma** (`9nZv4uW2LT21yuHabMTCh1`): itemSpacing (+ wrap spacing) rebound XSmall → 2XSmall on Value-Slot 17090:19,
+  :74, :96, :118 (Person) and :146, :170, :194, :218 (Tags); Badges 12028:70969 (H1), 12048:8244 (H2), 12048:8252 (H3).
+  A scan of every ❖ page found no other Tag/Badge row off 2XSmall. native-pack.json + native-defs.json.gz patched for
+  those 11 nodes by script (round trip checked first; no desktop capture). The library still needs a publish.
+- **Full audit** (`audit.mjs --isolated --quality --no-playground`, Giám sát's slot): 168 page runs (87 at 1512, 84 at
+  390), item-row-gap ran on all of them: 0 findings, so the kind starts with a 0 baseline. The watchdog re-ran three
+  slow pages at 1512 (global-dimensions, description-list, dock-icon). Proof it catches the slip: the old 8px CSS injected
+  (`--css`) on input + top-navigation gives 3 item-row-gap errors (PropertyField people and labels, the badges row).
+- **Gate** (`qa --isolated --files=<the 32 changed files>`; the hook had recorded none, since the edits were made through
+  Bash): PASS. Static, Figma contracts (1 suite), Vitest 91/91, audit 1512/390/320 + dark, behaviour, Studio E2E
+  380/380. The scope left out the PropertyField page and the app-shell examples, so a second run covered them
+  (`--only=input,app-shell`): PASS (Vitest 90/90, audit 1512/390/320, dark, behaviour). Contact sheets reviewed:
+  top-navigation (the badges row at 4px), shape, page-header, list-item, input (the Assignee Tags at 4px), app-shell.

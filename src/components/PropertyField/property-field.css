@@ -17,6 +17,9 @@
 .zen-property-value { position: relative; display: flex; flex: 1 1 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); min-width: 0; min-height: var(--zen-input-size-medium, 40px); box-sizing: border-box; margin: 0; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-input-spacing-medium-horizontal-padding, 12px); border: 0; border-radius: var(--zen-corner-radius-input-medium, 12px); background: transparent; color: var(--zen-color-content-neutral-strongest); font: inherit; text-align: start; }
 button.zen-property-value { cursor: pointer; }
 .zen-property-value:is([data-type="person"], [data-type="tags"]) { flex-wrap: wrap; row-gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Figma Value-Slot: person Tags and label Badges sit Spacing/Gap/2XSmall (4px) apart, across and down (the user
+   2026-10-26: tags and badges side by side are 4px); the cell's own + stays Gap/XSmall from them (control gap ladder). */
+.zen-property-value__slot { display: flex; flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); min-width: 0; max-width: 100%; }
 .zen-property-value[data-type="person"][data-interactive], .zen-property-value[data-type="tags"][data-interactive] { cursor: pointer; }
 /* Flat at rest: hover and an open picker take the Flat ramp (never Subtle/Surface). */
 .zen-property-value[data-interactive]:hover, .zen-property-value[data-state="hover"] { background: var(--zen-color-background-neutral-flat-hover); }

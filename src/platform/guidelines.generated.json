@@ -1397,6 +1397,7 @@
     ],
     "keyboard": [],
     "do": [
+      "Space badges side by side Gap/2XSmall (4px), as tags: a row Stack of Badges or BadgeStatus takes gap=\"2xs\" (the user 2026-10-26; harness: badge/row-gap, runtime audit item-row-gap).",
       "Map status to semantic themes consistently (green = success, red = failure, yellow = attention).",
       "Use Subtle backgrounds in dense tables and Solid for emphasis.",
       "Cap counters at \"99+\" and hide them at zero.",
@@ -1408,6 +1409,7 @@
       "Lead a priority badge (Urgent, High, Medium, Low) with the solid flag, leading=\"icon-flag-03-solid\" (Figma .Task/Priority), in the one priority palette: Urgent and High red, Medium yellow, Low neutral — the same everywhere, PropertySelect tones negative / warning / neutral (harness: priority/palette); keep a status badge's leading icon (the dot, or an icon per state) — the user 2026-10-24 (harness: badge/status-priority-icon)."
     ],
     "dont": [
+      "Don't space badges side by side Gap/XSmall (8px) or more: that is the Chip spacing.",
       "Don't make a badge clickable (use Chip).",
       "Don't make a BadgeStatus removable or clickable: a status changes in its picker (a Popover of BadgeStatus items, Input/Property-Field Type=Status).",
       "Don't rely on colour alone; keep the text.",
@@ -1458,6 +1460,12 @@
         "severity": "error",
         "summary": "Content on a Card theme=\"solid\" takes the fill's family (Figma audit theme/on-solid-content): on Neutral/Solid a Badge or DockIcon is theme=\"inverse\", on Accent and the colour solids theme=\"on-color\"; text and icons keep a neutral tone (the card re-points it to Inverse, On-Accent, On-Brights or On-Colors) or that family's own tone, never a colour tone.",
         "allow": "on-solid-content"
+      },
+      {
+        "id": "badge/row-gap",
+        "severity": "error",
+        "summary": "Badges side by side sit Gap/2XSmall (4px) apart, as Tags do: a Stack of Badges (or BadgeStatus) takes gap=\"2xs\".",
+        "allow": "badge-gap"
       },
       {
         "id": "badge/count-uses-counter",
@@ -1568,7 +1576,7 @@
       ]
     ],
     "do": [
-      "Space tags side by side Gap/2XSmall (4px): a row Stack of Tags (or of list items holding one Tag each) takes gap=\"2xs\" (the user 2026-10-24; harness: tag/row-gap).",
+      "Space tags side by side Gap/2XSmall (4px): a row Stack of Tags (or of list items holding one Tag each) takes gap=\"2xs\", across and down a wrap (the user 2026-10-24; harness: tag/row-gap, runtime audit item-row-gap).",
       "Let Backspace in an empty field remove the last tag.",
       "Flag invalid values with error and explain in the field's error text.",
       "Keep tag labels short (≤ 24 characters) and truncate with a tooltip beyond that."
@@ -8689,6 +8697,12 @@
         "severity": "error",
         "summary": "Tags side by side sit Gap/2XSmall (4px) apart: a Stack of Tags takes gap=\"2xs\".",
         "allow": "tag-gap"
+      },
+      {
+        "id": "badge/row-gap",
+        "severity": "error",
+        "summary": "Badges side by side sit Gap/2XSmall (4px) apart, as Tags do: a Stack of Badges (or BadgeStatus) takes gap=\"2xs\".",
+        "allow": "badge-gap"
       },
       {
         "id": "layout/use-stack",
