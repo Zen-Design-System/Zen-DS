@@ -480,7 +480,7 @@ export default function Page() {
             <Chip variant="advanced" size="md" dropdown leading="icon-calendar-line">This quarter</Chip>
             <Text tone="base">Jul 1 – Sep 30</Text>
             <Grid columns="repeat(auto-fit, minmax(min(100%, 496px), 1fr))" gap="md">
-              <MetricCard variant="title-highlight" size="xl" label="Revenue" value="$541.4K" trend={{ direction: "positive", label: "+8% vs. Q2" }} icon="icon-coins-stacked-01-solid" iconTheme="green" action={<IconButton size="xs" icon="icon-chevron-right-line" aria-label="Revenue breakdown" />} />
+              <MetricCard variant="title-highlight" size="xl" label="Revenue" value="$541.4K" trend={{ direction: "positive", label: "8%", subLabel: "vs. Q2" }} icon="icon-coins-stacked-01-solid" iconTheme="green" action={<IconButton size="xs" icon="icon-chevron-right-line" aria-label="Revenue breakdown" />} />
               <ChartCard title="Revenue" theme="shadow" range="revenue" ranges={[{ id: "revenue", label: "Revenue" }, { id: "profit", label: "Profit" }]}><LineChart data={[{ label: "Apr", value: 1 }]} /></ChartCard>
               <ChartCard title="Hours" theme="shadow"><StackBarChart series={[{ id: "a", label: "A" }]} data={[{ label: "Apr", values: { a: 1 } }]} /></ChartCard>
             </Grid>
@@ -516,7 +516,7 @@ export default function Page() {
   const [metricCard, lineCard, barCard] = fit.children;
   const metric = metricCard.slots[0].children[0];
   check("MetricCard: a Card (Shadow, no ⋮) around Metric-Inline, its Label and Metric-Number, Trend, Dock-Icon and Action on", { card: [metricCard.set.name, metricCard.props.Theme, metricCard.props["Sub-Action"]], metric: [metric.set.name, metric.texts, metric.props.Trend, metric.props["Dock-Icon"], metric.props.Action] }, { card: ["Card", "Shadow", false], metric: ["Primitives/Metric/Metric-Inline/Title-Highlight", { Label: "Revenue", "Metric-Number": "$541.4K" }, true, true, true] });
-  check("MetricCard: its trend badge, Dock Icon (its background written too: Metric's Subtle) and action glyph (a plain icon name as Figma's Medium cut)", metric.nested, [{ path: "Trend", props: { Trend: "Positive" }, textList: ["+8% vs. Q2"] }, { path: "Metric-Icon", props: { Theme: "Green", Background: "Subtle", "Icon-Src": "icon-coins-stacked-01-solid" } }, { path: "Button", props: { "Leading-Icon-Src": "icon-chevron-right-line-medium" } }]);
+  check("MetricCard: its Metric-Trend (the Sub-Label's words; the change on its Badge), Dock Icon (its background written too: Metric's Subtle) and action glyph (a plain icon name as Figma's Medium cut)", metric.nested, [{ path: "Trend", props: { Trend: "Positive" }, texts: { "Sub-Label": "vs. Q2" } }, { path: "Trend/Badge", text: "8%" }, { path: "Metric-Icon", props: { Theme: "Green", Background: "Subtle", "Icon-Src": "icon-coins-stacked-01-solid" } }, { path: "Button", props: { "Leading-Icon-Src": "icon-chevron-right-line-medium" } }]);
   // MetricCard custom (2026-10-14: Custom was on and its Custom-Slot empty, the card taller than its row with nothing in it).
   const CUSTOM = DASH.replace("import { AppShell,", "import { ProgressBar, AppShell,").replace('aria-label="Revenue breakdown" />} />', 'aria-label="Revenue breakdown" />} custom={<Stack gap="xs"><Text>Goal</Text><ProgressBar value={60} label aria-label="Goal" /></Stack>} />');
   const customPush = push(CUSTOM);
@@ -1226,13 +1226,47 @@ export default function Page() {
 }
 `;
   const { frame } = push(page);
-  const [, orders, refunds] = frame.children;
+  const [revenue, orders, refunds] = frame.children;
+  // A KPI MetricCard is a Card holding a Metric-Inline in its slot.
+  const inline = revenue.slots?.[0]?.children?.[0] ?? revenue;
+  check("MetricCard: a one-string label with no words after its figure hides Figma's sample Sub-Label; the Badge holds the figure, the sign the arrow shows dropped (trend.ts)", [inline.edits, inline.nested?.find((nested) => nested.path === "Trend/Badge")], [[{ layer: "Trend/Sub-Label", visible: false }], { path: "Trend/Badge", text: "3%" }]);
+  // One-string labels from before the split (the user approved splitting them, 2026-10-26): as MetricTrend draws them.
+  const { metricCardFigma: typedPush } = await import("./figma-metric.mjs");
+  const splitNotes = [];
+  const splitOf = (trend) => typedPush({ type: "sparkline", label: "Revenue", value: "$1", trend, series: [1, 2] }, { notes: splitNotes, where: "t" });
+  const agree = splitOf({ direction: "positive", label: "+9% vs. August" });
+  const disagree = splitOf({ direction: "positive", label: "-6% vs. Aug" });
+  const words = splitOf({ direction: "normal", label: "Same as August" });
+  const given = splitOf({ direction: "positive", label: "+9%", subLabel: "vs. August" });
+  const trendOf = (spec) => [spec.nested.filter((entry) => entry.path.startsWith("Title-Highlight/Trend")), (spec.edits ?? []).filter((edit) => /Sub-Label/.test(edit.layer))];
+  check("push: a one-string trend label is split as MetricTrend draws it (an agreeing sign dropped, a disagreeing one kept, no figure: the badge alone, a subLabel: no split)", [trendOf(agree), trendOf(disagree), trendOf(words), trendOf(given)], [
+    [[{ path: "Title-Highlight/Trend", props: { Trend: "Positive" }, texts: { "Sub-Label": "vs. August" } }, { path: "Title-Highlight/Trend/Badge", text: "9%" }], []],
+    [[{ path: "Title-Highlight/Trend", props: { Trend: "Positive" }, texts: { "Sub-Label": "vs. Aug" } }, { path: "Title-Highlight/Trend/Badge", text: "-6%" }], []],
+    [[{ path: "Title-Highlight/Trend", props: { Trend: "Normal" } }, { path: "Title-Highlight/Trend/Badge", text: "Same as August" }], [{ layer: "Title-Highlight/Trend/Sub-Label", visible: false }]],
+    [[{ path: "Title-Highlight/Trend", props: { Trend: "Positive" }, texts: { "Sub-Label": "vs. August" } }, { path: "Title-Highlight/Trend/Badge", text: "+9%" }], []],
+  ]);
   check("Metric: its default Dock Icon shows (home, Neutral, Subtle); icon={false} hides it", [orders.props["Dock-Icon"], orders.nested?.find((nested) => nested.path === "Metric-Icon")?.props, refunds.props["Dock-Icon"]], [true, { Theme: "Neutral", Background: "Subtle", "Icon-Src": "icon-home-02-solid" }, false]);
-  check("round trip: MetricCard and Metric come back the same from the push", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+  // The push writes the badge as MetricTrend draws it: "-3%" on a negative trend comes back "3%" (the arrow carries the sign).
+  check("round trip: MetricCard and Metric come back the same from the push", shape(pageFromFigma(frame, { mapping }).text), shape(page.replace('label: "-3%"', 'label: "3%"')));
   const read = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-metric.json", import.meta.url), "utf8")).frame;
   const fromFigma = pageFromFigma(read, { mapping });
   check("round trip: the same MetricCard and Metric from Figma's read of the import", shape(fromFigma.text).children[0].children[0].children.slice(0, 2), shape(page).children[0].children[0].children.slice(0, 2));
   check("round trip from Figma: no notes", fromFigma.notes, []);
+  // Figma's read since Metric-Trend's re-sync (595:55134, 2026-10-26): the badge holds the change, the reader always
+  // gives the shown Sub-Label's words (with the Trend path they sit in).
+  const inlineOf = (node) => (node.set?.name?.includes("Metric-Inline") ? node : [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)].map(inlineOf).find(Boolean));
+  const splitRead = structuredClone(read);
+  const splitBadge = inlineOf(splitRead).nested.find((nested) => nested.path === "Trend/Badge");
+  Object.assign(splitBadge, { text: "3%", props: { ...splitBadge.props, Text: "3%" } });
+  inlineOf(splitRead).texts.push({ name: "Sub-Label", characters: "vs. August", path: "Trend" });
+  ok("pull: Figma's Metric-Trend badge and Sub-Label come back as trend.label and trend.subLabel", pageFromFigma(splitRead, { mapping }).text.includes('trend={{ direction: "negative", label: "3%", subLabel: "vs. August" }}'));
+  // Figma's Normal badge is the layer .Primitives/Metrics/Metrics-Trend/Normal, which the reader names Trend/Normal.
+  const normalRead = structuredClone(splitRead);
+  const normalInline = inlineOf(normalRead);
+  normalInline.nested = normalInline.nested.map((nested) => (nested.path === "Trend/Badge" ? { ...nested, path: "Trend/Normal", text: "1", props: { ...nested.props, Text: "1", Theme: "Neutral" } } : nested));
+  normalInline.nested.push({ path: "Trend", props: { Trend: "Normal" }, text: "1" });
+  normalInline.texts = normalInline.texts.map((text) => (text.name === "Sub-Label" ? { ...text, characters: "invoice" } : text));
+  ok("pull: a Normal Metric-Trend's badge (layer …/Metrics-Trend/Normal) and Sub-Label", pageFromFigma(normalRead, { mapping }).text.includes('trend={{ direction: "normal", label: "1", subLabel: "invoice" }}'));
 }
 
 // 25. Icon sizes, FileIcon and Flag (2026-10-13): an Icon's size as its Element-Size/Popular variable (Base, the
@@ -2094,8 +2128,8 @@ export default function Page() {
     <Board>
       <Screen id="screen-1" title="Metric types" device="desktop">
         <Stack gap="md">
-          <MetricCard theme="default" type="sparkline" label="Revenue" value="$105,700" trend={{ direction: "positive", label: "+9% vs. August" }} series={[1, 2, 3]} />
-          <MetricCard type="comparison" label="Cash flow · October" comparison={[{ id: "in", label: "Invoiced", value: "$98,100", trend: { direction: "negative", label: "−7% vs. September" } }, { id: "out", label: "Collected", value: "$91,000" }]} />
+          <MetricCard theme="default" type="sparkline" label="Revenue" value="$105,700" trend={{ direction: "positive", label: "9%", subLabel: "vs. August" }} series={[1, 2, 3]} />
+          <MetricCard type="comparison" label="Cash flow · October" comparison={[{ id: "in", label: "Invoiced", value: "$98,100", trend: { direction: "negative", label: "7%", subLabel: "vs. September" } }, { id: "out", label: "Collected", value: "$91,000" }]} />
           <MetricCard type="hero" theme="solid" color="neutral" label="Invoiced this year" value="$798,300" series={[1, 2]} footer={<Button size="sm" appearance="overlay" level="inverse">Open report</Button>} />
           <MetricCard theme="default" label="Billable hours" value="5,900 h" />
           <MetricCard type="spark-bars" label="Awaiting approval" value="$6,340" series={[2, 0, 4]} />
@@ -2127,18 +2161,18 @@ export default function Page() {
   check("metric marks: the goal's Progress-Bar (label, value text, nearest step: 37% → Medium 40%)", goal.nested.find((entry) => entry.path === "Progress-Bar"), { path: "Progress-Bar", props: { Text: "of $72,000 budget", Progress: "Medium" }, texts: { Value: "37%" } });
   check("metric marks: a goal without words takes the code's (of 135K goal, 80%)", goalDefault.nested.find((entry) => entry.path === "Progress-Bar"), { path: "Progress-Bar", props: { Text: "of 135K goal", Progress: "Good" }, texts: { Value: "80%" } });
   check("metric marks: the goal's exact fill, then the footer under the drawing, across the card", goal.edits.map((edit) => [edit.layer, edit.columns?.map(Math.round), edit.append?.map((layer) => [layer.type, layer.characters, layer.textStyle, layer.fillW])]), [["Progress-Bar/Container", [37, 63], undefined], ["Metric-Body", undefined, [["TEXT", "On pace for $51,300 by Oct 31", "Body/Small/Regular", true]]]]);
-  check("metric type: Sparkline's title, number, trend and Card (Default, no ⋮)", [spark.texts, spark.nested], [{ Label: "Revenue", "Metric-Number": "$105,700" }, [{ path: "Card", props: { "Sub-Action": false, Theme: "Default" } }, { path: "Title-Highlight", props: { Trend: true } }, { path: "Title-Highlight/Trend", props: { Trend: "Positive" }, textList: ["+9% vs. August"] }]]);
+  check("metric type: Sparkline's title, number, trend and Card (Default, no ⋮)", [spark.texts, spark.nested], [{ Label: "Revenue", "Metric-Number": "$105,700" }, [{ path: "Card", props: { "Sub-Action": false, Theme: "Default" } }, { path: "Title-Highlight", props: { Trend: true } }, { path: "Title-Highlight/Trend", props: { Trend: "Positive" }, texts: { "Sub-Label": "vs. August" } }, { path: "Title-Highlight/Trend/Badge", text: "9%" }]]);
   check("metric type: Comparison's title and its columns (one without a trend), the variant's Shadow left alone", [compare.texts, compare.nested], [{ "Cash flow · September": "Cash flow · October" }, [
     { path: "Card", props: { "Sub-Action": false } },
-    { path: "Title-Highlight[0]", props: { Trend: true }, texts: { Label: "Invoiced", "Metric-Number": "$98,100" } }, { path: "Title-Highlight[0]/Trend", props: { Trend: "Negative" }, textList: ["−7% vs. September"] },
+    { path: "Title-Highlight[0]", props: { Trend: true }, texts: { Label: "Invoiced", "Metric-Number": "$98,100" } }, { path: "Title-Highlight[0]/Trend", props: { Trend: "Negative" }, texts: { "Sub-Label": "vs. September" } }, { path: "Title-Highlight[0]/Trend/Badge", text: "7%" },
     { path: "Title-Highlight[1]", props: { Trend: false }, texts: { Label: "Collected", "Metric-Number": "$91,000" } },
   ]]);
   check("metric type: the dark Hero's Card (Solid Neutral) and its button words", [hero.nested.find((entry) => entry.path === "Card").props, hero.nested.find((entry) => entry.path === "Button/Main")], [{ "Sub-Action": false, Theme: "Solid", Color: "Neutral" }, { path: "Button/Main", textList: ["Open report"] }]);
   ok("metric type: notes say Figma keeps three comparison columns, and no sample marks where the page has data", !typedNotes.some((note) => /draws its own sample/.test(note)) && typedNotes.some((note) => /2 comparison columns; Figma's Comparison draws 3/.test(note)));
   ok("metric type: KPI keeps its Metric-Inline", kpi.slots?.[0]?.children?.[0]?.set?.name === "Primitives/Metric/Metric-Inline/Icon-Highlight");
   const { text: back } = pageFromFigma(frame, { mapping });
-  ok("metric type round trip: Sparkline comes back typed, its texts, trend and theme, its series the Studio sample's", /<MetricCard theme="default" type="sparkline" label="Revenue" value="\$105,700" trend=\{\{ direction: "positive", label: "\+9% vs\. August" \}\} series=\{\[71200,/.test(back));
-  ok("metric type round trip: Comparison's columns come back from Figma's texts", /<MetricCard type="comparison" label="Cash flow · October" comparison=\{\[\{ id: "invoiced", label: "Invoiced", value: "\$98,100", trend: \{ direction: "negative", label: "−7% vs\. September" \} \}, \{ id: "collected", label: "Collected", value: "\$91,000" \}\]\} \/>/.test(back));
+  ok("metric type round trip: Sparkline comes back typed, its texts, trend and theme, its series the Studio sample's", /<MetricCard theme="default" type="sparkline" label="Revenue" value="\$105,700" trend=\{\{ direction: "positive", label: "9%", subLabel: "vs\. August" \}\} series=\{\[71200,/.test(back));
+  ok("metric type round trip: Comparison's columns come back from Figma's texts", /<MetricCard type="comparison" label="Cash flow · October" comparison=\{\[\{ id: "invoiced", label: "Invoiced", value: "\$98,100", trend: \{ direction: "negative", label: "7%", subLabel: "vs\. September" \} \}, \{ id: "collected", label: "Collected", value: "\$91,000" \}\]\} \/>/.test(back));
   ok("metric type round trip: the dark Hero keeps Solid Neutral and its button words", /<MetricCard theme="solid" color="neutral" type="hero"[^]*?footer=\{<Button[^>]*>Open report<\/Button>\}/.test(back));
   // A fresh Hero placed in Figma: its Card is Solid Brand (fill overridden to Brand Pale) with ⋮ on — the code's default Hero.
   const fresh = { type: "FRAME", name: "Board", layout: { mode: "VERTICAL", gap: 0, padding: [0, 0, 0, 0], counter: "MIN", primary: "MIN" }, children: [{ type: "INSTANCE", name: "Metric-Card", set: { id: "6643:64008", name: "Metric-Card" }, props: { Type: "Hero" }, texts: { Label: "Invoiced this year", "Metric-Number": "$798,300" }, nested: [{ path: "Card", props: { Theme: "Solid", Color: "Brand", "Sub-Action": true } }, { path: "Title-Highlight", props: { Trend: false } }, { path: "Button", textList: ["View report"] }] }] };
@@ -2161,7 +2195,7 @@ export default function Page() {
     <Board>
       <Screen id="screen-1" title="Tiles" device="mobile">
         <Stack gap="md">
-          <MetricCard theme="solid" color="neutral" type="tile" label="Success rate" value="56%" trend={{ direction: "positive", label: "+24% vs. last year" }} />
+          <MetricCard theme="solid" color="neutral" type="tile" label="Success rate" value="56%" trend={{ direction: "positive", label: "24%", subLabel: "vs. last year" }} />
           <MetricCard theme="solid" color="yellow" type="tile" label="Protein" value="92 g" size="sm" icon={false} />
           <MetricCard type="tile" label="Clients" value="1,284" icon="icon-clock-line" />
         </Stack>
@@ -2175,12 +2209,12 @@ export default function Page() {
   const walk = (node) => { if (node.set?.name === "Metric-Card") found.push(node); else [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)].forEach(walk); };
   walk(frame);
   check("metric tile: Type=Tile, the Metric-Tile's texts, Size, toggles and the card's Content, its trend and icon", found.map((node) => [node.props.Type, node.nested]), [
-    ["Tile", [{ path: "Card", props: { "Sub-Action": false, Theme: "Solid", Color: "Neutral" } }, { path: "Metric-Tile", props: { Trend: true, "Dock-Icon": true, "Metric-Title": "Success rate", "Metric-Number": "56%", Content: "Inverse" } }, { path: "Metric-Tile/Trend", props: { Trend: "Positive" }, textList: ["+24% vs. last year"] }]],
+    ["Tile", [{ path: "Card", props: { "Sub-Action": false, Theme: "Solid", Color: "Neutral" } }, { path: "Metric-Tile", props: { Trend: true, "Dock-Icon": true, "Metric-Title": "Success rate", "Metric-Number": "56%", Content: "Inverse" } }, { path: "Metric-Tile/Trend", props: { Trend: "Positive" }, texts: { "Sub-Label": "vs. last year" } }, { path: "Metric-Tile/Trend/Badge", text: "24%" }]],
     ["Tile", [{ path: "Card", props: { "Sub-Action": false, Theme: "Solid", Color: "Yellow" } }, { path: "Metric-Tile", props: { Trend: false, "Dock-Icon": false, "Metric-Title": "Protein", "Metric-Number": "92 g", Size: "Small", Content: "On-Bright" } }]],
     ["Tile", [{ path: "Card", props: { "Sub-Action": false } }, { path: "Metric-Tile", props: { Trend: false, "Dock-Icon": true, "Metric-Title": "Clients", "Metric-Number": "1,284" } }, { path: "Metric-Tile/Metric-Icon", props: { "Icon-Src": "icon-clock-line" } }]],
   ]);
   const { text: back } = pageFromFigma(frame, { mapping });
-  ok("metric tile round trip: the Solid Neutral tile, its texts and trend", /<MetricCard theme="solid" color="neutral" type="tile" label="Success rate" value="56%" trend=\{\{ direction: "positive", label: "\+24% vs\. last year" \}\} \/>/.test(back));
+  ok("metric tile round trip: the Solid Neutral tile, its texts and trend", /<MetricCard theme="solid" color="neutral" type="tile" label="Success rate" value="56%" trend=\{\{ direction: "positive", label: "24%", subLabel: "vs\. last year" \}\} \/>/.test(back));
   ok("metric tile round trip: the Small Yellow tile without its icon", /<MetricCard theme="solid" color="yellow" type="tile" label="Protein" value="92 g" size="sm" icon=\{false\} \/>/.test(back));
   ok("metric tile round trip: the Shadow tile and its icon", /<MetricCard type="tile" label="Clients" value="1,284" icon="icon-clock-line" \/>/.test(back));
 }

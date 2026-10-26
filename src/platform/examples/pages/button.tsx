@@ -162,9 +162,9 @@ function PageActionsExample() {
             tasks. The task table is the section's content: it lies on the page under its h2, no Card. */}
         <Stack gap="xl">
           <Grid columns={3} gap="md" stackBelow={640}>
-            <MetricCard theme="shadow" label="Progress" value={`${loyalty.progress}%`} icon="icon-check-done-line" trend={{ direction: "positive", label: "+6% this week" }} />
-            <MetricCard theme="shadow" label="Budget spent" value={formatMoney(loyalty.spent)} icon="icon-wallet-02-line" trend={{ direction: "normal", label: `of ${formatMoney(loyalty.budget)}` }} />
-            <MetricCard theme="shadow" label="Open tasks" value={String(open)} icon="icon-check-square-line" trend={{ direction: "normal", label: `${rows.length - open} done` }} />
+            <MetricCard theme="shadow" label="Progress" value={`${loyalty.progress}%`} icon="icon-check-done-line" trend={{ direction: "positive", label: "6%", subLabel: "this week" }} />
+            <MetricCard theme="shadow" label="Budget spent" value={formatMoney(loyalty.spent)} icon="icon-wallet-02-line" trend={{ direction: "normal", label: formatMoney(loyalty.budget), subLabel: "budget" }} />
+            <MetricCard theme="shadow" label="Open tasks" value={String(open)} icon="icon-check-square-line" trend={{ direction: "normal", label: String(rows.length - open), subLabel: "done" }} />
           </Grid>
           <Stack as="section" gap="md" aria-labelledby={tasksId}>
             <Heading level={2} id={tasksId} textStyle="Heading/4">Tasks</Heading>

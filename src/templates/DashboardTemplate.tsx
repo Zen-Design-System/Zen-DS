@@ -262,13 +262,14 @@ function booksOf(indexes: number[]) {
 const revenueIn = (project: Project, indexes: number[]) => sum(indexes.map((index) => project.revenue[index - chartOffset] ?? 0));
 /** Projects count as active from their start day; none has finished this year. */
 const activeBy = (list: Project[], end: string) => list.filter((project) => project.start <= end);
-/** "+8% vs. Q2" · "−1 pt vs. August" · "Same as Q2"; the direction colours the trend badge. */
+/** "8%" · "1 pt" · "+2" (a neutral count keeps its sign) in the badge, "vs. Q2" beside it (Figma Metric-Trend); the
+ *  direction colours the badge and its arrow carries the sign. */
 function trendOf(delta: number, unit: "%" | "pts" | "count", against: string) {
   const amount = unit === "%" ? `${Math.abs(delta)}%` : unit === "pts" ? `${Math.abs(delta)} ${Math.abs(delta) === 1 ? "pt" : "pts"}` : `${Math.abs(delta)}`;
-  const label = delta === 0 ? `Same as ${against}` : `${delta > 0 ? "+" : "−"}${amount} vs. ${against}`;
   // More projects is neither good nor bad news, so that trend stays neutral.
   const direction = unit === "count" || delta === 0 ? "normal" : delta > 0 ? "positive" : "negative";
-  return { direction, label } as const;
+  const label = direction === "normal" && delta !== 0 ? `${delta > 0 ? "+" : "−"}${amount}` : amount;
+  return { direction, label, subLabel: `vs. ${against}` } as const;
 }
 
 type Row = Project & { earned: number };

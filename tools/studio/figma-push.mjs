@@ -23,7 +23,7 @@ import { pruneHidden } from "./visibility.mjs";
 import { atBreakpoint, screenBreakpoint } from "./responsive-props.mjs";
 import { FIGMA_NAMED, LABEL_NAMED, givenNameOf } from "./layer-meta.mjs";
 import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFigma } from "./figma-charts.mjs";
-import { SUB_ACTION_ICON, metricCardFigma, metricCardTyped } from "./figma-metric.mjs";
+import { SUB_ACTION_ICON, metricCardFigma, metricCardTyped, trendEdits, trendNested } from "./figma-metric.mjs";
 import { PROPERTY_TYPE as PROPERTY_CELL_TYPE, propertyValueFigma, statusArcs } from "./figma-property.mjs";
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
@@ -120,8 +120,6 @@ const FLAG_SIZE = { small: "Image-Size/3XSmall", large: "Image-Size/Small" };
 const scaleOf = (size) => ({ sm: "small", md: "medium", lg: "large" })[size] ?? size;
 /** Metric's icon when it sets none (MetricWidget.tsx). */
 const METRIC_ICON = "icon-home-02-solid";
-/** MetricCard trend.direction → Figma .Primitives/Metrics/Metric-Trend's Trend option. */
-const TREND_OPTION = { positive: "Positive", negative: "Negative", normal: "Normal", neutral: "Normal" };
 /** A Table column's content cell (Figma Table/Cell/Default › Content) by the column's `content`. */
 const CELL_SETS = {
   text: { id: "1603:3247", name: "Primitives/Table/Cell/Text-Cell" },
@@ -2356,7 +2354,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   }
 
   /**
-   * MetricCard in Figma's Metric-Inline layers: Label and Metric-Number, the Trend badge (its Trend option and label),
+   * MetricCard in Figma's Metric-Inline layers: Label and Metric-Number, the Metric-Trend (its Trend option, the badge's
+   * change and the Sub-Label, hidden without one),
    * the Metric-Icon Dock Icon (icon, theme, background), the action's Icon-Main glyph; each part shown only when set.
    */
   function metricParts(element, code, node, where) {
@@ -2370,7 +2369,11 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     const icon = code.icon === false || code.iconEmoji ? null : typeof code.icon === "string" ? code.icon : METRIC_ICON;
     Object.assign(node.props, onlyOwn(node.set, { "Metric-Title": Boolean(texts.Label), Trend: Boolean(trend), "Dock-Icon": code.icon !== false && Boolean(icon || code.iconEmoji), Action: Boolean(action) }));
     const nested = [];
-    if (trend && typeof trend === "object") nested.push({ path: "Trend", props: TREND_OPTION[trend.direction] ? { Trend: TREND_OPTION[trend.direction] } : {}, ...(typeof trend.label === "string" ? { textList: [trend.label] } : {}) });
+    if (trend && typeof trend === "object") {
+      nested.push(...trendNested(trend, "Trend", { fallback: null }));
+      const edits = trendEdits(trend, "Trend", notes, where);
+      if (edits.length) node.edits = [...(node.edits ?? []), ...edits];
+    }
     const dock = icon ? entryFor("DockIcon", {}, byCode, mapping) : null;
     if (dock) {
       const fields = { icon, theme: code.iconTheme ?? "neutral", background: code.iconBackground ?? "subtle" };

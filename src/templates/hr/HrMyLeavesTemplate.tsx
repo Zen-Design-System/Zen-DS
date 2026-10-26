@@ -287,7 +287,7 @@ export function HrMyLeavesTemplate() {
         const balance = balanceOf(kind.id);
         return (
           <MetricCard key={kind.id} variant="title-highlight" size={phone ? "sm" : "xl"} label={kind.name} value={formatDays(balance.available)}
-            trend={{ direction: "normal", label: `Left of ${balance.allowance}` }} iconEmoji={kind.emoji} iconSize="md" />
+            trend={{ direction: "normal", label: String(balance.allowance), subLabel: "allowance" }} iconEmoji={kind.emoji} iconSize="md" />
         );
       })}
     </Grid>

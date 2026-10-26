@@ -43,7 +43,6 @@ import {
   Tabs,
   Text,
   VisuallyHidden,
-  plural,
   useFormState,
   useToast,
   useZen,
@@ -119,10 +118,11 @@ export function HrPublicHolidayTemplate() {
   // The next holiday the office observes, from today on (it may sit in next year's list).
   const next = holidays.filter((item) => item.country === country && !item.officeOpen && lastDayOf(item) >= today).sort(byStart)[0];
   const observed = rows.filter((item) => !item.officeOpen);
-  const tiles: Array<{ id: string; label: string; value: string; trend?: string; icon: IconName; theme: DockIconTheme }> = [
-    { id: "next", label: "Next holiday", value: next ? formatDate(next.start, { year: toDate(next.start).getFullYear() !== thisYear }) : "None", trend: next ? whenOf(next.start) : undefined, icon: "icon-calendar-heart-solid", theme: "pink" },
-    { id: "days", label: `Days off in ${year}`, value: formatDays(observed.reduce((sum, item) => sum + daysOffOf(item), 0)), trend: plural(observed.length, "holiday"), icon: "icon-sun-solid", theme: "yellow" },
-    { id: "people", label: "People", value: String(calendar.headcount), trend: calendar.region, icon: "icon-users-solid", theme: "blue" },
+  // Each trend: the badge, then its Sub-Label (Figma Metric-Trend: "4" + "holidays").
+  const tiles: Array<{ id: string; label: string; value: string; trend?: { label: string; subLabel?: string }; icon: IconName; theme: DockIconTheme }> = [
+    { id: "next", label: "Next holiday", value: next ? formatDate(next.start, { year: toDate(next.start).getFullYear() !== thisYear }) : "None", trend: next ? { label: whenOf(next.start) } : undefined, icon: "icon-calendar-heart-solid", theme: "pink" },
+    { id: "days", label: `Days off in ${year}`, value: formatDays(observed.reduce((sum, item) => sum + daysOffOf(item), 0)), trend: { label: String(observed.length), subLabel: observed.length === 1 ? "holiday" : "holidays" }, icon: "icon-sun-solid", theme: "yellow" },
+    { id: "people", label: "People", value: String(calendar.headcount), trend: { label: calendar.region }, icon: "icon-users-solid", theme: "blue" },
   ];
 
   const navigate: HrNavigate = (target) => {
@@ -233,7 +233,7 @@ export function HrPublicHolidayTemplate() {
           <Grid columns="repeat(auto-fit, minmax(min(100%, 220px), 1fr))" gap="md">
             {tiles.map((tile) => (
               <MetricCard key={tile.id} variant="title-highlight" size={phone ? "sm" : "xl"} label={tile.label} value={tile.value}
-                trend={tile.trend ? { direction: "normal", label: tile.trend } : undefined} icon={tile.icon} iconTheme={tile.theme} iconSize="md" />
+                trend={tile.trend ? { direction: "normal", ...tile.trend } : undefined} icon={tile.icon} iconTheme={tile.theme} iconSize="md" />
             ))}
           </Grid>
 
