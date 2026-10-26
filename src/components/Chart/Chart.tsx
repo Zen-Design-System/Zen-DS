@@ -226,7 +226,7 @@ export interface ChartCardProps {
    *  Tooltip on hover and keyboard focus. Put the chart's description here (what it counts, its source, how the figure is
    *  worked out) so the card itself stays the title, the metric and the chart; leave it out when the title says enough. */
   hint?: ReactNode;
-  /** Figma Metric Label: what the headline figure is ("Invoiced so far in 2026"), Body/Small/Regular over the value, under
+  /** Figma Metric Label: what the headline figure is ("Invoiced so far in 2026"), Body/Small/Regular in Content/Neutral/Light over the value, under
    *  the Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value). */
   metricLabel?: ReactNode;
   /** @deprecated Renamed `metricLabel` (Figma Metric Label, 2026-10-26). A description of the chart goes in `hint`. */

@@ -237,7 +237,8 @@
 .zen-chart-card__titlebar { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-chart-card__icon { display: inline-flex; flex: none; color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-chart-card__title { min-width: 0; flex: 1; margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
-.zen-chart-card__metric-label { margin: 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 66%)); }
+/* Metric Label: Content/Neutral/Light, as every metric's label (the user, 2026-10-26: "Metric label cũng là light"). */
+.zen-chart-card__metric-label { margin: 0; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 /* Figma Hint: a bare 20px info glyph (Element-Size/Popular/Base, Content/Neutral/Light) after the title, as MetricWidget's;
    its Tooltip holds the chart's description. */
 .zen-chart-card__hint { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: none; padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: none; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); cursor: help; }

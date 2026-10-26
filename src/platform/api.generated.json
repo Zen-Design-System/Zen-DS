@@ -18736,7 +18736,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Metric Label: what the headline figure is (\"Invoiced so far in 2026\"), Body/Small/Regular over the value, under\n the Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value).",
+          "description": "Figma Metric Label: what the headline figure is (\"Invoiced so far in 2026\"), Body/Small/Regular in Content/Neutral/Light over the value, under\n the Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value).",
           "deprecated": null
         },
         {
