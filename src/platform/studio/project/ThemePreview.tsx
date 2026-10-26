@@ -385,7 +385,7 @@ function ComponentsGallery({ theme }: { theme: Theme }) {
       </Card>
       <Card theme="default" spacing="sm">
         <Stack gap="md">
-          <Stack direction="row" gap="xs" wrap>
+          <Stack direction="row" gap="2xs" wrap>
             <Badge theme="accent">New</Badge>
             <Badge theme="green" background="subtle">Paid</Badge>
             <Badge theme="yellow" background="subtle">Due soon</Badge>

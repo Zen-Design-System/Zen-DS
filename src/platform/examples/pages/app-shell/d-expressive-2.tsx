@@ -105,7 +105,7 @@ function GreetingTilesPhone() {
                   aria-label="Save appointment" aria-pressed={saved}
                   onClick={() => { setSaved((value) => !value); toast({ title: saved ? "Removed from saved" : "Appointment saved", children: "Family therapy · Tomorrow, 5:30 pm" }); }} />
               </Stack>
-              <Stack direction="row" gap="xs" wrap>
+              <Stack direction="row" gap="2xs" wrap>
                 <Badge theme="violet" background="subtle" leading="icon-clock-line">5:30 – 8:00 pm</Badge>
                 <Badge theme="neutral" background="subtle" leadingIcon={false}>$100 / session</Badge>
               </Stack>
