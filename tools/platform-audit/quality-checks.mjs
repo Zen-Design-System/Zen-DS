@@ -207,9 +207,21 @@ export function qualityChecks({ scopeSel, regionSel }) {
       const typedName = typed && typeof typed.className === "string" ? typed.className.match(/\bzen-type-([\w-]+)/)?.[1] : null;
       const style = typedName ?? b.st.name ?? "";
       const part = (re) => { for (let a = b.el; a && a !== region; a = a.parentElement) if (typeof a.className === "string" && re.test(a.className)) return a; return null; };
-      const titleEl = b.el.closest("h1, h2, h3, h4, h5, h6, [role='heading']") ?? part(/(^|\s)zen-[a-z-]+__title(\s|$)/);
-      const role = titleEl ? "title"
-        : part(/(^|\s)zen-[a-z-]+__(subtitle|subtext|subheading|capline)(\s|$)|(^|\s)zen-page-header__description(\s|$)/) && !b.el.closest(".zen-dashboard-header__subheading") ? "subtext"
+      // A heading's own text is its title; its other parts (a subtitle, a time, a Master › Child crumb) are not, nor is a
+      // styled run inside a heading that has words of its own ("Morning <Alexander>").
+      const heading = b.el.closest("h1, h2, h3, h4, h5, h6, [role='heading']");
+      let ownTitle = Boolean(heading);
+      if (heading) {
+        for (let a = b.el; a && a !== heading; a = a.parentElement) {
+          const parts = typeof a.className === "string" ? a.className.split(/\s+/).filter((c) => /^zen-[a-z-]+__[a-z-]+$/.test(c)) : [];
+          if (parts.length) { ownTitle = parts.some((c) => /__(title|name|heading)$/.test(c)); break; }
+        }
+        if (ownTitle && b.el !== heading && [...heading.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && n.textContent.trim())) ownTitle = false;
+      }
+      const titleEl = heading ? (ownTitle ? heading : null) : part(/(^|\s)zen-[a-z-]+__title(\s|$)/);
+      const subtext = part(/(^|\s)zen-[a-z-]+__([a-z-]+-)?(subtitle|subtext|subheading|capline)(\s|$)|(^|\s)zen-page-header__description(\s|$)/) && !b.el.closest(".zen-dashboard-header__subheading");
+      const role = subtext ? "subtext"
+        : titleEl ? "title"
         : b.el.closest(".zen-metric__label, .zen-metric-tile__label, .zen-property-field__label, .zen-slider-field__label, .zen-input__inline-label") ? "label"
         : /^caption-/.test(style) ? "caption" : null;
       if (!role) continue;
@@ -234,7 +246,10 @@ export function qualityChecks({ scopeSel, regionSel }) {
         const component = typeof item.className === "string" && item.className.split(/\s+/).some((c) => /^zen-[a-z-]+$/.test(c) && !/^zen-(type-.*|text|heading|stack|box|grid)$/.test(c));
         if (item !== b.el && (control || component || item.querySelector("svg, img, picture, canvas, video, [role='img'], .zen-icon, .zen-avatar, .zen-dock-icon"))) continue;
       }
-      // The nearest painted background: for the Light roles a surface is judged, any other fill is the fill's business.
+      // The nearest painted background: for the Light roles a surface is judged, any other fill is the fill's business. A
+      // filled component (a Badge or its counter, an Avatar, a Dock Icon, a Notification-Dot, a Tag) is a fill whatever
+      // its colour matches.
+      if (role !== "title" && b.el.closest(".zen-badge, .zen-avatar, .zen-dock-icon, .zen-notification-dot, .zen-tag")) continue;
       if (role !== "title") {
         let fill = null;
         for (let a = b.el; a && a !== region.parentElement; a = a.parentElement) {
