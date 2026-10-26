@@ -70,6 +70,7 @@ import { useStudioBridge } from "./studio/bridge";
 import { ComponentPreview, PlaygroundControls, PlaygroundFilterChip, PlaygroundSlot, PlaygroundToggle } from "./appLayer/playgroundParts";
 export { ComponentPreview, PlaygroundControls, PlaygroundFilterChip, PlaygroundSlot, PlaygroundToggle } from "./appLayer/playgroundParts";
 import { ComponentExamples, PopoverBulkSelectionDemo } from "./PlatformShowcases";
+import { examplesLabel } from "./examples/registry";
 import { popoverContentKinds, popoverContentSet, type PopoverContentKind } from "./PlatformPopoverContent";
 
 const samplePhoto = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" fill="#d9c7b8"/><circle cx="16" cy="13" r="6" fill="#8f735f"/><rect x="6" y="21" width="20" height="14" rx="7" fill="#8f735f"/></svg>');
@@ -92,7 +93,7 @@ function ExamplePage({ eyebrow, title, description, titleLines, page, children }
         <div className="platform-example-page platform-component-page">
           <div ref={contentRef} className="platform-component-page__content">
             <PlatformSection id="playground" label="Playground">{children}</PlatformSection>
-            <PlatformSection id="examples" label="Examples"><ComponentExamples page={page} /></PlatformSection>
+            <PlatformSection id="examples" label={examplesLabel(page)}><ComponentExamples page={page} /></PlatformSection>
             <ComponentKeyboard page={page} />
             <ComponentApi page={page} />
             <ComponentProps page={page} />

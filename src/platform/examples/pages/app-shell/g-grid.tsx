@@ -172,13 +172,13 @@ function TeamPerformance() {
               ))}
             </Grid>
             <Grid columns={2} stackBelow={880} gap="md">
-              <ChartCard headingLevel={2} title="Time worked" description="Hours per member per week, last 7 weeks" value={hours.value}
+              <ChartCard headingLevel={2} title="Time worked" metricLabel="Hours per member per week, last 7 weeks" value={hours.value}
                 ranges={hoursRanges} range={range} onRangeChange={setRange}>
                 <LineChart key={range} aria-label={`Hours worked per member, ${range}: this team and the company average`} height={240} label="This team" legendPosition="top"
                   data={hours.labels.map((label, index) => ({ label, value: hours.team[index] }))} compare={{ label: "Company average", values: hours.company }}
                   format={(value) => `${Math.round(value)}h`} />
               </ChartCard>
-              <ChartCard headingLevel={2} title="Leads by salesperson" description="Sales team this week, highest first" value="647 leads">
+              <ChartCard headingLevel={2} title="Leads by salesperson" metricLabel="Sales team this week, highest first" value="647 leads">
                 <BarChart aria-label="Leads per salesperson this week, highest first" height={240} data={leads} format={(value) => String(value)} />
               </ChartCard>
             </Grid>

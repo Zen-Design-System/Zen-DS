@@ -26,7 +26,8 @@ The rules say what is wrong. To choose well among the options they leave open (w
 how a layout changes with the width), use the principles in `skills/zen-figma-design/references/design-principles.md`
 and `skills/zen-figma-design/references/responsive-principles.md`. To turn a brief into screens and plan each screen's
 states and flows (loading, empty, failed, forms, navigation, access), use `product-patterns.md` and `ux-principles.md`
-in the same folder. They guide judgement; the audit does not check them.
+in the same folder; to lay out a dashboard's widgets (one grid, sizes by importance, rows that fill at every width),
+`dashboard-layout.md`. They guide judgement; the audit does not check them.
 
 ## Done means
 

@@ -34,7 +34,7 @@ export interface FunnelChartProps {
 
 /**
  * Funnel in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): one row per stage — the name
- * (Body/Small/Medium · Content/Neutral/Strongest) over its count (Caption/Regular · Content/Neutral/Base) in an 84px start
+ * (Body/Small/Medium · Content/Neutral/Strongest) over its count (Caption/Regular · Content/Neutral/Light) in an 84px start
  * column, a 32px bar centred in its track as wide as its share of the first stage (Chart/Sector/Primary, the last stage
  * Chart/Sector/Secondary, Corner-Radius/Small), and the share at the end (Body/Small/Medium, right-aligned). Rows
  * Spacing/Gap/XSmall apart, columns Spacing/Gap/Small. Stages are pickable like horizontal bars: hover or ↑/↓ and

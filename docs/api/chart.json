@@ -87,7 +87,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The point active at first (its Tooltip shows). Default: the last one.",
+          "description": "The point active at first and whenever the pointer leaves. Default: none — the active point and its Tooltip show\n only under the pointer or the keyboard (the user, 2026-10-26).",
           "deprecated": null
         },
         {
@@ -143,7 +143,7 @@
     {
       "name": "BarChart",
       "file": "src/components/Chart/BarChart.tsx",
-      "description": "Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with\nCorner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched\nin Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→). Horizontal: a\ncategory column, 24px bars, a value column at the end of the rows (the active one in Strongest; no Tooltip floats over\nthe bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart\n15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941; Color=Primary · Secondary ↔ `palette`); the hatch is\n.Chart/Hatch 15321:475.",
+      "description": "Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with\nCorner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched\nin Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→); the bars run edge\nto edge Spacing/Gap/XSmall apart, as wide as the count allows, rounded on the top corners over a flat base. Horizontal: a\ncategory column, 24px bars Spacing/Gap/XSmall apart (flat at the axis, thicker in a taller card), a value column at the end of the rows (the active one in Strongest; no Tooltip floats over\nthe bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart\n15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941; Color=Primary · Secondary ↔ `palette`); the hatch is\n.Chart/Hatch 15321:475.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -216,7 +216,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The bar active at first (painted Chart/Sector/Secondary, its Tooltip shown). Default: the last bar that isn't projected.",
+          "description": "The bar active at first and whenever the pointer leaves (painted Chart/Sector/Secondary, its Tooltip shown). Default:\n none on vertical bars, which show the active bar and its Tooltip only under the pointer or the keyboard; the last bar\n that isn't projected on horizontal bars.",
           "deprecated": null
         },
         {
@@ -264,7 +264,7 @@
     {
       "name": "StackBarChart",
       "file": "src/components/Chart/Chart.tsx",
-      "description": "Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector (2px side padding, Corner-Radius/Small on the column),\nsegments in series order from the bottom, a 12px-dot legend (Caption/Regular), and a Tooltip with the active total.",
+      "description": "Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector, edge to edge Spacing/Gap/XSmall apart (Corner-Radius/Small on the top corners, a flat base),\nsegments in series order from the bottom, a 12px-dot legend (Caption/Regular), and a Tooltip with the active total.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -337,7 +337,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The column active at first. Default: the last one.",
+          "description": "The column active at first and whenever the pointer leaves. Default: none — the active column and its Tooltip show\n only under the pointer or the keyboard.",
           "deprecated": null
         },
         {
@@ -385,7 +385,7 @@
     {
       "name": "DonutChart",
       "file": "src/components/Chart/DonutChart.tsx",
-      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,\nparted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %\npill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)\n— or, with `totalPosition=\"start\"`, beside the ring above the legend (Body/Small/Regular caption, Display/4 figure, as\nthe Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump\nto the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365\n(Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).",
+      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,\nparted by 2px gaps (Spacing/Gap/3XSmall) of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %\npill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)\n— or, with `totalPosition=\"start\"`, beside the ring above the legend (Body/Small/Regular caption, Display/4 figure, as\nthe Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump\nto the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365\n(Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -813,7 +813,7 @@
     {
       "name": "BulletChart",
       "file": "src/components/Chart/BulletChart.tsx",
-      "description": "Bullet chart: 1–4 goals, each a row with its label (Body/Small/Medium, Content/Neutral/Strongest) and \"actual of\ntarget\" (Body/Small/Regular, Content/Neutral/Base) above a 16px Corner-Radius/Rounded track (Border/Neutral/Subtle/\nPressed at 50%: Figma's Color Chart Sector/On-Color/Tertiary), the actual as an 8px Color Chart Sector/Primary bar inset\n4px, and the target as a 3px Color Chart Sector/Secondary tick 24px tall; rows Spacing/Gap/Medium apart, label and\ntrack Spacing/Gap/XSmall. A legend (Spacing/Gap/Small between items) names the bar and the tick. ↑/↓ and Home/End\npick a row (the others' marks dim), hover too; the summary reads \"Revenue: $798K of $900K (1 of 3)\".\nFigma Chart/Bullet-Chart 15968:130554 (Color=Primary 15487:2516 · Secondary ↔ `palette`; the chart body and Show Legend; the\nheader is ChartCard's).",
+      "description": "Bullet chart: 1–4 goals, each a row with its label (Body/Small/Medium, Content/Neutral/Strongest) and \"actual of\ntarget\" (Body/Small/Regular, Content/Neutral/Strongest: the row's main value) above a 16px Corner-Radius/Rounded track (Border/Neutral/Subtle/\nPressed at 50%: Figma's Color Chart Sector/On-Color/Tertiary), the actual as an 8px Color Chart Sector/Primary bar inset\n4px, and the target as a 3px Color Chart Sector/Secondary tick 24px tall; rows Spacing/Gap/Medium apart, label and\ntrack Spacing/Gap/XSmall. A legend (Spacing/Gap/Small between items) names the bar and the tick. ↑/↓ and Home/End\npick a row (the others' marks dim), hover too; the summary reads \"Revenue: $798K of $900K (1 of 3)\".\nFigma Chart/Bullet-Chart 15968:130554 (Color=Primary 15487:2516 · Secondary ↔ `palette`; the chart body and Show Legend; the\nheader is ChartCard's).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -1063,7 +1063,7 @@
     {
       "name": "FunnelChart",
       "file": "src/components/Chart/FunnelChart.tsx",
-      "description": "Funnel in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): one row per stage — the name\n(Body/Small/Medium · Content/Neutral/Strongest) over its count (Caption/Regular · Content/Neutral/Base) in an 84px start\ncolumn, a 32px bar centred in its track as wide as its share of the first stage (Chart/Sector/Primary, the last stage\nChart/Sector/Secondary, Corner-Radius/Small), and the share at the end (Body/Small/Medium, right-aligned). Rows\nSpacing/Gap/XSmall apart, columns Spacing/Gap/Small. Stages are pickable like horizontal bars: hover or ↑/↓ and\nHome/End pick one (the others dim) and the summary reads its name, count and share. Figma Chart/Funnel-Chart 15968:130460\n(Color=Primary 15486:2497 · Secondary ↔ `palette`).",
+      "description": "Funnel in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): one row per stage — the name\n(Body/Small/Medium · Content/Neutral/Strongest) over its count (Caption/Regular · Content/Neutral/Light) in an 84px start\ncolumn, a 32px bar centred in its track as wide as its share of the first stage (Chart/Sector/Primary, the last stage\nChart/Sector/Secondary, Corner-Radius/Small), and the share at the end (Body/Small/Medium, right-aligned). Rows\nSpacing/Gap/XSmall apart, columns Spacing/Gap/Small. Stages are pickable like horizontal bars: hover or ↑/↓ and\nHome/End pick one (the others dim) and the summary reads its name, count and share. Figma Chart/Funnel-Chart 15968:130460\n(Color=Primary 15486:2497 · Secondary ↔ `palette`).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -1225,7 +1225,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The period active at first (its dots, rule and Tooltip show). Default: the last one.",
+          "description": "The period active at first and whenever the pointer leaves. Default: none — the active period and its Tooltip show\n only under the pointer or the keyboard (the user, 2026-10-26).",
           "deprecated": null
         },
         {
@@ -1338,7 +1338,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The group active at first (its Tooltip shows every series' value). Default: the last one.",
+          "description": "The group active at first and whenever the pointer leaves. Default: none — the active group and its Tooltip show\n only under the pointer or the keyboard (the user, 2026-10-26).",
           "deprecated": null
         },
         {
@@ -1378,7 +1378,7 @@
     {
       "name": "ComboChart",
       "file": "src/components/Chart/ComboChart.tsx",
-      "description": "Figma Chart/Combo-Chart (15485:2519; Color=Primary · Secondary ↔ `palette`): two measures over the same periods on two axes. Bars (Color Chart Sector/Primary,\n20px, half the period's column with room to spare, up to 40px; Corner-Radius/XSmall on the top corners) read the start axis; a straight 2px Color Chart Sector/Secondary line\n(round caps) with an 8px dot on every period (Surface/Default, 2px ring) reads the end axis. Both axes take\nLabel/Small/Medium in Content/Neutral/Light, Spacing/Padding/XSmall from the plot (the start one right-aligned, the end\none left-aligned) and share the dashed 4 / 4 Border/Neutral/Pale gridlines over a solid Border/Active/Neutral/Subtle\nbaseline. The active period keeps its bar (the others ease to 88%), its dot grows to 12px, and the Tooltip in the top\nlane reads both values after their dots; X labels under the plot (the active one a pill). The legend (Figma Show\nLegend) names both measures Spacing/Gap/Medium under the plot, its items Spacing/Gap/Small apart. ←/→ and Home/End\nmove between periods; hover picks one.",
+      "description": "Figma Chart/Combo-Chart (15485:2519; Color=Primary · Secondary ↔ `palette`): two measures over the same periods on two axes. Bars (Color Chart Sector/Primary,\nfilling the periods edge to edge Spacing/Gap/XSmall apart; Corner-Radius/XSmall on the top corners over a flat base) read the start axis; a straight 2px Color Chart Sector/Secondary line\n(round caps) with an 8px dot on every period (Surface/Default, 2px ring) reads the end axis. Both axes take\nLabel/Small/Medium in Content/Neutral/Light, Spacing/Padding/XSmall from the plot (the start one right-aligned, the end\none left-aligned) and share the dashed 4 / 4 Border/Neutral/Pale gridlines over a solid Border/Active/Neutral/Subtle\nbaseline. The active period keeps its bar (the others ease to 88%), its dot grows to 12px, and the Tooltip in the top\nlane reads both values after their dots; X labels under the plot (the active one a pill). The legend (Figma Show\nLegend) names both measures Spacing/Gap/Medium under the plot, its items Spacing/Gap/Small apart. ←/→ and Home/End\nmove between periods; hover picks one.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -1475,7 +1475,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The period active at first (its Tooltip reads both values). Default: the last one.",
+          "description": "The period active at first and whenever the pointer leaves. Default: none — the active period and its Tooltip show\n only under the pointer or the keyboard (the user, 2026-10-26).",
           "deprecated": null
         },
         {
@@ -1515,7 +1515,7 @@
     {
       "name": "ChartCard",
       "file": "src/components/Chart/Chart.tsx",
-      "description": "Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) → header · Segmented · chart, gap 16.\nThe header row holds an optional icon, the title and the open chevron; a description and the headline value follow it\n(every Figma chart card's Show Icon · Icon · Title · Show Description · Description · Show Value · Value · Show Ranges ·\nShow Open properties).",
+      "description": "Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) → header · Segmented · chart, gap 16.\nThe header row holds the title, the Hint (an info icon whose Tooltip carries the chart's description) and the open\nchevron; the metric label and the headline value follow it (every Figma chart card's Title · Show Hint · Show Open ·\nShow Metric Label · Metric Label · Show Value · Value · Show Ranges properties; Show Icon · Icon stay, off by default).",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -1540,7 +1540,23 @@
           "type": "IconName | ReactNode",
           "required": false,
           "default": null,
-          "description": "Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node. Decorative; the title names the card.",
+          "description": "Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node. Decorative; the title names the card.\n Figma Show Icon is off by default: chart headers carry no icon (the user, 2026-10-26), so leave it out.",
+          "deprecated": null
+        },
+        {
+          "name": "hint",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Hint (Show Hint): an info icon (20px, Content/Neutral/Light) at the end of the header that shows this text in a\n Tooltip on hover and keyboard focus. Put the chart's description here (what it counts, its source, how the figure is\n worked out) so the card itself stays the title, the metric and the chart; leave it out when the title says enough.",
+          "deprecated": null
+        },
+        {
+          "name": "metricLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Metric Label: what the headline figure is (\"Invoiced so far in 2026\"), Body/Small/Regular in Content/Neutral/Light over the value, under\n the Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value).",
           "deprecated": null
         },
         {
@@ -1548,15 +1564,15 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "What the figure is (\"Available revenue in your wallet\"), Body/Small/Regular: the top of Figma's Metric, under the\n Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value).",
-          "deprecated": null
+          "description": "",
+          "deprecated": "Renamed `metricLabel` (Figma Metric Label, 2026-10-26). A description of the chart goes in `hint`."
         },
         {
           "name": "value",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "The headline figure the chart explains (\"$4,346.00\"), Display/4 (Figma Chart-Card Metric > Value), under the\n description and the Segmented.",
+          "description": "The headline figure the chart explains (\"$4,346.00\"), Display/4 (Figma Chart-Card Metric > Value), under the\n metric label and the Segmented.",
           "deprecated": null
         },
         {

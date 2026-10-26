@@ -99,6 +99,8 @@ Read the template's frame or source and copy its structure before you add your o
 - **Trust:** each trend says what it compares to ("vs. last month"); the time the data was last updated; a failed
   widget says so instead of drawing an empty chart.
 - **Avoid:** charts that decorate rather than answer; no way to filter; error states hidden; every card emphasised.
+- **Layout:** one widget grid, the hero sized by importance, rows that fill at every width: `dashboard-layout.md`
+  (next to this file).
 
 ## Projects and tasks
 

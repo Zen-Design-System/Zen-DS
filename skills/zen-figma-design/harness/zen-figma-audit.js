@@ -115,6 +115,12 @@
 //   modal/form-on-phone      error    a Modal/Forms on a phone screen: a phone opens the form in a Bottom Sheet
 //   modal/form-side-taller   warning  a Modal/Forms whose Side-Content runs taller than the form, so the actions float
 //                                     above an empty band: shorten the side, or move its content into the form
+//   chart/header-icon        warning  a Chart/* instance with Show Icon on: chart headers carry no icon (Title, Hint, Open)
+//   chart/tooltip-on         warning  a chart in its hover state on a screen (Hover on, or a Sector at Select=Selected,
+//                                     which always brings its Tooltip): charts show the active period and its Tooltip
+//                                     only under the pointer; keep it only in a frame named for the hover state
+//   chart/metric-label-is-description  warning  a chart's Metric Label that reads as a description (a sentence, or
+//                                     longer than 40 characters): name the figure there, put the description in the Hint
 // Content that runs on past the far end of a frame set to scroll (Figma prototype overflow: a long Body, a Chip row)
 // is scroll content, not bounds/clipped.
 
@@ -827,6 +833,37 @@ const STATUS_TEXT = /^(active|inactive|pending|approved|rejected|declined|paid|u
 // Dock-Icon colour by meaning is a skill preference, not a check (the user 2026-10-25: the designer may choose).
 const PRIORITY_THEME = [[/^(urgent|critical|high|khẩn cấp|cao)( priority)?$/i, "Red"], [/^(medium|trung bình)( priority)?$/i, "Yellow"], [/^(low|thấp)( priority)?$/i, "Neutral"]];
 const propValue = (node, name) => Object.entries(node.componentProperties ?? {}).find(([key]) => key === name || key.startsWith(`${name}#`))?.[1]?.value;
+// Charts (the user, 2026-10-26: "Bỏ icon trên header các Chart cho đỡ rối"; the description into an (i) Hint; "Tooltip
+// này chỉ bật khi hover"). Code: ChartCard has no icon in its examples, takes hint + metricLabel, and every plot chart
+// shows its active point and Tooltip only under the pointer ("Đây là trạng thái đang hover/active thì phải có tooltip":
+// the active state and the Tooltip come together, through Hover or a Selected Sector).
+const CHART_SET = /^Chart\//;
+const SECTOR_SET = ".Primitives/Chart/Sector";
+const HOVER_FRAME = /hover|tooltip/i;
+async function checkChartRules(root) {
+  for (const screen of screensOf(root)) {
+    if (!("findAll" in screen)) continue;
+    for (const node of screen.findAll((child) => child.type === "INSTANCE")) {
+      if (!shownIn(node, screen)) continue;
+      const set = await setNameOf(node);
+      if (!CHART_SET.test(set) || set === "Chart/Chart-Card") continue;
+      const heading = node.findOne((child) => child.name === "Heading");
+      const headed = heading && heading.visible !== false;
+      if (headed && propValue(node, "Show Icon") === true) report("chart/header-icon", WARNING, node, "its header shows an icon: turn Show Icon off; a chart header is the Title, the Hint (i) and the Open chevron");
+      if (!HOVER_FRAME.test(screen.name) && !HOVER_FRAME.test(node.name)) {
+        let on = propValue(node, "Hover") === true || propValue(node, "Show Tooltip") === true;
+        if (!on) for (const inner of node.findAll((child) => child.type === "INSTANCE" && child.visible !== false)) {
+          if ((await setNameOf(inner)) === SECTOR_SET && /^Selected/.test(String(propValue(inner, "Select") ?? (inner.variantProperties ?? {}).Select ?? ""))) { on = true; break; }
+        }
+        if (on) report("chart/tooltip-on", WARNING, node, "it shows its hover state (the active period and its Tooltip): charts show it only under the pointer, so turn Hover off, or set the Sector back to Select=Default; keep it only in a frame named for the hover state");
+      }
+      const label = String(propValue(node, "Metric Label") ?? "").trim();
+      if (headed && propValue(node, "Show Metric Label") !== false && (label.length > 40 || /[.!?]\s+\S/.test(label) || /\.$/.test(label)))
+        report("chart/metric-label-is-description", WARNING, node, `its Metric Label reads as a description ("${label.slice(0, 60)}"): name the figure under it there ("Invoiced so far in 2026") and move the description into the Hint (Show Hint on)`);
+    }
+  }
+}
+
 async function checkTaskPageRules(root) {
   for (const screen of screensOf(root)) {
     if (!("findAll" in screen)) continue;
@@ -1411,6 +1448,7 @@ for (const root of roots) await checkButtonRoles(root);
 for (const root of roots) await checkTouchSpacing(root);
 for (const root of roots) await checkToolbarSearch(root);
 for (const root of roots) await checkTaskPageRules(root);
+for (const root of roots) await checkChartRules(root);
 for (const root of roots) await checkTableFirstColumn(root);
 for (const root of roots) await checkSectionGap(root);
 for (const root of roots) await checkModalForms(root);

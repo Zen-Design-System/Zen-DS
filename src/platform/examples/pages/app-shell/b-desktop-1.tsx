@@ -533,7 +533,7 @@ function AnalyticsApp() {
               series={[212400, 214800, 213900, 219200, 222600, 221100, 227900, 229400, 236200, 239800, 244300, 248930]}
               subAction={more("Total balance")}
               footer={<Button size="sm" level="tertiary" onClick={() => toast({ title: "Statement for September", children: "PDF · all accounts" })}>View statement</Button>} />
-            <ChartCard theme="pale" color="neutral" headingLevel={2} title="Net worth vs. invested" description="All accounts · this year" value="$248.9k"
+            <ChartCard theme="pale" color="neutral" headingLevel={2} title="Net worth vs. invested" metricLabel="All accounts · this year" value="$248.9k"
               onOpen={() => toast({ title: "Net worth report", children: "Opens with this year selected." })} openLabel="Open net worth report"
               ranges={netWorthRanges} range={range} onRangeChange={setRange}>
               <LineChart key={range} aria-label={`Invoiced and collected, ${series.span}`} data={series.points} label="Invoiced"
@@ -541,7 +541,7 @@ function AnalyticsApp() {
             </ChartCard>
           </Grid>
           <Grid columns="400px 1fr 1fr 1fr" stackBelow={720} gap="md">
-            <ChartCard theme="pale" color="neutral" headingLevel={2} icon="icon-pie-chart-01-line" title="Allocation"
+            <ChartCard theme="pale" color="neutral" headingLevel={2} title="Allocation"
               ranges={allocationRanges} range={share} onRangeChange={setShare}>
               <DonutChart key={share} aria-label={`Allocation, ${share === "q3" ? "Q3 2026" : "2026 to date"}`} data={allocation[share]}
                 size="small" legendPosition="start" format={formatCompactMoney} />
@@ -748,13 +748,13 @@ export const examples: ExampleDef[] = [
     <Grid columns="400px 1fr" stackBelow={720} gap="md">
       <MetricCard type="hero" theme="subtle" color="brand" label="Total balance" value="$248,930" trend={{ direction: "positive", label: "4.2%", subLabel: "this month" }}
         series={balance} format={formatCompactMoney} subAction={more} footer={<Button size="sm" level="tertiary" onClick={openStatement}>View statement</Button>} />
-      <ChartCard theme="pale" headingLevel={2} title="Net worth vs. invested" description="All accounts · this year" value="$248.9k" onOpen={openReport}
+      <ChartCard theme="pale" headingLevel={2} title="Net worth vs. invested" metricLabel="All accounts · this year" value="$248.9k" onOpen={openReport}
         ranges={[{ id: "quarterly", label: "Quarterly" }, { id: "monthly", label: "Monthly" }, { id: "weekly", label: "Weekly" }]} range={range} onRangeChange={setRange}>
         <LineChart aria-label="Invoiced and collected, Q1 – Q4 2026" data={quarters} label="Invoiced" compare={{ label: "Collected", values: collected }} legendPosition="top" format={formatCompactMoney} height={184} />
       </ChartCard>
     </Grid>
     <Grid columns="400px 1fr 1fr 1fr" stackBelow={720} gap="md">
-      <ChartCard theme="pale" headingLevel={2} icon="icon-pie-chart-01-line" title="Allocation" ranges={[{ id: "q3", label: "Q3" }, { id: "ytd", label: "Year to date" }]} range={share} onRangeChange={setShare}>
+      <ChartCard theme="pale" headingLevel={2} title="Allocation" ranges={[{ id: "q3", label: "Q3" }, { id: "ytd", label: "Year to date" }]} range={share} onRangeChange={setShare}>
         <DonutChart aria-label="Allocation, Q3 2026" data={allocation} size="small" legendPosition="start" format={formatCompactMoney} />
       </ChartCard>
       <MetricCard type="sparkline" theme="pale" label="Cash" value="$32,410" trend={{ direction: "positive", label: "1.1%", subLabel: "vs. Aug" }} series={cash} subAction={more} />

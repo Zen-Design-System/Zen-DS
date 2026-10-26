@@ -4712,7 +4712,7 @@
         "One progress value → ProgressBar.",
         "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
         "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
-        "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
+        "Dashboard tiles → ChartCard (title, metricLabel, value; the chart's description in hint) next to Metric Cards.",
         "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
         "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
       ],
@@ -4934,7 +4934,9 @@
           "title: ReactNode",
           "headingLevel?: 2|3|4 = 3",
           "icon?: IconName|ReactNode",
-          "description?: ReactNode",
+          "hint?: ReactNode",
+          "metricLabel?: ReactNode",
+          "description?: ReactNode (deprecated)",
           "value?: ReactNode",
           "onOpen?: () => void",
           "openLabel?: string",
@@ -4953,6 +4955,8 @@
         ]
       },
       "do": [
+        "Keep a chart card to its title, the metric label over the value, and the chart; say what the chart counts, its source or how the figure is worked out in hint, the (i) after the title (Figma Show Hint), not in an extra line.",
+        "Let the tooltip and the active highlight follow the pointer: charts show none until a period is hovered or reached with the keyboard; set initialIndex only to call out one period in a static view.",
         "Size a Donut or Radial by name, as Figma's Size: small 120 (a tile, several charts in a row; the centre shows the figure alone), medium 168 (a chart card, the default), large 240 (a wide card, the total beside the ring), xlarge 320 (a hero card) (harness: chart/ring-size-named). A stretched Chart Card grows the ring from there.",
         "Always give the chart an aria-label that says what it shows and over which range (harness: chart/needs-name).",
         "Format values for people (`$23.4K`, `52 GB`, `1,990 h`) with `format`.",
@@ -4967,6 +4971,8 @@
         "Lead a chart with Sector/Secondary through palette=\"secondary\", never by passing the sector colours to color, activeColor or a series (harness: chart/palette-by-hand)."
       ],
       "dont": [
+        "Don't put an icon before a chart card's title (Figma Show Icon stays off): the title, the hint and the chart carry it.",
+        "Don't write the chart's description in metricLabel: it names the figure under it (\"Invoiced so far in 2026\"); the description belongs in hint.",
         "Don't use a line for categories that aren't ordered in time.",
         "Don't pick custom colours outside the chart palette unless a series has a fixed brand colour.",
         "Don't put a chart where the user needs exact values; add a Table.",
@@ -4995,6 +5001,7 @@
         "chart/grouped-series-count",
         "chart/combo-needs-labels",
         "chart/palette-by-hand",
+        "api/deprecated-prop",
         "api/overrides-studio-only",
         "interaction/no-noop-handler",
         "interaction/controlled-needs-handler"

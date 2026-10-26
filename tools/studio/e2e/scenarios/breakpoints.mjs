@@ -180,15 +180,17 @@ export const rows = [
       await expectFrame(page, { breakpoint: "mobile", placeholders: ["top", "bottom"] }, "both placeholders at 390");
       // The selection layer covers the canvas; the placeholder is frame chrome it hands the press to.
       await page.locator('[data-studio-frame="screen:screen-1"] .studio-builder-screen__placeholder[data-edge="bottom"]').click({ force: true });
-      const shellText = async () => { const text = (await pageText(page, id)) ?? ""; const start = text.indexOf("<AppShell"); return start < 0 ? "" : text.slice(start); };
+      // The AppShell itself (`<AppShell ` / `<AppShell>`), not an AppShellAccount in the Screen's phone bar before it.
+      const shellText = async () => { const text = (await pageText(page, id)) ?? ""; const start = text.search(/<AppShell[\s>]/); return start < 0 ? "" : text.slice(start); };
       const written = await until(async () => { const text = await shellText(); return /bottomNavigation=\{<BottomNavigation/.test(text) ? text : null; }, { message: "the AppShell's bottomNavigation written" });
       const labels = [...written.slice(written.indexOf("bottomNavigation=")).matchAll(/label: "([^"]+)"/g)].slice(0, 3).map((match) => match[1]);
-      if (labels.join(",") !== "Home,Projects,People") throw new Error(`the items are not the Sidebar's rows: ${labels.join(",")}`);
+      // The placeholder Sidebar's rows (appshell-placeholder.mjs, 2026-10-26): every one reads "Label".
+      if (labels.join(",") !== "Label,Label,Label") throw new Error(`the items are not the Sidebar's rows: ${labels.join(",")}`);
       const shown = await expectFrame(page, { breakpoint: "mobile", shell: "mobile", placeholders: ["top"] }, "the AppShell's phone pattern, the top placeholder left");
       await page.locator('[data-studio-frame="screen:screen-1"] .zen-bottom-nav__item').first().waitFor({ state: "visible", timeout: 5000 });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+z");
-      await until(async () => !/bottomNavigation=\{<BottomNavigation/.test(await shellText()), { message: "⌘Z takes the Bottom Navigation back" });
+      await until(async () => !/bottomNavigation=\{<BottomNavigation/.test(await shellText()), { message: "⌘Z takes the Bottom Navigation back" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await page.locator(".studio-status").first().innerText().catch(() => "?")}; AppShell props: ${[...(await shellText()).slice(0, 4000).matchAll(/^\s{8,10}(\w+)=\{/gm)].map((match) => match[1]).join(",")})`); });
       await expectFrame(page, { placeholders: ["top", "bottom"] }, "both placeholders again");
       return `placeholders top + bottom → Add Bottom Navigation: ${labels.join(", ")}, AppShell ${shown.shell} → ⌘Z`;
     },

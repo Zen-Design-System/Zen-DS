@@ -211,6 +211,40 @@ Since #304 a new row only guards against regressions once it is in `matrix.basel
 HO-18…20 (from #286/#287/#294/#302/#306/#307) passed in every gate since and were listed as "new, work". Run
 `studio:e2e -- --rows=<those 12> --update-baseline` on main 9fa8ef52: 12 works, 0 broken, 98 s.
 
+## appshell-placeholder · AppShell is a placeholder frame, the examples are Layout examples
+
+User: "Cần phân biệt rõ AppShell và Layout Example. AppShell trên Studio giống example hơn. AppShell nên là dạng
+placeholder giống component trong trang ◇ Master-Layout" (Figma 1128:29541). Picked: the playground shows the
+placeholder only (sample app removed), the App Shell page's examples are renamed "Layout examples".
+- Figma read (section 16254:1057): Pattern/AppShell/Desktop 9 variants (Layout × Collapse), Mobile 32 (Device × Top ×
+  Bottom), .Primitives/AppShell/Placeholder (Pale fill, Subtle dashed 2·2, Corner-Radius/Large, Padding/Medium,
+  Heading/4 Content/Placeholder → code `tone="light"`, no Placeholder tone), Pane titles, Stepper "Step Title"/"Optional".
+- `tools/studio/appshell-placeholder.mjs` (import-free; `.d.mts`): the copy, the variant lists, the parts' code and
+  `appShellPlaceholderCode()`. Used by the Assets item (toast handlers), `MAIN_SAMPLES.AppShellHeader`, screen-chrome's
+  frame parts (sidebar, top bar, actions, page header, banner, side panel, floating action, bottom navigation) and the
+  new "Page with AppShell" (Figma's default variant around the content Stack, which keeps its "Start building here").
+- Main component: `mainComponent/appShellSets.ts` lists both sets (Figma's own variants, `wrap` 4 / 8, each drawn from
+  its code in its frame 1512 × 982 · 390 × 844 · 744 × 1133); `ListGrid`/`CodeCell` in MainComponentFrame; Variant
+  panel jumps to the nearest listed variant. Fixed on the way: a screen cell's AppShell shrank to its content (drawer
+  layout) → `.studio-mc__screen > .zen-app-shell` fills it.
+- Playground (`appLayer/shell.tsx`) rewritten on the placeholders, the pickers kept (Layout, Collapse, Canvas, Top row,
+  Sections, Notifications, panes, Progress, Side panel, Floating, Banner, mobile Top/Bottom); every control reports.
+- Selftests updated (builder, compile, screen-frame, engine-iso): 83/83 studio selftests, tsc clean. Palette `--deep`
+  has many old findings from other items; this item's were the accent FAB (now `zen-allow-accent`) and an Empty State
+  inside Card hosts (host-dependent, kept).
+- Follow-ups (d7881f66): a page's own Sidebar (Assets item, Screen parts, new page) has no sample switcher (`brand:
+  false`, as figma-pull drops Figma's LOGO); Focus' Summary placeholder 408 high; the Stepper is named. E2E rows that
+  asserted the old frame updated as intended: B-27 (6 rows; + Primary adds one to Settings · Secondary · Main Action),
+  B-28 (the Page header's own crumbs), B-29 (two Breadcrumbs: header + inserted), B-33 (label-1/label-2), HO-01 (imports).
+- Cost: the Studio App Shell page's long tasks 3.9 s → 5.3 s (41 AppShell cells), first frame 4.7 → 6.3 s on a warm server.
+- Gate: queued with Giám sát (after tag-badge-gap, #314, Bug's chart cells); merge main first.
+- User then updated .Primitives/AppShell/Pane in Figma. Re-read (16254:1099, 10 variants, props unchanged): every
+  theme's fill, stroke, effect and padding already matched; two differences fixed in app-shell.css — Pane-Header's
+  counter axis is Min (the 20px action wrapper at the top of the title's line, code centred it) and Theme=Canvas has
+  radius 0. Studio's Main component now draws the Pane set too (`MAIN_SETS.AppShellPane`, Figma's ten variants in 264 ×
+  640 frames; `MAIN_SAMPLES.AppShellPane`). The placeholder's label is centred (`Text align="center"`, Figma's text
+  align), which showed once it wrapped in a 264 pane. Docs regenerated (api/guidelines app-shell). 83/83 selftests.
+
 ## Session "Bug" · Studio Main component chart widths (tier S; user screenshot: "Lỗi hiển thị")
 
 - Cause: charts fill their container and the Main component cell is max-content, so each non-ring chart drew at its
@@ -220,6 +254,7 @@ HO-18…20 (from #286/#287/#294/#302/#306/#307) passed in every gate since and w
   2026-10-26: 297 Line/Multi-Line/Stack-Bar, 352 Bar/Area/Grouped/Combo/Gauge/Funnel/Bullet, 320 Curve-Preview).
   Probe after: every chart at that width, ring cells flip data-wrapped 0 times in 3 s (45 before #301).
 - Gate PASS (--isolated --pages=chart): 0 warnings, Studio E2E 380/380 in 4 shards. PR #315.
+
 ## tag-badge-gap · Tags and Badges side by side are 4px (tier M)
 
 The user: "Vẫn đang bị lỗi rule. Spacing giữa tag phải là 4px" (a PropertyField "Phụ trách" with three person Tags 8px
@@ -288,6 +323,95 @@ sidebar thì các item cũng đổi variant theo density đó".
 - **Gate** (`qa --isolated --files=` the three tools/studio files; the worktree's edits were not in the hook ledger, so a
   plain run found nothing to check): static, studio:selftest, TypeScript and nested layer names all pass; Studio E2E
   380 works · 0 broken (4 shards, 1722 s). Report `.qa/reports/2026-10-26T04-49-36-0958d62c.md`.
+- Gate 1 (head 52517e83: static, audit, dark, behaviour pass; E2E 367/380). The 13 regressions came from the placeholder frame:
+  two crumbs made a new page a child screen (§17 R14: no phone Bottom Navigation) → pages take Master alone
+  (`rootCrumbs`, `root: true`); a Studio bug, `itemElement` paired every same-label tab with the first (⊕ stacked,
+  drags wrote the wrong item) → the n-th item with a label is the n-th element with that name; E2E rows updated where
+  intended. Rerun of those 13 rows: 13/13. Merged main 43102f60 (#315 FIXED_WIDTHS kept).
+- User (on the 3 rhythm warnings "pane 20 vs inner 16 + inset 8"): "Đổi bo góc Placeholder trong pane thành 12px (20 −
+  8) cho đồng tâm, cả Figma và code". Figma: the Placeholder instance in each of the 10 Pane variants bound to
+  Corner-Radius/Base (12 Rounded, 8 Standard: XLarge − 8 in each mode); every Pane in Pattern/AppShell/Desktop inherits.
+  Code: the pane's placeholder takes `radius="md"` (Base). Gate 2 was stopped for it and rerun.
+- Gate 3 (head 01bf1569): static, TypeScript, Vitest 90/90, platform audit 1512/390/320 (0 new warnings; the three
+  concentric ones gone), dark, behaviour pass; Studio E2E 378/380. BL-01 ("no board" on the last 7 pages under 4-shard
+  load) passes alone; PT-28 (dark-Play tooltip, a fixture without AppShell) fails the same with main's proto files and
+  passed on a plain rerun: both flaky, not this change. New ⚠ type/visual-heading on the playground's placeholder label
+  → `zen-allow-visual-heading` (d6c6235c). Slot handed to chart-bars; the formal rerun after them or on CI.
+
+## Dashboard layout principles (skills, tier S)
+
+User: "Nghiên cứu skill để cân bằng layout khi generate UI trên studio lẫn figma khi làm dashboard … tỷ lệ cân bằng và
+không bị trống layout … chart quan trọng xuất hiện kích thước trong lưới như thế nào … các widget nên nằm trong cùng 1
+lưới thay vì tách ra các section khác nhau (trừ khi nó có tiêu đề section riêng) … desktop và các thiết bị khác".
+- New `skills/zen-component-usage/references/dashboard-layout.md` (principles, not checks, as the 10-20 files): rank the
+  widgets (summary, hero, support, detail); one widget grid (rows `md` like the columns, a section only under a heading);
+  12 parts with the span widths at 1512 / 1280 / 744 / 390; each widget's shape and narrowest width (KPI 240, chart 360,
+  table 480 from DashboardTemplate; ring sizes, 32px BarList rows, 24px heatmap cells); hero 8 · companion 4 or 12; row
+  recipes; equal feet (Grid stretch + ChartCard grow, audit `card-gap`); the reflow table; how to build it in code /
+  Studio / Figma; screenshot questions; the HR overview of `.zen-studio/pages/quan-ly-task.zen.tsx` as before/after.
+- Sources: Zen's own screens and rules; Material 3 canonical layouts; Grafana's 24-column panels; Apple WidgetKit sizes;
+  Elastic EUI dashboard guidance; F-pattern and bento-grid practitioner guides.
+- Wired in: zen-component-usage SKILL.md + product-patterns + design-principles §9, zen-responsive-screens SKILL.md +
+  responsive-principles §3, zen-figma-design SKILL.md (files table, step 5), the AI kit for Figma (`KIT_SOURCES`,
+  `src/platform/aiKit.ts` glob, kit README and AGENTS), Zen Agent's prompt (one principles bullet; the "Dashboards:"
+  line is left alone because the chart-bars-full branch edits it).
+- Findings: Zen's Grid has no per-cell span, so a mixed-span dashboard is built as row Grids (`"2fr 1fr"` rows sit
+  ~gap/3 off a 3-column row); figma-pull keeps only a span every cell shares. A `span` prop (code, Studio fields, push
+  and pull) was put to the user, not built. The HR overview Studio page breaks the existing §13 rule (`Stack gap="xl"`
+  between widget rows, `align="start"`): reported, not edited (a Studio page changes only through the open Studio).
+- Checks: `ai-kit:check` 196 ✓ (92 files, the new reference at `skills/zen-figma-design/references/`), Zen Agent
+  selftest 21 ✓, `tsc` ✓. Gate `qa --isolated --pages=installation --files=` the three code files: static ✓, audit
+  1512/390/320 ✓, dark ✓, behaviour ✓; its Studio E2E (prompt.mjs is under tools/studio) was stopped in shard 1 at
+  Giám sát's request (the chart-bars session held the slot), so the PR was shipped with `--skip-gate` and CI runs it.
+
+## Charts · full-width bars, hover-only active column, tighter donut gaps (tier M)
+
+User: "stack hoặc bar chart nên làm style đầy đặn … spacing 8px … cột tràn ra 2 bên … đáy không có bo góc", then
+"mặc định không nên hiện focus và tooltip, chỉ khi hover vào cột mới hiện", then "spacing của pie chart nên khít hơn".
+
+| Where | Before | After |
+| --- | --- | --- |
+| Figma Bar-Chart Vertical (8 variants) | Column 2px padding, Lane/Bar max 40, radius 8 all corners, Bars/X-Axis gap 0 | padding 0, no max, bottom radii 0, Bars + X-Axis gap Spacing/Gap/XSmall; Tooltip-Anchor + Rule moved onto the selected column |
+| Figma .Primitives/Chart/Column/Stack-Bar/Single (Vertical ×3) | 2px padding, Value max 40, radius 8 all | padding 0, no max, bottom radii 0 |
+| Figma Stack-Bar-Chart (8) | Chart-Visual / Sectors grid gap 0 | gap Spacing/Gap/XSmall; Sectors' label track 32 → 24 so sector 1 still starts at 32 |
+| Figma Donut-Chart (32) | slices 4px apart | slices redrawn 2px apart (same angles 30/23/18/17/12 %), Corner-Radius/XSmall re-bound |
+| Code | `.zen-chart__column` 2px padding, bar ≤ 40px, radius all corners; last bar active | bar/stack blocks: bars + sectors `column-gap` 8, bars fill, `0 0` bottom radii (rise clip too); `PlotFrame hoverOnly`: nothing active until hover/keys, pointer leave or blur hands back to `initialIndex`; a touch keeps its column; DonutChart + Studio push `GAP 2` |
+
+Contracts chart-bar / chart-stack-bar re-captured through `mcp-capture` (digests: 8 of 16 Bar variants changed, all
+Horizontal equal; 8 of 8 Stack). With nothing active the screen-reader summary lists every column ("Jan 10, Feb 20, …"),
+no new label keys. The palette Do/Don't previews pass `initialIndex={3}` so the highlight they compare stays visible.
+Gotcha: setting `vectorPaths` on a Figma VECTOR resets its `cornerRadius` to 0 (re-set and re-bind it after).
+
+Figma incident (same session): the ❖ Chart page (6143:31287) was found empty; the 15 chart sets plus .Chart/Hatch and
+.Chart/Legend-Item were detached (parent null) before 12:11, the session's first Figma read, cause unknown. On the user's
+request they were re-attached with their IDs in a new section "Chart components" (17250:3), in family rows (400 padding,
+200 gaps); no other orphaned dependency (30 mains scanned). The page's doc frames are not recoverable this way.
+
+Charts, later the same session (user, in order): "Bỏ icon trên header các Chart", Metric Label vs the description with
+the description in an (i) Hint ("đồng bộ lại hết cho các chart"), "Bổ sung harness và doc usage cho chart trong Figma",
+horizontal bars 8px ("Gap này là đang là 16px"), "Tooltip này chỉ bật khi hover".
+- Figma (14 chart sets): Show Icon default off; Metric › Description → Metric-Label, props Show Metric Label + Metric
+  Label (renamed, ids kept); Header › Hint = icon-info-circle-line 1460:917, 20px, Content/Neutral/Light, Show Hint
+  (default on); Bar-Chart Horizontal rows Spacing/Gap/XSmall, min heights −8 per gap, bars flat at the axis;
+  .Primitives/Chart/Sector "Tooltip" → Show Tooltip, default off (selected Sector exposed in Line/Multi-Line/Stack);
+  Bar/Area/Multi-Line/Heatmap own Show Tooltip, default off. Chart-Card's header is nested: untouched.
+- Code: ChartCard `hint` (MetricWidget's Hint pattern, aria-label "More information", Tooltip describes) and
+  `metricLabel` (`description` @deprecated alias); 104 ChartCard tags rewritten (metricLabel, no icon); hover-only for
+  Line/Area/Grouped/Combo with an overview summary; horizontal rows 24px + grow share, 8px gaps (the suite's axisGap
+  exceptions are gone: both sides 8 now). Studio push/pull: Show Hint, Show Metric Label + Metric Label (pull also reads
+  the old Description), Show Tooltip a preview state; the hint text is code's alone (round trip leaves it out).
+- Figma AI kit: chart/header-icon, chart/tooltip-on (a frame named Hover/Tooltip is skipped), chart/metric-label-is-
+  description; tested on a temporary section (each rule fires once, the clean and the hover-state charts pass) and
+  removed. screen-rules §3 Charts + audit-rules rows.
+- Later: Combo-Chart edge to edge (Marks and X-Axis reach 4px past the plot so the line, dots and pills stay on the bar
+  centres; code the same through Padding/2XSmall); Caption Light (legend, Funnel counts, Stack-Bar labels) and the
+  Metric Label Light, from the caption-light session; "Đây là trạng thái đang hover/active thì phải có tooltip": Figma
+  Sectors all Select=Default with a Selected one always showing its Tooltip, Bar/Area/Multi-Line/Heatmap Hover (was Show
+  Tooltip) drawing Active-Bar + Active-Wrapper overlays, rule, dots, cell ring (Active-Ring) with the Tooltip; suites pass
+  no initialIndex where Figma shows none (pickedSector) and lose the 88% / 12px-dot / active-label exceptions.
+  Gotchas: a grid cell takes one child (appendChildAt refuses an occupied cell, gridRowAnchorIndex is read-only), so the
+  twin bar is absolute; swapping a nested instance's variant re-ids its subtree, so re-query after each swap.
+
 
 ## MetricTrend = badge + Sub-Label, synced with Figma (tier M; branch zen/feat/metric-trend-sublabel-20261026)
 

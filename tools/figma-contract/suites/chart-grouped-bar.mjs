@@ -2,8 +2,8 @@
 // Primary · Secondary, a GroupedBarChart (`palette`) in a Chart Card (Heading · Metric · Chart · Legend; the Segmented is
 // hidden). Per period a group of bars Spacing/Gap/2XSmall apart, centred in the column (70% of it, 12px a bar at least
 // until the column can't hold them), each in its series' Color Chart Sector style with Corner-Radius/XSmall on the top
-// corners. Figma draws no active state (chart-parity-audit-2026-10-17 §3); code keeps the active group at 100% and eases
-// the others to 88%, as stacked columns (QUESTIONS.md Charts (P2) (a)). Bar heights are read back as values.
+// corners. Neither side draws an active state at rest (code: only under the pointer, the user 2026-10-26). Bar heights
+// are read back as values.
 import { cardMap, cardProps, child, legendMap, textOf } from "./_chart-shared.mjs";
 import { barFrameExceptions, barFrameMap } from "./_chart-bars.mjs";
 
@@ -25,7 +25,7 @@ export default {
       label: textOf(tick),
       values: Object.fromEntries(child(groups[i], "Bars").c.map((lane, si) => [series[si].id, Math.round((lane.c[0].h / grid) * 125000)])),
     }));
-    return { ...cardProps(spec), chart: "grouped", chartProps: { data, series, height: 36 + grid + 28, format: "usdK", palette: vp.Color === "Secondary" ? "secondary" : "primary", initialIndex: data.length - 1 } };
+    return { ...cardProps(spec), chart: "grouped", chartProps: { data, series, height: 36 + grid + 28, format: "usdK", palette: vp.Color === "Secondary" ? "secondary" : "primary" } };
   },
   figmaExceptions: [
     ...barFrameExceptions({ grid: 180, tooltipLane: true, vp: { Sector: "4-Sectors" } }),
@@ -42,9 +42,6 @@ export default {
       { vp: { Sector: "6-Sectors" }, layer: `Chart > Plot > Marks > Group#${k} > Bars > Lane#${b} > *`, prop: "x", code: (k * 316) / 6 + 2 + 7.3 + b * ((0.7 * (316 / 6 - 4) - 4) / 2 + 4),
         note: "6-Sectors groups take 70% of the whole column (see w), so their bars start 1.4px further out." },
     ]).flat()).flat(),
-    // Open question (QUESTIONS.md Charts (P2) (a), chart-parity-audit §2.2): groups that aren't active ease to 88% in code.
-    ...Array.from({ length: 12 }, (_, k) => [0, 1].map((b) => ({ vp: {}, layer: `Chart > Plot > Marks > Group#${k} > Bars > Lane#${b} > *`, prop: "op", code: "0.88",
-      note: "Groups that aren't active ease to 88% in code; Figma keeps them at 100% (QUESTIONS.md Charts (P2) (a))." }))).flat(),
   ],
   map: [
     ...cardMap(),

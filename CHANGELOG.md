@@ -25,6 +25,29 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   the figure has no sign. The Sub-Label is Body/Small/Regular, Content/Neutral/Light (the fill's family on a Solid
   card); a tile of size small shows the badge alone (the Sub-Label stays readable to screen readers). Examples,
   templates, Studio samples and Studio ↔ Figma push/pull use the split; new contract suite `metric-trend`.
+- Charts (2026-10-26, the user): bar and stack columns fill the plot edge to edge, 8px (Spacing/Gap/XSmall) apart,
+  rounded on top over a flat base (no more 40px cap); horizontal bars sit 8px apart, flat at the axis. No chart shows an
+  active point or a Tooltip until the pointer (or the keyboard) is on it (Line, Area, Bar, Stack, Grouped, Combo;
+  `initialIndex` still sets one). ChartCard: `metricLabel` names the figure (`description` is its deprecated alias),
+  `hint` puts the chart's description behind an (i) after the title, and the examples carry no header icon. DonutChart
+  slices are 2px apart. Figma matches: the chart sets' Show Hint, Metric Label, Show Tooltip (off) and Show Icon (off);
+  the Figma AI kit audit adds chart/header-icon, chart/tooltip-on and chart/metric-label-is-description. Figma charts show no
+  active period at rest either: the hover state (Hover on Bar, Area, Multi-Line, Heatmap; a Sector at Select=Selected
+  on Line, Multi-Line, Stack-Bar) always brings its Tooltip. Combo columns run edge to edge 8px apart too; legend labels,
+  Funnel counts and the metric label are Content/Neutral/Light.
+- AppShell is a placeholder frame, Layout examples are apps (2026-10-26): the App Shell playground (docs and Zen Studio)
+  draws Figma's Pattern/AppShell with its own placeholders ("Label" rows, Master › Child, "Heading Text", an Empty State,
+  "Replace Component Here" in panes) instead of a sample app; Studio's Main component draws Pattern/AppShell/Desktop
+  (9 variants) and Pattern/AppShell/Mobile (32); the Assets "App shell" item, a new "Page with AppShell" and the Screen
+  section's frame parts insert the same placeholders; the App Shell page's examples are now "Layout examples".
+- AppShellPane follows Figma's updated .Primitives/AppShell/Pane (2026-10-26): the ⋮ action sits at the top of the
+  title's line, a Canvas pane has no corner; Studio's Main component draws its ten Theme × Surface variants.
+- Dashboard layout principles for AI-generated screens in code, Zen Studio and Figma (2026-10-26, the user: "cân bằng
+  layout … không bị trống layout"): `skills/zen-component-usage/references/dashboard-layout.md` puts a dashboard's
+  widgets in one grid (rows as close as columns, a new section only under a heading), sizes each one in 12 parts by
+  importance and shape (one hero at 8 beside a 4 companion, or 12), keeps every row full with cards that end together,
+  and reflows by the room (tablet, phone). Linked from the code, Figma and responsive skills, shipped in the AI kit for
+  Figma, and summed up in Zen Agent's prompt. Principles, not checks.
 - Zen Studio's Main component draws every chart at its Figma width (2026-10-26, user screenshot "Lỗi hiển thị"): Line,
   Multi-Line and Stack-Bar 297, Bar, Area, Grouped-Bar, Combo, Gauge, Funnel and Bullet 352, Curve-Preview 320, beside
   Donut and Radial. In a max-content cell a chart had shrunk to its axis (LineChart one label, BarChart bars with no width).
