@@ -296,9 +296,11 @@ const readInstance = async (instance) => {
       }
       // Its own texts (not a slot's, not a nested instance's): Dashboard/Header's Subheading count. A nested instance's
       // text the page changed (an input's value and help in its field primitives, a checkbox's label in its Content):
-      // by its layer name, with the instance path it sits in.
+      // by its layer name, with the instance path it sits in. A Metric-Trend's shown Sub-Label always: its sample words
+      // ("vs. last year") are words the code needs too.
+      const subLabel = child.type === "TEXT" && child.name === "Sub-Label" && trail[trail.length - 1] === "Trend";
       if (child.type === "TEXT" && !trail.length) { out.texts = out.texts || []; out.texts.push({ name: child.name, characters: child.characters }); }
-      else if (child.type === "TEXT" && changed.has(child.id)) { out.texts = out.texts || []; out.texts.push({ name: child.name, characters: child.characters, path: trail.join("/") }); }
+      else if (child.type === "TEXT" && (changed.has(child.id) || subLabel)) { out.texts = out.texts || []; out.texts.push({ name: child.name, characters: child.characters, path: trail.join("/") }); }
       const next = child.type === "INSTANCE" ? [...trail, layerKey(child.name)] : trail;
       const avatarNamed = child.type === "INSTANCE" && renamed.has(child.id) && (await setOf(child))?.name === "Avatar/Single";
       if (child.type === "INSTANCE" && (changed.has(child.id) || avatarNamed || (await swappedIn(child, owner)) || (await variantIn(child, owner)))) out.nested.push({ path: next.join("/"), set: await setOf(child), props: await propsOf(child), text: firstText(child) });
@@ -3195,7 +3197,8 @@ const FLAG_SIZE_OF = { "Image-Size/3XSmall": "small", "Image-Size/Small": "large
 const METRIC_SET = /^Primitives\/Metric\/Metric-Inline\//;
 /** Figma .Primitives/Metrics/Metric-Trend's Trend option → MetricCard trend.direction (figma-push TREND_OPTION). */
 const TREND_DIRECTION = { Positive: "positive", Negative: "negative", Normal: "normal" };
-/** Metric-Trend's Badge theme by its Trend (Positive green, Negative red, Normal neutral) → the direction. */
+/** Metric-Trend's Badge theme by its Trend (Positive green, Negative red, Normal neutral) → the direction (Content=Default;
+ *  the Inverse and On-Color badges say nothing of it). */
 const BADGE_DIRECTION = { Green: "positive", Red: "negative", Neutral: "normal" };
 
 /**
@@ -3207,13 +3210,18 @@ function metricParts(node, props, ctx) {
   const value = ownText(node, "Metric-Number");
   if (label && node.props?.["Metric-Title"] !== false) props.label = literal(label);
   if (value) props.value = literal(value);
-  // The trend: its Metric-Trend (the push's own JSON) or the Badge inside it (Figma's read: the override sits there).
+  // The trend: its Metric-Trend and the Badge inside it (the push's own JSON: figma-metric trendNested; Figma's read: the
+  // overrides sit there), the badge's change and the Sub-Label (Figma 595:55134 since 2026-10-26). A push from before
+  // then holds the label in the Metric-Trend's textList.
   const trend = node.props?.Trend === true ? (node.nested ?? []).find((nested) => nested.path === "Trend") : null;
-  const badge = node.props?.Trend === true ? (node.nested ?? []).find((nested) => nested.path === "Trend/Badge") : null;
-  if (trend || badge) {
+  // Figma's Normal badge is the layer .Primitives/Metrics/Metrics-Trend/Normal (read as Trend/Normal); the others Badge.
+  const badge = node.props?.Trend === true ? (node.nested ?? []).find((nested) => nested.path === "Trend/Badge" || nested.path === "Trend/Normal") : null;
+  const subLabel = node.props?.Trend === true ? (trend?.texts?.["Sub-Label"] ?? (Array.isArray(node.texts) ? node.texts.find((text) => text.name === "Sub-Label" && text.path === "Trend")?.characters : undefined)) : undefined;
+  if (trend || badge || subLabel) {
     const fields = { direction: literal(TREND_DIRECTION[trend?.props?.Trend] ?? BADGE_DIRECTION[badge?.props?.Theme] ?? "positive") };
-    const text = trend?.textList?.[0] ?? trend?.text ?? badge?.props?.Text ?? badge?.text;
+    const text = badge?.text ?? badge?.props?.Text ?? trend?.textList?.[0] ?? trend?.text;
     if (text) fields.label = literal(text);
+    if (typeof subLabel === "string" && subLabel) fields.subLabel = literal(subLabel);
     props.trend = { kind: "object", fields };
   }
   const dock = node.props?.["Dock-Icon"] === true ? (node.nested ?? []).find((nested) => nested.path === "Metric-Icon") : null;

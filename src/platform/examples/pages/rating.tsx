@@ -36,8 +36,8 @@ function PersonAvatar({ person, size }: { person: Pick<Person, "name" | "theme" 
 
 // Phin Rewards, the loyalty app the studio builds for Phin & Co, as the App Store reports it.
 const appRatings = {
-  all: { label: "All versions", average: 4.6, count: 1284, trend: "+0.2 vs. August", shares: [68, 19, 7, 3, 3] },
-  latest: { label: "Version 2.4", average: 4.8, count: 212, trend: "+0.3 vs. version 2.3", shares: [81, 13, 3, 1, 2] },
+  all: { label: "All versions", average: 4.6, count: 1284, trend: "0.2", versus: "vs. August", shares: [68, 19, 7, 3, 3] },
+  latest: { label: "Version 2.4", average: 4.8, count: 212, trend: "0.3", versus: "vs. version 2.3", shares: [81, 13, 3, 1, 2] },
 } as const;
 type RatingScope = keyof typeof appRatings;
 
@@ -61,7 +61,7 @@ function ReviewSummaryExample() {
         {/* One value treatment: the Metric gives the number and its trend, the stars under it carry the sample size. */}
         <Stack gap="xs">
           <Metric size="md" icon={false} label="Average rating" value={data.average.toFixed(1)}
-            trend={{ direction: "positive", label: data.trend }} />
+            trend={{ direction: "positive", label: data.trend, subLabel: data.versus }} />
           <Stack direction="row" gap="xs" align="center">
             <RatingDisplay value={data.average} size="md" />
             <Text as="span" textStyle="Body/Small/Regular" tone="base">{plural(data.count, "rating")}</Text>
@@ -392,7 +392,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     render: () => <ReviewSummaryExample />,
     code: `<Stack gap="xs">
   <Metric size="md" icon={false} label="Average rating" value="4.6"
-    trend={{ direction: "positive", label: "+0.2 vs. August" }} />
+    trend={{ direction: "positive", label: "0.2", subLabel: "vs. August" }} />
   <Stack direction="row" gap="xs" align="center">
     <RatingDisplay value={4.6} size="md" />
     <Text as="span" textStyle="Body/Small/Regular" tone="base">{plural(1284, "rating")}</Text>

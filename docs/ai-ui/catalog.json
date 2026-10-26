@@ -13697,7 +13697,7 @@
       "slug": "metric",
       "folder": "MetricWidget",
       "status": "stable",
-      "import": "import { Metric, MetricCard } from \"@zen-ds/react\";",
+      "import": "import { Metric, MetricCard, MetricTrend } from \"@zen-ds/react\";",
       "purpose": "Show one key number with its label, an identifying icon and how it changed; a MetricCard type adds the small picture behind it (a trend line, recent bars, a goal, a split or a comparison).",
       "use": [
         "Dashboard KPI tiles (MetricCard).",
@@ -13730,25 +13730,8 @@
           "description": "Figma Metric-Number — pass it already formatted (\"$1,680.68\")."
         },
         "trend": {
-          "type": "object",
-          "properties": {
-            "direction": {
-              "enum": [
-                "positive",
-                "negative",
-                "normal"
-              ]
-            },
-            "label": {
-              "x-kind": "node"
-            }
-          },
-          "required": [
-            "direction",
-            "label"
-          ],
-          "additionalProperties": false,
-          "description": "Figma Trend: { direction, label } → Metric-Trend badge."
+          "$ref": "#/$defs/MetricTrendValue",
+          "description": "Figma Trend → Metric-Trend: `{ direction, label, subLabel }`, the change in the badge (\"9%\") and what it is measured against beside it (\"vs."
         },
         "icon": {
           "anyOf": [
@@ -13888,7 +13871,7 @@
       "slug": "metric",
       "folder": "MetricWidget",
       "status": "stable",
-      "import": "import { Metric, MetricCard } from \"@zen-ds/react\";",
+      "import": "import { Metric, MetricCard, MetricTrend } from \"@zen-ds/react\";",
       "purpose": "Show one key number with its label, an identifying icon and how it changed; a MetricCard type adds the small picture behind it (a trend line, recent bars, a goal, a split or a comparison).",
       "use": [
         "Dashboard KPI tiles (MetricCard).",
@@ -14136,25 +14119,8 @@
           "description": "Figma Metric-Title."
         },
         "trend": {
-          "type": "object",
-          "properties": {
-            "direction": {
-              "enum": [
-                "positive",
-                "negative",
-                "normal"
-              ]
-            },
-            "label": {
-              "x-kind": "node"
-            }
-          },
-          "required": [
-            "direction",
-            "label"
-          ],
-          "additionalProperties": false,
-          "description": "Figma Trend: { direction, label } → Metric-Trend badge."
+          "$ref": "#/$defs/MetricTrendValue",
+          "description": "Figma Trend → Metric-Trend: `{ direction, label, subLabel }`, the change in the badge (\"9%\") and what it is measured against beside it (\"vs."
         },
         "icon": {
           "anyOf": [
@@ -14274,6 +14240,66 @@
         "ref (not for a generated UI)",
         "className (not for a generated UI)",
         "overrides (not for a generated UI)"
+      ]
+    },
+    "MetricTrend": {
+      "name": "MetricTrend",
+      "slug": "metric",
+      "folder": "MetricWidget",
+      "status": "stable",
+      "import": "import { Metric, MetricCard, MetricTrend } from \"@zen-ds/react\";",
+      "purpose": "Show one key number with its label, an identifying icon and how it changed; a MetricCard type adds the small picture behind it (a trend line, recent bars, a goal, a split or a comparison).",
+      "use": [
+        "Dashboard KPI tiles (MetricCard).",
+        "Summary rows above tables or charts (Metric Small/Medium inline).",
+        "A single highlighted figure in a card or panel.",
+        "A KPI and the shape of its last periods → MetricCard type=\"sparkline\" (a line) or \"spark-bars\" (bars, the current one highlighted).",
+        "A number toward its goal → MetricCard type=\"goal-progress\".",
+        "Two to four related numbers under one title (invoiced, collected, overdue) → MetricCard type=\"comparison\".",
+        "A total and its 2–7 parts → MetricCard type=\"category-bar\".",
+        "The one number a dashboard leads with → MetricCard type=\"hero\" (Brand Pale; theme=\"solid\" for the dark widget) with a footer button.",
+        "Phone stat tiles two-up (size medium) or three-up (size small) → MetricCard type=\"tile\": the title, number and trend over the Dock-Icon; on a Solid card its content follows the fill."
+      ],
+      "avoid": [
+        "A series people read point by point (axes, a value per period) → LineChart or BarChart in a ChartCard; a sparkline only shows the shape.",
+        "Many comparable numbers → Table.",
+        "Progress of a task, an upload or a quota → ProgressBar.",
+        "More than 7 parts of a total → DonutChart, BarList or a Table.",
+        "More than one hero in a row → one hero, the rest plain MetricCards."
+      ],
+      "description": "Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Badge holding only the change, then the Sub-Label (Body/Small/Regular), Spacing/Gap/2XSmall apart.",
+      "props": {
+        "trend": {
+          "enum": [
+            "positive",
+            "negative",
+            "normal"
+          ],
+          "default": "normal",
+          "description": "Figma Trend: Positive · Negative · Normal."
+        },
+        "content": {
+          "enum": [
+            "default",
+            "inverse",
+            "on-color"
+          ],
+          "description": "Figma Content (Default · Inverse · On-Color)."
+        },
+        "subLabel": {
+          "x-kind": "node",
+          "description": "Figma Sub-Label: the words beside the badge (\"vs."
+        },
+        "children": {
+          "x-kind": "node",
+          "x-required": true,
+          "description": "The badge's text: the change alone (\"24%\"), or a one-string label to split (\"+24% vs."
+        }
+      },
+      "requiredActions": [],
+      "bindings": [],
+      "excluded": [
+        "ref (not for a generated UI)"
       ]
     },
     "ModalForm": {
@@ -26046,7 +26072,7 @@
         "Give a typed MetricCard the data its type draws: series, goal, comparison or categories (harness: metric/type-data).",
         "Pass categories largest first and keep them to 2–7 (harness: metric/category-count).",
         "Pass format so the series summary, the goal's label and the category amounts read like the number (\"$105.7K\", \"1,284 h\").",
-        "Always say what the trend compares against (\"vs. last month\").",
+        "Put only the change in trend.label (\"9%\"; a sign that agrees with the arrow is left out, one that disagrees stays) and what it is measured against in trend.subLabel (\"vs. last month\", \"invoice\").",
         "Use the same size for metrics in one row; one hero metric at most.",
         "Pair a worrying trend with guidance (Inline Message) or a link to details.",
         "Colour-code metrics by category with the Dock-Icon theme (Revenue green, Users blue…) and keep that mapping across the product.",
@@ -26054,6 +26080,7 @@
       ],
       "dont": [
         "Don't colour the number itself to show good/bad — the trend badge carries it.",
+        "Don't write the comparison into the trend's label (\"+12% vs. last month\"): the badge holds the change, subLabel the words beside it (Figma Metric-Trend since 2026-10-26).",
         "Don't leave a status card's Dock Icon (total, in progress, overdue, done) at the default Neutral Subtle.",
         "Don't show more than ~4 KPI cards in a row; group or prioritise.",
         "Don't round away meaningful precision in finance values.",
@@ -27891,6 +27918,29 @@
       "required": [
         "value",
         "target"
+      ],
+      "additionalProperties": false
+    },
+    "MetricTrendValue": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "enum": [
+            "positive",
+            "negative",
+            "normal"
+          ]
+        },
+        "label": {
+          "x-kind": "node"
+        },
+        "subLabel": {
+          "x-kind": "node"
+        }
+      },
+      "required": [
+        "direction",
+        "label"
       ],
       "additionalProperties": false
     },

@@ -1878,8 +1878,9 @@ ${code}`} />
   if (page === "metric") {
     const size = (metricSize ?? "xlarge") as MetricSize;
     const trend = (metricTrend ?? "positive") as MetricTrendDirection;
-    const trendLabel = trend === "positive" ? "+24% vs. last year" : trend === "negative" ? "−24% vs. last year" : "0% vs. last year";
-    const props = { label: "Revenue", value: "$1,680.68", trend: { direction: trend, label: trendLabel }, icon: metricIcon ? "icon-credit-card-line" as const : false as const, iconTheme: (metricIconTheme ?? "neutral") as DockIconTheme, iconBackground: (metricIconSolid ? "solid" : "subtle") as DockIconBackground, size };
+    // Figma Metric-Trend's samples: the change in the badge, "vs. last year" beside it.
+    const trendLabel = trend === "normal" ? "0%" : "24%";
+    const props = { label: "Revenue", value: "$1,680.68", trend: { direction: trend, label: trendLabel, subLabel: "vs. last year" }, icon: metricIcon ? "icon-credit-card-line" as const : false as const, iconTheme: (metricIconTheme ?? "neutral") as DockIconTheme, iconBackground: (metricIconSolid ? "solid" : "subtle") as DockIconBackground, size };
     return <ExamplePage page="metric" eyebrow="Components / Metric Widget" title="Metric Widget" description="Metric-Inline (icon, label, number, trend) in five sizes, and Metric-Card — the XLarge metric on a Shadow Card with a ⋮ Sub-Action.">
       <ComponentPreview className="platform-example-panel platform-example-panel--stack">
         <h2 className="platform-main-component__title">Metric Widget</h2>
@@ -1900,7 +1901,7 @@ ${code}`} />
 <${metricCard ? "MetricCard" : "Metric"}
   label="Revenue"
   value="$1,680.68"
-  trend={{ direction: "${trend}", label: "${trendLabel}" }}${metricIcon ? `
+  trend={{ direction: "${trend}", label: "${trendLabel}", subLabel: "vs. last year" }}${metricIcon ? `
   icon="icon-credit-card-line"${metricIconTheme && metricIconTheme !== "neutral" ? `
   iconTheme="${metricIconTheme}"` : ""}${metricIconSolid ? `
   iconBackground="solid"` : ""}` : `

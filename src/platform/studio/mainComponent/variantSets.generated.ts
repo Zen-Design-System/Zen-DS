@@ -4596,7 +4596,8 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "label": "Trend",
           "on": {
             "direction": "positive",
-            "label": "+12%"
+            "label": "24%",
+            "subLabel": "vs. last year"
           },
           "default": true
         },
@@ -4641,7 +4642,8 @@ export const VARIANT_SETS: Readonly<Record<string, readonly VariantSet[]>> = {
           "label": "Trend",
           "on": {
             "direction": "positive",
-            "label": "+12%"
+            "label": "24%",
+            "subLabel": "vs. last year"
           },
           "default": true
         },

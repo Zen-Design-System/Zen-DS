@@ -330,6 +330,9 @@
           "$ref": "#/$defs/components/MetricCard"
         },
         {
+          "$ref": "#/$defs/components/MetricTrend"
+        },
+        {
           "$ref": "#/$defs/components/ModalForm"
         },
         {
@@ -26561,49 +26564,13 @@
               "trend": {
                 "anyOf": [
                   {
-                    "type": "object",
-                    "properties": {
-                      "direction": {
-                        "enum": [
-                          "positive",
-                          "negative",
-                          "normal"
-                        ]
-                      },
-                      "label": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "boolean"
-                          },
-                          {
-                            "$ref": "#/$defs/node"
-                          },
-                          {
-                            "type": "array",
-                            "items": {
-                              "$ref": "#/$defs/child"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    "required": [
-                      "direction",
-                      "label"
-                    ],
-                    "additionalProperties": false
+                    "$ref": "#/$defs/MetricTrendValue"
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Trend: { direction, label } → Metric-Trend badge."
+                "description": "Figma Trend → Metric-Trend: `{ direction, label, subLabel }`, the change in the badge (\"9%\") and what it is measured against beside it (\"vs."
               },
               "icon": {
                 "anyOf": [
@@ -27404,49 +27371,13 @@
               "trend": {
                 "anyOf": [
                   {
-                    "type": "object",
-                    "properties": {
-                      "direction": {
-                        "enum": [
-                          "positive",
-                          "negative",
-                          "normal"
-                        ]
-                      },
-                      "label": {
-                        "anyOf": [
-                          {
-                            "type": "string"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "boolean"
-                          },
-                          {
-                            "$ref": "#/$defs/node"
-                          },
-                          {
-                            "type": "array",
-                            "items": {
-                              "$ref": "#/$defs/child"
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    "required": [
-                      "direction",
-                      "label"
-                    ],
-                    "additionalProperties": false
+                    "$ref": "#/$defs/MetricTrendValue"
                   },
                   {
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Trend: { direction, label } → Metric-Trend badge."
+                "description": "Figma Trend → Metric-Trend: `{ direction, label, subLabel }`, the change in the badge (\"9%\") and what it is measured against beside it (\"vs."
               },
               "icon": {
                 "anyOf": [
@@ -27759,6 +27690,129 @@
             },
             "required": [
               "label"
+            ],
+            "additionalProperties": false
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/child"
+            }
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "MetricTrend": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "MetricTrend"
+          },
+          "id": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "boolean"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "trend": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "positive",
+                      "negative",
+                      "normal"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Trend: Positive · Negative · Normal."
+              },
+              "content": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "default",
+                      "inverse",
+                      "on-color"
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Content (Default · Inverse · On-Color)."
+              },
+              "subLabel": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Sub-Label: the words beside the badge (\"vs."
+              },
+              "children": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "The badge's text: the change alone (\"24%\"), or a one-string label to split (\"+24% vs."
+              }
+            },
+            "required": [
+              "children"
             ],
             "additionalProperties": false
           },
@@ -50007,6 +50061,67 @@
       "required": [
         "value",
         "target"
+      ],
+      "additionalProperties": false
+    },
+    "MetricTrendValue": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "enum": [
+            "positive",
+            "negative",
+            "normal"
+          ]
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/node"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/child"
+              }
+            }
+          ]
+        },
+        "subLabel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/node"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/child"
+              }
+            }
+          ]
+        }
+      },
+      "required": [
+        "direction",
+        "label"
       ],
       "additionalProperties": false
     },

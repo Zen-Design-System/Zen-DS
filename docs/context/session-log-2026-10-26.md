@@ -476,3 +476,89 @@ Heatmap's "Tue" / "1 pm" labels go Light, their Strongest twins (Active-Label, a
 Multi-Line variant gets a Hover-Sector (.Primitives/Chart/Sector Select=Selected Highlight, Show Tooltip off, its period's
 label) over the active period, on Hover. Contracts chart-heatmap (b6fe0eb7) and chart-multi-line (b4845783) re-captured;
 code unchanged (it already draws none of this at rest).
+
+## MetricTrend = badge + Sub-Label, synced with Figma (tier M; branch zen/feat/metric-trend-sublabel-20261026)
+
+User: "mở phiên đồng bộ MetricTrend với Figma", after the Figma-only session split `.Primitives/Metrics/Metric-Trend`
+(595:55134) into a number-only badge and a Sub-Label and re-wrote the 92 placed trends.
+
+**Evidence (use_figma, read-only, 2026-10-26).** Every variant: a HUG row, Spacing/Gap/2XSmall (4), centred, its own
+white fill hidden; the badge is Badge Size=Small (20px, Corner-Radius/Rounded); the Sub-Label "vs. last year" is
+Body/Small/Regular, plain TEXT (no component property; hidden by an instance's visibility override).
+
+| Variant | Badge (layer) | Badge fill | Sub-Label ink |
+| --- | --- | --- | --- |
+| Normal · Default | `.Primitives/Metrics/Metrics-Trend/Normal`, Neutral Subtle, no icon, "0%" | Background/Neutral/Subtle/Default | Content/Neutral/Light |
+| Positive · Default | `Badge`, Green **Solid**, arrow-circle-up, "24%" | Background/Positive/Solid/Default | Content/Neutral/Light |
+| Negative · Default | `Badge`, Red **Solid**, arrow-circle-down, "24%" | Background/Negative/Solid/Default | Content/Neutral/Light |
+| * · Inverse | Inverse Solid (arrow by Trend) | Background/Inverse/Solid/Default | Content/Inverse/Light |
+| * · On-Color | On-Color Solid (white pill) | Background/White-Solid/Default | Content/On-Colors |
+| Metric-Tile Medium · On-Accent / On-Bright | Trend On-Color | — | override On-Accent/Default / On-Brights |
+| Metric-Tile Size=Small (all Contents) | Trend kept | — | Sub-Label hidden |
+| Metric-Card Hero | Trend Content=Default, Badge overridden to On-Color Solid ("18%") | — | Content/Neutral/Light ("vs. 2025") |
+| Metric-Inline Icon/Title-Highlight, all sizes; Metric-Card KPI…Tile | Positive Default "24%" | — | shown ("vs. last year"; Comparison "1" + "invoice") |
+
+**Code.**
+- `MetricTrend` (`MetricWidget.tsx`) takes `subLabel`; the badge holds `children` only, Default Positive / Negative
+  are Solid (was Subtle). With a Sub-Label it renders `.zen-metric-trend` (badge + `__sub-label`, Body/Small/Regular);
+  without one, the bare Badge as before (old one-string labels keep working, ref on the Badge). Sub-Label ink:
+  Content/Neutral/Light, re-pointed by a Solid card (card.css) to Inverse/Light, On-Colors, On-Brights or
+  On-Accent/Default; outside a card `data-content` gives Inverse/Light or On-Colors.
+- `trend` is `MetricTrendValue { direction, label, subLabel? }` on Metric, MetricCard and comparison columns; the tile
+  drops the Sub-Label at size small. The Hero's default override moved from `Metric/Trend` `content: "on-color"` to
+  `Metric/Trend/Badge` `{ theme: "on-color", background: "solid" }`, as Figma's Hero does, so its Sub-Label stays
+  Neutral/Light on the Pale fill.
+- Usages split the way Figma did (pill = the change, an agreeing sign dropped, a disagreeing one kept): 100 literals by
+  script, the computed ones by hand (`changeOf` returns the magnitude on Chart, Metric, Segmented, Visually-hidden;
+  DashboardTemplate `trendOf`; HR Home / Expense overview / My expenses / My leaves / Public holiday; Rating; Button;
+  palette samples; the Metric playground). Pure notes stay one string ("Friday, Oct 16", "days left this year"). New
+  Do/Don't pair (change in the badge vs the whole sentence).
+- Studio: push writes the Trend option and `texts["Sub-Label"]` on the Metric-Trend and the change on `Trend/Badge`
+  (`text`), and hides Figma's sample Sub-Label (`edits` visible:false) when the code has none (`figma-metric.mjs`
+  `trendNested` / `trendEdits`, used by figma-push `metricParts` and the Metric-Card push). A `textList` on the
+  Metric-Trend would now land in its own text layer, the Sub-Label (plugin and native both prefer own text layers).
+  Pull reads the Badge text (old pushes' textList still), the Sub-Label from the push JSON or Figma's read; the generic
+  reader always records a shown Sub-Label in a Trend. `detach` passes `subLabel`; the props map's Trend toggle writes
+  Figma's sample. Generated: figmaProps, variantSets, compile-api, keywords; docs/api now documents MetricTrend.
+- Contract: `docs/figma-contracts/metric-trend.json` (mcp-capture, 9 variants) + suite `metric-trend.mjs` (row, badge,
+  arrow, label text, Sub-Label line/text style/colour); `tools/qa/lib.mjs` maps `.zen-metric-trend` to MetricWidget.
+- Guideline: Trend row, do/don't, content (subLabel). No harness rule (needs the user's OK).
+- Tests: `tests/interaction/metric-trend.test.tsx` (new), metric-card-types (Solid badge, Sub-Label, tile Small, ink per
+  Solid fill, Hero), smoke fixture split. Selftests: figma-push 497, studio:selftest all, usage, ai-ui, mcp,
+  guidelines, style pass; tsc clean.
+- Follow-up the same day (Giám sát relayed the user's "có" to splitting old labels, and five review points):
+  - `src/components/MetricWidget/trend.ts` `trendParts()` (started from the stopped "Cập nhật các variant còn lại"
+    session's patch): without a `subLabel`, a text label that starts with a figure renders as the badge + Sub-Label
+    ("+9% vs. August" → 9% · vs. August); an agreeing sign is dropped, a disagreeing one kept, a normal trend keeps its
+    sign, no figure stays whole in the badge, a given `subLabel` means no split. The Studio push cuts the same way
+    (`figma-metric.mjs` `trendWords`), so Figma gets the same two layers; the pull reads them back as label + subLabel.
+  - a11y: an unsigned figure names the arrow (`aria-label` Increase / Decrease, the existing `increase`/`decrease` label
+    keys, en + vi), a signed one keeps it decorative. A `<title>` would have put the word into the badge's text.
+  - Tile size small: the Sub-Label is rendered and clipped to 1px out of the flow (Figma hides it), so screen readers
+    still read it.
+  - On-Color Sub-Label outside a Solid card: `var(--zen-card-on, On-Colors)`. Inside one it already took the card's
+    re-pointed Neutral/Light (On-Accent/Default, On-Brights; the tile test checks each fill).
+  - Normal's badge layer `.Primitives/Metrics/Metrics-Trend/Normal`: the push's `Trend/Badge` resolves it through its
+    component set in both the plugin and the native pack (probed: no "no such nested instance" note); the pull also
+    takes `Trend/Normal`, the generic reader's name for it. Layer names unchanged.
+  - Contract: `__HASHES` of 595:55134 equals the stored capture (91e440b0), so no re-capture.
+  - Selftests: figma-push 499 (split cases, Normal badge pull), studio:selftest, usage, guidelines, ai-ui, style; tsc.
+- Native pack (user: "Làm ngay"): probe 17317:4 on QA page 15872:3 (9 instances), `native-pack.mjs capture --keep
+  --merge`, then the changed set replaced (add-only keeps stale entries): `sets["595:55134"]` and its 9 variant symbols
+  from the copy (each now has its Sub-Label row); defs merged over. Probe frame 17317:3 removed. A native paste of
+  Normal / Positive / Negative trends now writes the Badge text, the Sub-Label words and the hide with no note;
+  figma-native 162, `native-pack check` pass. The capture moved the user's Figma tab to the probe node. axe: the Sub-Label's light-mode ink
+  (Neutral/Light #0000007C on white, Lc 65.5, WCAG 3.79:1) is the Figma token; the user picked "Giữ như Figma", so
+  `tests/smoke/axe-baseline.json` has `MetricCard: color-contrast` (as `Metric` for its Caption labels).
+- **Gate** (Giám sát's GO, `qa --isolated --pages=metric,widgets,chart --files=` the branch's 43 files, after merging
+  main 5d3d6b79 and 2e7627e8): PASS @30be4531, report `.qa/reports/2026-10-26T12-02-20-37f9e943.md`. Contracts
+  metric-trend 330/330 and badge 7896/7896 first, then all suites; Vitest 94 files; behaviour clean; Studio E2E 381 works ·
+  0 broken (1652 s). Found and fixed on the way: MetricTrend did not forward `data-*` (conformance, now on the badge or
+  the row), and white On-Colors on the Solid Green / Red trend badges (Figma; Lc 67.5 / 69.5, the APCA pick, WCAG
+  3.5–3.7:1) joined the known contrast entries (the user's 2026-10-19 rule: On colours by APCA): MetricCard
+  `color-contrast:dark` in the axe baseline, the metric-card-types filter skips Solid badges.
+- Audit warnings: rhythm "9 text styles" on Widgets, Button › Page actions and HR Expense overview / My leaves / Public
+  holidays (1512/390/320 + dark), the Sub-Label's Body/Small/Regular joining the examples. The user: "Baseline, giữ như
+  Figma" → 16 keys in `tools/platform-audit/quality-baseline.json` (8 replace the same pages' keys whose style order
+  changed). Contact sheets (metric, widgets, templates at 390) checked: number-only badges, Sub-Labels beside them, the
+  dark Hero in Inverse, small tiles with the pill alone.

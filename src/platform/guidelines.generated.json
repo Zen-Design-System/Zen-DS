@@ -6176,8 +6176,8 @@
       ],
       [
         "Trend",
-        "trend {direction: positive · negative · normal, label}",
-        "Small Subtle Badge: green / red / neutral. Inside a Solid card it follows the fill (Figma Metric-Trend Content): Inverse Solid on Neutral, On-Color Solid on Accent and the hues, the arrow telling the direction; MetricTrend content sets it"
+        "trend {direction: positive · negative · normal, label, subLabel}",
+        "Figma Metric-Trend (595:55134): a Small Badge holding the change alone (\"9%\": positive Background/Positive/Solid + arrow up, negative Background/Negative/Solid + arrow down, normal Neutral Subtle), then the Sub-Label (\"vs. August\": Body/Small/Regular, Content/Neutral/Light) Gap/2XSmall after it. Inside a Solid card it follows the fill (Figma Content): Inverse Solid on Neutral, On-Color Solid on Accent and the hues, the arrow telling the direction, the Sub-Label in the fill's family (Inverse/Light, On-Accent, On-Colors, On-Brights). A tile of size small shows the badge alone (the Sub-Label stays readable to screen readers). MetricTrend content and subLabel set them; without a subLabel, a one-string label that starts with a figure is split the same way (\"+9% vs. August\" → 9% · vs. August), any other stays whole in the badge"
       ],
       [
         "Icon",
@@ -6227,7 +6227,7 @@
       [
         "Hero",
         "type=\"hero\" · theme · color · footer",
-        "Brand Pale by default with neutral marks and an On-Color Solid trend badge; theme=\"solid\" (color neutral) is the dark widget: Inverse content, a Button appearance=\"overlay\" level=\"inverse\" in the footer"
+        "Brand Pale by default with neutral marks and an On-Color Solid trend badge (its Sub-Label Neutral/Light); theme=\"solid\" (color neutral) is the dark widget: Inverse content, a Button appearance=\"overlay\" level=\"inverse\" in the footer"
       ],
       [
         "Motion",
@@ -6247,7 +6247,7 @@
       "Give a typed MetricCard the data its type draws: series, goal, comparison or categories (harness: metric/type-data).",
       "Pass categories largest first and keep them to 2–7 (harness: metric/category-count).",
       "Pass format so the series summary, the goal's label and the category amounts read like the number (\"$105.7K\", \"1,284 h\").",
-      "Always say what the trend compares against (\"vs. last month\").",
+      "Put only the change in trend.label (\"9%\"; a sign that agrees with the arrow is left out, one that disagrees stays) and what it is measured against in trend.subLabel (\"vs. last month\", \"invoice\").",
       "Use the same size for metrics in one row; one hero metric at most.",
       "Pair a worrying trend with guidance (Inline Message) or a link to details.",
       "Colour-code metrics by category with the Dock-Icon theme (Revenue green, Users blue…) and keep that mapping across the product.",
@@ -6255,17 +6255,18 @@
     ],
     "dont": [
       "Don't colour the number itself to show good/bad — the trend badge carries it.",
+      "Don't write the comparison into the trend's label (\"+12% vs. last month\"): the badge holds the change, subLabel the words beside it (Figma Metric-Trend since 2026-10-26).",
       "Don't leave a status card's Dock Icon (total, in progress, overdue, done) at the default Neutral Subtle.",
       "Don't show more than ~4 KPI cards in a row; group or prioritise.",
       "Don't round away meaningful precision in finance values.",
       "Don't give every tile a different colour for decoration, or rely on the icon colour alone for good/bad; the trend badge carries the status."
     ],
     "a11y": [
-      "The trend badge has text (not colour alone); icons are decorative.",
+      "The trend badge has text (not colour alone); its arrow is named Increase / Decrease when the badge's figure carries no sign (the sign the arrow shows is left out), otherwise icons are decorative.",
       "A sparkline or spark bars is one image (role=\"img\") named by a summary of the series (or seriesLabel); the category bar is decorative and its rows say every amount and share; goal-progress is a named progressbar."
     ],
     "content": [
-      "Labels are nouns (\"Revenue\"); trends read \"+12% vs. last month\"."
+      "Labels are nouns (\"Revenue\"); a trend reads as its change (\"12%\", \"1\") then what it compares against (\"vs. last month\", \"invoice\")."
     ],
     "refs": [
       [

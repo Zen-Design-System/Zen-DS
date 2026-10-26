@@ -75,13 +75,13 @@ export const navSections: SidebarSection[] = [
   ] },
 ];
 
-type Kpi = { id: string; label: string; value: string; trend: { direction: MetricTrendDirection; label: string }; icon: IconName; hue: "orange" | "blue" | "violet" | "green"; detail: string };
+type Kpi = { id: string; label: string; value: string; trend: { direction: MetricTrendDirection; label: string; subLabel?: string }; icon: IconName; hue: "orange" | "blue" | "violet" | "green"; detail: string };
 /** One hue per metric family: the Dock-Icon's, and on the Open composition the card's Pale fill too. */
 const kpis: Kpi[] = [
-  { id: "tasks", label: "Tasks due this week", value: "23", trend: { direction: "negative", label: "5 overdue" }, icon: "icon-check-square-line", hue: "orange", detail: "5 are overdue, 3 of them on Onboarding v2." },
-  { id: "meetings", label: "Meetings this week", value: "14", trend: { direction: "normal", label: "3 on Monday" }, icon: "icon-calendar-line", hue: "blue", detail: "Monday starts with the weekly standup at 9:00." },
-  { id: "hours", label: "Hours last week", value: "2,535h", trend: { direction: "positive", label: "+1.2% vs. week 37" }, icon: "icon-clock-line", hue: "violet", detail: "5 timesheets still wait for approval." },
-  { id: "leads", label: "Open leads", value: "38", trend: { direction: "positive", label: "+6 this week" }, icon: "icon-target-04-line", hue: "green", detail: "Northwind moved to the pilot stage." },
+  { id: "tasks", label: "Tasks due this week", value: "23", trend: { direction: "negative", label: "5", subLabel: "overdue" }, icon: "icon-check-square-line", hue: "orange", detail: "5 are overdue, 3 of them on Onboarding v2." },
+  { id: "meetings", label: "Meetings this week", value: "14", trend: { direction: "normal", label: "3", subLabel: "on Monday" }, icon: "icon-calendar-line", hue: "blue", detail: "Monday starts with the weekly standup at 9:00." },
+  { id: "hours", label: "Hours last week", value: "2,535h", trend: { direction: "positive", label: "1.2%", subLabel: "vs. week 37" }, icon: "icon-clock-line", hue: "violet", detail: "5 timesheets still wait for approval." },
+  { id: "leads", label: "Open leads", value: "38", trend: { direction: "positive", label: "6", subLabel: "this week" }, icon: "icon-target-04-line", hue: "green", detail: "Northwind moved to the pilot stage." },
 ];
 
 type Meeting = { id: string; title: string; when: string; tag: string; theme: BadgeTheme };
@@ -339,7 +339,7 @@ const codeFor = ({ canvas, sidebarShadow, cards, lists, hue }: Look & { hue?: bo
   <Stack gap="xl">
     <Grid columns={4} stackBelow={560} gap="md">
       <MetricCard type="kpi" size="xl" theme="${cards}"${hue ? ` color="orange"` : ""} label="Tasks due this week" value="23"
-        trend={{ direction: "negative", label: "5 overdue" }} icon="icon-check-square-line" iconTheme="orange" iconBackground="solid"
+        trend={{ direction: "negative", label: "5", subLabel: "overdue" }} icon="icon-check-square-line" iconTheme="orange" iconBackground="solid"
         action={<IconButton appearance="main" level="tertiary" size="xs" icon="icon-chevron-right-line-small" aria-label="Open tasks due this week" onClick={openTasks} />} />
       {/* Meetings this week · Hours last week · Open leads${hue ? " (blue, violet, green)" : ""} */}
     </Grid>

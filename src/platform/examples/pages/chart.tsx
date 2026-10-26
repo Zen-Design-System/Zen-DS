@@ -106,7 +106,8 @@ function StudioApp({ place, main, sidePanel, children }: { place: string; main: 
 /* ───────────── Finance dashboard ───────────── */
 
 /** "+9%" · "−8%": the change from one month to the next, in whole percent. */
-const changeOf = (now: number, before: number) => { const p = Math.round((now / before - 1) * 100); return `${p < 0 ? "−" : "+"}${Math.abs(p)}%`; };
+// A trend badge's change: the arrow carries its sign (Figma Metric-Trend, 2026-10-26).
+const changeOf = (now: number, before: number) => `${Math.abs(Math.round((now / before - 1) * 100))}%`;
 // The tiles read the same shared months and invoices as the chart and the Metric page.
 const [august, september] = studioMonths.slice(-2);
 const overdue = invoices.filter((invoice) => invoice.status === "Overdue").sort((a, b) => a.due.getTime() - b.due.getTime());
@@ -155,11 +156,11 @@ function FinanceDashboardExample() {
         {/* Three tiles share the row: each column at least 30% wide, one per row once 220px no longer fits. */}
         <Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
           <MetricCard iconBackground="solid" theme="default" label="Invoiced in September" value={formatMoney(september.invoiced)} icon="icon-currency-dollar-circle-line" iconTheme="green"
-            trend={{ direction: september.invoiced >= august.invoiced ? "positive" : "negative", label: `${changeOf(september.invoiced, august.invoiced)} vs. August` }} />
+            trend={{ direction: september.invoiced >= august.invoiced ? "positive" : "negative", label: changeOf(september.invoiced, august.invoiced), subLabel: "vs. August" }} />
           <MetricCard iconBackground="solid" theme="default" label="Collected in September" value={formatMoney(september.collected)} icon="icon-bank-note-01-line" iconTheme="blue"
-            trend={{ direction: september.collected >= august.collected ? "positive" : "negative", label: `${changeOf(september.collected, august.collected)} vs. August` }} />
+            trend={{ direction: september.collected >= august.collected ? "positive" : "negative", label: changeOf(september.collected, august.collected), subLabel: "vs. August" }} />
           <MetricCard iconBackground="solid" theme="default" label="Overdue" value={formatMoney(overdue.reduce((total, invoice) => total + invoice.amount, 0))} icon="icon-alert-triangle-line" iconTheme="red"
-            trend={{ direction: "normal", label: overdue.length ? `${plural(overdue.length, "invoice")} · ${formatDue(overdue[0].due)}` : "Nothing overdue" }} />
+            trend={{ direction: "normal", label: String(overdue.length), subLabel: overdue.length ? `${overdue.length === 1 ? "invoice" : "invoices"} · ${formatDue(overdue[0].due)}` : "overdue" }} />
         </Grid>
         {/* Flat on the canvas, like the tiles. Right under the page h1: an h2. A wide card hugs its range switch. */}
         <ChartCard title="Revenue" headingLevel={2} onOpen={() => setReportOpen(true)} openLabel="Open revenue report"
@@ -229,7 +230,7 @@ function TrendInSectionExample() {
         <Heading level={4} id={headingId} textStyle="Heading/4">Budget spent</Heading>
         <Text textStyle="Body/Small/Regular" tone="base">{lumen.name} · {lumen.client}</Text>
       </Stack>
-      <Metric size="xl" icon={false} label="Spent so far" value={formatMoney(lumen.spent)} trend={{ direction: "normal", label: `${share}% of ${formatMoney(lumen.budget)}` }} />
+      <Metric size="xl" icon={false} label="Spent so far" value={formatMoney(lumen.spent)} trend={{ direction: "normal", label: `${share}%`, subLabel: `of ${formatMoney(lumen.budget)}` }} />
       <LineChart aria-label={`${lumen.name}, budget spent by week, Aug 24 – Sep 28, 2026`} data={budgetSpent} format={formatCompactMoney} height={200} />
     </Stack>
   );
@@ -881,7 +882,7 @@ const [reportOpen, setReportOpen] = useState(false);
 >
   <Grid minColumnWidth="clamp(220px, 30%, 100%)" gap="md">
     <MetricCard theme="default" label="Invoiced in September" value="$105,700" icon="icon-currency-dollar-circle-line" iconTheme="green"
-      trend={{ direction: "positive", label: "+9% vs. August" }} />
+      trend={{ direction: "positive", label: "9%", subLabel: "vs. August" }} />
     {/* Collected in September, Overdue */}
   </Grid>
   <ChartCard title="Revenue" headingLevel={2} onOpen={() => setReportOpen(true)} openLabel="Open revenue report"
@@ -1017,7 +1018,7 @@ const collected = { label: "Collected", values: [79500, /* … */ 88300] };
     <Heading level={4} id={headingId} textStyle="Heading/4">Budget spent</Heading>
     <Text textStyle="Body/Small/Regular" tone="base">Online banking redesign · Lumen Bank</Text>
   </Stack>
-  <Metric size="sm" icon={false} label="Spent so far" value="$58,310" trend={{ direction: "normal", label: "36% of $162,000" }} />
+  <Metric size="sm" icon={false} label="Spent so far" value="$58,310" trend={{ direction: "normal", label: "36%", subLabel: "of $162,000" }} />
   <LineChart aria-label="Online banking redesign, budget spent by week, Aug 24 – Sep 28, 2026"
     data={budgetSpent} format={formatCompactMoney} height={200} />
 </Stack>`,
