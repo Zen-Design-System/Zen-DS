@@ -46,7 +46,7 @@ export interface BarChartProps {
  * Corner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched
  * in Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→); the bars run edge
  * to edge Spacing/Gap/XSmall apart, as wide as the count allows, rounded on the top corners over a flat base. Horizontal: a
- * category column, 24px bars, a value column at the end of the rows (the active one in Strongest; no Tooltip floats over
+ * category column, 24px bars Spacing/Gap/XSmall apart (flat at the axis, thicker in a taller card), a value column at the end of the rows (the active one in Strongest; no Tooltip floats over
  * the bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart
  * 15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941; Color=Primary · Secondary ↔ `palette`); the hatch is
  * .Chart/Hatch 15321:475.

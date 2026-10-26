@@ -104,10 +104,12 @@
 .zen-chart__bar[data-projected="true"], .zen-chart__target { --zen-chart-hatch: var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 7%)); background: repeating-linear-gradient(135deg, var(--zen-chart-hatch) 0 1.5px, transparent 1.5px 4.25px), var(--zen-color-background-support-neutral-pale, rgb(5 5 5 / 3%)); }
 .zen-chart__column[data-active="true"] .zen-chart__bar[data-projected="true"], .zen-chart__htrack[data-active="true"] .zen-chart__bar[data-projected="true"] { --zen-chart-hatch: var(--zen-chart-bar-active, var(--zen-chart-second, var(--zen-chart-sector-secondary, #111))); background: repeating-linear-gradient(135deg, var(--zen-chart-hatch) 0 1.5px, transparent 1.5px 4.25px), var(--zen-color-background-support-neutral-pale, rgb(5 5 5 / 3%)); }
 
-/* Horizontal bars: category pills · 24px bars on a dashed vertical grid · a value column · the value axis below
-   (Label/Small/Medium); the last axis label reaches into the value column's gap, so it stays inside the chart. */
+/* Horizontal bars: category pills · bars on a dashed vertical grid · a value column · the value axis below
+   (Label/Small/Medium); the last axis label reaches into the value column's gap, so it stays inside the chart. The rows
+   sit Spacing/Gap/XSmall apart, the axis too (the user, 2026-10-26: as the columns); a row is 24px and takes its share
+   of a taller card's spare height, so the bars thicken; each bar is flat at the axis, Corner-Radius/Small at its end. */
 .zen-chart--horizontal { display: block; }
-.zen-chart__hplot { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: repeat(var(--zen-chart-count, 4), 24px) auto; gap: calc(var(--zen-spacing-gap-medium, 16px) + var(--zen-chart-grow, 0px) / max(1, var(--zen-chart-count, 4))) var(--zen-spacing-gap-xsmall, 8px); border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
+.zen-chart__hplot { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: repeat(var(--zen-chart-count, 4), calc(24px + var(--zen-chart-grow, 0px) / max(1, var(--zen-chart-count, 4)))) auto; gap: var(--zen-spacing-gap-xsmall, 8px); border-radius: var(--zen-corner-radius-xsmall, 4px); outline: 0; }
 .zen-chart__hgrid { position: relative; grid-column: 2; grid-row: 1 / -2; }
 /* zen-allow-dashed-color: the vertical gridlines of horizontal bars, the same dashed Border/Neutral/Pale data guide as the plot grid. */
 .zen-chart__hgrid > span { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
@@ -115,7 +117,7 @@
 .zen-chart__hrows { display: contents; }
 .zen-chart__hlabel { grid-column: 1; align-self: center; justify-self: end; cursor: pointer; }
 .zen-chart__htrack { position: relative; grid-column: 2; display: grid; align-items: center; cursor: pointer; }
-.zen-chart__htrack > .zen-chart__bar, .zen-chart__htrack > .zen-chart__target { grid-area: 1 / 1; height: 24px; }
+.zen-chart__htrack > .zen-chart__bar, .zen-chart__htrack > .zen-chart__target { grid-area: 1 / 1; height: 100%; border-radius: 0 var(--zen-corner-radius-small, 8px) var(--zen-corner-radius-small, 8px) 0; }
 /* The value column: each row's value at its end (Label/Small/Medium, Neutral/Light; the active row Strongest). */
 .zen-chart__hvalue { grid-column: 3; align-self: center; justify-self: end; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); font-variant-numeric: tabular-nums; white-space: nowrap; cursor: pointer; }
 .zen-chart__hvalue[data-active="true"] { color: var(--zen-color-content-neutral-strongest, #111); }
@@ -249,7 +251,7 @@
    and rings sweep their stroke; heatmap cells fade and scale up by Motion/Movement. Each chart re-mounts its marks when
    its data changes, so a new range draws itself in again. */
 @keyframes zen-chart-rise { from { clip-path: inset(100% 0 0 0 round var(--zen-corner-radius-small, 8px) var(--zen-corner-radius-small, 8px) 0 0); } to { clip-path: inset(0 0 0 0 round var(--zen-corner-radius-small, 8px) var(--zen-corner-radius-small, 8px) 0 0); } }
-@keyframes zen-chart-grow { from { clip-path: inset(0 100% 0 0 round var(--zen-corner-radius-small, 8px)); } to { clip-path: inset(0 0 0 0 round var(--zen-corner-radius-small, 8px)); } }
+@keyframes zen-chart-grow { from { clip-path: inset(0 100% 0 0 round 0 var(--zen-corner-radius-small, 8px) var(--zen-corner-radius-small, 8px) 0); } to { clip-path: inset(0 0 0 0 round 0 var(--zen-corner-radius-small, 8px) var(--zen-corner-radius-small, 8px) 0); } }
 @keyframes zen-chart-wipe { from { clip-path: inset(-8px 100% -8px -8px); } to { clip-path: inset(-8px -8px -8px -8px); } }
 @keyframes zen-chart-sweep { from { stroke-dasharray: 0 100; } }
 @keyframes zen-chart-pop { from { opacity: 0; transform: scale(calc(1 - .4 * var(--zen-motion-movement, 1))); } }

@@ -178,6 +178,17 @@ describe("chart family layout", () => {
     expect(getComputedStyle(bar).animationName).toBe("zen-chart-fade");
   });
 
+  it("horizontal bars sit 8px apart, flat at the axis and rounded at their end", async () => {
+    await render(wrap(<BarChart orientation="horizontal" aria-label="Rows" animate={false} data={[{ label: "Design", value: 28 }, { label: "Delivery", value: 12 }, { label: "Sales", value: 6 }]} />));
+    const rows = [...document.querySelectorAll('[aria-label="Rows"] .zen-chart__htrack')].map((el) => el.getBoundingClientRect());
+    expect(rows[1].top - rows[0].bottom).toBeCloseTo(8, 0);
+    expect(rows[0].height).toBeCloseTo(24, 0);
+    const bar = getComputedStyle(document.querySelector('[aria-label="Rows"] .zen-chart__htrack .zen-chart__bar')!);
+    expect(bar.borderTopLeftRadius).toBe("0px");
+    expect(bar.borderBottomLeftRadius).toBe("0px");
+    expect(Number.parseFloat(bar.borderTopRightRadius)).toBeGreaterThan(4);
+  });
+
   it("BarChart and StackBarChart: nothing active until the pointer is over a column; leaving the plot clears it", async () => {
     await render(wrap(<>
       <BarChart aria-label="Hover bars" data={[{ label: "Jan", value: 10 }, { label: "Feb", value: 20 }]} />
