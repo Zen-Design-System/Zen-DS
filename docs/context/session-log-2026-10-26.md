@@ -755,3 +755,37 @@ board" on the last 7 pages in #326's gate at a82ed06e, passing alone). Find the 
   guideline files from the copied sources and deduplicates by kit path, so the zip is unchanged (92 files; check
   221 passed). README (kit), SKILL.md and AGENTS.md say where to edit.
 - Open: Codex's `.agents/skills` scan comes from third-party docs — confirm once in Codex that it lists the skill.
+
+## Studio pages folder lost an edit made during a write (PT-03, NO-06, AG-10 flakes; tier S, product fix)
+
+The user, after #327: the three rows that passed only on retry in its 4 shards, same treatment. Branch
+zen/fix/e2e-flaky-pt03-no06-ag10-20261026 (from 0bb459bd; B-49 granted by Giám sát).
+- Diagnosis: PT-03 and AG-10 passed 8/8 alone; NO-06 failed 1 in 20 (the Card selected, ⌘D made no copy); the agent
+  group failed AG-08 once. Its shot showed the cause: the Button the row had inserted through the MCP was gone, both
+  agent changes failed, and the Inspector read "Selection lost after the file changed".
+- Cause (product, edits lost): every page write to the dev server's pages folder sends "zen-studio:pages-changed" 150 ms
+  later, to the writing tab too. `pushToMirror` recorded the folder's text as synced only when the page had not changed
+  during the write. An edit made meanwhile (an MCP insert after newPage's rename, a ⌘D after the page got its ids, the
+  phone switch after a rename) left the old base, so the echo of the tab's own write looked like a change from outside
+  on top of an edit here: `planSync` called it a conflict and took the folder's older text.
+- Fix: `pushToMirror` notes the hash of what it sends (`sent`) before the write and records it as the base after it,
+  whatever the page holds now; `planSync(…, sent)` reads a folder holding this tab's own last write as that base (push
+  the newer edit, no conflict). pageModel selftest +4 (49). New E2E row B-49: the first rename's write answer held 1.5 s,
+  a second rename 50 ms later; before the fix 3/3 broken (the tab went back to the first name), after it 5/5.
+- NO-06 failed once more after that fix (1 in 5): the Card selected with a raw `@id` src that srcIds could not place,
+  so ⌘D said "Its code is in , shared beyond this example". A 30 ms timeline of the record (IndexedDB), its document,
+  the Card's DOM src and the selection, over 20 runs, caught it: the record had its document, then lost it 17 ms later
+  when the sync's "mark" stored a copy without it. Cause (product, a second data loss): `getPage` read IndexedDB on a
+  cache miss and then set the cache unconditionally; two reads cross while the page opens, the first one's caller
+  (ensurePageDoc → setPageDoc) gives the page its document in microtasks, and the second, older answer put the record
+  back without it. It needs the import's write answer cut by the navigation (no sync mark yet), about 1 run in 15.
+- Fix: `recordOf(id)`: after a read, a record the cache got meanwhile wins; every read-then-write in pageStore uses it
+  (getPage, setPageDoc, replacePageDoc, putPage, …). Vitest `tests/interaction/studio-page-store.test.ts` crosses two
+  reads with setPageDoc. NO-06 ×30 with the fix: 30/30, no document lost (the timeline checked each run).
+- Diagnostics (temporary, removed): PT-03 steps named, NO-06 store/key/rejection log and timeline, AG-10 reply and
+  buttons.
+- Proof (Giám sát's slots, e35addf2 = both fixes + main c4e8fc18): Vitest studio-page-store fails on the old pageStore
+  (the document gone from the cache) and passes with the fix; PT-03, NO-06, AG-10, B-49 `--no-retry` 5/5 each;
+  `--shard=1/4 … 4/4` 386 works · 0 broken (PT-19 and PT-27 passed on retry, other rows); gate `qa --isolated
+  --files=` the six files: PASS (static, Vitest 95/95, Studio E2E 386 works · 0 broken in 3 shards; B-28 passed on
+  retry), report `.qa/reports/2026-10-26T17-44-02-74c671d1.md`. The four rows passed on the first try in both runs.

@@ -296,8 +296,11 @@ export type SyncStep =
  * What to do so this browser's pages and the folder's agree. The folder is the source of truth on a conflict; this
  * copy's text is never lost (a conflict keeps it as a revision, a page removed from the folder goes to the Trash).
  * A sync record from another mirror counts as never synced (linking a new folder pushes the pages it lacks).
+ * `sent`: per page, the hash of the text this copy last wrote to the mirror. A folder holding it holds this copy's own
+ * write, the base of any edit made here since, even before the write's answer recorded it: the folder's change event
+ * for that write is no change from outside (it was a conflict, and the folder's older text replaced the newer edit).
  */
-export function planSync(local: LocalRow[], remote: RemoteRow[], mirror: string): SyncStep[] {
+export function planSync(local: LocalRow[], remote: RemoteRow[], mirror: string, sent?: ReadonlyMap<string, string>): SyncStep[] {
   const steps: SyncStep[] = [];
   const byId = new Map(local.map((row) => [row.id, row]));
   const remoteIds = new Set<string>();
@@ -307,8 +310,9 @@ export function planSync(local: LocalRow[], remote: RemoteRow[], mirror: string)
     const hash = textHash(row.text);
     if (!mine) { steps.push({ kind: "take", id: row.id, text: row.text, mtime: row.mtime, reason: "new" }); continue; }
     if (mine.trashedAt !== undefined) { steps.push({ kind: "trash-remote", id: row.id }); continue; }
-    const synced = mine.sync?.mirror === mirror ? mine.sync.hash : null;
-    if (mine.text === row.text) { if (synced !== hash) steps.push({ kind: "mark", id: row.id, hash }); continue; }
+    const recorded = mine.sync?.mirror === mirror ? mine.sync.hash : null;
+    if (mine.text === row.text) { if (recorded !== hash) steps.push({ kind: "mark", id: row.id, hash }); continue; }
+    const synced = sent?.get(row.id) === hash ? hash : recorded;
     const mineHash = textHash(mine.text);
     if (synced !== null && mineHash === synced) steps.push({ kind: "take", id: row.id, text: row.text, mtime: row.mtime, reason: "folder" });
     else if (synced !== null && hash === synced) steps.push({ kind: "push", id: row.id, text: mine.text });
