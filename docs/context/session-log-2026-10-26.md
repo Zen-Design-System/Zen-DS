@@ -411,3 +411,11 @@ horizontal bars 8px ("Gap này là đang là 16px"), "Tooltip này chỉ bật k
   no initialIndex where Figma shows none (pickedSector) and lose the 88% / 12px-dot / active-label exceptions.
   Gotchas: a grid cell takes one child (appendChildAt refuses an occupied cell, gridRowAnchorIndex is read-only), so the
   twin bar is absolute; swapping a nested instance's variant re-ids its subtree, so re-query after each swap.
+
+## Charts · Heatmap and Multi-Line hover in Figma (tier XS, follow-up to #322)
+
+User: "make Heatmap's active row/column labels follow Hover and give Multi-Line's Hover the rule and the X pill". Figma:
+Heatmap's "Tue" / "1 pm" labels go Light, their Strongest twins (Active-Label, absolute, same box) show on Hover; each
+Multi-Line variant gets a Hover-Sector (.Primitives/Chart/Sector Select=Selected Highlight, Show Tooltip off, its period's
+label) over the active period, on Hover. Contracts chart-heatmap (b6fe0eb7) and chart-multi-line (b4845783) re-captured;
+code unchanged (it already draws none of this at rest).
