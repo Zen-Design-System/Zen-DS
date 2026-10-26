@@ -3,12 +3,15 @@
 //   node tools/ai-kit/build.mjs                 → dist-pack/zen-figma-ai-kit.zip
 //   node tools/ai-kit/build.mjs --out=<file>    → that file
 //   node tools/ai-kit/build.mjs --check         → builds in memory and verifies the kit (exit 1 on a failure)
+// It also writes the generated references (figma-components.md, figma-tokens.md) into the repo's skill folder, so an
+// agent working in the repo (Claude Code, Codex through the Figma MCP) finds every file SKILL.md names; --check fails
+// when those committed copies are stale.
 // The docs platform builds the same zip in the browser (src/platform/aiKit.ts, Installation › AI kit for Figma).
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { unzipFiles, zipFiles } from "../studio/zip.mjs";
-import { buildKit, KIT_NAME, KIT_SOURCES, SKILL } from "./kit.mjs";
+import { buildKit, GENERATED_REFERENCES, KIT_NAME, KIT_SOURCES, SKILL } from "./kit.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const args = process.argv.slice(2);
@@ -18,13 +21,13 @@ const out = args.find((arg) => arg.startsWith("--out="))?.slice(6) ?? path.join(
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 const readJson = (file) => JSON.parse(read(file));
 
-/** Every file under `dir` (repo-relative, "/"), recursively. */
+/** Every file under `dir` (repo-relative, "/"), recursively; a linked folder (the skill's references/guidelines) is walked too. */
 function walk(dir) {
   const full = path.join(root, dir);
-  return fs.readdirSync(full, { withFileTypes: true }).flatMap((entry) => {
-    const rel = `${dir.replace(/\/$/, "")}/${entry.name}`;
-    if (entry.name.startsWith(".")) return [];
-    return entry.isDirectory() ? walk(rel) : [rel];
+  return fs.readdirSync(full).flatMap((name) => {
+    if (name.startsWith(".")) return [];
+    const rel = `${dir.replace(/\/$/, "")}/${name}`;
+    return fs.statSync(path.join(full, name)).isDirectory() ? walk(rel) : [rel];
   });
 }
 
@@ -43,24 +46,32 @@ export function readKitInputs() {
 
 const inputs = readKitInputs();
 const files = buildKit(inputs);
+const kit = new Map(files.map((file) => [file.path.slice(KIT_NAME.length + 1), file.data]));
+const skill = `skills/${SKILL}`;
 
 if (!check) {
+  for (const file of GENERATED_REFERENCES) fs.writeFileSync(path.join(root, file), kit.get(file));
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, zipFiles(files));
-  console.log(`✓ ${path.relative(process.cwd(), out)}: ${files.length} files, ${(fs.statSync(out).size / 1024).toFixed(0)} KB`);
+  console.log(`✓ ${path.relative(process.cwd(), out)}: ${files.length} files, ${(fs.statSync(out).size / 1024).toFixed(0)} KB; ${GENERATED_REFERENCES.length} generated references written to ${skill}/references`);
   process.exit(0);
 }
 
 const failures = [];
 let passed = 0;
 const expect = (label, ok, detail = "") => (ok ? (passed += 1) : failures.push(`${label}${detail ? `: ${detail}` : ""}`));
-const kit = new Map(files.map((file) => [file.path.slice(KIT_NAME.length + 1), file.data]));
-const skill = `skills/${SKILL}`;
 
 for (const file of ["README.md", "AGENTS.md", "CLAUDE.md", "VERSION.txt", `${skill}/SKILL.md`, `${skill}/agents/openai.yaml`, `${skill}/harness/zen-figma-audit.js`, `${skill}/references/component-usage-rules.md`, `${skill}/references/figma-components.md`, `${skill}/references/figma-tokens.md`]) {
   expect(`kit has ${file}`, kit.has(file));
 }
 expect("CLAUDE.md is AGENTS.md", kit.get("CLAUDE.md") === kit.get("AGENTS.md"));
+for (const file of GENERATED_REFERENCES) {
+  const committed = fs.existsSync(path.join(root, file)) ? read(file) : null;
+  expect(`${file} in the repo is current`, committed === kit.get(file), "run npm run ai-kit:build and commit it");
+}
+for (const file of ["skills/zen-figma-design", ".claude/skills/zen-figma-design", ".agents/skills/zen-figma-design"]) {
+  expect(`${file}/SKILL.md is readable`, fs.existsSync(path.join(root, file, "SKILL.md")), "the skill is linked for Claude Code (.claude/skills) and Codex (.agents/skills)");
+}
 const guidelines = walk(KIT_SOURCES.guidelines).filter((file) => file.endsWith(".md"));
 expect("every guideline is in the kit", guidelines.every((file) => kit.has(`${skill}/references/guidelines/${path.basename(file)}`)), `${guidelines.length} guidelines`);
 

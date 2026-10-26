@@ -63,8 +63,8 @@ Components own their inner padding and gap; never change them. Between elements,
 | Relationship | Variable | px |
 | --- | --- | --- |
 | Two lines of one compact item: a name or value and the caption right under it (a stat over its label, a name over its meta line) | `Spacing/Gap/3XSmall` | 2 |
-| Pieces of one inline item: icon + text, a Badge beside a title, a cluster of Tags | `Spacing/Gap/2XSmall` | 4 |
-| A thing and its label or description; controls in one toolbar row (Chips, icon buttons, Search) | `Spacing/Gap/XSmall` | 8 |
+| Pieces of one inline item: icon + text, a Badge beside a title, a cluster of Tags or Badges (audit `tag/row-gap`, `badge/row-gap`) | `Spacing/Gap/2XSmall` | 4 |
+| A thing and its label or description; controls in one toolbar row (icon buttons, Search); Chips side by side (audit `chip/row-gap`) | `Spacing/Gap/XSmall` | 8 |
 | A group acting as one: text buttons side by side, choices in a group | `Spacing/Gap/Small` | 12 |
 | Blocks inside one surface (header → body → actions), stacked form fields, toolbar → table, a control row (Chips, Segmented, Tabs, Search) → the content it controls, cards in a grid | `Spacing/Gap/Medium` | 16 |
 | Columns of a layout, groups inside one surface | `Spacing/Gap/Large` | 24 |
@@ -181,7 +181,15 @@ Bar Horizontal) and the `Sector` variant that holds your periods (4 · 6 · 7 ·
   bottom stroke. A table row's ⋯ gets a state frame with its popover open. An editable cell holding a value sets its
   nested input to `State=Typing`.
 - **Solid by default** in tables and metrics: the Avatar in an Avatar-Cell and the Dock-Icon of a Metric-Card use
-  `Background=Solid`; their icon or initials then take On-Colors from the variant (never paint them).
+  `Background=Solid`; their icon or initials then take On-Colors from the variant (never paint them). A table's first
+  column (the row's name) keeps its initials Avatar Solid (audit `table/first-column-avatar-solid`; a photo Avatar stays
+  as it is: the set has no Photo × Solid).
+- **Metric-Trend** (user 2026-10-26, Figma 595:55134; code PR #324): the badge holds the change alone ("9%", the arrow
+  shows the sign) and what it is measured against ("vs. August") is the trend's `Sub-Label` text layer beside it
+  (`Spacing/Gap/2XSmall`; `Size=Small` hides it). Never write "+9% vs. August" into the badge (audit
+  `metric/trend-words-in-badge`).
+- **Small avatars** (user 2026-10-13: "các ava nhỏ chỉ nên dùng viết tắt 1 chữ"): an XSmall (24) or 2XSmall (20)
+  initials Avatar shows one letter ("A"); Small and up show two (audit `avatar/small-one-letter`).
 - **Side-Panel content.** Group it like a phone settings screen: a kicker over each block, blocks with
   `Theme=On-Container` (Card or List-Box), people as List-Items, the header through the panel's Header-Contents slot
   with a 44px Dock-Icon, the body set to fill so Actions sit at the bottom, and content ending above them.

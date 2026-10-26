@@ -136,6 +136,16 @@
 //                                     only under the pointer; keep it only in a frame named for the hover state
 //   chart/metric-label-is-description  warning  a chart's Metric Label that reads as a description (a sentence, or
 //                                     longer than 40 characters): name the figure there, put the description in the Hint
+//   chip/row-gap             error    Chips side by side (a row or wrap of Chip instances) not Spacing/Gap/XSmall (8) apart
+//   tag/row-gap              error    Tags side by side not Spacing/Gap/2XSmall (4) apart
+//   badge/row-gap            error    Badges (Badge, Badge-Status) side by side not Spacing/Gap/2XSmall (4) apart
+//   button/pair-order        warning  a row of text buttons with the Primary not last (a column: not first): the pair is
+//                                     Tertiary + Primary, Primary last; a phone footer stacks Primary on top
+//   table/first-column-avatar-solid  warning  an initials Avatar in a table's first column (the row's name) that is
+//                                     Background=Subtle: the name column's Avatar is Solid (a photo stays as it is)
+//   metric/trend-words-in-badge  warning  a Metric-Trend whose badge holds words ("+9% vs. August"): the badge holds the
+//                                     change alone, the words go in its Sub-Label
+//   avatar/small-one-letter  warning  an XSmall or 2XSmall initials Avatar showing more than one letter
 // Content that runs on past the far end of a frame set to scroll (Figma prototype overflow: a long Body, a Chip row)
 // is scroll content, not bounds/clipped.
 
@@ -920,6 +930,7 @@ async function checkTaskPageRules(root) {
 // is Medium ("Emoji thì mặc định dùng medium": the set has Emoji only at Medium and Large). Only tables built from
 // the library: Primitives/Table/Data-Row instances you placed (on the screen or in a slot), not rows a placed component
 // owns. The select or expand column before it (a Control-Cell, or a cell with no cell primitive) is skipped.
+// table/first-column-avatar-solid: the same column's initials Avatar is Background=Solid (a photo stays Subtle).
 const DATA_ROW = "Primitives/Table/Data-Row";
 const CELL_PRIMITIVE = /^Primitives\/Table\/Cell\//;
 async function checkTableFirstColumn(root) {
@@ -936,13 +947,102 @@ async function checkTableFirstColumn(root) {
         for (const inner of instances) { const name = await setNameOf(inner); if (CELL_PRIMITIVE.test(name)) { primitive = name; break; } }
         if (!primitive || primitive.endsWith("/Control-Cell")) continue;
         for (const dock of instances) {
-          if ((await setNameOf(dock)) !== "Dock-Icon") continue;
+          const set = await setNameOf(dock);
+          if (set === AVATAR_SET) {
+            // The user 2026-10-24: "cột giá trị đầu tiên trong bảng nếu có dùng avatar thì không dùng subtle". A photo
+            // Avatar stays as it is (the set has no Photo × Solid). Code harness table/first-column-avatar-solid.
+            const { Theme: theme, Background: background } = dock.variantProperties ?? {};
+            if (theme && theme !== "Photo" && background === "Subtle") report("table/first-column-avatar-solid", WARNING, dock, `the first column's initials Avatar is Background=Subtle: the row's name column takes a Solid Avatar (its initials then take On-Colors) — set its Background to Solid`);
+            continue;
+          }
+          if (set !== "Dock-Icon") continue;
           const { Size: size, Theme: theme } = dock.variantProperties ?? {};
           const want = theme === "Emoji" ? "Medium" : "Small";
           if (size && size !== want) report("table/first-column-dock-icon-small", WARNING, dock, theme === "Emoji" ? `the first column's Emoji Dock-Icon is Size=${size}: an Emoji Dock-Icon is Medium — set its Size to Medium` : `the first column's Dock-Icon is Size=${size}: the row's name column takes a Small Dock-Icon, with or without a Subtext — set its Size to Small`);
         }
         break;
       }
+    }
+  }
+}
+
+// Rows of Chips, Tags and Badges (the user 2026-10-24: "rule spacing giữa các chip là 8px, giữa các tag là 4px";
+// 2026-10-26: "áp dụng rule tương tự cho badge"): an authored row (or wrap) whose shown children are all Chips sits
+// Spacing/Gap/XSmall (8) apart; all Tags, or all Badges (Badge, Badge-Status; a Badge-Counter is a count, not a badge),
+// Spacing/Gap/2XSmall (4). Code harness chip/row-gap, tag/row-gap, badge/row-gap; runtime audit item-row-gap.
+const ROW_FAMILY = [["chip/row-gap", /^Chip\//, 8, "Chips", "Spacing/Gap/XSmall (8)"], ["tag/row-gap", /^Tag$/, 4, "Tags", "Spacing/Gap/2XSmall (4)"], ["badge/row-gap", /^(Badge|Badge-Status)$/, 4, "Badges", "Spacing/Gap/2XSmall (4)"]];
+async function checkRowGaps(root) {
+  for (const frame of root.findAll ? root.findAll((node) => (node.type === "FRAME" || node.type === "COMPONENT") && (node.layoutMode === "HORIZONTAL" || node.layoutWrap === "WRAP")) : []) {
+    if (!authored(frame) || frame.primaryAxisAlignItems === "SPACE_BETWEEN") continue;
+    const kids = frame.children.filter((child) => child.visible !== false && child.layoutPositioning !== "ABSOLUTE");
+    if (kids.length < 2 || kids.some((child) => child.type !== "INSTANCE")) continue;
+    const sets = [];
+    for (const child of kids) sets.push(await setNameOf(child));
+    const family = ROW_FAMILY.find(([, re]) => sets.every((set) => re.test(set)));
+    if (!family) continue;
+    const [rule, , want, what, token] = family;
+    const gaps = [frame.itemSpacing, ...(frame.layoutWrap === "WRAP" ? [frame.counterAxisSpacing] : [])].filter((gap) => typeof gap === "number");
+    const off = gaps.find((gap) => Math.abs(gap - want) > TOLERANCE);
+    if (off !== undefined) report(rule, ERROR, frame, `${what} side by side sit ${off}px apart: bind the row's gap${frame.layoutWrap === "WRAP" ? " and its wrap gap" : ""} to ${token}`);
+  }
+}
+
+// Button pairs (SKILL.md §2 "Button pairs and sizes": a pair is Tertiary + Primary with Primary last; on a phone footer
+// Primary goes on top). Text buttons only (Button/Main), in a row or column the designer authored; a component's own
+// Actions row is its own. Code harness action-bar/primary-order, form/actions-order.
+async function checkButtonPairOrder(root) {
+  for (const frame of root.findAll ? root.findAll((node) => (node.type === "FRAME" || node.type === "COMPONENT") && node.layoutMode !== "NONE") : []) {
+    if (!authored(frame)) continue;
+    const kids = frame.children.filter((child) => child.visible !== false && child.layoutPositioning !== "ABSOLUTE" && child.type === "INSTANCE");
+    const buttons = [];
+    for (const child of kids) if ((await setNameOf(child)) === "Button/Main") buttons.push(child);
+    if (buttons.length < 2) continue;
+    const levels = buttons.map((button) => (button.variantProperties ?? {}).Level);
+    const primaries = levels.filter((level) => level === "Primary").length;
+    if (primaries !== 1) continue; // none, or two (button/one-primary reports that)
+    const at = levels.indexOf("Primary");
+    const vertical = frame.layoutMode === "VERTICAL";
+    if (vertical ? at === 0 : at === buttons.length - 1) continue;
+    report("button/pair-order", WARNING, frame, vertical ? "the Primary button is not on top: a stacked footer puts Primary first, then at most one Tertiary" : "the Primary button is not last: a pair is Tertiary + Primary, Primary last (at the end of the row)");
+  }
+}
+
+// Metric-Trend (the user 2026-10-26, Figma 595:55134 + code PR #324): the badge holds the change alone ("9%"), and what
+// it is measured against ("vs. August") is the Sub-Label beside it. A Metric-Trend written before that day keeps its
+// whole label in the badge. Words in the badge: a comparison word, three or more parts, or a word of four or more
+// letters (a unit such as pts, pp, MoM stays). The words are the designer's override, wherever the trend sits.
+const TREND_SET = ".Primitives/Metrics/Metric-Trend";
+const TREND_SUB_LABEL = "Sub-Label";
+const COMPARISON_WORD = /\b(vs|versus|from|since|than|last|this|prev|previous|so với|từ|tháng|năm|tuần|quý|trước)\b/i;
+function badgeHoldsWords(text) {
+  const parts = text.trim().split(/\s+/);
+  return COMPARISON_WORD.test(text) || parts.length >= 3 || parts.some((part) => /[A-Za-zÀ-ỹ]{4,}/.test(part));
+}
+async function checkMetricTrend(root) {
+  for (const screen of screensOf(root)) {
+    if (!("findAll" in screen)) continue;
+    for (const node of screen.findAll((child) => child.type === "INSTANCE")) {
+      if (!shownIn(node, screen) || (await setNameOf(node)) !== TREND_SET) continue;
+      const badgeText = node.findAll((child) => child.type === "TEXT" && child.name !== TREND_SUB_LABEL && shownIn(child, node)).map((text) => text.characters).find((text) => text.trim());
+      if (badgeText && badgeHoldsWords(badgeText)) report("metric/trend-words-in-badge", WARNING, node, `its badge reads "${badgeText.trim().slice(0, 40)}": keep the change alone in the badge ("9%", the arrow shows the sign) and put the words in its Sub-Label ("vs. August")`);
+    }
+  }
+}
+
+// Small avatars (the user 2026-10-13: "các ava nhỏ chỉ nên dùng viết tắt 1 chữ"): an XSmall (24) or 2XSmall (20)
+// initials Avatar shows one letter; Small and up keep two. Code: Avatar cuts its initials so; figma-push writes one.
+const AVATAR_SET = "Avatar/Single";
+const SMALL_AVATAR = /^(XSmall|2XSmall)$/;
+async function checkSmallAvatars(root) {
+  for (const screen of screensOf(root)) {
+    if (!("findAll" in screen)) continue;
+    for (const node of screen.findAll((child) => child.type === "INSTANCE")) {
+      if (!shownIn(node, screen) || (await setNameOf(node)) !== AVATAR_SET) continue;
+      const { Size: size, Theme: theme } = node.variantProperties ?? {};
+      if (!SMALL_AVATAR.test(size ?? "") || theme === "Photo") continue;
+      const text = node.findOne((child) => child.type === "TEXT" && shownIn(child, node));
+      const initials = text ? text.characters.trim() : "";
+      if ([...initials].length > 1) report("avatar/small-one-letter", WARNING, node, `a ${size} Avatar shows "${initials}": an XSmall or 2XSmall avatar shows one initial ("${[...initials][0]}"); two letters start at Small`);
     }
   }
 }
@@ -1567,6 +1667,10 @@ for (const root of roots) await checkEmptyStateSize(root);
 for (const root of roots) await checkCollapseBesideMasterCrumb(root);
 for (const root of roots) checkRowDrift(root);
 for (const root of roots) await checkControlGap(root);
+for (const root of roots) await checkRowGaps(root);
+for (const root of roots) await checkButtonPairOrder(root);
+for (const root of roots) await checkMetricTrend(root);
+for (const root of roots) await checkSmallAvatars(root);
 
 const total = (severity) => Object.keys(counts).filter((rule) => severityOf[rule] === severity).reduce((sum, rule) => sum + counts[rule], 0);
 const result = {
