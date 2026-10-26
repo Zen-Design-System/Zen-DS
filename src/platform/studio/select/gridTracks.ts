@@ -117,6 +117,13 @@ function usedSizes(value: string): number[] | null {
   return parts.map((part) => Number(PX.exec(part)![1]));
 }
 
+/** The breakpoint `element`'s Screen is drawn for (its frame's data-primary-breakpoint: a web page's desktop, a phone's
+ *  mobile), desktop outside a builder Screen: edits there stay plain (inspector/responsiveModel.ts). */
+export function primaryBreakpointOf(element: Element | null): Breakpoint {
+  const value = element?.closest("[data-primary-breakpoint]")?.getAttribute("data-primary-breakpoint");
+  return value === "tablet" || value === "mobile" ? value : "desktop";
+}
+
 /** The breakpoint `element` renders at (its nearest data-breakpoint: the frame's, else the app's), desktop when none. */
 export function breakpointOf(element: Element): Breakpoint {
   const value = element.closest("[data-breakpoint]")?.getAttribute("data-breakpoint");

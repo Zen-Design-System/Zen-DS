@@ -6,9 +6,19 @@
 /** A layer id on a page made in the Studio: stable across edits (tools/studio/doc.mjs). */
 const ID = { type: "string", description: "A layer id from get_tree (\"n…\"): it stays the same across edits, moves and undo." };
 
+const LITERAL = { anyOf: [{ type: "string" }, { type: "number" }, { type: "boolean" }] };
 const PROP_VALUE = {
-  description: "A string, number or boolean is written as that literal (level: \"secondary\", disabled: true, gap: 8); null removes the prop.",
-  anyOf: [{ type: "string" }, { type: "number" }, { type: "boolean" }, { type: "null" }],
+  description: [
+    "A string, number or boolean is written as that literal (level: \"secondary\", disabled: true, gap: 8); null removes the prop.",
+    "Stack, Grid and Box layout props (direction, gap, align, justify, wrap, padding, paddingX, paddingY; Grid columns, rowGap,",
+    "columnGap) also take one value per breakpoint, { desktop, tablet, mobile } (a breakpoint left out takes the next wider",
+    "one's: direction: { desktop: \"row\", mobile: \"column\" }); hideOn takes a list of breakpoints (hideOn: [\"mobile\"]).",
+  ].join(" "),
+  anyOf: [
+    { type: "string" }, { type: "number" }, { type: "boolean" }, { type: "null" },
+    { type: "object", properties: { desktop: LITERAL, tablet: LITERAL, mobile: LITERAL }, additionalProperties: false, minProperties: 1 },
+    { type: "array", items: { enum: ["desktop", "tablet", "mobile"] } },
+  ],
 };
 
 /** What the JSX of insert / replace / create_page may hold: the page dialect (tools/studio/dialect.mjs). */
@@ -104,6 +114,8 @@ export const TOOLS = [
     description: [
       "Changes one layer as the person would in the Inspector: its props (variant, size, icon, text props, layout props",
       "such as gap or padding) and its text. Use the Zen component's prop names and values (zen-ds get_component).",
+      "Responsive layout: a Stack, Grid or Box prop can differ per breakpoint, { desktop, tablet, mobile } (mobile below 744px,",
+      "tablet below 1024px; a breakpoint left out takes the next wider one's), and hideOn: [\"mobile\"] hides the frame there.",
       "The answer is the layer as it is now. A refused change says why: read the reason, try another way, never repeat the same call.",
     ].join(" "),
     inputSchema: {

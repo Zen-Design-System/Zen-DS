@@ -124,6 +124,8 @@ async function shown(loc: string | undefined, id: string | undefined, depth: num
 
 const changedText = (response: Extract<EditResponse, { ok: true }>) => response.before !== response.after;
 
+const BREAKPOINT_KEYS: readonly string[] = ["desktop", "tablet", "mobile"];
+
 /** EditValues for `props`: a literal sets the prop, null removes it (removals come back as names). */
 function propValues(props: unknown): { set: Record<string, EditValue>; remove: string[] } | string {
   const out = { set: {} as Record<string, EditValue>, remove: [] as string[] };
@@ -135,7 +137,12 @@ function propValues(props: unknown): { set: Record<string, EditValue>; remove: s
     else if (typeof value === "string") out.set[name] = { kind: "string", value };
     else if (typeof value === "boolean") out.set[name] = { kind: "boolean", value };
     else if (typeof value === "number" && Number.isFinite(value)) out.set[name] = { kind: "number", value };
-    else return `"${name}": only a string, number, boolean or null can be written`;
+    // One value per breakpoint ({ desktop, tablet, mobile }: Stack / Grid / Box layout props) or a list of breakpoints
+    // (hideOn), written as the object or array literal (studio-responsive-breakpoints §4).
+    else if (Array.isArray(value) && value.every((item) => BREAKPOINT_KEYS.includes(item as string))) out.set[name] = { kind: "expression", code: JSON.stringify(BREAKPOINT_KEYS.filter((key) => value.includes(key))) };
+    else if (typeof value === "object" && Object.keys(value).length && Object.entries(value).every(([key, item]) => BREAKPOINT_KEYS.includes(key) && ["string", "number", "boolean"].includes(typeof item))) {
+      out.set[name] = { kind: "expression", code: `{ ${BREAKPOINT_KEYS.filter((key) => key in value).map((key) => `${key}: ${JSON.stringify((value as Record<string, unknown>)[key])}`).join(", ")} }` };
+    } else return `"${name}": only a string, number, boolean, null, { desktop, tablet, mobile } or a list of breakpoints can be written`;
   }
   return out;
 }

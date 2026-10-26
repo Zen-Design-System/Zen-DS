@@ -3,6 +3,8 @@ import { Heading } from "../../../components/Text";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { useWords } from "../useWords";
+import { InspectorHostContext } from "./controls/hostContext";
+import { breakpointOf, primaryBreakpointOf } from "../select/gridTracks";
 
 /** Inside a section on Figma's field grid: its plain rows (InspectorRow, PropField) put the label above as well. */
 const FieldGridContext = createContext(false);
@@ -27,13 +29,18 @@ export function NoInlineLabel({ children }: { children: ReactNode }) {
  * section is on Figma UI3's field grid (InspectorFields), and its plain rows follow it — label above, the control across
  * the two field columns, an action in the icon column (spec docs/research/studio-inspector-figma-spec-2026-10-09.md §1).
  */
-export function InspectorSection({ title, actions, children, note, className, fieldGrid = false }: { title: ReactNode; actions?: ReactNode; children: ReactNode; note?: ReactNode; className?: string; fieldGrid?: boolean }) {
+/** `responsive`: the section edits per-breakpoint props itself (Layout); every other section of a layer in a frame
+ *  narrower than desktop says its fields apply on every breakpoint (studio-responsive-breakpoints §4). */
+export function InspectorSection({ title, actions, children, note, className, fieldGrid = false, responsive = false }: { title: ReactNode; actions?: ReactNode; children: ReactNode; note?: ReactNode; className?: string; fieldGrid?: boolean; responsive?: boolean }) {
   const id = useId();
   const say = useWords();
+  const host = useContext(InspectorHostContext);
+  const everywhere = !responsive && host?.isConnected && breakpointOf(host) !== primaryBreakpointOf(host);
   return (
     <section className={["studio-inspector__section", className].filter(Boolean).join(" ")} aria-labelledby={id} data-field-grid={fieldGrid || undefined}>
       <div className="studio-inspector__section-head">
         <Heading id={id} level={3} textStyle="Body/Small/Bold">{typeof title === "string" ? say(title) : title}</Heading>
+        {everywhere ? <span className={`studio-inspector__everywhere ${typographyStyles["Caption/Regular"]}`} title="These fields are the same on every breakpoint">All breakpoints</span> : null}
         {actions ? <div className="studio-inspector__section-actions">{actions}</div> : null}
       </div>
       {note ? <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{typeof note === "string" ? say(note) : note}</p> : null}
@@ -82,10 +89,12 @@ export function InspectorRow({ label, children, action, hint, isDefault, name, l
  * prop (data-prop, as InspectorRow); `code` (what Figma's word writes in code) stays on the labels as data, not a tooltip:
  * the Design tab speaks Figma's words only (UX writing audit 2026-10-18).
  */
-export function InspectorFields({ labels = [], fields, icon, name, code }: { labels?: string[]; fields: ReactNode[]; icon?: ReactNode; name?: string; code?: string }) {
+/** `own`: the fields write a value of their own at the breakpoint being edited (a per-breakpoint prop, responsiveModel.ts):
+ *  a dot after the first label. */
+export function InspectorFields({ labels = [], fields, icon, name, code, own }: { labels?: string[]; fields: ReactNode[]; icon?: ReactNode; name?: string; code?: string; own?: boolean }) {
   const column = (index: number, count: number) => (count === 1 ? "wide" : String(index + 1));
   return (
-    <div className="studio-fields" role="group" aria-label={labels.length ? labels.join(" and ") : undefined} data-prop={name} data-labelled={labels.length ? "true" : undefined}>
+    <div className="studio-fields" role="group" aria-label={labels.length ? `${labels.join(" and ")}${own ? " (own value on this breakpoint)" : ""}` : undefined} data-prop={name} data-labelled={labels.length ? "true" : undefined} data-own={own || undefined}>
       {labels.map((text, index) => (
         <span key={text} className={`studio-fields__label ${typographyStyles["Caption/Regular"]}`} data-col={column(index, labels.length)} data-code={code}>{text}</span>
       ))}

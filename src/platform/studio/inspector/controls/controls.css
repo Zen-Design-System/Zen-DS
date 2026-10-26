@@ -75,6 +75,13 @@
 .studio-layout-warning__text { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-large, 16px); background: var(--zen-color-background-warning-subtle-default); color: var(--zen-color-content-warning-strongest); }
 .studio-layout-warning__text > .zen-icon { flex: 0 0 auto; }
 .studio-layout-warning > .zen-button { flex: 0 0 auto; }
+/* Per-breakpoint props (LayoutSection, responsiveModel.ts): the Breakpoint row's note and Reset, a dot on a breakpoint
+   with values of its own and after the label of fields that write one at the breakpoint being edited. */
+.studio-layout-breakpoint { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-layout-breakpoint > .zen-button { flex: 0 0 auto; }
+.studio-layout-hide-on { display: flex; min-width: 0; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px) var(--zen-spacing-gap-small, 12px); }
+.studio-layout-own-dot { display: inline-block; width: 6px; height: 6px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-info-solid-default, #0a85ff); }
+.studio-fields[data-own] > .studio-fields__label:first-child::after { display: inline-block; width: 6px; height: 6px; margin-inline-start: var(--zen-spacing-gap-2-xsmall, 4px); border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-info-solid-default, #0a85ff); content: ""; vertical-align: middle; }
 
 /* ── Columns (Grid): mode, then the field; a track list gets a proportional preview ── */
 .studio-columns__tracks { display: flex; min-width: 0; height: var(--zen-spacing-gap-xsmall, 8px); gap: var(--zen-spacing-gap-3-xsmall, 2px); }

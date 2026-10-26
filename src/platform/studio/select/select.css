@@ -215,7 +215,11 @@
 .studio-layers__row:has(> .studio-layers__hint) > .studio-layers__name { flex: 0 1 auto; }
 /* A hidden layer (edit/visibility.ts): dimmed as Figma's; the eye shows on hover and stays while it is hidden. */
 .studio-layers__row[data-hidden="true"] > .studio-layers__icon,
-.studio-layers__row[data-hidden="true"] > .studio-layers__name { opacity: 0.5; }
+.studio-layers__row[data-hidden="true"] > .studio-layers__name,
+.studio-layers__row[data-hidden-on] > .studio-layers__icon,
+.studio-layers__row[data-hidden-on] > .studio-layers__name { opacity: 0.5; }
+/* Hidden at the breakpoint its frame shows (the library's hideOn): an eye-off and that breakpoint's icon. */
+.studio-layers__hidden-on { display: inline-flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); color: var(--zen-color-content-neutral-base); }
 .studio-layers__eye { display: inline-flex; flex: 0 0 auto; width: 20px; height: 20px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: var(--zen-corner-radius-xsmall, 6px); background: none; color: var(--zen-color-content-neutral-base); cursor: pointer; visibility: hidden; }
 .studio-layers__eye:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest); }
 .studio-layers__row:hover > .studio-layers__eye,

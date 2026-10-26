@@ -61,6 +61,9 @@ const mobile = behavioursAt(screenFacts(screen, { breakpoint: "mobile", device: 
 check("the margins' steps", mobile.find((change) => change.id === "margins")?.label, "Page margins: Comfortable 24 → 20");
 check("the Grid's columns", mobile.find((change) => change.id === "grid-columns")?.label, "Grid columns: 3 → 1");
 check("an iPad landscape keeps the AppShell's desktop structure", ids({ breakpoint: "tablet", device: "tablet", width: 1133, layout: "desktop" }), []);
+const p2 = page(`<Screen id="p2" title="P2"><Stack direction={{ desktop: "row", mobile: "column" }} gap="md"><Stack hideOn={["mobile"]}><Text>Aside</Text></Stack><Text>Main</Text></Stack></Screen>`).board.children[0];
+check("P2 on a phone: layout props and hidden frames", behavioursAt(screenFacts(p2, { breakpoint: "mobile", device: "desktop", width: 390, layout: "desktop" })).map((change) => change.label), ["Layout: Stack direction row → column", "1 frame hidden here"]);
+check("P2 on desktop: nothing", behavioursAt(screenFacts(p2, { breakpoint: "desktop", device: "desktop", width: 1440, layout: "desktop" })).length, 0);
 check("valueAt as resolveAt: own, wider, then narrower", [valueAt({ desktop: 3 }, "mobile"), valueAt({ desktop: 3, tablet: 2 }, "mobile"), valueAt({ mobile: 1 }, "desktop"), valueAt({ desktop: 3, mobile: 1 }, "tablet")], [3, 2, 1, 3]);
 
 // ── Where a placeholder's part goes.

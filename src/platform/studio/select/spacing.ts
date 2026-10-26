@@ -5,6 +5,20 @@ import { breakpointOf, columnsOp, columnsSource, gridItems, gridLayout, soleColu
 import type { FiberHit } from "./picker";
 import { isMarginKey } from "../inspector/controls/scale";
 import { tokenName } from "../inspector/controls/scale";
+import { responsivePropsOf, responsiveRead, shownAt } from "../inspector/responsiveModel";
+
+/** A spacing prop as the canvas reads it: a per-breakpoint value (`gap={{ desktop: "lg", mobile: "sm" }}`) is the literal
+ *  it shows at the frame's breakpoint (responsiveModel.ts), so a drag or the picker edits that breakpoint's key. */
+function spacingValueOf(attributes: SourceAttr[], name: string, owner: SpacingOwner): PropValue {
+  if (responsivePropsOf(owner.name).includes(name)) {
+    const read = responsiveRead(attributes, name);
+    if (read.kind === "responsive") {
+      const shown = shownAt(read, breakpointOf(owner.host));
+      return shown === undefined ? { state: "unset" } : { state: "literal", value: shown, raw: "" };
+    }
+  }
+  return valueOf(attributes, name, owner.props);
+}
 
 /*
  * Spacing on the canvas (Figma-like): the selected element's padding and gap areas, measured from the DOM, and for the
@@ -401,7 +415,7 @@ export function dragProp(area: SpacingArea, owner: SpacingOwner, attributes: Sou
   if (!owner.editable || !attributes || area.kind === "free") return null;
   const prop = areaProp(area, attributes, false);
   if (!prop) return null;
-  const found = valueOf(attributes, prop, owner.props);
+  const found = spacingValueOf(attributes, prop, owner);
   // A spread the live props show not to set the prop leaves it unset (areaState reads it so too).
   if (found.state === "bound" || (found.state === "spread" && !(owner.props && found.live === undefined))) return null;
   return prop;
@@ -434,7 +448,7 @@ export function areaState(area: SpacingArea, owner: SpacingOwner, attributes: So
   }
   const options = spacingOptions(owner.name, prop, owner.host, area.scale);
   // A spread that the live props show not to set the prop ({...rest} carrying a className) leaves it unset, editable.
-  const read = (name: string): PropValue => { const found = valueOf(attributes ?? [], name, owner.props); return found.state === "spread" && owner.props && found.live === undefined ? { state: "unset" } : found; };
+  const read = (name: string): PropValue => { const found = spacingValueOf(attributes ?? [], name, owner); return found.state === "spread" && owner.props && found.live === undefined ? { state: "unset" } : found; };
   const value = attributes ? read(prop) : null;
   // Alt edits `padding` on every side: the side props written beside it give way (an expression never does).
   const otherProp = alt && area.altProp === prop && !area.props.includes(prop);

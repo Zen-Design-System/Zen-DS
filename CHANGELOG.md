@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio per-breakpoint layout (2026-10-26, PR 2 of the responsive plan): a Stack, Grid or Box on a Screen narrower
+  than desktop edits that breakpoint (Inspector › Auto layout › Breakpoint, dots on breakpoints with values of their own,
+  Reset, Same on every breakpoint); its fields and the canvas gap / padding handles write `{ desktop, tablet, mobile }`
+  only where a breakpoint differs, plain otherwise. Hide on <breakpoint> (`hideOn`) from the layer menu and the Inspector,
+  Wrap in Box and hide for other layers, dimmed Layers rows, "All breakpoints" on the other sections, and the Studio MCP
+  `update` tool and Zen Agent write the per-breakpoint shape.
 - Zen Studio breakpoints (2026-10-26, PR 1 of the responsive plan): a Screen's label row switches it between Desktop ·
   Tablet · Mobile as a view (the page OS's phone or tablet, never saved, no undo step), with More views, a typed width
   and Make a separate Screen (`versionOf`, which Play and Open on phone show at its breakpoint). A desktop Screen's
