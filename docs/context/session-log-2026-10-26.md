@@ -573,6 +573,9 @@ instance copy in Chart-Card), names only. Undo: `docs/figma-contracts/layer-rena
 - Contracts: the 15 chart contracts patched by path (paths read from Figma by node id), digests equal to the live file
   for every variant. native-pack.json rows and native-defs.json.gz names patched by id (702 each, no mismatch).
 - Checks: figma-push selftest 505, figma-native 166, `npm run studio:selftest` green.
+- Gate (a82ed06e, --isolated): Studio self-tests, TypeScript, nested layer names, Figma contracts (all suites) pass;
+  Studio E2E 380/381 — BL-01 ("no board" on the last pages under 4-shard load) passes alone; PT-28 works. Merged main
+  69f85ccd (#325): clean; tsc and `npm run studio:selftest` (push 512, pull 157, native 170) green, renames intact.
 ## MetricTrend = badge + Sub-Label, synced with Figma (tier M; branch zen/feat/metric-trend-sublabel-20261026)
 
 User: "mở phiên đồng bộ MetricTrend với Figma", after the Figma-only session split `.Primitives/Metrics/Metric-Trend`
