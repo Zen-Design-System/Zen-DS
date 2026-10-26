@@ -232,3 +232,9 @@ placeholder only (sample app removed), the App Shell page's examples are renamed
 - Selftests updated (builder, compile, screen-frame, engine-iso): 83/83 studio selftests, tsc clean. Palette `--deep`
   has many old findings from other items; this item's were the accent FAB (now `zen-allow-accent`) and an Empty State
   inside Card hosts (host-dependent, kept).
+- Follow-ups (d7881f66): a page's own Sidebar (Assets item, Screen parts, new page) has no sample switcher (`brand:
+  false`, as figma-pull drops Figma's LOGO); Focus' Summary placeholder 408 high; the Stepper is named. E2E rows that
+  asserted the old frame updated as intended: B-27 (6 rows; + Primary adds one to Settings · Secondary · Main Action),
+  B-28 (the Page header's own crumbs), B-29 (two Breadcrumbs: header + inserted), B-33 (label-1/label-2), HO-01 (imports).
+- Cost: the Studio App Shell page's long tasks 3.9 s → 5.3 s (41 AppShell cells), first frame 4.7 → 6.3 s on a warm server.
+- Gate: queued with Giám sát (after tag-badge-gap, #314, Bug's chart cells); merge main first.
