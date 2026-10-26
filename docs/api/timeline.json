@@ -428,7 +428,7 @@
     {
       "name": "TimelineGanttBar",
       "file": "src/components/Timeline/Timeline.tsx",
-      "description": "Figma `.Primitives/Timeline/Gantt-Bar` (16130:77), 28px high. Task: Padding 2XSmall · XSmall, Corner-Radius/XSmall,\n`Color/Background/Support/<Hue>/Subtle` with a 2px `Color/Border/Support/<Hue>/Solid` leading rule, the title in\nCaption/Bold Strongest (one line). Summary: an 8px Corner-Radius/2XSmall `Color/Background/Neutral/Solid/Default` bar.\nMilestone: an 11px Accent/Solid square turned 45° in a 16px box, the title (Caption/Bold, Neutral/Light: Caption text is\nalways Light) Gap/XSmall after it.",
+      "description": "Figma `.Primitives/Timeline/Gantt-Bar` (16130:77), 28px high. Task: Padding 2XSmall · XSmall, Corner-Radius/XSmall,\n`Color/Background/Support/<Hue>/Subtle` with a 2px `Color/Border/Support/<Hue>/Solid` leading rule, the title in\nCaption/Bold Strongest (one line). Summary: an 8px Corner-Radius/2XSmall `Color/Background/Neutral/Solid/Default` bar.\nMilestone: an 11px Accent/Solid square turned 45° in a 16px box, the title (Caption/Bold Strongest) Gap/XSmall after it.",
       "deprecated": null,
       "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"title\" | \"color\">",
       "props": [

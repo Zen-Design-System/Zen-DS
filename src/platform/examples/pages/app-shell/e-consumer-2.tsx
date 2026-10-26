@@ -231,7 +231,7 @@ function DiscoverPhone() {
                   <Card key={item.id} theme={chosen ? "subtle" : "default"} color={chosen ? "brand" : "neutral"} spacing="xs" aria-pressed={chosen} onClick={() => setIntent(item.id)}>
                     <Stack gap="xs" align="center">
                       <Icon name={item.icon} tone={chosen ? "accent-base" : "base"} decorative />
-                      <Text textStyle="Caption/Medium" tone={chosen ? "accent-base" : "light"} align="center" wrap={false}>{item.lines[0]}<br />{item.lines[1]}</Text>
+                      <Text textStyle="Caption/Medium" tone={chosen ? "accent-base" : "strongest"} align="center" wrap={false}>{item.lines[0]}<br />{item.lines[1]}</Text>
                     </Stack>
                   </Card>
                 );

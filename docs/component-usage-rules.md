@@ -146,7 +146,7 @@ imagery; a colour family's Light for short status text (`Content/Negative/Light`
 A metric's label takes Light too, whatever its style (Metric label, Metric-Tile title; the user: "Metric label cũng là
 light"); a Title-Highlight metric's title is a title and stays Strongest.
 
-Four exceptions, each for a reason:
+Five exceptions, each for a reason:
 1. **Text on a fill follows the fill** (§ Not covered below): on a Solid or Subtle fill — a Badge, Badge-Counter, Avatar,
    Notification-Dot, Tooltip, a Calendar event block, a Gantt bar, a "You" chat bubble, a selected slot — Caption text
    is On-Colors / On-Brights / On-Accent / Inverse on a Solid, the family's Strongest on a Subtle fill.
@@ -155,12 +155,18 @@ Four exceptions, each for a reason:
    selected marker ("Today", the "Now" hour, the current milestone) in Accent.
 4. **The Lights group** never takes Light for text (below): its Caption text is Base — `Content/Warning/Base` help text,
    `Content/Accent/Base` for today.
+5. **A main value, standing alone, is not a caption** (the user, 2026-10-26: "Các chữ này không được gọi là label. Vì
+   trong ngữ cảnh này nó là giá trị chính và là giá trị một mình"): a Schedule Slot's time, a Rating Opinion item's word,
+   a resource's name under its avatar, a Gantt milestone's title, a quick action's name under its icon, a value under its
+   control keep their tone (as Figma draws them). The checks read "alone" as the only text of its item beside an icon, a
+   control or a picture.
 
 Checks: harness `text/caption-light` (error: a Caption `<Text>` or `<Heading>` without a Light tone — no tone renders
 Strongest — and CSS that pairs the caption font size or a `.zen-type-caption-*` class with another content colour);
 runtime audit kind `caption-light` (error: rendered Caption text or a metric label on a surface whose colour is not a
 Light token); Figma audit `text/caption-light` (error: a TEXT layer in a Caption style, or a metric label, bound to
-another Content variable). Text on a fill the harness cannot see takes `zen-allow-caption-light: <reason>`.
+another Content variable). Text on a fill, or a main value the harness cannot see as alone, takes
+`zen-allow-caption-light: <reason>`.
 
 ### Colour families: Accent, Info, Positive, Negative, Warning, Support/*
 - `…-strongest` and `…-base` are **regular text**: the Primary and Secondary levels, placed on the same colour's **Subtle** background (subtle Badge, Tag, Alert, callout).

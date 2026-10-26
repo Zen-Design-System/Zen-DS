@@ -7,8 +7,6 @@
 .zen-schedule-resource__text { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; }
 .zen-schedule-resource__name, .zen-schedule-resource__meta { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .zen-schedule-resource__name { color: var(--zen-color-content-neutral-strongest); }
-/* A phone's resource name is Caption/Medium: Caption text is always Light (the user 2026-10-26). */
-.zen-schedule-resource[data-device="mobile"] .zen-schedule-resource__name { color: var(--zen-color-content-neutral-light); }
 .zen-schedule-resource__meta { color: var(--zen-color-content-neutral-light); }
 
 /* .Primitives/Schedule/Slot (16133:1087): a native radio inside the label; the label paints the Date-Picker day's colours.

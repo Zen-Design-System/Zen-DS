@@ -8936,7 +8936,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Figma State=Selected: a Surface/Default tile with a Pale border, readable on any canvas.",
+          "description": "Figma State=Selected: a `Color/Background/Active/Neutral/Subtle` tile (`Active/Accent/Subtle` on today).",
           "deprecated": null
         },
         {
@@ -8944,7 +8944,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Figma Today=Yes: the date in Accent.",
+          "description": "Figma Today=Yes: the weekday in Accent/Strongest, the date in Accent/Base.",
           "deprecated": null
         },
         {

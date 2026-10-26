@@ -298,7 +298,7 @@ function TileGroup<T extends string>({ label, value, options, onChange, columns 
         <button key={option.id} ref={(node) => { refs.current[index] = node; }} type="button" role="radio" aria-checked={option.id === value} tabIndex={option.id === value ? 0 : -1}
           className="studio-project-setup__tile" onClick={() => onChange(option.id)} onKeyDown={(event) => move(event, index)}>
           {option.art}
-          <Text as="span" textStyle="Caption/Medium" tone={option.id === value ? "accent-base" : "light"}>{option.label}</Text>
+          <Text as="span" textStyle="Caption/Medium" tone={option.id === value ? "strongest" : "base"}>{option.label}</Text>
         </button>
       ))}
     </div>

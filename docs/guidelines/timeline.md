@@ -126,7 +126,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "title">`.
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
 ### TimelineGanttBar
-Figma `.Primitives/Timeline/Gantt-Bar` (16130:77), 28px high. Task: Padding 2XSmall · XSmall, Corner-Radius/XSmall, `Color/Background/Support/`<Hue>`/Subtle` with a 2px `Color/Border/Support/`<Hue>`/Solid` leading rule, the title in Caption/Bold Strongest (one line). Summary: an 8px Corner-Radius/2XSmall `Color/Background/Neutral/Solid/Default` bar. Milestone: an 11px Accent/Solid square turned 45° in a 16px box, the title (Caption/Bold, Neutral/Light: Caption text is always Light) Gap/XSmall after it.
+Figma `.Primitives/Timeline/Gantt-Bar` (16130:77), 28px high. Task: Padding 2XSmall · XSmall, Corner-Radius/XSmall, `Color/Background/Support/`<Hue>`/Subtle` with a 2px `Color/Border/Support/`<Hue>`/Solid` leading rule, the title in Caption/Bold Strongest (one line). Summary: an 8px Corner-Radius/2XSmall `Color/Background/Neutral/Solid/Default` bar. Milestone: an 11px Accent/Solid square turned 45° in a 16px box, the title (Caption/Bold Strongest) Gap/XSmall after it.
 
 Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "title" | "color">`.
 

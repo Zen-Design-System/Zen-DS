@@ -185,8 +185,9 @@ Pick each component's guideline (`guidelines/<slug>.md`) before placing it.
   Support): Strongest/Base as text on their own Subtle background, Light only as a sparing highlight (a status, an
   error under a field, a ± delta). Emphasise with weight, quiet with the level, never with opacity or a bigger size.
   Text in a Caption style is always its family's Light (`Content/Neutral/Light`, `Inverse/Light`, an overlay's Light, a
-  colour's Light for an error), and so is a metric's label (the user, 2026-10-26); only text on a Solid or Subtle fill
-  follows the fill, and the Lights group (Accent, Warning, Yellow, Sky, Mint) takes Base (audit `text/caption-light`).
+  colour's Light for an error), and so is a metric's label (the user, 2026-10-26); text on a Solid or Subtle fill follows
+  the fill, the Lights group (Accent, Warning, Yellow, Sky, Mint) takes Base, and a main value standing alone (a quick
+  action's name under its icon, a slot's time) keeps its tone (audit `text/caption-light`).
 - **Icon-only actions** have a Tooltip (it shows after 1 s of hover).
 
 - **Card shadows.** A row or section frame you add around Shadow cards (Metric-Card, Card, Chart-Card) must not clip:

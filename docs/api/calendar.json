@@ -929,7 +929,7 @@
     {
       "name": "CalendarDayTile",
       "file": "src/components/Calendar/Calendar.tsx",
-      "description": "Figma `.Primitives/Calendar/Day-Tile` (16142:3915): one day of Calendar/Week-Strip Style=Tile — Padding/XSmall,\nGap/3XSmall, Corner-Radius/Large; Weekday Caption/Medium Neutral/Light over Day Body/Base/Bold Strongest (Today:\n`Color/Content/Accent/Base`). Selected: `Color/Background/Surface/Default` with a 1px `Color/Border/Neutral/Pale/Default`.",
+      "description": "Figma `.Primitives/Calendar/Day-Tile` (16142:3915): one day of Calendar/Week-Strip Style=Tile — Padding/XSmall,\nGap/3XSmall, Corner-Radius/Large; Weekday Caption/Medium Neutral/Light over Day Body/Base/Bold Strongest (Today: the\nweekday `Color/Content/Accent/Strongest`, the day `Accent/Base`). Selected: `Color/Background/Active/Neutral/Subtle`, or\n`Active/Accent/Subtle` on today, with no stroke (Figma updated 2026-10-26).",
       "deprecated": null,
       "extends": "Omit<ButtonHTMLAttributes<HTMLButtonElement>, \"children\">",
       "props": [
@@ -954,7 +954,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Figma State=Selected: a Surface/Default tile with a Pale border, readable on any canvas.",
+          "description": "Figma State=Selected: a `Color/Background/Active/Neutral/Subtle` tile (`Active/Accent/Subtle` on today).",
           "deprecated": null
         },
         {
@@ -962,7 +962,7 @@
           "type": "boolean",
           "required": false,
           "default": "false",
-          "description": "Figma Today=Yes: the date in Accent.",
+          "description": "Figma Today=Yes: the weekday in Accent/Strongest, the date in Accent/Base.",
           "deprecated": null
         },
         {

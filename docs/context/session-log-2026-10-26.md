@@ -326,3 +326,21 @@ sửa mọi chỗ đang sai trong component, ví dụ và Studio." Mid-task: "Me
   (AgentPanel, MyPages, NewPageDialog, StudioFolders, QuickInsert, PrototypePanel, AssetsPanel, ProjectSetup, ProjectsHome,
   ThemePreview, PagesPanel, ReadOnlyChip) and the app-shell examples (code samples too). Studio detach: an XSmall Badge's
   Caption label carries `zen-allow-caption-light` (it sits on the Badge's fill).
+- **The user's decisions mid-task.** "Metric label cũng là light" → Metric-Tile titles (all sizes) and metric category
+  names Light; a Title-Highlight title stays Strongest (a title). Shown a Figma comparison of Schedule Slot Small and
+  Opinion items in Light: "Giữ như Figma. Các chữ này không được gọi là label. Vì trong ngữ cảnh này nó là giá trị chính
+  và là giá trị một mình" → exception 5, a main value standing alone keeps its tone. Applied consistently: Schedule
+  Resource Name (mobile) and Gantt-Bar Title (Milestone, Summary) rebound back to Strongest in Figma and code; the
+  docs examples' quick-action names under IconButtons / DockIcons, the tracker values and the TV-remote names, and
+  Studio's project-setup tile labels back to their original tones. The checks read "alone": harness — the only text
+  beside Icon/IconButton/Button/DockIcon/Avatar/Image/Shape…, or of a button/label/a; runtime — the largest box around
+  it with no other text is a control, a component root or holds a picture or icon; Figma — the variant's only own text,
+  or a screen text under an instance in a vertical frame. A state's variant (Today, Now, Selected…) is skipped too.
+  Net Figma rebinds: 144 (Calendar Day-Cell Selected "More" added). The temporary comparison frame on the QA page was
+  deleted.
+- **Day-Tile and Event-Card** (the user: ".Primitives/Calendar/Day-Tile Mình vừa update cả component này. Update lên
+  Studio trong đợt này luôn", then "Event-Card cả này nữa"). Day-Tile 16142:3915 now: Today's Weekday Accent/Strongest,
+  Selected on Active/Neutral/Subtle (Today: Active/Accent/Subtle) with no stroke → calendar.css + JSDoc; native defs
+  patched for its 4 changed layers (round trip checked, every other Day-Tile field compared equal). Event-Card 16143:817:
+  compared layer by layer with the stored definitions, only the Range colour (Light, from this change) differs; code
+  already Light. No contract suite covers either set.

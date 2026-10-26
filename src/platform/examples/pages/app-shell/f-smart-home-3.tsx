@@ -38,7 +38,7 @@ function RockerControl({ name, upLabel, downLabel, upIcon, downIcon, disabled, o
     <Box surface="surface" radius="full" width={56}>
       <Stack gap="xs" align="center">
         <IconButton appearance="flat" level="primary" size="lg" icon={upIcon} aria-label={upLabel} disabled={disabled} onClick={() => onStep(1)} />
-        <Text as="span" textStyle="Caption/Bold" tone="light" aria-hidden="true">{name}</Text>
+        <Text as="span" textStyle="Caption/Bold" tone="base" aria-hidden="true">{name}</Text>
         <IconButton appearance="flat" level="primary" size="lg" icon={downIcon} aria-label={downLabel} disabled={disabled} onClick={() => onStep(-1)} />
       </Stack>
     </Box>
@@ -107,7 +107,7 @@ function TvRemotePhone() {
               {tvApps.map((app) => (
                 <Stack as="li" key={app.id} gap="xs" align="center" width={64}>
                   <DockIcon size="lg" icon={app.icon} theme="neutral" background="subtle" />
-                  <Text as="span" textStyle="Caption/Medium" tone="light">{app.label}</Text>
+                  <Text as="span" textStyle="Caption/Medium">{app.label}</Text>
                 </Stack>
               ))}
             </Stack>
@@ -313,7 +313,7 @@ export const examples: ExampleDef[] = [
       <Box surface="surface" radius="full" width={56}>
         <Stack gap="xs" align="center">
           <IconButton appearance="flat" level="primary" size="lg" icon="icon-plus-line" aria-label="Volume up" onClick={volumeUp} />
-          <Text as="span" textStyle="Caption/Bold" tone="light" aria-hidden="true">VOL</Text>
+          <Text as="span" textStyle="Caption/Bold" tone="base" aria-hidden="true">VOL</Text>
           <IconButton appearance="flat" level="primary" size="lg" icon="icon-minus-line" aria-label="Volume down" onClick={volumeDown} />
         </Stack>
       </Box>
@@ -343,7 +343,7 @@ export const examples: ExampleDef[] = [
         <Stack as="ul" direction="row" justify="between" align="start" gap="none" aria-labelledby={appsId}>
           <Stack as="li" gap="xs" align="center" width={64}>
             <DockIcon size="lg" icon="icon-film-01-line" theme="neutral" background="subtle" />
-            <Text as="span" textStyle="Caption/Medium" tone="light">Netflix</Text>
+            <Text as="span" textStyle="Caption/Medium">Netflix</Text>
           </Stack>
           …YouTube · Spotify · Live TV
         </Stack>

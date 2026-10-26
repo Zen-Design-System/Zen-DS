@@ -54,8 +54,7 @@
 button.zen-timeline-bar[data-kind="task"]:hover { background: var(--zen-timeline-soft); }
 .zen-timeline-bar__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .zen-timeline-bar__summary { display: block; width: 100%; height: 8px; border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-background-neutral-solid-default); }
-/* A milestone's title (Caption/Bold) sits on the row, not on a bar: Caption text is always Light (the user 2026-10-26). */
-.zen-timeline-bar[data-kind="milestone"] { width: max-content; gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-light); }
+.zen-timeline-bar[data-kind="milestone"] { width: max-content; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-timeline-bar__diamond { display: inline-flex; width: 16px; height: 16px; flex: 0 0 auto; align-items: center; justify-content: center; }
 .zen-timeline-bar__diamond > i { display: block; width: 11px; height: 11px; background: var(--zen-color-background-accent-solid-default); transform: rotate(45deg); }
 button.zen-timeline-bar { cursor: pointer; }

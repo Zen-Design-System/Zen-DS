@@ -223,7 +223,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "title" | "color">`.
 | `ref` | `Ref<HTMLElement>` | — | Ref to the root element (a `<button>` when pressable, else a `<div>`). |
 
 ### CalendarDayTile
-Figma `.Primitives/Calendar/Day-Tile` (16142:3915): one day of Calendar/Week-Strip Style=Tile — Padding/XSmall, Gap/3XSmall, Corner-Radius/Large; Weekday Caption/Medium Neutral/Light over Day Body/Base/Bold Strongest (Today: `Color/Content/Accent/Base`). Selected: `Color/Background/Surface/Default` with a 1px `Color/Border/Neutral/Pale/Default`.
+Figma `.Primitives/Calendar/Day-Tile` (16142:3915): one day of Calendar/Week-Strip Style=Tile — Padding/XSmall, Gap/3XSmall, Corner-Radius/Large; Weekday Caption/Medium Neutral/Light over Day Body/Base/Bold Strongest (Today: the weekday `Color/Content/Accent/Strongest`, the day `Accent/Base`). Selected: `Color/Background/Active/Neutral/Subtle`, or `Active/Accent/Subtle` on today, with no stroke (Figma updated 2026-10-26).
 
 Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 
@@ -231,8 +231,8 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | --- | --- | --- | --- |
 | `weekday` (required) | `ReactNode` | — | Figma Weekday ("Wed"). |
 | `day` (required) | `ReactNode` | — | Figma Day ("30"). |
-| `selected` | `boolean` | `false` | Figma State=Selected: a Surface/Default tile with a Pale border, readable on any canvas. |
-| `today` | `boolean` | `false` | Figma Today=Yes: the date in Accent. |
+| `selected` | `boolean` | `false` | Figma State=Selected: a `Color/Background/Active/Neutral/Subtle` tile (`Active/Accent/Subtle` on today). |
+| `today` | `boolean` | `false` | Figma Today=Yes: the weekday in Accent/Strongest, the date in Accent/Base. |
 | `label` | `string` | — | The full date, the tile's accessible name ("Wednesday, September 30, 2026"). |
 | `ref` | `Ref<HTMLButtonElement>` | — | Ref to the root `<button>`. |
 

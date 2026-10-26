@@ -39,8 +39,9 @@
  *   caption-light (error) text in a Caption style (Caption/Regular · Medium · Bold), and a metric's label (Metric
  *              label, Metric-Tile title), whose colour is not its family's Light level, on a surface (the user 2026-10-26).
  *              Passes: the Lights group's Base, On-Colors / On-Brights / On-Accent, Disabled, Placeholder, Hyperlink; text on
- *              a fill and states (selected, current, today, disabled) are not judged (harness text/caption-light reads the
- *              source; this sees what a component's own CSS paints)
+ *              a fill, states (selected, current, today, disabled) and a Caption that is its item's main value, alone (a
+ *              slot's time, a name under its avatar) are not judged (harness text/caption-light reads the source; this
+ *              sees what a component's own CSS paints)
  *   table-lead (error) (widgetLayout) a Table's first column, the row's name, drawing an initials Avatar that is not
  *              Solid (the user 2026-10-24) or a Dock Icon that is not Small, an emoji one not Medium (the user
  *              2026-10-25), what a page's helper component draws included (harness table/first-column-avatar-solid,
@@ -208,6 +209,19 @@ export function qualityChecks({ scopeSel, regionSel }) {
       const named = toneName(b.el);
       const candidates = named ? [named] : b.tone.filter((n) => n.startsWith("content-"));
       if (!candidates.length || candidates.some((n) => OK.test(n))) continue;
+      // A Caption that is its item's main value, alone, is not a caption (the user 2026-10-26: "Các chữ này không được gọi
+      // là label… giá trị chính và là giá trị một mình": a slot's time, an opinion's word, a resource's name under its
+      // avatar, a milestone's title): the largest box around it that holds no other text is a control, a component, or
+      // holds a picture or an icon. Avatar, Dock Icon and Badge text and emoji do not count as other text.
+      if (caption && !b.el.closest("figcaption")) {
+        const textOf = (node) => { let all = ""; const w = document.createTreeWalker(node, NodeFilter.SHOW_TEXT); for (let n = w.nextNode(); n; n = w.nextNode()) { const host = n.parentElement; const t = n.textContent.trim(); if (!host || !t || host.closest(".zen-avatar, .zen-dock-icon, .zen-badge, svg") || /^[\p{Extended_Pictographic}\p{Emoji_Component}\uFE0F\u200D\s]+$/u.test(t)) continue; all += t; } return all; };
+        const mine = textOf(b.el);
+        let item = b.el;
+        while (item.parentElement && item.parentElement !== region && textOf(item.parentElement) === mine) item = item.parentElement;
+        const control = item.matches("button, a[href], label, [role='button'], [role='option'], [role='radio'], [role='tab'], [role='checkbox'], [role='menuitem']");
+        const component = typeof item.className === "string" && item.className.split(/\s+/).some((c) => /^zen-[a-z-]+$/.test(c) && !/^zen-(type-.*|text|heading|stack|box|grid)$/.test(c));
+        if (item !== b.el && (control || component || item.querySelector("svg, img, picture, canvas, video, [role='img'], .zen-icon, .zen-avatar, .zen-dock-icon"))) continue;
+      }
       // The nearest painted background: a surface is judged, any other fill is the fill's business.
       let fill = null;
       for (let a = b.el; a && a !== region.parentElement; a = a.parentElement) {

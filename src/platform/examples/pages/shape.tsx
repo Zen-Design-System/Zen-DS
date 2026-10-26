@@ -230,7 +230,6 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
           {rooms.map((room) => (
             <Stack key={room.id} position="absolute" insetLeft={room.x} insetTop={room.y} width={room.w} height={room.h} align="center" justify="center">
               <Shape position="absolute" width="fill" height="fill" fill={room.booked ? "negative-subtle" : "positive-subtle"} stroke={room.booked ? "negative-subtle" : "positive-subtle"} label={`${room.name}, ${room.booked ? "booked" : "free"}`} />
-              {/* zen-allow-caption-light: the room's name sits on its own Subtle fill (the Shape), so it takes the family's Strongest. */}
               <Text textStyle="Caption/Medium" tone={room.booked ? "negative-strongest" : "positive-strongest"}>{room.name}</Text>
             </Stack>
           ))}

@@ -87,10 +87,12 @@ button.zen-calendar-agenda-item:active { background: var(--zen-color-background-
 .zen-calendar-tile { display: inline-flex; min-width: 0; box-sizing: border-box; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding: var(--zen-spacing-padding-xsmall, 8px); border: 0; border-radius: var(--zen-corner-radius-large, 16px); background: transparent; }
 .zen-calendar-tile__weekday { color: var(--zen-color-content-neutral-light); }
 .zen-calendar-tile__day { color: var(--zen-color-content-neutral-strongest); }
+/* Today (Figma Today=Yes, updated 2026-10-26): the weekday in Accent/Strongest, the date in Accent/Base. */
+.zen-calendar-tile[data-today] .zen-calendar-tile__weekday { color: var(--zen-color-content-accent-strongest); }
 .zen-calendar-tile[data-today] .zen-calendar-tile__day { color: var(--zen-color-content-accent-base); }
-/* zen-allow-pale-actionable-box: Figma .Primitives/Calendar/Day-Tile 16142:3915 State=Selected binds Color/Border/Neutral/Pale/Default
-   (the selected day, readable on a white Canvas/Alt; user-reviewed 2026-10-17). */
-.zen-calendar-tile[data-selected] { background: var(--zen-color-background-surface-default); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
+/* Selected (Figma State=Selected, updated 2026-10-26): Background/Active/Neutral/Subtle, no stroke; Active/Accent/Subtle on Today. */
+.zen-calendar-tile[data-selected] { background: var(--zen-color-background-active-neutral-subtle); }
+.zen-calendar-tile[data-selected][data-today] { background: var(--zen-color-background-active-accent-subtle); }
 .zen-calendar-tile:not([data-selected]):hover { background: var(--zen-color-background-neutral-flat-hover); }
 .zen-calendar-tile:not([data-selected]):active { background: var(--zen-color-background-neutral-flat-pressed); }
 

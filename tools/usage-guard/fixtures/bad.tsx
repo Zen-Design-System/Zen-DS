@@ -692,6 +692,9 @@ export const Bad = () => <>
   <Text textStyle="Caption/Regular" tone="base">Updated 2 min ago</Text>
   {/* expect: text/caption-light */}
   <Text as="span" textStyle="Caption/Medium">3 files</Text>
+  {/* A caption beside another text is supporting text, not a lone value. */}
+  {/* expect: text/caption-light */}
+  <Stack gap="none"><Text textStyle="Body/Small/Bold">Brief.pdf</Text><Text textStyle="Caption/Regular" tone="base">2 MB</Text></Stack>
   {/* expect: content/lights-no-light-text */}
   <Text tone="warning-light">Due tomorrow</Text>
   {/* expect: content/lights-no-light-text */}

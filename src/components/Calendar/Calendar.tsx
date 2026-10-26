@@ -306,9 +306,9 @@ export interface CalendarDayTileProps extends Omit<ButtonHTMLAttributes<HTMLButt
   weekday: ReactNode;
   /** Figma Day ("30"). */
   day: ReactNode;
-  /** Figma State=Selected: a Surface/Default tile with a Pale border, readable on any canvas. */
+  /** Figma State=Selected: a `Color/Background/Active/Neutral/Subtle` tile (`Active/Accent/Subtle` on today). */
   selected?: boolean;
-  /** Figma Today=Yes: the date in Accent. */
+  /** Figma Today=Yes: the weekday in Accent/Strongest, the date in Accent/Base. */
   today?: boolean;
   /** The full date, the tile's accessible name ("Wednesday, September 30, 2026"). */
   label?: string;
@@ -318,8 +318,9 @@ export interface CalendarDayTileProps extends Omit<ButtonHTMLAttributes<HTMLButt
 
 /**
  * Figma `.Primitives/Calendar/Day-Tile` (16142:3915): one day of Calendar/Week-Strip Style=Tile — Padding/XSmall,
- * Gap/3XSmall, Corner-Radius/Large; Weekday Caption/Medium Neutral/Light over Day Body/Base/Bold Strongest (Today:
- * `Color/Content/Accent/Base`). Selected: `Color/Background/Surface/Default` with a 1px `Color/Border/Neutral/Pale/Default`.
+ * Gap/3XSmall, Corner-Radius/Large; Weekday Caption/Medium Neutral/Light over Day Body/Base/Bold Strongest (Today: the
+ * weekday `Color/Content/Accent/Strongest`, the day `Accent/Base`). Selected: `Color/Background/Active/Neutral/Subtle`, or
+ * `Active/Accent/Subtle` on today, with no stroke (Figma updated 2026-10-26).
  */
 export function CalendarDayTile({ weekday, day, selected = false, today = false, label, className, ref, ...rest }: CalendarDayTileProps) {
   return (

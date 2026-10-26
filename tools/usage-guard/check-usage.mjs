@@ -1086,9 +1086,23 @@ const captionToneFix = (tone) => {
   const family = tone.replace(/-?(strongest|base)$/, "");
   return new RegExp(`^(${LIGHTS_FAMILY})$`).test(family) ? `${family}-base` : family ? `${family}-light` : "light";
 };
+// A Caption that is its item's main value, standing alone, is not a caption (the user 2026-10-26: "Các chữ này không được
+// gọi là label. Vì trong ngữ cảnh này nó là giá trị chính và là giá trị một mình"): the only text beside an icon, a
+// control or a picture (a quick action's name under its IconButton, an app's name under its DockIcon, a room's name on
+// its Shape), or the only text of a button or label. It keeps its tone.
+const STANDALONE_BESIDE = new Set(["Icon", "IconButton", "Button", "DockIcon", "Avatar", "Image", "Shape", "FileIcon", "Flag", "Toggle", "Checkbox", "RadioButton"]);
+const standaloneValue = (src, start) => {
+  const { nodes } = cardTree(src);
+  const me = nodes.find((n) => n.start === start);
+  if (!me || me.parent < 0) return false;
+  const parent = nodes[me.parent];
+  const others = nodes.filter((n) => n.parent === parent.id && n.start >= parent.body && n !== me);
+  if (others.length) return others.every((n) => STANDALONE_BESIDE.has(n.name));
+  return ["button", "label", "a"].includes(parent.name);
+};
 const captionToneFinding = (attrs, src, start) => {
   const style = value(attrs, "textStyle")?.replace(/^\{?\s*["'`]|["'`]\s*\}?$/g, "");
-  if (!/^Caption\//.test(style ?? "") || inCodeSample(src, start)) return false;
+  if (!/^Caption\//.test(style ?? "") || inCodeSample(src, start) || standaloneValue(src, start)) return false;
   const raw = value(attrs, "tone");
   if (raw === undefined) return !opaque(attrs) && `is ${style} with no tone, so it renders Strongest — Caption text takes its family's Light level: tone="light" (usage rules §7, Caption text).`;
   // A literal tone, or the literal tones of a conditional (selected ? "accent-base" : "base"), not the strings it compares
@@ -1721,7 +1735,7 @@ export const rules = [
     summary: "Lights-group text (families referencing Sky, Mint, Yellow or Zen — today Accent, Warning, Support/Yellow) never uses the Light level — Base at most (Light fails contrast); Light stays for icons. Checks CSS colours and the Text/Heading `tone`.",
     check: (css) => { if (css.attrs !== undefined) { const tone = toneOf(css.attrs); return new RegExp(`^(${LIGHTS_FAMILY})-light$`).test(tone ?? "") && `is tone="${tone}" — Lights-group text never takes Light (it fails contrast); use ${tone.replace(/-light$/, "-base")} or -strongest (Light is for icons).`; } const d = textColourDecls(css.body).find((x) => new RegExp(`--zen-color-content-(${LIGHTS_FAMILY})-light`).test(x)); return d && `sets Lights-group text to Light in \`${d.slice(0, 70)}\` — use -base or -strongest (Light is allowed only for icons).`; } },
   { id: "text/caption-light", css: true, components: ["Text", "Heading"], severity: "error", allow: "caption-light", guideline: "docs/guidelines/text.md",
-    summary: "Text in a Caption style (Caption/Regular · Medium · Bold) takes its family's Light level: tone=\"light\", inverse-light, on-black-overlay-light, on-white-overlay-light or a colour family's Light (Negative/Light error text); the Lights group (Accent, Warning, Support/Yellow · Sky · Mint) takes Base. Text on its own Solid fill (on-colors, on-brights, on-accent) and states (disabled, placeholder, hyperlink) keep their token. Checks the Text/Heading tone, and CSS that pairs the caption font size or a .zen-type-caption-* class with another content colour (the user 2026-10-26).",
+    summary: "Text in a Caption style (Caption/Regular · Medium · Bold) takes its family's Light level: tone=\"light\", inverse-light, on-black-overlay-light, on-white-overlay-light or a colour family's Light (Negative/Light error text); the Lights group (Accent, Warning, Support/Yellow · Sky · Mint) takes Base. Text on its own Solid fill (on-colors, on-brights, on-accent), states (disabled, placeholder, hyperlink) and a Caption that is its item's main value, alone (the only text beside an icon, a control or a picture, or of a button) keep their tone. Checks the Text/Heading tone, and CSS that pairs the caption font size or a .zen-type-caption-* class with another content colour (the user 2026-10-26).",
     check: (css) => (css.attrs !== undefined ? captionToneFinding(css.attrs, css.src, css.start) : captionCssFinding(css)) },
   { id: "content/title-is-strongest", css: true, components: [], severity: "warn", allow: "title-level", guideline: "docs/guidelines/content-colors.md",
     summary: "Neutral-family titles and headings use Strongest (Primary level); Base is for secondary text and Light for tertiary text.",

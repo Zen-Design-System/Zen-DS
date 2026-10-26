@@ -19,12 +19,15 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
 - Caption text is always Light, and so is a metric's label (the user, 2026-10-26): text in Caption/Regular, Medium or
   Bold takes its family's Light level (Neutral/Light on a surface, Inverse or overlay Light on dark, a colour's Light for
-  an error; the Lights group takes Base; text on a Solid or Subtle fill follows the fill). Now Light: Schedule's grid
-  labels, event range, itinerary meta and a phone's resource name, Calendar's weekdays, "+N more" and agenda meta, the
-  Gantt header and milestone titles, NPS end labels, Slider limits, Stepper error captions, Metric-Tile titles and metric
-  category names, Chat's "Failed to send", a TopNavigation identity subtitle over imagery, and the Caption text of the
-  docs examples and the Studio UI. New checks: harness `text/caption-light`, runtime audit kind `caption-light`, Figma
-  audit `text/caption-light`; 147 layers rebound to Light in the Figma library.
+  an error; the Lights group takes Base; text on a Solid or Subtle fill follows the fill; a main value standing alone —
+  a slot's time, an option's word, a name under its avatar, a quick action's name — keeps its tone). Now Light:
+  Schedule's grid labels, event range and itinerary meta, Calendar's weekdays, "+N more" and agenda meta, the Gantt
+  header, NPS end labels, Slider limits, Stepper error captions, Metric-Tile titles and metric category names, Chat's
+  "Failed to send", a TopNavigation identity subtitle over imagery, and the supporting Caption text of the docs examples
+  and the Studio UI. New checks: harness `text/caption-light`, runtime audit kind `caption-light`, Figma audit
+  `text/caption-light`; 144 layers rebound to Light in the Figma library.
+- Calendar Day-Tile follows its Figma update (2026-10-26): today's weekday in Accent/Strongest; a selected tile on
+  Background/Active/Neutral/Subtle (Active/Accent/Subtle on today) with no border.
 - Zen Studio's Main component draws every chart at its Figma width (2026-10-26, user screenshot "Lỗi hiển thị"): Line,
   Multi-Line and Stack-Bar 297, Bar, Area, Grouped-Bar, Combo, Gauge, Funnel and Bullet 352, Curve-Preview 320, beside
   Donut and Radial. In a max-content cell a chart had shrunk to its axis (LineChart one label, BarChart bars with no width).

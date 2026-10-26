@@ -70,7 +70,9 @@
 //                                     On-*-Overlay Light on dark or imagery, a colour family's Light; the Lights group (Accent,
 //                                     Warning, Support/Yellow, Sky, Mint) takes Base. Text on a Solid or Subtle fill follows
 //                                     the fill (theme/on-solid-content); On-Colors, On-Brights, On-Accent, Disabled,
-//                                     Placeholder and Hyperlink keep their token
+//                                     Placeholder and Hyperlink keep their token, and so do a state's variant (Today, Now,
+//                                     Selected…) and a Caption that is its item's main value, alone (a slot's time, a name
+//                                     under its avatar, a quick action's name)
 //   badge/count-uses-counter error    a Badge whose label is a number (a count): counts are Badge-Counter, the round pill
 //   navigation/back-chevron  error    a left arrow (icon-arrow-left-*, icon-arrow-narrow-left-*) as Back in a Top-Navigation,
 //                                     Nav-Action or Button on a phone or tablet screen: Back is icon-chevron-left-line-medium
@@ -1396,10 +1398,30 @@ async function onAFill(node) {
     if (paints.length) {
       const solid = paints.find((paint) => paint.type === "SOLID");
       if (!solid) return true;
-      return !/Background\/((Surface|Canvas|Container|Popover)(\/|$)|Neutral\/Pale\/)/.test((await paintVar(solid)) ?? "");
+      const name = (await paintVar(solid)) ?? "";
+      // A Flat fill at rest (…/Flat/Default) is transparent: the text sits on what is below it.
+      if (/\/Flat\/Default$/.test(name) || solid.opacity === 0) continue;
+      return !/Background\/((Surface|Canvas|Container|Popover)(\/|$)|Neutral\/Pale\/)/.test(name);
     }
   }
   return false;
+}
+// A Caption that is its item's main value, alone, is not a caption (the user 2026-10-26: "Các chữ này không được gọi là
+// label. Vì trong ngữ cảnh này nó là giá trị chính và là giá trị một mình": a Schedule Slot's time, an Opinion item's word,
+// a resource's name under its avatar, a Gantt milestone's title, a quick action's name under its icon). In a component it
+// is the variant's only visible text of its own; on a screen the only text in its frame, beside an instance (icon, button).
+function standaloneValue(node) {
+  const words = (text) => text.visible !== false && !/^[\p{Extended_Pictographic}\p{Emoji_Component}\uFE0F\u200D\s]*$/u.test(text.characters);
+  let component = null;
+  for (let current = node.parent; current && current.type !== "PAGE"; current = current.parent) if (current.type === "COMPONENT") { component = current; break; }
+  // Its own layers only: the initials of a nested Avatar are the Avatar's.
+  const own = (child) => { for (let current = child.parent; current && current !== component; current = current.parent) if (current.type === "INSTANCE") return false; return true; };
+  if (component) return !component.findAll((child) => child !== node && child.type === "TEXT" && words(child) && own(child)).length;
+  // A screen: the text under an icon or a button in a vertical frame of its own (a quick action, a tile).
+  const parent = node.parent;
+  if (!parent || parent.type !== "FRAME" || parent.layoutMode !== "VERTICAL") return false;
+  const siblings = parent.children.filter((child) => child !== node && child.visible !== false);
+  return siblings.length > 0 && siblings.every((child) => child.type === "INSTANCE");
 }
 async function checkCaptionLight(node) {
   const style = await styleOfText(node);
@@ -1411,6 +1433,9 @@ async function checkCaptionLight(node) {
   if (!name || CAPTION_OK.test(name)) return; // a raw colour is paint/unbound's
   // A Tooltip's label primitive has no fill of its own: the bubble around it paints one.
   if ((owner && /Tooltip/.test(owner.set)) || (await onAFill(node))) return;
+  // A state's variant keeps its state's tokens: today, now, the current or selected one, pressed, disabled.
+  if (owner && /(^|,\s*)(Today=Yes|State=(Now|Today|Current|Selected|Active|Checked|Pressed|Disabled)|Status=(Now|Current))(,|$)/.test(owner.variant)) return;
+  if (!metric && standaloneValue(node)) return;
   const family = name.replace("Color/", "").replace(/\/(Strongest|Base|Default)$/, "");
   const fix = LIGHTS_GROUP.test(family) ? `${family}/Base` : `${family}/Light`;
   report("text/caption-light", ERROR, node, `${metric ? "a metric label" : style} in ${name.replace("Color/", "")}: use ${fix} (Caption text and metric labels are always Light)`);
