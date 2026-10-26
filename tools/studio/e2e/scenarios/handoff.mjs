@@ -169,6 +169,37 @@ export default function Page() {
 }
 `;
 
+/** A desktop page whose Sidebar rows hold nested rows (figma-push sidebarSubRows): an open group (its selected row) and
+ *  a closed one. */
+const NESTED_SIDEBAR_PAGE = `// @zen-page {"format":1,"title":"Time off"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Sidebar, SidebarMenuItem, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Time off" device="desktop">
+        <Stack direction="row" gap="md">
+          <Sidebar aria-label="Main" selectedId="leave">
+            <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />
+            <SidebarMenuItem id="time" label="Time off" icon="icon-users-line">
+              <SidebarMenuItem id="leave" label="Leave types" />
+              <SidebarMenuItem id="holidays" label="Holidays" />
+            </SidebarMenuItem>
+            <SidebarMenuItem id="reports" label="Reports" icon="icon-home-03-line">
+              <SidebarMenuItem id="monthly" label="Monthly" />
+            </SidebarMenuItem>
+          </Sidebar>
+          <Text>Leave types</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
 /** Export › Figma of the open page: the .figma.json the Zen plugin places. */
 async function figmaExport(page, id) {
   const panel = await openExport(page);
@@ -890,6 +921,33 @@ export const rows = [
       const bar = back.text.match(/<ActionBar\b[^]*?\/>/)?.[0]?.replace(/\s+/g, " ") ?? "";
       if (bar !== '<ActionBar primaryAction={{ label: "Place order" }} secondaryAction={{ label: "Back" }} />') throw new Error(`pulled: ${bar || back.text.slice(0, 300)}`);
       return `export → Action-Bar/Mobile; pulled back as ${back.id}: ${bar}`;
+    },
+  },
+  {
+    id: "HO-21", feature: "A Sidebar's nested rows round trip (BACKLOG P2, 2026-10-26): Export › Figma draws them as Menu-Item Level=Child rows right after their row (a closed group's hidden, the chevron on both groups); the frame read back imports with the rows' `children`, and the canvas shows the open group's rows", wp: "Sidebar nested rows 2026-10-26",
+    timeout: 60000,
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const id = await importHtmlPage(page, NESTED_SIDEBAR_PAGE, "screen:screen-1");
+      const pkg = await figmaExport(page, id);
+      const rows = [];
+      const walk = (node) => { if (node?.set?.name === "Primitives/Side-Bar/Menu-Item/Master") rows.push(node); [...(node?.children ?? []), ...(node?.slots ?? []).flatMap((slot) => slot.children ?? [])].forEach(walk); };
+      walk(pkg.frame);
+      const drawn = rows.map((row) => `${row.props.Level === "Child" ? "  " : ""}${row.props.Level === "Child" ? row.nested?.find((entry) => entry.path === "Master")?.text : row.text}${row.hidden ? " (hidden)" : ""}${(row.props.Dropdown ?? false) ? " ▾" : ""}`);
+      const want = ["Home", "Time off ▾", "  Leave types", "  Holidays", "Reports ▾", "  Monthly (hidden)"];
+      if (JSON.stringify(drawn) !== JSON.stringify(want)) throw new Error(`the export's rows: ${JSON.stringify(drawn)}`);
+      if ((pkg.notes ?? []).some((note) => /Sidebar|Menu-Item/.test(note))) throw new Error(`notes: ${pkg.notes.join("; ")}`);
+      const back = await pullAsNewPage(page, pkg, `${id}-pulled`);
+      const landed = {
+        open: /label: "Time off", icon: "icon-users-line", children: \[\{ id: "leave-types", label: "Leave types" \}, \{ id: "holidays", label: "Holidays" \}\]/.test(back.text),
+        closed: /label: "Reports", icon: "icon-home-03-line", children: \[\{ id: "monthly", label: "Monthly" \}\]/.test(back.text),
+        selected: /selectedId="leave-types"/.test(back.text),
+      };
+      if (Object.values(landed).some((value) => !value)) throw new Error(`pulled page: ${JSON.stringify(landed)} ${back.text.match(/<Sidebar\b[^]*?\/>/)?.[0]?.slice(0, 400) ?? back.text.slice(0, 300)}`);
+      const frame = page.locator('[data-studio-frame="screen:screen-1"]');
+      await until(async () => /Leave types/.test((await frame.locator(".zen-sidebar__sub-menu").allInnerTexts()).join(" ")), { timeout: 10_000, message: "the open group's rows on the canvas" });
+      if ((await frame.locator(".zen-sidebar__sub-menu").count()) !== 1) throw new Error("the closed group shows its rows on the canvas");
+      return `export: ${drawn.join(" · ")}; pulled back as ${back.id} with children, the open group's rows on the canvas`;
     },
   },
   {

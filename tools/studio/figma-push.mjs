@@ -795,7 +795,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     // FileIcon: Figma's icon-media-file by Format; Flag: Figma's Flag by Name (both on 🍑 Iconography), sized as the code.
     else if (element.name === "FileIcon" && typeof code.format === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: typeof code.title === "string" ? code.title : `${code.format} file`, set: SETS.fileIcon, props: { Format: FILE_FORMAT[code.format] ?? code.format }, ...iconSizing(code.size) };
     else if (element.name === "Flag" && typeof code.name === "string") node = { type: "INSTANCE", ...(id ? { id } : {}), name: code.name, set: SETS.flag, props: { Name: code.name }, ...(FLAG_SIZE[scaleOf(code.size)] ? { sizeVar: FLAG_SIZE[scaleOf(code.size)] } : {}) };
-    else if (element.name === "SidebarMenuItem") node = sidebarItemNode(code, id);
+    else if (element.name === "SidebarMenuItem") node = sidebarItemNode(code, id, element);
     else if (element.name === "AppShellAction") node = actionItemNode(code, id);
     else if (element.name === "Table") node = tableNode(element, code, id, parent);
     else if (element.name === "SheetTable") node = sheetTableNode(element, code, id);
@@ -939,15 +939,83 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   const MENU_ITEM_STATE = { hover: "Hover", focus: "Focus", disabled: "Disabled" };
   const menuItemLook = (fields) => ({ Theme: fields.theme === "accent" ? "Accent" : "Neutral", State: fields.disabled === true ? "Disabled" : MENU_ITEM_STATE[fields.state] ?? "Default" });
 
-  /** SidebarMenuItem as Figma's Menu-Item: its row, and its counter (Sidebar.tsx: a Badge-Counter after the label) in
-   *  the Counter it shows; the rail's rows mark it with their Noti-Dot (sidebarRail). Its Density is its Sidebar's
-   *  (sidebarRowDensity). */
-  function sidebarItemNode(code, id) {
-    const node = itemNode(SETS.menuItem, code, { id, look: menuItemLook(code) });
-    const counter = typeof code.counter === "number" || typeof code.counter === "string" ? String(code.counter).trim() : "";
-    Object.assign(node.props, onlyOwn(node.set, { Counter: counter !== "" }));
-    if (counter) node.nested = [...(node.nested ?? []), { path: "Counter", props: {}, text: counter }];
-    return node;
+  /**
+   * A Sidebar row as Figma's Menu-Item (Sidebar.tsx SidebarItemView): its label, icon, counter (a Badge-Counter after
+   * the label: Figma's Counter) and Dropdown (the chevron, with `dropdown` or nested rows), its Select, Theme and State.
+   * A Level=Child row (1551:5539) draws a Menu-Item inside its Tree-Line and indent that none of its own properties
+   * reach: the content goes on that one, its nested "Master". The rail's rows mark a counter with their Noti-Dot
+   * (sidebarRail); the Density is the Sidebar's (sidebarRowDensity).
+   */
+  function menuItemNode(fields, { id, key, selected = false, child = false, hasRows = false } = {}) {
+    const label = typeof fields.label === "string" ? fields.label : "";
+    const icon = typeof fields.icon === "string" ? fields.icon : null;
+    const counter = typeof fields.counter === "number" || typeof fields.counter === "string" ? String(fields.counter).trim() : "";
+    const content = onlyOwn(SETS.menuItem, { Label: label !== "", Icon: Boolean(icon), ...(icon ? { "Icon-Src": icon } : {}), Counter: counter !== "", Dropdown: hasRows || fields.dropdown === true });
+    const look = onlyOwn(SETS.menuItem, { Select: selected ? "Yes" : "No", ...menuItemLook(fields), ...(child ? { Level: "Child" } : {}) });
+    const name = typeof fields["aria-label"] === "string" ? fields["aria-label"] : label || SETS.menuItem.name;
+    const node = { type: "INSTANCE", ...(id ? { id } : {}), ...(key ? { key } : {}), name, set: SETS.menuItem };
+    const count = counter ? [{ path: child ? "Master/Counter" : "Counter", props: {}, text: counter }] : [];
+    if (child) return { ...node, props: look, nested: [{ path: "Master", props: content, ...(label ? { text: label } : {}) }, ...count] };
+    return { ...node, props: { ...content, ...look }, ...(label ? { text: label } : {}), ...(count.length ? { nested: count } : {}) };
+  }
+
+  /** A Sidebar row as data with its nested rows (Sidebar.tsx menuItemOf): a data row's `children`; a SidebarMenuItem's
+   *  `children` array or its `<SidebarMenuItem>` children, each keyed by its layer. */
+  const dataMenuRow = (fields) => ({ fields: fields ?? {}, children: (Array.isArray(fields?.children) ? fields.children : []).map(dataMenuRow) });
+  const jsxMenuRow = (element) => {
+    const data = plain(element.props.children);
+    const children = Array.isArray(data) ? data.map(dataMenuRow) : element.children
+      .filter((child) => child.kind === "element" && child.name === "SidebarMenuItem")
+      .map((child) => ({ ...jsxMenuRow(child), ...(child.id ? { key: child.id, id: figmaIdOf(child.id) ?? undefined } : {}) }));
+    return { fields: codeProps(element), children };
+  };
+  /** A row with its data (`menuRow`), which its Sidebar lays out with its nested rows (sidebarSubRows). */
+  const sidebarRowNode = (row, options) => ({ ...menuItemNode(row.fields, { ...options, hasRows: row.children.length > 0 }), menuRow: row });
+
+  /** SidebarMenuItem as Figma's Menu-Item, its nested rows with it. */
+  function sidebarItemNode(code, id, element) {
+    return sidebarRowNode(element ? jsxMenuRow(element) : { fields: code, children: [] }, { id });
+  }
+
+  /**
+   * A Sidebar's rows as Sidebar.tsx draws them (SidebarItemView): Select by its `selectedId`, else a row's own `selected`
+   * or `active`; a row's nested rows right after it as Level=Child rows (Figma's Menu-Item has one Child level, so
+   * deeper rows are Child rows too, noted). They show while their group is open (defaultExpanded: it holds the
+   * selected row, else a selected or active one) and the Sidebar is not the rail, and are hidden otherwise, so a pull
+   * reads them back. An open group's chevron points up (sidebar.css turns it 180°).
+   */
+  function sidebarSubRows(slots, code, where) {
+    const selectedId = code.selectedId;
+    const rail = code.collapsed === true;
+    const isSelected = (fields) => (selectedId !== undefined ? fields.id !== undefined && fields.id === selectedId : Boolean(fields.selected ?? fields.active ?? false));
+    const expanded = (row) => (selectedId !== undefined
+      ? row.children.some((child) => child.fields.id === selectedId || expanded(child))
+      : Boolean(row.fields.active || row.fields.selected || row.children.some(expanded)));
+    // The Dropdown layer is the chevron icon itself (icon-chevron-down-01-line): swapped for the one pointing up.
+    const chevronUp = (path) => ({ path, set: { id: null, name: "icon-chevron-up-01-line" }, props: {} });
+    let deep = false;
+    // The rows under `row`, `shown` while it is open.
+    const rowsUnder = (row, shown, depth) => row.children.flatMap((child) => {
+      if (depth > 0) deep = true;
+      const open = shown && expanded(child);
+      const node = { ...menuItemNode(child.fields, { id: child.id, key: child.key, selected: isSelected(child.fields), child: true, hasRows: child.children.length > 0 }), fillW: true, ...(shown ? {} : { hidden: true }) };
+      if (open && child.children.length) node.nested.push(chevronUp("Master/Dropdown"));
+      return [node, ...rowsUnder(child, open, depth + 1)];
+    });
+    const expand = (layers) => (layers ?? []).flatMap((layer) => {
+      if (layer?.type === "FRAME" && Array.isArray(layer.children)) {
+        layer.children = expand(layer.children);
+        return [layer];
+      }
+      if (!layer?.menuRow) return [layer];
+      const { menuRow: row, ...node } = layer;
+      node.props = { ...node.props, ...onlyOwn(node.set, { Select: isSelected(row.fields) ? "Yes" : "No" }) };
+      const open = !rail && expanded(row);
+      if (open && row.children.length) node.nested = [...(node.nested ?? []), chevronUp("Dropdown")];
+      return [node, ...rowsUnder(row, open, 0)];
+    });
+    for (const slot of slots) slot.children = expand(slot.children);
+    if (deep) notes.push(`${where}: rows nested more than one level deep are drawn as Figma's Child rows (its Menu-Item has one Child level)`);
   }
 
   /**
@@ -2021,10 +2089,11 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     // A Segmented shows `value`, else `defaultValue`, else its first option selected (Segmented.tsx).
     const selectedId = owner === "Segmented" ? code.value ?? code.defaultValue ?? (Array.isArray(value) ? value[0]?.id : undefined) : code[SELECTED_PROP[owner]];
     // A Segmented's items take its Level and Size (Figma's item starts Small Primary); they split a full-width one.
-    // A Sidebar's rows their own Theme and State (menuItemLook).
+    // A Sidebar's rows are Menu-Items with their nested rows (sidebarRowNode, laid out by sidebarSubRows).
     const look = owner === "Segmented" ? segmentLook(code) : {};
     const fill = owner === "Segmented" && code.fullWidth === true ? { fillW: true } : {};
-    const item = (fields) => ({ ...itemNode(items.item, fields ?? {}, { selected: fields?.id !== undefined && fields.id === selectedId, labelKey, iconKey, look: owner === "Sidebar" ? menuItemLook(fields ?? {}) : look }), ...fill });
+    const item = (fields) => (owner === "Sidebar" ? sidebarRowNode(dataMenuRow(fields), { selected: fields?.id !== undefined && fields.id === selectedId })
+      : { ...itemNode(items.item, fields ?? {}, { selected: fields?.id !== undefined && fields.id === selectedId, labelKey, iconKey, look }), ...fill });
     const list = Array.isArray(value) ? value : [];
     // A crumb draws its chevron as the slot's Dash (all but the last) and its look on the Item inside (Breadcrumbs.tsx:
     // the first crumb is Master while `master` is on, Emphasis from the crumb or the trail).
@@ -2082,7 +2151,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
       const count = nested?.find((entry) => entry.path === "Counter")?.text;
       const kept = (nested ?? []).filter((entry) => entry.path !== "Counter");
       const counted = layer.props.Counter === true ? { Counter: false, ...onlyOwn(layer.set, { "Noti-Dot": count !== "0" }) } : {};
-      return { ...row, ...(kept.length ? { nested: kept } : {}), props: { ...layer.props, Label: false, ...counted }, hugW: true, hugLayers: [{ name: "Element", w: true }] };
+      // Nor for the chevron (sidebar.css hides it in the rail).
+      return { ...row, ...(kept.length ? { nested: kept } : {}), props: { ...layer.props, Label: false, ...counted, ...(layer.props.Dropdown === true ? { Dropdown: false } : {}) }, hugW: true, hugLayers: [{ name: "Element", w: true }] };
     };
     for (const slot of slots) {
       if (slot.name === "Header-Content") continue;
@@ -2611,7 +2681,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     // or where its AppShell puts the toggle (collapse="sidebar", appShellNode).
     if (element.name === "Sidebar" && (code.variant ?? "basic") !== "workspace") node.props = { ...node.props, "Collapse Button": "onCollapsedChange" in element.props };
     if (element.name === "Sidebar" && literalOf(element.props.collapsed) === true && (code.variant ?? "basic") !== "workspace") sidebarRail(element, node, slots);
-    if (element.name === "Sidebar") sidebarRowDensity(slots, code, parent);
+    if (element.name === "Sidebar") {
+      sidebarSubRows(slots, code, where);
+      sidebarRowDensity(slots, code, parent);
+    }
     if (element.name === "ListBox") for (const slot of slots) if (slot.name === "Body-Slot") slot.hugH = true;
     // A workspace Sidebar's sections went to a Body-Content its set does not have (no menu in Figma; corpus test 2026-10-18).
     if (element.name === "Sidebar" && node.set?.name === "Side-Bar/Master/Workspace") for (const slot of slots) slot.name = WORKSPACE_SLOTS[slot.name] ?? slot.name;

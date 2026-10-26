@@ -577,8 +577,15 @@ const read = async (node) => {
   if (reactions.length) out.reactions = reactions;
   return out;
 };
+// A closed Sidebar group's rows: hidden Menu-Item Level=Child rows (figma-push sidebarSubRows).
+const closedSubRow = async (node) => {
+  if (node.type !== "INSTANCE") return false;
+  const set = await setOf(node);
+  return Boolean(set && set.name === "Primitives/Side-Bar/Menu-Item/Master" && (await propsOf(node)).Level === "Child");
+};
 const readLayer = async (node) => {
-  if (!node.visible) return null;
+  // Hidden layers are not read, but a closed group's rows are, marked hidden (a Sidebar row's nested rows).
+  if (!node.visible) return (await closedSubRow(node)) ? { ...(await readInstance(node)), hidden: true } : null;
   if (node.type === "TEXT") {
     // Words with styles of their own (Figma's mixed styles): the layer's style and colour are its longest segment's,
     // the words that differ come as segments (Studio text-runs.mjs writes them as TextRun).
@@ -1577,11 +1584,38 @@ const iconWords = (icon) => {
   return words.charAt(0).toUpperCase() + words.slice(1);
 };
 
+/** Figma's Sidebar row (figma-push menuItemNode). */
+const MENU_ITEM = "Primitives/Side-Bar/Menu-Item/Master";
+const isSubRow = (row) => row?.set?.name === MENU_ITEM && row.props?.Level === "Child";
+/** A Menu-Item row as it shows: a Level=Child row's label, icon and counter are on the Menu-Item inside it ("Master"). */
+const menuRowView = (row) => {
+  if (!isSubRow(row)) return row;
+  const inner = (row.nested ?? []).find((entry) => entry.path === "Master");
+  return { ...row, props: { ...row.props, ...(inner?.props ?? {}) }, text: inner?.text ?? row.text };
+};
+/** A Sidebar's rows with their nested rows: a Menu-Item Level=Child row (hidden too: a closed group's) belongs to the
+ *  Menu-Item row before it (figma-push sidebarSubRows); Figma has one Child level. */
+const nestMenuRows = (rows) => {
+  const out = [];
+  let parent = null;
+  for (const row of rows) {
+    if (isSubRow(row) && parent) parent.subRows.push(row);
+    else if (row?.set?.name === MENU_ITEM) out.push((parent = { ...row, subRows: [] }));
+    else {
+      parent = null;
+      out.push(row);
+    }
+  }
+  return out;
+};
+
 /**
  * A data item (or a row element's props) from a primitive instance (Menu-Item, Breadcrumb Item, Segment): its id, its
  * label (empty with Label off, then an aria-label from its icon) and its icon (Icon-Src while its Icon toggle is on).
+ * A Menu-Item's nested rows (`subRows`, nestMenuRows) are its caller's to write.
  */
-function itemFields(item, ctx, { labelKey = "label", iconKey = "icon", where }) {
+function itemFields(row, ctx, { labelKey = "label", iconKey = "icon", where }) {
+  const item = menuRowView(row);
   const props = item.props ?? {};
   // A Label variant (Tab-Item's True / False) shows or hides the label; it is not the label's text.
   const toggle = (value) => value === "True" || value === "False";
@@ -1597,12 +1631,15 @@ function itemFields(item, ctx, { labelKey = "label", iconKey = "icon", where }) 
     fields["aria-label"] = literal(icon ? iconWords(icon) : item.name);
     ctx.notes.push(`${where} "${item.name}": no label shows in Figma; its aria-label "${fields["aria-label"].value}" comes from ${icon ? "its icon" : "its layer"}`);
   }
-  if (props.Dropdown === true) ctx.notes.push(`${where} "${label}": Figma shows its dropdown; the design has no sub-items to write`);
-  // A Menu-Item's Theme and State (figma-push menuItemLook); its Density is its Sidebar's.
-  if (item.set?.name === "Primitives/Side-Bar/Menu-Item/Master") {
+  // A Menu-Item's Theme, State, counter (its Badge-Counter's number) and chevron without nested rows (`dropdown`); its
+  // Density is its Sidebar's.
+  if (item.set?.name === MENU_ITEM) {
     if (props.Theme === "Accent") fields.theme = literal("accent");
     if (props.State === "Disabled") fields.disabled = literal(true);
-  }
+    const count = props.Counter === true ? (item.nested ?? []).find((entry) => entry.path === "Counter" || entry.path === "Master/Counter")?.text : null;
+    if (count) fields.counter = literal(/^\d+$/.test(count) ? Number(count) : count);
+    if (props.Dropdown === true && !row.subRows?.length) fields.dropdown = literal(true);
+  } else if (props.Dropdown === true) ctx.notes.push(`${where} "${label}": Figma shows its dropdown; the design has no sub-items to write`);
   return fields;
 }
 
@@ -1672,11 +1709,13 @@ function dataSlotValue(slot, dataSlot, ctx, where, rail = false) {
     // A count in its Badge-Counter (a Tab-Item with Badge on).
     const count = item.props?.Badge === true ? (item.nested ?? []).find((nested) => nested.path === "Badge-Counter")?.text : null;
     if (count) fields.badge = literal(/^\d+$/.test(count) ? Number(count) : count);
+    // A Sidebar row's nested rows (nestMenuRows).
+    if (item.subRows?.length) fields.children = { kind: "array", items: item.subRows.map(toItem) };
     if (isSelected(item)) selected ??= fields.id.value;
     return { kind: "object", fields };
   };
   // The Default bar's action is its Type=Action tab (bottomNavLook), not a destination.
-  if (!dataSlot.nested) return { value: { kind: "array", items: rowsOf(slot.children ?? []).filter((row) => !(tab && row.props?.Type === "Action")).map(toItem) }, selected };
+  if (!dataSlot.nested) return { value: { kind: "array", items: nestMenuRows(rowsOf(slot.children ?? []).filter((row) => !(tab && row.props?.Type === "Action"))).map(toItem) }, selected };
   // Rows straight in the slot form a section of their own, each frame one.
   const groups = [];
   for (const child of slot.children ?? []) {
@@ -1691,15 +1730,16 @@ function dataSlotValue(slot, dataSlot, ctx, where, rail = false) {
     if (title) fields.label = literal(title.text ?? "");
     else if (rail && /^Section (?!\d+$)(.+)$/.test(name ?? "")) fields.label = literal(name.slice(8));
     // A Divider between groups is not a row.
-    fields[dataSlot.nested] = { kind: "array", items: rows.filter((row) => row !== title && !/(^|\/)Divider$/.test(row.set?.name ?? row.name ?? "")).map(toItem) };
+    fields[dataSlot.nested] = { kind: "array", items: nestMenuRows(rows.filter((row) => row !== title && !/(^|\/)Divider$/.test(row.set?.name ?? row.name ?? ""))).map(toItem) };
     return { kind: "object", fields };
   });
   return { value: { kind: "array", items: sections }, selected };
 }
 
-/** A slot's layers as one node: the one layer, or a Stack of them in the slot's layout (none: null). */
+/** A slot's layers as one node: the one layer, or a Stack of them in the slot's layout (none: null). Sidebar rows hold
+ *  their nested rows (nestMenuRows). */
 function slotContent(slot, ctx) {
-  const nodes = (slot.children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
+  const nodes = nestMenuRows(slot.children ?? []).map((child) => convert(child, ctx)).filter(Boolean);
   if (nodes.length <= 1) return nodes[0] ?? null;
   const element = frameElement({ name: slot.name, layout: slot.layout }, nodes, ctx);
   const id = idOf(slot, ctx);
@@ -2442,7 +2482,7 @@ function convertNode(node, ctx) {
   }
   if (node.type === "INSTANCE") {
     const setName = node.set?.name ?? "";
-    if (ROW_ELEMENTS[setName]) return { kind: "element", name: ROW_ELEMENTS[setName], props: itemFields(node, ctx, { where: ROW_ELEMENTS[setName] }), children: [] };
+    if (ROW_ELEMENTS[setName]) return { kind: "element", name: ROW_ELEMENTS[setName], props: itemFields(node, ctx, { where: ROW_ELEMENTS[setName] }), children: (node.subRows ?? []).map((row) => convert(row, ctx)).filter(Boolean) };
     if (setName === "Primitives/Dashboard/Header/Action-Item") return actionItem(node, ctx);
     if (setName === "AI/Chat-Block/Pale") return aiChatBlockElement(node, ctx);
     if (setName === TOP_NAV_SET.name) return topNavigationElement(node, ctx);

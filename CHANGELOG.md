@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio ↔ Figma: a Sidebar row's nested rows (`children`) go to Figma as Menu-Item Level=Child rows right after it
+  (2026-10-26). A closed group's rows are hidden layers; the chevron (Dropdown) shows with `dropdown` or nested rows and
+  points up while the group is open. Pulled back, they are the row's `children` again (a footer row's `<SidebarMenuItem>`
+  children), and the pull also reads `dropdown` and a row's counter.
 - Zen Studio's Main component draws every chart at its Figma width (2026-10-26, user screenshot "Lỗi hiển thị"): Line,
   Multi-Line and Stack-Bar 297, Bar, Area, Grouped-Bar, Combo, Gauge, Funnel and Bullet 352, Curve-Preview 320, beside
   Donut and Radial. In a max-content cell a chart had shrunk to its axis (LineChart one label, BarChart bars with no width).
