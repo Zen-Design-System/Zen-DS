@@ -219,13 +219,12 @@ describe("chart family layout", () => {
       expect(plot.querySelector("[data-active]"), name).toBeNull();
       expect(plot.querySelector(".zen-chart__tooltip"), name).toBeNull();
       const sector = plot.querySelectorAll(".zen-chart__sector")[1];
+      // Pointer over/out are continuous events: React renders them in a later task, so wait for the DOM.
       sector.dispatchEvent(new PointerEvent("pointerover", { bubbles: true, pointerType: "mouse" }));
-      await new Promise((resolve) => setTimeout(resolve, 0));
-      expect(plot.querySelector(".zen-chart__sector[data-active]"), name).toBe(sector);
+      await expect.poll(() => plot.querySelector(".zen-chart__sector[data-active]"), { message: name }).toBe(sector);
       expect(plot.querySelector(".zen-chart__tooltip"), name).not.toBeNull();
       sector.dispatchEvent(new PointerEvent("pointerout", { bubbles: true, pointerType: "mouse", relatedTarget: document.body }));
-      await new Promise((resolve) => setTimeout(resolve, 0));
-      expect(plot.querySelector("[data-active]"), name).toBeNull();
+      await expect.poll(() => plot.querySelector("[data-active]"), { message: name }).toBeNull();
     }
   });
 
