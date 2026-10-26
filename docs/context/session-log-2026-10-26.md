@@ -332,3 +332,8 @@ sidebar thì các item cũng đổi variant theo density đó".
   8) cho đồng tâm, cả Figma và code". Figma: the Placeholder instance in each of the 10 Pane variants bound to
   Corner-Radius/Base (12 Rounded, 8 Standard: XLarge − 8 in each mode); every Pane in Pattern/AppShell/Desktop inherits.
   Code: the pane's placeholder takes `radius="md"` (Base). Gate 2 was stopped for it and rerun.
+- Gate 3 (head 01bf1569): static, TypeScript, Vitest 90/90, platform audit 1512/390/320 (0 new warnings; the three
+  concentric ones gone), dark, behaviour pass; Studio E2E 378/380. BL-01 ("no board" on the last 7 pages under 4-shard
+  load) passes alone; PT-28 (dark-Play tooltip, a fixture without AppShell) fails the same with main's proto files and
+  passed on a plain rerun: both flaky, not this change. New ⚠ type/visual-heading on the playground's placeholder label
+  → `zen-allow-visual-heading` (d6c6235c). Slot handed to chart-bars; the formal rerun after them or on CI.
