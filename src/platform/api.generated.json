@@ -15164,7 +15164,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Main-Heading-Text Badges (Badges on): a row of Badges under the large title (Badge Medium, Spacing/Gap/XSmall\napart and below the heading), e.g. a plan or a status. It folds away with the large title. A Badge beside the title\ngoes in `largeTitleAction` instead.",
+          "description": "Figma Main-Heading-Text Badges (Badges on): a row of Badges under the large title (Badge Medium, Spacing/Gap/XSmall\nbelow the heading and Spacing/Gap/2XSmall apart), e.g. a plan or a status. It folds away with the large title. A Badge beside the title\ngoes in `largeTitleAction` instead.",
           "deprecated": null
         },
         {

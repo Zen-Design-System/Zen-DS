@@ -8,6 +8,8 @@
 /* Figma Child-Heading (Type=Main 4122:33399): the title's type in Content/Neutral/Light, Spacing/Gap/XSmall after it. */
 .zen-page-header__child { margin-inline-start: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-page-header__meta { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* A meta of Badges or Tags only is a row of them: Spacing/Gap/2XSmall (4px) apart (the user 2026-10-26). */
+.zen-page-header__meta:not(:has(> :not(.zen-badge, .zen-tag))) { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-page-header__actions { display: flex; order: var(--zen-page-header-actions-order, 0); flex-wrap: wrap; align-items: center; gap: var(--zen-spacing-gap-small, 12px); margin-top: var(--zen-page-header-actions-offset, 0px); }
 /* Figma Trailing-Slots: icon actions after the page actions, Spacing/Gap/Small apart. */
 .zen-page-header__trailing { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }

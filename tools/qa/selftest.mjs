@@ -138,6 +138,10 @@ ok("cap: 3× a long plan", shardCapS(900) === 2700);
   const dirs = list ? JSON.parse(list).map(([, , dir]) => dir) : [];
   ok("run.mjs lists the harness self-tests", dirs.length >= 4);
   for (const dir of dirs) ok(`${dir} edits count as tool files (auxKind)`, Boolean(auxKind(`${dir}/x.mjs`)));
+  // The AI UI catalog step (2026-10-26, #317: CI's ai-ui:check failed after this gate passed): its own sources put it in scope.
+  ok("run.mjs runs the AI UI catalog check", /"tools\/ai-ui\/build-catalog\.mjs", "--check"/.test(source));
+  ok("tools/ai-ui edits count as tool files (auxKind)", auxKind("tools/ai-ui/catalog.config.mjs") === "ai-ui");
+  ok("AGENTS.consumer.md counts as an AI UI source (auxKind)", auxKind("AGENTS.consumer.md") === "ai-ui");
 }
 
 if (failures.length) {

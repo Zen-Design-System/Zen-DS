@@ -208,6 +208,8 @@ export const Good = () => <>
   {/* chip/row-gap, tag/row-gap: chips 8px apart, tags 4px; a later column's Avatar may be Subtle. */}
   <Stack direction="row" gap="xs" wrap>{periods.map((p) => <Chip key={p.id} variant="normal" onClick={pick}>{p.label}</Chip>)}</Stack>
   <Stack as="ul" direction="row" gap="2xs" wrap aria-label="Skills">{skills.map((skill) => <li key={skill}><Tag>{skill}</Tag></li>)}</Stack>
+  {/* badge/row-gap: badges 4px apart, as tags; a BadgeStatus counts as a Badge. */}
+  <Stack direction="row" gap="2xs" wrap><Badge theme="blue" background="subtle">Design</Badge><BadgeStatus status="in-progress">In progress</BadgeStatus></Stack>
   <Table aria-label="Members" rows={rows} getRowId={getId} columns={[{ id: "member", header: "Member", cell: (row) => <TableMedia bold caption={row.role} media={<Avatar size="sm" theme="neutral" alt="">{row.initials}</Avatar>}>{row.name}</TableMedia> }, { id: "owner", header: "Owner", cell: (row) => <Avatar size="xs" background="subtle" alt="">{row.owner}</Avatar> }]} />
   {/* A photo Avatar stays Subtle in the first column: Figma has no Photo × Solid. */}
   <Table aria-label="Team" rows={rows} getRowId={getId} columns={[{ id: "member", header: "Member", cell: (row) => <TableMedia media={<Avatar size="xs" theme="photo" src={row.photo} background="subtle" alt="" />}>{row.name}</TableMedia> }]} />

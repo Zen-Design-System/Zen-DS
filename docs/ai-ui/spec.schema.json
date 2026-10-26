@@ -46513,7 +46513,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Main-Heading-Text Badges (Badges on): a row of Badges under the large title (Badge Medium, Spacing/Gap/XSmall apart and below the heading), e.g."
+                "description": "Figma Main-Heading-Text Badges (Badges on): a row of Badges under the large title (Badge Medium, Spacing/Gap/XSmall below the heading and Spacing/Gap/2XSmall apart), e.g."
               },
               "headingLevel": {
                 "anyOf": [

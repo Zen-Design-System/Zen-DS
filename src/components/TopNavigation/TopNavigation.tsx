@@ -127,7 +127,7 @@ export interface TopNavigationProps {
   largeTitleSubheading?: ReactNode;
   /**
    * Figma Main-Heading-Text Badges (Badges on): a row of Badges under the large title (Badge Medium, Spacing/Gap/XSmall
-   * apart and below the heading), e.g. a plan or a status. It folds away with the large title. A Badge beside the title
+   * below the heading and Spacing/Gap/2XSmall apart), e.g. a plan or a status. It folds away with the large title. A Badge beside the title
    * goes in `largeTitleAction` instead.
    */
   largeTitleBadges?: ReactNode;
