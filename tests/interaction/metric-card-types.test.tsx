@@ -94,7 +94,7 @@ describe("MetricCard type", () => {
     expect(document.querySelector(".zen-metric-spark")?.getAttribute("data-tone")).toBe("neutral");
     expect(document.querySelector(".zen-metric-spark__dot")).toBeNull();
     const badge = document.querySelector(".zen-metric__content .zen-badge")!;
-    expect([badge.getAttribute("data-tone"), badge.getAttribute("data-background"), badge.textContent]).toEqual(["on-color", "solid", "12%"]);
+    expect([badge.getAttribute("data-tone"), badge.getAttribute("data-background"), badge.querySelector(".zen-badge__text")?.textContent]).toEqual(["on-color", "solid", "12%"]);
     // Figma Hero: Metric-Trend Content=Default with its Badge overridden, so the Sub-Label stays Content/Neutral/Light.
     const sub = document.querySelector(".zen-metric-trend__sub-label")!;
     expect([sub.textContent, sub.closest(".zen-metric-trend")!.getAttribute("data-content")]).toEqual(["vs. 2025", null]);
@@ -112,7 +112,7 @@ describe("MetricCard type", () => {
     const tile = card.querySelector(".zen-metric-tile")!;
     expect([...tile.querySelectorAll(".zen-metric-tile__label, .zen-metric-tile__number")].map((node) => node.textContent)).toEqual(["Success rate", "56%"]);
     const badge = tile.querySelector(".zen-badge")!;
-    expect([badge.getAttribute("data-tone"), badge.getAttribute("data-background"), badge.textContent]).toEqual(["green", "solid", "24%"]);
+    expect([badge.getAttribute("data-tone"), badge.getAttribute("data-background"), badge.querySelector(".zen-badge__text")?.textContent]).toEqual(["green", "solid", "24%"]);
     expect(tile.querySelector(".zen-metric-trend__sub-label")?.textContent).toBe("vs. last year");
     const dock = tile.querySelector(".zen-dock-icon")!;
     expect([dock.getAttribute("data-tone"), dock.getAttribute("data-size")]).toEqual(["neutral", "medium"]);
@@ -121,8 +121,9 @@ describe("MetricCard type", () => {
     expect(Math.round(dock.getBoundingClientRect().top - value.bottom)).toBe(12);
     await screen.rerender(wrap(<MetricCard type="tile" size="sm" label="Protein" value="92 g" trend={{ direction: "positive", label: "24%", subLabel: "vs. last year" }} />, 109));
     expect([document.querySelector(".zen-metric-tile")!.getAttribute("data-size"), document.querySelector(".zen-metric-tile .zen-dock-icon")!.getAttribute("data-size")]).toEqual(["small", "small"]);
-    // Figma Metric-Tile Size=Small (77px) hides the Sub-Label: the pill alone.
-    expect([document.querySelector(".zen-metric-tile .zen-badge")?.textContent, document.querySelector(".zen-metric-tile .zen-metric-trend__sub-label")]).toEqual(["24%", null]);
+    // Figma Metric-Tile Size=Small (77px) hides the Sub-Label: the pill alone in sight, the words still read (1px, clipped).
+    const hidden = document.querySelector(".zen-metric-tile .zen-metric-trend__sub-label")!;
+    expect([document.querySelector(".zen-metric-tile .zen-badge__text")?.textContent, hidden.textContent, getComputedStyle(hidden).position, Math.round(hidden.getBoundingClientRect().width)]).toEqual(["24%", "vs. last year", "absolute", 1]);
   });
 
   it("tile: its content follows the card's fill (Figma Content Inverse · On-Accent · On-Color · On-Bright)", async () => {

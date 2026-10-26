@@ -63,11 +63,47 @@ describe("MetricTrend", () => {
     expect(getComputedStyle(onColor.querySelector(".zen-metric-trend__sub-label")!).color).toBe(resolve("--zen-color-content-on-colors"));
   });
 
-  it("a one-string label from before the split still renders: all of it in the badge, no Sub-Label", async () => {
-    await render(<ZenProvider theme="light"><Metric label="Revenue" value="$105,700" trend={{ direction: "positive", label: "+9% vs. August" }} /></ZenProvider>);
-    const badge = document.querySelector(".zen-metric .zen-badge")!;
-    expect(badge.textContent).toBe("+9% vs. August");
-    expect(document.querySelector(".zen-metric-trend")).toBeNull();
+  it("a one-string label from before the split is split at its figure: an agreeing sign dropped, a disagreeing one kept, no figure: the badge alone; a subLabel: no split", async () => {
+    await render(
+      <ZenProvider theme="light"><div data-test-root>
+        <MetricTrend trend="positive">+9% vs. August</MetricTrend>
+        <MetricTrend trend="negative">−8% vs. August</MetricTrend>
+        <MetricTrend trend="positive">-6% vs. Aug</MetricTrend>
+        <MetricTrend trend="normal">+1 vs. yesterday</MetricTrend>
+        <MetricTrend trend="normal">Same as August</MetricTrend>
+        <MetricTrend trend="positive">+12%</MetricTrend>
+        <MetricTrend trend="positive" subLabel="vs. August">+9%</MetricTrend>
+      </div></ZenProvider>,
+    );
+    // Each trend's root: the row with a Sub-Label, else the bare badge.
+    const roots = [...document.querySelector("[data-test-root]")!.children];
+    expect(roots.map((root) => [root.querySelector(".zen-badge__text")?.textContent, root.querySelector(".zen-metric-trend__sub-label")?.textContent ?? null])).toEqual([
+      ["9%", "vs. August"],
+      ["8%", "vs. August"],
+      ["-6%", "vs. Aug"],
+      ["+1", "vs. yesterday"],
+      ["Same as August", null],
+      ["12%", null],
+      ["+9%", "vs. August"],
+    ]);
+  });
+
+  it("the arrow is named (Increase / Decrease) when the badge's figure has no sign, decorative when it has one", async () => {
+    await render(
+      <ZenProvider theme="light">
+        <MetricTrend trend="positive" subLabel="vs. August">9%</MetricTrend>
+        <MetricTrend trend="negative" subLabel="vs. August">8%</MetricTrend>
+        <MetricTrend trend="positive" subLabel="vs. Aug">-6%</MetricTrend>
+      </ZenProvider>,
+    );
+    const arrows = [...document.querySelectorAll(".zen-badge__leading .zen-icon")];
+    expect(arrows.map((arrow) => [arrow.getAttribute("role"), arrow.getAttribute("aria-label"), arrow.getAttribute("aria-hidden")])).toEqual([
+      ["img", "Increase", null],
+      ["img", "Decrease", null],
+      [null, null, "true"],
+    ]);
+    // The name is an aria-label, so the badge's text is the figure alone.
+    expect(document.querySelector(".zen-badge")!.textContent).toBe("9%");
   });
 
   it("Metric passes trend.subLabel on: the badge holds the change, the Sub-Label the comparison", async () => {

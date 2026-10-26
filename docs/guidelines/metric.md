@@ -30,7 +30,7 @@ Show one key number with its label, an identifying icon and how it changed; a Me
 | Size | `size` | xlarge (Display/4) · large (Heading/1) · medium (Heading/3) · small (Heading/4) · xsmall (Subheading); XL/L stack the icon |
 | Variant | `variant` | MetricCard KPI: title-highlight (default since 2026-10-16: title on top in Body/Extra/Medium, number and trend at the foot, Dock-Icon in the bottom-right corner; Large) · icon-highlight (the Dock-Icon leads; XLarge) |
 | Label / Value | `label · value` | label Neutral/Light; value pre-formatted string |
-| Trend | `trend {direction: positive · negative · normal, label, subLabel}` | Figma Metric-Trend (595:55134): a Small Badge holding the change alone ("9%": positive Background/Positive/Solid + arrow up, negative Background/Negative/Solid + arrow down, normal Neutral Subtle), then the Sub-Label ("vs. August": Body/Small/Regular, Content/Neutral/Light) Gap/2XSmall after it. Inside a Solid card it follows the fill (Figma Content): Inverse Solid on Neutral, On-Color Solid on Accent and the hues, the arrow telling the direction, the Sub-Label in the fill's family (Inverse/Light, On-Accent, On-Colors, On-Brights). A tile of size small shows the badge alone. MetricTrend content and subLabel set them; a one-string label still renders, all of it in the badge |
+| Trend | `trend {direction: positive · negative · normal, label, subLabel}` | Figma Metric-Trend (595:55134): a Small Badge holding the change alone ("9%": positive Background/Positive/Solid + arrow up, negative Background/Negative/Solid + arrow down, normal Neutral Subtle), then the Sub-Label ("vs. August": Body/Small/Regular, Content/Neutral/Light) Gap/2XSmall after it. Inside a Solid card it follows the fill (Figma Content): Inverse Solid on Neutral, On-Color Solid on Accent and the hues, the arrow telling the direction, the Sub-Label in the fill's family (Inverse/Light, On-Accent, On-Colors, On-Brights). A tile of size small shows the badge alone (the Sub-Label stays readable to screen readers). MetricTrend content and subLabel set them; without a subLabel, a one-string label that starts with a figure is split the same way ("+9% vs. August" → 9% · vs. August), any other stays whole in the badge |
 | Icon | `icon` | Dock Icon Neutral Subtle (Large / Medium); false hides it |
 | Card | `MetricCard theme · subAction` | Card Shadow Medium + ⋮ Sub-Action |
 | Icon colour | `iconTheme · iconBackground · iconEmoji` | any Dock-Icon theme (Neutral default) · Subtle / Solid · Theme=Emoji |
@@ -114,14 +114,14 @@ Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: "accent" }, "Trend/Badge": { theme: "orange" } }`). Written by Zen Studio; app code sets icon / trend / counter. |
 
 ### MetricTrend
-Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Badge holding only the change, then the Sub-Label (Body/Small/Regular), Spacing/Gap/2XSmall apart. Content=Default: Positive Background/Positive/Solid (arrow-circle-up), Negative Background/Negative/Solid (arrow-circle-down), Normal Background/Neutral/Subtle; the Sub-Label is Content/Neutral/Light. On a Solid fill the badge takes the fill's family whatever the direction (the arrow tells it): Inverse Solid on Neutral/Solid, On-Color Solid (a white pill) on Accent and colour solids; the Sub-Label is then Content/Inverse/Light or Content/On-Colors. Inside a Solid Card it follows the card unless `content` is set, and its Sub-Label reads the card's re-pointed Neutral/Light (On-Accent/Default on Accent, On-Brights on Yellow: Metric-Tile).
+Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Badge holding only the change, then the Sub-Label (Body/Small/Regular), Spacing/Gap/2XSmall apart. Content=Default: Positive Background/Positive/Solid (arrow-circle-up), Negative Background/Negative/Solid (arrow-circle-down), Normal Background/Neutral/Subtle; the Sub-Label is Content/Neutral/Light. On a Solid fill the badge takes the fill's family whatever the direction (the arrow tells it): Inverse Solid on Neutral/Solid, On-Color Solid (a white pill) on Accent and colour solids; the Sub-Label is then Content/Inverse/Light or Content/On-Colors. Inside a Solid Card it follows the card unless `content` is set, and its Sub-Label reads the card's re-pointed Neutral/Light (On-Accent/Default on Accent, On-Brights on Yellow: Metric-Tile). Without a `subLabel`, a text label that starts with a figure is split ("+9% vs. August" → 9% · vs. August, trend.ts). When the badge's figure carries no sign, the arrow is named (Increase / Decrease) so a screen reader keeps the direction.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `trend` | `"positive" \| "negative" \| "normal"` | `"normal"` | Figma Trend: Positive · Negative · Normal. |
 | `content` | `"default" \| "inverse" \| "on-color"` | — | Figma Content (Default · Inverse · On-Color). Default: the enclosing Solid Card's family (Inverse on Neutral, On-Color on Accent and the hues), else Default. |
-| `subLabel` | `ReactNode` | — | Figma Sub-Label: the words beside the badge ("vs. last year"). None: the badge alone. |
-| `children` (required) | `ReactNode` | — | The badge's text: the change alone ("24%"). |
+| `subLabel` | `ReactNode` | — | Figma Sub-Label: the words beside the badge ("vs. last year"). None: a text `children` starting with a figure is split into the badge and the Sub-Label; any other is the badge alone. |
+| `children` (required) | `ReactNode` | — | The badge's text: the change alone ("24%"), or a one-string label to split ("+24% vs. last year"). |
 | `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>`: the Badge's, or with a `subLabel` the row holding the Badge and the Sub-Label. |
 
 ### Types
@@ -157,7 +157,7 @@ interface MetricTrendValue { direction: MetricTrendDirection; label: ReactNode; 
 - Don't give every tile a different colour for decoration, or rely on the icon colour alone for good/bad; the trend badge carries the status.
 
 ## Accessibility
-- The trend badge has text (not colour alone); icons are decorative.
+- The trend badge has text (not colour alone); its arrow is named Increase / Decrease when the badge's figure carries no sign (the sign the arrow shows is left out), otherwise icons are decorative.
 - A sparkline or spark bars is one image (role="img") named by a summary of the series (or seriesLabel); the category bar is decorative and its rows say every amount and share; goal-progress is a named progressbar.
 
 ## Content

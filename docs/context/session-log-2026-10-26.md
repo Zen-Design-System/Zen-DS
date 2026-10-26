@@ -338,6 +338,23 @@ Body/Small/Regular, plain TEXT (no component property; hidden by an instance's v
 - Tests: `tests/interaction/metric-trend.test.tsx` (new), metric-card-types (Solid badge, Sub-Label, tile Small, ink per
   Solid fill, Hero), smoke fixture split. Selftests: figma-push 497, studio:selftest all, usage, ai-ui, mcp,
   guidelines, style pass; tsc clean.
+- Follow-up the same day (Giám sát relayed the user's "có" to splitting old labels, and five review points):
+  - `src/components/MetricWidget/trend.ts` `trendParts()` (started from the stopped "Cập nhật các variant còn lại"
+    session's patch): without a `subLabel`, a text label that starts with a figure renders as the badge + Sub-Label
+    ("+9% vs. August" → 9% · vs. August); an agreeing sign is dropped, a disagreeing one kept, a normal trend keeps its
+    sign, no figure stays whole in the badge, a given `subLabel` means no split. The Studio push cuts the same way
+    (`figma-metric.mjs` `trendWords`), so Figma gets the same two layers; the pull reads them back as label + subLabel.
+  - a11y: an unsigned figure names the arrow (`aria-label` Increase / Decrease, the existing `increase`/`decrease` label
+    keys, en + vi), a signed one keeps it decorative. A `<title>` would have put the word into the badge's text.
+  - Tile size small: the Sub-Label is rendered and clipped to 1px out of the flow (Figma hides it), so screen readers
+    still read it.
+  - On-Color Sub-Label outside a Solid card: `var(--zen-card-on, On-Colors)`. Inside one it already took the card's
+    re-pointed Neutral/Light (On-Accent/Default, On-Brights; the tile test checks each fill).
+  - Normal's badge layer `.Primitives/Metrics/Metrics-Trend/Normal`: the push's `Trend/Badge` resolves it through its
+    component set in both the plugin and the native pack (probed: no "no such nested instance" note); the pull also
+    takes `Trend/Normal`, the generic reader's name for it. Layer names unchanged.
+  - Contract: `__HASHES` of 595:55134 equals the stored capture (91e440b0), so no re-capture.
+  - Selftests: figma-push 499 (split cases, Normal badge pull), studio:selftest, usage, guidelines, ai-ui, style; tsc.
 - Open: the native pack (`docs/figma-contracts/native-pack.json`) predates the Sub-Label, so a direct ⌘V paste shows
   Figma's sample "vs. last year" until Metric-Trend is recaptured (BACKLOG P2). axe: the Sub-Label's light-mode ink
   (Neutral/Light #0000007C on white, Lc 65.5, WCAG 3.79:1) is the Figma token; the user picked "Giữ như Figma", so

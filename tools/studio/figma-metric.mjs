@@ -13,6 +13,7 @@ import { docFromText } from "./doc.mjs";
 import { PROGRESS_TRACK, progressColumns, progressStep } from "./figma-steps.mjs";
 import { zenLabels } from "../../src/components/_shared/labels.ts";
 import { paletteItem } from "../../src/platform/studio/slots/palette.ts";
+import { trendParts } from "../../src/components/MetricWidget/trend.ts";
 
 /** The set; the plugin finds it by id, then by name. */
 export const METRIC_CARD_SET = { id: "6643:64008", name: "Metric-Card" };
@@ -52,25 +53,33 @@ const words = (value) => (typeof value === "string" || typeof value === "number"
 /** The Metric-Trend's Sub-Label (Figma 595:55134 since 2026-10-26: the badge holds the change, the Sub-Label beside it). */
 const SUB_LABEL = "Sub-Label";
 const hasSubLabel = (trend) => trend.subLabel !== undefined && trend.subLabel !== null && trend.subLabel !== false && trend.subLabel !== "";
+/** The badge's words and the Sub-Label's as MetricTrend draws them: a one-string label without a subLabel is split at its
+ *  leading figure, the sign the arrow shows dropped (trend.ts). */
+function trendWords(trend) {
+  const label = words(trend.label);
+  if (hasSubLabel(trend) || label === null) return { label, sub: words(trend.subLabel) };
+  const parts = trendParts(String(trend.direction ?? ""), label);
+  return parts ? { label: parts.label, sub: parts.subLabel || null } : { label, sub: null };
+}
 /**
  * A trend as the Metric-Trend at `path`: its Trend option and Sub-Label words on it, the change on its Badge's Text (a
- * textList on the Metric-Trend would land in its own text layer, the Sub-Label). The reader writes the same shape. An
- * unknown direction takes `fallback` (null: the variant's own).
+ * textList on the Metric-Trend would land in its own text layer, the Sub-Label). Figma's Normal badge is the layer
+ * `.Primitives/Metrics/Metrics-Trend/Normal`: `Trend/Badge` still finds it by its component set (Badge). The reader writes
+ * the same shape. An unknown direction takes `fallback` (null: the variant's own).
  */
 export function trendNested(trend, path, { fallback = "Positive" } = {}) {
-  const sub = words(trend.subLabel);
+  const { label, sub } = trendWords(trend);
   const option = TREND_OPTION[trend.direction] ?? fallback;
   return [
     { path, props: option ? { Trend: option } : {}, ...(sub ? { texts: { [SUB_LABEL]: sub } } : {}) },
-    ...(words(trend.label) ? [{ path: `${path}/Badge`, text: words(trend.label) }] : []),
+    ...(label ? [{ path: `${path}/Badge`, text: label }] : []),
   ];
 }
-/** The edit that hides Figma's sample Sub-Label ("vs. last year") when the code's trend has none; `layer`: the trend's
+/** The edit that hides Figma's sample Sub-Label ("vs. last year") when the code's trend shows none; `layer`: the trend's
  *  layer path from the instance. A Sub-Label that is not words is a note. */
 export function trendEdits(trend, layer, notes, where) {
-  if (!hasSubLabel(trend)) return [{ layer: `${layer}/${SUB_LABEL}`, visible: false }];
-  if (!words(trend.subLabel)) notes.push(`${where}: its trend's subLabel is not words (Figma's Sub-Label keeps its own)`);
-  return [];
+  if (hasSubLabel(trend) && !words(trend.subLabel)) { notes.push(`${where}: its trend's subLabel is not words (Figma's Sub-Label keeps its own)`); return []; }
+  return trendWords(trend).sub ? [] : [{ layer: `${layer}/${SUB_LABEL}`, visible: false }];
 }
 
 /** Whether a MetricCard of these plain props is pushed as the Metric-Card set (a type other than KPI). */

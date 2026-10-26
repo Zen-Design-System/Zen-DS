@@ -13781,7 +13781,7 @@
         "children": {
           "x-kind": "node",
           "x-required": true,
-          "description": "The badge's text: the change alone (\"24%\")."
+          "description": "The badge's text: the change alone (\"24%\"), or a one-string label to split (\"+24% vs."
         }
       },
       "requiredActions": [],

@@ -6177,7 +6177,7 @@
       [
         "Trend",
         "trend {direction: positive · negative · normal, label, subLabel}",
-        "Figma Metric-Trend (595:55134): a Small Badge holding the change alone (\"9%\": positive Background/Positive/Solid + arrow up, negative Background/Negative/Solid + arrow down, normal Neutral Subtle), then the Sub-Label (\"vs. August\": Body/Small/Regular, Content/Neutral/Light) Gap/2XSmall after it. Inside a Solid card it follows the fill (Figma Content): Inverse Solid on Neutral, On-Color Solid on Accent and the hues, the arrow telling the direction, the Sub-Label in the fill's family (Inverse/Light, On-Accent, On-Colors, On-Brights). A tile of size small shows the badge alone. MetricTrend content and subLabel set them; a one-string label still renders, all of it in the badge"
+        "Figma Metric-Trend (595:55134): a Small Badge holding the change alone (\"9%\": positive Background/Positive/Solid + arrow up, negative Background/Negative/Solid + arrow down, normal Neutral Subtle), then the Sub-Label (\"vs. August\": Body/Small/Regular, Content/Neutral/Light) Gap/2XSmall after it. Inside a Solid card it follows the fill (Figma Content): Inverse Solid on Neutral, On-Color Solid on Accent and the hues, the arrow telling the direction, the Sub-Label in the fill's family (Inverse/Light, On-Accent, On-Colors, On-Brights). A tile of size small shows the badge alone (the Sub-Label stays readable to screen readers). MetricTrend content and subLabel set them; without a subLabel, a one-string label that starts with a figure is split the same way (\"+9% vs. August\" → 9% · vs. August), any other stays whole in the badge"
       ],
       [
         "Icon",
@@ -6262,7 +6262,7 @@
       "Don't give every tile a different colour for decoration, or rely on the icon colour alone for good/bad; the trend badge carries the status."
     ],
     "a11y": [
-      "The trend badge has text (not colour alone); icons are decorative.",
+      "The trend badge has text (not colour alone); its arrow is named Increase / Decrease when the badge's figure carries no sign (the sign the arrow shows is left out), otherwise icons are decorative.",
       "A sparkline or spark bars is one image (role=\"img\") named by a summary of the series (or seriesLabel); the category bar is decorative and its rows say every amount and share; goal-progress is a named progressbar."
     ],
     "content": [

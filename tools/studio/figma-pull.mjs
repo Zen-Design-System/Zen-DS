@@ -3174,7 +3174,8 @@ function metricParts(node, props, ctx) {
   // overrides sit there), the badge's change and the Sub-Label (Figma 595:55134 since 2026-10-26). A push from before
   // then holds the label in the Metric-Trend's textList.
   const trend = node.props?.Trend === true ? (node.nested ?? []).find((nested) => nested.path === "Trend") : null;
-  const badge = node.props?.Trend === true ? (node.nested ?? []).find((nested) => nested.path === "Trend/Badge") : null;
+  // Figma's Normal badge is the layer .Primitives/Metrics/Metrics-Trend/Normal (read as Trend/Normal); the others Badge.
+  const badge = node.props?.Trend === true ? (node.nested ?? []).find((nested) => nested.path === "Trend/Badge" || nested.path === "Trend/Normal") : null;
   const subLabel = node.props?.Trend === true ? (trend?.texts?.["Sub-Label"] ?? (Array.isArray(node.texts) ? node.texts.find((text) => text.name === "Sub-Label" && text.path === "Trend")?.characters : undefined)) : undefined;
   if (trend || badge || subLabel) {
     const fields = { direction: literal(TREND_DIRECTION[trend?.props?.Trend] ?? BADGE_DIRECTION[badge?.props?.Theme] ?? "positive") };

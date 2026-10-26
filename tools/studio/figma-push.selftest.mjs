@@ -1229,9 +1229,25 @@ export default function Page() {
   const [revenue, orders, refunds] = frame.children;
   // A KPI MetricCard is a Card holding a Metric-Inline in its slot.
   const inline = revenue.slots?.[0]?.children?.[0] ?? revenue;
-  check("MetricCard: a trend without a subLabel (a one-string label) hides Figma's sample Sub-Label, its words on the Badge", [inline.edits, inline.nested?.find((nested) => nested.path === "Trend/Badge")], [[{ layer: "Trend/Sub-Label", visible: false }], { path: "Trend/Badge", text: "-3%" }]);
+  check("MetricCard: a one-string label with no words after its figure hides Figma's sample Sub-Label; the Badge holds the figure, the sign the arrow shows dropped (trend.ts)", [inline.edits, inline.nested?.find((nested) => nested.path === "Trend/Badge")], [[{ layer: "Trend/Sub-Label", visible: false }], { path: "Trend/Badge", text: "3%" }]);
+  // One-string labels from before the split (the user approved splitting them, 2026-10-26): as MetricTrend draws them.
+  const { metricCardFigma: typedPush } = await import("./figma-metric.mjs");
+  const splitNotes = [];
+  const splitOf = (trend) => typedPush({ type: "sparkline", label: "Revenue", value: "$1", trend, series: [1, 2] }, { notes: splitNotes, where: "t" });
+  const agree = splitOf({ direction: "positive", label: "+9% vs. August" });
+  const disagree = splitOf({ direction: "positive", label: "-6% vs. Aug" });
+  const words = splitOf({ direction: "normal", label: "Same as August" });
+  const given = splitOf({ direction: "positive", label: "+9%", subLabel: "vs. August" });
+  const trendOf = (spec) => [spec.nested.filter((entry) => entry.path.startsWith("Title-Highlight/Trend")), (spec.edits ?? []).filter((edit) => /Sub-Label/.test(edit.layer))];
+  check("push: a one-string trend label is split as MetricTrend draws it (an agreeing sign dropped, a disagreeing one kept, no figure: the badge alone, a subLabel: no split)", [trendOf(agree), trendOf(disagree), trendOf(words), trendOf(given)], [
+    [[{ path: "Title-Highlight/Trend", props: { Trend: "Positive" }, texts: { "Sub-Label": "vs. August" } }, { path: "Title-Highlight/Trend/Badge", text: "9%" }], []],
+    [[{ path: "Title-Highlight/Trend", props: { Trend: "Positive" }, texts: { "Sub-Label": "vs. Aug" } }, { path: "Title-Highlight/Trend/Badge", text: "-6%" }], []],
+    [[{ path: "Title-Highlight/Trend", props: { Trend: "Normal" } }, { path: "Title-Highlight/Trend/Badge", text: "Same as August" }], [{ layer: "Title-Highlight/Trend/Sub-Label", visible: false }]],
+    [[{ path: "Title-Highlight/Trend", props: { Trend: "Positive" }, texts: { "Sub-Label": "vs. August" } }, { path: "Title-Highlight/Trend/Badge", text: "+9%" }], []],
+  ]);
   check("Metric: its default Dock Icon shows (home, Neutral, Subtle); icon={false} hides it", [orders.props["Dock-Icon"], orders.nested?.find((nested) => nested.path === "Metric-Icon")?.props, refunds.props["Dock-Icon"]], [true, { Theme: "Neutral", Background: "Subtle", "Icon-Src": "icon-home-02-solid" }, false]);
-  check("round trip: MetricCard and Metric come back the same from the push", shape(pageFromFigma(frame, { mapping }).text), shape(page));
+  // The push writes the badge as MetricTrend draws it: "-3%" on a negative trend comes back "3%" (the arrow carries the sign).
+  check("round trip: MetricCard and Metric come back the same from the push", shape(pageFromFigma(frame, { mapping }).text), shape(page.replace('label: "-3%"', 'label: "3%"')));
   const read = JSON.parse(fs.readFileSync(new URL("./fixtures/figma-metric.json", import.meta.url), "utf8")).frame;
   const fromFigma = pageFromFigma(read, { mapping });
   check("round trip: the same MetricCard and Metric from Figma's read of the import", shape(fromFigma.text).children[0].children[0].children.slice(0, 2), shape(page).children[0].children[0].children.slice(0, 2));
@@ -1244,6 +1260,13 @@ export default function Page() {
   Object.assign(splitBadge, { text: "3%", props: { ...splitBadge.props, Text: "3%" } });
   inlineOf(splitRead).texts.push({ name: "Sub-Label", characters: "vs. August", path: "Trend" });
   ok("pull: Figma's Metric-Trend badge and Sub-Label come back as trend.label and trend.subLabel", pageFromFigma(splitRead, { mapping }).text.includes('trend={{ direction: "negative", label: "3%", subLabel: "vs. August" }}'));
+  // Figma's Normal badge is the layer .Primitives/Metrics/Metrics-Trend/Normal, which the reader names Trend/Normal.
+  const normalRead = structuredClone(splitRead);
+  const normalInline = inlineOf(normalRead);
+  normalInline.nested = normalInline.nested.map((nested) => (nested.path === "Trend/Badge" ? { ...nested, path: "Trend/Normal", text: "1", props: { ...nested.props, Text: "1", Theme: "Neutral" } } : nested));
+  normalInline.nested.push({ path: "Trend", props: { Trend: "Normal" }, text: "1" });
+  normalInline.texts = normalInline.texts.map((text) => (text.name === "Sub-Label" ? { ...text, characters: "invoice" } : text));
+  ok("pull: a Normal Metric-Trend's badge (layer …/Metrics-Trend/Normal) and Sub-Label", pageFromFigma(normalRead, { mapping }).text.includes('trend={{ direction: "normal", label: "1", subLabel: "invoice" }}'));
 }
 
 // 25. Icon sizes, FileIcon and Flag (2026-10-13): an Icon's size as its Element-Size/Popular variable (Base, the

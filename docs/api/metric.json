@@ -456,7 +456,7 @@
     {
       "name": "MetricTrend",
       "file": "src/components/MetricWidget/MetricWidget.tsx",
-      "description": "Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Badge holding only the change, then the Sub-Label\n(Body/Small/Regular), Spacing/Gap/2XSmall apart. Content=Default: Positive Background/Positive/Solid (arrow-circle-up),\nNegative Background/Negative/Solid (arrow-circle-down), Normal Background/Neutral/Subtle; the Sub-Label is\nContent/Neutral/Light. On a Solid fill the badge takes the fill's family whatever the direction (the arrow tells it):\nInverse Solid on Neutral/Solid, On-Color Solid (a white pill) on Accent and colour solids; the Sub-Label is then\nContent/Inverse/Light or Content/On-Colors. Inside a Solid Card it follows the card unless `content` is set, and its\nSub-Label reads the card's re-pointed Neutral/Light (On-Accent/Default on Accent, On-Brights on Yellow: Metric-Tile).",
+      "description": "Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Badge holding only the change, then the Sub-Label\n(Body/Small/Regular), Spacing/Gap/2XSmall apart. Content=Default: Positive Background/Positive/Solid (arrow-circle-up),\nNegative Background/Negative/Solid (arrow-circle-down), Normal Background/Neutral/Subtle; the Sub-Label is\nContent/Neutral/Light. On a Solid fill the badge takes the fill's family whatever the direction (the arrow tells it):\nInverse Solid on Neutral/Solid, On-Color Solid (a white pill) on Accent and colour solids; the Sub-Label is then\nContent/Inverse/Light or Content/On-Colors. Inside a Solid Card it follows the card unless `content` is set, and its\nSub-Label reads the card's re-pointed Neutral/Light (On-Accent/Default on Accent, On-Brights on Yellow: Metric-Tile).\nWithout a `subLabel`, a text label that starts with a figure is split (\"+9% vs. August\" → 9% · vs. August, trend.ts). When\nthe badge's figure carries no sign, the arrow is named (Increase / Decrease) so a screen reader keeps the direction.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -481,7 +481,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Sub-Label: the words beside the badge (\"vs. last year\"). None: the badge alone.",
+          "description": "Figma Sub-Label: the words beside the badge (\"vs. last year\"). None: a text `children` starting with a figure is\n split into the badge and the Sub-Label; any other is the badge alone.",
           "deprecated": null
         },
         {
@@ -489,7 +489,7 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "The badge's text: the change alone (\"24%\").",
+          "description": "The badge's text: the change alone (\"24%\"), or a one-string label to split (\"+24% vs. last year\").",
           "deprecated": null
         },
         {

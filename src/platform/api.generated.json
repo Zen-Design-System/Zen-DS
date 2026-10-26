@@ -14660,7 +14660,7 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "Figma Sub-Label: the words beside the badge (\"vs. last year\"). None: the badge alone.",
+          "description": "Figma Sub-Label: the words beside the badge (\"vs. last year\"). None: a text `children` starting with a figure is\n split into the badge and the Sub-Label; any other is the badge alone.",
           "deprecated": null
         },
         {
@@ -14668,7 +14668,7 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "The badge's text: the change alone (\"24%\").",
+          "description": "The badge's text: the change alone (\"24%\"), or a one-string label to split (\"+24% vs. last year\").",
           "deprecated": null
         },
         {
