@@ -8410,6 +8410,7 @@
       "Stacking sections, fields or cards (Stack, gap md–lg).",
       "Toolbars and button rows (Stack direction=\"row\", align center, justify between).",
       "Card and tile grids that reflow (Grid minColumnWidth) or form columns (Grid columns={{ mobile: 1, desktop: 2 }}).",
+      "A dashboard's widgets in one grid: Grid columns={{ desktop: 12, tablet: 6 }} with span on each widget (KPIs 3, a hero chart 8 beside a companion 4).",
       "Wells and plain panels (Box surface + padding).",
       "A panel that lays out its content, Figma's auto layout frame with a fill: one Stack (or Grid) with surface, padding, gap and radius.",
       "Page content width with the breakpoint margin (Container).",
@@ -8461,6 +8462,11 @@
         "Columns",
         "columns · minColumnWidth · stackBelow",
         "a number, a track list for unequal columns (\"2fr 1fr\"), per breakpoint { mobile, tablet, desktop }, or auto-fill at ≥ minColumnWidth (240 default); stackBelow={640}: one column while the Grid itself is narrower than 640px (a side column in a narrow card or window), whatever the breakpoint"
+      ],
+      [
+        "Cell span (Figma Grid auto layout column / row span)",
+        "span · rowSpan (a Grid's direct child: Stack, Grid, Box, Card, ListBox, ChartCard, MetricCard)",
+        "the columns and rows the child takes: a whole number or \"full\" (the whole row), per breakpoint { desktop, tablet, mobile }; clamped to the Grid's columns, the whole row while the Grid stacks, only \"full\" in an auto-fill Grid; placement keeps the reading order (a span that doesn't fit starts the next row); anything else takes it through a <Box span>"
       ],
       [
         "Background layer (Figma Fill)",
@@ -8550,6 +8556,7 @@
       "Use Stack direction=\"row\" with justify=\"between\" for a title + actions row.",
       "Use Grid minColumnWidth for card grids so they reflow from phone to desktop.",
       "Put a main column next to an aside with Grid columns={{ mobile: 1, desktop: \"2fr 1fr\" }} align=\"start\"; on phones the aside moves under the main column.",
+      "Lay a dashboard's widgets in one Grid columns={12} with span, every row adding up to 12 (KPIs 3 · 3 · 3 · 3, a hero 8 beside a companion 4), and give the narrower breakpoints their own spans (tablet: KPIs 3 of 6, the hero \"full\"), so no row leaves a hole (skills/zen-component-usage/references/dashboard-layout.md).",
       "Put page content in a Container so its margin follows the breakpoint.",
       "Use per-breakpoint values for structure (direction, columns, wrap, hideOn on a side panel) and leave sizes to tokens and modes: gap and padding steps, page margins and type already follow the breakpoint and density, so a per-breakpoint gap or padding is for a structure that changes with it.",
       "Give a frame a surface only when it really is a separate layer; a Surface frame on a white (Alt) canvas needs border=\"pale\".",
@@ -8568,6 +8575,7 @@
       "Don't paint Canvas, Flat or Container on a Box: Canvas is the page, Flat is navigation, Container is modals and sheets.",
       "Don't nest Containers.",
       "Don't hide a frame on every breakpoint (hideOn={[\"desktop\", \"tablet\", \"mobile\"]}): it never shows, so delete it; and don't keep two copies of one part hidden in turn when a per-breakpoint direction or columns changes the one part.",
+      "Don't fill a hole in a spanned Grid with CSS order or grid-auto-flow dense: the reading order would no longer match what people see; change the spans or move a cell.",
       "Don't use position=\"absolute\" for what gap, justify or alignSelf can do: an absolute layer leaves the flow and no longer reflows with its siblings.",
       "Don't place status dots, badges or Card sub-actions by hand with absolute layers; they are component props (Avatar status, BadgeCounter, Card subAction).",
       "Don't put a shadow on a tinted fill (Subtle, Pale, Surface-Alt) or on a Canvas/Alt page; there a closed border separates the box.",

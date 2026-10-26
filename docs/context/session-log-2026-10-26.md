@@ -413,6 +413,62 @@ horizontal bars 8px ("Gap này là đang là 16px"), "Tooltip này chỉ bật k
   twin bar is absolute; swapping a nested instance's variant re-ids its subtree, so re-query after each swap.
 
 
+## Sidebar nested rows (Studio ↔ Figma, BACKLOG P2, tier S)
+
+Assigned by the user through "Kiểm tra tiến độ Figma-line freeform": the BACKLOG P2 left by #314.
+- Figma: Menu-Item Level=Child (1551:5539) is a Tree-Line (16px) + Wrapper holding a Menu-Item Master instance (28px in,
+  as `.zen-sidebar__sub-menu`). None of the Child variant's properties reach that inner instance (native pack: refs 0), so
+  a Child row's label, icon, counter and Dropdown go on it (nested `Master`). Dropdown is the chevron icon itself
+  (icon-chevron-down-01-line, no swap property).
+- Push (`figma-push.mjs`): `menuItemNode` builds every Sidebar row (JSX and `sections`; data rows now carry their counter
+  too); rows keep their data (`menuRow`) until `sidebarSubRows` lays out each row's nested rows right after it as
+  Level=Child rows. Select by `selectedId`, else `selected`/`active`; a group is open as `defaultExpanded` says (and not
+  in the rail); a closed group's rows are `hidden: true` so a pull reads them back. An open group's Dropdown is swapped
+  for icon-chevron-up-01-line (nested `set`; `swapIcon` looks for an icon inside it). The rail turns Dropdown off.
+  Deeper rows are drawn as Child rows too, with a note.
+- Pull (`figma-pull.mjs`): the reader keeps hidden Level=Child Menu-Items (`closedSubRow`, marked hidden);
+  `nestMenuRows` gives each Child row to the Menu-Item row before it, in `sections` (`children`) and in slots (JSX
+  `<SidebarMenuItem>` children). `itemFields` reads a Child row through its inner `Master`, and writes `dropdown` (a
+  chevron with no rows, instead of the old note) and `counter` (it was dropped before).
+- Checks: figma-push 505 (new: rows, Child content, footer, sections + density, rail, round trip, figma-diff no change on
+  a second pull), figma-pull 151 (Design Tokens now `dropdown: true`), figma-native 166 (new: Child variant hidden, label
+  on the inner Menu-Item, chevron swap), figma-diff 35, figma-clip 9, studio:selftest pass. The reader code parses; it
+  was not run in Figma. E2E HO-21 (id from Giám sát) written; runs with the gate.
+- The Zen plugin's Import ignored `hidden` on a layer (native ⌘V hides it): fixed in the plugin repo (below).
+- **Gate** (`qa --isolated --files=` the six tools/studio files, GO from Giám sát on eef3056f): static, studio:selftest,
+  TypeScript, nested layer names pass; Studio E2E 381 works · 0 broken (3 shards, 1611 s), HO-21 new and working (alone
+  first: 48 s). Report `.qa/reports/2026-10-26T09-17-26-0958d62c.md`. Then merged main c932a002 (#320, docs only here).
+- The Zen plugin follow-up (session "Zen plugin: honour `hidden` on imported layers") pushed c1f0209 to `studio-import`:
+  Import from Studio hides `hidden: true` layers and shows a Child row again once it is open (tests, not real Figma).
+
+## Grid cell span, PR A: library (tier M)
+
+User approved the plan `docs/research/grid-span-2026-10-26.md` with D1–D6 ("Duyệt kế hoạch span với D1–D6 như đề xuất.
+Bắt đầu PR A (library), rồi PR B và plugin"). Branch `zen/feat/grid-span-20261026` (worktree dashboard-layout-skill).
+- `Layout/cell.ts`: `LayoutCellProps` (`span`: number | "full", `rowSpan`; per breakpoint), `GridCellContext` (the
+  Grid's column count at its breakpoint, null in auto-fill; stacked), `gridTrackCount` (count, repeat(), track lists),
+  `gridCell` (clamp to the columns, "full" also in auto-fill, nothing while stacked), `useGridCell`. layout.css:
+  `.zen-grid > [data-span]` / `[data-row-span]` (direct children only; a mode scope adds no element). Auto-placement
+  stays in reading order (no dense).
+- Taken by Stack, Grid, Box, Card, ListBox; ChartCard and MetricCard pass them to their Card (one-line edits, as the
+  chart-bars, metric-trend and caption-light branches also edit those files).
+- Docs: Layout guideline row "Cell span", a Use line, a Do (one 12-column grid, rows adding up to 12) and a Don't (no
+  order / dense to fill holes); `guidelines:build`, docs/api for Layout, Card, ListBox, Chart, Metric; `ai-ui:build`.
+- Platform: Layout page example "One dashboard grid" (KPIs 3, the hero 8 beside a 5-row list 4, three breakdowns 4:
+  donut, BarList, 4 bullet goals; tablet 6 columns in pairs, phone 2 with Small KPI tiles), on the page only (beside a
+  phone frame its 12 columns would be too narrow).
+- D6 changed while building: `DashboardTemplate` stays on its auto-fit rows, since spans follow the breakpoint and the
+  template reflows by its own width in a narrow desktop window (plan §10, a follow-up to decide).
+- Tests: `tests/interaction/grid-span.test.tsx` (track counts, clamps, real widths at 1200, row span, stackBelow, the
+  tablet breakpoint, the four widget boxes, nothing outside a Grid). Static: tsc, usage:check + selftest, style:check,
+  guidelines:check. CI's first run failed two of these tests on test mistakes (a fixed-height row-span cell; MetricCard
+  hands data-testid to its inner Metric), fixed in 2a112b03; the file then passed 11/11 in Giám sát's short slot.
+- **Gate** (Giám sát's GO, `qa --isolated --pages=layout,card,chart,metric,list-item --files=` the PR's source files,
+  head 747d66c3): PASS, Vitest 93/93, Figma contracts 33 suites, behaviour ✓; 6 new warnings, all in the new example
+  (the list title's style beside ChartCard titles, Shadow tiles on Canvas/Default). The sheets also showed a phone
+  amount wrapping in a Medium tile and a two-row list half empty. Fixed (Body/Extra/Medium title, flat Small tiles, the
+  list one row beside the hero, a third breakdown, four goals, "vs. Sep"); `--only=layout` reruns: PASS, 0 warnings.
+
 ## MetricTrend = badge + Sub-Label, synced with Figma (tier M; branch zen/feat/metric-trend-sublabel-20261026)
 
 User: "mở phiên đồng bộ MetricTrend với Figma", after the Figma-only session split `.Primitives/Metrics/Metric-Trend`

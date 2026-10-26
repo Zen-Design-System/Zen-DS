@@ -6395,6 +6395,104 @@
                 ],
                 "description": "Maximum height in px (Figma max height)."
               },
+              "span": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "full"
+                            ]
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "tablet": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "mobile": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `\"full\"` for the whole row."
+              },
+              "rowSpan": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "type": "number"
+                          },
+                          "tablet": {
+                            "type": "number"
+                          },
+                          "mobile": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts."
+              },
               "position": {
                 "anyOf": [
                   {
@@ -10794,6 +10892,104 @@
                 ],
                 "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's direction (vertical in a row, horizontal in a column), vertical inside a Grid cell."
               },
+              "span": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "full"
+                            ]
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "tablet": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "mobile": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `\"full\"` for the whole row."
+              },
+              "rowSpan": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "type": "number"
+                          },
+                          "tablet": {
+                            "type": "number"
+                          },
+                          "mobile": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts."
+              },
               "children": {
                 "anyOf": [
                   {
@@ -11023,6 +11219,104 @@
           "props": {
             "type": "object",
             "properties": {
+              "span": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "full"
+                            ]
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "tablet": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "mobile": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `\"full\"` for the whole row."
+              },
+              "rowSpan": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "type": "number"
+                          },
+                          "tablet": {
+                            "type": "number"
+                          },
+                          "mobile": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts."
+              },
               "title": {
                 "anyOf": [
                   {
@@ -20604,6 +20898,104 @@
                 ],
                 "description": "Maximum height in px (Figma max height)."
               },
+              "span": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "full"
+                            ]
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "tablet": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "mobile": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `\"full\"` for the whole row."
+              },
+              "rowSpan": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "type": "number"
+                          },
+                          "tablet": {
+                            "type": "number"
+                          },
+                          "mobile": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts."
+              },
               "position": {
                 "anyOf": [
                   {
@@ -24892,6 +25284,104 @@
                 ],
                 "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's direction (vertical in a row, horizontal in a column), vertical inside a Grid cell."
               },
+              "span": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "full"
+                            ]
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "tablet": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "mobile": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `\"full\"` for the whole row."
+              },
+              "rowSpan": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "type": "number"
+                          },
+                          "tablet": {
+                            "type": "number"
+                          },
+                          "mobile": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts."
+              },
               "header": {
                 "anyOf": [
                   {
@@ -26749,6 +27239,104 @@
                   }
                 ],
                 "description": "Draw the marks in on mount and when their data changes (default true; reduced motion fades)."
+              },
+              "span": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "full"
+                            ]
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "tablet": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "mobile": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `\"full\"` for the whole row."
+              },
+              "rowSpan": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "type": "number"
+                          },
+                          "tablet": {
+                            "type": "number"
+                          },
+                          "mobile": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts."
               },
               "label": {
                 "anyOf": [
@@ -39565,6 +40153,104 @@
                   }
                 ],
                 "description": "Maximum height in px (Figma max height)."
+              },
+              "span": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "full"
+                            ]
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "tablet": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "mobile": {
+                            "anyOf": [
+                              {
+                                "enum": [
+                                  "full"
+                                ]
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `\"full\"` for the whole row."
+              },
+              "rowSpan": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "desktop": {
+                            "type": "number"
+                          },
+                          "tablet": {
+                            "type": "number"
+                          },
+                          "mobile": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [],
+                        "additionalProperties": false
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts."
               },
               "position": {
                 "anyOf": [

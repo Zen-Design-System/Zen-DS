@@ -324,6 +324,22 @@
           "deprecated": null
         },
         {
+          "name": "span",
+          "type": "Responsive<number | \"full\">",
+          "required": false,
+          "default": null,
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or\n`\"full\"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: \"full\" }` (a\nbreakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes\nthe whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `\"full\"`\napplies. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "rowSpan",
+          "type": "Responsive<number>",
+          "required": false,
+          "default": null,
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked\ncharts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
+        {
           "name": "label",
           "type": "ReactNode",
           "required": true,
@@ -509,6 +525,7 @@
     "DockIconTheme": "type DockIconTheme = (typeof dockIconThemes)[number]",
     "MetricGoal": "interface MetricGoal { value: number; target: number; label?: ReactNode; valueLabel?: ReactNode; }",
     "MetricTrendDirection": "type MetricTrendDirection = \"positive\" | \"negative\" | \"normal\"",
-    "MetricTrendValue": "interface MetricTrendValue { direction: MetricTrendDirection; label: ReactNode; subLabel?: ReactNode; }"
+    "MetricTrendValue": "interface MetricTrendValue { direction: MetricTrendDirection; label: ReactNode; subLabel?: ReactNode; }",
+    "Responsive": "type Responsive<T> = T | { desktop?: T; tablet?: T; mobile?: T }"
   }
 }

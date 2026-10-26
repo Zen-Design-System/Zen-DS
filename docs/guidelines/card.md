@@ -37,7 +37,7 @@ Generated from the TypeScript source; full JSON in `docs/api/card.json`.
 ### Card
 Figma Card (6643:51021): a Content slot on one of six themes (Pale and Solid in a Color), padded Card-padding-medium/small. A clickable card is an actionable container: Border theme steps its stroke up to Border/Neutral/Subtle (§6).
 
-Also accepts `Omit<HTMLAttributes<HTMLElement>, "children" | "onClick" | "color">, LayoutWidthProps`.
+Also accepts `Omit<HTMLAttributes<HTMLElement>, "children" | "onClick" | "color">, LayoutWidthProps, LayoutCellProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -45,6 +45,8 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "children" | "onClick" | "color"
 | `minWidth` | `number` | — | Minimum width in px (Figma min width). Wins over fill's shrink-to-0. |
 | `maxWidth` | `number` | — | Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text. |
 | `alignSelf` | `"start" \| "center" \| "end" \| "stretch"` | — | This element's alignment inside its parent: start · center · end · stretch across a Stack's direction (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align` for this child. A `"fill"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth stops it. No effect outside a Stack or Grid. |
+| `span` | `Responsive<number \| "full">` | — | How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `"full"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: "full" }` (a breakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes the whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `"full"` applies. Default 1. No effect outside a Grid. |
+| `rowSpan` | `Responsive<number>` | — | How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid. |
 | `ref` | `Ref<HTMLElement>` | — | The root element. |
 | `children` | `ReactNode` | — |  |
 | `theme` | `"shadow" \| "default" \| "pale" \| "border" \| "flat-border" \| "on-container" \| "solid" \| "subtle" \| "semi-pale"` | `"shadow"` | Figma Theme: Shadow (Shadow/Bottom/Level-1) · Default (the Surface fill alone: no border, no shadow) · Pale (Support/`<Color>`/Pale + Effect/Overlay blur) · Border (Border/Neutral/Pale) · Flat-Border (15530:502–520: Surface/Flat inside a Border/Neutral/Pale frame, the card of a Canvas/Flat page) · On-Container (Surface/Flat: a card inside a Modal, Side Panel or Bottom Sheet, on their Container fill; harness card/on-container-in-overlay) · Solid (15480:87472: the one widget of a row that stands out; Neutral fills Background/Neutral/Solid/Default and its content reads Content/Inverse/*, a hue fills Support/`<Color>`/Solid) · Subtle (16195:138560…: Support/`<Color>`/Subtle + Effect/Overlay blur, the colour box on a Canvas/Default page, where Pale fades into the grey; Pale is for white pages — user rule 2026-10-17, harness card/pale-on-canvas-default). `semi-pale` is deprecated (no gradients in Figma since 2026-10-14) and renders as pale. |
@@ -65,6 +67,7 @@ Object shapes the props above refer to.
 
 ```ts
 interface CardSubAction { label: string; icon?: IconName | ReactElement; onClick?: () => void; }
+type Responsive<T> = T | { desktop?: T; tablet?: T; mobile?: T }
 ```
 
 ## Keyboard

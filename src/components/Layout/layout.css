@@ -28,6 +28,11 @@
 .zen-grid[data-align="start"] { align-items: start; }
 .zen-grid[data-align="center"] { align-items: center; }
 .zen-grid[data-align="end"] { align-items: end; }
+/* A cell's span (cell.ts, Figma Grid auto layout's column / row span), on direct children only: the span arrives clamped
+   to the Grid's columns, so it never adds columns; placement stays in reading order (no dense). */
+.zen-grid > [data-span="true"] { grid-column: span var(--zen-cell-span, 1); }
+.zen-grid > [data-span="full"] { grid-column: 1 / -1; }
+.zen-grid > [data-row-span="true"] { grid-row: span var(--zen-cell-row-span, 1); }
 
 .zen-box { min-width: 0; padding-block: var(--zen-box-padding-block, 0); padding-inline: var(--zen-box-padding-inline, 0); border-radius: var(--zen-box-radius, 0); }
 /* mask (Figma's mask, mask.tsx): the first layer only shapes the clip (it draws nothing), the others show inside it. */
