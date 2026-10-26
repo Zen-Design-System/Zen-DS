@@ -15,6 +15,7 @@ import { canEdit, studioStore, useStudio } from "../store";
 import { invalidateCssIndex, styleRows, type Declaration, type StyleRow } from "./cssResolve";
 import { variantElement, variantLabel, variantRoot, cellElement, type VariantSelection } from "./model";
 import { findSet, setFilter, toggleOn, filterStore } from "./sets";
+import { nearestVariant } from "./appShellSets";
 import { TokenField } from "./TokenField";
 import { isDocumentToken } from "./tokens";
 import type { VariantSet } from "./variantSets.generated";
@@ -85,8 +86,9 @@ export function VariantPanel({ selection }: { selection: VariantSelection }) {
   const choose = (prop: string, value: string) => {
     if (!set) return;
     const gridAxis = set.axes.findIndex((axis) => axis.prop === prop) < 2;
-    if (!gridAxis) setFilter(set.name, prop, value);
-    const variant = { ...selection.variant, [prop]: value };
+    if (!gridAxis && !set.variants) setFilter(set.name, prop, value);
+    // A set of listed variants (Pattern/AppShell) goes to the closest one Figma has.
+    const variant = { ...nearestVariant(set, { ...selection.variant, [prop]: value }, prop) };
     studioStore.setState({ selection: { ...selection, variant, name: layer ? selection.name : variantLabel(variant, set.axes) } });
   };
   const filters = set ? filterStore.get(set.name) : {};

@@ -211,6 +211,40 @@ Since #304 a new row only guards against regressions once it is in `matrix.basel
 HO-18…20 (from #286/#287/#294/#302/#306/#307) passed in every gate since and were listed as "new, work". Run
 `studio:e2e -- --rows=<those 12> --update-baseline` on main 9fa8ef52: 12 works, 0 broken, 98 s.
 
+## appshell-placeholder · AppShell is a placeholder frame, the examples are Layout examples
+
+User: "Cần phân biệt rõ AppShell và Layout Example. AppShell trên Studio giống example hơn. AppShell nên là dạng
+placeholder giống component trong trang ◇ Master-Layout" (Figma 1128:29541). Picked: the playground shows the
+placeholder only (sample app removed), the App Shell page's examples are renamed "Layout examples".
+- Figma read (section 16254:1057): Pattern/AppShell/Desktop 9 variants (Layout × Collapse), Mobile 32 (Device × Top ×
+  Bottom), .Primitives/AppShell/Placeholder (Pale fill, Subtle dashed 2·2, Corner-Radius/Large, Padding/Medium,
+  Heading/4 Content/Placeholder → code `tone="light"`, no Placeholder tone), Pane titles, Stepper "Step Title"/"Optional".
+- `tools/studio/appshell-placeholder.mjs` (import-free; `.d.mts`): the copy, the variant lists, the parts' code and
+  `appShellPlaceholderCode()`. Used by the Assets item (toast handlers), `MAIN_SAMPLES.AppShellHeader`, screen-chrome's
+  frame parts (sidebar, top bar, actions, page header, banner, side panel, floating action, bottom navigation) and the
+  new "Page with AppShell" (Figma's default variant around the content Stack, which keeps its "Start building here").
+- Main component: `mainComponent/appShellSets.ts` lists both sets (Figma's own variants, `wrap` 4 / 8, each drawn from
+  its code in its frame 1512 × 982 · 390 × 844 · 744 × 1133); `ListGrid`/`CodeCell` in MainComponentFrame; Variant
+  panel jumps to the nearest listed variant. Fixed on the way: a screen cell's AppShell shrank to its content (drawer
+  layout) → `.studio-mc__screen > .zen-app-shell` fills it.
+- Playground (`appLayer/shell.tsx`) rewritten on the placeholders, the pickers kept (Layout, Collapse, Canvas, Top row,
+  Sections, Notifications, panes, Progress, Side panel, Floating, Banner, mobile Top/Bottom); every control reports.
+- Selftests updated (builder, compile, screen-frame, engine-iso): 83/83 studio selftests, tsc clean. Palette `--deep`
+  has many old findings from other items; this item's were the accent FAB (now `zen-allow-accent`) and an Empty State
+  inside Card hosts (host-dependent, kept).
+- Follow-ups (d7881f66): a page's own Sidebar (Assets item, Screen parts, new page) has no sample switcher (`brand:
+  false`, as figma-pull drops Figma's LOGO); Focus' Summary placeholder 408 high; the Stepper is named. E2E rows that
+  asserted the old frame updated as intended: B-27 (6 rows; + Primary adds one to Settings · Secondary · Main Action),
+  B-28 (the Page header's own crumbs), B-29 (two Breadcrumbs: header + inserted), B-33 (label-1/label-2), HO-01 (imports).
+- Cost: the Studio App Shell page's long tasks 3.9 s → 5.3 s (41 AppShell cells), first frame 4.7 → 6.3 s on a warm server.
+- Gate: queued with Giám sát (after tag-badge-gap, #314, Bug's chart cells); merge main first.
+- User then updated .Primitives/AppShell/Pane in Figma. Re-read (16254:1099, 10 variants, props unchanged): every
+  theme's fill, stroke, effect and padding already matched; two differences fixed in app-shell.css — Pane-Header's
+  counter axis is Min (the 20px action wrapper at the top of the title's line, code centred it) and Theme=Canvas has
+  radius 0. Studio's Main component now draws the Pane set too (`MAIN_SETS.AppShellPane`, Figma's ten variants in 264 ×
+  640 frames; `MAIN_SAMPLES.AppShellPane`). The placeholder's label is centred (`Text align="center"`, Figma's text
+  align), which showed once it wrapped in a 264 pane. Docs regenerated (api/guidelines app-shell). 83/83 selftests.
+
 ## Session "Bug" · Studio Main component chart widths (tier S; user screenshot: "Lỗi hiển thị")
 
 - Cause: charts fill their container and the Main component cell is max-content, so each non-ring chart drew at its
@@ -220,6 +254,7 @@ HO-18…20 (from #286/#287/#294/#302/#306/#307) passed in every gate since and w
   2026-10-26: 297 Line/Multi-Line/Stack-Bar, 352 Bar/Area/Grouped/Combo/Gauge/Funnel/Bullet, 320 Curve-Preview).
   Probe after: every chart at that width, ring cells flip data-wrapped 0 times in 3 s (45 before #301).
 - Gate PASS (--isolated --pages=chart): 0 warnings, Studio E2E 380/380 in 4 shards. PR #315.
+
 ## tag-badge-gap · Tags and Badges side by side are 4px (tier M)
 
 The user: "Vẫn đang bị lỗi rule. Spacing giữa tag phải là 4px" (a PropertyField "Phụ trách" with three person Tags 8px
@@ -288,3 +323,17 @@ sidebar thì các item cũng đổi variant theo density đó".
 - **Gate** (`qa --isolated --files=` the three tools/studio files; the worktree's edits were not in the hook ledger, so a
   plain run found nothing to check): static, studio:selftest, TypeScript and nested layer names all pass; Studio E2E
   380 works · 0 broken (4 shards, 1722 s). Report `.qa/reports/2026-10-26T04-49-36-0958d62c.md`.
+- Gate 1 (head 52517e83: static, audit, dark, behaviour pass; E2E 367/380). The 13 regressions came from the placeholder frame:
+  two crumbs made a new page a child screen (§17 R14: no phone Bottom Navigation) → pages take Master alone
+  (`rootCrumbs`, `root: true`); a Studio bug, `itemElement` paired every same-label tab with the first (⊕ stacked,
+  drags wrote the wrong item) → the n-th item with a label is the n-th element with that name; E2E rows updated where
+  intended. Rerun of those 13 rows: 13/13. Merged main 43102f60 (#315 FIXED_WIDTHS kept).
+- User (on the 3 rhythm warnings "pane 20 vs inner 16 + inset 8"): "Đổi bo góc Placeholder trong pane thành 12px (20 −
+  8) cho đồng tâm, cả Figma và code". Figma: the Placeholder instance in each of the 10 Pane variants bound to
+  Corner-Radius/Base (12 Rounded, 8 Standard: XLarge − 8 in each mode); every Pane in Pattern/AppShell/Desktop inherits.
+  Code: the pane's placeholder takes `radius="md"` (Base). Gate 2 was stopped for it and rerun.
+- Gate 3 (head 01bf1569): static, TypeScript, Vitest 90/90, platform audit 1512/390/320 (0 new warnings; the three
+  concentric ones gone), dark, behaviour pass; Studio E2E 378/380. BL-01 ("no board" on the last 7 pages under 4-shard
+  load) passes alone; PT-28 (dark-Play tooltip, a fixture without AppShell) fails the same with main's proto files and
+  passed on a plain rerun: both flaky, not this change. New ⚠ type/visual-heading on the playground's placeholder label
+  → `zen-allow-visual-heading` (d6c6235c). Slot handed to chart-bars; the formal rerun after them or on CI.
