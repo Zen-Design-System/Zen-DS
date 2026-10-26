@@ -1,3 +1,4 @@
+import { appShellPlaceholderCode, componentsOf } from "../../../../tools/studio/appshell-placeholder.mjs";
 import type { StateDecl } from "../types";
 import type { ContentSlot, HostProps } from "./registry";
 
@@ -16,7 +17,8 @@ import type { ContentSlot, HostProps } from "./registry";
  * Portal, Motion and VisuallyHidden (infrastructure) and Toast (an action's toast(…) shows one). Popover comes with
  * the Button it anchors to: its `state` declares the anchor as a ref (StateDecl `ref`, 2026-10-08).
  *
- * Pure: no DOM, no React, type-only imports and erasable TypeScript, so `node palette.selftest.mjs` imports it.
+ * Pure: no DOM, no React, type-only imports (besides the import-free tools/studio/appshell-placeholder.mjs) and erasable
+ * TypeScript, so `node palette.selftest.mjs` imports it.
  */
 
 export type PaletteGroup = "Text" | "Actions" | "Navigation" | "Data display" | "Charts" | "Widgets" | "Feedback" | "Inputs" | "Overlays" | "Layout" | "Page" | "Chat";
@@ -1252,34 +1254,12 @@ export const PALETTE: readonly PaletteItem[] = [
       `</Sidebar>`,
     ),
   },
+  // Figma Pattern/AppShell/Desktop Layout=Sidebar, Collapse=Header with its placeholders (appshell-placeholder.mjs; user
+  // 2026-10-26: an AppShell is a placeholder frame, the Layout examples hold real apps): the exception to real copy.
   {
-    id: "app-shell", label: "App shell", group: "Page", caption: "Sidebar and page", root: "AppShell", components: ["AppShell", "AppShellHeader", "Sidebar", "SidebarMenuItem", "Breadcrumbs", "PageHeader", "Text"], state: [state("area", '"projects"')], interactive: true, input: false,
-    build: () => lines(
-      `<AppShell`,
-      `  sidebar={<Sidebar aria-label="Workspace" selectedId={area} onItemClick={(item) => setArea(item.id)}>`,
-      `    <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
-      `    <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
-      `  </Sidebar>}`,
-      `  header={<AppShellHeader`,
-      `    leading={<Breadcrumbs master={false} items={[{ id: area, label: area === "home" ? "Home" : "Projects" }]} />}`,
-      `    main={<PageHeader title={area === "home" ? "Home" : "Projects"} />}`,
-      `  />}>`,
-      `  <Text tone="base">{area === "home" ? "3 projects are due this week." : "12 active projects."}</Text>`,
-      `</AppShell>`,
-    ),
-    builder: () => lines(
-      `<AppShell`,
-      `  sidebar={<Sidebar aria-label="Workspace" selectedId="projects">`,
-      `    <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
-      `    <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
-      `  </Sidebar>}`,
-      `  header={<AppShellHeader`,
-      `    leading={<Breadcrumbs master={false} items={[{ id: "projects", label: "Projects" }]} />}`,
-      `    main={<PageHeader title="Projects" />}`,
-      `  />}>`,
-      `  <Text tone="base">12 active projects.</Text>`,
-      `</AppShell>`,
-    ),
+    id: "app-shell", label: "App shell", group: "Page", caption: "Placeholder frame", root: "AppShell", components: componentsOf(appShellPlaceholderCode({ brand: false, root: true })), requires: TOAST, interactive: true, input: false,
+    build: () => appShellPlaceholderCode({ brand: false, root: true, act: (label) => `toast({ title: ${label} })` }),
+    builder: () => appShellPlaceholderCode({ brand: false, root: true }),
   },
   {
     id: "action-bar", label: "Action bar", group: "Page", caption: "Summary and actions", root: "ActionBar", components: ["ActionBar", "Text"], requires: TOAST, interactive: true, input: false,

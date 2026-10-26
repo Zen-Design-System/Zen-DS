@@ -36,15 +36,20 @@ export const CLICKABLE = "button, a[href], input, select, textarea, summary, lab
 const nameOf = (element: Element) => (element.getAttribute("aria-label") ?? element.textContent ?? "").replace(/\s+/g, " ").trim();
 
 /** The element of `root` (a choice control) that draws `item`: the operable element named by its label (exactly, else
- *  starting with it, as a tab with a counter). */
-export function itemElement(root: Element, item: ChoiceItem): Element | null {
+ *  starting with it, as a tab with a counter). Items sharing a label (Figma's placeholder tabs, all "Label") pair with
+ *  those elements in order: the n-th such item of `items` (the control's list) is the n-th element with that name. */
+export function itemElement(root: Element, item: ChoiceItem, items: readonly ChoiceItem[] = [item]): Element | null {
   const candidates = [...(root.matches(CLICKABLE) ? [root] : []), ...root.querySelectorAll(CLICKABLE)];
-  return candidates.find((element) => nameOf(element) === item.label) ?? candidates.find((element) => nameOf(element).startsWith(item.label)) ?? null;
+  const nth = Math.max(0, items.filter((other) => other.label === item.label).findIndex((other) => other.value === item.value));
+  const exact = candidates.filter((element) => nameOf(element) === item.label);
+  if (exact.length) return exact[nth] ?? exact[0];
+  const prefixed = candidates.filter((element) => nameOf(element).startsWith(item.label));
+  return prefixed[nth] ?? prefixed[0] ?? null;
 }
 
 /** The item of `items` drawn by `element` (a part selected inside the control), or by its one item inside it. */
 export function itemAt(root: Element, items: ChoiceItem[], element: Element): ChoiceItem | null {
-  const drawn = items.map((item) => ({ item, at: itemElement(root, item) }));
+  const drawn = items.map((item) => ({ item, at: itemElement(root, item, items) }));
   const holding = drawn.find(({ at }) => at && (at === element || at.contains(element)));
   if (holding) return holding.item;
   const inside = drawn.filter(({ at }) => at && element.contains(at));

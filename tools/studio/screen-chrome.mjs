@@ -1,7 +1,14 @@
 // A builder Screen's app frame (user, 2026-10-09): what dialect.mjs writes into a new page and the Inspector's Screen
-// section switches on and off. No imports, so the Studio client takes it without the page parser.
+// section switches on and off. Its parts are Figma's AppShell placeholders (appshell-placeholder.mjs, user 2026-10-26:
+// "AppShell nên là dạng placeholder"); the Screen's title stays its heading. Only that import-free module is imported,
+// so the Studio client takes it without the page parser.
+import { appShellParts } from "./appshell-placeholder.mjs";
 
 const quote = (value) => JSON.stringify(String(value));
+/** The placeholder parts, without handlers: a Screen is a frame you design on. */
+const PLACEHOLDER = appShellParts();
+/** "Heading Text" with Figma's settings · Secondary · Main Action, the Screen's title (when it has one) as the heading. */
+const pageHeaderCode = (title) => (title ? PLACEHOLDER.main.replace('title="Heading Text"', `title=${quote(String(title).replace(/[{}<>]/g, ""))}`) : PLACEHOLDER.main);
 
 /** A tablet Screen is laid out as a phone's (mobile) or a desktop's; a phone is mobile and a desktop desktop. */
 export const SCREEN_LAYOUTS = ["mobile", "desktop"];
@@ -27,29 +34,13 @@ export function screenLayout(device, layout) {
 /** The component a Screen's chrome prop starts with (`title`: the page's). Static: a page keeps no state. */
 export function screenChromeCode(prop, title) {
   const name = quote(String(title ?? "Untitled").replace(/[{}<>]/g, ""));
-  if (prop === "header") return `<PageHeader title=${name} />`;
+  if (prop === "header") return pageHeaderCode(title);
   if (prop === "topNavigation") return `<TopNavigation type="compact" title=${name} />`;
-  if (prop === "sidebar") {
-    // The rows are Body-Content children (Figma Menu-Item instances in the slot), so each is a layer to select, swap,
-    // remove or add to in the Slots section.
-    return [
-      `<Sidebar aria-label="Main" selectedId="home">`,
-      `  <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />`,
-      `  <SidebarMenuItem id="projects" label="Projects" icon="icon-folder-line" />`,
-      `  <SidebarMenuItem id="people" label="People" icon="icon-users-line" />`,
-      `</Sidebar>`,
-    ].join("\n");
-  }
-  if (prop === "bottomNavigation") {
-    return [
-      `<BottomNavigation value="home" items={[`,
-      `  { id: "home", label: "Home", icon: "icon-home-03-line" },`,
-      `  { id: "projects", label: "Projects", icon: "icon-folder-line" },`,
-      `  { id: "inbox", label: "Inbox", icon: "icon-bell-01-line" },`,
-      `  { id: "profile", label: "Profile", icon: "icon-user-circle-line" },`,
-      `]} />`,
-    ].join("\n");
-  }
+  // Patterns/Sidebar's placeholder: six "Label" rows, no sample switcher (the page's brand is its own). The rows are
+  // Body-Content children (Figma Menu-Item instances in the slot), so each is a layer to select, swap, remove or add to.
+  if (prop === "sidebar") return PLACEHOLDER.sidebar({ brand: false });
+  // Bottom-Navigation's placeholder: four "Label" tabs.
+  if (prop === "bottomNavigation") return PLACEHOLDER.bottomNavigation();
   throw new Error(`${prop} is not a Screen chrome prop (${SCREEN_CHROME.map((part) => part.prop).join(", ")})`);
 }
 
@@ -62,7 +53,7 @@ export function screenChromeCode(prop, title) {
 export const FRAME_PARTS = [
   { prop: "banner", host: "shell", label: "Banner", component: "AlertBanner" },
   { prop: "sidebar", host: "shell", label: "Sidebar", component: "Sidebar" },
-  { prop: "leading", host: "header", label: "Top bar", component: "Search" },
+  { prop: "leading", host: "header", label: "Top bar", component: "Breadcrumbs" },
   // Figma Center-Slots (up to 400px): a Search in the middle of the top row (user, 2026-10-16).
   { prop: "center", host: "header", label: "Top bar center", component: "Search" },
   { prop: "actions", host: "header", label: "Top bar actions", component: "AppShellAccount" },
@@ -78,16 +69,17 @@ export const HEADER_PROPS = new Set(["leading", "center", "actions", "main", "se
 
 /** The component a frame part starts with (`title`: the page's). */
 export function screenFrameCode(prop, title) {
-  const name = quote(String(title ?? "Untitled").replace(/[{}<>]/g, ""));
   switch (prop) {
     case "sidebar": return screenChromeCode("sidebar", title);
-    case "leading": return `<Search aria-label="Search" placeholder="Search" />`;
-    case "center": return `<Search aria-label="Search" placeholder="Search" />`;
-    case "banner": return `<AlertBanner theme="info">Your trial ends in 7 days.</AlertBanner>`;
-    case "actions": return `<AppShellAccount name="Khoa Dang" />`;
-    case "main": return `<PageHeader title=${name} />`;
-    case "sidePanel": return [`<SidePanel type="standard" title="Details" open>`, `  <Text tone="base">Details of the selected item.</Text>`, `</SidePanel>`].join("\n");
-    case "floatingActions": return `<IconButton level="accent" icon="icon-plus-line" aria-label="New" />`;
+    // Figma Header/AppShell's Top-Elements: Master › Child, a Search in the middle (Docs), the bell and the account.
+    // A page starts at the root: one crumb (two would make it a child screen, with Back and no Bottom Navigation).
+    case "leading": return PLACEHOLDER.rootCrumbs;
+    case "center": return PLACEHOLDER.search;
+    case "banner": return PLACEHOLDER.banner;
+    case "actions": return PLACEHOLDER.actions();
+    case "main": return pageHeaderCode(title);
+    case "sidePanel": return PLACEHOLDER.sidePanel;
+    case "floatingActions": return PLACEHOLDER.floatingActions;
     default: throw new Error(`${prop} is not a frame part (${FRAME_PARTS.map((part) => part.prop).join(", ")})`);
   }
 }

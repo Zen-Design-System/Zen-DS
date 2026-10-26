@@ -15,7 +15,7 @@ const check = (label, actual, expected) => {
   else failures.push(`${label}\n    expected ${e}\n    actual   ${a}`);
 };
 const FILE = "local:checkout.zen.tsx";
-const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"], ["Sidebar", "Sidebar"], ["SidebarMenuItem", "Sidebar"], ["AppShellHeader", "AppShell"], ["PageHeader", "PageHeader"], ["TopNavigation", "TopNavigation"], ["BottomNavigation", "BottomNavigation"], ["AppShell", "AppShell"], ["AppShellAccount", "AppShell"], ["Search", "Search"], ["SidePanel", "SidePanel"], ["IconButton", "Button"], ["ActionBar", "ActionBar"], ["AlertBanner", "AlertBanner"]]);
+const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"], ["Sidebar", "Sidebar"], ["SidebarMenuItem", "Sidebar"], ["AppShellHeader", "AppShell"], ["PageHeader", "PageHeader"], ["TopNavigation", "TopNavigation"], ["BottomNavigation", "BottomNavigation"], ["AppShell", "AppShell"], ["AppShellAccount", "AppShell"], ["Search", "Search"], ["SidePanel", "SidePanel"], ["IconButton", "Button"], ["ActionBar", "ActionBar"], ["AlertBanner", "AlertBanner"], ["AppShellAction", "AppShell"], ["Breadcrumbs", "Breadcrumbs"]]);
 const options = (code) => ({ file: FILE, componentModules, requiredChildren: new Set(), requiredProps: new Map(), hash: sha1(code) });
 const components = new Set(componentModules.keys());
 
@@ -148,7 +148,8 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   check("switch it on again", on.error ?? null, null);
   check("Sidebar back, imported", [shell(on.code)?.props.sidebar?.node?.name ?? null, packageImport(on.code ?? "").includes("Sidebar")], ["Sidebar", true]);
   // Its rows are Body-Content children (Figma Menu-Item instances), imported with it.
-  check("the Sidebar's rows are SidebarMenuItem children, imported", [kids(shell(on.code)?.props.sidebar?.node).map((child) => child.name), packageImport(on.code ?? "").includes("SidebarMenuItem")], [["SidebarMenuItem", "SidebarMenuItem", "SidebarMenuItem"], true]);
+  // Figma's placeholder: six "Label" rows (appshell-placeholder.mjs).
+  check("the Sidebar's rows are SidebarMenuItem children, imported", [kids(shell(on.code)?.props.sidebar?.node).map((child) => child.name), packageImport(on.code ?? "").includes("SidebarMenuItem")], [Array(6).fill("SidebarMenuItem"), true]);
   check("on again twice: nothing changes", frame(on.code, "sidebar", true).code === on.code, true);
   // Every part on one AppShell, then every part off: the AppShell goes with the last, the Stack is the Screen's again.
   let all = on.code ?? framed;

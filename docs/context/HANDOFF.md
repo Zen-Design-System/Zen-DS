@@ -78,6 +78,9 @@ Last updated: 2026-10-26.
   `Pattern/AppShell/Desktop` (Layout × Collapse, Status-Bar for iPad landscape), `Pattern/AppShell/Mobile` (Device Phone |
   Tablet portrait × Top × Bottom), `Pattern/AppShell/Duo`, Pane, `Action-Bar/Mobile`; Header/AppShell gained a Sections
   slot (rows under the main row, code AppShell sections); status bars have Style Default · Black Overlay · White Overlay.
+  Since 2026-10-26 (branch `zen/feat/appshell-placeholder-20261026`) the AppShell everywhere in code and Studio (playground,
+  Main component sets, Assets item, new page, Screen parts) is Figma's placeholder from `tools/studio/appshell-placeholder.mjs`;
+  real apps are the App Shell page's "Layout examples".
   Templates rebuilt on it (user: archive the old screens, leave Ecommerce and Logistic): HR-Platform 22, Performance 21,
   Finance 10 and Social 17 done (originals in each page's "Archive · before AppShell" section). Empty-State has Size Medium (240) | Small (200) in Figma and code (EmptyState sm, Studio Size, push/pull). Studio phase 1 + device simulator and the floating bottom-nav fit: branch zen/feat/appshell-frames-20261018 (QA PASS, PR next). Detail
   in session-log-2026-10-18.
