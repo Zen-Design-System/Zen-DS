@@ -542,3 +542,15 @@ Body/Small/Regular, plain TEXT (no component property; hidden by an instance's v
   figma-native 162, `native-pack check` pass. The capture moved the user's Figma tab to the probe node. axe: the Sub-Label's light-mode ink
   (Neutral/Light #0000007C on white, Lc 65.5, WCAG 3.79:1) is the Figma token; the user picked "Giữ như Figma", so
   `tests/smoke/axe-baseline.json` has `MetricCard: color-contrast` (as `Metric` for its Caption labels).
+- **Gate** (Giám sát's GO, `qa --isolated --pages=metric,widgets,chart --files=` the branch's 43 files, after merging
+  main 5d3d6b79 and 2e7627e8): PASS @30be4531, report `.qa/reports/2026-10-26T12-02-20-37f9e943.md`. Contracts
+  metric-trend 330/330 and badge 7896/7896 first, then all suites; Vitest 94 files; behaviour clean; Studio E2E 381 works ·
+  0 broken (1652 s). Found and fixed on the way: MetricTrend did not forward `data-*` (conformance, now on the badge or
+  the row), and white On-Colors on the Solid Green / Red trend badges (Figma; Lc 67.5 / 69.5, the APCA pick, WCAG
+  3.5–3.7:1) joined the known contrast entries (the user's 2026-10-19 rule: On colours by APCA): MetricCard
+  `color-contrast:dark` in the axe baseline, the metric-card-types filter skips Solid badges.
+- Audit warnings: rhythm "9 text styles" on Widgets, Button › Page actions and HR Expense overview / My leaves / Public
+  holidays (1512/390/320 + dark), the Sub-Label's Body/Small/Regular joining the examples. The user: "Baseline, giữ như
+  Figma" → 16 keys in `tools/platform-audit/quality-baseline.json` (8 replace the same pages' keys whose style order
+  changed). Contact sheets (metric, widgets, templates at 390) checked: number-only badges, Sub-Labels beside them, the
+  dark Hero in Inverse, small tiles with the pill alone.
