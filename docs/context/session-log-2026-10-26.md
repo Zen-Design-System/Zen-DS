@@ -302,3 +302,20 @@ Figma incident (same session): the ❖ Chart page (6143:31287) was found empty; 
 .Chart/Legend-Item were detached (parent null) before 12:11, the session's first Figma read, cause unknown. On the user's
 request they were re-attached with their IDs in a new section "Chart components" (17250:3), in family rows (400 padding,
 200 gaps); no other orphaned dependency (30 mains scanned). The page's doc frames are not recoverable this way.
+
+Charts, later the same session (user, in order): "Bỏ icon trên header các Chart", Metric Label vs the description with
+the description in an (i) Hint ("đồng bộ lại hết cho các chart"), "Bổ sung harness và doc usage cho chart trong Figma",
+horizontal bars 8px ("Gap này là đang là 16px"), "Tooltip này chỉ bật khi hover".
+- Figma (14 chart sets): Show Icon default off; Metric › Description → Metric-Label, props Show Metric Label + Metric
+  Label (renamed, ids kept); Header › Hint = icon-info-circle-line 1460:917, 20px, Content/Neutral/Light, Show Hint
+  (default on); Bar-Chart Horizontal rows Spacing/Gap/XSmall, min heights −8 per gap, bars flat at the axis;
+  .Primitives/Chart/Sector "Tooltip" → Show Tooltip, default off (selected Sector exposed in Line/Multi-Line/Stack);
+  Bar/Area/Multi-Line/Heatmap own Show Tooltip, default off. Chart-Card's header is nested: untouched.
+- Code: ChartCard `hint` (MetricWidget's Hint pattern, aria-label "More information", Tooltip describes) and
+  `metricLabel` (`description` @deprecated alias); 104 ChartCard tags rewritten (metricLabel, no icon); hover-only for
+  Line/Area/Grouped/Combo with an overview summary; horizontal rows 24px + grow share, 8px gaps (the suite's axisGap
+  exceptions are gone: both sides 8 now). Studio push/pull: Show Hint, Show Metric Label + Metric Label (pull also reads
+  the old Description), Show Tooltip a preview state; the hint text is code's alone (round trip leaves it out).
+- Figma AI kit: chart/header-icon, chart/tooltip-on (a frame named Hover/Tooltip is skipped), chart/metric-label-is-
+  description; tested on a temporary section (each rule fires once, the clean and the hover-state charts pass) and
+  removed. screen-rules §3 Charts + audit-rules rows.

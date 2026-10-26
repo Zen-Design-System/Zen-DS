@@ -17,11 +17,13 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
-- Charts (2026-10-26, the user): vertical BarChart and StackBarChart columns now fill the plot edge to edge, 8px
-  (Spacing/Gap/XSmall) apart and as wide as the count allows, rounded on the top corners over a flat base (no more 40px
-  cap). Nothing is active by default: the active column and its Tooltip show only under the pointer (or the keyboard)
-  and clear when it leaves; `initialIndex` still sets one. DonutChart slices are parted by 2px gaps instead of 4px. The
-  Figma Bar-Chart, Stack-Bar-Chart and Donut-Chart sets match.
+- Charts (2026-10-26, the user): bar and stack columns fill the plot edge to edge, 8px (Spacing/Gap/XSmall) apart,
+  rounded on top over a flat base (no more 40px cap); horizontal bars sit 8px apart, flat at the axis. No chart shows an
+  active point or a Tooltip until the pointer (or the keyboard) is on it (Line, Area, Bar, Stack, Grouped, Combo;
+  `initialIndex` still sets one). ChartCard: `metricLabel` names the figure (`description` is its deprecated alias),
+  `hint` puts the chart's description behind an (i) after the title, and the examples carry no header icon. DonutChart
+  slices are 2px apart. Figma matches: the chart sets' Show Hint, Metric Label, Show Tooltip (off) and Show Icon (off);
+  the Figma AI kit audit adds chart/header-icon, chart/tooltip-on and chart/metric-label-is-description.
 - Zen Studio → Figma: a Sidebar's rows take its density as the Menu-Item's Density variant (2026-10-26). Medium is 44px,
   Small 36px; an AppShell `pattern="grid"` and `variant="small-density"` give Small; a Basic Sidebar's footer rows stay
   Medium. Changing a Sidebar's density swaps every row's variant. Each row also carries its Theme (`theme="accent"`) and
