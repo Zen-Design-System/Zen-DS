@@ -355,7 +355,10 @@ Body/Small/Regular, plain TEXT (no component property; hidden by an instance's v
     takes `Trend/Normal`, the generic reader's name for it. Layer names unchanged.
   - Contract: `__HASHES` of 595:55134 equals the stored capture (91e440b0), so no re-capture.
   - Selftests: figma-push 499 (split cases, Normal badge pull), studio:selftest, usage, guidelines, ai-ui, style; tsc.
-- Open: the native pack (`docs/figma-contracts/native-pack.json`) predates the Sub-Label, so a direct ⌘V paste shows
-  Figma's sample "vs. last year" until Metric-Trend is recaptured (BACKLOG P2). axe: the Sub-Label's light-mode ink
+- Native pack (user: "Làm ngay"): probe 17317:4 on QA page 15872:3 (9 instances), `native-pack.mjs capture --keep
+  --merge`, then the changed set replaced (add-only keeps stale entries): `sets["595:55134"]` and its 9 variant symbols
+  from the copy (each now has its Sub-Label row); defs merged over. Probe frame 17317:3 removed. A native paste of
+  Normal / Positive / Negative trends now writes the Badge text, the Sub-Label words and the hide with no note;
+  figma-native 162, `native-pack check` pass. The capture moved the user's Figma tab to the probe node. axe: the Sub-Label's light-mode ink
   (Neutral/Light #0000007C on white, Lc 65.5, WCAG 3.79:1) is the Figma token; the user picked "Giữ như Figma", so
   `tests/smoke/axe-baseline.json` has `MetricCard: color-contrast` (as `Metric` for its Caption labels).
