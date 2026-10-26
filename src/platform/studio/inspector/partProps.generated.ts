@@ -95,6 +95,9 @@ export const PART_PROPS: Readonly<Record<string, Readonly<Record<string, Readonl
       "fullWidth": "rangesFullWidth",
       "options": "ranges",
       "value": "range"
+    },
+    "Tooltip": {
+      "content": "hint"
     }
   },
   "ChatCall": {
