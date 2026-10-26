@@ -933,7 +933,7 @@ const [range, setRange] = useState("3m");
   },
   {
     title: "Revenue with a forecast",
-    description: "Bars compare months; the months not closed yet are projected and hatched, so the forecast never reads as earned. The card leads with the year's figure, the active bar (the last closed month) takes the Secondary colour with its Tooltip, and showAverage draws the closed months' mean as a dotted line with its Avg tag.",
+    description: "Bars compare months; the months not closed yet are projected and hatched, so the forecast never reads as earned. The card leads with the year's figure, the bars fill the plot 8px apart, the month under the pointer takes the Secondary colour with its Tooltip (none until then), and showAverage draws the closed months' mean as a dotted line with its Avg tag.",
     render: () => <RevenueBarsCard />,
     code: `const revenue = [
   { label: "Jan", value: 74300 }, /* … */ { label: "Sep", value: 105700 },
