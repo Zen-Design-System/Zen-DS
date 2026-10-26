@@ -21,6 +21,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   are Label (Area, Grouped-Bar and Combo named them by their sample, "Q1", "$125K"); a gauge's reading Value and its target
   Meta, a donut's or radial's centre caption Meta; Bar-List, Bullet and Funnel rows Name / Value / Meta. Studio writes the
   axes by position now; undo map in `docs/figma-contracts/layer-renames-2026-10-26.json`.
+- Studio E2E (2026-10-26): PT-28 and BL-01 no longer fail gates by chance. PT-28 waits for the Table to put the focus
+  back on the picked cell before it tabs on; the board rows open each component page in a browser context of its own
+  (53 loads in one tab hung the 47th), keep only a whole sweep, and say what a page showed instead of its board. The
+  runner keeps the 10 latest runs' reports again (the shots saved beside them had pushed every report out).
 - Caption text is always Light, and so is a metric's label (the user, 2026-10-26): text in Caption/Regular, Medium or
   Bold takes its family's Light level (Neutral/Light on a surface, Inverse or overlay Light on dark, a colour's Light for
   an error; the Lights group takes Base; text on a Solid or Subtle fill follows the fill; a main value standing alone —

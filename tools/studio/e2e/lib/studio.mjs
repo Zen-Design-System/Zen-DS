@@ -59,6 +59,19 @@ function installHelpers() {
  * Returns { context, page, errors } — errors collects page errors and console errors for the smoke row.
  */
 export async function openStudio(browser, { url, page: pageId, role = "admin", viewport = VIEWPORT, path = "/studio.html" }) {
+  const context = await studioContext(browser, { url, role, viewport });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
+  page.on("console", (message) => { if (message.type() === "error") errors.push(`console: ${message.text()}`); });
+  await page.goto(`${url}${path}${path.includes("?") ? "&" : "?"}page=${pageId}`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector('[data-studio-frame="example:0"]', { timeout: 60_000 });
+  return { context, page, errors };
+}
+
+/** The browser context a Studio page opens in (openStudio's): its own renderer and storage, Admin role unless `role` says
+ *  otherwise, reduced motion, the helpers rows read the DOM with. */
+export async function studioContext(browser, { url, role = "admin", viewport = VIEWPORT }) {
   const context = await browser.newContext({ viewport, reducedMotion: "reduce", deviceScaleFactor: 1 });
   // A step that waits for something that never comes fails with its own message (which locator, which wait) before the
   // row's 20 s limit, instead of Playwright's 30 s default outliving it as a bare "timed out after 20 s".
@@ -75,13 +88,7 @@ export async function openStudio(browser, { url, page: pageId, role = "admin", v
     }
   }, { key: PREFS_KEY, role });
   await context.addInitScript(installHelpers);
-  const page = await context.newPage();
-  const errors = [];
-  page.on("pageerror", (error) => errors.push(`pageerror: ${error.message}`));
-  page.on("console", (message) => { if (message.type() === "error") errors.push(`console: ${message.text()}`); });
-  await page.goto(`${url}${path}${path.includes("?") ? "&" : "?"}page=${pageId}`, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector('[data-studio-frame="example:0"]', { timeout: 60_000 });
-  return { context, page, errors };
+  return context;
 }
 
 export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
