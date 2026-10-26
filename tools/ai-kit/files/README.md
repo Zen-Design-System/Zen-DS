@@ -14,6 +14,7 @@ Figma's MCP server.
 | `skills/zen-figma-design/references/screen-rules.md` | Surfaces, the spacing ladder, which component for which need, patterns that went wrong before, the review checklist |
 | `skills/zen-figma-design/references/design-principles.md`, `responsive-principles.md` | The design principles behind the rules (principles, not checks): colour pairing and balance, hierarchy and composition, responsive and adaptive layouts |
 | `skills/zen-figma-design/references/ux-principles.md`, `product-patterns.md` | UX principles (not checks): each screen's states, forms, navigation, access, touch and motion; the screens a product family usually needs, mapped to Zen's templates |
+| `skills/zen-figma-design/references/dashboard-layout.md` | Dashboard layout principles (not checks): one widget grid, each widget's span by importance and shape, rows that fill with nothing hollow, the reflow from desktop to tablet and phone |
 | `skills/zen-figma-design/references/figma-components.md` | Every Zen component set with its exact property names and values (generated from the live Figma file) |
 | `skills/zen-figma-design/references/figma-tokens.md` | The variables and styles to bind: semantic colours, spacing, radii, breakpoints, text and effect styles (generated) |
 | `skills/zen-figma-design/references/figma-gotchas.md` | Plugin API behaviours that broke Zen screens, and what works |

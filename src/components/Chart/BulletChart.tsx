@@ -56,7 +56,7 @@ export interface BulletChartProps {
 
 /**
  * Bullet chart: 1–4 goals, each a row with its label (Body/Small/Medium, Content/Neutral/Strongest) and "actual of
- * target" (Body/Small/Regular, Content/Neutral/Base) above a 16px Corner-Radius/Rounded track (Border/Neutral/Subtle/
+ * target" (Body/Small/Regular, Content/Neutral/Strongest: the row's main value) above a 16px Corner-Radius/Rounded track (Border/Neutral/Subtle/
  * Pressed at 50%: Figma's Color Chart Sector/On-Color/Tertiary), the actual as an 8px Color Chart Sector/Primary bar inset
  * 4px, and the target as a 3px Color Chart Sector/Secondary tick 24px tall; rows Spacing/Gap/Medium apart, label and
  * track Spacing/Gap/XSmall. A legend (Spacing/Gap/Small between items) names the bar and the tick. ↑/↓ and Home/End

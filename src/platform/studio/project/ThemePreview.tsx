@@ -182,25 +182,25 @@ function ChartsGallery() {
         </Stack>
       </Card>
       <Grid columns={useColumns(3, 1)} gap="md">
-        <ChartCard title="Revenue by service" description="Seven sectors">
+        <ChartCard title="Revenue by service" metricLabel="Seven sectors">
           <DonutChart aria-label="Revenue by service, 2026" data={shares} format={percent} legendPosition="start" animate={false} />
         </ChartCard>
-        <ChartCard title="Hours by team" description="Seven series, stacked">
+        <ChartCard title="Hours by team" metricLabel="Seven series, stacked">
           <StackBarChart aria-label="Hours by team per quarter, 2026" data={hours} series={SEVEN} height={240} animate={false} />
         </ChartCard>
-        <ChartCard title="Visits by channel" description="Seven areas, stacked">
+        <ChartCard title="Visits by channel" metricLabel="Seven areas, stacked">
           <AreaChart aria-label="Visits by channel per month, Apr – Sep 2026" type="stacked" data={traffic} series={SEVEN} height={240} showLegend animate={false} />
         </ChartCard>
-        <ChartCard title="Goals" description="This quarter">
+        <ChartCard title="Goals" metricLabel="This quarter">
           <RadialChart aria-label="Goals reached this quarter" value="72%" label="On track" animate={false}
             data={[{ id: "revenue", label: "Revenue", value: 82 }, { id: "clients", label: "New clients", value: 64 }, { id: "nps", label: "NPS", value: 71 }, { id: "hours", label: "Billable", value: 58 }]} />
         </ChartCard>
-        <ChartCard title="Invoiced and collected" description="Three series">
+        <ChartCard title="Invoiced and collected" metricLabel="Three series">
           <GroupedBarChart aria-label="Invoiced, collected and overdue per month, Apr – Sep 2026" height={220} animate={false} format={money}
             series={[{ id: "invoiced", label: "Invoiced" }, { id: "collected", label: "Collected" }, { id: "overdue", label: "Overdue" }]}
             data={["Apr", "May", "Jun", "Jul", "Aug", "Sep"].map((label, index) => ({ label, values: { invoiced: 42800 + index * 4300, collected: 38400 + index * 4100, overdue: 6200 - index * 600 } }))} />
         </ChartCard>
-        <ChartCard title="Busy hours" description="In Primary's steps">
+        <ChartCard title="Busy hours" metricLabel="In Primary's steps">
           <HeatmapChart aria-label="Bookings per weekday and hour" animate={false} rows={["Mon", "Tue", "Wed", "Thu", "Fri"]} columns={["9", "11", "13", "15", "17"]}
             values={[[2, 5, 7, 4, 1], [3, 6, 8, 5, 2], [1, 4, 9, 6, 3], [2, 7, 6, 8, 2], [4, 5, 3, 2, 1]]} />
         </ChartCard>
@@ -235,13 +235,13 @@ function DashboardGallery() {
         <MetricCard type="tile" theme="default" label="Overdue" value="$3.1K" icon="icon-alarm-clock-line" />
       </Grid>
       <Grid columns={three} gap="md">
-        <ChartCard title="Revenue" value="$64.3K" description="Apr – Sep 2026">
+        <ChartCard title="Revenue" value="$64.3K" metricLabel="Apr – Sep 2026">
           <LineChart aria-label="Revenue per month, Apr – Sep 2026" data={revenue} format={money} height={200} showLegend={false} animate={false} />
         </ChartCard>
-        <ChartCard title="Hours by team" description="This year">
+        <ChartCard title="Hours by team" metricLabel="This year">
           <StackBarChart aria-label="Hours by team per quarter, 2026" data={hours} series={SEVEN} height={200} animate={false} />
         </ChartCard>
-        <ChartCard title="Top clients" description="This quarter">
+        <ChartCard title="Top clients" metricLabel="This quarter">
           <BarList aria-label="Revenue by client this quarter" data={clients} format={money} animate={false} />
         </ChartCard>
       </Grid>

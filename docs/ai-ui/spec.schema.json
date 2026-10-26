@@ -3919,7 +3919,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The period active at first (its dots, rule and Tooltip show)."
+                "description": "The period active at first and whenever the pointer leaves."
               },
               "showLegend": {
                 "anyOf": [
@@ -5251,7 +5251,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The bar active at first (painted Chart/Sector/Secondary, its Tooltip shown)."
+                "description": "The bar active at first and whenever the pointer leaves (painted Chart/Sector/Secondary, its Tooltip shown)."
               },
               "color": {
                 "anyOf": [
@@ -11095,7 +11095,7 @@
                 ],
                 "description": "Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node."
               },
-              "description": {
+              "hint": {
                 "anyOf": [
                   {
                     "anyOf": [
@@ -11123,7 +11123,37 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "What the figure is (\"Available revenue in your wallet\"), Body/Small/Regular: the top of Figma's Metric, under the Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to t"
+                "description": "Figma Hint (Show Hint): an info icon (20px, Content/Neutral/Light) at the end of the header that shows this text in a Tooltip on hover and keyboard focus."
+              },
+              "metricLabel": {
+                "anyOf": [
+                  {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/$defs/child"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "$ref": "#/$defs/marker"
+                  }
+                ],
+                "description": "Figma Metric Label: what the headline figure is (\"Invoiced so far in 2026\"), Body/Small/Regular in Content/Neutral/Light over the value, under the Segmented (Chart/Line-Chart: Padd"
               },
               "value": {
                 "anyOf": [
@@ -11153,7 +11183,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The headline figure the chart explains (\"$4,346.00\"), Display/4 (Figma Chart-Card Metric > Value), under the description and the Segmented."
+                "description": "The headline figure the chart explains (\"$4,346.00\"), Display/4 (Figma Chart-Card Metric > Value), under the metric label and the Segmented."
               },
               "onOpen": {
                 "anyOf": [
@@ -14640,7 +14670,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The period active at first (its Tooltip reads both values)."
+                "description": "The period active at first and whenever the pointer leaves."
               },
               "showLegend": {
                 "anyOf": [
@@ -22107,7 +22137,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The group active at first (its Tooltip shows every series' value)."
+                "description": "The group active at first and whenever the pointer leaves."
               },
               "showLegend": {
                 "anyOf": [
@@ -24443,7 +24473,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The point active at first (its Tooltip shows)."
+                "description": "The point active at first and whenever the pointer leaves."
               },
               "curve": {
                 "anyOf": [
@@ -41123,7 +41153,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The column active at first."
+                "description": "The column active at first and whenever the pointer leaves."
               },
               "showLegend": {
                 "anyOf": [

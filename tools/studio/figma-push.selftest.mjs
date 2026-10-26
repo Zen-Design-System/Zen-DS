@@ -1853,7 +1853,7 @@ export default function Page() {
 
 // 29. Every chart (chart family phase 2, 2026-10-14; figma-charts.mjs): each code chart as its ❖ Chart set, variants and
 //     Show Average / Show Legend from its props; a ChartCard as a Card (its theme) holding the chart with the header
-//     properties on (Title, Show Icon + Icon, Show Description + Description, Show Value + Value, Show Ranges, Show Open);
+//     properties on (Title, Show Icon + Icon, Show Hint, Show Metric Label + Metric Label, Show Value + Value, Show Ranges, Show Open);
 //     a chart on its own with every header toggle off and its Heading hidden. The pull gives back the same charts and
 //     cards (the data is the Studio's sample: Figma draws its own).
 const CHARTS = `// @zen-page {"format":1,"title":"Charts"}
@@ -1867,7 +1867,7 @@ export default function Page() {
     <Board>
       <Screen id="screen-1" title="Charts" device="desktop">
         <Stack gap="md">
-          <ChartCard title="Revenue" theme="shadow" icon="icon-coins-stacked-01-line" description="Invoiced so far in 2026" value="$541.4K" ranges={[{ id: "month", label: "Month" }, { id: "quarter", label: "Quarter" }]} range="quarter" onOpen={proto.toast({ title: "Open report" })}>
+          <ChartCard title="Revenue" theme="shadow" icon="icon-coins-stacked-01-line" hint="Invoices sent, VAT included" metricLabel="Invoiced so far in 2026" value="$541.4K" ranges={[{ id: "month", label: "Month" }, { id: "quarter", label: "Quarter" }]} range="quarter" onOpen={proto.toast({ title: "Open report" })}>
             <LineChart aria-label="Revenue per month, Apr – Sep 2026" showAverage data={[{ label: "Apr", value: 1 }, { label: "May", value: 2 }, { label: "Jun", value: 3 }, { label: "Jul", value: 4 }, { label: "Aug", value: 5 }, { label: "Sep", value: 9 }]} />
           </ChartCard>
           <ChartCard title="Invoiced and collected">
@@ -1901,9 +1901,9 @@ export default function Page() {
   check("every chart: its ❖ Chart set (LineChart with compare → Multi-Line, Bar/Donut/Radial/Area…)", [...charts, ...bare].map((chart) => chart.set.name), ["Chart/Line-Chart", "Chart/Multi-Line-Chart", "Chart/Stack-Bar-Chart", "Chart/Bar-Chart", "Chart/Donut-Chart", "Chart/Radial-Chart", "Chart/Heatmap-Chart", "Chart/Area-Chart", "Chart/Grouped-Bar-Chart", "Chart/Combo-Chart", "Chart/Gauge-Chart", "Chart/Funnel-Chart", "Chart/Bar-List", "Chart/Bullet-Chart", "Chart/Area-Chart", "Chart/Bar-Chart"]);
   ok("every chart set by its id (the plugin finds it by id, then name)", [...charts, ...bare].every((chart) => /^\d+:\d+$/.test(chart.set.id)));
   check("ChartCard: Card by its theme (Shadow, Default by default, Border, Pale)", cards.slice(0, 5).map((card) => card.props.Theme), ["Shadow", "Default", "Border", "Pale", "Default"]);
-  const head = ["Show Icon", "Icon", "Title", "Show Description", "Description", "Show Value", "Value", "Show Ranges", "Show Open"];
-  check("ChartCard header: every header property from its props (icon, title, description, value, ranges, onOpen)", Object.fromEntries(head.map((name) => [name, charts[0].props[name]])), { "Show Icon": true, Icon: "icon-coins-stacked-01-line", Title: "Revenue", "Show Description": true, Description: "Invoiced so far in 2026", "Show Value": true, Value: "$541.4K", "Show Ranges": true, "Show Open": true });
-  check("ChartCard header: a title alone turns the rest off and writes no texts", Object.fromEntries(head.map((name) => [name, charts[2].props[name]])), { "Show Icon": false, Title: "Hours", "Show Description": false, "Show Value": false, "Show Ranges": false, "Show Open": false });
+  const head = ["Show Icon", "Icon", "Title", "Show Hint", "Show Metric Label", "Metric Label", "Show Value", "Value", "Show Ranges", "Show Open"];
+  check("ChartCard header: every header property from its props (icon, title, hint, metricLabel, value, ranges, onOpen)", Object.fromEntries(head.map((name) => [name, charts[0].props[name]])), { "Show Icon": true, Icon: "icon-coins-stacked-01-line", Title: "Revenue", "Show Hint": true, "Show Metric Label": true, "Metric Label": "Invoiced so far in 2026", "Show Value": true, Value: "$541.4K", "Show Ranges": true, "Show Open": true });
+  check("ChartCard header: a title alone turns the rest off and writes no texts", Object.fromEntries(head.map((name) => [name, charts[2].props[name]])), { "Show Icon": false, Title: "Hours", "Show Hint": false, "Show Metric Label": false, "Show Value": false, "Show Ranges": false, "Show Open": false });
   check("ChartCard ranges: the picked range selected", charts[0].slots[0].children.map((item) => `${item.text}:${item.props.Select}`), ["Month:No", "Quarter:Yes"]);
   check("LineChart showAverage: Show Average on, its tag the mean as the code writes it", [charts[0].props["Show Average"], charts[0].props.Average], [true, "Avg 4"]);
   check("LineChart compare: Multi-Line-Chart by its Sector (7 points)", [charts[1].props.Sector, charts[1].props["Show Average"]], ["7-Sectors", false]);
@@ -1933,7 +1933,8 @@ export default function Page() {
   const charted = (text) => {
     const out = [];
     const walk = (node) => {
-      if (node.name === "ChartCard") out.push({ card: Object.fromEntries(Object.entries(node.props).sort(([a], [b]) => a.localeCompare(b))) });
+      // The hint's text is code's alone (Figma's Hint is only the (i)), so it does not come back.
+      if (node.name === "ChartCard") out.push({ card: Object.fromEntries(Object.entries(node.props).filter(([name]) => name !== "hint").sort(([a], [b]) => a.localeCompare(b))) });
       else if (/Chart$|^BarList$/.test(node.name) && node.name !== "ChartCard") out.push({ chart: node.name, props: Object.fromEntries(Object.entries(node.props).filter(([name]) => !DATA.has(name) || (node.name === "DonutChart" && (name === "label" || name === "value")) || (node.name === "RadialChart" && name === "legendPosition")).sort(([a], [b]) => a.localeCompare(b))) });
       node.children.forEach((child) => child.name && walk(child));
     };

@@ -13,6 +13,7 @@ const textFiles = import.meta.glob<string>(
     "/skills/zen-responsive-screens/references/responsive-principles.md",
     "/skills/zen-component-usage/references/ux-principles.md",
     "/skills/zen-component-usage/references/product-patterns.md",
+    "/skills/zen-component-usage/references/dashboard-layout.md",
     "/docs/guidelines/*.md",
   ],
   { query: "?raw", import: "default" },

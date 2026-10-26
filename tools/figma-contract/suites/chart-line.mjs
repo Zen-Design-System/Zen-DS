@@ -2,7 +2,7 @@
 // Chart Card (Heading · FILL Segmented · Metric · Trend). The Trend grid: 14 equal rows, a 32px Y-label column, six
 // gridlines on rows 2 … 12 (the baseline solid), one sector per X value with its label under the baseline and, on the
 // selected one, an Active/Accent/Solid rule and the Tooltip; the 2px Border/Accent/Solid line.
-import { at, cardMap, cardProps, child, textOf } from "./_chart-shared.mjs";
+import { at, cardMap, cardProps, child, textOf, pickedSector } from "./_chart-shared.mjs";
 import { trendMap, xLabelExceptions } from "./_chart-trend.mjs";
 
 const T = ".Chart/Line-Chart/Trend";
@@ -20,7 +20,7 @@ export default {
     return {
       ...cardProps(spec),
       chart: "line",
-      chartProps: { data, height: trend(spec).h, format: "usdK", initialIndex: sectors.findIndex((sector) => /Selected/.test(sector.main)) },
+      chartProps: { data, height: trend(spec).h, format: "usdK", ...pickedSector(sectors) },
     };
   },
   figmaExceptions: xLabelExceptions(T, { cy: 326 }),

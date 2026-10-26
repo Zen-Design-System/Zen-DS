@@ -17,6 +17,7 @@ Files in this skill:
 | `references/responsive-principles.md` | when a screen has more than one width (desktop, tablet, phone): responsive and adaptive layout, what to keep, what to move (principles, not rules) |
 | `references/product-patterns.md` | when you read a brief into a screen list: the screens a product family usually needs, what earns trust, what to avoid, which Zen template to start from (principles, not rules) |
 | `references/ux-principles.md` | when you plan each screen's states and flow: loading, empty, failed, done; forms; navigation and Back; access (WCAG 2.2); touch and motion (principles, not rules) |
+| `references/dashboard-layout.md` | when a screen holds widgets (KPI cards, charts, lists, tables): one widget grid, each widget's span by importance and shape, rows that fill with nothing hollow, the reflow at each width (principles, not rules) |
 | `references/figma-components.md` | to find a component set and its exact property names and values |
 | `references/figma-tokens.md` | to pick a colour, spacing, radius variable or a text/effect style |
 | `references/figma-gotchas.md` | before writing `use_figma` code that touches instances |
@@ -49,7 +50,8 @@ Files in this skill:
    do not build it unasked) and `references/ux-principles.md` §0–§1 which states and flows each screen plans for.
 5. **Plan the design** (`references/design-principles.md` §0): the mood (Component Size and Typography modes), what
    must carry colour (the colour budget), the focal point, and, for more than one width, the canonical layout and how
-   it folds (`references/responsive-principles.md` §3). These are judgement calls; the audit does not check them.
+   it folds (`references/responsive-principles.md` §3); for a dashboard, the hero widget, each widget's span and the
+   reflow per width (`references/dashboard-layout.md`). These are judgement calls; the audit does not check them.
 
 ## 2. Hard rules (an audit error or a designer's rejection when broken)
 
