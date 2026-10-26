@@ -16,6 +16,11 @@ questions for the designer in [`QUESTIONS.md`](QUESTIONS.md). Code keeps its cur
   change together (a parent row then its Level=Child rows), too large for the row-density fix (session log 2026-10-26,
   "Sidebar rows take the Sidebar's density").
 
+- P2 (2026-10-26) Native paste pack: Metric-Trend 595:55134 gained a Sub-Label in Figma; `native-pack.json` predates
+  it, so a direct ⌘V of a metric shows Figma's sample "vs. last year" whatever the code says (the plugin import is
+  right). Recapture the set (`node tools/studio/native-pack.mjs probe-code --ids=595:55134` … `capture --merge`, needs
+  Figma desktop). Session log 2026-10-26, "MetricTrend = badge + Sub-Label".
+
 ## Backlog (plan before opening sessions)
 Empty since 2026-10-25. The 2026-10-24 triage's entries are done and archived (`BACKLOG-archive.md`, "Archived
 2026-10-24" and "2026-10-25") or moved to `BACKLOG-user-and-later.md`.

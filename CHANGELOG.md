@@ -17,6 +17,12 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- MetricTrend follows Figma's Metric-Trend (595:55134, re-synced 2026-10-26): the badge holds the change alone and a
+  Sub-Label beside it says against what. `trend` takes `{ direction, label: "9%", subLabel: "vs. August" }` (type
+  `MetricTrendValue`; MetricTrend `subLabel`); a one-string label still renders, all of it in the badge. Default
+  Positive / Negative badges are now Green / Red Solid. The Sub-Label is Body/Small/Regular, Content/Neutral/Light (the
+  fill's family on a Solid card); a tile of size small shows the badge alone. Examples, templates, Studio samples and
+  Studio ↔ Figma push/pull use the split; new contract suite `metric-trend`.
 - Zen Studio's Main component draws every chart at its Figma width (2026-10-26, user screenshot "Lỗi hiển thị"): Line,
   Multi-Line and Stack-Bar 297, Bar, Area, Grouped-Bar, Combo, Gauge, Funnel and Bullet 352, Curve-Preview 320, beside
   Donut and Radial. In a max-content cell a chart had shrunk to its axis (LineChart one label, BarChart bars with no width).
