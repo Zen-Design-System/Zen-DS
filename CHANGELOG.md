@@ -26,6 +26,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   "Failed to send", a TopNavigation identity subtitle over imagery, and the supporting Caption text of the docs examples
   and the Studio UI. New checks: harness `text/caption-light`, runtime audit kind `caption-light`, Figma audit
   `text/caption-light`; 144 layers rebound to Light in the Figma library.
+- Text tones by role (the user, 2026-10-26): titles are always Strongest (an error step's title Negative/Strongest);
+  a heading's Subtext is Light; Base is only for long paragraphs (a Dialog's or Side Panel's description stays Base).
+  Picked from A/B screenshots: field and term labels (DescriptionList term, PropertyField, SliderField, Input inline
+  label) and short meta lines (Timeline description, Input condition, Chat reply preview, Voice guidance, Select option
+  meta, Image caption, AI bubble version, BottomSheet trailing, metric share) are Light, so are Badge-Status Cancelled
+  and a past itinerary title; Table column titles stay Light (a kicker). Checks: `text/title-strongest` (replaces
+  `heading/title-not-light`), `text/subtext-light`, `content/title-is-strongest` now an error; runtime kind `text-tone`
+  (was `caption-light`); Figma audit `text/title-strongest`, `text/subtext-light`. 96 more Figma layers rebound.
 - Calendar Day-Tile follows its Figma update (2026-10-26): today's weekday in Accent/Strongest; a selected tile on
   Background/Active/Neutral/Subtle (Active/Accent/Subtle on today) with no border.
 - Zen Studio's Main component draws every chart at its Figma width (2026-10-26, user screenshot "Lỗi hiển thị"): Line,

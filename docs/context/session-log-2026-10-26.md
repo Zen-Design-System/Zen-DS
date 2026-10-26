@@ -344,3 +344,22 @@ sửa mọi chỗ đang sai trong component, ví dụ và Studio." Mid-task: "Me
   patched for its 4 changed layers (round trip checked, every other Day-Tile field compared equal). Event-Card 16143:817:
   compared layer by layer with the stored definitions, only the Range colour (Light, from this change) differs; code
   already Light. No contract suite covers either set.
+- **Round 2 (relayed from the main session, the user's words verbatim):** "tiêu đề luôn là strong"; "Subtext của heading
+  cũng nên là light. Chỉ có paragraph chữ dài mới là base". Asked here, with A/B screenshots built on the QA page (the
+  user: "Các câu hỏi cần trả lời kèm ảnh chụp để dễ hình dung"): Metric-Tile's Metric-Title is a label → Light; field and
+  term labels → Light; meta lines → Light; Dialog / Side Panel / Modal Forms description → Base (a paragraph);
+  Badge-Status Cancelled and a past itinerary title → Light; Agenda weekday, Date-Picker year/range, PageHeader eyebrow,
+  Voice action labels → Base; Table column titles → Light (a kicker). Figma rebinds: 42 own layers (Description-List Term
+  4, Property-Field 1, Slider/Field 16, Timeline Item 2, Condition-Item 1, Chat Reply Quote 12, Voice guidance 3,
+  Badge-Status 2, Itinerary past title 1), 24 Inline-Field Label overrides, Stepper error Step Title 6 → Negative/
+  Strongest. native defs patched for the 33 nodes the pack holds (Chat Reply Quote, Voice and the Inline-Field
+  overrides are not in it). input-search.json Condition-Item / Input-Conditions entries re-captured by patch; digests
+  equal Figma's (df384cdd, 87e4a81e). The Condition-Item's minus icon stays Neutral/Base (Figma), only its words Light.
+- **Checks round 2:** harness `text/title-strongest` (error; replaces `heading/title-not-light`, Base too, kickers =
+  Body/Small/Bold or All-Caps), `text/subtext-light` (CSS: subtitle / subtext / subheading / capline), and
+  `content/title-is-strongest` raised to error with colour families (state selectors excepted). Runtime kind renamed
+  `text-tone` (titles Strongest; Caption, labels, Subtexts Light). Figma `checkTextTone` with `text/title-strongest` and
+  `text/subtext-light` by layer name; 0 findings on the library and screens. Allow comments: TopNavigation on a colour
+  band, DashboardHeader's result count ("96 results", a value). CI fix: axe baseline color-contrast for CalendarDayCell,
+  NpsScale, TimelineGantt; MetricCard tile test expects Inverse/Light. The platform-audit selftest (13 text-tone
+  fixtures) still has to run: no browser runs until Giám sát's window.
