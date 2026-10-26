@@ -38,9 +38,10 @@ export interface AppShellPaneProps extends Omit<HTMLAttributes<HTMLElement>, "ti
 
 /**
  * Figma .Primitives/AppShell/Pane (16254:1099): a side pane of Pattern/AppShell/Desktop (List-Detail's list, Workspace's
- * and Docs' leading and trailing panes, Focus' summary). Corner-Radius/XLarge; Pane-Header pads Margin-Compact at the
- * top and sides and Spacing/Padding/XSmall below, Spacing/Gap/XSmall between the title and the action; Pane-Content pads
- * Spacing/Padding/XSmall with Spacing/Gap/XSmall between its rows. The AppShell sizes it (`leadingPane`, `trailingPane`).
+ * and Docs' leading and trailing panes, Focus' summary). Corner-Radius/XLarge (none on Canvas); Pane-Header pads
+ * Margin-Compact at the top and sides and Spacing/Padding/XSmall below, Spacing/Gap/XSmall between the title and the
+ * action, which sits at the top of the title's line (Figma re-read 2026-10-26); Pane-Content pads Spacing/Padding/XSmall
+ * with Spacing/Gap/XSmall between its rows. The AppShell sizes it (`leadingPane`, `trailingPane`).
  */
 export function AppShellPane({ title, headingLevel = 2, action, theme = "shadow", surface = "default", children, className, overrides, ref, ...rest }: AppShellPaneProps) {
   const nest = useNested(overrides);

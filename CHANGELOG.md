@@ -36,6 +36,13 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (was `caption-light`); Figma audit `text/title-strongest`, `text/subtext-light`. 96 more Figma layers rebound.
 - Calendar Day-Tile follows its Figma update (2026-10-26): today's weekday in Accent/Strongest; a selected tile on
   Background/Active/Neutral/Subtle (Active/Accent/Subtle on today) with no border.
+- AppShell is a placeholder frame, Layout examples are apps (2026-10-26): the App Shell playground (docs and Zen Studio)
+  draws Figma's Pattern/AppShell with its own placeholders ("Label" rows, Master › Child, "Heading Text", an Empty State,
+  "Replace Component Here" in panes) instead of a sample app; Studio's Main component draws Pattern/AppShell/Desktop
+  (9 variants) and Pattern/AppShell/Mobile (32); the Assets "App shell" item, a new "Page with AppShell" and the Screen
+  section's frame parts insert the same placeholders; the App Shell page's examples are now "Layout examples".
+- AppShellPane follows Figma's updated .Primitives/AppShell/Pane (2026-10-26): the ⋮ action sits at the top of the
+  title's line, a Canvas pane has no corner; Studio's Main component draws its ten Theme × Surface variants.
 - Zen Studio's Main component draws every chart at its Figma width (2026-10-26, user screenshot "Lỗi hiển thị"): Line,
   Multi-Line and Stack-Bar 297, Bar, Area, Grouped-Bar, Combo, Gauge, Funnel and Bullet 352, Curve-Preview 320, beside
   Donut and Radial. In a max-content cell a chart had shrunk to its axis (LineChart one label, BarChart bars with no width).

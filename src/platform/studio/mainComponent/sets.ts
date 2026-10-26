@@ -1,14 +1,16 @@
-import { VARIANT_SETS, type VariantSet, type VariantToggle } from "./variantSets.generated";
+import { MAIN_SETS, type MainSet } from "./appShellSets";
+import { VARIANT_SETS, type VariantToggle } from "./variantSets.generated";
 
 /*
  * The Main component frame's data (spec docs/research/studio-main-component-spec-2026-10-09.md §2): a component's Figma
  * sets, and the filters of each set — the values of the variant properties past the grid's two axes (State) and the
- * Figma booleans (Leading-Icon). A filter left unset shows Figma's default.
+ * Figma booleans (Leading-Icon). A filter left unset shows Figma's default. The AppShell's sets are drawn from each
+ * variant's code (appShellSets.ts).
  */
 
-export const setsOf = (component: string): readonly VariantSet[] => VARIANT_SETS[component] ?? [];
+export const setsOf = (component: string): readonly MainSet[] => VARIANT_SETS[component] ?? MAIN_SETS[component] ?? [];
 
-export const findSet = (component: string, set: string): VariantSet | null => setsOf(component).find((item) => item.name === set) ?? null;
+export const findSet = (component: string, set: string): MainSet | null => setsOf(component).find((item) => item.name === set) ?? null;
 
 /** Whether a Figma boolean is on in a set's filters ("on" / "off"; unset: Figma's default). */
 export const toggleOn = (toggle: VariantToggle, filters: Readonly<Record<string, string>>) => (filters[toggle.prop] ?? (toggle.default ? "on" : "off")) === "on";
