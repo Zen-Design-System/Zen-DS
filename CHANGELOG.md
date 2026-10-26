@@ -24,7 +24,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio pages folder (2026-10-26): an edit made while the page's previous write to the folder was still on its way
   is no longer lost. That write's own change event came back as a conflict, and the folder's older text replaced the
   edit ("Selection lost after the file changed"): a rename followed at once by an insert, a ⌘D or Zen Agent's change.
-  Studio E2E B-49 holds a write's answer and checks the second edit stays.
+  Studio E2E B-49 holds a write's answer and checks the second edit stays. A page opening no longer loses its document
+  (its layer ids) when two reads of its record cross the write that gives it one: the later, older read put the page back
+  without it and the next sync stored that, so a layer selected just then could not be duplicated or edited (Vitest
+  `studio-page-store`).
 - Studio E2E (2026-10-26): PT-28 and BL-01 no longer fail gates by chance. PT-28 waits for the Table to put the focus
   back on the picked cell before it tabs on; the board rows open each component page in a browser context of its own
   (53 loads in one tab hung the 47th), keep only a whole sweep, and say what a page showed instead of its board. The

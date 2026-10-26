@@ -735,5 +735,16 @@ zen/fix/e2e-flaky-pt03-no06-ag10-20261026 (from 0bb459bd; B-49 granted by Giám 
   whatever the page holds now; `planSync(…, sent)` reads a folder holding this tab's own last write as that base (push
   the newer edit, no conflict). pageModel selftest +4 (49). New E2E row B-49: the first rename's write answer held 1.5 s,
   a second rename 50 ms later; before the fix 3/3 broken (the tab went back to the first name), after it 5/5.
-- Diagnostics (temporary, removed): PT-03 steps named, NO-06 store/key/rejection log, AG-10 reply and buttons.
+- NO-06 failed once more after that fix (1 in 5): the Card selected with a raw `@id` src that srcIds could not place,
+  so ⌘D said "Its code is in , shared beyond this example". A 30 ms timeline of the record (IndexedDB), its document,
+  the Card's DOM src and the selection, over 20 runs, caught it: the record had its document, then lost it 17 ms later
+  when the sync's "mark" stored a copy without it. Cause (product, a second data loss): `getPage` read IndexedDB on a
+  cache miss and then set the cache unconditionally; two reads cross while the page opens, the first one's caller
+  (ensurePageDoc → setPageDoc) gives the page its document in microtasks, and the second, older answer put the record
+  back without it. It needs the import's write answer cut by the navigation (no sync mark yet), about 1 run in 15.
+- Fix: `recordOf(id)`: after a read, a record the cache got meanwhile wins; every read-then-write in pageStore uses it
+  (getPage, setPageDoc, replacePageDoc, putPage, …). Vitest `tests/interaction/studio-page-store.test.ts` crosses two
+  reads with setPageDoc. NO-06 ×30 with the fix: 30/30, no document lost (the timeline checked each run).
+- Diagnostics (temporary, removed): PT-03 steps named, NO-06 store/key/rejection log and timeline, AG-10 reply and
+  buttons.
 - Proof: PROOF_LINES

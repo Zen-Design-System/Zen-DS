@@ -151,6 +151,15 @@ export function run<T>(storeName: string, mode: IDBTransactionMode, work: (store
 }
 
 const readRecord = (id: string) => run<PageRecord | undefined>(PAGES, "readonly", (store) => store.get(id) as IDBRequest<PageRecord | undefined>).then((record) => record ?? null);
+/** A page's record: the cached one, else the stored one — unless a write filled the cache while it was read, which is
+ *  newer (a page opening reads its record while setPageDoc gives it its document: the stale read put the page back without
+ *  it, the next sync stored that, and the page's layer ids changed under its selection; E2E NO-06, 2026-10-26). */
+async function recordOf(id: string): Promise<PageRecord | null> {
+  const cached = cache.get(id);
+  if (cached) return cached;
+  const read = await readRecord(id);
+  return cache.get(id) ?? read;
+}
 const writeRecord = (record: PageRecord) => run(PAGES, "readwrite", (store) => store.put(record));
 const isLive = (record: PageRecord) => record.trashedAt === undefined;
 const metaOf = ({ text: _text, sync: _sync, doc: _doc, figma: _figma, figmaExports: _figmaExports, ...meta }: PageRecord): PageMeta => meta;
@@ -180,11 +189,8 @@ export async function listPages(): Promise<PageMeta[]> {
 
 /** A live page's record (cache first); null when missing or in the Trash. */
 export async function getPage(id: string): Promise<PageRecord | null> {
-  let record = cache.get(id) ?? null;
-  if (!record) {
-    record = await readRecord(id);
-    if (record) { cache.set(id, record); notify(); }
-  }
+  const record = await recordOf(id);
+  if (record && !cache.has(id)) { cache.set(id, record); notify(); }
   return record && isLive(record) ? record : null;
 }
 
@@ -223,7 +229,7 @@ export async function restoreRevision(page: string, key: number): Promise<void> 
  * opening it (no revision, no new "edited" time, nothing to the mirror). Refused when the text changed meanwhile.
  */
 export async function setPageDoc(id: string, text: string, doc: PageDoc): Promise<boolean> {
-  const record = cache.get(id) ?? (await readRecord(id));
+  const record = await recordOf(id);
   if (!record || record.text !== text || record.doc) return false;
   const next: PageRecord = { ...record, doc };
   cache.set(id, next);
@@ -236,7 +242,7 @@ export async function setPageDoc(id: string, text: string, doc: PageDoc): Promis
  * writing the text. Refused when the text or the document changed meanwhile.
  */
 export async function replacePageDoc(id: string, text: string, from: PageDoc, doc: PageDoc): Promise<boolean> {
-  const record = cache.get(id) ?? (await readRecord(id));
+  const record = await recordOf(id);
   if (!record || record.text !== text || record.doc !== from) return false;
   const next: PageRecord = { ...record, doc };
   cache.set(id, next);
@@ -253,7 +259,7 @@ export async function replacePageDoc(id: string, text: string, from: PageDoc, do
 export async function putPage(id: string, text: string, { title, reason = "edit", folder, doc, figma }: { title?: string; reason?: RevisionReason; folder?: string | null; doc?: PageDoc; figma?: FigmaBase | null } = {}): Promise<PageRecord> {
   if (!isPageId(id)) throw new Error(`Bad page id ${JSON.stringify(id)}`);
   const now = Date.now();
-  const previous = cache.get(id) ?? (await readRecord(id));
+  const previous = await recordOf(id);
   const record: PageRecord = {
     id,
     title: title ?? headerTitle(text) ?? previous?.title ?? id,
@@ -281,7 +287,7 @@ export async function putPage(id: string, text: string, { title, reason = "edit"
 
 /** Moves a page into a Studio folder (null: out of every folder). The text and its revisions stay as they are. */
 export async function movePage(id: string, folder: string | null): Promise<void> {
-  const record = cache.get(id) ?? (await readRecord(id));
+  const record = await recordOf(id);
   if (!record || (record.folder ?? null) === folder) return;
   const next: PageRecord = { ...record };
   if (folder) next.folder = folder; else delete next.folder;
@@ -398,7 +404,7 @@ export async function findPulledPage(source: { file: string | null; node: string
 
 /** Keeps `base` as the document of the page's last Figma pull (with the page it left and its export), without writing its text. */
 export async function setFigmaBase(id: string, base: PageDoc, { synced, version }: { synced?: PageDoc; version?: string } = {}): Promise<void> {
-  const record = cache.get(id) ?? (await readRecord(id));
+  const record = await recordOf(id);
   if (!record) return;
   const next: PageRecord = { ...record, figma: { base, ...(synced ? { synced } : {}), ...(version ? { version } : {}), at: Date.now() } };
   cache.set(id, next);
@@ -408,7 +414,7 @@ export async function setFigmaBase(id: string, base: PageDoc, { synced, version 
 
 /** Keeps an export to Figma (its version, the pull of its frame, the page it came from): the five latest, newest first. */
 export async function keepFigmaExport(id: string, entry: { version: string; base: PageDoc; synced: PageDoc }): Promise<void> {
-  const record = cache.get(id) ?? (await readRecord(id));
+  const record = await recordOf(id);
   if (!record || record.figmaExports?.[0]?.version === entry.version) return;
   const others = (record.figmaExports ?? []).filter((kept) => kept.version !== entry.version);
   const next: PageRecord = { ...record, figmaExports: [{ ...entry, at: Date.now() }, ...others].slice(0, 5) };
@@ -463,7 +469,7 @@ async function shareFigma(record: PageRecord): Promise<void> {
  */
 export async function loadSharedFigma(id: string): Promise<PageRecord | null> {
   const shared = await readSharedFigma(id);
-  const record = cache.get(id) ?? (await readRecord(id));
+  const record = await recordOf(id);
   if (!record || !shared) return record ?? null;
   const joined = joinFigma(figmaFileOf(record), shared);
   const next: PageRecord = { ...record };
@@ -477,7 +483,7 @@ export async function loadSharedFigma(id: string): Promise<PageRecord | null> {
 
 /** Moves a page to the Trash (and the mirror's copy to the folder's trash). */
 export async function trashPage(id: string): Promise<void> {
-  const record = cache.get(id) ?? (await readRecord(id));
+  const record = await recordOf(id);
   if (!record || !isLive(record)) return;
   const next: PageRecord = { ...record, trashedAt: Date.now() };
   delete next.sync;
@@ -493,7 +499,7 @@ export async function trashPage(id: string): Promise<void> {
 
 /** Takes a page out of the Trash (the mirror gets it back). */
 export async function restorePage(id: string): Promise<void> {
-  const record = cache.get(id) ?? (await readRecord(id));
+  const record = await recordOf(id);
   if (!record || isLive(record)) return;
   const next: PageRecord = { ...record, updatedAt: Date.now() };
   delete next.trashedAt;
