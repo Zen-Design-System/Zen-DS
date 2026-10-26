@@ -1,3 +1,4 @@
+import { appShellParts } from "../../../../tools/studio/appshell-placeholder.mjs";
 import type { PaletteItem } from "../slots/palette";
 
 /*
@@ -13,6 +14,7 @@ const sample = (root: string, code: string, extra: Partial<PaletteItem> = {}): P
   id: `main-${root}`, label: root, group: "Data display", root, components: [root], interactive: false, input: false, build: () => code, ...extra,
 });
 
+const shell = appShellParts();
 const ava = `{ name: "Ava Chen", theme: "violet" }`;
 const bao = `{ name: "Bao Nguyen", theme: "blue" }`;
 
@@ -73,17 +75,20 @@ export const MAIN_SAMPLES: Readonly<Record<string, PaletteItem>> = {
     `  { id: "profile", label: "Profile", icon: "icon-user-circle-line", selectedIcon: "icon-user-circle-solid" },`,
     `]} />`,
   )),
-  // Figma Header/AppShell Theme=Default (16243:290461 in set 16783:71068): Breadcrumbs in Leading-Slots, a Tertiary action with a dot and the
-  // account photo in Trailing-Slots, the page header with Icon-Main Tertiary · Secondary · Main Action in Main-Element;
-  // Sections empty. The Collapse Button comes from the shell (MainComponentFrame PREVIEW_CHROME).
+  // Figma Header/AppShell Theme=Default (16243:290461 in set 16783:71068) with its placeholders (appshell-placeholder.mjs):
+  // Master › Child in Leading-Slots, the bell with 8 and the account photo in Trailing-Slots, "Heading Text" with Icon-Main
+  // Tertiary · Secondary · Main Action in Main-Element; Sections empty. The Collapse Button comes from the shell
+  // (MainComponentFrame PREVIEW_CHROME).
   AppShellHeader: sample("AppShellHeader", lines(
     `<AppShellHeader`,
-    `  leading={<Breadcrumbs items={[{ id: "workspace", label: "Workspace", href: "#" }, { id: "projects", label: "Projects" }]} />}`,
-    `  actions={<><AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot /><AppShellAccount name="Ava Chen" src="zen-media:avatar-ava" /></>}`,
-    `  main={<PageHeader title="Projects"`,
-    `    actions={<><IconButton icon="icon-dots-horizontal-line" level="tertiary" aria-label="More" /><Button level="tertiary">Export</Button><Button level="primary">New project</Button></>} />}`,
+    `  leading={${shell.crumbs}}`,
+    `  actions={${shell.actions().split("\n").join("\n  ")}}`,
+    `  main={${shell.main.split("\n").join("\n  ")}}`,
     `/>`,
   ), { components: ["AppShellHeader", "Breadcrumbs", "AppShellAction", "AppShellAccount", "PageHeader", "IconButton", "Button"] }),
+  // Figma .Primitives/AppShell/Pane Theme=Shadow (16254:1062): "Title", the ⋮ action and the placeholder (its ten
+  // variants are drawn from their own code: mainComponent/appShellSets.ts).
+  AppShellPane: sample("AppShellPane", shell.pane(), { components: ["AppShellPane", "IconButton", "Stack", "Text"] }),
   // Every type reads its own props: Main the title and actions, Control-Bar the search, filters and actions, Navigation the
   // breadcrumbs and the bell, Custom its children.
   DashboardHeader: sample("DashboardHeader", lines(
