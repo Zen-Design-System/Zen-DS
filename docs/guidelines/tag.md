@@ -52,7 +52,7 @@ Also accepts `Omit<HTMLAttributes<HTMLSpanElement>, "children">`.
 | Enter / Space on × | Remove the tag |
 
 ## ✅ Do
-- Space tags side by side Gap/2XSmall (4px): a row Stack of Tags (or of list items holding one Tag each) takes gap="2xs" (the user 2026-10-24; harness: tag/row-gap).
+- Space tags side by side Gap/2XSmall (4px): a row Stack of Tags (or of list items holding one Tag each) takes gap="2xs", across and down a wrap (the user 2026-10-24; harness: tag/row-gap, runtime audit item-row-gap).
 - Let Backspace in an empty field remove the last tag.
 - Flag invalid values with error and explain in the field's error text.
 - Keep tag labels short (≤ 24 characters) and truncate with a tooltip beyond that.

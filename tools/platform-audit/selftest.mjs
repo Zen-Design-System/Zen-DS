@@ -144,6 +144,28 @@ ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageCheck
   await fixture("toolbar-search: DashboardHeader's Control-Bar slot at 240", docsPage(example("Control bar", toolbar(`<div class="zen-dashboard-header__search" style="display: flex; flex: 0 1 240px">${search()}</div>`))), "widgetLayout", "toolbar-search", { clean: true });
 }
 
+/* ── item-row-gap (widgetLayout): Tags side by side, Badges side by side, 4px apart ───────────────────────────────── */
+{
+  // Sized by hand: the fixtures load the tokens, not the components' CSS.
+  const box = "display: inline-flex; flex: none; width: 64px; height: 24px";
+  const tag = (name = "Tag") => `<span class="zen-tag" style="${box}">${name}</span>`;
+  const badge = (name = "Badge", extra = "") => `<span class="zen-badge${extra}" style="${box}">${name}</span>`;
+  const chip = (name = "Chip") => `<button type="button" class="zen-chip" style="${box}">${name}</button>`;
+  const row = (items, style = "gap: 8px", cls = "zen-row") => `<div class="${cls}" style="display: flex; align-items: center; ${style}">${items}</div>`;
+  const W = "widgetLayout", K = "item-row-gap";
+  await fixture("item-row-gap: person Tags 8px apart (PropertyField, 2026-10-26)", docsPage(example("Tags 8", row(`<span>${tag("Hà")}</span><span>${tag("Minh")}</span><span>${tag("Lan")}</span>`, "gap: 8px", "zen-property-value"))), W, K, { finds: ["tags side by side in div.zen-property-value sit 8px apart across"] });
+  await fixture("item-row-gap: Tags 4px across but 8px down the wrap", docsPage(example("Tags wrap", row([1, 2, 3, 4, 5].map((n) => `<span role="listitem">${tag(`T${n}`)}</span>`).join(""), "flex-wrap: wrap; gap: 8px 4px; width: 210px"))), W, K, { finds: ["tags side by side in div.zen-row sit 8px apart down the wrap"] });
+  await fixture("item-row-gap: Tags 4px across and down", docsPage(example("Tags 4", row([1, 2, 3, 4, 5].map((n) => tag(`T${n}`)).join(""), "flex-wrap: wrap; gap: var(--zen-spacing-gap-2-xsmall); width: 210px"))), W, K, { clean: true });
+  await fixture("item-row-gap: Badges 8px apart (TopNavigation's badge row)", docsPage(example("Badges 8", row(badge("Pro") + badge("Admin"), "gap: 8px", "zen-top-nav__badges"))), W, K, { finds: ["badges side by side in div.zen-top-nav__badges sit 8px apart across"] });
+  await fixture("item-row-gap: a Badge and a BadgeStatus 4px apart", docsPage(example("Badges 4", row(badge("Design") + badge("In progress", " zen-badge-status"), "gap: 4px"))), W, K, { clean: true });
+  await fixture("item-row-gap: a Chip row stays 8px", docsPage(example("Chips", row(chip("Day") + chip("Week") + chip("Month"), "gap: 8px"))), W, K, { clean: true });
+  await fixture("item-row-gap: a Tag beside a Badge is not a row of either", docsPage(example("Mixed", row(tag("Design") + badge("New"), "gap: 8px"))), W, K, { clean: true });
+  await fixture("item-row-gap: Tags 4px apart, the + Gap/XSmall after them", docsPage(example("Plus", row(`<span class="zen-slot" style="display: flex; gap: 4px">${tag("Hà")}${tag("Minh")}</span><button type="button" style="width: 24px; height: 24px">+</button>`, "gap: 8px"))), W, K, { clean: true });
+  await fixture("item-row-gap: Badges spread on purpose (space-between)", docsPage(example("Spread", row(badge("Paid") + badge("Due"), "justify-content: space-between; width: 300px"))), W, K, { clean: true });
+  await fixture("item-row-gap: a counter beside a Badge", docsPage(example("Counter", row(badge("Inbox") + badge("3", " zen-badge--counter"), "gap: 8px"))), W, K, { clean: true });
+  await fixture("item-row-gap: a Don't visual is not judged", docsPage(example("Dont", `<div data-verdict="dont">${row(tag() + tag(), "gap: 12px")}</div>`)), W, K, { clean: true });
+}
+
 /* ── table-lead (widgetLayout): a Table's first column, the row's name ─────────────────────────────────────────── */
 {
   // A Table as Table.tsx renders it: rows of cells, a selectable table's checkbox cell first.

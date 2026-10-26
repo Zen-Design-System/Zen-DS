@@ -211,6 +211,51 @@ Since #304 a new row only guards against regressions once it is in `matrix.basel
 HO-18…20 (from #286/#287/#294/#302/#306/#307) passed in every gate since and were listed as "new, work". Run
 `studio:e2e -- --rows=<those 12> --update-baseline` on main 9fa8ef52: 12 works, 0 broken, 98 s.
 
+## tag-badge-gap · Tags and Badges side by side are 4px (tier M)
+
+The user: "Vẫn đang bị lỗi rule. Spacing giữa tag phải là 4px" (a PropertyField "Phụ trách" with three person Tags 8px
+apart), then "áp dụng rule tương tự cho badge". Cause: `property-field.css` set Gap/XSmall on the cell and its row gap;
+the harness `tag/row-gap` reads only an app's Stack, so a component's own CSS slipped through.
+
+Spec card (changed elements only):
+
+| Element | Token | Figma |
+| --- | --- | --- |
+| PropertyPeople / PropertyTags items (`.zen-property-value__slot`) | Spacing/Gap/2XSmall across and down; the cell's + stays Gap/XSmall | Property-Value Value-Slot |
+| TopNavigation `largeTitleBadges` row | Gap/2XSmall apart, Gap/XSmall below the heading | Heading-Text/Basic › Badges |
+| PageHeader `meta`, ListItem `trailing` of Badges/Tags only | Gap/2XSmall (other content keeps XSmall / Small) | — |
+
+- **Code:** the chips sit in a Value-Slot span (Figma's structure) so the + keeps 8px (control gap ladder). Table items,
+  the Table tag editor and Autocomplete tags were already 2XSmall. Examples fixed by the new rule: shape, ThemePreview,
+  app-shell d-expressive-1 / -2.
+- **Harness:** `badge/row-gap` (error, Badge + BadgeStatus), bad/good fixtures; Badge guideline Do/Don't, Tag Do names
+  the runtime kind. `usage:selftest` 261 rules.
+- **Runtime audit:** `item-row-gap` in `widgetLayout`: adjacent Tag–Tag / Badge–Badge in a flex or grid row, across and
+  down a wrap, ≠ the row's `--zen-spacing-gap-2-xsmall`; chips, counters, absolute items, space-* rows and gaps ≥ 32 are
+  not judged. 11 fixtures; audit selftest 81/81. Registered in audit.mjs (BASELINED, SEVERITY), qa ERROR_KINDS,
+  build-qa-process.md.
+- **Figma** (`9nZv4uW2LT21yuHabMTCh1`): itemSpacing (+ wrap spacing) rebound XSmall → 2XSmall on Value-Slot 17090:19,
+  :74, :96, :118 (Person) and :146, :170, :194, :218 (Tags); Badges 12028:70969 (H1), 12048:8244 (H2), 12048:8252 (H3).
+  A scan of every ❖ page found no other Tag/Badge row off 2XSmall. native-pack.json + native-defs.json.gz patched for
+  those 11 nodes by script (round trip checked first; no desktop capture). The library still needs a publish.
+- **Full audit** (`audit.mjs --isolated --quality --no-playground`, Giám sát's slot): 168 page runs (87 at 1512, 84 at
+  390), item-row-gap ran on all of them: 0 findings, so the kind starts with a 0 baseline. The watchdog re-ran three
+  slow pages at 1512 (global-dimensions, description-list, dock-icon). Proof it catches the slip: the old 8px CSS injected
+  (`--css`) on input + top-navigation gives 3 item-row-gap errors (PropertyField people and labels, the badges row).
+- **Gate** (`qa --isolated --files=<the 32 changed files>`; the hook had recorded none, since the edits were made through
+  Bash): PASS. Static, Figma contracts (1 suite), Vitest 91/91, audit 1512/390/320 + dark, behaviour, Studio E2E
+  380/380. The scope left out the PropertyField page and the app-shell examples, so a second run covered them
+  (`--only=input,app-shell`): PASS (Vitest 90/90, audit 1512/390/320, dark, behaviour). Contact sheets reviewed:
+  top-navigation (the badges row at 4px), shape, page-header, list-item, input (the Assignee Tags at 4px), app-shell.
+- **CI on #317** failed at `ai-ui:check`: `docs/ai-ui` (catalog.json, spec.schema.json) is generated from the props and
+  guideline text, and the TopNavigation JSDoc and the Badge guideline changed. Fixed with `npm run ai-ui:build` (only
+  those two descriptions moved). The local gate (`tools/qa/run.mjs`) has no AI UI step, so it could not see this.
+- **Gate step added** (the user: "add the ai-ui:check step to the local QA gate … in this PR"): "AI UI catalog in sync"
+  runs `build-catalog.mjs --check` after the guidelines step when component TSX, the guideline source, docs/api,
+  docs/guidelines, a Figma suite, tools/ai-ui or AGENTS.consumer.md is in scope (`auxKind` "ai-ui" for the last two).
+  It does not regenerate: the ✗ says to run ai-ui:build and commit. Proof without a browser: a deliberately stale
+  composer-rules.md fails it (`qa --files=AGENTS.consumer.md`, no pages), the restored file passes. QA self-test 43/43.
+
 ## Charts · full-width bars, hover-only active column, tighter donut gaps (tier M)
 
 User: "stack hoặc bar chart nên làm style đầy đặn … spacing 8px … cột tràn ra 2 bên … đáy không có bo góc", then
@@ -228,3 +273,8 @@ Contracts chart-bar / chart-stack-bar re-captured through `mcp-capture` (digests
 Horizontal equal; 8 of 8 Stack). With nothing active the screen-reader summary lists every column ("Jan 10, Feb 20, …"),
 no new label keys. The palette Do/Don't previews pass `initialIndex={3}` so the highlight they compare stays visible.
 Gotcha: setting `vectorPaths` on a Figma VECTOR resets its `cornerRadius` to 0 (re-set and re-bind it after).
+
+Figma incident (same session): the ❖ Chart page (6143:31287) was found empty; the 15 chart sets plus .Chart/Hatch and
+.Chart/Legend-Item were detached (parent null) before 12:11, the session's first Figma read, cause unknown. On the user's
+request they were re-attached with their IDs in a new section "Chart components" (17250:3), in family rows (400 padding,
+200 gaps); no other orphaned dependency (30 mains scanned). The page's doc frames are not recoverable this way.

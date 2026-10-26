@@ -22,6 +22,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   cap). Nothing is active by default: the active column and its Tooltip show only under the pointer (or the keyboard)
   and clear when it leaves; `initialIndex` still sets one. DonutChart slices are parted by 2px gaps instead of 4px. The
   Figma Bar-Chart, Stack-Bar-Chart and Donut-Chart sets match.
+- Tags and Badges side by side sit 4px apart (Spacing/Gap/2XSmall), across and down a wrap (the user, 2026-10-26: the
+  people Tags of a PropertyField were 8px apart; "áp dụng rule tương tự cho badge"). PropertyPeople / PropertyTags hold
+  their items in a Value-Slot at 4px (the cell's own + stays 8px away); TopNavigation `largeTitleBadges`, a PageHeader
+  `meta` and a ListItem `trailing` of Badges or Tags only follow; Figma's Property-Value Value-Slot and Heading-Text
+  Badges rows are rebound to Gap/2XSmall. New harness rule `badge/row-gap`; new runtime audit kind `item-row-gap`
+  (rendered Tag and Badge rows, a component's own CSS included).
+- QA gate: `npm run qa` checks the AI UI catalog (`ai-ui:check`, as CI does) when component props, the guideline
+  source, a Figma suite, `tools/ai-ui` or `AGENTS.consumer.md` changed (2026-10-26: #317 passed the gate and failed CI).
 - Zen Studio per-breakpoint layout (2026-10-26, PR 2 of the responsive plan): a Stack, Grid or Box on a Screen narrower
   than desktop edits that breakpoint (Inspector › Auto layout › Breakpoint, dots on breakpoints with values of their own,
   Reset, Same on every breakpoint); its fields and the canvas gap / padding handles write `{ desktop, tablet, mobile }`

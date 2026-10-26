@@ -33,6 +33,9 @@
  *              chart, with room for a row beside nothing (the user 2026-10-16: wrap it like Figma's auto layout)
  *   toolbar-search (error) (widgetLayout) a Search wider than 240px in a toolbar row beside other controls, at 768px
  *              and wider (the user 2026-10-24: a toolbar Search stretched across the row; harness search/toolbar-width)
+ *   item-row-gap (error) (widgetLayout) Tags side by side, or Badges side by side, that are not Spacing/Gap/2XSmall (4px)
+ *              apart, across or down a wrap (the user 2026-10-24 tags, 2026-10-26 badges), the gap a component's own CSS
+ *              sets included (harness tag/row-gap, badge/row-gap see only an app's Stack). Chip rows (8px) are not judged
  *   table-lead (error) (widgetLayout) a Table's first column, the row's name, drawing an initials Avatar that is not
  *              Solid (the user 2026-10-24) or a Dock Icon that is not Small, an emoji one not Medium (the user
  *              2026-10-25), what a page's helper component draws included (harness table/first-column-avatar-solid,
@@ -545,7 +548,7 @@ export function textFit({ scopeSel, regionSel }) {
  * a Search wider than 240px in a toolbar row, beside other controls (the user 2026-10-24), at a desktop or tablet width.
  */
 export function widgetLayout({ scopeSel, regionSel }) {
-  const out = { "card-gap": [], "legend-column": [], "toolbar-search": [], "table-lead": [] };
+  const out = { "card-gap": [], "legend-column": [], "toolbar-search": [], "table-lead": [], "item-row-gap": [] };
   const scope = scopeSel ? document.querySelector(scopeSel) : document;
   if (!scope) return out;
   const REGION = regionSel ?? ".pe-card__stage, .platform-example-panel .platform-example-row, .official-portal-root > *";
@@ -650,6 +653,61 @@ export function widgetLayout({ scopeSel, regionSel }) {
         out["table-lead"].push(key.startsWith("emoji ")
           ? `${label(table)}: ${name} draws its first column's emoji Dock Icon ${key.slice(6)} (${rows}) — an emoji Dock Icon is Medium (Figma has Emoji only at Medium and Large): size="md"`
           : `${label(table)}: ${name} draws its first column's Dock Icon ${key} (${rows}) — the row's name column takes a Small Dock Icon, with or without a caption: size="sm"`);
+      }
+    }
+    // item-row-gap: Tags side by side sit Spacing/Gap/2XSmall apart (the user 2026-10-24), Badges too (2026-10-26), across
+    // and down a wrap. The source harness (tag/row-gap, badge/row-gap) reads only an app's Stack; this sees the gap a
+    // component sets in its own CSS (the 2026-10-26 slip: PropertyField's person Tags 8px apart). Each item's cell is the
+    // outermost wrapper that holds only it (a list item, a chip span); the row is the cell's parent laid out as a flex row
+    // or a grid. Two items of one kind next to each other on a line are measured, and the lines of a wrapping row whose
+    // children are all such cells. A Chip row (8px) is not this check's; counters, items laid over something (position
+    // absolute) and rows spread apart on purpose (justify-content space-*) are skipped, as are gaps of 32px or more.
+    {
+      const KINDS = [["tag", ".zen-tag"], ["badge", ".zen-badge:not(.zen-badge--counter)"]];
+      const kindOf = (el) => KINDS.find(([, sel]) => el.matches(sel))?.[0];
+      const rowsSeen = new Set();
+      for (const item of region.querySelectorAll(KINDS.map(([, sel]) => sel).join(", "))) {
+        if (!visible(item) || item.closest(".platform-guideline-visual__dont, [data-verdict='dont'], [data-audit-skip-quality]") || /absolute|fixed/.test(getComputedStyle(item).position)) continue;
+        let cell = item;
+        while (cell.parentElement && cell.parentElement !== region && [...cell.parentElement.children].filter(visible).length === 1) cell = cell.parentElement;
+        const row = cell.parentElement;
+        if (!row || rowsSeen.has(row)) continue;
+        rowsSeen.add(row);
+        const rs = getComputedStyle(row);
+        const flexRow = rs.display.includes("flex") && rs.flexDirection.startsWith("row");
+        if (!(flexRow || rs.display.includes("grid")) || /space-/.test(rs.justifyContent)) continue;
+        // The row's visible children, each with the one item it holds (or none).
+        const cells = [...row.children].filter(visible).map((c) => {
+          const own = c.matches(KINDS.map(([, sel]) => sel).join(", ")) ? c : null;
+          let inner = c; while (!own && inner.children.length && [...inner.children].filter(visible).length === 1) inner = [...inner.children].find(visible);
+          const it = own ?? (inner !== c && kindOf(inner) ? inner : null);
+          return { cell: c, item: it && !/absolute|fixed/.test(getComputedStyle(it).position) ? it : null, kind: it ? kindOf(it) : null };
+        });
+        const k = scaleOf(row);
+        const want = px(getComputedStyle(row).getPropertyValue("--zen-spacing-gap-2-xsmall")) || 4;
+        const off = new Map();
+        const note = (kind, dir, gap) => { const key = `${kind}|${dir}`; const list = off.get(key) ?? off.set(key, []).get(key); list.push(Math.round(gap * 10) / 10); };
+        for (let i = 1; i < cells.length; i += 1) {
+          const a = cells[i - 1], b = cells[i];
+          if (!a.item || !b.item || a.kind !== b.kind) continue;
+          const A = a.item.getBoundingClientRect(), B = b.item.getBoundingClientRect();
+          if (!(B.top < A.bottom - 1 && B.bottom > A.top + 1)) continue;                       // not on one line
+          const gap = (Math.max(B.left - A.right, A.left - B.right)) / k;
+          if (Math.abs(gap - want) > 0.5 && gap < 32) note(a.kind, "across", gap);
+        }
+        // Down a wrap: every child is a cell of one kind, laid out on two or more lines.
+        const kinds = new Set(cells.map((c) => c.kind));
+        if (flexRow && rs.flexWrap.startsWith("wrap") && kinds.size === 1 && !kinds.has(null)) {
+          const lines = [];
+          for (const { item: it } of cells) { const r = it.getBoundingClientRect(); const line = lines.find((l) => r.top < l.bottom - 1 && r.bottom > l.top + 1); if (line) { line.top = Math.min(line.top, r.top); line.bottom = Math.max(line.bottom, r.bottom); } else lines.push({ top: r.top, bottom: r.bottom }); }
+          lines.sort((x, y) => x.top - y.top);
+          for (let i = 1; i < lines.length; i += 1) { const gap = (lines[i].top - lines[i - 1].bottom) / k; if (Math.abs(gap - want) > 0.5 && gap < 32) note([...kinds][0], "down", gap); }
+        }
+        for (const [key, gaps] of off) {
+          const [kind, dir] = key.split("|");
+          const where = typeof row.className === "string" && row.className.trim() ? `${row.tagName.toLowerCase()}.${row.className.trim().split(/\s+/).slice(0, 2).join(".")}` : row.tagName.toLowerCase();
+          out["item-row-gap"].push(`${label(row)}: ${kind}s side by side in ${where} sit ${[...new Set(gaps)].join(" / ")}px apart ${dir === "down" ? "down the wrap" : "across"} — ${kind}s sit Spacing/Gap/2XSmall (${want}px) apart, across and down: gap="2xs" (or var(--zen-spacing-gap-2-xsmall) in the component's CSS)`);
+        }
       }
     }
     // toolbar-search: a Search in a toolbar row is at most 240px wide (the user 2026-10-24). Its cell is the outermost

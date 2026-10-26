@@ -2014,7 +2014,7 @@
         },
         "initialIndex": {
           "type": "number",
-          "description": "The bar active at first (painted Chart/Sector/Secondary, its Tooltip shown)."
+          "description": "The bar active at first and whenever the pointer leaves (painted Chart/Sector/Secondary, its Tooltip shown)."
         },
         "color": {
           "type": "string",
@@ -8572,7 +8572,7 @@
         "More than 3 series in a GroupedBarChart, or stacked areas whose series aren't parts of one total → StackBarChart, LineChart or a Table.",
         "A ComboChart for two measures in the same unit → GroupedBarChart or LineChart compare."
       ],
-      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order, parted by 4px gaps of the same width from the hole to the rim, ea",
+      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order, parted by 2px gaps (Spacing/Gap/3XSmall) of the same width from t",
       "props": {
         "data": {
           "type": "array",
@@ -20903,7 +20903,7 @@
         "More than 3 series in a GroupedBarChart, or stacked areas whose series aren't parts of one total → StackBarChart, LineChart or a Table.",
         "A ComboChart for two measures in the same unit → GroupedBarChart or LineChart compare."
       ],
-      "description": "Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector (2px side padding, Corner-Radius/Small on the column), segments in series ord",
+      "description": "Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector, edge to edge Spacing/Gap/XSmall apart (Corner-Radius/Small on the top corner",
       "props": {
         "data": {
           "type": "array",
@@ -20950,7 +20950,7 @@
         },
         "initialIndex": {
           "type": "number",
-          "description": "The column active at first."
+          "description": "The column active at first and whenever the pointer leaves."
         },
         "showLegend": {
           "type": "boolean",
@@ -23599,7 +23599,7 @@
         },
         "largeTitleBadges": {
           "x-kind": "node",
-          "description": "Figma Main-Heading-Text Badges (Badges on): a row of Badges under the large title (Badge Medium, Spacing/Gap/XSmall apart and below the heading), e.g."
+          "description": "Figma Main-Heading-Text Badges (Badges on): a row of Badges under the large title (Badge Medium, Spacing/Gap/XSmall below the heading and Spacing/Gap/2XSmall apart), e.g."
         },
         "headingLevel": {
           "enum": [
@@ -24435,6 +24435,7 @@
       "title": "Badge, Badge-Counter & Badge-Status",
       "file": "docs/guidelines/badge.md",
       "do": [
+        "Space badges side by side Gap/2XSmall (4px), as tags: a row Stack of Badges or BadgeStatus takes gap=\"2xs\" (the user 2026-10-26; harness: badge/row-gap, runtime audit item-row-gap).",
         "Map status to semantic themes consistently (green = success, red = failure, yellow = attention).",
         "Use Subtle backgrounds in dense tables and Solid for emphasis.",
         "Cap counters at \"99+\" and hide them at zero.",
@@ -24446,6 +24447,7 @@
         "Lead a priority badge (Urgent, High, Medium, Low) with the solid flag, leading=\"icon-flag-03-solid\" (Figma .Task/Priority), in the one priority palette: Urgent and High red, Medium yellow, Low neutral — the same everywhere, PropertySelect tones negative / warning / neutral (harness: priority/palette); keep a status badge's leading icon (the dot, or an icon per state) — the user 2026-10-24 (harness: badge/status-priority-icon)."
       ],
       "dont": [
+        "Don't space badges side by side Gap/XSmall (8px) or more: that is the Chip spacing.",
         "Don't make a badge clickable (use Chip).",
         "Don't make a BadgeStatus removable or clickable: a status changes in its picker (a Popover of BadgeStatus items, Input/Property-Field Type=Status).",
         "Don't rely on colour alone; keep the text.",
@@ -24458,6 +24460,7 @@
         "badge-counter/cap",
         "flag/no-emoji-flag",
         "theme/on-solid-content",
+        "badge/row-gap",
         "badge/count-uses-counter",
         "badge/workflow-status-uses-badge-status",
         "badge/status-priority-icon",
@@ -24473,7 +24476,7 @@
       "title": "Tag",
       "file": "docs/guidelines/tag.md",
       "do": [
-        "Space tags side by side Gap/2XSmall (4px): a row Stack of Tags (or of list items holding one Tag each) takes gap=\"2xs\" (the user 2026-10-24; harness: tag/row-gap).",
+        "Space tags side by side Gap/2XSmall (4px): a row Stack of Tags (or of list items holding one Tag each) takes gap=\"2xs\", across and down a wrap (the user 2026-10-24; harness: tag/row-gap, runtime audit item-row-gap).",
         "Let Backspace in an empty field remove the last tag.",
         "Flag invalid values with error and explain in the field's error text.",
         "Keep tag labels short (≤ 24 characters) and truncate with a tooltip beyond that."
@@ -25868,6 +25871,7 @@
         "shape/px-offset-in-auto-layout",
         "chip/row-gap",
         "tag/row-gap",
+        "badge/row-gap",
         "layout/use-stack",
         "interaction/no-noop-handler"
       ]

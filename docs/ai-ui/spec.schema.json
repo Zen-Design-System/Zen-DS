@@ -5251,7 +5251,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The bar active at first (painted Chart/Sector/Secondary, its Tooltip shown)."
+                "description": "The bar active at first and whenever the pointer leaves (painted Chart/Sector/Secondary, its Tooltip shown)."
               },
               "color": {
                 "anyOf": [
@@ -41123,7 +41123,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "The column active at first."
+                "description": "The column active at first and whenever the pointer leaves."
               },
               "showLegend": {
                 "anyOf": [
@@ -46513,7 +46513,7 @@
                     "$ref": "#/$defs/marker"
                   }
                 ],
-                "description": "Figma Main-Heading-Text Badges (Badges on): a row of Badges under the large title (Badge Medium, Spacing/Gap/XSmall apart and below the heading), e.g."
+                "description": "Figma Main-Heading-Text Badges (Badges on): a row of Badges under the large title (Badge Medium, Spacing/Gap/XSmall below the heading and Spacing/Gap/2XSmall apart), e.g."
               },
               "headingLevel": {
                 "anyOf": [
