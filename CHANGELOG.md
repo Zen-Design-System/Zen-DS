@@ -23,7 +23,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   `initialIndex` still sets one). ChartCard: `metricLabel` names the figure (`description` is its deprecated alias),
   `hint` puts the chart's description behind an (i) after the title, and the examples carry no header icon. DonutChart
   slices are 2px apart. Figma matches: the chart sets' Show Hint, Metric Label, Show Tooltip (off) and Show Icon (off);
-  the Figma AI kit audit adds chart/header-icon, chart/tooltip-on and chart/metric-label-is-description.
+  the Figma AI kit audit adds chart/header-icon, chart/tooltip-on and chart/metric-label-is-description. Figma charts show no
+  active period at rest either: the hover state (Hover on Bar, Area, Multi-Line, Heatmap; a Sector at Select=Selected
+  on Line, Multi-Line, Stack-Bar) always brings its Tooltip. Combo columns run edge to edge 8px apart too; legend labels,
+  Funnel counts and the metric label are Content/Neutral/Light.
 - Zen Studio's Main component draws every chart at its Figma width (2026-10-26, user screenshot "Lỗi hiển thị"): Line,
   Multi-Line and Stack-Bar 297, Bar, Area, Grouped-Bar, Combo, Gauge, Funnel and Bullet 352, Curve-Preview 320, beside
   Donut and Radial. In a max-content cell a chart had shrunk to its axis (LineChart one label, BarChart bars with no width).

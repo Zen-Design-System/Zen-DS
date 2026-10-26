@@ -328,3 +328,11 @@ horizontal bars 8px ("Gap này là đang là 16px"), "Tooltip này chỉ bật k
 - Figma AI kit: chart/header-icon, chart/tooltip-on (a frame named Hover/Tooltip is skipped), chart/metric-label-is-
   description; tested on a temporary section (each rule fires once, the clean and the hover-state charts pass) and
   removed. screen-rules §3 Charts + audit-rules rows.
+- Later: Combo-Chart edge to edge (Marks and X-Axis reach 4px past the plot so the line, dots and pills stay on the bar
+  centres; code the same through Padding/2XSmall); Caption Light (legend, Funnel counts, Stack-Bar labels) and the
+  Metric Label Light, from the caption-light session; "Đây là trạng thái đang hover/active thì phải có tooltip": Figma
+  Sectors all Select=Default with a Selected one always showing its Tooltip, Bar/Area/Multi-Line/Heatmap Hover (was Show
+  Tooltip) drawing Active-Bar + Active-Wrapper overlays, rule, dots, cell ring (Active-Ring) with the Tooltip; suites pass
+  no initialIndex where Figma shows none (pickedSector) and lose the 88% / 12px-dot / active-label exceptions.
+  Gotchas: a grid cell takes one child (appendChildAt refuses an occupied cell, gridRowAnchorIndex is read-only), so the
+  twin bar is absolute; swapping a nested instance's variant re-ids its subtree, so re-query after each swap.
