@@ -210,3 +210,21 @@ From main 9fa8ef52 (train #310 with bp-layout's library half in). Built:
 Since #304 a new row only guards against regressions once it is in `matrix.baseline.json`. B-47, B-48, PT-22…28 and
 HO-18…20 (from #286/#287/#294/#302/#306/#307) passed in every gate since and were listed as "new, work". Run
 `studio:e2e -- --rows=<those 12> --update-baseline` on main 9fa8ef52: 12 works, 0 broken, 98 s.
+
+## Charts · full-width bars, hover-only active column, tighter donut gaps (tier M)
+
+User: "stack hoặc bar chart nên làm style đầy đặn … spacing 8px … cột tràn ra 2 bên … đáy không có bo góc", then
+"mặc định không nên hiện focus và tooltip, chỉ khi hover vào cột mới hiện", then "spacing của pie chart nên khít hơn".
+
+| Where | Before | After |
+| --- | --- | --- |
+| Figma Bar-Chart Vertical (8 variants) | Column 2px padding, Lane/Bar max 40, radius 8 all corners, Bars/X-Axis gap 0 | padding 0, no max, bottom radii 0, Bars + X-Axis gap Spacing/Gap/XSmall; Tooltip-Anchor + Rule moved onto the selected column |
+| Figma .Primitives/Chart/Column/Stack-Bar/Single (Vertical ×3) | 2px padding, Value max 40, radius 8 all | padding 0, no max, bottom radii 0 |
+| Figma Stack-Bar-Chart (8) | Chart-Visual / Sectors grid gap 0 | gap Spacing/Gap/XSmall; Sectors' label track 32 → 24 so sector 1 still starts at 32 |
+| Figma Donut-Chart (32) | slices 4px apart | slices redrawn 2px apart (same angles 30/23/18/17/12 %), Corner-Radius/XSmall re-bound |
+| Code | `.zen-chart__column` 2px padding, bar ≤ 40px, radius all corners; last bar active | bar/stack blocks: bars + sectors `column-gap` 8, bars fill, `0 0` bottom radii (rise clip too); `PlotFrame hoverOnly`: nothing active until hover/keys, pointer leave or blur hands back to `initialIndex`; a touch keeps its column; DonutChart + Studio push `GAP 2` |
+
+Contracts chart-bar / chart-stack-bar re-captured through `mcp-capture` (digests: 8 of 16 Bar variants changed, all
+Horizontal equal; 8 of 8 Stack). With nothing active the screen-reader summary lists every column ("Jan 10, Feb 20, …"),
+no new label keys. The palette Do/Don't previews pass `initialIndex={3}` so the highlight they compare stays visible.
+Gotcha: setting `vectorPaths` on a Figma VECTOR resets its `cornerRadius` to 0 (re-set and re-bind it after).
