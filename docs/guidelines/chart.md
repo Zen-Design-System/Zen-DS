@@ -29,7 +29,7 @@ One chart family in one style: how a value changes over time (Line, Area), compa
 - One progress value → ProgressBar.
 - One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).
 - 3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).
-- Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.
+- Dashboard tiles → ChartCard (title, metricLabel, value; the chart's description in hint) next to Metric Cards.
 - A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.
 - A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette="secondary" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet.
 
@@ -66,7 +66,7 @@ One chart family in one style: how a value changes over time (Line, Area), compa
 | Every chart | `aria-label · format · animate` | Draw-in on mount and on new data (bars rise, lines wipe, rings sweep, cells pop); reduced motion fades; animate={false} turns it off |
 | Number format | `format (a function, or compact · currency · percent) · currency (ISO 4217, default USD) · ComboChart lineFormat` | A function reads the numbers as you write them; a preset is text a Zen Studio page can hold: compact 128.4K (the default), currency $128.4K (in currency: EUR €128.4K, VND ₫128.4K; currency alone implies it), percent 41% (the value already a percentage). MetricCard takes the same format and currency for its series, goal and categories |
 | Average | `LineChart · BarChart · StackBarChart showAverage` | A dotted Border/Neutral/Solid rule at the mean (the first series; closed bars, projected left out; column totals) with an "Avg $88.7K" tag in the Tooltip colours (Figma Show Average) |
-| Card | `ChartCard title · icon · description · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme` | Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Body/Extra/Medium title + chevron, then the Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card), then the Metric under it: Body/Small description over a Display/4 value, Gap/3XSmall apart, Padding/Small above (Figma Chart/Line-Chart, every chart since 2026-10-21) |
+| Card | `ChartCard title · hint · metricLabel · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme` | Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): Body/Extra/Medium title, then the hint (i) (Figma Show Hint: a 20px Content/Neutral/Light info icon whose Tooltip holds the chart's description) and the chevron; then the Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card), then the Metric under it: the Body/Small metric label (what the figure is) over a Display/4 value, Gap/3XSmall apart, Padding/Small above (Figma Chart/Line-Chart, every chart since 2026-10-21). No header icon (Figma Show Icon off); description is the old name of metricLabel |
 
 ## Props
 Generated from the TypeScript source; full JSON in `docs/api/chart.json`.
@@ -85,7 +85,7 @@ Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fadin
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Revenue invoiced per month, Apr – Sep 2026"). |
 | `className` | `string` | — |  |
 | `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
-| `initialIndex` | `number` | — | The point active at first (its Tooltip shows). Default: the last one. |
+| `initialIndex` | `number` | — | The point active at first and whenever the pointer leaves. Default: none — the active point and its Tooltip show only under the pointer or the keyboard (the user, 2026-10-26). |
 | `curve` | `"smooth" \| "linear"` | `"smooth"` | `smooth` (default, Figma's curve) or `linear` segments. |
 | `fill` | `"area" \| "none" \| "gradient"` | `"area"` | The area under the line: `area` (default: Figma's fade, Accent/Solid at the top to Accent/Subtle at the baseline, at 30%) or `none`; `gradient` is deprecated and draws the same area. |
 | `showLegend` | `boolean` | `true` | The legend of the line and its comparison (default on with `compare`; colour is never the only key). |
@@ -276,7 +276,7 @@ Figma Chart/Area-Chart (set 15484:2663; Type=Area 15484:2552 · Type=Stacked 154
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Billable hours per month, Apr – Sep 2026"). |
 | `className` | `string` | — | Extra class on the chart frame (the axes and the plot; the legend sits outside it). |
 | `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
-| `initialIndex` | `number` | — | The period active at first (its dots, rule and Tooltip show). Default: the last one. |
+| `initialIndex` | `number` | — | The period active at first and whenever the pointer leaves. Default: none — the active period and its Tooltip show only under the pointer or the keyboard (the user, 2026-10-26). |
 | `showLegend` | `boolean` | — | Figma Show Legend: the legend names every series. Default: on for `stacked`, off for a single `area` (the card title names its one measure). Keep it on a stacked chart (harness: chart/series-need-legend). |
 | `legendPosition` | `"top" \| "bottom"` | `"bottom"` | Legend above or below the plot (default bottom). |
 | `animate` | `boolean` | `true` | Wipe the areas in from the left on mount and when the data changes (default true; reduced motion fades). |
@@ -295,7 +295,7 @@ Figma Chart/Grouped-Bar-Chart (15485:2457; Color=Primary · Secondary ↔ `palet
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Invoiced and collected per month, Apr – Sep 2026"). |
 | `className` | `string` | — | Extra class on the chart frame (the axes and the plot; the legend sits outside it). |
 | `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
-| `initialIndex` | `number` | — | The group active at first (its Tooltip shows every series' value). Default: the last one. |
+| `initialIndex` | `number` | — | The group active at first and whenever the pointer leaves. Default: none — the active group and its Tooltip show only under the pointer or the keyboard (the user, 2026-10-26). |
 | `showLegend` | `boolean` | `true` | Figma Show Legend: the legend names every series; keep it (harness: chart/series-need-legend). Default on. |
 | `legendPosition` | `"top" \| "bottom"` | `"bottom"` | Legend above or below the plot (default bottom). |
 | `animate` | `boolean` | `true` | Grow the bars from the baseline on mount and when the data changes (default true; reduced motion fades). |
@@ -317,22 +317,24 @@ Figma Chart/Combo-Chart (15485:2519; Color=Primary · Secondary ↔ `palette`): 
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Revenue and margin per month, Apr – Sep 2026"). |
 | `className` | `string` | — | Extra class on the chart frame (both axes and the plot; the legend sits outside it). |
 | `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
-| `initialIndex` | `number` | — | The period active at first (its Tooltip reads both values). Default: the last one. |
+| `initialIndex` | `number` | — | The period active at first and whenever the pointer leaves. Default: none — the active period and its Tooltip show only under the pointer or the keyboard (the user, 2026-10-26). |
 | `showLegend` | `boolean` | `true` | Figma Show Legend: the legend names the bars and the line; keep it (harness: chart/series-need-legend). Default on. |
 | `legendPosition` | `"top" \| "bottom"` | `"bottom"` | Legend above or below the plot (default bottom). |
 | `animate` | `boolean` | `true` | Grow the bars from the baseline and wipe the line in from the left on mount and when the data changes (default true; reduced motion fades). |
 | `palette` | `"primary" \| "secondary"` | `"primary"` | Figma Color: `primary` (default) draws Color Chart Sector/Primary bars and a Sector/Secondary line; `secondary` draws Sector/Secondary bars and a Sector/Primary line and dots. |
 
 ### ChartCard
-Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) → header · Segmented · chart, gap 16. The header row holds an optional icon, the title and the open chevron; a description and the headline value follow it (every Figma chart card's Show Icon · Icon · Title · Show Description · Description · Show Value · Value · Show Ranges · Show Open properties).
+Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) → header · Segmented · chart, gap 16. The header row holds the title, the Hint (an info icon whose Tooltip carries the chart's description) and the open chevron; the metric label and the headline value follow it (every Figma chart card's Title · Show Hint · Show Open · Show Metric Label · Metric Label · Show Value · Value · Show Ranges properties; Show Icon · Icon stay, off by default).
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
 | `title` (required) | `ReactNode` | — | Figma Header Label (Body/Extra/Medium, 2026-10-21). |
 | `headingLevel` | `2 \| 3 \| 4` | `3` | Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2 when the card sits directly under the page h1). The look stays Body/Extra/Medium — the level follows the outline, not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title. |
-| `icon` | `IconName \| ReactNode` | — | Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node. Decorative; the title names the card. |
-| `description` | `ReactNode` | — | What the figure is ("Available revenue in your wallet"), Body/Small/Regular: the top of Figma's Metric, under the Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value). |
-| `value` | `ReactNode` | — | The headline figure the chart explains ("$4,346.00"), Display/4 (Figma Chart-Card Metric > Value), under the description and the Segmented. |
+| `icon` | `IconName \| ReactNode` | — | Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node. Decorative; the title names the card. Figma Show Icon is off by default: chart headers carry no icon (the user, 2026-10-26), so leave it out. |
+| `hint` | `ReactNode` | — | Figma Hint (Show Hint): an info icon (20px, Content/Neutral/Light) at the end of the header that shows this text in a Tooltip on hover and keyboard focus. Put the chart's description here (what it counts, its source, how the figure is worked out) so the card itself stays the title, the metric and the chart; leave it out when the title says enough. |
+| `metricLabel` | `ReactNode` | — | Figma Metric Label: what the headline figure is ("Invoiced so far in 2026"), Body/Small/Regular over the value, under the Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value). |
+| `description` | `ReactNode` | — | **Deprecated:** Renamed `metricLabel` (Figma Metric Label, 2026-10-26). A description of the chart goes in `hint`.  |
+| `value` | `ReactNode` | — | The headline figure the chart explains ("$4,346.00"), Display/4 (Figma Chart-Card Metric > Value), under the metric label and the Segmented. |
 | `onOpen` | `() => void` | — | Figma Header trailing Button/Icon-Main XSmall Tertiary (chevron): opens the full report. |
 | `openLabel` | `string` | — | Accessible name of the open button. Default: the locale's “Open report”. |
 | `ranges` | `SegmentedOption[]` | — | Figma Segmented (Secondary) range switch. |
@@ -375,6 +377,8 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 | Home / End | First / last item (the heatmap: first / last cell of the row) |
 
 ## ✅ Do
+- Keep a chart card to its title, the metric label over the value, and the chart; say what the chart counts, its source or how the figure is worked out in hint, the (i) after the title (Figma Show Hint), not in an extra line.
+- Let the tooltip and the active highlight follow the pointer: charts show none until a period is hovered or reached with the keyboard; set initialIndex only to call out one period in a static view.
 - Size a Donut or Radial by name, as Figma's Size: small 120 (a tile, several charts in a row; the centre shows the figure alone), medium 168 (a chart card, the default), large 240 (a wide card, the total beside the ring), xlarge 320 (a hero card) (harness: chart/ring-size-named). A stretched Chart Card grows the ring from there.
 - Always give the chart an aria-label that says what it shows and over which range (harness: chart/needs-name).
 - Format values for people (`$23.4K`, `52 GB`, `1,990 h`) with `format`.
@@ -389,6 +393,8 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 - Lead a chart with Sector/Secondary through palette="secondary", never by passing the sector colours to color, activeColor or a series (harness: chart/palette-by-hand).
 
 ## ❌ Don't
+- Don't put an icon before a chart card's title (Figma Show Icon stays off): the title, the hint and the chart carry it.
+- Don't write the chart's description in metricLabel: it names the figure under it ("Invoiced so far in 2026"); the description belongs in hint.
 - Don't use a line for categories that aren't ordered in time.
 - Don't pick custom colours outside the chart palette unless a series has a fixed brand colour.
 - Don't put a chart where the user needs exact values; add a Table.
@@ -430,6 +436,7 @@ type SegmentedState = "default" | "hover" | "focused" | "disabled"
 | `chart/grouped-series-count` | warn | A GroupedBarChart compares 2–3 series side by side. | `zen-allow-grouped-series: <reason>` |
 | `chart/combo-needs-labels` | error | A ComboChart names both measures (barLabel, lineLabel): its legend, Tooltip order and summary read them. | `zen-allow-combo-labels: <reason>` |
 | `chart/palette-by-hand` | warn | Lead a chart with Chart/Sector/Secondary through palette="secondary" (Figma Color), not by setting the sector colours by hand. | `zen-allow-chart-palette: <reason>` |
+| `api/deprecated-prop` | warn | A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.) | `zen-allow-deprecated: <reason>` |
 | `api/overrides-studio-only` | error | `overrides` (Figma instance overrides of the layers a component draws itself: `{ "Sub-Action": { level: "danger" } }`) is written by Zen Studio on the pages it makes; hand-written code sets the component's own props or composes the parts (the user's call, 2026-10-10). | `zen-allow-overrides: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 | `interaction/controlled-needs-handler` | warn | A controlled prop comes with its change handler (month + onMonthChange, value + onValueChange, open + onOpenChange, pageSize + onPageSizeChange…): without it nothing can change the value and the control is frozen, e.g. a DatePicker whose Previous/Next do nothing. Bare booleans (a fixed preview) and `x ? true : undefined` pins pass. | `zen-allow-controlled-handler: <reason>` |

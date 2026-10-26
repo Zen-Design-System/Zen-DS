@@ -411,7 +411,7 @@ const invoicedSoFar = studioMonths.slice(-9).reduce((total, m) => total + m.invo
 
 function RevenueBarsCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
   return (
-    <ChartCard title="Revenue" headingLevel={headingLevel} icon="icon-bar-chart-01-line" description="Invoiced so far in 2026" value={formatMoney(invoicedSoFar)}>
+    <ChartCard title="Revenue" headingLevel={headingLevel} metricLabel="Invoiced so far in 2026" value={formatMoney(invoicedSoFar)}>
       <BarChart aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast" data={revenue2026} format={formatCompactMoney} height={240} showAverage />
     </ChartCard>
   );
@@ -423,7 +423,7 @@ const collected = { label: "Collected", values: studioMonths.slice(-6).map((m) =
 
 function CashFlowCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
   return (
-    <ChartCard title="Invoiced and collected" headingLevel={headingLevel} icon="icon-line-chart-up-line" description="Apr – Sep 2026">
+    <ChartCard title="Invoiced and collected" headingLevel={headingLevel} metricLabel="Apr – Sep 2026">
       <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={cashMonths} label="Invoiced" compare={collected} legendPosition="top" format={formatCompactMoney} height={240} />
     </ChartCard>
   );
@@ -439,7 +439,7 @@ const capacity: ChartPoint[] = [
 
 function CapacityCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
   return (
-    <ChartCard title="Hours against capacity" headingLevel={headingLevel} icon="icon-clock-line" description="Billable hours in September" value={hours(capacity.reduce((total, team) => total + team.value, 0))}>
+    <ChartCard title="Hours against capacity" headingLevel={headingLevel} metricLabel="Billable hours in September" value={hours(capacity.reduce((total, team) => total + team.value, 0))}>
       <BarChart orientation="horizontal" aria-label="Billable hours per team against capacity, September 2026" data={capacity} format={hours} showAverage />
     </ChartCard>
   );
@@ -460,7 +460,7 @@ const quarters = [{ id: "q3", label: "Q3" }, { id: "ytd", label: "Year to date" 
 function ClientShareCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
   const [quarter, setQuarter] = useState("q3");
   return (
-    <ChartCard title="Revenue by client" headingLevel={headingLevel} icon="icon-pie-chart-01-line" ranges={quarters} range={quarter} onRangeChange={setQuarter}>
+    <ChartCard title="Revenue by client" headingLevel={headingLevel} ranges={quarters} range={quarter} onRangeChange={setQuarter}>
       <DonutChart key={quarter} aria-label={`Revenue by client, ${quarter === "q3" ? "Q3 2026" : "Jan – Sep 2026"}`} data={quarter === "q3" ? clientShares : clientSharesYtd}
         format={formatCompactMoney} legendPosition="start" />
     </ChartCard>
@@ -470,7 +470,7 @@ function ClientShareCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
 /** The same quarter with its total beside the ring: the figure leads, the legend lists down under it. */
 function ClientShareSplitCard() {
   return (
-    <ChartCard title="Revenue by client" icon="icon-pie-chart-01-line">
+    <ChartCard title="Revenue by client">
       <DonutChart aria-label="Revenue by client, Q3 2026" data={clientShares} format={formatCompactMoney} totalPosition="start" size="large"
         label="Invoiced in Q3 2026" value={formatMoney(clientShares.reduce((sum, c) => sum + c.value, 0))} />
     </ChartCard>
@@ -495,7 +495,7 @@ const budgetRings: ChartSlice[] = ["lumen-banking", "phin-loyalty", "mekong-trac
 
 function BudgetRingsCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
   return (
-    <ChartCard title="Budget used" headingLevel={headingLevel} icon="icon-target-04-line" description="Client projects, spent of budget">
+    <ChartCard title="Budget used" headingLevel={headingLevel} metricLabel="Client projects, spent of budget">
       <RadialChart aria-label="Budget used on client projects, September 30, 2026" data={budgetRings} legendPosition="end" />
     </ChartCard>
   );
@@ -511,7 +511,7 @@ const loggedByHour = [
 
 function ActivityCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
   return (
-    <ChartCard title="When the studio logs time" headingLevel={headingLevel} icon="icon-activity-line" description="Hours logged per hour, September">
+    <ChartCard title="When the studio logs time" headingLevel={headingLevel} metricLabel="Hours logged per hour, September">
       <HeatmapChart aria-label="Hours logged by weekday and hour of the day, September 2026" rows={loggedHours} columns={weekdays} values={loggedByHour} format={hours} />
     </ChartCard>
   );
@@ -548,7 +548,7 @@ function TopClientsCard() {
   const [quarter, setQuarter] = useState<"q3" | "ytd">("q3");
   const rows = clientRanking[quarter];
   return (
-    <ChartCard title="Top clients" icon="icon-horizontal-bar-chart-01-line" description={quarter === "q3" ? "Revenue in Q3 2026" : "Revenue, Jan – Sep 2026"}
+    <ChartCard title="Top clients" metricLabel={quarter === "q3" ? "Revenue in Q3 2026" : "Revenue, Jan – Sep 2026"}
       value={formatMoney(rows.reduce((sum, c) => sum + c.value, 0))} ranges={quarters} range={quarter} onRangeChange={(id) => setQuarter(id as "q3" | "ytd")}>
       <BarList key={quarter} aria-label={`Revenue by client, ${quarter === "q3" ? "Q3 2026" : "Jan – Sep 2026"}`} headers={{ label: "Client", value: "Revenue" }}
         data={rows.map((c) => ({ label: c.label, value: c.value }))} format={(v) => formatMoney(v)} />
@@ -602,7 +602,7 @@ const goalFormat = (value: number, row: ChartBullet) => (row.label === "Revenue"
 function QuarterGoalsCard() {
   const met = q3Goals.filter((goal) => goal.value >= goal.target).length;
   return (
-    <ChartCard title="Quarter goals" icon="icon-target-04-line" description="Q3 2026 against target" value={`${met} of ${q3Goals.length} met`}>
+    <ChartCard title="Quarter goals" metricLabel="Q3 2026 against target" value={`${met} of ${q3Goals.length} met`}>
       <BulletChart aria-label="Quarter goals, Q3 2026" data={q3Goals} format={goalFormat} />
     </ChartCard>
   );
@@ -613,7 +613,7 @@ const collectedQ3 = studioMonths.slice(-3).reduce((sum, m) => sum + m.collected,
 
 function CollectedGoalCard() {
   return (
-    <ChartCard title="Collected in Q3" icon="icon-coins-stacked-01-line" description="Against the $290K plan" value={formatMoney(collectedQ3)}>
+    <ChartCard title="Collected in Q3" metricLabel="Against the $290K plan" value={formatMoney(collectedQ3)}>
       <BulletChart aria-label="Collected against plan, Q3 2026" data={[{ label: "Jul – Sep 2026", value: collectedQ3, target: 290000, max: 300000 }]}
         actualLabel="Collected" targetLabel="Plan" format={formatCompactMoney} />
     </ChartCard>
@@ -629,7 +629,7 @@ const loggedSeptember = 7564;
 
 function UtilisationGaugeCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
   return (
-    <ChartCard title="Utilisation" headingLevel={headingLevel} icon="icon-speedometer-03-line" description="Billable share of logged hours, September"
+    <ChartCard title="Utilisation" headingLevel={headingLevel} metricLabel="Billable share of logged hours, September"
       value={`${billableSeptember.toLocaleString("en-US")} of ${hours(loggedSeptember)}`}>
       <GaugeChart aria-label="Billable share of logged hours against the 85% target, September 2026" value={billableSeptember} max={loggedSeptember}
         target={loggedSeptember * 0.85} actualLabel="Billable" />
@@ -704,7 +704,7 @@ const proposalFunnel: ChartPoint[] = [["Leads", 480], ["Qualified", 312], ["Prop
 
 function ProposalFunnelCard({ headingLevel = 3 }: { headingLevel?: 2 | 3 | 4 }) {
   return (
-    <ChartCard title="Proposal funnel" headingLevel={headingLevel} icon="icon-filter-funnel-line" description="Leads to signed projects, Q3"
+    <ChartCard title="Proposal funnel" headingLevel={headingLevel} metricLabel="Leads to signed projects, Q3"
       value={`${proposalFunnel[proposalFunnel.length - 1].value} signed`}>
       <FunnelChart aria-label="Leads to signed projects, Q3 2026" data={proposalFunnel} />
     </ChartCard>
@@ -718,7 +718,7 @@ const people = (value: number) => plural(value, "person", "people");
 
 function HiringFunnelCard() {
   return (
-    <ChartCard title="Design hiring" icon="icon-users-plus-line" description="Product designer round, Jul – Sep" value={`${people(hiringFunnel[hiringFunnel.length - 1].value)} hired`}>
+    <ChartCard title="Design hiring" metricLabel="Product designer round, Jul – Sep" value={`${people(hiringFunnel[hiringFunnel.length - 1].value)} hired`}>
       <FunnelChart aria-label="Product designer hiring, applications to hires, July – September 2026" data={hiringFunnel} format={people} />
     </ChartCard>
   );
@@ -732,7 +732,7 @@ const studioHoursTotal = studioHours.reduce((sum, month) => sum + month.values.h
 
 function HoursAreaCard() {
   return (
-    <ChartCard title="Billable hours" icon="icon-line-chart-up-line" description="Logged per month, Apr – Sep 2026" value={hours(studioHoursTotal)}>
+    <ChartCard title="Billable hours" metricLabel="Logged per month, Apr – Sep 2026" value={hours(studioHoursTotal)}>
       <AreaChart aria-label="Billable hours per month, Apr – Sep 2026" data={studioHours} series={[{ id: "hours", label: "Billable hours" }]} format={hours} height={240} />
     </ChartCard>
   );
@@ -740,7 +740,7 @@ function HoursAreaCard() {
 
 function HoursByTeamAreaCard() {
   return (
-    <ChartCard title="Billable hours by team" icon="icon-line-chart-up-line" description="Logged per month, Apr – Sep 2026" value={hours(studioHoursTotal)}>
+    <ChartCard title="Billable hours by team" metricLabel="Logged per month, Apr – Sep 2026" value={hours(studioHoursTotal)}>
       <AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026" data={teamHours} series={teams} format={hours} height={240} />
     </ChartCard>
   );
@@ -753,7 +753,7 @@ const invoicedSixMonths = studioMonths.slice(-6).reduce((sum, m) => sum + m.invo
 
 function InvoicedCollectedCard() {
   return (
-    <ChartCard title="Invoiced vs. collected" icon="icon-bar-chart-01-line" description="Apr – Sep 2026" value={formatMoney(invoicedSixMonths)}>
+    <ChartCard title="Invoiced vs. collected" metricLabel="Apr – Sep 2026" value={formatMoney(invoicedSixMonths)}>
       <GroupedBarChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={invoicedCollected} series={cashSeries} format={formatCompactMoney} height={240} />
     </ChartCard>
   );
@@ -799,7 +799,7 @@ const revenueMargin: ChartComboDatum[] = studioMonths.slice(-6).map((m, i) => ({
 
 function RevenueMarginCard() {
   return (
-    <ChartCard title="Revenue and margin" icon="icon-bar-chart-01-line" description="Apr – Sep 2026" value={formatMoney(invoicedSixMonths)}>
+    <ChartCard title="Revenue and margin" metricLabel="Apr – Sep 2026" value={formatMoney(invoicedSixMonths)}>
       <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" data={revenueMargin} barLabel="Revenue" lineLabel="Margin"
         format={formatCompactMoney} lineFormat={percent} height={240} />
     </ChartCard>
@@ -811,7 +811,7 @@ const hoursUtilisation: ChartComboDatum[] = studioHours.map((month, i) => ({ lab
 
 function HoursUtilisationCard() {
   return (
-    <ChartCard title="Hours and utilisation" icon="icon-clock-line" description="Billable hours and the share of available hours" value={`${percent(utilisation[utilisation.length - 1].value)} in September`}>
+    <ChartCard title="Hours and utilisation" metricLabel="Billable hours and the share of available hours" value={`${percent(utilisation[utilisation.length - 1].value)} in September`}>
       <ComboChart aria-label="Billable hours and utilisation per month, Apr – Sep 2026" data={hoursUtilisation} barLabel="Billable hours" lineLabel="Utilisation"
         format={hours} lineFormat={percent} lineMax={100} height={240} />
     </ChartCard>
@@ -825,15 +825,15 @@ function HoursUtilisationCard() {
 function NeutralLedRow() {
   return (
     <Grid minColumnWidth="clamp(300px, 30%, 100%)" gap="md">
-      <ChartCard title="Revenue" icon="icon-bar-chart-01-line" description="Invoiced so far in 2026" value={formatMoney(invoicedSoFar)}>
+      <ChartCard title="Revenue" metricLabel="Invoiced so far in 2026" value={formatMoney(invoicedSoFar)}>
         <BarChart palette="secondary" aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast" data={revenue2026} format={formatCompactMoney} height={240} />
       </ChartCard>
-      <ChartCard title="Utilisation" icon="icon-speedometer-03-line" description="Billable share of logged hours, September"
+      <ChartCard title="Utilisation" metricLabel="Billable share of logged hours, September"
         value={`${billableSeptember.toLocaleString("en-US")} of ${hours(loggedSeptember)}`}>
         <GaugeChart palette="secondary" aria-label="Billable share of logged hours against the 85% target, September 2026" value={billableSeptember} max={loggedSeptember}
           target={loggedSeptember * 0.85} actualLabel="Billable" />
       </ChartCard>
-      <ChartCard title="Revenue by client" icon="icon-pie-chart-01-line" description="Q3 2026" value={formatMoney(clientShares.reduce((sum, c) => sum + c.value, 0))}>
+      <ChartCard title="Revenue by client" metricLabel="Q3 2026" value={formatMoney(clientShares.reduce((sum, c) => sum + c.value, 0))}>
         <DonutChart palette="secondary" aria-label="Revenue by client, Q3 2026" data={clientShares} format={formatCompactMoney} />
       </ChartCard>
     </Grid>
@@ -846,10 +846,10 @@ function NeutralLedRow() {
 function CurrencyPresetRow() {
   return (
     <Grid minColumnWidth="clamp(300px, 45%, 100%)" gap="md">
-      <ChartCard title="Invoiced and collected" icon="icon-line-chart-up-line" description="Apr – Sep 2026">
+      <ChartCard title="Invoiced and collected" metricLabel="Apr – Sep 2026">
         <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={cashMonths} label="Invoiced" compare={collected} legendPosition="top" format="currency" height={240} />
       </ChartCard>
-      <ChartCard title="Top clients" icon="icon-horizontal-bar-chart-01-line" description="Revenue in Q3 2026">
+      <ChartCard title="Top clients" metricLabel="Revenue in Q3 2026">
         <BarList aria-label="Revenue by client, Q3 2026" headers={{ label: "Client", value: "Revenue" }} data={clientShares} format="currency" />
       </ChartCard>
     </Grid>
@@ -903,10 +903,10 @@ const [reportOpen, setReportOpen] = useState(false);
     main={<PageHeader title="Analytics" description="How Đìzai Studio earns, bills and spends its time." actions={<Button level="tertiary" startIcon="icon-share-01-line" onClick={share}>Share</Button>} />} />}
 >
   <Grid minColumnWidth="clamp(300px, 30%, 100%)" gap="md">
-    <ChartCard title="Revenue" headingLevel={2} icon="icon-bar-chart-01-line" description="Invoiced so far in 2026" value="$798,300">
+    <ChartCard title="Revenue" headingLevel={2} metricLabel="Invoiced so far in 2026" value="$798,300">
       <BarChart aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast" data={revenue} format={formatCompactMoney} height={240} showAverage />
     </ChartCard>
-    <ChartCard title="Invoiced and collected" headingLevel={2} icon="icon-line-chart-up-line" description="Apr – Sep 2026">
+    <ChartCard title="Invoiced and collected" headingLevel={2} metricLabel="Apr – Sep 2026">
       <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={invoiced} label="Invoiced"
         compare={{ label: "Collected", values: collected }} legendPosition="top" height={240} />
     </ChartCard>
@@ -940,7 +940,7 @@ const [range, setRange] = useState("3m");
   { label: "Oct", value: 108000, projected: true }, { label: "Nov", value: 112500, projected: true }, { label: "Dec", value: 104000, projected: true },
 ];
 
-<ChartCard title="Revenue" icon="icon-bar-chart-01-line" description="Invoiced so far in 2026" value="$798,300">
+<ChartCard title="Revenue" metricLabel="Invoiced so far in 2026" value="$798,300">
   <BarChart aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast" data={revenue} format={formatCompactMoney} height={240}
     showAverage />
 </ChartCard>`,
@@ -952,7 +952,7 @@ const [range, setRange] = useState("3m");
     code: `const invoiced = [{ label: "Apr", value: 82300 }, /* … */ { label: "Sep", value: 105700 }];
 const collected = { label: "Collected", values: [79500, /* … */ 88300] };
 
-<ChartCard title="Invoiced and collected" icon="icon-line-chart-up-line" description="Apr – Sep 2026">
+<ChartCard title="Invoiced and collected" metricLabel="Apr – Sep 2026">
   <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" data={invoiced} label="Invoiced"
     compare={collected} legendPosition="top" format={formatCompactMoney} height={240} />
 </ChartCard>`,
@@ -963,7 +963,7 @@ const collected = { label: "Collected", values: [79500, /* … */ 88300] };
     render: () => <ClientShareCard />,
     code: `const [quarter, setQuarter] = useState("q3");
 
-<ChartCard title="Revenue by client" icon="icon-pie-chart-01-line"
+<ChartCard title="Revenue by client"
   ranges={[{ id: "q3", label: "Q3" }, { id: "ytd", label: "Year to date" }]} range={quarter} onRangeChange={setQuarter}>
   <DonutChart key={quarter} aria-label="Revenue by client, Q3 2026" format={formatCompactMoney} legendPosition="start"
     data={[{ id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 }, /* … */]} />
@@ -974,7 +974,7 @@ const collected = { label: "Collected", values: [79500, /* … */ 88300] };
     wide: true,
     description: "On a half-width dashboard card the total leads in a column of its own, the legend lists down under it and the ring stands at the end with an empty hole (totalPosition=\"start\"). Picking a slice puts its amount in the total's place; on a narrow card the column comes first and the ring under it.",
     render: () => <ClientShareSplitRow />,
-    code: `<ChartCard title="Revenue by client" icon="icon-pie-chart-01-line">
+    code: `<ChartCard title="Revenue by client">
   <DonutChart aria-label="Revenue by client, Q3 2026" totalPosition="start" size="large"
     label="Invoiced in Q3 2026" value="$296,800" format={formatCompactMoney}
     data={[{ id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 }, /* … */]} />
@@ -984,7 +984,7 @@ const collected = { label: "Collected", values: [79500, /* … */ 88300] };
     title: "Against a target",
     description: "Horizontal bars suit long category names. Each team's capacity is a hatched track behind its bar, every row ends with its value (the active one in Strongest, nothing floats over the bars), and the average runs down the plot under its tag. ↑/↓ move between teams; the summary reads \"1,990 h of 2,240 h\".",
     render: () => <CapacityCard />,
-    code: `<ChartCard title="Hours against capacity" icon="icon-clock-line" description="Billable hours in September" value="5,900 h">
+    code: `<ChartCard title="Hours against capacity" metricLabel="Billable hours in September" value="5,900 h">
   <BarChart orientation="horizontal" aria-label="Billable hours per team against capacity, September 2026" format={hours} showAverage
     data={[{ label: "Design", value: 2650, target: 2800 }, { label: "Engineering", value: 1990, target: 2240 }, /* … */]} />
 </ChartCard>`,
@@ -993,7 +993,7 @@ const collected = { label: "Collected", values: [79500, /* … */ 88300] };
     title: "Ring gauges",
     description: "Up to four measures against the same maximum, as concentric rings over dotted tracks: here the share of budget each client project has spent. The centre shows the outer ring, or the ring you pick.",
     render: () => <BudgetRingsCard />,
-    code: `<ChartCard title="Budget used" icon="icon-target-04-line" description="Client projects, spent of budget">
+    code: `<ChartCard title="Budget used" metricLabel="Client projects, spent of budget">
   <RadialChart aria-label="Budget used on client projects, September 30, 2026" legendPosition="end"
     data={[{ id: "lumen-banking", label: "Online banking redesign", value: 36 }, /* … */]} />
 </ChartCard>`,
@@ -1002,7 +1002,7 @@ const collected = { label: "Collected", values: [79500, /* … */ 88300] };
     title: "Activity by hour",
     description: "A heatmap reads a value per weekday and hour on five Brand steps, from Pale to Deep, with the Less → More scale under it. The arrow keys move through the cells; the row and column labels of the active cell light up.",
     render: () => <ActivityCard />,
-    code: `<ChartCard title="When the studio logs time" icon="icon-activity-line" description="Hours logged per hour, September">
+    code: `<ChartCard title="When the studio logs time" metricLabel="Hours logged per hour, September">
   <HeatmapChart aria-label="Hours logged by weekday and hour of the day, September 2026" format={hours}
     rows={["9 am", "10 am", /* … */ "6 pm"]} columns={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]}
     values={[[38, 41, 40, 39, 35, 4, 0], /* one row per hour */]} />
@@ -1110,7 +1110,7 @@ const retry = () => {
     title: "Top clients",
     description: "A bar list ranks a few items with their values: each bar is its share of the leader, the name sits in the bar and the values line up at the end under their column label. The active row is stronger (48%); ↑/↓ and Home/End move it and the summary reads \"Lumen Bank: $89,000 (1 of 5)\". The range switch redraws the list.",
     render: () => <TopClientsCard />,
-    code: `<ChartCard title="Top clients" icon="icon-horizontal-bar-chart-01-line" description="Revenue in Q3 2026" value="$296,800"
+    code: `<ChartCard title="Top clients" metricLabel="Revenue in Q3 2026" value="$296,800"
   ranges={[{ id: "q3", label: "Q3" }, { id: "ytd", label: "Year to date" }]} range={quarter} onRangeChange={setQuarter}>
   {/* Ranked largest first by you: the list keeps your order. */}
   <BarList key={quarter} aria-label="Revenue by client, Q3 2026" headers={{ label: "Client", value: "Revenue" }} format={formatMoney}
@@ -1142,7 +1142,7 @@ const retry = () => {
     title: "Goals against targets",
     description: "A bullet chart sets 1–4 goals against their targets, each on its own scale, so money, counts and percentages share one card: the bar is where a goal stands, the tick where it should be, and a bar past its tick is a goal met. ↑/↓ pick a goal (the others dim) and the summary reads \"New clients: 5 of 4 (2 of 3)\".",
     render: () => <QuarterGoalsCard />,
-    code: `<ChartCard title="Quarter goals" icon="icon-target-04-line" description="Q3 2026 against target" value="1 of 3 met">
+    code: `<ChartCard title="Quarter goals" metricLabel="Q3 2026 against target" value="1 of 3 met">
   <BulletChart aria-label="Quarter goals, Q3 2026"
     format={(v, row) => (row.label === "Revenue" ? formatCompactMoney(v) : row.label === "Utilisation" ? \`\${v}%\` : String(v))}
     data={[
@@ -1156,7 +1156,7 @@ const retry = () => {
     title: "One goal",
     description: "One goal is enough for a bullet chart when its target matters: the tick shows the plan, which a progress bar can't. The legend takes the card's words (actualLabel, targetLabel) and max sets the scale.",
     render: () => <CollectedGoalCard />,
-    code: `<ChartCard title="Collected in Q3" icon="icon-coins-stacked-01-line" description="Against the $290K plan" value="$275,800">
+    code: `<ChartCard title="Collected in Q3" metricLabel="Against the $290K plan" value="$275,800">
   <BulletChart aria-label="Collected against plan, Q3 2026" actualLabel="Collected" targetLabel="Plan" format={formatCompactMoney}
     data={[{ label: "Jul – Sep 2026", value: 275800, target: 290000, max: 300000 }]} />
 </ChartCard>`,
@@ -1165,7 +1165,7 @@ const retry = () => {
     title: "Utilisation against a target",
     description: "One measure against its maximum as a half ring: billable hours of the hours logged, the 85% target as a tick across the ring. Pass max (here the hours logged) and the gauge reads the share; the legend names the value and the target. Screen readers hear a meter: \"Billable 78%, Target 85%\".",
     render: () => <UtilisationGaugeCard />,
-    code: `<ChartCard title="Utilisation" icon="icon-speedometer-03-line" description="Billable share of logged hours, September" value="5,900 of 7,564 h">
+    code: `<ChartCard title="Utilisation" metricLabel="Billable share of logged hours, September" value="5,900 of 7,564 h">
   <GaugeChart aria-label="Billable share of logged hours against the 85% target, September 2026"
     value={5900} max={7564} target={7564 * 0.85} actualLabel="Billable" />
 </ChartCard>`,
@@ -1194,7 +1194,7 @@ const retry = () => {
     title: "Proposal funnel",
     description: "Stages from first contact to a signed project, each bar centred and as wide as its share of the first stage; the last stage takes Sector/Secondary. Every row shows its count under the name and its share at the end, so nothing floats over the bars. Hover or ↑/↓ pick a stage and dim the others.",
     render: () => <ProposalFunnelCard />,
-    code: `<ChartCard title="Proposal funnel" icon="icon-filter-funnel-line" description="Leads to signed projects, Q3" value="62 signed">
+    code: `<ChartCard title="Proposal funnel" metricLabel="Leads to signed projects, Q3" value="62 signed">
   <FunnelChart aria-label="Leads to signed projects, Q3 2026"
     data={[{ label: "Leads", value: 480 }, { label: "Qualified", value: 312 }, { label: "Proposal", value: 168 }, { label: "Negotiation", value: 94 }, { label: "Signed", value: 62 }]} />
 </ChartCard>`,
@@ -1205,7 +1205,7 @@ const retry = () => {
     render: () => <HiringFunnelCard />,
     code: `const people = (value: number) => plural(value, "person", "people");
 
-<ChartCard title="Design hiring" icon="icon-users-plus-line" description="Product designer round, Jul – Sep" value="4 people hired">
+<ChartCard title="Design hiring" metricLabel="Product designer round, Jul – Sep" value="4 people hired">
   <FunnelChart aria-label="Product designer hiring, applications to hires, July – September 2026" format={people}
     data={[{ label: "Applications", value: 214 }, { label: "Screened", value: 96 }, { label: "Portfolio review", value: 41 }, /* … */ { label: "Hired", value: 4 }]} />
 </ChartCard>`,
@@ -1214,7 +1214,7 @@ const retry = () => {
     title: "Hours over time",
     description: "An area chart reads one measure over time as a straight line over its fading area, from the first month to the last. The active month shows its dot, a rule down to the baseline and the Tooltip beside the dot; with one series the card title names the measure, so there is no legend.",
     render: () => <HoursAreaCard />,
-    code: `<ChartCard title="Billable hours" icon="icon-line-chart-up-line" description="Logged per month, Apr – Sep 2026" value="35,240 h">
+    code: `<ChartCard title="Billable hours" metricLabel="Logged per month, Apr – Sep 2026" value="35,240 h">
   <AreaChart aria-label="Billable hours per month, Apr – Sep 2026" series={[{ id: "hours", label: "Billable hours" }]}
     data={[{ label: "Apr", values: { hours: 5560 } }, /* … */ { label: "Sep", values: { hours: 5900 } }]} format={hours} height={240} />
 </ChartCard>`,
@@ -1226,7 +1226,7 @@ const retry = () => {
     code: `const teams = [{ id: "design", label: "Design" }, { id: "engineering", label: "Engineering" },
   { id: "delivery", label: "Delivery" }, { id: "client-services", label: "Client Services" }];
 
-<ChartCard title="Billable hours by team" icon="icon-line-chart-up-line" description="Logged per month, Apr – Sep 2026" value="35,240 h">
+<ChartCard title="Billable hours by team" metricLabel="Logged per month, Apr – Sep 2026" value="35,240 h">
   <AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026" series={teams} format={hours} height={240}
     data={months} // { label: "Sep", values: { design: 2650, engineering: 1990, delivery: 750, "client-services": 510 } }
   />
@@ -1236,7 +1236,7 @@ const retry = () => {
     title: "Invoiced vs. collected",
     description: "Grouped bars put two or three measures side by side in each month, here what was invoiced next to what came in. The legend names both colours and the Tooltip reads each value after its dot. For a trend against a reference, the line with its comparison reads better; for parts of one total, a Stack Bar.",
     render: () => <InvoicedCollectedCard />,
-    code: `<ChartCard title="Invoiced vs. collected" icon="icon-bar-chart-01-line" description="Apr – Sep 2026" value="$559,300">
+    code: `<ChartCard title="Invoiced vs. collected" metricLabel="Apr – Sep 2026" value="$559,300">
   <GroupedBarChart aria-label="Invoiced and collected per month, Apr – Sep 2026" format={formatCompactMoney} height={240}
     series={[{ id: "invoiced", label: "Invoiced" }, { id: "collected", label: "Collected" }]}
     data={[{ label: "Apr", values: { invoiced: 82300, collected: 79500 } }, /* … */ { label: "Sep", values: { invoiced: 105700, collected: 88300 } }]} />
@@ -1266,7 +1266,7 @@ const retry = () => {
     title: "Revenue and margin",
     description: "A combo chart reads two measures with different units over the same months: revenue as bars on the start axis, margin as a line with a dot per month on the end axis. Both axes share the gridlines, and the Tooltip reads both values for the active month.",
     render: () => <RevenueMarginCard />,
-    code: `<ChartCard title="Revenue and margin" icon="icon-bar-chart-01-line" description="Apr – Sep 2026" value="$559,300">
+    code: `<ChartCard title="Revenue and margin" metricLabel="Apr – Sep 2026" value="$559,300">
   <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" barLabel="Revenue" lineLabel="Margin"
     format={formatCompactMoney} lineFormat={(value) => \`\${value}%\`} height={240}
     data={[{ label: "Apr", bar: 82300, line: 31 }, /* … */ { label: "Sep", bar: 105700, line: 41 }]} />
@@ -1276,7 +1276,7 @@ const retry = () => {
     title: "A share on a fixed axis",
     description: "When the line is a share, lineMax={100} fixes the end axis at 0 – 100%, so 78% sits at 78% of the plot instead of near the top of a tighter scale. The end axis still takes the start axis' gridlines (0, 25, 50, 75, 100%).",
     render: () => <HoursUtilisationCard />,
-    code: `<ChartCard title="Hours and utilisation" icon="icon-clock-line" description="Billable hours and the share of available hours" value="78% in September">
+    code: `<ChartCard title="Hours and utilisation" metricLabel="Billable hours and the share of available hours" value="78% in September">
   <ComboChart aria-label="Billable hours and utilisation per month, Apr – Sep 2026" barLabel="Billable hours" lineLabel="Utilisation"
     format={hours} lineFormat={(value) => \`\${value}%\`} lineMax={100} height={240}
     data={[{ label: "Apr", bar: 5560, line: 77 }, /* … */ { label: "Sep", bar: 5900, line: 78 }]} />
@@ -1287,12 +1287,12 @@ const retry = () => {
     description: "format=\"currency\" reads money without a function: \"$105.7K\" on the axis, in the Tooltip and down the list, the way a Zen Studio page writes it (a page holds text, never a function). currency picks another currency (\"EUR\" €105.7K), format=\"percent\" reads a share, and a function still writes any other unit.",
     render: () => <CurrencyPresetRow />,
     code: `<Grid minColumnWidth="clamp(300px, 45%, 100%)" gap="md">
-  <ChartCard title="Invoiced and collected" icon="icon-line-chart-up-line" description="Apr – Sep 2026">
+  <ChartCard title="Invoiced and collected" metricLabel="Apr – Sep 2026">
     <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" label="Invoiced" legendPosition="top" format="currency" height={240}
       data={[{ label: "Apr", value: 82300 }, /* … */ { label: "Sep", value: 105700 }]}
       compare={{ label: "Collected", values: [79500, /* … */ 88300] }} />
   </ChartCard>
-  <ChartCard title="Top clients" icon="icon-horizontal-bar-chart-01-line" description="Revenue in Q3 2026">
+  <ChartCard title="Top clients" metricLabel="Revenue in Q3 2026">
     <BarList aria-label="Revenue by client, Q3 2026" headers={{ label: "Client", value: "Revenue" }} format="currency"
       data={[{ label: "Lumen Bank", value: 89000 }, { label: "Phin & Co", value: 68300 }, /* … */]} />
   </ChartCard>
@@ -1303,15 +1303,15 @@ const retry = () => {
     description: "palette=\"secondary\" (Figma Color=Secondary) leads a chart with Chart/Sector/Secondary, Neutral Deep in Zen's theme, and keeps the brand colour for what should stand out: the active bar, the gauge's target, the second client's share. Bar, stack bar, area, grouped bar, combo, donut, radial, gauge, funnel and bullet charts take it; colours from the third series on stay as they are.",
     render: () => <NeutralLedRow />,
     code: `<Grid minColumnWidth="clamp(300px, 30%, 100%)" gap="md">
-  <ChartCard title="Revenue" icon="icon-bar-chart-01-line" description="Invoiced so far in 2026" value="$798,300">
+  <ChartCard title="Revenue" metricLabel="Invoiced so far in 2026" value="$798,300">
     <BarChart palette="secondary" aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast"
       data={[{ label: "Jan", value: 74300 }, /* … */ { label: "Dec", value: 104000, projected: true }]} format={formatCompactMoney} height={240} />
   </ChartCard>
-  <ChartCard title="Utilisation" icon="icon-speedometer-03-line" description="Billable share of logged hours, September" value="5,900 of 7,564 h">
+  <ChartCard title="Utilisation" metricLabel="Billable share of logged hours, September" value="5,900 of 7,564 h">
     <GaugeChart palette="secondary" aria-label="Billable share of logged hours against the 85% target, September 2026"
       value={5900} max={7564} target={7564 * 0.85} actualLabel="Billable" />
   </ChartCard>
-  <ChartCard title="Revenue by client" icon="icon-pie-chart-01-line" description="Q3 2026" value="$296,800">
+  <ChartCard title="Revenue by client" metricLabel="Q3 2026" value="$296,800">
     <DonutChart palette="secondary" aria-label="Revenue by client, Q3 2026" format={formatCompactMoney}
       data={[{ id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 }, /* … */]} />
   </ChartCard>

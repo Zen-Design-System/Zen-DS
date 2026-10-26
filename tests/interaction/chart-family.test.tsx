@@ -51,6 +51,8 @@ describe("chart family keyboard", () => {
   it("LineChart compare: the line chart plus one dashed comparison, both in the summary and the legend", async () => {
     await render(wrap(<LineChart aria-label="Cash" label="Invoiced" compare={{ label: "Collected", values: [8, 7] }} data={[{ label: "Aug", value: 9 }, { label: "Sep", value: 10 }]} />));
     const plot = await focusChart("Cash");
+    expect(summaryOf(plot)).toBe("Aug: Invoiced 9, Collected 8; Sep: Invoiced 10, Collected 7"); // no point active until one is picked
+    await press(plot, "End");
     expect(summaryOf(plot)).toBe("Sep: Invoiced 10, Collected 7 (2 of 2)");
     expect(document.querySelectorAll(".zen-chart__legend li")).toHaveLength(2);
     expect(plot.querySelectorAll(".zen-chart__line")).toHaveLength(2);
@@ -291,7 +293,7 @@ describe("phase 2 charts (docs/research/chart-phase2-spec-2026-10-14.md)", () =>
   const ab = [{ id: "a", label: "A" }, { id: "b", label: "B" }];
   const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-  it("data that arrives after mount shows the default item, not \"No data\"", async () => {
+  it("data that arrives after mount reads as its overview (or the default item), not \"No data\"", async () => {
     const view = (on: boolean) => wrap(<>
       <LineChart aria-label="Line" data={on ? [{ label: "Jan", value: 1 }, { label: "Feb", value: 2 }] : []} />
       <GroupedBarChart aria-label="Grouped" data={on ? months : []} series={ab} />
@@ -300,14 +302,16 @@ describe("phase 2 charts (docs/research/chart-phase2-spec-2026-10-14.md)", () =>
     const screen = await render(view(false));
     expect(summaryOf(await focusChart("Grouped"))).toBe("No data");
     await screen.rerender(view(true));
-    expect(summaryOf(await focusChart("Line"))).toBe("Feb: 2 (2 of 2)");
-    expect(summaryOf(await focusChart("Grouped"))).toBe("Feb: A 3, B 1 (2 of 2)");
+    expect(summaryOf(await focusChart("Line"))).toBe("Jan 1, Feb 2");
+    expect(summaryOf(await focusChart("Grouped"))).toBe("Jan: A 1, B 2; Feb: A 3, B 1");
     expect(summaryOf(await focusChart("List"))).toBe("A: 5 (1 of 2)");
   });
 
   it("AreaChart stacked: the total and every band; Home moves to the first period", async () => {
     await render(wrap(<AreaChart type="stacked" aria-label="Area" data={months} series={ab} />));
     const plot = await focusChart("Area");
+    expect(summaryOf(plot)).toBe("Jan total 3, Feb total 4");
+    await press(plot, "End");
     expect(summaryOf(plot)).toBe("Feb: total 4; A 3, B 1 (2 of 2)");
     await press(plot, "Home");
     expect(summaryOf(plot)).toBe("Jan: total 3; A 1, B 2 (1 of 2)");
@@ -318,6 +322,8 @@ describe("phase 2 charts (docs/research/chart-phase2-spec-2026-10-14.md)", () =>
     await render(wrap(<ComboChart aria-label="Combo" barLabel="Revenue" lineLabel="Margin" lineMax={100} lineFormat={(v) => `${v}%`}
       data={[{ label: "Jan", bar: 80, line: 30 }, { label: "Feb", bar: 90, line: 40 }]} />));
     const plot = await focusChart("Combo");
+    expect(summaryOf(plot)).toBe("Jan: Revenue 80, Margin 30%; Feb: Revenue 90, Margin 40%");
+    await press(plot, "ArrowLeft"); // from none, ← starts at the last period
     expect(summaryOf(plot)).toBe("Feb: Revenue 90, Margin 40% (2 of 2)");
     await press(plot, "ArrowLeft");
     expect(summaryOf(plot)).toBe("Jan: Revenue 80, Margin 30% (1 of 2)");

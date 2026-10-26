@@ -677,7 +677,7 @@ export const PALETTE: readonly PaletteItem[] = [
   widget({
     id: "widget-revenue-trend", label: "Revenue trend", caption: "Area chart, 12 months", root: "ChartCard", components: ["ChartCard", "AreaChart"],
     code: (ctx, fmt) => lines(
-      `<ChartCard title="Revenue"${cardLevel(ctx)} icon="icon-line-chart-up-line" description="Invoiced over the last 12 months" value="$1,014,900">`,
+      `<ChartCard title="Revenue"${cardLevel(ctx)} metricLabel="Invoiced over the last 12 months" value="$1,014,900">`,
       `  <AreaChart aria-label="Revenue invoiced per month, Oct 2025 – Sep 2026" height={200}${fmt("format", MONEY_K)}`,
       `    series={[{ id: "invoiced", label: "Invoiced" }]}`,
       `    data={[`,
@@ -692,7 +692,7 @@ export const PALETTE: readonly PaletteItem[] = [
   widget({
     id: "widget-hours-by-team", label: "Hours by team", caption: "Stacked area", root: "ChartCard", components: ["ChartCard", "AreaChart"],
     code: (ctx, fmt) => lines(
-      `<ChartCard title="Billable hours by team"${cardLevel(ctx)} icon="icon-clock-line" description="Logged per month, Apr – Sep 2026" value="35,240 h">`,
+      `<ChartCard title="Billable hours by team"${cardLevel(ctx)} metricLabel="Logged per month, Apr – Sep 2026" value="35,240 h">`,
       `  <AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026" height={200}${fmt("format", HOURS)}`,
       `    series={[{ id: "design", label: "Design" }, { id: "engineering", label: "Engineering" }, { id: "delivery", label: "Delivery" }, { id: "client-services", label: "Client Services" }]}`,
       `    data={[`,
@@ -709,7 +709,7 @@ export const PALETTE: readonly PaletteItem[] = [
   widget({
     id: "widget-invoiced-collected", label: "Invoiced vs collected", caption: "Line with a comparison", root: "ChartCard", components: ["ChartCard", "LineChart"],
     code: (ctx, fmt) => lines(
-      `<ChartCard title="Invoiced vs. collected"${cardLevel(ctx)} icon="icon-coins-stacked-01-line" description="Collected of $559,300 invoiced, Apr – Sep 2026" value="$531,400">`,
+      `<ChartCard title="Invoiced vs. collected"${cardLevel(ctx)} metricLabel="Collected of $559,300 invoiced, Apr – Sep 2026" value="$531,400">`,
       `  <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" height={200} label="Invoiced" legendPosition="top"${fmt("format", MONEY_K)}`,
       `    data={[`,
       `      { label: "Apr", value: 82300 }, { label: "May", value: 91800 }, { label: "Jun", value: 88400 },`,
@@ -722,7 +722,7 @@ export const PALETTE: readonly PaletteItem[] = [
   widget({
     id: "widget-forecast", label: "Forecast", caption: "Bars, forecast hatched", root: "ChartCard", components: ["ChartCard", "BarChart"],
     code: (ctx, fmt) => lines(
-      `<ChartCard title="Revenue forecast"${cardLevel(ctx)} icon="icon-bar-chart-01-line" description="Invoiced and forecast for 2026" value="$1,122,800">`,
+      `<ChartCard title="Revenue forecast"${cardLevel(ctx)} metricLabel="Invoiced and forecast for 2026" value="$1,122,800">`,
       `  <BarChart aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast" height={200} showAverage${fmt("format", MONEY_K)}`,
       `    data={[`,
       `      { label: "Jan", value: 74300 }, { label: "Feb", value: 79600 }, { label: "Mar", value: 85100 },`,
@@ -737,7 +737,7 @@ export const PALETTE: readonly PaletteItem[] = [
   widget({
     id: "widget-year-over-year", label: "This year vs last", caption: "Grouped bars", root: "ChartCard", components: ["ChartCard", "GroupedBarChart"],
     code: (ctx, fmt) => lines(
-      `<ChartCard title="This year vs last"${cardLevel(ctx)} icon="icon-bar-chart-01-line" description="Invoiced Apr – Sep 2026, up 12% on 2025" value="$559,300">`,
+      `<ChartCard title="This year vs last"${cardLevel(ctx)} metricLabel="Invoiced Apr – Sep 2026, up 12% on 2025" value="$559,300">`,
       `  <GroupedBarChart aria-label="Revenue invoiced per month, Apr – Sep, 2025 and 2026" height={200}${fmt("format", MONEY_K)}`,
       `    series={[{ id: "lastYear", label: "2025" }, { id: "thisYear", label: "2026" }]}`,
       `    data={[`,
@@ -751,7 +751,7 @@ export const PALETTE: readonly PaletteItem[] = [
   widget({
     id: "widget-revenue-margin", label: "Revenue and margin", caption: "Bars and a line", root: "ChartCard", components: ["ChartCard", "ComboChart"],
     code: (ctx, fmt) => lines(
-      `<ChartCard title="Revenue and margin"${cardLevel(ctx)} icon="icon-bar-chart-01-line" description="Invoiced and the share kept after costs, Apr – Sep 2026" value="$559,300">`,
+      `<ChartCard title="Revenue and margin"${cardLevel(ctx)} metricLabel="Invoiced and the share kept after costs, Apr – Sep 2026" value="$559,300">`,
       `  <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" barLabel="Revenue" lineLabel="Margin" height={200}${fmt("format", MONEY_K)}${fmt("lineFormat", PERCENT)}`,
       `    data={[`,
       `      { label: "Apr", bar: 82300, line: 31 }, { label: "May", bar: 91800, line: 34 }, { label: "Jun", bar: 88400, line: 29 },`,
@@ -763,7 +763,7 @@ export const PALETTE: readonly PaletteItem[] = [
   widget({
     id: "widget-busiest-hours", label: "Busiest hours", caption: "Heatmap, day × hour", root: "ChartCard", components: ["ChartCard", "HeatmapChart"],
     code: (ctx, fmt) => lines(
-      `<ChartCard title="Busiest hours"${cardLevel(ctx)} icon="icon-activity-line" description="Hours logged per hour of the day, September">`,
+      `<ChartCard title="Busiest hours"${cardLevel(ctx)} metricLabel="Hours logged per hour of the day, September">`,
       `  <HeatmapChart aria-label="Hours logged by weekday and hour of the day, September 2026"${fmt("format", HOURS)}`,
       `    columns={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]}`,
       `    rows={["9 am", "10 am", "11 am", "12 pm", "1 pm", "2 pm", "3 pm", "4 pm", "5 pm", "6 pm"]}`,
@@ -778,7 +778,7 @@ export const PALETTE: readonly PaletteItem[] = [
   widget({
     id: "widget-utilisation", label: "Utilisation", caption: "Gauge against a target", root: "ChartCard", components: ["ChartCard", "GaugeChart"],
     code: (ctx) => lines(
-      `<ChartCard title="Utilisation"${cardLevel(ctx)} icon="icon-speedometer-03-line" description="Billable share of logged hours, September" value="5,900 of 7,564 h">`,
+      `<ChartCard title="Utilisation"${cardLevel(ctx)} metricLabel="Billable share of logged hours, September" value="5,900 of 7,564 h">`,
       `  <GaugeChart aria-label="Billable share of logged hours against the 85% target, September 2026" value={5900} max={7564} target={6429} actualLabel="Billable" />`,
       `</ChartCard>`,
     ),
@@ -786,7 +786,7 @@ export const PALETTE: readonly PaletteItem[] = [
   widget({
     id: "widget-quarter-goals", label: "Quarter goals", caption: "Bullet chart", root: "ChartCard", components: ["ChartCard", "BulletChart"],
     code: (ctx, fmt) => lines(
-      `<ChartCard title="Quarter goals"${cardLevel(ctx)} icon="icon-target-04-line" description="Q3 2026 against target" value="1 of 3 met">`,
+      `<ChartCard title="Quarter goals"${cardLevel(ctx)} metricLabel="Q3 2026 against target" value="1 of 3 met">`,
       `  <BulletChart aria-label="Quarter goals, Q3 2026"${fmt("format", GOALS)}`,
       `    data={[`,
       `      { label: "Revenue", value: 296800, target: 320000 },`,
@@ -799,7 +799,7 @@ export const PALETTE: readonly PaletteItem[] = [
   widget({
     id: "widget-budget-rings", label: "Budget rings", caption: "Radial chart", root: "ChartCard", components: ["ChartCard", "RadialChart"],
     code: (ctx) => lines(
-      `<ChartCard title="Budget used"${cardLevel(ctx)} icon="icon-target-04-line" description="Client projects, spent of budget">`,
+      `<ChartCard title="Budget used"${cardLevel(ctx)} metricLabel="Client projects, spent of budget">`,
       `  <RadialChart aria-label="Budget used on client projects, September 30, 2026"`,
       `    data={[{ id: "lumen", label: "Online banking redesign", value: 36 }, { id: "phin", label: "Loyalty app", value: 61 }, { id: "mekong", label: "Shipment tracking", value: 23 }]} />`,
       `</ChartCard>`,
@@ -809,7 +809,7 @@ export const PALETTE: readonly PaletteItem[] = [
   widget({
     id: "widget-sales-funnel", label: "Sales funnel", caption: "Funnel", root: "ChartCard", components: ["ChartCard", "FunnelChart"],
     code: (ctx) => lines(
-      `<ChartCard title="Sales funnel"${cardLevel(ctx)} icon="icon-filter-funnel-line" description="Leads to signed projects, Q3 2026" value="62 signed">`,
+      `<ChartCard title="Sales funnel"${cardLevel(ctx)} metricLabel="Leads to signed projects, Q3 2026" value="62 signed">`,
       `  <FunnelChart aria-label="Leads to signed projects, Q3 2026"`,
       `    data={[{ label: "Leads", value: 480 }, { label: "Qualified", value: 312 }, { label: "Proposal", value: 168 }, { label: "Negotiation", value: 94 }, { label: "Signed", value: 62 }]} />`,
       `</ChartCard>`,
@@ -818,7 +818,7 @@ export const PALETTE: readonly PaletteItem[] = [
   widget({
     id: "widget-top-clients", label: "Top clients", caption: "Bar list", root: "ChartCard", components: ["ChartCard", "BarList"],
     code: (ctx, fmt) => lines(
-      `<ChartCard title="Top clients"${cardLevel(ctx)} icon="icon-horizontal-bar-chart-01-line" description="Revenue in Q3 2026" value="$296,800">`,
+      `<ChartCard title="Top clients"${cardLevel(ctx)} metricLabel="Revenue in Q3 2026" value="$296,800">`,
       `  <BarList aria-label="Revenue by client, Q3 2026" headers={{ label: "Client", value: "Revenue" }}${fmt("format", MONEY)}`,
       `    data={[`,
       `      { label: "Lumen Bank", value: 89000 }, { label: "Phin & Co", value: 68300 }, { label: "Mekong Freight", value: 53400 },`,
@@ -830,7 +830,7 @@ export const PALETTE: readonly PaletteItem[] = [
   widget({
     id: "widget-revenue-by-client", label: "Revenue by client", caption: "Donut chart", root: "ChartCard", components: ["ChartCard", "DonutChart"],
     code: (ctx, fmt) => lines(
-      `<ChartCard title="Revenue by client"${cardLevel(ctx)} icon="icon-pie-chart-01-line" description="Invoiced in Q3 2026">`,
+      `<ChartCard title="Revenue by client"${cardLevel(ctx)} metricLabel="Invoiced in Q3 2026">`,
       `  <DonutChart aria-label="Revenue by client, Q3 2026" legendPosition="start"${fmt("format", MONEY_K)}`,
       `    data={[`,
       `      { id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 },`,

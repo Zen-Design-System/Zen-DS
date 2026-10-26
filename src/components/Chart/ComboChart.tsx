@@ -34,7 +34,8 @@ export interface ComboChartProps {
   className?: string;
   /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
   ref?: Ref<HTMLDivElement>;
-  /** The period active at first (its Tooltip reads both values). Default: the last one. */
+  /** The period active at first and whenever the pointer leaves. Default: none — the active period and its Tooltip show
+   *  only under the pointer or the keyboard (the user, 2026-10-26). */
   initialIndex?: number;
   /** Figma Show Legend: the legend names the bars and the line; keep it (harness: chart/series-need-legend). Default on. */
   showLegend?: boolean;
@@ -83,17 +84,17 @@ export function ComboChart({ data, barLabel, lineLabel, format: formatProp, curr
   const count = Math.max(1, ticks.length - 1);
   const lineTop = lineMax && lineMax > 0 ? lineMax : stepFor(Math.max(0, ...line), count) * count;
   const lineTicks = ticks.map((_, i) => round((i * lineTop) / count));
-  const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? data.length - 1);
+  const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? null);
   const n = Math.max(1, data.length);
   const pts = line.map((v, i) => [((i + 0.5) / n) * 100, 100 - (Math.min(v, lineTop) / lineTop) * 100] as const);
   const current = active === null ? undefined : data[active];
-  const summary = current ? `${current.label}: ${barLabel} ${format(current.bar)}, ${lineLabel} ${lineFormat(current.line)} (${t.chartPoint(active! + 1, data.length)})` : t.noData;
+  const summary = current ? `${current.label}: ${barLabel} ${format(current.bar)}, ${lineLabel} ${lineFormat(current.line)} (${t.chartPoint(active! + 1, data.length)})` : data.length ? data.map((d) => `${d.label}: ${barLabel} ${format(d.bar)}, ${lineLabel} ${lineFormat(d.line)}`).join("; ") : t.noData;
   const legend = showLegend ? <ChartLegend gap="small" items={[{ id: "bar", label: barLabel, color: BAR }, { id: "line", label: lineLabel, color: LINE }]} /> : undefined;
   return (
     <ChartBlock {...dataAttributes(rest)} ref={ref} kind="combo" legend={legend} position={legendPosition} palette={palette}>
       <div className={["zen-chart-combo", className].filter(Boolean).join(" ")} style={{ "--zen-chart-height": `calc(${height}px + var(--zen-chart-grow, 0px))` } as CSSProperties}>
         <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel}
-          activeLine="neutral" className="zen-chart--combo" kind="bar" animate={animate} summary={summary}
+          activeLine="neutral" className="zen-chart--combo" kind="bar" animate={animate} hoverOnly summary={summary}
           tooltip={current ? <SeriesValues items={[{ id: "bar", color: BAR, value: format(current.bar) }, { id: "line", color: LINE, value: lineFormat(current.line) }]} /> : null}>
           <div className="zen-chart__bars" key={`bars${signature}`}>
             {data.map((d, i) => (

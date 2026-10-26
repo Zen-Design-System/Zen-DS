@@ -237,7 +237,11 @@
 .zen-chart-card__titlebar { display: flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-chart-card__icon { display: inline-flex; flex: none; color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-chart-card__title { min-width: 0; flex: 1; margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
-.zen-chart-card__description { margin: 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 66%)); }
+.zen-chart-card__metric-label { margin: 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 66%)); }
+/* Figma Hint: a bare 20px info glyph (Element-Size/Popular/Base, Content/Neutral/Light) after the title, as MetricWidget's;
+   its Tooltip holds the chart's description. */
+.zen-chart-card__hint { display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: none; padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: none; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); cursor: help; }
+.zen-chart-card__hint:focus-visible { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 0; }
 /* Metric: Padding/Small above (Figma adds it to the card's 16 gap), the description and the value Gap/3XSmall apart. */
 .zen-chart-card__metric { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-top: var(--zen-spacing-padding-small, 12px); }
 .zen-chart-card__value { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; }
@@ -414,7 +418,7 @@
 .zen-chart__group, .zen-chart__combo-column { display: flex; height: 100%; min-width: 0; align-items: flex-end; justify-content: center; padding-inline: var(--zen-spacing-padding-3-xsmall, 2px); }
 .zen-chart__group { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-chart__group-bar { display: block; min-width: 2px; min-height: 2px; flex: 0 1 clamp(12px, calc((70% - (var(--zen-chart-series, 2) - 1) * var(--zen-spacing-gap-2-xsmall, 4px)) / var(--zen-chart-series, 2)), 32px); border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; }
-.zen-chart__group:not([data-active="true"]) .zen-chart__group-bar, .zen-chart__combo-column:not([data-active="true"]) .zen-chart__combo-bar { opacity: .88; }
+.zen-chart__bars:has(> [data-active="true"]) > .zen-chart__group:not([data-active="true"]) .zen-chart__group-bar, .zen-chart__bars:has(> [data-active="true"]) > .zen-chart__combo-column:not([data-active="true"]) .zen-chart__combo-bar { opacity: .88; }
 /* Combo: 20px Color Chart Sector/Primary bars (Corner-Radius/XSmall top corners) on the start axis, a Color Chart
    Sector/Secondary line on the end axis (Figma Y-Axis-End: left-aligned, Spacing/Padding/XSmall after the plot). The end
    axis sits outside the plot frame, so it takes the bar lanes itself. The active period's rule would cut through its

@@ -18,7 +18,7 @@ describe("ChartCard metric (Figma Chart/Line-Chart)", () => {
   it("stacks header, Segmented, then the Metric: description over value", async () => {
     const { container } = await render(
       <ZenProvider><div style={{ width: 360 }}>
-        <ChartCard title="Expense trends" description="Expenses per quarter, 2026" value="$48,200"
+        <ChartCard title="Expense trends" metricLabel="Expenses per quarter, 2026" value="$48,200"
           ranges={[{ id: "q", label: "Quarterly" }, { id: "m", label: "Monthly" }]} range="q" onRangeChange={() => undefined}>
           <LineChart aria-label="Expenses per quarter" data={data} />
         </ChartCard>
@@ -29,14 +29,34 @@ describe("ChartCard metric (Figma Chart/Line-Chart)", () => {
     expect(order.slice(0, 3)).toEqual(["zen-chart-card__header", "zen-segmented", "zen-chart-card__metric"]);
     const metric = body.querySelector(".zen-chart-card__metric")!;
     expect([px(metric, "padding-top"), px(metric, "row-gap")]).toEqual([12, 2]);
-    expect(metric.querySelector(".zen-chart-card__description")!.classList.contains(typographyStyles["Body/Small/Regular"])).toBe(true);
+    expect(metric.querySelector(".zen-chart-card__metric-label")!.classList.contains(typographyStyles["Body/Small/Regular"])).toBe(true);
     expect(metric.querySelector(".zen-chart-card__value")!.classList.contains(typographyStyles["Display/4"])).toBe(true);
     expect(body.querySelector(".zen-chart-card__title")!.classList.contains(typographyStyles["Body/Extra/Medium"])).toBe(true);
   });
 
-  it("draws no Metric without a description or a value", async () => {
+  it("draws no Metric without a metric label or a value, and no Hint without a hint", async () => {
     const { container } = await render(<ZenProvider><ChartCard title="Expense trends"><LineChart aria-label="Expenses per quarter" data={data} /></ChartCard></ZenProvider>);
     expect(container.querySelector(".zen-chart-card__metric")).toBeNull();
+    expect(container.querySelector(".zen-chart-card__hint")).toBeNull();
+  });
+
+  it("the deprecated description still fills the Metric Label", async () => {
+    const { container } = await render(<ZenProvider><ChartCard title="Expense trends" description="Old label" value="$1"><LineChart aria-label="Expenses per quarter" data={data} /></ChartCard></ZenProvider>);
+    expect(container.querySelector(".zen-chart-card__metric-label")?.textContent).toBe("Old label");
+  });
+
+  it("the Hint is a named info icon at the end of the header whose Tooltip carries the description", async () => {
+    const { container } = await render(<ZenProvider><div style={{ width: 360 }}><ChartCard title="Expense trends" hint="Paid expenses, VAT included" metricLabel="This quarter" value="$1"><LineChart aria-label="Expenses per quarter" data={data} /></ChartCard></div></ZenProvider>);
+    const bar = container.querySelector(".zen-chart-card__titlebar")!;
+    const hint = bar.querySelector("button.zen-chart-card__hint") as HTMLButtonElement;
+    expect(hint.getAttribute("aria-label")).toBe("More information");
+    expect(Math.round(hint.getBoundingClientRect().width)).toBe(20);
+    // At the end of the row: the title takes the space before it.
+    expect(Math.abs(hint.getBoundingClientRect().right - bar.getBoundingClientRect().right)).toBeLessThanOrEqual(0.5);
+    hint.focus();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const tip = document.getElementById(hint.getAttribute("aria-describedby") ?? "");
+    expect(tip?.textContent).toContain("Paid expenses, VAT included");
   });
 });
 
