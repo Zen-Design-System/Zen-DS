@@ -323,7 +323,7 @@ sidebar thì các item cũng đổi variant theo density đó".
 - **Gate** (`qa --isolated --files=` the three tools/studio files; the worktree's edits were not in the hook ledger, so a
   plain run found nothing to check): static, studio:selftest, TypeScript and nested layer names all pass; Studio E2E
   380 works · 0 broken (4 shards, 1722 s). Report `.qa/reports/2026-10-26T04-49-36-0958d62c.md`.
-- Gate 1 (5f…: static, audit, dark, behaviour pass; E2E 367/380). The 13 regressions came from the placeholder frame:
+- Gate 1 (head 52517e83: static, audit, dark, behaviour pass; E2E 367/380). The 13 regressions came from the placeholder frame:
   two crumbs made a new page a child screen (§17 R14: no phone Bottom Navigation) → pages take Master alone
   (`rootCrumbs`, `root: true`); a Studio bug, `itemElement` paired every same-label tab with the first (⊕ stacked,
   drags wrote the wrong item) → the n-th item with a label is the n-th element with that name; E2E rows updated where
