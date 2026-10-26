@@ -1,0 +1,1 @@
+../../../docs/component-usage-rules.md

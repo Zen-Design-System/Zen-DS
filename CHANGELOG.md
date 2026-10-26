@@ -17,6 +17,15 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- The Zen Figma skill works from the repo for Claude Code and Codex through the Figma MCP: `.claude/skills/` and
+  `.agents/skills/` link to `skills/zen-figma-design`, its references link to their sources, and
+  `npm run ai-kit:build` writes `figma-components.md` + `figma-tokens.md` into the skill folder (`ai-kit:check` fails
+  while they are stale).
+- The Figma audit (AI kit, Claude and Codex) checks five more house rules: Chips 8px and Tags / Badges 4px apart
+  (`chip/row-gap`, `tag/row-gap`, `badge/row-gap`), the Primary last in a button row and on top in a stack
+  (`button/pair-order`), a Solid initials Avatar in a table's first column (`table/first-column-avatar-solid`), a
+  Metric-Trend badge holding only the change (`metric/trend-words-in-badge`) and one-letter XSmall / 2XSmall avatars
+  (`avatar/small-one-letter`); the skill's §2 and screen rules say the same.
 - Chart text layers are named by role in Figma (the user, 2026-10-26): the card title is Title in every chart; axis texts
   are Label (Area, Grouped-Bar and Combo named them by their sample, "Q1", "$125K"); a gauge's reading Value and its target
   Meta, a donut's or radial's centre caption Meta; Bar-List, Bullet and Funnel rows Name / Value / Meta. Studio writes the
