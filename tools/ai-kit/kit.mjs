@@ -20,12 +20,13 @@ export const KIT_SOURCES = {
   /** The Zen screen and component rules, copied into the skill's references. */
   rules: "docs/component-usage-rules.md",
   /** The principles the code skills keep (colour and composition, responsive and adaptive, UX states and flows, product
-   *  patterns), copied into the skill's references. */
+   *  patterns, dashboard layout), copied into the skill's references. */
   principles: [
     "skills/zen-component-usage/references/design-principles.md",
     "skills/zen-responsive-screens/references/responsive-principles.md",
     "skills/zen-component-usage/references/ux-principles.md",
     "skills/zen-component-usage/references/product-patterns.md",
+    "skills/zen-component-usage/references/dashboard-layout.md",
   ],
   guidelines: "docs/guidelines/",
   /** Data the generated references are written from. */
