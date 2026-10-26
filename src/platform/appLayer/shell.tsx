@@ -39,10 +39,11 @@ const C = APPSHELL_COPY;
 /** The printed code: the same placeholders, without handlers (a frame to design on), the pictures as variables. */
 const P = appShellParts({ media: { logo: "{logo}", account: "{photo}" } });
 
-/** .Primitives/AppShell/Placeholder: a dashed Pale box naming what goes there, filling its slot (a pane, the backdrop). */
-function Placeholder({ label = C.block, height = "fill" }: { label?: string; height?: "fill" | number | undefined }) {
+/** .Primitives/AppShell/Placeholder: a dashed Pale box naming what goes there, filling its slot (a pane, the backdrop).
+ *  Corner-Radius/Large, Base (`md`) inside a pane: concentric with the pane's XLarge less its 8px padding. */
+function Placeholder({ label = C.block, height = "fill", radius = "lg" }: { label?: string; height?: "fill" | number | undefined; radius?: "lg" | "md" }) {
   return (
-    <Stack surface="pale" border="subtle" borderStyle="dashed" radius="lg" padding="md" align="center" justify="center" height={height}>
+    <Stack surface="pale" border="subtle" borderStyle="dashed" radius={radius} padding="md" align="center" justify="center" height={height}>
       <Text textStyle="Heading/4" tone="light" align="center">{label}</Text>
     </Stack>
   );
@@ -239,7 +240,7 @@ function AppShellPlayground() {
   const pane = (title: string, { theme, action = true, height }: { theme?: AppShellPaneTheme; action?: boolean; height?: number } = {}) => part(
     <AppShellPane title={title} theme={theme ?? paneTheme}
       action={action ? <IconButton appearance="flat" level="secondary" size="sm" icon="icon-dots-vertical-line" aria-label={`${title} options`} onClick={press(`${title} options`)} /> : undefined}>
-      <Placeholder height={height} />
+      <Placeholder height={height} radius="md" />
     </AppShellPane>,
     P.pane({ title, theme: theme ?? (paneTheme === "shadow" ? undefined : paneTheme), action, height }),
   );

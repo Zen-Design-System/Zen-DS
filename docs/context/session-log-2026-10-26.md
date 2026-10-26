@@ -323,3 +323,12 @@ sidebar thì các item cũng đổi variant theo density đó".
 - **Gate** (`qa --isolated --files=` the three tools/studio files; the worktree's edits were not in the hook ledger, so a
   plain run found nothing to check): static, studio:selftest, TypeScript and nested layer names all pass; Studio E2E
   380 works · 0 broken (4 shards, 1722 s). Report `.qa/reports/2026-10-26T04-49-36-0958d62c.md`.
+- Gate 1 (5f…: static, audit, dark, behaviour pass; E2E 367/380). The 13 regressions came from the placeholder frame:
+  two crumbs made a new page a child screen (§17 R14: no phone Bottom Navigation) → pages take Master alone
+  (`rootCrumbs`, `root: true`); a Studio bug, `itemElement` paired every same-label tab with the first (⊕ stacked,
+  drags wrote the wrong item) → the n-th item with a label is the n-th element with that name; E2E rows updated where
+  intended. Rerun of those 13 rows: 13/13. Merged main 43102f60 (#315 FIXED_WIDTHS kept).
+- User (on the 3 rhythm warnings "pane 20 vs inner 16 + inset 8"): "Đổi bo góc Placeholder trong pane thành 12px (20 −
+  8) cho đồng tâm, cả Figma và code". Figma: the Placeholder instance in each of the 10 Pane variants bound to
+  Corner-Radius/Base (12 Rounded, 8 Standard: XLarge − 8 in each mode); every Pane in Pattern/AppShell/Desktop inherits.
+  Code: the pane's placeholder takes `radius="md"` (Base). Gate 2 was stopped for it and rerun.

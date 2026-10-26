@@ -86,8 +86,9 @@ export function appShellParts({ act = () => null, media = APPSHELL_MEDIA } = {})
   const button = (level, label) => element("Button", [text("level", level), on("onClick", label)], label);
   const iconButton = (props, label) => element("IconButton", [...props, text("aria-label", label), on("onClick", label)]);
   /** .Primitives/AppShell/Placeholder: a dashed Pale box naming what goes there; it fills its slot (a pane) or, given a
-   *  height, keeps it (the Hero is 160 high in Figma). */
-  const block = (label = C.block, height) => element("Stack", ['surface="pale"', 'border="subtle"', 'borderStyle="dashed"', 'radius="lg"', 'padding="md"', 'align="center"', 'justify="center"', height === undefined ? 'height="fill"' : `height={${height}}`], `<Text textStyle="Heading/4" tone="light" align="center">${label}</Text>`);
+   *  height, keeps it (the Hero is 160 high in Figma). Corner-Radius/Large, Base inside a pane: concentric with the
+   *  pane's XLarge less its Padding/XSmall (user 2026-10-26, Figma Pane updated the same day). */
+  const block = (label = C.block, height, radius = "lg") => element("Stack", ['surface="pale"', 'border="subtle"', 'borderStyle="dashed"', `radius="${radius}"`, 'padding="md"', 'align="center"', 'justify="center"', height === undefined ? 'height="fill"' : `height={${height}}`], `<Text textStyle="Heading/4" tone="light" align="center">${label}</Text>`);
   const footerItems = [["settings", "Settings", "icon-settings-01-line"], ["help-center", "Help center", "icon-help-circle-line"], ["feedback", "Feedback", "icon-message-chat-circle-line"]];
   const logo = element("Stack", ['direction="row"', 'gap="xs"', 'align="center"'], [
     element("Avatar", ['size="small"', 'shape="square"', 'theme="photo"', `src=${media.logo}`, 'alt=""']),
@@ -140,7 +141,7 @@ export function appShellParts({ act = () => null, media = APPSHELL_MEDIA } = {})
     pane: ({ title = C.paneTitle, theme, surface, action = true, height } = {}) => element("AppShellPane", [
       text("title", title), theme ? text("theme", theme) : null, surface && surface !== "default" ? text("surface", surface) : null,
       action ? attr("action", iconButton(['appearance="flat"', 'level="secondary"', 'size="sm"', 'icon="icon-dots-vertical-line"'], `${title} options`)) : null,
-    ], block(C.block, height)),
+    ], block(C.block, height, "md")),
     /** Focus' Stepper-Bar: three "Step Title" steps, "Optional" under each, the first current. */
     progress: element("Stepper", ['aria-label="Steps"', "current={0}", attr("steps", `[\n${[1, 2, 3].map((index) => `  { id: "step-${index}", title: ${quote(C.stepTitle)}, caption: ${quote(C.stepCaption)} },`).join("\n")}\n]`)]),
     /** Floating-Item: Button/Icon-Main Accent with the Zen mark. */

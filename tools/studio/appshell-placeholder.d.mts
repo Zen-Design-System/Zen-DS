@@ -14,7 +14,7 @@ export type AppShellPlaceholderOptions = {
   media?: { logo: string; account: string };
 };
 export declare function appShellParts(options?: AppShellPlaceholderOptions): {
-  block: (label?: string, height?: number) => string;
+  block: (label?: string, height?: number, radius?: "lg" | "md") => string;
   logo: string;
   sidebar: (options?: { footer?: number; brand?: boolean }) => string;
   crumbs: string;
