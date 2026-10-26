@@ -231,3 +231,6 @@ sidebar thì các item cũng đổi variant theo density đó".
   round trip; AppShell grid rows Small, plain shell Medium), figma-pull 151, figma-native 162, figma-diff 35,
   studio:selftest all pass.
 - BACKLOG P2: nested rows (Level=Child) and Dropdown, push and pull together.
+- **Gate** (`qa --isolated --files=` the three tools/studio files; the worktree's edits were not in the hook ledger, so a
+  plain run found nothing to check): static, studio:selftest, TypeScript and nested layer names all pass; Studio E2E
+  380 works · 0 broken (4 shards, 1722 s). Report `.qa/reports/2026-10-26T04-49-36-0958d62c.md`.
