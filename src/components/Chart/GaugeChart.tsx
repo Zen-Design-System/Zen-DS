@@ -53,7 +53,7 @@ const TICK_PX = 3;
  * half ring a tenth of its width thick (Figma innerRadius 0.8) — the track Background/Neutral/Subtle, the value
  * Chart/Sector/Primary (Color Chart Sector/Primary) with flat ends, the target a 3px round-capped Chart/Sector/Secondary
  * tick 4px past both edges. The reading sits in the hole: the figure Heading/2 · Content/Neutral/Strongest over a
- * Body/Small/Regular · Content/Neutral/Base caption; the scale's ends (Label/Small/Medium · Content/Neutral/Light) sit
+ * Body/Small/Regular · Content/Neutral/Light caption (a meta line); the scale's ends (Label/Small/Medium · Content/Neutral/Light) sit
  * centred under the ring's two ends. The legend (Figma Show Legend) names the value and the target, Spacing/Gap/Small
  * apart. It is a `meter` (aria-valuenow, min 0, max `max`, value text "Billable 82%, Target 85%"): nothing in it can be
  * picked, so it takes no tab stop. Figma Chart/Gauge-Chart 15968:130382 (Color=Primary 15486:2467 · Secondary ↔ `palette`).
