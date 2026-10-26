@@ -209,5 +209,5 @@ These are questions, not checks:
   and does Back return to the same place?
 
 For states, forms, navigation and access, read `ux-principles.md`; to plan the screens of a product from its brief,
-`product-patterns.md` (both next to this file). For layouts across widths, read `responsive-principles.md` (in the repo: `skills/zen-responsive-screens/references/`;
+`product-patterns.md`; to lay out a screen of widgets, `dashboard-layout.md` (all next to this file). For layouts across widths, read `responsive-principles.md` (in the repo: `skills/zen-responsive-screens/references/`;
 in the Figma AI kit it sits next to this file).

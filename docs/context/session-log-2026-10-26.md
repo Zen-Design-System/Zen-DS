@@ -338,6 +338,32 @@ sidebar thì các item cũng đổi variant theo density đó".
   passed on a plain rerun: both flaky, not this change. New ⚠ type/visual-heading on the playground's placeholder label
   → `zen-allow-visual-heading` (d6c6235c). Slot handed to chart-bars; the formal rerun after them or on CI.
 
+## Dashboard layout principles (skills, tier S)
+
+User: "Nghiên cứu skill để cân bằng layout khi generate UI trên studio lẫn figma khi làm dashboard … tỷ lệ cân bằng và
+không bị trống layout … chart quan trọng xuất hiện kích thước trong lưới như thế nào … các widget nên nằm trong cùng 1
+lưới thay vì tách ra các section khác nhau (trừ khi nó có tiêu đề section riêng) … desktop và các thiết bị khác".
+- New `skills/zen-component-usage/references/dashboard-layout.md` (principles, not checks, as the 10-20 files): rank the
+  widgets (summary, hero, support, detail); one widget grid (rows `md` like the columns, a section only under a heading);
+  12 parts with the span widths at 1512 / 1280 / 744 / 390; each widget's shape and narrowest width (KPI 240, chart 360,
+  table 480 from DashboardTemplate; ring sizes, 32px BarList rows, 24px heatmap cells); hero 8 · companion 4 or 12; row
+  recipes; equal feet (Grid stretch + ChartCard grow, audit `card-gap`); the reflow table; how to build it in code /
+  Studio / Figma; screenshot questions; the HR overview of `.zen-studio/pages/quan-ly-task.zen.tsx` as before/after.
+- Sources: Zen's own screens and rules; Material 3 canonical layouts; Grafana's 24-column panels; Apple WidgetKit sizes;
+  Elastic EUI dashboard guidance; F-pattern and bento-grid practitioner guides.
+- Wired in: zen-component-usage SKILL.md + product-patterns + design-principles §9, zen-responsive-screens SKILL.md +
+  responsive-principles §3, zen-figma-design SKILL.md (files table, step 5), the AI kit for Figma (`KIT_SOURCES`,
+  `src/platform/aiKit.ts` glob, kit README and AGENTS), Zen Agent's prompt (one principles bullet; the "Dashboards:"
+  line is left alone because the chart-bars-full branch edits it).
+- Findings: Zen's Grid has no per-cell span, so a mixed-span dashboard is built as row Grids (`"2fr 1fr"` rows sit
+  ~gap/3 off a 3-column row); figma-pull keeps only a span every cell shares. A `span` prop (code, Studio fields, push
+  and pull) was put to the user, not built. The HR overview Studio page breaks the existing §13 rule (`Stack gap="xl"`
+  between widget rows, `align="start"`): reported, not edited (a Studio page changes only through the open Studio).
+- Checks: `ai-kit:check` 196 ✓ (92 files, the new reference at `skills/zen-figma-design/references/`), Zen Agent
+  selftest 21 ✓, `tsc` ✓. Gate `qa --isolated --pages=installation --files=` the three code files: static ✓, audit
+  1512/390/320 ✓, dark ✓, behaviour ✓; its Studio E2E (prompt.mjs is under tools/studio) was stopped in shard 1 at
+  Giám sát's request (the chart-bars session held the slot), so the PR was shipped with `--skip-gate` and CI runs it.
+
 ## Grid cell span, PR A: library (tier M)
 
 User approved the plan `docs/research/grid-span-2026-10-26.md` with D1–D6 ("Duyệt kế hoạch span với D1–D6 như đề xuất.
