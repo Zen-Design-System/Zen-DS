@@ -2,6 +2,7 @@ import { useModeScope, type ZenModes } from "../../../../components/_shared/zen-
 import { Children, cloneElement, createContext, isValidElement, useContext, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactElement, type ReactNode, type RefObject } from "react";
 import { AppShell } from "../../../../components/AppShell";
 import { ZenPortalProvider } from "../../../../components/Portal";
+import { OverlayPreviewContext } from "../../../../components/_shared/overlay";
 import { typographyStyles } from "../../../../tokens/typography.generated";
 import { BREAKPOINT_LABELS, deviceOfScreen, deviceOs, screenBreakpoint, type ScreenDevice, type ZenBreakpointKey } from "../../../../../tools/studio/screen-devices.mjs";
 import { DeviceBars, duoStatusOf, safeAreasOf, type DeviceOs } from "./DeviceBars";
@@ -338,7 +339,10 @@ function withoutMasterLayout(children: ReactNode): ReactNode {
 
 /** An overlay drawn open in its own frame: its portal is a node inside the frame, not the page's. A layer that does not
  *  place itself (a Card, not a Dialog) sits where the Overlay's `position` says, over a dimmed frame with `background`,
- *  as Play shows it; `closeOnOutside` is Play's only. */
+ *  as Play shows it; `closeOnOutside` is Play's only. A modal there is a picture of it open (OverlayPreviewContext, as the
+ *  Main component's): it moves no focus and traps no keys. Its autofocus took the focus from the Studio each time the
+ *  page drew it again, and closed a menu open in the Pages panel (E2E PT-19, PT-27, PT-28, 2026-10-27). Play draws
+ *  overlays live (playFlow.tsx). */
 export function Overlay({ id, children, x: _x, y: _y, position = "center", background = false, closeOnOutside: _closeOnOutside, ...rest }: HTMLAttributes<HTMLDivElement> & { id?: string; children?: ReactNode; x?: number; y?: number; position?: string; background?: boolean; closeOnOutside?: boolean }) {
   const [host, setHost] = useState<HTMLDivElement | null>(null);
   return (
@@ -348,7 +352,9 @@ export function Overlay({ id, children, x: _x, y: _y, position = "center", backg
       <div ref={setHost} className="studio-builder-overlay__portal" />
       {host ? (
         <ZenPortalProvider container={host}>
-          <div className="studio-builder-overlay__place" data-position={position} data-background={background || undefined}>{children}</div>
+          <OverlayPreviewContext value>
+            <div className="studio-builder-overlay__place" data-position={position} data-background={background || undefined}>{children}</div>
+          </OverlayPreviewContext>
         </ZenPortalProvider>
       ) : null}
     </div>

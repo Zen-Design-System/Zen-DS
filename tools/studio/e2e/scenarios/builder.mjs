@@ -1055,11 +1055,17 @@ export const rows = [
       await until(async () => (await selectedName(page)) === "Breadcrumbs", { message: "the Breadcrumbs selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
       await page.locator("#studio-right").getByRole("button", { name: "Add Item to Item-List" }).click();
       await until(async () => ((await crumbItems()).match(/\bid:/g) ?? []).length === before + 1, { message: `${before + 1} breadcrumb items` });
-      // Up to the master layout's header (Esc: Breadcrumbs → PageHeader → AppShellHeader): its Sections slot takes any content.
+      // The add ends with the new item selected once the canvas draws it (slots/actions.ts selectItemWhenRendered, Figma's).
+      // Escapes pressed before that started from the Breadcrumbs, after it from the item: one level short, 1 run in 10.
+      const selection = () => page.evaluate(async () => { const current = (await import("/src/platform/studio/store.ts")).studioStore.getState().selection; return current?.kind === "node" ? { name: current.name, part: current.part?.name ?? null } : null; });
+      await until(async () => (await selection())?.part, { message: "the new item selected" });
+      // Up to the master layout's header, a level per Escape (item → Breadcrumbs → PageHeader → AppShellHeader): its
+      // Sections slot takes any content.
       await page.locator(".studio-viewport").focus();
-      await page.keyboard.press("Escape");
-      await page.keyboard.press("Escape");
-      await until(async () => (await selectedName(page)) === "AppShellHeader", { message: "the AppShellHeader selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+      for (const name of ["Breadcrumbs", "PageHeader", "AppShellHeader"]) {
+        await page.keyboard.press("Escape");
+        await until(async () => { const current = await selection(); return current?.name === name && !current.part; }, { message: `the ${name} selected` }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+      }
       await page.locator('#studio-right [data-slot="sections"]').getByRole("button", { name: "Add to Sections" }).click();
       await page.getByRole("option", { name: /^Search/ }).first().click();
       await until(async () => /main=\{<PageHeader\b[^]*sections=\{<Search /.test(await text()), { message: "the Main row holds the PageHeader, the Sections a Search" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
