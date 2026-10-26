@@ -247,3 +247,6 @@ Spec card (changed elements only):
   380/380. The scope left out the PropertyField page and the app-shell examples, so a second run covered them
   (`--only=input,app-shell`): PASS (Vitest 90/90, audit 1512/390/320, dark, behaviour). Contact sheets reviewed:
   top-navigation (the badges row at 4px), shape, page-header, list-item, input (the Assignee Tags at 4px), app-shell.
+- **CI on #317** failed at `ai-ui:check`: `docs/ai-ui` (catalog.json, spec.schema.json) is generated from the props and
+  guideline text, and the TopNavigation JSDoc and the Badge guideline changed. Fixed with `npm run ai-ui:build` (only
+  those two descriptions moved). The local gate (`tools/qa/run.mjs`) has no AI UI step, so it could not see this.
