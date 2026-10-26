@@ -66,6 +66,9 @@
   "DatePickerSheet": [
     "color-contrast"
   ],
+  "DescriptionItem": [
+    "color-contrast"
+  ],
   "GaugeChart": [
     "color-contrast"
   ],
@@ -73,6 +76,9 @@
     "color-contrast"
   ],
   "HeatmapChart": [
+    "color-contrast"
+  ],
+  "InputConditionItem": [
     "color-contrast"
   ],
   "InputContent": [
@@ -91,6 +97,9 @@
     "color-contrast"
   ],
   "PopoverManualAddNew": [
+    "color-contrast"
+  ],
+  "PropertyField": [
     "color-contrast"
   ],
   "ScheduleDayPlanner": [

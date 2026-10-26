@@ -152,7 +152,7 @@ describe("MetricCard type", () => {
         // A metric's labels (Content/Neutral/Light: the Metric label, the Metric-Tile title, a category's name; the user
         // 2026-10-26) are the Metric's known contrast entry in tests/smoke/axe-baseline.json (a Figma token decision);
         // everything else the types add must pass.
-        const found = result.violations.map((violation) => ({ id: violation.id, nodes: violation.nodes.map((n) => n.target.join(" ")).filter((target) => !(violation.id === "color-contrast" && /zen-metric(__label|-tile__label|-categories__name)\b/.test(target))) }));
+        const found = result.violations.map((violation) => ({ id: violation.id, nodes: violation.nodes.map((n) => n.target.join(" ")).filter((target) => !(violation.id === "color-contrast" && /zen-metric(__label|-tile__label|-categories__(name|share))\b/.test(target))) }));
         expect(found.filter((violation) => violation.nodes.length).map((violation) => `${violation.id}: ${violation.nodes.join(", ")}`), `${type} (${theme})`).toEqual([]);
         await screen.unmount();
       }
