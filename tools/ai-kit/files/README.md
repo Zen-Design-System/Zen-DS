@@ -26,6 +26,16 @@ Figma's MCP server.
 You need a Figma account with edit access to the file, and the file must use Zen (the Zen library, or a copy of the
 Zen file).
 
+### In the Zen DS repo (Claude Code, Codex)
+
+Nothing to install: the skill is linked at `.claude/skills/zen-figma-design` (Claude Code lists it as
+`/zen-figma-design`) and `.agents/skills/zen-figma-design` (Codex), and the repo's `AGENTS.md` points to it. Inside the
+repo, `skills/zen-figma-design/references/` links the principles, the usage rules and `guidelines/` to their sources
+(`skills/zen-component-usage/references`, `skills/zen-responsive-screens/references`, `docs/`): edit the sources.
+`figma-components.md` and `figma-tokens.md` there are written by `npm run ai-kit:build` and committed; `npm run
+ai-kit:check` fails while they are stale (after a Figma re-sync, run the build and commit them). Add Figma's MCP server
+as below for your agent.
+
 ### Claude Code
 
 ```bash

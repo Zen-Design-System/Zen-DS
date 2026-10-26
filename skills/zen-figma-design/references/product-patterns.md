@@ -1,0 +1,1 @@
+../../zen-component-usage/references/product-patterns.md

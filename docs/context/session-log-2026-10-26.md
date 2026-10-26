@@ -718,3 +718,40 @@ board" on the last 7 pages in #326's gate at a82ed06e, passing alone). Find the 
   --rows=BL-01 --no-retry` 5/5 (53 pages, 785 frames; the row ~118 s, each page ~0.5 s more for its own context); then
   `--shard=1/4 … 4/4` with the clean-up fix: 385 works · 0 broken (270 + 481 + 291 + 626 s), PT-28 and BL-01 on the
   first try. Passed on retry, other rows: PT-03 (boundingBox 10 s), NO-06, AG-10. `studio:selftest` passes.
+
+## Figma skill + audit: 5 rules the Figma side lacked (tier S, skill files only)
+- Asked: do the Figma skill and audit (Claude + Codex, same files via the AI kit) carry the button-role rules and the
+  other house rules? Button roles were complete (`button/one-primary`, `secondary-justified`, `accent-is-promoted`,
+  `small-full-width`, `overlay-on-imagery`, `in-card-flat`, `in-card-wrapper`, `spacing/control-gap`, `vague-label`).
+  Five rules lived only in memory / the code harness: added to `skills/zen-figma-design/harness/zen-figma-audit.js`,
+  SKILL.md §2 + QA checklist, `references/screen-rules.md` (§2 ladder, §4) and `references/audit-rules.md`:
+  - `chip/row-gap` · `tag/row-gap` · `badge/row-gap` (error): an authored row/wrap of Chips at 8, Tags or Badges
+    (Badge, Badge-Status) at 4; Badge-Counter is not a badge.
+  - `button/pair-order` (warning): a row of Button/Main with one Primary not last, or a column with it not on top.
+  - `table/first-column-avatar-solid` (warning, inside `checkTableFirstColumn`): a Subtle initials Avatar in the
+    name column; Theme=Photo passes (no Photo × Solid variant).
+  - `metric/trend-words-in-badge` (warning): a Metric-Trend whose badge text holds words (comparison word, ≥ 3 parts,
+    or a word ≥ 4 letters); units such as pts / MoM pass. Figma 595:55134 + PR #324 model.
+  - `avatar/small-one-letter` (warning): an XSmall / 2XSmall initials Avatar/Single with more than one letter.
+- Verified: syntax as a use_figma function body (top-level `return`, so plain `node --check` cannot), `npm run
+  ai-kit:check` 216 checks / 92 files (was 208). A real-Figma run of the five checks (a 10 KB slice,
+  `audit-new-checks.js` in this session's scratchpad) was prepared; the user stopped it, so no screen was checked.
+- Found, not fixed: the harness is 125 KB (92 KB without comments, 54 KB esbuild-minified), over `use_figma`'s
+  50,000-character `code` limit, so "send the whole file as code" in SKILL.md §4 cannot run as written; proposed
+  as its own task. Also: `~/.claude/skills` and `~/.codex/skills` hold no zen-figma-design; the repo skill folder lacks
+  the kit-only references (design-principles, figma-components, figma-tokens, guidelines/) — sync proposal given
+  to the user (per-skill symlinks `.claude/skills/` + `.agents/skills/`, symlinked principles + generated pair).
+
+## Figma skill: one source for Claude Code and Codex through the Figma MCP (tier S)
+- Gap: `~/.claude/skills` and `~/.codex/skills` held no zen-figma-design, and the repo's skill folder lacked the
+  references SKILL.md names (principles, usage rules, guidelines/, the generated figma-components.md / figma-tokens.md):
+  they existed only inside the built kit zip. An agent reading the skill from the repo hit dead paths.
+- Done (the user's approval 2026-10-26): `skills/zen-figma-design/references/` now links `design-principles.md`,
+  `responsive-principles.md`, `ux-principles.md`, `product-patterns.md`, `dashboard-layout.md`,
+  `component-usage-rules.md` and `guidelines/` to their sources (symlinks, committed); `npm run ai-kit:build` writes
+  `figma-components.md` + `figma-tokens.md` into that folder (committed, Generated header) and `ai-kit:check` fails
+  while they are stale; `.claude/skills/zen-figma-design` (Claude Code) and `.agents/skills/zen-figma-design` (Codex)
+  link to the skill. `build.mjs` walks linked folders (`statSync`), `kit.mjs` drops the generated pair and non-md
+  guideline files from the copied sources and deduplicates by kit path, so the zip is unchanged (92 files; check
+  221 passed). README (kit), SKILL.md and AGENTS.md say where to edit.
+- Open: Codex's `.agents/skills` scan comes from third-party docs — confirm once in Codex that it lists the skill.

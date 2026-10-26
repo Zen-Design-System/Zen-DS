@@ -10,12 +10,16 @@ export const KIT_NAME = "zen-figma-ai-kit";
 export const SKILL = "zen-figma-design";
 const SKILL_DIR = `skills/${SKILL}`;
 const REFERENCES = `${SKILL_DIR}/references`;
+/** The two references buildKit writes from data (also committed in the repo's skill folder by build.mjs). */
+export const GENERATED_REFERENCES = [`${REFERENCES}/figma-components.md`, `${REFERENCES}/figma-tokens.md`];
 
 /** The repo files the kit copies (paths from the repo root); the browser globs and build.mjs read exactly these. */
 export const KIT_SOURCES = {
   /** Kit-level files: README.md and AGENTS.md (also written as CLAUDE.md). */
   root: "tools/ai-kit/files/",
-  /** The skill folder, copied as it is. */
+  /** The skill folder, copied as it is. In the repo its references link to the principles, rules and guidelines
+   *  below (symlinks, so agents working in the repo find every file SKILL.md names), and GENERATED_REFERENCES are the
+   *  committed output of build.mjs: both are read again here and deduplicated by kit path. */
   skill: `${SKILL_DIR}/`,
   /** The Zen screen and component rules, copied into the skill's references. */
   rules: "docs/component-usage-rules.md",
@@ -41,6 +45,8 @@ export const KIT_SOURCES = {
 export function kitPath(repoPath) {
   const path = repoPath.replace(/^\/+/, "");
   if (path.startsWith(KIT_SOURCES.root)) return path.slice(KIT_SOURCES.root.length);
+  if (GENERATED_REFERENCES.includes(path)) return null; // written from data below, never copied
+  if (path.startsWith(`${REFERENCES}/guidelines/`)) return path.endsWith(".md") ? path : null; // the linked docs/guidelines (its index.json stays out)
   if (path.startsWith(KIT_SOURCES.skill)) return path;
   if (path === KIT_SOURCES.rules) return `${REFERENCES}/component-usage-rules.md`;
   if (KIT_SOURCES.principles.includes(path)) return `${REFERENCES}/${path.slice(path.lastIndexOf("/") + 1)}`;
@@ -195,9 +201,11 @@ export function figmaTokensMarkdown({ collections, dimensions = {}, styles, text
  */
 export function buildKit({ sources, contract, tokenFiles, styles, textStyles, date = new Date() }) {
   const files = [];
+  const seen = new Set();
   for (const [repoPath, text] of Object.entries(sources)) {
     const path = kitPath(repoPath);
-    if (path) files.push({ path, data: text });
+    // A reference can arrive twice: from its source and through the skill folder's link to it (the same text).
+    if (path && !seen.has(path)) { seen.add(path); files.push({ path, data: text }); }
   }
   const agents = files.find((file) => file.path === "AGENTS.md");
   if (agents) files.push({ path: "CLAUDE.md", data: agents.data });
