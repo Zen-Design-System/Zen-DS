@@ -106,11 +106,25 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(frame.parameterConsumptionMap.entries.some((e) => e.variableField === "GRID_COLUMN_GAP" && id(e.variableData.value.alias.guid) === pack.variables["Spacing/Gap/Small"][0]), "a gap binds its variable by id");
   const card = message.nodeChanges.find((n) => n.type === "INSTANCE" && n.name === "Card");
   check(id(card.gridColumnAnchor) === id(frame.gridColumns.entries[1].id) && card.stackChildPrimaryGrow === 1, "a cell anchors to its track and fills it");
+  check(!("gridColumnSpan" in card) && !("gridRowSpan" in card), "a one-column, one-row cell writes no span");
   const slot = (card.componentPropAssignments ?? []).find((a) => a.varValue?.dataType === "SLOT_CONTENT_ID");
   const content = slot && message.nodeChanges.find((n) => id(n.guid) === id(slot.varValue.value.slotContentIdValue.guid));
   const hello = content && message.nodeChanges.find((n) => n.type === "TEXT" && n.parentIndex && id(n.parentIndex.guid) === id(content.guid));
   check(content?.isSlotContent && hello?.textData.characters === "Hello", "the slot takes a content frame with the export's layers");
   check(id(hello?.styleIdForText.guid) === pack.styles["Body/Base/Bold"][0] && hello?.fontSize === pack.styles["Body/Base/Bold"][2].fontSize, "a text binds its style by id and repeats its font");
+}
+
+// --- a cell over several columns and rows (Layout/cell.ts span / rowSpan, docs/research/grid-span-2026-10-26.md) -------
+{
+  const card = (name, cell) => ({ type: "INSTANCE", name, set: { id: "6643:51021", name: "Card" }, fillW: true, fillH: true, cell, slots: [{ name: "Content", children: [{ type: "TEXT", characters: name, textStyle: "Body/Base/Bold" }] }] });
+  const grid = { type: "FRAME", name: "Spans", fillW: true, layout: { mode: "GRID", gap: 16, grid: { columns: 3, rows: 2 } },
+    children: [card("Hero", { row: 0, col: 0, span: 2 }), card("List", { row: 0, col: 2, span: 1, rowSpan: 2 }), card("Below", { row: 1, col: 0, span: 2 })] };
+  const { message } = run([grid]);
+  const frame = message.nodeChanges.find((n) => n.name === "Spans");
+  const [hero, list, below] = ["Hero", "List", "Below"].map((name) => message.nodeChanges.find((n) => n.type === "INSTANCE" && n.name === name));
+  check(hero.gridColumnSpan === 2 && !("gridRowSpan" in hero) && id(hero.gridColumnAnchor) === id(frame.gridColumns.entries[0].id), "a hero over 2 of 3 columns: its column span, anchored at the first");
+  check(list.gridRowSpan === 2 && !("gridColumnSpan" in list) && id(list.gridRowAnchor) === id(frame.gridRows.entries[0].id), "a list two rows tall: its row span, anchored at the first row");
+  check(below.gridColumnSpan === 2 && id(below.gridRowAnchor) === id(frame.gridRows.entries[1].id), "the cell under the hero: the second row, over 2 columns");
 }
 
 // --- corner radii and a slot Figma links only through a PROP_REF (Title-Highlight's Custom-Slot) ---------------------

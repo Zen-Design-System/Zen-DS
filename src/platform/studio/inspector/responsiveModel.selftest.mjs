@@ -19,9 +19,10 @@ const expression = (name, value) => ({ name, kind: "expression", value, raw: `${
 const object = (name, fields) => ({ name, kind: "expression", value: objectCode(fields), raw: "", line: 1, shape: { type: "object", fields: Object.entries(fields).map(([key, value]) => ({ key, kind: typeof value, value })) } });
 
 // ── Reading.
-check("Stack's responsive props (columns has its own field)", responsivePropsOf("Stack"), ["direction", "gap", "align", "justify", "wrap", "padding", "paddingX", "paddingY"]);
-check("Grid's leave columns to ColumnsField", responsivePropsOf("Grid"), ["gap", "rowGap", "columnGap", "padding"]);
-check("Card has none", responsivePropsOf("Card"), []);
+check("Stack's responsive props (columns has its own field)", responsivePropsOf("Stack"), ["direction", "gap", "align", "justify", "wrap", "padding", "paddingX", "paddingY", "span", "rowSpan"]);
+check("Grid's leave columns to ColumnsField", responsivePropsOf("Grid"), ["gap", "rowGap", "columnGap", "padding", "span", "rowSpan"]);
+check("Card takes only its Grid cell span", responsivePropsOf("Card"), ["span", "rowSpan"]);
+check("a component without span has none", responsivePropsOf("Table"), []);
 check("unset", responsiveRead([], "gap"), { kind: "unset" });
 check("a string", responsiveRead([string("direction", "row")], "direction"), { kind: "value", value: "row" });
 check("a boolean expression", responsiveRead([expression("wrap", "true")], "wrap"), { kind: "value", value: true });
@@ -58,6 +59,12 @@ check("breakpoints with own values", breakpointsWithOwn("Stack", written), ["des
 check("Reset mobile: its keys go", resetOps("Stack", written, "mobile"), [{ op: "setProp", name: "direction", value: { kind: "string", value: "row" } }]);
 check("Reset desktop does nothing", resetOps("Stack", written, "desktop"), []);
 check("Same on every breakpoint, from mobile", sameEverywhereOps("Stack", written, "mobile"), [{ op: "setProp", name: "direction", value: { kind: "string", value: "column" } }, { op: "setProp", name: "gap", value: { kind: "string", value: "md" } }]);
+
+// ── A Grid cell's span (docs/research/grid-span-2026-10-26.md): per breakpoint on the boxes of a widget grid.
+const setSpan = (value) => [{ op: "setProp", name: "span", value: typeof value === "number" ? { kind: "number", value } : { kind: "string", value } }];
+check("Card span on desktop: plain", responsiveOps(setSpan(8), ctx("desktop", [], "Card")), setSpan(8));
+check("Card span full on tablet: per breakpoint", responsiveOps(setSpan("full"), ctx("tablet", [expression("span", "8")], "ChartCard")), [{ op: "setProp", name: "span", value: { kind: "expression", code: '{ desktop: 8, tablet: "full" }' } }]);
+check("span reset on tablet: the default 1 there", responsiveOps([{ op: "removeProp", name: "span" }], ctx("tablet", [object("span", { desktop: 8, tablet: "full" })], "MetricCard")), [{ op: "setProp", name: "span", value: { kind: "expression", code: "{ desktop: 8, tablet: 1 }" } }]);
 
 if (failures.length) {
   console.error(`responsive model selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);

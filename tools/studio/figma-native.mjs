@@ -484,6 +484,8 @@ class Writer {
         const row = parentInfo.tracks.rows[spec.cell.row], col = parentInfo.tracks.cols[spec.cell.col];
         if (row && col) { out.gridRowAnchor = row; out.gridColumnAnchor = col; }
         if (spec.cell.span > 1) out.gridColumnSpan = spec.cell.span;
+        // A cell over several rows (Layout/cell.ts rowSpan): Figma's row span.
+        if (spec.cell.rowSpan > 1) out.gridRowSpan = spec.cell.rowSpan;
       }
     }
     if (spec.minW || spec.minH || spec.maxW || spec.maxH) {

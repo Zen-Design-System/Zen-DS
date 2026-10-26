@@ -60,6 +60,7 @@ import { InspectorRow, InspectorSection } from "./Section";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { hasSizing, SizingSection, sizingPropNames } from "./SizingSection";
 import { InstanceSizeGroup, useInstanceSizing } from "./InstanceSizeGroup";
+import { GridCellGroup, gridOf } from "./GridCellGroup";
 import { SlotHost, useSlotFilled } from "./SlotHost";
 import { openQuickInsert } from "../builder/library/quickInsertState";
 import { resetAllProps } from "./resetAll";
@@ -675,6 +676,9 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   // Text, Heading), not to Properties.
   const sizing = hasSizing(name);
   const sizingSpecs = sizing ? specs.filter((spec) => sizingPropNames.has(spec.name)) : [];
+  // A layer in a Grid: its Column span and Row span go to the Grid cell group of the Layout section (GridCellGroup.tsx).
+  const inGrid = Boolean(element && gridOf(sourceHost(selection)));
+  const cellSpecs = inGrid ? specs.filter((spec) => spec.name === "span" || spec.name === "rowSpan") : [];
   // position, constraintX/Y and inset* of Stack, Grid and Box go to the Position section (ActionBar keeps its own position).
   const positioned = ["Stack", "Grid", "Box", "Shape"].includes(name);
   // sticky is Figma's Scroll behavior: the Prototype tab's (PrototypePanel), so it is no Properties row either.
@@ -690,7 +694,7 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   const shapeSpecs = name === "Shape" ? specs.filter((spec) => shapePropNames.includes(spec.name) || spec.name === "rotation") : [];
   // A frame's rotation and flip: Position's rotation field and its Rotate / Flip buttons (Figma UI3).
   const turnSpecs = isFrameLook(name) ? specs.filter((spec) => spec.name === "rotation" || spec.name === "flip") : [];
-  const propertySpecs = specs.filter((spec) => !layoutSpecs.includes(spec) && !textSpecs.includes(spec) && !sizingSpecs.includes(spec) && !positionSpecs.includes(spec) && !appearanceSpecs.includes(spec) && !shapeSpecs.includes(spec) && !turnSpecs.includes(spec));
+  const propertySpecs = specs.filter((spec) => !layoutSpecs.includes(spec) && !textSpecs.includes(spec) && !sizingSpecs.includes(spec) && !cellSpecs.includes(spec) && !positionSpecs.includes(spec) && !appearanceSpecs.includes(spec) && !shapeSpecs.includes(spec) && !turnSpecs.includes(spec));
   // Object and array literals written in place (leading={{ … }}, trailing={[{ … }]}): edited field by field below the rows.
   const shapedProps: ShapedProp[] = propertySpecs.flatMap((spec) => {
     const attr = element?.attributes.filter((attribute) => attribute.kind === "expression" && attribute.name === spec.name).at(-1);
@@ -790,10 +794,17 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   const spreadNote = spreads.length ? `Set through ${spreads.map((spread) => spread.raw).join(", ")}: the props it sets are read-only here.` : undefined;
   // Layout components show Layout above Properties (Figma UI3 order): the bound and spread notes go on the first of the two.
   const instanceSized = Boolean(instanceSize && !sizing && !isLayout && !isText && nodeKind(name) === "zen");
-  const layoutShown = Boolean(element && (layoutSpecs.length || sizing || instanceSized));
+  const layoutShown = Boolean(element && (layoutSpecs.length || sizing || instanceSized || inGrid));
   // Bound values carry a ƒ in their own row (its tooltip names the expression), so no section repeats it.
   const sectionNote = spreadNote;
   const propertiesNote = layoutShown ? undefined : sectionNote;
+  // Resizing (W / H), then the Grid cell group when the layer sits in a Grid.
+  const sizeGroup = sizing ? <SizingSection api={api} specs={sizingSpecs} component={name} host={sourceHost(selection)} />
+    : instanceSized && instanceSize ? <InstanceSizeGroup sizing={instanceSize} disabled={!editable} /> : null;
+  const cellGroup = inGrid ? (
+    <GridCellGroup api={api} component={name} attributes={element?.attributes ?? []} host={sourceHost(selection)}
+      elementChildren={(element?.children ?? []).filter((child) => child.kind === "element").length} />
+  ) : null;
   // Layout (LayoutSection.tsx): Flow, Size, Alignment + Gap, Columns, Padding; each gesture one apply (layoutModel.ts).
   const layoutSection = layoutShown ? (
     <LayoutSection
@@ -804,8 +815,7 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
       component={name}
       attributes={element?.attributes ?? []}
       host={sourceHost(selection)}
-      sizing={sizing ? <SizingSection api={api} specs={sizingSpecs} component={name} host={sourceHost(selection)} />
-        : instanceSized && instanceSize ? <InstanceSizeGroup sizing={instanceSize} disabled={!editable} /> : null}
+      sizing={sizeGroup || cellGroup ? <>{sizeGroup}{cellGroup}</> : null}
     />
   ) : null;
 

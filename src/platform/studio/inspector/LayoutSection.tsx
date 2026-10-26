@@ -49,6 +49,8 @@ const READ = ["direction", "wrap", "align", "justify", "gap", "rowGap", "columnG
 const figmaWords: Readonly<Record<string, string>> = {
   direction: "Flow", wrap: "Wrap", align: "Alignment · cross axis", justify: "Alignment · main axis", gap: "Gap", rowGap: "Row gap",
   columnGap: "Column gap", padding: "Padding", paddingX: "Horizontal padding", paddingY: "Vertical padding", clip: "Clip content",
+  // A Grid cell's span (its fields are the Grid cell group's, GridCellGroup.tsx): named in the breakpoint notes.
+  span: "Column span", rowSpan: "Row span",
 };
 
 /** What an apply shows at once: a set prop as its literal, a removed one as unset. */

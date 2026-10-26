@@ -394,6 +394,30 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   check("frame looks: the page passes the dialect", validateDialect(pulled.text).length === 0, true);
 }
 
+// A Figma Grid with mixed spans (docs/research/grid-span-2026-10-26.md §5): the Grid keeps its 12 columns, each layer its
+// span and row span (a frame's Stack takes them; a text goes in a Box that does), the whole row as "full"; Figma cells
+// placed apart from their reading order are noted.
+{
+  const text = (value) => ({ type: "TEXT", name: value, characters: value, textStyle: "Body/Base/Regular" });
+  const frame = (name, cell) => ({ type: "FRAME", name, cell, fillW: true, layout: { mode: "VERTICAL", gap: 8, gapVar: "Spacing/Gap/XSmall", padding: [0, 0, 0, 0] }, children: [text(name)] });
+  const dashboard = (cells) => ({ type: "FRAME", name: "Dashboard", width: 1200, height: 600, layout: { mode: "GRID", gap: 16, gapVar: "Spacing/Gap/Medium", padding: [0, 0, 0, 0], grid: { columns: 12, rows: 3 } }, children: cells });
+  const pulled = pageFromFigma(dashboard([
+    frame("Hero", { row: 0, col: 0, span: 8, rowSpan: 1 }),
+    frame("List", { row: 0, col: 8, span: 4, rowSpan: 2 }),
+    { ...text("Note"), cell: { row: 1, col: 0, span: 8, rowSpan: 1 } },
+    frame("Table", { row: 2, col: 0, span: 12, rowSpan: 1 }),
+  ]), { mapping });
+  const lines = pulled.text.split("\n");
+  const has = (pattern) => lines.some((candidate) => pattern.test(candidate));
+  check("grid spans: the Grid keeps 12 columns", has(/<Grid\b[^>]*columns=\{12\}/), true);
+  check("grid spans: a frame's Stack takes span 8; the list span 4 and two rows", [has(/<Stack\b[^>]*span=\{8\}/), has(/<Stack\b[^>]*span=\{4\}[^>]*rowSpan=\{2\}/)], [true, true]);
+  check("grid spans: a text goes in a Box that spans", /<Box span=\{8\}>\s*<Text[^>]*>Note<\/Text>\s*<\/Box>/.test(pulled.text), true);
+  check("grid spans: all 12 is the whole row", has(/<Stack\b[^>]*span="full"/), true);
+  check("grid spans: in reading order, no note; the page passes the dialect", [pulled.notes.some((note) => /apart from their reading order/.test(note)), validateDialect(pulled.text).length], [false, 0]);
+  const apart = pageFromFigma(dashboard([frame("Hero", { row: 0, col: 4, span: 8, rowSpan: 1 }), frame("Side", { row: 1, col: 0, span: 4, rowSpan: 1 })]), { mapping });
+  check("grid spans: a cell placed past a hole is noted", apart.notes.some((note) => /Grid "Dashboard": in Figma some layers sit apart from their reading order/.test(note)), true);
+}
+
 // A Figma GROUP comes back as a Zen group (Box group) at its X / Y, its layers at theirs inside it (the reader wrote
 // them relative to the group), its opacity kept.
 {
