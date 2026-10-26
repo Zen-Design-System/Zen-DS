@@ -73,9 +73,10 @@ const METRIC = {
   sets: { "Primitives/Metric/Metric-Inline/Icon-Highlight": "icon-highlight", "Primitives/Metric/Metric-Inline/Title-Highlight": "title-highlight" },
   setProp: "variant",
   props: {
-    // Figma Trend (a boolean) shows the Metric-Trend badge; in code the trend is an object (direction, label): on writes
-    // one to start from, edited field by field in Object properties; off removes it (2026-10-13 Figma walk).
-    Trend: { toggle: "trend", on: { code: '{ direction: "positive", label: "+12%" }' } },
+    // Figma Trend (a boolean) shows the Metric-Trend; in code the trend is an object (direction, label, subLabel): on writes
+    // Figma's sample to start from (the badge "24%", the Sub-Label "vs. last year", 595:55134), edited field by field in
+    // Object properties; off removes it (2026-10-13 Figma walk).
+    Trend: { toggle: "trend", on: { code: '{ direction: "positive", label: "24%", subLabel: "vs. last year" }' } },
     "Metric-Color": "metricColor",
     "Metric-Title": skip("the title is the required label"),
     Counter: { toggle: "counter", on: "3" },

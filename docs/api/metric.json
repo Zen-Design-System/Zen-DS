@@ -1,7 +1,7 @@
 {
   "$comment": "Generated from the TSX source by scripts/build-api.mjs (react-docgen). Do not edit.",
   "slug": "metric",
-  "import": "import { Metric, MetricCard } from \"@zen-ds/react\";",
+  "import": "import { Metric, MetricCard, MetricTrend } from \"@zen-ds/react\";",
   "components": [
     {
       "name": "Metric",
@@ -28,10 +28,10 @@
         },
         {
           "name": "trend",
-          "type": "{ direction: MetricTrendDirection; label: ReactNode }",
+          "type": "MetricTrendValue",
           "required": false,
           "default": null,
-          "description": "Figma Trend: { direction, label } → Metric-Trend badge.",
+          "description": "Figma Trend → Metric-Trend: `{ direction, label, subLabel }`, the change in the badge (\"9%\") and what it is measured\n against beside it (\"vs. August\").",
           "deprecated": null
         },
         {
@@ -333,10 +333,10 @@
         },
         {
           "name": "trend",
-          "type": "{ direction: MetricTrendDirection; label: ReactNode }",
+          "type": "MetricTrendValue",
           "required": false,
           "default": null,
-          "description": "Figma Trend: { direction, label } → Metric-Trend badge.",
+          "description": "Figma Trend → Metric-Trend: `{ direction, label, subLabel }`, the change in the badge (\"9%\") and what it is measured\n against beside it (\"vs. August\").",
           "deprecated": null
         },
         {
@@ -452,6 +452,55 @@
           "deprecated": null
         }
       ]
+    },
+    {
+      "name": "MetricTrend",
+      "file": "src/components/MetricWidget/MetricWidget.tsx",
+      "description": "Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Badge holding only the change, then the Sub-Label\n(Body/Small/Regular), Spacing/Gap/2XSmall apart. Content=Default: Positive Background/Positive/Solid (arrow-circle-up),\nNegative Background/Negative/Solid (arrow-circle-down), Normal Background/Neutral/Subtle; the Sub-Label is\nContent/Neutral/Light. On a Solid fill the badge takes the fill's family whatever the direction (the arrow tells it):\nInverse Solid on Neutral/Solid, On-Color Solid (a white pill) on Accent and colour solids; the Sub-Label is then\nContent/Inverse/Light or Content/On-Colors. Inside a Solid Card it follows the card unless `content` is set, and its\nSub-Label reads the card's re-pointed Neutral/Light (On-Accent/Default on Accent, On-Brights on Yellow: Metric-Tile).",
+      "deprecated": null,
+      "extends": null,
+      "props": [
+        {
+          "name": "trend",
+          "type": "\"positive\" | \"negative\" | \"normal\"",
+          "required": false,
+          "default": "\"normal\"",
+          "description": "Figma Trend: Positive · Negative · Normal.",
+          "deprecated": null
+        },
+        {
+          "name": "content",
+          "type": "\"default\" | \"inverse\" | \"on-color\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Content (Default · Inverse · On-Color). Default: the enclosing Solid Card's family (Inverse on Neutral, On-Color\n on Accent and the hues), else Default.",
+          "deprecated": null
+        },
+        {
+          "name": "subLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Sub-Label: the words beside the badge (\"vs. last year\"). None: the badge alone.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "The badge's text: the change alone (\"24%\").",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>`: the Badge's, or with a `subLabel` the row holding the Badge and the Sub-Label.",
+          "deprecated": null
+        }
+      ]
     }
   ],
   "types": {
@@ -459,6 +508,7 @@
     "ChartFormatPreset": "type ChartFormatPreset = \"compact\" | \"currency\" | \"percent\"",
     "DockIconTheme": "type DockIconTheme = (typeof dockIconThemes)[number]",
     "MetricGoal": "interface MetricGoal { value: number; target: number; label?: ReactNode; valueLabel?: ReactNode; }",
-    "MetricTrendDirection": "type MetricTrendDirection = \"positive\" | \"negative\" | \"normal\""
+    "MetricTrendDirection": "type MetricTrendDirection = \"positive\" | \"negative\" | \"normal\"",
+    "MetricTrendValue": "interface MetricTrendValue { direction: MetricTrendDirection; label: ReactNode; subLabel?: ReactNode; }"
   }
 }

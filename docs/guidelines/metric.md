@@ -30,7 +30,7 @@ Show one key number with its label, an identifying icon and how it changed; a Me
 | Size | `size` | xlarge (Display/4) · large (Heading/1) · medium (Heading/3) · small (Heading/4) · xsmall (Subheading); XL/L stack the icon |
 | Variant | `variant` | MetricCard KPI: title-highlight (default since 2026-10-16: title on top in Body/Extra/Medium, number and trend at the foot, Dock-Icon in the bottom-right corner; Large) · icon-highlight (the Dock-Icon leads; XLarge) |
 | Label / Value | `label · value` | label Neutral/Light; value pre-formatted string |
-| Trend | `trend {direction: positive · negative · normal, label}` | Small Subtle Badge: green / red / neutral. Inside a Solid card it follows the fill (Figma Metric-Trend Content): Inverse Solid on Neutral, On-Color Solid on Accent and the hues, the arrow telling the direction; MetricTrend content sets it |
+| Trend | `trend {direction: positive · negative · normal, label, subLabel}` | Figma Metric-Trend (595:55134): a Small Badge holding the change alone ("9%": positive Background/Positive/Solid + arrow up, negative Background/Negative/Solid + arrow down, normal Neutral Subtle), then the Sub-Label ("vs. August": Body/Small/Regular, Content/Neutral/Light) Gap/2XSmall after it. Inside a Solid card it follows the fill (Figma Content): Inverse Solid on Neutral, On-Color Solid on Accent and the hues, the arrow telling the direction, the Sub-Label in the fill's family (Inverse/Light, On-Accent, On-Colors, On-Brights). A tile of size small shows the badge alone. MetricTrend content and subLabel set them; a one-string label still renders, all of it in the badge |
 | Icon | `icon` | Dock Icon Neutral Subtle (Large / Medium); false hides it |
 | Card | `MetricCard theme · subAction` | Card Shadow Medium + ⋮ Sub-Action |
 | Icon colour | `iconTheme · iconBackground · iconEmoji` | any Dock-Icon theme (Neutral default) · Subtle / Solid · Theme=Emoji |
@@ -40,7 +40,7 @@ Show one key number with its label, an identifying icon and how it changed; a Me
 | Goal | `goal {value, target, label?, valueLabel?}` | goal-progress: a stacked Accent ProgressBar, "of {target} goal" and the share (past 100% too) |
 | Comparison | `comparison[] {id, label, value, trend?}` | 2–4 columns Spacing/Gap/Medium apart, a Border/Neutral/Subtle rule before each but the first; stacked under 440px |
 | Categories | `categories[] {id, label, value, color?}` | category-bar: a 12px bar of shares in the chart palette, then a row per category (Caption label, Body/Small/Medium amount, a Neutral/Base share adding up to 100%) |
-| Hero | `type="hero" · theme · color · footer` | Brand Pale by default with neutral marks and an On-Color Solid trend badge; theme="solid" (color neutral) is the dark widget: Inverse content, a Button appearance="overlay" level="inverse" in the footer |
+| Hero | `type="hero" · theme · color · footer` | Brand Pale by default with neutral marks and an On-Color Solid trend badge (its Sub-Label Neutral/Light); theme="solid" (color neutral) is the dark widget: Inverse content, a Button appearance="overlay" level="inverse" in the footer |
 | Motion | `MetricCard animate` | The line wipes in, bars rise, segments grow (the chart family's timing); reduced motion fades; animate={false} turns it off |
 | Spacing | `spacing` | MetricCard: medium (default) · small (Card-padding-small; type="tile" defaults to it). On a phone, three or more side by side take small (harness card/spacing-by-count); desktop dashboards keep medium |
 
@@ -54,7 +54,7 @@ Figma Primitives/Metric/Metric-Inline/Icon-Highlight (595:55188): Dock-Icon + Co
 | --- | --- | --- | --- |
 | `label` (required) | `ReactNode` | — | Figma Metric-Title. |
 | `value` (required) | `ReactNode` | — | Figma Metric-Number — pass it already formatted ("$1,680.68"). |
-| `trend` | `{ direction: MetricTrendDirection; label: ReactNode }` | — | Figma Trend: { direction, label } → Metric-Trend badge. |
+| `trend` | `MetricTrendValue` | — | Figma Trend → Metric-Trend: `{ direction, label, subLabel }`, the change in the badge ("9%") and what it is measured against beside it ("vs. August"). |
 | `icon` | `IconName \| false` | `"icon-home-02-solid"` | Figma Dock-Icon: Neutral Subtle (Large at XLarge/Large, Medium below). `false` hides it. MetricCard type="tile": Neutral Solid, `icon-activity-line` by default. |
 | `iconTheme` | `DockIconTheme` | `"neutral"` | Dock-Icon Theme — colour-code the metric's category (Figma instance swap). Default Neutral; a tile on a Solid card takes the fill's family (Inverse on Neutral, On-Color on Accent and the hues). |
 | `iconBackground` | `"solid" \| "subtle"` | `"subtle"` | Dock-Icon Background: Subtle (default) or Solid for the one metric that should lead. |
@@ -97,7 +97,7 @@ Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric
 | `headingLevel` | `2 \| 3 \| 4` | `3` | comparison: heading level of the title (default 3: a card inside an h2 section; 2 when the card sits directly under the page h1), as ChartCard's. The look stays Body/Extra/Medium: the level follows the outline, not the size. |
 | `animate` | `boolean` | `true` | Draw the marks in on mount and when their data changes (default true; reduced motion fades). |
 | `label` (required) | `ReactNode` | — | Figma Metric-Title. |
-| `trend` | `{ direction: MetricTrendDirection; label: ReactNode }` | — | Figma Trend: { direction, label } → Metric-Trend badge. |
+| `trend` | `MetricTrendValue` | — | Figma Trend → Metric-Trend: `{ direction, label, subLabel }`, the change in the badge ("9%") and what it is measured against beside it ("vs. August"). |
 | `icon` | `IconName \| false` | — | Figma Dock-Icon: Neutral Subtle (Large at XLarge/Large, Medium below). `false` hides it. MetricCard type="tile": Neutral Solid, `icon-activity-line` by default. |
 | `iconTheme` | `DockIconTheme` | — | Dock-Icon Theme — colour-code the metric's category (Figma instance swap). Default Neutral; a tile on a Solid card takes the fill's family (Inverse on Neutral, On-Color on Accent and the hues). |
 | `iconBackground` | `"solid" \| "subtle"` | — | Dock-Icon Background: Subtle (default) or Solid for the one metric that should lead. |
@@ -113,6 +113,17 @@ Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: "accent" }, "Trend/Badge": { theme: "orange" } }`). Written by Zen Studio; app code sets icon / trend / counter. |
 
+### MetricTrend
+Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Badge holding only the change, then the Sub-Label (Body/Small/Regular), Spacing/Gap/2XSmall apart. Content=Default: Positive Background/Positive/Solid (arrow-circle-up), Negative Background/Negative/Solid (arrow-circle-down), Normal Background/Neutral/Subtle; the Sub-Label is Content/Neutral/Light. On a Solid fill the badge takes the fill's family whatever the direction (the arrow tells it): Inverse Solid on Neutral/Solid, On-Color Solid (a white pill) on Accent and colour solids; the Sub-Label is then Content/Inverse/Light or Content/On-Colors. Inside a Solid Card it follows the card unless `content` is set, and its Sub-Label reads the card's re-pointed Neutral/Light (On-Accent/Default on Accent, On-Brights on Yellow: Metric-Tile).
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `trend` | `"positive" \| "negative" \| "normal"` | `"normal"` | Figma Trend: Positive · Negative · Normal. |
+| `content` | `"default" \| "inverse" \| "on-color"` | — | Figma Content (Default · Inverse · On-Color). Default: the enclosing Solid Card's family (Inverse on Neutral, On-Color on Accent and the hues), else Default. |
+| `subLabel` | `ReactNode` | — | Figma Sub-Label: the words beside the badge ("vs. last year"). None: the badge alone. |
+| `children` (required) | `ReactNode` | — | The badge's text: the change alone ("24%"). |
+| `ref` | `Ref<HTMLSpanElement>` | — | Forwarded to the root `<span>`: the Badge's, or with a `subLabel` the row holding the Badge and the Sub-Label. |
+
 ### Types
 Object shapes the props above refer to.
 
@@ -122,6 +133,7 @@ type ChartFormatPreset = "compact" | "currency" | "percent"
 type DockIconTheme = (typeof dockIconThemes)[number]
 interface MetricGoal { value: number; target: number; label?: ReactNode; valueLabel?: ReactNode; }
 type MetricTrendDirection = "positive" | "negative" | "normal"
+interface MetricTrendValue { direction: MetricTrendDirection; label: ReactNode; subLabel?: ReactNode; }
 ```
 
 ## ✅ Do
@@ -130,7 +142,7 @@ type MetricTrendDirection = "positive" | "negative" | "normal"
 - Give a typed MetricCard the data its type draws: series, goal, comparison or categories (harness: metric/type-data).
 - Pass categories largest first and keep them to 2–7 (harness: metric/category-count).
 - Pass format so the series summary, the goal's label and the category amounts read like the number ("$105.7K", "1,284 h").
-- Always say what the trend compares against ("vs. last month").
+- Put only the change in trend.label ("9%"; a sign that agrees with the arrow is left out, one that disagrees stays) and what it is measured against in trend.subLabel ("vs. last month", "invoice").
 - Use the same size for metrics in one row; one hero metric at most.
 - Pair a worrying trend with guidance (Inline Message) or a link to details.
 - Colour-code metrics by category with the Dock-Icon theme (Revenue green, Users blue…) and keep that mapping across the product.
@@ -138,6 +150,7 @@ type MetricTrendDirection = "positive" | "negative" | "normal"
 
 ## ❌ Don't
 - Don't colour the number itself to show good/bad — the trend badge carries it.
+- Don't write the comparison into the trend's label ("+12% vs. last month"): the badge holds the change, subLabel the words beside it (Figma Metric-Trend since 2026-10-26).
 - Don't leave a status card's Dock Icon (total, in progress, overdue, done) at the default Neutral Subtle.
 - Don't show more than ~4 KPI cards in a row; group or prioritise.
 - Don't round away meaningful precision in finance values.
@@ -148,7 +161,7 @@ type MetricTrendDirection = "positive" | "negative" | "normal"
 - A sparkline or spark bars is one image (role="img") named by a summary of the series (or seriesLabel); the category bar is decorative and its rows say every amount and share; goal-progress is a named progressbar.
 
 ## Content
-- Labels are nouns ("Revenue"); trends read "+12% vs. last month".
+- Labels are nouns ("Revenue"); a trend reads as its change ("12%", "1") then what it compares against ("vs. last month", "invoice").
 
 ## Harness (`npm run usage:check`)
 | Rule | Severity | Checks | Suppress with |

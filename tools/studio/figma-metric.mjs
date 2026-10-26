@@ -35,7 +35,8 @@ const TILE = "Metric-Tile";
 const TILE_CONTENT = { neutral: "Inverse", accent: "On-Accent", yellow: "On-Bright", brand: "On-Color", cyan: "On-Color", orange: "On-Color" };
 const tileContentOf = (theme, color) => (theme === "solid" ? TILE_CONTENT[color] ?? "Inverse" : "Default");
 const TILE_ICON = "icon-activity-line";
-const TREND_OPTION = { positive: "Positive", negative: "Negative", normal: "Normal" };
+/** MetricCard trend.direction → Figma .Primitives/Metrics/Metric-Trend's Trend option. */
+const TREND_OPTION = { positive: "Positive", negative: "Negative", normal: "Normal", neutral: "Normal" };
 const TREND_DIRECTION = { Positive: "positive", Negative: "negative", Normal: "normal" };
 /** Card Theme / Color (Figma Card 6643:51021) ↔ code; Figma's Hero card is Solid Brand with its fill overridden to
  *  Support/Brand/Pale, which code draws as theme="pale" color="brand" (MetricCard's Hero default). */
@@ -48,6 +49,29 @@ const SPACING_OF = { Medium: "md", Small: "sm", XSmall: "xs" };
 const spacingDefault = (type) => (type === "tile" ? "Small" : "Medium");
 const capital = (word) => (typeof word === "string" && word ? word[0].toUpperCase() + word.slice(1) : word);
 const words = (value) => (typeof value === "string" || typeof value === "number" ? String(value) : null);
+/** The Metric-Trend's Sub-Label (Figma 595:55134 since 2026-10-26: the badge holds the change, the Sub-Label beside it). */
+const SUB_LABEL = "Sub-Label";
+const hasSubLabel = (trend) => trend.subLabel !== undefined && trend.subLabel !== null && trend.subLabel !== false && trend.subLabel !== "";
+/**
+ * A trend as the Metric-Trend at `path`: its Trend option and Sub-Label words on it, the change on its Badge's Text (a
+ * textList on the Metric-Trend would land in its own text layer, the Sub-Label). The reader writes the same shape. An
+ * unknown direction takes `fallback` (null: the variant's own).
+ */
+export function trendNested(trend, path, { fallback = "Positive" } = {}) {
+  const sub = words(trend.subLabel);
+  const option = TREND_OPTION[trend.direction] ?? fallback;
+  return [
+    { path, props: option ? { Trend: option } : {}, ...(sub ? { texts: { [SUB_LABEL]: sub } } : {}) },
+    ...(words(trend.label) ? [{ path: `${path}/Badge`, text: words(trend.label) }] : []),
+  ];
+}
+/** The edit that hides Figma's sample Sub-Label ("vs. last year") when the code's trend has none; `layer`: the trend's
+ *  layer path from the instance. A Sub-Label that is not words is a note. */
+export function trendEdits(trend, layer, notes, where) {
+  if (!hasSubLabel(trend)) return [{ layer: `${layer}/${SUB_LABEL}`, visible: false }];
+  if (!words(trend.subLabel)) notes.push(`${where}: its trend's subLabel is not words (Figma's Sub-Label keeps its own)`);
+  return [];
+}
 
 /** Whether a MetricCard of these plain props is pushed as the Metric-Card set (a type other than KPI). */
 export const metricCardTyped = (values) => typeof values.type === "string" && values.type !== "kpi" && values.type in METRIC_CARD_TYPE;
@@ -135,7 +159,8 @@ export function metricCardFigma(values, { notes, where, footerText = null, foote
   if (type === "hero" && !heroDefault && theme === "solid") notes.push(`${where}: Figma's Hero card keeps its Brand Pale fill; pick the Card's fill (Background/Neutral/Solid for Solid Neutral) in Figma`);
   const trendOf = (trend, path) => {
     if (!trend || typeof trend !== "object") return [{ path: path.replace(/\/Trend$/, ""), props: { Trend: false } }];
-    return [{ path: path.replace(/\/Trend$/, ""), props: { Trend: true } }, { path, props: { Trend: TREND_OPTION[trend.direction] ?? "Positive" }, ...(words(trend.label) ? { textList: [words(trend.label)] } : {}) }];
+    edits.push(...trendEdits(trend, path, notes, where));
+    return [{ path: path.replace(/\/Trend$/, ""), props: { Trend: true } }, ...trendNested(trend, path)];
   };
   if (type === "tile") {
     // The Metric-Tile: its texts are its own TEXT properties, its Content follows the card's fill, Small below Medium.
@@ -147,10 +172,11 @@ export function metricCardFigma(values, { notes, where, footerText = null, foote
     const content = tileContentOf(theme, color);
     if (content !== "Default") tile.Content = content;
     nested.push({ path: TILE, props: tile });
-    if (trend) nested.push({ path: `${TILE}/Trend`, props: { Trend: TREND_OPTION[trend.direction] ?? "Positive" }, ...(words(trend.label) ? { textList: [words(trend.label)] } : {}) });
+    // Size=Small hides the Sub-Label in Figma as in code; its words still ride along.
+    if (trend) { nested.push(...trendNested(trend, `${TILE}/Trend`)); edits.push(...trendEdits(trend, `${TILE}/Trend`, notes, where)); }
     if (typeof values.icon === "string" && values.icon !== TILE_ICON) nested.push({ path: `${TILE}/Metric-Icon`, props: { "Icon-Src": values.icon } });
     if (values.footer) notes.push(`${where}: a tile has no footer in Figma's Metric-Tile`);
-    return { set: METRIC_CARD_SET, props: { Type: METRIC_CARD_TYPE[type] }, nested };
+    return { set: METRIC_CARD_SET, props: { Type: METRIC_CARD_TYPE[type] }, nested, ...(edits.length ? { edits } : {}) };
   }
   if (type === "comparison") {
     if (words(values.label)) texts[COMPARISON_TITLE] = words(values.label);
@@ -211,15 +237,20 @@ function sampleElement(id) {
 
 /** A nested entry by its path. */
 const nestedAt = (node, path) => (node.nested ?? []).find((entry) => entry.path === path) ?? null;
-/** A trend read from its Metric-Inline's Trend toggle and badge (push JSON, or the reader's). */
+/** A trend read from its Metric-Inline's Trend toggle, its Metric-Trend and Badge (push JSON, or the reader's): the
+ *  direction, the badge's change and the Sub-Label's words. A Metric-Trend written before 2026-10-26 holds its label in a
+ *  textList. */
 function trendAt(node, path) {
   const metric = nestedAt(node, path.replace(/\/Trend$/, ""));
   if (metric?.props?.Trend === false) return null;
-  const badge = nestedAt(node, path);
-  if (!badge) return null;
-  const fields = { direction: literal(TREND_DIRECTION[badge.props?.Trend] ?? "positive") };
-  const text = badge.textList?.[0] ?? badge.text;
+  const trend = nestedAt(node, path);
+  if (!trend) return null;
+  const fields = { direction: literal(TREND_DIRECTION[trend.props?.Trend] ?? "positive") };
+  const badge = nestedAt(node, `${path}/Badge`);
+  const text = badge?.text ?? badge?.textList?.[0] ?? trend.textList?.[0] ?? trend.text;
   if (text) fields.label = literal(text);
+  const sub = trend.texts?.[SUB_LABEL];
+  if (typeof sub === "string" && sub) fields.subLabel = literal(sub);
   return object(fields);
 }
 
@@ -316,7 +347,14 @@ export function metricCardFromFigma(node, { notes, where }) {
  * and badge; Tile's Metric-Tile (its properties, Trend and Metric-Icon); the Card's Theme / Color / Sub-Action; the Hero
  * button's words. Uses the reader's propsOf and firstText.
  */
-export const READ_METRIC_CARD = `const readMetricCard = async (instance, set) => {
+export const READ_METRIC_CARD = `// A Metric-Trend as figma-metric trendNested writes it: its Trend option and shown Sub-Label, its Badge's change.
+const readTrend = async (trend, path) => {
+  const sub = trend.children.find((n) => n.type === "TEXT" && n.name === "Sub-Label" && n.visible);
+  const badge = trend.children.find((n) => n.type === "INSTANCE" && n.visible);
+  const text = badge ? firstText(badge) : null;
+  return [{ path, props: await propsOf(trend), ...(sub ? { texts: { "Sub-Label": sub.characters } } : {}) }, ...(text ? [{ path: path + "/Badge", text }] : [])];
+};
+const readMetricCard = async (instance, set) => {
   const out = { type: "INSTANCE", id: instance.id, name: instance.name, set, props: await propsOf(instance), texts: {}, nested: [] };
   const card = instance.findOne((n) => n.type === "INSTANCE" && n.name === "Card");
   if (card) out.nested.push({ path: "Card", props: await propsOf(card) });
@@ -329,7 +367,7 @@ export const READ_METRIC_CARD = `const readMetricCard = async (instance, set) =>
     if (!tile) return out;
     out.nested.push({ path: "Metric-Tile", props: await propsOf(tile) });
     const trend = tile.findOne((n) => n.type === "INSTANCE" && n.visible && n.name === "Trend");
-    if (trend) out.nested.push({ path: "Metric-Tile/Trend", props: await propsOf(trend), textList: [firstText(trend)].filter(Boolean) });
+    if (trend) out.nested.push(...(await readTrend(trend, "Metric-Tile/Trend")));
     const dock = tile.findOne((n) => n.type === "INSTANCE" && n.name === "Metric-Icon");
     if (dock) out.nested.push({ path: "Metric-Tile/Metric-Icon", props: await propsOf(dock) });
     return out;
@@ -352,7 +390,7 @@ export const READ_METRIC_CARD = `const readMetricCard = async (instance, set) =>
     if (comparison) entry.texts = { Label: textIn(metrics[i], "Label") || "", "Metric-Number": textIn(metrics[i], "Metric-Number") || "" };
     out.nested.push(entry);
     const trend = metrics[i].findOne((n) => n.type === "INSTANCE" && n.visible && n.name === "Trend");
-    if (trend) out.nested.push({ path: at + "/Trend", props: await propsOf(trend), textList: [firstText(trend)].filter(Boolean) });
+    if (trend) out.nested.push(...(await readTrend(trend, at + "/Trend")));
     if (!comparison) break;
   }
   const button = instance.findOne((n) => n.type === "INSTANCE" && n.visible && /^Button\\/(Main|Overlay)$/.test(n.name));

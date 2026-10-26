@@ -349,11 +349,11 @@ export const PALETTE: readonly PaletteItem[] = [
   // Metric inside a card (concentric surfaces), MetricCard anywhere else: paletteFor offers exactly one of the two.
   {
     id: "metric", label: "Metric", group: "Data display", caption: "Value and trend", root: "Metric", components: ["Metric"], interactive: false, input: false,
-    build: () => `<Metric label="Revenue" value="$21,000" icon={false} trend={{ direction: "positive", label: "+12% vs last month" }} />`,
+    build: () => `<Metric label="Revenue" value="$21,000" icon={false} trend={{ direction: "positive", label: "12%", subLabel: "vs last month" }} />`,
   },
   {
     id: "metric-card", label: "Metric card", group: "Data display", caption: "Value and trend in a card", root: "MetricCard", components: ["MetricCard"], interactive: false, input: false,
-    build: () => `<MetricCard label="Revenue" value="$21,000" icon={false} trend={{ direction: "positive", label: "+12% vs last month" }} />`,
+    build: () => `<MetricCard label="Revenue" value="$21,000" icon={false} trend={{ direction: "positive", label: "12%", subLabel: "vs last month" }} />`,
   },
   {
     id: "card", label: "Card", group: "Data display", caption: "Nested surface", root: "Card", components: ["Card", "Stack", "Heading", "Text"], interactive: false, input: false,
@@ -608,14 +608,14 @@ export const PALETTE: readonly PaletteItem[] = [
     id: "widget-kpi", label: "KPI card", caption: "Icon, number and trend", root: "MetricCard", components: ["MetricCard"],
     code: () => lines(
       `<MetricCard theme="default" size="large" label="Billable hours" value="5,900 h" icon="icon-clock-line" iconTheme="blue"`,
-      `  trend={{ direction: "positive", label: "+4% vs. August" }} />`,
+      `  trend={{ direction: "positive", label: "4%", subLabel: "vs. August" }} />`,
     ),
   }),
   widget({
     id: "widget-kpi-sparkline", label: "KPI with sparkline", caption: "Metric card, sparkline", root: "MetricCard", components: ["MetricCard"],
     code: (_ctx, fmt) => lines(
       `<MetricCard theme="default" type="sparkline" label="Revenue" value="$105,700"${fmt("format", MONEY_K)}`,
-      `  trend={{ direction: "positive", label: "+9% vs. August" }}`,
+      `  trend={{ direction: "positive", label: "9%", subLabel: "vs. August" }}`,
       `  series={[71200, 76500, 68900, 74300, 79600, 85100, 82300, 91800, 88400, 94100, 97000, 105700]} />`,
     ),
   }),
@@ -623,7 +623,7 @@ export const PALETTE: readonly PaletteItem[] = [
     id: "widget-kpi-spark-bars", label: "KPI with spark bars", caption: "Metric card, spark bars", root: "MetricCard", components: ["MetricCard"],
     code: (_ctx, fmt) => lines(
       `<MetricCard theme="default" type="spark-bars" label="Hours logged" value="1,284 h"${fmt("format", HOURS)}`,
-      `  trend={{ direction: "positive", label: "+13% vs. last week" }}`,
+      `  trend={{ direction: "positive", label: "13%", subLabel: "vs. last week" }}`,
       `  series={[1012, 1086, 1048, 760, 1131, 1176, 1104, 640, 1153, 1067, 1132, 1284]} />`,
     ),
   }),
@@ -631,7 +631,7 @@ export const PALETTE: readonly PaletteItem[] = [
     id: "widget-goal-progress", label: "Goal progress", caption: "Metric card, goal", root: "MetricCard", components: ["MetricCard"],
     code: (_ctx, fmt) => lines(
       `<MetricCard theme="default" type="goal-progress" label="Collected in Q3" value="$275,800"${fmt("format", MONEY)}`,
-      `  trend={{ direction: "positive", label: "+8% vs. Q2" }}`,
+      `  trend={{ direction: "positive", label: "8%", subLabel: "vs. Q2" }}`,
       `  goal={{ value: 275800, target: 290000 }} />`,
     ),
   }),
@@ -639,9 +639,9 @@ export const PALETTE: readonly PaletteItem[] = [
     id: "widget-period-comparison", label: "Period comparison", caption: "Metric card, columns", root: "MetricCard", components: ["MetricCard"],
     code: () => lines(
       `<MetricCard theme="default" type="comparison" label="Cash flow · September" comparison={[`,
-      `  { id: "invoiced", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "+9% vs. August" } },`,
-      `  { id: "collected", label: "Collected", value: "$88,300", trend: { direction: "negative", label: "−8% vs. August" } },`,
-      `  { id: "overdue", label: "Overdue", value: "$12,880", trend: { direction: "normal", label: "1 invoice" } },`,
+      `  { id: "invoiced", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "9%", subLabel: "vs. August" } },`,
+      `  { id: "collected", label: "Collected", value: "$88,300", trend: { direction: "negative", label: "8%", subLabel: "vs. August" } },`,
+      `  { id: "overdue", label: "Overdue", value: "$12,880", trend: { direction: "normal", label: "1", subLabel: "invoice" } },`,
       `]} />`,
     ),
   }),
@@ -660,7 +660,7 @@ export const PALETTE: readonly PaletteItem[] = [
     id: "widget-hero", label: "Hero metric", caption: "Solid stand-out", root: "MetricCard", components: ["MetricCard", "Button"], requires: TOAST, interactive: true,
     code: (_ctx, fmt, act) => lines(
       `<MetricCard type="hero" theme="solid" color="neutral" label="Invoiced this year" value="$798,300"${fmt("format", MONEY_K)}`,
-      `  trend={{ direction: "positive", label: "+12% vs. 2025" }}`,
+      `  trend={{ direction: "positive", label: "12%", subLabel: "vs. 2025" }}`,
       `  series={[74300, 79600, 85100, 82300, 91800, 88400, 94100, 97000, 105700]}`,
       `  footer={<Button size="sm" appearance="overlay" level="inverse" onClick={${act('{ title: "Revenue report opened" }')}}>View report</Button>} />`,
     ),
@@ -670,7 +670,7 @@ export const PALETTE: readonly PaletteItem[] = [
     id: "widget-metric-tile", label: "Stat tile", caption: "Number, trend and icon", root: "MetricCard", components: ["MetricCard"],
     code: () => lines(
       `<MetricCard theme="solid" color="neutral" type="tile" label="Success rate" value="56%"`,
-      `  trend={{ direction: "positive", label: "+24% vs. last year" }} />`,
+      `  trend={{ direction: "positive", label: "24%", subLabel: "vs. last year" }} />`,
     ),
   }),
   /* Widgets: trends */

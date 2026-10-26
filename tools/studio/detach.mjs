@@ -1143,12 +1143,13 @@ function buildMetric(r, own = false) {
   if (trendAttr) {
     r.use("MetricTrend");
     if (trendAttr.kind === "expr" && trendAttr.expression.type === "ObjectExpression") {
-      const props = r.objectProps(trendAttr, ["direction", "label"]);
-      trend = el("MetricTrend", [r.valueProp(props.direction, "trend")], [r.valueContent(props.label)]);
+      // The badge's change as content, Figma's Sub-Label as subLabel (Metric-Trend 595:55134).
+      const props = r.objectProps(trendAttr, ["direction", "label", "subLabel"]);
+      trend = el("MetricTrend", [r.valueProp(props.direction, "trend"), r.valueProp(props.subLabel, "subLabel")], [r.valueContent(props.label)]);
     } else if (trendAttr.kind === "expr") {
       const source = piece(r.text, trendAttr.expression);
       const dot = narrowable(trendAttr.expression) ? "." : "?.";
-      trend = { type: "guard", test: source, then: el("MetricTrend", [{ kind: "expr", name: "trend", piece: around(source, "", `${dot}direction`) }], [{ type: "expr", piece: around(source, "", `${dot}label`) }]) };
+      trend = { type: "guard", test: source, then: el("MetricTrend", [{ kind: "expr", name: "trend", piece: around(source, "", `${dot}direction`) }, { kind: "expr", name: "subLabel", piece: around(source, "", `${dot}subLabel`) }], [{ type: "expr", piece: around(source, "", `${dot}label`) }]) };
     } else refuse("Its trend is not an object.");
   }
   r.approx("The number's tabular figures (font-variant-numeric) are not kept.");

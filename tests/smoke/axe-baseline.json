@@ -84,6 +84,9 @@
   "Metric": [
     "color-contrast"
   ],
+  "MetricCard": [
+    "color-contrast"
+  ],
   "PopoverManualAddNew": [
     "color-contrast"
   ],

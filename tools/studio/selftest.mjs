@@ -1185,7 +1185,9 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
       '            <Text as="span" textStyle="Body/Base/Regular" tone="light">{kpi.label}</Text>',
       '            <Text as="span" textStyle="Display/4">{kpi.value}</Text>',
       "          </Stack>",
-      "          {kpi.trend ? <MetricTrend trend={kpi.trend.direction}>{kpi.trend.label}</MetricTrend> : null}",
+      "          {kpi.trend ? (",
+      "            <MetricTrend trend={kpi.trend.direction} subLabel={kpi.trend.subLabel}>{kpi.trend.label}</MetricTrend>",
+      "          ) : null}",
       "        </Stack>",
       "      </Stack>",
       "      <Text>…</Text>",
@@ -1193,22 +1195,22 @@ check("filter: .ts excluded", isAnnotatedFile("src/platform/examples/data.ts"), 
       "  </Box>",
     ]);
     check("metric card: MetricTrend joins the MetricWidget import, MetricCard leaves it", importLines(card).find((line) => line.includes("MetricWidget")), 'import { Metric, MetricTrend } from "../../../components/MetricWidget";');
-    const small = detachAt("metric sm", page('export const A = () => <Metric size="sm" label="Joined" value="5" icon={false} trend={{ direction: "negative", label: "-2" }} className="m" />;'), "<Metric", "Metric");
-    check("metric sm: inline row, no icon, trend object", changedLines(small), [
+    const small = detachAt("metric sm", page('export const A = () => <Metric size="sm" label="Joined" value="5" icon={false} trend={{ direction: "negative", label: "2", subLabel: "vs. August" }} className="m" />;'), "<Metric", "Metric");
+    check("metric sm: inline row, no icon, trend object (the badge's change, its Sub-Label)", changedLines(small), [
       'export const A = () => /* zen-detached: Metric · Zen Studio */ <Stack direction="row" gap="sm" align="start" className="m">',
       '  <Stack gap="2xs" align="start">',
       '    <Stack gap="3xs">',
       '      <Text as="span" textStyle="Body/Small/Regular" tone="light">Joined</Text>',
       '      <Text as="span" textStyle="Heading/4">5</Text>',
       "    </Stack>",
-      '    <MetricTrend trend="negative">-2</MetricTrend>',
+      '    <MetricTrend trend="negative" subLabel="vs. August">2</MetricTrend>',
       "  </Stack>",
       "</Stack>;",
     ]);
     const emoji = detachAt("metric emoji", page('export const A = () => <Metric size="md" label="Mood" value="Good" iconEmoji="🙂" />;'), "<Metric", "Metric");
     ok("metric emoji: DockIcon emoji, medium", changedLines(emoji).includes('  <DockIcon theme="emoji" emoji="🙂" background="subtle" size="medium" />'));
     const call = detachAt("metric trend call", page("const trendOf = (n: number) => (n ? { direction: \"positive\" as const, label: `${n}` } : undefined);", 'export const A = () => <Metric label="x" value="1" trend={trendOf(1)} />;'), "<Metric", "Metric");
-    ok("metric: a computed trend is guarded with ?.", changedLines(call).some((line) => line.includes("{trendOf(1) ? <MetricTrend trend={trendOf(1)?.direction}>{trendOf(1)?.label}</MetricTrend> : null}")));
+    ok("metric: a computed trend is guarded with ?. (its Sub-Label too)", /\{trendOf\(1\) \? \(?\s*<MetricTrend trend=\{trendOf\(1\)\?\.direction\} subLabel=\{trendOf\(1\)\?\.subLabel\}>\{trendOf\(1\)\?\.label\}<\/MetricTrend>\s*\)? : null\}/.test(changedLines(call).join("\n")));
     const titled = detachAt("metric title-highlight", page('export const A = () => <Metric variant="title-highlight" size="lg" label="Spend" value="$4,210" action={<Text>›</Text>} />;'), "<Metric", "Metric");
     ok("metric title-highlight: header row with the action, contents gap lg", /<Stack gap="lg" style=\{\{ flex: 1 \}\}>/.test(titled.code) && /textStyle="Heading\/Subheading">Spend/.test(titled.code) && titled.detached.approximations.some((line) => line.startsWith("Title-Highlight")));
   }
