@@ -312,7 +312,8 @@
 .zen-chart__bullet { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-chart__bullet-head { display: flex; min-width: 0; align-items: baseline; justify-content: space-between; gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-chart__bullet-name { min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
-.zen-chart__bullet-reading { flex: none; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 66%)); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* The reading is the row's main value: Content/Neutral/Strongest, as Figma's Bullet (the user, 2026-10-26). */
+.zen-chart__bullet-reading { flex: none; color: var(--zen-color-content-neutral-strongest, #111); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .zen-chart__bullet[data-active="true"] .zen-chart__bullet-reading { color: var(--zen-color-content-neutral-strongest, #111); }
 .zen-chart__bullet-track { position: relative; display: block; height: 16px; }
 .zen-chart__bullet-track::before { position: absolute; inset: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-border-neutral-subtle-pressed, rgb(1 1 1 / 18%)); content: ""; opacity: .5; }

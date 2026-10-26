@@ -3739,7 +3739,7 @@
         "More than 3 series in a GroupedBarChart, or stacked areas whose series aren't parts of one total → StackBarChart, LineChart or a Table.",
         "A ComboChart for two measures in the same unit → GroupedBarChart or LineChart compare."
       ],
-      "description": "Bullet chart: 1–4 goals, each a row with its label (Body/Small/Medium, Content/Neutral/Strongest) and \"actual of target\" (Body/Small/Regular, Content/Neutral/Base) above a 16px Cor",
+      "description": "Bullet chart: 1–4 goals, each a row with its label (Body/Small/Medium, Content/Neutral/Strongest) and \"actual of target\" (Body/Small/Regular, Content/Neutral/Strongest: the row's m",
       "props": {
         "data": {
           "type": "array",
