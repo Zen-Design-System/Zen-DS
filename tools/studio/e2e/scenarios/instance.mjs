@@ -2,7 +2,7 @@
 // customised as in Figma's instance panel — option names, Reset all overrides, a field's Label group, the switches that
 // show a layer — on the fixture's "E2E instance" frame and on a builder page.
 import { inspectorRow, openAssetLibrary, sleep, until } from "../lib/studio.mjs";
-import { clickNamed, newPage, pageText, selectStack } from "./builder.mjs";
+import { clickNamed, lastIndex, newPage, pageText, selectStack } from "./builder.mjs";
 import { expectSource, freshSelect, pickOption } from "./inspector.mjs";
 
 const FRAME = 6;
@@ -197,14 +197,18 @@ export const rows = [
     id: "IN-11", feature: "Builder page: canvas menu › Swap instance… replaces a Button with a Badge, one ⌘Z", wp: "GĐ4 M2",
     async run(ctx) {
       const { page, id } = await newPage(ctx);
+      // The AppShell placeholder's header has a Main Action of its own: the counts are relative to it.
+      const primaries = async () => ((await pageText(page, id)) ?? "").match(/<Button level="primary"/g)?.length ?? 0;
+      const base = await primaries();
       await selectStack(page, id);
       await openAssetLibrary(page, "Components");
       await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Primary button");
       await page.locator("#studio-left-panel-assets [data-asset]", { hasText: /^Primary button/ }).first().click();
-      await until(async () => /<Button level="primary"/.test((await pageText(page, id)) ?? ""), { message: "the Button" });
+      await until(async () => (await primaries()) === base + 1, { message: "the Button" });
       await sleep(400);
-      await clickNamed(page, id, "Button");
-      const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).first().boundingBox();
+      const last = await lastIndex(page, id, "Button");
+      await clickNamed(page, id, "Button", last);
+      const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).nth(last).boundingBox();
       await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: "right" });
       await page.getByRole("menuitem", { name: /^Swap instance/ }).click();
       const panel = page.locator('[data-e2e="quick-insert"][data-mode="swap"]');
@@ -212,10 +216,10 @@ export const rows = [
       await panel.getByLabel("Search components").fill("badge");
       await sleep(200);
       await page.keyboard.press("Enter");
-      await until(async () => { const text = (await pageText(page, id)) ?? ""; return /<Badge\b/.test(text) && !/<Button\b/.test(text); }, { message: "the Badge instead of the Button" });
+      await until(async () => /<Badge\b/.test((await pageText(page, id)) ?? "") && (await primaries()) === base, { message: "the Badge instead of the Button" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+KeyZ");
-      await until(async () => /<Button level="primary"/.test((await pageText(page, id)) ?? ""), { message: "⌘Z brings the Button back" });
+      await until(async () => (await primaries()) === base + 1, { message: "⌘Z brings the Button back" });
       return "Button → menu › Swap instance… › Badge → ⌘Z → Button";
     },
   },

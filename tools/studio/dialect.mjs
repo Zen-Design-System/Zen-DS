@@ -59,9 +59,14 @@ const quote = (value) => JSON.stringify(String(value));
 /** Props one per line at `indent` (a multi-line component indented under its prop). */
 const propLines = (entries, indent) => entries.map(([prop, code]) => `${indent}${prop}={${code.split("\n").map((line, index) => (index ? `${indent}${line}` : line)).join("\n")}}`);
 const componentsOf = (codes) => codes.flatMap((code) => [...code.matchAll(/<([A-Z]\w*)/g)].map((match) => match[1]));
-/** The parts a new Screen's master layout (its root AppShell, screen-frame.mjs) starts with: the Sidebar, and the header's Main
- *  row holding the Page header (Header/AppShell). */
-const newFrame = (title) => [["sidebar", screenFrameCode("sidebar", title)], ["header", screenHeaderCode([["main", screenFrameCode("main", title)]])]];
+/** The parts a new Screen's master layout (its root AppShell, screen-frame.mjs) starts with, Figma's Pattern/AppShell/Desktop
+ *  Layout=Sidebar placeholders (user 2026-10-26): the Sidebar, the header (Header/AppShell: Master › Child, the bell and the
+ *  account in its top row, the Page header in its Main row) and the floating action. */
+const newFrame = (title) => [
+  ["sidebar", screenFrameCode("sidebar", title)],
+  ["header", screenHeaderCode([["leading", screenFrameCode("leading", title)], ["actions", screenFrameCode("actions", title)], ["main", screenFrameCode("main", title)]])],
+  ["floatingActions", screenFrameCode("floatingActions", title)],
+];
 
 /**
  * A new Screen's app frame (user, 2026-10-09; master layout 2026-10-15): the mobile layout's Top and Bottom Navigation as

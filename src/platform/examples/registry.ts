@@ -36,3 +36,9 @@ setPageExamples(examples);
 export function getPageExamples(page: PlatformPage): ExampleDef[] {
   return examples[page] ?? [];
 }
+
+/** The name of a page's Examples section. The App Shell's are Layout examples (Figma ◇ Master-Layout · Example): finished
+ *  apps, apart from the AppShell itself, a placeholder frame (user 2026-10-26). */
+export function examplesLabel(page: PlatformPage): string {
+  return page === "app-shell" ? "Layout examples" : "Examples";
+}

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type ReactNod
 import { Heading, Text } from "../../../components/Text";
 import { ExampleCard } from "../../PlatformShowcases";
 // From the registry itself: an example edit then hot-updates the board, and Fast Refresh re-renders its frames.
-import { getPageExamples } from "../../examples/registry";
+import { examplesLabel, getPageExamples } from "../../examples/registry";
 import { isWideExample } from "../../examples/types";
 import { useHotDataVersion } from "../../hotData";
 import { ComponentApi, ComponentKeyboard, ComponentProps, hasComponentReference, propsComponentNames } from "../../PlatformReference";
@@ -354,7 +354,7 @@ export function StudioBoard({ parts }: { parts: StudioPageParts }) {
         <MainComponentFrame page={page} />
       </StudioSection>
       {examples.length ? (
-        <StudioSection id="examples" label="Examples" count={examples.length} frames={exampleFrames} flow="wrap">
+        <StudioSection id="examples" label={examplesLabel(page)} count={examples.length} frames={exampleFrames} flow="wrap">
           {/* Keyed by place, not title: renaming an example keeps its frame (and the state of what it shows). */}
           {examples.map((example, index) => (
             <StudioFrame key={`example:${index}`} id={`example:${index}`} kind="example" label={example.title} width={exampleWidth(example)} example={example}>

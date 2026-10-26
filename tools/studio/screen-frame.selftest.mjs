@@ -16,7 +16,7 @@ const check = (label, actual, expected) => {
   else failures.push(`${label}\n    expected ${e}\n    actual   ${a}`);
 };
 const FILE = "local:orders.zen.tsx";
-const components = new Set(["AppShell", "AppShellAccount", "AppShellHeader", "BottomNavigation", "Card", "PageHeader", "Sidebar", "SidebarMenuItem", "Stack", "Text", "TopNavigation"]);
+const components = new Set(["AppShell", "AppShellAccount", "AppShellAction", "AppShellHeader", "Avatar", "BottomNavigation", "Breadcrumbs", "Button", "Card", "Icon", "IconButton", "PageHeader", "Sidebar", "SidebarMenuItem", "Stack", "Text", "TopNavigation"]);
 const kids = (node) => (node?.children ?? []).filter((child) => child.kind === "element");
 const screenOf = (text) => parsePage(text, { components }).board.children[0];
 const count = (text, name) => (text.match(new RegExp(`<${name}\\b`, "g")) ?? []).length;
@@ -58,7 +58,7 @@ function legacyPage({ parts = SCREEN_CHROME.map((part) => part.prop), content = 
   check("the Screen keeps the mobile layout's bars only", SCREEN_CHROME.map((part) => screen.props[part.prop]?.node?.name ?? null), [null, null, "TopNavigation", "BottomNavigation"]);
   check("one root AppShell: the Sidebar, the Page header as its header's Main row, the content inside", [kids(screen).map((child) => child.name), shell.props.sidebar?.node?.name, shell.props.header?.node?.props.main?.node?.name, kids(shell).map((child) => child.name)], [["AppShell"], "Sidebar", "PageHeader", ["Stack"]]);
   check("still valid, AppShell imported", [validateDialect(moved.text, { components }), packageImport(moved.text).includes("AppShell")], [[], true]);
-  check("the Sidebar's rows kept their indent under it", /\n {10}sidebar=\{<Sidebar aria-label="Main" selectedId="home">\n {12}<SidebarMenuItem id="home"/.test(moved.text), true);
+  check("the Sidebar's rows kept their indent under it", /\n {10}sidebar=\{<Sidebar aria-label="Main" selectedId="label-1">\n {12}<SidebarMenuItem id="label-1"/.test(moved.text), true);
   check("a second run changes nothing", migrateScreenFrame(moved.text, { file: FILE }).changed, false);
 }
 

@@ -139,7 +139,7 @@ function PlayLayer({ id, start, portalRef }: { id: string; start: string | null;
     sources.forEach((items, loc) => {
       for (const element of drawn.get(`${file}:${loc}`) ?? []) {
         // A choice control whose items lead somewhere by item: those items only.
-        if (items) items.forEach((item) => { const at = itemElement(element, item); if (at) hot.add(at); });
+        if (items) items.forEach((item) => { const at = itemElement(element, item, items); if (at) hot.add(at); });
         else {
           // A layer with an action of its own (proto.openUrl changes nothing on the page): a press on it is no miss.
           if (element.contains(target)) operated = true;
