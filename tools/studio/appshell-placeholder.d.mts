@@ -16,7 +16,7 @@ export type AppShellPlaceholderOptions = {
 export declare function appShellParts(options?: AppShellPlaceholderOptions): {
   block: (label?: string, height?: number) => string;
   logo: string;
-  sidebar: (options?: { footer?: number }) => string;
+  sidebar: (options?: { footer?: number; brand?: boolean }) => string;
   crumbs: string;
   actions: (options?: { notifications?: "count" | "dot" | "none" }) => string;
   main: string;
@@ -40,6 +40,8 @@ export declare function appShellPlaceholderCode(options?: AppShellPlaceholderOpt
   collapse?: AppShellPlaceholderCollapse;
   /** Draw the desktop parts (default true); false: a phone-only shell. */
   desktop?: boolean;
+  /** false: the Sidebar without Figma's sample workspace switcher (a page's own AppShell). */
+  brand?: boolean;
   mobile?: { top?: AppShellPlaceholderTop; bottom?: AppShellPlaceholderBottom } | null;
 }): string;
 export declare function componentsOf(code: string): string[];

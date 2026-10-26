@@ -15,7 +15,7 @@ const check = (label, actual, expected) => {
   else failures.push(`${label}\n    expected ${e}\n    actual   ${a}`);
 };
 const FILE = "local:checkout.zen.tsx";
-const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"], ["Sidebar", "Sidebar"], ["SidebarMenuItem", "Sidebar"], ["AppShellHeader", "AppShell"], ["PageHeader", "PageHeader"], ["TopNavigation", "TopNavigation"], ["BottomNavigation", "BottomNavigation"], ["AppShell", "AppShell"], ["AppShellAccount", "AppShell"], ["Search", "Search"], ["SidePanel", "SidePanel"], ["IconButton", "Button"], ["ActionBar", "ActionBar"], ["AlertBanner", "AlertBanner"], ["AppShellAction", "AppShell"], ["Avatar", "Avatar"], ["Breadcrumbs", "Breadcrumbs"], ["Icon", "Icon"]]);
+const componentModules = new Map([["Dialog", "Dialog"], ["Button", "Button"], ["Stack", "Layout"], ["Text", "Text"], ["List", "ListItem"], ["ListItem", "ListItem"], ["Badge", "Badge"], ["Sidebar", "Sidebar"], ["SidebarMenuItem", "Sidebar"], ["AppShellHeader", "AppShell"], ["PageHeader", "PageHeader"], ["TopNavigation", "TopNavigation"], ["BottomNavigation", "BottomNavigation"], ["AppShell", "AppShell"], ["AppShellAccount", "AppShell"], ["Search", "Search"], ["SidePanel", "SidePanel"], ["IconButton", "Button"], ["ActionBar", "ActionBar"], ["AlertBanner", "AlertBanner"], ["AppShellAction", "AppShell"], ["Breadcrumbs", "Breadcrumbs"]]);
 const options = (code) => ({ file: FILE, componentModules, requiredChildren: new Set(), requiredProps: new Map(), hash: sha1(code) });
 const components = new Set(componentModules.keys());
 

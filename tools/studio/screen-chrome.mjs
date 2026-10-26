@@ -36,9 +36,9 @@ export function screenChromeCode(prop, title) {
   const name = quote(String(title ?? "Untitled").replace(/[{}<>]/g, ""));
   if (prop === "header") return pageHeaderCode(title);
   if (prop === "topNavigation") return `<TopNavigation type="compact" title=${name} />`;
-  // Patterns/Sidebar's placeholder: the workspace switcher and six "Label" rows. The rows are Body-Content children
-  // (Figma Menu-Item instances in the slot), so each is a layer to select, swap, remove or add to in the Slots section.
-  if (prop === "sidebar") return PLACEHOLDER.sidebar();
+  // Patterns/Sidebar's placeholder: six "Label" rows, no sample switcher (the page's brand is its own). The rows are
+  // Body-Content children (Figma Menu-Item instances in the slot), so each is a layer to select, swap, remove or add to.
+  if (prop === "sidebar") return PLACEHOLDER.sidebar({ brand: false });
   // Bottom-Navigation's placeholder: four "Label" tabs.
   if (prop === "bottomNavigation") return PLACEHOLDER.bottomNavigation();
   throw new Error(`${prop} is not a Screen chrome prop (${SCREEN_CHROME.map((part) => part.prop).join(", ")})`);

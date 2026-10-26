@@ -58,7 +58,7 @@ function legacyPage({ parts = SCREEN_CHROME.map((part) => part.prop), content = 
   check("the Screen keeps the mobile layout's bars only", SCREEN_CHROME.map((part) => screen.props[part.prop]?.node?.name ?? null), [null, null, "TopNavigation", "BottomNavigation"]);
   check("one root AppShell: the Sidebar, the Page header as its header's Main row, the content inside", [kids(screen).map((child) => child.name), shell.props.sidebar?.node?.name, shell.props.header?.node?.props.main?.node?.name, kids(shell).map((child) => child.name)], [["AppShell"], "Sidebar", "PageHeader", ["Stack"]]);
   check("still valid, AppShell imported", [validateDialect(moved.text, { components }), packageImport(moved.text).includes("AppShell")], [[], true]);
-  check("the Sidebar's rows kept their indent under it", /\n {10}sidebar=\{<Sidebar\n {12}aria-label="Main"\n[\s\S]*?\n {10}>\n {12}<SidebarMenuItem id="label-1"/.test(moved.text), true);
+  check("the Sidebar's rows kept their indent under it", /\n {10}sidebar=\{<Sidebar aria-label="Main" selectedId="label-1">\n {12}<SidebarMenuItem id="label-1"/.test(moved.text), true);
   check("a second run changes nothing", migrateScreenFrame(moved.text, { file: FILE }).changed, false);
 }
 

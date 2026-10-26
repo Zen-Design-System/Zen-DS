@@ -980,7 +980,8 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await newPage(ctx, { device: "desktop" });
       const frame = page.locator('[data-studio-frame="screen:screen-1"]');
-      await until(async () => (await frame.locator(".zen-sidebar__body .zen-sidebar__item").count()) === 3, { message: "three Menu-Item rows in the Sidebar's Body-Content" });
+      // Figma's placeholder Sidebar (appshell-placeholder.mjs, 2026-10-26): six "Label" rows.
+      await until(async () => (await frame.locator(".zen-sidebar__body .zen-sidebar__item").count()) === 6, { message: "six Menu-Item rows in the Sidebar's Body-Content" });
       await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
       await focusScreen(page);
       const clickIn = async (locator, what) => {
@@ -1006,11 +1007,15 @@ export const rows = [
       await clickIn(frame.locator(".zen-page-header h1"), "the Page header title");
       await until(async () => (await selectedName(page)) === "PageHeader", { message: "the Page header selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
       await until(async () => (await slots.evaluateAll((els) => els.map((el) => el.getAttribute("data-slot")).join(","))) === "breadcrumbs,meta,actions,trailing,tabs", { message: "Slots: Breadcrumbs, Meta, Action-Slots, Trailing-Slots, Tabs" });
+      // Figma's placeholder header already holds Settings · Secondary · Main Action: + adds one more.
+      const buttons = frame.locator(".zen-page-header__actions .zen-button");
+      const primaries = async () => (((await pageText(page, id)) ?? "").match(/<Button level="primary"/g) ?? []).length;
+      const [beforeButtons, beforePrimaries] = [await buttons.count(), await primaries()];
       await page.locator('#studio-right [data-slot="actions"]').getByRole("button", { name: "Add to Action-Slots" }).click();
       await page.getByRole("option", { name: /^Primary button/ }).first().click();
-      await until(async () => /<PageHeader [^>]*actions=\{<Button level="primary"/.test((await pageText(page, id)) ?? ""), { message: "actions={<Button level=\"primary\" …>} in the page" });
-      await until(async () => (await frame.locator(".zen-page-header__actions .zen-button").count()) === 1, { message: "the action on the Screen" });
-      return "Sidebar: brand · children (3 rows) · footer (+ Menu item) · PageHeader: actions (+ Primary button) · trailing";
+      await until(async () => (await primaries()) === beforePrimaries + 1, { message: "one more <Button level=\"primary\" …> in the page's actions" });
+      await until(async () => (await buttons.count()) === beforeButtons + 1, { message: "the action on the Screen" });
+      return `Sidebar: brand · children (6 rows) · footer (+ Menu item) · PageHeader: actions (${beforeButtons} + Primary button) · trailing`;
     },
   },
   {
@@ -1029,13 +1034,15 @@ export const rows = [
       await until(async () => /<PageHeader [^]*breadcrumbs=\{<Breadcrumbs /.test(await text()), { message: "breadcrumbs={<Breadcrumbs …/>} in the page" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
       await until(async () => (await frame.locator(".zen-page-header__breadcrumbs .zen-breadcrumbs").count()) === 1, { message: "a real Breadcrumbs on the Screen" });
       // Its Item-List takes another item.
-      const items = (await text()).match(/<Breadcrumbs [^]*?items=\{\[([^]*?)\]\}/)?.[1] ?? "";
+      // The Page header's own Breadcrumbs (the AppShell header's top row holds Master › Child before it).
+      const crumbItems = async () => (await text()).match(/<PageHeader [^]*?breadcrumbs=\{<Breadcrumbs [^]*?items=\{\[([^]*?)\]\}/)?.[1] ?? "";
+      const items = await crumbItems();
       const before = (items.match(/\bid:/g) ?? []).length;
       // Breadcrumbs keeps the annotation off its DOM: selected by its box (⌘: the element itself).
       await selectAt(page, await frame.locator(".zen-page-header__breadcrumbs .zen-breadcrumbs").first().boundingBox());
       await until(async () => (await selectedName(page)) === "Breadcrumbs", { message: "the Breadcrumbs selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
       await page.locator("#studio-right").getByRole("button", { name: "Add Item to Item-List" }).click();
-      await until(async () => (((await text()).match(/<Breadcrumbs [^]*?items=\{\[([^]*?)\]\}/)?.[1] ?? "").match(/\bid:/g) ?? []).length === before + 1, { message: `${before + 1} breadcrumb items` });
+      await until(async () => ((await crumbItems()).match(/\bid:/g) ?? []).length === before + 1, { message: `${before + 1} breadcrumb items` });
       // Up to the master layout's header (Esc: Breadcrumbs → PageHeader → AppShellHeader): its Sections slot takes any content.
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
@@ -1135,7 +1142,8 @@ export const rows = [
       await rows.nth(1).click({ modifiers: ["Shift"] });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Shift+KeyA");
-      await until(async () => /<SidebarMenuSection label="Section">\s*<SidebarMenuItem id="home"[^>]*\/>\s*<SidebarMenuItem id="projects"/.test((await pageText(page, id)) ?? ""), { message: "Home and Projects in a SidebarMenuSection" });
+      // Figma's placeholder rows (appshell-placeholder.mjs, 2026-10-26): label-1 … label-6.
+      await until(async () => /<SidebarMenuSection label="Section">\s*<SidebarMenuItem id="label-1"[^>]*\/>\s*<SidebarMenuItem id="label-2"/.test((await pageText(page, id)) ?? ""), { message: "the first two rows in a SidebarMenuSection" });
       const phone = await newPage(ctx, { device: "phone" });
       await selectStack(page, phone.id);
       await insertAsset(page, "Top navigation");
@@ -1211,7 +1219,8 @@ export const rows = [
         await selectStack(page, id);
         await insertAsset(page, label);
       }
-      await until(async () => (await frame.locator(".zen-breadcrumbs").count()) === 1 && (await frame.locator('.zen-tabs [role="tab"]').count()) === 2, { message: "a Breadcrumbs and a Tab bar on the Screen" });
+      // Two Breadcrumbs: the AppShell header's Master › Child and the one inserted.
+      await until(async () => (await frame.locator(".zen-breadcrumbs").count()) === 2 && (await frame.locator('.zen-tabs [role="tab"]').count()) === 2, { message: "a Breadcrumbs and a Tab bar on the Screen" });
       await focusScreen(page);
       // ⌘-click selects the owner, a second ⌘-click on the selected owner its item (Figma's deep select).
       // The item's heading: "Tab · in Item-List of Tabs" (the owner's is "Tabs").

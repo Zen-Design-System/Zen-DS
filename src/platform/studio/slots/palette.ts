@@ -1257,9 +1257,9 @@ export const PALETTE: readonly PaletteItem[] = [
   // Figma Pattern/AppShell/Desktop Layout=Sidebar, Collapse=Header with its placeholders (appshell-placeholder.mjs; user
   // 2026-10-26: an AppShell is a placeholder frame, the Layout examples hold real apps): the exception to real copy.
   {
-    id: "app-shell", label: "App shell", group: "Page", caption: "Placeholder frame", root: "AppShell", components: componentsOf(appShellPlaceholderCode()), requires: TOAST, interactive: true, input: false,
-    build: () => appShellPlaceholderCode({ act: (label) => `toast({ title: ${label} })` }),
-    builder: () => appShellPlaceholderCode(),
+    id: "app-shell", label: "App shell", group: "Page", caption: "Placeholder frame", root: "AppShell", components: componentsOf(appShellPlaceholderCode({ brand: false })), requires: TOAST, interactive: true, input: false,
+    build: () => appShellPlaceholderCode({ brand: false, act: (label) => `toast({ title: ${label} })` }),
+    builder: () => appShellPlaceholderCode({ brand: false }),
   },
   {
     id: "action-bar", label: "Action bar", group: "Page", caption: "Summary and actions", root: "ActionBar", components: ["ActionBar", "Text"], requires: TOAST, interactive: true, input: false,

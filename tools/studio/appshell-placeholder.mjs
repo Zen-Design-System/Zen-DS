@@ -100,9 +100,11 @@ export function appShellParts({ act = () => null, media = APPSHELL_MEDIA } = {})
     block,
     logo,
     /** Patterns/Sidebar: the workspace switcher and six "Label" rows, the first selected; `footer`: how many of Settings ·
-     *  Help center · Feedback (Figma: three with Collapse=Sidebar, one on List-Detail's rail, none otherwise). */
-    sidebar: ({ footer = 0 } = {}) => element("Sidebar", [
-      text("aria-label", "Main"), attr("logo", logo), attr("logoCollapsed", mark), 'selectedId="label-1"',
+     *  Help center · Feedback (Figma: three with Collapse=Sidebar, one on List-Detail's rail, none otherwise). `brand:
+     *  false` leaves the switcher out: on a page you make the brand is the page's own (figma-pull drops Figma's sample LOGO
+     *  for the same reason), so only the component's own drawings (Main component, docs playground) show it. */
+    sidebar: ({ footer = 0, brand = true } = {}) => element("Sidebar", [
+      text("aria-label", "Main"), brand ? attr("logo", logo) : null, brand ? attr("logoCollapsed", mark) : null, 'selectedId="label-1"',
       act("item.label") ? attr("onItemClick", `(item) => ${act("item.label")}`) : null,
       footer ? attr("footer", fragment(footerItems.slice(0, footer).map(([id, label, icon]) => `<SidebarMenuItem id="${id}" label="${label}" icon="${icon}" />`))) : null,
     ], Array.from({ length: 6 }, (_, index) => `<SidebarMenuItem id="label-${index + 1}" label=${quote(C.label)} icon="icon-home-03-line" />`).join("\n")),
@@ -166,8 +168,9 @@ export function appShellParts({ act = () => null, media = APPSHELL_MEDIA } = {})
  * One AppShell with Figma's placeholders: the parts of a Pattern/AppShell/Desktop variant (`pattern`, `collapse`; none with
  * `desktop: false`, a phone-only shell) and, with `mobile`, those of a Pattern/AppShell/Mobile variant (`top`, `bottom`).
  * The shell picks its layout from its own width (AppShell `layout="auto"`), so a 390 cell draws the phone parts.
+ * `brand: false`: the Sidebar without Figma's sample workspace switcher (a page's own AppShell).
  */
-export function appShellPlaceholderCode({ pattern = "sidebar", collapse, desktop = true, mobile = null, act, media } = {}) {
+export function appShellPlaceholderCode({ pattern = "sidebar", collapse, desktop = true, mobile = null, brand = true, act, media } = {}) {
   const P = appShellParts({ act, media });
   const props = [];
   if (desktop && pattern !== "sidebar") props.push(text("pattern", pattern));
@@ -176,7 +179,7 @@ export function appShellPlaceholderCode({ pattern = "sidebar", collapse, desktop
     const header = (parts) => element("AppShellHeader", parts.map(([name, code]) => attr(name, code)));
     const floating = `// zen-allow-accent: Figma's Floating-Item is the promoted action (Button/Icon-Main Accent).\n${attr("floatingActions", P.floatingActions)}`;
     if (SIDEBAR_PATTERNS.has(pattern)) {
-      props.push(attr("sidebar", P.sidebar({ footer: pattern === "list-detail" ? 1 : collapse === "sidebar" ? 3 : 0 })));
+      props.push(attr("sidebar", P.sidebar({ footer: pattern === "list-detail" ? 1 : collapse === "sidebar" ? 3 : 0, brand })));
       props.push(attr("header", header([["leading", P.crumbs], ["actions", P.actions()], ["main", P.main]])));
       if (pattern === "list-detail") props.push(attr("leadingPane", P.pane()));
       props.push(floating);
