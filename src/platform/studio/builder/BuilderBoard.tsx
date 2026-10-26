@@ -256,8 +256,9 @@ function BuilderFrame({ frame, edit }: { frame: PageFrame & { example: StudioExa
   const shape = frame.example.shape;
   const device = shape ? viewDevice(view, shape.height) : undefined;
   const breakpoint = shape ? shownBreakpoint(shape, view) : undefined;
+  const primary = shape ? (shape.device === "desktop" ? "desktop" : shownBreakpoint(shape, undefined)) : undefined;
   return (
-    <StudioFrame id={frame.id} kind="example" label={frame.label} width={frame.width} example={frame.example} breakpoint={breakpoint} view={device?.width}>
+    <StudioFrame id={frame.id} kind="example" label={frame.label} width={frame.width} example={frame.example} breakpoint={breakpoint} primaryBreakpoint={primary} view={device?.width}>
       <ScreenCanvasContext value={active ? edit : null}>
         <SimulatedDeviceContext value={device ?? null}>{frame.example.render()}</SimulatedDeviceContext>
       </ScreenCanvasContext>

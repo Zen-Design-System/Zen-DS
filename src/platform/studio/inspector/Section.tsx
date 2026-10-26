@@ -4,7 +4,7 @@ import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { useWords } from "../useWords";
 import { InspectorHostContext } from "./controls/hostContext";
-import { breakpointOf } from "../select/gridTracks";
+import { breakpointOf, primaryBreakpointOf } from "../select/gridTracks";
 
 /** Inside a section on Figma's field grid: its plain rows (InspectorRow, PropField) put the label above as well. */
 const FieldGridContext = createContext(false);
@@ -35,7 +35,7 @@ export function InspectorSection({ title, actions, children, note, className, fi
   const id = useId();
   const say = useWords();
   const host = useContext(InspectorHostContext);
-  const everywhere = !responsive && host?.isConnected && breakpointOf(host) !== "desktop";
+  const everywhere = !responsive && host?.isConnected && breakpointOf(host) !== primaryBreakpointOf(host);
   return (
     <section className={["studio-inspector__section", className].filter(Boolean).join(" ")} aria-labelledby={id} data-field-grid={fieldGrid || undefined}>
       <div className="studio-inspector__section-head">

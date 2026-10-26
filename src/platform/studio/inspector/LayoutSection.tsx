@@ -23,7 +23,7 @@ import { InspectorFields, InspectorSection } from "./Section";
 import { addAutoLayoutToSelection, isAutoLayoutFrame, isFrameWithoutAutoLayout, removeAutoLayoutFromSelection, removeAutoLayoutShortcut } from "../edit/autoLayout";
 import { autoLayoutShortcut } from "../select/wrapSelection";
 import { useStudio } from "../store";
-import { breakpointOf } from "../select/gridTracks";
+import { breakpointOf, primaryBreakpointOf } from "../select/gridTracks";
 import { BREAKPOINT_ICONS, BREAKPOINT_LABELS, BREAKPOINTS } from "../../../../tools/studio/screen-devices.mjs";
 import { HIDE_ON_LAYERS, hideOnOp, toggledHideOn } from "../edit/hideOn";
 import { breakpointsWithOwn, ownProps, resetOps, responsiveOps, responsivePropsOf, responsiveRead, sameEverywhereOps, shownAt, widerOf, type Breakpoint, type RLiteral } from "./responsiveModel";
@@ -134,6 +134,8 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
   const responsive = responsivePropsOf(component);
   const selected = selection?.kind === "node" ? selection.src : "";
   const frameBreakpoint: Breakpoint = host ? breakpointOf(host) : "desktop";
+  // The breakpoint the Screen is drawn for (a web page's desktop, a phone Screen's mobile): edits there stay plain.
+  const primary: Breakpoint = primaryBreakpointOf(host);
   const [picked, setPicked] = useState<{ breakpoint: Breakpoint; for: string } | null>(null);
   const editing: Breakpoint = picked && picked.for === `${selected}|${frameBreakpoint}` ? picked.breakpoint : frameBreakpoint;
   const reads = Object.fromEntries(responsive.map((name) => [name, responsiveRead(attributes, name)]));
@@ -157,9 +159,9 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
     const fallback = spec(name)?.defaultValue;
     return [name, typeof fallback === "string" || typeof fallback === "number" || typeof fallback === "boolean" ? fallback : undefined];
   }));
-  const where = editing === "desktop" && !perBreakpoint.length ? "" : ` on ${BREAKPOINT_LABELS[editing]}`;
+  const where = editing === primary && !perBreakpoint.length ? "" : ` on ${BREAKPOINT_LABELS[editing]}`;
   const apply = (ops: EditOp[], label: string) => {
-    const planned = responsive.length ? responsiveOps(ops, { component, attributes, breakpoint: editing, defaults }) : ops;
+    const planned = responsive.length ? responsiveOps(ops, { component, attributes, breakpoint: editing, primary, defaults }) : ops;
     if (planned.length) void api.apply(planned, `${component} ${label}${where}`, optimisticOf(planned));
   };
   /** ⌫ on a grouped field: the prop's default at the editing breakpoint (its key goes on a per-breakpoint prop). */
@@ -222,7 +224,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
   // writes per-breakpoint values); a dot marks a breakpoint with values of its own. ──
   const own = new Set(ownProps(component, attributes, editing));
   const ownOf = (...names: string[]) => editing !== "desktop" && names.some((name) => own.has(name));
-  if (responsive.length && (frameBreakpoint !== "desktop" || perBreakpoint.length || picked)) {
+  if (responsive.length && (frameBreakpoint !== primary || perBreakpoint.length || picked)) {
     const marked = new Set(breakpointsWithOwn(component, attributes));
     groups.push(
       <InspectorFields
@@ -418,7 +420,7 @@ export function LayoutSection({ specs, api, note, component, sizing, attributes,
   const hideOnAttr = attributes.filter((attr) => attr.kind !== "spread" && attr.name === "hideOn").at(-1);
   const hideOnList = hideOnAttr?.kind === "expression" && /^\[\s*(?:(["'])(?:desktop|tablet|mobile)\1\s*,?\s*)*\]$/.test((hideOnAttr.value ?? "").trim())
     ? [...(hideOnAttr.value ?? "").matchAll(/(desktop|tablet|mobile)/g)].map((match) => match[1] as Breakpoint) : hideOnAttr ? null : [];
-  if (HIDE_ON_LAYERS.has(component) && hideOnList && (hideOnList.length || frameBreakpoint !== "desktop" || perBreakpoint.length || picked)) {
+  if (HIDE_ON_LAYERS.has(component) && hideOnList && (hideOnList.length || frameBreakpoint !== primary || perBreakpoint.length || picked)) {
     handled.add("hideOn");
     groups.push(
       <InspectorFields

@@ -45,6 +45,12 @@ check("removeProp of a prop without a default drops the key", responsiveOps([{ o
 check("other props pass through", responsiveOps([{ op: "setProp", name: "clip", value: { kind: "boolean", value: true } }], ctx("mobile", [])), [{ op: "setProp", name: "clip", value: { kind: "boolean", value: true } }]);
 check("code is left alone", responsiveOps([{ op: "setProp", name: "gap", value: { kind: "string", value: "sm" } }], ctx("mobile", [expression("gap", "space")])), [{ op: "setProp", name: "gap", value: { kind: "string", value: "sm" } }]);
 
+// ── A phone Screen is drawn for mobile: there a plain value stays plain; viewed on Desktop, desktop gets its own key.
+const phone = (breakpoint, attributes) => ({ component: "Stack", attributes, breakpoint, primary: "mobile" });
+const setGap = (value) => [{ op: "setProp", name: "gap", value: { kind: "string", value } }];
+check("a phone Screen as saved: plain", responsiveOps(setGap("xl"), phone("mobile", [string("gap", "md")])), setGap("xl"));
+check("a phone Screen viewed on Desktop: desktop's key, mobile keeps md", responsiveOps(setGap("xl"), phone("desktop", [string("gap", "md")])), [{ op: "setProp", name: "gap", value: { kind: "expression", code: '{ desktop: "xl", mobile: "md" }' } }]);
+
 // ── Own values, Reset, Same on every breakpoint.
 const written = [object("direction", { desktop: "row", mobile: "column" }), object("gap", { desktop: "lg", tablet: "md" }), string("padding", "xl")];
 check("own props on mobile", ownProps("Stack", written, "mobile"), ["direction"]);

@@ -74,26 +74,30 @@ function writeValues(name: string, values: Partial<Record<Breakpoint, RLiteral>>
   return { op: "setProp", name, value: { kind: "expression", code: objectCode(values) } };
 }
 
-/** The keys a read writes, a plain value as desktop's (`fallback`: desktop's when nothing is written yet). */
-function keysOf(read: ResponsiveRead, fallback: RLiteral | undefined): Partial<Record<Breakpoint, RLiteral>> {
+/** The keys a read writes: a plain value is the primary breakpoint's (`fallback`: its value when nothing is written). */
+function keysOf(read: ResponsiveRead, fallback: RLiteral | undefined, primary: Breakpoint): Partial<Record<Breakpoint, RLiteral>> {
   if (read.kind === "responsive") return { ...read.values };
-  if (read.kind === "value") return { desktop: read.value };
-  return fallback === undefined ? {} : { desktop: fallback };
+  if (read.kind === "value") return { [primary]: read.value };
+  return fallback === undefined ? {} : { [primary]: fallback };
 }
 
 export type ResponsiveContext = {
   component: string;
   attributes: readonly SourceAttr[];
   breakpoint: Breakpoint;
+  /** The breakpoint the Screen is drawn for (a web page's desktop, a phone Screen's mobile): there a plain value stays
+   *  plain. Desktop by default. */
+  primary?: Breakpoint;
   /** The prop's default where the Inspector knows one beyond Layout.tsx's (the props docs' default). */
   defaults?: Readonly<Record<string, RLiteral | undefined>>;
 };
 
 /**
- * Plain ops (what the controls plan for one value: setProp / removeProp) as the editing breakpoint's: on desktop a plain
- * prop is still written plain (narrower breakpoints follow it); anywhere else, or on a prop already per breakpoint, only
- * that breakpoint's key changes, and a removeProp writes the prop's default there (the control's "unset" look). Ops on
- * other props pass through. One op per prop: the last one wins, as the controls write each prop once.
+ * Plain ops (what the controls plan for one value: setProp / removeProp) as the editing breakpoint's: on the primary
+ * breakpoint (desktop for a web page, mobile for a phone Screen) a plain prop is still written plain (the others follow
+ * it); anywhere else, or on a prop already per breakpoint, only that breakpoint's key changes, and a removeProp writes
+ * the prop's default there (the control's "unset" look). Ops on other props pass through. One op per prop: the last one
+ * wins, as the controls write each prop once.
  */
 export function responsiveOps(ops: readonly EditOp[], context: ResponsiveContext): EditOp[] {
   const props = new Set(responsivePropsOf(context.component));
@@ -104,8 +108,9 @@ export function responsiveOps(ops: readonly EditOp[], context: ResponsiveContext
     if (read.kind === "code") return op;
     if (op.op === "setProp" && !["string", "number", "boolean"].includes(op.value.kind)) return op;
     const next: RLiteral | undefined = op.op === "setProp" ? (op.value as { value: RLiteral }).value : fallback(op.name);
-    if (context.breakpoint === "desktop" && read.kind !== "responsive") return op;
-    const keys = keysOf(read, fallback(op.name));
+    const primary = context.primary ?? "desktop";
+    if (context.breakpoint === primary && read.kind !== "responsive") return op;
+    const keys = keysOf(read, fallback(op.name), primary);
     if (next === undefined) delete keys[context.breakpoint];
     else keys[context.breakpoint] = next;
     return writeValues(op.name, keys);

@@ -13,7 +13,7 @@ import type { EditOp, SourceElement } from "../types";
 import { onSourceUpdate } from "./picker";
 import { liveSrc, noteEditTarget } from "./remap";
 import { areaLabel, areaState, dragProp, fitColumn, freeLabel, kebab, spacingWords, tokenPx, type AreaState, type Box, type SpacingArea, type SpacingOwner } from "./spacing";
-import { breakpointOf } from "./gridTracks";
+import { breakpointOf, primaryBreakpointOf } from "./gridTracks";
 import { responsiveOps } from "../inspector/responsiveModel";
 import { DRAG_LAYOUTS, DRAG_START, dragAxis, draggedPx, everySide, nearestStep, previewProperties } from "./spacingDrag";
 import { useSpacingHover } from "./spacingHover";
@@ -219,8 +219,9 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
       }
       // A per-breakpoint prop (or a frame narrower than desktop) writes the frame breakpoint's key (responsiveModel.ts).
       const breakpoint = breakpointOf(owner.host);
-      const planned = responsiveOps(ops, { component: fresh.name, attributes: fresh.attributes, breakpoint });
-      const response = await applyEdit({ file: parsed.file, loc: parsed.loc, name: fresh.name, ops: planned, hash: fresh.hash }, breakpoint === "desktop" ? label : `${label} on ${breakpoint[0].toUpperCase()}${breakpoint.slice(1)}`);
+      const primary = primaryBreakpointOf(owner.host);
+      const planned = responsiveOps(ops, { component: fresh.name, attributes: fresh.attributes, breakpoint, primary });
+      const response = await applyEdit({ file: parsed.file, loc: parsed.loc, name: fresh.name, ops: planned, hash: fresh.hash }, breakpoint === primary ? label : `${label} on ${breakpoint[0].toUpperCase()}${breakpoint.slice(1)}`);
       return response.ok && response.before !== response.after;
     } finally {
       done();
