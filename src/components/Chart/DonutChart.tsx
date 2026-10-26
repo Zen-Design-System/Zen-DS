@@ -45,7 +45,7 @@ export interface DonutChartProps {
 }
 
 const RING = 22; // % of the diameter
-const GAP_PX = 4;
+const GAP_PX = 2; // Spacing/Gap/3XSmall (the user, 2026-10-26: tighter than the first 4px)
 const CORNER_PX = 4;
 
 /**
@@ -72,7 +72,7 @@ function slicePath(from: number, to: number, outer: number, inner: number, halfG
 
 /**
  * Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,
- * parted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %
+ * parted by 2px gaps (Spacing/Gap/3XSmall) of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %
  * pill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)
  * — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Display/4 figure, as
  * the Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump
@@ -121,7 +121,7 @@ export function DonutChart({ data, format: formatProp, currency, size = "medium"
               <circle className="zen-chart__slice" cx="50" cy="50" r={r} fill="none" strokeWidth={RING} style={{ stroke: drawn[0].colour }}
                 data-active={drawn[0].i === active ? "true" : undefined} onPointerEnter={() => setActive(drawn[0].i)} />
             ) : drawn.map((s) => (
-              // Straight 4px gaps and 4px round corners: the path is inset by the corner and stroked back out with round joins.
+              // Straight 2px gaps and 4px round corners: the path is inset by the corner and stroked back out with round joins.
               <path key={s.d.id} className="zen-chart__slice" strokeWidth={CORNER_PX * unit * 2} strokeLinejoin="round"
                 d={slicePath((s.start / 100) * Math.PI * 2, ((s.start + s.share) / 100) * Math.PI * 2, 50, 50 - RING, (GAP_PX / 2) * unit, CORNER_PX * unit)}
                 data-active={s.i === active ? "true" : undefined}

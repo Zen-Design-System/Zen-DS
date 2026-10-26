@@ -30,8 +30,10 @@ describe("chart family keyboard", () => {
   it("BarChart: ←/→ and Home/End move the active bar; a projected bar says so", async () => {
     await render(wrap(<BarChart aria-label="Revenue" data={[{ label: "Jan", value: 10 }, { label: "Feb", value: 20 }, { label: "Mar", value: 15, projected: true }]} />));
     const plot = await focusChart("Revenue");
-    expect(summaryOf(plot)).toBe("Feb: 20 (2 of 3)"); // the last closed bar
+    expect(summaryOf(plot)).toBe("Jan 10, Feb 20, Mar 15 · projected"); // no bar active until one is picked
     await press(plot, "ArrowRight");
+    expect(summaryOf(plot)).toBe("Jan: 10 (1 of 3)");
+    await press(plot, "End");
     expect(summaryOf(plot)).toBe("Mar: 15 · projected (3 of 3)");
     await press(plot, "Home");
     expect(summaryOf(plot)).toBe("Jan: 10 (1 of 3)");
@@ -49,6 +51,8 @@ describe("chart family keyboard", () => {
   it("LineChart compare: the line chart plus one dashed comparison, both in the summary and the legend", async () => {
     await render(wrap(<LineChart aria-label="Cash" label="Invoiced" compare={{ label: "Collected", values: [8, 7] }} data={[{ label: "Aug", value: 9 }, { label: "Sep", value: 10 }]} />));
     const plot = await focusChart("Cash");
+    expect(summaryOf(plot)).toBe("Aug: Invoiced 9, Collected 8; Sep: Invoiced 10, Collected 7"); // no point active until one is picked
+    await press(plot, "End");
     expect(summaryOf(plot)).toBe("Sep: Invoiced 10, Collected 7 (2 of 2)");
     expect(document.querySelectorAll(".zen-chart__legend li")).toHaveLength(2);
     expect(plot.querySelectorAll(".zen-chart__line")).toHaveLength(2);
@@ -124,7 +128,7 @@ describe("average line", () => {
     const plot = await focusChart("Avg bars");
     const line = plot.querySelector(".zen-chart__average") as HTMLElement;
     expect(line.textContent).toBe("Avg 15");
-    expect(summaryOf(plot)).toBe("Feb: 20 (2 of 3); average 15");
+    expect(summaryOf(plot)).toBe("Jan 10, Feb 20, Mar 90 · projected; average 15");
     // 15 on a 0–100 scale (nice top for 90): the rule sits 15% up the plot.
     expect(line.style.bottom).toBe("15%");
   });
@@ -153,17 +157,75 @@ describe("average line", () => {
 });
 
 describe("chart family layout", () => {
-  it("bars and stacked columns share Corner-Radius/Small and grow from the baseline", async () => {
+  it("bars and stacked columns run edge to edge 8px apart, Corner-Radius/Small on top of a flat base, and grow from the baseline", async () => {
     await render(wrap(<>
-      <BarChart aria-label="Bars" data={[{ label: "A", value: 4 }, { label: "B", value: 8 }]} />
+      <BarChart aria-label="Bars" data={[{ label: "A", value: 4 }, { label: "B", value: 8 }, { label: "C", value: 6 }]} />
       <StackBarChart aria-label="Stack" series={[{ id: "x", label: "X" }]} data={[{ label: "A", values: { x: 4 } }]} />
     </>));
     const bar = document.querySelector(".zen-chart__column .zen-chart__bar") as HTMLElement;
     const stack = document.querySelector(".zen-chart__stack") as HTMLElement;
-    expect(getComputedStyle(bar).borderTopLeftRadius).toBe(getComputedStyle(stack).borderBottomRightRadius);
+    expect(getComputedStyle(bar).borderTopLeftRadius).toBe(getComputedStyle(stack).borderTopRightRadius);
     expect(Number.parseFloat(getComputedStyle(bar).borderTopLeftRadius)).toBeGreaterThan(4);
+    expect(getComputedStyle(bar).borderBottomLeftRadius).toBe("0px");
+    expect(getComputedStyle(stack).borderBottomRightRadius).toBe("0px");
+    const plot = document.querySelector('[aria-label="Bars"]')!.getBoundingClientRect();
+    const bars = [...document.querySelectorAll('[aria-label="Bars"] .zen-chart__bar')].map((el) => el.getBoundingClientRect());
+    const sectors = [...document.querySelectorAll('[aria-label="Bars"] .zen-chart__sector')].map((el) => el.getBoundingClientRect());
+    expect(Math.abs(bars[0].left - plot.left)).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(bars[2].right - plot.right)).toBeLessThanOrEqual(0.5);
+    expect(bars[1].left - bars[0].right).toBeCloseTo(8, 0);
+    // The sectors (X pills, rule, Tooltip) sit on the bars' tracks.
+    bars.forEach((r, i) => expect(Math.abs(sectors[i].left + sectors[i].width / 2 - (r.left + r.width / 2))).toBeLessThanOrEqual(0.5));
     // Reduced motion: the draw-in only fades.
     expect(getComputedStyle(bar).animationName).toBe("zen-chart-fade");
+  });
+
+  it("combo bars run edge to edge 8px apart with the line's dots and the X pills on their centres", async () => {
+    await render(wrap(<ComboChart aria-label="Edge combo" animate={false} barLabel="Revenue" lineLabel="Margin" lineMax={100}
+      data={[{ label: "Q1", bar: 80, line: 30 }, { label: "Q2", bar: 90, line: 40 }, { label: "Q3", bar: 70, line: 35 }]} />));
+    const plot = document.querySelector('[aria-roledescription="chart"][aria-label="Edge combo"]')!;
+    const box = plot.getBoundingClientRect();
+    const bars = [...plot.querySelectorAll(".zen-chart__combo-bar")].map((el) => el.getBoundingClientRect());
+    const dots = [...plot.querySelectorAll(".zen-chart__combo-dot")].map((el) => el.getBoundingClientRect());
+    const pills = [...plot.querySelectorAll(".zen-chart__x")].map((el) => el.getBoundingClientRect());
+    expect(Math.abs(bars[0].left - box.left)).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(bars[2].right - box.right)).toBeLessThanOrEqual(0.5);
+    expect(bars[1].left - bars[0].right).toBeCloseTo(8, 0);
+    bars.forEach((r, i) => {
+      const centre = r.left + r.width / 2;
+      expect(Math.abs(dots[i].left + dots[i].width / 2 - centre)).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(pills[i].left + pills[i].width / 2 - centre)).toBeLessThanOrEqual(0.5);
+    });
+  });
+
+  it("horizontal bars sit 8px apart, flat at the axis and rounded at their end", async () => {
+    await render(wrap(<BarChart orientation="horizontal" aria-label="Rows" animate={false} data={[{ label: "Design", value: 28 }, { label: "Delivery", value: 12 }, { label: "Sales", value: 6 }]} />));
+    const rows = [...document.querySelectorAll('[aria-label="Rows"] .zen-chart__htrack')].map((el) => el.getBoundingClientRect());
+    expect(rows[1].top - rows[0].bottom).toBeCloseTo(8, 0);
+    expect(rows[0].height).toBeCloseTo(24, 0);
+    const bar = getComputedStyle(document.querySelector('[aria-label="Rows"] .zen-chart__htrack .zen-chart__bar')!);
+    expect(bar.borderTopLeftRadius).toBe("0px");
+    expect(bar.borderBottomLeftRadius).toBe("0px");
+    expect(Number.parseFloat(bar.borderTopRightRadius)).toBeGreaterThan(4);
+  });
+
+  it("BarChart and StackBarChart: nothing active until the pointer is over a column; leaving the plot clears it", async () => {
+    await render(wrap(<>
+      <BarChart aria-label="Hover bars" data={[{ label: "Jan", value: 10 }, { label: "Feb", value: 20 }]} />
+      <StackBarChart aria-label="Hover stack" series={[{ id: "a", label: "A" }]} data={[{ label: "Q1", values: { a: 3 } }, { label: "Q2", values: { a: 5 } }]} />
+    </>));
+    for (const name of ["Hover bars", "Hover stack"]) {
+      const plot = document.querySelector(`[aria-roledescription="chart"][aria-label="${name}"]`) as HTMLElement;
+      expect(plot.querySelector("[data-active]"), name).toBeNull();
+      expect(plot.querySelector(".zen-chart__tooltip"), name).toBeNull();
+      const sector = plot.querySelectorAll(".zen-chart__sector")[1];
+      // Pointer over/out are continuous events: React renders them in a later task, so wait for the DOM.
+      sector.dispatchEvent(new PointerEvent("pointerover", { bubbles: true, pointerType: "mouse" }));
+      await expect.poll(() => plot.querySelector(".zen-chart__sector[data-active]"), { message: name }).toBe(sector);
+      expect(plot.querySelector(".zen-chart__tooltip"), name).not.toBeNull();
+      sector.dispatchEvent(new PointerEvent("pointerout", { bubbles: true, pointerType: "mouse", relatedTarget: document.body }));
+      await expect.poll(() => plot.querySelector("[data-active]"), { message: name }).toBeNull();
+    }
   });
 
   it("the Tooltip is centred on the active rule, and moves only to stay inside the chart at its edges", async () => {
@@ -248,7 +310,7 @@ describe("phase 2 charts (docs/research/chart-phase2-spec-2026-10-14.md)", () =>
   const ab = [{ id: "a", label: "A" }, { id: "b", label: "B" }];
   const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 
-  it("data that arrives after mount shows the default item, not \"No data\"", async () => {
+  it("data that arrives after mount reads as its overview (or the default item), not \"No data\"", async () => {
     const view = (on: boolean) => wrap(<>
       <LineChart aria-label="Line" data={on ? [{ label: "Jan", value: 1 }, { label: "Feb", value: 2 }] : []} />
       <GroupedBarChart aria-label="Grouped" data={on ? months : []} series={ab} />
@@ -257,14 +319,16 @@ describe("phase 2 charts (docs/research/chart-phase2-spec-2026-10-14.md)", () =>
     const screen = await render(view(false));
     expect(summaryOf(await focusChart("Grouped"))).toBe("No data");
     await screen.rerender(view(true));
-    expect(summaryOf(await focusChart("Line"))).toBe("Feb: 2 (2 of 2)");
-    expect(summaryOf(await focusChart("Grouped"))).toBe("Feb: A 3, B 1 (2 of 2)");
+    expect(summaryOf(await focusChart("Line"))).toBe("Jan 1, Feb 2");
+    expect(summaryOf(await focusChart("Grouped"))).toBe("Jan: A 1, B 2; Feb: A 3, B 1");
     expect(summaryOf(await focusChart("List"))).toBe("A: 5 (1 of 2)");
   });
 
   it("AreaChart stacked: the total and every band; Home moves to the first period", async () => {
     await render(wrap(<AreaChart type="stacked" aria-label="Area" data={months} series={ab} />));
     const plot = await focusChart("Area");
+    expect(summaryOf(plot)).toBe("Jan total 3, Feb total 4");
+    await press(plot, "End");
     expect(summaryOf(plot)).toBe("Feb: total 4; A 3, B 1 (2 of 2)");
     await press(plot, "Home");
     expect(summaryOf(plot)).toBe("Jan: total 3; A 1, B 2 (1 of 2)");
@@ -275,6 +339,8 @@ describe("phase 2 charts (docs/research/chart-phase2-spec-2026-10-14.md)", () =>
     await render(wrap(<ComboChart aria-label="Combo" barLabel="Revenue" lineLabel="Margin" lineMax={100} lineFormat={(v) => `${v}%`}
       data={[{ label: "Jan", bar: 80, line: 30 }, { label: "Feb", bar: 90, line: 40 }]} />));
     const plot = await focusChart("Combo");
+    expect(summaryOf(plot)).toBe("Jan: Revenue 80, Margin 30%; Feb: Revenue 90, Margin 40%");
+    await press(plot, "ArrowLeft"); // from none, ← starts at the last period
     expect(summaryOf(plot)).toBe("Feb: Revenue 90, Margin 40% (2 of 2)");
     await press(plot, "ArrowLeft");
     expect(summaryOf(plot)).toBe("Jan: Revenue 80, Margin 30% (1 of 2)");

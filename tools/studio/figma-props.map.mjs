@@ -35,7 +35,7 @@ const HOVER = skip("preview state: hover comes from the pointer");
 const NO_PROP = skip("no code prop");
 /** A ❖ Chart set's header (Figma Chart-Card's, on every chart): ChartCard holds it, not the chart. */
 const CHART_CARD = skip("the header is ChartCard's: put the chart in a ChartCard");
-const CHART_HEADER = Object.fromEntries(["Show Icon", "Icon", "Title", "Show Description", "Description", "Show Value", "Value", "Show Ranges", "Show Open"].map((name) => [name, CHART_CARD]));
+const CHART_HEADER = { ...Object.fromEntries(["Show Icon", "Icon", "Title", "Show Hint", "Show Metric Label", "Metric Label", "Show Value", "Value", "Show Ranges", "Show Open"].map((name) => [name, CHART_CARD])), "Show Tooltip": HOVER, Hover: HOVER };
 const CHART_SECTOR = skip("the periods are the data: the push picks the Sector that holds them");
 const CHART_AVERAGE = skip("the tag reads the mean of the data");
 

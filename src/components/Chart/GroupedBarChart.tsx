@@ -25,7 +25,8 @@ export interface GroupedBarChartProps {
   className?: string;
   /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
   ref?: Ref<HTMLDivElement>;
-  /** The group active at first (its Tooltip shows every series' value). Default: the last one. */
+  /** The group active at first and whenever the pointer leaves. Default: none — the active group and its Tooltip show
+   *  only under the pointer or the keyboard (the user, 2026-10-26). */
   initialIndex?: number;
   /** Figma Show Legend: the legend names every series; keep it (harness: chart/series-need-legend). Default on. */
   showLegend?: boolean;
@@ -54,15 +55,15 @@ export function GroupedBarChart({ data, series, format: formatProp, currency, he
   const values = data.map((d) => series.map((s) => Math.max(0, d.values[s.id] ?? 0)));
   const signature = signatureOf([series.map((s) => s.id), values]);
   const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...values.flat())), [signature]); // eslint-disable-line react-hooks/exhaustive-deps -- deliberate content-hash memo: keyed on the data signature, not its identity
-  const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? data.length - 1);
+  const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? null);
   const current = active === null ? undefined : data[active];
   const valueOf = (s: ChartSeries) => format(current?.values[s.id] ?? 0);
-  const summary = current && series.length ? `${current.label}: ${series.map((s) => `${s.label} ${valueOf(s)}`).join(", ")} (${t.chartPoint(active! + 1, data.length)})` : t.noData;
+  const summary = current && series.length ? `${current.label}: ${series.map((s) => `${s.label} ${valueOf(s)}`).join(", ")} (${t.chartPoint(active! + 1, data.length)})` : data.length && series.length ? data.map((d) => `${d.label}: ${series.map((s) => `${s.label} ${format(Math.max(0, d.values[s.id] ?? 0))}`).join(", ")}`).join("; ") : t.noData;
   const legend = showLegend && series.length ? <ChartLegend gap="small" items={series.map((s, si) => ({ id: s.id, label: s.label, color: colourAt(s, si, palette) }))} /> : undefined;
   return (
     <ChartBlock {...dataAttributes(rest)} ref={ref} kind="grouped-bar" legend={legend} position={legendPosition} palette={palette}>
       <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel}
-        activeLine="neutral" className={["zen-chart--grouped", className].filter(Boolean).join(" ")} kind="bar" animate={animate} summary={summary}
+        activeLine="neutral" className={["zen-chart--grouped", className].filter(Boolean).join(" ")} kind="bar" animate={animate} hoverOnly summary={summary}
         tooltip={current ? <SeriesValues items={series.map((s, si) => ({ id: s.id, color: colourAt(s, si, palette), value: valueOf(s) }))} /> : null}>
         <div className="zen-chart__bars" key={signature} style={{ "--zen-chart-series": series.length } as CSSProperties}>
           {data.map((d, i) => (
