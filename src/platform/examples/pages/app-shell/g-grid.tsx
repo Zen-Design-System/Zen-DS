@@ -38,12 +38,12 @@ import { brand, maya, navSections, useWidth } from "./a-compositions";
 const railMark = <Avatar size="sm" shape="square" theme="photo" src={studio.logo} alt={studio.name} />;
 
 // ——— G1 · Team performance (16817:58511) ————————————————————————————————————————————————————————————————————
-type Kpi = { id: string; label: string; value: string; trend: { direction: MetricTrendDirection; label: string }; icon: IconName; hue: "orange" | "blue" | "violet" | "green"; detail: string };
+type Kpi = { id: string; label: string; value: string; trend: { direction: MetricTrendDirection; label: string; subLabel?: string }; icon: IconName; hue: "orange" | "blue" | "violet" | "green"; detail: string };
 const kpis: Kpi[] = [
-  { id: "time", label: "Avg time worked", value: "7h 34m", trend: { direction: "positive", label: "+1.2% vs. last week" }, icon: "icon-clock-line", hue: "violet", detail: "Per member per day, Mon – Fri." },
-  { id: "activity", label: "Team activity", value: "56%", trend: { direction: "negative", label: "−4% vs. last week" }, icon: "icon-activity-line", hue: "orange", detail: "Tracked time with keyboard or mouse activity." },
-  { id: "earned", label: "Earned this week", value: "$8,562", trend: { direction: "positive", label: "+12.4% vs. last week" }, icon: "icon-coins-stacked-01-line", hue: "green", detail: "Billable hours at each member's rate." },
-  { id: "projects", label: "Projects worked", value: "12", trend: { direction: "normal", label: "2 new this week" }, icon: "icon-folder-line", hue: "blue", detail: "Onboarding v2 and Partner portal started this week." },
+  { id: "time", label: "Avg time worked", value: "7h 34m", trend: { direction: "positive", label: "1.2%", subLabel: "vs. last week" }, icon: "icon-clock-line", hue: "violet", detail: "Per member per day, Mon – Fri." },
+  { id: "activity", label: "Team activity", value: "56%", trend: { direction: "negative", label: "4%", subLabel: "vs. last week" }, icon: "icon-activity-line", hue: "orange", detail: "Tracked time with keyboard or mouse activity." },
+  { id: "earned", label: "Earned this week", value: "$8,562", trend: { direction: "positive", label: "12.4%", subLabel: "vs. last week" }, icon: "icon-coins-stacked-01-line", hue: "green", detail: "Billable hours at each member's rate." },
+  { id: "projects", label: "Projects worked", value: "12", trend: { direction: "normal", label: "2", subLabel: "new this week" }, icon: "icon-folder-line", hue: "blue", detail: "Onboarding v2 and Partner portal started this week." },
 ];
 const weeks = ["Aug 5", "Aug 12", "Aug 19", "Aug 26", "Sep 2", "Sep 9", "Sep 16"];
 const hoursRanges = [{ id: "quarterly", label: "Quarterly" }, { id: "monthly", label: "Monthly" }, { id: "weekly", label: "Weekly" }];

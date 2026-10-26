@@ -529,7 +529,7 @@ function AnalyticsApp() {
         <Stack gap="md">
           <Grid columns="400px 1fr" stackBelow={720} gap="md">
             <MetricCard type="hero" theme="subtle" color="brand" label="Total balance" value="$248,930"
-              trend={{ direction: "positive", label: "+4.2% this month" }} format={formatCompactMoney}
+              trend={{ direction: "positive", label: "4.2%", subLabel: "this month" }} format={formatCompactMoney}
               series={[212400, 214800, 213900, 219200, 222600, 221100, 227900, 229400, 236200, 239800, 244300, 248930]}
               subAction={more("Total balance")}
               footer={<Button size="sm" level="tertiary" onClick={() => toast({ title: "Statement for September", children: "PDF · all accounts" })}>View statement</Button>} />
@@ -546,11 +546,11 @@ function AnalyticsApp() {
               <DonutChart key={share} aria-label={`Allocation, ${share === "q3" ? "Q3 2026" : "2026 to date"}`} data={allocation[share]}
                 size="small" legendPosition="start" format={formatCompactMoney} />
             </ChartCard>
-            <MetricCard type="sparkline" theme="pale" color="neutral" label="Cash" value="$32,410" trend={{ direction: "positive", label: "+1.1% vs. Aug" }}
+            <MetricCard type="sparkline" theme="pale" color="neutral" label="Cash" value="$32,410" trend={{ direction: "positive", label: "1.1%", subLabel: "vs. Aug" }}
               series={[29800, 30100, 29950, 30600, 31000, 30800, 31500, 31400, 31900, 32050, 32410]} format={formatCompactMoney} subAction={more("Cash")} />
-            <MetricCard type="spark-bars" theme="pale" color="neutral" label="Monthly spend" value="$4,862" trend={{ direction: "positive", label: "-6% vs. Aug" }}
+            <MetricCard type="spark-bars" theme="pale" color="neutral" label="Monthly spend" value="$4,862" trend={{ direction: "positive", label: "-6%", subLabel: "vs. Aug" }}
               series={[4100, 4400, 4300, 4700, 4200, 4900, 4600, 4800, 4400, 5000, 5170, 4862]} format={formatCompactMoney} subAction={more("Monthly spend")} />
-            <MetricCard type="sparkline" theme="pale" color="neutral" label="Dividends YTD" value={formatMoney(1284)} trend={{ direction: "positive", label: "+12% vs. 2025" }}
+            <MetricCard type="sparkline" theme="pale" color="neutral" label="Dividends YTD" value={formatMoney(1284)} trend={{ direction: "positive", label: "12%", subLabel: "vs. 2025" }}
               series={[620, 680, 710, 760, 820, 870, 940, 1010, 1080, 1150, 1210, 1284]} format={formatCompactMoney} subAction={more("Dividends YTD")} />
           </Grid>
         </Stack>
@@ -746,7 +746,7 @@ export const examples: ExampleDef[] = [
   {/* One widget grid, one section: the rows keep the cards' md gap. */}
   <Stack gap="md">
     <Grid columns="400px 1fr" stackBelow={720} gap="md">
-      <MetricCard type="hero" theme="subtle" color="brand" label="Total balance" value="$248,930" trend={{ direction: "positive", label: "+4.2% this month" }}
+      <MetricCard type="hero" theme="subtle" color="brand" label="Total balance" value="$248,930" trend={{ direction: "positive", label: "4.2%", subLabel: "this month" }}
         series={balance} format={formatCompactMoney} subAction={more} footer={<Button size="sm" level="tertiary" onClick={openStatement}>View statement</Button>} />
       <ChartCard theme="pale" headingLevel={2} title="Net worth vs. invested" metricLabel="All accounts · this year" value="$248.9k" onOpen={openReport}
         ranges={[{ id: "quarterly", label: "Quarterly" }, { id: "monthly", label: "Monthly" }, { id: "weekly", label: "Weekly" }]} range={range} onRangeChange={setRange}>
@@ -757,9 +757,9 @@ export const examples: ExampleDef[] = [
       <ChartCard theme="pale" headingLevel={2} title="Allocation" ranges={[{ id: "q3", label: "Q3" }, { id: "ytd", label: "Year to date" }]} range={share} onRangeChange={setShare}>
         <DonutChart aria-label="Allocation, Q3 2026" data={allocation} size="small" legendPosition="start" format={formatCompactMoney} />
       </ChartCard>
-      <MetricCard type="sparkline" theme="pale" label="Cash" value="$32,410" trend={{ direction: "positive", label: "+1.1% vs. Aug" }} series={cash} subAction={more} />
-      <MetricCard type="spark-bars" theme="pale" label="Monthly spend" value="$4,862" trend={{ direction: "positive", label: "-6% vs. Aug" }} series={spend} subAction={more} />
-      <MetricCard type="sparkline" theme="pale" label="Dividends YTD" value="$1,284" trend={{ direction: "positive", label: "+12% vs. 2025" }} series={dividends} subAction={more} />
+      <MetricCard type="sparkline" theme="pale" label="Cash" value="$32,410" trend={{ direction: "positive", label: "1.1%", subLabel: "vs. Aug" }} series={cash} subAction={more} />
+      <MetricCard type="spark-bars" theme="pale" label="Monthly spend" value="$4,862" trend={{ direction: "positive", label: "-6%", subLabel: "vs. Aug" }} series={spend} subAction={more} />
+      <MetricCard type="sparkline" theme="pale" label="Dividends YTD" value="$1,284" trend={{ direction: "positive", label: "12%", subLabel: "vs. 2025" }} series={dividends} subAction={more} />
     </Grid>
   </Stack>
 </AppShell>`,

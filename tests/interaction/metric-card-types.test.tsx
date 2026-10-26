@@ -16,13 +16,13 @@ const categories = [{ id: "paid", label: "Paid", value: 106800 }, { id: "pending
 const pageRules = { region: { enabled: false }, "landmark-one-main": { enabled: false }, "page-has-heading-one": { enabled: false } };
 
 const cases: Record<string, ReactNode> = {
-  sparkline: <MetricCard type="sparkline" label="Revenue" value="$105,700" trend={{ direction: "positive", label: "+9% vs. August" }} series={revenue} subAction={{ label: "Revenue actions", onClick: () => undefined }} />,
+  sparkline: <MetricCard type="sparkline" label="Revenue" value="$105,700" trend={{ direction: "positive", label: "9%", subLabel: "vs. August" }} series={revenue} subAction={{ label: "Revenue actions", onClick: () => undefined }} />,
   "spark-bars": <MetricCard type="spark-bars" label="Hours logged" value="1,284 h" series={[25, 31, 28, 45]} />,
   "goal-progress": <MetricCard type="goal-progress" label="Collected this quarter" value="$108,400" format={usd} goal={{ value: 108400, target: 135000 }} />,
-  comparison: <MetricCard type="comparison" label="Cash flow · September" comparison={[{ id: "in", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "+9% vs. August" } }, { id: "out", label: "Collected", value: "$88,300" }, { id: "due", label: "Overdue", value: "$12,880", trend: { direction: "normal", label: "1 invoice" } }]} />,
+  comparison: <MetricCard type="comparison" label="Cash flow · September" comparison={[{ id: "in", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "9%", subLabel: "vs. August" } }, { id: "out", label: "Collected", value: "$88,300" }, { id: "due", label: "Overdue", value: "$12,880", trend: { direction: "normal", label: "1", subLabel: "invoice" } }]} />,
   "category-bar": <MetricCard type="category-bar" label="Invoices by status" value="$184,200" format={usd} categories={categories} />,
-  hero: <MetricCard type="hero" label="Invoiced this year" value="$798,300" trend={{ direction: "positive", label: "+12% vs. 2025" }} series={revenue} />,
-  tile: <MetricCard type="tile" label="Success rate" value="56%" trend={{ direction: "positive", label: "+24% vs. last year" }} />,
+  hero: <MetricCard type="hero" label="Invoiced this year" value="$798,300" trend={{ direction: "positive", label: "12%", subLabel: "vs. 2025" }} series={revenue} />,
+  tile: <MetricCard type="tile" label="Success rate" value="56%" trend={{ direction: "positive", label: "24%", subLabel: "vs. last year" }} />,
 };
 
 describe("MetricCard type", () => {
@@ -94,8 +94,11 @@ describe("MetricCard type", () => {
     expect(document.querySelector(".zen-metric-spark")?.getAttribute("data-tone")).toBe("neutral");
     expect(document.querySelector(".zen-metric-spark__dot")).toBeNull();
     const badge = document.querySelector(".zen-metric__content .zen-badge")!;
-    expect([badge.getAttribute("data-tone"), badge.getAttribute("data-background")]).toEqual(["on-color", "solid"]);
-    await screen.rerender(wrap(<MetricCard type="hero" theme="solid" label="Invoiced this year" value="$798,300" trend={{ direction: "positive", label: "+12% vs. 2025" }} series={revenue} />));
+    expect([badge.getAttribute("data-tone"), badge.getAttribute("data-background"), badge.querySelector(".zen-badge__text")?.textContent]).toEqual(["on-color", "solid", "12%"]);
+    // Figma Hero: Metric-Trend Content=Default with its Badge overridden, so the Sub-Label stays Content/Neutral/Light.
+    const sub = document.querySelector(".zen-metric-trend__sub-label")!;
+    expect([sub.textContent, sub.closest(".zen-metric-trend")!.getAttribute("data-content")]).toEqual(["vs. 2025", null]);
+    await screen.rerender(wrap(<MetricCard type="hero" theme="solid" label="Invoiced this year" value="$798,300" trend={{ direction: "positive", label: "12%", subLabel: "vs. 2025" }} series={revenue} />));
     expect([card.getAttribute("data-tone"), card.getAttribute("data-color")]).toEqual(["solid", "neutral"]);
     // On Solid Neutral the trend follows the fill (Figma Hero · Solid Neutral 15487:89034: Metric-Trend Content=Inverse).
     const solidBadge = document.querySelector(".zen-metric__content .zen-badge")!;
@@ -109,31 +112,37 @@ describe("MetricCard type", () => {
     const tile = card.querySelector(".zen-metric-tile")!;
     expect([...tile.querySelectorAll(".zen-metric-tile__label, .zen-metric-tile__number")].map((node) => node.textContent)).toEqual(["Success rate", "56%"]);
     const badge = tile.querySelector(".zen-badge")!;
-    expect([badge.getAttribute("data-tone"), badge.getAttribute("data-background")]).toEqual(["green", "subtle"]);
+    expect([badge.getAttribute("data-tone"), badge.getAttribute("data-background"), badge.querySelector(".zen-badge__text")?.textContent]).toEqual(["green", "solid", "24%"]);
+    expect(tile.querySelector(".zen-metric-trend__sub-label")?.textContent).toBe("vs. last year");
     const dock = tile.querySelector(".zen-dock-icon")!;
     expect([dock.getAttribute("data-tone"), dock.getAttribute("data-size")]).toEqual(["neutral", "medium"]);
     // Value over the Dock-Icon, Spacing/Gap/Small (12) apart; the title and number Gap/2XSmall (4).
     const value = tile.querySelector(".zen-metric-tile__value")!.getBoundingClientRect();
     expect(Math.round(dock.getBoundingClientRect().top - value.bottom)).toBe(12);
-    await screen.rerender(wrap(<MetricCard type="tile" size="sm" label="Protein" value="92 g" />, 109));
+    await screen.rerender(wrap(<MetricCard type="tile" size="sm" label="Protein" value="92 g" trend={{ direction: "positive", label: "24%", subLabel: "vs. last year" }} />, 109));
     expect([document.querySelector(".zen-metric-tile")!.getAttribute("data-size"), document.querySelector(".zen-metric-tile .zen-dock-icon")!.getAttribute("data-size")]).toEqual(["small", "small"]);
+    // Figma Metric-Tile Size=Small (77px) hides the Sub-Label: the pill alone in sight, the words still read (1px, clipped).
+    const hidden = document.querySelector(".zen-metric-tile .zen-metric-trend__sub-label")!;
+    expect([document.querySelector(".zen-metric-tile .zen-badge__text")?.textContent, hidden.textContent, getComputedStyle(hidden).position, Math.round(hidden.getBoundingClientRect().width)]).toEqual(["24%", "vs. last year", "absolute", 1]);
   });
 
   it("tile: its content follows the card's fill (Figma Content Inverse · On-Accent · On-Color · On-Bright)", async () => {
-    // [colour, the badge and Dock-Icon family, the number's colour, the title's colour]: Inverse has a Light step (a metric's
-    // label is Light, the user 2026-10-26), the On-* families one colour.
-    const fills = [["neutral", "inverse", "--zen-color-content-inverse-strongest", "--zen-color-content-inverse-light"], ["accent", "on-color", "--zen-color-content-on-accent-default", "--zen-color-content-on-accent-default"], ["cyan", "on-color", "--zen-color-content-on-colors", "--zen-color-content-on-colors"], ["yellow", "on-color", "--zen-color-content-on-brights", "--zen-color-content-on-brights"]] as const;
+    // [colour, the badge and Dock-Icon family, the number's colour, the title's colour, the trend's Sub-Label colour (Figma
+    // Metric-Tile: Inverse/Light, On-Accent/Default, On-Colors, On-Brights)]: Inverse has a Light step (a metric's label is
+    // Light, the user 2026-10-26), the On-* families one colour.
+    const fills = [["neutral", "inverse", "--zen-color-content-inverse-strongest", "--zen-color-content-inverse-light", "--zen-color-content-inverse-light"], ["accent", "on-color", "--zen-color-content-on-accent-default", "--zen-color-content-on-accent-default", "--zen-color-content-on-accent-default"], ["cyan", "on-color", "--zen-color-content-on-colors", "--zen-color-content-on-colors", "--zen-color-content-on-colors"], ["yellow", "on-color", "--zen-color-content-on-brights", "--zen-color-content-on-brights", "--zen-color-content-on-brights"]] as const;
     await render(
       <ZenProvider theme="light">
-        {fills.map(([color]) => <MetricCard key={color} theme="solid" color={color} type="tile" label="Success rate" value="56%" trend={{ direction: "negative", label: "-3%" }} />)}
+        {fills.map(([color]) => <MetricCard key={color} theme="solid" color={color} type="tile" label="Success rate" value="56%" trend={{ direction: "negative", label: "3%", subLabel: "vs. last week" }} />)}
       </ZenProvider>,
     );
     const page = document.querySelector("[data-theme]")!;
     const resolve = (name: string) => { const probe = document.createElement("span"); probe.style.color = `var(${name})`; page.appendChild(probe); const value = getComputedStyle(probe).color; probe.remove(); return value; };
-    for (const [color, chips, number, title] of fills) {
+    for (const [color, chips, number, title, sub] of fills) {
       const tile = [...document.querySelectorAll(".zen-metric-card")].find((card) => card.getAttribute("data-color") === color)!.querySelector(".zen-metric-tile")!;
       expect(getComputedStyle(tile.querySelector(".zen-metric-tile__number")!).color, color).toBe(resolve(number));
       expect(getComputedStyle(tile.querySelector(".zen-metric-tile__label")!).color, color).toBe(resolve(title));
+      expect(getComputedStyle(tile.querySelector(".zen-metric-trend__sub-label")!).color, color).toBe(resolve(sub));
       expect([tile.querySelector(".zen-badge")!.getAttribute("data-tone"), tile.querySelector(".zen-dock-icon")!.getAttribute("data-tone")], color).toEqual([chips, chips]);
     }
   });
@@ -150,9 +159,12 @@ describe("MetricCard type", () => {
         const screen = await render(wrap(node, type === "comparison" ? 560 : 345, theme));
         const result = await axe.run(document.querySelector("[data-test-root]")!, { resultTypes: ["violations"], rules: pageRules });
         // A metric's labels (Content/Neutral/Light: the Metric label, the Metric-Tile title, a category's name; the user
-        // 2026-10-26) are the Metric's known contrast entry in tests/smoke/axe-baseline.json (a Figma token decision);
+        // 2026-10-26), the trend's Sub-Label (Content/Neutral/Light) and a Solid trend badge's On-Colors label (white on
+        // Positive/Negative Solid: Lc 67.5 / 69.5, the APCA pick, WCAG 3.5–3.7:1; the user, 2026-10-19: On colours are judged
+        // by APCA) are the Metric's known contrast entries in tests/smoke/axe-baseline.json (Figma token decisions);
         // everything else the types add must pass.
-        const found = result.violations.map((violation) => ({ id: violation.id, nodes: violation.nodes.map((n) => n.target.join(" ")).filter((target) => !(violation.id === "color-contrast" && /zen-metric(__label|-tile__label|-categories__(name|share))\b/.test(target))) }));
+        const known = (target: string) => /zen-metric(__label|-tile__label|-categories__(name|share))\b|zen-metric-trend__sub-label/.test(target) || Boolean(document.querySelector(target)?.closest('.zen-badge[data-background="solid"]'));
+        const found = result.violations.map((violation) => ({ id: violation.id, nodes: violation.nodes.map((n) => n.target.join(" ")).filter((target) => !(violation.id === "color-contrast" && known(target))) }));
         expect(found.filter((violation) => violation.nodes.length).map((violation) => `${violation.id}: ${violation.nodes.join(", ")}`), `${type} (${theme})`).toEqual([]);
         await screen.unmount();
       }

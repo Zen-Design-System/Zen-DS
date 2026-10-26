@@ -493,8 +493,9 @@ const hoursOf = (month: (typeof studioTeamHours)[number]) => month.design + mont
 /** A change that rounds to 0% is no trend: the neutral badge with no arrow, never a green "+0%". */
 const trendOf = (now: number, before: number, versus: string) => {
   const pct = Math.round(((now - before) / before) * 100);
-  if (pct === 0) return { direction: "normal" as const, label: `No change vs ${versus}` };
-  return { direction: pct > 0 ? "positive" as const : "negative" as const, label: `${pct > 0 ? "+" : "−"}${Math.abs(pct)}% vs ${versus}` };
+  // Figma Metric-Trend: the change in the badge (the arrow carries its sign), what it is measured against beside it.
+  if (pct === 0) return { direction: "normal" as const, label: "0%", subLabel: `vs ${versus}` };
+  return { direction: pct > 0 ? "positive" as const : "negative" as const, label: `${Math.abs(pct)}%`, subLabel: `vs ${versus}` };
 };
 /** The months with billable hours and a month before them to compare with (data.ts: Apr – Sep 2026), newest first. */
 const glanceMonths = studioTeamHours.slice(1).map((hours, index) => {
@@ -527,7 +528,7 @@ function MonthAtAGlance() {
         <MetricCard iconBackground="solid" theme="default" label="Invoiced" value={formatCompactMoney(at.month.invoiced)} trend={trend(at.month.invoiced, at.before.invoiced)} icon="icon-receipt-line" iconTheme="blue" />
         <MetricCard iconBackground="solid" theme="default" label="Collected" value={formatCompactMoney(at.month.collected)} trend={trend(at.month.collected, at.before.collected)} icon="icon-currency-dollar-circle-line" iconTheme="green" />
         <MetricCard iconBackground="solid" theme="default" label="Billable hours" value={`${at.hours.toLocaleString("en-US")} h`} trend={trend(at.hours, at.hoursBefore)} icon="icon-clock-line" iconTheme="violet" />
-        <MetricCard iconBackground="solid" theme="default" label="Overdue" value={formatCompactMoney(overdue)} trend={{ direction: "normal", label: plural(overdueCount, "invoice") }} icon="icon-alarm-clock-line" iconTheme="red" />
+        <MetricCard iconBackground="solid" theme="default" label="Overdue" value={formatCompactMoney(overdue)} trend={{ direction: "normal", label: String(overdueCount), subLabel: overdueCount === 1 ? "invoice" : "invoices" }} icon="icon-alarm-clock-line" iconTheme="red" />
       </Grid>
     </Stack>
   );
@@ -659,10 +660,10 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     </Chip>
   </Stack>
   <Grid minColumnWidth="220px" gap="md">
-    <MetricCard iconBackground="solid" theme="default" label="Invoiced" value="$105.7K" trend={{ direction: "positive", label: "+9% vs Aug" }} icon="icon-receipt-line" iconTheme="blue" />
-    <MetricCard iconBackground="solid" theme="default" label="Collected" value="$88.3K" trend={{ direction: "negative", label: "−8% vs Aug" }} icon="icon-currency-dollar-circle-line" iconTheme="green" />
-    <MetricCard iconBackground="solid" theme="default" label="Billable hours" value="5,900 h" trend={{ direction: "positive", label: "+4% vs Aug" }} icon="icon-clock-line" iconTheme="violet" />
-    <MetricCard iconBackground="solid" theme="default" label="Overdue" value="$12.9K" trend={{ direction: "normal", label: "1 invoice" }} icon="icon-alarm-clock-line" iconTheme="red" />
+    <MetricCard iconBackground="solid" theme="default" label="Invoiced" value="$105.7K" trend={{ direction: "positive", label: "9%", subLabel: "vs Aug" }} icon="icon-receipt-line" iconTheme="blue" />
+    <MetricCard iconBackground="solid" theme="default" label="Collected" value="$88.3K" trend={{ direction: "negative", label: "8%", subLabel: "vs Aug" }} icon="icon-currency-dollar-circle-line" iconTheme="green" />
+    <MetricCard iconBackground="solid" theme="default" label="Billable hours" value="5,900 h" trend={{ direction: "positive", label: "4%", subLabel: "vs Aug" }} icon="icon-clock-line" iconTheme="violet" />
+    <MetricCard iconBackground="solid" theme="default" label="Overdue" value="$12.9K" trend={{ direction: "normal", label: "1", subLabel: "invoice" }} icon="icon-alarm-clock-line" iconTheme="red" />
   </Grid>
 </Stack>`,
   },

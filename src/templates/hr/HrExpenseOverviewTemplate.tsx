@@ -391,7 +391,7 @@ export function HrExpenseOverviewTemplate() {
         <Grid columns="repeat(auto-fit, minmax(min(100%, 496px), 1fr))" gap="md">
           <Grid columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">
             <MetricCard variant="title-highlight" size={phone ? "md" : "xl"} icon={false} label="Total spend" value={formatMoney(spend, { compact: true })}
-              trend={{ direction: "normal", label: `${change > 0 ? "+" : change < 0 ? "−" : ""}${Math.abs(change)}% vs ${period.previousName}` }}
+              trend={{ direction: "normal", label: `${change > 0 ? "+" : change < 0 ? "−" : ""}${Math.abs(change)}%`, subLabel: `vs ${period.previousName}` }}
               action={breakdown("Open spend by category", () => openReport("spend"))} />
             {/* The quarter's budget: the bar turns Warning from 75% used and Negative from 90%. */}
             <Card>
@@ -404,10 +404,10 @@ export function HrExpenseOverviewTemplate() {
           </Grid>
           <Grid columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">
             <MetricCard variant="title-highlight" size={phone ? "md" : "xl"} icon={false} label="Awaiting approval" value={formatMoney(sumOf(waiting.map((claim) => claim.amount)), { compact: true })}
-              trend={{ direction: "normal", label: plural(waiting.length, "claim") }}
+              trend={{ direction: "normal", label: String(waiting.length), subLabel: waiting.length === 1 ? "claim" : "claims" }}
               action={breakdown("Show claims awaiting approval", showWaiting)} />
             <MetricCard variant="title-highlight" size={phone ? "md" : "xl"} icon={false} label="Reimbursed" value={formatMoney(sumOf(reimbursed.map((claim) => claim.amount)), { compact: true })}
-              trend={{ direction: "normal", label: plural(reimbursed.length, "claim") }}
+              trend={{ direction: "normal", label: String(reimbursed.length), subLabel: reimbursed.length === 1 ? "claim" : "claims" }}
               action={breakdown("Open reimbursed claims", () => openReport("reimbursed"))} />
           </Grid>
         </Grid>

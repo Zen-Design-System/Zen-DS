@@ -14245,10 +14245,10 @@
         },
         {
           "name": "trend",
-          "type": "{ direction: MetricTrendDirection; label: ReactNode }",
+          "type": "MetricTrendValue",
           "required": false,
           "default": null,
-          "description": "Figma Trend: { direction, label } → Metric-Trend badge.",
+          "description": "Figma Trend → Metric-Trend: `{ direction, label, subLabel }`, the change in the badge (\"9%\") and what it is measured\n against beside it (\"vs. August\").",
           "deprecated": null
         },
         {
@@ -14563,10 +14563,10 @@
         },
         {
           "name": "trend",
-          "type": "{ direction: MetricTrendDirection; label: ReactNode }",
+          "type": "MetricTrendValue",
           "required": false,
           "default": null,
-          "description": "Figma Trend: { direction, label } → Metric-Trend badge.",
+          "description": "Figma Trend → Metric-Trend: `{ direction, label, subLabel }`, the change in the badge (\"9%\") and what it is measured\n against beside it (\"vs. August\").",
           "deprecated": null
         },
         {
@@ -14679,6 +14679,52 @@
           "required": false,
           "default": null,
           "description": "Figma instance overrides: props of the icon, trend and counter it draws, by layer (`{ Icon: { theme: \"accent\" }, \"Trend/Badge\": { theme: \"orange\" } }`). Written by Zen Studio;\n app code sets icon / trend / counter.",
+          "deprecated": null
+        }
+      ]
+    },
+    {
+      "name": "MetricTrend",
+      "extends": null,
+      "props": [
+        {
+          "name": "trend",
+          "type": "\"positive\" | \"negative\" | \"normal\"",
+          "required": false,
+          "default": "\"normal\"",
+          "description": "Figma Trend: Positive · Negative · Normal.",
+          "deprecated": null
+        },
+        {
+          "name": "content",
+          "type": "\"default\" | \"inverse\" | \"on-color\"",
+          "required": false,
+          "default": null,
+          "description": "Figma Content (Default · Inverse · On-Color). Default: the enclosing Solid Card's family (Inverse on Neutral, On-Color\n on Accent and the hues), else Default.",
+          "deprecated": null
+        },
+        {
+          "name": "subLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Sub-Label: the words beside the badge (\"vs. last year\"). None: a text `children` starting with a figure is\n split into the badge and the Sub-Label; any other is the badge alone.",
+          "deprecated": null
+        },
+        {
+          "name": "children",
+          "type": "ReactNode",
+          "required": true,
+          "default": null,
+          "description": "The badge's text: the change alone (\"24%\"), or a one-string label to split (\"+24% vs. last year\").",
+          "deprecated": null
+        },
+        {
+          "name": "ref",
+          "type": "Ref<HTMLSpanElement>",
+          "required": false,
+          "default": null,
+          "description": "Forwarded to the root `<span>`: the Badge's, or with a `subLabel` the row holding the Badge and the Sub-Label.",
           "deprecated": null
         }
       ]

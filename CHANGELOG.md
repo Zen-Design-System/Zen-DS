@@ -36,6 +36,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (was `caption-light`); Figma audit `text/title-strongest`, `text/subtext-light`. 96 more Figma layers rebound.
 - Calendar Day-Tile follows its Figma update (2026-10-26): today's weekday in Accent/Strongest; a selected tile on
   Background/Active/Neutral/Subtle (Active/Accent/Subtle on today) with no border.
+- MetricTrend follows Figma's Metric-Trend (595:55134, re-synced 2026-10-26): the badge holds the change alone and a
+  Sub-Label beside it says against what. `trend` takes `{ direction, label: "9%", subLabel: "vs. August" }` (type
+  `MetricTrendValue`; MetricTrend `subLabel`). Without a `subLabel`, a one-string label that starts with a figure is
+  split the same way ("+9% vs. August" → 9% · vs. August; the sign the arrow shows dropped), any other stays in the
+  badge. Default Positive / Negative badges are now Green / Red Solid, and the arrow is named Increase / Decrease when
+  the figure has no sign. The Sub-Label is Body/Small/Regular, Content/Neutral/Light (the fill's family on a Solid
+  card); a tile of size small shows the badge alone (the Sub-Label stays readable to screen readers). Examples,
+  templates, Studio samples and Studio ↔ Figma push/pull use the split; new contract suite `metric-trend`.
 - Figma charts (2026-10-26, the user): Heatmap's active row and column labels and Multi-Line's rule and X pill now come
   with Hover too, so at rest no chart draws any part of an active period (code already showed none).
 - Zen Studio ↔ Figma: a Sidebar row's nested rows (`children`) go to Figma as Menu-Item Level=Child rows right after it

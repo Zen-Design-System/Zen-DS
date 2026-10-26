@@ -102,6 +102,10 @@
   "Metric": [
     "color-contrast"
   ],
+  "MetricCard": [
+    "color-contrast",
+    "color-contrast:dark"
+  ],
   "NpsScale": [
     "color-contrast"
   ],
