@@ -41,6 +41,11 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   active period at rest either: the hover state (Hover on Bar, Area, Multi-Line, Heatmap; a Sector at Select=Selected
   on Line, Multi-Line, Stack-Bar) always brings its Tooltip. Combo columns run edge to edge 8px apart too; legend labels,
   Funnel counts and the metric label are Content/Neutral/Light.
+- Zen Studio and Figma keep a Grid cell's span (2026-10-26): a layer in a Grid shows a Grid cell group under Resizing
+  (Column span, Row span, Take the whole row, at the breakpoint the Screen shows; a layer without span goes in a
+  `<Box span>`, which goes again at one column), and the note says when a row leaves columns empty. The push gives
+  Figma's Grid auto layout each child's row, column and spans as Layout.tsx places them; the pull keeps mixed spans as
+  `span` / `rowSpan` (no longer equal columns); the skill and Zen Agent build a dashboard as one 12-column Grid.
 - Grid cells span columns and rows (2026-10-26, Figma Grid auto layout's column / row span): `span` (a number or
   `"full"`) and `rowSpan` on a Grid's direct child (Stack, Grid, Box, Card, ListBox, ChartCard, MetricCard), per
   breakpoint, clamped to the Grid's columns and the whole row while it stacks, so a dashboard's widgets sit in one

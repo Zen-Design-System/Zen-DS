@@ -1,3 +1,4 @@
+import { emptyColumns, placeCells } from "../../../../tools/studio/grid-cells.mjs";
 import { CELL_COMPONENTS } from "../../../../tools/studio/responsive-props.mjs";
 import type { EditOp, EditValue, SourceAttr } from "../types";
 
@@ -71,31 +72,10 @@ export function columnsOf(computedTracks: string, mode: string | undefined): num
 }
 
 /**
- * How full the row of a cell is, for the hint under the fields: the spans of a Grid's children in order (CSS
- * auto-placement, sparse, as Layout.tsx draws them) → the columns each row leaves empty. Row spans are taken into account.
+ * How full each row of the Grid is, for the note under the fields: the spans of its children in order, placed as
+ * Layout.tsx draws them (tools/studio/grid-cells.mjs: CSS auto-placement, sparse) → the columns each row leaves empty.
  */
 export function emptyColumnsByRow(spans: Array<{ span: CellSpan; rowSpan?: number }>, columns: number | null): number[] {
   if (columns === null || columns < 1) return [];
-  const taken: boolean[][] = [];
-  const isTaken = (row: number, column: number) => Boolean(taken[row]?.[column]);
-  const take = (row: number, column: number) => { (taken[row] ??= [])[column] = true; };
-  let row = 0;
-  let column = 0;
-  for (const cell of spans) {
-    const width = cell.span === "full" ? columns : Math.min(Math.max(1, cell.span), columns);
-    const height = Math.max(1, cell.rowSpan ?? 1);
-    if (cell.span === "full") column = 0;
-    // The next position from the cursor where `width` free columns fit (sparse: never back to an earlier hole).
-    for (;;) {
-      if (column + width > columns) { row += 1; column = 0; continue; }
-      let free = true;
-      for (let r = row; r < row + height && free; r += 1) for (let c = column; c < column + width; c += 1) if (isTaken(r, c)) { free = false; break; }
-      if (free) break;
-      column += 1;
-    }
-    for (let r = row; r < row + height; r += 1) for (let c = column; c < column + width; c += 1) take(r, c);
-    column += width;
-    if (cell.span === "full") { row += 1; column = 0; }
-  }
-  return taken.map((cells) => columns - Array.from({ length: columns }, (_, index) => cells?.[index]).filter(Boolean).length);
+  return emptyColumns(placeCells(spans, columns));
 }

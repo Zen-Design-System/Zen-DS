@@ -3,8 +3,14 @@ import { IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { BREAKPOINT_LABELS } from "../../../../tools/studio/screen-devices.mjs";
+import { applyEdit, parseSrc, studioApi } from "../api";
+import { canvasApi } from "../canvas/viewport";
 import { breakpointOf, primaryBreakpointOf } from "../select/gridTracks";
-import type { SourceAttr } from "../types";
+import { expectRender, renderedNow } from "../select/remap";
+import { srcAttr } from "../select/srcIds";
+import { flushStudioStore, studioStore } from "../store";
+import type { EditOp, SourceAttr } from "../types";
+import { inspectorStatus, saveShortcut, undoShortcut } from "./status";
 import { ScrubNumberField } from "./controls/ScrubNumberField";
 import type { FieldApi } from "./fieldApi";
 import { clampSpan, columnsOf, emptyColumnsByRow, isSpanWrapper, spanLabel, spanOf, spanOp, takesSpan, wrapForSpan, type CellSpan } from "./gridCellModel";
@@ -43,6 +49,40 @@ function readGrid(host: HTMLElement | null): GridInfo | null {
     cells: cells.map((cell) => ({ span: spanOfCell(cell), rowSpan: rowSpanOfCell(cell) })),
     index: cells.findIndex((cell) => cell === host || cell.contains(host)),
   };
+}
+
+/**
+ * A wrap into a span Box, or that Box taken away again: one request on the layer at `src`, then the layer the answer
+ * names is selected (the Box made, or the layer it held), as Ignore auto layout does (position/float.ts). True when the
+ * file changed.
+ */
+async function restructure(src: string, op: Extract<EditOp, { op: "wrap" } | { op: "unwrap" }>, label: string): Promise<boolean> {
+  const at = parseSrc(src);
+  const current = studioStore.getState().selection;
+  if (!at || current?.kind !== "node") return false;
+  const element = await studioApi.element(at.file, at.loc).catch(() => null);
+  if (!element) {
+    inspectorStatus.set("negative", "The layer moved before the change was saved; nothing was written");
+    return false;
+  }
+  const inner = element.children.find((child) => child.kind === "element");
+  const before = renderedNow(canvasApi.getWorldElement());
+  const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [op], hash: element.hash }, label);
+  if (!response.ok) {
+    inspectorStatus.set("negative", response.error);
+    return false;
+  }
+  const landed = op.op === "wrap" ? response.wrapped : response.unwrapped;
+  if (response.before === response.after || !landed) return false;
+  inspectorStatus.set("positive", [label, response.draft ? `Unsaved · ${saveShortcut} to save` : `${undoShortcut} to undo`].join(" · "));
+  // Select the Box (or the layer again) synchronously: Vite may reload the page as soon as it sees the write.
+  const ref = { frameId: current.frameId, panelId: current.panelId, instance: current.instance };
+  const name = op.op === "wrap" ? "Box" : inner?.kind === "element" ? inner.name : "Layer";
+  const selection = { kind: "node" as const, ...ref, src: `${response.file}:${landed.loc}`, name };
+  expectRender(selection, before, () => undefined);
+  studioStore.setState({ selection });
+  flushStudioStore();
+  return true;
 }
 
 /** The Grid around `host`, read again when its attributes, children or size change (an edit, HMR, a resize). */
@@ -94,7 +134,8 @@ export function GridCellGroup({ api, component, attributes, host, elementChildre
     const other = responsiveRead(attributes, name === "span" ? "rowSpan" : "span");
     const mine = responsiveRead(attributes, name);
     if (wrapper && next === 1 && other.kind === "unset" && mine.kind !== "responsive") {
-      void api.apply([{ op: "unwrap" }], "Box span removed");
+      const src = srcAttr(host);
+      if (src && !api.disabled) void restructure(src, { op: "unwrap" }, "The span Box is gone: the layer takes one cell");
       return;
     }
     if (own) {
@@ -105,8 +146,9 @@ export function GridCellGroup({ api, component, attributes, host, elementChildre
     // No span of its own: a Box around it takes the cell (its value at the editing breakpoint, as the Box would write it).
     const planned = responsiveOps([spanOp(name, next)], { component: "Box", attributes: [], breakpoint: editing, primary, defaults: { span: 1, rowSpan: 1 } })[0];
     const wrap = wrapForSpan(name, next);
-    if (!wrap || wrap.op !== "wrap" || planned?.op !== "setProp") return;
-    void api.apply([{ ...wrap, props: { [name]: planned.value } }], `${component} in a Box that spans ${spanLabel(next, grid.columns)}${where}`);
+    const src = srcAttr(host);
+    if (!wrap || wrap.op !== "wrap" || planned?.op !== "setProp" || !src || api.disabled) return;
+    void restructure(src, { ...wrap, props: { [name]: planned.value } }, `${component} in a Box that spans ${spanLabel(next, grid.columns)}${where}`);
   };
   const empty = grid.stacked ? [] : emptyColumnsByRow(grid.cells, grid.columns);
   const holes = empty.map((count, row) => ({ row, count })).filter((entry) => entry.count > 0);

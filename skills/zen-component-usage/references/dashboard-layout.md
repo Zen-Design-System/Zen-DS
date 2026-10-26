@@ -159,44 +159,47 @@ Every row's spans add up to 12. These rows balance on desktop:
 
 ### Code and Zen Studio
 
-Zen's Grid has no per-cell span yet: its cells are equal, or follow a track list (`"2fr 1fr"`). Build the widget grid as
-one section Stack whose rows are Grids with the same gap:
+One Grid of 12 columns holds the widgets; each one says how many it takes with `span` (a number or `"full"`) and, when
+it is two rows tall, `rowSpan`, per breakpoint like the Grid's `columns` (Layout/cell.ts, since 2026-10-26):
 
 ```tsx
-<Stack as="section" aria-label="Overview" gap="md">{/* one widget grid: rows 16 apart, like the columns */}
-  <Grid columns={{ desktop: 4, tablet: 2 }} gap="md">{kpis}</Grid>{/* a breakpoint left out takes the next wider one's */}
-  <Grid columns={{ desktop: "2fr 1fr", tablet: 1 }} gap="md">{/* hero 8 · companion 4; align stays stretch */}
-    <ChartCard title="Revenue" …>…</ChartCard>
-    <Stack gap="md" fillChildren>{/* the companion column: two short cards that share the hero's height */}
-      <ChartCard title="By channel" …>…</ChartCard>
-      <ListBox …>…</ListBox>
-    </Stack>
-  </Grid>
-  <Grid columns={{ desktop: 2, mobile: 1 }} gap="md">{supports}</Grid>
-</Stack>
+<Grid as="section" aria-label="Overview" columns={{ desktop: 12, tablet: 6, mobile: 2 }} gap="md">
+  {kpis.map((kpi) => <MetricCard key={kpi.id} span={3} … />)}{/* 4 to a row; on a phone, Small tiles span={1} */}
+  <ChartCard span={{ desktop: 8, tablet: "full" }} title="Revenue" …>…</ChartCard>{/* the hero */}
+  <ListBox span={{ desktop: 4, tablet: 3, mobile: "full" }} …>…</ListBox>{/* its companion, as tall as the hero */}
+  <ChartCard span={{ desktop: 4, tablet: 3, mobile: "full" }} title="By channel" …>…</ChartCard>
+  <ChartCard span={{ desktop: 4, tablet: 3, mobile: "full" }} title="Top clients" …>…</ChartCard>
+  <ChartCard span={{ desktop: 4, tablet: 3, mobile: "full" }} title="Goals" …>…</ChartCard>
+</Grid>
 <Stack as="section" gap="md">{/* its own section: it has a heading */}
   <Heading level={2} textStyle="Heading/4">Projects</Heading>
   <Table … />
 </Stack>
 ```
 
+- Stack, Grid, Box, Card, ListBox, ChartCard and MetricCard take `span` themselves; anything else goes in a
+  `<Box span>`. A span never adds columns: it is clamped to the Grid's, and every cell takes the row while the Grid
+  stacks (`stackBelow`). In a Grid without `columns` (auto-fill) only `"full"` applies.
+- Cells keep the reading order (no `dense`): a span that doesn't fit the rest of a row starts the next one and leaves a
+  hole, so make each row's spans add up to its columns.
+- Spans follow the breakpoint (the window's, or a frame's `modes`), not the Grid's own width: in a narrow desktop window
+  (1024 with the Sidebar open) a KPI over 3 of 12 columns is only about 170px. Where a page must hold that range, give
+  the KPIs their own auto-fit `Grid minColumnWidth={240}` in a `span="full"` cell, so they wrap by width, as
+  `DashboardTemplate`'s KPI rows do.
+- **In Zen Studio**, a layer in a Grid shows a **Grid cell** group under Resizing: Column span, Row span and Take the
+  whole row, written at the breakpoint the Screen shows ("Grid cell on Mobile"); a layer without span is wrapped in a
+  `<Box span>`, and back to one column that Box goes. The note under it says when a row leaves columns empty.
 - On a phone in an AppShell, put the sections straight in the AppShell body (it spaces them).
-- Equal-column rows line up with each other exactly when their counts divide 12 (4, 3, 2 columns). A `"2fr 1fr"` row
-  ends its first cell about a third of a gap (~5px) away from the line of a 3-column row: keep such rows apart, or
-  accept the offset until Grid has spans.
-- A Grid's `columns` per breakpoint (`{ desktop, tablet, mobile }`) is the reflow of §6; `stackBelow` stacks a row by the
-  Grid's own width (inside a SidePanel or a narrow pane).
 
 ### Figma
 
 - The AppShell Content slot holds the sections; the widget grid is one auto layout frame in it, Clip content off (the
   cards' shadows).
-- **Studio-compatible build:** a vertical frame (gap `Spacing/Gap/Medium`) of row frames, each a Grid auto layout with
-  Flex tracks in the row's ratio (2 : 1 for 8 · 4, 1 : 1 : 1 for 4 · 4 · 4, four equal for KPIs), gap
-  `Spacing/Gap/Medium`, the cards Fill width and Fill height. This is the shape Studio pushes and pulls back.
-- **One 12-column Grid with spans** (Figma's Grid auto layout, column span 3 / 4 / 6 / 8 / 12) is the model in its
-  purest form, but Studio's import keeps only a span that every cell shares: mixed spans come back as equal columns. Use
-  it only for frames that stay in Figma.
+- **One 12-column Grid auto layout**, gap `Spacing/Gap/Medium` both ways, each widget Fill width and Fill height with
+  its column span (3 / 4 / 6 / 8 / 12) and, for a tall list, its row span. Studio pushes and pulls these spans back
+  (a layer that takes no span comes in a Box), so this is the shape to build.
+- Place the cells in reading order (row by row, left to right): Studio lays them out one after another, so a cell left
+  past a hole on purpose comes back in the next free place (the pull notes it).
 - Build the tablet (744) and phone (390) frames with the reflow of §6, each in its Breakpoint & Grids mode, then run the
   Zen audit (`spacing/section-gap`, `section/title-apart`).
 

@@ -459,19 +459,19 @@ export const rows = [
       const { page, id } = await spanSetup(ctx, {}, "Note", true);
       await typeSpan(page, "Column span", 3);
       await until(async () => /<Box span=\{3\}>\s*<Text>Note<\/Text>\s*<\/Box>/.test(await gridText(page, id)), { message: "the Text wrapped in a span Box" });
-      await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === "Frame", { message: "the Box selected" });
+      await until(async () => /^(Frame|Box)$/.test((await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim()) && await cellGroup(page).isVisible(), { message: "the Box selected, its Grid cell group shown" });
       await typeSpan(page, "Column span", 1);
       await until(async () => { const text = await gridText(page, id); return /<\/Card>\s*<Text>Note<\/Text>/.test(text) && !/<Box span/.test(text); }, { message: "the Box unwrapped" });
       return "Text: Column span 3 → <Box span={3}> · span 1 → unwrapped";
     },
   },
   {
-    id: "BP-17", feature: "Grid cell rows: Row span 2 on a Card writes rowSpan={2}; with the hero over 8 and the side over 3, the group says Row 1 leaves 1 of 12 columns empty", wp: "grid span PR B 2026-10-26", timeout: 45_000,
+    id: "BP-17", feature: "Grid cell rows: Row span 2 on a Card writes rowSpan={2}; with the hero over 8, the side over 2 and the note over 1, the group says Row 1 leaves 1 of 12 columns empty", wp: "grid span PR B 2026-10-26", timeout: 45_000,
     async run(ctx) {
-      const { page, id } = await spanSetup(ctx, { hero: " span={8}", side: " span={3}" }, "Side");
+      const { page, id } = await spanSetup(ctx, { hero: " span={8}", side: " span={2}" }, "Side");
       await until(async () => /Row 1 leaves 1 of 12 columns empty/.test(await cellGroup(page).innerText().catch(() => "")), { message: "the empty-columns note" });
       await typeSpan(page, "Row span", 2);
-      await until(async () => /<Card span=\{3\} rowSpan=\{2\}>/.test(await gridText(page, id)), { message: "rowSpan={2} written" });
+      await until(async () => /<Card span=\{2\} rowSpan=\{2\}>/.test(await gridText(page, id)), { message: "rowSpan={2} written" });
       return "Row 1 leaves 1 of 12 columns empty · Row span 2 → rowSpan={2}";
     },
   },

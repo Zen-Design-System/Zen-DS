@@ -21,6 +21,7 @@ import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
 import { atBreakpoint, screenBreakpoint } from "./responsive-props.mjs";
+import { placeCells } from "./grid-cells.mjs";
 import { FIGMA_NAMED, LABEL_NAMED, givenNameOf } from "./layer-meta.mjs";
 import { BARE_HEADER, CHART_COMPONENTS, HEADING_LAYER, chartFigma, chartHeaderFigma } from "./figma-charts.mjs";
 import { SUB_ACTION_ICON, metricCardFigma, metricCardTyped, trendEdits, trendNested } from "./figma-metric.mjs";
@@ -1947,9 +1948,22 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     const surface = Boolean(parent?.surface) || [code.surface, code.border].some((value) => value && value !== "none");
     const context = { direction: row ? "row" : "column", stretch: !grid && align === "stretch", width: grid || row ? null : inner, surface };
     const cellWidths = grid && !fit ? trackWidths(columns, inner, gapPx) : null;
+    // Each child's cell (grid-cells.mjs: Layout.tsx's auto-placement with span / rowSpan, the props already at this
+    // Screen's breakpoint): Figma's row, column and spans, and the width its own layout knows (the spanned tracks and the
+    // gaps between them). An absolute layer takes no cell, as in CSS.
+    const placed = (child) => child.kind === "element" && codeProps(child).position !== "absolute";
+    const placement = grid && !fit ? placeCells(element.children.filter(placed).map((child) => { const own = codeProps(child); return { span: own.span, rowSpan: own.rowSpan }; }), columns.count) : null;
+    const spanWidth = (cell) => {
+      const tracks = cellWidths?.slice(cell.col, cell.col + cell.span) ?? [];
+      return tracks.length === cell.span && tracks.every((width) => typeof width === "number") ? tracks.reduce((sum, width) => sum + width, 0) + (cell.span - 1) * gapPx : null;
+    };
     let cellIndex = 0;
     const children = element.children.map((child) => {
-      const node = convert(child, grid && child.kind === "element" ? { ...context, cell: true, width: cellWidths?.[cellIndex++ % columns.count] ?? null } : context);
+      const at = placement && placed(child) ? placement.cells[cellIndex++] : null;
+      // The export's cell: { col, row, span } and rowSpan when it is more than one row (the native paste and the plugin's
+      // import read both).
+      const cell = at ? { col: at.col, row: at.row, span: at.span, ...(at.rowSpan > 1 ? { rowSpan: at.rowSpan } : {}) } : null;
+      const node = convert(child, grid && child.kind === "element" ? { ...context, cell: true, width: cell ? spanWidth(cell) : null } : context);
       // A Fixed layer (sticky="bottom") sits where CSS sticky leaves it at the end of the content: inside this frame's
       // padding, on its bottom edge.
       if (node?.scrollBehavior === "FIXED" && node.absolute) return { ...node, absolute: { ...node.absolute, left: x, right: x, bottom: y } };
@@ -1962,7 +1976,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
       if (grid) {
         const innerGrid = align === "stretch" && node.type === "FRAME" && node.layout?.mode === "GRID" && node.layout.grid;
         const stretched = innerGrid ? { ...node, layout: { ...node.layout, grid: { ...node.layout.grid, rowSizes: Array.from({ length: node.layout.grid.rows }, () => ({ type: "FLEX", value: 1 })) } } } : node;
-        return { ...stretched, fillW: true, ...(align === "stretch" && (node.type === "INSTANCE" || innerGrid) ? { fillH: true } : {}), ...(columns.min ? { minW: Math.min(columns.min, frameWidth - 32) } : {}) };
+        return { ...stretched, fillW: true, ...(align === "stretch" && (node.type === "INSTANCE" || innerGrid) ? { fillH: true } : {}), ...(columns.min ? { minW: Math.min(columns.min, frameWidth - 32) } : {}), ...(cell ? { cell } : {}) };
       }
       const { fillW, fillH } = fills(child, context);
       // fillChildren (layout.css): in a row every child without its own width takes an equal share; in a column only
@@ -1988,8 +2002,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     // Figma's fixed layers are a frame's topmost (numberOfFixedChildren counts from the end): a Fixed layer goes last.
     children.sort((a, b) => Number(a.scrollBehavior === "FIXED") - Number(b.scrollBehavior === "FIXED"));
     if (grid && !fit) {
-      layout.grid = { columns: columns.count, rows: Math.max(1, Math.ceil(children.length / columns.count)), ...(columns.sizes ? { sizes: columns.sizes } : {}) };
-      children.forEach((child, index) => { child.cell = { col: index % columns.count, row: Math.floor(index / columns.count), span: 1 }; });
+      layout.grid = { columns: columns.count, rows: placement.rows, ...(columns.sizes ? { sizes: columns.sizes } : {}) };
+      // A layer with no cell of its own (not a Zen element) takes a row of its own after the placed ones.
+      for (const child of children) if (!child.cell && !child.absolute) child.cell = { col: 0, row: layout.grid.rows++, span: 1 };
     }
     // maxWidth (a number of px, or "400px"): the frame fills up to it (a sign-in form in its centred row).
     const maxW = Number.parseFloat(String(code.maxWidth ?? "")) || null;
