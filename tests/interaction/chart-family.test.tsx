@@ -180,6 +180,24 @@ describe("chart family layout", () => {
     expect(getComputedStyle(bar).animationName).toBe("zen-chart-fade");
   });
 
+  it("combo bars run edge to edge 8px apart with the line's dots and the X pills on their centres", async () => {
+    await render(wrap(<ComboChart aria-label="Edge combo" animate={false} barLabel="Revenue" lineLabel="Margin" lineMax={100}
+      data={[{ label: "Q1", bar: 80, line: 30 }, { label: "Q2", bar: 90, line: 40 }, { label: "Q3", bar: 70, line: 35 }]} />));
+    const plot = document.querySelector('[aria-roledescription="chart"][aria-label="Edge combo"]')!;
+    const box = plot.getBoundingClientRect();
+    const bars = [...plot.querySelectorAll(".zen-chart__combo-bar")].map((el) => el.getBoundingClientRect());
+    const dots = [...plot.querySelectorAll(".zen-chart__combo-dot")].map((el) => el.getBoundingClientRect());
+    const pills = [...plot.querySelectorAll(".zen-chart__x")].map((el) => el.getBoundingClientRect());
+    expect(Math.abs(bars[0].left - box.left)).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(bars[2].right - box.right)).toBeLessThanOrEqual(0.5);
+    expect(bars[1].left - bars[0].right).toBeCloseTo(8, 0);
+    bars.forEach((r, i) => {
+      const centre = r.left + r.width / 2;
+      expect(Math.abs(dots[i].left + dots[i].width / 2 - centre)).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(pills[i].left + pills[i].width / 2 - centre)).toBeLessThanOrEqual(0.5);
+    });
+  });
+
   it("horizontal bars sit 8px apart, flat at the axis and rounded at their end", async () => {
     await render(wrap(<BarChart orientation="horizontal" aria-label="Rows" animate={false} data={[{ label: "Design", value: 28 }, { label: "Delivery", value: 12 }, { label: "Sales", value: 6 }]} />));
     const rows = [...document.querySelectorAll('[aria-label="Rows"] .zen-chart__htrack')].map((el) => el.getBoundingClientRect());

@@ -1,6 +1,6 @@
 // Figma Chart/Combo-Chart 15934:7580 (docs/figma-contracts/chart-combo.json): Sector 4 · 6 · 7 · 12 × Color Primary ·
 // Secondary, a ComboChart (`palette`) in a Chart Card (Heading · Metric · Chart · Legend; the Segmented is hidden). Bars
-// (Color Chart Sector/Primary, half the column inside its 2px padding, Corner-Radius/XSmall on the top corners) on the
+// (Color Chart Sector/Primary, edge to edge Spacing/Gap/XSmall apart, Corner-Radius/XSmall on the top corners) on the
 // start axis; a 2px Sector/Secondary line with an 8px dot on every period (Surface/Default, 2px ring) on the end axis
 // (Y-Axis-End: left-aligned, Spacing/Padding/XSmall after the plot); the first two swapped under Secondary. Figma draws no
 // active state (chart-parity-audit-2026-10-17 §3); code grows the active period's dot to 12px and eases the other bars to
@@ -39,14 +39,6 @@ export default {
   figmaExceptions: [
     ...barFrameExceptions({ grid: GRID, tooltipLane: true }).map((item) => (item.layer === "Chart" ? { ...item, code: "222" } : item)),
     { vp: {}, layer: "Legend", prop: "y", code: "364", note: "Code's 36 / 28 lanes (Figma 6 / 26, see Chart.h) move the legend 32px down." },
-    // Figma-side inconsistency, as Grouped-Bar's: 6-Sectors makes each bar half the whole 46.67px column (23.33), where
-    // 4-Sectors takes half the column inside its 2px padding (66 → 33), as code does (42.67 → 21.33, centred).
-    ...Array.from({ length: 6 }, (_, k) => [
-      { vp: { Sector: "6-Sectors" }, layer: `Chart > Plot > Marks > Bars > Column#${k} > Bars > Lane > Revenue`, prop: "w", code: (280 / 6 - 4) / 2,
-        note: "6-Sectors bars are half the whole column; 4-Sectors (and code) half of it inside its 2px padding." },
-      { vp: { Sector: "6-Sectors" }, layer: `Chart > Plot > Marks > Bars > Column#${k} > Bars > Lane > Revenue`, prop: "x", code: (k * 280) / 6 + 2 + (280 / 6 - 4) / 4,
-        note: "6-Sectors bars are half the whole column (see w), so they start 1px further out." },
-    ]).flat(),
     ...Array.from({ length: 12 }, (_, k) => ({ vp: {}, layer: `Chart > Plot > Marks > Bars > Column#${k} > Bars > Lane > Revenue`, prop: "op", code: "0.88",
       note: "Bars that aren't active ease to 88% in code; Figma keeps them at 100% (QUESTIONS.md Charts (P2) (a))." })),
     ...Array.from({ length: 12 }, (_, k) => ["w", "h"].map((prop) => ({ vp: { Sector: `${k + 1}-Sectors` }, layer: `Chart > Plot > Marks > Dot-Anchor#${k} > Dot`, prop, code: "12",

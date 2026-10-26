@@ -427,8 +427,12 @@
 .zen-chart-combo .zen-chart__sector::before { content: none; }
 .zen-chart__y-end { box-sizing: content-box; padding-inline-start: var(--zen-spacing-padding-xsmall, 8px); text-align: left; }
 .zen-chart__y-end > span { right: auto; left: var(--zen-spacing-padding-xsmall, 8px); }
-/* 20px at Figma's size, half its column with room to spare (up to 40px, as a bar chart's bar), never wider than it. */
-.zen-chart__combo-bar { display: block; width: min(100%, clamp(20px, 50%, 40px)); min-height: 2px; border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; background: var(--zen-chart-lead, var(--zen-chart-sector-primary, #ff66d4)); }
+/* Combo columns run edge to edge Spacing/Gap/XSmall apart, as Bar's (the user, 2026-10-26): each bar fills its period's
+   column but Spacing/Padding/2XSmall (half the gap) on each side, and the marks and the sectors reach as far past the plot, so
+   the first bar starts at the plot's edge while the line's points, the dots and the X pills stay on the bars' centres. */
+.zen-chart--combo .zen-chart__visual, .zen-chart--combo .zen-chart__sectors { right: calc(var(--zen-spacing-padding-2-xsmall, 4px) * -1); left: calc(var(--zen-spacing-padding-2-xsmall, 4px) * -1); }
+.zen-chart__combo-column { padding-inline: var(--zen-spacing-padding-2-xsmall, 4px); }
+.zen-chart__combo-bar { display: block; width: 100%; min-height: 2px; border-radius: var(--zen-corner-radius-xsmall, 4px) var(--zen-corner-radius-xsmall, 4px) 0 0; background: var(--zen-chart-lead, var(--zen-chart-sector-primary, #ff66d4)); }
 .zen-chart__combo-line { stroke: var(--zen-chart-second, var(--zen-chart-sector-secondary, #111)); }
 /* Motion: grouped and combo bars rise from the baseline under their top corners (clip, Slow, Emphasized, staggered per
    period); areas and the combo line wipe in from the left with their dots (.zen-chart__marks, as the line chart); the
