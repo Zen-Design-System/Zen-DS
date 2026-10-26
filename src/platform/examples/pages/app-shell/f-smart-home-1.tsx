@@ -102,12 +102,12 @@ function DeviceCard({ device, on, onToggle }: { device: HomeDevice; on: boolean;
     <Card theme="shadow" aria-label={`${device.brand} ${device.name}`}>
       <Stack gap="sm">
         <Stack gap="none">
-          <Text textStyle="Caption/Regular" tone="base">{device.brand}</Text>
+          <Text textStyle="Caption/Regular" tone="light">{device.brand}</Text>
           <Text textStyle="Body/Base/Bold" truncate>{device.name}</Text>
         </Stack>
         <DevicePicture photo={device.photo} icon={device.icon} />
         <Stack direction="row" justify="between" align="center" gap="xs">
-          <Text textStyle={device.small ? "Caption/Regular" : "Body/Small/Regular"} tone={on ? "strongest" : "base"} truncate>{on ? device.onState : device.offState}</Text>
+          <Text textStyle={device.small ? "Caption/Regular" : "Body/Small/Regular"} tone={device.small ? "light" : on ? "strongest" : "base"} truncate>{on ? device.onState : device.offState}</Text>
           {/* zen-allow-secondary: a pressed toggle — Figma's power button is Button/Icon-Main Secondary while the device is on. */}
           <IconButton size="xs" level={on ? "secondary" : "tertiary"} icon="icon-power-01-line" aria-label={`${device.name} power`} aria-pressed={on} onClick={onToggle} />
         </Stack>
@@ -346,7 +346,7 @@ function RobotVacuumPhone() {
                 {/* zen-allow-secondary: a pressed toggle — Figma's active mode (Quiet) is Button/Icon-Main Secondary. */}
                 <IconButton size="lg" level={mode.pressed ? "secondary" : "tertiary"} icon={mode.icon} aria-label={mode.label} tooltip={false}
                   aria-pressed={mode.pressed} onClick={mode.onClick} />
-                <Text as="span" textStyle="Caption/Medium" aria-hidden="true">{mode.label}</Text>
+                <Text as="span" textStyle="Caption/Medium" tone="light" aria-hidden="true">{mode.label}</Text>
               </Stack>
             ))}
           </Stack>
@@ -405,7 +405,7 @@ export const examples: ExampleDef[] = [
         <Card theme="shadow" aria-label="Philips Ceiling light">
           <Stack gap="sm">
             <Stack gap="none">
-              <Text textStyle="Caption/Regular" tone="base">Philips</Text>
+              <Text textStyle="Caption/Regular" tone="light">Philips</Text>
               <Text textStyle="Body/Base/Bold" truncate>Ceiling light</Text>
             </Stack>
             <Image src={ceilingLight.photo} alt="" ratio={129 / 108} frame={false} radius="lg" />
@@ -534,7 +534,7 @@ export const examples: ExampleDef[] = [
         <Stack as="li" gap="xs" align="center">
           {/* zen-allow-no-tooltip: the mode's visible label sits right under the button. */}
           <IconButton size="lg" level="tertiary" icon="icon-wifi-line" aria-label="Connected" tooltip={false} onClick={showWifi} />
-          <Text as="span" textStyle="Caption/Medium" aria-hidden="true">Connected</Text>
+          <Text as="span" textStyle="Caption/Medium" tone="light" aria-hidden="true">Connected</Text>
         </Stack>
         …Schedule (icon-alarm-clock-line) · Quiet (icon-moon-02-line: level="secondary" and aria-pressed while on)
       </Stack>

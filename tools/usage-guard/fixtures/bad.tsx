@@ -687,6 +687,11 @@ export const Bad = () => <>
   <Stack opacity={0.5} padding="md">Faded</Stack>
   {/* expect: layout/opacity-percent */}
   <Shape type="ellipse" opacity={0.4} width={24} height={24} />
+  {/* Caption text is always Light (the user 2026-10-26): a Caption in Base, and one with no tone (it renders Strongest). */}
+  {/* expect: text/caption-light */}
+  <Text textStyle="Caption/Regular" tone="base">Updated 2 min ago</Text>
+  {/* expect: text/caption-light */}
+  <Text as="span" textStyle="Caption/Medium">3 files</Text>
   {/* expect: content/lights-no-light-text */}
   <Text tone="warning-light">Due tomorrow</Text>
   {/* expect: content/lights-no-light-text */}

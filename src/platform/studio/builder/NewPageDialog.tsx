@@ -109,14 +109,14 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
             <span className="studio-choice__blank" aria-hidden="true"><Icon name="icon-plus-line" size="base" decorative /></span>
             <span className="studio-choice__text">
               <Text as="span" textStyle="Body/Small/Bold">Empty page</Text>
-              <Text as="span" textStyle="Caption/Regular" tone="base">One empty Screen, no AppShell</Text>
+              <Text as="span" textStyle="Caption/Regular" tone="light">One empty Screen, no AppShell</Text>
             </span>
           </ChoiceCard>
           <ChoiceCard name={`${id}-start`} value="blank" checked={start === "blank"} onPick={pickStart} className="studio-choice--template">
             <span className="studio-choice__blank" aria-hidden="true"><Icon name="icon-layout-left-line" size="base" decorative /></span>
             <span className="studio-choice__text">
               <Text as="span" textStyle="Body/Small/Bold">Page with AppShell</Text>
-              <Text as="span" textStyle="Caption/Regular" tone="base">A Screen with sidebar and page header</Text>
+              <Text as="span" textStyle="Caption/Regular" tone="light">A Screen with sidebar and page header</Text>
             </span>
           </ChoiceCard>
           {(choices ?? []).map((choice) => (
@@ -124,7 +124,7 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
               <TemplateThumb id={choice.id} mobile={choice.mobile} />
               <span className="studio-choice__text">
                 <Text as="span" textStyle="Body/Small/Bold" className="studio-choice__title">{choice.title}</Text>
-                <Text as="span" textStyle="Caption/Regular" tone="base">{choice.mobile ? "Phone template" : "Desktop template"}</Text>
+                <Text as="span" textStyle="Caption/Regular" tone="light">{choice.mobile ? "Phone template" : "Desktop template"}</Text>
               </span>
             </ChoiceCard>
           ))}

@@ -13,6 +13,8 @@
 .menu-item:focus-visible { outline: none; }
 /* expect: motion/reduced-motion */
 .loader { animation: spin 1s linear infinite; }
+/* expect: text/caption-light */
+.file-row__meta { font-size: var(--zen-typography-font-size-caption); color: var(--zen-color-content-neutral-base); }
 /* expect: content/lights-no-light-text */
 .notice--warning { color: var(--zen-color-content-warning-light); }
 /* expect: content/lights-no-light-text */

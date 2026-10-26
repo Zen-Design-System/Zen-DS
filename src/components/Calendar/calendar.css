@@ -65,7 +65,7 @@ button.zen-calendar-cell__date:active .zen-calendar-date:not([data-state="today"
 /* A narrow month cell (a half-width column) gives the chip's room to its title: the time leaves the face, stays in the name. */
 .zen-calendar-event { position: relative; }
 @container (max-width: 96px) { .zen-calendar-event[data-kind="timed"] > .zen-calendar-event__time { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } }
-.zen-calendar-cell__more { align-self: flex-start; padding: 0 var(--zen-spacing-padding-3-xsmall, 2px); border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; color: var(--zen-color-content-neutral-base); }
+.zen-calendar-cell__more { align-self: flex-start; padding: 0 var(--zen-spacing-padding-3-xsmall, 2px); border: 0; border-radius: var(--zen-corner-radius-xsmall, 4px); background: transparent; color: var(--zen-color-content-neutral-light); }
 button.zen-calendar-cell__more:hover { background: var(--zen-color-background-neutral-flat-hover); }
 button.zen-calendar-cell__more:active { background: var(--zen-color-background-neutral-flat-pressed); }
 
@@ -80,7 +80,7 @@ button.zen-calendar-agenda-item:active { background: var(--zen-color-background-
 .zen-calendar-agenda-item__rule { width: 4px; flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-calendar-solid); }
 .zen-calendar-agenda-item__content { display: flex; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .zen-calendar-agenda-item__title, .zen-calendar-agenda-item__meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.zen-calendar-agenda-item__meta { color: var(--zen-color-content-neutral-base); }
+.zen-calendar-agenda-item__meta { color: var(--zen-color-content-neutral-light); }
 .zen-calendar-agenda-item__people { flex: 0 0 auto; align-self: center; }
 
 /* .Primitives/Calendar/Day-Tile (16142:3915): the selected tile's border is outside the layout (strokes not in layout). */
@@ -120,7 +120,7 @@ button.zen-calendar-agenda-item:active { background: var(--zen-color-background-
 /* Calendar/Month (16126:1093) */
 .zen-calendar-month[data-device="desktop"] { display: flex; min-width: 0; box-sizing: border-box; flex-direction: column; overflow: hidden; border: 1px solid var(--zen-color-border-neutral-pale-default); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-surface-default); }
 .zen-calendar-month[data-device="desktop"] .zen-calendar-month__weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
-.zen-calendar-month[data-device="desktop"] .zen-calendar-month__weekdays > span { padding: var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-base); }
+.zen-calendar-month[data-device="desktop"] .zen-calendar-month__weekdays > span { padding: var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-light); }
 /* A desktop month squeezed narrower than its weekday names (a phone-width preview) writes them as single letters. Each
    header cell is its own size container: its width comes from the grid track, never from the text. */
 .zen-calendar-month__weekday { min-width: 0; container-type: inline-size; }
@@ -147,7 +147,7 @@ button.zen-calendar-agenda-item:active { background: var(--zen-color-background-
 :is(.zen-calendar-time-grid__days, .zen-calendar-time-grid__all-day, .zen-calendar-time-grid__hours) { display: grid; flex: 0 0 auto; grid-template-columns: var(--zen-calendar-rail-width) repeat(var(--zen-calendar-days, 7), minmax(0, 1fr)); }
 :is(.zen-calendar-time-grid__days, .zen-calendar-time-grid__all-day) { border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
 .zen-calendar-time-grid__day { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding: var(--zen-spacing-padding-xsmall, 8px); border-left: 1px solid var(--zen-color-border-neutral-pale-default); }
-.zen-calendar-time-grid__weekday { color: var(--zen-color-content-neutral-base); }
+.zen-calendar-time-grid__weekday { color: var(--zen-color-content-neutral-light); }
 .zen-calendar-time-grid__all-day > .zen-calendar-time-grid__gutter { display: flex; min-height: 24px; box-sizing: border-box; justify-content: flex-end; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-light); white-space: nowrap; }
 .zen-calendar-time-grid__all-day-cell { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding: var(--zen-spacing-padding-2-xsmall, 4px); border-left: 1px solid var(--zen-color-border-neutral-pale-default); }
 .zen-calendar-time-grid__hours { flex: 1 1 auto; min-height: 0; overflow-y: auto; grid-template-rows: calc(var(--zen-calendar-hours, 10) * var(--zen-calendar-hour)); }

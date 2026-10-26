@@ -1076,6 +1076,35 @@ const isModalSel = (selector) => /modal|dialog|sheet|drawer/i.test(selector);
 const isOverlaySel = (selector) => /popover|tooltip|menu|dropdown|flyout|submenu|toast|picker|listbox|overlay|combobox|autocomplete|command|popup|hovercard/i.test(selector);
 const isTitleSel = (selector) => roleWords(selector).some((w) => /^(title|heading|headline)$/i.test(w));
 const isBodySel = (selector) => roleWords(selector).some((w) => /^(body|description|paragraph|desc)$/i.test(w));
+// Caption text is always Light (the user 2026-10-26: "chữ dùng text style Caption phải là tông Light"; usage rules §7
+// "Caption text"): text in a Caption/* style takes its family's Light level. A tone passes when it is a Light level, a
+// single-token role for text on its own Solid fill (on-colors, on-brights, on-accent), a state (disabled, placeholder,
+// hyperlink), inherit, or a Lights-group Base (that group never takes Light for text). Older names resolve first.
+const TONE_ALIASES = { primary: "strongest", secondary: "base", tertiary: "light", "neutral-strongest": "strongest", "neutral-base": "base", "neutral-light": "light", accent: "accent-base", info: "info-base", positive: "positive-base", negative: "negative-base", warning: "warning-base", inverse: "inverse-strongest" };
+const CAPTION_TONE_OK = new RegExp(`^(light|[a-z-]+-light|on-colors|on-brights|on-accent(-default)?|disabled|([a-z-]+-)?placeholder|hyperlink(-[a-z]+)?|inherit|(${LIGHTS_FAMILY})-base)$`);
+const captionToneFix = (tone) => {
+  const family = tone.replace(/-?(strongest|base)$/, "");
+  return new RegExp(`^(${LIGHTS_FAMILY})$`).test(family) ? `${family}-base` : family ? `${family}-light` : "light";
+};
+const captionToneFinding = (attrs, src, start) => {
+  const style = value(attrs, "textStyle")?.replace(/^\{?\s*["'`]|["'`]\s*\}?$/g, "");
+  if (!/^Caption\//.test(style ?? "") || inCodeSample(src, start)) return false;
+  const raw = value(attrs, "tone");
+  if (raw === undefined) return !opaque(attrs) && `is ${style} with no tone, so it renders Strongest — Caption text takes its family's Light level: tone="light" (usage rules §7, Caption text).`;
+  // A literal tone, or the literal tones of a conditional (selected ? "accent-base" : "base"), not the strings it compares
+  // (state === "error"); a variable is not judged.
+  const TONE_WORD = /^(strongest|base|light|primary|secondary|tertiary|accent|info|positive|negative|warning|inverse|on-colors|on-brights|on-accent|hyperlink|disabled|inherit|(neutral|accent|info|positive|negative|warning|inverse|on-black-overlay|on-white-overlay|support-[a-z]+)-(strongest|base|light))$/;
+  const tones = literal(attrs, "tone") !== undefined ? [raw] : [...raw.matchAll(/["'`]([a-z-]+)["'`]/g)].map((m) => m[1]).filter((t) => TONE_WORD.test(t));
+  const off = tones.map((t) => TONE_ALIASES[t] ?? t).find((t) => !CAPTION_TONE_OK.test(t));
+  return off && `is ${style} in tone="${off}" — Caption text takes its family's Light level: tone="${captionToneFix(off)}" (text on its own Solid fill, a state and the Lights group's Base are the exceptions; usage rules §7, Caption text).`;
+};
+const captionCssFinding = ({ selector, body }) => {
+  if (!/(^|[;{\s])font-size\s*:\s*var\(\s*--zen-typography-font-size-caption\b/.test(body) && !/\.zen-type-caption-/.test(selector)) return null;
+  const d = (body.match(/(^|[;{\s])color\s*:[^;]*/g) ?? []).map((x) => x.trim()).find((x) => { const token = x.match(/--zen-color-content-([\w-]+)/)?.[1]; return token && !CAPTION_TONE_OK.test(token); });
+  if (!d) return null;
+  const token = d.match(/--zen-color-content-([\w-]+)/)[1];
+  return `sets Caption text in \`${d.slice(0, 70)}\` — Caption text takes its family's Light level: --zen-color-content-${captionToneFix(token).replace(/^light$/, "neutral-light")} (usage rules §7, Caption text).`;
+};
 
 // Top-level `{ … }` objects of a literal array expression (e.g. Table columns), for per-column checks.
 const arrayObjects = (expr) => { if (!expr || !/^\s*\[/.test(expr) || /\.map\(|\$\{/.test(expr)) return []; const out = []; let depth = 0, start = -1; for (let i = 0; i < expr.length; i++) { const ch = expr[i]; if (ch === "{") { if (depth++ === 0) start = i; } else if (ch === "}") { if (--depth === 0 && start >= 0) out.push(expr.slice(start, i + 1)); } } return out; };
@@ -1691,6 +1720,9 @@ export const rules = [
   { id: "content/lights-no-light-text", css: true, components: ["Text", "Heading"], severity: "error", allow: "lights-light-text", guideline: "docs/guidelines/content-colors.md",
     summary: "Lights-group text (families referencing Sky, Mint, Yellow or Zen — today Accent, Warning, Support/Yellow) never uses the Light level — Base at most (Light fails contrast); Light stays for icons. Checks CSS colours and the Text/Heading `tone`.",
     check: (css) => { if (css.attrs !== undefined) { const tone = toneOf(css.attrs); return new RegExp(`^(${LIGHTS_FAMILY})-light$`).test(tone ?? "") && `is tone="${tone}" — Lights-group text never takes Light (it fails contrast); use ${tone.replace(/-light$/, "-base")} or -strongest (Light is for icons).`; } const d = textColourDecls(css.body).find((x) => new RegExp(`--zen-color-content-(${LIGHTS_FAMILY})-light`).test(x)); return d && `sets Lights-group text to Light in \`${d.slice(0, 70)}\` — use -base or -strongest (Light is allowed only for icons).`; } },
+  { id: "text/caption-light", css: true, components: ["Text", "Heading"], severity: "error", allow: "caption-light", guideline: "docs/guidelines/text.md",
+    summary: "Text in a Caption style (Caption/Regular · Medium · Bold) takes its family's Light level: tone=\"light\", inverse-light, on-black-overlay-light, on-white-overlay-light or a colour family's Light (Negative/Light error text); the Lights group (Accent, Warning, Support/Yellow · Sky · Mint) takes Base. Text on its own Solid fill (on-colors, on-brights, on-accent) and states (disabled, placeholder, hyperlink) keep their token. Checks the Text/Heading tone, and CSS that pairs the caption font size or a .zen-type-caption-* class with another content colour (the user 2026-10-26).",
+    check: (css) => (css.attrs !== undefined ? captionToneFinding(css.attrs, css.src, css.start) : captionCssFinding(css)) },
   { id: "content/title-is-strongest", css: true, components: [], severity: "warn", allow: "title-level", guideline: "docs/guidelines/content-colors.md",
     summary: "Neutral-family titles and headings use Strongest (Primary level); Base is for secondary text and Light for tertiary text.",
     check: (css) => { if (!isTitleSel(css.selector)) return null; const d = textColourDecls(css.body).find((x) => new RegExp(`--zen-color-content-(${NEUTRAL_FAMILY})-(base|light)\\b`).test(x)); return d && `colours a title with \`${d.slice(0, 70)}\` — titles use the -strongest level.`; } },

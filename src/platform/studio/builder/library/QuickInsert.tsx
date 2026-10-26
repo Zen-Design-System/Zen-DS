@@ -156,7 +156,7 @@ function QuickInsertPanel({ mode }: { mode: QuickInsertMode }) {
           onKeyDown={onKeyDown}
         />
       </div>
-      <Text as="p" textStyle="Caption/Regular" tone={blocked && !swapping ? "negative" : "base"} className="studio-qi__target" data-e2e="quick-insert-target">
+      <Text as="p" textStyle="Caption/Regular" tone={blocked && !swapping ? "negative-light" : "light"} className="studio-qi__target" data-e2e="quick-insert-target">
         {where}
       </Text>
       <div className="studio-qi__body">

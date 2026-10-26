@@ -296,7 +296,7 @@ function TriggerRow({ trigger, label, value, items, tree, layer, frames, home, d
       {action === "step" && proto ? <StepRows trigger={trigger} step={stepOf(proto.args)} screen={screenFor(tree, home)} layer={layer} disabled={disabled} /> : null}
       {animates ? <AnimationRows trigger={trigger} options={options} disabled={disabled} onChange={writeOptions} /> : null}
       {target && !selfPlaced ? <OverlayFields node={target} file={layer.file} disabled={disabled} /> : null}
-      {custom ? <Text as="p" tone="base" textStyle="Caption/Regular" className="studio-prototype__note">Picking an action replaces the code.</Text> : null}
+      {custom ? <Text as="p" tone="light" textStyle="Caption/Regular" className="studio-prototype__note">Picking an action replaces the code.</Text> : null}
     </div>
   );
 }
@@ -330,7 +330,7 @@ function FilterRows({ trigger, filter, screen, hands, typed, layer, disabled }: 
   const [draft, setDraft] = useState(valueText);
   useEffect(() => setDraft(valueText), [valueText]);
   const write = (change: ProtoFilter, label: string) => void writeAction(layer, trigger, "filter", { ...filter, ...change }, undefined, label);
-  if (!table) return <Text as="p" tone="base" textStyle="Caption/Regular" className="studio-prototype__note">Add a Table to this screen.</Text>;
+  if (!table) return <Text as="p" tone="light" textStyle="Caption/Regular" className="studio-prototype__note">Add a Table to this screen.</Text>;
   const commit = () => { if (draft !== valueText) write({ value: draft || undefined }, draft ? `Filter by ${draft}` : "Filter by the trigger"); };
   return (
     <>
@@ -364,7 +364,7 @@ const STEPS: ReadonlyArray<{ id: ProtoStep; label: string }> = [{ id: "previous"
 function StepRows({ trigger, step, screen, layer, disabled }: { trigger: string; step: { to: ProtoStep; stepper?: string }; screen: PageNode | null; layer: ProtoLayer; disabled: boolean }) {
   const steppers = namedTargets(screen, "Stepper");
   const write = (to: ProtoStep, stepper: string | undefined, label: string) => void writeAction(layer, trigger, "step", { to, stepper }, undefined, label);
-  if (!steppers.length) return <Text as="p" tone="base" textStyle="Caption/Regular" className="studio-prototype__note">Add a Stepper to this screen.</Text>;
+  if (!steppers.length) return <Text as="p" tone="light" textStyle="Caption/Regular" className="studio-prototype__note">Add a Stepper to this screen.</Text>;
   return (
     <>
       <InspectorRow label="Step" name={`proto:${trigger}:step`}>

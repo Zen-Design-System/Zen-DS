@@ -189,7 +189,7 @@ function FolderGroup({ folder, pages, open, onToggle, onNewPage, tabStop, rowTab
       {open ? (
         pages.length ? (
           <PageList id={listId} label={folder.name} scope={folder.id} folder={folder.id} pages={pages} nested tabStop={tabStop} />
-        ) : <Text as="p" id={listId} textStyle="Caption/Regular" tone="base" className="studio-folder__empty">No pages yet</Text>
+        ) : <Text as="p" id={listId} textStyle="Caption/Regular" tone="light" className="studio-folder__empty">No pages yet</Text>
       ) : null}
       {dialog === "delete" ? <DeleteFolderDialog folder={folder} count={pages.length} onClose={() => setDialog(null)} /> : null}
     </li>
@@ -220,7 +220,7 @@ export function StudioFolderTree({ folders, pages, searching, onNewPage }: { fol
       </ul>
       {loose.length ? (
         <div className="studio-pages__section" data-section="loose">
-          <Text as="p" id="studio-pages-loose" textStyle="Caption/Medium" tone="base" className="studio-pages__kicker">Not in a folder</Text>
+          <Text as="p" id="studio-pages-loose" textStyle="Caption/Medium" tone="light" className="studio-pages__kicker">Not in a folder</Text>
           <PageList labelledBy="studio-pages-loose" scope={`loose:${activeProjectId() ?? "drafts"}`} folder={null} pages={loose} tabStop={tabStop} />
         </div>
       ) : null}

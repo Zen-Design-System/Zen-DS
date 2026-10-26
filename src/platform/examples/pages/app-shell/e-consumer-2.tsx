@@ -60,10 +60,10 @@ function RelativeCard({ person, selected, onSelect, width }: { person: Relative;
           <Avatar size="sm" theme="photo" src={person.photo} alt="" />
           <Stack gap="none" width="fill">
             <Text textStyle="Body/Small/Bold" truncate>{person.name}</Text>
-            <Text textStyle="Caption/Regular" tone="base">{person.years}</Text>
+            <Text textStyle="Caption/Regular" tone="light">{person.years}</Text>
           </Stack>
         </Stack>
-        <Text textStyle="Caption/Medium" tone={selected ? "accent-base" : "base"}>{person.records} records</Text>
+        <Text textStyle="Caption/Medium" tone={selected ? "accent-base" : "light"}>{person.records} records</Text>
       </Stack>
     </Card>
   );
@@ -231,7 +231,7 @@ function DiscoverPhone() {
                   <Card key={item.id} theme={chosen ? "subtle" : "default"} color={chosen ? "brand" : "neutral"} spacing="xs" aria-pressed={chosen} onClick={() => setIntent(item.id)}>
                     <Stack gap="xs" align="center">
                       <Icon name={item.icon} tone={chosen ? "accent-base" : "base"} decorative />
-                      <Text textStyle="Caption/Medium" tone={chosen ? "accent-base" : "strongest"} align="center" wrap={false}>{item.lines[0]}<br />{item.lines[1]}</Text>
+                      <Text textStyle="Caption/Medium" tone={chosen ? "accent-base" : "light"} align="center" wrap={false}>{item.lines[0]}<br />{item.lines[1]}</Text>
                     </Stack>
                   </Card>
                 );
@@ -312,7 +312,7 @@ function BigNumberPhone() {
                 {week.map((day) => (
                   <Box as="li" key={day.day} width={56} paddingY="xs" radius="md" surface={day.today ? "surface" : "none"} aria-current={day.today ? "date" : undefined}>
                     <Stack gap="none" align="center">
-                      <Text as="span" textStyle="Caption/Medium" tone={day.today ? "base" : "on-accent"}>{day.day}</Text>
+                      <Text as="span" textStyle="Caption/Medium" tone={day.today ? "light" : "on-accent"}>{day.day}</Text>
                       <Text as="span" textStyle="Heading/4" tone={day.today ? "strongest" : "on-accent"}>{day.date}</Text>
                     </Stack>
                   </Box>
@@ -356,11 +356,11 @@ function BigNumberPhone() {
               </Stack>
               <ProgressBar theme="accent" value={card.progress} aria-label={`${card.title}: ${card.value} of ${card.max}`} />
               <Stack direction="row" justify="between" gap="sm">
-                <Text as="span" textStyle="Caption/Regular" tone="base">{card.min}</Text>
-                <Text as="span" textStyle="Caption/Regular" tone="base">{card.max}</Text>
+                <Text as="span" textStyle="Caption/Regular" tone="light">{card.min}</Text>
+                <Text as="span" textStyle="Caption/Regular" tone="light">{card.max}</Text>
               </Stack>
               <Stack direction="row" justify="between" align="center" gap="sm">
-                <Text textStyle="Caption/Regular" tone="base">{card.footer}</Text>
+                <Text textStyle="Caption/Regular" tone="light">{card.footer}</Text>
                 <Badge size="sm" theme={card.status.theme} background="subtle">{card.status.label}</Badge>
               </Stack>
             </Stack>
@@ -420,10 +420,10 @@ export const examples: ExampleDef[] = [
                   <Avatar size="sm" theme="photo" src={bao.photo} alt="" />
                   <Stack gap="none" width="fill">
                     <Text textStyle="Body/Small/Bold" truncate>Bảo Nguyễn</Text>
-                    <Text textStyle="Caption/Regular" tone="base">1940 – 2010</Text>
+                    <Text textStyle="Caption/Regular" tone="light">1940 – 2010</Text>
                   </Stack>
                 </Stack>
-                <Text textStyle="Caption/Medium" tone="base">8 records</Text>
+                <Text textStyle="Caption/Medium" tone="light">8 records</Text>
               </Stack>
             </Card>
             …Hoa Trần · Khôi Nguyễn · Hà Lê
@@ -551,7 +551,7 @@ export const examples: ExampleDef[] = [
           <ProgressBar theme="accent" value={20} aria-label="Improve melatonin: 3 pg/ml of 200 pg/ml" />
           <Stack direction="row" justify="between" gap="sm">…0 · 200 pg/ml (Caption/Regular)</Stack>
           <Stack direction="row" justify="between" align="center" gap="sm">
-            <Text textStyle="Caption/Regular" tone="base">Last measured today at 7:30 pm</Text>
+            <Text textStyle="Caption/Regular" tone="light">Last measured today at 7:30 pm</Text>
             <Badge size="sm" theme="teal" background="subtle">Normal</Badge>
           </Stack>
         </Stack>

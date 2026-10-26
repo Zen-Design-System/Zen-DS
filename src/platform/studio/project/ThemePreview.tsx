@@ -165,7 +165,7 @@ function SectorKey() {
       {chartPalette.map((colour, index) => (
         <li key={index}>
           <span className="studio-theme-preview__sector" style={{ background: colour }} aria-hidden="true" />
-          <Text as="span" textStyle="Caption/Medium" tone="base">{index + 1}</Text>
+          <Text as="span" textStyle="Caption/Medium" tone="light">{index + 1}</Text>
         </li>
       ))}
     </ol>
@@ -330,7 +330,7 @@ function WebsiteGallery() {
 function Ramp({ role, label, theme }: { role: "brand" | "neutral"; label: string; theme: Theme }) {
   return (
     <div className="studio-theme-preview__ramp">
-      <Text as="span" textStyle="Caption/Medium" tone="base">{label}</Text>
+      <Text as="span" textStyle="Caption/Medium" tone="light">{label}</Text>
       <ol className="studio-theme-preview__steps" aria-label={`${label}, steps 1 to 12`}>
         {Array.from({ length: 12 }, (_, index) => (
           <li key={index} className="studio-theme-preview__step" style={{ background: `var(--zen-${theme}-${role}-${index + 1})` }} title={`${label} ${index + 1}`} />
@@ -430,7 +430,7 @@ export function ThemePreview({ brand, modes, themes, gallery, onGalleryChange }:
       <div ref={columnsRef} className="studio-theme-preview__columns" data-columns={themes.length}>
         {themes.map((theme) => (
           <ZenProvider key={theme} className="studio-theme-preview__column" brand={brand as ZenBrand} theme={theme} componentTheme={modes.componentTheme} density={modes.density} radius={modes.radius} typography={modes.typography} emphasis={modes.emphasis} contrast="standard" breakpoint="desktop" syncDocument={false}>
-            {themes.length > 1 ? <Text as="p" textStyle="Caption/Medium" tone="base">{theme === "light" ? "Light" : "Dark"}</Text> : null}
+            {themes.length > 1 ? <Text as="p" textStyle="Caption/Medium" tone="light">{theme === "light" ? "Light" : "Dark"}</Text> : null}
             <SizeContext value={size}><Gallery id={gallery} theme={theme} /></SizeContext>
           </ZenProvider>
         ))}

@@ -212,19 +212,19 @@ function CameraPhone() {
           {/* zen-allow-no-tooltip: each control's visible label sits right under it (Figma Talk · Record · Snapshot). */}
           <IconButton size="lg" level="tertiary" icon={talking ? "icon-microphone-off-line" : "icon-microphone-line"} aria-label="Talk" aria-pressed={talking} tooltip={false} disabled={!on}
             onClick={() => { setTalking((value) => !value); toast({ title: talking ? "Mic off" : "Talking to the porch", children: talking ? undefined : "Your voice plays from the camera's speaker." }); }} />
-          <Text as="span" textStyle="Caption/Medium" aria-hidden="true">Talk</Text>
+          <Text as="span" textStyle="Caption/Medium" tone="light" aria-hidden="true">Talk</Text>
         </Stack>
         <Stack as="li" gap="xs" align="center">
           {/* zen-allow-no-tooltip: the visible label sits right under the button. */}
           <IconButton size="lg" level="tertiary" icon={recording ? "icon-stop-circle-line" : "icon-video-recorder-line"} aria-label={recording ? "Stop recording" : "Record"} tooltip={false} disabled={!on}
             onClick={() => { setRecording((value) => !value); toast({ title: recording ? "Clip saved" : "Recording the porch", children: recording ? "Find it in today's events." : "Tap Stop to save the clip." }); }} />
-          <Text as="span" textStyle="Caption/Medium" aria-hidden="true">{recording ? "Stop" : "Record"}</Text>
+          <Text as="span" textStyle="Caption/Medium" tone="light" aria-hidden="true">{recording ? "Stop" : "Record"}</Text>
         </Stack>
         <Stack as="li" gap="xs" align="center">
           {/* zen-allow-no-tooltip: the visible label sits right under the button. */}
           <IconButton size="lg" level="tertiary" icon="icon-camera-line" aria-label="Snapshot" tooltip={false} disabled={!on}
             onClick={() => toast({ title: "Snapshot saved", children: "Front camera · Porch" })} />
-          <Text as="span" textStyle="Caption/Medium" aria-hidden="true">Snapshot</Text>
+          <Text as="span" textStyle="Caption/Medium" tone="light" aria-hidden="true">Snapshot</Text>
         </Stack>
       </Stack>
       <ListBox theme="shadow" as="section" aria-labelledby={eventsId}
@@ -389,7 +389,7 @@ export const examples: ExampleDef[] = [
   <Stack as="li" gap="xs" align="center">
     {/* zen-allow-no-tooltip: the visible label sits right under the button. */}
     <IconButton size="lg" level="tertiary" icon="icon-microphone-line" aria-label="Talk" aria-pressed={talking} tooltip={false} onClick={toggleTalk} />
-    <Text as="span" textStyle="Caption/Medium" aria-hidden="true">Talk</Text>
+    <Text as="span" textStyle="Caption/Medium" tone="light" aria-hidden="true">Talk</Text>
   </Stack>
   …Record (icon-video-recorder-line) · Snapshot (icon-camera-line)
 </Stack>

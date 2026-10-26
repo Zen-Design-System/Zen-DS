@@ -82,4 +82,4 @@
 .zen-slider__input:active:not(:disabled) + .zen-slider__rail .zen-slider__thumb { box-shadow: 0 0 0 3px var(--zen-color-focus-neutral-subtle); }
 .zen-slider__input:focus-visible + .zen-slider__rail .zen-slider__thumb { outline: 3px solid var(--zen-color-focus-accent-solid, #ff66d4); outline-offset: 2px; }
 
-.zen-slider__limits { display: flex; justify-content: space-between; color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-slider__limits { display: flex; justify-content: space-between; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }

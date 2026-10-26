@@ -54,7 +54,8 @@
 button.zen-timeline-bar[data-kind="task"]:hover { background: var(--zen-timeline-soft); }
 .zen-timeline-bar__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .zen-timeline-bar__summary { display: block; width: 100%; height: 8px; border-radius: var(--zen-corner-radius-2-xsmall, 2px); background: var(--zen-color-background-neutral-solid-default); }
-.zen-timeline-bar[data-kind="milestone"] { width: max-content; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* A milestone's title (Caption/Bold) sits on the row, not on a bar: Caption text is always Light (the user 2026-10-26). */
+.zen-timeline-bar[data-kind="milestone"] { width: max-content; gap: var(--zen-spacing-gap-xsmall, 8px); color: var(--zen-color-content-neutral-light); }
 .zen-timeline-bar__diamond { display: inline-flex; width: 16px; height: 16px; flex: 0 0 auto; align-items: center; justify-content: center; }
 .zen-timeline-bar__diamond > i { display: block; width: 11px; height: 11px; background: var(--zen-color-background-accent-solid-default); transform: rotate(45deg); }
 button.zen-timeline-bar { cursor: pointer; }
@@ -90,8 +91,8 @@ button.zen-timeline-bar:focus-visible { outline: 3px solid var(--zen-color-focus
 .zen-timeline-gantt__header, .zen-timeline-gantt__row { display: grid; grid-template-columns: var(--zen-timeline-task-column) repeat(var(--zen-timeline-weeks), var(--zen-timeline-week)); }
 .zen-timeline-gantt__header { height: 40px; border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
 .zen-timeline-gantt__corner, .zen-timeline-gantt__label { position: sticky; z-index: 2; left: 0; box-sizing: border-box; border-right: 1px solid var(--zen-color-border-neutral-pale-default); background: var(--zen-color-background-surface-default); }
-.zen-timeline-gantt__corner { display: flex; align-items: center; padding: 0 var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-base); }
-.zen-timeline-gantt__scale { display: flex; min-width: 0; box-sizing: border-box; align-items: center; padding: 0 var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-base); white-space: nowrap; }
+.zen-timeline-gantt__corner { display: flex; align-items: center; padding: 0 var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-light); }
+.zen-timeline-gantt__scale { display: flex; min-width: 0; box-sizing: border-box; align-items: center; padding: 0 var(--zen-spacing-padding-xsmall, 8px); color: var(--zen-color-content-neutral-light); white-space: nowrap; }
 .zen-timeline-gantt__scale + .zen-timeline-gantt__scale { border-left: 1px solid var(--zen-color-border-neutral-pale-default); }
 .zen-timeline-gantt__body { position: relative; }
 .zen-timeline-gantt__row { height: 44px; }

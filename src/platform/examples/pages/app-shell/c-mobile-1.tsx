@@ -163,7 +163,7 @@ function HeroWalletPhone() {
               <Stack as="li" key={item.id} gap="xs" align="center">
                 {/* zen-allow-no-tooltip: the action's visible label sits right under the button (Figma Quick-Actions). */}
                 <IconButton size="lg" level="surface" icon={item.icon} aria-label={item.label} tooltip={false} onClick={() => toast({ title: item.label })} />
-                <Text as="span" textStyle="Caption/Medium" tone="base" aria-hidden="true">{item.label}</Text>
+                <Text as="span" textStyle="Caption/Medium" tone="light" aria-hidden="true">{item.label}</Text>
               </Stack>
             ))}
           </Stack>
@@ -412,7 +412,7 @@ export const examples: ExampleDef[] = [
       <Stack as="li" gap="xs" align="center">
         {/* zen-allow-no-tooltip: the visible label sits right under the button. */}
         <IconButton size="lg" level="surface" icon="icon-receipt-line" aria-label="Pay bills" tooltip={false} onClick={payBills} />
-        <Text as="span" textStyle="Caption/Medium" tone="base" aria-hidden="true">Pay bills</Text>
+        <Text as="span" textStyle="Caption/Medium" tone="light" aria-hidden="true">Pay bills</Text>
       </Stack>
       …Scan · Savings · More
     </Stack>

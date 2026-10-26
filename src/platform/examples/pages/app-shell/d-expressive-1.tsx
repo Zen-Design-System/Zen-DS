@@ -270,7 +270,7 @@ function CompanionHomePhone() {
               <Stack as="li" key={tracker.id} gap="xs" align="center">
                 {/* zen-allow-no-tooltip: the tracker's value and name sit right under the button (Figma Trackers). */}
                 <IconButton size="lg" level="tertiary" icon={tracker.icon} aria-label={tracker.name} tooltip={false} onClick={tracker.onClick} />
-                <Text as="span" textStyle="Caption/Medium" tabularNumbers aria-hidden="true">{tracker.value}</Text>
+                <Text as="span" textStyle="Caption/Medium" tone="light" tabularNumbers aria-hidden="true">{tracker.value}</Text>
                 <Text as="span" textStyle="Caption/Regular" tone="light" aria-hidden="true">{tracker.label}</Text>
               </Stack>
             ))}
@@ -438,7 +438,7 @@ export const examples: ExampleDef[] = [
         <Stack as="li" gap="xs" align="center">
           {/* zen-allow-no-tooltip: the value and name sit right under the button. */}
           <IconButton size="lg" level="tertiary" icon="icon-droplets-01-line" aria-label="Water, 0 of 8 glasses. Add a glass" tooltip={false} onClick={addGlass} />
-          <Text as="span" textStyle="Caption/Medium" tabularNumbers aria-hidden="true">0 / 8</Text>
+          <Text as="span" textStyle="Caption/Medium" tone="light" tabularNumbers aria-hidden="true">0 / 8</Text>
           <Text as="span" textStyle="Caption/Regular" tone="light" aria-hidden="true">Water</Text>
         </Stack>
         …Steps 0 / 5k · Fasting Start · Mood Log
