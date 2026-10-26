@@ -784,4 +784,8 @@ zen/fix/e2e-flaky-pt03-no06-ag10-20261026 (from 0bb459bd; B-49 granted by Giám 
   reads with setPageDoc. NO-06 ×30 with the fix: 30/30, no document lost (the timeline checked each run).
 - Diagnostics (temporary, removed): PT-03 steps named, NO-06 store/key/rejection log and timeline, AG-10 reply and
   buttons.
-- Proof: PROOF_LINES
+- Proof (Giám sát's slots, e35addf2 = both fixes + main c4e8fc18): Vitest studio-page-store fails on the old pageStore
+  (the document gone from the cache) and passes with the fix; PT-03, NO-06, AG-10, B-49 `--no-retry` 5/5 each;
+  `--shard=1/4 … 4/4` 386 works · 0 broken (PT-19 and PT-27 passed on retry, other rows); gate `qa --isolated
+  --files=` the six files: PASS (static, Vitest 95/95, Studio E2E 386 works · 0 broken in 3 shards; B-28 passed on
+  retry), report `.qa/reports/2026-10-26T17-44-02-74c671d1.md`. The four rows passed on the first try in both runs.
