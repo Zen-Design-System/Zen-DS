@@ -11,7 +11,9 @@ import { gridCell, gridTrackCount } from "../../src/components/Layout/cell";
 // A 12-column Grid 1200 wide with 16px gaps: a column is (1200 − 11 × 16) / 12 ≈ 85.3, span n = n columns + (n − 1) gaps.
 const spanWidth = (n: number, columns = 12, width = 1200, gap = 16) => n * ((width - (columns - 1) * gap) / columns) + (n - 1) * gap;
 const widthOf = (element: Element) => element.getBoundingClientRect().width;
-const Cell = ({ id, ...props }: { id: string; span?: number | "full" | Record<string, number | "full">; rowSpan?: number }) => <Box data-testid={id} {...props} height={40} />;
+// A row's cells are 40 tall; a cell with `tall` has no height of its own, so it stretches over the rows it spans.
+const Cell = ({ id, tall, ...props }: { id: string; tall?: boolean; span?: number | "full" | Record<string, number | "full">; rowSpan?: number }) =>
+  <Box data-testid={id} {...props} height={tall ? undefined : 40} />;
 
 describe("gridTrackCount", () => {
   it("counts a number, repeat() and a track list; auto-fill is unknown", () => {
@@ -86,7 +88,7 @@ describe("Grid span in the browser", () => {
     const screen = await render(
       <div style={{ width: 1200 }}>
         <Grid columns={12} gap="md">
-          <Cell id="top" span={8} /><Cell id="tall" span={4} rowSpan={2} /><Cell id="bottom" span={8} />
+          <Cell id="top" span={8} /><Cell id="tall" tall span={4} rowSpan={2} /><Cell id="bottom" span={8} />
         </Grid>
       </div>,
     );
@@ -131,12 +133,15 @@ describe("Grid span in the browser", () => {
         <Stack><Card data-testid="loose" span={8}>Loose</Card></Stack>
       </div>,
     );
-    expect(widthOf(screen.getByTestId("metric").element())).toBeCloseTo(spanWidth(3), 0);
+    // MetricCard hands its data-* attributes to its Metric, inside the card's padding: measure the card itself.
+    const metricCard = screen.getByTestId("metric").element().closest(".zen-metric-card");
+    expect(metricCard?.getAttribute("data-span")).toBe("true");
+    expect(widthOf(metricCard!)).toBeCloseTo(spanWidth(3), 0);
     expect(widthOf(screen.getByTestId("card").element())).toBeCloseTo(spanWidth(9), 0);
     expect(widthOf(screen.getByTestId("chart").element())).toBeCloseTo(spanWidth(8), 0);
     expect(widthOf(screen.getByTestId("list").element())).toBeCloseTo(spanWidth(4), 0);
     expect(screen.getByTestId("loose").element().getAttribute("data-span")).toBeNull();
     // MetricCard's props reach its Card, never the DOM as attributes.
-    expect(screen.getByTestId("metric").element().querySelector("[span], [rowspan]")).toBeNull();
+    expect(metricCard!.querySelector("[span], [rowspan]")).toBeNull();
   });
 });
