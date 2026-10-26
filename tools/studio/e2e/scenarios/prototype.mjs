@@ -1340,6 +1340,9 @@ export const rows = [
       dark(await layerLook(popover), "the Table popover over the Side Panel");
       await step("pick Shipped", () => popover.getByRole("option", { name: /Shipped/ }).click());
       await until(async () => (await panel.locator("td.zen-table__cell").filter({ hasText: "Packed" }).count()) === 0, { message: "the pick reaches the panel's Table" });
+      // A pick ends with the focus back on its cell, one frame after the value shows (Table focusCell). Keys pressed before
+      // that frame lose their focus to it: the close button's tooltip lived 5 ms and the row failed 3 runs in 8.
+      await until(() => panel.locator('td[data-cell="a::state"]').evaluate((cell) => cell === document.activeElement), { message: "the focus back on the picked cell" });
       const tip = await step("tooltip on the panel's close button", async () => {
         await panel.getByRole("button", { name: "Close panel" }).focus();
         await page.keyboard.press("Shift+Tab");
