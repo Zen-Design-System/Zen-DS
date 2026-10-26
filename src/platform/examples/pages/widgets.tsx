@@ -98,7 +98,7 @@ function StatTileWidget() {
 
 function RevenueTrendWidget() {
   return (
-    <ChartCard title="Revenue" icon="icon-line-chart-up-line" description="Invoiced over the last 12 months" value="$1,014,900">
+    <ChartCard title="Revenue" metricLabel="Invoiced over the last 12 months" value="$1,014,900">
       <AreaChart aria-label="Revenue invoiced per month, Oct 2025 – Sep 2026" height={200} format={(value) => (value ? `$${value / 1000}K` : "$0")}
         series={[{ id: "invoiced", label: "Invoiced" }]}
         data={[
@@ -113,7 +113,7 @@ function RevenueTrendWidget() {
 
 function HoursByTeamWidget() {
   return (
-    <ChartCard title="Billable hours by team" icon="icon-clock-line" description="Logged per month, Apr – Sep 2026" value="35,240 h">
+    <ChartCard title="Billable hours by team" metricLabel="Logged per month, Apr – Sep 2026" value="35,240 h">
       <AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026" height={200} format={(value) => `${value.toLocaleString("en-US")} h`}
         series={[{ id: "design", label: "Design" }, { id: "engineering", label: "Engineering" }, { id: "delivery", label: "Delivery" }, { id: "client-services", label: "Client Services" }]}
         data={[
@@ -130,7 +130,7 @@ function HoursByTeamWidget() {
 
 function InvoicedCollectedWidget() {
   return (
-    <ChartCard title="Invoiced vs. collected" icon="icon-coins-stacked-01-line" description="Collected of $559,300 invoiced, Apr – Sep 2026" value="$531,400">
+    <ChartCard title="Invoiced vs. collected" metricLabel="Collected of $559,300 invoiced, Apr – Sep 2026" value="$531,400">
       <LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026" height={200} label="Invoiced" legendPosition="top" format={(value) => (value ? `$${value / 1000}K` : "$0")}
         data={[
           { label: "Apr", value: 82300 }, { label: "May", value: 91800 }, { label: "Jun", value: 88400 },
@@ -143,7 +143,7 @@ function InvoicedCollectedWidget() {
 
 function ForecastWidget() {
   return (
-    <ChartCard title="Revenue forecast" icon="icon-bar-chart-01-line" description="Invoiced and forecast for 2026" value="$1,122,800">
+    <ChartCard title="Revenue forecast" metricLabel="Invoiced and forecast for 2026" value="$1,122,800">
       <BarChart aria-label="Revenue invoiced per month, Jan – Dec 2026, Oct – Dec forecast" height={200} showAverage format={(value) => (value ? `$${value / 1000}K` : "$0")}
         data={[
           { label: "Jan", value: 74300 }, { label: "Feb", value: 79600 }, { label: "Mar", value: 85100 },
@@ -157,7 +157,7 @@ function ForecastWidget() {
 
 function YearOverYearWidget() {
   return (
-    <ChartCard title="This year vs last" icon="icon-bar-chart-01-line" description="Invoiced Apr – Sep 2026, up 12% on 2025" value="$559,300">
+    <ChartCard title="This year vs last" metricLabel="Invoiced Apr – Sep 2026, up 12% on 2025" value="$559,300">
       <GroupedBarChart aria-label="Revenue invoiced per month, Apr – Sep, 2025 and 2026" height={200} format={(value) => (value ? `$${value / 1000}K` : "$0")}
         series={[{ id: "lastYear", label: "2025" }, { id: "thisYear", label: "2026" }]}
         data={[
@@ -171,7 +171,7 @@ function YearOverYearWidget() {
 
 function RevenueMarginWidget() {
   return (
-    <ChartCard title="Revenue and margin" icon="icon-bar-chart-01-line" description="Invoiced and the share kept after costs, Apr – Sep 2026" value="$559,300">
+    <ChartCard title="Revenue and margin" metricLabel="Invoiced and the share kept after costs, Apr – Sep 2026" value="$559,300">
       <ComboChart aria-label="Revenue and margin per month, Apr – Sep 2026" barLabel="Revenue" lineLabel="Margin" height={200} format={(value) => (value ? `$${value / 1000}K` : "$0")} lineFormat={(value) => `${value}%`}
         data={[
           { label: "Apr", bar: 82300, line: 31 }, { label: "May", bar: 91800, line: 34 }, { label: "Jun", bar: 88400, line: 29 },
@@ -183,7 +183,7 @@ function RevenueMarginWidget() {
 
 function BusiestHoursWidget() {
   return (
-    <ChartCard title="Busiest hours" icon="icon-activity-line" description="Hours logged per hour of the day, September">
+    <ChartCard title="Busiest hours" metricLabel="Hours logged per hour of the day, September">
       <HeatmapChart aria-label="Hours logged by weekday and hour of the day, September 2026" format={(value) => `${value.toLocaleString("en-US")} h`}
         columns={["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]}
         rows={["9 am", "10 am", "11 am", "12 pm", "1 pm", "2 pm", "3 pm", "4 pm", "5 pm", "6 pm"]}
@@ -197,7 +197,7 @@ function BusiestHoursWidget() {
 
 function UtilisationWidget() {
   return (
-    <ChartCard title="Utilisation" icon="icon-speedometer-03-line" description="Billable share of logged hours, September" value="5,900 of 7,564 h">
+    <ChartCard title="Utilisation" metricLabel="Billable share of logged hours, September" value="5,900 of 7,564 h">
       <GaugeChart aria-label="Billable share of logged hours against the 85% target, September 2026" value={5900} max={7564} target={6429} actualLabel="Billable" />
     </ChartCard>
   );
@@ -205,7 +205,7 @@ function UtilisationWidget() {
 
 function QuarterGoalsWidget() {
   return (
-    <ChartCard title="Quarter goals" icon="icon-target-04-line" description="Q3 2026 against target" value="1 of 3 met">
+    <ChartCard title="Quarter goals" metricLabel="Q3 2026 against target" value="1 of 3 met">
       <BulletChart aria-label="Quarter goals, Q3 2026" format={(value, row) => (row.label === "Revenue" ? `$${value / 1000}K` : row.label === "Utilisation" ? `${value}%` : `${value}`)}
         data={[
           { label: "Revenue", value: 296800, target: 320000 },
@@ -218,7 +218,7 @@ function QuarterGoalsWidget() {
 
 function BudgetRingsWidget() {
   return (
-    <ChartCard title="Budget used" icon="icon-target-04-line" description="Client projects, spent of budget">
+    <ChartCard title="Budget used" metricLabel="Client projects, spent of budget">
       <RadialChart aria-label="Budget used on client projects, September 30, 2026"
         data={[{ id: "lumen", label: "Online banking redesign", value: 36 }, { id: "phin", label: "Loyalty app", value: 61 }, { id: "mekong", label: "Shipment tracking", value: 23 }]} />
     </ChartCard>
@@ -227,7 +227,7 @@ function BudgetRingsWidget() {
 
 function SalesFunnelWidget() {
   return (
-    <ChartCard title="Sales funnel" icon="icon-filter-funnel-line" description="Leads to signed projects, Q3 2026" value="62 signed">
+    <ChartCard title="Sales funnel" metricLabel="Leads to signed projects, Q3 2026" value="62 signed">
       <FunnelChart aria-label="Leads to signed projects, Q3 2026"
         data={[{ label: "Leads", value: 480 }, { label: "Qualified", value: 312 }, { label: "Proposal", value: 168 }, { label: "Negotiation", value: 94 }, { label: "Signed", value: 62 }]} />
     </ChartCard>
@@ -236,7 +236,7 @@ function SalesFunnelWidget() {
 
 function TopClientsWidget() {
   return (
-    <ChartCard title="Top clients" icon="icon-horizontal-bar-chart-01-line" description="Revenue in Q3 2026" value="$296,800">
+    <ChartCard title="Top clients" metricLabel="Revenue in Q3 2026" value="$296,800">
       <BarList aria-label="Revenue by client, Q3 2026" headers={{ label: "Client", value: "Revenue" }} format={(value) => `$${value.toLocaleString("en-US")}`}
         data={[
           { label: "Lumen Bank", value: 89000 }, { label: "Phin & Co", value: 68300 }, { label: "Mekong Freight", value: 53400 },
@@ -248,7 +248,7 @@ function TopClientsWidget() {
 
 function RevenueByClientWidget() {
   return (
-    <ChartCard title="Revenue by client" icon="icon-pie-chart-01-line" description="Invoiced in Q3 2026">
+    <ChartCard title="Revenue by client" metricLabel="Invoiced in Q3 2026">
       <DonutChart aria-label="Revenue by client, Q3 2026" legendPosition="start" format={(value) => (value ? `$${value / 1000}K` : "$0")}
         data={[
           { id: "lumen", label: "Lumen Bank", value: 89000 }, { id: "phin", label: "Phin & Co", value: 68300 },
@@ -376,7 +376,7 @@ function NoDataExample() {
     <Box ref={regionRef} tabIndex={-1} aria-busy={load === "loading"}>
       {load === "ready" ? <HoursByTeamWidget /> : (
         // The card keeps its title and description while there is nothing to draw.
-        <ChartCard title="Billable hours by team" icon="icon-clock-line" description="Logged per month, Apr – Sep 2026">
+        <ChartCard title="Billable hours by team" metricLabel="Logged per month, Apr – Sep 2026">
           {load === "loading" ? <SkeletonShape className="pe-widgets-skeleton" /> : (
             <EmptyState icon="icon-clock-line" title="No timesheets yet" primaryAction={{ label: "Connect timesheets", onClick: connect }}>
               Hours your teams log show here month by month.
@@ -447,7 +447,7 @@ ${indent(jsxOf("widget-top-clients"), 4)}
   {load === "ready" ? (
     <HoursByTeamWidget /> // the "Hours by team" widget above
   ) : (
-    <ChartCard title="Billable hours by team" icon="icon-clock-line" description="Logged per month, Apr – Sep 2026">
+    <ChartCard title="Billable hours by team" metricLabel="Logged per month, Apr – Sep 2026">
       {load === "loading" ? <SkeletonShape className="chart-skeleton" /> /* width: 100%; height: 236px (the chart's height) */ : (
         <EmptyState icon="icon-clock-line" title="No timesheets yet" primaryAction={{ label: "Connect timesheets", onClick: connect }}>
           Hours your teams log show here month by month.

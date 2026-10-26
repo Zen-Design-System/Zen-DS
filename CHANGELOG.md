@@ -21,6 +21,16 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (2026-10-26). A closed group's rows are hidden layers; the chevron (Dropdown) shows with `dropdown` or nested rows and
   points up while the group is open. Pulled back, they are the row's `children` again (a footer row's `<SidebarMenuItem>`
   children), and the pull also reads `dropdown` and a row's counter.
+- Charts (2026-10-26, the user): bar and stack columns fill the plot edge to edge, 8px (Spacing/Gap/XSmall) apart,
+  rounded on top over a flat base (no more 40px cap); horizontal bars sit 8px apart, flat at the axis. No chart shows an
+  active point or a Tooltip until the pointer (or the keyboard) is on it (Line, Area, Bar, Stack, Grouped, Combo;
+  `initialIndex` still sets one). ChartCard: `metricLabel` names the figure (`description` is its deprecated alias),
+  `hint` puts the chart's description behind an (i) after the title, and the examples carry no header icon. DonutChart
+  slices are 2px apart. Figma matches: the chart sets' Show Hint, Metric Label, Show Tooltip (off) and Show Icon (off);
+  the Figma AI kit audit adds chart/header-icon, chart/tooltip-on and chart/metric-label-is-description. Figma charts show no
+  active period at rest either: the hover state (Hover on Bar, Area, Multi-Line, Heatmap; a Sector at Select=Selected
+  on Line, Multi-Line, Stack-Bar) always brings its Tooltip. Combo columns run edge to edge 8px apart too; legend labels,
+  Funnel counts and the metric label are Content/Neutral/Light.
 - AppShell is a placeholder frame, Layout examples are apps (2026-10-26): the App Shell playground (docs and Zen Studio)
   draws Figma's Pattern/AppShell with its own placeholders ("Label" rows, Master › Child, "Heading Text", an Empty State,
   "Replace Component Here" in panes) instead of a sample app; Studio's Main component draws Pattern/AppShell/Desktop

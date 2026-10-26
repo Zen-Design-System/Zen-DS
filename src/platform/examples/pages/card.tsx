@@ -716,7 +716,7 @@ function DarkRevenueCard() {
   return (
     <>
       <ChartCard title="Revenue" headingLevel={4} theme="solid" color="neutral" value={formatMoney(total(range.months, "invoiced"))}
-        description={`Invoiced, ${range.months[0].month} to ${range.months[range.months.length - 1].month}`}
+        metricLabel={`Invoiced, ${range.months[0].month} to ${range.months[range.months.length - 1].month}`}
         ranges={revenueRanges.map(({ id, label }) => ({ id, label }))} range={rangeId} onRangeChange={setRangeId}
         onOpen={() => setReportOpen(true)} openLabel="Open revenue report">
         <LineChart key={rangeId} aria-label={`Revenue invoiced per month, ${range.label}`} data={range.months.map((month) => ({ label: month.label, value: month.invoiced }))}
@@ -1006,7 +1006,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
     description: "ChartCard and MetricCard pass theme and color to their Card: a Solid Neutral chart card draws its title, figure, axes and grid in Content/Inverse, and the range switch and open button keep their own fills.",
     render: () => <DarkRevenueCard />,
     code: `<ChartCard title="Revenue" headingLevel={4} theme="solid" color="neutral" value={formatMoney(invoiced)}
-  description={\`Invoiced, \${range.months[0].month} to \${range.months.at(-1).month}\`}
+  metricLabel={\`Invoiced, \${range.months[0].month} to \${range.months.at(-1).month}\`}
   ranges={[{ id: "q3", label: "Q3" }, { id: "ytd", label: "This year" }]} range={rangeId} onRangeChange={setRangeId}
   onOpen={() => setReportOpen(true)} openLabel="Open revenue report">
   <LineChart key={rangeId} aria-label={\`Revenue invoiced per month, \${range.label}\`} data={points} format={formatCompactMoney} height={200} />

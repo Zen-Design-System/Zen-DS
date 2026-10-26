@@ -4,6 +4,7 @@ import { EmptyStateCardContext } from "../EmptyState/EmptyState";
 import { IconButton } from "../Button";
 import { Icon } from "../Icon";
 import { Segmented, type SegmentedOption } from "../Segmented";
+import { Tooltip } from "../Tooltip";
 import { useZenLabels } from "../_shared/zen-context";
 import { renderIcon } from "../_shared/icon";
 import type { IconName } from "../../icons/generated/names";
@@ -58,7 +59,8 @@ export interface LineChartProps {
   className?: string;
   /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
   ref?: Ref<HTMLDivElement>;
-  /** The point active at first (its Tooltip shows). Default: the last one. */
+  /** The point active at first and whenever the pointer leaves. Default: none — the active point and its Tooltip show
+   *  only under the pointer or the keyboard (the user, 2026-10-26). */
   initialIndex?: number;
   /** `smooth` (default, Figma's curve) or `linear` segments. */
   curve?: "smooth" | "linear";
@@ -90,7 +92,7 @@ export function LineChart({ data, label, compare, format: formatProp, currency, 
   const compared = compare ? data.map((_, i) => compare.values[i] ?? 0) : undefined;
   const signature = signatureOf([values, compared ?? null]);
   const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...values, ...(compared ?? []))), [signature]); // eslint-disable-line react-hooks/exhaustive-deps -- deliberate content-hash memo: keyed on the data signature, not its identity
-  const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? data.length - 1);
+  const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? null);
   const n = Math.max(1, data.length);
   const pointsOf = (list: number[]) => list.map((v, i) => [((i + 0.5) / n) * 100, 100 - (v / top) * 100] as const);
   const pts = pointsOf(values);
@@ -106,7 +108,10 @@ export function LineChart({ data, label, compare, format: formatProp, currency, 
   const tooltip = !current ? null : compared
     ? <SeriesValues items={[{ id: "value", color: LINE_SWATCH, value: format(current.value) }, { id: "compare", color: COMPARE_SWATCH, value: format(compared[active!]) }]} />
     : format(current.value);
-  const summary = !current ? t.noData : compared
+  const overview = !data.length ? t.noData : compared
+    ? data.map((d, i) => `${d.label}: ${name} ${format(d.value)}, ${compare!.label} ${format(compared[i])}`).join("; ")
+    : data.map((d) => `${d.label} ${format(d.value)}`).join(", ");
+  const summary = !current ? overview : compared
     ? `${current.label}: ${name} ${format(current.value)}, ${compare!.label} ${format(compared[active!])}${position}`
     : `${current.label}: ${format(current.value)}${position}`;
   // Start-aligned, as Figma Chart/Multi-Line-Chart's Legend (15426:2587 and the other Sector variants: MIN).
@@ -114,7 +119,7 @@ export function LineChart({ data, label, compare, format: formatProp, currency, 
   const mean = showAverage ? meanOf(values) : undefined;
   return (
     <ChartBlock {...dataAttributes(rest)} ref={ref} kind="line" legend={legend} position={legendPosition}>
-      <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel} activeLine="accent" className={className} kind="line" animate={animate}
+      <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel} activeLine="accent" className={className} kind="line" animate={animate} hoverOnly
         tooltip={tooltip} summary={mean === undefined ? summary : `${summary}; ${t.chartAverageLong(format(mean))}`} average={mean === undefined ? undefined : { value: mean, label: t.chartAverage(format(mean)) }}>
         <div className="zen-chart__marks" key={signature}>
           <svg className="zen-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -155,7 +160,8 @@ export interface StackBarChartProps {
   className?: string;
   /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
   ref?: Ref<HTMLDivElement>;
-  /** The column active at first. Default: the last one. */
+  /** The column active at first and whenever the pointer leaves. Default: none — the active column and its Tooltip show
+   *  only under the pointer or the keyboard. */
   initialIndex?: number;
   /** The legend names every colour; keep it (harness: chart/stack-needs-legend). */
   showLegend?: boolean;
@@ -171,7 +177,7 @@ export interface StackBarChartProps {
 }
 
 /**
- * Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector (2px side padding, Corner-Radius/Small on the column),
+ * Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector, edge to edge Spacing/Gap/XSmall apart (Corner-Radius/Small on the top corners, a flat base),
  * segments in series order from the bottom, a 12px-dot legend (Caption/Regular), and a Tooltip with the active total.
  */
 export function StackBarChart({ data, series, format: formatProp, currency, height = 236, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, showAverage = false, palette = "primary", ref, ...rest }: StackBarChartProps) {
@@ -179,14 +185,14 @@ export function StackBarChart({ data, series, format: formatProp, currency, heig
   const t = useZenLabels();
   const totals = data.map((d) => series.reduce((sum, s) => sum + (d.values[s.id] ?? 0), 0));
   const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...totals)), [totals.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps -- deliberate content-hash memo: keyed on the data signature, not its identity
-  const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? data.length - 1);
+  const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? null);
   const current = active === null ? undefined : data[active];
   const legend = showLegend ? <ChartLegend items={series.map((s, si) => ({ id: s.id, label: s.label, color: colourAt(s, si, palette) }))} /> : undefined;
   const mean = showAverage ? meanOf(totals) : undefined;
-  const summary = current ? `${current.label}: ${t.chartTotal(format(totals[active!]))}; ${series.map((s) => `${s.label} ${format(current.values[s.id] ?? 0)}`).join(", ")}` : t.noData;
+  const summary = current ? `${current.label}: ${t.chartTotal(format(totals[active!]))}; ${series.map((s) => `${s.label} ${format(current.values[s.id] ?? 0)}`).join(", ")}` : data.length ? data.map((d, i) => `${d.label} ${t.chartTotal(format(totals[i]))}`).join(", ") : t.noData;
   return (
     <ChartBlock {...dataAttributes(rest)} ref={ref} kind="stack" legend={legend} position={legendPosition} className="zen-chart-stack" palette={palette}>
-      <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel} activeLine="neutral" className={className} kind="stack" animate={animate}
+      <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel} activeLine="neutral" className={className} kind="stack" animate={animate} hoverOnly
         tooltip={current ? format(totals[active!]) : null}
         summary={mean === undefined ? summary : `${summary}; ${t.chartAverageLong(format(mean))}`} average={mean === undefined ? undefined : { value: mean, label: t.chartAverage(format(mean)) }}>
         <div className="zen-chart__bars" key={totals.join(",")}>
@@ -213,13 +219,20 @@ export interface ChartCardProps {
    *  when the card sits directly under the page h1). The look stays Body/Extra/Medium — the level follows the outline,
    *  not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title. */
   headingLevel?: 2 | 3 | 4;
-  /** Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node. Decorative; the title names the card. */
+  /** Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node. Decorative; the title names the card.
+   *  Figma Show Icon is off by default: chart headers carry no icon (the user, 2026-10-26), so leave it out. */
   icon?: IconName | ReactNode;
-  /** What the figure is ("Available revenue in your wallet"), Body/Small/Regular: the top of Figma's Metric, under the
-   *  Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value). */
+  /** Figma Hint (Show Hint): an info icon (20px, Content/Neutral/Light) at the end of the header that shows this text in a
+   *  Tooltip on hover and keyboard focus. Put the chart's description here (what it counts, its source, how the figure is
+   *  worked out) so the card itself stays the title, the metric and the chart; leave it out when the title says enough. */
+  hint?: ReactNode;
+  /** Figma Metric Label: what the headline figure is ("Invoiced so far in 2026"), Body/Small/Regular in Content/Neutral/Light over the value, under
+   *  the Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value). */
+  metricLabel?: ReactNode;
+  /** @deprecated Renamed `metricLabel` (Figma Metric Label, 2026-10-26). A description of the chart goes in `hint`. */
   description?: ReactNode;
   /** The headline figure the chart explains ("$4,346.00"), Display/4 (Figma Chart-Card Metric > Value), under the
-   *  description and the Segmented. */
+   *  metric label and the Segmented. */
   value?: ReactNode;
   /** Figma Header trailing Button/Icon-Main XSmall Tertiary (chevron): opens the full report. */
   onOpen?: () => void;
@@ -353,11 +366,11 @@ const growCards = (() => {
 
 /**
  * Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) → header · Segmented · chart, gap 16.
- * The header row holds an optional icon, the title and the open chevron; a description and the headline value follow it
- * (every Figma chart card's Show Icon · Icon · Title · Show Description · Description · Show Value · Value · Show Ranges ·
- * Show Open properties).
+ * The header row holds the title, the Hint (an info icon whose Tooltip carries the chart's description) and the open
+ * chevron; the metric label and the headline value follow it (every Figma chart card's Title · Show Hint · Show Open ·
+ * Show Metric Label · Metric Label · Show Value · Value · Show Ranges properties; Show Icon · Icon stay, off by default).
  */
-export function ChartCard({ title, headingLevel = 3, icon, description, value, onOpen, openLabel: openLabelProp, ranges, range, onRangeChange, rangesFullWidth = true, theme = "default", color, surface, spacing = "medium", children, className, overrides, ref, ...rest }: ChartCardProps) {
+export function ChartCard({ title, headingLevel = 3, icon, hint, metricLabel: metricLabelProp, description, value, onOpen, openLabel: openLabelProp, ranges, range, onRangeChange, rangesFullWidth = true, theme = "default", color, surface, spacing = "medium", children, className, overrides, ref, ...rest }: ChartCardProps) {
   const nest = useNested(overrides);
   const t = useZenLabels();
   const openLabel = openLabelProp ?? t.openReport;
@@ -365,6 +378,7 @@ export function ChartCard({ title, headingLevel = 3, icon, description, value, o
   const body = useRef<HTMLDivElement>(null);
   useChartGrow(body);
   const hasValue = value !== undefined && value !== null && value !== false;
+  const metricLabel = metricLabelProp ?? description;
   return (
     <Card {...dataAttributes(rest)} ref={ref} theme={theme} color={color} spacing={spacing} surface={surface} className={["zen-chart-card", className].filter(Boolean).join(" ")}>
       <div ref={body} className="zen-chart-card__body">
@@ -372,14 +386,20 @@ export function ChartCard({ title, headingLevel = 3, icon, description, value, o
           <div className="zen-chart-card__titlebar">
             {icon ? <span className="zen-chart-card__icon" aria-hidden="true">{renderIcon(icon, { size: 20 })}</span> : null}
             <Title className={`zen-chart-card__title ${typographyStyles["Body/Extra/Medium"]}`}>{nest.slot(title)}</Title>
+            {hint ? (
+              <Tooltip content={hint} size="small">
+                {/* zen-allow-raw-icon-button: Figma Hint is a bare info glyph (no button container), as MetricWidget's Hint; the Tooltip explains it. */}
+                <button type="button" className="zen-chart-card__hint" aria-label={t.moreInformation}><Icon name="icon-info-circle-line" size="base" decorative /></button>
+              </Tooltip>
+            ) : null}
             {onOpen ? nest("Open", <IconButton appearance="main" level="tertiary" size="2xs" aria-label={openLabel} onClick={onOpen} icon={<Icon name="icon-chevron-right-line-small" />} />) : null}
           </div>
         </div>
         {ranges?.length ? nest("Ranges", <Segmented options={ranges} value={range} onValueChange={onRangeChange} fullWidth={rangesFullWidth} aria-label={t.range} />) : null}
-        {/* Figma Metric (Chart/Line-Chart, 2026-10-21): the description over the value, always under the Segmented. */}
-        {description || hasValue ? (
+        {/* Figma Metric (Chart/Line-Chart, 2026-10-21): the Metric Label over the value, always under the Segmented. */}
+        {metricLabel || hasValue ? (
           <div className="zen-chart-card__metric">
-            {description ? <p className={`zen-chart-card__description ${typographyStyles["Body/Small/Regular"]}`}>{description}</p> : null}
+            {metricLabel ? <p className={`zen-chart-card__metric-label ${typographyStyles["Body/Small/Regular"]}`}>{metricLabel}</p> : null}
             {hasValue ? <p className={`zen-chart-card__value ${typographyStyles["Display/4"]}`}>{value}</p> : null}
           </div>
         ) : null}

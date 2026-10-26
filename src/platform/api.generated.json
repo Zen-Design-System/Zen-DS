@@ -17306,7 +17306,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The point active at first (its Tooltip shows). Default: the last one.",
+          "description": "The point active at first and whenever the pointer leaves. Default: none — the active point and its Tooltip show\n only under the pointer or the keyboard (the user, 2026-10-26).",
           "deprecated": null
         },
         {
@@ -17432,7 +17432,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The bar active at first (painted Chart/Sector/Secondary, its Tooltip shown). Default: the last bar that isn't projected.",
+          "description": "The bar active at first and whenever the pointer leaves (painted Chart/Sector/Secondary, its Tooltip shown). Default:\n none on vertical bars, which show the active bar and its Tooltip only under the pointer or the keyboard; the last bar\n that isn't projected on horizontal bars.",
           "deprecated": null
         },
         {
@@ -17550,7 +17550,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The column active at first. Default: the last one.",
+          "description": "The column active at first and whenever the pointer leaves. Default: none — the active column and its Tooltip show\n only under the pointer or the keyboard.",
           "deprecated": null
         },
         {
@@ -18414,7 +18414,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The period active at first (its dots, rule and Tooltip show). Default: the last one.",
+          "description": "The period active at first and whenever the pointer leaves. Default: none — the active period and its Tooltip show\n only under the pointer or the keyboard (the user, 2026-10-26).",
           "deprecated": null
         },
         {
@@ -18524,7 +18524,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The group active at first (its Tooltip shows every series' value). Default: the last one.",
+          "description": "The group active at first and whenever the pointer leaves. Default: none — the active group and its Tooltip show\n only under the pointer or the keyboard (the user, 2026-10-26).",
           "deprecated": null
         },
         {
@@ -18658,7 +18658,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The period active at first (its Tooltip reads both values). Default: the last one.",
+          "description": "The period active at first and whenever the pointer leaves. Default: none — the active period and its Tooltip show\n only under the pointer or the keyboard (the user, 2026-10-26).",
           "deprecated": null
         },
         {
@@ -18720,7 +18720,23 @@
           "type": "IconName | ReactNode",
           "required": false,
           "default": null,
-          "description": "Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node. Decorative; the title names the card.",
+          "description": "Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node. Decorative; the title names the card.\n Figma Show Icon is off by default: chart headers carry no icon (the user, 2026-10-26), so leave it out.",
+          "deprecated": null
+        },
+        {
+          "name": "hint",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Hint (Show Hint): an info icon (20px, Content/Neutral/Light) at the end of the header that shows this text in a\n Tooltip on hover and keyboard focus. Put the chart's description here (what it counts, its source, how the figure is\n worked out) so the card itself stays the title, the metric and the chart; leave it out when the title says enough.",
+          "deprecated": null
+        },
+        {
+          "name": "metricLabel",
+          "type": "ReactNode",
+          "required": false,
+          "default": null,
+          "description": "Figma Metric Label: what the headline figure is (\"Invoiced so far in 2026\"), Body/Small/Regular in Content/Neutral/Light over the value, under\n the Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value).",
           "deprecated": null
         },
         {
@@ -18728,15 +18744,15 @@
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "What the figure is (\"Available revenue in your wallet\"), Body/Small/Regular: the top of Figma's Metric, under the\n Segmented (Chart/Line-Chart: Padding/Small above, Gap/3XSmall to the value).",
-          "deprecated": null
+          "description": "",
+          "deprecated": "Renamed `metricLabel` (Figma Metric Label, 2026-10-26). A description of the chart goes in `hint`."
         },
         {
           "name": "value",
           "type": "ReactNode",
           "required": false,
           "default": null,
-          "description": "The headline figure the chart explains (\"$4,346.00\"), Display/4 (Figma Chart-Card Metric > Value), under the\n description and the Segmented.",
+          "description": "The headline figure the chart explains (\"$4,346.00\"), Display/4 (Figma Chart-Card Metric > Value), under the\n metric label and the Segmented.",
           "deprecated": null
         },
         {

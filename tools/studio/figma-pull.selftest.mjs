@@ -225,7 +225,7 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
 {
   const cardSet = [...mapping.sets.values()].find((set) => set.code === "Card");
   const chart = (name, id, props, extra = {}) => ({ type: "INSTANCE", id, name, set: { id, name }, props, ...extra });
-  const header = { "Show Icon": true, Icon: "icon-line-chart-up-line", Title: "Billable hours", "Show Description": true, Description: "Logged by team, 2026", "Show Value": true, Value: "11,480 h", "Show Ranges": true, "Show Open": true };
+  const header = { "Show Icon": true, Icon: "icon-line-chart-up-line", Title: "Billable hours", "Show Metric Label": true, "Metric Label": "Logged by team, 2026", "Show Value": true, Value: "11,480 h", "Show Ranges": true, "Show Open": true };
   const ranges = [{ text: "Month", props: { Select: "No" } }, { text: "Quarter", props: { Select: "Yes" } }];
   const frame = {
     type: "FRAME", name: "Charts", width: 1440, layout: { mode: "VERTICAL", gap: 16, padding: [0, 0, 0, 0] },
@@ -241,7 +241,7 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   };
   const { text: page, notes: chartNotes } = pageFromFigma(frame, { mapping });
   check("charts: the page is valid dialect", validateDialect(page), []);
-  ok("charts: a Card holding a chart with its Heading is a ChartCard: title, icon, description, value, ranges (the picked one), the open button as a toast, the Card's theme", page.includes('<ChartCard title="Billable hours" icon="icon-line-chart-up-line" description="Logged by team, 2026" value="11,480 h" ranges={[{ id: "month", label: "Month" }, { id: "quarter", label: "Quarter" }]} range="quarter" onOpen={proto.toast({ title: "Open report" })} theme="border">'));
+  ok("charts: a Card holding a chart with its Heading is a ChartCard: title, icon, metric label, value, ranges (the picked one), the open button as a toast, the Card's theme", page.includes('<ChartCard title="Billable hours" icon="icon-line-chart-up-line" metricLabel="Logged by team, 2026" value="11,480 h" ranges={[{ id: "month", label: "Month" }, { id: "quarter", label: "Quarter" }]} range="quarter" onOpen={proto.toast({ title: "Open report" })} theme="border">'));
   ok("charts: Area Type Stacked with its legend (the stacked default) is the stacked sample", /<AreaChart type="stacked" aria-label="Billable hours per month by team, Apr – Sep 2026"/.test(page) && !/showLegend/.test(page.split("\n").find((line) => line.includes("<AreaChart")) ?? ""));
   ok("charts: Chart/Chart-Card (read as its Default Card) is a ChartCard with ChartCard's default theme; Bar Horizontal + Show Average", /<ChartCard title="Capacity">\s*<BarChart orientation="horizontal" aria-label="Billable hours per team against capacity, September 2026"[^>]*showAverage \/>/.test(page));
   ok("charts: a chart whose Heading is hidden is the chart alone; Multi-Line Sector 6 has six months", /<LineChart aria-label="Invoiced and collected per month, Apr – Sep 2026"[^>]*data=\{\[\{ label: "Apr"[^\]]*\{ label: "Sep", value: 105700 \}\]\}/.test(page));

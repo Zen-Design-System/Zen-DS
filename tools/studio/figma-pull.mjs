@@ -2330,7 +2330,7 @@ function chartCardElement(chart, header, cardProps, where, ctx) {
     if (isZenIcon(header.icon, ctx.mapping)) props.icon = literal(header.icon);
     else ctx.notes.push(`${where}: its chart's Icon swaps in "${header.icon}", not a Zen icon (left out)`);
   }
-  if (header.description) props.description = literal(header.description);
+  if (header.metricLabel) props.metricLabel = literal(header.metricLabel);
   if (header.value) props.value = literal(header.value);
   if (header.ranges) props.ranges = { kind: "array", items: header.ranges.map((range) => ({ kind: "object", fields: { id: literal(range.id), label: literal(range.label) } })) };
   if (header.range) props.range = literal(header.range);
