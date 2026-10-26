@@ -584,4 +584,7 @@ Branch `zen/feat/grid-span-studio-20261026` (worktree dashboard-layout-skill), p
 - Docs: dashboard-layout.md §7 (one 12-column Grid with span in code, Studio and Figma), Zen Agent's dashboard bullet,
   AGENTS.consumer.md Layout row, Studio MCP descriptions, CHANGELOG.
 - Checks: tsc; studio:selftest (figma-push 512, figma-pull 157, figma-native 170, figma-diff 35, responsive model 32,
-  grid cell model 26, E2E self-test 589 rows); usage, style.
+  grid cell model 26, E2E self-test 589 rows); usage, style. E2E `--rows=BP-14,BP-15,BP-16,BP-17` (Giám sát's slots):
+  first 2 works · 2 broken (BP-16: the Inspector's api.apply never selects a wrapper, so after the span wrap the Text
+  stayed selected and the group went; now the wrap / unwrap go through applyEdit and select the Box or the layer, as
+  position/float.ts; BP-17: my seed filled row 1, 8 + 3 + 1), then 4 works · 0 broken (65 s); baseline gains the four.
