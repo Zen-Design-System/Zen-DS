@@ -411,3 +411,32 @@ horizontal bars 8px ("Gap này là đang là 16px"), "Tooltip này chỉ bật k
   no initialIndex where Figma shows none (pickedSector) and lose the 88% / 12px-dot / active-label exceptions.
   Gotchas: a grid cell takes one child (appendChildAt refuses an occupied cell, gridRowAnchorIndex is read-only), so the
   twin bar is absolute; swapping a nested instance's variant re-ids its subtree, so re-query after each swap.
+
+
+## Sidebar nested rows (Studio ↔ Figma, BACKLOG P2, tier S)
+
+Assigned by the user through "Kiểm tra tiến độ Figma-line freeform": the BACKLOG P2 left by #314.
+- Figma: Menu-Item Level=Child (1551:5539) is a Tree-Line (16px) + Wrapper holding a Menu-Item Master instance (28px in,
+  as `.zen-sidebar__sub-menu`). None of the Child variant's properties reach that inner instance (native pack: refs 0), so
+  a Child row's label, icon, counter and Dropdown go on it (nested `Master`). Dropdown is the chevron icon itself
+  (icon-chevron-down-01-line, no swap property).
+- Push (`figma-push.mjs`): `menuItemNode` builds every Sidebar row (JSX and `sections`; data rows now carry their counter
+  too); rows keep their data (`menuRow`) until `sidebarSubRows` lays out each row's nested rows right after it as
+  Level=Child rows. Select by `selectedId`, else `selected`/`active`; a group is open as `defaultExpanded` says (and not
+  in the rail); a closed group's rows are `hidden: true` so a pull reads them back. An open group's Dropdown is swapped
+  for icon-chevron-up-01-line (nested `set`; `swapIcon` looks for an icon inside it). The rail turns Dropdown off.
+  Deeper rows are drawn as Child rows too, with a note.
+- Pull (`figma-pull.mjs`): the reader keeps hidden Level=Child Menu-Items (`closedSubRow`, marked hidden);
+  `nestMenuRows` gives each Child row to the Menu-Item row before it, in `sections` (`children`) and in slots (JSX
+  `<SidebarMenuItem>` children). `itemFields` reads a Child row through its inner `Master`, and writes `dropdown` (a
+  chevron with no rows, instead of the old note) and `counter` (it was dropped before).
+- Checks: figma-push 505 (new: rows, Child content, footer, sections + density, rail, round trip, figma-diff no change on
+  a second pull), figma-pull 151 (Design Tokens now `dropdown: true`), figma-native 166 (new: Child variant hidden, label
+  on the inner Menu-Item, chevron swap), figma-diff 35, figma-clip 9, studio:selftest pass. The reader code parses; it
+  was not run in Figma. E2E HO-21 (id from Giám sát) written; runs with the gate.
+- The Zen plugin's Import ignored `hidden` on a layer (native ⌘V hides it): fixed in the plugin repo (below).
+- **Gate** (`qa --isolated --files=` the six tools/studio files, GO from Giám sát on eef3056f): static, studio:selftest,
+  TypeScript, nested layer names pass; Studio E2E 381 works · 0 broken (3 shards, 1611 s), HO-21 new and working (alone
+  first: 48 s). Report `.qa/reports/2026-10-26T09-17-26-0958d62c.md`. Then merged main c932a002 (#320, docs only here).
+- The Zen plugin follow-up (session "Zen plugin: honour `hidden` on imported layers") pushed c1f0209 to `studio-import`:
+  Import from Studio hides `hidden: true` layers and shows a Child row again once it is open (tests, not real Figma).
