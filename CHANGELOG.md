@@ -24,6 +24,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   `hint` puts the chart's description behind an (i) after the title, and the examples carry no header icon. DonutChart
   slices are 2px apart. Figma matches: the chart sets' Show Hint, Metric Label, Show Tooltip (off) and Show Icon (off);
   the Figma AI kit audit adds chart/header-icon, chart/tooltip-on and chart/metric-label-is-description.
+- Zen Studio's Main component draws every chart at its Figma width (2026-10-26, user screenshot "Lỗi hiển thị"): Line,
+  Multi-Line and Stack-Bar 297, Bar, Area, Grouped-Bar, Combo, Gauge, Funnel and Bullet 352, Curve-Preview 320, beside
+  Donut and Radial. In a max-content cell a chart had shrunk to its axis (LineChart one label, BarChart bars with no width).
 - Zen Studio → Figma: a Sidebar's rows take its density as the Menu-Item's Density variant (2026-10-26). Medium is 44px,
   Small 36px; an AppShell `pattern="grid"` and `variant="small-density"` give Small; a Basic Sidebar's footer rows stay
   Medium. Changing a Sidebar's density swaps every row's variant. Each row also carries its Theme (`theme="accent"`) and
