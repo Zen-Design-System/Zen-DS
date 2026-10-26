@@ -690,3 +690,31 @@ Branch `zen/feat/grid-span-studio-20261026` (worktree dashboard-layout-skill), p
 - **Gate** (Giám sát's slot, `qa --isolated --files=` PR B's 18 source files, head 3d96f44e): PASS — style, usage,
   Studio self-tests, guidelines, TypeScript, nested layer names 45/45, Studio E2E 385 works · 0 broken (4 shards,
   1564 s; HO-21, another session's new row, works). Report `.qa/reports/2026-10-26T13-29-58-6d540f06.md`. PR #325.
+
+## Studio E2E flaky rows PT-28 and BL-01 (tier S, branch zen/fix/e2e-flaky-pt28-bl01-20261026)
+
+Giám sát's task: two rows failed gates by chance (PT-28 on #318's first gate and `--rows=PT-28` on d430b473; BL-01 "no
+board" on the last 7 pages in #326's gate at a82ed06e, passing alone). Find the real cause, fix it without loosening.
+- PT-28: its three errors are one race. `{theme:null, brightness:255, inPlay:false}` is what `layerLook` reads from a
+  detached node; "evaluate 10 s" and "waitFor 3 s" are the same tooltip gone sooner. A focus/tooltip log over 8 runs
+  (3 broken) showed it every time: Tab put the focus on Close panel, its tooltip mounted at 5–6 ms, and the Table's
+  `focusCell` (requestAnimationFrame after picking Shipped) took the focus back at 9–12 ms. Test bug: the row moved on
+  when "Packed" left the cell, a frame before the pick ended. Fix: wait for the focus on the picked cell, then Tab.
+- BL-01: the sweep loaded the 53 component pages in one tab. A per-page log over a full `--shard=4/4` (BL-01 passed on
+  retry after "timed out after 360 s"): old documents piled up faster than the GC freed them (at table: heap 697/760 MB,
+  47 documents, 175k nodes; the board group alone peaks ~535 MB), and the next load, sheet-table (page 47), hung: HMR
+  WebSocket failed, navigation aborted, blank for 30 s, then its main thread stuck 4 min. The retry hit it again at
+  sheet-table and drew on the second open. The earlier "sidebar 30 s" was the same at page 41. In a fresh renderer every
+  page draws in ~1 s, and the Studio changes pages without reloading the document: not a product bug. Worse, the module
+  cache kept a cut-short sweep: once the runner closed the timed-out tab, every page left came back "no board" at once
+  and the retry read that back (#326's last 7, sheet-table … tooltip).
+- Fix: each page opens in a browser context of its own (`studioContext`, split from `openStudio`) and closes after it
+  is measured; only a whole sweep is cached; `ctx.studio()` before each page stops a sweep past its time limit; a
+  missing board says what the page showed (its text, not answering, or a crashed tab).
+- Found on the way, fixed (run.mjs): the "keep the 10 latest runs" clean-up counted the shots rows write beside the
+  reports (`HO-04-….png`, `nested-NO-08.png`) as runs; they sort above every date, so each run deleted every earlier
+  report, the gate's shard reports included (why #326's were gone). Only run stamps count now.
+- Proof (Giám sát's slots, ef4daa3b = the fix + main 52e5f545): `--rows=PT-28 --no-retry` 5/5; `--only=board
+  --rows=BL-01 --no-retry` 5/5 (53 pages, 785 frames; the row ~118 s, each page ~0.5 s more for its own context); then
+  `--shard=1/4 … 4/4` with the clean-up fix: 385 works · 0 broken (270 + 481 + 291 + 626 s), PT-28 and BL-01 on the
+  first try. Passed on retry, other rows: PT-03 (boundingBox 10 s), NO-06, AG-10. `studio:selftest` passes.

@@ -129,9 +129,11 @@ function recoverKilledRuns() {
 recoverKilledRuns();
 const snapshot = new Map(guarded.map((rel) => [rel, read(rel)]));
 const lockFile = path.join(outDir, `.running-${process.pid}.json`);
-// Keep the artefacts (report, screenshots, snapshot) of the 10 latest runs.
+// Keep the artefacts (report, screenshots, snapshot) of the 10 latest runs. Only run stamps count: the shots rows write
+// beside them (HO-04-….png, nested-NO-08.png) sort above every date and pushed each run's report out at the next start,
+// the gate's shard reports included (2026-10-26).
 if (fs.existsSync(outDir)) {
-  const stamps = [...new Set(fs.readdirSync(outDir).filter((name) => !name.startsWith(".")).map((name) => name.replace(/^snapshot-/, "").replace(/\.(json|md)$/, "")))].sort().reverse();
+  const stamps = [...new Set(fs.readdirSync(outDir).map((name) => name.replace(/^snapshot-/, "").replace(/\.(json|md)$/, "")).filter((name) => /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}/.test(name)))].sort().reverse();
   for (const old of stamps.slice(10)) for (const name of [old, `snapshot-${old}`, `${old}.json`, `${old}.md`]) fs.rmSync(path.join(outDir, name), { recursive: true, force: true });
 }
 fs.mkdirSync(path.join(outDir, `snapshot-${stamp}`), { recursive: true });
