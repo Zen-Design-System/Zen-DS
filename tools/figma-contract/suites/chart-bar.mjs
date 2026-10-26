@@ -54,6 +54,8 @@ const LANE_PINS = [
 export default {
   contract: "docs/figma-contracts/chart-bar.json",
   setId: "15321:84071",
+  // The hover state (Hover off at rest) hides its parent layers (Tooltip-Anchor, Active), not the marks in them.
+  inheritHidden: true,
   kind: "chartCard",
   root: ".zen-chart-card__body",
   cases: (vp, { spec }) => ({ ...cardProps(spec), chart: "bar", chartProps: { ...(vertical(vp) ? verticalCase(spec) : horizontalCase(spec)), palette: vp.Color === "Secondary" ? "secondary" : "primary" } }),

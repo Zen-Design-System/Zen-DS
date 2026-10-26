@@ -23,6 +23,8 @@ const rising = (low, high, n) => Array.from({ length: n }, (_, i) => low + ((hig
 export default {
   contract: "docs/figma-contracts/chart-area.json",
   setId: "15484:2663",
+  // The hover state (Hover off at rest) hides its parent layers (Tooltip-Anchor, Active), not the marks in them.
+  inheritHidden: true,
   kind: "chartCard",
   root: ".zen-chart-card__body",
   cases: (vp, { spec }) => {

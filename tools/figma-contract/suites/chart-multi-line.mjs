@@ -12,6 +12,8 @@ const legendText = (spec, index) => textOf(child(child(spec, "Legend"), "Legend-
 export default {
   contract: "docs/figma-contracts/chart-multi-line.json",
   setId: "15501:3054",
+  // The hover state (Hover off at rest) hides its parent layers (Tooltip-Anchor, Active), not the marks in them.
+  inheritHidden: true,
   kind: "chartCard",
   root: ".zen-chart-card__body",
   cases: (vp, { spec }) => {
