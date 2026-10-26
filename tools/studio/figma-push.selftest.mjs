@@ -1987,11 +1987,11 @@ export default function Page() {
   ok("Bar (vertical): a note when the page's active bar is another", notes.some((note) => /Chart\/Bar-Chart highlights period 6; the page's active period is 7/.test(note)));
   const hidden = (node, ...layer) => node.edits?.find((item) => JSON.stringify(item.layer) === JSON.stringify(layer))?.visible;
   check("Bar (horizontal): category labels, values, four value-axis labels; a row past the data hidden, its value empty", [edit(hbar, "Categories", ">Category[0]", "Label"), edit(hbar, "Values", ">Value[2]", "Label"), edit(hbar, "Grid", ">Tick[3]", "Label"), hidden(hbar, "Categories", ">Category[3]"), hidden(hbar, "Bars", ">Track[3]"), edit(hbar, "Values", ">Value[3]", "Label")], ["Design", "750", "3K", false, false, ""]);
-  check("Area: X ticks by Figma's sample names (Q1 …) in EUR (currency alone); the Tooltip on Figma's last period, past the data, hidden", [edit(area, "X-Axis", ">Tick[0]", ">Q1"), edit(area, "X-Axis", ">Tick[3]", ">Q4"), edit(area, "Y-Axis", ">2.5K"), prop(area, "Tooltip/Text", "Text"), area.edits.find((item) => item.layer[0] === "Tooltip-Anchor")?.visible], ["Q1", "", "\u20ac2.5K", undefined, false]);
+  check("Area: X labels on the ticks in EUR (currency alone); the Tooltip on Figma's last period, past the data, hidden", [edit(area, "X-Axis", ">Tick[0]", "Label"), edit(area, "X-Axis", ">Tick[3]", "Label"), edit(area, "Y-Axis", ">Label[0]"), prop(area, "Tooltip/Text", "Text"), area.edits.find((item) => item.layer[0] === "Tooltip-Anchor")?.visible], ["Q1", "", "\u20ac2.5K", undefined, false]);
   const fullArea = push(LABELLED.replace('{ label: "Q3", values: { h: 2210 } }]', '{ label: "Q3", values: { h: 2210 } }, { label: "Q4", values: { h: 2400 } }]')).frame.children[3];
   check("Area: four periods in 4-Sectors, the Tooltip reads the last", prop(fullArea, "Tooltip/Text", "Text"), "\u20ac2.4K");
-  check("Grouped-Bar: X ticks named Apr … Sep in 6-Sectors, Y labels named $125K …", [edit(grouped, "X-Axis", ">Tick[5]", ">Sep"), edit(grouped, "Y-Axis", ">$125K"), grouped.nested?.length ?? 0], ["Sep", "125K", 0]);
-  check("Combo: both axes, the line's in lineFormat on lineMax", [edit(combo, "Y-Axis", ">$125K"), edit(combo, "Y-Axis-End", ">50%"), edit(combo, "Y-Axis-End", ">0%")], ["$125K", "100%", "0%"]);
+  check("Grouped-Bar: six X labels in 6-Sectors, six Y labels", [edit(grouped, "X-Axis", ">Tick[5]", "Label"), edit(grouped, "Y-Axis", ">Label[0]"), grouped.nested?.length ?? 0], ["Sep", "125K", 0]);
+  check("Combo: both axes, the line's in lineFormat on lineMax", [edit(combo, "Y-Axis", ">Label[0]"), edit(combo, "Y-Axis-End", ">Label[0]"), edit(combo, "Y-Axis-End", ">Label[5]")], ["$125K", "100%", "0%"]);
 }
 
 // Card Theme=Solid and Color (2026-10-14): written as Figma's variant, Neutral where Figma has none (a Solid hue it does

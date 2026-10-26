@@ -46,13 +46,13 @@ export default {
     // The total in the hole, centred on the ring.
     { figma: "Chart > Ring > Centre", dom: ".zen-chart__centre", check: ["cx", "cy"], when: centre },
     { figma: "Chart > Ring > Centre > Value", dom: ".zen-chart__centre-value", check: ["text", "h", "cx"], when: centre },
-    { figma: "Chart > Ring > Centre > Caption", dom: ".zen-chart__centre-label", check: ["text", "h", "cx"], when: centre },
+    { figma: "Chart > Ring > Centre > Meta", dom: ".zen-chart__centre-label", check: ["text", "h", "cx"], when: centre },
     ...legendMap("Chart > Legend", { items: 5, itemName: "Legend-Item", itemY: true, when: centre }),
     { figma: "Chart > Legend > Legend-Item#5", dom: ".zen-chart__legend > li:nth-child(6)", check: ["size"], when: centre },
     // Total=Start: the start column (the total over the legend), the ring at the end.
     { figma: "Chart > Start", dom: ".zen-chart__side", check: ["size", "x", "y"], when: start },
     { figma: "Chart > Start > Total", dom: ".zen-chart__total", check: ["size", "x", "y"], when: start },
-    { figma: "Chart > Start > Total > Caption", dom: ".zen-chart__total-label", check: ["text", "size", "x", "y"], when: start },
+    { figma: "Chart > Start > Total > Meta", dom: ".zen-chart__total-label", check: ["text", "size", "x", "y"], when: start },
     { figma: "Chart > Start > Total > Value", dom: ".zen-chart__total-value", check: ["text", "size", "x", "y"], when: start },
     // Figma's Legend frame starts at the total's foot and pads Spacing/Padding/Medium above its items; code's list
     // starts at its first item, Spacing/Gap/Medium under the total: the items compare.

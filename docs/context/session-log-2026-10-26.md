@@ -551,3 +551,21 @@ Heatmap's "Tue" / "1 pm" labels go Light, their Strongest twins (Active-Label, a
 Multi-Line variant gets a Hover-Sector (.Primitives/Chart/Sector Select=Selected Highlight, Show Tooltip off, its period's
 label) over the active period, on Hover. Contracts chart-heatmap (b6fe0eb7) and chart-multi-line (b4845783) re-captured;
 code unchanged (it already draws none of this at rest).
+
+## Charts · text layers named by role (tier M, follow-up to #318)
+The user (2026-10-26): "Đặt tên layer cho các dòng này cho đồng bộ". 702 layers renamed in Figma (14 Chart/* sets; one
+instance copy in Chart-Card), names only. Undo: `docs/figma-contracts/layer-renames-2026-10-26.json`.
+| Set | Old | New |
+| --- | --- | --- |
+| every chart | Heading › Header › Label | Title |
+| Area, Grouped-Bar, Combo | "2.5K", "Q1", "$125K", "50%" … (Y-Axis, Y-Axis-End, X-Axis › Tick) | Label |
+| Gauge | Readout › "82%" / "Target 85%"; "0%" / "100%" | Value / Meta; Label |
+| Donut, Radial | Centre › Caption (Start › Total › Caption) | Meta |
+| Bar-List | client / amount; Columns › "Client" / "Revenue" | Name / Value; Label |
+| Bullet | Goal › Label › name / reading | Name / Value |
+| Funnel | Stage › Label › name / count; share | Name / Meta; Value |
+- Code: suites (`_chart-shared`, `_chart-bars`, area, combo, gauge, donut, radial) read the new names; `figma-charts.mjs`
+  writes Area/Grouped-Bar/Combo axes by position (`>Label[i]`, `>Tick[k] > Label`) as Bar does (TICK_NAMES/AXIS_NAMES gone).
+- Contracts: the 15 chart contracts patched by path (paths read from Figma by node id), digests equal to the live file
+  for every variant. native-pack.json rows and native-defs.json.gz names patched by id (702 each, no mismatch).
+- Checks: figma-push selftest 505, figma-native 166, `npm run studio:selftest` green.

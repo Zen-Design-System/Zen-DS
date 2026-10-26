@@ -8,7 +8,7 @@
 const GRID = "Chart > Plot > Grid";
 const LINES = ["Baseline", "Line-1", "Line-2", "Line-3", "Line-4", "Line-5"];
 
-/** Grid, gridlines (bottom-up), the Y labels named by their text (bottom-up) and the X ticks, from the Grid. */
+/** Grid, gridlines (bottom-up), the Y labels (bottom-up; Figma's Label layers run top to bottom) and the X ticks, from the Grid. */
 export function barFrameMap({ yLabels, count, axis = "Chart > Y-Axis", chartDom = ".zen-chart" }) {
   const fromGrid = { figmaRoot: GRID, root: ".zen-chart__grid" };
   return [
@@ -17,7 +17,7 @@ export function barFrameMap({ yLabels, count, axis = "Chart > Y-Axis", chartDom 
     { figma: GRID, dom: ".zen-chart__grid", check: ["size", "x", "y"] },
     // Centred strokes in Figma, code's border just above the line: half a pixel apart (tolerance 1).
     ...LINES.map((name, i) => ({ figma: `${GRID} > ${name}`, dom: `.zen-chart__grid > span:nth-child(${i + 1})`, check: ["w", "x", "cy", "stroke", "dash"], tolerance: 1, ...fromGrid })),
-    ...yLabels.map((label, i) => ({ figma: `${axis} > ${label}`, dom: `.zen-chart > .zen-chart__y > span:nth-child(${i + 1})`, check: ["text", "right", "cy"], ...fromGrid })),
+    ...yLabels.map((label, i) => ({ figma: `${axis} > Label#${yLabels.length - 1 - i}`, dom: `.zen-chart > .zen-chart__y > span:nth-child(${i + 1})`, check: ["text", "right", "cy"], ...fromGrid })),
     ...Array.from({ length: 12 }, (_, k) => [
       { figma: `Chart > Plot > X-Axis > Tick#${k}`, dom: `.zen-chart__sector:nth-child(${k + 1})`, check: ["w", "x"], when: (vp) => count(vp) > k },
       { figma: `Chart > Plot > X-Axis > Tick#${k} > *`, dom: `.zen-chart__sector:nth-child(${k + 1}) .zen-chart__x`, check: ["text", "cx", "cy"], when: (vp) => count(vp) > k, ...fromGrid },
