@@ -44,6 +44,7 @@ const P = appShellParts({ media: { logo: "{logo}", account: "{photo}" } });
 function Placeholder({ label = C.block, height = "fill", radius = "lg" }: { label?: string; height?: "fill" | number | undefined; radius?: "lg" | "md" }) {
   return (
     <Stack surface="pale" border="subtle" borderStyle="dashed" radius={radius} padding="md" align="center" justify="center" height={height}>
+      {/* zen-allow-visual-heading: Figma's Placeholder names what goes in the slot in Heading/4; it heads no section of the outline. */}
       <Text textStyle="Heading/4" tone="light" align="center">{label}</Text>
     </Stack>
   );
