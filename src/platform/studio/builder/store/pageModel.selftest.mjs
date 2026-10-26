@@ -75,6 +75,13 @@ check("only here, synced before: removed in the folder → Trash", kinds(planSyn
 check("synced with another mirror: pushed", kinds(planSync([{ id: "a", text: "A", sync: { mirror: "folder:x", hash: h("A") } }], [], M)), ["push:a"]);
 check("trashed here, still in the folder", kinds(planSync([{ id: "a", text: "A", trashedAt: 5 }], [{ id: "a", text: "A", mtime: 1 }], M)), ["trash-remote:a"]);
 check("trashed here, gone there: nothing", kinds(planSync([{ id: "a", text: "A", trashedAt: 5 }], [], M)), []);
+// The folder's echo of this copy's own write while an edit here followed it (E2E AG-08/AG-10/NO-06, 2026-10-26): A2 was
+// sent, A3 typed during the write, the record still synced at A. Without `sent` the folder's A2 replaced A3.
+const sentA2 = new Map([["a", h("A2")]]);
+check("own write echoed, edited since: pushed", kinds(planSync([{ id: "a", text: "A3", sync: { mirror: M, hash: h("A") } }], [{ id: "a", text: "A2", mtime: 1 }], M, sentA2)), ["push:a"]);
+check("own write echoed, no edit since: marked", kinds(planSync([{ id: "a", text: "A2", sync: { mirror: M, hash: h("A") } }], [{ id: "a", text: "A2", mtime: 1 }], M, sentA2)), ["mark:a"]);
+check("another text after own write: still a conflict", kinds(planSync([{ id: "a", text: "A3", sync: { mirror: M, hash: h("A") } }], [{ id: "a", text: "B", mtime: 1 }], M, sentA2)), ["take:a:conflict"]);
+check("own write recorded, folder changed after it: taken", kinds(planSync([{ id: "a", text: "A2", sync: { mirror: M, hash: h("A2") } }], [{ id: "a", text: "B", mtime: 1 }], M, sentA2)), ["take:a:folder"]);
 
 if (failures.length) {
   console.error(`pageModel selftest: ${failures.length} failed, ${passed} passed\n${failures.map((line) => `✗ ${line}`).join("\n")}`);

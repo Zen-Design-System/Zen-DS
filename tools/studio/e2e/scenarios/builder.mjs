@@ -1458,4 +1458,27 @@ export const rows = [
       return "Cell selected + Status from Assets → cells = the set, row 1 keeps Doing; drag onto row 3 (Late) → To do";
     },
   },
+  {
+    id: "B-49", feature: "An edit made while the page's last write to the pages folder is on its way survives that write's echo (the folder's change event): the folder's older text no longer replaces it (an MCP insert or a ⌘D right after a rename was lost, E2E AG-08/AG-10/NO-06, 2026-10-26)", wp: "pages folder sync 2026-10-26",
+    async run(ctx) {
+      const { page, id, name } = await newPage(ctx, { device: "desktop" });
+      // The page's own writes landed first (its name), so the held write is the first rename's.
+      await until(async () => (folderText(ctx, id) ?? "").includes(JSON.stringify(name)), { message: "the named page in the folder" });
+      await sleep(500);
+      // The next write's answer held 1.5 s: its file lands at once, and the folder's change event comes back meanwhile.
+      await page.route("**/pages/write", async (route) => { const response = await route.fetch(); await sleep(1500); await route.fulfill({ response }); }, { times: 1 });
+      await page.evaluate(async (pageId) => {
+        const store = await import("/src/platform/studio/builder/store/pageStore.ts");
+        await store.renamePage(pageId, "Echo first");
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        await store.renamePage(pageId, "Echo second");
+      }, id);
+      await until(async () => (folderText(ctx, id) ?? "").includes('"Echo second"'), { timeout: 8000, message: "the second name in the folder" })
+        .catch(async (error) => { throw new Error(`${error.message} (this tab: ${/"title":"[^"]*"/.exec((await pageText(page, id)) ?? "")?.[0] ?? "no title"})`); });
+      // Its own echo, synced too.
+      await sleep(800);
+      if (!((await pageText(page, id)) ?? "").includes('"Echo second"')) throw new Error("the folder's echo took the page back to its first name");
+      return "renamed twice while the first write was on its way: the second name kept here and in the folder";
+    },
+  },
 ];

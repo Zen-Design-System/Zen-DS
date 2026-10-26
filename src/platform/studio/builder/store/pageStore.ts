@@ -542,7 +542,11 @@ function queued<T>(id: string, task: () => Promise<T>): Promise<T> {
   return next;
 }
 
-/** Sends the page's current text to the mirror, then records it as synced. */
+/** The hash of the text each page's last write sent to the mirror, from the moment it goes out (planSync's `sent`). */
+const sent = new Map<string, string>();
+
+/** Sends the page's current text to the mirror, then records it as synced: the folder holds that text now, the base of
+ *  any edit made here during the write (its own push follows). */
 function pushToMirror(id: string) {
   if (!mirror) return;
   const target = mirror;
@@ -550,9 +554,10 @@ function pushToMirror(id: string) {
     const record = cache.get(id);
     if (!record || !isLive(record) || mirror !== target) return;
     const text = record.text;
+    sent.set(id, textHash(text));
     await target.write(id, text);
     const now = cache.get(id);
-    if (now && now.text === text) {
+    if (now) {
       const next = { ...now, sync: { mirror: target.key, hash: textHash(text) } };
       cache.set(id, next);
       await writeRecord(next);
@@ -584,7 +589,7 @@ export async function syncMirror(): Promise<void> {
     await loadAll();
     const remote = await target.list();
     if (mirror !== target) return;
-    let steps = planSync([...cache.values()], remote, target.key);
+    let steps = planSync([...cache.values()], remote, target.key, sent);
     // "The folder lost this page" is read from a listing that can predate a page this tab has just written: its file
     // lands while the listing runs (the folder's change event fires on the temporary file), and the page is marked
     // synced before the plan is made. A page made in a project then went to the Trash a second later (user,
@@ -597,6 +602,7 @@ export async function syncMirror(): Promise<void> {
     for (const step of steps) {
       const record = cache.get(step.id);
       if (step.kind === "take") {
+        sent.delete(step.id);
         if (record && record.text !== step.text) await addRevision(step.id, record.text, step.reason === "conflict" ? "conflict" : "folder");
         const next: PageRecord = {
           id: step.id,

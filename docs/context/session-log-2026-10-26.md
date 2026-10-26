@@ -718,3 +718,22 @@ board" on the last 7 pages in #326's gate at a82ed06e, passing alone). Find the 
   --rows=BL-01 --no-retry` 5/5 (53 pages, 785 frames; the row ~118 s, each page ~0.5 s more for its own context); then
   `--shard=1/4 … 4/4` with the clean-up fix: 385 works · 0 broken (270 + 481 + 291 + 626 s), PT-28 and BL-01 on the
   first try. Passed on retry, other rows: PT-03 (boundingBox 10 s), NO-06, AG-10. `studio:selftest` passes.
+
+## Studio pages folder lost an edit made during a write (PT-03, NO-06, AG-10 flakes; tier S, product fix)
+
+The user, after #327: the three rows that passed only on retry in its 4 shards, same treatment. Branch
+zen/fix/e2e-flaky-pt03-no06-ag10-20261026 (from 0bb459bd; B-49 granted by Giám sát).
+- Diagnosis: PT-03 and AG-10 passed 8/8 alone; NO-06 failed 1 in 20 (the Card selected, ⌘D made no copy); the agent
+  group failed AG-08 once. Its shot showed the cause: the Button the row had inserted through the MCP was gone, both
+  agent changes failed, and the Inspector read "Selection lost after the file changed".
+- Cause (product, edits lost): every page write to the dev server's pages folder sends "zen-studio:pages-changed" 150 ms
+  later, to the writing tab too. `pushToMirror` recorded the folder's text as synced only when the page had not changed
+  during the write. An edit made meanwhile (an MCP insert after newPage's rename, a ⌘D after the page got its ids, the
+  phone switch after a rename) left the old base, so the echo of the tab's own write looked like a change from outside
+  on top of an edit here: `planSync` called it a conflict and took the folder's older text.
+- Fix: `pushToMirror` notes the hash of what it sends (`sent`) before the write and records it as the base after it,
+  whatever the page holds now; `planSync(…, sent)` reads a folder holding this tab's own last write as that base (push
+  the newer edit, no conflict). pageModel selftest +4 (49). New E2E row B-49: the first rename's write answer held 1.5 s,
+  a second rename 50 ms later; before the fix 3/3 broken (the tab went back to the first name), after it 5/5.
+- Diagnostics (temporary, removed): PT-03 steps named, NO-06 store/key/rejection log, AG-10 reply and buttons.
+- Proof: PROOF_LINES
