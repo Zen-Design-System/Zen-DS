@@ -17,6 +17,9 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio's Main component draws every chart at its Figma width (2026-10-26, user screenshot "Lỗi hiển thị"): Line,
+  Multi-Line and Stack-Bar 297, Bar, Area, Grouped-Bar, Combo, Gauge, Funnel and Bullet 352, Curve-Preview 320, beside
+  Donut and Radial. In a max-content cell a chart had shrunk to its axis (LineChart one label, BarChart bars with no width).
 - Zen Studio per-breakpoint layout (2026-10-26, PR 2 of the responsive plan): a Stack, Grid or Box on a Screen narrower
   than desktop edits that breakpoint (Inspector › Auto layout › Breakpoint, dots on breakpoints with values of their own,
   Reset, Same on every breakpoint); its fields and the canvas gap / padding handles write `{ desktop, tablet, mobile }`

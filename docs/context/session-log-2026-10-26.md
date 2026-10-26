@@ -210,3 +210,13 @@ From main 9fa8ef52 (train #310 with bp-layout's library half in). Built:
 Since #304 a new row only guards against regressions once it is in `matrix.baseline.json`. B-47, B-48, PT-22…28 and
 HO-18…20 (from #286/#287/#294/#302/#306/#307) passed in every gate since and were listed as "new, work". Run
 `studio:e2e -- --rows=<those 12> --update-baseline` on main 9fa8ef52: 12 works, 0 broken, 98 s.
+
+## Session "Bug" · Studio Main component chart widths (tier S; user screenshot: "Lỗi hiển thị")
+
+- Cause: charts fill their container and the Main component cell is max-content, so each non-ring chart drew at its
+  axis width (probe: Line 32 px with a 0-width plot, Area 36, Bar 36/81, Stack/Grouped/Combo/Funnel/Bullet 136–150).
+  Not a regression of #301/#303: bc1c0fc0 (before #301) measures the same.
+- Fix: MainComponentFrame FIXED_WIDTHS gets the 11 other chart sets at their Figma default-variant widths (read live
+  2026-10-26: 297 Line/Multi-Line/Stack-Bar, 352 Bar/Area/Grouped/Combo/Gauge/Funnel/Bullet, 320 Curve-Preview).
+  Probe after: every chart at that width, ring cells flip data-wrapped 0 times in 3 s (45 before #301).
+- Gate PASS (--isolated --pages=chart): 0 warnings, Studio E2E 380/380 in 4 shards. PR #315.
