@@ -234,7 +234,7 @@ export const examples: ExampleDef[] = keepOnHotUpdate(import.meta.hot, "examples
             </Stack>
           ))}
         </Box>
-        <Stack direction="row" gap="xs">
+        <Stack direction="row" gap="2xs">
           <Badge background="subtle" theme="green">Free</Badge>
           <Badge background="subtle" theme="red">Booked</Badge>
         </Stack>

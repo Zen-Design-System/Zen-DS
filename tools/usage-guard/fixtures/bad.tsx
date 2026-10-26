@@ -312,6 +312,9 @@ export const Bad = () => <>
   <Stack direction="row" gap="2xs" wrap>{periods.map((p) => <Chip key={p.id} variant="normal" onClick={pick}>{p.label}</Chip>)}</Stack>
   {/* expect: tag/row-gap */}
   <Stack as="ul" direction="row" gap="xs" wrap aria-label="Skills">{skills.map((skill) => <li key={skill}><Tag>{skill}</Tag></li>)}</Stack>
+  {/* Badges side by side sit 4px apart, as tags do (the user 2026-10-26). */}
+  {/* expect: badge/row-gap */}
+  <Stack direction="row" gap="xs" wrap><Badge theme="blue" background="subtle">Design</Badge><Badge theme="neutral" background="subtle">Q4</Badge></Stack>
   {/* The row's name column takes a Solid Avatar (the user 2026-10-24). */}
   {/* expect: table/first-column-avatar-solid */}
   <Table aria-label="Members" rows={rows} getRowId={getId} columns={[{ id: "member", header: "Member", cell: (row) => <TableMedia bold caption={row.role} media={<Avatar size="sm" theme="neutral" background="subtle" alt="">{row.initials}</Avatar>}>{row.name}</TableMedia> }]} />

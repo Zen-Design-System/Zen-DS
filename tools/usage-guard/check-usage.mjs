@@ -690,19 +690,26 @@ const tableBoxFinding = (attrs, src, start) => {
   return `sits in a <${box.tag}> with no title: a table in a box is a widget, named by the box — a <Heading textStyle="Heading/Subheading"> above the table${box.tag === "ListBox" ? " or the ListBox header" : ""}; a table that is page content sits straight on the page under its Heading/4 (usage rules §14)`;
 };
 /**
- * chip/row-gap and tag/row-gap (the user 2026-10-24: "spacing giữa các chip là 8px, giữa các tag là 4px"): chips side by
- * side sit Gap/XSmall (8px, gap="xs") apart, tags Gap/2XSmall (4px, gap="2xs"). A Stack whose children are all Chips (or
- * all Tags), two or more as rendered, takes that gap; one whose gap varies is left alone. Message, or false.
+ * chip/row-gap, tag/row-gap and badge/row-gap (the user 2026-10-24: "spacing giữa các chip là 8px, giữa các tag là 4px";
+ * 2026-10-26: "áp dụng rule tương tự cho badge"): chips side by side sit Gap/XSmall (8px, gap="xs") apart, tags and
+ * badges Gap/2XSmall (4px, gap="2xs"). A Stack whose children are all Chips (or all Tags, or all Badges / BadgeStatus),
+ * two or more as rendered, takes that gap; one whose gap varies is left alone. Components that lay out such rows in
+ * their own CSS are checked at runtime (platform audit `item-row-gap`). Message, or false.
  */
-const ROW_GAP = { Chip: { want: "xs", what: "chips", token: "Gap/XSmall (8px)" }, Tag: { want: "2xs", what: "tags", token: "Gap/2XSmall (4px)" } };
+const ROW_GAP = {
+  Chip: { want: "xs", what: "chips", token: "Gap/XSmall (8px)", names: ["Chip"] },
+  Tag: { want: "2xs", what: "tags", token: "Gap/2XSmall (4px)", names: ["Tag"] },
+  Badge: { want: "2xs", what: "badges", token: "Gap/2XSmall (4px)", names: ["Badge", "BadgeStatus"] },
+};
 const rowGapFinding = (kind, attrs, src, start) => {
   if (inCodeSample(src, start) || opaque(attrs)) return false;
   const { nodes } = cardTree(src);
   const me = nodes.find((n) => n.start === start);
   if (!me) return false;
   const childrenOf = (n) => nodes.filter((o) => o.parent === n.id && o.start >= n.body);
-  // Each item is the Chip / Tag itself, or a list item (li, a Stack or Box) that holds only it.
-  const holds = (n) => n.name === kind || (["li", "Stack", "Box", "span", "div"].includes(n.name) && childrenOf(n).length === 1 && childrenOf(n)[0].name === kind);
+  // Each item is the Chip / Tag / Badge itself, or a list item (li, a Stack or Box) that holds only it.
+  const { names } = ROW_GAP[kind];
+  const holds = (n) => names.includes(n.name) || (["li", "Stack", "Box", "span", "div"].includes(n.name) && childrenOf(n).length === 1 && names.includes(childrenOf(n)[0].name));
   const kids = childrenOf(me);
   if (!kids.length || !kids.every(holds)) return false;
   if (kids.reduce((sum, n) => sum + (Number.isFinite(n.count) ? n.count : 2), 0) < 2) return false;
@@ -1929,6 +1936,9 @@ export const rules = [
   { id: "tag/row-gap", components: ["Stack"], severity: "error", allow: "tag-gap", guideline: "docs/guidelines/tag.md",
     summary: "Tags side by side sit Gap/2XSmall (4px) apart: a Stack of Tags takes gap=\"2xs\".",
     check: ({ attrs, src, start }) => rowGapFinding("Tag", attrs, src, start) },
+  { id: "badge/row-gap", components: ["Stack"], severity: "error", allow: "badge-gap", guideline: "docs/guidelines/badge.md",
+    summary: "Badges side by side sit Gap/2XSmall (4px) apart, as Tags do: a Stack of Badges (or BadgeStatus) takes gap=\"2xs\".",
+    check: ({ attrs, src, start }) => rowGapFinding("Badge", attrs, src, start) },
   { id: "chip/radio-is-chip-group", components: ["Chip"], severity: "warn", allow: "chip-radio", guideline: "docs/guidelines/chip.md",
     summary: "Chips where exactly one is picked are a <ChipGroup> (radio group: one Tab stop, arrow keys), not Chips given role=\"radio\" by hand.",
     check: ({ attrs }) => literal(attrs, "role") === "radio" && "is a hand-made radio chip — use <ChipGroup options value onValueChange> (roving focus, arrow keys, aria-checked)." },
