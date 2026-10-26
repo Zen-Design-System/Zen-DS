@@ -934,14 +934,39 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     return { type: "INSTANCE", ...(id ? { id } : {}), ...(key ? { key } : {}), name, set, props, ...(label ? { text: label } : {}) };
   }
 
+  /** A Sidebar row's Theme and State as Figma's Menu-Item (Sidebar.tsx SidebarItemView: Neutral unless `theme="accent"`,
+   *  `disabled` before `state`), written either way so a row already in Figma follows the change. */
+  const MENU_ITEM_STATE = { hover: "Hover", focus: "Focus", disabled: "Disabled" };
+  const menuItemLook = (fields) => ({ Theme: fields.theme === "accent" ? "Accent" : "Neutral", State: fields.disabled === true ? "Disabled" : MENU_ITEM_STATE[fields.state] ?? "Default" });
+
   /** SidebarMenuItem as Figma's Menu-Item: its row, and its counter (Sidebar.tsx: a Badge-Counter after the label) in
-   *  the Counter it shows; the rail's rows mark it with their Noti-Dot (sidebarRail). */
+   *  the Counter it shows; the rail's rows mark it with their Noti-Dot (sidebarRail). Its Density is its Sidebar's
+   *  (sidebarRowDensity). */
   function sidebarItemNode(code, id) {
-    const node = itemNode(SETS.menuItem, code, { id });
+    const node = itemNode(SETS.menuItem, code, { id, look: menuItemLook(code) });
     const counter = typeof code.counter === "number" || typeof code.counter === "string" ? String(code.counter).trim() : "";
     Object.assign(node.props, onlyOwn(node.set, { Counter: counter !== "" }));
     if (counter) node.nested = [...(node.nested ?? []), { path: "Counter", props: {}, text: counter }];
     return node;
+  }
+
+  /**
+   * A Sidebar's Menu-Item rows in its density, as Sidebar.tsx resolves it (`density`, else its AppShell's: pattern="grid"
+   * is small, else medium) and sidebar.css draws it: Figma's Density on every row, written either way so the rows of a
+   * Sidebar already in Figma swap with a density change (user 2026-10-26: "Khi đổi density của sidebar thì các item cũng
+   * đổi variant theo density đó"). variant="small-density" always has 36px rows (Figma's Small-Density set: Small); a
+   * Basic Sidebar's Footer-Content keeps 44px rows at Density=Small (sidebar.css), Figma's Medium.
+   */
+  function sidebarRowDensity(slots, code, parent) {
+    const variant = code.variant ?? "basic";
+    const small = variant === "small-density" || (code.density ?? (parent?.shellPattern === "grid" ? "small" : "medium")) === "small";
+    const write = (layers, density) => {
+      for (const layer of layers ?? []) {
+        if (layer?.set?.id === SETS.menuItem.id) Object.assign(layer.props, onlyOwn(layer.set, { Density: density }));
+        else if (layer?.type === "FRAME") write(layer.children, density);
+      }
+    };
+    for (const slot of slots) write(slot.children, small && !(variant === "basic" && slot.name === "Footer-Content") ? "Small" : "Medium");
   }
 
   /** A Segmented's Level and Size on its items (Segmented.tsx: secondary, md; "overlay" = Black-Overlay), as Figma's item options. */
@@ -1036,8 +1061,9 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     const footer = [];
     // A Sidebar the AppShell collapses (defaultSidebarCollapsed) is drawn as the rail too.
     const shellSidebar = sidebar?.name === "Sidebar" && collapsed && literalOf(sidebar.props.collapsed) === undefined ? { ...sidebar, props: { ...sidebar.props, collapsed: literal(true) } } : sidebar;
-    // Its Side-Bar alone (inShell): the master or the row puts it in Patterns/Sidebar with its look.
-    const sidebarNode = shellSidebar ? convert(shellSidebar, { direction: "row", stretch: true, inShell: true }) : null;
+    // Its Side-Bar alone (inShell): the master or the row puts it in Patterns/Sidebar with its look (its rows' density
+    // by the shell's pattern, sidebarRowDensity).
+    const sidebarNode = shellSidebar ? convert(shellSidebar, { direction: "row", stretch: true, inShell: true, shellPattern: code.pattern }) : null;
     // collapse="sidebar": the toggle is the Side-Bar's own Collapse Button.
     if (shellToggles && code.collapse === "sidebar" && sidebarNode?.type === "INSTANCE") sidebarNode.props = { ...sidebarNode.props, "Collapse Button": true };
     const look = shellSidebar?.name === "Sidebar" ? sidebarLook(shellSidebar, collapsed, code.pattern) : null;
@@ -1995,9 +2021,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     // A Segmented shows `value`, else `defaultValue`, else its first option selected (Segmented.tsx).
     const selectedId = owner === "Segmented" ? code.value ?? code.defaultValue ?? (Array.isArray(value) ? value[0]?.id : undefined) : code[SELECTED_PROP[owner]];
     // A Segmented's items take its Level and Size (Figma's item starts Small Primary); they split a full-width one.
+    // A Sidebar's rows their own Theme and State (menuItemLook).
     const look = owner === "Segmented" ? segmentLook(code) : {};
     const fill = owner === "Segmented" && code.fullWidth === true ? { fillW: true } : {};
-    const item = (fields) => ({ ...itemNode(items.item, fields ?? {}, { selected: fields?.id !== undefined && fields.id === selectedId, labelKey, iconKey, look }), ...fill });
+    const item = (fields) => ({ ...itemNode(items.item, fields ?? {}, { selected: fields?.id !== undefined && fields.id === selectedId, labelKey, iconKey, look: owner === "Sidebar" ? menuItemLook(fields ?? {}) : look }), ...fill });
     const list = Array.isArray(value) ? value : [];
     // A crumb draws its chevron as the slot's Dash (all but the last) and its look on the Item inside (Breadcrumbs.tsx:
     // the first crumb is Master while `master` is on, Emphasis from the crumb or the trail).
@@ -2584,6 +2611,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     // or where its AppShell puts the toggle (collapse="sidebar", appShellNode).
     if (element.name === "Sidebar" && (code.variant ?? "basic") !== "workspace") node.props = { ...node.props, "Collapse Button": "onCollapsedChange" in element.props };
     if (element.name === "Sidebar" && literalOf(element.props.collapsed) === true && (code.variant ?? "basic") !== "workspace") sidebarRail(element, node, slots);
+    if (element.name === "Sidebar") sidebarRowDensity(slots, code, parent);
     if (element.name === "ListBox") for (const slot of slots) if (slot.name === "Body-Slot") slot.hugH = true;
     // A workspace Sidebar's sections went to a Body-Content its set does not have (no menu in Figma; corpus test 2026-10-18).
     if (element.name === "Sidebar" && node.set?.name === "Side-Bar/Master/Workspace") for (const slot of slots) slot.name = WORKSPACE_SLOTS[slot.name] ?? slot.name;
