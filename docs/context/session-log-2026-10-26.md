@@ -377,10 +377,17 @@ Bắt đầu PR A (library), rồi PR B và plugin"). Branch `zen/feat/grid-span
   chart-bars, metric-trend and caption-light branches also edit those files).
 - Docs: Layout guideline row "Cell span", a Use line, a Do (one 12-column grid, rows adding up to 12) and a Don't (no
   order / dense to fill holes); `guidelines:build`, docs/api for Layout, Card, ListBox, Chart, Metric; `ai-ui:build`.
-- Platform: Layout page example "One dashboard grid" (KPIs 3, the hero 8, the list 4 × 2 rows, two breakdowns 4;
-  tablet 6 columns, phone 2 with KPI tiles), on the page only (beside a phone frame its 12 columns would be too narrow).
+- Platform: Layout page example "One dashboard grid" (KPIs 3, the hero 8 beside a 5-row list 4, three breakdowns 4:
+  donut, BarList, 4 bullet goals; tablet 6 columns in pairs, phone 2 with Small KPI tiles), on the page only (beside a
+  phone frame its 12 columns would be too narrow).
 - D6 changed while building: `DashboardTemplate` stays on its auto-fit rows, since spans follow the breakpoint and the
   template reflows by its own width in a narrow desktop window (plan §10, a follow-up to decide).
 - Tests: `tests/interaction/grid-span.test.tsx` (track counts, clamps, real widths at 1200, row span, stackBelow, the
   tablet breakpoint, the four widget boxes, nothing outside a Grid). Static: tsc, usage:check + selftest, style:check,
-  guidelines:check.
+  guidelines:check. CI's first run failed two of these tests on test mistakes (a fixed-height row-span cell; MetricCard
+  hands data-testid to its inner Metric), fixed in 2a112b03; the file then passed 11/11 in Giám sát's short slot.
+- **Gate** (Giám sát's GO, `qa --isolated --pages=layout,card,chart,metric,list-item --files=` the PR's source files,
+  head 747d66c3): PASS, Vitest 93/93, Figma contracts 33 suites, behaviour ✓; 6 new warnings, all in the new example
+  (the list title's style beside ChartCard titles, Shadow tiles on Canvas/Default). The sheets also showed a phone
+  amount wrapping in a Medium tile and a two-row list half empty. Fixed (Body/Extra/Medium title, flat Small tiles, the
+  list one row beside the hero, a third breakdown, four goals, "vs. Sep"); `--only=layout` reruns: PASS, 0 warnings.
