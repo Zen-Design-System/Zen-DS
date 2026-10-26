@@ -25,7 +25,7 @@ function verticalCase(spec) {
   const ticks = child(plot, "X-Axis").c;
   // $0 … $125K (six labels): each bar's height on the 146px grid is its value.
   const data = bars.map((bar, i) => ({ label: textOf(ticks[i]), value: Math.round(((bar.h / child(plot, "Grid").h) * 125000) / 100) * 100, ...(fillOf(bar) === PALE ? { projected: true } : null) }));
-  return { data, height: child(spec, "Chart").h, format: "usdK", initialIndex: data.reduce((last, d, i) => (d.projected ? last : i), 0) };
+  return { data, height: child(spec, "Chart").h, format: "usdK" };
 }
 
 function horizontalCase(spec) {

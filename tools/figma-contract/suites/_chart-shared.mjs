@@ -21,6 +21,11 @@ export const findAll = (node, test, out = []) => {
 /** The text of the first TEXT layer under `node`. */
 export const textOf = (node) => (node?.t === "TEXT" ? node.txt : findAll(node, (item) => item.t === "TEXT")[0]?.txt);
 
+/** The period a sector chart shows active: its Sector at Select=Selected (the hover state, with its Tooltip). Every
+ *  chart set shows none since 2026-10-26 (the user: the active state comes only with its Tooltip, on hover), and the
+ *  code then shows none either, so the case passes no initialIndex. */
+export const pickedSector = (sectors) => { const index = sectors.findIndex((sector) => /Selected/.test(sector.main ?? "")); return index >= 0 ? { initialIndex: index } : {}; };
+
 /** The Chart Card around a set's chart: width, title, icon, open button, ranges and metric, as the variant shows them. */
 export function cardProps(spec, prefix) {
   const body = prefix ? at(spec, prefix) : spec;

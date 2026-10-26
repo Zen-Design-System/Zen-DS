@@ -151,7 +151,7 @@ Bar Horizontal) and the `Sector` variant that holds your periods (4 · 6 · 7 ·
 | Header | `Title` alone, then the Hint (i) and `Show Open` when the chart opens a report | an icon before the title (`Show Icon` stays off; audit `chart/header-icon`) |
 | What the chart counts, its source, how the figure is worked out | `Show Hint` on: the (i) after the title holds it in a Tooltip (code: `hint`) | a line of description in the card |
 | The figure | `Metric Label` names it in a few words ("Invoiced so far in 2026"), `Value` under it | a sentence in Metric Label (audit `chart/metric-label-is-description`) |
-| Tooltip and active period | off on a screen: code shows them only under the pointer (`Show Tooltip` off on the chart and its selected Sector) | a Tooltip left on in a static screen (audit `chart/tooltip-on`); keep one only in a frame named for the hover state |
+| Active period and Tooltip | none on a screen: code shows them only under the pointer. They come together: `Hover` on (Bar, Area, Multi-Line, Heatmap) or the exposed Sector at `Select=Selected` (Line, Multi-Line, Stack-Bar) draws the active period with its Tooltip | an active period without its Tooltip, or a hover state left on in a static screen (audit `chart/tooltip-on`); keep it only in a frame named for the hover state |
 | Columns and bars | the set's own: columns edge to edge 8px apart, rounded on top over a flat base; horizontal bars 8px apart, flat at the axis; Donut slices 2px apart | padding, max widths or radii set by hand |
 | Colours | the set's `Color` (Primary · Secondary) and the Color Chart styles | raw fills on bars or slices |
 

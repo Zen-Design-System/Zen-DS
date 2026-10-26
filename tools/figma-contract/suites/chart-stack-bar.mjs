@@ -3,7 +3,7 @@
 // stack plot (the Line-Chart's 14-row Trend grid) · a centred Legend that wraps. Five series stack bottom-up in the Color
 // Chart Sector order (Primary, Secondary, Support Cyan, Violet, Yellow Solid; the first two swapped under Secondary) in
 // columns that run edge to edge Spacing/Gap/XSmall apart, Corner-Radius/Small on the top corners over a flat base.
-import { at, cardMap, cardProps, child, legendMap, paletteOf, textOf } from "./_chart-shared.mjs";
+import { at, cardMap, cardProps, child, legendMap, paletteOf, textOf, pickedSector } from "./_chart-shared.mjs";
 import { trendMap, xLabelExceptions } from "./_chart-trend.mjs";
 
 const PLOTS = [4, 6, 7, 12].map((n) => `Chart/Stack-Chart/Comparison-Stack/Specifics/${n}-Sectors`);
@@ -29,7 +29,7 @@ export default {
     return {
       ...cardProps(spec, "Elements"),
       chart: "stack",
-      chartProps: { data, series, height: plot.h, format: "usdK", palette: paletteOf(vp), initialIndex: sectors.findIndex((sector) => /Selected/.test(sector.main)) },
+      chartProps: { data, series, height: plot.h, format: "usdK", palette: paletteOf(vp), ...pickedSector(sectors) },
     };
   },
   figmaExceptions: [
@@ -39,10 +39,6 @@ export default {
     // instance, and it carries Effect/Overlay; the other four are plain frames with no effect. Code draws no shadow on any.
     ...Array.from({ length: 12 }, (_, k) => ({ vp: {}, layer: `${SEGMENTS(k)} > .Primitives/Chart/Column/Stack-Bar/Value-Sector`, prop: "fx", code: "none",
       note: "Only the fourth segment (the Value-Sector instance) carries Effect/Overlay in Figma; the other segments and every other stack draw none." })),
-    // Open question (QUESTIONS.md Charts (P2) (a), chart-parity-audit §2.2): code eases the columns that aren't active to
-    // 88%; every Figma column is at 100%.
-    ...Array.from({ length: 12 }, (_, k) => ({ vp: {}, layer: `${COLUMN}#${k} > Container > Value`, prop: "op", code: "0.88",
-      note: "Columns that aren't active ease to 88% in code; Figma keeps them at 100% (QUESTIONS.md Charts (P2) (a))." })),
   ],
   map: [
     ...cardMap("Elements"),

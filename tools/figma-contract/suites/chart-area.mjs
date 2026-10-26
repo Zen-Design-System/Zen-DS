@@ -3,8 +3,8 @@
 // legend; the Segmented is hidden). The bar charts' frame: a right-aligned Y-Axis, the Grid (Line-1 … Line-5 dashed
 // Border/Neutral/Pale over a solid Border/Active/Neutral/Subtle Baseline), the X-Axis, and the Marks: each series a 2px
 // Color Chart Sector line over its area fading Solid → Subtle at 30% (Accent, Neutral, Support/Cyan; the first two
-// swapped under Secondary). Type=Area shows the active period: the rule from the dot down, the 12px dot and the Tooltip
-// beside it; Figma draws no active state on Type=Stacked (chart-parity-audit-2026-10-17 §3), so those marks go unchecked.
+// swapped under Secondary). The active period (the rule from the dot down, the 12px dot and the Tooltip beside it) is the
+// set's Hover, off at rest as code's (only under the pointer, the user 2026-10-26).
 // The values are read back from the marks' bounds (the active point at the top, each series' lowest point at its foot),
 // so every line and area box compares.
 import { cardMap, cardProps, child, legendMap, textOf } from "./_chart-shared.mjs";
@@ -38,7 +38,7 @@ export default {
     return {
       ...cardProps(spec),
       chart: "area",
-      chartProps: { data, series, type: stacked(vp) ? "stacked" : "area", height: 6 + GRID + 28, palette: vp.Color === "Secondary" ? "secondary" : "primary", initialIndex: n - 1 },
+      chartProps: { data, series, type: stacked(vp) ? "stacked" : "area", height: 6 + GRID + 28, palette: vp.Color === "Secondary" ? "secondary" : "primary" },
     };
   },
   figmaExceptions: [
@@ -49,10 +49,6 @@ export default {
     ...Array.from({ length: 12 }, (_, k) => ({ vp: {}, layer: `Chart > Plot > X-Axis > Tick#${k} > *`, prop: "cy", code: "304",
       note: "Area X labels: a 20px pill Spacing/Gap/2XSmall above the plot's foot in code, plain text at the foot in Figma (QUESTIONS.md Charts (P2) (a))." })),
     { vp: { Type: "Stacked" }, layer: "Legend", prop: "y", code: "334", note: "Area lanes: the chart is 2px taller in code (see Chart.h)." },
-    // Figma draws no selected X label on the Area set (chart-parity-audit §3); code marks the active period's pill
-    // (Background/Active/Neutral/Subtle, Content/Neutral/Strongest), as every sector chart.
-    ...Array.from({ length: 12 }, (_, k) => ["rgb(18, 18, 18)", "rgb(253, 253, 253)"].map((code) => ({ vp: {}, layer: `Chart > Plot > X-Axis > Tick#${k} > *`, prop: "color", code,
-      note: "The active X label is Content/Neutral/Strongest in code; Figma's Area set draws no selected label." }))).flat(),
   ],
   map: [
     ...cardMap(),
