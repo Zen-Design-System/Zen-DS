@@ -288,3 +288,41 @@ sidebar thì các item cũng đổi variant theo density đó".
 - **Gate** (`qa --isolated --files=` the three tools/studio files; the worktree's edits were not in the hook ledger, so a
   plain run found nothing to check): static, studio:selftest, TypeScript and nested layer names all pass; Studio E2E
   380 works · 0 broken (4 shards, 1722 s). Report `.qa/reports/2026-10-26T04-49-36-0958d62c.md`.
+
+## caption-light · Caption text is always Light (tier M, PR #318, branch claude/caption-light-check-23432b)
+
+User: "Mở phiên thêm check: chữ dùng text style Caption phải là tông Light (harness + audit lúc chạy + audit Figma), rồi
+sửa mọi chỗ đang sai trong component, ví dụ và Studio." Mid-task: "Metric label cũng là light".
+- **Spec card.** Element: any TEXT in Caption/Regular · Medium · Bold, plus a metric's label (`.zen-metric__label`,
+  `.zen-metric-tile__label`; Figma Metric-Tile Metric-Title, Metric-Inline Icon-Highlight Label). Token: the family's
+  Light (Neutral/Light on Canvas, Surface, Pale, Container, Popover; Inverse / On-*-Overlay Light on dark or imagery; a
+  colour's Light for an error). Exceptions (4): on a Solid or Subtle fill follows the fill (§7); On-Colors, On-Brights,
+  On-Accent; states (Disabled, Placeholder, Hyperlink, today/now/current in Accent); the Lights group takes Base.
+  Title-Highlight's label is a title (Strongest), not a metric label. No keyboard/APG change.
+- **Figma first** (live file, read-only scan of every ❖ page + Operation Components): the only non-Light Captions on a
+  surface were the ones fixed below; Avatar, Badge, Badge-Counter, Calendar events, Gantt bars, chat "You" bubble,
+  Notification-Dot sit on their own fill (exception 1). Chart labels were already rebound to Light by the chart-bars
+  session (its branch also turns `.zen-chart__legend` and `.zen-chart__stage-count` Light; chart files stay theirs).
+- **Harness** `text/caption-light` (error, css + Text/Heading): literal tone, or the tone words of a conditional (not the
+  strings it compares); no tone = Strongest = finding. CSS: a block with the caption font size or a
+  `.zen-type-caption-*` selector and a non-Light `color:` content token. 47 findings in the repo, all fixed (one
+  `zen-allow-caption-light`: shape.tsx room names on their own Subtle fill). usage selftest 262 rules.
+- **Runtime** kind `caption-light` in `qualityChecks` (style from the nearest `.zen-type-*` class, else metrics; tone from
+  `toneName`, else `toneOf`); skips text whose nearest painted background is not a surface token, and states. audit.mjs
+  BASELINED/SEVERITY/addQuality, qa ERROR_KINDS; 8 selftest fixtures, platform-audit selftest 90/90.
+- **Figma audit** `text/caption-light` in `zen-figma-audit.js` (+ audit-rules.md, screen-rules.md). The harness is 108 KB,
+  over use_figma's 50 KB code limit, so the library run used its own check functions verbatim in a small runner (layers
+  hidden behind boolean properties included: Slider's Label-Range, Calendar's More).
+- **Figma fixes** (147 TEXT layers rebound, read back after each): Calendar Day-Cell More ×3, Agenda-Item Meta ×14,
+  Month Weekday ×7, Time-Grid Weekday ×12; Schedule Resource Name ×2, Itinerary Meta ×2, Event-Card Range ×8,
+  Resource-Grid Label ×21; Rating NPS-Scale labels ×4; Stepper error Caption ×6 (→ Negative/Light); Metric-Tile
+  Metric-Title ×4 (2 → Inverse/Light); Slider Number ×48; Timeline Gantt-Bar Title ×2, Gantt Label ×2, Week ×12.
+  native-defs.json.gz patched for the 147 nodes (round trip checked; Inverse/Light had no shared paint, one appended at
+  #FFFFFF98); native-pack.json holds no fills. figma-native selftest 162. No contract suite covers these sets.
+  The library needs a publish. Designer screens left as warnings: ◆ Logistic 5613:1146, 12084:93091, 6091:22188,
+  12084:93562, 12084:95140 (five quick-action labels each, Neutral/Strongest).
+- **Code**: schedule.css, calendar.css, timeline.css, rating.css, slider.css, stepper.css, metric-widget.css, chat.css,
+  top-navigation.css (overlay types only; on a colour band the subtitle is on a fill); JSDoc notes updated; Studio UI
+  (AgentPanel, MyPages, NewPageDialog, StudioFolders, QuickInsert, PrototypePanel, AssetsPanel, ProjectSetup, ProjectsHome,
+  ThemePreview, PagesPanel, ReadOnlyChip) and the app-shell examples (code samples too). Studio detach: an XSmall Badge's
+  Caption label carries `zen-allow-caption-light` (it sits on the Badge's fill).
