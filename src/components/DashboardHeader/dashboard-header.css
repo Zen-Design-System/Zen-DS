@@ -15,6 +15,7 @@
 .zen-dashboard-header__search { display: flex; min-width: 0; flex: 0 1 var(--zen-dashboard-header-search-basis, 240px); }
 .zen-dashboard-header__search > * { width: 100%; min-width: 0; }
 .zen-dashboard-header__controls { display: flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* zen-allow-subtext-light: the Control-Bar's Subheading is the result count ("96 results"), a value, not a Subtext (the user 2026-10-16). */
 .zen-dashboard-header__subheading { min-width: 0; flex: 0 1 auto; overflow: hidden; color: var(--zen-color-content-neutral-strongest, #121212); text-overflow: ellipsis; white-space: nowrap; }
 /* Actions FILL the rest. Their base size is their buttons' width, so when they do not fit the row wraps them to a line
    of their own (still right-aligned); a line narrower than the buttons wraps the buttons inside it. */

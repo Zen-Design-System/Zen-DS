@@ -64,8 +64,9 @@
 //                                     Content/On-Accent (Metric-Tile On-Accent); Yellow, Sky, Mint, Golden, Warning →
 //                                     Content/On-Brights (Metric-Tile On-Bright); any other Support, Positive, Negative, Info solid →
 //                                     Content/On-Colors (Metric-Tile On-Color); chips on a colour solid are On-Color
-//   text/caption-light       error    text in a Caption style (Caption/Regular, Medium, Bold), or a metric's label (Metric-Tile
-//                                     Metric-Title, Metric-Inline Icon-Highlight Label), bound to a Content variable that is
+//   text/caption-light       error    text in a Caption style (Caption/Regular, Medium, Bold), or a label (a metric's: Metric-
+//                                     Tile Metric-Title, Metric-Inline Label; a field's: Description-List Term, Property-Field,
+//                                     Slider/Field and Inline-Field Label), bound to a Content variable that is
 //                                     not its family's Light (the user 2026-10-26): Neutral/Light on a surface, Inverse or
 //                                     On-*-Overlay Light on dark or imagery, a colour family's Light; the Lights group (Accent,
 //                                     Warning, Support/Yellow, Sky, Mint) takes Base. Text on a Solid or Subtle fill follows
@@ -73,6 +74,11 @@
 //                                     Placeholder and Hyperlink keep their token, and so do a state's variant (Today, Now,
 //                                     Selected…) and a Caption that is its item's main value, alone (a slot's time, a name
 //                                     under its avatar, a quick action's name)
+//   text/title-strongest     error    a title layer (Title, Step Title, Heading…) bound to a Content variable that is not a
+//                                     Strongest level (the user 2026-10-26: titles are always Strongest); a kicker (Body/Small/
+//                                     Bold, an All-Caps column title) and a state's variant (Past, Disabled, Selected…) keep theirs
+//   text/subtext-light       error    a heading's Subtext layer (Subtext, Subtitle, Subheading, Capline, Description) not
+//                                     bound to its family's Light (the Dashboard header's result count is a value)
 //   badge/count-uses-counter error    a Badge whose label is a number (a count): counts are Badge-Counter, the round pill
 //   navigation/back-chevron  error    a left arrow (icon-arrow-left-*, icon-arrow-narrow-left-*) as Back in a Top-Navigation,
 //                                     Nav-Action or Button on a phone or tablet screen: Back is icon-chevron-left-line-medium
@@ -1423,22 +1429,40 @@ function standaloneValue(node) {
   const siblings = parent.children.filter((child) => child !== node && child.visible !== false);
   return siblings.length > 0 && siblings.every((child) => child.type === "INSTANCE");
 }
-async function checkCaptionLight(node) {
+// A text's tone by its role (the user 2026-10-26): a title is Strongest ("tiêu đề luôn là strong"), a heading's Subtext
+// Light ("Subtext của heading cũng nên là light"), and so are a field's or a metric's label. Roles come from layer names.
+const TITLE_LAYER = /^(title|step title|heading|header[- ]title|card[- ]title|section[- ]title|page[- ]title)$/i;
+const SUBTEXT_LAYER = /^(subtext|sub[- ]?title|sub[- ]?heading|capline|description)$/i;
+const TITLE_OK = /Content\/(.+\/Strongest|On-Colors|On-Brights|On-Accent\/[^/]+|Disabled|(.+\/)?Placeholder|Hyperlink\/[^/]+)$/;
+const STATE_VARIANT = /(^|,\s*)(Today=Yes|Unread=Yes|State=(Now|Today|Current|Selected|Active|Checked|Pressed|Disabled|Unread)|Status=(Now|Current|Past))(,|$)/;
+async function checkTextTone(node) {
   const style = await styleOfText(node);
   const owner = ownerComponent(node);
-  const metric = Boolean(owner) && ((/Metric-Tile$/.test(owner.set) && node.name === "Metric-Title") || (/Metric-Inline/.test(owner.set) && /Icon-Highlight/.test(owner.variant) && node.name === "Label"));
-  if (!/^Caption\//.test(style ?? "") && !metric) return;
+  if (owner && /^(\.?Ops\b|_Cover)|Old\b/.test(owner.set)) return; // the file's documentation chrome
+  const label = Boolean(owner) && ((/Metric-Tile$/.test(owner.set) && node.name === "Metric-Title") || (/Metric-Inline/.test(owner.set) && /Icon-Highlight/.test(owner.variant) && node.name === "Label")
+    || (/Description-List\/Item$/.test(owner.set) && node.name === "Term" && style !== "Body/Base/Bold") || (/(Property-Field|Slider\/Field|Inline-Field)$/.test(owner.set) && node.name === "Label"));
+  // A kicker keeps Light: a Body/Small/Bold group header, an All-Caps column title (the user 2026-10-26: "Giữ Light").
+  const kicker = style === "Body/Small/Bold" || /^All-Caps\//.test(style ?? "");
+  // The Dashboard header's Control-Bar "Subheading" is the result count ("96 results"), a value (the user 2026-10-16).
+  const countLine = owner && /Dashboard\/Header$/.test(owner.set) && /Control-Bar/.test(owner.variant);
+  const role = TITLE_LAYER.test(node.name) && !kicker ? "title" : SUBTEXT_LAYER.test(node.name) && !countLine ? "subtext" : label ? "label" : /^Caption\//.test(style ?? "") ? "caption" : null;
+  if (!role) return;
   const paint = isMixed(node.fills) ? null : visiblePaints(node.fills).find((candidate) => candidate.type === "SOLID");
   const name = paint ? await paintVar(paint) : null;
-  if (!name || CAPTION_OK.test(name)) return; // a raw colour is paint/unbound's
-  // A Tooltip's label primitive has no fill of its own: the bubble around it paints one.
-  if ((owner && /Tooltip/.test(owner.set)) || (await onAFill(node))) return;
-  // A state's variant keeps its state's tokens: today, now, the current or selected one, pressed, disabled.
-  if (owner && /(^|,\s*)(Today=Yes|State=(Now|Today|Current|Selected|Active|Checked|Pressed|Disabled)|Status=(Now|Current))(,|$)/.test(owner.variant)) return;
-  if (!metric && standaloneValue(node)) return;
-  const family = name.replace("Color/", "").replace(/\/(Strongest|Base|Default)$/, "");
-  const fix = LIGHTS_GROUP.test(family) ? `${family}/Base` : `${family}/Light`;
-  report("text/caption-light", ERROR, node, `${metric ? "a metric label" : style} in ${name.replace("Color/", "")}: use ${fix} (Caption text and metric labels are always Light)`);
+  if (!name || (role === "title" ? TITLE_OK : CAPTION_OK).test(name)) return; // a raw colour is paint/unbound's
+  // A state's variant keeps its state's tokens: today, now, the current, selected or past one, unread, pressed, disabled.
+  if (owner && STATE_VARIANT.test(owner.variant)) return;
+  if (role !== "title") {
+    // A Tooltip's label primitive has no fill of its own: the bubble around it paints one.
+    if ((owner && /Tooltip/.test(owner.set)) || (await onAFill(node))) return;
+    if (role === "caption" && standaloneValue(node)) return;
+  }
+  const family = name.replace("Color/", "").replace(/\/(Strongest|Base|Light|Default)$/, "");
+  const fix = role === "title" ? `${family}/Strongest` : LIGHTS_GROUP.test(family) ? `${family}/Base` : `${family}/Light`;
+  const detail = `${{ title: "a title", subtext: "a heading's Subtext", label: "a label", caption: style }[role]} in ${name.replace("Color/", "")}: use ${fix} (titles are Strongest; Caption text, labels and Subtexts Light)`;
+  if (role === "title") report("text/title-strongest", ERROR, node, detail);
+  else if (role === "subtext") report("text/subtext-light", ERROR, node, detail);
+  else report("text/caption-light", ERROR, node, detail);
 }
 
 async function walk(node, instanceRoot, isRoot) {
@@ -1446,7 +1470,7 @@ async function walk(node, instanceRoot, isRoot) {
   const inInstance = Boolean(instanceRoot);
   if (!isRoot && !inInstance) checkBounds(node);
   if (node.type === "TEXT") {
-    if (!inInstance) { checkTextStyle(node); checkPaints(node); checkShiftedText(node); await checkOnWhiteSolid(node); await checkOnSolid(node); await checkCaptionLight(node); }
+    if (!inInstance) { checkTextStyle(node); checkPaints(node); checkShiftedText(node); await checkOnWhiteSolid(node); await checkOnSolid(node); await checkTextTone(node); }
     checkText(node, instanceRoot);
     return;
   }

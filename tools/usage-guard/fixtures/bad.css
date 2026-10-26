@@ -21,6 +21,10 @@
 .promo__label { --promo-label: var(--zen-color-content-accent-light); }
 /* expect: content/title-is-strongest */
 .card__title { color: var(--zen-color-content-neutral-light); }
+/* expect: content/title-is-strongest */
+.step__title { color: var(--zen-color-content-negative-base); }
+/* expect: text/subtext-light */
+.page-header__subtitle { color: var(--zen-color-content-neutral-base); }
 /* expect: content/colour-light-is-highlight */
 .callout__body { color: var(--zen-color-content-info-light); }
 /* expect: content/on-white-solid */

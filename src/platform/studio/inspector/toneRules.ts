@@ -1,6 +1,6 @@
 /**
  * Inline warnings for the Studio's tone picker: what the harness would flag for a tone on a Text or Heading
- * (tools/usage-guard/check-usage.mjs content/lights-no-light-text, heading/title-not-light,
+ * (tools/usage-guard/check-usage.mjs content/lights-no-light-text, text/title-strongest,
  * content/colour-light-is-highlight), said in the option's caption before the pick instead of at Save.
  */
 

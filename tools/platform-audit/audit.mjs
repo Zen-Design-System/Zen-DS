@@ -52,8 +52,8 @@
  *               fills it (widgetLayout)
  *   legend-column (--quality) a chart legend of ≥ 3 items one per line under its chart, with room for a row (widgetLayout)
  *   toolbar-search (--quality) a Search wider than 240px in a toolbar row beside other controls, at 768px and wider (widgetLayout)
- *   caption-light (--quality) text in a Caption style, or a metric's label, on a surface whose colour is not its family's
- *               Light level (the Lights group's Base, On-* and states pass; text on a fill is not judged) (qualityChecks)
+ *   text-tone   (--quality) a title not Strongest; Caption text, a metric's or a field's label, a heading's Subtext not
+ *               its family's Light level on a surface (the Lights group's Base, On-* and states pass) (qualityChecks)
  *   item-row-gap  (--quality) Tags side by side, or Badges side by side, not Spacing/Gap/2XSmall (4px) apart, across or
  *               down a wrap, a component's own CSS included (widgetLayout)
  *   table-lead    (--quality) a Table's first column with an initials Avatar that is not Solid or a Dock Icon that is not
@@ -123,7 +123,7 @@ const OUTLINE_KINDS = ["outline-h1", "outline-start", "outline-card", "outline-s
 // captions with no ellipsis, a few examples): there every kind is compared with the baseline, so only new findings fail
 // while the recorded ones wait in BACKLOG. 1512 and 390 keep the rule below.
 const BASELINE_ALL_KINDS = new Set([320]);
-const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "ladder", "density", "fit", "card-gap", "legend-column", "toolbar-search", "table-lead", "item-row-gap", "caption-light", "clip", "segmented-fit", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings", "elevation"]; // contrast, targets, outline-* and elevation stay warnings; baselined so only NEW ones are listed. surfaces (§11 border, shadow on Canvas/Alt) is never baselined: it found no existing debt, and --baseline-update must not accept it
+const BASELINED = ["scale", "roles", "hierarchy", "rhythm", "ladder", "density", "fit", "card-gap", "legend-column", "toolbar-search", "table-lead", "item-row-gap", "text-tone", "clip", "segmented-fit", "contrast", "targets", "outline-h1", "outline-start", "outline-card", "outline-siblings", "elevation"]; // contrast, targets, outline-* and elevation stay warnings; baselined so only NEW ones are listed. surfaces (§11 border, shadow on Canvas/Alt) is never baselined: it found no existing debt, and --baseline-update must not accept it
 const CSS = arg("css", null) ? fs.readFileSync(path.resolve(String(arg("css"))), "utf8") : null;
 if (CSS && BASELINE_UPDATE) { console.error("--css cannot be combined with --baseline-update: the injected CSS is not the page's real state."); process.exit(2); }
 const baseline = arg("no-baseline", false) ? {} : (() => { try { return JSON.parse(fs.readFileSync(BASELINE_FILE, "utf8")).keys ?? {}; } catch { return {}; } })();
@@ -562,7 +562,7 @@ function pageChecks({ scopeSel, mobile }) {
 }
 
 const sum = (r) => Object.values(r).reduce((n, list) => n + list.length, 0);
-const SEVERITY = { errors: "error", overflow: "error", counts: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", elevation: "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error", "card-gap": "error", "legend-column": "error", "toolbar-search": "error", "table-lead": "error", "item-row-gap": "error", "caption-light": "error", clip: "error", "segmented-fit": "warn" };
+const SEVERITY = { errors: "error", overflow: "error", counts: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", elevation: "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error", "card-gap": "error", "legend-column": "error", "toolbar-search": "error", "table-lead": "error", "item-row-gap": "error", "text-tone": "error", clip: "error", "segmented-fit": "warn" };
 
 async function run() {
   const browser = await chromium.launch();
@@ -601,7 +601,7 @@ async function run() {
       if (docOverflow) base.overflow.unshift("document scrolls horizontally");
       const entry = { ...base, errors: [...errors], playground: [], smoke: [] };
       // Build-QA: token scale, text styles, content hierarchy, rhythm (quality-checks.mjs). Playground and smoke add theirs below.
-      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "ladder", "fit", "card-gap", "legend-column", "toolbar-search", "table-lead", "item-row-gap", "caption-light", "clip", "segmented-fit"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
+      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "ladder", "fit", "card-gap", "legend-column", "toolbar-search", "table-lead", "item-row-gap", "text-tone", "clip", "segmented-fit"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
       // One scope's quality kinds: qualityChecks (text styles, tokens, hierarchy, rhythm), textFit (text wider than its box),
       // widgetLayout (card-gap, legend-column, toolbar-search, table-lead, item-row-gap), controlClip (a control cut off or covered) and segmentedFit (a phone
       // Segmented that does not fit).
@@ -612,7 +612,7 @@ async function run() {
         ...await page.evaluate(controlClip, { scopeSel }).catch((e) => (crash ? { clip: [`control clip check crashed: ${e.message.split("\n")[0]}`] } : null)),
         ...await page.evaluate(segmentedFit, { scopeSel }).catch((e) => (crash ? { "segmented-fit": [`segmented fit check crashed: ${e.message.split("\n")[0]}`] } : null)),
       });
-      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], density: [], fit: [], "card-gap": [], "legend-column": [], "toolbar-search": [], "table-lead": [], "item-row-gap": [], "caption-light": [], clip: [], "segmented-fit": [] });
+      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], density: [], fit: [], "card-gap": [], "legend-column": [], "toolbar-search": [], "table-lead": [], "item-row-gap": [], "text-tone": [], clip: [], "segmented-fit": [] });
       if (QUALITY) addQuality(await quality(".official-platform", true));
       if (DENSITY) {
         // Component Size: compare every Zen box Compact vs Comfortable; content that outgrows its box only in Comfortable is a

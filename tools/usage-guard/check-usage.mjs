@@ -1737,9 +1737,12 @@ export const rules = [
   { id: "text/caption-light", css: true, components: ["Text", "Heading"], severity: "error", allow: "caption-light", guideline: "docs/guidelines/text.md",
     summary: "Text in a Caption style (Caption/Regular · Medium · Bold) takes its family's Light level: tone=\"light\", inverse-light, on-black-overlay-light, on-white-overlay-light or a colour family's Light (Negative/Light error text); the Lights group (Accent, Warning, Support/Yellow · Sky · Mint) takes Base. Text on its own Solid fill (on-colors, on-brights, on-accent), states (disabled, placeholder, hyperlink) and a Caption that is its item's main value, alone (the only text beside an icon, a control or a picture, or of a button) keep their tone. Checks the Text/Heading tone, and CSS that pairs the caption font size or a .zen-type-caption-* class with another content colour (the user 2026-10-26).",
     check: (css) => (css.attrs !== undefined ? captionToneFinding(css.attrs, css.src, css.start) : captionCssFinding(css)) },
-  { id: "content/title-is-strongest", css: true, components: [], severity: "warn", allow: "title-level", guideline: "docs/guidelines/content-colors.md",
-    summary: "Neutral-family titles and headings use Strongest (Primary level); Base is for secondary text and Light for tertiary text.",
-    check: (css) => { if (!isTitleSel(css.selector)) return null; const d = textColourDecls(css.body).find((x) => new RegExp(`--zen-color-content-(${NEUTRAL_FAMILY})-(base|light)\\b`).test(x)); return d && `colours a title with \`${d.slice(0, 70)}\` — titles use the -strongest level.`; } },
+  { id: "content/title-is-strongest", css: true, components: [], severity: "error", allow: "title-level", guideline: "docs/guidelines/content-colors.md",
+    summary: "Titles and headings are always Strongest (the user 2026-10-26: \"tiêu đề luôn là strong\"), in a neutral family or a colour family (Negative/Strongest for an error step's title); Base is for long paragraphs and Light for captions, labels and meta. A state's selector (disabled, past) keeps its token.",
+    check: (css) => { if (!isTitleSel(css.selector) || /:disabled|\[data-(disabled|status="past")|\[aria-disabled/.test(css.selector)) return null; const d = textColourDecls(css.body).find((x) => new RegExp(`--zen-color-content-(${NEUTRAL_FAMILY}|${COLOUR_FAMILY})-(base|light)\\b`).test(x)); return d && `colours a title with \`${d.slice(0, 70)}\` — titles use the -strongest level.`; } },
+  { id: "text/subtext-light", css: true, components: [], severity: "error", allow: "subtext-light", guideline: "docs/guidelines/content-colors.md",
+    summary: "A heading's Subtext (subtitle, subtext, subheading, capline under a title) is Light (the user 2026-10-26: \"Subtext của heading cũng nên là light. Chỉ có paragraph chữ dài mới là base\"); a Dialog's or Side Panel's description is a paragraph and stays Base.",
+    check: (css) => { if (!roleWords(css.selector).some((w) => /^(subtitle|subtext|subheading|capline)$/i.test(w))) return null; const d = textColourDecls(css.body).find((x) => new RegExp(`--zen-color-content-(${NEUTRAL_FAMILY})-(strongest|base)\\b`).test(x)); return d && `colours a heading's Subtext with \`${d.slice(0, 70)}\` — a Subtext takes the -light level.`; } },
   { id: "content/on-white-solid", css: true, components: [], severity: "error", allow: "on-white-solid", guideline: "docs/guidelines/content-colors.md",
     summary: "Text and icons on a Background/White/Solid fill (white in light and dark mode: the white Tooltip, white overlay Buttons, On-Color Badge and Dock-Icon) take Content/On-White-Overlay/*: Neutral and Inverse flip with the mode and a raw black skips the token. Each state's content is judged against that state's fill (a white Button's Disabled sits on White-Disabled).",
     check: (css) => {
@@ -2017,15 +2020,19 @@ export const rules = [
       if (!style && tag === "Text" && !has(topLevel(attrs), "textStyle") && !opaque(attrs)) return "renders an h1 in Text's default Body/Base/Regular — a content h1 is Heading/1: use <Heading level={1}>.";
       return style && !large(style) && `is an h1 styled "${style}" — a content h1 is Heading/1 or a larger Display style, never smaller; drop textStyle, or use level 2 for a section title.`;
     } },
-  { id: "heading/title-not-light", components: ["Heading", "Text"], severity: "warn", allow: "title-light", guideline: "docs/guidelines/text.md",
-    summary: "Page, section and card titles (h1–h3) never take the Light tone: titles are Strongest. Only a Body/Small/Bold list group header (a kicker) uses Light (user decision 2026-10-03, Apple's 3:1 for bold text). Lower the level, not the colour.",
+  { id: "text/title-strongest", components: ["Heading", "Text"], severity: "error", allow: "title-strongest", guideline: "docs/guidelines/text.md",
+    summary: "Titles are always Strongest (the user 2026-10-26: \"tiêu đề luôn là strong\"): a Heading, or a Text set as h1–h6, never takes a Base or Light tone, in a neutral family or a colour family. Only a Body/Small/Bold list group header (a kicker) uses Light (user decision 2026-10-03). Lower the level, not the colour.",
     check: ({ tag, attrs }) => {
-      const tone = value(attrs, "tone")?.replace(/["'`\s]/g, "");
-      if (!/^(light|tertiary)$/.test(tone ?? "")) return null;
-      // A kicker (Body/Small/Bold group header) is the one heading that takes Light.
-      if (literal(attrs, "textStyle") === "Body/Small/Bold") return null;
-      const level = tag === "Heading" ? headingLevelOf(attrs) : Number(literal(attrs, "as")?.match(/^h([1-6])$/)?.[1]);
-      return level >= 1 && level <= 3 && `is an h${level} in the ${tone} tone — titles use Strongest (only a Body/Small/Bold group header, a kicker, uses Light); lower the level, not the colour.`;
+      const raw = value(attrs, "tone");
+      if (raw === undefined) return null;
+      const tones = literal(attrs, "tone") !== undefined ? [raw] : [...raw.matchAll(/["'`]([a-z-]+)["'`]/g)].map((m) => m[1]);
+      const level = tag === "Heading" ? headingLevelOf(attrs) ?? 2 : Number(literal(attrs, "as")?.match(/^h([1-6])$/)?.[1]);
+      if (!(level >= 1 && level <= 6)) return null;
+      const off = tones.map((t) => TONE_ALIASES[t] ?? t).find((t) => /^(base|light|[a-z-]+-(base|light))$/.test(t));
+      if (!off) return null;
+      // A kicker takes Light: a Body/Small/Bold group header, an All-Caps column title (the user 2026-10-26: "Giữ Light").
+      if (/^(light|tertiary)$/.test(off) && /^(Body\/Small\/Bold|All-Caps\/.+)$/.test(literal(attrs, "textStyle") ?? "")) return null;
+      return `is an h${level} in the ${off} tone — titles are Strongest (only a Body/Small/Bold group header, a kicker, uses Light); lower the level, not the colour.`;
     } },
   { id: "table/title-heading-4", components: ["Text", "Heading"], severity: "warn", allow: "table-title", guideline: "docs/guidelines/table.md",
     summary: "A table that is its own page section is titled by a <Heading level={2} textStyle=\"Heading/4\"> right above it (the Table points to it with aria-labelledby); a table inside a widget Card is titled by the widget title, <Heading textStyle=\"Heading/Subheading\"> (every widget title is Subheading); <Table caption> only names a table that already sits under a section heading. A <Text> title above a table is a paragraph, not a heading.",

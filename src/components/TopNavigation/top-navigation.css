@@ -127,7 +127,9 @@
    nav mobile thì là 44"), whatever Avatar size it was given. */
 .zen-top-nav :is(.zen-top-nav__leading, .zen-top-nav__trailing, .zen-top-nav__expand-trailing) .zen-avatar[data-size] { --zen-avatar-size: var(--zen-navigation-action-size, 44px); }
 .zen-top-nav__capline, .zen-top-nav__subheading { overflow: hidden; margin: 0; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); text-overflow: ellipsis; white-space: nowrap; }
-.zen-top-nav:is([data-type$="overlay"], [data-type="transparent-on-color"]) :is(.zen-top-nav__capline, .zen-top-nav__subheading) { color: var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 70%)); }
+/* A heading's Subtext over imagery is On-Black-Overlay/Light (Subtext is Light, the user 2026-10-26). */
+.zen-top-nav:is([data-type$="overlay"], [data-type="transparent-on-color"]) :is(.zen-top-nav__capline, .zen-top-nav__subheading) { color: var(--zen-color-content-on-black-overlay-light, rgb(255 255 255 / 49%)); }
+/* zen-allow-subtext-light: on a colour band the Subtext is text on a fill and takes the band's own content colour. */
 .zen-top-nav[data-type="transparent-on-color"] :is(.zen-top-nav__capline, .zen-top-nav__subheading, .zen-top-nav__identity-subtitle) { color: var(--zen-on-fill-content, var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 70%))); }
 /* Control-Bar (Figma Control-Bar 12014:44764 › Control-Slot 12014:44786): no padding and no height of its own (it hugs
    its slot), the slot a column of controls Spacing/Gap/XSmall (8) apart; each Figma screen wraps its controls in a
@@ -225,6 +227,7 @@ button.zen-top-nav__identity:focus-visible { outline: 3px solid var(--zen-color-
 /* Over imagery the subtitle (Caption/Regular) is On-Black-Overlay/Light: Caption text is always Light (the user 2026-10-26).
    On a colour band it is text on a fill and keeps On-Black-Overlay/Base. */
 .zen-top-nav[data-type$="overlay"] .zen-top-nav__identity-subtitle { color: var(--zen-color-content-on-black-overlay-light, rgb(255 255 255 / 49%)); }
+/* zen-allow-subtext-light: on a colour band the subtitle is text on a fill (above). */
 .zen-top-nav[data-type="transparent-on-color"] .zen-top-nav__identity-subtitle { color: var(--zen-color-content-on-black-overlay-base, rgb(255 255 255 / 70%)); }
 
 /* Grouped trailing actions: the dual Nav-Action (Figma Trailing-Icon on Nav-Action/Icon-Main 6085:33688 · Liquid-Glass

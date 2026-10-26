@@ -36,8 +36,8 @@
  *   item-row-gap (error) (widgetLayout) Tags side by side, or Badges side by side, that are not Spacing/Gap/2XSmall (4px)
  *              apart, across or down a wrap (the user 2026-10-24 tags, 2026-10-26 badges), the gap a component's own CSS
  *              sets included (harness tag/row-gap, badge/row-gap see only an app's Stack). Chip rows (8px) are not judged
- *   caption-light (error) text in a Caption style (Caption/Regular · Medium · Bold), and a metric's label (Metric
- *              label, Metric-Tile title), whose colour is not its family's Light level, on a surface (the user 2026-10-26).
+ *   text-tone  (error) a text's tone by its role (the user 2026-10-26): a title (h1–h6, a `__title` part) not Strongest;
+ *              Caption text, a metric's or a field's label, a heading's Subtext not its family's Light level, on a surface.
  *              Passes: the Lights group's Base, On-Colors / On-Brights / On-Accent, Disabled, Placeholder, Hyperlink; text on
  *              a fill, states (selected, current, today, disabled) and a Caption that is its item's main value, alone (a
  *              slot's time, a name under its avatar) are not judged (harness text/caption-light reads the source; this
@@ -51,7 +51,7 @@
  */
 
 export function qualityChecks({ scopeSel, regionSel }) {
-  const out = { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], "caption-light": [] };
+  const out = { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], "text-tone": [] };
   const scope = scopeSel ? document.querySelector(scopeSel) : document;
   if (!scope) return out;
   // `regionSel`: what counts as product UI — the docs' example stages by default; an app audit (zen-ds audit) passes "body".
@@ -190,22 +190,32 @@ export function qualityChecks({ scopeSel, regionSel }) {
       blocks.push({ el, text, st, level, heading, control: Boolean(el.closest(CONTROL)), tone: toneOf(el, t), top: el.getBoundingClientRect().top });
     }
 
-    /* ── caption-light: Caption text, and a metric's label, take their family's Light level ───────────────────────── */
-    // The user 2026-10-26: "chữ dùng text style Caption phải là tông Light", and "Metric label cũng là light". The style
-    // is the nearest .zen-type-* class, else the metrics; the tone is the token that paints the text (toneName), else any
-    // content token of its colour. Passes: a Light level, the single tokens for text on a Solid fill (On-Colors,
-    // On-Brights, On-Accent), Disabled, Placeholder, Hyperlink, and the Lights group's Base (Accent, Warning,
-    // Support/Yellow·Sky·Mint never take Light for text). Not judged: text on a fill (the nearest painted background is
-    // not a Canvas, Surface, Container, Popover or Pale token: a Badge, an Avatar, a Tooltip, an event block, a Subtle
-    // card follow the fill, usage rules §7), and states (disabled, selected, checked, pressed, current, today, now).
+    /* ── text-tone: a text's tone by its role (the user, 2026-10-26) ────────────────────────────────────────────────── */
+    // Titles are Strongest ("tiêu đề luôn là strong"); Caption text, a metric's or a field's label and a heading's Subtext
+    // are Light ("chữ dùng text style Caption phải là tông Light", "Metric label cũng là light", "Subtext của heading cũng
+    // nên là light"). A title is an h1–h6 or a component's `__title` part; a Caption, the nearest .zen-type-* class (else
+    // the metrics); a Subtext, a `__subtitle` / `__subtext` / `__subheading` / `__capline` part or a PageHeader's
+    // description. The tone is the token that paints the text (toneName), else any content token of its colour. Light
+    // roles pass a Light level, the single tokens for text on a Solid fill (On-Colors, On-Brights, On-Accent), Disabled,
+    // Placeholder, Hyperlink, and the Lights group's Base (Accent, Warning, Support/Yellow·Sky·Mint never take Light for
+    // text); titles pass a Strongest level, the single tokens, Disabled. Not judged: text on a fill for the Light roles
+    // (the nearest painted background is not a Canvas, Surface, Container, Popover or Pale token: a Badge, an Avatar, a
+    // Tooltip, an event block, a Subtle card follow the fill, usage rules §7), states (disabled, selected, checked,
+    // pressed, current, today, now, past), a Body/Small/Bold kicker, and a Caption that is its item's main value, alone.
     for (const b of blocks) {
       const typed = b.el.closest("[class*='zen-type-']");
       const typedName = typed && typeof typed.className === "string" ? typed.className.match(/\bzen-type-([\w-]+)/)?.[1] : null;
-      const caption = /^caption-/.test(typedName ?? b.st.name ?? "");
-      const metric = Boolean(b.el.closest(".zen-metric__label, .zen-metric-tile__label"));
-      if (!caption && !metric) continue;
-      if (b.el.closest(":disabled, [aria-disabled='true'], [data-disabled], [aria-selected='true'], [aria-checked='true'], [aria-pressed='true'], [aria-current]:not([aria-current='false']), [data-today], [data-now], [data-checked], [data-selected='true'], [data-status='current'], [role='tooltip'], .zen-tooltip")) continue;
-      const OK = /^content-(([\w-]+-)?light|on-colors|on-brights|on-accent(-default)?|disabled|([\w-]+-)?placeholder|hyperlink(-[\w]+)?|(accent|warning|support-(yellow|sky|mint))-base)$/;
+      const style = typedName ?? b.st.name ?? "";
+      const part = (re) => { for (let a = b.el; a && a !== region; a = a.parentElement) if (typeof a.className === "string" && re.test(a.className)) return a; return null; };
+      const titleEl = b.el.closest("h1, h2, h3, h4, h5, h6, [role='heading']") ?? part(/(^|\s)zen-[a-z-]+__title(\s|$)/);
+      const role = titleEl && !/^(body-small-bold|all-caps-.*)$/.test(style) ? "title"
+        : part(/(^|\s)zen-[a-z-]+__(subtitle|subtext|subheading|capline)(\s|$)|(^|\s)zen-page-header__description(\s|$)/) && !b.el.closest(".zen-dashboard-header__subheading") ? "subtext"
+        : b.el.closest(".zen-metric__label, .zen-metric-tile__label, .zen-property-field__label, .zen-slider-field__label, .zen-input__inline-label") ? "label"
+        : /^caption-/.test(style) ? "caption" : null;
+      if (!role) continue;
+      if (b.el.closest(":disabled, [aria-disabled='true'], [data-disabled], [aria-selected='true'], [aria-checked='true'], [aria-pressed='true'], [aria-current]:not([aria-current='false']), [data-today], [data-now], [data-checked], [data-selected='true'], [data-status='current'], [data-status='past'], [role='tooltip'], .zen-tooltip")) continue;
+      const SINGLE = "on-colors|on-brights|on-accent(-default)?|disabled|([\\w-]+-)?placeholder|hyperlink(-[\\w]+)?";
+      const OK = role === "title" ? new RegExp(`^content-(([\\w-]+-)?strongest|${SINGLE})$`) : new RegExp(`^content-(([\\w-]+-)?light|${SINGLE}|(accent|warning|support-(yellow|sky|mint))-base)$`);
       const named = toneName(b.el);
       const candidates = named ? [named] : b.tone.filter((n) => n.startsWith("content-"));
       if (!candidates.length || candidates.some((n) => OK.test(n))) continue;
@@ -213,7 +223,7 @@ export function qualityChecks({ scopeSel, regionSel }) {
       // là label… giá trị chính và là giá trị một mình": a slot's time, an opinion's word, a resource's name under its
       // avatar, a milestone's title): the largest box around it that holds no other text is a control, a component, or
       // holds a picture or an icon. Avatar, Dock Icon and Badge text and emoji do not count as other text.
-      if (caption && !b.el.closest("figcaption")) {
+      if (role === "caption" && !b.el.closest("figcaption")) {
         const textOf = (node) => { let all = ""; const w = document.createTreeWalker(node, NodeFilter.SHOW_TEXT); for (let n = w.nextNode(); n; n = w.nextNode()) { const host = n.parentElement; const t = n.textContent.trim(); if (!host || !t || host.closest(".zen-avatar, .zen-dock-icon, .zen-badge, svg") || /^[\p{Extended_Pictographic}\p{Emoji_Component}\uFE0F\u200D\s]+$/u.test(t)) continue; all += t; } return all; };
         const mine = textOf(b.el);
         let item = b.el;
@@ -222,22 +232,27 @@ export function qualityChecks({ scopeSel, regionSel }) {
         const component = typeof item.className === "string" && item.className.split(/\s+/).some((c) => /^zen-[a-z-]+$/.test(c) && !/^zen-(type-.*|text|heading|stack|box|grid)$/.test(c));
         if (item !== b.el && (control || component || item.querySelector("svg, img, picture, canvas, video, [role='img'], .zen-icon, .zen-avatar, .zen-dock-icon"))) continue;
       }
-      // The nearest painted background: a surface is judged, any other fill is the fill's business.
-      let fill = null;
-      for (let a = b.el; a && a !== region.parentElement; a = a.parentElement) {
-        const cs = getComputedStyle(a);
-        if (cs.backgroundImage && cs.backgroundImage !== "none") { fill = "image"; break; }
-        const bg = normColour(cs.backgroundColor);
-        if (bg && cs.backgroundColor !== "transparent" && !/rgba\([^)]*,\s*0\)$/.test(cs.backgroundColor)) { fill = (tokensFor(a).colours.get(bg) ?? []); break; }
+      // The nearest painted background: for the Light roles a surface is judged, any other fill is the fill's business.
+      if (role !== "title") {
+        let fill = null;
+        for (let a = b.el; a && a !== region.parentElement; a = a.parentElement) {
+          const cs = getComputedStyle(a);
+          if (cs.backgroundImage && cs.backgroundImage !== "none") { fill = "image"; break; }
+          const bg = normColour(cs.backgroundColor);
+          if (bg && cs.backgroundColor !== "transparent" && !/rgba\([^)]*,\s*0\)$/.test(cs.backgroundColor)) { fill = (tokensFor(a).colours.get(bg) ?? []); break; }
+        }
+        if (fill === "image" || (Array.isArray(fill) && !fill.some((n) => /^background-((canvas|surface|container|popover)(-|$)|neutral-pale-)/.test(n)))) continue;
       }
-      if (fill === "image" || (Array.isArray(fill) && !fill.some((n) => /^background-((canvas|surface|container|popover)(-|$)|neutral-pale-)/.test(n)))) continue;
       const tone = candidates[0];
-      const family = tone.replace(/^content-/, "").replace(/-?(strongest|base|default)$/, "") || "neutral";
-      const fix = /^(accent|warning|support-(yellow|sky|mint))$/.test(family) ? `content-${family}-base` : `content-${family}-light`;
+      const family = tone.replace(/^content-/, "").replace(/-?(strongest|base|light|default)$/, "") || "neutral";
+      const fix = role === "title" ? `content-${family}-strongest` : /^(accent|warning|support-(yellow|sky|mint))$/.test(family) ? `content-${family}-base` : `content-${family}-light`;
       const where = `${label(b.el)}: "${b.text.slice(0, 24)}" (${describe(b.el)})`;
-      push("caption-light", metric && !caption
-        ? `${where} is a metric label in ${tone} — a metric's label takes the Light level: ${fix}`
-        : `${where} is ${typedName ?? b.st.name} in ${tone} — Caption text takes its family's Light level: ${fix} (usage rules §7, Caption text)`);
+      push("text-tone", {
+        title: `${where} is a title in ${tone} — titles are always Strongest: ${fix}`,
+        subtext: `${where} is a heading's Subtext in ${tone} — a Subtext takes the Light level: ${fix}`,
+        label: `${where} is a label in ${tone} — a metric's or a field's label takes the Light level: ${fix}`,
+        caption: `${where} is ${style} in ${tone} — Caption text takes its family's Light level: ${fix} (usage rules §7, Caption text)`,
+      }[role]);
     }
 
     /* ── hierarchy ─────────────────────────────────────────────────────────────────────────────────────────────── */

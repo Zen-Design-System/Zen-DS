@@ -80,3 +80,7 @@
 /* text/caption-light: Caption text in Light; a Lights-group family's Caption at Base. */
 .file-row__meta { font-size: var(--zen-typography-font-size-caption); color: var(--zen-color-content-neutral-light); }
 .file-row__due { font-size: var(--zen-typography-font-size-caption); color: var(--zen-color-content-warning-base); }
+/* text/subtext-light, content/title-is-strongest: a Subtext in Light under a Strongest title; a past item's title keeps its state. */
+.page-header__subtitle { color: var(--zen-color-content-neutral-light); }
+.page-header__title { color: var(--zen-color-content-neutral-strongest); }
+.stop[data-status="past"] .stop__title { color: var(--zen-color-content-neutral-light); }

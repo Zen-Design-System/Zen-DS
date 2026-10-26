@@ -6840,7 +6840,7 @@
     "title": "Content colours (text & icons)",
     "purpose": "Text and icon colours share the Color/Content tokens, but the level depends on the family: neutral families map Strongest/Base/Light to the Primary/Secondary/Tertiary text roles; colour families use Strongest/Base for normal text on Subtle backgrounds and Light only for highlights; the Lights group (colours referencing Sky, Mint, Yellow or Zen) never uses Light for text.",
     "use": [
-      "Neutral families — Neutral, Inverse, On-Black-Overlay, On-White-Overlay: Strongest = Primary (titles, main content, values, primary icons); Base = Secondary (body copy, descriptions, secondary icons); Light = Tertiary (captions, meta, helper text, timestamps, quiet icons). Text in a Caption style is always its family's Light, and so is a metric's label (the user 2026-10-26; harness text/caption-light, runtime audit caption-light, Figma audit text/caption-light): Neutral/Light on a surface, Inverse or On-*-Overlay Light on dark or imagery, a colour's Light for an error; on a Solid or Subtle fill it follows the fill, the Lights group takes Base, and a Caption that is its item's main value, standing alone (a slot's time, an option's word, a name under its avatar), keeps its tone.",
+      "Neutral families — Neutral, Inverse, On-Black-Overlay, On-White-Overlay: Strongest = Primary (titles and headings, always; values and numbers; main content; primary icons); Base = Secondary, only for long paragraph text (body copy, a Dialog's or Side Panel's description) and secondary icons; Light = Tertiary (Caption text, a heading's Subtext, field / term / metric labels, meta lines, helper text, timestamps, kickers, quiet icons). The user 2026-10-26: \"tiêu đề luôn là strong\", \"Subtext của heading cũng nên là light. Chỉ có paragraph chữ dài mới là base\". Text in a Caption style is always its family's Light, and so is a metric's label (the user 2026-10-26; harness text/caption-light, runtime audit text-tone, Figma audit text/caption-light): Neutral/Light on a surface, Inverse or On-*-Overlay Light on dark or imagery, a colour's Light for an error; on a Solid or Subtle fill it follows the fill, the Lights group takes Base, and a Caption that is its item's main value, standing alone (a slot's time, an option's word, a name under its avatar), keeps its tone.",
       "Colour families — Accent, Info, Positive, Negative, Warning and every Support/* colour: Strongest and Base are regular text, the Primary and Secondary levels, placed on that colour's Subtle background (subtle Badge, Tag, Alert, callout).",
       "Colour Light, sparingly: short text or icons that must stand out — status icons, help or error text under a field, a condition (\"Not delivered\", \"Expires in 5 days\"), a positive or negative delta, a highlighted keyword. Only the Lights group never takes Light for text.",
       "Lights group — every family whose tokens reference the Sky, Mint, Yellow or Zen scales (similar low contrast); today Accent (Zen), Warning (Yellow) and Support/Yellow: text is Base at most (Strongest or Base); Light is only for icons. The harness derives the group from tokens.css."
@@ -6881,7 +6881,8 @@
     "keyboard": [],
     "do": [
       "Pick the family first (neutral vs colour), then the level by role: Primary → Strongest, Secondary → Base, Tertiary (neutral only) → Light.",
-      "Keep titles and headings at Strongest in neutral families; a list group header in Body/Small/Bold (a kicker label) takes Light.",
+      "Keep titles and headings at Strongest, always (a colour family's Strongest for a coloured title, Negative/Strongest for an error step); a kicker — a list group header in Body/Small/Bold, an All-Caps table column title — takes Light (harness text/title-strongest, content/title-is-strongest).",
+      "Set a heading's Subtext (subtitle, subheading, capline, a PageHeader description) in Light; keep Base for long paragraphs only (harness text/subtext-light).",
       "On a colour's Subtle background, set the text to Strongest (title) or Base (body) of the same colour and the icon to Light.",
       "Use colour Light sparingly for the one thing that must pop (status icon, delta, inline hint).",
       "In Lights-group components (Warning Badge/Alert, Accent text), keep the text at Base or Strongest and put the Light level on the icon only."
@@ -6919,9 +6920,15 @@
       },
       {
         "id": "content/title-is-strongest",
-        "severity": "warn",
-        "summary": "Neutral-family titles and headings use Strongest (Primary level); Base is for secondary text and Light for tertiary text.",
+        "severity": "error",
+        "summary": "Titles and headings are always Strongest (the user 2026-10-26: \"tiêu đề luôn là strong\"), in a neutral family or a colour family (Negative/Strongest for an error step's title); Base is for long paragraphs and Light for captions, labels and meta. A state's selector (disabled, past) keeps its token.",
         "allow": "title-level"
+      },
+      {
+        "id": "text/subtext-light",
+        "severity": "error",
+        "summary": "A heading's Subtext (subtitle, subtext, subheading, capline under a title) is Light (the user 2026-10-26: \"Subtext của heading cũng nên là light. Chỉ có paragraph chữ dài mới là base\"); a Dialog's or Side Panel's description is a paragraph and stays Base.",
+        "allow": "subtext-light"
       },
       {
         "id": "content/on-white-solid",
@@ -8864,10 +8871,10 @@
         "allow": "h1-style"
       },
       {
-        "id": "heading/title-not-light",
-        "severity": "warn",
-        "summary": "Page, section and card titles (h1–h3) never take the Light tone: titles are Strongest. Only a Body/Small/Bold list group header (a kicker) uses Light (user decision 2026-10-03, Apple's 3:1 for bold text). Lower the level, not the colour.",
-        "allow": "title-light"
+        "id": "text/title-strongest",
+        "severity": "error",
+        "summary": "Titles are always Strongest (the user 2026-10-26: \"tiêu đề luôn là strong\"): a Heading, or a Text set as h1–h6, never takes a Base or Light tone, in a neutral family or a colour family. Only a Body/Small/Bold list group header (a kicker) uses Light (user decision 2026-10-03). Lower the level, not the colour.",
+        "allow": "title-strongest"
       },
       {
         "id": "table/title-heading-4",

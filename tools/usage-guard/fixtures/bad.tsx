@@ -569,10 +569,13 @@ export const Bad = () => <>
   <h1 className={typographyStyles["Body/Extra/Bold"]}>Order #1042</h1>
   {/* expect: heading/h1-is-heading-1 */}
   <Text as="h1">Billing</Text>
-  {/* expect: heading/title-not-light */}
+  {/* expect: text/title-strongest */}
   <Heading level={2} tone="light">Recent activity</Heading>
-  {/* expect: heading/title-not-light */}
+  {/* expect: text/title-strongest */}
   <Heading tone="tertiary">Recent activity</Heading>
+  {/* Titles are always Strongest (the user 2026-10-26), Base too. */}
+  {/* expect: text/title-strongest */}
+  <Heading level={3} tone="base">Upcoming</Heading>
   {/* expect: description-list/one-emphasis */}
   <DescriptionList items={[{ term: "Subtotal", description: "$311.90", emphasis: true }, { term: "Total", description: "$321.90", emphasis: true }]} />
   {/* expect: icon/unknown-name */}
@@ -697,7 +700,7 @@ export const Bad = () => <>
   <Stack gap="none"><Text textStyle="Body/Small/Bold">Brief.pdf</Text><Text textStyle="Caption/Regular" tone="base">2 MB</Text></Stack>
   {/* expect: content/lights-no-light-text */}
   <Text tone="warning-light">Due tomorrow</Text>
-  {/* expect: content/lights-no-light-text */}
+  {/* expect: content/lights-no-light-text  expect: text/title-strongest */}
   <Heading level={3} tone={"support-yellow-light"}>Pending</Heading>
   {/* expect: api/overrides-studio-only */}
   <div><Card subAction={{ label: "More", onClick: act }} overrides={{ "Sub-Action": { level: "danger" } }}>Team</Card></div>
