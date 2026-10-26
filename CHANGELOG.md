@@ -25,6 +25,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   the figure has no sign. The Sub-Label is Body/Small/Regular, Content/Neutral/Light (the fill's family on a Solid
   card); a tile of size small shows the badge alone (the Sub-Label stays readable to screen readers). Examples,
   templates, Studio samples and Studio ↔ Figma push/pull use the split; new contract suite `metric-trend`.
+- Figma charts (2026-10-26, the user): Heatmap's active row and column labels and Multi-Line's rule and X pill now come
+  with Hover too, so at rest no chart draws any part of an active period (code already showed none).
 - Zen Studio ↔ Figma: a Sidebar row's nested rows (`children`) go to Figma as Menu-Item Level=Child rows right after it
   (2026-10-26). A closed group's rows are hidden layers; the chevron (Dropdown) shows with `dropdown` or nested rows and
   points up while the group is open. Pulled back, they are the row's `children` again (a footer row's `<SidebarMenuItem>`

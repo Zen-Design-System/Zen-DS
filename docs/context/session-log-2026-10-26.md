@@ -469,6 +469,14 @@ Bắt đầu PR A (library), rồi PR B và plugin"). Branch `zen/feat/grid-span
   amount wrapping in a Medium tile and a two-row list half empty. Fixed (Body/Extra/Medium title, flat Small tiles, the
   list one row beside the hero, a third breakdown, four goals, "vs. Sep"); `--only=layout` reruns: PASS, 0 warnings.
 
+## Charts · Heatmap and Multi-Line hover in Figma (tier XS, follow-up to #322)
+
+User: "make Heatmap's active row/column labels follow Hover and give Multi-Line's Hover the rule and the X pill". Figma:
+Heatmap's "Tue" / "1 pm" labels go Light, their Strongest twins (Active-Label, absolute, same box) show on Hover; each
+Multi-Line variant gets a Hover-Sector (.Primitives/Chart/Sector Select=Selected Highlight, Show Tooltip off, its period's
+label) over the active period, on Hover. Contracts chart-heatmap (b6fe0eb7) and chart-multi-line (b4845783) re-captured;
+code unchanged (it already draws none of this at rest).
+
 ## MetricTrend = badge + Sub-Label, synced with Figma (tier M; branch zen/feat/metric-trend-sublabel-20261026)
 
 User: "mở phiên đồng bộ MetricTrend với Figma", after the Figma-only session split `.Primitives/Metrics/Metric-Trend`
