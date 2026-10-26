@@ -199,3 +199,8 @@ From main 9fa8ef52 (train #310 with bp-layout's library half in). Built:
 - E2E BP-09…13 (Inspector flow + Same, Reset, canvas gap pick, Hide on + Wrap and hide + Layers dimming, All
   breakpoints + Changes) — first run in Giám sát's window.
 
+## Giám sát · twelve new E2E rows recorded in the baseline
+
+Since #304 a new row only guards against regressions once it is in `matrix.baseline.json`. B-47, B-48, PT-22…28 and
+HO-18…20 (from #286/#287/#294/#302/#306/#307) passed in every gate since and were listed as "new, work". Run
+`studio:e2e -- --rows=<those 12> --update-baseline` on main 9fa8ef52: 12 works, 0 broken, 98 s.
