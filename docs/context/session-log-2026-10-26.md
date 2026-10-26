@@ -238,3 +238,9 @@ placeholder only (sample app removed), the App Shell page's examples are renamed
   B-28 (the Page header's own crumbs), B-29 (two Breadcrumbs: header + inserted), B-33 (label-1/label-2), HO-01 (imports).
 - Cost: the Studio App Shell page's long tasks 3.9 s → 5.3 s (41 AppShell cells), first frame 4.7 → 6.3 s on a warm server.
 - Gate: queued with Giám sát (after tag-badge-gap, #314, Bug's chart cells); merge main first.
+- User then updated .Primitives/AppShell/Pane in Figma. Re-read (16254:1099, 10 variants, props unchanged): every
+  theme's fill, stroke, effect and padding already matched; two differences fixed in app-shell.css — Pane-Header's
+  counter axis is Min (the 20px action wrapper at the top of the title's line, code centred it) and Theme=Canvas has
+  radius 0. Studio's Main component now draws the Pane set too (`MAIN_SETS.AppShellPane`, Figma's ten variants in 264 ×
+  640 frames; `MAIN_SAMPLES.AppShellPane`). The placeholder's label is centred (`Text align="center"`, Figma's text
+  align), which showed once it wrapped in a 264 pane. Docs regenerated (api/guidelines app-shell). 83/83 selftests.

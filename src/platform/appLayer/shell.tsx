@@ -43,7 +43,7 @@ const P = appShellParts({ media: { logo: "{logo}", account: "{photo}" } });
 function Placeholder({ label = C.block, height = "fill" }: { label?: string; height?: "fill" | number | undefined }) {
   return (
     <Stack surface="pale" border="subtle" borderStyle="dashed" radius="lg" padding="md" align="center" justify="center" height={height}>
-      <Text textStyle="Heading/4" tone="light">{label}</Text>
+      <Text textStyle="Heading/4" tone="light" align="center">{label}</Text>
     </Stack>
   );
 }

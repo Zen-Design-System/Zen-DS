@@ -86,6 +86,9 @@ export const MAIN_SAMPLES: Readonly<Record<string, PaletteItem>> = {
     `  main={${shell.main.split("\n").join("\n  ")}}`,
     `/>`,
   ), { components: ["AppShellHeader", "Breadcrumbs", "AppShellAction", "AppShellAccount", "PageHeader", "IconButton", "Button"] }),
+  // Figma .Primitives/AppShell/Pane Theme=Shadow (16254:1062): "Title", the ⋮ action and the placeholder (its ten
+  // variants are drawn from their own code: mainComponent/appShellSets.ts).
+  AppShellPane: sample("AppShellPane", shell.pane(), { components: ["AppShellPane", "IconButton", "Stack", "Text"] }),
   // Every type reads its own props: Main the title and actions, Control-Bar the search, filters and actions, Navigation the
   // breadcrumbs and the bell, Custom its children.
   DashboardHeader: sample("DashboardHeader", lines(

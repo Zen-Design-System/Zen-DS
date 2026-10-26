@@ -1,4 +1,4 @@
-import { APPSHELL_DESKTOP_VARIANTS, APPSHELL_MOBILE_VARIANTS, appShellPlaceholderCode } from "../../../../tools/studio/appshell-placeholder.mjs";
+import { APPSHELL_DESKTOP_VARIANTS, APPSHELL_MOBILE_VARIANTS, appShellParts, appShellPlaceholderCode } from "../../../../tools/studio/appshell-placeholder.mjs";
 import type { VariantAxis, VariantSet } from "./variantSets.generated";
 
 /*
@@ -24,9 +24,16 @@ const axis = (prop: string, label: string, options: ReadonlyArray<readonly [stri
   prop, label, names: options.map(([, name]) => name), values: options.map(([value]) => value), default: options[0][0],
 });
 
-/** Figma's frame sizes: the 1512 × 982 desktop, the iPhone 390 × 844 and the iPad portrait 744 × 1133. */
+/** Figma's frame sizes: the 1512 × 982 desktop, the iPhone 390 × 844, the iPad portrait 744 × 1133 and a 264 × 640 Pane. */
 const DESKTOP = { width: 1512, height: 982 };
 const DEVICES: Readonly<Record<string, { width: number; height: number }>> = { phone: { width: 390, height: 844 }, tablet: { width: 744, height: 1133 } };
+const PANE = { width: 264, height: 640 };
+/** .Primitives/AppShell/Pane (16254:1099, read 2026-10-26 after the user's update): its ten variants, in Figma's order. */
+const PANE_VARIANTS: ReadonlyArray<Readonly<Record<string, string>>> = [
+  ["shadow", "default"], ["default", "default"], ["default", "alt"], ["border", "default"], ["border", "alt"],
+  ["flat-border", "default"], ["pale", "default"], ["subtle", "default"], ["on-container", "default"], ["canvas", "default"],
+].map(([theme, surface]) => ({ theme, surface }));
+const paneParts = appShellParts();
 
 export const MAIN_SETS: Readonly<Record<string, readonly MainSet[]>> = {
   AppShell: [
@@ -52,6 +59,20 @@ export const MAIN_SETS: Readonly<Record<string, readonly MainSet[]>> = {
       wrap: 8,
       code: (variant) => appShellPlaceholderCode({ desktop: false, mobile: { top: variant.mobileTop as never, bottom: variant.bottom as never } }),
       screen: (variant) => DEVICES[variant.device] ?? DEVICES.phone,
+    },
+  ],
+  // Theme × Surface has only these ten (Alt goes with Default and Border); each Pane fills Figma's 264 × 640 frame.
+  AppShellPane: [
+    {
+      name: ".Primitives/AppShell/Pane", figma: "16254:1099", fixed: {}, toggles: [],
+      axes: [
+        axis("theme", "Theme", [["shadow", "Shadow"], ["canvas", "Canvas"], ["border", "Border"], ["pale", "Pale"], ["subtle", "Subtle"], ["on-container", "On-Container"], ["default", "Default"], ["flat-border", "Flat-Border"]]),
+        axis("surface", "Surface", [["default", "Default"], ["alt", "Alt"]]),
+      ],
+      variants: PANE_VARIANTS,
+      wrap: 5,
+      code: (variant) => paneParts.pane({ theme: variant.theme === "shadow" ? undefined : variant.theme, surface: variant.surface as "default" | "alt" }),
+      screen: () => PANE,
     },
   ],
 };

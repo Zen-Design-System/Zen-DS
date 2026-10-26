@@ -24,7 +24,7 @@ export declare function appShellParts(options?: AppShellPlaceholderOptions): {
   search: string;
   focusActions: string;
   body: (options?: { size?: "sm" | "md" }) => string;
-  pane: (options?: { title?: string; theme?: string; action?: boolean; height?: number }) => string;
+  pane: (options?: { title?: string; theme?: string; surface?: "default" | "alt"; action?: boolean; height?: number }) => string;
   progress: string;
   floatingActions: string;
   banner: string;
