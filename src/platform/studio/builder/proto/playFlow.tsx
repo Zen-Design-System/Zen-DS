@@ -222,8 +222,9 @@ function useOverlayAnchor(flow: PlayFlow, file: string, screensRef: RefObject<HT
       const candidates = links.flatMap((link) => (drawn.get(`${file}:${link.loc}`) ?? []).map((at) => {
         if (!link.item) return at;
         const node = findNode(tree, link.loc);
-        const item = node ? choiceItemsOf(node).find((entry) => entry.value === link.item) : undefined;
-        return item ? itemElement(at, item) : null;
+        const all = node ? choiceItemsOf(node) : [];
+        const item = all.find((entry) => entry.value === link.item);
+        return item ? itemElement(at, item, all) : null;
       })).filter((at): at is Element => Boolean(at));
       const active = document.activeElement;
       element = candidates.find((at) => active && at.contains(active)) ?? candidates[0] ?? null;

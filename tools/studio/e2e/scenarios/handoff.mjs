@@ -426,7 +426,7 @@ export const rows = [
       // account, Settings · Secondary · Main Action, the floating action): the frame's components are all imported.
       const imported = /import \{ ([^}]+) \} from "@zen-ds\/react";/.exec(react)?.[1].split(", ") ?? [];
       const frame = ["AppShell", "AppShellHeader", "BottomNavigation", "PageHeader", "Sidebar", "SidebarMenuItem", "Stack", "Text", "TopNavigation"];
-      if (!frame.every((name) => imported.includes(name)) || !/topNavigation=\{<TopNavigation type="alt" title="Export check" largeTitle="Export check"/.test(react)) throw new Error(`unexpected code: ${react.slice(0, 400).replace(/\n/g, " ⏎ ")}`);
+      if (!frame.every((name) => imported.includes(name)) || !/topNavigation=\{<TopNavigation\s+type="alt"\s+title="Export check"\s+largeTitle="Export check"/.test(react)) throw new Error(`unexpected code: missing ${frame.filter((name) => !imported.includes(name)).join(", ") || "none"}; ${react.match(/topNavigation=\{<TopNavigation[^\n]*/)?.[0]?.slice(0, 200) ?? "no topNavigation"}`);
       await panel.getByRole("button", { name: "Design file" }).click();
       await panel.getByRole("button", { name: "Copy code" }).click();
       const design = await until(async () => { const text = await clipboard(page); return text.startsWith("// @zen-page") ? text : null; }, { message: "the design file copied" });

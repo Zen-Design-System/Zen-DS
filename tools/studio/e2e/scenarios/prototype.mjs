@@ -518,8 +518,8 @@ export const rows = [
       await prototypeTab(page);
       // A new page's tabs are drawn from its Sidebar (component-usage-rules §17): Figma's placeholder rows label-1 … label-6,
       // the first four and More (appshell-placeholder.mjs, 2026-10-26).
-      const tabs = await page.locator('[data-studio-frame="screen:screen-1"] .zen-bottom-nav__items li').count();
-      await until(async () => (await page.locator(".studio-proto-plus").count()) === tabs, { message: `one ⊕ per tab (${tabs})` });
+      const tabCount = () => page.locator('[data-studio-frame="screen:screen-1"] .zen-bottom-nav__items li').count();
+      await until(async () => { const tabs = await tabCount(); return tabs >= 3 && (await page.locator(".studio-proto-plus").count()) === tabs; }, { message: "one ⊕ per tab" });
       await drag(page, center(await page.locator('.studio-proto-plus[data-item="label-2"]').boundingBox()), await frameCenter(page, "screen:screen-2"));
       await until(async () => /onValueChange=\{proto\.navigate\(\{ "label-2": "screen-2" \}\)\}/.test(await text(page, id)), { message: "the second tab → screen-2" });
       await pickOption(page, "proto:onValueChange:item:label-3", "Screen 3");
@@ -544,10 +544,10 @@ export const rows = [
       const tab = page.locator('[data-studio-frame="screen:screen-1"] .zen-bottom-nav__items li').nth(1);
       await selectAt(page, await tab.boundingBox());
       await prototypeTab(page);
-      const tabs = await page.locator('[data-studio-frame="screen:screen-1"] .zen-bottom-nav__items li').count();
-      await until(async () => (await page.locator(".studio-proto-plus").count()) === tabs, { message: "one ⊕ per tab" });
+      const tabCount = () => page.locator('[data-studio-frame="screen:screen-1"] .zen-bottom-nav__items li').count();
+      await until(async () => { const tabs = await tabCount(); return tabs >= 3 && (await page.locator(".studio-proto-plus").count()) === tabs; }, { message: "one ⊕ per tab" });
       await drag(page, center(await page.locator('.studio-proto-plus[data-item="label-2"]').boundingBox()), await frameCenter(page, "screen:screen-2"));
-      await until(async () => /proto\.navigate\(\{ "label-2": "screen-2" \}\)/.test(await text(page, id)), { message: "the second tab → screen-2" });
+      await until(async () => /proto\.navigate\(\{ "label-2": "screen-2" \}\)/.test(await text(page, id)), { message: "the second tab → screen-2" }).catch(async (error) => { throw new Error(`${error.message} (navigates: ${((await text(page, id)).match(/proto\.navigate\([^)]*\)/g) ?? []).join(" · ") || "none"})`); });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Escape");
       await page.keyboard.press("ControlOrMeta+Alt+Enter");

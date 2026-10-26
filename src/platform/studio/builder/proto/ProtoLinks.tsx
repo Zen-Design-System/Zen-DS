@@ -134,7 +134,7 @@ function ProtoLayer({ tree, file, boardRef }: { tree: PageTree | null; file: str
       if (link.item) {
         const at = findNode(tree, link.loc);
         const all = at ? choiceItemsOf(at) : [];
-        const boxes = new Map(all.map((entry) => [entry.value, hosts.map((host) => itemElement(host, entry)).find(Boolean)?.getBoundingClientRect()]));
+        const boxes = new Map(all.map((entry) => [entry.value, hosts.map((host) => itemElement(host, entry, all)).find(Boolean)?.getBoundingClientRect()]));
         rect = boxes.get(link.item) ?? null;
         row = inRow([...boxes.values()].filter((box): box is DOMRect => Boolean(box?.width)));
       } else rect = rectOf(hosts);
@@ -156,11 +156,11 @@ function ProtoLayer({ tree, file, boardRef }: { tree: PageTree | null; file: str
         const chosen = root && partElement ? itemAt(root, items, partElement) : null;
         picked = chosen?.value ?? null;
         const spots = (chosen ? [chosen] : items).flatMap((item) => {
-          const element = root ? itemElement(root, item) : null;
+          const element = root ? itemElement(root, item, items) : null;
           const rect = element?.getBoundingClientRect();
           return rect && rect.width ? [{ item: item.value, rect: toWorldRect(rect) }] : [];
         });
-        const row = inRow(items.map((item) => (root ? itemElement(root, item)?.getBoundingClientRect() : undefined)).filter((rect): rect is DOMRect => Boolean(rect?.width)));
+        const row = inRow(items.map((item) => (root ? itemElement(root, item, items)?.getBoundingClientRect() : undefined)).filter((rect): rect is DOMRect => Boolean(rect?.width)));
         spots.forEach((spot) => plus.push({ ...spot, row }));
       } else if (hit) {
         const rect = rectOf(hit.hosts);

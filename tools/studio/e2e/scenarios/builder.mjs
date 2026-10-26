@@ -441,7 +441,7 @@ export const rows = [
       // The edit's own line: "Saved in this browser · ⌘Z to undo"-like, never the page's file and line.
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+KeyD");
-      await until(async () => ((await pageText(page, id)) ?? "").match(/<Button /g)?.length === 2, { message: "two Buttons after ⌘D" });
+      await until(async () => (await buttons()) === base + 2, { message: "two Buttons after ⌘D" });
       await until(async () => /Duplicated|Saved/.test(await statusText(page)), { message: "the duplicate's line in the status" });
       const afterEdit = await read();
       const found = findings(afterEdit);
