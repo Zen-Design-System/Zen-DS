@@ -371,6 +371,8 @@ export default function Page() {
   check("AppShell pattern=\"grid\": the master's Sidebar pattern Border · Small", masterSidebar(frame)?.pattern, { Expand: "Yes", Shadow: "No", Theme: "Border", Density: "Small" });
   const tag = pageFromFigma(frame, { mapping }).text.match(/<Sidebar\b[^>]*>/)?.[0] ?? "";
   check("round trip: the AppShell's Sidebar comes back with the pattern's look", ['theme="border"', 'density="small"'].map((attr) => tag.includes(attr)), [true, true]);
+  const rows = (shell) => masterSidebar(shell)?.slots.find((slot) => slot.name === "Body-Content")?.children.map((row) => row.props.Density);
+  check("AppShell pattern=\"grid\": its Sidebar's rows Density Small with the pattern (Sidebar.tsx: the shell's density); without it Medium", [rows(frame), rows(push(SHELL).frame)], [["Small", "Small"], ["Medium", "Medium"]]);
 }
 {
   // AppShellHeader as Figma's Header/AppShell (spec docs/research/studio-appshell-header-figma-spec-2026-10-21.md): its
@@ -2219,6 +2221,59 @@ export default function Page() {
   check("stacked ProgressBar: its value text (valueLabel, else the percentage), the nearest step and the exact fill (Container's columns)", bars.map((node) => [node.props.Text, node.props.Progress, node.texts?.Value, node.edits]), [["Engineering", "Medium", "$9,120 of $24,000", [{ layer: "Container", columns: [38, 62] }]], ["Operations", "Low", "9%", [{ layer: "Container", columns: [9, 91] }]]]);
   const pages = all.find((node) => node.name === "Expense pages");
   check("Pagination Inline: the range and the page size as the code counts them", [pages.textList, pages.nested], [["1–10 of 86 results"], [{ path: "Page-Size", props: {}, text: "10 results" }]]);
+}
+
+// A Sidebar's rows take its density as Figma's Menu-Item Density (user 2026-10-26: "Khi đổi density của sidebar thì các
+// item cũng đổi variant theo density đó"), and each row its Theme and State.
+{
+  const PAGE = `// @zen-page {"format":1,"title":"Rows"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Sidebar, SidebarMenuItem, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Rows" device="desktop">
+        <Stack direction="row" gap="md">
+          <Sidebar aria-label="Medium" selectedId="m-home" footer={<SidebarMenuItem id="m-help" label="Medium help" icon="icon-users-line" />}>
+            <SidebarMenuItem id="m-home" label="Medium home" icon="icon-home-03-line" />
+          </Sidebar>
+          <Sidebar aria-label="Small" density="small" footer={<SidebarMenuItem id="s-help" label="Small help" icon="icon-users-line" theme="accent" />}>
+            <SidebarMenuItem id="s-home" label="Small home" icon="icon-home-03-line" theme="accent" />
+            <SidebarMenuItem id="s-off" label="Small off" icon="icon-users-line" disabled />
+            <SidebarMenuItem id="s-hover" label="Small hover" icon="icon-users-line" state="hover" />
+          </Sidebar>
+          <Sidebar aria-label="Compact" variant="small-density" footer={<SidebarMenuItem id="c-help" label="Compact help" icon="icon-users-line" />}>
+            <SidebarMenuItem id="c-home" label="Compact home" icon="icon-home-03-line" />
+          </Sidebar>
+          <Sidebar aria-label="Sections" density="small" sections={[{ label: "Main", items: [{ id: "inbox", label: "Inbox", icon: "icon-home-03-line", theme: "accent" }, { id: "archive", label: "Archive", icon: "icon-users-line", disabled: true }] }]} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame } = push(PAGE);
+  const all = [];
+  const walk = (node) => { all.push(node); [...(node.children ?? []), ...(node.slots ?? []).flatMap((slot) => slot.children)].forEach(walk); };
+  walk(frame);
+  const look = (name) => {
+    const props = all.find((node) => node.name === name && node.set?.name === "Primitives/Side-Bar/Menu-Item/Master")?.props ?? {};
+    return [props.Density, props.Theme, props.State];
+  };
+  check("sidebar rows: Density by the Sidebar (medium; small; small-density), a Basic footer Medium at Small, the small-density footer Small",
+    ["Medium home", "Medium help", "Small home", "Small help", "Compact home", "Compact help", "Inbox"].map((name) => look(name)[0]),
+    ["Medium", "Medium", "Small", "Medium", "Small", "Small", "Small"]);
+  check("sidebar rows: Theme Accent for theme=\"accent\", State Disabled for disabled, Hover for state=\"hover\", else Neutral · Default (JSX rows and sections)",
+    ["Medium home", "Small home", "Small off", "Small hover", "Small help", "Inbox", "Archive"].map((name) => look(name).slice(1)),
+    [["Neutral", "Default"], ["Accent", "Default"], ["Neutral", "Disabled"], ["Neutral", "Hover"], ["Accent", "Default"], ["Accent", "Default"], ["Neutral", "Disabled"]]);
+  const back = pageFromFigma(frame, { mapping }).text;
+  // The pull writes a Sidebar's body rows as its sections (data items).
+  check("round trip: a row's theme and disabled come back (its density stays the Sidebar's)",
+    [/label: "Small home"[^}]*theme: "accent"/.test(back), /label: "Small off"[^}]*disabled: true/.test(back), /label: "Inbox"[^}]*theme: "accent"/.test(back), /label: "Archive"[^}]*disabled: true/.test(back), /<SidebarMenuItem[^>]*label="Small help"[^>]*theme="accent"/.test(back), /density: "|<SidebarMenuItem[^>]*density=/.test(back)],
+    [true, true, true, true, true, false]);
 }
 
 // A component of a set size in a column that stretches (Stack's default) hugs in Figma, as CSS passes it by; a Button

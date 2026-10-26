@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio → Figma: a Sidebar's rows take its density as the Menu-Item's Density variant (2026-10-26). Medium is 44px,
+  Small 36px; an AppShell `pattern="grid"` and `variant="small-density"` give Small; a Basic Sidebar's footer rows stay
+  Medium. Changing a Sidebar's density swaps every row's variant. Each row also carries its Theme (`theme="accent"`) and
+  State (`disabled`, `state`), and the pull from Figma reads `theme` and `disabled` back.
 - Zen Studio per-breakpoint layout (2026-10-26, PR 2 of the responsive plan): a Stack, Grid or Box on a Screen narrower
   than desktop edits that breakpoint (Inspector › Auto layout › Breakpoint, dots on breakpoints with values of their own,
   Reset, Same on every breakpoint); its fields and the canvas gap / padding handles write `{ desktop, tablet, mobile }`
