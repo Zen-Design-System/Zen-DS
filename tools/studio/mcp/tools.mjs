@@ -13,6 +13,8 @@ const PROP_VALUE = {
     "Stack, Grid and Box layout props (direction, gap, align, justify, wrap, padding, paddingX, paddingY; Grid columns, rowGap,",
     "columnGap) also take one value per breakpoint, { desktop, tablet, mobile } (a breakpoint left out takes the next wider",
     "one's: direction: { desktop: \"row\", mobile: \"column\" }); hideOn takes a list of breakpoints (hideOn: [\"mobile\"]).",
+    "A Grid's child (Stack, Grid, Box, Card, ListBox, ChartCard, MetricCard; anything else in a Box) takes span (columns: a",
+    "number or \"full\") and rowSpan, per breakpoint too: span: { desktop: 8, tablet: \"full\" }.",
   ].join(" "),
   anyOf: [
     { type: "string" }, { type: "number" }, { type: "boolean" }, { type: "null" },
@@ -116,6 +118,7 @@ export const TOOLS = [
       "such as gap or padding) and its text. Use the Zen component's prop names and values (zen-ds get_component).",
       "Responsive layout: a Stack, Grid or Box prop can differ per breakpoint, { desktop, tablet, mobile } (mobile below 744px,",
       "tablet below 1024px; a breakpoint left out takes the next wider one's), and hideOn: [\"mobile\"] hides the frame there.",
+      "In a Grid with columns, a child takes several columns or rows with span (a number or \"full\") and rowSpan, per breakpoint too.",
       "The answer is the layer as it is now. A refused change says why: read the reason, try another way, never repeat the same call.",
     ].join(" "),
     inputSchema: {

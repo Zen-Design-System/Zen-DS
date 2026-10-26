@@ -92,6 +92,52 @@ export default function Page() {
 }
 `;
 
+/** A 12-column Grid of two Cards and a Text (docs/research/grid-span-2026-10-26.md §4): `width` picks the breakpoint. */
+const spanPage = ({ width = 1280, hero = "", side = "" } = {}) => (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Card, Grid, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop" width={${width}} height={800}>
+        <Grid columns={{ desktop: 12, mobile: 2 }} gap="md" padding="xl">
+          <Card${hero}><Text>Hero</Text></Card>
+          <Card${side}><Text>Side</Text></Card>
+          <Text>Note</Text>
+        </Grid>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/** Seeds a span page and selects the layer around the `text` (its Card), or the Text itself (`own`). */
+async function spanSetup(ctx, options, text, own = false) {
+  const seeded = await seededPage(ctx, spanPage(options), /<Text>Note<\/Text>/);
+  const { page, id } = seeded;
+  await page.locator(`[data-studio-frame="screen:screen-1"]`).first().scrollIntoViewIfNeeded().catch(() => undefined);
+  await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+  const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Text"]`).filter({ hasText: text }).first().boundingBox();
+  if (!box) throw new Error(`no "${text}" on the canvas`);
+  await selectAt(page, box);
+  await sleep(300);
+  if (!own) await page.keyboard.press("Escape");
+  await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === (own ? "Text" : "Card"), { message: `the ${own ? "Text" : "Card"} selected` });
+  return seeded;
+}
+const cellGroup = (page) => page.locator('#studio-right [data-prop="span"][role="group"]');
+const spanField = (page, name) => cellGroup(page).getByRole("spinbutton", { name });
+async function typeSpan(page, name, value) {
+  const field = spanField(page, name);
+  await field.click();
+  await field.fill(String(value));
+  await field.press("Enter");
+}
+const gridText = async (page, id) => { const text = (await pageText(page, id)) ?? ""; const at = text.indexOf("<Grid"); return at < 0 ? "" : text.slice(at, text.indexOf("</Grid>", at)); };
+
 /** The seeded P2 page, the canvas zoomed to its Screen. */
 async function p2(ctx) {
   const seeded = await seededPage(ctx, p2Page, /<Text>Footer<\/Text>/);
@@ -377,6 +423,56 @@ export const rows = [
       await changes.getByRole("heading", { name: "Changes on Mobile" }).waitFor({ state: "visible", timeout: 5000 });
       await until(async () => (await changes.locator('[data-behaviour="layout-props"]').innerText().catch(() => "")).includes("direction row → column"), { message: "Changes on Mobile lists the direction" });
       return "Text: All breakpoints · Auto layout: none · Changes on Mobile: Layout: Stack direction row → column";
+    },
+  },
+  {
+    id: "BP-14", feature: "Grid cell (span): a Card in a 12-column Grid shows Grid cell under Resizing; Column span 8 writes span={8} and the Card takes 8 of 12 columns; Take the whole row writes span=\"full\"; pressed again, the span goes", wp: "grid span PR B 2026-10-26", timeout: 45_000,
+    async run(ctx) {
+      const { page, id } = await spanSetup(ctx, {}, "Hero");
+      await cellGroup(page).waitFor({ state: "visible", timeout: 5000 });
+      await typeSpan(page, "Column span", 8);
+      await until(async () => /<Card span=\{8\}>/.test(await gridText(page, id)), { message: "span={8} written" });
+      const grid = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Grid"]`).first().boundingBox();
+      const card = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Card"]`).first().boundingBox();
+      if (!grid || !card || card.width < grid.width * 0.55 || card.width > grid.width * 0.75) throw new Error(`the Card is ${card?.width} of ${grid?.width}, not 8 of 12 columns`);
+      await cellGroup(page).getByRole("button", { name: "Take the whole row" }).click();
+      await until(async () => /<Card span="full">/.test(await gridText(page, id)), { message: 'span="full" written' });
+      await cellGroup(page).getByRole("button", { name: "Take the whole row" }).click();
+      await until(async () => /<Card>\s*<Text>Hero/.test(await gridText(page, id)), { message: "the span removed" });
+      return "Column span 8 → span={8} (8 of 12) · whole row → full · again → no span";
+    },
+  },
+  {
+    id: "BP-15", feature: "Grid cell per breakpoint: on a 390 Screen (mobile, the Grid's 2 columns) a Card with span={8} shows Grid cell on Mobile at 2; Column span 1 writes span={{ desktop: 8, mobile: 1 }}", wp: "grid span PR B 2026-10-26", timeout: 45_000,
+    async run(ctx) {
+      const { page, id } = await spanSetup(ctx, { width: 390, hero: " span={8}" }, "Hero");
+      await until(async () => /Grid cell on Mobile/.test(await cellGroup(page).innerText().catch(() => "")), { message: "the group edits Mobile" });
+      await until(async () => (await spanField(page, "Column span").inputValue()) === "2", { message: "span 8 shows as 2 of 2" });
+      await typeSpan(page, "Column span", 1);
+      await until(async () => /<Card span=\{\{ desktop: 8, mobile: 1 \}\}>/.test(await gridText(page, id)), { message: "Mobile's key written" });
+      return "390 Screen: span 8 shows 2 → Column span 1 → { desktop: 8, mobile: 1 }";
+    },
+  },
+  {
+    id: "BP-16", feature: "Grid cell on a layer without span: Column span 3 on a Text wraps it in <Box span={3}> (the Box selected); Column span 1 on that bare Box unwraps it", wp: "grid span PR B 2026-10-26", timeout: 45_000,
+    async run(ctx) {
+      const { page, id } = await spanSetup(ctx, {}, "Note", true);
+      await typeSpan(page, "Column span", 3);
+      await until(async () => /<Box span=\{3\}>\s*<Text>Note<\/Text>\s*<\/Box>/.test(await gridText(page, id)), { message: "the Text wrapped in a span Box" });
+      await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === "Frame", { message: "the Box selected" });
+      await typeSpan(page, "Column span", 1);
+      await until(async () => { const text = await gridText(page, id); return /<\/Card>\s*<Text>Note<\/Text>/.test(text) && !/<Box span/.test(text); }, { message: "the Box unwrapped" });
+      return "Text: Column span 3 → <Box span={3}> · span 1 → unwrapped";
+    },
+  },
+  {
+    id: "BP-17", feature: "Grid cell rows: Row span 2 on a Card writes rowSpan={2}; with the hero over 8 and the side over 3, the group says Row 1 leaves 1 of 12 columns empty", wp: "grid span PR B 2026-10-26", timeout: 45_000,
+    async run(ctx) {
+      const { page, id } = await spanSetup(ctx, { hero: " span={8}", side: " span={3}" }, "Side");
+      await until(async () => /Row 1 leaves 1 of 12 columns empty/.test(await cellGroup(page).innerText().catch(() => "")), { message: "the empty-columns note" });
+      await typeSpan(page, "Row span", 2);
+      await until(async () => /<Card span=\{3\} rowSpan=\{2\}>/.test(await gridText(page, id)), { message: "rowSpan={2} written" });
+      return "Row 1 leaves 1 of 12 columns empty · Row span 2 → rowSpan={2}";
     },
   },
 ];

@@ -1,6 +1,8 @@
 import type { ZenBreakpointKey } from "./screen-devices.mjs";
 
 export { BREAKPOINTS, screenBreakpoint } from "./screen-devices.mjs";
+export const CELL_PROPS: readonly string[];
+export const CELL_COMPONENTS: readonly string[];
 export const RESPONSIVE_PROPS: Readonly<Record<string, string[]>>;
 export const HIDE_ON_PROP: "hideOn";
 export const RESPONSIVE_DEFAULTS: Readonly<Record<string, Record<string, string | number | boolean>>>;
