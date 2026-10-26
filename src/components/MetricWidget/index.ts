@@ -1,1 +1,1 @@
-export { Metric, MetricCard, MetricTrend, metricCardTypes, metricSizes, type MetricCardProps, type MetricCardType, type MetricCategory, type MetricComparisonItem, type MetricGoal, type MetricProps, type MetricSize, type MetricTrendDirection } from "./MetricWidget";
+export { Metric, MetricCard, MetricTrend, metricCardTypes, metricSizes, type MetricCardProps, type MetricCardType, type MetricCategory, type MetricComparisonItem, type MetricGoal, type MetricProps, type MetricSize, type MetricTrendDirection, type MetricTrendValue } from "./MetricWidget";

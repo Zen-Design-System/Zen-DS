@@ -17,6 +17,7 @@ import { useNested, type NestedOverrides } from "../_shared/nested";
 import { formatOf, type ChartFormat } from "../Chart/chartCore";
 import { CategoryBar, SparkBars, Sparkline, useSeriesName, type MetricCategory } from "./MetricMarks";
 import { dataAttributes } from "../_shared/data-attributes";
+import { trendParts } from "./trend";
 
 export type { MetricCategory } from "./MetricMarks";
 
@@ -29,27 +30,75 @@ export type MetricTrendDirection = "positive" | "negative" | "normal";
 /** Figma Metric-Trend Content: the badge's family on the fill under it. */
 export type MetricTrendContent = "default" | "inverse" | "on-color";
 
+/** A Metric's trend (Figma Trend → .Primitives/Metrics/Metric-Trend, 595:55134): the change, then what it is measured
+ *  against. */
+export interface MetricTrendValue {
+  /** Figma Trend: `positive` (Background/Positive/Solid badge, arrow-circle-up), `negative` (Background/Negative/Solid,
+   *  arrow-circle-down) or `normal` (Background/Neutral/Subtle, no arrow: a plain count such as "1"). */
+  direction: MetricTrendDirection;
+  /** The badge's text (Figma Badge Text): the change alone, "9%". A sign that agrees with the arrow is left out; one that
+   *  disagrees stays ("-21%" on a positive trend). Without a `subLabel`, a one-string label from before 2026-10-26 that
+   *  starts with a figure is split the same way ("+9% vs. August" → the badge "9%", the Sub-Label "vs. August"); any other
+   *  ("Same as August") is the badge alone. */
+  label: ReactNode;
+  /** Figma Sub-Label: what the change is measured against, beside the badge, Spacing/Gap/2XSmall from it ("vs. August",
+   *  "invoice"): Body/Small/Regular in Content/Neutral/Light, the fill's own family on a Solid card. MetricCard
+   *  type="tile" size="small" hides it from sight, as Figma's Metric-Tile Size=Small does; a screen reader still reads it.
+   *  Given, the `label` is shown as written. */
+  subLabel?: ReactNode;
+}
+
 /**
- * Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Badge. Content=Default is Subtle — Positive green
- * (arrow-circle-up), Negative red (arrow-circle-down), Normal neutral. On a Solid fill the badge takes the fill's family
- * whatever the direction (the arrow tells it): Inverse Solid on Neutral/Solid, On-Color Solid (a white pill) on Accent and
- * colour solids. Inside a Solid Card it follows the card unless `content` is set.
+ * Figma .Primitives/Metrics/Metric-Trend (595:55134): a Small Badge holding only the change, then the Sub-Label
+ * (Body/Small/Regular), Spacing/Gap/2XSmall apart. Content=Default: Positive Background/Positive/Solid (arrow-circle-up),
+ * Negative Background/Negative/Solid (arrow-circle-down), Normal Background/Neutral/Subtle; the Sub-Label is
+ * Content/Neutral/Light. On a Solid fill the badge takes the fill's family whatever the direction (the arrow tells it):
+ * Inverse Solid on Neutral/Solid, On-Color Solid (a white pill) on Accent and colour solids; the Sub-Label is then
+ * Content/Inverse/Light or Content/On-Colors. Inside a Solid Card it follows the card unless `content` is set, and its
+ * Sub-Label reads the card's re-pointed Neutral/Light (On-Accent/Default on Accent, On-Brights on Yellow: Metric-Tile).
+ * Without a `subLabel`, a text label that starts with a figure is split ("+9% vs. August" → 9% · vs. August, trend.ts). When
+ * the badge's figure carries no sign, the arrow is named (Increase / Decrease) so a screen reader keeps the direction.
  */
-export function MetricTrend({ trend = "normal", content: contentProp, children, ref }: {
+export function MetricTrend({ trend = "normal", content: contentProp, subLabel, children, ref, ...rest }: {
+  /** Figma Trend: Positive · Negative · Normal. */
   trend?: MetricTrendDirection;
   /** Figma Content (Default · Inverse · On-Color). Default: the enclosing Solid Card's family (Inverse on Neutral, On-Color
    *  on Accent and the hues), else Default. */
   content?: MetricTrendContent;
+  /** Figma Sub-Label: the words beside the badge ("vs. last year"). None: a text `children` starting with a figure is
+   *  split into the badge and the Sub-Label; any other is the badge alone. */
+  subLabel?: ReactNode;
+  /** The badge's text: the change alone ("24%"), or a one-string label to split ("+24% vs. last year"). */
   children: ReactNode;
-  /** Forwarded to the Badge's root `<span>`. */
+  /** Forwarded to the root `<span>`: the Badge's, or with a `subLabel` the row holding the Badge and the Sub-Label. */
   ref?: Ref<HTMLSpanElement>;
 }) {
   const nest = useNested();
   const on = useCardContent();
+  const t = useZenLabels();
   const content = contentProp ?? (on === "inverse" ? "inverse" : on ? "on-color" : "default");
   const theme = content !== "default" ? content : trend === "positive" ? "green" : trend === "negative" ? "red" : "neutral";
   const icon: IconName | null = trend === "positive" ? "icon-arrow-circle-up-solid" : trend === "negative" ? "icon-arrow-circle-down-solid" : null;
-  return nest("Badge", <Badge ref={ref} size="small" theme={theme} background={content === "default" ? "subtle" : "solid"} leading={icon ? <Icon name={icon} decorative /> : undefined} leadingIcon={Boolean(icon)}>{children}</Badge>);
+  const given = subLabel !== undefined && subLabel !== null && subLabel !== false && subLabel !== "";
+  // A one-string label from before the split: its leading figure in the badge, the words after it the Sub-Label.
+  const parts = !given && typeof children === "string" ? trendParts(trend, children) : null;
+  const figure = parts ? parts.label : children;
+  const words = given ? subLabel : parts?.subLabel || null;
+  // The arrow carries the sign the badge leaves out, so it is named then; a signed figure says it in its text.
+  const signed = typeof figure === "string" && /^[+\-−]/.test(figure.trim());
+  // aria-label, not a <title>: the badge's text stays the figure alone.
+  const arrow = icon ? <Icon name={icon} {...(signed ? { decorative: true } : { decorative: false, "aria-label": trend === "positive" ? t.increase : t.decrease })} /> : undefined;
+  // `data-*` go on the root: the Badge alone, or the row holding it and the Sub-Label.
+  const data = dataAttributes(rest);
+  const badge = nest("Badge", <Badge {...(words ? {} : data)} ref={words ? undefined : ref} size="small" theme={theme} background={content === "default" && trend === "normal" ? "subtle" : "solid"} leading={arrow} leadingIcon={Boolean(icon)}>{figure}</Badge>);
+  if (!words) return badge;
+  // The Sub-Label's ink: inside a Solid card the card's re-pointed Neutral/Light (card.css), else the Content asked for.
+  return (
+    <span {...data} ref={ref} className="zen-metric-trend" data-content={!on && content !== "default" ? content : undefined}>
+      {badge}
+      <span className={`zen-metric-trend__sub-label ${typographyStyles["Body/Small/Regular"]}`}>{words}</span>
+    </span>
+  );
 }
 
 /** Figma Metric-Inline label and number text styles per Size. */
@@ -61,8 +110,9 @@ export interface MetricProps {
   label: ReactNode;
   /** Figma Metric-Number — pass it already formatted ("$1,680.68"). */
   value: ReactNode;
-  /** Figma Trend: { direction, label } → Metric-Trend badge. */
-  trend?: { direction: MetricTrendDirection; label: ReactNode };
+  /** Figma Trend → Metric-Trend: `{ direction, label, subLabel }`, the change in the badge ("9%") and what it is measured
+   *  against beside it ("vs. August"). */
+  trend?: MetricTrendValue;
   /** Figma Dock-Icon: Neutral Subtle (Large at XLarge/Large, Medium below). `false` hides it. MetricCard type="tile":
    *  Neutral Solid, `icon-activity-line` by default. */
   icon?: IconName | false;
@@ -163,7 +213,7 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
             {/* Figma Metric-Title: [Color] Label [Hint], Spacing/Gap/2XSmall apart. */}
             {titled ? null : <span className="zen-metric__label-row">{dot}<span className={`zen-metric__label ${typographyStyles["Caption/Regular"]}`}>{label}</span>{hintMark}</span>}
             <span className={`zen-metric__value ${typographyStyles[valueStyle[size]]}`}>{value}</span>
-            {trend ? nest("Trend", <MetricTrend trend={trend.direction}>{trend.label}</MetricTrend>) : null}
+            {trend ? nest("Trend", <MetricTrend trend={trend.direction} subLabel={trend.subLabel}>{trend.label}</MetricTrend>) : null}
           </div>
         </div>
         {mark}
@@ -190,7 +240,7 @@ export function Metric({ label, value, trend, icon = "icon-home-02-solid", iconT
           </span>
           <span className={`zen-metric__value ${typographyStyles[valueStyle[size]]}`}>{value}</span>
         </div>
-        {trend ? nest("Trend", <MetricTrend trend={trend.direction}>{trend.label}</MetricTrend>) : null}
+        {trend ? nest("Trend", <MetricTrend trend={trend.direction} subLabel={trend.subLabel}>{trend.label}</MetricTrend>) : null}
       </div>
     </div>
   );
@@ -221,8 +271,9 @@ export interface MetricComparisonItem {
   /** Figma Metric-Number (Heading/1 since 2026-10-16, the user: the comparison's figures read as the card's numbers),
    *  pre-formatted: "$105,700". */
   value: ReactNode;
-  /** Figma Trend: the column's Metric-Trend badge ("+9% vs. August"; normal for a plain note such as "1 invoice"). */
-  trend?: { direction: MetricTrendDirection; label: ReactNode };
+  /** Figma Trend: the column's Metric-Trend (`{ direction: "positive", label: "9%", subLabel: "vs. August" }`; normal for a
+   *  plain count such as `{ direction: "normal", label: "1", subLabel: "invoice" }`). */
+  trend?: MetricTrendValue;
 }
 
 /** MetricProps (minus a required `value`) and the card's own props. */
@@ -323,7 +374,8 @@ function MetricTile({ label, value, trend, icon = "icon-activity-line", iconThem
       <div className="zen-metric-tile__value">
         <span className={`zen-metric-tile__label ${typographyStyles[small ? "Caption/Medium" : "Body/Small/Medium"]}`}>{label}</span>
         <span className={`zen-metric-tile__number ${typographyStyles[small ? "Heading/3" : "Display/4"]}`}>{value}</span>
-        {trend ? nest("Trend", <MetricTrend trend={trend.direction}>{trend.label}</MetricTrend>) : null}
+        {/* Figma Metric-Tile Size=Small (77px) hides the Sub-Label: the pill alone in sight (metric-widget.css). */}
+        {trend ? nest("Trend", <MetricTrend trend={trend.direction} subLabel={trend.subLabel}>{trend.label}</MetricTrend>) : null}
       </div>
       {mark ? nest("Metric-Icon", mark) : null}
     </div>
@@ -338,11 +390,11 @@ export function MetricCard({ theme: themeProp, color: colorProp, surface, subAct
   const format = formatOf(formatProp, currency);
   const t = useZenLabels();
   // Figma Type=Hero: a Card whose fill is Support/Brand/Pale (its Solid Brand card, fill overridden) and a Metric-Trend
-  // Content=On-Color (a white pill) on that fill; on a Solid card the trend follows the card (Solid Neutral, 15487:89034,
-  // is Inverse). Written overrides still win.
+  // Content=Default whose Badge is overridden to On-Color Solid (a white pill), its Sub-Label Content/Neutral/Light on that
+  // fill; on a Solid card the trend follows the card (Solid Neutral, 15487:89034, is Inverse). Written overrides still win.
   const hero = type === "hero";
   const theme = themeProp ?? (hero ? "pale" : "shadow");
-  const nest = useNested(hero && theme !== "solid" ? { "Metric/Trend": { content: "on-color" }, ...overrides } : overrides);
+  const nest = useNested(hero && theme !== "solid" ? { "Metric/Trend/Badge": { theme: "on-color", background: "solid" }, ...overrides } : overrides);
   const color = colorProp ?? (hero && theme === "pale" ? "brand" : undefined);
   const values = (series ?? []).filter((value) => Number.isFinite(value));
   const seriesName = useSeriesName(values, format, seriesLabel);

@@ -7,6 +7,7 @@ import { Icon } from "../../src/components/Icon";
 import { Popover, PopoverItem, PopoverManualAddNew, PopoverBunkAction, PopoverBunkActionGroup, PopoverBunkActionDivider } from "../../src/components/Popover";
 import { Avatar } from "../../src/components/Avatar";
 import { Badge } from "../../src/components/Badge";
+import { MetricTrend } from "../../src/components/MetricWidget";
 import { Button, IconButton } from "../../src/components/Button";
 import { AppShellAction } from "../../src/components/AppShell";
 import { Breadcrumbs } from "../../src/components/Breadcrumbs";
@@ -104,6 +105,7 @@ export const cases: Record<string, (props: Props) => ReactNode> = {
     return <div style={{ width: 240 }}><PopoverItem label="Popover Item" caption={caption} theme={theme} leading={leading} /></div>;
   },
   badge: (p) => <Badge {...p} />,
+  metricTrend: ({ label, ...p }) => <MetricTrend {...p}>{label}</MetricTrend>,
   // Figma Input/Heading fills a 389.33px frame.
   headingField: (p) => <div style={{ width: 389.33 }}><HeadingField aria-label="Heading" onChange={() => {}} {...p} /></div>,
   // Figma's Leading/Trailing-Icon default to hidden; `withIcons` renders both to measure the icon slots.

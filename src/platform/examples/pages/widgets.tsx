@@ -31,14 +31,14 @@ export const page: PlatformPage = "widgets";
 function KpiWidget() {
   return (
     <MetricCard theme="default" size="large" label="Billable hours" value="5,900 h" icon="icon-clock-line" iconTheme="blue"
-      trend={{ direction: "positive", label: "+4% vs. August" }} />
+      trend={{ direction: "positive", label: "4%", subLabel: "vs. August" }} />
   );
 }
 
 function KpiSparklineWidget() {
   return (
     <MetricCard theme="default" type="sparkline" label="Revenue" value="$105,700" format={(value) => (value ? `$${value / 1000}K` : "$0")}
-      trend={{ direction: "positive", label: "+9% vs. August" }}
+      trend={{ direction: "positive", label: "9%", subLabel: "vs. August" }}
       series={[71200, 76500, 68900, 74300, 79600, 85100, 82300, 91800, 88400, 94100, 97000, 105700]} />
   );
 }
@@ -46,7 +46,7 @@ function KpiSparklineWidget() {
 function KpiSparkBarsWidget() {
   return (
     <MetricCard theme="default" type="spark-bars" label="Hours logged" value="1,284 h" format={(value) => `${value.toLocaleString("en-US")} h`}
-      trend={{ direction: "positive", label: "+13% vs. last week" }}
+      trend={{ direction: "positive", label: "13%", subLabel: "vs. last week" }}
       series={[1012, 1086, 1048, 760, 1131, 1176, 1104, 640, 1153, 1067, 1132, 1284]} />
   );
 }
@@ -54,7 +54,7 @@ function KpiSparkBarsWidget() {
 function GoalProgressWidget() {
   return (
     <MetricCard theme="default" type="goal-progress" label="Collected in Q3" value="$275,800" format={(value) => `$${value.toLocaleString("en-US")}`}
-      trend={{ direction: "positive", label: "+8% vs. Q2" }}
+      trend={{ direction: "positive", label: "8%", subLabel: "vs. Q2" }}
       goal={{ value: 275800, target: 290000 }} />
   );
 }
@@ -62,9 +62,9 @@ function GoalProgressWidget() {
 function PeriodComparisonWidget() {
   return (
     <MetricCard theme="default" type="comparison" label="Cash flow · September" comparison={[
-      { id: "invoiced", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "+9% vs. August" } },
-      { id: "collected", label: "Collected", value: "$88,300", trend: { direction: "negative", label: "−8% vs. August" } },
-      { id: "overdue", label: "Overdue", value: "$12,880", trend: { direction: "normal", label: "1 invoice" } },
+      { id: "invoiced", label: "Invoiced", value: "$105,700", trend: { direction: "positive", label: "9%", subLabel: "vs. August" } },
+      { id: "collected", label: "Collected", value: "$88,300", trend: { direction: "negative", label: "8%", subLabel: "vs. August" } },
+      { id: "overdue", label: "Overdue", value: "$12,880", trend: { direction: "normal", label: "1", subLabel: "invoice" } },
     ]} />
   );
 }
@@ -83,7 +83,7 @@ function HeroWidget() {
   const { toast } = useToast();
   return (
     <MetricCard type="hero" theme="solid" color="neutral" label="Invoiced this year" value="$798,300" format={(value) => (value ? `$${value / 1000}K` : "$0")}
-      trend={{ direction: "positive", label: "+12% vs. 2025" }}
+      trend={{ direction: "positive", label: "12%", subLabel: "vs. 2025" }}
       series={[74300, 79600, 85100, 82300, 91800, 88400, 94100, 97000, 105700]}
       footer={<Button size="sm" appearance="overlay" level="inverse" onClick={() => toast({ title: "Revenue report opened" })}>View report</Button>} />
   );
@@ -92,7 +92,7 @@ function HeroWidget() {
 function StatTileWidget() {
   return (
     <MetricCard theme="solid" color="neutral" type="tile" label="Success rate" value="56%"
-      trend={{ direction: "positive", label: "+24% vs. last year" }} />
+      trend={{ direction: "positive", label: "24%", subLabel: "vs. last year" }} />
   );
 }
 

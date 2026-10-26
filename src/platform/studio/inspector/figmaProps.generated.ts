@@ -3325,7 +3325,7 @@ export const FIGMA_PROPS: Readonly<Record<string, FigmaPropsEntry>> = {
         "label": "Trend",
         "prop": "trend",
         "on": {
-          "code": "{ direction: \"positive\", label: \"+12%\" }"
+          "code": "{ direction: \"positive\", label: \"24%\", subLabel: \"vs. last year\" }"
         }
       },
       {

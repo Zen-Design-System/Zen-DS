@@ -150,7 +150,7 @@ const fromFieldDate = (text: string) => {
 
 type Message = { id: number; side: "you" | "ai"; text: string; /** The file sent with a prompt. */ file?: string };
 type Panel = { type: "leave" | "claim" | "metric"; id: string };
-type Kpi = { id: string; label: string; value: string; trend: { direction: MetricTrendDirection; label: string }; icon: IconName; theme: DockIconTheme };
+type Kpi = { id: string; label: string; value: string; trend: { direction: MetricTrendDirection; label: string; subLabel?: string }; icon: IconName; theme: DockIconTheme };
 
 export function HrHomeTemplate() {
   const { toast, dismiss } = useToast();
@@ -309,10 +309,10 @@ export function HrHomeTemplate() {
   /* ── Studio at a glance: one comparison per tile; the chevron opens the breakdown ── */
   const offChange = offToday.length - offYesterday.length;
   const kpis: Kpi[] = [
-    { id: "headcount", label: "Headcount", value: `${workspace.headcount}`, trend: { direction: "positive", label: `+${workspace.headcount - lastQuarterHeadcount} vs. last quarter` }, icon: "icon-users-solid", theme: "blue" },
-    { id: "on-leave", label: "On leave today", value: `${offToday.length}`, trend: { direction: "normal", label: offChange ? `${offChange > 0 ? "+" : "−"}${Math.abs(offChange)} vs. yesterday` : "Same as yesterday" }, icon: "icon-calendar-heart-solid", theme: "violet" },
-    { id: "open", label: "Open requests", value: `${openLeave.length + openClaims.length}`, trend: { direction: "normal", label: waiting ? `${waiting} waiting for you` : "None waiting for you" }, icon: "icon-hourglass-solid", theme: "yellow" },
-    { id: "spend", label: "Spend this month", value: formatMoney(monthTotal(thisMonth), { compact: true }), trend: { direction: "normal", label: `${spendChange >= 0 ? "+" : "−"}${Math.abs(spendChange)}% vs. last month` }, icon: "icon-coin-02-solid", theme: "green" },
+    { id: "headcount", label: "Headcount", value: `${workspace.headcount}`, trend: { direction: "positive", label: `${workspace.headcount - lastQuarterHeadcount}`, subLabel: "vs. last quarter" }, icon: "icon-users-solid", theme: "blue" },
+    { id: "on-leave", label: "On leave today", value: `${offToday.length}`, trend: { direction: "normal", label: offChange ? `${offChange > 0 ? "+" : "−"}${Math.abs(offChange)}` : "0", subLabel: "vs. yesterday" }, icon: "icon-calendar-heart-solid", theme: "violet" },
+    { id: "open", label: "Open requests", value: `${openLeave.length + openClaims.length}`, trend: { direction: "normal", label: String(waiting), subLabel: "waiting for you" }, icon: "icon-hourglass-solid", theme: "yellow" },
+    { id: "spend", label: "Spend this month", value: formatMoney(monthTotal(thisMonth), { compact: true }), trend: { direction: "normal", label: `${spendChange >= 0 ? "+" : "−"}${Math.abs(spendChange)}%`, subLabel: "vs. last month" }, icon: "icon-coin-02-solid", theme: "green" },
   ];
   const kpiTile = (kpi: Kpi) => (
     <MetricCard key={kpi.id} variant="title-highlight" size={phone ? "md" : "xl"} label={kpi.label} value={kpi.value} trend={kpi.trend}

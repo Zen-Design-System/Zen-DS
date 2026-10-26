@@ -345,7 +345,7 @@ export function HrMyExpensesTemplate() {
         <Grid columns="repeat(auto-fit, minmax(min(100%, 240px), 1fr))" gap="md">
           {totals.map((tile) => (
             <MetricCard key={tile.status} variant="title-highlight" size={phone ? "sm" : "xl"} label={tile.label} value={formatMoney(tile.sum)}
-              trend={{ direction: "normal", label: plural(tile.count, "expense") }} icon={tile.icon} iconTheme={tile.theme} iconSize="md" />
+              trend={{ direction: "normal", label: String(tile.count), subLabel: tile.count === 1 ? "expense" : "expenses" }} icon={tile.icon} iconTheme={tile.theme} iconSize="md" />
           ))}
         </Grid>
 

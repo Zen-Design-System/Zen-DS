@@ -335,7 +335,7 @@ export function tokenScope(root, { base = "HEAD", pages = allPages(root) } = {})
 
 /* ── Figma contract suites and guideline owners (S5) ──────────────────────────────────────────────────────────── */
 const SUITE_PREFIX = { button: "Button", checkbox: "Checkbox", radio: "RadioButton", chip: "Chip", popover: "Popover", input: "Input" };
-const BLOCK_FOLDER = { "heading-field": "Input", "select-field": "Input" };
+const BLOCK_FOLDER = { "heading-field": "Input", "select-field": "Input", "metric-trend": "MetricWidget" };
 /** Folders that tools/figma-contract/interactions.mjs exercises (Checkbox, RadioButton, Chip, Popover, SelectField). */
 export const INTERACTION_FOLDERS = ["Checkbox", "RadioButton", "Chip", "Popover", "Input"];
 /** Every contract suite with the component folders it renders: its filename prefix plus the .zen-* blocks its map reads. */
