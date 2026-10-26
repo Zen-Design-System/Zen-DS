@@ -1,6 +1,7 @@
 import type { ReactNode, Ref } from "react";
 import { Badge } from "../Badge";
 import { Card, type CardColor, type CardSpacing, type CardSubAction, type CardSurface, type CardTheme } from "../Card";
+import type { LayoutCellProps } from "../Layout/cell";
 import { useCardContent } from "../Card/card-content";
 import { DockIcon, type DockIconBackground, type DockIconTheme } from "../DockIcon";
 import { Icon, type IconName } from "../Icon";
@@ -293,7 +294,8 @@ export type MetricCardProps = Omit<MetricProps, "value" | "variant"> & {
   headingLevel?: 2 | 3 | 4;
   /** Draw the marks in on mount and when their data changes (default true; reduced motion fades). */
   animate?: boolean;
-};
+  /* `span` / `rowSpan` (LayoutCellProps): the card's columns and rows in its Grid, KPIs over 3 of 12 columns. */
+} & LayoutCellProps;
 
 /** The Metric size each Figma Metric-Card type draws. */
 const typeSize: Record<Exclude<MetricCardType, "kpi" | "comparison" | "tile">, MetricSize> = { sparkline: "lg", "spark-bars": "lg", "goal-progress": "lg", "category-bar": "lg", hero: "xl" };
@@ -347,7 +349,7 @@ export function MetricCard({ theme: themeProp, color: colorProp, surface, subAct
   const card = (content: ReactNode) => (
     // zen-allow-overrides: MetricCard passes its own overrides on, so the Card's Sub-Action and the Metric's layers
     // (`Metric/Icon`) read the same table.
-    <Card ref={ref} theme={theme} color={color} surface={surface} subAction={subAction} spacing={spacing ?? (type === "tile" ? "sm" : undefined)} className={["zen-metric-card", className].filter(Boolean).join(" ")} data-type={type === "kpi" ? undefined : type} overrides={overrides}>
+    <Card ref={ref} span={metric.span} rowSpan={metric.rowSpan} theme={theme} color={color} surface={surface} subAction={subAction} spacing={spacing ?? (type === "tile" ? "sm" : undefined)} className={["zen-metric-card", className].filter(Boolean).join(" ")} data-type={type === "kpi" ? undefined : type} overrides={overrides}>
       {content}
     </Card>
   );
