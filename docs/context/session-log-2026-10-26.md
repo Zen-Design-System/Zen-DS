@@ -658,3 +658,32 @@ Body/Small/Regular, plain TEXT (no component property; hidden by an instance's v
   Figma" → 16 keys in `tools/platform-audit/quality-baseline.json` (8 replace the same pages' keys whose style order
   changed). Contact sheets (metric, widgets, templates at 390) checked: number-only badges, Sub-Labels beside them, the
   dark Hero in Inverse, small tiles with the pill alone.
+
+## Grid cell span, PR B: Studio and Figma (tier M)
+
+Branch `zen/feat/grid-span-studio-20261026` (worktree dashboard-layout-skill), plan `docs/research/grid-span-2026-10-26.md`
+§4–§6, after #321 (library) and #324 (MetricTrend, which edited figma-push / pull too; Giám sát gave the claim).
+- Inspector: `GridCellGroup.tsx` under Resizing when the layer's parent is a `.zen-grid` (Column span 1 … columns, Row
+  span, Take the whole row; "Grid cell on <breakpoint>"), writes through `responsiveOps` at the breakpoint the Screen
+  shows; a layer without span is wrapped (`wrap` op, `<Box span>`), and a bare span Box at 1 unwraps; the note "Row N
+  leaves X of 12 columns empty". `gridCellModel.ts` (+ selftest, 26), DesignPanel mounts it and keeps span / rowSpan out
+  of Properties for a layer in a Grid; LayoutSection names them in its breakpoint notes; breakpointBehaviours lists
+  per-breakpoint spans in Changes on <breakpoint>.
+- `responsive-props.mjs`: `CELL_PROPS` / `CELL_COMPONENTS`, span and rowSpan per breakpoint on Stack, Grid, Box, Card,
+  ListBox, ChartCard, MetricCard (default 1), so the push's `atBreakpoint` and Update from Figma handle them.
+- `grid-cells.mjs` `placeCells`: CSS auto-placement (sparse, `full` = 1 / -1), shared by the push, the pull's reading
+  order note and the Inspector's empty-columns note.
+- Push: each Grid child's `cell` from `placeCells` (absolute layers take none), `rowSpan` only when > 1, the Grid's rows
+  from the placement, a spanned cell's width = its tracks + gaps. Native paste writes `gridRowSpan`. Pull: mixed spans
+  or a row span → `columns={n}` + `span` / `rowSpan` (12 of 12 → "full"; a Text etc. in a `<Box span>`), and a note
+  when Figma's cells sit apart from their reading order. Plugin import sets both spans (0f966b5, its own session).
+- Docs: dashboard-layout.md §7 (one 12-column Grid with span in code, Studio and Figma), Zen Agent's dashboard bullet,
+  AGENTS.consumer.md Layout row, Studio MCP descriptions, CHANGELOG.
+- Checks: tsc; studio:selftest (figma-push 512, figma-pull 157, figma-native 170, figma-diff 35, responsive model 32,
+  grid cell model 26, E2E self-test 589 rows); usage, style. E2E `--rows=BP-14,BP-15,BP-16,BP-17` (Giám sát's slots):
+  first 2 works · 2 broken (BP-16: the Inspector's api.apply never selects a wrapper, so after the span wrap the Text
+  stayed selected and the group went; now the wrap / unwrap go through applyEdit and select the Box or the layer, as
+  position/float.ts; BP-17: my seed filled row 1, 8 + 3 + 1), then 4 works · 0 broken (65 s); baseline gains the four.
+- **Gate** (Giám sát's slot, `qa --isolated --files=` PR B's 18 source files, head 3d96f44e): PASS — style, usage,
+  Studio self-tests, guidelines, TypeScript, nested layer names 45/45, Studio E2E 385 works · 0 broken (4 shards,
+  1564 s; HO-21, another session's new row, works). Report `.qa/reports/2026-10-26T13-29-58-6d540f06.md`. PR #325.

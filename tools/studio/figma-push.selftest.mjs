@@ -628,6 +628,50 @@ export default function Page() {
   check("ListItem with its own content: one column frame in Contents (Figma's slot is a row), Subtitle left alone; ListBox hugs its rows (its Container-Slot frame and Body-Slot too)", [custom.slots.find((slot) => slot.name === "Contents").children.map((child) => [child.type, child.layout?.mode, child.children?.length]), custom.hide ?? null, ["hugH", "hugLayers"].map((key) => placed.find((node) => node.set?.name === "Component/List-Box")[key]), placed.find((node) => node.set?.name === "Component/List-Box").slots.find((slot) => slot.name === "Body-Slot")?.hugH], [[["FRAME", "VERTICAL", 2]], null, [true, [{ name: "Container-Slot", h: true }]], true]);
 }
 
+// 11b. Grid cell spans (docs/research/grid-span-2026-10-26.md §5): a 12-column dashboard grid gives each child its row,
+//      column and spans as Layout.tsx places them (KPIs 3 · 3 · 3 · 3, a hero 8 beside a list 4 two rows tall, two
+//      breakdowns 4 under the hero, a Text in a span Box), the rows they fill, and each cell's width (the spanned tracks
+//      and the gaps between them); a 390 Screen takes the mobile spans of the same page.
+const SPANS = (width) => `// @zen-page {"format":1,"title":"Spans"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Box, Card, Grid, ListBox, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Spans" device="desktop" width={${width}} height={900}>
+        <Grid columns={{ desktop: 12, mobile: 2 }} gap="md">
+          <Card span={3}><Text>One</Text></Card>
+          <Card span={3}><Text>Two</Text></Card>
+          <Card span={3}><Text>Three</Text></Card>
+          <Card span={3}><Text>Four</Text></Card>
+          <Card span={{ desktop: 8, mobile: "full" }}><Text>Hero</Text></Card>
+          <ListBox span={{ desktop: 4, mobile: "full" }} rowSpan={{ desktop: 2, mobile: 1 }}><Text>List</Text></ListBox>
+          <Card span={4}><Text>Donut</Text></Card>
+          <Box span={{ desktop: 4, mobile: "full" }}><Text>Note</Text></Box>
+        </Grid>
+      </Screen>
+    </Board>
+  );
+}
+`;
+{
+  const { frame } = push(SPANS(1232));
+  const grid = find(frame, (node) => node.name === "Grid");
+  const cells = grid.children.map((child) => child.cell);
+  check("spans: 12 columns, 3 rows (KPIs, the hero beside the list, two under the hero beside the list's second row)", [grid.layout.grid.columns, grid.layout.grid.rows], [12, 3]);
+  check("spans: each child's row, column and spans as Layout.tsx places them", cells, [
+    { col: 0, row: 0, span: 3 }, { col: 3, row: 0, span: 3 }, { col: 6, row: 0, span: 3 }, { col: 9, row: 0, span: 3 },
+    { col: 0, row: 1, span: 8 }, { col: 8, row: 1, span: 4, rowSpan: 2 }, { col: 0, row: 2, span: 4 }, { col: 4, row: 2, span: 4 },
+  ]);
+  const phone = push(SPANS(390)).frame;
+  const small = find(phone, (node) => node.name === "Grid");
+  // span={3} and span={4} hold on every breakpoint, so the 2 mobile columns clamp them to the whole row, as Layout.tsx does.
+  check("spans on a 390 Screen: the mobile values, clamped to its 2 columns (every cell the whole row, no row span)", [small.layout.grid.columns, small.layout.grid.rows, small.children.map((child) => [child.cell.col, child.cell.row, child.cell.span, child.cell.rowSpan ?? 1])], [2, 8, Array.from({ length: 8 }, (_, row) => [0, row, 2, 1])]);
+}
+
 // 11. Columns that fit, counted for the page's width (2026-10-12, the Dashboard's bottom row came out 592 / 544 in Figma
 //     where the Studio splits it 568 / 568): the width each frame fills (Screen, AppShell less the Sidebar, Container's
 //     gutter and maxWidth, grid tracks), an even Figma grid where it is known, a wrapping row where it is not.

@@ -1,4 +1,5 @@
 import { BREAKPOINT_LABELS, type ZenBreakpointKey } from "../../../../tools/studio/screen-devices.mjs";
+import { CELL_COMPONENTS, CELL_PROPS } from "../../../../tools/studio/responsive-props.mjs";
 import type { PageChild, PageNode, PageValue } from "../builder/render/renderPage";
 
 /*
@@ -79,7 +80,8 @@ export function screenFacts(screen: PageNode, shown: Pick<BreakpointFacts, "brea
       const margin = typeof text === "string" ? MARGIN.exec(text) : null;
       if (margin) margins.add(margin[1] as "comfortable" | "compact");
     }
-    for (const prop of LAYOUT_PROPS[node.name] ?? []) {
+    // A Grid cell's span per breakpoint counts too, on every layer that takes it (responsive-props.mjs CELL_COMPONENTS).
+    for (const prop of [...(LAYOUT_PROPS[node.name] ?? []), ...(CELL_COMPONENTS.includes(node.name) ? CELL_PROPS : [])]) {
       const value = node.props[prop];
       if (value?.kind !== "object") continue;
       const values = Object.fromEntries(Object.entries(value.fields).flatMap(([key, field]) => { const at = literal(field); return BREAKPOINT_KEYS.includes(key) && (typeof at === "string" || typeof at === "number" || typeof at === "boolean") ? [[key, at]] : []; }));
@@ -154,7 +156,7 @@ const BEHAVIOURS: Array<{ id: string; at: (facts: BreakpointFacts) => Omit<Break
       return here !== undefined && here !== wide ? [`${layer} ${prop} ${wide} → ${here}`] : [];
     });
     if (!changed.length) return null;
-    return { label: `Layout: ${changed.slice(0, 3).join(", ")}${changed.length > 3 ? ` +${changed.length - 3}` : ""}`, detail: `Stack, Grid and Box props written per breakpoint show their ${BREAKPOINT_LABELS[facts.breakpoint]} value (Inspector › Auto layout › Breakpoint).` };
+    return { label: `Layout: ${changed.slice(0, 3).join(", ")}${changed.length > 3 ? ` +${changed.length - 3}` : ""}`, detail: `Stack, Grid and Box props and a Grid cell's span written per breakpoint show their ${BREAKPOINT_LABELS[facts.breakpoint]} value (Inspector › Auto layout › Breakpoint, Grid cell).` };
   } },
   { id: "hidden-here", at: (facts) => {
     const count = facts.hideOn.filter((list) => list.includes(facts.breakpoint)).length;

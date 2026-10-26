@@ -1,5 +1,5 @@
 // Per-breakpoint layout props on a builder page (P2 of docs/research/studio-responsive-breakpoints-2026-10-26.md): Stack,
-// Grid and Box take `{ desktop?, tablet?, mobile? }` for the props below (src/components/_shared/responsive.ts, the
+// Grid and Box (and a Grid cell's span on the boxes of a widget grid) take `{ desktop?, tablet?, mobile? }` for the props below (src/components/_shared/responsive.ts, the
 // library's resolveAt: a breakpoint without its own value takes the next wider one's) and `hideOn`. Figma has no
 // breakpoints, so the push draws a page at its Screen's breakpoint (figma-push.mjs) and Update from Figma writes only
 // that breakpoint's key, keeping the others (figma-diff.mjs). Values here are dialect values ({ kind, … }, doc.mjs).
@@ -10,11 +10,20 @@ import { BREAKPOINTS, screenBreakpoint } from "./screen-devices.mjs";
 
 export { BREAKPOINTS, screenBreakpoint };
 
-/** The props that take one value per breakpoint (Layout.tsx). */
+/** A Grid child's span (Layout/cell.ts, docs/research/grid-span-2026-10-26.md), per breakpoint too: the layout
+ *  primitives and the boxes of a widget grid take it; any other layer gets it through a `<Box span>`. */
+export const CELL_PROPS = ["span", "rowSpan"];
+export const CELL_COMPONENTS = ["Stack", "Grid", "Box", "Card", "ListBox", "ChartCard", "MetricCard"];
+
+/** The props that take one value per breakpoint (Layout.tsx, and the cell span of CELL_COMPONENTS). */
 export const RESPONSIVE_PROPS = {
-  Stack: ["direction", "gap", "align", "justify", "wrap", "padding", "paddingX", "paddingY"],
-  Grid: ["columns", "gap", "rowGap", "columnGap", "padding"],
-  Box: ["padding", "paddingX", "paddingY"],
+  Stack: ["direction", "gap", "align", "justify", "wrap", "padding", "paddingX", "paddingY", ...CELL_PROPS],
+  Grid: ["columns", "gap", "rowGap", "columnGap", "padding", ...CELL_PROPS],
+  Box: ["padding", "paddingX", "paddingY", ...CELL_PROPS],
+  Card: [...CELL_PROPS],
+  ListBox: [...CELL_PROPS],
+  ChartCard: [...CELL_PROPS],
+  MetricCard: [...CELL_PROPS],
 };
 
 /** Hides a Stack, Grid or Box at the breakpoints it lists (Layout.tsx `hideOn`). */
@@ -25,10 +34,15 @@ export const HIDE_ON_PROP = "hideOn";
  * writes it as the breakpoint's key. Props whose unset value follows another (align, paddingX, rowGap, columns' auto-fill)
  * lose the key instead, so the breakpoint takes the next wider one's.
  */
+const CELL_DEFAULTS = { span: 1, rowSpan: 1 };
 export const RESPONSIVE_DEFAULTS = {
-  Stack: { direction: "column", gap: "md", wrap: false, padding: "none" },
-  Grid: { gap: "md", padding: "none" },
-  Box: { padding: "none" },
+  Stack: { direction: "column", gap: "md", wrap: false, padding: "none", ...CELL_DEFAULTS },
+  Grid: { gap: "md", padding: "none", ...CELL_DEFAULTS },
+  Box: { padding: "none", ...CELL_DEFAULTS },
+  Card: CELL_DEFAULTS,
+  ListBox: CELL_DEFAULTS,
+  ChartCard: CELL_DEFAULTS,
+  MetricCard: CELL_DEFAULTS,
 };
 
 /** Where each breakpoint looks (resolveAt): its own key, then the wider ones; a narrower key only when no wider one is set. */

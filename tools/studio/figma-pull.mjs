@@ -31,6 +31,8 @@ import { gradientFillProps, READ_GRADIENT_FILL } from "./figma-gradient.mjs";
 import { imageFillProps, READ_IMAGE_FILL } from "./figma-image.mjs";
 import { zenBlendOf } from "./blend-modes.mjs";
 import { takesInstanceLook } from "./instance-look.mjs";
+import { placeCells } from "./grid-cells.mjs";
+import { CELL_COMPONENTS } from "./responsive-props.mjs";
 import { tokens } from "../../src/tokens/generated.ts";
 import { contentTones, contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { arcFromData, parseVectorPath, STAR_RATIO } from "../../src/components/Shape/geometry.ts";
@@ -2963,6 +2965,16 @@ function maskProps(node, ctx) {
   return { mask: literal(true) };
 }
 
+/** A Grid layer with its Figma cell's spans: its own `span` / `rowSpan` props, or a Box around it that takes them. */
+function spannedCell(child, cell, columns) {
+  const span = cell?.span ?? 1;
+  const rowSpan = cell?.rowSpan ?? 1;
+  if (span <= 1 && rowSpan <= 1) return child;
+  const props = { ...(span > 1 ? { span: literal(span >= columns ? "full" : span) } : {}), ...(rowSpan > 1 ? { rowSpan: literal(rowSpan) } : {}) };
+  if (child.kind === "element" && CELL_COMPONENTS.includes(child.name)) return { ...child, props: { ...child.props, ...props } };
+  return { kind: "element", name: "Box", props, children: [child] };
+}
+
 /** A frame (or a slot) as a Stack in its auto layout; Figma's grid layout as a Grid. */
 function frameElement(node, children, ctx) {
   // figma-push centres an AiChatBlock in a frame of its name: the block itself.
@@ -2996,12 +3008,25 @@ function frameElement(node, children, ctx) {
     let columns = layout.grid?.columns;
     const cells = (node.children ?? []).map((child) => child.cell).filter(Boolean);
     const spans = new Set(cells.map((cell) => cell.span));
-    if (cells.length && spans.size === 1 && [...spans][0] > 1) {
+    const rowSpans = cells.some((cell) => (cell.rowSpan ?? 1) > 1);
+    if (cells.length && spans.size === 1 && [...spans][0] > 1 && !rowSpans) {
       const span = [...spans][0];
       const filled = Math.max(...cells.map((cell) => cell.col + cell.span)) - Math.min(...cells.map((cell) => cell.col));
       const effective = Math.max(1, Math.round(filled / span));
       ctx.notes.push(`Grid "${node.name}": in Figma its ${cells.length} layers span ${span} of ${columns} columns each, ${effective} to a row; the Grid takes ${effective} columns`);
       columns = effective;
+    } else if (cells.length && (spans.size > 1 || rowSpans)) {
+      // Mixed spans (a hero over 8 of 12 beside a companion over 4) or a layer over several rows: the Grid keeps Figma's
+      // columns and each layer its span (Layout/cell.ts; docs/research/grid-span-2026-10-26.md §5), the whole row as
+      // "full". A layer that takes no span goes in a Box that does.
+      const own = (child) => SOURCE.get(child)?.cell;
+      children = children.map((child) => spannedCell(child, own(child), columns));
+      // Studio places cells in reading order (CSS auto-placement): say so when Figma's sit elsewhere (a hole on purpose).
+      const sorted = [...cells].sort((a, b) => a.row - b.row || a.col - b.col);
+      const reading = placeCells(sorted.map((cell) => ({ span: cell.span, rowSpan: cell.rowSpan })), columns).cells;
+      if (reading.some((cell, index) => cell.row !== sorted[index].row || cell.col !== sorted[index].col)) {
+        ctx.notes.push(`Grid "${node.name}": in Figma some layers sit apart from their reading order; the Studio places them one after another`);
+      }
     }
     if (columns > 1) props.columns = literal(columns);
   }
