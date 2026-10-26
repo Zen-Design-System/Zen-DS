@@ -96,6 +96,8 @@ Figma Metric-Card (6643:64008): a Card (Shadow, Spacing Medium) holding a Metric
 | `footer` | `ReactNode` | — | Content under the type's own (Figma Hero: a Small Button — level="primary" on a hue card, appearance="overlay" level="inverse" on Solid Neutral, as Figma's Button/Overlay Inverse). |
 | `headingLevel` | `2 \| 3 \| 4` | `3` | comparison: heading level of the title (default 3: a card inside an h2 section; 2 when the card sits directly under the page h1), as ChartCard's. The look stays Body/Extra/Medium: the level follows the outline, not the size. |
 | `animate` | `boolean` | `true` | Draw the marks in on mount and when their data changes (default true; reduced motion fades). |
+| `span` | `Responsive<number \| "full">` | — | How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `"full"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: "full" }` (a breakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes the whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `"full"` applies. Default 1. No effect outside a Grid. |
+| `rowSpan` | `Responsive<number>` | — | How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid. |
 | `label` (required) | `ReactNode` | — | Figma Metric-Title. |
 | `trend` | `{ direction: MetricTrendDirection; label: ReactNode }` | — | Figma Trend: { direction, label } → Metric-Trend badge. |
 | `icon` | `IconName \| false` | — | Figma Dock-Icon: Neutral Subtle (Large at XLarge/Large, Medium below). `false` hides it. MetricCard type="tile": Neutral Solid, `icon-activity-line` by default. |
@@ -122,6 +124,7 @@ type ChartFormatPreset = "compact" | "currency" | "percent"
 type DockIconTheme = (typeof dockIconThemes)[number]
 interface MetricGoal { value: number; target: number; label?: ReactNode; valueLabel?: ReactNode; }
 type MetricTrendDirection = "positive" | "negative" | "normal"
+type Responsive<T> = T | { desktop?: T; tablet?: T; mobile?: T }
 ```
 
 ## ✅ Do

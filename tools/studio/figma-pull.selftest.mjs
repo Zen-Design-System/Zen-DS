@@ -100,8 +100,9 @@ ok("the read code for use_figma parses as an async function body", (() => { try 
   const page = unnamed(pulled.text);
   const notesWith = (part) => pulled.notes.filter((note) => note.includes(part)).length;
   check("live: the page is valid dialect", validateDialect(page), []);
+  // Design Tokens shows its chevron with no rows under it: `dropdown`.
   ok("live: Body-Content's frames are Sidebar sections, the Section-Title text their label",
-    /sections=\{\[\{ items: \[\{ id: "overviews", label: "Overviews", icon: "icon-home-03-line" \}, \{ id: "installation"/.test(page) && page.includes('{ label: "Foundation", items: [{ id: "design-tokens", label: "Design Tokens", icon: "icon-beaker-01-line" }'));
+    /sections=\{\[\{ items: \[\{ id: "overviews", label: "Overviews", icon: "icon-home-03-line" \}, \{ id: "installation"/.test(page) && page.includes('{ label: "Foundation", items: [{ id: "design-tokens", label: "Design Tokens", icon: "icon-beaker-01-line", dropdown: true }'));
   ok("live: a Menu-Item whose Icon is off has no icon; repeated labels get their own ids", page.includes('{ id: "avatar", label: "Avatar" }') && page.includes('{ id: "component-11", label: "Component" }'));
   ok("live: the item Figma shows selected is the Sidebar's selectedId", page.includes('selectedId="overviews"'));
   ok("live: Footer-Content's Menu-Items are SidebarMenuItem rows in the footer (they fill it: no align)", page.includes('footer={<Stack gap="3xs"><SidebarMenuItem id="download-figma" label="Download Figma" icon="ic-figma-line" />'));

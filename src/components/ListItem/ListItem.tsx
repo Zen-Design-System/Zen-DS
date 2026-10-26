@@ -4,6 +4,7 @@ import { contentToneVar, type ContentTone } from "../_shared/contentTone";
 import { renderIcon } from "../_shared/icon";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { layoutSizing, withSizingVars, type LayoutWidthProps } from "../Layout/sizing";
+import { useGridCell, type LayoutCellProps } from "../Layout/cell";
 import { typographyStyles } from "../../tokens/typography.generated";
 import "./list-item.css";
 
@@ -149,9 +150,10 @@ export const listBoxSurfaces: Readonly<Record<ListBoxTheme, readonly ListBoxSurf
 
 /**
  * Standard HTML attributes (`id`, `data-*`, `aria-*`, `style`…) go to the root element (`as`). `width`, `minWidth`,
- * `maxWidth` and `alignSelf` size the box as Figma auto layout sizes an instance, as on Stack.
+ * `maxWidth` and `alignSelf` size the box as Figma auto layout sizes an instance, as on Stack; `span` / `rowSpan` give it
+ * several columns or rows of its Grid.
  */
-export interface ListBoxProps extends Omit<HTMLAttributes<HTMLElement>, "title">, LayoutWidthProps {
+export interface ListBoxProps extends Omit<HTMLAttributes<HTMLElement>, "title">, LayoutWidthProps, LayoutCellProps {
   /** The root element. */
   ref?: Ref<HTMLElement>;
   /** Figma Header-Slot (Header=Yes): what names the box, e.g. a Heading/Subheading title and a caption, or a toolbar.
@@ -189,14 +191,15 @@ export interface ListBoxProps extends Omit<HTMLAttributes<HTMLElement>, "title">
  * Footer are optional (Figma Header=No / Footer=No). `theme` is Figma's Theme: default, shadow, pale, border,
  * flat-border or on-container; `color` the Pale box's hue and `surface` the Default or Border box's Surface.
  */
-export function ListBox({ ref, header, footer, children, theme = "default", color = "neutral", surface = "default", as: Tag = "div", className, width, minWidth, maxWidth, alignSelf, style, ...rest }: ListBoxProps) {
+export function ListBox({ ref, header, footer, children, theme = "default", color = "neutral", surface = "default", as: Tag = "div", className, width, minWidth, maxWidth, alignSelf, span, rowSpan, style, ...rest }: ListBoxProps) {
   const sizing = layoutSizing({ width, minWidth, maxWidth, alignSelf });
+  const cell = useGridCell({ span, rowSpan });
   // Only Figma's variants: a hue on Pale, Surface/Alt on Default and Border.
   const hue = theme === "pale" && color !== "neutral" ? color : undefined;
   const alt = surface === "alt" && listBoxSurfaces[theme]?.includes("alt");
   return (
     // One ref type for both `as` tags (div, section).
-    <Tag {...rest} ref={ref as Ref<HTMLDivElement>} {...sizing.attributes} style={withSizingVars(style, sizing.vars)} data-tone={theme} data-color={hue} data-surface={alt ? "alt" : undefined} className={["zen-list-box", className].filter(Boolean).join(" ")}>
+    <Tag {...rest} ref={ref as Ref<HTMLDivElement>} {...sizing.attributes} {...cell.attributes} style={withSizingVars(style, { ...sizing.vars, ...cell.vars })} data-tone={theme} data-color={hue} data-surface={alt ? "alt" : undefined} className={["zen-list-box", className].filter(Boolean).join(" ")}>
       {header ? <div className="zen-list-box__header">{header}</div> : null}
       <div className="zen-list-box__body">{children}</div>
       {footer ? <div className="zen-list-box__footer">{footer}</div> : null}

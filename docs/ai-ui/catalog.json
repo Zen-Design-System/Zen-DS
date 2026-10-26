@@ -2537,6 +2537,7 @@
         "Stacking sections, fields or cards (Stack, gap md–lg).",
         "Toolbars and button rows (Stack direction=\"row\", align center, justify between).",
         "Card and tile grids that reflow (Grid minColumnWidth) or form columns (Grid columns={{ mobile: 1, desktop: 2 }}).",
+        "A dashboard's widgets in one grid: Grid columns={{ desktop: 12, tablet: 6 }} with span on each widget (KPIs 3, a hero chart 8 beside a companion 4).",
         "Wells and plain panels (Box surface + padding).",
         "A panel that lays out its content, Figma's auto layout frame with a fill: one Stack (or Grid) with surface, padding, gap and radius.",
         "Page content width with the breakpoint margin (Container).",
@@ -2602,6 +2603,90 @@
         "maxHeight": {
           "type": "number",
           "description": "Maximum height in px (Figma max height)."
+        },
+        "span": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "enum": [
+                    "full"
+                  ]
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "desktop": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "tablet": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "mobile": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          ],
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `\"full\"` for the whole row."
+        },
+        "rowSpan": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "desktop": {
+                  "type": "number"
+                },
+                "tablet": {
+                  "type": "number"
+                },
+                "mobile": {
+                  "type": "number"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          ],
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts."
         },
         "position": {
           "enum": [
@@ -5137,6 +5222,90 @@
           ],
           "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's direction (vertical in a row, horizontal in a column), vertical inside a Grid cell."
         },
+        "span": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "enum": [
+                    "full"
+                  ]
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "desktop": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "tablet": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "mobile": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          ],
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `\"full\"` for the whole row."
+        },
+        "rowSpan": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "desktop": {
+                  "type": "number"
+                },
+                "tablet": {
+                  "type": "number"
+                },
+                "mobile": {
+                  "type": "number"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          ],
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts."
+        },
         "children": {
           "x-kind": "node"
         },
@@ -5286,6 +5455,90 @@
       ],
       "description": "Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) → header · Segmented · chart, gap 16.",
       "props": {
+        "span": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "enum": [
+                    "full"
+                  ]
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "desktop": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "tablet": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "mobile": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          ],
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `\"full\"` for the whole row."
+        },
+        "rowSpan": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "desktop": {
+                  "type": "number"
+                },
+                "tablet": {
+                  "type": "number"
+                },
+                "mobile": {
+                  "type": "number"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          ],
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts."
+        },
         "title": {
           "x-kind": "node",
           "x-required": true,
@@ -7060,6 +7313,7 @@
         "Stacking sections, fields or cards (Stack, gap md–lg).",
         "Toolbars and button rows (Stack direction=\"row\", align center, justify between).",
         "Card and tile grids that reflow (Grid minColumnWidth) or form columns (Grid columns={{ mobile: 1, desktop: 2 }}).",
+        "A dashboard's widgets in one grid: Grid columns={{ desktop: 12, tablet: 6 }} with span on each widget (KPIs 3, a hero chart 8 beside a companion 4).",
         "Wells and plain panels (Box surface + padding).",
         "A panel that lays out its content, Figma's auto layout frame with a fill: one Stack (or Grid) with surface, padding, gap and radius.",
         "Page content width with the breakpoint margin (Container).",
@@ -9929,6 +10183,7 @@
         "Stacking sections, fields or cards (Stack, gap md–lg).",
         "Toolbars and button rows (Stack direction=\"row\", align center, justify between).",
         "Card and tile grids that reflow (Grid minColumnWidth) or form columns (Grid columns={{ mobile: 1, desktop: 2 }}).",
+        "A dashboard's widgets in one grid: Grid columns={{ desktop: 12, tablet: 6 }} with span on each widget (KPIs 3, a hero chart 8 beside a companion 4).",
         "Wells and plain panels (Box surface + padding).",
         "A panel that lays out its content, Figma's auto layout frame with a fill: one Stack (or Grid) with surface, padding, gap and radius.",
         "Page content width with the breakpoint margin (Container).",
@@ -9994,6 +10249,90 @@
         "maxHeight": {
           "type": "number",
           "description": "Maximum height in px (Figma max height)."
+        },
+        "span": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "enum": [
+                    "full"
+                  ]
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "desktop": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "tablet": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "mobile": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          ],
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `\"full\"` for the whole row."
+        },
+        "rowSpan": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "desktop": {
+                  "type": "number"
+                },
+                "tablet": {
+                  "type": "number"
+                },
+                "mobile": {
+                  "type": "number"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          ],
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts."
         },
         "position": {
           "enum": [
@@ -12753,6 +13092,90 @@
           ],
           "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's direction (vertical in a row, horizontal in a column), vertical inside a Grid cell."
         },
+        "span": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "enum": [
+                    "full"
+                  ]
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "desktop": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "tablet": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "mobile": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          ],
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `\"full\"` for the whole row."
+        },
+        "rowSpan": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "desktop": {
+                  "type": "number"
+                },
+                "tablet": {
+                  "type": "number"
+                },
+                "mobile": {
+                  "type": "number"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          ],
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts."
+        },
         "header": {
           "x-kind": "node",
           "description": "Figma Header-Slot (Header=Yes): what names the box, e.g."
@@ -13622,6 +14045,90 @@
           "type": "boolean",
           "default": true,
           "description": "Draw the marks in on mount and when their data changes (default true; reduced motion fades)."
+        },
+        "span": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "enum": [
+                    "full"
+                  ]
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "desktop": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "tablet": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "mobile": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          ],
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `\"full\"` for the whole row."
+        },
+        "rowSpan": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "desktop": {
+                  "type": "number"
+                },
+                "tablet": {
+                  "type": "number"
+                },
+                "mobile": {
+                  "type": "number"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          ],
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts."
         },
         "label": {
           "x-kind": "node",
@@ -19605,6 +20112,7 @@
         "Stacking sections, fields or cards (Stack, gap md–lg).",
         "Toolbars and button rows (Stack direction=\"row\", align center, justify between).",
         "Card and tile grids that reflow (Grid minColumnWidth) or form columns (Grid columns={{ mobile: 1, desktop: 2 }}).",
+        "A dashboard's widgets in one grid: Grid columns={{ desktop: 12, tablet: 6 }} with span on each widget (KPIs 3, a hero chart 8 beside a companion 4).",
         "Wells and plain panels (Box surface + padding).",
         "A panel that lays out its content, Figma's auto layout frame with a fill: one Stack (or Grid) with surface, padding, gap and radius.",
         "Page content width with the breakpoint margin (Container).",
@@ -19670,6 +20178,90 @@
         "maxHeight": {
           "type": "number",
           "description": "Maximum height in px (Figma max height)."
+        },
+        "span": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "enum": [
+                    "full"
+                  ]
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "desktop": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "tablet": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "mobile": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "full"
+                      ]
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          ],
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `\"full\"` for the whole row."
+        },
+        "rowSpan": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "desktop": {
+                  "type": "number"
+                },
+                "tablet": {
+                  "type": "number"
+                },
+                "mobile": {
+                  "type": "number"
+                }
+              },
+              "required": [],
+              "additionalProperties": false
+            }
+          ],
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts."
         },
         "position": {
           "enum": [
@@ -25837,6 +26429,7 @@
         "Use Stack direction=\"row\" with justify=\"between\" for a title + actions row.",
         "Use Grid minColumnWidth for card grids so they reflow from phone to desktop.",
         "Put a main column next to an aside with Grid columns={{ mobile: 1, desktop: \"2fr 1fr\" }} align=\"start\"; on phones the aside moves under the main column.",
+        "Lay a dashboard's widgets in one Grid columns={12} with span, every row adding up to 12 (KPIs 3 · 3 · 3 · 3, a hero 8 beside a companion 4), and give the narrower breakpoints their own spans (tablet: KPIs 3 of 6, the hero \"full\"), so no row leaves a hole (skills/zen-component-usage/references/dashboard-layout.md).",
         "Put page content in a Container so its margin follows the breakpoint.",
         "Use per-breakpoint values for structure (direction, columns, wrap, hideOn on a side panel) and leave sizes to tokens and modes: gap and padding steps, page margins and type already follow the breakpoint and density, so a per-breakpoint gap or padding is for a structure that changes with it.",
         "Give a frame a surface only when it really is a separate layer; a Surface frame on a white (Alt) canvas needs border=\"pale\".",
@@ -25855,6 +26448,7 @@
         "Don't paint Canvas, Flat or Container on a Box: Canvas is the page, Flat is navigation, Container is modals and sheets.",
         "Don't nest Containers.",
         "Don't hide a frame on every breakpoint (hideOn={[\"desktop\", \"tablet\", \"mobile\"]}): it never shows, so delete it; and don't keep two copies of one part hidden in turn when a per-breakpoint direction or columns changes the one part.",
+        "Don't fill a hole in a spanned Grid with CSS order or grid-auto-flow dense: the reading order would no longer match what people see; change the spans or move a cell.",
         "Don't use position=\"absolute\" for what gap, justify or alignSelf can do: an absolute layer leaves the flow and no longer reflows with its siblings.",
         "Don't place status dots, badges or Card sub-actions by hand with absolute layers; they are component props (Avatar status, BadgeCounter, Card subAction).",
         "Don't put a shadow on a tinted fill (Subtle, Pale, Surface-Alt) or on a Canvas/Alt page; there a closed border separates the box.",

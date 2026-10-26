@@ -19,6 +19,10 @@ Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling fo
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
 - Figma charts (2026-10-26, the user): Heatmap's active row and column labels and Multi-Line's rule and X pill now come
   with Hover too, so at rest no chart draws any part of an active period (code already showed none).
+- Zen Studio ↔ Figma: a Sidebar row's nested rows (`children`) go to Figma as Menu-Item Level=Child rows right after it
+  (2026-10-26). A closed group's rows are hidden layers; the chevron (Dropdown) shows with `dropdown` or nested rows and
+  points up while the group is open. Pulled back, they are the row's `children` again (a footer row's `<SidebarMenuItem>`
+  children), and the pull also reads `dropdown` and a row's counter.
 - Charts (2026-10-26, the user): bar and stack columns fill the plot edge to edge, 8px (Spacing/Gap/XSmall) apart,
   rounded on top over a flat base (no more 40px cap); horizontal bars sit 8px apart, flat at the axis. No chart shows an
   active point or a Tooltip until the pointer (or the keyboard) is on it (Line, Area, Bar, Stack, Grouped, Combo;
@@ -29,6 +33,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   active period at rest either: the hover state (Hover on Bar, Area, Multi-Line, Heatmap; a Sector at Select=Selected
   on Line, Multi-Line, Stack-Bar) always brings its Tooltip. Combo columns run edge to edge 8px apart too; legend labels,
   Funnel counts and the metric label are Content/Neutral/Light.
+- Grid cells span columns and rows (2026-10-26, Figma Grid auto layout's column / row span): `span` (a number or
+  `"full"`) and `rowSpan` on a Grid's direct child (Stack, Grid, Box, Card, ListBox, ChartCard, MetricCard), per
+  breakpoint, clamped to the Grid's columns and the whole row while it stacks, so a dashboard's widgets sit in one
+  12-column grid (KPIs 3, a hero chart 8 beside a companion 4). The Layout page shows it in "One dashboard grid".
 - AppShell is a placeholder frame, Layout examples are apps (2026-10-26): the App Shell playground (docs and Zen Studio)
   draws Figma's Pattern/AppShell with its own placeholders ("Label" rows, Master › Child, "Heading Text", an Empty State,
   "Replace Component Here" in panes) instead of a sample app; Studio's Main component draws Pattern/AppShell/Desktop
