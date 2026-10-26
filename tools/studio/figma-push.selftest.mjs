@@ -2224,6 +2224,101 @@ export default function Page() {
   check("Pagination Inline: the range and the page size as the code counts them", [pages.textList, pages.nested], [["1–10 of 86 results"], [{ path: "Page-Size", props: {}, text: "10 results" }]]);
 }
 
+// A Sidebar row's nested rows (BACKLOG P2 2026-10-26): Figma's Menu-Item Level=Child rows right after it, their content
+// on the Menu-Item inside them ("Master"), hidden while their group is closed; the chevron (Dropdown) with `dropdown` or
+// nested rows, pointing up while open. The pull brings them back as `children` (JSX rows: <SidebarMenuItem> children),
+// and pulling the same frame again changes nothing.
+{
+  const PAGE = `// @zen-page {"format":1,"title":"Nested"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Sidebar, SidebarMenuItem, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Nested" device="desktop">
+        <Stack direction="row" gap="md">
+          <Sidebar aria-label="Nested" selectedId="leave" footer={<SidebarMenuItem id="help" label="Help" icon="icon-users-line"><SidebarMenuItem id="docs" label="Docs" /></SidebarMenuItem>}>
+            <SidebarMenuItem id="home" label="Home" icon="icon-home-03-line" />
+            <SidebarMenuItem id="time" label="Time off" icon="icon-users-line">
+              <SidebarMenuItem id="leave" label="Leave types" counter="3" />
+              <SidebarMenuItem id="holidays" label="Holidays" theme="accent" />
+            </SidebarMenuItem>
+            <SidebarMenuItem id="reports" label="Reports" icon="icon-home-03-line">
+              <SidebarMenuItem id="monthly" label="Monthly" />
+            </SidebarMenuItem>
+            <SidebarMenuItem id="more" label="More" icon="icon-users-line" dropdown />
+          </Sidebar>
+          <Sidebar aria-label="Data" density="small" sections={[{ label: "Work", items: [{ id: "projects", label: "Projects", icon: "icon-home-03-line", children: [{ id: "active", label: "Active", selected: true }, { id: "archived", label: "Archived", disabled: true }] }, { id: "teams", label: "Teams", icon: "icon-users-line", children: [{ id: "design", label: "Design" }] }] }]} />
+          <Sidebar aria-label="Rail" collapsed selectedId="leave-r" sections={[{ items: [{ id: "time-r", label: "Time", icon: "icon-users-line", children: [{ id: "leave-r", label: "Leave" }] }] }]} />
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { frame, notes } = push(PAGE);
+  check("nested rows: nothing left out", notes, []);
+  const sidebars = [];
+  const walk = (node) => { if (node.set?.name === "Patterns/Sidebar") sidebars.push(node); (node.children ?? []).forEach(walk); };
+  walk(frame);
+  const rowsIn = (sidebar, slotName) => {
+    const out = [];
+    const take = (layers) => layers.forEach((layer) => (layer.type === "FRAME" ? take(layer.children ?? []) : layer.set?.name === "Primitives/Side-Bar/Menu-Item/Master" && out.push(layer)));
+    take(sidebar.slots.find((slot) => slot.name === slotName)?.children ?? []);
+    return out;
+  };
+  const master = (row) => row.nested?.find((entry) => entry.path === "Master");
+  const view = (row) => [row.props.Level === "Child" ? master(row)?.text : row.text, row.props.Level ?? "Master", row.props.Select, (master(row)?.props ?? row.props).Dropdown, row.hidden === true, (row.nested ?? []).some((entry) => entry.set?.name === "icon-chevron-up-01-line")];
+  check("nested rows: Level=Child rows right after their row, Select by selectedId; a closed group's rows hidden; the chevron with children or `dropdown`, up while open",
+    rowsIn(sidebars[0], "Body-Content").map(view), [
+      ["Home", "Master", "No", false, false, false],
+      ["Time off", "Master", "No", true, false, true],
+      ["Leave types", "Child", "Yes", false, false, false],
+      ["Holidays", "Child", "No", false, false, false],
+      ["Reports", "Master", "No", true, false, false],
+      ["Monthly", "Child", "No", false, true, false],
+      ["More", "Master", "No", true, false, false],
+    ]);
+  const leave = rowsIn(sidebars[0], "Body-Content")[2];
+  check("nested rows: a Child row's label, icon toggle and counter on its Menu-Item inside (Master), its look on itself, filling the slot",
+    [master(leave)?.props, leave.nested.find((entry) => entry.path === "Master/Counter"), leave.props.Theme, rowsIn(sidebars[0], "Body-Content")[3].props.Theme, leave.fillW, "text" in leave],
+    [{ Label: true, Icon: false, Counter: true, Dropdown: false }, { path: "Master/Counter", props: {}, text: "3" }, "Neutral", "Accent", true, false]);
+  check("nested rows: footer rows nest too (a closed group: hidden)", rowsIn(sidebars[0], "Footer-Content").map(view), [["Help", "Master", "No", true, false, false], ["Docs", "Child", "No", false, true, false]]);
+  check("nested rows: sections' rows nest, open by a selected row (no selectedId), Density Small with their Sidebar, disabled one Disabled",
+    rowsIn(sidebars[1], "Body-Content").map((row) => [...view(row).slice(0, 5), row.props.Density, row.props.State]), [
+      ["Projects", "Master", "No", true, false, "Small", "Default"],
+      ["Active", "Child", "Yes", false, false, "Small", "Default"],
+      ["Archived", "Child", "No", false, false, "Small", "Disabled"],
+      ["Teams", "Master", "No", true, false, "Small", "Default"],
+      ["Design", "Child", "No", false, true, "Small", "Default"],
+    ]);
+  check("nested rows: the rail hides every nested row and every chevron (sidebar.css)", rowsIn(sidebars[2], "Body-Content").map((row) => [row.props.Level ?? "Master", row.props.Dropdown ?? master(row)?.props.Dropdown, row.hidden === true]), [["Master", false, false], ["Child", false, true]]);
+  // The pull: the nested rows come back as `children`, a JSX row's as <SidebarMenuItem> children; open or closed alike.
+  const pulled = pageFromFigma(frame, { mapping });
+  const back = pulled.text;
+  check("round trip: nested rows come back as children (sections), with their counter, theme, disabled and the selected row",
+    [
+      /label: "Time off", icon: "icon-users-line", children: \[\{ id: "leave-types", label: "Leave types", counter: 3 \}, \{ id: "holidays", label: "Holidays", theme: "accent" \}\]/.test(back),
+      /label: "Reports", icon: "icon-home-03-line", children: \[\{ id: "monthly", label: "Monthly" \}\]/.test(back),
+      /label: "More", icon: "icon-users-line", dropdown: true \}/.test(back),
+      /label: "Projects", icon: "icon-home-03-line", children: \[\{ id: "active", label: "Active" \}, \{ id: "archived", label: "Archived", disabled: true \}\]/.test(back),
+      /label: "Teams", icon: "icon-users-line", children: \[\{ id: "design", label: "Design" \}\]/.test(back),
+      /label: "Time", icon: "icon-users-line", children: \[\{ id: "leave", label: "Leave" \}\]/.test(back),
+      back.includes('selectedId="leave-types"') && back.includes('selectedId="active"'),
+    ],
+    [true, true, true, true, true, true, true]);
+  check("round trip: a footer row's nested rows are its <SidebarMenuItem> children",
+    /<SidebarMenuItem id="help" label="Help" icon="icon-users-line">\s*<SidebarMenuItem id="docs" label="Docs" \/>\s*<\/SidebarMenuItem>/.test(back), true);
+  check("round trip: no notes about rows", pulled.notes.filter((note) => /Menu-Item|SidebarMenuItem|dropdown/i.test(note)), []);
+  // figma-diff: the frame pulled, pushed and pulled again is no change.
+  const base = pulled.doc;
+  const again = pageFromFigma(push(printPage(base, { ids: true })).frame, { mapping }).doc;
+  check("figma-diff: a Sidebar with nested rows pulled again is no change", figmaChanges({ base, current: base, incoming: again }).changes.map((change) => change.label), []);
+}
+
 // A Sidebar's rows take its density as Figma's Menu-Item Density (user 2026-10-26: "Khi đổi density của sidebar thì các
 // item cũng đổi variant theo density đó"), and each row its Theme and State.
 {

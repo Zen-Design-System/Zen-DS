@@ -67,6 +67,20 @@ const variantNamed = (setId, name) => pack.sets[setId].variants.find((v) => pack
   check(!!counter, "a nested instance's TEXT prop is an assignment on its override");
 }
 
+// --- a Sidebar's nested row (figma-push sidebarSubRows): Menu-Item Level=Child, its label on the Menu-Item inside it
+//     ("Master"), hidden while its group is closed; an open group's chevron swapped for the one pointing up ------------
+{
+  const set = { id: "1536:27473", name: "Primitives/Side-Bar/Menu-Item/Master" };
+  const parent = { type: "INSTANCE", name: "Reports", set, props: { Label: true, Icon: false, Counter: false, Dropdown: true, Select: "No", Theme: "Neutral", State: "Default", Density: "Medium" }, text: "Reports", nested: [{ path: "Dropdown", set: { id: null, name: "icon-chevron-up-01-line" }, props: {} }] };
+  const row = { type: "INSTANCE", name: "Monthly", set, props: { Select: "No", Theme: "Neutral", State: "Default", Level: "Child", Density: "Medium" }, nested: [{ path: "Master", props: { Label: true, Icon: false, Counter: false, Dropdown: false }, text: "Monthly" }], hidden: true };
+  const { message, notes } = run([parent, row]);
+  const [top, child] = instances(message);
+  check(notes.length === 0, `nested row: no notes (${notes.join("; ")})`);
+  check(id(child.symbolData.symbolID) === "1551:5539" && child.visible === false, "nested row: the Level=Child variant, hidden");
+  check(overrides(child).some((o) => o.guidPath.guids.length === 2 && o.textData?.characters === "Monthly"), "nested row: its label on the Menu-Item inside it");
+  check(top.visible === true && overrides(top).some((o) => o.overriddenSymbolID), "nested row: the open row's Dropdown swapped (chevron up)");
+}
+
 // --- a component's own slot content: an edit inside it copies the content and assigns the copy ---------------------
 {
   const metric = { type: "INSTANCE", name: "Total spend", set: { id: "6643:64008", name: "Metric-Card" }, props: { Type: "Sparkline" }, texts: { Label: "Total spend", "Metric-Number": "$26,480" } };
