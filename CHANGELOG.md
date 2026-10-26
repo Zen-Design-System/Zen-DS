@@ -25,6 +25,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   category names, Chat's "Failed to send", a TopNavigation identity subtitle over imagery, and the Caption text of the
   docs examples and the Studio UI. New checks: harness `text/caption-light`, runtime audit kind `caption-light`, Figma
   audit `text/caption-light`; 147 layers rebound to Light in the Figma library.
+- Zen Studio's Main component draws every chart at its Figma width (2026-10-26, user screenshot "Lỗi hiển thị"): Line,
+  Multi-Line and Stack-Bar 297, Bar, Area, Grouped-Bar, Combo, Gauge, Funnel and Bullet 352, Curve-Preview 320, beside
+  Donut and Radial. In a max-content cell a chart had shrunk to its axis (LineChart one label, BarChart bars with no width).
 - Zen Studio → Figma: a Sidebar's rows take its density as the Menu-Item's Density variant (2026-10-26). Medium is 44px,
   Small 36px; an AppShell `pattern="grid"` and `variant="small-density"` give Small; a Basic Sidebar's footer rows stay
   Medium. Changing a Sidebar's density swaps every row's variant. Each row also carries its Theme (`theme="accent"`) and
