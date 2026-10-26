@@ -127,7 +127,9 @@ What the scope means:
   changed; Figma contract suites only for the components you edited (all of them when `tools/figma-contract/**`
   changed); Vitest runs the tests related to the edited files (the full suite for `tests/**` or `_shared` edits, or
   when `related` is unsupported, which it says). Stale guidelines of a component you edited are rebuilt and reported
-  "regenerated"; stale files of components you did not edit are a ⚠ naming them (another session's work). `--all`
+  "regenerated"; stale files of components you did not edit are a ⚠ naming them (another session's work). The AI UI
+  catalog (`docs/ai-ui`, CI's `ai-ui:check`) is checked when component props, the guideline source, a Figma suite,
+  `tools/ai-ui/**` or `AGENTS.consumer.md` changed; a ✗ means run `npm run ai-ui:build` and commit it. `--all`
   runs everything.
 - **Fail fast:** a failing static gate skips the browser steps and names them; add `--keep-going` to run them anyway.
 

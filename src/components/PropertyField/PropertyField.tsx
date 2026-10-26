@@ -397,7 +397,8 @@ function MultiCell({ type, options, value, defaultValue = [], onValueChange, add
       <span {...dataAttributes(rest)} ref={(node) => { cellRef.current = node; if (typeof ref === "function") ref(node); else if (ref) (ref as { current: HTMLElement | null }).current = node; }}
         className={cellClass(className)} data-type={type} data-state={state} data-interactive={readOnly ? undefined : ""} data-read-only={readOnly ? "" : undefined}
         onClick={onCellClick}>
-        {chosen.length ? chosen.map((option) => <span key={option.value} className="zen-property-value__chip">{renderChip(option, readOnly ? undefined : () => setCurrent((list) => list.filter((item) => item !== option.value)))}</span>) : <Placeholder>{placeholder}</Placeholder>}
+        {/* Figma Value-Slot: the people or labels, Spacing/Gap/2XSmall apart across and down (the cell's + stays Gap/XSmall away). */}
+        {chosen.length ? <span className="zen-property-value__slot">{chosen.map((option) => <span key={option.value} className="zen-property-value__chip">{renderChip(option, readOnly ? undefined : () => setCurrent((list) => list.filter((item) => item !== option.value)))}</span>)}</span> : <Placeholder>{placeholder}</Placeholder>}
         {/* zen-allow-filter-button: the + adds a value to this cell (Figma Action); it is not a filter or sort picker. */}
         {!row && !readOnly ? <IconButton size="xs" level="tertiary" icon="icon-plus-line" aria-label={name} aria-haspopup="listbox" aria-expanded={open} onClick={openPicker} /> : null}
       </span>

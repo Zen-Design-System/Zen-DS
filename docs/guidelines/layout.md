@@ -319,6 +319,7 @@ type ZenTypography = "dashboard" | "popular" | "mobile" | "studio"
 | `shape/px-offset-in-auto-layout` | warn | px insets are Figma's X / Y in a free frame (a Box without auto layout); inside a Stack or Grid an absolute layer's offsets are Spacing/Padding steps. | `zen-allow-px-offset: <reason>` |
 | `chip/row-gap` | error | Chips side by side sit Gap/XSmall (8px) apart: a Stack of Chips takes gap="xs" (ChipGroup spaces its chips so already). | `zen-allow-chip-gap: <reason>` |
 | `tag/row-gap` | error | Tags side by side sit Gap/2XSmall (4px) apart: a Stack of Tags takes gap="2xs". | `zen-allow-tag-gap: <reason>` |
+| `badge/row-gap` | error | Badges side by side sit Gap/2XSmall (4px) apart, as Tags do: a Stack of Badges (or BadgeStatus) takes gap="2xs". | `zen-allow-badge-gap: <reason>` |
 | `layout/use-stack` | warn | Arrange children with Stack or Grid (gap, padding and columns come from spacing tokens), not a div with an inline flex/grid style. (App mode only.) | `zen-allow-raw-layout: <reason>` |
 | `interaction/no-noop-handler` | warn | Every interaction a Zen control offers works: no no-op handlers (`() => {}`, `() => undefined`), which leave a field that ignores typing and ↑/↓ or a Dismiss that stays. Chat has chat/no-locked-interaction. | `zen-allow-noop-handler: <reason>` |
 

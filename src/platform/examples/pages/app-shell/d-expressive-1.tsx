@@ -90,7 +90,7 @@ function DisplayHeroPhone() {
           <>
             <Text textStyle="Body/Extra/Regular" tone="base">Hello Alan,</Text>
             <Heading level={1} textStyle="Display/1">Continue French!</Heading>
-            <Stack direction="row" gap="xs" wrap>
+            <Stack direction="row" gap="2xs" wrap>
               <Badge theme="accent" leading="icon-zap-line">12-day streak</Badge>
               <Badge theme="neutral" leadingIcon={false}>A2 · Elementary</Badge>
             </Stack>

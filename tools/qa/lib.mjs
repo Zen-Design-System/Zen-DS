@@ -44,6 +44,7 @@ export function auxKind(rel) {
   if (/^(tokens\/source|src\/tokens)\//.test(rel)) return "tokens";
   if (/^styles\/source\//.test(rel)) return "styles-source";
   if (/^scripts\/build-api\.mjs$/.test(rel)) return "guidelines";
+  if (/^tools\/ai-ui\//.test(rel) || rel === "AGENTS.consumer.md") return "ai-ui";
   return null;
 }
 

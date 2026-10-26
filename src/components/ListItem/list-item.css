@@ -93,6 +93,8 @@
 .zen-list-item__value-text { color: var(--zen-list-item-value-color, var(--zen-color-content-neutral-strongest, #111)); }
 .zen-list-item__value-caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-list-item__trailing { position: relative; z-index: 1; display: inline-flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-small, 12px); }
+/* A trailing of Badges or Tags only is a row of them: Spacing/Gap/2XSmall (4px) apart (the user 2026-10-26). */
+.zen-list-item__trailing:not(:has(> :not(.zen-badge, .zen-tag))) { gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 
 /* Figma Component/List-Box (14922:75297): a Surface/Default box, Corner-Radius/2XLarge, holding Header-Slot · Body-Slot ·
    Footer-Slot (Header and Footer optional). Every part pads Card-padding-medium sideways (Breakpoint & Grids: 24px
