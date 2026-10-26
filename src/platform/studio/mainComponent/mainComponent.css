@@ -25,6 +25,9 @@
   border-radius: var(--zen-corner-radius-medium, 8px);
   background: var(--studio-mc-photo) center / cover;
 }
+/* Listed variants (Pattern/AppShell): each cell's name above it, the cells of a row top-aligned. */
+.studio-mc__grid--list { align-items: start; }
+.studio-mc__grid--list .studio-mc__cell { gap: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-mc__head { white-space: nowrap; }
 .studio-mc__head--row { justify-self: end; }
 .studio-mc__cell { position: relative; display: grid; justify-items: start; }
@@ -44,6 +47,8 @@
   border-radius: var(--zen-corner-radius-medium, 8px);
   background: var(--zen-color-background-canvas-default, #f5f5f5);
 }
+/* A Pattern/AppShell variant fills its Figma frame (1512 × 982, 390 × 844, 744 × 1133), so it lays out at that width. */
+.studio-mc__screen > .zen-app-shell { flex: 1 1 auto; align-self: stretch; min-width: 0; }
 /* An open Popover drawn in a cell sits in place (no anchor to float from), as the docs' guideline visuals draw it. */
 .studio-mc__stage .zen-popover { position: relative; top: auto; left: auto; }
 .studio-mc__portal { position: relative; width: 0; height: 0; overflow: visible; }

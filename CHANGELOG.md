@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- AppShell is a placeholder frame, Layout examples are apps (2026-10-26): the App Shell playground (docs and Zen Studio)
+  draws Figma's Pattern/AppShell with its own placeholders ("Label" rows, Master › Child, "Heading Text", an Empty State,
+  "Replace Component Here" in panes) instead of a sample app; Studio's Main component draws Pattern/AppShell/Desktop
+  (9 variants) and Pattern/AppShell/Mobile (32); the Assets "App shell" item, a new "Page with AppShell" and the Screen
+  section's frame parts insert the same placeholders; the App Shell page's examples are now "Layout examples".
 - Zen Studio per-breakpoint layout (2026-10-26, PR 2 of the responsive plan): a Stack, Grid or Box on a Screen narrower
   than desktop edits that breakpoint (Inspector › Auto layout › Breakpoint, dots on breakpoints with values of their own,
   Reset, Same on every breakpoint); its fields and the canvas gap / padding handles write `{ desktop, tablet, mobile }`

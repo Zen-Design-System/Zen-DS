@@ -210,3 +210,25 @@ From main 9fa8ef52 (train #310 with bp-layout's library half in). Built:
 Since #304 a new row only guards against regressions once it is in `matrix.baseline.json`. B-47, B-48, PT-22…28 and
 HO-18…20 (from #286/#287/#294/#302/#306/#307) passed in every gate since and were listed as "new, work". Run
 `studio:e2e -- --rows=<those 12> --update-baseline` on main 9fa8ef52: 12 works, 0 broken, 98 s.
+
+## appshell-placeholder · AppShell is a placeholder frame, the examples are Layout examples
+
+User: "Cần phân biệt rõ AppShell và Layout Example. AppShell trên Studio giống example hơn. AppShell nên là dạng
+placeholder giống component trong trang ◇ Master-Layout" (Figma 1128:29541). Picked: the playground shows the
+placeholder only (sample app removed), the App Shell page's examples are renamed "Layout examples".
+- Figma read (section 16254:1057): Pattern/AppShell/Desktop 9 variants (Layout × Collapse), Mobile 32 (Device × Top ×
+  Bottom), .Primitives/AppShell/Placeholder (Pale fill, Subtle dashed 2·2, Corner-Radius/Large, Padding/Medium,
+  Heading/4 Content/Placeholder → code `tone="light"`, no Placeholder tone), Pane titles, Stepper "Step Title"/"Optional".
+- `tools/studio/appshell-placeholder.mjs` (import-free; `.d.mts`): the copy, the variant lists, the parts' code and
+  `appShellPlaceholderCode()`. Used by the Assets item (toast handlers), `MAIN_SAMPLES.AppShellHeader`, screen-chrome's
+  frame parts (sidebar, top bar, actions, page header, banner, side panel, floating action, bottom navigation) and the
+  new "Page with AppShell" (Figma's default variant around the content Stack, which keeps its "Start building here").
+- Main component: `mainComponent/appShellSets.ts` lists both sets (Figma's own variants, `wrap` 4 / 8, each drawn from
+  its code in its frame 1512 × 982 · 390 × 844 · 744 × 1133); `ListGrid`/`CodeCell` in MainComponentFrame; Variant
+  panel jumps to the nearest listed variant. Fixed on the way: a screen cell's AppShell shrank to its content (drawer
+  layout) → `.studio-mc__screen > .zen-app-shell` fills it.
+- Playground (`appLayer/shell.tsx`) rewritten on the placeholders, the pickers kept (Layout, Collapse, Canvas, Top row,
+  Sections, Notifications, panes, Progress, Side panel, Floating, Banner, mobile Top/Bottom); every control reports.
+- Selftests updated (builder, compile, screen-frame, engine-iso): 83/83 studio selftests, tsc clean. Palette `--deep`
+  has many old findings from other items; this item's were the accent FAB (now `zen-allow-accent`) and an Empty State
+  inside Card hosts (host-dependent, kept).

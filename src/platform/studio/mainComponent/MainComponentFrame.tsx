@@ -13,6 +13,8 @@ import { OverlayPreviewContext } from "../../../components/_shared/overlay";
 import { AppShellChromeContext, type AppShellChrome } from "../../../components/AppShell/context";
 import { MAIN_SAMPLES } from "./samples";
 import { filterStore, setsOf, toggleOn } from "./sets";
+import type { MainSet } from "./appShellSets";
+import { componentsOf } from "../../../../tools/studio/appshell-placeholder.mjs";
 import type { VariantAxis, VariantSet } from "./variantSets.generated";
 import "./mainComponent.css";
 
@@ -122,10 +124,11 @@ const PREVIEW_CHROME: AppShellChrome = { toggle: "collapse", sidebarCollapsed: f
 /** Components drawn inside a shell's chrome (their own cell has no AppShell around it). */
 const IN_SHELL = new Set(["AppShellHeader"]);
 
-function Stage({ component, set, variant, children }: { component: string; set: string; variant: Readonly<Record<string, string>>; children: ReactNode }) {
+function Stage({ component, set, variant, screen: frame, children }: { component: string; set: string; variant: Readonly<Record<string, string>>; screen?: { width: number; height: number }; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [fill, setFill] = useState(false);
-  const screen = OVERLAY_SCREENS[component];
+  // An overlay's screen, or the Figma frame a listed variant fills (an AppShell takes its height: --zen-app-shell-height).
+  const screen = frame ?? OVERLAY_SCREENS[component];
   // Once per cell, not per render: the stage observer sees a new variant collapse it (children are new elements on
   // every render, which re-created this observer and forced a layout per cell each time).
   useLayoutEffect(() => {
@@ -142,7 +145,7 @@ function Stage({ component, set, variant, children }: { component: string; set: 
   }, [fill, screen]);
   if (screen) {
     return (
-      <div ref={ref} className="studio-mc__stage studio-mc__screen" data-zen-overlay-root="" style={{ "--studio-mc-screen-width": `${screen.width}px`, "--studio-mc-screen-height": `${screen.height}px` } as CSSProperties}>
+      <div ref={ref} className="studio-mc__stage studio-mc__screen" data-zen-overlay-root="" style={{ "--studio-mc-screen-width": `${screen.width}px`, "--studio-mc-screen-height": `${screen.height}px`, "--zen-app-shell-height": `${screen.height}px` } as CSSProperties}>
         <OverlayPreviewContext.Provider value>{children}</OverlayPreviewContext.Provider>
       </div>
     );
@@ -195,14 +198,55 @@ const ComponentSets = memo(function ComponentSets({ component }: { component: st
   );
 });
 
-function SetGrid({ component, set, base, portal }: { component: string; set: VariantSet; base: PageNode | null | undefined; portal: HTMLDivElement | null }) {
+function SetGrid({ component, set, base, portal }: { component: string; set: MainSet; base: PageNode | null | undefined; portal: HTMLDivElement | null }) {
+  if (set.variants && set.code) return <ListGrid component={component} set={set} portal={portal} />;
+  return <AxisGrid component={component} set={set} base={base} portal={portal} />;
+}
+
+/** Only this set's selected cell (a string): any other selection change (a frame, a layer, another set) leaves every
+ *  cell of this set alone (a click on Input re-rendered all 268 cells, 2026-10-25). */
+const useSelectedCell = (component: string, set: string) => useStudio((state) => {
+  const selection = state.selection;
+  return selection?.kind === "variant" && selection.component === component && selection.set === set ? cellKey(component, set, selection.variant) : null;
+});
+
+/** A set of listed variants (appShellSets.ts): Figma's own variants in its order, `wrap` to a row, each named above its
+ *  cell and drawn from its own code in the frame Figma draws it in. */
+function ListGrid({ component, set, portal }: { component: string; set: MainSet; portal: HTMLDivElement | null }) {
+  const selectedCell = useSelectedCell(component, set.name);
+  const variants = set.variants ?? [];
+  return (
+    <section className="studio-mc__set" aria-label={set.name}>
+      <Text as="p" textStyle="Body/Small/Medium" tone="base">{set.name}</Text>
+      <div className="studio-mc__grid studio-mc__grid--list" style={{ gridTemplateColumns: `repeat(${Math.min(set.wrap ?? 4, variants.length)}, max-content)` }}>
+        {variants.map((variant) => {
+          const key = cellKey(component, set.name, variant);
+          return <CodeCell key={key} component={component} set={set} variant={variant} portal={portal} selected={selectedCell === key} />;
+        })}
+      </div>
+    </section>
+  );
+}
+
+const CodeCell = memo(function CodeCell({ component, set, variant, portal, selected }: { component: string; set: MainSet; variant: Readonly<Record<string, string>>; portal: HTMLDivElement | null; selected: boolean }) {
+  const code = set.code?.(variant) ?? "";
+  const item = useMemo<PaletteItem>(() => ({ id: `main-${component}`, label: component, group: "Page", root: component, components: componentsOf(code), interactive: false, input: false, build: () => code }), [component, code]);
+  const node = useItemNode(item);
+  const key = cellKey(component, set.name, variant);
+  const name = variantLabel(variant, set.axes);
+  return (
+    <div className="studio-mc__cell" data-mc-cell={key} data-mc-component={component} data-mc-set={set.name} data-mc-variant={JSON.stringify(variant)} data-mc-name={name} data-selected={selected || undefined} aria-label={name}>
+      <Text as="span" textStyle="Caption/Regular" tone="light" className="studio-mc__head">{name}</Text>
+      <Stage component={component} set={set.name} variant={variant} screen={set.screen?.(variant)}>
+        {node && portal ? renderInert(node, portal) : node === null ? <Text as="span" textStyle="Caption/Regular" tone="light">—</Text> : null}
+      </Stage>
+    </div>
+  );
+});
+
+function AxisGrid({ component, set, base, portal }: { component: string; set: VariantSet; base: PageNode | null | undefined; portal: HTMLDivElement | null }) {
   const filters = useSyncExternalStore(filterStore.subscribe, () => filterStore.get(set.name), () => filterStore.get(set.name));
-  // Only this set's selected cell (a string): any other selection change (a frame, a layer, another set) leaves every
-  // cell of this set alone (a click on Input re-rendered all 268 cells, 2026-10-25).
-  const selectedCell = useStudio((state) => {
-    const selection = state.selection;
-    return selection?.kind === "variant" && selection.component === component && selection.set === set.name ? cellKey(component, set.name, selection.variant) : null;
-  });
+  const selectedCell = useSelectedCell(component, set.name);
   const [columns, rows, ...rest] = gridAxes(set);
   const rowValues = rows ? rows.values : [null];
   const fixedRest = Object.fromEntries(rest.map((axis) => [axis.prop, filters[axis.prop] ?? axis.default]));
