@@ -59,7 +59,7 @@ export interface MetricTrendValue {
  * Without a `subLabel`, a text label that starts with a figure is split ("+9% vs. August" → 9% · vs. August, trend.ts). When
  * the badge's figure carries no sign, the arrow is named (Increase / Decrease) so a screen reader keeps the direction.
  */
-export function MetricTrend({ trend = "normal", content: contentProp, subLabel, children, ref }: {
+export function MetricTrend({ trend = "normal", content: contentProp, subLabel, children, ref, ...rest }: {
   /** Figma Trend: Positive · Negative · Normal. */
   trend?: MetricTrendDirection;
   /** Figma Content (Default · Inverse · On-Color). Default: the enclosing Solid Card's family (Inverse on Neutral, On-Color
@@ -88,11 +88,13 @@ export function MetricTrend({ trend = "normal", content: contentProp, subLabel, 
   const signed = typeof figure === "string" && /^[+\-−]/.test(figure.trim());
   // aria-label, not a <title>: the badge's text stays the figure alone.
   const arrow = icon ? <Icon name={icon} {...(signed ? { decorative: true } : { decorative: false, "aria-label": trend === "positive" ? t.increase : t.decrease })} /> : undefined;
-  const badge = nest("Badge", <Badge ref={words ? undefined : ref} size="small" theme={theme} background={content === "default" && trend === "normal" ? "subtle" : "solid"} leading={arrow} leadingIcon={Boolean(icon)}>{figure}</Badge>);
+  // `data-*` go on the root: the Badge alone, or the row holding it and the Sub-Label.
+  const data = dataAttributes(rest);
+  const badge = nest("Badge", <Badge {...(words ? {} : data)} ref={words ? undefined : ref} size="small" theme={theme} background={content === "default" && trend === "normal" ? "subtle" : "solid"} leading={arrow} leadingIcon={Boolean(icon)}>{figure}</Badge>);
   if (!words) return badge;
   // The Sub-Label's ink: inside a Solid card the card's re-pointed Neutral/Light (card.css), else the Content asked for.
   return (
-    <span ref={ref} className="zen-metric-trend" data-content={!on && content !== "default" ? content : undefined}>
+    <span {...data} ref={ref} className="zen-metric-trend" data-content={!on && content !== "default" ? content : undefined}>
       {badge}
       <span className={`zen-metric-trend__sub-label ${typographyStyles["Body/Small/Regular"]}`}>{words}</span>
     </span>
