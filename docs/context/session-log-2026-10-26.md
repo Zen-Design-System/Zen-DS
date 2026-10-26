@@ -588,3 +588,6 @@ Branch `zen/feat/grid-span-studio-20261026` (worktree dashboard-layout-skill), p
   first 2 works · 2 broken (BP-16: the Inspector's api.apply never selects a wrapper, so after the span wrap the Text
   stayed selected and the group went; now the wrap / unwrap go through applyEdit and select the Box or the layer, as
   position/float.ts; BP-17: my seed filled row 1, 8 + 3 + 1), then 4 works · 0 broken (65 s); baseline gains the four.
+- **Gate** (Giám sát's slot, `qa --isolated --files=` PR B's 18 source files, head 3d96f44e): PASS — style, usage,
+  Studio self-tests, guidelines, TypeScript, nested layer names 45/45, Studio E2E 385 works · 0 broken (4 shards,
+  1564 s; HO-21, another session's new row, works). Report `.qa/reports/2026-10-26T13-29-58-6d540f06.md`. PR #325.
