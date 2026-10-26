@@ -50,9 +50,9 @@ One chart family in one style: how a value changes over time (Line, Area), compa
 | Figma | Prop | Values / notes |
 | --- | --- | --- |
 | Line | `LineChart data[] {label, value} · label · compare {label, values} · curve · fill (area · none) · showLegend · legendPosition` | Accent/Solid 2px line over an area fading Accent/Solid → Accent/Subtle (at 30%, as Figma's Line-Chart) from the plot's left edge to the last period's centre; compare: a 2px Border/Neutral/Solid line at 40%, dashed 4 / 5, over the same periods, both values in the Tooltip, a legend (Figma Chart/Multi-Line-Chart: pick its Sector 4 · 6 · 7 · 12 to match the periods); lanes a seventh of the height above and below the grid, Y labels in a 32px column; only the active period draws its sector rule |
-| Bar | `BarChart data[] {label, value, projected, target} · orientation · color · activeColor` | Chart/Sector/Primary bars, the active one Sector/Secondary; projected bars and target tracks hatched (Border/Neutral/Pale stripes on Support/Neutral/Pale); Corner-Radius/Small |
-| Stack bar | `StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend · legendPosition` | Figma colour styles Color Chart Sector/Primary … Septenary (Primary, Secondary, Cyan, Violet, Yellow, Orange, Green Soft); the column cut to Corner-Radius/Small |
-| Donut | `DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size (small 120 · medium 168 · large 240 · xlarge 320) · legendPosition (bottom · top · start · end)` | Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4; Body/Base/Bold alone at Small, Display/4 at XLarge) or beside the ring above the legend (totalPosition="start": Body/Small caption over a Display/4 figure, Gap/3XSmall apart, as the Chart Card's Metric) |
+| Bar | `BarChart data[] {label, value, projected, target} · orientation · color · activeColor` | Chart/Sector/Primary bars, the active one Sector/Secondary; projected bars and target tracks hatched (Border/Neutral/Pale stripes on Support/Neutral/Pale); vertical bars edge to edge Spacing/Gap/XSmall apart, Corner-Radius/Small on the top corners over a flat base |
+| Stack bar | `StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend · legendPosition` | Figma colour styles Color Chart Sector/Primary … Septenary (Primary, Secondary, Cyan, Violet, Yellow, Orange, Green Soft); columns edge to edge Spacing/Gap/XSmall apart, cut to Corner-Radius/Small on the top corners over a flat base |
+| Donut | `DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size (small 120 · medium 168 · large 240 · xlarge 320) · legendPosition (bottom · top · start · end)` | Even 2px straight gaps (Spacing/Gap/3XSmall), Surface % pills on slices ≥ 6%, the total in the hole (Heading/4; Body/Base/Bold alone at Small, Display/4 at XLarge) or beside the ring above the legend (totalPosition="start": Body/Small caption over a Display/4 figure, Gap/3XSmall apart, as the Chart Card's Metric) |
 | Radial | `RadialChart data[] {id, label, value} · max · value · label · size (small 120 · medium 168 · large 240 · xlarge 320) · legendPosition` | 10px rings 8px apart over dotted Border/Neutral/Subtle tracks, outer ring first; the centre figure Heading/4 (Body/Base/Bold alone at Small, Display/4 at XLarge) |
 | Heatmap | `HeatmapChart rows · columns · values[row][column] · max · showLegend` | 24px cells on Support/Brand Pale · Soft · Solid · Rich · Deep, row labels in a 40px start column (a longer label widens it), Less → More scale |
 | Bar list | `BarList data[] {label, value} · headers {label, value} · initialIndex` | 32px rows Spacing/Gap/XSmall apart: Color Chart Sector/Primary bars at 24% (the active row 48%) as long as their share of the leader, Corner-Radius/Small, the name inside (Body/Small/Medium), the values in a 64px end column (a longer value widens it) Spacing/Gap/Small after the bars; column labels Caption/Medium, Neutral/Light |
@@ -94,7 +94,7 @@ Figma Chart/Line-Chart (6643:63324): an Accent/Solid 2px line over an area fadin
 | `showAverage` | `boolean` | `false` | A dotted line at the mean of the line (not the comparison), tagged "Avg $95.4K" (Figma Show Average). |
 
 ### BarChart
-Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with Corner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched in Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→). Horizontal: a category column, 24px bars, a value column at the end of the rows (the active one in Strongest; no Tooltip floats over the bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart 15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941; Color=Primary · Secondary ↔ `palette`); the hatch is .Chart/Hatch 15321:475.
+Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with Corner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched in Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→); the bars run edge to edge Spacing/Gap/XSmall apart, as wide as the count allows, rounded on the top corners over a flat base. Horizontal: a category column, 24px bars, a value column at the end of the rows (the active one in Strongest; no Tooltip floats over the bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart 15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941; Color=Primary · Secondary ↔ `palette`); the hatch is .Chart/Hatch 15321:475.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -106,7 +106,7 @@ Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-
 | `aria-label` (required) | `string` | — | What the chart shows and over which range ("Revenue per month, Jan – Dec 2026"). |
 | `className` | `string` | — |  |
 | `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
-| `initialIndex` | `number` | — | The bar active at first (painted Chart/Sector/Secondary, its Tooltip shown). Default: the last bar that isn't projected. |
+| `initialIndex` | `number` | — | The bar active at first and whenever the pointer leaves (painted Chart/Sector/Secondary, its Tooltip shown). Default: none on vertical bars, which show the active bar and its Tooltip only under the pointer or the keyboard; the last bar that isn't projected on horizontal bars. |
 | `color` | `string` | — | Colour of the bars, any CSS colour. Default Chart/Sector/Primary (Chart/Sector/Secondary with `palette="secondary"`). |
 | `activeColor` | `string` | — | Colour of the active bar, any CSS colour. Default Chart/Sector/Secondary (Chart/Sector/Primary with `palette="secondary"`). |
 | `palette` | `"primary" \| "secondary"` | `"primary"` | Figma Color: `primary` (default) draws Color Chart Sector/Primary bars with the active one in Sector/Secondary; `secondary` draws Sector/Secondary bars with the active one in Sector/Primary. `color` / `activeColor` still win. |
@@ -114,7 +114,7 @@ Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-
 | `showAverage` | `boolean` | `false` | A dotted line at the mean of the bars that aren't projected, tagged "Avg $87.8K" (Figma Show Average). |
 
 ### StackBarChart
-Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector (2px side padding, Corner-Radius/Small on the column), segments in series order from the bottom, a 12px-dot legend (Caption/Regular), and a Tooltip with the active total.
+Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector, edge to edge Spacing/Gap/XSmall apart (Corner-Radius/Small on the top corners, a flat base), segments in series order from the bottom, a 12px-dot legend (Caption/Regular), and a Tooltip with the active total.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -126,7 +126,7 @@ Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette
 | `aria-label` (required) | `string` | — | What the chart shows and over which range. |
 | `className` | `string` | — |  |
 | `ref` | `Ref<HTMLDivElement>` | — | Forwarded to the root `<div>` (the chart block that holds the plot and its legend). |
-| `initialIndex` | `number` | — | The column active at first. Default: the last one. |
+| `initialIndex` | `number` | — | The column active at first and whenever the pointer leaves. Default: none — the active column and its Tooltip show only under the pointer or the keyboard. |
 | `showLegend` | `boolean` | `true` | The legend names every colour; keep it (harness: chart/stack-needs-legend). |
 | `legendPosition` | `"top" \| "bottom"` | `"bottom"` | Legend above or below the plot (default bottom). |
 | `animate` | `boolean` | `true` | Grow the columns from the baseline on mount and when the data changes (default true; reduced motion fades). |
@@ -134,7 +134,7 @@ Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette
 | `palette` | `"primary" \| "secondary"` | `"primary"` | Figma Color: `primary` (default) stacks the series in palette order; `secondary` swaps the first two (the bottom segment Color Chart Sector/Secondary, the next Sector/Primary). A series' own `color` still wins. |
 
 ### DonutChart
-Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order, parted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default % pill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption) — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Display/4 figure, as the Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365 (Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).
+Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order, parted by 2px gaps (Spacing/Gap/3XSmall) of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default % pill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption) — or, with `totalPosition="start"`, beside the ring above the legend (Body/Small/Regular caption, Display/4 figure, as the Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump to the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365 (Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |

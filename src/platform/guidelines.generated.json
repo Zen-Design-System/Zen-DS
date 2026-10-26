@@ -8089,17 +8089,17 @@
       [
         "Bar",
         "BarChart data[] {label, value, projected, target} · orientation · color · activeColor",
-        "Chart/Sector/Primary bars, the active one Sector/Secondary; projected bars and target tracks hatched (Border/Neutral/Pale stripes on Support/Neutral/Pale); Corner-Radius/Small"
+        "Chart/Sector/Primary bars, the active one Sector/Secondary; projected bars and target tracks hatched (Border/Neutral/Pale stripes on Support/Neutral/Pale); vertical bars edge to edge Spacing/Gap/XSmall apart, Corner-Radius/Small on the top corners over a flat base"
       ],
       [
         "Stack bar",
         "StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend · legendPosition",
-        "Figma colour styles Color Chart Sector/Primary … Septenary (Primary, Secondary, Cyan, Violet, Yellow, Orange, Green Soft); the column cut to Corner-Radius/Small"
+        "Figma colour styles Color Chart Sector/Primary … Septenary (Primary, Secondary, Cyan, Violet, Yellow, Orange, Green Soft); columns edge to edge Spacing/Gap/XSmall apart, cut to Corner-Radius/Small on the top corners over a flat base"
       ],
       [
         "Donut",
         "DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size (small 120 · medium 168 · large 240 · xlarge 320) · legendPosition (bottom · top · start · end)",
-        "Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4; Body/Base/Bold alone at Small, Display/4 at XLarge) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption over a Display/4 figure, Gap/3XSmall apart, as the Chart Card's Metric)"
+        "Even 2px straight gaps (Spacing/Gap/3XSmall), Surface % pills on slices ≥ 6%, the total in the hole (Heading/4; Body/Base/Bold alone at Small, Display/4 at XLarge) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption over a Display/4 figure, Gap/3XSmall apart, as the Chart Card's Metric)"
       ],
       [
         "Radial",

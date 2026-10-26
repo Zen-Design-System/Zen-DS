@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Charts (2026-10-26, the user): vertical BarChart and StackBarChart columns now fill the plot edge to edge, 8px
+  (Spacing/Gap/XSmall) apart and as wide as the count allows, rounded on the top corners over a flat base (no more 40px
+  cap). Nothing is active by default: the active column and its Tooltip show only under the pointer (or the keyboard)
+  and clear when it leaves; `initialIndex` still sets one. DonutChart slices are parted by 2px gaps instead of 4px. The
+  Figma Bar-Chart, Stack-Bar-Chart and Donut-Chart sets match.
 - Zen Studio per-breakpoint layout (2026-10-26, PR 2 of the responsive plan): a Stack, Grid or Box on a Screen narrower
   than desktop edits that breakpoint (Inspector › Auto layout › Breakpoint, dots on breakpoints with values of their own,
   Reset, Same on every breakpoint); its fields and the canvas gap / padding handles write `{ desktop, tablet, mobile }`

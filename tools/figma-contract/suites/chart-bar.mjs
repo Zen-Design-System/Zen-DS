@@ -2,7 +2,8 @@
 // 4 · 6 · 7 · 12 × Color Primary · Secondary, a BarChart (`orientation`, `palette`) in a Chart Card (Heading · Metric ·
 // Chart; the Segmented is hidden).
 //  - Vertical: a right-aligned Y-Axis Spacing/Padding/XSmall before the Plot (Grid Line-1 baseline … Line-6, one Column
-//    per sector with a 40px Corner-Radius/Small bar in Color Chart Sector/Primary, the active one Sector/Secondary, the
+//    per sector, Spacing/Gap/XSmall apart and edge to edge, its bar filling it with Corner-Radius/Small on the top corners
+//    over a flat base, in Color Chart Sector/Primary, the active one Sector/Secondary, the
 //    periods after it projected: Support/Neutral/Pale under the .Chart/Hatch), the X-Axis pills and the Tooltip on top.
 //  - Horizontal: end-aligned category pills · 24px tracks Spacing/Gap/Medium apart (a hatched target and the bar) on
 //    dashed vertical Ticks with their labels under them · the value column, the active row's pill and value Strongest.

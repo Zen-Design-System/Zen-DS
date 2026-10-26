@@ -84,16 +84,19 @@
 .zen-chart__tip-value { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
 .zen-chart__tip-dot { width: 8px; height: 8px; border-radius: var(--zen-corner-radius-rounded, 1000px); box-shadow: 0 0 0 1px var(--zen-color-border-inverse, #fff); }
 
-/* Bars: one column per X value (2px side padding), a bar ≤ 40px wide with Corner-Radius/Small on every corner; a target
-   track and the bar share the column's one cell. Stack: segments bottom-up in a column cut to the same radius. */
+/* Bars: one column per X value, the bar or stack filling it. Bar and Stack-Bar columns run edge to edge across the plot
+   Spacing/Gap/XSmall apart (as wide as the count allows; the user, 2026-10-26), their sectors on the same tracks so the
+   X pills, the rule and the Tooltip stay centred on them; Corner-Radius/Small on the top corners over a flat base. A
+   target track and the bar share the column's one cell. Stack: segments bottom-up in a column cut to the same corners. */
 .zen-chart__bars { display: grid; grid-template-columns: repeat(var(--zen-chart-count, 4), minmax(0, 1fr)); align-items: end; }
+.zen-chart-block:is([data-kind="bar"], [data-kind="stack"]) :is(.zen-chart__bars, .zen-chart__sectors) { column-gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-chart__visual > .zen-chart__bars { inset: 0; }
-.zen-chart__column { display: grid; height: 100%; align-items: end; justify-items: center; padding-inline: var(--zen-spacing-padding-3-xsmall, 2px); }
-.zen-chart__column > * { grid-area: 1 / 1; width: min(100%, 40px); }
+.zen-chart__column { display: grid; height: 100%; align-items: end; }
 .zen-chart__stack, .zen-chart__bar, .zen-chart__target { display: block; border-radius: var(--zen-corner-radius-small, 8px); }
+.zen-chart__column > * { grid-area: 1 / 1; border-radius: var(--zen-corner-radius-small, 8px) var(--zen-corner-radius-small, 8px) 0 0; }
 .zen-chart__stack { display: flex; flex-direction: column-reverse; overflow: hidden; }
 .zen-chart__segment { display: block; min-height: 2px; flex-basis: 0; }
-.zen-chart__column:not([data-active="true"]) .zen-chart__stack { opacity: .88; }
+.zen-chart__bars:has(> [data-active="true"]) > .zen-chart__column:not([data-active="true"]) .zen-chart__stack { opacity: .88; }
 .zen-chart__bar { min-height: 2px; background: var(--zen-chart-bar, var(--zen-chart-lead, var(--zen-chart-sector-primary, #ff66d4))); }
 .zen-chart__column[data-active="true"] .zen-chart__bar, .zen-chart__htrack[data-active="true"] .zen-chart__bar { background: var(--zen-chart-bar-active, var(--zen-chart-second, var(--zen-chart-sector-secondary, #111))); }
 /* Projected bars and target tracks (Figma .Chart/Hatch, the user's 2026-10-13 edit): Support/Neutral/Pale under 1.5px
@@ -245,7 +248,7 @@
 /* Draw-in (spec §3): bars rise from the baseline (clip, Slow, Emphasized, staggered); lines wipe in from the left; slices
    and rings sweep their stroke; heatmap cells fade and scale up by Motion/Movement. Each chart re-mounts its marks when
    its data changes, so a new range draws itself in again. */
-@keyframes zen-chart-rise { from { clip-path: inset(100% 0 0 0 round var(--zen-corner-radius-small, 8px)); } to { clip-path: inset(0 0 0 0 round var(--zen-corner-radius-small, 8px)); } }
+@keyframes zen-chart-rise { from { clip-path: inset(100% 0 0 0 round var(--zen-corner-radius-small, 8px) var(--zen-corner-radius-small, 8px) 0 0); } to { clip-path: inset(0 0 0 0 round var(--zen-corner-radius-small, 8px) var(--zen-corner-radius-small, 8px) 0 0); } }
 @keyframes zen-chart-grow { from { clip-path: inset(0 100% 0 0 round var(--zen-corner-radius-small, 8px)); } to { clip-path: inset(0 0 0 0 round var(--zen-corner-radius-small, 8px)); } }
 @keyframes zen-chart-wipe { from { clip-path: inset(-8px 100% -8px -8px); } to { clip-path: inset(-8px -8px -8px -8px); } }
 @keyframes zen-chart-sweep { from { stroke-dasharray: 0 100; } }

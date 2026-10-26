@@ -17432,7 +17432,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The bar active at first (painted Chart/Sector/Secondary, its Tooltip shown). Default: the last bar that isn't projected.",
+          "description": "The bar active at first and whenever the pointer leaves (painted Chart/Sector/Secondary, its Tooltip shown). Default:\n none on vertical bars, which show the active bar and its Tooltip only under the pointer or the keyboard; the last bar\n that isn't projected on horizontal bars.",
           "deprecated": null
         },
         {
@@ -17550,7 +17550,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The column active at first. Default: the last one.",
+          "description": "The column active at first and whenever the pointer leaves. Default: none — the active column and its Tooltip show\n only under the pointer or the keyboard.",
           "deprecated": null
         },
         {

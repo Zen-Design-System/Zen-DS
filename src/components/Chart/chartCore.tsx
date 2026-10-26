@@ -1,6 +1,6 @@
 /* The chart family's shared language (docs/research/chart-family-spec-2026-10-12.md §2–4): palette, scale, legend,
    the cartesian plot frame, keyboard selection and the draw-in motion. Every chart in this folder is built from it. */
-import { useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode, type Ref, type RefObject } from "react";
+import { useId, useLayoutEffect, useRef, useState, type CSSProperties, type FocusEvent, type KeyboardEvent, type PointerEvent, type ReactNode, type Ref, type RefObject } from "react";
 import { useMergedRefs } from "../_shared/merge-refs";
 import { scaleKey } from "../_shared/scale";
 import { TooltipSurface } from "../Tooltip";
@@ -333,15 +333,21 @@ export const staggerStyle = (index: number, extra?: CSSProperties) => ({ "--zen-
  * Cartesian frame shared by LineChart, BarChart (vertical) and StackBarChart: Y labels (Label/Small/Medium,
  * Neutral/Light), dashed Border/Neutral/Pale grid (solid baseline), one sector column per X value with its X label (a
  * pill when active) and the active item's Tooltip in the top lane (chart.css: a seventh of the plot for line and stack, as
- * Figma's 14-row Trend grid; 36px / 28px for bars).
+ * Figma's 14-row Trend grid; 36px / 28px for bars). `hoverOnly` (BarChart, StackBarChart; the user, 2026-10-26): the
+ * active item shows only while the mouse is over the plot or the keyboard is in it; leaving hands it back to the default
+ * (`setActive(undefined)`). A touch keeps the column it tapped.
  */
-export function PlotFrame({ labels, ticks, top, format, active, setActive, onKeyDown, height, ariaLabel, tooltip, activeLine, children, className, summary, kind, animate, average }: {
-  labels: string[]; ticks: number[]; top: number; format: (v: number) => string; active: number | null; setActive: (i: number) => void; onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => void;
+export function PlotFrame({ labels, ticks, top, format, active, setActive, onKeyDown, height, ariaLabel, tooltip, activeLine, children, className, summary, kind, animate, average, hoverOnly = false }: {
+  labels: string[]; ticks: number[]; top: number; format: (v: number) => string; active: number | null; setActive: (i: number | undefined) => void; onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => void;
   height: number; ariaLabel: string; tooltip: ReactNode; activeLine: "accent" | "neutral"; children: ReactNode; className?: string; summary: ReactNode; kind: "line" | "bar" | "stack"; animate: boolean;
   /** The average line (showAverage): its value and the tag's text. */
   average?: { value: number; label: string };
+  /** Show the active item only under the pointer or the keyboard; leaving the plot hands it back to the default. */
+  hoverOnly?: boolean;
 }) {
   const id = useChartId();
+  const leave = hoverOnly ? (event: PointerEvent<HTMLDivElement>) => { if (event.pointerType !== "touch" && !event.currentTarget.matches(":focus-visible, :has(:focus-visible)")) setActive(undefined); } : undefined;
+  const blur = hoverOnly ? (event: FocusEvent<HTMLDivElement>) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setActive(undefined); } : undefined;
   return (
     <div className={["zen-chart", className].filter(Boolean).join(" ")} data-kind={kind} data-animate={animate ? undefined : "false"} data-dense={labels.length > 8 ? "true" : undefined} style={{ "--zen-chart-height": `calc(${height}px + var(--zen-chart-grow, 0px))`, "--zen-chart-base": `${height}px`, "--zen-chart-count": labels.length } as CSSProperties}>
       <div className="zen-chart__y" aria-hidden="true">
@@ -355,6 +361,8 @@ export function PlotFrame({ labels, ticks, top, format, active, setActive, onKey
         aria-describedby={`${id}-summary`}
         tabIndex={0}
         onKeyDown={onKeyDown}
+        onPointerLeave={leave}
+        onBlur={blur}
       >
         <div className="zen-chart__grid" aria-hidden="true">{ticks.map((tick) => <span key={tick} data-base={tick === 0 ? "true" : undefined} style={{ bottom: `${(tick / top) * 100}%` }} />)}</div>
         <div className="zen-chart__visual" aria-hidden="true">

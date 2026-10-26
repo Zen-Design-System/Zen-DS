@@ -368,9 +368,9 @@ function stepFor(max, count) {
   return [1, 2, 2.5, 5, 10, 20].map((m) => m * magnitude).find((s) => s * count >= max - 1e-9) ?? max / count;
 }
 
-/** DonutChart.tsx geometry: the ring 22% of the diameter, 4px straight gaps, 4px round corners, % pills at 6% and up. */
+/** DonutChart.tsx geometry: the ring 22% of the diameter, 2px straight gaps, 4px round corners, % pills at 6% and up. */
 const RING = 22;
-const SLICE_GAP_PX = 4;
+const SLICE_GAP_PX = 2;
 const SLICE_CORNER_PX = 4;
 /** A circle arc from angle a to b (radians from 12 o'clock, clockwise) as cubic Béziers, in the 100 × 100 box. */
 function arcCubics(r, a, b) {

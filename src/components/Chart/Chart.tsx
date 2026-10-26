@@ -155,7 +155,8 @@ export interface StackBarChartProps {
   className?: string;
   /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
   ref?: Ref<HTMLDivElement>;
-  /** The column active at first. Default: the last one. */
+  /** The column active at first and whenever the pointer leaves. Default: none — the active column and its Tooltip show
+   *  only under the pointer or the keyboard. */
   initialIndex?: number;
   /** The legend names every colour; keep it (harness: chart/stack-needs-legend). */
   showLegend?: boolean;
@@ -171,7 +172,7 @@ export interface StackBarChartProps {
 }
 
 /**
- * Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector (2px side padding, Corner-Radius/Small on the column),
+ * Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector, edge to edge Spacing/Gap/XSmall apart (Corner-Radius/Small on the top corners, a flat base),
  * segments in series order from the bottom, a 12px-dot legend (Caption/Regular), and a Tooltip with the active total.
  */
 export function StackBarChart({ data, series, format: formatProp, currency, height = 236, "aria-label": ariaLabel, className, initialIndex, showLegend = true, legendPosition = "bottom", animate = true, showAverage = false, palette = "primary", ref, ...rest }: StackBarChartProps) {
@@ -179,14 +180,14 @@ export function StackBarChart({ data, series, format: formatProp, currency, heig
   const t = useZenLabels();
   const totals = data.map((d) => series.reduce((sum, s) => sum + (d.values[s.id] ?? 0), 0));
   const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...totals)), [totals.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps -- deliberate content-hash memo: keyed on the data signature, not its identity
-  const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? data.length - 1);
+  const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? null);
   const current = active === null ? undefined : data[active];
   const legend = showLegend ? <ChartLegend items={series.map((s, si) => ({ id: s.id, label: s.label, color: colourAt(s, si, palette) }))} /> : undefined;
   const mean = showAverage ? meanOf(totals) : undefined;
-  const summary = current ? `${current.label}: ${t.chartTotal(format(totals[active!]))}; ${series.map((s) => `${s.label} ${format(current.values[s.id] ?? 0)}`).join(", ")}` : t.noData;
+  const summary = current ? `${current.label}: ${t.chartTotal(format(totals[active!]))}; ${series.map((s) => `${s.label} ${format(current.values[s.id] ?? 0)}`).join(", ")}` : data.length ? data.map((d, i) => `${d.label} ${t.chartTotal(format(totals[i]))}`).join(", ") : t.noData;
   return (
     <ChartBlock {...dataAttributes(rest)} ref={ref} kind="stack" legend={legend} position={legendPosition} className="zen-chart-stack" palette={palette}>
-      <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel} activeLine="neutral" className={className} kind="stack" animate={animate}
+      <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel} activeLine="neutral" className={className} kind="stack" animate={animate} hoverOnly
         tooltip={current ? format(totals[active!]) : null}
         summary={mean === undefined ? summary : `${summary}; ${t.chartAverageLong(format(mean))}`} average={mean === undefined ? undefined : { value: mean, label: t.chartAverage(format(mean)) }}>
         <div className="zen-chart__bars" key={totals.join(",")}>

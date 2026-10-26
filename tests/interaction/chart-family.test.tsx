@@ -30,8 +30,10 @@ describe("chart family keyboard", () => {
   it("BarChart: ←/→ and Home/End move the active bar; a projected bar says so", async () => {
     await render(wrap(<BarChart aria-label="Revenue" data={[{ label: "Jan", value: 10 }, { label: "Feb", value: 20 }, { label: "Mar", value: 15, projected: true }]} />));
     const plot = await focusChart("Revenue");
-    expect(summaryOf(plot)).toBe("Feb: 20 (2 of 3)"); // the last closed bar
+    expect(summaryOf(plot)).toBe("Jan 10, Feb 20, Mar 15 · projected"); // no bar active until one is picked
     await press(plot, "ArrowRight");
+    expect(summaryOf(plot)).toBe("Jan: 10 (1 of 3)");
+    await press(plot, "End");
     expect(summaryOf(plot)).toBe("Mar: 15 · projected (3 of 3)");
     await press(plot, "Home");
     expect(summaryOf(plot)).toBe("Jan: 10 (1 of 3)");
@@ -124,7 +126,7 @@ describe("average line", () => {
     const plot = await focusChart("Avg bars");
     const line = plot.querySelector(".zen-chart__average") as HTMLElement;
     expect(line.textContent).toBe("Avg 15");
-    expect(summaryOf(plot)).toBe("Feb: 20 (2 of 3); average 15");
+    expect(summaryOf(plot)).toBe("Jan 10, Feb 20, Mar 90 · projected; average 15");
     // 15 on a 0–100 scale (nice top for 90): the rule sits 15% up the plot.
     expect(line.style.bottom).toBe("15%");
   });
@@ -153,17 +155,47 @@ describe("average line", () => {
 });
 
 describe("chart family layout", () => {
-  it("bars and stacked columns share Corner-Radius/Small and grow from the baseline", async () => {
+  it("bars and stacked columns run edge to edge 8px apart, Corner-Radius/Small on top of a flat base, and grow from the baseline", async () => {
     await render(wrap(<>
-      <BarChart aria-label="Bars" data={[{ label: "A", value: 4 }, { label: "B", value: 8 }]} />
+      <BarChart aria-label="Bars" data={[{ label: "A", value: 4 }, { label: "B", value: 8 }, { label: "C", value: 6 }]} />
       <StackBarChart aria-label="Stack" series={[{ id: "x", label: "X" }]} data={[{ label: "A", values: { x: 4 } }]} />
     </>));
     const bar = document.querySelector(".zen-chart__column .zen-chart__bar") as HTMLElement;
     const stack = document.querySelector(".zen-chart__stack") as HTMLElement;
-    expect(getComputedStyle(bar).borderTopLeftRadius).toBe(getComputedStyle(stack).borderBottomRightRadius);
+    expect(getComputedStyle(bar).borderTopLeftRadius).toBe(getComputedStyle(stack).borderTopRightRadius);
     expect(Number.parseFloat(getComputedStyle(bar).borderTopLeftRadius)).toBeGreaterThan(4);
+    expect(getComputedStyle(bar).borderBottomLeftRadius).toBe("0px");
+    expect(getComputedStyle(stack).borderBottomRightRadius).toBe("0px");
+    const plot = document.querySelector('[aria-label="Bars"]')!.getBoundingClientRect();
+    const bars = [...document.querySelectorAll('[aria-label="Bars"] .zen-chart__bar')].map((el) => el.getBoundingClientRect());
+    const sectors = [...document.querySelectorAll('[aria-label="Bars"] .zen-chart__sector')].map((el) => el.getBoundingClientRect());
+    expect(Math.abs(bars[0].left - plot.left)).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(bars[2].right - plot.right)).toBeLessThanOrEqual(0.5);
+    expect(bars[1].left - bars[0].right).toBeCloseTo(8, 0);
+    // The sectors (X pills, rule, Tooltip) sit on the bars' tracks.
+    bars.forEach((r, i) => expect(Math.abs(sectors[i].left + sectors[i].width / 2 - (r.left + r.width / 2))).toBeLessThanOrEqual(0.5));
     // Reduced motion: the draw-in only fades.
     expect(getComputedStyle(bar).animationName).toBe("zen-chart-fade");
+  });
+
+  it("BarChart and StackBarChart: nothing active until the pointer is over a column; leaving the plot clears it", async () => {
+    await render(wrap(<>
+      <BarChart aria-label="Hover bars" data={[{ label: "Jan", value: 10 }, { label: "Feb", value: 20 }]} />
+      <StackBarChart aria-label="Hover stack" series={[{ id: "a", label: "A" }]} data={[{ label: "Q1", values: { a: 3 } }, { label: "Q2", values: { a: 5 } }]} />
+    </>));
+    for (const name of ["Hover bars", "Hover stack"]) {
+      const plot = document.querySelector(`[aria-roledescription="chart"][aria-label="${name}"]`) as HTMLElement;
+      expect(plot.querySelector("[data-active]"), name).toBeNull();
+      expect(plot.querySelector(".zen-chart__tooltip"), name).toBeNull();
+      const sector = plot.querySelectorAll(".zen-chart__sector")[1];
+      sector.dispatchEvent(new PointerEvent("pointerover", { bubbles: true, pointerType: "mouse" }));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(plot.querySelector(".zen-chart__sector[data-active]"), name).toBe(sector);
+      expect(plot.querySelector(".zen-chart__tooltip"), name).not.toBeNull();
+      sector.dispatchEvent(new PointerEvent("pointerout", { bubbles: true, pointerType: "mouse", relatedTarget: document.body }));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(plot.querySelector("[data-active]"), name).toBeNull();
+    }
   });
 
   it("the Tooltip is centred on the active rule, and moves only to stay inside the chart at its edges", async () => {

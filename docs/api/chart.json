@@ -143,7 +143,7 @@
     {
       "name": "BarChart",
       "file": "src/components/Chart/BarChart.tsx",
-      "description": "Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with\nCorner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched\nin Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→). Horizontal: a\ncategory column, 24px bars, a value column at the end of the rows (the active one in Strongest; no Tooltip floats over\nthe bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart\n15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941; Color=Primary · Secondary ↔ `palette`); the hatch is\n.Chart/Hatch 15321:475.",
+      "description": "Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with\nCorner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched\nin Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→); the bars run edge\nto edge Spacing/Gap/XSmall apart, as wide as the count allows, rounded on the top corners over a flat base. Horizontal: a\ncategory column, 24px bars, a value column at the end of the rows (the active one in Strongest; no Tooltip floats over\nthe bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart\n15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941; Color=Primary · Secondary ↔ `palette`); the hatch is\n.Chart/Hatch 15321:475.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -216,7 +216,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The bar active at first (painted Chart/Sector/Secondary, its Tooltip shown). Default: the last bar that isn't projected.",
+          "description": "The bar active at first and whenever the pointer leaves (painted Chart/Sector/Secondary, its Tooltip shown). Default:\n none on vertical bars, which show the active bar and its Tooltip only under the pointer or the keyboard; the last bar\n that isn't projected on horizontal bars.",
           "deprecated": null
         },
         {
@@ -264,7 +264,7 @@
     {
       "name": "StackBarChart",
       "file": "src/components/Chart/Chart.tsx",
-      "description": "Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector (2px side padding, Corner-Radius/Small on the column),\nsegments in series order from the bottom, a 12px-dot legend (Caption/Regular), and a Tooltip with the active total.",
+      "description": "Figma Chart/Stack-Bar-Chart (6643:73471; Color=Primary · Secondary ↔ `palette`): one column per sector, edge to edge Spacing/Gap/XSmall apart (Corner-Radius/Small on the top corners, a flat base),\nsegments in series order from the bottom, a 12px-dot legend (Caption/Regular), and a Tooltip with the active total.",
       "deprecated": null,
       "extends": null,
       "props": [
@@ -337,7 +337,7 @@
           "type": "number",
           "required": false,
           "default": null,
-          "description": "The column active at first. Default: the last one.",
+          "description": "The column active at first and whenever the pointer leaves. Default: none — the active column and its Tooltip show\n only under the pointer or the keyboard.",
           "deprecated": null
         },
         {
@@ -385,7 +385,7 @@
     {
       "name": "DonutChart",
       "file": "src/components/Chart/DonutChart.tsx",
-      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,\nparted by 4px gaps of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %\npill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)\n— or, with `totalPosition=\"start\"`, beside the ring above the legend (Body/Small/Regular caption, Display/4 figure, as\nthe Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump\nto the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365\n(Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).",
+      "description": "Donut chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): slices in palette order,\nparted by 2px gaps (Spacing/Gap/3XSmall) of the same width from the hole to the rim, each slice's corners rounded 4px, a Surface/Default %\npill (Label/Small/Medium) on each slice of 6% or more, and the total in the centre (Heading/4, Caption/Regular caption)\n— or, with `totalPosition=\"start\"`, beside the ring above the legend (Body/Small/Regular caption, Display/4 figure, as\nthe Chart Card's description and value). Hover or ←/→ pick a slice: the centre shows it and the others dim; Home/End jump\nto the first and last slice, and leaving the chart shows the total again. Figma Chart/Donut-Chart 15324:80365\n(Legend=Bottom · Start; Size=Small 120 · Medium 168 · Large 240 · XLarge 320; Color=Primary · Secondary ↔ `palette`).",
       "deprecated": null,
       "extends": null,
       "props": [

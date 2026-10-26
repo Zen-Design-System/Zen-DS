@@ -24,7 +24,9 @@ export interface BarChartProps {
   className?: string;
   /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
   ref?: Ref<HTMLDivElement>;
-  /** The bar active at first (painted Chart/Sector/Secondary, its Tooltip shown). Default: the last bar that isn't projected. */
+  /** The bar active at first and whenever the pointer leaves (painted Chart/Sector/Secondary, its Tooltip shown). Default:
+   *  none on vertical bars, which show the active bar and its Tooltip only under the pointer or the keyboard; the last bar
+   *  that isn't projected on horizontal bars. */
   initialIndex?: number;
   /** Colour of the bars, any CSS colour. Default Chart/Sector/Primary (Chart/Sector/Secondary with `palette="secondary"`). */
   color?: string;
@@ -42,7 +44,8 @@ export interface BarChartProps {
 /**
  * Bar chart in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): Chart/Sector/Primary bars with
  * Corner-Radius/Small, the active one Chart/Sector/Secondary with its Tooltip; projected bars and target tracks hatched
- * in Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→). Horizontal: a
+ * in Border/Neutral/Subtle. Vertical: the Line chart's frame (dashed grid, 6 Y labels, X pills, ←/→); the bars run edge
+ * to edge Spacing/Gap/XSmall apart, as wide as the count allows, rounded on the top corners over a flat base. Horizontal: a
  * category column, 24px bars, a value column at the end of the rows (the active one in Strongest; no Tooltip floats over
  * the bars, the user 2026-10-13) and a value axis below (↑/↓). Home/End jump to the first and last bar. Figma Chart/Bar-Chart
  * 15321:84071 (Orientation=Vertical 15321:80574 · Horizontal 15321:82941; Color=Primary · Secondary ↔ `palette`); the hatch is
@@ -56,19 +59,20 @@ export function BarChart({ data, orientation = "vertical", format: formatProp, c
   const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...data.map((d) => Math.max(d.value, d.target ?? 0)))), [signature]); // eslint-disable-line react-hooks/exhaustive-deps -- deliberate content-hash memo: keyed on the data signature, not its identity
   const lastClosed = data.reduce((found, d, i) => (d.projected ? found : i), data.length - 1);
   const horizontal = orientation === "horizontal";
-  const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? lastClosed, horizontal ? "vertical" : "horizontal");
+  const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? (horizontal ? lastClosed : null), horizontal ? "vertical" : "horizontal");
   const current = active === null ? undefined : data[active];
   const valueText = (d: ChartPoint) => `${d.target !== undefined ? t.chartOfTarget(format(d.value), format(d.target)) : format(d.value)}${d.projected ? ` · ${t.chartProjected}` : ""}`;
   const mean = showAverage ? meanOf(data.filter((d) => !d.projected).map((d) => d.value)) : undefined;
   const average = mean === undefined ? undefined : { value: mean, label: t.chartAverage(format(mean)) };
-  const summary = `${current ? `${current.label}: ${valueText(current)} (${t.chartPoint(active! + 1, data.length)})` : t.noData}${mean === undefined ? "" : `; ${t.chartAverageLong(format(mean))}`}`;
+  const overview = data.length ? data.map((d) => `${d.label} ${valueText(d)}`).join(", ") : t.noData;
+  const summary = `${current ? `${current.label}: ${valueText(current)} (${t.chartPoint(active! + 1, data.length)})` : overview}${mean === undefined ? "" : `; ${t.chartAverageLong(format(mean))}`}`;
   const colours = { ...(color ? { "--zen-chart-bar": color } : null), ...(activeColor ? { "--zen-chart-bar-active": activeColor } : null) } as CSSProperties;
   const pct = (v: number) => `${(v / top) * 100}%`;
 
   if (!horizontal) {
     return (
       <ChartBlock {...dataAttributes(rest)} ref={ref} kind="bar" palette={palette}>
-        <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel} activeLine="neutral" className={className} kind="bar" animate={animate}
+        <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel} activeLine="neutral" className={className} kind="bar" animate={animate} hoverOnly
           tooltip={current ? valueText(current) : null} summary={summary} average={average}>
           <div className="zen-chart__bars" key={signature} style={colours}>
             {data.map((d, i) => (
