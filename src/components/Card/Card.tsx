@@ -4,6 +4,7 @@ import type { IconName } from "../Icon";
 import { scaleKey } from "../_shared/scale";
 import { useNested, type NestedOverrides } from "../_shared/nested";
 import { layoutSizing, withSizingVars, type LayoutWidthProps } from "../Layout/sizing";
+import { useGridCell, type LayoutCellProps } from "../Layout/cell";
 import { CardContentContext, cardContentOf } from "./card-content";
 import "./card.css";
 import "../Icon/core";
@@ -47,9 +48,10 @@ const isSubActionConfig = (value: unknown): value is CardSubAction => typeof val
 
 /**
  * Standard HTML attributes (`id`, `data-*`, `aria-*`, `style`…) go to the root element. `width`, `minWidth`, `maxWidth`
- * and `alignSelf` size the card as Figma auto layout sizes an instance (Fill container, a max width…), as on Stack.
+ * and `alignSelf` size the card as Figma auto layout sizes an instance (Fill container, a max width…), as on Stack;
+ * `span` / `rowSpan` give it several columns or rows of its Grid.
  */
-export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" | "onClick" | "color">, LayoutWidthProps {
+export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" | "onClick" | "color">, LayoutWidthProps, LayoutCellProps {
   /** The root element. */
   ref?: Ref<HTMLElement>;
   children?: ReactNode;
@@ -108,9 +110,10 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLElement>, "children" 
  * Figma Card (6643:51021): a Content slot on one of six themes (Pale and Solid in a Color), padded Card-padding-medium/small.
  * A clickable card is an actionable container: Border theme steps its stroke up to Border/Neutral/Subtle (§6).
  */
-export function Card({ ref, children, theme = "shadow", color = "neutral", spacing: spacingProp = "md", selected, active: activeProp, surface, onClick, onKeyDown, "aria-label": ariaLabel, subAction, as: Tag = "div", className, overrides, width, minWidth, maxWidth, alignSelf, style, ...rest }: CardProps) {
+export function Card({ ref, children, theme = "shadow", color = "neutral", spacing: spacingProp = "md", selected, active: activeProp, surface, onClick, onKeyDown, "aria-label": ariaLabel, subAction, as: Tag = "div", className, overrides, width, minWidth, maxWidth, alignSelf, span, rowSpan, style, ...rest }: CardProps) {
   const nest = useNested(overrides);
   const sizing = layoutSizing({ width, minWidth, maxWidth, alignSelf });
+  const cell = useGridCell({ span, rowSpan });
   const spacing = scaleKey(spacingProp, cardSpacings);
   const active = selected ?? activeProp ?? false;
   const interactive = Boolean(onClick);
@@ -130,7 +133,8 @@ export function Card({ ref, children, theme = "shadow", color = "neutral", spaci
       ref={ref as Ref<HTMLDivElement & HTMLLIElement>}
       className={["zen-card", className].filter(Boolean).join(" ")}
       {...sizing.attributes}
-      style={withSizingVars(style, sizing.vars)}
+      {...cell.attributes}
+      style={withSizingVars(style, { ...sizing.vars, ...cell.vars })}
       data-tone={tone}
       data-color={hue}
       data-spacing={spacing}

@@ -73,7 +73,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title" | "onClick">`.
 ### ListBox
 Figma Component/List-Box (14922:75297): the white box that holds a list of rows, the same on every device — only the tokens change by mode. Surface/Default, Corner-Radius/2XLarge (24px, concentric with the row fill: Interactive-List-Item-Radius + its gap to the edge), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium sideways (24px desktop · 20px tablet and mobile), the body List-Container-Vertical-Padding above and below. Header and Footer are optional (Figma Header=No / Footer=No). `theme` is Figma's Theme: default, shadow, pale, border, flat-border or on-container; `color` the Pale box's hue and `surface` the Default or Border box's Surface.
 
-Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">, LayoutWidthProps`.
+Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">, LayoutWidthProps, LayoutCellProps`.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -81,6 +81,8 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "title">, LayoutWidthProps`.
 | `minWidth` | `number` | — | Minimum width in px (Figma min width). Wins over fill's shrink-to-0. |
 | `maxWidth` | `number` | — | Maximum width in px (Figma max width), e.g. a readable line length for a Fill block of text. |
 | `alignSelf` | `"start" \| "center" \| "end" \| "stretch"` | — | This element's alignment inside its parent: start · center · end · stretch across a Stack's direction (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align` for this child. A `"fill"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth stops it. No effect outside a Stack or Grid. |
+| `span` | `Responsive<number \| "full">` | — | How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `"full"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: "full" }` (a breakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes the whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `"full"` applies. Default 1. No effect outside a Grid. |
+| `rowSpan` | `Responsive<number>` | — | How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid. |
 | `ref` | `Ref<HTMLElement>` | — | The root element. |
 | `header` | `ReactNode` | — | Figma Header-Slot (Header=Yes): what names the box, e.g. a Heading/Subheading title and a caption, or a toolbar. Pads Card-padding-medium on top and at the sides and Padding/XSmall below; its content stacks Spacing/Gap/Medium. |
 | `children` (required) | `ReactNode` | — | Figma Body-Slot: the rows, usually a `<List>` of ListItems. Pads Card-padding-medium sideways and List-Container-Vertical-Padding above and below (12px desktop, 8px tablet and mobile) and stacks its children Spacing/Gap/3XSmall, so a clickable row's fill sits 12px (desktop) or 8px (phone) from every box edge. |
@@ -117,6 +119,7 @@ Object shapes the props above refer to.
 
 ```ts
 type ContentTone = (typeof contentTones)[number]
+type Responsive<T> = T | { desktop?: T; tablet?: T; mobile?: T }
 ```
 
 ## Keyboard
