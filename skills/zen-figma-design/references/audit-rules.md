@@ -68,6 +68,9 @@ and text that is crushed or sticks out.
 | `modal/dialog-form` | error | a Modal/Dialog holds two or more Input fields | a Dialog is a notice or a quick confirm: put the form in `Modal/Forms` (desktop, tablet) or a `Bottom Sheet` (phone) |
 | `modal/form-actions-vertical` | error | a Modal/Forms whose Actions are `Direction=Vertical` | set the nested `.Primitives/Modal/Actions` to `Direction=Horizontal`: a form keeps its actions in a row |
 | `modal/form-on-phone` | error | a Modal/Forms on a phone screen (narrower than 744, or with a Top-Navigation/Mobile) | open the form in a `Bottom Sheet`: its title, the fields, the actions in its footer |
+| `chart/header-icon` | warning | a `Chart/*` instance with `Show Icon` on (the user 2026-10-26: "Bỏ icon trên header các Chart cho đỡ rối") | turn `Show Icon` off: a chart header is the Title, the Hint (i) and the Open chevron (screen-rules §3 Charts) |
+| `chart/tooltip-on` | warning | a chart shows its Tooltip on a screen: `Show Tooltip` on the chart, or on its selected `.Primitives/Chart/Sector` (Line, Multi-Line, Stack-Bar) (the user 2026-10-26: "Tooltip này chỉ bật khi hover") | turn `Show Tooltip` off; a frame (or the chart) whose name says Hover or Tooltip documents the hover state and is skipped |
+| `chart/metric-label-is-description` | warning | a chart's `Metric Label` reads as a description: a sentence, or longer than 40 characters | name the figure under it there ("Invoiced so far in 2026") and move the description into the Hint (`Show Hint` on; code `hint`) |
 | `modal/form-side-taller` | warning | a Modal/Forms whose Side-Content is taller than the form, so the actions float above an empty band | shorten the side (a summary, an illustration) or move its content into the form; Figma cannot stretch the form column to the side's height |
 
 Content that runs on past the far end of a frame set to scroll (a screen with Prototype → Overflow Vertical, a Chip
