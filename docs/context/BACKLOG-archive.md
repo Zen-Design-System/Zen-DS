@@ -2,6 +2,17 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-26 (nested Sidebar rows, branch zen/fix/studio-sidebar-nested-rows-20261026)
+
+- P2 (2026-10-26) Studio ↔ Figma: nested Sidebar rows (`children`, Figma Menu-Item Level=Child) and the Dropdown chevron.
+  The push drops child rows and never writes Dropdown; the pull has no sub-items (`itemFields` notes it). Both sides
+  change together (a parent row then its Level=Child rows), too large for the row-density fix (session log 2026-10-26,
+  "Sidebar rows take the Sidebar's density").
+  Done: the push draws a row's nested rows as Level=Child rows right after it (their content on the Menu-Item inside,
+  hidden while the group is closed, the chevron with `dropdown` or nested rows and pointing up while open); the pull
+  nests them back as `children` (JSX rows: `<SidebarMenuItem>` children) and reads `dropdown` and the counter. Session
+  log 2026-10-26 "Sidebar nested rows"; E2E HO-21.
+
 ## Archived 2026-10-25 (direct paste into other files, branch zen/feat/paste-other-files-20261025)
 
 - **P2 · Direct paste (⌘V on the canvas) into other files (2026-10-17; unblocked 2026-10-25: the user published the library):** it binds by

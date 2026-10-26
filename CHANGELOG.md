@@ -36,6 +36,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   (was `caption-light`); Figma audit `text/title-strongest`, `text/subtext-light`. 96 more Figma layers rebound.
 - Calendar Day-Tile follows its Figma update (2026-10-26): today's weekday in Accent/Strongest; a selected tile on
   Background/Active/Neutral/Subtle (Active/Accent/Subtle on today) with no border.
+- Zen Studio ↔ Figma: a Sidebar row's nested rows (`children`) go to Figma as Menu-Item Level=Child rows right after it
+  (2026-10-26). A closed group's rows are hidden layers; the chevron (Dropdown) shows with `dropdown` or nested rows and
+  points up while the group is open. Pulled back, they are the row's `children` again (a footer row's `<SidebarMenuItem>`
+  children), and the pull also reads `dropdown` and a row's counter.
 - Charts (2026-10-26, the user): bar and stack columns fill the plot edge to edge, 8px (Spacing/Gap/XSmall) apart,
   rounded on top over a flat base (no more 40px cap); horizontal bars sit 8px apart, flat at the axis. No chart shows an
   active point or a Tooltip until the pointer (or the keyboard) is on it (Line, Area, Bar, Stack, Grouped, Combo;
