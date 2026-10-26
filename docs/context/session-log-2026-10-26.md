@@ -789,3 +789,25 @@ zen/fix/e2e-flaky-pt03-no06-ag10-20261026 (from 0bb459bd; B-49 granted by Giám 
   `--shard=1/4 … 4/4` 386 works · 0 broken (PT-19 and PT-27 passed on retry, other rows); gate `qa --isolated
   --files=` the six files: PASS (static, Vitest 95/95, Studio E2E 386 works · 0 broken in 3 shards; B-28 passed on
   retry), report `.qa/reports/2026-10-26T17-44-02-74c671d1.md`. The four rows passed on the first try in both runs.
+
+## Studio Overlay frames stole the focus (PT-19, PT-27 flakes) · B-28 test race (2026-10-27; tier S, product fix)
+
+The user, after #329: PT-19, PT-27, B-28 the same way. Branch zen/fix/e2e-flaky-pt19-pt27-b28-20261027 from main
+fbffa7ea.
+- PT-19 and PT-27 failed in `seededPage`, at the Studio options menu's "Sync with the folder" (click 10 s). A timeline
+  (menu open/close, pages-changed, focus) caught it in PT-28's seed: the menu opened, the folder's change event for
+  the seeded file came 20 ms later, and 46 ms after it the menu closed. Focus log: as the seeded page drew, focus jumped
+  into the world, to the Side Panel's close button or the Bottom Sheet (the canvas's Overlay frames draw them open and
+  `useModal` autofocused them), and the canvas then sent it to the viewport. Product bug: a modal drawn on the board
+  takes the focus from the Studio's chrome whenever the page draws it again (a menu closes, a field loses focus).
+- Fix: the canvas's `Overlay` frame (builder/proto/runtime.tsx; renderFrame, also the HTML export's pictures) renders
+  its content in `OverlayPreviewContext`, as MainComponentFrame does: no focus move, Tab trap, Escape, scroll lock or
+  inert outside. Play draws overlays through playFlow.tsx and keeps them live. Vitest `studio-overlay-frame`: a focused
+  button keeps the focus while a modal Side Panel and Bottom Sheet render in Overlay frames.
+- B-28 (test race): Add Item selects the new item once the canvas draws it (slots/actions.ts selectItemWhenRendered,
+  every 80 ms). A selection-change log with stacks showed the two Escapes starting from the item when that select came
+  first (item → Breadcrumbs → PageHeader), from the Breadcrumbs when it came later (it stops once the person moved the
+  selection). The row now waits for the new item and checks each Escape's level (item → Breadcrumbs → PageHeader →
+  AppShellHeader).
+- Seen in the dives, other causes, not in this change: PT-18 (a waitFor of its own, 10 s) and PT-24 (row time out).
+- Proof: PROOF_LINES

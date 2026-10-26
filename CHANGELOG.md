@@ -30,6 +30,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   are Label (Area, Grouped-Bar and Combo named them by their sample, "Q1", "$125K"); a gauge's reading Value and its target
   Meta, a donut's or radial's centre caption Meta; Bar-List, Bullet and Funnel rows Name / Value / Meta. Studio writes the
   axes by position now; undo map in `docs/figma-contracts/layer-renames-2026-10-26.json`.
+- Zen Studio Overlay frames (2026-10-27): a modal drawn open on the board (a Side Panel, a Bottom Sheet, a Dialog in an
+  Overlay frame) is a picture of it and takes no focus. Its autofocus took the focus from the Studio each time the page
+  drew it again, closing a menu open in the Pages panel or leaving a field. Play still runs it live. Studio E2E B-28 waits
+  for the new item an Add selects before its Escapes.
 - Zen Studio pages folder (2026-10-26): an edit made while the page's previous write to the folder was still on its way
   is no longer lost. That write's own change event came back as a conflict, and the folder's older text replaced the
   edit ("Selection lost after the file changed"): a rename followed at once by an insert, a ⌘D or Zen Agent's change.
