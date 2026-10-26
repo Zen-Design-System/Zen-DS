@@ -24,7 +24,8 @@
  *   npm run qa -- --tokens-base=HEAD~1  diff the token files against another ref (default HEAD) for the token scope
  *
  * ① Static     tsc · style-guard (spacing/radius/type/colour/shadow tokens) · usage-guard · guidelines (stale docs of
- *              your components are regenerated) · harness self-tests (when tools/usage-guard, tools/style-guard, tools/qa or tools/platform-audit changed)
+ *              your components are regenerated) · AI UI catalog (npm run ai-ui:check, when component props, the
+ *              guideline source, a Figma suite, tools/ai-ui or AGENTS.consumer.md are in scope) · harness self-tests (when tools/usage-guard, tools/style-guard, tools/qa or tools/platform-audit changed)
  *              · Layout self-test (npm run layout:selftest, when src/components/Layout, _shared/corners.ts or scale.ts, or the
  *              effect styles and token sources are in scope)
  *              · figma-contract suites of the components in scope · Vitest related to the edited files · tokens/styles
@@ -341,6 +342,21 @@ else {
     } else {
       step("static", name, "fail", `stale docs of components you edited: ${brief(mine, 10)} — run npm run guidelines:build (it also rewrites ${brief(others, 6)}, another session's work: say so in your report)`);
     }
+  }
+}
+// AI UI catalog (docs/ai-ui; CI runs npm run ai-ui:check on every pull request): generated from the props docs (component
+// JSDoc → docs/api), docs/guidelines/index.json, the Figma parity suites and AGENTS.consumer.md, so an edit to any of
+// them can leave it stale (2026-10-26, #317: a JSDoc line and a guideline line changed, this gate passed, CI failed).
+// After the guidelines step, which regenerates docs/api and the guidelines first. Not regenerated here: the files must
+// be committed, and a ✗ says so.
+{
+  const name = "AI UI catalog in sync";
+  const feeds = (f) => (/^src\/components\/[^/]+\/[^/]+\.tsx$/.test(f) && !/\.stories\.tsx$/.test(f)) || ["ai-ui", "guidelines"].includes(auxKind(f))
+    || /^tools\/usage-guard\/(guidelines\.source|check-usage|build-guidelines)\.mjs$/.test(f) || /^tools\/figma-contract\/suites\//.test(f) || /^docs\/(api|guidelines|figma-contracts)\//.test(f);
+  if (!ALL && ![...files, ...aux].some(feeds)) step("static", name, "skip", "no component props, guideline source, Figma suite, tools/ai-ui or AGENTS.consumer.md edits since the last pass");
+  else {
+    const r = run(process.execPath, ["tools/ai-ui/build-catalog.mjs", "--check"]);
+    step("static", name, r.code === 0 ? "pass" : "fail", r.code === 0 ? "" : "run npm run ai-ui:build and commit docs/ai-ui", r.code === 0 ? [] : tail(r.out, /✗|stale/).slice(0, 10));
   }
 }
 // Figma contracts (S5c): the suites of the components in scope (edited, or consuming a changed token); all of them when

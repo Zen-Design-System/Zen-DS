@@ -250,3 +250,8 @@ Spec card (changed elements only):
 - **CI on #317** failed at `ai-ui:check`: `docs/ai-ui` (catalog.json, spec.schema.json) is generated from the props and
   guideline text, and the TopNavigation JSDoc and the Badge guideline changed. Fixed with `npm run ai-ui:build` (only
   those two descriptions moved). The local gate (`tools/qa/run.mjs`) has no AI UI step, so it could not see this.
+- **Gate step added** (the user: "add the ai-ui:check step to the local QA gate … in this PR"): "AI UI catalog in sync"
+  runs `build-catalog.mjs --check` after the guidelines step when component TSX, the guideline source, docs/api,
+  docs/guidelines, a Figma suite, tools/ai-ui or AGENTS.consumer.md is in scope (`auxKind` "ai-ui" for the last two).
+  It does not regenerate: the ✗ says to run ai-ui:build and commit. Proof without a browser: a deliberately stale
+  composer-rules.md fails it (`qa --files=AGENTS.consumer.md`, no pages), the restored file passes. QA self-test 43/43.
