@@ -119,7 +119,7 @@ export function PagesPanel() {
           }}
         />
       </div>
-      <Text as="span" textStyle="Caption/Regular" tone="base" className="studio-pages__status" role="status" aria-live="polite">
+      <Text as="span" textStyle="Caption/Regular" tone="light" className="studio-pages__status" role="status" aria-live="polite">
         {searching && results ? plural(results, "result") : ""}
       </Text>
       <div ref={scrollRef} className="studio-pages__scroll" onKeyDown={moveFocus}>
@@ -139,7 +139,7 @@ export function PagesPanel() {
           </EmptyState>
         ) : visible.map((section) => (
           <div key={section.id} className="studio-pages__section" data-section={section.id}>
-            <Text as="p" id={`studio-pages-${section.id}`} textStyle="Caption/Medium" tone="base" className="studio-pages__kicker">{section.label}</Text>
+            <Text as="p" id={`studio-pages-${section.id}`} textStyle="Caption/Medium" tone="light" className="studio-pages__kicker">{section.label}</Text>
             <ul className="studio-pages__list" aria-labelledby={`studio-pages-${section.id}`}>
               {section.items.map((item) => [
                 row(item),

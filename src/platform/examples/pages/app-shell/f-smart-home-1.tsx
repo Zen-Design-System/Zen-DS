@@ -102,7 +102,7 @@ function DeviceCard({ device, on, onToggle }: { device: HomeDevice; on: boolean;
     <Card theme="shadow" aria-label={`${device.brand} ${device.name}`}>
       <Stack gap="sm">
         <Stack gap="none">
-          <Text textStyle="Caption/Regular" tone="base">{device.brand}</Text>
+          <Text textStyle="Caption/Regular" tone="light">{device.brand}</Text>
           <Text textStyle="Body/Base/Bold" truncate>{device.name}</Text>
         </Stack>
         <DevicePicture photo={device.photo} icon={device.icon} />
@@ -405,7 +405,7 @@ export const examples: ExampleDef[] = [
         <Card theme="shadow" aria-label="Philips Ceiling light">
           <Stack gap="sm">
             <Stack gap="none">
-              <Text textStyle="Caption/Regular" tone="base">Philips</Text>
+              <Text textStyle="Caption/Regular" tone="light">Philips</Text>
               <Text textStyle="Body/Base/Bold" truncate>Ceiling light</Text>
             </Stack>
             <Image src={ceilingLight.photo} alt="" ratio={129 / 108} frame={false} radius="lg" />

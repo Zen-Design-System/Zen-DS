@@ -147,7 +147,7 @@ export type VoiceRecorderProps = {
  * Red Recording with its dot), the audio monitor (Background/Surface/Alt, Corner-Radius/Base, Spacing/Padding/Medium:
  * the elapsed time in Heading/Subheading, an 80px waveform — Content/Neutral/Strongest while recording, Neutral/Light
  * paused, a flat Border/Neutral/Subtle line when ready — and its start / end times in Caption/Regular Neutral/Light),
- * the guidance (Body/Small/Regular Neutral/Base), the transport (Discard · Record/Pause/Resume · Finish; Discard and
+ * the guidance (Body/Small/Regular Neutral/Light), the transport (Discard · Record/Pause/Resume · Finish; Discard and
  * Finish disabled until there is a take), a Border/Neutral/Pale divider and the input details.
  */
 export function VoiceRecorder({ state = "ready", title, elapsed = "00:00.00", start = "00:00", end = "00:00", levels, guidance, input, format, onRecord, onPause, onResume, onFinish, onDiscard, className, overrides, ref, ...rest }: VoiceRecorderProps) {

@@ -165,7 +165,7 @@ function Limit({ caption, children }: { caption: string; children: ReactNode }) 
         <Shape position="absolute" insetLeft={0} insetTop={0} width={72} height={72} fill="none" stroke="neutral-subtle" />
         {children}
       </Box>
-      <Text textStyle="Caption/Medium" tone="base">{caption}</Text>
+      <Text textStyle="Caption/Medium" tone="light">{caption}</Text>
     </Stack>
   );
 }

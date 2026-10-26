@@ -128,9 +128,9 @@ describe("MetricCard type", () => {
 
   it("tile: its content follows the card's fill (Figma Content Inverse · On-Accent · On-Color · On-Bright)", async () => {
     // [colour, the badge and Dock-Icon family, the number's colour, the title's colour, the trend's Sub-Label colour (Figma
-    // Metric-Tile: Inverse/Light, On-Accent/Default, On-Colors, On-Brights)]: Inverse has a Base and a Light step, the On-*
-    // families one colour.
-    const fills = [["neutral", "inverse", "--zen-color-content-inverse-strongest", "--zen-color-content-inverse-base", "--zen-color-content-inverse-light"], ["accent", "on-color", "--zen-color-content-on-accent-default", "--zen-color-content-on-accent-default", "--zen-color-content-on-accent-default"], ["cyan", "on-color", "--zen-color-content-on-colors", "--zen-color-content-on-colors", "--zen-color-content-on-colors"], ["yellow", "on-color", "--zen-color-content-on-brights", "--zen-color-content-on-brights", "--zen-color-content-on-brights"]] as const;
+    // Metric-Tile: Inverse/Light, On-Accent/Default, On-Colors, On-Brights)]: Inverse has a Light step (a metric's label is
+    // Light, the user 2026-10-26), the On-* families one colour.
+    const fills = [["neutral", "inverse", "--zen-color-content-inverse-strongest", "--zen-color-content-inverse-light", "--zen-color-content-inverse-light"], ["accent", "on-color", "--zen-color-content-on-accent-default", "--zen-color-content-on-accent-default", "--zen-color-content-on-accent-default"], ["cyan", "on-color", "--zen-color-content-on-colors", "--zen-color-content-on-colors", "--zen-color-content-on-colors"], ["yellow", "on-color", "--zen-color-content-on-brights", "--zen-color-content-on-brights", "--zen-color-content-on-brights"]] as const;
     await render(
       <ZenProvider theme="light">
         {fills.map(([color]) => <MetricCard key={color} theme="solid" color={color} type="tile" label="Success rate" value="56%" trend={{ direction: "negative", label: "3%", subLabel: "vs. last week" }} />)}
@@ -158,11 +158,12 @@ describe("MetricCard type", () => {
       for (const theme of ["light", "dark"] as const) {
         const screen = await render(wrap(node, type === "comparison" ? 560 : 345, theme));
         const result = await axe.run(document.querySelector("[data-test-root]")!, { resultTypes: ["violations"], rules: pageRules });
-        // The Caption labels of Small metrics and the trend's Sub-Label (Content/Neutral/Light), and a Solid trend badge's
-        // On-Colors label (white on Positive/Negative Solid: Lc 67.5 / 69.5, the APCA pick, WCAG 3.5–3.7:1; the user,
-        // 2026-10-19: On colours are judged by APCA) are the Metric's known contrast entries in
-        // tests/smoke/axe-baseline.json (Figma token decisions); everything else the types add must pass.
-        const known = (target: string) => /zen-metric__label\b|zen-metric-trend__sub-label/.test(target) || Boolean(document.querySelector(target)?.closest('.zen-badge[data-background="solid"]'));
+        // A metric's labels (Content/Neutral/Light: the Metric label, the Metric-Tile title, a category's name; the user
+        // 2026-10-26), the trend's Sub-Label (Content/Neutral/Light) and a Solid trend badge's On-Colors label (white on
+        // Positive/Negative Solid: Lc 67.5 / 69.5, the APCA pick, WCAG 3.5–3.7:1; the user, 2026-10-19: On colours are judged
+        // by APCA) are the Metric's known contrast entries in tests/smoke/axe-baseline.json (Figma token decisions);
+        // everything else the types add must pass.
+        const known = (target: string) => /zen-metric(__label|-tile__label|-categories__(name|share))\b|zen-metric-trend__sub-label/.test(target) || Boolean(document.querySelector(target)?.closest('.zen-badge[data-background="solid"]'));
         const found = result.violations.map((violation) => ({ id: violation.id, nodes: violation.nodes.map((n) => n.target.join(" ")).filter((target) => !(violation.id === "color-contrast" && known(target))) }));
         expect(found.filter((violation) => violation.nodes.length).map((violation) => `${violation.id}: ${violation.nodes.join(", ")}`), `${type} (${theme})`).toEqual([]);
         await screen.unmount();

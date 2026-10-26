@@ -270,6 +270,7 @@ function CompanionHomePhone() {
               <Stack as="li" key={tracker.id} gap="xs" align="center">
                 {/* zen-allow-no-tooltip: the tracker's value and name sit right under the button (Figma Trackers). */}
                 <IconButton size="lg" level="tertiary" icon={tracker.icon} aria-label={tracker.name} tooltip={false} onClick={tracker.onClick} />
+                {/* zen-allow-caption-light: the tracker's value is its main value, not a caption; its name under it is the Light caption. */}
                 <Text as="span" textStyle="Caption/Medium" tabularNumbers aria-hidden="true">{tracker.value}</Text>
                 <Text as="span" textStyle="Caption/Regular" tone="light" aria-hidden="true">{tracker.label}</Text>
               </Stack>

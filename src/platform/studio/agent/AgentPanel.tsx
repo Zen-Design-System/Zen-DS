@@ -67,7 +67,7 @@ function Steps({ steps }: { steps: AgentStepPart[] }) {
       {steps.map((step) => (
         <li key={step.call} className="studio-agent__step" data-state={step.state} title={step.detail ?? undefined}>
           <Icon name={STEP_ICON[step.state]} size="sm" tone={step.state === "error" ? "negative" : "light"} decorative />
-          <Text as="span" textStyle="Caption/Regular" tone={step.state === "error" ? "negative" : "base"}>{stepLine(step)}</Text>
+          <Text as="span" textStyle="Caption/Regular" tone={step.state === "error" ? "negative-light" : "light"}>{stepLine(step)}</Text>
         </li>
       ))}
     </ul>
@@ -81,7 +81,7 @@ function Check({ check }: { check: AgentCheckPart }) {
   return (
     <div className="studio-agent__check" data-state={check.state} title={check.findings.join("\n") || undefined}>
       <Icon name={icon} size="sm" tone={check.state === "left" ? "warning" : check.state === "ok" ? "positive" : "light"} decorative />
-      <Text as="span" textStyle="Caption/Regular" tone="base">{label}</Text>
+      <Text as="span" textStyle="Caption/Regular" tone="light">{label}</Text>
     </div>
   );
 }
@@ -142,7 +142,7 @@ function Reply({ item, last }: { item: AgentReplyItem; last: boolean }) {
   return (
     <div className="studio-agent__reply" data-state={item.state}>
       <Parts item={item} />
-      {item.state === "error" ? <Text as="p" textStyle="Caption/Regular" tone="negative" className="studio-agent__note">{item.error ?? "Something went wrong."}</Text> : null}
+      {item.state === "error" ? <Text as="p" textStyle="Caption/Regular" tone="negative-light" className="studio-agent__note">{item.error ?? "Something went wrong."}</Text> : null}
       {item.state === "stopped" ? <Text as="p" textStyle="Caption/Regular" tone="light" className="studio-agent__note">Stopped</Text> : null}
       {!working && item.cost !== null && item.ms !== null ? (
         <div className="studio-agent__meta">
@@ -237,7 +237,7 @@ export function AgentPanel() {
         {agent.status === "unavailable" || agent.status === "offline" ? (
           <div className="studio-agent__empty">
             <Text as="p" textStyle="Body/Small/Bold" tone="strongest">{agent.status === "offline" ? "No Studio dev server" : "Needs a Claude API key"}</Text>
-            <Text as="p" textStyle="Caption/Regular" tone="base">{agent.hint}</Text>
+            <Text as="p" textStyle="Caption/Regular" tone="light">{agent.hint}</Text>
           </div>
         ) : null}
         {agent.status === "ready" && !agent.items.length ? (
@@ -275,7 +275,7 @@ export function AgentPanel() {
             />
           ) : null}
         </div>
-        {agent.error ? <Text as="p" textStyle="Caption/Regular" tone="negative">{agent.error}</Text> : null}
+        {agent.error ? <Text as="p" textStyle="Caption/Regular" tone="negative-light">{agent.error}</Text> : null}
         {viewer ? <Text as="p" textStyle="Caption/Regular" tone="light">View only</Text> : null}
         <AiChatField
           placeholder={asking ? "Or write your answer" : "Describe a change"}

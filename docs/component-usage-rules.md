@@ -129,14 +129,49 @@ The three levels map to the three text roles:
 
 | Level | Role | Use for |
 |---|---|---|
-| `…-strongest` | Primary | titles, headings, main content, values, primary icons |
-| `…-base` | Secondary | body copy, descriptions, Body/Small meta, secondary icons |
-| `…-light` | Tertiary | Caption text (always Light), helper text, timestamps, list group headers (Body/Small/Bold kickers), quiet icons |
+| `…-strongest` | Primary | titles and headings (always), values and numbers, main content, primary icons |
+| `…-base` | Secondary | long paragraph text only (body copy, a Dialog's or Side Panel's description), secondary icons |
+| `…-light` | Tertiary | Caption text, a heading's Subtext, labels (field, term, metric), meta lines, helper text, timestamps, list group headers (Body/Small/Bold kickers), quiet icons |
+
+The user, 2026-10-26: "tiêu đề luôn là strong"; "Subtext của heading cũng nên là light. Chỉ có paragraph chữ dài mới là
+base"; then, shown A/B screenshots, field and term labels and short meta lines (Timeline description, Input condition,
+Chat reply preview, Voice guidance) to Light, a Dialog's / Side Panel's description stays Base, and a past itinerary
+title and Badge-Status Cancelled go Light (states).
 
 Titles and headings are Strongest, with one exception: a list group header is a kicker label in Body/Small/Bold and
 the Light tone (user decision 2026-10-03: Light is 3.7:1 on Surface and Surface-Alt, above Apple's 3:1 for bold text;
 about 7:1 in dark mode), one heading level below the nearest heading above. Group labels inside a Menu, Popover, Select or
 Listbox are labels, not headings. Emphasise with weight; use tone to quiet secondary text, never a bigger size.
+
+### Caption text: always Light (the user, 2026-10-26)
+Text set in a Caption text style (Caption/Regular, Caption/Medium, Caption/Bold) is tertiary text and takes its family's
+**Light** level: `Content/Neutral/Light` on the page and its surfaces (Canvas, Surface, Pale, a Container or Popover);
+`Content/Inverse/Light`, `Content/On-Black-Overlay/Light` or `Content/On-White-Overlay/Light` on a dark surface or over
+imagery; a colour family's Light for short status text (`Content/Negative/Light` error or help text, `Positive/Light`).
+A metric's label takes Light too, whatever its style (Metric label, Metric-Tile title; the user: "Metric label cũng là
+light"); a Title-Highlight metric's title is a title and stays Strongest.
+
+Five exceptions, each for a reason:
+1. **Text on a fill follows the fill** (§ Not covered below): on a Solid or Subtle fill — a Badge, Badge-Counter, Avatar,
+   Notification-Dot, Tooltip, a Calendar event block, a Gantt bar, a "You" chat bubble, a selected slot — Caption text
+   is On-Colors / On-Brights / On-Accent / Inverse on a Solid, the family's Strongest on a Subtle fill.
+2. **Single-token roles** have no Light level: `On-Colors`, `On-Brights`, `On-Accent` (a Small Metric-Tile on a Solid card).
+3. **States** keep their token: `Content/Disabled`, `Content/Placeholder`, `Content/Hyperlink/*`, and the current or
+   selected marker ("Today", the "Now" hour, the current milestone) in Accent.
+4. **The Lights group** never takes Light for text (below): its Caption text is Base — `Content/Warning/Base` help text,
+   `Content/Accent/Base` for today.
+5. **A main value, standing alone, is not a caption** (the user, 2026-10-26: "Các chữ này không được gọi là label. Vì
+   trong ngữ cảnh này nó là giá trị chính và là giá trị một mình"): a Schedule Slot's time, a Rating Opinion item's word,
+   a resource's name under its avatar, a Gantt milestone's title, a quick action's name under its icon, a value under its
+   control keep their tone (as Figma draws them). The checks read "alone" as the only text of its item beside an icon, a
+   control or a picture.
+
+Checks: harness `text/caption-light` (error: a Caption `<Text>` or `<Heading>` without a Light tone — no tone renders
+Strongest — and CSS that pairs the caption font size or a `.zen-type-caption-*` class with another content colour);
+runtime audit kind `text-tone` (error: rendered Caption text, a metric's or a field's label or a heading's Subtext on a
+surface whose colour is not a Light token, and a title that is not Strongest); Figma audit `text/caption-light`,
+`text/subtext-light` and `text/title-strongest` (error: a TEXT layer by its style or layer name bound to another Content
+variable). Text on a fill, or a main value the harness cannot see as alone, takes `zen-allow-caption-light: <reason>`.
 
 ### Colour families: Accent, Info, Positive, Negative, Warning, Support/*
 - `…-strongest` and `…-base` are **regular text**: the Primary and Secondary levels, placed on the same colour's **Subtle** background (subtle Badge, Tag, Alert, callout).
@@ -147,7 +182,7 @@ Listbox are labels, not headings. Emphasise with weight; use tone to quiet secon
 These colours have similarly low contrast. Today the group contains:
 - **Accent**, which references Zen.
 - **Warning**, which references Yellow.
-- **Support/Yellow**.
+- **Support/Yellow**, **Support/Sky** and **Support/Mint**.
 
 Any family whose tokens resolve to the Sky, Mint, Yellow or Zen scales joins the group automatically; the harness derives the group from `tokens.css`.
 - Text is **Base at most**: use `-strongest` or `-base`, never `-light`.
@@ -176,13 +211,18 @@ Any family whose tokens resolve to the Sky, Mint, Yellow or Zen scales joins the
 ```
 
 Harness rules:
+- `text/caption-light` (error): Caption text takes its family's Light level (above).
 - `content/lights-no-light-text` (error)
-- `content/title-is-strongest` (warn)
+- `content/title-is-strongest` (error since 2026-10-26; colour families too, a state's selector excepted)
 - `content/colour-light-is-highlight` (warn)
 - `heading/h1-is-heading-1` (error): a content h1 (the title shown large) is at least Heading/1: Heading/1, or a larger
   Display / Display-Extra style on an emphasis page (a home, a welcome), never a smaller style; only the TopNavigation
   compact bar title keeps its bar style (Body/Extra/Bold).
-- `heading/title-not-light` (warn): h1–h3 titles never take Light; only a Body/Small/Bold group header uses Base.
+- `text/title-strongest` (error): a Heading (or a Text as h1–h6) never takes a Base or Light tone; only a kicker — a
+  Body/Small/Bold group header, an All-Caps column title (the user 2026-10-26, shown the Table header: "Giữ Light") — uses
+  Light. Replaces `heading/title-not-light` (2026-10-26).
+- `text/subtext-light` (error): CSS that colours a heading's Subtext (subtitle, subtext, subheading, capline) with Base or
+  Strongest.
 
 Details are in `docs/guidelines/content-colors.md`. The heading ladder (levels, styles, the h1 rule) is on the
 platform's Typography › Content hierarchy page and in `docs/guidelines/text.md`.

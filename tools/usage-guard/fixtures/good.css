@@ -77,3 +77,10 @@
 .x-knob { --x-knob-fill: var(--zen-color-background-white-solid-default); --x-knob-icon: var(--zen-color-content-on-white-overlay-placeholder); }
 /* Each state is judged on its own fill: a white Button's Disabled sits on White-Disabled with On-Black-Overlay content (Figma). */
 .x-white-btn { --x-btn-background: var(--zen-color-background-white-solid-default); --x-btn-background-disabled: var(--zen-color-background-white-disabled); --x-btn-content: var(--zen-color-content-on-white-overlay-strongest); --x-btn-content-disabled: var(--zen-color-content-on-black-overlay-disabled); }
+/* text/caption-light: Caption text in Light; a Lights-group family's Caption at Base. */
+.file-row__meta { font-size: var(--zen-typography-font-size-caption); color: var(--zen-color-content-neutral-light); }
+.file-row__due { font-size: var(--zen-typography-font-size-caption); color: var(--zen-color-content-warning-base); }
+/* text/subtext-light, content/title-is-strongest: a Subtext in Light under a Strongest title; a past item's title keeps its state. */
+.page-header__subtitle { color: var(--zen-color-content-neutral-light); }
+.page-header__title { color: var(--zen-color-content-neutral-strongest); }
+.stop[data-status="past"] .stop__title { color: var(--zen-color-content-neutral-light); }

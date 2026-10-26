@@ -23,9 +23,9 @@ function TextPlayground() {
     <Panel
       title="Text"
       controls={<>
-        <PlaygroundToggle label="Heading" selected={heading} onChange={(on) => { setHeading(on); setTextStyle(on ? headingDefault[level] : "Body/Base/Regular"); }} />
+        <PlaygroundToggle label="Heading" selected={heading} onChange={(on) => { setHeading(on); setTextStyle(on ? headingDefault[level] : "Body/Base/Regular"); setTone("strongest"); }} />
         {heading ? <PlaygroundFilterChip label="Level" value={String(level)} onChange={(value) => { const next = Number(value || 2) as HeadingLevel; setLevel(next); setTextStyle(headingDefault[next]); }} options={["1", "2", "3", "4", "5", "6"].map((id) => option(id, `h${id}`))} /> : null}
-        <PlaygroundFilterChip label="Text style" value={textStyle} onChange={(value) => setTextStyle((String(value) || "Body/Base/Regular") as TypographyStyleName)} options={styleNames.map((id) => option(id))} />
+        <PlaygroundFilterChip label="Text style" value={textStyle} onChange={(value) => { const next = (String(value) || "Body/Base/Regular") as TypographyStyleName; setTextStyle(next); if (next.startsWith("Caption/")) setTone("light"); }} options={styleNames.map((id) => option(id))} />
         <PlaygroundFilterChip label="Tone" value={tone} onChange={(value) => setTone((String(value) || "strongest") as TextTone)} options={playgroundTones.map((id) => option(id))} />
         <PlaygroundToggle label="Truncate" selected={truncate} onChange={setTruncate} />
       </>}

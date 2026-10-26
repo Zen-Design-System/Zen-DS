@@ -84,7 +84,7 @@ export interface ImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, "s
   radius?: ZenCornerRadius;
   /** Native loading: lazy (default) waits until the picture nears the viewport; eager for the first picture on screen. */
   loading?: "lazy" | "eager";
-  /** A caption under the picture (Body/Small/Regular, Content/Neutral/Base); the picture becomes a figure with a figcaption. */
+  /** A caption under the picture (Body/Small/Regular, Content/Neutral/Light); the picture becomes a figure with a figcaption. */
   caption?: ReactNode;
   /** On the root (figure or div). */
   className?: string;
@@ -111,7 +111,7 @@ export function Image({ src, alt, ratio, fit = "cover", frame = true, radius = "
       <div className="zen-image__frame">
         <ImageMedia src={src} alt={alt} loading={loading} fit={fit} status={status} imgRef={setRef} handleLoad={handleLoad} handleError={handleError} imgProps={imgProps} />
       </div>
-      {caption ? <Text as="figcaption" className="zen-image__caption" textStyle="Body/Small/Regular" tone="base">{caption}</Text> : null}
+      {caption ? <Text as="figcaption" className="zen-image__caption" textStyle="Body/Small/Regular" tone="light">{caption}</Text> : null}
     </Root>
   );
 }

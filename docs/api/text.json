@@ -6,7 +6,7 @@
     {
       "name": "Text",
       "file": "src/components/Text/Text.tsx",
-      "description": "Figma text styles with Zen's content colours. Paragraphs, labels and inline copy; titles use <Heading>. Meta in\nBody/Small takes tone \"base\"; Caption is always tone \"light\".\n\n  <Text>Invite people to collaborate on this project.</Text>\n  <Text textStyle=\"Body/Small/Regular\" tone=\"base\">Updated 2 min ago</Text>",
+      "description": "Figma text styles with Zen's content colours. Paragraphs, labels and inline copy; titles use <Heading>. Meta in\nBody/Small takes tone \"base\"; Caption is always tone \"light\" (the user 2026-10-26; text on a Solid or Subtle fill follows\nthe fill).\n\n  <Text>Invite people to collaborate on this project.</Text>\n  <Text textStyle=\"Body/Small/Regular\" tone=\"base\">Updated 2 min ago</Text>",
       "deprecated": null,
       "extends": "Omit<HTMLAttributes<HTMLElement>, \"color\">, LayoutSizingProps",
       "props": [
@@ -79,7 +79,7 @@
           "type": "ContentTone",
           "required": false,
           "default": "\"strongest\"",
-          "description": "Colour role: a Color/Content token by its path (\"base\", \"support-blue-strongest\"). Default strongest (primary text).",
+          "description": "Colour role: a Color/Content token by its path (\"base\", \"support-blue-strongest\"). Default strongest (primary text).\nText in a Caption style always takes its family's Light (\"light\", \"inverse-light\", \"negative-light\"; Base in the\nLights group): set it, as the default would render Strongest (harness text/caption-light).",
           "deprecated": null
         },
         {

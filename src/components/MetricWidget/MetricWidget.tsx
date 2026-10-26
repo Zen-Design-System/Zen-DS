@@ -355,8 +355,8 @@ const typeSize: Record<Exclude<MetricCardType, "kpi" | "comparison" | "tile">, M
 const tileSmall = (size: MetricSize | undefined) => size === "sm" || size === "small" || size === "xs" || size === "xsmall";
 
 /**
- * Figma Primitives/Metric/Metric-Tile (16104:4826): Value (Metric-Title Neutral/Base, Metric-Number Neutral/Strongest,
- * the trend; Spacing/Gap/2XSmall) over the Dock-Icon, Spacing/Gap/Small apart. Medium: Body/Small/Medium, Display/4,
+ * Figma Primitives/Metric/Metric-Tile (16104:4826): Value (Metric-Title Neutral/Light, as every metric label: the user
+ * 2026-10-26; Metric-Number Neutral/Strongest, the trend; Spacing/Gap/2XSmall) over the Dock-Icon, Spacing/Gap/Small apart. Medium: Body/Small/Medium, Display/4,
  * Dock-Icon Medium; Small: Caption/Medium, Heading/3, Dock-Icon Small. Its Content follows the card it sits in: the text
  * reads the card's re-pointed tokens, the trend its Content, and the Dock-Icon Inverse on Solid Neutral, On-Color on Accent
  * and the hues (Neutral Solid elsewhere). The Dock-Icon is Background=Solid unless `iconBackground` says otherwise

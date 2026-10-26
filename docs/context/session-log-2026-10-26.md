@@ -323,6 +323,85 @@ sidebar thì các item cũng đổi variant theo density đó".
 - **Gate** (`qa --isolated --files=` the three tools/studio files; the worktree's edits were not in the hook ledger, so a
   plain run found nothing to check): static, studio:selftest, TypeScript and nested layer names all pass; Studio E2E
   380 works · 0 broken (4 shards, 1722 s). Report `.qa/reports/2026-10-26T04-49-36-0958d62c.md`.
+
+## caption-light · Caption text is always Light (tier M, PR #318, branch claude/caption-light-check-23432b)
+
+User: "Mở phiên thêm check: chữ dùng text style Caption phải là tông Light (harness + audit lúc chạy + audit Figma), rồi
+sửa mọi chỗ đang sai trong component, ví dụ và Studio." Mid-task: "Metric label cũng là light".
+- **Spec card.** Element: any TEXT in Caption/Regular · Medium · Bold, plus a metric's label (`.zen-metric__label`,
+  `.zen-metric-tile__label`; Figma Metric-Tile Metric-Title, Metric-Inline Icon-Highlight Label). Token: the family's
+  Light (Neutral/Light on Canvas, Surface, Pale, Container, Popover; Inverse / On-*-Overlay Light on dark or imagery; a
+  colour's Light for an error). Exceptions (4): on a Solid or Subtle fill follows the fill (§7); On-Colors, On-Brights,
+  On-Accent; states (Disabled, Placeholder, Hyperlink, today/now/current in Accent); the Lights group takes Base.
+  Title-Highlight's label is a title (Strongest), not a metric label. No keyboard/APG change.
+- **Figma first** (live file, read-only scan of every ❖ page + Operation Components): the only non-Light Captions on a
+  surface were the ones fixed below; Avatar, Badge, Badge-Counter, Calendar events, Gantt bars, chat "You" bubble,
+  Notification-Dot sit on their own fill (exception 1). Chart labels were already rebound to Light by the chart-bars
+  session (its branch also turns `.zen-chart__legend` and `.zen-chart__stage-count` Light; chart files stay theirs).
+- **Harness** `text/caption-light` (error, css + Text/Heading): literal tone, or the tone words of a conditional (not the
+  strings it compares); no tone = Strongest = finding. CSS: a block with the caption font size or a
+  `.zen-type-caption-*` selector and a non-Light `color:` content token. 47 findings in the repo, all fixed (one
+  `zen-allow-caption-light`: shape.tsx room names on their own Subtle fill). usage selftest 262 rules.
+- **Runtime** kind `caption-light` in `qualityChecks` (style from the nearest `.zen-type-*` class, else metrics; tone from
+  `toneName`, else `toneOf`); skips text whose nearest painted background is not a surface token, and states. audit.mjs
+  BASELINED/SEVERITY/addQuality, qa ERROR_KINDS; 8 selftest fixtures, platform-audit selftest 90/90.
+- **Figma audit** `text/caption-light` in `zen-figma-audit.js` (+ audit-rules.md, screen-rules.md). The harness is 108 KB,
+  over use_figma's 50 KB code limit, so the library run used its own check functions verbatim in a small runner (layers
+  hidden behind boolean properties included: Slider's Label-Range, Calendar's More).
+- **Figma fixes** (147 TEXT layers rebound, read back after each): Calendar Day-Cell More ×3, Agenda-Item Meta ×14,
+  Month Weekday ×7, Time-Grid Weekday ×12; Schedule Resource Name ×2, Itinerary Meta ×2, Event-Card Range ×8,
+  Resource-Grid Label ×21; Rating NPS-Scale labels ×4; Stepper error Caption ×6 (→ Negative/Light); Metric-Tile
+  Metric-Title ×4 (2 → Inverse/Light); Slider Number ×48; Timeline Gantt-Bar Title ×2, Gantt Label ×2, Week ×12.
+  native-defs.json.gz patched for the 147 nodes (round trip checked; Inverse/Light had no shared paint, one appended at
+  #FFFFFF98); native-pack.json holds no fills. figma-native selftest 162. No contract suite covers these sets.
+  The library needs a publish. Designer screens left as warnings: ◆ Logistic 5613:1146, 12084:93091, 6091:22188,
+  12084:93562, 12084:95140 (five quick-action labels each, Neutral/Strongest).
+- **Code**: schedule.css, calendar.css, timeline.css, rating.css, slider.css, stepper.css, metric-widget.css, chat.css,
+  top-navigation.css (overlay types only; on a colour band the subtitle is on a fill); JSDoc notes updated; Studio UI
+  (AgentPanel, MyPages, NewPageDialog, StudioFolders, QuickInsert, PrototypePanel, AssetsPanel, ProjectSetup, ProjectsHome,
+  ThemePreview, PagesPanel, ReadOnlyChip) and the app-shell examples (code samples too). Studio detach: an XSmall Badge's
+  Caption label carries `zen-allow-caption-light` (it sits on the Badge's fill).
+- **The user's decisions mid-task.** "Metric label cũng là light" → Metric-Tile titles (all sizes) and metric category
+  names Light; a Title-Highlight title stays Strongest (a title). Shown a Figma comparison of Schedule Slot Small and
+  Opinion items in Light: "Giữ như Figma. Các chữ này không được gọi là label. Vì trong ngữ cảnh này nó là giá trị chính
+  và là giá trị một mình" → exception 5, a main value standing alone keeps its tone. Applied consistently: Schedule
+  Resource Name (mobile) and Gantt-Bar Title (Milestone, Summary) rebound back to Strongest in Figma and code; the
+  docs examples' quick-action names under IconButtons / DockIcons, the tracker values and the TV-remote names, and
+  Studio's project-setup tile labels back to their original tones. The checks read "alone": harness — the only text
+  beside Icon/IconButton/Button/DockIcon/Avatar/Image/Shape…, or of a button/label/a; runtime — the largest box around
+  it with no other text is a control, a component root or holds a picture or icon; Figma — the variant's only own text,
+  or a screen text under an instance in a vertical frame. A state's variant (Today, Now, Selected…) is skipped too.
+  Net Figma rebinds: 144 (Calendar Day-Cell Selected "More" added). The temporary comparison frame on the QA page was
+  deleted.
+- **Day-Tile and Event-Card** (the user: ".Primitives/Calendar/Day-Tile Mình vừa update cả component này. Update lên
+  Studio trong đợt này luôn", then "Event-Card cả này nữa"). Day-Tile 16142:3915 now: Today's Weekday Accent/Strongest,
+  Selected on Active/Neutral/Subtle (Today: Active/Accent/Subtle) with no stroke → calendar.css + JSDoc; native defs
+  patched for its 4 changed layers (round trip checked, every other Day-Tile field compared equal). Event-Card 16143:817:
+  compared layer by layer with the stored definitions, only the Range colour (Light, from this change) differs; code
+  already Light. No contract suite covers either set.
+- **Round 2 (relayed from the main session, the user's words verbatim):** "tiêu đề luôn là strong"; "Subtext của heading
+  cũng nên là light. Chỉ có paragraph chữ dài mới là base". Asked here, with A/B screenshots built on the QA page (the
+  user: "Các câu hỏi cần trả lời kèm ảnh chụp để dễ hình dung"): Metric-Tile's Metric-Title is a label → Light; field and
+  term labels → Light; meta lines → Light; Dialog / Side Panel / Modal Forms description → Base (a paragraph);
+  Badge-Status Cancelled and a past itinerary title → Light; Agenda weekday, Date-Picker year/range, PageHeader eyebrow,
+  Voice action labels → Base; Table column titles → Light (a kicker). Figma rebinds: 42 own layers (Description-List Term
+  4, Property-Field 1, Slider/Field 16, Timeline Item 2, Condition-Item 1, Chat Reply Quote 12, Voice guidance 3,
+  Badge-Status 2, Itinerary past title 1), 24 Inline-Field Label overrides, Stepper error Step Title 6 → Negative/
+  Strongest. native defs patched for the 33 nodes the pack holds (Chat Reply Quote, Voice and the Inline-Field
+  overrides are not in it). input-search.json Condition-Item / Input-Conditions entries re-captured by patch; digests
+  equal Figma's (df384cdd, 87e4a81e). The Condition-Item's minus icon stays Neutral/Base (Figma), only its words Light.
+- **Checks round 2:** harness `text/title-strongest` (error; replaces `heading/title-not-light`, Base too, kickers =
+  Body/Small/Bold or All-Caps), `text/subtext-light` (CSS: subtitle / subtext / subheading / capline), and
+  `content/title-is-strongest` raised to error with colour families (state selectors excepted). Runtime kind renamed
+  `text-tone` (titles Strongest; Caption, labels, Subtexts Light). Figma `checkTextTone` with `text/title-strongest` and
+  `text/subtext-light` by layer name; 0 findings on the library and screens. Allow comments: TopNavigation on a colour
+  band, DashboardHeader's result count ("96 results", a value). CI fix: axe baseline color-contrast for CalendarDayCell,
+  NpsScale, TimelineGantt; MetricCard tile test expects Inverse/Light. The platform-audit selftest (13 text-tone
+  fixtures) still has to run: no browser runs until Giám sát's window.
+- Gate on 7b66708c (17 pages, --isolated): 15 pass; chat and text failed text-tone only. The check called a Chat
+  conversation's time inside its `__title` a title → outside a heading the nearest part decides too (time no, name yes);
+  the Text playground kept tone Light after a Caption style when Heading was switched on → Heading resets the tone.
+  Selftest fixture + `not:` option. Rerun chat,text: PASS (static, Vitest 93, contracts 53, audit, dark, behaviour).
 - Gate 1 (head 52517e83: static, audit, dark, behaviour pass; E2E 367/380). The 13 regressions came from the placeholder frame:
   two crumbs made a new page a child screen (§17 R14: no phone Bottom Navigation) → pages take Master alone
   (`rootCrumbs`, `root: true`); a Studio bug, `itemElement` paired every same-label tab with the first (⊕ stacked,

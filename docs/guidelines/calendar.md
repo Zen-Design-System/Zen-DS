@@ -32,7 +32,7 @@ Show events over time: a month of days, a week or day of hours, or an agenda lis
 Generated from the TypeScript source; full JSON in `docs/api/calendar.json`.
 
 ### CalendarMonth
-Figma `Calendar/Month` (16126:1093). Desktop: a Border box (`Color/Background/Surface/Default`, 1px `Color/Border/Neutral/Pale/Default`, Corner-Radius/Base, clipped) holding the weekday row (Caption/Medium Neutral/Base, Padding/XSmall, a Pale rule under it) and 5 weeks — 6 when the month spans six (Figma Sixth-Week) — of `.Primitives/Calendar/Day-Cell`, Monday first; days of the next and previous month are Outside. A cell shows its events as `.Primitives/Calendar/Event` chips: all up to three, else two and "+N more". Mobile: single-letter weekdays (Caption/Medium Neutral/Light) over weeks of `.Primitives/Mobile-Date-Picker/Item` (DatePickerItem) with the event dot, Gap/2XSmall between rows; days outside the month are blank. Semantics: an APG grid — desktop: weekday column headers and a row per week of gridcells; each day's date is a button named "Wednesday, September 30, 2026, 3 events" that selects the day (`aria-pressed`; today `aria-current="date"`). One date is in the tab order; the arrow keys move a day or a week, Home / End to the week's ends. Event chips are buttons with `onEventClick`. Mobile days are the date-picker buttons with the same keys.
+Figma `Calendar/Month` (16126:1093). Desktop: a Border box (`Color/Background/Surface/Default`, 1px `Color/Border/Neutral/Pale/Default`, Corner-Radius/Base, clipped) holding the weekday row (Caption/Medium Neutral/Light, Padding/XSmall, a Pale rule under it) and 5 weeks — 6 when the month spans six (Figma Sixth-Week) — of `.Primitives/Calendar/Day-Cell`, Monday first; days of the next and previous month are Outside. A cell shows its events as `.Primitives/Calendar/Event` chips: all up to three, else two and "+N more". Mobile: single-letter weekdays (Caption/Medium Neutral/Light) over weeks of `.Primitives/Mobile-Date-Picker/Item` (DatePickerItem) with the event dot, Gap/2XSmall between rows; days outside the month are blank. Semantics: an APG grid — desktop: weekday column headers and a row per week of gridcells; each day's date is a button named "Wednesday, September 30, 2026, 3 events" that selects the day (`aria-pressed`; today `aria-current="date"`). One date is in the tab order; the arrow keys move a day or a week, Home / End to the week's ends. Event chips are buttons with `onEventClick`. Mobile days are the date-picker buttons with the same keys.
 
 Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "defaultValue" | "onChange">`.
 
@@ -74,7 +74,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "title">`.
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
 ### CalendarTimeGrid
-Figma `Calendar/Time-Grid` (16127:1172): the week and day views. A Border box (`Color/Background/Surface/Default`, 1px `Color/Border/Neutral/Pale/Default`, Corner-Radius/Base, clipped) with three rows, each split by a Pale rule: the days (weekday Caption/Medium Neutral/Base over a Large `.Primitives/Calendar/Date`, Padding/XSmall, Gap/3XSmall), the all-day row ("All day" Caption/Regular Neutral/Light; all-day `.Primitives/Calendar/Event` chips, Padding/2XSmall) and the hours: a gutter of hour labels (Caption/Regular Neutral/Light, 56px desktop / 44px mobile) beside day columns of 30-minute `.Primitives/Calendar/Slot` rows (64px per hour, the hour rule on top), each column split by a Pale rule. `.Primitives/Calendar/Event-Block` instances sit at their start time — y = (start − first hour) × 64 + 1, height = length × 64 − 2, 2px from the column's left edge and 4px from its right — and overlapping events share the column in lanes. The `.Primitives/Calendar/Now-Line` crosses today's column at the current minute. Semantics: each day column is a group named with its date; blocks are buttons with `onEventClick` (named by title and time). The header, hour labels, slots and the now line are decorative. Give the box a height (or max-height) to scroll the hours under the fixed day header.
+Figma `Calendar/Time-Grid` (16127:1172): the week and day views. A Border box (`Color/Background/Surface/Default`, 1px `Color/Border/Neutral/Pale/Default`, Corner-Radius/Base, clipped) with three rows, each split by a Pale rule: the days (weekday Caption/Medium Neutral/Light over a Large `.Primitives/Calendar/Date`, Padding/XSmall, Gap/3XSmall), the all-day row ("All day" Caption/Regular Neutral/Light; all-day `.Primitives/Calendar/Event` chips, Padding/2XSmall) and the hours: a gutter of hour labels (Caption/Regular Neutral/Light, 56px desktop / 44px mobile) beside day columns of 30-minute `.Primitives/Calendar/Slot` rows (64px per hour, the hour rule on top), each column split by a Pale rule. `.Primitives/Calendar/Event-Block` instances sit at their start time — y = (start − first hour) × 64 + 1, height = length × 64 − 2, 2px from the column's left edge and 4px from its right — and overlapping events share the column in lanes. The `.Primitives/Calendar/Now-Line` crosses today's column at the current minute. Semantics: each day column is a group named with its date; blocks are buttons with `onEventClick` (named by title and time). The header, hour labels, slots and the now line are decorative. Give the box a height (or max-height) to scroll the hours under the fixed day header.
 
 Also accepts `HTMLAttributes<HTMLDivElement>`.
 
@@ -185,7 +185,7 @@ Also accepts `HTMLAttributes<HTMLDivElement>`.
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
 ### CalendarDayCell
-Figma `.Primitives/Calendar/Day-Cell` (16124:105): one day of the desktop month — Padding/XSmall, Gap/2XSmall, the date (Medium), the Events slot (Gap/3XSmall) and "+N more" (Caption/Medium, Neutral/Base). It draws the right and bottom 1px `Color/Border/Neutral/Pale/Default` rules (the month turns them off on its last column and row). Selected tints `Color/Background/Accent/Flat/Default`; Outside fills `Color/Background/Surface/Alt`.
+Figma `.Primitives/Calendar/Day-Cell` (16124:105): one day of the desktop month — Padding/XSmall, Gap/2XSmall, the date (Medium), the Events slot (Gap/3XSmall) and "+N more" (Caption/Medium, Neutral/Light). It draws the right and bottom 1px `Color/Border/Neutral/Pale/Default` rules (the month turns them off on its last column and row). Selected tints `Color/Background/Accent/Flat/Default`; Outside fills `Color/Background/Surface/Alt`.
 
 Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "onSelect">`.
 
@@ -205,7 +205,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "onSelect">`.
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
 ### CalendarAgendaItem
-Figma `.Primitives/Calendar/Agenda-Item` (16124:373): Padding XSmall · Small (mobile XSmall), Gap/Small, Corner-Radius/Small. Time column (72 / 48, Gap/3XSmall): Start Body/Small/Medium Strongest over End Caption/Regular Light; a 4px Corner-Radius/Rounded rule in `Color/Background/Support/`<Hue>`/Solid`; Title Body/Base/Medium Strongest over Meta Caption/Regular Base; on desktop the attendees (Avatar/Stack Small Subtle).
+Figma `.Primitives/Calendar/Agenda-Item` (16124:373): Padding XSmall · Small (mobile XSmall), Gap/Small, Corner-Radius/Small. Time column (72 / 48, Gap/3XSmall): Start Body/Small/Medium Strongest over End Caption/Regular Light; a 4px Corner-Radius/Rounded rule in `Color/Background/Support/`<Hue>`/Solid`; Title Body/Base/Medium Strongest over Meta Caption/Regular Light; on desktop the attendees (Avatar/Stack Small Subtle).
 
 Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "title" | "color">`.
 
@@ -223,7 +223,7 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "title" | "color">`.
 | `ref` | `Ref<HTMLElement>` | — | Ref to the root element (a `<button>` when pressable, else a `<div>`). |
 
 ### CalendarDayTile
-Figma `.Primitives/Calendar/Day-Tile` (16142:3915): one day of Calendar/Week-Strip Style=Tile — Padding/XSmall, Gap/3XSmall, Corner-Radius/Large; Weekday Caption/Medium Neutral/Light over Day Body/Base/Bold Strongest (Today: `Color/Content/Accent/Base`). Selected: `Color/Background/Surface/Default` with a 1px `Color/Border/Neutral/Pale/Default`.
+Figma `.Primitives/Calendar/Day-Tile` (16142:3915): one day of Calendar/Week-Strip Style=Tile — Padding/XSmall, Gap/3XSmall, Corner-Radius/Large; Weekday Caption/Medium Neutral/Light over Day Body/Base/Bold Strongest (Today: the weekday `Color/Content/Accent/Strongest`, the day `Accent/Base`). Selected: `Color/Background/Active/Neutral/Subtle`, or `Active/Accent/Subtle` on today, with no stroke (Figma updated 2026-10-26).
 
 Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 
@@ -231,8 +231,8 @@ Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">`.
 | --- | --- | --- | --- |
 | `weekday` (required) | `ReactNode` | — | Figma Weekday ("Wed"). |
 | `day` (required) | `ReactNode` | — | Figma Day ("30"). |
-| `selected` | `boolean` | `false` | Figma State=Selected: a Surface/Default tile with a Pale border, readable on any canvas. |
-| `today` | `boolean` | `false` | Figma Today=Yes: the date in Accent. |
+| `selected` | `boolean` | `false` | Figma State=Selected: a `Color/Background/Active/Neutral/Subtle` tile (`Active/Accent/Subtle` on today). |
+| `today` | `boolean` | `false` | Figma Today=Yes: the weekday in Accent/Strongest, the date in Accent/Base. |
 | `label` | `string` | — | The full date, the tile's accessible name ("Wednesday, September 30, 2026"). |
 | `ref` | `Ref<HTMLButtonElement>` | — | Ref to the root `<button>`. |
 

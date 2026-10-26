@@ -58,7 +58,7 @@ function useMinuteClock(enabled: boolean) {
 /**
  * Figma `Calendar/Time-Grid` (16127:1172): the week and day views. A Border box (`Color/Background/Surface/Default`, 1px
  * `Color/Border/Neutral/Pale/Default`, Corner-Radius/Base, clipped) with three rows, each split by a Pale rule: the days
- * (weekday Caption/Medium Neutral/Base over a Large `.Primitives/Calendar/Date`, Padding/XSmall, Gap/3XSmall), the all-day
+ * (weekday Caption/Medium Neutral/Light over a Large `.Primitives/Calendar/Date`, Padding/XSmall, Gap/3XSmall), the all-day
  * row ("All day" Caption/Regular Neutral/Light; all-day `.Primitives/Calendar/Event` chips, Padding/2XSmall) and the hours:
  * a gutter of hour labels (Caption/Regular Neutral/Light, 56px desktop / 44px mobile) beside day columns of 30-minute
  * `.Primitives/Calendar/Slot` rows (64px per hour, the hour rule on top), each column split by a Pale rule.

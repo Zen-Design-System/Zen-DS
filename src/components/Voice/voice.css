@@ -6,7 +6,7 @@
 /* The state badge keeps its word; the title is what truncates. */
 .zen-voice__header > .zen-badge { flex: 0 0 auto; }
 .zen-voice__title { min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-strongest); text-overflow: ellipsis; white-space: nowrap; }
-.zen-voice__guidance { margin: 0; color: var(--zen-color-content-neutral-base); text-align: center; }
+.zen-voice__guidance { margin: 0; color: var(--zen-color-content-neutral-light); text-align: center; }
 .zen-voice__note { margin: 0; color: var(--zen-color-content-neutral-light); text-align: center; }
 
 /* Voice actions: Large Tertiary · XLarge Primary · Large Tertiary, centred on the row. Figma's 80px columns sit

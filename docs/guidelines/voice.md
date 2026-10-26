@@ -32,7 +32,7 @@ Record a voice take, or talk with the assistant out loud: a waveform or voice si
 Generated from the TypeScript source; full JSON in `docs/api/voice.json`.
 
 ### VoiceRecorder
-Figma Voice Recorder (15084:79711): a header (Body/Base/Medium name + a Small Subtle Badge: Neutral Ready / Paused, Red Recording with its dot), the audio monitor (Background/Surface/Alt, Corner-Radius/Base, Spacing/Padding/Medium: the elapsed time in Heading/Subheading, an 80px waveform — Content/Neutral/Strongest while recording, Neutral/Light paused, a flat Border/Neutral/Subtle line when ready — and its start / end times in Caption/Regular Neutral/Light), the guidance (Body/Small/Regular Neutral/Base), the transport (Discard · Record/Pause/Resume · Finish; Discard and Finish disabled until there is a take), a Border/Neutral/Pale divider and the input details.
+Figma Voice Recorder (15084:79711): a header (Body/Base/Medium name + a Small Subtle Badge: Neutral Ready / Paused, Red Recording with its dot), the audio monitor (Background/Surface/Alt, Corner-Radius/Base, Spacing/Padding/Medium: the elapsed time in Heading/Subheading, an 80px waveform — Content/Neutral/Strongest while recording, Neutral/Light paused, a flat Border/Neutral/Subtle line when ready — and its start / end times in Caption/Regular Neutral/Light), the guidance (Body/Small/Regular Neutral/Light), the transport (Discard · Record/Pause/Resume · Finish; Discard and Finish disabled until there is a take), a Border/Neutral/Pale divider and the input details.
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |

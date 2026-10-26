@@ -98,7 +98,7 @@
    are a Divider between the rows. */
 .zen-bottom-sheet__group { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: 0; list-style: none; }
 .zen-bottom-sheet__label { display: flex; min-height: 32px; box-sizing: border-box; align-items: center; padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-medium, 16px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
-.zen-bottom-sheet__item-trailing { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 64%)); }
+.zen-bottom-sheet__item-trailing { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 /* zen-allow-slot-size: fixed 16px check (see the item icon above). */
 .zen-bottom-sheet__check.zen-icon { width: 16px; height: 16px; color: var(--zen-color-content-accent-base, #95197b); }
 

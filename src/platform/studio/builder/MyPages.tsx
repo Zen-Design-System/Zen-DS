@@ -138,7 +138,7 @@ export function MyPagesHeader({ onNew, onNewFolder, onNewProject, kicker = "Fold
     <>
       <div className="studio-pages__kicker-row">
         <span className="studio-pages__kicker studio-pages__kicker--info">
-          <Text as="span" id="studio-pages-mine" textStyle="Caption/Medium" tone="base">{kicker}</Text>
+          <Text as="span" id="studio-pages-mine" textStyle="Caption/Medium" tone="light">{kicker}</Text>
           {/* Where the pages are kept, in an info tooltip (user, 2026-10-09: not a line of its own). Zen's icon tooltip: a
               fixed layer in the portal, flipped and kept inside the window, so the scrolling panel never cuts it off. */}
           <button type="button" className="studio-pages__info" aria-label={storageText(storage)} {...storageTip.bind({})}><Icon name="icon-info-circle-line" size="2xs" decorative /></button>
@@ -189,7 +189,7 @@ function StorageLine() {
   if (storage.kind !== "reconnect" && !(storage.kind === "mirror" && storage.error)) return null;
   return (
     <div className="studio-pages__storage" data-storage={storage.kind} data-error={storage.kind === "mirror" && storage.error ? "true" : undefined}>
-      <Text as="p" textStyle="Caption/Regular" tone={storage.kind === "mirror" && storage.error ? "negative" : "base"} className="studio-pages__storage-text" role="status">{text}</Text>
+      <Text as="p" textStyle="Caption/Regular" tone={storage.kind === "mirror" && storage.error ? "negative-light" : "light"} className="studio-pages__storage-text" role="status">{text}</Text>
       {/* zen-allow-compact-button: Studio chrome — a quiet action on the panel's one-line caption, like a row pill. */}
       {storage.kind === "reconnect" ? <Button appearance="flat" level="primary" size="xs" onClick={() => void reconnectFolder().catch(fail)}>Reconnect</Button> : null}
       {/* zen-allow-compact-button: Studio chrome — a quiet action on the panel's one-line caption, like a row pill. */}
@@ -272,7 +272,7 @@ function HistoryDialog({ page, admin, onClose }: { page: PageMeta; admin: boolea
             <li key={row.key} className="studio-page-list__row">
               <span className="studio-page-list__text">
                 <Text as="span" textStyle="Body/Small/Medium">{when.format(row.at)}</Text>
-                <Text as="span" textStyle="Caption/Regular" tone="base">{REASON[row.reason] ?? row.reason}</Text>
+                <Text as="span" textStyle="Caption/Regular" tone="light">{REASON[row.reason] ?? row.reason}</Text>
               </span>
               <Button appearance="main" level="tertiary" size="sm" disabled={!admin} onClick={() => void restoreRevision(page.id, row.key).then(onClose, fail)}>Restore</Button>
             </li>
@@ -294,7 +294,7 @@ function TrashDialog({ open, onOpenChange, pages, admin }: { open: boolean; onOp
             <li key={page.id} className="studio-page-list__row">
               <span className="studio-page-list__text">
                 <Text as="span" textStyle="Body/Small/Medium">{page.title}</Text>
-                <Text as="span" textStyle="Caption/Regular" tone="base">{`${trashDaysLeft(page.trashedAt ?? now, now)} days left · ${page.id}.zen.tsx`}</Text>
+                <Text as="span" textStyle="Caption/Regular" tone="light">{`${trashDaysLeft(page.trashedAt ?? now, now)} days left · ${page.id}.zen.tsx`}</Text>
               </span>
               <Button appearance="main" level="tertiary" size="sm" disabled={!admin} onClick={() => void restorePage(page.id).catch(fail)}>Restore</Button>
               <Button appearance="main" level={confirming === page.id ? "danger" : "danger-subtle"} size="sm" disabled={!admin} onClick={() => {

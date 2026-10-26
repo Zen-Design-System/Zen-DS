@@ -106,8 +106,8 @@ export function sharesOf(values: readonly number[]) {
 /**
  * Figma Metric-Card Category-Bar (15481:1957): a 12px bar of segments, Spacing/Gap/2XSmall apart, Corner-Radius/XSmall,
  * each as long as its share of the total, in the chart palette; under it (Spacing/Gap/Medium) one row per category,
- * Spacing/Gap/XSmall apart: the legend item (12px dot, Spacing/Gap/2XSmall, Caption/Regular · Neutral/Strongest), the
- * amount (Body/Small/Medium · Neutral/Strongest) and the share (Body/Small/Regular · Neutral/Base, end-aligned). The bar
+ * Spacing/Gap/XSmall apart: the legend item (12px dot, Spacing/Gap/2XSmall, Caption/Regular · Neutral/Light), the
+ * amount (Body/Small/Medium · Neutral/Strongest) and the share (Body/Small/Regular · Neutral/Light, end-aligned). The bar
  * is decorative; the rows say every number. Segments grow from the start (Slow, Emphasized, staggered); reduced motion
  * fades.
  */

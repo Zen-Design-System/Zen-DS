@@ -398,7 +398,7 @@ function IconGrid({ query, style, onClear }: { query: string; style: "line" | "s
   const shown = glyphs.slice(0, MAX_ICONS);
   return (
     <div className="studio-assets__scroll">
-      <Text as="p" textStyle="Caption/Regular" tone="base" className="studio-assets__note" role="status">
+      <Text as="p" textStyle="Caption/Regular" tone="light" className="studio-assets__note" role="status">
         {swapping ? "Click an icon to swap the selected Icon" : glyphs.length > shown.length ? `${shown.length} of ${plural(glyphs.length, "icon")} · search to narrow` : plural(glyphs.length, "icon")}
       </Text>
       {shown.length ? (
@@ -479,7 +479,7 @@ function PhotoGrid({ query, onClear }: { query: string; onClear: () => void }) {
             ))}
           </ul>
         ) : (
-          <Text as="p" textStyle="Caption/Regular" tone="base" className="studio-assets__hint">
+          <Text as="p" textStyle="Caption/Regular" tone="light" className="studio-assets__hint">
             {words ? "None of your photos match." : "Upload or drop PNG, JPEG, WebP, GIF or SVG files, up to 5 MB each. They stay in this browser and go with the page's exports."}
           </Text>
         )}

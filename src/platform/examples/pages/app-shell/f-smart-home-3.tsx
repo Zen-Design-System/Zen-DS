@@ -264,7 +264,7 @@ function ScenesPhone() {
                 <DockIcon size="lg" icon={scene.icon} theme={scene.theme} background={scene.background} />
                 <Stack gap="none">
                   <Heading level={2} textStyle="Body/Base/Bold">{scene.title}</Heading>
-                  <Text textStyle="Caption/Regular" tone="base">{scene.devices}</Text>
+                  <Text textStyle="Caption/Regular" tone="light">{scene.devices}</Text>
                 </Stack>
                 <Button level="tertiary" aria-label={`Run ${scene.title}`}
                   onClick={() => toast({ type: "positive", title: `${scene.title} is running`, children: `${scene.does} · ${scene.devices}`, action: { label: "Undo", onClick: () => toast({ title: `${scene.title} undone`, children: "The devices are back as they were." }) } })}>Run</Button>
@@ -436,7 +436,7 @@ export const examples: ExampleDef[] = [
         <DockIcon size="lg" icon="icon-sunrise-line" theme="orange" background="subtle" />
         <Stack gap="none">
           <Heading level={2} textStyle="Body/Base/Bold">Good morning</Heading>
-          <Text textStyle="Caption/Regular" tone="base">5 devices</Text>
+          <Text textStyle="Caption/Regular" tone="light">5 devices</Text>
         </Stack>
         <Button level="tertiary" aria-label="Run Good morning" onClick={runGoodMorning}>Run</Button>
       </Stack>

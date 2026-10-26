@@ -4387,12 +4387,12 @@
         "selected": {
           "type": "boolean",
           "default": false,
-          "description": "Figma State=Selected: a Surface/Default tile with a Pale border, readable on any canvas."
+          "description": "Figma State=Selected: a `Color/Background/Active/Neutral/Subtle` tile (`Active/Accent/Subtle` on today)."
         },
         "today": {
           "type": "boolean",
           "default": false,
-          "description": "Figma Today=Yes: the date in Accent."
+          "description": "Figma Today=Yes: the weekday in Accent/Strongest, the date in Accent/Base."
         },
         "label": {
           "type": "string",
@@ -8274,7 +8274,7 @@
         "term": {
           "x-kind": "node",
           "x-required": true,
-          "description": "The label (dt): Body/Small/Regular, Content/Neutral/Base."
+          "description": "The label (dt): Body/Small/Regular, Content/Neutral/Light."
         },
         "description": {
           "x-kind": "node",
@@ -11570,7 +11570,7 @@
       "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy; TextRun gives some of a text's words a style of their own (Figma's mixed styles).",
       "use": [
         "Page and section titles (Heading level + an optional textStyle).",
-        "Descriptions, captions, meta lines (Text tone=\"base\" or \"light\").",
+        "Descriptions and meta lines in Body/Small (Text tone=\"base\" or \"light\"); Caption text always in Light: <Text textStyle=\"Caption/Regular\" tone=\"light\"> (a colour's Light for an error, the Lights group's Base; harness text/caption-light, the user 2026-10-26).",
         "Status text in a colour family (tone positive-base / negative-strongest / warning-base / info-base / accent-base), or a Support colour (support-blue-strongest).",
         "Counts in copy: plural(n, \"file\")."
       ],
@@ -12438,7 +12438,7 @@
         },
         "caption": {
           "x-kind": "node",
-          "description": "A caption under the picture (Body/Small/Regular, Content/Neutral/Base); the picture becomes a figure with a figcaption."
+          "description": "A caption under the picture (Body/Small/Regular, Content/Neutral/Light); the picture becomes a figure with a figcaption."
         },
         "aria-label": {
           "type": "string",
@@ -15538,7 +15538,7 @@
         "label": {
           "x-kind": "node",
           "x-required": true,
-          "description": "The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Base, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so every"
+          "description": "The property's name (Figma Label): Body/Base/Regular in Content/Neutral/Light, one line, in a column 128 wide in Compact (it scales with Component Size, 154 in Comfortable) so ever"
         },
         "icon": {
           "x-kind": "node",
@@ -22141,7 +22141,7 @@
       "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy; TextRun gives some of a text's words a style of their own (Figma's mixed styles).",
       "use": [
         "Page and section titles (Heading level + an optional textStyle).",
-        "Descriptions, captions, meta lines (Text tone=\"base\" or \"light\").",
+        "Descriptions and meta lines in Body/Small (Text tone=\"base\" or \"light\"); Caption text always in Light: <Text textStyle=\"Caption/Regular\" tone=\"light\"> (a colour's Light for an error, the Lights group's Base; harness text/caption-light, the user 2026-10-26).",
         "Status text in a colour family (tone positive-base / negative-strongest / warning-base / info-base / accent-base), or a Support colour (support-blue-strongest).",
         "Counts in copy: plural(n, \"file\")."
       ],
@@ -22668,7 +22668,7 @@
       "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy; TextRun gives some of a text's words a style of their own (Figma's mixed styles).",
       "use": [
         "Page and section titles (Heading level + an optional textStyle).",
-        "Descriptions, captions, meta lines (Text tone=\"base\" or \"light\").",
+        "Descriptions and meta lines in Body/Small (Text tone=\"base\" or \"light\"); Caption text always in Light: <Text textStyle=\"Caption/Regular\" tone=\"light\"> (a colour's Light for an error, the Lights group's Base; harness text/caption-light, the user 2026-10-26).",
         "Status text in a colour family (tone positive-base / negative-strongest / warning-base / info-base / accent-base), or a Support colour (support-blue-strongest).",
         "Counts in copy: plural(n, \"file\")."
       ],
@@ -26529,6 +26529,7 @@
         "Don't make a value (metric, price, count) a heading.",
         "Don't let a heading look larger than the heading it sits under inside one content area (the page body, a card, an overlay); an app bar title and an overlay title are compared only within their own layer.",
         "Don't colour body text with a colour family's Light token or a raw hex; use tone.",
+        "Don't leave a Caption <Text> without tone=\"light\": with no tone it renders Strongest (harness text/caption-light). Only text on a Solid or Subtle fill follows the fill, and a main value standing alone (a quick action's name under its IconButton, a slot's time) keeps its tone (zen-allow-caption-light with the reason where the harness cannot see it).",
         "Don't truncate essential information without another way to read it (a tooltip or detail view).",
         "Don't use TextRun outside a Text or Heading, or to set a whole text's style (set the Text's textStyle and tone instead).",
         "Don't underline words to make them look like a link; a link is a Link."
@@ -26537,9 +26538,10 @@
         "text-run/inside-text",
         "flag/no-emoji-flag",
         "content/lights-no-light-text",
+        "text/caption-light",
         "theme/on-solid-content",
         "heading/h1-is-heading-1",
-        "heading/title-not-light",
+        "text/title-strongest",
         "table/title-heading-4",
         "badge/count-text-uses-counter",
         "text/use-text",

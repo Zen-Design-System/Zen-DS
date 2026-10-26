@@ -72,7 +72,7 @@
           "type": "ReactNode",
           "required": true,
           "default": null,
-          "description": "The label (dt): Body/Small/Regular, Content/Neutral/Base.",
+          "description": "The label (dt): Body/Small/Regular, Content/Neutral/Light.",
           "deprecated": null
         },
         {

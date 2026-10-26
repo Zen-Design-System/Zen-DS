@@ -98,7 +98,7 @@ function ProjectCard({ project, pages }: { project: Project | null; pages: numbe
         <button type="button" className="studio-projects__open" onClick={() => openProjectHome(project?.id ?? DRAFTS)}>
           <Text as="span" textStyle="Body/Small/Bold" truncate>{name}</Text>
         </button>
-        <Text as="span" textStyle="Caption/Regular" tone="base" truncate>{meta}</Text>
+        <Text as="span" textStyle="Caption/Regular" tone="light" truncate>{meta}</Text>
       </div>
       {project ? (
         <span className="studio-projects__menu">

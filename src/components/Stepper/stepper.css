@@ -21,8 +21,8 @@ button.zen-stepper__hit:focus-visible { outline: 3px solid var(--zen-color-focus
    breaks (hyphenated where the browser can) instead of running into the next step's title. The caption does the same. */
 .zen-stepper__title { color: var(--zen-color-content-neutral-strongest, #111); overflow-wrap: break-word; hyphens: auto; }
 .zen-stepper__caption { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); overflow-wrap: break-word; hyphens: auto; }
-.zen-stepper__step[data-state="error"] .zen-stepper__title { color: var(--zen-color-content-negative-base); }
-.zen-stepper__step[data-state="error"] .zen-stepper__caption { color: var(--zen-color-content-negative-strongest); }
+.zen-stepper__step[data-state="error"] .zen-stepper__title { color: var(--zen-color-content-negative-strongest); }
+.zen-stepper__step[data-state="error"] .zen-stepper__caption { color: var(--zen-color-content-negative-light); }
 
 /* Vertical (Stepper-Bar/Vertical 1625:8656, Step-Vertical): Figma's row of [line · marker · line] beside the Contents,
    which centre on the marker. A grid keeps that centring while the bar's outer lines take no room: Figma keeps the first

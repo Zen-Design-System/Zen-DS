@@ -204,7 +204,7 @@ export interface ScheduleEventCardProps extends Omit<HTMLAttributes<HTMLElement>
  * (`Color/Background/Surface/Default`, 1px `Color/Border/Neutral/Pale/Default`, Corner-Radius/2XLarge, Padding/Medium, so
  * it reads on Canvas/Default and Canvas/Alt), a 4px rule in `Color/Background/Support/<Hue>/Solid`, then Gap/XSmall: Title
  * (Body/Base/Medium, 2 lines) over Status (Body/Small/Regular, Light) beside the ⋮, the attendees and the time (clock icon,
- * Caption/Medium Neutral/Base), and an optional note (Surface/Alt, Padding/Small, Corner-Radius/Small = 24 − 16).
+ * Caption/Medium Neutral/Light), and an optional note (Surface/Alt, Padding/Small, Corner-Radius/Small = 24 − 16).
  */
 export function ScheduleEventCard({ title, status, time, color = "brand", attendees, note, onMenuClick, menuLabel, overrides, className, ref, ...rest }: ScheduleEventCardProps) {
   const t = useZenLabels();

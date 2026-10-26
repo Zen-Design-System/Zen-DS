@@ -74,7 +74,7 @@ export function ReadOnlyChip() {
         <div id={`${id}-panel`} className="studio-gate__panel" role="dialog" aria-labelledby={`${id}-title`}>
           <div className="studio-gate__head">
             <Text as="p" id={`${id}-title`} textStyle="Body/Small/Bold">{gate.title}</Text>
-            {gate.detail ? <Text as="p" textStyle="Caption/Regular" tone="base">{gate.detail}</Text> : null}
+            {gate.detail ? <Text as="p" textStyle="Caption/Regular" tone="light">{gate.detail}</Text> : null}
           </div>
           <div className="studio-gate__actions">
             {gate.reason === "viewer" ? (

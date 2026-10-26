@@ -309,6 +309,14 @@ export const Good = () => <>
   <Icon name="icon-check-line" size="sm" decorative />
   <Icon name="icon-check-line" size={14} decorative />
   <Text tone="light">{plural(results.length, "place")}</Text>
+  {/* text/caption-light: Caption text in Light (a colour family's Light for an error), the Lights group's Base, On-Accent on its own Solid fill, an older alias. */}
+  <Text textStyle="Caption/Regular" tone="light">Updated 2 min ago</Text>
+  <Text textStyle="Caption/Medium" tone="negative-light">File too large</Text>
+  <Text textStyle="Caption/Medium" tone="warning-base">Expires soon</Text>
+  <Text textStyle="Caption/Medium" tone="on-accent">Today</Text>
+  <Text textStyle="Caption/Regular" tone="tertiary">2 KB</Text>
+  {/* A Caption that is its item's main value, alone (the user 2026-10-26): a quick action's name under its IconButton. */}
+  <Stack as="li" gap="xs" align="center"><IconButton size="lg" level="tertiary" icon="icon-camera-line" aria-label="Snapshot" onClick={act} /><Text as="span" textStyle="Caption/Medium" aria-hidden="true">Snapshot</Text></Stack>
   <AppShellAction icon="icon-bell-01-line" aria-label="Notifications" dot onClick={openInbox} />
   <Menu align="end" trigger={<AppShellAccount name="Ava Chen" />} items={[{ id: "out", label: "Sign out" }]} onSelect={signOut} />
   <Text tone="light">{sessions.length} phiên đang mở</Text>

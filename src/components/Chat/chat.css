@@ -189,7 +189,7 @@
 .zen-chat-group[data-size="large"] > .zen-avatar { --zen-avatar-size: 32px; }
 .zen-chat-group__status { position: absolute; right: 0; bottom: 0; width: 8px; height: 8px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-positive-solid-default, #2ea44f); box-shadow: 0 0 0 2px var(--zen-color-border-inverse, #fff); }
 /* Failed send: Negative content, a Retry text action (24px hit area) — the bubble keeps its place in the thread. */
-.zen-chat-message__failed { align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-negative-base, #c0392b); }
+.zen-chat-message__failed { align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-negative-light, #d03e19); }
 .zen-chat-message[data-failed="true"] .zen-chat-bubble { opacity: .72; }
 .zen-chat-message__retry { position: relative; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; font: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .zen-chat-message__retry::after { position: absolute; top: 50%; left: 50%; width: max(100%, 24px); height: 24px; content: ""; transform: translate(-50%, -50%); }

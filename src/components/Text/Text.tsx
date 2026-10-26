@@ -27,7 +27,11 @@ export type TextVerticalAlign = "top" | "middle" | "bottom";
 export interface TextProps extends Omit<HTMLAttributes<HTMLElement>, "color">, LayoutSizingProps {
   /** Figma text style, e.g. "Body/Base/Regular" (default), "Body/Small/Medium", "Caption/Regular", "Heading/4". */
   textStyle?: TypographyStyleName;
-  /** Colour role: a Color/Content token by its path ("base", "support-blue-strongest"). Default strongest (primary text). */
+  /**
+   * Colour role: a Color/Content token by its path ("base", "support-blue-strongest"). Default strongest (primary text).
+   * Text in a Caption style always takes its family's Light ("light", "inverse-light", "negative-light"; Base in the
+   * Lights group): set it, as the default would render Strongest (harness text/caption-light).
+   */
   tone?: ContentTone;
   /** Element to render. Default p (a block); use span inside a line, label for a form label. */
   as?: TextElement;
@@ -66,7 +70,8 @@ function truncateStyle(truncate: TextProps["truncate"], style: CSSProperties | u
 
 /**
  * Figma text styles with Zen's content colours. Paragraphs, labels and inline copy; titles use <Heading>. Meta in
- * Body/Small takes tone "base"; Caption is always tone "light".
+ * Body/Small takes tone "base"; Caption is always tone "light" (the user 2026-10-26; text on a Solid or Subtle fill follows
+ * the fill).
  *
  *   <Text>Invite people to collaborate on this project.</Text>
  *   <Text textStyle="Body/Small/Regular" tone="base">Updated 2 min ago</Text>

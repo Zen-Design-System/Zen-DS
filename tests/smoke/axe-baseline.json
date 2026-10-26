@@ -21,6 +21,9 @@
     "color-contrast",
     "color-contrast:dark"
   ],
+  "CalendarDayCell": [
+    "color-contrast"
+  ],
   "CalendarDayTile": [
     "color-contrast"
   ],
@@ -66,6 +69,9 @@
   "DatePickerSheet": [
     "color-contrast"
   ],
+  "DescriptionItem": [
+    "color-contrast"
+  ],
   "DonutChart": [
     "color-contrast"
   ],
@@ -79,6 +85,9 @@
     "color-contrast"
   ],
   "HeatmapChart": [
+    "color-contrast"
+  ],
+  "InputConditionItem": [
     "color-contrast"
   ],
   "InputContent": [
@@ -97,7 +106,13 @@
     "color-contrast",
     "color-contrast:dark"
   ],
+  "NpsScale": [
+    "color-contrast"
+  ],
   "PopoverManualAddNew": [
+    "color-contrast"
+  ],
+  "PropertyField": [
     "color-contrast"
   ],
   "RadialChart": [
@@ -137,6 +152,9 @@
     "color-contrast"
   ],
   "TimelineActivity": [
+    "color-contrast"
+  ],
+  "TimelineGantt": [
     "color-contrast"
   ],
   "TimelineItem": [

@@ -6,7 +6,7 @@
 .zen-badge-status[data-status="done"] { --zen-badge-bg: var(--zen-color-background-positive-subtle-default); --zen-badge-icon: var(--zen-color-content-positive-light); --zen-badge-content: var(--zen-color-content-positive-strongest); }
 .zen-badge-status[data-status="blocked"] { --zen-badge-bg: var(--zen-color-background-negative-subtle-default); --zen-badge-icon: var(--zen-color-content-negative-light); --zen-badge-content: var(--zen-color-content-negative-strongest); }
 /* Cancelled: the muted label (Content/Neutral/Base) reads as stopped work beside To Do. */
-.zen-badge-status[data-status="cancelled"] { --zen-badge-bg: var(--zen-color-background-neutral-subtle-default); --zen-badge-icon: var(--zen-color-content-neutral-light); --zen-badge-content: var(--zen-color-content-neutral-base); }
+.zen-badge-status[data-status="cancelled"] { --zen-badge-bg: var(--zen-color-background-neutral-subtle-default); --zen-badge-icon: var(--zen-color-content-neutral-light); --zen-badge-content: var(--zen-color-content-neutral-light); }
 /* In running text (a DescriptionList value, a sentence) an inline-flex box sits on the baseline of its first item: a
    Badge's leading (16px Medium, 12px Small; badge.css), here the ring (20px, 16px), which pushed the line a pixel past
    the badge (29 for 28). Lowered by half the difference, the ring has the Badge's baseline and the line its height. */
