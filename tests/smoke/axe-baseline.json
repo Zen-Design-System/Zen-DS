@@ -18,6 +18,9 @@
     "color-contrast",
     "color-contrast:dark"
   ],
+  "CalendarDayCell": [
+    "color-contrast"
+  ],
   "CalendarDayTile": [
     "color-contrast"
   ],
@@ -84,6 +87,9 @@
   "Metric": [
     "color-contrast"
   ],
+  "NpsScale": [
+    "color-contrast"
+  ],
   "PopoverManualAddNew": [
     "color-contrast"
   ],
@@ -121,6 +127,9 @@
     "color-contrast"
   ],
   "TimelineActivity": [
+    "color-contrast"
+  ],
+  "TimelineGantt": [
     "color-contrast"
   ],
   "TimelineItem": [

@@ -120,9 +120,9 @@ describe("MetricCard type", () => {
   });
 
   it("tile: its content follows the card's fill (Figma Content Inverse · On-Accent · On-Color · On-Bright)", async () => {
-    // [colour, the badge and Dock-Icon family, the number's colour, the title's colour]: Inverse has a Base step, the On-*
-    // families one colour.
-    const fills = [["neutral", "inverse", "--zen-color-content-inverse-strongest", "--zen-color-content-inverse-base"], ["accent", "on-color", "--zen-color-content-on-accent-default", "--zen-color-content-on-accent-default"], ["cyan", "on-color", "--zen-color-content-on-colors", "--zen-color-content-on-colors"], ["yellow", "on-color", "--zen-color-content-on-brights", "--zen-color-content-on-brights"]] as const;
+    // [colour, the badge and Dock-Icon family, the number's colour, the title's colour]: Inverse has a Light step (a metric's
+    // label is Light, the user 2026-10-26), the On-* families one colour.
+    const fills = [["neutral", "inverse", "--zen-color-content-inverse-strongest", "--zen-color-content-inverse-light"], ["accent", "on-color", "--zen-color-content-on-accent-default", "--zen-color-content-on-accent-default"], ["cyan", "on-color", "--zen-color-content-on-colors", "--zen-color-content-on-colors"], ["yellow", "on-color", "--zen-color-content-on-brights", "--zen-color-content-on-brights"]] as const;
     await render(
       <ZenProvider theme="light">
         {fills.map(([color]) => <MetricCard key={color} theme="solid" color={color} type="tile" label="Success rate" value="56%" trend={{ direction: "negative", label: "-3%" }} />)}
@@ -149,9 +149,10 @@ describe("MetricCard type", () => {
       for (const theme of ["light", "dark"] as const) {
         const screen = await render(wrap(node, type === "comparison" ? 560 : 345, theme));
         const result = await axe.run(document.querySelector("[data-test-root]")!, { resultTypes: ["violations"], rules: pageRules });
-        // The Caption labels of Small metrics (Content/Neutral/Light) are the Metric's known contrast entry in
-        // tests/smoke/axe-baseline.json (a Figma token decision); everything else the types add must pass.
-        const found = result.violations.map((violation) => ({ id: violation.id, nodes: violation.nodes.map((n) => n.target.join(" ")).filter((target) => !(violation.id === "color-contrast" && /zen-metric__label\b/.test(target))) }));
+        // A metric's labels (Content/Neutral/Light: the Metric label, the Metric-Tile title, a category's name; the user
+        // 2026-10-26) are the Metric's known contrast entry in tests/smoke/axe-baseline.json (a Figma token decision);
+        // everything else the types add must pass.
+        const found = result.violations.map((violation) => ({ id: violation.id, nodes: violation.nodes.map((n) => n.target.join(" ")).filter((target) => !(violation.id === "color-contrast" && /zen-metric(__label|-tile__label|-categories__name)\b/.test(target))) }));
         expect(found.filter((violation) => violation.nodes.length).map((violation) => `${violation.id}: ${violation.nodes.join(", ")}`), `${type} (${theme})`).toEqual([]);
         await screen.unmount();
       }
