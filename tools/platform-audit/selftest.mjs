@@ -166,6 +166,20 @@ ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageCheck
   await fixture("item-row-gap: a Don't visual is not judged", docsPage(example("Dont", `<div data-verdict="dont">${row(tag() + tag(), "gap: 12px")}</div>`)), W, K, { clean: true });
 }
 
+/* ── caption-light (qualityChecks): Caption text, and a metric's label, take their family's Light level ───────────── */
+{
+  const Q = "qualityChecks", K = "caption-light";
+  const cap = (words, tone, cls = "zen-type-caption-regular", attrs = "") => `<span class="${cls}"${attrs} style="color: var(--zen-color-content-${tone})">${words}</span>`;
+  await fixture("caption-light: a Caption in Neutral/Base (Calendar agenda meta, 2026-10-26)", docsPage(example("Meta", cap("Room 2 · Google Meet", "neutral-base"))), Q, K, { finds: ["is caption-regular in content-neutral-base", "content-neutral-light"] });
+  await fixture("caption-light: a Caption/Medium name in Strongest on a Surface", docsPage(example("Name", `<div style="background: var(--zen-color-background-surface-default); padding: 8px">${cap("Alex Duong", "neutral-strongest", "zen-type-caption-medium")}</div>`)), Q, K, { finds: ["is caption-medium in content-neutral-strongest"] });
+  await fixture("caption-light: a Metric-Tile label in Base (the user 2026-10-26)", docsPage(example("Tile", `<div class="zen-metric-tile">${cap("Success rate", "neutral-base", "zen-metric-tile__label zen-type-body-small-medium")}</div>`)), Q, K, { finds: ["is a metric label in content-neutral-base"] });
+  await fixture("caption-light: an error Caption in Negative/Strongest", docsPage(example("Error", cap("Optional", "negative-strongest"))), Q, K, { finds: ["content-negative-light"] });
+  await fixture("caption-light: Light, a colour family's Light, the Lights group's Base", docsPage(example("Good", cap("2 KB", "neutral-light") + cap("File too large", "negative-light") + cap("Expires soon", "warning-base", "zen-type-caption-medium") + `<div class="zen-metric-tile">${cap("Success rate", "neutral-light", "zen-metric-tile__label zen-type-body-small-medium")}</div>`)), Q, K, { clean: true });
+  await fixture("caption-light: text on its own Subtle fill follows the fill (a Badge, an event)", docsPage(example("Fill", `<span style="display: inline-block; background: var(--zen-color-background-support-blue-subtle)">${cap("Design", "support-blue-strongest", "zen-type-caption-medium")}</span>`)), Q, K, { clean: true });
+  await fixture("caption-light: a state (today, a disabled control) keeps its token", docsPage(example("States", cap("Wed 30", "accent-strongest", "zen-type-caption-medium", " data-today") + `<button type="button" disabled>${cap("10:30", "neutral-strongest", "zen-type-caption-medium")}</button>`)), Q, K, { clean: true });
+  await fixture("caption-light: Body/Small meta in Base is not a Caption", docsPage(example("Body", cap("Updated 2 min ago", "neutral-base", "zen-type-body-small-regular"))), Q, K, { clean: true });
+}
+
 /* ── table-lead (widgetLayout): a Table's first column, the row's name ─────────────────────────────────────────── */
 {
   // A Table as Table.tsx renders it: rows of cells, a selectable table's checkbox cell first.

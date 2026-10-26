@@ -8,7 +8,7 @@ Copy in the Figma text styles and Zen content colours. Heading renders a real h1
 
 ## Use it for
 - Page and section titles (Heading level + an optional textStyle).
-- Descriptions, captions, meta lines (Text tone="base" or "light").
+- Descriptions and meta lines in Body/Small (Text tone="base" or "light"); Caption text always in Light: <Text textStyle="Caption/Regular" tone="light"> (a colour's Light for an error, the Lights group's Base; harness text/caption-light, the user 2026-10-26).
 - Status text in a colour family (tone positive-base / negative-strongest / warning-base / info-base / accent-base), or a Support colour (support-blue-strongest).
 - Counts in copy: plural(n, "file").
 
@@ -34,7 +34,7 @@ Copy in the Figma text styles and Zen content colours. Heading renders a real h1
 Generated from the TypeScript source; full JSON in `docs/api/text.json`.
 
 ### Text
-Figma text styles with Zen's content colours. Paragraphs, labels and inline copy; titles use `<Heading>`. Meta in Body/Small takes tone "base"; Caption is always tone "light". `<Text>`Invite people to collaborate on this project.`</Text>` <Text textStyle="Body/Small/Regular" tone="base">Updated 2 min ago`</Text>`
+Figma text styles with Zen's content colours. Paragraphs, labels and inline copy; titles use `<Heading>`. Meta in Body/Small takes tone "base"; Caption is always tone "light" (the user 2026-10-26; text on a Solid or Subtle fill follows the fill). `<Text>`Invite people to collaborate on this project.`</Text>` <Text textStyle="Body/Small/Regular" tone="base">Updated 2 min ago`</Text>`
 
 Also accepts `Omit<HTMLAttributes<HTMLElement>, "color">, LayoutSizingProps`.
 
@@ -48,7 +48,7 @@ Also accepts `Omit<HTMLAttributes<HTMLElement>, "color">, LayoutSizingProps`.
 | `minHeight` | `number` | — | Minimum height in px (Figma min height). Wins over fill's shrink-to-0. |
 | `maxHeight` | `number` | — | Maximum height in px (Figma max height). |
 | `textStyle` | `keyof typeof typographyStyles` | `"Body/Base/Regular"` | Figma text style, e.g. "Body/Base/Regular" (default), "Body/Small/Medium", "Caption/Regular", "Heading/4". |
-| `tone` | `ContentTone` | `"strongest"` | Colour role: a Color/Content token by its path ("base", "support-blue-strongest"). Default strongest (primary text). |
+| `tone` | `ContentTone` | `"strongest"` | Colour role: a Color/Content token by its path ("base", "support-blue-strongest"). Default strongest (primary text). Text in a Caption style always takes its family's Light ("light", "inverse-light", "negative-light"; Base in the Lights group): set it, as the default would render Strongest (harness text/caption-light). |
 | `as` | `"p" \| "span" \| "div" \| "strong" \| "em" \| "small" \| "label" \| "li" \| "dt" \| "dd" \| "figcaption" \| "legend" \| "code" \| "time"` | `"p"` | Element to render. Default p (a block); use span inside a line, label for a form label. |
 | `truncate` | `boolean \| number` | — | true: one line with an ellipsis; a number: clamp to that many lines. The full text stays in the DOM. |
 | `align` | `"start" \| "center" \| "end" \| "justify"` | — | Text alignment (Figma Alignment): "start" (left in LTR), "center", "end", or "justify" (both edges flush, Figma's Justified: only for long paragraphs in a wide column; in a narrow one it opens gaps between words). Unset keeps the parent's alignment. Inline text (as="span") aligns once it is a block or has a width. |
@@ -126,6 +126,7 @@ type ContentTone = (typeof contentTones)[number]
 - Don't make a value (metric, price, count) a heading.
 - Don't let a heading look larger than the heading it sits under inside one content area (the page body, a card, an overlay); an app bar title and an overlay title are compared only within their own layer.
 - Don't colour body text with a colour family's Light token or a raw hex; use tone.
+- Don't leave a Caption `<Text>` without tone="light": with no tone it renders Strongest (harness text/caption-light). Only text on a Solid or Subtle fill follows the fill (zen-allow-caption-light with the reason).
 - Don't truncate essential information without another way to read it (a tooltip or detail view).
 - Don't use TextRun outside a Text or Heading, or to set a whole text's style (set the Text's textStyle and tone instead).
 - Don't underline words to make them look like a link; a link is a Link.
@@ -146,6 +147,7 @@ type ContentTone = (typeof contentTones)[number]
 | `text-run/inside-text` | error | A TextRun styles some words of a Text or Heading (Figma's mixed styles), so it sits inside one (or inside a Link or another TextRun there). | `zen-allow-text-run-outside: <reason>` |
 | `flag/no-emoji-flag` | warn | Country flags are the Flag component (Figma Flag set), not emoji flags: emoji render differently on every OS and Windows shows letters. | `zen-allow-emoji-flag: <reason>` |
 | `content/lights-no-light-text` | error | Lights-group text (families referencing Sky, Mint, Yellow or Zen — today Accent, Warning, Support/Yellow) never uses the Light level — Base at most (Light fails contrast); Light stays for icons. Checks CSS colours and the Text/Heading `tone`. | `zen-allow-lights-light-text: <reason>` |
+| `text/caption-light` | error | Text in a Caption style (Caption/Regular · Medium · Bold) takes its family's Light level: tone="light", inverse-light, on-black-overlay-light, on-white-overlay-light or a colour family's Light (Negative/Light error text); the Lights group (Accent, Warning, Support/Yellow · Sky · Mint) takes Base. Text on its own Solid fill (on-colors, on-brights, on-accent) and states (disabled, placeholder, hyperlink) keep their token. Checks the Text/Heading tone, and CSS that pairs the caption font size or a .zen-type-caption-* class with another content colour (the user 2026-10-26). | `zen-allow-caption-light: <reason>` |
 | `theme/on-solid-content` | error | Content on a Card theme="solid" takes the fill's family (Figma audit theme/on-solid-content): on Neutral/Solid a Badge or DockIcon is theme="inverse", on Accent and the colour solids theme="on-color"; text and icons keep a neutral tone (the card re-points it to Inverse, On-Accent, On-Brights or On-Colors) or that family's own tone, never a colour tone. | `zen-allow-on-solid-content: <reason>` |
 | `heading/h1-is-heading-1` | error | Exactly one h1 names each page or screen. A content h1 (the title shown large: PageHeader, a phone large title, a level 1 Heading, a Text rendered as h1 or a raw h1) is at least Heading/1: Heading/1, or a larger Display / Display-Extra style on an emphasis page (a home, a welcome; the user 2026-10-19), never a smaller style. Only the TopNavigation compact bar title (.zen-top-nav__title) is the screen's h1 in its bar style (Body/Extra/Bold). | `zen-allow-h1-style: <reason>` |
 | `heading/title-not-light` | warn | Page, section and card titles (h1–h3) never take the Light tone: titles are Strongest. Only a Body/Small/Bold list group header (a kicker) uses Light (user decision 2026-10-03, Apple's 3:1 for bold text). Lower the level, not the colour. | `zen-allow-title-light: <reason>` |

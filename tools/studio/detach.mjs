@@ -870,12 +870,14 @@ const RECIPES = {
       const region = r.region();
       const label = el(r.use("Text"), [str("as", "span"), str("textStyle", textStyle), toneProp(r.m("tone", "tone", tone)), flag("truncate")], region ? [region] : []);
       const pad = { md: ["xs", "2xs", "2xs"], sm: ["2xs", "3xs", "none"], xs: ["3xs", "3xs", "3xs"] }[size];
+      // An XSmall Badge's label is Caption/Medium on the Badge's own fill: it follows the fill, not the Caption-is-Light rule.
+      const allowCaption = /^Caption\//.test(textStyle) ? [{ type: "code", code: "/* zen-allow-caption-light: the label sits on the Badge's own fill and follows it (usage rules §7) */" }] : [];
       return el(r.use("Box"), [
         ...r.lead(),
         str("surface", "subtle"), str("radius", "full"), str("paddingX", r.m("paddingX", "padding", pad[0])), str("paddingY", r.m("paddingY", "padding", pad[1])),
         code("style", '{ width: "max-content", maxWidth: "100%" }'),
         ...r.rest(),
-      ], [el(r.use("Stack"), [str("direction", "row"), str("align", "center"), str("gap", r.m("gap", "gap", pad[2]))], [leading, label])]);
+      ], [el(r.use("Stack"), [str("direction", "row"), str("align", "center"), str("gap", r.m("gap", "gap", pad[2]))], [leading, ...allowCaption, label])]);
     },
   },
 

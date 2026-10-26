@@ -57,7 +57,7 @@ const SHOW_TIME_MIN = 80;
 /**
  * Figma `Schedule/Resource-Grid` (16135:145822): a resource timeline. A Border box (`Color/Background/Surface/Default`, 1px
  * `Color/Border/Neutral/Pale/Default`, Corner-Radius/Base, clipped): a 40px header (the resource column's label and the
- * scale, Caption/Medium Neutral/Base; today in Accent on the Days scale) over rows of `.Primitives/Schedule/Resource`
+ * scale, Caption/Medium Neutral/Light; today in Accent on the Days scale) over rows of `.Primitives/Schedule/Resource`
  * beside their track (56 desktop, 64 mobile at Compact; a row grows with a larger density), split by Pale rules. Bookings
  * are `.Primitives/Calendar/Event-Block` bars: x = start on the scale × column + 2, width = length × column − 4, 4px from
  * the row's top and bottom; a bar that runs past the range scrolls with the track and is never squeezed to its edge; under

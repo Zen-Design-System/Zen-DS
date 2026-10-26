@@ -7,7 +7,7 @@
 Text and icon colours share the Color/Content tokens, but the level depends on the family: neutral families map Strongest/Base/Light to the Primary/Secondary/Tertiary text roles; colour families use Strongest/Base for normal text on Subtle backgrounds and Light only for highlights; the Lights group (colours referencing Sky, Mint, Yellow or Zen) never uses Light for text.
 
 ## Use it for
-- Neutral families — Neutral, Inverse, On-Black-Overlay, On-White-Overlay: Strongest = Primary (titles, main content, values, primary icons); Base = Secondary (body copy, descriptions, secondary icons); Light = Tertiary (captions, meta, helper text, timestamps, quiet icons).
+- Neutral families — Neutral, Inverse, On-Black-Overlay, On-White-Overlay: Strongest = Primary (titles, main content, values, primary icons); Base = Secondary (body copy, descriptions, secondary icons); Light = Tertiary (captions, meta, helper text, timestamps, quiet icons). Text in a Caption style is always its family's Light, and so is a metric's label (the user 2026-10-26; harness text/caption-light, runtime audit caption-light, Figma audit text/caption-light): Neutral/Light on a surface, Inverse or On-*-Overlay Light on dark or imagery, a colour's Light for an error; on a Solid or Subtle fill it follows the fill, and the Lights group takes Base.
 - Colour families — Accent, Info, Positive, Negative, Warning and every Support/* colour: Strongest and Base are regular text, the Primary and Secondary levels, placed on that colour's Subtle background (subtle Badge, Tag, Alert, callout).
 - Colour Light, sparingly: short text or icons that must stand out — status icons, help or error text under a field, a condition ("Not delivered", "Expires in 5 days"), a positive or negative delta, a highlighted keyword. Only the Lights group never takes Light for text.
 - Lights group — every family whose tokens reference the Sky, Mint, Yellow or Zen scales (similar low contrast); today Accent (Zen), Warning (Yellow) and Support/Yellow: text is Base at most (Strongest or Base); Light is only for icons. The harness derives the group from tokens.css.
@@ -23,7 +23,7 @@ Text and icon colours share the Color/Content tokens, but the level depends on t
 | --- | --- | --- |
 | Neutral families | `neutral · inverse · on-black-overlay · on-white-overlay` | strongest = Primary · base = Secondary · light = Tertiary |
 | Colour families | `accent · info · positive · negative · warning · support-*` | strongest / base = text on Subtle · light = highlight text & icons |
-| Lights group | `families referencing Sky · Mint · Yellow · Zen (today: accent · warning · support-yellow)` | text: strongest / base only · icons may use light |
+| Lights group | `families referencing Sky · Mint · Yellow · Zen (today: accent · warning · support-yellow · support-sky · support-mint)` | text: strongest / base only · icons may use light |
 | Solid backgrounds | `on-colors · on-brights · on-accent-*` | text on Solid fills |
 | Text · Heading · Icon tone | `tone="<token path>"` | Content/Support/Blue/Light → support-blue-light; Neutral drops its name (strongest · base · light); /Default drops (hyperlink · on-accent); resting tokens only — Hover/Pressed/Visited/Placeholder stay with their components |
 
@@ -38,6 +38,7 @@ Text and icon colours share the Color/Content tokens, but the level depends on t
 - Don't use Light for Lights-group text (Accent/Zen, Warning, Yellow, and any Sky/Mint-based colour) — it fails contrast; Base is the maximum.
 - Don't use colour Light for body copy or long text; it is a highlight level.
 - Don't use neutral Light for titles or primary values.
+- Don't set Caption text (Caption/Regular, Medium, Bold) or a metric's label in Strongest or Base: it is always its family's Light (Base in the Lights group); only text on a Solid or Subtle fill follows the fill (harness: text/caption-light).
 - Don't treat colour families as a Primary/Secondary/Tertiary ramp — only neutral families have a Tertiary (Light) text role.
 - Don't hard-code text colours; always go through Color/Content tokens (harness: color/token-only).
 

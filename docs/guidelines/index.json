@@ -4043,7 +4043,7 @@
       "import": "/* tokens */ var(--zen-color-content-<family>-<strongest|base|light>)",
       "purpose": "Text and icon colours share the Color/Content tokens, but the level depends on the family: neutral families map Strongest/Base/Light to the Primary/Secondary/Tertiary text roles; colour families use Strongest/Base for normal text on Subtle backgrounds and Light only for highlights; the Lights group (colours referencing Sky, Mint, Yellow or Zen) never uses Light for text.",
       "use": [
-        "Neutral families — Neutral, Inverse, On-Black-Overlay, On-White-Overlay: Strongest = Primary (titles, main content, values, primary icons); Base = Secondary (body copy, descriptions, secondary icons); Light = Tertiary (captions, meta, helper text, timestamps, quiet icons).",
+        "Neutral families — Neutral, Inverse, On-Black-Overlay, On-White-Overlay: Strongest = Primary (titles, main content, values, primary icons); Base = Secondary (body copy, descriptions, secondary icons); Light = Tertiary (captions, meta, helper text, timestamps, quiet icons). Text in a Caption style is always its family's Light, and so is a metric's label (the user 2026-10-26; harness text/caption-light, runtime audit caption-light, Figma audit text/caption-light): Neutral/Light on a surface, Inverse or On-*-Overlay Light on dark or imagery, a colour's Light for an error; on a Solid or Subtle fill it follows the fill, and the Lights group takes Base.",
         "Colour families — Accent, Info, Positive, Negative, Warning and every Support/* colour: Strongest and Base are regular text, the Primary and Secondary levels, placed on that colour's Subtle background (subtle Badge, Tag, Alert, callout).",
         "Colour Light, sparingly: short text or icons that must stand out — status icons, help or error text under a field, a condition (\"Not delivered\", \"Expires in 5 days\"), a positive or negative delta, a highlighted keyword. Only the Lights group never takes Light for text.",
         "Lights group — every family whose tokens reference the Sky, Mint, Yellow or Zen scales (similar low contrast); today Accent (Zen), Warning (Yellow) and Support/Yellow: text is Base at most (Strongest or Base); Light is only for icons. The harness derives the group from tokens.css."
@@ -4065,6 +4065,7 @@
         "Don't use Light for Lights-group text (Accent/Zen, Warning, Yellow, and any Sky/Mint-based colour) — it fails contrast; Base is the maximum.",
         "Don't use colour Light for body copy or long text; it is a highlight level.",
         "Don't use neutral Light for titles or primary values.",
+        "Don't set Caption text (Caption/Regular, Medium, Bold) or a metric's label in Strongest or Base: it is always its family's Light (Base in the Lights group); only text on a Solid or Subtle fill follows the fill (harness: text/caption-light).",
         "Don't treat colour families as a Primary/Secondary/Tertiary ramp — only neutral families have a Tertiary (Light) text role.",
         "Don't hard-code text colours; always go through Color/Content tokens (harness: color/token-only)."
       ],
@@ -5245,7 +5246,7 @@
       "purpose": "Copy in the Figma text styles and Zen content colours. Heading renders a real h1–h6 whose level follows the page outline; Text covers paragraphs, labels, captions and inline copy; TextRun gives some of a text's words a style of their own (Figma's mixed styles).",
       "use": [
         "Page and section titles (Heading level + an optional textStyle).",
-        "Descriptions, captions, meta lines (Text tone=\"base\" or \"light\").",
+        "Descriptions and meta lines in Body/Small (Text tone=\"base\" or \"light\"); Caption text always in Light: <Text textStyle=\"Caption/Regular\" tone=\"light\"> (a colour's Light for an error, the Lights group's Base; harness text/caption-light, the user 2026-10-26).",
         "Status text in a colour family (tone positive-base / negative-strongest / warning-base / info-base / accent-base), or a Support colour (support-blue-strongest).",
         "Counts in copy: plural(n, \"file\")."
       ],
@@ -5325,6 +5326,7 @@
         "Don't make a value (metric, price, count) a heading.",
         "Don't let a heading look larger than the heading it sits under inside one content area (the page body, a card, an overlay); an app bar title and an overlay title are compared only within their own layer.",
         "Don't colour body text with a colour family's Light token or a raw hex; use tone.",
+        "Don't leave a Caption <Text> without tone=\"light\": with no tone it renders Strongest (harness text/caption-light). Only text on a Solid or Subtle fill follows the fill (zen-allow-caption-light with the reason).",
         "Don't truncate essential information without another way to read it (a tooltip or detail view).",
         "Don't use TextRun outside a Text or Heading, or to set a whole text's style (set the Text's textStyle and tone instead).",
         "Don't underline words to make them look like a link; a link is a Link."
@@ -5333,6 +5335,7 @@
         "text-run/inside-text",
         "flag/no-emoji-flag",
         "content/lights-no-light-text",
+        "text/caption-light",
         "theme/on-solid-content",
         "heading/h1-is-heading-1",
         "heading/title-not-light",

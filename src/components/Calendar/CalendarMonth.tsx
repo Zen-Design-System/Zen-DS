@@ -44,7 +44,7 @@ export interface CalendarMonthProps extends Omit<HTMLAttributes<HTMLDivElement>,
 
 /**
  * Figma `Calendar/Month` (16126:1093). Desktop: a Border box (`Color/Background/Surface/Default`, 1px
- * `Color/Border/Neutral/Pale/Default`, Corner-Radius/Base, clipped) holding the weekday row (Caption/Medium Neutral/Base,
+ * `Color/Border/Neutral/Pale/Default`, Corner-Radius/Base, clipped) holding the weekday row (Caption/Medium Neutral/Light,
  * Padding/XSmall, a Pale rule under it) and 5 weeks — 6 when the month spans six (Figma Sixth-Week) — of
  * `.Primitives/Calendar/Day-Cell`, Monday first; days of the next and previous month are Outside. A cell shows its events as
  * `.Primitives/Calendar/Event` chips: all up to three, else two and "+N more". Mobile: single-letter weekdays

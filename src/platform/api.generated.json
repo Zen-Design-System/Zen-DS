@@ -20464,7 +20464,7 @@
           "type": "ContentTone",
           "required": false,
           "default": "\"strongest\"",
-          "description": "Colour role: a Color/Content token by its path (\"base\", \"support-blue-strongest\"). Default strongest (primary text).",
+          "description": "Colour role: a Color/Content token by its path (\"base\", \"support-blue-strongest\"). Default strongest (primary text).\nText in a Caption style always takes its family's Light (\"light\", \"inverse-light\", \"negative-light\"; Base in the\nLights group): set it, as the default would render Strongest (harness text/caption-light).",
           "deprecated": null
         },
         {

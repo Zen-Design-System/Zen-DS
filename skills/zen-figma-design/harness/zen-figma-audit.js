@@ -64,6 +64,13 @@
 //                                     Content/On-Accent (Metric-Tile On-Accent); Yellow, Sky, Mint, Golden, Warning →
 //                                     Content/On-Brights (Metric-Tile On-Bright); any other Support, Positive, Negative, Info solid →
 //                                     Content/On-Colors (Metric-Tile On-Color); chips on a colour solid are On-Color
+//   text/caption-light       error    text in a Caption style (Caption/Regular, Medium, Bold), or a metric's label (Metric-Tile
+//                                     Metric-Title, Metric-Inline Icon-Highlight Label), bound to a Content variable that is
+//                                     not its family's Light (the user 2026-10-26): Neutral/Light on a surface, Inverse or
+//                                     On-*-Overlay Light on dark or imagery, a colour family's Light; the Lights group (Accent,
+//                                     Warning, Support/Yellow, Sky, Mint) takes Base. Text on a Solid or Subtle fill follows
+//                                     the fill (theme/on-solid-content); On-Colors, On-Brights, On-Accent, Disabled,
+//                                     Placeholder and Hyperlink keep their token
 //   badge/count-uses-counter error    a Badge whose label is a number (a count): counts are Badge-Counter, the round pill
 //   navigation/back-chevron  error    a left arrow (icon-arrow-left-*, icon-arrow-narrow-left-*) as Back in a Top-Navigation,
 //                                     Nav-Action or Button on a phone or tablet screen: Back is icon-chevron-left-line-medium
@@ -1359,12 +1366,62 @@ async function checkSolidPairing(instance) {
   report("theme/on-solid-content", ERROR, instance, `${set} Content=${content} on ${below.fill}: use Content=${want}`);
 }
 
+// Caption text is always Light (the user 2026-10-26: "chữ dùng text style Caption phải là tông Light"; "Metric label cũng
+// là light"). What passes is a Light level, the single tokens for text on a Solid fill, a state, or the Lights group's Base.
+const CAPTION_OK = /Content\/(.+\/Light|On-Colors|On-Brights|On-Accent\/[^/]+|Disabled|(.+\/)?Placeholder|Hyperlink\/[^/]+|(Accent|Warning|Support\/(Yellow|Sky|Mint))\/Base)$/;
+const LIGHTS_GROUP = /^Content\/(Accent|Warning|Support\/(Yellow|Sky|Mint))$/;
+const textStyleNames = new Map();
+/** A text's style name; a mixed text gives its first styled run's. */
+async function styleOfText(node) {
+  let id = node.textStyleId;
+  if (isMixed(id)) id = node.getStyledTextSegments(["textStyleId"]).map((segment) => segment.textStyleId).find(Boolean);
+  if (!id) return null;
+  if (!textStyleNames.has(id)) textStyleNames.set(id, (await figma.getStyleByIdAsync(id))?.name ?? null);
+  return textStyleNames.get(id);
+}
+/** The component a layer belongs to (its variant) and the set's name. */
+function ownerComponent(node) {
+  for (let current = node.parent; current && current.type !== "PAGE"; current = current.parent) {
+    if (current.type === "COMPONENT") return { variant: current.name, set: current.parent && current.parent.type === "COMPONENT_SET" ? current.parent.name : current.name };
+  }
+  return null;
+}
+/** The nearest painted layer above `node` is a fill (Solid, Subtle, a bubble, an image), not a Canvas, Surface, Container,
+ *  Popover or Pale surface: text there follows the fill. */
+async function onAFill(node) {
+  for (let current = node.parent; current && current.type !== "PAGE" && current.type !== "SECTION"; current = current.parent) {
+    // The checked frame (a screen's Canvas) and a component set's documentation frame are where the text is placed.
+    if (rootIds.has(current.id) || current.type === "COMPONENT_SET") return false;
+    const paints = "fills" in current && !isMixed(current.fills) ? visiblePaints(current.fills) : [];
+    if (paints.length) {
+      const solid = paints.find((paint) => paint.type === "SOLID");
+      if (!solid) return true;
+      return !/Background\/((Surface|Canvas|Container|Popover)(\/|$)|Neutral\/Pale\/)/.test((await paintVar(solid)) ?? "");
+    }
+  }
+  return false;
+}
+async function checkCaptionLight(node) {
+  const style = await styleOfText(node);
+  const owner = ownerComponent(node);
+  const metric = Boolean(owner) && ((/Metric-Tile$/.test(owner.set) && node.name === "Metric-Title") || (/Metric-Inline/.test(owner.set) && /Icon-Highlight/.test(owner.variant) && node.name === "Label"));
+  if (!/^Caption\//.test(style ?? "") && !metric) return;
+  const paint = isMixed(node.fills) ? null : visiblePaints(node.fills).find((candidate) => candidate.type === "SOLID");
+  const name = paint ? await paintVar(paint) : null;
+  if (!name || CAPTION_OK.test(name)) return; // a raw colour is paint/unbound's
+  // A Tooltip's label primitive has no fill of its own: the bubble around it paints one.
+  if ((owner && /Tooltip/.test(owner.set)) || (await onAFill(node))) return;
+  const family = name.replace("Color/", "").replace(/\/(Strongest|Base|Default)$/, "");
+  const fix = LIGHTS_GROUP.test(family) ? `${family}/Base` : `${family}/Light`;
+  report("text/caption-light", ERROR, node, `${metric ? "a metric label" : style} in ${name.replace("Color/", "")}: use ${fix} (Caption text and metric labels are always Light)`);
+}
+
 async function walk(node, instanceRoot, isRoot) {
   if (!node.visible) return;
   const inInstance = Boolean(instanceRoot);
   if (!isRoot && !inInstance) checkBounds(node);
   if (node.type === "TEXT") {
-    if (!inInstance) { checkTextStyle(node); checkPaints(node); checkShiftedText(node); await checkOnWhiteSolid(node); await checkOnSolid(node); }
+    if (!inInstance) { checkTextStyle(node); checkPaints(node); checkShiftedText(node); await checkOnWhiteSolid(node); await checkOnSolid(node); await checkCaptionLight(node); }
     checkText(node, instanceRoot);
     return;
   }

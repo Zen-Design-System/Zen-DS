@@ -77,7 +77,7 @@ Also accepts `HTMLAttributes<HTMLOListElement>`.
 | `ref` | `Ref<HTMLOListElement>` | — | Ref to the root `<ol>`. |
 
 ### TimelineGantt
-Figma `Timeline/Gantt` (16136:859): a Border box (`Color/Background/Surface/Default`, 1px Pale, Corner-Radius/Base, clipped) — a 40px header ("Tasks" and the week starts, Caption/Medium Neutral/Base) over a task column of `.Primitives/Timeline/Gantt-Label` rows (240, 128 on a phone) beside a track of 44px rows with week columns, Pale rules outside the layout. `.Primitives/Timeline/Gantt-Bar` bars sit by date — x = days from the first column × day width + 2, width = days × day width − 4, centred in the row — and keep their real dates past the edge (the track scrolls; never squeezed). A group's Summary spans its tasks; the vertical `.Primitives/Calendar/Now-Line` marks today. On a phone, milestone titles live in the task column only. Semantics: a `role="table"` — the week headers, then per row a row header (the label; a group's is a disclosure that hides its tasks) and one cell with its bar (a button with `onTaskClick`).
+Figma `Timeline/Gantt` (16136:859): a Border box (`Color/Background/Surface/Default`, 1px Pale, Corner-Radius/Base, clipped) — a 40px header ("Tasks" and the week starts, Caption/Medium Neutral/Light) over a task column of `.Primitives/Timeline/Gantt-Label` rows (240, 128 on a phone) beside a track of 44px rows with week columns, Pale rules outside the layout. `.Primitives/Timeline/Gantt-Bar` bars sit by date — x = days from the first column × day width + 2, width = days × day width − 4, centred in the row — and keep their real dates past the edge (the track scrolls; never squeezed). A group's Summary spans its tasks; the vertical `.Primitives/Calendar/Now-Line` marks today. On a phone, milestone titles live in the task column only. Semantics: a `role="table"` — the week headers, then per row a row header (the label; a group's is a disclosure that hides its tasks) and one cell with its bar (a button with `onTaskClick`).
 
 Also accepts `HTMLAttributes<HTMLDivElement>`.
 
@@ -126,7 +126,7 @@ Also accepts `Omit<HTMLAttributes<HTMLDivElement>, "title">`.
 | `ref` | `Ref<HTMLDivElement>` | — | Ref to the root `<div>`. |
 
 ### TimelineGanttBar
-Figma `.Primitives/Timeline/Gantt-Bar` (16130:77), 28px high. Task: Padding 2XSmall · XSmall, Corner-Radius/XSmall, `Color/Background/Support/`<Hue>`/Subtle` with a 2px `Color/Border/Support/`<Hue>`/Solid` leading rule, the title in Caption/Bold Strongest (one line). Summary: an 8px Corner-Radius/2XSmall `Color/Background/Neutral/Solid/Default` bar. Milestone: an 11px Accent/Solid square turned 45° in a 16px box, the title (Caption/Bold Strongest) Gap/XSmall after it.
+Figma `.Primitives/Timeline/Gantt-Bar` (16130:77), 28px high. Task: Padding 2XSmall · XSmall, Corner-Radius/XSmall, `Color/Background/Support/`<Hue>`/Subtle` with a 2px `Color/Border/Support/`<Hue>`/Solid` leading rule, the title in Caption/Bold Strongest (one line). Summary: an 8px Corner-Radius/2XSmall `Color/Background/Neutral/Solid/Default` bar. Milestone: an 11px Accent/Solid square turned 45° in a 16px box, the title (Caption/Bold, Neutral/Light: Caption text is always Light) Gap/XSmall after it.
 
 Also accepts `Omit<ButtonHTMLAttributes<HTMLButtonElement>, "title" | "color">`.
 

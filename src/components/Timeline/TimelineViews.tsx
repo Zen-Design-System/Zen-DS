@@ -205,7 +205,7 @@ const VISIBLE_WEEKS = { desktop: 9, mobile: 3 } as const;
 
 /**
  * Figma `Timeline/Gantt` (16136:859): a Border box (`Color/Background/Surface/Default`, 1px Pale, Corner-Radius/Base,
- * clipped) — a 40px header ("Tasks" and the week starts, Caption/Medium Neutral/Base) over a task column of
+ * clipped) — a 40px header ("Tasks" and the week starts, Caption/Medium Neutral/Light) over a task column of
  * `.Primitives/Timeline/Gantt-Label` rows (240, 128 on a phone) beside a track of 44px rows with week columns, Pale rules
  * outside the layout. `.Primitives/Timeline/Gantt-Bar` bars sit by date — x = days from the first column × day width + 2,
  * width = days × day width − 4, centred in the row — and keep their real dates past the edge (the track scrolls; never

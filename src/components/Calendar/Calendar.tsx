@@ -215,7 +215,7 @@ export interface CalendarDayCellProps extends Omit<HTMLAttributes<HTMLDivElement
 
 /**
  * Figma `.Primitives/Calendar/Day-Cell` (16124:105): one day of the desktop month — Padding/XSmall, Gap/2XSmall, the
- * date (Medium), the Events slot (Gap/3XSmall) and "+N more" (Caption/Medium, Neutral/Base). It draws the right and
+ * date (Medium), the Events slot (Gap/3XSmall) and "+N more" (Caption/Medium, Neutral/Light). It draws the right and
  * bottom 1px `Color/Border/Neutral/Pale/Default` rules (the month turns them off on its last column and row). Selected
  * tints `Color/Background/Accent/Flat/Default`; Outside fills `Color/Background/Surface/Alt`.
  */
@@ -275,7 +275,7 @@ export interface CalendarAgendaItemProps extends Omit<ButtonHTMLAttributes<HTMLB
  * Figma `.Primitives/Calendar/Agenda-Item` (16124:373): Padding XSmall · Small (mobile XSmall), Gap/Small,
  * Corner-Radius/Small. Time column (72 / 48, Gap/3XSmall): Start Body/Small/Medium Strongest over End Caption/Regular
  * Light; a 4px Corner-Radius/Rounded rule in `Color/Background/Support/<Hue>/Solid`; Title Body/Base/Medium Strongest
- * over Meta Caption/Regular Base; on desktop the attendees (Avatar/Stack Small Subtle).
+ * over Meta Caption/Regular Light; on desktop the attendees (Avatar/Stack Small Subtle).
  */
 export function CalendarAgendaItem({ start, end, title, meta, color = "brand", attendees, device = "desktop", onClick, overrides, className, ref, ...rest }: CalendarAgendaItemProps) {
   const nest = useNested(overrides);

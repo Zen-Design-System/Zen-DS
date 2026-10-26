@@ -36,6 +36,11 @@
  *   item-row-gap (error) (widgetLayout) Tags side by side, or Badges side by side, that are not Spacing/Gap/2XSmall (4px)
  *              apart, across or down a wrap (the user 2026-10-24 tags, 2026-10-26 badges), the gap a component's own CSS
  *              sets included (harness tag/row-gap, badge/row-gap see only an app's Stack). Chip rows (8px) are not judged
+ *   caption-light (error) text in a Caption style (Caption/Regular · Medium · Bold), and a metric's label (Metric
+ *              label, Metric-Tile title), whose colour is not its family's Light level, on a surface (the user 2026-10-26).
+ *              Passes: the Lights group's Base, On-Colors / On-Brights / On-Accent, Disabled, Placeholder, Hyperlink; text on
+ *              a fill and states (selected, current, today, disabled) are not judged (harness text/caption-light reads the
+ *              source; this sees what a component's own CSS paints)
  *   table-lead (error) (widgetLayout) a Table's first column, the row's name, drawing an initials Avatar that is not
  *              Solid (the user 2026-10-24) or a Dock Icon that is not Small, an emoji one not Medium (the user
  *              2026-10-25), what a page's helper component draws included (harness table/first-column-avatar-solid,
@@ -45,7 +50,7 @@
  */
 
 export function qualityChecks({ scopeSel, regionSel }) {
-  const out = { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [] };
+  const out = { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], "caption-light": [] };
   const scope = scopeSel ? document.querySelector(scopeSel) : document;
   if (!scope) return out;
   // `regionSel`: what counts as product UI — the docs' example stages by default; an app audit (zen-ds audit) passes "body".
@@ -182,6 +187,43 @@ export function qualityChecks({ scopeSel, regionSel }) {
       const heading = el.closest("h1, h2, h3, h4, h5, h6, [role='heading']");
       const level = heading ? Number(heading.getAttribute("aria-level") ?? heading.tagName.slice(1)) || 2 : 0;
       blocks.push({ el, text, st, level, heading, control: Boolean(el.closest(CONTROL)), tone: toneOf(el, t), top: el.getBoundingClientRect().top });
+    }
+
+    /* ── caption-light: Caption text, and a metric's label, take their family's Light level ───────────────────────── */
+    // The user 2026-10-26: "chữ dùng text style Caption phải là tông Light", and "Metric label cũng là light". The style
+    // is the nearest .zen-type-* class, else the metrics; the tone is the token that paints the text (toneName), else any
+    // content token of its colour. Passes: a Light level, the single tokens for text on a Solid fill (On-Colors,
+    // On-Brights, On-Accent), Disabled, Placeholder, Hyperlink, and the Lights group's Base (Accent, Warning,
+    // Support/Yellow·Sky·Mint never take Light for text). Not judged: text on a fill (the nearest painted background is
+    // not a Canvas, Surface, Container, Popover or Pale token: a Badge, an Avatar, a Tooltip, an event block, a Subtle
+    // card follow the fill, usage rules §7), and states (disabled, selected, checked, pressed, current, today, now).
+    for (const b of blocks) {
+      const typed = b.el.closest("[class*='zen-type-']");
+      const typedName = typed && typeof typed.className === "string" ? typed.className.match(/\bzen-type-([\w-]+)/)?.[1] : null;
+      const caption = /^caption-/.test(typedName ?? b.st.name ?? "");
+      const metric = Boolean(b.el.closest(".zen-metric__label, .zen-metric-tile__label"));
+      if (!caption && !metric) continue;
+      if (b.el.closest(":disabled, [aria-disabled='true'], [data-disabled], [aria-selected='true'], [aria-checked='true'], [aria-pressed='true'], [aria-current]:not([aria-current='false']), [data-today], [data-now], [data-checked], [data-selected='true'], [data-status='current'], [role='tooltip'], .zen-tooltip")) continue;
+      const OK = /^content-(([\w-]+-)?light|on-colors|on-brights|on-accent(-default)?|disabled|([\w-]+-)?placeholder|hyperlink(-[\w]+)?|(accent|warning|support-(yellow|sky|mint))-base)$/;
+      const named = toneName(b.el);
+      const candidates = named ? [named] : b.tone.filter((n) => n.startsWith("content-"));
+      if (!candidates.length || candidates.some((n) => OK.test(n))) continue;
+      // The nearest painted background: a surface is judged, any other fill is the fill's business.
+      let fill = null;
+      for (let a = b.el; a && a !== region.parentElement; a = a.parentElement) {
+        const cs = getComputedStyle(a);
+        if (cs.backgroundImage && cs.backgroundImage !== "none") { fill = "image"; break; }
+        const bg = normColour(cs.backgroundColor);
+        if (bg && cs.backgroundColor !== "transparent" && !/rgba\([^)]*,\s*0\)$/.test(cs.backgroundColor)) { fill = (tokensFor(a).colours.get(bg) ?? []); break; }
+      }
+      if (fill === "image" || (Array.isArray(fill) && !fill.some((n) => /^background-((canvas|surface|container|popover)(-|$)|neutral-pale-)/.test(n)))) continue;
+      const tone = candidates[0];
+      const family = tone.replace(/^content-/, "").replace(/-?(strongest|base|default)$/, "") || "neutral";
+      const fix = /^(accent|warning|support-(yellow|sky|mint))$/.test(family) ? `content-${family}-base` : `content-${family}-light`;
+      const where = `${label(b.el)}: "${b.text.slice(0, 24)}" (${describe(b.el)})`;
+      push("caption-light", metric && !caption
+        ? `${where} is a metric label in ${tone} — a metric's label takes the Light level: ${fix}`
+        : `${where} is ${typedName ?? b.st.name} in ${tone} — Caption text takes its family's Light level: ${fix} (usage rules §7, Caption text)`);
     }
 
     /* ── hierarchy ─────────────────────────────────────────────────────────────────────────────────────────────── */

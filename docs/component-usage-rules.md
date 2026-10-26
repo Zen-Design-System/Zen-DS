@@ -138,6 +138,30 @@ the Light tone (user decision 2026-10-03: Light is 3.7:1 on Surface and Surface-
 about 7:1 in dark mode), one heading level below the nearest heading above. Group labels inside a Menu, Popover, Select or
 Listbox are labels, not headings. Emphasise with weight; use tone to quiet secondary text, never a bigger size.
 
+### Caption text: always Light (the user, 2026-10-26)
+Text set in a Caption text style (Caption/Regular, Caption/Medium, Caption/Bold) is tertiary text and takes its family's
+**Light** level: `Content/Neutral/Light` on the page and its surfaces (Canvas, Surface, Pale, a Container or Popover);
+`Content/Inverse/Light`, `Content/On-Black-Overlay/Light` or `Content/On-White-Overlay/Light` on a dark surface or over
+imagery; a colour family's Light for short status text (`Content/Negative/Light` error or help text, `Positive/Light`).
+A metric's label takes Light too, whatever its style (Metric label, Metric-Tile title; the user: "Metric label cũng là
+light"); a Title-Highlight metric's title is a title and stays Strongest.
+
+Four exceptions, each for a reason:
+1. **Text on a fill follows the fill** (§ Not covered below): on a Solid or Subtle fill — a Badge, Badge-Counter, Avatar,
+   Notification-Dot, Tooltip, a Calendar event block, a Gantt bar, a "You" chat bubble, a selected slot — Caption text
+   is On-Colors / On-Brights / On-Accent / Inverse on a Solid, the family's Strongest on a Subtle fill.
+2. **Single-token roles** have no Light level: `On-Colors`, `On-Brights`, `On-Accent` (a Small Metric-Tile on a Solid card).
+3. **States** keep their token: `Content/Disabled`, `Content/Placeholder`, `Content/Hyperlink/*`, and the current or
+   selected marker ("Today", the "Now" hour, the current milestone) in Accent.
+4. **The Lights group** never takes Light for text (below): its Caption text is Base — `Content/Warning/Base` help text,
+   `Content/Accent/Base` for today.
+
+Checks: harness `text/caption-light` (error: a Caption `<Text>` or `<Heading>` without a Light tone — no tone renders
+Strongest — and CSS that pairs the caption font size or a `.zen-type-caption-*` class with another content colour);
+runtime audit kind `caption-light` (error: rendered Caption text or a metric label on a surface whose colour is not a
+Light token); Figma audit `text/caption-light` (error: a TEXT layer in a Caption style, or a metric label, bound to
+another Content variable). Text on a fill the harness cannot see takes `zen-allow-caption-light: <reason>`.
+
 ### Colour families: Accent, Info, Positive, Negative, Warning, Support/*
 - `…-strongest` and `…-base` are **regular text**: the Primary and Secondary levels, placed on the same colour's **Subtle** background (subtle Badge, Tag, Alert, callout).
 - `…-light` is a **highlight**, used sparingly: short text or icons that must stand out, such as status icons, help or error text under a field, a condition ("Not delivered", "Expires in 5 days"), a ± delta, or a highlighted keyword. Don't use it for body copy. Only the Lights group below never takes Light for text.
@@ -147,7 +171,7 @@ Listbox are labels, not headings. Emphasise with weight; use tone to quiet secon
 These colours have similarly low contrast. Today the group contains:
 - **Accent**, which references Zen.
 - **Warning**, which references Yellow.
-- **Support/Yellow**.
+- **Support/Yellow**, **Support/Sky** and **Support/Mint**.
 
 Any family whose tokens resolve to the Sky, Mint, Yellow or Zen scales joins the group automatically; the harness derives the group from `tokens.css`.
 - Text is **Base at most**: use `-strongest` or `-base`, never `-light`.
@@ -176,6 +200,7 @@ Any family whose tokens resolve to the Sky, Mint, Yellow or Zen scales joins the
 ```
 
 Harness rules:
+- `text/caption-light` (error): Caption text takes its family's Light level (above).
 - `content/lights-no-light-text` (error)
 - `content/title-is-strongest` (warn)
 - `content/colour-light-is-highlight` (warn)
