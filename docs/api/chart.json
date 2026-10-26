@@ -1063,7 +1063,7 @@
     {
       "name": "FunnelChart",
       "file": "src/components/Chart/FunnelChart.tsx",
-      "description": "Funnel in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): one row per stage — the name\n(Body/Small/Medium · Content/Neutral/Strongest) over its count (Caption/Regular · Content/Neutral/Base) in an 84px start\ncolumn, a 32px bar centred in its track as wide as its share of the first stage (Chart/Sector/Primary, the last stage\nChart/Sector/Secondary, Corner-Radius/Small), and the share at the end (Body/Small/Medium, right-aligned). Rows\nSpacing/Gap/XSmall apart, columns Spacing/Gap/Small. Stages are pickable like horizontal bars: hover or ↑/↓ and\nHome/End pick one (the others dim) and the summary reads its name, count and share. Figma Chart/Funnel-Chart 15968:130460\n(Color=Primary 15486:2497 · Secondary ↔ `palette`).",
+      "description": "Funnel in the shared chart language (docs/research/chart-family-spec-2026-10-12.md): one row per stage — the name\n(Body/Small/Medium · Content/Neutral/Strongest) over its count (Caption/Regular · Content/Neutral/Light) in an 84px start\ncolumn, a 32px bar centred in its track as wide as its share of the first stage (Chart/Sector/Primary, the last stage\nChart/Sector/Secondary, Corner-Radius/Small), and the share at the end (Body/Small/Medium, right-aligned). Rows\nSpacing/Gap/XSmall apart, columns Spacing/Gap/Small. Stages are pickable like horizontal bars: hover or ↑/↓ and\nHome/End pick one (the others dim) and the summary reads its name, count and share. Figma Chart/Funnel-Chart 15968:130460\n(Color=Primary 15486:2497 · Secondary ↔ `palette`).",
       "deprecated": null,
       "extends": null,
       "props": [

@@ -208,7 +208,7 @@
 .zen-chart__scale { display: flex; align-items: center; justify-content: flex-end; gap: var(--zen-spacing-gap-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-chart__scale-step { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); border-radius: var(--zen-corner-radius-xsmall, 4px); }
 
-.zen-chart__legend { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--zen-spacing-gap-2-xsmall, 4px) var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; color: var(--zen-color-content-neutral-strongest, #111); }
+.zen-chart__legend { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--zen-spacing-gap-2-xsmall, 4px) var(--zen-spacing-gap-xsmall, 8px); margin: 0; padding: 0; list-style: none; color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 /* ChartLegend gap="small": the phase-2 legends (Area 15484:2653, Grouped-Bar 15485:2511, Combo 15485:2581, Gauge
    15486:2489, Bullet 15487:2554) keep items Spacing/Gap/Small apart and rows Spacing/Gap/XSmall; the older ones (Multi-Line,
    Donut, Radial) keep XSmall / 2XSmall above. A legend beside a round chart stays a column, Spacing/Gap/XSmall apart.
@@ -366,7 +366,8 @@
 .zen-chart__stage { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center; cursor: pointer; }
 .zen-chart__stage-label { display: flex; min-width: 0; flex-direction: column; }
 .zen-chart__stage-name { overflow: hidden; color: var(--zen-color-content-neutral-strongest, #111); text-overflow: ellipsis; white-space: nowrap; }
-.zen-chart__stage-count { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 66%)); }
+/* Caption text is always Content/Neutral/Light (the user, 2026-10-26): the legend's labels and the funnel's counts. */
+.zen-chart__stage-count { color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
 .zen-chart__stage-track { display: flex; min-width: 0; height: 32px; justify-content: center; }
 .zen-chart__stage-bar { display: block; min-width: 2px; height: 100%; border-radius: var(--zen-corner-radius-small, 8px); background: var(--zen-chart-lead, var(--zen-chart-sector-primary, #ff66d4)); }
 .zen-chart__stage[data-last="true"] .zen-chart__stage-bar { background: var(--zen-chart-second, var(--zen-chart-sector-secondary, #111)); }
