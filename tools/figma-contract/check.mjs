@@ -86,6 +86,9 @@ const findPath = (root, route) => {
   let node = root;
   let x = 0;
   let y = 0;
+  // A layer under a hidden one is hidden too, for suites that ask (`inheritHidden`: a chart's Hover off hides its
+  // Tooltip-Anchor, not the Tooltip in it).
+  let hidden = false;
   const direct = (root.c ?? []).some((child) => route.split("|").includes(child.n));
   const parts = route.includes(" > ") ? route.split(" > ") : direct ? [route] : route.split("/");
   for (const part of parts) {
@@ -97,9 +100,10 @@ const findPath = (root, route) => {
     if (!child) return null;
     x += child.x ?? 0;
     y += child.y ?? 0;
+    hidden ||= Boolean(child.hidden);
     node = child;
   }
-  return { node, x, y };
+  return { node, x, y, hidden };
 };
 const cssVar = (name) => `--zen-${name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase()}`;
 const visiblePaint = (paints) => (paints ?? []).find((paint) => !paint.hidden);
@@ -136,7 +140,7 @@ for (const mode of modes) {
       const node = figma.node;
       const origin = entry.figmaRoot ? findPath(spec, entry.figmaRoot) : null;
       if (entry.figmaRoot && !origin) { checks.push({ layer: entry.figmaRoot, prop: "exists", figma: "missing in Figma", dom: "-", ok: false }); continue; }
-      if (node.hidden && !entry.forceVisible) {
+      if ((node.hidden || (suite.inheritHidden && figma.hidden)) && !entry.forceVisible) {
         const present = await page.evaluate(({ id, sel }) => {
           const el = document.querySelector(`[data-case="${id}"] ${sel.split("::")[0]}`);
           if (!el) return false;

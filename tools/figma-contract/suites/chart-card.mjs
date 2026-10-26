@@ -2,7 +2,7 @@
 // Card-padding-medium, Corner-Radius/2XLarge, Surface/Default) whose Content slot holds a Chart/Line-Chart Sector=4-Sectors
 // instance. ChartCard draws the same: the Card, then its body (Heading · Segmented · Metric) and the chart. The
 // Line-Chart set has its own suite (chart-line.mjs); this one checks the card around it and the instance as placed.
-import { at, cardMap, cardProps, child, textOf } from "./_chart-shared.mjs";
+import { at, cardMap, cardProps, child, textOf, pickedSector } from "./_chart-shared.mjs";
 import { trendMap, xLabelExceptions } from "./_chart-trend.mjs";
 
 const C = "Card > Content > Chart/Line-Chart";
@@ -20,7 +20,7 @@ export default {
       ...cardProps(spec, C),
       width: spec.w,
       chart: "line",
-      chartProps: { data, height: at(spec, T).h, format: "usdK", initialIndex: sectors.findIndex((sector) => /Selected/.test(sector.main)) },
+      chartProps: { data, height: at(spec, T).h, format: "usdK", ...pickedSector(sectors) },
     };
   },
   figmaExceptions: xLabelExceptions(T, { cy: 350 }),

@@ -1322,7 +1322,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
 
   /**
    * ChartCard as Chart.tsx draws it: a Card (its theme) holding its chart's set (chartNode) with the header turned on
-   * by its props (Title, Show Icon + Icon, Show Description + Description, Show Value + Value, Show Ranges with
+   * by its props (Title, Show Icon + Icon, Show Hint, Show Metric Label + Metric Label, Show Value + Value, Show Ranges with
    * `ranges` as the Segmented's items, Show Open with `onOpen`). The chart keeps its own key, so a pull gives it back
    * its element id.
    */
@@ -1341,7 +1341,7 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     const full = code.rangesFullWidth !== false;
     const items = ranges.map((range) => ({ ...itemNode(SETS.segment, range ?? {}, { selected: range?.id !== undefined && range.id === (code.range ?? ranges[0]?.id), look: segmentLook({}) }), ...(full ? { fillW: true } : {}) }));
     const header = {
-      props: chartHeaderFigma({ title, icon, description: headerText(element.props.description), value: headerText(element.props.value), ranges: items.length, open: Boolean(element.props.onOpen) }),
+      props: chartHeaderFigma({ title, icon, hint: Boolean(element.props.hint), metricLabel: headerText(element.props.metricLabel ?? element.props.description), value: headerText(element.props.value), ranges: items.length, open: Boolean(element.props.onOpen) }),
       ...(items.length && !full ? { nested: [{ path: "Segmented", hugW: true }] } : {}),
       ...(items.length ? { slots: [{ name: "Item-List", children: items, ...(full ? {} : { hugW: true }) }] } : {}),
     };

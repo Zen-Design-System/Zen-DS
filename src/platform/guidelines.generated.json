@@ -8071,7 +8071,7 @@
       "One progress value → ProgressBar.",
       "One measure against its maximum, with or without a target (utilisation, hours this week) → GaugeChart (several measures on one maximum: RadialChart; a plain progress value: ProgressBar).",
       "3–6 steps where each keeps part of the one before (leads to signed, applications to hires) → FunnelChart, first stage first (categories that aren't steps: BarList or BarChart).",
-      "Dashboard tiles → ChartCard (icon, description, value) next to Metric Cards.",
+      "Dashboard tiles → ChartCard (title, metricLabel, value; the chart's description in hint) next to Metric Cards.",
       "A phone screen whose one main chart is the point → the chart straight on the screen, without a Chart Card (its padding costs the plot its width): a heading, a full-width Segmented, the chart.",
       "A chart led by Neutral Deep marks with the brand colour as its highlight (a dark-first dashboard, a brand-coloured page band) → palette=\"secondary\" (Figma Color=Secondary) on Bar, Stack bar, Area, Grouped bar, Combo, Donut, Radial, Gauge, Funnel or Bullet."
     ],
@@ -8097,17 +8097,17 @@
       [
         "Bar",
         "BarChart data[] {label, value, projected, target} · orientation · color · activeColor",
-        "Chart/Sector/Primary bars, the active one Sector/Secondary; projected bars and target tracks hatched (Border/Neutral/Pale stripes on Support/Neutral/Pale); Corner-Radius/Small"
+        "Chart/Sector/Primary bars, the active one Sector/Secondary; projected bars and target tracks hatched (Border/Neutral/Pale stripes on Support/Neutral/Pale); vertical bars edge to edge Spacing/Gap/XSmall apart, Corner-Radius/Small on the top corners over a flat base"
       ],
       [
         "Stack bar",
         "StackBarChart data[] {label, values} · series[] {id, label, color} · showLegend · legendPosition",
-        "Figma colour styles Color Chart Sector/Primary … Septenary (Primary, Secondary, Cyan, Violet, Yellow, Orange, Green Soft); the column cut to Corner-Radius/Small"
+        "Figma colour styles Color Chart Sector/Primary … Septenary (Primary, Secondary, Cyan, Violet, Yellow, Orange, Green Soft); columns edge to edge Spacing/Gap/XSmall apart, cut to Corner-Radius/Small on the top corners over a flat base"
       ],
       [
         "Donut",
         "DonutChart data[] {id, label, value} · value · label · totalPosition (centre · start) · showPercent · size (small 120 · medium 168 · large 240 · xlarge 320) · legendPosition (bottom · top · start · end)",
-        "Even 4px straight gaps, Surface % pills on slices ≥ 6%, the total in the hole (Heading/4; Body/Base/Bold alone at Small, Display/4 at XLarge) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption over a Display/4 figure, Gap/3XSmall apart, as the Chart Card's Metric)"
+        "Even 2px straight gaps (Spacing/Gap/3XSmall), Surface % pills on slices ≥ 6%, the total in the hole (Heading/4; Body/Base/Bold alone at Small, Display/4 at XLarge) or beside the ring above the legend (totalPosition=\"start\": Body/Small caption over a Display/4 figure, Gap/3XSmall apart, as the Chart Card's Metric)"
       ],
       [
         "Radial",
@@ -8176,8 +8176,8 @@
       ],
       [
         "Card",
-        "ChartCard title · icon · description · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme",
-        "Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): icon + Body/Extra/Medium title + chevron, then the Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card), then the Metric under it: Body/Small description over a Display/4 value, Gap/3XSmall apart, Padding/Small above (Figma Chart/Line-Chart, every chart since 2026-10-21)"
+        "ChartCard title · hint · metricLabel · value · headingLevel · onOpen · ranges · range · onRangeChange · rangesFullWidth · theme",
+        "Card Flat Medium (theme Shadow next to Shadow metric cards on a canvas): Body/Extra/Medium title, then the hint (i) (Figma Show Hint: a 20px Content/Neutral/Light info icon whose Tooltip holds the chart's description) and the chevron; then the Segmented full width with equal items (rangesFullWidth={false} hugs on a wide card), then the Metric under it: the Body/Small metric label (what the figure is) over a Display/4 value, Gap/3XSmall apart, Padding/Small above (Figma Chart/Line-Chart, every chart since 2026-10-21). No header icon (Figma Show Icon off); description is the old name of metricLabel"
       ]
     ],
     "keyboard": [
@@ -8199,6 +8199,8 @@
       ]
     ],
     "do": [
+      "Keep a chart card to its title, the metric label over the value, and the chart; say what the chart counts, its source or how the figure is worked out in hint, the (i) after the title (Figma Show Hint), not in an extra line.",
+      "Let the tooltip and the active highlight follow the pointer: charts show none until a period is hovered or reached with the keyboard; set initialIndex only to call out one period in a static view.",
       "Size a Donut or Radial by name, as Figma's Size: small 120 (a tile, several charts in a row; the centre shows the figure alone), medium 168 (a chart card, the default), large 240 (a wide card, the total beside the ring), xlarge 320 (a hero card) (harness: chart/ring-size-named). A stretched Chart Card grows the ring from there.",
       "Always give the chart an aria-label that says what it shows and over which range (harness: chart/needs-name).",
       "Format values for people (`$23.4K`, `52 GB`, `1,990 h`) with `format`.",
@@ -8213,6 +8215,8 @@
       "Lead a chart with Sector/Secondary through palette=\"secondary\", never by passing the sector colours to color, activeColor or a series (harness: chart/palette-by-hand)."
     ],
     "dont": [
+      "Don't put an icon before a chart card's title (Figma Show Icon stays off): the title, the hint and the chart carry it.",
+      "Don't write the chart's description in metricLabel: it names the figure under it (\"Invoiced so far in 2026\"); the description belongs in hint.",
       "Don't use a line for categories that aren't ordered in time.",
       "Don't pick custom colours outside the chart palette unless a series has a fixed brand colour.",
       "Don't put a chart where the user needs exact values; add a Table.",
@@ -8371,6 +8375,12 @@
         "severity": "warn",
         "summary": "Lead a chart with Chart/Sector/Secondary through palette=\"secondary\" (Figma Color), not by setting the sector colours by hand.",
         "allow": "chart-palette"
+      },
+      {
+        "id": "api/deprecated-prop",
+        "severity": "warn",
+        "summary": "A deprecated prop still works but has a canonical name (onValueChange, onCheckedChange, checked, selected, level…); apps get a warning with the replacement. (App mode only; the repo migrates gradually.)",
+        "allow": "deprecated"
       },
       {
         "id": "api/overrides-studio-only",

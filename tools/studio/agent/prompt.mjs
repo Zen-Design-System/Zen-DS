@@ -29,7 +29,7 @@ Zen design rules to keep:
 - A MetricCard's Dock Icon is solid (iconBackground="solid") in the colour of what it counts: total accent, in progress blue, overdue red, done green.
 - A desktop AppShellHeader's top row is never empty: Breadcrumbs or a Search on the left, a Search in the centre (up to 400) when it helps, then help, notifications (AppShellAction with its count) and the account Menu last.
 - Content on a Solid fill follows the fill (Inverse on Neutral Solid, On-Accent on Accent Solid).
-- Dashboards: KPI tiles are MetricCards of one size per row, at most one hero, each trend says what it compares to ("vs. last month"). A chart sits in a ChartCard with a title, a description and the figure it explains.
+- Dashboards: KPI tiles are MetricCards of one size per row, at most one hero, each trend says what it compares to ("vs. last month"). A chart sits in a ChartCard with a title, a metricLabel (what the figure is) and the figure it explains; the chart's description goes in hint (the (i) after the title), and the card carries no icon.
 - A table that is its own section sits straight on the page under a level-2 Heading in Heading/4; numbers and amounts are right-aligned.
 - Icon actions inside a card are flat, small, primary-level icon buttons (the ⋮ menu for several).
 - Copy is short and concrete: labels are nouns, buttons are verbs.

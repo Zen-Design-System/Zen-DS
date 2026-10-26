@@ -17,6 +17,16 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Charts (2026-10-26, the user): bar and stack columns fill the plot edge to edge, 8px (Spacing/Gap/XSmall) apart,
+  rounded on top over a flat base (no more 40px cap); horizontal bars sit 8px apart, flat at the axis. No chart shows an
+  active point or a Tooltip until the pointer (or the keyboard) is on it (Line, Area, Bar, Stack, Grouped, Combo;
+  `initialIndex` still sets one). ChartCard: `metricLabel` names the figure (`description` is its deprecated alias),
+  `hint` puts the chart's description behind an (i) after the title, and the examples carry no header icon. DonutChart
+  slices are 2px apart. Figma matches: the chart sets' Show Hint, Metric Label, Show Tooltip (off) and Show Icon (off);
+  the Figma AI kit audit adds chart/header-icon, chart/tooltip-on and chart/metric-label-is-description. Figma charts show no
+  active period at rest either: the hover state (Hover on Bar, Area, Multi-Line, Heatmap; a Sector at Select=Selected
+  on Line, Multi-Line, Stack-Bar) always brings its Tooltip. Combo columns run edge to edge 8px apart too; legend labels,
+  Funnel counts and the metric label are Content/Neutral/Light.
 - Grid cells span columns and rows (2026-10-26, Figma Grid auto layout's column / row span): `span` (a number or
   `"full"`) and `rowSpan` on a Grid's direct child (Stack, Grid, Box, Card, ListBox, ChartCard, MetricCard), per
   breakpoint, clamped to the Grid's columns and the whole row while it stacks, so a dashboard's widgets sit in one

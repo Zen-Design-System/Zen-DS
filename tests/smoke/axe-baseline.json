@@ -14,6 +14,9 @@
   "BarList": [
     "color-contrast"
   ],
+  "BulletChart": [
+    "color-contrast"
+  ],
   "CalendarAgenda": [
     "color-contrast",
     "color-contrast:dark"
@@ -63,6 +66,12 @@
   "DatePickerSheet": [
     "color-contrast"
   ],
+  "DonutChart": [
+    "color-contrast"
+  ],
+  "FunnelChart": [
+    "color-contrast"
+  ],
   "GaugeChart": [
     "color-contrast"
   ],
@@ -85,6 +94,9 @@
     "color-contrast"
   ],
   "PopoverManualAddNew": [
+    "color-contrast"
+  ],
+  "RadialChart": [
     "color-contrast"
   ],
   "ScheduleDayPlanner": [

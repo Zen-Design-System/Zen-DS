@@ -29,7 +29,8 @@ export interface AreaChartProps {
   className?: string;
   /** Forwarded to the root `<div>` (the chart block that holds the plot and its legend). */
   ref?: Ref<HTMLDivElement>;
-  /** The period active at first (its dots, rule and Tooltip show). Default: the last one. */
+  /** The period active at first and whenever the pointer leaves. Default: none — the active period and its Tooltip show
+   *  only under the pointer or the keyboard (the user, 2026-10-26). */
   initialIndex?: number;
   /** Figma Show Legend: the legend names every series. Default: on for `stacked`, off for a single `area` (the card title
    *  names its one measure). Keep it on a stacked chart (harness: chart/series-need-legend). */
@@ -70,7 +71,7 @@ export function AreaChart({ data, series, type = "area", format: formatProp, cur
   const totals = tops.length ? tops[tops.length - 1] : data.map(() => 0);
   const signature = signatureOf([type, drawn.map((s) => s.id), tops]);
   const { top, ticks } = useMemo(() => niceScale(Math.max(0, ...totals)), [signature]); // eslint-disable-line react-hooks/exhaustive-deps -- deliberate content-hash memo: keyed on the data signature, not its identity
-  const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? data.length - 1);
+  const { active, setActive, onKeyDown } = useChartSelection(data.length, initialIndex ?? null);
   const n = Math.max(1, data.length);
   const pointsOf = (list: number[]): Point[] => list.map((v, i) => [((i + 0.5) / n) * 100, 100 - (v / top) * 100]);
   const lines = tops.map(pointsOf);
@@ -82,7 +83,8 @@ export function AreaChart({ data, series, type = "area", format: formatProp, cur
   const current = active === null ? undefined : data[active];
   const position = current ? ` (${t.chartPoint(active! + 1, data.length)})` : "";
   const valueOf = (s: ChartSeries) => format(current?.values[s.id] ?? 0);
-  const summary = !current || !drawn.length ? t.noData : stacked
+  const overview = !data.length || !drawn.length ? t.noData : data.map((d, i) => `${d.label} ${stacked ? t.chartTotal(format(totals[i])) : format(d.values[drawn[0].id] ?? 0)}`).join(", ");
+  const summary = !current || !drawn.length ? overview : stacked
     ? `${current.label}: ${t.chartTotal(format(totals[active!]))}; ${drawn.map((s) => `${s.label} ${valueOf(s)}`).join(", ")}${position}`
     : `${current.label}: ${valueOf(drawn[0])}${position}`;
   const legendOn = showLegend ?? drawn.length > 1;
@@ -92,7 +94,7 @@ export function AreaChart({ data, series, type = "area", format: formatProp, cur
   return (
     <ChartBlock {...dataAttributes(rest)} ref={ref} kind="area" legend={legend} position={legendPosition} palette={palette}>
       <PlotFrame labels={data.map((d) => d.label)} ticks={ticks} top={top} format={format} active={active} setActive={setActive} onKeyDown={onKeyDown} height={height} ariaLabel={ariaLabel}
-        activeLine="neutral" className={["zen-chart--area", className].filter(Boolean).join(" ")} kind="bar" animate={animate} tooltip={null} summary={summary}>
+        activeLine="neutral" className={["zen-chart--area", className].filter(Boolean).join(" ")} kind="bar" animate={animate} hoverOnly tooltip={null} summary={summary}>
         <div className="zen-chart__marks" key={signature} data-type={type}>
           <svg className="zen-chart__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
             {/* Figma Area / *-Area: each band's own vertical fade, Solid at its top → Subtle at its foot. */}

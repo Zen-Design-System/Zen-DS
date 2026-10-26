@@ -1,8 +1,8 @@
 // Shared pieces of the chart suites (docs/figma-contracts/chart-*.json, read 2026-10-23). Every Figma Chart/* set is the
-// body of a Chart Card: Heading (icon · Label · open chevron) · Segmented · Metric (Description · Value) · the chart. So
+// body of a Chart Card: Heading (Label · Hint · open chevron; the Icon off) · Segmented · Metric (Metric-Label · Value) · the chart. So
 // each case renders the chart inside a ChartCard (cases.tsx `chartCard`) as wide as the set plus Card-padding-medium on
 // both sides, and the suite measures from `.zen-chart-card__body`. The card's props are read from the variant itself
-// (visible icon, title, open button, range items, metric texts), so a Figma edit to them changes the case too.
+// (visible icon, title, hint, open button, range items, metric texts), so a Figma edit to them changes the case too.
 
 const CARD_PADDING = 24; // Card-padding-medium: the Chart Card around the set (Chart/Chart-Card's Card).
 
@@ -21,16 +21,23 @@ export const findAll = (node, test, out = []) => {
 /** The text of the first TEXT layer under `node`. */
 export const textOf = (node) => (node?.t === "TEXT" ? node.txt : findAll(node, (item) => item.t === "TEXT")[0]?.txt);
 
+/** The period a sector chart shows active: its Sector at Select=Selected (the hover state, with its Tooltip). Every
+ *  chart set shows none since 2026-10-26 (the user: the active state comes only with its Tooltip, on hover), and the
+ *  code then shows none either, so the case passes no initialIndex. */
+export const pickedSector = (sectors) => { const index = sectors.findIndex((sector) => /Selected/.test(sector.main ?? "")); return index >= 0 ? { initialIndex: index } : {}; };
+
 /** The Chart Card around a set's chart: width, title, icon, open button, ranges and metric, as the variant shows them. */
 export function cardProps(spec, prefix) {
   const body = prefix ? at(spec, prefix) : spec;
   const header = at(body, "Heading > Header");
   const icon = child(header, "Icon");
+  const hint = child(header, "Hint");
   const open = child(header, "Button/Icon-Main");
   const segmented = child(body, "Segmented");
   const metric = child(body, "Metric");
   const props = { width: spec.w + 2 * CARD_PADDING, title: textOf(child(header, "Label")) };
   if (icon && !icon.hidden) props.icon = icon.main;
+  if (hint && !hint.hidden) props.hint = "What the chart counts";
   if (open && !open.hidden) props.open = true;
   if (segmented && !segmented.hidden) {
     const items = (child(segmented, "Item-List")?.c ?? []).filter((item) => !item.hidden);
@@ -39,9 +46,9 @@ export function cardProps(spec, prefix) {
     props.rangesFullWidth = segmented.sz?.[0] === "FILL";
   }
   if (metric && !metric.hidden) {
-    const description = child(metric, "Description");
+    const label = child(metric, "Metric-Label");
     const value = child(metric, "Value");
-    if (description && !description.hidden) props.description = description.txt;
+    if (label && !label.hidden) props.metricLabel = label.txt;
     if (value && !value.hidden) props.value = value.txt;
   }
   return props;
@@ -56,10 +63,12 @@ export function cardMap(prefix) {
     { figma: P("Heading > Header > Icon"), dom: ".zen-chart-card__icon", check: ["size", "x", "y"] },
     { figma: P("Heading > Header > Icon > Vector"), dom: ".zen-chart-card__icon", check: ["fill"], fillVia: "color", when: (vp, props) => Boolean(props.icon) },
     { figma: P("Heading > Header > Label"), dom: ".zen-chart-card__title", check: ["text", "size", "x", "y"] },
+    { figma: P("Heading > Header > Hint"), dom: ".zen-chart-card__hint", check: ["size", "x", "y"] },
+    { figma: P("Heading > Header > Hint > Vector"), dom: ".zen-chart-card__hint", check: ["fill"], fillVia: "color", when: (vp, props) => Boolean(props.hint) },
     { figma: P("Heading > Header > Button/Icon-Main"), dom: ".zen-chart-card__titlebar .zen-button", check: ["size", "x", "y"] },
     { figma: P("Segmented"), dom: ".zen-segmented", check: ["size", "x", "y", "fill", "radius"] },
     { figma: P("Metric"), dom: ".zen-chart-card__metric", check: ["size", "x", "y"] },
-    { figma: P("Metric > Description"), dom: ".zen-chart-card__description", check: ["text", "size", "x", "y"] },
+    { figma: P("Metric > Metric-Label"), dom: ".zen-chart-card__metric-label", check: ["text", "size", "x", "y"] },
     { figma: P("Metric > Value"), dom: ".zen-chart-card__value", check: ["text", "size", "x", "y"] },
   ];
 }

@@ -1,9 +1,9 @@
 // Figma Chart/Stack-Bar-Chart 15930:4271 (docs/figma-contracts/chart-stack-bar.json): Sector 4 · 6 · 7 · 12 × Color
 // Primary · Secondary, a StackBarChart (`palette`) in a Chart Card: Elements › Heading · FILL Segmented · Metric · the
 // stack plot (the Line-Chart's 14-row Trend grid) · a centred Legend that wraps. Five series stack bottom-up in the Color
-// Chart Sector order (Primary, Secondary, Support Cyan, Violet, Yellow Solid; the first two swapped under Secondary) in a
-// 40px column, Corner-Radius/Small, 2px side padding per sector.
-import { at, cardMap, cardProps, child, legendMap, paletteOf, textOf } from "./_chart-shared.mjs";
+// Chart Sector order (Primary, Secondary, Support Cyan, Violet, Yellow Solid; the first two swapped under Secondary) in
+// columns that run edge to edge Spacing/Gap/XSmall apart, Corner-Radius/Small on the top corners over a flat base.
+import { at, cardMap, cardProps, child, legendMap, paletteOf, textOf, pickedSector } from "./_chart-shared.mjs";
 import { trendMap, xLabelExceptions } from "./_chart-trend.mjs";
 
 const PLOTS = [4, 6, 7, 12].map((n) => `Chart/Stack-Chart/Comparison-Stack/Specifics/${n}-Sectors`);
@@ -29,7 +29,7 @@ export default {
     return {
       ...cardProps(spec, "Elements"),
       chart: "stack",
-      chartProps: { data, series, height: plot.h, format: "usdK", palette: paletteOf(vp), initialIndex: sectors.findIndex((sector) => /Selected/.test(sector.main)) },
+      chartProps: { data, series, height: plot.h, format: "usdK", palette: paletteOf(vp), ...pickedSector(sectors) },
     };
   },
   figmaExceptions: [
@@ -39,10 +39,6 @@ export default {
     // instance, and it carries Effect/Overlay; the other four are plain frames with no effect. Code draws no shadow on any.
     ...Array.from({ length: 12 }, (_, k) => ({ vp: {}, layer: `${SEGMENTS(k)} > .Primitives/Chart/Column/Stack-Bar/Value-Sector`, prop: "fx", code: "none",
       note: "Only the fourth segment (the Value-Sector instance) carries Effect/Overlay in Figma; the other segments and every other stack draw none." })),
-    // Open question (QUESTIONS.md Charts (P2) (a), chart-parity-audit §2.2): code eases the columns that aren't active to
-    // 88%; every Figma column is at 100%.
-    ...Array.from({ length: 12 }, (_, k) => ({ vp: {}, layer: `${COLUMN}#${k} > Container > Value`, prop: "op", code: "0.88",
-      note: "Columns that aren't active ease to 88% in code; Figma keeps them at 100% (QUESTIONS.md Charts (P2) (a))." })),
   ],
   map: [
     ...cardMap("Elements"),
@@ -50,7 +46,7 @@ export default {
     ...trendMap(T),
     ...legendMap("Elements > Legend", { items: 5, itemName: "Legend-Item", dotName: "Ellipse 2", itemY: true }),
     { figma: "Elements > Legend > Legend-Item#5", dom: ".zen-chart__legend > li:nth-child(6)", check: ["size"] },
-    // One column per sector: 2px side padding, the stack ≤ 40px centred in it with Corner-Radius/Small; the segments
+    // One column per sector, Spacing/Gap/XSmall apart, the stack filling it (Corner-Radius/Small on top); the segments
     // bottom-up (Figma lists them top-down: Value#3 is the bottom one). Figma's column box runs from the plot's top to the
     // baseline while its segments have fixed heights, so only the columns' widths and places compare (the scale is the
     // gridlines': code's 100% is the top one, as Figma's $25K line).

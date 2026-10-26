@@ -2,7 +2,8 @@
 // 2026-10-14): the set that draws a chart and its variant and boolean properties (figma-push.mjs), and the chart a set
 // reads back as (figma-pull.mjs). Since 2026-10-14 the charts are card-less content: a ChartCard is a Card (its theme)
 // holding the chart, and every chart set carries the header properties ChartCard writes (Show Icon + Icon, Title,
-// Show Description + Description, Show Value + Value, Show Ranges, Show Open). A chart outside a ChartCard turns them
+// Show Hint, Show Metric Label + Metric Label, Show Value + Value, Show Ranges, Show Open; Show Description +
+// Description before 2026-10-26). A chart outside a ChartCard turns them
 // off and hides its Heading layer (the title has no toggle). Figma draws its own sample data, which no property
 // carries: the pull takes the data of the matching Studio palette sample (src/platform/studio/slots/palette.ts).
 // Isomorphic: the Studio loads it in the browser too.
@@ -30,7 +31,7 @@ export const CHART_SETS = {
 };
 /** Chart/Chart-Card (a component holding a Card whose Content slot holds a chart): read as its Card. */
 export const CHART_CARD_SET = { id: "6643:63528", name: "Chart/Chart-Card" };
-/** The chart's header frame (Header › Icon · Label · Button/Icon-Main, Description, Value): hidden on a bare chart. */
+/** The chart's header frame (Header › Icon · Label · Hint · Button/Icon-Main, Metric-Label, Value): hidden on a bare chart. */
 export const HEADING_LAYER = "Heading";
 /** Whether a chart read in Figma (`headingHidden`) or written by the push (`hide`) shows no Heading: a chart on its own. */
 export const headingHidden = (node) => Boolean(node.headingHidden || node.hide?.includes(HEADING_LAYER));
@@ -368,9 +369,9 @@ function stepFor(max, count) {
   return [1, 2, 2.5, 5, 10, 20].map((m) => m * magnitude).find((s) => s * count >= max - 1e-9) ?? max / count;
 }
 
-/** DonutChart.tsx geometry: the ring 22% of the diameter, 4px straight gaps, 4px round corners, % pills at 6% and up. */
+/** DonutChart.tsx geometry: the ring 22% of the diameter, 2px straight gaps, 4px round corners, % pills at 6% and up. */
 const RING = 22;
-const SLICE_GAP_PX = 4;
+const SLICE_GAP_PX = 2;
 const SLICE_CORNER_PX = 4;
 /** A circle arc from angle a to b (radians from 12 o'clock, clockwise) as cubic Béziers, in the 100 × 100 box. */
 function arcCubics(r, a, b) {
@@ -517,14 +518,16 @@ export function chartFigma(name, values, notes, where) {
 }
 
 /**
- * A ChartCard's header as its chart's properties (push): `header` holds the texts it shows (title, description, value:
- * "" for none), its icon name (null for none), how many ranges it offers and whether it has an open button.
+ * A ChartCard's header as its chart's properties (push): `header` holds the texts it shows (title, metric label, value:
+ * "" for none), its icon name (null for none), whether it has a hint, how many ranges it offers and whether it has an open
+ * button. The hint's text lives in code only: Figma's Hint is the (i) its Tooltip opens from.
  */
-export function chartHeaderFigma({ title = "", icon = null, description = "", value = "", ranges = 0, open = false }) {
+export function chartHeaderFigma({ title = "", icon = null, hint = false, metricLabel = "", value = "", ranges = 0, open = false }) {
   return {
     "Show Icon": Boolean(icon), ...(icon ? { Icon: icon } : {}),
     Title: title,
-    "Show Description": Boolean(description), ...(description ? { Description: description } : {}),
+    "Show Hint": Boolean(hint),
+    "Show Metric Label": Boolean(metricLabel), ...(metricLabel ? { "Metric Label": metricLabel } : {}),
     "Show Value": Boolean(value), ...(value ? { Value: value } : {}),
     "Show Ranges": ranges > 0,
     "Show Open": Boolean(open),
@@ -532,7 +535,7 @@ export function chartHeaderFigma({ title = "", icon = null, description = "", va
 }
 
 /** A chart on its own (no ChartCard): every header toggle off; the push hides its Heading too (HEADING_LAYER). */
-export const BARE_HEADER = { "Show Icon": false, "Show Description": false, "Show Value": false, "Show Ranges": false, "Show Open": false };
+export const BARE_HEADER = { "Show Icon": false, "Show Hint": false, "Show Metric Label": false, "Show Value": false, "Show Ranges": false, "Show Open": false };
 
 /* ── pull ───────────────────────────────────────────────────────────────────────────────────────────────────────── */
 
@@ -723,7 +726,8 @@ export function chartHeaderOf(node) {
   return {
     title: text("Title"),
     ...(on("Show Icon") && text("Icon") ? { icon: text("Icon") } : {}),
-    ...(on("Show Description") && text("Description") ? { description: text("Description") } : {}),
+    // Metric Label (Description in a library before 2026-10-26). The Hint's text is code's alone, so Show Hint reads back as nothing.
+    ...(on("Show Metric Label") && text("Metric Label") ? { metricLabel: text("Metric Label") } : on("Show Description") && text("Description") ? { metricLabel: text("Description") } : {}),
     ...(on("Show Value") && text("Value") ? { value: text("Value") } : {}),
     ...(ranges.length ? { ranges: ranges.map(({ id, label }) => ({ id, label })) } : {}),
     // The first item is what the Segmented selects without `range`.

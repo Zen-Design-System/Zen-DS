@@ -260,7 +260,7 @@
       "name": "ChartCard",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "span? rowSpan? title headingLevel? icon? description? value? onOpen? openLabel? ranges? range? onRangeChange? rangesFullWidth? theme? color? surface? spacing? children"
+      "props": "span? rowSpan? title headingLevel? icon? hint? metricLabel? value? onOpen? openLabel? ranges? range? onRangeChange? rangesFullWidth? theme? color? surface? spacing? children"
     },
     {
       "name": "ChatComposer",
