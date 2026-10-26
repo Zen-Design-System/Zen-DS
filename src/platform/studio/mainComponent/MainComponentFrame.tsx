@@ -107,6 +107,20 @@ const FIXED_WIDTHS: Readonly<Record<string, number | ((variant: Readonly<Record<
   // chart-radial.json): a ring beside its legend or total needs that width, not a max-content cell's. 352 unless listed.
   "Chart/Donut-Chart": (variant) => (variant.totalPosition === "start" ? RING_WIDTHS.donutTotal : variant.legendPosition === "bottom" ? RING_WIDTHS.below : RING_WIDTHS.donutBeside)[variant.size] ?? 352,
   "Chart/Radial-Chart": (variant) => (variant.legendPosition === "bottom" ? RING_WIDTHS.below : RING_WIDTHS.radialBeside)[variant.size] ?? 352,
+  // The other charts are FIXED too (read 2026-10-26): in a max-content cell the code's chart shrank to its axis (a line
+  // with one label, bars with no width). Each takes its default variant's width; Line, Stack-Bar and Multi-Line widen
+  // with Sector in Figma (4 · 6 · 7 · 12 = 297 · 400 · 460 · 620), and the samples draw a few points, so 297.
+  "Chart/Line-Chart": 297,
+  "Chart/Multi-Line-Chart": 297,
+  "Chart/Stack-Bar-Chart": 297,
+  "Chart/Bar-Chart": 352,
+  "Chart/Area-Chart": 352,
+  "Chart/Grouped-Bar-Chart": 352,
+  "Chart/Combo-Chart": 352,
+  "Chart/Gauge-Chart": 352,
+  "Chart/Funnel-Chart": 352,
+  "Chart/Bullet-Chart": 352,
+  "Chart/Curve-Preview": 320,
 };
 /** The grid's axes: columns, rows, then the filters (a row set puts its first property on the rows). */
 const gridAxes = (set: VariantSet): [VariantAxis | undefined, VariantAxis | undefined, ...VariantAxis[]] =>
