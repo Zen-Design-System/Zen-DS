@@ -5,7 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { sleep } from "../lib/studio.mjs";
+import { sleep, studioContext } from "../lib/studio.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 /** The component pages, as the Studio's Pages panel lists them (PlatformApp.tsx componentNavigation). */
@@ -96,33 +96,62 @@ function layoutProblems(page, board) {
   return out;
 }
 
-/** Every component page, measured once per run (both rows read it). */
+/** Every component page, measured once per run (both rows read it). Only a whole sweep is kept: one cut short (its row
+ *  past its time limit) throws, so the retry and BL-02 measure again. Before (gate #326, 2026-10-26) the pages after the
+ *  cut were cached as "no board" and the retry read them back. */
 let sweep = null;
 async function boards(ctx) {
   if (sweep) return sweep;
-  const { page } = await ctx.studio({ fresh: true });
-  const url = new URL(page.url());
+  await ctx.studio({ fresh: true });
+  const url = new URL("/studio.html", ctx.server.url);
   const measured = new Map();
   for (const id of PAGES) {
+    // Past the row's time limit ctx.studio() throws: the sweep stops instead of loading pages under the next rows.
+    await ctx.studio();
     url.searchParams.set("page", id);
-    // A document page (Overviews, Templates…) is one Document frame, not a component board: left out. A page whose
-    // first open meets a dependency re-optimization (Vite reloads it, the wait loses its context) is opened once more.
-    let first = null;
-    for (let attempt = 0; attempt < 2 && !first; attempt++) {
-      await page.goto(url.href, { waitUntil: "domcontentloaded" }).catch(() => undefined);
-      first = await page.waitForSelector('[data-studio-frame="playground"], [data-studio-frame="document"]', { timeout: 30_000 }).catch(() => null);
-    }
-    if (!first) { measured.set(id, null); continue; }
-    if ((await first.getAttribute("data-studio-frame")) === "document") continue;
-    // The Main component draws its cells after the Assets code parses (only pages that have one wait for them); the
-    // sections place their frames on layout.
-    if (await page.locator('[data-studio-frame="main-component"]').count()) await page.waitForSelector('[data-studio-frame="main-component"] [data-mc-cell] .studio-mc__stage > *', { timeout: 4_000 }).catch(() => undefined);
-    await page.evaluate(() => document.fonts?.ready);
-    await sleep(400);
-    measured.set(id, await page.evaluate(measure));
+    const board = await boardOf(ctx, url.href);
+    // A document page (Overviews, Templates…) is one Document frame, not a component board: left out.
+    if (board !== "document") measured.set(id, board);
   }
   sweep = measured;
   return sweep;
+}
+
+/**
+ * One page's board, opened in a browser context of its own (its own renderer). In one tab, 53 Studio loads piled up the
+ * old documents faster than the GC freed them (heap 697/760 MB, 47 documents by page 46 in a full shard, 2026-10-26), and
+ * the next load hung blank for 30 s or more (sidebar, sheet-table), while a fresh renderer opens the same page in about a
+ * second. A page whose first open meets a dependency re-optimization (Vite reloads it, the wait loses its context) is
+ * opened once more. Returns the measured board, "document", or { missing } saying what the page showed instead.
+ */
+async function boardOf(ctx, href) {
+  let missing = "";
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const context = await studioContext(ctx.browser, { url: ctx.server.url });
+    try {
+      const page = await context.newPage();
+      let crashed = false;
+      page.on("crash", () => { crashed = true; });
+      await page.goto(href, { waitUntil: "domcontentloaded" }).catch(() => undefined);
+      const first = await page.waitForSelector('[data-studio-frame="playground"], [data-studio-frame="document"]', { timeout: 30_000 }).catch(() => null);
+      if (!first) {
+        // A page whose main thread is stuck never answers: two seconds, then say so.
+        const shows = crashed ? null : await Promise.race([page.evaluate(() => document.body?.innerText.trim().replace(/\s+/g, " ").slice(0, 80) ?? ""), sleep(2000).then(() => null)]).catch(() => null);
+        missing = crashed ? "its tab crashed" : shows === null ? "no board in 30 s, the page not answering" : `no board in 30 s, the page showing "${shows}"`;
+        continue;
+      }
+      if ((await first.getAttribute("data-studio-frame")) === "document") return "document";
+      // The Main component draws its cells after the Assets code parses (only pages that have one wait for them); the
+      // sections place their frames on layout.
+      if (await page.locator('[data-studio-frame="main-component"]').count()) await page.waitForSelector('[data-studio-frame="main-component"] [data-mc-cell] .studio-mc__stage > *', { timeout: 4_000 }).catch(() => undefined);
+      await page.evaluate(() => document.fonts?.ready);
+      await sleep(400);
+      return (await page.evaluate(measure)) ?? { missing: "a Playground frame but no board" };
+    } finally {
+      await context.close();
+    }
+  }
+  return { missing: `${missing} (opened twice)` };
 }
 
 export const rows = [
@@ -133,7 +162,7 @@ export const rows = [
       const all = await boards(ctx);
       const problems = [];
       for (const [page, board] of all) {
-        if (!board) problems.push(`${page}: no board`);
+        if (board.missing) problems.push(`${page}: ${board.missing}`);
         else problems.push(...layoutProblems(page, board));
       }
       if (problems.length) throw new Error(`${problems.length} layout problem(s): ${problems.slice(0, 8).join("; ")}`);
@@ -150,18 +179,18 @@ export const rows = [
       const bad = [];
       let cells = 0;
       for (const [page, board] of all) {
-        if (!board) continue;
+        if (board.missing) continue;
         // User 2026-10-18 "làm tiếp phần còn thiếu của main component": a component the page documents and Figma has sets
         // for is drawn (samples.ts or its Assets item).
         const drawn = new Set(board.cells.map((cell) => cell.component));
         for (const { name } of api[page] ?? []) if (VARIANT_SETS[name] && !drawn.has(name)) bad.push(`${page} ${name}: not drawn`);
-        for (const cell of board?.cells ?? []) {
+        for (const cell of board.cells) {
           cells += 1;
           if (cell.empty || cell.w < 2 || cell.h < 1) bad.push(`${page} ${cell.set} ${cell.name}: ${cell.empty ? "empty" : `${Math.round(cell.w)}×${Math.round(cell.h)}`}`);
         }
       }
       if (bad.length) throw new Error(`${bad.length} problem(s): ${bad.slice(0, 10).join("; ")}`);
-      return `${cells} variants drawn on ${[...all.values()].filter((board) => board?.cells.length).length} pages`;
+      return `${cells} variants drawn on ${[...all.values()].filter((board) => board.cells?.length).length} pages`;
     },
   },
 ];
