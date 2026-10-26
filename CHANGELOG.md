@@ -17,6 +17,14 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Caption text is always Light, and so is a metric's label (the user, 2026-10-26): text in Caption/Regular, Medium or
+  Bold takes its family's Light level (Neutral/Light on a surface, Inverse or overlay Light on dark, a colour's Light for
+  an error; the Lights group takes Base; text on a Solid or Subtle fill follows the fill). Now Light: Schedule's grid
+  labels, event range, itinerary meta and a phone's resource name, Calendar's weekdays, "+N more" and agenda meta, the
+  Gantt header and milestone titles, NPS end labels, Slider limits, Stepper error captions, Metric-Tile titles and metric
+  category names, Chat's "Failed to send", a TopNavigation identity subtitle over imagery, and the Caption text of the
+  docs examples and the Studio UI. New checks: harness `text/caption-light`, runtime audit kind `caption-light`, Figma
+  audit `text/caption-light`; 147 layers rebound to Light in the Figma library.
 - Zen Studio → Figma: a Sidebar's rows take its density as the Menu-Item's Density variant (2026-10-26). Medium is 44px,
   Small 36px; an AppShell `pattern="grid"` and `variant="small-density"` give Small; a Basic Sidebar's footer rows stay
   Medium. Changing a Sidebar's density swaps every row's variant. Each row also carries its Theme (`theme="accent"`) and
