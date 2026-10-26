@@ -245,6 +245,16 @@ placeholder only (sample app removed), the App Shell page's examples are renamed
   640 frames; `MAIN_SAMPLES.AppShellPane`). The placeholder's label is centred (`Text align="center"`, Figma's text
   align), which showed once it wrapped in a 264 pane. Docs regenerated (api/guidelines app-shell). 83/83 selftests.
 
+## Session "Bug" · Studio Main component chart widths (tier S; user screenshot: "Lỗi hiển thị")
+
+- Cause: charts fill their container and the Main component cell is max-content, so each non-ring chart drew at its
+  axis width (probe: Line 32 px with a 0-width plot, Area 36, Bar 36/81, Stack/Grouped/Combo/Funnel/Bullet 136–150).
+  Not a regression of #301/#303: bc1c0fc0 (before #301) measures the same.
+- Fix: MainComponentFrame FIXED_WIDTHS gets the 11 other chart sets at their Figma default-variant widths (read live
+  2026-10-26: 297 Line/Multi-Line/Stack-Bar, 352 Bar/Area/Grouped/Combo/Gauge/Funnel/Bullet, 320 Curve-Preview).
+  Probe after: every chart at that width, ring cells flip data-wrapped 0 times in 3 s (45 before #301).
+- Gate PASS (--isolated --pages=chart): 0 warnings, Studio E2E 380/380 in 4 shards. PR #315.
+
 ## tag-badge-gap · Tags and Badges side by side are 4px (tier M)
 
 The user: "Vẫn đang bị lỗi rule. Spacing giữa tag phải là 4px" (a PropertyField "Phụ trách" with three person Tags 8px
@@ -289,3 +299,27 @@ Spec card (changed elements only):
   docs/guidelines, a Figma suite, tools/ai-ui or AGENTS.consumer.md is in scope (`auxKind` "ai-ui" for the last two).
   It does not regenerate: the ✗ says to run ai-ui:build and commit. Proof without a browser: a deliberately stale
   composer-rules.md fails it (`qa --files=AGENTS.consumer.md`, no pages), the restored file passes. QA self-test 43/43.
+
+## Sidebar rows take the Sidebar's density (Studio → Figma, tier S)
+
+User: "Menu item (Sidebar Item) trong Figma có 2 variant Density sao trong Studio chỉ có 1?", then "Khi đổi density của
+sidebar thì các item cũng đổi variant theo density đó".
+- Why one: in code, Density belongs to the whole Sidebar (`density`, `data-sidebar-density`, sidebar.css). The rows have
+  no `density` prop. Figma puts Density on each Menu-Item (1536:27473: Medium 44/46px, Small 36/38px) because a variant
+  can't inherit from its parent.
+- Bug: `figma-push` `sidebarItemNode` and the `sections` items wrote only Label/Icon/Select/Counter, so every row came out
+  Density=Medium (a `density="small"` Sidebar had 44px rows in its Small pattern), Theme=Neutral and State=Default.
+- Fix (`tools/studio/figma-push.mjs`): `sidebarRowDensity` writes Density on every Menu-Item in the Sidebar's slots, as
+  Sidebar.tsx resolves it (`density`, else AppShell `pattern="grid"` → small; `variant="small-density"` is always Small,
+  as Figma's Small-Density set 5974:20590 draws 36px rows), always written so rows already in Figma swap. A Basic
+  Sidebar's Footer-Content stays Medium at Small (sidebar.css: 44px). The AppShell passes `shellPattern` to its Sidebar.
+  `menuItemLook` writes Theme (Accent/Neutral) and State (Disabled > `state` > Default) on JSX rows and section items.
+- Pull (`figma-pull.mjs` `itemFields`): a Menu-Item's Theme=Accent → `theme: "accent"`, State=Disabled → `disabled`.
+  Density stays the Sidebar's.
+- Selftests: figma-push 495 (new: rows by density for medium / small / small-density / sections, footer, Theme/State,
+  round trip; AppShell grid rows Small, plain shell Medium), figma-pull 151, figma-native 162, figma-diff 35,
+  studio:selftest all pass.
+- BACKLOG P2: nested rows (Level=Child) and Dropdown, push and pull together.
+- **Gate** (`qa --isolated --files=` the three tools/studio files; the worktree's edits were not in the hook ledger, so a
+  plain run found nothing to check): static, studio:selftest, TypeScript and nested layer names all pass; Studio E2E
+  380 works · 0 broken (4 shards, 1722 s). Report `.qa/reports/2026-10-26T04-49-36-0958d62c.md`.

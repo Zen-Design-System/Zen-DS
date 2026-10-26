@@ -1598,6 +1598,11 @@ function itemFields(item, ctx, { labelKey = "label", iconKey = "icon", where }) 
     ctx.notes.push(`${where} "${item.name}": no label shows in Figma; its aria-label "${fields["aria-label"].value}" comes from ${icon ? "its icon" : "its layer"}`);
   }
   if (props.Dropdown === true) ctx.notes.push(`${where} "${label}": Figma shows its dropdown; the design has no sub-items to write`);
+  // A Menu-Item's Theme and State (figma-push menuItemLook); its Density is its Sidebar's.
+  if (item.set?.name === "Primitives/Side-Bar/Menu-Item/Master") {
+    if (props.Theme === "Accent") fields.theme = literal("accent");
+    if (props.State === "Disabled") fields.disabled = literal(true);
+  }
   return fields;
 }
 

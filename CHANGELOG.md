@@ -24,6 +24,13 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   section's frame parts insert the same placeholders; the App Shell page's examples are now "Layout examples".
 - AppShellPane follows Figma's updated .Primitives/AppShell/Pane (2026-10-26): the ⋮ action sits at the top of the
   title's line, a Canvas pane has no corner; Studio's Main component draws its ten Theme × Surface variants.
+- Zen Studio's Main component draws every chart at its Figma width (2026-10-26, user screenshot "Lỗi hiển thị"): Line,
+  Multi-Line and Stack-Bar 297, Bar, Area, Grouped-Bar, Combo, Gauge, Funnel and Bullet 352, Curve-Preview 320, beside
+  Donut and Radial. In a max-content cell a chart had shrunk to its axis (LineChart one label, BarChart bars with no width).
+- Zen Studio → Figma: a Sidebar's rows take its density as the Menu-Item's Density variant (2026-10-26). Medium is 44px,
+  Small 36px; an AppShell `pattern="grid"` and `variant="small-density"` give Small; a Basic Sidebar's footer rows stay
+  Medium. Changing a Sidebar's density swaps every row's variant. Each row also carries its Theme (`theme="accent"`) and
+  State (`disabled`, `state`), and the pull from Figma reads `theme` and `disabled` back.
 - Tags and Badges side by side sit 4px apart (Spacing/Gap/2XSmall), across and down a wrap (the user, 2026-10-26: the
   people Tags of a PropertyField were 8px apart; "áp dụng rule tương tự cho badge"). PropertyPeople / PropertyTags hold
   their items in a Value-Slot at 4px (the cell's own + stays 8px away); TopNavigation `largeTitleBadges`, a PageHeader
