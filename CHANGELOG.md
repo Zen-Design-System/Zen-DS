@@ -17,6 +17,8 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Figma charts (2026-10-26, the user): Heatmap's active row and column labels and Multi-Line's rule and X pill now come
+  with Hover too, so at rest no chart draws any part of an active period (code already showed none).
 - Zen Studio ↔ Figma: a Sidebar row's nested rows (`children`) go to Figma as Menu-Item Level=Child rows right after it
   (2026-10-26). A closed group's rows are hidden layers; the chevron (Dropdown) shows with `dropdown` or nested rows and
   points up while the group is open. Pulled back, they are the row's `children` again (a footer row's `<SidebarMenuItem>`

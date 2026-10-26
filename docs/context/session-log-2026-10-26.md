@@ -468,3 +468,11 @@ Bắt đầu PR A (library), rồi PR B và plugin"). Branch `zen/feat/grid-span
   (the list title's style beside ChartCard titles, Shadow tiles on Canvas/Default). The sheets also showed a phone
   amount wrapping in a Medium tile and a two-row list half empty. Fixed (Body/Extra/Medium title, flat Small tiles, the
   list one row beside the hero, a third breakdown, four goals, "vs. Sep"); `--only=layout` reruns: PASS, 0 warnings.
+
+## Charts · Heatmap and Multi-Line hover in Figma (tier XS, follow-up to #322)
+
+User: "make Heatmap's active row/column labels follow Hover and give Multi-Line's Hover the rule and the X pill". Figma:
+Heatmap's "Tue" / "1 pm" labels go Light, their Strongest twins (Active-Label, absolute, same box) show on Hover; each
+Multi-Line variant gets a Hover-Sector (.Primitives/Chart/Sector Select=Selected Highlight, Show Tooltip off, its period's
+label) over the active period, on Hover. Contracts chart-heatmap (b6fe0eb7) and chart-multi-line (b4845783) re-captured;
+code unchanged (it already draws none of this at rest).
