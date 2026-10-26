@@ -183,7 +183,8 @@ export const rows = [
       const shellText = async () => { const text = (await pageText(page, id)) ?? ""; const start = text.indexOf("<AppShell"); return start < 0 ? "" : text.slice(start); };
       const written = await until(async () => { const text = await shellText(); return /bottomNavigation=\{<BottomNavigation/.test(text) ? text : null; }, { message: "the AppShell's bottomNavigation written" });
       const labels = [...written.slice(written.indexOf("bottomNavigation=")).matchAll(/label: "([^"]+)"/g)].slice(0, 3).map((match) => match[1]);
-      if (labels.join(",") !== "Home,Projects,People") throw new Error(`the items are not the Sidebar's rows: ${labels.join(",")}`);
+      // The placeholder Sidebar's rows (appshell-placeholder.mjs, 2026-10-26): every one reads "Label".
+      if (labels.join(",") !== "Label,Label,Label") throw new Error(`the items are not the Sidebar's rows: ${labels.join(",")}`);
       const shown = await expectFrame(page, { breakpoint: "mobile", shell: "mobile", placeholders: ["top"] }, "the AppShell's phone pattern, the top placeholder left");
       await page.locator('[data-studio-frame="screen:screen-1"] .zen-bottom-nav__item').first().waitFor({ state: "visible", timeout: 5000 });
       await page.locator(".studio-viewport").focus();

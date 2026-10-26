@@ -96,6 +96,10 @@ export function appShellParts({ act = () => null, media = APPSHELL_MEDIA } = {})
   ].join("\n"));
   const mark = element("Avatar", ['size="small"', 'shape="square"', 'theme="photo"', `src=${media.logo}`, text("alt", C.workspace)]);
   const plus = (label) => `{ icon: "icon-plus-line", label: ${quote(label)}${press(label)} }`;
+  const crumbs = (labels) => element("Breadcrumbs", [
+    "master={false}", attr("items", `[${labels.map((label) => `{ id: ${quote(label.toLowerCase())}, label: ${quote(label)} }`).join(", ")}]`),
+    act("item.label") ? attr("onNavigate", `(item, event) => { event.preventDefault(); ${act("item.label")}; }`) : null,
+  ]);
   return {
     block,
     logo,
@@ -109,10 +113,10 @@ export function appShellParts({ act = () => null, media = APPSHELL_MEDIA } = {})
       footer ? attr("footer", fragment(footerItems.slice(0, footer).map(([id, label, icon]) => `<SidebarMenuItem id="${id}" label="${label}" icon="${icon}" />`))) : null,
     ], Array.from({ length: 6 }, (_, index) => `<SidebarMenuItem id="label-${index + 1}" label=${quote(C.label)} icon="icon-home-03-line" />`).join("\n")),
     /** Breadcrumbs Size=Small: Master › Child (the last crumb is the page). */
-    crumbs: element("Breadcrumbs", [
-      "master={false}", attr("items", `[{ id: "master", label: ${quote(C.master)} }, { id: "child", label: ${quote(C.child)} }]`),
-      act("item.label") ? attr("onNavigate", `(item, event) => { event.preventDefault(); ${act("item.label")}; }`) : null,
-    ]),
+    crumbs: crumbs([C.master, C.child]),
+    /** The trail of a root page: Master alone. Two crumbs make a child screen (component-usage-rules §17 R14), which the
+     *  Studio's phone layout draws with Back and no Bottom Navigation, so a page you make starts at the root. */
+    rootCrumbs: crumbs([C.master]),
     /** The top row's end: the bell (Noti-type=Dot showing 8) and the account photo. */
     actions: ({ notifications = "count" } = {}) => fragment([
       element("AppShellAction", ['icon="icon-bell-01-solid"', text("aria-label", "Notifications"), notifications === "count" ? "count={8}" : notifications === "dot" ? "dot" : null, on("onClick", "Notifications")]),
@@ -168,9 +172,10 @@ export function appShellParts({ act = () => null, media = APPSHELL_MEDIA } = {})
  * One AppShell with Figma's placeholders: the parts of a Pattern/AppShell/Desktop variant (`pattern`, `collapse`; none with
  * `desktop: false`, a phone-only shell) and, with `mobile`, those of a Pattern/AppShell/Mobile variant (`top`, `bottom`).
  * The shell picks its layout from its own width (AppShell `layout="auto"`), so a 390 cell draws the phone parts.
- * `brand: false`: the Sidebar without Figma's sample workspace switcher (a page's own AppShell).
+ * A page's own AppShell takes `brand: false` (the Sidebar without Figma's sample workspace switcher) and `root: true`
+ * (the trail of a root page, Master alone).
  */
-export function appShellPlaceholderCode({ pattern = "sidebar", collapse, desktop = true, mobile = null, brand = true, act, media } = {}) {
+export function appShellPlaceholderCode({ pattern = "sidebar", collapse, desktop = true, mobile = null, brand = true, root = false, act, media } = {}) {
   const P = appShellParts({ act, media });
   const props = [];
   if (desktop && pattern !== "sidebar") props.push(text("pattern", pattern));
@@ -180,7 +185,7 @@ export function appShellPlaceholderCode({ pattern = "sidebar", collapse, desktop
     const floating = `// zen-allow-accent: Figma's Floating-Item is the promoted action (Button/Icon-Main Accent).\n${attr("floatingActions", P.floatingActions)}`;
     if (SIDEBAR_PATTERNS.has(pattern)) {
       props.push(attr("sidebar", P.sidebar({ footer: pattern === "list-detail" ? 1 : collapse === "sidebar" ? 3 : 0, brand })));
-      props.push(attr("header", header([["leading", P.crumbs], ["actions", P.actions()], ["main", P.main]])));
+      props.push(attr("header", header([["leading", root ? P.rootCrumbs : P.crumbs], ["actions", P.actions()], ["main", P.main]])));
       if (pattern === "list-detail") props.push(attr("leadingPane", P.pane()));
       props.push(floating);
     } else if (pattern === "top-bar") {

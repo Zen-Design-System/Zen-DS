@@ -18,6 +18,8 @@ export declare function appShellParts(options?: AppShellPlaceholderOptions): {
   logo: string;
   sidebar: (options?: { footer?: number; brand?: boolean }) => string;
   crumbs: string;
+  /** A root page's trail: Master alone (two crumbs make a child screen). */
+  rootCrumbs: string;
   actions: (options?: { notifications?: "count" | "dot" | "none" }) => string;
   main: string;
   tabs: string;
@@ -42,6 +44,8 @@ export declare function appShellPlaceholderCode(options?: AppShellPlaceholderOpt
   desktop?: boolean;
   /** false: the Sidebar without Figma's sample workspace switcher (a page's own AppShell). */
   brand?: boolean;
+  /** true: a root page's trail (Master alone) in the header's top row. */
+  root?: boolean;
   mobile?: { top?: AppShellPlaceholderTop; bottom?: AppShellPlaceholderBottom } | null;
 }): string;
 export declare function componentsOf(code: string): string[];

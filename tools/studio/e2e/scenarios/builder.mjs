@@ -113,6 +113,12 @@ export async function clickNamed(page, id, name, index = 0) {
   await sleep(500);
 }
 
+/** The index of the last drawn `name` of page `id` on the canvas: the one just inserted into the page's Stack, after the
+ *  AppShell placeholder's own (a Button in its header). */
+export async function lastIndex(page, id, name) {
+  return Math.max(0, (await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="${name}"]`).count()) - 1);
+}
+
 /** The Inspector's heading: the selected layer's name. */
 export const selectedName = async (page) => (await page.locator("#studio-right h2").first().innerText({ timeout: 1000 }).catch(() => "")).trim();
 
@@ -392,16 +398,19 @@ export const rows = [
     id: "B-34", feature: "⌘D on a page you made duplicates the layer (the renderer's React key is not a written key); ⌘Z removes the copy", wp: "usability walk 2026-10-10",
     async run(ctx) {
       const { page, id } = await newPage(ctx);
+      // The new page's AppShell placeholder already holds Buttons (Secondary · Main Action): counts are relative to them.
+      const buttons = async () => ((await pageText(page, id)) ?? "").match(/<Button /g)?.length ?? 0;
+      const base = await buttons();
       await selectStack(page, id);
       await insertAsset(page, "Button");
-      await until(async () => ((await pageText(page, id)) ?? "").match(/<Button /g)?.length === 1, { message: "one Button" });
+      await until(async () => (await buttons()) === base + 1, { message: "one Button" });
       await sleep(400);
-      await clickNamed(page, id, "Button");
+      await clickNamed(page, id, "Button", await lastIndex(page, id, "Button"));
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+KeyD");
-      await until(async () => ((await pageText(page, id)) ?? "").match(/<Button /g)?.length === 2, { message: "two Buttons after ⌘D" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(-160)}`); });
+      await until(async () => (await buttons()) === base + 2, { message: "two Buttons after ⌘D" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(-160)}`); });
       await page.keyboard.press("ControlOrMeta+KeyZ");
-      await until(async () => ((await pageText(page, id)) ?? "").match(/<Button /g)?.length === 1, { message: "one Button after ⌘Z" });
+      await until(async () => (await buttons()) === base + 1, { message: "one Button after ⌘Z" });
       return "⌘D → 2 Buttons · ⌘Z → 1";
     },
   },
@@ -409,11 +418,14 @@ export const rows = [
     id: "B-35", feature: "Design words on a page you made (plan criterion 7): the status line, the canvas tag, the Inspector header, its notes and tooltips name no file:line and no code ({…}, <Tag>, prop, children); a refusal too", wp: "design words 2026-10-12",
     async run(ctx) {
       const { page, id } = await newPage(ctx);
+      // Relative to the AppShell placeholder's own Buttons (Secondary · Main Action).
+      const buttons = async () => ((await pageText(page, id)) ?? "").match(/<Button /g)?.length ?? 0;
+      const base = await buttons();
       await selectStack(page, id);
       await insertAsset(page, "Button");
-      await until(async () => ((await pageText(page, id)) ?? "").match(/<Button /g)?.length === 1, { message: "one Button" });
+      await until(async () => (await buttons()) === base + 1, { message: "one Button" });
       await sleep(400);
-      await clickNamed(page, id, "Button");
+      await clickNamed(page, id, "Button", await lastIndex(page, id, "Button"));
       const read = () => page.evaluate(() => {
         const texts = (selector) => [...document.querySelectorAll(selector)].map((el) => el.textContent ?? "");
         return {
@@ -1031,11 +1043,11 @@ export const rows = [
       await until(async () => (await selectedName(page)) === "PageHeader", { message: "the Page header selected" });
       const toggle = page.locator('#studio-right [data-prop="breadcrumbs"]').getByRole("switch", { name: "Breadcrumbs" });
       await toggle.click();
-      await until(async () => /<PageHeader [^]*breadcrumbs=\{<Breadcrumbs /.test(await text()), { message: "breadcrumbs={<Breadcrumbs …/>} in the page" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => /<PageHeader\b[^]*breadcrumbs=\{<Breadcrumbs /.test(await text()), { message: "breadcrumbs={<Breadcrumbs …/>} in the page" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
       await until(async () => (await frame.locator(".zen-page-header__breadcrumbs .zen-breadcrumbs").count()) === 1, { message: "a real Breadcrumbs on the Screen" });
       // Its Item-List takes another item.
       // The Page header's own Breadcrumbs (the AppShell header's top row holds Master › Child before it).
-      const crumbItems = async () => (await text()).match(/<PageHeader [^]*?breadcrumbs=\{<Breadcrumbs [^]*?items=\{\[([^]*?)\]\}/)?.[1] ?? "";
+      const crumbItems = async () => (await text()).match(/<PageHeader\b[^]*?breadcrumbs=\{<Breadcrumbs [^]*?items=\{\[([^]*?)\]\}/)?.[1] ?? "";
       const items = await crumbItems();
       const before = (items.match(/\bid:/g) ?? []).length;
       // Breadcrumbs keeps the annotation off its DOM: selected by its box (⌘: the element itself).
@@ -1050,7 +1062,7 @@ export const rows = [
       await until(async () => (await selectedName(page)) === "AppShellHeader", { message: "the AppShellHeader selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
       await page.locator('#studio-right [data-slot="sections"]').getByRole("button", { name: "Add to Sections" }).click();
       await page.getByRole("option", { name: /^Search/ }).first().click();
-      await until(async () => /main=\{<PageHeader [^]*sections=\{<Search /.test(await text()), { message: "the Main row holds the PageHeader, the Sections a Search" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await until(async () => /main=\{<PageHeader\b[^]*sections=\{<Search /.test(await text()), { message: "the Main row holds the PageHeader, the Sections a Search" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
       // A Menu item placed outside a Sidebar still draws Figma's Menu-Item (padding and gap Small).
       await selectStack(page, id);
       await insertAsset(page, "Menu item");
@@ -1245,7 +1257,7 @@ export const rows = [
       if ((await dash.getAttribute("aria-checked")) !== "true") throw new Error("Dash reads off on a crumb a chevron follows");
       await dash.click();
       await until(async () => /emphasis: "medium", dash: false \}/.test(await text()), { message: "the crumb's dash: false in the page" });
-      await until(async () => (await frame.locator(".zen-breadcrumbs__item").first().locator(".zen-breadcrumbs__separator").count()) === 0, { message: "no chevron after the first crumb" });
+      await until(async () => (await frame.locator(".zen-breadcrumbs").last().locator(".zen-breadcrumbs__item").first().locator(".zen-breadcrumbs__separator").count()) === 0, { message: "no chevron after the first crumb" });
       // A tab: found by its key (Tabs passes the fields one by one), its Label writes the item, Variant writes Tabs.
       await page.keyboard.press("Escape");
       await page.keyboard.press("Escape");

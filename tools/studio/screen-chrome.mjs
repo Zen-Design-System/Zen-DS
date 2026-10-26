@@ -72,7 +72,8 @@ export function screenFrameCode(prop, title) {
   switch (prop) {
     case "sidebar": return screenChromeCode("sidebar", title);
     // Figma Header/AppShell's Top-Elements: Master › Child, a Search in the middle (Docs), the bell and the account.
-    case "leading": return PLACEHOLDER.crumbs;
+    // A page starts at the root: one crumb (two would make it a child screen, with Back and no Bottom Navigation).
+    case "leading": return PLACEHOLDER.rootCrumbs;
     case "center": return PLACEHOLDER.search;
     case "banner": return PLACEHOLDER.banner;
     case "actions": return PLACEHOLDER.actions();
