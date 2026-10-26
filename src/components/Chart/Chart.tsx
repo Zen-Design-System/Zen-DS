@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, type ReactNode, type Ref, type RefObject } from "react";
 import { Card, type CardColor, type CardSpacing, type CardSurface, type CardTheme } from "../Card";
+import type { LayoutCellProps } from "../Layout/cell";
 import { EmptyStateCardContext } from "../EmptyState/EmptyState";
 import { IconButton } from "../Button";
 import { Icon } from "../Icon";
@@ -206,7 +207,8 @@ export function StackBarChart({ data, series, format: formatProp, currency, heig
   );
 }
 
-export interface ChartCardProps {
+/** `span` / `rowSpan`: the card's columns and rows in its Grid (a hero chart over 8 of 12 columns). */
+export interface ChartCardProps extends LayoutCellProps {
   /** Figma Header Label (Body/Extra/Medium, 2026-10-21). */
   title: ReactNode;
   /** Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2
@@ -366,7 +368,7 @@ export function ChartCard({ title, headingLevel = 3, icon, description, value, o
   useChartGrow(body);
   const hasValue = value !== undefined && value !== null && value !== false;
   return (
-    <Card {...dataAttributes(rest)} ref={ref} theme={theme} color={color} spacing={spacing} surface={surface} className={["zen-chart-card", className].filter(Boolean).join(" ")}>
+    <Card {...dataAttributes(rest)} span={rest.span} rowSpan={rest.rowSpan} ref={ref} theme={theme} color={color} spacing={spacing} surface={surface} className={["zen-chart-card", className].filter(Boolean).join(" ")}>
       <div ref={body} className="zen-chart-card__body">
         <div className="zen-chart-card__header">
           <div className="zen-chart-card__titlebar">

@@ -337,3 +337,24 @@ sidebar thì các item cũng đổi variant theo density đó".
   load) passes alone; PT-28 (dark-Play tooltip, a fixture without AppShell) fails the same with main's proto files and
   passed on a plain rerun: both flaky, not this change. New ⚠ type/visual-heading on the playground's placeholder label
   → `zen-allow-visual-heading` (d6c6235c). Slot handed to chart-bars; the formal rerun after them or on CI.
+
+## Grid cell span, PR A: library (tier M)
+
+User approved the plan `docs/research/grid-span-2026-10-26.md` with D1–D6 ("Duyệt kế hoạch span với D1–D6 như đề xuất.
+Bắt đầu PR A (library), rồi PR B và plugin"). Branch `zen/feat/grid-span-20261026` (worktree dashboard-layout-skill).
+- `Layout/cell.ts`: `LayoutCellProps` (`span`: number | "full", `rowSpan`; per breakpoint), `GridCellContext` (the
+  Grid's column count at its breakpoint, null in auto-fill; stacked), `gridTrackCount` (count, repeat(), track lists),
+  `gridCell` (clamp to the columns, "full" also in auto-fill, nothing while stacked), `useGridCell`. layout.css:
+  `.zen-grid > [data-span]` / `[data-row-span]` (direct children only; a mode scope adds no element). Auto-placement
+  stays in reading order (no dense).
+- Taken by Stack, Grid, Box, Card, ListBox; ChartCard and MetricCard pass them to their Card (one-line edits, as the
+  chart-bars, metric-trend and caption-light branches also edit those files).
+- Docs: Layout guideline row "Cell span", a Use line, a Do (one 12-column grid, rows adding up to 12) and a Don't (no
+  order / dense to fill holes); `guidelines:build`, docs/api for Layout, Card, ListBox, Chart, Metric; `ai-ui:build`.
+- Platform: Layout page example "One dashboard grid" (KPIs 3, the hero 8, the list 4 × 2 rows, two breakdowns 4;
+  tablet 6 columns, phone 2 with KPI tiles), on the page only (beside a phone frame its 12 columns would be too narrow).
+- D6 changed while building: `DashboardTemplate` stays on its auto-fit rows, since spans follow the breakpoint and the
+  template reflows by its own width in a narrow desktop window (plan §10, a follow-up to decide).
+- Tests: `tests/interaction/grid-span.test.tsx` (track counts, clamps, real widths at 1200, row span, stackBelow, the
+  tablet breakpoint, the four widget boxes, nothing outside a Grid). Static: tsc, usage:check + selftest, style:check,
+  guidelines:check.

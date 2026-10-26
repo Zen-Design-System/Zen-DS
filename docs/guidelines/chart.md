@@ -326,8 +326,12 @@ Figma Chart/Combo-Chart (15485:2519; Color=Primary · Secondary ↔ `palette`): 
 ### ChartCard
 Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) → header · Segmented · chart, gap 16. The header row holds an optional icon, the title and the open chevron; a description and the headline value follow it (every Figma chart card's Show Icon · Icon · Title · Show Description · Description · Show Value · Value · Show Ranges · Show Open properties).
 
+Also accepts `LayoutCellProps`.
+
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
+| `span` | `Responsive<number \| "full">` | — | How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or `"full"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: "full" }` (a breakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes the whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `"full"` applies. Default 1. No effect outside a Grid. |
+| `rowSpan` | `Responsive<number>` | — | How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked charts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid. |
 | `title` (required) | `ReactNode` | — | Figma Header Label (Body/Extra/Medium, 2026-10-21). |
 | `headingLevel` | `2 \| 3 \| 4` | `3` | Heading level of the title: one level below the nearest heading above (default 3: a card inside an h2 section; 2 when the card sits directly under the page h1). The look stays Body/Extra/Medium — the level follows the outline, not the size. An EmptyState in `children` takes the next level in Body/Extra/Bold, below the card title. |
 | `icon` | `IconName \| ReactNode` | — | Icon before the title (20px, Content/Neutral/Strongest): an icon name or a node. Decorative; the title names the card. |
@@ -362,6 +366,7 @@ interface ChartPoint { label: string; value: number; projected?: boolean; target
 type ChartRingSize = "small" | "medium" | "large" | "xlarge" | "sm" | "md" | "lg" | "xl"
 interface ChartSeries { id: string; label: string; color?: string; }
 interface ChartSlice { id: string; label: string; value: number; color?: string }
+type Responsive<T> = T | { desktop?: T; tablet?: T; mobile?: T }
 type SegmentedOption = { id: string; label: ReactNode; leading?: IconName | ReactNode; badge?: ReactNode; state?: SegmentedState; disabled?: boolean; "aria-label"?: string; }
 type SegmentedState = "default" | "hover" | "focused" | "disabled"
 ```

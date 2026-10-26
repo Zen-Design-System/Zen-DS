@@ -8,7 +8,7 @@
       "file": "src/components/Layout/Layout.tsx",
       "description": "One-dimensional layout with token spacing. Use it instead of hand-written flex CSS.\n\n  <Stack gap=\"lg\">…sections…</Stack>\n  <Stack direction=\"row\" gap=\"sm\" align=\"center\" justify=\"between\">…toolbar…</Stack>\n  <Stack direction={{ desktop: \"row\", mobile: \"column\" }} gap=\"md\">…stacks on phones…</Stack>",
       "deprecated": null,
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutCellProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps",
       "props": [
         {
           "name": "width",
@@ -64,6 +64,22 @@
           "required": false,
           "default": null,
           "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
+        {
+          "name": "span",
+          "type": "Responsive<number | \"full\">",
+          "required": false,
+          "default": null,
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or\n`\"full\"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: \"full\" }` (a\nbreakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes\nthe whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `\"full\"`\napplies. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "rowSpan",
+          "type": "Responsive<number>",
+          "required": false,
+          "default": null,
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked\ncharts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid.",
           "deprecated": null
         },
         {
@@ -431,9 +447,9 @@
     {
       "name": "Grid",
       "file": "src/components/Layout/Layout.tsx",
-      "description": "Two-dimensional layout for cards, tiles and form columns.\n\n  <Grid minColumnWidth={280}>…cards…</Grid>\n  <Grid columns={{ mobile: 1, desktop: 2 }} gap=\"lg\">…fields…</Grid>\n  <Grid columns={{ mobile: 1, desktop: \"2fr 1fr\" }} gap=\"lg\" align=\"start\">…main…aside…</Grid>",
+      "description": "Two-dimensional layout for cards, tiles and form columns.\n\n  <Grid minColumnWidth={280}>…cards…</Grid>\n  <Grid columns={{ mobile: 1, desktop: 2 }} gap=\"lg\">…fields…</Grid>\n  <Grid columns={{ mobile: 1, desktop: \"2fr 1fr\" }} gap=\"lg\" align=\"start\">…main…aside…</Grid>\n  <Grid columns={{ desktop: 12, tablet: 6 }}>…<ChartCard span={{ desktop: 8, tablet: \"full\" }} />…</Grid>\n\nA direct child takes several columns or rows with `span` / `rowSpan` (Figma Grid auto layout's column and row span).",
       "deprecated": null,
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutCellProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps",
       "props": [
         {
           "name": "width",
@@ -489,6 +505,22 @@
           "required": false,
           "default": null,
           "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
+        {
+          "name": "span",
+          "type": "Responsive<number | \"full\">",
+          "required": false,
+          "default": null,
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or\n`\"full\"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: \"full\" }` (a\nbreakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes\nthe whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `\"full\"`\napplies. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "rowSpan",
+          "type": "Responsive<number>",
+          "required": false,
+          "default": null,
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked\ncharts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid.",
           "deprecated": null
         },
         {
@@ -842,7 +874,7 @@
       "file": "src/components/Layout/Layout.tsx",
       "description": "A frame without auto layout (Figma's Frame): token padding, fill (background layer), stroke, corner radius and effect\naround content that flows as blocks, or layers placed at X / Y. With auto layout the same frame is a Stack or Grid,\nwhich take the same appearance props. For clickable or selectable tiles use Card; for page width use Container.",
       "deprecated": null,
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps, FrameModeProps, FrameHideOnProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutCellProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps, FrameModeProps, FrameHideOnProps",
       "props": [
         {
           "name": "width",
@@ -898,6 +930,22 @@
           "required": false,
           "default": null,
           "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
+        {
+          "name": "span",
+          "type": "Responsive<number | \"full\">",
+          "required": false,
+          "default": null,
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or\n`\"full\"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: \"full\" }` (a\nbreakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes\nthe whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `\"full\"`\napplies. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "rowSpan",
+          "type": "Responsive<number>",
+          "required": false,
+          "default": null,
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked\ncharts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid.",
           "deprecated": null
         },
         {

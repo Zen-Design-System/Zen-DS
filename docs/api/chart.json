@@ -1517,8 +1517,24 @@
       "file": "src/components/Chart/Chart.tsx",
       "description": "Figma Chart/Chart-Card (6643:63528): Card Flat Medium (padding 24, radius 24) → header · Segmented · chart, gap 16.\nThe header row holds an optional icon, the title and the open chevron; a description and the headline value follow it\n(every Figma chart card's Show Icon · Icon · Title · Show Description · Description · Show Value · Value · Show Ranges ·\nShow Open properties).",
       "deprecated": null,
-      "extends": null,
+      "extends": "LayoutCellProps",
       "props": [
+        {
+          "name": "span",
+          "type": "Responsive<number | \"full\">",
+          "required": false,
+          "default": null,
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or\n`\"full\"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: \"full\" }` (a\nbreakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes\nthe whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `\"full\"`\napplies. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "rowSpan",
+          "type": "Responsive<number>",
+          "required": false,
+          "default": null,
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked\ncharts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
         {
           "name": "title",
           "type": "ReactNode",
@@ -1685,6 +1701,7 @@
     "ChartRingSize": "type ChartRingSize = \"small\" | \"medium\" | \"large\" | \"xlarge\" | \"sm\" | \"md\" | \"lg\" | \"xl\"",
     "ChartSeries": "interface ChartSeries { id: string; label: string; color?: string; }",
     "ChartSlice": "interface ChartSlice { id: string; label: string; value: number; color?: string }",
+    "Responsive": "type Responsive<T> = T | { desktop?: T; tablet?: T; mobile?: T }",
     "SegmentedOption": "type SegmentedOption = { id: string; label: ReactNode; leading?: IconName | ReactNode; badge?: ReactNode; state?: SegmentedState; disabled?: boolean; \"aria-label\"?: string; }",
     "SegmentedState": "type SegmentedState = \"default\" | \"hover\" | \"focused\" | \"disabled\""
   }

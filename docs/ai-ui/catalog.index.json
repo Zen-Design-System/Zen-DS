@@ -152,7 +152,7 @@
       "name": "Box",
       "status": "stable",
       "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
-      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? sticky? effectStyle? clip? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? blendMode? rotation? flip? modes? hideOn? padding? paddingX? paddingY? scroll? group? mask? as? children? aria-label? aria-labelledby? aria-describedby?"
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? span? rowSpan? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? sticky? effectStyle? clip? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? blendMode? rotation? flip? modes? hideOn? padding? paddingX? paddingY? scroll? group? mask? as? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "BreadcrumbItem",
@@ -254,13 +254,13 @@
       "name": "Card",
       "status": "verified",
       "purpose": "A surface that groups related content about one subject — a project, a stat, a choice — and can be selected or opened as a whole.",
-      "props": "width? minWidth? maxWidth? alignSelf? children? theme? color? spacing? selected? surface? aria-label? subAction? as? aria-labelledby? aria-describedby?"
+      "props": "width? minWidth? maxWidth? alignSelf? span? rowSpan? children? theme? color? spacing? selected? surface? aria-label? subAction? as? aria-labelledby? aria-describedby?"
     },
     {
       "name": "ChartCard",
       "status": "verified",
       "purpose": "One chart family in one style: how a value changes over time (Line, Area), compares across periods or categories (Bar; 2–3 series side by side: Grouped bar), splits a total (Stack bar, Stacked area, Donut), reads two measures in different units over the same periods (Combo), measures against a maximum (Radial), ranks items (Bar list), tracks goals against their targets (Bullet), reads one measure against its maximum and target (Gauge), follows the drop-off between stages (Funnel) or spreads over two dimensions (Heatmap), framed by a Chart Card with a title, a figure and a range switch. Every chart draws itself in when it mounts and when its data changes.",
-      "props": "title headingLevel? icon? description? value? onOpen? openLabel? ranges? range? onRangeChange? rangesFullWidth? theme? color? surface? spacing? children"
+      "props": "span? rowSpan? title headingLevel? icon? description? value? onOpen? openLabel? ranges? range? onRangeChange? rangesFullWidth? theme? color? surface? spacing? children"
     },
     {
       "name": "ChatComposer",
@@ -496,7 +496,7 @@
       "name": "Grid",
       "status": "stable",
       "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
-      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? sticky? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? blendMode? rotation? flip? effectStyle? modes? hideOn? columns? minColumnWidth? gap? rowGap? columnGap? align? stackBelow? padding? as? children? clip? aria-label? aria-labelledby? aria-describedby?"
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? span? rowSpan? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? sticky? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? blendMode? rotation? flip? effectStyle? modes? hideOn? columns? minColumnWidth? gap? rowGap? columnGap? align? stackBelow? padding? as? children? clip? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "GroupedBarChart",
@@ -568,7 +568,7 @@
       "name": "ListBox",
       "status": "stable",
       "purpose": "One row of a vertical list: a leading visual, a title with an optional caption, and a trailing slot for actions or a passive chevron / value.",
-      "props": "width? minWidth? maxWidth? alignSelf? header? children footer? theme? color? surface? as? aria-label? aria-labelledby? aria-describedby?"
+      "props": "width? minWidth? maxWidth? alignSelf? span? rowSpan? header? children footer? theme? color? surface? as? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "ListItem",
@@ -610,7 +610,7 @@
       "name": "MetricCard",
       "status": "stable",
       "purpose": "Show one key number with its label, an identifying icon and how it changed; a MetricCard type adds the small picture behind it (a trend line, recent bars, a goal, a split or a comparison).",
-      "props": "variant? value? theme? color? surface? subAction? spacing? type? series? seriesLabel? goal? comparison? categories? format? currency? footer? headingLevel? animate? label trend? icon? iconTheme? iconBackground? iconEmoji? size? action? iconSize? custom? metricColor? counter? labelIcon? hint?"
+      "props": "variant? value? theme? color? surface? subAction? spacing? type? series? seriesLabel? goal? comparison? categories? format? currency? footer? headingLevel? animate? span? rowSpan? label trend? icon? iconTheme? iconBackground? iconEmoji? size? action? iconSize? custom? metricColor? counter? labelIcon? hint?"
     },
     {
       "name": "ModalForm",
@@ -906,7 +906,7 @@
       "name": "Stack",
       "status": "stable",
       "purpose": "Token-based layout primitives: Stack (one direction), Grid (columns), Box (a frame without auto layout) and Container (page width and margin). Stack, Grid and Box are Figma's frames: each takes the fill (background layer), stroke, corner radius, effect style, opacity, rotation and flip, so an auto layout frame with a fill is one Stack. They replace hand-written flex/grid CSS so spacing always comes from the Figma scale.",
-      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? sticky? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? blendMode? rotation? flip? effectStyle? modes? hideOn? direction? gap? align? justify? wrap? clip? scroll? fillChildren? padding? paddingX? paddingY? as? children? aria-label? aria-labelledby? aria-describedby?"
+      "props": "width? minWidth? maxWidth? alignSelf? height? minHeight? maxHeight? span? rowSpan? position? constraintX? constraintY? insetTop? insetRight? insetBottom? insetLeft? sticky? radiusTopLeft? radiusTopRight? radiusBottomRight? radiusBottomLeft? cornerSmoothing? image? imageFit? imageCrop? imageScale? gradient? surface? border? borderWeight? borderSides? borderStyle? radius? opacity? blendMode? rotation? flip? effectStyle? modes? hideOn? direction? gap? align? justify? wrap? clip? scroll? fillChildren? padding? paddingX? paddingY? as? children? aria-label? aria-labelledby? aria-describedby?"
     },
     {
       "name": "StackBarChart",

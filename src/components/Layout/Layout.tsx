@@ -1,8 +1,9 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { gapValue, paddingValue, type ZenCornerRadius, type ZenGap, type ZenMargin, type ZenPadding } from "../_shared/scale";
 import "./layout.css";
 import { layoutSizing, type LayoutSizingProps } from "./sizing";
 import { layoutPosition, type LayoutPositionProps } from "./position";
+import { GridCellContext, gridTrackCount, useGridCell, type LayoutCellProps } from "./cell";
 import { boxEffects, type BoxEffectProps, type FrameEffectProps } from "./effects";
 import { frameAppearance, frameCorners, type FrameAppearanceProps, type FrameTransformProps } from "./appearance";
 import { useImageFill } from "../_shared/image-fill";
@@ -15,6 +16,7 @@ import { useBoxMask } from "./mask";
 export type { ZenCornerRadius, ZenGap, ZenMargin, ZenPadding };
 export { resolveAt, type Responsive, type ResponsiveBreakpoint } from "../_shared/responsive";
 export { layoutAlignSelfValues, type LayoutAlignSelf, type LayoutSizing, type LayoutSizingProps, type LayoutWidthProps } from "./sizing";
+export { gridTrackCount, useGridCell, type LayoutCellOutput, type LayoutCellProps, type LayoutSpan } from "./cell";
 export { layoutConstraintsX, layoutConstraintsY, layoutPositions, positionPropNames, type LayoutConstraintX, type LayoutConstraintY, type LayoutPosition, type LayoutPositionProps } from "./position";
 export { boxEffectStyles, effectPropNames, type BoxEffectProps, type BoxEffectStyle, type FrameEffectProps } from "./effects";
 export { cornerRadiusPropNames, radiusPropNames, type CornerRadiusProps, type CornerSmoothingProps } from "../_shared/corners";
@@ -65,7 +67,7 @@ export interface FrameModeProps {
   modes?: ZenModes;
 }
 
-export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps {
+export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutCellProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps {
   /**
    * column (default) stacks top to bottom; row lays items side by side. Per breakpoint too: `{ desktop: "row", mobile:
    * "column" }` puts a row's items under each other on phones (a breakpoint without its own value takes the next wider
@@ -126,7 +128,7 @@ export interface StackProps extends HTMLAttributes<HTMLElement>, LayoutSizingPro
  *   <Stack direction="row" gap="sm" align="center" justify="between">…toolbar…</Stack>
  *   <Stack direction={{ desktop: "row", mobile: "column" }} gap="md">…stacks on phones…</Stack>
  */
-export function Stack({ direction: directionProp = "column", gap: gapProp = "md", align: alignProp, justify: justifyProp, wrap: wrapProp = false, fillChildren = false, clip = false, scroll, padding: paddingProp, paddingX: paddingXProp, paddingY: paddingYProp, hideOn, surface = "none",border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, modes, ...rest }: StackProps) {
+export function Stack({ direction: directionProp = "column", gap: gapProp = "md", align: alignProp, justify: justifyProp, wrap: wrapProp = false, fillChildren = false, clip = false, scroll, padding: paddingProp, paddingX: paddingXProp, paddingY: paddingYProp, hideOn, surface = "none",border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, span, rowSpan, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, modes, ...rest }: StackProps) {
   const scope = useModeScope(modes);
   // Responsive props resolve at the frame's breakpoint; the data-direction rules in layout.css read the result.
   const at = useFrameBreakpoint(modes);
@@ -139,6 +141,7 @@ export function Stack({ direction: directionProp = "column", gap: gapProp = "md"
   const paddingX = resolveAt(paddingXProp, at);
   const paddingY = resolveAt(paddingYProp, at);
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
+  const cell = useGridCell({ span, rowSpan });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky });
   const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, gradient, opacity, blendMode, rotation, flip });
   const picture = useImageFill({ image, imageFit, imageCrop, imageScale });
@@ -159,13 +162,14 @@ export function Stack({ direction: directionProp = "column", gap: gapProp = "md"
       data-scroll={scroll}
       data-padded={(paddingX ?? padding) && (paddingX ?? padding) !== "none" ? "true" : undefined}
       {...sizing.attributes}
+      {...cell.attributes}
       {...placed.attributes}
       {...look.attributes}
       {...picture.attributes}
       {...corners.attributes}
       {...smooth.attributes}
       {...boxEffects({ effectStyle, clip })}
-      style={withVars(style, { "--zen-stack-gap": gapValue(gap), "--zen-stack-padding-block": own(paddingValue(paddingY ?? padding)), "--zen-stack-padding-inline": own(paddingValue(paddingX ?? padding)), ...sizing.vars, ...placed.vars, ...look.vars, ...picture.vars, ...corners.vars, ...smooth.vars })}
+      style={withVars(style, { "--zen-stack-gap": gapValue(gap), "--zen-stack-padding-block": own(paddingValue(paddingY ?? padding)), "--zen-stack-padding-inline": own(paddingValue(paddingX ?? padding)), ...sizing.vars, ...cell.vars, ...placed.vars, ...look.vars, ...picture.vars, ...corners.vars, ...smooth.vars })}
     >
       {scope.wrap(children)}
     </Element>
@@ -178,7 +182,7 @@ export function Stack({ direction: directionProp = "column", gap: gapProp = "md"
 export type GridTracks = number | string;
 export type GridColumns = Responsive<GridTracks>;
 
-export interface GridProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps {
+export interface GridProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutCellProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps {
   /**
    * Fixed column count, or per breakpoint (`{ mobile: 1, tablet: 2, desktop: 3 }`, following ZenProvider's or a
    * frame's `modes` breakpoint; a breakpoint without its own value takes the next wider one's). A string is a track list for unequal columns: `{ mobile: 1, desktop: "2fr 1fr" }` puts a main column
@@ -244,8 +248,11 @@ function useStackBelow(below: number | undefined, forwarded: Ref<HTMLElement> | 
  *   <Grid minColumnWidth={280}>…cards…</Grid>
  *   <Grid columns={{ mobile: 1, desktop: 2 }} gap="lg">…fields…</Grid>
  *   <Grid columns={{ mobile: 1, desktop: "2fr 1fr" }} gap="lg" align="start">…main…aside…</Grid>
+ *   <Grid columns={{ desktop: 12, tablet: 6 }}>…<ChartCard span={{ desktop: 8, tablet: "full" }} />…</Grid>
+ *
+ * A direct child takes several columns or rows with `span` / `rowSpan` (Figma Grid auto layout's column and row span).
  */
-export function Grid({ columns, minColumnWidth = 240, gap: gapProp = "md", rowGap: rowGapProp, columnGap: columnGapProp, align, stackBelow, padding: paddingProp, hideOn, clip = false, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, modes, ...rest }: GridProps) {
+export function Grid({ columns, minColumnWidth = 240, gap: gapProp = "md", rowGap: rowGapProp, columnGap: columnGapProp, align, stackBelow, padding: paddingProp, hideOn, clip = false, surface = "none", border = "none", borderWeight, borderSides, borderStyle, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, span, rowSpan, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, modes, ...rest }: GridProps) {
   const scope = useModeScope(modes);
   const at = useFrameBreakpoint(modes);
   const gap = resolveAt(gapProp, at) ?? "md";
@@ -253,11 +260,16 @@ export function Grid({ columns, minColumnWidth = 240, gap: gapProp = "md", rowGa
   const columnGap = resolveAt(columnGapProp, at);
   const padding = resolveAt(paddingProp, at);
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
+  const cell = useGridCell({ span, rowSpan });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky });
   // Columns resolve here too, not in CSS: a [data-breakpoint] selector also matched a frame with its own modes inside.
-  const columnTracks = tracks(resolveAt(columns, at));
+  const columnsAt = resolveAt(columns, at);
+  const columnTracks = tracks(columnsAt);
   const min = typeof minColumnWidth === "number" ? `${minColumnWidth}px` : minColumnWidth;
   const { stacked, measure } = useStackBelow(stackBelow, ref);
+  // Its children's spans clamp to the columns it lays out (cell.ts): one while it stacks, none known in auto-fill.
+  const columnCount = stacked ? 1 : gridTrackCount(columnsAt);
+  const cells = useMemo(() => ({ columns: columnCount, stacked, breakpoint: at }), [columnCount, stacked, at]);
   const look = frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, gradient, opacity, blendMode, rotation, flip });
   const picture = useImageFill({ image, imageFit, imageCrop, imageScale });
   const corners = frameCorners(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft });
@@ -273,6 +285,7 @@ export function Grid({ columns, minColumnWidth = 240, gap: gapProp = "md", rowGa
       data-stacked={stacked ? "true" : undefined}
       data-align={align}
       {...sizing.attributes}
+      {...cell.attributes}
       {...placed.attributes}
       {...look.attributes}
       {...picture.attributes}
@@ -285,21 +298,21 @@ export function Grid({ columns, minColumnWidth = 240, gap: gapProp = "md", rowGa
         "--zen-grid-row-gap": gapValue(rowGap ?? gap),
         "--zen-grid-column-gap": gapValue(columnGap ?? gap),
         "--zen-grid-padding": own(paddingValue(padding)),
-        ...sizing.vars,
+        ...sizing.vars, ...cell.vars,
         ...placed.vars,
         ...look.vars, ...picture.vars,
         ...corners.vars,
         ...smooth.vars,
       })}
     >
-      {scope.wrap(children)}
+      <GridCellContext.Provider value={cells}>{scope.wrap(children)}</GridCellContext.Provider>
     </Element>
   );
 }
 
 /* ───────────── Box ───────────── */
 
-export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps, FrameModeProps, FrameHideOnProps {
+export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutCellProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps, FrameModeProps, FrameHideOnProps {
   /** Space inside the box (Figma Spacing/Padding). Per breakpoint too: `{ desktop: "xl", mobile: "md" }`. */
   padding?: Responsive<ZenPadding>;
   /** Horizontal padding (overrides `padding` on the sides). Per breakpoint too, as `padding`. */
@@ -331,13 +344,14 @@ export interface BoxProps extends HTMLAttributes<HTMLElement>, LayoutSizingProps
  * around content that flows as blocks, or layers placed at X / Y. With auto layout the same frame is a Stack or Grid,
  * which take the same appearance props. For clickable or selectable tiles use Card; for page width use Container.
  */
-export function Box({ padding: paddingProp, paddingX: paddingXProp, paddingY: paddingYProp, hideOn, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, group, mask, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, clip, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, modes, ...rest }: BoxProps) {
+export function Box({ padding: paddingProp, paddingX: paddingXProp, paddingY: paddingYProp, hideOn, surface = "none", border = "none", borderWeight, borderSides, borderStyle, scroll, group, mask, radius, radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft, cornerSmoothing, gradient, effectStyle, clip, opacity, blendMode, rotation, flip, image, imageFit, imageCrop, imageScale, width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf, span, rowSpan, position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky, as: Element = "div", className, style, children, ref, modes, ...rest }: BoxProps) {
   const scope = useModeScope(modes);
   const at = useFrameBreakpoint(modes);
   const padding = resolveAt(paddingProp, at);
   const paddingX = resolveAt(paddingXProp, at);
   const paddingY = resolveAt(paddingYProp, at);
   const sizing = layoutSizing({ width, height, minWidth, maxWidth, minHeight, maxHeight, alignSelf });
+  const cell = useGridCell({ span, rowSpan });
   const placed = layoutPosition({ position, constraintX, constraintY, insetTop, insetRight, insetBottom, insetLeft, sticky });
   // A group (Figma's) has no look of its own: only its opacity, rotation and flip.
   const look = group ? frameAppearance({ opacity, blendMode, rotation, flip }) : frameAppearance({ surface, border, borderWeight, borderSides, borderStyle, gradient, opacity, blendMode, rotation, flip });
@@ -359,6 +373,7 @@ export function Box({ padding: paddingProp, paddingX: paddingXProp, paddingY: pa
       data-scroll={group ? undefined : scroll}
       data-padded={pad.inline && pad.inline !== "none" ? "true" : undefined}
       {...sizing.attributes}
+      {...cell.attributes}
       {...placed.attributes}
       {...look.attributes}
       {...picture.attributes}
@@ -368,7 +383,7 @@ export function Box({ padding: paddingProp, paddingX: paddingXProp, paddingY: pa
         "--zen-box-padding-block": own(paddingValue(pad.block)),
         "--zen-box-padding-inline": own(paddingValue(pad.inline)),
         "--zen-box-radius": group ? undefined : own(cornerRadiusValue(radius, { radiusTopLeft, radiusTopRight, radiusBottomRight, radiusBottomLeft })),
-        ...sizing.vars,
+        ...sizing.vars, ...cell.vars,
         ...placed.vars,
         ...look.vars, ...picture.vars,
         ...(group ? {} : cornerSmoothingStyle(cornerSmoothing).vars),

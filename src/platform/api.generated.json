@@ -12021,7 +12021,7 @@
   "card": [
     {
       "name": "Card",
-      "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\" | \"onClick\" | \"color\">, LayoutWidthProps",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"children\" | \"onClick\" | \"color\">, LayoutWidthProps, LayoutCellProps",
       "props": [
         {
           "name": "width",
@@ -12053,6 +12053,22 @@
           "required": false,
           "default": null,
           "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "span",
+          "type": "Responsive<number | \"full\">",
+          "required": false,
+          "default": null,
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or\n`\"full\"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: \"full\" }` (a\nbreakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes\nthe whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `\"full\"`\napplies. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "rowSpan",
+          "type": "Responsive<number>",
+          "required": false,
+          "default": null,
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked\ncharts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid.",
           "deprecated": null
         },
         {
@@ -12719,7 +12735,7 @@
     },
     {
       "name": "ListBox",
-      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">, LayoutWidthProps",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">, LayoutWidthProps, LayoutCellProps",
       "props": [
         {
           "name": "width",
@@ -12751,6 +12767,22 @@
           "required": false,
           "default": null,
           "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "span",
+          "type": "Responsive<number | \"full\">",
+          "required": false,
+          "default": null,
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or\n`\"full\"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: \"full\" }` (a\nbreakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes\nthe whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `\"full\"`\napplies. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "rowSpan",
+          "type": "Responsive<number>",
+          "required": false,
+          "default": null,
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked\ncharts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid.",
           "deprecated": null
         },
         {
@@ -14503,6 +14535,22 @@
           "required": false,
           "default": "true",
           "description": "Draw the marks in on mount and when their data changes (default true; reduced motion fades).",
+          "deprecated": null
+        },
+        {
+          "name": "span",
+          "type": "Responsive<number | \"full\">",
+          "required": false,
+          "default": null,
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or\n`\"full\"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: \"full\" }` (a\nbreakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes\nthe whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `\"full\"`\napplies. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "rowSpan",
+          "type": "Responsive<number>",
+          "required": false,
+          "default": null,
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked\ncharts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid.",
           "deprecated": null
         },
         {
@@ -18697,8 +18745,24 @@
     },
     {
       "name": "ChartCard",
-      "extends": null,
+      "extends": "LayoutCellProps",
       "props": [
+        {
+          "name": "span",
+          "type": "Responsive<number | \"full\">",
+          "required": false,
+          "default": null,
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or\n`\"full\"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: \"full\" }` (a\nbreakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes\nthe whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `\"full\"`\napplies. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "rowSpan",
+          "type": "Responsive<number>",
+          "required": false,
+          "default": null,
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked\ncharts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
         {
           "name": "title",
           "type": "ReactNode",
@@ -19127,7 +19191,7 @@
   "layout": [
     {
       "name": "Stack",
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutCellProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps",
       "props": [
         {
           "name": "width",
@@ -19183,6 +19247,22 @@
           "required": false,
           "default": null,
           "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
+        {
+          "name": "span",
+          "type": "Responsive<number | \"full\">",
+          "required": false,
+          "default": null,
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or\n`\"full\"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: \"full\" }` (a\nbreakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes\nthe whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `\"full\"`\napplies. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "rowSpan",
+          "type": "Responsive<number>",
+          "required": false,
+          "default": null,
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked\ncharts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid.",
           "deprecated": null
         },
         {
@@ -19549,7 +19629,7 @@
     },
     {
       "name": "Grid",
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutCellProps, LayoutPositionProps, FrameAppearanceProps, FrameTransformProps, FrameEffectProps, FrameModeProps, FrameHideOnProps",
       "props": [
         {
           "name": "width",
@@ -19605,6 +19685,22 @@
           "required": false,
           "default": null,
           "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
+        {
+          "name": "span",
+          "type": "Responsive<number | \"full\">",
+          "required": false,
+          "default": null,
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or\n`\"full\"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: \"full\" }` (a\nbreakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes\nthe whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `\"full\"`\napplies. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "rowSpan",
+          "type": "Responsive<number>",
+          "required": false,
+          "default": null,
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked\ncharts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid.",
           "deprecated": null
         },
         {
@@ -19955,7 +20051,7 @@
     },
     {
       "name": "Box",
-      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps, FrameModeProps, FrameHideOnProps",
+      "extends": "HTMLAttributes<HTMLElement>, LayoutSizingProps, LayoutCellProps, LayoutPositionProps, BoxEffectProps, FrameAppearanceProps, FrameTransformProps, FrameModeProps, FrameHideOnProps",
       "props": [
         {
           "name": "width",
@@ -20011,6 +20107,22 @@
           "required": false,
           "default": null,
           "description": "Maximum height in px (Figma max height).",
+          "deprecated": null
+        },
+        {
+          "name": "span",
+          "type": "Responsive<number | \"full\">",
+          "required": false,
+          "default": null,
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or\n`\"full\"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: \"full\" }` (a\nbreakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes\nthe whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `\"full\"`\napplies. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "rowSpan",
+          "type": "Responsive<number>",
+          "required": false,
+          "default": null,
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked\ncharts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid.",
           "deprecated": null
         },
         {

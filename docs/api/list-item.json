@@ -194,7 +194,7 @@
       "file": "src/components/ListItem/ListItem.tsx",
       "description": "Figma Component/List-Box (14922:75297): the white box that holds a list of rows, the same on every device — only the\ntokens change by mode. Surface/Default, Corner-Radius/2XLarge (24px, concentric with the row fill:\nInteractive-List-Item-Radius + its gap to the edge), Header-Slot · Body-Slot · Footer-Slot padded Card-padding-medium\nsideways (24px desktop · 20px tablet and mobile), the body List-Container-Vertical-Padding above and below. Header and\nFooter are optional (Figma Header=No / Footer=No). `theme` is Figma's Theme: default, shadow, pale, border,\nflat-border or on-container; `color` the Pale box's hue and `surface` the Default or Border box's Surface.",
       "deprecated": null,
-      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">, LayoutWidthProps",
+      "extends": "Omit<HTMLAttributes<HTMLElement>, \"title\">, LayoutWidthProps, LayoutCellProps",
       "props": [
         {
           "name": "width",
@@ -226,6 +226,22 @@
           "required": false,
           "default": null,
           "description": "This element's alignment inside its parent: start · center · end · stretch across a Stack's\ndirection (vertical in a row, horizontal in a column), vertical inside a Grid cell. Overrides the parent's `align`\nfor this child. A `\"fill\"` size on the same axis still fills; in a column, alignSelf then places it once maxWidth\nstops it. No effect outside a Stack or Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "span",
+          "type": "Responsive<number | \"full\">",
+          "required": false,
+          "default": null,
+          "description": "How many of the parent Grid's columns this child takes (Figma Grid auto layout › column span): a whole number, or\n`\"full\"` for the whole row. Per breakpoint too, as the Grid's `columns`: `{ desktop: 8, tablet: \"full\" }` (a\nbreakpoint without its own value takes the next wider one's). Never more than the Grid's columns; every cell takes\nthe whole row while the Grid stacks (`stackBelow`, one column). In a Grid without `columns` (auto-fill) only `\"full\"`\napplies. Default 1. No effect outside a Grid.",
+          "deprecated": null
+        },
+        {
+          "name": "rowSpan",
+          "type": "Responsive<number>",
+          "required": false,
+          "default": null,
+          "description": "How many rows this child takes in the parent Grid (Figma Grid auto layout › row span): a list beside two stacked\ncharts. Per breakpoint too; dropped while the Grid stacks. Default 1. No effect outside a Grid.",
           "deprecated": null
         },
         {
@@ -417,6 +433,7 @@
     }
   ],
   "types": {
-    "ContentTone": "type ContentTone = (typeof contentTones)[number]"
+    "ContentTone": "type ContentTone = (typeof contentTones)[number]",
+    "Responsive": "type Responsive<T> = T | { desktop?: T; tablet?: T; mobile?: T }"
   }
 }
