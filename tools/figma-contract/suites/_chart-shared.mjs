@@ -35,7 +35,7 @@ export function cardProps(spec, prefix) {
   const open = child(header, "Button/Icon-Main");
   const segmented = child(body, "Segmented");
   const metric = child(body, "Metric");
-  const props = { width: spec.w + 2 * CARD_PADDING, title: textOf(child(header, "Label")) };
+  const props = { width: spec.w + 2 * CARD_PADDING, title: textOf(child(header, "Title")) };
   if (icon && !icon.hidden) props.icon = icon.main;
   if (hint && !hint.hidden) props.hint = "What the chart counts";
   if (open && !open.hidden) props.open = true;
@@ -62,7 +62,7 @@ export function cardMap(prefix) {
     { figma: P("Heading"), dom: ".zen-chart-card__header", check: ["size", "x", "y"] },
     { figma: P("Heading > Header > Icon"), dom: ".zen-chart-card__icon", check: ["size", "x", "y"] },
     { figma: P("Heading > Header > Icon > Vector"), dom: ".zen-chart-card__icon", check: ["fill"], fillVia: "color", when: (vp, props) => Boolean(props.icon) },
-    { figma: P("Heading > Header > Label"), dom: ".zen-chart-card__title", check: ["text", "size", "x", "y"] },
+    { figma: P("Heading > Header > Title"), dom: ".zen-chart-card__title", check: ["text", "size", "x", "y"] },
     { figma: P("Heading > Header > Hint"), dom: ".zen-chart-card__hint", check: ["size", "x", "y"] },
     { figma: P("Heading > Header > Hint > Vector"), dom: ".zen-chart-card__hint", check: ["fill"], fillVia: "color", when: (vp, props) => Boolean(props.hint) },
     { figma: P("Heading > Header > Button/Icon-Main"), dom: ".zen-chart-card__titlebar .zen-button", check: ["size", "x", "y"] },
