@@ -45,7 +45,7 @@ export default {
     ...barFrameMap({ yLabels: ["$0", "$25K", "$50K", "$75K", "$100K", "$125K"], count, chartDom: ".zen-chart-combo" }),
     // The end axis: left-aligned Spacing/Padding/XSmall after the plot, on the same gridlines.
     { figma: "Chart > Y-Axis-End", dom: ".zen-chart__y-end", check: ["w", "x"] },
-    ...["0%", "10%", "20%", "30%", "40%", "50%"].map((label, i) => ({ figma: `Chart > Y-Axis-End > ${label}`, dom: `.zen-chart__y-end > span:nth-child(${i + 1})`, check: ["text", "x", "cy"], ...fromGrid })),
+    ...["0%", "10%", "20%", "30%", "40%", "50%"].map((label, i) => ({ figma: `Chart > Y-Axis-End > Label#${5 - i}`, dom: `.zen-chart__y-end > span:nth-child(${i + 1})`, check: ["text", "x", "cy"], ...fromGrid })),
     ...Array.from({ length: 12 }, (_, k) => [
       { figma: `Chart > Plot > Marks > Bars > Column#${k}`, dom: `.zen-chart__combo-column:nth-child(${k + 1})`, check: ["w", "x"], ...fromGrid, when: has(k) },
       { figma: `Chart > Plot > Marks > Bars > Column#${k} > Bars > Lane > Revenue`, dom: `.zen-chart__combo-column:nth-child(${k + 1}) > .zen-chart__combo-bar`, check: ["size", "x", "y", "fill", "radius", "opacity"], ...fromGrid, when: has(k) },

@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Chart text layers are named by role in Figma (the user, 2026-10-26): the card title is Title in every chart; axis texts
+  are Label (Area, Grouped-Bar and Combo named them by their sample, "Q1", "$125K"); a gauge's reading Value and its target
+  Meta, a donut's or radial's centre caption Meta; Bar-List, Bullet and Funnel rows Name / Value / Meta. Studio writes the
+  axes by position now; undo map in `docs/figma-contracts/layer-renames-2026-10-26.json`.
 - Caption text is always Light, and so is a metric's label (the user, 2026-10-26): text in Caption/Regular, Medium or
   Bold takes its family's Light level (Neutral/Light on a surface, Inverse or overlay Light on dark, a colour's Light for
   an error; the Lights group takes Base; text on a Solid or Subtle fill follows the fill; a main value standing alone —

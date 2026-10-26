@@ -226,20 +226,11 @@ function periodsNote(count, sectors, notes, where, setName) {
  * active Tooltip; the marks stay Figma's sample shapes). The live file, read 2026-10-23: a Line's periods are
  * .Primitives/Chart/Sector instances (Label, Select, Tooltip) in .Chart/Line-Chart/Trend beside its six Label texts; Bar
  * (vertical) has Y-Axis › Label × 6 and X-Axis › Tick › Label; Bar (horizontal) Categories › Category › Label, Values ›
- * Value › Label and Grid › Tick › Label × 4; Area, Grouped-Bar and Combo name their axis texts by Figma's sample
- * (TICK_NAMES, AXIS_NAMES). A Tooltip-Anchor (Bar, Area) and Multi-Line's comparison Tooltip sit on a period the push
+ * Value › Label and Grid › Tick › Label × 4; Area, Grouped-Bar and Combo the same Y-Axis › Label × 6 (Combo's Y-Axis-End
+ * too) and X-Axis › Tick › Label (their axis texts were named by Figma's sample until the 2026-10-26 role renames). A Tooltip-Anchor (Bar, Area) and Multi-Line's comparison Tooltip sit on a period the push
  * cannot move (FIXED_ACTIVE): their Tooltip reads that period, with a note when the page's active one differs.
  */
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-/** Area, Grouped-Bar and Combo: each X tick's text layer is named after Figma's sample period, per Sector. */
-const TICK_NAMES = { 4: ["Q1", "Q2", "Q3", "Q4"], 6: ["Apr", "May", "Jun", "Jul", "Aug", "Sep"], 7: DAYS, 12: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] };
-/** …and each Y label after its sample value, top to bottom (Y-Axis; Combo's line axis Y-Axis-End). */
-const AXIS_NAMES = {
-  area: ["2.5K", "2K", "1.5K", "1K", "500", "0"],
-  groupedBar: ["$125K", "$100K", "$75K", "$50K", "$25K", "$0"],
-  combo: ["$125K", "$100K", "$75K", "$50K", "$25K", "$0"],
-  comboEnd: ["50%", "40%", "30%", "20%", "10%", "0%"],
-};
 /** The period Figma highlights where the push cannot move it, per Sector: Bar's Tooltip-Anchor (x / column width) and
  *  Multi-Line's Compare › Active (its Sector "Selected Highlight"); Area's anchor sits on the last period. */
 const FIXED_ACTIVE = { bar: { 4: 2, 6: 2, 7: 5, 12: 8 }, multiLine: { 4: 1, 6: 2, 7: 3, 12: 5 } };
@@ -335,8 +326,7 @@ function axisMarks(key, values, sectors, notes, where, setName) {
   const series = Array.isArray(values.series) ? values.series.filter((item) => item && typeof item === "object") : [];
   const edits = [];
   const nested = [];
-  const names = TICK_NAMES[sectors];
-  for (let k = 0; k < sectors; k++) edits.push({ layer: ["X-Axis", `>Tick[${k}]`, `>${names[k]}`], characters: k < count ? words(data[k].label) : "" });
+  for (let k = 0; k < sectors; k++) edits.push({ layer: ["X-Axis", `>Tick[${k}]`, "Label"], characters: k < count ? words(data[k].label) : "" });
   let max = 0;
   if (key === "area") {
     const drawn = values.type === "stacked" ? series : series.slice(0, 1);
@@ -344,7 +334,7 @@ function axisMarks(key, values, sectors, notes, where, setName) {
   } else if (key === "groupedBar") max = Math.max(0, ...data.flatMap((item) => series.map((s) => Math.max(0, Number(item.values?.[s.id]) || 0))));
   else max = Math.max(0, ...data.map((item) => Math.max(0, Number(item.bar) || 0)));
   const { top, ticks } = niceScale(max);
-  sixTicks(top, ticks, fmt, notes, where, setName).forEach((text, i) => edits.push({ layer: ["Y-Axis", `>${AXIS_NAMES[key][i]}`], characters: text }));
+  sixTicks(top, ticks, fmt, notes, where, setName).forEach((text, i) => edits.push({ layer: ["Y-Axis", `>Label[${i}]`], characters: text }));
   if (key === "combo") {
     // ComboChart.tsx: the end axis on the start axis' gridlines, its top lineMax or a round step over the line.
     const lineFmt = formatFor(values, notes, where, "lineFormat");
@@ -352,7 +342,7 @@ function axisMarks(key, values, sectors, notes, where, setName) {
     const steps = Math.max(1, ticks.length - 1);
     const lineTop = typeof values.lineMax === "number" && values.lineMax > 0 ? values.lineMax : stepFor(Math.max(0, ...line), steps) * steps;
     const end = ticks.length === 6 ? ticks.map((_, i) => (i * lineTop) / steps).reverse() : Array.from({ length: 6 }, (_, i) => (lineTop * (5 - i)) / 5);
-    end.forEach((value, i) => edits.push({ layer: ["Y-Axis-End", `>${AXIS_NAMES.comboEnd[i]}`], characters: lineFmt(Math.round(value * 1e6) / 1e6) }));
+    end.forEach((value, i) => edits.push({ layer: ["Y-Axis-End", `>Label[${i}]`], characters: lineFmt(Math.round(value * 1e6) / 1e6) }));
   }
   if (key === "area" && values.type !== "stacked" && series[0]) {
     // Figma's anchor sits on the Sector's last period (constraint MAX), whatever the data fills.

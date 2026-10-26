@@ -55,7 +55,7 @@ export default {
   map: [
     ...cardMap(),
     { figma: "Chart", dom: ".zen-chart", check: ["size", "x", "y"] },
-    ...["0", "500", "1K", "1.5K", "2K", "2.5K"].map((label, i) => ({ figma: `Chart > Y-Axis > ${label}`, dom: `.zen-chart__y > span:nth-child(${i + 1})`, check: ["text", "right", "cy"] })),
+    ...["0", "500", "1K", "1.5K", "2K", "2.5K"].map((label, i) => ({ figma: `Chart > Y-Axis > Label#${5 - i}`, dom: `.zen-chart__y > span:nth-child(${i + 1})`, check: ["text", "right", "cy"] })),
     { figma: "Chart > Plot", dom: ".zen-chart__plot", check: ["size", "x", "y"] },
     { figma: "Chart > Plot > Grid", dom: ".zen-chart__grid", check: ["size", "x", "y"] },
     // Gridlines bottom-up: the Baseline is tick 0; centred strokes, code's border just above (tolerance 1, as the Trend).

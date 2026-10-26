@@ -28,7 +28,7 @@ export default {
     ]),
     // Figma-side slip: the caption keeps Medium's FIXED 84px box at every size, so XLarge wraps "Online banking
     // redesign" in a 320px ring; code's caption spans the hole (inset 24%) and fits it on one line.
-    ...["Bottom", "End"].map((Legend) => ({ vp: { Legend, Size: "XLarge" }, layer: "Chart > Ring > Centre > Caption", prop: "h", code: "16",
+    ...["Bottom", "End"].map((Legend) => ({ vp: { Legend, Size: "XLarge" }, layer: "Chart > Ring > Centre > Meta", prop: "h", code: "16",
       note: "XLarge keeps Medium's fixed 84px caption box in Figma; code's caption spans the hole." })),
   ],
   map: [
@@ -45,7 +45,7 @@ export default {
     ])),
     { figma: "Chart > Ring > Centre", dom: ".zen-chart__centre", check: ["cx", "cy"] },
     { figma: "Chart > Ring > Centre > Value", dom: ".zen-chart__centre-value", check: ["text", "h", "cx"] },
-    { figma: "Chart > Ring > Centre > Caption", dom: ".zen-chart__centre-label", check: ["text", "h", "cx"] },
+    { figma: "Chart > Ring > Centre > Meta", dom: ".zen-chart__centre-label", check: ["text", "h", "cx"] },
     ...legendMap("Chart > Legend", { items: 3, itemName: "Legend-Item", itemY: true, when: (vp) => vp.Legend === "End" }),
     ...legendMap("Chart > Legend", { items: 3, itemName: "Legend-Item", check: ["w", "x", "y"], when: (vp) => vp.Legend === "Bottom" }),
   ],
