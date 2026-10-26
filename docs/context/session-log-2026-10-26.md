@@ -398,6 +398,10 @@ sửa mọi chỗ đang sai trong component, ví dụ và Studio." Mid-task: "Me
   band, DashboardHeader's result count ("96 results", a value). CI fix: axe baseline color-contrast for CalendarDayCell,
   NpsScale, TimelineGantt; MetricCard tile test expects Inverse/Light. The platform-audit selftest (13 text-tone
   fixtures) still has to run: no browser runs until Giám sát's window.
+- Gate on 7b66708c (17 pages, --isolated): 15 pass; chat and text failed text-tone only. The check called a Chat
+  conversation's time inside its `__title` a title → outside a heading the nearest part decides too (time no, name yes);
+  the Text playground kept tone Light after a Caption style when Heading was switched on → Heading resets the tone.
+  Selftest fixture + `not:` option. Rerun chat,text: PASS (static, Vitest 93, contracts 53, audit, dark, behaviour).
 - Gate 1 (head 52517e83: static, audit, dark, behaviour pass; E2E 367/380). The 13 regressions came from the placeholder frame:
   two crumbs made a new page a child screen (§17 R14: no phone Bottom Navigation) → pages take Master alone
   (`rootCrumbs`, `root: true`); a Studio bug, `itemElement` paired every same-label tab with the first (⊕ stacked,

@@ -210,15 +210,25 @@ export function qualityChecks({ scopeSel, regionSel }) {
       // A heading's own text is its title; its other parts (a subtitle, a time, a Master › Child crumb) are not, nor is a
       // styled run inside a heading that has words of its own ("Morning <Alexander>").
       const heading = b.el.closest("h1, h2, h3, h4, h5, h6, [role='heading']");
+      const partsOf = (a) => (typeof a.className === "string" ? a.className.split(/\s+/).filter((c) => /^zen-[a-z-]+__[a-z-]+$/.test(c)) : []);
       let ownTitle = Boolean(heading);
       if (heading) {
         for (let a = b.el; a && a !== heading; a = a.parentElement) {
-          const parts = typeof a.className === "string" ? a.className.split(/\s+/).filter((c) => /^zen-[a-z-]+__[a-z-]+$/.test(c)) : [];
+          const parts = partsOf(a);
           if (parts.length) { ownTitle = parts.some((c) => /__(title|name|heading)$/.test(c)); break; }
         }
         if (ownTitle && b.el !== heading && [...heading.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && n.textContent.trim())) ownTitle = false;
       }
-      const titleEl = heading ? (ownTitle ? heading : null) : part(/(^|\s)zen-[a-z-]+__title(\s|$)/);
+      // Outside a heading, the nearest part decides too: a `__title` part's own text, or its `__name` / `__heading`, is
+      // the title; a time or a meta run inside it (a Chat conversation's "9:48 am") is not.
+      let partTitle = false;
+      if (!heading && part(/(^|\s)zen-[a-z-]+__title(\s|$)/)) {
+        for (let a = b.el; a && a !== region; a = a.parentElement) {
+          const parts = partsOf(a);
+          if (parts.length) { partTitle = parts.some((c) => /__(title|name|heading)$/.test(c)); break; }
+        }
+      }
+      const titleEl = heading ? (ownTitle ? heading : null) : partTitle ? b.el : null;
       const subtext = part(/(^|\s)zen-[a-z-]+__([a-z-]+-)?(subtitle|subtext|subheading|capline)(\s|$)|(^|\s)zen-page-header__description(\s|$)/) && !b.el.closest(".zen-dashboard-header__subheading");
       const role = subtext ? "subtext"
         : titleEl ? "title"

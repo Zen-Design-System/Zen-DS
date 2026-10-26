@@ -47,7 +47,7 @@ const CHECKS = { pageChecks, qualityChecks: (args) => page.evaluate(qualityCheck
  * One fixture: its page, the check, the kind, and what it must report (`finds`: substrings, each in some finding) or
  * that it reports nothing of that kind (`clean`).
  */
-async function fixture(label, html, check, kind, { finds = [], clean = false, args = { scopeSel: ".official-platform" } } = {}) {
+async function fixture(label, html, check, kind, { finds = [], not = [], clean = false, args = { scopeSel: ".official-platform" } } = {}) {
   await page.setContent(html);
   let result;
   try { result = await CHECKS[check](args); } catch (error) { ok(`${label}: ${check} runs`, false, error.message.split("\n")[0]); return; }
@@ -55,6 +55,7 @@ async function fixture(label, html, check, kind, { finds = [], clean = false, ar
   if (PRINT) console.log(`· ${label} [${kind}]\n${found.map((item) => `    ${item}`).join("\n") || "    (none)"}`);
   if (clean) ok(`${label}: no ${kind}`, found.length === 0, found.join("\n    "));
   for (const part of finds) ok(`${label}: ${kind} names ${JSON.stringify(part)}`, found.some((item) => item.includes(part)), found.join("\n    ") || "(no findings)");
+  for (const part of not) ok(`${label}: ${kind} leaves out ${JSON.stringify(part)}`, !found.some((item) => item.includes(part)), found.join("\n    "));
 }
 
 ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageChecks(") && pageChecksSource.trimEnd().endsWith("}"));
@@ -183,6 +184,7 @@ ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageCheck
   await fixture("text-tone: an error step's title in Negative/Base", docsPage(example("Step", `<span class="zen-stepper__title zen-type-body-base-bold" style="color: var(--zen-color-content-negative-base)">Payment</span><h3 class="zen-type-body-small-bold" style="color: var(--zen-color-content-neutral-base)">Today</h3>`)), Q, K, { finds: ["content-negative-strongest", "\"Today\" (h3"] });
   await fixture("text-tone: a Strongest title, a Light Subtext, a Light kicker, a past item's title", docsPage(example("Good", `<h2 class="zen-type-heading-4" style="color: var(--zen-color-content-neutral-strongest)">Orders</h2><p class="zen-page-header__description zen-type-body-base-regular" style="color: var(--zen-color-content-neutral-light)">All orders</p><h3 class="zen-type-body-small-bold" style="color: var(--zen-color-content-neutral-light)">Today</h3><div data-status="past"><span class="zen-schedule-stop__title zen-type-body-base-medium" style="color: var(--zen-color-content-neutral-light)">Workshop</span></div>`)), Q, K, { clean: true });
   await fixture("text-tone: a heading's subtitle, time and child crumb, a styled run, a counter (gate 2026-10-26)", docsPage(example("Parts", `<h2 class="zen-top-nav__identity zen-type-body-base-bold" style="color: var(--zen-color-content-neutral-strongest)"><span class="zen-top-nav__identity-title">Chi Tran</span><span class="zen-top-nav__identity-subtitle zen-type-caption-regular" style="color: var(--zen-color-content-neutral-light)">Active now</span></h2><h3 class="zen-type-body-base-bold" style="color: var(--zen-color-content-neutral-strongest)"><span class="zen-chat-convo__name">Hà</span><span class="zen-chat-convo__time zen-type-caption-regular" style="color: var(--zen-color-content-neutral-light)">9:48 am</span></h3><h1 class="zen-type-heading-1" style="color: var(--zen-color-content-neutral-strongest)">Morning <span class="zen-text zen-type-heading-1" style="color: var(--zen-color-content-neutral-light)">Alexander</span></h1><span class="zen-badge zen-badge--counter"><span class="zen-type-caption-medium" style="color: var(--zen-color-content-neutral-strongest)">3</span></span>`)), Q, K, { clean: true });
+  await fixture("text-tone: a time inside a title part is not the title; the name is (Chat inbox, gate 2026-10-26)", docsPage(example("Convo", `<span class="zen-list-item__title"><span class="zen-chat-convo__title"><span class="zen-chat-convo__name zen-type-body-base-bold" style="color: var(--zen-color-content-neutral-base)">Hà</span><span class="zen-chat-convo__time zen-type-body-small-regular" style="color: var(--zen-color-content-neutral-light)">9:48 am</span></span></span>`)), Q, K, { finds: ["\"Hà\" (span.zen-chat-convo__name", "is a title in content-neutral-base"], not: ["9:48 am"] });
   await fixture("text-tone: Body/Small meta in Base is not a Caption", docsPage(example("Body", cap("Updated 2 min ago", "neutral-base", "zen-type-body-small-regular"))), Q, K, { clean: true });
 }
 
