@@ -303,7 +303,8 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
     // or of the floating Box that is its layer in a frame without auto layout (slots/actions.ts floatWrapOf).
     if (spot.after || spot.replace) {
       const wrap = wrapped !== undefined ? wrapped : await studioWrapOf(selection);
-      const outer = wrap ? spotFor(wrap, replace, true) : null;
+      // Paste to replace keeps a floating Box: the component inside it is what changes, so the layer stays where it floats.
+      const outer = wrap && !(replace && wrap.name === "Box") ? spotFor(wrap, replace, true) : null;
       if (outer && typeof outer !== "string") spot = outer;
       spot = await sourceParent(spot);
     }
