@@ -30,6 +30,17 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   are Label (Area, Grouped-Bar and Combo named them by their sample, "Q1", "$125K"); a gauge's reading Value and its target
   Meta, a donut's or radial's centre caption Meta; Bar-List, Bullet and Funnel rows Name / Value / Meta. Studio writes the
   axes by position now; undo map in `docs/figma-contracts/layer-renames-2026-10-26.json`.
+- Zen Studio opens a page you made at its first Screen (2026-10-27, UX review §2.3): with no viewport saved for the
+  page, one row of frames fits whole (never under 25%), else the first Screen fills the visible canvas; the viewport is
+  then remembered per page in the browser's preferences (a reload, a new tab, a restart), as Figma reopens a file. A
+  field with `autoFocus` drawn in an Overlay frame no longer pans the canvas to its overlay as the page opens (the
+  browser's focus scroll is turned into a pan only while the focus is in the world).
+- Zen Studio inserts like Figma (2026-10-27, UX review §2.4, the user's decision A): in a Screen without auto layout
+  (an Empty page), Assets › Components and Quick insert put the component at its own size, floating beside the
+  selection with the page gap (16; a new row at the page margin, 24 / 20 on a phone, when it would not fit), the
+  first at the margin corner; a chart card gets the widget width (a third of the row). No more full-width blocks at
+  gap 0. The new component is selected; its floating Box is its layer (Delete, ⌘D, a move take it along). Inside a
+  Stack or Grid the layout's rule stays. Studio E2E B-50…54, ST-30…32.
 - Zen Studio right-click (2026-10-27): on a phone Screen, a layer under the dashed "Add Top / Bottom Navigation"
   placeholder opens its menu again. The placeholder covers the Screen's edge while a layer in it is selected, and a
   right-click there opened nothing. Its click still adds the Navigation. Studio E2E FW-177 passes again.

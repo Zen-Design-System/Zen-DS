@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-26.
+Last updated: 2026-10-27.
 
 ## Read order
 
@@ -19,6 +19,11 @@ Last updated: 2026-10-26.
 
 ## State in short
 
+- **Studio first view + Figma-like inserts (2026-10-27, UX review §7.3–4):** branch
+  `claude/studio-first-view-insert-20261027-2f7881`. A page you made opens at its first Screen (one row of frames
+  fits, ≥ 25%) and reopens at its remembered viewport (localStorage); in a Screen without auto layout an insert floats
+  beside the selection at its own size with the page gap (`edit/insertPlace.ts`, `edit/freeBlock.ts`,
+  `canvas/firstView.ts`). Root cause of §2.3 was a page field's `autoFocus` scrolling the viewport (session log).
 - **Studio responsive breakpoints (2026-10-26):** plan `docs/research/studio-responsive-breakpoints-2026-10-26.md`
   approved (D1–D4; D5, a harness rule, not). Session bp-studio builds the Studio half: PR 1 (view switch Desktop ·
   Tablet · Mobile on a Screen's label, the Screen's breakpoint in ZenContext and following a desktop Screen's width,
