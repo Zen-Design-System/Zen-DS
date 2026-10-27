@@ -6,6 +6,9 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
 [`QUESTIONS.md`](QUESTIONS.md).
 
 ## For the user (Việc của anh/chị)
+- **P3 · Studio chrome: the 12px tab labels at 3.79:1 (2026-10-04 A2, re-measured 2026-10-27):** the library's tab tone
+  on the Studio's own tabs stays under 4.5:1 (`studio-ux-review-2026-10-27.md` §5). Keep the library tone, or lift the
+  Studio chrome's tab labels to 4.5:1? The user decides; the review's other items were approved on 2026-10-27.
 - **P2 · LICENSE.md is a draft: legal review before selling (2026-10-08):** drafted on PR #5 (Dizai Studio, Vietnam law, subscription, apps-not-kits, per company + member limit); a lawyer must review it and remove its "Draft" note. Was: package.json has no `license` field and the repo no
   LICENSE/EULA; needed before selling (legal text from the user).
 - **P2 · Private registry: the user's steps, then Phase 6 (2026-10-08; rewritten 2026-10-25):** live since 2026-10-14
@@ -38,9 +41,6 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   (§8.3; proposed). Examples get every language too (user, 2026-10-03). Nothing built.
 - **P3 · Studio UX polish N1–N11 — deferred by the user 2026-10-08 ("để sau"):** `docs/research/studio-ux-audit-2026-10-04.md`.
   Written before the UI3 shell (#63) and F0–F10, so re-check each note in the Studio UI design check (next phase).
-- **P3 · Studio panels in dark chrome and at 280px (2026-10-03; rewritten 2026-10-24):** no screenshot pass of the
-  rebuilt UI3 panels in dark chrome (`chromeTheme`, `src/platform/studio/store.ts` ~21) or at their 280px minimum width
-  (`inspector/inspector.css` ~3). Goes with N1–N11 (above).
 - **ListItem Value in Figma — decided, not built (user, 2026-10-23: "not now"; 2026-10-13: "code first"):** code has
   `value` · `valueCaption` · `valueTone` (a right-aligned two-line amount, CHANGELOG 0.4.0 Added); Figma List-Item keeps
   the hand-built text stack in the Trailing slot. A `.Primitives/List-Item/…/Value` in `9nZv4uW2…` waits until the user
