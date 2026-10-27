@@ -122,7 +122,7 @@ nested instances for an instance (`namedParts`, 2026-10-13); its "show all" mode
 | `--only=starters --rows=SP-14,SP-18,SP-19` · `--only=data --rows=DA-01,DA-02,DA-08,DA-09` · `--only=select --rows=SE-09,SE-31,SE-33` | 3 + 4 + 3 works, no retry needed |
 | `--only=figma` (whole group, default retry; on the merge with main 8c21a815) | **200 works · 0 broken** (984 s); 8 passed on their retry (FW-193, 201, 25, 64, 113, 56, 142, 205: timeouts under load), all 8 pass alone with `--no-retry` (42 s) |
 | After the merge with main f20fb85c (#334 … #336): `--rows=FW-255,FW-256,FW-257,FW-258 --no-retry` · `--only=starters --rows=SP-18` · `--only=data --rows=DA-02` | 4 + 1 + 1 works |
-| `npm run qa -- --files=<the 10 edited Studio files>` (`npm run qa` alone says "Nothing to check": the hook records no edits made through scripts) | first run: static gates pass but the words self-test flagged "what it renders" on the Code tab's part note (reworded); second run: see below |
+| `npm run qa -- --files=<the 10 edited Studio files>` (`npm run qa` alone says "Nothing to check": the hook records no edits made through scripts) | first run: static gates pass but the words self-test flagged "what it renders" on the Code tab's part note (reworded); second run: static gates pass, the Studio E2E matrix 387 works · 1 broken (NO-08: the double-click on a Card's Sub-Action icon reached the Icon at once, as the approved gesture does, where the row expected IconButton first) — the row follows the gesture now (Icon, Escape → IconButton, Enter → Icon; `--only=nested --rows=NO-08,NO-09,NO-04 --no-retry` 3 works); third run: see the PR |
 
 The walk, in "you do → what happens" form (after the merge with main 8c21a815):
 
@@ -158,7 +158,8 @@ Two harness findings on the way (not the product):
   `undoEdit`); `undoTo` now names the first differing line, the undo stack and the status when it fails, and waits a
   frame between the focus and the key.
 
-E2E rows changed with the behaviour (§7.1 approved): SP-18 (a double-click on a Metric card's icon reaches the icon
+E2E rows changed with the behaviour (§7.1 approved): NO-08 (a Card's Sub-Action icon: the double-click reaches the
+Icon in one step, Escape climbs to the IconButton, Enter goes back in; before: IconButton, then Icon), SP-18 (a double-click on a Metric card's icon reaches the icon
 layer, Escape climbs to the Metric; before: the double-click gave the Metric) and DA-02 (the first double-click on a
 .map row's text selects the text, the second edits the data item; before: one double-click edited).
 
