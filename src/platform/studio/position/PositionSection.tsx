@@ -8,7 +8,7 @@ import { Icon } from "../../../components/Icon";
 import { propSpecs } from "../inspector/propSchema";
 import type { IconName } from "../../../icons/generated/names";
 import { typographyStyles } from "../../../tokens/typography.generated";
-import { parseSrc } from "../api";
+import { applyEdit, parseSrc, studioApi } from "../api";
 import { canvasApi } from "../canvas/viewport";
 import type { FieldApi } from "../inspector/fieldApi";
 import type { PropValue } from "../inspector/propSchema";
@@ -54,6 +54,8 @@ export type Geometry = {
   parent: "auto" | "flow" | "none";
   /** A floating Box around it that holds only it: that Box's data-zen-src. */
   floatBox: string | null;
+  /** With floatBox: that Box's own X / Y in its frame (the Box floats; the layer sits at 0 / 0 inside it). */
+  box: { x: number; y: number } | null;
   /** The containing block is not the layer's parent (a Card or a positioned ancestor further out): its name. */
   pinnedTo: string | null;
   /** Every layer of the parent floats, so the parent hugs nothing on that axis. */
@@ -62,7 +64,7 @@ export type Geometry = {
   parentSized: boolean;
 };
 
-const noGeometry: Geometry = { measured: null, floating: false, parent: "none", floatBox: null, pinnedTo: null, parentEmpty: false, parentSized: false };
+const noGeometry: Geometry = { measured: null, floating: false, parent: "none", floatBox: null, box: null, pinnedTo: null, parentEmpty: false, parentSized: false };
 
 /** The nearest ancestor that renders a box (display: contents wrappers are skipped). */
 function layoutParent(element: Element): HTMLElement | null {
@@ -108,6 +110,16 @@ export function readGeometry(selection: NodeSelection): Geometry {
   const display = getComputedStyle(domParent).display;
   const parent = /flex|grid/.test(display) ? "auto" : "flow";
   const floatBox = !floating && domParent.matches('.zen-box[data-position="absolute"]') && domParent.children.length === 1 ? srcAttr(domParent) : null;
+  // The Box around a floating layer: its offset in its own frame is the X / Y the designer reads (UX review 2026-10-27
+  // §2.10: a drawn Text showed 0 / 0, its place inside the Box).
+  let box: { x: number; y: number } | null = null;
+  const boxBlock = floatBox ? containingBlock(domParent, true) : null;
+  if (boxBlock) {
+    const outer = boxBlock.getBoundingClientRect();
+    const scale = boxBlock.offsetWidth ? outer.width / boxBlock.offsetWidth || 1 : 1;
+    const rect = domParent.getBoundingClientRect();
+    box = { x: Math.round((rect.left - outer.left) / scale - boxBlock.clientLeft), y: Math.round((rect.top - outer.top) / scale - boxBlock.clientTop) };
+  }
   const block = containingBlock(host, floating);
   let measured: Measured | null = null;
   if (block) {
@@ -136,7 +148,7 @@ export function readGeometry(selection: NodeSelection): Geometry {
   const siblings = Array.from(domParent.children).filter((node) => node instanceof HTMLElement && getComputedStyle(node).display !== "none");
   const parentEmpty = floating && siblings.length > 0 && siblings.every((node) => node instanceof HTMLElement && getComputedStyle(node).position === "absolute");
   const parentSized = domParent.matches(".studio-builder-screen, .studio-builder-screen__content") || (domParent.getAttribute("data-w") === "fixed" && domParent.getAttribute("data-h") === "fixed");
-  return { measured, floating, parent, floatBox, pinnedTo, parentEmpty, parentSized };
+  return { measured, floating, parent, floatBox, box, pinnedTo, parentEmpty, parentSized };
 }
 
 /** A readable name for an annotated element (its component, else its tag). */
@@ -170,6 +182,21 @@ function useGeometry(selection: NodeSelection): Geometry {
     return () => { window.clearTimeout(timer); mutation.disconnect(); resize.disconnect(); offSource(); };
   }, [selection.src, selection.instance]);
   return geometry;
+}
+
+/** The Box that floats the selected layer (viaBox): its element, read again after each source update, or null. */
+function useFloatBox(src: string | null): SourceElement | null {
+  const [box, setBox] = useState<SourceElement | null>(null);
+  useEffect(() => {
+    const at = src ? parseSrc(src) : null;
+    if (!at) { setBox(null); return; }
+    let alive = true;
+    const read = () => { void studioApi.element(at.file, at.loc).then((element) => { if (alive) setBox(element?.name === "Box" ? element : null); }).catch(() => undefined); };
+    read();
+    const off = onSourceUpdate(read);
+    return () => { alive = false; off(); };
+  }, [src]);
+  return box;
 }
 
 /** The Spacing/Padding ladder as it measures on the layer (density, breakpoint and mode applied). */
@@ -208,6 +235,8 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
   const floating = own && literal(positionValue) === "absolute";
   const viaBox = !own && Boolean(geometry.floatBox);
   const pressed = floating || viaBox;
+  const floatBox = useFloatBox(viaBox ? geometry.floatBox : null);
+  const lastBoxMove = useRef<{ src: string; prop: string; value: number } | null>(null);
   const disabled = api.disabled;
   const [busy, setBusy] = useState(false);
   if (geometry.parent === "none") return null;
@@ -273,12 +302,42 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
   const ladder = floating ? ladderOf(selection) : [];
   // Figma's X / Y: the written px offset when there is one (a rotated layer measures its turned bounds), else measured.
   const writtenPx = (prop: string) => { const value = literal(values[prop]); return typeof value === "number" ? value : null; };
-  const x = writtenPx("insetLeft") ?? (geometry.measured ? Math.round(geometry.measured.x.start) : null);
-  const y = writtenPx("insetTop") ?? (geometry.measured ? Math.round(geometry.measured.y.start) : null);
+  // A layer floating in a Box around it (a drawn Text, Ignore auto layout on a component): X / Y are the Box's, as
+  // measured on the canvas (live through an undo too), else the px it writes, and typing moves the Box (UX review
+  // 2026-10-27 §2.10).
+  const boxAttr = (prop: string) => floatBox?.attributes.find((attr) => attr.name === prop);
+  const boxPx = (prop: string) => { const attr = boxAttr(prop); return attr?.kind === "expression" && attr.value && /^-?\d+(\.\d+)?$/.test(attr.value) ? Number(attr.value) : null; };
+  const x = viaBox ? geometry.box?.x ?? boxPx("insetLeft") : writtenPx("insetLeft") ?? (geometry.measured ? Math.round(geometry.measured.x.start) : null);
+  const y = viaBox ? geometry.box?.y ?? boxPx("insetTop") : writtenPx("insetTop") ?? (geometry.measured ? Math.round(geometry.measured.y.start) : null);
   // A floating layer pinned to the left / top edge takes X / Y as typed, in px (Figma's free X / Y; a token step it had
-  // becomes its px value). Other constraints keep their edge offsets below.
-  const freeAxis = (axis: PositionAxis) => floating && pins[axis] === "start" && values[axis === "x" ? "insetLeft" : "insetTop"].state !== "bound" && values[axis === "x" ? "insetLeft" : "insetTop"].state !== "spread";
+  // becomes its px value). Other constraints keep their edge offsets below. The Box around a layer: the same, by its
+  // own constraints (none written = left / top).
+  const boxFree = (axis: PositionAxis) => {
+    if (!floatBox) return false;
+    const constraint = boxAttr(axis === "x" ? "constraintX" : "constraintY");
+    const inset = boxAttr(axis === "x" ? "insetLeft" : "insetTop");
+    return (!constraint || (constraint.kind === "string" && constraint.value === (axis === "x" ? "left" : "top"))) && (!inset || inset.kind === "expression");
+  };
+  const freeAxis = (axis: PositionAxis) => viaBox ? boxFree(axis) : floating && pins[axis] === "start" && values[axis === "x" ? "insetLeft" : "insetTop"].state !== "bound" && values[axis === "x" ? "insetLeft" : "insetTop"].state !== "spread";
+  const moveBox = async (axis: PositionAxis, value: number) => {
+    const src = geometry.floatBox;
+    const at = src ? parseSrc(src) : null;
+    if (!src || !at) return;
+    const prop = axis === "x" ? "insetLeft" : "insetTop";
+    const next = Math.round(value);
+    // The field commits on Enter and again when it is left: the same value a second time writes nothing.
+    const last = lastBoxMove.current;
+    if (last && last.src === src && last.prop === prop && last.value === next) return;
+    lastBoxMove.current = { src, prop, value: next };
+    const current = await studioApi.element(at.file, at.loc).catch(() => null);
+    if (!current || current.name !== "Box") { inspectorStatus.set("negative", "The frame around it moved before the change was saved; nothing was written"); return; }
+    const written = current.attributes.find((attr) => attr.name === prop);
+    if (written?.kind === "expression" && Number(written.value) === next) return;
+    const response = await applyEdit({ file: at.file, loc: at.loc, name: "Box", ops: [{ op: "setProp", name: prop, value: { kind: "number", value: next } }], hash: current.hash }, `${name} ${axis.toUpperCase()} → ${next}`);
+    if (!response.ok) inspectorStatus.set("negative", response.error);
+  };
   const moveTo = (axis: PositionAxis, value: number) => {
+    if (viaBox) { void moveBox(axis, value); return; }
     const prop = axis === "x" ? "insetLeft" : "insetTop";
     void api.apply([{ op: "setProp", name: prop, value: { kind: "number", value: Math.round(value) } }], `${name} ${axis.toUpperCase()} → ${Math.round(value)}`);
   };

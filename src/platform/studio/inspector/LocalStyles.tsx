@@ -11,7 +11,8 @@ import "../appearance/appearance.css";
  * Figma's Local styles in the right panel with nothing selected (F5c of
  * docs/research/studio-figma-design-parity-2026-10-18.md): the Zen file's text, color and effect styles, each group
  * folded with its count, each style named with its preview. Read-only: styles are tokens edited in Figma (the style
- * manifest, src/styles/generated/style-manifest.json, read when the panel first opens).
+ * manifest, src/styles/generated/style-manifest.json, read when the panel first opens). "Edit in Figma" in the title row
+ * opens the Zen file (UX review 2026-10-27 §2.10: the note "Edit styles in Figma" read as an action with nothing to click).
  */
 
 type Manifest = {
@@ -19,6 +20,9 @@ type Manifest = {
   colors?: Array<{ name: string; token: string }>;
   effectStyles?: Array<{ name: string; token: string }>;
 };
+
+/** The live Zen Figma library (the docs' Download Figma, PlatformApp.tsx, opens the same file). */
+const ZEN_FIGMA_URL = "https://www.figma.com/design/9nZv4uW2LT21yuHabMTCh1";
 
 let manifest: Promise<Manifest> | null = null;
 const loadManifest = () => (manifest ??= import("../../../styles/generated/style-manifest.json").then((module) => module.default as Manifest));
@@ -64,7 +68,7 @@ export function LocalStyles() {
     return () => { alive = false; };
   }, []);
   return (
-    <InspectorSection title="Local styles" note="Edit styles in Figma">
+    <InspectorSection title="Local styles" actions={<Button level="tertiary" size="sm" endIcon="icon-arrow-up-right-line" onClick={() => { window.open(ZEN_FIGMA_URL, "_blank", "noopener,noreferrer"); }}>Edit in Figma</Button>}>
       {(groups ?? []).filter((group) => group.items.length).map((group) => (
         <div key={group.id} className="studio-local-styles__group">
           {/* zen-allow-compact-button: a disclosure row in a dense tool panel, as Figma's Local styles groups */}

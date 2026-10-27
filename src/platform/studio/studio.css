@@ -28,6 +28,25 @@
 
 /* clip: focus inside the canvas must never scroll the work area itself (the canvas turns such scrolls into pans). */
 .studio-canvas-area { position: absolute; inset: 0; min-width: 0; min-height: 0; overflow: clip; }
+/* The canvas ends at the docked panels: a strip in the canvas colour (canvas.css --studio-canvas-color) under each
+   docked panel's column, from the window's edge to the panel's far edge, at z 21 (above the frames and their chrome,
+   below the panel at 22), so no frame's text shows through the 8px gutters beside the panels (UX review 2026-10-27
+   §2.10). The panel's shadow and corners fall on the canvas colour, as before. Not on a document page (its canvas area
+   starts after the left panel), nor under the App Shell playground's full screen (it covers the window). */
+.studio-app[data-left="docked"]:not([data-doc="true"]) .studio-canvas-area::before,
+.studio-app[data-right="docked"]:not([data-doc="true"]) .studio-canvas-area::after {
+  content: "";
+  position: absolute;
+  z-index: 21;
+  top: 0;
+  bottom: 0;
+  background: var(--studio-canvas-color, var(--zen-color-background-canvas-default, #f7f7f7));
+  pointer-events: none;
+}
+.studio-app[data-left="docked"]:not([data-doc="true"]) .studio-canvas-area::before { left: 0; width: var(--studio-inset-left); }
+.studio-app[data-right="docked"]:not([data-doc="true"]) .studio-canvas-area::after { right: 0; width: var(--studio-inset-right); }
+.studio-canvas-area[data-world-fullscreen="true"]::before,
+.studio-canvas-area[data-world-fullscreen="true"]::after { display: none; }
 /* A document page reads as a normal page beside the left panel, its content starting under the floating bars at the
    top (Document | Studio, the right header): their 44px row and Spacing/Padding/XSmall above and below it. */
 .studio-app[data-doc="true"] .studio-canvas-area { left: var(--studio-inset-left); }

@@ -26,7 +26,10 @@ Last updated: 2026-10-27.
   grouped instance properties, dark-mode coupling. Decisions: §2.4 inserts keep their own size (A); §2.9 Dark mode
   changes the UI only, as Figma. In progress in four worktree sessions from main (BACKLOG.md Open items):
   `zen/fix/studio-gestures-20261027`, `zen/fix/studio-first-view-insert-20261027`, `zen/fix/studio-panels-small-20261027`,
-  `zen/fix/studio-words-props-dark-20261027`. Docs PR #332.
+  `zen/fix/studio-words-props-dark-20261027`. Docs PR #332. Items 5, 9, 10 (session panels-small) done: PR #335
+  (Studio: Flow list at 320 / 280, the phone tool rail's More menu, the §2.10 small things, every Inspector tab with a
+  panel) and PR #336 (library Tabs `aria-controls` only with an `idPrefix`); the 12px tab tone (3.79:1) stays the
+  user's question.
 - **Studio responsive breakpoints (2026-10-26):** plan `docs/research/studio-responsive-breakpoints-2026-10-26.md`
   approved (D1–D4; D5, a harness rule, not). Session bp-studio builds the Studio half: PR 1 (view switch Desktop ·
   Tablet · Mobile on a Screen's label, the Screen's breakpoint in ZenContext and following a desktop Screen's width,
