@@ -14,6 +14,11 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Tabs name their panels only when they have them (2026-10-27, UX review §7.10): `aria-controls` is set only with an
+  `idPrefix` (the prefix a TabPanel pairs with); before, a generated prefix pointed every tab at a panel that did not
+  exist, an ARIA error (axe `aria-valid-attr-value`, critical) on every page with panel-less Tabs. The 12px tab tone
+  (3.79:1) is still open.
+
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).

@@ -144,3 +144,16 @@ single green run is left to the slot's owner (reported to Giám sát).
 is given (only then can a TabPanel pair with the tabs); a generated prefix pointed at a panel that never existed (axe
 `aria-valid-attr-value`, critical, on every page with panel-less Tabs). Guideline + story note updated; the 12px tab
 tone (3.79:1) stays the user's question.
+
+## Tabs `aria-controls` only with an idPrefix (session panels-small, library half of UX review §7.10, tier S)
+
+Branch `zen/fix/tabs-aria-controls-20261027` from main. `Tabs` set `aria-controls="<prefix>-panel-<id>"` on every tab,
+a generated prefix included, so Tabs without TabPanels (the review's `quan-ly-task` page, apps alike) pointed at an id
+that does not exist: axe `aria-valid-attr-value`, critical, 2 per page (§5). Now the attribute is set only when
+`idPrefix` is given — only then can a TabPanel pair with the tabs; JSDoc, the guideline's Panels row and a11y line and
+the story note say so (`npm run guidelines:build`). Measured on the Studio page (12 tabs): 0 violations, 0 tabs whose
+`aria-controls` names nothing (was 2). The smoke fixture renders its panels, so the axe baseline is unchanged. The
+12px tab tone (3.79:1) stays the user's question. Gate: `npm test -- tests/smoke` 448 passed · 11 skipped;
+`npm run qa -- --isolated --pages=tabs --files=Tabs.tsx,Tabs.stories.tsx,guidelines.source.mjs` PASS (static gates,
+guidelines + AI UI catalog in sync after `npm run ai-ui:build`, TypeScript, Vitest 94/94, platform audit 1512 + 390 +
+320 0 errors, dark 0, behaviour 0; two contact sheets looked at: no visual change, as expected of an ARIA-only fix).

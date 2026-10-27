@@ -18,7 +18,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Playground: Story = {};
 
-/** Tabs switch TabPanels that share the idPrefix (aria-controls wiring). */
+/** Tabs switch TabPanels that share the idPrefix (aria-controls wiring; tabs without an idPrefix name no panel). */
 export const WithPanels: Story = {
   render: function PanelsStory(args) {
     const [tab, setTab] = useState("overview");
