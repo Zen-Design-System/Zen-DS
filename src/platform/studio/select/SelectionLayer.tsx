@@ -122,6 +122,11 @@ function deepestAt(element: Element, x: number, y: number): Element {
   return current;
 }
 
+/** A Screen's dashed "Add Top / Bottom Navigation" on the canvas (runtime PartPlaceholder): frame chrome with no menu. */
+const PLACEHOLDER = "[data-studio-placeholder]";
+/** What a right-click needs of its event: React's on the capture layer, or the DOM's handed back from a placeholder. */
+type MenuPress = { clientX: number; clientY: number; metaKey: boolean; ctrlKey: boolean; preventDefault: () => void };
+
 function frameElement(world: Element | null, frameId: string | null) {
   if (!world || !frameId) return null;
   return Array.from(world.querySelectorAll("[data-studio-frame]")).find((frame) => frame.getAttribute("data-studio-frame") === frameId) ?? null;
@@ -498,7 +503,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     if (captureRef.current) captureRef.current.style.pointerEvents = on ? "none" : "";
   }, []);
 
-  const pick = useCallback((x: number, y: number): Pick => {
+  /** What is under the pointer; `through` names frame chrome the pick passes (a right-click's, below). */
+  const pick = useCallback((x: number, y: number, through?: string): Pick => {
     if (!world) return { kind: "empty" };
     const root = rootRef.current;
     // Overlays an example left open take no pointer events in Select (studio.css): hit-test them for this pick only.
@@ -522,6 +528,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       // Studio chrome over the canvas (frame labels, zoom, status) or the empty canvas: nothing of the world here.
       if (!world.contains(element)) return { kind: "empty" };
       const chrome = element.closest("[data-studio-frame-chrome]");
+      if (chrome && through && chrome.matches(through)) continue;
       if (chrome) return { kind: "chrome", element };
       const frame = element.closest("[data-studio-frame]");
       if (!frame) return { kind: "empty" };
@@ -805,9 +812,11 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
    * Right-click: the canvas menu for the selected element (kept when the pointer is on it, else the element there); on a
    * frame's empty area its frame menu, on the empty canvas the canvas menu (E2E ST-04).
    */
-  const onContextMenu = (event: ReactMouseEvent<HTMLDivElement>) => {
+  const onContextMenu = (event: MenuPress) => {
     event.preventDefault();
-    const picked = pick(event.clientX, event.clientY);
+    // A Screen's dashed "Add Top / Bottom Navigation" (runtime PartPlaceholder) has no menu of its own and sits over the
+    // Screen's edge: a right-click there is the layer's under it, as Figma's always is (FW-177).
+    const picked = pick(event.clientX, event.clientY, PLACEHOLDER);
     if (picked.kind === "frame" || picked.kind === "variant") {
       const frameId = picked.frame.getAttribute("data-studio-frame");
       if (frameId) openFrameMenu(event.clientX, event.clientY, frameId);
@@ -833,6 +842,20 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     }));
     if (selection?.kind === "node") openCanvasMenu(event.clientX, event.clientY, selection, layers);
   };
+  // Over frame chrome the capture layer lets the pointer through (setPassThrough), so a right-click on a placeholder
+  // reaches the placeholder itself: it is handed back here.
+  const contextMenuRef = useRef(onContextMenu);
+  contextMenuRef.current = onContextMenu;
+  useEffect(() => {
+    if (!world) return;
+    const onPlaceholderMenu = (event: MouseEvent) => {
+      if (!(event.target instanceof Element) || !event.target.closest(PLACEHOLDER)) return;
+      event.stopPropagation();
+      contextMenuRef.current(event);
+    };
+    world.addEventListener("contextmenu", onPlaceholderMenu, true);
+    return () => world.removeEventListener("contextmenu", onPlaceholderMenu, true);
+  }, [world]);
 
   const onDoubleClick = (event: ReactMouseEvent<HTMLDivElement>) => {
     const picked = keepSelected(pick(event.clientX, event.clientY), event.clientX, event.clientY);
