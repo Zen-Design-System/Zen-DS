@@ -874,3 +874,27 @@ zen/fix/e2e-flaky-pt23-20261027, main merged (3fb5fb57).
   passed in 20 s). Gate `qa --isolated --files=` the four files: PASS, Studio E2E 402 works · 0 broken in 3 shards,
   ⟳ none, ↻ SE-12 ("a part selected", another group), report `.qa/reports/2026-10-27T19-14-55-74c671d1.md`.
 - Still open: Chromium's cancel itself; SE-12 and AP-02 (other groups) still retry now and then.
+
+## SE-12 (the toolbar took the click) · AP-02 (the eye right after + was dropped) (2026-10-28; tier S, test + product fix)
+
+The user, through Giám sát: "có, làm tiếp SE-12 và AP-02". Branch zen/fix/e2e-flaky-se12-ap02-20261028 from #340's
+head, main e9dea09b merged.
+- SE-12 (test): caught in the select group with elementsFromPoint. The fitted frame left the TopNavigation's actions at
+  the viewport's bottom (y 909–957 of 982), under the floating Tools bar, which took the ⌘-click (no pointerdown on the
+  canvas). Where the frame sits depends on the zoom the rows before left, so it passed alone. The row now zooms to the
+  TopNavigation (⇧2), waits for the action to stop moving, and names what covers the point if anything does.
+- AP-02 (product): a trace of the Inspector's reads and writes. stale() counted the writes SENT when a read started; a
+  read started while + was on its way (a hot update elsewhere made the panel read the Box) came back without the effect
+  yet counted as fresh, so the eye pressed once + had landed planned "reset effectStyle" from attributes without it and
+  was dropped ("runPlan SKIP … readEdits=1 edits=1 inFlight=0"). Fix: DesignPanel's `landed` counts answered writes; a
+  read holds what had landed when it started. Studio E2E AP-07 makes the order certain (+ held 1.2 s, a data.ts hot
+  update meanwhile, re-reads held 1.5 s, the eye at once; it shows and removes the effect again, as a hidden effect
+  stays hidden for the session): it fails on the old Inspector (2/2, then 4/4 in group runs) and passes on the fix.
+- Proof on 651fbe0c (Giám sát's slots; counts from the JSON): AP-07, AP-02, SE-12 `--no-retry` 5/5 each; appearance and
+  select groups; `--shard=1/4 … 4/4` 403 works · 0 broken, ↻ none, ⟳ none; gate `qa --isolated --files=` the four
+  files: PASS, Studio E2E 403 works · 0 broken in 3 shards, ↻ none, ⟳ none, report
+  `.qa/reports/2026-10-27T21-03-55-74c671d1.md`.
+- Still open: AP-02's last step ("removed") failed in about 1 of 9 appearance-group runs, on the old Inspector too. Not
+  the stale() race: the Remove button's onClick never ran although Playwright's click returned. Likely the click met
+  the panel re-rendering after Show (about 5 re-reads in 250 ms); a probe of where the click lands (document pointer
+  events, the button's box before and after) caught nothing in 4 runs.

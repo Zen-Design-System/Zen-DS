@@ -443,15 +443,18 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   const queue = useRef<Promise<void>>(Promise.resolve());
   const editCount = useRef(0);
   const inFlight = useRef(0);
-  // The edit count when the element shown was read: a write that landed after it leaves the attributes stale until the
-  // next read, so a click planned from them is planned again from a fresh read (Show then Remove, quickly).
+  // Writes answered (written or refused): a read holds the writes that had landed when it started, not those sent.
+  const landed = useRef(0);
+  // The writes landed when the element shown was read: a write sent after that leaves the attributes stale until the
+  // next read, so a click planned from them is planned again from a fresh read (Show then Remove, quickly; Hide right
+  // after Add, when a hot update made the panel read the element while Add was still on its way: E2E AP-02, AP-07).
   const readEdits = useRef(0);
   const stale = () => inFlight.current > 0 || readEdits.current !== editCount.current;
 
   useEffect(() => {
     if (!parsed) { setElement(null); return undefined; }
     let alive = true;
-    const startedAt = editCount.current;
+    const startedAt = landed.current;
     void studioApi.element(parsed.file, parsed.loc).then((next) => {
       if (!alive) return;
       setElement(next);
@@ -520,6 +523,7 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
         }
       } finally {
         done();
+        landed.current += 1;
         inFlight.current -= 1;
         // Also after a replanned write that had nothing left to change: the optimistic value gives way to the source.
         refetch();
