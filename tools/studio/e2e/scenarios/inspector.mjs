@@ -143,7 +143,7 @@ export const rows = [
     // Screenshot 09: the Table's flat form (Accessible name, Selected ids, Current row id…) in groups and design words.
     id: "I-37", feature: "Grouped properties without Figma groups (Table): Caption and Columns under Content, Selectable / Editable / Sort under Behavior (folded), the screen-reader name under Advanced as \"Name (screen readers)\"; no \"Selected ids\" or \"Accessible name\" on the panel; Selectable writes and removes selectable", wp: "ux review §7.6–7 2026-10-27",
     async run(ctx) {
-      const page = await freshSelect(ctx, "table", { frame: 10 });
+      const page = await freshSelect(ctx, "table", { frame: 10, position: { dx: 4, dy: 4 } });
       await until(async () => /^content:true behavior:false advanced:false$/.test(await groupStates(page)), { message: `Content, Behavior, Advanced (${await groupStates(page)})` });
       for (const [group, prop] of [["content", "caption"], ["content", "columns"]]) if (!(await rowIn(page, group, prop).count())) throw new Error(`${prop} is not under ${group}`);
       const text = await page.locator("#studio-right").innerText();

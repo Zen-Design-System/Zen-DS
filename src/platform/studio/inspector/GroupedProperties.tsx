@@ -239,7 +239,8 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
     const defaultIcons = new Map(entries.map((entry) => [entryProp(entry), entryDefaultIcon(entry)]));
     const fields = shown.filter((prop) => !shapedOf.has(prop)).map(specOf).filter((spec): spec is PropSpec => Boolean(spec));
     const objects = shown.flatMap((prop) => (shapedOf.has(prop) ? [shapedOf.get(prop)!] : []));
-    const instances = nested.items.filter((item) => shown.includes(item.prop));
+    // Without Figma groups the Nested instances section (NestedProperties, DesignPanel) lists them, as before.
+    const instances = flat ? [] : nested.items.filter((item) => shown.includes(item.prop));
     return (
       <>
         {fields.map((spec) => (
@@ -306,7 +307,7 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
     const shownEntries = entries.filter((entry) => entryShown(entry, props));
     const groupToggles = key === "content" ? toggles : [];
     const groupText = key === "content" ? text : null;
-    const instances = nested.items.filter((item) => shownEntries.some((entry) => entryProp(entry) === item.prop));
+    const instances = flat ? [] : nested.items.filter((item) => shownEntries.some((entry) => entryProp(entry) === item.prop));
     if (!shownEntries.length && !groupToggles.length && !groupText && !instances.length) return null;
     // What is written in the source: a folded group says how much it holds, and opens when it holds anything.
     const count = shownEntries.filter((entry) => api.valueFor(entryProp(entry)).state !== "unset").length + groupToggles.filter((toggle) => isSetValue(props[toggle.prop])).length;
