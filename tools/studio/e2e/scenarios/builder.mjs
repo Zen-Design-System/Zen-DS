@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pagesDirOf } from "../lib/server.mjs";
-import { inspectorRow, openAssetLibrary, openStudioSpace, selectAt, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { inspectorRow, loadStudio, openAssetLibrary, openStudioSpace, selectAt, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { pickOption, scaleStep } from "./inspector.mjs";
 import { codeWordsIn } from "../../../../src/platform/studio/words.ts";
 
@@ -252,7 +252,7 @@ export async function seededPage(ctx, text, has) {
   fs.writeFileSync(path.join(ctx.root, pagesDirOf(ctx.server.port), `${id}.zen.tsx`), text(name));
   await mineOption(page, /^Sync with the folder/);
   await until(async () => has.test((await pageText(page, id)) ?? ""), { message: "the seeded page in the browser" });
-  await page.reload();
+  await loadStudio(page);
   await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 10000 });
   return { page, id, name, text: async () => (await pageText(page, id)) ?? "" };
 }

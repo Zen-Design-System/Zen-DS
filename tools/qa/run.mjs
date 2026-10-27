@@ -571,6 +571,7 @@ if (studioInScope && !staticFailed.length && RETRY?.steps.some((x) => x.name.sta
       ...lines.listed,
       // Rows that worked only on their retry (run.mjs `retry`; older reports say so in the evidence): no clean pass.
       ...(() => { const retried = rows.filter((row) => row.status === "works" && (row.retry || /\(passed on retry; /.test(row.evidence ?? ""))); return retried.length ? [`↻ Passed only on retry: ${brief(retried.map((row) => row.id), 12)}`] : []; })(),
+      ...(() => { const reloaded = rows.filter((row) => /\(the Studio loaded twice: /.test(row.evidence ?? row.error ?? "")); return reloaded.length ? [`⟳ The Studio loaded twice (Chromium cut a load short): ${brief(reloaded.map((row) => row.id), 12)}`] : []; })(),
       ...trouble,
       ...(plan.n > 1 ? shards.map((x) => `shard ${x.k}/${plan.n}: ${x.rep?.rows?.length ?? 0} row(s) · ${Math.round(x.r.ms / 1000)}s${x.md ? ` · ${x.md}` : ""}`) : []),
     ].filter(Boolean));
