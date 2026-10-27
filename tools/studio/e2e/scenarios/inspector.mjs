@@ -145,7 +145,9 @@ export const rows = [
     id: "I-37", feature: "Grouped properties without Figma groups (Table): Caption and Columns under Content, Selectable / Editable / Sort under Behavior (folded), the screen-reader name under Advanced as \"Name (screen readers)\"; no \"Selected ids\" or \"Accessible name\" on the panel; Selectable writes and removes selectable", wp: "ux review §7.6–7 2026-10-27",
     async run(ctx) {
       const page = await freshSelect(ctx, "table", { frame: 10, position: { dx: 4, dy: 4 } });
-      await until(async () => /^content:true behavior:false advanced:false$/.test(await groupStates(page)), { message: `Content, Behavior, Advanced (${await groupStates(page)})` });
+      // The groups and their order; whether Behavior is folded depends on what a row before opened (openGroups is the
+      // session's), so the open flags are not asserted here (I-35 checks folding on a fresh page).
+      await until(async () => /^content:(?:true|false) behavior:(?:true|false) advanced:(?:true|false)$/.test(await groupStates(page)), { message: `Content, Behavior, Advanced (${await groupStates(page)})` });
       if (!(await rowIn(page, "content", "caption").count())) throw new Error("caption is not under content");
       // The columns are written in place: their block (ObjectProperties, "Columns · 1 Task") sits in Content too.
       if (!(await page.locator('#studio-right [data-property-group="content"]').getByText(/^Columns/).count())) throw new Error("the Columns block is not under content");

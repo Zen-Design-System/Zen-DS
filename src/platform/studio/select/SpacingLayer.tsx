@@ -12,12 +12,13 @@ import { canEdit, studioStore, useStudio } from "../store";
 import type { EditOp, SourceElement } from "../types";
 import { onSourceUpdate } from "./picker";
 import { liveSrc, noteEditTarget } from "./remap";
-import { areaLabel, areaState, dragProp, fitColumn, freeLabel, kebab, spacingWords, tokenPx, type AreaState, type Box, type SpacingArea, type SpacingOwner } from "./spacing";
+import { areaLabel, areaState, dragProp, fitColumn, freeLabel, spacingWords, tokenPx, type AreaState, type Box, type SpacingArea, type SpacingOwner } from "./spacing";
 import { breakpointOf, primaryBreakpointOf } from "./gridTracks";
 import { responsiveOps } from "../inspector/responsiveModel";
 import { DRAG_LAYOUTS, DRAG_START, dragAxis, draggedPx, everySide, nearestStep, previewProperties } from "./spacingDrag";
 import { useSpacingHover } from "./spacingHover";
 import { tokenName } from "../inspector/controls/scale";
+import { propLabel } from "../inspector/propSchema";
 
 /*
  * The selected layout's padding and gap areas on the canvas (Figma-like). Each area is tinted; above the capture layer
@@ -535,7 +536,7 @@ export function SpacingLayer({ areas: measured, owner, interactive, viewport, on
               onOpenChange={(next) => { if (!next) close(); }}
               anchorRef={anchorRef}
               className="studio-spacing-picker"
-              label={`${owner.name} · ${kebab(open.prop)}${openState.clears.length || (open.alt && openState.mixed) ? " (all sides)" : ""}`}
+              label={`${owner.name} · ${propLabel(open.prop, owner.name)}${openState.clears.length || (open.alt && openState.mixed) ? " (all sides)" : ""}`}
               items={items}
               autoFocus
               onSelect={choose}
@@ -575,19 +576,16 @@ function SpacingNote({ owner, state, anchorRef, onClose }: { owner: SpacingOwner
     window.addEventListener("keydown", onKey, true);
     return () => { document.removeEventListener("pointerdown", onDown, true); window.removeEventListener("keydown", onKey, true); };
   }, [onClose]);
-  const value = state.boundBy?.value ?? state.value;
   const prop = state.boundBy?.prop ?? state.prop ?? "";
-  const source = value?.state === "bound" ? `{${value.expression}}` : value?.state === "spread" ? value.via : "";
+  // One line in design words (UX review 2026-10-27 §6 #28): the property's Figma name, no expression, no "source".
   return (
     <div ref={surfaceRef} className="studio-spacing-note" role="status" style={placement.style} data-side={placement.side}>
       <p className={typographyStyles["Body/Small/Medium"]}>
-        {`${owner.name} ${kebab(prop)} `}
-        {value?.state === "spread" ? "comes from " : "is bound to "}
-        <code className={typographyStyles["Body/Code/Regular"]}>{source}</code>
+        {`${owner.name} · ${propLabel(prop, owner.name)} is set in code${inPlayground ? "" : " — change it in the Code tab"}`}
       </p>
-      <p className={`studio-spacing-note__hint ${typographyStyles["Caption/Regular"]}`}>
-        {inPlayground ? "Change it with the Playground properties." : "Change it in the source, where the value is computed."}
-      </p>
+      {inPlayground ? (
+        <p className={`studio-spacing-note__hint ${typographyStyles["Caption/Regular"]}`}>Change it with the Playground properties.</p>
+      ) : null}
     </div>
   );
 }

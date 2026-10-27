@@ -110,11 +110,13 @@ export const rows = [
     },
   },
   {
-    id: "DA-02", feature: "Double-click text that comes from a .map row edits the data item", wp: "WP-F",
+    id: "DA-02", feature: "Double-click text that comes from a .map row: the first double-click goes into the row to its text (as ⌘-click, UX review 2026-10-27 §7.1), the next edits the data item", wp: "WP-F · gestures 2026-10-27",
     async run(ctx) {
       const page = await freshSelect(ctx, "crew-row", { frame: 1 });
       const rect = await textBox(page, ctx.file, locOf(await ctx.text(), "crew-row").loc, "Ava Tran");
       if (!rect) throw new Error('no "Ava Tran" on the canvas');
+      await page.mouse.dblclick(rect.x + rect.width / 2, rect.y + rect.height / 2);
+      await until(async () => /^Text\b/.test(await selectedName(page)), { message: "the row's text selected (a part of the ListItem)" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
       try {
         await editInPlace(page, rect, "Ava T.");
       } catch (error) {

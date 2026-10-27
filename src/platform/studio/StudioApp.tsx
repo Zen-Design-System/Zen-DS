@@ -29,8 +29,8 @@ import { multiSelection } from "./select/multiSelection";
 import { wrapSelection } from "./select/wrapSelection";
 import { duplicateSelection, editDataGroup, editDataItem, editDataItems, removeSelection } from "./slots/actions";
 import { itemSelection, selectedPlaces } from "./slots/itemSelection";
-import { dataGroupOfPart, dataItemRootOf } from "./slots/dataItems";
-import { selectedPartStore } from "./select/parts";
+import { dataGroupOfPart, dataItemOfPart, dataItemRootOf } from "./slots/dataItems";
+import { selectedPartStore, withoutPart } from "./select/parts";
 import { SlotConfirm } from "./slots/SlotConfirm";
 import { SharedConfirm } from "./shell/SharedConfirm";
 import { BuilderBoard } from "./builder/BuilderBoard";
@@ -453,13 +453,21 @@ export function StudioApp() {
       if (mod && !event.altKey && !event.shiftKey && key === "d") {
         if (doc || inExample) return;
         event.preventDefault();
-        const selection = state.selection;
-        if (event.repeat || state.tool !== "select" || selection?.kind !== "node") return;
-        // A data-slot item (TopNavigation's trailing action) duplicates like a layer; other parts are read-only.
-        if (selection.part) {
-          const item = dataItemRootOf(selectedPartStore.get());
-          if (item?.slot.form === "array") void editDataItem(selection, item.slot, "duplicate", item.index);
-          return;
+        const current = state.selection;
+        if (event.repeat || state.tool !== "select" || current?.kind !== "node") return;
+        // A data-slot item (TopNavigation's trailing action) duplicates like a layer, also from a part inside it (its
+        // icon). Any other part — a text, a nested instance, which Figma lets no one add to an instance — duplicates its
+        // owner, the layer the person went into (UX review 2026-10-27 §2.2: ⌘D works in every selection state).
+        let selection = current;
+        if (current.part) {
+          const item = dataItemOfPart(selectedPartStore.get());
+          if (item) {
+            if (item.slot.form === "array") void editDataItem(current, item.slot, "duplicate", item.index);
+            return;
+          }
+          selection = withoutPart(current) as typeof current;
+          // The owner is the selection from here (the copy is selected after, as Figma's ⌘D on the instance does).
+          studioStore.setState({ selection });
         }
         // Several layers: each copied after itself in one edit (edit/multi.ts).
         if (multiSelection.get().length) { void duplicateLayers(); return; }
@@ -525,25 +533,31 @@ export function StudioApp() {
         if (doc || event.repeat || event.shiftKey || !here || state.tool !== "select" || selection?.kind !== "node") return;
         if (selection.part) {
           // A data-slot item goes like a layer (its host stays selected); so does a nested slot's group, its title or its
-          // rows (a Sidebar section, 2026-10-10: "section title đang không xoá được"); other parts are read-only.
+          // rows (a Sidebar section, 2026-10-10: "section title đang không xoá được").
           const item = dataItemRootOf(selectedPartStore.get());
           const group = item ? null : dataGroupOfPart(selectedPartStore.get());
-          if (!item && !group) return;
-          event.preventDefault();
-          // Several items of the slot selected (Shift/⌘+click): all of them, one undo step.
-          const set = itemSelection.get();
-          const places = item && set && set.src === selection.src && set.instance === selection.instance ? selectedPlaces(item.index, set, item.slot.prop) : [];
-          if (item && places.length > 1) void editDataItems(selection, item.slot, places, "remove");
-          else if (item) void editDataItem(selection, item.slot, "remove", item.index);
-          else if (group) void editDataGroup(selection, group.slot, group.group, group.role === "group" ? "remove" : group.role === "title" ? "removeTitle" : "clearRows");
-          return;
+          if (item || group) {
+            event.preventDefault();
+            // Several items of the slot selected (Shift/⌘+click): all of them, one undo step.
+            const set = itemSelection.get();
+            const places = item && set && set.src === selection.src && set.instance === selection.instance ? selectedPlaces(item.index, set, item.slot.prop) : [];
+            if (item && places.length > 1) void editDataItems(selection, item.slot, places, "remove");
+            else if (item) void editDataItem(selection, item.slot, "remove", item.index);
+            else if (group) void editDataGroup(selection, group.slot, group.group, group.role === "group" ? "remove" : group.role === "title" ? "removeTitle" : "clearRows");
+            return;
+          }
+          // Any other part — a text, a nested instance, which Figma lets no one remove from an instance — removes its
+          // owner, the layer the person went into (UX review 2026-10-27 §2.2: Delete works in every selection state).
         }
+        const layer = (selection.part ? withoutPart(selection) : selection) as typeof selection;
+        // The owner is the selection from here, so its parent is selected after the removal, as for any layer.
+        if (selection.part) studioStore.setState({ selection: layer });
         event.preventDefault();
         // Several layers: all removed in one edit (edit/multi.ts).
         if (multiSelection.get().length) { void removeLayers(); return; }
         // A main component goes with its <Component> (edit/localComponents.ts deleteMain), unless instances use it.
-        if (state.localPage) { void deleteMain(selection).then((handled) => { if (!handled) void removeSelection(selection); }); return; }
-        void removeSelection(selection);
+        if (state.localPage) { void deleteMain(layer).then((handled) => { if (!handled) void removeSelection(layer); }); return; }
+        void removeSelection(layer);
         return;
       }
       if (event.key === "Escape") {

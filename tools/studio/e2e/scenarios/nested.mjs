@@ -401,7 +401,7 @@ export const rows = [
     },
   },
   {
-    id: "NO-08", feature: "Double-click goes into nested instances like Figma (plan criterion 1): Table → Data-Row → Cell → row 3's Badge (level 4), Theme → Red writes Row[chi]/status/Badge; Card → Sub-Action → its Icon (level 3), Tone writes Sub-Action/Leading-Icon; one ⌘Z each", wp: "core rebuild M3 2026-10-11",
+    id: "NO-08", feature: "Double-click goes into nested instances like Figma (plan criterion 1): Table → Data-Row → Cell → row 3's Badge (level 4), Theme → Red writes Row[chi]/status/Badge; Card → its Sub-Action's Icon in one double-click (level 3, as ⌘-click; UX review 2026-10-27 §7.1), Escape → the Sub-Action, Enter → the Icon again, Tone writes Sub-Action/Leading-Icon; one ⌘Z each", wp: "core rebuild M3 2026-10-11",
     async run(ctx) {
       const { page, id } = await openNestedPage(ctx);
       const steps = [];
@@ -422,8 +422,15 @@ export const rows = [
       const icon = await page.locator(`${subAction(id)} [data-icon]`).first().boundingBox();
       const ix = icon.x + icon.width / 2;
       const iy = icon.y + icon.height / 2;
-      for (const name of ["IconButton", "Icon"]) await drill(page, ix, iy, name);
-      steps.push("Card → IconButton → Icon");
+      // Since 2026-10-27 (UX review §7.1) a double-click goes into the instance as ⌘-click does: the Icon at once; Escape
+      // climbs to its IconButton (the Sub-Action), Enter goes one level back in.
+      await drill(page, ix, iy, "Icon");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape"); await sleep(300);
+      if (!/^IconButton\b/.test(await heading(page))) throw new Error(`Escape from the Icon did not reach the IconButton (Inspector: "${await heading(page)}")`);
+      await page.keyboard.press("Enter"); await sleep(300);
+      if (!/^Icon\b/.test(await heading(page))) throw new Error(`Enter on the IconButton did not reach its Icon (Inspector: "${await heading(page)}")`);
+      steps.push("Card → Icon (one double-click) · Esc → IconButton · Enter → Icon");
       await pick(page, "tone", /^Accent \/ Base\b/);
       await until(async () => /"Sub-Action\/Leading-Icon": \{ tone: "accent-base" \}/.test((await pageText(page, id)) ?? ""), { message: "the Icon's tone in the page" });
       await undo(page);
