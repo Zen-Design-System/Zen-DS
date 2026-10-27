@@ -33,6 +33,13 @@ The user: "Làm đánh giá toàn diện lại UI và UX của Zen studio". Noth
 - **Proposed (needs the user).** 1 gestures reach layers never parts (L) · 2 keyboard focus guard (S) · 3 open at the
   first Screen (S) · 4 insert like Figma, decision A/B (M) · 5 Flow list + phone rail (S) · 6 words and notes (S) ·
   7 grouped instance properties (M) · 8 dark mode decision · 9 small things · library Tabs aria + tab tone.
+- **Figma walk (`--only=figma`, 1056 s): 192 works · 4 broken.** FW-122/123 were the worktree's `pathkit-wasm`
+  symlink (a real copy → both pass; memory `worktree-node-modules-caches` updated). FW-177 (right-click › Select all
+  with same › Fill: the layer menu never opens on the walk's match page) and FW-211 (`selectDock` never reaches the
+  Box) fail on both tries, in isolation (`--rows`), and at fbffa7ea = main before #330: regressions older than
+  10-26 that the gate's matrix never runs. By hand the FW-177 gesture opens "Shape actions" on another page. Reported
+  to Giám sát for an owner; not fixed here (a docs PR, no E2E baseline touched). Reports `.qa/studio-e2e/
+  2026-10-26T21-25-18.md`, `2026-10-27T05-15-39.md`.
 - Walk gotchas for the next reviewer: probe at a readable zoom (at 10% a double-click on a card's title hits the
   parent's resize handle and sets "height → hug"); the Layers rows of a folded frame are not in the DOM (expand first);
   `pointOfText("8")` finds the Tabs badge before the KPI value; the right `.studio-resizer` has no box until hovered

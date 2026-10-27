@@ -210,9 +210,12 @@ load, not a product failure).
 
 | Broken row | What it checks | Cause found |
 | --- | --- | --- |
-| FW-122 · FW-123 | ⌥⇧S Subtract, ⌘E Flatten (the path engine) | "could not load the path engine: reload the page": the worktree's `pathkit-wasm` was a symlink, which Vite serves from outside the worktree (`worktree-node-modules-caches`); RERUN_122 |
-| FW-177 | Right-click › Select all with same › Fill selects every layer with that fill | the layer menu did not open within 5 s; RERUN_177 |
-| FW-211 | In Present a `sticky="bottom"` frame sticks | "the dock Box selected" not reached in 20 s; RERUN_211 |
+| FW-122 · FW-123 | ⌥⇧S Subtract, ⌘E Flatten (the path engine) | "could not load the path engine: reload the page": the worktree's `pathkit-wasm` was a symlink, which Vite serves from outside the worktree (`worktree-node-modules-caches`). With a real copy both **pass** (re-run `--rows`, report `2026-10-27T05-15-39.md`). Environment, not the product. |
+| FW-177 | Right-click › Select all with same › Fill selects every layer with that fill | "the layer menu: Timeout 5000ms (menus: none)" on both tries, again in isolation, and again at main **before** #330 (fbffa7ea): a regression older than 10-26 that the gate never sees (the FW rows are not in its matrix). By hand on another page the same gesture (⌘-click a shape, right-click 12px in from its left edge) opens "Shape actions · 30 items", so the failure is tied to the walk's match page (small shapes, a renamed Hero, a Section). **Owner to run `--rows=FW-177` and look.** |
+| FW-211 | In Present a `sticky="bottom"` frame sticks | `selectDock` (⌘-click the dock Box's padding, Escape up until the panel's code name is Box) never reaches "Box" (panel stays the page's name), both tries, in isolation, and before #330. FW-210 on the same page passes. **Owner to run `--rows=FW-211`.** |
+
+Net: 194 of 196 rows pass on main 1ac8c89f once the environment is right; FW-177 and FW-211 are two Figma-walk
+regressions that predate PR #330 and need their owner (reported to Giám sát with this review).
 
 Reading against the plan's 76-key scorecard (`studio-figma-design-parity-2026-10-18.md` §2b, 72 / 4 / 0 on
 2026-10-22): every tool, selection, transform, structure, text and menu key still answers as Figma does; the four
