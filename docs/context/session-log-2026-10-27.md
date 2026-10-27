@@ -49,6 +49,13 @@ in order; this session owns items 1 (P0, L) and 2 (P0, S). Evidence: review §2.
 Deliberate deviation from Figma, per the user's approved list: Figma's ⌘D / Delete on a layer inside an instance do
 nothing; here they act on the instance the person went into (the status line names it, ⌘Z undoes).
 
+Two strings in `select/` for the words-props-dark session (§7 item 6, split by Giám sát by file owner, no logic change):
+the size pill reads "W × H" alone and its rule notes ("Height comes from the Table itself", a px-capped Chip, a refused
+wrap) go to the new store `inspector/sizeNote.ts` (`publish` / `get` / `subscribe`, null on deselect), which that
+session's Inspector shows under Resizing; the canvas note on a bound gap or padding is one line, "Card · Horizontal
+padding is set in code — change it in the Code tab" (`propLabel`, no expression), the Playground line stays. SE-10 and
+SE-25 read the pill but assert only its handles.
+
 Not touched (other owners): `words.ts` strings and the part panel's remaining notes (words-props-dark), the Page section
 and toolbar CSS (panels-small), the insert path (first-view-insert). The Layers panel already lists only texts and
 nested instances for an instance (`namedParts`, 2026-10-13); its "show all" mode keeps the Parts folder on purpose.
