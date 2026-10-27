@@ -90,6 +90,10 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Studio E2E (2026-10-28): when Chromium cuts a Studio load short and the app never mounts (PT-19, PT-22, PT-23 and
   PT-27 failed on it), the harness loads it once more, says so in the row's evidence and lists the row apart
   ("⟳ The Studio loaded twice"). Why Chromium cancels those loads is still open.
+- Zen Studio Inspector (2026-10-28): the effect's eye pressed right after + now hides the new effect. When the panel had
+  read the layer again while the effect was still being saved, the eye did nothing. Studio E2E AP-07 checks that order.
+- Studio E2E (2026-10-28): SE-12 no longer fails by chance. It zooms to the TopNavigation, so the floating toolbar can no
+  longer take its ⌘-click, and it says what covers the point if anything does.
 - Zen Studio Overlay frames (2026-10-27): a modal drawn open on the board (a Side Panel, a Bottom Sheet, a Dialog in an
   Overlay frame) is a picture of it and takes no focus. Its autofocus took the focus from the Studio each time the page
   drew it again, closing a menu open in the Pages panel or leaving a field. Play still runs it live. Studio E2E B-28 waits
