@@ -5,6 +5,7 @@ import { selectedName } from "./builder.mjs";
 import { pageFromTemplate } from "./starters.mjs";
 import { codeWordsIn } from "../../../../src/platform/studio/words.ts";
 import { optionLabel } from "../../../../src/platform/studio/inspector/controls/scale.ts";
+import { newPage } from "./builder.mjs";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
 const read = async (ctx, id, index = 0, file = ctx.file) => element((await ctx.api.source(file)).content, file, id, index);
@@ -182,6 +183,40 @@ export const rows = [
     },
   },
   {
+    id: "I-32", feature: "Design tab with nothing selected on a page you made: one Page section (Name, Mobile OS, Background, Project; Export… in its title row), Preview modes as label · value rows, Local styles with an Edit in Figma button (UX review 2026-10-27 §2.10)", wp: "ux review 2026-10-27 §7.9",
+    async run(ctx) {
+      const { page } = await newPage(ctx);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await showDesignTab(page);
+      await page.locator("#studio-right").getByLabel("Page name").waitFor({ state: "visible", timeout: 5000 });
+      const seen = await page.evaluate(() => {
+        const panel = document.querySelector("#studio-right");
+        const sectionNamed = (name) => [...panel.querySelectorAll("section")].find((section) => section.querySelector("h2, h3")?.textContent.trim() === name) ?? null;
+        const pageSection = sectionNamed("Page");
+        const labels = pageSection ? [...pageSection.querySelectorAll(".studio-fields__label")].map((el) => el.textContent.trim()) : [];
+        const modes = sectionNamed("Preview modes");
+        const rows = modes ? [...modes.querySelectorAll(".studio-inspector__row")].map((row) => [row.querySelector(".studio-inspector__row-label")?.textContent.trim() ?? "", row.querySelector(".studio-inspector__row-control")?.textContent.trim() ?? ""]) : [];
+        const styles = sectionNamed("Local styles");
+        return {
+          pageHeadings: [...panel.querySelectorAll("h2, h3, .studio-inspector__eyebrow")].filter((el) => el.textContent.trim() === "Page").length,
+          headBlocks: panel.querySelectorAll(".studio-inspector__head-block").length,
+          labels,
+          exportInTitleRow: Boolean(pageSection?.querySelector(".studio-inspector__section-head button")?.textContent.includes("Export")),
+          rows,
+          figmaButton: styles ? [...styles.querySelectorAll("button")].map((el) => el.textContent.trim()).find((text) => /Figma/.test(text)) ?? null : null,
+          stylesNote: styles?.querySelector(".studio-inspector__note")?.textContent.trim() ?? null,
+        };
+      });
+      if (seen.pageHeadings !== 1 || seen.headBlocks !== 0) throw new Error(`${seen.pageHeadings} "Page" headings and ${seen.headBlocks} header block(s), expected one Page section and no header block`);
+      for (const label of ["Name", "Mobile OS", "Background", "Project"]) if (!seen.labels.includes(label)) throw new Error(`the Page section has no "${label}" field (${seen.labels.join(", ")})`);
+      if (!seen.exportInTitleRow) throw new Error("no Export… in the Page section's title row");
+      if (seen.rows.length < 6 || seen.rows.some(([label, value]) => !label || !value)) throw new Error(`Preview modes: ${seen.rows.length} rows, ${JSON.stringify(seen.rows.slice(0, 3))}`);
+      if (!seen.figmaButton) throw new Error(`Local styles has no Edit in Figma button (note: ${seen.stylesNote})`);
+      return `one Page section (${seen.labels.join(", ")}; Export… in the title row) · ${seen.rows.length} mode rows · Local styles "${seen.figmaButton}"`;
+    },
+  },
+  {
     id: "I-31", feature: "Design words on an example page too (plan criterion 7, the user 2026-10-12): after an edit the status line names the file without its line, the canvas tag and the Inspector header (\"Show code\") no file:line, notes and tooltips no code", wp: "design words 2026-10-12",
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-a");
@@ -244,15 +279,21 @@ export const rows = [
       const page = await freshSelect(ctx, "check");
       await openPropertyGroup(page, "checked");
       const sw = () => inspectorRow(page, "checked").getByRole("switch");
+      // The first write held a moment, as a dev server under a gate's load answers: the fixed 1.2 s read came before the
+      // second write landed there (2026-10-27). Both presses must still land.
+      await page.route((url) => url.pathname.endsWith("/__zen-studio/edit"), async (route) => { await sleep(800); await route.continue(); }, { times: 1 });
       await sw().click();
       await sw().click();
-      await sleep(1200);
-      const el = await read(ctx, "check");
+      const onOf = (el) => el.attr("checked") ?? el.attr("defaultChecked");
+      // Both land, however long the held write takes: the source back to unset (or false).
+      const el = await expectSource(ctx, "check", (candidate) => [undefined, "{false}"].includes(onOf(candidate)), "both presses in the source").catch(async (error) => {
+        const on = onOf(await read(ctx, "check"));
+        throw new Error(`after on+off the source still has ${on === "true" || on === "" ? "the prop on" : on} (${error.message})`);
+      });
       const status = await statusText(page);
-      const on = el.attr("checked") ?? el.attr("defaultChecked");
       if (/changed since|stale|409/i.test(status)) throw new Error(`refused: ${status.slice(0, 120)}`);
-      if (on !== undefined && on !== "{false}") throw new Error(`after on+off the source still has ${on === "true" || on === "" ? "the prop on" : on}`);
-      return "on then off: back to unset, no refusal";
+      if (![undefined, "{false}"].includes(onOf(el))) throw new Error(`after on+off the source has ${onOf(el)}`);
+      return "on then off with the first write held: back to unset, no refusal";
     },
   },
   {

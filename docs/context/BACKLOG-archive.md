@@ -2,6 +2,14 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-10-27 (Studio UX review §7.5, 9, 10, session panels-small)
+
+- **P1/P3 · Prototype Flow list at 320/280, phone tool rail, §2.10 small things, library Tabs `aria-controls` (§7.5, 9,
+  10):** `zen/fix/studio-panels-small-20261027`.
+  Done: branch `claude/studio-panels-small-20261027-531d1e` (the app's name), PR #335 (Studio) and
+  `zen/fix/tabs-aria-controls-20261027`, PR #336 (Tabs). Session log 2026-10-27 "Studio UX review §7.5, §7.9, §7.10";
+  E2E PT-29, I-32. The 12px tab tone (3.79:1) stays the user's question.
+
 ## Archived 2026-10-26 (nested Sidebar rows, branch zen/fix/studio-sidebar-nested-rows-20261026)
 
 - P2 (2026-10-26) Studio ↔ Figma: nested Sidebar rows (`children`, Figma Menu-Item Level=Child) and the Dropdown chevron.

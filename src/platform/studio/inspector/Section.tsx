@@ -31,8 +31,10 @@ export function NoInlineLabel({ children }: { children: ReactNode }) {
  * the two field columns, an action in the icon column (spec docs/research/studio-inspector-figma-spec-2026-10-09.md §1).
  */
 /** `responsive`: the section edits per-breakpoint props itself (Layout); every other section of a layer in a frame
- *  narrower than desktop says its fields apply on every breakpoint (studio-responsive-breakpoints §4). */
-export function InspectorSection({ title, actions, children, note, className, fieldGrid = false, responsive = false }: { title: ReactNode; actions?: ReactNode; children: ReactNode; note?: ReactNode; className?: string; fieldGrid?: boolean; responsive?: boolean }) {
+ *  narrower than desktop says its fields apply on every breakpoint (studio-responsive-breakpoints §4).
+ *  `level`: the title's heading level, 3 under the panel's h2 (a layer's name); 2 when the section is the panel's subject
+ *  itself (the Page section with nothing selected). */
+export function InspectorSection({ title, actions, children, note, className, fieldGrid = false, responsive = false, level = 3 }: { title: ReactNode; actions?: ReactNode; children: ReactNode; note?: ReactNode; className?: string; fieldGrid?: boolean; responsive?: boolean; level?: 2 | 3 }) {
   const id = useId();
   const say = useWords();
   const host = useContext(InspectorHostContext);
@@ -40,7 +42,7 @@ export function InspectorSection({ title, actions, children, note, className, fi
   return (
     <section className={["studio-inspector__section", className].filter(Boolean).join(" ")} aria-labelledby={id} data-field-grid={fieldGrid || undefined}>
       <div className="studio-inspector__section-head">
-        <Heading id={id} level={3} textStyle="Body/Small/Bold">{typeof title === "string" ? say(title) : title}</Heading>
+        <Heading id={id} level={level} textStyle="Body/Small/Bold">{typeof title === "string" ? say(title) : title}</Heading>
         {everywhere ? <span className={`studio-inspector__everywhere ${typographyStyles["Caption/Regular"]}`} title="These fields are the same on every breakpoint">All breakpoints</span> : null}
         {actions ? <div className="studio-inspector__section-actions">{actions}</div> : null}
       </div>

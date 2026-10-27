@@ -251,7 +251,9 @@
 
 /* Compact rows (frames, child elements), like the Layers rows: 28px, 16px icon, Body/Small/Medium, Caption meta. The
    hover fill reaches 4px past the content, which stays aligned with the section heading. */
-.studio-inspector__items { display: grid; margin: 0; padding: 0; list-style: none; }
+/* min-width 0: as a grid item the list would otherwise be as wide as its longest row (nowrap names), and its rows'
+   trailing text ran past the panel at 320px (UX review 2026-10-27 §2.5). */
+.studio-inspector__items { display: grid; min-width: 0; margin: 0; padding: 0; list-style: none; }
 .studio-inspector__item-wrap { display: flex; min-width: 0; }
 .studio-inspector__item { display: flex; width: calc(100% + 2 * var(--zen-spacing-padding-2-xsmall, 4px)); min-width: 0; height: 28px; box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); margin-inline: calc(-1 * var(--zen-spacing-padding-2-xsmall, 4px)); padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-base, 12px); background: transparent; color: var(--zen-color-content-neutral-strongest); cursor: pointer; text-align: start; }
 .studio-inspector__item:hover { background: var(--zen-color-background-neutral-flat-hover); }
@@ -261,7 +263,6 @@
 .studio-inspector__item[data-component="true"] .studio-inspector__item-icon { color: var(--zen-color-content-support-purple-base); }
 .studio-inspector__item-name { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-inspector__item-meta { flex: 0 0 auto; color: var(--zen-color-content-neutral-base); white-space: nowrap; }
-.studio-inspector__summary { color: var(--zen-color-content-neutral-strongest); }
 .studio-inspector__actions { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); padding-top: var(--zen-spacing-padding-2-xsmall, 4px); }
 
 /* Part (deep select, read-only): "SidebarItem · part of Sidebar", the owner links, values with the token they equal. */

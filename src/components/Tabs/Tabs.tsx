@@ -101,7 +101,11 @@ export interface TabsProps {
   /** Stretch the bar to its container (Indicator style keeps its bottom border full width). */
   fullWidth?: boolean;
   "aria-label"?: string;
-  /** Prefix for tab/panel ids so panels can reference `${idPrefix}-tab-${id}`. */
+  /**
+   * Prefix for tab/panel ids so TabPanels can pair with the tabs (`${idPrefix}-panel-${id}`, `${idPrefix}-tab-${id}`).
+   * Only then do the tabs carry `aria-controls`: without it no panel can reference the generated prefix, and an id that
+   * points at nothing is an ARIA error (axe aria-valid-attr-value).
+   */
   idPrefix?: string;
   className?: string;
   /** Figma instance overrides: props of the tabs it draws, by layer (`{ "Tab-Item[members]/Badge-Counter": { theme: "accent" }, "Tab-Item[members]/Icon": { name: "icon-users-line" } }`). Written by Zen Studio;
@@ -146,7 +150,7 @@ export function Tabs({ ref, items: itemsProp, children, value, defaultValue, onV
         <TabItem
           key={item.id}
           id={`${prefix}-tab-${item.id}`}
-          aria-controls={`${prefix}-panel-${item.id}`}
+          aria-controls={idPrefix ? `${prefix}-panel-${item.id}` : undefined}
           aria-label={item["aria-label"] ?? (!item.label && typeof item.id === "string" ? item.id : undefined)}
           tabIndex={item.id === current ? 0 : -1}
           label={item.label}

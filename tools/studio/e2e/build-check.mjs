@@ -251,7 +251,7 @@ try {
     await field.waitFor({ state: "visible", timeout: 10_000 });
     await field.fill(title);
     await field.press("Enter");
-    await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === title, { message: "the page named" });
+    await until(async () => (await page.locator("#studio-left .studio-pages__name").allInnerTexts()).some((text) => text.trim() === title), { message: "the page named" });
     await showLeftTab(page, "layers");
     await page.locator('[data-layer-id^="frame:screen:"]').first().click();
     await page.locator("#studio-right").getByRole("button", { name: /^Phone,/ }).click();
@@ -324,7 +324,7 @@ try {
 
   await step("Prototype: Add screen, Navigate to, Present", async () => {
     await inspectorTab(page, "Prototype");
-    await page.getByRole("button", { name: "Add screen" }).click();
+    await page.getByRole("button", { name: "Add Screen" }).click();
     await until(async () => /<Screen id="screen-2"/.test((await storedText(page, id)) ?? ""), { timeout: 10_000, message: "screen-2" });
     await page.locator('[data-studio-frame="screen:screen-2"]').waitFor({ state: "attached", timeout: 10_000 });
     await clickNamed(page, id, "Button");

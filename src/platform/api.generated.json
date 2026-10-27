@@ -9214,7 +9214,7 @@
           "type": "string",
           "required": false,
           "default": null,
-          "description": "Prefix for tab/panel ids so panels can reference `${idPrefix}-tab-${id}`.",
+          "description": "Prefix for tab/panel ids so TabPanels can pair with the tabs (`${idPrefix}-panel-${id}`, `${idPrefix}-tab-${id}`).\nOnly then do the tabs carry `aria-controls`: without it no panel can reference the generated prefix, and an id that\npoints at nothing is an ARIA error (axe aria-valid-attr-value).",
           "deprecated": null
         },
         {

@@ -91,7 +91,7 @@ export function PrototypePanel() {
           ))}
         </ul>
         <div className="studio-prototype__add">
-          <Button appearance="main" level="tertiary" size="sm" disabled={!editable || !tree?.board} startIcon={<Icon name="icon-plus-line" decorative />} onClick={() => void addBoardFrame(localPage, "screen")}>Add screen</Button>
+          <Button appearance="main" level="tertiary" size="sm" disabled={!editable || !tree?.board} startIcon={<Icon name="icon-plus-line" decorative />} onClick={() => void addBoardFrame(localPage, "screen")}>Add Screen</Button>
           <Menu
             trigger={<Button appearance="main" level="tertiary" size="sm" disabled={!editable || !tree?.board} startIcon={<Icon name="icon-plus-line" decorative />} endIcon={<Icon name="icon-chevron-down-line" decorative />}>Add overlay</Button>}
             items={OVERLAY_KINDS.map((kind) => ({ id: kind.id, label: kind.label, icon: kind.icon }))}
