@@ -569,6 +569,8 @@ if (studioInScope && !staticFailed.length && RETRY?.steps.some((x) => x.name.sta
       ...lines.failed,
       notRun.length ? `✗ Not run (a shard reached its ${Math.round(plan.budget / 60)}-min budget): ${notRun.length} row(s): ${brief(notRun.map((row) => row.id), 12)}` : "",
       ...lines.listed,
+      // Rows that worked only on their retry (run.mjs `retry`; older reports say so in the evidence): no clean pass.
+      ...(() => { const retried = rows.filter((row) => row.status === "works" && (row.retry || /\(passed on retry; /.test(row.evidence ?? ""))); return retried.length ? [`↻ Passed only on retry: ${brief(retried.map((row) => row.id), 12)}`] : []; })(),
       ...trouble,
       ...(plan.n > 1 ? shards.map((x) => `shard ${x.k}/${plan.n}: ${x.rep?.rows?.length ?? 0} row(s) · ${Math.round(x.r.ms / 1000)}s${x.md ? ` · ${x.md}` : ""}`) : []),
     ].filter(Boolean));

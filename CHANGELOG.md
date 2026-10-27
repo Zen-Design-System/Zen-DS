@@ -17,6 +17,11 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio UI/UX review (2026-10-27, docs only): five hands-on walks, the Figma-key E2E walk, an axe pass and a
+  UX-writing audit, with 15 screenshots and a ranked proposal (gestures that land on DOM parts, ⌘A / ⌘D after a part
+  selection, the first view, full-width inserts, the Prototype list at 320, the phone tool rail, ~40 code-word
+  strings): `docs/research/studio-ux-review-2026-10-27.md`. Nothing in the Studio changed for the review itself; its
+  one product finding from the Figma walk, FW-177, is the Zen Studio right-click fix in this list.
 - The Zen Figma skill works from the repo for Claude Code and Codex through the Figma MCP: `.claude/skills/` and
   `.agents/skills/` link to `skills/zen-figma-design`, its references link to their sources, and
   `npm run ai-kit:build` writes `figma-components.md` + `figma-tokens.md` into the skill folder (`ai-kit:check` fails
@@ -40,6 +45,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio right-click (2026-10-27): on a phone Screen, a layer under the dashed "Add Top / Bottom Navigation"
   placeholder opens its menu again. The placeholder covers the Screen's edge while a layer in it is selected, and a
   right-click there opened nothing. Its click still adds the Navigation. Studio E2E FW-177 passes again.
+- Zen Studio pages (2026-10-27): a Screen switched to Phone right after a new page is named no longer goes back to
+  Desktop now and then, and an edit made while the Studio reads the pages folder is no longer replaced by an older text.
+  The folder's listing, read before the Studio's own later saves landed, came back as a change from outside. A page
+  rewritten as it opens (its phone parts, an old layout) is rewritten only over the text it read.
+- Studio E2E (2026-10-27): a row that passed only on its retry is marked ↻ on its line and listed apart at the end of a
+  run and in the gate ("↻ Passed only on retry").
 - Zen Studio Overlay frames (2026-10-27): a modal drawn open on the board (a Side Panel, a Bottom Sheet, a Dialog in an
   Overlay frame) is a picture of it and takes no focus. Its autofocus took the focus from the Studio each time the page
   drew it again, closing a menu open in the Pages panel or leaving a field. Play still runs it live. Studio E2E B-28 waits

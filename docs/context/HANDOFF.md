@@ -19,8 +19,16 @@ Last updated: 2026-10-27.
 
 ## State in short
 
+- **Studio UI/UX review (2026-10-27, docs only):** `docs/research/studio-ux-review-2026-10-27.md` — five hands-on
+  walks on the user's pages, the Figma-key E2E walk, axe, a UX-writing audit (40 strings), 15 screenshots. Ranked
+  proposal §7 approved by the user 2026-10-27, in order: P0 double-click / Enter land on DOM parts with a CSS panel and ⌘A / ⌘D die after
+  that; P1 first view at the overlays, full-width inserts, Prototype list clipped, phone tool rail; P2 words, notes,
+  grouped instance properties, dark-mode coupling. Decisions: §2.4 inserts keep their own size (A); §2.9 Dark mode
+  changes the UI only, as Figma. In progress in four worktree sessions from main (BACKLOG.md Open items):
+  `zen/fix/studio-gestures-20261027`, `zen/fix/studio-first-view-insert-20261027`, `zen/fix/studio-panels-small-20261027`,
+  `zen/fix/studio-words-props-dark-20261027`. Docs PR #332.
 - **Studio UX review 2026-10-27 (`docs/research/studio-ux-review-2026-10-27.md`, §7 approved in order):** items 1–2 (P0,
-  gestures) built on `claude/studio-gestures-20261027-17240d`: a double-click and Enter take the ⌘-click path into an
+  gestures) built on `claude/studio-gestures-20261027-17240d` (the app's name for `zen/fix/studio-gestures-20261027`): a double-click and Enter take the ⌘-click path into an
   instance (`select/parts.ts deepLayerAt`, `select/layerParts.ts firstLayerPart`), HTML parts are off the Design tab
   (`inspector/PartPanel.tsx`; the Code tab keeps their CSS as `PartCodeDetails`), ⌘A / ⌘D / Delete work with a part
   selected (`edit/figmaKeys.ts`, `StudioApp.tsx`); E2E FW-255…258. Items 3–10 are in the three sibling sessions
