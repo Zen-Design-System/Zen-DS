@@ -548,8 +548,17 @@ function queued<T>(id: string, task: () => Promise<T>): Promise<T> {
   return next;
 }
 
-/** The hash of the text each page's last write sent to the mirror, from the moment it goes out (planSync's `sent`). */
-const sent = new Map<string, string>();
+/** The hashes of the texts each page's latest writes sent to the mirror, from the moment each goes out (planSync's
+ *  `sent`): a listing read while later writes landed still shows one of them. */
+const sent = new Map<string, Set<string>>();
+const SENT_KEPT = 20;
+function noteSent(id: string, text: string) {
+  const hashes = sent.get(id) ?? new Set<string>();
+  hashes.delete(textHash(text));
+  hashes.add(textHash(text));
+  if (hashes.size > SENT_KEPT) hashes.delete(hashes.values().next().value as string);
+  sent.set(id, hashes);
+}
 
 /** Sends the page's current text to the mirror, then records it as synced: the folder holds that text now, the base of
  *  any edit made here during the write (its own push follows). */
@@ -560,7 +569,7 @@ function pushToMirror(id: string) {
     const record = cache.get(id);
     if (!record || !isLive(record) || mirror !== target) return;
     const text = record.text;
-    sent.set(id, textHash(text));
+    noteSent(id, text);
     await target.write(id, text);
     const now = cache.get(id);
     if (now) {

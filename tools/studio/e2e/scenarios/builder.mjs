@@ -1626,7 +1626,7 @@ export const rows = [
     },
   },
   {
-    id: "B-49", feature: "An edit made while the page's last write to the pages folder is on its way survives that write's echo (the folder's change event): the folder's older text no longer replaces it (an MCP insert or a ⌘D right after a rename was lost, E2E AG-08/AG-10/NO-06, 2026-10-26)", wp: "pages folder sync 2026-10-26",
+    id: "B-49", feature: "An edit made while the page's last write to the pages folder is on its way survives that write's echo (the folder's change event), and an edit made while a listing of the folder is on its way survives that older listing: the folder's older text no longer replaces it (an MCP insert or a ⌘D right after a rename was lost, E2E AG-08/AG-10/NO-06, 2026-10-26; a Screen switched to Phone went back, PT-02/PT-03, 2026-10-27)", wp: "pages folder sync 2026-10-26", timeout: 45_000,
     async run(ctx) {
       const { page, id, name } = await newPage(ctx, { device: "desktop" });
       // The page's own writes landed first (its name), so the held write is the first rename's.
@@ -1645,7 +1645,22 @@ export const rows = [
       // Its own echo, synced too.
       await sleep(800);
       if (!((await pageText(page, id)) ?? "").includes('"Echo second"')) throw new Error("the folder's echo took the page back to its first name");
-      return "renamed twice while the first write was on its way: the second name kept here and in the folder";
+      // A listing read before this tab's later write landed: the sync's listing taken while the folder held "Echo third",
+      // answered 1.5 s later, after "Echo fourth" was written. It showed this tab's own older text, not a change.
+      let taken;
+      const listed = new Promise((resolve) => { taken = resolve; });
+      await page.route((url) => url.pathname === "/__zen-studio/pages", async (route) => { const response = await route.fetch(); taken(); await sleep(1500); await route.fulfill({ response }); }, { times: 1 });
+      const rename = (title) => page.evaluate(async ({ pageId, title }) => (await import("/src/platform/studio/builder/store/pageStore.ts")).renamePage(pageId, title), { pageId: id, title });
+      await rename("Echo third");
+      await Promise.race([listed, sleep(5000)]);
+      await rename("Echo fourth");
+      await until(async () => (folderText(ctx, id) ?? "").includes('"Echo fourth"'), { timeout: 8000, message: "the fourth name in the folder" });
+      // The held listing answered and synced.
+      await sleep(2500);
+      const title = /"title":"[^"]*"/.exec((await pageText(page, id)) ?? "")?.[0] ?? "no title";
+      if (!title.includes("Echo fourth")) throw new Error(`a listing older than this tab's last write took the page back: ${title}`);
+      if (!(folderText(ctx, id) ?? "").includes('"Echo fourth"')) throw new Error("the folder lost the fourth name");
+      return "renamed while the first write was on its way, and while an older listing was: the last name kept here and in the folder";
     },
   },
 ];
