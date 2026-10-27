@@ -222,6 +222,71 @@ export default function Page() {
 }
 `;
 
+/** Two Screens and an Overlay named as a designer names them, long (PT-29). */
+const longNamesPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { SidePanel, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Quản lý task · Danh sách công việc của nhóm sản phẩm" device="desktop">
+        <Stack gap="md" padding="lg"><Text>Danh sách</Text></Stack>
+      </Screen>
+      <Screen id="screen-2" title="Gửi biên bản họp Sprint Review cho khách hàng Aurora" device="desktop">
+        <Stack gap="md" padding="lg"><Text>Biên bản</Text></Stack>
+      </Screen>
+      <Overlay id="overlay-1">
+        <SidePanel type="modal" title="Chốt agenda họp Sprint Review với khách hàng Aurora" onOpenChange={proto.close()}>
+          <Text>Agenda</Text>
+        </SidePanel>
+      </Overlay>
+    </Board>
+  );
+}
+`;
+
+/** Text nodes of the Flow list whose visible box (their span's own ellipsis clip applied) runs past the Inspector's box,
+ *  the names the ellipsis shortened, and the Inspector's width (PT-29). */
+const flowOverflow = (page) => page.evaluate(() => {
+  const panel = document.querySelector("#studio-right");
+  const box = panel.getBoundingClientRect();
+  const list = panel.querySelector(".studio-prototype__frames");
+  const walker = document.createTreeWalker(list, NodeFilter.SHOW_TEXT);
+  const out = [];
+  let total = 0;
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    if (!node.textContent.trim()) continue;
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    let { left, right } = range.getBoundingClientRect();
+    for (let el = node.parentElement; el && el !== panel; el = el.parentElement) {
+      if (/hidden|clip|auto|scroll/.test(getComputedStyle(el).overflowX)) { const b = el.getBoundingClientRect(); left = Math.max(left, b.left); right = Math.min(right, b.right); }
+    }
+    if (right - left <= 0) continue;
+    total += 1;
+    if (right > box.right + 0.5 || left < box.left - 0.5) out.push(`${node.textContent.trim().slice(0, 20)} → ${Math.round(right)} (panel ${Math.round(box.right)})`);
+  }
+  const ellipsized = [...list.querySelectorAll(".studio-inspector__item-name")].filter((el) => el.scrollWidth > el.clientWidth + 1).length;
+  return { width: Math.round(box.width), total, out, ellipsized };
+});
+
+/** The Inspector resized to `to` px with its handle's keys (16px a step), whichever arrow shrinks it (PT-29). */
+async function resizeInspector(page, to) {
+  const width = async () => Math.round((await page.locator("#studio-right").boundingBox()).width);
+  await page.locator('[aria-label="Resize Inspector"]').focus();
+  for (let n = 0; n < 12 && (await width()) !== to; n += 1) {
+    const before = await width();
+    await page.keyboard.press(to < before ? "ArrowRight" : "ArrowLeft");
+    await sleep(60);
+    if ((await width()) === before) { await page.keyboard.press(to < before ? "ArrowLeft" : "ArrowRight"); await sleep(60); }
+  }
+  return width();
+}
+
 /** A Table, a Chip with no action yet and a Search that filters the client column (PT-20). */
 const filterPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Screen, proto } from "@zen-ds/react/builder";
@@ -472,6 +537,30 @@ const layerLook = (locator) => locator.evaluate((element) => {
 });
 
 export const rows = [
+  {
+    id: "PT-29", feature: "Flow list fits the panel: Screens and an Overlay with long names keep their trailing word (Start, Overlay) inside the Inspector at 320px and at its 280px minimum, the name ellipsized (UX review 2026-10-27 §2.5)", wp: "ux review 2026-10-27 §7.5", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, longNamesPage, /Sprint Review/);
+      await prototypeTab(page);
+      await page.locator(".studio-prototype__frame").nth(2).waitFor({ state: "visible", timeout: 5000 });
+      const at320 = await flowOverflow(page);
+      if (at320.width !== 320) throw new Error(`the Inspector is ${at320.width}px wide, not 320`);
+      if (at320.total < 6) throw new Error(`${at320.total} text nodes in the Flow list, expected the 3 names and their Start / Overlay`);
+      if (at320.out.length) throw new Error(`at 320px ${at320.out.length} text node(s) run past the panel: ${at320.out.slice(0, 3).join(" · ")}`);
+      const width = await resizeInspector(page, 280);
+      let at280;
+      try {
+        if (width !== 280) throw new Error(`the Inspector resized to ${width}px, not its 280px minimum`);
+        at280 = await flowOverflow(page);
+        if (at280.out.length) throw new Error(`at 280px ${at280.out.length} text node(s) run past the panel: ${at280.out.slice(0, 3).join(" · ")}`);
+        if (!at280.ellipsized) throw new Error("at 280px no name is ellipsized: the long names must shorten, not the trailing word");
+      } finally {
+        // The width is a preference the next rows share.
+        await resizeInspector(page, 320);
+      }
+      return `320px: ${at320.total} text nodes inside the panel · 280px: ${at280.total} inside, ${at280.ellipsized} name(s) ellipsized · back at 320`;
+    },
+  },
   {
     id: "PT-01", feature: "Prototype ⊕: drag a Button's ⊕ onto Screen 2 (Navigate to), click the arrow (selects the Button), drag its end onto the overlay (Open overlay), off every frame (removed), ⌘Z", wp: "prototype 2026-10-15", timeout: 40_000,
     async run(ctx) {

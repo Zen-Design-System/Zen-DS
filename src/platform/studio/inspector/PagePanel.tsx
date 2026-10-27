@@ -10,7 +10,7 @@ import type { PlatformPage } from "../../PlatformExamples";
 import { previewModeDefinitions, previewValueLabel } from "../shell/modes";
 import { useStudio } from "../store";
 import { focusFrame, frameIcon, useFrames } from "./frames";
-import { InspectorFields, InspectorItem, InspectorSection } from "./Section";
+import { InspectorFields, InspectorItem, InspectorRow, InspectorSection } from "./Section";
 
 import { openExport } from "../builder/export/exportState";
 import { openVariables } from "../variables/variablesState";
@@ -101,24 +101,20 @@ export function PagePanel() {
   const storage = useStorage();
   const kept = storage.kind === "mirror" ? `saved in this browser and in ${storage.mirror === "dev" ? storage.label : `the folder “${storage.label}”`} as you edit.` : "saved in this browser as you edit.";
   const description = localPage ? (pagesPersist() ? `A page you made, ${kept}` : "A page you made. This browser cannot keep it: export it before closing.") : null;
-  const summary = previewModeDefinitions.map((mode) => previewValueLabel(mode.key, preview[mode.key])).join(" · ");
 
   return (
     <div className="studio-inspector__panel">
-      <header className="studio-inspector__head-block">
-        <p className={`studio-inspector__eyebrow ${typographyStyles["Body/Small/Medium"]}`}>Page</p>
-        <Heading level={2} textStyle="Body/Small/Bold">{localPage ? builderPage?.title ?? localPage : pageLabels[page] ?? page}</Heading>
-        {description ? <p className={`studio-inspector__description ${typographyStyles["Body/Small/Regular"]}`}>{description}</p> : null}
-        {/* GĐ5: the page as React code or its design file. */}
-        {localPage ? (
-          <div className="studio-inspector__actions">
-            <Button level="tertiary" size="sm" startIcon="icon-code-02-line" onClick={() => openExport(localPage)}>Export…</Button>
-          </div>
-        ) : null}
-      </header>
-      {/* A page you made is named here as you work (user, 2026-10-09: no title to give when it is made). */}
+      {/* One Page section (UX review 2026-10-27 §2.10: a header block and a "Page" section both named the page). A page
+          you made is named in it as you work (user, 2026-10-09: no title to give when it is made), where it is kept is
+          its note, and Export… (GĐ5: the page as React code or its design file) sits in its title row. A docs page has
+          no fields: it keeps the header block alone. */}
       {localPage && builderPage ? (
-        <InspectorSection title="Page" fieldGrid>
+        <InspectorSection
+          title="Page"
+          fieldGrid
+          note={description ?? undefined}
+          actions={<Button level="tertiary" size="sm" startIcon="icon-code-02-line" onClick={() => openExport(localPage)}>Export…</Button>}
+        >
           <InspectorFields name="title" labels={["Name"]} fields={[<PageName key="name" id={localPage} title={builderPage.title} />]} />
           {/* One OS for the page (user, 2026-10-10): its phone and tablet Screens draw that OS's status and bottom bars. */}
           <InspectorFields name="os" labels={["Mobile OS"]} fields={[<PageOs key="os" id={localPage} text={builderPage.text} />]} />
@@ -128,7 +124,13 @@ export function PagePanel() {
           <InspectorFields name="project" labels={["Project"]} fields={[<PageProject key="project" id={localPage} />]}
             icon={project ? <IconButton icon="icon-palette-line" aria-label={`${project.name} theme`} tooltip="Project theme" appearance="flat" level="secondary" size="xs" onClick={() => openProjectSetup({ kind: "edit", id: project.id })} /> : null} />
         </InspectorSection>
-      ) : null}
+      ) : (
+        <header className="studio-inspector__head-block">
+          <p className={`studio-inspector__eyebrow ${typographyStyles["Body/Small/Medium"]}`}>Page</p>
+          <Heading level={2} textStyle="Body/Small/Bold">{localPage ? builderPage?.title ?? localPage : pageLabels[page] ?? page}</Heading>
+          {description ? <p className={`studio-inspector__description ${typographyStyles["Body/Small/Regular"]}`}>{description}</p> : null}
+        </header>
+      )}
       {/* Figma's right panel with nothing selected: Local variables opens the Variables window (the Zen tokens). */}
       <InspectorSection title="Variables">
         <div className="studio-inspector__actions">
@@ -137,9 +139,15 @@ export function PagePanel() {
       </InspectorSection>
       {/* Figma's Local styles: the text, color and effect styles, read-only (styles are tokens edited in Figma). */}
       <LocalStyles />
-      {/* Preview modes change in Play and Present only (their bar's Modes panel): the canvas shows them here. */}
+      {/* Preview modes change in Play and Present only (their bar's Modes panel): the canvas shows them here, one
+          label · value row each, as the Design tab's header reads (UX review 2026-10-27 §2.10: seven values in one
+          sentence read as a list). */}
       <InspectorSection title="Preview modes">
-        <p className={`studio-inspector__summary ${typographyStyles["Body/Small/Regular"]}`}>{summary}</p>
+        {previewModeDefinitions.map((mode) => (
+          <InspectorRow key={mode.key} compact label={mode.label}>
+            <span className={`studio-inspector__head-value ${typographyStyles["Body/Small/Medium"]}`}>{previewValueLabel(mode.key, preview[mode.key])}</span>
+          </InspectorRow>
+        ))}
       </InspectorSection>
       <InspectorSection title="Frames">
         {frames.length ? (

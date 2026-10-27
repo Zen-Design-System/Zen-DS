@@ -3,6 +3,7 @@ import { element, locOf } from "../lib/source.mjs";
 import { clickLoc, focusFrame, inspectorRow, openCodeProperties, rectOf, showDesignTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { codeWordsIn } from "../../../../src/platform/studio/words.ts";
 import { optionLabel } from "../../../../src/platform/studio/inspector/controls/scale.ts";
+import { newPage } from "./builder.mjs";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
 const read = async (ctx, id, index = 0, file = ctx.file) => element((await ctx.api.source(file)).content, file, id, index);
@@ -77,6 +78,40 @@ export async function expectSource(ctx, id, check, message, { index = 0, file = 
 }
 
 export const rows = [
+  {
+    id: "I-32", feature: "Design tab with nothing selected on a page you made: one Page section (Name, Mobile OS, Background, Project; Export… in its title row), Preview modes as label · value rows, Local styles with an Edit in Figma button (UX review 2026-10-27 §2.10)", wp: "ux review 2026-10-27 §7.9",
+    async run(ctx) {
+      const { page } = await newPage(ctx);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await showDesignTab(page);
+      await page.locator("#studio-right").getByLabel("Page name").waitFor({ state: "visible", timeout: 5000 });
+      const seen = await page.evaluate(() => {
+        const panel = document.querySelector("#studio-right");
+        const sectionNamed = (name) => [...panel.querySelectorAll("section")].find((section) => section.querySelector("h3")?.textContent.trim() === name) ?? null;
+        const pageSection = sectionNamed("Page");
+        const labels = pageSection ? [...pageSection.querySelectorAll(".studio-fields__label")].map((el) => el.textContent.trim()) : [];
+        const modes = sectionNamed("Preview modes");
+        const rows = modes ? [...modes.querySelectorAll(".studio-inspector__row")].map((row) => [row.querySelector(".studio-inspector__row-label")?.textContent.trim() ?? "", row.querySelector(".studio-inspector__row-control")?.textContent.trim() ?? ""]) : [];
+        const styles = sectionNamed("Local styles");
+        return {
+          pageHeadings: [...panel.querySelectorAll("h2, h3, .studio-inspector__eyebrow")].filter((el) => el.textContent.trim() === "Page").length,
+          headBlocks: panel.querySelectorAll(".studio-inspector__head-block").length,
+          labels,
+          exportInTitleRow: Boolean(pageSection?.querySelector(".studio-inspector__section-head button")?.textContent.includes("Export")),
+          rows,
+          figmaButton: styles ? [...styles.querySelectorAll("button")].map((el) => el.textContent.trim()).find((text) => /Figma/.test(text)) ?? null : null,
+          stylesNote: styles?.querySelector(".studio-inspector__note")?.textContent.trim() ?? null,
+        };
+      });
+      if (seen.pageHeadings !== 1 || seen.headBlocks !== 0) throw new Error(`${seen.pageHeadings} "Page" headings and ${seen.headBlocks} header block(s), expected one Page section and no header block`);
+      for (const label of ["Name", "Mobile OS", "Background", "Project"]) if (!seen.labels.includes(label)) throw new Error(`the Page section has no "${label}" field (${seen.labels.join(", ")})`);
+      if (!seen.exportInTitleRow) throw new Error("no Export… in the Page section's title row");
+      if (seen.rows.length < 6 || seen.rows.some(([label, value]) => !label || !value)) throw new Error(`Preview modes: ${seen.rows.length} rows, ${JSON.stringify(seen.rows.slice(0, 3))}`);
+      if (!seen.figmaButton) throw new Error(`Local styles has no Edit in Figma button (note: ${seen.stylesNote})`);
+      return `one Page section (${seen.labels.join(", ")}; Export… in the title row) · ${seen.rows.length} mode rows · Local styles "${seen.figmaButton}"`;
+    },
+  },
   {
     id: "I-31", feature: "Design words on an example page too (plan criterion 7, the user 2026-10-12): after an edit the status line names the file without its line, the canvas tag and the Inspector header (\"Show code\") no file:line, notes and tooltips no code", wp: "design words 2026-10-12",
     async run(ctx) {

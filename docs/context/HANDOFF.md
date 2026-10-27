@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-26.
+Last updated: 2026-10-27.
 
 ## Read order
 
@@ -19,6 +19,12 @@ Last updated: 2026-10-26.
 
 ## State in short
 
+- **Studio UX review 2026-10-27 (`docs/research/studio-ux-review-2026-10-27.md`, PR #332; §7 approved in order):** four
+  worktree sessions from main by file area (BACKLOG Open items). Items 5, 9 and 10 (session panels-small): the Flow
+  list at 320 / 280, the phone tool rail (More menu under 600px), the §2.10 small things (gutters, one Page section,
+  Local styles link, Preview modes rows, Play's bar, a drawn Text's X / Y, fill names), every Inspector tab with a
+  panel — branch `claude/studio-panels-small-20261027-531d1e`; the library Tabs `aria-controls` fix (only with
+  `idPrefix`) — branch `zen/fix/tabs-aria-controls-20261027`. The 12px tab tone (3.79:1) stays the user's question.
 - **Studio responsive breakpoints (2026-10-26):** plan `docs/research/studio-responsive-breakpoints-2026-10-26.md`
   approved (D1–D4; D5, a harness rule, not). Session bp-studio builds the Studio half: PR 1 (view switch Desktop ·
   Tablet · Mobile on a Screen's label, the Screen's breakpoint in ZenContext and following a desktop Screen's width,
