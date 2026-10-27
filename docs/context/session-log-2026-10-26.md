@@ -840,4 +840,10 @@ from main 1ac8c89f.
   product cause was suspected (the switch reading the source between two quick presses) and a `BooleanSwitch` written,
   but I-03 with its first save held 0.8 s passed on the old Inspector too: the switch was right, so that change was
   dropped. I-03 now holds its first save 0.8 s (a slow server on purpose) and waits for both presses in the source.
-- Proof: PROOF_LINES
+- Proof (Giám sát's slots): B-49 on main's pageStore fails its second part 2/2 ("Echo third" came back) and passes with
+  the fix; B-49, I-03, PT-02, PT-03, PT-18, PT-24, PT-25 `--no-retry` 5/5 each; on b6c8b4b3 `--shard=1/4 … 4/4` 386
+  works · 0 broken, passed on retry (read from the JSON): SE-12, AP-02, PT-23; gate `qa --isolated --files=` the nine
+  files: PASS, Studio E2E 386 works · 0 broken in 3 shards with no retry, report `.qa/reports/2026-10-27T07-33-10-74c671d1.md`.
+- Still open: PT-23's first try failed on a 10 s wait, the signature PT-18/24/25 had before this change: the Zen Studio
+  menu's wait (`openStudioSpace`) or seededPage's frame wait after its reload. Logs on both over 6 prototype runs caught
+  neither. SE-12 and AP-02 (other groups) retried once.
