@@ -15,6 +15,24 @@ async function expectSelected(page, file, loc, message) {
   }, { message: message ?? `${file}:${loc} to be selected` });
 }
 
+/** A locator's box once it has stopped moving (a zoom or a scroll eases in). */
+async function atRest(locator, message) {
+  let last = null;
+  return until(async () => {
+    const now = await locator.boundingBox();
+    const still = last && now && ["x", "y", "width", "height"].every((key) => Math.abs(now[key] - last[key]) < 0.5);
+    last = now;
+    return still ? now : null;
+  }, { message });
+}
+
+/** The Studio chrome over a canvas point (the floating toolbar, a panel), or null when a click there reaches the canvas. */
+const coverAt = (page, point) => page.evaluate(({ x, y }) => {
+  const top = document.elementFromPoint(x, y);
+  if (!top || top.closest(".studio-selection__capture, [data-studio-frame]")) return null;
+  return [top.tagName.toLowerCase(), ...top.classList].join(".");
+}, point);
+
 /** Every rendering of file:loc in the frame, in document order (the rows of a .map share one location). */
 async function rectsOf(page, file, loc) {
   return page.evaluate((src) => [...document.querySelectorAll(`[data-zen-src="${CSS.escape(src)}"]`)].map((el) => el.getBoundingClientRect().toJSON()), `${file}:${loc}`);
@@ -435,11 +453,18 @@ export const rows = [
       const page = await freshSelect(ctx, "inst-nav-box", { frame: 6, position: { dx: 4, dy: 4 } });
       await page.keyboard.press("Enter");
       await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the TopNavigation selected" });
+      // Zoomed to the TopNavigation (⇧2): the frame fitted to the view can leave its actions under the floating toolbar
+      // at the bottom, where a click never reaches the canvas (2026-10-28: the toolbar took the ⌘-click).
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Digit2");
       const action = page.locator('[data-studio-frame="example:6"] button.zen-top-nav__action').first();
-      const box = await action.boundingBox();
+      const box = await atRest(action, "the action after the zoom");
+      const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+      const cover = await coverAt(page, point);
+      if (cover) throw new Error(`the action is under ${cover}`);
       // ⌘ on macOS (there Ctrl+click is the context menu), Ctrl elsewhere.
       await page.keyboard.down("ControlOrMeta");
-      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.click(point.x, point.y);
       await page.keyboard.up("ControlOrMeta");
       await until(async () => !["TopNavigation", ""].includes(await selectedName(page)), { message: "a part selected" });
       const name = await selectedName(page);
