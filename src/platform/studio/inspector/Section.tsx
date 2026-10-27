@@ -1,5 +1,7 @@
 import { createContext, useContext, useId, type ReactNode } from "react";
+import { Icon } from "../../../components/Icon";
 import { Heading } from "../../../components/Text";
+import { useIconTooltip } from "../../../components/Tooltip";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { useWords } from "../useWords";
@@ -132,5 +134,27 @@ export function InspectorItem({ icon, name, meta, onClick, component }: { icon: 
         {meta ? <span className={`studio-inspector__item-meta ${typographyStyles["Body/Small/Regular"]}`}>{meta}</span> : null}
       </button>
     </li>
+  );
+}
+
+/**
+ * A panel note of one line, the rest behind an info button's tooltip (the UX review 2026-10-27 §2.7: a note runs to one
+ * short line; Figma's panels explain in tooltips). Goes where a section's `note` or a hint takes a node.
+ */
+export function SectionNote({ text, more }: { text: string; more?: string }) {
+  const say = useWords();
+  const rest = more ? say(more) : null;
+  // Zen's icon tooltip on a plain button (as the Pages panel's storage info): the rest of the note on hover and focus.
+  const tip = useIconTooltip(rest ?? false);
+  return (
+    <span className="studio-inspector__note-line">
+      <span className="studio-inspector__note-text">{say(text)}</span>
+      {rest ? (
+        <>
+          <button type="button" className="studio-inspector__note-more" aria-label={rest} {...tip.bind({})}><Icon name="icon-info-circle-line" size="2xs" decorative /></button>
+          {tip.tooltip}
+        </>
+      ) : null}
+    </span>
   );
 }

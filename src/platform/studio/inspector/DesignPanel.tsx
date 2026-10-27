@@ -34,7 +34,7 @@ import { SelectionColors } from "./SelectionColors";
 import { TextStyleDetails, textStyleDefinition } from "./TextStyleDetails";
 import type { FieldApi } from "./fieldApi";
 import { copyText } from "./frames";
-import { GroupedProperties, ToggleRow } from "./GroupedProperties";
+import { FLAT_GROUPS, GroupedProperties, ToggleRow } from "./GroupedProperties";
 import { HostTextAlignment } from "./HostTextAlignment";
 import { LayoutSection } from "./LayoutSection";
 import { InspectorFileContext, InspectorHostContext, InspectorSrcContext } from "./controls/hostContext";
@@ -60,6 +60,8 @@ import { InspectorRow, InspectorSection } from "./Section";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { hasSizing, SizingSection, sizingPropNames } from "./SizingSection";
 import { InstanceSizeGroup, useInstanceSizing } from "./InstanceSizeGroup";
+import { useSizeNote } from "./sizeNote";
+import { speak } from "../useWords";
 import { GridCellGroup, gridOf } from "./GridCellGroup";
 import { SlotHost, useSlotFilled } from "./SlotHost";
 import { openQuickInsert } from "../builder/library/quickInsertState";
@@ -648,7 +650,7 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
           // Where and as it was: a twin the draft added goes first, then the saved attribute (each request re-planned
           // from the file once the one before it has landed).
           const playground = Boolean(selection.panelId);
-          const label = `${element.name} ${name} → {${saved.value}}`;
+          const label = `${element.name} ${propLabel(name, element.name)} → set in code again`;
           const optimistic: Record<string, PropValue> = { [name]: { state: "bound", expression: saved.value ?? "", raw: saved.raw, ...(saved.origin ? { origin: saved.origin } : {}) } };
           const step = (attributes: SourceAttr[]) => restoreStep(element.name, { ...element, attributes }, name, saved, playground);
           void send(step(element.attributes), label, optimistic, step);
@@ -663,6 +665,9 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   const nested = useNestedInstances(selection, element, api);
   // W / H of a library component as the canvas resizes it (GĐ4 M4): Hug, Fill or Fixed through a Stack it fills.
   const instanceSize = useInstanceSizing(selection.src);
+  // Why an axis cannot change ("Height comes from the Table itself"): once the canvas size badge's note, here since the
+  // UX review 2026-10-27 (§2.7, N3; sizeNote.ts).
+  const sizeNoteText = useSizeNote(selection.src);
 
   const name = element?.name ?? selection.name;
   const specs = useMemo(() => {
@@ -799,8 +804,14 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   const sectionNote = spreadNote;
   const propertiesNote = layoutShown ? undefined : sectionNote;
   // Resizing (W / H), then the Grid cell group when the layer sits in a Grid.
-  const sizeGroup = sizing ? <SizingSection api={api} specs={sizingSpecs} component={name} host={sourceHost(selection)} />
+  const sizeRows = sizing ? <SizingSection api={api} specs={sizingSpecs} component={name} host={sourceHost(selection)} />
     : instanceSized && instanceSize ? <InstanceSizeGroup sizing={instanceSize} disabled={!editable} /> : null;
+  const sizeGroup = sizeRows ? (
+    <>
+      {sizeRows}
+      {sizeNoteText ? <p className={`studio-inspector__note ${typographyStyles["Caption/Regular"]}`} data-size-note="true">{speak(sizeNoteText)}</p> : null}
+    </>
+  ) : null;
   const cellGroup = inGrid ? (
     <GridCellGroup api={api} component={name} attributes={element?.attributes ?? []} host={sourceHost(selection)}
       elementChildren={(element?.children ?? []).filter((child) => child.kind === "element").length} />
@@ -905,45 +916,15 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   // A frame, text or shape has no Figma properties: what the code adds (HTML element, Scroll, Html for…) is on the Code
   // tab (user, 2026-10-17: less developer language).
   const codeOnlyKind = !groups && (kind === "primitive" || kind === "shape");
-  // An instance's words go where its component lists `children` (Figma's Text property in its place): in a Properties block
-  // without Figma groups, before the first prop the API lists after it; with Figma groups, after Figma's own properties.
+  // An instance's words (Figma's Text property) go with the Content group, after Figma's booleans (GroupedProperties).
   const instanceText = textInTypography ? null : childText;
-  const apiOrder = (componentSchema(name)?.props ?? []).map((prop) => prop.name);
-  const blockSpecs = propertySpecs.filter((spec) => !shapedNames.has(spec.name));
-  const textAt = apiOrder.includes("children") ? blockSpecs.findIndex((spec) => apiOrder.indexOf(spec.name) > apiOrder.indexOf("children")) : -1;
-  const propertyRow = (spec: PropSpec) => {
-    const label = propLabel(spec.name, name);
-    // A content slot's prop is a layer to show or hide (Figma's boolean), never free text: on puts real content in it
-    // (PageHeader Breadcrumbs: a Breadcrumbs, user 2026-10-10), edited in the Slots section below.
-    if (spec.editor.kind === "node" && element && slotOf(name, spec.name)) {
-      // A slot this state never draws has no switch (it would write content nothing shows).
-      if (!isSlotActive(slotOf(name, spec.name)!, hostPropsOf(element.attributes))) return null;
-      const value = api.valueFor(spec.name);
-      return <ToggleRow key={spec.name} toggle={{ prop: spec.name, label, on: { kind: "slot" } }} on={value.state !== "unset"} value={value} api={api} selection={selection} element={element} />;
-    }
-    // A prop that draws nothing in this state (LineChart Show legend without Compare) says why.
-    const idle = idleNotes(name, spec.name, renderedProps ?? {});
-    return <Field key={spec.name} spec={spec} api={api} component={name} label={label} hint={idle.length ? idle.join(" ") : undefined} />;
-  };
+  // One Properties section in four groups, Content · Look · Behaviour · Advanced (UX review 2026-10-27 §2.8): with
+  // Figma groups (propGroups.ts) or without them (FLAT_GROUPS: the component's prop order inside each group, its
+  // object and array props edited field by field in their group, as Figma's instance panel).
   const propertyBlocks = (
     <>
-      {element && propertySpecs.length && groups ? (
-        <GroupedProperties groups={groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} nested={nested} text={instanceText} />
-      ) : element && (blockSpecs.length || instanceText) && !codeOnlyKind ? (
-        // One Properties block in the component's prop order, as Figma's instance panel (user 2026-10-22, replacing the
-        // titled groups of 2026-10-06), then one section per object or array prop (Trend, items), titled with its name.
-        <>
-          <InspectorSection title="Properties" note={propertiesNote}>
-            {textAt < 0 ? blockSpecs.map(propertyRow) : blockSpecs.slice(0, textAt).map(propertyRow)}
-            {instanceText}
-            {textAt < 0 ? null : blockSpecs.slice(textAt).map(propertyRow)}
-          </InspectorSection>
-          {shapedProps.map((entry) => (
-            <InspectorSection key={entry.spec.name} title={propLabel(entry.spec.name, name)}>
-              <ObjectProperties component={name} props={[entry]} api={api} selection={selection} only={entry.shape.type === "object" ? { prop: entry.spec.name } : undefined} />
-            </InspectorSection>
-          ))}
-        </>
+      {element && (propertySpecs.length || instanceText) && (groups || !codeOnlyKind) ? (
+        <GroupedProperties groups={groups ?? FLAT_GROUPS} flat={!groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} nested={nested} text={instanceText} />
       ) : element && instanceText ? <InspectorSection title="Properties">{instanceText}</InspectorSection> : null}
 
       {/* Figma nested instances: the booleans of the Zen components written in this element's props. */}

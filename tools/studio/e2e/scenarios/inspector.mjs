@@ -1,6 +1,8 @@
 // Inspector rows: every kind of property control writes the source it says, one undo step at a time.
 import { element, locOf } from "../lib/source.mjs";
-import { clickLoc, focusFrame, inspectorRow, openCodeProperties, rectOf, showDesignTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { clickLoc, focusFrame, inspectorRow, openCodeProperties, openPropertyGroup, ownerOfLayer, rectOf, showDesignTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { selectedName } from "./builder.mjs";
+import { pageFromTemplate } from "./starters.mjs";
 import { codeWordsIn } from "../../../../src/platform/studio/words.ts";
 import { optionLabel } from "../../../../src/platform/studio/inspector/controls/scale.ts";
 import { newPage } from "./builder.mjs";
@@ -77,7 +79,113 @@ export async function expectSource(ctx, id, check, message, { index = 0, file = 
   }, { message });
 }
 
+/** ⌘-click (Figma's deep select) at the centre of the first element matching `selector` in a page's Screen. */
+async function deepSelectIn(page, selector) {
+  const box = await page.locator(`.studio-frame ${selector}`).first().boundingBox();
+  if (!box) throw new Error(`no ${selector} on the canvas`);
+  await page.keyboard.down("Meta");
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.up("Meta");
+  await sleep(500);
+  await ownerOfLayer(page);
+}
+
+/** The Properties groups as shown: "content:true look:true behavior:false advanced:false". */
+const groupStates = (page) => page.locator("#studio-right [data-property-group]").evaluateAll((els) => els.map((el) => `${el.getAttribute("data-property-group")}:${el.getAttribute("data-open")}`).join(" "));
+const rowIn = (page, group, prop) => page.locator(`#studio-right [data-property-group="${group}"] [data-prop="${prop}"]`).first();
+
 export const rows = [
+  {
+    // UX review 2026-10-27 §2.8 (screenshot 15): the Metric card's 18 flat rows, now Content · Look · Behavior · Advanced.
+    id: "I-35", feature: "Instance properties in four groups: a Metric card from the Dashboard template shows Content · Look · Behavior · Advanced in that order, Trend under Content, Type and Size under Look, Behavior and Advanced folded (Animate and Heading level inside once opened), and an unset text field reads a placeholder", wp: "ux review §7.7 2026-10-27", timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page } = await pageFromTemplate(ctx, "Dashboard");
+        await deepSelectIn(page, ".zen-metric-card");
+        await until(async () => (await selectedName(page)) === "MetricCard", { message: "the MetricCard selected" });
+        await until(async () => /^content:true look:true behavior:false advanced:false$/.test(await groupStates(page)), { message: `the four groups (${await groupStates(page)})` });
+        for (const [group, prop] of [["content", "trend"], ["look", "type"], ["look", "size"]]) if (!(await rowIn(page, group, prop).count())) throw new Error(`${prop} is not under ${group}`);
+        if (await inspectorRow(page, "animate").count()) throw new Error("Animate shows while Behavior is folded");
+        await openPropertyGroup(page, "animate");
+        await rowIn(page, "behavior", "animate").waitFor({ state: "visible", timeout: 5000 });
+        await openPropertyGroup(page, "headingLevel");
+        await rowIn(page, "advanced", "headingLevel").waitFor({ state: "visible", timeout: 5000 });
+        const placeholder = await rowIn(page, "advanced", "currency").locator("input").first().getAttribute("placeholder");
+        if (placeholder !== "Not set") throw new Error(`the empty Currency field reads "${placeholder}"`);
+        // Opening a group is remembered for the session: the next instance of the kind shows it open.
+        await page.keyboard.press("Escape");
+        await deepSelectIn(page, ".zen-metric-card");
+        await until(async () => (await selectedName(page)) === "MetricCard", { message: "a MetricCard selected again" });
+        await until(async () => /behavior:true advanced:true/.test(await groupStates(page)), { message: "Behavior and Advanced stay open" });
+        return "Content · Look · Behavior (folded) · Advanced (folded) · Trend/Type/Size placed · Animate, Heading level on opening · Currency placeholder Not set";
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    id: "I-36", feature: "Grouped properties round-trip (Button): Leading / Trailing icon and Text under Content, Appearance, Level and Size under Look; Size › Small still writes size=\"sm\"; Disabled under the folded Behavior writes and removes disabled", wp: "ux review §7.7 2026-10-27",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "inst-button", { frame: 6 });
+      await until(async () => /^content:true look:true behavior:false$/.test(await groupStates(page)), { message: `Content, Look, Behavior (${await groupStates(page)})` });
+      for (const [group, prop] of [["content", "startIcon"], ["content", "endIcon"], ["look", "appearance"], ["look", "level"], ["look", "size"]]) if (!(await rowIn(page, group, prop).count())) throw new Error(`${prop} is not under ${group}`);
+      await pickOption(page, "size", "Small");
+      await expectSource(ctx, "inst-button", (el) => el.attr("size") === "sm", 'size="sm" written from the Look group');
+      await openPropertyGroup(page, "disabled");
+      await rowIn(page, "behavior", "disabled").getByRole("switch").click();
+      await expectSource(ctx, "inst-button", (el) => el.attr("disabled") !== undefined, "disabled written from the Behavior group");
+      await sleep(300);
+      await rowIn(page, "behavior", "disabled").getByRole("switch").click();
+      await expectSource(ctx, "inst-button", (el) => el.attr("disabled") === undefined, "disabled removed again");
+      return "Content: icons + text · Look: appearance, level, size → sm · Behavior: disabled on / off";
+    },
+  },
+  {
+    // Screenshot 09: the Table's flat form (Accessible name, Selected ids, Current row id…) in groups and design words.
+    id: "I-37", feature: "Grouped properties without Figma groups (Table): Caption and Columns under Content, Selectable / Editable / Sort under Behavior (folded), the screen-reader name under Advanced as \"Name (screen readers)\"; no \"Selected ids\" or \"Accessible name\" on the panel; Selectable writes and removes selectable", wp: "ux review §7.6–7 2026-10-27",
+    async run(ctx) {
+      const page = await freshSelect(ctx, "table", { frame: 10, position: { dx: 4, dy: 4 } });
+      // The groups and their order; whether Behavior is folded depends on what a row before opened (openGroups is the
+      // session's), so the open flags are not asserted here (I-35 checks folding on a fresh page).
+      await until(async () => /^content:(?:true|false) behavior:(?:true|false) advanced:(?:true|false)$/.test(await groupStates(page)), { message: `Content, Behavior, Advanced (${await groupStates(page)})` });
+      if (!(await rowIn(page, "content", "caption").count())) throw new Error("caption is not under content");
+      // The columns are written in place: their block (ObjectProperties, "Columns · 1 Task") sits in Content too.
+      if (!(await page.locator('#studio-right [data-property-group="content"]').getByText(/^Columns/).count())) throw new Error("the Columns block is not under content");
+      const text = await page.locator("#studio-right").innerText();
+      for (const words of ["Selected ids", "Accessible name", "Current row id"]) if (text.includes(words)) throw new Error(`"${words}" is still on the panel`);
+      await openPropertyGroup(page, "selectable");
+      for (const prop of ["selectable", "editable", "sort"]) if (!(await rowIn(page, "behavior", prop).count())) throw new Error(`${prop} is not under Behavior`);
+      await openPropertyGroup(page, "aria-label");
+      const label = await rowIn(page, "advanced", "aria-label").locator(".studio-inspector__row-label, .zen-input-field__label").first().innerText().catch(() => "");
+      if (!/Name \(screen readers\)/.test(label) && !/Name \(screen readers\)/.test(await rowIn(page, "advanced", "aria-label").innerText())) throw new Error(`the name row reads "${label}"`);
+      await rowIn(page, "behavior", "selectable").getByRole("switch").click();
+      await expectSource(ctx, "table", (el) => el.attr("selectable") !== undefined, "selectable written");
+      await sleep(300);
+      await rowIn(page, "behavior", "selectable").getByRole("switch").click();
+      await expectSource(ctx, "table", (el) => el.attr("selectable") === undefined, "selectable removed again");
+      return "Content: caption, columns · Behavior: selectable, editable, sort · Advanced: Name (screen readers) · selectable on / off";
+    },
+  },
+  {
+    // §2.7 / §6: the file path left the canvas kicker and the Page section; the Data-Row panel speaks design words.
+    id: "I-38", feature: "Design words on a page you made (UX review 2026-10-27 §6): the board's kicker and the Page section name no file path, and read \"A page you made · saved in this browser and on this computer\"", wp: "ux review §7.6 2026-10-27", timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page } = await pageFromTemplate(ctx, "Dashboard");
+        const kicker = (await page.locator(".studio-builder-board .studio-board__title p").first().innerText()).trim();
+        if (!/^A page you made · /.test(kicker) || /[/\\]|\.zen-studio|\.qa\b|pages-\d/.test(kicker)) throw new Error(`the kicker reads "${kicker}"`);
+        await page.keyboard.press("Escape");
+        await page.locator(".studio-viewport").click({ position: { x: 8, y: 8 } }).catch(() => undefined);
+        const panel = page.locator("#studio-right");
+        await until(async () => /A page you made, saved in this browser/.test(await panel.innerText()), { message: "the Page section's note" });
+        const note = await panel.innerText();
+        if (/[/\\]pages|\.zen-studio|\.qa\b|pages-\d/.test(note)) throw new Error(`the Page section names a path: ${note.match(/.{0,40}(?:pages|\.zen-studio|\.qa).{0,40}/)?.[0]}`);
+        return `kicker "${kicker}" · Page section without a path`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
   {
     id: "I-32", feature: "Design tab with nothing selected on a page you made: one Page section (Name, Mobile OS, Background, Project; Export… in its title row), Preview modes as label · value rows, Local styles with an Edit in Figma button (UX review 2026-10-27 §2.10)", wp: "ux review 2026-10-27 §7.9",
     async run(ctx) {
@@ -148,6 +256,8 @@ export const rows = [
     id: "I-02", feature: "Boolean switch writes / removes the prop", wp: "GĐ0",
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-a");
+      // Disabled is a behavior: its group starts folded (UX review 2026-10-27 §2.8).
+      await openPropertyGroup(page, "disabled");
       const sw = inspectorRow(page, "disabled").getByRole("switch");
       await sw.click();
       await expectSource(ctx, "btn-a", (el) => el.attr("disabled") !== undefined, "disabled written");
@@ -171,6 +281,7 @@ export const rows = [
     id: "I-03", feature: "Two quick toggles in a row both land (no stale refusal)", wp: "WP-A",
     async run(ctx) {
       const page = await freshSelect(ctx, "check");
+      await openPropertyGroup(page, "checked");
       const sw = () => inspectorRow(page, "checked").getByRole("switch");
       // The first write held a moment, as a dev server under a gate's load answers: the fixed 1.2 s read came before the
       // second write landed there (2026-10-27). Both presses must still land.
@@ -193,6 +304,7 @@ export const rows = [
     id: "I-04", feature: "Uncontrolled boolean edits the initial state (defaultChecked), never locks it", wp: "keep-behaviour",
     async run(ctx) {
       const page = await freshSelect(ctx, "check");
+      await openPropertyGroup(page, "checked");
       await inspectorRow(page, "checked").getByRole("switch").click();
       const el = await expectSource(ctx, "check", (e) => e.attr("checked") !== undefined || e.attr("defaultChecked") !== undefined, "a checked state written");
       if (el.attr("checked") !== undefined) throw new Error("wrote `checked` (locks the Checkbox) instead of defaultChecked");
@@ -317,19 +429,21 @@ export const rows = [
     },
   },
   {
-    id: "I-14", feature: "Properties follow Figma: variants, then booleans; Leading-Icon on shows Leading-Icon-Src", wp: "WP-E",
+    // Since the UX review 2026-10-27 (§2.8) the variants sit in Look in Figma's order and the layer booleans in Content,
+    // read as words ("Leading icon"); the swap row (the same words, an icon picker) shows while the boolean is on.
+    id: "I-14", feature: "Properties follow Figma inside their groups: Look lists Size, Level, State in Figma's order; Leading icon (Content) on writes startIcon and shows its icon picker", wp: "WP-E",
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-a");
-      const labels = await page.locator("#studio-right [data-prop]").evaluateAll((rows) => rows.map((row) => row.querySelector(".studio-inspector__label, label, [class*=label]")?.textContent?.trim() ?? row.getAttribute("data-prop")));
+      const labels = await page.locator('#studio-right [data-property-group="look"] [data-prop]').evaluateAll((rows) => rows.map((row) => row.querySelector(".studio-inspector__label, label, [class*=label]")?.textContent?.trim() ?? row.getAttribute("data-prop")));
       const at = (label) => labels.indexOf(label);
-      if (!(at("Size") >= 0 && at("Level") > at("Size") && at("Leading-Icon") > at("State"))) throw new Error(`rows: ${labels.slice(0, 12).join(", ")}`);
-      if (labels.includes("Leading-Icon-Src")) throw new Error("Leading-Icon-Src shows while Leading-Icon is off");
-      const toggle = page.locator("#studio-right [data-prop]").filter({ hasText: /^Leading-Icon$/ }).getByRole("switch").first();
-      await toggle.click();
+      if (!(at("Size") >= 0 && at("Level") > at("Size") && at("State") > at("Level"))) throw new Error(`Look rows: ${labels.slice(0, 12).join(", ")}`);
+      const startIcon = () => page.locator('#studio-right [data-property-group="content"] [data-prop="startIcon"]');
+      if ((await startIcon().count()) !== 1) throw new Error(`${await startIcon().count()} Leading icon rows while the boolean is off (want the switch alone)`);
+      await startIcon().getByRole("switch").first().click();
       // GĐ4 M2: the switch starts from the swap's default icon in Figma.
       await expectSource(ctx, "btn-a", (el) => el.attr("startIcon") === "icon-plus-line", "startIcon written (Figma's default, icon-plus-line)");
-      await until(async () => (await page.locator("#studio-right [data-prop]").filter({ hasText: "Leading-Icon-Src" }).count()) > 0, { message: "the Leading-Icon-Src row" });
-      return "Figma order; Leading-Icon writes startIcon and shows Leading-Icon-Src";
+      await until(async () => (await startIcon().count()) === 2, { message: "the Leading icon picker row beside its switch" });
+      return "Look: Size, Level, State in Figma order; Leading icon on writes startIcon and shows its picker";
     },
   },
   {

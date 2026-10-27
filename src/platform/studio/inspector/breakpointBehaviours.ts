@@ -132,8 +132,8 @@ const BEHAVIOURS: Array<{ id: string; at: (facts: BreakpointFacts) => Omit<Break
   { id: "app-shell", at: (facts) => {
     if (!facts.shell.root || facts.width >= 1024 || (facts.layout === "mobile" && !facts.shell.mobileParts)) return null;
     return facts.shell.mobileParts
-      ? { label: "AppShell: phone pattern", detail: "Below 1024 the AppShell shows its Top Navigation, Bottom Navigation and ActionBar (Pattern/AppShell/Mobile)." }
-      : { label: "AppShell: header with the Sidebar in a drawer", detail: "Below 1024 the AppShell leaves its desktop structure: the Sidebar opens from a menu button. Add a Top or Bottom Navigation for the phone pattern." };
+      ? { label: "App shell: phone layout", detail: "Below 1024 the App shell shows its Top navigation, Bottom navigation and Action bar." }
+      : { label: "App shell: header, Sidebar in a menu", detail: "Below 1024 the App shell leaves its desktop structure: the Sidebar opens from a menu button. Add a Top or Bottom Navigation for the phone pattern." };
   } },
   { id: "phone-sheets", at: (facts) => {
     const used = PHONE_SHEETS.filter((name) => facts.names.has(name));
@@ -156,7 +156,7 @@ const BEHAVIOURS: Array<{ id: string; at: (facts: BreakpointFacts) => Omit<Break
       return here !== undefined && here !== wide ? [`${layer} ${prop} ${wide} → ${here}`] : [];
     });
     if (!changed.length) return null;
-    return { label: `Layout: ${changed.slice(0, 3).join(", ")}${changed.length > 3 ? ` +${changed.length - 3}` : ""}`, detail: `Stack, Grid and Box props and a Grid cell's span written per breakpoint show their ${BREAKPOINT_LABELS[facts.breakpoint]} value (Inspector › Auto layout › Breakpoint, Grid cell).` };
+    return { label: `Layout: ${changed.slice(0, 3).join(", ")}${changed.length > 3 ? ` +${changed.length - 3}` : ""}`, detail: `Auto layout, grid and frame properties and a Grid cell's span written per breakpoint show their ${BREAKPOINT_LABELS[facts.breakpoint]} value (Inspector › Auto layout › Breakpoint, Grid cell).` };
   } },
   { id: "hidden-here", at: (facts) => {
     const count = facts.hideOn.filter((list) => list.includes(facts.breakpoint)).length;

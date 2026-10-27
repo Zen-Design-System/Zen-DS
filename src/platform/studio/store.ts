@@ -61,11 +61,11 @@ function initialState(): StudioState {
     ...defaults,
     ...session,
     ...prefs,
-    // The canvas opens in the default modes; only light/dark is remembered (one for the chrome and the canvas:
-    // shell/modes.ts setStudioTheme). Since 2026-10-09 the other modes change only in Present and Play, which keep their
-    // own, so modes saved before that (Contrast High, Neutral-S7…) would stick on the canvas with nothing to change them
-    // back (user, 2026-10-10: "mode mặc định của studio đang để là sai").
-    preview: { ...defaults.preview, theme: prefs.chromeTheme ?? prefs.preview?.theme ?? defaults.preview.theme },
+    // The canvas opens in the default modes; only light/dark is remembered. Since 2026-10-09 the other modes change only
+    // in Present and Play, which keep their own, so modes saved before that (Contrast High, Neutral-S7…) would stick on
+    // the canvas with nothing to change them back (user, 2026-10-10: "mode mặc định của studio đang để là sai"). The
+    // chrome's light/dark (chromeTheme) is its own since 2026-10-27 (UX review §2.9): the frames' Mode no longer follows it.
+    preview: { ...defaults.preview, theme: prefs.preview?.theme ?? defaults.preview.theme },
     // Panel widths are remembered; Show/Hide UI is not (Figma shows the panels again when the file opens).
     panels: { ...defaults.panels, ...prefs.panels, ui: true },
     // Undo history (context hunks, see history.ts) keeps at most HISTORY_LIMIT edits each way.

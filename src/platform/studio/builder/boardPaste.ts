@@ -70,7 +70,7 @@ export async function pasteOnBoard(point: { x: number; y: number }): Promise<boo
     try {
       content = engine.floatAt(code, { x: 0, y: 0 });
     } catch {
-      fail("The clipboard is not JSX elements");
+      fail("Nothing to paste: the clipboard holds no layers");
       return false;
     }
   }

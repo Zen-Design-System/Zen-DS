@@ -114,8 +114,19 @@ const propLabels: Record<string, string> = {
   gutter: "Page margin",
   textStyle: "Text style",
   id: "ID",
-  "aria-label": "Accessible name",
+  // The UX review 2026-10-27 §6: no a11y or code words on the Design tab (rows 29 and the §2.7 Table / MetricCard rows).
+  "aria-label": "Name (screen readers)",
   readOnly: "Read-only",
+  selectedIds: "Selected rows",
+  defaultSelectedIds: "Selected rows at first",
+  currentRowId: "Open row",
+  getRowId: "Row id field",
+  empty: "Empty state",
+  series: "Values",
+  seriesLabel: "Values name (screen readers)",
+  comparison: "Comparison columns",
+  span: "Column span",
+  rowSpan: "Row span",
 };
 
 /** Labels that depend on the component: the same prop name means different things ("sticky" pins FormActions to the
@@ -123,14 +134,16 @@ const propLabels: Record<string, string> = {
 const componentPropLabels: Record<string, Record<string, string>> = {
   FormActions: { sticky: "Pin to bottom", inset: "Side inset" },
   TopNavigation: { sticky: "Pin to top" },
-  // Figma's names (◇ Master-Layout AppShell patterns, user 2026-10-16; rebuilt 2026-10-19): the property or the slot.
-  AppShell: { pattern: "Layout", collapse: "Collapse", banner: "Banner", sidebar: "Sidebar", header: "Header", leadingPane: "Leading-Pane", trailingPane: "Trailing-Pane", progress: "Progress", sidePanel: "Side-Panel", floatingActions: "Floating-Actions", mobileTop: "Top", topNavigation: "Top-Navigation", hero: "Hero", backdrop: "Backdrop", bottomNavigation: "Bottom-Navigation", actionBar: "Action-Bar" },
+  // Figma's layers (◇ Master-Layout AppShell patterns, user 2026-10-16; rebuilt 2026-10-19), as a designer reads them on
+  // a label (the UX review 2026-10-27 §6 row 23: no hyphenated layer names on the Design tab; the Figma name stays the
+  // slot's key, slots/registry.ts, and the push's).
+  AppShell: { pattern: "Layout", collapse: "Collapse", banner: "Banner", sidebar: "Sidebar", header: "Header", leadingPane: "Leading pane", trailingPane: "Trailing pane", progress: "Progress", sidePanel: "Side panel", floatingActions: "Floating actions", mobileTop: "Top", topNavigation: "Top navigation", hero: "Hero", backdrop: "Backdrop", bottomNavigation: "Bottom navigation", actionBar: "Action bar" },
   // Figma Header/AppShell (16243:290461).
-  AppShellHeader: { leading: "Leading-Slots", center: "Center-Slots", actions: "Trailing-Slots", main: "Main-Element", sections: "Sections" },
+  AppShellHeader: { leading: "Leading", center: "Center", actions: "Trailing", main: "Main element", sections: "Sections" },
   // Figma .Primitives/AppShell/Pane (16254:1099).
-  AppShellPane: { title: "Title", action: "Action", theme: "Theme", surface: "Surface", children: "Pane-Content" },
+  AppShellPane: { title: "Title", action: "Action", theme: "Theme", surface: "Surface", children: "Pane content" },
   // PageHeader is Figma's Primitives/Dashboard/Header Type=Main.
-  PageHeader: { description: "Subheading", childTitle: "Child-Heading", actions: "Actions", trailing: "Nav-Trailing-Block" },
+  PageHeader: { description: "Subheading", childTitle: "Child heading", actions: "Actions", trailing: "Trailing" },
 };
 
 /** Components whose `as` picks the HTML element they render (a list of tags); elsewhere (Link, ZenProvider) it takes a

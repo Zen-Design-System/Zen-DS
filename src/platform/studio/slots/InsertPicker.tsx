@@ -9,6 +9,7 @@ import { slotContentOf } from "./content";
 import { paletteFor, paletteSections, searchPalette, type PaletteHidden, type PaletteItem, type PaletteResult } from "./palette";
 import { insertTargetFor, type ContentSlot } from "./registry";
 import "./slots.css";
+import { layerLabel } from "../words";
 
 /*
  * The insert picker (Figma's slot "Add instances", spec "InsertPicker"): a Zen Popover with search, the slot's preferred
@@ -83,7 +84,7 @@ export function InsertPicker({ open, onOpenChange, anchorRef, selection, element
   const hidden = result ? hiddenCaption(result) : null;
   const notes = [noMatch, target?.mode === "direct" ? target.warning : undefined].filter(Boolean).join(" ");
   const noted = Boolean(notes || hidden);
-  const title = `Add to ${slot.name}`;
+  const title = `Add to ${layerLabel(slot.name)}`;
 
   const close = () => {
     onOpenChange(false);

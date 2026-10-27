@@ -279,7 +279,7 @@ export const rows = [
       for (const part of ['device="phone"', "width={390}", "height={844}", 'versionOf="screen-1"', '· Mobile"']) if (!tag.includes(part)) throw new Error(`the copy lacks ${part}: ${tag}`);
       await expectFrame(page, { view: false, breakpoint: "desktop" }, "the original back to Desktop");
       await expectFrame(page, { breakpoint: "mobile", device: "phone" }, "the copy on the phone", "screen:screen-1-mobile");
-      await until(async () => /Mobile version of/.test(await page.locator("#studio-right").innerText()), { message: "the Inspector names the Mobile version" });
+      await until(async () => /A Mobile copy of/.test(await page.locator("#studio-right").innerText()), { message: "the Inspector names the Mobile version" });
       return "Make a separate Screen → screen-1-mobile (phone 390 × 844, versionOf screen-1), original on Desktop, Inspector: Mobile version of …";
     },
   },

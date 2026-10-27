@@ -63,7 +63,7 @@ export async function newPage(ctx, { title, device = "phone" } = {}) {
   const dialog = page.getByRole("dialog", { name: "New page" });
   await dialog.waitFor({ state: "visible", timeout: 5000 });
   // A page with its AppShell (2026-10-18: Empty page is the default, the AppShell a choice) on a desktop Screen…
-  await dialog.getByText("Page with AppShell", { exact: true }).click();
+  await dialog.getByText("Page with App shell", { exact: true }).click();
   await dialog.getByRole("button", { name: "Create page" }).click();
   await until(async () => page.url() !== from && /page=local%3A/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { message: "the new page on the canvas" });
   const id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
@@ -509,7 +509,7 @@ export const rows = [
       // A refusal (an item that keeps state) speaks design words too.
       await selectStack(page, id);
       await insertAsset(page, "Tabs");
-      await until(async () => /keeps state or code/.test(await statusText(page)), { message: "the refusal in the status" });
+      await until(async () => /needs interactions/.test(await statusText(page)), { message: "the refusal in the status" });
       const refused = findings({ status: [await statusText(page)] });
       if (refused.length) throw new Error(`code words in the refusal: ${refused.join(" · ")}`);
       return `header "Show code" · status "${afterEdit.status[0]?.slice(0, 40)}" · tag "${afterEdit.tag[0]}" · ${afterEdit.notes.length} notes, ${afterEdit.tips.length} tips clean`;
@@ -544,7 +544,7 @@ export const rows = [
       await selectStack(page, id);
       const before = await pageText(page, id);
       await insertAsset(page, "Tabs");
-      await until(async () => /keeps state or code/.test(await statusText(page)), { message: "the refusal in the status" });
+      await until(async () => /needs interactions/.test(await statusText(page)), { message: "the refusal in the status" });
       if ((await pageText(page, id)) !== before) throw new Error("the page changed");
       if ((await inspectorRow(page, "gap").count()) === 0) throw new Error("the Stack is no longer selected");
       return "Tabs refused; nothing written";
@@ -1067,9 +1067,9 @@ export const rows = [
       await until(async () => (await selectedName(page)) === "Sidebar", { message: "the Sidebar selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
       const slots = page.locator("#studio-right .studio-slots__slot");
       await until(async () => (await slots.evaluateAll((els) => els.map((el) => el.getAttribute("data-slot")).join(","))) === "brand,children,footer", { message: "Slots: Header-Content, Body-Content, Footer-Content" });
-      const tag = page.locator(".studio-slots__outline .studio-slots__tag", { hasText: "Body-Content" });
+      const tag = page.locator(".studio-slots__outline .studio-slots__tag", { hasText: "Body content" });
       await until(() => tag.count(), { message: "the Body-Content outline on the canvas" });
-      await page.locator('#studio-right [data-slot="footer"]').getByRole("button", { name: "Add to Footer-Content" }).click();
+      await page.locator('#studio-right [data-slot="footer"]').getByRole("button", { name: "Add to Footer content" }).click();
       await page.getByRole("option", { name: /^Menu item/ }).first().click();
       await until(async () => /footer=\{<SidebarMenuItem id="invoices-\w+"/.test((await pageText(page, id)) ?? ""), { message: "footer={<SidebarMenuItem id=\"invoices-…\" …/>} in the page" });
       await until(async () => (await frame.locator(".zen-sidebar__footer-content .zen-sidebar__item").count()) === 1, { message: "the footer row on the Screen" });
@@ -1083,7 +1083,7 @@ export const rows = [
       const buttons = frame.locator(".zen-page-header__actions .zen-button");
       const primaries = async () => (((await pageText(page, id)) ?? "").match(/<Button level="primary"/g) ?? []).length;
       const [beforeButtons, beforePrimaries] = [await buttons.count(), await primaries()];
-      await page.locator('#studio-right [data-slot="actions"]').getByRole("button", { name: "Add to Action-Slots" }).click();
+      await page.locator('#studio-right [data-slot="actions"]').getByRole("button", { name: "Add to Actions" }).click();
       await page.getByRole("option", { name: /^Primary button/ }).first().click();
       await until(async () => (await primaries()) === beforePrimaries + 1, { message: "one more <Button level=\"primary\" …> in the page's actions" });
       await until(async () => (await buttons.count()) === beforeButtons + 1, { message: "the action on the Screen" });
@@ -1113,7 +1113,7 @@ export const rows = [
       // Breadcrumbs keeps the annotation off its DOM: selected by its box (⌘: the element itself).
       await selectAt(page, await frame.locator(".zen-page-header__breadcrumbs .zen-breadcrumbs").first().boundingBox());
       await until(async () => (await selectedName(page)) === "Breadcrumbs", { message: "the Breadcrumbs selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
-      await page.locator("#studio-right").getByRole("button", { name: "Add Item to Item-List" }).click();
+      await page.locator("#studio-right").getByRole("button", { name: "Add Item to Item list" }).click();
       await until(async () => ((await crumbItems()).match(/\bid:/g) ?? []).length === before + 1, { message: `${before + 1} breadcrumb items` });
       // The add ends with the new item selected once the canvas draws it (slots/actions.ts selectItemWhenRendered, Figma's).
       // Escapes pressed before that started from the Breadcrumbs, after it from the item: one level short, 1 run in 10.
@@ -1180,7 +1180,7 @@ export const rows = [
       await until(async () => (await selectedName(page)) === "Menu", { message: "the Menu selected" });
       const block = page.locator('#studio-right .studio-slots__slot[data-slot="items"]');
       const add = async (label) => {
-        await block.getByRole("button", { name: "Add to Item-List" }).click();
+        await block.getByRole("button", { name: "Add to Item list" }).click();
         await page.getByRole("menuitem", { name: label, exact: true }).click();
       };
       await add("Separator");

@@ -24,6 +24,13 @@ Last updated: 2026-10-27.
   fits, ≥ 25%) and reopens at its remembered viewport (localStorage); in a Screen without auto layout an insert floats
   beside the selection at its own size with the page gap (`edit/insertPlace.ts`, `edit/freeBlock.ts`,
   `canvas/firstView.ts`). Root cause of §2.3 was a page field's `autoFocus` scrolling the viewport (session log).
+- **Studio UX review §7 items 6–8 (2026-10-27, words · grouped properties · Dark mode UI-only):** branch
+  `claude/studio-words-props-dark-20261027-b8fcaa` (the review's BACKLOG line names it `zen/fix/studio-words-props-dark-20261027`).
+  Design words through `words.ts` (`layerLabel`, new phrases) and the owning components; `SectionNote` (one line + info
+  tooltip); `inspector/sizeNote.ts` (the size badge's note, published by the canvas — the badge side is with session
+  studio-gestures); `inspector/propCategories.ts` + `GroupedProperties` groups (Content · Look · Behavior · Advanced,
+  `FLAT_GROUPS` for components without Figma groups); `shell/modes.ts` `setStudioTheme` (chrome only) and
+  `setPreviewTheme` (the frames). E2E I-35…I-38, S-08, S-09. Detail: session log 2026-10-27.
 - **Studio UI/UX review (2026-10-27, docs only):** `docs/research/studio-ux-review-2026-10-27.md` — five hands-on
   walks on the user's pages, the Figma-key E2E walk, axe, a UX-writing audit (40 strings), 15 screenshots. Ranked
   proposal §7 approved by the user 2026-10-27, in order: P0 double-click / Enter land on DOM parts with a CSS panel and ⌘A / ⌘D die after
@@ -35,6 +42,12 @@ Last updated: 2026-10-27.
   (Studio: Flow list at 320 / 280, the phone tool rail's More menu, the §2.10 small things, every Inspector tab with a
   panel) and PR #336 (library Tabs `aria-controls` only with an `idPrefix`); the 12px tab tone (3.79:1) stays the
   user's question.
+- **Studio UX review 2026-10-27 (`docs/research/studio-ux-review-2026-10-27.md`, §7 approved in order):** items 1–2 (P0,
+  gestures) built on `claude/studio-gestures-20261027-17240d` (the app's name for `zen/fix/studio-gestures-20261027`): a double-click and Enter take the ⌘-click path into an
+  instance (`select/parts.ts deepLayerAt`, `select/layerParts.ts firstLayerPart`), HTML parts are off the Design tab
+  (`inspector/PartPanel.tsx`; the Code tab keeps their CSS as `PartCodeDetails`), ⌘A / ⌘D / Delete work with a part
+  selected (`edit/figmaKeys.ts`, `StudioApp.tsx`); E2E FW-255…258; PR #337 (gate PASS, 388 E2E rows). Items 3–10 are in the three sibling sessions
+  (first-view-insert, panels-small, words-props-dark), one worktree each from main.
 - **Studio responsive breakpoints (2026-10-26):** plan `docs/research/studio-responsive-breakpoints-2026-10-26.md`
   approved (D1–D4; D5, a harness rule, not). Session bp-studio builds the Studio half: PR 1 (view switch Desktop ·
   Tablet · Mobile on a Screen's label, the Screen's breakpoint in ZenContext and following a desktop Screen's width,

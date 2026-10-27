@@ -6,6 +6,7 @@ import type { StudioSelection } from "../types";
 import { answerDetachConfirm, detachKeys, detachSelection, detachShortcut, shortReason, useDetachConfirm, useDetachRunning, type DetachAvailability } from "./detach";
 import { tip } from "../shell/ShortcutTip";
 import { inspectorStatus, undoShortcut } from "./status";
+import { speak } from "../useWords";
 
 /*
  * The inspector's Detach instance button (Design tab header) and the "Detach only this row?" dialog (mounted once with
@@ -33,14 +34,15 @@ export function DetachAction({ selection, availability, connecting, row, compact
 }) {
   const running = useDetachRunning();
   const captionId = useId();
-  const blocked = connecting ? "Connecting to the dev server…"
+  const blocked = connecting ? "Connecting to the Studio server…"
     : running ? "Detaching…"
       : availability.state === "loading" ? "Checking…"
         : availability.state === "refused" ? shortReason(availability.reason)
           : null;
   const label = row ? "Detach this row…" : "Detach instance";
   if (compact) {
-    const reason = availability.state === "refused" && !connecting && !running ? availability.reason : blocked;
+    // The server's refusal in design words (UX review 2026-10-27 §6 row 13: "Bad loc…", "does not parse").
+    const reason = availability.state === "refused" && !connecting && !running ? speak(availability.reason) : blocked;
     return (
       <IconButton
         icon="icon-link-broken-02-line"

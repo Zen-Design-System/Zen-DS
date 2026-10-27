@@ -184,7 +184,7 @@ export function hostNode(element: HTMLElement, tag: string, children: SnapChild[
   const borderWidth = parseFloat(style.borderTopWidth) || 0;
   const border = borderWidth && style.borderTopStyle !== "none" ? colorTokensFor(element, style.borderTopColor, "border").map((token) => BORDERS[token]).find(Boolean) ?? "unknown" : null;
   const corner = background || border ? radius(element, style, ctx) : null;
-  if (background === "unknown" || border === "unknown") ctx.note("A background or border colour that no Box surface or border token paints: left out");
+  if (background === "unknown" || border === "unknown") ctx.note("A background or border color that no Box surface or border token paints: left out");
   const surface = background && background !== "unknown" ? background : null;
   const outline = border && border !== "unknown" ? border : null;
   const padding = paddingProps(element, style, ctx);

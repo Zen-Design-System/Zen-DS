@@ -133,6 +133,8 @@ export function ownsText(element: Element): boolean {
  * Figma's ⌘-click inside an instance (user, 2026-10-13: "⌘-click mới dừng ở component, chưa vào tới layer chữ hay icon
  * bên trong như Figma"): the deepest layer under the pointer that is a text (a DOM node showing text of its own) or a
  * nested instance (an Icon, a Badge, a Dock-Icon), innermost first; null when there is none (the instance itself).
+ * Since 2026-10-27 (UX review §2.1) a double-click and Enter take the same path: a DOM part (a div, a span, a button)
+ * is never a layer the canvas lands on.
  */
 export function deepLayerAt(owner: FiberHit, element: Element | null): PartHit | null {
   const chain = partChain(owner, element).filter((part) => !wrapsOwner(part));
@@ -155,6 +157,15 @@ export function deepLayerAt(owner: FiberHit, element: Element | null): PartHit |
 const PICTURES = new Set(["Avatar", "AppShellAccount", "Image", "Thumbnail"]);
 
 /**
+ * A part that is a layer of its own in Figma's terms: a text (a DOM node showing words of its own) or a nested instance
+ * (drawn under a layer name, _shared/nested.tsx). A DOM wrapper (div, span, button) and a component drawn without a
+ * layer name are not: the Design tab never shows them (2026-10-27).
+ */
+export function isLayerPart(part: PartHit): boolean {
+  return part.isComponent ? nestedPathOf(part) !== null : ownsText(part.element);
+}
+
+/**
  * The layer one level up from a part (Figma's ⇧Enter / Esc, user 2026-10-13): the nearest enclosing nested instance, or a
  * part with a Figma name (a Table's Cell, Data-Row), DOM wrappers in between skipped; null when only the owner is above.
  */
@@ -163,7 +174,8 @@ export function parentLayerOf(part: PartHit): PartHit | null {
   return chain.find((candidate) => candidate.element !== part.element && !wrapsOwner(candidate) && (candidate.isComponent ? nestedPathOf(candidate) !== null : /^[A-Z]/.test(candidate.name))) ?? null;
 }
 
-const samePart = (a: PartHit, b: PartHit) => a.fiber === b.fiber || a.fiber === b.fiber.alternate || (a.element === b.element && a.name === b.name);
+/** Whether two part hits are the same part as drawn (the same fiber, or the same node under the same name). */
+export const samePart = (a: PartHit, b: PartHit) => a.fiber === b.fiber || a.fiber === b.fiber.alternate || (a.element === b.element && a.name === b.name);
 
 /** Double-click on a selected part: one level deeper towards the cursor (null when it is the deepest already). */
 export function drillPart(owner: FiberHit, element: Element | null, from: PartHit): PartHit | null {
@@ -171,14 +183,6 @@ export function drillPart(owner: FiberHit, element: Element | null, from: PartHi
   const index = chain.findIndex((part) => samePart(part, from));
   if (index < 0) return nearestPart(chain);
   return index > 0 ? chain[index - 1] : null;
-}
-
-/** Double-click on a component: one level in, Figma's way — the outermost nested instance under the cursor (Card ›
- *  Sub-Action, not the Icon inside it), or null when it draws none there. */
-export function outerNestedAt(owner: FiberHit, element: Element | null): PartHit | null {
-  const chain = partChain(owner, element);
-  for (let index = chain.length - 1; index >= 0; index--) if (!wrapsOwner(chain[index]) && nestedPathOf(chain[index]) !== null) return chain[index];
-  return null;
 }
 
 /** Double-click on a selected part: the next nested instance towards the cursor (Sub-Action › Leading-Icon), or null. */

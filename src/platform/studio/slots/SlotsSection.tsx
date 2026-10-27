@@ -28,6 +28,7 @@ import { InsertPicker } from "./InsertPicker";
 import { PALETTE, type PaletteItem } from "./palette";
 import { contentSummaryOf, hostPropsOf, inactiveCondition, isLayoutPrimitive, isSlotActive, slotsOf, type ContentSlot, type HostProps, type SlotCondition } from "./registry";
 import "./slots.css";
+import { layerLabel } from "../words";
 
 /*
  * The inspector's Slots section (spec "Client"): one block per content slot of the selected component (Figma's slot
@@ -326,7 +327,7 @@ function SlotBlock({ selection, element, slot, hostProps, titled, editable, play
     <div ref={blockRef} className="studio-slots__slot" data-slot={slot.prop} data-empty={empty || undefined} data-continued={continued || undefined}>
       {continued ? null : <div className="studio-slots__head">
         <span className="studio-slots__icon" aria-hidden="true"><Icon name="icon-grid-dots-blank-line" size={16} /></span>
-        {titled ? <span className={`studio-slots__name ${typographyStyles["Body/Small/Medium"]}`}>{slot.name}</span> : null}
+        {titled ? <span className={`studio-slots__name ${typographyStyles["Body/Small/Medium"]}`}>{layerLabel(slot.name)}</span> : null}
         {actions.tagged && !playground ? <Badge size="xs" theme="yellow" background="subtle" className="studio-slots__modified">Modified</Badge> : null}
         <span className={`studio-slots__caption ${typographyStyles["Body/Small/Regular"]}`}>{caption}</span>
         {canAdd && !playground ? (
@@ -338,7 +339,7 @@ function SlotBlock({ selection, element, slot, hostProps, titled, editable, play
               level="accent"
               size="xs"
               icon="icon-plus-line"
-              aria-label={`Add to ${slot.name}`}
+              aria-label={`Add to ${layerLabel(slot.name)}`}
               aria-haspopup="listbox"
               aria-expanded={open}
               disabled={busy}
@@ -359,7 +360,7 @@ function SlotBlock({ selection, element, slot, hostProps, titled, editable, play
           <Menu
             align="end"
             items={moreItems}
-            trigger={<IconButton appearance="flat" level="primary" size="xs" icon="icon-dots-horizontal-line" aria-label={`More actions for ${slot.name}`} data-slot-more="" />}
+            trigger={<IconButton appearance="flat" level="primary" size="xs" icon="icon-dots-horizontal-line" aria-label={`More actions for ${layerLabel(slot.name)}`} data-slot-more="" />}
           />
         ) : null}
       </div>}
@@ -368,7 +369,7 @@ function SlotBlock({ selection, element, slot, hostProps, titled, editable, play
       {/* A slot showing a same-file `const name = <JSX>`: its edits are written there (every place that shows it changes). */}
       {active && content.shared && !content.insertBlock ? <p className={`studio-slots__note ${typographyStyles["Body/Small/Regular"]}`}>Written in <code>{content.shared}</code>: every place that shows it changes too.</p> : null}
       {content.layers.length && !placeholder ? (
-        <ul aria-label={`${slot.name} layers`} className="studio-inspector__items">
+        <ul aria-label={`${layerLabel(slot.name)} layers`} className="studio-inspector__items">
           {content.layers.map(row)}
         </ul>
       ) : null}

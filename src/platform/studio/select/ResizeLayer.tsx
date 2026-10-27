@@ -7,6 +7,7 @@ import { applyEdit, parseSrc, studioApi, subscribeStudioWrites, useStudioServer 
 import { canvasApi, getViewport } from "../canvas/viewport";
 import { componentSchema } from "../inspector/propSchema";
 import { inspectorStatus } from "../inspector/status";
+import { sizeNote } from "../inspector/sizeNote";
 import { ChromePortalContext } from "../shell/ChromeScope";
 import { canEdit, flushStudioStore, studioStore, useStudio } from "../store";
 import type { EditOp, SourceElement, StudioSelection } from "../types";
@@ -843,8 +844,12 @@ export function ResizeLayer({ box, hit, interactive, viewport, onPassContextMenu
   // A Tooltip's anchor passes no size to the child it clones unless its CSS does (a class that makes the child fill
   // it): the probe tells, cloning.json's words say why.
   if (target && fixed.length && hit) target = withoutAxes(target, fixed, anchorParents.has(hit.name) ? anchorReason(hit, fixed) : fixedReason(hit.name, fixed, host));
-  // Why axes have no handle, whichever step removed them (the pill says it; a refused wrap goes to the status line too).
+  // Why axes have no handle, whichever step removed them: the Inspector says it under Resizing (inspector/sizeNote.ts;
+  // until 2026-10-27 the pill carried it, UX review §2.10 N3), a refused wrap goes to the status line too.
   const note = target?.why?.length ? target.why.join(" · ") : null;
+  const noteKey = hit && enabled && note ? `${hit.src}|${note}` : "";
+  useEffect(() => { sizeNote.publish(noteKey && hit && note ? { src: hit.src, text: note } : null); }, [noteKey, hit, note]);
+  useEffect(() => () => sizeNote.publish(null), []);
   const statusKey = refusal && hit && enabled ? `${hit.src}|${refusal}` : "";
   const statusRef = useRef("");
   useEffect(() => {
@@ -1362,10 +1367,10 @@ export function ResizeLayer({ box, hit, interactive, viewport, onPassContextMenu
   const pillX = viewWidth < pillHalf * 2 ? viewWidth / 2 : Math.min(Math.max(box.x + box.w / 2, pillHalf), viewWidth - pillHalf);
   const below = box.y + box.h + 32 <= viewHeight;
   const cursor = drag?.active ? drag.handle.id : undefined;
-  // Dragging: where the size goes and how many instances take it ("(in a Stack, all 4)"); else why an axis has no handle.
+  // Dragging: where the size goes and how many instances take it ("(in a Stack, all 4)"). Why an axis has no handle is
+  // the Inspector's (sizeNote), so the pill reads "W × H" alone (2026-10-27).
   const notes = live ? [live.stack ? "in a Stack" : "", live.column ? `Grid column ${live.column}` : "", live.count > 1 ? `all ${live.count}` : ""].filter(Boolean) : [];
-  const why = sized.why?.length ? sized.why.join(" · ") : null;
-  const suffix = live ? (notes.length ? ` (${notes.join(", ")})` : "") : why ? ` · ${why}` : "";
+  const suffix = live && notes.length ? ` (${notes.join(", ")})` : "";
 
   return (
     <>
