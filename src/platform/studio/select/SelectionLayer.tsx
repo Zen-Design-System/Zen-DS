@@ -597,13 +597,17 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     deep ? picked.hit : clickTarget(picked.hit, picked.frame, selectedRef.current)
   ), []);
 
-  /** The part a click at `picked` selects: the selected part when the cursor is on it, else the nearest internal component. */
-  const partAt = useCallback((picked: Pick & { kind: "node" }, x: number, y: number) => {
+  /**
+   * The part a click at `picked` selects: a plain click keeps the selected part when the cursor is on it; `deep` (⌘ /
+   * Ctrl, Figma's deep select) goes to the deepest layer under the cursor even inside the selected part (2026-10-27:
+   * ⌘-click on a Metric's words with the Metric selected kept the Metric, FW-256).
+   */
+  const partAt = useCallback((picked: Pick & { kind: "node" }, x: number, y: number, deepSelect = false) => {
     const target = deepestAt(picked.element, x, y);
     // A locked layer's parts (its text, its svg) are not the canvas's to pick (Figma's lock).
     if (insideLocked(target)) return null;
     const current = partRef.current;
-    if (current && current.owner.hosts[0] === picked.hit.hosts[0] && chainHas(picked.hit, target, current)) return current;
+    if (!deepSelect && current && current.owner.hosts[0] === picked.hit.hosts[0] && chainHas(picked.hit, target, current)) return current;
     // A section selected: a click on another section selects that one (the same level, as Figma's siblings).
     const live = current ? livePart(picked.hit, current) : null;
     if (live && dataGroupOfPart(live)?.role === "group") {
@@ -631,7 +635,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const nestedUnder = picked.kind === "node" && deepRef.current ? nestedHitAt(picked.hit, under) : null;
     const deepTarget = picked.kind === "node" && deepRef.current ? (nestedUnder && !isLockedSrc(nestedUnder.src) ? nestedUnder : picked.hit) : null;
     const deepLayer = deepTarget && !insideLocked(under) ? deepLayerAt(deepTarget, under) : null;
-    const hit = level ?? (picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y) ?? picked.hit : deepTarget ? (deepLayer ? dataItemOfPart(deepLayer)?.part ?? groupTitlePartOf(deepLayer) ?? deepLayer : deepTarget) : targetOf(picked, false)) : null);
+    const hit = level ?? (picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y, deepRef.current) ?? picked.hit : deepTarget ? (deepLayer ? dataItemOfPart(deepLayer)?.part ?? groupTitlePartOf(deepLayer) ?? deepLayer : deepTarget) : targetOf(picked, false)) : null);
     setHoverFrame(picked.kind === "node" || picked.kind === "frame" || picked.kind === "variant" ? picked.frame : null);
     variantHover.set(picked.kind === "variant" ? pickVariant(picked.element, studioStore.getState().selection, deepRef.current ? "deep" : "click") : null);
     if (hit?.fiber !== hoverRef.current?.fiber || hit?.src !== hoverRef.current?.src) {
@@ -745,7 +749,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       }
       // ⌘ / Ctrl+click on the selected element, or a click inside the owner of the selected part: the part under the cursor.
       if (!event.shiftKey && deepAt(picked, deep)) {
-        const part = partAt(picked, event.clientX, event.clientY);
+        const part = partAt(picked, event.clientX, event.clientY, deep);
         if (part) {
           choosePart(part);
           // A data-slot item (TopNavigation's trailing action) can then be dragged: reorder it, or group it (edit/itemDrag.ts).
