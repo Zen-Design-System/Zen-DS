@@ -146,7 +146,9 @@ export const rows = [
     async run(ctx) {
       const page = await freshSelect(ctx, "table", { frame: 10, position: { dx: 4, dy: 4 } });
       await until(async () => /^content:true behavior:false advanced:false$/.test(await groupStates(page)), { message: `Content, Behavior, Advanced (${await groupStates(page)})` });
-      for (const [group, prop] of [["content", "caption"], ["content", "columns"]]) if (!(await rowIn(page, group, prop).count())) throw new Error(`${prop} is not under ${group}`);
+      if (!(await rowIn(page, "content", "caption").count())) throw new Error("caption is not under content");
+      // The columns are written in place: their block (ObjectProperties, "Columns · 1 Task") sits in Content too.
+      if (!(await page.locator('#studio-right [data-property-group="content"]').getByText(/^Columns/).count())) throw new Error("the Columns block is not under content");
       const text = await page.locator("#studio-right").innerText();
       for (const words of ["Selected ids", "Accessible name", "Current row id"]) if (text.includes(words)) throw new Error(`"${words}" is still on the panel`);
       await openPropertyGroup(page, "selectable");
