@@ -344,23 +344,6 @@ export function TextAlignControl({ label, value, fallback, disabled, onSet, opti
  * Max lines (Figma's Truncate text › Max lines): a whole number, at least 1. A stepper click writes at once (the field
  * keeps no focus then); typing writes on Enter, blur, an arrow key's release or a selection change (as NumberControl).
  */
-/**
- * A boolean prop's switch. A press shows its value at once and the next press turns from it, until the source reads that
- * value: two quick presses wrote "on" twice when the second came before the first write reached the source (E2E I-03,
- * under load). A value the source does not reach in 4 s (a refused write) gives way to the source's.
- */
-export function BooleanSwitch({ label, checked, disabled, onSet }: { label: string; checked: boolean; disabled: boolean; onSet: (value: boolean) => void }) {
-  const [pending, setPending] = useState<boolean | null>(null);
-  // The source caught up: it is the truth again (state adjusted during render).
-  if (pending !== null && pending === checked) setPending(null);
-  useEffect(() => {
-    if (pending === null) return undefined;
-    const timer = window.setTimeout(() => setPending(null), 4000);
-    return () => window.clearTimeout(timer);
-  }, [pending]);
-  return <ToggleButton aria-label={label} size="sm" checked={pending ?? checked} disabled={disabled} onCheckedChange={(next) => { setPending(next); onSet(next); }} />;
-}
-
 function LinesControl({ label, value, disabled, onSet }: { label: string; value: number; disabled: boolean; onSet: (value: number) => void }) {
   const inlineLabel = useInlineLabel();
   const [draft, setDraft] = useState<number | null>(value);
@@ -945,7 +928,7 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
       return <NumberEnumControl {...common} options={editor.options} value={typeof literal === "number" ? literal : undefined} fallback={typeof fallback === "number" ? fallback : undefined} onSet={onSet} />;
     case "boolean": {
       const checked = typeof literal === "boolean" ? literal : fallback === true;
-      return <BooleanSwitch label={common.label} checked={checked} disabled={common.disabled || (literal !== undefined && typeof literal !== "boolean")} onSet={onSet} />;
+      return <ToggleButton aria-label={common.label} size="sm" checked={checked} disabled={common.disabled || (literal !== undefined && typeof literal !== "boolean")} onCheckedChange={(next) => onSet(next)} />;
     }
     case "number": {
       const shown = typeof literal === "number" ? literal : undefined;

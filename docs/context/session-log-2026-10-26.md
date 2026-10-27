@@ -815,3 +815,29 @@ fbffa7ea.
   386 works · 0 broken, PT-24 passed on retry in shard 2 (first reported as none: the runner's row line cut its retry
   note, and the stdout grep missed it; the JSON report has it); gate `qa --isolated --files=` the three files: PASS (Studio E2E 386
   works · 0 broken in 3 shards; I-03 and PT-25 passed on retry there), report `.qa/reports/2026-10-26T19-38-18-74c671d1.md`.
+
+## PT-02/03/18/24/25, I-03: a third lost edit in the pages sync, a quick-toggle race (2026-10-27; tier S, product fixes)
+
+The user, after #330: PT-18, PT-24, I-03, PT-25 the same way. Branch zen/fix/e2e-flaky-pt18-pt24-i03-pt25-20261027
+from main 1ac8c89f.
+- Correction first: the PR #330 proof said its 4 shards had no retry; the JSON report shows PT-24 passed on retry in
+  shard 2. The runner's row line cut the evidence before "(passed on retry…)", and the stdout grep missed it. Fixed:
+  `run.mjs` keeps a row's first error as `retry`, `matrix.mjs` marks it ↻ first on its line, the run and the gate list
+  "↻ Passed only on retry". Proofs now read retries from the JSON.
+- Ruled out by measurement: memory piling up in a group's tab. A per-row CDP log over 3 prototype runs: the heap reached
+  1.0–1.1 GB with every row passing, and the one failure (PT-03, row 3) came at 237 MB.
+- PT-18, PT-24, PT-25 (and PT-02, PT-03, PT-21 in the dives): each rare, each a 10 s wait or a row time out. PT-03's
+  shot showed both Screens desktop although newPage had seen device="phone"; a putPage trace with stacks caught PT-02:
+  localEdit wrote the Phone switch at 35588 ms, and by 36401 the cache had lost it without a putPage, a `syncMirror`
+  take. Cause (product, a third lost edit): the folder's listing (GET /pages) is read while this tab's later writes land;
+  it showed this tab's own older text while the record's mark had moved on and `sent` held only the latest hash, so the
+  plan called it a conflict and took the folder's older text.
+- Fix: `sent` keeps each page's last 20 written hashes (`noteSent`); `planSync` reads a folder holding any of them as
+  this tab's own write (push the newer edit). `linkPhoneChrome` and `moveScreenFrame` write only over the text they read
+  (they read, worked asynchronously, then wrote). pageModel selftest +1 (50). B-49 gains a second part: the sync's listing
+  answer held 1.5 s while another rename lands.
+- I-03 (test): it read the source after a fixed 1.2 s; under a gate's load the second save had not landed yet. A
+  product cause was suspected (the switch reading the source between two quick presses) and a `BooleanSwitch` written,
+  but I-03 with its first save held 0.8 s passed on the old Inspector too: the switch was right, so that change was
+  dropped. I-03 now holds its first save 0.8 s (a slow server on purpose) and waits for both presses in the source.
+- Proof: PROOF_LINES

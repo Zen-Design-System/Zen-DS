@@ -137,8 +137,8 @@ export const rows = [
     async run(ctx) {
       const page = await freshSelect(ctx, "check");
       const sw = () => inspectorRow(page, "checked").getByRole("switch");
-      // The first write held a moment (a dev server busy, as under a gate's load): the second press comes before the source
-      // has the first, and must still turn it off. It wrote "on" twice (the switch read the source, 2026-10-27).
+      // The first write held a moment, as a dev server under a gate's load answers: the fixed 1.2 s read came before the
+      // second write landed there (2026-10-27). Both presses must still land.
       await page.route((url) => url.pathname.endsWith("/__zen-studio/edit"), async (route) => { await sleep(800); await route.continue(); }, { times: 1 });
       await sw().click();
       await sw().click();
