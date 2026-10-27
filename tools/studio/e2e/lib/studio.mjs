@@ -69,6 +69,44 @@ export async function openStudio(browser, { url, page: pageId, role = "admin", v
   return { context, page, errors };
 }
 
+/** Notes of Studio loads that had to be done twice (loadStudio), taken by run.mjs into the row's evidence. */
+export const loadNotes = [];
+
+/**
+ * Loads the Studio in `page` (a reload, or `url`) and waits until its app has mounted (.studio-app). Chromium sometimes
+ * cuts such a load short in a tab the rows have used for a while (E2E PT-19, PT-22, PT-23, PT-27, 2026-10-27): some
+ * 250–350 ms in, every module request still in flight and the HMR socket end net::ERR_ABORTED (canceled), with no
+ * navigation, no command from Playwright and the server answering. The page then stays empty, or Vite's client reloads
+ * it and the tab loses its renderer; why Chromium cancels them is not known. Such a load is noted (`loadNotes`) and done
+ * once more as a fresh navigation; a second one throws.
+ */
+export async function loadStudio(page, { url = null, timeout = 10_000 } = {}) {
+  const target = url ?? page.url();
+  for (let attempt = 1; ; attempt += 1) {
+    let cancelled = 0;
+    const onFailed = (request) => { if (request.failure()?.errorText === "net::ERR_ABORTED") cancelled += 1; };
+    page.on("requestfailed", onFailed);
+    let failure = null;
+    try {
+      if (attempt === 1 && !url) await page.reload({ waitUntil: "domcontentloaded" });
+      else await page.goto(target, { waitUntil: "domcontentloaded", timeout: 20_000 });
+      await page.locator(".studio-app").first().waitFor({ state: "attached", timeout });
+      return;
+    } catch (error) {
+      failure = String(error?.message ?? error).split("\n")[0];
+    } finally {
+      page.off("requestfailed", onFailed);
+    }
+    const shown = await Promise.race([
+      page.evaluate(() => `${document.readyState}, #root with ${document.getElementById("root")?.childElementCount ?? "no"} children`),
+      sleep(3000).then(() => "the tab does not answer"),
+    ]).catch((error) => String(error?.message ?? error).split("\n")[0]);
+    const what = `the Studio did not load (${shown}; ${cancelled} requests cancelled; ${failure})`;
+    if (attempt > 1) throw new Error(`${what}, twice`);
+    loadNotes.push(`${what}: loaded once more`);
+  }
+}
+
 /** The browser context a Studio page opens in (openStudio's): its own renderer and storage, Admin role unless `role` says
  *  otherwise, reduced motion, the helpers rows read the DOM with. */
 export async function studioContext(browser, { url, role = "admin", viewport = VIEWPORT }) {

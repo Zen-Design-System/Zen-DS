@@ -28,7 +28,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { studioApi } from "./lib/api.mjs";
 import { compare, createMatrix, readBaseline, readFlaky, writeBaseline, writeReport } from "./lib/matrix.mjs";
 import { pagesDirOf, startServer } from "./lib/server.mjs";
-import { launchBrowser, openStudio, sleep } from "./lib/studio.mjs";
+import { launchBrowser, loadNotes, loadStudio, openStudio, sleep } from "./lib/studio.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "../../..");
@@ -294,7 +294,7 @@ try {
           // fixture's seed there, then reloading that page, outran the next row's time limit).
           const shown = (() => { try { return new URL(session.page.url()).searchParams.get("page"); } catch { return null; } })();
           if (shown !== host) {
-            await session.page.goto(`${server.url}/studio.html?page=${host}`, { waitUntil: "domcontentloaded" }).catch(() => undefined);
+            await loadStudio(session.page, { url: `${server.url}/studio.html?page=${host}` }).catch(() => undefined);
             await session.page.waitForSelector('[data-studio-frame="example:0"]', { timeout: 30_000 }).catch(() => undefined);
           }
           return session;
@@ -325,6 +325,7 @@ try {
       }
       const t0 = Date.now();
       currentRow = row.id;
+      loadNotes.length = 0;
       let status = "works";
       let evidence = null;
       let error = null;
@@ -395,6 +396,12 @@ try {
           await session.page.screenshot({ path: shot }).catch(() => {});
         }
       }
+      // A Studio load Chromium cut short, done once more by loadStudio: said with the row, so a pattern of them shows.
+      if (loadNotes.length) {
+        const note = `(the Studio loaded twice: ${loadNotes.splice(0).join("; ")})`;
+        if (status === "broken") error = `${error} ${note}`;
+        else evidence = `${evidence ?? ""} ${note}`;
+      }
       // `retry`: a row that worked on its retry keeps its first try's error apart, so the log and the gate can list it.
       matrix.add({ id: row.id, group, feature: row.feature, wp: row.wp, status, ms: Date.now() - t0, evidence: evidence ?? undefined, error: error ?? undefined, retry: status === "works" && firstError ? firstError : undefined });
       // A row that ran out of time may still have steps waiting on its page: the next row gets a fresh one.
@@ -445,6 +452,8 @@ if (verdict.fixed.length) console.log(`✓ Fixed since the baseline (run with --
 // A pass on retry is no clean pass: listed apart (the row's own line cuts a long evidence before its retry note).
 const retried = matrix.rows.filter((row) => row.retry);
 if (retried.length) console.log(`↻ Passed only on retry: ${retried.map((r) => `${r.id} (${r.retry.slice(0, 80)})`).join("; ")}`);
+const reloaded = matrix.rows.filter((row) => /\(the Studio loaded twice: /.test(row.evidence ?? row.error ?? ""));
+if (reloaded.length) console.log(`⟳ The Studio loaded twice (Chromium cut a load short): ${reloaded.map((r) => r.id).join(", ")}`);
 const newWorks = verdict.fresh.filter((row) => row.status === "works");
 if (newWorks.length && !has("update-baseline")) console.log(`  New rows that work (not in the baseline; record with --update-baseline): ${newWorks.map((r) => r.id).join(", ")}`);
 console.log(`Report: ${path.relative(root, report.md)}`);
