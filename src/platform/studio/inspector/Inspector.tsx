@@ -139,6 +139,9 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
         {/* The zoom on the tab row, as Figma UI3's. */}
         <ZoomMenu size="xs" />
       </div>
+      {/* The tabs not shown keep an empty hidden panel: a tab's aria-controls must name an element that exists (axe
+          aria-valid-attr-value; UX review 2026-10-27 §5). */}
+      {(localPage ? builderTabs : tabs).filter((item) => item.id !== tab).map((item) => <TabPanel key={item.id} idPrefix="studio-inspector" id={item.id} hidden>{null}</TabPanel>)}
       <TabPanel idPrefix="studio-inspector" id={tab} className="studio-inspector__body">
         {commentPage ? <CommentsPanel localPage={commentPage} />
           : tab === "prototype" ? <PrototypePanel />

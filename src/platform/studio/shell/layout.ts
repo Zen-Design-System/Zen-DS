@@ -26,7 +26,8 @@ export const clampPanel = (side: "left" | "right", width: number) => Math.round(
 
 const matches = (query: string) => typeof window !== "undefined" && window.matchMedia(query).matches;
 
-function useMedia(query: string) {
+/** Whether a media query matches now, following it as the window changes. */
+export function useMedia(query: string) {
   const [value, setValue] = useState(() => matches(query));
   useEffect(() => {
     const list = window.matchMedia(query);

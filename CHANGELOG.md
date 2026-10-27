@@ -14,6 +14,11 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Tabs name their panels only when they have them (2026-10-27, UX review §7.10): `aria-controls` is set only with an
+  `idPrefix` (the prefix a TabPanel pairs with); before, a generated prefix pointed every tab at a panel that did not
+  exist, an ARIA error (axe `aria-valid-attr-value`, critical) on every page with panel-less Tabs. The 12px tab tone
+  (3.79:1) is still open.
+
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
@@ -42,6 +47,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   of a slot, else every top-level frame) and never the Studio's own text, also from a Layers row; with a text or nested
   instance selected, ⌘D duplicates and Delete removes the instance they belong to, ⌘Z undoes. Studio E2E FW-255…258;
   SP-18 and DA-02 follow the new gesture.
+- Zen Studio panels (2026-10-27, UX review §7.5 and §7.9): the Prototype tab's Flow list fits the Inspector at 320px and
+  at its 280px minimum (long names ellipsize, "Start" / "Overlay" stay whole); under 600px the tool rail is Move · Hand ·
+  Frame · Shape · Text and a More menu with the rest, inside a 390px screen; no frame's text shows through the 8px
+  gutters beside the docked panels; the Design tab with nothing selected has one Page section (Export… in its title
+  row), Preview modes as label · value rows and an "Edit in Figma" link on Local styles; Play's bar names a Screen
+  named after the page once; a Text drawn with T shows and moves its own X / Y (the frame around it); a text's Fill
+  reads as its variable ("Neutral / Strongest"), as a shape's does; the Inspector's and left panel's tabs keep a panel
+  for every tab; the Prototype tab's button is "Add Screen" (one spelling of Screen). Studio E2E PT-29, I-32.
 - Zen Studio right-click (2026-10-27): on a phone Screen, a layer under the dashed "Add Top / Bottom Navigation"
   placeholder opens its menu again. The placeholder covers the Screen's edge while a layer in it is selected, and a
   right-click there opened nothing. Its click still adds the Navigation. Studio E2E FW-177 passes again.

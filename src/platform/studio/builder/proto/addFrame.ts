@@ -152,7 +152,7 @@ export async function addFrame(localPage: string, kind: "screen" | "overlay", { 
   const frame = engine.frameCode({ kind, id, title, device, layout, chrome: !empty, empty, holds, ...(place ? { x: place.x, y: place.y } : {}), ...(width !== undefined ? { width, height } : {}) });
   // An empty Screen is one self-closing tag: the content goes inside it, one level in.
   const code = content && kind === "screen" && empty ? `${frame.replace(/\s*\/>$/, ">")}\n${content.split("\n").map((line) => (line ? `  ${line}` : line)).join("\n")}\n</Screen>` : frame;
-  const named = label ?? (kind === "screen" ? (width !== undefined ? (name ? `Add ${name}` : "Draw frame") : "Add screen") : "Add overlay");
+  const named = label ?? (kind === "screen" ? (width !== undefined ? (name ? `Add ${name}` : "Draw frame") : "Add Screen") : "Add overlay");
   const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code } as EditOp] }, named);
   joinPin(pinned, response, named);
   if (response.ok && place) selectFrameWhenShown(`${kind}:${id}`, (frameId) => studioStore.setState({ selection: { kind: "frame", frameId } }));

@@ -675,7 +675,8 @@ export function StudioApp() {
           {/* A document page has no layers: the left panel is the page list alone. */}
           {docPage ? null : panelTabs}
           <TabPanel idPrefix="studio-left" id="pages" hidden={!docPage && leftTab !== "pages"} className="studio-left__panel"><PagesPanel /></TabPanel>
-          {docPage ? null : <TabPanel idPrefix="studio-left" id="layers" hidden={leftTab !== "layers"} className="studio-left__panel"><LayersPanel /></TabPanel>}
+          {/* A document page has no layers: its Layers tab keeps an empty hidden panel, so its aria-controls names an element. */}
+          {docPage ? <TabPanel idPrefix="studio-left" id="layers" hidden>{null}</TabPanel> : <TabPanel idPrefix="studio-left" id="layers" hidden={leftTab !== "layers"} className="studio-left__panel"><LayersPanel /></TabPanel>}
           {/* Figma's Assets: Zen components to click or drag onto the canvas (edit/assets). */}
           {docPage ? null : <TabPanel idPrefix="studio-left" id="assets" hidden={leftTab !== "assets"} className="studio-left__panel"><AssetsPanel /></TabPanel>}
         </ChromeScope>
