@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { newPageText } from "../../dialect.mjs";
 import { codeOfItem, grow } from "../../dnd-engine.mjs";
-import { inspectorRow, openAssetLibrary, openCodeProperties, ownerOfLayer, selectedSrc, showDesignTab, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { inspectorRow, openAssetLibrary, openCodeProperties, openPropertyGroup, ownerOfLayer, selectedSrc, showDesignTab, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, mineOption, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
 import { pagesDirOf } from "../lib/server.mjs";
 
@@ -4906,7 +4906,7 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   {
-    id: "FW-206", feature: "A component without Figma properties (Link) shows one Properties block in its prop order, as Figma's instance panel: no Content / State / Actions sections, its words a Text row where `children` sits (after Visited)", wp: "Content into properties 2026-10-22", timeout: 40_000,
+    id: "FW-206", feature: "A component without Figma properties (Link) shows one Properties block, as Figma's instance panel: no Content / State / Actions sections; since the §2.8 groups (2026-10-27) its words are a Text row for `children` in the open Content group and Visited sits in the folded Behavior group, which opens on a click", wp: "Content into properties 2026-10-22", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await contentPage(ctx);
       await clickNamed(page, id, "Link");
@@ -4914,10 +4914,12 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       const titles = await sections(page);
       const grouped = titles.filter((title) => ["Content", "State", "Actions", "More"].includes(title));
       if (grouped.length || !titles.includes("Properties")) throw new Error(`sections ${titles.join(", ")}`);
+      // Visited is a Behavior prop: that group starts folded (UX review 2026-10-27 §2.8) and draws its rows once opened.
+      await openPropertyGroup(page, "visited");
       const rows = await right(page).locator(".studio-inspector__section").filter({ has: page.locator("h3", { hasText: /^Properties$/ }) }).first()
         .locator(".studio-inspector__row[data-prop]").evaluateAll((all) => all.map((row) => row.getAttribute("data-prop")));
       const at = (name) => rows.findIndex((prop) => prop.split(" ").includes(name));
-      if (at("children") < 0 || at("visited") < 0 || at("children") < at("visited")) throw new Error(`rows ${rows.join(", ")}`);
+      if (at("children") < 0 || at("visited") < 0 || at("children") > at("visited")) throw new Error(`rows ${rows.join(", ")}`);
       await expectPanelFits(page, "the Link's Properties");
       return `sections ${titles.join(" · ")} · rows ${rows.join(", ")}`;
     },

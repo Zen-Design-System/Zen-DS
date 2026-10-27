@@ -132,6 +132,10 @@ E2E: builder B-50…B-54 (insert), structural ST-30…ST-32 (first view, one row
   one, so the Empty page's inserts, pastes and ⌘V with nothing selected all flowed as blocks.
 - `rootSelection` (library target) returned the first floating Box found in a free Screen as the layout to insert into
   (a Box is a drop container): the second insert would have gone inside the first card's frame.
+- Met in the `--only=figma` run, from main after #337 / #338 (not this change): FW-255…258 (the gesture rows) passed but
+  were never put in `matrix.baseline.json` — recorded; FW-206 (a Link's Properties block) read `visited` as a flat row,
+  but since §2.8 it sits in the folded Behavior group (no row until opened) and `children` comes first, in Content — the
+  row opens the group (`openPropertyGroup`) and expects Content before Behavior now.
 
 ### Walks (private :5180 server, Playwright, 1512 × 982; scripts in the session's scratchpad)
 
@@ -149,12 +153,25 @@ E2E: builder B-50…B-54 (insert), structural ST-30…ST-32 (first view, one row
 ### Checks
 
 - `node src/platform/studio/edit/insertPlace.selftest.mjs` 17 ✓, `node src/platform/studio/canvas/firstView.selftest.mjs`
-  21 ✓ (both in `npm run studio:selftest`); `node tools/studio/e2e/selftest.mjs` 2127 ✓ (598 rows); `tsc` ✓.
-- New E2E rows: builder B-50 (three cards at their size, gap 16, margin 24, the new one selected), B-51 (chart card
-  477 wide beside; a Table on a new row), B-52 (nothing selected → the margin corner, then beside the last layer; ⌘Z one
-  insert at a time), B-53 (in a Stack the insert goes after the selected Text, in flow), B-54 (⌘D and Delete take the
-  Box along); shell ST-30 (three rows → the Screen fills the view), ST-31 (one row → fit), ST-32 (the viewport
-  remembered after coming back and after a reload).
+  21 ✓ (both in `npm run studio:selftest`; the chain ✓ after the merge of main 073f3397); `node tools/studio/e2e/selftest.mjs`
+  2176 ✓ (610 rows); `tsc` ✓.
+- New E2E rows (`npm run studio:e2e -- --rows=B-50,…,ST-32 --no-retry`, 105 s): builder B-50 (three cards 178 × 156 at
+  x 24 / 218 / 412: their size, gap 16, margin 24, the new one selected), B-51 (chart card 477 wide at x 606 beside; a
+  Table on a new row at (24, 328)), B-52 (nothing selected → the margin corner, then a Button beside at x 218; two ⌘Z
+  back to the empty Screen), B-53 (in a Stack the insert goes after the selected Text, in flow), B-54 (⌘D and Delete
+  take the Box along); shell ST-30 (three rows → the Screen 808 × 525 fills the 904 px canvas at 53%), ST-31 (one row →
+  both frames fit at 35%), ST-32 (100% with the Screen at the same place after coming back and after a reload). First
+  run: B-50, B-52, B-53 read `selectedSrc` as a string (it is the array of selected locs) and B-52 expected one Escape
+  to clear the selection (since #337 it climbs to the Box first): fixed, the three pass alone (59 s). All 8 in
+  `matrix.baseline.json`.
+- `npm run qa -- --isolated --files=<the 16 files>`: PASS — style guard 0 / 0, usage guard 0, Studio self-tests,
+  guidelines + props docs, TypeScript, Studio E2E 402 works · 0 broken (5 shards, 1698 s); no platform page in scope, so
+  no contact sheets. Report `.qa/reports/2026-10-27T17-03-38-097eef06.md`.
+- `npm run studio:e2e -- --only=figma` (default retry, 982 s): 198 works · 2 broken; FW-23, FW-25, FW-80, FW-91, FW-183,
+  FW-195 passed on retry (20 s timeouts under load). Alone with `--no-retry`: FW-184 ✓ (13 s); FW-206 ✗ twice — a row
+  #338 left behind (Found while building), fixed, ✓ alone (9 s). FW-255…258 (#337) ran green but were not in the
+  baseline: recorded.
+
 ## Studio UX review §7 items 6–8: words and notes, grouped instance properties, Dark mode UI-only (tier S + M + S)
 
 Branch `claude/studio-words-props-dark-20261027-b8fcaa` (the BACKLOG line names it `zen/fix/studio-words-props-dark-20261027`;
