@@ -172,15 +172,21 @@ export const rows = [
     async run(ctx) {
       const page = await freshSelect(ctx, "check");
       const sw = () => inspectorRow(page, "checked").getByRole("switch");
+      // The first write held a moment, as a dev server under a gate's load answers: the fixed 1.2 s read came before the
+      // second write landed there (2026-10-27). Both presses must still land.
+      await page.route((url) => url.pathname.endsWith("/__zen-studio/edit"), async (route) => { await sleep(800); await route.continue(); }, { times: 1 });
       await sw().click();
       await sw().click();
-      await sleep(1200);
-      const el = await read(ctx, "check");
+      const onOf = (el) => el.attr("checked") ?? el.attr("defaultChecked");
+      // Both land, however long the held write takes: the source back to unset (or false).
+      const el = await expectSource(ctx, "check", (candidate) => [undefined, "{false}"].includes(onOf(candidate)), "both presses in the source").catch(async (error) => {
+        const on = onOf(await read(ctx, "check"));
+        throw new Error(`after on+off the source still has ${on === "true" || on === "" ? "the prop on" : on} (${error.message})`);
+      });
       const status = await statusText(page);
-      const on = el.attr("checked") ?? el.attr("defaultChecked");
       if (/changed since|stale|409/i.test(status)) throw new Error(`refused: ${status.slice(0, 120)}`);
-      if (on !== undefined && on !== "{false}") throw new Error(`after on+off the source still has ${on === "true" || on === "" ? "the prop on" : on}`);
-      return "on then off: back to unset, no refusal";
+      if (![undefined, "{false}"].includes(onOf(el))) throw new Error(`after on+off the source has ${onOf(el)}`);
+      return "on then off with the first write held: back to unset, no refusal";
     },
   },
   {

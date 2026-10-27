@@ -77,10 +77,13 @@ check("trashed here, still in the folder", kinds(planSync([{ id: "a", text: "A",
 check("trashed here, gone there: nothing", kinds(planSync([{ id: "a", text: "A", trashedAt: 5 }], [], M)), []);
 // The folder's echo of this copy's own write while an edit here followed it (E2E AG-08/AG-10/NO-06, 2026-10-26): A2 was
 // sent, A3 typed during the write, the record still synced at A. Without `sent` the folder's A2 replaced A3.
-const sentA2 = new Map([["a", h("A2")]]);
+const sentA2 = new Map([["a", new Set([h("A2")])]]);
 check("own write echoed, edited since: pushed", kinds(planSync([{ id: "a", text: "A3", sync: { mirror: M, hash: h("A") } }], [{ id: "a", text: "A2", mtime: 1 }], M, sentA2)), ["push:a"]);
 check("own write echoed, no edit since: marked", kinds(planSync([{ id: "a", text: "A2", sync: { mirror: M, hash: h("A") } }], [{ id: "a", text: "A2", mtime: 1 }], M, sentA2)), ["mark:a"]);
 check("another text after own write: still a conflict", kinds(planSync([{ id: "a", text: "A3", sync: { mirror: M, hash: h("A") } }], [{ id: "a", text: "B", mtime: 1 }], M, sentA2)), ["take:a:conflict"]);
+// A listing read before this copy's later writes landed (2026-10-27, a phone switch lost): A1 and A2 were sent, A2's
+// answer recorded A2, the folder still listed A1, an edit made A3. A1 is this copy's own older write: push, no conflict.
+check("listing older than own later writes: pushed", kinds(planSync([{ id: "a", text: "A3", sync: { mirror: M, hash: h("A2") } }], [{ id: "a", text: "A1", mtime: 1 }], M, new Map([["a", new Set([h("A1"), h("A2"), h("A3")])]]))), ["push:a"]);
 check("own write recorded, folder changed after it: taken", kinds(planSync([{ id: "a", text: "A2", sync: { mirror: M, hash: h("A2") } }], [{ id: "a", text: "B", mtime: 1 }], M, sentA2)), ["take:a:folder"]);
 
 if (failures.length) {
