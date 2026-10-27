@@ -39,6 +39,9 @@ const OVERRIDES: Readonly<Record<string, Readonly<Record<string, PropCategory>>>
 const ADVANCED_NAMES = /^(?:aria-|data-)|^(?:id|idPrefix|name|as|href|target|rel|role|tabIndex|htmlFor|form|locale|currency|format|formatter|getRowId|headingLevel|seriesLabel|anchorRef|popoverPortal|portal|className|style|ref|key|autoComplete|inputMode|pattern|method|action|encType|download|lang|dir|type|linkAs|noValidate|maxLength|accept)$/;
 const LOOK_BOOLEANS = /^(?:fullWidth|bordered|borderless|striped|dense|compact|inverse|flat|rounded|elevated|inline|wrap|noWrap|truncate|block|fill|outlined|raised|shadow|dividers?|hugContents|fitContent|stretch|square|circle|pill|sticky)$/;
 const CONTENT_BOOLEANS = /^(?:show|hide|with|has)[A-Z]/;
+/** A boolean that draws a layer (a Chip's Dropdown chevron, a Metric's dot): Figma's layer boolean, whether or not the
+ *  Figma read maps it. */
+const LAYER_BOOLEANS = /^(?:dropdown|chevron|arrow|icon|avatar|badge|counter|hint|dot|caption|image|thumbnail|divider|metricColor)$/;
 const BEHAVIOUR_ENUMS = /^(?:sort|edit|mode|trigger|interaction|validation|closeOn|selection)/i;
 /** Selection and open state, whatever its type (ids, keys, an index): what the component does, not what it shows. */
 const BEHAVIOUR_NAMES = /^(?:default)?(?:selected|current|active|open|expanded|checked|pressed|focused)(?:[A-Z]\w*)?$/i;
@@ -108,6 +111,7 @@ export function propCategory(component: string, prop: PropFacts, hint?: PropHint
 }
 
 function booleanCategory(name: string): PropCategory {
+  if (LAYER_BOOLEANS.test(name)) return "content";
   if (LOOK_BOOLEANS.test(name)) return "look";
   if (CONTENT_BOOLEANS.test(name)) return "content";
   return "behavior";

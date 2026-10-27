@@ -64,6 +64,7 @@ check("a Figma layer boolean is Content", propCategory("Input", { name: "helpTex
 check("a boolean variant reads as a boolean", propCategory("Checkbox", { name: "checked", type: "boolean" }, "variant"), "behavior");
 check("a look boolean", propCategory("Card", { name: "fullWidth", type: "boolean" }), "look");
 check("a show-boolean is content", propCategory("LineChart", { name: "showLegend", type: "boolean" }), "content");
+check("a boolean that draws a layer is content (Chip Dropdown)", propCategory("Chip", { name: "dropdown", type: "boolean" }), "content");
 check("a sort enum is behavior", propCategory("X", { name: "sortDirection", type: '"asc" | "desc"' }), "behavior");
 check("a per-breakpoint number is a look", propCategory("Card", { name: "span", type: 'Responsive<number | "full">' }), "look");
 check("a content number", propCategory("ProgressBar", { name: "value", type: "number" }), "content");

@@ -1,6 +1,7 @@
 import { createContext, useContext, useId, type ReactNode } from "react";
-import { IconButton } from "../../../components/Button";
+import { Icon } from "../../../components/Icon";
 import { Heading } from "../../../components/Text";
+import { useIconTooltip } from "../../../components/Tooltip";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { useWords } from "../useWords";
@@ -143,10 +144,17 @@ export function InspectorItem({ icon, name, meta, onClick, component }: { icon: 
 export function SectionNote({ text, more }: { text: string; more?: string }) {
   const say = useWords();
   const rest = more ? say(more) : null;
+  // Zen's icon tooltip on a plain button (as the Pages panel's storage info): the rest of the note on hover and focus.
+  const tip = useIconTooltip(rest ?? false);
   return (
     <span className="studio-inspector__note-line">
       <span className="studio-inspector__note-text">{say(text)}</span>
-      {rest ? <IconButton appearance="flat" level="primary" size="xs" icon="icon-info-circle-line" aria-label={rest} tooltip={rest} className="studio-inspector__note-more" /> : null}
+      {rest ? (
+        <>
+          <button type="button" className="studio-inspector__note-more" aria-label={rest} {...tip.bind({})}><Icon name="icon-info-circle-line" size="2xs" decorative /></button>
+          {tip.tooltip}
+        </>
+      ) : null}
     </span>
   );
 }

@@ -451,7 +451,7 @@ export const rows = [
       // A refusal (an item that keeps state) speaks design words too.
       await selectStack(page, id);
       await insertAsset(page, "Tabs");
-      await until(async () => /keeps state or code/.test(await statusText(page)), { message: "the refusal in the status" });
+      await until(async () => /needs interactions/.test(await statusText(page)), { message: "the refusal in the status" });
       const refused = findings({ status: [await statusText(page)] });
       if (refused.length) throw new Error(`code words in the refusal: ${refused.join(" · ")}`);
       return `header "Show code" · status "${afterEdit.status[0]?.slice(0, 40)}" · tag "${afterEdit.tag[0]}" · ${afterEdit.notes.length} notes, ${afterEdit.tips.length} tips clean`;
@@ -486,7 +486,7 @@ export const rows = [
       await selectStack(page, id);
       const before = await pageText(page, id);
       await insertAsset(page, "Tabs");
-      await until(async () => /keeps state or code/.test(await statusText(page)), { message: "the refusal in the status" });
+      await until(async () => /needs interactions/.test(await statusText(page)), { message: "the refusal in the status" });
       if ((await pageText(page, id)) !== before) throw new Error("the page changed");
       if ((await inspectorRow(page, "gap").count()) === 0) throw new Error("the Stack is no longer selected");
       return "Tabs refused; nothing written";
@@ -1055,7 +1055,7 @@ export const rows = [
       // Breadcrumbs keeps the annotation off its DOM: selected by its box (⌘: the element itself).
       await selectAt(page, await frame.locator(".zen-page-header__breadcrumbs .zen-breadcrumbs").first().boundingBox());
       await until(async () => (await selectedName(page)) === "Breadcrumbs", { message: "the Breadcrumbs selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
-      await page.locator("#studio-right").getByRole("button", { name: "Add Item to Item-List" }).click();
+      await page.locator("#studio-right").getByRole("button", { name: "Add Item to Item list" }).click();
       await until(async () => ((await crumbItems()).match(/\bid:/g) ?? []).length === before + 1, { message: `${before + 1} breadcrumb items` });
       // The add ends with the new item selected once the canvas draws it (slots/actions.ts selectItemWhenRendered, Figma's).
       // Escapes pressed before that started from the Breadcrumbs, after it from the item: one level short, 1 run in 10.
