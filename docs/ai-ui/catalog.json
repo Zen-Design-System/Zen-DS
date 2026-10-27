@@ -22042,7 +22042,7 @@
         },
         "idPrefix": {
           "type": "string",
-          "description": "Prefix for tab/panel ids so panels can reference `${idPrefix}-tab-${id}`."
+          "description": "Prefix for tab/panel ids so TabPanels can pair with the tabs (`${idPrefix}-panel-${id}`, `${idPrefix}-tab-${id}`)."
         }
       },
       "requiredActions": [],

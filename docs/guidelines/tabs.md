@@ -23,7 +23,7 @@ Switch between related panels of content at the same level.
 | Size | `size` | medium · small · large (desktop top navigation, 64px) |
 | Items | `items[] {id,label,icon,badge,disabled}` | icon: a name ("icon-home-02-line") or a node; Badge-Counter xsmall |
 | Value | `value / defaultValue / onValueChange(id)` | controlled or not (onChange is the deprecated alias) |
-| Panels | `idPrefix + TabPanel` | aria-controls wiring |
+| Panels | `idPrefix + TabPanel` | aria-controls wiring: the tabs name their panels only when idPrefix is given (no panel can pair with a generated prefix) |
 | Full width | `fullWidth` | equal-width items that share the bar (min-width 0, centred labels) — e.g. a mobile screen header |
 | Item-List slot | `children: <TabItem value label icon badge disabled />` | instead of items (Figma Item-List); Tabs keeps the selection, keys and ids |
 
@@ -46,7 +46,7 @@ Figma Tab-Bar (1577:5477). Roving tabindex: ←/→ move and select, Home/End ju
 | `variant` | `"indicator" \| "subtle"` | `"indicator"` |  |
 | `fullWidth` | `boolean` | `false` | Stretch the bar to its container (Indicator style keeps its bottom border full width). |
 | `aria-label` | `string` | — |  |
-| `idPrefix` | `string` | — | Prefix for tab/panel ids so panels can reference `${idPrefix}-tab-${id}`. |
+| `idPrefix` | `string` | — | Prefix for tab/panel ids so TabPanels can pair with the tabs (`${idPrefix}-panel-${id}`, `${idPrefix}-tab-${id}`). Only then do the tabs carry `aria-controls`: without it no panel can reference the generated prefix, and an id that points at nothing is an ARIA error (axe aria-valid-attr-value). |
 | `className` | `string` | — |  |
 | `overrides` | `Readonly<Record<string, Readonly<Record<string, unknown>>>>` | — | Figma instance overrides: props of the tabs it draws, by layer (`{ "Tab-Item[members]/Badge-Counter": { theme: "accent" }, "Tab-Item[members]/Icon": { name: "icon-users-line" } }`). Written by Zen Studio; app code sets the items. |
 
@@ -110,6 +110,7 @@ type TabOption = { id: string; label?: ReactNode; icon?: IconName | ReactNode; b
 
 ## Accessibility
 - Roving tabindex; ←/→ select, Home/End jump, disabled tabs are skipped.
+- With idPrefix each tab controls its TabPanel (aria-controls); without one the tabs carry no aria-controls, since no panel can pair with the generated ids.
 
 ## Content
 - Nouns; no "Tab" in labels.

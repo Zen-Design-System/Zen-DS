@@ -2788,7 +2788,7 @@
       [
         "Panels",
         "idPrefix + TabPanel",
-        "aria-controls wiring"
+        "aria-controls wiring: the tabs name their panels only when idPrefix is given (no panel can pair with a generated prefix)"
       ],
       [
         "Full width",
@@ -2830,7 +2830,8 @@
       "Don't nest tab bars inside tab panels; use Segmented for the inner switch."
     ],
     "a11y": [
-      "Roving tabindex; ←/→ select, Home/End jump, disabled tabs are skipped."
+      "Roving tabindex; ←/→ select, Home/End jump, disabled tabs are skipped.",
+      "With idPrefix each tab controls its TabPanel (aria-controls); without one the tabs carry no aria-controls, since no panel can pair with the generated ids."
     ],
     "content": [
       "Nouns; no \"Tab\" in labels."
