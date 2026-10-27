@@ -1541,7 +1541,7 @@ export const rows = [
       for (const [prev, next] of [[a, b], [b, c]]) {
         if (next.x !== prev.x + prev.width + 16 || next.y !== prev.y) throw new Error(`not beside with the page gap: ${JSON.stringify([prev, next])}`);
       }
-      const selected = await selectedSrc(page);
+      const selected = (await selectedSrc(page))[0] ?? null;
       const third = locOfTag(text, "MetricCard", 2);
       if (!selected || !selected.endsWith(`:${third}`)) throw new Error(`selected ${selected}, not the new MetricCard at ${third}`);
       return `three cards ${a.width} × ${a.height} at x ${a.x}, ${b.x}, ${c.x} (gap 16, margin 24); the third selected`;
@@ -1576,8 +1576,9 @@ export const rows = [
       await page.keyboard.press("Escape");
       await insertFromAssets(page, id, "Metric card", "MetricCard");
       await page.locator(".studio-viewport").focus();
-      await page.keyboard.press("Escape");
-      await until(async () => (await selectedSrc(page)) === null, { message: "nothing selected" });
+      // Escape climbs to the card's Box first (gestures, 2026-10-27), then clears the selection.
+      for (let k = 0; k < 4 && (await selectedSrc(page)).length; k++) { await page.keyboard.press("Escape"); await sleep(150); }
+      await until(async () => (await selectedSrc(page)).length === 0, { message: "nothing selected" });
       const text = await insertFromAssets(page, id, "Button", "Button");
       if (!/<Box position="absolute" insetLeft=\{\d+\} insetTop=\{24\}>\s*<Button /.test(text)) throw new Error("the Button does not float in a Box of its own");
       const drawn = await floatingLayers(page);
@@ -1598,12 +1599,12 @@ export const rows = [
       const { page, id } = await newPage(ctx, { device: "desktop" });
       await focusScreen(page);
       await clickNamed(page, id, "Text");
-      await until(async () => /:\d+:\d+$/.test((await selectedSrc(page)) ?? ""), { message: "the Text selected" });
+      await until(async () => /:\d+:\d+$/.test((await selectedSrc(page))[0] ?? ""), { message: "the Text selected" });
       const text = await insertFromAssets(page, id, "Metric card", "MetricCard");
       const stack = text.slice(text.indexOf("<Stack"), text.indexOf("</Stack>"));
       if (!/<Text [^>]*>[^<]*<\/Text>\s*<MetricCard /.test(stack)) throw new Error(`the MetricCard is not right after the Text in the Stack: ${stack.replace(/\s+/g, " ").slice(0, 300)}`);
       if (/position="absolute"/.test(text)) throw new Error("the insert floated inside a layout");
-      const selected = await selectedSrc(page);
+      const selected = (await selectedSrc(page))[0] ?? null;
       if (!selected || !selected.endsWith(`:${locOfTag(text, "MetricCard")}`)) throw new Error(`selected ${selected}, not the new MetricCard`);
       return "MetricCard after the Text in the Stack, in flow, selected";
     },
