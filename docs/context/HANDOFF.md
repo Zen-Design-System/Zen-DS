@@ -21,9 +21,12 @@ Last updated: 2026-10-27.
 
 - **Studio UI/UX review (2026-10-27, docs only):** `docs/research/studio-ux-review-2026-10-27.md` — five hands-on
   walks on the user's pages, the Figma-key E2E walk, axe, a UX-writing audit (40 strings), 15 screenshots. Ranked
-  proposal §7 waits for the user: P0 double-click / Enter land on DOM parts with a CSS panel and ⌘A / ⌘D die after
+  proposal §7 approved by the user 2026-10-27, in order: P0 double-click / Enter land on DOM parts with a CSS panel and ⌘A / ⌘D die after
   that; P1 first view at the overlays, full-width inserts, Prototype list clipped, phone tool rail; P2 words, notes,
-  grouped instance properties, dark-mode coupling. Two decisions in §2.4 (insert A/B) and §2.9 (dark mode).
+  grouped instance properties, dark-mode coupling. Decisions: §2.4 inserts keep their own size (A); §2.9 Dark mode
+  changes the UI only, as Figma. In progress in four worktree sessions from main (BACKLOG.md Open items):
+  `zen/fix/studio-gestures-20261027`, `zen/fix/studio-first-view-insert-20261027`, `zen/fix/studio-panels-small-20261027`,
+  `zen/fix/studio-words-props-dark-20261027`. Docs PR #332.
 - **Studio responsive breakpoints (2026-10-26):** plan `docs/research/studio-responsive-breakpoints-2026-10-26.md`
   approved (D1–D4; D5, a harness rule, not). Session bp-studio builds the Studio half: PR 1 (view switch Desktop ·
   Tablet · Mobile on a Screen's label, the Screen's breakpoint in ZenContext and following a desktop Screen's width,

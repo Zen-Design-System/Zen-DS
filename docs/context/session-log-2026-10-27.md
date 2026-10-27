@@ -47,6 +47,10 @@ The user: "Làm đánh giá toàn diện lại UI và UX của Zen studio". Noth
   parent's resize handle and sets "height → hug"); the Layers rows of a folded frame are not in the DOM (expand first);
   `pointOfText("8")` finds the Tabs badge before the KPI value; the right `.studio-resizer` has no box until hovered
   (set `panels.right` on the store instead).
+- **Approved (user, 2026-10-27, after PR #332 opened):** §7 in the proposed order; §2.4 A (inserts keep their own
+  size); §2.9 Dark mode changes the UI only, as Figma. Split by file area into four worktree sessions from main
+  (branches in BACKLOG.md Open items); the 12px tab tone went to BACKLOG-user-and-later as the one open question.
+  Giám sát told.
 
 ## Studio E2E FW-177 / FW-211 (Giám sát, tier S)
 

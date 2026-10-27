@@ -129,9 +129,9 @@ keyboard focus after any gesture; a focused part must not leave the document sel
   Layers → ⇧A → Flow horizontal → Gap (w2-11…13).
 - Figma inserts a component at its own size at the pointer. The user's dashboard rule (`dashboard-layout-principles`:
   one grid, hero 8·4 or 12, rows fill) is the better target for a desktop Screen.
-- Decision for the user: **A** — an inserted component keeps its own width and lands beside the selection with the
-  page gap (Figma's result); **B** — on a desktop Screen the first insert makes a 12-column Grid and later inserts
-  fill it 4·4·4 (the dashboard rule). Owner: `slots/palette.ts`, `builder/` insert.
+- Decision (user, 2026-10-27): **A** — an inserted component keeps its own width and lands beside the selection with
+  the page gap (Figma's result). B (the first insert on a desktop Screen makes a 12-column Grid that later inserts fill
+  4·4·4) was not chosen; the dashboard rule stays a Grid the person adds. Owner: `slots/palette.ts`, `builder/` insert.
 
 ### 2.5 · P1 · Prototype tab: the Flow list's trailing column is clipped at 320px
 
@@ -177,8 +177,9 @@ keyboard focus after any gesture; a focused part must not leave the document sel
 ### 2.9 · P2 · Dark mode switches the design's theme with the UI
 
 - `chromeTheme: dark` (Zen Studio menu › Dark mode) → the panels go dark **and** the frames render in the Dark theme;
-  "Preview modes: Dark · Neutral - S1 …" (ảnh 11). Figma's theme setting changes the UI only. Question for the user:
-  keep (one switch for both) or split (UI theme in the menu, the design's theme in Preview modes, as Figma).
+  "Preview modes: Dark · Neutral - S1 …" (ảnh 11). Figma's theme setting changes the UI only. Decision (user,
+  2026-10-27): split, as Figma — Dark mode in the Zen Studio menu changes the UI only; the design's theme stays in
+  Preview modes.
 
 ### 2.10 · P3 · Smaller things seen on the walks
 
@@ -350,7 +351,7 @@ Inconsistent terms (one example each):
 - "Example code not updated" (`Inspector.tsx:69`) vs "Snippet not updated" (`inspector/detach.ts:463`).
 - "Switch to Document" (`PanelHeaders.tsx:72`) vs "Docs" / "Document" frames (`inspector/frames.ts:22-26`).
 
-## 7. Proposed work, in order (needs the user's approval; tiers per AGENTS.md §C)
+## 7. Proposed work, in order (approved by the user 2026-10-27 in this order; tiers per AGENTS.md §C)
 
 1. **P0 · Gestures reach layers, never parts (L).** Double-click and Enter take the ⌘-click path
    (`deepLayerAt`): into an instance to its text or nested instance, the next double-click edits the text; HTML
@@ -363,16 +364,20 @@ Inconsistent terms (one example each):
    "part selection → ⌘A → ⌘D".
 3. **P1 · Open at the first Screen (S).** Zoom to the first Screen on open (fit when the page has one row); remember
    the viewport per page.
-4. **P1 · Insert like Figma (M; decision A or B in §2.4).**
+4. **P1 · Insert like Figma (M; decision A, §2.4).**
 5. **P1 · Prototype Flow list at 320 and 280 (S); the phone tool rail (S).**
 6. **P2 · Words and notes (S).** The 40 strings of §6, the file path off the canvas and the Page section, the size
    badge's rule notes into the Inspector, every panel note to one line with the rest in a tooltip, one term each for
    Screen / Frame, Can edit, Present, Studio server, "a page you made".
 7. **P2 · Instance properties grouped (M).** Content · Look · Behaviour · Advanced from the API JSON; empty rows get
    a placeholder.
-8. **P2 · Dark mode (S; decision in §2.9).**
+8. **P2 · Dark mode (S; UI only, §2.9).**
 9. **P3 · The small things of §2.10 (S each).**
 10. **Library:** Tabs `aria-controls` on a missing panel (S); the 12px tab tone 3.79:1 (decision).
 
 Without 1–2 the Figma user's first minute still ends in a CSS panel and a dead keyboard; 3–5 are what they hit in
 the first five minutes; 6–8 are what they read.
+
+Split (2026-10-27, four worktree sessions from main, by file area): 1–2 → `zen/fix/studio-gestures-20261027`; 3–4 →
+`zen/fix/studio-first-view-insert-20261027`; 5, 9, 10 (Tabs `aria-controls`) → `zen/fix/studio-panels-small-20261027`;
+6–8 → `zen/fix/studio-words-props-dark-20261027`. The 12px tab tone stays a question for the user.
