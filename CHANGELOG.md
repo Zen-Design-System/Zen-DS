@@ -87,6 +87,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   rewritten as it opens (its phone parts, an old layout) is rewritten only over the text it read.
 - Studio E2E (2026-10-27): a row that passed only on its retry is marked ↻ on its line and listed apart at the end of a
   run and in the gate ("↻ Passed only on retry").
+- Studio E2E (2026-10-28): when Chromium cuts a Studio load short and the app never mounts (PT-19, PT-22, PT-23 and
+  PT-27 failed on it), the harness loads it once more, says so in the row's evidence and lists the row apart
+  ("⟳ The Studio loaded twice"). Why Chromium cancels those loads is still open.
 - Zen Studio Overlay frames (2026-10-27): a modal drawn open on the board (a Side Panel, a Bottom Sheet, a Dialog in an
   Overlay frame) is a picture of it and takes no focus. Its autofocus took the focus from the Studio each time the page
   drew it again, closing a menu open in the Pages panel or leaving a field. Play still runs it live. Studio E2E B-28 waits

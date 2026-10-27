@@ -847,3 +847,30 @@ from main 1ac8c89f.
 - Still open: PT-23's first try failed on a 10 s wait, the signature PT-18/24/25 had before this change: the Zen Studio
   menu's wait (`openStudioSpace`) or seededPage's frame wait after its reload. Logs on both over 6 prototype runs caught
   neither. SE-12 and AP-02 (other groups) retried once.
+
+## PT-23: Chromium cuts a Studio load short; the harness loads it once more (2026-10-28; tier S, test harness)
+
+The user: catch PT-23's 10 s wait (the Zen Studio menu or the wait after a reload), fix, prove, new PR. Branch
+zen/fix/e2e-flaky-pt23-20261027, main merged (3fb5fb57).
+- Caught over six probe rounds (Giám sát's slots): the wait after seededPage's reload (PT-19, PT-22, PT-23, PT-27) and
+  once ctx.studio()'s goto back to the host page (PT-23). Never the menu.
+- Each time, 250–350 ms into the load, Chromium cancels every request still in flight: the last 66–190 of ~1 370
+  modules, each sent 10–60 ms before, plus the open HMR socket (net::ERR_ABORTED, canceled). DOMContentLoaded and load
+  fire, the app never mounts. Then either the page stays empty (renderer idle), or Vite's client pings, reloads, and the
+  tab loses its renderer ("Render process gone", no crash), so nothing answers.
+- Ruled out with logs: an Escape or a second reload/navigate from Playwright (pw:protocol: no command sent between
+  Page.reload and the cancel); window.stop/document.open (in-page trace); a crash, an exception, a dialog; the server
+  (answers in 2–24 ms, all responses 200/304); Vite's optimizer (cache unchanged since 10-26, no reload logged); the
+  SharedWorker seen then (Vite 8's ping worker, made after the socket broke). Chrome's LOG(ERROR) shows only
+  CVDisplayLink noise, which is on every load. Why Chromium cancels is still open (the platform audit's CI stalls, #339,
+  may be the same).
+- Fix (harness, the time box Giám sát set): `loadStudio(page, { url })` in lib/studio.mjs reloads (or goes to `url`)
+  and waits for .studio-app. A load that did not mount in 10 s is noted and done once more as a fresh navigation; a
+  second miss throws. seededPage and ctx.studio() use it. run.mjs puts the note in the row's evidence ("the Studio loaded
+  twice: …") and lists the rows (⟳), as the gate does. No row check changed.
+- Proof on 262d1748: a scratch check (not committed) cuts the Studio's entry module: one cut is loaded again and noted,
+  two cuts throw, a url load recovers, a clean load notes nothing (4/4). PT-23 `--no-retry` 5/5. `--shard=1/4 … 4/4`
+  402 works · 0 broken; from the JSON: ↻ none, ⟳ PT-18 (the tab did not answer, 190 requests cancelled; loaded again,
+  passed in 20 s). Gate `qa --isolated --files=` the four files: PASS, Studio E2E 402 works · 0 broken in 3 shards,
+  ⟳ none, ↻ SE-12 ("a part selected", another group), report `.qa/reports/2026-10-27T19-14-55-74c671d1.md`.
+- Still open: Chromium's cancel itself; SE-12 and AP-02 (other groups) still retry now and then.
