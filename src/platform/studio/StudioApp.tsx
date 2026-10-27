@@ -466,6 +466,8 @@ export function StudioApp() {
             return;
           }
           selection = withoutPart(current) as typeof current;
+          // The owner is the selection from here (the copy is selected after, as Figma's ⌘D on the instance does).
+          studioStore.setState({ selection });
         }
         // Several layers: each copied after itself in one edit (edit/multi.ts).
         if (multiSelection.get().length) { void duplicateLayers(); return; }
@@ -548,6 +550,8 @@ export function StudioApp() {
           // owner, the layer the person went into (UX review 2026-10-27 §2.2: Delete works in every selection state).
         }
         const layer = (selection.part ? withoutPart(selection) : selection) as typeof selection;
+        // The owner is the selection from here, so its parent is selected after the removal, as for any layer.
+        if (selection.part) studioStore.setState({ selection: layer });
         event.preventDefault();
         // Several layers: all removed in one edit (edit/multi.ts).
         if (multiSelection.get().length) { void removeLayers(); return; }

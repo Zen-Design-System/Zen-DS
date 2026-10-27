@@ -12,7 +12,7 @@ import { inspectorStatus } from "../inspector/status";
 import { studioStore, useStudio } from "../store";
 import type { StudioSelection } from "../types";
 import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTarget, layerHover, nestedHitAt, onSourceUpdate, parentHit, publishSelectionInfo, rectOf, selectHit, type FiberHit } from "./picker";
-import { chainHas, deepLayerAt, isLayerPart, ownsText, parentLayerOf, deepPartAt, partForElement, pathOf, resolvePart, samePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
+import { chainHas, deepLayerAt, isLayerPart, nestedPathOf, ownsText, parentLayerOf, deepPartAt, partForElement, pathOf, resolvePart, samePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
 import { firstLayerPart } from "./layerParts";
 import { clickTarget, layerInside, layersAt, sameElement } from "./clickTarget";
 import { isLockedFrame, isLockedSrc } from "./layerMeta";
@@ -138,6 +138,19 @@ const sameList = (a: Box[], b: Box[]) => a.length === b.length && a.every((box, 
 const sameTagged = (a: Tagged | null, b: Tagged | null) => a === b || Boolean(a && b && a.src === b.src && a.name === b.name && a.meta === b.meta && sameBox(a, b));
 const sameOverlay = (a: Overlay, b: Overlay) => sameTagged(a.hover, b.hover) && sameTagged(a.selected, b.selected) && sameBox(a.owner, b.owner) && sameList(a.instances, b.instances) && sameList(a.extras, b.extras) && sameList(a.items, b.items) && sameAreas(a.spacing, b.spacing) && sameOwner(a.spacingOwner, b.spacingOwner);
 
+/**
+ * A part's name on its canvas tag, as the Layers panel lists it: a text by its words, a nested instance by its Figma
+ * layer name (Metric, Icon); null for a DOM part (2026-10-27: "span in MetricCard" was a code word on the canvas).
+ */
+function partTagName(part: PartHit): string | null {
+  if (!part.isComponent) {
+    if (!ownsText(part.element)) return null;
+    const words = (part.element.textContent ?? "").trim().replace(/\s+/g, " ");
+    return words.length > 28 ? `${words.slice(0, 28)}…` : words;
+  }
+  return nestedPathOf(part)?.split("/").pop()?.replace(/\[[^\]]*\]$/, "") ?? null;
+}
+
 /** Capture layer (Select tool) + hover/selection outlines, in canvas-viewport coordinates. */
 /** `part` as drawn now: the same part found again from its path when the canvas drew its element anew. */
 function livePart(owner: FiberHit, part: PartHit): PartHit | null {
@@ -212,7 +225,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       if (item) return { ...box, name: item.slot.itemName, src: hit.src, meta: `in ${item.slot.name}` };
       const group = owner ? dataGroupOfPart(hit as PartHit) : null;
       if (group) return { ...box, name: group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section", src: hit.src, meta: `in ${group.slot.name}` };
-      return { ...box, name: owner ? layerName(hit.name, hit.props) : displayName(hit.name, hit.props, hit.src), src: hit.src, meta: owner ? `in ${owner.name}` : "", component: owner ? undefined : componentKind(hit.props) };
+      const partName = owner ? partTagName(hit as PartHit) : null;
+      return { ...box, name: partName ?? (owner ? layerName(hit.name, hit.props) : displayName(hit.name, hit.props, hit.src)), src: hit.src, meta: owner ? `in ${owner.name}` : "", component: owner ? undefined : componentKind(hit.props) };
     };
     const part = partRef.current;
     const selected = part ?? selectedRef.current;
