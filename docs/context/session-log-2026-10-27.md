@@ -249,3 +249,14 @@ the story note say so (`npm run guidelines:build`). Measured on the Studio page 
 `npm run qa -- --isolated --pages=tabs --files=Tabs.tsx,Tabs.stories.tsx,guidelines.source.mjs` PASS (static gates,
 guidelines + AI UI catalog in sync after `npm run ai-ui:build`, TypeScript, Vitest 94/94, platform audit 1512 + 390 +
 320 0 errors, dark 0, behaviour 0; two contact sheets looked at: no visual change, as expected of an ARIA-only fix).
+
+### Proof (after merging main f20fb85c)
+
+- `npm run studio:e2e -- --rows=<new + changed rows> --no-retry`: the first run found four locators my words had moved
+  ("Page with AppShell" in `newPage`, "Add to Footer-Content", "Body-Content" tags, "Label-Icon" switches) and the
+  templates' `format` / `sort` opening Behavior and Advanced on every selection; fixed (folded groups stay folded, the
+  header counts), the rerun of the 13 rows passed 12/13 and I-37 after its Columns check read the block's header.
+- `npm run studio:e2e -- --only=inspector,instance,shell,keyboard`: 73 works · 0 broken (215 s), I-35…I-38, S-08, S-09
+  among them.
+- `npx tsc --noEmit -p .`, `words`, `propGroups`, `propCategories` and the E2E fixture selftests, `npm run style:check`:
+  green.
