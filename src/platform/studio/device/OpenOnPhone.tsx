@@ -63,7 +63,7 @@ export function OpenOnPhone({ page, title, text, start, modes, brand }: Props) {
                   <Button appearance="main" level="tertiary" size="sm" startIcon={<Icon name={copied ? "icon-check-line" : "icon-copy-line"} decorative />} onClick={() => copy(link)}>{copied ? "Copied" : "Copy link"}</Button>
                 </div>
               ) : null}
-              <Text as="p" textStyle="Caption/Regular" tone="light">{`Works until ${timeOf(state.expires)}. If macOS asks, allow node to accept connections.`}</Text>
+              <Text as="p" textStyle="Caption/Regular" tone="light">{`Works until ${timeOf(state.expires)}. If macOS asks, allow the Studio server to accept connections.`}</Text>
               {state.urls.length > 1 ? <Text as="p" textStyle="Caption/Regular" tone="light">{`Other networks: ${state.urls.slice(1).join(", ")}`}</Text> : null}
               {state.warning || !link ? <InlineMessage theme="warning">{[state.warning, link ? null : `No network link. On this computer: ${state.local}`].filter(Boolean).join(". ")}</InlineMessage> : null}
             </>

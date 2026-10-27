@@ -145,7 +145,7 @@ export function DraftsControls({ density }: { density: "wide" | "compact" | "pan
           <div className="studio-drafts__head">
             <Text as="p" id={`${id}-title`} textStyle="Body/Small/Bold">{`Unsaved changes · ${plural(count, "file")}`}</Text>
             <Text as="p" id={`${id}-note`} textStyle="Caption/Regular" tone="light">
-              {`Everyone on this dev server sees them until you save or discard. A frame saves or discards its own changes from its toolbar; Save all writes every file listed here and runs the harness (${modKey}S).`}
+              {`Unsaved until you save or discard; Save all saves every file (${modKey}S)`}
             </Text>
             {outside.changes ? (
               <Text as="p" textStyle="Caption/Regular" tone="light">

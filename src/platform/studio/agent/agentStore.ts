@@ -81,7 +81,7 @@ export async function refreshAgent() {
   if (asked !== generation) return;
   const body = reply?.body;
   if (!reply || !body?.ok) {
-    set({ status: "offline", hint: body?.error ?? "Zen Agent runs on the Studio dev server (npm run dev).", busy: false });
+    set({ status: "offline", hint: body?.error ?? "Zen Agent needs the Studio server — start it first", busy: false });
     return;
   }
   set({

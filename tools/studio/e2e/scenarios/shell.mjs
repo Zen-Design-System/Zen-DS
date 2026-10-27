@@ -1,5 +1,6 @@
 // Shell rows: the Studio loads the fixture page, menus open on screen, view commands do what they say.
-import { focusFrame, inViewport, sleep, until } from "../lib/studio.mjs";
+import { focusFrame, inViewport, openAssetLibrary, sleep, until } from "../lib/studio.mjs";
+import { pageFromTemplate } from "./starters.mjs";
 
 const CANVAS = ".studio-canvas-area";
 
@@ -125,6 +126,60 @@ export const rows = [
       await ctx.studio({ fresh: true });
       if (!box || !inViewport(box, { width: 390, height: 844 })) throw new Error(`Inspector button off screen at 390px: ${JSON.stringify(box)}`);
       return "on screen at 390px";
+    },
+  },
+  {
+    // UX review 2026-10-27 §2.9 (the user's decision): Dark mode in the Zen Studio menu changes the panels and chrome
+    // only, as Figma's theme setting; the frames keep the Mode chosen in Preview modes.
+    id: "S-08", feature: "Zen Studio menu › Dark mode darkens the chrome only: the app's data-theme goes dark, the frames' world keeps its Mode; Light mode brings the chrome back", wp: "ux review §7.8 2026-10-27",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const app = page.locator(".studio-app").first();
+      const world = page.locator(".studio-world").first();
+      const before = await world.getAttribute("data-theme");
+      const menu = async (item) => {
+        await page.getByRole("button", { name: "Zen Studio menu" }).first().click();
+        await page.getByRole("menu", { name: "Zen Studio" }).getByRole("menuitem", { name: item, exact: true }).click();
+      };
+      try {
+        await menu("Dark mode");
+        await until(async () => (await app.getAttribute("data-theme")) === "dark", { message: "the chrome dark" });
+        await sleep(200);
+        const after = await world.getAttribute("data-theme");
+        if (after !== before) throw new Error(`the frames' theme changed with the chrome: ${before} → ${after}`);
+        await menu("Light mode");
+        await until(async () => (await app.getAttribute("data-theme")) === "light", { message: "the chrome light again" });
+        if ((await world.getAttribute("data-theme")) !== before) throw new Error("the frames' theme changed on the way back");
+        return `chrome light → dark → light · frames stay ${before}`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    // §2.7: a panel note is one line, the rest in a tooltip (Changes on Desktop, Photos).
+    id: "S-09", feature: "Panel notes run to one line with the rest behind an info button: the selected Screen's Changes on Desktop note and the Assets › Photos hint", wp: "ux review §7.6 2026-10-27", timeout: 60_000,
+    async run(ctx) {
+      try {
+        const { page } = await pageFromTemplate(ctx, "Dashboard");
+        const section = page.locator("#studio-right .studio-breakpoint-section");
+        await section.getByRole("heading", { name: "Changes on Desktop" }).waitFor({ state: "visible", timeout: 5000 });
+        const line = section.locator(".studio-inspector__note-line").first();
+        const text = (await line.locator(".studio-inspector__note-text").innerText()).trim();
+        if (text !== "Nothing: Desktop is the Screen as designed") throw new Error(`the note reads "${text}"`);
+        const more = await line.locator(".studio-inspector__note-more").getAttribute("aria-label");
+        if (!/View it on Tablet or Mobile/.test(more ?? "")) throw new Error(`the info button says "${more}"`);
+        const height = (await line.boundingBox())?.height ?? 0;
+        if (height > 28) throw new Error(`the note is ${Math.round(height)}px tall (more than one line)`);
+        await openAssetLibrary(page, "Photos");
+        const hint = page.locator("#studio-left-panel-assets .studio-assets__hint .studio-inspector__note-text").first();
+        await hint.waitFor({ state: "visible", timeout: 5000 });
+        const photos = (await hint.innerText()).trim();
+        if (photos !== "Drop or upload pictures, up to 5 MB each") throw new Error(`the Photos hint reads "${photos}"`);
+        return `"${text}" + info · Photos: "${photos}" + info`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
     },
   },
 ];

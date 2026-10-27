@@ -572,7 +572,7 @@ export const rows = [
         await page.keyboard.down("Meta"); await page.mouse.click(title.x + title.width + 40, title.y + title.height / 2); await page.keyboard.up("Meta"); await sleep(400);
         await until(async () => (await selectedName(page)) === "PageHeader", { message: "the PageHeader selected" });
         const before = (await firstElementText(page, id, "PageHeader")).split("<Button").length;
-        await page.locator("#studio-right").getByRole("button", { name: /Add to Action-Slots/ }).first().click();
+        await page.locator("#studio-right").getByRole("button", { name: /Add to Actions/ }).first().click();
         await page.getByRole("option", { name: /^Button/ }).first().click();
         await until(async () => (await firstElementText(page, id, "PageHeader")).split("<Button").length > before, { timeout: 8000, message: "a Button in the header's actions" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
         // Since 2026-10-16 (user: a prop holds several layers for real) the actions may be a fragment: the Button is one

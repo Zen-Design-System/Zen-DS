@@ -61,6 +61,10 @@
 .studio-inspector__description { color: var(--zen-color-content-neutral-base); }
 .studio-inspector__meta { color: var(--zen-color-content-neutral-base); white-space: nowrap; }
 .studio-inspector__note { color: var(--zen-color-content-neutral-base); }
+/* One-line note with an info button (SectionNote): the text keeps to its line, the button sits at its end. */
+.studio-inspector__note-line { display: inline-flex; min-width: 0; max-width: 100%; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-inspector__note-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-inspector__note-more { flex: 0 0 auto; }
 /* A layer's section whose fields are not per breakpoint, while its frame shows Tablet or Mobile. */
 .studio-inspector__everywhere { margin-inline-start: auto; color: var(--zen-color-content-neutral-base); white-space: nowrap; }
 /* Changes on <breakpoint> (BreakpointSection): one line per change, its meaning in the tooltip. */

@@ -1023,7 +1023,7 @@ export const rows = [
       const buttons = frame.locator(".zen-page-header__actions .zen-button");
       const primaries = async () => (((await pageText(page, id)) ?? "").match(/<Button level="primary"/g) ?? []).length;
       const [beforeButtons, beforePrimaries] = [await buttons.count(), await primaries()];
-      await page.locator('#studio-right [data-slot="actions"]').getByRole("button", { name: "Add to Action-Slots" }).click();
+      await page.locator('#studio-right [data-slot="actions"]').getByRole("button", { name: "Add to Actions" }).click();
       await page.getByRole("option", { name: /^Primary button/ }).first().click();
       await until(async () => (await primaries()) === beforePrimaries + 1, { message: "one more <Button level=\"primary\" …> in the page's actions" });
       await until(async () => (await buttons.count()) === beforeButtons + 1, { message: "the action on the Screen" });

@@ -7,7 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse } from "@babel/parser";
-import { codeWordsIn, designWords } from "./words.ts";
+import { codeWordsIn, designWords, layerLabel } from "./words.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const failures = [];
@@ -40,7 +40,8 @@ const cases = [
   ["Card is no longer at untitled-page.zen.tsx:26 — select it again", "Card is no longer there — select it again"],
   ["The row comes from a spread; edit it where it is written", "The row comes from a shared set of properties; edit it where it is written"],
   ["Not imported: broken.zen.tsx is not a page", "Not imported: broken.zen.tsx is not a page"],
-  ['Not imported: broken.zen.tsx (line 1: Line 1 must be the page header: // @zen-page {"format":1,"title":"…"})', "Not imported: broken.zen.tsx (line 1: Line 1 must be the page header)"],
+  // The line number goes (UX review 2026-10-27 §6 row 2); the imported file keeps the name the person gave it.
+  ['Not imported: broken.zen.tsx (line 1: Line 1 must be the page header: // @zen-page {"format":1,"title":"…"})', "Not imported: broken.zen.tsx — Line 1 must be the page header"],
   ["Dropped photo.webp on Avatar", "Dropped photo.webp on Avatar"],
   ["Changes save at once", "Changes save at once"],
   ["Duplicated · ⌘Z to undo", "Duplicated · ⌘Z to undo"],
@@ -51,13 +52,29 @@ const cases = [
   ["Card floats in a Box around it", "Card floats in a frame around it"],
   ["The attribute data-zen-src stays", "The property data-zen-src stays"],
   ["List-Box renders its rows", "List-Box shows its rows"],
-  ["Restart the dev server to detach components", "Restart the Studio server to detach components"],
+  ["Restart the dev server to detach components", "This needs a newer Studio — ask whoever runs it to restart it"],
   ["The Zen Studio dev server did not answer", "The Studio server did not answer"],
   ["An element of the HTML markup", "A layer of the code layers"],
   ["Column A is an object literal", "Column A is a group of values"],
+  // The UX review 2026-10-27 §6: the engine's refusals and the status line (rows 2, 9, 10, 11, 12, 13, 16, 17).
+  ["Restart the dev server to wrap layers", "This needs a newer Studio — ask whoever runs it to restart it"],
+  ["Restart the dev server: it wrapped one layer only (the change was undone)", "This needs a newer Studio — ask whoever runs it to restart it"],
+  ["Saved button.tsx · harness clean", "Saved button.tsx · checks passed"],
+  ["Saved “Home” · 2 harness findings", "Saved “Home” · 2 check findings"],
+  ["Saved “Home” · harness failed", "Saved “Home” · checks failed"],
+  ["Not written: the page would break (line 12: Unexpected token)", "Not written: the page would break — Unexpected token"],
+  ["title is a parameter; its value comes from where the component is used", "title comes from where the component is used — edit it there"],
+  ["Example code not updated: an item with state is not copied into the example snippet (its useState lines are not in it); update it by hand (<Card>)", "The example's code is not updated: this item is not in it (the Code tab shows it)"],
+  ["src/platform/examples/pages/button.tsx is not an editable example source", "This example can't be edited here"],
+  ["<div> at 12:4 is docs chrome (zen-studio-chrome); edit it in the code", "This is part of the docs page, not of the example"],
+  ["<Card> is docs chrome (zen-studio-chrome).", "This is part of the docs page, not of the example"],
+  ['Bad loc "x" (expected "<line>:<column>").', "Select the layer again"],
+  ["The file does not parse.", "The page's code has an error — see the Code tab"],
 ];
 for (const [input, expected] of cases) check(`designWords(${JSON.stringify(input)})`, designWords(input), expected);
 check("codeWordsIn: a clean line", codeWordsIn("Saved · ⌘Z to undo").join(), "");
+// Figma layer and slot names as labels (§6 row 23): the name stays the key, the label reads as words.
+for (const [name, label] of [["Action-Slots", "Actions"], ["Nav-Trailing-Block", "Trailing"], ["Top-Heading-Text", "Top heading text"], ["Leading-Icon-Src", "Leading icon"], ["Trailing-Slots", "Trailing"], ["Help-Text", "Help text"], ["AI-Chat-Field", "AI chat field"], ["Label", "Label"], ["Metric-Color", "Metric color"]]) check(`layerLabel(${name})`, layerLabel(name), label);
 check("codeWordsIn: file:line", codeWordsIn("Saved · button.tsx:84").join(), "file:line");
 
 // 2. Every message in the source.

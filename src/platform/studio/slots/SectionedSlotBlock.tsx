@@ -16,6 +16,7 @@ import { itemTitle, type DataSlot } from "./dataSlots";
 import { selectedHit } from "./dom";
 import { freshRow, rowFields, sectionEntries, sectionsCode, titleOf, type SectionEntry } from "./sectionList";
 import "./slots.css";
+import { layerLabel } from "../words";
 
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
 
@@ -65,9 +66,9 @@ export function SectionedSlotBlock({ selection, element, slot, editable, playgro
     const next = [...list];
     const [entry] = next.splice(at, 1);
     next.splice(to, 0, entry);
-    write(next, `Move ${nameAt(at)} in ${slot.name}`, entry.kind === "item" ? placeIn(next, to) : undefined);
+    write(next, `Move ${nameAt(at)} in ${layerLabel(slot.name)}`, entry.kind === "item" ? placeIn(next, to) : undefined);
   };
-  const remove = (at: number) => write(list.filter((_, index) => index !== at), `Remove ${nameAt(at)} from ${slot.name}`);
+  const remove = (at: number) => write(list.filter((_, index) => index !== at), `Remove ${nameAt(at)} from ${layerLabel(slot.name)}`);
   /** A new row at the end of the list, or (`title`: a title row's place) at the end of that section (user, 2026-10-10:
    *  "cho phép user add chúng vào từng stack riêng"). */
   const addRow = (title?: number) => {
@@ -78,20 +79,20 @@ export function SectionedSlotBlock({ selection, element, slot, editable, playgro
       while (at < list.length && list[at].kind !== "title") at += 1;
     }
     const next: SectionEntry[] = [...list.slice(0, at), { kind: "item", group: -1, index: -1, fields }, ...list.slice(at)];
-    const where = title !== undefined && list[title]?.kind === "title" ? titleOf(list[title] as Extract<SectionEntry, { kind: "title" }>) : slot.name;
+    const where = title !== undefined && list[title]?.kind === "title" ? titleOf(list[title] as Extract<SectionEntry, { kind: "title" }>) : layerLabel(slot.name);
     write(next, `Add ${slot.itemName} to ${where}`, placeIn(next, at));
   };
   const addTitle = () => {
     const fields: SectionEntry["fields"] = slot.grouped
       ? [{ key: slot.grouped.typeKey, kind: "string", value: slot.grouped.group }, { key: "label", kind: "string", value: "Section" }]
       : [{ key: "label", kind: "string", value: "Section" }];
-    write([...list, { kind: "title", group: -1, fields }], `Add a section title to ${slot.name}`);
+    write([...list, { kind: "title", group: -1, fields }], `Add a section title to ${layerLabel(slot.name)}`);
     setRenaming(list.length);
   };
   /** A divider (Menu `{ type: "separator" }`): at the end, or after the selected row's place. */
   const addSeparator = () => {
     if (!slot.grouped) return;
-    write([...list, { kind: "separator", fields: [{ key: slot.grouped.typeKey, kind: "string", value: slot.grouped.separator }] }], `Add a separator to ${slot.name}`);
+    write([...list, { kind: "separator", fields: [{ key: slot.grouped.typeKey, kind: "string", value: slot.grouped.separator }] }], `Add a separator to ${layerLabel(slot.name)}`);
   };
   const rename = (at: number, label: string) => {
     const entry = list[at];
@@ -113,27 +114,27 @@ export function SectionedSlotBlock({ selection, element, slot, editable, playgro
     <div className="studio-slots__slot" data-slot={slot.prop} data-empty={list.length ? undefined : true}>
       <div className="studio-slots__head">
         <span className="studio-slots__icon" aria-hidden="true"><Icon name="icon-grid-dots-blank-line" size={16} /></span>
-        <span className={`studio-slots__name ${typographyStyles["Body/Small/Medium"]}`}>{slot.name}</span>
+        <span className={`studio-slots__name ${typographyStyles["Body/Small/Medium"]}`}>{layerLabel(slot.name)}</span>
         <span className={`studio-slots__caption ${typographyStyles["Body/Small/Regular"]}`}>{caption}</span>
         {writable ? (
           <div className="studio-slots__add">
             <Menu
               align="end"
-              aria-label={`Add to ${slot.name}`}
+              aria-label={`Add to ${layerLabel(slot.name)}`}
               items={[
                 { id: "row", label: slot.itemName, icon: "icon-cube-line", disabled: busy, onSelect: () => addRow() },
                 { id: "title", label: "Section title", icon: "icon-heading-01-line", disabled: busy, onSelect: addTitle },
                 ...(slot.grouped ? [{ id: "separator", label: "Separator", icon: "icon-minus-line" as const, disabled: busy, onSelect: addSeparator }] : []),
               ]}
               // zen-allow-accent: the add-to-slot button matches the content slots' add button, accent so it stands out (user, 2026-10-04)
-              trigger={<IconButton appearance="flat" level="accent" size="xs" icon="icon-plus-line" aria-label={`Add to ${slot.name}`} disabled={busy} />}
+              trigger={<IconButton appearance="flat" level="accent" size="xs" icon="icon-plus-line" aria-label={`Add to ${layerLabel(slot.name)}`} disabled={busy} />}
             />
             {list.length ? (
               <Menu
                 align="end"
-                aria-label={`${slot.name} options`}
-                items={[{ id: "clear", label: "Remove all", icon: "icon-trash-line", danger: true, disabled: busy, onSelect: () => write([], `Remove everything from ${slot.name}`) }]}
-                trigger={<IconButton appearance="flat" level="primary" size="xs" icon="icon-dots-horizontal-line" aria-label={`${slot.name} options`} disabled={busy} />}
+                aria-label={`${layerLabel(slot.name)} options`}
+                items={[{ id: "clear", label: "Remove all", icon: "icon-trash-line", danger: true, disabled: busy, onSelect: () => write([], `Remove everything from ${layerLabel(slot.name)}`) }]}
+                trigger={<IconButton appearance="flat" level="primary" size="xs" icon="icon-dots-horizontal-line" aria-label={`${layerLabel(slot.name)} options`} disabled={busy} />}
               />
             ) : null}
           </div>
@@ -141,7 +142,7 @@ export function SectionedSlotBlock({ selection, element, slot, editable, playgro
       </div>
       {entries === null ? <p className={`studio-slots__note ${typographyStyles["Body/Small/Regular"]}`}>The code builds {slot.prop}: edit it there.</p> : null}
       {list.length ? (
-        <ul aria-label={`${slot.name} items`} className="studio-inspector__items">
+        <ul aria-label={`${layerLabel(slot.name)} items`} className="studio-inspector__items">
           {list.map((entry, at) => {
             const moveRow = writable && list.length > 1 ? { prev: at > 0, next: at < list.length - 1, onMove: (to: "prev" | "next") => move(at, to === "prev" ? at - 1 : at + 1) } : undefined;
             if (entry.kind === "title") {

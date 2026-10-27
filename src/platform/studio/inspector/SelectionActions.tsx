@@ -55,12 +55,12 @@ export function SelectionActions() {
       <AlignSelection />
 
       {check.ok || !check.hidden ? (
-        <InspectorSection title="Frame" note="Add auto layout keeps how the layers sit now (direction, gap, alignment); Frame selection puts them in a frame.">
+        <InspectorSection title="Frame">
           <div className="studio-inspector__actions">
-            <Button level="primary" size="sm" startIcon="icon-rows-01-line" aria-keyshortcuts={autoLayoutKeys} title={`Add auto layout ${autoLayoutShortcut}`} disabled={blocked !== null} onClick={() => { void wrapSelection("stack"); }}>
+            <Button level="primary" size="sm" startIcon="icon-rows-01-line" aria-keyshortcuts={autoLayoutKeys} title={`Add auto layout ${autoLayoutShortcut} · keeps how the layers sit now (direction, gap, alignment)`} disabled={blocked !== null} onClick={() => { void wrapSelection("stack"); }}>
               Add auto layout
             </Button>
-            <Button level="tertiary" size="sm" startIcon="icon-square-line" aria-keyshortcuts={frameSelectionKeys} title={`Frame selection ${frameSelectionShortcut}`} disabled={blocked !== null} onClick={() => { void wrapSelection("box"); }}>
+            <Button level="tertiary" size="sm" startIcon="icon-square-line" aria-keyshortcuts={frameSelectionKeys} title={`Frame selection ${frameSelectionShortcut} · puts the layers in a frame`} disabled={blocked !== null} onClick={() => { void wrapSelection("box"); }}>
               Frame selection
             </Button>
           </div>

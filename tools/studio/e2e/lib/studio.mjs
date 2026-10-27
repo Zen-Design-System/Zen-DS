@@ -238,6 +238,12 @@ export async function openAssetLibrary(page, kind) {
 
 export const inspectorRow = (page, prop) => page.locator(`#studio-right [data-prop="${prop}"]`).first();
 
+/** Opens the folded Properties group (Behavior, Advanced: UX review 2026-10-27 §2.8) that holds `prop`, if one is folded. */
+export async function openPropertyGroup(page, prop) {
+  const folded = page.locator(`#studio-right [data-property-group][data-open="false"][data-props~="${prop}"]`);
+  if (await folded.count()) await folded.first().getByRole("button").first().click();
+}
+
 /**
  * Opens the Inspector's Code tab and waits for its Properties: what only code reads (HTML element, Type, Link, aria…),
  * never on the Design tab (§3a). The tab persists across rows: a row that opens it shows the Design tab again after.

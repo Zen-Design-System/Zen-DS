@@ -99,7 +99,8 @@ export function PagePanel() {
   // A builder page (Studio builder GĐ2) names itself and says where it is kept; a docs page's description is on the
   // board (its title block), not here too (user, 2026-10-07).
   const storage = useStorage();
-  const kept = storage.kind === "mirror" ? `saved in this browser and in ${storage.mirror === "dev" ? storage.label : `the folder “${storage.label}”`} as you edit.` : "saved in this browser as you edit.";
+  // No file path here (UX review 2026-10-27 §2.7): the Studio's own folder is "this computer"; a folder the person linked keeps its name.
+  const kept = storage.kind === "mirror" ? `saved in this browser and ${storage.mirror === "dev" ? "on this computer" : `in the folder “${storage.label}”`} as you edit.` : "saved in this browser as you edit.";
   const description = localPage ? (pagesPersist() ? `A page you made, ${kept}` : "A page you made. This browser cannot keep it: export it before closing.") : null;
   const summary = previewModeDefinitions.map((mode) => previewValueLabel(mode.key, preview[mode.key])).join(" · ");
 

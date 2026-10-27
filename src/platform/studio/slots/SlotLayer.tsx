@@ -16,6 +16,7 @@ import { containerOf, hostRootOf, isConcealed, selectedHit } from "./dom";
 import { InsertPicker } from "./InsertPicker";
 import { activeSlotsOf, hostPropsOf, isLayoutPrimitive, slotsOf, slotContentElements, slotFlowOf, slotGhostAnchor, slotOf, type ContentSlot, type HostProps } from "./registry";
 import "./slots.css";
+import { layerLabel } from "../words";
 
 /*
  * Slots on the canvas (spec "Client", SlotLayer; Figma: selecting a slot component outlines each slot, dashed, and an
@@ -104,7 +105,7 @@ function marksFor(selection: NodeSelection, { hit, root: hostRoot }: Resolved, w
     const past = CHIP / 2 + 2;
     const chip = !count ? { x: box.x + box.w / 2, y: box.y + box.h / 2 } : { x: box.x + box.w / 2, y: box.y + box.h + past };
     const full = slot.form === "object" ? count > 0 : count >= slot.max;
-    marks.push({ ...box, prop: slot.prop, tag: count ? slot.name : `${slot.name} · Empty`, ghost: !count, outline: true, chip: full ? null : chip, data: true, count });
+    marks.push({ ...box, prop: slot.prop, tag: count ? layerLabel(slot.name) : `${layerLabel(slot.name)} · Empty`, ghost: !count, outline: true, chip: full ? null : chip, data: true, count });
   }
   for (const slot of slots) {
     const row = slotFlowOf(slot, props) === "row";
@@ -148,7 +149,7 @@ function marksFor(selection: NodeSelection, { hit, root: hostRoot }: Resolved, w
       : row ? { x: box.x + box.w + past, y: box.y + box.h / 2 } : { x: box.x + box.w / 2, y: box.y + box.h + past };
     // A full atom slot (ListItem leading takes one layer) offers no chip on the canvas: the inspector's add still warns.
     const full = slot.max !== undefined && container !== null && slotContentElements(container, slot).length >= slot.max;
-    marks.push({ ...box, prop: slot.prop, tag: empty ? `${slot.name} · Empty` : slot.name, ghost, outline: !layout, chip: full || partsOnly ? null : chip, ...(tagBelow ? { tagBelow } : {}), ...(tagEnd ? { tagEnd } : {}) });
+    marks.push({ ...box, prop: slot.prop, tag: empty ? `${layerLabel(slot.name)} · Empty` : layerLabel(slot.name), ghost, outline: !layout, chip: full || partsOnly ? null : chip, ...(tagBelow ? { tagBelow } : {}), ...(tagEnd ? { tagEnd } : {}) });
   }
   return { src: selection.src, slots: marks, playground: [] };
 }

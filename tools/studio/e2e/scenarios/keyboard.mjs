@@ -1,6 +1,6 @@
 // Keyboard rows: the edit shortcuts the Shortcuts dialog lists, from the canvas and from the Inspector.
 import { countOf, e2eLocs, locOf } from "../lib/source.mjs";
-import { clickLoc, focusFrame, inspectorRow, selectedSrc, sleep, statusText, until } from "../lib/studio.mjs";
+import { clickLoc, focusFrame, inspectorRow, openPropertyGroup, selectedSrc, sleep, statusText, until } from "../lib/studio.mjs";
 import { expectSource, freshSelect } from "./inspector.mjs";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
@@ -30,6 +30,7 @@ export const rows = [
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-c");
       // A non-text control keeps focus in the Inspector (Figma: Delete still removes the selection).
+      await openPropertyGroup(page, "disabled");
       await inspectorRow(page, "disabled").getByRole("switch").click();
       await expectSource(ctx, "btn-c", (el) => el.attr("disabled") !== undefined, "disabled written");
       await page.keyboard.press("Backspace");

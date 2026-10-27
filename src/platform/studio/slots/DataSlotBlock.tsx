@@ -12,6 +12,7 @@ import { computedCaption, itemParts, renderedItemTitle, slotGroupsAt, sourceItem
 import { groupRuns, itemGroup, itemTitle, type DataSlot } from "./dataSlots";
 import { selectedHit } from "./dom";
 import "./slots.css";
+import { layerLabel } from "../words";
 
 /*
  * A data slot in the inspector's Slots section (dataSlots.ts): TopNavigation's Top-Trailing listed like a content slot,
@@ -198,7 +199,7 @@ export function DataSlotBlock({ selection, element, slot, editable, playground, 
     <div className="studio-slots__slot" data-slot={slot.prop} data-empty={count ? undefined : true}>
       <div className="studio-slots__head">
         <span className="studio-slots__icon" aria-hidden="true"><Icon name="icon-grid-dots-blank-line" size={16} /></span>
-        <span className={`studio-slots__name ${typographyStyles["Body/Small/Medium"]}`}>{slot.name}</span>
+        <span className={`studio-slots__name ${typographyStyles["Body/Small/Medium"]}`}>{layerLabel(slot.name)}</span>
         <span className={`studio-slots__caption ${typographyStyles["Body/Small/Regular"]}`}>{caption}</span>
         {canAdd ? (
           <div className="studio-slots__add">
@@ -208,7 +209,7 @@ export function DataSlotBlock({ selection, element, slot, editable, playground, 
               level="accent"
               size="xs"
               icon="icon-plus-line"
-              aria-label={`Add ${slot.itemName} to ${slot.name}`}
+              aria-label={`Add ${slot.itemName} to ${layerLabel(slot.name)}`}
               disabled={busy}
               onClick={() => { void editDataItem(selection, slot, "add"); }}
             />
@@ -218,7 +219,7 @@ export function DataSlotBlock({ selection, element, slot, editable, playground, 
       {source.state === "computed" ? <p className={`studio-slots__note ${typographyStyles["Body/Small/Regular"]}`}>{computedCaption(slot, source.code, source.via)}</p> : null}
       {ignoredGroups ? <p className={`studio-slots__note ${typographyStyles["Body/Small/Regular"]}`}>{slot.groupsOffNote}: their groups are kept for the other types.</p> : null}
       {count ? (
-        <ul ref={listRef} aria-label={`${slot.name} items`} className="studio-inspector__items">
+        <ul ref={listRef} aria-label={`${layerLabel(slot.name)} items`} className="studio-inspector__items">
           {items.map((item, index) => {
             // A label the source computes (`seen ? "Notifications" : …`): the one the canvas shows.
             const written = itemTitle(slot, item.fields, index);

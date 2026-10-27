@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-26.
+Last updated: 2026-10-27.
 
 ## Read order
 
@@ -19,6 +19,13 @@ Last updated: 2026-10-26.
 
 ## State in short
 
+- **Studio UX review §7 items 6–8 (2026-10-27, words · grouped properties · Dark mode UI-only):** branch
+  `claude/studio-words-props-dark-20261027-b8fcaa` (the review's BACKLOG line names it `zen/fix/studio-words-props-dark-20261027`).
+  Design words through `words.ts` (`layerLabel`, new phrases) and the owning components; `SectionNote` (one line + info
+  tooltip); `inspector/sizeNote.ts` (the size badge's note, published by the canvas — the badge side is with session
+  studio-gestures); `inspector/propCategories.ts` + `GroupedProperties` groups (Content · Look · Behavior · Advanced,
+  `FLAT_GROUPS` for components without Figma groups); `shell/modes.ts` `setStudioTheme` (chrome only) and
+  `setPreviewTheme` (the frames). E2E I-35…I-38, S-08, S-09. Detail: session log 2026-10-27.
 - **Studio responsive breakpoints (2026-10-26):** plan `docs/research/studio-responsive-breakpoints-2026-10-26.md`
   approved (D1–D4; D5, a harness rule, not). Session bp-studio builds the Studio half: PR 1 (view switch Desktop ·
   Tablet · Mobile on a Screen's label, the Screen's breakpoint in ZenContext and following a desktop Screen's width,

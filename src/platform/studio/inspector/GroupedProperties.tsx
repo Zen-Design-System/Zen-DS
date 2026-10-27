@@ -1,4 +1,4 @@
-import { Fragment, startTransition, useEffect, useState, type ReactNode } from "react";
+import { Fragment, startTransition, useEffect, useId, useState, type ReactNode } from "react";
 import { Icon } from "../../../components/Icon";
 import { InlineMessage } from "../../../components/InlineMessage";
 import { typographyStyles } from "../../../tokens/typography.generated";
@@ -14,7 +14,9 @@ import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
 import { codeOnlyProps, entryDefaultIcon, entryLabel, entryOptions, entryProp, entryShown, entryWarnings, holds, isSetValue, placedProps, type ComponentGroups, type GroupToggle, type PropEntry } from "./propGroups";
 import { PropField } from "./PropField";
 import { propLabel, type PropSpec, type PropValue } from "./propSchema";
+import { PROP_CATEGORIES, propCategory, type PropCategory, type PropHint } from "./propCategories";
 import { savedSetProp } from "./writePlan";
+import { layerLabel } from "../words";
 import { InspectorSection } from "./Section";
 import "./nested.css";
 import { canHideSrc, slotSwitchOp, slotsOffValue } from "../edit/visibility";
@@ -25,7 +27,39 @@ import { HIDDEN_SLOTS_PROP } from "../../../../tools/studio/visibility.mjs";
  * group per nested layer (Top-Leading, Top-Heading-Text, Top-Trailing, Main-Heading-Text…), each with the props, list
  * items and nested Zen instances written for it. A layer whose boolean is off shows no group, and a prop that does
  * nothing in the current state is left out, as Figma hides a hidden layer's properties.
+ *
+ * Since the UX review 2026-10-27 (§2.8, §7 item 7) the rows sit in four groups, Content · Look · Behavior · Advanced
+ * (propCategories.ts): Content and Look open, Behavior and Advanced folded with a count of what is set (a folded group
+ * with a set value opens). A component without Figma groups (`flat`) goes through the same groups, its code-only props
+ * in Advanced. Every row keeps its PropField and `data-prop`, so values round-trip as before.
  */
+
+/** A Figma group's empty shape: a component without Figma groups shows its specs through the same categories. */
+export const FLAT_GROUPS: ComponentGroups = { figma: "", own: [], toggles: [], after: [], nested: [] };
+
+/** The groups a person opened or closed this session: a group keeps its state from one instance to the next. */
+const openGroups = new Set<PropCategory>(PROP_CATEGORIES.filter((category) => category.open).map((category) => category.key));
+
+/** One of the four property groups: a disclosure header (its name, "2 set" while folded), then its rows. */
+function PropertyGroup({ id, label, openAtFirst, count, propNames, children }: { id: PropCategory; label: string; openAtFirst: boolean; count: number; propNames: string[]; children: ReactNode }) {
+  const [open, setOpen] = useState(() => openGroups.has(id) || openAtFirst);
+  const headerId = useId();
+  const toggle = () => {
+    const next = !open;
+    setOpen(next);
+    if (next) openGroups.add(id); else openGroups.delete(id);
+  };
+  return (
+    <div role="group" aria-labelledby={headerId} className="studio-props-group" data-property-group={id} data-open={open ? "true" : "false"} data-props={propNames.join(" ")}>
+      <button type="button" id={headerId} className={`studio-props-group__header ${typographyStyles["Body/Small/Medium"]}`} aria-expanded={open} onClick={toggle}>
+        <Icon name={open ? "icon-chevron-down-line" : "icon-chevron-right-line"} size={16} decorative />
+        <span className="studio-props-group__name">{label}</span>
+        {!open && count ? <span className={`studio-props-group__count ${typographyStyles["Caption/Regular"]}`}>{`${count} set`}</span> : null}
+      </button>
+      {open ? <div className="studio-props-group__rows">{children}</div> : null}
+    </div>
+  );
+}
 
 type NodeSelection = Extract<StudioSelection, { kind: "node" }>;
 
@@ -79,6 +113,8 @@ export function ToggleRow({ toggle, on: rendered, value, api, selection, element
   }, [pending, shownOn]);
   const on = pending ?? shownOn;
   const spec: PropSpec = { name: toggle.prop, type: "boolean", description: `Figma boolean ${toggle.label}: shows the ${toggle.label} layer (${toggle.prop} set).`, defaultValue: false, editor: { kind: "boolean" } };
+  // The Figma boolean's name as words on the row ("Label-Icon" → "Label icon"); the toggle keeps its Figma name as its key.
+  const shownLabel = layerLabel(toggle.label);
   // A value the source computes (a playground's state, a condition) or spreads: read-only, showing what renders.
   const computed = (value.state === "bound" && !inPlace(element, toggle.prop)) || value.state === "spread";
   const shown: PropValue = computed ? { state: "spread", via: value.state === "bound" ? value.expression : value.state === "spread" ? value.via : "", live: on } : { state: "literal", value: on, raw: "" };
@@ -129,7 +165,7 @@ export function ToggleRow({ toggle, on: rendered, value, api, selection, element
   return (
     <PropField
       spec={spec}
-      label={toggle.label}
+      label={shownLabel}
       value={shown}
       disabled={api.disabled}
       resettable={false}
@@ -142,8 +178,10 @@ export function ToggleRow({ toggle, on: rendered, value, api, selection, element
   );
 }
 
-export function GroupedProperties({ groups, selection, element, api, specs, shaped, note, rendered, nested, view = "design", text = null }: {
+export function GroupedProperties({ groups, selection, element, api, specs, shaped, note, rendered, nested, view = "design", text = null, flat = false }: {
   groups: ComponentGroups;
+  /** No Figma groups (FLAT_GROUPS): every spec is the component's own, the code-only ones in Advanced instead of the Code tab. */
+  flat?: boolean;
   selection: NodeSelection;
   element: SourceElement;
   api: FieldApi;
@@ -178,7 +216,9 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
   // What only code reads (the HTML element, ids, links, accessibility names) is on the Code tab, so the Design tab reads
   // as Figma's instance panel (user, 2026-10-17: "chưa giống 100% component trên figma"); content and state stay here, a
   // boolean's own value while its boolean is on.
-  const codeOnly: PropEntry[] = codeOnlyProps(groups, leftover);
+  const codeOnly: PropEntry[] = flat ? [] : codeOnlyProps(groups, leftover);
+  // Without Figma groups the code-only props stay on the Design tab, as before, now in Advanced.
+  const codeHere = new Set(flat ? codeOnlyProps(groups, leftover) : []);
   // A number Figma names in steps (Progress-Bar Progress) is a select among the variants; the number keeps its own field
   // here, for a value between the steps (user 2026-10-19: "thêm ô chọn Progress cho ProgressBar").
   const stepped = groups.own.filter((entry) => entryOptions(entry) && specOf(entryProp(entry))?.editor.kind === "number").map(entryProp);
@@ -191,8 +231,9 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
   const rows = (entries: readonly PropEntry[], key: string) => {
     const shown = entries.filter((entry) => entryShown(entry, props)).map(entryProp);
     const warnings = new Map(entries.map((entry) => [entryProp(entry), [...entryWarnings(entry, props), ...idleNotes(component, entryProp(entry), props)]]));
-    // A Figma name for the row when the group gives one (generated from the Figma read), else the prop's label.
-    const labels = new Map(entries.map((entry) => [entryProp(entry), entryLabel(entry)]));
+    // A Figma name for the row when the group gives one (generated from the Figma read), read as words ("Leading-Icon-Src"
+    // → "Leading icon", UX review 2026-10-27 §6 row 23), else the prop's label.
+    const labels = new Map(entries.map((entry) => [entryProp(entry), entryLabel(entry) === undefined ? undefined : layerLabel(entryLabel(entry)!)]));
     // And its options by their Figma names ("Medium (Base)"), in Figma's order; the file still gets the code value.
     const optionNames = new Map(entries.map((entry) => [entryProp(entry), entryOptions(entry)]));
     const defaultIcons = new Map(entries.map((entry) => [entryProp(entry), entryDefaultIcon(entry)]));
@@ -247,19 +288,47 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
 
   if (view === "code") return rows(codeOnly, "code");
   const toggles = groups.toggles.filter((toggle) => holds(toggle.when, props));
+  // Content · Look · Behavior · Advanced (propCategories.ts): Figma's variants are looks, its layer booleans content.
+  const categoryOf = (entry: PropEntry, hint?: PropHint): PropCategory => {
+    const prop = entryProp(entry);
+    const spec = specOf(prop);
+    return propCategory(component, { name: prop, type: spec?.type ?? "", description: spec?.description }, codeHere.has(prop) ? "code" : hint);
+  };
+  const byCategory = (entries: readonly PropEntry[], hint?: PropHint) => {
+    const out: Record<PropCategory, PropEntry[]> = { content: [], look: [], behavior: [], advanced: [] };
+    for (const entry of entries) out[categoryOf(entry, hint)].push(entry);
+    return out;
+  };
+  const ownBy = byCategory(groups.own, "variant");
+  const afterBy = byCategory(after);
+  const groupBlocks = PROP_CATEGORIES.map(({ key, label, open }) => {
+    const entries = [...ownBy[key], ...afterBy[key]];
+    const shownEntries = entries.filter((entry) => entryShown(entry, props));
+    const groupToggles = key === "content" ? toggles : [];
+    const groupText = key === "content" ? text : null;
+    const instances = nested.items.filter((item) => shownEntries.some((entry) => entryProp(entry) === item.prop));
+    if (!shownEntries.length && !groupToggles.length && !groupText && !instances.length) return null;
+    // What is written in the source: a folded group says how much it holds, and opens when it holds anything.
+    const count = shownEntries.filter((entry) => api.valueFor(entryProp(entry)).state !== "unset").length + groupToggles.filter((toggle) => isSetValue(props[toggle.prop])).length;
+    return (
+      <PropertyGroup key={key} id={key} label={label} openAtFirst={open || count > 0} count={count} propNames={[...entries.map(entryProp), ...groupToggles.map((toggle) => toggle.prop)]}>
+        {rows(ownBy[key], `${key}-own`)}
+        {groupToggles.map((toggle) => (
+          <ToggleRow key={toggle.label} toggle={toggle} on={isSetValue(props[toggle.prop])} value={api.valueFor(toggle.prop)} api={api} selection={selection} element={element} />
+        ))}
+        {groupText}
+        {rows(afterBy[key], `${key}-after`)}
+      </PropertyGroup>
+    );
+  });
   return (
     <InspectorSection title="Properties" note={note}>
-      {rows(groups.own, "own")}
-      {toggles.map((toggle) => (
-        <ToggleRow key={toggle.label} toggle={toggle} on={isSetValue(props[toggle.prop])} value={api.valueFor(toggle.prop)} api={api} selection={selection} element={element} />
-      ))}
-      {text}
-      {rows(after, "after")}
+      {groupBlocks}
       {groups.nested.filter((group) => holds(group.when, props)).map((group) => (
         <div key={group.name} role="group" aria-label={group.name} className="studio-group">
           <div className="studio-group__header">
             <span className="studio-group__icon" aria-hidden="true"><Icon name="icon-cube-line" size={16} /></span>
-            <span className={`studio-group__name ${typographyStyles["Body/Small/Medium"]}`}>{group.name}</span>
+            <span className={`studio-group__name ${typographyStyles["Body/Small/Medium"]}`}>{layerLabel(group.name ?? "")}</span>
           </div>
           {rows(group.props, group.name ?? "")}
         </div>

@@ -430,7 +430,7 @@ const SECTION_CLICK = { width: 400, height: 400 };
 export function armFrameDraw(localPage: string, kind: "frame" | "section" | "slice" = "frame"): boolean {
   disarmFrameDraw();
   if (!canEdit()) {
-    announceEditStatus({ kind: "error", message: "View only — switch to Admin to edit", at: Date.now() });
+    announceEditStatus({ kind: "error", message: "View only — switch to Can edit to make changes", at: Date.now() });
     return false;
   }
   const viewport = canvasApi.getViewportElement();

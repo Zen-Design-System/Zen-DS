@@ -366,7 +366,7 @@ export function StudioBoard({ parts }: { parts: StudioPageParts }) {
       {readingFrames.length ? (
         <StudioSection id="docs" label="Docs" frames={readingFrames} flow="masonry">
           {readingFrames.map(({ id }) => (
-            <StudioFrame key={id} id={id} kind="docs" label={id === "docs" ? "Docs" : id === "guidelines" ? "Guidelines" : `Props · ${id.slice(6)}`} width={DOCS_WIDTH}>
+            <StudioFrame key={id} id={id} kind="docs" label={id === "docs" ? "Docs" : id === "guidelines" ? "Guidelines" : `Properties · ${id.slice(6)}`} width={DOCS_WIDTH}>
               <div className="studio-frame__page studio-frame__docs">
                 {id === "docs" ? <><ComponentKeyboard page={page} /><ComponentApi page={page} /></>
                   : id === "guidelines" ? <ComponentGuidelines page={page} />

@@ -19,7 +19,7 @@ const ava = `{ name: "Ava Chen", theme: "violet" }`;
 const bao = `{ name: "Bao Nguyen", theme: "blue" }`;
 
 export const MAIN_SAMPLES: Readonly<Record<string, PaletteItem>> = {
-  ToggleButton: sample("ToggleButton", `<ToggleButton icon="icon-star-01-line" aria-label="Favourite" />`),
+  ToggleButton: sample("ToggleButton", `<ToggleButton icon="icon-star-01-line" aria-label="Favorite" />`),
   BadgeCounter: sample("BadgeCounter", `<BadgeCounter value={3} />`),
   // Timeline/Item (16131:1090): an entry with its detail line and a comment attachment, so Attachment and Description draw.
   TimelineItem: sample("TimelineItem", `<TimelineItem actor="Maya Chen" title="approved your leave request" time="10:42" description="Annual leave · Oct 12 – Oct 16" attachment="Can we move the review to Thursday?" />`),

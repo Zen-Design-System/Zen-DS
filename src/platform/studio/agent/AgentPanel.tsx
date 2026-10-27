@@ -236,7 +236,7 @@ export function AgentPanel() {
         {agent.status === "checking" ? <Text as="p" textStyle="Caption/Regular" tone="light">Connecting…</Text> : null}
         {agent.status === "unavailable" || agent.status === "offline" ? (
           <div className="studio-agent__empty">
-            <Text as="p" textStyle="Body/Small/Bold" tone="strongest">{agent.status === "offline" ? "No Studio dev server" : "Needs a Claude API key"}</Text>
+            <Text as="p" textStyle="Body/Small/Bold" tone="strongest">{agent.status === "offline" ? "Zen Agent is offline" : "Needs a Claude API key"}</Text>
             <Text as="p" textStyle="Caption/Regular" tone="light">{agent.hint}</Text>
           </div>
         ) : null}

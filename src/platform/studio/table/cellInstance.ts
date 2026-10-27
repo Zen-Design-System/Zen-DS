@@ -38,7 +38,7 @@ const setOf = (component: CellComponent, localPage: string | null) => {
 /** Why `component` can't go in the cell's slot, known without reading the file (a drag says it at once), or null. */
 export function cellRefusal(hit: TableCellHit, component: CellComponent, localPage: string | null): string | null {
   if (!hit.columnDef) return "Not a Table cell";
-  if (hit.columnDef.cell) return "This column's cells are code (cell): put the component in its cell function";
+  if (hit.columnDef.cell) return "This column's cells are set in code";
   return setOf(component, localPage) ? null : `${component.name} has no variants: a column's cells take a component set (one variant per value)`;
 }
 

@@ -17,6 +17,14 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio reads as a design tool (UX review 2026-10-27 §7 items 6–8): about 40 strings that still spoke code are
+  design words (no file path on the canvas kicker or in the Page section, "Selected rows" / "Open row" / "Name (screen
+  readers)" on a Table, slot and layer names as words — "Actions", "Trailing", "Leading icon" — "checks passed" in the
+  status line, "Studio server" everywhere, "App shell", "Can edit"); every panel note is one line with the rest behind an
+  info button; the size badge shows W × H alone and its note moved under the Inspector's Size group; an instance's
+  Properties sit in four groups, Content · Look · Behavior · Advanced (from the API JSON and the Figma read), Behavior and
+  Advanced folded with a count, empty fields reading "Not set"; and the Zen Studio menu's Dark mode changes the panels
+  and chrome only — the frames keep the Mode chosen in Preview modes, as Figma.
 - The Zen Figma skill works from the repo for Claude Code and Codex through the Figma MCP: `.claude/skills/` and
   `.agents/skills/` link to `skills/zen-figma-design`, its references link to their sources, and
   `npm run ai-kit:build` writes `figma-components.md` + `figma-tokens.md` into the skill folder (`ai-kit:check` fails

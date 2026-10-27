@@ -86,7 +86,7 @@ export async function toggleIgnoreAutoLayout(layers: ExtraLayer[] = selectedLaye
   if (reads.length === 1) return toggleOne(reads[0]);
   const on = !floatsNow(reads[0]);
   const boxed = reads.find((read) => !read.own);
-  if (boxed) { inspectorStatus.set("neutral", `${boxed.element.name} floats in a Box around it: toggle it on its own (several layers float by their own props: Stack, Grid, Box)`); return false; }
+  if (boxed) { inspectorStatus.set("neutral", `${boxed.element.name} sits in a frame of its own — select that frame to change it`); return false; }
   const opsByLoc: Record<string, EditOp[]> = {};
   const snaps: string[] = [];
   for (const read of reads) {

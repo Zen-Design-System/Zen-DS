@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { IconButton } from "../../../components/Button";
 import { plural } from "../../../components/Text";
@@ -26,7 +27,7 @@ type PartSelection = Extract<StudioSelection, { kind: "node" }>;
 const literalOf = (value: unknown): Literal | undefined => (typeof value === "string" || typeof value === "boolean" || (typeof value === "number" && Number.isFinite(value)) ? value : undefined);
 
 export function OverrideProperties({ selection, part, path, title = "Properties", note, table: given, onWrite }: {
-  selection: PartSelection; part: PartHit; path: string; title?: string; note?: string;
+  selection: PartSelection; part: PartHit; path: string; title?: string; note?: ReactNode;
   /** The owner's overrides when its rendered props do not hold them (a page's own instance, `<Use overrides>`: F7b). */
   table?: OverrideTable;
   /** Writes the owner's next overrides (a page's own instance). */
