@@ -73,3 +73,8 @@ jobs:
           npx --yes wait-on@8 --timeout 120000 http://localhost:5173
       - name: DOM, a11y, overflow, contrast and edge checks (light, then dark)
         run: npm run platform:audit && npm run platform:audit -- --dark
+      # A page that does not answer is reported with the step it was in and whether the dev server still answered; the
+      # server's own log tells the rest.
+      - name: Dev server log
+        if: failure() || cancelled()
+        run: tail -n 80 vite.log

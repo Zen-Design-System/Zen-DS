@@ -229,7 +229,7 @@ ok("audit.mjs pageChecks found", pageChecksSource.startsWith("function pageCheck
 await browser.close();
 
 /* ── the audit's page watchdog (audit.mjs --page-timeout; CI hung 45 min on one page, 2026-10-24) ───────────────────
- * A page that never answers (its script spins after load) is audited again in a new tab, then reported by name, and the
+ * A page that never answers (its script spins after load) is audited again in a new browser, then reported by name, and the
  * pages after it are still audited. The fixture site is served here: audit.mjs runs against it as CI runs it. */
 {
   const html = (body) => `<!doctype html><html><head><meta charset="utf-8"></head><body><div class="official-platform">${body}</div></body></html>`;
@@ -247,8 +247,50 @@ await browser.close();
   const pages = report?.pages ?? {};
   ok("watchdog: the run ends and fails on the hung page", run.code === 1, `exit ${run.code}\n    ${run.stdout.split("\n").slice(-4).join("\n    ")}`);
   ok("watchdog: the hung page is reported by name", (pages["hang@1512"]?.errors ?? []).some((e) => /did not answer within 3s, twice/.test(e)), JSON.stringify(pages["hang@1512"] ?? null));
-  ok("watchdog: it is audited again in a new tab first", /↻ hang@1512: no answer in 3s/.test(run.stdout), run.stdout.split("\n").slice(0, 6).join("\n    "));
+  ok("watchdog: it is audited again in a new browser first", /↻ hang@1512: no answer in 3s \(at [a-z ]+; the dev server answers\) — auditing it again in a new browser/.test(run.stdout), run.stdout.split("\n").slice(0, 6).join("\n    "));
   ok("watchdog: the pages around it are still audited", Boolean(pages["before@1512"]) && Boolean(pages["after@1512"]), Object.keys(pages).join(", "));
+}
+
+/* ── a browser that stops answering (CI 2026-10-27: five runs silent for 18–30 min, cancelled at 45) ──────────────────
+ * Asked for ?page=freeze, the fixture server stops the audit's Chromium (SIGSTOP on the browser process): no call on it
+ * settles any more, closing the tab included, which is what the tab-closing watchdog of 2026-10-24 waited on forever.
+ * The audit must give up on the page after --page-timeout, kill that browser, audit the page again in a new one, report
+ * it by name, audit the page after it, and exit with none of the Chromium processes it started left running. */
+{
+  const html = (body) => `<!doctype html><html><head><meta charset="utf-8"></head><body><div class="official-platform">${body}</div></body></html>`;
+  const table = () => new Promise((resolve) => execFile("ps", ["-A", "-o", "pid=,ppid=,stat=,command="], (error, stdout) => resolve((stdout ?? "").split("\n").map((line) => line.trim().match(/^(\d+)\s+(\d+)\s+(\S+)\s+(.*)$/)).filter(Boolean).map(([, pid, ppid, stat, command]) => ({ pid: Number(pid), ppid: Number(ppid), stat, command })))));
+  const descendants = (rows, pid) => { const out = []; for (let i = 0, queue = [pid]; i < queue.length; i++) for (const r of rows) if (r.ppid === queue[i]) { queue.push(r.pid); out.push(r); } return out; };
+  let audit = null;
+  const started = new Set(); // every Chromium process of the audit seen while it ran
+  const server = http.createServer(async (req, res) => {
+    const id = new URL(req.url, "http://localhost").searchParams.get("page");
+    if (id === "freeze" && audit) {
+      const chromium = descendants(await table(), audit.pid).filter((r) => /chrom|headless/i.test(r.command));
+      for (const r of chromium) started.add(r.pid);
+      for (const r of chromium.filter((r) => r.ppid === audit.pid)) process.kill(r.pid, "SIGSTOP"); // the browser process
+    }
+    res.writeHead(200, { "content-type": "text/html" });
+    res.end(html(example(id ?? "home", "<p>Fine</p>")));
+  });
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const out = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "zen-audit-freeze-")), "report.json");
+  const args = ["tools/platform-audit/audit.mjs", `--url=http://127.0.0.1:${server.address().port}`, "--pages=before,freeze,after", "--viewports=1512", "--no-playground", "--no-baseline", "--page-timeout=3", `--out=${out}`];
+  const t0 = Date.now();
+  const run = await new Promise((resolve) => { audit = execFile(process.execPath, args, { cwd: root, timeout: 120_000 }, (error, stdout) => resolve({ code: error?.code ?? 0, signal: error?.signal, stdout })); });
+  const seconds = Math.round((Date.now() - t0) / 1000);
+  server.close();
+  await new Promise((resolve) => setTimeout(resolve, 1000)); // the killed processes are reaped
+  const left = (await table()).filter((r) => started.has(r.pid) && !r.stat.startsWith("Z"));
+  for (const r of left) { try { process.kill(r.pid, "SIGKILL"); } catch { /* gone */ } } // never leave a stopped browser behind
+  const report = (() => { try { return JSON.parse(fs.readFileSync(out, "utf8")); } catch { return null; } })();
+  const pages = report?.pages ?? {};
+  const tail = run.stdout.split("\n").slice(-6).join("\n    ");
+  ok("frozen browser: the run ends by itself, well before the 120 s cap", !run.signal && seconds < 90, `${run.signal ? `killed by ${run.signal}` : `exit ${run.code}`} after ${seconds}s\n    ${tail}`);
+  ok("frozen browser: it fails on the frozen page", run.code === 1, `exit ${run.code}\n    ${tail}`);
+  ok("frozen browser: the page is reported by name, with its step", (pages["freeze@1512"]?.errors ?? []).some((e) => /did not answer within 3s, twice \(at loading; the dev server answers/.test(e)), JSON.stringify(pages["freeze@1512"] ?? null));
+  ok("frozen browser: it is audited again in a new browser first", /↻ freeze@1512: no answer in 3s .*a new browser/.test(run.stdout), run.stdout.split("\n").slice(0, 6).join("\n    "));
+  ok("frozen browser: the pages around it are still audited", Boolean(pages["before@1512"]) && Boolean(pages["after@1512"]), Object.keys(pages).join(", "));
+  ok("frozen browser: no Chromium process of the audit is left", started.size > 0 && left.length === 0, started.size ? left.map((r) => `${r.pid} ${r.stat} ${r.command.slice(0, 80)}`).join("\n    ") : "no Chromium process was found to stop");
 }
 if (failures.length) {
   console.log(`Platform-audit self-test: ${passed} passed, ${failures.length} failed`);

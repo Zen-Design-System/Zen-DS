@@ -77,7 +77,7 @@
  *                                       (the gate runs 1512,390,320; at 320 every kind is baselined, see BASELINE_ALL_KINDS)
  *                                       [--baseline-update[=kinds]] [--no-baseline] [--css=file]
  *                                       [--page-timeout=s] (one page's limit: 180, 420 with --quality/--density, 900 with
- *                                       --smoke; a page past it is audited again in a new tab, then reported)
+ *                                       --smoke; a page past it is audited again in a new browser, then reported)
  * Exit code 1 when any error-level finding exists. See docs/qa/platform-audit.md and docs/qa/build-qa-process.md.
  */
 import fs from "node:fs";
@@ -101,8 +101,8 @@ const OUT = arg("out", null);
 const QUALITY = Boolean(arg("quality", false));
 const DENSITY = Boolean(arg("density", false));
 // One page's time limit (s): a page that never answers (page.evaluate has no timeout) would hold the whole run — CI
-// cancelled a run after 45 min on one page (text@390, 2026-10-24). Past it the tab is closed, the page is audited once
-// more in a new tab, then reported as an error, and the run goes on. Smoke clicks every button, so it gets longer.
+// cancelled a run after 45 min on one page (text@390, 2026-10-24). Past it the browser is restarted, the page is audited
+// once more, then reported as an error, and the run goes on (`bounded`, run()). Smoke clicks every button, so it gets longer.
 const PAGE_BUDGET_S = Number(arg("page-timeout", SMOKE ? 900 : QUALITY || DENSITY ? 420 : 180));
 const BASELINE_FILE = path.join(root, "tools/platform-audit/quality-baseline.json");
 // Motion (2026-10-01): reduced motion keeps fades (tokens/source/motion.json sets only the movement to 0), so every
@@ -564,13 +564,36 @@ function pageChecks({ scopeSel, mobile }) {
 const sum = (r) => Object.values(r).reduce((n, list) => n + list.length, 0);
 const SEVERITY = { errors: "error", overflow: "error", counts: "error", images: "error", names: "error", ids: "warn", nesting: "error", targets: "warn", contrast: "warn", surfaces: "error", edges: "error", sizes: "error", typography: "error", device: "error", outline: "error", "outline-h1": "warn", "outline-start": "warn", "outline-card": "warn", "outline-siblings": "warn", elevation: "warn", scale: "error", roles: "warn", hierarchy: "error", rhythm: "warn", ladder: "warn", density: "error", fit: "error", "card-gap": "error", "legend-column": "error", "toolbar-search": "error", "table-lead": "error", "item-row-gap": "error", "text-tone": "error", clip: "error", "segmented-fit": "warn" };
 
+// Every wait on the browser is bounded on the Node side: `bounded` gives up on a call after `ms` and throws a Stall naming
+// what it was doing (`what`: a string, or a function read when the time is up). page.evaluate has no timeout, and once
+// the browser itself stops answering no call settles, closing the tab included: CI went silent for 18–30 min five times
+// on 2026-10-27 (after the lines of slider@390-dark, tag@1512-dark, skeleton@1512, table@390 and form@390) with a
+// watchdog that only closed the tab, and was cancelled at 45 min.
+class Stall extends Error {}
+const bounded = (promise, ms, what) => {
+  let timer;
+  const limit = new Promise((_, reject) => { timer = setTimeout(() => reject(new Stall(typeof what === "function" ? what() : what)), ms); });
+  return Promise.race([promise, limit]).finally(() => clearTimeout(timer));
+};
+let browser = null;
+const launch = () => bounded(chromium.launch(), 60_000, "launching Chromium");
+// A browser that does not close within 5 s is killed with its process group (Playwright starts it detached): every
+// pending call on it then throws, and nothing is left running when the audit exits.
+async function closeBrowser(b) {
+  if (!b) return;
+  const pid = b.process()?.pid;
+  await bounded(b.close(), 5000, "closing the browser").catch(() => {
+    for (const target of [-pid, pid]) { try { process.kill(target, "SIGKILL"); return; } catch { /* not a group, or gone */ } }
+  });
+}
+
 async function run() {
-  const browser = await chromium.launch();
+  browser = await launch();
   const report = { base: BASE, date: new Date().toISOString(), viewports: VIEWPORTS, dark: DARK, pages: {} };
   for (const width of VIEWPORTS) {
     const mobile = width < 768;
-    const context = await browser.newContext({ viewport: { width, height: mobile ? 844 : 1000 }, reducedMotion: "reduce", deviceScaleFactor: 1 });
-    await context.addInitScript(freezeMotionInit, FREEZE_MOTION);
+    let context = null;
+    let page = null;
     let errors = [];
     const openPage = async () => {
       const tab = await context.newPage();
@@ -579,204 +602,215 @@ async function run() {
       tab.on("filechooser", (fc) => fc.setFiles([]).catch(() => undefined));
       return tab;
     };
-    let page = await openPage();
-    // PAGE_BUDGET_S: the watchdog closes a tab that holds one page too long (its pending calls then throw).
-    let stalled = false;
-    let watchdog = null;
+    // A new context and tab; with `restart`, in a new browser too (after a stall nothing of the old one is reused).
+    const reopen = async (restart) => {
+      if (restart) { await closeBrowser(browser); browser = await launch(); }
+      context = await bounded(browser.newContext({ viewport: { width, height: mobile ? 844 : 1000 }, reducedMotion: "reduce", deviceScaleFactor: 1 }), 30_000, "opening a context");
+      await bounded(context.addInitScript(freezeMotionInit, FREEZE_MOTION), 30_000, "adding the init script");
+      page = await bounded(openPage(), 30_000, "opening a tab");
+    };
+    await reopen(false);
     for (const id of PAGES) for (let attempt = 1; attempt <= 3; attempt++) try {
-      stalled = false;
-      clearTimeout(watchdog);
-      watchdog = setTimeout(() => { stalled = true; page.close().catch(() => undefined); }, PAGE_BUDGET_S * 1000);
       // Other sessions edit the shared tree, so Vite HMR may reload the page mid-check: the page is then audited again.
       errors = [];
       if (report.baselined?.[`${id}@${width}${DARK ? "-dark" : ""}`]) delete report.baselined[`${id}@${width}${DARK ? "-dark" : ""}`];
-      await page.goto(`${BASE}/?page=${id}`, { waitUntil: "networkidle" }).catch(() => undefined);
-      if (DARK) await page.getByRole("button", { name: "Dark mode" }).first().click().catch(() => undefined);
-      if (CSS) await page.addStyleTag({ content: CSS }).catch(() => undefined);
-      await page.addStyleTag({ content: FREEZE_MOTION }).catch(() => undefined);
-      await page.waitForTimeout(500);
-      await page.evaluate(() => document.getAnimations().forEach((a) => a.finish())).catch(() => undefined);
-      const base = await page.evaluate(pageChecks, { scopeSel: ".official-platform", mobile });
-      const docOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
-      if (docOverflow) base.overflow.unshift("document scrolls horizontally");
-      const entry = { ...base, errors: [...errors], playground: [], smoke: [] };
-      // Build-QA: token scale, text styles, content hierarchy, rhythm (quality-checks.mjs). Playground and smoke add theirs below.
-      const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "ladder", "fit", "card-gap", "legend-column", "toolbar-search", "table-lead", "item-row-gap", "text-tone", "clip", "segmented-fit"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
-      // One scope's quality kinds: qualityChecks (text styles, tokens, hierarchy, rhythm), textFit (text wider than its box),
-      // widgetLayout (card-gap, legend-column, toolbar-search, table-lead, item-row-gap), controlClip (a control cut off or covered) and segmentedFit (a phone
-      // Segmented that does not fit).
-      const quality = async (scopeSel, crash = false) => ({
-        ...await page.evaluate(qualityChecks, { scopeSel }).catch((e) => (crash ? { scale: [`quality checks crashed: ${e.message.split("\n")[0]}`] } : null)),
-        ...await page.evaluate(textFit, { scopeSel }).catch((e) => (crash ? { fit: [`text-fit check crashed: ${e.message.split("\n")[0]}`] } : null)),
-        ...await page.evaluate(widgetLayout, { scopeSel }).catch((e) => (crash ? { "card-gap": [`widget layout check crashed: ${e.message.split("\n")[0]}`] } : null)),
-        ...await page.evaluate(controlClip, { scopeSel }).catch((e) => (crash ? { clip: [`control clip check crashed: ${e.message.split("\n")[0]}`] } : null)),
-        ...await page.evaluate(segmentedFit, { scopeSel }).catch((e) => (crash ? { "segmented-fit": [`segmented fit check crashed: ${e.message.split("\n")[0]}`] } : null)),
-      });
-      if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], density: [], fit: [], "card-gap": [], "legend-column": [], "toolbar-search": [], "table-lead": [], "item-row-gap": [], "text-tone": [], clip: [], "segmented-fit": [] });
-      if (QUALITY) addQuality(await quality(".official-platform", true));
-      if (DENSITY) {
-        // Component Size: compare every Zen box Compact vs Comfortable; content that outgrows its box only in Comfortable is a
-        // wrapper sized in px around a token-sized child (memory: density-safe slots). New layout errors count too.
-        const setDensity = (d) => page.evaluate((d) => { const els = document.querySelectorAll(".official-platform, .official-portal-root"); const before = [...els].map((e) => e.getAttribute("data-density")); els.forEach((e) => e.setAttribute("data-density", d)); return before; }, d);
-        // A fixed wait can read a layout that is still moving under load (2026-10-21: the full gate failed on a 3–4px
-        // "overflow" in Image's media Table that two runs of the page alone did not find). Snapshot until two reads 150ms
-        // apart agree, up to 3s.
-        const settled = async (min) => { await page.waitForTimeout(min); let last = JSON.stringify(await page.evaluate(densitySnapshot)); for (let t = 0; t < 20; t++) { await page.waitForTimeout(150); const next = JSON.stringify(await page.evaluate(densitySnapshot)); if (next === last) break; last = next; } return JSON.parse(last); };
-        const original = await setDensity("compact");
-        const compact = await settled(200);
-        const fitCompact = await page.evaluate(textFit, { scopeSel: ".official-platform" }).catch(() => null);
-        await setDensity("comfortable");
-        const comfortable = await settled(300);
-        // Text that outgrows its box only at Comfortable (larger type and padding in the same width).
-        const fitRoomy = await page.evaluate(textFit, { scopeSel: ".official-platform" }).catch(() => null);
-        (fitRoomy?.fit ?? []).forEach((item, i) => { const msg = `at Comfortable: ${item}`; if (!fitCompact?.where.includes(fitRoomy.where[i]) && !entry.fit.includes(msg)) entry.fit.push(msg); });
-        for (const [k, c] of Object.entries(comfortable)) { const a = compact[k]; if (a && c.over > 1.5 && (a.over <= 1.5 ? c.over > a.over + 1 : c.over > a.over * 1.5 + 2)) { const msg = `${c.text} outgrows its box by ${c.over}px at Comfortable (${a.over}px at Compact)`; if (!entry.density.includes(msg)) entry.density.push(msg); } }
-        const roomy = await page.evaluate(pageChecks, { scopeSel: ".official-platform", mobile });
-        for (const kind of ["overflow", "sizes", "edges"]) for (const item of roomy[kind]) if (!entry[kind].includes(item)) entry.density.push(`${kind} at Comfortable: ${item}`);
-        await page.evaluate((vals) => document.querySelectorAll(".official-platform, .official-portal-root").forEach((e, i) => vals[i] == null ? e.removeAttribute("data-density") : e.setAttribute("data-density", vals[i])), original);
-        await page.waitForTimeout(150);
-      }
+      // PAGE_BUDGET_S bounds the whole page. The checks take the tab as `page`, so calls a stalled run still has pending
+      // can never reach the next attempt's tab; they throw once its browser is closed.
+      const at = { step: "loading" };
+      const { entry, smokeStats } = await bounded((async (page) => {
+        await page.goto(`${BASE}/?page=${id}`, { waitUntil: "networkidle" }).catch(() => undefined);
+        if (DARK) await page.getByRole("button", { name: "Dark mode" }).first().click().catch(() => undefined);
+        if (CSS) await page.addStyleTag({ content: CSS }).catch(() => undefined);
+        await page.addStyleTag({ content: FREEZE_MOTION }).catch(() => undefined);
+        await page.waitForTimeout(500);
+        await page.evaluate(() => document.getAnimations().forEach((a) => a.finish())).catch(() => undefined);
+        at.step = "page checks";
+        const base = await page.evaluate(pageChecks, { scopeSel: ".official-platform", mobile });
+        const docOverflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
+        if (docOverflow) base.overflow.unshift("document scrolls horizontally");
+        const entry = { ...base, errors: [...errors], playground: [], smoke: [] };
+        // Build-QA: token scale, text styles, content hierarchy, rhythm (quality-checks.mjs). Playground and smoke add theirs below.
+        const addQuality = (q, prefix = "") => { for (const kind of ["scale", "roles", "hierarchy", "rhythm", "ladder", "fit", "card-gap", "legend-column", "toolbar-search", "table-lead", "item-row-gap", "text-tone", "clip", "segmented-fit"]) for (const item of q?.[kind] ?? []) { const msg = `${prefix}${item}`; if (!entry[kind].includes(msg) && !entry[kind].includes(item)) entry[kind].push(msg); } };
+        // One scope's quality kinds: qualityChecks (text styles, tokens, hierarchy, rhythm), textFit (text wider than its box),
+        // widgetLayout (card-gap, legend-column, toolbar-search, table-lead, item-row-gap), controlClip (a control cut off or covered) and segmentedFit (a phone
+        // Segmented that does not fit).
+        const quality = async (scopeSel, crash = false) => ({
+          ...await page.evaluate(qualityChecks, { scopeSel }).catch((e) => (crash ? { scale: [`quality checks crashed: ${e.message.split("\n")[0]}`] } : null)),
+          ...await page.evaluate(textFit, { scopeSel }).catch((e) => (crash ? { fit: [`text-fit check crashed: ${e.message.split("\n")[0]}`] } : null)),
+          ...await page.evaluate(widgetLayout, { scopeSel }).catch((e) => (crash ? { "card-gap": [`widget layout check crashed: ${e.message.split("\n")[0]}`] } : null)),
+          ...await page.evaluate(controlClip, { scopeSel }).catch((e) => (crash ? { clip: [`control clip check crashed: ${e.message.split("\n")[0]}`] } : null)),
+          ...await page.evaluate(segmentedFit, { scopeSel }).catch((e) => (crash ? { "segmented-fit": [`segmented fit check crashed: ${e.message.split("\n")[0]}`] } : null)),
+        });
+        if (QUALITY || DENSITY) Object.assign(entry, { scale: [], roles: [], hierarchy: [], rhythm: [], ladder: [], density: [], fit: [], "card-gap": [], "legend-column": [], "toolbar-search": [], "table-lead": [], "item-row-gap": [], "text-tone": [], clip: [], "segmented-fit": [] });
+        if (QUALITY) { at.step = "quality checks"; addQuality(await quality(".official-platform", true)); }
+        if (DENSITY) {
+          at.step = "density";
+          // Component Size: compare every Zen box Compact vs Comfortable; content that outgrows its box only in Comfortable is a
+          // wrapper sized in px around a token-sized child (memory: density-safe slots). New layout errors count too.
+          const setDensity = (d) => page.evaluate((d) => { const els = document.querySelectorAll(".official-platform, .official-portal-root"); const before = [...els].map((e) => e.getAttribute("data-density")); els.forEach((e) => e.setAttribute("data-density", d)); return before; }, d);
+          // A fixed wait can read a layout that is still moving under load (2026-10-21: the full gate failed on a 3–4px
+          // "overflow" in Image's media Table that two runs of the page alone did not find). Snapshot until two reads 150ms
+          // apart agree, up to 3s.
+          const settled = async (min) => { await page.waitForTimeout(min); let last = JSON.stringify(await page.evaluate(densitySnapshot)); for (let t = 0; t < 20; t++) { await page.waitForTimeout(150); const next = JSON.stringify(await page.evaluate(densitySnapshot)); if (next === last) break; last = next; } return JSON.parse(last); };
+          const original = await setDensity("compact");
+          const compact = await settled(200);
+          const fitCompact = await page.evaluate(textFit, { scopeSel: ".official-platform" }).catch(() => null);
+          await setDensity("comfortable");
+          const comfortable = await settled(300);
+          // Text that outgrows its box only at Comfortable (larger type and padding in the same width).
+          const fitRoomy = await page.evaluate(textFit, { scopeSel: ".official-platform" }).catch(() => null);
+          (fitRoomy?.fit ?? []).forEach((item, i) => { const msg = `at Comfortable: ${item}`; if (!fitCompact?.where.includes(fitRoomy.where[i]) && !entry.fit.includes(msg)) entry.fit.push(msg); });
+          for (const [k, c] of Object.entries(comfortable)) { const a = compact[k]; if (a && c.over > 1.5 && (a.over <= 1.5 ? c.over > a.over + 1 : c.over > a.over * 1.5 + 2)) { const msg = `${c.text} outgrows its box by ${c.over}px at Comfortable (${a.over}px at Compact)`; if (!entry.density.includes(msg)) entry.density.push(msg); } }
+          const roomy = await page.evaluate(pageChecks, { scopeSel: ".official-platform", mobile });
+          for (const kind of ["overflow", "sizes", "edges"]) for (const item of roomy[kind]) if (!entry[kind].includes(item)) entry.density.push(`${kind} at Comfortable: ${item}`);
+          await page.evaluate((vals) => document.querySelectorAll(".official-platform, .official-portal-root").forEach((e, i) => vals[i] == null ? e.removeAttribute("data-density") : e.setAttribute("data-density", vals[i])), original);
+          await page.waitForTimeout(150);
+        }
 
-      if (PLAYGROUND) {
-        const panel = page.locator(".platform-example-panel").first();
-        if (await panel.count()) {
-          const selects = panel.locator(".platform-playground-controls select");
-          for (let i = 0; i < await selects.count(); i++) {
-            const sel = selects.nth(i);
-            const name = await sel.getAttribute("aria-label");
-            const original = await sel.inputValue().catch(() => "");
-            const values = await sel.evaluate((s) => [...s.options].filter((o) => !o.disabled).map((o) => o.value));
-            for (const v of values) {
+        if (PLAYGROUND) {
+          at.step = "playground";
+          const panel = page.locator(".platform-example-panel").first();
+          if (await panel.count()) {
+            const selects = panel.locator(".platform-playground-controls select");
+            for (let i = 0; i < await selects.count(); i++) {
+              const sel = selects.nth(i);
+              const name = await sel.getAttribute("aria-label");
+              const original = await sel.inputValue().catch(() => "");
+              const values = await sel.evaluate((s) => [...s.options].filter((o) => !o.disabled).map((o) => o.value));
+              for (const v of values) {
+                errors = [];
+                await sel.selectOption(v).catch(() => undefined);
+                await page.waitForTimeout(120);
+                const r = await page.evaluate(pageChecks, { scopeSel: ".platform-example-panel", mobile });
+                const findings = [...errors.map((e) => `error: ${e}`), ...r.overflow, ...r.images, ...r.names.map((n) => `unnamed ${n}`), ...r.nesting, ...r.surfaces.map((n) => `surface ${n}`), ...r.edges.map((n) => `edge ${n}`), ...r.sizes.map((n) => `size ${n}`), ...r.typography.map((n) => `type ${n}`), ...r.device.map((n) => `device ${n}`)];
+                if (findings.length) entry.playground.push(`${name}=${v}: ${findings.join(" · ")}`);
+                if (QUALITY) addQuality(await quality(".platform-example-panel"), `${name}=${v}: `);
+              }
+              await sel.selectOption(original).catch(() => undefined);
+            }
+            const toggles = panel.locator(".platform-playground-controls [role='switch'], .platform-playground-controls button[aria-pressed]");
+            for (let i = 0; i < await toggles.count(); i++) {
+              const t = toggles.nth(i); const name = await t.getAttribute("aria-label");
               errors = [];
-              await sel.selectOption(v).catch(() => undefined);
-              await page.waitForTimeout(120);
+              await t.click().catch(() => undefined); await page.waitForTimeout(120);
               const r = await page.evaluate(pageChecks, { scopeSel: ".platform-example-panel", mobile });
               const findings = [...errors.map((e) => `error: ${e}`), ...r.overflow, ...r.images, ...r.names.map((n) => `unnamed ${n}`), ...r.nesting, ...r.surfaces.map((n) => `surface ${n}`), ...r.edges.map((n) => `edge ${n}`), ...r.sizes.map((n) => `size ${n}`), ...r.typography.map((n) => `type ${n}`), ...r.device.map((n) => `device ${n}`)];
-              if (findings.length) entry.playground.push(`${name}=${v}: ${findings.join(" · ")}`);
-              if (QUALITY) addQuality(await quality(".platform-example-panel"), `${name}=${v}: `);
+              if (findings.length) entry.playground.push(`${name} toggled: ${findings.join(" · ")}`);
+              if (QUALITY) addQuality(await quality(".platform-example-panel"), `${name} toggled: `);
+              await t.click().catch(() => undefined); await page.waitForTimeout(60);
             }
-            await sel.selectOption(original).catch(() => undefined);
-          }
-          const toggles = panel.locator(".platform-playground-controls [role='switch'], .platform-playground-controls button[aria-pressed]");
-          for (let i = 0; i < await toggles.count(); i++) {
-            const t = toggles.nth(i); const name = await t.getAttribute("aria-label");
-            errors = [];
-            await t.click().catch(() => undefined); await page.waitForTimeout(120);
-            const r = await page.evaluate(pageChecks, { scopeSel: ".platform-example-panel", mobile });
-            const findings = [...errors.map((e) => `error: ${e}`), ...r.overflow, ...r.images, ...r.names.map((n) => `unnamed ${n}`), ...r.nesting, ...r.surfaces.map((n) => `surface ${n}`), ...r.edges.map((n) => `edge ${n}`), ...r.sizes.map((n) => `size ${n}`), ...r.typography.map((n) => `type ${n}`), ...r.device.map((n) => `device ${n}`)];
-            if (findings.length) entry.playground.push(`${name} toggled: ${findings.join(" · ")}`);
-            if (QUALITY) addQuality(await quality(".platform-example-panel"), `${name} toggled: `);
-            await t.click().catch(() => undefined); await page.waitForTimeout(60);
           }
         }
-      }
 
-      // How much the smoke layer check really covered (report.smokeStats, information only): popovers sampled, skipped
-      // because they closed or collapsed before a sample, and open but off-screen (never sampled).
-      const smokeStats = SMOKE ? { checked: 0, skipped: 0, offscreen: 0 } : null;
-      if (SMOKE) {
-        const cards = page.locator(".pe-card");
-        for (let c = 0; c < await cards.count(); c++) {
-          const card = cards.nth(c); const title = (await card.locator("h3").first().textContent().catch(() => ""))?.trim();
-          const buttons = card.locator(".pe-card__stage button:visible");
-          const n = Math.min(await buttons.count(), 14);
-          for (let b = 0; b < n; b++) {
-            errors = [];
-            // A hover-revealed button (a chat message's toolbar: opacity 0 and pointer-events none until its row is hovered) is
-            // clicked with the pointer on its row, as a user would; it used to time out, so whether a run opened its menu was luck.
-            // Only a button that cannot take the click itself counts (its own pointer-events, which inherits, or an opacity-0
-            // ancestor), not one inside a pointer-events:none layout wrapper (the Top Navigation bar). The row is centred and the
-            // pointer goes only where the row is the top element (the docs' sticky bar can cover it). Bounded: a button an earlier
-            // click removed must not wait Playwright's 30s default.
-            const row = b < await buttons.count() ? await buttons.nth(b).evaluate((button) => {
-              const chain = [];
-              for (let node = button; node && !node.classList.contains("pe-card__stage"); node = node.parentElement) chain.push(node);
-              // A popover or sheet fading out is closing, not waiting for a hover.
-              if (chain.some((node) => node.matches(".zen-popover, [data-state='closing'], [inert]"))) return null;
-              // The element that hides it: the nearest opacity-0 ancestor, else the outermost of the pointer-events:none run
-              // the button inherits from. Its parent is the row to hover.
-              let source = chain.find((node) => getComputedStyle(node).opacity === "0");
-              if (!source && getComputedStyle(button).pointerEvents === "none") for (const node of chain) { if (getComputedStyle(node).pointerEvents !== "none") break; source = node; }
-              const host = source?.parentElement;
-              if (!host) return null;
-              host.scrollIntoView({ block: "center" });
-              const r = host.getBoundingClientRect();
-              for (const [fx, fy] of [[0.5, 0.5], [0.25, 0.5], [0.75, 0.5], [0.5, 0.25], [0.5, 0.75]]) {
-                const x = r.left + r.width * fx; const y = r.top + r.height * fy;
-                if (host.contains(document.elementFromPoint(x, y))) return { x, y };
-              }
-              return null;
-            }, undefined, { timeout: 800 }).catch(() => null) : null;
-            if (row) { await page.mouse.move(row.x, row.y).catch(() => undefined); await page.waitForTimeout(80); }
-            await buttons.nth(b).click({ timeout: 800, trial: false }).catch(() => undefined);
-            await page.waitForTimeout(80);
-            // What a click opens (dialogs, side panels, sheets, popovers) is only on screen now: check its sizes, edges and typography too.
-            const opened = await page.evaluate(pageChecks, { scopeSel: null, mobile }).catch(() => null);
-            const layout = opened ? [...opened.sizes.map((n) => `size ${n}`), ...opened.edges.map((n) => `edge ${n}`), ...opened.typography.map((n) => `type ${n}`), ...opened.device.map((n) => `device ${n}`)] : [];
-            // Layer: an open floating Popover stays on top even while the pointer hovers what sits around it.
-            // Finish the popover's enter animation first: sampled mid-slide, its edge points miss it (2026-10-01).
-            await page.evaluate(() => document.getAnimations().forEach((a) => a.finish())).catch(() => undefined);
-            // Follow ONE tagged popover and measure it in the same task as the hit tests (2026-10-02): demo timers (a chat call
-            // flipping to "No answer") re-pin a thread mid-check, and the portalled popover rightly moves with its anchor (or
-            // with the page, through scroll anchoring). Points from a rect read before the mouse moved then landed on the
-            // messages that slid in, a false "paints over". A popover that closed meanwhile is skipped; a closing one is never picked.
-            const picked = await page.evaluate(() => {
-              document.querySelectorAll("[data-audit-popover]").forEach((el) => el.removeAttribute("data-audit-popover"));
-              const open = [...document.querySelectorAll(".zen-popover:not([data-state='closing'])")].filter((p) => { const r = p.getBoundingClientRect(); return ["absolute", "fixed"].includes(getComputedStyle(p).position) && r.width > 0 && r.height > 0; });
-              const el = open.find((p) => { const r = p.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth; });
-              if (!el) return open.length ? "offscreen" : "none";
-              el.setAttribute("data-audit-popover", "");
-              return "picked";
-            }).catch(() => "none");
-            if (picked === "offscreen") smokeStats.offscreen += 1;
-            if (picked === "picked") {
-              let sampled = false;
-              for (const side of ["left", "below"]) {
-                const box = await page.evaluate(() => { const el = document.querySelector("[data-audit-popover]"); if (!el) return null; const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, vw: innerWidth, vh: innerHeight }; }).catch(() => null);
-                if (!box) break;
-                // The pointer rests just outside the popover and inside the viewport (a spot off the page hovers nothing): the
-                // opposite side when the usual one is off-screen; a side with no room outside a near-full-width popover is skipped.
-                const clampX = (x) => Math.min(Math.max(x, 1), box.vw - 2); const clampY = (y) => Math.min(Math.max(y, 1), box.vh - 2);
-                const [mx, my] = side === "left"
-                  ? [clampX(box.x - 6 >= 1 ? box.x - 6 : box.x + box.w + 6), clampY(box.y + box.h / 2)]
-                  : [clampX(box.x + box.w / 2), clampY(box.y + box.h + 6 <= box.vh - 2 ? box.y + box.h + 6 : box.y - 6)];
-                if (mx >= box.x && mx <= box.x + box.w && my >= box.y && my <= box.y + box.h) continue;
-                await page.mouse.move(mx, my).catch(() => undefined); await page.waitForTimeout(60);
-                const res = await page.evaluate((points) => {
-                  const el = document.querySelector("[data-audit-popover]");
-                  if (!el || el.dataset.state === "closing") return { skipped: true };
-                  // Sample the part of the popover that is on screen (a menu running below the fold kept 3 of 4 points off it).
-                  const r = el.getBoundingClientRect();
-                  const left = Math.max(r.left, 0); const top = Math.max(r.top, 0); const right = Math.min(r.right, innerWidth); const bottom = Math.min(r.bottom, innerHeight);
-                  if (right - left < 1 || bottom - top < 1) return { skipped: true };
-                  // Toasts (z-index 1100) are the top notification layer by design, above menus and dialogs. One left by an
-                  // earlier smoke click is hidden while sampling, so it cannot blind the check to what lies under it.
-                  const toasts = [...document.querySelectorAll(".zen-toast-stack")].map((t) => [t, t.style.visibility]);
-                  toasts.forEach(([t]) => { t.style.visibility = "hidden"; });
-                  try {
-                    for (const [fx, fy] of points) {
-                      const hit = document.elementFromPoint(left + (right - left) * fx, top + (bottom - top) * fy);
-                      if (hit && !hit.closest(".zen-popover, .zen-tooltip, [role='tooltip'], .zen-toast-stack")) return { over: typeof hit.className === "string" && hit.className.trim() ? hit.className.trim().split(/\s+/).slice(0, 2).join(".") : hit.tagName.toLowerCase() };
+        // How much the smoke layer check really covered (report.smokeStats, information only): popovers sampled, skipped
+        // because they closed or collapsed before a sample, and open but off-screen (never sampled).
+        const smokeStats = SMOKE ? { checked: 0, skipped: 0, offscreen: 0 } : null;
+        if (SMOKE) {
+          at.step = "smoke";
+          const cards = page.locator(".pe-card");
+          for (let c = 0; c < await cards.count(); c++) {
+            const card = cards.nth(c); const title = (await card.locator("h3").first().textContent().catch(() => ""))?.trim();
+            const buttons = card.locator(".pe-card__stage button:visible");
+            const n = Math.min(await buttons.count(), 14);
+            for (let b = 0; b < n; b++) {
+              errors = [];
+              // A hover-revealed button (a chat message's toolbar: opacity 0 and pointer-events none until its row is hovered) is
+              // clicked with the pointer on its row, as a user would; it used to time out, so whether a run opened its menu was luck.
+              // Only a button that cannot take the click itself counts (its own pointer-events, which inherits, or an opacity-0
+              // ancestor), not one inside a pointer-events:none layout wrapper (the Top Navigation bar). The row is centred and the
+              // pointer goes only where the row is the top element (the docs' sticky bar can cover it). Bounded: a button an earlier
+              // click removed must not wait Playwright's 30s default.
+              const row = b < await buttons.count() ? await buttons.nth(b).evaluate((button) => {
+                const chain = [];
+                for (let node = button; node && !node.classList.contains("pe-card__stage"); node = node.parentElement) chain.push(node);
+                // A popover or sheet fading out is closing, not waiting for a hover.
+                if (chain.some((node) => node.matches(".zen-popover, [data-state='closing'], [inert]"))) return null;
+                // The element that hides it: the nearest opacity-0 ancestor, else the outermost of the pointer-events:none run
+                // the button inherits from. Its parent is the row to hover.
+                let source = chain.find((node) => getComputedStyle(node).opacity === "0");
+                if (!source && getComputedStyle(button).pointerEvents === "none") for (const node of chain) { if (getComputedStyle(node).pointerEvents !== "none") break; source = node; }
+                const host = source?.parentElement;
+                if (!host) return null;
+                host.scrollIntoView({ block: "center" });
+                const r = host.getBoundingClientRect();
+                for (const [fx, fy] of [[0.5, 0.5], [0.25, 0.5], [0.75, 0.5], [0.5, 0.25], [0.5, 0.75]]) {
+                  const x = r.left + r.width * fx; const y = r.top + r.height * fy;
+                  if (host.contains(document.elementFromPoint(x, y))) return { x, y };
+                }
+                return null;
+              }, undefined, { timeout: 800 }).catch(() => null) : null;
+              if (row) { await page.mouse.move(row.x, row.y).catch(() => undefined); await page.waitForTimeout(80); }
+              await buttons.nth(b).click({ timeout: 800, trial: false }).catch(() => undefined);
+              await page.waitForTimeout(80);
+              // What a click opens (dialogs, side panels, sheets, popovers) is only on screen now: check its sizes, edges and typography too.
+              const opened = await page.evaluate(pageChecks, { scopeSel: null, mobile }).catch(() => null);
+              const layout = opened ? [...opened.sizes.map((n) => `size ${n}`), ...opened.edges.map((n) => `edge ${n}`), ...opened.typography.map((n) => `type ${n}`), ...opened.device.map((n) => `device ${n}`)] : [];
+              // Layer: an open floating Popover stays on top even while the pointer hovers what sits around it.
+              // Finish the popover's enter animation first: sampled mid-slide, its edge points miss it (2026-10-01).
+              await page.evaluate(() => document.getAnimations().forEach((a) => a.finish())).catch(() => undefined);
+              // Follow ONE tagged popover and measure it in the same task as the hit tests (2026-10-02): demo timers (a chat call
+              // flipping to "No answer") re-pin a thread mid-check, and the portalled popover rightly moves with its anchor (or
+              // with the page, through scroll anchoring). Points from a rect read before the mouse moved then landed on the
+              // messages that slid in, a false "paints over". A popover that closed meanwhile is skipped; a closing one is never picked.
+              const picked = await page.evaluate(() => {
+                document.querySelectorAll("[data-audit-popover]").forEach((el) => el.removeAttribute("data-audit-popover"));
+                const open = [...document.querySelectorAll(".zen-popover:not([data-state='closing'])")].filter((p) => { const r = p.getBoundingClientRect(); return ["absolute", "fixed"].includes(getComputedStyle(p).position) && r.width > 0 && r.height > 0; });
+                const el = open.find((p) => { const r = p.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth; });
+                if (!el) return open.length ? "offscreen" : "none";
+                el.setAttribute("data-audit-popover", "");
+                return "picked";
+              }).catch(() => "none");
+              if (picked === "offscreen") smokeStats.offscreen += 1;
+              if (picked === "picked") {
+                let sampled = false;
+                for (const side of ["left", "below"]) {
+                  const box = await page.evaluate(() => { const el = document.querySelector("[data-audit-popover]"); if (!el) return null; const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height, vw: innerWidth, vh: innerHeight }; }).catch(() => null);
+                  if (!box) break;
+                  // The pointer rests just outside the popover and inside the viewport (a spot off the page hovers nothing): the
+                  // opposite side when the usual one is off-screen; a side with no room outside a near-full-width popover is skipped.
+                  const clampX = (x) => Math.min(Math.max(x, 1), box.vw - 2); const clampY = (y) => Math.min(Math.max(y, 1), box.vh - 2);
+                  const [mx, my] = side === "left"
+                    ? [clampX(box.x - 6 >= 1 ? box.x - 6 : box.x + box.w + 6), clampY(box.y + box.h / 2)]
+                    : [clampX(box.x + box.w / 2), clampY(box.y + box.h + 6 <= box.vh - 2 ? box.y + box.h + 6 : box.y - 6)];
+                  if (mx >= box.x && mx <= box.x + box.w && my >= box.y && my <= box.y + box.h) continue;
+                  await page.mouse.move(mx, my).catch(() => undefined); await page.waitForTimeout(60);
+                  const res = await page.evaluate((points) => {
+                    const el = document.querySelector("[data-audit-popover]");
+                    if (!el || el.dataset.state === "closing") return { skipped: true };
+                    // Sample the part of the popover that is on screen (a menu running below the fold kept 3 of 4 points off it).
+                    const r = el.getBoundingClientRect();
+                    const left = Math.max(r.left, 0); const top = Math.max(r.top, 0); const right = Math.min(r.right, innerWidth); const bottom = Math.min(r.bottom, innerHeight);
+                    if (right - left < 1 || bottom - top < 1) return { skipped: true };
+                    // Toasts (z-index 1100) are the top notification layer by design, above menus and dialogs. One left by an
+                    // earlier smoke click is hidden while sampling, so it cannot blind the check to what lies under it.
+                    const toasts = [...document.querySelectorAll(".zen-toast-stack")].map((t) => [t, t.style.visibility]);
+                    toasts.forEach(([t]) => { t.style.visibility = "hidden"; });
+                    try {
+                      for (const [fx, fy] of points) {
+                        const hit = document.elementFromPoint(left + (right - left) * fx, top + (bottom - top) * fy);
+                        if (hit && !hit.closest(".zen-popover, .zen-tooltip, [role='tooltip'], .zen-toast-stack")) return { over: typeof hit.className === "string" && hit.className.trim() ? hit.className.trim().split(/\s+/).slice(0, 2).join(".") : hit.tagName.toLowerCase() };
+                      }
+                    } finally {
+                      toasts.forEach(([t, visibility]) => { t.style.visibility = visibility; });
                     }
-                  } finally {
-                    toasts.forEach(([t, visibility]) => { t.style.visibility = visibility; });
-                  }
-                  return {};
-                }, [[0.5, 0.5], [0.15, 0.85], [0.85, 0.85], [0.5, 0.95]]).catch(() => ({ skipped: true }));
-                if (res.skipped) break;
-                sampled = true;
-                if (res.over) { layout.push(`layer ${res.over} paints over the open popover`); break; }
+                    return {};
+                  }, [[0.5, 0.5], [0.15, 0.85], [0.85, 0.85], [0.5, 0.95]]).catch(() => ({ skipped: true }));
+                  if (res.skipped) break;
+                  sampled = true;
+                  if (res.over) { layout.push(`layer ${res.over} paints over the open popover`); break; }
+                }
+                smokeStats[sampled ? "checked" : "skipped"] += 1;
+                await page.evaluate(() => document.querySelector("[data-audit-popover]")?.removeAttribute("data-audit-popover")).catch(() => undefined);
               }
-              smokeStats[sampled ? "checked" : "skipped"] += 1;
-              await page.evaluate(() => document.querySelector("[data-audit-popover]")?.removeAttribute("data-audit-popover")).catch(() => undefined);
+              // Overlays opened by the click (dialogs, sheets, menus) get the text-style and hierarchy checks too.
+              if (QUALITY) addQuality(await quality(".official-portal-root"), `${title} → opened: `);
+              await page.keyboard.press("Escape").catch(() => undefined);
+              if (errors.length || layout.length) entry.smoke.push(`${title} #${b}: ${[...errors, ...new Set(layout)].join(" · ")}`);
             }
-            // Overlays opened by the click (dialogs, sheets, menus) get the text-style and hierarchy checks too.
-            if (QUALITY) addQuality(await quality(".official-portal-root"), `${title} → opened: `);
-            await page.keyboard.press("Escape").catch(() => undefined);
-            if (errors.length || layout.length) entry.smoke.push(`${title} #${b}: ${[...errors, ...new Set(layout)].join(" · ")}`);
           }
         }
-      }
+        return { entry, smokeStats };
+      })(page), PAGE_BUDGET_S * 1000, () => at.step);
 
       const key = `${id}@${width}${DARK ? "-dark" : ""}`;
       // Baseline: pre-existing Build-QA findings (quality-baseline.json) are reported apart and do not fail the run.
@@ -792,24 +826,27 @@ async function run() {
       if (smokeStats) (report.smokeStats ??= {})[key] = smokeStats;
       const n = sum(entry);
       console.log(`${n ? "✗" : "✓"} ${key.padEnd(30)} ${n ? Object.entries(entry).filter(([, l]) => l.length).map(([k, l]) => `${k}:${l.length}`).join(" ") : "clean"}${known ? ` (+${known} baseline)` : ""}`);
-      clearTimeout(watchdog);
       break;
     } catch (e) {
-      clearTimeout(watchdog);
-      if (stalled) {
-        page = await openPage();
-        if (attempt < 2) { console.log(`↻ ${id}@${width}: no answer in ${PAGE_BUDGET_S}s — auditing it again in a new tab`); continue; }
+      if (e instanceof Stall) {
+        // Past the budget: the step it was in, and whether the dev server still answers (a stuck browser, or a stuck
+        // server), then a new browser. The page is audited once more, then reported by name, and the run goes on.
+        const server = await fetch(BASE, { signal: AbortSignal.timeout(5000) }).then((r) => { r.body?.cancel().catch(() => undefined); return r.ok; }, () => false);
+        const where = `at ${e.message}; the dev server ${server ? "answers" : "does not answer"}`;
+        await reopen(true);
+        if (attempt < 2) { console.log(`↻ ${id}@${width}: no answer in ${PAGE_BUDGET_S}s (${where}) — auditing it again in a new browser`); continue; }
         const key = `${id}@${width}${DARK ? "-dark" : ""}`;
-        report.pages[key] = { errors: [`the page did not answer within ${PAGE_BUDGET_S}s, twice (audit watchdog, --page-timeout): it hangs, or it is too slow to audit`] };
-        console.log(`✗ ${key.padEnd(30)} errors:1 (no answer in ${PAGE_BUDGET_S}s, twice)`);
+        report.pages[key] = { errors: [`the page did not answer within ${PAGE_BUDGET_S}s, twice (${where}; audit watchdog, --page-timeout): it hangs, or it is too slow to audit`] };
+        console.log(`✗ ${key.padEnd(30)} errors:1 (no answer in ${PAGE_BUDGET_S}s, twice, ${where})`);
         break;
       }
-      if (attempt < 3 && /Execution context was destroyed|navigation|Target (page|closed)|frame was detached/i.test(e.message)) { console.log(`↻ ${id}@${width}: the page reloaded during the audit (HMR from another session?) — auditing it again`); await page.waitForTimeout(1500); continue; }
+      if (attempt < 3 && /Execution context was destroyed|navigation|Target (page|closed)|frame was detached/i.test(e.message)) { console.log(`↻ ${id}@${width}: the page reloaded during the audit (HMR from another session?) — auditing it again`); await new Promise((resolve) => setTimeout(resolve, 1500)); continue; }
       throw e;
     }
-    await context.close();
+    // A context that does not close means a browser that does not answer: the next viewport starts in a new one.
+    if (!await bounded(context.close(), 10_000, "closing the context").then(() => true, () => false)) { await closeBrowser(browser); browser = await launch(); }
   }
-  await browser.close();
+  await closeBrowser(browser);
 
   // Summary.
   let hardErrors = 0;
@@ -846,4 +883,6 @@ async function run() {
   process.exit(hardErrors ? 1 : 0);
 }
 
-run().catch((e) => { console.error(e); process.exit(2); });
+// A crash (or a browser that could not be restarted) ends the run with exit 2; the browser is killed first, so no
+// Chromium is left behind.
+run().catch(async (e) => { console.error(e); await closeBrowser(browser); process.exit(2); });
