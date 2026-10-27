@@ -941,8 +941,9 @@ function editorFor(spec: PropSpec, literal: Literal | undefined, fallback: Liter
     case "string":
     case "node":
       if (literal !== undefined && typeof literal !== "string" && !(editor.kind === "string" && editor.numeric)) return null;
-      // An unset slot (node) reads "None" in the placeholder tone, like Figma's empty instance swap.
-      return <TextControl {...common} numeric={editor.kind === "string" && editor.numeric} value={literal as string | number | undefined} fallback={fallback === undefined || fallback === null ? (editor.kind === "node" ? "None" : undefined) : String(fallback)} onSet={onSet} autoFocusToken={extra.autoFocusToken} multiline={typeof literal === "string" && (literal.length > 48 || literal.includes("\n"))} />;
+      // An unset slot (node) reads "None" in the placeholder tone, like Figma's empty instance swap; an unset text without
+      // a default reads "Not set" (UX review 2026-10-27 §2.8: never an empty field without a placeholder).
+      return <TextControl {...common} numeric={editor.kind === "string" && editor.numeric} value={literal as string | number | undefined} fallback={fallback === undefined || fallback === null ? (editor.kind === "node" ? "None" : "Not set") : String(fallback)} onSet={onSet} autoFocusToken={extra.autoFocusToken} multiline={typeof literal === "string" && (literal.length > 48 || literal.includes("\n"))} />;
     case "photo": {
       const text = typeof literal === "string" ? literal : undefined;
       return <PhotoControl {...common} value={text} onSet={onSet} onClear={extra.onReset} people={extra.component !== "Image"} />;
@@ -1074,7 +1075,7 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
           <InspectorRow
             label="Max lines"
             labelTitle={`Max lines · ${spec.name}={N}`}
-            hint={editor.state ? `Bound to the on/off state {${editor.state}}: one line when on` : undefined}
+            hint={editor.state ? `Follows the ${inSentence(propLabel(editor.state))} switch: one line while it is on` : undefined}
           >
             <LinesControl label="Max lines" value={lines} disabled={locked || Boolean(editor.state)} onSet={(next) => onSet(next <= 1 ? true : next)} />
           </InspectorRow>

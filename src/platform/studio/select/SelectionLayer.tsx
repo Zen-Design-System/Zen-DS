@@ -12,7 +12,8 @@ import { inspectorStatus } from "../inspector/status";
 import { studioStore, useStudio } from "../store";
 import type { StudioSelection } from "../types";
 import { annotatedAt, childHits, findBySrc, frameOfFiber, hitForHost, isTypingTarget, layerHover, nestedHitAt, onSourceUpdate, parentHit, publishSelectionInfo, rectOf, selectHit, type FiberHit } from "./picker";
-import { chainHas, deepLayerAt, ownsText, parentLayerOf, deepPartAt, drillNested, drillPart, outerNestedAt, partChildren, partForElement, pathOf, resolvePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
+import { chainHas, deepLayerAt, isLayerPart, nestedPathOf, ownsText, parentLayerOf, deepPartAt, partForElement, pathOf, resolvePart, samePart, selectedPartStore, selectPart, withoutPart, type PartHit } from "./parts";
+import { firstLayerPart } from "./layerParts";
 import { clickTarget, layerInside, layersAt, sameElement } from "./clickTarget";
 import { isLockedFrame, isLockedSrc } from "./layerMeta";
 import { pageFile } from "../builder/store/pageStore";
@@ -137,6 +138,19 @@ const sameList = (a: Box[], b: Box[]) => a.length === b.length && a.every((box, 
 const sameTagged = (a: Tagged | null, b: Tagged | null) => a === b || Boolean(a && b && a.src === b.src && a.name === b.name && a.meta === b.meta && sameBox(a, b));
 const sameOverlay = (a: Overlay, b: Overlay) => sameTagged(a.hover, b.hover) && sameTagged(a.selected, b.selected) && sameBox(a.owner, b.owner) && sameList(a.instances, b.instances) && sameList(a.extras, b.extras) && sameList(a.items, b.items) && sameAreas(a.spacing, b.spacing) && sameOwner(a.spacingOwner, b.spacingOwner);
 
+/**
+ * A part's name on its canvas tag, as the Layers panel lists it: a text by its words, a nested instance by its Figma
+ * layer name (Metric, Icon); null for a DOM part (2026-10-27: "span in MetricCard" was a code word on the canvas).
+ */
+function partTagName(part: PartHit): string | null {
+  if (!part.isComponent) {
+    if (!ownsText(part.element)) return null;
+    const words = (part.element.textContent ?? "").trim().replace(/\s+/g, " ");
+    return words.length > 28 ? `${words.slice(0, 28)}…` : words;
+  }
+  return nestedPathOf(part)?.split("/").pop()?.replace(/\[[^\]]*\]$/, "") ?? null;
+}
+
 /** Capture layer (Select tool) + hover/selection outlines, in canvas-viewport coordinates. */
 /** `part` as drawn now: the same part found again from its path when the canvas drew its element anew. */
 function livePart(owner: FiberHit, part: PartHit): PartHit | null {
@@ -211,7 +225,8 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       if (item) return { ...box, name: item.slot.itemName, src: hit.src, meta: `in ${item.slot.name}` };
       const group = owner ? dataGroupOfPart(hit as PartHit) : null;
       if (group) return { ...box, name: group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section", src: hit.src, meta: `in ${group.slot.name}` };
-      return { ...box, name: owner ? layerName(hit.name, hit.props) : displayName(hit.name, hit.props, hit.src), src: hit.src, meta: owner ? `in ${owner.name}` : "", component: owner ? undefined : componentKind(hit.props) };
+      const partName = owner ? partTagName(hit as PartHit) : null;
+      return { ...box, name: partName ?? (owner ? layerName(hit.name, hit.props) : displayName(hit.name, hit.props, hit.src)), src: hit.src, meta: owner ? `in ${owner.name}` : "", component: owner ? undefined : componentKind(hit.props) };
     };
     const part = partRef.current;
     const selected = part ?? selectedRef.current;
@@ -582,24 +597,29 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     deep ? picked.hit : clickTarget(picked.hit, picked.frame, selectedRef.current)
   ), []);
 
-  /** The part a click at `picked` selects: the selected part when the cursor is on it, else the nearest internal component. */
-  const partAt = useCallback((picked: Pick & { kind: "node" }, x: number, y: number) => {
+  /**
+   * The part a click at `picked` selects: a plain click keeps the selected part when the cursor is on it; `deep` (⌘ /
+   * Ctrl, Figma's deep select) goes to the deepest layer under the cursor even inside the selected part (2026-10-27:
+   * ⌘-click on a Metric's words with the Metric selected kept the Metric, FW-256).
+   */
+  const partAt = useCallback((picked: Pick & { kind: "node" }, x: number, y: number, deepSelect = false) => {
     const target = deepestAt(picked.element, x, y);
     // A locked layer's parts (its text, its svg) are not the canvas's to pick (Figma's lock).
     if (insideLocked(target)) return null;
     const current = partRef.current;
-    if (current && current.owner.hosts[0] === picked.hit.hosts[0] && chainHas(picked.hit, target, current)) return current;
+    if (!deepSelect && current && current.owner.hosts[0] === picked.hit.hosts[0] && chainHas(picked.hit, target, current)) return current;
     // A section selected: a click on another section selects that one (the same level, as Figma's siblings).
     const live = current ? livePart(picked.hit, current) : null;
     if (live && dataGroupOfPart(live)?.role === "group") {
       const section = sectionPartAtPoint(picked.hit, x, y);
       if (section) return section;
     }
-    // A data-slot item (a TopNavigation action) is the part to land on, not the icon inside it (user, 2026-10-07); a
-    // double-click then drills on into it.
-    const deep = deepPartAt(picked.hit, target);
-    // …and a section's title is the Section-Title, not its label inside (a Sidebar section, 2026-10-10).
-    return dataItemOfPart(deep)?.part ?? groupTitlePartOf(deep) ?? deep;
+    // The layer under the pointer as Figma's ⌘-click lands on it (UX review 2026-10-27 §2.1: never a DOM part): its
+    // text or nested instance, which a data-slot item (a TopNavigation action, user 2026-10-07) or a section's title
+    // (a Sidebar section, 2026-10-10) stands for. Nothing of its own there (the owner's padding): null, the owner stays.
+    const deep = deepLayerAt(picked.hit, target) ?? deepPartAt(picked.hit, target);
+    const layer = dataItemOfPart(deep)?.part ?? groupTitlePartOf(deep) ?? deep;
+    return layer && (isLayerPart(layer) || dataItemRootOf(layer) || dataGroupOfPart(layer)) ? layer : null;
   }, []);
 
   const hoverAt = useCallback(() => {
@@ -615,7 +635,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
     const nestedUnder = picked.kind === "node" && deepRef.current ? nestedHitAt(picked.hit, under) : null;
     const deepTarget = picked.kind === "node" && deepRef.current ? (nestedUnder && !isLockedSrc(nestedUnder.src) ? nestedUnder : picked.hit) : null;
     const deepLayer = deepTarget && !insideLocked(under) ? deepLayerAt(deepTarget, under) : null;
-    const hit = level ?? (picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y) ?? picked.hit : deepTarget ? (deepLayer ? dataItemOfPart(deepLayer)?.part ?? groupTitlePartOf(deepLayer) ?? deepLayer : deepTarget) : targetOf(picked, false)) : null);
+    const hit = level ?? (picked.kind === "node" ? (deepAt(picked, deepRef.current) ? partAt(picked, point.x, point.y, deepRef.current) ?? picked.hit : deepTarget ? (deepLayer ? dataItemOfPart(deepLayer)?.part ?? groupTitlePartOf(deepLayer) ?? deepLayer : deepTarget) : targetOf(picked, false)) : null);
     setHoverFrame(picked.kind === "node" || picked.kind === "frame" || picked.kind === "variant" ? picked.frame : null);
     variantHover.set(picked.kind === "variant" ? pickVariant(picked.element, studioStore.getState().selection, deepRef.current ? "deep" : "click") : null);
     if (hit?.fiber !== hoverRef.current?.fiber || hit?.src !== hoverRef.current?.src) {
@@ -729,7 +749,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       }
       // ⌘ / Ctrl+click on the selected element, or a click inside the owner of the selected part: the part under the cursor.
       if (!event.shiftKey && deepAt(picked, deep)) {
-        const part = partAt(picked, event.clientX, event.clientY);
+        const part = partAt(picked, event.clientX, event.clientY, deep);
         if (part) {
           choosePart(part);
           // A data-slot item (TopNavigation's trailing action) can then be dragged: reorder it, or group it (edit/itemDrag.ts).
@@ -894,8 +914,23 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         return;
       }
     }
+    /**
+     * Into the element under the pointer, as ⌘-click goes (UX review 2026-10-27 §2.1; Figma: the double-click reaches the
+     * text, the next one edits it): a text layer's own words edit in place; an instance's text or nested instance under
+     * the pointer is selected (an item's text its item, a section title's its Section-Title), never a DOM part with a
+     * CSS panel; words the element draws with no layer of their own (an HTML element's) edit in place.
+     */
+    const enter = (hit: FiberHit, target: Element) => {
+      if (TEXT_LAYER.test(hit.name) && tryStartTextEdit(event.clientX, event.clientY, hit.src)) return;
+      const layer = hit.isComponent && !insideLocked(target) ? deepLayerAt(hit, target) : null;
+      if (layer) {
+        choosePart(dataItemOfPart(layer)?.part ?? groupTitlePartOf(layer) ?? layer);
+        return;
+      }
+      tryStartTextEdit(event.clientX, event.clientY, hit.src);
+    };
     // On a component that was already selected (or one of its parts): one level in, like Figma — the nested instance
-    // written in the source under the cursor first (editable), else its read-only parts.
+    // written in the source under the cursor first (editable), else the layer inside it as ⌘-click finds it.
     const before = pressSelectionRef.current;
     const owner = selectedRef.current;
     if (before?.kind === "node" && before.src === picked.hit.src && owner && owner.hosts[0] === picked.hit.hosts[0]) {
@@ -918,13 +953,23 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         const live = livePart(picked.hit, current);
         const unit = live && (dataItemRootOf(live) || dataGroupOfPart(live)?.role === "title") ? live : null;
         if (unit && tryStartTextEdit(event.clientX, event.clientY, picked.hit.src)) return;
-        // The next nested instance in it first (Sub-Action › Leading-Icon, as Figma goes one level in), else its parts.
-        let deeper = drillNested(picked.hit, target, current) ?? drillPart(picked.hit, target, current);
-        // Its root node draws the same box: one level more (Figma has no such step).
-        if (unit && deeper && deeper.element === unit.element) deeper = drillPart(picked.hit, target, deeper) ?? deeper;
-        if (deeper) choosePart(deeper);
-        // The innermost part: its text (the owner's) is edited in place (edit/textEdit.ts).
-        else tryStartTextEdit(event.clientX, event.clientY, picked.hit.src);
+        // The layer under the pointer as ⌘-click finds it (UX review 2026-10-27 §2.1): the selected text edits its words
+        // in place (Figma's second double-click; words from data say where they are edited, edit/textEdit.ts); a text or
+        // nested instance inside the selected part, or beside it, is selected; a DOM part (div, span) never is.
+        const layer = live && !insideLocked(target) ? deepLayerAt(picked.hit, target) : null;
+        if (layer && live && samePart(layer, live)) {
+          tryStartTextEdit(event.clientX, event.clientY, picked.hit.src);
+          return;
+        }
+        if (layer) {
+          // A text inside a data item or a section's title stands for that item (Figma's nested instance in the slot),
+          // unless the item is the selected part already: then the layer itself, one level in.
+          const unitOf = dataItemOfPart(layer)?.part ?? groupTitlePartOf(layer) ?? layer;
+          choosePart(live && samePart(unitOf, live) ? layer : unitOf);
+          return;
+        }
+        // Nothing of its own under the pointer: the words the owner draws there (a row's label from data).
+        tryStartTextEdit(event.clientX, event.clientY, picked.hit.src);
         return;
       }
       const nested = picked.hit.isComponent ? nestedHitAt(picked.hit, target) : null;
@@ -948,20 +993,15 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         studioStore.setState({ inspectorTab: "design" });
         return;
       }
-      // Text the selected element writes itself (a text child or a string prop): edit it in place, Figma-like.
-      if (tryStartTextEdit(event.clientX, event.clientY, picked.hit.src)) return;
-      // One level in: the outermost nested instance under the pointer (Card › Sub-Action), else the deepest part.
-      const part = picked.hit.isComponent ? outerNestedAt(picked.hit, target) ?? deepPartAt(picked.hit, target) : null;
-      if (part) {
-        choosePart(part);
-        return;
-      }
+      enter(picked.hit, target);
+      studioStore.setState({ inspectorTab: "design" });
+      return;
     }
     choose(picked.hit, false);
     studioStore.setState({ inspectorTab: "design" });
-    // The first click of the double-click already deep-selected the element: its own text is edited in place.
-    if (tryStartTextEdit(event.clientX, event.clientY, picked.hit.src)) return;
-    window.dispatchEvent(new CustomEvent("zen-studio:focus-content"));
+    // The first click of the double-click already selected the element: one level into it, or its own words in place.
+    // The canvas keeps the keyboard focus (UX review 2026-10-27 §2.2): no jump to the Inspector's Text field.
+    enter(picked.hit, deepestAt(picked.element, event.clientX, event.clientY));
   };
 
   // Escape → parent (then the frame, then nothing); Enter → its child layers (Figma). Space is tracked for Space+drag panning.
@@ -1043,8 +1083,9 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
         if (textPart && startTextEditOnPart(textPart.element, textPart.owner.src)) { event.preventDefault(); return; }
         const hit = selectedRef.current;
         const part = partRef.current;
-        // An element → all its child layers (Figma's Select children); a part → its first part; a component without
-        // child layers → its first part.
+        // An element → all its child layers (Figma's Select children); a part or an instance without child layers → one
+        // level in: its first text, nested instance or data item (select/layerParts.ts), never a DOM part (UX review
+        // 2026-10-27 §2.1: Enter ×3 on a MetricCard gave "Card · part", "div · part", "div · part").
         const kids = hit && !part ? childHits(hit).filter((candidate) => candidate.hosts.length) : [];
         const child = kids[0] ?? null;
         if (child && kids.length > 1) {
@@ -1055,10 +1096,11 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
           event.preventDefault();
           choose(child, false);
         } else if (hit && part?.fiber) {
-          const first = partChildren(part.owner, part.fiber)[0];
+          const from = current ?? part;
+          const first = firstLayerPart(from.owner, from.fiber);
           if (first) { event.preventDefault(); choosePart(first); }
         } else if (hit?.fiber && hit.isComponent) {
-          const first = partChildren(hit, hit.fiber)[0];
+          const first = firstLayerPart(hit, hit.fiber);
           if (first) { event.preventDefault(); choosePart(first); }
         }
       }

@@ -11,7 +11,7 @@ import { typographyStyles } from "../../../tokens/typography.generated";
 import { parseSrc, studioApi, useStudioServer } from "../api";
 import { PartPanel } from "../inspector/PartPanel";
 import { EnumControl, IconControl, NumberControl, TextControl } from "../inspector/PropField";
-import { InspectorRow, InspectorSection } from "../inspector/Section";
+import { InspectorRow, InspectorSection, SectionNote } from "../inspector/Section";
 import { InspectorFileContext, InspectorHostContext } from "../inspector/controls/hostContext";
 import { PhotoControl } from "../inspector/controls/PhotoControl";
 import { inspectorStatus } from "../inspector/status";
@@ -289,7 +289,7 @@ function writtenSelection(table: SourceElement | null): { ids: string[]; write: 
 
 /** The ops that select or deselect a row as written: Selected also turns the Checkbox column (`selectable`) on. Null with why when the selection is code. */
 function selectionOps(table: SourceElement | null, rowKey: string | null, on: boolean): EditOp[] | { reason: string } {
-  if (!rowKey) return { reason: "This row has no key (getRowId)" };
+  if (!rowKey) return { reason: "This row has no id, so it can't be selected on its own" };
   const selection = writtenSelection(table);
   if ("reason" in selection) return selection;
   const next = on ? [...new Set([...selection.ids, rowKey])] : selection.ids.filter((id) => id !== rowKey);
@@ -326,7 +326,7 @@ function DataRowPanel({ selection, part }: { selection: PartSelection; part: Par
   return (
     <div className="studio-inspector__panel">
       <PartHeader selection={selection} title="Data-Row" where={`row ${index + 1} of ${selection.name}`} />
-      <InspectorSection title="Primitives/Table/Data-Row" note="State is this row's; Checkbox and Editable are the Table's (every row).">
+      <InspectorSection title="Row" note={<SectionNote text="Checkbox and Editable apply to every row" more="State is this row's; Checkbox and Editable are the Table's, so they change every row." />}>
         <InspectorRow label="State" name="row-state" hint={"reason" in selectionWrite ? selectionWrite.reason : undefined}>
           <EnumControl label="State" value={selectedNow ? "selected" : "default"} fallback="default" disabled={!editable || "reason" in selectionWrite} options={["default", "selected"]} labels={STATE_LABELS} onSet={setState} />
         </InspectorRow>
@@ -437,7 +437,7 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
   /** The ops that put the column's cells in Edit (on) or back (off), or why the Studio cannot. */
   const editOps = (on: boolean): EditOp[] | { reason: string } => {
     if (on === cellEditable) return [];
-    if (!on && tableEditable) return { reason: "Editable is on for the whole Table: turn it off on the Data-Row" };
+    if (!on && tableEditable) return { reason: "Editable is on for the whole Table: turn it off on the row" };
     if (!drawn) return { reason: "The column's cells are code (cell): give it edit in the code" };
     if (!shape || "reason" in shape || !column) return { reason: shape && "reason" in shape ? shape.reason : "The column is not written in the list" };
     if (writtenEdit && writtenEdit.kind !== "string" && writtenEdit.kind !== "boolean") return { reason: "The column's edit is code; edit it there" };
@@ -504,8 +504,8 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
     <InspectorFileContext.Provider value={parseSrc(selection.src)?.file ?? null}>
     <div className="studio-inspector__panel">
       <PartHeader selection={selection} title={title} where={where} />
-      {rowLayer ? <OverrideProperties selection={selection} part={part} path={rowLayer} title={`${part.name} · this row`} note={`Changes row ${cell.row + 1} only; the column's Content, Align and Bold below change every row.`} /> : null}
-      <InspectorSection title="Table/Cell/Default" note="A column shows one kind of data: Content, Align, Bold and Subtext change every row of this column.">
+      {rowLayer ? <OverrideProperties selection={selection} part={part} path={rowLayer} title={`${part.name} · this row`} note={<SectionNote text={`Changes row ${cell.row + 1} only`} more="The column's Content, Align and Bold below change every row." />} /> : null}
+      <InspectorSection title="Cell" note={<SectionNote text="Content, Align and Bold change every row of this column" more="A column shows one kind of data, so these apply to every row." />}>
         <InspectorRow label="Content" name="content">
           {!drawn && (kind === "actions" || kind === "custom")
             ? <span className={typographyStyles["Body/Small/Regular"]}>{CONTENT_LABELS[kind]}</span>
@@ -519,8 +519,8 @@ function CellPanel({ selection, part, cell }: { selection: PartSelection; part: 
         <InspectorRow label="State" name="cell-state" hint={stateHint?.reason ?? "Selected: this row (the Table's selection). Edit: this column, every row, edits in place"}>
           <EnumControl label="State" value={state} fallback="default" disabled={!editable} options={["default", "edit", "selected"]} labels={STATE_LABELS} onSet={setState} />
         </InspectorRow>
-        <InspectorRow label="Open-Button" name="onOpen" hint="Its click is code: the column's onOpen">
-          <ToggleButton aria-label="Open-Button" size="sm" checked={Boolean(column?.onOpen)} disabled />
+        <InspectorRow label="Open button" name="onOpen" hint="Its click is set in code">
+          <ToggleButton aria-label="Open button" size="sm" checked={Boolean(column?.onOpen)} disabled />
         </InspectorRow>
       </InspectorSection>
       {LABELLED.has(kind) ? (

@@ -22,7 +22,7 @@ export function frameLabel(frameId: string, page: PlatformPage) {
   if (frameId === "main-component") return "Main component";
   if (frameId === "docs") return "Docs";
   if (frameId === "guidelines") return "Guidelines";
-  if (frameId.startsWith("props:")) return `Props · ${frameId.slice(6)}`;
+  if (frameId.startsWith("props:")) return `Properties · ${frameId.slice(6)}`;
   if (frameId === "document") return pageLabels[page] ?? "Document";
   const example = /^example:(\d+)$/.exec(frameId);
   if (example) return `Example: ${getPageExamples(page)[Number(example[1])]?.title ?? `#${Number(example[1]) + 1}`}`;

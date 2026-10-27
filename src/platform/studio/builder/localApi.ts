@@ -228,7 +228,7 @@ const EXTRAS = ["snippet", "detached", "wrapped", "unwrapped", "inserted", "move
 export async function localEdit(request: EditRequest): Promise<EditResponse> {
   const id = pageIdOf(request.file);
   const record = id ? await getPage(id) : null;
-  if (!id || !record) return { ok: false, code: "not-found", error: `${request.file} is not a page in this browser` };
+  if (!id || !record) return { ok: false, code: "not-found", error: "This page is no longer in this browser" };
   const engine = await loadEngine();
   const before = record.text;
   const hashBefore = engine.sha1(before);
@@ -261,7 +261,7 @@ export async function localEdit(request: EditRequest): Promise<EditResponse> {
 export async function localWrite(request: WriteRequest): Promise<WriteResponse> {
   const id = pageIdOf(request.file);
   const page = id ? await getPage(id) : null;
-  if (!id || !page) return { ok: false, code: "invalid", error: `${request.file} is not a page in this browser` };
+  if (!id || !page) return { ok: false, code: "invalid", error: "This page is no longer in this browser" };
   const engine = await loadEngine();
   if (engine.sha1(page.text) !== request.expectHash) return { ok: false, code: "stale", error: `${request.file} changed since this edit; not overwritten` };
   // The text's document when this session wrote it (its ids come back); else the page gets one when it opens again.

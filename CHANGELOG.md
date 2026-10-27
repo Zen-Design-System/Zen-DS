@@ -26,6 +26,14 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio reads as a design tool (UX review 2026-10-27 §7 items 6–8): about 40 strings that still spoke code are
+  design words (no file path on the canvas kicker or in the Page section, "Selected rows" / "Open row" / "Name (screen
+  readers)" on a Table, slot and layer names as words — "Actions", "Trailing", "Leading icon" — "checks passed" in the
+  status line, "Studio server" everywhere, "App shell", "Can edit"); every panel note is one line with the rest behind an
+  info button; the size badge shows W × H alone and its note moved under the Inspector's Size group; an instance's
+  Properties sit in four groups, Content · Look · Behavior · Advanced (from the API JSON and the Figma read), Behavior and
+  Advanced folded with a count, empty fields reading "Not set"; and the Zen Studio menu's Dark mode changes the panels
+  and chrome only — the frames keep the Mode chosen in Preview modes, as Figma.
 - Zen Studio UI/UX review (2026-10-27, docs only): five hands-on walks, the Figma-key E2E walk, an axe pass and a
   UX-writing audit, with 15 screenshots and a ranked proposal (gestures that land on DOM parts, ⌘A / ⌘D after a part
   selection, the first view, full-width inserts, the Prototype list at 320, the phone tool rail, ~40 code-word
@@ -44,6 +52,13 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   are Label (Area, Grouped-Bar and Combo named them by their sample, "Q1", "$125K"); a gauge's reading Value and its target
   Meta, a donut's or radial's centre caption Meta; Bar-List, Bullet and Funnel rows Name / Value / Meta. Studio writes the
   axes by position now; undo map in `docs/figma-contracts/layer-renames-2026-10-26.json`.
+- Zen Studio gestures (2026-10-27, UX review §7 items 1–2): a double-click and Enter go into an instance the way ⌘-click
+  does, to its text or nested instance (a Metric card's label is a Text layer with Typography and Fill), never to a div
+  or span with a CSS panel; the next double-click edits the words in place, and the canvas keeps the keyboard focus.
+  A part's CSS (attributes, display, padding) moved to the Code tab. ⌘A always selects layers (the siblings, the items
+  of a slot, else every top-level frame) and never the Studio's own text, also from a Layers row; with a text or nested
+  instance selected, ⌘D duplicates and Delete removes the instance they belong to, ⌘Z undoes. Studio E2E FW-255…258;
+  SP-18 and DA-02 follow the new gesture.
 - Zen Studio panels (2026-10-27, UX review §7.5 and §7.9): the Prototype tab's Flow list fits the Inspector at 320px and
   at its 280px minimum (long names ellipsize, "Start" / "Overlay" stay whole); under 600px the tool rail is Move · Hand ·
   Frame · Shape · Text and a More menu with the rest, inside a 390px screen; no frame's text shows through the 8px

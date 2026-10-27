@@ -34,7 +34,7 @@ export async function sharePage(page: Omit<SharedPage, "uploads">): Promise<Shar
     uploads.push({ id, name: id, type: blob.type || "image/png", data });
   }
   const reply = await authorized<ShareResult>("/device/share", { ...page, uploads }, 30_000);
-  if (!reply) return { ok: false, error: "The Zen Studio dev server did not answer" };
+  if (!reply) return { ok: false, error: "The Studio server did not answer" };
   const body = reply.body as ShareResult | { ok: false; error?: string };
   if (reply.status !== 200 || !body.ok) return { ok: false, error: (body as { error?: string }).error ?? "The page could not be shared" };
   return left ? { ...body, warning: [body.warning, `${left} photo${left > 1 ? "s are" : " is"} too large to share`].filter(Boolean).join(". ") } : body;

@@ -2,7 +2,7 @@ import { InspectorRow } from "../inspector/Section";
 import { RowSelectField } from "../inspector/rowFields";
 import { studioStore, useStudio } from "../store";
 import type { StudioPreviewSettings } from "../types";
-import { previewModeDefinitions, setStudioTheme, type ModeKey } from "./modes";
+import { previewModeDefinitions, setPreviewTheme, type ModeKey } from "./modes";
 import "./shell.css";
 
 /*
@@ -10,9 +10,9 @@ import "./shell.css";
  * and Present only, in their bar's Modes panel (board/PresentBar); the toolbar keeps light/dark (user, 2026-10-09).
  */
 
-/** Sets one preview mode; Mode (light/dark) is the whole Studio's, so the chrome changes with it. */
+/** Sets one preview mode; Mode (light/dark) is the frames' alone, the chrome keeps its own (Zen Studio menu › Dark mode). */
 function setPreviewMode(key: ModeKey, value: string) {
-  if (key === "theme") setStudioTheme(value === "dark" ? "dark" : "light");
+  if (key === "theme") setPreviewTheme(value === "dark" ? "dark" : "light");
   else studioStore.setState((state) => ({ preview: { ...state.preview, [key]: value } as StudioPreviewSettings }));
 }
 

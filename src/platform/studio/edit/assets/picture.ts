@@ -231,7 +231,7 @@ export async function writePicture(selection: NodeSelection, picked: string, lab
       return say(response.ok, "error" in response ? response.error : undefined);
     }
   }
-  if (renders > 1 && src?.kind === "expression") return say(false, `This picture is shared by ${renders} rows (it comes from the code, not from each row's data), so one row cannot take its own. Change the person's photo in the data, or edit the code.`);
+  if (renders > 1 && src?.kind === "expression") return say(false, `This picture is shared by ${renders} rows: change it in the data, or in the Code tab`);
   const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [{ op: "setProp", name: "src", value: next } as EditOp], hash: element.hash }, `${selection.name} → ${label}`);
   if (response.ok && typeof shown === "string") inspectorStatus.set("positive", `${selection.name} shows ${label}`);
   return say(response.ok, "error" in response ? response.error : undefined);

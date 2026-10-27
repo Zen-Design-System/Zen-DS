@@ -23,6 +23,7 @@ import { altOf, removeUpload, UPLOAD_ACCEPT, uploadPhotos, useUploads } from "..
 import { iconInsertable, insertAsset, insertItem, paletteInsertable, photoInsertable, pressAsset, uploadInsertable, type Insertable } from "./assets";
 import { AssetThumb } from "./AssetThumb";
 import "./assets.css";
+import { SectionNote } from "../../inspector/Section";
 
 /*
  * The left panel's Assets tab, in Figma's way (user, 2026-10-09: "cơ chế giống Figma"): one search over every library at
@@ -480,7 +481,7 @@ function PhotoGrid({ query, onClear }: { query: string; onClear: () => void }) {
           </ul>
         ) : (
           <Text as="p" textStyle="Caption/Regular" tone="light" className="studio-assets__hint">
-            {words ? "None of your photos match." : "Upload or drop PNG, JPEG, WebP, GIF or SVG files, up to 5 MB each. They stay in this browser and go with the page's exports."}
+            {words ? "None of your photos match." : <SectionNote text="Drop or upload pictures, up to 5 MB each" more="PNG, JPEG, WebP, GIF or SVG. They stay in this browser and go with the page's exports." />}
           </Text>
         )}
       </section>

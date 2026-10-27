@@ -65,8 +65,9 @@ const canvasProto: ProtoActions = {
 
 /** The board's kicker: where the page is kept. */
 function whereKept(storage: ReturnType<typeof useStorage>): string {
-  if (storage.kind === "mirror") return storage.mirror === "dev" ? `My page · kept in ${storage.label}` : `My page · kept in the folder “${storage.label}”`;
-  return pagesPersist() ? "My page · saved in this browser" : "My page · this browser cannot keep pages: export it before closing";
+  // No file path on the canvas (UX review 2026-10-27 §2.7): the Studio's own folder is "this computer"; a folder the person linked keeps its name.
+  if (storage.kind === "mirror") return storage.mirror === "dev" ? "A page you made · saved in this browser and on this computer" : `A page you made · kept in the folder “${storage.label}”`;
+  return pagesPersist() ? "A page you made · saved in this browser" : "A page you made · this browser cannot keep pages: export it before closing";
 }
 
 export function BuilderBoard({ id }: { id: string }) {
@@ -76,7 +77,8 @@ export function BuilderBoard({ id }: { id: string }) {
   const boardRef = useRef<HTMLDivElement>(null);
   const proto = interact ? canvasProto : inertProto;
   const storage = useStorage();
-  const inTrash = useTrash().some((item) => item.id === id);
+  const trashed = useTrash().find((item) => item.id === id) ?? null;
+  const inTrash = trashed !== null;
   const admin = useStudio((state) => state.role === "admin");
   const text = page?.text;
   const tree = usePageTree(text);
@@ -210,7 +212,7 @@ export function BuilderBoard({ id }: { id: string }) {
         {inTrash ? (
           <header className="studio-board__title">
             <Heading level={1} textStyle="Heading/1">This page is in the Trash</Heading>
-            <Text tone="base">{`${id}.zen.tsx stays in the Trash for 30 days.`}</Text>
+            <Text tone="base">{`“${trashed?.title ?? id}” stays in the Trash for 30 days.`}</Text>
             <Button appearance="main" level="primary" size="md" disabled={!admin} onClick={() => void restorePage(id)}>Restore page</Button>
           </header>
         ) : <header className="studio-board__title"><Heading level={1} textStyle="Heading/1">Page not found</Heading><Text tone="base">This browser has no page "{id}".</Text></header>}

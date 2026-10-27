@@ -23,6 +23,7 @@ import { InspectorItem, InspectorSection } from "./Section";
 import { Icon } from "../../../components/Icon";
 import { autoLayoutKeys, autoLayoutShortcut } from "../select/wrapSelection";
 import { undoShortcut } from "./status";
+import { layerLabel } from "../words";
 
 /*
  * A data-slot item selected on the canvas (TopNavigation's Top-Trailing action, dataSlots.ts): Figma's nested instance in
@@ -129,7 +130,7 @@ export function DataItemSections({ selection, item, children }: { selection: Par
     <>
       <InspectorSection title={slot.itemName} note={off ?? undefined}>
         <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>
-          {array ? `${name} · ${index + 1} of ${count || "?"} in ${slot.name}` : `${name} · ${slot.name}`}
+          {array ? `${name} · ${index + 1} of ${count || "?"} in ${layerLabel(slot.name)}` : `${name} · ${layerLabel(slot.name)}`}
           {array && count > slot.max ? ` · ${slot.max} show` : ""}
           {inGroup && run ? ` · group ${run.group} (${run.last - run.first + 1})` : ""}
         </p>
@@ -193,7 +194,7 @@ export function DataGroupSections({ selection, hit }: { selection: PartSelection
   const focusToken = useFocusContentToken();
   return (
     <InspectorSection title={role === "title" ? "Section-Title" : role === "list" ? "Section rows" : "Section"} note={element && !entries ? `The code builds ${slot.prop}: edit it there` : undefined}>
-      <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{`${name} · ${plural(rows, slot.itemName)} in ${slot.name}`}</p>
+      <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{`${name} · ${plural(rows, slot.itemName)} in ${layerLabel(slot.name)}`}</p>
       {role !== "list" ? (
         <PropField
           spec={{ name: "label", type: "string", description: "", defaultValue: null, editor: { kind: "string" } }}
@@ -201,7 +202,7 @@ export function DataGroupSections({ selection, hit }: { selection: PartSelection
           value={label?.kind === "string" ? { state: "literal", value: label.value, raw: "" } : { state: "unset" }}
           disabled={!can}
           autoFocusToken={focusToken}
-          onSet={(value) => { void api.apply([{ op: "setField", name: slot.prop, index: group, key: "label", value: { kind: "string", value: String(value) } }], `${host.name} ${slot.prop}[${group}].label → "${String(value)}"`); }}
+          onSet={(value) => { void api.apply([{ op: "setField", name: slot.prop, index: group, key: "label", value: { kind: "string", value: String(value) } }], `${host.name} ${layerLabel(slot.name)} › Item ${group + 1} › Label → "${String(value)}"`); }}
           onReset={() => { void editDataGroup(selection, slot, group, "removeTitle"); }}
         />
       ) : null}
@@ -240,7 +241,7 @@ export function DataItemsSections({ selection, item, places }: { selection: Part
   };
   return (
     <>
-      <InspectorSection title="Selection" note={groups ? undefined : `${slot.name} draws one row of ${slot.itemName.toLowerCase()}s: they cannot go in a group of their own.`}>
+      <InspectorSection title="Selection" note={groups ? undefined : `${layerLabel(slot.name)} draws one row of ${slot.itemName.toLowerCase()}s: they cannot go in a group of their own.`}>
         {/* The multi-selection's actions, as the layers' (SelectionActions: Stack / Box): buttons, not quiet links (user,
             2026-10-10: "Chỗ này user khó thấy"). */}
         <div className="studio-inspector__actions">
@@ -272,7 +273,7 @@ export function DataItemBanner({ item }: { item: DataItemHit }) {
   return (
     <div className="studio-item__banner">
       <p className={`studio-inspector__note studio-part__edit ${typographyStyles["Body/Small/Regular"]}`}>
-        Inside {item.slot.itemName} <span className={typographyStyles["Caption/Bold"]}>{label}</span> of {item.slot.name}
+        Inside {item.slot.itemName} <span className={typographyStyles["Caption/Bold"]}>{label}</span> of {layerLabel(item.slot.name)}
       </p>
       {/* zen-allow-compact-button: a quiet link under the part name in a dense tool panel, like "Select {owner}" */}
       <Button appearance="flat" level="primary" size="xs" startIcon="icon-corner-left-up-line" onClick={() => selectPart(item.part, canvasApi.getWorldElement())}>

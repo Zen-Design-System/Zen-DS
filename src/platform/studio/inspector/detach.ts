@@ -460,7 +460,7 @@ const fail = (text: string) => inspectorStatus.set("negative", text);
 /** "Detached Card · ⌘Z to undo", then the snippet note and what the primitives only approximate. */
 function outcomeOf(component: string, response: Extract<EditResponse, { ok: true }>): string {
   const approximations = response.detached?.approximations ?? [];
-  const snippet = response.snippet && !response.snippet.synced ? `Snippet not updated${response.snippet.reason ? `: ${response.snippet.reason}` : ""}` : null;
+  const snippet = response.snippet && !response.snippet.synced ? `Example code not updated${response.snippet.reason ? `: ${response.snippet.reason}` : ""}` : null;
   return [
     `Detached ${component}`,
     // On a drafts server the detach is a draft until Save.
@@ -497,7 +497,7 @@ export async function detachSelection(selection: NodeSelection): Promise<boolean
       return false;
     }
     if (!/^[A-Z]/.test(element.name) || primitiveNames.has(element.name)) {
-      fail(`${element.name} is already plain markup — only Zen components detach.`);
+      fail(`${element.name} is not an instance — only Zen components detach`);
       return false;
     }
     if (!isDetachableType(element.name)) {

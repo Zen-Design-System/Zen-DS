@@ -61,6 +61,12 @@
 .studio-inspector__description { color: var(--zen-color-content-neutral-base); }
 .studio-inspector__meta { color: var(--zen-color-content-neutral-base); white-space: nowrap; }
 .studio-inspector__note { color: var(--zen-color-content-neutral-base); }
+/* One-line note with an info button (SectionNote): the text keeps to its line, the button sits at its end. */
+.studio-inspector__note-line { display: inline-flex; min-width: 0; max-width: 100%; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-inspector__note-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-inspector__note-more { position: relative; display: inline-flex; width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); flex: 0 0 auto; padding: 0; border: 0; border-radius: var(--zen-corner-radius-rounded, 1000px); background: none; color: var(--zen-color-content-neutral-light); cursor: help; font: inherit; }
+.studio-inspector__note-more > .zen-icon { width: 100%; height: 100%; }
+.studio-inspector__note-more:focus-visible { outline: 3px solid var(--zen-color-focus-neutral-subtle); outline-offset: 0; }
 /* A layer's section whose fields are not per breakpoint, while its frame shows Tablet or Mobile. */
 .studio-inspector__everywhere { margin-inline-start: auto; color: var(--zen-color-content-neutral-base); white-space: nowrap; }
 /* Changes on <breakpoint> (BreakpointSection): one line per change, its meaning in the tooltip. */

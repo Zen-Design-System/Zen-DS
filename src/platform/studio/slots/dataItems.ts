@@ -362,7 +362,7 @@ export function sourceItems(element: SourceElement, slot: DataSlot): SourceItems
 /** "trailing={actions}" for a read-only caption (one line, at most 40 characters of code). */
 export function computedCaption(slot: DataSlot, code: string, via?: string): string {
   // A same-file const's list: its fields edit in Properties, adding or removing an item is the code's.
-  if (via) return `Its items are written in const ${via}: edit their fields below; add or remove them in the code`;
+  if (via) return "Its items are shared data: edit their fields below; add or remove them in the Code tab";
   const flat = code.replace(/\s+/g, " ").trim();
   return `Its items come from {${flat.length > 40 ? `${flat.slice(0, 39)}…` : flat}} — edit them in the code`;
 }

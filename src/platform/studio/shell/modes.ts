@@ -36,12 +36,18 @@ export function previewSummary(preview: StudioPreviewSettings) {
 }
 
 /**
- * Light or dark for the whole Studio: the chrome and the canvas's Mode change together (the toolbar sun/moon, Modes ›
- * Mode, Quick actions, Present), so examples and playgrounds never sit light on a dark Studio or the reverse. A frame
- * that should differ takes its own theme (frame toolbar, Frame panel).
+ * Light or dark for the Studio's own panels and chrome (Zen Studio menu › Dark mode, Quick actions), as Figma's theme
+ * setting: the frames keep the Mode chosen in Preview modes (user, 2026-10-27, UX review §2.9; before that the canvas's
+ * Mode changed with it). `setPreviewTheme` is the canvas's Mode (Preview modes › Mode in Present and Play); a frame that
+ * should differ takes its own theme (frame toolbar, Frame panel).
  */
 export function setStudioTheme(theme: "light" | "dark") {
-  studioStore.setState((state) => ({ chromeTheme: theme, preview: state.preview.theme === theme ? state.preview : { ...state.preview, theme } }));
+  studioStore.setState((state) => (state.chromeTheme === theme ? state : { chromeTheme: theme }));
+}
+
+/** The frames' Mode (Preview modes): the design's light or dark, apart from the chrome's. */
+export function setPreviewTheme(theme: "light" | "dark") {
+  studioStore.setState((state) => (state.preview.theme === theme ? state : { preview: { ...state.preview, theme } }));
 }
 
 export function toggleStudioTheme() {

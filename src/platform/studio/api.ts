@@ -123,7 +123,7 @@ function saveResultOf(body: unknown): SaveResult {
   return { ok: true, saved, conflicts, harness: { ok: value?.harness?.ok !== false && !findings.length, findings }, ...(tokens && Array.isArray(tokens.steps) ? { tokens } : {}) };
 }
 
-const NO_SERVER = "The Zen Studio dev server did not answer";
+const NO_SERVER = "The Studio server did not answer";
 
 /** A CSS change that follows a Figma re-binding (tools/studio/binding-diff.mjs). */
 export type BindingProposal = {
@@ -187,7 +187,7 @@ export const studioApi = {
     const reply = isLocalFile(file)
       ? await localDetachPlan(file, loc, name, count ? instances : undefined).then((body) => ({ status: 200, body: body as unknown }), (error: unknown) => ({ status: 500, body: { ok: false, reason: `Detach could not load (${error instanceof Error ? error.message : String(error)})` } as unknown }))
       : await call<unknown>(`/detach-plan?file=${encodeURIComponent(file)}&loc=${encodeURIComponent(loc)}&name=${encodeURIComponent(name)}${count}`);
-    if (!reply) return { ok: false, reason: DEV ? NO_SERVER : "Detaching needs the Studio dev server", unavailable: true };
+    if (!reply) return { ok: false, reason: DEV ? NO_SERVER : "Detaching needs the Studio server", unavailable: true };
     const body = reply.body as { ok?: unknown; component?: unknown; repeated?: unknown; slots?: unknown; reason?: unknown } | null;
     if (reply.status === 200 && body?.ok === true && typeof body.component === "string") {
       const slots = (Array.isArray(body.slots) ? body.slots : []).filter((slot: Partial<DetachSlot> | null): slot is DetachSlot =>
@@ -630,7 +630,7 @@ async function postEdit(request: EditRequest): Promise<EditResponse> {
 async function sendEdit(request: EditRequest, label: string): Promise<EditResponse> {
   const state = studioStore.getState();
   if (!canEdit(state)) {
-    const error = state.role === "admin" ? "Editing needs the dev server" : "View only";
+    const error = state.role === "admin" ? "Editing needs the Studio server" : "View only";
     return { ok: false, code: "forbidden", error };
   }
   // Shared code (plan WP-B2): a yes given for this file earlier in the page load goes along at once.
@@ -697,7 +697,7 @@ export function applyVariableEdit(request: { file: string; ops: VariableOp[] }, 
 function applyServerEdit(path: "/css-edit" | "/variable-edit", request: object, file: string, label: string): Promise<EditResponse> {
   return enqueue(async (): Promise<EditResponse> => {
     const state = studioStore.getState();
-    if (!canEdit(state)) return { ok: false, code: "forbidden", error: state.role === "admin" ? "Editing needs the dev server" : "View only" };
+    if (!canEdit(state)) return { ok: false, code: "forbidden", error: state.role === "admin" ? "Editing needs the Studio server" : "View only" };
     const reply = await post<EditResponse>(path, request);
     let result: EditResponse;
     if (!reply) result = { ok: false, code: "invalid", error: NO_SERVER };

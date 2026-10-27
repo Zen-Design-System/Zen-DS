@@ -94,7 +94,7 @@ export function MyPagesHeader({ onNew, onNewFolder, onNewProject, kicker = "Fold
       }
       const assets = new Map(unpacked.filter((entry) => /^assets\/[\w.-]+$/.test(entry.path)).map((entry) => [entry.path.slice("assets/".length), entry.data]));
       const pages = unpacked.filter((entry) => /^[^/]+\.zen\.tsx$/.test(entry.path));
-      if (!pages.length) refused.push(`${file.name} (no .zen.tsx in it)`);
+      if (!pages.length) refused.push(`${file.name} (no Zen page inside)`);
       for (const page of pages) entries.push({ name: page.path, text: new TextDecoder().decode(page.data), assets });
     }
     for (const entry of entries) {
@@ -220,7 +220,7 @@ export const MyPageRow = memo(function MyPageRow({ item, current, tabIndex, nest
     { id: "rename", label: "Rename", icon: "icon-pencil-line", disabled: !admin, onSelect: () => setRenaming(true) },
     { id: "duplicate", label: "Duplicate", icon: "icon-copy-line", disabled: !admin, onSelect: () => void duplicatePage(item.id).then(openLocalPage, fail) },
     { id: "export-code", label: "Export…", icon: "icon-code-02-line", caption: "React code or the design file", onSelect: () => openExport(item.id) },
-    { id: "export", label: "Export file", icon: "icon-download-01-line", caption: `${item.id}.zen.tsx`, onSelect: () => void exportPage(item.id).catch(fail) },
+    { id: "export", label: "Export file", icon: "icon-download-01-line", caption: "Download", onSelect: () => void exportPage(item.id).catch(fail) },
     { id: "history", label: "Version history…", icon: "icon-clock-rewind-line", onSelect: () => setDialog("history") },
     // Figma's divider between groups of pages (F4), after this one.
     ...(list ? [{ id: "divider", label: "Add divider", icon: "icon-minus-line" as const, disabled: !admin, onSelect: () => void addDivider(list, item.id).catch(fail) }] : []),
@@ -294,7 +294,7 @@ function TrashDialog({ open, onOpenChange, pages, admin }: { open: boolean; onOp
             <li key={page.id} className="studio-page-list__row">
               <span className="studio-page-list__text">
                 <Text as="span" textStyle="Body/Small/Medium">{page.title}</Text>
-                <Text as="span" textStyle="Caption/Regular" tone="light">{`${trashDaysLeft(page.trashedAt ?? now, now)} days left · ${page.id}.zen.tsx`}</Text>
+                <Text as="span" textStyle="Caption/Regular" tone="light">{`${trashDaysLeft(page.trashedAt ?? now, now)} days left`}</Text>
               </span>
               <Button appearance="main" level="tertiary" size="sm" disabled={!admin} onClick={() => void restorePage(page.id).catch(fail)}>Restore</Button>
               <Button appearance="main" level={confirming === page.id ? "danger" : "danger-subtle"} size="sm" disabled={!admin} onClick={() => {
