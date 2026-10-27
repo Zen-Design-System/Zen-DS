@@ -344,5 +344,15 @@ guidelines + AI UI catalog in sync after `npm run ai-ui:build`, TypeScript, Vite
   header counts), the rerun of the 13 rows passed 12/13 and I-37 after its Columns check read the block's header.
 - `npm run studio:e2e -- --only=inspector,instance,shell,keyboard`: 73 works · 0 broken (215 s), I-35…I-38, S-08, S-09
   among them.
+- `npm run qa -- --isolated --files=<the 66 edited files>`: the first gate found five more rows reading the old words
+  (B-35 / B-06 the refusal "keeps state or code" → "needs interactions", B-28 "Add Item to Item-List", BP-06 "Mobile
+  version of", SP-15 a Chip's Dropdown folded into Behavior — booleans that draw a layer are Content now) and the
+  usage guard's `icon-button/needs-action` on the note's info IconButton (a plain button with Zen's icon tooltip now, as
+  the Pages panel's storage info). Second gate: static gates green, Studio E2E 394 works · 0 broken (4 shards, 1610 s),
+  `.qa/reports/2026-10-27T15-56-29-b49d74ab.md`. I-37 passed on retry in both gates: I-36 before it opens Behavior and
+  `openGroups` is the session's, so I-37 asserts the groups' order, not their open state (I-35 checks folding on a
+  fresh page). HO-21 (main's new row) recorded as works.
+- Merged main 82a2491b (#337: the badge publishes to `sizeNote`, SpacingLayer's note in design words): `sizeNote.ts`
+  keeps the shared shape plus `useSizeNote`; `tsc`, `style:check` and `studio:selftest` after the merge.
 - `npx tsc --noEmit -p .`, `words`, `propGroups`, `propCategories` and the E2E fixture selftests, `npm run style:check`:
   green.
