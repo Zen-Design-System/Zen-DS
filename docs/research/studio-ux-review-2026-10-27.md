@@ -203,8 +203,23 @@ keyboard focus after any gesture; a focused part must not leave the document sel
 
 ## 3. The Figma-key walk (E2E `--only=figma`)
 
-<!-- filled from the run's report -->
-_Run in progress at the time of writing; the result is appended below when the run ends._
+`npm run studio:e2e -- --only=figma` from the review worktree (main 1ac8c89f), report
+`.qa/studio-e2e/2026-10-26T21-25-18.md`: **196 rows, 192 work, 4 broken, 1056 s**; 8 rows passed on their retry
+(FW-25, 39, 58, 90, 105, 119, 153, 192 — each "timed out after 20 s" on the first try, a row-budget symptom under
+load, not a product failure).
+
+| Broken row | What it checks | Cause found |
+| --- | --- | --- |
+| FW-122 · FW-123 | ⌥⇧S Subtract, ⌘E Flatten (the path engine) | "could not load the path engine: reload the page": the worktree's `pathkit-wasm` was a symlink, which Vite serves from outside the worktree (`worktree-node-modules-caches`); RERUN_122 |
+| FW-177 | Right-click › Select all with same › Fill selects every layer with that fill | the layer menu did not open within 5 s; RERUN_177 |
+| FW-211 | In Present a `sticky="bottom"` frame sticks | "the dock Box selected" not reached in 20 s; RERUN_211 |
+
+Reading against the plan's 76-key scorecard (`studio-figma-design-parity-2026-10-18.md` §2b, 72 / 4 / 0 on
+2026-10-22): every tool, selection, transform, structure, text and menu key still answers as Figma does; the four
+2026-10-22 🟡 (Detach instance on a Button, kept on purpose; the Content section, since moved into the instance's
+properties) are unchanged or closed. What the walk does **not** cover, and what §2 found: double-click and Enter on
+an instance's content (the rows test Enter on a Frame's children, FW-04, not on an instance), ⌘A after a part
+selection, the first view on open, inserting from Assets into a page's flow, and the panel widths.
 
 ## 4. The walks, in "you do → what happens" form
 
