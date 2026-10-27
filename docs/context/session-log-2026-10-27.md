@@ -117,11 +117,45 @@ nested instances for an instance (`namedParts`, 2026-10-13); its "show all" mode
 | Check | Result |
 | --- | --- |
 | `npx tsc --noEmit -p .` | passes |
-| Hands-on walk (Playwright on a private server :5186, the user's `quan-ly-task`) | pending the gate slot |
-| `npm run studio:e2e -- --only=figma --rows=FW-255,FW-256,FW-257,FW-258` | pending |
-| `--only=starters --rows=SP-14,SP-18,SP-19` · `--only=data --rows=DA-01,DA-02` · `--only=select --rows=SE-09` | pending |
+| Hands-on walk (Playwright on a private server :5186, a copy of the user's `quan-ly-task`, 1512×982, zoom 67% on the first Metric card) | passes, see the walk table below |
+| `npm run studio:e2e -- --only=figma --rows=FW-255,FW-256,FW-257,FW-258 --no-retry` | 4 works, twice in a row (35 s, 37 s) |
+| `--only=starters --rows=SP-14,SP-18,SP-19` · `--only=data --rows=DA-01,DA-02,DA-08,DA-09` · `--only=select --rows=SE-09,SE-31,SE-33` | 3 + 4 + 3 works, no retry needed |
 | `--only=figma` (whole group, default retry) | pending |
 | `npm run qa` | pending |
+
+The walk, in "you do → what happens" form (after the merge with main 8c21a815):
+
+| You do | What happens | Figma? |
+| --- | --- | --- |
+| Open the page | 100% at the overlays, the Screen off screen (x = −2201; §2.3, the first-view-insert session's) — ⇧1, a click on the cards' row, ⇧2 | — |
+| Click "Tổng task" | Frame (the Grid), focus on the canvas | ✓ |
+| Double-click | MetricCard | ✓ |
+| Double-click | `Text · part of MetricCard`, Design tab: Text (Label "Tổng task", editable), Typography (Body/Extra/Medium + style details), Fill (#121212 token); focus stays on `.studio-viewport`; the canvas tag reads "Tổng task in MetricCard" | ✓ |
+| Double-click | the words edit in place (`contenteditable`); type "Tổng việc", Enter → "Saved · ⌘Z to undo"; ⌘Z → "Undid MetricCard label → Tổng việc" | ✓ |
+| Escape, Escape | Metric · part of MetricCard (Properties, Size) → MetricCard | ✓ |
+| Enter, Enter (MetricCard selected) | Metric → Text (never a div) | ✓ |
+| ⌘-click the title, ⌘A | "4 layers" (the Grid's four cards), `window.getSelection()` empty | ✓ |
+| ⌘-click the title, ⌘D | "Duplicated MetricCard · ⌘Z to undo", 16 → 17 cards, the copy selected; ⌘Z → 16 | ✓ (Figma: nothing inside an instance) |
+| ⌘-click the title, Delete | "Removed MetricCard · ⌘Z to undo", 15 cards, nothing selected; ⌘Z → 16 | ✓ (same) |
+| Code tab with the text selected | Example code, Attributes, Text style, Layout, Size, Selection colors, Code (the CSS block, off the Design tab) | — |
+| ⇧Enter, ⇧Enter | Metric → MetricCard | ✓ |
+
+First run of the walk: ⌘D / Delete acted on the owner but the part selection outlived the removed card (the store still
+held it); fixed by selecting the owner before the action (fe189785), which also selects the copy after ⌘D.
+
+Two harness findings on the way (not the product):
+
+- FW-256's first run: a ⌘-click on the Metric's words with the Metric selected kept the Metric (`partAt` kept the selected
+  part when the cursor was on it, a plain click's rule); ⌘-click now goes to the deepest layer there too (fe189785's
+  follow-up in `partAt`'s `deepSelect` flag).
+- FW-258: the ⌘Z Playwright sends right after a ⌘D was lost on its way to the document — no keydown reached a
+  capture listener on `window`, 3/3 on a page a previous row had used, 1/2 after a reload, and with a plain layer's ⌘D
+  (a throwaway row) just the same — while a keydown dispatched from inside the page (`__e2e.keyPrevented`) undid the
+  copy at once ("Undid Duplicate MetricCard"), so the product's ⌘Z handler is sound (FW-12, FW-18, FW-66 press it; the
+  hands-on walk's ⌘Z after ⌘D worked). Cause not found (1 page, 1 frame, focus on the viewport, `document.hasFocus()`
+  true, Shift and Meta presses a moment later did arrive). FW-258 undoes through the panel's Undo button (the same
+  `undoEdit`); `undoTo` now names the first differing line, the undo stack and the status when it fails, and waits a
+  frame between the focus and the key.
 
 E2E rows changed with the behaviour (§7.1 approved): SP-18 (a double-click on a Metric card's icon reaches the icon
 layer, Escape climbs to the Metric; before: the double-click gave the Metric) and DA-02 (the first double-click on a

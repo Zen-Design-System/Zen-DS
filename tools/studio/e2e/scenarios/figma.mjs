@@ -81,10 +81,21 @@ async function undoTo(page, id, text, tries = 3) {
   for (let k = 0; k < tries && (await pageText(page, id)) !== text; k++) {
     const now = await pageText(page, id);
     await page.locator(".studio-viewport").focus();
+    // A frame between the focus and the key: a ⌘Z sent in the same tick right after an edit's render was lost 3/3 on a
+    // page a previous row had used (FW-258 after FW-257, a plain layer's ⌘D too), and never with a round trip in between.
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => resolve(undefined))));
     await page.keyboard.press("ControlOrMeta+KeyZ");
     await until(async () => { const next = await pageText(page, id); return next === text || next !== now; }, { timeout: 4000, message: "⌘Z" }).catch(() => undefined);
   }
-  if ((await pageText(page, id)) !== text) throw new Error("⌘Z did not bring the page back");
+  const now = await pageText(page, id);
+  if (now !== text) {
+    // The first line that differs says what ⌘Z left (a copy, a changed prop); the undo stack and the status say why.
+    const want = text.split("\n");
+    const got = now.split("\n");
+    const at = want.findIndex((line, index) => line !== got[index]);
+    const undo = await page.evaluate(async () => (await import("/src/platform/studio/store.ts")).studioStore.getState().undo.length).catch(() => "?");
+    throw new Error(`⌘Z did not bring the page back (undo stack ${undo}; status "${(await statusText(page)).slice(0, 60)}"; line ${at + 1}: "${(got[at] ?? "").trim().slice(0, 70)}" instead of "${(want[at] ?? "").trim().slice(0, 70)}")`);
+  }
 }
 
 /* ── F4 (frames, presets, sections) helpers ───────────────────────────────────────────────────────────────────── */
@@ -5522,17 +5533,17 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       if (!/^Text\b/.test(await selectedName(page))) throw new Error(`⌘-click selected ${await selectedName(page)}`);
       await page.keyboard.press("ControlOrMeta+KeyD");
       await until(async () => (await cards()) === count + 1, { timeout: 8000, message: "one more Metric card" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
-      await undoTo(page, id, before);
-      await until(async () => (await cards()) === count, { message: "the copy gone after ⌘Z" });
+      await undoByButton(page, id, before);
+      await until(async () => (await cards()) === count, { message: "the copy gone after Undo" });
       const again = await cardLabel(page, "Revenue");
       await page.keyboard.down("ControlOrMeta"); await page.mouse.click(again.x, again.y); await page.keyboard.up("ControlOrMeta"); await sleep(300);
       if (!/^Text\b/.test(await selectedName(page))) throw new Error(`⌘-click selected ${await selectedName(page)}`);
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("Backspace");
       await until(async () => (await cards()) === count - 1, { timeout: 8000, message: "the Metric card removed" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
-      await undoTo(page, id, before);
-      await until(async () => (await cards()) === count, { message: "the card back after ⌘Z" });
-      return `text part → ⌘D → ${count + 1} cards → ⌘Z → ${count} · Delete → ${count - 1} → ⌘Z → ${count}`;
+      await undoByButton(page, id, before);
+      await until(async () => (await cards()) === count, { message: "the card back after Undo" });
+      return `text part → ⌘D → ${count + 1} cards → Undo → ${count} · Delete → ${count - 1} → Undo → ${count}`;
     },
   },
   // A photo dropped on one row or one item (BACKLOG P1 2026-10-10): figma/pictures.mjs.
@@ -5548,14 +5559,16 @@ const gesturesText = (title) => {
   return grow(text, "Stack", '<Button level="primary">Save</Button>');
 };
 let gesturesMade = null;
-/** The gestures page, made once per run and opened again for each row, with Layers shown (selectedSrc reads its rows). */
+/** The gestures page, made once per run and loaded afresh for each row, so every row starts alike; Layers is shown
+ *  (selectedSrc reads its rows). */
 async function gesturesPage(ctx) {
   const { page } = await ctx.studio();
   if (!gesturesMade) {
     const seeded = await seededPage(ctx, gesturesText, /<MetricCard /);
     gesturesMade = seeded.id;
-  } else if (!page.url().includes(encodeURIComponent(`local:${gesturesMade}`))) {
+  } else {
     await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${gesturesMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.reload({ waitUntil: "domcontentloaded" });
     await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
     await sleep(500);
   }
@@ -5564,6 +5577,16 @@ async function gesturesPage(ctx) {
   await page.locator(".studio-viewport").focus();
   for (let k = 0; k < 3; k++) await page.keyboard.press("Escape");
   return { page, id: gesturesMade };
+}
+/**
+ * Undo through the panel's Undo button (shell/PanelHeaders.tsx; the same undoEdit as ⌘Z), until the page reads `text`
+ * again. The ⌘Z Playwright sends right after a ⌘D on this page was lost on the way to the document (no keydown at the
+ * window, 3/3 on a reused page, 1/2 after a reload, a plain layer's ⌘D too) while a keydown dispatched from the page
+ * itself undid it, so the product's ⌘Z handler is sound (FW-12, FW-18 and FW-66 press it); 2026-10-27, cause not found.
+ */
+async function undoByButton(page, id, text) {
+  await page.getByRole("button", { name: "Undo", exact: true }).first().click();
+  await until(async () => (await pageText(page, id)) === text, { timeout: 6000, message: "the page back after Undo" }).catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 80)})`); });
 }
 /**
  * The centre of the first Metric card's label `text` at a readable zoom (the review's walk gotcha: at a small zoom a
