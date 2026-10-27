@@ -98,8 +98,9 @@ export function removePlan(layers: readonly PlanLayer[], size: { width: number; 
  * (position absolute, insets), anything else floats in a Box of its own (the Studio's floating wrapper, which a later
  * drag moves with smart guides, edit/drag.ts floatOf).
  */
-export function floatingCode(code: string, root: string, x: number, y: number): string {
-  const place = `position="absolute" insetLeft={${Math.round(x)}} insetTop={${Math.round(y)}}`;
+export function floatingCode(code: string, root: string, x: number, y: number, width?: number): string {
+  // `width`: a component with no width of its own (a chart card) gets its Box one (edit/insertPlace.ts widgetWidthIn).
+  const place = `position="absolute" insetLeft={${Math.round(x)}} insetTop={${Math.round(y)}}${width ? ` width={${Math.round(width)}}` : ""}`;
   const trimmed = code.trim();
   if (/^(Stack|Grid|Box|Shape)$/.test(root) && trimmed.startsWith(`<${root}`)) return trimmed.replace(new RegExp(`^<${root}(?=[\\s/>])`), `<${root} ${place}`);
   return `<Box ${place}>\n${trimmed.split("\n").map((line) => `  ${line}`).join("\n")}\n</Box>`;

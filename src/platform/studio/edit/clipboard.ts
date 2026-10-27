@@ -7,13 +7,17 @@ import { openQuickInsert } from "../builder/library/quickInsertState";
 import { frameInView, rootSelection } from "../builder/library/target";
 import { nodeKind, propSpecs } from "../inspector/propSchema";
 import { annotatedAt, findBySrc, isTypingTarget, parentHit, rectOf, type FiberHit } from "../select/picker";
+import { wrappedChildLoc } from "../select/resize";
 import { multiSelection, selectedLayers } from "../select/multiSelection";
 import { expectRender, mapSrc, renderedNow } from "../select/remap";
-import { canStructurallyEdit, insideWrap, pasteIntoSlot, pasteWarningIn, rememberInsert, removeSelection, selectedSlotOf, slotPasteTarget, slotPasteWarning, studioWrapOf, swapSelection } from "../slots/actions";
+import { canStructurallyEdit, insideWrap, isFloatWrapper, pasteIntoSlot, pasteWarningIn, rememberInsert, removeSelection, selectedSlotOf, slotPasteTarget, slotPasteWarning, studioWrapOf, swapSelection } from "../slots/actions";
 import { canEdit, flushStudioStore, studioStore } from "../store";
 import type { EditOp, EditValue, SourceElement, StateDecl, StudioNodeRef, StudioSelection } from "../types";
 import type { NodeSelection } from "./arrange";
+import { floatingCode } from "./autoLayoutPlan";
 import { dropTargetAt, isDropContainer, type DropContext } from "./drag";
+import { boxIn, FLOATS, floats, freeBlock, layerBoxesIn, localTo, screenOfBlock } from "./freeBlock";
+import { freeInsertAt, needsWidth, pageMarginFor, widgetWidthIn } from "./insertPlace";
 import { codeOfLayers, removeLayers, statesRead } from "./multi";
 import { textEditSession } from "./textEdit";
 
@@ -281,7 +285,9 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
     // holds the selected layer (PageHeader › Actions: after that layer; ⇧⌘R swaps it). A selected layout takes the paste
     // as its child (below), as does a children slot; a wrapped component counts by its Studio wrap Stack.
     const hit = hitOf(selection);
-    const intoLayout = !replace && Boolean(hit && isDropContainer(hit)) && !selectedSlotOf(selection);
+    // A selected floating wrapper Box (a component's own frame in a free frame) takes nothing inside: beside it, as its component.
+    const wrapper = isFloatWrapper(hit?.hosts[0]);
+    const intoLayout = !replace && !wrapper && Boolean(hit && isDropContainer(hit)) && !selectedSlotOf(selection);
     const wrapped = intoLayout || selectedSlotOf(selection) ? undefined : await studioWrapOf(selection);
     const slotted = intoLayout ? null : slotPasteTarget(selection) ?? (wrapped ? slotPasteTarget(wrapped) : null);
     if (slotted && (!replace || slotted.after)) {
@@ -291,21 +297,28 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
       if (replace) return await swapSelection(slotted.after!, code, name, reads, await slotPasteWarning(slotted.host, slotted.slot, code));
       return await pasteIntoSlot({ host: slotted.host, slot: slotted.slot, code, name, after: slotted.after, from: selection, state: reads });
     }
-    let spot = spotFor(selection, replace);
+    let spot = spotFor(selection, replace, wrapper);
     if (typeof spot === "string") { fail(spot); return false; }
-    // Beside or instead of a wrapped component: beside or instead of its wrap Stack (the Stack holds that component only).
+    // Beside or instead of a wrapped component: beside or instead of its wrap Stack (the Stack holds that component only),
+    // or of the floating Box that is its layer in a frame without auto layout (slots/actions.ts floatWrapOf).
     if (spot.after || spot.replace) {
       const wrap = wrapped !== undefined ? wrapped : await studioWrapOf(selection);
-      const outer = wrap ? spotFor(wrap, replace, true) : null;
+      // Paste to replace keeps a floating Box: the component inside it is what changes, so the layer stays where it floats.
+      const outer = wrap && !(replace && wrap.name === "Box") ? spotFor(wrap, replace, true) : null;
       if (outer && typeof outer !== "string") spot = outer;
       spot = await sourceParent(spot);
     }
+    // In a frame without auto layout the paste floats (floatPaste): the code as it lands, and whether a Box of its own
+    // holds the component (then the component is selected inside it, as inside a wrap Stack).
+    const floated = replace ? null : floatPaste(spot, code, own);
+    const landing = floated?.code ?? code;
     const verb = replace ? "Paste to replace" : "Paste";
     // The host rules an insert from the picker follows (a control in a clickable card…): the paste goes in all the same.
     const warning = await pasteWarningIn(spot.parent, spot.frameId, spot.panelId, code);
     const before = renderedNow(canvasApi.getWorldElement());
-    // The same file, its source still there: copy it as written (names checked where it lands).
-    if (own && own.file && own.loc && !own.cut && own.file === spot.parentFile) {
+    // The same file, its source still there: copy it as written (names checked where it lands). A copy that floats at
+    // a point goes through pasteCode (the server's floatAt places it).
+    if (own && own.file && own.loc && !own.cut && own.file === spot.parentFile && !spot.at && !floated) {
       const origin = await studioApi.element(own.file, own.loc);
       if (origin && origin.name === own.tag) {
         const op: Extract<EditOp, { op: "moveTo" }> = { op: "moveTo", parent: parseSrc(spot.parent.src)!.loc, copy: true };
@@ -322,13 +335,18 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
     if (!parent) { fail(`${spot.parent.name} is no longer there — select it again`); return false; }
     // The Studio's own copy from another file (or several files) brings the state it reads; in its own file it is there.
     const reads = state ?? (own && own.file !== at.file ? own.state : undefined);
-    const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code, ...(reads?.length ? { state: reads.map((entry) => ({ ...entry })) } : {}) };
+    const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code: landing, ...(reads?.length ? { state: reads.map((entry) => ({ ...entry })) } : {}) };
     if (spot.after) op.after = parseSrc(spot.after)?.loc;
     if (spot.replace) op.replace = parseSrc(spot.replace)?.loc;
+    if (spot.at) op.at = spot.at;
     const name = own?.wrapped ? own.name : /^<([\w.]+)/.exec(code)?.[1] ?? "layer";
     const response = await applyEdit({ file: at.file, loc: at.loc, name: parent.name, ops: [op], hash: parent.hash }, `${verb} ${name}`);
     if (response.ok) notRecommended(warning);
-    if (response.ok && response.inserted) follow(response, response.inserted.loc, selectedName(name), spot, before, selection, Boolean(own?.wrapped));
+    if (response.ok && response.inserted) {
+      // A component floated in a Box of its own: the component inside it is selected (Figma selects the instance).
+      const inside = floated?.wrapped ? wrappedChildLoc(response.after, response.inserted.loc) : null;
+      follow(response, inside ?? response.inserted.loc, inside ? selectedName(name) : floated?.wrapped ? "Box" : selectedName(name), spot, before, selection, Boolean(own?.wrapped));
+    }
     return response.ok;
   } finally {
     pasting = false;
@@ -338,32 +356,36 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
 /* ── pasting at a point: Paste here, ⌘V with nothing selected ─────────────────────────────────────────────────────── */
 
 const NO_DRAG: DropContext = { hosts: [], frame: undefined, parentHost: null, origin: null, layerSrc: null, copy: false };
-/** Layers that float themselves; any other floats in a Box of its own (the server's floatAt). */
-const FLOATS = new Set(["Stack", "Grid", "Box", "Shape"]);
-const floats = (element: Element) => element instanceof HTMLElement && element.dataset.position === "absolute";
+/* The frame without auto layout a paste floats in (freeBlock), and px in it (localTo): ./freeBlock.ts, shared with the
+ * library target. */
 
 /**
- * The block a layer pasted into `host` floats in (Figma's frame without auto layout): a Box whose layers all float, or
- * that has none (never a layer's own floating Box), or a Screen whose content's layers all float. Null: a layout's flow.
+ * A paste into a frame without auto layout floats (Figma's): the Studio's own floating layer at its offsets (as ⌘V
+ * with nothing selected, spotInView); anything else (an Assets item, code) beside the layer it pastes after at its own
+ * size with the page gap (edit/insertPlace.ts; UX review 2026-10-27 §2.4, the user's decision A). `code` comes back
+ * floating (position, insets, a width for a component with none of its own), with the layer it is wrapped in when a
+ * Box of its own holds it; null: the frame is a layout, the paste joins its flow.
  */
-function freeBlock(host: Element | undefined): HTMLElement | null {
-  if (!(host instanceof HTMLElement)) return null;
-  const screen = host.matches(".studio-builder-screen");
-  const box = screen ? host.querySelector<HTMLElement>(".studio-builder-screen__content") : host;
-  if (!box || (!screen && !box.matches(".zen-box"))) return null;
-  if (!screen && box.dataset.position === "absolute" && box.children.length === 1) return null;
-  const kids = Array.from(box.children);
-  if (!kids.every(floats) || (screen && !kids.length)) return null;
-  // The insets measure from the layers' containing block (a Box is one: position.css makes it relative).
-  const block = (kids[0] as HTMLElement | undefined)?.offsetParent;
-  return block instanceof HTMLElement ? block : box;
-}
-
-/** A client point in `block`'s own px (the canvas zoom undone), and its scale. */
-function localTo(block: HTMLElement, x: number, y: number) {
-  const outer = block.getBoundingClientRect();
-  const scale = block.offsetWidth ? outer.width / block.offsetWidth || 1 : 1;
-  return { x: (x - outer.left) / scale - block.clientLeft, y: (y - outer.top) / scale - block.clientTop, scale };
+function floatPaste(spot: Spot, code: string, own: Clip | null): { code: string; wrapped: boolean } | null {
+  const block = freeBlock(spot.parent.hosts[0]);
+  if (!block) return null;
+  const world = canvasApi.getWorldElement();
+  const original = own?.file && own.loc && world ? findBySrc(world, `${own.file}:${own.loc}`)[0]?.hosts[0] : undefined;
+  if (original instanceof HTMLElement && floats(original) && original.offsetParent instanceof HTMLElement) {
+    const box = original.getBoundingClientRect();
+    const at = localTo(original.offsetParent, box.left, box.top);
+    spot.at = { x: Math.round(at.x), y: Math.round(at.y) };
+    return { code, wrapped: false };
+  }
+  const device = screenOfBlock(block)?.dataset.device;
+  const afterHit = spot.after && world ? findBySrc(world, spot.after)[0] : null;
+  const afterRect = afterHit ? rectOf(afterHit.hosts) : null;
+  const beside = afterRect && afterRect.width > 0 ? boxIn(block, afterRect) : null;
+  const tag = /^<([\w.]+)/.exec(code)?.[1] ?? "Box";
+  const root = tag.slice(tag.lastIndexOf(".") + 1);
+  const width = needsWidth(root) ? widgetWidthIn(block.clientWidth, device) : null;
+  const at = freeInsertAt({ width: block.clientWidth }, layerBoxesIn(block), beside, width, { margin: pageMarginFor(device) });
+  return { code: floatingCode(code, root, at.x, at.y, width ?? undefined), wrapped: !FLOATS.has(root) };
 }
 
 /** Paste here: the layout under the pointer (where a drop would go), at the pointer in a frame without auto layout. */

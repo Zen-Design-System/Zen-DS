@@ -169,6 +169,17 @@ function viewportFor(rect: Rect, padding: number, maxZoom: number): StudioViewpo
   return { zoom, x: box.x + box.width / 2 - (rect.x + rect.width / 2) * zoom, y: box.y + box.height / 2 - (rect.y + rect.height / 2) * zoom };
 }
 
+/** viewportFor for other modules (a page's first view, canvas/firstVisit.ts): `rect` whole and centred, ≤ `maxZoom`. */
+export const viewportFitting = (rect: Rect, padding = 48, maxZoom = 1): StudioViewport => viewportFor(rect, padding, maxZoom);
+
+/** The viewport that reads world rect `rect` from its top: its width in the visible canvas (≤ `maxZoom`), centred across,
+ *  its top `margin` px under the canvas top (zoomToWidth's rule, for a rect already in world px). */
+export function viewportReading(rect: Rect, margin = 48, maxZoom = 1): StudioViewport {
+  const box = getSafeBox();
+  const zoom = clampZoom(Math.min(maxZoom, (box.width - margin * 2) / Math.max(rect.width, 1)));
+  return { zoom, x: box.x + box.width / 2 - (rect.x + rect.width / 2) * zoom, y: box.y + margin - rect.y * zoom };
+}
+
 /** Zoom around a point given in viewport-local px. */
 function zoomAround(zoom: number, localX: number, localY: number, animate = false) {
   const next = clampZoom(zoom);

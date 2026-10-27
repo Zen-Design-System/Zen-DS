@@ -19,6 +19,11 @@ Last updated: 2026-10-27.
 
 ## State in short
 
+- **Studio first view + Figma-like inserts (2026-10-27, UX review §7.3–4):** branch
+  `claude/studio-first-view-insert-20261027-2f7881`. A page you made opens at its first Screen (one row of frames
+  fits, ≥ 25%) and reopens at its remembered viewport (localStorage); in a Screen without auto layout an insert floats
+  beside the selection at its own size with the page gap (`edit/insertPlace.ts`, `edit/freeBlock.ts`,
+  `canvas/firstView.ts`). Root cause of §2.3 was a page field's `autoFocus` scrolling the viewport (session log).
 - **Studio UX review §7 items 6–8 (2026-10-27, words · grouped properties · Dark mode UI-only):** branch
   `claude/studio-words-props-dark-20261027-b8fcaa` (the review's BACKLOG line names it `zen/fix/studio-words-props-dark-20261027`).
   Design words through `words.ts` (`layerLabel`, new phrases) and the owning components; `SectionNote` (one line + info
@@ -32,7 +37,7 @@ Last updated: 2026-10-27.
   that; P1 first view at the overlays, full-width inserts, Prototype list clipped, phone tool rail; P2 words, notes,
   grouped instance properties, dark-mode coupling. Decisions: §2.4 inserts keep their own size (A); §2.9 Dark mode
   changes the UI only, as Figma. In progress in four worktree sessions from main (BACKLOG.md Open items):
-  `zen/fix/studio-gestures-20261027`, `zen/fix/studio-first-view-insert-20261027`, `zen/fix/studio-panels-small-20261027`,
+  `zen/fix/studio-gestures-20261027`, `claude/studio-first-view-insert-20261027-2f7881` (PR #334, below), `zen/fix/studio-panels-small-20261027`,
   `zen/fix/studio-words-props-dark-20261027`. Docs PR #332. Items 5, 9, 10 (session panels-small) done: PR #335
   (Studio: Flow list at 320 / 280, the phone tool rail's More menu, the §2.10 small things, every Inspector tab with a
   panel) and PR #336 (library Tabs `aria-controls` only with an `idPrefix`); the 12px tab tone (3.79:1) stays the
