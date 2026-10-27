@@ -10,7 +10,7 @@
 
 export type PropCategory = "content" | "look" | "behavior" | "advanced";
 
-/** The groups in panel order; `open`: shown open when the instance is selected (a folded group with a set value opens too). */
+/** The groups in panel order; `open`: shown open when the instance is selected (the others fold, with a count of what is set). */
 export const PROP_CATEGORIES: ReadonlyArray<{ key: PropCategory; label: string; open: boolean }> = [
   { key: "content", label: "Content", open: true },
   { key: "look", label: "Look", open: true },

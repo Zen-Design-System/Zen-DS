@@ -89,7 +89,8 @@ Page section's layout to studio-panels-small (Giám sát's split, 2026-10-27).
 
 - **Groups, in order:** Content · Look · Behaviour · Advanced, inside the one Properties section. Content and Look open;
   Behaviour and Advanced folded, their header counting the props written in the source ("2 set"); a click opens one,
-  remembered for the session per group. A group with no rows is not drawn. Figma's nested-layer groups (Top-Heading-Text…)
+  remembered for the session per group. (Built: a folded group stays folded even when it holds a set value — the count
+  says so — after the first E2E run showed a template's `format` and a Table's `sort` opening them on every selection.) A group with no rows is not drawn. Figma's nested-layer groups (Top-Heading-Text…)
   stay after the four, as before. Code-only props (ids, links, handlers) stay on the Code tab for components with Figma
   groups; a component without them puts them in Advanced.
 - **Where a prop lands** (`inspector/propCategories.ts`, pure, first rule that holds):
@@ -152,8 +153,8 @@ Page section's layout to studio-panels-small (Giám sát's split, 2026-10-27).
   DockIconTheme) and per-component overrides (Button State → Look, Table bulkActions / sort → Behavior, Metric format →
   Advanced). `GroupedProperties.tsx`: `PropertyGroup` (a disclosure header with the name and "n set" while folded;
   `data-property-group`, `data-open`, `data-props`), Content = Figma booleans + the instance Text + content rows, Look =
-  Figma variants + look rows, Behavior and Advanced folded unless they hold a set value; a group opened or closed stays so
-  for the session (module `openGroups`). Figma's nested-layer groups follow as before. `FLAT_GROUPS`: a component without
+  Figma variants + look rows, Behavior and Advanced folded (the header counts what is set); a group opened or closed stays
+  so for the session (module `openGroups`). Figma's nested-layer groups follow as before. `FLAT_GROUPS`: a component without
   Figma groups (Table) goes through the same groups, its code-only props (aria-label, as, id…) in Advanced, its object and
   array props edited in their group (the old flat branch of DesignPanel and the one section per object prop are gone).
   PropField: an unset text without a default reads "Not set" (a slot "None"). The label is "Behavior" (US spelling, the

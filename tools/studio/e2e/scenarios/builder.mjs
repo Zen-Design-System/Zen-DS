@@ -63,7 +63,7 @@ export async function newPage(ctx, { title, device = "phone" } = {}) {
   const dialog = page.getByRole("dialog", { name: "New page" });
   await dialog.waitFor({ state: "visible", timeout: 5000 });
   // A page with its AppShell (2026-10-18: Empty page is the default, the AppShell a choice) on a desktop Screen…
-  await dialog.getByText("Page with AppShell", { exact: true }).click();
+  await dialog.getByText("Page with App shell", { exact: true }).click();
   await dialog.getByRole("button", { name: "Create page" }).click();
   await until(async () => page.url() !== from && /page=local%3A/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { message: "the new page on the canvas" });
   const id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
@@ -1009,9 +1009,9 @@ export const rows = [
       await until(async () => (await selectedName(page)) === "Sidebar", { message: "the Sidebar selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
       const slots = page.locator("#studio-right .studio-slots__slot");
       await until(async () => (await slots.evaluateAll((els) => els.map((el) => el.getAttribute("data-slot")).join(","))) === "brand,children,footer", { message: "Slots: Header-Content, Body-Content, Footer-Content" });
-      const tag = page.locator(".studio-slots__outline .studio-slots__tag", { hasText: "Body-Content" });
+      const tag = page.locator(".studio-slots__outline .studio-slots__tag", { hasText: "Body content" });
       await until(() => tag.count(), { message: "the Body-Content outline on the canvas" });
-      await page.locator('#studio-right [data-slot="footer"]').getByRole("button", { name: "Add to Footer-Content" }).click();
+      await page.locator('#studio-right [data-slot="footer"]').getByRole("button", { name: "Add to Footer content" }).click();
       await page.getByRole("option", { name: /^Menu item/ }).first().click();
       await until(async () => /footer=\{<SidebarMenuItem id="invoices-\w+"/.test((await pageText(page, id)) ?? ""), { message: "footer={<SidebarMenuItem id=\"invoices-…\" …/>} in the page" });
       await until(async () => (await frame.locator(".zen-sidebar__footer-content .zen-sidebar__item").count()) === 1, { message: "the footer row on the Screen" });
@@ -1122,7 +1122,7 @@ export const rows = [
       await until(async () => (await selectedName(page)) === "Menu", { message: "the Menu selected" });
       const block = page.locator('#studio-right .studio-slots__slot[data-slot="items"]');
       const add = async (label) => {
-        await block.getByRole("button", { name: "Add to Item-List" }).click();
+        await block.getByRole("button", { name: "Add to Item list" }).click();
         await page.getByRole("menuitem", { name: label, exact: true }).click();
       };
       await add("Separator");

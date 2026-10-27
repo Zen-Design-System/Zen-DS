@@ -29,8 +29,7 @@ import { HIDDEN_SLOTS_PROP } from "../../../../tools/studio/visibility.mjs";
  * nothing in the current state is left out, as Figma hides a hidden layer's properties.
  *
  * Since the UX review 2026-10-27 (§2.8, §7 item 7) the rows sit in four groups, Content · Look · Behavior · Advanced
- * (propCategories.ts): Content and Look open, Behavior and Advanced folded with a count of what is set (a folded group
- * with a set value opens). A component without Figma groups (`flat`) goes through the same groups, its code-only props
+ * (propCategories.ts): Content and Look open, Behavior and Advanced folded with a count of what is set. A component without Figma groups (`flat`) goes through the same groups, its code-only props
  * in Advanced. Every row keeps its PropField and `data-prop`, so values round-trip as before.
  */
 
@@ -309,10 +308,11 @@ export function GroupedProperties({ groups, selection, element, api, specs, shap
     const groupText = key === "content" ? text : null;
     const instances = flat ? [] : nested.items.filter((item) => shownEntries.some((entry) => entryProp(entry) === item.prop));
     if (!shownEntries.length && !groupToggles.length && !groupText && !instances.length) return null;
-    // What is written in the source: a folded group says how much it holds, and opens when it holds anything.
+    // What is written in the source: a folded group's header says how much it holds ("2 set"); it stays folded until
+    // opened, so a template's format or sort never lengthens the panel on its own.
     const count = shownEntries.filter((entry) => api.valueFor(entryProp(entry)).state !== "unset").length + groupToggles.filter((toggle) => isSetValue(props[toggle.prop])).length;
     return (
-      <PropertyGroup key={key} id={key} label={label} openAtFirst={open || count > 0} count={count} propNames={[...entries.map(entryProp), ...groupToggles.map((toggle) => toggle.prop)]}>
+      <PropertyGroup key={key} id={key} label={label} openAtFirst={open} count={count} propNames={[...entries.map(entryProp), ...groupToggles.map((toggle) => toggle.prop)]}>
         {rows(ownBy[key], `${key}-own`)}
         {groupToggles.map((toggle) => (
           <ToggleRow key={toggle.label} toggle={toggle} on={isSetValue(props[toggle.prop])} value={api.valueFor(toggle.prop)} api={api} selection={selection} element={element} />

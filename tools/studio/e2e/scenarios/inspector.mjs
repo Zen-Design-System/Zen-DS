@@ -425,19 +425,21 @@ export const rows = [
     },
   },
   {
-    id: "I-14", feature: "Properties follow Figma: variants, then booleans; Leading-Icon on shows Leading-Icon-Src", wp: "WP-E",
+    // Since the UX review 2026-10-27 (§2.8) the variants sit in Look in Figma's order and the layer booleans in Content,
+    // read as words ("Leading icon"); the swap row (the same words, an icon picker) shows while the boolean is on.
+    id: "I-14", feature: "Properties follow Figma inside their groups: Look lists Size, Level, State in Figma's order; Leading icon (Content) on writes startIcon and shows its icon picker", wp: "WP-E",
     async run(ctx) {
       const page = await freshSelect(ctx, "btn-a");
-      const labels = await page.locator("#studio-right [data-prop]").evaluateAll((rows) => rows.map((row) => row.querySelector(".studio-inspector__label, label, [class*=label]")?.textContent?.trim() ?? row.getAttribute("data-prop")));
+      const labels = await page.locator('#studio-right [data-property-group="look"] [data-prop]').evaluateAll((rows) => rows.map((row) => row.querySelector(".studio-inspector__label, label, [class*=label]")?.textContent?.trim() ?? row.getAttribute("data-prop")));
       const at = (label) => labels.indexOf(label);
-      if (!(at("Size") >= 0 && at("Level") > at("Size") && at("Leading-Icon") > at("State"))) throw new Error(`rows: ${labels.slice(0, 12).join(", ")}`);
-      if (labels.includes("Leading-Icon-Src")) throw new Error("Leading-Icon-Src shows while Leading-Icon is off");
-      const toggle = page.locator("#studio-right [data-prop]").filter({ hasText: /^Leading-Icon$/ }).getByRole("switch").first();
-      await toggle.click();
+      if (!(at("Size") >= 0 && at("Level") > at("Size") && at("State") > at("Level"))) throw new Error(`Look rows: ${labels.slice(0, 12).join(", ")}`);
+      const startIcon = () => page.locator('#studio-right [data-property-group="content"] [data-prop="startIcon"]');
+      if ((await startIcon().count()) !== 1) throw new Error(`${await startIcon().count()} Leading icon rows while the boolean is off (want the switch alone)`);
+      await startIcon().getByRole("switch").first().click();
       // GĐ4 M2: the switch starts from the swap's default icon in Figma.
       await expectSource(ctx, "btn-a", (el) => el.attr("startIcon") === "icon-plus-line", "startIcon written (Figma's default, icon-plus-line)");
-      await until(async () => (await page.locator("#studio-right [data-prop]").filter({ hasText: "Leading-Icon-Src" }).count()) > 0, { message: "the Leading-Icon-Src row" });
-      return "Figma order; Leading-Icon writes startIcon and shows Leading-Icon-Src";
+      await until(async () => (await startIcon().count()) === 2, { message: "the Leading icon picker row beside its switch" });
+      return "Look: Size, Level, State in Figma order; Leading icon on writes startIcon and shows its picker";
     },
   },
   {
