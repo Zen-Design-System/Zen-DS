@@ -36,6 +36,20 @@
       "port": 5180,
       "autoPort": false,
       "url": "http://127.0.0.1:5180"
+    },
+    {
+      "name": "zen-studio-5186",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--config",
+        "vite.studio.config.ts",
+        "--port",
+        "5186"
+      ],
+      "port": 5186,
+      "autoPort": false,
+      "url": "http://127.0.0.1:5186"
     }
   ]
 }

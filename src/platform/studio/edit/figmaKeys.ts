@@ -5,6 +5,9 @@ import { canvasApi, zoomIn, zoomOut } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
 import { layerOfHit, multiSelection, selectLayers } from "../select/multiSelection";
 import { childHits, findBySrc, isTypingTarget, parentHit, rectOf, selectHit, type FiberHit } from "../select/picker";
+import { selectedPartStore, selectPart, withoutPart } from "../select/parts";
+import { dataItemOfPart, dataItemRootOf, itemParts } from "../slots/dataItems";
+import { itemSelection } from "../slots/itemSelection";
 import { canEdit, studioStore } from "../store";
 import { isMaskKey } from "../shell/modKey";
 import type { EditOp, StudioSelection } from "../types";
@@ -21,7 +24,8 @@ import { textEditSession } from "./textEdit";
  * Figma's canvas keys the Studio did not have (research docs/research/studio-figma-native-parity-2026-10-17.md P3; the
  * browser's own meaning of ⌘[ ⌘] and ⌘A no longer gets through on the canvas):
  *   ⌘A            select all layers of the selected layer's parent (Figma: Select all); with no layer selected, every
- *                 top-level frame (select/frameSelection.ts)
+ *                 top-level frame (select/frameSelection.ts); with a part selected, the items of its slot or its
+ *                 owner's level (2026-10-27) — never the browser's select-all over the Studio's own text
  *   ⌘] / ⌘[       bring forward / send backward one place (Zen: later layers paint on top, as Figma's)
  *   ⌥⌘] / ⌥⌘[     bring to front / send to back
  *   \             select the parent (as ⇧Enter)
@@ -56,6 +60,27 @@ function selectAll(selection: NodeSelection) {
   const [first, ...others] = layers;
   if (!first) return;
   selectLayers(first, others);
+}
+
+/**
+ * ⌘A with a part selected (UX review 2026-10-27 §2.2: it reached the browser's select-all over the Studio's own text):
+ * every item of its slot when it is one or sits in one (a tab, a crumb; slots/itemSelection.ts), else the layer level
+ * above it — its owner and the owner's siblings, the nearest layers Figma's Select all can take together.
+ */
+function selectAllParts(selection: NodeSelection) {
+  const part = selectedPartStore.get();
+  const item = part && part.element.isConnected ? dataItemOfPart(part) : null;
+  if (part && item && item.slot.form === "array") {
+    const places = itemParts(part.owner, item.slot).flatMap((candidate, index) => (candidate ? [index] : []));
+    if (places.length > 1) {
+      // The item itself is the primary (a part inside it, its icon, is not the item), then every other item joins.
+      if (!dataItemRootOf(part)) selectPart(item.part, canvasApi.getWorldElement());
+      const primary = { ...selection, part: { path: item.part.path, name: item.part.name } };
+      for (const index of places) if (index !== item.index) itemSelection.toggle(primary, item.slot.prop, item.index, index);
+      return;
+    }
+  }
+  selectAll(withoutPart(selection) as NodeSelection);
 }
 
 /** ⌘A with no layer selected: the board's top-level frames (and sections), in board order. */
@@ -142,10 +167,17 @@ export function useFigmaKeys() {
       if (event.defaultPrevented || event.isComposing) return;
       const target = event.target instanceof Element ? event.target : null;
       const onCanvas = !target || target === document.body || target.matches(".studio-viewport");
-      if (!onCanvas || isTypingTarget(target) || textEditSession.get()) return;
+      const mod = event.metaKey || event.ctrlKey;
+      // ⌘A (Figma's Select all) also from the selected layer's row in Layers and from an Inspector control that is no
+      // text field (a switch just used), as Delete is (UX review 2026-10-27 §2.2): the browser's select-all never runs
+      // over the Studio's own text.
+      const selectAllKey = mod && !event.altKey && !event.shiftKey && event.code === "KeyA";
+      const onRow = Boolean(target?.closest(".studio-layers__tree [role='treeitem']"));
+      const onControl = Boolean(target?.closest("#studio-right")) && target?.getAttribute("aria-expanded") !== "true";
+      if (!onCanvas && !(selectAllKey && (onRow || onControl))) return;
+      if (isTypingTarget(target) || textEditSession.get()) return;
       const state = studioStore.getState();
       if (state.presenting || state.tool === "interact") return;
-      const mod = event.metaKey || event.ctrlKey;
       // + / − without ⌘: zoom (Figma's).
       if (!mod && !event.altKey && (event.key === "+" || event.key === "=" || event.key === "-" || event.key === "_") && !(state.selection?.kind === "node" && state.selection.part)) {
         event.preventDefault();
@@ -153,12 +185,18 @@ export function useFigmaKeys() {
         return;
       }
       // ⌘A with no layer selected (nothing, or frames): every top-level frame and section (Figma's Select all).
-      if (mod && !event.altKey && !event.shiftKey && event.code === "KeyA" && state.tool === "select" && (!state.selection || state.selection.kind === "frame")) {
+      if (selectAllKey && state.tool === "select" && (!state.selection || state.selection.kind === "frame")) {
         event.preventDefault();
         selectAllFrames();
         return;
       }
       const selection = state.selection;
+      // ⌘A with a part selected: the items of its slot, else its owner's level (selectAllParts); never the UI's text.
+      if (selectAllKey && state.tool === "select" && selection?.kind === "node" && selection.part) {
+        event.preventDefault();
+        selectAllParts(selection);
+        return;
+      }
       // ⇧⌘C: Figma's Copy as PNG, of a layer or a frame (edit/copyAs.ts); it reads the canvas, so a page you only view
       // copies too.
       if (mod && event.shiftKey && !event.altKey && event.code === "KeyC" && state.tool === "select" && (selection?.kind === "frame" || (selection?.kind === "node" && !selection.part))) {
@@ -184,7 +222,7 @@ export function useFigmaKeys() {
         else if (selection.frameId) studioStore.setState({ selection: { kind: "frame", frameId: selection.frameId } });
         return;
       }
-      if (mod && !event.altKey && !event.shiftKey && event.code === "KeyA") { event.preventDefault(); selectAll(selection); return; }
+      if (selectAllKey) { event.preventDefault(); selectAll(selection); return; }
       // ⌃⌥H / ⌃⌥V distribute, ⌃⌥T tidy up (Figma's; several layers: edit/alignLayers.ts).
       const arrange = event.ctrlKey && event.altKey && !event.metaKey && !event.shiftKey ? ARRANGE_KEYS[event.code] : undefined;
       const ungroup = mod && event.shiftKey && !event.altKey && event.code === "KeyG";

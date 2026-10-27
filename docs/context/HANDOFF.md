@@ -4,7 +4,7 @@ The short, current picture of Zen DS: state, gate, owners, where the details are
 session changes this picture, edit the matching line here, add a CHANGELOG entry, and put the detail in
 `docs/context/session-log-<date>.md`. Long state text belongs in `HANDOFF-details.md`, work items in `BACKLOG.md`.
 
-Last updated: 2026-10-26.
+Last updated: 2026-10-27.
 
 ## Read order
 
@@ -19,6 +19,12 @@ Last updated: 2026-10-26.
 
 ## State in short
 
+- **Studio UX review 2026-10-27 (`docs/research/studio-ux-review-2026-10-27.md`, §7 approved in order):** items 1–2 (P0,
+  gestures) built on `claude/studio-gestures-20261027-17240d`: a double-click and Enter take the ⌘-click path into an
+  instance (`select/parts.ts deepLayerAt`, `select/layerParts.ts firstLayerPart`), HTML parts are off the Design tab
+  (`inspector/PartPanel.tsx`; the Code tab keeps their CSS as `PartCodeDetails`), ⌘A / ⌘D / Delete work with a part
+  selected (`edit/figmaKeys.ts`, `StudioApp.tsx`); E2E FW-255…258. Items 3–10 are in the three sibling sessions
+  (first-view-insert, panels-small, words-props-dark), one worktree each from main.
 - **Studio responsive breakpoints (2026-10-26):** plan `docs/research/studio-responsive-breakpoints-2026-10-26.md`
   approved (D1–D4; D5, a harness rule, not). Session bp-studio builds the Studio half: PR 1 (view switch Desktop ·
   Tablet · Mobile on a Screen's label, the Screen's breakpoint in ZenContext and following a desktop Screen's width,

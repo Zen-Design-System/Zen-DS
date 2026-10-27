@@ -536,10 +536,13 @@ export const rows = [
         const { page, id } = await pageFromTemplate(ctx, "Dashboard");
         const card = await deepSelect(page, ".zen-metric-card");
         await until(async () => (await selectedName(page)) === "MetricCard", { message: "the MetricCard selected" });
-        // One level in (Figma's double-click): the Metric the card draws.
-        // On its icon (a double-click on its words edits them in place).
+        // Into the card as ⌘-click goes (UX review 2026-10-27 §7.1): a double-click on its icon reaches the icon layer,
+        // never a div; Escape climbs to the Metric the card draws (a double-click on its words edits them in place).
         const icon = await page.locator(".studio-frame .zen-metric-card .zen-dock-icon").first().boundingBox();
         await page.mouse.dblclick(icon.x + icon.width / 2, icon.y + icon.height / 2); await sleep(500);
+        const reached = await selectedName(page);
+        if (!/ · part of MetricCard$/.test(reached) || /^(div|span|button|Card)\b/.test(reached)) throw new Error(`the double-click on the icon selected ${reached}`);
+        for (let k = 0; k < 3 && !/^Metric\b/.test(await selectedName(page)); k++) { await page.locator(".studio-viewport").focus(); await page.keyboard.press("Escape"); await sleep(300); }
         await until(async () => /^Metric\b/.test(await selectedName(page)), { message: "the nested Metric selected" }).catch(async (error) => { throw new Error(`${error.message} (${await selectedName(page)})`); });
         const hint = page.locator("#studio-right").getByRole("switch", { name: "Hint", exact: true }).first();
         await hint.click();

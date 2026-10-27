@@ -21,6 +21,8 @@ import { CommentsPanel } from "../comments/CommentsPanel";
 import { PagePanel } from "./PagePanel";
 // A part: a Table's Data-Row or Cell has its own panel, any other part is PartPanel's (table/TableCellPanel.tsx).
 import { TablePartPanel } from "../table/TableCellPanel";
+// The Code tab keeps a part's CSS (attributes, display, padding), which the Design tab leaves out (2026-10-27).
+import { PartCodeDetails } from "./PartPanel";
 import { SelectionActions } from "./SelectionActions";
 import { editGate } from "../gate";
 import { fileName, saveShortcut, undoShortcut, useInspectorStatus } from "./status";
@@ -141,7 +143,7 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
         {commentPage ? <CommentsPanel localPage={commentPage} />
           : tab === "prototype" ? <PrototypePanel />
           // The Code tab holds a layer's code properties (DesignPanel's code view; §3a), the Design tab only Figma's.
-          : tab === "code" ? <CodePanel selection={selection} codeSlot={codeSlot} properties={selection?.kind === "node" && !selection.part ? <DesignPanel key={identity} view="code" selection={selection} controlsSlot={controlsSlot} /> : null} />
+          : tab === "code" ? <CodePanel selection={selection} codeSlot={codeSlot} properties={selection?.kind === "node" ? (selection.part ? <PartCodeDetails key={identity} selection={selection} /> : <DesignPanel key={identity} view="code" selection={selection} controlsSlot={controlsSlot} />) : null} />
           : presetsPage ? <FramePresets localPage={presetsPage} />
           : scalePage ? <ScalePanel />
           : several && selection?.kind === "node" && !selection.part ? <SelectionActions />
