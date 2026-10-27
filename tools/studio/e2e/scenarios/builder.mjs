@@ -74,7 +74,9 @@ export async function newPage(ctx, { title, device = "phone" } = {}) {
   await field.waitFor({ state: "visible", timeout: 5000 });
   await field.fill(name);
   await field.press("Enter");
-  await until(async () => (await page.locator("#studio-right h2").first().innerText().catch(() => "")).trim() === name, { message: `the page named "${name}"` });
+  // The committed title: the page's row in the Pages list (the Inspector's h2 is the "Page" section since 2026-10-27, UX
+  // review §2.10; its Name field shows the draft while typing).
+  await until(async () => (await page.locator("#studio-left .studio-pages__name").allInnerTexts()).some((text) => text.trim() === name), { message: `the page named "${name}"` });
   // …and on its device from the Screen's frame panel (Screen › Device).
   if (device !== "desktop") {
     await showLeftTab(page, "layers");
@@ -247,7 +249,7 @@ async function flowPage(ctx) {
   await insertAsset(page, "Button");
   await until(async () => /<Button /.test((await pageText(page, id)) ?? ""), { message: "a Button" });
   await prototypeTab(page);
-  await page.getByRole("button", { name: "Add screen" }).click();
+  await page.getByRole("button", { name: "Add Screen" }).click();
   await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "screen-2 in the page" });
   await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').count()) > 0, { message: "screen-2 on the canvas" });
   return made;

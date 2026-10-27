@@ -11,6 +11,7 @@ import { paletteInsertable, type Insertable } from "../edit/assets/assets";
 import { armPlacement, disarmPlacement } from "../edit/place";
 import { toggleAgent, useAgent } from "../agent/agentStore";
 import { ChromeScope } from "../shell/ChromeScope";
+import { PHONE_QUERY, useMedia } from "../shell/layout";
 import { modKey } from "../shell/modKey";
 import { tip } from "../shell/ShortcutTip";
 import { PALETTE } from "../slots/palette";
@@ -184,6 +185,7 @@ function PenTools({ tool, off }: { tool: StudioTool; off: boolean }) {
 export function CanvasTools() {
   const tool = useStudio((state) => state.tool);
   const localPage = useStudio((state) => state.localPage);
+  const phone = useMedia(PHONE_QUERY);
   // A placement or drawing tool arms the pointer; any other tool, or leaving the page, puts it away.
   useEffect(() => {
     if (isFrameTool(tool) && localPage) {
@@ -213,7 +215,33 @@ export function CanvasTools() {
   // Pictures dropped from the computer onto a frame (F8: canvas/fileDrop.ts).
   useEffect(() => installFileDrop(localPage), [localPage]);
   return (
-    <ChromeScope className="studio-canvas-tools" role="toolbar" aria-label="Tools">
+    <ChromeScope className="studio-canvas-tools" role="toolbar" aria-label="Tools" data-compact={phone || undefined}>
+      {phone ? <CompactTools tool={tool} localPage={localPage} /> : <FullTools tool={tool} localPage={localPage} />}
+    </ChromeScope>
+  );
+}
+
+/** One tool's button: pressed while it is the tool in use. */
+function ToolButton({ item, tool }: { item: ToolEntry; tool: StudioTool }) {
+  return (
+    <IconButton
+      appearance={tool === item.id ? "main" : "flat"}
+      level="primary"
+      size="sm"
+      aria-label={item.label}
+      aria-pressed={tool === item.id}
+      aria-keyshortcuts={ariaKeys(item.key)}
+      tooltip={tip(item.label, item.key)}
+      icon={<Icon name={item.icon} />}
+      onClick={() => studioStore.setState({ tool: item.id })}
+    />
+  );
+}
+
+/** The full rail (a window 600px or wider): every group, Assets after the Pen, Zen Agent last. */
+function FullTools({ tool, localPage }: { tool: StudioTool; localPage: string | null }) {
+  return (
+    <>
       {canvasToolGroups.map((group, index) => {
         // A page you made is a Figma design page: no Stack tool (Frame F, then Add auto layout ⇧A) and no Interact
         // (the examples' tool); I is Figma's Pick color there (edit/pickColor.ts).
@@ -224,18 +252,7 @@ export function CanvasTools() {
         <Fragment key={group[0].id}>
           {index ? <span className="studio-canvas-tools__divider" aria-hidden="true" /> : null}
           {group === shapeTools ? <ShapeTools tool={tool} off={!localPage} /> : group === frameTools ? <FrameTools tool={tool} off={!localPage} /> : group === penTools ? <PenTools tool={tool} off={!localPage} /> : items.map((item) => (
-              <IconButton
-                key={item.id}
-                appearance={tool === item.id ? "main" : "flat"}
-                level="primary"
-                size="sm"
-                aria-label={item.label}
-                aria-pressed={tool === item.id}
-                aria-keyshortcuts={ariaKeys(item.key)}
-                tooltip={tip(item.label, item.key)}
-                icon={<Icon name={item.icon} />}
-                onClick={() => studioStore.setState({ tool: item.id })}
-              />
+              <ToolButton key={item.id} item={item} tool={tool} />
           ))}
           {index === 3 ? (
             <IconButton appearance="flat" level="primary" size="sm" aria-label="Assets" aria-keyshortcuts="Shift+I" tooltip={tip("Assets", "⇧I")} icon={<Icon name="icon-cube-line" />} onClick={() => openQuickInsert()} />
@@ -244,7 +261,50 @@ export function CanvasTools() {
         );
       })}
       <ZenAgentButton />
-    </ChromeScope>
+    </>
+  );
+}
+
+type MoreItem = { id: string; label: string; key?: string; icon: IconName; off?: boolean; run: () => void };
+
+/**
+ * A phone-wide window (PHONE_QUERY, under 600px): Move · Hand | Frame | Shape | Text, then More, a menu with the rest
+ * (Scale, Pen and Pencil, Image, Comment or Stack, Assets, Interact, Zen Agent), as Figma's mobile toolbar keeps a short
+ * rail. The full rail is 463px wide and ran off a 390px screen (UX review 2026-10-27 §2.6). Every tool keeps its key.
+ */
+function CompactTools({ tool, localPage }: { tool: StudioTool; localPage: string | null }) {
+  const agentOpen = useAgent().open;
+  const entry = (id: StudioTool): ToolEntry => canvasTools.find((item) => item.id === id) ?? { id, label: id, icon: "icon-cursor-line" };
+  const pick = (id: StudioTool) => () => studioStore.setState({ tool: id });
+  const asMore = (item: ToolEntry, off = false): MoreItem => ({ ...item, off, run: pick(item.id) });
+  const more: MoreItem[] = [
+    asMore(entry("scale")),
+    ...penTools.map((item) => asMore(item, !localPage)),
+    asMore(entry("image")),
+    asMore(entry(localPage ? "comment" : "stack")),
+    { id: "assets", label: "Assets", key: "⇧I", icon: "icon-cube-line", run: () => openQuickInsert() },
+    ...(localPage ? [] : [asMore(entry("interact"))]),
+    { id: "agent", label: "Zen Agent", key: `${modKey}J`, icon: "icon-stars-01-line", run: toggleAgent },
+  ];
+  const inMore = agentOpen || more.some((item) => item.id === tool);
+  return (
+    <>
+      <ToolButton item={entry("select")} tool={tool} />
+      <ToolButton item={entry("hand")} tool={tool} />
+      <span className="studio-canvas-tools__divider" aria-hidden="true" />
+      <FrameTools tool={tool} off={!localPage} />
+      <span className="studio-canvas-tools__divider" aria-hidden="true" />
+      <ShapeTools tool={tool} off={!localPage} />
+      <span className="studio-canvas-tools__divider" aria-hidden="true" />
+      <ToolButton item={entry("text")} tool={tool} />
+      <span className="studio-canvas-tools__divider" aria-hidden="true" />
+      <Menu
+        aria-label="More tools"
+        items={more.map((item) => ({ id: item.id, label: item.label, icon: item.icon, shortcut: item.key, disabled: item.off, onSelect: item.run }))}
+        // zen-allow-no-action: the Menu's trigger (Menu wires its click and keys).
+        trigger={<IconButton appearance={inMore ? "main" : "flat"} level="primary" size="sm" aria-label="More tools" aria-pressed={inMore} tooltip="More tools" icon={<Icon name="icon-dots-horizontal-line" />} />}
+      />
+    </>
   );
 }
 

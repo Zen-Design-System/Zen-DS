@@ -1,23 +1,25 @@
 /* Zen Studio canvas (spec §3): Canvas/Default with a dot grid that follows pan and zoom; the world holds the board in
    world coordinates (translate + scale from the top-left); chrome above it stays in screen space. */
+/* The canvas colour, a page's Background (CanvasBackground.tsx, F10: Zen background tokens only), is set on the canvas
+   area so the strips under the docked panels (studio.css) paint the same colour as the viewport. */
+.studio-canvas-area { --studio-canvas-color: var(--zen-color-background-canvas-default, #f7f7f7); }
+.studio-canvas-area:has(> .studio-viewport[data-canvas-background="canvas-alt"]) { --studio-canvas-color: var(--zen-color-background-canvas-alt); }
+.studio-canvas-area:has(> .studio-viewport[data-canvas-background="canvas-flat"]) { --studio-canvas-color: var(--zen-color-background-canvas-flat); }
+.studio-canvas-area:has(> .studio-viewport[data-canvas-background="surface"]) { --studio-canvas-color: var(--zen-color-background-surface-default); }
+.studio-canvas-area:has(> .studio-viewport[data-canvas-background="neutral"]) { --studio-canvas-color: var(--zen-color-background-neutral-subtle-default); }
+.studio-canvas-area:has(> .studio-viewport[data-canvas-background="dark"]) { --studio-canvas-color: var(--zen-color-background-neutral-solid-default); }
 /* zen-allow-canvas-layer: the canvas is the page layer of the Studio's work area (the frames on it are Surface). */
 .studio-viewport {
   position: absolute;
   inset: 0;
   overflow: hidden;
   isolation: isolate;
-  background: var(--zen-color-background-canvas-default, #f7f7f7);
+  background: var(--studio-canvas-color, var(--zen-color-background-canvas-default, #f7f7f7));
   cursor: default;
   outline: none;
   overscroll-behavior: none;
 }
 .studio-viewport:focus-visible:not([data-pointer-focus="true"]) { box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
-/* A page's canvas Background (CanvasBackground.tsx, F10): Zen background tokens only. */
-.studio-viewport[data-canvas-background="canvas-alt"] { background: var(--zen-color-background-canvas-alt); }
-.studio-viewport[data-canvas-background="canvas-flat"] { background: var(--zen-color-background-canvas-flat); }
-.studio-viewport[data-canvas-background="surface"] { background: var(--zen-color-background-surface-default); }
-.studio-viewport[data-canvas-background="neutral"] { background: var(--zen-color-background-neutral-subtle-default); }
-.studio-viewport[data-canvas-background="dark"] { background: var(--zen-color-background-neutral-solid-default); }
 /* On a dark canvas a frame's name reads in Inverse content (a label in its pill or a Section's keeps its own). */
 .studio-viewport[data-canvas-background="dark"] .studio-frame-label:not([data-place="inside"], [data-kind="section"], [data-selected="true"]) { color: var(--zen-color-content-inverse-base); }
 .studio-viewport[data-canvas-background="dark"] .studio-frame-label:not([data-place="inside"], [data-kind="section"], [data-selected="true"]):hover { color: var(--zen-color-content-inverse-strongest); }

@@ -180,6 +180,9 @@
 /* Prototype tab (proto/PrototypePanel.tsx). */
 .studio-prototype__frames { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin: 0; padding: 0; list-style: none; }
 .studio-prototype__frame { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* The row's button shares the row with ▷ (24px): it takes the width left and its name ellipsizes, so "Start" and
+   "Overlay" stay whole at 320px and at the panel's 280px minimum (UX review 2026-10-27 §2.5; slots.css does the same). */
+.studio-prototype__frame > .studio-inspector__item { width: auto; min-width: 0; flex: 1 1 auto; }
 .studio-prototype__add { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-prototype__trigger + .studio-prototype__trigger { margin-top: var(--zen-spacing-gap-small, 12px); }
 .studio-prototype__note { margin: 0; }

@@ -46,6 +46,14 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   first at the margin corner; a chart card gets the widget width (a third of the row). No more full-width blocks at
   gap 0. The new component is selected; its floating Box is its layer (Delete, ⌘D, a move take it along). Inside a
   Stack or Grid the layout's rule stays. Studio E2E B-50…54, ST-30…32.
+- Zen Studio panels (2026-10-27, UX review §7.5 and §7.9): the Prototype tab's Flow list fits the Inspector at 320px and
+  at its 280px minimum (long names ellipsize, "Start" / "Overlay" stay whole); under 600px the tool rail is Move · Hand ·
+  Frame · Shape · Text and a More menu with the rest, inside a 390px screen; no frame's text shows through the 8px
+  gutters beside the docked panels; the Design tab with nothing selected has one Page section (Export… in its title
+  row), Preview modes as label · value rows and an "Edit in Figma" link on Local styles; Play's bar names a Screen
+  named after the page once; a Text drawn with T shows and moves its own X / Y (the frame around it); a text's Fill
+  reads as its variable ("Neutral / Strongest"), as a shape's does; the Inspector's and left panel's tabs keep a panel
+  for every tab; the Prototype tab's button is "Add Screen" (one spelling of Screen). Studio E2E PT-29, I-32.
 - Zen Studio right-click (2026-10-27): on a phone Screen, a layer under the dashed "Add Top / Bottom Navigation"
   placeholder opens its menu again. The placeholder covers the Screen's edge while a layer in it is selected, and a
   right-click there opened nothing. Its click still adds the Navigation. Studio E2E FW-177 passes again.

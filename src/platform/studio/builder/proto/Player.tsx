@@ -209,10 +209,13 @@ function PlayLayer({ id, start, portalRef }: { id: string; start: string | null;
   const overlaySafe = barsDevice === "desktop" ? null : safeAreasOf(shownDevice ? deviceOs(shownDevice) : duo ? "ios" : os, barsDevice, duo);
   const title = page?.title ?? id;
   const screenTitle = screen ? String(literal(screen, "title") ?? current) : alone && presentedNode ? overlayTitleOf(presentedNode) ?? String(literal(presentedNode, "id") ?? "") : "";
+  // The bar: the page, then the Screen when it adds a name; a Screen named after the page ("Quản lý task · Danh sách")
+  // is read once, not "Quản lý task · Quản lý task · Danh sách" (UX review 2026-10-27 §2.10).
+  const barTitle = !screenTitle || screenTitle === title ? title : screenTitle.startsWith(title) && /^\s*[·—–:|-]/.test(screenTitle.slice(title.length)) ? screenTitle : `${title} · ${screenTitle}`;
 
   return (
     <div ref={layerRef} className="studio-present studio-player" role="dialog" aria-label={`${title}, playing`} tabIndex={-1} data-device={device} {...previewAttributes(modes, brand)}>
-      <PresentBar title={screenTitle && screenTitle !== title ? `${title} · ${screenTitle}` : title} theme={modes.theme} onToggleTheme={() => setMode("theme", modes.theme === "dark" ? "light" : "dark")} modes={modes} onModeChange={setMode} onExit={exit} modesScope="while playing"
+      <PresentBar title={barTitle} theme={modes.theme} onToggleTheme={() => setMode("theme", modes.theme === "dark" ? "light" : "dark")} modes={modes} onModeChange={setMode} onExit={exit} modesScope="while playing"
         viewport={shown} onViewportChange={setViewport} viewportScale={fit.scale} autoWidth={DEVICE_WIDTH[device] ?? DEVICE_WIDTH.desktop} framed={framed} onFramedChange={setFramed}
         leading={<>
           <IconButton appearance="flat" level="primary" size="sm" aria-label="Back" icon={<Icon name="icon-chevron-left-line-medium" />} disabled={!history.length && (!overlayNode || alone)} onClick={() => actions.back()} />

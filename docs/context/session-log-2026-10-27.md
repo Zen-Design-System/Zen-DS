@@ -156,3 +156,70 @@ E2E: builder B-50…B-54 (insert), structural ST-30…ST-32 (first view, one row
   Box along); shell ST-30 (three rows → the Screen fills the view), ST-31 (one row → fit), ST-32 (the viewport
   remembered after coming back and after a reload).
 
+## Studio UX review §7.5, §7.9, §7.10 — Flow list, phone tool rail, the small things, Tabs `aria-controls` (session panels-small, tier S each)
+
+Worktree `.claude/worktrees/studio-panels-small-20261027-531d1e`, branch `claude/studio-panels-small-20261027-531d1e`
+(Studio) and `zen/fix/tabs-aria-controls-20261027` (library). Evidence: `docs/research/studio-ux-review-2026-10-27.md`
+§2.5, §2.6, §2.10, §5 (PR #332).
+
+**§7.5 · Flow list at 320 / 280 (`builder/proto/PrototypePanel.tsx` rows).** Cause: `.studio-inspector__items` (the
+Flow `ul`) is a grid item with `min-width: auto`, so the section's auto track took the list's min-content width (the
+nowrap names), and the row's button (`width: calc(100% + 8px)`) shared the `li` with the 24px ▷. Fix: `min-width: 0`
+on the list (inspector.css) and `.studio-prototype__frame > .studio-inspector__item { width: auto; flex: 1 1 auto }`
+(builder.css, as slots.css already did): the name ellipsizes, "Start" / "Overlay" stay whole. E2E PT-29 (long names,
+320 then the 280 minimum through the resize handle's keys, back to 320).
+
+**§7.5 · The phone tool rail (`canvas/CanvasTools.tsx`).** Under 600px (`PHONE_QUERY`, `useMedia` now exported from
+`shell/layout.ts`) the rail is Move · Hand | Frame | Shape | Text | More, and More is a Menu with Scale, Pen, Pencil,
+Image, Comment (Stack and Interact on an example page), Assets and Zen Agent, each with its key; the button is pressed
+while one of them is the tool. The full rail (`FullTools`) is unchanged; `ToolButton` is shared.
+
+**§7.9 · §2.10, one line each.**
+- Gutters: `--studio-canvas-color` on `.studio-canvas-area` (`:has()` of the viewport's `data-canvas-background`),
+  and `::before` / `::after` strips in that colour under each docked panel's column (z 21, studio.css); not on a
+  document page, hidden under the App Shell full screen.
+- One Page section (`inspector/PagePanel.tsx`): the header block + "Page" section became one `InspectorSection`
+  "Page" (Name, Mobile OS, Background, Project; the "A page you made, saved…" line as its note; Export… in its title
+  row); a docs page keeps the header block alone. E2E I-32.
+- Local styles (`inspector/LocalStyles.tsx`): the note "Edit styles in Figma" is now a title-row button "Edit in
+  Figma" ↗ (the Zen file, the same URL as the docs' Download Figma).
+- Preview modes (`PagePanel.tsx`): seven label · value rows (`InspectorRow compact`), not one sentence.
+- Play's bar (`builder/proto/Player.tsx`): a Screen named after the page ("Quản lý task · Danh sách") is read once.
+- Text X / Y (`position/PositionSection.tsx`): a layer floating in a Box around it (a drawn Text) shows the Box's X / Y
+  (`geometry.box`, the Box's written `insetLeft` / `insetTop` when there are any) and typing moves the Box (`applyEdit`
+  on the Box with its hash; `useFloatBox` re-reads it on each source update).
+- Fill names (`inspector/palettes.ts`): a text's tone reads as its variable in Figma's words, "Neutral / Strongest",
+  "Support / Blue / Light", as a shape's "Support / Neutral / Soft".
+
+- "Add screen" → "Add Screen" (PrototypePanel.tsx, the undo label in addFrame.ts, the E2E locators in builder.mjs,
+  prototype.mjs and build-check.mjs): one spelling with "Make a separate Screen" (asked by session words-props-dark,
+  §6; Giám sát handed it to this branch).
+- The Page section's title is the panel's h2 with nothing selected (`InspectorSection level={2}`, new prop, default
+  3), so the Inspector keeps an h2 → h3 hierarchy in every state. E2E helpers `newPage` (builder.mjs) and the build
+  check waited for `#studio-right h2` to read the page's name: they wait for the page's row in the Pages list instead
+  (the committed title; the Name field shows the draft while typing).
+- The Inspector's tabs not shown and a document page's Layers tab keep an empty hidden `TabPanel`, so every tab's
+  `aria-controls` names an element (`Inspector.tsx`, `StudioApp.tsx`; axe 0 dangling, was 2 + 2).
+
+**Measured** (Playwright on a private E2E-style server, port 5198, a copy of `quan-ly-task`; the browser pane stops at
+the Google sign-in): Flow list text nodes outside the panel 0 / 33 at 320 (4 names ellipsized) and 0 / 33 at 280 (7
+ellipsized); tool rail at 390×844 278px wide (was 463), `scrollWidth` 390, More lists 7 tools and reads pressed while
+Pen is the tool; with a Screen dragged across the left window edge, hiding the board changed 0 pixels in each 8px gutter
+and 187,690 in the visible canvas; one "Page" heading, 0 header blocks, 7 mode rows, "Edit in Figma" present; Play's
+bar "Quản lý task · Danh sách"; a Text drawn in a free Screen reads X 150 / Y 120, X typed 300 moves its Box to 300px
+("Saved · ⌘Z to undo"), ⌘Z back to 150 ("Undid “Text X → 300”"); its Fill "Neutral / Strongest"; axe
+`aria-valid-attr-value` 0 on the Studio page (12 tabs). Scripts: the session's scratchpad (`measure.mjs`, `walk.mjs`).
+
+**Gate** (`npm run qa -- --isolated --files=<19 files>`): static gates, Studio self-tests, guidelines, TypeScript ✓.
+Run 1: Studio E2E 385 works · 3 broken — NO-02 / NO-07 / NO-08 picked the Icon's tone by its old label "accent-base"
+(now "Accent / Base"): locator changed, the three rerun 3 works; PT-29 and I-32 recorded with `--update-baseline`.
+Run 2 (final code): shards 1 and 3 259 works · 0 broken, but shard 2/3 was stopped at its 42-min limit with no report
+(its first row LB-15, the six-chart insert that timed out in the 2026-10-25 gate too; the machine was under load) →
+the gate's verdict was FAIL. Shard 2 rerun alone on the same code: 129 works · 0 broken in 554 s. Every row of the
+matrix passed on the final code (388), across run 2's shards 1 + 3 and the shard 2 rerun, not in one gate run; a
+single green run is left to the slot's owner (reported to Giám sát).
+
+**§7.10 · Tabs `aria-controls` (`src/components/Tabs/Tabs.tsx`, own PR).** `aria-controls` is set only when `idPrefix`
+is given (only then can a TabPanel pair with the tabs); a generated prefix pointed at a panel that never existed (axe
+`aria-valid-attr-value`, critical, on every page with panel-less Tabs). Guideline + story note updated; the 12px tab
+tone (3.79:1) stays the user's question.
