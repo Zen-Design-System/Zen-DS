@@ -99,4 +99,43 @@ export const rows = [
       return texts.join(" | ");
     },
   },
+  {
+    id: "AP-07", feature: "Effects: the eye pressed right after + hides the new effect (2026-10-28: Hide did nothing when the panel had read the layer again while the effect was still being saved)", wp: "AP-02 flaky 2026-10-28", timeout: 40_000,
+    async run(ctx) {
+      const page = await selectBox(ctx);
+      const panel = page.locator("#studio-right");
+      // Made certain: + is held 1.2 s on its way, a hot update elsewhere meanwhile makes the panel read the Box (still
+      // without the effect), and once + has landed every read is held 1.5 s, so the eye is pressed before a fresh read.
+      let landed = false;
+      await page.route((url) => url.pathname.endsWith("/__zen-studio/edit"), async (route) => {
+        await sleep(1200);
+        const response = await route.fetch();
+        landed = true;
+        await route.fulfill({ response });
+      }, { times: 1 });
+      await page.route((url) => url.pathname.endsWith("/__zen-studio/element"), async (route) => {
+        if (landed) await sleep(1500);
+        await route.continue();
+      });
+      const data = (await ctx.api.source(ctx.dataFile)).content;
+      try {
+        await panel.getByRole("button", { name: "Add effect" }).click();
+        await sleep(100);
+        await ctx.api.put(ctx.dataFile, `${data}\n// Studio E2E AP-07: a hot update while + is on its way\n`);
+        await expectSource(ctx, "box", (el) => el.attr("effectStyle") === "Shadow/Bottom/Level-1", "Shadow/Bottom/Level-1 added");
+        await panel.getByRole("button", { name: "Hide effect" }).click();
+        await expectSource(ctx, "box", (el) => el.attr("effectStyle") === undefined, "hidden right after +: effectStyle removed");
+      } finally {
+        await page.unrouteAll({ behavior: "ignoreErrors" });
+        await ctx.api.discard([ctx.dataFile]).catch(() => undefined);
+      }
+      // Shown and removed again: a hidden effect stays hidden for the session (the next rows' Box would show it).
+      await until(async () => (await panel.getByText("Hidden (not saved)").count()) > 0, { message: "the hidden row" });
+      await panel.getByRole("button", { name: "Show effect" }).click();
+      await expectSource(ctx, "box", (el) => el.attr("effectStyle") === "Shadow/Bottom/Level-1", "shown again");
+      await panel.getByRole("button", { name: "Remove effect" }).click();
+      await expectSource(ctx, "box", (el) => el.attr("effectStyle") === undefined, "removed");
+      return "+ held 1.2 s with a read meanwhile, re-reads held 1.5 s: the eye right after + hides it (written), shown, removed";
+    },
+  },
 ];
