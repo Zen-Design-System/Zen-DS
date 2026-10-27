@@ -23,6 +23,10 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # The Ubuntu mirror sometimes stalls a download, and apt waits 120 s each time before it retries: on 2026-10-26 the
+      # Chromium dependencies took 17 min (run 40397158706) and the audit job ran out of time. Short waits, more retries.
+      - name: apt retries a stalled download sooner
+        run: printf 'Acquire::http::Timeout "20";\nAcquire::https::Timeout "20";\nAcquire::Retries "5";\n' | sudo tee /etc/apt/apt.conf.d/99zen-ci
       - name: Playwright Chromium (browser tests, audits, figma contract)
         run: npx playwright install --with-deps chromium
 
@@ -66,6 +70,10 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # The Ubuntu mirror sometimes stalls a download, and apt waits 120 s each time before it retries: on 2026-10-26 the
+      # Chromium dependencies took 17 min (run 40397158706) and the audit job ran out of time. Short waits, more retries.
+      - name: apt retries a stalled download sooner
+        run: printf 'Acquire::http::Timeout "20";\nAcquire::https::Timeout "20";\nAcquire::Retries "5";\n' | sudo tee /etc/apt/apt.conf.d/99zen-ci
       - run: npx playwright install --with-deps chromium
       - name: Dev server
         run: |
