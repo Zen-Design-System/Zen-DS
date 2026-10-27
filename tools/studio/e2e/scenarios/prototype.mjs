@@ -54,7 +54,7 @@ async function protoPage(ctx, { screens = 2, overlay = false, button = false, de
   }
   await prototypeTab(page);
   for (let n = 2; n <= screens; n += 1) {
-    await page.getByRole("button", { name: "Add screen" }).click();
+    await page.getByRole("button", { name: "Add Screen" }).click();
     await until(async () => new RegExp(`<Screen id="screen-${n}"`).test(await text(page, id)), { message: `screen-${n} in the page` });
   }
   if (overlay) {
@@ -545,7 +545,7 @@ export const rows = [
       await page.locator(".studio-prototype__frame").nth(2).waitFor({ state: "visible", timeout: 5000 });
       const at320 = await flowOverflow(page);
       if (at320.width !== 320) throw new Error(`the Inspector is ${at320.width}px wide, not 320`);
-      if (at320.total < 6) throw new Error(`${at320.total} text nodes in the Flow list, expected the 3 names and their Start / Overlay`);
+      if (at320.total < 5) throw new Error(`${at320.total} text nodes in the Flow list, expected the 3 names, Start and Overlay`);
       if (at320.out.length) throw new Error(`at 320px ${at320.out.length} text node(s) run past the panel: ${at320.out.slice(0, 3).join(" · ")}`);
       const width = await resizeInspector(page, 280);
       let at280;

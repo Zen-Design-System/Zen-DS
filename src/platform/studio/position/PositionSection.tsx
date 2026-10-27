@@ -14,7 +14,7 @@ import type { FieldApi } from "../inspector/fieldApi";
 import type { PropValue } from "../inspector/propSchema";
 import { InspectorRow, InspectorSection } from "../inspector/Section";
 import { RowSelectField } from "../inspector/rowFields";
-import { inspectorStatus, saveShortcut, undoShortcut } from "../inspector/status";
+import { inspectorStatus } from "../inspector/status";
 import { findBySrc, onSourceUpdate, parentHit, rectOf, selectHit } from "../select/picker";
 import { tokenPx } from "../select/spacing";
 import { wrapInBox } from "../select/wrapSelection";
@@ -236,6 +236,7 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
   const viaBox = !own && Boolean(geometry.floatBox);
   const pressed = floating || viaBox;
   const floatBox = useFloatBox(viaBox ? geometry.floatBox : null);
+  const lastBoxMove = useRef<{ src: string; prop: string; value: number } | null>(null);
   const disabled = api.disabled;
   const [busy, setBusy] = useState(false);
   if (geometry.parent === "none") return null;
@@ -301,12 +302,13 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
   const ladder = floating ? ladderOf(selection) : [];
   // Figma's X / Y: the written px offset when there is one (a rotated layer measures its turned bounds), else measured.
   const writtenPx = (prop: string) => { const value = literal(values[prop]); return typeof value === "number" ? value : null; };
-  // A layer floating in a Box around it (a drawn Text, Ignore auto layout on a component): X / Y are the Box's, the px
-  // it writes (insetLeft / insetTop) else measured, and typing moves the Box (UX review 2026-10-27 §2.10).
+  // A layer floating in a Box around it (a drawn Text, Ignore auto layout on a component): X / Y are the Box's, as
+  // measured on the canvas (live through an undo too), else the px it writes, and typing moves the Box (UX review
+  // 2026-10-27 §2.10).
   const boxAttr = (prop: string) => floatBox?.attributes.find((attr) => attr.name === prop);
   const boxPx = (prop: string) => { const attr = boxAttr(prop); return attr?.kind === "expression" && attr.value && /^-?\d+(\.\d+)?$/.test(attr.value) ? Number(attr.value) : null; };
-  const x = viaBox ? boxPx("insetLeft") ?? geometry.box?.x ?? null : writtenPx("insetLeft") ?? (geometry.measured ? Math.round(geometry.measured.x.start) : null);
-  const y = viaBox ? boxPx("insetTop") ?? geometry.box?.y ?? null : writtenPx("insetTop") ?? (geometry.measured ? Math.round(geometry.measured.y.start) : null);
+  const x = viaBox ? geometry.box?.x ?? boxPx("insetLeft") : writtenPx("insetLeft") ?? (geometry.measured ? Math.round(geometry.measured.x.start) : null);
+  const y = viaBox ? geometry.box?.y ?? boxPx("insetTop") : writtenPx("insetTop") ?? (geometry.measured ? Math.round(geometry.measured.y.start) : null);
   // A floating layer pinned to the left / top edge takes X / Y as typed, in px (Figma's free X / Y; a token step it had
   // becomes its px value). Other constraints keep their edge offsets below. The Box around a layer: the same, by its
   // own constraints (none written = left / top).
@@ -318,15 +320,21 @@ function Position({ selection, element, api, component }: { selection: NodeSelec
   };
   const freeAxis = (axis: PositionAxis) => viaBox ? boxFree(axis) : floating && pins[axis] === "start" && values[axis === "x" ? "insetLeft" : "insetTop"].state !== "bound" && values[axis === "x" ? "insetLeft" : "insetTop"].state !== "spread";
   const moveBox = async (axis: PositionAxis, value: number) => {
-    const at = geometry.floatBox ? parseSrc(geometry.floatBox) : null;
-    if (!at) return;
+    const src = geometry.floatBox;
+    const at = src ? parseSrc(src) : null;
+    if (!src || !at) return;
+    const prop = axis === "x" ? "insetLeft" : "insetTop";
+    const next = Math.round(value);
+    // The field commits on Enter and again when it is left: the same value a second time writes nothing.
+    const last = lastBoxMove.current;
+    if (last && last.src === src && last.prop === prop && last.value === next) return;
+    lastBoxMove.current = { src, prop, value: next };
     const current = await studioApi.element(at.file, at.loc).catch(() => null);
     if (!current || current.name !== "Box") { inspectorStatus.set("negative", "The frame around it moved before the change was saved; nothing was written"); return; }
-    const prop = axis === "x" ? "insetLeft" : "insetTop";
-    const label = `${name} ${axis.toUpperCase()} → ${Math.round(value)}`;
-    const response = await applyEdit({ file: at.file, loc: at.loc, name: "Box", ops: [{ op: "setProp", name: prop, value: { kind: "number", value: Math.round(value) } }], hash: current.hash }, label);
-    if (!response.ok) { inspectorStatus.set("negative", response.error); return; }
-    if (response.before !== response.after) inspectorStatus.set("positive", `${label} · ${response.draft ? `Unsaved · ${saveShortcut} to save` : `${undoShortcut} to undo`}`);
+    const written = current.attributes.find((attr) => attr.name === prop);
+    if (written?.kind === "expression" && Number(written.value) === next) return;
+    const response = await applyEdit({ file: at.file, loc: at.loc, name: "Box", ops: [{ op: "setProp", name: prop, value: { kind: "number", value: next } }], hash: current.hash }, `${name} ${axis.toUpperCase()} → ${next}`);
+    if (!response.ok) inspectorStatus.set("negative", response.error);
   };
   const moveTo = (axis: PositionAxis, value: number) => {
     if (viaBox) { void moveBox(axis, value); return; }

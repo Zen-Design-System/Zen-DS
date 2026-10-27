@@ -88,7 +88,7 @@ export const rows = [
       await page.locator("#studio-right").getByLabel("Page name").waitFor({ state: "visible", timeout: 5000 });
       const seen = await page.evaluate(() => {
         const panel = document.querySelector("#studio-right");
-        const sectionNamed = (name) => [...panel.querySelectorAll("section")].find((section) => section.querySelector("h3")?.textContent.trim() === name) ?? null;
+        const sectionNamed = (name) => [...panel.querySelectorAll("section")].find((section) => section.querySelector("h2, h3")?.textContent.trim() === name) ?? null;
         const pageSection = sectionNamed("Page");
         const labels = pageSection ? [...pageSection.querySelectorAll(".studio-fields__label")].map((el) => el.textContent.trim()) : [];
         const modes = sectionNamed("Preview modes");

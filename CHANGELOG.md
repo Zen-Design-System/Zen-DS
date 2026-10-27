@@ -37,7 +37,7 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   row), Preview modes as label · value rows and an "Edit in Figma" link on Local styles; Play's bar names a Screen
   named after the page once; a Text drawn with T shows and moves its own X / Y (the frame around it); a text's Fill
   reads as its variable ("Neutral / Strongest"), as a shape's does; the Inspector's and left panel's tabs keep a panel
-  for every tab. Studio E2E PT-29, I-32.
+  for every tab; the Prototype tab's button is "Add Screen" (one spelling of Screen). Studio E2E PT-29, I-32.
 - Zen Studio right-click (2026-10-27): on a phone Screen, a layer under the dashed "Add Top / Bottom Navigation"
   placeholder opens its menu again. The placeholder covers the Screen's edge while a layer in it is selected, and a
   right-click there opened nothing. Its click still adds the Navigation. Studio E2E FW-177 passes again.

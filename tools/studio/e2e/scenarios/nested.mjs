@@ -281,7 +281,7 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await openNestedPage(ctx);
       await deepSelect(page, `${subAction(id)} [data-icon]`, "Icon");
-      await pick(page, "tone", /^accent-base\b/);
+      await pick(page, "tone", /^Accent \/ Base\b/);
       await until(async () => /"Sub-Action\/Leading-Icon": \{ tone: "accent-base" \}/.test((await pageText(page, id)) ?? ""), { message: '"Sub-Action/Leading-Icon": { tone: "accent-base" } in the page' });
       await shot(page, "NO-02");
       return "Icon tone → accent-base, written as Sub-Action/Leading-Icon";
@@ -424,7 +424,7 @@ export const rows = [
       const iy = icon.y + icon.height / 2;
       for (const name of ["IconButton", "Icon"]) await drill(page, ix, iy, name);
       steps.push("Card → IconButton → Icon");
-      await pick(page, "tone", /^accent-base\b/);
+      await pick(page, "tone", /^Accent \/ Base\b/);
       await until(async () => /"Sub-Action\/Leading-Icon": \{ tone: "accent-base" \}/.test((await pageText(page, id)) ?? ""), { message: "the Icon's tone in the page" });
       await undo(page);
       await until(async () => !/overrides=/.test((await pageText(page, id)) ?? ""), { message: "no overrides after the second ⌘Z" });
@@ -715,7 +715,7 @@ export const rows = [
     async run(ctx) {
       const { page, id } = await openNestedPage(ctx);
       await deepSelect(page, `${subAction(id)} [data-icon]`, "Icon");
-      await pick(page, "tone", /^accent-base\b/);
+      await pick(page, "tone", /^Accent \/ Base\b/);
       const written = /"Sub-Action\/Leading-Icon": \{ tone: "accent-base" \}/;
       await until(async () => written.test((await pageText(page, id)) ?? ""), { message: "the Icon's tone in the page" });
       await until(async () => /^Icon(\s|·|$)/.test(await heading(page)), { message: "the Icon still selected after the edit" }).catch(async (error) => { throw new Error(`${error.message} (Inspector "${await heading(page)}")`); });

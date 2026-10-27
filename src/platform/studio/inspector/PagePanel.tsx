@@ -107,10 +107,12 @@ export function PagePanel() {
       {/* One Page section (UX review 2026-10-27 §2.10: a header block and a "Page" section both named the page). A page
           you made is named in it as you work (user, 2026-10-09: no title to give when it is made), where it is kept is
           its note, and Export… (GĐ5: the page as React code or its design file) sits in its title row. A docs page has
-          no fields: it keeps the header block alone. */}
+          no fields: it keeps the header block alone. The section's title is the panel's h2 (the subject with nothing
+          selected), the sections after it h3, as with a layer's name. */}
       {localPage && builderPage ? (
         <InspectorSection
           title="Page"
+          level={2}
           fieldGrid
           note={description ?? undefined}
           actions={<Button level="tertiary" size="sm" startIcon="icon-code-02-line" onClick={() => openExport(localPage)}>Export…</Button>}

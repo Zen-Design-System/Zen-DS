@@ -60,6 +60,25 @@ while one of them is the tool. The full rail (`FullTools`) is unchanged; `ToolBu
 - Fill names (`inspector/palettes.ts`): a text's tone reads as its variable in Figma's words, "Neutral / Strongest",
   "Support / Blue / Light", as a shape's "Support / Neutral / Soft".
 
+- "Add screen" → "Add Screen" (PrototypePanel.tsx, the undo label in addFrame.ts, the E2E locators in builder.mjs,
+  prototype.mjs and build-check.mjs): one spelling with "Make a separate Screen" (asked by session words-props-dark,
+  §6; Giám sát handed it to this branch).
+- The Page section's title is the panel's h2 with nothing selected (`InspectorSection level={2}`, new prop, default
+  3), so the Inspector keeps an h2 → h3 hierarchy in every state. E2E helpers `newPage` (builder.mjs) and the build
+  check waited for `#studio-right h2` to read the page's name: they wait for the page's row in the Pages list instead
+  (the committed title; the Name field shows the draft while typing).
+- The Inspector's tabs not shown and a document page's Layers tab keep an empty hidden `TabPanel`, so every tab's
+  `aria-controls` names an element (`Inspector.tsx`, `StudioApp.tsx`; axe 0 dangling, was 2 + 2).
+
+**Measured** (Playwright on a private E2E-style server, port 5198, a copy of `quan-ly-task`; the browser pane stops at
+the Google sign-in): Flow list text nodes outside the panel 0 / 33 at 320 (4 names ellipsized) and 0 / 33 at 280 (7
+ellipsized); tool rail at 390×844 278px wide (was 463), `scrollWidth` 390, More lists 7 tools and reads pressed while
+Pen is the tool; with a Screen dragged across the left window edge, hiding the board changed 0 pixels in each 8px gutter
+and 187,690 in the visible canvas; one "Page" heading, 0 header blocks, 7 mode rows, "Edit in Figma" present; Play's
+bar "Quản lý task · Danh sách"; a Text drawn in a free Screen reads X 150 / Y 120, X typed 300 moves its Box to 300px
+("Saved · ⌘Z to undo"), ⌘Z back to 150 ("Undid “Text X → 300”"); its Fill "Neutral / Strongest"; axe
+`aria-valid-attr-value` 0 on the Studio page (12 tabs). Scripts: the session's scratchpad (`measure.mjs`, `walk.mjs`).
+
 **§7.10 · Tabs `aria-controls` (`src/components/Tabs/Tabs.tsx`, own PR).** `aria-controls` is set only when `idPrefix`
 is given (only then can a TabPanel pair with the tabs); a generated prefix pointed at a panel that never existed (axe
 `aria-valid-attr-value`, critical, on every page with panel-less Tabs). Guideline + story note updated; the 12px tab
