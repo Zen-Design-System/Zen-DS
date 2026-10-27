@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useId, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Button } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Heading, plural } from "../../../components/Text";
@@ -9,6 +9,7 @@ import { currentFiber, nameOf, onSourceUpdate, shortSrc, type Fiber } from "../s
 import { useWords } from "../useWords";
 import { nestedPathOf, ownsText, selectedPartStore, withoutPart, type PartHit } from "../select/parts";
 import { OverrideProperties } from "./OverrideProperties";
+import { TextStyleDetails, textStyleDefinition } from "./TextStyleDetails";
 import { canEdit, studioStore, useStudio } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
 import { componentGroupsOf } from "./componentGroups";
@@ -28,9 +29,11 @@ import { DataGroupSections, DataItemBanner, DataItemSections, DataItemsSections 
 import { selectedPlaces, useItemSelection } from "../slots/itemSelection";
 
 /*
- * Design tab for a part (deep select): what a component renders inside itself, read-only. The part's props, text
- * style, auto layout, size and colours come from the canvas (fibers and computed styles), each value with the Zen token
- * it equals. Edits go through the owner: its props (Playground properties or the source).
+ * Design tab for a part (deep select): a layer inside an instance — a text (Figma's Typography and Fill, its words where
+ * the owner holds them), a nested instance (its properties as the owner's overrides, its size) or a data item. Since
+ * 2026-10-27 (UX review §2.1) the part's CSS — attributes, display, padding, colours, read from the canvas with the Zen
+ * token each value equals — is the Code tab's (PartCodeDetails), never the Design tab's. Edits go through the owner: its
+ * props (Playground properties or the source).
  */
 
 type PartSelection = Extract<StudioSelection, { kind: "node" }>;
@@ -306,7 +309,54 @@ function PartDetails({ part, props: showProps = true }: { part: PartHit; props?:
   );
 }
 
-/** Design tab for a part of the selected element (read-only). */
+/** Figma's Typography and Fill of a text inside an instance, read where it renders (the owner's text style and tone set them). */
+function TextLayerSections({ part, owner }: { part: PartHit; owner: string }) {
+  const id = useId();
+  const say = useWords();
+  const element = part.element;
+  const node = textHost(element) ?? element;
+  const styles = textStylesOf(node, element.closest("[data-studio-frame]"));
+  const matched = styles.names.length ? [] : matchingTextStyles(node);
+  const style = getComputedStyle(node);
+  const first = styles.names[0] ?? matched[0] ?? null;
+  const fill = coloursOf(node).find((entry) => entry.name === "Text")?.colour ?? null;
+  return (
+    <>
+      <InspectorSection title="Typography" note={say(`Set by ${owner}`)}>
+        {styles.names.map((name, index) => <Row key={name} label={styles.names.length > 1 ? `Style ${index + 1}` : "Style"}><ValueCell value={name} /></Row>)}
+        {!styles.names.length ? <Row label="Style"><ValueCell value={matched.length ? matched.join(", ") : "None"} /></Row> : null}
+        {textStyleDefinition(first) ? <TextStyleDetails id={id} style={first!} host={node} /> : <Row label="Font"><ValueCell value={`${parseFloat(style.fontSize)} / ${style.lineHeight === "normal" ? "Auto" : parseFloat(style.lineHeight)} · ${style.fontWeight}`} /></Row>}
+      </InspectorSection>
+      {fill ? <InspectorSection title="Fill"><Row label="Fill"><ValueCell value={fill.label} tokens={fill.tokens} swatch={fill.value} /></Row></InspectorSection> : null}
+    </>
+  );
+}
+
+/** Figma's W × H of a nested instance, read where it renders. */
+function SizeSection({ part }: { part: PartHit }) {
+  const size = sizeOf(part.element);
+  return <InspectorSection title="Size"><Row label="W × H"><ValueCell value={`${size.width} × ${size.height}`} /></Row></InspectorSection>;
+}
+
+/**
+ * The Code tab for a part: what it renders — its attributes or props, text style, display and padding, size and colours
+ * — which the Design tab leaves out since 2026-10-27 (UX review §2.1: nothing a designer reads speaks code).
+ */
+export function PartCodeDetails({ selection }: { selection: PartSelection }) {
+  const part = useSyncExternalStore(selectedPartStore.subscribe, selectedPartStore.get, selectedPartStore.get);
+  useCanvasTick();
+  const name = part?.name ?? selection.part?.name ?? "Part";
+  const resolved = part && part.owner.src === selection.src && part.element.isConnected ? part : null;
+  if (!resolved) return <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>;
+  return (
+    <>
+      <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{name} · part of {selection.name}</p>
+      <PartDetails part={resolved} />
+    </>
+  );
+}
+
+/** Design tab for a part of the selected element: the layer's Figma panel (Typography, Instance, Item), never its CSS. */
 export function PartPanel({ selection, controlsSlot }: { selection: PartSelection; controlsSlot: HTMLElement }) {
   const part = useSyncExternalStore(selectedPartStore.subscribe, selectedPartStore.get, selectedPartStore.get);
   useCanvasTick();
@@ -371,7 +421,7 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
           </Heading>
         </div>
         {textPart && !textLayer ? <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>Double-click it or press Enter to edit its words</p> : null}
-        {item || group || textPart ? null : <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{say(overridable ? `Nested instance of ${owner}: changes apply to this ${owner} only` : layerPath ? `Read-only here: nested instances change on pages made in the Studio` : passes.length ? `Set by ${owner} at ${at}; its Properties write ${owner}'s props` : `Read-only — set by ${owner} at ${at}`)}</p>}
+        {item || group || textPart ? null : <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{say(overridable ? `Nested instance of ${owner}: changes apply to this ${owner} only` : layerPath ? `Read-only here: nested instances change on pages made in the Studio` : passes.length ? `Set by ${owner} at ${at}; its Properties write ${owner}'s props` : isComponent ? `Read-only — set by ${owner} at ${at}` : `Not a layer of its own — select ${owner}, or a text or nested instance in it`)}</p>}
         <div className="studio-part__links">
           {/* zen-allow-compact-button: quiet links under the part name in a dense tool panel, like the element's file link */}
           <Button appearance="flat" level="primary" size="xs" startIcon="icon-corner-left-up-line" className="studio-inspector__src" onClick={selectOwner}>
@@ -400,8 +450,11 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
       ) : null}
       {resolved && textPasses.length ? <PartProperties selection={selection} part={resolved} passes={textPasses} title="Text" /> : null}
       {resolved && childText ? <PartTextChild selection={selection} text={text} /> : null}
+      {/* Words from data or a nested list: read-only here (a double-click edits them where they are written). */}
+      {resolved && textPart && !textLayer ? <InspectorSection title="Text"><Row label="Text"><ValueCell value={text} /></Row></InspectorSection> : null}
       {resolved && overridable && layerPath ? <OverrideProperties selection={selection} part={resolved} path={layerPath} /> : resolved && passes.length && !item ? <PartProperties selection={selection} part={resolved} passes={passes} /> : null}
-      {resolved && places.length > 1 ? null : resolved ? <PartDetails part={resolved} props={!overridable && !textPart} /> : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
+      {/* Figma's panel for the layer (UX review 2026-10-27 §2.1): Typography and Fill for a text, Size for a nested instance; the part's CSS is the Code tab's (PartCodeDetails). */}
+      {resolved && places.length > 1 ? null : resolved ? (textPart ? <TextLayerSections part={resolved} owner={owner} /> : resolved.isComponent ? <SizeSection part={resolved} /> : null) : <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>}
 
       {/* The owner's playground controls, after the part: where its props are edited. */}
       {selection.panelId ? (

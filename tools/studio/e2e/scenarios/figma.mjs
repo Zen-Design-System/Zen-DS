@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { newPageText } from "../../dialect.mjs";
 import { codeOfItem, grow } from "../../dnd-engine.mjs";
-import { inspectorRow, openAssetLibrary, openCodeProperties, selectedSrc, showDesignTab, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { inspectorRow, openAssetLibrary, openCodeProperties, ownerOfLayer, selectedSrc, showDesignTab, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, mineOption, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
 import { pagesDirOf } from "../lib/server.mjs";
 
@@ -81,10 +81,21 @@ async function undoTo(page, id, text, tries = 3) {
   for (let k = 0; k < tries && (await pageText(page, id)) !== text; k++) {
     const now = await pageText(page, id);
     await page.locator(".studio-viewport").focus();
+    // A frame between the focus and the key: a ⌘Z sent in the same tick right after an edit's render was lost 3/3 on a
+    // page a previous row had used (FW-258 after FW-257, a plain layer's ⌘D too), and never with a round trip in between.
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => resolve(undefined))));
     await page.keyboard.press("ControlOrMeta+KeyZ");
     await until(async () => { const next = await pageText(page, id); return next === text || next !== now; }, { timeout: 4000, message: "⌘Z" }).catch(() => undefined);
   }
-  if ((await pageText(page, id)) !== text) throw new Error("⌘Z did not bring the page back");
+  const now = await pageText(page, id);
+  if (now !== text) {
+    // The first line that differs says what ⌘Z left (a copy, a changed prop); the undo stack and the status say why.
+    const want = text.split("\n");
+    const got = now.split("\n");
+    const at = want.findIndex((line, index) => line !== got[index]);
+    const undo = await page.evaluate(async () => (await import("/src/platform/studio/store.ts")).studioStore.getState().undo.length).catch(() => "?");
+    throw new Error(`⌘Z did not bring the page back (undo stack ${undo}; status "${(await statusText(page)).slice(0, 60)}"; line ${at + 1}: "${(got[at] ?? "").trim().slice(0, 70)}" instead of "${(want[at] ?? "").trim().slice(0, 70)}")`);
+  }
 }
 
 /* ── F4 (frames, presets, sections) helpers ───────────────────────────────────────────────────────────────────── */
@@ -5434,9 +5445,165 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       return "⌥⌘↵ on Undo → Deleted, no Overlay · Prototype › Present on Files → Files · Design › Present on Files → Play, Delete opens confirm · toolbar ▷ on Deleted → Play on Deleted";
     },
   },
+  {
+    id: "FW-255", feature: "Double-click goes into an instance as ⌘-click does (UX review 2026-10-27 §2.1): a Metric card's label is a Text layer of MetricCard with Figma's Text, Typography and Fill (no Layout, Attributes or Selection colors), the canvas keeps the focus, the next double-click edits the words in place; ⌘Z", wp: "gestures 2026-10-27",
+    async run(ctx) {
+      const { page, id } = await gesturesPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const label = await cardLabel(page, "Revenue");
+      await page.mouse.click(label.x, label.y); await sleep(300);
+      const steps = [await selectedName(page)];
+      for (let k = 0; k < 3 && !/^Text\b/.test(await selectedName(page)); k++) { await page.mouse.dblclick(label.x, label.y); await sleep(400); steps.push(await selectedName(page)); }
+      if (!/^Text · part of MetricCard/.test(await selectedName(page))) throw new Error(`double-clicks: ${steps.join(" → ")}`);
+      const headings = await sections(page);
+      for (const bad of ["Layout", "Attributes", "Props", "Selection colors"]) if (headings.includes(bad)) throw new Error(`the Design tab shows ${bad}: ${headings.join(", ")}`);
+      for (const want of ["Text", "Typography"]) if (!headings.includes(want)) throw new Error(`no ${want} on the Design tab: ${headings.join(", ")}`);
+      const focus = await page.evaluate(() => `${document.activeElement?.tagName.toLowerCase()}.${document.activeElement?.className ?? ""}`);
+      if (!/studio-viewport/.test(focus)) throw new Error(`the focus left the canvas: ${focus}`);
+      await page.mouse.dblclick(label.x, label.y);
+      await until(() => page.evaluate(() => Boolean(document.querySelector("[contenteditable='true'], [contenteditable='plaintext-only']"))), { timeout: 3000, message: "the words edit in place" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)}; status: ${await statusText(page)})`); });
+      await page.keyboard.press("ControlOrMeta+KeyA"); await page.keyboard.type("Sales"); await page.keyboard.press("Enter");
+      await until(async () => /label="Sales"/.test((await pageText(page, id)) ?? ""), { message: 'label="Sales" written' });
+      await undoTo(page, id, before);
+      return `${steps.join(" → ")} · ${headings.join(", ")} · double-click edits → Sales · ⌘Z`;
+    },
+  },
+  {
+    id: "FW-256", feature: "Enter on a selected instance goes one level in to a layer (its first text or nested instance, never a div, UX review 2026-10-27 §2.1); Enter on a text inside it edits the words; ⇧Enter climbs back to the instance", wp: "gestures 2026-10-27",
+    async run(ctx) {
+      const { page } = await gesturesPage(ctx);
+      const label = await cardLabel(page, "Revenue");
+      const editing = () => page.evaluate(() => Boolean(document.querySelector("[contenteditable='true'], [contenteditable='plaintext-only']")));
+      const selectCard = async () => {
+        await page.keyboard.down("ControlOrMeta"); await page.mouse.click(label.x, label.y); await page.keyboard.up("ControlOrMeta"); await sleep(300);
+        await ownerOfLayer(page);
+        await until(async () => (await selectedName(page)) === "MetricCard", { message: "the MetricCard selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)})`); });
+      };
+      await selectCard();
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Enter"); await sleep(400);
+      const first = await selectedName(page);
+      if (!/ · part of MetricCard$/.test(first) || /^(div|span|button|Card)\b/.test(first)) throw new Error(`Enter on the MetricCard selected ${first}`);
+      if (await editing()) throw new Error("Enter on the MetricCard opened a text editor");
+      // Enter on a text inside the instance edits its words (as before); Escape leaves them.
+      await page.keyboard.down("ControlOrMeta"); await page.mouse.click(label.x, label.y); await page.keyboard.up("ControlOrMeta"); await sleep(300);
+      if (!/^Text\b/.test(await selectedName(page))) throw new Error(`⌘-click selected ${await selectedName(page)}`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Enter");
+      await until(editing, { timeout: 3000, message: "Enter on the text edits it" });
+      await page.keyboard.press("Escape"); await sleep(300);
+      const climb = [];
+      for (let k = 0; k < 4 && (await selectedName(page)) !== "MetricCard"; k++) { await page.locator(".studio-viewport").focus(); await page.keyboard.press("Shift+Enter"); await sleep(300); climb.push(await selectedName(page)); }
+      if ((await selectedName(page)) !== "MetricCard") throw new Error(`⇧Enter did not climb back to the MetricCard (${climb.join(" → ")})`);
+      return `MetricCard → Enter → ${first} · Text → Enter edits → Esc → ⇧Enter ${climb.join(" → ")}`;
+    },
+  },
+  {
+    id: "FW-257", feature: "⌘A with a text inside an instance selected selects the instance and its siblings, never the Studio's own text (UX review 2026-10-27 §2.2); with the instance selected too", wp: "gestures 2026-10-27",
+    async run(ctx) {
+      const { page } = await gesturesPage(ctx);
+      const label = await cardLabel(page, "Revenue");
+      await page.keyboard.down("ControlOrMeta"); await page.mouse.click(label.x, label.y); await page.keyboard.up("ControlOrMeta"); await sleep(300);
+      if (!/^Text\b/.test(await selectedName(page))) throw new Error(`⌘-click selected ${await selectedName(page)}`);
+      // The layers selected: the primary and the extras (select/multiSelection.ts), whatever Layers has open.
+      const selected = () => page.evaluate(async () => { const m = await import("/src/platform/studio/select/multiSelection.ts"); const s = (await import("/src/platform/studio/store.ts")).studioStore.getState().selection; return s?.kind === "node" && !s.part ? 1 + m.multiSelection.get().length : 0; });
+      await page.keyboard.press("ControlOrMeta+KeyA");
+      await until(async () => (await selected()) >= 2, { message: "both Metric cards selected" }).catch(async (error) => { throw new Error(`${error.message} (layers ${await selected()}, selected: ${await selectedName(page)})`); });
+      const uiText = await page.evaluate(() => (window.getSelection()?.toString() ?? "").length);
+      if (uiText) throw new Error(`⌘A selected ${uiText} characters of the Studio's own text`);
+      const fromPart = await selected();
+      await page.keyboard.press("Escape"); await sleep(200); await page.keyboard.press("Escape"); await sleep(200);
+      await page.keyboard.down("ControlOrMeta"); await page.mouse.click(label.x, label.y); await page.keyboard.up("ControlOrMeta"); await sleep(300);
+      await ownerOfLayer(page);
+      await until(async () => (await selectedName(page)) === "MetricCard", { message: "the MetricCard selected" });
+      await page.keyboard.press("ControlOrMeta+KeyA");
+      await until(async () => (await selected()) >= 2, { message: "both Metric cards selected from the instance" });
+      return `text part → ⌘A → ${fromPart} layers, no UI text · MetricCard → ⌘A → ${await selected()} layers`;
+    },
+  },
+  {
+    id: "FW-258", feature: "⌘D with a text inside an instance selected duplicates the instance, Delete removes it, ⌘Z brings it back (UX review 2026-10-27 §2.2: the keys work in every selection state)", wp: "gestures 2026-10-27",
+    async run(ctx) {
+      const { page, id } = await gesturesPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const cards = () => page.locator(".studio-frame .zen-metric-card").count();
+      const count = await cards();
+      const label = await cardLabel(page, "Revenue");
+      await page.keyboard.down("ControlOrMeta"); await page.mouse.click(label.x, label.y); await page.keyboard.up("ControlOrMeta"); await sleep(300);
+      if (!/^Text\b/.test(await selectedName(page))) throw new Error(`⌘-click selected ${await selectedName(page)}`);
+      await page.keyboard.press("ControlOrMeta+KeyD");
+      await until(async () => (await cards()) === count + 1, { timeout: 8000, message: "one more Metric card" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await undoByButton(page, id, before);
+      await until(async () => (await cards()) === count, { message: "the copy gone after Undo" });
+      const again = await cardLabel(page, "Revenue");
+      await page.keyboard.down("ControlOrMeta"); await page.mouse.click(again.x, again.y); await page.keyboard.up("ControlOrMeta"); await sleep(300);
+      if (!/^Text\b/.test(await selectedName(page))) throw new Error(`⌘-click selected ${await selectedName(page)}`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Backspace");
+      await until(async () => (await cards()) === count - 1, { timeout: 8000, message: "the Metric card removed" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
+      await undoByButton(page, id, before);
+      await until(async () => (await cards()) === count, { message: "the card back after Undo" });
+      return `text part → ⌘D → ${count + 1} cards → Undo → ${count} · Delete → ${count - 1} → Undo → ${count}`;
+    },
+  },
   // A photo dropped on one row or one item (BACKLOG P1 2026-10-10): figma/pictures.mjs.
   ...pictureRows,
 ];
+
+/* ── Gestures reach layers (UX review 2026-10-27 §7.1–2) helpers ───────────────────────────────────────────────── */
+
+/** A desktop page with two Metric cards in a row (their labels are the texts a double-click reaches) and a Button. */
+const gesturesText = (title) => {
+  let text = newPageText({ title, device: "desktop", chrome: false });
+  text = grow(text, "Stack", '<Stack direction="row" gap="md">\n<MetricCard label="Revenue" value="$12,400" icon="icon-bank-note-01-line" />\n<MetricCard label="Orders" value="318" icon="icon-shopping-cart-01-line" />\n</Stack>');
+  return grow(text, "Stack", '<Button level="primary">Save</Button>');
+};
+let gesturesMade = null;
+/** The gestures page, made once per run and loaded afresh for each row, so every row starts alike; Layers is shown
+ *  (selectedSrc reads its rows). */
+async function gesturesPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!gesturesMade) {
+    const seeded = await seededPage(ctx, gesturesText, /<MetricCard /);
+    gesturesMade = seeded.id;
+  } else {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${gesturesMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await showLeftTab(page, "layers");
+  await showDesignTab(page);
+  await page.locator(".studio-viewport").focus();
+  for (let k = 0; k < 3; k++) await page.keyboard.press("Escape");
+  return { page, id: gesturesMade };
+}
+/**
+ * Undo through the panel's Undo button (shell/PanelHeaders.tsx; the same undoEdit as ⌘Z), until the page reads `text`
+ * again. The ⌘Z Playwright sends right after a ⌘D on this page was lost on the way to the document (no keydown at the
+ * window, 3/3 on a reused page, 1/2 after a reload, a plain layer's ⌘D too) while a keydown dispatched from the page
+ * itself undid it, so the product's ⌘Z handler is sound (FW-12, FW-18 and FW-66 press it); 2026-10-27, cause not found.
+ */
+async function undoByButton(page, id, text) {
+  await page.getByRole("button", { name: "Undo", exact: true }).first().click();
+  await until(async () => (await pageText(page, id)) === text, { timeout: 6000, message: "the page back after Undo" }).catch(async (error) => { throw new Error(`${error.message} (status: ${(await statusText(page)).slice(0, 80)})`); });
+}
+/**
+ * The centre of the first Metric card's label `text` at a readable zoom (the review's walk gotcha: at a small zoom a
+ * double-click on a card's words lands on the parent's resize handle): ⌘-click the card's corner, ⇧2 (zoom to
+ * selection), Escape back out, then the label's box.
+ */
+async function cardLabel(page, text) {
+  const card = page.locator(".studio-frame .zen-metric-card").first();
+  const box = await card.boundingBox();
+  if (!box) throw new Error("no Metric card on the canvas");
+  await page.keyboard.down("ControlOrMeta"); await page.mouse.click(box.x + 3, box.y + 3); await page.keyboard.up("ControlOrMeta"); await sleep(300);
+  await page.keyboard.press("Shift+Digit2"); await sleep(500);
+  for (let k = 0; k < 4; k++) { await page.locator(".studio-viewport").focus(); await page.keyboard.press("Escape"); await sleep(120); }
+  const label = await card.getByText(text, { exact: true }).first().boundingBox();
+  if (!label) throw new Error(`no "${text}" on the Metric card`);
+  return { x: label.x + label.width / 2, y: label.y + label.height / 2 };
+}
 
 /* ── Select matching layers / Select all with same › helpers ─────────────────────────────────────────────────────── */
 
