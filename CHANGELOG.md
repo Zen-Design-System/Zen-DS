@@ -20,7 +20,8 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio UI/UX review (2026-10-27, docs only): five hands-on walks, the Figma-key E2E walk, an axe pass and a
   UX-writing audit, with 15 screenshots and a ranked proposal (gestures that land on DOM parts, ⌘A / ⌘D after a part
   selection, the first view, full-width inserts, the Prototype list at 320, the phone tool rail, ~40 code-word
-  strings): `docs/research/studio-ux-review-2026-10-27.md`. Nothing in the Studio changed yet.
+  strings): `docs/research/studio-ux-review-2026-10-27.md`. Nothing in the Studio changed for the review itself; its
+  one product finding from the Figma walk, FW-177, is the Zen Studio right-click fix in this list.
 - The Zen Figma skill works from the repo for Claude Code and Codex through the Figma MCP: `.claude/skills/` and
   `.agents/skills/` link to `skills/zen-figma-design`, its references link to their sources, and
   `npm run ai-kit:build` writes `figma-components.md` + `figma-tokens.md` into the skill folder (`ai-kit:check` fails

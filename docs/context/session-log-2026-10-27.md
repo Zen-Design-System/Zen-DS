@@ -35,11 +35,14 @@ The user: "Làm đánh giá toàn diện lại UI và UX của Zen studio". Noth
   7 grouped instance properties (M) · 8 dark mode decision · 9 small things · library Tabs aria + tab tone.
 - **Figma walk (`--only=figma`, 1056 s): 192 works · 4 broken.** FW-122/123 were the worktree's `pathkit-wasm`
   symlink (a real copy → both pass; memory `worktree-node-modules-caches` updated). FW-177 (right-click › Select all
-  with same › Fill: the layer menu never opens on the walk's match page) and FW-211 (`selectDock` never reaches the
-  Box) fail on both tries, in isolation (`--rows`), and at fbffa7ea = main before #330: regressions older than
-  10-26 that the gate's matrix never runs. By hand the FW-177 gesture opens "Shape actions" on another page. Reported
-  to Giám sát for an owner; not fixed here (a docs PR, no E2E baseline touched). Reports `.qa/studio-e2e/
-  2026-10-26T21-25-18.md`, `2026-10-27T05-15-39.md`.
+  with same › Fill: the layer menu never opens on the walk's match page) failed on both tries, in isolation (`--rows`)
+  and at fbffa7ea = main before #330; reported to Giám sát for an owner, who found a product bug from #310 (the phone
+  Screen's "Add Top / Bottom Navigation" placeholder swallowed the right-click of the layer under it) and fixed it in
+  #331 (main ccc0c7d9). By hand the gesture had opened "Shape actions" on a page without a phone Screen, which fits.
+  FW-211 (`selectDock` never reaches the Box) failed 3 / 3 here, twice with the real pathkit copy (12:16 on 1ac8c89f,
+  12:20 at fbffa7ea), but passes 9 / 9 for its owner on main and on the #331 branch: this worktree's environment,
+  cause unknown, not the product. Not fixed here (a docs PR, no E2E baseline touched). Reports `.qa/studio-e2e/
+  2026-10-26T21-25-18.md`, `2026-10-27T05-15-39.md`, `2026-10-27T05-18-55.md`.
 - Walk gotchas for the next reviewer: probe at a readable zoom (at 10% a double-click on a card's title hits the
   parent's resize handle and sets "height → hug"); the Layers rows of a folded frame are not in the DOM (expand first);
   `pointOfText("8")` finds the Tabs badge before the KPI value; the right `.studio-resizer` has no box until hovered
