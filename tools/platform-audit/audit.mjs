@@ -575,20 +575,31 @@ const bounded = (promise, ms, what) => {
   const limit = new Promise((_, reject) => { timer = setTimeout(() => reject(new Stall(typeof what === "function" ? what() : what)), ms); });
   return Promise.race([promise, limit]).finally(() => clearTimeout(timer));
 };
+// The browser runs as a BrowserServer the audit connects to: it owns the process (server.process(), server.kill()), so a
+// browser that no longer answers can still be ended. `browser` is the connection the checks drive.
+let server = null;
 let browser = null;
-const launch = () => bounded(chromium.launch(), 60_000, "launching Chromium");
-// A browser that does not close within 5 s is killed with its process group (Playwright starts it detached): every
-// pending call on it then throws, and nothing is left running when the audit exits.
-async function closeBrowser(b) {
-  if (!b) return;
-  const pid = b.process()?.pid;
-  await bounded(b.close(), 5000, "closing the browser").catch(() => {
-    for (const target of [-pid, pid]) { try { process.kill(target, "SIGKILL"); return; } catch { /* not a group, or gone */ } }
-  });
+// Kills the browser with its process group (Playwright starts it detached): every pending call on it then throws.
+const killBrowser = () => {
+  const pid = server?.process()?.pid;
+  if (pid) for (const target of [-pid, pid]) { try { process.kill(target, "SIGKILL"); return; } catch { /* not a group, or gone */ } }
+};
+// Playwright's own signal handlers close the browser gently and wait for it, forever when it does not answer: a SIGTERM
+// left the old audit and its Chromium running (as CI's cancelled runs left them, 2026-10-27). These kill it and exit.
+async function launch() {
+  server = await bounded(chromium.launchServer({ handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false }), 60_000, "launching Chromium");
+  browser = await bounded(chromium.connect(server.wsEndpoint()), 30_000, "connecting to Chromium");
+}
+for (const [signal, code] of [["SIGINT", 130], ["SIGTERM", 143], ["SIGHUP", 129]]) process.on(signal, () => { killBrowser(); process.exit(code); });
+// A browser that does not close within 5 s is killed, so nothing is left running when the audit exits.
+async function closeBrowser() {
+  if (!server) return;
+  await bounded(server.close(), 5000, "closing the browser").catch(() => killBrowser());
+  server = null; browser = null;
 }
 
 async function run() {
-  browser = await launch();
+  await launch();
   const report = { base: BASE, date: new Date().toISOString(), viewports: VIEWPORTS, dark: DARK, pages: {} };
   for (const width of VIEWPORTS) {
     const mobile = width < 768;
@@ -604,7 +615,7 @@ async function run() {
     };
     // A new context and tab; with `restart`, in a new browser too (after a stall nothing of the old one is reused).
     const reopen = async (restart) => {
-      if (restart) { await closeBrowser(browser); browser = await launch(); }
+      if (restart) { await closeBrowser(); await launch(); }
       context = await bounded(browser.newContext({ viewport: { width, height: mobile ? 844 : 1000 }, reducedMotion: "reduce", deviceScaleFactor: 1 }), 30_000, "opening a context");
       await bounded(context.addInitScript(freezeMotionInit, FREEZE_MOTION), 30_000, "adding the init script");
       page = await bounded(openPage(), 30_000, "opening a tab");
@@ -844,9 +855,9 @@ async function run() {
       throw e;
     }
     // A context that does not close means a browser that does not answer: the next viewport starts in a new one.
-    if (!await bounded(context.close(), 10_000, "closing the context").then(() => true, () => false)) { await closeBrowser(browser); browser = await launch(); }
+    if (!await bounded(context.close(), 10_000, "closing the context").then(() => true, () => false)) { await closeBrowser(); await launch(); }
   }
-  await closeBrowser(browser);
+  await closeBrowser();
 
   // Summary.
   let hardErrors = 0;
@@ -885,4 +896,4 @@ async function run() {
 
 // A crash (or a browser that could not be restarted) ends the run with exit 2; the browser is killed first, so no
 // Chromium is left behind.
-run().catch(async (e) => { console.error(e); await closeBrowser(browser); process.exit(2); });
+run().catch(async (e) => { console.error(e); await closeBrowser(); process.exit(2); });

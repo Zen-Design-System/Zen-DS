@@ -157,3 +157,28 @@ the story note say so (`npm run guidelines:build`). Measured on the Studio page 
 `npm run qa -- --isolated --pages=tabs --files=Tabs.tsx,Tabs.stories.tsx,guidelines.source.mjs` PASS (static gates,
 guidelines + AI UI catalog in sync after `npm run ai-ui:build`, TypeScript, Vitest 94/94, platform audit 1512 + 390 +
 320 0 errors, dark 0, behaviour 0; two contact sheets looked at: no visual change, as expected of an ARIA-only fix).
+
+## Platform audit no longer hangs CI (tier S; branch zen/fix/platform-audit-hang-20261027, Giám sát's slot)
+
+CI's Platform audit was cancelled at 45 min five times on 2026-10-27, silent for 18–30 min after the line of
+slider@390-dark, tag@1512-dark (#332, attempt 1: in the `--dark` pass, not after the summary), skeleton@1512,
+table@390, form@390. The watchdog of 2026-10-24 only `page.close()`d the tab and waited for the stuck call to throw;
+when Chromium itself stops answering, `close()` never settles either, so no `↻` line came. Repro (old audit.mjs, the
+fixture server SIGSTOPs the audit's browser): "✓ before@1512", then silence; a SIGTERM did not end it (Playwright's
+handler waits for the browser), 4 Chromium processes left: the same orphans CI listed.
+- **audit.mjs:** every wait on the browser is bounded on the Node side (`bounded`). Past `--page-timeout` the stall line
+  names the step (loading, page checks, quality checks, density, playground, smoke) and whether the dev server answers.
+  The browser is then closed (5 s at most, then SIGKILL on its process group) and relaunched; the page is audited once
+  more, then reported, and the run goes on. The browser runs as a BrowserServer + `connect()`, since
+  `Browser.process()` does not exist after `launch()`. Context and tab opening, the end of a viewport, the end of the
+  run, the crash path and SIGINT/SIGTERM/SIGHUP all end with the browser killed. The checks take the tab as a
+  parameter, so a stalled attempt's pending calls never reach the next tab.
+- **selftest.mjs:** frozen browser → exit 1 in ~19 s, freeze@1512 reported "at loading", before/after audited, no
+  Chromium left; frozen browser + SIGTERM → exits at once, no Chromium left. The caps kill with SIGKILL now.
+  109 passed, 32 s.
+- **ci.yml:** apt `Acquire::http(s)::Timeout 20` + `Retries 5` in both jobs (run 40397158706, 2026-10-26, did not
+  hang: `playwright install --with-deps` took 17 min on a stalling mirror; apt waits 120 s per retry by default); the
+  dev server's log on failure or cancel. `timeout-minutes` unchanged.
+- **Runs:** `audit.mjs --isolated` on form, image, table, tabs, skeleton, slider, tag, templates, text at 1512/390:
+  18/18 clean; `--dark`: 0 errors (the known outline-siblings warning on templates@390-dark); tabs@1512 with
+  `--smoke --quality --density`: clean.

@@ -20,8 +20,8 @@ How to maintain it:
   (3.79:1) is still open.
 - The platform audit no longer hangs a CI run (2026-10-27): every wait on the browser is bounded, a page past
   `--page-timeout` is audited again in a new browser (the stuck one is killed) and then reported with the step it was in,
-  and the audit exits with no Chromium left. Its self-test freezes the audit's own browser to prove it. CI's apt retries a
-  stalled download after 20 s instead of 120 s.
+  and the audit exits with no Chromium left, on a SIGTERM too. Its self-test freezes the audit's own browser to prove it.
+  CI's apt retries a stalled download after 20 s instead of 120 s.
 
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
