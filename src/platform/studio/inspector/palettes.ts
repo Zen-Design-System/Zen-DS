@@ -28,7 +28,12 @@ export const tonePalette: SwatchPalette = {
   has: (option) => toneSet.has(option),
   colorOf: (option) => (toneSet.has(option) ? contentToneVar(option as ContentTone) : null),
   caption: (option) => contentToneToken(option as ContentTone) ?? "Parent's color",
-  label: (option) => option,
+  // Figma's fill row names the variable in its collection's groups, as a shape's fill does ("Support / Neutral / Soft"):
+  // "strongest" → "Neutral / Strongest", "support-blue-light" → "Support / Blue / Light" (UX review 2026-10-27 §2.10).
+  label: (option) => {
+    const token = contentToneToken(option as ContentTone);
+    return token ? token.replace(/^Content\//, "").replace(/\/Default$/, "").split("/").join(" / ") : "Parent's color";
+  },
   resolve: (option) => resolveContentTone(option as ContentTone),
   groups: contentToneGroups.map(({ name, tones }) => ({ name, options: tones })),
 };
