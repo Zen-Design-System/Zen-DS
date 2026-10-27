@@ -1,7 +1,7 @@
 import { typographyStyles } from "../../../tokens/typography.generated";
 import type { DetachPlan, EditRequest, EditResponse, SourceElement, SourceFile, WriteRequest, WriteResponse } from "../types";
 import { engineOptions, loadDetach, loadEngine, zenComponents } from "./engine";
-import { getPage, pageFile, pageIdOf, putPage, replacePageDoc, setPageDoc } from "./store/pageStore";
+import { cachedPage, getPage, pageFile, pageIdOf, putPage, replacePageDoc, setPageDoc } from "./store/pageStore";
 import { loadPathKit } from "../draw/pathKit";
 import type { PageDoc } from "../../../../tools/studio/browser-engine.mjs";
 import { LEGACY_FRAME } from "../../../../tools/studio/screen-chrome.mjs";
@@ -138,6 +138,8 @@ async function moveScreenFrame(id: string, page: { text: string; doc?: PageDoc }
     const read = tracked.changed ? engine.docFromText(tracked.text, { components }).doc : null;
     if (read && JSON.stringify(engine.withoutIds(read)) === JSON.stringify(engine.withoutIds(plain.doc))) doc = read;
   }
+  // Only over the text it read: an edit that landed while it worked is newer (the next open moves it).
+  if (cachedPage(id)?.text !== page.text) return false;
   await putPage(id, moved.text, { doc });
   remember(engine.sha1(moved.text), doc);
   return true;
@@ -157,6 +159,9 @@ async function linkPhoneChrome(id: string, page: { text: string; doc?: PageDoc }
   const options = { ...(await engineOptions()), typographyKeys: Object.keys(typographyStyles), file };
   const linked = withPhoneSync(engine, null, { doc, text: page.text, locs: null }, file, options);
   if (linked.text === page.text) return false;
+  // Only over the text it read: an edit that landed while it worked (a Screen switched to Phone) is newer, and the next
+  // open or folder change links the page again.
+  if (cachedPage(id)?.text !== page.text) return false;
   await putPage(id, linked.text, { doc: linked.doc });
   remember(engine.sha1(linked.text), linked.doc);
   return true;

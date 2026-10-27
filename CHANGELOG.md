@@ -33,6 +33,12 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
 - Zen Studio right-click (2026-10-27): on a phone Screen, a layer under the dashed "Add Top / Bottom Navigation"
   placeholder opens its menu again. The placeholder covers the Screen's edge while a layer in it is selected, and a
   right-click there opened nothing. Its click still adds the Navigation. Studio E2E FW-177 passes again.
+- Zen Studio pages (2026-10-27): a Screen switched to Phone right after a new page is named no longer goes back to
+  Desktop now and then, and an edit made while the Studio reads the pages folder is no longer replaced by an older text.
+  The folder's listing, read before the Studio's own later saves landed, came back as a change from outside. A page
+  rewritten as it opens (its phone parts, an old layout) is rewritten only over the text it read.
+- Studio E2E (2026-10-27): a row that passed only on its retry is marked ↻ on its line and listed apart at the end of a
+  run and in the gate ("↻ Passed only on retry").
 - Zen Studio Overlay frames (2026-10-27): a modal drawn open on the board (a Side Panel, a Bottom Sheet, a Dialog in an
   Overlay frame) is a picture of it and takes no focus. Its autofocus took the focus from the Studio each time the page
   drew it again, closing a menu open in the Pages panel or leaving a field. Play still runs it live. Studio E2E B-28 waits
