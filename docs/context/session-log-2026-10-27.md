@@ -79,6 +79,15 @@ bar "Quản lý task · Danh sách"; a Text drawn in a free Screen reads X 150 /
 ("Saved · ⌘Z to undo"), ⌘Z back to 150 ("Undid “Text X → 300”"); its Fill "Neutral / Strongest"; axe
 `aria-valid-attr-value` 0 on the Studio page (12 tabs). Scripts: the session's scratchpad (`measure.mjs`, `walk.mjs`).
 
+**Gate** (`npm run qa -- --isolated --files=<19 files>`): static gates, Studio self-tests, guidelines, TypeScript ✓.
+Run 1: Studio E2E 385 works · 3 broken — NO-02 / NO-07 / NO-08 picked the Icon's tone by its old label "accent-base"
+(now "Accent / Base"): locator changed, the three rerun 3 works; PT-29 and I-32 recorded with `--update-baseline`.
+Run 2 (final code): shards 1 and 3 259 works · 0 broken, but shard 2/3 was stopped at its 42-min limit with no report
+(its first row LB-15, the six-chart insert that timed out in the 2026-10-25 gate too; the machine was under load) →
+the gate's verdict was FAIL. Shard 2 rerun alone on the same code: 129 works · 0 broken in 554 s. Every row of the
+matrix passed on the final code (388), across run 2's shards 1 + 3 and the shard 2 rerun, not in one gate run; a
+single green run is left to the slot's owner (reported to Giám sát).
+
 **§7.10 · Tabs `aria-controls` (`src/components/Tabs/Tabs.tsx`, own PR).** `aria-controls` is set only when `idPrefix`
 is given (only then can a TabPanel pair with the tabs); a generated prefix pointed at a panel that never existed (axe
 `aria-valid-attr-value`, critical, on every page with panel-less Tabs). Guideline + story note updated; the 12px tab
