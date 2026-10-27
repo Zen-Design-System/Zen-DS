@@ -32,8 +32,10 @@ const defaults: StudioState = {
   panels: { left: 272, right: 320, ui: true },
 };
 
-type SessionPart = Pick<StudioState, "page" | "localPage" | "space" | "collection" | "tool" | "viewports" | "selection" | "leftTab" | "inspectorTab" | "frameOverrides" | "undo" | "redo">;
-type PrefsPart = Pick<StudioState, "role" | "chromeTheme" | "preview" | "panels">;
+type SessionPart = Pick<StudioState, "page" | "localPage" | "space" | "collection" | "tool" | "selection" | "leftTab" | "inspectorTab" | "frameOverrides" | "undo" | "redo">;
+/** The viewport of each page lives with the preferences (localStorage) since 2026-10-27: a page reopens where it was
+ *  left after a reload, in a new tab and after a restart, as Figma reopens a file at its last viewport (UX review §2.3). */
+type PrefsPart = Pick<StudioState, "role" | "chromeTheme" | "preview" | "panels" | "viewports">;
 
 function read<T>(storage: () => Storage, key: string): Partial<T> {
   try {
@@ -82,8 +84,8 @@ let persistTimer: number | undefined;
 export function flushStudioStore() {
   window.clearTimeout(persistTimer);
   const { page, localPage, space, collection, tool, viewports, selection, leftTab, inspectorTab, frameOverrides, undo, redo, role, chromeTheme, preview, panels } = state;
-  write(() => window.sessionStorage, SESSION_KEY, { page, localPage, space, collection, tool, viewports, selection, leftTab, inspectorTab, frameOverrides, undo, redo } satisfies SessionPart);
-  write(() => window.localStorage, PREFS_KEY, { role, chromeTheme, preview, panels } satisfies PrefsPart);
+  write(() => window.sessionStorage, SESSION_KEY, { page, localPage, space, collection, tool, selection, leftTab, inspectorTab, frameOverrides, undo, redo } satisfies SessionPart);
+  write(() => window.localStorage, PREFS_KEY, { role, chromeTheme, preview, panels, viewports } satisfies PrefsPart);
 }
 
 function persist() {
@@ -126,8 +128,15 @@ export function pageKey(page: PlatformPage, collection: string | null, localPage
   return page === "design-tokens" && collection ? `design-tokens/${collection}` : page;
 }
 
+/** Pages whose viewport is remembered (the newest; older ones are forgotten, so the preferences never grow without end). */
+const VIEWPORTS_KEPT = 200;
+
 export function setViewport(key: string, viewport: StudioViewport) {
-  studioStore.setState((current) => ({ viewports: { ...current.viewports, [key]: viewport } }));
+  studioStore.setState((current) => {
+    const { [key]: _previous, ...others } = current.viewports;
+    const kept = Object.entries(others).slice(-(VIEWPORTS_KEPT - 1));
+    return { viewports: { ...Object.fromEntries(kept), [key]: viewport } };
+  });
 }
 
 export function setFrameOverride(key: string, frameId: string, override: StudioFrameOverride) {

@@ -15,6 +15,7 @@ import { EditLayer } from "../edit/EditLayer";
 import { previewAttributes } from "../shell/modes";
 import { setViewport, studioStore, useStudio } from "../store";
 import type { StudioViewport } from "../types";
+import { watchFirstVisit } from "./firstVisit";
 import { attachCanvas, canvasApi, compensateInset, FIRST_VISIT_MIN_ZOOM, notifyCanvas, panBy, setViewportNow, toWorldRect, viewportForWidth, zoomAtClient } from "./viewport";
 import { CANVAS_STATUS_ID } from "./CanvasStatus";
 import { useKeepSelectionInView } from "./keepInView";
@@ -102,17 +103,22 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
     return () => { window.clearTimeout(timer); detach(); };
   }, [viewport, world]);
 
-  // A page opens where it was left. The first visit shows the board's top-left (title, then the Playground or the
-  // document) 48px in, at the zoom that fits the Playground's width in the visible canvas — but never below 50%
-  // (FIRST_VISIT_MIN_ZOOM) nor above 100%; the Docs frame beside it is one pan away.
+  // A page opens where it was left (the viewport is kept per page in the preferences, so after a reload, in a new tab
+  // and after a restart too). The first visit of a docs page shows the board's top-left (title, then the Playground or
+  // the document) 48px in, at the zoom that fits the Playground's width in the visible canvas — but never below 50%
+  // (FIRST_VISIT_MIN_ZOOM) nor above 100%; the Docs frame beside it is one pan away. A page you made draws its frames
+  // only once its document is read: that view is provisional, and the first view is set when the frames are drawn
+  // (canvas/firstVisit.ts: one row of frames fits whole, else the first Screen fills the view; UX review §2.3).
   useLayoutEffect(() => {
-    if (!viewport || !world) return;
+    if (!viewport || !world) return undefined;
     keyRef.current = viewKey;
     const saved = studioStore.getState().viewports[viewKey];
-    if (saved) { setViewportNow(saved); return; }
+    if (saved) { setViewportNow(saved); return undefined; }
     const row = ["[data-studio-frame='playground']", "[data-studio-frame='document']", ".studio-board"].map((selector) => world.querySelector<HTMLElement>(selector)).find(Boolean);
     const rect = row ? toWorldRect(row.getBoundingClientRect()) : { x: 0, y: 0, width: world.offsetWidth, height: world.offsetHeight };
     setViewportNow(viewportForWidth({ x: 0, y: 0, width: rect.x + rect.width, height: rect.y + rect.height }, 48, 1, FIRST_VISIT_MIN_ZOOM));
+    if (!viewKey.startsWith("local:")) return undefined;
+    return watchFirstVisit(world, (first) => setViewportNow(first));
   }, [viewKey, viewport, world]);
 
   // Wheel and pinch. Non-passive, so the page itself never scrolls or zooms.
@@ -213,7 +219,7 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
   // shown, hidden (⌘\) or resized also moves the canvas's left edge: the world pans back by as much in the same frame
   // (ResizeObserver runs before paint), so the content stays still on screen.
   useEffect(() => {
-    if (!viewport) return undefined;
+    if (!viewport || !world) return undefined;
     let left = viewport.getBoundingClientRect().left;
     const observer = new ResizeObserver(() => {
       const next = viewport.getBoundingClientRect().left;
@@ -224,7 +230,10 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
     });
     observer.observe(viewport);
     // Focus moving to a control off screen (Tab in Interact) makes the browser scroll the clipped viewport, which would
-    // shift the whole canvas under its chrome: turn that scroll into a pan instead.
+    // shift the whole canvas under its chrome: turn that scroll into a pan instead. Only while the focus is in the world:
+    // a layer drawn on the board that focuses itself (a field with autoFocus in an Overlay frame's modal) has its focus
+    // taken back by the Studio at once, and its scroll revealed nothing — it panned a page you made 2793 px to that
+    // overlay as it opened, with the Screen off-screen (UX review 2026-10-27 §2.3).
     const onScroll = () => {
       const { scrollLeft, scrollTop } = viewport;
       if (!scrollLeft && !scrollTop) return;
@@ -232,11 +241,12 @@ export function StudioCanvas({ label, viewKey, children }: { label: string; view
       viewport.scrollTop = 0;
       // A full-screen screen open in the world is fixed to the window: the scroll revealed nothing, so no pan.
       if (viewport.dataset.worldFullscreen === "true") return;
+      if (!document.activeElement || !world.contains(document.activeElement)) return;
       panBy(scrollLeft, scrollTop);
     };
     viewport.addEventListener("scroll", onScroll, { passive: true });
     return () => { observer.disconnect(); viewport.removeEventListener("scroll", onScroll); };
-  }, [viewport]);
+  }, [viewport, world]);
 
   // The board laid out again (a frame above the selection grew, the Playground reflowed): a selection that was on the
   // canvas and went off it comes back with the smallest pan (keepInView.ts).
