@@ -812,5 +812,6 @@ fbffa7ea.
 - Seen in the dives, other causes, not in this change: PT-18 (a waitFor of its own, 10 s) and PT-24 (row time out).
 - Proof (Giám sát's slots, 41affd83 on main fbffa7ea): Vitest studio-overlay-frame fails on the old runtime.tsx (the
   Bottom Sheet took the focus) and passes with the fix; PT-19, PT-27, B-28 `--no-retry` 5/5 each; `--shard=1/4 … 4/4`
-  386 works · 0 broken and no row passed on retry; gate `qa --isolated --files=` the three files: PASS (Studio E2E 386
+  386 works · 0 broken, PT-24 passed on retry in shard 2 (first reported as none: the runner's row line cut its retry
+  note, and the stdout grep missed it; the JSON report has it); gate `qa --isolated --files=` the three files: PASS (Studio E2E 386
   works · 0 broken in 3 shards; I-03 and PT-25 passed on retry there), report `.qa/reports/2026-10-26T19-38-18-74c671d1.md`.

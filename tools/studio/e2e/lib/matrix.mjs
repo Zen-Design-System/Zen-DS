@@ -12,7 +12,8 @@ export function createMatrix() {
     rows,
     add(row) {
       rows.push(row);
-      const mark = row.status === "works" ? "✓" : row.status === "broken" ? "✗" : "–";
+      // ↻: worked on its retry only (run.mjs `retry`), marked first since a long evidence is cut before its retry note.
+      const mark = row.status === "works" ? (row.retry ? "↻" : "✓") : row.status === "broken" ? "✗" : "–";
       const detail = row.status === "works" ? row.evidence : row.error ?? row.evidence;
       console.log(`  ${mark} ${row.id.padEnd(6)} ${row.feature}${detail ? `  · ${String(detail).slice(0, 140)}` : ""}`);
     },
