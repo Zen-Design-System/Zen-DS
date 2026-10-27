@@ -350,7 +350,7 @@ export function PartCodeDetails({ selection }: { selection: PartSelection }) {
   if (!resolved) return <p className={`studio-inspector__empty ${typographyStyles["Body/Small/Regular"]}`}>Finding {name} on the canvas…</p>;
   return (
     <>
-      <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{name} · part of {selection.name}: what it renders</p>
+      <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{name} · part of {selection.name}</p>
       <PartDetails part={resolved} />
     </>
   );

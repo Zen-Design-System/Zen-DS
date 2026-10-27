@@ -120,8 +120,9 @@ nested instances for an instance (`namedParts`, 2026-10-13); its "show all" mode
 | Hands-on walk (Playwright on a private server :5186, a copy of the user's `quan-ly-task`, 1512×982, zoom 67% on the first Metric card) | passes, see the walk table below |
 | `npm run studio:e2e -- --only=figma --rows=FW-255,FW-256,FW-257,FW-258 --no-retry` | 4 works, twice in a row (35 s, 37 s) |
 | `--only=starters --rows=SP-14,SP-18,SP-19` · `--only=data --rows=DA-01,DA-02,DA-08,DA-09` · `--only=select --rows=SE-09,SE-31,SE-33` | 3 + 4 + 3 works, no retry needed |
-| `--only=figma` (whole group, default retry) | pending |
-| `npm run qa` | pending |
+| `--only=figma` (whole group, default retry; on the merge with main 8c21a815) | **200 works · 0 broken** (984 s); 8 passed on their retry (FW-193, 201, 25, 64, 113, 56, 142, 205: timeouts under load), all 8 pass alone with `--no-retry` (42 s) |
+| After the merge with main f20fb85c (#334 … #336): `--rows=FW-255,FW-256,FW-257,FW-258 --no-retry` · `--only=starters --rows=SP-18` · `--only=data --rows=DA-02` | 4 + 1 + 1 works |
+| `npm run qa -- --files=<the 10 edited Studio files>` (`npm run qa` alone says "Nothing to check": the hook records no edits made through scripts) | first run: static gates pass but the words self-test flagged "what it renders" on the Code tab's part note (reworded); second run: see below |
 
 The walk, in "you do → what happens" form (after the merge with main 8c21a815):
 
