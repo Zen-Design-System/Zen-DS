@@ -36,7 +36,23 @@ function dataOf(expression: string): string | null {
 }
 
 /** Phrases first (they read better whole), then the single words. Each pair: [pattern, replacement]. */
-const PHRASES: Array<[RegExp, string]> = [
+const PHRASES: Array<[RegExp, string | ((match: string) => string)]> = [
+  // The UX review 2026-10-27 §6: the engine's refusals and the Studio's status lines that still spoke code.
+  [/\bRestart the (?:Studio |dev )?server(?::| to)[^.;]*/g, "This needs a newer Studio — ask whoever runs it to restart it"],
+  [/\bharness clean\b/g, "checks passed"],
+  [/\bharness failed\b/g, "checks failed"],
+  [/\bharness findings?\b/g, (match: string) => match.replace("harness", "check")],
+  [/\(line \d+: ([^)]*)\)/g, "— $1"],
+  [/\bis a parameter; its value comes from where the component is used\b/g, "comes from where the component is used — edit it there"],
+  // (camelCase names and tags are already words here: "its use state lines", "(Card)".)
+  [/\ban item with state is not copied into the example snippet \(its use ?[Ss]tate lines are not in it\); update it by hand(?: \([^)]*\))?/g, "this item is not in it (the Code tab shows it)"],
+  [/\b[\w@./-]+ is not an editable example source\b/g, "This example can't be edited here"],
+  [/\b[\w.]+ (?:here )?is docs chrome \(zen-studio-chrome\)(?:; edit it in the code)?\.?/g, "This is part of the docs page, not of the example"],
+  [/\bBad loc "[^"]*"(?: \(expected "[^"]*"\))?\.?/g, "Select the layer again"],
+  [/\bThe file does not parse\.?/g, "The page's code has an error — see the Code tab"],
+  // The same two words elsewhere in the engine's refusals, with their own tails kept.
+  [/\b([\w'’]+) is docs chrome\b/g, "$1 is part of the docs page, not of the example"],
+  [/\bdoes not parse\b/g, "has an error in its code"],
   [/\bhas no children to drop into\b/g, "can't hold layers"],
   [/\bhas a key; a copy would repeat it\b/g, "is drawn once per row of a list; a copy would repeat that row"],
   [/\bonly an element's children can be\b/g, "only layers inside a layer can be"],
@@ -129,6 +145,13 @@ const CODE_WORDS: Array<[string, RegExp]> = [
   // A word, not part of an identifier or a path (data-zen-src, src/components, Re-binding): as `guarded` reads them.
   ["code word", /(?<![-\w./])(?:JSX|jsx|props?|children|child|elements?|src|callback|spread|expression|binding|hooks?|snippet|recipe|literal|array|parameters?|arguments?|attributes?|markup|render(?:s|ed|ing)?|source|HTML)(?![-\w/]|\.\w)/],
   ["dev server", /\bdev server\b/],
+  // The UX review 2026-10-27 §6: a tool's name, a restart asked of a designer, a line number, the engine's parse words.
+  ["harness", /\bharness\b/],
+  ["restart the server", /\bRestart the (?:Studio |dev )?server\b/],
+  ["line N", /\(line \d+: /],
+  ["docs chrome", /\bdocs chrome\b/],
+  ["does not parse", /\bdoes not parse\b/],
+  ["Bad loc", /\bBad loc\b/],
   ["Stack / Box", /(?<![-\w./])(?:Stacks?|Box(?:es)?)(?![-\w])/],
   ["line:column", /\bat \d+:\d+(?::\d+)?\b/],
   [".map", /(?<![\w$])\.map\b|\b\w+\.map\b/],
@@ -196,7 +219,7 @@ export function designWords(text: string): string {
   // Dotted names (me.photo) read as a data path; camelCase names (setProps) as words, before the glossary reads them.
   out = out.replace(/\b([a-z_$][\w$]*(?:\.[a-z_$][\w$]*)+)\b/g, (match) => (FILE_NAME.test(match) ? match : dataOf(match) ?? match));
   out = out.replace(/\b(?!(?:iPhone|iPad|iOS|macOS)\b)[a-z]+[A-Z][A-Za-z0-9]*\b/g, spaced);
-  for (const [pattern, replacement] of PHRASES) out = out.replace(pattern, replacement);
+  for (const [pattern, replacement] of PHRASES) out = typeof replacement === "string" ? out.replace(pattern, replacement) : out.replace(pattern, replacement);
   for (const [pattern, replacement] of WORDS) out = out.replace(guarded(pattern), replacement);
   out = articles(out);
   // Tidy what the removals leave: empty separators, a space before punctuation, doubled spaces.
@@ -208,4 +231,20 @@ export function designWords(text: string): string {
     .replace(/:\s*(?=·|$)/g, "")
     .replace(/\s{2,}/g, " ")
     .trim();
+}
+
+/** Explicit words for Figma layer names whose generic reading would still be the layer's (the UX review 2026-10-27 §6 row 23). */
+const LAYER_WORDS: Record<string, string> = { "Action-Slots": "Actions", "Nav-Trailing-Block": "Trailing", "Main-Element": "Main element", "Pane-Content": "Pane content", "Child-Heading": "Child heading", "Top-Custom-Slot": "Top custom", "Control-Slot": "Control" };
+
+/**
+ * A Figma layer or slot name as a designer reads it on a label: "Top-Heading-Text" → "Top heading text", "Leading-Icon-Src"
+ * → "Leading icon", "Trailing-Slots" → "Trailing". The name itself stays the key (slots, groups, Figma push); only the
+ * words shown change. Pure, so the E2E harness and selftests read it too.
+ */
+export function layerLabel(name: string): string {
+  const known = LAYER_WORDS[name];
+  if (known) return known;
+  if (!/^[A-Z][A-Za-z0-9]*(?:-[A-Za-z0-9]+)+$/.test(name)) return name;
+  const words = name.replace(/-(?:Src|Slots?|Block)$/, "").split("-").filter(Boolean);
+  return words.map((word, index) => (index === 0 || /^[A-Z0-9]{2,}$/.test(word) ? word : word.toLowerCase())).join(" ");
 }

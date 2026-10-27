@@ -238,7 +238,7 @@ export const rows = [
         const slot = page.locator('#studio-right [data-slot="footer"]');
         await slot.waitFor({ state: "visible", timeout: 5000 });
         await until(async () => /Written in\s*appsItem/.test(await page.locator("#studio-right").innerText()), { message: "the note: Written in appsItem" });
-        await slot.getByRole("button", { name: "Add to Footer-Content" }).click();
+        await slot.getByRole("button", { name: "Add to Footer content" }).click();
         await page.getByRole("option", { name: /^Menu item/ }).first().click();
         const written = async () => (await ctx.api.source(file)).content;
         await until(async () => /const appsItem = <>[\s\S]*<SidebarMenuItem id="invoices-\w+"/.test(await written()), { message: "the Menu item added inside const appsItem" });
@@ -270,7 +270,7 @@ export const rows = [
           await page.mouse.dblclick(box.x + 16, box.y + box.height / 2);
           await sleep(500);
         }
-        await until(async () => (await named()).startsWith("Menu-Item · in Body-Content"), { message: "the Menu-Item selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await named()})`); });
+        await until(async () => (await named()).startsWith("Menu-Item · in Body content"), { message: "the Menu-Item selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await named()})`); });
         const counter = page.locator('#studio-right [data-prop="counter"] input').first();
         await counter.fill("3");
         await counter.press("Enter");
@@ -289,7 +289,7 @@ export const rows = [
           await page.keyboard.up("ControlOrMeta");
           await sleep(500);
         }
-        await until(async () => (await named()).startsWith("Section-Title · in Body-Content"), { message: "the Section-Title selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await named()})`); });
+        await until(async () => (await named()).startsWith("Section-Title · in Body content"), { message: "the Section-Title selected" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await named()})`); });
         await page.locator(".studio-viewport").focus();
         await page.keyboard.press("Backspace");
         // Only the Sidebar's list: the page's role filter has an "Admin" option of its own.
@@ -367,18 +367,18 @@ export const rows = [
           await page.mouse.dblclick(point.x, point.y);
           await sleep(500);
         }
-        await expect("Section · in Body-Content", "a double-click selected the section");
+        await expect("Section · in Body content", "a double-click selected the section");
         if (!/^Admin · /.test(await note())) throw new Error(`not the Admin section: ${await note()}`);
         steps.push(await note());
         {
           const point = await end("Billing");
           await page.mouse.dblclick(point.x, point.y);
         }
-        await expect("Menu-Item · in Body-Content", "the next double-click selected the row");
+        await expect("Menu-Item · in Body content", "the next double-click selected the row");
         steps.push("Menu-Item");
         await page.locator(".studio-viewport").focus();
         await page.keyboard.press("Escape");
-        await expect("Section · in Body-Content", "Escape went up to the section");
+        await expect("Section · in Body content", "Escape went up to the section");
         // A section selected: a click on a row of another section selects that section (Figma's siblings).
         {
           const point = await end("Home");
@@ -408,7 +408,7 @@ export const rows = [
         await until(async () => (await selectedName(page)) === "MetricCard", { message: "the MetricCard selected" });
         const panel = page.locator("#studio-right");
         const switches = await panel.getByRole("switch").evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
-        for (const label of ["Hint", "Label-Icon", "Custom"]) if (!switches.includes(label)) throw new Error(`no ${label} switch (${switches.join(", ")})`);
+        for (const label of ["Hint", "Label icon", "Custom"]) if (!switches.includes(label)) throw new Error(`no ${label} switch (${switches.join(", ")})`);
         if (switches.includes("Counter")) throw new Error("Counter shows on Title-Highlight, where nothing draws it");
         await panel.getByRole("switch", { name: "Custom", exact: true }).click();
         const picker = page.locator(".studio-slots__picker-scope");
@@ -417,7 +417,7 @@ export const rows = [
         await picker.getByRole("option").first().click();
         await until(async () => /custom=\{<Stack[^]*?<ProgressBar/.test(await firstElementText(page, id, "MetricCard")), { timeout: 8000, message: "custom={…ProgressBar…} written" });
         await until(() => page.evaluate(() => Boolean(document.querySelector(".studio-frame .zen-metric-card .zen-metric__custom .zen-progress, .studio-frame .zen-metric-card .zen-metric__custom [role=progressbar]"))), { timeout: 8000, message: "the progress bar drawn in the card" });
-        return "Hint, Label-Icon, Custom (no Counter); Custom → picker → ProgressBar in Custom-Slot";
+        return "Hint, Label icon, Custom (no Counter); Custom → picker → ProgressBar in Custom-Slot";
       } finally {
         await ctx.studio({ fresh: true });
       }
@@ -575,7 +575,7 @@ export const rows = [
         await page.keyboard.down("Meta"); await page.mouse.click(title.x + title.width + 40, title.y + title.height / 2); await page.keyboard.up("Meta"); await sleep(400);
         await until(async () => (await selectedName(page)) === "PageHeader", { message: "the PageHeader selected" });
         const before = (await firstElementText(page, id, "PageHeader")).split("<Button").length;
-        await page.locator("#studio-right").getByRole("button", { name: /Add to Action-Slots/ }).first().click();
+        await page.locator("#studio-right").getByRole("button", { name: /Add to Actions/ }).first().click();
         await page.getByRole("option", { name: /^Button/ }).first().click();
         await until(async () => (await firstElementText(page, id, "PageHeader")).split("<Button").length > before, { timeout: 8000, message: "a Button in the header's actions" }).catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
         // Since 2026-10-16 (user: a prop holds several layers for real) the actions may be a fragment: the Button is one

@@ -94,7 +94,7 @@ const iconItem = (count: number, items: ReadonlyArray<readonly [string, string]>
 };
 
 /** New trailing actions in turn: a label that says what its icon does. */
-const NAV_ACTIONS: ReadonlyArray<readonly [string, string]> = [["Favourite", "icon-star-01-line"], ["Share", "icon-share-01-line"], ["More", "icon-dots-horizontal-line"]];
+const NAV_ACTIONS: ReadonlyArray<readonly [string, string]> = [["Favorite", "icon-star-01-line"], ["Share", "icon-share-01-line"], ["More", "icon-dots-horizontal-line"]];
 
 /* Figma: the live file 9nZv4uW2LT21yuHabMTCh1, Top-Navigation/Mobile 12014:45167 (2026-10-04 scan, re-read 2026-10-05):
  * Navigator-bar › Top-Trailing (12013:39653) › Trailing-Slot › Action; Expand-Heading › Header-Trailing (12014:44753) ›

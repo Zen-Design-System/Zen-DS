@@ -51,8 +51,8 @@ export function codeOf(item: PaletteItem, file?: string): string | null {
 /** The state an insert declares: none on a builder page (its code is the static version, codeOf). */
 const stateFor = (item: Insertable, file: string | undefined) => (file?.startsWith("local:") ? undefined : item.state);
 const builderRefusal = (item: PaletteItem) => item.group === "Overlays"
-  ? `On a builder page ${item.label} opens from an action: add it with Prototype › Add overlay, then point a button at it`
-  : `${item.label} keeps state or code, which a builder page has none of (its screens and overlays do that: Prototype tab)`;
+  ? `On a page you made ${item.label} opens from an action: add it with Prototype › Add overlay, then point a button at it`
+  : `${item.label} needs interactions: on a page you made, add them in the Prototype tab`;
 
 /** Anything the library adds (Studio builder GĐ3): a palette item, an icon, a photo. */
 export type Insertable = {

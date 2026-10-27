@@ -8,7 +8,7 @@ import { DEVICE_WIDTH, type PageDevice } from "../builder/proto/runtime";
 import type { PageNode, PageTree } from "../builder/render/renderPage";
 import { useScreenView } from "../builder/screenViews";
 import { behavioursAt, screenFacts } from "./breakpointBehaviours";
-import { InspectorSection } from "./Section";
+import { InspectorSection, SectionNote } from "./Section";
 
 /*
  * The Screen's breakpoint in the Inspector (docs/research/studio-responsive-breakpoints-2026-10-26.md §3.5, §5): what Zen
@@ -39,7 +39,7 @@ export function BreakpointSection({ frameId, node, tree }: { frameId: string; no
       title={`Changes on ${name}`}
       className="studio-breakpoint-section"
       actions={<Icon name={BREAKPOINT_ICONS[breakpoint] as IconName} size="sm" decorative />}
-      note={primaryTitle ? `${BREAKPOINT_LABELS[screenBreakpoint(device, width)]} version of ${primaryTitle}: a copy, so edits here stay here. Parts made into components (⌥⌘K) stay shared.` : undefined}
+      note={primaryTitle ? <SectionNote text={`A ${BREAKPOINT_LABELS[screenBreakpoint(device, width)]} copy of ${primaryTitle}: edits stay here`} more="A copy of that Screen, so edits here stay here. Parts made into components (⌥⌘K) stay shared." /> : undefined}
     >
       {changes.length ? (
         <ul className="studio-breakpoint-section__list" aria-label={`What Zen changes on ${name}`}>
@@ -48,7 +48,7 @@ export function BreakpointSection({ frameId, node, tree }: { frameId: string; no
           ))}
         </ul>
       ) : (
-        <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{breakpoint === "desktop" ? "Nothing: Desktop is the Screen as designed. View it on Tablet or Mobile to see what changes." : `Nothing on this Screen changes on ${name}.`}</p>
+        <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>{breakpoint === "desktop" ? <SectionNote text="Nothing: Desktop is the Screen as designed" more="View it on Tablet or Mobile to see what changes." /> : `Nothing on this Screen changes on ${name}.`}</p>
       )}
     </InspectorSection>
   );

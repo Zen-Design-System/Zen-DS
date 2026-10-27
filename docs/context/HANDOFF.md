@@ -19,6 +19,13 @@ Last updated: 2026-10-27.
 
 ## State in short
 
+- **Studio UX review §7 items 6–8 (2026-10-27, words · grouped properties · Dark mode UI-only):** branch
+  `claude/studio-words-props-dark-20261027-b8fcaa` (the review's BACKLOG line names it `zen/fix/studio-words-props-dark-20261027`).
+  Design words through `words.ts` (`layerLabel`, new phrases) and the owning components; `SectionNote` (one line + info
+  tooltip); `inspector/sizeNote.ts` (the size badge's note, published by the canvas — the badge side is with session
+  studio-gestures); `inspector/propCategories.ts` + `GroupedProperties` groups (Content · Look · Behavior · Advanced,
+  `FLAT_GROUPS` for components without Figma groups); `shell/modes.ts` `setStudioTheme` (chrome only) and
+  `setPreviewTheme` (the frames). E2E I-35…I-38, S-08, S-09. Detail: session log 2026-10-27.
 - **Studio UI/UX review (2026-10-27, docs only):** `docs/research/studio-ux-review-2026-10-27.md` — five hands-on
   walks on the user's pages, the Figma-key E2E walk, axe, a UX-writing audit (40 strings), 15 screenshots. Ranked
   proposal §7 approved by the user 2026-10-27, in order: P0 double-click / Enter land on DOM parts with a CSS panel and ⌘A / ⌘D die after

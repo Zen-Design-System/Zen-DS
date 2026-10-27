@@ -177,7 +177,6 @@ export function ObjectProperties({ component, props, api, only, selection, defau
     // An optional boolean switched to what it draws unset is left out (`dot: false` reads as noise; a crumb's `dash`
     // is on unset, so off is written); a field reset is removed.
     const remove = value === null || (!sub && field.optional && field.editor.kind === "boolean" && value === (defaultsOf(group)?.[field.name] ?? false));
-    const where = `${group.prop}${group.index !== undefined ? `[${group.index}]` : ""}.${field.name}${sub ? `.${sub}` : ""}`;
     const list = !remove && !sub && isNumberList(field) ? numberListCode(String(value)) : null;
     if (!remove && !sub && isNumberList(field) && list === null) { announceEditStatus({ kind: "error", message: `${propLabel(field.name)}: write numbers separated by commas (12, 18, 7)`, at: Date.now() }); return; }
     const edit: EditValue | null = remove ? null : list !== null ? { kind: "expression", code: list } : toEditValue(value as Literal);
@@ -187,7 +186,7 @@ export function ObjectProperties({ component, props, api, only, selection, defau
       [within
         ? { op: "setField", name: within.name, ...(within.index !== undefined ? { index: within.index } : {}), path: [{ key: group.prop, ...(group.index !== undefined ? { index: group.index } : {}) }, ...into], key: sub ?? field.name, value: edit }
         : { op: "setField", name: group.prop, ...(group.index !== undefined ? { index: group.index } : {}), ...(into.length ? { path: into } : {}), key: sub ?? field.name, value: edit }],
-      `${component} ${where} → ${remove ? "reset" : display(value as Literal)}`,
+      `${component} ${group.title} › ${propLabel(field.name)}${sub ? ` › ${propLabel(sub)}` : ""} → ${remove ? "reset" : display(value as Literal)}`,
     ).then((written) => { if (!written) setOverrides({}); });
   };
 

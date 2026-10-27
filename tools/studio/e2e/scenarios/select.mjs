@@ -586,7 +586,7 @@ export const rows = [
       const page = await freshSelect(ctx, "inst-nav-box", { frame: 6, position: { dx: 4, dy: 4 } });
       await page.keyboard.press("Enter");
       await until(async () => (await selectedName(page)) === "TopNavigation", { message: "the TopNavigation selected" });
-      const tag = page.locator(".studio-slots__outline .studio-slots__tag", { hasText: "Top-Trailing" });
+      const tag = page.locator(".studio-slots__outline .studio-slots__tag", { hasText: "Top trailing" });
       await until(() => tag.count(), { message: "the Top-Trailing outline" });
       const chip = page.locator(".studio-slots__chip").getByRole("button", { name: "Add Action to Top-Trailing" });
       await chip.waitFor({ state: "visible", timeout: 4000 });

@@ -853,7 +853,7 @@ export const PALETTE: readonly PaletteItem[] = [
   },
   {
     id: "alert-banner", label: "Alert banner", group: "Feedback", caption: "Info", root: "AlertBanner", components: ["AlertBanner"], interactive: false, input: false,
-    build: () => `<AlertBanner theme="info">Zen is read-only tonight from 11:00 pm to 1:00 am while the studio moves to a new data centre.</AlertBanner>`,
+    build: () => `<AlertBanner theme="info">Zen is read-only tonight from 11:00 pm to 1:00 am while the studio moves to a new data center.</AlertBanner>`,
   },
   {
     id: "skeleton", label: "Skeleton", group: "Feedback", caption: "Loading text", root: "Stack", components: ["Stack", "SkeletonHeading", "SkeletonText"], interactive: false, input: false,
@@ -1045,15 +1045,15 @@ export const PALETTE: readonly PaletteItem[] = [
   },
   {
     id: "color-field", label: "Color field", group: "Inputs", caption: "Hex with a swatch, opens the picker", root: "ColorField", components: ["ColorField"], interactive: true, input: true,
-    build: () => `<ColorField label="Brand colour" defaultValue="#1F6FEB" savedColors={["#1F6FEB", "#0E9F8E", "#E07B12", "#E5533D"]} />`,
+    build: () => `<ColorField label="Brand color" defaultValue="#1F6FEB" savedColors={["#1F6FEB", "#0E9F8E", "#E07B12", "#E5533D"]} />`,
   },
   {
     id: "color-picker", label: "Color picker", group: "Inputs", caption: "Inline picker", root: "ColorPicker", components: ["ColorPicker"], interactive: true, input: true,
-    build: () => `<ColorPicker aria-label="Highlight colour" defaultValue="#E07B12" />`,
+    build: () => `<ColorPicker aria-label="Highlight color" defaultValue="#E07B12" />`,
   },
   {
     id: "color-swatch", label: "Color swatch", group: "Data display", caption: "Shows a color value", root: "ColorSwatch", components: ["ColorSwatch"], interactive: false, input: false,
-    build: () => `<ColorSwatch color="#1F6FEB" aria-label="Brand colour, #1F6FEB" />`,
+    build: () => `<ColorSwatch color="#1F6FEB" aria-label="Brand color, #1F6FEB" />`,
   },
   {
     id: "curve-preview", label: "Curve preview", group: "Charts", caption: "A motion curve, above its settings", root: "CurvePreview", components: ["CurvePreview"], interactive: false, input: false,
@@ -1066,14 +1066,14 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "color-selector", label: "Color selector", group: "Inputs", root: "ColorSelector", components: ["ColorSelector"], state: [state("color", '"var(--zen-color-background-support-blue-solid)"')], interactive: true, input: true,
     build: () => lines(
-      `<ColorSelector aria-label="Project colour" value={color} onValueChange={setColor} colors={[`,
+      `<ColorSelector aria-label="Project color" value={color} onValueChange={setColor} colors={[`,
       `  { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" },`,
       `  { value: "var(--zen-color-background-support-green-solid)", label: "Green" },`,
       `  { value: "var(--zen-color-background-support-orange-solid)", label: "Orange" },`,
       `]} />`,
     ),
     builder: () => lines(
-      `<ColorSelector aria-label="Project colour" value="var(--zen-color-background-support-blue-solid)" colors={[`,
+      `<ColorSelector aria-label="Project color" value="var(--zen-color-background-support-blue-solid)" colors={[`,
       `  { value: "var(--zen-color-background-support-blue-solid)", label: "Blue" },`,
       `  { value: "var(--zen-color-background-support-green-solid)", label: "Green" },`,
       `  { value: "var(--zen-color-background-support-orange-solid)", label: "Orange" },`,
@@ -1404,7 +1404,7 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
   const { context, insideCard, warningFor } = hostRules(ctx);
   /** The code cannot be written here (the server would refuse it). */
   const blockFor = (item: PaletteItem): string | null => {
-    if (ctx.builder && !item.builder && (item.state?.length || builderCode(item.build(context)) === null)) return "It needs live state; pages you make get interactions from the Prototype tab";
+    if (ctx.builder && !item.builder && (item.state?.length || builderCode(item.build(context)) === null)) return "It needs interactions: add them in the Prototype tab";
     if (ctx.canUseToast === false && (item.requires?.includes("toast") || item.state?.length)) return "It runs an action, and this spot cannot run one";
     if (ctx.canUseMedia === false && item.requires?.includes("media")) return "Library pictures work on example pages only";
     return null;

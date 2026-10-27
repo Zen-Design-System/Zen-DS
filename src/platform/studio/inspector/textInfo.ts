@@ -133,7 +133,7 @@ function roomOf(element: Element): boolean {
  */
 export function alignmentHint(prop: string, rendered: RenderedText): string | undefined {
   if (prop === "align" && rendered.inline) return "Shows on a block: this text renders inline";
-  if (prop === "verticalAlign" && !rendered.room) return "Shows when the box is taller than its text (Height Fixed or Fill)";
+  if (prop === "verticalAlign" && !rendered.room) return "Needs a taller box: Height Fixed or Fill";
   return undefined;
 }
 

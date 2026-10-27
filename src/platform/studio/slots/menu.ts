@@ -10,6 +10,7 @@ import { onlyFrame, slotContentOf } from "./content";
 import { toEnd } from "../edit/figmaKeys";
 import { modKey } from "../shell/modKey";
 import { activeSlotsOf, contentSummaryOf, hostPropsOf, slotsOf } from "./registry";
+import { layerLabel } from "../words";
 
 /*
  * The canvas menu's slot items (spec "Context menu", Figma's layer menu): Add to {Slot}… · Reset slot · Duplicate ⌘D ·
@@ -88,7 +89,7 @@ export function useSlotMenuItems(selection: NodeSelection | null, point: { x: nu
     const reason = refusal ?? block;
     return {
       id: `slot-add:${slot.prop}`,
-      label: `Add to ${slot.name}…`,
+      label: `Add to ${layerLabel(slot.name)}…`,
       icon: "icon-plus-line",
       disabled: reason !== null,
       caption: reasonFor(reason),

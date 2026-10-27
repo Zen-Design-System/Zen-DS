@@ -27,6 +27,7 @@ import { dataItemOfPart, dataItemRootOf, type DataSlot } from "../slots";
 import { dataGroupOfPart } from "../slots/dataItems";
 import { DataGroupSections, DataItemBanner, DataItemSections, DataItemsSections } from "./DataItemPanel";
 import { selectedPlaces, useItemSelection } from "../slots/itemSelection";
+import { layerLabel } from "../words";
 
 /*
  * Design tab for a part (deep select): a layer inside an instance — a text (Figma's Typography and Fill, its words where
@@ -417,7 +418,7 @@ export function PartPanel({ selection, controlsSlot }: { selection: PartSelectio
           <span className="studio-inspector__kind-icon" aria-hidden="true"><Icon name={isComponent ? "icon-cube-line" : "icon-code-02-line"} size={16} /></span>
           <Heading level={2} textStyle="Body/Small/Bold" className="studio-part__title">
             {item && places.length > 1 ? plural(places.length, item.slot.itemName) : item ? item.slot.itemName : group ? (group.role === "title" ? "Section-Title" : group.role === "list" ? "Section rows" : "Section") : textPart ? "Text" : name}
-            <span className={`studio-part__owner ${typographyStyles["Body/Small/Regular"]}`}>{item ? ` · in ${item.slot.name} of ${owner}` : group ? ` · in ${group.slot.name} of ${owner}` : ` · part of ${owner}`}</span>
+            <span className={`studio-part__owner ${typographyStyles["Body/Small/Regular"]}`}>{item ? ` · in ${layerLabel(item.slot.name)} of ${owner}` : group ? ` · in ${layerLabel(group.slot.name)} of ${owner}` : ` · part of ${owner}`}</span>
           </Heading>
         </div>
         {textPart && !textLayer ? <p className={`studio-inspector__note ${typographyStyles["Body/Small/Regular"]}`}>Double-click it or press Enter to edit its words</p> : null}

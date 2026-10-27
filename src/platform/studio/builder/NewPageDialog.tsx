@@ -98,7 +98,7 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
       className="studio-new-page"
       onOpenChange={(next) => { if (!next) setError(null); onOpenChange(next); }}
       title="New page"
-      description={template ? `${template.description} Copied into a page of your own, saved in this browser.` : start === "empty" ? "One empty Screen on the device you pick, saved in this browser. Add an AppShell from the Screen section or Assets when you want one." : "A Screen with an AppShell (sidebar and page header; on a phone, top and bottom navigation), saved in this browser. Switch each part off, rename the page and change its device as you work."}
+      description={template ? `${template.description} Copied into a page of your own, saved in this browser.` : start === "empty" ? "One empty Screen on the device you pick, saved in this browser. Add an App shell from the Screen section or Assets when you want one." : "A Screen with an AppShell (sidebar and page header; on a phone, top and bottom navigation), saved in this browser. Switch each part off, rename the page and change its device as you work."}
       primaryAction={{ label: busy ? "Creating…" : "Create page", disabled: busy, onClick: () => void create() }}
       secondaryAction={{ label: "Cancel" }}
     >
@@ -109,13 +109,13 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
             <span className="studio-choice__blank" aria-hidden="true"><Icon name="icon-plus-line" size="base" decorative /></span>
             <span className="studio-choice__text">
               <Text as="span" textStyle="Body/Small/Bold">Empty page</Text>
-              <Text as="span" textStyle="Caption/Regular" tone="light">One empty Screen, no AppShell</Text>
+              <Text as="span" textStyle="Caption/Regular" tone="light">One empty Screen, no App shell</Text>
             </span>
           </ChoiceCard>
           <ChoiceCard name={`${id}-start`} value="blank" checked={start === "blank"} onPick={pickStart} className="studio-choice--template">
             <span className="studio-choice__blank" aria-hidden="true"><Icon name="icon-layout-left-line" size="base" decorative /></span>
             <span className="studio-choice__text">
-              <Text as="span" textStyle="Body/Small/Bold">Page with AppShell</Text>
+              <Text as="span" textStyle="Body/Small/Bold">Page with App shell</Text>
               <Text as="span" textStyle="Caption/Regular" tone="light">A Screen with sidebar and page header</Text>
             </span>
           </ChoiceCard>
