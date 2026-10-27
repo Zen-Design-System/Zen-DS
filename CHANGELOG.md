@@ -30,6 +30,9 @@ removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt
   are Label (Area, Grouped-Bar and Combo named them by their sample, "Q1", "$125K"); a gauge's reading Value and its target
   Meta, a donut's or radial's centre caption Meta; Bar-List, Bullet and Funnel rows Name / Value / Meta. Studio writes the
   axes by position now; undo map in `docs/figma-contracts/layer-renames-2026-10-26.json`.
+- Zen Studio right-click (2026-10-27): on a phone Screen, a layer under the dashed "Add Top / Bottom Navigation"
+  placeholder opens its menu again. The placeholder covers the Screen's edge while a layer in it is selected, and a
+  right-click there opened nothing. Its click still adds the Navigation. Studio E2E FW-177 passes again.
 - Zen Studio Overlay frames (2026-10-27): a modal drawn open on the board (a Side Panel, a Bottom Sheet, a Dialog in an
   Overlay frame) is a picture of it and takes no focus. Its autofocus took the focus from the Studio each time the page
   drew it again, closing a menu open in the Pages panel or leaving a field. Play still runs it live. Studio E2E B-28 waits
