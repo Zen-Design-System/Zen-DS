@@ -3,7 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pagesDirOf } from "../lib/server.mjs";
-import { inspectorRow, loadStudio, openAssetLibrary, openStudioSpace, selectAt, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { inspectorRow, loadStudio, openAssetLibrary, openStudioSpace, selectAt, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { pickOption, scaleStep } from "./inspector.mjs";
 import { codeWordsIn } from "../../../../src/platform/studio/words.ts";
 
@@ -87,6 +87,64 @@ export async function newPage(ctx, { title, device = "phone" } = {}) {
     await page.keyboard.press("Escape");
   }
   return { page, id, name };
+}
+
+/** New page › Empty page (one Screen with nothing in it, B-38); returns its id. */
+export async function emptyPage(ctx) {
+  const { page } = await ctx.studio();
+  const from = page.url();
+  await showLeftTab(page, "pages");
+  await openStudioSpace(page);
+  await page.locator("#studio-left").getByRole("button", { name: "New page", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "New page" });
+  await dialog.waitFor({ state: "visible", timeout: 5000 });
+  await dialog.getByText("Empty page", { exact: true }).click();
+  await dialog.getByRole("button", { name: "Create page" }).click();
+  await until(async () => page.url() !== from && /page=local%3A/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { message: "the empty page on the canvas" });
+  const id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
+  await sleep(500);
+  return { page, id };
+}
+
+/** Assets › Components › `label` (a click: the insert lands at the selection); resolves once the page's text holds `tag`
+ *  one more time. */
+export async function insertFromAssets(page, id, label, tag) {
+  const before = tagCountIn((await pageText(page, id)) ?? "", tag);
+  await openAssetLibrary(page, "Components");
+  const assets = page.locator("#studio-left-panel-assets");
+  await assets.getByLabel("Search components").fill(label);
+  await until(async () => (await assets.locator('.studio-assets__section[aria-label="Results"] [data-asset]').count()) > 0, { message: `results for "${label}"` });
+  await assets.locator('.studio-assets__section[aria-label="Results"] [data-asset]').filter({ hasText: new RegExp(`^${label}`) }).first().click();
+  await until(async () => tagCountIn((await pageText(page, id)) ?? "", tag) === before + 1, { message: `<${tag}> in the page` });
+  await sleep(600);
+  return (await pageText(page, id)) ?? "";
+}
+const tagCountIn = (text, tag) => (text.match(new RegExp(`<${tag}\\b`, "g")) ?? []).length;
+
+/** The floating layers of the page's first Screen as drawn: the Box of each (name: the component in it) with its box in
+ *  the Screen's own px, in document order; the Screen's width last. */
+export const floatingLayers = (page) => page.evaluate(() => {
+  const screen = document.querySelector('[data-studio-frame^="screen:"] .studio-builder-screen');
+  const sr = screen.getBoundingClientRect();
+  const zoom = sr.width / screen.offsetWidth || 1;
+  const layers = [...screen.querySelectorAll(':scope > .zen-box[data-position="absolute"]')].map((box) => {
+    const r = box.getBoundingClientRect();
+    return { name: box.querySelector("[data-zen-name]")?.getAttribute("data-zen-name") ?? "?", x: Math.round((r.left - sr.left) / zoom), y: Math.round((r.top - sr.top) / zoom), width: Math.round(r.width / zoom), height: Math.round(r.height / zoom) };
+  });
+  return { layers, width: screen.offsetWidth, flowing: screen.querySelectorAll(":scope > :not([data-position='absolute']):not([data-studio-placeholder]):not([class^='studio-device'])").length };
+});
+
+/** "line:col" of the n-th (0-based) `<Tag` in the page's text, as data-zen-src names it. */
+export function locOfTag(text, tag, index = 0) {
+  const lines = text.split("\n");
+  let seen = 0;
+  for (let line = 0; line < lines.length; line += 1) {
+    const col = lines[line].indexOf(`<${tag}`);
+    if (col < 0) continue;
+    if (seen === index) return `${line + 1}:${col}`;
+    seen += 1;
+  }
+  return null;
 }
 
 /** Zooms the canvas to the page's first Screen (its Layers row, then ⇧2), as focusFrame does for an example. */
@@ -1464,6 +1522,110 @@ export const rows = [
         .catch(async (error) => { throw new Error(`${error.message} (status: ${await statusText(page)})`); });
       await until(async () => (await tone("t3")) === "neutral", { message: "row 3 draws the To do instance" });
       return "Cell selected + Status from Assets → cells = the set, row 1 keeps Doing; drag onto row 3 (Late) → To do";
+    },
+  },
+  {
+    id: "B-50", feature: "Insert like Figma (UX review 2026-10-27 §2.4, decision A): on an Empty page, Assets › Metric card ×3 land at their own size, each beside the last with the page gap (16) from the page margin (24), floating in the Screen (no 1512 px blocks); the new card is selected", wp: "first view + insert 2026-10-27", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await emptyPage(ctx);
+      let text = "";
+      for (let n = 0; n < 3; n += 1) text = await insertFromAssets(page, id, "Metric card", "MetricCard");
+      const boxes = text.match(/<Box position="absolute" insetLeft=\{(\d+)\} insetTop=\{(\d+)\}>\s*<MetricCard /g) ?? [];
+      if (boxes.length !== 3) throw new Error(`${boxes.length} floating MetricCard boxes in the text: ${text.slice(text.indexOf("<Screen"), text.indexOf("</Screen>")).replace(/\s+/g, " ").slice(0, 400)}`);
+      const drawn = await floatingLayers(page);
+      if (drawn.flowing) throw new Error(`${drawn.flowing} layer(s) flow in the Screen (full width)`);
+      const [a, b, c] = drawn.layers;
+      if (drawn.layers.length !== 3 || a.name !== "MetricCard") throw new Error(`drawn: ${JSON.stringify(drawn.layers)}`);
+      if (a.x !== 24 || a.y !== 24) throw new Error(`the first card is at (${a.x}, ${a.y}), not the page margin (24, 24)`);
+      if (a.width >= drawn.width / 2) throw new Error(`the card is ${a.width} px wide: stretched`);
+      for (const [prev, next] of [[a, b], [b, c]]) {
+        if (next.x !== prev.x + prev.width + 16 || next.y !== prev.y) throw new Error(`not beside with the page gap: ${JSON.stringify([prev, next])}`);
+      }
+      const selected = (await selectedSrc(page))[0] ?? null;
+      const third = locOfTag(text, "MetricCard", 2);
+      if (!selected || !selected.endsWith(`:${third}`)) throw new Error(`selected ${selected}, not the new MetricCard at ${third}`);
+      return `three cards ${a.width} × ${a.height} at x ${a.x}, ${b.x}, ${c.x} (gap 16, margin 24); the third selected`;
+    },
+  },
+  {
+    id: "B-51", feature: "Insert like Figma: a Chart card beside the cards takes the widget width (a third of the content row, 477 on 1512: its plot has no width of its own); a Table that would pass the right margin starts a new row at the margin, the gap under the lowest layer", wp: "first view + insert 2026-10-27", timeout: 90_000,
+    async run(ctx) {
+      const { page, id } = await emptyPage(ctx);
+      for (let n = 0; n < 3; n += 1) await insertFromAssets(page, id, "Metric card", "MetricCard");
+      let text = await insertFromAssets(page, id, "Chart card", "ChartCard");
+      if (!/<Box position="absolute" insetLeft=\{\d+\} insetTop=\{24\} width=\{477\}>\s*<ChartCard /.test(text)) throw new Error(`the Chart card's Box has no widget width: ${text.match(/<Box[^>]*>\s*<ChartCard/)?.[0] ?? "no Box"}`);
+      let drawn = await floatingLayers(page);
+      const chart = drawn.layers[3];
+      const third = drawn.layers[2];
+      if (!chart || chart.name !== "ChartCard" || chart.x !== third.x + third.width + 16 || chart.y !== 24 || chart.width !== 477) throw new Error(`the chart card: ${JSON.stringify(chart)}, third card ${JSON.stringify(third)}`);
+      text = await insertFromAssets(page, id, "Table", "Table");
+      drawn = await floatingLayers(page);
+      const table = drawn.layers[4];
+      const lowest = Math.max(...drawn.layers.slice(0, 4).map((layer) => layer.y + layer.height));
+      if (!table || table.name !== "Table") throw new Error(`no floating Table: ${JSON.stringify(drawn.layers)}`);
+      if (table.x !== 24 || Math.abs(table.y - (lowest + 16)) > 1) throw new Error(`the Table is at (${table.x}, ${table.y}); a new row at the margin would be (24, ${lowest + 16})`);
+      if (table.width >= drawn.width - 48) throw new Error(`the Table is ${table.width} px wide: stretched`);
+      return `chart card at x ${chart.x} width 477; Table on a new row at (24, ${table.y}), ${table.width} wide`;
+    },
+  },
+  {
+    id: "B-52", feature: "Insert with nothing selected: an Empty page's first insert lands at the page margin corner; Escape, then a Button lands beside the frame's last layer; ⌘Z takes one insert back at a time (one undo step each, the Box with it)", wp: "first view + insert 2026-10-27", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await emptyPage(ctx);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await insertFromAssets(page, id, "Metric card", "MetricCard");
+      await page.locator(".studio-viewport").focus();
+      // Escape climbs to the card's Box first (gestures, 2026-10-27), then clears the selection.
+      for (let k = 0; k < 4 && (await selectedSrc(page)).length; k++) { await page.keyboard.press("Escape"); await sleep(150); }
+      await until(async () => (await selectedSrc(page)).length === 0, { message: "nothing selected" });
+      const text = await insertFromAssets(page, id, "Button", "Button");
+      if (!/<Box position="absolute" insetLeft=\{\d+\} insetTop=\{24\}>\s*<Button /.test(text)) throw new Error("the Button does not float in a Box of its own");
+      const drawn = await floatingLayers(page);
+      const [card, button] = drawn.layers;
+      if (!button || button.name !== "Button" || button.x !== card.x + card.width + 16 || button.y !== card.y) throw new Error(`the Button is at ${JSON.stringify(button)}, the card ${JSON.stringify(card)}`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Meta+z");
+      await until(async () => !/<Button\b/.test((await pageText(page, id)) ?? "") && !/<Box[^>]*>\s*<\/Box>/.test((await pageText(page, id)) ?? ""), { message: "the Button and its Box gone after one ⌘Z" });
+      if (!/<MetricCard\b/.test((await pageText(page, id)) ?? "")) throw new Error("the first ⌘Z also took the Metric card");
+      await page.keyboard.press("Meta+z");
+      await until(async () => /<Screen [^>]*\/>/.test((await pageText(page, id)) ?? ""), { message: "the Screen empty again after the second ⌘Z" });
+      return `card at (${card.x}, ${card.y}), Button beside at x ${button.x}; two ⌘Z back to the empty Screen`;
+    },
+  },
+  {
+    id: "B-53", feature: "Inside a layout the layout's rule stays: with the Text in a page's Stack selected, Assets › Metric card goes right after it in the Stack (no floating Box, no position)", wp: "first view + insert 2026-10-27", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await newPage(ctx, { device: "desktop" });
+      await focusScreen(page);
+      await clickNamed(page, id, "Text");
+      await until(async () => /:\d+:\d+$/.test((await selectedSrc(page))[0] ?? ""), { message: "the Text selected" });
+      const text = await insertFromAssets(page, id, "Metric card", "MetricCard");
+      const stack = text.slice(text.indexOf("<Stack"), text.indexOf("</Stack>"));
+      if (!/<Text [^>]*>[^<]*<\/Text>\s*<MetricCard /.test(stack)) throw new Error(`the MetricCard is not right after the Text in the Stack: ${stack.replace(/\s+/g, " ").slice(0, 300)}`);
+      if (/position="absolute"/.test(text)) throw new Error("the insert floated inside a layout");
+      const selected = (await selectedSrc(page))[0] ?? null;
+      if (!selected || !selected.endsWith(`:${locOfTag(text, "MetricCard")}`)) throw new Error(`selected ${selected}, not the new MetricCard`);
+      return "MetricCard after the Text in the Stack, in flow, selected";
+    },
+  },
+  {
+    id: "B-54", feature: "A component floated by an insert is one layer with its Box: Delete on the selected Metric card takes its Box too (no empty Box left); ⌘D duplicates the card in a Box of its own beside the first", wp: "first view + insert 2026-10-27", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await emptyPage(ctx);
+      await insertFromAssets(page, id, "Metric card", "MetricCard");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Meta+d");
+      await until(async () => tagCountIn((await pageText(page, id)) ?? "", "MetricCard") === 2, { message: "a second MetricCard after ⌘D" });
+      let text = (await pageText(page, id)) ?? "";
+      if ((text.match(/<Box position="absolute"/g) ?? []).length !== 2) throw new Error(`⌘D did not duplicate the card's Box: ${text.slice(text.indexOf("<Screen"), text.indexOf("</Screen>")).replace(/\s+/g, " ").slice(0, 300)}`);
+      await sleep(600);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Delete");
+      await until(async () => tagCountIn((await pageText(page, id)) ?? "", "MetricCard") === 1, { message: "one MetricCard after Delete" });
+      text = (await pageText(page, id)) ?? "";
+      if ((text.match(/<Box position="absolute"/g) ?? []).length !== 1 || /<Box[^>]*>\s*<\/Box>/.test(text)) throw new Error(`Delete left a Box behind: ${text.slice(text.indexOf("<Screen"), text.indexOf("</Screen>")).replace(/\s+/g, " ").slice(0, 300)}`);
+      return "⌘D made a second floating Box with a card; Delete removed a card with its Box";
     },
   },
   {

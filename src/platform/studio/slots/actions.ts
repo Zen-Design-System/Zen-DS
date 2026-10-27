@@ -7,7 +7,7 @@ import { floatingPlace, rememberDuplicate, repeatOffset } from "../edit/duplicat
 import { rowOf } from "../inspector/detach";
 import { componentSchema } from "../inspector/propSchema";
 import { fileName, inspectorStatus, saveShortcut, undoShortcut } from "../inspector/status";
-import { childHits, findBySrc, instanceOf, onSourceUpdate, parentHit, rectOf, selectHit, type FiberHit } from "../select/picker";
+import { annotatedAt, childHits, findBySrc, instanceOf, onSourceUpdate, parentHit, rectOf, selectHit, type FiberHit } from "../select/picker";
 import { selectPart, withoutPart } from "../select/parts";
 import { expectRender, mapSrc, noteEditTarget, remapSelection, renderedNow, sameSelectedElement, type RenderWaitEnd } from "../select/remap";
 import { stackTagBefore, studioWrapper, wrappedChildLoc, wrapperCandidate } from "../select/resize";
@@ -998,9 +998,24 @@ export async function studioWrapOf(selection: NodeSelection): Promise<NodeSelect
   // From the source, not the canvas: a copy just made may not render yet.
   const source = await studioApi.source(at.file).catch(() => null);
   const loc = source ? stackTagBefore(source.content, at.loc) : null;
-  if (!loc) return null;
+  if (!loc) return floatWrapOf(selection);
   const element = await studioApi.element(at.file, loc).catch(() => null);
-  return element && studioWrapper(element, at.file, at.loc) ? { ...selection, src: `${at.file}:${loc}`, name: "Stack" } : null;
+  return element && studioWrapper(element, at.file, at.loc) ? { ...selection, src: `${at.file}:${loc}`, name: "Stack" } : floatWrapOf(selection);
+}
+
+/** The Studio's floating wrapper: a Box floating in a frame without auto layout that holds one component (an insert
+ *  from Assets or a drop there, edit/clipboard.ts floatPaste; edit/drag.ts floatOf moves it). */
+export const isFloatWrapper = (host: Element | undefined | null): host is HTMLElement =>
+  Boolean(host && host.matches('.zen-box[data-position="absolute"]') && host.children.length === 1 && !(host.children[0] instanceof HTMLElement && host.children[0].dataset.position === "absolute"));
+
+/** The floating wrapper Box around the selected component, as its layer in the frame (what a remove, a duplicate, a
+ *  move or a paste beside takes, as it takes a wrap Stack; UX review 2026-10-27 §2.4), or null. Read off the canvas. */
+export function floatWrapOf(selection: NodeSelection): NodeSelection | null {
+  const host = selectedHit(selection)?.hosts[0];
+  const box = host?.parentElement;
+  if (!(host instanceof HTMLElement) || !box || !isFloatWrapper(box) || host.dataset.position === "absolute") return null;
+  const wrap = annotatedAt(box);
+  return wrap && wrap.src !== selection.src ? { ...selection, src: wrap.src, name: "Box" } : null;
 }
 
 /** The component inside the wrap Stack a write left at `loc` of `text` (a copy, a move), else that Stack. */

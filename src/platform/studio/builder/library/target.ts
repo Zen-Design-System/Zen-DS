@@ -2,7 +2,8 @@ import { canvasApi, getViewportBox } from "../../canvas/viewport";
 import type { NodeSelection } from "../../edit/arrange";
 import { isDropContainer } from "../../edit/drag";
 import { findFrame } from "../../board/frames";
-import { childHits, elementFiber, findBySrc, frameOf, hitOf, instanceOf, panelOf, walkAnnotated, type FiberHit } from "../../select/picker";
+import { freeBlock } from "../../edit/freeBlock";
+import { annotatedAt, childHits, elementFiber, findBySrc, frameOf, hitOf, instanceOf, panelOf, walkAnnotated, type FiberHit } from "../../select/picker";
 import { studioStore } from "../../store";
 
 /*
@@ -57,6 +58,11 @@ export function rootSelection(frame: Element): NodeSelection | null {
   const roots = rootLayers(frame);
   let hit: FiberHit | null = null;
   let level = roots;
+  // A Screen without auto layout (an Empty page's: no layout root, its layers float or none yet) takes the item itself,
+  // floating beside the selection at its own size (edit/clipboard.ts, UX review 2026-10-27 §2.4): never the first
+  // floating Box found in it, which is one layer's own frame.
+  const screen = frame.querySelector(".studio-builder-screen");
+  if (screen && freeBlock(screen)) hit = annotatedAt(screen);
   for (let depth = 0; depth < 6 && level.length && !hit; depth += 1) {
     hit = level.find((candidate) => candidate.name !== "Board" && candidate.name !== "Screen" && isDropContainer(candidate)) ?? null;
     level = level.flatMap((candidate) => childHits(candidate).filter((child) => child.hosts.length));

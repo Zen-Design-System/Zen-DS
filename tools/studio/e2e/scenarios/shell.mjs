@@ -1,5 +1,7 @@
-// Shell rows: the Studio loads the fixture page, menus open on screen, view commands do what they say.
+// Shell rows: the Studio loads the fixture page, menus open on screen, view commands do what they say; ST-30…32: how a
+// page you made opens (its first view, and the viewport it reopens at).
 import { focusFrame, inViewport, openAssetLibrary, sleep, until } from "../lib/studio.mjs";
+import { seededPage } from "./builder.mjs";
 import { pageFromTemplate } from "./starters.mjs";
 
 const CANVAS = ".studio-canvas-area";
@@ -19,7 +21,111 @@ async function menuItemsOnScreen(page, opener) {
   return `${visible}/${boxes.length} items on screen`;
 }
 
+
+/** A page you made with a desktop Screen at the origin and overlays as `places` says ([x, y] each; one row or more). */
+const framesPage = (places) => (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { Button, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title=${JSON.stringify(title)} device="desktop" width={1512} height={982} x={0} y={0}>
+        <Text tone="base">Hello</Text>
+      </Screen>
+${places.map(([x, y], index) => `      <Overlay id="overlay-${index + 1}" title="Overlay ${index + 1}" x={${x}} y={${y}}>
+        <Button appearance="main" level="primary" size="md" onClick={proto.toast({ title: "Hi" })}>Hi</Button>
+      </Overlay>`).join("\n")}
+    </Board>
+  );
+}
+`;
+
+/** The frames on screen: each frame's box, which are inside the visible canvas (between the panels), the zoom pill. */
+const frameView = (page) => page.evaluate((canvasSel) => {
+  const area = document.querySelector(canvasSel)?.getBoundingClientRect();
+  const left = document.querySelector("#studio-left")?.getBoundingClientRect();
+  const right = document.querySelector("#studio-right")?.getBoundingClientRect();
+  const x0 = Math.max(area.left, left && left.width ? left.right : area.left);
+  const x1 = Math.min(area.right, right && right.width ? right.left : area.right);
+  const frames = [...document.querySelectorAll("[data-studio-frame]")].map((frame) => {
+    const r = frame.getBoundingClientRect();
+    return { id: frame.getAttribute("data-studio-frame"), x: Math.round(r.left), y: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height), inside: r.left >= x0 - 1 && r.right <= x1 + 1 && r.top >= area.top - 1 && r.bottom <= area.bottom + 1, shows: r.right > x0 && r.left < x1 && r.bottom > area.top && r.top < area.bottom };
+  });
+  return { frames, zoom: document.querySelector(".studio-zoom__value")?.textContent?.trim() ?? null, visible: [Math.round(x0), Math.round(x1)] };
+}, CANVAS);
+
+/** Opens the page `id` in a fresh browser context (no viewport remembered for it): its first view. */
+async function openFirst(ctx, id) {
+  const { page } = await ctx.studio({ fresh: true });
+  await page.goto(`${new URL(page.url()).origin}/studio.html?page=local:${id}`, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector('[data-studio-frame^="screen:"]', { timeout: 20_000 });
+  await sleep(2000);
+  return page;
+}
+
 export const rows = [
+  {
+    id: "ST-30", feature: "A page you made opens at its first Screen (UX review 2026-10-27 §2.3): with frames on three rows, the first open shows the Screen filling the visible canvas (its width between the panels, under 100%), not the overlay frames", wp: "first view + insert 2026-10-27", timeout: 60_000,
+    async run(ctx) {
+      const { id } = await seededPage(ctx, framesPage([[1608, 0], [2524, 0], [1608, 1120], [0, 2240]]), /overlay-4/);
+      const page = await openFirst(ctx, id);
+      const view = await frameView(page);
+      const screen = view.frames.find((frame) => frame.id === "screen:screen-1");
+      if (!screen || !screen.inside) throw new Error(`the Screen is not inside the visible canvas: ${JSON.stringify(screen)} (visible x ${view.visible.join("…")})`);
+      const span = view.visible[1] - view.visible[0];
+      if (screen.width < span - 100) throw new Error(`the Screen is ${screen.width} px wide on a ${span} px canvas: it does not fill the view`);
+      if (view.zoom === "100%") throw new Error("still 100%");
+      return `Screen ${screen.width} × ${screen.height} at (${screen.x}, ${screen.y}) in the ${span} px canvas, zoom ${view.zoom}`;
+    },
+  },
+  {
+    id: "ST-31", feature: "A page whose frames are one row (a Screen and an overlay beside it) opens zoomed to fit them all, whole and centred (Figma's zoom to fit on a fresh file)", wp: "first view + insert 2026-10-27", timeout: 60_000,
+    async run(ctx) {
+      const { id } = await seededPage(ctx, framesPage([[1608, 40]]), /overlay-1/);
+      const page = await openFirst(ctx, id);
+      const view = await frameView(page);
+      const out = view.frames.filter((frame) => !frame.inside);
+      if (view.frames.length !== 2) throw new Error(`${view.frames.length} frames`);
+      if (out.length) throw new Error(`${out.length}/2 frames outside the visible canvas: ${out.map((frame) => frame.id).join(", ")} (zoom ${view.zoom})`);
+      return `both frames inside the visible canvas at ${view.zoom}`;
+    },
+  },
+  {
+    id: "ST-32", feature: "The viewport is remembered per page: zoom to 100% and pan, open another page and come back, reload — the page shows the same zoom and the same place both times", wp: "first view + insert 2026-10-27", timeout: 60_000,
+    async run(ctx) {
+      const { id } = await seededPage(ctx, framesPage([[1608, 0], [1608, 1120]]), /overlay-2/);
+      const page = await openFirst(ctx, id);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Digit0");
+      await sleep(500);
+      const viewport = await page.locator(".studio-viewport").boundingBox();
+      await page.mouse.move(viewport.x + viewport.width / 2, viewport.y + viewport.height / 2);
+      await page.mouse.wheel(180, 120);
+      await sleep(700);
+      const before = await frameView(page);
+      const screenBefore = before.frames.find((frame) => frame.id === "screen:screen-1");
+      if (before.zoom !== "100%") throw new Error(`zoom ${before.zoom} after ⇧0`);
+      const same = (after, when) => {
+        const screen = after.frames.find((frame) => frame.id === "screen:screen-1");
+        if (after.zoom !== before.zoom || !screen || Math.abs(screen.x - screenBefore.x) > 1 || Math.abs(screen.y - screenBefore.y) > 1) throw new Error(`${when}: zoom ${after.zoom}, Screen at (${screen?.x}, ${screen?.y}); before ${before.zoom} at (${screenBefore.x}, ${screenBefore.y})`);
+      };
+      // Another page (the host page), then back.
+      const url = page.url();
+      await ctx.studio();
+      await page.goto(url, { waitUntil: "domcontentloaded" });
+      await page.waitForSelector('[data-studio-frame^="screen:"]', { timeout: 20_000 });
+      await sleep(1500);
+      same(await frameView(page), "back from another page");
+      await page.reload({ waitUntil: "domcontentloaded" });
+      await page.waitForSelector('[data-studio-frame^="screen:"]', { timeout: 20_000 });
+      await sleep(1500);
+      same(await frameView(page), "after a reload");
+      return `100% with the Screen at (${screenBefore.x}, ${screenBefore.y}) after coming back and after a reload`;
+    },
+  },
   {
     id: "S-01", feature: "Studio loads the page: one frame per example, no errors", wp: "GĐ0",
     async run(ctx) {

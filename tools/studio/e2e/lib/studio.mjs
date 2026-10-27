@@ -252,7 +252,7 @@ export async function clickLoc(page, file, loc, { modifiers, clickCount, positio
   return rect;
 }
 
-/** The loc ("<file>:<line>:<col>") of the primary selected layer, from the Layers tree, or null. */
+/** The locs ("<file>:<line>:<col>") of the selected layers, from the Layers tree (the primary first); empty when nothing is selected. */
 export async function selectedSrc(page) {
   return page.evaluate(() => {
     const rows = [...document.querySelectorAll('.studio-layers__tree [role="treeitem"][aria-selected="true"]')];

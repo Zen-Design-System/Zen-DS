@@ -12,8 +12,9 @@ questions for the designer in [`QUESTIONS.md`](QUESTIONS.md). Code keeps its cur
 
 ## Open items
 Studio UI/UX review 2026-10-27 (`docs/research/studio-ux-review-2026-10-27.md` §7, approved by the user 2026-10-27:
-§2.4 inserts keep their own size, §2.9 Dark mode changes the UI only), each in its own worktree session from main:
-- **P1 · Open at the first Screen + insert like Figma, decision A (§7.3–4, S + M):** `zen/fix/studio-first-view-insert-20261027`.
+§2.4 inserts keep their own size, §2.9 Dark mode changes the UI only), each in its own worktree session from main.
+P0 (#337), P2 (#338) and the panels session (#335) are merged; P1 `claude/studio-first-view-insert-20261027-2f7881`
+is PR #334 (in review). Nothing else open.
 
 ## Backlog (plan before opening sessions)
 Empty since 2026-10-25. The 2026-10-24 triage's entries are done and archived (`BACKLOG-archive.md`, "Archived
