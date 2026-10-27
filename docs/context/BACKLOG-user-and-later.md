@@ -6,6 +6,11 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
 [`QUESTIONS.md`](QUESTIONS.md).
 
 ## For the user (Việc của anh/chị)
+- **P1 · Studio UI/UX review 2026-10-27 — approve the order and two decisions:** the ranked proposal is
+  `docs/research/studio-ux-review-2026-10-27.md` §7 (P0 gestures never land on DOM parts + keyboard focus guard, P1
+  first view / inserts / Prototype list / phone rail, P2 words and grouped properties). Decisions: §2.4 inserts keep
+  their own size (A) or fill a dashboard Grid (B); §2.9 Dark mode switches the design too (keep) or the UI only (Figma).
+  The old P3 line "Studio panels in dark chrome and at 280px" is answered there (§1): dark clean, 280 no field juts out.
 - **P2 · LICENSE.md is a draft: legal review before selling (2026-10-08):** drafted on PR #5 (Dizai Studio, Vietnam law, subscription, apps-not-kits, per company + member limit); a lawyer must review it and remove its "Draft" note. Was: package.json has no `license` field and the repo no
   LICENSE/EULA; needed before selling (legal text from the user).
 - **P2 · Private registry: the user's steps, then Phase 6 (2026-10-08; rewritten 2026-10-25):** live since 2026-10-14

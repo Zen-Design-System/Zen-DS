@@ -17,6 +17,10 @@ How to maintain it:
 Vibe-code readiness, part 2: one API vocabulary, localised labels and tooling for AI agents (branch
 `feat/vibe-ready`). Renamed props stay as deprecated aliases that keep working (the harness warns); no component API was
 removed (four unused colour ramps were, see Removed), except AppShell's, rebuilt from Figma's AppShell patterns (below).
+- Zen Studio UI/UX review (2026-10-27, docs only): five hands-on walks, the Figma-key E2E walk, an axe pass and a
+  UX-writing audit, with 15 screenshots and a ranked proposal (gestures that land on DOM parts, ⌘A / ⌘D after a part
+  selection, the first view, full-width inserts, the Prototype list at 320, the phone tool rail, ~40 code-word
+  strings): `docs/research/studio-ux-review-2026-10-27.md`. Nothing in the Studio changed yet.
 - The Zen Figma skill works from the repo for Claude Code and Codex through the Figma MCP: `.claude/skills/` and
   `.agents/skills/` link to `skills/zen-figma-design`, its references link to their sources, and
   `npm run ai-kit:build` writes `figma-components.md` + `figma-tokens.md` into the skill folder (`ai-kit:check` fails
