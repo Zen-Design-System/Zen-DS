@@ -25,8 +25,8 @@
 
 /* A Screen is a page: the Canvas layer, at least a device's height. */
 /* Relative: a layer drawn on the Screen sits at its X / Y (a frame without auto layout, Figma's). */
-.studio-builder-screen { position: relative; display: flow-root; min-height: var(--studio-screen-height, 900px); border-radius: inherit; background: var(--zen-color-background-canvas-default); color: var(--zen-color-content-neutral-strongest); }
-.studio-builder-screen[data-device="phone"] { min-height: var(--studio-screen-height, 844px); }
+.studio-builder-screen { position: relative; display: flow-root; min-height: max(var(--studio-screen-height, 900px), var(--studio-screen-overflow, 0px)); border-radius: inherit; background: var(--zen-color-background-canvas-default); color: var(--zen-color-content-neutral-strongest); }
+.studio-builder-screen[data-device="phone"] { min-height: max(var(--studio-screen-height, 844px), var(--studio-screen-overflow, 0px)); }
 /* The app frame (Screen's sidebar · header, or top · bottom navigation): the Screen becomes a row (desktop) or a column
    (mobile) around its content, which keeps the page's own padding. The bottom bar sits at the screen's foot. */
 .studio-builder-screen[data-chrome] { display: flex; align-items: stretch; }
@@ -35,7 +35,10 @@
 /* A desktop master layout shown on the mobile layout: its content in the AppShell's mobile Body (Spacing/Padding/XSmall
    above, Margin-Comfortable at the sides, Spacing/Padding/Large below, Layout-Mobile/Section-Gap between the sections). */
 .studio-builder-screen__shell-body { display: flex; box-sizing: border-box; min-width: 0; flex: 1 1 auto; flex-direction: column; gap: var(--zen-layout-mobile-section-gap, 32px); padding: var(--zen-spacing-padding-xsmall, 8px) var(--zen-margin-comfortable, 20px) var(--zen-spacing-padding-large, 20px); }
-.studio-builder-screen__content { min-width: 0; flex: 1 1 auto; }
+/* The content is one layer under the bars, as Figma draws a frame's fixed layers above what scrolls: nothing in it (a
+   List row's z-index 1, a sticky Box's 3) climbs over the Top or Bottom Navigation in Play (user 2026-10-28: "Phần thiết
+   kế bị đè lên trên top navigation"). */
+.studio-builder-screen__content { min-width: 0; flex: 1 1 auto; isolation: isolate; }
 .studio-builder-screen__header { padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; }
 .studio-builder-screen__top { position: sticky; z-index: 1; top: 0; }
 .studio-builder-screen__bottom { position: sticky; z-index: 1; bottom: 0; }
@@ -68,7 +71,7 @@
 /* Screen › Canvas (as AppShell's canvas): Canvas/Alt, a white page; Canvas/Flat. */
 .studio-builder-screen[data-canvas="alt"] { background: var(--zen-color-background-canvas-alt); }
 .studio-builder-screen[data-canvas="flat"] { background: var(--zen-color-background-canvas-flat); }
-.studio-builder-screen[data-device="tablet"] { min-height: 1024px; }
+.studio-builder-screen[data-device="tablet"] { min-height: max(1024px, var(--studio-screen-overflow, 0px)); }
 /* The canvas's "Add Top / Bottom Navigation" (runtime PartPlaceholder; studio-responsive-breakpoints §3.6): a dashed bar
    over the edge the part would take, inside the system bars, above the content and the bars (they stay where they are, so
    the canvas keeps the layout Play shows). */

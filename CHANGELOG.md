@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio's Play and Present keep a phone Screen's Top and Bottom Navigation over what scrolls (user 2026-10-28):
+  the Screen's content is one layer under its bars, so a List row no longer covers the Top Navigation, and a Screen is
+  as tall as its absolute layers, so a long list placed absolutely scrolls under a Bottom Navigation that stays at the
+  device's foot (it rose into the page at the Screen's own height). The canvas is unchanged.
 - Input (and every field on .zen-input-field): an invalid field's focus ring is Color/Focus/Negative/Subtle, not the
   neutral ring (2026-10-28, user: "phần focus lúc lỗi này đổi phần neutral focus qua negative"); the Negative border stays.
 - Tabs name their panels only when they have them (2026-10-27, UX review §7.10): `aria-controls` is set only with an

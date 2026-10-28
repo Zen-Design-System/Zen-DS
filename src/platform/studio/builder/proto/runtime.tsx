@@ -196,6 +196,57 @@ function usePresentScroller(rootRef: RefObject<HTMLDivElement | null>) {
   return useMemo(() => (scroller ? { current: scroller } : null), [scroller]);
 }
 
+/** An absolute layer pinned to the bottom or the centre: it moves with the height of what holds it. */
+const MOVES_WITH_HEIGHT = '[data-position="absolute"]:is([data-constraint-y="bottom"], [data-constraint-y="center"], [data-constraint-y="top-bottom"])';
+
+/** In Present and Play a Screen is as tall as what it draws. A layer placed absolutely (Figma's Ignore auto layout) that
+ *  reaches below the Screen's foot, or a list overflowing such a layer, scrolls the page but does not grow the Screen;
+ *  the sticky bars inside it (Top and Bottom Navigation, the pinned system bars) then stopped at its foot, and the Bottom
+ *  Navigation rose into the page while the rest scrolled on below it (user 2026-10-28). The Screen's min-height takes
+ *  the lowest edge of its absolute layers (--studio-screen-overflow, builder.css), measured again when the Screen
+ *  resizes or its layers change. Nothing on the canvas, where a frame clips at its height as Figma's does. */
+function useAbsoluteOverflow(rootRef: RefObject<HTMLDivElement | null>, on: boolean) {
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!on || !root) return undefined;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const box = root.getBoundingClientRect();
+      // A scaled device (Play's fit) scales the rects, not the CSS px.
+      const scale = root.offsetHeight ? box.height / root.offsetHeight : 1;
+      let lowest = 0;
+      for (const layer of root.querySelectorAll<HTMLElement>('[data-position="absolute"]')) {
+        // A layer pinned to the bottom or the centre (or one inside such a layer) moves with the Screen's height: it
+        // would grow the Screen that moves it again.
+        if (layer.closest(MOVES_WITH_HEIGHT)) continue;
+        // What overflows a layer that clips (Clip content) does not show: only its own box counts then.
+        const reach = getComputedStyle(layer).overflowY === "visible" ? layer.scrollHeight : layer.offsetHeight;
+        lowest = Math.max(lowest, (layer.getBoundingClientRect().top - box.top) / (scale || 1) + reach);
+      }
+      if (lowest > 0) root.style.setProperty("--studio-screen-overflow", `${Math.ceil(lowest)}px`);
+      else root.style.removeProperty("--studio-screen-overflow");
+    };
+    const later = () => { if (!frame) frame = requestAnimationFrame(measure); };
+    measure();
+    const resize = new ResizeObserver(later);
+    resize.observe(root);
+    // Rows added to a list in an absolute layer change its overflow, not its size: watch the tree, not the attributes
+    // (a large title's scroll link writes its style on every scroll).
+    const tree = new MutationObserver(later);
+    tree.observe(root, { childList: true, subtree: true, characterData: true });
+    // A picture that loads late grows its layer (load does not bubble: caught on the way down).
+    root.addEventListener("load", later, true);
+    return () => {
+      cancelAnimationFrame(frame);
+      resize.disconnect();
+      tree.disconnect();
+      root.removeEventListener("load", later, true);
+      root.style.removeProperty("--studio-screen-overflow");
+    };
+  }, [on, rootRef]);
+}
+
 /** In Present and Play a Top Navigation with a large title follows the page's scroll, as on iOS (TopNavigation
  *  `scrollRef`): the large title folds under the bar and the bar title fades in. The page's own `scrollRef` or
  *  `collapsed` wins; on the canvas nothing scrolls, so the large title stays open. */
@@ -209,6 +260,7 @@ function withScrollLink(topNavigation: ReactNode, scrollRef: RefObject<HTMLEleme
 export function Screen({ id, title, device: drawnDevice = "desktop", layout, canvas = "default", state, sidebar, header, topNavigation, bottomNavigation, children, style, x: _x, y: _y, width, height, modes, versionOf: _versionOf, ...rest }: ScreenProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const presentScroll = usePresentScroller(rootRef);
+  useAbsoluteOverflow(rootRef, Boolean(presentScroll));
   // The hardware: the device Present or Play simulates (the canvas's view switch too), else the one the Screen is drawn
   // for (its size, its type's own).
   const simulated = useContext(SimulatedDeviceContext);
