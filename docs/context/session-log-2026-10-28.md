@@ -15,6 +15,33 @@
   pixels inside the corner to 0 at device scales 0.8 and 1. Gate (--isolated, board.css): PASS, Studio E2E 403 works ·
   0 broken (AP-02 passed only on retry, after #341's fix).
 
+## Session "Bug" · Liquid Glass white rim in dark mode (tier S; user screenshot: "Liquid Glass ở darkmode bị trắng")
+
+- Cause: the glass rims are Liquid-Glass/White-Overlay (70 % / 40 % white in both modes) and _shared/liquid-glass.ts
+  draws the GLASS light white at 80 % in both modes; Figma's GLASS light barely lifts a dark fill (Floating-Glass
+  9017:42257 in dark: canvas 16, fill 31–35, lit rim 52, far rim 47; in light the rim is ~254).
+- Fix: in dark mode the Normal glass (BottomNavigation Floating-Glass pill + Glass action, TopNavigation Liquid Glass
+  action + group, AiChatField Liquid Glass) takes Border/Neutral/Pale + Border/Popover/Subtle rims and
+  `--zen-liquid-glass-light: 0.05`, which liquid-glass.ts reads as a factor on the drawn light; the hook re-attaches on a
+  provider theme switch. Light mode and the Black-Overlay glass keep their rims.
+- Measured (Chromium, bottom pill column, dark): before lit rim 225 · sheen 118→36 · far rim 194; after 61 · 36→32 · 51.
+  Light unchanged (rim 255).
+
+## Session "Bug" · Play: the list over the Top Navigation, the Bottom Navigation mid-screen (tier S; user screenshot: "lỗi scroll khi thiết kế xong mở play … đè lên trên top navigation")
+
+- The page (quan-ly-task, Screen "iPhone 1"): Liquid Glass Top Navigation, Floating Glass Bottom Navigation, and a List
+  in a Box at position absolute (top 178, height 683) that runs past the 844px Screen.
+- Over the bar: a plain ListItem's wrapper is relative with z-index 1 (the row only isolates when interactive), the
+  same layer as .studio-builder-screen__top (sticky, z-index 1) and later in the tree, so the rows painted over the bar.
+  builder.css: .studio-builder-screen__content is `isolation: isolate`, one layer under the bars (Figma draws fixed
+  layers above what scrolls); canvas and export get it too (same picture there, nothing overlapped the bars at rest).
+- Mid-screen: the absolute Box's overflow scrolls the page but never grows the Screen, so its sticky bars stopped at
+  its 844px foot. runtime.tsx useAbsoluteOverflow (Play / Present only): the Screen's min-height takes the lowest edge
+  of its absolute layers (rect top + scrollHeight, or offsetHeight when the layer clips), skipping layers pinned to the
+  bottom / centre / both edges (they move with the height), re-measured on resize, tree changes and image loads.
+- E2E PT-30 (id from Giám sát): without the fix the bar stood 516px above the device's foot; without the isolation the
+  Back button's point hit the DockIcon; with both, Bottom Navigation at the foot (0px) and Back on top.
+
 ## Session "Bug" · A component dropped on the empty canvas (tier S; user: "Vẫn chưa cho kéo component ra canvas trống như figma")
 
 - Assets drag over the board outside every frame said "Drop it into a frame" (edit/assets/assets.ts). Now, on a page
@@ -27,4 +54,5 @@
 - E2E (ids from Giám sát): B-55 Button → Frame N at 0, 0, fitted, one ⌘Z; B-56 Top navigation → its own frame;
   B-57 App shell refused, nothing written. The dnd campaign's "on the board, outside every frame" place expects the
   new frame now (it waits for the fit before judging and ⌘Z).
-
+- Proof: B-55…57 3 works; gate (--isolated) PASS, Studio E2E 406 works · 0 broken; the opt-in dnd campaign
+  DND-01…03 (`--only=dnd --no-retry`) 693 drops right, the board place's new frames among them.

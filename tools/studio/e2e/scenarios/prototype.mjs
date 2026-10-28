@@ -222,6 +222,29 @@ export default function Page() {
 }
 `;
 
+/** A phone Screen as the user drew it (2026-10-28): a long List in an absolute Box that runs past the Screen's foot,
+ *  under a Liquid Glass Top Navigation and above a Floating Glass Bottom Navigation (PT-30). */
+const absoluteListPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { BottomNavigation, Box, DockIcon, List, ListItem, TopNavigation } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Projects" device="phone" width={390} height={844} topNavigation={<TopNavigation type="liquid-glass" title="Projects" largeTitle="Projects" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} />} bottomNavigation={<BottomNavigation value="item-1" showLabels type="floating-glass" items={[{ id: "item-1", label: "Item 1", icon: "icon-circle-line" }, { id: "item-2", label: "Item 2", icon: "icon-circle-line" }, { id: "item-3", label: "Item 3", icon: "icon-circle-line" }]} />}>
+        <Box position="absolute" insetLeft={0} insetTop={178} width="fill" height={683} paddingX="margin-comfortable">
+          <List>
+            ${Array.from({ length: 16 }, (_, index) => `<ListItem title="Project ${index + 1}" caption="Phin & Co · Due Oct 14" leading={<DockIcon icon="icon-mobile-line" theme="orange" background="subtle" />} />`).join("\n            ")}
+          </List>
+        </Box>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
 /** Two Screens and an Overlay named as a designer names them, long (PT-29). */
 const longNamesPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
@@ -559,6 +582,36 @@ export const rows = [
         await resizeInspector(page, 320);
       }
       return `320px: ${at320.total} text nodes inside the panel · 280px: ${at280.total} inside, ${at280.ellipsized} name(s) ellipsized · back at 320`;
+    },
+  },
+  {
+    id: "PT-30", feature: "Play keeps a phone Screen's bars over what scrolls: a long List in an absolute Box past the Screen's foot scrolls under the Top Navigation (its Back button stays on top) and the Bottom Navigation stays at the device's foot to the end (user 2026-10-28)", wp: "bug 2026-10-28",
+    async run(ctx) {
+      const { page } = await seededPage(ctx, absoluteListPage, /Project 16/);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      await playing(page).getByText("Project 16").waitFor({ state: "attached", timeout: 5000 });
+      // To the end of the list, where the bottom bar rose before (it stopped at the Screen's 844px foot).
+      const max = await page.evaluate(() => {
+        const inner = document.querySelector(".studio-player__device > .studio-player__screens");
+        inner.scrollTop = inner.scrollHeight;
+        return inner.scrollHeight - inner.clientHeight;
+      });
+      if (max < 300) throw new Error(`the Screen scrolls ${max}px: the list should run well past the device`);
+      await sleep(300);
+      const seen = await page.evaluate(() => {
+        const inner = document.querySelector(".studio-player__device > .studio-player__screens");
+        const view = inner.getBoundingClientRect();
+        const bottom = document.querySelector(".studio-player .studio-builder-screen__bottom").getBoundingClientRect();
+        const back = document.querySelector(".studio-player .studio-builder-screen__top").querySelector('button[aria-label="Back"]').getBoundingClientRect();
+        const hit = document.elementFromPoint(back.x + back.width / 2, back.y + back.height / 2);
+        const last = [...document.querySelectorAll(".studio-player .zen-list-item")].at(-1).getBoundingClientRect();
+        return { gap: Math.round(view.bottom - bottom.bottom), backOnTop: Boolean(hit?.closest(".studio-builder-screen__top")), hit: hit?.className ?? null, lastAboveBar: Math.round(bottom.top - last.bottom), top: inner.scrollTop };
+      });
+      if (seen.gap > 2 || seen.gap < -2) throw new Error(`at the end of the list the Bottom Navigation stands ${seen.gap}px above the device's foot`);
+      if (!seen.backOnTop) throw new Error(`the list covers the Top Navigation's Back button (the point hits ${seen.hit})`);
+      return `scrolled ${seen.top}/${max}px · Bottom Navigation at the foot (${seen.gap}px) · Back on top · last row ${seen.lastAboveBar}px clear of the bar`;
     },
   },
   {
