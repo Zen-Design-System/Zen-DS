@@ -305,6 +305,10 @@
    both themes (hardware: it sits in Light). The iPhone Duo's hinge is a soft band over the screen where
    Pattern/AppShell/Duo puts Fold. */
 .studio-present__fit[data-frame] > :is(.studio-present__viewport, .studio-player__device) { border-radius: var(--studio-device-screen-radius); box-shadow: none; }
+/* The rounded overflow clip does not clip a backdrop-filter inside it in Chromium (the box is scaled too): a Top
+   Navigation's blur, its progressive blur and glass actions painted a soft white haze over the bezel at the screen's
+   corners (user 2026-10-28: "Vẫn còn lỗi blur viền thiết bị"). A clip-path clips every paint, blurs included. */
+.studio-present__fit[data-frame] > :is(.studio-present__viewport, .studio-player__device) { clip-path: inset(0 round var(--studio-device-screen-radius)); }
 .studio-device-frame {
   position: absolute;
   inset: calc(-1 * var(--studio-device-bezel));

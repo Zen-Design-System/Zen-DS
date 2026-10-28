@@ -14,6 +14,8 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio's Play and Present clip a device's screen to its corners with a clip-path: a Top Navigation's blur no longer
+  leaves a soft white haze on the bezel at the screen's top corners (2026-10-28, user: "Vẫn còn lỗi blur viền thiết bị").
 - Tabs name their panels only when they have them (2026-10-27, UX review §7.10): `aria-controls` is set only with an
   `idPrefix` (the prefix a TabPanel pairs with); before, a generated prefix pointed every tab at a panel that did not
   exist, an ARIA error (axe `aria-valid-attr-value`, critical) on every page with panel-less Tabs. The 12px tab tone
