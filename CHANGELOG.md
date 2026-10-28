@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Liquid Glass no longer shows a white rim in dark mode (user 2026-10-28): the Normal glass of BottomNavigation
+  Floating-Glass, TopNavigation Liquid Glass and AiChatField Liquid Glass takes the dark Border/Neutral/Pale and
+  Border/Popover/Subtle rims and a much weaker drawn light, as Figma's GLASS effect does on a dark fill. Light mode and the
+  Black-Overlay glass are unchanged.
 - Zen Studio's Play and Present clip a device's screen to its corners with a clip-path: a Top Navigation's blur no longer
   leaves a soft white haze on the bezel at the screen's top corners (2026-10-28, user: "Vẫn còn lỗi blur viền thiết bị").
 - Input (and every field on .zen-input-field): an invalid field's focus ring is Color/Focus/Negative/Subtle, not the
