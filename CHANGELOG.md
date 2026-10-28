@@ -14,6 +14,8 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Input (and every field on .zen-input-field): an invalid field's focus ring is Color/Focus/Negative/Subtle, not the
+  neutral ring (2026-10-28, user: "phần focus lúc lỗi này đổi phần neutral focus qua negative"); the Negative border stays.
 - Tabs name their panels only when they have them (2026-10-27, UX review §7.10): `aria-controls` is set only with an
   `idPrefix` (the prefix a TabPanel pairs with); before, a generated prefix pointed every tab at a panel that did not
   exist, an ARIA error (axe `aria-valid-attr-value`, critical) on every page with panel-less Tabs. The 12px tab tone

@@ -334,9 +334,10 @@ button.zen-input-label__tooltip { padding: 0; border: 0; background: none; curso
 
 /* Error + focus. Figma has no Error-Focused state and the error look already uses the Focused fill, so focusing an
    invalid field used to change nothing (WCAG 2.4.7). Keep the Negative border, so the error stays visible, and add the
-   Focused state's 3px outside ring. */
+   Focused state's 3px outside ring in the error's colour, Color/Focus/Negative/Subtle (user 2026-10-28: the neutral ring
+   on an invalid field becomes negative). */
 .zen-input-field:is([data-state="inputted-error"], [data-state="blank-error"], [data-state="error"]) .zen-input__control:focus-within:not(:where(:has(.zen-input-leading-trailing__picker :focus))) {
-  box-shadow: 0 0 0 3px var(--zen-color-focus-neutral-subtle, #0000001a);
+  box-shadow: 0 0 0 3px var(--zen-color-focus-negative-subtle, #e5532e1f);
 }
 
 .zen-input-field[data-state="read-only"] .zen-input__control {
