@@ -18,6 +18,8 @@ How to maintain it:
   Floating-Glass, TopNavigation Liquid Glass and AiChatField Liquid Glass takes the dark Border/Neutral/Pale and
   Border/Popover/Subtle rims and a much weaker drawn light, as Figma's GLASS effect does on a dark fill. Light mode and the
   Black-Overlay glass are unchanged.
+- Zen Studio's Play and Present clip a device's screen to its corners with a clip-path: a Top Navigation's blur no longer
+  leaves a soft white haze on the bezel at the screen's top corners (2026-10-28, user: "Vẫn còn lỗi blur viền thiết bị").
 - Input (and every field on .zen-input-field): an invalid field's focus ring is Color/Focus/Negative/Subtle, not the
   neutral ring (2026-10-28, user: "phần focus lúc lỗi này đổi phần neutral focus qua negative"); the Negative border stays.
 - Tabs name their panels only when they have them (2026-10-27, UX review §7.10): `aria-controls` is set only with an

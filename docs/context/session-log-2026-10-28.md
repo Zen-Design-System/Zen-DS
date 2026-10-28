@@ -6,6 +6,15 @@
   now --zen-color-focus-negative-subtle (light negative-alpha-4, dark too) instead of focus-neutral-subtle; the Negative
   border stays. One rule; Select/Textarea/date fields share .zen-input-field. style:check ✓.
 
+## Session "Bug" · Device bezel blur (tier XS; user screenshot: "Vẫn còn lỗi blur viền thiết bị")
+
+- Play / Present draw the device as a rounded, overflow-clipped, transform-scaled box over a black bezel; Chromium does
+  not clip a backdrop-filter to those rounded corners, so the Top Navigation's blur / progressive blur hazed the bezel at
+  the top corners. board.css adds clip-path: inset(0 round var(--studio-device-screen-radius)) on the framed viewport.
+- Proof: a Chromium repro (scaled rounded screen + the real 6-layer progressive blur) went from 3403 / 5272 smeared
+  pixels inside the corner to 0 at device scales 0.8 and 1. Gate (--isolated, board.css): PASS, Studio E2E 403 works ·
+  0 broken (AP-02 passed only on retry, after #341's fix).
+
 ## Session "Bug" · Liquid Glass white rim in dark mode (tier S; user screenshot: "Liquid Glass ở darkmode bị trắng")
 
 - Cause: the glass rims are Liquid-Glass/White-Overlay (70 % / 40 % white in both modes) and _shared/liquid-glass.ts
