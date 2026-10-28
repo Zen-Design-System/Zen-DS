@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a component dragged from Assets onto the empty canvas lands as Figma's loose instance (user 2026-10-28):
+  a new frame at the pointer holds it at X 0 Y 0 and takes its size, one ⌘Z takes it back, as Paste here does. Before,
+  the drag said "Drop it into a frame". An App shell still goes on an empty Screen.
 - Zen Studio's Play and Present keep a phone Screen's Top and Bottom Navigation over what scrolls (user 2026-10-28):
   the Screen's content is one layer under its bars, so a List row no longer covers the Top Navigation, and a Screen is
   as tall as its absolute layers, so a long list placed absolutely scrolls under a Bottom Navigation that stays at the

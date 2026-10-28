@@ -27,7 +27,7 @@ export async function addPresetFrame(localPage: string, preset: FramePreset): Pr
   const ok = await addFrame(localPage, "screen", { ...(place ? { place } : {}), width: preset.width, height: preset.height, device: preset.device, ...(preset.layout ? { layout: preset.layout } : {}), name, empty: true });
   studioStore.setState({ tool: "select" });
   if (ok) revealFrame();
-  return ok;
+  return Boolean(ok);
 }
 
 function PresetGroup({ group, localPage }: { group: FramePresetGroup; localPage: string }) {

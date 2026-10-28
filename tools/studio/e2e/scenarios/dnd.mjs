@@ -201,9 +201,21 @@ const PLACES = [
     },
   },
   {
+    // The board outside every frame: a new frame there holds the item, floating at its top-left corner, then fits it
+    // (Figma's loose instance; user 2026-10-28 "kéo component ra canvas trống như figma"); an App shell stays refused
+    // (a whole page goes on a Screen).
     key: "on the board, outside every frame", screen: null, every: 4,
     at: async (page) => { const box = await frameBox(page, "screen-2"); return box && { x: box.x + box.width + 60, y: box.y + 40 }; },
-    refused: /Drop it into a frame/,
+    // The frame fits what it holds in a second write that joins the first: wait for it before judging or ⌘Z.
+    settle: (page, id, after) => changed(page, id, after, 2000).then((next) => next ?? after),
+    expect(before, after, item) {
+      const node = added(before, after, item.root);
+      const screen = node?.parents.find((step) => step.name === "Screen");
+      const id = screen?.props.id?.value;
+      if (!node || !id || before.includes(`id="${id}"`)) return `landed at ${node?.chain ?? "nowhere"}, not in a new frame`;
+      const floating = node.parents.at(-1)?.name === "Screen" ? node.node : node.parents.at(-1);
+      return /^\d/.test(String(floating?.props.insetLeft?.value)) && floating?.props.position?.value === "absolute" ? null : "not floating at the new frame's corner";
+    },
   },
 ];
 
@@ -244,7 +256,8 @@ async function campaign(ctx, all, label) {
         if (after) why = "written although refused";
         else if (!refused.test(shown.label)) why = `label "${shown.label}" (expected ${refused})`;
       } else {
-        const after = await changed(page, id, seed);
+        let after = await changed(page, id, seed);
+        if (after && place.settle) after = await place.settle(page, id, after);
         if (!after) why = `nothing written (label "${shown.label}", ${shown.tone ?? "no tone"})`;
         else {
           why = place.expect(seed, after, item);

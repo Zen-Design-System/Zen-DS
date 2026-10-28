@@ -42,3 +42,17 @@
 - E2E PT-30 (id from Giám sát): without the fix the bar stood 516px above the device's foot; without the isolation the
   Back button's point hit the DockIcon; with both, Bottom Navigation at the foot (0px) and Back on top.
 
+## Session "Bug" · A component dropped on the empty canvas (tier S; user: "Vẫn chưa cho kéo component ra canvas trống như figma")
+
+- Assets drag over the board outside every frame said "Drop it into a frame" (edit/assets/assets.ts). Now, on a page
+  you made, boardDropAt gives the board place and the drop goes to builder/boardPaste.ts dropOnBoard, sharing Paste
+  here's frameOnBoard (Giám sát: "gom chung logic với boardPaste.ts"): floatAt(code, 0, 0) in a new empty "Frame N"
+  of 390 × 300, then, once rendered, setFrameBoxes to the floating layer's offset size (100 a side at least) and
+  squashEdits(2) so one ⌘Z takes both; the join only when the fit sits right on the add (a quick ⌘Z in between leaves
+  nothing to join). addFrame now resolves to the new frame's id (callers took a boolean: FramePresets keeps one).
+- Still refused there: an App shell (a whole page: an empty Screen), and a component page's board.
+- E2E (ids from Giám sát): B-55 Button → Frame N at 0, 0, fitted, one ⌘Z; B-56 Top navigation → its own frame;
+  B-57 App shell refused, nothing written. The dnd campaign's "on the board, outside every frame" place expects the
+  new frame now (it waits for the fit before judging and ⌘Z).
+- Proof: B-55…57 3 works; gate (--isolated) PASS, Studio E2E 406 works · 0 broken; the opt-in dnd campaign
+  DND-01…03 (`--only=dnd --no-retry`) 693 drops right, the board place's new frames among them.
