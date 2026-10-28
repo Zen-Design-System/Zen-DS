@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { glassStyles, type GlassParams, type GlassStyleName } from "../../styles/generated/glass-styles";
+import { useZen } from "./zen-context";
 
 /*
  * Figma's GLASS effect (Liquid-Glass/Normal · Liquid-Glass/Large · Glass-Floating, src/styles/generated/glass-styles.ts)
@@ -10,6 +11,8 @@ import { glassStyles, type GlassParams, type GlassStyleName } from "../../styles
  *   - dispersion: each colour bends a little differently (the coloured fringe at the rim);
  *   - light: the bevel's specular rim, white, brightest at the edge facing `lightAngle` and the one opposite, fading a
  *     third of the depth in, `lightIntensity` strong; painted above the element's own fill (an inline background-image).
+ *     Figma's light lifts a dark fill far less than a light one, so component CSS can weaken it on an element with
+ *     `--zen-liquid-glass-light` (a factor, 1 by default; the dark Normal glass sets it).
  *
  * The bend is an SVG filter used as `backdrop-filter: url(#…)`, with a displacement map drawn for the element's size and
  * corner radius (redrawn when it resizes). Only Chromium draws SVG backdrop filters: elsewhere, and with
@@ -154,7 +157,10 @@ function attachGlass(element: HTMLElement, params: GlassParams): () => void {
     frame = 0;
     const w = Math.round(element.offsetWidth), h = Math.round(element.offsetHeight);
     if (!w || !h) return;
-    const radius = Math.round(Math.min(Number.parseFloat(getComputedStyle(element).borderTopLeftRadius) || 0, w / 2, h / 2));
+    const computed = getComputedStyle(element);
+    const radius = Math.round(Math.min(Number.parseFloat(computed.borderTopLeftRadius) || 0, w / 2, h / 2));
+    const strength = Number.parseFloat(computed.getPropertyValue("--zen-liquid-glass-light"));
+    const intensity = params.lightIntensity * (Number.isFinite(strength) ? strength : 1);
     const depth = Math.max(1, Math.min(params.depth, w / 2, h / 2));
     for (const node of [parts.filter, parts.image]) { node.setAttribute("width", String(w)); node.setAttribute("height", String(h)); }
     parts.image.setAttribute("href", displacementMap(w, h, radius, depth));
@@ -164,7 +170,7 @@ function attachGlass(element: HTMLElement, params: GlassParams): () => void {
     for (const { channel, displace } of parts.channels) displace.setAttribute("scale", (scale * (channel === "r" ? 1 - spread : channel === "b" ? 1 + spread : 1)).toFixed(2));
     element.style.setProperty("-webkit-backdrop-filter", `url(#${id})`);
     element.style.setProperty("backdrop-filter", `url(#${id})`);
-    element.style.setProperty("background-image", `url("${lightMap(w, h, radius, depth, params.lightAngle, params.lightIntensity)}")`);
+    element.style.setProperty("background-image", `url("${lightMap(w, h, radius, depth, params.lightAngle, intensity)}")`);
     element.style.setProperty("background-size", "100% 100%");
     element.style.setProperty("background-repeat", "no-repeat");
   };
@@ -184,8 +190,10 @@ function attachGlass(element: HTMLElement, params: GlassParams): () => void {
  * gets its own filter); without Chromium it does nothing and the element keeps its CSS frost.
  */
 export function useLiquidGlass(style: GlassStyleName, enabled = true) {
+  // A theme switch re-attaches the glass, so its light is read again under the new mode.
+  const theme = useZen()?.theme;
   return useCallback((element: HTMLElement | null) => {
     if (!element || !enabled || !canRefract()) return undefined;
     return attachGlass(element, glassStyles[style]);
-  }, [style, enabled]);
+  }, [style, enabled, theme]);
 }

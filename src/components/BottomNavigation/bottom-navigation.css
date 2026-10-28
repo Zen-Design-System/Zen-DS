@@ -105,6 +105,15 @@
   backdrop-filter: blur(2px);
 }
 .zen-bottom-nav[data-type="floating-glass"] :is(.zen-bottom-nav__pill, .zen-bottom-nav__fab)::before { display: none; }
+/* Dark mode: Figma's GLASS light barely lifts the dark glass (read 2026-10-28 on Floating-Glass 9017:42257: the lit rim
+   +9 % white, the far one +7 %, the sheen inside +2 %), but the White-Overlay rims stay 70 %/40 % in both modes (user
+   2026-10-28: "Liquid Glass ở darkmode bị trắng"). The rims take the dark Border/Neutral/Pale and Border/Popover/Subtle,
+   and the drawn light (_shared/liquid-glass.ts) a twentieth of its strength. Only the Normal fill turns dark: the
+   Black-Overlay glass keeps its rims. */
+:where([data-theme="dark"]) .zen-bottom-nav[data-type="floating-glass"] :is(.zen-bottom-nav__pill, .zen-bottom-nav__fab[data-tone="default"]) {
+  --zen-liquid-glass-light: 0.05;
+  box-shadow: inset 1px 1px 0 0 var(--zen-color-border-neutral-pale-default, rgb(254 254 254 / 11%)), inset -1px -1px 0 0 var(--zen-color-border-popover-subtle, rgb(252 252 252 / 6%)), var(--zen-style-liquid-glass-normal-shadow-unclipped, 0 4px 24px 0 rgb(0 0 0 / 16%));
+}
 /* On glass every icon stays Content/Neutral/Strongest (Figma 9018:43881); only the selected fill changes. */
 .zen-bottom-nav[data-type="floating-glass"] { --zen-bottom-nav-idle: var(--zen-color-content-neutral-strongest, #111); }
 .zen-bottom-nav:not([data-type="default"]) { --zen-bottom-nav-idle: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); }
