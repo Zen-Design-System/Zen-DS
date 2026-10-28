@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio's Play and Present keep a phone Screen's Top and Bottom Navigation over what scrolls (user 2026-10-28):
+  the Screen's content is one layer under its bars, so a List row no longer covers the Top Navigation, and a Screen is
+  as tall as its absolute layers, so a long list placed absolutely scrolls under a Bottom Navigation that stays at the
+  device's foot (it rose into the page at the Screen's own height). The canvas is unchanged.
 - Liquid Glass no longer shows a white rim in dark mode (user 2026-10-28): the Normal glass of BottomNavigation
   Floating-Glass, TopNavigation Liquid Glass and AiChatField Liquid Glass takes the dark Border/Neutral/Pale and
   Border/Popover/Subtle rims and a much weaker drawn light, as Figma's GLASS effect does on a dark fill. Light mode and the
