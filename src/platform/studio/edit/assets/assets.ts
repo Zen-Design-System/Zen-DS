@@ -9,6 +9,10 @@ import { insertTarget } from "../../builder/library/target";
 import { builderCode, type PaletteContext, type PaletteItem } from "../../slots/palette";
 import type { ContentSlot } from "../../slots/registry";
 import { canEdit, flushStudioStore, studioStore } from "../../store";
+import { dropOnBoard } from "../../builder/boardPaste";
+import { boardPlaceAt } from "../../builder/frameMove";
+import type { FramePlace } from "../../builder/render/framePlace";
+import { pageFile } from "../../builder/store/pageStore";
 import type { EditOp, StateDecl, StudioSelection } from "../../types";
 import { placeOf, type DropTarget, type NodeSelection } from "../arrange";
 import { insertCode, notRecommended } from "../clipboard";
@@ -422,7 +426,7 @@ function freeDropAt(target: DropTarget, pointer: { x: number; y: number }, noSna
 
 const NOTHING: DropContext = { hosts: [], frame: undefined, parentHost: null, origin: null, layerSrc: null, copy: false, slots: true };
 
-type Drag = { item: Insertable; start: { x: number; y: number }; dragging: boolean; target: DropTarget | null; refusal: string | null; swap: ReturnType<typeof picturedAt>; bar: BarTarget | null; free: FreeDrop | null; cell: ReturnType<typeof cellAt> };
+type Drag = { item: Insertable; start: { x: number; y: number }; dragging: boolean; target: DropTarget | null; refusal: string | null; swap: ReturnType<typeof picturedAt>; bar: BarTarget | null; free: FreeDrop | null; cell: ReturnType<typeof cellAt>; board: FramePlace | null };
 let drag: Drag | null = null;
 
 const overCanvas = (x: number, y: number) => {
@@ -441,6 +445,7 @@ function onMove(event: PointerEvent) {
   }
   event.preventDefault();
   const pointer = { x: event.clientX, y: event.clientY };
+  current.board = null;
   if (!overCanvas(pointer.x, pointer.y)) {
     current.target = null;
     publishDragView(null);
@@ -485,8 +490,15 @@ function onMove(event: PointerEvent) {
   }
   const { target, reason } = dropTargetAt(pointer.x, pointer.y, NOTHING);
   current.target = target;
-  // Nowhere to land is said, never silent: the board outside a frame takes frames only (Figma would make a loose layer).
-  current.refusal = reason ?? (target ? refusalFor(target) : overFrame(pointer.x, pointer.y) ? null : "Drop it into a frame");
+  // The board outside every frame: a new frame there holds it (boardDropAt); where it cannot, that is said, never silent.
+  const board = !target && !reason && !overFrame(pointer.x, pointer.y) ? boardDropAt(current.item, pointer) : null;
+  current.board = board && typeof board === "object" ? board : null;
+  current.refusal = reason ?? (target ? refusalFor(target) : typeof board === "string" ? board : null);
+  if (current.board) {
+    current.free = null;
+    publishDragView({ line: null, into: null, pointer, label: `${current.item.label} · new frame`, tone: "info" });
+    return;
+  }
   current.free = target && !current.refusal ? freeDropAt(target, pointer, event.metaKey || event.ctrlKey) : null;
   if (current.free && target) {
     publishDragView({ line: null, into: target.into, pointer, label: `${current.item.label} · ${current.free.x}, ${current.free.y}`, tone: "info", guides: current.free.guides });
@@ -529,6 +541,7 @@ function stop(commit: boolean) {
     return;
   }
   if (commit && current.bar && !current.refusal) { void dropBar(current.item, current.bar); return; }
+  if (commit && current.board && !current.refusal) { void dropItemOnBoard(current.item, current.board); return; }
   if (current.cell && current.item.use) {
     if (commit && !current.refusal) void putInCell(current.cell.hit, current.item.use, studioStore.getState().localPage, fail);
     else if (commit && current.refusal) fail(current.refusal);
@@ -547,6 +560,28 @@ function shellAt(x: number, y: number): (DropTarget & { into: { x: number; y: nu
   if (kidsOf(screen).length) return "An App shell is a whole page: drop it on an empty Screen";
   const box = host.getBoundingClientRect();
   return { parentSrc: screen.src, parentName: "Screen", frameId: frameOf(host), panelId: panelOf(host), into: { x: box.x, y: box.y, w: box.width, h: box.height } };
+}
+
+/**
+ * Where `item` dropped at the client point lands on the board's empty space, Figma's loose instance (user 2026-10-28:
+ * "kéo component ra canvas trống như figma"): a new frame there, its corner at the pointer, on a page you made
+ * (builder/boardPaste.ts dropOnBoard, as Paste here). Why not otherwise: a component page's board holds its frames
+ * only, and an App shell is a whole page that goes on a Screen.
+ */
+function boardDropAt(item: Insertable, pointer: { x: number; y: number }): FramePlace | string {
+  if (!studioStore.getState().localPage) return "Drop it into a frame";
+  if (item.root === "AppShell") return "An App shell is a whole page: drop it on an empty Screen";
+  return boardPlaceAt(pointer) ?? "Drop it into a frame";
+}
+
+/** `item` in a new frame at `place` on the board of the page you made (one ⌘Z). */
+async function dropItemOnBoard(item: Insertable, place: FramePlace) {
+  const { localPage } = studioStore.getState();
+  if (!localPage) return;
+  const code = item.code(pageFile(localPage));
+  if (code === null) { fail(item.refusal); return; }
+  multiSelection.clear();
+  await dropOnBoard(code, place, `Add ${item.label}`);
 }
 
 /** Whether (x, y) is on a frame of the board (a Screen or an Overlay), not the board's empty space. */
@@ -570,7 +605,7 @@ export function pressAsset(event: PointerEvent, item: Insertable) {
   if (event.button !== 0 || drag) return;
   if (!canEdit()) { fail("View only"); return; }
   event.preventDefault();
-  drag = { item, start: { x: event.clientX, y: event.clientY }, dragging: false, target: null, refusal: null, swap: null, bar: null, free: null, cell: null };
+  drag = { item, start: { x: event.clientX, y: event.clientY }, dragging: false, target: null, refusal: null, swap: null, bar: null, free: null, cell: null, board: null };
   window.addEventListener("pointermove", onMove, true);
   window.addEventListener("pointerup", onUp, true);
   window.addEventListener("pointercancel", onCancel, true);

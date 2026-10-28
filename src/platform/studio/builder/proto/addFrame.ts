@@ -14,7 +14,7 @@ import { selectFrameWhenShown } from "../../board/frames";
  * "Add screen" / "Add overlay" (holding a Dialog, Bottom Sheet, Side Panel or Card) and the toolbar's Frame tool. A Screen takes the device of the page's first Screen, so a
  * phone flow stays on phones. The Frame tool gives it a place on the board and a size (a click: 100 × 100; a drag: the
  * drawn size, its device read from the width; a preset of the right panel: the preset's size and device), always empty;
- * the new frame is then selected.
+ * the new frame is then selected. Resolves to the new frame's id (`screen:<id>`, `overlay:<id>`), or false.
  */
 
 const literal = (node: PageNode, prop: string) => { const value = node.props[prop]; return value?.kind === "literal" ? value.value : undefined; };
@@ -129,7 +129,7 @@ export async function wrapInSection(localPage: string, frameIds: readonly string
   return around ? addSection(localPage, around, "Wrap in new section") : null;
 }
 
-export async function addFrame(localPage: string, kind: "screen" | "overlay", { place, width, height, device: drawn, layout, name, empty: bare, holds, content, label }: Placement = {}): Promise<boolean> {
+export async function addFrame(localPage: string, kind: "screen" | "overlay", { place, width, height, device: drawn, layout, name, empty: bare, holds, content, label }: Placement = {}): Promise<string | false> {
   let board = await readBoard(localPage);
   if (!board) return false;
   // A frame with a place of its own: the frames still in the row are pinned first, so none of them moves (the same undo
@@ -156,5 +156,5 @@ export async function addFrame(localPage: string, kind: "screen" | "overlay", { 
   const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code } as EditOp] }, named);
   joinPin(pinned, response, named);
   if (response.ok && place) selectFrameWhenShown(`${kind}:${id}`, (frameId) => studioStore.setState({ selection: { kind: "frame", frameId } }));
-  return Boolean(response.ok);
+  return response.ok ? `${kind}:${id}` : false;
 }

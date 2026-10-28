@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a component dragged from Assets onto the empty canvas lands as Figma's loose instance (user 2026-10-28):
+  a new frame at the pointer holds it at X 0 Y 0 and takes its size, one ⌘Z takes it back, as Paste here does. Before,
+  the drag said "Drop it into a frame". An App shell still goes on an empty Screen.
 - Zen Studio's Play and Present clip a device's screen to its corners with a clip-path: a Top Navigation's blur no longer
   leaves a soft white haze on the bezel at the screen's top corners (2026-10-28, user: "Vẫn còn lỗi blur viền thiết bị").
 - Input (and every field on .zen-input-field): an invalid field's focus ring is Color/Focus/Negative/Subtle, not the

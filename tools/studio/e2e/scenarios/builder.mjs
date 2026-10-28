@@ -410,6 +410,34 @@ async function selectTableCell(page, key) {
   await until(async () => (await selectedName(page)).startsWith("Cell"), { message: `the Cell ${key} selected` });
 }
 
+/** Drags Assets › Components › `label` onto the board's empty space right of the first frame; the drag's label just
+ *  before the drop (B-55…B-57). */
+async function dragAssetToBoard(page, label) {
+  await openAssetLibrary(page, "Components");
+  const assets = page.locator("#studio-left-panel-assets");
+  await assets.getByLabel("Search components").fill(label);
+  const tile = assets.locator('.studio-assets__section[aria-label="Results"] [data-asset]').filter({ hasText: new RegExp(`^${label}`) }).first();
+  await tile.waitFor({ state: "visible", timeout: 5000 });
+  const from = await tile.boundingBox();
+  const frame = await page.locator('[data-studio-frame^="screen:"]').first().boundingBox();
+  const to = { x: frame.x + frame.width + 80, y: frame.y + 40 };
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  for (let step = 1; step <= 12; step += 1) {
+    await page.mouse.move(from.x + from.width / 2 + ((to.x - from.x - from.width / 2) * step) / 12, from.y + from.height / 2 + ((to.y - from.y - from.height / 2) * step) / 12);
+    await sleep(14);
+  }
+  await sleep(150);
+  const shown = (await page.locator(".studio-drag__label").first().innerText().catch(() => "")).trim();
+  await page.mouse.up();
+  return shown;
+}
+
+/** The Screens of a page's text: id, title, width, height and what each holds (its code, one line). */
+const screensOf = (text) => [...text.matchAll(/<Screen\b([^>]*?)(\/>|>([\s\S]*?)<\/Screen>)/g)].map(([, attrs, , inner]) => ({
+  id: /\bid="([^"]+)"/.exec(attrs)?.[1], title: /\btitle="([^"]+)"/.exec(attrs)?.[1], width: Number(/\bwidth=\{(\d+)\}/.exec(attrs)?.[1]), height: Number(/\bheight=\{(\d+)\}/.exec(attrs)?.[1]), inner: (inner ?? "").replace(/\s+/g, " ").trim(),
+}));
+
 export const rows = [
   {
     id: "B-01", feature: "New page: a blank phone page opens on the canvas, listed under My pages", wp: "GĐ2 M1",
@@ -1607,6 +1635,58 @@ export const rows = [
       const selected = (await selectedSrc(page))[0] ?? null;
       if (!selected || !selected.endsWith(`:${locOfTag(text, "MetricCard")}`)) throw new Error(`selected ${selected}, not the new MetricCard`);
       return "MetricCard after the Text in the Stack, in flow, selected";
+    },
+  },
+  {
+    id: "B-55", feature: "A component dragged from Assets onto the empty canvas lands as Figma's loose instance: a new frame at the pointer holds it at X 0 Y 0, the frame takes its size, one ⌘Z takes it all back (user 2026-10-28: kéo component ra canvas trống)", wp: "bug 2026-10-28",
+    async run(ctx) {
+      const { page, id } = await emptyPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const shown = await dragAssetToBoard(page, "Button");
+      if (!/new frame/.test(shown)) throw new Error(`the drag over the empty canvas says "${shown}"`);
+      // The add, then the fit (one undo step): wait for the frame's height to leave the 300px it starts at.
+      let added = null;
+      await until(async () => {
+        const text = (await pageText(page, id)) ?? "";
+        added = screensOf(text).find((screen) => !before.includes(`id="${screen.id}"`)) ?? null;
+        return Boolean(added && added.height !== 300);
+      }, { timeout: 6000, message: "a new frame that fits the Button" });
+      if (!/^Frame \d+$/.test(added.title ?? "")) throw new Error(`the new frame is named "${added.title}"`);
+      if (!/^<Box position="absolute" insetLeft=\{0\} insetTop=\{0\}> <Button\b/.test(added.inner)) throw new Error(`the frame holds: ${added.inner.slice(0, 160)}`);
+      const button = await page.locator(`[data-studio-frame="screen:${added.id}"] .zen-button`).first().evaluate((element) => ({ width: element.offsetWidth, height: element.offsetHeight }));
+      const fits = (side, drawn) => side === Math.max(100, Math.round(drawn));
+      if (!fits(added.width, button.width) || !fits(added.height, button.height)) throw new Error(`frame ${added.width} × ${added.height} for a ${button.width} × ${button.height} Button (100 a side at least)`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => ((await pageText(page, id)) ?? "") === before, { timeout: 4000, message: "one ⌘Z takes the frame and its fit back" });
+      return `"${shown}" · ${added.title} ${added.width} × ${added.height} holds the Button at 0, 0 · one ⌘Z`;
+    },
+  },
+  {
+    id: "B-56", feature: "A Top Navigation dragged onto the empty canvas lands in a new frame of its own too (a loose instance, not a Screen's bar)", wp: "bug 2026-10-28",
+    async run(ctx) {
+      const { page, id } = await emptyPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const shown = await dragAssetToBoard(page, "Top navigation");
+      let added = null;
+      await until(async () => {
+        added = screensOf((await pageText(page, id)) ?? "").find((screen) => !before.includes(`id="${screen.id}"`)) ?? null;
+        return Boolean(added && added.height !== 300);
+      }, { timeout: 6000, message: `a new frame holding the Top Navigation (the drag said "${shown}")` });
+      if (!/<TopNavigation\b/.test(added.inner)) throw new Error(`the frame holds: ${added.inner.slice(0, 160)}`);
+      return `"${shown}" · ${added.title} ${added.width} × ${added.height} holds the Top Navigation`;
+    },
+  },
+  {
+    id: "B-57", feature: "An App shell over the empty canvas is refused and says why (a whole page goes on an empty Screen); nothing is written", wp: "bug 2026-10-28",
+    async run(ctx) {
+      const { page, id } = await emptyPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const shown = await dragAssetToBoard(page, "App shell");
+      if (!/whole page/.test(shown)) throw new Error(`the drag says "${shown}"`);
+      await sleep(900);
+      if (((await pageText(page, id)) ?? "") !== before) throw new Error("the App shell was written although refused");
+      return `"${shown}" · nothing written`;
     },
   },
   {
