@@ -16,13 +16,15 @@ import type { PageNode, PageTree, PageValue } from "../render/renderPage";
 import { pageFile, usePage } from "../store/pageStore";
 import { usePageTree } from "../usePageTree";
 import { setStartScreen } from "../frameEdit";
+import { templateChoices, type TemplateChoice } from "../starters/fromTemplate";
+import { addTemplateScreen } from "../starters/templateScreen";
 import { addFrame as addBoardFrame } from "./addFrame";
 import { playStartOf, startPlay } from "./playStart";
 import { defaultTarget, writeAction, writeItemTargets, writeProp, type ProtoLayer } from "./protoEdit";
 import { selectedItem } from "./protoDom";
 import {
   ACTIONS, actionsFor, actionTriggerLabel, ANIMATIONS, choiceItemsOf, columnsOf, DEFAULT_ANIMATION, DEFAULT_DELAY, DEFAULT_DIRECTION, DEFAULT_DURATION, DELAY_TRIGGER, filterOf, findNode, frameNodeOf, framesOf,
-  HOVER_TRIGGER, isItemTrigger, layerNameOf, layersIn, literalOf, moves, openerOf, optionsOf, protoOf, stepOf, targetLayerOf, targetsByItem, triggerLabel, triggerValue,
+  HOVER_TRIGGER, isItemTrigger, layerNameOf, layerWordsOf, layersIn, literalOf, moves, openerOf, optionsOf, protoOf, stepOf, targetLayerOf, targetsByItem, triggerLabel, triggerValue,
   type ChoiceItem, type ProtoAction, type ProtoAnimation, type ProtoDirection, type ProtoDuration, type ProtoFilter, type ProtoFrame, type ProtoOptions, type ProtoStep,
 } from "./protoModel";
 import { anchorsItself, placesItself, protoSubject, takesText, type ProtoSubject } from "./protoTriggers";
@@ -92,7 +94,7 @@ export function PrototypePanel() {
           ))}
         </ul>
         <div className="studio-prototype__add">
-          <Button appearance="main" level="tertiary" size="sm" disabled={!editable || !tree?.board} startIcon={<Icon name="icon-plus-line" decorative />} onClick={() => void addBoardFrame(localPage, "screen")}>Add Screen</Button>
+          <AddScreenMenu localPage={localPage} disabled={!editable || !tree?.board} phone={Boolean(firstScreen && firstScreen.device !== "desktop")} />
           <Menu
             trigger={<Button appearance="main" level="tertiary" size="sm" disabled={!editable || !tree?.board} startIcon={<Icon name="icon-plus-line" decorative />} endIcon={<Icon name="icon-chevron-down-line" decorative />}>Add overlay</Button>}
             items={OVERLAY_KINDS.map((kind) => ({ id: kind.id, label: kind.label, icon: kind.icon }))}
@@ -111,6 +113,28 @@ export function PrototypePanel() {
       )}
       {scrolls ? <ScrollBehavior key={`scroll:${scrolls.loc}`} node={scrolls} file={file} disabled={!editable} /> : null}
     </div>
+  );
+}
+
+/** Add Screen: an empty Screen, or one of the templates for the page's device (walk 2026-10-29 W-49), its overlays with
+ *  it. The templates load when the menu first opens (their own chunk). */
+function AddScreenMenu({ localPage, disabled, phone }: { localPage: string; disabled: boolean; phone: boolean }) {
+  const [templates, setTemplates] = useState<TemplateChoice[] | null>(null);
+  const load = (open: boolean) => {
+    if (open && !templates) void templateChoices().then(setTemplates, () => setTemplates([]));
+  };
+  const fits = (templates ?? []).filter((template) => template.mobile === phone);
+  return (
+    <Menu
+      trigger={<Button appearance="main" level="tertiary" size="sm" disabled={disabled} startIcon={<Icon name="icon-plus-line" decorative />} endIcon={<Icon name="icon-chevron-down-line" decorative />}>Add Screen</Button>}
+      onOpenChange={load}
+      items={[
+        { id: "empty", label: "Empty Screen", icon: "icon-plus-line" },
+        { type: "separator", id: "templates-separator" },
+        ...(templates === null ? [{ id: "loading", label: "Templates…", disabled: true }] : fits.map((template) => ({ id: `template:${template.id}`, label: template.title, icon: phone ? "icon-mobile-line" as const : "icon-monitor-01-line" as const }))),
+      ]}
+      onSelect={(item) => void (item.id === "empty" ? addBoardFrame(localPage, "screen") : item.id.startsWith("template:") ? addTemplateScreen(localPage, item.id.slice("template:".length)) : null)}
+    />
   );
 }
 
@@ -170,7 +194,7 @@ function Interactions({ subject, tree, layer, via, frames, home, disabled }: { s
   return (
     <InspectorSection title="Interactions" actions={addMenu} note={via ? `${via} · in ${node.name}` : undefined}>
       {shown.length ? shown.map((trigger) => (
-        <TriggerRow key={trigger} trigger={trigger} label={labelOf(trigger)} value={triggerValue(node, trigger)} items={isItemTrigger(node, trigger) ? choiceItemsOf(node) : []} tree={tree} layer={layer} frames={frames} home={home} disabled={disabled} onRemoved={() => setAdded((list) => list.filter((item) => item !== trigger))} />
+        <TriggerRow key={trigger} trigger={trigger} label={labelOf(trigger)} words={layerWordsOf(node, trigger)} value={triggerValue(node, trigger)} items={isItemTrigger(node, trigger) ? choiceItemsOf(node) : []} tree={tree} layer={layer} frames={frames} home={home} disabled={disabled} onRemoved={() => setAdded((list) => list.filter((item) => item !== trigger))} />
       )) : <Text tone="base" textStyle="Body/Small/Regular">{`${node.name} takes no clicks.`}</Text>}
     </InspectorSection>
   );
@@ -181,7 +205,7 @@ const NO_TARGET = "__none";
 
 /** One trigger of the selected layer: its action and target, how it animates (After delay: how long first). A choice
  *  control's item trigger (a tab bar's On change) leads each item to its own Screen or Overlay: one row per item. */
-function TriggerRow({ trigger, label, value, items, tree, layer, frames, home, disabled, onRemoved }: { trigger: string; label: string; value: PageValue | undefined; items: ChoiceItem[]; tree: PageTree | null; layer: ProtoLayer; frames: ProtoFrame[]; home: ProtoFrame | null; disabled: boolean; onRemoved: () => void }) {
+function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, home, disabled, onRemoved }: { trigger: string; label: string; words: string; value: PageValue | undefined; items: ChoiceItem[]; tree: PageTree | null; layer: ProtoLayer; frames: ProtoFrame[]; home: ProtoFrame | null; disabled: boolean; onRemoved: () => void }) {
   const proto = protoOf(value);
   const action: ProtoAction = proto?.action ?? "none";
   const arg = proto?.args[0];
@@ -212,11 +236,11 @@ function TriggerRow({ trigger, label, value, items, tree, layer, frames, home, d
     const kept: ProtoOptions = next === action ? options : { delay: options.delay, ...(next === "navigate" || next === "open" ? { animation: options.animation, direction: options.direction, duration: options.duration } : {}) };
     if (items.length && (next === "navigate" || next === "open") && target === undefined) {
       // Per item: the item selected on the canvas starts with a target, the others go nowhere until one is picked.
-      const start = pickedItem ? { [pickedItem]: defaultTarget(next, frames, homeScreen) } : {};
+      const start = pickedItem ? { [pickedItem]: defaultTarget(next, frames, homeScreen, items.find((item) => item.value === pickedItem)?.label) } : {};
       void writeItemTargets(layer, trigger, next, start, ACTIONS.find((entry) => entry.value === next)?.label ?? next, kept);
       return;
     }
-    void writeAction(layer, trigger, next, target ?? defaultTarget(next, frames, homeScreen), kept);
+    void writeAction(layer, trigger, next, target ?? defaultTarget(next, frames, homeScreen, words), kept);
   };
   const writeItem = (item: ChoiceItem, target: string) => {
     if (action !== "navigate" && action !== "open") return;

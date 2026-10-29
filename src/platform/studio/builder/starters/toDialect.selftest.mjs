@@ -2,7 +2,7 @@
 // Starters (./toDialect.ts, imported directly: Node strips the types): a snapshot written as a builder page — props as
 // literals, text JSX keeps exactly, a page the dialect accepts. Run: node src/platform/studio/builder/starters/toDialect.selftest.mjs
 import { validateDialect } from "../../../../../tools/studio/dialect.mjs";
-import { componentsOf, element, mergeText, starterPage, starterTitle } from "./toDialect.ts";
+import { componentsOf, element, linkOverlays, mergeText, starterPage, starterTitle } from "./toDialect.ts";
 
 const failures = [];
 let passed = 0;
@@ -48,6 +48,28 @@ check("an overlay's own action closes it", element(node("Dialog", [["primaryActi
 const overlay = starterPage({ title: "With dialog", device: "desktop", nodes: [node("Button", [], [text("Open")])], overlays: [{ id: "dialog-1", node: node("Dialog", [["title", lit("Delete?")], ["primaryAction", { kind: "object", fields: [["label", lit("Delete")], ["onClick", { kind: "proto", action: "close" }]] }]], [text("Sure?")]) }] });
 check("an overlay: an Overlay frame after the Screen, a valid page", [validateDialect(overlay, { components }), overlay.includes('<Overlay id="dialog-1">'), overlay.includes("import { Board, Overlay, Screen, proto }")], [[], true, true]);
 check("a quote in the title stays valid", validateDialect(starterPage({ title: 'Say "hi"', device: "tablet", nodes: [node("Text", [], [text("x")])] }), { components }), []);
+
+// A template's overlays open from the buttons named as they are (walk 2026-10-29 W-50).
+{
+  const clicked = (built) => ({ ...built, clicks: true });
+  const invite = clicked(node("Button", [], [text("Invite members")]));
+  const date = clicked(node("Button", [["aria-label", lit("Date")]], [text("Date")]));
+  const plain = node("Button", [], [text("Remove")]);
+  const help = clicked(node("Button", [], [text("Get help")]));
+  const nodes = [node("Stack", [], [invite, date, plain, help])];
+  const overlays = [
+    { id: "filter", node: node("Dialog", [["title", lit("Filter")]]) },
+    { id: "invite-members", node: node("Dialog", [["title", lit("Invite members")]]) },
+    { id: "date-placed", node: node("Dialog", [["title", lit("Date placed")]]) },
+    { id: "remove", node: node("Dialog", [["title", lit("Remove")]]) },
+  ];
+  const linked = linkOverlays(nodes, overlays);
+  const openOf = (button) => button.props.find(([key]) => key === "onClick")?.[1];
+  check("linked: by the same words, then by their start; a button that took no click and a name no button reads stay out", linked.sort(), ["date-placed", "invite-members"]);
+  check("the buttons open their overlays", [openOf(invite), openOf(date), openOf(plain), openOf(help)], [{ kind: "proto", action: "open", target: "invite-members" }, { kind: "proto", action: "open", target: "date-placed" }, undefined, undefined]);
+  const page = starterPage({ title: "Admin", device: "desktop", nodes, overlays });
+  check("the page writes proto.open and stays valid", [page.includes('onClick={proto.open("invite-members")}'), validateDialect(page, { components })], [true, []]);
+}
 
 if (failures.length) {
   console.error(`✗ starters (toDialect) selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);

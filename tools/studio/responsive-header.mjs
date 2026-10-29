@@ -153,6 +153,12 @@ const el = (name, props, children = []) => ({ kind: "element", name, loc: "0:0",
 export function derivePhoneChrome(screen, { mock = {} } = {}) {
   const shell = rootShell(screen);
   if (!shell) return { kind: null, topNavigation: null, bottomNavigation: null, notes: ["no desktop AppShell to draw the phone header from"] };
+  // An AppShell written for the phone (its own Top / Bottom Navigation: a mobile template, walk 2026-10-29 W-48) has its
+  // phone parts already: they are the Screen's, as written (its title, Search control bar, tabs), not drawn from a
+  // desktop header it does not have (that drew the page's title and dropped the Search and the tabs).
+  const ownTop = elementsIn(shell.props.topNavigation).find((node) => node.name === "TopNavigation") ?? null;
+  const ownBottom = elementsIn(shell.props.bottomNavigation).find((node) => node.name === "BottomNavigation") ?? null;
+  if (ownTop || ownBottom) return { kind: "own", topNavigation: ownTop, bottomNavigation: ownBottom, notes: [] };
   const scope = { mock };
   const notes = [];
   // Header/AppShell: its top row (leading · center · actions) and its Main row (main, then sections).

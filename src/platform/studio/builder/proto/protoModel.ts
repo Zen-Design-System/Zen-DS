@@ -1,4 +1,4 @@
-import type { PageNode, PageTree, PageValue } from "../render/renderPage";
+import type { PageChild, PageNode, PageTree, PageValue } from "../render/renderPage";
 
 /*
  * What the Prototype tab, the canvas connections (ProtoLinks) and Play read from a builder page's tree: its frames, the
@@ -235,6 +235,36 @@ export const layerNameOf = (node: PageNode): string | undefined => {
   const name = literalOf(node, "data-name") ?? literalOf(node, "aria-label");
   return typeof name === "string" && name ? name : undefined;
 };
+
+/** The words a trigger's layer reads as (an action object's label, the layer's own name, its label prop, else its text):
+ *  what Open overlay and Navigate to match a frame's name by (walk 2026-10-29 W-57). */
+export function layerWordsOf(node: PageNode, trigger: string): string {
+  const field = fieldTrigger(trigger);
+  const object = field ? node.props[field.prop] : undefined;
+  if (object?.kind === "object") {
+    const label = object.fields.label;
+    return label?.kind === "literal" && typeof label.value === "string" ? label.value : "";
+  }
+  const own = layerNameOf(node) ?? ["label", "title"].map((prop) => literalOf(node, prop)).find((value) => typeof value === "string" && value);
+  if (typeof own === "string") return own;
+  const words: string[] = [];
+  const walk = (children: PageChild[]) => children.forEach((child) => { if (child.kind === "text") words.push(child.value); else if (child.kind === "element") walk(child.children); });
+  walk(node.children);
+  return words.join(" ").replace(/\s+/g, " ").trim();
+}
+
+/** A name as words to compare: lower case, marks dropped, runs of anything else as one dash ("Đặt lịch" → "dat-lich"). */
+const nameKey = (value: string) => value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+/** The frame whose title or id reads as `words`: the same words first, else one that starts with them ("Date" → "Date
+ *  placed") or that they start with; undefined when none does. */
+export function frameNamed(frames: readonly ProtoFrame[], words: string): string | undefined {
+  const key = nameKey(words);
+  if (!key) return undefined;
+  const keys = frames.map((frame) => ({ id: frame.id, names: [nameKey(frame.title), nameKey(frame.id)].filter(Boolean) }));
+  return (keys.find((frame) => frame.names.includes(key))
+    ?? keys.find((frame) => frame.names.some((name) => name.startsWith(`${key}-`) || key.startsWith(`${name}-`))))?.id;
+}
 
 /** The `component` layers inside `root` (a Screen), in reading order. */
 export function layersIn(root: PageNode, component: string): PageNode[] {

@@ -4,6 +4,7 @@
 import { inspectorRow, openAssetLibrary, selectAt, showLeftTab, sleep, until } from "../lib/studio.mjs";
 import { pickOption } from "./inspector.mjs";
 import { clickNamed, newPage, pageText, seededPage, selectStack } from "./builder.mjs";
+import { pageFromTemplate } from "./starters.mjs";
 
 /** The presented device's viewport: Present's still frame, or Play's device (a Screen presented from its frame plays
  *  since #288, Figma's Present). */
@@ -55,6 +56,7 @@ async function protoPage(ctx, { screens = 2, overlay = false, button = false, de
   await prototypeTab(page);
   for (let n = 2; n <= screens; n += 1) {
     await page.getByRole("button", { name: "Add Screen" }).click();
+    await page.getByRole("menuitem", { name: "Empty Screen" }).click(); // Add Screen asks: empty or a template (W-49)
     await until(async () => new RegExp(`<Screen id="screen-${n}"`).test(await text(page, id)), { message: `screen-${n} in the page` });
   }
   if (overlay) {
@@ -219,6 +221,32 @@ export default function Page() {
   );
 }
 `;
+/** A Change role button and two overlays, Filter first (PT-37, walk 2026-10-29 W-57). */
+const namedOverlaysPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { Button, Dialog, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Team" device="desktop">
+        <Stack gap="md" padding="lg">
+          <Button>Change role</Button>
+        </Stack>
+      </Screen>
+      <Overlay id="filter">
+        <Dialog title="Filter" primaryAction={{ label: "Apply", onClick: proto.close() }} />
+      </Overlay>
+      <Overlay id="change-role">
+        <Dialog title="Change role" primaryAction={{ label: "Save", onClick: proto.close() }} />
+      </Overlay>
+    </Board>
+  );
+}
+`;
+
 /** The page's Screens in the Board's order. */
 const screenOrder = (code) => [...code.matchAll(/<Screen id="([a-z0-9-]+)"/g)].map((match) => match[1]).join(",");
 /** Each frame's place on the canvas (world px), to check a reorder moves none. */
@@ -824,6 +852,60 @@ export const rows = [
       await page.keyboard.press("ControlOrMeta+z");
       await until(async () => screenOrder(await source()) === "login,splash,home", { message: "⌘Z puts the order back" });
       return `Layers drag → ${order} · Start no longer Login · no frame moved · ⌘Z → login,splash,home`;
+    },
+  },
+  {
+    id: "PT-35", feature: "A page from the Mobile list · Orders template keeps its bars and its links (walk 2026-10-29 W-48/W-50): the Screen's Top Navigation is the template's (Orders, its Search), its Bottom Navigation's tabs show, one of each on the canvas; the Date chip opens the Date placed sheet (proto.open) without the Prototype tab", wp: "prototype walk 2026-10-29", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await pageFromTemplate(ctx, "Mobile list · Orders");
+      const source = async () => (await pageText(page, id)) ?? "";
+      await until(async () => /<Screen[\s\S]*?topNavigation=\{<TopNavigation[\s\S]*?title="Orders"/.test(await source()), { message: "the Screen's Top Navigation is the template's (Orders)" });
+      const code = await source();
+      const screenTag = code.slice(code.indexOf("<Screen"), code.indexOf("<AppShell"));
+      if (/Mobile list · Orders" largeTitle/.test(screenTag) || !/<Search\b/.test(screenTag)) throw new Error(`the Screen's bars: ${screenTag.replace(/\s+/g, " ").slice(0, 300)}`);
+      if (!/bottomNavigation=\{<BottomNavigation/.test(screenTag)) throw new Error("the Screen has no Bottom Navigation");
+      if (!/onClick=\{proto\.open\("date-placed"\)\}/.test(code)) throw new Error("the Date chip does not open the Date placed sheet");
+      const screen = page.locator('[data-studio-frame="screen:screen-1"]');
+      await until(async () => (await screen.locator(".zen-bottom-nav").count()) >= 1, { message: "the tabs on the canvas" });
+      const bars = await screen.evaluate((frame) => ({
+        top: [...frame.querySelectorAll(".zen-top-nav")].filter((bar) => bar.getBoundingClientRect().height > 0).length,
+        bottom: [...frame.querySelectorAll(".zen-bottom-nav")].filter((bar) => bar.getBoundingClientRect().height > 0).length,
+        shop: [...frame.querySelectorAll(".zen-bottom-nav")].some((bar) => /Shop/.test(bar.textContent ?? "")),
+      }));
+      if (bars.top !== 1 || bars.bottom !== 1 || !bars.shop) throw new Error(`on the canvas: ${bars.top} Top and ${bars.bottom} Bottom Navigations, Shop tab ${bars.shop}`);
+      return "Top Navigation Orders + Search · tabs (Shop) · 1 top, 1 bottom bar on the canvas · Date → proto.open(\"date-placed\")";
+    },
+  },
+  {
+    id: "PT-36", feature: "Add Screen › a template (walk 2026-10-29 W-49): on a phone page Add Screen offers Empty Screen and the phone templates; Mobile detail · Order goes in as a second Screen with its three overlays, each opened by the button named as it is; one ⌘Z takes it all back", wp: "prototype walk 2026-10-29", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await newPage(ctx, { device: "phone" });
+      const source = async () => (await pageText(page, id)) ?? "";
+      await prototypeTab(page);
+      await page.getByRole("button", { name: "Add Screen" }).click();
+      await page.getByRole("menuitem", { name: "Empty Screen" }).waitFor({ state: "visible", timeout: 3000 });
+      await step("Mobile detail · Order", () => page.getByRole("menuitem", { name: /^Mobile detail · Order/ }).click({ timeout: 10_000 }));
+      await until(async () => (await source()).match(/<Screen /g)?.length === 2, { timeout: 30_000, message: "a second Screen" });
+      await until(async () => (await source()).match(/<Overlay /g)?.length === 3, { message: "its three overlays" });
+      const code = await source();
+      const opens = [...code.matchAll(/proto\.open\("([a-z0-9-]+)"\)/g)].map((match) => match[1]).sort();
+      const overlays = [...code.matchAll(/<Overlay id="([a-z0-9-]+)"/g)].map((match) => match[1]).sort();
+      if (opens.join() !== overlays.join()) throw new Error(`buttons open ${opens.join(", ") || "nothing"}; the overlays are ${overlays.join(", ")}`);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await source()).match(/<Screen /g)?.length === 1 && !/<Overlay /.test(await source()), { message: "one ⌘Z takes the Screen and its overlays back" });
+      return `Add Screen › Mobile detail · Order → 2 Screens, overlays ${overlays.join(", ")} each opened by its button · one ⌘Z → 1 Screen`;
+    },
+  },
+  {
+    id: "PT-37", feature: "Open overlay picks the overlay named as the button (walk 2026-10-29 W-57: Invite members opened the first overlay, Filter): a Change role button's On click → Open overlay writes proto.open(\"change-role\"), not the first overlay", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    async run(ctx) {
+      const { page, id, text: source } = await seededPage(ctx, namedOverlaysPage, /<Overlay id="change-role"/);
+      await clickNamed(page, id, "Button");
+      await prototypeTab(page);
+      await pickOption(page, "proto:onClick", "Open overlay");
+      await until(async () => /<Button onClick=\{proto\.open\("change-role"\)\}>Change role<\/Button>/.test(await source()), { message: 'proto.open("change-role")' });
+      return 'Change role → Open overlay → proto.open("change-role") (not "filter")';
     },
   },
   {

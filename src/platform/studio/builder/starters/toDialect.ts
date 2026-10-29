@@ -13,9 +13,12 @@ export type SnapValue =
   | { kind: "element"; node: SnapNode }
   /** A slot prop holding several layers, written <>…</> (the template's own fragment). */
   | { kind: "fragment"; children: SnapChild[] }
-  /** proto.<action>() (an overlay's own button closes it). */
-  | { kind: "proto"; action: "close" };
-export type SnapNode = { kind: "element"; name: string; props: Array<[string, SnapValue]>; children: SnapChild[] };
+  /** proto.<action>() (an overlay's own button closes it), proto.open("<id>") (a button opens the overlay it is named for). */
+  | { kind: "proto"; action: "close" }
+  | { kind: "proto"; action: "open"; target: string };
+/** `clicks`: the template's element took a click (its onClick, left out of the page): a button the starter can lead to
+ *  the overlay named as it is (newPageFromFrame.ts linkOverlays). */
+export type SnapNode = { kind: "element"; name: string; props: Array<[string, SnapValue]>; children: SnapChild[]; clicks?: boolean };
 export type SnapChild = SnapNode | { kind: "text"; value: string };
 export type PageDevice = "phone" | "tablet" | "desktop";
 
@@ -45,7 +48,7 @@ function literal(value: SnapLiteral): string {
 function expression(value: SnapValue, indent: string): string {
   switch (value.kind) {
     case "literal": return literal(value.value);
-    case "proto": return `proto.${value.action}()`;
+    case "proto": return value.action === "open" ? `proto.open(${json(value.target)})` : `proto.${value.action}()`;
     case "element": return element(value.node, indent);
     case "fragment": {
       const kids = mergeText(value.children).map((kid) => child(kid, indent + UNIT));
@@ -129,6 +132,61 @@ export function componentsOf(nodes: SnapNode[]): Set<string> {
   return names;
 }
 
+/** A name as words to compare: lower case, marks dropped, runs of anything else as one dash ("Đặt lịch" → "dat-lich"). */
+const nameKey = (value: string) => value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+/** What a node reads as: its label props, else its text (deep). */
+function wordsOf(node: SnapNode): string {
+  for (const key of ["aria-label", "label", "title"]) {
+    const value = node.props.find(([name]) => name === key)?.[1];
+    if (value?.kind === "literal" && typeof value.value === "string" && value.value.trim()) return value.value;
+  }
+  const words: string[] = [];
+  const walk = (children: SnapChild[]) => children.forEach((kid) => { if (kid.kind === "text") words.push(kid.value); else walk(kid.children); });
+  walk(node.children);
+  return words.join(" ");
+}
+
+/**
+ * Leads the starter's buttons to the overlays they open (walk 2026-10-29 W-50: a template's overlays came unlinked): a
+ * node that took a click in the template (`clicks`) and reads as an overlay's name — its title or id, the same words or
+ * the start of them ("Invite members" → invite-members, "Date" → date-placed) — gets onClick proto.open("<id>"). Each
+ * overlay and each button once, in reading order. The ids it linked.
+ */
+export function linkOverlays(nodes: SnapNode[], overlays: ReadonlyArray<{ id: string; node: SnapNode }>): string[] {
+  const names = overlays.map((overlay) => ({ id: overlay.id, keys: [nameKey(overlay.id), nameKey(wordsOf({ ...overlay.node, children: [] }))].filter(Boolean) }));
+  const buttons: SnapNode[] = [];
+  const visit = (node: SnapNode) => {
+    if (node.clicks) buttons.push(node);
+    node.props.forEach(([, value]) => visitValue(value));
+    node.children.forEach((kid) => { if (kid.kind === "element") visit(kid); });
+  };
+  const visitValue = (value: SnapValue) => {
+    if (value.kind === "element") visit(value.node);
+    else if (value.kind === "fragment") value.children.forEach((kid) => { if (kid.kind === "element") visit(kid); });
+    else if (value.kind === "array") value.items.forEach(visitValue);
+    else if (value.kind === "object") value.fields.forEach(([, field]) => visitValue(field));
+  };
+  nodes.forEach(visit);
+  const linked: string[] = [];
+  const taken = new Set<SnapNode>();
+  for (const exact of [true, false]) {
+    for (const overlay of names) {
+      if (linked.includes(overlay.id)) continue;
+      const button = buttons.find((node) => {
+        if (taken.has(node)) return false;
+        const key = nameKey(wordsOf(node));
+        return Boolean(key) && overlay.keys.some((name) => (exact ? name === key : name.startsWith(`${key}-`) || key.startsWith(`${name}-`)));
+      });
+      if (!button) continue;
+      taken.add(button);
+      linked.push(overlay.id);
+      button.props = [...button.props.filter(([name]) => name !== "onClick"), ["onClick", { kind: "proto", action: "open", target: overlay.id }]];
+    }
+  }
+  return linked;
+}
+
 /** "Example: Settings form" → "Settings form"; the page title a starter gets. */
 export const starterTitle = (label: string) => label.replace(/^(Example|Template):\s*/, "").trim() || "Untitled";
 
@@ -136,14 +194,31 @@ export const starterTitle = (label: string) => label.replace(/^(Example|Template
  * The text of a builder page whose one Screen holds `nodes` (several: in a Stack, as a blank page holds its content).
  * `overlays`: Overlay frames after the Screen (GĐ3b M3).
  */
-export function starterPage({ title, device, nodes, overlays = [], padding }: { title: string; device: PageDevice; nodes: SnapNode[]; overlays?: Array<{ id: string; node: SnapNode }>; padding?: string | null }): string {
-  // Several nodes, or one the frame showed with room around it (`padding`, a token key): in a padded Stack.
-  const content: SnapNode[] = nodes.length === 1 && !padding ? nodes : [{
+/** A Screen's content: its one node, or several (or one the frame showed with room around it: `padding`, a token key)
+ *  in a padded Stack. */
+function starterContent(nodes: SnapNode[], device: PageDevice, padding?: string | null): SnapNode[] {
+  return nodes.length === 1 && !padding ? nodes : [{
     kind: "element",
     name: "Stack",
     props: [["gap", { kind: "literal", value: "md" }], ["padding", { kind: "literal", value: padding ?? (device === "phone" ? "lg" : "xl") }]],
     children: nodes,
   }];
+}
+
+/** A starter's Screen as code at column 0 (Add Screen › a template, walk 2026-10-29 W-49): inserted into a page's Board. */
+export function starterScreen({ id, title, device, nodes, padding }: { id: string; title: string; device: PageDevice; nodes: SnapNode[]; padding?: string | null }): string {
+  return [
+    `<Screen id="${id}" ${attribute("title", { kind: "literal", value: title }, "")} device="${device}">`,
+    ...starterContent(nodes, device, padding).map((node) => `${UNIT}${element(node, UNIT)}`),
+    "</Screen>",
+  ].join("\n");
+}
+
+/** A starter's overlay as an Overlay frame's code at column 0. */
+export const starterOverlay = (overlay: { id: string; node: SnapNode }) => [`<Overlay id="${overlay.id}">`, `${UNIT}${element(overlay.node, UNIT)}`, "</Overlay>"].join("\n");
+
+export function starterPage({ title, device, nodes, overlays = [], padding }: { title: string; device: PageDevice; nodes: SnapNode[]; overlays?: Array<{ id: string; node: SnapNode }>; padding?: string | null }): string {
+  const content = starterContent(nodes, device, padding);
   const names = componentsOf([...content, ...overlays.map((overlay) => overlay.node)]);
   const body = "      ";
   const screen = [

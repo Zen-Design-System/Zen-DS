@@ -181,6 +181,37 @@ function synced(before, text) {
 }
 check("no AppShell: nothing to draw", planPhoneSync(null, ROOT.replace(/<AppShell[\s\S]*<\/AppShell>/, '<Stack gap="md"><Text>Plain</Text></Stack>')), []);
 
+// A phone AppShell (a mobile template: Mobile list · Orders, walk 2026-10-29 W-48) keeps its own bars: the Screen's
+// phone parts are its Top Navigation (title, large title, Search control bar) and its Bottom Navigation, not a bar
+// drawn from the page's title without the Search and the tabs.
+{
+  const phone = `// @zen-page {"format":1,"title":"Mobile list · Orders"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { AppShell, BottomNavigation, Search, Text, TopNavigation } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Mobile list · Orders" device="phone">
+        <AppShell topNavigation={<TopNavigation title="Orders" largeTitle="Orders" controlBar={<Search aria-label="Search orders" placeholder="Search orders" />} />} bottomNavigation={<BottomNavigation showLabels value="orders" items={[{ id: "shop", label: "Shop", icon: "icon-shopping-bag-02-line" }, { id: "orders", label: "Orders", icon: "icon-package-line" }]} />}>
+          <Text>Rows</Text>
+        </AppShell>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const screen = parsePage(phone).board.children.find((child) => child.kind === "element");
+  const parts = phoneChromeCode(screen, { mock: {} });
+  check("phone AppShell: its own parts (kind own)", parts.kind, "own");
+  ok("phone AppShell: the Top Navigation keeps Orders and its Search", /title="Orders"/.test(parts.topNavigation ?? "") && /largeTitle="Orders"/.test(parts.topNavigation ?? "") && /<Search\b/.test(parts.topNavigation ?? "") && !/Mobile list/.test(parts.topNavigation ?? ""));
+  ok("phone AppShell: the Bottom Navigation keeps its tabs", /label: "Shop"/.test(parts.bottomNavigation ?? "") && /value="orders"/.test(parts.bottomNavigation ?? ""));
+  const opened = synced(null, phone);
+  ok("phone AppShell: the Screen gets those parts and stays valid", parsePage(opened).errors.length === 0 && /<Screen[^\n]*topNavigation=\{<TopNavigation[^\n]*title="Orders"/.test(opened) && /bottomNavigation=\{<BottomNavigation/.test(opened));
+}
+
 if (failures.length) {
   console.error(`responsive-header selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

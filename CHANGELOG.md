@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio templates (walk 2026-10-29 W-48/49/50/57): a page from a phone template keeps the template's own Top and
+  Bottom Navigation (its title, Search and tabs, not the page name over nothing); a template's overlays open from the
+  buttons named as they are ("Invite members", "Date"); Add Screen offers the templates for the page's device beside an
+  empty Screen (one ⌘Z takes it back); Open overlay picks the overlay named as the button, not the first.
 - Zen Studio: a component dragged from Assets into a frame without auto layout (an Empty page's Screen) lands where it
   is dropped, placed freely, as a click puts one (walk 2026-10-29 W-12: it fell to X 0 Y 50 in the page flow, over the
   status bar); dropped on a layer placed freely, it goes beside it in the frame. The first layer inserted into an empty
