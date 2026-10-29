@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { ZenPortalProvider } from "../../../components/Portal";
+import { ToastProvider } from "../../../components/Toast";
 import { PlatformPhoneModesContext } from "../../PlatformPhone";
 import { isWideExample } from "../../examples/types";
 import { ExampleCard } from "../../PlatformShowcases";
@@ -12,9 +13,10 @@ import type { StudioPreviewSettings } from "../types";
 import { useStudioFrames, type StudioExample, type StudioFrameEntry } from "./frames";
 import { PresentBar } from "./PresentBar";
 import { stepFocusFor, stepPresent, takeReturnFocus } from "./presentFrame";
-import { screenDevice, viewDevice } from "../../../../tools/studio/screen-devices.mjs";
+import { deviceOs, screenDevice, viewDevice } from "../../../../tools/studio/screen-devices.mjs";
 import { versionFor, viewportBreakpoint } from "../builder/proto/versions";
 import { SimulatedDeviceContext } from "../builder/proto/runtime";
+import { duoStatusOf, safeAreasOf } from "../builder/proto/DeviceBars";
 import { bezelOf, DeviceFrame, deviceViewport, presentEscapeOwners, useViewportFit, viewportDevice, ViewportHandles, type PresentViewport } from "./presentViewport";
 import "./board.css";
 import { useCanvasPreview } from "../project/activeProject";
@@ -60,6 +62,9 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
   const key = useStudio((state) => pageKey(state.page, state.collection, state.localPage));
   const override = useStudio((state) => state.frameOverrides[key]?.[frame.id]);
   const [portalRoot, setPortalRoot] = useState<HTMLDivElement | null>(null);
+  // The example's toasts show in the device when one is simulated (walk 2026-10-29 W-45), in Present's modes either way
+  // (they went to the Studio's own toast layer, at the window's foot and in its theme).
+  const [toastRoot, setToastRoot] = useState<HTMLDivElement | null>(null);
   const layerRef = useRef<HTMLDivElement>(null);
   const exit = useCallback(() => studioStore.setState({ presenting: null }), []);
   const examples = useStudioFrames().filter((entry) => entry.kind === "example" && entry.example);
@@ -130,11 +135,17 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
   // The device simulator: a builder Screen takes the shown device's type, layout and bars; Device frame draws it.
   const device = viewportDevice(shown);
   const fit = useViewportFit(shown, stageRef, bezelOf(device, framed), device?.radius);
+  // A builder Screen on a phone or tablet draws its bars: the device publishes their room for what opens in it (a
+  // Dialog, a Bottom Sheet, the toasts), as Play's does (W-44).
+  const bars = example.screen && fit.mode === "fixed" && device && device.device !== "desktop" ? safeAreasOf(deviceOs(device), device.device, duoStatusOf(device.bars)) : null;
+  const safe = bars ? ({ "--zen-safe-area-top": `${bars.top}px`, "--zen-safe-area-bottom": `${bars.bottom}px` } as CSSProperties) : null;
   return (
     <div ref={layerRef} className="studio-present" role="dialog" aria-label={`${example.title}, full screen`} tabIndex={-1} data-screen={example.screen ? "true" : undefined} {...modes}>
       <PresentBar title={example.title} theme={theme} onToggleTheme={toggleTheme} modes={preview} onModeChange={onModeChange} onExit={exit} index={index} count={examples.length} onStep={stepPresent} viewport={shown} onViewportChange={onViewportChange} viewportScale={fit.scale} autoWidth={width} framed={framed} onFramedChange={onFramedChange} />
       {/* The page under the bar, as a browser's: a full-screen card and the example's overlays fill it, never the bar. */}
       <div className="studio-present__page">
+        <ZenPortalProvider container={(fit.mode === "fixed" ? toastRoot : null) ?? portalRoot}>
+        <ToastProvider placement="bottom-center">
         <ZenPortalProvider container={portalRoot}>
           <PlatformTypographyContext value={preview.typography}>
             <PlatformPhoneModesContext value={{ density: own.density, typography: own.typography }}>
@@ -143,11 +154,13 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
                   {/* The same two wrappers in Auto (they take no box) and in a fixed viewport, so a change keeps the example's state. */}
                   <div className="studio-present__fit" data-viewport={fit.mode} data-frame={fit.bezel ? "" : undefined} style={fit.fitStyle}>
                     <DeviceFrame device={device} fit={fit} part="body" />
-                    <div className="studio-present__viewport" data-viewport={fit.mode} style={fit.boxStyle} data-zen-overlay-root={fit.mode === "fixed" ? "" : undefined}>
+                    <div className="studio-present__viewport" data-viewport={fit.mode} style={safe ? { ...fit.boxStyle, ...safe } : fit.boxStyle} data-zen-overlay-root={fit.mode === "fixed" ? "" : undefined}>
                       <SimulatedDeviceContext value={device ?? null}>
                         <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
                       </SimulatedDeviceContext>
                     </div>
+                    {/* Beside the viewport, its size: the viewport scrolls its example, and the toasts stay at the device's foot. */}
+                    {fit.mode === "fixed" ? <div ref={setToastRoot} className="studio-device-toasts" style={{ ...fit.boxStyle, ...safe }} /> : null}
                     <DeviceFrame device={device} fit={fit} part="fold" />
                     <ViewportHandles viewport={shown} fit={fit} onChange={onViewportChange} device={example.shape?.device} />
                   </div>
@@ -155,6 +168,8 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
               </div>
             </PlatformPhoneModesContext>
           </PlatformTypographyContext>
+        </ZenPortalProvider>
+        </ToastProvider>
         </ZenPortalProvider>
         {/* The presented example's overlays (Dialog, Menu, Tooltip…) stay above it and in its modes. */}
         <div ref={setPortalRoot} className="official-portal-root studio-portal-root" {...modes} />

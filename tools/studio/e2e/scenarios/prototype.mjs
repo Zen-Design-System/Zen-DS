@@ -1754,4 +1754,94 @@ export const rows = [
       return `dark Play: Table popover dark (${look.brightness}/255), Escape kept Play; toast and tooltip in the dark layer; in the modal Side Panel the popover stayed live and picked Shipped`;
     },
   },
+  {
+    id: "PT-35", feature: "Play on a phone shows a toast in the device, over its home indicator: proto.toast (Changes saved) inside the device frame, the page margin plus the safe area from its foot (walk 2026-10-29 W-45: it stood at the window's foot outside the frame, cut in half)", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, safePage, /Changes saved/);
+      await playSafePage(page);
+      await playing(page).getByRole("button", { name: "Save" }).click();
+      const toast = page.locator(".zen-toast").filter({ hasText: "Changes saved" });
+      await toast.waitFor({ state: "visible", timeout: 3000 });
+      await sleep(500);
+      const at = await deviceFoot(page, toast);
+      if (!at.inDevice) throw new Error("the toast is not in the device");
+      if (at.left < 0 || at.right < 0) throw new Error(`the toast runs past the device's sides: ${JSON.stringify(at)}`);
+      if (at.clear < at.safe - 1) throw new Error(`the toast stands ${at.clear}px above the device's foot, inside its ${at.safe}px home area`);
+      if (at.clear > at.safe + 40) throw new Error(`the toast stands ${at.clear}px above the device's foot: want the page margin over the ${at.safe}px home area`);
+      return `toast in the device, ${at.clear}px above its foot (home area ${at.safe}px), ${at.left}px / ${at.right}px from its sides`;
+    },
+  },
+  {
+    id: "PT-36", feature: "Play on a phone keeps a Dialog's and a Bottom Sheet's last controls clear of the home indicator: the Dialog's Cancel and the sheet's last row and Done end above the device's bottom safe area (walk 2026-10-29 W-44: Cancel and the sheet's 2025 sat under it)", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, safePage, /Changes saved/);
+      await playSafePage(page);
+      await playing(page).getByRole("button", { name: "Book" }).click();
+      const cancel = playing(page).getByRole("button", { name: "Cancel" });
+      await cancel.waitFor({ state: "visible", timeout: 3000 });
+      await sleep(600);
+      const dialog = await deviceFoot(page, cancel);
+      if (!dialog.inDevice) throw new Error("the Dialog is not in the device");
+      if (dialog.clear < dialog.safe - 1) throw new Error(`the Dialog's Cancel ends ${dialog.clear}px above the device's foot, inside its ${dialog.safe}px home area`);
+      await cancel.click();
+      await until(async () => (await cancel.count()) === 0, { message: "Cancel closes the Dialog" });
+      await playing(page).getByRole("button", { name: "Sort" }).click();
+      const done = playing(page).getByRole("button", { name: "Done" });
+      await done.waitFor({ state: "visible", timeout: 3000 });
+      await sleep(600);
+      const row = await deviceFoot(page, playing(page).getByText("2025", { exact: true }).last());
+      const footer = await deviceFoot(page, done);
+      if (row.clear < row.safe - 1 || footer.clear < footer.safe - 1) throw new Error(`the sheet runs into the ${row.safe}px home area: its last row ends ${row.clear}px and Done ${footer.clear}px above the device's foot`);
+      return `Dialog's Cancel ${dialog.clear}px above the foot · sheet's 2025 ${row.clear}px, Done ${footer.clear}px · home area ${dialog.safe}px`;
+    },
+  },
 ];
+
+/** A phone Screen whose buttons show a toast, open a Dialog and open a Bottom Sheet whose list ends with 2025 (PT-35, PT-36, walk 2026-10-29 W-44/W-45). */
+const safePage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { BottomSheet, Button, Dialog, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Booking" device="phone">
+        <Stack gap="md" padding="lg">
+          <Button onClick={proto.toast({ title: "Changes saved" })}>Save</Button>
+          <Button onClick={proto.open("confirm")}>Book</Button>
+          <Button onClick={proto.open("sort")}>Sort</Button>
+        </Stack>
+      </Screen>
+      <Overlay id="confirm">
+        <Dialog title="Book?" description="One visit." primaryAction={{ label: "Confirm", onClick: proto.close() }} secondaryAction={{ label: "Cancel", onClick: proto.close() }} />
+      </Overlay>
+      <Overlay id="sort">
+        <BottomSheet title="Date placed" items={[{ id: "any", label: "Any time" }, { id: "30", label: "Last 30 days" }, { id: "90", label: "Last 3 months" }, { id: "2026", label: "2026" }, { id: "2025", label: "2025" }]} primaryAction={{ label: "Done", onClick: proto.close() }} />
+      </Overlay>
+    </Board>
+  );
+}
+`;
+
+/** Plays the seeded page on its phone (⌥⌘↵), the Screen shown. */
+async function playSafePage(page) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("ControlOrMeta+Alt+Enter");
+  await playing(page).waitFor({ state: "visible", timeout: 5000 });
+  await playing(page).getByRole("button", { name: "Save" }).waitFor({ state: "visible", timeout: 5000 });
+  await sleep(300);
+}
+
+/** Where `locator`'s element ends against Play's device: its px above the device's foot, from its sides, and the
+ *  device's bottom safe area (the --zen-safe-area-bottom of its Screen: the home indicator's room). */
+const deviceFoot = (page, locator) => locator.evaluate((element) => {
+  const device = document.querySelector(".studio-player__device");
+  const box = device.getBoundingClientRect();
+  const zoom = box.width / device.offsetWidth || 1;
+  const rect = element.getBoundingClientRect();
+  const screen = device.querySelector(".studio-builder-screen");
+  const safe = parseFloat(getComputedStyle(screen).getPropertyValue("--zen-safe-area-bottom")) || 0;
+  return { inDevice: device.contains(element), clear: Math.round((box.bottom - rect.bottom) / zoom), left: Math.round((rect.left - box.left) / zoom), right: Math.round((box.right - rect.right) / zoom), safe };
+});

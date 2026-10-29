@@ -140,6 +140,16 @@
 .studio-player__stage[data-viewport="auto"] { padding: 0; }
 .studio-player__stage[data-viewport="auto"] .studio-player__device { width: 100%; height: 100cqh; border-radius: 0; box-shadow: none; }
 .studio-player__device > .studio-player__screens { display: flex; height: 100%; flex-direction: column; overflow: auto; }
+/* Play's and Present's toasts (walk 2026-10-29 W-45): their layer stands in the device, the page margin plus the device's
+   safe area (--zen-safe-area-bottom / -top) from its foot or top, over the home indicator or under the status bar, as a
+   phone shows them; at the window's foot they stood outside the frame, cut in half. Above a Dialog's scrim (5) and the
+   bars (20); it lets the pointer through where it is empty. */
+.studio-device-toasts { position: absolute; z-index: 25; inset: 0; pointer-events: none; }
+.studio-device-toasts > .zen-toast-layer { position: absolute; }
+/* Present's sits beside its viewport (which scrolls), at the viewport's size and scale. */
+.studio-present__fit > .studio-device-toasts { inset: 0 auto auto 0; transform-origin: top left; }
+.studio-device-toasts > .zen-toast-layer[data-placement^="bottom"] { bottom: calc(var(--zen-toast-inset) + var(--zen-safe-area-bottom, 0px)); }
+.studio-device-toasts > .zen-toast-layer[data-placement^="top"] { top: calc(var(--zen-toast-inset) + var(--zen-safe-area-top, 0px)); }
 /* A Screen shorter than the window still fills it, as a page fills a browser window. */
 .studio-player__device > .studio-player__screens > .studio-player__screen:not([data-leaving]) { display: flex; flex: 1 0 auto; flex-direction: column; }
 .studio-player__device > .studio-player__screens > .studio-player__screen > * { flex: 1 0 auto; }
