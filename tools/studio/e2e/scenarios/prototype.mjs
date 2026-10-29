@@ -1755,7 +1755,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-35", feature: "Play on a phone shows a toast in the device, over its home indicator: proto.toast (Changes saved) inside the device frame, the page margin plus the safe area from its foot (walk 2026-10-29 W-45: it stood at the window's foot outside the frame, cut in half)", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    id: "PT-38", feature: "Play on a phone shows a toast in the device, over its home indicator: proto.toast (Changes saved) inside the device frame, the page margin plus the safe area from its foot (walk 2026-10-29 W-45: it stood at the window's foot outside the frame, cut in half)", wp: "prototype walk 2026-10-29", timeout: 40_000,
     async run(ctx) {
       const { page } = await seededPage(ctx, safePage, /Changes saved/);
       await playSafePage(page);
@@ -1772,7 +1772,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-36", feature: "Play on a phone keeps a Dialog's and a Bottom Sheet's last controls clear of the home indicator: the Dialog's Cancel and the sheet's last row and Done end above the device's bottom safe area (walk 2026-10-29 W-44: Cancel and the sheet's 2025 sat under it)", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    id: "PT-39", feature: "Play on a phone keeps a Dialog's and a Bottom Sheet's last controls clear of the home indicator: the Dialog's Cancel and the sheet's last row and Done end above the device's bottom safe area (walk 2026-10-29 W-44: Cancel and the sheet's 2025 sat under it)", wp: "prototype walk 2026-10-29", timeout: 40_000,
     async run(ctx) {
       const { page } = await seededPage(ctx, safePage, /Changes saved/);
       await playSafePage(page);
@@ -1797,7 +1797,7 @@ export const rows = [
   },
 ];
 
-/** A phone Screen whose buttons show a toast, open a Dialog and open a Bottom Sheet whose list ends with 2025 (PT-35, PT-36, walk 2026-10-29 W-44/W-45). */
+/** A phone Screen whose buttons show a toast, open a Dialog and open a Bottom Sheet whose list ends with 2025 (PT-38, PT-39, walk 2026-10-29 W-44/W-45). */
 const safePage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
 import { BottomSheet, Button, Dialog, Stack } from "@zen-ds/react";
