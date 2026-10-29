@@ -1790,7 +1790,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-28", feature: "A dark Play keeps the page's popovers dark (the user 2026-10-26: a Table popover stayed light): the Table editor's popover, a tooltip and a toast draw in Play's portal layer in its theme, and a Table popover opened in a modal Side Panel stays live and picks", wp: "play portal 2026-10-26", timeout: 60_000,
+    id: "PT-28", feature: "A dark Play keeps the page's popovers dark (the user 2026-10-26: a Table popover stayed light): the Table editor's popover and a tooltip draw in Play's portal layer in its theme, a toast in its device (W-45), and a Table popover opened in a modal Side Panel stays live and picks", wp: "play portal 2026-10-26", timeout: 60_000,
     async run(ctx) {
       const { page } = await step("seed the page", () => seededPage(ctx, darkPopoverPage, /proto\.open\("details"\)/));
       await page.locator(".studio-viewport").focus();
@@ -1838,4 +1838,103 @@ export const rows = [
       return `dark Play: Table popover dark (${look.brightness}/255), Escape kept Play; toast and tooltip in the dark layer; in the modal Side Panel the popover stayed live and picked Shipped`;
     },
   },
+  {
+    id: "PT-38", feature: "Play on a phone shows a toast in the device, over its home indicator: proto.toast (Changes saved) inside the device frame, the page margin plus the safe area from its foot (walk 2026-10-29 W-45: it stood at the window's foot outside the frame, cut in half)", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, safePage, /Changes saved/);
+      await playSafePage(page);
+      await playing(page).getByRole("button", { name: "Save" }).click();
+      const toast = page.locator(".zen-toast").filter({ hasText: "Changes saved" });
+      await toast.waitFor({ state: "visible", timeout: 3000 });
+      await sleep(500);
+      const at = await deviceFoot(page, toast);
+      if (!at.inDevice) throw new Error("the toast is not in the device");
+      if (at.left !== 20 || at.right !== 20) throw new Error(`the toast stands ${at.left}px / ${at.right}px from the device's sides: want a phone's page margin, 20`);
+      if (at.clear < at.safe - 1) throw new Error(`the toast stands ${at.clear}px above the device's foot, inside its ${at.safe}px home area`);
+      if (at.clear > at.safe + 40) throw new Error(`the toast stands ${at.clear}px above the device's foot: want the page margin over the ${at.safe}px home area`);
+      return `toast in the device, ${at.clear}px above its foot (home area ${at.safe}px), ${at.left}px / ${at.right}px from its sides`;
+    },
+  },
+  {
+    id: "PT-39", feature: "Play on a phone keeps a Dialog's and a Bottom Sheet's last controls clear of the home indicator: the Dialog (its Cancel last) and the sheet's last row end above the device's bottom safe area (walk 2026-10-29 W-44: Cancel and the sheet's 2025 sat under it)", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, safePage, /Changes saved/);
+      await playSafePage(page);
+      await playing(page).getByRole("button", { name: "Book" }).click();
+      const cancel = playing(page).getByRole("button", { name: "Cancel" });
+      await cancel.waitFor({ state: "visible", timeout: 3000 });
+      await sleep(600);
+      // The panel, not only its last button: before, it stood the Dialog's 16px floor above the foot, on the home area.
+      const dialog = await deviceFoot(page, playing(page).getByRole("dialog", { name: "Book?" }));
+      if (!dialog.inDevice) throw new Error("the Dialog is not in the device");
+      if (dialog.clear < dialog.safe - 1) throw new Error(`the Dialog ends ${dialog.clear}px above the device's foot, inside its ${dialog.safe}px home area`);
+      await cancel.click();
+      await until(async () => (await cancel.count()) === 0, { message: "Cancel closes the Dialog" });
+      await playing(page).getByRole("button", { name: "Sort" }).click();
+      const last = playing(page).getByText("2025", { exact: true });
+      await last.waitFor({ state: "visible", timeout: 3000 });
+      await sleep(600);
+      const row = await deviceFoot(page, last);
+      if (!row.inDevice) throw new Error("the Bottom Sheet is not in the device");
+      if (row.clear < row.safe - 1) throw new Error(`the sheet's last row ends ${row.clear}px above the device's foot, inside its ${row.safe}px home area`);
+      return `the Dialog ${dialog.clear}px above the foot · sheet's last row (2025) ${row.clear}px · home area ${dialog.safe}px`;
+    },
+  },
 ];
+
+/** A phone Screen whose buttons show a toast, open a Dialog and open a Bottom Sheet whose rows end with 2025 (PT-38, PT-39, walk 2026-10-29 W-44/W-45). */
+const safePage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { BottomSheet, Button, Dialog, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Booking" device="phone">
+        <Stack gap="md" padding="lg">
+          <Button onClick={proto.toast({ title: "Changes saved" })}>Save</Button>
+          <Button onClick={proto.open("confirm")}>Book</Button>
+          <Button onClick={proto.open("sort")}>Sort</Button>
+        </Stack>
+      </Screen>
+      <Overlay id="confirm">
+        <Dialog title="Book?" description="One visit." primaryAction={{ label: "Confirm", onClick: proto.close() }} secondaryAction={{ label: "Cancel", onClick: proto.close() }} />
+      </Overlay>
+      <Overlay id="sort">
+        <BottomSheet title="Date placed">
+          <Stack gap="lg">
+            <Text>Any time</Text>
+            <Text>Last 30 days</Text>
+            <Text>Last 3 months</Text>
+            <Text>2026</Text>
+            <Text>2025</Text>
+          </Stack>
+        </BottomSheet>
+      </Overlay>
+    </Board>
+  );
+}
+`;
+
+/** Plays the seeded page on its phone (⌥⌘↵), the Screen shown. */
+async function playSafePage(page) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("ControlOrMeta+Alt+Enter");
+  await playing(page).waitFor({ state: "visible", timeout: 5000 });
+  await playing(page).getByRole("button", { name: "Save" }).waitFor({ state: "visible", timeout: 5000 });
+  await sleep(300);
+}
+
+/** Where `locator`'s element ends against Play's device: its px above the device's foot, from its sides, and the
+ *  device's bottom safe area (the --zen-safe-area-bottom of its Screen: the home indicator's room). */
+const deviceFoot = (page, locator) => locator.evaluate((element) => {
+  const device = document.querySelector(".studio-player__device");
+  const box = device.getBoundingClientRect();
+  const zoom = box.width / device.offsetWidth || 1;
+  const rect = element.getBoundingClientRect();
+  const screen = device.querySelector(".studio-builder-screen");
+  const safe = parseFloat(getComputedStyle(screen).getPropertyValue("--zen-safe-area-bottom")) || 0;
+  return { inDevice: device.contains(element), clear: Math.round((box.bottom - rect.bottom) / zoom), left: Math.round((rect.left - box.left) / zoom), right: Math.round((box.right - rect.right) / zoom), safe };
+});

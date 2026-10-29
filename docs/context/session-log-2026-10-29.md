@@ -96,3 +96,14 @@
 - W-57: `protoModel.ts` frameNamed + layerWordsOf; `protoEdit.ts` defaultTarget takes the layer's words.
 - Checks: responsive-header 44, starters 21, protoModel 50, tsc; E2E PT-35, PT-36, PT-37.
 - §4 item 7 (W-44/W-45) went to session studio-wrap-floating.
+
+## Session "W-44/45" · Play's toasts in the device; overlays keep its safe areas (tier S; walk §4 item 7)
+- W-45: Play's ToastProvider stack portalled into the portal layer beside the device, `position: fixed` → the window's
+  foot, outside the frame. Player now nests portals: the toasts get `.studio-device-toasts` inside the device (absolute,
+  the page margin + `--zen-safe-area-bottom` from its foot, in the device's breakpoint so a phone keeps 20), everything
+  else keeps the portal layer. Present gets its own ToastProvider (an example's toasts went to the Studio's own, in its
+  theme), its host beside the scrolling viewport at its size. No library CSS changed.
+- W-44: Dialog / Bottom Sheet already pad by `--zen-safe-area-*`, but render in the device (its overlay root), beside the
+  Screen that sets them: 0 there. The device (and Present's viewport for a builder Screen) now sets the bars' room.
+- E2E PT-38 (toast in the device, 20 from its sides, over the home area), PT-39 (the Dialog panel and a sheet's last row
+  above the home area); both fail on main's Player.tsx. PT-28, PT-30/31 still work. Present has no E2E row (tsc only).

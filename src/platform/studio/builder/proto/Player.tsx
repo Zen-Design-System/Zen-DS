@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import { IconButton } from "../../../../components/Button";
 import { Icon } from "../../../../components/Icon";
 import { ZenPortalProvider } from "../../../../components/Portal";
@@ -48,17 +48,22 @@ export function Player() {
   // tooltips, a Chip's popover and the toasts go there, so they follow Play's light/dark, never the Studio's <body> (the
   // user 2026-10-26: a Table popover stayed light in a dark Play).
   const [portalRoot, setPortalRoot] = useState<HTMLDivElement | null>(null);
+  // The toasts (proto.toast, Play's own warnings) show in the device, over its home indicator (walk 2026-10-29 W-45: at
+  // the window's foot they stood outside the frame, cut in half): their stack takes the device's toast layer.
+  const [toastRoot, setToastRoot] = useState<HTMLDivElement | null>(null);
   if (!localPage || !isPlaying(presenting)) return null;
   return (
-    <ZenPortalProvider container={portalRoot}>
+    <ZenPortalProvider container={toastRoot ?? portalRoot}>
       <ToastProvider placement="bottom-center">
-        <PlayLayer key={localPage} id={localPage} start={presenting!.slice(PLAY_PREFIX.length) || null} portalRef={setPortalRoot} />
+        <ZenPortalProvider container={portalRoot}>
+          <PlayLayer key={localPage} id={localPage} start={presenting!.slice(PLAY_PREFIX.length) || null} portalRef={setPortalRoot} toastRef={setToastRoot} />
+        </ZenPortalProvider>
       </ToastProvider>
     </ZenPortalProvider>
   );
 }
 
-function PlayLayer({ id, start, portalRef }: { id: string; start: string | null; portalRef: (element: HTMLDivElement | null) => void }) {
+function PlayLayer({ id, start, portalRef, toastRef }: { id: string; start: string | null; portalRef: (element: HTMLDivElement | null) => void; toastRef: (element: HTMLDivElement | null) => void }) {
   const page = usePage(id);
   const tree = usePageTree(page?.text);
   // Uploaded photos show once they have loaded.
@@ -207,6 +212,9 @@ function PlayLayer({ id, start, portalRef }: { id: string; start: string | null;
   const barsDevice = shownDevice?.device ?? device;
   const duo = duoStatusOf((shownDevice ?? drawnOn)?.bars);
   const overlaySafe = barsDevice === "desktop" ? null : safeAreasOf(shownDevice ? deviceOs(shownDevice) : duo ? "ios" : os, barsDevice, duo);
+  // The device publishes its bars' room too: a Dialog or Bottom Sheet the page opens renders in the device (its overlay
+  // root), beside the Screen that sets them, and kept 0 there; its last button sat under the home indicator (W-44).
+  const deviceSafe = overlaySafe ? ({ "--zen-safe-area-top": `${overlaySafe.top}px`, "--zen-safe-area-bottom": `${overlaySafe.bottom}px` } as CSSProperties) : null;
   const title = page?.title ?? id;
   const screenTitle = screen ? String(literal(screen, "title") ?? current) : alone && presentedNode ? overlayTitleOf(presentedNode) ?? String(literal(presentedNode, "id") ?? "") : "";
   // The bar: the page, then the Screen when it adds a name; a Screen named after the page ("Quản lý task · Danh sách")
@@ -232,7 +240,7 @@ function PlayLayer({ id, start, portalRef }: { id: string; start: string | null;
         <div ref={stageRef} className="studio-player__stage" data-viewport={shown ? "fixed" : "auto"}>
           <div className="studio-present__fit" data-viewport={fit.mode} data-frame={fit.bezel ? "" : undefined} style={fit.fitStyle}>
             <DeviceFrame device={shownDevice} fit={fit} part="body" />
-            <div ref={deviceRef} onPointerDownCapture={startPress} onClick={endPress} className="studio-player__device" style={fit.boxStyle ?? (shown ? { width: `min(${shown.width}px, 100%)` } : undefined)} data-viewport={fit.mode} data-zen-overlay-root="" data-screen-id={current} data-overlay={overlay?.id} data-hover-overlay={overlay?.hover || undefined}>
+            <div ref={deviceRef} onPointerDownCapture={startPress} onClick={endPress} className="studio-player__device" style={{ ...(fit.boxStyle ?? (shown ? { width: `min(${shown.width}px, 100%)` } : null)), ...deviceSafe }} data-viewport={fit.mode} data-zen-overlay-root="" data-screen-id={current} data-overlay={overlay?.id} data-hover-overlay={overlay?.hover || undefined}>
               <SimulatedDeviceContext value={shownDevice ?? null}>
               <PlayScreens flow={flow} file={pageFile(id)} overlaySafe={overlaySafe} library={libraryOf(id)} />
               {hints ? (
@@ -240,6 +248,8 @@ function PlayLayer({ id, start, portalRef }: { id: string; start: string | null;
                   {hints.boxes.map((hint, index) => <span key={index} className="studio-player__hotspot" style={{ transform: `translate(${hint.x}px, ${hint.y}px)`, width: hint.width, height: hint.height, borderRadius: hint.radius }} />)}
                 </div>
               ) : null}
+              {/* In the device's breakpoint: a phone's page margin (20) beside the toasts, as its Screen's content. */}
+              <div ref={toastRef} className="studio-device-toasts" data-breakpoint={shown ? viewportBreakpoint(shown.width, shownDevice?.device) : undefined} />
               </SimulatedDeviceContext>
             </div>
             <DeviceFrame device={shownDevice} fit={fit} part="fold" />
