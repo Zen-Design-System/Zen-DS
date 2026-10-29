@@ -35,5 +35,5 @@
   leading) is a trigger of its layer, `"<prop>.onClick"` (`protoModel.ts` actionTriggersOf, triggerValue,
   actionTriggerLabel "Primary button · Confirm"; `protoTriggers.ts` protoSubject). `protoEdit.ts` writes it with op
   setField; `linksIn` names the arrow by it (own, so its end drags); ⊕ on a layer without onClick takes its first button.
-- Checks: protoModel selftest 48, items selftest 25 (pageCode), slots 1977, builder 76, tsc clean; E2E PT-31.
+- Checks: protoModel selftest 48, items selftest 25 (pageCode), slots 1977, builder 76, tsc clean; E2E PT-32.
 - W-14 went to session studio-wrap-floating; W-47 (Play band, #345) to the Bug session via Giám sát.

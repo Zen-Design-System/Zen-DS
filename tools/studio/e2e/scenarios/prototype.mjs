@@ -196,7 +196,7 @@ export default function Page() {
 }
 `;
 
-/** Home → Detail (a Top Navigation without its Back yet, Book opens a Dialog) → Done (PT-31, walk 2026-10-29). */
+/** Home → Detail (a Top Navigation without its Back yet, Book opens a Dialog) → Done (PT-32, walk 2026-10-29). */
 const actionsPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
 import { Button, Dialog, Stack, Text, TopNavigation } from "@zen-ds/react";
@@ -648,7 +648,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-31", feature: "Buttons inside a component are prototyped like Figma's (walk 2026-10-29 W-35/36/41): Top leading on a builder page's Top Navigation adds a Back that goes back (proto.back(), not a toast); the Prototype tab lists the Dialog's Primary and Secondary buttons by label and points Confirm at a Screen; Play: Detail's Back returns Home, Book → Confirm lands on Done", wp: "prototype walk 2026-10-29", timeout: 50_000,
+    id: "PT-32", feature: "Buttons inside a component are prototyped like Figma's (walk 2026-10-29 W-35/36/41): Top leading on a builder page's Top Navigation adds a Back that goes back (proto.back(), not a toast); the Prototype tab lists the Dialog's Primary and Secondary buttons by label and points Confirm at a Screen; Play: Detail's Back returns Home, Book → Confirm lands on Done", wp: "prototype walk 2026-10-29", timeout: 50_000,
     async run(ctx) {
       const { page, id, text: source } = await seededPage(ctx, actionsPage, /proto\.open\("confirm"\)/);
       await step("Top leading on", async () => {
