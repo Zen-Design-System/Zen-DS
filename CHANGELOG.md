@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a component dropped on the empty canvas keeps its Figma width (user 2026-10-29): a Top Navigation lands
+  390 wide, a Line chart 297, an Input 312, as Figma's loose instance does, instead of hugging its content (the Top
+  Navigation was 258). Components that hug in Figma (Button, Badge, Card) still hug.
 - Zen Studio: a component dragged from Assets onto the empty canvas lands as Figma's loose instance (user 2026-10-28):
   a new frame at the pointer holds it at X 0 Y 0 and takes its size, one ⌘Z takes it back, as Paste here does. Before,
   the drag said "Drop it into a frame". An App shell still goes on an empty Screen.

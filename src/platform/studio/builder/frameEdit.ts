@@ -62,8 +62,10 @@ export async function moveFrames(localPage: string, moves: ReadonlyMap<string, F
   return Boolean(response.ok);
 }
 
-/** A frame's or Section's new box on the board (Figma's X / Y / W / H, a resize handle): only the fields given change. */
-export type FrameBoxChange = Partial<{ x: number; y: number; width: number; height: number }>;
+/** A frame's or Section's new box on the board (Figma's X / Y / W / H, a resize handle): only the fields given change.
+ *  `layerWidth`: the width of the Screen's first layer too (a component dropped on the board at its Figma width,
+ *  boardPaste.ts dropOnBoard). */
+export type FrameBoxChange = Partial<{ x: number; y: number; width: number; height: number; layerWidth: number }>;
 
 /**
  * Sets the place and size of frames and Sections in one edit (one ⌘Z): x / y on any of them, width / height on a Screen
@@ -88,10 +90,13 @@ export async function setFrameBoxes(localPage: string, changes: ReadonlyMap<stri
       }
     }
     if (ops.length) opsByLoc[frame.loc] = ops;
+    const layer = change?.layerWidth !== undefined && frame.kind === "screen" ? board.nodes[index].children.find((child): child is PageNode => child.kind === "element") : undefined;
+    if (layer && change?.layerWidth !== undefined) opsByLoc[layer.loc] = [number("width", change.layerWidth)];
   });
   const locs = Object.keys(opsByLoc);
   if (!locs.length) return true;
-  const first = board.nodes[board.frames.findIndex((frame) => frame.loc === locs[0])];
+  // The edit's own element is a frame (a dropped layer's width rides along, after its frame's box).
+  const first = board.nodes[board.frames.findIndex((frame) => frame.loc in opsByLoc)] ?? board.nodes[0];
   const response = await applyEdit({ file: board.file, loc: first.loc, name: first.name, ops: [{ op: "many", action: "setProps", locs, opsByLoc }], hash: board.hash }, label);
   return Boolean(response.ok);
 }

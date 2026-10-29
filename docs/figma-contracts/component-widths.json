@@ -1,0 +1,482 @@
+{
+ "note": "Width and horizontal sizing (layoutSizingHorizontal) of the variants the Studio's Assets items map to, read with use_figma from file 9nZv4uW2LT21yuHabMTCh1 (read only). Re-read: node tools/studio/figma-widths.mjs --help.",
+ "file": "9nZv4uW2LT21yuHabMTCh1",
+ "read": "2026-10-29",
+ "variants": {
+  "1026:8114": [
+   "Button/Main",
+   78,
+   "HUG"
+  ],
+  "1026:8142": [
+   "Button/Main",
+   78,
+   "HUG"
+  ],
+  "205:21171": [
+   "Button/Icon-Main",
+   40,
+   "FIXED"
+  ],
+  "234:44195": [
+   "Button/Icon-Flat",
+   32,
+   "FIXED"
+  ],
+  "1238:891": [
+   "Segmented",
+   142,
+   "HUG"
+  ],
+  "1577:5466": [
+   "Tab-Bar",
+   104,
+   "HUG"
+  ],
+  "4031:20194": [
+   "Breadcrumbs",
+   140,
+   "HUG"
+  ],
+  "1536:27474": [
+   "Primitives/Side-Bar/Menu-Item/Master",
+   218,
+   "FILL"
+  ],
+  "774:29082": [
+   "Pagination",
+   272,
+   "HUG"
+  ],
+  "1625:8324": [
+   "Stepper-Bar/Horizontal",
+   600,
+   "HUG"
+  ],
+  "223:9002": [
+   "Avatar/Single",
+   40,
+   "FIXED"
+  ],
+  "260:4718": [
+   "Badge",
+   83,
+   "HUG"
+  ],
+  "16932:140": [
+   "Badge-Status",
+   114,
+   "HUG"
+  ],
+  "308:45859": [
+   "Dock-Icon",
+   40,
+   "FIXED"
+  ],
+  "14922:75872": [
+   "Component/List-Box",
+   311,
+   "FIXED"
+  ],
+  "14859:79004": [
+   "Description List",
+   343,
+   "FIXED"
+  ],
+  "595:55186": [
+   "Primitives/Metric/Metric-Inline/Icon-Highlight",
+   279,
+   "FILL"
+  ],
+  "7063:62203": [
+   "Card",
+   105,
+   "FILL"
+  ],
+  "6662:30713": [
+   "Card",
+   105,
+   "FILL"
+  ],
+  "1531:13948": [
+   "Progress-Circle",
+   64,
+   "HUG"
+  ],
+  "364:92762": [
+   "Avatar/Stack",
+   144,
+   "HUG"
+  ],
+  "1486:2345": [
+   "icon-mobile-line",
+   20,
+   "FIXED"
+  ],
+  "5727:22530": [
+   "icon-media-file",
+   20,
+   "FIXED"
+  ],
+  "7063:63876": [
+   "Flag",
+   24,
+   "FIXED"
+  ],
+  "9818:5618": [
+   "Rating-Display",
+   108,
+   "FIXED"
+  ],
+  "6643:63324": [
+   "Chart/Line-Chart",
+   297,
+   "FIXED"
+  ],
+  "6643:73471": [
+   "Chart/Stack-Bar-Chart",
+   297,
+   "FIXED"
+  ],
+  "15932:5055": [
+   "Chart/Bar-Chart",
+   352,
+   "FIXED"
+  ],
+  "15321:82941": [
+   "Chart/Bar-Chart",
+   352,
+   "FIXED"
+  ],
+  "15426:2521": [
+   "Chart/Multi-Line-Chart",
+   297,
+   "FIXED"
+  ],
+  "15324:984": [
+   "Chart/Donut-Chart",
+   352,
+   "FIXED"
+  ],
+  "15325:1029": [
+   "Chart/Radial-Chart",
+   352,
+   "FIXED"
+  ],
+  "15326:1043": [
+   "Chart/Heatmap-Chart",
+   352,
+   "FIXED"
+  ],
+  "15484:2552": [
+   "Chart/Area-Chart",
+   352,
+   "FIXED"
+  ],
+  "15484:2605": [
+   "Chart/Area-Chart",
+   352,
+   "FIXED"
+  ],
+  "15485:2457": [
+   "Chart/Grouped-Bar-Chart",
+   352,
+   "FIXED"
+  ],
+  "15485:2519": [
+   "Chart/Combo-Chart",
+   352,
+   "FIXED"
+  ],
+  "15486:2467": [
+   "Chart/Gauge-Chart",
+   352,
+   "FIXED"
+  ],
+  "15486:2497": [
+   "Chart/Funnel-Chart",
+   352,
+   "FIXED"
+  ],
+  "15487:2473": [
+   "Chart/Bar-List",
+   352,
+   "FIXED"
+  ],
+  "15487:2516": [
+   "Chart/Bullet-Chart",
+   352,
+   "FIXED"
+  ],
+  "6643:51018": [
+   "Card",
+   105,
+   "FILL"
+  ],
+  "15480:89548": [
+   "Metric-Card",
+   345,
+   "FIXED"
+  ],
+  "15480:89594": [
+   "Metric-Card",
+   345,
+   "FIXED"
+  ],
+  "15481:1803": [
+   "Metric-Card",
+   345,
+   "FIXED"
+  ],
+  "15481:1848": [
+   "Metric-Card",
+   560,
+   "FIXED"
+  ],
+  "15481:1957": [
+   "Metric-Card",
+   345,
+   "FIXED"
+  ],
+  "15481:2047": [
+   "Metric-Card",
+   345,
+   "FIXED"
+  ],
+  "16104:4827": [
+   "Metric-Card",
+   169,
+   "FIXED"
+  ],
+  "595:54855": [
+   "Inline-Message",
+   343,
+   "FIXED"
+  ],
+  "16339:82": [
+   "Empty-State",
+   320,
+   "FIXED"
+  ],
+  "6828:9406": [
+   "Alert-Banner",
+   624,
+   "FILL"
+  ],
+  "421:4109": [
+   "Input/Text-Field",
+   312,
+   "FILL"
+  ],
+  "16923:6031": [
+   "Input/Property-Field",
+   400,
+   "FIXED"
+  ],
+  "450:7028": [
+   "Input/Text-Area",
+   400,
+   "FIXED"
+  ],
+  "421:7304": [
+   "Input/Select-Field",
+   312,
+   "FILL"
+  ],
+  "308:46684": [
+   "Checkbox/Text",
+   141,
+   "HUG"
+  ],
+  "1526:5693": [
+   "Toggle",
+   232,
+   "FILL"
+  ],
+  "846:37621": [
+   "Search/Default",
+   250,
+   "FILL"
+  ],
+  "421:8389": [
+   "Input/Date-Field",
+   312,
+   "FILL"
+  ],
+  "895:31955": [
+   "Date-Picker/Single-Calendar",
+   256,
+   "HUG"
+  ],
+  "16126:325": [
+   "Calendar/Month",
+   1120,
+   "FIXED"
+  ],
+  "16127:642": [
+   "Calendar/Time-Grid",
+   1120,
+   "FIXED"
+  ],
+  "16128:725": [
+   "Calendar/Agenda",
+   800,
+   "FIXED"
+  ],
+  "16125:238": [
+   "Calendar/Toolbar",
+   1120,
+   "FIXED"
+  ],
+  "16131:1091": [
+   "Timeline/Activity",
+   640,
+   "FIXED"
+  ],
+  "16132:649": [
+   "Timeline/Milestones",
+   1120,
+   "FIXED"
+  ],
+  "16136:426": [
+   "Timeline/Gantt",
+   1120,
+   "FIXED"
+  ],
+  "16135:145377": [
+   "Schedule/Resource-Grid",
+   1120,
+   "FIXED"
+  ],
+  "16135:13647": [
+   "Schedule/Itinerary",
+   640,
+   "FIXED"
+  ],
+  "16135:13821": [
+   "Schedule/Slot-Picker",
+   720,
+   "FIXED"
+  ],
+  "16143:818": [
+   "Schedule/Day-Planner",
+   420,
+   "FIXED"
+  ],
+  "16125:400": [
+   "Calendar/Week-Strip",
+   296,
+   "FIXED"
+  ],
+  "421:10122": [
+   "Input/Number-Align-Left",
+   312,
+   "FILL"
+  ],
+  "1241:5611": [
+   "Input/Autocomplete-Field",
+   451,
+   "FIXED"
+  ],
+  "6385:17480": [
+   "Input/Richtext",
+   920,
+   "HUG"
+  ],
+  "4010:36127": [
+   "Slider/Horizontal",
+   262,
+   "FILL"
+  ],
+  "1536:26003": [
+   "Rating/Star",
+   108,
+   "HUG"
+  ],
+  "1536:26046": [
+   "Rating/NPS-Scale",
+   392,
+   "HUG"
+  ],
+  "15662:108099": [
+   "Slider/Field",
+   320,
+   "FIXED"
+  ],
+  "15660:6938": [
+   "Input/Color-Field",
+   312,
+   "FIXED"
+  ],
+  "15662:4946": [
+   "Color-Picker",
+   240,
+   "FIXED"
+  ],
+  "15663:110835": [
+   "Chart/Curve-Preview",
+   320,
+   "FIXED"
+  ],
+  "421:4173": [
+   "Input/Text-Field",
+   312,
+   "FILL"
+  ],
+  "1581:22735": [
+   "Uploader/File-Upload",
+   320,
+   "FIXED"
+  ],
+  "1595:2374": [
+   "Tooltip",
+   125,
+   "HUG"
+  ],
+  "460:38359": [
+   "Divider",
+   356,
+   "FIXED"
+  ],
+  "239:16843": [
+   "Accordion/Text",
+   643,
+   "FIXED"
+  ],
+  "4122:33399": [
+   "Primitives/Dashboard/Header",
+   1232,
+   "FIXED"
+  ],
+  "4122:33401": [
+   "Primitives/Dashboard/Header",
+   1232,
+   "FIXED"
+  ],
+  "12014:44787": [
+   "Top-Navigation/Mobile",
+   390,
+   "FIXED"
+  ],
+  "4060:26671": [
+   "Bottom-Navigation/Mobile/Default",
+   390,
+   "FIXED"
+  ],
+  "6040:67523": [
+   "Patterns/Sidebar",
+   240,
+   "HUG"
+  ],
+  "16326:6485": [
+   "Action-Bar/Mobile",
+   390,
+   "FIXED"
+  ],
+  "6182:56818": [
+   "Chat-Control",
+   390,
+   "FIXED"
+  ]
+ }
+}
