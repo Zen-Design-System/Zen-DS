@@ -67,7 +67,7 @@ export type ResetSlotOp = { op: "resetSlot"; prop?: string };
  * Adds one object literal at `index` (omitted: last); an absent prop becomes `prop={[code]}` (`single`: `prop={code}`).
  * `list`: the prop takes one object or a list, so one object written there becomes `[object, code]`.
  */
-export type InsertItemOp = { op: "insertItem"; prop: string; code: string; index?: number; single?: boolean; list?: boolean; requires?: "toast"[]; nest?: ItemNest };
+export type InsertItemOp = { op: "insertItem"; prop: string; code: string; index?: number; single?: boolean; list?: boolean; requires?: "toast"[]; nest?: ItemNest; pageCode?: string };
 /** The list is the `key` of the prop's index-th object (Sidebar `sections[n].items`); index / to count in that list. */
 export type ItemNest = { index: number; key: string };
 /** Removes the index-th item (the only one, or an object prop, takes the attribute with it); `all`: every item, the attribute with them. */

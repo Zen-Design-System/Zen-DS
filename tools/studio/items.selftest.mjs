@@ -363,4 +363,28 @@ export default function Page() {
   assert.doesNotMatch(result.code, /useToast/);
 });
 
+test("insertItem pageCode: a builder page's Back goes back, example code keeps its toast (walk W-35)", () => {
+  const page = `// @zen-page {"format":1,"title":"Nav"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { TopNavigation } from "@zen-ds/react";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="s" title="Nav" device="phone">
+        <TopNavigation title="Detail" />
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const BACK = '{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Back" }) }';
+  const PAGE_BACK = '{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: proto.back() }';
+  const op = { op: "insertItem", prop: "leading", code: BACK, requires: ["toast"], single: true, pageCode: PAGE_BACK };
+  const result = ok(applySlotOp(page, locOf(page, "<TopNavigation"), "TopNavigation", op, { file: "local:nav.zen.tsx", hash: sha1(page), componentModules: { TopNavigation: "TopNavigation" } }));
+  assert.match(result.code, /leading=\{\{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: proto\.back\(\) \}\}/);
+  assert.match(result.code, /import \{ Board, proto, Screen \} from "@zen-ds\/react\/builder";|import \{ Board, Screen, proto \} from "@zen-ds\/react\/builder";/);
+  assert.doesNotMatch(result.code, /toast/);
+});
+
 console.log(`✓ items (insertItem · removeItem · duplicateItem · moveItem · groupItem · ungroupItem · setItems) self-test: ${passed} cases`);

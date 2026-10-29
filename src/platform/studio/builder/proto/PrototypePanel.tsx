@@ -20,8 +20,8 @@ import { playStartOf, startPlay } from "./playStart";
 import { defaultTarget, writeAction, writeItemTargets, writeProp, type ProtoLayer } from "./protoEdit";
 import { selectedItem } from "./protoDom";
 import {
-  ACTIONS, actionsFor, ANIMATIONS, choiceItemsOf, columnsOf, DEFAULT_ANIMATION, DEFAULT_DELAY, DEFAULT_DIRECTION, DEFAULT_DURATION, DELAY_TRIGGER, filterOf, findNode, frameNodeOf, framesOf,
-  HOVER_TRIGGER, isItemTrigger, layerNameOf, layersIn, literalOf, moves, openerOf, optionsOf, protoOf, stepOf, targetLayerOf, targetsByItem, triggerLabel,
+  ACTIONS, actionsFor, actionTriggerLabel, ANIMATIONS, choiceItemsOf, columnsOf, DEFAULT_ANIMATION, DEFAULT_DELAY, DEFAULT_DIRECTION, DEFAULT_DURATION, DELAY_TRIGGER, filterOf, findNode, frameNodeOf, framesOf,
+  HOVER_TRIGGER, isItemTrigger, layerNameOf, layersIn, literalOf, moves, openerOf, optionsOf, protoOf, stepOf, targetLayerOf, targetsByItem, triggerLabel, triggerValue,
   type ChoiceItem, type ProtoAction, type ProtoAnimation, type ProtoDirection, type ProtoDuration, type ProtoFilter, type ProtoFrame, type ProtoOptions, type ProtoStep,
 } from "./protoModel";
 import { anchorsItself, placesItself, protoSubject, takesText, type ProtoSubject } from "./protoTriggers";
@@ -140,9 +140,11 @@ function FlowRow({ frame, start, current }: { frame: ProtoFrame; start: boolean;
 function Interactions({ subject, tree, layer, via, frames, home, disabled }: { subject: ProtoSubject; tree: PageTree | null; layer: ProtoLayer; via: string | null; frames: ProtoFrame[]; home: ProtoFrame | null; disabled: boolean }) {
   const { node, triggers, trigger: main } = subject;
   const [added, setAdded] = useState<string[]>([]);
-  const shown = triggers.filter((trigger) => trigger === main || node.props[trigger] !== undefined || added.includes(trigger));
+  const shown = triggers.filter((trigger) => trigger === main || triggerValue(node, trigger) !== undefined || added.includes(trigger));
   const more = triggers.filter((trigger) => !shown.includes(trigger));
   const touch = Boolean(home && home.kind === "screen" && home.device !== "desktop");
+  // An action object's button by its words and label ("Primary button · Confirm"), else the event's.
+  const labelOf = (trigger: string) => actionTriggerLabel(node, trigger) ?? triggerLabel(trigger, touch);
   // A trigger picked from + opens its action list at once.
   const [opening, setOpening] = useState<string | null>(null);
   useEffect(() => {
@@ -155,7 +157,7 @@ function Interactions({ subject, tree, layer, via, frames, home, disabled }: { s
     <Menu
       align="end"
       trigger={<IconButton appearance="flat" level="primary" size="xs" icon="icon-plus-line" aria-label="Add interaction" tooltip="Add interaction" />}
-      items={more.map((trigger) => ({ id: trigger, label: triggerLabel(trigger, touch) }))}
+      items={more.map((trigger) => ({ id: trigger, label: labelOf(trigger) }))}
       onSelect={(item) => { setAdded((list) => [...list, item.id]); setOpening(item.id); }}
     />
   ) : null;
@@ -163,7 +165,7 @@ function Interactions({ subject, tree, layer, via, frames, home, disabled }: { s
   return (
     <InspectorSection title="Interactions" actions={addMenu} note={via ? `${via} · in ${node.name}` : undefined}>
       {shown.length ? shown.map((trigger) => (
-        <TriggerRow key={trigger} trigger={trigger} label={triggerLabel(trigger, touch)} value={node.props[trigger]} items={isItemTrigger(node, trigger) ? choiceItemsOf(node) : []} tree={tree} layer={layer} frames={frames} home={home} disabled={disabled} onRemoved={() => setAdded((list) => list.filter((item) => item !== trigger))} />
+        <TriggerRow key={trigger} trigger={trigger} label={labelOf(trigger)} value={triggerValue(node, trigger)} items={isItemTrigger(node, trigger) ? choiceItemsOf(node) : []} tree={tree} layer={layer} frames={frames} home={home} disabled={disabled} onRemoved={() => setAdded((list) => list.filter((item) => item !== trigger))} />
       )) : <Text tone="base" textStyle="Body/Small/Regular">{`${node.name} takes no clicks.`}</Text>}
     </InspectorSection>
   );

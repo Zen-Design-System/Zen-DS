@@ -76,7 +76,8 @@ const unset = (prop: string): GroupCondition => ({ prop, unset: true });
 const topLeading: DataSlot = {
   component: "TopNavigation", prop: "leading", name: "Top-Leading", itemName: "Action", form: "object", max: 1,
   figma: { node: "12013:39641" },
-  newItem: () => ({ code: '{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Back" }) }', requires: ["toast"] }),
+  // On a builder page the Back goes back in Play (walk 2026-10-29 W-35: it showed a "Back" toast).
+  newItem: () => ({ code: '{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: () => toast({ title: "Back" }) }', requires: ["toast"], pageCode: '{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: proto.back() }' }),
 };
 
 /*

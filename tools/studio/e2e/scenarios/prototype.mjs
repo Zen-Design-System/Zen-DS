@@ -1,7 +1,7 @@
 // Prototype rows (Figma's prototype mode on pages made in the Studio, 2026-10-15): connect by dragging a layer's ⊕ onto a
 // frame, click an arrow to select its layer, drag an arrow's end to another frame or off to remove it, one target per
 // tab of a tab bar, the Flow list, and Play's hotspot hints. Each row makes its own page (builder.mjs newPage).
-import { openAssetLibrary, selectAt, showLeftTab, sleep, until } from "../lib/studio.mjs";
+import { inspectorRow, openAssetLibrary, selectAt, showLeftTab, sleep, until } from "../lib/studio.mjs";
 import { pickOption } from "./inspector.mjs";
 import { clickNamed, newPage, pageText, seededPage, selectStack } from "./builder.mjs";
 
@@ -190,6 +190,39 @@ export default function Page() {
         <BottomSheet title="Sort by" primaryAction={{ label: "Done", onClick: proto.close() }}>
           <Text>Newest first</Text>
         </BottomSheet>
+      </Overlay>
+    </Board>
+  );
+}
+`;
+
+/** Home → Detail (a Top Navigation without its Back yet, Book opens a Dialog) → Done (PT-32, walk 2026-10-29). */
+const actionsPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { Button, Dialog, Stack, Text, TopNavigation } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="home" title="Home" device="phone">
+        <Stack gap="md" padding="lg">
+          <Button onClick={proto.navigate("detail")}>Open detail</Button>
+        </Stack>
+      </Screen>
+      <Screen id="detail" title="Detail" device="phone" topNavigation={<TopNavigation type="compact" title="Detail" />}>
+        <Stack gap="md" padding="lg">
+          <Button onClick={proto.open("confirm")}>Book</Button>
+        </Stack>
+      </Screen>
+      <Screen id="done" title="Done" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text>Booked</Text>
+        </Stack>
+      </Screen>
+      <Overlay id="confirm">
+        <Dialog title="Book?" description="One visit." primaryAction={{ label: "Confirm", onClick: proto.close() }} secondaryAction={{ label: "Cancel", onClick: proto.close() }} />
       </Overlay>
     </Board>
   );
@@ -635,6 +668,62 @@ export const rows = [
       if (seen.gap > 2 || seen.gap < -2) throw new Error(`at the end of the list the Bottom Navigation stands ${seen.gap}px above the device's foot`);
       if (!seen.backOnTop) throw new Error(`the list covers the Top Navigation's Back button (the point hits ${seen.hit})`);
       return `scrolled ${seen.top}/${max}px · Bottom Navigation at the foot (${seen.gap}px) · Back on top · last row ${seen.lastAboveBar}px clear of the bar`;
+    },
+  },
+  {
+    id: "PT-32", feature: "Buttons inside a component are prototyped like Figma's (walk 2026-10-29 W-35/36/41): Top leading on a builder page's Top Navigation adds a Back that goes back (proto.back(), not a toast); the Prototype tab lists the Dialog's Primary and Secondary buttons by label and points Confirm at a Screen; Play: Detail's Back returns Home, Book → Confirm lands on Done", wp: "prototype walk 2026-10-29", timeout: 50_000,
+    async run(ctx) {
+      const { page, id, text: source } = await seededPage(ctx, actionsPage, /proto\.open\("confirm"\)/);
+      await step("Top leading on", async () => {
+        await clickNamed(page, id, "TopNavigation");
+        await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+        await inspectorRow(page, "leading").getByRole("switch").click();
+      });
+      await until(async () => /leading=\{\{ icon: "icon-chevron-left-line-medium", label: "Back", onClick: proto\.back\(\) \}\}/.test(await source()), { message: "the Back's proto.back() on the Top Navigation" });
+      if (/toast/.test(await source())) throw new Error("the Back still brings a toast");
+      await prototypeTab(page);
+      await until(async () => (await inspectorRow(page, "proto:leading.onClick").count()) === 1, { message: "the Top Navigation's Leading button in Interactions" });
+      const leadingRow = await inspectorRow(page, "proto:leading.onClick").innerText();
+      if (!/Leading button · Back/.test(leadingRow)) throw new Error(`the Back's row reads “${leadingRow.split("\n")[0]}”`);
+      await step("select the Dialog", async () => {
+        // The overlay sits right of the Screens: every frame in view first, so the click lands on the Dialog.
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Shift+Digit1");
+        await sleep(400);
+        await clickNamed(page, id, "Dialog");
+      });
+      for (const [trigger, label] of [["primaryAction.onClick", "Primary button · Confirm"], ["secondaryAction.onClick", "Secondary button · Cancel"]]) {
+        const row = inspectorRow(page, `proto:${trigger}`);
+        await until(async () => (await row.count()) === 1, { message: `${label} in Interactions` }).catch(async (error) => {
+          const shown = (await page.locator('[data-e2e="prototype-panel"]').innerText().catch(() => "")).replace(/\s+/g, " ").slice(-300);
+          throw new Error(`${error.message} (the panel: ${shown})`);
+        });
+        if (!(await row.innerText()).includes(label)) throw new Error(`the ${trigger} row reads “${(await row.innerText()).split("\n")[0]}”`);
+      }
+      await pickOption(page, "proto:primaryAction.onClick", "Navigate to");
+      await until(async () => /primaryAction=\{\{ label: "Confirm", onClick: proto\.navigate\(/.test(await source()), { message: "Confirm navigates" });
+      await pickOption(page, "proto:primaryAction.onClick:target", "Done");
+      await until(async () => /primaryAction=\{\{ label: "Confirm", onClick: proto\.navigate\("done"\) \}\}/.test(await source()), { message: 'Confirm → proto.navigate("done")' });
+      if (!/secondaryAction=\{\{ label: "Cancel", onClick: proto\.close\(\) \}\}/.test(await source())) throw new Error("Cancel lost its Close overlay");
+      // ▷ beside Home in Flow: Play from the first Screen (⌘⌥↩ would play from the selected layer's frame).
+      await step("Play from Home", () => page.locator('[data-e2e="prototype-panel"]').getByRole("button", { name: "Play from Home" }).click());
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      const on = (screen) => until(async () => (await playScreen(page)) === screen, { message: `Play on ${screen}` });
+      await on("home");
+      await step("Open detail", () => playing(page).getByRole("button", { name: "Open detail" }).click());
+      await on("detail");
+      // The Top Navigation's Back inside the device (Play's own bar has a Back too).
+      await step("Back", () => playing(page).locator(".studio-player__device").getByRole("button", { name: "Back", exact: true }).click());
+      await on("home");
+      await playing(page).getByRole("button", { name: "Open detail" }).click();
+      await on("detail");
+      await step("Book", () => playing(page).getByRole("button", { name: "Book" }).click());
+      const dialog = playing(page).getByRole("dialog", { name: "Book?" });
+      await dialog.waitFor({ state: "visible", timeout: 3000 });
+      await step("Confirm", () => dialog.getByRole("button", { name: "Confirm" }).click());
+      await on("done");
+      await page.keyboard.press("Escape");
+      return "Top leading → Back = proto.back() · Leading/Primary/Secondary buttons listed · Confirm → Done · Play: Back returns Home, Book → Confirm → Done";
     },
   },
   {

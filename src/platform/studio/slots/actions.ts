@@ -1632,7 +1632,7 @@ async function runDataItem(selection: NodeSelection, slot: DataSlot, verb: DataI
     else return fail(`${where}: its ${slot.itemName}s do not group`);
   } else if (verb === "add") {
     const item = slot.newItem(items.length);
-    op = { op: "insertItem", prop: slot.prop, code: item.code, ...(slot.form === "object" ? { single: true } : slot.form === "list" ? { list: true } : {}), ...(item.requires?.length ? { requires: [...item.requires] } : {}) };
+    op = { op: "insertItem", prop: slot.prop, code: item.code, ...(slot.form === "object" ? { single: true } : slot.form === "list" ? { list: true } : {}), ...(item.requires?.length ? { requires: [...item.requires] } : {}), ...(item.pageCode ? { pageCode: item.pageCode } : {}) };
     // A limit warns, it never blocks (Figma): the status says what the slot holds now.
     if (items.length >= (slot.advised ?? slot.max)) warning = `${slot.name} now holds ${plural(items.length + 1, slot.itemName.toLowerCase())}; ${slot.maxNote ?? `the component shows ${slot.max}`}`;
   } else if (verb === "remove") op = { op: "removeItem", prop: slot.prop, ...(slot.form !== "object" ? { index } : {}), ...(removeAll ? { all: true } : {}) };
