@@ -26,3 +26,15 @@
 - Report: `docs/research/studio-prototype-walk-2026-10-29.md` (+ 11 screenshots). ~50 findings; fixes in §4 wait for the
   user (BACKLOG-user-and-later). Test data lives only in that worktree's `.zen-studio/` and the pane's :5281 storage.
 - Method limits: pane hidden (stale screenshots, checked by DOM/page file), clipboard-read denied (paste untested).
+
+## Session "Bug" · Play's system bars at the device's edges (tier XS; Giám sát, walk W-47)
+
+- In Play / Present the status bar and home indicator ride 0-high sticky `__pin`s in the app's column
+  (`.studio-builder-screen__main`, since 46b3ca95; not #345, which only added isolation and the overflow min-height).
+  A side without a navigation keeps the safe area as the Screen's padding (deviceBars.css `data-inset`), which sat
+  outside that column: the pinned status bar stood 50px down (a blank band above "9:41"), and at the end of a long
+  page the home indicator stood the safe area above the foot.
+- deviceBars.css: with pinned bars the Screen drops that padding, and the content takes it next to the pinned bar
+  (`__pin[data-edge="top"] + __content`, `__content:has(+ __pin[data-edge="bottom"])`). The canvas is unchanged (no pins).
+- E2E PT-31 (id from Giám sát): Bottom Navigation only → status bar at the device's top, content below it; Top
+  Navigation only, long List → home indicator 8px from the foot at the end, last row clear of the home area.
