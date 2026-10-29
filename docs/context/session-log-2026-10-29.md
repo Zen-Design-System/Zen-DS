@@ -83,6 +83,20 @@
 - Checks: builder selftest 79 (moveTo of a Screen on the Board keeps every x), tsc, style:check; E2E PT-33, PT-34.
 - §4 item 4 (W-12/W-28/W-18) went to session studio-wrap-floating.
 
+## Templates: bars, links, Add Screen (walk W-48/49/50/57, tier M; user approved §4 item 6, 2026-10-30)
+
+- W-48: `tools/studio/responsive-header.mjs` derivePhoneChrome — an AppShell with its own topNavigation /
+  bottomNavigation (a phone template) gives the Screen those parts (kind "own"), not a bar drawn from the page title.
+- W-50: `starters/snapshot.ts` marks a node whose template element took a click (`clicks`); `starters/toDialect.ts`
+  linkOverlays leads it to the overlay named as it reads (same words, then their start: Date → date-placed);
+  `newPageFromFrame.ts` says how many are linked.
+- W-49: Add Screen is a menu (`PrototypePanel.tsx` AddScreenMenu: Empty Screen + the device's templates, loaded on
+  open); `starters/templateScreen.ts` addTemplateScreen snapshots the template, inserts the Screen and its overlays
+  (free ids, linked) one insertChild each, squashed into one undo step. E2E helpers pick Empty Screen now.
+- W-57: `protoModel.ts` frameNamed + layerWordsOf; `protoEdit.ts` defaultTarget takes the layer's words.
+- Checks: responsive-header 44, starters 21, protoModel 50, tsc; E2E PT-35, PT-36, PT-37.
+- §4 item 7 (W-44/W-45) went to session studio-wrap-floating.
+
 ## Session "W-44/45" · Play's toasts in the device; overlays keep its safe areas (tier S; walk §4 item 7)
 - W-45: Play's ToastProvider stack portalled into the portal layer beside the device, `position: fixed` → the window's
   foot, outside the frame. Player now nests portals: the toasts get `.studio-device-toasts` inside the device (absolute,

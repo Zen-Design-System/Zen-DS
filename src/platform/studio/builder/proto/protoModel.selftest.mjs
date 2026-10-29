@@ -3,7 +3,7 @@
 // connections and Play read from a page — trigger words, a choice control's items, per-item actions and their links.
 // Run: node src/platform/studio/builder/proto/protoModel.selftest.mjs
 import { parsePage } from "../../../../../tools/studio/dialect.mjs";
-import { actionsFor, actionTriggerLabel, actionTriggersOf, cellText, choiceItemsOf, columnsOf, connectTrigger, filterCode, filterOf, filterRows, filterValuesOf, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, layersIn, linksOf, openerOf, optionsOf, playStartOf, protoActionCode, protoSourcesOf, screenTargetOf, stepCode, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, targetOfFrame, targetsByItem, triggerLabel, triggerValue } from "./protoModel.ts";
+import { actionsFor, actionTriggerLabel, actionTriggersOf, cellText, frameNamed, layerWordsOf, choiceItemsOf, columnsOf, connectTrigger, filterCode, filterOf, filterRows, filterValuesOf, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, layersIn, linksOf, openerOf, optionsOf, playStartOf, protoActionCode, protoSourcesOf, screenTargetOf, stepCode, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, targetOfFrame, targetsByItem, triggerLabel, triggerValue } from "./protoModel.ts";
 
 const failures = [];
 let passed = 0;
@@ -86,6 +86,10 @@ check("action triggers: each action object's onClick", actionTriggersOf(dialog),
 check("action trigger value: the field, the plain prop, nothing for a missing field", [triggerValue(dialog, "primaryAction.onClick")?.kind, triggerValue(dialog, "secondaryAction.onClick"), triggerValue(named("Button"), "onClick")?.kind], ["proto", undefined, "proto"]);
 check("action trigger words with the button's label", [actionTriggerLabel(dialog, "primaryAction.onClick"), actionTriggerLabel(dialog, "onOpenChange")], [`Primary button · ${dialog.props.primaryAction.fields.label.value}`, null]);
 check("⊕ on a layer with no click of its own takes its first button", connectTrigger({ ...dialog, props: {} }, ["onOpenChange", "primaryAction.onClick"]), "primaryAction.onClick");
+// Open overlay / Navigate to by name (walk 2026-10-29 W-57): the frame named as the layer reads, else none.
+const byName = [{ kind: "overlay", id: "filter", title: "Filter", frameId: "overlay:filter", device: "desktop" }, { kind: "overlay", id: "invite-members", title: "Invite members", frameId: "overlay:invite-members", device: "desktop" }, { kind: "overlay", id: "date-placed", title: "Date placed", frameId: "overlay:date-placed", device: "desktop" }];
+check("frame by name: same words, then their start, marks dropped; none for other words", [frameNamed(byName, "Invite members"), frameNamed(byName, "Date"), frameNamed(byName, "INVITE  members!"), frameNamed(byName, "Export"), frameNamed(byName, "")], ["invite-members", "date-placed", "invite-members", undefined, undefined]);
+check("a layer's words: an action object's label, else its text", [layerWordsOf(dialog, "primaryAction.onClick") === dialog.props.primaryAction.fields.label.value, layerWordsOf(named("Button"), "onClick").length > 0], [true, true]);
 const sources = protoSourcesOf(tree);
 const bottom = named("BottomNavigation");
 check("hotspots: the tab bar's leading items only, the button and dialog whole", [sources.get(bottom.loc), sources.get(named("Button").loc), sources.get(named("Dialog").loc), sources.has(named("Segmented").loc)], [[{ value: "files", label: "Files" }], null, null, false]);
