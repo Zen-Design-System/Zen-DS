@@ -1797,7 +1797,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-40", feature: "Present on a phone keeps toasts and modals in the device (walk 2026-10-29 W-44/W-45, Present's side): the Toast page's example presented on the iPhone shows its toast inside the viewport, 20 from its sides, in Present's layer (not the Studio's); a phone Screen's open Dialog presented on the iPhone ends above the home area", wp: "prototype walk 2026-10-29", timeout: 60_000,
+    id: "PT-40", feature: "Present on a phone keeps toasts and modals in the device (walk 2026-10-29 W-44/W-45, Present's side): the Toast page's example presented on the iPhone shows its toast in the device's toast layer, 20 from its sides (it stood at the window's foot); a phone Screen's open Dialog presented on the iPhone ends above the home area", wp: "prototype walk 2026-10-29", timeout: 60_000,
     async run(ctx) {
       const { page } = await ctx.studio({ page: "toast" });
       await focusFrame(page, 0);
