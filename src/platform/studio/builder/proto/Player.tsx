@@ -248,7 +248,8 @@ function PlayLayer({ id, start, portalRef, toastRef }: { id: string; start: stri
                   {hints.boxes.map((hint, index) => <span key={index} className="studio-player__hotspot" style={{ transform: `translate(${hint.x}px, ${hint.y}px)`, width: hint.width, height: hint.height, borderRadius: hint.radius }} />)}
                 </div>
               ) : null}
-              <div ref={toastRef} className="studio-device-toasts" />
+              {/* In the device's breakpoint: a phone's page margin (20) beside the toasts, as its Screen's content. */}
+              <div ref={toastRef} className="studio-device-toasts" data-breakpoint={shown ? viewportBreakpoint(shown.width, shownDevice?.device) : undefined} />
               </SimulatedDeviceContext>
             </div>
             <DeviceFrame device={shownDevice} fit={fit} part="fold" />

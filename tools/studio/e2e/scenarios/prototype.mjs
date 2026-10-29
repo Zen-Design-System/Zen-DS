@@ -1765,14 +1765,14 @@ export const rows = [
       await sleep(500);
       const at = await deviceFoot(page, toast);
       if (!at.inDevice) throw new Error("the toast is not in the device");
-      if (at.left < 0 || at.right < 0) throw new Error(`the toast runs past the device's sides: ${JSON.stringify(at)}`);
+      if (at.left !== 20 || at.right !== 20) throw new Error(`the toast stands ${at.left}px / ${at.right}px from the device's sides: want a phone's page margin, 20`);
       if (at.clear < at.safe - 1) throw new Error(`the toast stands ${at.clear}px above the device's foot, inside its ${at.safe}px home area`);
       if (at.clear > at.safe + 40) throw new Error(`the toast stands ${at.clear}px above the device's foot: want the page margin over the ${at.safe}px home area`);
       return `toast in the device, ${at.clear}px above its foot (home area ${at.safe}px), ${at.left}px / ${at.right}px from its sides`;
     },
   },
   {
-    id: "PT-39", feature: "Play on a phone keeps a Dialog's and a Bottom Sheet's last controls clear of the home indicator: the Dialog's Cancel and the sheet's last row and Done end above the device's bottom safe area (walk 2026-10-29 W-44: Cancel and the sheet's 2025 sat under it)", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    id: "PT-39", feature: "Play on a phone keeps a Dialog's and a Bottom Sheet's last controls clear of the home indicator: the Dialog (its Cancel last) and the sheet's last row end above the device's bottom safe area (walk 2026-10-29 W-44: Cancel and the sheet's 2025 sat under it)", wp: "prototype walk 2026-10-29", timeout: 40_000,
     async run(ctx) {
       const { page } = await seededPage(ctx, safePage, /Changes saved/);
       await playSafePage(page);
@@ -1780,27 +1780,28 @@ export const rows = [
       const cancel = playing(page).getByRole("button", { name: "Cancel" });
       await cancel.waitFor({ state: "visible", timeout: 3000 });
       await sleep(600);
-      const dialog = await deviceFoot(page, cancel);
+      // The panel, not only its last button: before, it stood the Dialog's 16px floor above the foot, on the home area.
+      const dialog = await deviceFoot(page, playing(page).getByRole("dialog", { name: "Book?" }));
       if (!dialog.inDevice) throw new Error("the Dialog is not in the device");
-      if (dialog.clear < dialog.safe - 1) throw new Error(`the Dialog's Cancel ends ${dialog.clear}px above the device's foot, inside its ${dialog.safe}px home area`);
+      if (dialog.clear < dialog.safe - 1) throw new Error(`the Dialog ends ${dialog.clear}px above the device's foot, inside its ${dialog.safe}px home area`);
       await cancel.click();
       await until(async () => (await cancel.count()) === 0, { message: "Cancel closes the Dialog" });
       await playing(page).getByRole("button", { name: "Sort" }).click();
-      const done = playing(page).getByRole("button", { name: "Done" });
-      await done.waitFor({ state: "visible", timeout: 3000 });
+      const last = playing(page).getByText("2025", { exact: true });
+      await last.waitFor({ state: "visible", timeout: 3000 });
       await sleep(600);
-      const row = await deviceFoot(page, playing(page).getByText("2025", { exact: true }).last());
-      const footer = await deviceFoot(page, done);
-      if (row.clear < row.safe - 1 || footer.clear < footer.safe - 1) throw new Error(`the sheet runs into the ${row.safe}px home area: its last row ends ${row.clear}px and Done ${footer.clear}px above the device's foot`);
-      return `Dialog's Cancel ${dialog.clear}px above the foot · sheet's 2025 ${row.clear}px, Done ${footer.clear}px · home area ${dialog.safe}px`;
+      const row = await deviceFoot(page, last);
+      if (!row.inDevice) throw new Error("the Bottom Sheet is not in the device");
+      if (row.clear < row.safe - 1) throw new Error(`the sheet's last row ends ${row.clear}px above the device's foot, inside its ${row.safe}px home area`);
+      return `the Dialog ${dialog.clear}px above the foot · sheet's last row (2025) ${row.clear}px · home area ${dialog.safe}px`;
     },
   },
 ];
 
-/** A phone Screen whose buttons show a toast, open a Dialog and open a Bottom Sheet whose list ends with 2025 (PT-38, PT-39, walk 2026-10-29 W-44/W-45). */
+/** A phone Screen whose buttons show a toast, open a Dialog and open a Bottom Sheet whose rows end with 2025 (PT-38, PT-39, walk 2026-10-29 W-44/W-45). */
 const safePage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
-import { BottomSheet, Button, Dialog, Stack } from "@zen-ds/react";
+import { BottomSheet, Button, Dialog, Stack, Text } from "@zen-ds/react";
 
 export const mock = {};
 
@@ -1818,7 +1819,15 @@ export default function Page() {
         <Dialog title="Book?" description="One visit." primaryAction={{ label: "Confirm", onClick: proto.close() }} secondaryAction={{ label: "Cancel", onClick: proto.close() }} />
       </Overlay>
       <Overlay id="sort">
-        <BottomSheet title="Date placed" items={[{ id: "any", label: "Any time" }, { id: "30", label: "Last 30 days" }, { id: "90", label: "Last 3 months" }, { id: "2026", label: "2026" }, { id: "2025", label: "2025" }]} primaryAction={{ label: "Done", onClick: proto.close() }} />
+        <BottomSheet title="Date placed">
+          <Stack gap="lg">
+            <Text>Any time</Text>
+            <Text>Last 30 days</Text>
+            <Text>Last 3 months</Text>
+            <Text>2026</Text>
+            <Text>2025</Text>
+          </Stack>
+        </BottomSheet>
       </Overlay>
     </Board>
   );

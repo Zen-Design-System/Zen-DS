@@ -160,7 +160,7 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
                       </SimulatedDeviceContext>
                     </div>
                     {/* Beside the viewport, its size: the viewport scrolls its example, and the toasts stay at the device's foot. */}
-                    {fit.mode === "fixed" ? <div ref={setToastRoot} className="studio-device-toasts" style={{ ...fit.boxStyle, ...safe }} /> : null}
+                    {fit.mode === "fixed" ? <div ref={setToastRoot} className="studio-device-toasts" style={{ ...fit.boxStyle, ...safe }} data-breakpoint={shown ? viewportBreakpoint(shown.width, device?.device) : undefined} /> : null}
                     <DeviceFrame device={device} fit={fit} part="fold" />
                     <ViewportHandles viewport={shown} fit={fit} onChange={onViewportChange} device={example.shape?.device} />
                   </div>
