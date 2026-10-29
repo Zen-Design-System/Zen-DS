@@ -9,7 +9,8 @@ export type SnapLiteral = string | number | boolean | null;
 export type SnapValue =
   | { kind: "literal"; value: SnapLiteral }
   | { kind: "array"; items: SnapValue[] }
-  | { kind: "object"; fields: Array<[string, SnapValue]> }
+  /** `clicks`: an action object (`{ label, onClick }`) that took a click in the template (see SnapNode `clicks`). */
+  | { kind: "object"; fields: Array<[string, SnapValue]>; clicks?: boolean }
   | { kind: "element"; node: SnapNode }
   /** A slot prop holding several layers, written <>…</> (the template's own fragment). */
   | { kind: "fragment"; children: SnapChild[] }
@@ -149,39 +150,49 @@ function wordsOf(node: SnapNode): string {
 
 /**
  * Leads the starter's buttons to the overlays they open (walk 2026-10-29 W-50: a template's overlays came unlinked): a
- * node that took a click in the template (`clicks`) and reads as an overlay's name — its title or id, the same words or
- * the start of them ("Invite members" → invite-members, "Date" → date-placed) — gets onClick proto.open("<id>"). Each
- * overlay and each button once, in reading order. The ids it linked.
+ * node or an action object (`{ label, onClick }`: an ActionBar's primaryAction, a sheet's item) that took a click in the
+ * template (`clicks`) and reads as an overlay's name — its title or id, the same words or the start of them ("Invite
+ * members" → invite-members, "Date" → date-placed) — gets onClick proto.open("<id>"). The Screen's buttons first, then
+ * the overlays' own (Get help's Report a problem opens the next sheet), never an overlay's for itself. Each overlay and
+ * each button once, in reading order. The ids it linked.
  */
 export function linkOverlays(nodes: SnapNode[], overlays: ReadonlyArray<{ id: string; node: SnapNode }>): string[] {
   const names = overlays.map((overlay) => ({ id: overlay.id, keys: [nameKey(overlay.id), nameKey(wordsOf({ ...overlay.node, children: [] }))].filter(Boolean) }));
-  const buttons: SnapNode[] = [];
-  const visit = (node: SnapNode) => {
-    if (node.clicks) buttons.push(node);
-    node.props.forEach(([, value]) => visitValue(value));
-    node.children.forEach((kid) => { if (kid.kind === "element") visit(kid); });
+  type Button = { words: string; owner: string | null; open: (id: string) => void };
+  const buttons: Button[] = [];
+  const visit = (node: SnapNode, owner: string | null) => {
+    if (node.clicks) buttons.push({ words: wordsOf(node), owner, open: (id) => { node.props = [...node.props.filter(([name]) => name !== "onClick"), ["onClick", { kind: "proto", action: "open", target: id }]]; } });
+    node.props.forEach(([, value]) => visitValue(value, owner));
+    node.children.forEach((kid) => { if (kid.kind === "element") visit(kid, owner); });
   };
-  const visitValue = (value: SnapValue) => {
-    if (value.kind === "element") visit(value.node);
-    else if (value.kind === "fragment") value.children.forEach((kid) => { if (kid.kind === "element") visit(kid); });
-    else if (value.kind === "array") value.items.forEach(visitValue);
-    else if (value.kind === "object") value.fields.forEach(([, field]) => visitValue(field));
+  const visitValue = (value: SnapValue, owner: string | null) => {
+    if (value.kind === "element") visit(value.node, owner);
+    else if (value.kind === "fragment") value.children.forEach((kid) => { if (kid.kind === "element") visit(kid, owner); });
+    else if (value.kind === "array") value.items.forEach((item) => visitValue(item, owner));
+    else if (value.kind === "object") {
+      const label = value.fields.find(([name]) => name === "label")?.[1];
+      if (value.clicks && label?.kind === "literal" && typeof label.value === "string") {
+        buttons.push({ words: label.value, owner, open: (id) => { value.fields = [...value.fields.filter(([name]) => name !== "onClick"), ["onClick", { kind: "proto", action: "open", target: id }]]; } });
+      }
+      value.fields.forEach(([, field]) => visitValue(field, owner));
+    }
   };
-  nodes.forEach(visit);
+  nodes.forEach((node) => visit(node, null));
+  overlays.forEach((overlay) => visit(overlay.node, overlay.id));
   const linked: string[] = [];
-  const taken = new Set<SnapNode>();
+  const taken = new Set<Button>();
   for (const exact of [true, false]) {
     for (const overlay of names) {
       if (linked.includes(overlay.id)) continue;
-      const button = buttons.find((node) => {
-        if (taken.has(node)) return false;
-        const key = nameKey(wordsOf(node));
+      const button = buttons.find((candidate) => {
+        if (taken.has(candidate) || candidate.owner === overlay.id) return false;
+        const key = nameKey(candidate.words);
         return Boolean(key) && overlay.keys.some((name) => (exact ? name === key : name.startsWith(`${key}-`) || key.startsWith(`${name}-`)));
       });
       if (!button) continue;
       taken.add(button);
       linked.push(overlay.id);
-      button.props = [...button.props.filter(([name]) => name !== "onClick"), ["onClick", { kind: "proto", action: "open", target: overlay.id }]];
+      button.open(overlay.id);
     }
   }
   return linked;

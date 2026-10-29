@@ -159,7 +159,9 @@ function valueOf(raw: unknown, ctx: Context, where: string): SnapValue | undefin
       const value = valueOf(field, ctx, `${where}.${key}`);
       if (value !== undefined) fields.push([key, value]);
     }
-    return { kind: "object", fields };
+    // An action object (`{ label, onClick }`: an ActionBar's primaryAction, a sheet's item) that took a click: marked as
+    // a node is, so the starter can lead it to the overlay named as it is (W-50, the Mobile detail · Order template).
+    return typeof (raw as { onClick?: unknown }).onClick === "function" ? { kind: "object", fields, clicks: true } : { kind: "object", fields };
   } finally {
     ctx.depth -= 1;
     ctx.seen.delete(raw);

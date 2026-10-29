@@ -69,6 +69,21 @@ check("a quote in the title stays valid", validateDialect(starterPage({ title: '
   check("the buttons open their overlays", [openOf(invite), openOf(date), openOf(plain), openOf(help)], [{ kind: "proto", action: "open", target: "invite-members" }, { kind: "proto", action: "open", target: "date-placed" }, undefined, undefined]);
   const page = starterPage({ title: "Admin", device: "desktop", nodes, overlays });
   check("the page writes proto.open and stays valid", [page.includes('onClick={proto.open("invite-members")}'), validateDialect(page, { components })], [true, []]);
+
+  // Action objects (Mobile detail · Order: an ActionBar's primaryAction, a sheet's item opening the next sheet).
+  const action = (label) => ({ kind: "object", fields: [["label", lit(label)]], clicks: true });
+  const bar = node("Card", [["primaryAction", action("Track package")], ["secondaryAction", action("Get help")]]);
+  const helpSheet = node("Dialog", [["title", lit("Get help")], ["primaryAction", action("Report a problem")]]);
+  const sheets = [
+    { id: "track-package", node: node("Dialog", [["title", lit("Track package")]]) },
+    { id: "get-help", node: helpSheet },
+    { id: "report-a-problem", node: node("Dialog", [["title", lit("Report a problem")], ["primaryAction", action("Report a problem")]]) },
+  ];
+  check("action objects lead to their overlays, an overlay's own item to the next one, never to itself", linkOverlays([bar], sheets).sort(), ["get-help", "report-a-problem", "track-package"]);
+  const field = (holder, prop) => holder.props.find(([key]) => key === prop)[1].fields.find(([key]) => key === "onClick")?.[1];
+  check("…written on the objects", [field(bar, "primaryAction"), field(bar, "secondaryAction"), field(helpSheet, "primaryAction"), field(sheets[2].node, "primaryAction")], [{ kind: "proto", action: "open", target: "track-package" }, { kind: "proto", action: "open", target: "get-help" }, { kind: "proto", action: "open", target: "report-a-problem" }, undefined]);
+  const detail = starterPage({ title: "Detail", device: "phone", nodes: [bar], overlays: sheets });
+  check("an action object's proto.open stays valid", [detail.includes('onClick: proto.open("track-package")'), validateDialect(detail, { components })], [true, []]);
 }
 
 if (failures.length) {
