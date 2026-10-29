@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { ZenPortalProvider } from "../../../components/Portal";
-import { ToastProvider } from "../../../components/Toast";
 import { PlatformPhoneModesContext } from "../../PlatformPhone";
 import { isWideExample } from "../../examples/types";
 import { ExampleCard } from "../../PlatformShowcases";
@@ -62,8 +61,7 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
   const key = useStudio((state) => pageKey(state.page, state.collection, state.localPage));
   const override = useStudio((state) => state.frameOverrides[key]?.[frame.id]);
   const [portalRoot, setPortalRoot] = useState<HTMLDivElement | null>(null);
-  // The example's toasts show in the device when one is simulated (walk 2026-10-29 W-45), in Present's modes either way
-  // (they went to the Studio's own toast layer, at the window's foot and in its theme).
+  // The device's toast layer (walk 2026-10-29 W-45; set while a device is simulated): see the effect below.
   const [toastRoot, setToastRoot] = useState<HTMLDivElement | null>(null);
   const layerRef = useRef<HTMLDivElement>(null);
   const exit = useCallback(() => studioStore.setState({ presenting: null }), []);
@@ -139,13 +137,22 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
   // Dialog, a Bottom Sheet, the toasts), as Play's does (W-44).
   const bars = example.screen && fit.mode === "fixed" && device && device.device !== "desktop" ? safeAreasOf(deviceOs(device), device.device, duoStatusOf(device.bars)) : null;
   const safe = bars ? ({ "--zen-safe-area-top": `${bars.top}px`, "--zen-safe-area-bottom": `${bars.bottom}px` } as CSSProperties) : null;
+  // An example's toasts come from its card's own queue (ExampleCard's ZenProvider is a root one) and portal into this
+  // layer's portal root, fixed at the window's foot. In a simulated device their layer moves into the device's toast
+  // layer, over its home indicator (W-45; the portal follows the node), and back when the device goes.
+  useLayoutEffect(() => {
+    if (fit.mode !== "fixed" || !toastRoot || !portalRoot) return undefined;
+    const move = (from: HTMLElement, to: HTMLElement) => { for (const layer of from.querySelectorAll(":scope > .zen-toast-layer")) to.appendChild(layer); };
+    move(portalRoot, toastRoot);
+    const observer = new MutationObserver(() => move(portalRoot, toastRoot));
+    observer.observe(portalRoot, { childList: true });
+    return () => { observer.disconnect(); move(toastRoot, portalRoot); };
+  }, [fit.mode, toastRoot, portalRoot]);
   return (
     <div ref={layerRef} className="studio-present" role="dialog" aria-label={`${example.title}, full screen`} tabIndex={-1} data-screen={example.screen ? "true" : undefined} {...modes}>
       <PresentBar title={example.title} theme={theme} onToggleTheme={toggleTheme} modes={preview} onModeChange={onModeChange} onExit={exit} index={index} count={examples.length} onStep={stepPresent} viewport={shown} onViewportChange={onViewportChange} viewportScale={fit.scale} autoWidth={width} framed={framed} onFramedChange={onFramedChange} />
       {/* The page under the bar, as a browser's: a full-screen card and the example's overlays fill it, never the bar. */}
       <div className="studio-present__page">
-        <ZenPortalProvider container={(fit.mode === "fixed" ? toastRoot : null) ?? portalRoot}>
-        <ToastProvider placement="bottom-center">
         <ZenPortalProvider container={portalRoot}>
           <PlatformTypographyContext value={preview.typography}>
             <PlatformPhoneModesContext value={{ density: own.density, typography: own.typography }}>
@@ -168,8 +175,6 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
               </div>
             </PlatformPhoneModesContext>
           </PlatformTypographyContext>
-        </ZenPortalProvider>
-        </ToastProvider>
         </ZenPortalProvider>
         {/* The presented example's overlays (Dialog, Menu, Tooltip…) stay above it and in its modes. */}
         <div ref={setPortalRoot} className="official-portal-root studio-portal-root" {...modes} />

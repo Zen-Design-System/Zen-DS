@@ -1821,9 +1821,12 @@ export const rows = [
         const box = view.getBoundingClientRect();
         const zoom = box.width / view.offsetWidth || 1;
         const rect = element.getBoundingClientRect();
-        return { inPresent: Boolean(element.closest(".studio-present .studio-device-toasts")), left: Math.round((rect.left - box.left) / zoom), right: Math.round((box.right - rect.right) / zoom), clear: Math.round((box.bottom - rect.bottom) / zoom) };
+        const chain = [];
+        for (let node = element.parentElement; node && chain.length < 9; node = node.parentElement) chain.push(`${node.tagName.toLowerCase()}.${[...node.classList].slice(0, 1).join(".")}`);
+        const hosts = [...document.querySelectorAll(".studio-device-toasts")].map((host) => `${host.parentElement?.className.split(" ")[0]}[${host.parentElement?.getAttribute("data-viewport")}]:${host.children.length}`);
+        return { chain: `${chain.slice(3).join(" < ")} · hosts ${hosts.join(", ")} · viewport ${view?.getAttribute("data-viewport")}`, inPresent: Boolean(element.closest(".studio-present .studio-device-toasts")), left: Math.round((rect.left - box.left) / zoom), right: Math.round((box.right - rect.right) / zoom), clear: Math.round((box.bottom - rect.bottom) / zoom) };
       }, PRESENT_VIEWPORT);
-      if (!at.inPresent) throw new Error("the toast is not in Present's device layer");
+      if (!at.inPresent) throw new Error(`the toast is not in Present's device layer: ${at.chain}`);
       if (at.left !== 20 || at.right !== 20 || at.clear < 20) throw new Error(`the toast stands ${at.left} / ${at.right}px from the viewport's sides and ${at.clear}px above its foot: want a phone's page margin, 20`);
       await page.keyboard.press("Escape");
       await present.waitFor({ state: "detached", timeout: 5000 });

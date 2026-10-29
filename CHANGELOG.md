@@ -15,8 +15,8 @@ How to maintain it:
 ## [0.4.0] — Unreleased
 
 - Zen Studio's Play and Present show toasts in the device (walk 2026-10-29 W-45): on a phone a toast stands the page
-  margin above the home indicator, inside the frame, instead of at the window's foot outside it, cut in half; Present
-  shows an example's toasts in its own modes. A Dialog or Bottom Sheet opened in Play on a phone keeps its last button
+  margin above the home indicator, inside the frame, instead of at the window's foot outside it, cut in half; Present on a
+  simulated device does the same with an example's toasts. A Dialog or Bottom Sheet opened in Play on a phone keeps its last button
   or row clear of the home indicator (W-44): the device now gives what opens in it the Screen's safe areas.
 - Zen Studio: a component dragged from Assets into a frame without auto layout (an Empty page's Screen) lands where it
   is dropped, placed freely, as a click puts one (walk 2026-10-29 W-12: it fell to X 0 Y 50 in the page flow, over the
