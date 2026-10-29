@@ -42,14 +42,16 @@ export function widgetWidthIn(blockWidth: number, device: string | null | undefi
  * frame's last layer), to its right the page gap apart with their tops aligned; a new row at the page margin, the gap
  * under the lowest layer, when that spot would pass the frame's right margin (judged with `width`, the new layer's when
  * it is known, else the reference's: the common case inserts another of the same kind); the margin corner in an empty
- * frame. Figma's insert places at the pointer or the view's centre; a click in Assets has no pointer on the canvas, so
- * the layers form the row a person would drag them into, and ⇧A then makes it an auto layout.
+ * frame, under what the frame draws at its top (`top`: a phone's status bar, its Top Navigation or the canvas's "Add Top
+ * Navigation"; walk 2026-10-29 W-28: a layer at 20, 20 sat under the Dynamic Island). Figma's insert places at the
+ * pointer or the view's centre; a click in Assets has no pointer on the canvas, so the layers form the row a person
+ * would drag them into, and ⇧A then makes it an auto layout.
  */
-export function freeInsertAt(block: { width: number }, layers: readonly PlaceBox[], beside: PlaceBox | null, width: number | null, options: { gap?: number; margin?: number } = {}): { x: number; y: number } {
+export function freeInsertAt(block: { width: number }, layers: readonly PlaceBox[], beside: PlaceBox | null, width: number | null, options: { gap?: number; margin?: number; top?: number } = {}): { x: number; y: number } {
   const gap = options.gap ?? PAGE_GAP;
   const margin = options.margin ?? PAGE_MARGIN_DESKTOP;
   const reference = beside ?? layers[layers.length - 1] ?? null;
-  if (!reference) return { x: margin, y: margin };
+  if (!reference) return { x: margin, y: Math.round((options.top ?? 0) + margin) };
   const x = reference.x + reference.width + gap;
   const estimate = width ?? reference.width;
   if (x + estimate <= block.width - margin + 0.5) return { x: Math.round(x), y: Math.round(reference.y) };

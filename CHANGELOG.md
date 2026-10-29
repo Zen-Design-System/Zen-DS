@@ -14,6 +14,11 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a component dragged from Assets into a frame without auto layout (an Empty page's Screen) lands where it
+  is dropped, placed freely, as a click puts one (walk 2026-10-29 W-12: it fell to X 0 Y 50 in the page flow, over the
+  status bar); dropped on a layer placed freely, it goes beside it in the frame. The first layer inserted into an empty
+  phone Screen starts the page margin below the status bar and the "Add Top Navigation" (W-28: it sat at 20, 20 under
+  the Dynamic Island), so no insert makes a page flow at the Screen's edge any more (W-18).
 - Zen Studio: Set as start (walk 2026-10-29 W-32/W-33, Figma's Set as starting point): a flag on a Flow row, or the
   frame's menu, makes a Screen the one Play and Present start from; dragging a frame's row in Layers reorders the frames
   (it did nothing before). No frame moves on the canvas; one ⌘Z undoes it.

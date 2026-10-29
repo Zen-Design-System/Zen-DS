@@ -33,8 +33,29 @@ export function freeBlock(host: Element | undefined | null): HTMLElement | null 
   const kids = layerKidsOf(box);
   if (!kids.every(floats)) return null;
   // The insets measure from the layers' containing block (a Box is one: position.css makes it relative; a Screen too).
-  const block = kids[0]?.offsetParent;
+  // Empty: the block a layer put there would measure from (a Screen's content box is not one: the Screen is).
+  const block = kids[0]?.offsetParent ?? (getComputedStyle(box).position === "static" ? box.offsetParent : box);
   return block instanceof HTMLElement ? block : box;
+}
+
+/** What a Screen draws over its top edge (the status bar, a Top Navigation, the canvas's "Add Top Navigation"). */
+const SCREEN_TOP = ".studio-device-status, .studio-builder-screen__pin[data-edge='top'], .studio-builder-screen__top, [data-studio-placeholder][data-edge='top']";
+
+/**
+ * Where a layer may start in `block`'s own px (walk 2026-10-29 W-28): under the status bar, the Top Navigation and the
+ * canvas's "Add Top Navigation" of the Screen it belongs to (that placeholder stands where a Top Navigation would go);
+ * 0 outside a Screen and on a desktop one.
+ */
+export function topClearIn(block: HTMLElement): number {
+  const screen = screenOfBlock(block);
+  if (!screen) return 0;
+  let clear = 0;
+  for (const bar of screen.querySelectorAll(SCREEN_TOP)) {
+    if (bar.closest(".studio-builder-screen") !== screen) continue;
+    const box = boxIn(block, bar.getBoundingClientRect());
+    if (box.height > 0) clear = Math.max(clear, box.y + box.height);
+  }
+  return clear;
 }
 
 /** A client point in `block`'s own px (the canvas zoom undone), and its scale. */

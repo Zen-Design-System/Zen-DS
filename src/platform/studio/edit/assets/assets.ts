@@ -18,6 +18,8 @@ import { placeOf, type DropTarget, type NodeSelection } from "../arrange";
 import { insertCode, notRecommended } from "../clipboard";
 import { dropTargetAt, kidsOf, publishDragView, type DropContext } from "../drag";
 import { floatingCode } from "../autoLayoutPlan";
+import { freeBlock, layerBoxesIn, localTo, screenOfBlock } from "../freeBlock";
+import { needsWidth, widgetWidthIn } from "../insertPlace";
 import { snapBox, SNAP_PX, type FrameBox } from "../../builder/render/framePlace";
 import { annotatedAt, findBySrc, fiberOf, frameOf, hitOf, instanceOf, nameOf, panelOf, rectOf as rectOfHosts, selectHit, srcOf, type FiberHit } from "../../select/picker";
 import { partHit, selectPart, selectedPartStore, withoutPart, type PartHit } from "../../select/parts";
@@ -268,7 +270,7 @@ export function refusalFor(target: DropTarget): string | null {
 
 /** Adds `item` where a drag or the toolbar's placement points (one edit; the new layer selected). `free`: the px it goes
  *  to in a Frame without auto layout (placed there, floating), else it joins the layout's flow. */
-export async function dropAsset(item: Insertable, target: DropTarget, free?: { x: number; y: number } | null) {
+export async function dropAsset(item: Insertable, target: DropTarget, free?: { x: number; y: number; width?: number } | null) {
   const at = parseSrc(target.parentSrc);
   if (!at) return;
   const parent = await studioApi.element(at.file, at.loc);
@@ -283,7 +285,7 @@ export async function dropAsset(item: Insertable, target: DropTarget, free?: { x
   if (written === null) { fail(item.refusal); return; }
   const inside = item.refuseIn?.(target.parentSrc);
   if (inside) { fail(inside); return; }
-  const code = free ? floatingCode(written, item.root, free.x, free.y) : written;
+  const code = free ? floatingCode(written, item.root, free.x, free.y, free.width) : written;
   const state = stateFor(item, at.file);
   const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code, ...(state?.length ? { state: state.map((entry) => ({ ...entry })) } : {}), ...placeOf(target) };
   const before = renderedNow(canvasApi.getWorldElement());
@@ -325,7 +327,8 @@ export async function dropComputerPictures(files: readonly File[], x: number, y:
       await writePicture(swap.selection, saved.value, saved.label, swap.part);
       return;
     }
-    if (target) await dropAsset(repoPictureInsertable(saved), target, freeDropAt(target, { x, y }, false));
+    const free = target ? freeDropAt(target, { x, y }, false, "Image") : null;
+    if (target) await dropAsset(repoPictureInsertable(saved), free?.target ?? target, free);
   }
 }
 
@@ -393,37 +396,47 @@ async function dropBar(item: Insertable, bar: BarTarget) {
 /* ── a Frame without auto layout ─────────────────────────────────────────────────────────────────────────────────── */
 
 /**
- * A drop into a Frame without auto layout (a Box whose layers all float, or none: Figma's frame) lands where the pointer
- * is, its corner snapped to the frame's and its layers' edges and centres (Figma's smart guides, red); ⌘ / Ctrl drops
- * without snapping (user, 2026-10-17: "kéo thả có smart guide, để dễ align y như figma"). A Box that lays its layers out
- * in flow keeps the insertion line. Null for any other drop.
+ * A drop into a Frame without auto layout (a Box whose layers all float, or none: Figma's frame; a Screen without a
+ * layout root, an Empty page's: walk 2026-10-29 W-12, a button dropped mid-Screen fell to X 0 Y 50 in the page flow)
+ * lands where the pointer is, its corner snapped to the frame's and its layers' edges and centres (Figma's smart guides,
+ * red); ⌘ / Ctrl drops without snapping (user, 2026-10-17: "kéo thả có smart guide, để dễ align y như figma"). Over a
+ * layer placed freely, the drop goes beside it in its frame, never into the Box that floats it. A frame that lays its
+ * layers out in flow keeps the insertion line. Null for any other drop.
  */
-type FreeDrop = { x: number; y: number; guides: Array<{ x: number; y: number; w: number; h: number }> };
-function freeDropAt(target: DropTarget, pointer: { x: number; y: number }, noSnap: boolean): FreeDrop | null {
-  if (target.parentName !== "Box" || target.slot) return null;
-  const host = findBySrc(canvasApi.getWorldElement() ?? document.body, target.parentSrc)[0]?.hosts[0];
-  if (!(host instanceof HTMLElement) || !host.matches(".zen-box")) return null;
-  const kids = Array.from(host.children).filter((child): child is HTMLElement => child instanceof HTMLElement);
-  if (!kids.every((child) => child.dataset.position === "absolute")) return null;
-  const outer = host.getBoundingClientRect();
-  const scale = host.offsetWidth ? outer.width / host.offsetWidth || 1 : 1;
-  const local = (x: number, y: number) => ({ x: (x - outer.left) / scale - host.clientLeft, y: (y - outer.top) / scale - host.clientTop });
-  const point = local(pointer.x, pointer.y);
-  const others: FrameBox[] = [
-    { x: 0, y: 0, width: host.clientWidth, height: host.clientHeight },
-    ...kids.map((kid) => { const box = kid.getBoundingClientRect(); const at = local(box.left, box.top); return { x: at.x, y: at.y, width: box.width / scale, height: box.height / scale }; }),
-  ];
+type FreeDrop<T extends DropTarget = DropTarget> = { x: number; y: number; width?: number; target: T; guides: Array<{ x: number; y: number; w: number; h: number }> };
+function freeDropAt<T extends DropTarget & { into: { x: number; y: number; w: number; h: number } | null }>(target: T, pointer: { x: number; y: number }, noSnap: boolean, root: string): FreeDrop<T> | null {
+  if ((target.parentName !== "Box" && target.parentName !== "Screen") || target.slot) return null;
+  let host = findBySrc(canvasApi.getWorldElement() ?? document.body, target.parentSrc)[0]?.hosts[0];
+  let into = target;
+  // The Box that floats one layer (Layers hides it): the frame around it takes the drop.
+  if (host instanceof HTMLElement && isFloatBox(host)) {
+    const outer = host.parentElement?.closest<HTMLElement>(".studio-builder-screen, .zen-box");
+    const hit = outer ? annotatedAt(outer) : null;
+    if (!outer || !hit || !freeBlock(outer)) return null;
+    const box = outer.getBoundingClientRect();
+    into = { ...target, parentSrc: hit.src, parentName: hit.name, before: undefined, after: undefined, into: { x: box.x, y: box.y, w: box.width, h: box.height } };
+    host = outer;
+  }
+  const block = freeBlock(host);
+  if (!block) return null;
+  const point = localTo(block, pointer.x, pointer.y);
+  const others: FrameBox[] = [{ x: 0, y: 0, width: block.clientWidth, height: block.clientHeight }, ...layerBoxesIn(block)];
   const snapped = noSnap ? { dx: 0, dy: 0, guides: [] } : snapBox({ x: point.x, y: point.y, width: 0, height: 0 }, others, SNAP_PX / (getViewport().zoom || 1));
   const x = Math.max(0, Math.round(point.x + snapped.dx));
   const y = Math.max(0, Math.round(point.y + snapped.dy));
-  const screen = (px: number, py: number) => ({ x: outer.left + (px + host.clientLeft) * scale, y: outer.top + (py + host.clientTop) * scale });
+  const outer = block.getBoundingClientRect();
+  const screen = (px: number, py: number) => ({ x: outer.left + (px + block.clientLeft) * point.scale, y: outer.top + (py + block.clientTop) * point.scale });
   const guides = snapped.guides.map((guide) => {
     const from = guide.axis === "x" ? screen(guide.at, guide.from) : screen(guide.from, guide.at);
-    const length = (guide.to - guide.from) * scale;
+    const length = (guide.to - guide.from) * point.scale;
     return guide.axis === "x" ? { x: from.x, y: from.y, w: 1, h: length } : { x: from.x, y: from.y, w: length, h: 1 };
   });
-  return { x, y, guides };
+  // A component with no width of its own (a chart card) floats at the widget width, as a click puts it (insertPlace.ts).
+  const width = needsWidth(root) ? widgetWidthIn(block.clientWidth, screenOfBlock(block)?.dataset.device) : undefined;
+  return { x, y, width, target: into, guides };
 }
+/** A Box that floats one layer (the Studio's floating wrapper), not a frame of its own. */
+const isFloatBox = (host: HTMLElement) => host.matches(".zen-box") && host.dataset.position === "absolute" && host.children.length === 1;
 
 /* ── dragging an asset onto the canvas ───────────────────────────────────────────────────────────────────────────── */
 
@@ -502,9 +515,11 @@ function onMove(event: PointerEvent) {
     publishDragView({ line: null, into: null, pointer, label: `${current.item.label} · new frame`, tone: "info" });
     return;
   }
-  current.free = target && !current.refusal ? freeDropAt(target, pointer, event.metaKey || event.ctrlKey) : null;
-  if (current.free && target) {
-    publishDragView({ line: null, into: target.into, pointer, label: `${current.item.label} · ${current.free.x}, ${current.free.y}`, tone: "info", guides: current.free.guides });
+  const free = target && !current.refusal ? freeDropAt(target, pointer, event.metaKey || event.ctrlKey, current.item.root) : null;
+  current.free = free;
+  if (free) {
+    current.target = free.target;
+    publishDragView({ line: null, into: free.target.into, pointer, label: `${current.item.label} · ${free.x}, ${free.y}`, tone: "info", guides: free.guides });
     return;
   }
   publishDragView({

@@ -16,7 +16,7 @@ import type { EditOp, EditValue, SourceElement, StateDecl, StudioNodeRef, Studio
 import type { NodeSelection } from "./arrange";
 import { floatingCode } from "./autoLayoutPlan";
 import { dropTargetAt, isDropContainer, type DropContext } from "./drag";
-import { boxIn, FLOATS, floats, freeBlock, layerBoxesIn, localTo, screenOfBlock } from "./freeBlock";
+import { boxIn, FLOATS, floats, freeBlock, layerBoxesIn, localTo, screenOfBlock, topClearIn } from "./freeBlock";
 import { freeInsertAt, needsWidth, pageMarginFor, widgetWidthIn } from "./insertPlace";
 import { codeOfLayers, removeLayers, statesRead } from "./multi";
 import { textEditSession } from "./textEdit";
@@ -384,7 +384,7 @@ function floatPaste(spot: Spot, code: string, own: Clip | null): { code: string;
   const tag = /^<([\w.]+)/.exec(code)?.[1] ?? "Box";
   const root = tag.slice(tag.lastIndexOf(".") + 1);
   const width = needsWidth(root) ? widgetWidthIn(block.clientWidth, device) : null;
-  const at = freeInsertAt({ width: block.clientWidth }, layerBoxesIn(block), beside, width, { margin: pageMarginFor(device) });
+  const at = freeInsertAt({ width: block.clientWidth }, layerBoxesIn(block), beside, width, { margin: pageMarginFor(device), top: topClearIn(block) });
   return { code: floatingCode(code, root, at.x, at.y, width ?? undefined), wrapped: !FLOATS.has(root) };
 }
 
