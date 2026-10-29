@@ -11,6 +11,7 @@ import { newPageText } from "../../dialect.mjs";
 import { pagesDirOf } from "../lib/server.mjs";
 import { openAssetLibrary, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, mineOption, pageText, seededPage, selectedName } from "./builder.mjs";
+import { FIGMA_WIDTHS } from "../../../../src/platform/studio/edit/assets/figmaWidths.generated.ts";
 
 /* ── the seed: a phone page (bars, body Stack with a List Box, a Card, a free Box) and an empty phone Screen ───────── */
 
@@ -203,7 +204,7 @@ const PLACES = [
   {
     // The board outside every frame: a new frame there holds the item, floating at its top-left corner, then fits it
     // (Figma's loose instance; user 2026-10-28 "kéo component ra canvas trống như figma"); an App shell stays refused
-    // (a whole page goes on a Screen).
+    // (a whole page goes on a Screen). A width written on it is the item's Figma width (user 2026-10-29).
     key: "on the board, outside every frame", screen: null, every: 4,
     at: async (page) => { const box = await frameBox(page, "screen-2"); return box && { x: box.x + box.width + 60, y: box.y + 40 }; },
     // The frame fits what it holds in a second write that joins the first: wait for it before judging or ⌘Z.
@@ -214,7 +215,9 @@ const PLACES = [
       const id = screen?.props.id?.value;
       if (!node || !id || before.includes(`id="${id}"`)) return `landed at ${node?.chain ?? "nowhere"}, not in a new frame`;
       const floating = node.parents.at(-1)?.name === "Screen" ? node.node : node.parents.at(-1);
-      return /^\d/.test(String(floating?.props.insetLeft?.value)) && floating?.props.position?.value === "absolute" ? null : "not floating at the new frame's corner";
+      if (!/^\d/.test(String(floating?.props.insetLeft?.value)) || floating?.props.position?.value !== "absolute") return "not floating at the new frame's corner";
+      const width = floating.props.width?.value;
+      return width === undefined || width === FIGMA_WIDTHS[item.id] ? null : `${width} wide, not its Figma width (${FIGMA_WIDTHS[item.id] ?? "it hugs"})`;
     },
   },
 ];

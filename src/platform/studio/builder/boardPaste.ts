@@ -96,9 +96,12 @@ const DROP_START = { width: 390, height: 300 };
  * Figma's drop of a component on the empty canvas (Assets, edit/assets/assets.ts), on a page you made (user 2026-10-28:
  * "kéo component ra canvas trống như figma"): as Paste here, a new empty frame at the pointer holds it, floating from
  * the frame's top-left corner; once it has rendered, the frame takes its size (Figma's instance on the canvas is its
- * own size; a frame is 100 a side at least). One ⌘Z takes both writes back. The new frame is selected.
+ * own size; a frame is 100 a side at least). A component that fills its container in code (a Top Navigation, an Input,
+ * a chart) would hug its content there: it takes `figmaWidth`, its Figma variant's (user 2026-10-29: "giữ đúng chiều
+ * rộng như Figma khi thả ra canvas"; edit/assets/figmaWidths.generated.ts). One ⌘Z takes both writes back. The new
+ * frame is selected.
  */
-export async function dropOnBoard(code: string, place: FramePlace, label: string): Promise<boolean> {
+export async function dropOnBoard(code: string, place: FramePlace, label: string, figmaWidth?: number): Promise<boolean> {
   const { localPage } = studioStore.getState();
   if (!localPage || !canEdit()) return false;
   const engine = await loadEngine();
@@ -113,23 +116,53 @@ export async function dropOnBoard(code: string, place: FramePlace, label: string
   const frameId = await frameOnBoard(localPage, place, content, DROP_START, label);
   if (!frameId) return false;
   const added = studioStore.getState().undo.at(-1);
-  const size = await renderedSize(frameId);
-  if (!size || before === undefined || !(await setFrameBoxes(localPage, new Map([[frameId, { width: clamp(size.width), height: clamp(size.height) }]]), label))) return true;
+  const layer = await renderedLayer(frameId);
+  const size = layer && (await fitOf(layer, figmaWidth));
+  if (!size || before === undefined || !(await setFrameBoxes(localPage, new Map([[frameId, { width: clamp(size.width), height: clamp(size.height), layerWidth: size.layerWidth }]]), label))) return true;
   const after = (await getPage(localPage))?.text;
   // One step only while the fit sits right on the add (a ⌘Z in between took the add back: nothing to join).
   if (after !== undefined && studioStore.getState().undo.at(-2) === added) squashEdits(2, label, before, after);
   return true;
 }
 
-/** The CSS px size of what frame `frameId` holds once it has rendered (its floating layer), or null after `timeout`. */
-async function renderedSize(frameId: string, timeout = 3000): Promise<{ width: number; height: number } | null> {
+const nextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+
+/** What frame `frameId` holds once it has rendered (its floating layer), or null after `timeout`. */
+async function renderedLayer(frameId: string, timeout = 3000): Promise<HTMLElement | null> {
   const until = Date.now() + timeout;
   while (Date.now() < until) {
     const layer = document.querySelector<HTMLElement>(`[data-studio-frame="${CSS.escape(frameId)}"] .studio-builder-screen [data-position="absolute"]`);
-    if (layer?.offsetWidth && layer.offsetHeight) return { width: layer.offsetWidth, height: layer.offsetHeight };
-    await new Promise((resolve) => requestAnimationFrame(resolve));
+    if (layer?.offsetWidth && layer.offsetHeight) return layer;
+    await nextFrame();
   }
   return null;
+}
+
+/** Whether what floating `layer` holds widens with it (it fills its container: a Top Navigation), not its own width (a Button). */
+function fillsLayer(layer: HTMLElement): boolean {
+  const kids = Array.from(layer.children).filter((kid): kid is HTMLElement => kid instanceof HTMLElement);
+  const widths = kids.map((kid) => kid.offsetWidth);
+  const own = layer.style.width;
+  layer.style.width = `${layer.offsetWidth + 40}px`;
+  const wider = kids.some((kid, index) => kid.offsetWidth > widths[index]);
+  layer.style.width = own;
+  return wider;
+}
+
+/**
+ * The CSS px box the new frame takes around floating `layer`: its own size, or, for a component that fills its
+ * container with a Figma width, that width (`layerWidth`: the layer takes it too) and the height it has there (tried on
+ * the canvas for two frames, so what measures its box, a chart, lays out again).
+ */
+async function fitOf(layer: HTMLElement, figmaWidth: number | undefined): Promise<{ width: number; height: number; layerWidth?: number }> {
+  if (!figmaWidth || !fillsLayer(layer)) return { width: layer.offsetWidth, height: layer.offsetHeight };
+  const own = layer.style.width;
+  layer.style.width = `${figmaWidth}px`;
+  await nextFrame();
+  await nextFrame();
+  const height = layer.offsetHeight;
+  layer.style.width = own;
+  return { width: figmaWidth, height, layerWidth: figmaWidth };
 }
 
 /** The empty canvas menu's Paste here (Figma's), on a page you made: dimmed with nothing to paste or for a viewer. */
