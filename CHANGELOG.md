@@ -18,6 +18,9 @@ How to maintain it:
   a Modal form's or a Bottom Sheet's Primary and Secondary buttons and a Top Navigation's Back by their labels, each with
   its own action and arrow, so Confirm can lead to a Screen. Top leading on a page you made adds a Back that goes back in
   Play, not a "Back" toast.
+- Zen Studio Play and Present: a phone Screen with only a Bottom Navigation no longer shows a blank band above the
+  status bar, and on one with only a Top Navigation the home indicator stays at the foot at the end of a long page
+  (walk W-47).
 - Zen Studio: a component dropped on the empty canvas keeps its Figma width (user 2026-10-29): a Top Navigation lands
   390 wide, a Line chart 297, an Input 312, as Figma's loose instance does, instead of hugging its content (the Top
   Navigation was 258). Components that hug in Figma (Button, Badge, Card) still hug.
