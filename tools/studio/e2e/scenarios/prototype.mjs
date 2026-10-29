@@ -196,6 +196,40 @@ export default function Page() {
 }
 `;
 
+/** Login and Splash at their places, Home still in the row of unplaced frames (PT-33, PT-34, walk 2026-10-29). */
+const orderPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="login" title="Login" device="phone" x={0} y={0}>
+        <Text>Login</Text>
+      </Screen>
+      <Screen id="splash" title="Splash" device="phone" x={486} y={0}>
+        <Text>Splash</Text>
+      </Screen>
+      <Screen id="home" title="Home" device="phone">
+        <Text>Home</Text>
+      </Screen>
+    </Board>
+  );
+}
+`;
+/** The page's Screens in the Board's order. */
+const screenOrder = (code) => [...code.matchAll(/<Screen id="([a-z0-9-]+)"/g)].map((match) => match[1]).join(",");
+/** Each frame's place on the canvas (world px), to check a reorder moves none. */
+const frameBoxes = (page) => page.evaluate(() => {
+  const board = document.querySelector(".studio-builder-board__frames")?.getBoundingClientRect();
+  return Object.fromEntries([...document.querySelectorAll('[data-studio-frame^="screen:"]')].map((frame) => {
+    const box = frame.getBoundingClientRect();
+    return [frame.getAttribute("data-studio-frame"), `${Math.round(box.x - (board?.x ?? 0))},${Math.round(box.y - (board?.y ?? 0))}`];
+  }));
+});
+
 /** Home → Detail (a Top Navigation without its Back yet, Book opens a Dialog) → Done (PT-32, walk 2026-10-29). */
 const actionsPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
@@ -724,6 +758,72 @@ export const rows = [
       await on("done");
       await page.keyboard.press("Escape");
       return "Top leading → Back = proto.back() · Leading/Primary/Secondary buttons listed · Confirm → Done · Play: Back returns Home, Book → Confirm → Done";
+    },
+  },
+  {
+    id: "PT-33", feature: "Set as start (walk 2026-10-29 W-32, Figma's Set as starting point): a Flow row's flag makes Splash the start — it goes first in the Board, Flow marks it Start, Present plays from it, no frame moves on the canvas (Home, still unplaced, is pinned where it shows); ⌘Z puts Login back; the frame's menu says Set as start too", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    async run(ctx) {
+      const { page, text: source } = await seededPage(ctx, orderPage, /<Screen id="home"/);
+      await prototypeTab(page);
+      const flow = page.locator('[data-e2e="prototype-panel"]');
+      const startRow = () => flow.locator(".studio-prototype__frame", { hasText: "Start" }).first().innerText();
+      if (!/Login/.test(await startRow())) throw new Error(`Login is not the start at first (${await startRow()})`);
+      const before = await frameBoxes(page);
+      await step("Splash's Set as start", async () => {
+        await flow.locator('[data-frame="screen:splash"]').hover();
+        await flow.getByRole("button", { name: "Set Splash as start" }).click();
+      });
+      await until(async () => screenOrder(await source()) === "splash,login,home", { message: "Splash first in the Board" });
+      await until(async () => /Splash/.test(await startRow()), { message: "Flow marks Splash Start" });
+      if (await flow.getByRole("button", { name: "Set Splash as start" }).count()) throw new Error("the start still offers Set as start");
+      await sleep(500);
+      const after = await frameBoxes(page);
+      const moved = Object.keys(before).filter((id) => before[id] !== after[id]);
+      if (moved.length) throw new Error(`frames moved on the canvas: ${moved.map((id) => `${id} ${before[id]} → ${after[id]}`).join("; ")}`);
+      if (!/<Screen id="home" title="Home" device="phone" x=\{\d+\} y=\{\d+\}/.test(await source())) throw new Error("Home was not pinned where it shows");
+      await step("Present plays from the start", () => flow.getByRole("button", { name: "Present" }).click());
+      await until(async () => (await playScreen(page)) === "splash", { message: "Play on splash" });
+      await page.keyboard.press("Escape");
+      await playing(page).waitFor({ state: "detached", timeout: 5000 }).catch(() => undefined);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => screenOrder(await source()) === "login,splash,home", { message: "⌘Z puts Login first again" });
+      await step("the frame's menu", async () => {
+        await page.locator('[data-chrome-key="label:screen:home"]').first().click({ button: "right" });
+        await page.getByRole("menuitem", { name: "Set as start" }).click();
+      });
+      await until(async () => screenOrder(await source()) === "home,login,splash", { message: "the menu's Set as start puts Home first" });
+      return "flag → splash,login,home · Flow Start = Splash · no frame moved, Home pinned · Present from Splash · ⌘Z → login first · frame menu → home first";
+    },
+  },
+  {
+    id: "PT-34", feature: "Layers reorders frames (walk 2026-10-29 W-33: the drag did nothing): Login's row dragged above the top row goes last in the Board, the Flow list follows and Splash becomes the start; no frame moves on the canvas; ⌘Z puts it back", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    async run(ctx) {
+      const { page, text: source } = await seededPage(ctx, orderPage, /<Screen id="home"/);
+      await showLeftTab(page, "layers");
+      const row = (id) => page.locator(`#studio-left [role="treeitem"][data-layer-id="frame:screen:${id}"]`).first();
+      await row("login").waitFor({ state: "visible", timeout: 5000 });
+      const rows = await page.locator('#studio-left [role="treeitem"][data-kind="frame"]').evaluateAll((items) => items.map((item) => item.getAttribute("data-layer-id")));
+      const top = rows[0]?.replace(/^frame:screen:/, "");
+      if (!top || top === "login") throw new Error(`the Layers frame rows: ${rows.join(", ")}`);
+      const before = await frameBoxes(page);
+      const from = await row("login").boundingBox();
+      const to = await row(top).boundingBox();
+      await step("drag Login's row above the top row", () => drag(page, { x: from.x + 40, y: from.y + from.height / 2 }, { x: to.x + 40, y: to.y + 3 }));
+      // Layers lists the front-most frame first: above the top row is the end of the Board.
+      await until(async () => screenOrder(await source()).endsWith(",login"), { message: `Login last in the Board (${screenOrder(await source())})` });
+      await prototypeTab(page);
+      const startRow = await page.locator('[data-e2e="prototype-panel"] .studio-prototype__frame', { hasText: "Start" }).first().innerText();
+      if (/Login/.test(startRow)) throw new Error("Login is still the start");
+      await sleep(500);
+      const after = await frameBoxes(page);
+      const moved = Object.keys(before).filter((id) => before[id] !== after[id]);
+      if (moved.length) throw new Error(`frames moved on the canvas: ${moved.map((id) => `${id} ${before[id]} → ${after[id]}`).join("; ")}`);
+      const order = screenOrder(await source());
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => screenOrder(await source()) === "login,splash,home", { message: "⌘Z puts the order back" });
+      return `Layers drag → ${order} · Start no longer Login · no frame moved · ⌘Z → login,splash,home`;
     },
   },
   {

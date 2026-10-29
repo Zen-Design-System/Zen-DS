@@ -192,10 +192,10 @@
 /* A choice control's items, one row each; the item selected on the canvas is ringed. */
 .studio-prototype__item { border-radius: var(--zen-corner-radius-base, 12px); }
 .studio-prototype__item[data-current="true"] { box-shadow: 0 0 0 1px var(--zen-color-border-accent-solid-default); }
-/* A flow row's ▷ shows on hover and focus (always on touch screens). */
-.studio-prototype__frame .studio-prototype__play { flex: 0 0 auto; }
+/* A flow row's ▷ and its Set as start flag show on hover and focus (always on touch screens). */
+.studio-prototype__frame :is(.studio-prototype__play, .studio-prototype__start) { flex: 0 0 auto; }
 @media (hover: hover) {
-  .studio-prototype__frame:not(:hover, :focus-within) .studio-prototype__play { opacity: 0; }
+  .studio-prototype__frame:not(:hover, :focus-within) :is(.studio-prototype__play, .studio-prototype__start) { opacity: 0; }
 }
 
 /* Prototype connections (proto/ProtoLinks.tsx) while the Prototype tab is open: a screen-space layer in the canvas

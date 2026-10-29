@@ -60,3 +60,13 @@
 - W-17, same cause: a Layers drop beside a free layer now targets its float Box, and a drop where it is does nothing.
   Inferred from code, not walked: the pane stops at Google sign-in.
 - E2E FW-261 (the walk's Assets flow) and FW-262 (menu, ⌘G, ⇧A on seeded fields); selftest check for the server message.
+
+## Set as start + frame order (walk W-32/W-33, tier S; user approved §4 item 5)
+
+- `builder/frameEdit.ts` orderFrame (moveTo on the Board, unplaced frames pinned first and squashed into one undo step
+  via joinPin) and setStartScreen (before the first frame). Flow row flag `Set <title> as start`
+  (`PrototypePanel.tsx`, `.studio-prototype__start` shown on hover like ▷), frame menu "Set as start" (`CanvasMenu.tsx`).
+- `edit/layersFrameDrag.ts` (new): a frame row's drag in Layers → orderFrame; the list is front-most first
+  (`data-order="front"`), so the Board's order is the list upside down. Layer rows keep `layersDrag.ts`.
+- Checks: builder selftest 79 (moveTo of a Screen on the Board keeps every x), tsc, style:check; E2E PT-33, PT-34.
+- §4 item 4 (W-12/W-28/W-18) went to session studio-wrap-floating.

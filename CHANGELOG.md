@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: Set as start (walk 2026-10-29 W-32/W-33, Figma's Set as starting point): a flag on a Flow row, or the
+  frame's menu, makes a Screen the one Play and Present start from; dragging a frame's row in Layers reorders the frames
+  (it did nothing before). No frame moves on the canvas; one ⌘Z undoes it.
 - Zen Studio: layers placed freely in a frame without auto layout (a click from Assets places them so) wrap and group
   as Figma's (walk 2026-10-29 W-14): ⇧A makes one auto layout frame where they were, in screen order, their own
   floating Boxes gone; ⌘G and Frame selection group them in place. A mix of free and auto layout layers says so in
