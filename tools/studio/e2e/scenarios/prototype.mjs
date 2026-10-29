@@ -662,10 +662,19 @@ export const rows = [
       await until(async () => (await inspectorRow(page, "proto:leading.onClick").count()) === 1, { message: "the Top Navigation's Leading button in Interactions" });
       const leadingRow = await inspectorRow(page, "proto:leading.onClick").innerText();
       if (!/Leading button · Back/.test(leadingRow)) throw new Error(`the Back's row reads “${leadingRow.split("\n")[0]}”`);
-      await step("select the Dialog", () => clickNamed(page, id, "Dialog"));
+      await step("select the Dialog", async () => {
+        // The overlay sits right of the Screens: every frame in view first, so the click lands on the Dialog.
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("Shift+Digit1");
+        await sleep(400);
+        await clickNamed(page, id, "Dialog");
+      });
       for (const [trigger, label] of [["primaryAction.onClick", "Primary button · Confirm"], ["secondaryAction.onClick", "Secondary button · Cancel"]]) {
         const row = inspectorRow(page, `proto:${trigger}`);
-        await until(async () => (await row.count()) === 1, { message: `${label} in Interactions` });
+        await until(async () => (await row.count()) === 1, { message: `${label} in Interactions` }).catch(async (error) => {
+          const shown = (await page.locator('[data-e2e="prototype-panel"]').innerText().catch(() => "")).replace(/\s+/g, " ").slice(-300);
+          throw new Error(`${error.message} (the panel: ${shown})`);
+        });
         if (!(await row.innerText()).includes(label)) throw new Error(`the ${trigger} row reads “${(await row.innerText()).split("\n")[0]}”`);
       }
       await pickOption(page, "proto:primaryAction.onClick", "Navigate to");
@@ -673,16 +682,15 @@ export const rows = [
       await pickOption(page, "proto:primaryAction.onClick:target", "Done");
       await until(async () => /primaryAction=\{\{ label: "Confirm", onClick: proto\.navigate\("done"\) \}\}/.test(await source()), { message: 'Confirm → proto.navigate("done")' });
       if (!/secondaryAction=\{\{ label: "Cancel", onClick: proto\.close\(\) \}\}/.test(await source())) throw new Error("Cancel lost its Close overlay");
-      await page.locator(".studio-viewport").focus();
-      await page.keyboard.press("Escape");
-      await page.keyboard.press("Escape");
-      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      // ▷ beside Home in Flow: Play from the first Screen (⌘⌥↩ would play from the selected layer's frame).
+      await step("Play from Home", () => page.locator('[data-e2e="prototype-panel"]').getByRole("button", { name: "Play from Home" }).click());
       await playing(page).waitFor({ state: "visible", timeout: 5000 });
       const on = (screen) => until(async () => (await playScreen(page)) === screen, { message: `Play on ${screen}` });
       await on("home");
       await step("Open detail", () => playing(page).getByRole("button", { name: "Open detail" }).click());
       await on("detail");
-      await step("Back", () => playing(page).getByRole("button", { name: "Back" }).click());
+      // The Top Navigation's Back inside the device (Play's own bar has a Back too).
+      await step("Back", () => playing(page).locator(".studio-player__device").getByRole("button", { name: "Back", exact: true }).click());
       await on("home");
       await playing(page).getByRole("button", { name: "Open detail" }).click();
       await on("detail");
