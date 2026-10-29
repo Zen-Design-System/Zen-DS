@@ -15,6 +15,7 @@ import { canEdit, studioStore, useStudio } from "../../store";
 import type { PageNode, PageTree, PageValue } from "../render/renderPage";
 import { pageFile, usePage } from "../store/pageStore";
 import { usePageTree } from "../usePageTree";
+import { setStartScreen } from "../frameEdit";
 import { addFrame as addBoardFrame } from "./addFrame";
 import { playStartOf, startPlay } from "./playStart";
 import { defaultTarget, writeAction, writeItemTargets, writeProp, type ProtoLayer } from "./protoEdit";
@@ -87,7 +88,7 @@ export function PrototypePanel() {
       >
         <ul className="studio-inspector__items studio-prototype__frames" aria-label="Screens and overlays">
           {frames.map((frame) => (
-            <FlowRow key={frame.frameId} frame={frame} start={frame === firstScreen} current={frame.frameId === selectedFrame} />
+            <FlowRow key={frame.frameId} frame={frame} start={frame === firstScreen} current={frame.frameId === selectedFrame} onSetStart={editable && frame.kind === "screen" && !frame.state && frame !== firstScreen ? () => void setStartScreen(localPage, frame.frameId, frame.title) : undefined} />
           ))}
         </ul>
         <div className="studio-prototype__add">
@@ -113,8 +114,9 @@ export function PrototypePanel() {
   );
 }
 
-/** A frame of the flow: the row selects it and brings it into view; ▷ plays from a Screen. */
-function FlowRow({ frame, start, current }: { frame: ProtoFrame; start: boolean; current: boolean }) {
+/** A frame of the flow: the row selects it and brings it into view; ▷ plays from a Screen; the flag makes a Screen the
+ *  start (Figma's Set as starting point: it goes first in the Board, walk 2026-10-29 W-32). */
+function FlowRow({ frame, start, current, onSetStart }: { frame: ProtoFrame; start: boolean; current: boolean; onSetStart?: () => void }) {
   const show = () => {
     studioStore.setState({ selection: { kind: "frame", frameId: frame.frameId } });
     const element = document.querySelector<HTMLElement>(`[data-studio-frame="${CSS.escape(frame.frameId)}"]`);
@@ -130,6 +132,9 @@ function FlowRow({ frame, start, current }: { frame: ProtoFrame; start: boolean;
       </button>
       {frame.kind === "screen" ? (
         <IconButton className="studio-prototype__play" appearance="flat" level="primary" size="xs" icon="icon-play-line" aria-label={`Play from ${frame.title}`} tooltip="Play from here" onClick={() => startPlay(frame.id)} />
+      ) : null}
+      {onSetStart ? (
+        <IconButton className="studio-prototype__start" appearance="flat" level="primary" size="xs" icon="icon-flag-03-line" aria-label={`Set ${frame.title} as start`} tooltip="Set as start" onClick={onSetStart} />
       ) : null}
     </li>
   );

@@ -34,6 +34,7 @@ import { isLayerSelected, selectLayers, toggleLayer, useExtraSelection, type Ext
 import { wrapperCandidate } from "./resize";
 import { mapSrc, onStudioWrite } from "./remap";
 import { pressLayersRow } from "../edit/layersDrag";
+import { pressFrameRow } from "../edit/layersFrameDrag";
 import { canLockSrc, lockShortcut, setFrameLocked, setLayerLocked } from "../edit/lock";
 import { doneRenameRequest, renameFrame, renameLayer, useRenameRequest } from "../edit/rename";
 import { RenameField } from "../builder/RenameField";
@@ -1200,11 +1201,15 @@ export function LayersPanel() {
           aria-multiselectable="true"
           data-order={tree.front ? "front" : undefined}
           onKeyDown={onKeyDown}
-          // Drag a row to move the layer (edit/layersDrag.ts); a click still selects.
-          onPointerDown={(event) => pressLayersRow(event.nativeEvent, event.currentTarget, (row) => {
-            const node = rows.find((entry) => entry.node.id === row.getAttribute("data-layer-id"))?.node;
-            return node ? hitForNode(node) : null;
-          })}
+          // Drag a row to move the layer (edit/layersDrag.ts), a frame's row to reorder the frames (edit/layersFrameDrag.ts);
+          // a click still selects.
+          onPointerDown={(event) => {
+            pressFrameRow(event.nativeEvent, event.currentTarget);
+            pressLayersRow(event.nativeEvent, event.currentTarget, (row) => {
+              const node = rows.find((entry) => entry.node.id === row.getAttribute("data-layer-id"))?.node;
+              return node ? hitForNode(node) : null;
+            });
+          }}
           onPointerLeave={() => layerHover.set(null)}
         >
           {rows.map(({ node, open, hasChildren }) => {

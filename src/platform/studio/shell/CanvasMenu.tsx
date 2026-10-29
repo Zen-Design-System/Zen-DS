@@ -36,6 +36,7 @@ import { combineAsVariants, createComponent, createComponentOfLayers, createComp
 import { goToZenMain, instanceActionsFor, instanceActionsVersion, mainPageOf, subscribeInstanceActions } from "../inspector/instanceActions";
 import { removeFrames, wrapInSection } from "../builder/proto/addFrame";
 import { boardPasteItems, boardPasteReady } from "../builder/boardPaste";
+import { setStartScreen } from "../builder/frameEdit";
 import { canEdit, studioStore } from "../store";
 import { useChromeAttributes } from "./ChromeScope";
 import type { StudioSelection } from "../types";
@@ -266,6 +267,8 @@ export function CanvasMenu() {
     // Present plays a page you made from this Screen, or opens this Overlay over the Screen that opens it (Figma's Present
     // runs the prototype); an example frame is presented.
     ...(!section && (localPage || frame.id.startsWith("example:")) ? [{ id: "frame-present", label: "Present", icon: "icon-play-line" as const, shortcut: presentShortcut, onSelect: () => (localPage ? startPlay(playStartOf(frame.id)) : presentFrame(frame.id)) }] : []),
+    // Figma's Set as starting point: a Screen of a page you made goes first, where Play starts (walk 2026-10-29 W-32).
+    ...(localPage && /^screen:[^:]+$/.test(frame.id) ? [{ id: "frame-start", label: "Set as start", icon: "icon-flag-03-line" as const, onSelect: () => { void setStartScreen(localPage, frame.id, frame.label); } }] : []),
     // A frame of a page you made: its code and its Figma export on the clipboard (⌘V in the Zen plugin places it).
     ...(localPage && !section ? [{ id: "frame-copy-figma", label: "Copy for Figma", icon: "icon-copy-line" as const, onSelect: () => { void copyFrameForFigma(localPage, frame.id); } }] : []),
     // A builder page that starts as this example or template (GĐ3b): kept in this browser, so it needs no dev server.
