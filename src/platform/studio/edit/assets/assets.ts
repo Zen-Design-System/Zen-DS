@@ -24,6 +24,7 @@ import { partHit, selectPart, selectedPartStore, withoutPart, type PartHit } fro
 import { itemPictureOf, nestedPicture, PICTURED, writePicture } from "./picture";
 import { REPO_PICTURE_TYPES, saveRepoPicture, type RepoPicture } from "./repoMedia";
 import { cellRefusal, putInCell, type CellComponent } from "../../table/cellInstance";
+import { FIGMA_WIDTHS } from "./figmaWidths.generated";
 import { tableCellOf, TABLE_PARTS, type TableCellHit } from "../../table/tableCells";
 
 /*
@@ -78,9 +79,11 @@ export type Insertable = {
   /** A component of the project (`<Use>`): with a Table Cell selected, or dropped on one, it goes into the cell's Content
    *  slot (the column's cells, table/cellInstance.ts) instead of beside it. */
   use?: CellComponent;
+  /** Figma's width of it dropped on the empty canvas (figmaWidths.generated.ts); none: it hugs its content there. */
+  figmaWidth?: number;
 };
 
-export const paletteInsertable = (item: PaletteItem): Insertable => ({ label: item.label, root: item.root, state: item.state, code: (file) => codeOf(item, file), refusal: builderRefusal(item) });
+export const paletteInsertable = (item: PaletteItem): Insertable => ({ label: item.label, root: item.root, state: item.state, code: (file) => codeOf(item, file), refusal: builderRefusal(item), figmaWidth: FIGMA_WIDTHS[item.id] });
 export const iconInsertable = (name: string, title: string): Insertable => ({ label: title, root: "Icon", icon: name, code: () => `<Icon name="${name}" title=${JSON.stringify(title)} />`, refusal: "" });
 export const photoInsertable = (entry: LibraryPhoto): Insertable => ({ label: entry.photo.alt, root: "Image", photo: `${MEDIA_PREFIX}${entry.key}`, code: (file) => photoCode(entry, Boolean(file?.startsWith("local:"))), refusal: "" });
 /** An uploaded photo (GĐ5 M4): on pages you made only (example code takes the library's photos). */
@@ -581,7 +584,7 @@ async function dropItemOnBoard(item: Insertable, place: FramePlace) {
   const code = item.code(pageFile(localPage));
   if (code === null) { fail(item.refusal); return; }
   multiSelection.clear();
-  await dropOnBoard(code, place, `Add ${item.label}`);
+  await dropOnBoard(code, place, `Add ${item.label}`, item.figmaWidth);
 }
 
 /** Whether (x, y) is on a frame of the board (a Screen or an Overlay), not the board's empty space. */

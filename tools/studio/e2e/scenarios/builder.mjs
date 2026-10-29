@@ -1663,18 +1663,25 @@ export const rows = [
     },
   },
   {
-    id: "B-56", feature: "A Top Navigation dragged onto the empty canvas lands in a new frame of its own too (a loose instance, not a Screen's bar)", wp: "bug 2026-10-28",
+    id: "B-56", feature: "A component that fills its container, dragged onto the empty canvas, lands in a new frame of its own (a loose instance, not a Screen's bar) at its Figma width: a Top Navigation 390, a Line chart 297, not hugging its content (user 2026-10-29: giữ đúng chiều rộng như Figma khi thả ra canvas)", wp: "bug 2026-10-28, 2026-10-29",
     async run(ctx) {
-      const { page, id } = await emptyPage(ctx);
-      const before = (await pageText(page, id)) ?? "";
-      const shown = await dragAssetToBoard(page, "Top navigation");
-      let added = null;
-      await until(async () => {
-        added = screensOf((await pageText(page, id)) ?? "").find((screen) => !before.includes(`id="${screen.id}"`)) ?? null;
-        return Boolean(added && added.height !== 300);
-      }, { timeout: 6000, message: `a new frame holding the Top Navigation (the drag said "${shown}")` });
-      if (!/<TopNavigation\b/.test(added.inner)) throw new Error(`the frame holds: ${added.inner.slice(0, 160)}`);
-      return `"${shown}" · ${added.title} ${added.width} × ${added.height} holds the Top Navigation`;
+      const done = [];
+      for (const [label, tag, width] of [["Top navigation", "TopNavigation", 390], ["Line chart", "LineChart", 297]]) {
+        const { page, id } = await emptyPage(ctx);
+        const before = (await pageText(page, id)) ?? "";
+        const shown = await dragAssetToBoard(page, label);
+        let added = null;
+        await until(async () => {
+          added = screensOf((await pageText(page, id)) ?? "").find((screen) => !before.includes(`id="${screen.id}"`)) ?? null;
+          return Boolean(added && added.height !== 300);
+        }, { timeout: 6000, message: `a new frame holding the ${label} (the drag said "${shown}")` });
+        if (!new RegExp(`^<Box [^>]*\\bwidth=\\{${width}\\}[^>]*> <${tag}\\b`).test(added.inner)) throw new Error(`the ${label} is not ${width} wide (Figma's): the frame holds ${added.inner.slice(0, 160)}`);
+        if (added.width !== width) throw new Error(`the new frame is ${added.width} wide, not the ${label}'s ${width}`);
+        const drawn = await page.locator(`[data-studio-frame="screen:${added.id}"] .studio-builder-screen [data-position="absolute"] > *`).first().evaluate((element) => element.offsetWidth);
+        if (Math.abs(drawn - width) > 1) throw new Error(`the ${label} draws ${drawn} wide in its ${width} Box`);
+        done.push(`${label} ${added.width} × ${added.height}`);
+      }
+      return done.join(" · ");
     },
   },
   {
