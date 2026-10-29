@@ -19,6 +19,9 @@ const card = (x, y, width = 240, height = 156) => ({ x, y, width, height });
 // An empty frame: the margin corner.
 check("empty frame → the margin corner", freeInsertAt(desktop, [], null, null), { x: 24, y: 24 });
 check("empty phone frame → its margin", freeInsertAt({ width: 390 }, [], null, null, { margin: PAGE_MARGIN_PHONE }), { x: 20, y: 20 });
+// W-28: under what the frame draws at its top (a phone's status bar, the "Add Top Navigation"), the margin below it.
+check("empty phone frame under its top bars", freeInsertAt({ width: 390 }, [], null, null, { margin: PAGE_MARGIN_PHONE, top: 110.6 }), { x: 20, y: 131 });
+check("the top only moves the first layer", freeInsertAt({ width: 390 }, [card(20, 131, 100, 40)], null, null, { margin: PAGE_MARGIN_PHONE, top: 110 }), { x: 136, y: 131 });
 
 // Beside the selection: to its right, the gap apart, tops aligned.
 const first = card(24, 24);

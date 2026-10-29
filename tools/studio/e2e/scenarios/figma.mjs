@@ -6,7 +6,7 @@ import path from "node:path";
 import { newPageText } from "../../dialect.mjs";
 import { codeOfItem, grow } from "../../dnd-engine.mjs";
 import { inspectorRow, openAssetLibrary, openCodeProperties, openPropertyGroup, ownerOfLayer, selectedSrc, showDesignTab, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
-import { clickNamed, emptyPage, insertFromAssets, mineOption, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
+import { clickNamed, emptyPage, floatingLayers, insertFromAssets, mineOption, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
 import { pagesDirOf } from "../lib/server.mjs";
 
 /** A new page of the Studio space titled `title` (its name). */
@@ -5607,6 +5607,49 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
     },
   },
   // A photo dropped on one row or one item (BACKLOG P1 2026-10-10): figma/pictures.mjs.
+  {
+    id: "FW-263", feature: "Assets › Text field dragged to the middle of an empty phone Screen lands where it is dropped, placed freely (walk 2026-10-29 W-12: a dropped button fell to X 0 Y 50 in the page flow, over the status bar); a second dropped on it lands in the Screen beside it, never inside the Box that floats the first; one ⌘Z each", wp: "prototype walk 2026-10-29", timeout: 50_000,
+    async run(ctx) {
+      const { page, id } = await phonePage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const screen = await screenBox(page);
+      const to = { x: screen.x + screen.width * 0.4, y: screen.y + screen.height * 0.45 };
+      await dragAssetTo(page, "Text field", to);
+      const floated = /<Box position="absolute" insetLeft=\{(\d+)\} insetTop=\{(\d+)\}[^>]*>\s*<InputField/;
+      await until(async () => floated.test((await pageText(page, id)) ?? ""), { timeout: 8000, message: "the field placed freely" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)} · ${((await pageText(page, id)) ?? "").match(/<Screen[\s\S]*<\/Screen>/)?.[0].replace(/\s+/g, " ").slice(0, 300)}`); });
+      const [, left, top] = ((await pageText(page, id)) ?? "").match(floated);
+      const want = { x: Math.round((to.x - screen.x) / screen.zoom), y: Math.round((to.y - screen.y) / screen.zoom) };
+      if (Math.abs(Number(left) - want.x) > 2 || Math.abs(Number(top) - want.y) > 2) throw new Error(`dropped at ${want.x}, ${want.y}, placed at ${left}, ${top}`);
+      const once = (await pageText(page, id)) ?? "";
+      await sleep(400);
+      const field = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="InputField"]`).first().boundingBox();
+      await dragAssetTo(page, "Text field", { x: field.x + field.width / 2, y: field.y + field.height / 2 });
+      await until(async () => ((await pageText(page, id)) ?? "").match(/<InputField\b/g)?.length === 2, { timeout: 8000, message: "a second field" });
+      await sleep(400);
+      const drawn = await floatingLayers(page);
+      if (drawn.layers.length !== 2 || drawn.flowing) throw new Error(`the Screen holds ${drawn.layers.length} floating layers and ${drawn.flowing} in flow: ${((await pageText(page, id)) ?? "").match(/<Screen[\s\S]*<\/Screen>/)?.[0].replace(/\s+/g, " ").slice(0, 300)}`);
+      await undoTo(page, id, once, 1);
+      await undoTo(page, id, before, 1);
+      return `dropped at ${want.x}, ${want.y} → <Box position="absolute" insetLeft={${left}} insetTop={${top}}> · the second beside it in the Screen · one ⌘Z each`;
+    },
+  },
+  {
+    id: "FW-264", feature: "Assets › Text field clicked into an empty phone Screen floats at the page margin under the status bar and the \"Add Top Navigation\" (walk 2026-10-29 W-28: it sat at 20, 20 under the Dynamic Island), never in a page flow at the Screen's edge (W-18); one ⌘Z", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await phonePage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const bars = await topBarsEnd(page);
+      const text = await insertFromAssets(page, id, "Text field", "InputField");
+      const placed = text.match(/<Box position="absolute" insetLeft=\{(\d+)\} insetTop=\{(\d+)\}[^>]*>\s*<InputField/);
+      if (!placed) throw new Error(`the field is not placed freely: ${text.match(/<Screen[\s\S]*<\/Screen>/)?.[0].replace(/\s+/g, " ").slice(0, 300)}`);
+      const [x, y] = [Number(placed[1]), Number(placed[2])];
+      if (x !== 20 || Math.abs(y - (bars + 20)) > 1) throw new Error(`placed at ${x}, ${y}; the bars end at ${bars}: want 20, ${bars + 20}`);
+      const drawn = await floatingLayers(page);
+      if (drawn.flowing) throw new Error(`${drawn.flowing} layer(s) in the Screen's flow`);
+      await undoTo(page, id, before, 1);
+      return `the bars end at ${bars} → <Box position="absolute" insetLeft={20} insetTop={${y}}> · no page flow · one ⌘Z`;
+    },
+  },
   ...pictureRows,
 ];
 
@@ -5938,4 +5981,53 @@ async function selectFields(page, id) {
   await until(async () => (await selectedSrc(page)).length === 2 || (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === 1, { message: "both fields selected" });
   const rows = await page.locator('.studio-layers__tree [role="treeitem"][aria-selected="true"]').evaluateAll((items) => items.map((row) => row.textContent.trim()));
   if (rows.length !== 2 || rows.some((row) => !/InputField|Text field|Name|Email/.test(row))) throw new Error(`selected ${rows.join(" · ")}, not the fields`);
+}
+
+/* ── W-12 / W-28: an empty phone Screen ─────────────────────────────────────────────────────────────────────────── */
+let phoneMade = null;
+/** A page whose one phone Screen is empty (no layout root: Figma's frame without auto layout); fresh after each row's ⌘Z. */
+async function phonePage(ctx) {
+  const { page } = await ctx.studio();
+  if (!phoneMade) {
+    const seeded = await seededPage(ctx, (title) => newPageText({ title, device: "phone", empty: true }), /device="phone" \/>/);
+    phoneMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${phoneMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${phoneMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await deselect(page);
+  return { page, id: phoneMade };
+}
+/** The first Screen's client box and the canvas zoom. */
+const screenBox = (page) => page.evaluate(() => {
+  const screen = document.querySelector('[data-studio-frame^="screen:"] .studio-builder-screen');
+  const rect = screen.getBoundingClientRect();
+  return { x: rect.left, y: rect.top, width: rect.width, height: rect.height, zoom: rect.width / screen.offsetWidth || 1 };
+});
+/** Where the first Screen's status bar and "Add Top Navigation" end, in the Screen's own px. */
+const topBarsEnd = (page) => page.evaluate(() => {
+  const screen = document.querySelector('[data-studio-frame^="screen:"] .studio-builder-screen');
+  const rect = screen.getBoundingClientRect();
+  const zoom = rect.width / screen.offsetWidth || 1;
+  const ends = [...screen.querySelectorAll(".studio-device-status, [data-studio-placeholder][data-edge='top']")].map((bar) => (bar.getBoundingClientRect().bottom - rect.top) / zoom);
+  return Math.round(Math.max(0, ...ends));
+});
+/** Drags the Assets › Components result `label` to the client point `to` and drops it there. */
+async function dragAssetTo(page, label, to) {
+  await openAssetLibrary(page, "Components");
+  const assets = page.locator("#studio-left-panel-assets");
+  await assets.getByLabel("Search components").fill(label);
+  const tile = assets.locator('.studio-assets__section[aria-label="Results"] [data-asset]').filter({ hasText: new RegExp(`^${label}`) }).first();
+  await tile.waitFor({ state: "visible", timeout: 5000 });
+  const box = await tile.boundingBox();
+  const from = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  for (let step = 1; step <= 12; step += 1) {
+    await page.mouse.move(from.x + ((to.x - from.x) * step) / 12, from.y + ((to.y - from.y) * step) / 12);
+    await sleep(14);
+  }
+  await sleep(150);
+  await page.mouse.up();
 }

@@ -14,6 +14,11 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a component dragged from Assets into a frame without auto layout (an Empty page's Screen) lands where it
+  is dropped, placed freely, as a click puts one (walk 2026-10-29 W-12: it fell to X 0 Y 50 in the page flow, over the
+  status bar); dropped on a layer placed freely, it goes beside it in the frame. The first layer inserted into an empty
+  phone Screen starts the page margin below the status bar and the "Add Top Navigation" (W-28: it sat at 20, 20 under
+  the Dynamic Island), so no insert makes a page flow at the Screen's edge any more (W-18).
 - Zen Studio: layers placed freely in a frame without auto layout (a click from Assets places them so) wrap and group
   as Figma's (walk 2026-10-29 W-14): ⇧A makes one auto layout frame where they were, in screen order, their own
   floating Boxes gone; ⌘G and Frame selection group them in place. A mix of free and auto layout layers says so in
