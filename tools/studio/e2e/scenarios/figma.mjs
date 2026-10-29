@@ -6,7 +6,7 @@ import path from "node:path";
 import { newPageText } from "../../dialect.mjs";
 import { codeOfItem, grow } from "../../dnd-engine.mjs";
 import { inspectorRow, openAssetLibrary, openCodeProperties, openPropertyGroup, ownerOfLayer, selectedSrc, showDesignTab, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
-import { clickNamed, mineOption, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
+import { clickNamed, emptyPage, insertFromAssets, mineOption, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
 import { pagesDirOf } from "../lib/server.mjs";
 
 /** A new page of the Studio space titled `title` (its name). */
@@ -5548,6 +5548,64 @@ id: "FW-152", feature: "A Button's layer menu has no Flip: only frames and shape
       return `text part → ⌘D → ${count + 1} cards → Undo → ${count} · Delete → ${count - 1} → Undo → ${count}`;
     },
   },
+  {
+    id: "FW-261", feature: "The walk's form (2026-10-29 W-14): on an Empty page, Assets › Text field twice (each lands placed freely, in the Box that floats it), select both, ⇧A: one auto layout frame where they were, holding both fields in screen order, their Boxes gone (a Box that sizes a field stays), nothing moves; one ⌘Z", wp: "prototype walk 2026-10-29", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await emptyPage(ctx);
+      await insertFromAssets(page, id, "Text field", "InputField");
+      const before = await insertFromAssets(page, id, "Text field", "InputField");
+      const start = await fieldBoxes(page, id);
+      await selectFields(page, id);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+KeyA");
+      const framed = (text) => /<Stack position="absolute" insetLeft=\{\d+\} insetTop=\{\d+\}[^>]*>/.test(text) && !/<Box position="absolute"[^>]*>\s*<InputField/.test(text);
+      await until(async () => framed((await pageText(page, id)) ?? ""), { timeout: 8000, message: "one floating auto layout frame, no field in a floating Box" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)} · ${((await pageText(page, id)) ?? "").match(/<(Stack|Box)[^>]*>/g)?.join(" ").slice(0, 300)}`); });
+      const text = (await pageText(page, id)) ?? "";
+      const open = text.match(/<Stack position="absolute"[^>]*>/)[0];
+      const body = text.slice(text.indexOf(open), text.indexOf("</Stack>", text.indexOf(open)));
+      if ((body.match(/<InputField\b/g) ?? []).length !== 2) throw new Error(`the frame holds ${(body.match(/<InputField\b/g) ?? []).length} fields: ${body.replace(/\s+/g, " ").slice(0, 300)}`);
+      await sleep(400);
+      const now = await fieldBoxes(page, id);
+      if (Math.abs(now[0].x - start[0].x) > 1 || Math.abs(now[0].y - start[0].y) > 1) throw new Error(`the first field moved: ${JSON.stringify(start[0])} → ${JSON.stringify(now[0])}`);
+      if (Math.abs(now[1].x - start[1].x) > 12 || Math.abs(now[1].y - start[1].y) > 12) throw new Error(`the second field moved more than the gap's snap: ${JSON.stringify(start[1])} → ${JSON.stringify(now[1])}`);
+      await undoTo(page, id, before, 1);
+      return `${open.replace(/\s+/g, " ")} · 2 fields · nothing moved · one ⌘Z`;
+    },
+  },
+  {
+    id: "FW-262", feature: "Two fields placed freely, one above the other: the menu offers Add auto layout, Group selection and Frame selection (walk 2026-10-29 W-14 refused them: \"Select layers that share one parent\"); ⌘G groups them where they are; ⇧A makes a vertical frame at their corner, Name then Email; one ⌘Z each", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await fieldsPage(ctx);
+      const before = (await pageText(page, id)) ?? "";
+      const start = await fieldBoxes(page, id);
+      await selectFields(page, id);
+      const menu = await menuOn(page, { ...start[0], width: 0, height: 0, x: start[0].x + 20, y: start[0].y + 10 });
+      const items = await menuItems(menu);
+      for (const name of ["Add auto layout", "Group selection", "Frame selection"]) {
+        const item = items.find((entry) => entry.text.startsWith(name));
+        if (!item || item.disabled) throw new Error(`${name} ${item ? "dimmed" : "missing"} in the menu: ${items.map((entry) => entry.text).join(" · ").slice(0, 200)}`);
+      }
+      await page.keyboard.press("Escape");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+KeyG");
+      await until(async () => /<Box position="absolute" insetLeft=\{16\} insetTop=\{24\} width=\{\d+\} height=\{\d+\} group>/.test((await pageText(page, id)) ?? ""), { message: "a group at 16, 24" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)}`); });
+      await sleep(400);
+      const now = await fieldBoxes(page, id);
+      if (now.some((box, k) => Math.abs(box.x - start[k].x) > 1 || Math.abs(box.y - start[k].y) > 1)) throw new Error(`moved on the canvas: ${JSON.stringify(start)} → ${JSON.stringify(now)}`);
+      await undoTo(page, id, before, 1);
+      // ⇧A on the same two (one above the other): a vertical frame at their corner, Name then Email.
+      await deselect(page);
+      await selectFields(page, id);
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+KeyA");
+      const stack = /<Stack position="absolute" insetLeft=\{16\} insetTop=\{24\}[^>]*>\s*<InputField label="Name" \/>\s*<InputField label="Email" \/>\s*<\/Stack>/;
+      await until(async () => stack.test((await pageText(page, id)) ?? ""), { timeout: 8000, message: "⇧A: one auto layout frame at 16, 24 holding Name then Email" }).catch(async (error) => { throw new Error(`${error.message} · status: ${(await statusText(page)).slice(0, 120)} · ${((await pageText(page, id)) ?? "").match(/<(Stack|Box) position[^>]*>/g)?.join(" ")}`); });
+      const text = (await pageText(page, id)) ?? "";
+      if (/direction="row"/.test(text)) throw new Error("⇧A laid them out side by side (want vertical)");
+      await undoTo(page, id, before, 1);
+      return `menu: Add auto layout · Group selection · Frame selection on · ⌘G → group at 16, 24, nothing moved · ⇧A → ${text.match(/<Stack position[^>]*>/)[0]} Name, Email · one ⌘Z each`;
+    },
+  },
   // A photo dropped on one row or one item (BACKLOG P1 2026-10-10): figma/pictures.mjs.
   ...pictureRows,
 ];
@@ -5841,4 +5899,43 @@ async function contentPage(ctx) {
   await page.keyboard.press("Escape");
   await page.keyboard.press("Escape");
   return { page, id: contentMade };
+}
+
+/* ── Free fields (prototype walk 2026-10-29 W-14) helpers ───────────────────────────────────────────────────────── */
+
+/** A phone page with a frame without auto layout holding two InputFields, each in the Box that floats it. */
+const fieldsText = (title) => grow(newPageText({ title, device: "phone", chrome: true }), "Stack", '<Box width={358} height={260}>\n<Box position="absolute" insetLeft={16} insetTop={24}>\n<InputField label="Name" />\n</Box>\n<Box position="absolute" insetLeft={16} insetTop={120}>\n<InputField label="Email" />\n</Box>\n</Box>');
+let fieldsMade = null;
+/** The fields page, a fresh copy each row (a row's ⌘Z leaves it as it was). */
+async function fieldsPage(ctx) {
+  const { page } = await ctx.studio();
+  if (!fieldsMade) {
+    const seeded = await seededPage(ctx, fieldsText, /label="Email"/);
+    fieldsMade = seeded.id;
+  } else if (!page.url().includes(encodeURIComponent(`local:${fieldsMade}`))) {
+    await page.goto(`${ctx.server.url}/studio.html?page=${encodeURIComponent(`local:${fieldsMade}`)}`, { waitUntil: "domcontentloaded" });
+    await page.locator('[data-studio-frame^="screen:"]').first().waitFor({ state: "attached", timeout: 20_000 });
+    await sleep(500);
+  }
+  await showLeftTab(page, "layers");
+  await deselect(page);
+  return { page, id: fieldsMade };
+}
+const fieldOf = (page, id, index) => page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="InputField"]`).nth(index);
+/** Both fields' boxes on the screen (rounded). */
+const fieldBoxes = (page, id) => Promise.all([0, 1].map(async (k) => { const box = await fieldOf(page, id, k).boundingBox(); return { x: Math.round(box.x), y: Math.round(box.y), width: Math.round(box.width), height: Math.round(box.height) }; }));
+/** ⌘-clicks the Name field, ⇧⌘-clicks the Email field: both fields selected (their Boxes are not layers of their own). */
+async function selectFields(page, id) {
+  for (const k of [0, 1]) {
+    const box = await fieldOf(page, id, k).boundingBox();
+    if (k) await page.keyboard.down("Shift");
+    await page.keyboard.down("ControlOrMeta");
+    await page.mouse.click(box.x + 24, box.y + 8);
+    await page.keyboard.up("ControlOrMeta");
+    if (k) await page.keyboard.up("Shift");
+    await sleep(250);
+  }
+  await until(async () => (await selectedSrc(page)).length === 2 || (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === 1, { message: "both fields selected" });
+  const names = await selectedName(page);
+  if (!/InputField|Text field/.test(names)) throw new Error(`selected ${names}, not the fields`);
 }

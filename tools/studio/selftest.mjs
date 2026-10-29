@@ -2469,6 +2469,12 @@ const wrapTsc = [];
   {
     check("wrap many map row: refused", err(applyOps(src, locOf(src, "<Text key"), "Text", [{ op: "wrap", tag: "Box", props: {}, with: [locOf(src, "<Text>Last")] }], { file: PAGE })).map((part, i) => (i ? /row of a list/.test(part) : part)), ["invalid", true]);
     check("wrap many parents: refused", err(applyOps(src, locOf(src, "<Text>One"), "Text", [{ op: "wrap", tag: "Box", props: {}, with: [locOf(src, "<Text>Pro")] }], { file: PAGE })).map((part, i) => (i ? /different parents/.test(part) : part)), ["invalid", true]);
+    {
+      // Two layers inserted on a frame without auto layout, each in its floating Box (walk 2026-10-29 W-14).
+      const free = ["export function Page() {", "  return (", "    <Box>", '      <Box position="absolute" insetLeft={24} insetTop={80}>', '        <InputField label="Name" />', "      </Box>", '      <Box position="absolute" insetLeft={24} insetTop={160}>', '        <InputField label="Email" />', "      </Box>", "    </Box>", "  );", "}", ""].join("\n");
+      const refused = applyOps(free, locOf(free, '<InputField label="Name"'), "InputField", [{ op: "wrap", tag: "Stack", props: {}, with: [locOf(free, '<InputField label="Email"')] }], { file: PAGE });
+      check("wrap many floating boxes: refused in design words", err(refused).map((part, i) => (i ? /each float in a Box of their own/.test(part) : part)), ["invalid", true]);
+    }
     check("wrap many nested: refused", err(applyOps(src, locOf(src, "<Card"), "Card", [{ op: "wrap", tag: "Box", props: {}, with: [locOf(src, "<Text>Pro")] }], { file: PAGE })).map((part, i) => (i ? /is inside <Card>/.test(part) : part)), ["invalid", true]);
     check("wrap many paragraph: refused", err(applyOps(src, locOf(src, "<b>bold</b> <i>it</i></p>"), "b", [{ op: "wrap", tag: "Box", props: {}, with: [locOf(src, "<i>it</i></p>")] }], { file: PAGE })).map((part, i) => (i ? /paragraph/.test(part) : part)), ["invalid", true]);
     check("wrap many bad with", err(applyOps(src, locOf(src, "<Text>One"), "Text", [{ op: "wrap", tag: "Box", props: {}, with: "9:6" }], { file: PAGE }))[0], "invalid");

@@ -1,15 +1,16 @@
-import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../api";
+import { announceEditStatus, applyEdit, parseSrc, squashEdits, studioApi, undoEdit } from "../api";
 import { loadEngine } from "../builder/engine";
 import { canvasApi, getViewport } from "../canvas/viewport";
 import { inspectorStatus } from "../inspector/status";
 import { isFloatWrapper } from "../position/float";
-import { multiSelection } from "../select/multiSelection";
+import { multiSelection, selectedLayers, type ExtraLayer } from "../select/multiSelection";
 import { findBySrc } from "../select/picker";
 import { expectRender, renderedNow } from "../select/remap";
 import { familyKeyForPx, tokenPx } from "../select/spacing";
 import { canStructurallyEdit } from "../slots/actions";
 import { wrapSelection } from "../select/wrapSelection";
 import { addPlan, removePlan } from "./autoLayoutPlan";
+import { floatingGroup, groupParts } from "./groupLayers";
 import { flushStudioStore, studioStore } from "../store";
 import type { SourceElement, StudioSelection } from "../types";
 
@@ -140,12 +141,69 @@ export const isAutoLayoutFrame = (selection: StudioSelection | null): selection 
   selection?.kind === "node" && !selection.part && selection.name === "Stack" && !multiSelection.get().length && Boolean(studioStore.getState().localPage);
 
 /**
+ * ⇧A on several layers placed freely in one frame (X / Y, each maybe in the Box that floats it; walk 2026-10-29 W-14):
+ * one auto layout frame where the box around them was, as Figma's. Two writes squashed into one undo step: op group puts
+ * them in a floating Box at that box (each at its offset), then that Box takes auto layout from those offsets (addPlan:
+ * direction, order on the screen, gap snapped to the Gap steps, alignment) and each layer leaves its X / Y, its floating
+ * Box going away unless it gives the layer a size. The new frame is selected. False when nothing was written.
+ */
+export async function addAutoLayoutToFloating(layers: ExtraLayer[]): Promise<boolean> {
+  for (const layer of layers) {
+    const check = canStructurallyEdit({ kind: "node", ...layer });
+    if (!check.ok) return fail(check.reason);
+  }
+  const items = floatingGroup(layers);
+  if (!items) return fail("Select layers placed freely in one frame");
+  const before = renderedNow(canvasApi.getWorldElement());
+  const label = `Add auto layout (${layers.length} layers)`;
+  const grouped = await groupParts(items, {}, label);
+  if (!grouped) return false;
+  const { response, box: boxSelection, ordered, origin } = grouped;
+  const at = parseSrc(boxSelection.src)!;
+  const undoGroup = async (message: string) => { await undoEdit(); return fail(`${message} (nothing changed)`); };
+  const box = await studioApi.element(at.file, at.loc).catch(() => null);
+  const kids = box?.children.filter((child) => child.kind !== "text" || child.value.trim()) ?? [];
+  if (!box?.range || kids.length !== ordered.length || kids.some((kid) => kid.kind !== "element")) return undoGroup("The new frame could not be read back");
+  // The Box holds the layers in code order, as `ordered`; each one's box is its offset in the Box and its size.
+  const elements = await Promise.all(kids.map((kid) => (kid.kind === "element" ? studioApi.element(at.file, kid.loc).catch(() => null) : null)));
+  if (elements.some((element) => !element)) return undoGroup("A layer in the new frame could not be read back");
+  const sized = (element: SourceElement) => element.attributes.some((attr) => attr.name === "width" || attr.name === "height");
+  const { row, gap, align, plan } = addPlan(ordered.map((part, index) => ({
+    box: { x: part.offset.left - origin.left, y: part.offset.top - origin.top, w: part.box.width, h: part.box.height },
+    name: elements[index]!.name,
+    // A floating Box that gives its layer a width or height stays (as a plain frame), so the layer keeps its size.
+    floatWrapper: isFloatWrapper(elements[index]) && !sized(elements[index]!),
+  })), nearestKeyOf(items[0].block));
+  const engine = await loadEngine();
+  const source = await studioApi.source(at.file);
+  let code: string;
+  try {
+    code = engine.relayoutCode(source.content, box.range, plan);
+  } catch (error) {
+    return undoGroup(error instanceof Error ? error.message : String(error));
+  }
+  const relaid = await applyEdit({ file: at.file, loc: at.loc, name: box.name, ops: [{ op: "replaceElement", code }], hash: box.hash }, label);
+  if (!relaid.ok) return undoGroup(relaid.error);
+  squashEdits(2, label, response.before, relaid.after);
+  const stack: StudioSelection = { ...boxSelection, src: `${relaid.file}:${relaid.inserted?.loc ?? at.loc}`, name: "Stack" };
+  multiSelection.clear();
+  expectRender(stack, before, () => undefined, 1500);
+  studioStore.setState({ selection: stack });
+  flushStudioStore();
+  say(`Auto layout: ${row ? "horizontal" : "vertical"}, gap ${gap}${align ? `, aligned ${align}` : ""} · the frame sits where the layers were`);
+  return true;
+}
+
+/**
  * Figma's Add auto layout (⇧A, the canvas menu, the Inspector's Auto layout +): a frame without auto layout takes it
- * itself; any other layer, or several, go into a new auto layout frame laid out as they render.
+ * itself; several layers placed freely in one frame go into an auto layout frame where they were; any other layer, or
+ * several, go into a new auto layout frame laid out as they render.
  */
 export function addAutoLayoutToSelection(): Promise<unknown> {
   const selection = studioStore.getState().selection;
-  return isFrameWithoutAutoLayout(selection) ? addAutoLayout(selection) : wrapSelection("stack");
+  if (isFrameWithoutAutoLayout(selection)) return addAutoLayout(selection);
+  const layers = selectedLayers();
+  return layers.length > 1 && floatingGroup(layers) ? addAutoLayoutToFloating(layers) : wrapSelection("stack");
 }
 
 /** Figma's Remove auto layout (⌥⇧A, the canvas menu, the Inspector's Auto layout −) on the selected auto layout frame. */

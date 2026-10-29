@@ -3,8 +3,8 @@ import { plural } from "../../../components/Text";
 import { applyEdit, parseSrc, studioApi, subscribeStudioWrites, undoEdit } from "../api";
 import { canvasApi } from "../canvas/viewport";
 import { inspectorStatus, saveShortcut, undoShortcut } from "../inspector/status";
-import { boxFloating, floatingGroup } from "../edit/groupLayers";
-import { canStructurallyEdit } from "../slots/actions";
+import { boxFloating, floatingGroup, mixedPlacement } from "../edit/groupLayers";
+import { canStructurallyEdit, floatWrapOf } from "../slots/actions";
 import { selectedHit } from "../slots/dom";
 import { flushStudioStore, studioStore } from "../store";
 import type { EditOp, EditValue, StudioSelection } from "../types";
@@ -68,7 +68,16 @@ export function wrapCheck(layers: ExtraLayer[] = selectedLayers()): WrapCheck {
   const missing = hits.findIndex((hit) => !hit || !hit.hosts.length);
   if (missing >= 0) return { ok: false, reason: `${layers[missing].name} is not on the canvas right now` };
   if (layers.length > 1) {
-    const parents = hits.map((hit) => (hit ? parentHit(hit) : null));
+    // Layers placed freely in one frame are siblings there, as Layers lists them (the Box that floats each one is not a
+    // layer of its own; walk 2026-10-29 W-14): they wrap or group where they are.
+    if (floatingGroup(layers)) return { ok: true, layers };
+    const mixed = mixedPlacement(layers);
+    if (mixed) return { ok: false, reason: mixed };
+    const parents = hits.map((hit, index) => {
+      const wrap = hit ? floatWrapOf({ kind: "node", ...layers[index] }) : null;
+      const outer = wrap ? selectedHit(wrap, world) : hit;
+      return outer ? parentHit(outer) : null;
+    });
     const first = parents[0]?.hosts[0] ?? null;
     if (parents.some((parent) => (parent?.hosts[0] ?? null) !== first)) return { ok: false, reason: "Select layers that share one parent" };
   }
