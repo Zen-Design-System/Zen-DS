@@ -60,3 +60,15 @@
 - W-17, same cause: a Layers drop beside a free layer now targets its float Box, and a drop where it is does nothing.
   Inferred from code, not walked: the pane stops at Google sign-in.
 - E2E FW-261 (the walk's Assets flow) and FW-262 (menu, ⌘G, ⇧A on seeded fields); selftest check for the server message.
+
+## Session "W-12/28/18" · Inserts land where they should in a Screen without auto layout (tier S; walk §4 item 4: W-12, W-28, W-18)
+- W-12: `freeDropAt` (edit/assets) took only a Box, so a drop on an Empty page's Screen went into its flow (X 0 Y 50).
+  It now takes any frame `freeBlock` says has no auto layout: the layer floats at the pointer, smart guides as before;
+  a drop on a floating layer goes beside it in the frame (never into the Box that floats it); a chart gets the widget
+  width, as a click gives it.
+- W-28: `freeInsertAt` takes `top` (`topClearIn`: the bottom of the status bar, Top Navigation or "Add Top Navigation"
+  in the block's px); the first layer of an empty phone Screen lands 20 below it. An empty frame's containing block is
+  the Screen, not its static content box. Desktop stays at 24, 24.
+- W-18: no Screen prop. With click, drop and paste all floating in a Screen without a layout root, no insert makes a
+  page flow at its edge; old pages that already hold one keep it.
+- E2E FW-263 (drop at the pointer, a second drop beside), FW-264 (bars end + 20, no flow); B-55/B-56 still work.
