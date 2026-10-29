@@ -1,7 +1,7 @@
 // Prototype rows (Figma's prototype mode on pages made in the Studio, 2026-10-15): connect by dragging a layer's ⊕ onto a
 // frame, click an arrow to select its layer, drag an arrow's end to another frame or off to remove it, one target per
 // tab of a tab bar, the Flow list, and Play's hotspot hints. Each row makes its own page (builder.mjs newPage).
-import { inspectorRow, openAssetLibrary, selectAt, showLeftTab, sleep, until } from "../lib/studio.mjs";
+import { focusFrame, inspectorRow, openAssetLibrary, selectAt, showLeftTab, sleep, until } from "../lib/studio.mjs";
 import { pickOption } from "./inspector.mjs";
 import { clickNamed, newPage, pageText, seededPage, selectStack } from "./builder.mjs";
 
@@ -1796,6 +1796,60 @@ export const rows = [
       return `the Dialog ${dialog.clear}px above the foot · sheet's last row (2025) ${row.clear}px · home area ${dialog.safe}px`;
     },
   },
+  {
+    id: "PT-40", feature: "Present on a phone keeps toasts and modals in the device (walk 2026-10-29 W-44/W-45, Present's side): the Toast page's example presented on the iPhone shows its toast inside the viewport, 20 from its sides, in Present's layer (not the Studio's); a phone Screen's open Dialog presented on the iPhone ends above the home area", wp: "prototype walk 2026-10-29", timeout: 60_000,
+    async run(ctx) {
+      const { page } = await ctx.studio({ page: "toast" });
+      await focusFrame(page, 0);
+      await page.keyboard.press(process.platform === "darwin" ? "Alt+Meta+Enter" : "Control+Alt+Enter");
+      const present = page.locator(".studio-present");
+      await present.waitFor({ state: "visible", timeout: 5000 });
+      await present.getByRole("button", { name: /^Viewport:/ }).click();
+      const trigger = present.locator('[id$="-viewport-device-trigger"]');
+      await trigger.waitFor({ state: "visible", timeout: 5000 });
+      await trigger.click();
+      await page.getByRole("option", { name: /^iPhone/ }).first().click();
+      await page.keyboard.press("Escape");
+      await present.locator(".studio-device-toasts").waitFor({ state: "attached", timeout: 5000 });
+      await sleep(400);
+      await present.getByRole("button", { name: /^Delete / }).first().click();
+      const toast = page.locator(".zen-toast").filter({ hasText: "File deleted" });
+      await toast.waitFor({ state: "visible", timeout: 3000 });
+      await sleep(500);
+      const at = await toast.evaluate((element, selector) => {
+        const view = document.querySelector(selector);
+        const box = view.getBoundingClientRect();
+        const zoom = box.width / view.offsetWidth || 1;
+        const rect = element.getBoundingClientRect();
+        return { inPresent: Boolean(element.closest(".studio-present .studio-device-toasts")), left: Math.round((rect.left - box.left) / zoom), right: Math.round((box.right - rect.right) / zoom), clear: Math.round((box.bottom - rect.bottom) / zoom) };
+      }, PRESENT_VIEWPORT);
+      if (!at.inPresent) throw new Error("the toast is not in Present's device layer");
+      if (at.left !== 20 || at.right !== 20 || at.clear < 20) throw new Error(`the toast stands ${at.left} / ${at.right}px from the viewport's sides and ${at.clear}px above its foot: want a phone's page margin, 20`);
+      await page.keyboard.press("Escape");
+      await present.waitFor({ state: "detached", timeout: 5000 });
+      const seeded = await seededPage(ctx, presentDialogPage, /One visit/);
+      await showLeftTab(seeded.page, "layers");
+      await seeded.page.locator('[data-layer-id="frame:screen:screen-1"]').click();
+      await seeded.page.locator("#studio-right").getByRole("button", { name: "Present", exact: true }).click();
+      const shown = seeded.page.locator(".studio-present");
+      await shown.waitFor({ state: "visible", timeout: 5000 });
+      const dialog = shown.getByRole("dialog", { name: "Book?" });
+      await dialog.waitFor({ state: "visible", timeout: 5000 });
+      await sleep(600);
+      const end = await dialog.evaluate((element, selector) => {
+        const view = document.querySelector(selector);
+        const box = view.getBoundingClientRect();
+        const zoom = box.width / view.offsetWidth || 1;
+        const screen = view.querySelector(".studio-builder-screen");
+        const safe = parseFloat(getComputedStyle(screen).getPropertyValue("--zen-safe-area-bottom")) || 0;
+        return { inView: view.contains(element), clear: Math.round((box.bottom - element.getBoundingClientRect().bottom) / zoom), safe };
+      }, PRESENT_VIEWPORT);
+      if (!end.inView) throw new Error("the Dialog is not in the presented device");
+      if (end.clear < end.safe - 1) throw new Error(`the Dialog ends ${end.clear}px above the device's foot, inside its ${end.safe}px home area`);
+      await seeded.page.keyboard.press("Escape");
+      return `Toast example on the iPhone: toast in Present's device layer, ${at.left} / ${at.right}px from its sides, ${at.clear}px above its foot · open Dialog on a phone Screen: ${end.clear}px above the foot (home area ${end.safe}px)`;
+    },
+  },
 ];
 
 /** A phone Screen whose buttons show a toast, open a Dialog and open a Bottom Sheet whose rows end with 2025 (PT-38, PT-39, walk 2026-10-29 W-44/W-45). */
@@ -1854,3 +1908,24 @@ const deviceFoot = (page, locator) => locator.evaluate((element) => {
   const safe = parseFloat(getComputedStyle(screen).getPropertyValue("--zen-safe-area-bottom")) || 0;
   return { inDevice: device.contains(element), clear: Math.round((box.bottom - rect.bottom) / zoom), left: Math.round((rect.left - box.left) / zoom), right: Math.round((box.right - rect.right) / zoom), safe };
 });
+
+/** A phone Screen with an open Dialog on it (PT-40: Present keeps it clear of the home indicator, W-44). */
+const presentDialogPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Dialog, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Booking" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text>Booking</Text>
+        </Stack>
+        <Dialog open title="Book?" description="One visit." primaryAction={{ label: "Confirm" }} secondaryAction={{ label: "Cancel" }} />
+      </Screen>
+    </Board>
+  );
+}
+`;
