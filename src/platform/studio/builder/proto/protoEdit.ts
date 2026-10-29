@@ -1,6 +1,6 @@
 import { applyEdit } from "../../api";
 import type { EditOp, EditValue } from "../../types";
-import { DEFAULT_DELAY, DELAY_TRIGGER, fieldTrigger, protoActionCode, type ProtoAction, type ProtoFrame, type ProtoOptions } from "./protoModel";
+import { DEFAULT_DELAY, DELAY_TRIGGER, fieldTrigger, frameNamed, protoActionCode, type ProtoAction, type ProtoFrame, type ProtoOptions } from "./protoModel";
 
 /*
  * Writes a layer's prototype action: the trigger prop's `proto.*(…)` expression (setProp), or no prop at all for None
@@ -18,9 +18,13 @@ function triggerOp(trigger: string, code: string | null): EditOp {
 export type ProtoLayer = { file: string; loc: string; name: string };
 
 /** The target an action takes when none is named yet: Navigate to → another Screen than the layer's own, Open overlay →
- *  the first Overlay, a toast → "Done", a link → "https://". */
-export function defaultTarget(action: ProtoAction, frames: ProtoFrame[], homeScreen: string | null): string | undefined {
+ *  the first Overlay, a toast → "Done", a link → "https://". `words` (the layer's label): a frame named the same, or
+ *  starting the same, comes first (walk 2026-10-29 W-57: "Invite members" opened the first overlay, Filter). */
+export function defaultTarget(action: ProtoAction, frames: ProtoFrame[], homeScreen: string | null, words?: string): string | undefined {
   const screens = frames.filter((frame) => frame.kind === "screen" && !frame.state).map((frame) => frame.id);
+  const kind = action === "navigate" ? "screen" : action === "open" ? "overlay" : null;
+  const named = kind && words ? frameNamed(frames.filter((frame) => frame.kind === kind && !frame.state && frame.id !== homeScreen), words) : undefined;
+  if (named) return named;
   if (action === "navigate") return screens.find((screen) => screen !== homeScreen) ?? screens[0];
   if (action === "open") return frames.find((frame) => frame.kind === "overlay")?.id;
   if (action === "toast") return "Done";

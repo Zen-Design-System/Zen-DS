@@ -3,7 +3,7 @@ import { openLocalPage } from "../../shell/navigation";
 import { loadEngine, zenComponents } from "../engine";
 import { freeId, putPage } from "../store/pageStore";
 import { snapshotFrame, type Snapshot } from "./snapshot";
-import { starterPage, starterTitle, type SnapNode } from "./toDialect";
+import { linkOverlays, starterPage, starterTitle, type SnapNode } from "./toDialect";
 import { withHeaderProject } from "../store/pageModel";
 import { activeProjectId } from "../../project/activeProject";
 
@@ -43,7 +43,10 @@ export async function pageFromSnapshot(shot: Snapshot, { title, from }: { title:
     inspectorStatus.set("neutral", `${from} shows no library components to start a page from`);
     return null;
   }
-  const text = starterPage({ title, device: shot.device, nodes: shot.nodes, padding: shot.padding, overlays: overlayIds(shot.overlays) });
+  const overlays = overlayIds(shot.overlays);
+  // Each overlay's button opens it, when one is named as it is (W-50); the rest wait for the Prototype tab.
+  const linked = linkOverlays(shot.nodes, overlays);
+  const text = starterPage({ title, device: shot.device, nodes: shot.nodes, padding: shot.padding, overlays });
   const engine = await loadEngine();
   const errors = engine.validateDialect(text, { components: new Set(zenComponents) });
   if (errors.length) {
@@ -56,7 +59,8 @@ export async function pageFromSnapshot(shot: Snapshot, { title, from }: { title:
   await putPage(id, withHeaderProject(text, activeProjectId()), { title });
   openLocalPage(id, { made: true });
   const notes = shot.notes.length > LISTED ? [...shot.notes.slice(0, LISTED), `${shot.notes.length - LISTED} more`] : shot.notes;
-  const overlays = shot.overlays.length ? `${shot.overlays.length === 1 ? "1 overlay" : `${shot.overlays.length} overlays`} as Overlay frames (link their triggers in Prototype)` : null;
-  inspectorStatus.set(notes.length ? "neutral" : "positive", [`New page "${title}" from ${from}`, overlays, notes.length ? `Not kept: ${notes.join("; ")}` : null].filter(Boolean).join(" · "));
+  const unlinked = overlays.length - linked.length;
+  const said = overlays.length ? `${overlays.length === 1 ? "1 overlay" : `${overlays.length} overlays`} as Overlay frames${linked.length ? `, ${linked.length} opened by their buttons` : ""}${unlinked ? ` (link ${unlinked === overlays.length ? "their" : `the other ${unlinked}`} triggers in Prototype)` : ""}` : null;
+  inspectorStatus.set(notes.length ? "neutral" : "positive", [`New page "${title}" from ${from}`, said, notes.length ? `Not kept: ${notes.join("; ")}` : null].filter(Boolean).join(" · "));
   return id;
 }

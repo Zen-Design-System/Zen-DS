@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio templates (walk 2026-10-29 W-48/49/50/57): a page from a phone template keeps the template's own Top and
+  Bottom Navigation (its title, Search and tabs, not the page name over nothing); a template's overlays open from the
+  buttons named as they are ("Invite members", "Date"); Add Screen offers the templates for the page's device beside an
+  empty Screen (one ⌘Z takes it back); Open overlay picks the overlay named as the button, not the first.
 - Zen Studio's Play and Present show toasts in the device (walk 2026-10-29 W-45): on a phone a toast stands the page
   margin above the home indicator, inside the frame, instead of at the window's foot outside it, cut in half; Present on a
   simulated device does the same with an example's toasts. A Dialog or Bottom Sheet opened in Play on a phone keeps its last button

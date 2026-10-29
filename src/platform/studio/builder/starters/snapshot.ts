@@ -159,7 +159,9 @@ function valueOf(raw: unknown, ctx: Context, where: string): SnapValue | undefin
       const value = valueOf(field, ctx, `${where}.${key}`);
       if (value !== undefined) fields.push([key, value]);
     }
-    return { kind: "object", fields };
+    // An action object (`{ label, onClick }`: an ActionBar's primaryAction, a sheet's item) that took a click: marked as
+    // a node is, so the starter can lead it to the overlay named as it is (W-50, the Mobile detail · Order template).
+    return typeof (raw as { onClick?: unknown }).onClick === "function" ? { kind: "object", fields, clicks: true } : { kind: "object", fields };
   } finally {
     ctx.depth -= 1;
     ctx.seen.delete(raw);
@@ -207,6 +209,8 @@ function zenNode(name: string, props: Record<string, unknown>, ctx: Context): Sn
   }
   if (name === "Table") cellsAsText(props, out, ctx);
   const node: SnapNode = { kind: "element", name, props: [...out, ...fromClass], children: childrenOf(props.children, ctx) };
+  // A click the page cannot keep (its handler): marked, so the starter can lead it to the overlay named as it is.
+  if (typeof props.onClick === "function" || (props["aria-haspopup"] && props["aria-haspopup"] !== "false")) node.clicks = true;
   // Any other component styled by a className (a Card, a Button: 103 frames): the width its CSS gives it, as a Box of
   // that size around it (2026-10-08); the rest of that CSS is noted as before.
   if (typeof props.className === "string" && props.className && !CLASS_READ.has(name)) {
