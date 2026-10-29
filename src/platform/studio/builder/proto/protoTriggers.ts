@@ -1,6 +1,6 @@
 import api from "../../../api.generated.json";
 import type { PageNode, PageTree } from "../render/renderPage";
-import { connectTrigger, DELAY_TRIGGER, findNode, HOVER_TRIGGER, isItemTrigger, itemOwnerOf } from "./protoModel";
+import { actionTriggersOf, connectTrigger, DELAY_TRIGGER, findNode, HOVER_TRIGGER, isItemTrigger, itemOwnerOf } from "./protoModel";
 
 /*
  * The events a component takes, read from the generated API docs (its `on[A-Z]…` function props). Apart from
@@ -37,7 +37,8 @@ export type ProtoSubject = { node: PageNode; triggers: string[]; trigger: string
 export function protoSubject(tree: PageTree | null, loc: string): ProtoSubject | null {
   const node = findNode(tree, loc);
   if (!node) return null;
-  const triggers = triggersOf(node.name, Object.keys(node.props));
+  // Its own events, then its action objects' buttons (a Dialog's primary and secondary, a TopNavigation's Back).
+  const triggers = [...triggersOf(node.name, Object.keys(node.props)), ...actionTriggersOf(node)];
   if (triggers.length) return { node, triggers, trigger: connectTrigger(node, triggers), item: null };
   const owned = itemOwnerOf(tree, node);
   if (owned) {

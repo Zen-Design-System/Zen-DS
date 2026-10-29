@@ -3,7 +3,7 @@
 // connections and Play read from a page — trigger words, a choice control's items, per-item actions and their links.
 // Run: node src/platform/studio/builder/proto/protoModel.selftest.mjs
 import { parsePage } from "../../../../../tools/studio/dialect.mjs";
-import { actionsFor, cellText, choiceItemsOf, columnsOf, connectTrigger, filterCode, filterOf, filterRows, filterValuesOf, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, layersIn, linksOf, openerOf, optionsOf, playStartOf, protoActionCode, protoSourcesOf, screenTargetOf, stepCode, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, targetOfFrame, targetsByItem, triggerLabel } from "./protoModel.ts";
+import { actionsFor, actionTriggerLabel, actionTriggersOf, cellText, choiceItemsOf, columnsOf, connectTrigger, filterCode, filterOf, filterRows, filterValuesOf, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, layersIn, linksOf, openerOf, optionsOf, playStartOf, protoActionCode, protoSourcesOf, screenTargetOf, stepCode, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, targetOfFrame, targetsByItem, triggerLabel, triggerValue } from "./protoModel.ts";
 
 const failures = [];
 let passed = 0;
@@ -79,7 +79,13 @@ const reparsed = parsePage(page.replace('proto.navigate({ files: "files" })', it
 check("item action code reads back", reparsed.errors, []);
 
 // Links and hotspots.
-check("links: a button, a tab, a dialog's action (not its own prop)", linksOf(tree).map((link) => `${link.trigger} ${link.frameId}${link.item ? ` [${link.item}]` : ""}${link.own ? "" : " (inside)"}`).sort(), ["onClick screen:files", "onValueChange screen:files [files]", "primaryAction screen:home (inside)"]);
+check("links: a button, a tab, a dialog's button (its own trigger, walk W-41)", linksOf(tree).map((link) => `${link.trigger} ${link.frameId}${link.item ? ` [${link.item}]` : ""}${link.own ? "" : " (inside)"}`).sort(), ["onClick screen:files", "onValueChange screen:files [files]", "primaryAction.onClick screen:home"]);
+// Action objects (walk 2026-10-29 W-36/W-41): a Dialog's buttons and a TopNavigation's Back are triggers of their layer.
+const dialog = named("Dialog");
+check("action triggers: each action object's onClick", actionTriggersOf(dialog), ["primaryAction.onClick"]);
+check("action trigger value: the field, the plain prop, nothing for a missing field", [triggerValue(dialog, "primaryAction.onClick")?.kind, triggerValue(dialog, "secondaryAction.onClick"), triggerValue(named("Button"), "onClick")?.kind], ["proto", undefined, "proto"]);
+check("action trigger words with the button's label", [actionTriggerLabel(dialog, "primaryAction.onClick"), actionTriggerLabel(dialog, "onOpenChange")], [`Primary button · ${dialog.props.primaryAction.fields.label.value}`, null]);
+check("⊕ on a layer with no click of its own takes its first button", connectTrigger({ ...dialog, props: {} }, ["onOpenChange", "primaryAction.onClick"]), "primaryAction.onClick");
 const sources = protoSourcesOf(tree);
 const bottom = named("BottomNavigation");
 check("hotspots: the tab bar's leading items only, the button and dialog whole", [sources.get(bottom.loc), sources.get(named("Button").loc), sources.get(named("Dialog").loc), sources.has(named("Segmented").loc)], [[{ value: "files", label: "Files" }], null, null, false]);

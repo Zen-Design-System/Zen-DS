@@ -26,3 +26,14 @@
 - Report: `docs/research/studio-prototype-walk-2026-10-29.md` (+ 11 screenshots). ~50 findings; fixes in §4 wait for the
   user (BACKLOG-user-and-later). Test data lives only in that worktree's `.zen-studio/` and the pane's :5281 storage.
 - Method limits: pane hidden (stale screenshots, checked by DOM/page file), clipboard-read denied (paste untested).
+
+## Prototype: buttons inside a component (walk W-35/36/41, tier M; user approved §4 items 1–3)
+
+- W-35: `inspector/propGroups.ts` topLeading gets `pageCode` (`onClick: proto.back()`); `DataSlot.newItem` and
+  `InsertItemOp` carry it, `tools/studio/items.mjs` writes it on a builder page instead of the toast code.
+- W-36/W-41: an action object (`{ label, onClick }`: Dialog/ModalForm/BottomSheet primary/secondary, TopNavigation
+  leading) is a trigger of its layer, `"<prop>.onClick"` (`protoModel.ts` actionTriggersOf, triggerValue,
+  actionTriggerLabel "Primary button · Confirm"; `protoTriggers.ts` protoSubject). `protoEdit.ts` writes it with op
+  setField; `linksIn` names the arrow by it (own, so its end drags); ⊕ on a layer without onClick takes its first button.
+- Checks: protoModel selftest 48, items selftest 25 (pageCode), slots 1977, builder 76, tsc clean; E2E PT-31.
+- W-14 went to session studio-wrap-floating; W-47 (Play band, #345) to the Bug session via Giám sát.

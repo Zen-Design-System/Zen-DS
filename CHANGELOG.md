@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio prototypes the buttons inside a component (walk 2026-10-29, W-35/36/41): the Prototype tab lists a Dialog's,
+  a Modal form's or a Bottom Sheet's Primary and Secondary buttons and a Top Navigation's Back by their labels, each with
+  its own action and arrow, so Confirm can lead to a Screen. Top leading on a page you made adds a Back that goes back in
+  Play, not a "Back" toast.
 - Zen Studio: a component dropped on the empty canvas keeps its Figma width (user 2026-10-29): a Top Navigation lands
   390 wide, a Line chart 297, an Input 312, as Figma's loose instance does, instead of hugging its content (the Top
   Navigation was 258). Components that hug in Figma (Button, Badge, Card) still hug.
