@@ -14,6 +14,11 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: layers placed freely in a frame without auto layout (a click from Assets places them so) wrap and group
+  as Figma's (walk 2026-10-29 W-14): ⇧A makes one auto layout frame where they were, in screen order, their own
+  floating Boxes gone; ⌘G and Frame selection group them in place. A mix of free and auto layout layers says so in
+  design words. Dragging a free layer in Layers lands beside the other layers of its frame, and a drop where it
+  already is does nothing (W-17).
 - Zen Studio prototypes the buttons inside a component (walk 2026-10-29, W-35/36/41): the Prototype tab lists a Dialog's,
   a Modal form's or a Bottom Sheet's Primary and Secondary buttons and a Top Navigation's Back by their labels, each with
   its own action and arrow, so Confirm can lead to a Screen. Top leading on a page you made adds a Back that goes back in

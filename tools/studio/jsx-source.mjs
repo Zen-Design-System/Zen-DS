@@ -2680,7 +2680,15 @@ function applyWrapMany(code, bom, text, ast, element, op, { tag, props, snippets
     });
     parent = slots[0].parent;
     const stray = slots.find((slot) => slot.parent !== parent);
-    if (stray) throw new EditError("invalid", `<${names.get(stray.node)}> and <${names.get(slots[0].node)}> sit in different parents: select layers that share one parent`);
+    if (stray) {
+      // Layers inserted on a frame without auto layout each float in a Box of their own (Studio's floating wrapper):
+      // siblings to a designer, so say what to select (walk 2026-10-29 W-14).
+      const floats = (slot) => slot.parent.type === "JSXElement" && jsxName(slot.parent.openingElement.name).replace(/^.*\./, "") === "Box"
+        && slot.parent.openingElement.attributes.some((attr) => attr.type === "JSXAttribute" && jsxName(attr.name) === "position" && attr.value?.value === "absolute")
+        && slot.parent.children.filter((child) => !isSpacing(child)).length === 1;
+      if (floats(stray) && floats(slots[0])) throw new EditError("invalid", `<${names.get(stray.node)}> and <${names.get(slots[0].node)}> each float in a Box of their own: wrap those Boxes, or select the layers on the canvas (Add auto layout keeps where they are)`);
+      throw new EditError("invalid", `<${names.get(stray.node)}> and <${names.get(slots[0].node)}> sit in different parents: select layers that share one parent`);
+    }
     // A condition holding two selected layers (both branches of a ?:) moves once.
     nodes = [...new Set(slots.map((slot) => slot.node))].sort((a, b) => a.start - b.start);
     run = adjacentRun(parent, nodes);

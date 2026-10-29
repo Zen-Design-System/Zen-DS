@@ -2,7 +2,7 @@ import { typographyStyles } from "../../../tokens/typography.generated";
 import { canvasApi } from "../canvas/viewport";
 import { annotatedAt, findBySrc, frameOf, panelOf, parentHit, selectHit, type FiberHit } from "../select/picker";
 import { isLayerSelected, layerOfHit, multiSelection, selectedLayers, type ExtraLayer } from "../select/multiSelection";
-import { canStructurallyEdit, structuralBlock } from "../slots/actions";
+import { canStructurallyEdit, isFloatWrapper, structuralBlock } from "../slots/actions";
 import { canEdit, studioStore } from "../store";
 import { moveLayer, type DropTarget, type NodeSelection } from "./arrange";
 import { isDropContainer, sameDropScope } from "./drag";
@@ -44,6 +44,21 @@ const ROW = "[role='treeitem'][data-kind='node']";
 const sameHost = (a: FiberHit | null, b: FiberHit | null) => Boolean(a && b && a.hosts[0] && a.hosts[0] === b.hosts[0]);
 const inside = (outer: FiberHit, inner: FiberHit) => outer.hosts.some((host) => inner.hosts[0] && (host === inner.hosts[0] || host.contains(inner.hosts[0])));
 
+/**
+ * The layer as its frame holds it: the Box that floats it in a frame without auto layout (Layers folds that Box into the
+ * layer's row), else the layer. A row's place is the place of that Box (walk 2026-10-29 W-17: a drop beside a free
+ * field went into the other field's Box, or was refused as "already there").
+ */
+function outerHit(hit: FiberHit): FiberHit {
+  const host = hit.hosts[0];
+  const box = host?.parentElement;
+  if (host instanceof HTMLElement && host.dataset.position !== "absolute" && isFloatWrapper(box)) {
+    const wrap = annotatedAt(box);
+    if (wrap?.src && wrap.src !== hit.src) return wrap;
+  }
+  return hit;
+}
+
 function targetFor(hit: FiberHit, parent: FiberHit, mode: Place["mode"], current: Session): DropTarget {
   const target: DropTarget = { parentSrc: parent.src, parentName: parent.name, frameId: frameOf(parent.hosts[0]), panelId: panelOf(parent.hosts[0]) };
   // `mode` is where the marker shows (above / below the row). Layers of a page you made list the front-most layer on top
@@ -52,8 +67,17 @@ function targetFor(hit: FiberHit, parent: FiberHit, mode: Place["mode"], current
   const place = front ? (mode === "before" ? "after" : mode === "after" ? "before" : mode) : mode;
   if (place === "before") target.before = hit.src;
   else if (place === "after") target.after = hit.src;
-  target.reparent = !sameHost(parentHit(current.hit, current.hit.hosts[0]?.closest("[data-studio-frame]") ?? null), parent);
+  target.reparent = !sameHost(parentHit(outerHit(current.hit), current.hit.hosts[0]?.closest("[data-studio-frame]") ?? null), parent);
   return target;
+}
+
+/** Whether `target` puts the dragged layer where it already is (right before the layer after it, or after the one before). */
+function inPlace(current: Session, target: DropTarget, sibling: FiberHit): boolean {
+  if (current.layers) return false;
+  const own = outerHit(current.hit).hosts[0];
+  const beside = sibling.hosts[0];
+  if (!own || !beside) return false;
+  return (target.before === sibling.src && beside.previousElementSibling === own) || (target.after === sibling.src && beside.nextElementSibling === own);
 }
 
 /** A frame's row in Layers (a Screen, an Overlay of a page you made, an example). */
@@ -96,9 +120,13 @@ function placeAt(current: Session): Place | string | null {
   const container = isDropContainer(hit);
   const mode: Place["mode"] = container && offset > 0.25 && offset < 0.75 ? "into" : offset < 0.5 ? "before" : "after";
   if (mode === "into") return { target: { parentSrc: hit.src, parentName: hit.name, frameId: frameOf(hit.hosts[0]), panelId: panelOf(hit.hosts[0]), reparent: !sameHost(parentHit(current.hit, frame), hit) }, row: element, mode };
-  const parent = parentHit(hit, frame);
+  const sibling = outerHit(hit);
+  const parent = parentHit(sibling, frame);
   if (!parent || !parent.src) return "Drop inside a layer, not beside the example itself";
-  return { target: targetFor(hit, parent, mode, current), row: element, mode };
+  const target = targetFor(sibling, parent, mode, current);
+  // Figma draws no line where the layer already is, and the drop does nothing.
+  if (inPlace(current, target, sibling)) return null;
+  return { target, row: element, mode };
 }
 
 function draw(current: Session) {

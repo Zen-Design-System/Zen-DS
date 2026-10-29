@@ -10,6 +10,7 @@ import { selectLayers, useExtraSelection, type ExtraLayer } from "../select/mult
 import { useSlotServer } from "../slots/actions";
 import { autoLayoutKeys, autoLayoutShortcut, frameSelectionKeys, frameSelectionShortcut, useWrapRunning, wrapCheck, wrapSelection } from "../select/wrapSelection";
 import { canEdit, useStudio } from "../store";
+import { addAutoLayoutToSelection } from "../edit/autoLayout";
 import { MixedProperties } from "../edit/MixedProperties";
 import { AlignSelection } from "../edit/AlignSelection";
 import { InspectorItem, InspectorSection } from "./Section";
@@ -57,7 +58,7 @@ export function SelectionActions() {
       {check.ok || !check.hidden ? (
         <InspectorSection title="Frame">
           <div className="studio-inspector__actions">
-            <Button level="primary" size="sm" startIcon="icon-rows-01-line" aria-keyshortcuts={autoLayoutKeys} title={`Add auto layout ${autoLayoutShortcut} · keeps how the layers sit now (direction, gap, alignment)`} disabled={blocked !== null} onClick={() => { void wrapSelection("stack"); }}>
+            <Button level="primary" size="sm" startIcon="icon-rows-01-line" aria-keyshortcuts={autoLayoutKeys} title={`Add auto layout ${autoLayoutShortcut} · keeps how the layers sit now (direction, gap, alignment)`} disabled={blocked !== null} onClick={() => { void addAutoLayoutToSelection(); }}>
               Add auto layout
             </Button>
             <Button level="tertiary" size="sm" startIcon="icon-square-line" aria-keyshortcuts={frameSelectionKeys} title={`Frame selection ${frameSelectionShortcut} · puts the layers in a frame`} disabled={blocked !== null} onClick={() => { void wrapSelection("box"); }}>

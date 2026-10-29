@@ -28,14 +28,18 @@ export function floatingGroup(layers: ExtraLayer[]): FloatingItem[] | null {
   return items.every((item) => item.block === items[0].block) ? items : null;
 }
 
-/**
- * Puts floating `items` in one floating Box with `props` (one edit) and selects it; `label` names the undo step.
- * `component`: the Box is a new main component's layer (Create component on several layers, a page you made).
- */
 /** A layer as a group or frame takes it: the element written, its offset in its frame's px and its size. */
 export type Part = { target: ExtraLayer; offset: { left: number; top: number }; box: { width: number; height: number } };
 
-export async function boxFloating(items: Part[], props: Record<string, EditValue>, label: string, done: string, component?: { id: string; name: string }, flow = false, tag: "Box" | "Shape" = "Box"): Promise<boolean> {
+/** What op group wrote: the answer, the new Box as a selection, the layers in code order and the Box's corner. */
+export type Grouped = { response: Extract<EditResponse, { ok: true }>; box: NodeSelection; ordered: Part[]; origin: { left: number; top: number } };
+
+/**
+ * Writes op group for `items` (one edit, `label` its undo step): one Box with `props` at the box around them (`flow`:
+ * in the flow, where the first of them was), each layer at its offset inside. Nothing is selected; null when nothing
+ * was written (the status line says why).
+ */
+export async function groupParts(items: Part[], props: Record<string, EditValue>, label: string, component?: { id: string; name: string }, flow = false, tag: "Box" | "Shape" = "Box"): Promise<Grouped | null> {
   const ordered = [...items].sort((a, b) => sourceOrder(a.target, b.target));
   const left = Math.min(...ordered.map((item) => item.offset.left));
   const top = Math.min(...ordered.map((item) => item.offset.top));
@@ -43,9 +47,9 @@ export async function boxFloating(items: Part[], props: Record<string, EditValue
   const bottom = Math.max(...ordered.map((item) => item.offset.top + item.box.height));
   const [first, ...others] = ordered;
   const at = parseSrc(first.target.src);
-  if (!at) return false;
+  if (!at) return null;
   const element = await studioApi.element(at.file, at.loc).catch(() => null);
-  if (!element) { inspectorStatus.set("negative", `${first.target.name} is no longer there — select it again`); return false; }
+  if (!element) { inspectorStatus.set("negative", `${first.target.name} is no longer there — select it again`); return null; }
   const kids: Record<string, { x: number; y: number }> = {};
   for (const item of ordered) {
     const loc = parseSrc(item.target.src)?.loc;
@@ -61,16 +65,36 @@ export async function boxFloating(items: Part[], props: Record<string, EditValue
     ...(flow ? { flow: true } : {}),
     ...(tag !== "Box" ? { tag } : {}),
   } as unknown as EditOp;
-  const before = renderedNow(canvasApi.getWorldElement());
   const response = await applyEdit({ file: at.file, loc: at.loc, name: element.name, ops: [op], hash: element.hash }, label);
-  if (!response.ok || !response.inserted) return false;
+  if (!response.ok || !response.inserted) return null;
   const box: NodeSelection = { kind: "node", src: `${response.file}:${response.inserted.loc}`, name: tag, frameId: first.target.frameId, panelId: first.target.panelId, instance: 0 };
+  return { response, box, ordered, origin: { left, top } };
+}
+
+/**
+ * Puts floating `items` in one floating Box with `props` (one edit) and selects it; `label` names the undo step.
+ * `component`: the Box is a new main component's layer (Create component on several layers, a page you made).
+ */
+export async function boxFloating(items: Part[], props: Record<string, EditValue>, label: string, done: string, component?: { id: string; name: string }, flow = false, tag: "Box" | "Shape" = "Box"): Promise<boolean> {
+  const before = renderedNow(canvasApi.getWorldElement());
+  const grouped = await groupParts(items, props, label, component, flow, tag);
+  if (!grouped) return false;
   multiSelection.clear();
-  expectRender(box, before, () => undefined, 1500);
-  studioStore.setState({ selection: box });
+  expectRender(grouped.box, before, () => undefined, 1500);
+  studioStore.setState({ selection: grouped.box });
   flushStudioStore();
   inspectorStatus.set("positive", done);
   return true;
+}
+
+/**
+ * Several selected layers that sit in one frame, some placed freely (X / Y) and some by the frame's flow: the sentence
+ * that says so (a wrap or a group takes one kind at a time), else null.
+ */
+export function mixedPlacement(layers: ExtraLayer[]): string | null {
+  if (layers.length < 2) return null;
+  const free = layers.map((layer) => typeof floatingItems([layer]) !== "string");
+  return free.some(Boolean) && !free.every(Boolean) ? "Some of these layers are placed freely (X / Y) and some by auto layout: select only one kind" : null;
 }
 
 /** The canvas names a `Layout.Box` layer "Box". */
@@ -207,6 +231,8 @@ export async function groupSelection(layers: ExtraLayer[] = selectedLayers(), { 
   const done = mask ? `${bottom} masks ${layers.length - 1 === 1 ? "1 layer" : `${layers.length - 1} layers`} · ⌃⌘M again removes the mask` : `Grouped ${count} · ⇧⌘G ungroups`;
   const floating = floatingGroup(layers);
   if (floating) return boxFloating(floating, props, label, done);
+  const mixed = mixedPlacement(layers);
+  if (mixed) { inspectorStatus.set("neutral", mixed); return false; }
   // In auto layout: their boxes as drawn (unscaled px), one group where the first of them was.
   const world = canvasApi.getWorldElement();
   const zoom = getViewport().zoom || 1;
