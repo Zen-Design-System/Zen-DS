@@ -12,10 +12,9 @@ import type { StudioPreviewSettings } from "../types";
 import { useStudioFrames, type StudioExample, type StudioFrameEntry } from "./frames";
 import { PresentBar } from "./PresentBar";
 import { stepFocusFor, stepPresent, takeReturnFocus } from "./presentFrame";
-import { deviceOs, screenDevice, viewDevice } from "../../../../tools/studio/screen-devices.mjs";
+import { screenDevice, viewDevice } from "../../../../tools/studio/screen-devices.mjs";
 import { versionFor, viewportBreakpoint } from "../builder/proto/versions";
 import { SimulatedDeviceContext } from "../builder/proto/runtime";
-import { duoStatusOf, safeAreasOf } from "../builder/proto/DeviceBars";
 import { bezelOf, DeviceFrame, deviceViewport, presentEscapeOwners, useViewportFit, viewportDevice, ViewportHandles, type PresentViewport } from "./presentViewport";
 import "./board.css";
 import { useCanvasPreview } from "../project/activeProject";
@@ -133,10 +132,6 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
   // The device simulator: a builder Screen takes the shown device's type, layout and bars; Device frame draws it.
   const device = viewportDevice(shown);
   const fit = useViewportFit(shown, stageRef, bezelOf(device, framed), device?.radius);
-  // A builder Screen on a phone or tablet draws its bars: the device publishes their room for what opens in it (a
-  // Dialog, a Bottom Sheet, the toasts), as Play's does (W-44).
-  const bars = example.screen && fit.mode === "fixed" && device && device.device !== "desktop" ? safeAreasOf(deviceOs(device), device.device, duoStatusOf(device.bars)) : null;
-  const safe = bars ? ({ "--zen-safe-area-top": `${bars.top}px`, "--zen-safe-area-bottom": `${bars.bottom}px` } as CSSProperties) : null;
   // An example's toasts come from its card's own queue (ExampleCard's ZenProvider is a root one) and portal into this
   // layer's portal root, fixed at the window's foot. In a simulated device their layer moves into the device's toast
   // layer, over its home indicator (W-45; the portal follows the node), and back when the device goes.
@@ -161,13 +156,13 @@ function PresentLayer({ frame, example, own, onModeChange, viewport, onViewportC
                   {/* The same two wrappers in Auto (they take no box) and in a fixed viewport, so a change keeps the example's state. */}
                   <div className="studio-present__fit" data-viewport={fit.mode} data-frame={fit.bezel ? "" : undefined} style={fit.fitStyle}>
                     <DeviceFrame device={device} fit={fit} part="body" />
-                    <div className="studio-present__viewport" data-viewport={fit.mode} style={safe ? { ...fit.boxStyle, ...safe } : fit.boxStyle} data-zen-overlay-root={fit.mode === "fixed" ? "" : undefined}>
+                    <div className="studio-present__viewport" data-viewport={fit.mode} style={fit.boxStyle} data-zen-overlay-root={fit.mode === "fixed" ? "" : undefined}>
                       <SimulatedDeviceContext value={device ?? null}>
                         <ExampleCard bare title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen} presented={example.screen}>{example.render()}</ExampleCard>
                       </SimulatedDeviceContext>
                     </div>
                     {/* Beside the viewport, its size: the viewport scrolls its example, and the toasts stay at the device's foot. */}
-                    {fit.mode === "fixed" ? <div ref={setToastRoot} className="studio-device-toasts" style={{ ...fit.boxStyle, ...safe }} data-breakpoint={shown ? viewportBreakpoint(shown.width, device?.device) : undefined} /> : null}
+                    {fit.mode === "fixed" ? <div ref={setToastRoot} className="studio-device-toasts" style={fit.boxStyle} data-breakpoint={shown ? viewportBreakpoint(shown.width, device?.device) : undefined} /> : null}
                     <DeviceFrame device={device} fit={fit} part="fold" />
                     <ViewportHandles viewport={shown} fit={fit} onChange={onViewportChange} device={example.shape?.device} />
                   </div>

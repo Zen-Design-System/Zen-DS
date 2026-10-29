@@ -91,6 +91,6 @@
   a root one) into Present's portal root: on a simulated device that layer moves into a host beside the scrolling
   viewport, at its size (PT-40 found the first try, a ToastProvider of Present's, unused). No library CSS changed.
 - W-44: Dialog / Bottom Sheet already pad by `--zen-safe-area-*`, but render in the device (its overlay root), beside the
-  Screen that sets them: 0 there. The device (and Present's viewport for a builder Screen) now sets the bars' room.
+  Screen that sets them: 0 there. The device now sets the bars' room (Present needs none: PT-40's open Dialog clears the home area without it).
 - E2E PT-38 (toast in the device, 20 from its sides, over the home area), PT-39 (the Dialog panel and a sheet's last row
   above the home area); both fail on main's Player.tsx. PT-28, PT-30/31 still work. Present: PT-40 (follow-up PR).
