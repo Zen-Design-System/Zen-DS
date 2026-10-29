@@ -1706,7 +1706,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-28", feature: "A dark Play keeps the page's popovers dark (the user 2026-10-26: a Table popover stayed light): the Table editor's popover, a tooltip and a toast draw in Play's portal layer in its theme, and a Table popover opened in a modal Side Panel stays live and picks", wp: "play portal 2026-10-26", timeout: 60_000,
+    id: "PT-28", feature: "A dark Play keeps the page's popovers dark (the user 2026-10-26: a Table popover stayed light): the Table editor's popover and a tooltip draw in Play's portal layer in its theme, a toast in its device (W-45), and a Table popover opened in a modal Side Panel stays live and picks", wp: "play portal 2026-10-26", timeout: 60_000,
     async run(ctx) {
       const { page } = await step("seed the page", () => seededPage(ctx, darkPopoverPage, /proto\.open\("details"\)/));
       await page.locator(".studio-viewport").focus();
