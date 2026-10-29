@@ -206,6 +206,39 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   check("a Screen is no version of itself", errors(free.replace(/<Screen id="([a-z0-9-]+)"([^>]*?)width=\{800\}/, '<Screen id="$1"$2width={800} versionOf="$1"')), [versionError]);
 }
 
+// The Board's order (walk 2026-10-29 W-32/W-33, frameEdit.ts orderFrame): a Screen moved before the first one (Set as
+// start), and to the end; the page stays valid and every frame keeps its place.
+{
+  const three = `// @zen-page {"format":1,"title":"Order"}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { Text } from "@zen-ds/react";
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="login" title="Login" device="phone" x={0} y={0}>
+        <Text>Login</Text>
+      </Screen>
+      <Screen id="splash" title="Splash" device="phone" x={486} y={0}>
+        <Text>Splash</Text>
+      </Screen>
+      <Screen id="home" title="Home" device="phone" x={972} y={0}>
+        <Text>Home</Text>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const board = parsePage(three).board;
+  const [login, splash, home] = board.children.filter((child) => child.kind === "element");
+  const ids = (code) => parsePage(code).board.children.filter((child) => child.kind === "element").map((node) => `${node.props.id.value}@${node.props.x.value}`);
+  const first = applyOps(three, splash.loc, "Screen", [{ op: "moveTo", parent: board.loc, before: login.loc }], options(three));
+  check("Set as start: Splash goes first, every frame keeps its x", [first.error ?? null, first.code && ids(first.code)], [null, ["splash@486", "login@0", "home@972"]]);
+  check("the moved page stays valid", first.code ? validateDialect(first.code, { components }).length : -1, 0);
+  const last = applyOps(three, login.loc, "Screen", [{ op: "moveTo", parent: board.loc, after: home.loc }], options(three));
+  check("a frame row dropped last: Login after Home", [last.error ?? null, last.code && ids(last.code)], [null, ["splash@486", "home@972", "login@0"]]);
+}
+
 if (failures.length) {
   console.error(`builder selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);
   process.exit(1);

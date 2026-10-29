@@ -101,6 +101,42 @@ export async function setFrameBoxes(localPage: string, changes: ReadonlyMap<stri
   return Boolean(response.ok);
 }
 
+/**
+ * Moves frame `frameId` in the Board's order (walk 2026-10-29 W-32/W-33): before frame `before`, or last when null. The
+ * order is the Flow list's and Layers', and its first Screen is where Play starts (Figma's Set as starting point). No
+ * frame moves on the canvas: frames still in the row are pinned first, in the same undo step.
+ */
+export async function orderFrame(localPage: string, frameId: string, before: string | null, label: string): Promise<boolean> {
+  const first = await readBoard(localPage);
+  if (!first) return false;
+  const at = first.frames.findIndex((frame) => frame.id === frameId);
+  const to = before === null ? first.frames.length : first.frames.findIndex((frame) => frame.id === before);
+  if (at < 0 || to < 0 || before === frameId) return false;
+  // Already there: right before `before` (or already last).
+  if (to === at + 1 || (before === null && at === first.frames.length - 1)) return true;
+  const unplaced = first.frames.some((frame) => !frame.place);
+  const pinned = unplaced ? { text: first.text, hash: first.hash } : null;
+  if (unplaced && !(await pinRow(localPage))) return false;
+  const board = unplaced ? await readBoard(localPage) : first;
+  if (!board) return false;
+  const node = board.nodes[board.frames.findIndex((frame) => frame.id === frameId)];
+  const target = before === null ? null : board.nodes[board.frames.findIndex((frame) => frame.id === before)];
+  const last = board.nodes.at(-1);
+  if (!node || !last || (before !== null && !target)) return false;
+  const op = { op: "moveTo", parent: board.tree.board.loc, ...(target ? { before: target.loc } : { after: last.loc }) } as EditOp;
+  const response = await applyEdit({ file: board.file, loc: node.loc, name: node.name, ops: [op], hash: board.hash }, label);
+  joinPin(pinned, response, label);
+  return Boolean(response.ok);
+}
+
+/** Play's start (Figma's starting point): the Screen goes first in the Board's order. */
+export async function setStartScreen(localPage: string, frameId: string, title: string): Promise<boolean> {
+  const board = await readBoard(localPage);
+  const first = board?.frames[0];
+  if (!board || !first) return false;
+  return orderFrame(localPage, frameId, first.id, `Set ${title} as start`);
+}
+
 /** A free spot for a copy of frame `index`: beside it to the right (Figma's Duplicate), past any frame in the way. */
 function besidePlace(board: Board, index: number, heights: ReadonlyMap<string, number>): FramePlace {
   const boxes = board.frames.map((frame, at) => ({ ...board.places[at], width: frame.width, height: heights.get(frame.id) ?? 900 }));

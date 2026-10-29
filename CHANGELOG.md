@@ -19,6 +19,9 @@ How to maintain it:
   status bar); dropped on a layer placed freely, it goes beside it in the frame. The first layer inserted into an empty
   phone Screen starts the page margin below the status bar and the "Add Top Navigation" (W-28: it sat at 20, 20 under
   the Dynamic Island), so no insert makes a page flow at the Screen's edge any more (W-18).
+- Zen Studio: Set as start (walk 2026-10-29 W-32/W-33, Figma's Set as starting point): a flag on a Flow row, or the
+  frame's menu, makes a Screen the one Play and Present start from; dragging a frame's row in Layers reorders the frames
+  (it did nothing before). No frame moves on the canvas; one ⌘Z undoes it.
 - Zen Studio: layers placed freely in a frame without auto layout (a click from Assets places them so) wrap and group
   as Figma's (walk 2026-10-29 W-14): ⇧A makes one auto layout frame where they were, in screen order, their own
   floating Boxes gone; ⌘G and Frame selection group them in place. A mix of free and auto layout layers says so in

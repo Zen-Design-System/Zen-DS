@@ -72,3 +72,13 @@
 - W-18: no Screen prop. With click, drop and paste all floating in a Screen without a layout root, no insert makes a
   page flow at its edge; old pages that already hold one keep it.
 - E2E FW-263 (drop at the pointer, a second drop beside), FW-264 (bars end + 20, no flow); B-55/B-56 still work.
+
+## Set as start + frame order (walk W-32/W-33, tier S; user approved §4 item 5)
+
+- `builder/frameEdit.ts` orderFrame (moveTo on the Board, unplaced frames pinned first and squashed into one undo step
+  via joinPin) and setStartScreen (before the first frame). Flow row flag `Set <title> as start`
+  (`PrototypePanel.tsx`, `.studio-prototype__start` shown on hover like ▷), frame menu "Set as start" (`CanvasMenu.tsx`).
+- `edit/layersFrameDrag.ts` (new): a frame row's drag in Layers → orderFrame; the list is front-most first
+  (`data-order="front"`), so the Board's order is the list upside down. Layer rows keep `layersDrag.ts`.
+- Checks: builder selftest 79 (moveTo of a Screen on the Board keeps every x), tsc, style:check; E2E PT-33, PT-34.
+- §4 item 4 (W-12/W-28/W-18) went to session studio-wrap-floating.
