@@ -245,6 +245,29 @@ export default function Page() {
 }
 `;
 
+/** A phone Screen with one navigation only (PT-31): a Bottom Navigation (the status bar's edge keeps the safe area), or
+ *  a Top Navigation over a long List (the home indicator's edge keeps it). */
+const oneBarPage = (bar) => (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { BottomNavigation, List, ListItem, Stack, Text, TopNavigation } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+${bar === "bottom" ? `      <Screen id="screen-1" title="Home" device="phone" width={390} height={844} bottomNavigation={<BottomNavigation value="item-1" showLabels items={[{ id: "item-1", label: "Home", icon: "icon-circle-line" }, { id: "item-2", label: "Visits", icon: "icon-circle-line" }]} />}>
+        <Stack gap="md"><Text>Hello An Tam</Text></Stack>
+      </Screen>` : `      <Screen id="screen-1" title="Orders" device="phone" width={390} height={844} topNavigation={<TopNavigation title="Orders" leading={{ icon: "icon-chevron-left-line-medium", label: "Back" }} />}>
+        <List>
+          ${Array.from({ length: 16 }, (_, index) => `<ListItem title="Order ${index + 1}" caption="Phin & Co" />`).join("\n          ")}
+        </List>
+      </Screen>`}
+    </Board>
+  );
+}
+`;
+
 /** Two Screens and an Overlay named as a designer names them, long (PT-29). */
 const longNamesPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
@@ -612,6 +635,49 @@ export const rows = [
       if (seen.gap > 2 || seen.gap < -2) throw new Error(`at the end of the list the Bottom Navigation stands ${seen.gap}px above the device's foot`);
       if (!seen.backOnTop) throw new Error(`the list covers the Top Navigation's Back button (the point hits ${seen.hit})`);
       return `scrolled ${seen.top}/${max}px · Bottom Navigation at the foot (${seen.gap}px) · Back on top · last row ${seen.lastAboveBar}px clear of the bar`;
+    },
+  },
+  {
+    id: "PT-31", feature: "Play draws a phone's system bars at the device's edges whichever navigation the Screen has: with a Bottom Navigation only, the status bar at the top with no band above it and the content below it; with a Top Navigation only, the home indicator at the foot at the end of a long List and the last row clear of it (walk W-47)", wp: "bug 2026-10-29",
+    async run(ctx) {
+      const play = async (page, wait) => {
+        await page.locator(".studio-viewport").focus();
+        await page.keyboard.press("ControlOrMeta+Alt+Enter");
+        await playing(page).waitFor({ state: "visible", timeout: 5000 });
+        await playing(page).getByText(wait).first().waitFor({ state: "attached", timeout: 5000 });
+        await sleep(300);
+      };
+      const top = await seededPage(ctx, oneBarPage("bottom"), /Hello An Tam/);
+      await play(top.page, "Hello An Tam");
+      const head = await top.page.evaluate(() => {
+        const view = document.querySelector(".studio-player__device > .studio-player__screens").getBoundingClientRect();
+        const status = document.querySelector(".studio-player .studio-device-status").getBoundingClientRect();
+        const words = [...document.querySelectorAll(".studio-player .zen-text")].find((element) => element.textContent === "Hello An Tam").getBoundingClientRect();
+        return { band: Math.round(status.top - view.top), height: Math.round(status.height), below: Math.round(words.top - status.bottom) };
+      });
+      if (Math.abs(head.band) > 1) throw new Error(`a ${head.band}px band above the status bar (it should sit at the device's top)`);
+      if (head.below < 0) throw new Error(`the content starts ${-head.below}px under the status bar`);
+      await top.page.keyboard.press("Escape");
+      const foot = await seededPage(ctx, oneBarPage("top"), /Order 16/);
+      await play(foot.page, "Order 16");
+      const end = await foot.page.evaluate(() => {
+        const inner = document.querySelector(".studio-player__device > .studio-player__screens");
+        inner.scrollTop = inner.scrollHeight;
+        return inner.scrollHeight - inner.clientHeight;
+      });
+      if (end < 100) throw new Error(`the Screen scrolls ${end}px: the List should run past the device`);
+      await sleep(300);
+      const tail = await foot.page.evaluate(() => {
+        const view = document.querySelector(".studio-player__device > .studio-player__screens").getBoundingClientRect();
+        const home = document.querySelector(".studio-player .studio-device-home").getBoundingClientRect();
+        const screen = document.querySelector(".studio-player .studio-builder-screen");
+        const safe = parseFloat(getComputedStyle(screen).getPropertyValue("--zen-safe-area-bottom")) || 0;
+        const last = [...document.querySelectorAll(".studio-player .zen-list-item")].at(-1).getBoundingClientRect();
+        return { home: Math.round(view.bottom - home.bottom), clear: Math.round(view.bottom - safe - last.bottom), safe };
+      });
+      if (tail.home < 6 || tail.home > 12) throw new Error(`at the end of the List the home indicator stands ${tail.home}px above the device's foot (8 on an iPhone)`);
+      if (tail.clear < -1) throw new Error(`the last row runs ${-tail.clear}px into the ${tail.safe}px home area`);
+      return `Bottom Navigation only: status bar at the top (${head.band}px), content ${head.below}px below it · Top Navigation only: home indicator ${tail.home}px from the foot, last row ${tail.clear}px clear of the ${tail.safe}px home area`;
     },
   },
   {
