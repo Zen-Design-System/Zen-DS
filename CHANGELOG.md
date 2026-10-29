@@ -19,6 +19,10 @@ How to maintain it:
   floating Boxes gone; ⌘G and Frame selection group them in place. A mix of free and auto layout layers says so in
   design words. Dragging a free layer in Layers lands beside the other layers of its frame, and a drop where it
   already is does nothing (W-17).
+- Zen Studio prototypes the buttons inside a component (walk 2026-10-29, W-35/36/41): the Prototype tab lists a Dialog's,
+  a Modal form's or a Bottom Sheet's Primary and Secondary buttons and a Top Navigation's Back by their labels, each with
+  its own action and arrow, so Confirm can lead to a Screen. Top leading on a page you made adds a Back that goes back in
+  Play, not a "Back" toast.
 - Zen Studio Play and Present: a phone Screen with only a Bottom Navigation no longer shows a blank band above the
   status bar, and on one with only a Top Navigation the home indicator stays at the foot at the end of a long page
   (walk W-47).

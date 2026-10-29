@@ -41,8 +41,9 @@ export type DataSlot = {
   groups?: boolean | ((props: Record<string, unknown>) => boolean);
   /** Why the items do not group in the owner's current state (`groups` false for its props): the notes and refusals. */
   groupsOffNote?: string;
-  /** The code of a new item: one object literal (its handler calls toast, so `requires: ["toast"]`). */
-  newItem: (count: number) => { code: string; requires?: ("toast")[] };
+  /** The code of a new item: one object literal (its handler calls toast, so `requires: ["toast"]`). `pageCode`: what a
+   *  builder page gets instead, when its prototype action is not the toast (a Back button goes back: `proto.back()`). */
+  newItem: (count: number) => { code: string; requires?: ("toast")[]; pageCode?: string };
   /**
    * The React key the owner's `.map` gives an item, for owners that pass the item's fields one by one (Tabs: `<TabItem
    * key={item.id} label={item.label} …>`): the canvas finds the item by it. Unset: the item's `id`.

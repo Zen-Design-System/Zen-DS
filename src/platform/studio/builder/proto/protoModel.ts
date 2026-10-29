@@ -275,17 +275,54 @@ export function stepperOf(node: PageNode): { count: number; start: number } {
 /** A prop's value as a prototype action, or null (unset, or code of its own). */
 export const protoOf = (value: PageValue | undefined): { action: ProtoAction; args: unknown[] } | null => (value?.kind === "proto" ? { action: value.action as ProtoAction, args: value.args } : null);
 
+/*
+ * An action object's own trigger (walk 2026-10-29 W-36/W-41): a Dialog's primaryAction, a TopNavigation's leading Back
+ * are objects `{ label, onClick }`, and their buttons are parts, not layers. Each is a trigger of the layer that holds it,
+ * "<prop>.onClick", written in place with op setField, as Figma prototypes the button inside an instance.
+ */
+export const ACTION_FIELD = "onClick";
+/** The prop and field a "<prop>.onClick" trigger names; null for a plain trigger prop. */
+export const fieldTrigger = (trigger: string): { prop: string; field: string } | null => {
+  const at = trigger.indexOf(".");
+  return at > 0 ? { prop: trigger.slice(0, at), field: trigger.slice(at + 1) } : null;
+};
+/** What a trigger holds on the layer: the prop, or the field of an action object. */
+export function triggerValue(node: PageNode, trigger: string): PageValue | undefined {
+  const field = fieldTrigger(trigger);
+  if (!field) return node.props[trigger];
+  const value = node.props[field.prop];
+  return value?.kind === "object" ? value.fields[field.field] : undefined;
+}
+const ACTION_PROP = /^(leading|action)$|Action$/;
+/** The action objects written on the layer (one object with an onClick, or an action prop with a label): one trigger each. */
+export function actionTriggersOf(node: PageNode): string[] {
+  return Object.entries(node.props)
+    .filter(([prop, value]) => value.kind === "object" && (ACTION_FIELD in value.fields || (ACTION_PROP.test(prop) && "label" in value.fields)))
+    .map(([prop]) => `${prop}.${ACTION_FIELD}`);
+}
+const ACTION_WORDS: Record<string, string> = { primaryAction: "Primary button", secondaryAction: "Secondary button", tertiaryAction: "Third button", leading: "Leading button", action: "Action button", searchAction: "Search button", subAction: "Corner button", largeTitleAction: "Title button" };
+/** An action object's trigger in words, with its button's label ("Primary button · Confirm"); null for a plain trigger. */
+export function actionTriggerLabel(node: PageNode, trigger: string): string | null {
+  const field = fieldTrigger(trigger);
+  if (!field) return null;
+  const value = node.props[field.prop];
+  const label = value?.kind === "object" && value.fields.label?.kind === "literal" && typeof value.fields.label.value === "string" ? value.fields.label.value : "";
+  const words = ACTION_WORDS[field.prop] ?? `${field.prop.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^./, (first) => first.toUpperCase())} button`;
+  return label ? `${words} · ${label}` : words;
+}
+
 /** The trigger a drag from the layer's ⊕ writes: the one already leading to a frame, else (a choice control) the one
  *  that hands over the chosen item, else On click, else the first. */
 export function connectTrigger(node: PageNode, triggers: string[]): string | null {
   // While hovering is never the ⊕'s: it shows an overlay only while the pointer stays.
   const leading = triggers.find((trigger) => {
-    const proto = trigger === HOVER_TRIGGER ? null : protoOf(node.props[trigger]);
+    const proto = trigger === HOVER_TRIGGER ? null : protoOf(triggerValue(node, trigger));
     return proto && (proto.action === "navigate" || proto.action === "open");
   });
   if (leading) return leading;
   const item = choiceItemsOf(node).length ? ITEM_TRIGGER_ORDER.find((trigger) => triggers.includes(trigger)) : undefined;
-  return item ?? (triggers.includes("onClick") ? "onClick" : triggers.find((trigger) => trigger !== HOVER_TRIGGER) ?? null);
+  // No click of its own (a Dialog, a TopNavigation): its first button's (primary, leading) before its other events.
+  return item ?? (triggers.includes("onClick") ? "onClick" : triggers.find((trigger) => fieldTrigger(trigger)) ?? triggers.find((trigger) => trigger !== HOVER_TRIGGER) ?? null);
 }
 
 /** The Board's frame node a canvas frame id names ("screen:<id>[:<state>]", "overlay:<id>"), or null. */
@@ -491,24 +528,31 @@ function linksIn(root: PageNode): ProtoLink[] {
   const stack: PageNode[] = [root];
   while (stack.length) {
     const node = stack.pop()!;
-    for (const [trigger, prop] of Object.entries(node.props)) {
-      const values: PageValue[] = [prop];
+    for (const [prop, written] of Object.entries(node.props)) {
+      // Each value with the trigger it answers to and whether the layer's own trigger holds it (the prop itself, or an
+      // action object's onClick: "<prop>.onClick"); deeper actions belong to the layers they render.
+      const values: Array<{ value: PageValue; trigger: string; own: boolean }> = [{ value: written, trigger: prop, own: true }];
       while (values.length) {
-        const value = values.pop()!;
+        const { value, trigger, own } = values.pop()!;
         if (value.kind === "proto" && (value.action === "navigate" || value.action === "open")) {
           const action = value.action;
           const kind = action === "navigate" ? "screen" : "overlay";
           const [arg] = value.args;
-          if (typeof arg === "string") out.push({ loc: node.loc, trigger, action, target: arg, frameId: `${kind}:${arg}`, own: value === prop });
+          if (typeof arg === "string") out.push({ loc: node.loc, trigger, action, target: arg, frameId: `${kind}:${arg}`, own });
           else if (arg && typeof arg === "object" && !Array.isArray(arg)) {
             for (const [item, target] of Object.entries(arg as Record<string, unknown>)) {
-              if (typeof target === "string") out.push({ loc: node.loc, trigger, action, target, frameId: `${kind}:${target}`, own: value === prop, item });
+              if (typeof target === "string") out.push({ loc: node.loc, trigger, action, target, frameId: `${kind}:${target}`, own, item });
             }
           }
         } else if (value.kind === "element") stack.push(value.node);
         else if (value.kind === "fragment") for (const child of value.children) { if (child.kind === "element") stack.push(child); else if (child.kind === "map") stack.push(child.node); }
-        else if (value.kind === "array") values.push(...value.items);
-        else if (value.kind === "object") values.push(...Object.values(value.fields));
+        else if (value.kind === "array") values.push(...value.items.map((item) => ({ value: item, trigger, own: false })));
+        else if (value.kind === "object") {
+          for (const [key, field] of Object.entries(value.fields)) {
+            const action = own && trigger === prop && key === ACTION_FIELD;
+            values.push({ value: field, trigger: action ? `${prop}.${ACTION_FIELD}` : trigger, own: action });
+          }
+        }
       }
     }
     for (const child of node.children) {

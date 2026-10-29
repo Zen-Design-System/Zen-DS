@@ -1,11 +1,19 @@
 import { applyEdit } from "../../api";
 import type { EditOp, EditValue } from "../../types";
-import { DEFAULT_DELAY, DELAY_TRIGGER, protoActionCode, type ProtoAction, type ProtoFrame, type ProtoOptions } from "./protoModel";
+import { DEFAULT_DELAY, DELAY_TRIGGER, fieldTrigger, protoActionCode, type ProtoAction, type ProtoFrame, type ProtoOptions } from "./protoModel";
 
 /*
  * Writes a layer's prototype action: the trigger prop's `proto.*(…)` expression (setProp), or no prop at all for None
- * (removeProp). One edit, one undo step, from the Prototype tab and from a drag on the canvas (ProtoLinks) alike.
+ * (removeProp); an action object's button ("primaryAction.onClick") gets its field set or removed (setField). One edit,
+ * one undo step, from the Prototype tab and from a drag on the canvas (ProtoLinks) alike.
  */
+
+/** The op that writes `code` on the trigger (null: removes it). */
+function triggerOp(trigger: string, code: string | null): EditOp {
+  const field = fieldTrigger(trigger);
+  if (field) return { op: "setField", name: field.prop, key: field.field, value: code === null ? null : { kind: "expression", code } } as EditOp;
+  return code === null ? ({ op: "removeProp", name: trigger } as EditOp) : ({ op: "setProp", name: trigger, value: { kind: "expression", code } } as EditOp);
+}
 
 export type ProtoLayer = { file: string; loc: string; name: string };
 
@@ -26,12 +34,12 @@ const SAY: Record<ProtoAction, string> = { none: "No interaction", navigate: "Na
  *  names its delay. Resolves to whether it was written. */
 export async function writeAction(layer: ProtoLayer, trigger: string, action: ProtoAction, target?: string | Record<string, string | undefined>, options?: ProtoOptions, label?: string): Promise<boolean> {
   if (action === "none") {
-    const response = await applyEdit({ file: layer.file, loc: layer.loc, name: layer.name, ops: [{ op: "removeProp", name: trigger } as EditOp] }, "Remove interaction");
+    const response = await applyEdit({ file: layer.file, loc: layer.loc, name: layer.name, ops: [triggerOp(trigger, null)] }, "Remove interaction");
     return Boolean(response.ok);
   }
   const written = trigger === DELAY_TRIGGER ? { ...options, delay: options?.delay ?? DEFAULT_DELAY } : options;
   const code = protoActionCode(action, target ?? "", written);
-  const response = await applyEdit({ file: layer.file, loc: layer.loc, name: layer.name, ops: [{ op: "setProp", name: trigger, value: { kind: "expression", code } } as EditOp] }, label ?? (typeof target === "string" && target ? `${SAY[action]} ${target}` : SAY[action]));
+  const response = await applyEdit({ file: layer.file, loc: layer.loc, name: layer.name, ops: [triggerOp(trigger, code)] }, label ?? (typeof target === "string" && target ? `${SAY[action]} ${target}` : SAY[action]));
   return Boolean(response.ok);
 }
 
@@ -39,7 +47,7 @@ export async function writeAction(layer: ProtoLayer, trigger: string, action: Pr
  *  item without a target goes nowhere. */
 export async function writeItemTargets(layer: ProtoLayer, trigger: string, action: "navigate" | "open", targets: Record<string, string | undefined>, label: string, options?: ProtoOptions): Promise<boolean> {
   const code = protoActionCode(action, targets, options);
-  const response = await applyEdit({ file: layer.file, loc: layer.loc, name: layer.name, ops: [{ op: "setProp", name: trigger, value: { kind: "expression", code } } as EditOp] }, label);
+  const response = await applyEdit({ file: layer.file, loc: layer.loc, name: layer.name, ops: [triggerOp(trigger, code)] }, label);
   return Boolean(response.ok);
 }
 

@@ -5,12 +5,12 @@
 // pages and templates only, the file's hash required, docs chrome and playgrounds refused) and hands in its helpers.
 // User, 2026-10-04 ("Slot dữ liệu trong Studio").
 //
-//   op "insertItem" { prop, code, index?, single?, requires? }   on the host: `code` is one object literal (lines after
+//   op "insertItem" { prop, code, index?, single?, requires?, pageCode? }   on the host: `code` is one object literal (lines after
 //        the first indented from column 0). It goes into the array literal at `index` (omitted: last); an absent or
 //        nullish prop becomes `prop={[code]}`, or `prop={code}` with `single` (an object prop). With `list` (a prop that
 //        takes one object or a list, TopNavigation `largeTitleAction`) one object written there becomes `[object, code]`
 //        (`index` 0: `[code, object]`). `requires: ["toast"]`: the enclosing component gets `const { toast } = useToast();`
-//        unless a toast binding is in scope.
+//        unless a toast binding is in scope. `pageCode`: a builder page's item instead of `code` (its prototype action).
 //   op "removeItem" { prop, index? }      the index-th item goes with its comma; the only item, or an object prop,
 //        takes the attribute with it (a required prop keeps `[]`). A useToast() hook left unused goes too. `all`: every
 //        item goes, the attribute with them (a Figma boolean switched off with 2+ items, the layer hidden).
@@ -495,7 +495,9 @@ export function itemPlan(ctx, nodePath, op, h) {
   if (typeof op.prop !== "string" || !PROP.test(op.prop) || op.prop === "children" || op.prop === "key" || /^on[A-Z]/.test(op.prop)) h.refuse(`"${op.prop}" is not a prop that holds items`);
   if (op.op === "insertItem") {
     if (op.requires !== undefined && (!Array.isArray(op.requires) || op.requires.some((item) => item !== "toast"))) h.refuse('`requires` lists what the item needs: "toast"');
-    ctx.item = prepareItem(op.code, h, h.LOCAL_PAGE?.test(ctx.file ?? "") ?? false);
+    // A builder page takes the item's page code when it has one (a Back button's proto.back(), not its toast).
+    const page = h.LOCAL_PAGE?.test(ctx.file ?? "") ?? false;
+    ctx.item = prepareItem(page && typeof op.pageCode === "string" ? op.pageCode : op.code, h, page);
   }
   const helpers = { ...h, text: (node) => ctx.text.slice(h.valueRange(ctx.text, node).start, h.valueRange(ctx.text, node).end) };
   const { edits, index } = attributeEdits(ctx, ctx.element, op, helpers);

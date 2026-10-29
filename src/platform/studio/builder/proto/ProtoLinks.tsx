@@ -10,7 +10,7 @@ import { canEdit, useStudio } from "../../store";
 import type { PageTree } from "../render/renderPage";
 import { writeAction, writeItemTargets } from "./protoEdit";
 import { itemAt, itemElement, layerElements, selectedItem } from "./protoDom";
-import { choiceItemsOf, findNode, frameNodeOf, isItemTrigger, linksOf, optionsOf, protoOf, targetOfFrame, targetsByItem, type ProtoLink } from "./protoModel";
+import { choiceItemsOf, findNode, frameNodeOf, isItemTrigger, linksOf, optionsOf, protoOf, targetOfFrame, targetsByItem, triggerValue, type ProtoLink } from "./protoModel";
 import { protoSubject } from "./protoTriggers";
 
 /*
@@ -210,7 +210,8 @@ function ProtoLayer({ tree, file, boardRef }: { tree: PageTree | null; file: str
 
   /** The options the action on `trigger` has now (its animation, its delay): a drop that changes the target keeps them. */
   const optionsNow = (loc: string, trigger: string) => {
-    const proto = protoOf(findNode(tree, loc)?.props[trigger]);
+    const at = findNode(tree, loc);
+    const proto = at ? protoOf(triggerValue(at, trigger)) : null;
     return proto ? optionsOf(proto.action, proto.args) : undefined;
   };
 
@@ -264,7 +265,7 @@ function ProtoLayer({ tree, file, boardRef }: { tree: PageTree | null; file: str
     const at = findNode(tree, loc);
     const layer = layerOf(loc);
     if (!at || !layer) return;
-    const proto = protoOf(at.props[trigger]);
+    const proto = protoOf(triggerValue(at, trigger));
     const current = proto && (proto.action === "navigate" || proto.action === "open") ? proto : null;
     const targets = current ? targetsByItem(current.args[0], choiceItemsOf(at)) ?? {} : {};
     const others = Object.keys(targets).filter((key) => key !== item);
