@@ -38,3 +38,14 @@
   (`__pin[data-edge="top"] + __content`, `__content:has(+ __pin[data-edge="bottom"])`). The canvas is unchanged (no pins).
 - E2E PT-31 (id from Giám sát): Bottom Navigation only → status bar at the device's top, content below it; Top
   Navigation only, long List → home indicator 8px from the foot at the end, last row clear of the home area.
+
+## Session "W-14" · Wrap and group layers placed freely (tier S; user approved walk §4 item 2)
+- Root cause: a layer clicked in from Assets floats in its own `<Box position="absolute">`, which Layers hides. The
+  parent check in `wrapCheck` compared those Boxes, so ⇧A, ⌘G and Frame selection were refused ("share one parent").
+- ⇧A on free layers (`addAutoLayoutToFloating`): group them at their bounding box, then relayout that Box to a Stack
+  (`addPlan`: screen order, guessed gap, each float Box unwrapped unless it sizes the field). Two writes, one undo step.
+- ⌘G / Frame selection already had a floating path; the menu now offers them. A mix of free and auto layout layers
+  says so in design words (`mixedPlacement`); the server's wrap of two float Boxes too (jsx-source).
+- W-17, same cause: a Layers drop beside a free layer now targets its float Box, and a drop where it is does nothing.
+  Inferred from code, not walked: the pane stops at Google sign-in.
+- E2E FW-261 (the walk's Assets flow) and FW-262 (menu, ⌘G, ⇧A on seeded fields); selftest check for the server message.

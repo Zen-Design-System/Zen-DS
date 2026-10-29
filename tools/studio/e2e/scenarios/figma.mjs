@@ -5936,6 +5936,6 @@ async function selectFields(page, id) {
     await sleep(250);
   }
   await until(async () => (await selectedSrc(page)).length === 2 || (await page.locator(".studio-selection__outline[data-kind='extra']").count()) === 1, { message: "both fields selected" });
-  const names = await selectedName(page);
-  if (!/InputField|Text field/.test(names)) throw new Error(`selected ${names}, not the fields`);
+  const rows = await page.locator('.studio-layers__tree [role="treeitem"][aria-selected="true"]').evaluateAll((items) => items.map((row) => row.textContent.trim()));
+  if (rows.length !== 2 || rows.some((row) => !/InputField|Text field|Name|Email/.test(row))) throw new Error(`selected ${rows.join(" · ")}, not the fields`);
 }
