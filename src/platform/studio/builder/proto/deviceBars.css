@@ -94,3 +94,9 @@
 .studio-builder-screen[data-os] { position: relative; box-sizing: border-box; }
 .studio-builder-screen[data-os][data-inset~="top"] { padding-top: var(--zen-safe-area-top); }
 .studio-builder-screen[data-os][data-inset~="bottom"] { padding-bottom: var(--zen-safe-area-bottom); }
+/* Play and Present pin the bars in the app's column (runtime.tsx __pin): the safe area goes between a pinned bar and the
+   content, so the status bar stays at the Screen's top and the home indicator at its foot. On the Screen it pushed the
+   pinned status bar 50px down, a blank band above "9:41" on a Screen with only a Bottom Navigation (walk W-47). */
+.studio-builder-screen[data-os]:has(> .studio-builder-screen__main > .studio-builder-screen__pin) { padding-top: 0; padding-bottom: 0; }
+.studio-builder-screen[data-os][data-inset~="top"] > .studio-builder-screen__main > .studio-builder-screen__pin[data-edge="top"] + .studio-builder-screen__content { padding-top: var(--zen-safe-area-top); }
+.studio-builder-screen[data-os][data-inset~="bottom"] > .studio-builder-screen__main > .studio-builder-screen__content:has(+ .studio-builder-screen__pin[data-edge="bottom"]) { padding-bottom: var(--zen-safe-area-bottom); }

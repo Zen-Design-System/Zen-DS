@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio Play and Present: a phone Screen with only a Bottom Navigation no longer shows a blank band above the
+  status bar, and on one with only a Top Navigation the home indicator stays at the foot at the end of a long page
+  (walk W-47).
 - Zen Studio: a component dropped on the empty canvas keeps its Figma width (user 2026-10-29): a Top Navigation lands
   390 wide, a Line chart 297, an Input 312, as Figma's loose instance does, instead of hugging its content (the Top
   Navigation was 258). Components that hug in Figma (Button, Badge, Card) still hug.
