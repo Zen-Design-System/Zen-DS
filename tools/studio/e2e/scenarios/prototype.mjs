@@ -2100,7 +2100,7 @@ export const rows = [
       return `phone Screen ${Math.round(a.width)}px · overlay ${Math.round(b.width)}px on the canvas`;
     },
   },  {
-    id: "PT-LC1", feature: "Play's choice controls act with no setup (walk 2026-10-29 W-52, the user's A on 2026-10-30): on a phone, the Date Chip opens a Bottom Sheet whose Any time row carries the ✓; picking Last 3 months moves the ✓ and the row's selected look to it and the Chip reads Last 3 months, Selected; the sheet opened again keeps the pick; Any time gives the Chip back its Date; Restart starts over; the page code is unchanged", wp: "play live controls 2026-10-30", timeout: 50_000,
+    id: "PT-49", feature: "Play's choice controls act with no setup (walk 2026-10-29 W-52, the user's A on 2026-10-30): on a phone, the Date Chip opens a Bottom Sheet whose Any time row carries the ✓; picking Last 3 months moves the ✓ and the row's selected look to it and the Chip reads Last 3 months, Selected; the sheet opened again keeps the pick; Any time gives the Chip back its Date; Restart starts over; the page code is unchanged", wp: "play live controls 2026-10-30", timeout: 50_000,
     async run(ctx) {
       const { page, text } = await seededPage(ctx, liveControlsPage, /<Overlay id="date">/);
       const before = await text();
@@ -2141,7 +2141,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-LC2", feature: "A Switch acts in Play though the page writes it off (W-52 A: checked={false} locked it): pressed it turns on, and Restart turns it off again", wp: "play live controls 2026-10-30", timeout: 40_000,
+    id: "PT-50", feature: "A Switch acts in Play though the page writes it off (W-52 A: checked={false} locked it): pressed it turns on, and Restart turns it off again", wp: "play live controls 2026-10-30", timeout: 40_000,
     async run(ctx) {
       const { page } = await seededPage(ctx, liveControlsPage, /<Overlay id="date">/);
       await playLiveControls(page);
@@ -2156,7 +2156,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-LC3", feature: "A Segmented acts in Play though the page writes its value (W-52 A: value=\"list\" locked it): Map pressed is the value; Navigate to and Back show the Screen as drawn again (List)", wp: "play live controls 2026-10-30", timeout: 40_000,
+    id: "PT-51", feature: "A Segmented acts in Play though the page writes its value (W-52 A: value=\"list\" locked it): Map pressed is the value; Navigate to and Back show the Screen as drawn again (List)", wp: "play live controls 2026-10-30", timeout: 40_000,
     async run(ctx) {
       const { page } = await seededPage(ctx, liveControlsPage, /<Overlay id="date">/);
       await playLiveControls(page);
@@ -2340,7 +2340,7 @@ async function byTrigger(page, trigger, surface) {
 }
 
 /** A phone Screen with a Date Chip opening a Bottom Sheet of ranges (Any time ✓), a Switch written off and a Segmented
- *  written on List, and a Details Screen with Back (PT-LC1…PT-LC3, W-52 A 2026-10-30). */
+ *  written on List, and a Details Screen with Back (PT-49…PT-51, W-52 A 2026-10-30). */
 const liveControlsPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
 import { BottomSheet, Button, Chip, Icon, List, ListItem, Segmented, Stack, Toggle } from "@zen-ds/react";
