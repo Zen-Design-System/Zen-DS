@@ -9,7 +9,7 @@ import { zoomToFrame } from "../board/presentFrame";
 import { usePageTree } from "./usePageTree";
 import { ProtoLinks } from "./proto/ProtoLinks";
 import { PageOsContext, pageOsOf, ProtoContext, ScreenCanvasContext, SimulatedDeviceContext, type ProtoActions, type ScreenCanvasEdit } from "./proto/runtime";
-import { frameOf, isSectionNode, isSliceNode, literalOf, type PageFrame } from "./render/frames";
+import { frameOf, isSectionNode, isSliceNode, literalOf, pageDeviceOf, type PageFrame } from "./render/frames";
 import { viewDevice } from "../../../../tools/studio/screen-devices.mjs";
 import { shownBreakpoint, useScreenView } from "./screenViews";
 import { addScreenPart, isChildScreen } from "./screenParts";
@@ -146,8 +146,10 @@ export function BuilderBoard({ id }: { id: string }) {
     // The page's OS goes with each frame, so Present (outside the board) draws its Screens' bars and picks their device
     // as the canvas does.
     const os = pageOsOf(tree.header);
-    return tree.board.children.filter((child): child is PageNode => child.kind === "element" && !isSectionNode(child) && !isSliceNode(child)).map((node) => {
-      const frame = frameOf(node);
+    const nodes = tree.board.children.filter((child): child is PageNode => child.kind === "element" && !isSectionNode(child) && !isSliceNode(child));
+    const device = pageDeviceOf(nodes);
+    return nodes.map((node) => {
+      const frame = frameOf(node, device);
       const height = literalOf(node, "height");
       const versionOf = literalOf(node, "versionOf");
       const shape = frame.kind === "screen" ? { device: frame.device, width: frame.width, height: typeof height === "number" ? height : undefined, os, id: String(literalOf(node, "id") ?? ""), versionOf: typeof versionOf === "string" ? versionOf : undefined } : undefined;
@@ -159,9 +161,9 @@ export function BuilderBoard({ id }: { id: string }) {
   // dragged or nudged keeps its live place until the page has it (frameMove.ts). Written before the browser paints, as
   // the component board places its examples; the box spans the frames for the board's size.
   // Figma's sections (F4): drawn first, behind the frames; placed like them (always at their own place).
-  const sections = useMemo(() => (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element" && isSectionNode(child)).map(frameOf), [tree]);
+  const sections = useMemo(() => (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element" && isSectionNode(child)).map((node) => frameOf(node)), [tree]);
   // Figma's slices: drawn last, above the frames (their outline only; a click goes through to what is under them).
-  const slices = useMemo(() => (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element" && isSliceNode(child)).map(frameOf), [tree]);
+  const slices = useMemo(() => (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element" && isSliceNode(child)).map((node) => frameOf(node)), [tree]);
   const allPlaces = useMemo(() => placeFrames([...sections, ...frames, ...slices]), [sections, frames, slices]);
   const framePlaces = useMemo(() => allPlaces.slice(sections.length, sections.length + frames.length), [allPlaces, sections.length, frames.length]);
   // A selected frame the page no longer has (⌘Z took back the copy or the drawn frame): nothing stays selected. A frame

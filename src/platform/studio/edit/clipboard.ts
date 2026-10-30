@@ -658,18 +658,34 @@ export function useClipboard() {
   }, []);
 }
 
+/** What a paste says when the browser would not let the Studio read the clipboard. */
+export const CLIPBOARD_BLOCKED = "The browser blocked reading the clipboard: press ⌘V on the canvas, or allow clipboard access for this site";
+
+/** The system clipboard's text; `blocked` when the browser refused to read it (walk 2026-10-29 W-63: the paste did
+ *  nothing, or said the clipboard was empty). */
+export async function readClipboardText(): Promise<{ text: string; blocked: boolean }> {
+  if (!navigator.clipboard?.readText) return { text: "", blocked: true };
+  try {
+    return { text: await navigator.clipboard.readText(), blocked: false };
+  } catch {
+    return { text: "", blocked: true };
+  }
+}
+
 /** A paste without a clipboard event (menu, ⇧⌘R): the Studio's clip, else the system clipboard's text. */
 async function pasteFromMenu(selection: NodeSelection, replace: boolean) {
   if (clip) return pasteAt(selection, null, replace);
-  const text = await navigator.clipboard?.readText().catch(() => null);
-  return pasteAt(selection, text ?? "", replace);
+  const { text, blocked } = await readClipboardText();
+  if (blocked) { fail(CLIPBOARD_BLOCKED); return false; }
+  return pasteAt(selection, text, replace);
 }
 
 /** Paste here (a canvas menu at `point`), or ⌘V's paste into the frame in view (null): the clip, else the clipboard's text. */
 export async function pasteHere(point: { x: number; y: number } | null) {
   if (clip) return pasteOnCanvas(null, point);
-  const text = await navigator.clipboard?.readText().catch(() => null);
-  return pasteOnCanvas(text ?? "", point);
+  const { text, blocked } = await readClipboardText();
+  if (blocked) { fail(CLIPBOARD_BLOCKED); return false; }
+  return pasteOnCanvas(text, point);
 }
 
 /** The clipboard actions for other entry points (Quick actions ⌘/). */

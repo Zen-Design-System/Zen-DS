@@ -108,3 +108,21 @@
   Screen that sets them: 0 there. The device now sets the bars' room (Present needs none: PT-40's open Dialog clears the home area without it).
 - E2E PT-38 (toast in the device, 20 from its sides, over the home area), PT-39 (the Dialog panel and a sheet's last row
   above the home area); both fail on main's Player.tsx. PT-28, PT-30/31 still work. Present: PT-40 (follow-up PR).
+
+## Small fixes, Prototype side (walk §4 item 9, tier S; user approved 2026-10-30)
+
+Item 9 split in two: this session the Prototype / Play / New page side, studio-wrap-floating the Design / Inspector side
+(W-07/08/09, W-16/25/40, W-19, W-21, W-22, W-24, W-26, W-27, W-30, W-38, W-62). Branch zen/fix/studio-walk-small-20261030.
+- W-37: `select/SelectionLayer.tsx` `showDesignTab()`: a double-click leaves the Prototype tab as it is.
+- W-59: `PrototypePanel.tsx` TriggerRow `missing`: a Navigate/Open target not on the page → empty field + note.
+- W-15: `words.ts`: proto.toast(…) with arguments reads "Show toast"; "Bound to {Show toast}" → "Prototype action: Show
+  toast" (it became "Set in code"); navigate is "Navigate to" as the Prototype tab says, close/back/link added.
+- W-39: `render/frames.ts` `pageDeviceOf` + `frameOf(node, device)`: an Overlay is the page device's width (desktop: 720); the HTML/PNG export follows (`htmlExport.tsx`; the gate caught HO-03/HO-04, HO-03 now expects the phone's 390).
+- W-56: Add Screen › "New Screen" (was "Empty Screen"; it carries the app bars and the starter line, both user
+  decisions of 10-09/10-18). E2E helpers renamed.
+- W-02 New page: the Screen picker above the templates, disabled (not hidden) while a template is picked. W-04: device
+  lists `popoverWidth="hug"`. W-01: "Creating…" on the project button. W-63: `readClipboardText()` + `CLIPBOARD_BLOCKED`.
+- Not done: W-15's preset toast on Assets' buttons and W-56's starter line stay (user decisions; question in report);
+  W-03 (Can edit bar over the dialog) not reproduced from code; W-51, W-58 are new features (item 8).
+- E2E PT-45..48 (W-59, W-37, W-60, W-39), all work; PT-47 shows W-60 as it is (Escape closes the Viewport panel, Play stays: not reproduced); words, protoModel, framePlace, builder, items selftests; tsc clean.
+

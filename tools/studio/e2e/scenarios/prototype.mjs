@@ -56,7 +56,7 @@ async function protoPage(ctx, { screens = 2, overlay = false, button = false, de
   await prototypeTab(page);
   for (let n = 2; n <= screens; n += 1) {
     await page.getByRole("button", { name: "Add Screen" }).click();
-    await page.getByRole("menuitem", { name: "Empty Screen" }).click(); // Add Screen asks: empty or a template (W-49)
+    await page.getByRole("menuitem", { name: "New Screen" }).click(); // Add Screen asks: a new Screen or a template (W-49)
     await until(async () => new RegExp(`<Screen id="screen-${n}"`).test(await text(page, id)), { message: `screen-${n} in the page` });
   }
   if (overlay) {
@@ -877,13 +877,13 @@ export const rows = [
     },
   },
   {
-    id: "PT-36", feature: "Add Screen › a template (walk 2026-10-29 W-49): on a phone page Add Screen offers Empty Screen and the phone templates; Mobile detail · Order goes in as a second Screen with its three overlays, Track package and Get help opened by the ActionBar actions named as they are; one ⌘Z takes it all back", wp: "prototype walk 2026-10-29", timeout: 60_000,
+    id: "PT-36", feature: "Add Screen › a template (walk 2026-10-29 W-49): on a phone page Add Screen offers New Screen and the phone templates; Mobile detail · Order goes in as a second Screen with its three overlays, Track package and Get help opened by the ActionBar actions named as they are; one ⌘Z takes it all back", wp: "prototype walk 2026-10-29", timeout: 60_000,
     async run(ctx) {
       const { page, id } = await newPage(ctx, { device: "phone" });
       const source = async () => (await pageText(page, id)) ?? "";
       await prototypeTab(page);
       await page.getByRole("button", { name: "Add Screen" }).click();
-      await page.getByRole("menuitem", { name: "Empty Screen" }).waitFor({ state: "visible", timeout: 3000 });
+      await page.getByRole("menuitem", { name: "New Screen" }).waitFor({ state: "visible", timeout: 3000 });
       await step("Mobile detail · Order", () => page.getByRole("menuitem", { name: /^Mobile detail · Order/ }).click({ timeout: 10_000 }));
       await until(async () => (await source()).match(/<Screen /g)?.length === 2, { timeout: 30_000, message: "a second Screen" });
       await until(async () => (await source()).match(/<Overlay /g)?.length === 3, { message: "its three overlays" });
@@ -2042,7 +2042,110 @@ export const rows = [
       return "switch on → popoverItems (4) + dropdown, no Overlay · Play: the Chip picks Option 3 · switch off → <Chip dropdown>";
     },
   },
+  {
+    id: "PT-45", feature: "A link whose overlay was deleted says so (walk 2026-10-29 W-59: the Overlay field showed the raw id \"overlay-1 · Add an overlay first\"): a Button's proto.open(\"gone\") shows the Open overlay action, an empty Overlay field and \"The overlay it opened was deleted. Pick another.\"", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await seededPage(ctx, danglingPage, /proto\.open\("gone"\)/);
+      await clickNamed(page, id, "Button");
+      await prototypeTab(page);
+      const panel = page.locator('[data-e2e="prototype-panel"]');
+      await step("the note", () => panel.getByText("The overlay it opened was deleted. Pick another.").waitFor({ state: "visible", timeout: 5000 }));
+      const field = await panel.locator('[data-prop="proto:onClick:target"]').innerText();
+      if (/\bgone\b/.test(field)) throw new Error(`the Overlay field still shows the deleted id: ${JSON.stringify(field)}`);
+      return `proto.open("gone") → the note, the Overlay field reads ${JSON.stringify(field.replace(/\s+/g, " ").trim())}`;
+    },
+  },
+  {
+    id: "PT-46", feature: "A double-click on the canvas keeps the Prototype tab (walk 2026-10-29 W-37: it jumped to Design, Figma stays): with Prototype open, a double-click on the Change role Button selects it and the Prototype tab stays, its Interactions showing On click", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await seededPage(ctx, namedOverlaysPage, /<Overlay id="change-role"/);
+      await clickNamed(page, id, "Button");
+      await prototypeTab(page);
+      const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).first().boundingBox();
+      await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 2);
+      await sleep(600);
+      const selected = await page.locator("#studio-right").getByRole("tab", { selected: true }).innerText();
+      if (selected.trim() !== "Prototype") throw new Error(`the double-click opened the ${selected.trim()} tab`);
+      await step("Interactions", () => page.locator('[data-prop="proto:onClick"]').waitFor({ state: "visible", timeout: 3000 }));
+      return "double-click → Prototype tab stays, On click shown";
+    },
+  },
+  {
+    id: "PT-47", feature: "Escape in Play's Viewport panel closes the panel only (walk 2026-10-29 W-60: it left Play): the Viewport panel open, Escape closes it and Play stays; the next Escape leaves Play", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, safePage, /Changes saved/);
+      await playSafePage(page);
+      await playing(page).getByRole("button", { name: /^Viewport:/ }).click();
+      const panel = playing(page).locator(".studio-present-bar__panel");
+      await panel.waitFor({ state: "visible", timeout: 3000 });
+      await page.keyboard.press("Escape");
+      await until(async () => (await panel.count()) === 0, { message: "Escape closing the Viewport panel" });
+      await sleep(300);
+      if (!(await playing(page).isVisible())) throw new Error("Escape in the Viewport panel left Play");
+      await page.keyboard.press("Escape");
+      await step("the second Escape leaving Play", () => playing(page).waitFor({ state: "detached", timeout: 5000 }));
+      return "Escape → panel closed, Play stays · Escape → Play left";
+    },
+  },
+  {
+    id: "PT-48", feature: "An Overlay on a phone page is drawn as wide as the phone (walk 2026-10-29 W-39: a 720px desktop frame): the Dialog overlay's frame on the canvas is the phone Screen's width", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, phoneOverlayPage, /<Overlay id="confirm">/);
+      const screen = page.locator('[data-studio-frame="screen:screen-1"]');
+      const overlay = page.locator('[data-studio-frame="overlay:confirm"]');
+      await overlay.waitFor({ state: "attached", timeout: 5000 });
+      const [a, b] = [await screen.boundingBox(), await overlay.boundingBox()];
+      if (Math.abs(a.width - b.width) > 2) throw new Error(`the overlay's frame is ${Math.round(b.width)}px wide on the canvas, the phone Screen's ${Math.round(a.width)}px`);
+      return `phone Screen ${Math.round(a.width)}px · overlay ${Math.round(b.width)}px on the canvas`;
+    },
+  },
 ];
+
+/** A phone Screen whose Button opens an overlay deleted since (PT-45, walk 2026-10-29 W-59). */
+const danglingPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { Button, Dialog, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Team" device="phone">
+        <Stack gap="md" padding="lg">
+          <Button onClick={proto.open("gone")}>Invite</Button>
+        </Stack>
+      </Screen>
+      <Overlay id="filter">
+        <Dialog title="Filter" primaryAction={{ label: "Apply", onClick: proto.close() }} />
+      </Overlay>
+    </Board>
+  );
+}
+`;
+
+/** A phone page with a Dialog overlay (PT-48, walk 2026-10-29 W-39). */
+const phoneOverlayPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { Button, Dialog, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Home" device="phone">
+        <Stack gap="md" padding="lg">
+          <Button onClick={proto.open("confirm")}>Book</Button>
+        </Stack>
+      </Screen>
+      <Overlay id="confirm">
+        <Dialog title="Book?" primaryAction={{ label: "Book", onClick: proto.close() }} />
+      </Overlay>
+    </Board>
+  );
+}
+`;
 
 /** A phone Screen whose buttons show a toast, open a Dialog and open a Bottom Sheet whose rows end with 2025 (PT-38, PT-39, walk 2026-10-29 W-44/W-45). */
 const safePage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}

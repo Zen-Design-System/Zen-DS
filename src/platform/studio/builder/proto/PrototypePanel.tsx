@@ -132,7 +132,8 @@ function AddScreenMenu({ localPage, disabled, phone }: { localPage: string; disa
       trigger={<Button appearance="main" level="tertiary" size="sm" disabled={disabled} startIcon={<Icon name="icon-plus-line" decorative />} endIcon={<Icon name="icon-chevron-down-line" decorative />}>Add Screen</Button>}
       onOpenChange={load}
       items={[
-        { id: "empty", label: "Empty Screen", icon: "icon-plus-line" },
+        // Not "Empty": the Screen comes with its app frame and a starter line (walk 2026-10-29 W-56).
+        { id: "empty", label: "New Screen", icon: "icon-plus-line" },
         { type: "separator", id: "templates-separator" },
         ...(templates === null ? [{ id: "loading", label: "Templates…", disabled: true }] : fits.map((template) => ({ id: `template:${template.id}`, label: template.title, icon: phone ? "icon-mobile-line" as const : "icon-monitor-01-line" as const }))),
       ]}
@@ -281,6 +282,9 @@ function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, 
   // Every Screen and each of its states (a state's own frame, as Figma's), by the target Navigate to writes.
   const screens = frames.filter((frame) => frame.kind === "screen").map((frame) => ({ ...frame, id: frame.state ? `${frame.id}:${frame.state}` : frame.id, title: frame.state && !frame.title.includes(frame.state) ? `${frame.title} · ${frame.state}` : frame.title }));
   const overlays = frames.filter((frame) => frame.kind === "overlay");
+  // A target deleted since (walk 2026-10-29 W-59: the overlay went, proto.open("overlay-1") stayed and the field showed
+  // its raw id): the field shows none, and a line says what happened.
+  const missing = !byItem && argText !== "" && (action === "open" || action === "navigate") && !(action === "open" ? overlays : screens).some((frame) => frame.id === argText);
   // An overlay that places itself (a Dialog…) animates itself too.
   const target = openTarget;
   const targetChild = target?.children.find((child): child is PageNode => child.kind === "element") ?? null;
@@ -325,15 +329,16 @@ function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, 
       )) : null}
       {action === "navigate" && !byItem ? (
         <InspectorRow label="Screen" name={`proto:${trigger}:target`}>
-          <RowSelectField aria-label={`${label} screen`} size="sm" disabled={disabled} value={argText} placeholder="—" onValueChange={(next) => write("navigate", next)} options={screens.map((frame) => ({ value: frame.id, label: frame.title }))} />
+          <RowSelectField aria-label={`${label} screen`} size="sm" disabled={disabled} value={missing ? "" : argText} placeholder="—" onValueChange={(next) => write("navigate", next)} options={screens.map((frame) => ({ value: frame.id, label: frame.title }))} />
         </InspectorRow>
       ) : null}
       {popover ? <PopoverRows target={{ file: layer.file, loc: popover.loc, name: "Popover" }} items={popover.props.items} mock={tree?.mock ?? {}} disabled={disabled} /> : null}
       {action === "open" && !byItem && !popover ? (
         <InspectorRow label="Overlay" name={`proto:${trigger}:target`}>
-          <RowSelectField aria-label={`${label} overlay`} size="sm" disabled={disabled || !overlays.length} value={argText} placeholder={overlays.length ? "—" : "Add an overlay first"} onValueChange={(next) => write("open", next)} options={overlays.map((frame) => ({ value: frame.id, label: frame.title }))} />
+          <RowSelectField aria-label={`${label} overlay`} size="sm" disabled={disabled || !overlays.length} value={missing ? "" : argText} placeholder={overlays.length ? "—" : "Add an overlay first"} onValueChange={(next) => write("open", next)} options={overlays.map((frame) => ({ value: frame.id, label: frame.title }))} />
         </InspectorRow>
       ) : null}
+      {missing ? <Text as="p" tone="light" textStyle="Caption/Regular" className="studio-prototype__note">{action === "open" ? "The overlay it opened was deleted. Pick another." : "The screen it went to was deleted. Pick another."}</Text> : null}
       {action === "toast" || action === "link" ? (
         <InspectorRow label={action === "toast" ? "Title" : "URL"} name={`proto:${trigger}:target`}>
           <RowInputField

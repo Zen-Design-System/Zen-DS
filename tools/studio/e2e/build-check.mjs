@@ -325,7 +325,7 @@ try {
   await step("Prototype: Add screen, Navigate to, Present", async () => {
     await inspectorTab(page, "Prototype");
     await page.getByRole("button", { name: "Add Screen" }).click();
-    await page.getByRole("menuitem", { name: "Empty Screen" }).click(); // Add Screen asks: empty or a template (W-49)
+    await page.getByRole("menuitem", { name: "New Screen" }).click(); // Add Screen asks: a new Screen or a template (W-49)
     await until(async () => /<Screen id="screen-2"/.test((await storedText(page, id)) ?? ""), { timeout: 10_000, message: "screen-2" });
     await page.locator('[data-studio-frame="screen:screen-2"]').waitFor({ state: "attached", timeout: 10_000 });
     await clickNamed(page, id, "Button");

@@ -129,7 +129,8 @@ function SetupLayer({ setup: current }: { setup: Exclude<Setup, null> }) {
         <Segmented aria-label="Preview" size="sm" value={view} onValueChange={(value) => setView(value as typeof view)} options={[{ id: "light", label: "Light" }, { id: "dark", label: "Dark" }, { id: "both", label: "Both" }]} />
         <div className="studio-project-setup__actions">
           <Button level="tertiary" size="sm" onClick={closeProjectSetup}>Cancel</Button>
-          <Button level="primary" size="sm" disabled={busy} onClick={() => void save()}>{editing ? "Save" : "Create project"}</Button>
+          {/* Words while the project is written: about 2 s with no sign before (walk 2026-10-29 W-01). */}
+          <Button level="primary" size="sm" disabled={busy} aria-busy={busy || undefined} onClick={() => void save()}>{busy ? (editing ? "Saving…" : "Creating…") : editing ? "Save" : "Create project"}</Button>
         </div>
       </ChromeScope>
       <div className="studio-project-setup__body">

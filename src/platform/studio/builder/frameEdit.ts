@@ -2,7 +2,7 @@ import { announceEditStatus, applyEdit, squashEdits } from "../api";
 import { studioStore } from "../store";
 import type { EditOp, EditResponse } from "../types";
 import { loadEngine, zenComponents } from "./engine";
-import { frameOf, literalOf, type PageFrame } from "./render/frames";
+import { frameOf, literalOf, pageDeviceOf, type PageFrame } from "./render/frames";
 import { selectFrameWhenShown } from "../board/frames";
 import { boardBoxes, sectionContents } from "../board/sections";
 import { FRAME_GAP, placeFrames, type FramePlace } from "./render/framePlace";
@@ -25,7 +25,8 @@ async function readBoard(localPage: string): Promise<Board | null> {
   const tree = engine.parsePage(page.text, { components: new Set(zenComponents) }) as unknown as PageTree;
   if (!tree.board) return null;
   const nodes = tree.board.children.filter((child): child is PageNode => child.kind === "element");
-  const frames = nodes.map(frameOf);
+  const device = pageDeviceOf(nodes);
+  const frames = nodes.map((node) => frameOf(node, device));
   return { engine, file: pageFile(localPage), text: page.text, hash: engine.sha1(page.text), tree: tree as Board["tree"], nodes, frames, places: placeFrames(frames) };
 }
 
