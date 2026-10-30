@@ -104,7 +104,7 @@ export const rows = [
       const groups = page.locator("[data-icon-group]");
       await groups.first().waitFor({ state: "visible", timeout: 3000 });
       await until(async () => (await groups.count()) >= 3, { message: "Default, Used in this file and All icons" });
-      const read = await groups.evaluateAll((els) => els.map((el) => ({ id: el.getAttribute("data-icon-group"), first: el.querySelector(".zen-popover__item")?.textContent?.trim() ?? "" })));
+      const read = await groups.evaluateAll((els) => els.map((el) => ({ id: el.getAttribute("data-icon-group"), first: el.querySelector(".zen-popover__item")?.getAttribute("data-icon") ?? "" })));
       await page.keyboard.press("Escape");
       // Recent and Related tiles (IN-20) may sit between them: the rows are found by group.
       const file = read.find((group) => group.id === "file");
@@ -127,14 +127,14 @@ export const rows = [
           throw new Error(`${step}: no ${group} group (groups: ${shown.join(", ") || "none"}; field ${field})`);
         });
       };
-      const tiles = (group) => page.locator(`[data-icon-group="${group}"] [role=option]`).evaluateAll((els) => els.map((el) => el.getAttribute("aria-label")));
+      const tiles = (group) => page.locator(`[data-icon-group="${group}"] [role=option]`).evaluateAll((els) => els.map((el) => el.getAttribute("data-icon")));
       await open("first open");
       const related = await tiles("related");
       if (!related.includes("icon-plus-circle-line") || !related.includes("icon-plus-square-line")) throw new Error(`Related for icon-plus-line: ${related.join(" ")}`);
-      await page.locator('[data-icon-group="related"] [role=option][aria-label="icon-plus-circle-line"]').click();
+      await page.locator('[data-icon-group="related"] [role=option][data-icon="icon-plus-circle-line"]').click();
       await expectSource(ctx, "inst-button", (el) => el.attr("startIcon") === "icon-plus-circle-line", 'startIcon="icon-plus-circle-line"');
       await open("after the first pick");
-      await page.locator('[data-icon-group="related"] [role=option][aria-label="icon-plus-square-line"]').click();
+      await page.locator('[data-icon-group="related"] [role=option][data-icon="icon-plus-square-line"]').click();
       await expectSource(ctx, "inst-button", (el) => el.attr("startIcon") === "icon-plus-square-line", 'startIcon="icon-plus-square-line"');
       // The icon shown (plus-square) is left out; the pick before it leads. Related is gone: the plus family is all in
       // Default (plus) and Recent (plus-circle), and an icon shows in one group only.

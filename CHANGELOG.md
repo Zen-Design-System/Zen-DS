@@ -31,6 +31,13 @@ How to maintain it:
   (W-39); Add Screen's first choice is "New Screen" (it comes with the app bars, W-56); New page puts the device first,
   above the templates (W-02); device lists show whole names (W-04); New project says "Creating…" while it works (W-01);
   a paste the browser blocks from reading the clipboard says so instead of doing nothing (W-63).
+- Zen Studio's Design panel in the walk's words (2026-10-29 W-07…W-40): the colour picker calls Accent the project's
+  Primary, finds it as "primary" or "brand", paints its swatches in the project's colours and applies a lone match on
+  Enter; icon pickers name icons in words ("User circle · Line"); a text's Fill names its Figma variable; several
+  InputFields selected show their rows in words. Bottom navigation gets "Show labels", and a tab's new icon brings its
+  selected icon along. A click on a Screen's empty background selects the frame; Top navigation's slot tags and +
+  chips no longer sit on each other; Fill container on a field its column already stretches no longer wraps it in a
+  hidden Stack; the "cannot be wrapped" note shows once per layer.
 - Zen Studio templates (walk 2026-10-29 W-48/49/50/57): a page from a phone template keeps the template's own Top and
   Bottom Navigation (its title, Search and tabs, not the page name over nothing); a template's overlays open from the
   buttons named as they are ("Invite members", "Date"); Add Screen offers the templates for the page's device beside an

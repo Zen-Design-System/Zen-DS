@@ -29,6 +29,7 @@ import { RowSelectField } from "./rowFields";
 import { hexOf, nearestColors, parseHex, type Rgb } from "./controls/colorMatch";
 import { openVariables } from "../variables/variablesState";
 import { inspectorStatus } from "./status";
+import { useCanvasPreview } from "../project/activeProject";
 
 /** A colour variable's rendered RGB where `at` sits (its CSS value read through a 1-px canvas; a translucent one over white). */
 let probe: CanvasRenderingContext2D | null | undefined;
@@ -533,17 +534,34 @@ export function TypographyControl({ label, value, fallback, disabled, onSet, emp
  * (Color/Border). A prop whose options all belong to one of them gets the swatch control below.
  */
 export const isToneOptions = (options: readonly string[]) => options.length > 0 && options.every((option) => tonePalette.has(option));
+/** The modes a swatch resolves its token in: the canvas's brand and mode, so it paints what the canvas paints (a
+ * project's Primary, not Zen's default; walk W-08 2026-10-29). Only the swatch takes them, never the field around it. */
+type SwatchScope = { "data-brand": string; "data-theme": string; "data-contrast": string };
+function useSwatchScope(): SwatchScope {
+  const { preview, brand } = useCanvasPreview();
+  return useMemo(() => ({ "data-brand": brand, "data-theme": preview.theme, "data-contrast": preview.contrast ?? "standard" }), [brand, preview.theme, preview.contrast]);
+}
+
 /** A round swatch in the option's colour (its token, inline); a dashed ring for `inherit`, `none` or nothing set. */
-function PaletteSwatch({ palette, option }: { palette: SwatchPalette; option: string | undefined }) {
+function PaletteSwatch({ palette, option, scope }: { palette: SwatchPalette; option: string | undefined; scope?: SwatchScope }) {
   const token = option && palette.has(option) ? palette.colorOf(option) : null;
-  return <span className="studio-tone-swatch" data-swatch={token ? undefined : "none"} style={token ? { color: `var(${token})` } : undefined} aria-hidden="true" />;
+  return <span className="studio-tone-swatch" data-swatch={token ? undefined : "none"} style={token ? { color: `var(${token})` } : undefined} aria-hidden="true" {...(token ? scope : undefined)} />;
 }
 
 /** The value's swatch at the end of an inline colour field: Figma Inline-Field Type=Color's Color-Swatch. */
-function InlinePaletteSwatch({ palette, option }: { palette: SwatchPalette; option: string | undefined }) {
+function InlinePaletteSwatch({ palette, option, scope }: { palette: SwatchPalette; option: string | undefined; scope?: SwatchScope }) {
   const token = option && palette.has(option) ? palette.colorOf(option) : null;
-  return token ? <ColorSwatch color={`var(${token})`} size="sm" /> : <PaletteSwatch palette={palette} option={option} />;
+  return token ? <span className="studio-tone-scope" {...scope}><ColorSwatch color={`var(${token})`} size="sm" /></span> : <PaletteSwatch palette={palette} option={option} />;
 }
+
+/** What a colour search term also means: the project calls Accent "Primary" (Project settings), Figma files "Brand". */
+const COLOR_SYNONYMS: ReadonlyArray<readonly [string, string]> = [["primary", "accent"], ["brand", "accent"]];
+/** Each term of a colour search, with the token word it stands for ("prim" → also "accent"). */
+export function colorSearchTerms(query: string): string[][] {
+  return query.trim().toLowerCase().split(/\s+/).filter(Boolean).map((term) => [term, ...COLOR_SYNONYMS.filter(([word]) => term.length >= 3 && word.startsWith(term)).map(([, token]) => token)]);
+}
+/** A family's header: Accent also says it is the project's Primary (the word Project settings uses). */
+const familyTitle = (name: string) => (name === "Accent" ? "Accent · Primary" : name);
 
 /**
  * A colour prop (`tone`, `fill`, `stroke`): like a select, but the trigger and every option lead with a swatch of the
@@ -562,11 +580,13 @@ export function SwatchControl({ label, value, fallback, disabled, onSet, options
   const shown = matched ?? (fallback === undefined ? undefined : matchOption(fallback, options));
   const current = shown !== undefined && palette.has(shown) ? palette.resolve(shown) : undefined;
   const isTone = palette === tonePalette;
+  const scope = useSwatchScope();
+  const scopeRef = useRef<HTMLSpanElement>(null);
   const groups = useMemo(() => {
     if (!open) return [];
     const offered = new Set(options);
-    const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    const hit = (option: string) => terms.every((term) => option.includes(term) || palette.caption(option).toLowerCase().includes(term));
+    const terms = colorSearchTerms(query);
+    const hit = (option: string) => terms.every((words) => words.some((term) => option.includes(term) || palette.caption(option).toLowerCase().includes(term)));
     return palette.groups
       .map(({ name, options: members }) => ({ name, members: members.filter((option) => offered.has(option) && hit(option)) }))
       .filter(({ members }) => members.length);
@@ -590,8 +610,8 @@ export function SwatchControl({ label, value, fallback, disabled, onSet, options
     if (!typedHex) return [];
     const offered = new Set(options);
     const candidates = palette.groups.flatMap(({ options: members }) => members.filter((option) => offered.has(option)));
-    return nearestColors(candidates.map((option) => ({ option, color: rgbOf(anchorRef.current, palette.colorOf(option)) })), typedHex, 3).map((entry) => entry.option);
-  }, [typedHex?.r, typedHex?.g, typedHex?.b, options, palette]);
+    return nearestColors(candidates.map((option) => ({ option, color: rgbOf(scopeRef.current, palette.colorOf(option)) })), typedHex, 3).map((entry) => entry.option);
+  }, [typedHex?.r, typedHex?.g, typedHex?.b, options, palette, scope]);
   const close = () => { setOpen(false); setQuery(""); };
   const createVariable = () => {
     const hex = typedHex ? hexOf(typedHex) : "";
@@ -605,8 +625,17 @@ export function SwatchControl({ label, value, fallback, disabled, onSet, options
     // An alias already written (accent, secondary) stays when its own tone is picked again.
     if (matched === undefined || palette.resolve(next) !== palette.resolve(matched)) onSet(next);
   };
+  // Enter in the search applies the one colour it found (walk W-09), as Figma's variable search does.
+  const only = typedHex ? (nearest.length === 1 ? nearest[0] : null) : groups.length === 1 && groups[0].members.length === 1 ? groups[0].members[0] : null;
+  const onSearchKey = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Enter" || event.defaultPrevented || (event.target as HTMLElement).tagName !== "INPUT" || !query.trim() || !only) return;
+    event.preventDefault();
+    pick(only);
+  };
   return (
     <div ref={anchorRef} className="studio-tone-control">
+      {/* The canvas's modes, where the nearest-colour search reads the tokens (as the swatches paint them). */}
+      <span ref={scopeRef} hidden {...scope} />
       {/* Inline (Figma Inline-Field Type=Color): the label left, the token and its swatch at the end. */}
       <SelectField
         aria-label={label}
@@ -616,19 +645,19 @@ export function SwatchControl({ label, value, fallback, disabled, onSet, options
         disabled={disabled}
         value={shown ?? ""}
         placeholder="—"
-        leading={inlineLabel ? undefined : <PaletteSwatch palette={palette} option={shown} />}
-        trailing={inlineLabel ? <InlinePaletteSwatch palette={palette} option={shown} /> : undefined}
+        leading={inlineLabel ? undefined : <PaletteSwatch palette={palette} option={shown} scope={scope} />}
+        trailing={inlineLabel ? <InlinePaletteSwatch palette={palette} option={shown} scope={scope} /> : undefined}
         options={shown ? [{ value: shown, label: palette.label(shown) }] : []}
         popoverOpen={false}
         onPopoverOpenChange={(next) => { if (next) setOpen((was) => !was); }}
       />
       <Popover ref={popoverRef} id={`${listId}-list`} open={open} onOpenChange={(next) => { if (!next) close(); }} anchorRef={anchorRef}
-        search searchValue={query} onSearchChange={setQuery} searchPlaceholder="Search colors" aria-label={`${label} options`} autoFocus>
+        search searchValue={query} onSearchChange={setQuery} searchPlaceholder="Search colors" aria-label={`${label} options`} autoFocus onKeyDown={onSearchKey}>
         {typedHex ? (
           <div role="group" aria-labelledby={`${listId}-typed`} className="studio-type-control__group">
             <div id={`${listId}-typed`} role="presentation" className={`studio-type-control__family ${typographyStyles["Caption/Medium"]}`}>{`Nearest to ${hexOf(typedHex)}`}</div>
             {nearest.map((option) => (
-              <PopoverItem key={`near-${option}`} label={palette.label(option)} caption={palette.caption(option)} leading={<PaletteSwatch palette={palette} option={option} />}
+              <PopoverItem key={`near-${option}`} label={palette.label(option)} caption={palette.caption(option)} leading={<PaletteSwatch palette={palette} option={option} scope={scope} />}
                 selected={option === current} onSelect={() => pick(option)} />
             ))}
             <PopoverItem label="Create variable…" caption="Local variables" leading={<Icon name="icon-hexagon-01-line" size="sm" decorative />} onSelect={createVariable} />
@@ -641,9 +670,9 @@ export function SwatchControl({ label, value, fallback, disabled, onSet, options
         ) : null}
         {groups.map(({ name, members }) => (
           <div key={name} role="group" aria-labelledby={`${listId}-${name}`} className="studio-type-control__group">
-            <div id={`${listId}-${name}`} role="presentation" className={`studio-type-control__family ${typographyStyles["Caption/Medium"]}`}>{name}</div>
+            <div id={`${listId}-${name}`} role="presentation" className={`studio-type-control__family ${typographyStyles["Caption/Medium"]}`}>{familyTitle(name)}</div>
             {members.map((option) => (
-              <PopoverItem key={option} label={palette.label(option)} caption={[palette.caption(option), isTone ? toneWarning(palette.resolve(option), component) : null].filter(Boolean).join(" · ")} leading={<PaletteSwatch palette={palette} option={option} />}
+              <PopoverItem key={option} label={palette.label(option)} caption={[palette.caption(option), isTone ? toneWarning(palette.resolve(option), component) : null].filter(Boolean).join(" · ")} leading={<PaletteSwatch palette={palette} option={option} scope={scope} />}
                 selected={option === current} onSelect={() => pick(option)} />
             ))}
           </div>
@@ -656,6 +685,17 @@ export function SwatchControl({ label, value, fallback, disabled, onSet, options
 
 /** Text and icon colour roles (`tone`): the swatch control on Color/Content. */
 export const ToneControl = (props: ControlProps<string> & { options: string[]; component?: string }) => <SwatchControl {...props} palette={tonePalette} />;
+
+/** An icon's name in words, as a designer reads it in a list (walk W-25): "icon-user-circle-line" → "User circle", its
+ * style "Line". The name itself stays the value written and the search key. */
+export function iconWords(name: string): { words: string; style: string | null } {
+  const parts = name.replace(/^icon-/, "").split("-");
+  const style = parts.length > 1 && /^(line|solid|medium|small)$/.test(parts.at(-1)!) ? parts.pop()! : null;
+  const words = parts.join(" ");
+  return { words: words.charAt(0).toUpperCase() + words.slice(1), style: style && style.charAt(0).toUpperCase() + style.slice(1) };
+}
+/** An icon's name in one phrase ("User circle · Line"): a field, a tile's name. */
+export const iconPhrase = (name: string) => { const { words, style } = iconWords(name); return style ? `${words} · ${style}` : words; };
 
 /** Icon names matching every search term: the exact name first, then names that start with it, then a word start. */
 export function rankIcons(query: string, names: readonly string[] = allIconNames): string[] {
@@ -742,7 +782,7 @@ export function IconControl({ label, value, fallback, disabled, onSet, emptyLabe
     if (!open || !searching) return undefined;
     return rankIcons(query)
       .slice(0, 200)
-      .map((name) => ({ id: name, label: name, leading: name as IconName, selected: name === value }));
+      .map((name) => ({ id: name, label: iconWords(name).words, caption: iconWords(name).style ?? undefined, leading: name as IconName, selected: name === value }));
   }, [open, searching, query, value]);
   const groups = useMemo(() => {
     if (!open || searching) return [];
@@ -769,13 +809,13 @@ export function IconControl({ label, value, fallback, disabled, onSet, emptyLabe
         endIcon="icon-chevron-down-line"
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={`${label}: ${shown ?? emptyLabel.toLowerCase()}`}
+        aria-label={`${label}: ${shown ? iconPhrase(shown) : emptyLabel.toLowerCase()}`}
         onClick={() => setOpen((current) => !current)}
       >
         {/* Inline (Figma Inline-Field): the row's label left, the icon and its name at the end. */}
         {inlineLabel ? <span className={`studio-inline-label ${typographyStyles["Body/Small/Medium"]}`}>{inlineLabel}</span> : null}
         {inlineLabel && asIcon(shown) ? <Icon name={asIcon(shown) as IconName} size="sm" decorative /> : null}
-        <span className={`studio-icon-control__label ${typographyStyles["Body/Small/Medium"]}`}>{shown ?? emptyLabel}</span>
+        <span className={`studio-icon-control__label ${typographyStyles["Body/Small/Medium"]}`}>{shown ? iconPhrase(shown) : emptyLabel}</span>
       </Button>
       <Popover
         open={open}
@@ -796,9 +836,9 @@ export function IconControl({ label, value, fallback, disabled, onSet, emptyLabe
             <div id={`${listId}-${group.id}`} role="presentation" className={`studio-type-control__family ${typographyStyles["Caption/Medium"]}`}>{group.title}</div>
             {group.id === "recent" || group.id === "related"
               ? <div className="studio-icon-control__tiles">
-                  {group.names.map((name) => <PopoverItem key={`${group.id}:${name}`} aria-label={name} title={name} leading={name as IconName} onSelect={() => pick(name)} />)}
+                  {group.names.map((name) => <PopoverItem key={`${group.id}:${name}`} aria-label={iconPhrase(name)} title={iconPhrase(name)} data-icon={name} leading={name as IconName} onSelect={() => pick(name)} />)}
                 </div>
-              : group.names.map((name) => <PopoverItem key={`${group.id}:${name}`} label={name} leading={name as IconName} selected={name === value} onSelect={() => pick(name)} />)}
+              : group.names.map((name) => <PopoverItem key={`${group.id}:${name}`} label={iconWords(name).words} caption={iconWords(name).style ?? undefined} data-icon={name} leading={name as IconName} selected={name === value} onSelect={() => pick(name)} />)}
           </div>
         ))}
       </Popover>

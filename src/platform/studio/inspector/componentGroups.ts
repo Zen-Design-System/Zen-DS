@@ -9,6 +9,13 @@ import { groupsFromFigma, propGroupsOf, type ComponentGroups } from "./propGroup
 const HOLDS: Record<string, string> = { MetricCard: "Metric" };
 
 /**
+ * Code props a component's Figma set shows on a nested primitive the read does not reach, listed after Figma's own
+ * rows so the Design tab can still set them: Bottom-Navigation's labels live on each Nav-Item (walk W-24, 2026-10-29:
+ * the tab names typed in never showed).
+ */
+const CODE_ROWS: Record<string, ReadonlyArray<{ prop: string; label: string }>> = { BottomNavigation: [{ prop: "showLabels", label: "Show labels" }] };
+
+/**
  * The Properties groups of a component: the hand-written ones (propGroups.ts: TopNavigation, with its nested layers),
  * else the ones generated from the Figma read (figmaProps.generated.ts, every mapped component), else null (one list).
  */
@@ -17,6 +24,12 @@ export function componentGroupsOf(component: string): ComponentGroups | null {
   if (own) return own;
   const figma = FIGMA_PROPS[component];
   if (!figma) return null;
+  const groups = figmaGroupsOf(component, figma);
+  const extra = CODE_ROWS[component];
+  return extra ? { ...groups, after: [...groups.after, ...extra] } : groups;
+}
+
+function figmaGroupsOf(component: string, figma: (typeof FIGMA_PROPS)[string]): ComponentGroups {
   const inner = HOLDS[component] ? FIGMA_PROPS[HOLDS[component]] : undefined;
   if (!inner) return groupsFromFigma(figma);
   const has = (prop: string) => figma.own.some((row) => row.prop === prop) || figma.toggles.some((toggle) => toggle.prop === prop);

@@ -126,3 +126,22 @@ Item 9 split in two: this session the Prototype / Play / New page side, studio-w
   W-03 (Can edit bar over the dialog) not reproduced from code; W-51, W-58 are new features (item 8).
 - E2E PT-45..48 (W-59, W-37, W-60, W-39), all work; PT-47 shows W-60 as it is (Escape closes the Viewport panel, Play stays: not reproduced); words, protoModel, framePlace, builder, items selftests; tsc clean.
 
+## Session "P2/P3 Design side" · Words, colours and Inspector slips (tier S; walk §4 item 9, approved 2026-10-30)
+
+Branch `claude/studio-p2p3-inspector` from main 7b4cf0fa. The walk session takes the prototype half of item 9.
+- W-07/08/09 (PropField SwatchControl): Accent's family reads "Accent · Primary"; "primary"/"brand" find Accent;
+  swatches carry the canvas's data-brand/theme/contrast (a project's Primary, not Zen's); Enter applies a lone match.
+- W-16 (MixedProperties): rows read as words (layerLabel; nested rows "Label · Tooltip icon"; propLabel fallback).
+- W-25 (IconControl): "User circle" + caption "Line"; `data-icon` keeps the name (IN-07/IN-20 read it now).
+- W-40 (PartPanel ValueCell): the Figma variable name (partInfo variableName), look-alikes only in the tooltip.
+- W-24 (componentGroups CODE_ROWS): BottomNavigation's showLabels in the Design tab, after Figma's rows.
+- W-26 (ObjectProperties write): an item's new icon takes selectedIcon to its -solid twin (else removes it).
+- W-30: the wrap refusal says itself once per element in a session (ResizeLayer saidRefusals). "List as Frame 4"
+  not reproduced: Layers shows the float Box's layer itself.
+- W-27 (SelectionLayer pick): a Screen's own background picks the frame.
+- W-38 (SlotLayer): chips at one spot stack (spreadChips); overlapping tags move down a row (separateTags).
+- W-22 (resize planFill `stretched`): Fill on a layer its frame already stretches writes nothing and says so.
+- W-21: main already edits a Button's words in two double-clicks from nothing (I-51 guards it). W-62 not reproduced
+  (the view chip sat clear of every toolbar in the walk's setup). W-19 → QUESTIONS (designer: Gap vs Padding names).
+- E2E I-43..I-52 (inspector.mjs, `guarded` adds the panel and a screenshot to a failure); 9 fail on main's source.
+  api.mjs writeProject. Selftests 2263, tsc clean.
