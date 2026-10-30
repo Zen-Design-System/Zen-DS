@@ -52,7 +52,7 @@
 .studio-world :is(.zen-stack, .zen-grid, .zen-box, .zen-shape)[data-sticky]:not([data-position="absolute"]) { position: relative; }
 /* A new Screen's empty content Stack (dialect.mjs screenLines): a hint on the canvas only, never a layer, never in Play,
    Present or the export (user, 2026-10-30, walk W-56: the "Start building here…" Text was a real layer). */
-.studio-world :is(.studio-builder-screen__content, .zen-app-shell__body) > .zen-stack:only-child:empty::before {
+.studio-world :is(.studio-builder-screen__content, .studio-builder-screen__shell-body, .zen-app-shell__body) > .zen-stack:only-child:empty::before {
   color: var(--zen-color-content-neutral-light);
   font-size: var(--zen-typography-font-size-body-small);
   line-height: var(--zen-typography-line-height-body-small);

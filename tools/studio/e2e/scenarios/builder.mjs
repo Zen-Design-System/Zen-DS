@@ -189,14 +189,19 @@ export const selectedName = async (page) => (await page.locator("#studio-right h
 export async function selectStack(page, id) {
   await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
   await focusScreen(page);
-  // A new page's content Stack starts empty (walk W-56): the canvas's hint gives it a box to click. A page with a Text
-  // in it: the Text, then Escape up to its Stack.
-  const empty = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Stack"]:empty`).first();
-  if (await empty.count()) {
-    await selectAt(page, await empty.boundingBox());
+  // The Screen's content Stack. Empty (a new page, walk W-56): the canvas's hint gives it a box to click. Holding layers:
+  // its first one, then Escape up to the Stack.
+  const content = page.locator(`:is(.studio-builder-screen__content, .studio-builder-screen__shell-body, .zen-app-shell__body) > [data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Stack"]`).first();
+  const first = content.locator(":scope > [data-zen-src]").first();
+  if (!(await content.count())) {
+    await clickNamed(page, id, "Text");
+    await page.keyboard.press("Escape");
+  } else if (!(await first.count())) {
+    await selectAt(page, await content.boundingBox());
     await sleep(500);
   } else {
-    await clickNamed(page, id, "Text");
+    await selectAt(page, await first.boundingBox());
+    await sleep(500);
     await page.keyboard.press("Escape");
   }
   await until(async () => (await selectedName(page)) === "Frame", { message: "the Stack selected (its panel heads it Frame, as Figma)" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)}; status: ${await statusText(page)})`); });

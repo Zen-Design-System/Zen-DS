@@ -366,11 +366,11 @@ export const rows = [
       const shown = (await inspectorRow(page, "level").innerText()).trim();
       if (!/Primary/.test(shown) || /\bprimary\b/.test(shown)) throw new Error(`the Level row reads "${shown}"`);
       await resetAll(page).click();
-      await until(async () => /<Button onClick/.test((await pageText(page, id)) ?? ""), { message: "level removed" });
+      await until(async () => /<Button>/.test((await pageText(page, id)) ?? ""), { message: "level removed" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+KeyZ");
       await until(async () => /<Button level="primary"/.test((await pageText(page, id)) ?? ""), { message: "⌘Z brings level back" });
-      return 'Level reads "Primary"; Reset all → <Button onClick…> → ⌘Z → level="primary"';
+      return 'Level reads "Primary"; Reset all → <Button> → ⌘Z → level="primary"';
     },
   },
   {
