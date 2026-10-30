@@ -250,7 +250,7 @@ async function flowPage(ctx) {
   await until(async () => /<Button /.test((await pageText(page, id)) ?? ""), { message: "a Button" });
   await prototypeTab(page);
   await page.getByRole("button", { name: "Add Screen" }).click();
-  await page.getByRole("menuitem", { name: "Empty Screen" }).click(); // Add Screen asks: empty or a template (W-49)
+  await page.getByRole("menuitem", { name: "New Screen" }).click(); // Add Screen asks: a new Screen or a template (W-49)
   await until(async () => /<Screen id="screen-2"/.test((await pageText(page, id)) ?? ""), { message: "screen-2 in the page" });
   await until(async () => (await page.locator('[data-studio-frame="screen:screen-2"]').count()) > 0, { message: "screen-2 on the canvas" });
   return made;

@@ -113,6 +113,7 @@ export function ViewportFields({ idPrefix, viewport, onChange, scale, autoWidth,
         <RowSelectField
           id={`${idPrefix}-device`}
           size="small"
+          popoverWidth="hug"
           value={device?.id ?? (viewport ? "custom" : "auto")}
           onValueChange={(next) => onChange(deviceViewport(screenDevice(next)))}
           options={[

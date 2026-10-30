@@ -28,9 +28,12 @@ const cases = [
   ["Bound to {me.photo}. An edit sets a fixed value; Restore brings the binding back", "From data: me › photo. An edit sets a fixed value; Restore brings the data link back"],
   ["Bound to {person.theme}: change it in the code", "From data: person › theme: change it in the code"],
   ["Bound to {rows.filter((row) => row.open).length}", "Set in code"],
+  // A prototype action reads as the Prototype tab names it, its arguments or not (walk 2026-10-29 W-15).
+  ["Bound to {proto.toast({ title: \"Changes saved\" })}", "Prototype action: Show toast"],
+  ["Bound to {proto.open(\"invite\", { animation: \"dissolve\" })}", "Prototype action: Open overlay"],
   ["Bound to the on/off state {open}: one line when on", "Bound to the on/off state data: open: one line when on"],
   ["It spreads {...rest}: detach needs every prop written out.", "It takes shared properties: detach needs every property written out."],
-  ["A builder page has no hooks: an action is proto.toast(…), proto.navigate(…) or proto.open(…)", "A builder page has no app logic: an action is Show toast, Go to page or Open overlay"],
+  ["A builder page has no hooks: an action is proto.toast(…), proto.navigate(…) or proto.open(…)", "A builder page has no app logic: an action is Show toast, Navigate to or Open overlay"],
   ["<PersonAvatar> has no children to drop into", "PersonAvatar can't hold layers"],
   ["a <div> would break the List", "a frame would break the List"],
   ["The Table's rows come from a .map; edit them in the code", "The Table's rows come from a list; edit them in the code"],

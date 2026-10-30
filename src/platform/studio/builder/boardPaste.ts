@@ -1,6 +1,6 @@
 import type { MenuItemData } from "../../../components/Menu";
 import { announceEditStatus, squashEdits } from "../api";
-import { copiedLayers, textLayer } from "../edit/clipboard";
+import { CLIPBOARD_BLOCKED, copiedLayers, readClipboardText, textLayer } from "../edit/clipboard";
 import { canEdit, studioStore } from "../store";
 import { loadEngine } from "./engine";
 import { copyFrame, setFrameBoxes } from "./frameEdit";
@@ -62,7 +62,9 @@ export async function pasteOnBoard(point: { x: number; y: number }): Promise<boo
     return Boolean(await copyFrame(localPage, frame.frameId, place, { label: "Paste frame here", ...(here ? {} : { source: frame }) }));
   }
   const layers = last?.layers ?? null;
-  const text = layers ? layers.code : ((await navigator.clipboard?.readText().catch(() => null)) ?? "").trim();
+  const read = layers ? null : await readClipboardText();
+  if (read?.blocked) { fail(CLIPBOARD_BLOCKED); return false; }
+  const text = layers ? layers.code : (read?.text ?? "").trim();
   if (!text) { fail("The clipboard is empty — copy a layer first"); return false; }
   const code = text.startsWith("<") ? text : textLayer(text);
   if (/^<(?:Screen|Overlay|Section)\b/.test(code)) { fail("Select the frame by its name, copy it, then paste it here"); return false; }
