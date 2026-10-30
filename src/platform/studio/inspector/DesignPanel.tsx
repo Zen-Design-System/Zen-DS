@@ -65,6 +65,7 @@ import { speak } from "../useWords";
 import { GridCellGroup, gridOf } from "./GridCellGroup";
 import { SlotHost, useSlotFilled } from "./SlotHost";
 import { openQuickInsert } from "../builder/library/quickInsertState";
+import { PopoverSectionFor } from "../builder/proto/PopoverRows";
 import { resetAllProps } from "./resetAll";
 import { publishInstanceActions } from "./instanceActions";
 import { takesInstanceLook } from "../../../../tools/studio/instance-look.mjs";
@@ -930,6 +931,9 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
       {element && (propertySpecs.length || instanceText) && (groups || !codeOnlyKind) ? (
         <GroupedProperties groups={groups ?? FLAT_GROUPS} flat={!groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} nested={nested} text={instanceText} />
       ) : element && instanceText ? <InspectorSection title="Properties">{instanceText}</InspectorSection> : null}
+
+      {/* A layer on a page made in the Studio that takes a click: its Popover option (user 2026-10-28). */}
+      {element ? <PopoverSectionFor src={selection.src} disabled={api.disabled} /> : null}
 
       {/* Figma nested instances: the booleans of the Zen components written in this element's props. */}
       {element && !groups ? <NestedProperties element={element} api={api} nested={nested} /> : null}

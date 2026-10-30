@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio Popover option (user 2026-10-28/30): every layer that takes a click has a Popover switch in the Design tab
+  and On click › Open popover in the Prototype tab. On, its click opens a Popover beside it (a Chip uses its own), with
+  Sample rows (how many, each row's words) or the first rows of a list in the page data (label, caption, picture).
+  One ⌘Z takes it back; off removes the click and the popover.
 - Zen Studio templates (walk 2026-10-29 W-48/49/50/57): a page from a phone template keeps the template's own Top and
   Bottom Navigation (its title, Search and tabs, not the page name over nothing); a template's overlays open from the
   buttons named as they are ("Invite members", "Date"); Add Screen offers the templates for the page's device beside an
