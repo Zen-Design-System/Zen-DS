@@ -6,9 +6,10 @@ import { RowSelectField } from "../inspector/rowFields";
 import { componentGroupsOf } from "../inspector/componentGroups";
 import { TextControl, TypographyControl } from "../inspector/PropField";
 import { entryLabel, entryOptions, entryProp, figmaOptions } from "../inspector/propGroups";
-import { matchOption, propSpecs, valueOf, type Literal, type PropSpec } from "../inspector/propSchema";
+import { matchOption, propLabel, propSpecs, valueOf, type Literal, type PropSpec } from "../inspector/propSchema";
 import { canvasApi } from "../canvas/viewport";
 import { findBySrc, onSourceUpdate } from "../select/picker";
+import { layerLabel } from "../words";
 import type { ExtraLayer } from "../select/multiSelection";
 import { tokenPx, type SpacingScale } from "../select/spacing";
 import { useStudio } from "../store";
@@ -91,11 +92,21 @@ export function MixedProperties({ layers, editable }: { layers: ExtraLayer[]; ed
   const groups = componentGroupsOf(component);
   const entries = groups ? [...groups.own, ...groups.after, ...groups.nested.flatMap((group) => group.props)] : [];
   const entryOf = (prop: string) => entries.find((entry) => entryProp(entry) === prop);
+  // A nested layer's prop says its layer, as the one-layer panel's group header does ("Label · Tooltip icon"); a prop
+  // Figma has no name for reads as words, never as code (`readOnly` → "Read only"; walk W-16).
+  const nestedOf = (prop: string) => groups?.nested.find((group) => group.props.some((entry) => entryProp(entry) === prop))?.name;
+  const labelOf = (prop: string) => {
+    const entry = entryOf(prop);
+    const own = entry && entryLabel(entry);
+    if (!own) return propLabel(prop, component);
+    const nested = nestedOf(prop);
+    return nested ? `${layerLabel(nested)} · ${layerLabel(own)}` : layerLabel(own);
+  };
   return (
     <InspectorSection title={`${component} properties`} note={`A value set here goes to all ${layers.length} layers (one undo step). Mixed: they differ.`}>
       {rows.map(({ spec, value, mixed, bound }) => {
         const entry = entryOf(spec.name);
-        const rowLabel = (entry && entryLabel(entry)) ?? spec.name;
+        const rowLabel = labelOf(spec.name);
         const hint = bound ? "Bound to code in some layers — change it there" : undefined;
         if (isText(spec)) {
           // Mixed values show as the placeholder; a string any layer holds but cannot write as text is left to the code.

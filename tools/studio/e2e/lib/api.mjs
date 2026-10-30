@@ -66,6 +66,8 @@ export function studioApi(baseUrl) {
     element: (file, loc) => call("GET", "/element", { query: { file, loc } }),
     edit: (file, loc, name, ops) => call("POST", "/edit", { body: { file, loc, name, ops }, write: true }),
     drafts: () => call("GET", "/drafts"),
+    /** Writes a Studio project (.zen-studio/projects/<id>/), as Project settings does. */
+    writeProject: (project) => call("POST", "/projects/write", { body: { project }, write: true }),
     save: (files) => call("POST", "/save", { body: { files }, write: true }),
     discard: (files) => call("POST", "/discard", { body: files ? { files } : {}, write: true }),
     /** Replaces the effective text of `file` with `content` (a draft; the disk is untouched). */

@@ -255,6 +255,10 @@ until each is answered; an answer turns into work in `BACKLOG.md` (or is fixed a
     "Pending", "Inactive"; Active reads "Online"); the Member access example reads them as an account turned off, an
     invite not yet accepted and no sign-in for 90 days. Name the intended presence (offline · away · busy?) if different.
 
+- **Spacing step names (P3, 2026-10-30, Studio walk W-19):** Spacing/Gap and Spacing/Padding share step names with
+  different values (Large is 24 as a gap and 20 as padding; the Studio shows each step's px beside its name). Keep the
+  two ladders as they are, or align the names or the values? Code keeps the tokens until answered.
+
 ## For the user (decisions and actions)
 
 Answered on 2026-10-09: selecting on the canvas follows Figma's click (a click selects the outermost layer in context,

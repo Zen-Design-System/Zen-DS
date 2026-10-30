@@ -245,6 +245,10 @@ làm hiện tại; khi có câu trả lời, việc cần làm sẽ vào `BACKLO
   đọc "Online"); ví dụ Member access hiểu là tài khoản bị tắt, lời mời chưa nhận và 90 ngày không đăng nhập. Nếu ý định
   là trạng thái hiện diện khác (offline · away · busy?) thì ghi rõ.
 
+- **Tên bậc spacing (P3, 30/10, walk Studio W-19):** Spacing/Gap và Spacing/Padding dùng chung tên bậc mà khác giá trị
+  (Large là 24 với gap, 20 với padding; Studio hiện số px cạnh tên mỗi bậc). Giữ hai thang như hiện tại, hay thống nhất
+  tên hoặc giá trị? Code giữ nguyên token cho tới khi có câu trả lời.
+
 ## Cho bạn (quyết định và việc cần làm)
 
 **Đã trả lời ngày 09/10/2026:**

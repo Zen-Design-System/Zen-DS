@@ -20,7 +20,7 @@ import { PropField, TextControl } from "./PropField";
 import { componentSlug, propLabel, propSpecs, type Literal, type PropSpec } from "./propSchema";
 import { objectSchemaOf, useApiTypes } from "./objectSchema";
 import { displayValueOf, planPropReset, planPropWrite } from "./writePlan";
-import { coloursOf, drivingProps, layoutOf, listedProps, matchingTextStyles, sizeOf, summarise, textHost, textStylesOf, type SpacingValue } from "./partInfo";
+import { coloursOf, drivingProps, layoutOf, listedProps, matchingTextStyles, sizeOf, summarise, textHost, textStylesOf, variableName, type SpacingValue } from "./partInfo";
 import { InspectorRow, InspectorSection } from "./Section";
 import { SlotHost, useSlotFilled } from "./SlotHost";
 import { dataItemOfPart, dataItemRootOf, type DataSlot } from "../slots";
@@ -199,8 +199,10 @@ export function ValueCell({ value, tokens, swatch }: { value: string; tokens?: s
         <span className={`studio-part__text ${typographyStyles["Body/Small/Medium"]}`}>{value}</span>
       </span>
       {tokens ? (
-        <span className={`studio-part__token ${typographyStyles["Body/Small/Regular"]}`} data-none={tokens.length ? undefined : "true"} title={tokens.join("\n") || undefined}>
-          {tokens.length ? `${tokens[0]}${tokens.length > 1 ? ` +${tokens.length - 1}` : ""}` : "No token"}
+        // The variable it matches, by its Figma name; the others of the same value only in the tooltip (a count of
+        // look-alikes read as "+12" beside a code name, walk W-40).
+        <span className={`studio-part__token ${typographyStyles["Body/Small/Regular"]}`} data-none={tokens.length ? undefined : "true"} title={tokens.length > 1 ? `Same value: ${tokens.map(variableName).join(", ")}` : undefined}>
+          {tokens.length ? variableName(tokens[0]) : "No token"}
         </span>
       ) : null}
     </span>

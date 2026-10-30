@@ -88,6 +88,14 @@ const tokenVar = (value: string) => /^var\((--zen-[a-z0-9-]+)\)$/.exec(value)?.[
 const tokenVars = Object.values(tokens as Record<string, string>).flatMap((value) => tokenVar(value) ?? []);
 const colorVars = tokenVars.filter((name) => name.startsWith("--zen-color-"));
 const spacingVars = tokenVars.filter((name) => name.startsWith("--zen-spacing-"));
+const variablePaths = new Map(Object.entries(tokens as Record<string, string>).flatMap(([path, value]) => { const name = tokenVar(value); return name ? [[name, path] as const] : []; }));
+
+/** A token as Figma names its variable, never the CSS custom property (walk W-40): `--zen-color-content-on-accent-default`
+ * → "Content / On-Accent / Default", `--zen-spacing-gap-medium` → "Spacing / Gap / Medium". */
+export function variableName(token: string): string {
+  const path = variablePaths.get(token);
+  return path ? path.replace(/^Color\//, "").split("/").join(" / ") : token.replace(/^--zen-/, "");
+}
 
 let context: CanvasRenderingContext2D | null | undefined;
 /** A CSS colour as "r,g,b,a%" (alpha in whole percent), or null when the browser cannot read it. */

@@ -237,6 +237,8 @@
    ring is the static Pale edge that keeps white and very light tones visible. */
 .studio-tone-swatch { display: inline-block; width: var(--zen-element-size-popular-small, 16px); height: var(--zen-element-size-popular-small, 16px); flex: 0 0 auto; border-radius: var(--zen-corner-radius-rounded, 1000px); background: currentColor; box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
 .studio-tone-swatch[data-swatch="none"] { background: none; box-shadow: none; outline: 1px dashed var(--zen-color-border-neutral-subtle-default); outline-offset: -1px; }
+/* An inline field's value swatch in the canvas's modes (PropField useSwatchScope): the wrapper only carries them. */
+.studio-tone-scope { display: contents; }
 /* A tone's swatch takes its token as an inline colour (ToneSwatch, contentTone.ts): 81 tones, no rule each. */
 
 /* "Text style comes from Button · size md" and the jump to that prop's control. */

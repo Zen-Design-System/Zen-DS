@@ -553,6 +553,9 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       const local = studioStore.getState().localPage;
       if (local && isLockedFrame(pageFile(local), frame.getAttribute("data-studio-frame"))) return { kind: "empty" };
       const hit = annotatedAt(element);
+      // A Screen's own background (no layer there) is its frame, as a click on a Figma frame's empty area selects the
+      // frame (walk W-27: it selected "Screen · Local component" with a Typography panel).
+      if (hit?.name === "Screen") return { kind: "frame", frame };
       if (hit && hit.hosts.length && frame.contains(hit.hosts[0])) {
         const open = isLockedSrc(hit.src) ? unlockedHit(hit, frame) : hit;
         if (open?.hosts.length) return { kind: "node", hit: open, frame, element: open === hit ? element : open.hosts[0] };

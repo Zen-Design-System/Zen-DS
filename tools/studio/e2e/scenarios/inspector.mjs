@@ -1,11 +1,11 @@
 // Inspector rows: every kind of property control writes the source it says, one undo step at a time.
 import { element, locOf } from "../lib/source.mjs";
-import { clickLoc, focusFrame, inspectorRow, openCodeProperties, openPropertyGroup, ownerOfLayer, rectOf, showDesignTab, sleep, statusText, until } from "../lib/studio.mjs";
+import { clickLoc, focusFrame, inspectorRow, openCodeProperties, openPropertyGroup, ownerOfLayer, rectOf, showDesignTab, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { selectedName } from "./builder.mjs";
 import { pageFromTemplate } from "./starters.mjs";
 import { codeWordsIn } from "../../../../src/platform/studio/words.ts";
 import { optionLabel } from "../../../../src/platform/studio/inspector/controls/scale.ts";
-import { newPage } from "./builder.mjs";
+import { newPage, seededPage } from "./builder.mjs";
 
 const at = async (ctx, id, index = 0) => locOf(await ctx.text(), id, index).loc;
 const read = async (ctx, id, index = 0, file = ctx.file) => element((await ctx.api.source(file)).content, file, id, index);
@@ -504,4 +504,314 @@ export const rows = [
       return "level Mixed (3, 4) → 2 on both Headings";
     },
   },
+  {
+    id: "I-43", feature: "Colour picker in a project: Accent reads \"Accent · Primary\", \"primary\" and \"brand\" find it, the swatches paint the project's colour (the canvas's, not Zen's pink), Enter applies the one match (walk W-07/08/09)", wp: "walk §4 item 9 2026-10-30", timeout: 60_000,
+    run: guarded("I-43", async (ctx, hold) => {
+      const project = await e2eProject(ctx);
+      const { page, id, text } = hold(await seededPage(ctx, (title) => walkPage(title, project), /Dr\. An/));
+      await deepClick(page, id, "Text", 1);
+      await openPropertyGroup(page, "tone").catch(() => undefined);
+      const row = page.locator('#studio-right [data-prop="tone"]').first();
+      await row.waitFor({ state: "visible", timeout: 5000 });
+      await row.locator(".zen-select__trigger").first().click();
+      const list = page.getByRole("dialog", { name: /options$/ }).or(page.locator(".zen-popover").filter({ has: page.getByPlaceholder("Search colors") })).first();
+      await list.waitFor({ state: "visible", timeout: 3000 });
+      const families = await list.locator(".studio-type-control__family").allInnerTexts();
+      if (!families.includes("Accent · Primary")) throw new Error(`families: ${families.join(", ")}`);
+      // The selected swatch (accent) paints what the canvas paints for that token.
+      const selected = list.locator(".zen-popover__item.is-selected .studio-tone-swatch").first();
+      const swatch = await selected.evaluate((el) => getComputedStyle(el).color);
+      // The same token painted inside the canvas's Text (the project's mode there).
+      const paint = await selected.evaluate((el) => el.style.color);
+      const canvas = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Text"]`).nth(1).evaluate((el, color) => {
+        const probe = document.createElement("span");
+        probe.style.color = color;
+        el.appendChild(probe);
+        const value = getComputedStyle(probe).color;
+        probe.remove();
+        return value;
+      }, paint);
+      if (swatch !== canvas) throw new Error(`swatch ${swatch} ≠ canvas ${canvas} (${paint})`);
+      const search = page.getByPlaceholder("Search colors");
+      for (const word of ["primary", "brand"]) {
+        await search.fill(word);
+        await until(async () => (await list.locator(".zen-popover__item").count()) > 0, { message: `"${word}" finds the Accent tones` });
+      }
+      await search.fill("accent strongest");
+      await until(async () => (await list.locator(".zen-popover__item").count()) === 1, { message: "one match for accent strongest" });
+      await search.press("Enter");
+      await until(async () => /<Text tone="accent-strongest">/.test(await text()), { message: 'Enter wrote tone="accent-strongest"' });
+      return `Accent · Primary; swatch ${swatch} = canvas; primary/brand find Accent; Enter → accent-strongest`;
+    }),
+  },
+  {
+    id: "I-44", feature: "Two InputFields selected: the shared properties read as words (Read only, Label · Tooltip icon), never code (layout, readOnly, Tooltip-Icon; walk W-16)", wp: "walk §4 item 9 2026-10-30", timeout: 60_000,
+    run: guarded("I-44", async (ctx, hold) => {
+      const { page, id } = hold(await seededPage(ctx, (title) => walkPage(title), /Dr\. An/));
+      await deepClick(page, id, "InputField", 0);
+      await deepClick(page, id, "InputField", 1, ["Meta", "Shift"]);
+      await until(async () => (await page.locator("#studio-right").innerText()).includes("InputField properties"), { message: "the shared InputField properties" });
+      const labels = await page.locator("#studio-right .studio-inspector__row-label, #studio-right [data-prop] label").allInnerTexts().catch(() => []);
+      // Row labels in words: no camelCase prop name, no Figma layer name with its dashes, no bare `layout`.
+      const bad = labels.filter((label) => /^[a-z]+[A-Z]|[A-Za-z]-[A-Z]|^layout$/.test(label.trim()));
+      if (!labels.length || bad.length) throw new Error(`code words as labels: ${bad.join(", ") || "no labels"} (labels: ${labels.slice(0, 14).join(" | ")})`);
+      return `no layout / readOnly / Tooltip-Icon (${labels.length} labels)`;
+    }),
+  },
+  {
+    id: "I-45", feature: "Icon picker names icons in words (\"Plus\" · Line), not icon-plus-line; the field too (walk W-25)", wp: "walk §4 item 9 2026-10-30", timeout: 60_000,
+    run: guarded("I-45", async (ctx, hold) => {
+      const { page, id } = hold(await seededPage(ctx, (title) => walkPage(title), /Dr\. An/));
+      await deepClick(page, id, "Button");
+      await openPropertyGroup(page, "startIcon").catch(() => undefined);
+      const trigger = page.locator('#studio-right [data-prop="startIcon"] .studio-icon-control button').first();
+      const field = await trigger.innerText();
+      await trigger.click();
+      const first = page.locator('[data-icon-group="all"] .zen-popover__item').first();
+      await first.waitFor({ state: "visible", timeout: 3000 });
+      const shown = (await page.locator("[data-icon-group] .zen-popover__item").allInnerTexts()).slice(0, 40);
+      await page.keyboard.press("Escape");
+      const code = [field, ...shown].filter((label) => /icon-/.test(label));
+      if (code.length) throw new Error(`icon names as code: ${code.slice(0, 4).join(" | ")}`);
+      return `field "${field.replace(/\s+/g, " ")}" · list "${shown[0]?.replace(/\s+/g, " ")}"`;
+    }),
+  },
+  {
+    id: "I-46", feature: "A text inside an instance: its Fill names the Figma variable (Content / On-Accent / Default), no CSS name and no \"+12\" (walk W-40)", wp: "walk §4 item 9 2026-10-30", timeout: 60_000,
+    run: guarded("I-46", async (ctx, hold) => {
+      const { page, id } = hold(await seededPage(ctx, (title) => walkPage(title), /Dr\. An/));
+      await deepClick(page, id, "Button");
+      const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).first().boundingBox();
+      await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 2);
+      const token = page.locator("#studio-right .studio-part__token").first();
+      await token.waitFor({ state: "visible", timeout: 5000 });
+      const words = (await page.locator("#studio-right .studio-part__token").allInnerTexts()).join(" | ");
+      if (/--zen|\+\d/.test(words)) throw new Error(`token cells: ${words}`);
+      if (!/On-Accent|Inverse|Neutral/.test(words)) throw new Error(`no Figma variable name: ${words}`);
+      return words;
+    }),
+  },
+  {
+    id: "I-47", feature: "Bottom navigation: \"Show labels\" in the Design tab writes showLabels; a tab's new Icon takes its Selected icon along (walk W-24/W-26)", wp: "walk §4 item 9 2026-10-30", timeout: 60_000,
+    run: guarded("I-47", async (ctx, hold) => {
+      const { page, id, text } = hold(await seededPage(ctx, (title) => walkPage(title), /Dr\. An/));
+      await deepClick(page, id, "BottomNavigation", 0, ["Meta"], "start");
+      const toggle = page.locator('#studio-right [data-prop="showLabels"]').first();
+      await openPropertyGroup(page, "showLabels").catch(() => undefined);
+      await toggle.waitFor({ state: "visible", timeout: 5000 });
+      await toggle.getByRole("switch").or(toggle.getByRole("checkbox")).first().click();
+      await until(async () => /<BottomNavigation[^>]*\bshowLabels\b/.test(await text()), { message: "showLabels written" });
+      // The second tab: its Icon → a bell; Selected icon follows (bell solid), not the Home solid it had.
+      const tab = page.locator(".zen-bottom-nav__item").nth(1);
+      const box = await tab.boundingBox();
+      await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 2);
+      const icon = page.locator('#studio-right [data-prop="icon"] .studio-icon-control button').first();
+      await icon.waitFor({ state: "visible", timeout: 5000 });
+      await icon.click();
+      await page.getByPlaceholder("Search icons").fill("bell 01 line");
+      await page.locator(".zen-popover__item").filter({ hasText: /^Bell 01/ }).first().click();
+      await until(async () => /id: "visits"[^}]*icon: "icon-bell-01-line"[^}]*selectedIcon: "icon-bell-01-solid"/.test(await text()), { message: "icon and selectedIcon both the bell", timeout: 8000 }).catch(async (error) => {
+        const now = await text();
+        throw new Error(`${error.message}: ${now.slice(now.indexOf("items="), now.indexOf("items=") + 400)}`);
+      });
+      return "Show labels → showLabels; Visits icon → bell, selectedIcon → bell solid";
+    }),
+  },
+  {
+    id: "I-48", feature: "A ListItem's \"cannot be wrapped\" status says it once, not on every selection (walk W-30)", wp: "walk §4 item 9 2026-10-30", timeout: 60_000,
+    run: guarded("I-48", async (ctx, hold) => {
+      const { page, id } = hold(await seededPage(ctx, floatPage, /Dr\. An/));
+      const said = [];
+      for (let round = 0; round < 2; round += 1) {
+        await page.keyboard.press("Escape");
+        await sleep(300);
+        await deepClick(page, id, "ListItem");
+        await sleep(700);
+        said.push(/cannot be wrapped/.test(await statusText(page)));
+        // The line stays until something else is said: cleared, so the second selection shows whether it says it again.
+        await page.evaluate(async () => (await import("/src/platform/studio/inspector/status.ts")).inspectorStatus.clear());
+      }
+      if (!said[0] || said[1]) throw new Error(`said on selections 1 and 2: ${said.join(", ")} (want true, false)`);
+      return `first selection: ${said[0] ? "said" : "quiet"} · second: quiet`;
+    }),
+  },
+  {
+    id: "I-49", feature: "A click on a Screen's empty background selects the frame (Figma's), not \"Screen · Local component\" (walk W-27)", wp: "walk §4 item 9 2026-10-30", timeout: 60_000,
+    run: guarded("I-49", async (ctx, hold) => {
+      const { focusScreen } = await import("./builder.mjs");
+      const { page } = hold(await seededPage(ctx, floatPage, /Dr\. An/));
+      await focusScreen(page);
+      await page.keyboard.press("Escape");
+      const screen = await page.locator('[data-studio-frame="screen:screen-1"]').first().boundingBox();
+      await page.mouse.click(screen.x + screen.width - 24, screen.y + screen.height * 0.55);
+      await sleep(600);
+      const selection = await page.evaluate(async () => (await import("/src/platform/studio/store.ts")).studioStore.getState().selection);
+      if (selection?.kind !== "frame" || selection.frameId !== "screen:screen-1") throw new Error(`selected ${JSON.stringify(selection).slice(0, 160)}`);
+      return "empty Screen background → frame screen:screen-1";
+    }),
+  },
+  {
+    id: "I-50", feature: "Top navigation selected: its slot tags and + chips never sit on each other (walk W-38)", wp: "walk §4 item 9 2026-10-30", timeout: 60_000,
+    run: guarded("I-50", async (ctx, hold) => {
+      const { focusScreen } = await import("./builder.mjs");
+      const { page, id } = hold(await seededPage(ctx, floatPage, /Dr\. An/));
+      await focusScreen(page);
+      await deepClick(page, id, "TopNavigation");
+      await page.locator(".studio-slots__tag").first().waitFor({ state: "visible", timeout: 5000 });
+      await sleep(400);
+      const boxes = async (selector) => page.locator(selector).evaluateAll((els) => els.map((el) => { const r = el.getBoundingClientRect(); return { text: el.textContent.trim() || el.querySelector("[aria-label]")?.getAttribute("aria-label") || "", x: r.left, y: r.top, r: r.right, b: r.bottom }; }));
+      const overlaps = (list) => list.flatMap((a, i) => list.slice(i + 1).filter((b) => a.x < b.r && b.x < a.r && a.y < b.b && b.y < a.b).map((b) => `${a.text} × ${b.text}`));
+      const tags = await boxes(".studio-slots__tag");
+      const chips = await boxes(".studio-slots__chip");
+      const bad = [...overlaps(tags), ...overlaps(chips)];
+      if (tags.length < 2 || bad.length) throw new Error(`${tags.length} tags, ${chips.length} chips; overlapping: ${bad.join(" · ") || "none"}`);
+      return `${tags.length} tags and ${chips.length} chips apart`;
+    }),
+  },
+  {
+    id: "I-51", feature: "A Button's words edit in two double-clicks from nothing selected, as in Figma (walk W-21)", wp: "walk §4 item 9 2026-10-30", timeout: 60_000,
+    run: guarded("I-51", async (ctx, hold) => {
+      const { focusScreen } = await import("./builder.mjs");
+      const { page, id } = hold(await seededPage(ctx, floatPage, /Dr\. An/));
+      await focusScreen(page);
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      const box = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).first().boundingBox();
+      const editing = () => page.evaluate(() => Boolean(document.querySelector(".studio-edit__text")));
+      let count = 0;
+      for (; count < 3 && !(await editing()); count += 1) {
+        await page.mouse.dblclick(box.x + box.width / 2, box.y + box.height / 2);
+        await sleep(700);
+      }
+      await page.keyboard.press("Escape");
+      if (count > 2 || !(await page.evaluate(() => true))) throw new Error(`${count} double-clicks`);
+      return `editing after ${count} double-clicks`;
+    }),
+  },
+  {
+    id: "I-52", feature: "Width › Fill container on a field its column already stretches writes nothing: no hidden Stack around it, the status says it fills (walk W-22)", wp: "walk §4 item 9 2026-10-30", timeout: 60_000,
+    run: guarded("I-52", async (ctx, hold) => {
+      const { page, id, text } = hold(await seededPage(ctx, floatPage, /Dr\. An/));
+      await showLeftTab(page, "layers");
+      await page.locator('[data-layer-id="frame:screen:screen-2"]').first().click();
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Shift+Digit2");
+      await sleep(600);
+      const before = await text();
+      await deepClick(page, id, "InputField", 1);
+      await page.locator("#studio-right").getByRole("button", { name: /^(W|Width) options$/ }).first().click();
+      await page.getByRole("option", { name: /^Fill container/ }).first().click();
+      await until(async () => /already fills/.test(await statusText(page)), { message: "the status says it fills already" });
+      const after = await text();
+      if (after !== before || /fillChildren/.test(after)) throw new Error(`the page changed: ${after.slice(after.indexOf('id="screen-2"'), after.indexOf('id="screen-2"') + 300).replace(/\s+/g, " ")}`);
+      return `no wrap · "${(await statusText(page)).split(" | ")[0]}"`;
+    }),
+  },
 ];
+
+/** A phone Screen without auto layout: its layers float in Boxes (as inserts there write them), with both bars. */
+const floatPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { BottomNavigation, Box, Button, InputField, List, ListItem, Stack, Text, TopNavigation } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Doctors" device="phone" topNavigation={<TopNavigation title="Doctors" />} bottomNavigation={<BottomNavigation value="home" items={[{ id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" }, { id: "visits", label: "Visits", icon: "icon-calendar-line", selectedIcon: "icon-home-03-solid" }]} />}>
+        <Box position="absolute" insetLeft={20} insetTop={140}>
+          <Button level="primary">Book now</Button>
+        </Box>
+        <Box position="absolute" insetLeft={20} insetTop={220}>
+          <InputField label="Name" />
+        </Box>
+        <Box position="absolute" insetLeft={20} insetTop={320}>
+          <List>
+            <ListItem title="Dr. An" caption="Cardiology" />
+          </List>
+        </Box>
+      </Screen>
+      <Screen id="screen-2" title="Desk" device="desktop">
+        <Stack gap="md" padding="xl">
+          <Text>Desk</Text>
+          <InputField label="Email" />
+          <Button level="primary">Send</Button>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+
+/** A Studio project whose Primary is Grass (green), so its colours differ from Zen's pink (I-43). */
+async function e2eProject(ctx) {
+  const { defaultProjectTheme } = await import("../../project-theme.mjs");
+  const now = Date.now();
+  const project = { id: "e2e-grass", name: "E2E Grass", theme: { ...defaultProjectTheme(), primary: { ramp: "Grass" } }, createdAt: now, updatedAt: now };
+  await ctx.api.writeProject(project);
+  return project.id;
+}
+
+/** ⌘-click (deep select) on the n-th `name` of page `id`: that layer itself, not the outermost one there. */
+async function deepClick(page, id, name, index = 0, modifiers = ["Meta"], where = "center") {
+  const target = page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="${name}"]`).nth(index);
+  await target.waitFor({ state: "attached", timeout: 5000 });
+  const box = await target.boundingBox();
+  if (!box) throw new Error(`<${name}> has no box on the canvas`);
+  // page.mouse.click has no `modifiers`: the keys are held around it; ⌘ alone lands on a part, ⇧Enter climbs back.
+  for (const key of modifiers) await page.keyboard.down(key === "Meta" ? "ControlOrMeta" : key);
+  try {
+    await page.mouse.click(where === "start" ? box.x + 6 : box.x + box.width / 2, box.y + box.height / 2);
+  } finally {
+    for (const key of [...modifiers].reverse()) await page.keyboard.up(key === "Meta" ? "ControlOrMeta" : key);
+  }
+  if (modifiers.includes("Meta") && !modifiers.includes("Shift")) await ownerOfLayer(page);
+  await sleep(600);
+}
+
+/** The walk's phone screen (W-xx rows): text, two fields, a button, a list, a bottom bar whose tabs share the Home icon. */
+const walkPage = (title, project) => `// @zen-page ${JSON.stringify({ format: 1, title, ...(project ? { project } : {}) })}
+import { Board, Screen } from "@zen-ds/react/builder";
+import { BottomNavigation, Button, InputField, List, ListItem, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Doctors" device="phone" bottomNavigation={<BottomNavigation value="home" items={[{ id: "home", label: "Home", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" }, { id: "visits", label: "Visits", icon: "icon-home-03-line", selectedIcon: "icon-home-03-solid" }]} />}>
+        <Stack gap="md" padding="lg">
+          <Text>Doctors</Text>
+          <InputField label="Name" />
+          <InputField label="Phone" />
+          <Text tone="accent">Find a doctor</Text>
+          <Button level="primary" startIcon="icon-calendar-line">Book now</Button>
+          <List>
+            <ListItem title="Dr. An" caption="Cardiology" />
+          </List>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/** A row's run that, when it breaks, says where it stood: the Inspector's heading and first words, and a screenshot. */
+function guarded(id, run) {
+  return async (ctx) => {
+    let page = null;
+    const hold = (seeded) => { page = seeded.page; return seeded; };
+    try {
+      return await run(ctx, hold);
+    } catch (error) {
+      if (!page) throw error;
+      const heading = await page.locator("#studio-right h2").first().innerText({ timeout: 500 }).catch(() => "-");
+      const panel = (await page.locator("#studio-right").innerText({ timeout: 500 }).catch(() => "")).replace(/\s+/g, " ").slice(0, 300);
+      const file = `.qa/studio-e2e/${id}-broken.png`;
+      await page.screenshot({ path: file }).catch(() => undefined);
+      throw new Error(`${error.message} · selected "${heading}" · panel "${panel}" · ${file}`);
+    }
+  };
+}

@@ -11,7 +11,7 @@ import type { AttrShape, EditValue, ObjectShape, ShapeField } from "../types";
 import type { FieldApi } from "./fieldApi";
 import { objectSchemaOf, objectSchemasOf, schemaFor, useApiTypes, type FieldSpec } from "./objectSchema";
 import { PropField } from "./PropField";
-import { componentSlug, propLabel, type Literal, type PropEditor, type PropSpec, type PropValue } from "./propSchema";
+import { allIconNames, componentSlug, propLabel, type Literal, type PropEditor, type PropSpec, type PropValue } from "./propSchema";
 import "./nested.css";
 
 /*
@@ -97,6 +97,13 @@ function groupFields(object: ObjectShape, typed: FieldSpec[] | null): FieldSpec[
  * `only`: one object or one array item (a data-slot item selected on the canvas, DataItemPanel), its fields without the
  * group header (the panel names the item).
  */
+const iconNames = new Set<string>(allIconNames);
+/** The filled twin of an icon ("icon-home-03-line" → "icon-home-03-solid"), or null when there is none. */
+const solidIconOf = (icon: string) => {
+  const solid = icon.replace(/-line$/, "-solid");
+  return iconNames.has(solid) ? solid : icon.endsWith("-solid") ? icon : null;
+};
+
 /**
  * `selection` (the Design panel's): an array prop's items also move, go and come (a copy of the last one) from their
  * group headers, in example and template content (Backlog P2 after B2, user 2026-10-04). A data slot's items
@@ -182,10 +189,16 @@ export function ObjectProperties({ component, props, api, only, selection, defau
     const edit: EditValue | null = remove ? null : list !== null ? { kind: "expression", code: list } : toEditValue(value as Literal);
     setOverrides((current) => ({ ...current, [`${group.key}.${field.name}${sub ? `.${sub}` : ""}`]: remove ? { state: "unset" } : { state: "literal", value: value as Literal, raw: "" } }));
     const into = sub ? [{ key: field.name }] : [];
+    const setOp = (key: string, next: EditValue | null) => (within
+      ? { op: "setField" as const, name: within.name, ...(within.index !== undefined ? { index: within.index } : {}), path: [{ key: group.prop, ...(group.index !== undefined ? { index: group.index } : {}) }, ...into], key, value: next }
+      : { op: "setField" as const, name: group.prop, ...(group.index !== undefined ? { index: group.index } : {}), ...(into.length ? { path: into } : {}), key, value: next });
+    // A tab's selected icon follows its icon (walk W-26: a new Icon left the Home solid as Selected icon): the new
+    // icon's solid when the item had a selected icon, else none (it then draws its icon when selected).
+    const follows = !sub && field.name === "icon" && group.object.fields.some((entry) => entry.key === "selectedIcon");
+    const solid = follows && typeof value === "string" ? solidIconOf(value) : null;
+    if (follows) setOverrides((current) => ({ ...current, [`${group.key}.selectedIcon`]: solid ? { state: "literal", value: solid, raw: "" } : { state: "unset" } }));
     void api.apply(
-      [within
-        ? { op: "setField", name: within.name, ...(within.index !== undefined ? { index: within.index } : {}), path: [{ key: group.prop, ...(group.index !== undefined ? { index: group.index } : {}) }, ...into], key: sub ?? field.name, value: edit }
-        : { op: "setField", name: group.prop, ...(group.index !== undefined ? { index: group.index } : {}), ...(into.length ? { path: into } : {}), key: sub ?? field.name, value: edit }],
+      [setOp(sub ?? field.name, edit), ...(follows ? [setOp("selectedIcon", solid ? { kind: "string" as const, value: solid } : null)] : [])],
       `${component} ${group.title} › ${propLabel(field.name)}${sub ? ` › ${propLabel(sub)}` : ""} → ${remove ? "reset" : display(value as Literal)}`,
     ).then((written) => { if (!written) setOverrides({}); });
   };
