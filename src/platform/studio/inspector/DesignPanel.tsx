@@ -67,6 +67,7 @@ import { speak } from "../useWords";
 import { GridCellGroup, gridOf } from "./GridCellGroup";
 import { SlotHost, useSlotFilled } from "./SlotHost";
 import { openQuickInsert } from "../builder/library/quickInsertState";
+import { PopoverSectionFor } from "../builder/proto/PopoverRows";
 import { resetAllProps } from "./resetAll";
 import { publishInstanceActions } from "./instanceActions";
 import { takesInstanceLook } from "../../../../tools/studio/instance-look.mjs";
@@ -940,6 +941,8 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
 
       {/* A chart's sectors: their labels and numbers, added and removed (user 2026-10-28). */}
       {chartTable ? <ChartDataSection table={chartTable} api={api} /> : null}
+      {/* A layer on a page made in the Studio that takes a click: its Popover option (user 2026-10-28). */}
+      {element ? <PopoverSectionFor src={selection.src} disabled={api.disabled} /> : null}
 
       {/* Figma nested instances: the booleans of the Zen components written in this element's props. */}
       {element && !groups ? <NestedProperties element={element} api={api} nested={nested} /> : null}

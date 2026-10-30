@@ -1938,6 +1938,112 @@ export const rows = [
     },
   },
   {
+    id: "PT-41", feature: "The Popover option in the Design tab (user 2026-10-28/30): a Button's Popover switch writes an Overlay holding a Popover with 4 Sample rows and On click › Open overlay to it, one edit; Rows 2 and Row 1's words rewrite its items; in Play the Button opens it right below and a pick closes it; the switch off takes the click and the Overlay away", wp: "popover option 2026-10-30", timeout: 50_000,
+    async run(ctx) {
+      const { page, id, text: source } = await seededPage(ctx, popoverPage, /Filters/);
+      await clickNamed(page, id, "Button");
+      const toggle = page.locator("#studio-right").getByRole("switch", { name: "Popover", exact: true });
+      await step("the Popover switch", () => toggle.click());
+      await until(async () => /<Overlay id="popover-1" title="Filters popover">\s*<Popover items=\{\[\{ id: "option-1", label: "Option 1" \}, \{ id: "option-2", label: "Option 2" \}, \{ id: "option-3", label: "Option 3" \}, \{ id: "option-4", label: "Option 4" \}\]\} onSelect=\{proto\.close\(\)\} \/>/.test(await source()), { message: "an Overlay holding a Popover with 4 Sample rows" });
+      await until(async () => /<Button level="secondary" onClick=\{proto\.open\("popover-1"\)\}>Filters<\/Button>/.test(await source()), { message: "the Button opens popover-1" });
+      const rows = page.locator('#studio-right [data-prop="popover:rows"] input');
+      await rows.fill("2");
+      await rows.press("Enter");
+      await until(async () => /<Popover items=\{\[\{ id: "option-1", label: "Option 1" \}, \{ id: "option-2", label: "Option 2" \}\]\}/.test(await source()), { message: "Rows 2: two items" });
+      const first = page.locator('#studio-right [data-prop="popover:row:0"] input');
+      await first.fill("Mở");
+      await first.press("Enter");
+      await until(async () => /<Popover items=\{\[\{ id: "mo", label: "Mở" \}, \{ id: "option-2", label: "Option 2" \}\]\}/.test(await source()), { message: "Row 1 reads Mở" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      const button = playing(page).getByRole("button", { name: "Filters" });
+      await button.click();
+      const popover = playing(page).locator(".zen-popover");
+      await popover.waitFor({ state: "visible", timeout: 3000 });
+      await sleep(400);
+      const side = await byTrigger(page, button, popover);
+      const options = await popover.locator(".zen-popover__item-label").allInnerTexts();
+      if (options.join() !== "Mở,Option 2") throw new Error(`the popover shows ${options.join(", ")}`);
+      await popover.getByRole("option", { name: "Option 2" }).click();
+      await until(async () => (await popover.count()) === 0, { message: "a pick closes the popover" });
+      await page.keyboard.press("Escape");
+      await playing(page).waitFor({ state: "detached", timeout: 5000 }).catch(() => undefined);
+      await clickNamed(page, id, "Button");
+      await step("the Popover switch off", () => page.locator("#studio-right").getByRole("switch", { name: "Popover", exact: true }).click());
+      await until(async () => !/popover-1|<Popover/.test(await source()), { message: "the click and the Overlay go" });
+      if (!/<Button level="secondary">Filters<\/Button>/.test(await source())) throw new Error("the Button kept an On click");
+      return `switch on → Overlay popover-1 (4 Sample rows) + On click · Rows 2, Row 1 “Mở” · Play: ${side} the Button, a pick closes it · switch off → both gone`;
+    },
+  },
+  {
+    id: "PT-42", feature: "Open popover in the Prototype tab, its rows from the page data: On click › Open popover replaces a Button's Navigate to; Data people (3) writes each row's label as mock.people[n].name, Rows 2 and Caption role follow; the Design tab shows the same popover on; in Play it lists Hà Trần and Minh Lê with their roles; None takes the Overlay away", wp: "popover option 2026-10-30", timeout: 50_000,
+    async run(ctx) {
+      const { page, id, text: source } = await seededPage(ctx, popoverPage, /Assign/);
+      await clickNamed(page, id, "Button", 1);
+      await prototypeTab(page);
+      await pickOption(page, "proto:onClick", "Open popover");
+      await until(async () => /<Button onClick=\{proto\.open\("popover-1"\)\}>Assign<\/Button>/.test(await source()), { message: "Assign opens popover-1 instead of navigating" });
+      await until(async () => /<Overlay id="popover-1" title="Assign popover">/.test(await source()), { message: "the Assign popover Overlay" });
+      await pickOption(page, "popover:data", "people (3)");
+      await until(async () => /items=\{\[\{ id: mock\.people\[0\]\.id, label: mock\.people\[0\]\.name \}, \{ id: mock\.people\[1\]\.id, label: mock\.people\[1\]\.name \}, \{ id: mock\.people\[2\]\.id, label: mock\.people\[2\]\.name \}\]\}/.test(await source()), { message: "three rows from mock.people" });
+      const rows = page.locator('#studio-right [data-prop="popover:rows"] input');
+      await rows.fill("2");
+      await rows.press("Enter");
+      // A field of the page data reads as written ("role"), not as a code value's option label ("Role").
+      await pickOption(page, "popover:caption", /^role$/);
+      await until(async () => /items=\{\[\{ id: mock\.people\[0\]\.id, label: mock\.people\[0\]\.name, caption: mock\.people\[0\]\.role \}, \{ id: mock\.people\[1\]\.id, label: mock\.people\[1\]\.name, caption: mock\.people\[1\]\.role \}\]\}/.test(await source()), { message: "two rows with captions" });
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      const toggle = page.locator("#studio-right").getByRole("switch", { name: "Popover", exact: true });
+      await until(async () => (await toggle.getAttribute("aria-checked")) === "true", { message: "the Design tab shows the popover on" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      await playing(page).getByRole("button", { name: "Assign" }).click();
+      const popover = playing(page).locator(".zen-popover");
+      await popover.waitFor({ state: "visible", timeout: 3000 });
+      const shown = (await popover.locator(".zen-popover__item").allInnerTexts()).map((row) => row.replace(/\s+/g, " ").trim());
+      if (shown.join(" | ") !== "Hà Trần Designer | Minh Lê Engineer") throw new Error(`the popover shows ${shown.join(" | ")}`);
+      await page.keyboard.press("Escape");
+      await until(async () => (await popover.count()) === 0, { message: "Escape closes the popover" });
+      await page.keyboard.press("Escape");
+      await playing(page).waitFor({ state: "detached", timeout: 5000 }).catch(() => undefined);
+      await clickNamed(page, id, "Button", 1);
+      await prototypeTab(page);
+      await pickOption(page, "proto:onClick", "None");
+      await until(async () => !/popover-1|<Popover/.test(await source()), { message: "None takes the Overlay away" });
+      return `Open popover replaces Navigate to · people (3) → Rows 2 + Caption role (mock references) · Design switch on · Play: ${shown.join(" | ")} · None → Overlay gone`;
+    },
+  },
+  {
+    id: "PT-43", feature: "A Chip's Popover option is its own popover: the switch writes popoverItems (4 Sample rows) and its chevron, no Overlay; in Play the Chip opens it and shows the pick; the switch off takes the rows away and keeps the chevron", wp: "popover option 2026-10-30", timeout: 40_000,
+    async run(ctx) {
+      const { page, id, text: source } = await seededPage(ctx, popoverPage, /Status/);
+      await clickNamed(page, id, "Chip");
+      const toggle = page.locator("#studio-right").getByRole("switch", { name: "Popover", exact: true });
+      await step("the Popover switch", () => toggle.click());
+      await until(async () => /<Chip popoverItems=\{\[\{ id: "option-1", label: "Option 1" \}, \{ id: "option-2", label: "Option 2" \}, \{ id: "option-3", label: "Option 3" \}, \{ id: "option-4", label: "Option 4" \}\]\} dropdown>Status<\/Chip>/.test(await source()), { message: "the Chip's own popoverItems and its chevron" });
+      if (/<Overlay/.test(await source())) throw new Error("a Chip got an Overlay");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      await playing(page).getByRole("button", { name: "Status" }).click();
+      const option = page.getByRole("option", { name: "Option 3" });
+      await option.waitFor({ state: "visible", timeout: 3000 });
+      await option.click();
+      await until(async () => (await playing(page).getByRole("button", { name: /Option 3/ }).count()) > 0, { message: "the Chip shows its pick" });
+      await page.keyboard.press("Escape");
+      await playing(page).waitFor({ state: "detached", timeout: 5000 }).catch(() => undefined);
+      await clickNamed(page, id, "Chip");
+      await step("the Popover switch off", () => page.locator("#studio-right").getByRole("switch", { name: "Popover", exact: true }).click());
+      await until(async () => /<Chip dropdown>Status<\/Chip>/.test(await source()), { message: "the rows go, the chevron stays" });
+      return "switch on → popoverItems (4) + dropdown, no Overlay · Play: the Chip picks Option 3 · switch off → <Chip dropdown>";
+    },
+  },
+  {
     id: "PT-45", feature: "A link whose overlay was deleted says so (walk 2026-10-29 W-59: the Overlay field showed the raw id \"overlay-1 · Add an overlay first\"): a Button's proto.open(\"gone\") shows the Open overlay action, an empty Overlay field and \"The overlay it opened was deleted. Pick another.\"", wp: "prototype walk 2026-10-29", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await seededPage(ctx, danglingPage, /proto\.open\("gone"\)/);
@@ -2119,3 +2225,40 @@ export default function Page() {
   );
 }
 `;
+
+/** A desktop Screen whose Filters and Assign buttons and Status chip take the Popover option, the page data holding three
+ *  people (PT-41…PT-43, the Popover option 2026-10-30). */
+const popoverPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { Button, Chip, Stack, Text } from "@zen-ds/react";
+
+export const mock = { people: [{ id: "ha", name: "Hà Trần", role: "Designer" }, { id: "minh", name: "Minh Lê", role: "Engineer" }, { id: "lan", name: "Lan Phạm", role: "PM" }] };
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="screen-1" title="Tasks">
+        <Stack gap="md" padding="lg">
+          <Button level="secondary">Filters</Button>
+          <Button onClick={proto.navigate("screen-1")}>Assign</Button>
+          <Chip>Status</Chip>
+          <Text>Tasks</Text>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+
+/** Where a popover sits by its trigger in Play: "below" (its top 4px under the trigger, Popover's gap, in the device's
+ *  scale) or "above" with no room below, at the trigger's start edge (PT-41). */
+async function byTrigger(page, trigger, surface) {
+  const device = playing(page).locator(".studio-player__device");
+  const scale = await device.evaluate((el) => el.getBoundingClientRect().width / el.offsetWidth);
+  const t = await trigger.boundingBox();
+  const s = await surface.boundingBox();
+  const below = Math.abs(s.y - (t.y + t.height + 4 * scale));
+  const above = Math.abs(t.y - (s.y + s.height + 4 * scale));
+  if (Math.min(below, above) > 3 || Math.abs(s.x - t.x) > 3) throw new Error(`not by its trigger: trigger ${JSON.stringify(t)}, popover ${JSON.stringify(s)}`);
+  return below <= 3 ? "below" : "above";
+}

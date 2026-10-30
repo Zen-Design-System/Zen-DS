@@ -19,6 +19,10 @@ Last updated: 2026-10-27.
 
 ## State in short
 
+- **Studio Popover option (2026-10-30, user 2026-10-28 via Bug):** branch `zen/feat/studio-popover-option-20261030`.
+  Every layer that takes a click: Design tab switch "Popover" and Prototype On click › Open popover (an Overlay holding a
+  Popover, `proto.open`; a Chip uses `popoverItems`); rows Sample or a page-data list (`builder/proto/popoverModel.ts`,
+  `popoverEdit.ts`, `PopoverRows.tsx`). Options only; Menu / Text / Data rows and project data not chosen. E2E PT-41…43.
 - **Studio first view + Figma-like inserts (2026-10-27, UX review §7.3–4):** branch
   `claude/studio-first-view-insert-20261027-2f7881`. A page you made opens at its first Screen (one row of frames
   fits, ≥ 25%) and reopens at its remembered viewport (localStorage); in a Screen without auto layout an insert floats

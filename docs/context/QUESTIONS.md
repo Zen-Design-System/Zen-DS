@@ -264,5 +264,8 @@ Answered on 2026-10-08: no LAN access (`server.host` stays off); Code view langu
 Swift → Flutter → Svelte, on hold for a later phase (BACKLOG); read-only fields already show a focus ring (input.css, since 2026-10-06);
 List-Box: code stays, the designer updates the master (above); Studio polish N1–N11 later (BACKLOG).
 
+- **Avatar and the Popover option (2026-10-30):** the Studio's Popover option is on every layer that takes a click, but
+  Zen's Avatar takes no click (no `onClick`; a clickable avatar is AppShellAccount or a Button holding one). Give Avatar
+  `onClick` (a library API change), or keep it as is?
 - **Later (user, 2026-10-08):** Platform chrome: "Download Figma" (overview + sidebar footer) and "Feedback" have no destination, so
   `interaction/action-without-handler` keeps them as its 3 warnings. Waiting on the user for the URLs.
