@@ -14,6 +14,11 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a selected chart has a Data section in the Inspector: a row per sector (slice, period, stage, goal) with its
+  label and number, + to add one after the last, − to remove one; the canvas redraws at once and ⌘Z takes it back.
+  Series charts (Stacked bar, Area, Grouped bar), a Line chart's comparison and a Heatmap's columns are a list above it
+  (add, rename, remove; a number for each period); up to two numbers sit side by side, more are picked one at a time.
+  Colours follow the palette in order. Every chart with data; Gauge keeps its Value and Target fields.
 - Zen Studio templates (walk 2026-10-29 W-48/49/50/57): a page from a phone template keeps the template's own Top and
   Bottom Navigation (its title, Search and tabs, not the page name over nothing); a template's overlays open from the
   buttons named as they are ("Invite members", "Date"); Add Screen offers the templates for the page's device beside an

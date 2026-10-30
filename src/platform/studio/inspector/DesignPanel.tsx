@@ -47,6 +47,8 @@ import { codeOnlyProps } from "./propGroups";
 import { useNestedInstances } from "./nestedInstances";
 import { ObjectProperties, type ShapedProp } from "./ObjectProperties";
 import { CodeProperties } from "./CodeProperties";
+import { ChartDataSection, useChartTable } from "./ChartDataSection";
+import { chartDataProps } from "./chartDataModel";
 import { PositionSection, positionProps } from "../position";
 import { useFocusContentToken } from "./focusContent";
 import { ValueCell } from "./PartPanel";
@@ -667,6 +669,8 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   // Figma's nested instances of the selection (its props' Zen components), read once here: Properties and the Nested
   // instances section list them, and Reset all overrides resets theirs too.
   const nested = useNestedInstances(selection, element, api);
+  // A chart's data as rows and numbers (ChartDataSection.tsx): its data, series and comparison leave the Properties rows.
+  const chartTable = useChartTable(element ?? null, api);
   // W / H of a library component as the canvas resizes it (GĐ4 M4): Hug, Fill or Fixed through a Stack it fills.
   const instanceSize = useInstanceSizing(selection.src);
   // Why an axis cannot change ("Height comes from the Table itself"): once the canvas size badge's note, here since the
@@ -710,6 +714,9 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
     return attr?.shape && !(spec.name in overrides) ? [{ spec, shape: attr.shape, ...(attr.shapeVia ? { via: attr.shapeVia } : {}) }] : [];
   });
   const shapedNames = new Set(shapedProps.map((entry) => entry.spec.name));
+  const chartProps = new Set(chartTable ? chartDataProps(name) : []);
+  const instanceSpecs = chartProps.size ? propertySpecs.filter((spec) => !chartProps.has(spec.name)) : propertySpecs;
+  const instanceShaped = chartProps.size ? shapedProps.filter((entry) => !chartProps.has(entry.spec.name)) : shapedProps;
   const documented = new Set(specs.map((spec) => spec.name));
   // An instance's `of` is its component (ComponentSection), not a loose attribute.
   // An instance's `of`, `variant` and `props`, a set's own props and a layer's component property bindings are the
@@ -928,8 +935,11 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   const propertyBlocks = (
     <>
       {element && (propertySpecs.length || instanceText) && (groups || !codeOnlyKind) ? (
-        <GroupedProperties groups={groups ?? FLAT_GROUPS} flat={!groups} selection={selection} element={element} api={api} specs={propertySpecs} shaped={shapedProps} note={propertiesNote} rendered={renderedProps} nested={nested} text={instanceText} />
+        <GroupedProperties groups={groups ?? FLAT_GROUPS} flat={!groups} selection={selection} element={element} api={api} specs={instanceSpecs} shaped={instanceShaped} note={propertiesNote} rendered={renderedProps} nested={nested} text={instanceText} />
       ) : element && instanceText ? <InspectorSection title="Properties">{instanceText}</InspectorSection> : null}
+
+      {/* A chart's sectors: their labels and numbers, added and removed (user 2026-10-28). */}
+      {chartTable ? <ChartDataSection table={chartTable} api={api} /> : null}
 
       {/* Figma nested instances: the booleans of the Zen components written in this element's props. */}
       {element && !groups ? <NestedProperties element={element} api={api} nested={nested} /> : null}
