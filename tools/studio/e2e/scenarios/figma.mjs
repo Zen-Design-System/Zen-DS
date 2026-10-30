@@ -4,7 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { newPageText } from "../../dialect.mjs";
-import { codeOfItem, grow } from "../../dnd-engine.mjs";
+import { codeOfItem, grow, withStarter } from "../../dnd-engine.mjs";
 import { inspectorRow, openAssetLibrary, openCodeProperties, openPropertyGroup, ownerOfLayer, selectedSrc, showDesignTab, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { clickNamed, emptyPage, floatingLayers, insertFromAssets, mineOption, newPage, pageText, seededPage, selectedName } from "./builder.mjs";
 import { pagesDirOf } from "../lib/server.mjs";
@@ -16,7 +16,7 @@ import { pictureRows } from "./figma/pictures.mjs";
 
 /** A phone page with its bars, a Button, a Card and a frame holding two shapes (the audit's walk page). */
 const seedText = (title) => {
-  let text = newPageText({ title, device: "phone", chrome: true });
+  let text = withStarter(newPageText({ title, device: "phone", chrome: true }));
   text = grow(text, "Stack", '<Button level="primary">Save</Button>');
   text = grow(text, "Stack", codeOfItem("card"));
   return grow(text, "Stack", '<Box width={358} height={200}>\n<Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} />\n<Shape type="ellipse" position="absolute" insetLeft={140} insetTop={40} width={60} height={60} />\n</Box>');
@@ -290,12 +290,12 @@ async function roomAround(page) {
 /* ── F3 (structure and clipboard) ───────────────────────────────────────────────────────────────────────────────── */
 
 /** A phone page with a free frame: a filled, stroked Rectangle and a plain Ellipse. */
-const clipText = (title) => grow(newPageText({ title, device: "phone", chrome: true }), "Stack", '<Box width={358} height={220}>\n<Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} fill="support-teal-solid" stroke="accent-solid" strokeWeight={2} opacity={80} />\n<Shape type="ellipse" position="absolute" insetLeft={140} insetTop={40} width={60} height={60} />\n</Box>');
+const clipText = (title) => grow(withStarter(newPageText({ title, device: "phone", chrome: true })), "Stack", '<Box width={358} height={220}>\n<Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} fill="support-teal-solid" stroke="accent-solid" strokeWeight={2} opacity={80} />\n<Shape type="ellipse" position="absolute" insetLeft={140} insetTop={40} width={60} height={60} />\n</Box>');
 let clipMade = null;
 /** Two floating groups of two shapes in a frame without auto layout (FW-220: ⇧⌘G on both). */
 const twoGroupsText = (title) => {
   const group = (top) => `<Box position="absolute" insetLeft={20} insetTop={${top}} width={180} height={80} group>\n<Shape type="rectangle" position="absolute" insetLeft={0} insetTop={0} width={80} height={60} />\n<Shape type="ellipse" position="absolute" insetLeft={120} insetTop={20} width={60} height={60} />\n</Box>`;
-  return grow(newPageText({ title, device: "phone", chrome: true }), "Stack", `<Box width={358} height={220}>\n${group(20)}\n${group(120)}\n</Box>`);
+  return grow(withStarter(newPageText({ title, device: "phone", chrome: true })), "Stack", `<Box width={358} height={220}>\n${group(20)}\n${group(120)}\n</Box>`);
 };
 async function clipPage(ctx) {
   const { page } = await ctx.studio();
@@ -344,7 +344,7 @@ const vectorTags = (text) => [...text.matchAll(/<Shape\b[^>]*\btype="vector"[^>]
 
 /** A phone page with a free frame (a Box without auto layout) holding three shapes at known X / Y. */
 const shapesText = (title) => {
-  let text = newPageText({ title, device: "phone", chrome: true });
+  let text = withStarter(newPageText({ title, device: "phone", chrome: true }));
   return grow(text, "Stack", '<Box width={358} height={200}>\n<Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} />\n<Shape type="ellipse" position="absolute" insetLeft={140} insetTop={40} width={60} height={60} />\n<Shape type="star" position="absolute" insetLeft={260} insetTop={10} width={40} height={40} />\n</Box>');
 };
 let shapesMade = null;
@@ -426,7 +426,7 @@ async function dragHandle(page, handle, dx, dy, keys = []) {
 
 
 /** A phone page with a free frame: a Rectangle, and a Button placed in the frame (it floats in a Box of its own). */
-const floatingText = (title) => grow(newPageText({ title, device: "phone", chrome: true }), "Stack", '<Box width={358} height={200}>\n<Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} />\n<Box position="absolute" insetLeft={140} insetTop={40}>\n<Button level="primary">Save</Button>\n</Box>\n</Box>');
+const floatingText = (title) => grow(withStarter(newPageText({ title, device: "phone", chrome: true })), "Stack", '<Box width={358} height={200}>\n<Shape type="rectangle" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} />\n<Box position="absolute" insetLeft={140} insetTop={40}>\n<Button level="primary">Save</Button>\n</Box>\n</Box>');
 let floatingMade = null;
 async function floatingPage(ctx) {
   const { page } = await ctx.studio();
@@ -482,7 +482,7 @@ async function dragHandleWith(page, handle, dx, { keys = [], midKeys = [], durin
 
 
 /** A page with two phone Screens side by side (for several frames). */
-const twoScreensText = (title) => grow(newPageText({ title, device: "phone", chrome: true }), "Board", '<Screen id="screen-2" title="Second" device="phone" />');
+const twoScreensText = (title) => grow(withStarter(newPageText({ title, device: "phone", chrome: true })), "Board", '<Screen id="screen-2" title="Second" device="phone" />');
 let twoMade = null;
 async function twoScreensPage(ctx) {
   const { page } = await ctx.studio();
@@ -809,7 +809,7 @@ async function typeText(page, name, value, index = 0) {
  * (ResizeLayer STRIP, 4 screen px inside the edge) at the canvas's fit zoom.
  */
 const spacingText = (title) => {
-  let text = newPageText({ title, device: "phone", chrome: true });
+  let text = withStarter(newPageText({ title, device: "phone", chrome: true }));
   text = grow(text, "Stack", '<Stack direction="row" gap="sm" paddingX="lg" paddingY="xl">\n<Shape type="rectangle" width={60} height={40} />\n<Shape type="ellipse" width={60} height={40} />\n</Stack>');
   text = grow(text, "Stack", '<Grid columns={2} gap="sm" padding="sm">\n<Shape type="rectangle" width={60} height={40} />\n<Shape type="star" width={40} height={40} />\n</Grid>');
   return grow(text, "Stack", '<Box width={200} height={64} padding="lg">\n<Shape type="ellipse" position="absolute" insetLeft={20} insetTop={12} width={40} height={40} />\n</Box>');
@@ -5819,7 +5819,7 @@ async function pickStopColor(page, query, name) {
 
 /** A phone page with a free frame: an Info/Solid Shape (the colour to pick), a plain Shape, a Pale Box and a Target Box. */
 const pickText = (title) => {
-  const text = newPageText({ title, device: "phone", chrome: true });
+  const text = withStarter(newPageText({ title, device: "phone", chrome: true }));
   return grow(text, "Stack", '<Box width={358} height={200}>\n<Shape data-name="Source" type="rectangle" fill="info-solid" position="absolute" insetLeft={20} insetTop={20} width={80} height={60} />\n<Shape data-name="Plain" type="rectangle" position="absolute" insetLeft={120} insetTop={20} width={80} height={60} />\n<Box data-name="Pale" surface="pale" position="absolute" insetLeft={20} insetTop={110} width={80} height={60} />\n<Box data-name="Target" position="absolute" insetLeft={220} insetTop={110} width={80} height={60} />\n</Box>');
 };
 let pickMade = null;
@@ -5860,7 +5860,7 @@ async function pickLayer(page, id, name) {
 
 /** A phone page with a Button, a Link (no Figma properties) and a Text (the Content-into-properties rows). */
 const contentText = (title) => {
-  let text = newPageText({ title, device: "phone", chrome: true });
+  let text = withStarter(newPageText({ title, device: "phone", chrome: true }));
   text = grow(text, "Stack", '<Button level="primary">Save</Button>');
   text = grow(text, "Stack", '<Link href="#docs">Docs</Link>');
   return grow(text, "Stack", "<Text>Hello there</Text>");
@@ -5951,7 +5951,7 @@ async function contentPage(ctx) {
 /* ── Free fields (prototype walk 2026-10-29 W-14) helpers ───────────────────────────────────────────────────────── */
 
 /** A phone page with a frame without auto layout holding two InputFields, each in the Box that floats it. */
-const fieldsText = (title) => grow(newPageText({ title, device: "phone", chrome: true }), "Stack", '<Box width={358} height={260}>\n<Box position="absolute" insetLeft={16} insetTop={24}>\n<InputField label="Name" />\n</Box>\n<Box position="absolute" insetLeft={16} insetTop={120}>\n<InputField label="Email" />\n</Box>\n</Box>');
+const fieldsText = (title) => grow(withStarter(newPageText({ title, device: "phone", chrome: true })), "Stack", '<Box width={358} height={260}>\n<Box position="absolute" insetLeft={16} insetTop={24}>\n<InputField label="Name" />\n</Box>\n<Box position="absolute" insetLeft={16} insetTop={120}>\n<InputField label="Email" />\n</Box>\n</Box>');
 let fieldsMade = null;
 /** The fields page, a fresh copy each row (a row's ⌘Z leaves it as it was). */
 async function fieldsPage(ctx) {

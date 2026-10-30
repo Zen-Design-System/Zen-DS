@@ -93,3 +93,6 @@ export function grow(text, name, code, nth = 0) {
   return result.text;
 }
 export const codeOfItem = (id) => items.find((item) => item.id === id)?.code;
+/** A seed's first layer: the line a new Screen held before walk W-56 (2026-10-30), kept as content so the E2E pages built
+ *  on it (their layer order, their first Text) stay as they were. */
+export const withStarter = (text) => grow(text, "Stack", '<Text tone="base">Start building here: add components from Assets.</Text>');

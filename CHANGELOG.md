@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio (user 2026-10-30, walk W-15/W-56): a component from Assets lands on a prototype page with no preset action
+  (the Primary button no longer shows a "Changes saved" toast); its interactions are added in the Prototype tab, as in
+  Figma. A new Screen starts with an empty content Stack: "Add components from Assets" is a hint on the canvas only, no
+  longer a Text layer that showed in Layers and in Play.
 - Zen Studio Popover option (user 2026-10-28/30): every layer that takes a click has a Popover switch in the Design tab
   and On click › Open popover in the Prototype tab. On, its click opens a Popover beside it (a Chip uses its own), with
   Sample rows (how many, each row's words) or the first rows of a list in the page data (label, caption, picture).

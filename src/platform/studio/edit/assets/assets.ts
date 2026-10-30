@@ -42,7 +42,7 @@ const fail = (message: string) => announceEditStatus({ kind: "error", message, a
 
 /**
  * The code of `item` for a new layer (a heading one level under the example's, a fresh uid for radio groups). On a
- * builder page (`file` "local:…", Studio builder GĐ2) its toast actions become proto.toast(…); null when the item keeps
+ * builder page (`file` "local:…", Studio builder GĐ2) its toast actions are dropped (walk W-15); null when the item keeps
  * state or code a page cannot have.
  */
 export function codeOf(item: PaletteItem, file?: string): string | null {

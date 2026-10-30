@@ -81,12 +81,13 @@ function screenLines({ open, title, heading, device, layout, chrome, empty = fal
   const inner = (depth) => indent + "  ".repeat(depth);
   const framed = chrome && screenLayout(device, layout) === "desktop";
   const depth = framed ? 2 : 1;
-  const stack = [
-    // Inside the master layout the AppShell's Body pads the page (Margin-Comfortable); a bare Screen pads itself.
-    framed ? `${inner(depth)}<Stack gap="md">` : `${inner(depth)}<Stack gap="md" padding="${device === "phone" ? "lg" : "xl"}">`,
-    chrome ? `${inner(depth + 1)}<Text tone="base">Start building here: add components from Assets.</Text>` : `${inner(depth + 1)}<Text textStyle="Heading/3">${heading}</Text>`,
-    `${inner(depth)}</Stack>`,
-  ];
+  // Inside the master layout the AppShell's Body pads the page (Margin-Comfortable); a bare Screen pads itself.
+  const pad = framed ? "" : ` padding="${device === "phone" ? "lg" : "xl"}"`;
+  // A Screen with its app frame starts with an empty content Stack: no starter Text layer (user, 2026-10-30, walk W-56:
+  // "Start building here…" was a real layer, in Layers and in Play); the canvas draws its hint (builder.css).
+  const stack = chrome
+    ? [`${inner(depth)}<Stack gap="md"${pad} />`]
+    : [`${inner(depth)}<Stack gap="md"${pad}>`, `${inner(depth + 1)}<Text textStyle="Heading/3">${heading}</Text>`, `${inner(depth)}</Stack>`];
   if (!chrome) return { lines: [`${indent}${open}>`, ...stack, `${indent}</Screen>`], components: ["Stack", "Text"] };
   const bars = SCREEN_CHROME.filter((part) => part.layout === "mobile").map((part) => [part.prop, screenChromeCode(part.prop, title)]);
   const frame = framed ? newFrame(title) : [];
@@ -99,13 +100,13 @@ function screenLines({ open, title, heading, device, layout, chrome, empty = fal
     ...(framed ? [`${inner(1)}</AppShell>`] : []),
     `${indent}</Screen>`,
   ];
-  return { lines, components: ["Stack", "Text", ...(framed ? ["AppShell"] : []), ...componentsOf([...bars, ...frame].map(([, code]) => code))] };
+  return { lines, components: ["Stack", ...(framed ? ["AppShell"] : []), ...componentsOf([...bars, ...frame].map(([, code]) => code))] };
 }
 
 /**
  * A blank page: one Screen on `device` holding a padded Stack, ready to take components. With `chrome` (the default) the
  * Screen comes with its app frame (screenLines: the master layout's Sidebar + Page header, Top + Bottom Navigation; the
- * title is in the header, so the Stack starts with a line of body text); without it, the Stack starts with the title as
+ * title is in the header, so the Stack starts empty: the canvas hints at Assets); without it, the Stack starts with the title as
  * a heading. `empty`: the Screen holds nothing at all (no app frame, no Stack), as Figma's new frame.
  */
 export function newPageText({ title = "Untitled", device = "desktop", layout, width, height, chrome = true, empty = false } = {}) {

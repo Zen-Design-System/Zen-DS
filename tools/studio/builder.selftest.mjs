@@ -75,9 +75,11 @@ check("the mock changed, the binding stayed", [/\{ name: "Tote bag" \}/.test(dat
   const childless = new Set(["TopNavigation", "Shape", "MetricCard"]);
   const into = (text, at, name, code) => applyOps(text, at, name, [{ op: "insertChild", code }], { ...options(text), childless });
   check("insertChild into a Top Navigation is refused", into(bars, top.loc, "TopNavigation", "<Badge>Title</Badge>").error ?? null, "<TopNavigation> has no children to drop into; drop beside it instead.");
-  const text = screen.children[0].children[0];
-  check("insertChild of a Stack into Text is refused", into(bars, text.loc, "Text", '<Stack gap="sm" />').error ?? null, "<Text> holds text; <Stack> would put a block inside it. Drop it beside <Text> instead.");
-  check("insertChild of a Badge into Text still works", into(bars, text.loc, "Text", "<Badge>New</Badge>").error ?? null, null);
+  // A new Screen with its bars starts with an empty Stack (walk W-56): the Text is the one a Screen without bars starts with.
+  const plain = newPageText({ title: "Bars", device: "phone", chrome: false });
+  const text = parsePage(plain).board.children[0].children[0].children[0];
+  check("insertChild of a Stack into Text is refused", into(plain, text.loc, "Text", '<Stack gap="sm" />').error ?? null, "<Text> holds text; <Stack> would put a block inside it. Drop it beside <Text> instead.");
+  check("insertChild of a Badge into Text still works", into(plain, text.loc, "Text", "<Badge>New</Badge>").error ?? null, null);
 }
 
 // An action on a builder page is a proto handler: the page's runtime import gains proto; a hook is refused.

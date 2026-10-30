@@ -5,7 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { newPageText } from "../../../dialect.mjs";
-import { grow } from "../../../dnd-engine.mjs";
+import { grow, withStarter } from "../../../dnd-engine.mjs";
 import { locOf } from "../../lib/source.mjs";
 import { focusFrame, openAssetLibrary, sleep, statusText, until } from "../../lib/studio.mjs";
 import { pageText, seededPage } from "../builder.mjs";
@@ -147,7 +147,7 @@ export const pictureRows = [
   {
     id: "FW-238", feature: "On a page you made, a photo dropped on one reader of a ChatMessage writes that reader's src in the page (zen-media:), the other reader keeps none; one ⌘Z", wp: "pictures 2026-10-23",
     async run(ctx) {
-      const seeded = await seededPage(ctx, (title) => grow(newPageText({ title, device: "desktop" }), "Stack", '<ChatMessage side="you" seenBy={[{ name: "Ava Chen" }, { name: "Gia Pham" }]}>Seen by two</ChatMessage>'), /Seen by two/);
+      const seeded = await seededPage(ctx, (title) => grow(withStarter(newPageText({ title, device: "desktop" })), "Stack", '<ChatMessage side="you" seenBy={[{ name: "Ava Chen" }, { name: "Gia Pham" }]}>Seen by two</ChatMessage>'), /Seen by two/);
       const { page, id } = seeded;
       await openAssetLibrary(page, "Photos");
       const before = (await pageText(page, id)) ?? "";

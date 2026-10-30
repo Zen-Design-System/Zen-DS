@@ -63,13 +63,13 @@ check("instance look: on the Button's style; Pass through writes nothing", [/<Bu
 
 // Figma's Pattern/AppShell/Desktop placeholders (appshell-placeholder.mjs): six "Label" rows, Master › Child, the bell and
 // the account, the Page header with the page's title, the floating action.
-ok("frame (desktop): the AppShell with the Sidebar and the Page header (its header's Main row) around the page", /<AppShell\n\s*sidebar=\{<Sidebar [^>]*>\n(\s*<SidebarMenuItem [^>]*\/>\n){6}\s*<\/Sidebar>\}\n\s*header=\{<AppShellHeader\n\s*leading=\{<Breadcrumbs[\s\S]*?main=\{<PageHeader\n\s*title="Orders"/.test(framedDesktop) && /<\/Stack>\n\s*<\/AppShell>/.test(framedDesktop));
-ok("frame (desktop): the phone parts ride on the AppShell", /\btopNavigation=\{<TopNavigation type="compact" title="Orders" \/>\}/.test(framedDesktop) && /\bbottomNavigation=\{<BottomNavigation/.test(framedDesktop) && framedDesktop.includes('import { AppShell, AppShellAccount, AppShellAction, AppShellHeader, BottomNavigation, Breadcrumbs, Button, IconButton, PageHeader, Sidebar, SidebarMenuItem, Stack, Text, TopNavigation } from "@zen-ds/react";'));
+ok("frame (desktop): the AppShell with the Sidebar and the Page header (its header's Main row) around the page", /<AppShell\n\s*sidebar=\{<Sidebar [^>]*>\n(\s*<SidebarMenuItem [^>]*\/>\n){6}\s*<\/Sidebar>\}\n\s*header=\{<AppShellHeader\n\s*leading=\{<Breadcrumbs[\s\S]*?main=\{<PageHeader\n\s*title="Orders"/.test(framedDesktop) && /<Stack gap="md" \/>\n\s*<\/AppShell>/.test(framedDesktop));
+ok("frame (desktop): the phone parts ride on the AppShell", /\btopNavigation=\{<TopNavigation type="compact" title="Orders" \/>\}/.test(framedDesktop) && /\bbottomNavigation=\{<BottomNavigation/.test(framedDesktop) && framedDesktop.includes('import { AppShell, AppShellAccount, AppShellAction, AppShellHeader, BottomNavigation, Breadcrumbs, Button, IconButton, PageHeader, Sidebar, SidebarMenuItem, Stack, TopNavigation } from "@zen-ds/react";'));
 // A desktop page turned phone exports the same AppShell: one code for both widths.
 const turned = compileReact(newPageText({ title: "Orders" }).replace('device="desktop"', 'device="phone"'), { file: "orders.zen.tsx" }).code ?? "";
 ok("frame (phone): the same AppShell with its phone parts", /<AppShell\b/.test(turned) && /\btopNavigation=\{<TopNavigation type="compact" title="Orders" \/>\}/.test(turned) && /\bmain=\{<PageHeader/.test(turned));
 const framedPhone = compileReact(newPageText({ title: "Orders", device: "phone" }), { file: "orders.zen.tsx" }).code ?? "";
-ok("frame (phone): Top Navigation, the page, Bottom Navigation; no desktop parts", /<TopNavigation type="compact" title="Orders" \/>\n\s*<Stack[\s\S]*<\/Stack>\n\s*<BottomNavigation/.test(framedPhone) && !/Sidebar|PageHeader|AppShell/.test(framedPhone));
+ok("frame (phone): Top Navigation, the page, Bottom Navigation; no desktop parts", /<TopNavigation type="compact" title="Orders" \/>\n\s*<Stack [^>]*\/>\n\s*<BottomNavigation/.test(framedPhone) && !/Sidebar|PageHeader|AppShell/.test(framedPhone));
 
 // Every feature: screens, a state variant, a list over the mock, navigate / back / open / toast / link, an overlay, a photo.
 const full = page("Team", "Button, Dialog, EmptyState, Image, List, ListItem, Stack, Text", [
