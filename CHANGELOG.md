@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio Play: choice controls act with no setup (walk W-52, phase A). A pick in a row list moves its ✓, and a Chip
+  that opens that list shows the pick. Sibling chips and radios pick one. Switch, Checkbox, Segmented, Tabs and fields
+  act even when the page writes their value. Navigate, Back and Restart show a Screen as drawn; the page code never
+  changes.
 - Zen Studio (user 2026-10-30, walk W-15/W-56): a component from Assets lands on a prototype page with no preset action
   (the Primary button no longer shows a "Changes saved" toast); its interactions are added in the Prototype tab, as in
   Figma. A new Screen starts with an empty content Stack: "Add components from Assets" is a hint on the canvas only, no

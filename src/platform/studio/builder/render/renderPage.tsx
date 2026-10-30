@@ -48,7 +48,7 @@ export type RenderContext = {
   file: string;
   mock: Record<string, unknown>;
   proto: ProtoActions;
-  /** Play's live Tables and Steppers (Filter table, Change step): a Table's filter and a Stepper's step by its place. */
+  /** Play's live Tables, Steppers and controls (Filter table, Change step, W-52 A), by the layer's place. */
   play?: PlayLive;
   /** Props written on the root of an overlay frame so it shows open while designing ({ open: true }). */
   forceOpen?: boolean;
@@ -269,6 +269,92 @@ function livePlayProps(node: PageNode, props: Record<string, unknown>, ctx: Rend
       if (index < current) play.onStep(node.loc, index);
     };
   }
+}
+
+/** The value controls Play keeps (W-52 A, docs/research/studio-play-live-controls-2026-10-30.md): the controlled prop,
+ *  its uncontrolled twin and the handler that reports a change (its first argument: the new value). */
+const LIVE_VALUES: Readonly<Record<string, readonly [string, string, string]>> = {
+  Toggle: ["checked", "defaultChecked", "onCheckedChange"],
+  ToggleListItem: ["checked", "defaultChecked", "onCheckedChange"],
+  Checkbox: ["checked", "defaultChecked", "onCheckedChange"],
+  Segmented: ["value", "defaultValue", "onValueChange"],
+  Tabs: ["value", "defaultValue", "onValueChange"],
+  ChipGroup: ["value", "defaultValue", "onValueChange"],
+  SelectField: ["value", "defaultValue", "onValueChange"],
+  InputField: ["value", "defaultValue", "onValueChange"],
+  TextAreaField: ["value", "defaultValue", "onValueChange"],
+  Search: ["value", "defaultValue", "onValueChange"],
+};
+/** A Toggle's deprecated names for checked and defaultChecked. */
+const LIVE_ALIASES: Readonly<Record<string, readonly [string, string]>> = { Toggle: ["selected", "defaultSelected"] };
+
+/** `own` (the page's handler, if any) and then `then`, as one handler. */
+const chained = (own: unknown, then: (...args: unknown[]) => void) => (...args: unknown[]) => {
+  if (typeof own === "function") own(...args);
+  then(...args);
+};
+
+/**
+ * Play's choice controls (W-52 A): what the page writes is where each starts; Play keeps the rest while the Screen shows.
+ * A value control runs uncontrolled from Play's held value (`late`: set after the element's key, so a change never
+ * mounts it again and it keeps the focus); a choice group's item takes the group's pick, a ListItem its ✓ too; a Chip
+ * that opens an Overlay holding a ListItem group shows the picked row (`children`). Rows drawn from the page data share
+ * one place: they run uncontrolled from what is written and Play holds nothing for them.
+ */
+function liveControlProps(node: PageNode, props: Record<string, unknown>, scope: Scope, ctx: RenderContext): { late?: Record<string, unknown>; children?: ReactNode[] } | undefined {
+  const play = ctx.play;
+  if (!play || ctx.instance) return undefined;
+  const held = (loc: string, start: unknown) => (play.controls.has(loc) ? play.controls.get(loc) : start);
+  const own = scope.mock === ctx.mock && Object.keys(scope).length === 1;
+  const value = LIVE_VALUES[node.name];
+  if (value) {
+    const [controlled, initial, change] = value;
+    const alias = LIVE_ALIASES[node.name];
+    const start = props[controlled] ?? (alias ? props[alias[0]] : undefined) ?? props[initial] ?? (alias ? props[alias[1]] : undefined);
+    delete props[controlled];
+    if (alias) delete props[alias[0]];
+    if (start === undefined && !play.controls.has(node.loc)) {
+      if (own) props[change] = chained(props[change], (next) => play.onControl(node.loc, next));
+      return undefined;
+    }
+    if (!own) return { late: { [initial]: start } };
+    props[change] = chained(props[change], (next) => play.onControl(node.loc, next));
+    return { late: { [initial]: held(node.loc, start) } };
+  }
+  const group = play.choices.groups.get(node.loc);
+  if (group && group.kind === node.name) {
+    const picked = held(group.loc, group.start);
+    const pick = () => play.onControl(group.loc, node.loc);
+    if (node.name === "ListItem") {
+      if (group.selects) props.selected = node.loc === picked;
+      if (group.mark && node.loc === group.start && picked !== group.start) props.trailing = undefined;
+      else if (group.mark && node.loc === picked && node.loc !== group.start && node.props.trailing === undefined) props.trailing = renderNode(group.mark, scope, ctx, "mark");
+      props.onClick = chained(props.onClick, pick);
+    } else if (node.name === "Chip") {
+      props.selected = node.loc === picked;
+      delete props.defaultSelected;
+      delete props.select;
+      props.onClick = chained(props.onClick, pick);
+    } else {
+      props.checked = node.loc === picked;
+      delete props.defaultChecked;
+      props.onCheckedChange = chained(props.onCheckedChange, (checked) => { if (checked) pick(); });
+    }
+    return undefined;
+  }
+  const opens = node.name === "Chip" ? play.choices.openers.get(node.loc) : undefined;
+  if (opens) {
+    const drawn = Boolean(props.selected ?? props.select ?? props.defaultSelected);
+    delete props.defaultSelected;
+    delete props.select;
+    const moved = opens.find((entry) => { const at = held(entry.loc, entry.start); return typeof at === "string" && at !== entry.start; });
+    props.selected = moved ? true : drawn;
+    if (!moved) return undefined;
+    props.onClearSelection = chained(props.onClearSelection, () => play.onControl(moved.loc, moved.start));
+    const title = moved.titles.get(String(held(moved.loc, moved.start)));
+    return title === undefined ? undefined : { children: [title] };
+  }
+  return undefined;
 }
 
 const INITIAL_PROP = /^(default|initial)[A-Z]/;
@@ -533,6 +619,7 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
   if (lookStyle) props.style = lookStyle;
   prototypeProps(node, props, ctx);
   livePlayProps(node, props, ctx);
+  const live = liveControlProps(node, props, scope, ctx);
   withStandIns(node.name, props);
   if (bound && typeof bound.swap === "string" && node.name === "Icon" && typeof ctx.values?.[bound.swap] === "string") props.name = ctx.values[bound.swap];
   if (bound && typeof bound.text === "string" && ctx.values?.[bound.text] !== undefined && !ownWords) {
@@ -545,13 +632,14 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
   // shows the new state at once instead of after a reload (user, 2026-10-11).
   const initial = initialStateOf(props);
   if (initial) props.key = `${key ?? ""}~${initial}`;
+  if (live?.late) Object.assign(props, live.late);
   // A main's slot layer in a page's own instance: that instance's slot, where a drag drops layers (F7c).
   const slotOf = ctx.slotOwner ? literalOf(node.props[BINDINGS.slot]) : undefined;
   if (typeof slotOf === "string") Object.assign(props, { "data-zen-slot": slotOf, "data-zen-slot-of": ctx.slotOwner });
   // A main's slot layer in an instance that fills it: the instance's layers, out of every nested scope (nested.tsx slot).
   const slotName = ctx.slotFill && bound ? literalOf(node.props[BINDINGS.slot]) : undefined;
   const filled = typeof slotName === "string" ? ctx.slotFill!.values[slotName] : undefined;
-  const children = filled ? [createElement(NestedContext, { key: "slot", value: { path: "", tables: [] } }, valueOf(filled, ctx.slotFill!.scope, ctx.slotFill!.ctx) as ReactNode)] : renderChildren(node.children, scope, ctx);
+  const children = live?.children ?? (filled ? [createElement(NestedContext, { key: "slot", value: { path: "", tables: [] } }, valueOf(filled, ctx.slotFill!.scope, ctx.slotFill!.ctx) as ReactNode)] : renderChildren(node.children, scope, ctx));
   return asLayer(createElement(component as never, props, ...children), at, ctx.nest, key);
 }
 

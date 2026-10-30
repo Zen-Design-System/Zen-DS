@@ -2099,6 +2099,82 @@ export const rows = [
       if (Math.abs(a.width - b.width) > 2) throw new Error(`the overlay's frame is ${Math.round(b.width)}px wide on the canvas, the phone Screen's ${Math.round(a.width)}px`);
       return `phone Screen ${Math.round(a.width)}px · overlay ${Math.round(b.width)}px on the canvas`;
     },
+  },  {
+    id: "PT-49", feature: "Play's choice controls act with no setup (walk 2026-10-29 W-52, the user's A on 2026-10-30): on a phone, the Date Chip opens a Bottom Sheet whose Any time row carries the ✓; picking Last 3 months moves the ✓ and the row's selected look to it and the Chip reads Last 3 months, Selected; the sheet opened again keeps the pick; Any time gives the Chip back its Date; Restart starts over; the page code is unchanged", wp: "play live controls 2026-10-30", timeout: 50_000,
+    async run(ctx) {
+      const { page, text } = await seededPage(ctx, liveControlsPage, /<Overlay id="date">/);
+      const before = await text();
+      await playLiveControls(page);
+      const chip = playing(page).locator(".zen-chip").first();
+      const label = async () => ((await chip.locator(".zen-chip__label").textContent()) ?? "").trim();
+      const sheetRows = () => playing(page).locator(".zen-list-item").evaluateAll((items) => items.map((item) => ({ title: item.innerText.trim().split("\n")[0], selected: item.dataset.selected === "true", check: Boolean(item.querySelector('[data-icon^="icon-check"]')) })));
+      const pickedRow = async () => { const all = await sheetRows(); return `${all.filter((row) => row.selected).map((row) => row.title)}|${all.filter((row) => row.check).map((row) => row.title)}`; };
+      const openSheet = () => step("open the Date sheet", async () => {
+        await chip.click();
+        await playing(page).locator(".zen-list-item").first().waitFor({ state: "visible", timeout: 3000 });
+      });
+      const pick = (title) => step(`pick ${title}`, async () => {
+        await playing(page).locator(".zen-list-item").filter({ hasText: title }).locator(".zen-list-item__wrapper").click();
+        await until(async () => (await playing(page).locator(".zen-list-item").count()) === 0, { message: `${title} closes the sheet` });
+      });
+      await until(async () => (await label()) === "Date", { message: "the Chip reads Date at first" });
+      await openSheet();
+      await until(async () => (await pickedRow()) === "Any time|Any time", { message: "Any time carries the ✓ and the selected look" });
+      await pick("Last 3 months");
+      await until(async () => (await label()) === "Last 3 months" && (await chip.getAttribute("data-select")) === "true", { message: "the Chip reads Last 3 months, Selected" });
+      await openSheet();
+      await until(async () => (await pickedRow()) === "Last 3 months|Last 3 months", { message: "the sheet opened again: the ✓ on Last 3 months" });
+      await pick("Any time");
+      await until(async () => (await label()) === "Date" && (await chip.getAttribute("data-select")) === "false", { message: "Any time: the Chip reads Date again" });
+      await openSheet();
+      await pick("Last 30 days");
+      await until(async () => (await label()) === "Last 30 days", { message: "the Chip reads Last 30 days" });
+      await page.keyboard.press("r");
+      await until(async () => (await label()) === "Date", { message: "Restart: the Chip reads Date" });
+      await openSheet();
+      await until(async () => (await pickedRow()) === "Any time|Any time", { message: "Restart: the ✓ back on Any time" });
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("Escape");
+      await until(async () => (await playing(page).count()) === 0, { message: "Play left" });
+      if ((await text()) !== before) throw new Error("Play changed the page code");
+      return "Date → sheet (✓ Any time) → Last 3 months: chip reads it, Selected → sheet again keeps ✓ → Any time: Date → Last 30 days → R: Date, ✓ Any time · page code unchanged";
+    },
+  },
+  {
+    id: "PT-50", feature: "A Switch acts in Play though the page writes it off (W-52 A: checked={false} locked it): pressed it turns on, and Restart turns it off again", wp: "play live controls 2026-10-30", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, liveControlsPage, /<Overlay id="date">/);
+      await playLiveControls(page);
+      const toggle = playing(page).getByRole("switch", { name: "Notifications" });
+      await until(async () => (await toggle.getAttribute("aria-checked")) === "false", { message: "the Switch starts off" });
+      await step("press the Switch", () => toggle.click());
+      await until(async () => (await toggle.getAttribute("aria-checked")) === "true", { message: "pressed: on" });
+      await page.keyboard.press("r");
+      await until(async () => (await toggle.getAttribute("aria-checked")) === "false", { message: "Restart: off" });
+      await page.keyboard.press("Escape");
+      return "Switch off → press → on → R → off";
+    },
+  },
+  {
+    id: "PT-51", feature: "A Segmented acts in Play though the page writes its value (W-52 A: value=\"list\" locked it): Map pressed is the value; Navigate to and Back show the Screen as drawn again (List)", wp: "play live controls 2026-10-30", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, liveControlsPage, /<Overlay id="date">/);
+      await playLiveControls(page);
+      const segment = (name) => playing(page).locator(".zen-segmented__item").filter({ hasText: name });
+      const shown = async () => ((await playing(page).locator('.zen-segmented__item[aria-pressed="true"]').allInnerTexts()).join()).trim();
+      await until(async () => (await shown()) === "List", { message: "List at first" });
+      await step("press Map", () => segment("Map").click());
+      await until(async () => (await shown()) === "Map", { message: "Map pressed: the value" });
+      await step("Details, then Back", async () => {
+        await playing(page).getByRole("button", { name: "Details" }).click();
+        await until(async () => (await playScreen(page)) === "details", { message: "Details shows" });
+        await playing(page).locator(".studio-player__device").getByRole("button", { name: "Back", exact: true }).click();
+        await until(async () => (await playScreen(page)) === "orders", { message: "Orders shows again" });
+      });
+      await until(async () => (await shown()) === "List", { message: "Back: List again (each visit starts as drawn)" });
+      await page.keyboard.press("Escape");
+      return "List → Map → Details → Back → List";
+    },
   },
 ];
 
@@ -2261,4 +2337,54 @@ async function byTrigger(page, trigger, surface) {
   const above = Math.abs(t.y - (s.y + s.height + 4 * scale));
   if (Math.min(below, above) > 3 || Math.abs(s.x - t.x) > 3) throw new Error(`not by its trigger: trigger ${JSON.stringify(t)}, popover ${JSON.stringify(s)}`);
   return below <= 3 ? "below" : "above";
+}
+
+/** A phone Screen with a Date Chip opening a Bottom Sheet of ranges (Any time ✓), a Switch written off and a Segmented
+ *  written on List, and a Details Screen with Back (PT-49…PT-51, W-52 A 2026-10-30). */
+const liveControlsPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { BottomSheet, Button, Chip, Icon, List, ListItem, Segmented, Stack, Toggle } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="orders" title="Orders" device="phone">
+        <Stack gap="md" padding="lg">
+          <Stack direction="row" gap="xs">
+            <Chip variant="advanced" dropdown onClick={proto.open("date")}>Date</Chip>
+          </Stack>
+          <Toggle label="Notifications" checked={false} />
+          <Segmented aria-label="View" value="list" options={[{ id: "list", label: "List" }, { id: "map", label: "Map" }]} />
+          <Button onClick={proto.navigate("details")}>Details</Button>
+        </Stack>
+      </Screen>
+      <Screen id="details" title="Details" device="phone">
+        <Stack gap="md" padding="lg">
+          <Button onClick={proto.back()}>Back</Button>
+        </Stack>
+      </Screen>
+      <Overlay id="date">
+        <BottomSheet title="Date placed">
+          <List>
+            <ListItem title="Any time" selected trailing={<Icon name="icon-check-line" />} onClick={proto.close()} />
+            <ListItem title="Last 30 days" onClick={proto.close()} />
+            <ListItem title="Last 3 months" onClick={proto.close()} />
+          </List>
+        </BottomSheet>
+      </Overlay>
+    </Board>
+  );
+}
+`;
+
+/** Plays the seeded live-controls page on its phone (⌥⌘↵), the Orders Screen shown. */
+async function playLiveControls(page) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("ControlOrMeta+Alt+Enter");
+  await playing(page).waitFor({ state: "visible", timeout: 5000 });
+  await playing(page).getByRole("button", { name: "Details" }).waitFor({ state: "visible", timeout: 5000 });
+  await sleep(300);
 }

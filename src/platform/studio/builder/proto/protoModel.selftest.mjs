@@ -3,7 +3,7 @@
 // connections and Play read from a page — trigger words, a choice control's items, per-item actions and their links.
 // Run: node src/platform/studio/builder/proto/protoModel.selftest.mjs
 import { parsePage } from "../../../../../tools/studio/dialect.mjs";
-import { actionsFor, actionTriggerLabel, actionTriggersOf, cellText, frameNamed, layerWordsOf, choiceItemsOf, columnsOf, connectTrigger, filterCode, filterOf, filterRows, filterValuesOf, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, layersIn, linksOf, openerOf, optionsOf, playStartOf, protoActionCode, protoSourcesOf, screenTargetOf, stepCode, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, targetOfFrame, targetsByItem, triggerLabel, triggerValue } from "./protoModel.ts";
+import { actionsFor, actionTriggerLabel, actionTriggersOf, cellText, choicesOf, frameNamed, layerWordsOf, choiceItemsOf, columnsOf, connectTrigger, filterCode, filterOf, filterRows, filterValuesOf, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, layersIn, linksOf, openerOf, optionsOf, playStartOf, protoActionCode, protoSourcesOf, screenTargetOf, stepCode, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, targetOfFrame, targetsByItem, triggerLabel, triggerValue } from "./protoModel.ts";
 
 const failures = [];
 let passed = 0;
@@ -186,6 +186,67 @@ check("no Change step on a page: Play holds no Stepper", stepTargetsOf(tree).siz
 check("links: a state target leads to the state's frame; filter and step lead nowhere", linksOf(c).map((link) => `${link.action} ${link.frameId}`).sort(), ["navigate screen:orders:paid", "open overlay:pick-date"]);
 const cSources = protoSourcesOf(c);
 check("hotspots: a filter chip and a Next button are whole layers", [cSources.get(nodesOf(c).find((node) => node.name === "Chip" && node.children.some((child) => child.value === "Paid")).loc), cSources.get(nodesOf(c).find((node) => node.name === "Button").loc)], [null, null]);
+
+// W-52 A: the choice groups Play keeps and the Chip that shows the pick of the sheet it opens.
+const livePage = [
+  `// @zen-page {"format":1,"title":"Live"}`,
+  `import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";`,
+  `import { BottomSheet, Chip, Icon, List, ListItem, RadioButton, Stack } from "@zen-ds/react";`,
+  "",
+  "export const mock = { rows: [{ id: \"a\" }, { id: \"b\" }] };",
+  "",
+  "export default function Page() {",
+  "  return (",
+  "    <Board>",
+  '      <Screen id="orders" title="Orders" device="phone">',
+  '        <Stack direction="row" gap="xs">',
+  '          <Chip variant="advanced" dropdown onClick={proto.open("date")}>Date</Chip>',
+  '          <Chip variant="normal" defaultSelected>All</Chip>',
+  '          <Chip variant="normal">Processing</Chip>',
+  "        </Stack>",
+  '        <Stack direction="row" gap="xs">',
+  '          <Chip variant="normal" defaultSelected>One</Chip>',
+  '          <Chip variant="normal" defaultSelected>Two</Chip>',
+  "        </Stack>",
+  "        <Stack>",
+  '          <RadioButton label="Card" />',
+  '          <RadioButton label="Cash" defaultChecked />',
+  "        </Stack>",
+  "        <List>",
+  '          <ListItem title="Home" onClick={proto.navigate("orders")} />',
+  '          <ListItem title="Files" />',
+  "        </List>",
+  "        <List>",
+  '          {mock.rows.map((row) => <ListItem key={row.id} title="Row" selected />)}',
+  "        </List>",
+  "      </Screen>",
+  '      <Overlay id="date">',
+  '        <BottomSheet title="Date placed">',
+  "          <List>",
+  '            <ListItem title="Any time" selected trailing={<Icon name="icon-check-line" />} onClick={proto.close()} />',
+  '            <ListItem title="Last 30 days" onClick={proto.close()} />',
+  '            <ListItem title="Last 3 months" onClick={proto.close()} />',
+  "          </List>",
+  "        </BottomSheet>",
+  "      </Overlay>",
+  "    </Board>",
+  "  );",
+  "}",
+].join("\n");
+const live = parsePage(livePage, { components: new Set(["BottomSheet", "Chip", "Icon", "List", "ListItem", "RadioButton", "Stack"]) });
+const liveNodes = nodesOf(live);
+const choices = choicesOf(live);
+const titled = (name, words) => liveNodes.find((node) => node.name === name && (node.props.title?.value === words || node.props.label?.value === words || node.children.some((child) => child.value === words)));
+const sheet = choices.groups.get(titled("ListItem", "Any time").loc);
+check("a sheet's ListItems with a ✓ row are one group: the ✓ row starts, it is drawn selected and marked", [sheet?.kind, sheet?.items.length, sheet?.start === titled("ListItem", "Any time").loc, sheet?.selects, sheet?.mark?.name, sheet?.titles.get(titled("ListItem", "Last 3 months").loc)], ["ListItem", 3, true, true, "Icon", "Last 3 months"]);
+check("rows with no pick drawn, and rows from the page data, make no group", [choices.groups.has(titled("ListItem", "Home").loc), liveNodes.filter((node) => node.name === "ListItem" && node.props.title?.value === "Row").some((node) => choices.groups.has(node.loc))], [false, false]);
+check("a Chip that opens the sheet shows its pick; a chip row with the opener in it is no one-of group", [choices.openers.get(titled("Chip", "Date").loc)?.[0] === sheet, choices.groups.has(titled("Chip", "All").loc)], [true, false]);
+check("two chips both drawn selected toggle on their own", choices.groups.has(titled("Chip", "One").loc), false);
+const radios = choices.groups.get(titled("RadioButton", "Card").loc);
+check("sibling radios are one group, starting on the checked one", [radios?.kind, radios?.start === titled("RadioButton", "Cash").loc], ["RadioButton", true]);
+const statusChips = choicesOf(parsePage(livePage.replace('<Chip variant="advanced" dropdown onClick={proto.open("date")}>Date</Chip>', ""), { components: new Set(["BottomSheet", "Chip", "Icon", "List", "ListItem", "RadioButton", "Stack"]) }));
+const all = [...statusChips.groups.values()].find((group) => group.kind === "Chip");
+check("status chips with one selected are one group (W-55)", [all?.items.length, Boolean(all?.start)], [2, true]);
 
 if (failures.length) {
   console.error(`✗ protoModel selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);

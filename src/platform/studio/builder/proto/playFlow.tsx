@@ -4,7 +4,7 @@ import { componentsOf, renderNode, type LocalComponents, type PageNode, type Pag
 import { frameMotion, motionProps } from "./playMotion";
 import { useAnchoredPosition } from "../../../../components/Popover/useAnchoredPosition";
 import { itemElement, layerElements } from "./protoDom";
-import { choiceItemsOf, DEFAULT_DELAY, filterOf, filterValuesOf, findNode, linksOf, openerOf, optionsOf, OVERLAY_START, screenTargetOf, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, type ProtoOptions } from "./protoModel";
+import { choiceItemsOf, choicesOf, DEFAULT_DELAY, filterOf, filterValuesOf, findNode, linksOf, openerOf, optionsOf, OVERLAY_START, screenTargetOf, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, type ProtoOptions } from "./protoModel";
 import { anchorsItself, placesItself } from "./protoTriggers";
 import { versionFor, versionScreensOf } from "./versions";
 import type { ZenBreakpointKey } from "../../../../../tools/studio/screen-devices.mjs";
@@ -32,15 +32,15 @@ type Step = { screen: string; options?: ProtoOptions };
 /** The open overlay: shown by a press (`options`: its animation), while the pointer stays on a layer (`hover`), or as
  *  the presented frame (`start`). */
 export type OpenOverlay = { id: string; options?: ProtoOptions; hover?: boolean; start?: boolean; from?: Element | null };
-/** The shown Screen's live Tables and Steppers (Filter table, Change step), for the visit `key`. */
-type Live = { key: string; filters: Map<string, Map<string, PlayFilter>>; steps: Map<string, number> };
+/** The shown Screen's live Tables, Steppers and controls (Filter table, Change step, W-52 A), for the visit `key`. */
+type Live = { key: string; filters: Map<string, Map<string, PlayFilter>>; steps: Map<string, number>; controls: Map<string, unknown> };
 /** The frame going away while the next one comes in (`reverse`: Back). */
 type Leaving = { key: string; screen: string; options?: ProtoOptions; reverse: boolean };
 /** A frame going away is dropped after this long even if its animation never reports its end (no animation running). */
 const LEAVE_MS = 700;
 
 /** The live state for the visit `key`: the one kept, or a fresh one once another Screen shows. */
-const liveNow = (state: Live, key: string): Live => (state.key === key ? state : { key, filters: new Map(), steps: new Map() });
+const liveNow = (state: Live, key: string): Live => (state.key === key ? state : { key, filters: new Map(), steps: new Map(), controls: new Map() });
 
 export const literal = (node: PageNode, prop: string) => { const value = node.props[prop]; return value?.kind === "literal" ? value.value : undefined; };
 const elements = (tree: PageTree | null) => (tree?.board?.children ?? []).filter((child): child is PageNode => child.kind === "element");
@@ -70,8 +70,11 @@ export function usePlayFlow(tree: PageTree | null, start: string | null, { onLea
   // Restart draws the Screen again even when it is already the first: what its components kept (a filter chip's pick,
   // typed text) goes with Play's own state.
   const [run, setRun] = useState(0);
+  // Each Screen shown is a visit of its own, Back's too: the Screen it returns to starts as drawn (its live Tables,
+  // Steppers and controls; the history's length alone gave Back the key of the visit it left, and its state with it).
+  const [visit, setVisit] = useState(0);
   const current = history.at(-1)?.screen ?? first;
-  const currentKey = `${run}:${history.length}:${current}`;
+  const currentKey = `${run}:${visit}:${current}`;
   // The animation between two frames: the one going away stays drawn under (or over) the one coming in until it ends.
   const [leaving, setLeaving] = useState<Leaving | null>(null);
   const [entering, setEntering] = useState<{ options?: ProtoOptions; reverse: boolean } | null>(null);
@@ -84,9 +87,10 @@ export function usePlayFlow(tree: PageTree | null, start: string | null, { onLea
   }, [leaving]);
   const { toast } = useToast();
 
-  // Filter table and Change step: the shown Screen's live state, dropped when another Screen shows (or on Restart).
-  const [live, setLive] = useState<Live>({ key: "", filters: new Map(), steps: new Map() });
-  const restart = useCallback(() => { setHistory([]); setRun((count) => count + 1); setOverlay(startOverlay); setLeaving(null); setEntering(null); setLive({ key: "", filters: new Map(), steps: new Map() }); }, [startOverlay]);
+  // Filter table, Change step and the choice controls: the shown Screen's live state, kept while it shows (an overlay
+  // closed and opened again finds its pick), dropped when another Screen shows (or on Restart).
+  const [live, setLive] = useState<Live>({ key: "", filters: new Map(), steps: new Map(), controls: new Map() });
+  const restart = useCallback(() => { setHistory([]); setRun((count) => count + 1); setOverlay(startOverlay); setLeaving(null); setEntering(null); setLive({ key: "", filters: new Map(), steps: new Map(), controls: new Map() }); }, [startOverlay]);
   // An overlay closing over nothing (the presented Overlay alone, before any Screen) ends the flow.
   const closeOverlay = useCallback(() => {
     const { alone: lone, history: stack, onLeave: leave } = flow.current;
@@ -105,6 +109,7 @@ export function usePlayFlow(tree: PageTree | null, start: string | null, { onLea
       setEntering(options.animation === "instant" ? null : { options, reverse: false });
       // The presented Overlay alone has no Screen to come back to: Back returns to it (below).
       setHistory([...(stack.length || !first ? stack : [{ screen: first }]), { screen: String(target), options }]);
+      setVisit((count) => count + 1);
     },
     open: (target, raw, from) => {
       if (!hasOverlay(String(target))) { missing("overlay", String(target)); return; }
@@ -124,6 +129,7 @@ export function usePlayFlow(tree: PageTree | null, start: string | null, { onLea
       setLeaving(instant ? null : { key: fromKey, screen: step.screen, options: step.options, reverse: true });
       setEntering(instant ? null : { options: step.options, reverse: true });
       setHistory(stack.slice(0, -1));
+      setVisit((count) => count + 1);
       if (lone && stack.length === 1) setOverlay(startOverlay);
     },
     toast: (options) => toast((options && typeof options === "object" ? options : { title: String(options ?? "") }) as ToastOptions),
@@ -196,8 +202,13 @@ export function usePlayFlow(tree: PageTree | null, start: string | null, { onLea
     const now = liveNow(state, flow.current.currentKey);
     return { ...now, steps: new Map(now.steps).set(loc, index) };
   }), []);
+  const choices = useMemo(() => choicesOf(tree), [tree]);
+  const onControl = useCallback((loc: string, value: unknown) => setLive((state) => {
+    const now = liveNow(state, flow.current.currentKey);
+    return { ...now, controls: new Map(now.controls).set(loc, value) };
+  }), []);
   const shownLive = live.key === currentKey ? live : null;
-  const play = useMemo<PlayLive>(() => ({ filters: shownLive?.filters ?? new Map(), steps: shownLive?.steps ?? new Map(), stepTargets, onStep }), [onStep, shownLive, stepTargets]);
+  const play = useMemo<PlayLive>(() => ({ filters: shownLive?.filters ?? new Map(), steps: shownLive?.steps ?? new Map(), stepTargets, onStep, controls: shownLive?.controls ?? new Map(), choices, onControl }), [choices, onControl, onStep, shownLive, stepTargets]);
   return { tree, screen, blank, base: screen ?? blank, alone, presentedNode, current, currentKey, history, overlay, setOverlay, closeOverlay, leaving, leavingNode, entering, endLeaving, overlayNode, actions, restart, play };
 }
 

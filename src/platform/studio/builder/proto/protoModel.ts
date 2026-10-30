@@ -661,3 +661,79 @@ export function stepTargetsOf(tree: PageTree | null): Set<string> {
   }
   return out;
 }
+
+/** A one-of group Play keeps (W-52 A, docs/research/studio-play-live-controls-2026-10-30.md): sibling ListItems with a
+ *  row drawn picked, sibling Chips with one drawn Selected, or sibling RadioButtons. `start`: the item drawn picked (null:
+ *  none); `selects`: the start row is drawn `selected` (the pick moves it); `mark`: the trailing check Icon the start row
+ *  draws (the pick moves it too); `titles`: each ListItem's written title. */
+export type ChoiceGroup = { loc: string; kind: "ListItem" | "Chip" | "RadioButton"; items: readonly string[]; start: string | null; selects: boolean; mark: PageNode | null; titles: ReadonlyMap<string, string> };
+/** Play's choice groups by each item's place, and the Chips that open an Overlay holding ListItem groups (by the Chip's
+ *  place): the Chip shows the pick. */
+export type PlayChoices = { groups: ReadonlyMap<string, ChoiceGroup>; openers: ReadonlyMap<string, readonly ChoiceGroup[]> };
+
+const isOn = (node: PageNode, ...props: string[]) => props.some((prop) => literalOf(node, prop) === true);
+/** A ListItem's trailing check Icon (icon-check-line, icon-check-solid…), or null. */
+const checkMarkOf = (node: PageNode): PageNode | null => {
+  const trailing = node.props.trailing;
+  if (trailing?.kind !== "element" || trailing.node.name !== "Icon") return null;
+  const name = literalOf(trailing.node, "name");
+  return typeof name === "string" && /^icon-check(-|$)/.test(name) ? trailing.node : null;
+};
+/** A Chip that does something of its own with a press: a popover, a Filter table, an Open overlay. */
+const chipActs = (node: PageNode) => node.props.popoverItems !== undefined || node.props.onPopoverSelect !== undefined || Object.values(node.props).some((value) => value.kind === "proto" && (value.action === "filter" || value.action === "open"));
+
+/** The one-of group `siblings` make (the layers of one parent, in order), or null. */
+function choiceGroupOf(parent: string, siblings: PageNode[]): ChoiceGroup | null {
+  for (const kind of ["ListItem", "Chip", "RadioButton"] as const) {
+    const items = siblings.filter((node) => node.name === kind);
+    if (items.length < 2) continue;
+    const base = { loc: `${parent}|${kind}`, kind, items: items.map((node) => node.loc) };
+    if (kind === "ListItem") {
+      const start = items.find((node) => isOn(node, "selected") || checkMarkOf(node)) ?? null;
+      if (!start) continue;
+      const titles = new Map(items.flatMap((node) => { const title = literalOf(node, "title"); return typeof title === "string" || typeof title === "number" ? [[node.loc, String(title)] as [string, string]] : []; }));
+      return { ...base, start: start.loc, selects: isOn(start, "selected"), mark: checkMarkOf(start), titles };
+    }
+    if (kind === "Chip") {
+      const on = items.filter((node) => isOn(node, "selected", "select", "defaultSelected"));
+      if (on.length !== 1 || items.some(chipActs)) continue;
+      return { ...base, start: on[0].loc, selects: true, mark: null, titles: new Map() };
+    }
+    return { ...base, start: items.find((node) => isOn(node, "checked", "defaultChecked"))?.loc ?? null, selects: true, mark: null, titles: new Map() };
+  }
+  return null;
+}
+
+/** The page's choice groups and the Chips that show a pick (PlayChoices). Layers drawn from the page data (`.map`) take
+ *  none: every row shares one place. */
+export function choicesOf(tree: PageTree | null): PlayChoices {
+  const groups = new Map<string, ChoiceGroup>();
+  const inOverlay = new Map<string, ChoiceGroup[]>();
+  const chips = new Map<string, PageNode>();
+  const visit = (node: PageNode, overlay: string | null, mapped: boolean) => {
+    const inside = node.name === "Overlay" ? String(literalOf(node, "id") ?? "") || null : overlay;
+    if (node.name === "Chip" && !mapped) chips.set(node.loc, node);
+    const lists: PageChild[][] = [node.children, ...Object.values(node.props).flatMap((value) => (value.kind === "fragment" ? [value.children] : []))];
+    for (const list of lists) {
+      const siblings = list.filter((child): child is PageNode => child.kind === "element");
+      const group = mapped ? null : choiceGroupOf(node.loc, siblings);
+      if (group) {
+        for (const item of group.items) groups.set(item, group);
+        if (group.kind === "ListItem" && inside) inOverlay.set(inside, [...(inOverlay.get(inside) ?? []), group]);
+      }
+      for (const child of list) {
+        if (child.kind === "element") visit(child, inside, mapped);
+        else if (child.kind === "map") visit(child.node, inside, true);
+      }
+    }
+    for (const value of Object.values(node.props)) if (value.kind === "element") visit(value.node, inside, mapped);
+  };
+  if (tree?.board) visit(tree.board, null, false);
+  const openers = new Map<string, ChoiceGroup[]>();
+  for (const link of linksOf(tree)) {
+    if (link.action !== "open" || link.item || link.trigger !== ACTION_FIELD || !chips.has(link.loc)) continue;
+    const held = inOverlay.get(link.target);
+    if (held?.length) openers.set(link.loc, [...(openers.get(link.loc) ?? []), ...held]);
+  }
+  return { groups, openers };
+}
