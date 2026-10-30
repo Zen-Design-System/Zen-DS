@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { IconButton } from "../../../components/Button";
 import { typographyStyles } from "../../../tokens/typography.generated";
@@ -52,6 +52,37 @@ const GHOST = 16;
 const CHIP = 24;
 /** A slot smaller than this (screen px) carries its tag above it, not inside. */
 const TAG_ROOM = { w: 72, h: 24 };
+/** Room kept between two chips or two tags that would sit on each other. */
+const CLEAR = 4;
+
+/** Chips at the same spot (TopNavigation's Title-Leading and Top-Trailing both end at the bar's right edge; walk W-38)
+ *  stack one under the other instead of one hiding the other. */
+function spreadChips<T extends { chip: { x: number; y: number } }>(marks: T[]): T[] {
+  const placed: Array<{ x: number; y: number }> = [];
+  return marks.map((mark) => {
+    let { x, y } = mark.chip;
+    while (placed.some((other) => Math.abs(other.x - x) < CHIP && Math.abs(other.y - y) < CHIP)) y += CHIP + CLEAR;
+    placed.push({ x, y });
+    return x === mark.chip.x && y === mark.chip.y ? mark : { ...mark, chip: { x, y } };
+  });
+}
+
+/** Tags that overlap once drawn (two narrow slots side by side tag above themselves): each later one moves down a row. */
+function separateTags(root: HTMLElement) {
+  const tags = [...root.querySelectorAll<HTMLElement>(".studio-slots__tag")];
+  for (const tag of tags) tag.style.translate = "";
+  const placed: DOMRect[] = [];
+  for (const tag of tags) {
+    let rect = tag.getBoundingClientRect();
+    let shift = 0;
+    for (let tries = 0; tries < tags.length && placed.some((other) => rect.left < other.right && other.left < rect.right && rect.top < other.bottom && other.top < rect.bottom); tries += 1) {
+      shift += rect.height + CLEAR / 2;
+      tag.style.translate = `0 ${shift}px`;
+      rect = tag.getBoundingClientRect();
+    }
+    placed.push(rect);
+  }
+}
 
 const round = (value: number) => Math.round(value * 2) / 2;
 const keyOf = (marks: Marks) => JSON.stringify([marks.src, marks.slots.map((m) => [m.prop, m.tag, m.ghost, m.outline, Boolean(m.tagBelow), Boolean(m.tagEnd), round(m.x), round(m.y), round(m.w), round(m.h), m.chip ? [round(m.chip.x), round(m.chip.y)] : null]), marks.playground.map((m) => [m.tag, round(m.x), round(m.y), round(m.w), round(m.h)])]);
@@ -323,13 +354,16 @@ export function SlotLayer({ viewport, world }: { viewport: HTMLElement | null; w
     return out;
   }, [element, node]);
 
+  // After every draw (marks move with pan, zoom and edits): no tag left on top of another.
+  useLayoutEffect(() => { if (rootRef.current) separateTags(rootRef.current); });
+
   if (!shown || !node) return null;
   const style = (box: Box): CSSProperties => ({ transform: `translate(${box.x}px, ${box.y}px)`, width: box.w, height: box.h });
   const slots = marks.src === node.src ? marks.slots : [];
   const playground = marks.src === node.src ? marks.playground : [];
-  const chips = editable && !running && element ? slots.flatMap((mark) => (mark.chip && insertable.has(mark.prop) ? [{ ...mark, chip: mark.chip }] : [])) : [];
+  const chips = spreadChips(editable && !running && element ? slots.flatMap((mark) => (mark.chip && insertable.has(mark.prop) ? [{ ...mark, chip: mark.chip }] : [])) : []);
   // The open picker's anchor follows its chip while the slot moves (scrolling inside a frame, re-renders).
-  const live = picker?.fromChip ? slots.find((mark) => mark.prop === picker.prop) : undefined;
+  const live = picker?.fromChip ? chips.find((mark) => mark.prop === picker.prop) ?? slots.find((mark) => mark.prop === picker.prop) : undefined;
   const anchor = picker ? (live?.chip ? { x: live.chip.x - CHIP / 2, y: live.chip.y - CHIP / 2, w: CHIP, h: CHIP } : picker.anchor) : null;
   const pickerSlot: ContentSlot | null = picker && element ? slotOf(element.name, picker.prop) : null;
 

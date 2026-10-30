@@ -91,7 +91,7 @@ export const noCross: CrossFits = { width: null, height: null };
  * What else a plan says: the measured fits, how many times the element renders (a .map row: every one changes), and
  * whether a corner handle was dragged (a corner never writes fullWidth: it wraps both axes).
  */
-export type PlanOptions = { cross?: CrossFits; count?: number; corner?: boolean };
+export type PlanOptions = { cross?: CrossFits; count?: number; corner?: boolean; stretched?: boolean };
 
 /** The sizing modes the canvas shows ("Hug · 312"); null = the element's usual size (or a component's own). */
 export type AxisMode = "hug" | "fill" | "fixed" | null;
@@ -641,6 +641,9 @@ export function planFill(name: string, target: ResizeTarget, axis: ResizeAxis, o
     return { ops, wrap: false, wrapper: target.wrapper.src, label: label(" (its Stack)"), announce: `${announce} (in a Stack)` };
   }
   if (rule.kind === "wrapper" || target.noWrap) return { none: target.noWrap ?? `${name}'s Stack is still being read` };
+  // `stretched`: its frame already stretches it across that axis (a field in a column), so a Stack around it would only
+  // be a hidden layer that changes nothing (walk W-22).
+  if (options.stretched) return { none: `${name} already fills its frame's ${axis}` };
   const props: Record<string, EditValue> = { direction: { kind: "string", value: main }, fillChildren: { kind: "boolean", value: true }, [axis]: { kind: "string", value: "fill" } };
   const what = all.many ? `${all.many} ${plural(name)}` : name;
   return { ops: [{ op: "wrap", tag: "Stack", props }], wrap: true, wrapper: null, label: `Wrap ${what} in a Stack (${axis} fill)`, announce: `${announce} (in a Stack)` };

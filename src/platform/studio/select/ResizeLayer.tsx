@@ -502,6 +502,16 @@ function handsOn(children: unknown, src: string, through: string[], depth = 0): 
   return srcProp(children.props) === src;
 }
 
+/** Whether a layer's frame already stretches it to its full content width (a field in a column Stack, a block). */
+function stretchedAcross(node: HTMLElement): boolean {
+  const parent = layoutParent(node);
+  const room = parent ? contentWidth(parent) : null;
+  return Boolean(parent && room !== null && stackFill(node, "width") === "stretch" && Math.abs(node.offsetWidth - room) <= 1);
+}
+
+/** The refusals the status line said already (`src|reason`), so selecting the element again stays quiet. */
+const saidRefusals = new Set<string>();
+
 /**
  * Why the element cannot be wrapped where it renders (cloning.json's reason), or null. The fibers' return chain is
  * walked as the picker walks it (DOM elements, fragments and context providers skipped): the nearest component above
@@ -851,12 +861,11 @@ export function ResizeLayer({ box, hit, interactive, viewport, onPassContextMenu
   useEffect(() => { sizeNote.publish(noteKey && hit && note ? { src: hit.src, text: note } : null); }, [noteKey, hit, note]);
   useEffect(() => () => sizeNote.publish(null), []);
   const statusKey = refusal && hit && enabled ? `${hit.src}|${refusal}` : "";
-  const statusRef = useRef("");
   useEffect(() => {
-    // Once per selection of the element (selected again later: said again).
-    if (!statusKey) { statusRef.current = ""; return; }
-    if (statusRef.current === statusKey || !hit) return;
-    statusRef.current = statusKey;
+    // Once per element in a session: Resizing in the Inspector keeps saying it, and a drag that needs the wrap says it
+    // again (walk W-30: the line came back on every selection of a ListItem).
+    if (!statusKey || !hit || saidRefusals.has(statusKey)) return;
+    saidRefusals.add(statusKey);
     inspectorStatus.set("neutral", `${hit.name} cannot be wrapped in a Stack to resize it: ${refusal}`);
   }, [statusKey, hit, refusal]);
 
@@ -1280,7 +1289,7 @@ export function ResizeLayer({ box, hit, interactive, viewport, onPassContextMenu
     const cross = stackAxes(target).length || target.width?.kind === "fullWidth" ? crossFits(filler) : noCross;
     // A typed width is Fixed even at the parent's width (`corner`: never fullWidth); Fill is its own choice.
     const plan = input.kind === "hug" ? planHugAxis(picked.name, target, axis, source.attributes, { cross, count: times })
-      : input.kind === "fill" ? planFill(picked.name, target, axis, { count: times })
+      : input.kind === "fill" ? planFill(picked.name, target, axis, { count: times, stretched: axis === "width" && stretchedAcross(node) })
         : planResize(picked.name, target, { [axis]: input.px }, contentWidth(layoutParent(node)), { cross, count: times, corner: true });
     if (!plan) return;
     if ("none" in plan) {
