@@ -456,7 +456,7 @@ export const rows = [
       // Figma's placeholder frame (appshell-placeholder.mjs, 2026-10-26) brings its own parts (the trail, the bell, the
       // account, Settings · Secondary · Main Action, the floating action): the frame's components are all imported.
       const imported = /import \{ ([^}]+) \} from "@zen-ds\/react";/.exec(react)?.[1].split(", ") ?? [];
-      const frame = ["AppShell", "AppShellHeader", "BottomNavigation", "PageHeader", "Sidebar", "SidebarMenuItem", "Stack", "Text", "TopNavigation"];
+      const frame = ["AppShell", "AppShellHeader", "BottomNavigation", "PageHeader", "Sidebar", "SidebarMenuItem", "Stack", "TopNavigation"]; // no Text: a new Screen's Stack starts empty (walk W-56)
       if (!frame.every((name) => imported.includes(name)) || !/topNavigation=\{<TopNavigation\s+type="alt"\s+title="Export check"\s+largeTitle="Export check"/.test(react)) throw new Error(`unexpected code: missing ${frame.filter((name) => !imported.includes(name)).join(", ") || "none"}; ${react.match(/topNavigation=\{<TopNavigation[^\n]*/)?.[0]?.slice(0, 200) ?? "no topNavigation"}`);
       await panel.getByRole("button", { name: "Design file" }).click();
       await panel.getByRole("button", { name: "Copy code" }).click();

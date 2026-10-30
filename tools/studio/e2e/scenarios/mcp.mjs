@@ -31,7 +31,7 @@ async function call(ctx, name, args = {}) {
 /** The undo stack the Studio keeps for this tab (session storage). */
 const undoStack = (page) => page.evaluate(() => JSON.parse(sessionStorage.getItem("zen-studio:session") ?? "{}").undo ?? []);
 
-/** A new page with its content Stack's id (a blank page holds one Stack, "Start building here"). */
+/** A new page with its content Stack's id (a blank page holds one empty Stack: no starter Text since walk W-56). */
 async function pageWithContent(ctx) {
   const made = await newPage(ctx, { device: "desktop" });
   const tree = (await call(ctx, "get_tree")).text;
@@ -40,6 +40,15 @@ async function pageWithContent(ctx) {
   const content = /^\s*Stack #(\S+) gap="md"(?: padding="xl")?$/m.exec(tree)?.[1];
   if (!content) throw new Error(`no content Stack in get_tree:\n${tree.slice(0, 600)}`);
   return { ...made, tree, content };
+}
+
+/** A Text the person already put in the content Stack (a new page starts empty, walk W-56); its id. */
+async function withText(ctx, page, content) {
+  const added = await call(ctx, "insert", { parent: content, jsx: '<Text tone="base">Already on the page</Text>' });
+  const id = /Text #(\S+)/.exec(added.text)?.[1];
+  if (!id) throw new Error(`insert gave no Text id: ${added.text}`);
+  await until(async () => (await frameText(page)).includes("Already on the page"), { message: "the Text on the canvas" });
+  return id;
 }
 
 const frameText = async (page) => (await page.locator('[data-studio-frame^="screen:"]').first().innerText()).split("\n").map((line) => line.trim()).filter(Boolean);
@@ -60,9 +69,8 @@ export const rows = [
   {
     id: "AI-02", feature: "update from an AI shows at once, is one undo step labelled AI, and ⌘Z takes it back", wp: "MCP M1",
     async run(ctx) {
-      const { page, tree } = await pageWithContent(ctx);
-      const text = /Text #(\S+) tone="base" — "Start building here/.exec(tree)?.[1];
-      if (!text) throw new Error("no starter Text");
+      const { page, content } = await pageWithContent(ctx);
+      const text = await withText(ctx, page, content);
       await call(ctx, "update", { id: text, text: "Changed by AI", props: { tone: "strongest" } });
       await until(async () => (await frameText(page)).includes("Changed by AI"), { message: "the new text on the canvas" });
       const label = (await undoStack(page)).at(-1)?.label;
@@ -70,7 +78,7 @@ export const rows = [
       // The person presses ⌘Z on the canvas (newPage leaves the Page name field focused, which would take it).
       await page.evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : undefined));
       await page.keyboard.press("ControlOrMeta+z");
-      await until(async () => (await frameText(page)).some((line) => line.startsWith("Start building here")), { message: "⌘Z bringing the old text back" });
+      await until(async () => (await frameText(page)).includes("Already on the page"), { message: "⌘Z bringing the old text back" });
       return `"Changed by AI" live, undo "${label}", ⌘Z restored it`;
     },
   },
@@ -78,9 +86,10 @@ export const rows = [
     id: "AI-03", feature: "insert from an AI: JSX in the page dialect lands at its index, live; an HTML tag is refused with the reason", wp: "MCP M1",
     async run(ctx) {
       const { page, content } = await pageWithContent(ctx);
+      await withText(ctx, page, content);
       const added = await call(ctx, "insert", { parent: content, index: 0, jsx: '<Button level="secondary" startIcon="icon-check-line">Approve</Button>' });
       const button = /Button #(\S+)/.exec(added.text)?.[1];
-      await until(async () => (await frameText(page)).indexOf("Approve") >= 0 && (await frameText(page)).indexOf("Approve") < (await frameText(page)).findIndex((line) => line.startsWith("Start building here")), { message: "Approve before the starter text" });
+      await until(async () => (await frameText(page)).indexOf("Approve") >= 0 && (await frameText(page)).indexOf("Approve") < (await frameText(page)).indexOf("Already on the page"), { message: "Approve before the Text text" });
       const refused = await call(ctx, "insert", { parent: content, jsx: "<div>html</div>" }).then(() => null, (error) => error.message);
       if (!refused || !/HTML element/.test(refused)) throw new Error(`an HTML tag was not refused with its reason: ${refused}`);
       return `Button #${button} first in the Stack; <div> refused (${refused.slice(refused.indexOf("<div>"), refused.indexOf("<div>") + 40)}…)`;
@@ -113,13 +122,14 @@ export const rows = [
   {
     id: "AI-05", feature: "A page file changed outside the tab (an editor, an AI's file tools) shows on the canvas without a reload", wp: "MCP M1",
     async run(ctx) {
-      const { page, id, name } = await pageWithContent(ctx);
+      const { page, id, name, content } = await pageWithContent(ctx);
+      await withText(ctx, page, content);
       const file = path.join(ctx.root, pagesDirOf(ctx.server.port), `${id}.zen.tsx`);
       // The tab's own pushes (the page's new name) are in the folder first: a later push would overwrite the edit below.
-      await until(async () => fs.existsSync(file) && fs.readFileSync(file, "utf8").includes(JSON.stringify(name)), { message: "the named page in the folder" });
+      await until(async () => fs.existsSync(file) && fs.readFileSync(file, "utf8").includes(JSON.stringify(name)) && fs.readFileSync(file, "utf8").includes("Already on the page"), { message: "the named page with its Text in the folder" });
       await sleep(500);
       await page.evaluate(() => { window.__mcpNoReload = true; });
-      fs.writeFileSync(file, fs.readFileSync(file, "utf8").replace("Start building here: add components from Assets.", "Written by a file tool"));
+      fs.writeFileSync(file, fs.readFileSync(file, "utf8").replace("Already on the page", "Written by a file tool"));
       const started = Date.now();
       await until(async () => (await frameText(page)).includes("Written by a file tool"), { message: "the file's change on the canvas", timeout: 5000 });
       if (!(await page.evaluate(() => window.__mcpNoReload === true))) throw new Error("the tab reloaded");

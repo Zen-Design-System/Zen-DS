@@ -50,6 +50,16 @@
 /* The same for a frame's own sticky (Box sticky="bottom", position.css): in place on the canvas, stuck in Play, Present
    and the export. */
 .studio-world :is(.zen-stack, .zen-grid, .zen-box, .zen-shape)[data-sticky]:not([data-position="absolute"]) { position: relative; }
+/* A new Screen's empty content Stack (dialect.mjs screenLines): a hint on the canvas only, never a layer, never in Play,
+   Present or the export (user, 2026-10-30, walk W-56: the "Start building here…" Text was a real layer). */
+.studio-world :is(.studio-builder-screen__content, .studio-builder-screen__shell-body, .zen-app-shell__body) > .zen-stack:only-child:empty::before {
+  color: var(--zen-color-content-neutral-light);
+  font-size: var(--zen-typography-font-size-body-small);
+  line-height: var(--zen-typography-line-height-body-small);
+  letter-spacing: var(--zen-typography-letter-spacing-body-small);
+  content: "Add components from Assets";
+  pointer-events: none;
+}
 /* Present and Play: the system bars ride 0-high sticky boxes at the window's top and bottom edges (runtime.tsx). */
 .studio-builder-screen__pin { position: sticky; z-index: 20; height: 0; }
 .studio-builder-screen__pin[data-edge="top"] { top: 0; }

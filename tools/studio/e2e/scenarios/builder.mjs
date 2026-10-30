@@ -6,6 +6,8 @@ import { pagesDirOf } from "../lib/server.mjs";
 import { inspectorRow, loadStudio, openAssetLibrary, openStudioSpace, selectAt, selectedSrc, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
 import { pickOption, scaleStep } from "./inspector.mjs";
 import { codeWordsIn } from "../../../../src/platform/studio/words.ts";
+import { newPageText } from "../../dialect.mjs";
+import { withStarter } from "../../dnd-engine.mjs";
 
 /** The page's text as the browser keeps it (IndexedDB "zen-studio-builder"). */
 export const pageText = (page, id) => page.evaluate((key) => new Promise((resolve) => {
@@ -187,8 +189,21 @@ export const selectedName = async (page) => (await page.locator("#studio-right h
 export async function selectStack(page, id) {
   await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
   await focusScreen(page);
-  await clickNamed(page, id, "Text");
-  await page.keyboard.press("Escape");
+  // The Screen's content Stack. Empty (a new page, walk W-56): the canvas's hint gives it a box to click. Holding layers:
+  // its first one, then Escape up to the Stack.
+  const content = page.locator(`:is(.studio-builder-screen__content, .studio-builder-screen__shell-body, .zen-app-shell__body) > [data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Stack"]`).first();
+  const first = content.locator(":scope > [data-zen-src]").first();
+  if (!(await content.count())) {
+    await clickNamed(page, id, "Text");
+    await page.keyboard.press("Escape");
+  } else if (!(await first.count())) {
+    await selectAt(page, await content.boundingBox());
+    await sleep(500);
+  } else {
+    await selectAt(page, await first.boundingBox());
+    await sleep(500);
+    await page.keyboard.press("Escape");
+  }
   await until(async () => (await selectedName(page)) === "Frame", { message: "the Stack selected (its panel heads it Frame, as Figma)" }).catch(async (error) => { throw new Error(`${error.message} (selected: ${await selectedName(page)}; status: ${await statusText(page)})`); });
 }
 
@@ -441,7 +456,7 @@ const screensOf = (text) => [...text.matchAll(/<Screen\b([^>]*?)(\/>|>([\s\S]*?)
 
 export const rows = [
   {
-    id: "B-01", feature: "New page: a blank phone page opens on the canvas, listed under My pages", wp: "GĐ2 M1",
+    id: "B-01", feature: "New page: a blank phone page opens on the canvas, listed under My pages; its Stack starts empty, the canvas hinting at Assets (no starter Text layer: walk W-56)", wp: "GĐ2 M1",
     async run(ctx) {
       const { page, id, name } = await newPage(ctx, { device: "phone" });
       const width = await page.locator('[data-studio-frame="screen:screen-1"]').evaluate((frame) => Math.round(frame.getBoundingClientRect().width / (Number(getComputedStyle(frame.closest(".studio-world") ?? frame).getPropertyValue("--studio-zoom")) || 1)));
@@ -449,16 +464,19 @@ export const rows = [
       if (!/^\/\/ @zen-page \{"format":1/.test(text ?? "")) throw new Error("no page header in the stored text");
       await showLeftTab(page, "pages");
       if (!(await page.locator('[data-section="mine"]').getByRole("button", { name }).count())) throw new Error("not listed under My pages");
-      return `screen-1 at ${width}px; stored with its header`;
+      if (/<Text\b/.test(text)) throw new Error("the new page holds a Text layer");
+      const hint = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Stack"]:empty`).first().evaluate((stack) => getComputedStyle(stack, "::before").content);
+      if (hint !== '"Add components from Assets"') throw new Error(`the empty Stack's hint is ${hint}`);
+      return `screen-1 at ${width}px; stored with its header; empty Stack hinting ${hint}`;
     },
   },
   {
-    id: "B-02", feature: "Assets insert a Button into the page (proto action, package import); it gets selected", wp: "GĐ2 M1",
+    id: "B-02", feature: "Assets insert a Button into the page (no preset action, as a Figma asset: walk W-15; package import); it gets selected", wp: "GĐ2 M1",
     async run(ctx) {
       const { page, id } = await newPage(ctx);
       await selectStack(page, id);
       await insertAsset(page, "Button");
-      await until(async () => /<Button level="tertiary" onClick=\{proto\.toast\(\{ title: "Report exported" \}\)\}>/.test((await pageText(page, id)) ?? ""), { message: "a Button with proto.toast in the page" });
+      await until(async () => /<Button level="tertiary">Export report<\/Button>/.test((await pageText(page, id)) ?? ""), { message: "a Button with no action in the page" });
       const text = await pageText(page, id);
       // The package import holds the app frame's components too (a new page comes with them).
       if (!/import \{[^}]*\bButton\b[^}]*\} from "@zen-ds\/react";/.test(text)) throw new Error("Button not imported from the package");
@@ -722,7 +740,7 @@ export const rows = [
       await until(async () => (await page.locator(".studio-proto-links").getAttribute("data-links").catch(() => null)) === "1", { message: "one arrow on the canvas" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+KeyZ");
-      await until(async () => /onClick=\{proto\.toast/.test((await pageText(page, id)) ?? ""), { message: "⌘Z back to the toast" });
+      await until(async () => /<Button level="tertiary">/.test((await pageText(page, id)) ?? ""), { message: "⌘Z back to no action" });
       return "navigate written, arrow drawn, ⌘Z undoes it";
     },
   },
@@ -989,7 +1007,8 @@ export const rows = [
   {
     id: "B-22", feature: "⇧A wraps one layer (a single Text) in a new Stack on a page you made", wp: "studio fixes 2026-10-09",
     async run(ctx) {
-      const { page, id } = await newPage(ctx);
+      // A new Screen starts empty (walk W-56): the page holds the Text the person added.
+      const { page, id } = await seededPage(ctx, (title) => withStarter(newPageText({ title, device: "phone", chrome: true })), /Start building here/);
       await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
       await focusScreen(page);
       await clickNamed(page, id, "Text");
@@ -1625,7 +1644,8 @@ export const rows = [
   {
     id: "B-53", feature: "Inside a layout the layout's rule stays: with the Text in a page's Stack selected, Assets › Metric card goes right after it in the Stack (no floating Box, no position)", wp: "first view + insert 2026-10-27", timeout: 60_000,
     async run(ctx) {
-      const { page, id } = await newPage(ctx, { device: "desktop" });
+      // A new Screen starts empty (walk W-56): the page holds the Text the person added.
+      const { page, id } = await seededPage(ctx, (title) => withStarter(newPageText({ title, device: "desktop", chrome: true })), /Start building here/);
       await focusScreen(page);
       await clickNamed(page, id, "Text");
       await until(async () => /:\d+:\d+$/.test((await selectedSrc(page))[0] ?? ""), { message: "the Text selected" });

@@ -82,3 +82,18 @@
 - Bug fixed on the way (`playFlow.tsx`): Back returned the visit key of the Screen it left before (`run:history.length:
   screen`), so a Back could find that Screen's old filters/steps. Now a visit counter: every Screen shown starts as drawn.
 - Not in A: Menu (actions, no ✓), BottomNavigation, B (variables), W-51, W-58.
+
+## Walk W-15 + W-56 (tier S; user decisions 2026-10-30)
+
+Branch zen/fix/studio-assets-no-preset-20261030 (walk session). The user picked "drop the preset action" and "hint only".
+- W-15: `slots/palette.ts` `builderCode` drops `() => toast({ … })` props and item fields on a builder page (was
+  `proto.toast`); widgets' `builder` and the ChatComposer's builder line too. App code (`build`) keeps its handlers
+  (interaction/no-noop-handler). The slot "+ Action" items (`tools/studio/items.mjs`) are unchanged.
+- W-56: `tools/studio/dialect.mjs` `screenLines`: a Screen with its app frame starts with `<Stack gap="md" … />`; the
+  canvas draws "Add components from Assets" as `::before` on that empty Stack (`builder/builder.css`, under
+  `.studio-world`, so never in Play, Present or the export).
+- E2E: B-01 checks the empty Stack and its hint, B-02/B-15 expect no preset action, `selectStack` clicks the empty Stack,
+  B-22/B-53 seed a page with the Text, AI-02/03/05 insert their own Text, HO-01 drops Text from the frame's imports; seed
+  pages keep the old line as content (`dnd-engine.mjs` `withStarter`).
+- Item 8 A (Play live controls, W-52) runs in session play-live-controls; B (variables) after it.
+
