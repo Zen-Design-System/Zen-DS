@@ -1698,6 +1698,117 @@ export const rows = [
     },
   },
   {
+    id: "B-58", feature: "A Donut chart's Data section (user 2026-10-28: thêm bớt sector, nhập số cho từng sector): a row per slice in its palette colour, a number typed redraws the chart, + adds a slice after the last (a fresh id, its number), − removes one, ⌘Z brings it back; Properties lists no Data items and the panel stays on its grid", wp: "chart data 2026-10-30", timeout: 90_000,
+    async run(ctx) {
+      const { page, id } = await emptyPage(ctx);
+      await insertFromAssets(page, id, "Donut chart", "DonutChart");
+      const panel = page.locator("#studio-right");
+      const table = panel.locator('[role="table"][aria-label="DonutChart data"]');
+      const rows = table.locator("[data-chart-row]");
+      await until(async () => (await rows.count()) === 4, { message: "four slices in the Data section" });
+      if (await panel.getByText("Data · 1", { exact: false }).count()) throw new Error("Properties still lists the data items one by one");
+      if ((await table.locator(".studio-chart-data__colour").count()) !== 4) throw new Error("the slices show no palette colours");
+      const { expectPanelFits } = await import("./figma.mjs");
+      await expectPanelFits(page, "Donut chart › Data");
+      const slices = () => page.locator(".studio-viewport .zen-chart__slice").count();
+      const before = await slices();
+      // A number typed: the page and the drawing follow.
+      const value = panel.getByLabel("Phin & Co Value", { exact: true });
+      await value.fill("120000");
+      await value.press("Enter");
+      await until(async () => /\{ id: "phin", label: "Phin & Co", value: 120000 \}/.test((await pageText(page, id)) ?? ""), { message: "Phin & Co at 120000 in the page" });
+      // + adds a slice after the last one.
+      await panel.getByRole("button", { name: "Add slice", exact: true }).click();
+      await until(async () => /\{ id: "slice-5", label: "Slice 5", value: 86100 \}/.test((await pageText(page, id)) ?? ""), { message: "Slice 5 in the page" });
+      await until(async () => (await rows.count()) === 5 && (await slices()) > before, { message: "five rows and one more slice drawn" });
+      const label = panel.getByLabel("Slice 5 label", { exact: true });
+      await label.fill("Partners");
+      await label.press("Enter");
+      await until(async () => /label: "Partners"/.test((await pageText(page, id)) ?? ""), { message: "the new slice renamed Partners" });
+      // − removes one; ⌘Z brings it back.
+      await panel.getByRole("button", { name: "Remove slice Lumen Bank", exact: true }).click();
+      await until(async () => !/Lumen Bank/.test((await pageText(page, id)) ?? "") && (await rows.count()) === 4, { message: "Lumen Bank removed" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => /\{ id: "lumen", label: "Lumen Bank", value: 89000 \}/.test((await pageText(page, id)) ?? ""), { message: "⌘Z brings Lumen Bank back" });
+      return `4 slices; Phin & Co → 120000; + Slice 5 (${before} → more slices drawn), renamed Partners; − Lumen Bank, ⌘Z back`;
+    },
+  },
+  {
+    id: "B-59", feature: "A Stacked bar chart's Series and Data: + adds a series to the list and a number for it to every period, its name renames the legend on the canvas, a third series is edited through the column picker, + adds a period after the last (the next month), − removes a series with its numbers", wp: "chart data 2026-10-30", timeout: 90_000,
+    async run(ctx) {
+      const { page, id } = await emptyPage(ctx);
+      await insertFromAssets(page, id, "Stacked bar chart", "StackBarChart");
+      const panel = page.locator("#studio-right");
+      const text = async () => (await pageText(page, id)) ?? "";
+      await until(async () => (await panel.locator("[data-chart-entry]").count()) === 2, { message: "two series listed" });
+      const { expectPanelFits } = await import("./figma.mjs");
+      // Two series side by side: Jul's Engineering number typed.
+      const engineering = panel.getByLabel("Jul Engineering", { exact: true });
+      await engineering.fill("90");
+      await engineering.press("Enter");
+      await until(async () => /\{ label: "Jul", values: \{ design: 120, engineering: 90 \} \}/.test(await text()), { message: "Jul's Engineering at 90" });
+      await expectPanelFits(page, "Stacked bar chart › two series");
+      // + Series: a third, its numbers copied from the last series, then renamed: the legend follows.
+      await panel.getByRole("button", { name: "Add series", exact: true }).click();
+      await until(async () => /\{ id: "series3", label: "Series 3" \}/.test(await text()) && /\{ label: "Sep", values: \{ design: 110, engineering: 200, series3: 200 \} \}/.test(await text()), { message: "Series 3 with a number in every period" });
+      const name = panel.getByLabel("Series 3 name", { exact: true });
+      await name.fill("Delivery");
+      await name.press("Enter");
+      await until(async () => /label: "Delivery"/.test(await text()) && /Delivery/.test(await page.locator(".studio-viewport .zen-chart__legend").first().innerText().catch(() => "")), { message: "Delivery in the page and the legend" });
+      // Three series: one at a time, picked above the rows.
+      // The picker's button is named "Series to edit <series>"; the aria-label itself sits on the hidden native select.
+      const picker = panel.getByRole("button", { name: /^Series to edit\b/ }).first();
+      await picker.click();
+      await page.getByRole("option", { name: "Delivery", exact: true }).click();
+      const delivery = panel.getByLabel("Aug Delivery", { exact: true });
+      await delivery.fill("55");
+      await delivery.press("Enter");
+      await until(async () => /\{ label: "Aug", values: \{ design: 140, engineering: 170, series3: 55 \} \}/.test(await text()), { message: "Aug's Delivery at 55" });
+      await expectPanelFits(page, "Stacked bar chart › three series");
+      // + Period after Sep.
+      await panel.getByRole("button", { name: "Add period", exact: true }).click();
+      await until(async () => /\{ label: "Oct", values: \{ design: 110, engineering: 200, series3: 200 \} \}/.test(await text()), { message: "Oct after Sep" });
+      // − Series Design: gone from the list and every period.
+      await panel.getByRole("button", { name: "Remove series Design", exact: true }).click();
+      await until(async () => { const now = await text(); return !/design/.test(now) && /\{ label: "Jul", values: \{ engineering: 90, series3: 90 \} \}/.test(now); }, { message: "Design out of the series and every period" });
+      return "Jul Engineering → 90; + Series 3 → Delivery (legend), Aug 55 through the picker; + Oct; − Design from every period";
+    },
+  },
+  {
+    id: "B-60", feature: "A Line chart's comparison and a Heatmap's columns from the Inspector: + Line adds the comparison (the line's numbers), its numbers sit beside the line's, + Period extends both, − removes the comparison; a Heatmap's + Column adds the next weekday to every row, − removes one; the panel stays on its grid", wp: "chart data 2026-10-30", timeout: 120_000,
+    async run(ctx) {
+      const { expectPanelFits } = await import("./figma.mjs");
+      let { page, id } = await emptyPage(ctx);
+      const panel = page.locator("#studio-right");
+      await insertFromAssets(page, id, "Line chart", "LineChart");
+      await until(async () => (await panel.locator("[data-chart-row]").count()) === 3, { message: "three periods" });
+      await panel.getByRole("button", { name: "Add line", exact: true }).click();
+      await until(async () => /compare=\{\{ label: "Compare", values: \[18400, 19650, 21000\] \}\}/.test((await pageText(page, id)) ?? ""), { message: "a comparison with the line's numbers" });
+      const compare = panel.getByLabel("Sep Compare", { exact: true });
+      await compare.waitFor({ state: "visible", timeout: 5000 });
+      await compare.fill("15000");
+      await compare.press("Enter");
+      await until(async () => /values: \[18400, 19650, 15000\]/.test((await pageText(page, id)) ?? ""), { message: "Sep's comparison at 15000" });
+      await expectPanelFits(page, "Line chart › line and comparison");
+      await panel.getByRole("button", { name: "Add period", exact: true }).click();
+      await until(async () => { const now = (await pageText(page, id)) ?? ""; return /\{ label: "Oct", value: 21000 \}/.test(now) && /values: \[18400, 19650, 15000, 15000\]/.test(now); }, { message: "Oct on the line and the comparison" });
+      await panel.getByRole("button", { name: "Remove line Compare", exact: true }).click();
+      await until(async () => !/compare=/.test((await pageText(page, id)) ?? ""), { message: "the comparison removed" });
+
+      ({ page, id } = await emptyPage(ctx));
+      await insertFromAssets(page, id, "Heatmap", "HeatmapChart");
+      const heat = page.locator("#studio-right");
+      await until(async () => (await heat.locator("[data-chart-entry]").count()) === 5, { message: "five columns listed" });
+      await heat.getByRole("button", { name: "Add column", exact: true }).click();
+      await until(async () => /columns=\{\["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"\]\}/.test((await pageText(page, id)) ?? "") && /\[38, 41, 40, 39, 35, 35\]/.test((await pageText(page, id)) ?? ""), { message: "Sat in the columns and every row" });
+      await heat.getByRole("button", { name: "Remove column Mon", exact: true }).click();
+      await until(async () => /columns=\{\["Tue", "Wed", "Thu", "Fri", "Sat"\]\}/.test((await pageText(page, id)) ?? "") && /\[41, 40, 39, 35, 35\]/.test((await pageText(page, id)) ?? ""), { message: "Mon out of the columns and every row" });
+      await expectPanelFits(page, "Heatmap › columns");
+      return "+ comparison, Sep 15000, + Oct on both, − comparison; Heatmap + Sat, − Mon";
+    },
+  },
+  {
     id: "B-54", feature: "A component floated by an insert is one layer with its Box: Delete on the selected Metric card takes its Box too (no empty Box left); ⌘D duplicates the card in a Box of its own beside the first", wp: "first view + insert 2026-10-27", timeout: 60_000,
     async run(ctx) {
       const { page, id } = await emptyPage(ctx);

@@ -144,6 +144,8 @@ const componentPropLabels: Record<string, Record<string, string>> = {
   AppShellPane: { title: "Title", action: "Action", theme: "Theme", surface: "Surface", children: "Pane content" },
   // PageHeader is Figma's Primitives/Dashboard/Header Type=Main.
   PageHeader: { description: "Subheading", childTitle: "Child heading", actions: "Actions", trailing: "Trailing" },
+  // Figma's Color is `palette`; the CSS colours read apart from it (two rows both said "Color").
+  BarChart: { color: "Bar color", activeColor: "Active bar color" },
 };
 
 /** Components whose `as` picks the HTML element they render (a list of tags); elsewhere (Link, ZenProvider) it takes a

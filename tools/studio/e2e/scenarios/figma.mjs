@@ -766,6 +766,10 @@ async function panelFits(page) {
       for (const row of body.children) {
         if (row.matches(".studio-component-property")) continue;
         for (const field of row.querySelectorAll(".zen-input-field")) {
+          // A chart's numbers share the second field column (ChartDataSection: a value and its target, two series): the
+          // last of them ends on its line, the others inside it.
+          const values = field.closest(".studio-chart-data__values");
+          if (values && !values.lastElementChild?.contains(field)) continue;
           const rect = field.getBoundingClientRect();
           if (rect.width && !lines.some((line) => Math.abs(rect.right - line) <= 1)) off.add(`${name(field)} ends at ${Math.round(rect.right - inner.left)} of ${Math.round(inner.width)}`);
         }
@@ -776,7 +780,7 @@ async function panelFits(page) {
   });
 }
 /** Throws when the right panel's fields do not fit (panelFits). */
-async function expectPanelFits(page, where) {
+export async function expectPanelFits(page, where) {
   const problems = await panelFits(page);
   if (problems.length) throw new Error(`${where}: ${problems.join(" · ")}`);
 }

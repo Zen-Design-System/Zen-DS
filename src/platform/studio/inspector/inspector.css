@@ -374,6 +374,22 @@
 .studio-inspector__section--head-only .studio-inspector__section-body { display: none; }
 
 
+/* A chart's data (ChartDataSection.tsx): a row per sector on the panel's grid, its label on the first field column, its
+   numbers sharing the second (one, or two side by side: a value and its target, two series), − in the icon column. */
+.studio-chart-data__table { display: grid; min-width: 0; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-chart-data__row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-chart-data__values { display: grid; min-width: 0; grid-template-columns: repeat(var(--studio-chart-data-columns, 1), minmax(0, 1fr)); align-items: center; column-gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-chart-data__cell { display: flex; min-width: 0; }
+.studio-chart-data__cell > .zen-input-field { width: 100%; min-width: 0; }
+.studio-chart-data__cell[data-kind="flag"] { justify-content: center; }
+.studio-chart-data__head { min-width: 0; overflow: hidden; color: var(--zen-color-content-neutral-light); text-overflow: ellipsis; white-space: nowrap; }
+.studio-chart-data__head[data-kind="flag"] { display: inline-flex; justify-content: center; }
+/* A series, a heatmap column or a line: its name across both field columns, − in the icon column. */
+.studio-chart-data__entry { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-chart-data__entry > .zen-input-field { min-width: 0; }
+/* The palette colour a slice or a series draws in (Color Chart Sector styles in order; read-only). */
+.studio-chart-data__colour { display: inline-block; width: var(--zen-element-size-popular-xsmall, 12px); height: var(--zen-element-size-popular-xsmall, 12px); flex: none; border-radius: var(--zen-corner-radius-rounded, 999px); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-pale-default); }
+
 /* Export (ExportSection.tsx): a setting's scale and format side by side, its − at the end. */
 .studio-export__row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) var(--zen-button-size-xsmall, 24px); align-items: center; column-gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* Figma's style details of a text style (TextStyleDetails.tsx): read-only fields, two to a row, and where to edit them. */

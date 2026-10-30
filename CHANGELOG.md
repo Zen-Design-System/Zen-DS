@@ -14,6 +14,12 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a selected chart has a Data section in the Inspector: a row per sector (slice, period, stage, goal) with its
+  label and number, + to add one after the last, − to remove one; the canvas redraws at once and ⌘Z takes it back.
+  Series charts (Stacked bar, Area, Grouped bar), a Line chart's comparison and a Heatmap's columns are a list above it
+  (add, rename, remove; a number for each period); up to two numbers sit side by side, more are picked one at a time.
+  Colours follow the palette in order. Every chart with data; Gauge keeps its Value and Target fields. A Bar chart's
+  CSS colours read "Bar color" / "Active bar color", apart from Figma's Color (the palette).
 - Zen Studio, small fixes from the prototype walk (2026-10-29 §4 item 9, Prototype side): a double-click on the canvas
   keeps the Prototype tab open (W-37); a link whose overlay or Screen was deleted shows an empty field and says so, not
   the raw id (W-59); the Design tab names a prototype action as the Prototype tab does ("Show toast", "Navigate to"; it
