@@ -1938,7 +1938,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-49", feature: "The Popover option in the Design tab (user 2026-10-28/30): a Button's Popover switch writes an Overlay holding a Popover with 4 Sample rows and On click › Open overlay to it, one edit; Rows 2 and Row 1's words rewrite its items; in Play the Button opens it right below and a pick closes it; the switch off takes the click and the Overlay away", wp: "popover option 2026-10-30", timeout: 50_000,
+    id: "PT-41", feature: "The Popover option in the Design tab (user 2026-10-28/30): a Button's Popover switch writes an Overlay holding a Popover with 4 Sample rows and On click › Open overlay to it, one edit; Rows 2 and Row 1's words rewrite its items; in Play the Button opens it right below and a pick closes it; the switch off takes the click and the Overlay away", wp: "popover option 2026-10-30", timeout: 50_000,
     async run(ctx) {
       const { page, id, text: source } = await seededPage(ctx, popoverPage, /Filters/);
       await clickNamed(page, id, "Button");
@@ -1978,7 +1978,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-50", feature: "Open popover in the Prototype tab, its rows from the page data: On click › Open popover replaces a Button's Navigate to; Data people (3) writes each row's label as mock.people[n].name, Rows 2 and Caption role follow; the Design tab shows the same popover on; in Play it lists Hà Trần and Minh Lê with their roles; None takes the Overlay away", wp: "popover option 2026-10-30", timeout: 50_000,
+    id: "PT-42", feature: "Open popover in the Prototype tab, its rows from the page data: On click › Open popover replaces a Button's Navigate to; Data people (3) writes each row's label as mock.people[n].name, Rows 2 and Caption role follow; the Design tab shows the same popover on; in Play it lists Hà Trần and Minh Lê with their roles; None takes the Overlay away", wp: "popover option 2026-10-30", timeout: 50_000,
     async run(ctx) {
       const { page, id, text: source } = await seededPage(ctx, popoverPage, /Assign/);
       await clickNamed(page, id, "Button", 1);
@@ -2017,7 +2017,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-51", feature: "A Chip's Popover option is its own popover: the switch writes popoverItems (4 Sample rows) and its chevron, no Overlay; in Play the Chip opens it and shows the pick; the switch off takes the rows away and keeps the chevron", wp: "popover option 2026-10-30", timeout: 40_000,
+    id: "PT-43", feature: "A Chip's Popover option is its own popover: the switch writes popoverItems (4 Sample rows) and its chevron, no Overlay; in Play the Chip opens it and shows the pick; the switch off takes the rows away and keeps the chevron", wp: "popover option 2026-10-30", timeout: 40_000,
     async run(ctx) {
       const { page, id, text: source } = await seededPage(ctx, popoverPage, /Status/);
       await clickNamed(page, id, "Chip");
@@ -2123,7 +2123,7 @@ export default function Page() {
 `;
 
 /** A desktop Screen whose Filters and Assign buttons and Status chip take the Popover option, the page data holding three
- *  people (PT-49…PT-51, the Popover option 2026-10-30). */
+ *  people (PT-41…PT-43, the Popover option 2026-10-30). */
 const popoverPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Screen, proto } from "@zen-ds/react/builder";
 import { Button, Chip, Stack, Text } from "@zen-ds/react";
@@ -2147,7 +2147,7 @@ export default function Page() {
 `;
 
 /** Where a popover sits by its trigger in Play: "below" (its top 4px under the trigger, Popover's gap, in the device's
- *  scale) or "above" with no room below, at the trigger's start edge (PT-49). */
+ *  scale) or "above" with no room below, at the trigger's start edge (PT-41). */
 async function byTrigger(page, trigger, surface) {
   const device = playing(page).locator(".studio-player__device");
   const scale = await device.evaluate((el) => el.getBoundingClientRect().width / el.offsetWidth);

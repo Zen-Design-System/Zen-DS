@@ -58,11 +58,13 @@ export async function turnOffPopover(layer: ProtoLayer, node: PageNode, tree: Pa
   const opened = popoverOpenedBy(tree, node);
   const click = { file: layer.file, loc: layer.loc, name: layer.name, ops: [replace ? ({ op: "setProp", name: POPOVER_TRIGGER, value: expression(replace) } as EditOp) : ({ op: "removeProp", name: POPOVER_TRIGGER } as EditOp)] };
   if (!opened || openersOf(tree, opened.id) > 1) return (await applyEdit(click, label)).ok;
-  const remove = async () => {
-    const [engine, page] = await Promise.all([loadEngine(), getPage(localPage)]);
-    if (!page) return { ok: false, code: "not-found", error: "No page" } as EditResponse;
-    // A removal names the text it was read from (the server refuses it without the file's hash).
-    return applyEdit({ file: layer.file, loc: opened.overlay.loc, name: "Overlay", ops: [{ op: "removeElement" } as EditOp], hash: engine.sha1(page.text) }, label);
+  // A removal names the text it was read from (the server refuses it without the file's hash): the page as it is, or
+  // as the edit just before left it.
+  const remove = async (text?: string) => {
+    const [engine, page] = await Promise.all([loadEngine(), text === undefined ? getPage(localPage) : null]);
+    const read = text ?? page?.text;
+    if (read === undefined) return { ok: false, code: "not-found", error: "No page" } as EditResponse;
+    return applyEdit({ file: layer.file, loc: opened.overlay.loc, name: "Overlay", ops: [{ op: "removeElement" } as EditOp], hash: engine.sha1(read) }, label);
   };
   // The later of the two in the code goes first, so the other's place stays where it was.
   const line = (loc: string) => Number(loc.split(":")[0]);
@@ -71,7 +73,7 @@ export async function turnOffPopover(layer: ProtoLayer, node: PageNode, tree: Pa
     return ok(removed) && joined(removed, await applyEdit(click, label), label);
   }
   const unlinked = await applyEdit(click, label);
-  return ok(unlinked) && joined(unlinked, await remove(), label);
+  return ok(unlinked) && joined(unlinked, await remove(unlinked.after), label);
 }
 
 /** Writes the popover's rows: the Popover's `items` (or a Chip's `popoverItems`). */

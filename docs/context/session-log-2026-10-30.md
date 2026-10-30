@@ -25,6 +25,6 @@
     click › **Open popover** next to Open overlay; the same rows under it; leaving it takes the Overlay away).
 - Not done (not chosen): Menu / Text / Data-rows content, project-wide data, a "Popover" entry in Add overlay.
 - Question for the user (QUESTIONS.md): Zen's Avatar takes no click, so it has no Popover option; give it `onClick`?
-- E2E: PT-49 (Design switch on a Button, Rows, row words, Play by the trigger, a pick closes, off), PT-50 (Prototype
+- E2E: PT-41 (Design switch on a Button, Rows, row words, Play by the trigger, a pick closes, off), PT-42 (Prototype
   Open popover replaces Navigate, rows from mock.people, caption, Design shows it on, Play lists the people, None
-  removes it), PT-51 (Chip's own popoverItems + chevron, Play pick, off keeps the chevron).
+  removes it), PT-43 (Chip's own popoverItems + chevron, Play pick, off keeps the chevron).
