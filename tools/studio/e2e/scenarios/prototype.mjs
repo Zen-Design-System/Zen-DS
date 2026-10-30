@@ -1991,7 +1991,8 @@ export const rows = [
       const rows = page.locator('#studio-right [data-prop="popover:rows"] input');
       await rows.fill("2");
       await rows.press("Enter");
-      await pickOption(page, "popover:caption", "role");
+      // A field of the page data reads as written ("role"), not as a code value's option label ("Role").
+      await pickOption(page, "popover:caption", /^role$/);
       await until(async () => /items=\{\[\{ id: mock\.people\[0\]\.id, label: mock\.people\[0\]\.name, caption: mock\.people\[0\]\.role \}, \{ id: mock\.people\[1\]\.id, label: mock\.people\[1\]\.name, caption: mock\.people\[1\]\.role \}\]\}/.test(await source()), { message: "two rows with captions" });
       await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
       const toggle = page.locator("#studio-right").getByRole("switch", { name: "Popover", exact: true });
