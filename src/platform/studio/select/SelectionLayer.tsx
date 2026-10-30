@@ -166,6 +166,11 @@ function itemExtras(part: PartHit | null): PartHit[] {
   return itemParts(part.owner, item.slot).filter((candidate, index): candidate is PartHit => Boolean(candidate) && set.indices.includes(index));
 }
 
+/** A double-click shows the layer's properties on the Design tab, but the Prototype tab stays (Figma's; walk 2026-10-29 W-37). */
+function showDesignTab() {
+  if (studioStore.getState().inspectorTab !== "prototype") studioStore.setState({ inspectorTab: "design" });
+}
+
 export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | null; world: HTMLElement | null }) {
   const tool = useStudio((state) => state.tool);
   const presenting = useStudio((state) => state.presenting);
@@ -904,7 +909,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       } else if (step) {
         if ("part" in step) choosePart(step.part);
         else choose(step.hit, false);
-        studioStore.setState({ inspectorTab: "design" });
+        showDesignTab();
         return;
       }
     }
@@ -912,7 +917,7 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       const inner = layerInside(picked.hit, picked.frame, selected);
       if (inner) {
         choose(inner, false);
-        studioStore.setState({ inspectorTab: "design" });
+        showDesignTab();
         if (sameElement(inner, picked.hit) && TEXT_LAYER.test(inner.name)) tryStartTextEdit(event.clientX, event.clientY, inner.src);
         return;
       }
@@ -978,14 +983,14 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       const nested = picked.hit.isComponent ? nestedHitAt(picked.hit, target) : null;
       if (nested) {
         choose(nested, false);
-        studioStore.setState({ inspectorTab: "design" });
+        showDesignTab();
         return;
       }
       // A component that draws sections (a Sidebar's `sections`): the section under the pointer first, then its rows.
       const section = picked.hit.isComponent ? sectionPartAtPoint(picked.hit, event.clientX, event.clientY) : null;
       if (section) {
         choosePart(section);
-        studioStore.setState({ inspectorTab: "design" });
+        showDesignTab();
         return;
       }
       // A data-slot item under the cursor (a crumb, a tab, a Sidebar row): Figma's nested instance in the slot comes
@@ -993,15 +998,15 @@ export function SelectionLayer({ viewport, world }: { viewport: HTMLElement | nu
       const item = picked.hit.isComponent ? dataItemOfPart(deepPartAt(picked.hit, target)) : null;
       if (item) {
         choosePart(item.part);
-        studioStore.setState({ inspectorTab: "design" });
+        showDesignTab();
         return;
       }
       enter(picked.hit, target);
-      studioStore.setState({ inspectorTab: "design" });
+      showDesignTab();
       return;
     }
     choose(picked.hit, false);
-    studioStore.setState({ inspectorTab: "design" });
+    showDesignTab();
     // The first click of the double-click already selected the element: one level into it, or its own words in place.
     // The canvas keeps the keyboard focus (UX review 2026-10-27 §2.2): no jump to the Inspector's Text field.
     enter(picked.hit, deepestAt(picked.element, event.clientX, event.clientY));

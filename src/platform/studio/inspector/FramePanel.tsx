@@ -194,6 +194,7 @@ function ScreenSection({ frameId }: { frameId: string }) {
         <RowSelectField
           aria-label="Screen size"
           size="sm"
+          popoverWidth="hug"
           disabled={!admin}
           value={sized?.id ?? "custom"}
           onValueChange={(value) => writeSize(value)}

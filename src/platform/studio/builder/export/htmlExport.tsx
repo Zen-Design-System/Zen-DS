@@ -9,7 +9,7 @@ import { loadCompile, loadEngine, zenComponents } from "../engine";
 import { assetBlob, assetOfUrl, loadUploads } from "../assets/uploads";
 import { MEDIA_FILES, mediaSrc } from "../library/media";
 import { PageOsContext, pageOsOf, ProtoContext, type PageDevice, type ProtoActions } from "../proto/runtime";
-import { frameOf, literalOf, type PageFrame } from "../render/frames";
+import { frameOf, literalOf, pageDeviceOf, type PageFrame } from "../render/frames";
 import { screenBreakpoint } from "../../../../../tools/studio/screen-devices.mjs";
 import { componentsOf, renderFrame, type PageNode, type PageTree } from "../render/renderPage";
 import { pageKey, studioStore } from "../../store";
@@ -319,8 +319,10 @@ async function renderFrames(id: string, text: string): Promise<Rendered | { erro
   if (tree.errors.length || !tree.board) return { error: tree.errors[0] ? `line ${tree.errors[0].line}: ${tree.errors[0].message}` : "The page has no board" };
   const nodes = tree.board.children.filter((child): child is PageNode => child.kind === "element" && (child.name === "Screen" || child.name === "Overlay"));
   if (!nodes.length) return { error: "The page has no Screen" };
+  // An Overlay at the page device's width, as the canvas draws it (walk W-39).
+  const device = pageDeviceOf(nodes);
   const frames = nodes.map((node) => {
-    const frame = frameOf(node);
+    const frame = frameOf(node, device);
     return { node, frame, file: fileOf(node), title: frame.kind === "overlay" ? `Overlay ${String(literalOf(node, "id"))}` : frame.label, root: null as HTMLElement | null };
   });
   const host = document.createElement("div");

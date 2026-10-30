@@ -14,6 +14,13 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio, small fixes from the prototype walk (2026-10-29 §4 item 9, Prototype side): a double-click on the canvas
+  keeps the Prototype tab open (W-37); a link whose overlay or Screen was deleted shows an empty field and says so, not
+  the raw id (W-59); the Design tab names a prototype action as the Prototype tab does ("Show toast", "Navigate to"; it
+  said "Set in code", W-15); an Overlay on a phone page is drawn as wide as the phone, not in a 720px desktop frame
+  (W-39); Add Screen's first choice is "New Screen" (it comes with the app bars, W-56); New page puts the device first,
+  above the templates (W-02); device lists show whole names (W-04); New project says "Creating…" while it works (W-01);
+  a paste the browser blocks from reading the clipboard says so instead of doing nothing (W-63).
 - Zen Studio's Design panel in the walk's words (2026-10-29 W-07…W-40): the colour picker calls Accent the project's
   Primary, finds it as "primary" or "brand", paints its swatches in the project's colours and applies a lone match on
   Enter; icon pickers name icons in words ("User circle · Line"); a text's Fill names its Figma variable; several
