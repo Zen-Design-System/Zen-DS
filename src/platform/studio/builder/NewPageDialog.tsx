@@ -102,6 +102,17 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
       primaryAction={{ label: busy ? "Creating…" : "Create page", disabled: busy, onClick: () => void create() }}
       secondaryAction={{ label: "Cancel" }}
     >
+      {/* The device first, above the templates it would sit under (walk 2026-10-29 W-02); kept in place while a template
+          is picked (it keeps its own device, as the description says), so nothing moves under the pointer. */}
+      <SelectField
+        label="Screen"
+        size="sm"
+        popoverWidth="hug"
+        value={deviceId}
+        disabled={Boolean(template)}
+        onValueChange={(next) => setDeviceId(next)}
+        options={FRAME_DEVICES.map((entry) => ({ value: entry.id, label: entry.label, meta: deviceSize(entry), leading: entry.icon as IconName }))}
+      />
       <fieldset className="studio-new-page__group">
         <legend className="studio-new-page__legend"><Text as="span" textStyle="Body/Base/Bold">Start from</Text></legend>
         <div className="studio-new-page__templates">
@@ -130,15 +141,6 @@ export function NewPageDialog({ open, onOpenChange, folder = null }: { open: boo
           ))}
         </div>
       </fieldset>
-      {template ? null : (
-        <SelectField
-          label="Screen"
-          size="sm"
-          value={deviceId}
-          onValueChange={(next) => setDeviceId(next)}
-          options={FRAME_DEVICES.map((entry) => ({ value: entry.id, label: entry.label, meta: deviceSize(entry), leading: entry.icon as IconName }))}
-        />
-      )}
       {error ? <Text as="p" textStyle="Body/Small/Regular" tone="negative-base" role="alert">{error}</Text> : null}
     </Dialog>
   );
