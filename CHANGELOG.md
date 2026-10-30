@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio Play: choice controls act with no setup (walk W-52, phase A). A pick in a row list moves its ✓, and a Chip
+  that opens that list shows the pick. Sibling chips and radios pick one. Switch, Checkbox, Segmented, Tabs and fields
+  act even when the page writes their value. Navigate, Back and Restart show a Screen as drawn; the page code never
+  changes.
 - Zen Studio Popover option (user 2026-10-28/30): every layer that takes a click has a Popover switch in the Design tab
   and On click › Open popover in the Prototype tab. On, its click opens a Popover beside it (a Chip uses its own), with
   Sample rows (how many, each row's words) or the first rows of a list in the page data (label, caption, picture).

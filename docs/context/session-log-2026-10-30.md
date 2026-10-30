@@ -66,3 +66,19 @@
   `border/pale-actionable-box` reads as actionable (renamed `__colour`); a Bar chart's Look showed two rows called
   "Color" (Figma's Color is `palette`; the CSS `color` / `activeColor` now read "Bar color" / "Active bar color",
   `componentPropLabels` in propSchema.ts).
+
+## Session "Studio: Play live controls" · W-52 phase A (tier M; user 2026-10-30 "A first, B later")
+
+- Ask: in Play, Zen's choice controls act live with no setup. Failing case (walk 2026-10-29 W-52): a phone Chip "Date"
+  opens a Bottom Sheet of ranges, "Any time" ✓; picking "Last 3 months" left the ✓ and the chip read "Date".
+- Spec card: `docs/research/studio-play-live-controls-2026-10-30.md` (what acts, how the Chip learns the label, resets).
+- Built: `protoModel.ts` `choicesOf` (pure, selftest +6): one-of groups (sibling ListItems with a row drawn selected or
+  ✓, sibling Chips with exactly one selected and no own action, sibling RadioButtons) and the Chips whose On click opens
+  an Overlay holding a ListItem group. `PlayLive` (`runtime.tsx`) gains `controls`, `choices`, `onControl`; `playFlow`
+  keeps them per visit. `renderPage.tsx` `liveControlProps`: value controls (Toggle, ToggleListItem, Checkbox,
+  Segmented, Tabs, ChipGroup, SelectField, InputField, TextAreaField, Search) run uncontrolled from Play's held value
+  (set after the element's key: no remount, focus kept); group items take the pick, the ✓ Icon moves; the opener Chip
+  shows the picked title, Selected, × gives the start back. Rows from `mock.x.map` run uncontrolled, not held.
+- Bug fixed on the way (`playFlow.tsx`): Back returned the visit key of the Screen it left before (`run:history.length:
+  screen`), so a Back could find that Screen's old filters/steps. Now a visit counter: every Screen shown starts as drawn.
+- Not in A: Menu (actions, no ✓), BottomNavigation, B (variables), W-51, W-58.

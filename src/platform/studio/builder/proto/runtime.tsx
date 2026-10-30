@@ -6,7 +6,7 @@ import { OverlayPreviewContext } from "../../../../components/_shared/overlay";
 import { typographyStyles } from "../../../../tokens/typography.generated";
 import { BREAKPOINT_LABELS, deviceOfScreen, deviceOs, screenBreakpoint, type ScreenDevice, type ZenBreakpointKey } from "../../../../../tools/studio/screen-devices.mjs";
 import { DeviceBars, duoStatusOf, safeAreasOf, type DeviceOs } from "./DeviceBars";
-import type { FilterMatch } from "./protoModel";
+import type { FilterMatch, PlayChoices } from "./protoModel";
 
 /*
  * The builder page runtime (spec docs/research/studio-builder-pages-spec-2026-10-06.md §2, §3 2d): what
@@ -46,14 +46,19 @@ const inert: ProtoActions = { navigate: () => undefined, open: () => undefined, 
 /** One Filter table filter on a Table: the column it reads (none: every field), the values it keeps, how it compares. */
 export type PlayFilter = { column?: string; values: string[]; match: FilterMatch };
 
-/** Play's live state of the shown Screen (Filter table, Change step), by the layer's place: each filtered Table's
- *  filters (one per column and match, all applied: a Search and the filter chips beside it narrow together), each
- *  driven Stepper's step (`stepTargets`: the Steppers a Change step drives, which Play then holds). */
+/** Play's live state of the shown Screen (Filter table, Change step, its choice controls), by the layer's place: each
+ *  filtered Table's filters (one per column and match, all applied: a Search and the filter chips beside it narrow
+ *  together), each driven Stepper's step (`stepTargets`: the Steppers a Change step drives, which Play then holds), and
+ *  what its controls hold (W-52 A, docs/research/studio-play-live-controls-2026-10-30.md): a Switch's checked, a
+ *  Segmented's value, typed text, by the control's place; a choice group's pick (`choices`) by the group's. */
 export type PlayLive = {
   filters: ReadonlyMap<string, ReadonlyMap<string, PlayFilter>>;
   steps: ReadonlyMap<string, number>;
   stepTargets: ReadonlySet<string>;
   onStep: (loc: string, index: number) => void;
+  controls: ReadonlyMap<string, unknown>;
+  choices: PlayChoices;
+  onControl: (loc: string, value: unknown) => void;
 };
 
 /** The element a handler's event was pressed on (a React or DOM event's current target), or null (a value). */
