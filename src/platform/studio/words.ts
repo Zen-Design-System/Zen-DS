@@ -23,7 +23,7 @@ const HTML_WORDS: Record<string, string> = {
 };
 
 /** The Studio's prototype actions, as the Prototype tab names them. */
-const ACTIONS: Record<string, string> = { "proto.toast": "Show toast", "proto.navigate": "Go to page", "proto.open": "Open overlay", "proto.filter": "Filter table", "proto.step": "Change step" };
+const ACTIONS: Record<string, string> = { "proto.toast": "Show toast", "proto.navigate": "Navigate to", "proto.open": "Open overlay", "proto.close": "Close overlay", "proto.back": "Back", "proto.link": "Open link", "proto.filter": "Filter table", "proto.step": "Change step" };
 
 /** "labelIcon" → "label icon", "selectedId" → "selected id". */
 const spaced = (name: string) => name.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/([A-Z])([A-Z][a-z])/g, "$1 $2").toLowerCase();
@@ -193,8 +193,9 @@ export function designWords(text: string): string {
   // Inline code: `x` → x (the rules below then read x).
   out = out.replace(/`([^`]*)`/g, "$1").replace(/`/g, "");
   for (const [pattern, replacement] of LISTS) out = out.replace(pattern, replacement);
-  // Prototype actions and calls: proto.toast(…) → Show toast; (.slice()) → gone; name(…) → name.
-  out = out.replace(/\b(proto\.(?:toast|navigate|open))\((?:…|\.\.\.)?\)/g, (_, call: string) => ACTIONS[call]);
+  // Prototype actions and calls: proto.toast(…) → Show toast, with its arguments too (proto.toast({ title: "Saved" }); walk
+  // 2026-10-29 W-15: the Design tab said "Set in code" where the Prototype tab said "Show toast"); (.slice()) → gone; name(…) → name.
+  out = out.replace(/\b(proto\.(?:toast|navigate|open|close|back|link|filter|step))\((?:[^()]|\([^()]*\))*\)/g, (_, call: string) => ACTIONS[call]);
   out = out.replace(/\s*\((?:\.[A-Za-z_$][\w$]*\((?:…|\.\.\.)?\))+\)/g, "");
   out = out.replace(/\b([A-Za-z_$][\w$.]*)\((?:…|\.\.\.)?\)/g, "$1");
   // File references: the Code tab shows where a layer is ("is no longer at x.tsx:26" → "is no longer there").
@@ -206,6 +207,7 @@ export function designWords(text: string): string {
   out = out.replace(/\{\s*\.\.\.[^{}]*\}/g, "shared properties");
   // "Bound to {me.photo}" → "From data: me › photo"; other braces → the data path, or "set in code".
   out = out.replace(/\b[Bb]ound to \{([^{}]*)\}/g, (_, expression: string) => {
+    if (Object.values(ACTIONS).includes(expression.trim())) return `Prototype action: ${expression.trim()}`;
     const data = dataOf(expression);
     return data ? `From data: ${data}` : "Set in code";
   });

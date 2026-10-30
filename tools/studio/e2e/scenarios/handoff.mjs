@@ -710,7 +710,8 @@ export const rows = [
           results.push({ frame, width, height, ...diff });
         }
         await view.close();
-        const off = results.filter((result) => result.ratio > 0.005 || Math.abs(result.width - (result.frame.startsWith("overlay") ? 720 : 390)) > 1);
+        // Every frame at the phone's 390: the overlay too, as wide as the page's device (walk 2026-10-29 W-39; it was 720).
+        const off = results.filter((result) => result.ratio > 0.005 || Math.abs(result.width - 390) > 1);
         if (off.length) throw new Error(`differs from the canvas: ${off.map((result) => `${result.frame} ${result.width}×${result.height}: ${(result.ratio * 100).toFixed(2)}% (${result.differing} px)`).join("; ")} (shots in ${ctx.outDir})`);
         return results.map((result) => `${result.frame} ${result.width}×${result.height}: ${(result.ratio * 100).toFixed(2)}%`).join(" · ");
       } finally {
