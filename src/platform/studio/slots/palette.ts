@@ -81,19 +81,25 @@ export type PaletteHostContext = PaletteContext & {
   canUseToast?: boolean;
   /** False outside the example pages (templates): platformMedia cannot be imported there, so Image is hidden. */
   canUseMedia?: boolean;
-  /** A builder page kept in this browser (Studio builder GĐ2): no hooks, so actions become proto.toast(…) and items that
+  /** A builder page kept in this browser (Studio builder GĐ2): no hooks, so preset toast actions are dropped and items that
    * keep state are hidden. */
   builder?: boolean;
 };
 
 /**
- * An item's code for a builder page: `() => toast({ … })` handlers become `proto.toast({ … })` (the page's prototype
- * runtime shows the toast in Play); null when the code holds other logic a page cannot have.
+ * An item's code for a builder page: its `() => toast({ … })` handlers are dropped, a prop (` onClick={…}`) or an item's
+ * field (`, onSelect: …`) alike, so the layer arrives with no interaction, as a Figma asset does; its actions are added
+ * in the Prototype tab (user, 2026-10-30, walk W-15: "Primary button" came with a "Changes saved" toast). Null when the
+ * code holds other logic a page cannot have.
  */
 export function builderCode(code: string): string | null {
-  const next = code.replace(/\(\)\s*=>\s*toast\((\{[^{}]*\})\)/g, "proto.toast($1)");
+  const next = dropToasts(code);
   return /(?<!\.)\btoast\(|=>|\buse[A-Z]/.test(next) ? null : next;
 }
+
+/** `code` without its toast handlers: ` prop={() => toast({ … })}` props and `, field: () => toast({ … })` fields. */
+const dropToasts = (code: string) =>
+  code.replace(/\s+\w+=\{\(\)\s*=>\s*toast\(\{[^{}]*\}\)\}/g, "").replace(/,\s*\w+:\s*\(\)\s*=>\s*toast\(\{[^{}]*\}\)/g, "");
 
 /** Items the slot cannot take (the code could not be written there), by group and reason (`items`: their labels). */
 export type PaletteHidden = { group: PaletteGroup; reason: string; items: string[] };
@@ -156,14 +162,13 @@ type WidgetSpec = Pick<PaletteItem, "id" | "label" | "caption" | "root" | "compo
   /** A control inside (the Hero's button): never in a click target. */
   interactive?: boolean;
   /** The JSX; `fmt(prop, fn)` writes ` prop={fn}` in the code and its PRESETS text (or nothing) on a builder page;
-   *  `act(args)` an action that shows a toast: `() => toast(args)` in the code, `proto.toast(args)` on a builder page (its
-   *  prototype runtime). */
+   *  `act(args)` an action that shows a toast: `() => toast(args)` in the code; dropped on a builder page (builderCode). */
   code: (ctx: PaletteContext, fmt: (prop: string, fn: string) => string, act: (args: string) => string) => string;
 };
 const widget = ({ code, interactive = false, ...item }: WidgetSpec): PaletteItem => ({
   ...item, group: "Widgets", interactive, input: false,
   build: (ctx) => code(ctx, (prop, fn) => ` ${prop}={${fn}}`, (args) => `() => toast(${args})`),
-  builder: (ctx) => code(ctx, (prop, fn) => (PRESETS[fn] ? ` ${prop}="${PRESETS[fn]}"` : ""), (args) => `proto.toast(${args})`),
+  builder: (ctx) => dropToasts(code(ctx, (prop, fn) => (PRESETS[fn] ? ` ${prop}="${PRESETS[fn]}"` : ""), (args) => `() => toast(${args})`)),
 });
 /** A ChartCard's headingLevel, written only when it is not its default 3. */
 const cardLevel = (ctx: PaletteContext) => { const n = Math.min(4, level(ctx)); return n === 3 ? "" : ` headingLevel={${n}}`; };
@@ -1298,7 +1303,7 @@ export const PALETTE: readonly PaletteItem[] = [
   {
     id: "chat-composer", label: "Chat composer", group: "Chat", root: "ChatComposer", components: ["ChatComposer"], requires: TOAST, interactive: true, input: false,
     build: () => `<ChatComposer label="Message Bao Nguyen" placeholder="Message" onSend={(text) => toast({ title: "Message sent", children: text })} />`,
-    builder: () => `<ChatComposer label="Message Bao Nguyen" placeholder="Message" onSend={proto.toast({ title: "Message sent" })} />`,
+    builder: () => `<ChatComposer label="Message Bao Nguyen" placeholder="Message" />`,
   },
   {
     id: "ai-chat", label: "AI chat", group: "Chat", caption: "Thread and field", root: "Stack", components: ["Stack", "AiChatThread", "AiChatBubble", "AiChatField"], requires: TOAST, interactive: true, input: false,
@@ -1313,7 +1318,7 @@ export const PALETTE: readonly PaletteItem[] = [
     ),
   },
   {
-    // Figma ❖ Voice (15081:1294): every action wired (harness voice/actions-wired); a page's toasts become proto.toast.
+    // Figma ❖ Voice (15081:1294): every action wired (harness voice/actions-wired); a builder page drops the toasts (builderCode).
     id: "voice-recorder", label: "Voice recorder", group: "Chat", caption: "Record a voice note", root: "VoiceRecorder", components: ["VoiceRecorder"], requires: TOAST, interactive: true, input: false,
     build: () => lines(
       `<VoiceRecorder title="Voice note" input="Built-in microphone" format="48 kHz · Mono"`,

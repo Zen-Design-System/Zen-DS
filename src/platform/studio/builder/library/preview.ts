@@ -6,7 +6,7 @@ import type { ContentSlot } from "../../slots/registry";
  * The preview of a library item (Studio builder GĐ3 M2, spec docs/research/studio-builder-library-spec-2026-10-06.md
  * §3c; the user's choice Q1: the focused item only, drawn for real). The item's code goes into a one-Screen builder page
  * that the engine parses (dialect.mjs parsePage) and the page renderer draws, without eval: a value a page cannot hold
- * (a state variable, a handler) is left out, so the component shows its default; toasts become proto.toast (inert);
+ * (a state variable, a handler) is left out, so the component shows its default; toasts are dropped;
  * platformMedia photos become their URLs.
  */
 

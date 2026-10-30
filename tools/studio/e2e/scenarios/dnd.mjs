@@ -6,7 +6,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { eachElement, parsePage } from "../../dialect.mjs";
-import { codeOfItem, components, grow, items } from "../../dnd-engine.mjs";
+import { codeOfItem, components, grow, items, withStarter } from "../../dnd-engine.mjs";
 import { newPageText } from "../../dialect.mjs";
 import { pagesDirOf } from "../lib/server.mjs";
 import { openAssetLibrary, showLeftTab, sleep, statusText, until } from "../lib/studio.mjs";
@@ -16,7 +16,7 @@ import { FIGMA_WIDTHS } from "../../../../src/platform/studio/edit/assets/figmaW
 /* ── the seed: a phone page (bars, body Stack with a List Box, a Card, a free Box) and an empty phone Screen ───────── */
 
 function richPhone(title) {
-  let text = newPageText({ title, device: "phone", chrome: true });
+  let text = withStarter(newPageText({ title, device: "phone", chrome: true }));
   for (const id of ["list-box", "card"]) text = grow(text, "Stack", codeOfItem(id));
   text = grow(text, "Stack", '<Box padding="md" height={160} />');
   text = grow(text, "Box", '<Shape type="rectangle" position="absolute" insetLeft={24} insetTop={24} width={64} height={64} />');
@@ -504,7 +504,7 @@ async function inspectorButton(page, name) {
 }
 
 /** A phone page whose body ends in a Frame (`frame`). */
-const framePage = (frame) => (title) => grow(newPageText({ title, device: "phone", chrome: true }), "Stack", frame);
+const framePage = (frame) => (title) => grow(withStarter(newPageText({ title, device: "phone", chrome: true })), "Stack", frame);
 
 /**
  * Every Assets item, as a person does it: dropped into an empty Frame (it floats where it is dropped), the Frame takes
