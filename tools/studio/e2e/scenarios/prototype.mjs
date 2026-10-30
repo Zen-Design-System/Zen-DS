@@ -1938,7 +1938,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-41", feature: "A link whose overlay was deleted says so (walk 2026-10-29 W-59: the Overlay field showed the raw id \"overlay-1 · Add an overlay first\"): a Button's proto.open(\"gone\") shows the Open overlay action, an empty Overlay field and \"The overlay it opened was deleted. Pick another.\"", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    id: "PT-45", feature: "A link whose overlay was deleted says so (walk 2026-10-29 W-59: the Overlay field showed the raw id \"overlay-1 · Add an overlay first\"): a Button's proto.open(\"gone\") shows the Open overlay action, an empty Overlay field and \"The overlay it opened was deleted. Pick another.\"", wp: "prototype walk 2026-10-29", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await seededPage(ctx, danglingPage, /proto\.open\("gone"\)/);
       await clickNamed(page, id, "Button");
@@ -1951,7 +1951,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-42", feature: "A double-click on the canvas keeps the Prototype tab (walk 2026-10-29 W-37: it jumped to Design, Figma stays): with Prototype open, a double-click on the Change role Button selects it and the Prototype tab stays, its Interactions showing On click", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    id: "PT-46", feature: "A double-click on the canvas keeps the Prototype tab (walk 2026-10-29 W-37: it jumped to Design, Figma stays): with Prototype open, a double-click on the Change role Button selects it and the Prototype tab stays, its Interactions showing On click", wp: "prototype walk 2026-10-29", timeout: 40_000,
     async run(ctx) {
       const { page, id } = await seededPage(ctx, namedOverlaysPage, /<Overlay id="change-role"/);
       await clickNamed(page, id, "Button");
@@ -1966,7 +1966,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-43", feature: "Escape in Play's Viewport panel closes the panel only (walk 2026-10-29 W-60: it left Play): the Viewport panel open, Escape closes it and Play stays; the next Escape leaves Play", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    id: "PT-47", feature: "Escape in Play's Viewport panel closes the panel only (walk 2026-10-29 W-60: it left Play): the Viewport panel open, Escape closes it and Play stays; the next Escape leaves Play", wp: "prototype walk 2026-10-29", timeout: 40_000,
     async run(ctx) {
       const { page } = await seededPage(ctx, safePage, /Changes saved/);
       await playSafePage(page);
@@ -1983,7 +1983,7 @@ export const rows = [
     },
   },
   {
-    id: "PT-44", feature: "An Overlay on a phone page is drawn as wide as the phone (walk 2026-10-29 W-39: a 720px desktop frame): the Dialog overlay's frame on the canvas is the phone Screen's width", wp: "prototype walk 2026-10-29", timeout: 40_000,
+    id: "PT-48", feature: "An Overlay on a phone page is drawn as wide as the phone (walk 2026-10-29 W-39: a 720px desktop frame): the Dialog overlay's frame on the canvas is the phone Screen's width", wp: "prototype walk 2026-10-29", timeout: 40_000,
     async run(ctx) {
       const { page } = await seededPage(ctx, phoneOverlayPage, /<Overlay id="confirm">/);
       const screen = page.locator('[data-studio-frame="screen:screen-1"]');
@@ -1996,7 +1996,7 @@ export const rows = [
   },
 ];
 
-/** A phone Screen whose Button opens an overlay deleted since (PT-41, walk 2026-10-29 W-59). */
+/** A phone Screen whose Button opens an overlay deleted since (PT-45, walk 2026-10-29 W-59). */
 const danglingPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
 import { Button, Dialog, Stack } from "@zen-ds/react";
@@ -2019,7 +2019,7 @@ export default function Page() {
 }
 `;
 
-/** A phone page with a Dialog overlay (PT-44, walk 2026-10-29 W-39). */
+/** A phone page with a Dialog overlay (PT-48, walk 2026-10-29 W-39). */
 const phoneOverlayPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
 import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
 import { Button, Dialog, Stack } from "@zen-ds/react";

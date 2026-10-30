@@ -124,5 +124,5 @@ Item 9 split in two: this session the Prototype / Play / New page side, studio-w
   lists `popoverWidth="hug"`. W-01: "Creating…" on the project button. W-63: `readClipboardText()` + `CLIPBOARD_BLOCKED`.
 - Not done: W-15's preset toast on Assets' buttons and W-56's starter line stay (user decisions; question in report);
   W-03 (Can edit bar over the dialog) not reproduced from code; W-51, W-58 are new features (item 8).
-- E2E PT-41..44 (W-59, W-37, W-60, W-39); words, protoModel, framePlace, builder, items selftests; tsc clean.
+- E2E PT-45..48 (W-59, W-37, W-60, W-39); words, protoModel, framePlace, builder, items selftests; tsc clean.
 
