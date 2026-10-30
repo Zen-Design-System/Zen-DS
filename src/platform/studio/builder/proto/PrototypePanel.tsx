@@ -23,11 +23,14 @@ import { playStartOf, startPlay } from "./playStart";
 import { defaultTarget, writeAction, writeItemTargets, writeProp, type ProtoLayer } from "./protoEdit";
 import { selectedItem } from "./protoDom";
 import {
-  ACTIONS, actionsFor, actionTriggerLabel, ANIMATIONS, choiceItemsOf, columnsOf, DEFAULT_ANIMATION, DEFAULT_DELAY, DEFAULT_DIRECTION, DEFAULT_DURATION, DELAY_TRIGGER, filterOf, findNode, frameNodeOf, framesOf,
+  ACTIONS, actionsFor, actionTriggerLabel, ANIMATIONS, protoActionCode, choiceItemsOf, columnsOf, DEFAULT_ANIMATION, DEFAULT_DELAY, DEFAULT_DIRECTION, DEFAULT_DURATION, DELAY_TRIGGER, filterOf, findNode, frameNodeOf, framesOf,
   HOVER_TRIGGER, isItemTrigger, layerNameOf, layerWordsOf, layersIn, literalOf, moves, openerOf, optionsOf, protoOf, stepOf, targetLayerOf, targetsByItem, triggerLabel, triggerValue,
   type ChoiceItem, type ProtoAction, type ProtoAnimation, type ProtoDirection, type ProtoDuration, type ProtoFilter, type ProtoFrame, type ProtoOptions, type ProtoStep,
 } from "./protoModel";
 import { anchorsItself, placesItself, protoSubject, takesText, type ProtoSubject } from "./protoTriggers";
+import { turnOffPopover, turnOnPopover } from "./popoverEdit";
+import { OWN_POPOVER, POPOVER_TRIGGER, popoverIn } from "./popoverModel";
+import { PopoverRows } from "./PopoverRows";
 
 /*
  * The Inspector's Prototype tab on a builder page (Studio builder GĐ2 M3, spec
@@ -203,10 +206,13 @@ function Interactions({ subject, tree, layer, via, frames, home, disabled }: { s
 
 /** "None" in an item's target list (a Select option needs a value). */
 const NO_TARGET = "__none";
+/** On click's Open popover: Open overlay with a new Overlay holding a Popover (popoverModel.ts). */
+const POPOVER_ACTION = { value: "popover", label: "Open popover" };
 
 /** One trigger of the selected layer: its action and target, how it animates (After delay: how long first). A choice
  *  control's item trigger (a tab bar's On change) leads each item to its own Screen or Overlay: one row per item. */
 function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, home, disabled, onRemoved }: { trigger: string; label: string; words: string; value: PageValue | undefined; items: ChoiceItem[]; tree: PageTree | null; layer: ProtoLayer; frames: ProtoFrame[]; home: ProtoFrame | null; disabled: boolean; onRemoved: () => void }) {
+  const localPage = useStudio((state) => state.localPage);
   const proto = protoOf(value);
   const action: ProtoAction = proto?.action ?? "none";
   const arg = proto?.args[0];
@@ -226,7 +232,24 @@ function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, 
   const targets = byItem ? targetsByItem(arg, items) ?? {} : {};
   const homeScreen = home?.kind === "screen" ? home.id : null;
 
-  const write = (next: ProtoAction, target?: string) => {
+  // On click › Open popover (the Popover option): an Overlay holding a Popover, which sits by the layer in Play.
+  const offersPopover = trigger === POPOVER_TRIGGER && !items.length && !OWN_POPOVER[layer.name];
+  const openTarget = action === "open" && typeof arg === "string" ? frameNodeOf(tree, `overlay:${arg}`) : null;
+  const popover = offersPopover ? popoverIn(openTarget) : null;
+  const write = (next: ProtoAction | "popover", target?: string) => {
+    const node = findNode(tree, layer.loc);
+    if (next === "popover") {
+      if (!popover && node) void turnOnPopover(layer, tree, words);
+      return;
+    }
+    if (popover && node && localPage) {
+      // Leaving Open popover takes its Overlay away with it (when no other layer opens it), one undo step.
+      const others = frames.filter((frame) => !(frame.kind === "overlay" && frame.id === arg));
+      const code = next === "none" ? undefined : next === "filter" ? protoActionCode("filter", { match: typed ? "contains" : undefined }) : protoActionCode(next, target ?? defaultTarget(next, others, homeScreen, words) ?? "");
+      void turnOffPopover(layer, node, tree, localPage, code, next === "none" ? "Remove interaction" : `${ACTIONS.find((entry) => entry.value === next)?.label ?? next}`);
+      if (next === "none") onRemoved();
+      return;
+    }
     if (next === "none") {
       void writeAction(layer, trigger, "none");
       onRemoved();
@@ -263,7 +286,7 @@ function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, 
   // its raw id): the field shows none, and a line says what happened.
   const missing = !byItem && argText !== "" && (action === "open" || action === "navigate") && !(action === "open" ? overlays : screens).some((frame) => frame.id === argText);
   // An overlay that places itself (a Dialog…) animates itself too.
-  const target = action === "open" && typeof arg === "string" ? frameNodeOf(tree, `overlay:${arg}`) : null;
+  const target = openTarget;
   const targetChild = target?.children.find((child): child is PageNode => child.kind === "element") ?? null;
   const selfPlaced = Boolean(targetChild && placesItself(targetChild.name));
   const animates = trigger !== HOVER_TRIGGER && (action === "navigate" || (action === "open" && !selfPlaced));
@@ -274,7 +297,7 @@ function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, 
   return (
     <div className="studio-prototype__trigger" data-trigger={trigger}>
       <InspectorRow label={label} labelTitle={trigger} name={`proto:${trigger}`} action={remove}>
-        <RowSelectField aria-label={`${label} action`} size="sm" disabled={disabled} value={custom ? "" : action} placeholder="Set in code" onValueChange={(next) => write(next as ProtoAction)} options={[...actionsFor(trigger)]} />
+        <RowSelectField aria-label={`${label} action`} size="sm" disabled={disabled} value={custom ? "" : popover ? "popover" : action} placeholder="Set in code" onValueChange={(next) => write(next as ProtoAction | "popover")} options={offersPopover ? actionsFor(trigger).flatMap((entry) => (entry.value === "open" ? [entry, POPOVER_ACTION] : [entry])) : [...actionsFor(trigger)]} />
       </InspectorRow>
       {trigger === DELAY_TRIGGER && action !== "none" ? (
         <InspectorRow label="Delay (ms)" name={`proto:${trigger}:delay`}>
@@ -309,7 +332,8 @@ function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, 
           <RowSelectField aria-label={`${label} screen`} size="sm" disabled={disabled} value={missing ? "" : argText} placeholder="—" onValueChange={(next) => write("navigate", next)} options={screens.map((frame) => ({ value: frame.id, label: frame.title }))} />
         </InspectorRow>
       ) : null}
-      {action === "open" && !byItem ? (
+      {popover ? <PopoverRows target={{ file: layer.file, loc: popover.loc, name: "Popover" }} items={popover.props.items} mock={tree?.mock ?? {}} disabled={disabled} /> : null}
+      {action === "open" && !byItem && !popover ? (
         <InspectorRow label="Overlay" name={`proto:${trigger}:target`}>
           <RowSelectField aria-label={`${label} overlay`} size="sm" disabled={disabled || !overlays.length} value={missing ? "" : argText} placeholder={overlays.length ? "—" : "Add an overlay first"} onValueChange={(next) => write("open", next)} options={overlays.map((frame) => ({ value: frame.id, label: frame.title }))} />
         </InspectorRow>

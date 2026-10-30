@@ -263,5 +263,8 @@ làm hiện tại; khi có câu trả lời, việc cần làm sẽ vào `BACKLO
 - Chỉnh giao diện Studio N1–N11: để sau (đã ghi trong BACKLOG).
 
 **Còn chờ:**
+- **Avatar và tùy chọn Popover (30/10/2026):** tùy chọn Popover của Studio có trên mọi layer bấm được, nhưng Avatar của
+  Zen không nhận click (không có `onClick`; avatar bấm được là AppShellAccount hoặc Button chứa avatar). Thêm `onClick`
+  cho Avatar (đổi API thư viện), hay giữ nguyên?
 - **Nút "Download Figma" và "Feedback"** (bạn chọn để sau): trên trang docs, ở trang tổng quan và chân sidebar, hai nút này
   chưa dẫn đi đâu, nên vẫn còn 3 cảnh báo "nút không có hành động". Khi có link thì gửi mình.

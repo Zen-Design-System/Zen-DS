@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio Popover option (user 2026-10-28/30): every layer that takes a click has a Popover switch in the Design tab
+  and On click › Open popover in the Prototype tab. On, its click opens a Popover beside it (a Chip uses its own), with
+  Sample rows (how many, each row's words) or the first rows of a list in the page data (label, caption, picture).
+  One ⌘Z takes it back; off removes the click and the popover.
 - Zen Studio: a selected chart has a Data section in the Inspector: a row per sector (slice, period, stage, goal) with its
   label and number, + to add one after the last, − to remove one; the canvas redraws at once and ⌘Z takes it back.
   Series charts (Stacked bar, Area, Grouped bar), a Line chart's comparison and a Heatmap's columns are a list above it
