@@ -59,7 +59,7 @@ export function ChartDataSection({ table, api }: { table: ChartTable; api: Field
   const at = Math.min(picked, table.columns.length - 1);
   const shown = many ? [at] : table.columns.map((_, index) => index);
   const valuesStyle = { "--studio-chart-data-columns": shown.length } as CSSProperties;
-  const swatch = (index: number | null) => (index === null ? undefined : <span className="studio-chart-data__swatch" style={{ background: sectorAt(index, palette) }} aria-hidden="true" />);
+  const swatch = (index: number | null) => (index === null ? undefined : <span className="studio-chart-data__colour" style={{ background: sectorAt(index, palette) }} aria-hidden="true" />);
   const notes = [...table.notes, ...(table.via ? [`Written in const ${table.via.name} (line ${table.via.line}): add or remove ${row}s there`] : [])];
 
   const list = table.list;

@@ -1707,7 +1707,7 @@ export const rows = [
       const rows = table.locator("[data-chart-row]");
       await until(async () => (await rows.count()) === 4, { message: "four slices in the Data section" });
       if (await panel.getByText("Data · 1", { exact: false }).count()) throw new Error("Properties still lists the data items one by one");
-      if ((await table.locator(".studio-chart-data__swatch").count()) !== 4) throw new Error("the slices show no palette colours");
+      if ((await table.locator(".studio-chart-data__colour").count()) !== 4) throw new Error("the slices show no palette colours");
       const { expectPanelFits } = await import("./figma.mjs");
       await expectPanelFits(page, "Donut chart › Data");
       const slices = () => page.locator(".studio-viewport .zen-chart__slice").count();
@@ -1757,7 +1757,8 @@ export const rows = [
       await name.press("Enter");
       await until(async () => /label: "Delivery"/.test(await text()) && /Delivery/.test(await page.locator(".studio-viewport .zen-chart__legend").first().innerText().catch(() => "")), { message: "Delivery in the page and the legend" });
       // Three series: one at a time, picked above the rows.
-      const picker = panel.locator('[aria-label="Series to edit"]').first();
+      // The picker's button is named "Series to edit <series>"; the aria-label itself sits on the hidden native select.
+      const picker = panel.getByRole("button", { name: /^Series to edit\b/ }).first();
       await picker.click();
       await page.getByRole("option", { name: "Delivery", exact: true }).click();
       const delivery = panel.getByLabel("Aug Delivery", { exact: true });

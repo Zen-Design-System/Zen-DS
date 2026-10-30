@@ -23,4 +23,12 @@
 - Notes past what a chart or Figma draws warn, never block: 13 periods (Figma's Sector is 4 · 6 · 7 · 12), 8 slices
   (7 palette colours), a funnel's 3–6 stages, a bar list's 3–8, a bullet chart's 1–4, Area / Grouped series counts.
 - E2E B-58 (Donut: type, add, rename, remove, ⌘Z), B-59 (Stacked bar: series add / rename / picker / remove, a period),
-  B-60 (Line comparison add / numbers / remove, Heatmap columns).
+  B-60 (Line comparison add / numbers / remove, Heatmap columns): all three work. B-59 first clicked
+  `[aria-label="Series to edit"]`, which is SelectField's hidden native select (the button is named by the label and its
+  value): it now clicks the button by name.
+- Panel shots on a private server (Donut + Slice 5, Stacked bar with 2 and 3 series, Line + comparison, Bar forecast,
+  Heatmap): on the grid, nothing cut off. The 15 chart contract suites match; gate PASS (Studio E2E 420 works, 0 broken).
+- Met on the way, fixed here: the read-only palette dot was class `__swatch`, a word the usage rule
+  `border/pale-actionable-box` reads as actionable (renamed `__colour`); a Bar chart's Look showed two rows called
+  "Color" (Figma's Color is `palette`; the CSS `color` / `activeColor` now read "Bar color" / "Active bar color",
+  `componentPropLabels` in propSchema.ts).
