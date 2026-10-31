@@ -20,6 +20,7 @@ import { INSTANCE_LOOK_PROPS, instanceLookStyle, takesInstanceLook } from "./ins
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
+import { withStartValues } from "./proto-vars.mjs";
 import { atBreakpoint, screenBreakpoint } from "./responsive-props.mjs";
 import { placeCells } from "./grid-cells.mjs";
 import { FIGMA_NAMED, LABEL_NAMED, givenNameOf } from "./layer-meta.mjs";
@@ -504,7 +505,10 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   if (!read.doc) return { frame: null, notes: errors.map((error) => error.message) };
   // Each frame as its layout draws it: hidden layers and switched-off slots are not pushed (tools/studio/visibility.mjs).
   const lit = (node, name) => (node.props[name]?.kind === "literal" ? node.props[name].value : undefined);
-  const shown = { ...read.doc, board: { ...read.doc.board, children: read.doc.board.children.map((node) => (node.kind === "element" ? pruneHidden(node, node.name === "Screen" ? screenLayout(lit(node, "device") ?? "desktop", lit(node, "layout")) : undefined) : node)).filter(Boolean) } };
+  // Prototype variables (W-52 B): drawn at their start values (Figma variables and their bindings are phase B3).
+  const startVars = read.doc.vars ?? {};
+  const atStart = Object.keys(startVars).length ? (node) => withStartValues(node, startVars) : (node) => node;
+  const shown = { ...read.doc, board: { ...read.doc.board, children: read.doc.board.children.map((node) => (node.kind === "element" ? pruneHidden(atStart(node), node.name === "Screen" ? screenLayout(lit(node, "device") ?? "desktop", lit(node, "layout")) : undefined) : node)).filter(Boolean) } };
   // Figma has no breakpoints (responsive-props.mjs): each frame at its Screen's breakpoint (an Overlay at the page's first
   // Screen's, the rest of the board at desktop), per-breakpoint props as that value, layers hidden there (hideOn) left out.
   const shownScreen = shown.board.children.find((node) => node.kind === "element" && node.name === "Screen") ?? null;

@@ -40,7 +40,7 @@ const VIEWER = "The person is viewing as Viewer in Zen Studio: ask them to switc
 const RESERVED_PROPS = new Set(["data-zen-id", "key", "ref", "children"]);
 const PROP_NAME = /^[A-Za-z][\w-]*$/;
 
-type OpenPage = { id: string; file: string; title: string; text: string; board: DocNode; idAt: Map<string, string>; locOf: Map<string, string> };
+type OpenPage = { id: string; file: string; title: string; text: string; board: DocNode; vars: Record<string, unknown>; idAt: Map<string, string>; locOf: Map<string, string> };
 
 /** The open Studio page with its document and where each layer sits in its text; null on another kind of page. */
 async function openPage(): Promise<OpenPage | null> {
@@ -51,7 +51,7 @@ async function openPage(): Promise<OpenPage | null> {
   if (!record?.doc) return null;
   const engine = await loadEngine();
   const { idAt, locOf } = engine.locsOf(record.doc, record.text, { components: new Set(zenComponents) });
-  return { id, file: pageFile(id), title: record.title, text: record.text, board: record.doc.board as DocNode, idAt, locOf };
+  return { id, file: pageFile(id), title: record.title, text: record.text, board: record.doc.board as DocNode, vars: (record.doc as { vars?: Record<string, unknown> }).vars ?? {}, idAt, locOf };
 }
 
 const literal = (node: DocNode, name: string): unknown => {
@@ -200,7 +200,10 @@ async function getTree(args: Args): Promise<ToolAnswer> {
     root = selectedFrame(page) ?? page.board;
   }
   const where = root === page.board ? `the whole page (${frames(page.board).length} frames)` : `#${root.id}`;
-  return answer(`Page "${page.title}", ${where}:\n${outline(root, { depth })}`);
+  // The page's prototype variables (W-52 B), which layers read as {vars.x} and proto.set changes in Play.
+  const vars = Object.entries(page.vars);
+  const varsLine = vars.length ? `\nVariables (Play): ${vars.map(([name, start]) => `${name} = ${JSON.stringify(start)}`).join(", ")}` : "";
+  return answer(`Page "${page.title}", ${where}:${varsLine}\n${outline(root, { depth })}`);
 }
 
 async function getNode(args: Args): Promise<ToolAnswer> {

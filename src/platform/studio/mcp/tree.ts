@@ -12,7 +12,8 @@ export type DocValue =
   | { kind: "element"; node: DocNode }
   | { kind: "fragment"; children: DocChild[] }
   | { kind: "proto"; action: string; args: unknown[] }
-  | { kind: "ref"; root: string; path: string[] };
+  | { kind: "ref"; root: string; path: string[] }
+  | { kind: "expr"; op: string; args: unknown[] };
 
 export type DocNode = { kind: "element"; id: string; name: string; props: Record<string, DocValue>; children: DocChild[] };
 
@@ -31,6 +32,28 @@ const MAX_LINES = 600;
 const clip = (text: string) => (text.length > MAX_STRING ? `${text.slice(0, MAX_STRING - 1)}…` : text);
 const refText = (ref: { root: string; path: string[] }) => [ref.root, ...ref.path].join(".");
 
+/** A prototype variable's operand (tools/studio/proto-vars.mjs): `vars.count + 1`, parentheses around each inner
+ *  expression (the outline is read, not run). */
+function operandText(operand: unknown): string {
+  if (!operand || typeof operand !== "object") return JSON.stringify(operand);
+  const value = operand as { kind?: string; root?: string; path?: string[]; op?: string; args?: unknown[] };
+  if (value.kind === "ref") return refText(value as { root: string; path: string[] });
+  if (value.kind !== "expr" || !value.args) return JSON.stringify(operand);
+  const inner = (arg: unknown) => ((arg as { kind?: string })?.kind === "expr" ? `(${operandText(arg)})` : operandText(arg));
+  return value.op === "!" ? `!${inner(value.args[0])}` : `${inner(value.args[0])} ${value.op} ${inner(value.args[1])}`;
+}
+
+/** An action as code: Set variable, Conditional and several actions hold operands and actions of their own (W-52 B). */
+function protoText(value: { action: string; args: unknown[] }): string {
+  const arg = (entry: unknown): string => {
+    const kind = (entry as { kind?: string } | null)?.kind;
+    if (kind === "proto") return protoText(entry as { action: string; args: unknown[] });
+    if (kind === "ref" || kind === "expr") return operandText(entry);
+    return JSON.stringify(entry);
+  };
+  return `proto.${value.action}(${value.args.map(arg).join(", ")})`;
+}
+
 /** A prop value as it reads in the outline: strings quoted, numbers and booleans bare, structures summarised. */
 export function valueText(value: DocValue): string {
   switch (value.kind) {
@@ -44,8 +67,9 @@ export function valueText(value: DocValue): string {
     case "object": return `{${Object.keys(value.fields).join(", ")}}`;
     case "element": return `<${value.node.name} #${value.node.id}>`;
     case "fragment": return `[${value.children.length} layers]`;
-    case "proto": return `proto.${value.action}(${value.args.map((arg) => JSON.stringify(arg)).join(", ")})`;
+    case "proto": return protoText(value);
     case "ref": return `{${refText(value)}}`;
+    case "expr": return `{${operandText(value)}}`;
     default: return "…";
   }
 }

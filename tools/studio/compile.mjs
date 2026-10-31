@@ -13,6 +13,9 @@
 //   Change step (Play drives the Table and Stepper) become TODO(dev) handlers: the app owns that state.
 // - Each Overlay frame's overlay renders with open={overlay === "x"} and onOpenChange.
 // - The mock becomes `export const mock` with a type inferred from it; `{mock.x}` reads the `data` prop (default: mock).
+// - Prototype variables (W-52 B) become `export const startVars` and a `vars` state: `{vars.x}` reads it, proto.set
+//   updates it, proto.if branches on it, proto.run runs its actions in order, and a value control bound to `vars.x`
+//   writes it back.
 // - `zen-media:` / `zen-asset:` photos become imports from ./assets (the handoff zip carries the files; `mediaFile(kind,
 //   key)` names each); `media` lists them.
 // - A function the component requires but a page cannot write (standins.mjs) gets a stand-in and a TODO(dev) line; a
@@ -22,6 +25,7 @@ import { LOCKED_PROP } from "./layer-meta.mjs";
 import { literalProp, objectFields, opensItself, requiredFunctions, standInKind } from "./standins.mjs";
 import { INSTANCE_LOOK_PROPS, instanceLookCode, instanceLookStyle, takesInstanceLook } from "./instance-look.mjs";
 import { pruneHidden } from "./visibility.mjs";
+import { operandCode, varsIn } from "./proto-vars.mjs";
 
 const UNIT = "  ";
 const WIDTH = 110;
@@ -118,9 +122,39 @@ function dataPath(ref, ctx) {
 
 /** A ref (`mock.a.b`, `item.c`) as code: mock reads the `data` prop. */
 const refCode = (value) => [value.root === "mock" ? "data" : value.root, ...value.path.map((key) => (IDENTIFIER.test(key) ? `.${key}` : `[${json(key)}]`))].join("");
+/** A ref as code, noting a read of the `vars` state. */
+const readCode = (value, ctx) => {
+  if (value.root === "vars") ctx.uses.add("varsRead");
+  return refCode(value);
+};
+/** An operand (proto-vars.mjs) as code, noting a read of the `vars` state. */
+const operandRead = (operand, ctx) => {
+  if (varsIn(operand).length) ctx.uses.add("varsRead");
+  return operandCode(operand);
+};
+/** A value control's controlled prop and the handler that reports a change: bound to `vars.x`, it writes the variable. */
+const TWO_WAY = {
+  Toggle: ["checked", "onCheckedChange"], ToggleListItem: ["checked", "onCheckedChange"], Checkbox: ["checked", "onCheckedChange"],
+  Segmented: ["value", "onValueChange"], Tabs: ["value", "onValueChange"], ChipGroup: ["value", "onValueChange"], SelectField: ["value", "onValueChange"],
+  InputField: ["value", "onValueChange"], TextAreaField: ["value", "onValueChange"], Search: ["value", "onValueChange"],
+};
+/** A handler code called with what the trigger handed over (several actions and Conditional's branches). */
+const calledWith = (handler) => `((${handler}) as (choice?: unknown) => void)(choice);`;
 
 /** A proto action as the handler code a prop receives. */
 function protoCode(value, ctx, where) {
+  // Prototype variables (W-52 B): a functional update, so several Set variable in a row each see the last.
+  if (value.action === "set") {
+    const [name, to] = value.args;
+    ctx.uses.add("varsSet");
+    return `() => setVars((vars) => ({ ...vars, ${IDENTIFIER.test(name) ? name : json(name)}: ${operandCode(to)} }))`;
+  }
+  if (value.action === "run") return `(choice?: unknown) => { ${value.args.map((step) => calledWith(protoCode(step, ctx, where))).join(" ")} }`;
+  if (value.action === "if") {
+    const [condition, then, otherwise] = value.args;
+    const branch = (step) => calledWith(protoCode(step, ctx, where));
+    return `(choice?: unknown) => { if (${operandRead(condition, ctx)}) ${branch(then)}${otherwise ? ` else ${branch(otherwise)}` : ""} }`;
+  }
   const [arg] = value.args;
   // Its options (animation, After delay's delay) go to the handoff; the code switches screens without animating.
   const options = value.args[value.action === "close" || value.action === "back" ? 0 : 1];
@@ -187,7 +221,8 @@ function valueCode(value, ctx, indent, where) {
       return !flat.includes("\n") && indent.length + flat.length <= WIDTH ? flat : `<>\n${kids.map((kid) => `${indent}${UNIT}${kid}`).join("\n")}\n${indent}</>`;
     }
     case "proto": return protoCode(value, ctx, where);
-    case "ref": return refCode(value);
+    case "ref": return readCode(value, ctx);
+    case "expr": return operandRead(value, ctx);
     case "code": return value.code;
     default: return "undefined";
   }
@@ -215,7 +250,7 @@ function richCode(children, ctx) {
 function childCode(child, ctx, indent) {
   if (child.kind === "code") return child.code;
   if (child.kind === "text") return PLAIN_TEXT.test(child.value) ? child.value : `{${json(child.value)}}`;
-  if (child.kind === "ref") return `{${refCode(child)}}`;
+  if (child.kind === "ref") return `{${readCode(child, ctx)}}`;
   if (child.kind === "map") {
     const inner = indent + UNIT;
     const list = dataPath(child.source, ctx);
@@ -450,6 +485,13 @@ function elementCode(node, ctx, indent, extra = []) {
     const shown = shownByOverride.read.includes("??") ? `(${shownByOverride.read})` : shownByOverride.read;
     return atRoot ? `${shown} ? (\n${indent}${UNIT}${inner}\n${indent}) : null` : `{${shown} && (\n${indent}${UNIT}${inner}\n${indent})}`;
   }
+  // A visibility a prototype variable holds (W-52 B, `hidden={!vars.signedIn}`): drawn while the condition says so.
+  const hiddenIf = node.props.hidden;
+  if (hiddenIf?.kind === "expr" || (hiddenIf?.kind === "ref" && hiddenIf.root === "vars")) {
+    const inner = elementCode({ ...node, props: Object.fromEntries(Object.entries(node.props).filter(([name]) => name !== "hidden")) }, ctx, indent + UNIT, extra);
+    const shown = operandRead(hiddenIf.kind === "expr" && hiddenIf.op === "!" ? hiddenIf.args[0] : { kind: "expr", op: "!", args: [hiddenIf] }, ctx);
+    return atRoot ? `${shown} ? (\n${indent}${UNIT}${inner}\n${indent}) : null` : `{${shown} && (\n${indent}${UNIT}${inner}\n${indent})}`;
+  }
   const shownIf = binding["data-prop-visible"] ? ctx.bindings.get(binding["data-prop-visible"]) : null;
   if (shownIf) {
     const inner = elementCode(node, ctx, indent + UNIT, extra);
@@ -471,6 +513,14 @@ function elementCode(node, ctx, indent, extra = []) {
       ctx.actions.push({ frame: ctx.frame, where: `<${node.name}> whileHovering`, action: "hover", target: hover.args[0] });
       hovering.push(["onPointerEnter", `() => setOverlay(${json(hover.args[0])})`], ["onPointerLeave", "() => setOverlay(null)"]);
     }
+  }
+  // A value control bound to a prototype variable writes it back, as Play does (unless the page handles the change).
+  const twoWay = TWO_WAY[node.name];
+  const bound = twoWay ? node.props[twoWay[0]] : undefined;
+  if (bound?.kind === "ref" && bound.root === "vars" && !node.props[twoWay[1]]) {
+    ctx.uses.add("varsSet");
+    const key = bound.path[0];
+    extra = [...extra, [twoWay[1], `(next) => setVars((vars) => ({ ...vars, ${IDENTIFIER.test(key) ? key : json(key)}: next }))`]];
   }
   // A Zen instance's own opacity and blend (Figma's Appearance, instance-look.mjs): its style in the code.
   if (takesInstanceLook(node.name) && INSTANCE_LOOK_PROPS.some((name) => node.props[name])) {
@@ -511,7 +561,11 @@ function screenContent(screen, ctx, indent) {
   // The master layout (a root AppShell, screen-frame.mjs) is the desktop layout's: a phone shows its content only.
   const kids = layout === "mobile" && all.length === 1 && all[0].kind === "element" && all[0].name === "AppShell" ? all[0].children.filter((child) => !blank(child)) : all;
   if (!shown.length) {
-    if (kids.length === 1 && kids[0].kind === "element") return elementCode(kids[0], ctx, indent);
+    if (kids.length === 1 && kids[0].kind === "element") {
+      // The screen's one layer stands where an expression goes: a condition on it is a ternary.
+      ctx.atRoot = true;
+      return elementCode(kids[0], ctx, indent);
+    }
     const inner = indent + UNIT;
     return `<>\n${kids.map((kid) => `${inner}${childCode(kid, ctx, inner)}`).join("\n")}\n${indent}</>`;
   }
@@ -727,7 +781,8 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
     }
   }
 
-  const usesState = many || overlays.length > 0 || ctx.uses.has("overlay") || ctx.uses.has("navigate") || ctx.uses.has("back");
+  const hasVars = Object.keys(page.vars ?? {}).length > 0 && (ctx.uses.has("varsRead") || ctx.uses.has("varsSet"));
+  const usesState = many || overlays.length > 0 || ctx.uses.has("overlay") || ctx.uses.has("navigate") || ctx.uses.has("back") || hasVars;
   const screenType = `${name}Screen`;
   const overlayType = `${name}Overlay`;
   const propsType = `${name}${suffix}Props`;
@@ -747,6 +802,11 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
     lines.push(`/** The design's sample data: replace it with the app's. */`);
     lines.push(`export type ${mockType} = ${typeOf(page.mock, "", ctx.typed)};`);
     lines.push(`export const mock: ${mockType} = ${dataLiteral(page.mock, "")};`);
+    lines.push("");
+  }
+  if (hasVars) {
+    lines.push("/** The design's prototype variables, as each starts: the app keeps them in its own state. */");
+    lines.push(`export const startVars = ${dataLiteral(page.vars, "")};`);
     lines.push("");
   }
   lines.push(`export type ${screenType} = ${ids.map((id) => json(id)).join(" | ")};`);
@@ -786,6 +846,7 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
     if (many) lines.push("  const screen = history[history.length - 1];");
   }
   if (overlayState) lines.push(`  const [${readsOverlay ? "overlay" : ""}, setOverlay] = useState<${overlays.length ? overlayType : "string"} | null>(null);`);
+  if (hasVars) lines.push(`  const [${ctx.uses.has("varsRead") ? "vars" : ""}${ctx.uses.has("varsSet") ? ", setVars" : ""}] = useState(startVars);`);
   if (ctx.uses.has("toast")) lines.push("  const { toast } = useToast();");
   if (ctx.uses.has("navigate")) {
     lines.push(`  const navigate = (next: ${screenType}) => {`, ...(overlayState ? ["    setOverlay(null);"] : []), "    setHistory((stack) => [...stack, next]);", "    onNavigate?.(next);", "  };");

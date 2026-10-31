@@ -58,6 +58,10 @@ Quy tắc (`tools/studio/dialect.mjs` → `validateDialect(text)` trả về dan
 - Phần tử: component export từ `@zen/design-system` và `Board/Screen/Overlay` từ `@zen/design-system/builder`. Không có
   thẻ HTML thường, `style`, `className`, spread, hook, điều kiện, biểu thức tính toán.
 - Giá trị prop: literal (chuỗi, số, boolean, object/array literal), `proto.*(...)`, và trường của `mock`.
+- **Biến prototype** (W-52 B, 2026-10-31, [studio-prototype-variables-2026-10-31.md](studio-prototype-variables-2026-10-31.md)):
+  `export const vars = { tên: chuỗi | số | boolean }`. Prop và chữ đọc `{vars.x}`, `{!vars.x}`, `{vars.x === …}`;
+  `proto.set("x", giá trị hoặc biểu thức)`, `proto.if(điều kiện, hành động, ngược lại?)`, `proto.run(a, b, …)`. Biểu thức
+  chỉ có `+ - * / === !== < <= > >= && || !` (của Figma). Code chung: `tools/studio/proto-vars.mjs`.
 - **Danh sách:** đúng một dạng `{mock.<key>.map((item) => <X … />)}` (không filter/sort). Đây là React thật, và WP-C
   đã sửa được hàng của nó tại nguồn (`setDataField`); export map ra `v-for`/`ForEach`… như spec export §3 đề xuất.
 - **Trạng thái màn hình:** nhiều `<Screen>` cùng `id`, khác `state` (`empty`, `loading`, `error`; không ghi = default);

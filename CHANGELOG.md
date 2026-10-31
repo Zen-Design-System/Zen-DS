@@ -14,6 +14,11 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio prototype variables (walk W-52, phase B1): a page declares `export const vars` (text, numbers, booleans).
+  Layers read them (`{vars.x}`, `!vars.x`, `vars.x === …`, a layer's visibility too); `proto.set` (with Figma's
+  expressions), `proto.if` and `proto.run` change and branch on them. Play keeps them across screens until Restart; a
+  Switch or field bound to one writes it back. Export to React keeps them as state; Figma push draws the start values.
+  Written in code for now; the Prototype tab's controls come in B2.
 - Zen Studio Play: choice controls act with no setup (walk W-52, phase A). A pick in a row list moves its ✓, and a Chip
   that opens that list shows the pick. Sibling chips and radios pick one. Switch, Checkbox, Segmented, Tabs and fields
   act even when the page writes their value. Navigate, Back and Restart show a Screen as drawn; the page code never

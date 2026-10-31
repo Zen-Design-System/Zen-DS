@@ -1,10 +1,11 @@
 import { createElement, Fragment, isValidElement, type ReactNode } from "react";
 import { screenLayout } from "../../../../../tools/studio/screen-chrome.mjs";
 import { requiredFunctions, standInKind } from "../../../../../tools/studio/standins.mjs";
-import { HIDDEN_PROP, HIDDEN_SLOTS_PROP, STUDIO_ONLY_PROPS, hiddenOn, hiddenSlotsOf } from "../../../../../tools/studio/visibility.mjs";
+import { HIDDEN_PROP, HIDDEN_SLOTS_PROP, STUDIO_ONLY_PROPS, bindsVars, hiddenOn, hiddenSlotsOf } from "../../../../../tools/studio/visibility.mjs";
 import { INSTANCE_LOOK_PROPS, instanceLookStyle, takesInstanceLook } from "../../../../../tools/studio/instance-look.mjs";
 import { LOCKED_PROP, NAME_PROP } from "../../../../../tools/studio/layer-meta.mjs";
 import { instanceLayerPaths, NESTED_VALUE_KEY, WORDS_KEY } from "../../../../../tools/studio/instance-paths.mjs";
+import { evaluate, resolveItems, type VarRef } from "../../../../../tools/studio/proto-vars.mjs";
 import * as Zen from "../../../../index";
 import { typographyStyles } from "../../../../tokens/typography.generated";
 import { NestedContext, overridesAt } from "../../../../components/_shared/nested";
@@ -26,10 +27,12 @@ export type PageValue =
   | { kind: "element"; node: PageNode }
   | { kind: "fragment"; children: PageChild[] }
   | { kind: "proto"; action: string; args: unknown[] }
-  | { kind: "ref"; root: string; path: string[] };
+  | { kind: "ref"; root: string; path: string[] }
+  /** A prop reading a prototype variable: `!vars.x`, `vars.x === …` (tools/studio/proto-vars.mjs, W-52 B). */
+  | { kind: "expr"; op: string; args: unknown[] };
 export type PageNode = { kind: "element"; name: string; loc: string; props: Record<string, PageValue>; children: PageChild[] };
 export type PageChild = PageNode | { kind: "text"; value: string } | { kind: "ref"; root: string; path: string[] } | { kind: "map"; source: { root: string; path: string[] }; item: string; node: PageNode };
-export type PageTree = { header: Record<string, unknown> | null; mock: Record<string, unknown>; board: PageNode | null; errors: Array<{ line: number; column: number; message: string }> };
+export type PageTree = { header: Record<string, unknown> | null; mock: Record<string, unknown>; vars?: Record<string, unknown>; board: PageNode | null; errors: Array<{ line: number; column: number; message: string }> };
 
 const BUILDER: Record<string, unknown> = { Board, Screen, Overlay, Section, Slice };
 
@@ -42,11 +45,15 @@ function componentOf(name: string): unknown {
 }
 
 const read = (base: unknown, path: string[]) => path.reduce<unknown>((value, key) => (value !== null && typeof value === "object" ? (value as Record<string, unknown>)[key] : undefined), base);
+/** What a ref reads: a prototype variable (`vars.x`) from the render's, the rest (mock data, a row's item) from the scope. */
+const readRef = (ref: { root: string; path: string[] }, scope: Scope, ctx: RenderContext) => (ref.root === "vars" ? read(ctx.vars, ref.path) : read(scope[ref.root], ref.path));
 
 export type RenderContext = {
   /** "local:<id>.zen.tsx" */
   file: string;
   mock: Record<string, unknown>;
+  /** The page's prototype variables as `{vars.x}` reads them (W-52 B): Play's live values, else their start values. */
+  vars?: Readonly<Record<string, unknown>>;
   proto: ProtoActions;
   /** Play's live Tables, Steppers and controls (Filter table, Change step, W-52 A), by the layer's place. */
   play?: PlayLive;
@@ -175,8 +182,10 @@ function valueOf(value: PageValue, scope: Scope, ctx: RenderContext): unknown {
     case "element": return renderNode(value.node, scope, ctx);
     // A slot holding several layers: they sit straight in the slot (no wrapper), as Figma's slot.
     case "fragment": return createElement(Fragment, null, ...renderChildren(value.children, scope, ctx));
-    case "proto": return protoHandler(ctx.proto, value.action, value.args);
-    case "ref": return read(scope[value.root], value.path);
+    // A row's own fields go in now (proto.set("range", range) in a .map); a variable is read when the action runs.
+    case "proto": return protoHandler(ctx.proto, value.action, value.action === "set" || value.action === "if" || value.action === "run" ? resolveItems(value.args, (ref: VarRef) => readRef(ref, scope, ctx)) : value.args);
+    case "ref": return readRef(value, scope, ctx);
+    case "expr": return evaluate(value, (ref: VarRef) => readRef(ref, scope, ctx));
   }
 }
 
@@ -310,6 +319,15 @@ function liveControlProps(node: PageNode, props: Record<string, unknown>, scope:
   if (value) {
     const [controlled, initial, change] = value;
     const alias = LIVE_ALIASES[node.name];
+    // Bound to a prototype variable (W-52 B): the variable holds the value, and the control writes it back (`vars.x`);
+    // a condition (`!vars.x`) only shows it, the page's actions change it.
+    const bound = node.props[controlled] ?? (alias ? node.props[alias[0]] : undefined);
+    if (bound?.kind === "expr") return undefined;
+    if (bound?.kind === "ref" && bound.root === "vars") {
+      const name = bound.path[0];
+      props[change] = chained(props[change], (next) => ctx.proto.set?.(name, next));
+      return undefined;
+    }
     const start = props[controlled] ?? (alias ? props[alias[0]] : undefined) ?? props[initial] ?? (alias ? props[alias[1]] : undefined);
     delete props[controlled];
     if (alias) delete props[alias[0]];
@@ -599,8 +617,10 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
   const component = componentOf(node.name);
   if (!component) return null;
   // A hidden layer (Figma's eye; on one layout only with "mobile" / "desktop") is not drawn: the page keeps it and Layers
-  // lists it, dimmed (BuilderBoard's hidden layers, select/LayersPanel.tsx).
-  if (hiddenOn(node.props[HIDDEN_PROP], ctx.layout)) return null;
+  // lists it, dimmed (BuilderBoard's hidden layers, select/LayersPanel.tsx). A visibility a prototype variable holds
+  // (`hidden={!vars.signedIn}`, W-52 B) follows the variable.
+  const hidden = node.props[HIDDEN_PROP];
+  if (bindsVars(hidden) ? Boolean(valueOf(hidden, scope, ctx)) : hiddenOn(hidden, ctx.layout)) return null;
   // Slots switched off (Figma's slot boolean): the component draws without them; their layers stay in the page.
   const slotsOff = new Set(hiddenSlotsOf(node.props[HIDDEN_SLOTS_PROP]));
   const props: Record<string, unknown> = { key, "data-zen-src": srcOfNode(node, ctx), "data-zen-name": ctx.instance ? undefined : node.name, ...extra };
@@ -647,7 +667,7 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
 function renderChildren(children: PageChild[], scope: Scope, ctx: RenderContext): ReactNode[] {
   return children.flatMap((child, index): ReactNode[] => {
     if (child.kind === "text") return [child.value];
-    if (child.kind === "ref") { const value = read(scope[child.root], child.path); return value === undefined || value === null ? [] : [String(value)]; }
+    if (child.kind === "ref") { const value = readRef(child, scope, ctx); return value === undefined || value === null ? [] : [String(value)]; }
     if (child.kind === "map") {
       const list = read(scope[child.source.root], child.source.path);
       return Array.isArray(list) ? list.map((item, row) => renderNode(child.node, { ...scope, [child.item]: item }, ctx, `${index}:${row}`)) : [];

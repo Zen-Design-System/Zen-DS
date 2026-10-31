@@ -209,8 +209,36 @@ ok("an overlay that is not a Dialog: shown or not, no open prop, where it goes s
 ok("the board's props stay out", !/position=|closeOnOutside|onDelay|background\b(?!:)/.test(splashCode.replace(/\/\*[\s\S]*?\*\//g, "")));
 check("motion: the handoff hears the animation and the delay", splash.actions.filter((entry) => entry.options).map((entry) => `${entry.action} ${JSON.stringify(entry.options)}`).sort(), ['navigate {"animation":"push","duration":"slow","delay":1200}', 'navigate {"animation":"slide","direction":"right"}']);
 
+// Prototype variables (W-52 B): a `vars` state from `startVars`; Set variable, Conditional, several actions, a bound
+// control writes its variable back.
+const varsPage = page("Filters", "BottomSheet, Button, Chip, List, ListItem, Stack, Text, Toggle", [
+  '<Screen id="list" title="List" device="phone">',
+  '  <Stack gap="md" padding="lg">',
+  '    <Chip variant="advanced" dropdown selected={vars.dateRange !== "Any time"} onClick={proto.open("date")}>{vars.dateRange}</Chip>',
+  '    <Toggle label="Signed in" checked={vars.signedIn} />',
+  '    <Button onClick={proto.if(vars.signedIn && vars.count > 0, proto.navigate("done"), proto.set("count", vars.count + 1))}>Next</Button>',
+  "  </Stack>",
+  "</Screen>",
+  '<Screen id="done" title="Done" device="phone"><Text hidden={!vars.signedIn}>Welcome</Text></Screen>',
+  '<Overlay id="date">',
+  '  <BottomSheet title="Date">',
+  "    <List>",
+  '      {mock.ranges.map((range) => <ListItem title={range} selected={vars.dateRange === range} onClick={proto.run(proto.set("dateRange", range), proto.close())} />)}',
+  "    </List>",
+  "  </BottomSheet>",
+  "</Overlay>",
+], '{ ranges: ["Any time", "Last 3 months"] }').replace("export const mock", 'export const vars = { dateRange: "Any time", count: 0, signedIn: false };\nexport const mock');
+const vars = compileReact(varsPage, { file: "filters.zen.tsx" });
+check("vars: compiles", vars.error ?? null, null);
+const varsCode = vars.code ?? "";
+ok("vars: startVars and one state for them", varsCode.includes('export const startVars = { dateRange: "Any time", count: 0, signedIn: false };') && varsCode.includes("  const [vars, setVars] = useState(startVars);"));
+ok("vars: props and words read the state", varsCode.includes('selected={vars.dateRange !== "Any time"}') && /\{vars.dateRange\}\s*<\/Chip>/.test(varsCode) && varsCode.includes("selected={vars.dateRange === range}"));
+ok("vars: a visibility a variable holds is a condition", varsCode.includes("        vars.signedIn ? (\n          <Text>Welcome</Text>") && !varsCode.includes("hidden="));
+ok("vars: Set variable, Conditional and several actions", varsCode.includes('setVars((vars) => ({ ...vars, dateRange: range }))') && varsCode.includes("if (vars.signedIn && vars.count > 0)") && varsCode.includes("setVars((vars) => ({ ...vars, count: vars.count + 1 }))") && varsCode.includes("setOverlay(null)"));
+ok("vars: a bound Toggle writes its variable back", varsCode.includes("onCheckedChange={(next) => setVars((vars) => ({ ...vars, signedIn: next }))}"));
+
 // The outputs as app code: the usage harness (consumer mode) and TypeScript with the repo's settings.
-const outputs = { "Checkout.tsx": blank.code, "Team.tsx": code, "Orders.tsx": requiredCode, "Crew.tsx": crewCode, "Tabs.tsx": tabsCode, "Splash.tsx": splashCode };
+const outputs = { "Checkout.tsx": blank.code, "Team.tsx": code, "Orders.tsx": requiredCode, "Crew.tsx": crewCode, "Tabs.tsx": tabsCode, "Splash.tsx": splashCode, "Filters.tsx": varsCode };
 {
   const { rules } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/check-usage.mjs")).href);
   const { createChecker } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/engine.mjs")).href);
