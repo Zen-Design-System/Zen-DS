@@ -63,8 +63,9 @@ export const rows = [
     async run(ctx) {
       const { page, win } = await openVariables(ctx);
       await win.locator(".studio-vars__head").getByRole("button").first().click();
-      // The collections, without the menu's last item (Create collection).
-      const listed = await page.getByRole("menu", { name: "Collections" }).getByRole("menuitem").filter({ hasNotText: "Create collection" }).count();
+      // The collections, without the menu's last items (Create collection; on a page made in the Studio, its prototype
+      // variables' way to the Prototype tab, W-52 B2).
+      const listed = await page.getByRole("menu", { name: "Collections" }).getByRole("menuitem").filter({ hasNotText: /Create collection|Prototype · this page/ }).count();
       await page.keyboard.press("Escape");
       if (listed !== 11) throw new Error(`${listed} collections listed, want 11`);
       await collection(page, win, "Component Theme");
