@@ -1,5 +1,5 @@
 import { applyEdit } from "../api";
-import type { EditRequest, EditResponse, EditValue, StateDecl } from "../types";
+import type { EditRequest, EditResponse, EditValue, PageVarStarts, StateDecl } from "../types";
 
 /*
  * The slot ops of POST /__zen-studio/edit (spec "Source ops", tools/studio/slots.mjs): the only module that knows their
@@ -34,6 +34,8 @@ export type InsertChildOp = {
   requires?: ("toast" | "media")[];
   /** The code's useState values: the server declares them in the enclosing component under fresh names. */
   state?: StateDecl[];
+  /** On a builder page: the prototype variables the code reads, declared in `export const vars` when the page lacks them. */
+  vars?: PageVarStarts;
 };
 /**
  * Sent on the element itself (loc/name = the element); the server requires the file hash. `row`: the element a `.map`

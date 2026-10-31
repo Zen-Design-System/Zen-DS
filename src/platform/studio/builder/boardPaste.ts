@@ -7,6 +7,7 @@ import { copyFrame, setFrameBoxes } from "./frameEdit";
 import { copiedFrame } from "./frameKeys";
 import { boardPlaceAt, deviceFor, FRAME_MAX, FRAME_MIN } from "./frameMove";
 import { addFrame } from "./proto/addFrame";
+import type { PageVarStarts } from "../types";
 import type { FramePlace } from "./render/framePlace";
 import { getPage } from "./store/pageStore";
 
@@ -84,10 +85,10 @@ export async function pasteOnBoard(point: { x: number; y: number }): Promise<boo
 }
 
 /** A new empty frame of `size` (100 to 4096 a side) at `place` on the board, holding `content`: Paste here's, a drop's. */
-function frameOnBoard(localPage: string, place: FramePlace, content: string, size: { width: number; height: number }, label: string) {
+function frameOnBoard(localPage: string, place: FramePlace, content: string, size: { width: number; height: number }, label: string, vars?: PageVarStarts) {
   const width = clamp(size.width);
   const height = clamp(size.height);
-  return addFrame(localPage, "screen", { place, width, height, device: deviceFor(width), name: "Frame", empty: true, content, label });
+  return addFrame(localPage, "screen", { place, width, height, device: deviceFor(width), name: "Frame", empty: true, content, label, vars });
 }
 
 /** A component's frame before it renders: a phone's width (a component that fills takes it, one that hugs keeps its
@@ -103,7 +104,7 @@ const DROP_START = { width: 390, height: 300 };
  * rộng như Figma khi thả ra canvas"; edit/assets/figmaWidths.generated.ts). One ⌘Z takes both writes back. The new
  * frame is selected.
  */
-export async function dropOnBoard(code: string, place: FramePlace, label: string, figmaWidth?: number): Promise<boolean> {
+export async function dropOnBoard(code: string, place: FramePlace, label: string, figmaWidth?: number, vars?: PageVarStarts): Promise<boolean> {
   const { localPage } = studioStore.getState();
   if (!localPage || !canEdit()) return false;
   const engine = await loadEngine();
@@ -115,7 +116,7 @@ export async function dropOnBoard(code: string, place: FramePlace, label: string
     return false;
   }
   const before = (await getPage(localPage))?.text;
-  const frameId = await frameOnBoard(localPage, place, content, DROP_START, label);
+  const frameId = await frameOnBoard(localPage, place, content, DROP_START, label, vars);
   if (!frameId) return false;
   const added = studioStore.getState().undo.at(-1);
   const layer = await renderedLayer(frameId);

@@ -13,7 +13,7 @@ import { expectRender, mapSrc, noteEditTarget, remapSelection, renderedNow, same
 import { stackTagBefore, studioWrapper, wrappedChildLoc, wrapperCandidate } from "../select/resize";
 import { studioDrafts } from "../sourceDrafts";
 import { canEdit, flushStudioStore, studioStore } from "../store";
-import type { SourceElement, StateDecl, StudioSelection, StudioWrite } from "../types";
+import type { PageVarStarts, SourceElement, StateDecl, StudioSelection, StudioWrite } from "../types";
 import { attributeFormOf, clearCountOf, clearedLayers, formOf, hostLocAfter, lastElementName, locatedElements, onlyFrame, slotContentOf, slotModifiedOf, tagAt, type SlotContent, type SlotLayer, type SlotSourceElement } from "./content";
 import { itemParts, renderedSignature, slotGroupsAt, sourceItems, computedCaption } from "./dataItems";
 import { itemGroup, itemTitle, type DataSlot } from "./dataSlots";
@@ -772,7 +772,7 @@ async function runInsert({ selection, element, slot, item, context, warning }: I
   const content = slotContentOf(host, slot);
   if (content.insertBlock) return fail(content.insertBlock);
   const code = item.build(context ?? paletteFor(slotHostContext(selection, host, slot)).context);
-  return insertCodeInSlot(host, { selection, slot, code, label: item.label, root: item.root, requires: item.requires, state: item.state, warning });
+  return insertCodeInSlot(host, { selection, slot, code, label: item.label, root: item.root, requires: item.requires, state: item.state, vars: item.vars, warning });
 }
 
 export type PasteIntoSlotRequest = {
@@ -789,6 +789,8 @@ export type PasteIntoSlotRequest = {
   from?: NodeSelection;
   /** The useState values a copy from another file reads (declared where it lands, as pasteCode `state`). */
   state?: readonly StateDecl[];
+  /** The prototype variables an Assets template reads on a builder page (declared where it lands, insertChild `vars`). */
+  vars?: PageVarStarts;
 };
 
 /**
@@ -796,7 +798,7 @@ export type PasteIntoSlotRequest = {
  * of the slot, or at the slot's end when its Layers row is selected, with the slot's insert rules (a gap-less slot wraps,
  * a column frame takes it). The code may read what exists where it lands (insertChild `paste`).
  */
-export function pasteIntoSlot({ host, slot, code, name, after, from, state }: PasteIntoSlotRequest): Promise<boolean> {
+export function pasteIntoSlot({ host, slot, code, name, after, from, state, vars }: PasteIntoSlotRequest): Promise<boolean> {
   return exclusive(async () => {
     const check = canStructurallyEdit(host);
     if (!check.ok) return fail(check.reason);
@@ -808,7 +810,7 @@ export function pasteIntoSlot({ host, slot, code, name, after, from, state }: Pa
     if (after && !afterLoc) return fail(`${after.name}'s place is unknown — select it again`);
     // The host rules an insert from the picker follows warn here too (it pastes all the same).
     const warning = warningForCode(slotHostContext(host, element, slot), code)?.reason;
-    return insertCodeInSlot(element, { selection: host, slot, code, label: name, root: name, state, warning, paste: { after: afterLoc, from: from ?? after ?? host } });
+    return insertCodeInSlot(element, { selection: host, slot, code, label: name, root: name, state, vars, warning, paste: { after: afterLoc, from: from ?? after ?? host } });
   });
 }
 
@@ -869,13 +871,14 @@ type CodeInsert = {
   root: string;
   requires?: readonly ("toast" | "media")[];
   state?: readonly StateDecl[];
+  vars?: PageVarStarts;
   warning?: string;
   /** A paste: after that layer of the slot (its loc), `from` the selection it was made from (undo goes back to it). */
   paste?: { after?: string; from: NodeSelection };
 };
 
 /** Writes `code` into the host's slot (registry insertTargetFor) and selects the new element. */
-async function insertCodeInSlot(host: SlotSourceElement, { selection, slot, code, label, root, requires, state, warning, paste }: CodeInsert): Promise<boolean> {
+async function insertCodeInSlot(host: SlotSourceElement, { selection, slot, code, label, root, requires, state, vars, warning, paste }: CodeInsert): Promise<boolean> {
   const content = slotContentOf(host, slot);
   // A gap-less slot holding one Stack: its props tell a column frame (insert into it) from a button row (wrap). A prop slot
   // holding one Stack or Grid takes the new layer in it (registry insertTargetFor): its source is read for that too. A
@@ -901,6 +904,7 @@ async function insertCodeInSlot(host: SlotSourceElement, { selection, slot, code
     ...(target.mode === "wrap" || (target.mode === "into" && !into) ? { wrap: WRAP } : {}),
     ...(requires?.length ? { requires: [...requires] } : {}),
     ...(state?.length ? { state: state.map((entry) => ({ ...entry })) } : {}),
+    ...(vars ? { vars: { ...vars } } : {}),
     ...(paste ? { paste: true, ...(paste.after && !into ? { after: paste.after } : {}) } : {}),
   };
   if (!(await confirmRepeats(selection, { verb: "add", name: label, where }))) return false;

@@ -69,3 +69,21 @@
 - Figma: `figma-proto.mjs` `EASINGS` (the four curves, checked against motion.json); `transitionOf` sends the picked one
   (plugin already writes any curve as CUSTOM_CUBIC_BEZIER); `protoOfReaction` matches the curve to 3 decimals, drops others.
 - Selftests: protoModel (+2), figma-push (+3). E2E: PT-60 (Exit written, Emphasized left out, Slow · Linear runs linear in Play).
+
+## Session "Studio: required field" · W-58 (tier S; doc studio-prototype-variables §5, §7 q9)
+
+- No new mechanism: Conditional + "is empty" + an Assets template, as the doc decided. `vars.x === ""` already
+  round-tripped through B1's dialect (checked), so no dialect change.
+- Conditional's comparison for a text: is · is not · is empty · is not empty (`TEXT_OPS`, `VarActionRows.tsx`); "is
+  empty" hides the value field (`.studio-prototype__test > :only-child` spans the row). The test helpers moved to
+  `protoVarsModel.ts` (`varTestOf`, `varTestOp`, `varTestCode`) for the selftest. Picking "is" on an empty test keeps
+  "is" shown until a value is typed (the code reads `=== ""` meanwhile).
+- Palette item `form-required-field` (Inputs): example pages get a useState version (toast); builder pages the
+  `proto.if(vars.email === "", proto.set("emailError", …), proto.run(proto.set("emailError", ""), proto.toast(…)))`
+  version, the one Assets item that keeps its action there (comment says why). A plain Screen has nothing to close, so
+  success is a toast and clears the error.
+- Declaring its variables: `PaletteItem.vars` → Insertable → op pasteCode / insertChild `vars` (click, drag into a
+  frame, drop on the empty board via addFrame, InsertPicker). Server: `declareVarsEdit` (`proto-vars-edit.mjs`) joins
+  the paste's edits (one undo step); refused on files that are not pages you made.
+- Selftests: proto-vars-edit (+8), protoVarsModel (+4), palette (+2). E2E: PT-61 ("is empty" via the UI), PT-62 (drop,
+  Play empty → error, email → toast).

@@ -28,8 +28,10 @@ Last updated: 2026-10-27.
   branch `claude/studio-prototype-variables-b3` + plugin 90bc3cd (`studio-import`): collection, Set variable /
   Conditional / several actions, words and Visible bound. W-51a easing:
   `ProtoOptions.easing` (4 Motion/Ease tokens, Emphasized default) in the Prototype tab, Play (`--studio-play-ease`) and
-  Figma push/pull (`figma-proto.mjs` `EASINGS`; the plugin already writes any curve); E2E PT-60. Next: Smart animate
-  (W-51b, M); B4 pull optional.
+  Figma push/pull (`figma-proto.mjs` `EASINGS`; the plugin already writes any curve); E2E PT-60. W-58 required field:
+  Conditional "is empty" / "is not empty" (`varTestOf` / `varTestCode` in `protoVarsModel.ts`), Assets template
+  "Form · required field" (palette `vars`, op pasteCode / insertChild `vars` declares them: `declareVarsEdit`); E2E
+  PT-61, PT-62. Next: Smart animate (W-51b, M); B4 pull optional.
 - **Studio Popover option (2026-10-30, user 2026-10-28 via Bug):** branch `zen/feat/studio-popover-option-20261030`.
   Every layer that takes a click: Design tab switch "Popover" and Prototype On click › Open popover (an Overlay holding a
   Popover, `proto.open`; a Chip uses `popoverItems`); rows Sample or a page-data list (`builder/proto/popoverModel.ts`,
