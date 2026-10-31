@@ -29,7 +29,7 @@ import { RowSelectField } from "./rowFields";
 import { hexOf, nearestColors, parseHex, type Rgb } from "./controls/colorMatch";
 import { openVariables } from "../variables/variablesState";
 import { useVarBind, varKindOf, VarBindButton, VarPill } from "./varBind";
-import { varReadOf } from "../builder/proto/protoVarsModel";
+import { literalCode, varReadOf } from "../builder/proto/protoVarsModel";
 import { inspectorStatus } from "./status";
 import { useCanvasPreview } from "../project/activeProject";
 
@@ -1064,7 +1064,8 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
   if (varRead && value.state === "bound") {
     // Unbind writes what the field showed back as its own value.
     const back = isLiteral(value.live) ? value.live : spec.defaultValue ?? undefined;
-    const unbind = disabled ? null : <IconButton icon="icon-x-line" aria-label={`Unbind ${inSentence(label)}`} tooltip="Unbind variable" appearance="flat" level="primary" size="xs" onClick={() => (back === undefined || back === null ? onReset() : onSet(back as Literal))} />;
+    // Written as code over the binding (a plain write of a bound field edits what it reads instead).
+    const unbind = disabled ? null : <IconButton icon="icon-x-line" aria-label={`Unbind ${inSentence(label)}`} tooltip="Unbind variable" appearance="flat" level="primary" size="xs" onClick={() => (back === undefined || back === null ? onReset() : bind!.bindProp(spec.name, literalCode(back), `${label} unbound`))} />;
     return <InspectorRow {...row} action={unbind}><VarPill words={varRead.words} /></InspectorRow>;
   }
   if (value.state === "bound") {

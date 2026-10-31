@@ -2415,7 +2415,7 @@ export const rows = [
       await showLeftTab(page, "layers");
       await until(async () => (await page.locator('.studio-layers__row[data-kind="node"][aria-selected="true"] .studio-layers__var').count()) > 0, { message: "Layers marks the selected Chip {x}" });
       await step("Unbind Selected", () => selected.getByRole("button", { name: /^Unbind/ }).click());
-      await until(async () => !(await text()).includes("selected={vars.dateRange"), { message: "Unbind gives the Chip the value it showed (not selected)" });
+      await until(async () => { const chip = /<Chip [^>]*>/.exec(await text())?.[0] ?? ""; return chip !== "" && !chip.includes("vars.") && /selected=\{false\}|^(?!.*selected)/.test(chip); }, { message: "Unbind gives the Chip the value it showed (not selected)" });
       await page.locator(".studio-viewport").focus();
       await page.keyboard.press("ControlOrMeta+z");
       await until(async () => (await text()).includes('selected={vars.dateRange !== "Any time"}'), { message: "⌘Z binds it again" });
