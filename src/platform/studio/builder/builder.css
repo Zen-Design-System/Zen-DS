@@ -171,7 +171,7 @@
 .studio-player__screen[data-top] { position: relative; z-index: 1; }
 .studio-player__screen[data-leaving][data-top] { position: absolute; }
 .studio-player__screen[data-motion],
-.studio-player__overlay-content[data-motion] { animation: studio-play-motion var(--studio-play-duration, var(--zen-motion-duration-base, 200ms)) var(--zen-motion-ease-emphasized, ease) both; }
+.studio-player__overlay-content[data-motion] { animation: studio-play-motion var(--studio-play-duration, var(--zen-motion-duration-base, 200ms)) var(--studio-play-ease, var(--zen-motion-ease-emphasized, ease)) both; }
 @keyframes studio-play-motion {
   from { opacity: var(--studio-play-from-opacity, 1); translate: calc(var(--studio-play-from-x, 0%) * var(--zen-motion-movement, 1)) calc(var(--studio-play-from-y, 0%) * var(--zen-motion-movement, 1)); }
   to { opacity: var(--studio-play-to-opacity, 1); translate: calc(var(--studio-play-to-x, 0%) * var(--zen-motion-movement, 1)) calc(var(--studio-play-to-y, 0%) * var(--zen-motion-movement, 1)); }

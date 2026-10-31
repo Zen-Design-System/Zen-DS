@@ -3,7 +3,7 @@
 // connections and Play read from a page — trigger words, a choice control's items, per-item actions and their links.
 // Run: node src/platform/studio/builder/proto/protoModel.selftest.mjs
 import { parsePage } from "../../../../../tools/studio/dialect.mjs";
-import { actionsIn, actionsFor, actionTriggerLabel, actionTriggersOf, cellText, choicesOf, frameNamed, layerWordsOf, choiceItemsOf, columnsOf, connectTrigger, filterCode, filterOf, filterRows, filterValuesOf, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, layersIn, linksOf, openerOf, optionsOf, playStartOf, protoOf, stepsOf, protoActionCode, protoSourcesOf, screenTargetOf, stepCode, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, targetOfFrame, targetsByItem, triggerLabel, triggerValue } from "./protoModel.ts";
+import { actionsIn, actionsFor, actionTriggerLabel, actionTriggersOf, cellText, choicesOf, frameNamed, layerWordsOf, choiceItemsOf, columnsOf, connectTrigger, EASINGS, filterCode, filterOf, filterRows, filterValuesOf, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, layersIn, linksOf, openerOf, optionsOf, playStartOf, protoOf, stepsOf, protoActionCode, protoSourcesOf, screenTargetOf, stepCode, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, targetOfFrame, targetsByItem, triggerLabel, triggerValue } from "./protoModel.ts";
 
 const failures = [];
 let passed = 0;
@@ -107,6 +107,14 @@ check("action code: defaults left out, a direction only when it moves, delay kep
   protoActionCode("open", { files: "files" }, { animation: "move", direction: "up" }),
 ], ['proto.navigate("home")', 'proto.navigate("home", { animation: "push", direction: "right", duration: "slow" })', 'proto.navigate("home", { animation: "instant" })', "proto.back({ delay: 800 })", 'proto.toast({ title: "Saved" }, { delay: 300 })', 'proto.open({ files: "files" }, { animation: "move", direction: "up" })']);
 check("options read back from either place, unknown values dropped", [optionsOf("navigate", ["home", { animation: "push", direction: "sideways", delay: 500 }]), optionsOf("back", [{ delay: 900 }]), optionsOf("toast", [{ title: "x" }])], [{ animation: "push", delay: 500 }, { delay: 900 }, {}]);
+// W-51a: the curve is a Motion/Ease token; Emphasized (Play's) is left out, as is any curve on Instant.
+check("easing: written unless Emphasized or Instant", [
+  protoActionCode("navigate", "home", { animation: "push", easing: "linear" }),
+  protoActionCode("navigate", "home", { easing: "emphasized" }),
+  protoActionCode("navigate", "home", { animation: "instant", easing: "exit" }),
+  protoActionCode("close", undefined, { easing: "standard" }),
+], ['proto.navigate("home", { animation: "push", easing: "linear" })', 'proto.navigate("home")', 'proto.navigate("home", { animation: "instant" })', 'proto.close({ easing: "standard" })']);
+check("easing: read back when it is one of the four tokens", [optionsOf("navigate", ["home", { easing: "exit" }]), optionsOf("back", [{ easing: "bounce" }]), EASINGS], [{ easing: "exit" }, {}, ["standard", "emphasized", "exit", "linear"]]);
 const motion = parsePage(page.replace('<Button onClick={proto.navigate("files")}>', '<Button onClick={proto.navigate("files", { animation: "slide", direction: "up" })} whileHovering={proto.open("confirm")}>').replace('<Screen id="files" title="Files" device="phone" state="empty" />', '<Screen id="files" title="Files" device="phone" state="empty" onDelay={proto.back({ delay: 900 })} />'), { components: new Set(["BottomNavigation", "Button", "Dialog", "Segmented", "Sidebar", "SidebarMenuItem", "Stack"]) });
 check("round 2 parses", motion.errors, []);
 check("a frame id finds its Screen (state) or Overlay", [frameNodeOf(motion, "screen:files:empty")?.props.onDelay?.action, frameNodeOf(motion, "overlay:confirm")?.name, frameNodeOf(motion, "screen:nope")], ["back", "Overlay", null]);

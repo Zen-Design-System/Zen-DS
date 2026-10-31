@@ -83,9 +83,13 @@ export const DEFAULT_DIRECTION: ProtoDirection = "left";
 export type ProtoDuration = "fast" | "base" | "slow";
 export const DURATIONS: ReadonlyArray<ProtoDuration> = ["fast", "base", "slow"];
 export const DEFAULT_DURATION: ProtoDuration = "base";
+/** Motion/Ease tokens (tokens/source/motion.json): Play's curve, Emphasized unless one is picked (W-51a). */
+export type ProtoEasing = "standard" | "emphasized" | "exit" | "linear";
+export const EASINGS: ReadonlyArray<ProtoEasing> = ["standard", "emphasized", "exit", "linear"];
+export const DEFAULT_EASING: ProtoEasing = "emphasized";
 export const DEFAULT_DELAY = 800;
 /** An action's options: its animation, and (After delay) how long the screen shows first. */
-export type ProtoOptions = { animation?: ProtoAnimation; direction?: ProtoDirection; duration?: ProtoDuration; delay?: number };
+export type ProtoOptions = { animation?: ProtoAnimation; direction?: ProtoDirection; duration?: ProtoDuration; easing?: ProtoEasing; delay?: number };
 export const moves = (animation: ProtoAnimation | undefined) => animation === "move" || animation === "push" || animation === "slide";
 
 /** Where an action keeps its options: after its target (navigate, open, toast, link, step), else first (close, back). A
@@ -100,17 +104,20 @@ export function optionsOf(action: string, args: readonly unknown[]): ProtoOption
   if (ANIMATIONS.some((entry) => entry.value === value.animation)) out.animation = value.animation as ProtoAnimation;
   if (DIRECTIONS.includes(value.direction as ProtoDirection)) out.direction = value.direction as ProtoDirection;
   if (DURATIONS.includes(value.duration as ProtoDuration)) out.duration = value.duration as ProtoDuration;
+  if (EASINGS.includes(value.easing as ProtoEasing)) out.easing = value.easing as ProtoEasing;
   if (typeof value.delay === "number" && Number.isFinite(value.delay) && value.delay >= 0) out.delay = value.delay;
   return out;
 }
 
-/** The options as written: defaults left out (Dissolve, left, base); direction only for an animation that moves. */
+/** The options as written: defaults left out (Dissolve, left, base, Emphasized); direction only for an animation that
+ *  moves, duration and easing only for one that animates. */
 function writtenOptions(options: ProtoOptions | undefined): ProtoOptions | null {
   if (!options) return null;
   const out: ProtoOptions = {};
   if (options.animation && options.animation !== DEFAULT_ANIMATION) out.animation = options.animation;
   if (moves(options.animation) && options.direction && options.direction !== DEFAULT_DIRECTION) out.direction = options.direction;
   if (options.animation !== "instant" && options.duration && options.duration !== DEFAULT_DURATION) out.duration = options.duration;
+  if (options.animation !== "instant" && options.easing && options.easing !== DEFAULT_EASING) out.easing = options.easing;
   if (options.delay !== undefined) out.delay = options.delay;
   return Object.keys(out).length ? out : null;
 }

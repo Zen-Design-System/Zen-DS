@@ -58,3 +58,14 @@
   each as sent. Cleaned up (frames, component, collection). The full importer run on a whole page was not repeated.
 - Not pushed: a prop bound to a condition (the W-52 ✓), Show toast / Filter table / Change step (as before); pull
   (Figma → Studio) of variables is B4, not done.
+
+## Session "Studio: prototype easing" · W-51a (tier S; doc studio-prototype-variables §5, §7 q10)
+
+- `protoModel.ts`: `ProtoEasing` / `EASINGS` / `DEFAULT_EASING` ("emphasized"); `optionsOf` keeps only the four,
+  `writtenOptions` leaves out Emphasized and any curve on Instant. Switching action keeps the easing.
+- Prototype tab › Animation rows: "Easing" select (Standard · Emphasized · Exit · Linear) under Duration, not on Instant.
+- Play: `frameMotion` sets `--studio-play-ease: var(--zen-motion-ease-<x>)`; `builder.css` reads it (fallback
+  Emphasized). Reduced motion unchanged (movement 0, fades keep their curve).
+- Figma: `figma-proto.mjs` `EASINGS` (the four curves, checked against motion.json); `transitionOf` sends the picked one
+  (plugin already writes any curve as CUSTOM_CUBIC_BEZIER); `protoOfReaction` matches the curve to 3 decimals, drops others.
+- Selftests: protoModel (+2), figma-push (+3). E2E: PT-60 (Exit written, Emphasized left out, Slow · Linear runs linear in Play).

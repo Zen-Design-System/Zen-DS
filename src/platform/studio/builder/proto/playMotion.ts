@@ -1,10 +1,11 @@
 import type { CSSProperties } from "react";
-import { DEFAULT_ANIMATION, DEFAULT_DIRECTION, DEFAULT_DURATION, type ProtoDirection, type ProtoOptions } from "./protoModel";
+import { DEFAULT_ANIMATION, DEFAULT_DIRECTION, DEFAULT_DURATION, DEFAULT_EASING, type ProtoDirection, type ProtoOptions } from "./protoModel";
 
 /*
  * Play's animations between frames (Figma's): which way the frame coming in and the one going away move, as custom
  * properties the `studio-play-motion` keyframes read (builder.css). Distances are fractions of the frame's own size and
- * are multiplied by --zen-motion-movement there (0 with reduced motion: only the fades stay); durations are Motion tokens.
+ * are multiplied by --zen-motion-movement there (0 with reduced motion: only the fades stay); durations and curves are
+ * Motion tokens.
  *
  * Forward, the frame coming in is on top: it fades in (Dissolve) or moves in from the side the direction points away
  * from (Move in, Push, Slide in); the one going away stays (Dissolve, Move in), is pushed out (Push) or shifts by a third
@@ -25,7 +26,10 @@ export function frameMotion(options: ProtoOptions | undefined, role: "enter" | "
   const animation = options?.animation ?? DEFAULT_ANIMATION;
   if (animation === "instant") return null;
   const [x, y] = FROM[options?.direction ?? DEFAULT_DIRECTION];
-  const vars: Record<string, string> = { "--studio-play-duration": `var(--zen-motion-duration-${options?.duration ?? DEFAULT_DURATION})` };
+  const vars: Record<string, string> = {
+    "--studio-play-duration": `var(--zen-motion-duration-${options?.duration ?? DEFAULT_DURATION})`,
+    "--studio-play-ease": `var(--zen-motion-ease-${options?.easing ?? DEFAULT_EASING})`,
+  };
   const from = (factor: number) => { vars["--studio-play-from-x"] = percent(x * factor); vars["--studio-play-from-y"] = percent(y * factor); };
   const to = (factor: number) => { vars["--studio-play-to-x"] = percent(x * factor); vars["--studio-play-to-y"] = percent(y * factor); };
   if (!reverse && role === "enter") {

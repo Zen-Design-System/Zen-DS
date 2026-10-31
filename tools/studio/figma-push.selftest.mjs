@@ -9,7 +9,7 @@ import fs from "node:fs";
 import { figmaFromPage, figmaIdOf, figmaPackage, sidebarPatternProps } from "./figma-push.mjs";
 import { figmaDocId, pageFromFigma, repoMapping } from "./figma-pull.mjs";
 import { figmaChanges, mergeFigma } from "./figma-diff.mjs";
-import { DURATION_MS, EASING } from "./figma-proto.mjs";
+import { DURATION_MS, EASING, EASINGS, protoOfReaction, transitionOf } from "./figma-proto.mjs";
 import { NESTED_LAYERS } from "../../src/platform/studio/inspector/nestedLayers.generated.ts";
 
 let passed = 0;
@@ -3032,6 +3032,11 @@ export default function Page() {
   const motion = JSON.parse(fs.readFileSync(new URL("../../tokens/source/motion.json", import.meta.url), "utf8")).Motion.tokens;
   const token = (name) => motion.find((entry) => entry.name === name)?.value;
   check("flow: durations and the curve are Motion/Duration/Fast·Base·Slow and Motion/Ease/Emphasized", [DURATION_MS.fast, DURATION_MS.base, DURATION_MS.slow, EASING], [token("Motion/Duration/Fast"), token("Motion/Duration/Base"), token("Motion/Duration/Slow"), token("Motion/Ease/Emphasized")]);
+  // W-51a: an action's curve is one of the four Motion/Ease tokens, pushed as it is and read back (others dropped).
+  check("flow: the curves are Motion/Ease/Standard·Emphasized·Exit·Linear", [EASINGS.standard, EASINGS.emphasized, EASINGS.exit, EASINGS.linear], [token("Motion/Ease/Standard"), token("Motion/Ease/Emphasized"), token("Motion/Ease/Exit"), token("Motion/Ease/Linear")]);
+  check("flow: an action's easing is its transition's curve; none or an unknown one is Emphasized", [transitionOf({ easing: "linear" }).easing, transitionOf({ animation: "push", easing: "exit" }).easing, transitionOf({}).easing, transitionOf({ easing: "toString" }).easing], [[0, 0, 1, 1], [0.4, 0, 1, 1], EASING, EASING]);
+  const pulledEase = (easing) => protoOfReaction({ trigger: "ON_CLICK", action: "NAVIGATE", to: "screen:details", transition: { type: "DISSOLVE", duration: 0.2, easing } }).args;
+  check("flow: pulled back, a token's curve is its easing (float noise kept out), Emphasized and any other curve left out", [pulledEase([0.2, 0, 0, 1]), pulledEase([0.4000000059604645, 0, 1, 1]), pulledEase([0.16, 1, 0.3, 1]), pulledEase([0.42, 0, 0.58, 1])], [["details", { easing: "standard" }], ["details", { easing: "exit" }], ["details"], ["details"]]);
   // Round trip: the reactions come back as the page's actions.
   const back = (frameId) => pageFromFigma({ ...byId[frameId], id: "9:1" }, { mapping }).text;
   ok("flow: pulled back, On click Navigate to keeps its animation", back("screen:home").includes('onClick={proto.navigate("details", { animation: "push", direction: "right", duration: "slow" })}'));

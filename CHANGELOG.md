@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio prototype easing (walk W-51a). An animated interaction picks its curve in the Prototype tab (Easing:
+  Standard, Emphasized, Exit, Linear, the Motion/Ease tokens); Play runs it and the Figma push sends it (pull reads it
+  back). Emphasized stays the default and is not written.
 - Zen Studio Export › Figma carries prototype variables (walk W-52, phase B3): the page's variables become a local
   collection "Prototype · <page>" at their start values; Set variable, Conditional and several actions become Figma's
   actions (expressions included); words, Visible and an instance's text property bind to them. What Figma cannot bind
