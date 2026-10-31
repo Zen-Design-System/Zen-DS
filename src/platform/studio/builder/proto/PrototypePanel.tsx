@@ -442,7 +442,7 @@ function AddAction({ trigger, layer, codes, tree, frames, home, words }: { trigg
   return (
     <div className="studio-prototype__add-action">
       <Menu
-        trigger={<Button appearance="main" level="tertiary" size="xs" startIcon={<Icon name="icon-plus-line" decorative />}>Add action</Button>}
+        trigger={<Button appearance="main" level="tertiary" size="sm" startIcon={<Icon name="icon-plus-line" decorative />}>Add action</Button>}
         items={CHAINED.map((entry) => ({ id: entry.value, label: entry.label }))}
         onSelect={(item) => add(item.id as ProtoAction)}
       />

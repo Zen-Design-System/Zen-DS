@@ -161,7 +161,7 @@ function VisibleBinding({ api }: { api: FieldApi }) {
   const read = value.state === "bound" ? varReadOf(value.expression) : null;
   if (value.state === "bound" && read) {
     const shown = varReadOf(negated(value.expression))?.words ?? read.words;
-    return <IconButton icon={VAR_MARK} aria-label={`Visible when ${shown}. Unbind`} tooltip={`Visible when ${shown} · press to unbind`} appearance="flat" level="accent" size="xs" onClick={() => void api.apply([{ op: "removeProp", name: "hidden" }], "Visible unbound")} />;
+    return <IconButton icon={VAR_MARK} aria-label={`Visible when ${shown}. Unbind`} tooltip={`Visible when ${shown} · press to unbind`} appearance="flat" level="primary" size="xs" aria-pressed onClick={() => void api.apply([{ op: "removeProp", name: "hidden" }], "Visible unbound")} />;
   }
   return <VarBindButton label="Visible" kind="boolean" onPick={(code, words) => void api.apply([{ op: "setProp", name: "hidden", value: { kind: "expression", code: negated(code) } }], `Visible when ${words}`)} onCreate={() => bind.createForProp("hidden", "boolean", true, (name) => `!vars.${name}`)} />;
 }

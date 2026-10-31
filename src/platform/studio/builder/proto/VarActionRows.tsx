@@ -98,7 +98,7 @@ export function SetVariableRows({ name, value, vars, write, create, disabled, pr
         <InspectorRow
           label="To"
           name={`${prefix}:value`}
-          action={type === "text" ? <IconButton appearance="flat" level={expression ? "accent" : "primary"} size="xs" icon="icon-code-01-line" aria-label="Expression" aria-pressed={expression} tooltip={expression ? "A value" : "An expression"} disabled={disabled} onClick={() => setExpression((on) => !on)} /> : undefined}
+          action={type === "text" ? <IconButton appearance="flat" level="primary" size="xs" icon="icon-code-01-line" aria-label="Expression" aria-pressed={expression} tooltip={expression ? "A value" : "An expression"} disabled={disabled} onClick={() => setExpression((on) => !on)} /> : undefined}
         >
           <RowInputField
             aria-label={`${name} value`}
@@ -180,7 +180,7 @@ export function ConditionalRows({ args, vars, frames, write, create, disabled, p
       <InspectorRow
         label="If"
         name={`${prefix}:if`}
-        action={<IconButton appearance="flat" level={asExpression ? "accent" : "primary"} size="xs" icon="icon-code-01-line" aria-label="Edit as expression" aria-pressed={asExpression} tooltip={asExpression ? "Pick a variable" : "Edit as expression"} disabled={disabled || (asExpression && !test)} onClick={() => setAsExpression((on) => !on)} />}
+        action={<IconButton appearance="flat" level="primary" size="xs" icon="icon-code-01-line" aria-label="Edit as expression" aria-pressed={asExpression} tooltip={asExpression ? "Pick a variable" : "Edit as expression"} disabled={disabled || (asExpression && !test)} onClick={() => setAsExpression((on) => !on)} />}
       >
         {asExpression || !test ? (
           <RowInputField

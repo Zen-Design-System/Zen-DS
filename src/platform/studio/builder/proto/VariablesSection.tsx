@@ -115,7 +115,8 @@ function VariableRow({ entry, uses, file, tree, disabled, focus, onFocused }: { 
       align="end"
       trigger={<IconButton appearance="flat" level="primary" size="xs" icon="icon-dots-horizontal-line" aria-label={`${entry.name} options`} tooltip="More" />}
       items={[
-        ...TYPES.map((type) => ({ id: `type:${type}`, label: VAR_WORDS[type], icon: VAR_ICON[type], selected: type === entry.type })),
+        // Its kind, as Change to …; the kind it has already is not offered.
+        ...TYPES.filter((type) => type !== entry.type).map((type) => ({ id: `type:${type}`, label: `Change to ${VAR_WORDS[type].toLowerCase()}`, icon: VAR_ICON[type] })),
         { type: "separator" as const, id: "separator" },
         { id: "delete", label: "Delete", icon: "icon-trash-line" },
       ]}
@@ -132,8 +133,8 @@ function VariableRow({ entry, uses, file, tree, disabled, focus, onFocused }: { 
       {asking ? (
         <div className="studio-prototype__var-ask" role="group" aria-label={`Delete ${entry.name}?`}>
           <Text tone="light" textStyle="Caption/Regular">{`Used by ${uses} ${uses === 1 ? "layer" : "layers"}. Delete anyway?`}</Text>
-          <Button appearance="main" level="tertiary" size="xs" onClick={() => setAsking(false)}>Cancel</Button>
-          <Button appearance="main" level="danger" size="xs" startIcon={<Icon name="icon-trash-line" decorative />} onClick={remove}>Delete</Button>
+          <Button appearance="main" level="tertiary" size="sm" onClick={() => setAsking(false)}>Cancel</Button>
+          <Button appearance="main" level="danger" size="sm" startIcon={<Icon name="icon-trash-line" decorative />} onClick={remove}>Delete</Button>
         </div>
       ) : null}
     </div>
