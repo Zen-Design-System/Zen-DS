@@ -24,9 +24,12 @@ Last updated: 2026-10-27.
   `proto.set` / `proto.if` / `proto.run`, props reading `vars.x` (`tools/studio/proto-vars.mjs`, `dialect.mjs`,
   `playFlow.tsx`, `renderPage.tsx`); export keeps them as state, Figma push draws start values. E2E PT-52…55 (#365).
   B2 (UI) on branch `claude/studio-prototype-variables-b2`: Variables section, Set variable / Conditional / Add action,
-  Inspector Bind (`varBind.tsx`), op "pageVars" (`proto-vars-edit.mjs`); E2E PT-56…59. Next: B3 (Figma variables +
-  reactions), then Smart animate (W-51b, M). W-51a easing: `ProtoOptions.easing` (4 Motion/Ease tokens, Emphasized
-  default) in the Prototype tab, Play (`--studio-play-ease`) and Figma push/pull (`figma-proto.mjs` `EASINGS`); E2E PT-60.
+  Inspector Bind (`varBind.tsx`), op "pageVars" (`proto-vars-edit.mjs`); E2E PT-56…59 (#366). B3 (push to Figma) on
+  branch `claude/studio-prototype-variables-b3` + plugin 90bc3cd (`studio-import`): collection, Set variable /
+  Conditional / several actions, words and Visible bound. W-51a easing:
+  `ProtoOptions.easing` (4 Motion/Ease tokens, Emphasized default) in the Prototype tab, Play (`--studio-play-ease`) and
+  Figma push/pull (`figma-proto.mjs` `EASINGS`; the plugin already writes any curve); E2E PT-60. Next: Smart animate
+  (W-51b, M); B4 pull optional.
 - **Studio Popover option (2026-10-30, user 2026-10-28 via Bug):** branch `zen/feat/studio-popover-option-20261030`.
   Every layer that takes a click: Design tab switch "Popover" and Prototype On click › Open popover (an Overlay holding a
   Popover, `proto.open`; a Chip uses `popoverItems`); rows Sample or a page-data list (`builder/proto/popoverModel.ts`,

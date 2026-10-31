@@ -20,7 +20,7 @@ import { INSTANCE_LOOK_PROPS, instanceLookStyle, takesInstanceLook } from "./ins
 import { BOX_SURFACE, GAP_PX, LONG_TO_SHORT, MARGIN_PX, MARGIN_VARIABLE, PADDING_PX, PROGRESS_TRACK, progressColumns, progressStep, sameValue } from "./figma-steps.mjs";
 import { SCREEN_CHROME, screenLayout } from "./screen-chrome.mjs";
 import { pruneHidden } from "./visibility.mjs";
-import { withStartValues } from "./proto-vars.mjs";
+import { varType, withStartValues } from "./proto-vars.mjs";
 import { atBreakpoint, screenBreakpoint } from "./responsive-props.mjs";
 import { placeCells } from "./grid-cells.mjs";
 import { FIGMA_NAMED, LABEL_NAMED, givenNameOf } from "./layer-meta.mjs";
@@ -30,7 +30,7 @@ import { PROPERTY_TYPE as PROPERTY_CELL_TYPE, propertyValueFigma, statusArcs } f
 import { NAV_ACTION_SET, TOP_NAV_HEADING, TOP_NAV_SET, TOP_NAV_TYPES, topNavActions, topNavLayout } from "./figma-top-nav.mjs";
 import { contentToneToken } from "../../src/components/_shared/contentTone.ts";
 import { textSegments } from "./text-runs.mjs";
-import { ACTION_LAYERS, OVERLAY_PLACES, OVERLAY_POSITION_WORDS, OVERLAY_PROPS, reactionOf } from "./figma-proto.mjs";
+import { ACTION_LAYERS, OVERLAY_PLACES, OVERLAY_POSITION_WORDS, OVERLAY_PROPS, RESOLVED_TYPES, reactionOfValue } from "./figma-proto.mjs";
 import { gradientFillOf } from "./figma-gradient.mjs";
 import { imageFillOf } from "./figma-image.mjs";
 import { arcData, fitVectorPath, normalizeArc, parseVectorPath, parseViewBox, STAR_RATIO, vectorBounds } from "../../src/components/Shape/geometry.ts";
@@ -496,6 +496,49 @@ export function boardFrameId(element) {
   return `${element.name === "Overlay" ? "overlay" : "screen"}:${literal("id") ?? ""}${state ? `:${state}` : ""}`;
 }
 
+/**
+ * The layers of a page that read a prototype variable, by element id (W-52 B3): `text` (their words are `{vars.x}`),
+ * `visible` (`hidden={!vars.x}`: Figma's Visible bound to x) and `props` (a prop that is `vars.x`). What Figma cannot bind
+ * (a condition, the opposite of a variable, words mixing text and a variable) is a note: it goes at its start value.
+ */
+function varBindsOf(board, notes, vars = {}) {
+  const out = new Map();
+  const note = (text) => { if (!notes.includes(text)) notes.push(text); };
+  const readsVar = (value) => value?.kind === "ref" && value.root === "vars";
+  const readsAny = (value) => readsVar(value) || (value?.kind === "expr" && JSON.stringify(value).includes('"root":"vars"'));
+  const visit = (node) => {
+    if (!node || node.kind !== "element") return;
+    const bind = {};
+    const refs = node.children.filter((child) => child.kind === "ref" && child.root === "vars");
+    if (refs.length === 1 && node.children.length === 1) bind.text = refs[0].path[0];
+    else if (refs.length) note(`${node.name}: words mixing text and a variable go at the start value (Figma binds whole words)`);
+    for (const [prop, value] of Object.entries(node.props)) {
+      if (prop === "hidden") {
+        if (value?.kind === "expr" && value.op === "!" && readsVar(value.args[0])) { bind.visible = value.args[0].path[0]; bind.startShown = Boolean(vars[bind.visible]); }
+        else if (readsAny(value)) note(`${node.name}: shown by a condition or the opposite of a variable, which Figma's Visible cannot be bound to: pushed at the start value`);
+      } else if (readsVar(value)) (bind.props ??= {})[prop] = value.path[0];
+      else if (value?.kind === "expr" && readsAny(value)) note(`${node.name} ${prop}: bound to a condition; Figma binds a variable only: pushed at the start value`);
+    }
+    if (Object.keys(bind).length && node.id) out.set(node.id, bind);
+    for (const value of Object.values(node.props)) {
+      if (value?.kind === "element") visit(value.node);
+      else if (value?.kind === "fragment") value.children.forEach((child) => visit(child.kind === "map" ? child.node : child));
+    }
+    node.children.forEach((child) => visit(child.kind === "map" ? child.node : child));
+  };
+  visit(board);
+  return out;
+}
+
+/** `node` with the `hidden` of each layer Visible by a variable (varBindsOf `visible`) taken off: it is pushed, its
+ *  start shown by `hidden: true` on its Figma node. */
+function withoutBoundHidden(node, binds) {
+  const value = (entry) => (entry?.kind === "element" ? { ...entry, node: withoutBoundHidden(entry.node, binds) } : entry?.kind === "fragment" ? { ...entry, children: entry.children.map(child) } : entry);
+  const child = (entry) => (entry.kind === "element" ? withoutBoundHidden(entry, binds) : entry.kind === "map" ? { ...entry, node: withoutBoundHidden(entry.node, binds) } : entry);
+  const props = Object.fromEntries(Object.entries(node.props).filter(([name]) => !(name === "hidden" && binds.get(node.id)?.visible)).map(([name, entry]) => [name, value(entry)]));
+  return { ...node, props, children: node.children.map(child) };
+}
+
 export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: given = {}, pageId, componentOf, components: shared, rootPageId = pageId, frame: frameId = null, locale = "en-US" } = {}) {
   // The pushing page is one of the pages too (another page's component may hold one of its).
   const pages = pageId && typeof given[pageId] !== "string" ? { ...given, [pageId]: text } : given;
@@ -505,9 +548,12 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   if (!read.doc) return { frame: null, notes: errors.map((error) => error.message) };
   // Each frame as its layout draws it: hidden layers and switched-off slots are not pushed (tools/studio/visibility.mjs).
   const lit = (node, name) => (node.props[name]?.kind === "literal" ? node.props[name].value : undefined);
-  // Prototype variables (W-52 B): drawn at their start values (Figma variables and their bindings are phase B3).
+  // Prototype variables (W-52 B): drawn at their start values; the layers that show a variable's words or are visible by
+  // one say so (`varBind`, read before the start values replace the reads), and the plugin binds them (B3).
   const startVars = read.doc.vars ?? {};
-  const atStart = Object.keys(startVars).length ? (node) => withStartValues(node, startVars) : (node) => node;
+  const varBinds = varBindsOf(read.doc.board, notes, startVars);
+  // A layer Visible by a variable stays in the push (hidden while the variable starts off), so Figma can show it.
+  const atStart = Object.keys(startVars).length ? (node) => withStartValues(withoutBoundHidden(node, varBinds), startVars) : (node) => node;
   const shown = { ...read.doc, board: { ...read.doc.board, children: read.doc.board.children.map((node) => (node.kind === "element" ? pruneHidden(atStart(node), node.name === "Screen" ? screenLayout(lit(node, "device") ?? "desktop", lit(node, "layout")) : undefined) : node)).filter(Boolean) } };
   // Figma has no breakpoints (responsive-props.mjs): each frame at its Screen's breakpoint (an Overlay at the page's first
   // Screen's, the rest of the board at desktop), per-breakpoint props as that value, layers hidden there (hideOn) left out.
@@ -558,7 +604,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
     const take = (key, trigger, value, layer) => {
       if (handled.has(key)) return;
       handled.add(key);
-      const reaction = reactionOf(trigger, value);
+      const { skipped, ...reaction } = reactionOfValue(trigger, value, startVars);
+      for (const note of skipped ?? []) notes.push(`${element.name} ${trigger}: ${note} (left out of its actions)`);
       if (reaction.note) notes.push(`${element.name} ${trigger}: ${reaction.note}`);
       else out.push(layer ? { ...reaction, layer } : reaction);
     };
@@ -636,6 +683,11 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   const convert = (element, parent) => {
     const node = convertElement(element, parent);
     if (node && element.id) node.key = element.id;
+    if (node && element.id && varBinds.has(element.id)) {
+      const { startShown, ...bind } = varBinds.get(element.id);
+      node.varBind = bind;
+      if (startShown === false) node.hidden = true;
+    }
     if (node && element.kind === "element") {
       const reactions = reactionsOf(element);
       if (reactions.length) node.reactions = [...(node.reactions ?? []), ...reactions];
@@ -2823,7 +2875,8 @@ export function figmaFromPage(text, { mapping, nestedLayers = {}, newId, pages: 
   // A Screen's After delay: Figma's After delay on the frame itself.
   if (!overlay && screen.props.onDelay?.kind === "proto") {
     handled.add(`${screen.id}/onDelay`);
-    const reaction = reactionOf("onDelay", screen.props.onDelay);
+    const { skipped, ...reaction } = reactionOfValue("onDelay", screen.props.onDelay, startVars);
+    for (const note of skipped ?? []) notes.push(`Screen onDelay: ${note} (left out of its actions)`);
     if (reaction.note) notes.push(`Screen onDelay: ${reaction.note}`);
     else frame.reactions = [...(frame.reactions ?? []), reaction];
   }
@@ -2950,6 +3003,10 @@ export function figmaPackage(text, { mapping, nestedLayers = {}, page = {}, newI
   // The project's other pages' components its instances show (Libraries' project components): the importer finds each in
   // the file (placed with its own page) or makes it beside the frame, and links the instances to it.
   if (components.length) pkg.components = components;
+  // The page's prototype variables (W-52 B3): a local collection of the page's in Figma, one mode, each at its start value;
+  // the reactions and bindings name them.
+  const vars = Object.entries(docFromText(text, newId ? { newId } : {}).doc?.vars ?? {}).filter(([, value]) => varType(value));
+  if (vars.length) pkg.variables = { collection: `Prototype · ${pkg.page.title}`, vars: vars.map(([name, value]) => ({ name, type: RESOLVED_TYPES[varType(value)], value })) };
   if (libraryKeys) pkg.library = libraryKeysFor(pkg, libraryKeys);
   return { pkg, notes, images: [...images] };
 }

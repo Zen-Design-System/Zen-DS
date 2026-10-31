@@ -41,6 +41,24 @@
 - Not done (the doc's §3 sketch had more): a branch of a Conditional holds one action (no list), no else-if UI.
 - E2E: PT-56…PT-59.
 
+## Session "Studio: prototype variables to Figma" · W-52 phase B3 (tier M; user 2026-10-31 "Bắt đầu B3 … doc §4")
+
+- Zen-DS: `figma-proto.mjs` `reactionOfValue` / `variableDataOf` (Figma's EXPRESSION functions ADDITION … NOT, data by
+  variable name), `figma-push.mjs` `variables` on the package, `varBind` on nodes (`text`, `visible` from
+  `hidden={!vars.x}`, `props`), a layer Visible by a variable stays in the push (`hidden: true` when it starts off),
+  notes for conditions / opposites / mixed words / Figma-less actions. figma-push selftest 517 (+5).
+- Plugin (`~/Documents/zen-ds-figma-plugin-main`, 90bc3cd on `studio-import`): `ensurePrototypeVariables` (find or make
+  the collection and each variable by name, a changed kind made anew, start value set), `applyVarBinds` (TEXT
+  characters, Visible, an instance's TEXT/BOOLEAN/VARIANT property showing the start value, else nested text),
+  `figmaReactionOfActions` (SET_VARIABLE, CONDITIONAL, NODE / CLOSE / BACK). `npm test` all pass, build done (dist backed
+  up in backups/).
+- Real Figma (Zen file, page "Studio exports — QA", use_figma): the plugin's functions verbatim on throwaway frames —
+  collection of 3 (a second run reused them), characters / visible / an instance's TEXT property bound, a reaction with
+  Set variable (ADDITION, NOT), Conditional (AND, GREATER_THAN) → Navigate (Push) and Else → Set variable; Figma stored
+  each as sent. Cleaned up (frames, component, collection). The full importer run on a whole page was not repeated.
+- Not pushed: a prop bound to a condition (the W-52 ✓), Show toast / Filter table / Change step (as before); pull
+  (Figma → Studio) of variables is B4, not done.
+
 ## Session "Studio: prototype easing" · W-51a (tier S; doc studio-prototype-variables §5, §7 q10)
 
 - `protoModel.ts`: `ProtoEasing` / `EASINGS` / `DEFAULT_EASING` ("emphasized"); `optionsOf` keeps only the four,
