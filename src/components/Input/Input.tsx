@@ -1016,6 +1016,7 @@ export function ColorField({ value, defaultValue, onValueChange, colorPicker = t
   );
 }
 
+/** `photoSrc`: a person's photo, on the tag (Avatar 2XSmall) and on the option's row in the list (Theme=Avatar-Small). */
 export type AutocompleteOption = { id: string; label: string; leading?: ReactNode; photoSrc?: string };
 export interface AutocompleteFieldProps {
   id?: string;
@@ -1144,8 +1145,8 @@ export function AutocompleteField({ id: providedId, label, helpText, helpTheme =
               onKeyDown={handlePopoverKeyDown}
               // Existing options (even already-selected ones) count as "exists", so Create only offers genuinely new values.
               items={[
-                ...available.map((option) => ({ id: option.id, label: option.label, leading: option.leading })),
-                ...alreadyAdded.map((option) => ({ id: option.id, label: option.label, leading: option.leading, selected: true, disabled: true })),
+                ...available.map((option) => ({ id: option.id, label: option.label, leading: option.leading, photoSrc: option.photoSrc })),
+                ...alreadyAdded.map((option) => ({ id: option.id, label: option.label, leading: option.leading, photoSrc: option.photoSrc, selected: true, disabled: true })),
               ]}
               onSelect={(item) => { commit([...selected, item.id]); setQuery(""); }}
               onCreate={(label) => {
@@ -1169,7 +1170,7 @@ export function AutocompleteField({ id: providedId, label, helpText, helpTheme =
               onSearchChange={setQuery}
               label={popoverLabel}
               onKeyDown={handlePopoverKeyDown}
-              items={available.map((option) => ({ id: option.id, label: option.label, leading: option.leading }))}
+              items={available.map((option) => ({ id: option.id, label: option.label, leading: option.leading, photoSrc: option.photoSrc }))}
               onSelect={(item) => { commit([...selected, item.id]); setQuery(""); }}
             />
           )}

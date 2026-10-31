@@ -325,6 +325,7 @@ check("Card: cards warned", reasons(cardStatic), [
   "Data display: A card never goes inside a card (Card)",
   "Charts: A card never goes inside a card (Chart card)",
   WIDGETS_IN_A_CARD,
+  "Page: An AppShell frames a whole screen, never inside a Card (App shell)",
 ]);
 check("Card: nothing hidden", cardStatic.hidden, []);
 check("Card: warnings carry a short caption", cardStatic.warnings.card?.short, "Card inside a card");
@@ -342,7 +343,8 @@ check("clickable Card: warnings", reasons(cardClickable), [
   "Data display: The card is one click target, so it holds no controls or fields (Month calendar, Week calendar, Gantt roadmap, Day planner)",
   "Overlays: The card is one click target, so it holds no controls or fields (Dialog, Modal form, Side panel, Bottom sheet, Popover, Tooltip)",
   "Layout: The card is one click target, so it holds no controls or fields (Accordion)",
-  "Page: The card is one click target, so it holds no controls or fields (Page header, Dashboard header, Top navigation, Bottom navigation, Sidebar, App shell, Action bar)",
+  "Page: The card is one click target, so it holds no controls or fields (Page header, Dashboard header, Top navigation, Bottom navigation, Sidebar, Action bar)",
+  "Page: An AppShell frames a whole screen, never inside a Card (App shell)",
   "Chat: The card is one click target, so it holds no controls or fields (Chat thread, Chat composer, AI chat, Voice recorder)",
 ]);
 check("Stack in a clickable Card: controls warned", fitting(paletteFor(ctxFor("Stack", "children", { ancestors: ["Card"], clickableAncestor: "Card" }))).filter((id) => paletteItem(id).interactive || paletteItem(id).input).length, 0);
@@ -382,7 +384,8 @@ check("ListItem leading: warning reasons name the slot", [...new Set(Object.valu
 check("Divider next to a Divider",[fitting(paletteFor({ ...ctxFor("Card"), previousSibling: "Divider" })).includes("divider"), fitting(paletteFor({ ...ctxFor("Card"), nextSibling: "Divider" })).includes("divider"), fitting(paletteFor({ ...ctxFor("Card"), previousSibling: "Text" })).includes("divider")], [false, false, true]);
 const outside = paletteFor({ ...ctxFor("Card"), canUseToast: false });
 check("outside a component: toast and state items cannot be written (hidden)", outside.items.filter((item) => item.requires?.includes("toast") || item.state?.length).length, 0);
-check("a template: Image cannot be written (hidden)", paletteFor({ ...ctxFor("Card"), canUseMedia: false }).hidden.map((row) => `${row.group}: ${row.reason} (${row.items.join(", ")})`), ["Data display: Library pictures work on example pages only (Image)"]);
+check("a template: Image cannot be written (hidden)", paletteFor({ ...ctxFor("Card"), canUseMedia: false }).hidden.map((row) => `${row.group}: ${row.reason} (${row.items.join(", ")})`), ["Data display: Library pictures work on example pages only (Image)", "Inputs: Library pictures work on example pages only (Task properties, Autocomplete)"]);
+check("a builder page: the photo items take their pictures by key", ["image", "task-properties", "autocomplete-field"].map((id) => paletteFor({ ...ctxFor("Stack"), canUseMedia: false, builder: true }).items.find((item) => item.id === id)?.build(ctxFor("Stack")).includes("zen-media:")), [true, true, true]);
 // Form · required field (walk W-58): on a builder page the Conditional on `vars.email`, its variables with it; elsewhere
 // its state version, with no variables to declare.
 const onPage = paletteFor({ ...ctxFor("Stack"), builder: true }).items.find((item) => item.id === "form-required-field");
@@ -400,7 +403,7 @@ for (const def of Object.values(CONTENT_SLOTS)) for (const slot of def.slots) {
 const sections = paletteSections(cardStatic, slotOf("Card", "children"));
 check("paletteSections: preferred first", [sections[0].title, sections[0].items.map((item) => item.id)], ["Preferred for Content", ["heading", "paragraph", "list", "metric", "stack"]]);
 check("paletteSections: no item twice, none missing", sections.flatMap((section) => section.items).length, cardStatic.items.length);
-check("paletteSections: warned items last", [sections.at(-1).title, sections.at(-1).items.map((item) => item.id)], [NOT_RECOMMENDED, ["menu-item", "menu-section", "card", "chart-card", ...WIDGET_IDS]]);
+check("paletteSections: warned items last", [sections.at(-1).title, sections.at(-1).items.map((item) => item.id)], [NOT_RECOMMENDED, ["menu-item", "menu-section", "card", "chart-card", ...WIDGET_IDS, "app-shell"]]);
 const leadingSections = paletteSections(paletteFor(ctxFor("ListItem", "leading")), slotOf("ListItem", "leading"));
 check("paletteSections: a preferred item with a warning goes last", [leadingSections[0].title, leadingSections[0].items.map((item) => item.id), leadingSections.length], ["Preferred for Leading", ["avatar", "dock-icon"], 2]);
 check("paletteSections: sidePanel's preferred metric is MetricCard", paletteSections(paletteFor(ctxFor("SidePanel")), slotOf("SidePanel", "children"))[0].items.map((item) => item.id), ["input-field", "select-field", "paragraph", "list"]);
