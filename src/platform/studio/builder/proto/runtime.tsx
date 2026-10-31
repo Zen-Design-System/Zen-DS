@@ -7,6 +7,7 @@ import { typographyStyles } from "../../../../tokens/typography.generated";
 import { BREAKPOINT_LABELS, deviceOfScreen, deviceOs, screenBreakpoint, type ScreenDevice, type ZenBreakpointKey } from "../../../../../tools/studio/screen-devices.mjs";
 import { DeviceBars, duoStatusOf, safeAreasOf, type DeviceOs } from "./DeviceBars";
 import type { FilterMatch, PlayChoices } from "./protoModel";
+import { evaluate, isProtoValue, type ProtoValue, type VarRef } from "../../../../../tools/studio/proto-vars.mjs";
 
 /*
  * The builder page runtime (spec docs/research/studio-builder-pages-spec-2026-10-06.md §2, §3 2d): what
@@ -29,7 +30,9 @@ export const DEVICE_WIDTH: Readonly<Record<PageDevice, number>> = { phone: 390, 
  *  `from`: the element pressed (an overlay at Position Manual opens next to it); `hover`: what runs While hovering
  *  triggers, an overlay shown while the pointer stays (Play's; the canvas never opens one under the pointer). `filter`
  *  and `step` (Filter table, Change step) drive the Screen's Table and Stepper in Play; `filter` takes what the trigger
- *  hands over (a Search's text, the chosen item). */
+ *  hands over (a Search's text, the chosen item). `set` and `vars` are Play's prototype variables (W-52 B,
+ *  docs/research/studio-prototype-variables-2026-10-31.md): Set variable, and the values a Conditional or an expression
+ *  reads when the action runs. */
 export type ProtoActions = {
   navigate: (screen: string, options?: unknown) => void;
   open: (overlay: string, options?: unknown, from?: Element | null) => void;
@@ -40,6 +43,8 @@ export type ProtoActions = {
   filter?: (filter: unknown, choice?: unknown) => void;
   step?: (to: unknown, options?: unknown) => void;
   hover?: { enter: (overlay: string, options?: unknown, from?: Element | null) => void; leave: () => void };
+  set?: (name: string, value: unknown) => void;
+  vars?: () => Readonly<Record<string, unknown>>;
 };
 const inert: ProtoActions = { navigate: () => undefined, open: () => undefined, close: () => undefined, back: () => undefined, toast: () => undefined, link: () => undefined };
 
@@ -106,8 +111,26 @@ const itemKey = (choice: unknown): string => {
 
 /** A page's `proto.<action>(…args)`: the handler a prop receives (it runs the context's action when called). A
  *  navigate / open with one target per item (`proto.navigate({ home: "screen-1" })`) runs for the chosen item's entry;
- *  open names the element pressed, filter hands over what the trigger did (its first argument). */
+ *  open names the element pressed, filter hands over what the trigger did (its first argument). Several actions
+ *  (`proto.run`) run in order, each with what the trigger handed over; a Conditional (`proto.if`) runs one branch by the
+ *  variables at that moment, so an earlier Set variable of the same press counts; Set variable works out its value then. */
 export function protoHandler(actions: ProtoActions, action: string, args: unknown[]): (...event: unknown[]) => void {
+  const nested = (value: unknown) => (isProtoValue(value) ? protoHandler(actions, (value as ProtoValue).action, (value as ProtoValue).args) : null);
+  const now = (operand: unknown) => evaluate(operand, (ref: VarRef) => (ref.root === "vars" ? actions.vars?.()[ref.path[0]] : undefined));
+  if (action === "run") {
+    const steps = args.map(nested);
+    return (...event) => { for (const step of steps) step?.(...event); };
+  }
+  if (action === "if") {
+    const [condition, then, otherwise] = args;
+    const yes = nested(then);
+    const no = nested(otherwise);
+    return (...event) => (now(condition) ? yes : no)?.(...event);
+  }
+  if (action === "set") {
+    const [name, value] = args;
+    return () => { if (typeof name === "string") actions.set?.(name, now(value)); };
+  }
   return (...event) => {
     const run = (actions as unknown as Record<string, ((...rest: unknown[]) => void) | undefined>)[action];
     const [first] = args;

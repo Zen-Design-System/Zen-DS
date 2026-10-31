@@ -108,7 +108,8 @@ export function BuilderBoard({ id }: { id: string }) {
   // changed, not the whole page. What the nodes do not say starts the cache anew.
   const cacheRef = useRef<RenderCache | null>(null);
   cacheRef.current ??= renderCache();
-  const mockKey = useMemo(() => JSON.stringify(tree?.mock ?? null), [tree]);
+  // The prototype variables' start values (W-52 B) are drawn like the mock data: both are part of the cache's env.
+  const mockKey = useMemo(() => JSON.stringify([tree?.mock ?? null, tree?.vars ?? null]), [tree]);
   // The page's main components (an instance is drawn from its main): their signature is part of the cache's env.
   const components = useMemo(() => componentsOf(tree?.board ?? null), [tree]);
   // The project's other pages' components (Libraries' project components, live): a `<Use page>` draws from them.
@@ -142,7 +143,7 @@ export function BuilderBoard({ id }: { id: string }) {
   const frames = useMemo(() => {
     if (!tree?.board) return [];
     // Proto handlers act on the canvas only with the Interact tool (Play runs the flow); in Select they are inert.
-    const ctx = { file, mock: tree.mock, proto, cache: cacheRef.current ?? undefined, ids: places?.idAt, components, library };
+    const ctx = { file, mock: tree.mock, vars: tree.vars, proto, cache: cacheRef.current ?? undefined, ids: places?.idAt, components, library };
     // The page's OS goes with each frame, so Present (outside the board) draws its Screens' bars and picks their device
     // as the canvas does.
     const os = pageOsOf(tree.header);

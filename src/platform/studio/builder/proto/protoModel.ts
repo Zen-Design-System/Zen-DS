@@ -302,8 +302,13 @@ export function stepperOf(node: PageNode): { count: number; start: number } {
   return { count, start: typeof start === "number" ? start : 0 };
 }
 
+/** Set variable, Conditional and several actions (W-52 B, docs/research/studio-prototype-variables-2026-10-31.md): written
+ *  in code until the Prototype tab offers them (B2), so the tab shows them as "Set in code". */
+const CODE_ACTIONS = new Set(["set", "if", "run"]);
 /** A prop's value as a prototype action, or null (unset, or code of its own). */
-export const protoOf = (value: PageValue | undefined): { action: ProtoAction; args: unknown[] } | null => (value?.kind === "proto" ? { action: value.action as ProtoAction, args: value.args } : null);
+export const protoOf = (value: PageValue | undefined): { action: ProtoAction; args: unknown[] } | null => (value?.kind === "proto" && !CODE_ACTIONS.has(value.action) ? { action: value.action as ProtoAction, args: value.args } : null);
+/** The actions a Conditional or several actions hold (`proto.if`, `proto.run`), as prop values. */
+const nestedActions = (value: PageValue): PageValue[] => (value.kind === "proto" && (value.action === "if" || value.action === "run") ? value.args.filter((arg): arg is PageValue => Boolean(arg) && typeof arg === "object" && (arg as { kind?: unknown }).kind === "proto") : []);
 
 /*
  * An action object's own trigger (walk 2026-10-29 W-36/W-41): a Dialog's primaryAction, a TopNavigation's leading Back
@@ -574,7 +579,8 @@ function linksIn(root: PageNode): ProtoLink[] {
               if (typeof target === "string") out.push({ loc: node.loc, trigger, action, target, frameId: `${kind}:${target}`, own, item });
             }
           }
-        } else if (value.kind === "element") stack.push(value.node);
+        } else if (value.kind === "proto") values.push(...nestedActions(value).map((action) => ({ value: action, trigger, own })));
+        else if (value.kind === "element") stack.push(value.node);
         else if (value.kind === "fragment") for (const child of value.children) { if (child.kind === "element") stack.push(child); else if (child.kind === "map") stack.push(child.node); }
         else if (value.kind === "array") values.push(...value.items.map((item) => ({ value: item, trigger, own: false })));
         else if (value.kind === "object") {
@@ -633,7 +639,7 @@ export function actionsIn(root: PageNode | null | undefined): Array<{ loc: strin
     const values: PageValue[] = Object.values(node.props);
     while (values.length) {
       const value = values.pop()!;
-      if (value.kind === "proto") out.push({ loc: node.loc, action: value.action, args: value.args });
+      if (value.kind === "proto") { out.push({ loc: node.loc, action: value.action, args: value.args }); values.push(...nestedActions(value)); }
       else if (value.kind === "element") stack.push(value.node);
       else if (value.kind === "fragment") for (const child of value.children) { if (child.kind === "element") stack.push(child); else if (child.kind === "map") stack.push(child.node); }
       else if (value.kind === "array") values.push(...value.items);
@@ -672,6 +678,9 @@ export type ChoiceGroup = { loc: string; kind: "ListItem" | "Chip" | "RadioButto
 export type PlayChoices = { groups: ReadonlyMap<string, ChoiceGroup>; openers: ReadonlyMap<string, readonly ChoiceGroup[]> };
 
 const isOn = (node: PageNode, ...props: string[]) => props.some((prop) => literalOf(node, prop) === true);
+/** A prop that reads a prototype variable (`vars.x`, `vars.x === …`; W-52 B): the variable holds it, not Play's pick. */
+const readsVars = (value: PageValue | undefined) => value?.kind === "expr" || (value?.kind === "ref" && value.root === "vars");
+const boundPick = (node: PageNode) => ["selected", "select", "defaultSelected", "checked", "defaultChecked", "title", "trailing"].some((prop) => readsVars(node.props[prop]));
 /** A ListItem's trailing check Icon (icon-check-line, icon-check-solid…), or null. */
 const checkMarkOf = (node: PageNode): PageNode | null => {
   const trailing = node.props.trailing;
@@ -687,6 +696,8 @@ function choiceGroupOf(parent: string, siblings: PageNode[]): ChoiceGroup | null
   for (const kind of ["ListItem", "Chip", "RadioButton"] as const) {
     const items = siblings.filter((node) => node.name === kind);
     if (items.length < 2) continue;
+    // A group whose pick a variable holds is the page's (W-52 B): Play leaves it to the variable.
+    if (items.some(boundPick)) continue;
     const base = { loc: `${parent}|${kind}`, kind, items: items.map((node) => node.loc) };
     if (kind === "ListItem") {
       const start = items.find((node) => isOn(node, "selected") || checkMarkOf(node)) ?? null;
@@ -712,7 +723,8 @@ export function choicesOf(tree: PageTree | null): PlayChoices {
   const chips = new Map<string, PageNode>();
   const visit = (node: PageNode, overlay: string | null, mapped: boolean) => {
     const inside = node.name === "Overlay" ? String(literalOf(node, "id") ?? "") || null : overlay;
-    if (node.name === "Chip" && !mapped) chips.set(node.loc, node);
+    // A Chip whose words or look read a variable shows the variable, not the pick (W-52 B).
+    if (node.name === "Chip" && !mapped && !boundPick(node) && !node.children.some((child) => child.kind === "ref" && child.root === "vars")) chips.set(node.loc, node);
     const lists: PageChild[][] = [node.children, ...Object.values(node.props).flatMap((value) => (value.kind === "fragment" ? [value.children] : []))];
     for (const list of lists) {
       const siblings = list.filter((child): child is PageNode => child.kind === "element");

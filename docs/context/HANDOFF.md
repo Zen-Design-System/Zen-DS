@@ -19,6 +19,11 @@ Last updated: 2026-10-27.
 
 ## State in short
 
+- **Studio prototype variables (W-52 B, 2026-10-31):** doc `docs/research/studio-prototype-variables-2026-10-31.md`
+  (§7 approved as recommended). B1 (code + Play) on branch `claude/gallant-perlman-e0db6b`: `export const vars`,
+  `proto.set` / `proto.if` / `proto.run`, props reading `vars.x` (`tools/studio/proto-vars.mjs`, `dialect.mjs`,
+  `playFlow.tsx`, `renderPage.tsx`); export keeps them as state, Figma push draws start values. E2E PT-52…55. Next: B2
+  (Prototype tab and Inspector UI) and B3 (Figma variables + reactions), then W-51 easing (S) and Smart animate (M).
 - **Studio Popover option (2026-10-30, user 2026-10-28 via Bug):** branch `zen/feat/studio-popover-option-20261030`.
   Every layer that takes a click: Design tab switch "Popover" and Prototype On click › Open popover (an Overlay holding a
   Popover, `proto.open`; a Chip uses `popoverItems`); rows Sample or a page-data list (`builder/proto/popoverModel.ts`,

@@ -14,6 +14,7 @@
 //   carryIds(doc, from, { newId }) → doc                `doc` with `from`'s ids where the two trees line up
 //   newDocId() → "n…"
 import { parsePage } from "./dialect.mjs";
+import { operandCode, protoValueCode } from "./proto-vars.mjs";
 
 export const ID_PROP = "data-zen-id";
 const ID_ATTRIBUTE = / data-zen-id="[^"]*"/g;
@@ -68,8 +69,9 @@ function valueCode(value, ctx) {
     }
     case "element": return elementCode(value.node, "", ctx, true);
     case "fragment": return `<>${value.children.map((child) => childCode(child, "", ctx, true)).join("")}</>`;
-    case "proto": return `proto.${value.action}(${value.args.map(literalCode).join(", ")})`;
+    case "proto": return protoValueCode(value, literalCode);
     case "ref": return refCode(value);
+    case "expr": return operandCode(value);
     default: throw new Error(`Unknown value kind ${value.kind}`);
   }
 }
@@ -157,6 +159,8 @@ export function printPage(doc, { ids = false } = {}) {
     ...(zen.length ? [`import { ${zen.join(", ")} } from "${PACKAGE}";`] : []),
     "",
     `export const mock = ${mockCode(doc.mock ?? {}, "")};`,
+    // The page's prototype variables (W-52 B): only a page that has some says so.
+    ...(doc.vars && Object.keys(doc.vars).length ? [`export const vars = ${mockCode(doc.vars, "")};`] : []),
     "",
     "export default function Page() {",
     "  return (",
@@ -218,7 +222,7 @@ export function docFromText(text, { components, newId = newDocId } = {}) {
     return { kind: "element", id: own, name: node.name, props, children: node.children.map(convertChild) };
   };
   const convertChild = (child) => (child.kind === "element" ? convertNode(child) : child.kind === "map" ? { ...child, node: convertNode(child.node) } : child);
-  return { doc: { header: tree.header, mock: tree.mock, board: convertNode(tree.board) }, errors: tree.errors };
+  return { doc: { header: tree.header, mock: tree.mock, ...(Object.keys(tree.vars ?? {}).length ? { vars: tree.vars } : {}), board: convertNode(tree.board) }, errors: tree.errors };
 }
 
 /**

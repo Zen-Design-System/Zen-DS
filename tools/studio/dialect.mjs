@@ -1,7 +1,7 @@
 // The Studio builder's page dialect (`*.zen.tsx`; spec docs/research/studio-builder-pages-spec-2026-10-06.md §2): a real
 // TSX module limited so every prop stays editable. Isomorphic (browser and Node, no Node imports).
 //
-//   parsePage(text, { components? }) → { header, mock, board, errors }   the neutral tree the renderer (and GĐ5 export) walk
+//   parsePage(text, { components? }) → { header, mock, vars, board, errors }   the neutral tree the renderer (and GĐ5 export) walk
 //   validateDialect(text, { components? }) → errors [{ line, column, message }]
 //   newPageText({ title, device, chrome, empty }) → the text of a blank page (`empty`: one Screen with nothing in it)
 //   PAGE_DEVICES, SCREEN_STATES, SCREEN_CANVASES, SCREEN_LAYOUTS, SCREEN_CHROME, screenLayout(device, layout),
@@ -14,11 +14,15 @@
 // Tree: Node = { kind: "element", name, loc: "line:col", props: { [name]: Value }, children: Child[] }
 //       Value = { kind: "literal", value } | { kind: "array", items } | { kind: "object", fields } | { kind: "element", node }
 //             | { kind: "fragment", children: Child[] }   a slot prop holding several layers, written <>…</> (2026-10-16)
-//             | { kind: "proto", action, args } | { kind: "ref", root, path }        (root "mock" or a .map item name)
+//             | { kind: "proto", action, args } | { kind: "ref", root, path }        (root "mock", "vars" or a .map item name)
+//             | { kind: "expr", op, args }   a prop reading a variable: `!vars.x`, `vars.x === …` (proto-vars.mjs)
+//       vars = { name: text | number | boolean }   the page's prototype variables (`export const vars`, W-52 B); proto.set,
+//       proto.if and proto.run take operands and proto values as args (proto-vars.mjs)
 //       Child = Node | { kind: "text", value } | { kind: "ref", root, path } | { kind: "map", source, item, node }
 import { jsxName, parseSource } from "./jsx-source.mjs";
 import { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenFrameCode, screenHeaderCode, screenLayout } from "./screen-chrome.mjs";
 import { NESTED_VALUE_KEY, instanceLayerPaths } from "./instance-paths.mjs";
+import { OPS, PROP_OPS, isOperand, varType } from "./proto-vars.mjs";
 
 export { SCREEN_CHROME, SCREEN_LAYOUTS, screenChromeCode, screenLayout };
 
@@ -37,7 +41,9 @@ export const SECTION_SIZE = { min: 100, max: 40000 };
 const BUILDER_NAMES = new Set(["Board", "Screen", "Overlay", "Section", "Slice", "proto", "Component", "ComponentSet", "Use"]);
 /** A page-local main component's id (Figma's main component, Zen Studio 2026-10-17): lowercase letters, digits, dashes. */
 const COMPONENT_ID = /^[a-z][a-z0-9-]*$/;
-const PROTO_ACTIONS = new Set(["navigate", "open", "close", "back", "toast", "link", "filter", "step"]);
+const PROTO_ACTIONS = new Set(["navigate", "open", "close", "back", "toast", "link", "filter", "step", "set", "if", "run"]);
+/** A prototype variable's name (W-52 B): an identifier, as `vars.<name>` reads it. */
+const VAR_NAME = /^[A-Za-z_$][\w$]*$/;
 const PACKAGE = "@zen-ds/react";
 const BUILDER_PACKAGE = "@zen-ds/react/builder";
 const HEADER = /^﻿?\/\/ @zen-page (\{.*\})[ \t]*\r?\n/;
@@ -299,12 +305,13 @@ export function parsePage(text, { components } = {}) {
   const fail = (node, message) => { errors.push({ line: node?.loc?.start.line ?? 1, column: node?.loc?.start.column ?? 0, message }); return null; };
   const header = pageHeader(text);
   const ast = parseSource(String(text ?? "").replace(/^﻿/, ""));
-  if (!ast) return { header, mock: {}, board: null, errors: [{ line: 1, column: 0, message: "The page does not parse as TSX" }] };
+  if (!ast) return { header, mock: {}, vars: {}, board: null, errors: [{ line: 1, column: 0, message: "The page does not parse as TSX" }] };
   if (!header) fail(null, "Line 1 must be the page header: // @zen-page {\"format\":1,\"title\":\"…\"}");
   else if (header.format !== 1) fail(null, `Unknown page format ${JSON.stringify(header.format)} (this Studio reads format 1)`);
 
   const imported = new Set();
   let mock = {};
+  let vars = {};
   let page = null;
   for (const statement of ast.program.body) {
     if (statement.type === "ImportDeclaration") {
@@ -326,23 +333,30 @@ export function parsePage(text, { components } = {}) {
       else mock = value;
       continue;
     }
+    if (statement.type === "ExportNamedDeclaration" && statement.declaration?.type === "VariableDeclaration" && statement.declaration.declarations.length === 1 && statement.declaration.declarations[0].id.name === "vars") {
+      // The page's prototype variables (W-52 B): a name and a start value each, text, a number or a boolean.
+      const value = literalValue(statement.declaration.declarations[0].init);
+      if (value === undefined || value === null || typeof value !== "object" || Array.isArray(value) || Object.entries(value).some(([name, start]) => !VAR_NAME.test(name) || !varType(start))) fail(statement, "`export const vars` holds text, numbers and booleans by name ({ dateRange: \"Any time\", count: 0, signedIn: false })");
+      else vars = value;
+      continue;
+    }
     if (statement.type === "ExportDefaultDeclaration" && statement.declaration.type === "FunctionDeclaration") {
       if (page) fail(statement, "One page component per file");
       page = statement.declaration;
       continue;
     }
     if (statement.type === "EmptyStatement") continue;
-    fail(statement, "A page holds imports, `export const mock` and `export default function Page()` only");
+    fail(statement, "A page holds imports, `export const mock`, `export const vars` and `export default function Page()` only");
   }
   if (!page) {
     fail(null, "The page needs `export default function Page() { return (<Board>…</Board>); }`");
-    return { header, mock, board: null, errors };
+    return { header, mock, vars, board: null, errors };
   }
   const body = page.body.body;
   const returned = body.length === 1 && body[0].type === "ReturnStatement" ? unwrap(body[0].argument) : null;
   if (!returned || returned.type !== "JSXElement") {
     fail(page, "The page component only returns its <Board> (no hooks, variables or conditions)");
-    return { header, mock, board: null, errors };
+    return { header, mock, vars, board: null, errors };
   }
 
   /** A JSX element → Node; `items`: the .map item names in scope. */
@@ -381,9 +395,12 @@ export function parsePage(text, { components } = {}) {
         if (map === null && value.type === "CallExpression") continue;
         const literal = literalValue(value);
         if (typeof literal === "string" || typeof literal === "number") { children.push({ kind: "text", value: String(literal) }); continue; }
+        const variable = varRefOf(value);
+        if (variable) { children.push(variable); continue; }
+        if (variable === null) continue;
         const chain = chainOf(value);
         if (chain && (chain.root === "mock" || items.includes(chain.root))) { children.push({ kind: "ref", ...chain }); continue; }
-        fail(child, "A child is text, a component, a mock field or {mock.list.map((item) => <… />)}");
+        fail(child, "A child is text, a component, a mock field, a variable ({vars.x}) or {mock.list.map((item) => <… />)}");
       }
     }
     return children;
@@ -409,19 +426,103 @@ export function parsePage(text, { components } = {}) {
     return template ? { kind: "map", source, item, node: template } : null;
   };
 
+  /* ── prototype variables (W-52 B, proto-vars.mjs) ── */
+
+  /** `vars.<name>` → its ref (null after an error: not one of the page's variables); undefined when `node` is not one. */
+  const varRefOf = (node) => {
+    const chain = chainOf(node);
+    if (!chain || chain.root !== "vars") return undefined;
+    if (chain.path.length !== 1 || !Object.hasOwn(vars, chain.path[0])) return fail(node, `vars.${chain.path.join(".")} is not one of the page's variables (export const vars)`);
+    return { kind: "ref", root: "vars", path: chain.path };
+  };
+  /** An operand: a literal, `vars.x`, a .map row's field, or Figma's expressions written in JS. Null after an error. */
+  const operandOf = (node, items) => {
+    const value = unwrap(node);
+    const literal = literalValue(value);
+    if (literal !== undefined) return varType(literal) ? literal : fail(value, "An expression's values are text, numbers and booleans");
+    const variable = varRefOf(value);
+    if (variable !== undefined) return variable;
+    const chain = chainOf(value);
+    if (chain && items.includes(chain.root)) return { kind: "ref", ...chain };
+    if (value.type === "UnaryExpression" && value.operator === "!") {
+      const arg = operandOf(value.argument, items);
+      return arg === null ? null : { kind: "expr", op: "!", args: [arg] };
+    }
+    if ((value.type === "BinaryExpression" || value.type === "LogicalExpression") && OPS.includes(value.operator)) {
+      const left = operandOf(value.left, items);
+      const right = left === null ? null : operandOf(value.right, items);
+      return right === null ? null : { kind: "expr", op: value.operator, args: [left, right] };
+    }
+    return fail(value, "An expression reads vars.…, text, numbers and booleans with + - * / === !== < <= > >= && || !");
+  };
+  /** A prop reading a variable (docs §2.3): `vars.x`, `!vars.x`, `vars.x === …` or `!==` (a literal or the row's field);
+   *  undefined when `value` reads none. Anything more is an action's (proto.set). */
+  const varReadOf = (value, items) => {
+    const variable = varRefOf(value);
+    if (variable !== undefined) return variable;
+    const reads = (node) => chainOf(node)?.root === "vars";
+    if (value.type === "UnaryExpression" && value.operator === "!" && reads(value.argument)) {
+      const arg = varRefOf(value.argument);
+      return arg ? { kind: "expr", op: "!", args: [arg] } : null;
+    }
+    if (!((value.type === "BinaryExpression" || value.type === "LogicalExpression") && (reads(value.left) || reads(value.right)))) return undefined;
+    if (!PROP_OPS.includes(value.operator)) return fail(value, "A prop reads a variable as vars.x, !vars.x, vars.x === … or vars.x !== … (the rest goes in proto.set)");
+    const [left, right] = reads(value.left) ? [value.left, value.right] : [value.right, value.left];
+    const read = varRefOf(left);
+    if (!read) return null;
+    const other = unwrap(right);
+    const literal = literalValue(other);
+    const chain = chainOf(other);
+    const compared = varType(literal) ? literal : chain && items.includes(chain.root) ? { kind: "ref", ...chain } : undefined;
+    if (compared === undefined) return fail(other, "Compare a variable with text, a number, a boolean or the row's field");
+    return { kind: "expr", op: value.operator, args: [read, compared] };
+  };
+  const isProtoCall = (value) => value?.type === "CallExpression" && value.callee.type === "MemberExpression" && value.callee.object.type === "Identifier" && value.callee.object.name === "proto";
+  /** `proto.<action>(…)` → its proto value. Set variable, Conditional and several actions take operands and actions;
+   *  the rest literals. */
+  const protoCallOf = (value, items) => {
+    const action = value.callee.property.name;
+    if (!PROTO_ACTIONS.has(action)) return fail(value, `proto.${action} is not an interaction (navigate, open, close, back, toast, link, filter, step, set, if, run)`);
+    if (action === "set") {
+      const [name, to, ...rest] = value.arguments;
+      const key = name ? literalValue(name) : undefined;
+      if (typeof key !== "string" || !Object.hasOwn(vars, key) || !to || rest.length) return fail(value, "proto.set(\"<variable>\", value) names one of the page's variables (export const vars) and its new value");
+      const operand = operandOf(to, items);
+      if (operand === null) return null;
+      if (!isOperand(operand) && varType(operand) !== varType(vars[key])) return fail(to, `${key} is ${varType(vars[key]) === "text" ? "text" : `a ${varType(vars[key])}`}: set it to one`);
+      return { kind: "proto", action, args: [key, operand] };
+    }
+    if (action === "if") {
+      const [test, then, otherwise, ...rest] = value.arguments;
+      if (!test || !then || rest.length) return fail(value, "proto.if(condition, action, otherwise?) takes a condition and one or two actions");
+      const condition = operandOf(test, items);
+      if (condition === null) return null;
+      const branches = [then, ...(otherwise ? [otherwise] : [])].map((entry) => nestedAction(entry, items));
+      return branches.includes(null) ? null : { kind: "proto", action, args: [condition, ...branches] };
+    }
+    if (action === "run") {
+      if (!value.arguments.length) return fail(value, "proto.run(…) takes the actions to run, in order");
+      const steps = value.arguments.map((entry) => nestedAction(entry, items));
+      return steps.includes(null) ? null : { kind: "proto", action, args: steps };
+    }
+    const args = value.arguments.map(literalValue);
+    if (args.includes(undefined)) return fail(value, `proto.${action}(…) takes literal arguments`);
+    return { kind: "proto", action, args };
+  };
+  const nestedAction = (node, items) => {
+    const value = unwrap(node);
+    return isProtoCall(value) ? protoCallOf(value, items) : fail(value, "proto.if and proto.run take proto.*(…) actions");
+  };
+
   /** An attribute's {expression} → Value. */
   const expression = (node, items) => {
     const value = unwrap(node);
     if (value.type === "JSXEmptyExpression") return fail(node, "Empty prop value");
     if (value.type === "JSXElement") return wrapElement(value, items);
     if (value.type === "JSXFragment") return fragmentValue(value, items);
-    if (value.type === "CallExpression" && value.callee.type === "MemberExpression" && value.callee.object.type === "Identifier" && value.callee.object.name === "proto") {
-      const action = value.callee.property.name;
-      if (!PROTO_ACTIONS.has(action)) return fail(value, `proto.${action} is not an interaction (navigate, open, close, back, toast, link, filter, step)`);
-      const args = value.arguments.map(literalValue);
-      if (args.includes(undefined)) return fail(value, `proto.${action}(…) takes literal arguments`);
-      return { kind: "proto", action, args };
-    }
+    if (isProtoCall(value)) return protoCallOf(value, items);
+    const read = varReadOf(value, items);
+    if (read !== undefined) return read;
     if (value.type === "ArrayExpression") {
       const list = value.elements.map((entry) => (entry && entry.type !== "SpreadElement" ? expression(entry, items) : fail(value, "Lists in props are written item by item")));
       return list.includes(null) ? null : { kind: "array", items: list };
@@ -443,7 +544,7 @@ export function parsePage(text, { components } = {}) {
     const chain = chainOf(value);
     if (chain && (chain.root === "mock" || items.includes(chain.root))) return { kind: "ref", ...chain };
     if (chain && imported.has(chain.root) && !BUILDER_NAMES.has(chain.root)) return fail(value, `${chain.root} is a component, not a value`);
-    return fail(value, "A prop value is a literal, a mock field, a component or proto.*(…) (no code, conditions or functions)");
+    return fail(value, "A prop value is a literal, a mock field, a variable (vars.x), a component or proto.*(…) (no code or functions)");
   };
 
   const board = element(returned, []);
@@ -497,7 +598,7 @@ export function parsePage(text, { components } = {}) {
     }
   }
   if (board && board.name === "Board") checkComponents(board, errors);
-  return { header, mock, board: board && board.name === "Board" ? board : null, errors };
+  return { header, mock, vars, board: board && board.name === "Board" ? board : null, errors };
 }
 
 /* ── page-local components (Figma's main components and instances, 2026-10-17) ─────────────────────────────────── */

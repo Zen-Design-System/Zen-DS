@@ -25,6 +25,10 @@ import { protoHandler, Screen, type PageDevice, type PlayFilter, type PlayLive, 
  * opens next to the element pressed (or the layer that opens it on the Screen), and a DatePicker or Popover in an Overlay
  * anchors itself to it (its own `anchorRef`), as Figma's Manual overlay sits by its trigger; Filter table and Change step
  * drive the shown Screen's Table and Stepper, until the next Screen shows (each visit starts as drawn).
+ *
+ * Prototype variables (W-52 B, docs/research/studio-prototype-variables-2026-10-31.md §2.4): the page's `vars` start as
+ * written and Set variable changes them for the whole run, through Navigate to, Back and overlays (Figma's); Restart starts
+ * them over. A value control bound to one (`checked={vars.wifi}`) writes it back (renderPage liveControlProps).
  */
 
 /** A step of the flow: the Screen shown and the options of the action that showed it (Back plays them backwards). */
@@ -38,6 +42,15 @@ type Live = { key: string; filters: Map<string, Map<string, PlayFilter>>; steps:
 type Leaving = { key: string; screen: string; options?: ProtoOptions; reverse: boolean };
 /** A frame going away is dropped after this long even if its animation never reports its end (no animation running). */
 const LEAVE_MS = 700;
+
+/** A variable's new value in its own kind (a typed number, a switch's boolean on a text variable…); undefined when it
+ *  cannot be one (letters in a number variable). */
+const asVarValue = (start: unknown, value: unknown): unknown => {
+  if (typeof start === "number") { const number = typeof value === "number" ? value : Number(String(value ?? "").trim()); return String(value ?? "").trim() === "" || !Number.isFinite(number) ? undefined : number; }
+  if (typeof start === "boolean") return typeof value === "boolean" ? value : value === "true" ? true : value === "false" ? false : Boolean(value);
+  return value === undefined || value === null ? "" : String(value);
+};
+const NO_VARS: Readonly<Record<string, unknown>> = {};
 
 /** The live state for the visit `key`: the one kept, or a fresh one once another Screen shows. */
 const liveNow = (state: Live, key: string): Live => (state.key === key ? state : { key, filters: new Map(), steps: new Map(), controls: new Map() });
@@ -78,8 +91,23 @@ export function usePlayFlow(tree: PageTree | null, start: string | null, { onLea
   // The animation between two frames: the one going away stays drawn under (or over) the one coming in until it ends.
   const [leaving, setLeaving] = useState<Leaving | null>(null);
   const [entering, setEntering] = useState<{ options?: ProtoOptions; reverse: boolean } | null>(null);
-  const flow = useRef({ history, current, currentKey, overlay, alone, onLeave });
-  flow.current = { history, current, currentKey, overlay, alone, onLeave };
+  // The prototype variables Set variable changed in this run, by name (the rest read their start values).
+  const startVars = tree?.vars ?? NO_VARS;
+  const [changed, setChanged] = useState<Readonly<Record<string, unknown>>>(NO_VARS);
+  const changedRef = useRef(changed);
+  const flow = useRef({ history, current, currentKey, overlay, alone, onLeave, startVars });
+  flow.current = { history, current, currentKey, overlay, alone, onLeave, startVars };
+  const vars = useMemo(() => Object.fromEntries(Object.entries(startVars).map(([name, start]) => [name, Object.hasOwn(changed, name) ? changed[name] : start])), [changed, startVars]);
+  // Read when an action runs (a Conditional, an expression): what this very press set before counts.
+  const varsNow = useCallback(() => ({ ...flow.current.startVars, ...changedRef.current }), []);
+  const setVar = useCallback((name: string, value: unknown) => {
+    const start = flow.current.startVars;
+    if (!Object.hasOwn(start, name)) return;
+    const next = asVarValue(start[name], value);
+    if (next === undefined || changedRef.current[name] === next) return;
+    changedRef.current = { ...changedRef.current, [name]: next };
+    setChanged(changedRef.current);
+  }, []);
   useEffect(() => {
     if (!leaving) return undefined;
     const timer = window.setTimeout(() => { setLeaving(null); setEntering(null); }, LEAVE_MS);
@@ -90,7 +118,7 @@ export function usePlayFlow(tree: PageTree | null, start: string | null, { onLea
   // Filter table, Change step and the choice controls: the shown Screen's live state, kept while it shows (an overlay
   // closed and opened again finds its pick), dropped when another Screen shows (or on Restart).
   const [live, setLive] = useState<Live>({ key: "", filters: new Map(), steps: new Map(), controls: new Map() });
-  const restart = useCallback(() => { setHistory([]); setRun((count) => count + 1); setOverlay(startOverlay); setLeaving(null); setEntering(null); setLive({ key: "", filters: new Map(), steps: new Map(), controls: new Map() }); }, [startOverlay]);
+  const restart = useCallback(() => { setHistory([]); setRun((count) => count + 1); setOverlay(startOverlay); setLeaving(null); setEntering(null); setLive({ key: "", filters: new Map(), steps: new Map(), controls: new Map() }); changedRef.current = NO_VARS; setChanged(NO_VARS); }, [startOverlay]);
   // An overlay closing over nothing (the presented Overlay alone, before any Screen) ends the flow.
   const closeOverlay = useCallback(() => {
     const { alone: lone, history: stack, onLeave: leave } = flow.current;
@@ -179,7 +207,9 @@ export function usePlayFlow(tree: PageTree | null, start: string | null, { onLea
       enter: (target, raw, from) => { if (hasOverlay(target)) setOverlay({ id: target, options: optionsOf("open", [target, raw]), hover: true, from }); },
       leave: () => setOverlay((open) => (open?.hover ? null : open)),
     },
-  }), [closeOverlay, first, hasOverlay, missing, screenOf, startOverlay, toast]);
+    set: setVar,
+    vars: varsNow,
+  }), [closeOverlay, first, hasOverlay, missing, screenOf, setVar, startOverlay, toast, varsNow]);
 
   const screen = screenOf(current);
   // The presented Overlay alone shows over a blank screen of the page's device and size (its first Screen's).
@@ -209,7 +239,7 @@ export function usePlayFlow(tree: PageTree | null, start: string | null, { onLea
   }), []);
   const shownLive = live.key === currentKey ? live : null;
   const play = useMemo<PlayLive>(() => ({ filters: shownLive?.filters ?? new Map(), steps: shownLive?.steps ?? new Map(), stepTargets, onStep, controls: shownLive?.controls ?? new Map(), choices, onControl }), [choices, onControl, onStep, shownLive, stepTargets]);
-  return { tree, screen, blank, base: screen ?? blank, alone, presentedNode, current, currentKey, history, overlay, setOverlay, closeOverlay, leaving, leavingNode, entering, endLeaving, overlayNode, actions, restart, play };
+  return { tree, screen, blank, base: screen ?? blank, alone, presentedNode, current, currentKey, history, overlay, setOverlay, closeOverlay, leaving, leavingNode, entering, endLeaving, overlayNode, actions, restart, play, vars };
 }
 
 export type PlayFlow = ReturnType<typeof usePlayFlow>;
@@ -263,9 +293,9 @@ function AnchoredContent({ anchor, motion, children }: { anchor: Element; motion
  * page's nodes (layers, hotspots); `overlaySafe`: the bars an overlay the Overlay places keeps clear of.
  */
 export function PlayScreens({ flow, file, overlaySafe, library }: { flow: PlayFlow; file: string; overlaySafe?: { top: number | string; bottom: number | string } | null; library?: ReadonlyMap<string, LocalComponents> }) {
-  const { tree, screen, blank, alone, currentKey, overlay, closeOverlay, leaving, leavingNode, entering, endLeaving, overlayNode, actions, play } = flow;
+  const { tree, screen, blank, alone, currentKey, overlay, closeOverlay, leaving, leavingNode, entering, endLeaving, overlayNode, actions, play, vars } = flow;
   // `library`: the project's pages' components (Libraries' project components), as the canvas draws their instances.
-  const ctx = { file, mock: tree?.mock ?? {}, proto: actions, components: componentsOf(tree?.board ?? null), library };
+  const ctx = { file, mock: tree?.mock ?? {}, vars, proto: actions, components: componentsOf(tree?.board ?? null), library };
   // The shown Screen and its overlay take Play's live Tables and Steppers; the Screen going away stays as it was drawn.
   const shownCtx = { ...ctx, play };
   const overlayChild = overlayNode?.children.find((child): child is PageNode => child.kind === "element");

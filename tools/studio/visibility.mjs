@@ -5,6 +5,8 @@
 //                 nowhere; export and Figma push leave it out on the layouts it is hidden on.
 //   hiddenSlots   on a component: the slot props switched off (Figma's slot boolean, Nav-Trailing-Block=false). The
 //                 component draws without them and their layers stay in the page, so switching one back on brings them back.
+// A prototype variable may hold a layer's visibility (W-52 B, Figma's Visible bound to a Boolean): `hidden={!vars.x}`,
+// `hidden={vars.x === "…"}`. Play reads it as the variable changes; the canvas draws it from the start values.
 // No imports: the Studio client, the renderer, compile and push read it.
 
 export const HIDDEN_PROP = "hidden";
@@ -22,6 +24,9 @@ export function hiddenValueOf(value) {
   if (plain === true) return true;
   return HIDDEN_LAYOUTS.includes(plain) ? plain : null;
 }
+
+/** Whether a `hidden` value reads a prototype variable (`vars.x`, `!vars.x`, `vars.x === …`). */
+export const bindsVars = (value) => Boolean(value) && typeof value === "object" && (value.kind === "expr" || (value.kind === "ref" && value.root === "vars"));
 
 /** Whether a layer with this `hidden` value is hidden on `layout` ("mobile" | "desktop"; undefined: a frame with no layout). */
 export function hiddenOn(value, layout) {
@@ -47,26 +52,31 @@ export function hiddenLabel(value) {
 
 /**
  * `node` (a dialect element: parsePage or a document) as drawn on `layout`: hidden layers and switched-off slots left
- * out, the Studio-only props gone. Export (compile.mjs) and Figma push draw this. A prop left with nothing goes.
+ * out, the Studio-only props gone. Export (compile.mjs) and Figma push draw this. A prop left with nothing goes. A
+ * visibility a variable holds is decided by `hiddenIf(value)` when given (push: by the start values); without it the
+ * layer keeps its `hidden` for the caller (export: a condition in the code).
  */
-export function pruneHidden(node, layout) {
-  if (hiddenOn(node.props[HIDDEN_PROP], layout)) return null;
+export function pruneHidden(node, layout, options = {}) {
+  const hidden = node.props[HIDDEN_PROP];
+  const bound = bindsVars(hidden);
+  if (bound ? options.hiddenIf?.(hidden) === true : hiddenOn(hidden, layout)) return null;
+  const keepHidden = bound && !options.hiddenIf;
   const off = new Set(hiddenSlotsOf(node.props[HIDDEN_SLOTS_PROP]));
   const value = (entry) => {
-    if (entry.kind === "element") { const next = pruneHidden(entry.node, layout); return next ? { ...entry, node: next } : null; }
+    if (entry.kind === "element") { const next = pruneHidden(entry.node, layout, options); return next ? { ...entry, node: next } : null; }
     if (entry.kind === "fragment") { const children = entry.children.map(child).filter(Boolean); return children.length ? { ...entry, children } : null; }
     if (entry.kind === "array") return { ...entry, items: entry.items.map(value).filter(Boolean) };
     if (entry.kind === "object") return { ...entry, fields: Object.fromEntries(Object.entries(entry.fields).map(([key, field]) => [key, value(field)]).filter(([, field]) => field)) };
     return entry;
   };
   const child = (entry) => {
-    if (entry.kind === "element") return pruneHidden(entry, layout);
-    if (entry.kind === "map") { const next = pruneHidden(entry.node, layout); return next ? { ...entry, node: next } : null; }
+    if (entry.kind === "element") return pruneHidden(entry, layout, options);
+    if (entry.kind === "map") { const next = pruneHidden(entry.node, layout, options); return next ? { ...entry, node: next } : null; }
     return entry;
   };
   const props = {};
   for (const [name, entry] of Object.entries(node.props)) {
-    if (STUDIO_ONLY_PROPS.has(name) || off.has(name)) continue;
+    if ((STUDIO_ONLY_PROPS.has(name) && !(name === HIDDEN_PROP && keepHidden)) || off.has(name)) continue;
     const next = value(entry);
     if (next) props[name] = next;
   }

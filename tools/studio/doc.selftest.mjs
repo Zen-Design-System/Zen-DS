@@ -66,6 +66,29 @@ const pages = {
   "blank phone with chrome": newPageText({ title: "Phone", device: "phone" }),
   "empty page (no app frame, nothing in it)": newPageText({ title: "Empty", empty: true }),
 };
+// Prototype variables (W-52 B): `export const vars`, props that read them, Set variable, Conditional, several actions.
+pages["prototype variables"] = `// @zen-page {"format":1,"title":"Vars"}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { Button, Chip, Stack, Text } from "@zen-ds/react";
+
+export const mock = { ranges: ["Any time", "Last 3 months"] };
+export const vars = { dateRange: "Any time", count: 0, signedIn: false };
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="home" title="Home" device="phone">
+        <Stack gap="md">
+          <Chip selected={vars.dateRange !== "Any time"}>{vars.dateRange}</Chip>
+          <Text hidden={!vars.signedIn}>Welcome</Text>
+          {mock.ranges.map((range) => <Button disabled={vars.dateRange === range} onClick={proto.run(proto.set("dateRange", range), proto.toast({ title: "Picked" }))}>{range}</Button>)}
+          <Button onClick={proto.if(vars.signedIn && vars.count > 0, proto.set("count", (vars.count + 1) * 2), proto.navigate("home"))}>Go</Button>
+        </Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
 const userPage = ".zen-studio/pages/admin-list-team-members-2.zen.tsx";
 if (fs.existsSync(userPage)) pages["a page made in the Studio"] = fs.readFileSync(userPage, "utf8");
 

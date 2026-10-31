@@ -333,7 +333,7 @@ async function renderFrames(id: string, text: string): Promise<Rendered | { erro
   const root = createRoot(host);
   const dispose = () => { root.unmount(); host.remove(); };
   // Its own file name, so the copy's data-zen-src never reads as the page on the canvas.
-  const ctx = { file: `export:${id}.zen.tsx`, mock: tree.mock, proto: INERT, components: componentsOf(tree.board), library: libraryOf(id) };
+  const ctx = { file: `export:${id}.zen.tsx`, mock: tree.mock, vars: tree.vars, proto: INERT, components: componentsOf(tree.board), library: libraryOf(id) };
   try {
     root.render(
       <ProtoContext value={INERT}>

@@ -2176,7 +2176,164 @@ export const rows = [
       return "List → Map → Details → Back → List";
     },
   },
+  {
+    id: "PT-52", feature: "Prototype variables (W-52 B, docs/research/studio-prototype-variables-2026-10-31.md): the Date sheet's rows set dateRange and close it (proto.run), the Chip reads the variable and is Selected off its start, the picked row is drawn selected, the Details Screen reads the same variable, Back keeps it, Restart gives back the start value; the page code is unchanged", wp: "prototype variables 2026-10-31", timeout: 50_000,
+    async run(ctx) {
+      const { page, text } = await seededPage(ctx, varsPage, /<Overlay id="date">/);
+      const before = await text();
+      await playVars(page);
+      const chip = playing(page).locator(".zen-chip").first();
+      const label = async () => ((await chip.locator(".zen-chip__label").textContent()) ?? "").trim();
+      const pickedRows = () => playing(page).locator(".zen-list-item").evaluateAll((items) => items.filter((item) => item.dataset.selected === "true").map((item) => item.innerText.trim().split("\n")[0]).join());
+      const openSheet = () => step("open the Date sheet", async () => {
+        await chip.click();
+        await playing(page).locator(".zen-list-item").first().waitFor({ state: "visible", timeout: 3000 });
+      });
+      await until(async () => (await label()) === "Any time" && (await chip.getAttribute("data-select")) === "false", { message: "the Chip reads Any time, not Selected" });
+      await openSheet();
+      await until(async () => (await pickedRows()) === "Any time", { message: "Any time drawn selected" });
+      await step("pick Last 3 months", async () => {
+        await playing(page).locator(".zen-list-item").filter({ hasText: "Last 3 months" }).locator(".zen-list-item__wrapper").click();
+        await until(async () => (await playing(page).locator(".zen-list-item").count()) === 0, { message: "the row closes the sheet (Set variable, then Close overlay)" });
+      });
+      await until(async () => (await label()) === "Last 3 months" && (await chip.getAttribute("data-select")) === "true", { message: "the Chip reads Last 3 months, Selected" });
+      await openSheet();
+      await until(async () => (await pickedRows()) === "Last 3 months", { message: "the sheet again: Last 3 months drawn selected" });
+      await page.keyboard.press("Escape");
+      await until(async () => (await playing(page).locator(".zen-list-item").count()) === 0, { message: "the sheet closes" });
+      await step("Details reads the same variable", async () => {
+        await playing(page).getByRole("button", { name: "Details" }).click();
+        await until(async () => (await playScreen(page)) === "details", { message: "Details shows" });
+        await until(async () => (await varTexts(page)).includes("Last 3 months"), { message: "Details reads Last 3 months" });
+        await playing(page).locator(".studio-player__device").getByRole("button", { name: "Back", exact: true }).click();
+        await until(async () => (await playScreen(page)) === "orders", { message: "Orders shows again" });
+      });
+      await until(async () => (await label()) === "Last 3 months", { message: "Back: the variable is kept (unlike a control's own state)" });
+      await page.keyboard.press("r");
+      await until(async () => (await label()) === "Any time" && (await chip.getAttribute("data-select")) === "false", { message: "Restart: the start value again" });
+      await page.keyboard.press("Escape");
+      await until(async () => (await playing(page).count()) === 0, { message: "Play left" });
+      if ((await text()) !== before) throw new Error("Play changed the page code");
+      return "Any time → Last 3 months: chip reads it, Selected, row selected → Details reads it → Back keeps it → R: Any time · page code unchanged";
+    },
+  },
+  {
+    id: "PT-53", feature: "Set variable with an expression (W-52 B): Add to cart sets cartCount + 1 twice, the count shows 2; Navigate to and Back keep it (a variable lives for the run); Restart gives back 0", wp: "prototype variables 2026-10-31", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, varsPage, /<Overlay id="date">/);
+      await playVars(page);
+      const count = async () => (await varTexts(page))[0];
+      await until(async () => (await count()) === "0", { message: "the count starts at 0" });
+      await step("Add to cart twice", async () => {
+        await playing(page).getByRole("button", { name: "Add to cart" }).click();
+        await until(async () => (await count()) === "1", { message: "1 after one press" });
+        await playing(page).getByRole("button", { name: "Add to cart" }).click();
+      });
+      await until(async () => (await count()) === "2", { message: "2 after two presses" });
+      await step("Details, then Back", async () => {
+        await playing(page).getByRole("button", { name: "Details" }).click();
+        await until(async () => (await playScreen(page)) === "details", { message: "Details shows" });
+        await playing(page).locator(".studio-player__device").getByRole("button", { name: "Back", exact: true }).click();
+        await until(async () => (await playScreen(page)) === "orders", { message: "Orders shows again" });
+      });
+      await until(async () => (await count()) === "2", { message: "Back: still 2" });
+      await page.keyboard.press("r");
+      await until(async () => (await count()) === "0", { message: "Restart: 0" });
+      await page.keyboard.press("Escape");
+      return "0 → +1 → +1 = 2 → Details → Back: 2 → R: 0";
+    },
+  },
+  {
+    id: "PT-54", feature: "Conditional (W-52 B, proto.if): Continue while signedIn is off shows the else branch's toast and stays; with the Switch bound to signedIn turned on, Continue goes to Details", wp: "prototype variables 2026-10-31", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, varsPage, /<Overlay id="date">/);
+      await playVars(page);
+      await step("Continue while signed out", () => playing(page).getByRole("button", { name: "Continue" }).click());
+      await until(async () => (await page.getByText("Sign in first").count()) > 0, { message: "the else branch: a toast Sign in first" });
+      if ((await playScreen(page)) !== "orders") throw new Error("Continue left Orders while signed out");
+      await step("turn Signed in on", () => playing(page).getByRole("switch", { name: "Signed in" }).click());
+      await step("Continue while signed in", () => playing(page).getByRole("button", { name: "Continue" }).click());
+      await until(async () => (await playScreen(page)) === "details", { message: "the if branch: Details" });
+      await page.keyboard.press("Escape");
+      return "Continue (off) → toast, stays → Switch on → Continue → Details";
+    },
+  },
+  {
+    id: "PT-55", feature: "A Switch bound to a variable writes it back (W-52 B, checked={vars.signedIn}) and a layer's visibility follows it (hidden={!vars.signedIn}): Welcome back is hidden on the canvas and at first in Play, shows once the Switch is on, and Restart turns both back", wp: "prototype variables 2026-10-31", timeout: 40_000,
+    async run(ctx) {
+      const { page } = await seededPage(ctx, varsPage, /<Overlay id="date">/);
+      const onCanvas = await page.locator('.studio-viewport [data-studio-frame="screen:orders"]').getByText("Welcome back").count();
+      if (onCanvas) throw new Error("the canvas draws Welcome back though signedIn starts off");
+      await playVars(page);
+      const toggle = playing(page).getByRole("switch", { name: "Signed in" });
+      const welcome = () => playing(page).getByText("Welcome back").count();
+      await until(async () => (await toggle.getAttribute("aria-checked")) === "false" && (await welcome()) === 0, { message: "off, Welcome back hidden" });
+      await step("turn the Switch on", () => toggle.click());
+      await until(async () => (await toggle.getAttribute("aria-checked")) === "true" && (await welcome()) === 1, { message: "on, Welcome back shows" });
+      await page.keyboard.press("r");
+      await until(async () => (await toggle.getAttribute("aria-checked")) === "false" && (await welcome()) === 0, { message: "Restart: off and hidden" });
+      await page.keyboard.press("Escape");
+      return "canvas: hidden · Play: off, hidden → on, shown → R: off, hidden";
+    },
+  },
 ];
+
+/** A phone page with prototype variables (PT-52…PT-55, W-52 B 2026-10-31): a Date Chip reading dateRange that opens a
+ *  Bottom Sheet whose rows set it, a cart count Add to cart raises, a Switch bound to signedIn and a layer it shows, a
+ *  Continue that branches on it, and a Details Screen that reads dateRange. */
+const varsPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { BottomSheet, Button, Chip, List, ListItem, Stack, Text, Toggle } from "@zen-ds/react";
+
+export const mock = { ranges: ["Any time", "Last 30 days", "Last 3 months"] };
+export const vars = { dateRange: "Any time", cartCount: 0, signedIn: false };
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="orders" title="Orders" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text>{vars.cartCount}</Text>
+          <Stack direction="row" gap="xs">
+            <Chip variant="advanced" dropdown selected={vars.dateRange !== "Any time"} onClick={proto.open("date")}>{vars.dateRange}</Chip>
+          </Stack>
+          <Toggle label="Signed in" checked={vars.signedIn} />
+          <Text hidden={!vars.signedIn}>Welcome back</Text>
+          <Button onClick={proto.set("cartCount", vars.cartCount + 1)}>Add to cart</Button>
+          <Button onClick={proto.if(vars.signedIn, proto.navigate("details"), proto.toast({ title: "Sign in first" }))}>Continue</Button>
+          <Button onClick={proto.navigate("details")}>Details</Button>
+        </Stack>
+      </Screen>
+      <Screen id="details" title="Details" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text>{vars.dateRange}</Text>
+          <Button onClick={proto.back()}>Back</Button>
+        </Stack>
+      </Screen>
+      <Overlay id="date">
+        <BottomSheet title="Date placed">
+          <List>
+            {mock.ranges.map((range) => <ListItem title={range} selected={vars.dateRange === range} onClick={proto.run(proto.set("dateRange", range), proto.close())} />)}
+          </List>
+        </BottomSheet>
+      </Overlay>
+    </Board>
+  );
+}
+`;
+
+/** Plays the seeded variables page on its phone (⌥⌘↵), the Orders Screen shown. */
+async function playVars(page) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("ControlOrMeta+Alt+Enter");
+  await playing(page).waitFor({ state: "visible", timeout: 5000 });
+  await playing(page).getByRole("button", { name: "Add to cart" }).waitFor({ state: "visible", timeout: 5000 });
+  await sleep(300);
+}
+
+/** The words of the shown Screen's Text layers, in order. */
+const varTexts = (page) => playing(page).locator('.studio-player__screen:not([data-leaving]) [data-zen-name="Text"]').allInnerTexts().then((all) => all.map((words) => words.trim()));
 
 /** A phone Screen whose Button opens an overlay deleted since (PT-45, walk 2026-10-29 W-59). */
 const danglingPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}

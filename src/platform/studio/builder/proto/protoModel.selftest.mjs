@@ -3,7 +3,7 @@
 // connections and Play read from a page — trigger words, a choice control's items, per-item actions and their links.
 // Run: node src/platform/studio/builder/proto/protoModel.selftest.mjs
 import { parsePage } from "../../../../../tools/studio/dialect.mjs";
-import { actionsFor, actionTriggerLabel, actionTriggersOf, cellText, choicesOf, frameNamed, layerWordsOf, choiceItemsOf, columnsOf, connectTrigger, filterCode, filterOf, filterRows, filterValuesOf, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, layersIn, linksOf, openerOf, optionsOf, playStartOf, protoActionCode, protoSourcesOf, screenTargetOf, stepCode, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, targetOfFrame, targetsByItem, triggerLabel, triggerValue } from "./protoModel.ts";
+import { actionsIn, actionsFor, actionTriggerLabel, actionTriggersOf, cellText, choicesOf, frameNamed, layerWordsOf, choiceItemsOf, columnsOf, connectTrigger, filterCode, filterOf, filterRows, filterValuesOf, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, layersIn, linksOf, openerOf, optionsOf, playStartOf, protoOf, protoActionCode, protoSourcesOf, screenTargetOf, stepCode, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, targetOfFrame, targetsByItem, triggerLabel, triggerValue } from "./protoModel.ts";
 
 const failures = [];
 let passed = 0;
@@ -247,6 +247,22 @@ check("sibling radios are one group, starting on the checked one", [radios?.kind
 const statusChips = choicesOf(parsePage(livePage.replace('<Chip variant="advanced" dropdown onClick={proto.open("date")}>Date</Chip>', ""), { components: new Set(["BottomSheet", "Chip", "Icon", "List", "ListItem", "RadioButton", "Stack"]) }));
 const all = [...statusChips.groups.values()].find((group) => group.kind === "Chip");
 check("status chips with one selected are one group (W-55)", [all?.items.length, Boolean(all?.start)], [2, true]);
+
+// W-52 B: a group whose pick a variable holds is the variable's, a Chip that reads one shows it; nested actions count.
+const varsPage = livePage
+  .replace('export const mock = { rows: [{ id: \"a\" }, { id: \"b\" }] };', 'export const mock = { rows: [{ id: \"a\" }, { id: \"b\" }] };\nexport const vars = { range: "Any time" };')
+  .replace('<Chip variant="advanced" dropdown onClick={proto.open("date")}>Date</Chip>', '<Chip variant="advanced" dropdown onClick={proto.open("date")}>{vars.range}</Chip>')
+  .replace('<ListItem title="Any time" selected trailing={<Icon name="icon-check-line" />} onClick={proto.close()} />', '<ListItem title="Any time" selected={vars.range === "Any time"} onClick={proto.run(proto.set("range", "Any time"), proto.close())} />')
+  .replace('<ListItem title="Last 30 days" onClick={proto.close()} />', '<ListItem title="Last 30 days" selected={vars.range === "Last 30 days"} onClick={proto.run(proto.set("range", "Last 30 days"), proto.navigate("orders"))} />');
+const boundTree = parsePage(varsPage, { components: new Set(["BottomSheet", "Chip", "Icon", "List", "ListItem", "RadioButton", "Stack"]) });
+check("vars: the page parses", boundTree.errors, []);
+const bound = choicesOf(boundTree);
+const boundNodes = nodesOf(boundTree);
+const boundRow = boundNodes.find((node) => node.name === "ListItem" && node.props.title?.value === "Any time");
+check("vars: a bound sheet is no Play group, and the Chip that reads the variable shows no pick", [bound.groups.has(boundRow.loc), bound.openers.size], [false, 0]);
+check("vars: Set variable, Conditional and several actions are written in code (B1)", [protoOf(boundRow.props.onClick), protoOf({ kind: "proto", action: "set", args: ["range", "x"] })], [null, null]);
+check("vars: a link inside several actions is the layer's link", linksOf(boundTree).filter((link) => link.target === "orders").map((link) => link.trigger), ["onClick", "onClick"]);
+check("vars: actionsIn sees nested actions", actionsIn(boundTree.board).filter((entry) => entry.action === "set").length, 2);
 
 if (failures.length) {
   console.error(`✗ protoModel selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
