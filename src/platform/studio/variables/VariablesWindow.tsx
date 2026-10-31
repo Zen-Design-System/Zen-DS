@@ -16,7 +16,7 @@ import { typographyStyles } from "../../../tokens/typography.generated";
 import { MODE_COLLECTIONS, collectionFileOf, type CollectionLayer, type VariableInput, type VariableOp } from "../../../../tools/studio/variables.mjs";
 import { applyVariableEdit, readVariables, redoEdit, subscribeStudioWrites, undoEdit, variablesForFigma, variablesHandedOver, type VariableCollection, type VariablesFigma } from "../api";
 import { requestSave, saveDrafts } from "../sourceDrafts";
-import { canEdit, useStudio } from "../store";
+import { canEdit, studioStore, useStudio } from "../store";
 import { aliasOf, aliasOptions, colorParts, colorWith, groupOf, groupsOf, indexOf, newName, resolved, rowsOf, shortName, TYPE_LABEL, type Entry, type Row, type Variable, type VariableType } from "./variablesModel";
 import { closeVariables, subscribeVariables, variablesOpen } from "./variablesState";
 import { EditVariable } from "./EditVariable";
@@ -244,6 +244,10 @@ function VariablesPanel() {
   // A Studio project open: Base Colors (Project) shows only its mode (project/projectVariables.ts), read from its theme;
   // its rows stay fixed there (a rename or a new variable would change the Zen source the project never edits).
   const project = useActiveProject();
+  // The page's prototype variables (W-52 B2) are not Zen tokens: they live in the page, in the Prototype tab's
+  // Variables. The collection list leads there, so someone who looks here as in Figma finds them.
+  const localPage = useStudio((state) => state.localPage);
+  const showPrototypeVariables = () => { closeVariables(); studioStore.setState({ selection: null, inspectorTab: "prototype" }); };
   const shownCollections = useMemo(() => withProjectMode(collections, project) as VariableCollection[] | null, [collections, project]);
   const index = useMemo(() => indexOf(shownCollections ?? []), [shownCollections]);
   const collection = shownCollections?.find((each) => each.file === file) ?? shownCollections?.find((each) => each.name === "Mode Colors (Semantic)") ?? shownCollections?.[0] ?? null;
@@ -667,7 +671,7 @@ function VariablesPanel() {
         ) : (
           <Menu
             aria-label="Collections"
-            items={[...(shownCollections ?? []).map((each) => ({ id: each.file, label: each.name, caption: `${each.tokens.length} · ${each.modes.length} ${each.modes.length === 1 ? "mode" : "modes"}`, onSelect: () => { setFile(each.file); setGroup(""); setFocus({ row: 0, col: 1 }); if (gridRef.current) gridRef.current.scrollTop = 0; } })), { type: "separator" as const, id: "collections-separator" }, { id: "create-collection", label: "Create collection", icon: "icon-plus-line" as IconName, disabled: !editable, onSelect: () => setCreating({ name: "", layer: "semantic", purpose: "" }) }]}
+            items={[...(shownCollections ?? []).map((each) => ({ id: each.file, label: each.name, caption: `${each.tokens.length} · ${each.modes.length} ${each.modes.length === 1 ? "mode" : "modes"}`, onSelect: () => { setFile(each.file); setGroup(""); setFocus({ row: 0, col: 1 }); if (gridRef.current) gridRef.current.scrollTop = 0; } })), { type: "separator" as const, id: "collections-separator" }, ...(localPage ? [{ id: "prototype-variables", label: "Prototype · this page", caption: "Play's variables, in the Prototype tab", icon: "icon-brackets-line" as IconName, onSelect: showPrototypeVariables }] : []), { id: "create-collection", label: "Create collection", icon: "icon-plus-line" as IconName, disabled: !editable, onSelect: () => setCreating({ name: "", layer: "semantic", purpose: "" }) }]}
             trigger={<Button level="primary" appearance="flat" size="sm" endIcon="icon-chevron-down-line">{collection?.name ?? "Variables"}</Button>}
           />
         )}

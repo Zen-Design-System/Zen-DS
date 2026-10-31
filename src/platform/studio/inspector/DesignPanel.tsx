@@ -77,6 +77,10 @@ import { alignmentHint, hostTextTags, useRenderedText, type RenderedText } from 
 import { displayValueOf, isTwinRow, planPropReset, planPropWrite, restorableBinding, restoreStep, savedWrite, type WritePlan } from "./writePlan";
 import { remountFrameAfterUpdate } from "../board/remount";
 import { srcAttr } from "../select/srcIds";
+import { VarBindButton, VarBindContext, VarPill, type VarBind } from "./varBind";
+import { addVarThen, pageVarsOf, varReadOf } from "../builder/proto/protoVars";
+import { pageIdOf, usePage } from "../builder/store/pageStore";
+import { usePageTree } from "../builder/usePageTree";
 
 /*
  * Design tab for a selected JSX element (spec §6): playground properties (the playground's own controls, portalled
@@ -320,6 +324,8 @@ async function alreadyApplied(file: string, loc: string, name: string, ops: Edit
     if (op.op === "setTypography") return current.typography.includes(op.to);
     if (op.op === "setTextStyle") return op.value === null ? current.typography.length === 0 : current.typography.length > 0 && current.typography.every((key) => key === op.value);
     if (op.op === "setText") {
+      // Words bound to or given back from a variable (W-52 B2): written once the edit lands.
+      if (op.value === undefined || "from" in op) return true;
       const child = current.children.find((candidate) => candidate.kind === "text" && candidate.index === op.index);
       return child?.kind === "text" && child.value.trim() === op.value.trim();
     }
@@ -666,6 +672,26 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
       };
     },
   }), [overrides, element, live, send, runPlan, editable, selection.name, selection.panelId, instances, dataRow, cellRow, rowScope]);
+  // A layer on a page made in the Studio: its fields bind to the page's prototype variables (W-52 B2, varBind.tsx). A
+  // new variable is added above the Board, so the layer's write after it takes the place the first edit moved it to.
+  const localId = parsed ? pageIdOf(parsed.file) : null;
+  const localPage = usePage(localId);
+  const localTree = usePageTree(localId ? localPage?.text : undefined);
+  const varBind = useMemo<VarBind | null>(() => {
+    if (!localId || !localTree?.board || !parsed || !element || !editable) return null;
+    // The element's place as read (a page's layer is marked by its document id on the canvas).
+    const { file, loc, name: layer } = element;
+    const writeAfter = (type: Parameters<typeof addVarThen>[2], said: string, ops: (name: string) => EditOp[], start: string | number | boolean) =>
+      void addVarThen(file, localTree, type, said, (name, rebase) => applyEdit({ file, loc: rebase(loc), name: layer, ops: ops(name) }, said), start);
+    return {
+      vars: pageVarsOf(localTree),
+      bindProp: (prop, code, label) => void api.apply([{ op: "setProp", name: prop, value: { kind: "expression", code } }], label),
+      createForProp: (prop, type, start, code = (name) => `vars.${name}`) => writeAfter(type, `${layer} ${prop} → a new variable`, (name) => [{ op: "setProp", name: prop, value: { kind: "expression", code: code(name) } }], start),
+      bindText: (index, name) => void api.apply([{ op: "setText", index, code: `vars.${name}` }], `${layer} text → ${name}`),
+      createForText: (index, words) => writeAfter("text", `${layer} text → a new variable`, (name) => [{ op: "setText", index, code: `vars.${name}` }], words),
+      unbindText: (code, words) => void api.apply([{ op: "setText", from: code, value: words }], `${layer} text unbound`),
+    };
+  }, [localId, localTree, parsed, element, editable, api]);
 
   // Figma's nested instances of the selection (its props' Zen components), read once here: Properties and the Nested
   // instances section list them, and Reset all overrides resets theirs too.
@@ -737,7 +763,12 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
   const childText = texts.length || expressions.length ? (
     <>
       {texts.map((child, position) => (
-        <InspectorRow key={child.index} name="children" label={texts.length > 1 ? `Text ${position + 1}` : "Text"}>
+        <InspectorRow
+          key={child.index}
+          name="children"
+          label={texts.length > 1 ? `Text ${position + 1}` : "Text"}
+          action={varBind ? <VarBindButton label="Text" kind="text" onPick={(code) => varBind.bindText(child.index, code.replace(/^vars\./, ""))} onCreate={() => varBind.createForText(child.index, child.value.trim())} /> : undefined}
+        >
           <TextControl
             label={texts.length > 1 ? `Text ${position + 1}` : "Text"}
             value={child.value.trim()}
@@ -749,7 +780,16 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
           />
         </InspectorRow>
       ))}
-      {expressions.map((child, index) => <InspectorRow key={`expression-${index}`} name="children" label="Text"><BoundValue expression={child.raw.replace(/^\{|\}$/g, "")} /></InspectorRow>)}
+      {expressions.map((child, index) => {
+        const code = child.raw.replace(/^\{|\}$/g, "").trim();
+        // Words that read a prototype variable (W-52 B2): its pill, and Unbind gives back the words it shows now.
+        const read = varBind ? varReadOf(code) : null;
+        if (read && varBind) {
+          const shown = String(localTree?.vars?.[read.name] ?? "");
+          return <InspectorRow key={`expression-${index}`} name="children" label="Text" action={<IconButton icon="icon-x-line" aria-label="Unbind text" tooltip="Unbind variable" appearance="flat" level="primary" size="xs" onClick={() => varBind.unbindText(code, shown)} />}><VarPill words={read.words} /></InspectorRow>;
+        }
+        return <InspectorRow key={`expression-${index}`} name="children" label="Text"><BoundValue expression={code} /></InspectorRow>;
+      })}
     </>
   ) : null;
   // A text layer (a Text, a Heading, an HTML element) shows its words in Typography; an instance, as a Text property.
@@ -980,6 +1020,7 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
     <InspectorHostContext value={sourceHost(selection)}>
     <InspectorFileContext value={element?.file ?? parsed?.file ?? null}>
     <InspectorSrcContext value={selection.src}>
+    <VarBindContext value={varBind}>
     <div ref={panelRef} className="studio-inspector__panel">
       {/* Header (Design panel UI3, user 2026-10-06): the name with its count and the Detach / Remove icons on one row, then
           the kind with its Docs link, then where it is written. Every line in Body/Small. `data-inspector-src`: the
@@ -1108,6 +1149,7 @@ export function DesignPanel({ selection, controlsSlot, view = "design" }: { sele
       {/* Figma UI3 ends the Design tab with Export: the layer as PNG, JPG or SVG at a scale. */}
       {element ? <ExportSection src={selection.src} layer={layerName(name, headProps)} host={sourceHost(selection)} /> : null}
     </div>
+    </VarBindContext>
     </InspectorSrcContext>
     </InspectorFileContext>
     </InspectorHostContext>

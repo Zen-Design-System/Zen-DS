@@ -209,6 +209,17 @@
 .studio-prototype__add { display: flex; flex-wrap: wrap; gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-xsmall, 8px); }
 .studio-prototype__trigger + .studio-prototype__trigger { margin-top: var(--zen-spacing-gap-small, 12px); }
 .studio-prototype__note { margin: 0; }
+/* The page's prototype variables (proto/VariablesSection.tsx): a row per variable, Delete's question under its row. */
+.studio-prototype__vars { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-prototype__var-ask { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-2-xsmall, 4px); }
+.studio-prototype__var-ask > :first-child { flex: 1 1 auto; min-width: 0; }
+/* Several actions on one trigger (proto.run): each step under its number, Add action after the last. */
+.studio-prototype__steps { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-prototype__step { padding-left: var(--zen-spacing-padding-xsmall, 8px); border-left: 2px solid var(--zen-color-border-neutral-pale-default); }
+.studio-prototype__branch { padding-left: var(--zen-spacing-padding-xsmall, 8px); border-left: 2px solid var(--zen-color-border-neutral-pale-default); }
+.studio-prototype__add-action { margin-top: var(--zen-spacing-gap-xsmall, 8px); }
+/* A Conditional's comparison and value side by side. */
+.studio-prototype__test { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--zen-spacing-gap-xsmall, 8px); }
 /* A choice control's items, one row each; the item selected on the canvas is ringed. */
 .studio-prototype__item { border-radius: var(--zen-corner-radius-base, 12px); }
 .studio-prototype__item[data-current="true"] { box-shadow: 0 0 0 1px var(--zen-color-border-accent-solid-default); }

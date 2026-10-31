@@ -12,6 +12,8 @@ import { ScrubNumberField } from "../inspector/controls/ScrubNumberField";
 import { RowSelectField } from "../inspector/rowFields";
 import type { EditOp } from "../types";
 import { canHideSrc, hiddenValueAt, hideShortcut, subscribeHiddenLayers, toggleLayerHidden } from "../edit/visibility";
+import { useVarBind, VarBindButton } from "../inspector/varBind";
+import { VAR_MARK, varReadOf } from "../builder/proto/protoVarsModel";
 import { tip } from "../shell/ShortcutTip";
 import {
   cardThemeEffect, CORNERS, cornerClear, cornerLabels, cornerPick, defaultEffect, EFFECT_STYLES, effectAvailability, effectKey,
@@ -147,6 +149,23 @@ function VisibilityToggle({ src, name, disabled }: { src: string; name: string; 
   return <IconButton icon={hidden ? "icon-eye-off-line" : "icon-eye-line"} aria-label={label} aria-pressed={hidden} tooltip={tip(label, hideShortcut)} appearance="flat" level="primary" size="xs" disabled={disabled} onClick={() => void toggleLayerHidden(src, name)} />;
 }
 
+/** A variable read turned around (`vars.x` ↔ `!vars.x`, `===` ↔ `!==`): Visible when it holds is `hidden` when it does not. */
+const negated = (code: string) => (code.startsWith("!") ? code.slice(1) : code.includes(" === ") ? code.replace(" === ", " !== ") : code.includes(" !== ") ? code.replace(" !== ", " === ") : `!${code}`);
+
+/** Visible bound to a prototype variable (W-52 B2, Figma's Visible on a Boolean): Bind writes `hidden={!vars.x}`; once
+ *  bound, the {x} in the header says when it shows and a press unbinds it. Only on a page made in the Studio. */
+function VisibleBinding({ api }: { api: FieldApi }) {
+  const bind = useVarBind();
+  if (!bind || api.disabled) return null;
+  const value = api.valueFor("hidden");
+  const read = value.state === "bound" ? varReadOf(value.expression) : null;
+  if (value.state === "bound" && read) {
+    const shown = varReadOf(negated(value.expression))?.words ?? read.words;
+    return <IconButton icon={VAR_MARK} aria-label={`Visible when ${shown}. Unbind`} tooltip={`Visible when ${shown} · press to unbind`} appearance="flat" level="accent" size="xs" onClick={() => void api.apply([{ op: "removeProp", name: "hidden" }], "Visible unbound")} />;
+  }
+  return <VarBindButton label="Visible" kind="boolean" onPick={(code, words) => void api.apply([{ op: "setProp", name: "hidden", value: { kind: "expression", code: negated(code) } }], `Visible when ${words}`)} onCreate={() => bind.createForProp("hidden", "boolean", true, (name) => `!vars.${name}`)} />;
+}
+
 /** Appearance (Figma UI3): the layer's opacity and its corner radius (a frame); corner radius only (Image). The header's
  *  ◐ picks the layer blend (a frame's default Pass through), its eye shows or hides the layer. */
 export function AppearanceSection({ api, specs, layer }: { api: FieldApi; specs: PropSpec[]; component: string; host: HTMLElement | null; layer?: { src: string; name: string } }) {
@@ -154,7 +173,7 @@ export function AppearanceSection({ api, specs, layer }: { api: FieldApi; specs:
   const blend = specs.some((candidate) => candidate.name === "blendMode") ? <BlendModeButton api={api} frame /> : null;
   // Figma UI3's Apply variable mode beside the blend (a frame's `modes`, Studio Variables v2).
   const modes = specs.some((candidate) => candidate.name === "modes") ? <VariableModesButton api={api} /> : null;
-  const eye = layer && canHideSrc(layer.src) ? <VisibilityToggle src={layer.src} name={layer.name} disabled={api.disabled} /> : null;
+  const eye = layer && canHideSrc(layer.src) ? <><VisibleBinding api={api} /><VisibilityToggle src={layer.src} name={layer.name} disabled={api.disabled} /></> : null;
   const opacity = api.valueFor("opacity");
   const setOpacity = (value: number) => {
     const shown = Math.round(Math.min(100, Math.max(0, value)));

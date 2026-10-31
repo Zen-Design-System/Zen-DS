@@ -1,7 +1,7 @@
 // Prototype rows (Figma's prototype mode on pages made in the Studio, 2026-10-15): connect by dragging a layer's ⊕ onto a
 // frame, click an arrow to select its layer, drag an arrow's end to another frame or off to remove it, one target per
 // tab of a tab bar, the Flow list, and Play's hotspot hints. Each row makes its own page (builder.mjs newPage).
-import { focusFrame, inspectorRow, openAssetLibrary, selectAt, showLeftTab, sleep, until } from "../lib/studio.mjs";
+import { focusFrame, inspectorRow, openAssetLibrary, openPropertyGroup, selectAt, showLeftTab, sleep, until } from "../lib/studio.mjs";
 import { pickOption } from "./inspector.mjs";
 import { clickNamed, newPage, pageText, seededPage, selectStack } from "./builder.mjs";
 import { pageFromTemplate } from "./starters.mjs";
@@ -2276,7 +2276,202 @@ export const rows = [
       return "canvas: hidden · Play: off, hidden → on, shown → R: off, hidden";
     },
   },
+  {
+    id: "PT-56", feature: "The Prototype tab's Variables (W-52 B2, docs/research/studio-prototype-variables-2026-10-31.md §3.1), nothing selected: + adds a Number, a rename reaches every read and Set variable, a new start value shows on the canvas, Delete of a variable in use asks first and leaves its start value in its place; ⌘Z brings it back", wp: "prototype variables B2 2026-10-31", timeout: 60_000,
+    async run(ctx) {
+      const { page, text } = await seededPage(ctx, varsPage, /<Overlay id="date">/);
+      await varsPanel(page);
+      const vars = page.locator('[data-e2e="prototype-variables"]');
+      await until(async () => (await vars.locator("[data-var]").count()) === 3, { message: "three variables listed" });
+      await step("+ Number", async () => {
+        await page.locator("#studio-right").getByRole("button", { name: "Add variable" }).click();
+        await page.getByRole("menuitem", { name: "Number" }).click();
+      });
+      await until(async () => /export const vars = \{ dateRange: "Any time", cartCount: 0, signedIn: false, number1: 0 \};/.test(await text()), { message: "number1 added at 0" });
+      await step("rename cartCount to items", async () => {
+        const name = vars.getByRole("textbox", { name: "Variable cartCount name" });
+        await name.fill("items");
+        await name.press("Enter");
+      });
+      await until(async () => { const code = await text(); return code.includes("items: 0") && code.includes('proto.set("items", vars.items + 1)') && code.includes("{vars.items}") && !code.includes("cartCount"); }, { message: "renamed everywhere" });
+      await step("dateRange starts as Last 30 days", async () => {
+        const start = vars.getByRole("textbox", { name: "dateRange start value" });
+        await start.fill("Last 30 days");
+        await start.press("Enter");
+      });
+      await until(async () => (await text()).includes('dateRange: "Last 30 days"'), { message: "the start value written" });
+      await until(async () => (await page.locator('.studio-viewport [data-studio-frame="screen:orders"] .zen-chip').first().innerText()).includes("Last 30 days"), { message: "the canvas draws the new start value" });
+      await step("delete signedIn, in use", async () => {
+        await vars.getByRole("button", { name: "signedIn options" }).click();
+        await page.getByRole("menuitem", { name: "Delete" }).click();
+        const ask = vars.getByRole("group", { name: "Delete signedIn?" });
+        await ask.waitFor({ state: "visible", timeout: 3000 });
+        if (!/Used by \d+ layers/.test(await ask.innerText())) throw new Error(`the question reads "${await ask.innerText()}"`);
+        await ask.getByRole("button", { name: "Delete" }).click();
+      });
+      await until(async () => { const code = await text(); return !code.includes("signedIn") && code.includes("hidden={true}") && code.includes("proto.if(false,"); }, { message: "signedIn gone, its reads at its start value" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await text()).includes("hidden={!vars.signedIn}"), { message: "⌘Z brings signedIn back" });
+      return "+ Number · cartCount → items everywhere · start Last 30 days on the canvas · Delete signedIn asked, start values left · ⌘Z";
+    },
+  },
+  {
+    id: "PT-57", feature: "W-52 built in the Studio's UI only (B2): a Text variable made in Variables; the sheet's rows get Add action › Set variable (a value per row) after Close overlay; the Date Chip's words bound to the variable from the Inspector; Play: the Chip reads the picked range", wp: "prototype variables B2 2026-10-31", timeout: 90_000,
+    async run(ctx) {
+      const { page, id, text } = await seededPage(ctx, plainSheetPage, /<Overlay id="date">/);
+      await varsPanel(page);
+      await step("+ Text, named dateRange, starting Any time", async () => {
+        await page.locator("#studio-right").getByRole("button", { name: "Add variable" }).click();
+        await page.getByRole("menuitem", { name: "Text" }).click();
+        const name = page.locator('[data-e2e="prototype-variables"]').getByRole("textbox", { name: "Variable text1 name" });
+        await name.waitFor({ state: "visible", timeout: 5000 });
+        await name.fill("dateRange");
+        await name.press("Enter");
+        await until(async () => (await text()).includes('dateRange: ""'), { message: "dateRange added" });
+        const start = page.locator('[data-e2e="prototype-variables"]').getByRole("textbox", { name: "dateRange start value" });
+        await start.fill("Any time");
+        await start.press("Enter");
+      });
+      await until(async () => (await text()).includes('export const vars = { dateRange: "Any time" };'), { message: "dateRange starts as Any time" });
+      for (const [index, range] of [[0, "Any time"], [2, "Last 3 months"]]) {
+        await step(`${range}: Add action › Set variable`, async () => {
+          await clickNamed(page, id, "ListItem", index);
+          await prototypeTab(page);
+          await page.locator("#studio-right").getByRole("button", { name: "Add action" }).click();
+          await page.getByRole("menuitem", { name: "Set variable" }).click();
+          await until(async () => (await text()).includes(`title="${range}" onClick={proto.run(proto.close(), proto.set("dateRange", "Any time"))}`), { message: `${range} closes, then sets dateRange` });
+          if (range !== "Any time") {
+            const to = page.locator("#studio-right").getByRole("textbox", { name: "dateRange value" });
+            await to.fill(range);
+            await to.press("Enter");
+            await until(async () => (await text()).includes(`proto.set("dateRange", "${range}")`), { message: `${range} sets its own words` });
+          }
+        });
+      }
+      await step("the Chip's words read dateRange (Design › Text › Bind)", async () => {
+        await clickNamed(page, id, "Chip");
+        await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+        const row = page.locator('#studio-right [data-prop="children"]').first();
+        await row.hover();
+        await row.getByRole("button", { name: "Bind Text to a variable" }).click();
+        await page.getByRole("menuitem", { name: "dateRange" }).click();
+      });
+      await until(async () => /<Chip[^>]*>\{vars\.dateRange\}<\/Chip>/.test(await text()), { message: "the Chip shows {vars.dateRange}" });
+      await until(async () => (await page.locator('#studio-right [data-prop="children"] .studio-var-pill').count()) === 1, { message: "the Text row shows the variable's pill" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      const chip = playing(page).locator(".zen-chip").first();
+      const label = async () => ((await chip.innerText()) ?? "").trim();
+      await until(async () => (await label()) === "Any time", { message: "Play: the Chip reads Any time" });
+      await step("pick Last 3 months", async () => {
+        await chip.click();
+        await playing(page).locator(".zen-list-item").filter({ hasText: "Last 3 months" }).locator(".zen-list-item__wrapper").click();
+      });
+      await until(async () => (await label()) === "Last 3 months", { message: "Play: the Chip reads Last 3 months" });
+      await page.keyboard.press("Escape");
+      return "Variables + Text dateRange · rows: Add action › Set variable (Last 3 months typed) · Chip text bound · Play reads the pick";
+    },
+  },
+  {
+    id: "PT-58", feature: "Conditional in the Prototype tab (B2): Details' On tap becomes Conditional, its test picks signedIn, Else shows a toast; Play: signed out shows the toast and stays, the Switch on goes to Details", wp: "prototype variables B2 2026-10-31", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, text } = await seededPage(ctx, varsPage, /<Overlay id="date">/);
+      const details = async () => clickNamed(page, id, "Button", await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).evaluateAll((all) => all.findIndex((el) => el.textContent?.trim() === "Details")));
+      await step("Details › Conditional", async () => {
+        await details();
+        await prototypeTab(page);
+        await pickOption(page, "proto:onClick", "Conditional");
+      });
+      await until(async () => (await text()).includes('onClick={proto.if(vars.dateRange === "Any time", proto.navigate("details"))}'), { message: "a Conditional on the first variable, Then the Screen it went to" });
+      await step("If signedIn", () => pickOption(page, "proto:onClick:if", /^signedIn$/));
+      await until(async () => (await text()).includes('proto.if(vars.signedIn, proto.navigate("details"))'), { message: "If signedIn" });
+      await step("Else › Show toast", () => pickOption(page, "proto:onClick:else:action", /^Show toast$/));
+      await until(async () => (await text()).includes('proto.if(vars.signedIn, proto.navigate("details"), proto.toast({ title: "Done" }))'), { message: "Else shows a toast" });
+      await playVars(page);
+      await step("Details while signed out", () => playing(page).getByRole("button", { name: "Details" }).click());
+      await until(async () => (await page.getByText("Done", { exact: true }).count()) > 0, { message: "the else branch: a toast Done" });
+      if ((await playScreen(page)) !== "orders") throw new Error("Details left Orders while signed out");
+      await step("turn Signed in on, then Details", async () => {
+        await playing(page).getByRole("switch", { name: "Signed in" }).click();
+        await playing(page).getByRole("button", { name: "Details" }).click();
+      });
+      await until(async () => (await playScreen(page)) === "details", { message: "the if branch: Details" });
+      await page.keyboard.press("Escape");
+      return "Details → Conditional → If signedIn → Else toast · Play: toast, then Details once on";
+    },
+  },
+  {
+    id: "PT-59", feature: "Bind in the Inspector (B2): a bound Chip shows its variable's pill and Layers marks it {x}; Unbind writes the value it showed and ⌘Z binds it again; a Button's Disabled binds to signedIn from its Bind menu", wp: "prototype variables B2 2026-10-31", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, text } = await seededPage(ctx, varsPage, /<Overlay id="date">/);
+      await clickNamed(page, id, "Chip");
+      await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+      await openPropertyGroup(page, "selected");
+      const selected = inspectorRow(page, "selected");
+      await until(async () => (await selected.locator(".studio-var-pill").innerText()).includes("dateRange is not"), { message: "Selected shows the pill dateRange is not …" });
+      await showLeftTab(page, "layers");
+      await until(async () => (await page.locator('.studio-layers__row[data-kind="node"][aria-selected="true"] .studio-layers__var').count()) > 0, { message: "Layers marks the selected Chip {x}" });
+      await step("Unbind Selected", () => selected.getByRole("button", { name: /^Unbind/ }).click());
+      await until(async () => !(await text()).includes("selected={vars.dateRange"), { message: "Unbind gives the Chip the value it showed (not selected)" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("ControlOrMeta+z");
+      await until(async () => (await text()).includes('selected={vars.dateRange !== "Any time"}'), { message: "⌘Z binds it again" });
+      await step("Add to cart › Disabled › Bind › signedIn", async () => {
+        const index = await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).evaluateAll((all) => all.findIndex((el) => el.textContent?.trim() === "Add to cart"));
+        await clickNamed(page, id, "Button", index);
+        await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click();
+        await openPropertyGroup(page, "disabled");
+        const row = inspectorRow(page, "disabled");
+        await row.hover();
+        await row.getByRole("button", { name: /^Bind .* to a variable$/ }).click();
+        await page.getByRole("menuitem", { name: "signedIn", exact: true }).click();
+      });
+      await until(async () => (await text()).includes("disabled={vars.signedIn}"), { message: "Disabled reads signedIn" });
+      return "Chip Selected pill · Layers {x} · Unbind → not selected · ⌘Z → bound · Button Disabled → signedIn";
+    },
+  },
 ];
+
+/** The Prototype tab with nothing selected: its Variables section (W-52 B2). */
+async function varsPanel(page) {
+  await page.locator(".studio-viewport").focus();
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  await prototypeTab(page);
+  await page.locator('[data-e2e="prototype-variables"]').waitFor({ state: "attached", timeout: 5000 });
+}
+
+/** A phone Screen whose Date Chip opens a Bottom Sheet of ranges that each only close it, no variables (PT-57). */
+const plainSheetPage = (title) => `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Overlay, Screen, proto } from "@zen-ds/react/builder";
+import { BottomSheet, Chip, List, ListItem, Stack } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="orders" title="Orders" device="phone">
+        <Stack gap="md" padding="lg">
+          <Chip variant="advanced" dropdown onClick={proto.open("date")}>Date</Chip>
+        </Stack>
+      </Screen>
+      <Overlay id="date">
+        <BottomSheet title="Date placed">
+          <List>
+            <ListItem title="Any time" onClick={proto.close()} />
+            <ListItem title="Last 30 days" onClick={proto.close()} />
+            <ListItem title="Last 3 months" onClick={proto.close()} />
+          </List>
+        </BottomSheet>
+      </Overlay>
+    </Board>
+  );
+}
+`;
 
 /** A phone page with prototype variables (PT-52…PT-55, W-52 B 2026-10-31): a Date Chip reading dateRange that opens a
  *  Bottom Sheet whose rows set it, a cart count Add to cart raises, a Switch bound to signedIn and a layer it shows, a

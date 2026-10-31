@@ -220,6 +220,8 @@
 .studio-layers__row[data-hidden-on] > .studio-layers__name { opacity: 0.5; }
 /* Hidden at the breakpoint its frame shows (the library's hideOn): an eye-off and that breakpoint's icon. */
 .studio-layers__hidden-on { display: inline-flex; flex: 0 0 auto; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); color: var(--zen-color-content-neutral-base); }
+/* A layer that uses a prototype variable (W-52 B2): its {x} in the accent, as Figma marks a bound layer. */
+.studio-layers__var { display: inline-flex; flex: 0 0 auto; color: var(--zen-color-content-accent-base); }
 .studio-layers__eye { display: inline-flex; flex: 0 0 auto; width: 20px; height: 20px; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: var(--zen-corner-radius-xsmall, 6px); background: none; color: var(--zen-color-content-neutral-base); cursor: pointer; visibility: hidden; }
 .studio-layers__eye:hover { background: var(--zen-color-background-neutral-flat-hover, rgb(1 1 1 / 6%)); color: var(--zen-color-content-neutral-strongest); }
 .studio-layers__row:hover > .studio-layers__eye,
