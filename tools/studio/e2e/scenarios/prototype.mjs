@@ -2433,6 +2433,35 @@ export const rows = [
       return "Chip Selected pill · Layers {x} · Unbind → not selected · ⌘Z → bound · Button Disabled → signedIn";
     },
   },
+  {
+    id: "PT-60", feature: "Prototype Easing (W-51a): Navigate to → Easing Linear · Slow writes { easing: \"linear\" } (Emphasized, the default, is left out); Play runs the frame coming in on Motion/Ease/Linear", wp: "prototype easing 2026-10-31", timeout: 40_000,
+    async run(ctx) {
+      const { page, id } = await protoPage(ctx, { button: true });
+      await clickNamed(page, id, "Button");
+      await prototypeTab(page);
+      await pickOption(page, "proto:onClick", "Navigate to");
+      await until(async () => /onClick=\{proto\.navigate\("screen-2"\)\}/.test(await text(page, id)), { message: "navigate" });
+      await pickOption(page, "proto:onClick:easing", "Exit");
+      await until(async () => /onClick=\{proto\.navigate\("screen-2", \{ easing: "exit" \}\)\}/.test(await text(page, id)), { message: "Easing Exit written" });
+      await pickOption(page, "proto:onClick:easing", "Emphasized");
+      await until(async () => /onClick=\{proto\.navigate\("screen-2"\)\}/.test(await text(page, id)), { message: "Emphasized (the default) left out" });
+      await pickOption(page, "proto:onClick:duration", "Slow");
+      await pickOption(page, "proto:onClick:easing", "Linear");
+      await until(async () => /onClick=\{proto\.navigate\("screen-2", \{ duration: "slow", easing: "linear" \}\)\}/.test(await text(page, id)), { message: "Slow · Linear written" });
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      await playing(page).locator('[data-zen-name="Button"]').first().click();
+      const coming = playing(page).locator(".studio-player__screen[data-motion]:not([data-leaving])");
+      await until(async () => (await coming.count()) === 1, { timeout: 2000, message: "the frame coming in while Dissolve runs" });
+      const curve = await coming.evaluate((node) => [node.style.getPropertyValue("--studio-play-ease"), getComputedStyle(node).animationTimingFunction]);
+      if (!/--zen-motion-ease-linear/.test(curve[0]) || curve[1] !== "linear") throw new Error(`the frame coming in does not run on Linear: ${curve.join(" · ")}`);
+      await until(async () => (await playScreen(page)) === "screen-2", { timeout: 3000, message: "screen-2 once Dissolve is over" });
+      await page.keyboard.press("Escape");
+      return `Exit written · Emphasized left out · Slow · Linear → ${curve[1]} in Play`;
+    },
+  },
 ];
 
 /** The Prototype tab with nothing selected: its Variables section (W-52 B2). */

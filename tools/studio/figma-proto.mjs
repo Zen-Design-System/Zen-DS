@@ -11,12 +11,14 @@
 //
 // The Studio's own words (src/platform/studio/builder/proto/protoModel.ts): an action is `proto.<action>(target?,
 // options?)`, its trigger the prop it sits in (onClick, whileHovering; a Screen's onDelay), its options { animation,
-// direction, duration, delay }. Instant has no transition (Figma's Instant). Figma has no Show toast, Open link (here),
+// direction, duration, easing, delay }. Instant has no transition (Figma's Instant). Figma has no Show toast, Open link (here),
 // Filter table or Change step: they stay in the Studio, with a note.
 
-/** Motion/Duration (tokens/source/motion.json, ms) and the curve Play animates with (Motion/Ease/Emphasized). */
+/** Motion/Duration (tokens/source/motion.json, ms) and Motion/Ease, the curves an action picks (W-51a); Play's own,
+ *  when none is picked, is Emphasized. */
 export const DURATION_MS = { fast: 120, base: 200, slow: 280 };
-export const EASING = [0.16, 1, 0.3, 1];
+export const EASINGS = { standard: [0.2, 0, 0, 1], emphasized: [0.16, 1, 0.3, 1], exit: [0.4, 0, 1, 1], linear: [0, 0, 1, 1] };
+export const EASING = EASINGS.emphasized;
 export const DEFAULT_DELAY_MS = 800;
 
 /** The Studio's trigger props as Figma's triggers. */
@@ -45,7 +47,7 @@ export function transitionOf(options = {}) {
     type: TRANSITIONS[animation],
     ...(MOVES.has(animation) ? { direction: DIRECTIONS[options.direction] ?? DIRECTIONS.left } : {}),
     duration,
-    easing: [...EASING],
+    easing: [...(Object.hasOwn(EASINGS, options.easing) ? EASINGS[options.easing] : EASING)],
   };
 }
 
@@ -92,6 +94,10 @@ export function protoOfReaction(reaction) {
       const ms = Math.round((transition.duration ?? 0) * 1000);
       const duration = Object.entries(DURATION_MS).find(([, value]) => value === ms)?.[0];
       if (duration && duration !== "base") options.duration = duration;
+      // One of the four curves (to 3 decimals: Figma keeps floats); any other curve is dropped, as Play has no such token.
+      const curve = Array.isArray(transition.easing) ? transition.easing.map((value) => Math.round(value * 1000) / 1000) : null;
+      const easing = curve && Object.entries(EASINGS).find(([, value]) => value.every((point, index) => point === curve[index]))?.[0];
+      if (easing && easing !== "emphasized") options.easing = easing;
     }
   }
   if (reaction.trigger === "AFTER_TIMEOUT") {

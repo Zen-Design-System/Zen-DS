@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio prototype easing (walk W-51a). An animated interaction picks its curve in the Prototype tab (Easing:
+  Standard, Emphasized, Exit, Linear, the Motion/Ease tokens); Play runs it and the Figma push sends it (pull reads it
+  back). Emphasized stays the default and is not written.
 - Zen Studio prototype variables in the UI (walk W-52, phase B2). With nothing selected, the Prototype tab lists the
   page's Variables: add Text / Number / Boolean, rename (every use follows), set the start value, change the kind, delete
   (asks when in use). Interactions add Set variable and Conditional, and Add action chains several actions on one

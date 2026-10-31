@@ -23,9 +23,9 @@ import { playStartOf, startPlay } from "./playStart";
 import { defaultTarget, triggerCodeEdit, writeAction, writeItemTargets, writeProp, writeTriggerCode, type ProtoLayer } from "./protoEdit";
 import { selectedItem } from "./protoDom";
 import {
-  ACTIONS, actionsFor, actionTriggerLabel, ANIMATIONS, protoActionCode, choiceItemsOf, columnsOf, DEFAULT_ANIMATION, DEFAULT_DELAY, DEFAULT_DIRECTION, DEFAULT_DURATION, DELAY_TRIGGER, filterOf, findNode, frameNodeOf, framesOf,
+  ACTIONS, actionsFor, actionTriggerLabel, ANIMATIONS, protoActionCode, choiceItemsOf, columnsOf, DEFAULT_ANIMATION, DEFAULT_DELAY, DEFAULT_DIRECTION, DEFAULT_DURATION, DEFAULT_EASING, DELAY_TRIGGER, filterOf, findNode, frameNodeOf, framesOf,
   HOVER_TRIGGER, isItemTrigger, layerNameOf, layerWordsOf, layersIn, literalOf, moves, openerOf, optionsOf, protoOf, stepOf, stepsOf, targetLayerOf, targetsByItem, triggerLabel, triggerValue,
-  type ChoiceItem, type ProtoAction, type ProtoAnimation, type ProtoDirection, type ProtoDuration, type ProtoFilter, type ProtoFrame, type ProtoOptions, type ProtoStep,
+  type ChoiceItem, type ProtoAction, type ProtoAnimation, type ProtoDirection, type ProtoDuration, type ProtoEasing, type ProtoFilter, type ProtoFrame, type ProtoOptions, type ProtoStep,
 } from "./protoModel";
 import { anchorsItself, placesItself, protoSubject, takesText, type ProtoSubject } from "./protoTriggers";
 import { turnOffPopover, turnOnPopover } from "./popoverEdit";
@@ -43,7 +43,7 @@ import { actionCode, addVarThen, pageVarsOf } from "./protoVars";
  *   Overlay over the Screen that opens it; else the start).
  * - Interactions of the selected layer: each trigger it takes (On click / On tap, On change, While hovering; a Screen's
  *   After delay) with an action (navigate to a Screen, open an Overlay, close, back, show a toast, open a link) and how
- *   it animates (Instant, Dissolve, Move in, Push, Slide in; direction, duration); the main trigger and every set one
+ *   it animates (Instant, Dissolve, Move in, Push, Slide in; direction, duration, easing); the main trigger and every set one
  *   show, the others come from + (Add interaction). An action is written as the prop's `proto.*(…)` expression, so it is
  *   code like any other prop and ⌘Z undoes it. On the canvas the layer's ⊕ draws the same connection (ProtoLinks).
  * - Overlay: where an Overlay shows what it holds (Figma's overlay position; Manual: next to the layer that opens it),
@@ -310,7 +310,7 @@ function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, 
     }
     if (next === "filter") { void writeAction(layer, trigger, "filter", { match: typed ? "contains" : undefined }); return; }
     // A new action keeps the animation (and the delay) it had.
-    const kept: ProtoOptions = next === action ? options : { delay: options.delay, ...(next === "navigate" || next === "open" ? { animation: options.animation, direction: options.direction, duration: options.duration } : {}) };
+    const kept: ProtoOptions = next === action ? options : { delay: options.delay, ...(next === "navigate" || next === "open" ? { animation: options.animation, direction: options.direction, duration: options.duration, easing: options.easing } : {}) };
     if (items.length && (next === "navigate" || next === "open") && target === undefined) {
       // Per item: the item selected on the canvas starts with a target, the others go nowhere until one is picked.
       const start = pickedItem ? { [pickedItem]: defaultTarget(next, frames, homeScreen, items.find((item) => item.value === pickedItem)?.label) } : {};
@@ -324,7 +324,7 @@ function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, 
     const next = { ...targets, [item.value]: target === NO_TARGET ? undefined : target };
     void writeItemTargets(layer, trigger, action, next, `${item.label} → ${target === NO_TARGET ? "none" : frames.find((frame) => frame.id === target)?.title ?? target}`, options);
   };
-  /** The same action with other options (animation, direction, duration, delay). */
+  /** The same action with other options (animation, direction, duration, easing, delay). */
   const writeOptions = (change: ProtoOptions, label: string) => {
     if (!proto || action === "none") return;
     const next = { ...options, ...change };
@@ -530,12 +530,15 @@ function StepRows({ trigger, step, screen, layer, disabled }: { trigger: string;
 
 const DIRECTION_ICONS = { left: "icon-arrow-left-line", right: "icon-arrow-right-line", up: "icon-arrow-up-line", down: "icon-arrow-down-line" } as const;
 const DURATION_LABELS: Readonly<Record<ProtoDuration, string>> = { fast: "Fast", base: "Base", slow: "Slow" };
+/** Motion/Ease tokens by their names (tokens/source/motion.json). */
+const EASING_LABELS: Readonly<Record<ProtoEasing, string>> = { standard: "Standard", emphasized: "Emphasized", exit: "Exit", linear: "Linear" };
 
 /** Figma's Animation for a connection: the kind, which way it moves (an animation that moves), how long (Motion tokens). */
 function AnimationRows({ trigger, options, disabled, onChange }: { trigger: string; options: ProtoOptions; disabled: boolean; onChange: (change: ProtoOptions, label: string) => void }) {
   const animation = options.animation ?? DEFAULT_ANIMATION;
   const direction = options.direction ?? DEFAULT_DIRECTION;
   const duration = options.duration ?? DEFAULT_DURATION;
+  const easing = options.easing ?? DEFAULT_EASING;
   return (
     <>
       <InspectorRow label="Animation" name={`proto:${trigger}:animation`}>
@@ -557,6 +560,11 @@ function AnimationRows({ trigger, options, disabled, onChange }: { trigger: stri
       {animation !== "instant" ? (
         <InspectorRow label="Duration" name={`proto:${trigger}:duration`}>
           <RowSelectField aria-label="Duration" size="sm" disabled={disabled} value={duration} onValueChange={(next) => onChange({ duration: next as ProtoDuration }, `Duration ${DURATION_LABELS[next as ProtoDuration] ?? next}`)} options={(Object.keys(DURATION_LABELS) as ProtoDuration[]).map((id) => ({ value: id, label: DURATION_LABELS[id] }))} />
+        </InspectorRow>
+      ) : null}
+      {animation !== "instant" ? (
+        <InspectorRow label="Easing" name={`proto:${trigger}:easing`}>
+          <RowSelectField aria-label="Easing" size="sm" disabled={disabled} value={easing} onValueChange={(next) => onChange({ easing: next as ProtoEasing }, `Easing ${EASING_LABELS[next as ProtoEasing] ?? next}`)} options={(Object.keys(EASING_LABELS) as ProtoEasing[]).map((id) => ({ value: id, label: EASING_LABELS[id] }))} />
         </InspectorRow>
       ) : null}
     </>
