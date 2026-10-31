@@ -7,7 +7,7 @@ import { RowInputField, RowSelectField } from "../../inspector/rowFields";
 import type { PageValue } from "../render/renderPage";
 import { isOperand, operandCode, varType, type VarRef } from "../../../../../tools/studio/proto-vars.mjs";
 import { protoActionCode, type ProtoFrame } from "./protoModel";
-import { actionCode, expressionCode, literalCode, operandWords, VAR_START, type PageVar } from "./protoVars";
+import { actionCode, expressionCode, literalCode, operandWords, varTestCode, varTestOf, varTestOp, VAR_START, type PageVar } from "./protoVars";
 
 /*
  * The Prototype tab's rows for Set variable and Conditional (W-52 phase B2, docs/research/studio-prototype-variables-
@@ -117,23 +117,10 @@ export function SetVariableRows({ name, value, vars, write, create, disabled, pr
   );
 }
 
-/** A Conditional's test as a variable, a comparison and a value; null when it is more than that (an expression). */
-function testOf(condition: unknown): { name: string; op: string; value: unknown } | null {
-  const own = refName(condition);
-  if (own) return { name: own, op: "===", value: true };
-  const expr = condition as { kind?: string; op?: string; args?: unknown[] };
-  if (expr?.kind !== "expr" || !expr.args) return null;
-  if (expr.op === "!" && refName(expr.args[0])) return { name: refName(expr.args[0])!, op: "===", value: false };
-  const name = refName(expr.args[0]);
-  if (name && !isOperand(expr.args[1]) && ["===", "!==", "<", "<=", ">", ">="].includes(expr.op ?? "")) return { name, op: expr.op!, value: expr.args[1] };
-  return null;
-}
-/** A test as code: `vars.x` / `!vars.x` for a boolean on or off, else `vars.x <op> <value>`. */
-const testCode = (name: string, op: string, value: unknown, type: PageVar["type"]) => {
-  if (type === "boolean" && (op === "===" || op === "!==")) return (value === true) === (op === "===") ? `vars.${name}` : `!vars.${name}`;
-  return `vars.${name} ${op} ${literalCode(value)}`;
-};
 const OPS = [{ value: "===", label: "is" }, { value: "!==", label: "is not" }, { value: "<", label: "<" }, { value: "<=", label: "≤" }, { value: ">", label: ">" }, { value: ">=", label: "≥" }];
+/** A text's comparisons: is, is not, and whether it holds anything (walk W-58, a required field: `vars.email === ""`). */
+const TEXT_OPS = [...OPS.slice(0, 2), { value: "empty", label: "is empty" }, { value: "notEmpty", label: "is not empty" }];
+const OP_WORDS = Object.fromEntries([...OPS, ...TEXT_OPS].map((entry) => [entry.value, entry.label]));
 
 /** The simple actions a Conditional's branch takes, by what they write. */
 const BRANCH_ACTIONS = [{ value: "navigate", label: "Navigate to" }, { value: "open", label: "Open overlay" }, { value: "close", label: "Close overlay" }, { value: "back", label: "Back" }, { value: "toast", label: "Show toast" }, { value: "set", label: "Set variable" }];
@@ -146,7 +133,7 @@ export function ConditionalRows({ args, vars, frames, write, create, disabled, p
   const elseCode = branchCode(otherwise);
   const conditionCode = (code: string) => `proto.if(${code}, ${thenCode}${elseCode ? `, ${elseCode}` : ""})`;
   const currentTest = operandWords(condition);
-  const test = testOf(condition);
+  const test = varTestOf(condition);
   const entry = test ? vars.find((item) => item.name === test.name) : undefined;
   const names = vars.map((item) => item.name);
   const [asExpression, setAsExpression] = useState(!test);
@@ -156,9 +143,13 @@ export function ConditionalRows({ args, vars, frames, write, create, disabled, p
   useEffect(() => { setDraft(currentTest); setError(null); }, [currentTest]);
   const [valueDraft, setValueDraft] = useState(String(test?.value ?? ""));
   useEffect(() => setValueDraft(String(test?.value ?? "")), [test?.value]);
+  // is / is not picked on a text still compared with "": shown so until a value is typed (the code reads "is empty").
+  const [picked, setPicked] = useState<string | null>(null);
+  useEffect(() => setPicked(null), [test?.name, test?.value]);
   const writeTest = (name: string, op: string, value: unknown) => {
     const type = vars.find((item) => item.name === name)?.type ?? "text";
-    write(conditionCode(testCode(name, op, value, type)), `If ${name} ${OPS.find((entry) => entry.value === op)?.label ?? op} ${String(value)}`);
+    const empty = op === "empty" || op === "notEmpty";
+    write(conditionCode(varTestCode(name, op, value, type)), `If ${name} ${OP_WORDS[op] ?? op}${empty ? "" : ` ${String(value)}`}`);
   };
   const commitExpression = () => {
     if (draft === currentTest) return;
@@ -175,6 +166,21 @@ export function ConditionalRows({ args, vars, frames, write, create, disabled, p
   const branchWrite = (which: "then" | "else") => (code: string | null, label: string) => write(withBranch(which, code), label);
   const branchCreate = (which: "then" | "else"): CreateVar => (kind, codeFor, label) => create(kind, (made) => withBranch(which, codeFor(made)), label);
   const type = entry?.type;
+  const op = test ? picked ?? varTestOp(test, type) : "===";
+  const emptyTest = op === "empty" || op === "notEmpty";
+  const pickOp = (next: string) => {
+    if (!test) return;
+    if (type === "text" && test.value === "" && (next === "===" || next === "!==")) setPicked(next);
+    else setPicked(null);
+    writeTest(test.name, next, next === "empty" || next === "notEmpty" ? "" : test.value);
+  };
+  /** Another variable: a text keeps "is empty", any other test starts from the variable's value (a boolean: on). */
+  const pickVariable = (next: string) => {
+    if (!test) return;
+    const to = vars.find((item) => item.name === next);
+    if (emptyTest && to?.type === "text") { writeTest(next, op, ""); return; }
+    writeTest(next, test.op, to ? (to.type === "boolean" ? true : to.value) : test.value);
+  };
   return (
     <>
       <InspectorRow
@@ -194,14 +200,14 @@ export function ConditionalRows({ args, vars, frames, write, create, disabled, p
             onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); commitExpression(); } if (event.key === "Escape") setDraft(currentTest); }}
           />
         ) : (
-          <RowSelectField aria-label="Condition variable" size="sm" disabled={disabled} value={test.name} onValueChange={(next) => { const to = vars.find((item) => item.name === next); writeTest(next, test.op, to ? (to.type === "boolean" ? true : to.value) : test.value); }} options={vars.map((item) => ({ value: item.name, label: item.name }))} />
+          <RowSelectField aria-label="Condition variable" size="sm" disabled={disabled} value={test.name} onValueChange={pickVariable} options={vars.map((item) => ({ value: item.name, label: item.name }))} />
         )}
       </InspectorRow>
       {!asExpression && test ? (
         <InspectorRow label="" name={`${prefix}:test`}>
           <div className="studio-prototype__test">
-            <RowSelectField aria-label="Comparison" size="sm" disabled={disabled} value={test.op} onValueChange={(next) => writeTest(test.name, next, test.value)} options={type === "number" ? OPS : OPS.slice(0, 2)} />
-            {type === "boolean" ? (
+            <RowSelectField aria-label="Comparison" size="sm" disabled={disabled} value={op} onValueChange={pickOp} options={type === "number" ? OPS : type === "text" ? TEXT_OPS : OPS.slice(0, 2)} />
+            {emptyTest ? null : type === "boolean" ? (
               <RowSelectField aria-label="Condition value" size="sm" disabled={disabled} value={test.value ? "on" : "off"} onValueChange={(next) => writeTest(test.name, test.op, next === "on")} options={[{ value: "on", label: "On" }, { value: "off", label: "Off" }]} />
             ) : (
               <RowInputField
@@ -210,7 +216,7 @@ export function ConditionalRows({ args, vars, frames, write, create, disabled, p
                 disabled={disabled}
                 value={valueDraft}
                 onChange={(event) => setValueDraft(event.target.value)}
-                onBlur={() => { const next = type === "number" ? Number(valueDraft) || 0 : valueDraft; if (next !== test.value) writeTest(test.name, test.op, next); }}
+                onBlur={() => { const next = type === "number" ? Number(valueDraft) || 0 : valueDraft; if (next !== test.value) writeTest(test.name, op, next); }}
                 onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); (event.target as HTMLInputElement).blur(); } }}
               />
             )}

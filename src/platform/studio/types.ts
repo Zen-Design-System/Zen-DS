@@ -296,6 +296,9 @@ export type EditValue =
  * A useState value inserted code reads (`name` and `set` + Name): `initial` is a literal, `type` built-in type words
  * (`string[]`). The server declares it in the enclosing component (tools/studio/slots.mjs stateFor).
  */
+/** Prototype variables by name, each with its start value (`export const vars` of a builder page). */
+export type PageVarStarts = Readonly<Record<string, string | number | boolean>>;
+
 export type StateDecl = {
   name: string;
   initial: string;
@@ -388,7 +391,7 @@ export type EditOp =
    * `after` (instead of `index`): the loc of a layer in the slot it follows. `paste`: ⌘V into a slot, so the code may
    * read names bound where it lands (pasteCode's rule).
    */
-  | { op: "insertChild"; code: string; prop?: string; index?: number; after?: string; paste?: boolean; wrap?: { tag?: "Stack" | "Grid" | "Box"; props?: Record<string, EditValue> }; requires?: ("toast" | "media")[]; state?: StateDecl[] }
+  | { op: "insertChild"; code: string; prop?: string; index?: number; after?: string; paste?: boolean; wrap?: { tag?: "Stack" | "Grid" | "Box"; props?: Record<string, EditValue> }; requires?: ("toast" | "media")[]; state?: StateDecl[]; /** On a builder page: the prototype variables the code reads, declared when the page lacks them (an Assets template, W-58). */ vars?: PageVarStarts }
   /** Remove the element (its lines, the attribute that holds it, or the `&&` around it); `hash` required. Answer: `removed`. */
   | { op: "removeElement" }
   /** The element's source again right after it; the answer's `inserted.loc` is the copy. */
@@ -407,7 +410,7 @@ export type EditOp =
    * the names of `state` (an Assets item: declared as insertChild does). `hash` required. Answer: `inserted.loc`
    * (tools/studio/arrange.mjs).
    */
-  | { op: "pasteCode"; code: string; before?: string; after?: string; replace?: string; state?: StateDecl[]; /** px in the frame without auto layout it lands in: the layers float there (Paste here). */ at?: { x: number; y: number }; /** Into this slot of the `<Use>` it is sent on (F7c), at `index` among its layers. */ slot?: string; index?: number }
+  | { op: "pasteCode"; code: string; before?: string; after?: string; replace?: string; state?: StateDecl[]; /** As insertChild `vars`. */ vars?: PageVarStarts; /** px in the frame without auto layout it lands in: the layers float there (Paste here). */ at?: { x: number; y: number }; /** Into this slot of the `<Use>` it is sent on (F7c), at `index` among its layers. */ slot?: string; index?: number }
   /**
    * Swap instance (GĐ4 M2): `code`, one JSX element, takes the place of the element at loc wherever it is written (a
    * child, a prop's value, a .map row); its key stays; Zen components are imported, the ones left unused go. `hash`

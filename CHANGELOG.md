@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio required field (walk W-58): a Conditional on a text variable can test "is empty" and "is not empty"
+  (`vars.x === ""` / `!== ""`). Assets › Inputs has "Form · required field": an Email field and Send invites that
+  shows "Enter an email" while the field is empty and a toast once it is filled; on a page you made it brings its
+  variables (email, emailError) with it.
 - Zen Studio prototype easing (walk W-51a). An animated interaction picks its curve in the Prototype tab (Easing:
   Standard, Emphasized, Exit, Linear, the Motion/Ease tokens); Play runs it and the Figma push sends it (pull reads it
   back). Emphasized stays the default and is not written.

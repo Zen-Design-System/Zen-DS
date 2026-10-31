@@ -275,7 +275,8 @@ Slots (`slots.mjs`; spec docs/research/studio-slots-spec-2026-10-03.md "Source o
   fragment, no `data-zen-src`); a name it reads must exist where it lands (`bindingOf`), else be a Zen component (joins
   the imports as an insert's do), `toast` (the component gains `useToast()`) or a global (Math, Date, Intl…). Answer
   `inserted: { loc }`. `GET /element` answers `range: { start, end }` (char offsets, BOM left out) so the client copies
-  the exact code.
+  the exact code. `vars { name: start value }` (with `insertChild` too; a page you made only): the prototype variables
+  the code reads, added to `export const vars` when the page lacks them, in the same edit (an Assets template, W-58).
 - `replaceElement { code, state? }` (Swap instance, GĐ4 M2; `arrange.mjs` replacePlan), on the element it replaces:
   `code` (one JSX element, a palette item's code) takes its place wherever it is written (a child, a prop's value such
   as `leading={<Avatar />}`, a `.map` row, what a function returns); the element's `key` goes onto the new one; names

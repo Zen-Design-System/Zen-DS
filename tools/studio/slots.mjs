@@ -4,10 +4,12 @@
 // docs/research/studio-slots-spec-2026-10-03.md "Source ops".
 //
 //   applySlotOp(code, loc, name, op, opts?)  → { code, changed, inserted? | removed? | moved?, snippet? } | { error, code }
-//        op "insertChild" { code, prop?, index?, after?, wrap?, requires?, state?, paste? }  on the parent (loc/name = the
-//                                              parent element); `inserted` = { loc } of the new element. `after`: the
-//                                              loc of a layer in the slot it follows; `paste`: ⌘V into a slot, so the
-//                                              code may read names bound where it lands (pasteCode's rule)
+//        op "insertChild" { code, prop?, index?, after?, wrap?, requires?, state?, paste?, vars? }  on the parent (loc/name
+//                                              = the parent element); `inserted` = { loc } of the new element. `after`:
+//                                              the loc of a layer in the slot it follows; `paste`: ⌘V into a slot, so the
+//                                              code may read names bound where it lands (pasteCode's rule); `vars`
+//                                              { name: start value }: on a builder page, the prototype variables the code
+//                                              reads, declared when the page lacks them (an Assets template, W-58)
 //        op "removeElement" {}                 `removed` = true
 //        op "duplicateElement" { offset? }     `inserted` = { loc } of the copy; offset { dx, dy }: its px insets moved
 //                                              by that much (⌘D after moving a copy repeats the move, Figma)
@@ -15,7 +17,7 @@
 //        op "moveTo" { parent, before?, after?, copy? }  drag to reorder / reparent / ⌥-copy in the same file
 //                                              (arrange.mjs); `moved` = { loc }, or `inserted` = { loc } for a copy;
 //                                              `replace` (with copy): paste to replace
-//        op "pasteCode" { code, before?, after?, replace? }  on the parent: ⌘V of code from another file (arrange.mjs)
+//        op "pasteCode" { code, before?, after?, replace?, vars? }  on the parent: ⌘V of code from another file (arrange.mjs)
 //        op "replaceElement" { code, state? }  on the element: Swap instance, `code` in its place (arrange.mjs)
 //        op "many" { action: remove|duplicate|setProps|move, locs, ops?, to? }  a multi-selection in one file (arrange.mjs)
 //        op "clearSlot" { prop? }              on the host: empties the slot (Figma "Delete contents"); `cleared` = true
@@ -75,6 +77,7 @@ import { isPlaygroundFile } from "./shared-code.mjs";
 import { UNIT, pathTo, piece } from "./source-helpers.mjs";
 import { childRefusal, groupPlan, holdsElements, ungroupPlan, inScreenContent, manyPlan, moveToPlan, pasteCodePlan, pxOf, replacePlan } from "./arrange.mjs";
 import { ITEM_OPS, itemPlan } from "./items.mjs";
+import { PageVarsError, declareVarsEdit } from "./proto-vars-edit.mjs";
 
 const BOM = "\uFEFF";
 const PACKAGE = "@zen-ds/react";
@@ -149,6 +152,24 @@ function refuse(reason, code = "invalid") {
   const error = new EditError(code, reason);
   error.refusal = true;
   throw error;
+}
+
+/**
+ * Op insertChild / pasteCode `vars` ({ name: start value }, an Assets template that reads prototype variables, W-58): the
+ * edit that declares the ones a builder page lacks (proto-vars-edit.mjs declareVarsEdit), so the insert and the
+ * declaration are one undo step. None without `vars`; refused on any other file.
+ */
+function varsDeclaration(ctx, vars) {
+  if (vars === undefined || vars === null) return [];
+  if (!LOCAL_PAGE.test(ctx.file ?? "")) refuse("Prototype variables (`vars`) go on a page you made");
+  try {
+    // Above the Board, as an import is: not part of the element's change.
+    const edit = declareVarsEdit(ctx.text, vars);
+    return edit ? [{ ...edit, isImport: true }] : [];
+  } catch (error) {
+    if (error instanceof PageVarsError) refuse(error.message);
+    throw error;
+  }
 }
 
 const unwrapTs = (node) => {
@@ -1421,7 +1442,8 @@ function insertPlan(ctx, nodePath, op) {
   // ⌘V into a slot (`paste`): a copied layer may read what exists where it lands (a state, a handler), as pasteCode.
   if (op.paste !== undefined && typeof op.paste !== "boolean") refuse("`paste` must be true or false");
   const bound = op.paste ? (name) => Boolean(bindingOf(nodePath, name)) : null;
-  let code = prepareCode(typeof op.code === "string" ? state.src : op.code, ctx.folders, builderPage ? new Set([...state.names, ...BUILDER_RUNTIME]) : state.names, bound, parentName);
+  const declaring = varsDeclaration(ctx, op.vars);
+  let code = prepareCode(typeof op.code === "string" ? state.src : op.code, ctx.folders, builderPage ? new Set([...state.names, ...BUILDER_RUNTIME, ...(op.vars ? ["vars"] : [])]) : state.names, bound, parentName);
   if (builderPage && (code.toast || state.statements?.length)) refuse("A builder page has no hooks: an action is proto.toast(…), proto.navigate(…) or proto.open(…), and a control keeps its own state");
   if (CHROME_NAMES.includes(code.name)) refuse(`<${code.name}> is docs chrome; it cannot be inserted.`);
   // State in a .map row: a row component holds it (2026-10-08), so the rows do not share one.
@@ -1549,6 +1571,7 @@ function insertPlan(ctx, nodePath, op) {
   // A Screen or an Overlay added to the Board (GĐ2 M3), or proto.*(…) handlers: the builder runtime import gains them.
   const runtime = builderPage ? BUILDER_RUNTIME.filter((name) => new RegExp(name === "proto" ? "\\bproto\\." : `<${name}\\b`).test(code.src)) : [];
   if (runtime.length) edits.push(...builderImportEdits(ctx.ast, text, eol, runtime));
+  edits.push(...declaring);
   return {
     edits,
     focus: { ...plan.focus, name: code.name },
@@ -2917,7 +2940,7 @@ const asFolders = (modules) => {
  * `snippet` when the file has example snippets; or { error, code: "stale" | "not-found" | "invalid" | "forbidden" }.
  */
 /** What arrange.mjs (op moveTo: drag to reorder, reparent or copy) reuses from here. */
-const ARRANGE_HELPERS = { builderImportEdits, BUILDER_RUNTIME, LOCAL_PAGE, childUnitAt, constChildUse, refuse, removal, insertIntoContainer, expandSelfClosing, slotEntries, holderOf, guard, importChanges, componentImports, referenceCount, toastHook, stateFor, hookEdits, mediaImportEdits, duplicatePlan, bindingOf, detachMarker, reindent, isComment, patternNames, isMapCall, TS_WRAPPERS, FUNCTION_TYPES, WHERE };
+const ARRANGE_HELPERS = { builderImportEdits, varsDeclaration, BUILDER_RUNTIME, LOCAL_PAGE, childUnitAt, constChildUse, refuse, removal, insertIntoContainer, expandSelfClosing, slotEntries, holderOf, guard, importChanges, componentImports, referenceCount, toastHook, stateFor, hookEdits, mediaImportEdits, duplicatePlan, bindingOf, detachMarker, reindent, isComment, patternNames, isMapCall, TS_WRAPPERS, FUNCTION_TYPES, WHERE };
 /** What items.mjs (data-slot items: insertItem, removeItem, duplicateItem, moveItem) borrows from this module. */
 const ITEM_HELPERS = { refuse, attrName, short, unwrapTs, isNullish, valueRange, indentAt, startsLine, removeAttrEdit, removeArrayItem, hookEdits, importChanges, hostSnippet, patternNames, builderImportEdits, LOCAL_PAGE, FUNCTION_TYPES, JS_GLOBALS };
 

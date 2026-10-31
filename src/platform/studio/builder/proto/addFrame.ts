@@ -1,6 +1,6 @@
 import { applyEdit } from "../../api";
 import { studioStore } from "../../store";
-import type { EditOp } from "../../types";
+import type { EditOp, PageVarStarts } from "../../types";
 import { loadEngine, zenComponents } from "../engine";
 import { joinPin, pinRow } from "../frameEdit";
 import type { FramePlace } from "../render/framePlace";
@@ -23,7 +23,7 @@ const literal = (node: PageNode, prop: string) => { const value = node.props[pro
  *  its number (the device picked, "iPhone 2"; else "Screen"); `empty`: no app frame (default: a drawn or sized Screen).
  *  `content`: layers an empty Screen holds (Paste here on the empty canvas, builder/boardPaste.ts), in the same edit;
  *  `label`: the edit's name in History. */
-type Placement = { place?: FramePlace; width?: number; height?: number; device?: string; layout?: "mobile" | "desktop"; name?: string; empty?: boolean; holds?: "dialog" | "sheet" | "panel" | "card"; content?: string; label?: string };
+type Placement = { place?: FramePlace; width?: number; height?: number; device?: string; layout?: "mobile" | "desktop"; name?: string; empty?: boolean; holds?: "dialog" | "sheet" | "panel" | "card"; content?: string; label?: string; /** The prototype variables `content` reads (insertChild `vars`). */ vars?: PageVarStarts };
 
 async function readBoard(localPage: string) {
   const [engine, page] = await Promise.all([loadEngine(), getPage(localPage)]);
@@ -129,7 +129,7 @@ export async function wrapInSection(localPage: string, frameIds: readonly string
   return around ? addSection(localPage, around, "Wrap in new section") : null;
 }
 
-export async function addFrame(localPage: string, kind: "screen" | "overlay", { place, width, height, device: drawn, layout, name, empty: bare, holds, content, label }: Placement = {}): Promise<string | false> {
+export async function addFrame(localPage: string, kind: "screen" | "overlay", { place, width, height, device: drawn, layout, name, empty: bare, holds, content, label, vars }: Placement = {}): Promise<string | false> {
   let board = await readBoard(localPage);
   if (!board) return false;
   // A frame with a place of its own: the frames still in the row are pinned first, so none of them moves (the same undo
@@ -153,7 +153,7 @@ export async function addFrame(localPage: string, kind: "screen" | "overlay", { 
   // An empty Screen is one self-closing tag: the content goes inside it, one level in.
   const code = content && kind === "screen" && empty ? `${frame.replace(/\s*\/>$/, ">")}\n${content.split("\n").map((line) => (line ? `  ${line}` : line)).join("\n")}\n</Screen>` : frame;
   const named = label ?? (kind === "screen" ? (width !== undefined ? (name ? `Add ${name}` : "Draw frame") : "Add Screen") : "Add overlay");
-  const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code } as EditOp] }, named);
+  const response = await applyEdit({ file: pageFile(localPage), loc: tree.board.loc, name: "Board", ops: [{ op: "insertChild", code, ...(vars ? { vars: { ...vars } } : {}) } as EditOp] }, named);
   joinPin(pinned, response, named);
   if (response.ok && place) selectFrameWhenShown(`${kind}:${id}`, (frameId) => studioStore.setState({ selection: { kind: "frame", frameId } }));
   return response.ok ? `${kind}:${id}` : false;

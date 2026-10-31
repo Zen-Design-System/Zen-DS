@@ -12,7 +12,7 @@ import { multiSelection, selectedLayers } from "../select/multiSelection";
 import { expectRender, mapSrc, renderedNow } from "../select/remap";
 import { canStructurallyEdit, insideWrap, isFloatWrapper, pasteIntoSlot, pasteWarningIn, rememberInsert, removeSelection, selectedSlotOf, slotPasteTarget, slotPasteWarning, studioWrapOf, swapSelection } from "../slots/actions";
 import { canEdit, flushStudioStore, studioStore } from "../store";
-import type { EditOp, EditValue, SourceElement, StateDecl, StudioNodeRef, StudioSelection } from "../types";
+import type { EditOp, EditValue, PageVarStarts, SourceElement, StateDecl, StudioNodeRef, StudioSelection } from "../types";
 import type { NodeSelection } from "./arrange";
 import { floatingCode } from "./autoLayoutPlan";
 import { dropTargetAt, isDropContainer, type DropContext } from "./drag";
@@ -271,7 +271,7 @@ export const textLayer = (text: string) => `<Text>{${JSON.stringify(text.trim())
 let pasting = false;
 
 /** Pastes `code` (the clipboard's text; null: the Studio's own clip) next to / into / instead of the selection. */
-async function pasteAt(selection: NodeSelection, text: string | null, replace: boolean, state?: readonly StateDecl[]): Promise<boolean> {
+async function pasteAt(selection: NodeSelection, text: string | null, replace: boolean, state?: readonly StateDecl[], vars?: PageVarStarts): Promise<boolean> {
   if (pasting) return false;
   const check = canStructurallyEdit(selection);
   if (!check.ok) { fail(check.reason); return false; }
@@ -295,7 +295,7 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
       const reads = state ?? (own && own.file !== file ? own.state : undefined);
       const name = selectedName(own?.wrapped ? own.name : /^<([\w.]+)/.exec(code)?.[1] ?? "layer");
       if (replace) return await swapSelection(slotted.after!, code, name, reads, await slotPasteWarning(slotted.host, slotted.slot, code));
-      return await pasteIntoSlot({ host: slotted.host, slot: slotted.slot, code, name, after: slotted.after, from: selection, state: reads });
+      return await pasteIntoSlot({ host: slotted.host, slot: slotted.slot, code, name, after: slotted.after, from: selection, state: reads, vars });
     }
     let spot = spotFor(selection, replace, wrapper);
     if (typeof spot === "string") { fail(spot); return false; }
@@ -335,7 +335,7 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
     if (!parent) { fail(`${spot.parent.name} is no longer there — select it again`); return false; }
     // The Studio's own copy from another file (or several files) brings the state it reads; in its own file it is there.
     const reads = state ?? (own && own.file !== at.file ? own.state : undefined);
-    const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code: landing, ...(reads?.length ? { state: reads.map((entry) => ({ ...entry })) } : {}) };
+    const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code: landing, ...(reads?.length ? { state: reads.map((entry) => ({ ...entry })) } : {}), ...(vars ? { vars: { ...vars } } : {}) };
     if (spot.after) op.after = parseSrc(spot.after)?.loc;
     if (spot.replace) op.replace = parseSrc(spot.replace)?.loc;
     if (spot.at) op.at = spot.at;
@@ -506,8 +506,9 @@ export function notRecommended(reason: string | null) {
   announceEditStatus({ ...now, details: [...(now.details ?? []), `Not recommended: ${reason}`] });
 }
 
-/** Inserts `code` (one JSX element) into the selected layout, else right after the selected layer (Assets click). */
-export const insertCode = (selection: NodeSelection, code: string, state?: readonly StateDecl[]) => pasteAt(selection, code, false, state);
+/** Inserts `code` (one JSX element) into the selected layout, else right after the selected layer (Assets click); `vars`:
+ *  the prototype variables it reads on a builder page (declared with it when the page lacks them). */
+export const insertCode = (selection: NodeSelection, code: string, state?: readonly StateDecl[], vars?: PageVarStarts) => pasteAt(selection, code, false, state, vars);
 
 /** The canvas names a `Layout.Stack` layer "Stack". */
 const selectedName = (name: string) => name.slice(name.lastIndexOf(".") + 1);

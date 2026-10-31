@@ -220,6 +220,8 @@
 .studio-prototype__add-action { margin-top: var(--zen-spacing-gap-xsmall, 8px); }
 /* A Conditional's comparison and value side by side. */
 .studio-prototype__test { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* "is empty" takes no value: the comparison spans the row. */
+.studio-prototype__test > :only-child { grid-column: 1 / -1; }
 /* A choice control's items, one row each; the item selected on the canvas is ringed. */
 .studio-prototype__item { border-radius: var(--zen-corner-radius-base, 12px); }
 .studio-prototype__item[data-current="true"] { box-shadow: 0 0 0 1px var(--zen-color-border-accent-solid-default); }

@@ -13,7 +13,7 @@ import { dropOnBoard } from "../../builder/boardPaste";
 import { boardPlaceAt } from "../../builder/frameMove";
 import type { FramePlace } from "../../builder/render/framePlace";
 import { pageFile } from "../../builder/store/pageStore";
-import type { EditOp, StateDecl, StudioSelection } from "../../types";
+import type { EditOp, PageVarStarts, StateDecl, StudioSelection } from "../../types";
 import { placeOf, type DropTarget, type NodeSelection } from "../arrange";
 import { insertCode, notRecommended } from "../clipboard";
 import { dropTargetAt, kidsOf, publishDragView, type DropContext } from "../drag";
@@ -57,6 +57,8 @@ export function codeOf(item: PaletteItem, file?: string): string | null {
 
 /** The state an insert declares: none on a builder page (its code is the static version, codeOf). */
 const stateFor = (item: Insertable, file: string | undefined) => (file?.startsWith("local:") ? undefined : item.state);
+/** The prototype variables an insert declares when the page lacks them: on a builder page only (a template's, W-58). */
+const varsFor = (item: Insertable, file: string | undefined) => (file?.startsWith("local:") ? item.vars : undefined);
 const builderRefusal = (item: PaletteItem) => item.group === "Overlays"
   ? `On a page you made ${item.label} opens from an action: add it with Prototype › Add overlay, then point a button at it`
   : `${item.label} needs interactions: on a page you made, add them in the Prototype tab`;
@@ -70,6 +72,8 @@ export type Insertable = {
   code(file: string | undefined): string | null;
   refusal: string;
   state?: readonly StateDecl[];
+  /** The prototype variables its code reads on a builder page (palette `vars`): declared with it when the page lacks them. */
+  vars?: PageVarStarts;
   /** An icon's name: with an Icon selected, the click swaps that Icon's glyph instead of adding one. */
   icon?: string;
   /** A photo's source on a builder page: with an Image or Avatar of a page selected, the click swaps its picture instead. */
@@ -85,7 +89,7 @@ export type Insertable = {
   figmaWidth?: number;
 };
 
-export const paletteInsertable = (item: PaletteItem): Insertable => ({ label: item.label, root: item.root, state: item.state, code: (file) => codeOf(item, file), refusal: builderRefusal(item), figmaWidth: FIGMA_WIDTHS[item.id] });
+export const paletteInsertable = (item: PaletteItem): Insertable => ({ label: item.label, root: item.root, state: item.state, vars: item.vars, code: (file) => codeOf(item, file), refusal: builderRefusal(item), figmaWidth: FIGMA_WIDTHS[item.id] });
 export const iconInsertable = (name: string, title: string): Insertable => ({ label: title, root: "Icon", icon: name, code: () => `<Icon name="${name}" title=${JSON.stringify(title)} />`, refusal: "" });
 export const photoInsertable = (entry: LibraryPhoto): Insertable => ({ label: entry.photo.alt, root: "Image", photo: `${MEDIA_PREFIX}${entry.key}`, code: (file) => photoCode(entry, Boolean(file?.startsWith("local:"))), refusal: "" });
 /** An uploaded photo (GĐ5 M4): on pages you made only (example code takes the library's photos). */
@@ -232,7 +236,7 @@ export function insertItem(item: Insertable) {
   if (code === null) { fail(item.refusal); return; }
   const inside = item.refuseIn?.(target.src);
   if (inside) { fail(inside); return; }
-  void insertCode(target, code, stateFor(item, file));
+  void insertCode(target, code, stateFor(item, file), varsFor(item, file));
 }
 
 /** A palette item, as insertItem. */
@@ -287,7 +291,8 @@ export async function dropAsset(item: Insertable, target: DropTarget, free?: { x
   if (inside) { fail(inside); return; }
   const code = free ? floatingCode(written, item.root, free.x, free.y, free.width) : written;
   const state = stateFor(item, at.file);
-  const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code, ...(state?.length ? { state: state.map((entry) => ({ ...entry })) } : {}), ...placeOf(target) };
+  const vars = varsFor(item, at.file);
+  const op: Extract<EditOp, { op: "pasteCode" }> = { op: "pasteCode", code, ...(state?.length ? { state: state.map((entry) => ({ ...entry })) } : {}), ...(vars ? { vars: { ...vars } } : {}), ...placeOf(target) };
   const before = renderedNow(canvasApi.getWorldElement());
   // The host's rules judge a drop as they judge a click (a Card in a Card, a control in a clickable card): it still lands.
   const host = findBySrc(canvasApi.getWorldElement() ?? document.body, target.parentSrc)[0];
@@ -599,7 +604,7 @@ async function dropItemOnBoard(item: Insertable, place: FramePlace) {
   const code = item.code(pageFile(localPage));
   if (code === null) { fail(item.refusal); return; }
   multiSelection.clear();
-  await dropOnBoard(code, place, `Add ${item.label}`, item.figmaWidth);
+  await dropOnBoard(code, place, `Add ${item.label}`, item.figmaWidth, item.vars);
 }
 
 /** Whether (x, y) is on a frame of the board (a Screen or an Overlay), not the board's empty space. */

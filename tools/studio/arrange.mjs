@@ -20,10 +20,11 @@
 //   op "ungroup" { kids? }   on a Box / Stack / Grid: its layers take its place, keeping theirs (⇧⌘G)
 //
 //   op "replaceElement" { code, state? }   on the element it replaces (Swap instance: a prop's or slot's component, a layer)
-//   op "pasteCode" { code, before?, after?, replace?, at? }   on the element the code goes into (⌘V from another file or
-//     after a cut): `code` is one JSX element; names it reads must exist there, or be Zen components (imported) or
-//     `toast`; `inserted` = { loc }. `at` { x, y }: px in the frame without auto layout it lands in (Figma's Paste
-//     here, ⌘V at its place): the layers float there (floatAt)
+//   op "pasteCode" { code, before?, after?, replace?, at?, vars? }   on the element the code goes into (⌘V from another
+//     file or after a cut): `code` is one JSX element; names it reads must exist there, or be Zen components (imported)
+//     or `toast`; `inserted` = { loc }. `at` { x, y }: px in the frame without auto layout it lands in (Figma's Paste
+//     here, ⌘V at its place): the layers float there (floatAt). `vars` { name: start value }: on a builder page, the
+//     prototype variables the code reads, declared when the page lacks them (an Assets template, W-58)
 //
 // Rules:
 // - Only a child of an element or fragment moves (`<X />` or `{<X />}` among children); an element in a prop, a
@@ -511,9 +512,11 @@ export function pasteCodePlan(ctx, nodePath, op, h) {
   let toast = false;
   let media = false;
   const builderPage = h.LOCAL_PAGE.test(ctx.file ?? "");
+  const declaring = h.varsDeclaration(ctx, op.vars);
   const names = new Set(elements.flatMap((element) => [...freeNames(element, h.patternNames, h.FUNCTION_TYPES)]));
   for (const used of names) {
     if (state.names.has(used) || h.bindingOf(nodePath, used)) continue;
+    if (used === "vars" && op.vars) continue;
     // A builder page's own runtime (an instance <Use>, a main <Component>, proto.*): the builder import gains it.
     if (builderPage && h.BUILDER_RUNTIME.includes(used)) { runtime.push(used); continue; }
     if (used === "toast") { toast = true; continue; }
@@ -534,6 +537,7 @@ export function pasteCodePlan(ctx, nodePath, op, h) {
   if (media) edits.push(...h.mediaImportEdits(ctx));
   edits.push(...tidyImports(ctx, h, edits, needed));
   if (runtime.length) edits.push(...h.builderImportEdits(ctx.ast, ctx.text, ctx.eol, runtime));
+  edits.push(...declaring);
   return {
     edits,
     focus: { edit, within, name },

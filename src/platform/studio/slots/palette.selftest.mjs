@@ -338,7 +338,7 @@ check("clickable Card: warnings", reasons(cardClickable), [
   "Data display: A card never goes inside a card (Card)",
   "Charts: A card never goes inside a card (Chart card)",
   WIDGETS_IN_A_CARD,
-  "Inputs: The card is one click target, so it holds no controls or fields (Text field, Property field, Task properties, Text area, Select, Checkbox, Toggle, Radio group, Search, Chip group, Chip row, Date field, Calendar, Time slots, Number field, Autocomplete, Rich text, Slider, Rating input, NPS scale, Slider field, Color field, Color picker, Inline field, Color selector, File upload)",
+  "Inputs: The card is one click target, so it holds no controls or fields (Text field, Form · required field, Property field, Task properties, Text area, Select, Checkbox, Toggle, Radio group, Search, Chip group, Chip row, Date field, Calendar, Time slots, Number field, Autocomplete, Rich text, Slider, Rating input, NPS scale, Slider field, Color field, Color picker, Inline field, Color selector, File upload)",
   "Data display: The card is one click target, so it holds no controls or fields (Month calendar, Week calendar, Gantt roadmap, Day planner)",
   "Overlays: The card is one click target, so it holds no controls or fields (Dialog, Modal form, Side panel, Bottom sheet, Popover, Tooltip)",
   "Layout: The card is one click target, so it holds no controls or fields (Accordion)",
@@ -383,6 +383,12 @@ check("Divider next to a Divider",[fitting(paletteFor({ ...ctxFor("Card"), previ
 const outside = paletteFor({ ...ctxFor("Card"), canUseToast: false });
 check("outside a component: toast and state items cannot be written (hidden)", outside.items.filter((item) => item.requires?.includes("toast") || item.state?.length).length, 0);
 check("a template: Image cannot be written (hidden)", paletteFor({ ...ctxFor("Card"), canUseMedia: false }).hidden.map((row) => `${row.group}: ${row.reason} (${row.items.join(", ")})`), ["Data display: Library pictures work on example pages only (Image)"]);
+// Form · required field (walk W-58): on a builder page the Conditional on `vars.email`, its variables with it; elsewhere
+// its state version, with no variables to declare.
+const onPage = paletteFor({ ...ctxFor("Stack"), builder: true }).items.find((item) => item.id === "form-required-field");
+const builtOnPage = onPage?.build(ctxFor("Stack"));
+check("a builder page: Form · required field keeps its Conditional and declares its variables", [onPage?.vars, onPage?.state, onPage?.requires, /onClick=\{proto\.if\(vars\.email === "", proto\.set\("emailError", "Enter an email"\), /.test(builtOnPage ?? ""), /value=\{vars\.email\} error=\{vars\.emailError\}/.test(builtOnPage ?? ""), /=>|(?<!\.)\btoast\(/.test(builtOnPage ?? "")], [{ email: "", emailError: "" }, undefined, [], true, true, false]);
+check("an example page: Form · required field has no variables", paletteFor(ctxFor("Stack")).items.find((item) => item.id === "form-required-field")?.vars, undefined);
 check("outside a component: said once per group", [...new Set(outside.hidden.map((row) => row.reason))], ["It runs an action, and this spot cannot run one"]);
 check("ChartCard is a card surface", ["metric", "card"].map((id) => fitting(paletteFor(ctxFor("ChartCard"))).includes(id)), [true, false]);
 check("preferredFor", [preferredFor(slotOf("Card", "children")), preferredFor(slotOf("Dialog", "children")), preferredFor(slotOf("ListItem", "trailing")), preferredFor(slotOf("Stack", "children"))], [

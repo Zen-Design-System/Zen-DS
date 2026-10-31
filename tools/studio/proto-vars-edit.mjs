@@ -10,6 +10,9 @@
 //                                            turned into that kind
 //     { remove: name }                       the declaration; a layer reading it takes its start value (a condition on
 //                                            a row's field goes), a proto.set of it goes (a Conditional's branch refuses)
+//   declareVarsEdit(text, wanted) → edit     { start, end, text } that declares the variables of `wanted` the page
+//                                            lacks (an Assets template pasted with them, op pasteCode `vars`); null
+//                                            when it has them all
 //   freeVarName(base, taken) → name          "text1", "text2"… as Add names a new variable
 //   varUsesIn(text) → { name: count }        how many places read or set each variable (Delete's question)
 import { parse } from "@babel/parser";
@@ -231,6 +234,28 @@ function operandOf(node) {
   if (node.type === "BinaryExpression" || node.type === "LogicalExpression") return { kind: "expr", op: node.operator, args: [operandOf(node.left), operandOf(node.right)] };
   if (node.type === "ParenthesizedExpression") return operandOf(node.expression);
   throw new Error("not an operand");
+}
+
+/**
+ * The edit that declares the variables of `wanted` ({ name: start value }) the page lacks, in its one `export const vars`
+ * (a new one after the mock when it has none); null when it has them all. A variable it has keeps its start value. Op
+ * pasteCode `vars` (an Assets template that reads them, W-58) joins it to the paste's edits: one undo step.
+ */
+export function declareVarsEdit(text, wanted) {
+  if (!wanted || typeof wanted !== "object" || Array.isArray(wanted)) refuse("`vars` is { name: start value }");
+  const ast = parseText(text);
+  const { statement, object } = declarationOf(ast);
+  const vars = varsOf(object);
+  const missing = Object.entries(wanted).filter(([name]) => !Object.hasOwn(vars, name));
+  for (const [name, value] of missing) {
+    if (!NAME.test(name) || RESERVED.has(name)) refuse(`${name} is not a name a variable can have (letters, digits, _ and $)`);
+    if (!varType(value)) refuse("A variable holds text, a number or a boolean");
+  }
+  if (!missing.length) return null;
+  const code = declarationCode({ ...vars, ...Object.fromEntries(missing) });
+  if (statement) return { start: statement.start, end: statement.end, text: code };
+  const place = insertAt(ast);
+  return { start: place.at, end: place.at, text: place.code(code) };
 }
 
 /** A name for a new variable: `base` with the first free number ("text1"). */

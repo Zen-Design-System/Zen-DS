@@ -2,7 +2,7 @@
 // Self-test of how the Studio reads a page's prototype variables (protoVarsModel.ts, W-52 B2).
 // Run: node src/platform/studio/builder/proto/protoVarsModel.selftest.mjs
 import { parsePage } from "../../../../../tools/studio/dialect.mjs";
-import { actionCode, expressionCode, freeVarName, literalCode, operandWords, pageVarsOf, varReadOf, varUsesOf } from "./protoVarsModel.ts";
+import { actionCode, expressionCode, freeVarName, literalCode, operandWords, pageVarsOf, varReadOf, varTestCode, varTestOf, varTestOp, varUsesOf } from "./protoVarsModel.ts";
 
 const failures = [];
 let passed = 0;
@@ -51,6 +51,17 @@ const names = ["dateRange", "count", "on"];
 check("expressionCode: names, == and words, quotes kept", [expressionCode("count + 1", names), expressionCode('dateRange == "Any time" and not on', names), expressionCode("count != 0 or on", names), expressionCode("'a' + dateRange", names)], ["vars.count + 1", 'vars.dateRange === "Any time" && ! vars.on', "vars.count !== 0 || vars.on", '"a" + vars.dateRange']);
 check("expressionCode: an unknown name or nothing", [expressionCode("total + 1", names), expressionCode("  ", names)], [null, null]);
 check("varReadOf: the forms a field reads", [varReadOf("vars.on"), varReadOf("!vars.on"), varReadOf('vars.dateRange === "Any time"'), varReadOf("vars.count !== 0"), varReadOf("mock.title"), varReadOf("!vars.a === 1")], [{ name: "on", words: "on" }, { name: "on", words: "not on" }, { name: "dateRange", words: 'dateRange is "Any time"' }, { name: "count", words: "count is not 0" }, null, null]);
+
+// A Conditional's test (walk W-58): "is empty" writes `vars.x === ""` and reads back as itself; a written page round-trips.
+const conditionOf = (code) => parsePage(page.replace('proto.navigate("home"))}>Add', `proto.navigate("home"))}>Add</Button><Button onClick={proto.if(${code}, proto.back())}>If`)).board.children[0].children[0].children[3].props.onClick.args[0];
+const shown = (code, type) => { const test = varTestOf(conditionOf(code)); return test && { ...test, op: varTestOp(test, type) }; };
+check("varTestCode: is empty, is not empty", [varTestCode("dateRange", "empty", "", "text"), varTestCode("dateRange", "notEmpty", "x", "text")], ['vars.dateRange === ""', 'vars.dateRange !== ""']);
+check("varTestOf + varTestOp: what each test shows", [shown('vars.dateRange === ""', "text"), shown('vars.dateRange !== ""', "text"), shown('vars.dateRange === "Any time"', "text"), shown("vars.on", "boolean"), shown("!vars.on", "boolean"), shown("vars.count >= 2", "number"), shown("vars.count + 1 > 2", "number")], [
+  { name: "dateRange", op: "empty", value: "" }, { name: "dateRange", op: "notEmpty", value: "" }, { name: "dateRange", op: "===", value: "Any time" },
+  { name: "on", op: "===", value: true }, { name: "on", op: "===", value: false }, { name: "count", op: ">=", value: 2 }, null,
+]);
+check("varTestCode → parse → varTestOf: the round trip", ["empty", "notEmpty"].map((op) => varTestOp(varTestOf(conditionOf(varTestCode("dateRange", op, "", "text"))), "text")), ["empty", "notEmpty"]);
+check("varTestCode: the other comparisons", [varTestCode("on", "===", false, "boolean"), varTestCode("on", "!==", false, "boolean"), varTestCode("count", "<", 3, "number"), varTestCode("dateRange", "!==", "Any time", "text")], ["!vars.on", "vars.on", "vars.count < 3", 'vars.dateRange !== "Any time"']);
 
 if (failures.length) {
   console.error(`✗ protoVarsModel selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);

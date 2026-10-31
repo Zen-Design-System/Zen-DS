@@ -64,6 +64,9 @@ export type PaletteItem = {
   /** Its code on a builder page, which keeps no state or hooks: a static version of a stateful item (a Sidebar with its
    *  current item fixed). Without it, a stateful item cannot go on a builder page. */
   builder?(ctx: PaletteContext): string;
+  /** The prototype variables its `builder` code reads ({ name: start value }): a page that lacks one declares it in
+   *  `export const vars` with the insert (op pasteCode / insertChild `vars`, one undo step). */
+  vars?: Readonly<Record<string, string | number | boolean>>;
 };
 
 export type PaletteHostContext = PaletteContext & {
@@ -874,6 +877,28 @@ export const PALETTE: readonly PaletteItem[] = [
     id: "input-field", label: "Text field", group: "Inputs", root: "InputField", components: ["InputField"], interactive: true, input: true,
     build: () => `<InputField label="Project name" placeholder="e.g. Loyalty app" />`,
   },
+  /*
+   * Form · required field (walk W-58, docs/research/studio-prototype-variables-2026-10-31.md §5): Send stops while the
+   * email is empty and says why, else goes on. On a builder page the field writes `vars.email` (two-way) and the
+   * Button's Conditional tests it ("is empty"). The one Assets item that keeps its action on a builder page (since walk
+   * W-15 items arrive without one): the action is what the template shows.
+   */
+  {
+    id: "form-required-field", label: "Form · required field", group: "Inputs", caption: "Stops while empty", root: "Stack", components: ["Stack", "InputField", "Button"],
+    requires: TOAST, state: [state("email", '""'), state("emailError", '""')], vars: { email: "", emailError: "" }, interactive: true, input: true,
+    build: () => lines(
+      `<Stack gap="md">`,
+      `  <InputField label="Email" type="email" placeholder="name@company.com" value={email} onValueChange={(next) => { setEmail(next); setEmailError(""); }} error={emailError} />`,
+      `  <Button level="primary" onClick={() => (email ? toast({ title: "Invites sent" }) : setEmailError("Enter an email"))}>Send invites</Button>`,
+      `</Stack>`,
+    ),
+    builder: () => lines(
+      `<Stack gap="md">`,
+      `  <InputField label="Email" type="email" placeholder="name@company.com" value={vars.email} error={vars.emailError} />`,
+      `  <Button level="primary" onClick={proto.if(vars.email === "", proto.set("emailError", "Enter an email"), proto.run(proto.set("emailError", ""), proto.toast({ title: "Invites sent" })))}>Send invites</Button>`,
+      `</Stack>`,
+    ),
+  },
   {
     id: "property-field", label: "Property field", group: "Inputs", caption: "Edited in place", root: "PropertyField", components: ["PropertyField", "PropertyStatus"], interactive: true, input: true,
     build: () => lines(
@@ -1429,13 +1454,14 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
       else hidden.push({ group: item.group, reason: block, items: [item.label] });
       continue;
     }
-    // A builder page gets the item with proto handlers (and needs no toast hook).
+    // A builder page gets the item with proto handlers (and needs no toast hook); the prototype variables a template reads
+    // go with it there only.
     items.push(ctx.builder ? {
       ...item,
       requires: item.requires?.filter((need) => need !== "toast"),
       // Its static version (no state), or its code with proto handlers.
       ...(item.builder ? { state: undefined, build: item.builder } : { build: (built: PaletteContext) => builderCode(item.build(built)) ?? item.build(built) }),
-    } : item);
+    } : item.vars ? { ...item, vars: undefined } : item);
     const warning = warningFor(item);
     if (warning) warnings[item.id] = warning;
   }

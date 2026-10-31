@@ -1,5 +1,5 @@
 import type { PageNode, PageTree, PageValue } from "../render/renderPage";
-import { operandCode, protoValueCode, varType, type VarType } from "../../../../../tools/studio/proto-vars.mjs";
+import { isOperand, operandCode, protoValueCode, varType, type VarRef, type VarType } from "../../../../../tools/studio/proto-vars.mjs";
 
 /*
  * A builder page's prototype variables as the Studio reads them (W-52 phase B2, docs/research/studio-prototype-variables-
@@ -102,6 +102,40 @@ export function expressionCode(words: string, names: readonly string[]): string 
   }
   out += words.slice(last);
   return unknown || !out.trim() ? null : out.trim().replace(/(?<![=!<>])==(?!=)/g, "===").replace(/!=(?!=)/g, "!==");
+}
+
+/** A Conditional's test as the Prototype tab shows it: a variable, a comparison (an operator of the code, or "empty" /
+ *  "notEmpty", a text compared with "") and a value. */
+export type VarTest = { name: string; op: string; value: unknown };
+
+const refName = (operand: unknown) => (isOperand(operand) && (operand as VarRef).kind === "ref" && (operand as VarRef).root === "vars" ? (operand as VarRef).path[0] : null);
+
+/** A Conditional's test as a variable, a comparison and a value (`vars.x`, `!vars.x`, `vars.x <op> <literal>`); null when
+ *  it is more than that (an expression). */
+export function varTestOf(condition: unknown): VarTest | null {
+  const own = refName(condition);
+  if (own) return { name: own, op: "===", value: true };
+  const expr = condition as { kind?: string; op?: string; args?: unknown[] };
+  if (expr?.kind !== "expr" || !expr.args) return null;
+  if (expr.op === "!" && refName(expr.args[0])) return { name: refName(expr.args[0])!, op: "===", value: false };
+  const name = refName(expr.args[0]);
+  if (name && !isOperand(expr.args[1]) && ["===", "!==", "<", "<=", ">", ">="].includes(expr.op ?? "")) return { name, op: expr.op!, value: expr.args[1] };
+  return null;
+}
+
+/** The comparisons a text has besides is / is not (walk W-58, a required field): `vars.x === ""` and `vars.x !== ""`. */
+const EMPTY_OPS: Readonly<Record<string, "===" | "!==">> = { empty: "===", notEmpty: "!==" };
+
+/** The comparison a test shows in: "empty" / "notEmpty" for a text compared with "", else its operator. */
+export const varTestOp = (test: VarTest, type: VarType | undefined): string =>
+  type === "text" && test.value === "" && (test.op === "===" || test.op === "!==") ? (test.op === "===" ? "empty" : "notEmpty") : test.op;
+
+/** A test as code: `vars.x` / `!vars.x` for a boolean on or off, `vars.x === ""` for "empty" ("notEmpty": `!==`), else
+ *  `vars.x <op> <value>`. */
+export function varTestCode(name: string, op: string, value: unknown, type: VarType): string {
+  if (EMPTY_OPS[op]) return `vars.${name} ${EMPTY_OPS[op]} ""`;
+  if (type === "boolean" && (op === "===" || op === "!==")) return (value === true) === (op === "===") ? `vars.${name}` : `!vars.${name}`;
+  return `vars.${name} ${op} ${literalCode(value)}`;
 }
 
 /** A prop that reads a variable (`vars.x`, `!vars.x`, `vars.x === …`): its variable and the words it shows in. */

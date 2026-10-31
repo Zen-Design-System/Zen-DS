@@ -2462,6 +2462,68 @@ export const rows = [
       return `Exit written · Emphasized left out · Slow · Linear → ${curve[1]} in Play`;
     },
   },
+  {
+    id: "PT-61", feature: "Conditional \"is empty\" (walk W-58): a text variable's comparison offers is empty and is not empty; each writes vars.x === \"\" / !== \"\", reads back as itself with no value field; is takes a value again", wp: "prototype required field 2026-10-31", timeout: 60_000,
+    async run(ctx) {
+      const { page, id, text } = await seededPage(ctx, varsPage, /<Overlay id="date">/);
+      const comparison = () => inspectorRow(page, "proto:onClick:test").locator("button").first().innerText().then((words) => words.trim());
+      const valueField = () => page.locator('#studio-right [aria-label="Condition value"]').count();
+      await step("Details › Conditional", async () => {
+        await clickNamed(page, id, "Button", await page.locator(`[data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Button"]`).evaluateAll((all) => all.findIndex((el) => el.textContent?.trim() === "Details")));
+        await prototypeTab(page);
+        await pickOption(page, "proto:onClick", "Conditional");
+      });
+      await until(async () => (await text()).includes('onClick={proto.if(vars.dateRange === "Any time", proto.navigate("details"))}'), { message: "a Conditional on dateRange" });
+      await step("dateRange › is empty", () => pickOption(page, "proto:onClick:test", /^is empty$/));
+      await until(async () => (await text()).includes('onClick={proto.if(vars.dateRange === "", proto.navigate("details"))}'), { message: 'is empty writes vars.dateRange === ""' });
+      await until(async () => (await comparison()) === "is empty" && (await valueField()) === 0, { message: "it reads back as is empty, with no value field" });
+      await step("is not empty", () => pickOption(page, "proto:onClick:test", /^is not empty$/));
+      await until(async () => (await text()).includes('onClick={proto.if(vars.dateRange !== "", proto.navigate("details"))}'), { message: 'is not empty writes vars.dateRange !== ""' });
+      await until(async () => (await comparison()) === "is not empty", { message: "it reads back as is not empty" });
+      await step("is › Last 30 days", async () => {
+        await pickOption(page, "proto:onClick:test", /^is$/);
+        await until(async () => (await comparison()) === "is" && (await valueField()) === 1, { message: "is shows its value field" });
+        const field = page.locator('#studio-right [aria-label="Condition value"]');
+        await field.fill("Last 30 days");
+        await field.press("Enter");
+      });
+      await until(async () => (await text()).includes('onClick={proto.if(vars.dateRange === "Last 30 days", proto.navigate("details"))}'), { message: "is with a value" });
+      return 'is empty → === "" · is not empty → !== "" · both read back · is → "Last 30 days"';
+    },
+  },
+  {
+    id: "PT-62", feature: "Assets › Form · required field (walk W-58) on a page you made: the field and Send invites arrive with their Conditional and the page declares email and emailError; Play: Send with the field empty shows Enter an email and stays, with an email it shows Invites sent and the error goes", wp: "prototype required field 2026-10-31", timeout: 60_000,
+    async run(ctx) {
+      const { page, id } = await newPage(ctx);
+      await step("Assets › Form · required field", async () => {
+        await selectStack(page, id);
+        await openAssetLibrary(page, "Components");
+        await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("required field");
+        await page.locator("#studio-left-panel-assets [data-asset]", { hasText: /^Form · required field/ }).first().click();
+      });
+      await until(async () => (await text(page, id)).includes('export const vars = { email: "", emailError: "" };'), { message: "the page declares email and emailError" });
+      const code = await text(page, id);
+      if (!code.includes('value={vars.email} error={vars.emailError}') || !code.includes('onClick={proto.if(vars.email === "", proto.set("emailError", "Enter an email"), proto.run(proto.set("emailError", ""), proto.toast({ title: "Invites sent" })))}')) throw new Error("the template's field or Conditional is not in the code");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      const send = playing(page).getByRole("button", { name: "Send invites" });
+      const shown = await playScreen(page);
+      await step("Send with the field empty", () => send.click());
+      await until(async () => (await playing(page).getByText("Enter an email", { exact: true }).count()) > 0, { message: "Enter an email under the field" });
+      if ((await page.getByText("Invites sent", { exact: true }).count()) > 0) throw new Error("Invites sent shows while the field is empty");
+      if ((await playScreen(page)) !== shown) throw new Error("Send left the Screen while the field is empty");
+      await step("type an email, Send", async () => {
+        await playing(page).getByLabel("Email").fill("ana@zen.dev");
+        await send.click();
+      });
+      await until(async () => (await page.getByText("Invites sent", { exact: true }).count()) > 0, { message: "the toast Invites sent" });
+      await until(async () => (await playing(page).getByText("Enter an email", { exact: true }).count()) === 0, { message: "the error goes" });
+      await page.keyboard.press("Escape");
+      return "dropped with vars email, emailError · Play: empty → Enter an email, stays · ana@zen.dev → Invites sent";
+    },
+  },
 ];
 
 /** The Prototype tab with nothing selected: its Variables section (W-52 B2). */

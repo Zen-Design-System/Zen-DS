@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Self-test of the edits to a page's prototype variables (tools/studio/proto-vars-edit.mjs, op "pageVars").
 // Run: node tools/studio/proto-vars-edit.selftest.mjs
-import { editPageVars, freeVarName, varUsesIn } from "./proto-vars-edit.mjs";
-import { applyOps } from "./jsx-source.mjs";
+import { declareVarsEdit, editPageVars, freeVarName, varUsesIn } from "./proto-vars-edit.mjs";
+import { applyOps, sha1 } from "./jsx-source.mjs";
 import { parsePage } from "./dialect.mjs";
 
 const failures = [];
@@ -82,6 +82,34 @@ const board = (text) => { const line = text.split("\n").findIndex((row) => row.i
 const viaOp = applyOps(empty, board(empty), "Board", [{ op: "pageVars", change: { add: { name: "on", value: true } } }]);
 check("op pageVars: on the Board", varsLine(viaOp.code), "export const vars = { on: true };");
 check("op pageVars: refused on another layer, or with other ops", [applyOps(empty, board(empty), "Board", [{ op: "pageVars", change: {} }, { op: "removeProp", name: "x" }]).error, applyOps(empty, board(empty), "Board", [{ op: "pageVars", change: { remove: "nope" } }]).error], ["pageVars cannot be combined with other ops", "No variable named nope"]);
+
+// An Assets template that reads variables (walk W-58, Form · required field): op pasteCode / insertChild `vars` declares
+// the ones the page lacks with the insert, one edit; a variable the page has keeps its start value.
+const splice = (text, edit) => (edit ? text.slice(0, edit.start) + edit.text + text.slice(edit.end) : text);
+const wanted = { email: "", emailError: "" };
+check("declareVarsEdit: a page without vars gets them after the mock", [varsLine(splice(empty, declareVarsEdit(empty, wanted))), valid(splice(empty, declareVarsEdit(empty, wanted)))], ['export const vars = { email: "", emailError: "" };', []]);
+const has = page('{ email: "ana@zen.dev", count: 0 }', ["<Text>Hi</Text>"]);
+check("declareVarsEdit: joins the declaration, a declared one keeps its start", varsLine(splice(has, declareVarsEdit(has, wanted))), 'export const vars = { email: "ana@zen.dev", count: 0, emailError: "" };');
+check("declareVarsEdit: nothing missing, nothing written", declareVarsEdit(page('{ email: "", emailError: "x" }', ["<Text>Hi</Text>"]), wanted), null);
+check("declareVarsEdit: a bad value or name is refused", [throws(() => declareVarsEdit(empty, { a: null })), throws(() => declareVarsEdit(empty, { "2x": "" })), throws(() => declareVarsEdit(empty, ["a"]))], ["A variable holds text, a number or a boolean", "2x is not a name a variable can have (letters, digits, _ and $)", "`vars` is { name: start value }"]);
+
+const LOCAL = "local:form.zen.tsx";
+const engineOptions = (text, file = LOCAL) => ({ file, componentModules: new Map([["Button", "Button"], ["Chip", "Chip"], ["Stack", "Layout"], ["Text", "Text"], ["InputField", "Input"]]), requiredChildren: new Set(), requiredProps: new Map(), hash: sha1(text) });
+const template = [
+  `<Stack gap="md">`,
+  `  <InputField label="Email" value={vars.email} error={vars.emailError} />`,
+  `  <Button level="primary" onClick={proto.if(vars.email === "", proto.set("emailError", "Enter an email"), proto.run(proto.set("emailError", ""), proto.toast({ title: "Invites sent" })))}>Send invites</Button>`,
+  `</Stack>`,
+].join("\n");
+const stackAt = (text) => parsePage(text).board.children[0].children[0].loc;
+for (const op of ["pasteCode", "insertChild"]) {
+  const result = applyOps(empty, stackAt(empty), "Stack", [{ op, code: template, vars: wanted }], engineOptions(empty));
+  const inserted = result.code ? parsePage(result.code).board.children[0].children[0].children.at(-1) : null;
+  check(`op ${op} vars: declared with the insert, the page valid`, [result.error ?? null, varsLine(result.code ?? ""), valid(result.code ?? ""), /import \{[^}]*\bInputField\b/.test(result.code ?? "")], [null, 'export const vars = { email: "", emailError: "" };', [], true]);
+  check(`op ${op} vars: inserted is the new Stack`, [inserted?.name, inserted?.loc === result.inserted?.loc], ["Stack", true]);
+}
+check("op pasteCode without vars: a page without them refuses it", /uses `vars`/.test(applyOps(empty, stackAt(empty), "Stack", [{ op: "pasteCode", code: template }], engineOptions(empty)).error ?? ""), true);
+check("op pasteCode vars: a page you made only", applyOps(empty, stackAt(empty), "Stack", [{ op: "pasteCode", code: template, vars: wanted }], engineOptions(empty, "src/platform/examples/pages/form.tsx")).error, "Prototype variables (`vars`) go on a page you made");
 
 if (failures.length) {
   console.error(`proto-vars-edit selftest: ${failures.length} failed, ${passed} passed\n  ✗ ${failures.join("\n  ✗ ")}`);
