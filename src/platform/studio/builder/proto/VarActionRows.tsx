@@ -73,7 +73,7 @@ export function SetVariableRows({ name, value, vars, write, create, disabled, pr
     const trimmed = draft.trim();
     if (type === "number" && /^-?\d+(\.\d+)?$/.test(trimmed)) { write(setCode(name, trimmed), `Set ${name} to ${trimmed}`); return; }
     const code = expressionCode(trimmed, names);
-    if (code === null) { setError("Not an expression: use variable names, numbers, \"text\", + - * / and = < >"); return; }
+    if (code === null) { setError("Can't read that: use variable names, numbers, \"text\", + - * / and = < >"); return; }
     write(setCode(name, code), `Set ${name} to ${trimmed}`);
   };
   const flip = refName((value as { args?: unknown[] })?.args?.[0]) === name && (value as { op?: string })?.op === "!";
@@ -98,7 +98,7 @@ export function SetVariableRows({ name, value, vars, write, create, disabled, pr
         <InspectorRow
           label="To"
           name={`${prefix}:value`}
-          action={type === "text" ? <IconButton appearance="flat" level="primary" size="xs" icon="icon-code-01-line" aria-label="Expression" aria-pressed={expression} tooltip={expression ? "A value" : "An expression"} disabled={disabled} onClick={() => setExpression((on) => !on)} /> : undefined}
+          action={type === "text" ? <IconButton appearance="flat" level="primary" size="xs" icon="icon-code-01-line" aria-label="Use other variables" aria-pressed={expression} tooltip={expression ? "Plain text" : "Use other variables"} disabled={disabled} onClick={() => setExpression((on) => !on)} /> : undefined}
         >
           <RowInputField
             aria-label={`${name} value`}
@@ -163,7 +163,7 @@ export function ConditionalRows({ args, vars, frames, write, create, disabled, p
   const commitExpression = () => {
     if (draft === currentTest) return;
     const code = expressionCode(draft.trim(), names);
-    if (code === null) { setError("Not an expression: use variable names, numbers, \"text\", and or not, = < >"); return; }
+    if (code === null) { setError("Can't read that: use variable names, numbers, \"text\", and or not, = < >"); return; }
     write(conditionCode(code), `If ${draft.trim()}`);
   };
   /** The whole Conditional with one branch's code in place (Else: null runs nothing). */
@@ -180,7 +180,7 @@ export function ConditionalRows({ args, vars, frames, write, create, disabled, p
       <InspectorRow
         label="If"
         name={`${prefix}:if`}
-        action={<IconButton appearance="flat" level="primary" size="xs" icon="icon-code-01-line" aria-label="Edit as expression" aria-pressed={asExpression} tooltip={asExpression ? "Pick a variable" : "Edit as expression"} disabled={disabled || (asExpression && !test)} onClick={() => setAsExpression((on) => !on)} />}
+        action={<IconButton appearance="flat" level="primary" size="xs" icon="icon-code-01-line" aria-label="Type the condition" aria-pressed={asExpression} tooltip={asExpression ? "Pick a variable" : "Type the condition"} disabled={disabled || (asExpression && !test)} onClick={() => setAsExpression((on) => !on)} />}
       >
         {asExpression || !test ? (
           <RowInputField
@@ -188,7 +188,7 @@ export function ConditionalRows({ args, vars, frames, write, create, disabled, p
             size="sm"
             disabled={disabled}
             value={draft}
-            placeholder={'dateRange == "Any time"'}
+            placeholder="count > 0"
             onChange={(event) => { setDraft(event.target.value); setError(null); }}
             onBlur={commitExpression}
             onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); commitExpression(); } if (event.key === "Escape") setDraft(currentTest); }}
