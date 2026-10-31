@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio Assets follow the newer usage rules: Table's status column shows each step's ring (BadgeStatus) and, in a
+  Card or ListBox, comes with its widget title; Calendar toolbar's Today, arrows and view switch work; Time slots keeps
+  the chosen slot; Autocomplete and Task properties list people with their photos; App shell is "not recommended"
+  inside a card or overlay. AutocompleteField's list now shows each option's `photoSrc` (it was dropped).
 - Zen Studio required field (walk W-58): a Conditional on a text variable can test "is empty" and "is not empty"
   (`vars.x === ""` / `!== ""`). Assets › Inputs has "Form · required field": an Email field and Send invites that
   shows "Enter an email" while the field is empty and a toast once it is filled; on a page you made it brings its

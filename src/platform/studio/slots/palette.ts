@@ -37,6 +37,8 @@ export type PaletteContext = {
   /** The nearest surface around the slot is a Dialog, ModalForm, SidePanel or BottomSheet: a Card or ListBox there takes
    *  theme="on-container" (card/on-container-in-overlay, listbox/on-container-in-overlay). */
   overlay?: boolean;
+  /** The slot is inside a Card or ListBox: a Table there is a widget the box names with its title (table/titled-box). */
+  box?: boolean;
   /** Unique per insert ([a-z0-9]): radio group names, so groups in other example cards never merge. */
   uid: string;
 };
@@ -141,6 +143,33 @@ export const COMPONENT_FOLDERS: Readonly<Record<string, string>> = {
 
 /** The Calendar items' events (Wed 30 Sep 2026 and the days around it), as page code. */
 const CALENDAR_EVENTS = `[{ id: "standup", title: "Daily standup", start: "2026-09-30T09:00", end: "2026-09-30T09:30" }, { id: "q4", title: "Q4 planning", start: "2026-09-30T10:30", end: "2026-09-30T12:00", color: "blue", meta: "Room 2" }, { id: "maya", title: "1:1 Maya Chen", start: "2026-09-30T14:00", end: "2026-09-30T14:45", color: "teal" }, { id: "kickoff", title: "Q4 kickoff", start: "2026-10-01", allDay: true }, { id: "review", title: "Design review", start: "2026-09-29T11:00", end: "2026-09-29T12:00", color: "violet" }]`;
+/** The people the Assets people pickers list: each has a photo (platformMedia.avatars, `zen-media:avatar-<id>`). */
+const PEOPLE = [{ id: "bao", name: "Bao Nguyen" }, { id: "chi", name: "Chi Tran" }, { id: "duy", name: "Duy Le" }] as const;
+/** The Task properties item's rows; `photo(id)` writes a person's picture source. */
+function taskProperties(photo: (id: string) => string) {
+  return lines(
+    `<Stack gap="2xs" align="stretch">`,
+    `  <PropertyField label="Status" icon="icon-loading-02-line">`,
+    `    <PropertyStatus defaultValue="in-progress" />`,
+    `  </PropertyField>`,
+    `  <PropertyField label="Priority" icon="icon-flag-01-line">`,
+    `    <PropertySelect defaultValue="urgent" options={[{ value: "urgent", label: "Urgent", icon: "icon-flag-03-solid", tone: "negative" }, { value: "low", label: "Low", icon: "icon-flag-03-solid", tone: "neutral" }]} />`,
+    `  </PropertyField>`,
+    `  <PropertyField label="Due Date" icon="icon-calendar-line">`,
+    `    <PropertyDate defaultValue="2026-06-07" />`,
+    `  </PropertyField>`,
+    `  <PropertyField label="Assignee" icon="icon-users-plus-line">`,
+    `    <PropertyPeople defaultValue={["bao"]} options={[${PEOPLE.map(({ id, name }) => `{ value: "${id}", label: "${name}", photoSrc: ${photo(id)} }`).join(", ")}]} />`,
+    `  </PropertyField>`,
+    `  <PropertyField label="Labels" icon="icon-tag-line">`,
+    `    <PropertyTags defaultValue={["ds"]} options={[{ value: "ds", label: "Design System", theme: "blue" }, { value: "ui", label: "UI Design", theme: "orange" }]} />`,
+    `  </PropertyField>`,
+    `</Stack>`,
+  );
+}
+
+/** The Time slots item's open review times, as page code. */
+const SLOTS = `[{ id: "a", start: "2026-09-30T14:00" }, { id: "b", start: "2026-09-30T15:00", disabled: true }, { id: "c", start: "2026-10-01T09:00" }, { id: "d", start: "2026-10-01T10:00" }, { id: "e", start: "2026-10-02T11:00" }]`;
 
 const level = (ctx: PaletteContext) => Math.min(6, Math.max(2, Math.round(ctx.headingLevel) || 3));
 const uidOf = (ctx: PaletteContext) => ctx.uid.toLowerCase().replace(/[^a-z0-9]/g, "") || "1";
@@ -419,21 +448,32 @@ export const PALETTE: readonly PaletteItem[] = [
   },
   {
     // Each column's cell is a Figma Content (Table/Cell/Default) drawn from the row's fields, so the Inspector switches it
-    // (Text, Avatar, Badge, Progress…) and a page you made can hold it (no cell functions).
-    id: "table", label: "Table", group: "Data display", caption: "Two rows", root: "Table", components: ["Table"], interactive: false, input: false,
-    build: () => lines(
-      `<Table aria-label="Projects"`,
-      `  rows={[`,
-      `    { id: "loyalty", name: "Loyalty app", client: "Phin & Co", lead: "Chi Tran", status: "In progress", due: "Oct 14, 2026" },`,
-      `    { id: "banking", name: "Online banking redesign", client: "Lumen Bank", lead: "Bao Nguyen", status: "Review", due: "Nov 2, 2026" },`,
-      `  ]}`,
-      `  columns={[`,
-      `    { id: "project", header: "Project", content: "text", field: "name", captionField: "client", bold: true },`,
-      `    { id: "lead", header: "Lead", content: "avatar", field: "lead" },`,
-      `    { id: "status", header: "Status", content: "badge", field: "status" },`,
-      `    { id: "due", header: "Due", width: "152px", field: "due" },`,
-      `  ]} />`,
-    ),
+    // (Text, Avatar, Badge, Progress…) and a page you made can hold it (no cell functions). The status column holds a
+    // BadgeStatus per value (`cells`: the Content slot's layer), so each step shows its ring (table/badge-column-icon).
+    // In a Card or ListBox the table is a widget the box names: its Heading/Subheading title above it (table/titled-box).
+    id: "table", label: "Table", group: "Data display", caption: "Two rows", root: "Table", components: ["Table", "BadgeStatus"], interactive: false, input: false,
+    build: (ctx) => {
+      const table = lines(
+        `<Table ${ctx.box ? `aria-labelledby="projects-${uidOf(ctx)}"` : `aria-label="Projects"`}`,
+        `  rows={[`,
+        `    { id: "loyalty", name: "Loyalty app", client: "Phin & Co", lead: "Chi Tran", status: "In Progress", due: "Oct 14, 2026" },`,
+        `    { id: "banking", name: "Online banking redesign", client: "Lumen Bank", lead: "Bao Nguyen", status: "In Review", due: "Nov 2, 2026" },`,
+        `  ]}`,
+        `  columns={[`,
+        `    { id: "project", header: "Project", content: "text", field: "name", captionField: "client", bold: true },`,
+        `    { id: "lead", header: "Lead", content: "avatar", field: "lead" },`,
+        `    { id: "status", header: "Status", field: "status", cells: { "In Progress": <BadgeStatus status="in-progress" />, "In Review": <BadgeStatus status="in-review" /> } },`,
+        `    { id: "due", header: "Due", width: "152px", field: "due" },`,
+        `  ]} />`,
+      );
+      if (!ctx.box) return table;
+      return lines(
+        `<Stack gap="md">`,
+        `  <Heading level={${level(ctx)}} id="projects-${uidOf(ctx)}" textStyle="Heading/Subheading">Projects</Heading>`,
+        `  ${table.split("\n").join("\n  ")}`,
+        `</Stack>`,
+      );
+    },
   },
   {
     id: "sheet-table", label: "Sheet table", group: "Data display", caption: "Long reference rows", root: "SheetTable", components: ["SheetTable"], interactive: false, input: false,
@@ -908,26 +948,11 @@ export const PALETTE: readonly PaletteItem[] = [
     ),
   },
   {
-    id: "task-properties", label: "Task properties", group: "Inputs", caption: "Status, dates, people", root: "Stack", components: ["Stack", "PropertyField", "PropertyStatus", "PropertySelect", "PropertyDate", "PropertyPeople", "PropertyTags"], interactive: true, input: true,
-    build: () => lines(
-      `<Stack gap="2xs" align="stretch">`,
-      `  <PropertyField label="Status" icon="icon-loading-02-line">`,
-      `    <PropertyStatus defaultValue="in-progress" />`,
-      `  </PropertyField>`,
-      `  <PropertyField label="Priority" icon="icon-flag-01-line">`,
-      `    <PropertySelect defaultValue="urgent" options={[{ value: "urgent", label: "Urgent", icon: "icon-flag-03-solid", tone: "negative" }, { value: "low", label: "Low", icon: "icon-flag-03-solid", tone: "neutral" }]} />`,
-      `  </PropertyField>`,
-      `  <PropertyField label="Due Date" icon="icon-calendar-line">`,
-      `    <PropertyDate defaultValue="2026-06-07" />`,
-      `  </PropertyField>`,
-      `  <PropertyField label="Assignee" icon="icon-users-plus-line">`,
-      `    <PropertyPeople defaultValue={["alex"]} options={[{ value: "alex", label: "Alex Duong" }, { value: "sun", label: "Sun Hung" }]} />`,
-      `  </PropertyField>`,
-      `  <PropertyField label="Labels" icon="icon-tag-line">`,
-      `    <PropertyTags defaultValue={["ds"]} options={[{ value: "ds", label: "Design System", theme: "blue" }, { value: "ui", label: "UI Design", theme: "orange" }]} />`,
-      `  </PropertyField>`,
-      `</Stack>`,
-    ),
+    // The Assignee picker shows each person's photo (popover/people-have-avatars): platformMedia on an example page, the
+    // library key on a builder page.
+    id: "task-properties", label: "Task properties", group: "Inputs", caption: "Status, dates, people", root: "Stack", components: ["Stack", "PropertyField", "PropertyStatus", "PropertySelect", "PropertyDate", "PropertyPeople", "PropertyTags"], requires: MEDIA, interactive: true, input: true,
+    build: () => taskProperties((id) => `platformMedia.avatars.${id}.src`),
+    builder: () => taskProperties((id) => `"zen-media:avatar-${id}"`),
   },
   {
     id: "textarea-field", label: "Text area", group: "Inputs", root: "TextAreaField", components: ["TextAreaField"], interactive: true, input: true,
@@ -1001,8 +1026,21 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<CalendarAgenda from="2026-09-30" days={3} today="2026-09-30" events={${CALENDAR_EVENTS}} />`,
   },
   {
-    id: "calendar-toolbar", label: "Calendar toolbar", group: "Navigation", caption: "Period and view", root: "CalendarToolbar", components: ["CalendarToolbar"], interactive: true, input: false,
-    build: () => `<CalendarToolbar title="September 2026" view="month" />`,
+    // Today, the arrows and the view switch all work (calendar/toolbar-navigation): the month view steps by month (to its
+    // 1st), the others by their span, as shiftPeriod does (a slot cannot import it).
+    id: "calendar-toolbar", label: "Calendar toolbar", group: "Navigation", caption: "Period and view", root: "CalendarToolbar", components: ["CalendarToolbar"],
+    state: [state("calDate", "new Date(2026, 8, 30)", "Date"), state("calView", '"month"', '"month" | "week" | "day" | "3-day" | "agenda"')], interactive: true, input: false,
+    build: () => {
+      const step = (sign: "-" | "+") => `setCalDate(new Date(calDate.getFullYear(), calDate.getMonth() ${sign} (calView === "month" ? 1 : 0), calView === "month" ? 1 : calDate.getDate() ${sign} (calView === "day" ? 1 : calView === "3-day" ? 3 : 7)))`;
+      return lines(
+        `<CalendarToolbar date={calDate} today="2026-09-30" view={calView} onViewChange={setCalView}`,
+        `  onToday={() => setCalDate(new Date(2026, 8, 30))}`,
+        `  onPrevious={() => ${step("-")}}`,
+        `  onNext={() => ${step("+")}} />`,
+      );
+    },
+    // A builder page keeps no state: the period shown is fixed; its Prototype tab adds the actions.
+    builder: () => `<CalendarToolbar date="2026-09-30" today="2026-09-30" view="month" />`,
   },
   // ❖ Timeline (16121:9): the same demo day, ISO dates.
   {
@@ -1027,8 +1065,12 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<ScheduleItinerary title="Wed, Sep 30 · Design Day" now="2026-09-30T13:15" stops={[{ id: "keynote", title: "Opening keynote", start: "2026-09-30T09:00", end: "2026-09-30T09:45", meta: "Hall A" }, { id: "workshop", title: "Workshop: prototyping", start: "2026-09-30T13:00", end: "2026-09-30T14:30", meta: "Room 2" }, { id: "closing", title: "Closing talk", start: "2026-09-30T15:00", end: "2026-09-30T15:45", meta: "Hall A" }]} />`,
   },
   {
-    id: "schedule-slot-picker", label: "Time slots", group: "Inputs", caption: "Book a time", root: "ScheduleSlotPicker", components: ["ScheduleSlotPicker"], interactive: true, input: true,
-    build: () => `<ScheduleSlotPicker aria-label="Review times" today="2026-09-30" slots={[{ id: "a", start: "2026-09-30T14:00" }, { id: "b", start: "2026-09-30T15:00", disabled: true }, { id: "c", start: "2026-10-01T09:00" }, { id: "d", start: "2026-10-01T10:00" }, { id: "e", start: "2026-10-02T11:00" }]} />`,
+    // The page keeps the chosen slot, for the Book action beside it to confirm (schedule/slot-picker-confirm).
+    id: "schedule-slot-picker", label: "Time slots", group: "Inputs", caption: "Book a time", root: "ScheduleSlotPicker", components: ["ScheduleSlotPicker"],
+    state: [state("slot", "null", "string | null")], interactive: true, input: true,
+    build: () => `<ScheduleSlotPicker aria-label="Review times" today="2026-09-30" value={slot} onValueChange={setSlot} slots={${SLOTS}} />`,
+    // A builder page keeps no state: the picker keeps the pick itself.
+    builder: () => `<ScheduleSlotPicker aria-label="Review times" today="2026-09-30" slots={${SLOTS}} />`,
   },
   {
     id: "schedule-day-planner", label: "Day planner", group: "Data display", caption: "A person's day as cards", root: "ScheduleDayPlanner", components: ["ScheduleDayPlanner"], interactive: true, input: false,
@@ -1043,12 +1085,16 @@ export const PALETTE: readonly PaletteItem[] = [
     build: () => `<NumberField label="Team size" defaultValue={4} min={1} max={20} />`,
   },
   {
-    id: "autocomplete-field", label: "Autocomplete", group: "Inputs", caption: "Several values", root: "AutocompleteField", components: ["AutocompleteField"], interactive: true, input: true,
+    // People pickers show each person's photo (popover/people-have-avatars).
+    id: "autocomplete-field", label: "Autocomplete", group: "Inputs", caption: "Several values", root: "AutocompleteField", components: ["AutocompleteField"], requires: MEDIA, interactive: true, input: true,
     build: () => lines(
       `<AutocompleteField label="Team" addLabel="Add member" popoverLabel="Studio members" searchPlaceholder="Search people" options={[`,
-      `  { id: "bao", label: "Bao Nguyen" },`,
-      `  { id: "trang", label: "Trang Le" },`,
-      `  { id: "minh", label: "Minh Pham" },`,
+      ...PEOPLE.map(({ id, name }) => `  { id: "${id}", label: "${name}", photoSrc: platformMedia.avatars.${id}.src },`),
+      `]} />`,
+    ),
+    builder: () => lines(
+      `<AutocompleteField label="Team" addLabel="Add member" popoverLabel="Studio members" searchPlaceholder="Search people" options={[`,
+      ...PEOPLE.map(({ id, name }) => `  { id: "${id}", label: "${name}", photoSrc: "zen-media:avatar-${id}" },`),
       `]} />`,
     ),
   },
@@ -1407,6 +1453,8 @@ const OVERLAY_HOSTS = new Set(["Dialog", "ModalForm", "SidePanel", "BottomSheet"
 const CARD_SURFACES = new Set(["Card", "ChartCard", "MetricCard"]);
 /** The surfaces the usage harness looks through for an overlay (check-usage.mjs BOX_TAGS). */
 const SURFACE_TAGS = new Set(["Card", "ListBox", "MetricCard", "ChartCard", "Dialog", "ModalForm", "SidePanel", "BottomSheet"]);
+/** The boxes that name a Table inside them (usage-guard table/titled-box). */
+const TITLED_BOXES = new Set(["Card", "ListBox"]);
 const FORM_HOSTS = new Set(["ModalForm", "Form"]);
 const MOBILE_HOSTS = new Set(["BottomSheet", "PlatformPhone"]);
 const CHOICE_CONTROLS = new Set(["checkbox", "toggle", "radio-group"]);
@@ -1436,7 +1484,8 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
   const blockFor = (item: PaletteItem): string | null => {
     if (ctx.builder && !item.builder && (item.state?.length || builderCode(item.build(context)) === null)) return "It needs interactions: add them in the Prototype tab";
     if (ctx.canUseToast === false && (item.requires?.includes("toast") || item.state?.length)) return "It runs an action, and this spot cannot run one";
-    if (ctx.canUseMedia === false && item.requires?.includes("media")) return "Library pictures work on example pages only";
+    // A builder page takes its pictures by key (`zen-media:`, the item's builder code), not platformMedia.
+    if (ctx.canUseMedia === false && item.requires?.includes("media") && !(ctx.builder && item.builder)) return "Library pictures work on example pages only";
     return null;
   };
 
@@ -1458,7 +1507,7 @@ export function paletteFor(ctx: PaletteHostContext): PaletteResult {
     // go with it there only.
     items.push(ctx.builder ? {
       ...item,
-      requires: item.requires?.filter((need) => need !== "toast"),
+      requires: item.requires?.filter((need) => need !== "toast" && !(need === "media" && item.builder)),
       // Its static version (no state), or its code with proto handlers.
       ...(item.builder ? { state: undefined, build: item.builder } : { build: (built: PaletteContext) => builderCode(item.build(built)) ?? item.build(built) }),
     } : item.vars ? { ...item, vars: undefined } : item);
@@ -1477,7 +1526,7 @@ function hostRules(ctx: PaletteHostContext) {
   const inChain = (names: Set<string>) => chain.find((name) => names.has(name));
   // The nearest surface around the slot (usage-guard BOX_TAGS): an overlay's Container fill takes on-container surfaces.
   const surface = inChain(SURFACE_TAGS);
-  const context: PaletteContext = { host: ctx.host, slot: ctx.slot, headingLevel: ctx.headingLevel, mobile: ctx.mobile || Boolean(inChain(MOBILE_HOSTS)), uid: ctx.uid, ...(surface && OVERLAY_HOSTS.has(surface) ? { overlay: true } : {}) };
+  const context: PaletteContext = { host: ctx.host, slot: ctx.slot, headingLevel: ctx.headingLevel, mobile: ctx.mobile || Boolean(inChain(MOBILE_HOSTS)), uid: ctx.uid, ...(surface && OVERLAY_HOSTS.has(surface) ? { overlay: true } : {}), ...(inChain(TITLED_BOXES) ? { box: true } : {}) };
   const insideCard = Boolean(inChain(CARD_SURFACES));
   const overlayHost = inChain(OVERLAY_HOSTS);
   const formHost = inChain(FORM_HOSTS);
@@ -1491,6 +1540,8 @@ function hostRules(ctx: PaletteHostContext) {
     if (SIDEBAR_ROWS.has(item.root) && !inChain(SIDEBAR_HOSTS)) return { short: "Sidebar rows only", reason: "Menu items are rows of a Sidebar (Body-Content, Footer-Content) or its flyout" };
     if (item.components.includes("Accordion") && (deny.has("Accordion") || chain.includes("Accordion"))) return { short: "Accordion in an Accordion", reason: "Accordions are one level deep" };
     if (insideCard && item.components.some((name) => CARD_SURFACES.has(name))) return { short: "Card inside a card", reason: "A card never goes inside a card" };
+    // The app-shell guideline: one AppShell at the root of each screen, never a second shell inside a pane or a card.
+    if (item.root === "AppShell" && surface) return { short: "Screen root only", reason: `An AppShell frames a whole screen, never inside a ${surface}` };
     const denied = item.components.find((name) => deny.has(name));
     if (denied) return { short: `${ctx.slot.component} avoids ${denied}`, reason: `${ctx.slot.component} does not take ${denied}` };
     if (clickTarget && (item.interactive || item.input)) {

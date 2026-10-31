@@ -41,6 +41,9 @@ import portraitCurlyHair from "../assets/media/portrait-curly-hair.webp";
 import portraitSmile from "../assets/media/portrait-smile.webp";
 import portraitWindow from "../assets/media/portrait-window.webp";
 import portraitBlazer from "../assets/media/portrait-blazer.webp";
+import avatarBao from "../assets/media/avatar-bao.webp";
+import avatarChi from "../assets/media/avatar-chi.webp";
+import avatarDuy from "../assets/media/avatar-duy.webp";
 import deviceCeilingLight from "../assets/media/device-ceiling-light.webp";
 import deviceAirConditioner from "../assets/media/device-air-conditioner.webp";
 import deviceSmartSpeaker from "../assets/media/device-smart-speaker.webp";
@@ -103,6 +106,12 @@ export const platformMedia = {
     smile: { src: portraitSmile, alt: "Smiling man in a white T-shirt" },
     window: { src: portraitWindow, alt: "Woman by a blue window frame, looking aside" },
     blazer: { src: portraitBlazer, alt: "Bearded man in a blue blazer" },
+  } satisfies Record<string, PlatformPhoto>,
+  /** Studio people's avatar photos (examples/data.ts), for the Assets people pickers (Studio `zen-media:avatar-<id>`). */
+  avatars: {
+    bao: { src: avatarBao, alt: "Bao Nguyen" },
+    chi: { src: avatarChi, alt: "Chi Tran" },
+    duy: { src: avatarDuy, alt: "Duy Le" },
   } satisfies Record<string, PlatformPhoto>,
   /** Smart-home devices as cut-outs (transparent background), the bedroom window and the porch camera's view. */
   devices: {

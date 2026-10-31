@@ -87,3 +87,23 @@
   the paste's edits (one undo step); refused on files that are not pages you made.
 - Selftests: proto-vars-edit (+8), protoVarsModel (+4), palette (+2). E2E: PT-61 ("is empty" via the UI), PT-62 (drop,
   Play empty → error, email → toast).
+
+## Session "Studio: Assets --deep fixes" (tier S; BACKLOG P2 from W-58)
+
+- `palette.selftest --deep` (2585 items × 31 host slots; tsc + style guard were clean) had usage findings on 7 items.
+  Fixed each snippet, no rule changed:
+  - `table`: status column = `cells` with `<BadgeStatus status="in-progress|in-review">` (no cell function, so pages you
+    make keep it); in a Card/ListBox (new `PaletteContext.box`) it comes in a Stack with its Heading/Subheading title and
+    `aria-labelledby`.
+  - `calendar-toolbar`: state `calDate` (Date) + `calView`; Today, ← → (month: by month to the 1st, else by the view's
+    span, as shiftPeriod, which a slot cannot import) and the switch. Builder: static (`date`, no actions, per #362).
+  - `schedule-slot-picker`: state `slot` with `value`/`onValueChange`; builder keeps the uncontrolled picker.
+  - `autocomplete-field`, `task-properties`: people with photos (new `platformMedia.avatars` bao/chi/duy; builder
+    `zen-media:avatar-<id>`). Bug at its owner: AutocompleteField's popover dropped `photoSrc` (tag page's Reviewers
+    list had no faces) — now passed. A media item with a `builder` variant is no longer hidden on builder pages
+    (Image's `zen-media` variant was unreachable); templates still hide photo items (no platformMedia there).
+  - `app-shell`: warned ("Screen root only") inside any surface (Card, ListBox, overlays), per the app-shell guideline;
+    that removes the Card/overlay empty-state/small-in-box and the ModalForm-prop app-shell/pattern-parts findings.
+- Tip: the deep usage step runs ~15 min on the 1 MB file; split per `export function Scenario…` and run check-usage per
+  file in parallel: ~1 s, same findings except whole-file cross-talk (pattern-parts).
+- Selftest expectations: Card / clickable Card warnings, template hidden list, warned-last section; +1 builder check.
