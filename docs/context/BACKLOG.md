@@ -17,5 +17,10 @@ P0 (#337), P2 (#338) and the panels session (#335) are merged; P1 `claude/studio
 is PR #334 (in review). Nothing else open.
 
 ## Backlog (plan before opening sessions)
-Empty since 2026-10-25. The 2026-10-24 triage's entries are done and archived (`BACKLOG-archive.md`, "Archived
-2026-10-24" and "2026-10-25") or moved to `BACKLOG-user-and-later.md`.
+The 2026-10-24 triage's entries are done and archived (`BACKLOG-archive.md`, "Archived 2026-10-24" and "2026-10-25")
+or moved to `BACKLOG-user-and-later.md`.
+
+- P2 · `node src/platform/studio/slots/palette.selftest.mjs --deep` (17 min, not in the gate) fails on older Assets
+  items against newer usage rules: table/titled-box + table/badge-column-icon, calendar/toolbar-navigation,
+  popover/people-have-avatars, empty-state/small-in-box, schedule/slot-picker-confirm, app-shell/pattern-parts (met by
+  W-58, 2026-10-31; its new item has no finding). Fix each item's snippet (and its example page twin), one session.
