@@ -3,7 +3,7 @@
 // connections and Play read from a page — trigger words, a choice control's items, per-item actions and their links.
 // Run: node src/platform/studio/builder/proto/protoModel.selftest.mjs
 import { parsePage } from "../../../../../tools/studio/dialect.mjs";
-import { actionsIn, actionsFor, actionTriggerLabel, actionTriggersOf, cellText, choicesOf, frameNamed, layerWordsOf, choiceItemsOf, columnsOf, connectTrigger, filterCode, filterOf, filterRows, filterValuesOf, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, layersIn, linksOf, openerOf, optionsOf, playStartOf, protoOf, protoActionCode, protoSourcesOf, screenTargetOf, stepCode, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, targetOfFrame, targetsByItem, triggerLabel, triggerValue } from "./protoModel.ts";
+import { actionsIn, actionsFor, actionTriggerLabel, actionTriggersOf, cellText, choicesOf, frameNamed, layerWordsOf, choiceItemsOf, columnsOf, connectTrigger, filterCode, filterOf, filterRows, filterValuesOf, findNode, frameNodeOf, framesOf, isItemTrigger, itemActionCode, layersIn, linksOf, openerOf, optionsOf, playStartOf, protoOf, stepsOf, protoActionCode, protoSourcesOf, screenTargetOf, stepCode, stepOf, stepperOf, steppedIndex, stepTargetsOf, targetLayerOf, targetOfFrame, targetsByItem, triggerLabel, triggerValue } from "./protoModel.ts";
 
 const failures = [];
 let passed = 0;
@@ -260,7 +260,7 @@ const bound = choicesOf(boundTree);
 const boundNodes = nodesOf(boundTree);
 const boundRow = boundNodes.find((node) => node.name === "ListItem" && node.props.title?.value === "Any time");
 check("vars: a bound sheet is no Play group, and the Chip that reads the variable shows no pick", [bound.groups.has(boundRow.loc), bound.openers.size], [false, 0]);
-check("vars: Set variable, Conditional and several actions are written in code (B1)", [protoOf(boundRow.props.onClick), protoOf({ kind: "proto", action: "set", args: ["range", "x"] })], [null, null]);
+check("vars: several actions list one by one; Set variable is an action of the tab (B2)", [protoOf(boundRow.props.onClick), protoOf({ kind: "proto", action: "set", args: ["range", "x"] })?.action, stepsOf(boundRow.props.onClick).map((step) => step.action)], [null, "set", ["set", "close"]]);
 check("vars: a link inside several actions is the layer's link", linksOf(boundTree).filter((link) => link.target === "orders").map((link) => link.trigger), ["onClick", "onClick"]);
 check("vars: actionsIn sees nested actions", actionsIn(boundTree.board).filter((entry) => entry.action === "set").length, 2);
 

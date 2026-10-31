@@ -14,6 +14,8 @@
 //                                           `unwrapped` = { loc } of the element (applyUnwrap)
 //                                           op "screenFrame" (alone, on a Screen): one part of its master layout (the root
 //                                           AppShell) on or off, { prop, on, code } (screen-frame.mjs setScreenFramePart)
+//                                           op "pageVars" (alone, on a builder page's Board): one change to the page's
+//                                           prototype variables (proto-vars-edit.mjs editPageVars, W-52 B2)
 //                                           ops "insertChild" | "removeElement" | "duplicateElement" | "moveElement" | "clearSlot" |
 //                                           "resetSlot" (alone): slots.mjs applySlotOp; `inserted` / `moved` = { loc }, `removed` /
 //                                           `cleared` / `reset` = true; opts add componentModules?, requiredChildren?, requiredProps?,
@@ -30,6 +32,7 @@ import cloning from "../../src/platform/studio/cloning.json" with { type: "json"
 import { UNIT, importEdits, pathTo, piece } from "./source-helpers.mjs";
 import { LOCAL_PAGE, SLOT_OPS, applySlotOp, builderImportEdits, isSharedFile, sharedRefusal } from "./slots.mjs";
 import { setScreenFramePart } from "./screen-frame.mjs";
+import { PageVarsError, editPageVars } from "./proto-vars-edit.mjs";
 
 const BOM = "\uFEFF";
 const PLUGINS = ["jsx", "typescript"];
@@ -1124,10 +1127,28 @@ function removeAttrEdit(attr, text, lineCommentEnds) {
   return { start: comment ? attr.start : joined, end: attr.end, text: "" };
 }
 
+/** A builder page's variable read as a child's code (`vars.dateRange`, W-52 B2): the only code setText writes. */
+const VAR_READ = /^vars\.[A-Za-z_$][\w$]*$/;
+
 function setTextEdits(element, text, op) {
-  if (typeof op.value !== "string") throw new EditError("invalid", "setText needs a string value");
+  // Bind words to a prototype variable (`code`: the text child becomes {vars.x}), or give words back to one that reads
+  // it (`from`: the {vars.x} child becomes the text `value`).
+  if (typeof op.from === "string") {
+    if (!VAR_READ.test(op.from) || typeof op.value !== "string") throw new EditError("invalid", "setText from takes a variable read (vars.x) and the words");
+    const bound = listChildren(element, text).find((item) => item.child.kind === "expression" && item.node.type === "JSXExpressionContainer" && text.slice(item.node.expression.start, item.node.expression.end) === op.from);
+    if (!bound) throw new EditError("stale", `The element shows no {${op.from}}`);
+    return [{ start: bound.node.start, end: bound.node.end, text: `{${jsString(op.value)}}`, kind: "text" }];
+  }
+  if (op.code !== undefined && (typeof op.code !== "string" || !VAR_READ.test(op.code))) throw new EditError("invalid", "setText takes a variable read (vars.x) as code");
+  if (op.code === undefined && typeof op.value !== "string") throw new EditError("invalid", "setText needs a string value");
   const entry = listChildren(element, text).find((item) => item.child.kind === "text" && item.child.index === op.index);
   if (!entry) throw new EditError("stale", `The element has no text child #${op.index}`);
+  if (typeof op.code === "string") {
+    const raw = text.slice(entry.node.start, entry.node.end);
+    const lead = entry.node.type === "JSXText" ? /^[ \t\r\n]*/.exec(raw)[0].length : 0;
+    const trail = entry.node.type === "JSXText" && raw.length > lead ? /[ \t\r\n]*$/.exec(raw)[0].length : 0;
+    return [{ start: entry.node.start + lead, end: entry.node.end - trail, text: `{${op.code}}`, kind: "text" }];
+  }
   if (entry.child.value === op.value) return [];
   const node = entry.node;
   if (node.type === "JSXExpressionContainer") {
@@ -1785,6 +1806,21 @@ export function applyOps(code, loc, name, ops, { snippets = true, typographyKeys
   if (ops.some((op) => op?.op === "detach")) return applyDetach(code, bom, text, ast, element, ops, { snippets, keys, file, eol, componentCss });
   if (ops.some((op) => op?.op === "wrap")) return applyWrap(code, bom, text, ast, element, ops, { snippets, file, eol, lineCommentEnds });
   if (ops.some((op) => op?.op === "unwrap")) return applyUnwrap(code, bom, text, ast, element, ops, { snippets, file, eol });
+  if (ops.some((op) => op?.op === "pageVars")) {
+    if (ops.length !== 1) return fail("invalid", "pageVars cannot be combined with other ops");
+    if (actual !== "Board") return fail("invalid", `pageVars is sent on the page's <Board>, not <${actual}>`);
+    let next;
+    try {
+      next = editPageVars(text, ops[0].change ?? {});
+    } catch (error) {
+      if (error instanceof PageVarsError) return fail(error.code, error.message);
+      throw error;
+    }
+    if (next === text) return { code, changed: { from: target.line, to: target.line } };
+    const after = parseSource(next);
+    if (!after || after.errors.length > ast.errors.length) return fail("invalid", "The edit would break the file's syntax");
+    return { code: bom + next, changed: changedRange(text, next) };
+  }
   if (ops.some((op) => op?.op === "screenFrame")) {
     if (ops.length !== 1) return fail("invalid", "screenFrame cannot be combined with other ops");
     if (actual !== "Screen") return fail("invalid", `screenFrame is sent on a <Screen>, not <${actual}>`);

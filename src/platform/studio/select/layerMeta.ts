@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import { LOCKED_PROP, NAME_PROP, autoLayerNames, givenNameOf, isLockedValue } from "../../../../tools/studio/layer-meta.mjs";
 import type { PageChild, PageNode } from "../builder/render/renderPage";
 import { layerName } from "./layerNames";
+import { varUsesOf } from "../builder/proto/protoVarsModel";
 
 /*
  * Figma's layer names and locks on a page made in the Studio (plan docs/research/studio-figma-design-parity-2026-10-18.md
@@ -26,6 +27,8 @@ type PageMeta = {
   frameNodes: Map<string, { loc: string; name: string }>;
   /** The page's tree as last rendered: Select matching layers and Select all with same › read it (edit/matchModel.ts). */
   board: PageNode | null;
+  /** "file:line:col" of the layers that read or set a prototype variable (W-52 B2): Layers marks them {x}. */
+  vars: Set<string>;
 };
 
 const byFile = new Map<string, PageMeta>();
@@ -75,9 +78,11 @@ export function setLayerMeta(file: string, tree: { board: PageNode | null } | nu
     for (const entry of Object.values(frame.props)) if (entry.kind === "element") visit(entry.node, self);
     children(frame.children, self);
   }
+  const vars = new Set<string>();
+  for (const locs of varUsesOf(tree).values()) for (const loc of locs) vars.add(`${file}:${loc}`);
   const before = byFile.get(file);
-  const same = before && sameMap(before.auto, auto) && sameSet(before.locked, locked) && sameSet(before.own, own) && sameSet(before.frames, frames);
-  byFile.set(file, { auto, locked, own, frames, frameNodes, board: tree?.board ?? null });
+  const same = before && sameMap(before.auto, auto) && sameSet(before.locked, locked) && sameSet(before.own, own) && sameSet(before.frames, frames) && sameSet(before.vars, vars);
+  byFile.set(file, { auto, locked, own, frames, frameNodes, board: tree?.board ?? null, vars });
   // Called while BuilderBoard renders: listeners hear it after that render.
   if (!same) {
     version += 1;
@@ -102,6 +107,9 @@ export const frameNodeOf = (file: string | null | undefined, frameId: string | n
 
 /** The page's tree as the canvas last rendered it (`file`: "local:<id>.zen.tsx"), or null. */
 export const pageBoardOf = (file: string | null | undefined): PageNode | null => (file ? byFile.get(file)?.board ?? null : null);
+
+/** Whether the layer at `src` reads or sets one of its page's prototype variables (Layers' {x}). */
+export const readsVarsSrc = (src: string | null | undefined): boolean => Boolean(src && byFile.get(fileOf(src) ?? "")?.vars.has(src));
 
 /** Whether a frame ("screen:home") is locked on the page `file`. */
 export const isLockedFrame = (file: string | null | undefined, frameId: string | null | undefined): boolean => Boolean(file && frameId && byFile.get(file)?.frames.has(frameId));

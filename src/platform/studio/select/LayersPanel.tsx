@@ -1,7 +1,7 @@
 import { tip } from "../shell/ShortcutTip";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent as ReactPointerEvent, startTransition } from "react";
 import { layerIcon, objectIcon } from "./layerNames";
-import { COLLAPSE_LAYERS_EVENT, displayName, isLockedFrame, isOwnLock, useLayerMeta } from "./layerMeta";
+import { COLLAPSE_LAYERS_EVENT, displayName, isLockedFrame, isOwnLock, readsVarsSrc, useLayerMeta } from "./layerMeta";
 import { toggleFrame, useFrameSelection } from "./frameSelection";
 import { useIconTooltip } from "../../../components/Tooltip";
 import { EmptyState } from "../../../components/EmptyState";
@@ -1269,6 +1269,8 @@ export function LayersPanel() {
                   <Icon name={BREAKPOINT_ICONS[hiddenHere] as IconName} size={16} decorative />
                 </span>
               ) : null}
+              {/* A layer that reads or sets a prototype variable (W-52 B2), as Figma marks a bound layer. */}
+              {node.kind === "node" && readsVarsSrc(node.src) ? <span className="studio-layers__var" title="Uses a variable" aria-label="Uses a variable" role="img"><Icon name="icon-brackets-line" size={16} decorative /></span> : null}
               {node.meta ? <span className={`studio-layers__hint ${typographyStyles["Caption/Regular"]}`}>{node.meta}</span> : null}
               {node.count > 1 ? <span className={`studio-layers__count ${typographyStyles["Caption/Regular"]}`} aria-label={`${node.count} instances`}>×{node.count}</span> : null}
               {lockable ? (

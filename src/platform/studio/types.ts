@@ -333,6 +333,10 @@ export type EditOp =
   | { op: "setField"; name: string; index?: number; path?: Array<{ key: string; index?: number }>; key: string; value: EditValue | null }
   /** Replace the index-th text child (as listed in SourceElement.children). */
   | { op: "setText"; index: number; value: string }
+  /** Words bound to a prototype variable (W-52 B2): the index-th text child becomes `{code}` (`vars.x`); `from` gives the
+   *  `{vars.x}` child back as the words `value`. */
+  | { op: "setText"; index: number; code: string; value?: undefined }
+  | { op: "setText"; from: string; value: string; index?: undefined }
   /** Swap a typographyStyles["from"] key for "to" in the element's className. */
   | { op: "setTypography"; from: string; to: string }
   /**
@@ -369,6 +373,8 @@ export type EditOp =
    * Sent on the <Screen>, the request's only op.
    */
   | { op: "screenFrame"; prop: string; on: boolean; code?: string }
+  /** One change to a builder page's prototype variables (W-52 B2), sent on its Board (tools/studio/proto-vars-edit.mjs). */
+  | { op: "pageVars"; change: { add?: { name: string; value: string | number | boolean }; set?: { name: string; value: string | number | boolean }; rename?: { from: string; to: string }; retype?: { name: string; type: "text" | "number" | "boolean" }; remove?: string } }
   /*
    * Content slots (docs/research/studio-slots-spec-2026-10-03.md "Source ops", tools/studio/slots.mjs). Each must be the
    * request's only op. insertChild is sent on the slot's host (or the slot's only Stack/Grid); the others on the element.

@@ -28,6 +28,8 @@ import { requestPickColor } from "../edit/pickColorRequest";
 import { RowSelectField } from "./rowFields";
 import { hexOf, nearestColors, parseHex, type Rgb } from "./controls/colorMatch";
 import { openVariables } from "../variables/variablesState";
+import { useVarBind, varKindOf, VarBindButton, VarPill } from "./varBind";
+import { literalCode, varReadOf } from "../builder/proto/protoVarsModel";
 import { inspectorStatus } from "./status";
 import { useCanvasPreview } from "../project/activeProject";
 
@@ -1055,6 +1057,17 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
     ? <IconButton icon="icon-reverse-left-line" aria-label={say(`Restore ${inSentence(label)} to {${restore.expression}}`)} appearance="flat" level="primary" size="xs" onClick={restore.onRestore} />
     : null;
   const row = { name: spec.name, label, labelTitle, hint };
+  // Prototype variables (W-52 B2): a field on a page made in the Studio binds to one of the page's variables.
+  const bind = useVarBind();
+  const varKind = bind ? varKindOf(spec.editor.kind) : null;
+  const varRead = bind && value.state === "bound" ? varReadOf(value.expression) : null;
+  if (varRead && value.state === "bound") {
+    // Unbind writes what the field showed back as its own value.
+    const back = isLiteral(value.live) ? value.live : spec.defaultValue ?? undefined;
+    // Written as code over the binding (a plain write of a bound field edits what it reads instead).
+    const unbind = disabled ? null : <IconButton icon="icon-x-line" aria-label={`Unbind ${inSentence(label)}`} tooltip="Unbind variable" appearance="flat" level="primary" size="xs" onClick={() => (back === undefined || back === null ? onReset() : bind!.bindProp(spec.name, literalCode(back), `${label} unbound`))} />;
+    return <InspectorRow {...row} action={unbind}><VarPill words={varRead.words} /></InspectorRow>;
+  }
   if (value.state === "bound") {
     const live = isLiteral(value.live) ? value.live : undefined;
     if (dataEditable(value, boundHint) && spec.editor.kind !== "boolean") {
@@ -1099,9 +1112,13 @@ export function PropField({ spec, value, disabled, onSet, onReset, onAddObject, 
   // Unset: the control shows the effective default in the lighter tone. No per-field reset (user, 2026-10-09): a control
   // goes back to its default from inside it ("Default" / "None", Backspace) or with Reset all overrides. A fixed value
   // that replaced a saved binding keeps its Restore; an object prop with a starter keeps its Add (real actions).
+  // Bind to variable, in the row's action column when it has no other action (shown on hover, builder.css).
+  const bindAction = bind && varKind && !locked && editor.kind !== "readonly"
+    ? <VarBindButton label={label} kind={varKind} onPick={(code, words) => bind.bindProp(spec.name, code, `${label} → ${words}`)} onCreate={() => bind.createForProp(spec.name, varKind, (literal ?? fallback ?? (varKind === "number" ? 0 : varKind === "boolean" ? false : "")) as string | number | boolean)} />
+    : null;
   const action = restoreAction ?? (starter && onAddObject
     ? <IconButton icon="icon-plus-line" aria-label={`Add ${inSentence(label)}`} tooltip={`Add ${inSentence(label)}: ${starter}`} appearance="flat" level="primary" size="xs" onClick={() => onAddObject(starter)} />
-    : extraAction ?? null);
+    : extraAction ?? bindAction);
   const common = { label, disabled: locked };
   if (editor.kind === "truncate" && !(viaSpread && value.live !== undefined && !isLiteral(value.live))) {
     // Figma's Truncate text + Max lines: true is one line, a number that many (Text keeps it ≥ 1); off shows it all.

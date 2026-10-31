@@ -201,6 +201,14 @@
 .studio-inspector__static[data-placeholder="true"] { color: var(--zen-color-content-neutral-light); }
 .studio-inspector__static[data-code="true"] { font-family: var(--zen-typography-font-family-dev, ui-monospace, monospace); }
 .studio-inspector__static-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* A field bound to a prototype variable (inspector/varBind.tsx, W-52 B2): the field's frame in the accent's subtle fill,
+   the variable's mark and words; Bind shows on its row's hover and focus (always on touch screens). */
+/* zen-allow-radius-role: drawn as an inspector field (the bound twin of the fields in the same column) */
+.studio-var-pill { display: flex; width: 100%; min-width: 0; height: var(--zen-input-size-small, 32px); box-sizing: border-box; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-input-spacing-small-horizontal-padding, 8px); border-radius: var(--zen-corner-radius-input-small, 8px); background: var(--zen-color-background-accent-subtle-default); color: var(--zen-color-content-accent-base); }
+.studio-var-pill__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (hover: hover) {
+  .studio-inspector__row:not(:hover, :focus-within) .studio-var-bind:not([aria-expanded="true"]) { opacity: 0; }
+}
 
 /* Icon picker trigger: a full-width value button whose name truncates. */
 /* It wears a field's frame like the selects around it (Design panel UI3): the field's fill, radius and inset, the

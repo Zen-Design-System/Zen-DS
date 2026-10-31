@@ -20,17 +20,20 @@ import { templateChoices, type TemplateChoice } from "../starters/fromTemplate";
 import { addTemplateScreen } from "../starters/templateScreen";
 import { addFrame as addBoardFrame } from "./addFrame";
 import { playStartOf, startPlay } from "./playStart";
-import { defaultTarget, writeAction, writeItemTargets, writeProp, type ProtoLayer } from "./protoEdit";
+import { defaultTarget, triggerCodeEdit, writeAction, writeItemTargets, writeProp, writeTriggerCode, type ProtoLayer } from "./protoEdit";
 import { selectedItem } from "./protoDom";
 import {
   ACTIONS, actionsFor, actionTriggerLabel, ANIMATIONS, protoActionCode, choiceItemsOf, columnsOf, DEFAULT_ANIMATION, DEFAULT_DELAY, DEFAULT_DIRECTION, DEFAULT_DURATION, DELAY_TRIGGER, filterOf, findNode, frameNodeOf, framesOf,
-  HOVER_TRIGGER, isItemTrigger, layerNameOf, layerWordsOf, layersIn, literalOf, moves, openerOf, optionsOf, protoOf, stepOf, targetLayerOf, targetsByItem, triggerLabel, triggerValue,
+  HOVER_TRIGGER, isItemTrigger, layerNameOf, layerWordsOf, layersIn, literalOf, moves, openerOf, optionsOf, protoOf, stepOf, stepsOf, targetLayerOf, targetsByItem, triggerLabel, triggerValue,
   type ChoiceItem, type ProtoAction, type ProtoAnimation, type ProtoDirection, type ProtoDuration, type ProtoFilter, type ProtoFrame, type ProtoOptions, type ProtoStep,
 } from "./protoModel";
 import { anchorsItself, placesItself, protoSubject, takesText, type ProtoSubject } from "./protoTriggers";
 import { turnOffPopover, turnOnPopover } from "./popoverEdit";
 import { OWN_POPOVER, POPOVER_TRIGGER, popoverIn } from "./popoverModel";
 import { PopoverRows } from "./PopoverRows";
+import { VariablesSection } from "./VariablesSection";
+import { ConditionalRows, defaultIfCode, defaultSetCode, setCode, SetVariableRows, type CreateVar } from "./VarActionRows";
+import { actionCode, addVarThen, pageVarsOf } from "./protoVars";
 
 /*
  * The Inspector's Prototype tab on a builder page (Studio builder GĐ2 M3, spec
@@ -105,6 +108,8 @@ export function PrototypePanel() {
           />
         </div>
       </InspectorSection>
+      {/* The page's prototype variables (W-52 B2), with nothing selected: Figma's Local variables for the prototype. */}
+      {!subject && !selectedNode ? <VariablesSection file={file} tree={tree} disabled={!editable} /> : null}
       {overlayNode ? (
         <OverlaySettings key={overlayNode.loc} node={overlayNode} file={file} disabled={!editable} />
       ) : subject ? (
@@ -197,9 +202,42 @@ function Interactions({ subject, tree, layer, via, frames, home, disabled }: { s
 
   return (
     <InspectorSection title="Interactions" actions={addMenu} note={via ? `${via} · in ${node.name}` : undefined}>
-      {shown.length ? shown.map((trigger) => (
-        <TriggerRow key={trigger} trigger={trigger} label={labelOf(trigger)} words={layerWordsOf(node, trigger)} value={triggerValue(node, trigger)} items={isItemTrigger(node, trigger) ? choiceItemsOf(node) : []} tree={tree} layer={layer} frames={frames} home={home} disabled={disabled} onRemoved={() => setAdded((list) => list.filter((item) => item !== trigger))} />
-      )) : <Text tone="base" textStyle="Body/Small/Regular">{`${node.name} takes no clicks.`}</Text>}
+      {shown.length ? shown.map((trigger) => {
+        const value = triggerValue(node, trigger);
+        const items = isItemTrigger(node, trigger) ? choiceItemsOf(node) : [];
+        const row = { trigger, words: layerWordsOf(node, trigger), items, tree, frames, home, disabled, onRemoved: () => setAdded((list) => list.filter((item) => item !== trigger)) };
+        const steps = stepsOf(value);
+        // Several actions (proto.run, W-52 B2): one row each, in order; each writes its own place among them.
+        if (steps.length > 1) {
+          const codes = steps.map((step) => actionCode(step as { action: string; args: unknown[] }));
+          const composeAt = (index: number) => (code: string | null) => {
+            const next = codes.map((entry, at) => (at === index ? code : entry)).filter((entry): entry is string => entry !== null);
+            return next.length === 0 ? null : next.length === 1 ? next[0] : `proto.run(${next.join(", ")})`;
+          };
+          return (
+            <div key={trigger} className="studio-prototype__steps" data-trigger-steps={trigger}>
+              {steps.map((step, index) => (
+                <div key={index} className="studio-prototype__step" data-step={index + 1}>
+                  <TriggerRow {...row} label={index === 0 ? labelOf(trigger) : "Then"} value={step} layer={{ ...layer, compose: composeAt(index) }} step={index + 1} />
+                </div>
+              ))}
+              {disabled ? null : <AddAction trigger={trigger} layer={layer} codes={codes} tree={tree} frames={frames} home={home} words={row.words} />}
+            </div>
+          );
+        }
+        const single = steps[0];
+        // One action: Add action makes it the first of several (not for a choice control's per-item targets, an Open
+        // popover or While hovering).
+        const perItem = single?.kind === "proto" && (single.action === "navigate" || single.action === "open") && Boolean(single.args[0]) && typeof single.args[0] === "object";
+        const popoverOpen = single?.kind === "proto" && single.action === "open" && typeof single.args[0] === "string" && trigger === POPOVER_TRIGGER && Boolean(popoverIn(frameNodeOf(tree, `overlay:${single.args[0]}`)));
+        const chains = Boolean(single && protoOf(single)) && !perItem && !popoverOpen && trigger !== HOVER_TRIGGER && !disabled;
+        return (
+          <div key={trigger}>
+            <TriggerRow {...row} label={labelOf(trigger)} value={value} layer={layer} />
+            {chains ? <AddAction trigger={trigger} layer={layer} codes={[actionCode(single as { action: string; args: unknown[] })]} tree={tree} frames={frames} home={home} words={row.words} /> : null}
+          </div>
+        );
+      }) : <Text tone="base" textStyle="Body/Small/Regular">{`${node.name} takes no clicks.`}</Text>}
     </InspectorSection>
   );
 }
@@ -211,7 +249,7 @@ const POPOVER_ACTION = { value: "popover", label: "Open popover" };
 
 /** One trigger of the selected layer: its action and target, how it animates (After delay: how long first). A choice
  *  control's item trigger (a tab bar's On change) leads each item to its own Screen or Overlay: one row per item. */
-function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, home, disabled, onRemoved }: { trigger: string; label: string; words: string; value: PageValue | undefined; items: ChoiceItem[]; tree: PageTree | null; layer: ProtoLayer; frames: ProtoFrame[]; home: ProtoFrame | null; disabled: boolean; onRemoved: () => void }) {
+function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, home, disabled, onRemoved, step }: { trigger: string; label: string; words: string; value: PageValue | undefined; items: ChoiceItem[]; tree: PageTree | null; layer: ProtoLayer; frames: ProtoFrame[]; home: ProtoFrame | null; disabled: boolean; onRemoved: () => void; step?: number }) {
   const localPage = useStudio((state) => state.localPage);
   const proto = protoOf(value);
   const action: ProtoAction = proto?.action ?? "none";
@@ -232,12 +270,27 @@ function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, 
   const targets = byItem ? targetsByItem(arg, items) ?? {} : {};
   const homeScreen = home?.kind === "screen" ? home.id : null;
 
-  // On click › Open popover (the Popover option): an Overlay holding a Popover, which sits by the layer in Play.
-  const offersPopover = trigger === POPOVER_TRIGGER && !items.length && !OWN_POPOVER[layer.name];
+  // On click › Open popover (the Popover option): an Overlay holding a Popover, which sits by the layer in Play. Not as one
+  // of several actions.
+  const offersPopover = trigger === POPOVER_TRIGGER && !items.length && !OWN_POPOVER[layer.name] && !layer.compose;
+  // Prototype variables (W-52 B2): Set variable and Conditional, a variable made on the way when the page has none.
+  const vars = pageVarsOf(tree);
+  const create: CreateVar = (type, codeFor, said) => void addVarThen(layer.file, tree, type, said, (name, rebase) => triggerCodeEdit({ ...layer, loc: rebase(layer.loc) }, trigger, codeFor(name), said));
+  const branchTarget = () => { const screen = defaultTarget("navigate", frames, homeScreenOf(home), words); return screen ? protoActionCode("navigate", screen) : "proto.close()"; };
   const openTarget = action === "open" && typeof arg === "string" ? frameNodeOf(tree, `overlay:${arg}`) : null;
   const popover = offersPopover ? popoverIn(openTarget) : null;
   const write = (next: ProtoAction | "popover", target?: string) => {
     const node = findNode(tree, layer.loc);
+    if (next === "set" || next === "if") {
+      const said = next === "set" ? "Set variable" : "Conditional";
+      // A Conditional keeps what the trigger did as its Then (Figma wraps the action in the condition).
+      const kept = proto && proto.action !== "set" && proto.action !== "if" && !byItem && !popover ? actionCode({ action: proto.action, args: proto.args }) : null;
+      const code = next === "set" ? defaultSetCode(vars) : defaultIfCode(vars, kept ?? branchTarget());
+      if (code && popover && node && localPage) void turnOffPopover(layer, node, tree, localPage, code, said);
+      else if (code) void writeTriggerCode(layer, trigger, code, said);
+      else create("boolean", (made) => (next === "set" ? setCode(made, `!vars.${made}`) : `proto.if(vars.${made}, ${branchTarget()})`), `${said} on a new variable`);
+      return;
+    }
     if (next === "popover") {
       if (!popover && node) void turnOnPopover(layer, tree, words);
       return;
@@ -292,11 +345,11 @@ function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, 
   const animates = trigger !== HOVER_TRIGGER && (action === "navigate" || (action === "open" && !selfPlaced));
   const set = value !== undefined;
   const remove = set && !disabled
-    ? <IconButton appearance="flat" level="primary" size="xs" icon="icon-minus-line" aria-label={`Remove ${label}`} tooltip="Remove interaction" onClick={() => write("none")} />
+    ? <IconButton appearance="flat" level="primary" size="xs" icon="icon-minus-line" aria-label={step ? `Remove action ${step}` : `Remove ${label}`} tooltip={step ? "Remove action" : "Remove interaction"} onClick={() => write("none")} />
     : null;
   return (
     <div className="studio-prototype__trigger" data-trigger={trigger}>
-      <InspectorRow label={label} labelTitle={trigger} name={`proto:${trigger}`} action={remove}>
+      <InspectorRow label={label} labelTitle={trigger} name={`proto:${trigger}${step && step > 1 ? `:${step}` : ""}`} action={remove}>
         <RowSelectField aria-label={`${label} action`} size="sm" disabled={disabled} value={custom ? "" : popover ? "popover" : action} placeholder="Set in code" onValueChange={(next) => write(next as ProtoAction | "popover")} options={offersPopover ? actionsFor(trigger).flatMap((entry) => (entry.value === "open" ? [entry, POPOVER_ACTION] : [entry])) : [...actionsFor(trigger)]} />
       </InspectorRow>
       {trigger === DELAY_TRIGGER && action !== "none" ? (
@@ -354,9 +407,45 @@ function TriggerRow({ trigger, label, words, value, items, tree, layer, frames, 
       ) : null}
       {action === "filter" && proto ? <FilterRows trigger={trigger} filter={filterOf(proto.args)} screen={screenFor(tree, home)} hands={items.length > 0 || typed || trigger === "onPopoverSelect"} typed={typed} layer={layer} disabled={disabled} /> : null}
       {action === "step" && proto ? <StepRows trigger={trigger} step={stepOf(proto.args)} screen={screenFor(tree, home)} layer={layer} disabled={disabled} /> : null}
+      {action === "set" && proto ? <SetVariableRows name={String(proto.args[0] ?? "")} value={proto.args[1]} vars={vars} write={(code, said) => void writeTriggerCode(layer, trigger, code, said)} create={create} disabled={disabled} prefix={`proto:${trigger}${step ? `:${step}` : ""}`} /> : null}
+      {action === "if" && proto ? <ConditionalRows args={proto.args} vars={vars} frames={frames} write={(code, said) => void writeTriggerCode(layer, trigger, code, said)} create={create} disabled={disabled} prefix={`proto:${trigger}${step ? `:${step}` : ""}`} /> : null}
       {animates ? <AnimationRows trigger={trigger} options={options} disabled={disabled} onChange={writeOptions} /> : null}
       {target && !selfPlaced ? <OverlayFields node={target} file={layer.file} disabled={disabled} /> : null}
       {custom ? <Text as="p" tone="light" textStyle="Caption/Regular" className="studio-prototype__note">Picking an action replaces the code.</Text> : null}
+    </div>
+  );
+}
+
+const homeScreenOf = (home: ProtoFrame | null) => (home?.kind === "screen" ? home.id : null);
+
+/** The actions Add action offers: the ones that take no item or popover of their own. */
+const CHAINED = ACTIONS.filter((entry) => !["none", "filter", "step"].includes(entry.value));
+
+/** + Add action (Figma's several actions on one interaction, W-52 B2/W-58): the trigger's actions become
+ *  `proto.run(…)` with the new one last, written with its first target as a lone action would be. */
+function AddAction({ trigger, layer, codes, tree, frames, home, words }: { trigger: string; layer: ProtoLayer; codes: string[]; tree: PageTree | null; frames: ProtoFrame[]; home: ProtoFrame | null; words: string }) {
+  const vars = pageVarsOf(tree);
+  const run = (next: string) => `proto.run(${[...codes, next].join(", ")})`;
+  const add = (action: ProtoAction) => {
+    const said = `Add action · ${ACTIONS.find((entry) => entry.value === action)?.label ?? action}`;
+    const screen = defaultTarget("navigate", frames, homeScreenOf(home), words);
+    const branch = screen ? protoActionCode("navigate", screen) : "proto.close()";
+    if (action === "set" || action === "if") {
+      const code = action === "set" ? defaultSetCode(vars) : defaultIfCode(vars, branch);
+      if (code) void writeTriggerCode(layer, trigger, run(code), said);
+      else void addVarThen(layer.file, tree, "boolean", said, (name, rebase) => triggerCodeEdit({ ...layer, loc: rebase(layer.loc) }, trigger, run(action === "set" ? setCode(name, `!vars.${name}`) : `proto.if(vars.${name}, ${branch})`), said));
+      return;
+    }
+    const target = action === "navigate" || action === "open" || action === "toast" || action === "link" ? defaultTarget(action, frames, homeScreenOf(home), words) ?? "" : undefined;
+    void writeTriggerCode(layer, trigger, run(protoActionCode(action as Exclude<ProtoAction, "none">, target)), said);
+  };
+  return (
+    <div className="studio-prototype__add-action">
+      <Menu
+        trigger={<Button appearance="main" level="tertiary" size="sm" startIcon={<Icon name="icon-plus-line" decorative />}>Add action</Button>}
+        items={CHAINED.map((entry) => ({ id: entry.value, label: entry.label }))}
+        onSelect={(item) => add(item.id as ProtoAction)}
+      />
     </div>
   );
 }

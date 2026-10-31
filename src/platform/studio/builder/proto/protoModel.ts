@@ -17,7 +17,7 @@ import type { PageChild, PageNode, PageTree, PageValue } from "../render/renderP
  * Previous on the Screen's Stepper).
  */
 
-export type ProtoAction = "none" | "navigate" | "open" | "close" | "back" | "toast" | "link" | "filter" | "step";
+export type ProtoAction = "none" | "navigate" | "open" | "close" | "back" | "toast" | "link" | "filter" | "step" | "set" | "if";
 export const ACTIONS: ReadonlyArray<{ value: ProtoAction; label: string }> = [
   { value: "none", label: "None" },
   { value: "navigate", label: "Navigate to" },
@@ -28,6 +28,9 @@ export const ACTIONS: ReadonlyArray<{ value: ProtoAction; label: string }> = [
   { value: "link", label: "Open link" },
   { value: "filter", label: "Filter table" },
   { value: "step", label: "Change step" },
+  // Prototype variables (W-52 B2, docs/research/studio-prototype-variables-2026-10-31.md §3.2).
+  { value: "set", label: "Set variable" },
+  { value: "if", label: "Conditional" },
 ];
 
 /** Figma's trigger names where a prop has one; else the prop in words ("onRowClick" → "On row click"). A phone or tablet
@@ -302,11 +305,12 @@ export function stepperOf(node: PageNode): { count: number; start: number } {
   return { count, start: typeof start === "number" ? start : 0 };
 }
 
-/** Set variable, Conditional and several actions (W-52 B, docs/research/studio-prototype-variables-2026-10-31.md): written
- *  in code until the Prototype tab offers them (B2), so the tab shows them as "Set in code". */
-const CODE_ACTIONS = new Set(["set", "if", "run"]);
+/** Several actions (`proto.run`, W-52 B): the Prototype tab lists them one by one (stepsOf), so as one action it is none. */
+const CODE_ACTIONS = new Set(["run"]);
 /** A prop's value as a prototype action, or null (unset, or code of its own). */
 export const protoOf = (value: PageValue | undefined): { action: ProtoAction; args: unknown[] } | null => (value?.kind === "proto" && !CODE_ACTIONS.has(value.action) ? { action: value.action as ProtoAction, args: value.args } : null);
+/** A trigger's actions in order: the ones `proto.run(…)` holds, else the one action (none when unset). */
+export const stepsOf = (value: PageValue | undefined): PageValue[] => (value?.kind === "proto" && value.action === "run" ? value.args.filter((arg): arg is PageValue => Boolean(arg) && typeof arg === "object" && (arg as { kind?: unknown }).kind === "proto") : value ? [value] : []);
 /** The actions a Conditional or several actions hold (`proto.if`, `proto.run`), as prop values. */
 const nestedActions = (value: PageValue): PageValue[] => (value.kind === "proto" && (value.action === "if" || value.action === "run") ? value.args.filter((arg): arg is PageValue => Boolean(arg) && typeof arg === "object" && (arg as { kind?: unknown }).kind === "proto") : []);
 
