@@ -3176,6 +3176,51 @@ export default function Page() {
   check("responsive push: a page without per-breakpoint values has no breakpoint note", push(responsivePage('device="desktop"').replace(/\{\{ desktop: "xl", mobile: "md" \}\}/, '"xl"').replace(/direction=\{\{[^}]*\}\}/g, 'direction="row"').replace(' padding={{ desktop: "lg", tablet: "md" }}', "").replace(' hideOn={["mobile"]}', "").replace("columns={{ mobile: 1, desktop: 3 }}", "columns={3}")).notes, []);
 }
 
+// Prototype variables (W-52 B3, docs/research/studio-prototype-variables-2026-10-31.md §4): the page's collection, Set
+// variable / Conditional / several actions as Figma's actions, words and Visible bound; what Figma cannot bind, named.
+{
+  const page = `// @zen-page {"format":1,"title":"Vars"}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { Button, Chip, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+export const vars = { dateRange: "Any time", count: 0, on: false };
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="home" title="Home" device="phone">
+        <Stack gap="md" padding="lg">
+          <Text>{vars.dateRange}</Text>
+          <Text hidden={!vars.on}>Welcome</Text>
+          <Chip selected={vars.dateRange !== "Any time"}>Date</Chip>
+          <Button onClick={proto.run(proto.set("count", vars.count + 1), proto.if(vars.on && vars.count > 2, proto.navigate("details"), proto.toast({ title: "No" })))}>Add</Button>
+        </Stack>
+      </Screen>
+      <Screen id="details" title="Details" device="phone">
+        <Stack gap="md" padding="lg"><Button onClick={proto.back()}>Back</Button></Stack>
+      </Screen>
+    </Board>
+  );
+}
+`;
+  const { pkg, notes } = figmaPackage(page, { mapping, nestedLayers: NESTED_LAYERS, page: { id: "vars", title: "Vars" } });
+  check("vars: the page's collection, each variable at its start value", pkg.variables, { collection: "Prototype · Vars", vars: [{ name: "dateRange", type: "STRING", value: "Any time" }, { name: "count", type: "FLOAT", value: 0 }, { name: "on", type: "BOOLEAN", value: false }] });
+  const home = pkg.frames.find((entry) => entry.id === "screen:home").frame;
+  const add = find(home, (node) => node.reactions?.[0]?.actions);
+  const v = (name, resolvedType) => ({ type: "VARIABLE", name, resolvedType });
+  check("vars: Set variable (an expression) then a Conditional; the toast left out", add?.reactions, [{ trigger: "ON_CLICK", actions: [
+    { action: "SET_VARIABLE", variable: "count", value: { type: "EXPRESSION", fn: "ADDITION", args: [v("count", "FLOAT"), { type: "FLOAT", value: 1 }], resolvedType: "FLOAT" } },
+    { action: "CONDITIONAL", blocks: [{ condition: { type: "EXPRESSION", fn: "AND", args: [v("on", "BOOLEAN"), { type: "EXPRESSION", fn: "GREATER_THAN", args: [v("count", "FLOAT"), { type: "FLOAT", value: 2 }], resolvedType: "BOOLEAN" }], resolvedType: "BOOLEAN" }, actions: [{ action: "NAVIGATE", to: "screen:details", transition: { type: "DISSOLVE", duration: 0.2, easing: [0.16, 1, 0.3, 1] } }] }, { actions: [] }] },
+  ] }]);
+  const binds = [];
+  const walk = (node) => { if (node.varBind) binds.push(node.varBind); (node.children ?? []).forEach(walk); };
+  walk(home);
+  check("vars: the words and Visible bound; drawn at the start values", [binds, find(home, (node) => node.varBind?.text)?.characters ?? find(home, (node) => node.varBind?.text)?.text], [[{ text: "dateRange" }, { visible: "on" }], "Any time"]);
+  check("vars: a layer Visible by a variable that starts off is pushed hidden", find(home, (node) => node.varBind?.visible)?.hidden, true);
+  check("vars: what Figma cannot bind or run is named", [notes.some((note) => /Chip selected: bound to a condition/.test(note)), notes.some((note) => /toast: Figma has no such action .*left out of its actions/.test(note))], [true, true]);
+}
+
 if (failures.length) {
   console.error(`✗ figma-push selftest: ${failures.length} failed, ${passed} passed\n  ${failures.join("\n  ")}`);
   process.exit(1);

@@ -14,6 +14,11 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio Export › Figma carries prototype variables (walk W-52, phase B3): the page's variables become a local
+  collection "Prototype · <page>" at their start values; Set variable, Conditional and several actions become Figma's
+  actions (expressions included); words, Visible and an instance's text property bind to them. What Figma cannot bind
+  (a condition, the opposite of a variable) goes at its start value with a note. Needs the Zen plugin's studio-import
+  from 2026-10-31.
 - Zen Studio prototype variables in the UI (walk W-52, phase B2). With nothing selected, the Prototype tab lists the
   page's Variables: add Text / Number / Boolean, rename (every use follows), set the start value, change the kind, delete
   (asks when in use). Interactions add Set variable and Conditional, and Add action chains several actions on one
