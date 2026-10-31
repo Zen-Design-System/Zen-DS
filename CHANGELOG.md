@@ -14,6 +14,11 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio prototype variables in the UI (walk W-52, phase B2). With nothing selected, the Prototype tab lists the
+  page's Variables: add Text / Number / Boolean, rename (every use follows), set the start value, change the kind, delete
+  (asks when in use). Interactions add Set variable and Conditional, and Add action chains several actions on one
+  trigger. In the Design panel a field binds to a variable (its Bind button, a pill once bound, Unbind), the words of a
+  layer and its visibility too; Layers marks layers that use one. Local variables links to them.
 - Zen Studio prototype variables (walk W-52, phase B1): a page declares `export const vars` (text, numbers, booleans).
   Layers read them (`{vars.x}`, `!vars.x`, `vars.x === …`, a layer's visibility too); `proto.set` (with Figma's
   expressions), `proto.if` and `proto.run` change and branch on them. Play keeps them across screens until Restart; a

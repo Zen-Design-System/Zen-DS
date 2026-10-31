@@ -23,3 +23,20 @@
     (selftest +6, tsc on the output). Figma push: the start values (`withStartValues`) until B3.
   - `protoOf` returns null for set / if / run: the Prototype tab says "Set in code" until B2.
 - E2E: PT-52…PT-55 (`tools/studio/e2e/scenarios/prototype.mjs`).
+
+## Session "Studio: prototype variables UI" · W-52 phase B2 (tier M; user 2026-10-31 "Bắt đầu B2 … theo doc §3")
+
+- Engine: op "pageVars" on the page's Board (`tools/studio/proto-vars-edit.mjs`, selftest 16): add, set (start value),
+  rename (declaration, every `vars.x`, every `proto.set("x"`), retype (literal sets converted), remove (reads take the
+  start value, a condition on a row's field goes, a Set variable leaves `proto.run` or its attribute; one in a
+  Conditional's branch refuses). `setText` gains `code` (`{vars.x}`) and `from` (words back).
+- Prototype tab: `VariablesSection.tsx` with nothing selected (rows: name, start value, ⋯ kind / Delete with an
+  inline question); `VarActionRows.tsx` Set variable (variable, value · Off/On/Flip · Figma-like expression) and
+  Conditional (If variable/compare/value or an expression; Then and Else as one simple action each); Add action makes
+  `proto.run(…)`, each step edited in place through `ProtoLayer.compose`. A new variable made on the way is one undo
+  step with what binds it (`addVarThen`: rebaseLoc past the declaration, squashEdits).
+- Inspector: `varBind.tsx` (context from DesignPanel on local pages): Bind button on text / number / boolean / choice
+  fields and on a layer's words, pill + Unbind once bound; Appearance header binds Visible (`hidden={!vars.x}`).
+  Layers: `{x}` on layers that use a variable (`layerMeta.ts` readsVarsSrc). Local variables: "Prototype · this page".
+- Not done (the doc's §3 sketch had more): a branch of a Conditional holds one action (no list), no else-if UI.
+- E2E: PT-56…PT-59.
