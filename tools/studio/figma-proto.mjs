@@ -8,6 +8,16 @@
 //       transition?: { type: "DISSOLVE" | "MOVE_IN" | "PUSH" | "SLIDE_IN", direction?: "LEFT" | "RIGHT" | "TOP" | "BOTTOM",
 //                      duration: seconds, easing: [x1, y1, x2, y2] },
 //       layer?: a nested layer's path in the instance (a Dialog's Primary button), or its names one by one }
+//   With prototype variables (W-52 B3, docs/research/studio-prototype-variables-2026-10-31.md §4) a reaction holds several
+//   actions instead of one: { trigger, timeout?, layer?, actions: Action[] }, Figma's several actions, Set variable and
+//   Conditional:
+//     Action = { action: "NAVIGATE" | "OVERLAY" | "CLOSE" | "BACK", to?, transition? }
+//            | { action: "SET_VARIABLE", variable: name, value: Data }
+//            | { action: "CONDITIONAL", blocks: [{ condition?: Data, actions: Action[] }] }   (the last block's no
+//                                                                                            condition: else)
+//     Data   = { type: "STRING" | "FLOAT" | "BOOLEAN", value } | { type: "VARIABLE", name, resolvedType }
+//            | { type: "EXPRESSION", fn: Figma's ExpressionFunction, args: Data[], resolvedType }
+//   The package names a variable; the plugin finds or makes it in the page's collection (figma-push `variables`).
 //
 // The Studio's own words (src/platform/studio/builder/proto/protoModel.ts): an action is `proto.<action>(target?,
 // options?)`, its trigger the prop it sits in (onClick, whileHovering; a Screen's onDelay), its options { animation,
@@ -74,6 +84,73 @@ export function reactionOf(trigger, proto) {
     to: action === "open" ? overlayFrameId(target) : screenFrameId(target),
     ...(transition ? { transition } : {}),
   };
+}
+
+/** Figma's expression functions by the operators of a page's expressions (proto-vars.mjs). */
+export const EXPRESSION_FUNCTIONS = { "+": "ADDITION", "-": "SUBTRACTION", "*": "MULTIPLICATION", "/": "DIVISION", "===": "EQUALS", "!==": "NOT_EQUAL", "<": "LESS_THAN", "<=": "LESS_THAN_OR_EQUAL", ">": "GREATER_THAN", ">=": "GREATER_THAN_OR_EQUAL", "&&": "AND", "||": "OR", "!": "NOT" };
+/** Figma's variable types by the kinds of a page's variables. */
+export const RESOLVED_TYPES = { text: "STRING", number: "FLOAT", boolean: "BOOLEAN" };
+const LITERAL_TYPE = (value) => (typeof value === "string" ? "STRING" : typeof value === "number" ? "FLOAT" : typeof value === "boolean" ? "BOOLEAN" : null);
+
+/**
+ * An operand of a page's expressions (proto-vars.mjs) as Figma's variable data, or null when Figma cannot hold it (a
+ * .map row's field, an unknown variable). `vars`: the page's variables and their start values.
+ */
+export function variableDataOf(operand, vars = {}) {
+  const literal = LITERAL_TYPE(operand);
+  if (literal) return { type: literal, value: operand };
+  if (!operand || typeof operand !== "object") return null;
+  if (operand.kind === "ref") {
+    const name = operand.root === "vars" ? operand.path?.[0] : null;
+    const type = name && Object.hasOwn(vars, name) ? LITERAL_TYPE(vars[name]) : null;
+    return type ? { type: "VARIABLE", name, resolvedType: type } : null;
+  }
+  if (operand.kind !== "expr" || !EXPRESSION_FUNCTIONS[operand.op]) return null;
+  const args = operand.args.map((arg) => variableDataOf(arg, vars));
+  if (args.includes(null)) return null;
+  const typeOf = (data) => data.resolvedType ?? data.type;
+  const logic = ["===", "!==", "<", "<=", ">", ">=", "&&", "||", "!"].includes(operand.op);
+  const resolvedType = logic ? "BOOLEAN" : operand.op === "+" && args.some((arg) => typeOf(arg) === "STRING") ? "STRING" : "FLOAT";
+  return { type: "EXPRESSION", fn: EXPRESSION_FUNCTIONS[operand.op], args, resolvedType };
+}
+
+/**
+ * A trigger's action (`{ action, args }`) as Figma's reaction, Set variable, Conditional and several actions included
+ * (W-52 B3): the one-action reaction (reactionOf) when it is one action Figma has, else `{ trigger, actions }`. An action
+ * Figma has no word for (Show toast, Filter table…) is left out of the list and named in `skipped`; `{ note }` when
+ * nothing is left.
+ */
+export function reactionOfValue(trigger, proto, vars = {}) {
+  if (!["set", "if", "run"].includes(proto?.action)) return reactionOf(trigger, proto);
+  const figmaTrigger = TRIGGERS[trigger];
+  if (!figmaTrigger) return { note: `${trigger}: Figma has no such trigger (On click, While hovering and After delay go)` };
+  if (figmaTrigger === "ON_HOVER") return { note: "While hovering: Figma's While hovering opens an overlay only" };
+  const skipped = [];
+  const actionsOf = (value) => {
+    if (!value || typeof value !== "object" || value.kind !== "proto") return [];
+    if (value.action === "run") return value.args.flatMap(actionsOf);
+    if (value.action === "set") {
+      const [name, to] = value.args;
+      const data = variableDataOf(to, vars);
+      if (typeof name !== "string" || !Object.hasOwn(vars, name) || !data) { skipped.push(`Set variable ${name}: its value reads a row of the page data, which Figma has not`); return []; }
+      return [{ action: "SET_VARIABLE", variable: name, value: data }];
+    }
+    if (value.action === "if") {
+      const [condition, then, otherwise] = value.args;
+      const data = variableDataOf(condition, vars);
+      if (!data) { skipped.push("Conditional: its condition reads a row of the page data, which Figma has not"); return []; }
+      return [{ action: "CONDITIONAL", blocks: [{ condition: data, actions: actionsOf(then) }, ...(otherwise ? [{ actions: actionsOf(otherwise) }] : [])] }];
+    }
+    const one = reactionOf(trigger, value);
+    if (one.note) { skipped.push(one.note); return []; }
+    const { trigger: _trigger, timeout: _timeout, ...action } = one;
+    return [action];
+  };
+  const actions = actionsOf(proto);
+  const delay = optionsOf(proto.action, proto.args).delay;
+  const timing = figmaTrigger === "AFTER_TIMEOUT" ? { timeout: (typeof delay === "number" && delay >= 0 ? delay : DEFAULT_DELAY_MS) / 1000 } : {};
+  if (!actions.length) return { note: skipped.join("; ") || "no action Figma has" };
+  return { trigger: figmaTrigger, ...timing, actions, ...(skipped.length ? { skipped } : {}) };
 }
 
 /** A reaction read back (figma-pull) as the Studio's trigger prop and action code, or `{ note }`. */
