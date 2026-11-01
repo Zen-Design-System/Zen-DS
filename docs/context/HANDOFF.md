@@ -19,6 +19,10 @@ Last updated: 2026-10-27.
 
 ## State in short
 
+- **Docs platform chrome → Figma B5 (2026-11-01, user):** branch `claude/docs-chrome-b5-020c25`. The docs site runs on
+  the library `AppShell pattern="docs" canvas="flat"` (header Search ⌘K, Canvas nav pane, "On this page" pane, drawer
+  under 1024); the previews' modes live in the Appearance side panel (`PlatformAppearancePanel`), no topbar chips, no
+  page cover. Studio's chrome (B4) is a separate session/branch. Detail: session log 2026-11-01.
 - **Studio prototype variables (W-52 B, 2026-10-31):** doc `docs/research/studio-prototype-variables-2026-10-31.md`
   (§7 approved as recommended). B1 (code + Play) on branch `claude/gallant-perlman-e0db6b`: `export const vars`,
   `proto.set` / `proto.if` / `proto.run`, props reading `vars.x` (`tools/studio/proto-vars.mjs`, `dialect.mjs`,
