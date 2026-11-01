@@ -67,7 +67,7 @@
 
 .official-platform {
   --platform-code-font: "JetBrains Mono";
-  --official-canvas: var(--zen-color-background-canvas-default, #f7f7f7);
+  --official-canvas: var(--zen-color-background-canvas-flat, #fff);
   --official-surface: var(--zen-color-background-surface-default, #fff);
   --official-ink: var(--zen-color-content-neutral-strongest, #111);
   --official-muted: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%));
@@ -86,8 +86,8 @@
      Neutral/Solid and Inverse/Strongest), never the mode-switching semantic tokens. */
   --platform-code-background: var(--zen-light-neutral-12, #111111);
   --platform-code-foreground: var(--zen-dark-neutral-12, #ffffff);
-  display: flex;
-  min-height: 100vh;
+  /* The AppShell inside fills the window (min-height 100dvh) and paints Canvas/Flat over this background. */
+  display: block;
   overflow: visible;
   background: var(--official-canvas);
   color: var(--official-ink);
@@ -195,57 +195,34 @@
   --zen-typography-letter-spacing-body-code: 0px;
 }
 
-/* The docs rail and every Sidebar in the examples take Sidebar/Default-Width as the density mode resolves it (Compact
-   240px, Comfortable 260px; user, 2026-10-06): the platform no longer pins its own width. */
-
+/* ───────────── Docs chrome: Figma ◇ Master-Layout B5 · Docs / Learning (15917:6719) ─────────────
+   The library AppShell (pattern="docs", canvas="flat") draws the frame: the header across the top, the navigation and
+   "On this page" in two Canvas panes (Sidebar/Default-Width, no box) and the page column between them. These rules only
+   fit the docs' own parts into it. */
 :where(.official-platform) button:where(:not(.zen-button):not(.zen-chip)) { border: 0; cursor: pointer; font: inherit; }
 .official-platform .zen-button { cursor: pointer; }
-.official-sidebar {
-  position: sticky;
-  top: 0;
-  width: var(--zen-sidebar-default-width, 240px);
-  min-width: var(--zen-sidebar-default-width, 240px);
-  max-width: var(--zen-sidebar-default-width, 240px);
-  height: 100vh;
-  flex: 0 0 var(--zen-sidebar-default-width, 240px);
-  align-self: flex-start;
-}
-.official-sidebar .zen-sidebar__surface {
-  background: var(--zen-color-background-surface-alt, #f7f7f7);
-  box-shadow: none;
-}
-.official-sidebar .zen-sidebar__items { gap: var(--zen-spacing-gap-xsmall, 8px); }
-.official-sidebar__brand { display: flex; width: 100%; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-/* Navigation search: filters the rail; the status line announces the count and shows the empty result. */
-/* Aligned with the menu items: the slot gets the body's Center-Container inset (Spacing/Padding/XSmall). */
-.official-sidebar .zen-sidebar__search { padding: 0 var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px); }
-.official-sidebar__search { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
-.official-sidebar__search > .zen-search { width: 100%; }
-.official-sidebar__search-status:empty { display: none; }
-.official-sidebar__search-status { padding-inline: var(--zen-spacing-padding-small, 12px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter, sans-serif); }
-/* zen-allow-slot-size: holds the Zen logo artwork at its Figma 28px (platform sidebar header), not a token-sized icon. */
-.official-sidebar__brand-mark { display: inline-flex; width: 28px; height: 28px; flex: 0 0 28px; align-items: center; justify-content: center; color: var(--zen-color-content-neutral-strongest, #111); }
-.official-sidebar__brand-name { min-width: 0; flex: 1 1 auto; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-semi-bold, 600) var(--zen-typography-font-size-body-extra, 16px)/var(--zen-typography-line-height-body-extra, 24px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-extra, -0.16px); }
-
-/* Desktop: the wrapper is transparent to layout, so the rail stays a sticky flex child. */
-.official-nav { display: contents; }
-.official-topbar__menu, .official-scrim { display: none; }
-.official-content { position: relative; display: flex; min-width: 0; flex: 1; flex-direction: column; }
-/* Sticky content inside a page (e.g. the Iconography toolbar) docks 8px below the 72px topbar. */
-.official-platform { --zen-sticky-offset: calc(72px + var(--zen-spacing-gap-xsmall, 8px)); }
-.official-topbar { position: sticky; z-index: 20; top: 0; box-sizing: border-box; display: flex; height: 72px; flex: 0 0 72px; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-medium, 16px); padding: var(--zen-margin-comfortable, 24px) var(--zen-margin-comfortable, 24px) var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-large, 20px); background: var(--official-canvas); }
-.official-topbar__breadcrumbs { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); white-space: nowrap; }
-.official-topbar__breadcrumb-group { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
-.official-topbar__breadcrumb-group > .zen-icon { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
-.official-topbar__breadcrumb { display: inline-flex; min-height: 28px; box-sizing: border-box; align-items: center; padding: var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-xsmall, 8px); border-radius: var(--zen-corner-radius-small, 8px); color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-base, 14px)/var(--zen-typography-line-height-body-base, 20px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-base, -.14px); }
-.official-topbar__breadcrumb[aria-current="page"] { background: var(--zen-color-background-neutral-flat-default, transparent); }
-.official-topbar__trailing { display: inline-flex; min-width: 0; flex: 0 1 auto; align-items: center; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.official-topbar__controls { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.official-topbar__controls .zen-chip { --zen-chip-icon: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); flex: 0 0 auto; box-shadow: var(--zen-style-shadow-action-tertiary-shadow); backdrop-filter: var(--zen-style-shadow-action-tertiary-backdrop-filter, blur(20px)); }
-.official-topbar__controls .zen-chip__dropdown { flex: 0 0 auto; }
-.official-topbar__segmented { flex: 0 0 auto; }
+/* Sticky content inside a page (e.g. the Iconography toolbar) docks 8px under the shell's sticky header (AppShell
+   measures it into --zen-app-shell-header-height). */
+.official-shell { --zen-sticky-offset: calc(var(--zen-app-shell-header-height, 64px) + var(--zen-spacing-gap-xsmall, 8px)); }
+/* Text pages read in B5's 720 column (the AppShell default); component and foundation pages take the page's width. */
+.official-platform[data-page-width="wide"] .zen-app-shell__column { max-width: none; }
+/* Figma Leading-Slots brand: the Zen mark, the product name (Heading/4) and the version Badge; it links home. */
+.official-brand { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); border-radius: var(--zen-corner-radius-2-xsmall, 4px); color: var(--zen-color-content-neutral-strongest, #111); text-decoration: none; }
+.official-brand:focus-visible { outline: 2px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: 2px; }
+.official-brand__name { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); white-space: nowrap; }
+/* Phones: the mark alone (the link keeps its name), so the menu, the mark and the header's icon buttons share one row. */
+@media (max-width: 743.98px) { .official-brand__name { display: none; } }
+/* Figma B5 Top-Bar: a Border/Neutral/Pale line under the header, so the page reads as passing under it. */
+.official-shell .zen-app-shell__header { box-shadow: inset 0 -1px 0 var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.official-nav-search { width: 100%; }
+.official-nav-status:empty { display: none; }
+/* Drawer (under 1024px): the search block sits in the Sidebar's search slot, aligned with the rows. */
+.official-nav-search-block { display: grid; gap: var(--zen-spacing-gap-2-xsmall, 4px); }
+.official-nav-search-block .official-nav-status { padding-inline: var(--zen-spacing-padding-small, 12px); }
+/* The breadcrumb row opens the page column; the page follows Spacing/Gap/XLarge below it (Figma B5). */
+.official-breadcrumbs { margin-bottom: var(--zen-spacing-gap-xlarge, 32px); }
 /* zen-allow-raw-spacing: the page's end space under the last section (platform layout; beyond the 48px padding scale). */
-.official-page { display: flex; width: calc(100% - 48px); margin: 0 auto; flex-direction: column; gap: var(--zen-spacing-gap-giant, 64px); padding-bottom: 120px; }
+.official-page { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-giant, 64px); padding-bottom: 120px; }
 
 .official-overview { display: flex; width: 100%; flex-direction: column; padding-top: var(--zen-spacing-padding-small, 12px); }
 /* Figma Overviews: Header/Dashboard Main bottom padding 12 + Body padding 24 above the Tagline;
@@ -296,24 +273,10 @@
 .official-card h3 { width: 100%; margin: 0; color: var(--official-ink); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-heading-4, 20px)/var(--zen-typography-line-height-heading-4, 28px) var(--zen-typography-font-family-heading, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-heading-4, -.6px); }
 .official-card p { width: 100%; margin: 0; color: var(--official-muted); font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-base, 14px)/var(--zen-typography-line-height-body-base, 20px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-base, -.14px); }
 
-.platform-page-template { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-xsmall, 8px); padding-top: var(--zen-spacing-padding-small, 12px); }
-.platform-page-hero { position: relative; display: flex; box-sizing: border-box; height: 400px; flex-direction: column; gap: var(--zen-spacing-gap-medium, 16px); align-items: flex-start; overflow: hidden; padding: var(--zen-spacing-padding-3-xlarge, 40px); border-radius: var(--zen-corner-radius-2-xlarge, 24px); background: var(--zen-color-background-neutral-pale-default, rgb(5 5 5 / 3%)); }
-/* Page hero (Codebase Platform template covers, e.g. 14257:57020 "Global Colors"): raw Figma values like the Overview cover —
-   the 28px logo art, Frame 78 gap 30, TASA Explorer Black 120px (86% line, −2% tracking).
-   zen-allow-slot-size zen-allow-raw-spacing zen-allow-raw-type: the hero rules below copy them. */
-.platform-page-hero__logo { position: absolute; top: var(--zen-spacing-padding-3-xlarge, 40px); left: var(--zen-spacing-padding-3-xlarge, 40px); width: 28px; height: 28px; background: var(--zen-color-content-neutral-strongest, #111); mask: url("../assets/figma/official/logo-zen.svg") center / contain no-repeat; }
-.platform-page-hero__kaiz { position: absolute; top: var(--zen-spacing-padding-3-xlarge, 40px); right: var(--zen-spacing-padding-3-xlarge, 40px); color: var(--zen-color-content-neutral-strongest, #111); font-family: var(--zen-typography-font-family-sans, Inter), sans-serif; font-size: var(--zen-typography-font-size-all-caps-m, 14px); font-weight: var(--zen-emphasis-font-weight-bold, 600); letter-spacing: var(--zen-typography-letter-spacing-all-caps-m, 0); line-height: var(--zen-typography-line-height-all-caps-m, 16px); text-transform: uppercase; }
-/* zen-allow-raw-spacing: Figma hero Frame 78 gap 30 (raw). */
-.platform-page-hero__main { display: flex; width: 100%; min-height: 0; flex: 1 1 auto; flex-direction: column; gap: 30px; align-items: center; }
-/* zen-allow-raw-type: Figma hero title, TASA Explorer Black 120px / 86% / −2% (raw). */
-.platform-page-hero h1 { width: 100%; max-width: 900px; margin: 0; color: var(--zen-color-content-neutral-strongest, #111); font-family: var(--zen-typography-font-family-display), sans-serif; font-size: 120px; font-weight: 900; letter-spacing: -2.4px; line-height: .86; text-align: center; text-transform: uppercase; }
-.platform-page-hero h1 span { display: block; }
-.platform-page-hero__divider { width: 2px; min-height: 0; flex: 1 1 auto; background: var(--zen-color-content-neutral-strongest, #111); opacity: .2; }
-.platform-page-hero__meta { display: flex; width: 100%; flex: 0 0 auto; justify-content: space-between; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-all-caps-m, 14px)/var(--zen-typography-line-height-all-caps-m, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-all-caps-m, 0); text-transform: uppercase; }
-/* zen-allow-raw-spacing: 96px end space under the page body (platform layout; beyond the 48px padding scale). */
-.platform-page-template__body { display: flex; flex-direction: column; gap: var(--zen-spacing-gap-3-xlarge, 48px); padding: var(--zen-spacing-padding-4-xlarge, 48px) 0 96px; }
-.platform-page-intro { width: min(800px, 100%); margin: 0 auto; text-align: center; }
-.platform-page-intro p { margin: 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
+/* Page frame (Figma B5): the Display/3 title and its Body/Extra lead, then the body Spacing/Gap/3XLarge below. */
+.platform-page-template { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xlarge, 48px); }
+.platform-page-header { max-width: 720px; }
+.platform-page-template__body { display: flex; min-width: 0; flex-direction: column; gap: var(--zen-spacing-gap-3-xlarge, 48px); }
 .platform-page-template__body > .foundation-shell,
 .platform-page-template__body > .token-page,
 .platform-page-template__body > .text-styles-page,
@@ -394,24 +357,6 @@
   .official-card--development { grid-column: auto; grid-row: auto; }
 }
 
-/* Below 1024px the rail becomes an off-canvas drawer opened from the topbar menu button,
-   and the settings chips move out of the sticky bar into their own row (PlatformTopbar), which wraps and scrolls away. */
-@media (max-width: 1024px) {
-  .official-nav { position: fixed; z-index: 40; inset: 0 auto 0 0; display: block; transform: translateX(-100%); transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1); }
-  .official-platform[data-nav-open="true"] .official-nav { transform: none; box-shadow: var(--zen-style-effect-popover-shadow); }
-  .official-sidebar { position: relative; }
-  .official-scrim { position: fixed; z-index: 30; inset: 0; display: block; padding: 0; background: var(--zen-color-background-overlay, rgb(0 0 0 / 25%)); cursor: default; }
-  .official-topbar__menu { display: inline-flex; flex: 0 0 auto; }
-  .official-topbar { height: auto; min-height: 72px; flex-basis: auto; flex-wrap: wrap; justify-content: flex-start; row-gap: var(--zen-spacing-gap-xsmall, 8px); padding-inline: var(--zen-spacing-padding-medium, 16px); }
-  .official-topbar__breadcrumbs { flex: 1 1 0; }
-  .official-topbar__trailing { max-width: 100%; margin-inline-start: auto; }
-  /* The chips wrap instead of scrolling: a horizontal scroll box (overflow-x: auto makes overflow-y auto too) clipped
-     every chip's Popover. The row is not sticky, so two or three rows of chips never cover the page or its popovers;
-     it sits above the content (its popovers open over the first cards) and below the sticky bar. */
-  .official-topbar-settings { position: relative; z-index: 15; padding: 0 var(--zen-spacing-padding-medium, 16px) var(--zen-spacing-padding-xsmall, 8px); }
-  .official-topbar-settings .official-topbar__controls { display: flex; flex-wrap: wrap; }
-}
-@media (max-width: 1024px) and (prefers-reduced-motion: reduce) { .official-nav { transition: none; } }
 @media (max-width: 1024px) {
   /* Playground: preview, then properties, then code in one column. */
   .platform-example-panel--stack { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "title" "preview" "controls" "code"; }
@@ -425,22 +370,13 @@
   .platform-example-panel--stack > :is(.platform-example-row, .platform-input-preview) { margin-inline: var(--zen-spacing-padding-medium, 16px); padding-inline: var(--zen-spacing-padding-medium, 16px); }
 }
 @media (max-width: 760px) {
-  /* Hero and cover titles scale with the viewport instead of clipping. */
-  .platform-page-hero { height: 280px; padding: var(--zen-spacing-padding-xlarge, 24px); }
-  .platform-page-hero__logo { top: var(--zen-spacing-padding-xlarge, 24px); left: var(--zen-spacing-padding-xlarge, 24px); }
-  .platform-page-hero__kaiz { top: var(--zen-spacing-padding-xlarge, 24px); right: var(--zen-spacing-padding-xlarge, 24px); }
-  .platform-page-hero__main { padding-top: var(--zen-spacing-padding-3-xlarge, 40px); gap: var(--zen-spacing-gap-medium, 16px); }
-  /* zen-allow-raw-type: the raw Figma hero/cover titles scale with the viewport (see the cover and hero notes above). */
-  .platform-page-hero h1 { font-size: clamp(36px, 10vw, 120px); letter-spacing: -0.02em; }
   .official-cover { height: auto; min-height: 360px; }
+  /* Cover titles scale with the viewport instead of clipping. zen-allow-raw-type: the raw Figma cover title (see the cover note above). */
   .official-cover h1 { width: auto; font-size: clamp(56px, 19vw, 120px); letter-spacing: -0.04em; }
   .official-intro h2 { line-height: var(--zen-typography-line-height-heading-2, 36px); }
 }
 
 @media (max-width: 620px) {
-  .official-content { min-height: 100vh; }
-  .official-topbar__breadcrumbs { overflow: hidden; }
-  .official-topbar__breadcrumb { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
   .official-intro { padding-inline: var(--zen-spacing-padding-small, 12px); }
   .official-intro h2 { font-size: var(--zen-typography-font-size-heading-2, 28px); letter-spacing: var(--zen-typography-letter-spacing-heading-2, -0.56px); }
   .official-card-grid { grid-template-columns: 1fr; }
@@ -870,10 +806,6 @@
 .pe-modal-preview--card { align-items: flex-start; justify-content: flex-end; text-align: start; }
 .pe-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--zen-spacing-gap-medium, 16px); }
 
-/* Empty State in platform search flows. */
-.official-sidebar__search-status[data-empty="true"] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.official-sidebar__empty { width: 100%; margin-top: var(--zen-spacing-gap-small, 12px); padding-bottom: var(--zen-spacing-padding-medium, 16px); }
-.official-sidebar__empty .zen-empty-state__body { gap: var(--zen-spacing-gap-medium, 16px); }
 .pe-empty-compact { width: 100%; padding-bottom: var(--zen-spacing-padding-xsmall, 8px); }
 /* Icon picker (a Popover surface: padding 4, gap 4): a text line sits like a Popover item, 8px inside. */
 .pe-icon-picker__meta { padding: var(--zen-spacing-padding-xsmall, 8px); }
@@ -914,30 +846,14 @@
 .pe-media-upload { width: 100%; box-sizing: border-box; padding: var(--zen-spacing-padding-large, 20px); border-radius: var(--zen-corner-radius-large, 16px); background: linear-gradient(135deg, var(--zen-color-background-support-indigo-solid, #3e63dd), var(--zen-color-background-support-pink-solid, #d6409f)); }
 .pe-toast-well { display: grid; min-height: 120px; align-content: end; justify-items: center; }
 
-/* ───────────── Component page template: sticky "On this page" (Figma Codebase Platform 14260:96953) ───────────── */
-.platform-component-page { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: var(--zen-spacing-gap-medium, 16px); }
-.platform-component-page__content { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: inherit; }
+/* ───────────── Component page template (Figma Codebase Platform 14260:96953) ─────────────
+   The sections stack in the page column; the shell's "On this page" pane lists them (PlatformOnThisPage). */
+.platform-component-page__content { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: var(--zen-spacing-gap-medium, 16px); }
 .platform-component-page__content > .platform-anchor:empty { display: none; }
-/* Anchored sections stop under the 72px sticky topbar. */
-.platform-anchor { scroll-margin-top: calc(72px + var(--zen-spacing-padding-xlarge, 24px)); }
-/* zen-allow-focus-ring: headings focused by the "On this page" jump (tabindex=-1) are not interactive; the pill's aria-current shows the location. */
-.platform-anchor :is(h2, h3)[tabindex="-1"]:focus { outline: none; }
-/* Figma "Sticky" (14366:142238): 28px rail of 4×20 pills, gap 4. Each link is the full 28×24 cell (pill + gap) so the pointer target is not the 4px pill. */
-/* Once stuck, the rail is centred vertically in the visible area under the 72px topbar (never above topbar + 24). */
-.platform-toc { position: sticky; top: max(calc(72px + var(--zen-spacing-padding-xlarge, 24px)), calc(50vh + 36px - var(--platform-toc-height, 0px) / 2)); width: 28px; }
-.platform-toc ul { display: grid; margin: 0; padding: 0; list-style: none; }
-.platform-toc li { display: flex; height: 24px; }
-.platform-toc__link { position: relative; display: block; width: 28px; height: 24px; border-radius: var(--zen-corner-radius-2-xsmall, 4px); }
-.platform-toc__link::before { position: absolute; top: 2px; left: 12px; width: 4px; height: 20px; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-neutral-subtle-default, rgb(1 1 1 / 6%)); content: ""; }
-.platform-toc__link:hover::before { background: var(--zen-color-background-neutral-subtle-hover, rgb(1 1 1 / 11%)); }
-.platform-toc__link[aria-current="location"]::before { background: var(--zen-color-background-active-neutral-solid, #111); }
-.platform-toc__link:focus-visible { outline: 2px solid var(--zen-color-focus-accent-solid, #0a84ff); outline-offset: -2px; }
-@media (prefers-reduced-motion: no-preference) { .platform-toc__link::before { transition: background-color var(--zen-motion-duration-fast, 120ms) var(--zen-motion-ease-standard, ease); } }
-/* Phones: no room beside the content; sections stay linkable by #hash. */
-@media (max-width: 760px) {
-  .platform-component-page { grid-template-columns: minmax(0, 1fr); }
-  .platform-toc { display: none; }
-}
+/* Anchored sections (and the guides' h2s) stop under the shell's sticky header. */
+.platform-anchor, .official-page h2[id^="section-"] { scroll-margin-top: calc(var(--zen-app-shell-header-height, 64px) + var(--zen-spacing-padding-xlarge, 24px)); }
+/* zen-allow-focus-ring: headings focused by the "On this page" jump (tabindex=-1) are not interactive; the link's aria-current shows the location. */
+.official-page :is(h2, h3)[tabindex="-1"]:focus { outline: none; }
 
 /* Keyboard / API reference sections: SheetTables (src/components/SheetTable), one titled sheet per component. */
 .platform-ref__component { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--zen-spacing-gap-xsmall, 8px); margin-top: var(--zen-spacing-gap-large, 24px); }
