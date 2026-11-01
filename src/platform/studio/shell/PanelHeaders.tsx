@@ -129,7 +129,9 @@ function SaveState() {
   const writable = useWritable();
   const drafts = useStudioDrafts();
   if (!writable || role !== "admin") return null;
-  const unsaved = !localPage && drafts.available && drafts.drafts.length > 0;
+  const unsaved = drafts.available && drafts.drafts.length > 0;
+  // A page you made saves at once; drafts of source files then speak for themselves (the count · Save all).
+  if (unsaved && localPage) return null;
   return unsaved
     ? <Badge size="sm" theme="neutral" background="solid" leadingIcon={false}>Unsaved</Badge>
     : <Badge size="sm" theme="green" background="subtle" leadingIcon={false}>Saved</Badge>;

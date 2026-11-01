@@ -436,7 +436,12 @@ async function dragAssetToBoard(page, label) {
   await tile.waitFor({ state: "visible", timeout: 5000 });
   const from = await tile.boundingBox();
   const frame = await page.locator('[data-studio-frame^="screen:"]').first().boundingBox();
-  const to = { x: frame.x + frame.width + 80, y: frame.y + 40 };
+  // Empty canvas beside the Screen, inside the canvas area (B4, 2026-11-01: the Inspector pane is beside the canvas, so
+  // 80px right of a Screen fitted to the view can be the pane); else below the Screen, above the tools.
+  const canvas = await page.locator(".studio-canvas-area").boundingBox();
+  const to = frame.x + frame.width + 80 < canvas.x + canvas.width - 24
+    ? { x: frame.x + frame.width + 80, y: frame.y + 40 }
+    : { x: frame.x + 40, y: Math.min(frame.y + frame.height + 80, canvas.y + canvas.height - 120) };
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
   await page.mouse.down();
   for (let step = 1; step <= 12; step += 1) {
