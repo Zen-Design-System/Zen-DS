@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio › Project setup (user 2026-11-01): the Corner radius tiles draw one corner line rounded as that mode's
+  button (Rounded's pill, Smooth 12, Standard 8, Luxury 2), so Rounded and Smooth no longer look the same; the
+  selected tile's ring (Corner radius and Component theme) takes the accent colour.
 - Zen Studio Assets follow the newer usage rules: Table's status column shows each step's ring (BadgeStatus) and, in a
   Card or ListBox, comes with its widget title; Calendar toolbar's Today, arrows and view switch work; Time slots keeps
   the chosen slot; Autocomplete and Task properties list people with their photos; App shell is "not recommended"
