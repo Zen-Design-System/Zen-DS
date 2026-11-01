@@ -32,6 +32,8 @@ function LinkPlayground() {
     tone !== "hyperlink" ? `tone="${tone}"` : "",
     visited && tone === "hyperlink" ? "visited" : "",
   ].filter(Boolean).join(" ");
+  // Caption text takes its family's Light level (usage rules §7); body text around a link stays Base.
+  const textTone = textStyle.startsWith("Caption/") ? "light" : "base";
   return (
     <Panel
       title="Link"
@@ -44,13 +46,13 @@ function LinkPlayground() {
       </>}
       code={`import { Link, Text } from "@zen-ds/react";
 
-<Text${textStyle === "Body/Base/Regular" ? "" : ` textStyle="${textStyle}"`} tone="base">
+<Text${textStyle === "Body/Base/Regular" ? "" : ` textStyle="${textStyle}"`} tone="${textTone}">
   Deploys run on every push to main. To change the branch, open{" "}
   <Link ${props}>${label}</Link>.
 </Text>`}
     >
       <Stack gap="xs" className="pan-stage">
-        <Text textStyle={textStyle} tone="base">
+        <Text textStyle={textStyle} tone={textTone}>
           Deploys run on every push to main. To change the branch, open{" "}
           {external
             ? <Link href={GITHUB_ACTIONS_DOCS} external underline={underline} tone={tone} visited={visited} onClick={() => setOpened(GITHUB_ACTIONS_DOCS)}>{label}</Link>

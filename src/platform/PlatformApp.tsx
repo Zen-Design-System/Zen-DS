@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { ZenPortalProvider } from "../components/Portal";
 import { AppShell, AppShellHeader, AppShellPane } from "../components/AppShell";
 import { Badge } from "../components/Badge";
@@ -277,13 +277,10 @@ const openInNewTab = (url: string) => () => { window.open(url, "_blank", "noopen
 /** Pages that read as text (guides): the B5 720 reading column. Component and foundation pages keep the width their previews need. */
 const readingPages = new Set<PlatformPage>(["installation"]);
 
-/** A media query as state (the shell's desktop structure from 1024px, the "On this page" pane from 1280px). */
+/** A media query as state (the shell's desktop structure from 1024px, the "On this page" pane from 1280 or 1600px). */
 function useMedia(query: string) {
-  return useSyncExternalStore(
-    (onChange) => { const list = window.matchMedia(query); list.addEventListener("change", onChange); return () => list.removeEventListener("change", onChange); },
-    () => window.matchMedia(query).matches,
-    () => true,
-  );
+  const subscribe = useCallback((onChange: () => void) => { const list = window.matchMedia(query); list.addEventListener("change", onChange); return () => list.removeEventListener("change", onChange); }, [query]);
+  return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches, () => true);
 }
 
 export function PlatformApp() {
@@ -296,7 +293,9 @@ export function PlatformApp() {
   const [settings, setSettings] = useState<PlatformShellSettings>(() => ({ theme: "light", density: "compact", componentTheme: "neutral-s1", typography: "dashboard", radius: "rounded", emphasis: "medium", contrast: typeof window !== "undefined" && new URLSearchParams(window.location.search).get("contrast") === "high" ? "high" : "standard" }));
   const [navQuery, setNavQuery] = useState("");
   const wide = useMedia("(min-width: 1024px)");
-  const tocRoom = useMedia("(min-width: 1280px)");
+  // "On this page" takes 248px: from 1280px on text and foundation pages; component pages keep that width for their
+  // previews (a 1512 window leaves them ~1216px, as before B5) and show it from 1600px.
+  const tocRoom = useMedia(componentPageIds.includes(activePage) ? "(min-width: 1600px)" : "(min-width: 1280px)");
   const pageRef = useRef<HTMLDivElement>(null);
   const focusDrawerSearch = useRef(false);
   const pageSections = usePageSections(pageRef);
@@ -457,6 +456,13 @@ export function PlatformApp() {
             aria-label="Documentation"
             background="flat"
             shadow={false}
+            brand={(
+              <span className="official-brand">
+                <Icon name="icon-zen" size={28} decorative />
+                {/* zen-allow-visual-heading: the product name in the drawer's brand slot, not a section title. */}
+                <Text as="span" textStyle="Heading/4">Zen DS</Text>
+              </span>
+            )}
             search={<div className="official-nav-search-block" role="search">{navSearch}{searchStatus}{searchEmpty}</div>}
             sections={visibleSections}
             onItemClick={openNavItem}

@@ -57,4 +57,13 @@ Branch claude/docs-chrome-b5-020c25 (worktree). Spec card: B5 node 15917:6719 = 
 - User follow-up ("phần playground props để dưới component thay vì bên phải"): `.platform-example-panel--stack` is one
   column at every width (title · preview · properties · code); `.platform-playground-controls` is a grid of
   `minmax(min(100%, 280px), 1fr)` columns with a Pale line above (the old ≤ 1024 / ≤ 620 overrides removed).
+- Gate `qa --all --isolated` (4792s): ✗ 195 audit errors, nearly all at 320, plus density at 1512. Causes: (1) the
+  ≤ 374px rule still took 32px off `.official-page` inside the AppShell Body's own 24px padding (examples got 240
+  instead of 272) → the 16px gutter is now the Body's side padding; (2) "On this page" plus Comfortable's 260px panes
+  left component previews ~928px at 1512 → on component pages the pane shows from 1600px (text/foundation pages from
+  1280), so a 1512 window keeps ~1216px as before. Also fixed: Link playground's Caption text style used tone Base
+  (now Light). Re-run on the 35 pages: audit 0 · dark 0 · behaviour 1 warning (Popover Search focus = Figma, question
+  in BACKLOG-user-and-later). Studio E2E 451 works · 0 broken. Chrome walk (Playwright, isolated): Appearance docks,
+  Escape closes it and focus returns; ⌘K → "tog" → Enter opens Toggle; drawer Escape; the header search icon focuses
+  the drawer search; dark mode; no console errors. The drawer Sidebar got the brand (its header was empty).
 

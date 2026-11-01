@@ -6,6 +6,9 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
 [`QUESTIONS.md`](QUESTIONS.md).
 
 ## For the user (Việc của anh/chị)
+- **P3 · Popover Search: no focus indicator besides the caret (2026-11-02, docs-chrome-b5 gate):** behaviour warning on
+  popover@1512. Figma Search/Popover 1604:27401 draws Focused with Input/Border/Popover-Search, transparent except in
+  Neutral-S7 (`search.css`), so the code matches Figma. Keep it as Figma (baseline the warning) or add a focus ring?
 - **P0/P1 · Studio prototype walk 2026-10-29: pick which fixes to build:** hands-on walk (4 pages, ~50 findings: 2 P0, 19
   P1) in `docs/research/studio-prototype-walk-2026-10-29.md`; §4 lists 9 fixes in order (W-47 Play status-bar band is a
   #345 regression; W-14 ⇧A on floating layers; W-35/36/41 Back + Dialog actions). Nothing built until approved.
