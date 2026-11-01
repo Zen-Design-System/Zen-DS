@@ -425,6 +425,7 @@ export function PlatformApp() {
               <a className="official-brand" href="?page=overviews" aria-label={`Zen DS v${version}, home`} onClick={(event) => { event.preventDefault(); goTo("overviews"); }}>
                 <Icon name="icon-zen" size={28} decorative />
                 <span className="official-brand__name">
+                  {/* zen-allow-visual-heading: Figma B5 brand name (Leading-Slots), a product name inside the home link, not a section title. */}
                   <Text as="span" textStyle="Heading/4">Zen DS</Text>
                   <Badge size="sm" theme="neutral" background="solid" leadingIcon={false}>{`v${version}`}</Badge>
                 </span>
