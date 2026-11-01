@@ -4,7 +4,6 @@ import { Badge } from "../../../components/Badge";
 import { Button, IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { Menu } from "../../../components/Menu";
-import { Segmented } from "../../../components/Segmented";
 import { Text } from "../../../components/Text";
 import { redoEdit, undoEdit, useStudioServer } from "../api";
 import { presentFrame } from "../board/presentFrame";
@@ -14,7 +13,6 @@ import { OpenOnPhone } from "../device/OpenOnPhone";
 import { useCanvasPreview } from "../project/activeProject";
 import { useStudioDrafts } from "../sourceDrafts";
 import { canEdit, studioStore, useStudio } from "../store";
-import type { StudioInspectorTab } from "../types";
 import { toggleSidePanels, type PanelLayout } from "./layout";
 import { modKey, presentShortcut } from "./modKey";
 import { DraftsControls, DraftsViewerNote } from "./DraftsControls";
@@ -30,9 +28,10 @@ import { signOut, useAuthUser } from "../../auth/pocketbase";
 /*
  * Zen Studio's chrome after Figma B4 · Workspace Editor (9nZv4uW2LT21yuHabMTCh1 15916:6196; user, 2026-11-01, replacing
  * the UI3 floating panels of 2026-10-15): one compact top bar across the window — the Zen Studio menu (a square "Z"),
- * the page's name (Body/Base/Bold) and its save state (Badge); the mode (Segmented, secondary) in the centre; the
- * drafts, undo/redo, the role, Present / Play, Open on phone and the primary action (Save all, or Export on a page you
- * made) at the end. The Pages | Layers pane and the Inspector are Border panes under it (studio.css). A pane that is not
+ * the page's name (Body/Base/Bold) and its save state (Badge); the drafts, undo/redo, the role, Present / Play, Open
+ * on phone and the primary action (Save all, or Export on a page you made) at the end. B4's centre Segmented (the mode)
+ * is left out: it repeated the Inspector's Design · Code · Prototype tabs (user, 2026-11-01: "Tính năng bị trùng"), and
+ * the tabs also work while the Inspector is a drawer. The Pages | Layers pane and the Inspector are Border panes under it (studio.css). A pane that is not
  * docked (narrow window, or hidden with ⌘\) opens as a drawer from its button in this bar. Light/dark is in the menu.
  */
 
@@ -68,11 +67,12 @@ export function BrandMenu({ layout }: { layout: PanelLayout }) {
     <Menu
       aria-label="Zen Studio"
       items={[
-        // A phone has no room for these in the bar: they live here instead (E2E S-07).
+        // A phone has no room for these in the bar: they live here instead (E2E S-07), Export with them.
         ...(phone ? [
           { id: "undo", label: "Undo", shortcut: `${modKey}Z`, disabled: !writable || !undoCount, onSelect: () => { void undoEdit(); } },
           { id: "redo", label: "Redo", shortcut: `⇧${modKey}Z`, disabled: !writable || !redoCount, onSelect: () => { void redoEdit(); } },
           { id: "role", label: role === "admin" ? "Switch to Can view" : "Switch to Can edit", onSelect: () => studioStore.setState({ role: role === "admin" ? "viewer" : "admin" }) },
+          ...(localPage ? [{ id: "export", label: "Export…", onSelect: () => openExport(localPage) }] : []),
           { type: "separator" as const, id: "phone-separator" },
         ] : []),
         // Document | Studio, as the theme's toggle: the docs pages or the pages made in the Studio (Studio reopens the page
@@ -137,17 +137,6 @@ function SaveState() {
     : <Badge size="sm" theme="green" background="subtle" leadingIcon={false}>Saved</Badge>;
 }
 
-/** The mode, as B4's Segmented: Design | Prototype (a page you made) | Code — the Inspector's views, kept in step. */
-function ModeSwitch() {
-  const localPage = useStudio((state) => Boolean(state.localPage));
-  const chosen = useStudio((state) => state.inspectorTab);
-  const value = chosen === "prototype" && !localPage ? "design" : chosen;
-  const options = localPage
-    ? [{ id: "design", label: "Design" }, { id: "prototype", label: "Prototype" }, { id: "code", label: "Code" }]
-    : [{ id: "design", label: "Design" }, { id: "code", label: "Code" }];
-  return <Segmented className="studio-topbar__mode" aria-label="Mode" level="secondary" size="sm" options={options} value={value} onValueChange={(id) => studioStore.setState({ inspectorTab: id as StudioInspectorTab })} />;
-}
-
 /** The frame Present / Play starts from: the selected one, else (an example page) the first example. */
 function startFrame() {
   const selection = studioStore.getState().selection;
@@ -177,26 +166,29 @@ function PhoneShare({ id }: { id: string }) {
   return <OpenOnPhone page={id} title={record?.title ?? id} text={record?.text} start={start} modes={preview} brand={brand} />;
 }
 
-/** The admin's drafts (count · Save all, the primary action) or the viewer's note; Export on a page you made. */
+/** The admin's drafts (count · Save all) or the viewer's note, then Export on a page you made (B4's primary action; the
+ * one place it lives since 2026-11-01 — the Page section's Export… repeated it). On a phone Export is in the menu. */
 function PrimaryAction({ phone }: { phone: boolean }) {
   const role = useStudio((state) => state.role);
   const localPage = useStudio((state) => state.localPage);
   const writable = useWritable();
   const drafts = useStudioDrafts();
   const drafted = drafts.available && drafts.drafts.length > 0;
-  if (drafted && writable) return <DraftsControls density={phone ? "phone" : "panel"} />;
-  if (drafted && role === "viewer") return <DraftsViewerNote density={phone ? "phone" : "compact"} />;
-  if (localPage && !phone) return <Button appearance="main" level="primary" size="sm" onClick={() => openExport(localPage)}>Export</Button>;
-  return null;
+  return (
+    <>
+      {drafted && writable ? <DraftsControls density={phone ? "phone" : "panel"} /> : drafted && role === "viewer" ? <DraftsViewerNote density={phone ? "phone" : "compact"} /> : null}
+      {localPage && !phone ? <Button appearance="main" level={drafted && writable ? "tertiary" : "primary"} size="sm" onClick={() => openExport(localPage)}>Export</Button> : null}
+    </>
+  );
 }
 
 /**
- * The top bar across the window (B4): start = menu, pane button (drawer), name, state; centre = the mode; end = the
+ * The top bar across the window (B4): start = menu, pane button (drawer), name, state; end = the
  * drafts or read-only chip, undo/redo, role, Present / Play, Open on phone, the primary action, and the Inspector's
  * button while it is a drawer. A document page (no canvas) keeps the menu, the name and the role.
  */
 export function TopBar({ layout, docPage }: { layout: PanelLayout; docPage: boolean }) {
-  const { phone, leftDocked, rightDocked, narrow } = layout;
+  const { phone, leftDocked, rightDocked } = layout;
   const drawer = useStudio((state) => state.drawer);
   const localPage = useStudio((state) => state.localPage);
   const undoCount = useStudio((state) => state.undo.length);
@@ -212,7 +204,6 @@ export function TopBar({ layout, docPage }: { layout: PanelLayout; docPage: bool
         {/* Saved / Unsaved names a page's state: none on Studio's folders or a docs page. */}
         {phone || docPage ? null : <SaveState />}
       </div>
-      {docPage || narrow ? null : <div className="studio-topbar__center"><ModeSwitch /></div>}
       <div className="studio-topbar__end">
         <ReadOnlyChip />
         {phone ? null : (

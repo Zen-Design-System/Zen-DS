@@ -264,8 +264,8 @@ export const rows = [
   },
   {
     // Figma B4 · Workspace Editor (user, 2026-11-01): a top bar across, two Border panes beside the canvas (not over it),
-    // the canvas between them the Pale field; the bar's Mode switches the Inspector's view.
-    id: "S-10", feature: "B4 chrome: the top bar spans the window over the panes, Pages | Layers and the Inspector sit beside the canvas without covering it and cast no shadow, the canvas is the Pale field, and the bar's Mode › Code opens the Inspector's Code tab", wp: "B4 chrome 2026-11-01",
+    // the canvas between them the Pale field. The bar has no Mode Segmented: it repeated the Inspector's tabs (user).
+    id: "S-10", feature: "B4 chrome: the top bar spans the window over the panes, Pages | Layers and the Inspector sit beside the canvas without covering it and cast no shadow, the canvas is the Pale field, and the bar repeats none of the Inspector's Design · Code tabs", wp: "B4 chrome 2026-11-01",
     async run(ctx) {
       const { page } = await ctx.studio();
       const boxes = await page.evaluate(() => {
@@ -281,14 +281,10 @@ export const rows = [
       if (boxes.leftShadow !== "none" || boxes.rightShadow !== "none") throw new Error(`a docked pane has a shadow: ${boxes.leftShadow} / ${boxes.rightShadow}`);
       const pale = await page.evaluate(() => { const probe = document.createElement("div"); probe.style.background = "var(--zen-color-background-neutral-pale-default)"; document.querySelector(".studio-canvas-area").append(probe); const value = getComputedStyle(probe).backgroundColor; probe.remove(); return value; });
       if (boxes.viewport !== pale) throw new Error(`the canvas paints ${boxes.viewport}, not Pale ${pale}`);
-      const mode = page.locator(".studio-topbar").getByRole("group", { name: "Mode" });
-      try {
-        await mode.getByRole("button", { name: "Code", exact: true }).click();
-        await until(async () => (await page.locator("#studio-right").getByRole("tab", { name: "Code", exact: true }).getAttribute("aria-selected")) === "true", { message: "the Inspector's Code tab" });
-      } finally {
-        await mode.getByRole("button", { name: "Design", exact: true }).click().catch(() => undefined);
-      }
-      return `bar 0…${Math.round(bar.right)} · panes from y ${Math.round(left.top)} · canvas ${Math.round(canvas.left)}…${Math.round(canvas.right)} between them · Mode › Code → Code tab`;
+      const topBar = page.locator(".studio-topbar");
+      const repeated = await topBar.getByRole("button", { name: /^(Design|Code|Prototype)$/ }).or(topBar.getByRole("tab")).count();
+      if (repeated) throw new Error(`the top bar repeats ${repeated} of the Inspector's views`);
+      return `bar 0…${Math.round(bar.right)} · panes from y ${Math.round(left.top)} · canvas ${Math.round(canvas.left)}…${Math.round(canvas.right)} between them · no view switch in the bar`;
     },
   },
   {

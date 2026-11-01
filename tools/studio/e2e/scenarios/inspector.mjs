@@ -187,7 +187,7 @@ export const rows = [
     },
   },
   {
-    id: "I-32", feature: "Design tab with nothing selected on a page you made: one Page section (Name, Mobile OS, Background, Project; Export… in its title row), Preview modes as label · value rows, Local styles with an Edit in Figma button (UX review 2026-10-27 §2.10)", wp: "ux review 2026-10-27 §7.9",
+    id: "I-32", feature: "Design tab with nothing selected on a page you made: one Page section (Name, Mobile OS, Background, Project; Export is the top bar's, not repeated here), Preview modes as label · value rows, Local styles with an Edit in Figma button (UX review 2026-10-27 §2.10)", wp: "ux review 2026-10-27 §7.9",
     async run(ctx) {
       const { page } = await newPage(ctx);
       await page.locator(".studio-viewport").focus();
@@ -206,7 +206,8 @@ export const rows = [
           pageHeadings: [...panel.querySelectorAll("h2, h3, .studio-inspector__eyebrow")].filter((el) => el.textContent.trim() === "Page").length,
           headBlocks: panel.querySelectorAll(".studio-inspector__head-block").length,
           labels,
-          exportInTitleRow: Boolean(pageSection?.querySelector(".studio-inspector__section-head button")?.textContent.includes("Export")),
+          exportInPanel: [...panel.querySelectorAll("button")].some((el) => /^Export/.test(el.textContent.trim())),
+          exportInBar: [...document.querySelectorAll(".studio-topbar button")].some((el) => el.textContent.trim() === "Export"),
           rows,
           figmaButton: styles ? [...styles.querySelectorAll("button")].map((el) => el.textContent.trim()).find((text) => /Figma/.test(text)) ?? null : null,
           stylesNote: styles?.querySelector(".studio-inspector__note")?.textContent.trim() ?? null,
@@ -214,10 +215,10 @@ export const rows = [
       });
       if (seen.pageHeadings !== 1 || seen.headBlocks !== 0) throw new Error(`${seen.pageHeadings} "Page" headings and ${seen.headBlocks} header block(s), expected one Page section and no header block`);
       for (const label of ["Name", "Mobile OS", "Background", "Project"]) if (!seen.labels.includes(label)) throw new Error(`the Page section has no "${label}" field (${seen.labels.join(", ")})`);
-      if (!seen.exportInTitleRow) throw new Error("no Export… in the Page section's title row");
+      if (seen.exportInPanel || !seen.exportInBar) throw new Error(`Export in the Inspector: ${seen.exportInPanel}, in the top bar: ${seen.exportInBar} (one, in the top bar)`);
       if (seen.rows.length < 6 || seen.rows.some(([label, value]) => !label || !value)) throw new Error(`Preview modes: ${seen.rows.length} rows, ${JSON.stringify(seen.rows.slice(0, 3))}`);
       if (!seen.figmaButton) throw new Error(`Local styles has no Edit in Figma button (note: ${seen.stylesNote})`);
-      return `one Page section (${seen.labels.join(", ")}; Export… in the title row) · ${seen.rows.length} mode rows · Local styles "${seen.figmaButton}"`;
+      return `one Page section (${seen.labels.join(", ")}; Export in the top bar only) · ${seen.rows.length} mode rows · Local styles "${seen.figmaButton}"`;
     },
   },
   {

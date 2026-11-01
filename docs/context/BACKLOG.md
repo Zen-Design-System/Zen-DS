@@ -20,3 +20,7 @@ is PR #334 (in review). Nothing else open.
 The 2026-10-24 triage's entries are done and archived (`BACKLOG-archive.md`, "Archived 2026-10-24" and "2026-10-25")
 or moved to `BACKLOG-user-and-later.md`.
 
+- **P2 · `npm run studio:build-check` fails 8 steps on main ac227b26 (found 2026-11-01, B4 chrome session):** @babel/parser
+  lands in `jsx-source-*.js` and the compiler in `browser-compile-*.js` (chunk budget checks), then insert / Inspector edit /
+  Swap / reload / Prototype time out and the handoff zip's PNG check fails. Same result on a clean origin/main worktree, so
+  not the chrome change; the gate does not run build-check. Report `.qa/studio-e2e/build-check-2026-11-01T15-43-46.json`.

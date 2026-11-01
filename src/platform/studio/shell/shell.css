@@ -11,11 +11,10 @@
 :is(.studio-chrome, .studio-chrome-portal) :is(.zen-modal-actions, .zen-modal-actions__main) { gap: var(--zen-spacing-gap-xsmall, 8px); }
 
 /* ── Top bar (Figma B4: Header/AppShell's row, compact for a tool) ── */
-/* Across the window on the canvas colour: start (menu, name, state) · the mode, centred on the window · the actions.
+/* Across the window on the canvas colour: start (menu, name, state) · the actions.
    Its inline padding lines the menu up with the panes' content (edge + the pane's Spacing/Padding/XSmall). */
 .studio-topbar-scope { position: absolute; z-index: 22; top: 0; right: 0; left: 0; }
 .studio-topbar {
-  position: relative;
   display: flex;
   height: var(--studio-top);
   box-sizing: border-box;
@@ -30,8 +29,6 @@
 /* The name ends in "…" before it pushes anything; a long docs title keeps the actions on screen. */
 .studio-topbar__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .studio-topbar__start > .zen-badge { flex: none; }
-/* B4 Center-Slots: the Segmented at its own width, centred on the window (not on what the sides leave). */
-.studio-topbar__center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 /* Undo · Redo sit closer together than the bar's groups (4px inside a group, 8px between groups). */
 .studio-topbar__group { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .studio-brand .zen-icon { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }

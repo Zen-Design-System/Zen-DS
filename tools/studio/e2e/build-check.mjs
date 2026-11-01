@@ -502,7 +502,7 @@ try {
     await page.locator(".studio-viewport").focus();
     for (let i = 0; i < 3; i += 1) await page.keyboard.press("Escape");
     await inspectorTab(page, "Design");
-    await page.locator("#studio-right").getByRole("button", { name: "Export…" }).click();
+    await page.locator(".studio-topbar").getByRole("button", { name: "Export", exact: true }).click();
     const panel = page.locator(".studio-export");
     await panel.waitFor({ state: "visible", timeout: 10_000 });
     const code = await until(async () => { const text = await panel.innerText(); return /export function \w+Page\(/.test(text) ? text : null; }, { timeout: 20_000, message: "the React code in the panel" });
@@ -516,7 +516,7 @@ try {
   });
 
   await step("Export as HTML: the zip's styles.css holds this build's Zen rules (one bundled sheet) and its font files", async () => {
-    await page.locator("#studio-right").getByRole("button", { name: "Export…" }).click();
+    await page.locator(".studio-topbar").getByRole("button", { name: "Export", exact: true }).click();
     const panel = page.locator(".studio-export");
     await panel.waitFor({ state: "visible", timeout: 10_000 });
     await panel.getByRole("button", { name: "HTML", exact: true }).click();
@@ -536,7 +536,7 @@ try {
   });
 
   await step("Handoff zip: the code, handoff.md and a PNG of each frame drawn in this build (foreignObject)", async () => {
-    await page.locator("#studio-right").getByRole("button", { name: "Export…" }).click();
+    await page.locator(".studio-topbar").getByRole("button", { name: "Export", exact: true }).click();
     const panel = page.locator(".studio-export");
     await panel.waitFor({ state: "visible", timeout: 10_000 });
     await panel.getByRole("button", { name: "Handoff", exact: true }).click();
