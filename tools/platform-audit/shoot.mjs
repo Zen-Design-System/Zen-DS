@@ -62,9 +62,9 @@ try {
     // On a loaded machine (several gates at once) 'load' can miss Playwright's 30s default: --timeout / --wait-until.
     await page.goto(`${BASE}/?page=${pageId}&examples=live${HIGH_CONTRAST ? "&contrast=high" : ""}`, { timeout: TIMEOUT, waitUntil: WAIT_UNTIL });
     await page.waitForTimeout(900);
-    // A card taller than the viewport is captured while scrolling, so the sticky platform chrome (topbar, sidebar, TOC)
+    // A card taller than the viewport is captured while scrolling, so the sticky platform chrome (header, navigation and "On this page" panes)
     // would be stamped over the middle of it. Pin that chrome in place; example content keeps its own sticky elements.
-    await page.addStyleTag({ content: ".official-topbar, .official-sidebar, .platform-toc { position: static !important; }" }).catch(() => undefined);
+    await page.addStyleTag({ content: ".official-shell .zen-app-shell__header, .official-shell .zen-app-shell__pane { position: static !important; }" }).catch(() => undefined);
     // The platform has its own theme toggle (prefers-color-scheme alone does not switch it), same as audit.mjs.
     if (flag("dark")) { await page.getByRole("button", { name: "Dark mode" }).first().click().catch(() => undefined); await page.waitForTimeout(300); }
     const cards = page.locator(".pe-card, .platform-example");

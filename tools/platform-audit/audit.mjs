@@ -278,9 +278,9 @@ function pageChecks({ scopeSel, mobile }) {
     const el = n.parentElement; if (!el || checked.has(el) || !n.textContent.trim() || !visible(el)) continue; checked.add(el);
     // Emoji are colour glyphs: their `color` is irrelevant, so a pure-emoji run is not text contrast.
     if (/^[\p{Extended_Pictographic}\p{Emoji_Component}️‍\s]+$/u.test(n.textContent.trim()) && !/^[\d#*\s]+$/.test(n.textContent.trim())) continue;
-    // The docs' own navigation (.official-nav) is skipped (user decision 2026-10-07). The 11 × 1.38:1 on design-tokens in
+    // The docs' own navigation (.official-nav-pane: the pane and the drawer) is skipped (user decision 2026-10-07). The 11 × 1.38:1 on design-tokens in
     // the Dark pass were real: the "Token links" buttons kept the browser's black button text (fixed 2026-10-08).
-    if (el.closest(".official-nav")) continue;
+    if (el.closest(".official-nav-pane")) continue;
     if (el.closest("[disabled], [aria-disabled='true'], [data-state='disabled'], [data-disabled='true'], input, textarea, .zen-skeleton, pre, code, svg, [data-audit-skip-contrast], .zen-chart__svg") || el.closest(".platform-guideline-visual__dont, [data-verdict='dont']")) continue;
     // Labels of disabled controls are exempt (WCAG 1.4.3 "inactive UI component").
     const control = el.closest("label, .zen-checkbox, .zen-radio, .zen-toggle, .zen-field, .zen-input-field, [class*='-field']");
