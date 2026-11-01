@@ -629,7 +629,7 @@ async function run() {
       // can never reach the next attempt's tab; they throw once its browser is closed.
       const at = { step: "loading" };
       const { entry, smokeStats } = await bounded((async (page) => {
-        await page.goto(`${BASE}/?page=${id}`, { waitUntil: "networkidle" }).catch(() => undefined);
+        await page.goto(`${BASE}/?page=${id}&examples=live`, { waitUntil: "networkidle" }).catch(() => undefined);
         if (DARK) await page.getByRole("button", { name: "Dark mode" }).first().click().catch(() => undefined);
         if (CSS) await page.addStyleTag({ content: CSS }).catch(() => undefined);
         await page.addStyleTag({ content: FREEZE_MOTION }).catch(() => undefined);
