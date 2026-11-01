@@ -20,6 +20,9 @@ How to maintain it:
   cover, and "On this page" links with "Was this page helpful?" on the right (from 1280px). The component previews'
   modes moved from the topbar chips into an **Appearance** side panel (component pages); under 1024px the navigation
   is a drawer with its search and the Figma / Feedback links.
+- Docs platform: a component page's Examples are a grid of small static thumbnails (the real example scaled down,
+  inert, rendered only when scrolled near). Play opens one example live across the row, with Code, Full screen and
+  Close; one plays at a time. `?examples=live` shows them all live as before (the platform audits use it).
 - Zen Studio › Project setup (user 2026-11-01): the Corner radius tiles draw one corner line rounded as that mode's
   button (Rounded's pill, Smooth 12, Standard 8, Luxury 2), so Rounded and Smooth no longer look the same; the
   selected tile's ring (Corner radius and Component theme) takes the accent colour.

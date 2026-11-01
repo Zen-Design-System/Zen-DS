@@ -60,7 +60,7 @@ try {
     page.on("pageerror", (e) => errors.push(e.message));
     page.on("console", (m) => { if (m.type() === "error" && !/\[vite\]|hmr/i.test(m.text())) errors.push(m.text()); });
     // On a loaded machine (several gates at once) 'load' can miss Playwright's 30s default: --timeout / --wait-until.
-    await page.goto(`${BASE}/?page=${pageId}${HIGH_CONTRAST ? "&contrast=high" : ""}`, { timeout: TIMEOUT, waitUntil: WAIT_UNTIL });
+    await page.goto(`${BASE}/?page=${pageId}&examples=live${HIGH_CONTRAST ? "&contrast=high" : ""}`, { timeout: TIMEOUT, waitUntil: WAIT_UNTIL });
     await page.waitForTimeout(900);
     // A card taller than the viewport is captured while scrolling, so the sticky platform chrome (header, navigation and "On this page" panes)
     // would be stamped over the middle of it. Pin that chrome in place; example content keeps its own sticky elements.

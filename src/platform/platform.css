@@ -433,6 +433,21 @@
 .pe-card__stage { min-width: 0; margin: var(--zen-spacing-gap-medium, 16px) var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px); padding: var(--zen-spacing-padding-xlarge, 24px); border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-canvas-default, #f7f7f7); }
 .pe-card__code { min-width: 0; margin: 0 var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px); }
 .pe-card__actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-end; gap: var(--zen-spacing-gap-xsmall, 8px); }
+/* Examples as thumbnails (user 2026-11-01: a lighter page): a tidy grid of small static previews, each the real example
+   scaled down and inert. Play opens one live card across the whole row (data-wide); `?examples=live` keeps the old grid. */
+.pe-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: var(--zen-spacing-gap-medium, 16px); align-items: stretch; }
+.pe-thumb { display: grid; grid-template-rows: auto 1fr; align-content: start; gap: var(--zen-spacing-gap-small, 12px); min-width: 0; padding: var(--zen-spacing-padding-small, 12px); border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); content-visibility: auto; contain-intrinsic-size: auto 300px; }
+/* Concentric with the card: 24 outer − 12 padding. */
+.pe-thumb__frame { position: relative; overflow: hidden; aspect-ratio: 4 / 3; border-radius: var(--zen-corner-radius-base, 12px); background: var(--zen-color-background-canvas-default, #f7f7f7); cursor: pointer; }
+.pe-thumb__content { position: absolute; top: 50%; left: 50%; transform-origin: center; pointer-events: none; }
+.pe-thumb__content .pe-card { background: transparent; box-shadow: none; border-radius: 0; }
+.pe-thumb__content .pe-card .pe-card__stage { margin: 0; border: 0; border-radius: 0; }
+/* Static: an example's own motion (skeleton shimmer, entrance, spinners) stops in its thumbnail. */
+.pe-thumb .pe-thumb__content :is(*, *::before, *::after) { animation: none; transition: none; }
+.pe-thumb__play { position: absolute; right: var(--zen-spacing-padding-xsmall, 8px); bottom: var(--zen-spacing-padding-xsmall, 8px); }
+.pe-thumb__titles { display: grid; align-content: start; gap: var(--zen-spacing-gap-2-xsmall, 4px); min-width: 0; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-2-xsmall, 4px); }
+.pe-thumb__titles h3 { margin: 0; color: var(--zen-color-content-neutral-strongest, #111); }
+.pe-thumb__titles p { display: -webkit-box; overflow: hidden; margin: 0; color: var(--official-muted); -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 /* Full screen (examples flagged `screen` and the App Shell playground): the screen alone covers the viewport like the
    real web app — no docs header, description, Code button or code panel, no stage inset or frame — under the platform's
    overlays (portal z ≥ 30). Frames that scroll inside (shells, chat windows, templates) fill the viewport's height; a
@@ -553,6 +568,7 @@
 @media (max-width: 620px) {
   .pe-card__head { flex-direction: column; }
   .pe-card__stage { padding: var(--zen-spacing-padding-medium, 16px); margin-inline: var(--zen-spacing-padding-medium, 16px); }
+  .pe-thumbs { grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); gap: var(--zen-spacing-gap-small, 12px); }
   .pe-shell { flex-direction: column; }
 }
 /* Small phones (under 375px): the docs chrome took 56px a side (page 24 + stage margin 16 + stage padding 16), leaving an
