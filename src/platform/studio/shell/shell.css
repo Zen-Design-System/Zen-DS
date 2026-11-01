@@ -11,11 +11,13 @@
 :is(.studio-chrome, .studio-chrome-portal) :is(.zen-modal-actions, .zen-modal-actions__main) { gap: var(--zen-spacing-gap-xsmall, 8px); }
 
 /* ── Top bar (Figma B4: Header/AppShell's row, compact for a tool) ── */
-/* Across the window on the canvas colour: start (menu, name, state) · the actions.
+/* Across the window on the canvas colour: start (menu, Home › project) · the name, centred on the bar · the actions.
+   Three columns, the sides equal, so the centre stays centred and each side ends in "…" before it overlaps. */
    Its inline padding lines the menu up with the panes' content (edge + the pane's Spacing/Padding/XSmall). */
 .studio-topbar-scope { position: absolute; z-index: 22; top: 0; right: 0; left: 0; }
 .studio-topbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   height: var(--studio-top);
   box-sizing: border-box;
   align-items: center;
@@ -24,11 +26,15 @@
 }
 .studio-topbar__start,
 .studio-topbar__end { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
-.studio-topbar__start { flex: 1 1 0; }
-.studio-topbar__end { flex: 1 1 0; justify-content: flex-end; }
+.studio-topbar__end { justify-content: flex-end; }
+/* zen-allow-slot-size: the centred name never takes more than 40% of the bar (it ends in "…"). */
+.studio-topbar__center { display: flex; min-width: 0; max-width: 40vw; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-topbar__center > .zen-badge { flex: none; }
+/* The trail: the project button ends in "…" first; Home keeps its icon and word. */
+.studio-crumbs { min-width: 0; }
+.studio-crumbs__project { max-width: 240px; }
 /* The name ends in "…" before it pushes anything; a long docs title keeps the actions on screen. */
 .studio-topbar__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.studio-topbar__start > .zen-badge { flex: none; }
 /* Undo · Redo sit closer together than the bar's groups (4px inside a group, 8px between groups). */
 .studio-topbar__group { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
 .studio-brand .zen-icon { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }

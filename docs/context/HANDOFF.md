@@ -20,7 +20,8 @@ Last updated: 2026-11-01.
 ## State in short
 
 - **Studio chrome = Figma B4 · Workspace Editor (2026-11-01, user):** branch `claude/studio-chrome-b4-59548a`, replaces
-  the UI3 floating panels (#63). Top bar (`shell/PanelHeaders.tsx` `TopBar`: menu "Z", page name + Saved/Unsaved, undo/redo, role, Present/Play, Open on phone, Save all/Export), Border panes beside the
+  the UI3 floating panels (#63). Top bar (`shell/PanelHeaders.tsx` `TopBar`: menu "Z", trail Home › project ▾ (`shell/ProjectCrumbs.tsx`; the
+  Pages panel's ProjectBar is gone), page name + Saved/Unsaved centred, undo/redo, role, Present/Play, Open on phone, Save all/Export), Border panes beside the
   canvas (`studio.css`), canvas = Pale field (`canvas.css`), zoom Chip bottom-right (`canvas/CanvasStatus.tsx`). Panes
   never cover the canvas: `getSafeBox` is the whole viewport, no `--studio-inset-*`. E2E S-02, S-03, S-10, G-01…03.
   The docs platform went to B5 in a sibling session the same day.

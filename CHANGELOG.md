@@ -14,8 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
-- Zen Studio's chrome follows Figma B4 · Workspace Editor: a compact top bar across (Zen menu, page name with a
-  Saved / Unsaved badge, undo/redo, role, Present / Play, Open on phone, Save all or Export), Pages | Layers and the Inspector in two hairline Border panes beside the canvas (no shadow, no longer over
+- Zen Studio's chrome follows Figma B4 · Workspace Editor: a compact top bar across (Zen menu and the trail Home ›
+  project with its avatar and a Switch project menu; the page name with a Saved / Unsaved badge in the centre; undo/redo,
+  role, Present / Play, Open on phone, Save all or Export), Pages | Layers and the Inspector in two hairline Border panes beside the canvas (no shadow, no longer over
   it), and the canvas between them one Pale field with the zoom as a Chip at its bottom-right. Replaces the UI3
   floating panels; the page Background "Canvas" now reads "Pale".
 - Zen Studio › Project setup (user 2026-11-01): the Corner radius tiles draw one corner line rounded as that mode's

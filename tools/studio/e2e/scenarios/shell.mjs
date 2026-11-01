@@ -1,7 +1,7 @@
 // Shell rows: the Studio loads the fixture page, menus open on screen, view commands do what they say; ST-30…32: how a
 // page you made opens (its first view, and the viewport it reopens at).
 import { focusFrame, inViewport, openAssetLibrary, sleep, until } from "../lib/studio.mjs";
-import { seededPage } from "./builder.mjs";
+import { newPage, seededPage } from "./builder.mjs";
 import { pageFromTemplate } from "./starters.mjs";
 
 const CANVAS = ".studio-canvas-area";
@@ -285,6 +285,34 @@ export const rows = [
       const repeated = await topBar.getByRole("button", { name: /^(Design|Code|Prototype)$/ }).or(topBar.getByRole("tab")).count();
       if (repeated) throw new Error(`the top bar repeats ${repeated} of the Inspector's views`);
       return `bar 0…${Math.round(bar.right)} · panes from y ${Math.round(left.top)} · canvas ${Math.round(canvas.left)}…${Math.round(canvas.right)} between them · no view switch in the bar`;
+    },
+  },
+  {
+    // User 2026-11-01: the page's name centred on the bar, the trail Home › project (avatar, name, switch menu) at its start.
+    id: "S-11", feature: "Top bar trail on a page you made: its name centred on the bar, Home › Drafts at the start; Switch project › Drafts opens Drafts' home, Home opens the projects grid; a docs page reads Home › Docs", wp: "B4 chrome 2026-11-01", timeout: 60_000,
+    async run(ctx) {
+      try {
+        const docs = await ctx.studio();
+        const docsTrail = (await docs.page.locator(".studio-topbar").getByRole("navigation", { name: "Project" }).innerText()).replace(/\s+/g, " ").trim();
+        if (docsTrail !== "Home Docs") throw new Error(`a docs page's trail reads "${docsTrail}"`);
+        const { page } = await newPage(ctx);
+        const bar = page.locator(".studio-topbar");
+        const centred = await page.evaluate(() => {
+          const title = document.querySelector(".studio-topbar__title")?.getBoundingClientRect();
+          return title ? Math.abs(title.left + title.width / 2 - innerWidth / 2) : null;
+        });
+        if (centred === null || centred > 60) throw new Error(`the page name is ${centred} px off the bar's centre`);
+        const trail = bar.getByRole("navigation", { name: "Project" });
+        await trail.getByRole("link", { name: "Home" }).waitFor({ state: "visible", timeout: 4000 });
+        await trail.getByRole("button", { name: "Project: Drafts" }).click();
+        await page.getByRole("menu", { name: "Switch project" }).getByRole("menuitem", { name: "Drafts", exact: true }).click();
+        await until(async () => (await page.locator(".studio-app").getAttribute("data-space")) === "studio" && !(await page.locator("[data-studio-frame]").count()), { message: "Drafts' home (no page open)" });
+        await bar.getByRole("navigation", { name: "Project" }).getByRole("link", { name: "Home" }).click();
+        await page.locator(".studio-canvas-area .studio-projects__grid").waitFor({ state: "visible", timeout: 4000 });
+        return `docs: Home › Docs · name ${Math.round(centred)} px off centre · Switch project › Drafts → its home · Home → Projects grid`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
     },
   },
   {

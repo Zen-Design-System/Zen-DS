@@ -18,6 +18,7 @@ import { modKey, presentShortcut } from "./modKey";
 import { DraftsControls, DraftsViewerNote } from "./DraftsControls";
 import { toggleStudioTheme } from "./modes";
 import { pageTitle, setSpace } from "./navigation";
+import { ProjectCrumbs } from "./ProjectCrumbs";
 import { ReadOnlyChip } from "./ReadOnlyChip";
 import { RoleMenu } from "./RoleMenu";
 import { openShortcuts } from "./shortcutsOpen";
@@ -27,8 +28,9 @@ import { signOut, useAuthUser } from "../../auth/pocketbase";
 
 /*
  * Zen Studio's chrome after Figma B4 · Workspace Editor (9nZv4uW2LT21yuHabMTCh1 15916:6196; user, 2026-11-01, replacing
- * the UI3 floating panels of 2026-10-15): one compact top bar across the window — the Zen Studio menu (a square "Z"),
- * the page's name (Body/Base/Bold) and its save state (Badge); the drafts, undo/redo, the role, Present / Play, Open
+ * the UI3 floating panels of 2026-10-15): one compact top bar across the window — the Zen Studio menu (a square "Z") and
+ * the trail Home › project (ProjectCrumbs); the page's name (Body/Base/Bold) and its save state (Badge) centred (the
+ * user's call: the centre was empty); the drafts, undo/redo, the role, Present / Play, Open
  * on phone and the primary action (Save all, or Export on a page you made) at the end. B4's centre Segmented (the mode)
  * is left out: it repeated the Inspector's Design · Code · Prototype tabs (user, 2026-11-01: "Tính năng bị trùng"), and
  * the tabs also work while the Inspector is a drawer. The Pages | Layers pane and the Inspector are Border panes under it (studio.css). A pane that is not
@@ -183,7 +185,7 @@ function PrimaryAction({ phone }: { phone: boolean }) {
 }
 
 /**
- * The top bar across the window (B4): start = menu, pane button (drawer), name, state; end = the
+ * The top bar across the window (B4): start = menu, pane button (drawer), Home › project; centre = name, state; end = the
  * drafts or read-only chip, undo/redo, role, Present / Play, Open on phone, the primary action, and the Inspector's
  * button while it is a drawer. A document page (no canvas) keeps the menu, the name and the role.
  */
@@ -195,12 +197,18 @@ export function TopBar({ layout, docPage }: { layout: PanelLayout; docPage: bool
   const redoCount = useStudio((state) => state.redo.length);
   const writable = useWritable();
   const title = useOpenTitle();
+  const studioHome = useStudio((state) => !state.localPage && state.space === "studio");
   return (
     <div className="studio-topbar">
       <div className="studio-topbar__start">
         <BrandMenu layout={layout} />
         {leftDocked ? null : <IconButton appearance="flat" level="primary" size="sm" aria-label="Pages and layers" aria-expanded={drawer === "left"} aria-controls="studio-left" icon={<Icon name="icon-layout-left-line" />} onClick={() => studioStore.setState({ drawer: drawer === "left" ? null : "left" })} />}
-        <Text as="span" textStyle="Body/Base/Bold" className="studio-topbar__title" title={title}>{title}</Text>
+        {phone ? null : <ProjectCrumbs />}
+      </div>
+      {/* The name of what is open, centred on the bar (user, 2026-11-01), with its save state. Studio's folders name
+          themselves in the trail and the page. */}
+      <div className="studio-topbar__center">
+        {studioHome ? null : <Text as="span" textStyle="Body/Base/Bold" className="studio-topbar__title" title={title}>{title}</Text>}
         {/* Saved / Unsaved names a page's state: none on Studio's folders or a docs page. */}
         {phone || docPage ? null : <SaveState />}
       </div>

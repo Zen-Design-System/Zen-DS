@@ -60,3 +60,8 @@ field's bottom-right). Code twin: `WorkspaceEditorApp` (`examples/pages/app-shel
 - User 2026-11-01 ("bị trống phía trên"): a page you made opened with an empty band above its title — the first view
   centred a desktop Screen fitted by width in the narrower canvas. `firstVisit.ts` now starts the view at the board's
   title block (`.studio-board__title`) at the 48px margin when the height allows; ST-30…32, B-52, B-55, S-04 pass.
+- User 2026-11-01: the page name to the bar's centre; at the start a trail Home (house icon) › the project, its avatar
+  (initial on the project's Primary; Drafts: file icon) beside its name, a menu that switches project; Home opens the
+  projects grid. `shell/ProjectCrumbs.tsx` (Zen Breadcrumbs, the project crumb a Menu trigger); the bar is a 3-column grid
+  (sides equal, centre ≤ 40vw). The Pages panel's ProjectBar (← All projects, name, ⋯) said the same and is removed
+  (settings and delete stay on the project card and the project home). Docs pages read Home › Docs. E2E S-11.
