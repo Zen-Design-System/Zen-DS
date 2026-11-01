@@ -299,12 +299,15 @@
 .platform-install__step p { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
 .platform-install__command { margin: 0; overflow-x: auto; padding: var(--zen-spacing-padding-small, 12px) var(--zen-spacing-padding-medium, 16px); border-radius: var(--zen-corner-radius-small, 8px); background: var(--platform-code-background); color: var(--platform-code-foreground); font-family: var(--zen-typography-font-family-dev), ui-monospace, monospace; font-size: var(--zen-typography-font-size-body-small, 12px); line-height: var(--zen-typography-line-height-body-small, 16px); letter-spacing: var(--zen-typography-letter-spacing-body-code, 0px); white-space: pre-wrap; }
 .platform-component-preview { box-sizing: border-box; }
-.platform-example-panel--stack { display: grid; grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr); grid-template-rows: 88px auto auto; grid-template-areas: "title controls" "preview controls" "code controls"; gap: 0; padding: 0; overflow: visible; border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
+/* Playground (user 2026-11-01): the title, the preview, its properties under it, then the code, in one column. */
+.platform-example-panel--stack { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "title" "preview" "controls" "code"; gap: 0; padding: 0; overflow: visible; border: 0; border-radius: var(--platform-surface-radius); background: var(--platform-surface-background); box-shadow: var(--platform-surface-shadow); }
 .platform-main-component__title { grid-area: title; box-sizing: border-box; width: 100%; margin: 0; padding: var(--zen-spacing-padding-xlarge, 24px) var(--zen-spacing-padding-xlarge, 24px) 0; color: var(--zen-color-content-neutral-strongest, #111); font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-heading-3, 24px)/var(--zen-typography-line-height-heading-3, 32px) var(--zen-typography-font-family-heading, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-heading-3, -.72px); }
-.platform-playground-controls { --platform-property-label: clamp(80px, 28%, 120px); display: flex; grid-area: controls; min-width: 0; flex-direction: column; flex-wrap: nowrap; gap: var(--zen-spacing-gap-xsmall, 8px); align-items: stretch; align-self: stretch; padding: var(--zen-spacing-padding-xlarge, 24px); border-left: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
+.platform-example-panel--stack > .platform-main-component__title { padding-bottom: var(--zen-spacing-padding-medium, 16px); }
+/* The properties fill as many 280px-or-wider columns as the panel holds (three on a wide page, one on a phone). */
+.platform-playground-controls { --platform-property-label: clamp(80px, 28%, 120px); display: grid; grid-area: controls; min-width: 0; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: var(--zen-spacing-gap-xsmall, 8px) var(--zen-spacing-gap-xlarge, 32px); align-content: start; padding: var(--zen-spacing-padding-xlarge, 24px); margin-top: var(--zen-spacing-padding-xlarge, 24px); border-top: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); }
 /* Same as Zen Studio's "Playground properties" inspector section: Body/Small/Bold title, then 32px label + control
    rows (label column, control fills) at Gap/XSmall. */
-.platform-playground-controls::before { display: flex; min-height: 24px; align-items: center; color: var(--zen-color-content-neutral-strongest, #111); content: "Playground properties"; font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-small, 0px); }
+.platform-playground-controls::before { display: flex; grid-column: 1 / -1; min-height: 24px; align-items: center; color: var(--zen-color-content-neutral-strongest, #111); content: "Playground properties"; font: var(--zen-emphasis-font-weight-bold, 600) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-small, 0px); }
 .platform-property-row { display: grid; min-height: 32px; grid-template-columns: var(--platform-property-label) minmax(0, 1fr); gap: var(--zen-spacing-gap-xsmall, 8px); align-items: center; min-width: 0; }
 /* Long property names ("Trailing Clickable") wrap in a narrow column instead of losing their end. */
 .platform-property-row__label { min-width: 0; color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); overflow-wrap: anywhere; font: var(--zen-emphasis-font-weight-regular, 400) var(--zen-typography-font-size-body-small, 12px)/var(--zen-typography-line-height-body-small, 16px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-small, 0px); }
@@ -357,15 +360,7 @@
   .official-card--development { grid-column: auto; grid-row: auto; }
 }
 
-@media (max-width: 1024px) {
-  /* Playground: preview, then properties, then code in one column. */
-  .platform-example-panel--stack { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "title" "preview" "controls" "code"; }
-  .platform-example-panel--stack > .platform-main-component__title { padding-bottom: var(--zen-spacing-padding-medium, 16px); }
-  .platform-playground-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--zen-spacing-gap-xlarge, 32px); align-content: start; border-top: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%)); border-left: 0; }
-  .platform-playground-controls::before { grid-column: 1 / -1; }
-}
 @media (max-width: 620px) {
-  .platform-playground-controls { grid-template-columns: minmax(0, 1fr); }
   /* Phones: the playground preview insets like an example stage (16 + 16), not 24 + 24, so Comfortable content fits. */
   .platform-example-panel--stack > :is(.platform-example-row, .platform-input-preview) { margin-inline: var(--zen-spacing-padding-medium, 16px); padding-inline: var(--zen-spacing-padding-medium, 16px); }
 }

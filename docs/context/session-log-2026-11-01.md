@@ -54,4 +54,7 @@ Branch claude/docs-chrome-b5-020c25 (worktree). Spec card: B5 node 15917:6719 = 
   (`data-page-width`), breadcrumbs gap, sticky offset from `--zen-app-shell-header-height`. Tools: `audit.mjs` skips
   contrast in `.official-nav-pane`; `shoot.mjs` pins the AppShell header and panes.
 - Harness found and fixed: the drawer Sidebar on Canvas/Flat needed `background="flat"` `shadow={false}`.
+- User follow-up ("phần playground props để dưới component thay vì bên phải"): `.platform-example-panel--stack` is one
+  column at every width (title · preview · properties · code); `.platform-playground-controls` is a grid of
+  `minmax(min(100%, 280px), 1fr)` columns with a Pale line above (the old ≤ 1024 / ≤ 620 overrides removed).
 
