@@ -207,7 +207,8 @@ export function TopBar({ layout, docPage }: { layout: PanelLayout; docPage: bool
         <BrandMenu layout={layout} />
         {leftDocked ? null : <IconButton appearance="flat" level="primary" size="sm" aria-label="Pages and layers" aria-expanded={drawer === "left"} aria-controls="studio-left" icon={<Icon name="icon-layout-left-line" />} onClick={() => studioStore.setState({ drawer: drawer === "left" ? null : "left" })} />}
         <Text as="span" textStyle="Body/Base/Bold" className="studio-topbar__title" title={title}>{title}</Text>
-        {phone ? null : <SaveState />}
+        {/* Saved / Unsaved names a page's state: none on Studio's folders or a docs page. */}
+        {phone || docPage ? null : <SaveState />}
       </div>
       {docPage || narrow ? null : <div className="studio-topbar__center"><ModeSwitch /></div>}
       <div className="studio-topbar__end">

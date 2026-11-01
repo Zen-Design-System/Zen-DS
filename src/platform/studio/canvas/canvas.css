@@ -139,5 +139,10 @@
   align-items: center;
   gap: var(--zen-spacing-gap-xsmall, 8px);
 }
+/* A phone-width canvas has no room for the tools and the corner side by side (the zoom Chip ran into the tools at 390px):
+   the corner moves to the canvas's top-right. */
+@media (max-width: 767.98px) {
+  .studio-status { top: var(--zen-spacing-padding-medium, 16px); bottom: auto; }
+}
 /* The App Shell playground's own full screen covers the canvas: the pills step aside with the rest of the canvas chrome. */
 .studio-canvas-area[data-world-fullscreen="true"] > :is(.studio-canvas-tools, .studio-status) { visibility: hidden; }
