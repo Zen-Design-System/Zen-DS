@@ -140,19 +140,19 @@ export const rows = [
     },
   },
   {
-    id: "S-02", feature: "Zoom % menu on the Inspector's tab row (Figma UI3) opens on screen", wp: "WP-A",
+    id: "S-02", feature: "Zoom % Chip at the canvas's bottom-right (Figma B4) opens its menu on screen", wp: "WP-A · B4 2026-11-01",
     async run(ctx) {
       const { page } = await ctx.studio();
-      const trigger = page.locator("#studio-right .studio-inspector__tabs .studio-zoom__value").first();
+      const trigger = page.locator(".studio-canvas-area .studio-status .studio-zoom__value").first();
       return menuItemsOnScreen(page, () => trigger.click());
     },
   },
   {
-    // Preview modes change in Play and Present only (user, 2026-10-09): the panel headers have no Modes.
-    id: "S-03", feature: "Modes: none in the panel headers; Present's Modes panel opens on screen", wp: "WP-A",
+    // Preview modes change in Play and Present only (user, 2026-10-09): the top bar has no Modes.
+    id: "S-03", feature: "Modes: none in the top bar; Present's Modes panel opens on screen", wp: "WP-A",
     async run(ctx) {
       const { page } = await ctx.studio();
-      if (await page.locator(".studio-panel-head, .studio-bar").getByRole("button", { name: "Modes", exact: true }).count()) throw new Error("a panel header still has Modes");
+      if (await page.locator(".studio-topbar").getByRole("button", { name: "Modes", exact: true }).count()) throw new Error("the top bar has Modes");
       await focusFrame(page, 3);
       await page.keyboard.press(process.platform === "darwin" ? "Alt+Meta+Enter" : "Control+Alt+Enter");
       const exit = page.getByRole("button", { name: /Exit full screen/i });
@@ -164,7 +164,7 @@ export const rows = [
       await page.keyboard.press("Escape");
       await page.keyboard.press("Escape");
       if (!inViewport(box)) throw new Error(`Modes panel off screen: ${JSON.stringify(box)}`);
-      return "no Modes in the panel headers; Present's panel inside the viewport";
+      return "no Modes in the top bar; Present's panel inside the viewport";
     },
   },
   {
@@ -224,7 +224,7 @@ export const rows = [
     },
   },
   {
-    id: "S-07", feature: "Phone width: the Inspector button is reachable in its corner bar", wp: "WP-A",
+    id: "S-07", feature: "Phone width: the Inspector button is reachable in the top bar", wp: "WP-A",
     async run(ctx) {
       const { page } = await ctx.studio({ viewport: { width: 390, height: 844 } });
       const button = page.getByRole("button", { name: /^Inspector/ }).first();
@@ -260,6 +260,35 @@ export const rows = [
       } finally {
         await ctx.studio({ fresh: true });
       }
+    },
+  },
+  {
+    // Figma B4 · Workspace Editor (user, 2026-11-01): a top bar across, two Border panes beside the canvas (not over it),
+    // the canvas between them the Pale field; the bar's Mode switches the Inspector's view.
+    id: "S-10", feature: "B4 chrome: the top bar spans the window over the panes, Pages | Layers and the Inspector sit beside the canvas without covering it and cast no shadow, the canvas is the Pale field, and the bar's Mode › Code opens the Inspector's Code tab", wp: "B4 chrome 2026-11-01",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const boxes = await page.evaluate(() => {
+        const rect = (selector) => { const r = document.querySelector(selector)?.getBoundingClientRect(); return r ? { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width } : null; };
+        const shadow = (selector) => { const el = document.querySelector(selector); return el ? getComputedStyle(el).boxShadow : null; };
+        return { bar: rect(".studio-topbar"), left: rect("#studio-left"), right: rect("#studio-right"), canvas: rect(".studio-canvas-area"), width: innerWidth, leftShadow: shadow("#studio-left"), rightShadow: shadow("#studio-right"), viewport: getComputedStyle(document.querySelector(".studio-viewport")).backgroundColor };
+      });
+      const { bar, left, right, canvas } = boxes;
+      if (!bar || !left || !right || !canvas) throw new Error(`missing chrome: ${JSON.stringify(boxes)}`);
+      if (bar.left > 1 || bar.right < boxes.width - 1) throw new Error(`the top bar spans ${Math.round(bar.left)}…${Math.round(bar.right)} of ${boxes.width}`);
+      if (left.top < bar.bottom - 1 || right.top < bar.bottom - 1) throw new Error(`a pane starts above the bar's bottom (${Math.round(bar.bottom)}): left ${Math.round(left.top)}, right ${Math.round(right.top)}`);
+      if (canvas.left < left.right || canvas.right > right.left) throw new Error(`the canvas ${Math.round(canvas.left)}…${Math.round(canvas.right)} runs under a pane (${Math.round(left.right)}, ${Math.round(right.left)})`);
+      if (boxes.leftShadow !== "none" || boxes.rightShadow !== "none") throw new Error(`a docked pane has a shadow: ${boxes.leftShadow} / ${boxes.rightShadow}`);
+      const pale = await page.evaluate(() => { const probe = document.createElement("div"); probe.style.background = "var(--zen-color-background-neutral-pale-default)"; document.querySelector(".studio-canvas-area").append(probe); const value = getComputedStyle(probe).backgroundColor; probe.remove(); return value; });
+      if (boxes.viewport !== pale) throw new Error(`the canvas paints ${boxes.viewport}, not Pale ${pale}`);
+      const mode = page.locator(".studio-topbar").getByRole("group", { name: "Mode" });
+      try {
+        await mode.getByRole("button", { name: "Code", exact: true }).click();
+        await until(async () => (await page.locator("#studio-right").getByRole("tab", { name: "Code", exact: true }).getAttribute("aria-selected")) === "true", { message: "the Inspector's Code tab" });
+      } finally {
+        await mode.getByRole("button", { name: "Design", exact: true }).click().catch(() => undefined);
+      }
+      return `bar 0…${Math.round(bar.right)} · panes from y ${Math.round(left.top)} · canvas ${Math.round(canvas.left)}…${Math.round(canvas.right)} between them · Mode › Code → Code tab`;
     },
   },
   {

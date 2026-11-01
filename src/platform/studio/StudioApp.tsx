@@ -14,7 +14,7 @@ import { presentFrame } from "./board/presentFrame";
 import { setStudioActivePanel, StudioBridgeContext, type StudioBridge, type StudioPageParts } from "./bridge";
 import { CanvasChrome } from "./canvas/CanvasChrome";
 import { StudioCanvas } from "./canvas/StudioCanvas";
-import { canvasApi, notifyCanvas, setCanvasInsets, zoomIn, zoomOut } from "./canvas/viewport";
+import { canvasApi, zoomIn, zoomOut } from "./canvas/viewport";
 import { zoomToSelection } from "./canvas/zoomToSelection";
 import { CodeView } from "./code/CodeView";
 import { detachSelection } from "./inspector/detach";
@@ -65,7 +65,7 @@ import { BindingDiffDialog } from "./mainComponent/BindingDiffDialog";
 import { PanelResizer } from "./shell/PanelResizer";
 import { ShortcutsDialog } from "./shell/ShortcutsDialog";
 import { openShortcuts } from "./shell/shortcutsOpen";
-import { CollapsedLeftBar, CollapsedRightBar, DrawerClose, LeftHeader, RightHeader } from "./shell/PanelHeaders";
+import { DrawerClose, TopBar } from "./shell/PanelHeaders";
 import { requestSave } from "./sourceDrafts";
 import { canEdit, pageKey, studioStore, useStudio } from "./store";
 import type { StudioLeftTab } from "./types";
@@ -178,10 +178,10 @@ const WorldContent = memo(function WorldContent({ page, collection }: { page: Pl
 
 /**
  * Zen Studio (docs/research/zen-studio-spec-2026-10-02.md): the docs platform as a FigJam-like canvas, laid out as Figma
- * UI3's floating panels (user, 2026-10-15): the canvas fills the window, Pages | Layers floats on the left and the
- * Inspector on the right, each with its own header; there is no toolbar row. Docked panels resize
- * from their inner edge; below 1280px Pages | Layers is a drawer, below 1024px the Inspector too; ⌘/Ctrl+\ hides both
- * (shell/layout.ts), leaving a small bar in each corner that opens them.
+ * B4 · Workspace Editor (user, 2026-11-01): a compact top bar across, Pages | Layers and the Inspector in two Border panes
+ * at the sides on the flat canvas colour, and the canvas between them the one Pale field (studio.css). Docked panes
+ * resize from their inner edge; below 1280px Pages | Layers is a drawer, below 1024px the Inspector too; ⌘/Ctrl+\ hides
+ * both (shell/layout.ts); the top bar's buttons open them as drawers.
  */
 export function StudioApp() {
   useRouting();
@@ -277,29 +277,6 @@ export function StudioApp() {
     window.addEventListener("zen-studio:expand-code", onExpand);
     return () => window.removeEventListener("zen-studio:expand-code", onExpand);
   }, []);
-  // The canvas runs under the floating panels: tell it which part they cover (fit, zoom and keep-in-view aim at the rest).
-  const appRef = useRef<HTMLDivElement | null>(null);
-  useLayoutEffect(() => {
-    const app = appRef.current;
-    const left = document.getElementById("studio-left");
-    const right = document.getElementById("studio-right");
-    if (!app) return undefined;
-    const measure = () => {
-      const width = app.clientWidth;
-      const leftCover = leftDocked && !presenting && left ? left.getBoundingClientRect().right : 0;
-      const rightBox = right?.getBoundingClientRect();
-      const rightCover = rightDocked && !presenting && !docPage && rightBox ? width - rightBox.left : 0;
-      setCanvasInsets({ left: Math.max(0, Math.round(leftCover)), right: Math.max(0, Math.round(rightCover)), top: 0, bottom: 0 });
-      notifyCanvas();
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(app);
-    if (left) observer.observe(left);
-    if (right) observer.observe(right);
-    return () => observer.disconnect();
-  }, [leftDocked, rightDocked, presenting, docPage]);
-
   const firstExpand = useRef(true);
   useEffect(() => {
     if (firstExpand.current) { firstExpand.current = false; return; }
@@ -659,7 +636,6 @@ export function StudioApp() {
   return (
     <ChromePortalContext value={chromePortal}>
       <div
-        ref={appRef}
         className="studio-app"
         data-theme={chromeTheme}
         data-left={leftDocked ? "docked" : "drawer"}
@@ -670,8 +646,13 @@ export function StudioApp() {
         data-space={localPage ? "studio" : space}
         style={{ "--studio-left-width": `${panels.left}px`, "--studio-right-width": `${rightWidth}px` } as CSSProperties}
       >
+        <ChromeScope as="header" className="studio-topbar-scope" aria-label="Zen Studio" inert={inert}>
+          <TopBar layout={layout} docPage={docPage} />
+        </ChromeScope>
+
         <ChromeScope as="aside" id="studio-left" className="studio-left" aria-label="Pages and layers" data-open={leftOpen ? "true" : "false"} inert={inert ?? (leftOpen ? undefined : true)}>
-          <LeftHeader layout={layout} drawer={!leftDocked && docPage} />
+          {/* A document page has no tab row: its drawer's Close sits alone at the top. */}
+          {!leftDocked && docPage ? <div className="studio-left__close"><DrawerClose label="Close pages and layers" /></div> : null}
           {/* A document page has no layers: the left panel is the page list alone. */}
           {docPage ? null : panelTabs}
           <TabPanel idPrefix="studio-left" id="pages" hidden={!docPage && leftTab !== "pages"} className="studio-left__panel"><PagesPanel /></TabPanel>
@@ -708,19 +689,12 @@ export function StudioApp() {
           {docPage ? null : <AgentPanel />}
         </main>
 
-        {/* A document page has no Inspector: the right panel is its header alone, a small bar in the corner. */}
-        {docPage ? (
-          <ChromeScope as="aside" className="studio-right" aria-label="Studio" data-bar="true" data-open="true" inert={inert}>
-            <RightHeader layout={layout} drawer={false} />
-          </ChromeScope>
-        ) : (
+        {/* A document page has no Inspector (its top bar keeps the menu, the name and the role). */}
+        {docPage ? null : (
           <ChromeScope as="aside" id="studio-right" className="studio-right" aria-label="Inspector" data-open={rightOpen ? "true" : "false"} data-expanded={codeExpanded ? "true" : undefined} inert={inert ?? (rightOpen ? undefined : true)}>
-            <RightHeader layout={layout} drawer={!rightDocked} />
-            <Inspector controlsSlot={controlsSlot} codeSlot={codeSlot} />
+            <Inspector controlsSlot={controlsSlot} codeSlot={codeSlot} drawerClose={rightDocked ? null : <DrawerClose label="Close inspector" />} />
           </ChromeScope>
         )}
-        {leftDocked || presenting ? null : <ChromeScope className="studio-bar-scope" inert={inert}><CollapsedLeftBar layout={layout} /></ChromeScope>}
-        {rightDocked || presenting || docPage ? null : <ChromeScope className="studio-bar-scope" inert={inert}><CollapsedRightBar layout={layout} /></ChromeScope>}
 
         {leftDocked && !presenting ? <PanelResizer side="left" width={panels.left} label="Resize Pages and layers panel" controls="studio-left" /> : null}
         {rightDocked && !presenting && !docPage ? <PanelResizer side="right" width={rightWidth} label="Resize Inspector" controls="studio-right" onResize={() => setCodeExpanded(false)} /> : null}

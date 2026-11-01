@@ -1,89 +1,78 @@
-/* Zen Studio layout (spec §2), Figma UI3's floating panels (user, 2026-10-15): the canvas fills the window and the
-   panels float over it, Spacing/Padding/XSmall from the edges: Pages | Layers on the left, the Inspector on the right,
-   both full height (a hugging Inspector left its option lists no room: they opened cut off, E2E B-15). The window never
-   scrolls. Panels are resizable
-   (StudioApp sets --studio-left-width / --studio-right-width from the prefs). ≥ 1280px both are docked; 1024–1279px
-   Pages | Layers is a drawer and the Inspector stays docked; < 1024px both are drawers; ⌘\ hides both (a small bar in
-   each corner opens them). --studio-inset-left/right: the part of the canvas a docked panel covers (overlay layer, tools).
-   Stacking (the app isolates): the canvas at the base, the examples' overlay portal 20, the canvas pills 21, the
-   panels 22, resize handles 23, drawers 25 over their scrim 24, Present 30, the chrome's own popovers 40. */
-/* zen-allow-canvas-layer: the Studio window is the page layer behind its panels. */
+/* Zen Studio layout (spec §2) after Figma B4 · Workspace Editor (9nZv4uW2LT21yuHabMTCh1 15916:6196; user, 2026-11-01,
+   replacing the UI3 floating panels of 2026-10-15): on the flat canvas colour, a compact top bar across the window
+   (shell.css), then Pages | Layers and the Inspector in two Border panes at the sides — Surface, a Pale hairline,
+   Corner-Radius/XLarge, no shadow — and between them the canvas, the one Pale field (radius XLarge), so the frames on it
+   read as the objects. Panes and canvas sit Spacing/Padding/XSmall apart and from the window's edges. The window never
+   scrolls. Panes are resizable (StudioApp sets --studio-left-width / --studio-right-width from the prefs). ≥ 1280px both
+   are docked; 1024–1279px Pages | Layers is a drawer and the Inspector stays docked; < 1024px both are drawers; ⌘\ hides
+   both (the top bar's buttons open them). A pane never covers the canvas while docked: the canvas area is exactly the
+   visible canvas (fit, zoom and keep-in-view use all of it, canvas/viewport.ts getSafeBox).
+   Stacking (the app isolates): the canvas at the base, the examples' overlay portal 20, the canvas pills 21, the top bar
+   and panes 22, resize handles 23, drawers 25 over their scrim 24, Present 30, the chrome's own popovers 40. */
+/* zen-allow-canvas-layer: the Studio window is the page layer behind its panes (B4: Canvas/Flat). */
 .studio-app {
   --studio-edge: var(--zen-spacing-padding-xsmall, 8px);
+  /* zen-allow-slot-size: the top bar's height (its 32px controls and Spacing/Padding/XSmall above and below). */
+  --studio-top: 48px;
   --studio-left-width: 272px;
   --studio-right-width: 320px;
   /* zen-allow-slot-size: a docked Inspector never squeezes the visible canvas below 360px (it stops at its 280px minimum). */
   --studio-right-column: min(var(--studio-right-width), max(280px, calc(100vw - var(--studio-left-width) - 360px)));
-  --studio-inset-left: 0px;
-  --studio-inset-right: 0px;
+  /* Where the canvas starts and ends (window px from each side): after a docked pane and its gutter, else the edge. */
+  --studio-left-column: var(--studio-edge);
+  --studio-right-column-end: var(--studio-edge);
   position: fixed;
   inset: 0;
   overflow: hidden;
   isolation: isolate;
-  background: var(--zen-color-background-canvas-default, #f7f7f7);
+  background: var(--zen-color-background-canvas-flat, #fff);
   color: var(--zen-color-content-neutral-strongest, #111);
 }
-.studio-app[data-left="docked"] { --studio-inset-left: calc(var(--studio-edge) + var(--studio-left-width)); }
-.studio-app[data-right="docked"]:not([data-doc="true"]) { --studio-inset-right: calc(var(--studio-edge) + var(--studio-right-column)); }
+.studio-app[data-left="docked"] { --studio-left-column: calc(2 * var(--studio-edge) + var(--studio-left-width)); }
+.studio-app[data-right="docked"]:not([data-doc="true"]) { --studio-right-column-end: calc(2 * var(--studio-edge) + var(--studio-right-column)); }
 
-/* clip: focus inside the canvas must never scroll the work area itself (the canvas turns such scrolls into pans). */
-.studio-canvas-area { position: absolute; inset: 0; min-width: 0; min-height: 0; overflow: clip; }
-/* The canvas ends at the docked panels: a strip in the canvas colour (canvas.css --studio-canvas-color) under each
-   docked panel's column, from the window's edge to the panel's far edge, at z 21 (above the frames and their chrome,
-   below the panel at 22), so no frame's text shows through the 8px gutters beside the panels (UX review 2026-10-27
-   §2.10). The panel's shadow and corners fall on the canvas colour, as before. Not on a document page (its canvas area
-   starts after the left panel), nor under the App Shell playground's full screen (it covers the window). */
-.studio-app[data-left="docked"]:not([data-doc="true"]) .studio-canvas-area::before,
-.studio-app[data-right="docked"]:not([data-doc="true"]) .studio-canvas-area::after {
-  content: "";
+/* The canvas: the Pale field between the panes (canvas.css paints it: --studio-canvas-color, a page's Background).
+   clip: focus inside the canvas must never scroll the work area itself (the canvas turns such scrolls into pans). */
+.studio-canvas-area {
   position: absolute;
-  z-index: 21;
-  top: 0;
-  bottom: 0;
-  background: var(--studio-canvas-color, var(--zen-color-background-canvas-default, #f7f7f7));
-  pointer-events: none;
+  top: var(--studio-top);
+  right: var(--studio-right-column-end);
+  bottom: var(--studio-edge);
+  left: var(--studio-left-column);
+  min-width: 0;
+  min-height: 0;
+  overflow: clip;
+  border-radius: var(--zen-corner-radius-xlarge, 20px);
 }
-.studio-app[data-left="docked"]:not([data-doc="true"]) .studio-canvas-area::before { left: 0; width: var(--studio-inset-left); }
-.studio-app[data-right="docked"]:not([data-doc="true"]) .studio-canvas-area::after { right: 0; width: var(--studio-inset-right); }
-.studio-canvas-area[data-world-fullscreen="true"]::before,
-.studio-canvas-area[data-world-fullscreen="true"]::after { display: none; }
-/* A document page reads as a normal page beside the left panel, its content starting under the floating bars at the
-   top (Document | Studio, the right header): their 44px row and Spacing/Padding/XSmall above and below it. */
-.studio-app[data-doc="true"] .studio-canvas-area { left: var(--studio-inset-left); }
-.studio-app[data-doc="true"] .studio-doc__page { padding-top: calc(var(--zen-spacing-padding-4-xlarge, 48px) + 2 * var(--studio-edge)); }
+/* A document page reads as a normal page beside the Pages pane: no field, it runs to the window's right and bottom. */
+.studio-app[data-doc="true"] .studio-canvas-area { right: 0; bottom: 0; border-radius: 0; }
 
-/* The floating panels: Surface/Default with the popover's edge and shadow, so they keep an edge over any canvas. */
+/* The panes: B4's AppShell Pane Theme=Border — Surface/Default, a Border/Neutral/Pale hairline, no shadow. */
 .studio-left,
 .studio-right {
   position: absolute;
   z-index: 22;
-  top: var(--studio-edge);
+  top: var(--studio-top);
+  bottom: var(--studio-edge);
   display: flex;
   min-width: 0;
   min-height: 0;
   box-sizing: border-box;
   flex-direction: column;
-  border-radius: var(--zen-corner-radius-xlarge, 16px);
-  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
+  border: 1px solid var(--zen-color-border-neutral-pale-default, rgb(1 1 1 / 6%));
+  border-radius: var(--zen-corner-radius-xlarge, 20px);
   background: var(--zen-color-background-surface-default, #fff);
-  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
 }
-.studio-left { bottom: var(--studio-edge); left: var(--studio-edge); width: var(--studio-left-width); overflow: clip; }
-/* The Inspector's body scrolls; its drafts list hangs below the header, so the panel does not clip (its own blocks keep
-   inside the corners). */
-.studio-right { right: var(--studio-edge); bottom: var(--studio-edge); width: var(--studio-right-column); }
-/* Its header fits its width (shell.css @container studio-right); the document-page bar hugs, so it is no container. */
-.studio-right:not([data-bar="true"]) { container: studio-right / inline-size; }
-/* A document page: the right panel is its header alone, a bar that hugs its controls. */
-.studio-right[data-bar="true"] { bottom: auto; width: max-content; max-width: calc(100% - var(--studio-inset-left) - 3 * var(--studio-edge)); }
+.studio-left { left: var(--studio-edge); width: var(--studio-left-width); overflow: clip; }
+/* The Inspector's body scrolls; its blocks keep inside the corners. Its rows fit its width (@container studio-right). */
+.studio-right { right: var(--studio-edge); width: var(--studio-right-column); container: studio-right / inline-size; }
 
 /* The canvas's overlay layer (overlays outside a frame; each frame holds its own example's, StudioFrame): it covers the
-   canvas area only. Layout containment makes it the containing
-   block of its fixed overlays — a Dialog, Side Panel or Bottom Sheet and its scrim, the toast stack — so they cover and
-   centre on the canvas, and paint containment clips them to it; the toolbar and side panels stay usable. The layer
-   takes no pointer events itself; its overlays do (zero specificity: a surface that opts out, like a tooltip, keeps it). */
-.studio-canvas-area > .studio-portal-root { position: absolute; z-index: 20; inset: 0 var(--studio-inset-right) 0 var(--studio-inset-left); contain: layout paint; pointer-events: none; }
-.studio-app[data-doc="true"] .studio-canvas-area > .studio-portal-root { inset: 0; }
+   canvas area. Layout containment makes it the containing block of its fixed overlays — a Dialog, Side Panel or Bottom
+   Sheet and its scrim, the toast stack — so they cover and centre on the canvas, and paint containment clips them to it;
+   the top bar and panes stay usable. The layer takes no pointer events itself; its overlays do (zero specificity: a
+   surface that opts out, like a tooltip, keeps it). */
+.studio-canvas-area > .studio-portal-root { position: absolute; z-index: 20; inset: 0; contain: layout paint; pointer-events: none; }
 :where(.studio-canvas-area > .studio-portal-root) > * { pointer-events: auto; }
 /* Select and Hand: an overlay an example left open (a Dialog, a Side Panel) is a layer, not a control, as in Figma's
    design mode: clicks go to the canvas, which picks it (SelectionLayer sets data-picking for its hit test); its own
@@ -91,15 +80,15 @@
 .studio-canvas-area:has(> .studio-viewport:not([data-tool="interact"])) > .studio-portal-root > * { pointer-events: none; }
 .studio-canvas-area > .studio-portal-root.studio-portal-root[data-picking="true"] > * { pointer-events: auto; }
 /* Surfaces placed at window coordinates (from getBoundingClientRect: icon-button and rail tooltips, the table editor's
-   error) move back by the overlay layer's offset — the docked left panel it starts after. */
+   error) move back by the overlay layer's offset — the canvas area's top-left in the window. */
 .studio-canvas-area > .studio-portal-root :is(.zen-tooltip-layer, .zen-sidebar__rail-tooltip, .zen-table-editor__error-tooltip) {
-  margin: 0 0 0 calc(-1 * var(--studio-inset-left));
+  margin: calc(-1 * var(--studio-top)) 0 0 calc(-1 * var(--studio-left-column));
 }
 /* The App Shell playground's own full screen covers the window (z 25): its overlays rise above it and are placed against
-   the window again (a zero-size anchor, no containment), and the canvas area stops clipping so a menu opened past its
-   edge still shows. StudioCanvas sets data-world-fullscreen on the canvas area. */
+   the window again (a zero-size anchor at the window's corner, no containment), and the canvas area stops clipping so a
+   menu opened past its edge still shows. StudioCanvas sets data-world-fullscreen on the canvas area. */
 .studio-canvas-area[data-world-fullscreen="true"] { overflow: visible; }
-.studio-canvas-area[data-world-fullscreen="true"] > .studio-portal-root { z-index: 26; inset: 0 auto auto 0; width: 0; height: 0; contain: none; }
+.studio-canvas-area[data-world-fullscreen="true"] > .studio-portal-root { position: fixed; z-index: 26; inset: 0 auto auto 0; width: 0; height: 0; contain: none; }
 .studio-canvas-area[data-world-fullscreen="true"] > .studio-portal-root :is(.zen-tooltip-layer, .zen-sidebar__rail-tooltip, .zen-table-editor__error-tooltip) { margin: 0; }
 
 /* The chrome's portal layer covers the window (no pointer events of its own; its surfaces take them), so a menu or
@@ -109,18 +98,19 @@
 :where(.studio-chrome-portal) > * { pointer-events: auto; }
 .studio-dialogs { display: contents; }
 
-/* Drawers: the same floating panels, sliding in over the canvas from the corner bars' buttons; Escape and the scrim
-   close them. */
+/* Drawers: the same panes sliding in over the canvas from the top bar's buttons, with the popover's shadow while they
+   cover it; Escape and the scrim close them. */
 .studio-app[data-left="drawer"] .studio-left,
-.studio-app[data-right="drawer"] .studio-right:not([data-bar="true"]) {
+.studio-app[data-right="drawer"] .studio-right {
   z-index: 25;
   visibility: hidden;
+  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
   transition: transform var(--zen-motion-duration-base, 200ms) var(--zen-motion-ease-emphasized, ease-out), visibility 0s linear var(--zen-motion-duration-base, 200ms);
 }
 /* zen-allow-slot-size: a drawer leaves a 48px strip of canvas (and its scrim) to tap. */
 .studio-app[data-left="drawer"] .studio-left { width: min(var(--studio-left-width), calc(100vw - 48px)); transform: translateX(calc((-100% - var(--studio-edge)) * var(--zen-motion-movement, 1))); }
 /* zen-allow-slot-size: a drawer leaves a 48px strip of canvas (and its scrim) to tap. */
-.studio-app[data-right="drawer"] .studio-right:not([data-bar="true"]) { width: min(var(--studio-right-width), calc(100vw - 48px)); transform: translateX(calc((100% + var(--studio-edge)) * var(--zen-motion-movement, 1))); }
+.studio-app[data-right="drawer"] .studio-right { width: min(var(--studio-right-width), calc(100vw - 48px)); transform: translateX(calc((100% + var(--studio-edge)) * var(--zen-motion-movement, 1))); }
 .studio-app[data-left="drawer"] .studio-left[data-open="true"],
 .studio-app[data-right="drawer"] .studio-right[data-open="true"] { transform: none; visibility: visible; transition-delay: 0s; }
 @media (prefers-reduced-motion: reduce) {

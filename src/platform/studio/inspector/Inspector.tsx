@@ -1,7 +1,6 @@
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { Icon } from "../../../components/Icon";
 import { TabPanel, Tabs } from "../../../components/Tabs";
-import { ZoomMenu } from "../canvas/ZoomControls";
 import { PrototypePanel } from "../builder/proto/PrototypePanel";
 import { typographyStyles } from "../../../tokens/typography.generated";
 import { useStudioEditStatus, useStudioServer } from "../api";
@@ -110,7 +109,8 @@ function useSelectionIdentity(selection: StudioSelection | null) {
 }
 
 /** The right panel. Hosts the two bridge slots (playground controls, playground code) while a playground node is selected. */
-export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElement; codeSlot: HTMLElement }) {
+/** `drawerClose`: the Close button that ends the tab row while the Inspector is a drawer. */
+export function Inspector({ controlsSlot, codeSlot, drawerClose = null }: { controlsSlot: HTMLElement; codeSlot: HTMLElement; drawerClose?: ReactNode }) {
   const selection = useStudio((state) => state.selection);
   const localPage = useStudio((state) => Boolean(state.localPage));
   const chosen = useStudio((state) => state.inspectorTab);
@@ -136,8 +136,8 @@ export function Inspector({ controlsSlot, codeSlot }: { controlsSlot: HTMLElemen
           aria-label="Inspector views"
           onValueChange={(id) => studioStore.setState({ inspectorTab: id as StudioInspectorTab })}
         />
-        {/* The zoom on the tab row, as Figma UI3's. */}
-        <ZoomMenu size="xs" />
+        {/* The zoom is a Chip at the canvas's bottom-right since the B4 chrome (canvas/CanvasChrome). */}
+        {drawerClose}
       </div>
       {/* The tabs not shown keep an empty hidden panel: a tab's aria-controls must name an element that exists (axe
           aria-valid-attr-value; UX review 2026-10-27 §5). */}

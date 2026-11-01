@@ -1,8 +1,8 @@
 /* Zen Studio canvas (spec §3): Canvas/Default with a dot grid that follows pan and zoom; the world holds the board in
    world coordinates (translate + scale from the top-left); chrome above it stays in screen space. */
-/* The canvas colour, a page's Background (CanvasBackground.tsx, F10: Zen background tokens only), is set on the canvas
-   area so the strips under the docked panels (studio.css) paint the same colour as the viewport. */
-.studio-canvas-area { --studio-canvas-color: var(--zen-color-background-canvas-default, #f7f7f7); }
+/* The canvas colour, a page's Background (CanvasBackground.tsx, F10: Zen background tokens only), set on the canvas
+   area. With no Background chosen it is B4's work area: the one Pale field between the panes (studio.css). */
+.studio-canvas-area { --studio-canvas-color: var(--zen-color-background-neutral-pale-default, rgb(1 1 1 / 4%)); }
 .studio-canvas-area:has(> .studio-viewport[data-canvas-background="canvas-alt"]) { --studio-canvas-color: var(--zen-color-background-canvas-alt); }
 .studio-canvas-area:has(> .studio-viewport[data-canvas-background="canvas-flat"]) { --studio-canvas-color: var(--zen-color-background-canvas-flat); }
 .studio-canvas-area:has(> .studio-viewport[data-canvas-background="surface"]) { --studio-canvas-color: var(--zen-color-background-surface-default); }
@@ -94,13 +94,12 @@
 .studio-viewport[data-world-fullscreen="true"] { isolation: auto; }
 .studio-viewport[data-world-fullscreen="true"] > :not(.studio-world) { visibility: hidden; }
 
-/* ── Floating pills, placed as in Figma UI3: tools (bottom-centre), tip "?" (bottom-right), both inside the part of the
-   canvas the floating panels leave (--studio-inset-left/right, studio.css); the zoom is on the Inspector's tab row.
+/* ── Floating pills: tools (bottom-centre, as Figma UI3's), the tip "?" and the zoom Chip (bottom-right, Figma B4), inside
+   the canvas area (studio.css: the panes are beside it).
    Children of the canvas area (CanvasChrome), above the examples' overlay layer (z 20, studio.css) so an open Dialog's
    scrim never covers them; below the panels (22). Popover surfaces: the popover border and shadow, so they keep an
    edge over the dark canvas too (a shadow alone does not). */
-.studio-canvas-tools,
-.studio-status {
+.studio-canvas-tools {
   position: absolute;
   z-index: 21;
   display: flex;
@@ -117,9 +116,9 @@
 .studio-zoom__value { min-width: 60px; font-variant-numeric: tabular-nums; }
 /* Centred on the visible canvas by auto margins, not translateX(-50%), which can land the 1px outline on a half pixel. */
 .studio-canvas-tools {
-  right: var(--studio-inset-right, 0px);
+  right: 0;
   bottom: var(--zen-spacing-padding-medium, 16px);
-  left: var(--studio-inset-left, 0px);
+  left: 0;
   width: max-content;
   margin-inline: auto;
 }
@@ -132,8 +131,13 @@
 .studio-viewport[data-studio-placing],
 .studio-viewport[data-studio-placing] * { cursor: crosshair !important; }
 .studio-status {
-  right: calc(var(--studio-inset-right, 0px) + var(--zen-spacing-padding-medium, 16px));
+  position: absolute;
+  z-index: 21;
+  right: var(--zen-spacing-padding-medium, 16px);
   bottom: var(--zen-spacing-padding-medium, 16px);
+  display: flex;
+  align-items: center;
+  gap: var(--zen-spacing-gap-xsmall, 8px);
 }
 /* The App Shell playground's own full screen covers the canvas: the pills step aside with the rest of the canvas chrome. */
 .studio-canvas-area[data-world-fullscreen="true"] > :is(.studio-canvas-tools, .studio-status) { visibility: hidden; }
