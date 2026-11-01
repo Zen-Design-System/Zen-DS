@@ -11,7 +11,8 @@ import { canEdit, useStudio } from "../store";
  * panel with nothing selected, the canvas reads it here.
  */
 
-const LABELS: Readonly<Record<CanvasBackground, string>> = { canvas: "Canvas", "canvas-alt": "Canvas Alt", "canvas-flat": "Canvas Flat", surface: "Surface", neutral: "Neutral", dark: "Dark" };
+// "canvas" is the default key (no header): B4's Pale work area since 2026-11-01 (canvas.css), so it reads "Pale".
+const LABELS: Readonly<Record<CanvasBackground, string>> = { canvas: "Pale", "canvas-alt": "Canvas Alt", "canvas-flat": "Canvas Flat", surface: "Surface", neutral: "Neutral", dark: "Dark" };
 const OPTIONS = CANVAS_BACKGROUNDS.map((value) => ({ value, label: LABELS[value] }));
 
 /** The right panel's Background field for a page you made. */

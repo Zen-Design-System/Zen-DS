@@ -2,6 +2,7 @@ import { IconButton } from "../../../components/Button";
 import { Icon } from "../../../components/Icon";
 import { VisuallyHidden } from "../../../components/VisuallyHidden";
 import { openShortcuts } from "../shell/shortcutsOpen";
+import { ZoomMenu } from "./ZoomControls";
 import { ChromeScope } from "../shell/ChromeScope";
 import { useStudio } from "../store";
 import type { StudioTool } from "../types";
@@ -33,8 +34,9 @@ const hints: Record<StudioTool, string> = {
 };
 
 /**
- * The canvas's tip, bottom-right (as Figma's help button): one icon whose tooltip says what a click does with the
- * current tool and the key that switches it; a click opens Keyboard shortcuts. The tip also describes the canvas
+ * The canvas's bottom-right corner: the tip (as Figma's help button) and the zoom Chip (Figma B4). The tip is one icon
+ * whose tooltip says what a click does with the current tool and the key that switches it; a click opens Keyboard
+ * shortcuts. The tip also describes the canvas
  * (aria-describedby) for screen-reader users, so its text stays in the DOM, visually hidden.
  */
 export function CanvasStatus() {
@@ -42,7 +44,8 @@ export function CanvasStatus() {
   return (
     <ChromeScope className="studio-status" data-tool={tool}>
       <VisuallyHidden id={CANVAS_STATUS_ID}>{hints[tool]}</VisuallyHidden>
-      <IconButton appearance="flat" level="primary" size="sm" aria-label="Help and keyboard shortcuts" aria-keyshortcuts="Shift+?" tooltip={hints[tool]} icon={<Icon name="icon-help-circle-line" />} onClick={openShortcuts} />
+      <IconButton appearance="main" level="tertiary" size="sm" aria-label="Help and keyboard shortcuts" aria-keyshortcuts="Shift+?" tooltip={hints[tool]} icon={<Icon name="icon-help-circle-line" />} onClick={openShortcuts} />
+      <ZoomMenu />
     </ChromeScope>
   );
 }

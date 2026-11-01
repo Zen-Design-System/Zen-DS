@@ -63,11 +63,7 @@
 
 /* ── the Pages panel's project bar ───────────────────────────────────────────────────────────────────────────── */
 
-.studio-project-bar { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin-bottom: var(--zen-spacing-gap-xsmall, 8px); }
-.studio-project-bar__name { display: flex; min-width: 0; flex: 1; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); height: 28px; padding: 0 var(--zen-spacing-padding-2-xsmall, 4px); border: 0; border-radius: var(--zen-corner-radius-small, 8px); background: none; color: inherit; cursor: pointer; }
-.studio-project-bar__name:hover { background: var(--zen-color-background-neutral-flat-hover); }
-.studio-project-bar__name:focus-visible { outline: 2px solid var(--zen-color-focus-neutral-solid); outline-offset: -2px; }
-/* The project's Primary (its own mode on the dot: data-brand + data-theme). */
+/* The project's Primary (its own mode on the dot: data-brand + data-theme), in the Pages panel's projects list. */
 .studio-project-bar__dot { width: var(--zen-element-size-popular-2-xsmall, 12px); height: var(--zen-element-size-popular-2-xsmall, 12px); flex: none; border-radius: var(--zen-corner-radius-rounded, 1000px); background: var(--zen-color-background-accent-solid-default); }
 
 /* ── the theme page ──────────────────────────────────────────────────────────────────────────────────────────── */

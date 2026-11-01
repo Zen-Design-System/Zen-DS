@@ -11,7 +11,7 @@ import { FolderDialog, StudioFolderTree } from "../builder/StudioFolders";
 import { useFolders } from "../builder/store/folderStore";
 import { usePages } from "../builder/store/pageStore";
 import { useHomeView } from "../project/activeProject";
-import { ProjectBar, ProjectsList } from "../project/ProjectsHome";
+import { ProjectsList } from "../project/ProjectsHome";
 import { pageProjectOf } from "../project/pageProject";
 import { DRAFTS, useProjects } from "../project/projectStore";
 import { filterSections, navigate, openLocalPage, pageSections, type PageNavItem } from "./navigation";
@@ -127,7 +127,6 @@ export function PagesPanel() {
         {studio ? (
           grid && !searching ? <ProjectsList onNewPage={() => setCreating({ folder: null })} /> : (
             <div className="studio-pages__section" data-section="mine">
-              <ProjectBar />
               <MyPagesHeader onNew={() => setCreating({ folder: null })} onNewFolder={() => setNewFolder(true)} />
               <StudioFolderTree folders={folders} pages={mine} searching={searching} onNewPage={(folder) => setCreating({ folder })} />
             </div>
