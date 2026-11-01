@@ -1094,7 +1094,7 @@ async function auditOnce(context, id) {
   const page = await context.newPage();
   const findings = [], keys = new Set();
   const S = {
-    page, id, url: `${BASE}/?page=${id}`, errors: [], external: { hit: false }, deadline: Date.now() + budgetOf(id), loadId: null, regions: [], closed: false, kinds: new Map(), working: new Map(), env: false, loading: false, stats: { regions: 0, stops: 0, hovers: 0, apg: 0, clicks: 0, dialogs: 0 },
+    page, id, url: `${BASE}/?page=${id}&examples=live`, errors: [], external: { hit: false }, deadline: Date.now() + budgetOf(id), loadId: null, regions: [], closed: false, kinds: new Map(), working: new Map(), env: false, loading: false, stats: { regions: 0, stops: 0, hovers: 0, apg: 0, clicks: 0, dialogs: 0 },
     add: (check, severity, card, message) => {
       if (S.closed || (!CHECKS.has(check) && check !== "timeout" && check !== "run")) return;
       const k = `${check}|${card}|${message}`; if (keys.has(k)) return; keys.add(k);

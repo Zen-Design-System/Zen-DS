@@ -61,7 +61,7 @@ async function capture(dir) {
         const errors = [];
         page.on("pageerror", (e) => errors.push(e.message));
         try {
-          await page.goto(`${base}/?page=${id}`, { waitUntil: "load" });
+          await page.goto(`${base}/?page=${id}&examples=live`, { waitUntil: "load" });
           await page.addStyleTag({ content: FREEZE_CSS });
           await page.waitForTimeout(700);
           if (dark) { await page.getByRole("button", { name: "Dark mode" }).first().click().catch(() => undefined); await page.waitForTimeout(250); }

@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Docs platform: a component page's Examples are a grid of small static thumbnails (the real example scaled down,
+  inert, rendered only when scrolled near). Play opens one example live across the row, with Code, Full screen and
+  Close; one plays at a time. `?examples=live` shows them all live as before (the platform audits use it).
 - Zen Studio Assets follow the newer usage rules: Table's status column shows each step's ring (BadgeStatus) and, in a
   Card or ListBox, comes with its widget title; Calendar toolbar's Today, arrows and view switch work; Time slots keeps
   the chosen slot; Autocomplete and Task properties list people with their photos; App shell is "not recommended"
