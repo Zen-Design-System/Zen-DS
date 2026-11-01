@@ -1,9 +1,9 @@
-/* The AI chip (mcp/AiChip.tsx): a floating pill bottom-left of the visible canvas, as the tip "?" is bottom-right
+/* The AI chip (mcp/AiChip.tsx): a floating pill bottom-left of the canvas, as the tip "?" is bottom-right
    (canvas/canvas.css): the same popover surface, above the examples' overlay layer (z 20), below the panels (22). */
 .studio-ai {
   position: absolute;
   z-index: 21;
-  left: calc(var(--studio-inset-left, 0px) + var(--zen-spacing-padding-medium, 16px));
+  left: var(--zen-spacing-padding-medium, 16px);
   bottom: var(--zen-spacing-padding-medium, 16px);
   display: flex;
   align-items: center;

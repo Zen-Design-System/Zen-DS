@@ -12,7 +12,6 @@ import { useStudio } from "../store";
 import { focusFrame, frameIcon, useFrames } from "./frames";
 import { InspectorFields, InspectorItem, InspectorRow, InspectorSection } from "./Section";
 
-import { openExport } from "../builder/export/exportState";
 import { openVariables } from "../variables/variablesState";
 import { pagesPersist, renamePage, setPageOs, setPageProject, usePage, useStorage } from "../builder/store/pageStore";
 import { headerOs } from "../builder/store/pageModel";
@@ -107,7 +106,7 @@ export function PagePanel() {
     <div className="studio-inspector__panel">
       {/* One Page section (UX review 2026-10-27 §2.10: a header block and a "Page" section both named the page). A page
           you made is named in it as you work (user, 2026-10-09: no title to give when it is made), where it is kept is
-          its note, and Export… (GĐ5: the page as React code or its design file) sits in its title row. A docs page has
+          its note. Export (GĐ5: the page as React code or its design file) is the top bar's primary action since 2026-11-01. A docs page has
           no fields: it keeps the header block alone. The section's title is the panel's h2 (the subject with nothing
           selected), the sections after it h3, as with a layer's name. */}
       {localPage && builderPage ? (
@@ -116,7 +115,6 @@ export function PagePanel() {
           level={2}
           fieldGrid
           note={description ?? undefined}
-          actions={<Button level="tertiary" size="sm" startIcon="icon-code-02-line" onClick={() => openExport(localPage)}>Export…</Button>}
         >
           <InspectorFields name="title" labels={["Name"]} fields={[<PageName key="name" id={localPage} title={builderPage.title} />]} />
           {/* One OS for the page (user, 2026-10-10): its phone and tablet Screens draw that OS's status and bottom bars. */}

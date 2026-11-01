@@ -6,7 +6,7 @@
 /* Paragraphs follow the blocks' gaps (the spacing ladder), not the browser's default margins. */
 .studio-inspector p { margin: 0; }
 /* The Tabs track is the only line under the tabs; tab text lines up with the panel content (12px). */
-.studio-inspector__tabs { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+.studio-inspector__tabs { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-xsmall, 8px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
 /* Figma UI3 tabs (Design · Code; Pages · Layers · Assets in shell.css): text tabs, the selected one on a quiet fill, no
    underline; labels in Body/Small like the rest of the panel, the Small tab height (32px) kept so the bar breathes. */
 :is(.studio-inspector__tabs, .studio-left__tabs) .zen-tab__label {

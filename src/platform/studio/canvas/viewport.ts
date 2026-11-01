@@ -137,21 +137,11 @@ function viewportBox(): Box {
 /** The canvas viewport's client box (cached; refreshed when the canvas changes size). */
 export const getViewportBox = (): Box => viewportBox();
 
-/** Screen px of the viewport covered by the floating side panels (Figma UI3: the canvas runs under them). */
-export type CanvasInsets = { left: number; right: number; top: number; bottom: number };
-let insets: CanvasInsets = { left: 0, right: 0, top: 0, bottom: 0 };
-
-/** StudioApp reports the part of the canvas its docked panels cover; fit, zoom and keep-in-view aim at the rest. */
-export function setCanvasInsets(next: CanvasInsets) {
-  insets = next;
-}
-
-/** The part of the viewport the panels leave visible, in viewport-local px (never narrower than a third of it). */
+/** The part of the viewport fit, zoom and keep-in-view aim at, in viewport-local px: all of it since the B4 chrome
+ *  (2026-11-01) — the side panes sit beside the canvas, not over it, and a drawer only covers it while open. */
 export function getSafeBox() {
   const box = viewportBox();
-  const left = Math.min(insets.left, box.width / 3);
-  const right = Math.min(insets.right, box.width / 3);
-  return { x: left, y: insets.top, width: box.width - left - right, height: Math.max(box.height - insets.top - insets.bottom, box.height / 3) };
+  return { x: 0, y: 0, width: box.width, height: box.height };
 }
 
 /** A client rect (as getBoundingClientRect returns it) in world coordinates. */

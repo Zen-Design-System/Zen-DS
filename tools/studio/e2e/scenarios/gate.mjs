@@ -2,8 +2,8 @@
 import { E2E_HOST_ALIAS } from "../lib/server.mjs";
 import { openStudio } from "../lib/studio.mjs";
 
-/** The Studio chrome's visible text (panel headers and corner bars + Inspector + status), whitespace collapsed. */
-const chromeText = (page) => page.evaluate(() => [...document.querySelectorAll("#studio-left .studio-panel-head, .studio-bar, #studio-right, .studio-right[data-bar], [role=status]")].map((el) => el.innerText).join(" ").replace(/\s+/g, " "));
+/** The Studio chrome's visible text (the top bar + Inspector + status), whitespace collapsed. */
+const chromeText = (page) => page.evaluate(() => [...document.querySelectorAll(".studio-topbar, #studio-right, [role=status]")].map((el) => el.innerText).join(" ").replace(/\s+/g, " "));
 
 export const rows = [
   {
