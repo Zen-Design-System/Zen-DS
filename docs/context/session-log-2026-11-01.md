@@ -57,3 +57,6 @@ field's bottom-right). Code twin: `WorkspaceEditorApp` (`examples/pages/app-shel
   build-check now press the top bar's Export; S-07, S-10, I-32 and nine HO rows pass.
 - `studio:build-check` fails 8 steps here and on a clean origin/main worktree alike (chunk checks, then time-outs):
   pre-existing, logged in BACKLOG (P2).
+- User 2026-11-01 ("bị trống phía trên"): a page you made opened with an empty band above its title — the first view
+  centred a desktop Screen fitted by width in the narrower canvas. `firstVisit.ts` now starts the view at the board's
+  title block (`.studio-board__title`) at the 48px margin when the height allows; ST-30…32, B-52, B-55, S-04 pass.
