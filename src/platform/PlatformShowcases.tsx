@@ -1,4 +1,4 @@
-import { createContext, useContext, useId, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { Button, IconButton } from "../components/Button";
 import { Icon } from "../components/Icon";
 import { PopoverBulkAction, PopoverBulkActionDivider, PopoverBulkActionGroup } from "../components/Popover";
@@ -8,7 +8,7 @@ import { PlatformCode } from "./PlatformCode";
 import type { PlatformPage } from "./PlatformExamples";
 import { PlatformTypographyContext } from "./PlatformTemplate";
 import { getPageExamples } from "./examples/registry";
-import { isWideExample } from "./examples/types";
+import { isWideExample, type ExampleDef } from "./examples/types";
 import { useHotDataVersion } from "./hotData";
 import { FullScreenBar, FullScreenButton, useFullScreen } from "./PlatformFullScreen";
 
@@ -21,12 +21,16 @@ import { FullScreenBar, FullScreenButton, useFullScreen } from "./PlatformFullSc
 /** Lets an example switch its whole card (header, stage, code and every component inside) to a token mode. */
 const ExampleCardThemeContext = createContext<(theme: "light" | "dark" | null) => void>(() => undefined);
 
-/** One example: header, stage and code. `bare` (Zen Studio canvas frames) keeps only the stage: the frame shows the
- * title, the inspector the code, and the Studio's Present view the full screen. `presented` (the Studio's Present of a
- * `screen`) lays the card out full window like its own full screen, without the card's dialog, inert or Exit. */
+/** One example: header, stage and code. `bare` (Zen Studio canvas frames, docs thumbnails) keeps only the stage: the
+ * frame shows the title, the inspector the code, and the Studio's Present view the full screen. `presented` (the Studio's
+ * Present of a `screen`) lays the card out full window like its own full screen, without the card's dialog, inert or
+ * Exit. `onClose` (an example played from its thumbnail) adds Close, which takes focus when the card opens. */
 // zen-studio-chrome: docs chrome, not a selectable layer in Zen Studio (tools/studio skips its JSX).
-export function ExampleCard({ title, description, code, wide, screen, bare, presented, children }: { title: string; description: string; code: string; wide?: boolean; screen?: boolean; bare?: boolean; presented?: boolean; children: ReactNode }) {
+export function ExampleCard({ title, description, code, wide, screen, bare, presented, onClose, children }: { title: string; description: string; code: string; wide?: boolean; screen?: boolean; bare?: boolean; presented?: boolean; onClose?: () => void; children: ReactNode }) {
   const [showCode, setShowCode] = useState(false);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const closable = Boolean(onClose);
+  useEffect(() => { if (closable) closeRef.current?.focus(); }, [closable]);
   const [theme, setTheme] = useState<"light" | "dark" | null>(null);
   const previewTypography = useContext(PlatformTypographyContext);
   const openRef = useRef<HTMLButtonElement>(null);
@@ -53,6 +57,8 @@ export function ExampleCard({ title, description, code, wide, screen, bare, pres
             {showCode ? "Hide code" : "Code"}
           </Button>
           {screen ? <FullScreenButton buttonRef={openRef} onEnter={enter} /> : null}
+          {/* zen-allow-compact-button: platform chrome — Close back to the thumbnail, beside the compact Code pill. */}
+          {onClose ? <Button ref={closeRef} appearance="main" level="tertiary" size="xs" startIcon={<Icon name="icon-x-line" decorative />} onClick={onClose}>Close</Button> : null}
         </div>}
       </header>}
       <div className="pe-card__stage" data-typography={previewTypography}><div className="pe-card__preview">{children}</div></div>
@@ -99,19 +105,96 @@ export function PopoverBulkSelectionDemo({ history = true, destructive = true }:
 
 /* ───────────── Examples section ───────────── */
 
+/** `?examples=live` renders every example live, as before thumbnails: the platform audits, behaviour walk and screenshots
+ * drive the examples themselves (tools/platform-audit adds it to every page it opens). */
+const allLive = () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("examples") === "live";
+
+/** A thumbnail lays an example out this wide, then scales it down to fit: a card's own width, a wide row's, a desktop screen's. */
+const thumbLayoutWidth = (example: ExampleDef) => (example.screen ? 1280 : example.wide ? 960 : 520);
+
+/**
+ * A static thumbnail of an example: the real composition scaled down, inert (no hover, focus or clicks), mounted only
+ * when it comes near the viewport, its motion stopped (platform.css). Play opens the live card. An overlay the example
+ * opens by itself stays inside the thumbnail: the frame has its own portal root, under the scale.
+ */
+// zen-studio-chrome: docs chrome, not a selectable layer in Zen Studio (tools/studio skips its JSX).
+function ExampleThumb({ example, onPlay, playRef }: { example: ExampleDef; onPlay: () => void; playRef?: RefObject<HTMLButtonElement | null> }) {
+  const frameRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [near, setNear] = useState(false);
+  const [scale, setScale] = useState(0);
+  const titleId = useId();
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame || typeof IntersectionObserver === "undefined") { setNear(true); return undefined; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      observer.disconnect();
+      setNear(true);
+    }, { rootMargin: "400px 0px" });
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, []);
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+    const content = contentRef.current;
+    if (!near || !frame || !content) return undefined;
+    // Contain: the whole example shows, never enlarged past its own size.
+    const fit = () => setScale(Math.min(frame.clientWidth / content.offsetWidth, frame.clientHeight / Math.max(content.offsetHeight, 1), 1));
+    fit();
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(fit);
+    observer.observe(frame);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [near]);
+  return (
+    <article className="pe-thumb" aria-labelledby={titleId}>
+      {/* A pointer click anywhere on the frame plays too; Play is the keyboard and screen-reader way in. */}
+      <div ref={frameRef} className="pe-thumb__frame" onClick={onPlay}>
+        {near ? (
+          <div ref={contentRef} className="pe-thumb__content" inert
+            style={{ width: thumbLayoutWidth(example), transform: `translate(-50%, -50%) scale(${scale})`, visibility: scale ? undefined : "hidden" }}>
+            <ZenProvider paint={false}>
+              <ExampleCard title={example.title} description={example.description} code={example.code} screen={example.screen} bare>{example.render()}</ExampleCard>
+            </ZenProvider>
+          </div>
+        ) : null}
+        <Button ref={playRef} className="pe-thumb__play" appearance="overlay" level="black-overlay" size="sm" startIcon={<Icon name="icon-play-solid" decorative />}
+          aria-label={`Play ${example.title}`} onClick={(event) => { event.stopPropagation(); onPlay(); }}>Play</Button>
+      </div>
+      <div className="pe-thumb__titles">
+        <h3 id={titleId} className={typographyStyles["Body/Base/Bold"]}>{example.title}</h3>
+        <p className={typographyStyles["Body/Small/Regular"]}>{example.description}</p>
+      </div>
+    </article>
+  );
+}
+
 export function ComponentExamples({ page }: { page: PlatformPage }) {
   // An example edit updates the records in place (hotData.ts): render again to show its code and title.
   useHotDataVersion();
   const list = getPageExamples(page);
+  const [live] = useState(allLive);
+  // One example plays at a time, so the page holds one live composition; Close puts focus back on its Play.
+  const [playing, setPlaying] = useState<string | null>(null);
+  const [returnTo, setReturnTo] = useState<string | null>(null);
+  const returnRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => { setPlaying(null); setReturnTo(null); }, [page]);
+  useEffect(() => { if (returnTo) returnRef.current?.focus(); }, [returnTo]);
   if (!list.length) return null;
   return (
     <section className="pe-section" aria-labelledby={`pe-${page}-title`}>
       <header className="pe-section__head">
         <h2 id={`pe-${page}-title`} className={typographyStyles["Heading/3"]}>Examples</h2>
-        <p className={typographyStyles["Body/Base/Regular"]}>Real-world compositions.</p>
+        <p className={typographyStyles["Body/Base/Regular"]}>{live ? "Real-world compositions." : "Real-world compositions. Press Play to try one."}</p>
       </header>
-      <div className="pe-grid">
-        {list.map((example) => <ExampleCard key={example.title} title={example.title} description={example.description} code={example.code} wide={isWideExample(example)} screen={example.screen}>{example.render()}</ExampleCard>)}
+      <div className={live ? "pe-grid" : "pe-thumbs"}>
+        {list.map((example) => live || playing === example.title
+          ? <ExampleCard key={example.title} title={example.title} description={example.description} code={example.code} wide={live ? isWideExample(example) : true} screen={example.screen}
+              onClose={live ? undefined : () => { setPlaying(null); setReturnTo(example.title); }}>{example.render()}</ExampleCard>
+          : <ExampleThumb key={example.title} example={example} playRef={returnTo === example.title ? returnRef : undefined}
+              onPlay={() => { setReturnTo(null); setPlaying(example.title); }} />)}
       </div>
     </section>
   );

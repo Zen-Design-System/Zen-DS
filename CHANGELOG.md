@@ -19,6 +19,9 @@ How to maintain it:
   role, Present / Play, Open on phone, Save all or Export), Pages | Layers and the Inspector in two hairline Border panes beside the canvas (no shadow, no longer over
   it), and the canvas between them one Pale field with the zoom as a Chip at its bottom-right. Replaces the UI3
   floating panels; the page Background "Canvas" now reads "Pale".
+- Docs platform: a component page's Examples are a grid of small static thumbnails (the real example scaled down,
+  inert, rendered only when scrolled near). Play opens one example live across the row, with Code, Full screen and
+  Close; one plays at a time. `?examples=live` shows them all live as before (the platform audits use it).
 - Zen Studio › Project setup (user 2026-11-01): the Corner radius tiles draw one corner line rounded as that mode's
   button (Rounded's pill, Smooth 12, Standard 8, Luxury 2), so Rounded and Smooth no longer look the same; the
   selected tile's ring (Corner radius and Component theme) takes the accent colour.
