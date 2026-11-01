@@ -226,7 +226,7 @@ function ThemeSettings({ theme, swatches, onChange }: { theme: ProjectTheme; swa
 
       <InspectorSection title="Corner radius">
         <TileGroup label="Corner radius" value={theme.modes.radius} onChange={(value) => setMode("radius", value)}
-          options={MODE_VALUES.radius.map((radius) => ({ id: radius, label: RADIUS_LABEL[radius], art: <span className="studio-project-setup__radius-art" data-radius={radius} aria-hidden="true"><span className="studio-project-setup__radius-card"><span className="studio-project-setup__radius-button" /></span></span> }))} />
+          options={MODE_VALUES.radius.map((radius) => ({ id: radius, label: RADIUS_LABEL[radius], art: <span className="studio-project-setup__radius-art" data-radius={radius} aria-hidden="true"><span /></span> }))} />
       </InspectorSection>
 
       <InspectorSection title="Component theme">

@@ -124,27 +124,26 @@
   cursor: pointer;
 }
 .studio-project-setup__tile:hover { background: var(--zen-color-background-neutral-flat-hover); box-shadow: inset 0 0 0 1px var(--zen-color-border-neutral-subtle-hover); }
-.studio-project-setup__tile[aria-checked="true"] { box-shadow: inset 0 0 0 2px var(--zen-color-border-neutral-solid-default); }
+.studio-project-setup__tile[aria-checked="true"] { box-shadow: inset 0 0 0 2px var(--zen-color-border-accent-solid-default); }
 .studio-project-setup__tile:focus-visible { outline: 2px solid var(--zen-color-focus-neutral-solid); outline-offset: 2px; }
-/* Corner radius: a card holding a button in that mode (its own data-radius sets the Base and Action radii it reads).
-   Drawn at real size and shown at half, so each mode keeps its true proportions: Rounded's pill button against
-   Smooth's 12px one, which share the same card corner. */
-.studio-project-setup__radius-art { display: block; width: 48px; height: 32px; }
-.studio-project-setup__radius-card {
-  display: flex;
+/* Corner radius: one corner line, rounded as that mode's Medium button (its own data-radius sets the Action radius it
+   reads). A button's corner, not a card's: Rounded and Smooth share the card radius and differ only in buttons, pill
+   against 12px. The pill is capped at the mode's XLarge radius (20px in Rounded), where a 40px button stops rounding. */
+.studio-project-setup__radius-art {
+  display: block;
   box-sizing: border-box;
-  width: 96px;
-  height: 64px;
-  align-items: flex-end;
-  justify-content: flex-end;
-  padding: var(--zen-spacing-padding-xsmall, 8px);
-  border-radius: var(--zen-corner-radius-base, 12px);
-  background: var(--zen-color-background-neutral-pale-default);
-  box-shadow: inset 0 0 0 2px var(--zen-color-border-neutral-solid-default);
-  transform: scale(0.5);
-  transform-origin: top left;
+  width: 48px;
+  height: 32px;
+  padding: var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-2-xsmall, 4px) var(--zen-spacing-padding-3-xsmall, 2px) var(--zen-spacing-padding-small, 12px);
 }
-.studio-project-setup__radius-button { display: block; width: 48px; height: 32px; border-radius: var(--zen-corner-radius-action-medium, 12px); background: var(--zen-color-background-neutral-solid-default); }
+.studio-project-setup__radius-art > span {
+  display: block;
+  height: 100%;
+  border-top: 2px solid var(--zen-color-border-accent-solid-default);
+  border-left: 2px solid var(--zen-color-border-accent-solid-default);
+  /* zen-allow-radius-role: a picture of a button's corner, not a container */
+  border-top-left-radius: min(var(--zen-corner-radius-action-medium, 12px), var(--zen-corner-radius-xlarge, 20px));
+}
 /* Component theme: the primary button fill and a selected chip's fill of that mode, in the draft's colours (read from
    the probes: ProjectSetup DraftProbes). */
 .studio-project-setup__theme-art { display: flex; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
