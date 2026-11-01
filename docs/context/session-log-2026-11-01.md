@@ -65,3 +65,5 @@ field's bottom-right). Code twin: `WorkspaceEditorApp` (`examples/pages/app-shel
   projects grid. `shell/ProjectCrumbs.tsx` (Zen Breadcrumbs, the project crumb a Menu trigger); the bar is a 3-column grid
   (sides equal, centre ≤ 40vw). The Pages panel's ProjectBar (← All projects, name, ⋯) said the same and is removed
   (settings and delete stay on the project card and the project home). Docs pages read Home › Docs. E2E S-11.
+- Gate `--isolated --files=<branch files>`: PASS — static all ✓, Studio E2E 453 works · 0 broken (4 shards, 2253 s),
+  report `.qa/reports/2026-11-01T16-20-41-0039f614.md`.
