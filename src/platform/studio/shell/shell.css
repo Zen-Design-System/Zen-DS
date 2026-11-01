@@ -12,7 +12,7 @@
 
 /* ── Top bar (Figma B4: Header/AppShell's row, compact for a tool) ── */
 /* Across the window on the canvas colour: start (menu, Home › project) · the name, centred on the bar · the actions.
-   Three columns, the sides equal, so the centre stays centred and each side ends in "…" before it overlaps. */
+   Three columns, the sides equal, so the centre stays centred and each side ends in "…" before it overlaps.
    Its inline padding lines the menu up with the panes' content (edge + the pane's Spacing/Padding/XSmall). */
 .studio-topbar-scope { position: absolute; z-index: 22; top: 0; right: 0; left: 0; }
 .studio-topbar {

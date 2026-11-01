@@ -88,3 +88,5 @@ field's bottom-right). Code twin: `WorkspaceEditorApp` (`examples/pages/app-shel
   (settings and delete stay on the project card and the project home). Docs pages read Home › Docs. E2E S-11.
 - Gate `--isolated --files=<branch files>`: PASS — static all ✓, Studio E2E 453 works · 0 broken (4 shards, 2253 s),
   report `.qa/reports/2026-11-01T16-20-41-0039f614.md`.
+- CI on #373 failed in Build: a stray `*/` in shell.css left a comment line outside the comment (lightningcss minify
+  stops; the dev server does not minify). Fixed; `npm run build` passes locally.
