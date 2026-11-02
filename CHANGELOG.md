@@ -14,6 +14,8 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Search `variant="popover"` (in Popover, Sidebar): focusing the field now shows Search's 3px focus ring. Figma's
+  Popover-Search border is transparent, so the caret was the only sign of focus (user 2026-11-02).
 - Docs platform (user 2026-11-01, Figma B5 · Docs / Learning): simpler chrome on the library AppShell `pattern="docs"`,
   Canvas/Flat. A header across (Zen mark + version, Search docs ⌘K in the centre, Feedback, Download Figma), the
   navigation as plain rows in a Canvas pane (no box, no icons), breadcrumbs + a Display/3 title instead of the page
