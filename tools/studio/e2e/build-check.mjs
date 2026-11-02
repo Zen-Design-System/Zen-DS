@@ -42,7 +42,10 @@ async function step(name, fn) {
     console.log(`  ${skipped ? "–" : "✓"} ${name}${evidence ? `  · ${evidence}` : ""}`);
     return true;
   } catch (error) {
-    const message = String(error?.message ?? error).split("\n")[0];
+    // Playwright's first line says only "Timeout …"; its call log names the locator it waited for.
+    const lines = String(error?.message ?? error).split("\n");
+    const waited = lines.find((line) => /waiting for /.test(line))?.trim().replace(/^- /, "");
+    const message = waited ? `${lines[0]} (${waited})` : lines[0];
     steps.push({ name, ok: false, ms: Date.now() - t0, evidence: message });
     failures.push(name);
     console.log(`  ✗ ${name}  · ${message}`);
@@ -242,12 +245,13 @@ try {
   await step("New page opens a phone page", async () => {
     await openStudioSpace(page);
     await page.locator("#studio-left").getByRole("button", { name: "New page", exact: true }).click();
-    // The dialog has nothing to fill in since 2026-10-09 (an "Untitled page" on a desktop Screen): the page is named in
-    // the Inspector's Page section and set to a phone in its Screen's panel, as the E2E's newPage does (scenarios/builder.mjs).
-    // The page with its AppShell, as that newPage picks it (Empty page is the default since 2026-10-18): the steps below
-    // start from its Text.
+    // An "Untitled page" (no title to fill in since 2026-10-09), named in the Inspector's Page section. The dialog puts the
+    // device first (walk W-02) and starts from Empty page (2026-10-18): the iPhone with its App shell is a phone's Top and
+    // Bottom Navigation around an empty Stack, so the Button inserted below is the page's only one.
     const dialog = page.getByRole("dialog", { name: "New page" });
     await dialog.waitFor({ state: "visible", timeout: 5000 });
+    await dialog.getByRole("button", { name: /^Screen\b/ }).click();
+    await page.getByRole("option", { name: /^iPhone(?! Duo)/ }).first().click();
     await dialog.getByText("Page with App shell", { exact: true }).click();
     await dialog.getByRole("button", { name: "Create page" }).click();
     await until(async () => /page=local%3A|page=local:/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { timeout: 20_000, message: "the page on the canvas" });
@@ -259,10 +263,9 @@ try {
     await field.fill(title);
     await field.press("Enter");
     await until(async () => (await page.locator("#studio-left .studio-pages__name").allInnerTexts()).some((text) => text.trim() === title), { message: "the page named" });
-    await showLeftTab(page, "layers");
-    await page.locator('[data-layer-id^="frame:screen:"]').first().click();
-    await page.locator("#studio-right").getByRole("button", { name: /^Phone,/ }).click();
-    await until(async () => /<Screen [^>]*device="phone"/.test((await storedText(page, id)) ?? ""), { timeout: 10_000, message: "the Screen on a phone" });
+    const text = (await storedText(page, id)) ?? "";
+    if (!/<Screen [^>]*device="phone"/.test(text)) throw new Error("the Screen is not on a phone");
+    if (/<(AppShell|Button)\b/.test(text)) throw new Error("the phone page holds an AppShell or a Button already");
     await page.locator(".studio-viewport").focus();
     await page.keyboard.press("Escape");
     return `${id} · named, on a phone`;
@@ -277,8 +280,11 @@ try {
     await page.locator(".studio-viewport").focus();
     await page.keyboard.press("Shift+Digit2");
     await sleep(400);
-    await clickNamed(page, id, "Text");
-    await page.keyboard.press("Escape");
+    // The Screen's content Stack is empty: the canvas gives it a box to click (walk W-56), as the E2E's selectStack does.
+    const stack = page.locator(`:is(.studio-builder-screen__content, .studio-builder-screen__shell-body) > [data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Stack"]`).first();
+    await stack.waitFor({ state: "attached", timeout: 10_000 });
+    await selectAt(page, await stack.boundingBox());
+    await sleep(500);
     await until(async () => (await page.locator("#studio-right h2").first().innerText({ timeout: 1000 }).catch(() => "")).trim() === "Frame", { message: "the Stack selected (heading Frame)" });
     await openAssetLibrary(page, "Components");
     await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Button");
