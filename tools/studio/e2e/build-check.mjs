@@ -25,8 +25,9 @@ const args = process.argv.slice(2);
 const has = (name) => args.includes(`--${name}`);
 /** The engine chunk's budget (gzip KB). The spec said 130 on a guess of the parser's size; the user set 140 on
  *  2026-10-06 after M4 measured it (parser 77 + engine 58), then 160 on 2026-10-11 after nested overrides + core rebuild
- *  M2 reached 153.5 (rather than splitting the engine). Over it fails the check. */
-const ENGINE_BUDGET_KB = 160;
+ *  M2 reached 153.5 (rather than splitting the engine), then 200 on 2026-11-02 at 185.2: Find (⌘F) had imported the
+ *  engine statically since 2026-10-19, so this check measured only its leftovers while it grew. Over it fails the check. */
+const ENGINE_BUDGET_KB = 200;
 const FOLDER = "linked-pages";
 
 const steps = [];
@@ -85,6 +86,8 @@ const engineFile = engineKey ? manifest[engineKey].file : null;
 
 await step(`engine chunk ≤ ${ENGINE_BUDGET_KB} KB gzip`, async () => {
   if (!engineFile) throw new Error("no chunk for tools/studio/browser-engine.mjs");
+  // A static import of the engine puts it in the first load, and the sum above would count only its leftovers.
+  if (before.has(engineKey)) throw new Error("the engine is in the Studio's first load (a static import of tools/studio/browser-engine.mjs)");
   const text = `${engineKb.toFixed(1)} KB gzip (${engineChunks.join(", ")})`;
   if (engineKb > ENGINE_BUDGET_KB) throw new Error(`${text}: over the budget`);
   return text;
@@ -241,7 +244,11 @@ try {
     await page.locator("#studio-left").getByRole("button", { name: "New page", exact: true }).click();
     // The dialog has nothing to fill in since 2026-10-09 (an "Untitled page" on a desktop Screen): the page is named in
     // the Inspector's Page section and set to a phone in its Screen's panel, as the E2E's newPage does (scenarios/builder.mjs).
+    // The page with its AppShell, as that newPage picks it (Empty page is the default since 2026-10-18): the steps below
+    // start from its Text.
     const dialog = page.getByRole("dialog", { name: "New page" });
+    await dialog.waitFor({ state: "visible", timeout: 5000 });
+    await dialog.getByText("Page with App shell", { exact: true }).click();
     await dialog.getByRole("button", { name: "Create page" }).click();
     await until(async () => /page=local%3A|page=local:/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { timeout: 20_000, message: "the page on the canvas" });
     id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
@@ -550,8 +557,9 @@ try {
     const code = [...files.keys()].find((file) => /^\w+Page\.tsx$/.test(file));
     if (!code || !pictures.length || !/## Accessibility/.test(markdown) || ![...files.keys()].some((file) => file.startsWith("html/"))) throw new Error(`incomplete package: ${[...files.keys()].join(", ")}`);
     const sizes = pictures.map((file) => { const bytes = Buffer.from(files.get(file)); return { file, width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20), kb: Math.round(bytes.length / 1024) }; });
-    // A phone frame is 390 px wide, an overlay frame 720: its picture twice that; an empty picture compresses to almost nothing.
-    const bad = sizes.filter((size) => size.width !== (/overlay-/.test(size.file) ? 1440 : 780) || size.kb < 8);
+    // Mobile list is a phone page: each frame is 390 px wide, its Overlays too (as wide as the page's device since walk
+    // W-39; 720 only on a desktop page), the picture twice that; an empty picture compresses to almost nothing.
+    const bad = sizes.filter((size) => size.width !== 780 || size.kb < 8);
     if (bad.length) throw new Error(`pictures: ${bad.map((size) => `${size.file} ${size.width}×${size.height} ${size.kb} KB`).join(", ")}`);
     await page.keyboard.press("Escape");
     return `${files.size} files: ${code}, ${sizes.map((size) => `${size.file} ${size.width}×${size.height} (${size.kb} KB)`).join(", ")}`;
