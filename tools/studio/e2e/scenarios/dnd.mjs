@@ -190,15 +190,20 @@ const PLACES = [
   },
   {
     // A Frame without auto layout (its one layer floats): the drop lands where the pointer is, floating (Figma's), so
-    // it may run past the phone's edge as in Figma (the frame clips): no across-the-phone check.
+    // it may run past the phone's edge as in Figma (the frame clips): no across-the-phone check. A width written on it is
+    // the item's Figma width where it has one (user 2026-11-02), for one that fills in a second write joining the first.
     key: "into the free Box (frame)", screen: null,
     at: async (page, id) => { const box = await boxOf(page, id, "Box"); return box && { x: box.x + box.width * 0.3, y: box.y + box.height * 0.6 }; },
+    settle: (page, id, after, item) => (FIGMA_WIDTHS[item.id] ? changed(page, id, after, 2000).then((next) => next ?? after) : after),
     expect(before, after, item) {
       if (BAR[item.root]) return barText(after, "screen-1", BAR[item.root]) !== barText(before, "screen-1", BAR[item.root]) ? null : `${BAR[item.root]} not replaced`;
       const node = added(before, after, item.root);
       const floats = (text) => (text.match(/position="absolute" insetLeft=\{\d+\} insetTop=\{\d+\}/g) ?? []).length;
       if (!node?.chain.startsWith("Board>Screen#screen-1>Stack>Box>")) return `landed at ${node?.chain ?? "nowhere"}`;
-      return floats(after) === floats(before) + 1 ? null : "not placed where it was dropped (no new position / insets)";
+      if (floats(after) !== floats(before) + 1) return "not placed where it was dropped (no new position / insets)";
+      const floating = node.node.props.position ? node.node : node.parents.at(-1);
+      const width = floating?.props.width?.value;
+      return width === undefined || !FIGMA_WIDTHS[item.id] || width === FIGMA_WIDTHS[item.id] ? null : `${width} wide, not its Figma width (${FIGMA_WIDTHS[item.id]})`;
     },
   },
   {
@@ -260,7 +265,7 @@ async function campaign(ctx, all, label) {
         else if (!refused.test(shown.label)) why = `label "${shown.label}" (expected ${refused})`;
       } else {
         let after = await changed(page, id, seed);
-        if (after && place.settle) after = await place.settle(page, id, after);
+        if (after && place.settle) after = await place.settle(page, id, after, item);
         if (!after) why = `nothing written (label "${shown.label}", ${shown.tone ?? "no tone"})`;
         else {
           why = place.expect(seed, after, item);
@@ -532,7 +537,9 @@ async function autoLayoutItems(ctx, all) {
       // Dropped at the Frame's top left (16, 16 in its px; the canvas zoom scales it).
       const zoom = frame.width / 358;
       await dragTo(page, center(tile), { x: frame.x + 16 * zoom + 2, y: frame.y + 16 * zoom + 2 });
-      const dropped = await next(page, id, seed, `${item.id} dropped`);
+      let dropped = await next(page, id, seed, `${item.id} dropped`);
+      // A component that fills takes its Figma width in a second write that joins the drop: wait for it before ⇧A.
+      if (FIGMA_WIDTHS[item.id]) dropped = (await changed(page, id, dropped, 1500)) ?? dropped;
       const placed = layersOf(frameIn(dropped));
       if (placed.length !== 2 || !placed.every((layer) => layer.props.position?.value === "absolute")) throw new Error(`${item.id}: the drop did not float in the Frame (${placed.map((layer) => layer.name).join(", ")})`);
       // The Frame selected from its Layers row, then ⇧A. Layers names a Box "Frame N" (Figma's word), so the row is found
