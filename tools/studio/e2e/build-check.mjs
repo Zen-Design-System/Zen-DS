@@ -44,7 +44,7 @@ async function step(name, fn) {
   } catch (error) {
     // Playwright's first line says only "Timeout …"; its call log names the locator it waited for.
     const lines = String(error?.message ?? error).split("\n");
-    const waited = lines.find((line) => /waiting for /.test(line))?.trim().replace(/^- /, "");
+    const waited = lines.find((line) => /^\s*- waiting for /.test(line))?.trim().replace(/^- /, "");
     const message = waited ? `${lines[0]} (${waited})` : lines[0];
     steps.push({ name, ok: false, ms: Date.now() - t0, evidence: message });
     failures.push(name);
@@ -300,7 +300,8 @@ try {
     await pick(page, "level", "Primary");
     await until(async () => /<Button level="primary"/.test((await storedText(page, id)) ?? ""), { message: 'level="primary"' });
     await page.locator("#studio-right").getByRole("button", { name: "Reset all changes" }).click();
-    await until(async () => /<Button onClick/.test((await storedText(page, id)) ?? ""), { message: "Reset all overrides removed level" });
+    // The Button as Assets inserted it: no level (and no onClick until the Prototype step gives it one).
+    await until(async () => { const text = (await storedText(page, id)) ?? ""; return /<Button\b/.test(text) && !/<Button\b[^>]*\blevel=/.test(text); }, { message: "Reset all overrides removed level" });
     await page.locator(".studio-viewport").focus();
     await page.keyboard.press("ControlOrMeta+KeyZ");
     await until(async () => /<Button level="primary"/.test((await storedText(page, id)) ?? ""), { message: "⌘Z brings level back" });
