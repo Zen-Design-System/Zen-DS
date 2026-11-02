@@ -147,36 +147,6 @@ function ProjectHome({ project }: { project: Project | null }) {
   );
 }
 
-/** The Pages panel's head in the Studio space: back to all projects, the open project's name and its menu. */
-export function ProjectBar() {
-  const admin = useStudio((state) => state.role === "admin");
-  const localPage = useStudio((state) => state.localPage);
-  const view = useHomeView();
-  const projects = useProjects();
-  const known = new Set(projects.map((item) => item.id));
-  const id = localPage ? pageProjectOf(localPage, known) : view && view !== DRAFTS ? view : null;
-  const project = useProject(id);
-  const pages = usePagesOf(project?.id ?? null);
-  const [deleting, setDeleting] = useState(false);
-  if (!localPage && view === null) return null;
-  const items: MenuEntry[] = project ? [
-    { id: "settings", label: "Project settings…", icon: "icon-settings-01-line", disabled: !admin, onSelect: () => openProjectSetup({ kind: "edit", id: project.id }) },
-    { type: "separator" },
-    { id: "delete", label: "Delete project…", icon: "icon-trash-line", danger: true, disabled: !admin, onSelect: () => setDeleting(true) },
-  ] : [];
-  return (
-    <div className="studio-project-bar">
-      <IconButton icon="icon-arrow-left-line" aria-label="All projects" appearance="flat" level="secondary" size="xs" onClick={() => openProjectHome(null)} />
-      <button type="button" className="studio-project-bar__name" onClick={() => openProjectHome(project?.id ?? DRAFTS)}>
-        {project ? <span className="studio-project-bar__dot" data-brand={projectBrand(project.id)} data-theme="light" aria-hidden="true" /> : null}
-        <Text as="span" textStyle="Body/Small/Bold" truncate>{project?.name ?? "Drafts"}</Text>
-      </button>
-      {project ? <Menu align="end" aria-label="Project options" items={items} trigger={<IconButton icon="icon-dots-horizontal-line" aria-label="Project options" appearance="flat" level="secondary" size="xs" />} /> : null}
-      {deleting && project ? <DeleteProjectDialog project={project} pages={pages.length} onClose={() => setDeleting(false)} /> : null}
-    </div>
-  );
-}
-
 /** The Pages panel on the projects grid: Drafts and every project, each opening its home; New project, and New page
  *  (a draft), as Figma's file browser creates from anywhere. */
 export function ProjectsList({ onNewPage }: { onNewPage: () => void }) {

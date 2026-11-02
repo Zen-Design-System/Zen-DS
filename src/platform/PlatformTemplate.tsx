@@ -1,10 +1,9 @@
-import { createContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, type ReactNode } from "react";
 import { IconButton } from "../components/Button";
-import { Chip } from "../components/Chip";
-import { Icon, type IconName } from "../components/Icon";
-import { Segmented } from "../components/Segmented";
-import { typographyStyles } from "../tokens/typography.generated";
-import { AccountMenu } from "./auth/AuthGate";
+import { SelectField } from "../components/Input";
+import { Stack } from "../components/Layout";
+import { SidePanel } from "../components/SidePanel";
+import { Heading, Text } from "../components/Text";
 
 export type PlatformBreadcrumb = {
   label: string;
@@ -24,30 +23,15 @@ export type PlatformShellSettings = {
   contrast: "standard" | "high";
 };
 
-/** System Typography Configuration mode (topbar chip) for component previews. The platform
+/** System Typography Configuration mode (the Appearance panel) for component previews. The platform
  * chrome itself renders in the platform-only Zen-Platform typography (see platform.css). */
 export const PlatformTypographyContext = createContext<PlatformShellSettings["typography"]>("dashboard");
 
-type PlatformTopbarProps = {
-  breadcrumbs: PlatformBreadcrumb[];
-  settings: PlatformShellSettings;
-  onSettingsChange: (changes: Partial<PlatformShellSettings>) => void;
-  showSettingsControls?: boolean;
-  /** Narrow viewports: the menu button that opens the navigation drawer. */
-  navOpen?: boolean;
-  onMenuClick?: () => void;
-};
-
-const viewModes: ReadonlyArray<{ mode: PlatformViewMode; label: string; icon: IconName }> = [
-  { mode: "light", label: "Light mode", icon: "icon-sun-solid" },
-  { mode: "dark", label: "Dark mode", icon: "icon-moon-01-solid" },
-];
-
+/** The component previews' token modes, one field each in the Appearance panel (data-* on the platform root). */
 const shellControlDefinitions = [
   {
     key: "density" as const,
     label: "Component Size",
-    icon: "icon-ruler-solid" as IconName,
     values: [
       { id: "compact", label: "Compact" },
       { id: "comfortable", label: "Comfortable" },
@@ -56,7 +40,6 @@ const shellControlDefinitions = [
   {
     key: "componentTheme" as const,
     label: "Component Theme",
-    icon: "icon-colors-solid" as IconName,
     values: [
       { id: "neutral-s1", label: "Neutral-S1" },
       { id: "brand-s1", label: "Brand-S1" },
@@ -72,7 +55,6 @@ const shellControlDefinitions = [
   {
     key: "typography" as const,
     label: "Typography",
-    icon: "icon-monitor-02-solid" as IconName,
     values: [
       { id: "dashboard", label: "Dashboard" },
       { id: "popular", label: "Popular" },
@@ -82,7 +64,6 @@ const shellControlDefinitions = [
   {
     key: "radius" as const,
     label: "Corner Radius",
-    icon: "icon-maximize-02-line" as IconName,
     values: [
       { id: "rounded", label: "Rounded" },
       { id: "smooth", label: "Smooth" },
@@ -93,7 +74,6 @@ const shellControlDefinitions = [
   {
     key: "emphasis" as const,
     label: "Emphasis Level",
-    icon: "icon-bold-02-solid" as IconName,
     values: [
       { id: "medium", label: "Medium" },
       { id: "strong", label: "Strong" },
@@ -103,7 +83,6 @@ const shellControlDefinitions = [
   {
     key: "contrast" as const,
     label: "Contrast",
-    icon: "icon-contrast-01-solid" as IconName,
     values: [
       { id: "standard", label: "Standard" },
       { id: "high", label: "High" },
@@ -111,129 +90,66 @@ const shellControlDefinitions = [
   },
 ] as const;
 
-/** Below 1024px the sticky topbar keeps one row; the settings chips get their own row that scrolls with the page. */
-const compactTopbarQuery = "(max-width: 1024px)";
-function useCompactTopbar() {
-  const [compact, setCompact] = useState(() => typeof window !== "undefined" && Boolean(window.matchMedia?.(compactTopbarQuery).matches));
-  useEffect(() => {
-    const query = window.matchMedia?.(compactTopbarQuery);
-    if (!query) return undefined;
-    const update = () => setCompact(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
-  return compact;
-}
+type PlatformAppearanceProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  settings: PlatformShellSettings;
+  onSettingsChange: (changes: Partial<PlatformShellSettings>) => void;
+};
 
-export function PlatformTopbar({ breadcrumbs, settings, onSettingsChange, showSettingsControls = false, navOpen = false, onMenuClick }: PlatformTopbarProps) {
-  const compact = useCompactTopbar();
-  const controls = showSettingsControls ? (
-    <div className="official-topbar__controls" aria-label="Platform settings">
-      {shellControlDefinitions.map((control) => {
-        const selected = control.values.find((value) => value.id === settings[control.key]);
-        // Popover/Label names the option group, not the current value.
-        return (
-          <Chip
-            key={control.key}
-            size="medium"
-            leading={<Icon name={control.icon} size="base" decorative />}
-            dropdown
-            popoverLabel={control.label}
-            popoverItems={control.values.map((value) => ({
-              id: value.id,
-              label: value.label,
-              selected: value.id === settings[control.key],
-            }))}
-            onPopoverSelect={(item) => onSettingsChange({ [control.key]: item.id } as Partial<PlatformShellSettings>)}
-          >
-            {selected?.label ?? control.values[0].label}
-          </Chip>
-        );
-      })}
-    </div>
-  ) : null;
+/**
+ * Component pages: the previews' token modes (size, component theme, typography, corner radius, emphasis, contrast) in
+ * one Side-Panel Type=Standard, Size=Small, docked beside the page by the AppShell so every change shows in the page at
+ * once (SidePanel guideline: many settings at once). Opened from the header's Appearance button; Escape closes it.
+ */
+export function PlatformAppearancePanel({ open, onOpenChange, settings, onSettingsChange }: PlatformAppearanceProps) {
   return (
-    <>
-    <header className="official-topbar">
-      {onMenuClick ? <IconButton className="official-topbar__menu" appearance="main" level="tertiary" size="sm" aria-label={navOpen ? "Close navigation" : "Open navigation"} aria-expanded={navOpen} aria-controls="official-navigation" onClick={onMenuClick} icon={<Icon name="icon-menu-01-line" />} /> : null}
-      <nav className="official-topbar__breadcrumbs" aria-label="Breadcrumb">
-        {breadcrumbs.map((breadcrumb, index) => (
-          <span className="official-topbar__breadcrumb-group" key={`${breadcrumb.label}-${index}`}>
-            {index > 0 ? <Icon name="icon-chevron-right-line-small" size="base" decorative /> : null}
-            <span className={`official-topbar__breadcrumb ${typographyStyles["Body/Base/Regular"]}`} aria-current={breadcrumb.current ? "page" : undefined}>
-              {breadcrumb.label}
-            </span>
-          </span>
+    <SidePanel type="standard" size="small" open={open} onOpenChange={onOpenChange} title="Appearance" description="How the components on this page render.">
+      <Stack gap="md">
+        {shellControlDefinitions.map((control) => (
+          <SelectField
+            key={control.key}
+            label={control.label}
+            options={control.values.map((value) => ({ value: value.id, label: value.label }))}
+            value={settings[control.key]}
+            onValueChange={(value) => onSettingsChange({ [control.key]: value } as Partial<PlatformShellSettings>)}
+          />
         ))}
-      </nav>
-
-      <div className="official-topbar__trailing">
-        {compact ? null : controls}
-        <Segmented
-          aria-label="Color mode"
-          className="official-topbar__segmented"
-          level="secondary"
-          size="medium"
-          value={settings.theme}
-          onChange={(theme) => onSettingsChange({ theme: theme as PlatformViewMode })}
-          options={viewModes.map((item) => ({ id: item.mode, label: null, leading: <Icon name={item.icon} size="base" title={item.label} decorative={false} /> }))}
-        />
-        <AccountMenu />
-      </div>
-    </header>
-    {/* Not sticky: on a phone the five chips wrap to two or three rows, which as part of the sticky bar covered a
-        quarter of the screen and the popovers opened under it. */}
-    {compact && controls ? <div className="official-topbar-settings">{controls}</div> : null}
-    </>
+      </Stack>
+    </SidePanel>
   );
 }
 
-type PlatformPageHeroProps = {
-  title: string;
-  eyebrow?: string;
-  titleLines?: string[];
-};
-
-export function PlatformPageHero({ title, eyebrow = "Zen Design System", titleLines }: PlatformPageHeroProps) {
+/** Header colour mode: one flat icon button that switches the whole platform between light and dark. */
+export function PlatformColorModeButton({ theme, onChange }: { theme: PlatformViewMode; onChange: (theme: PlatformViewMode) => void }) {
+  const dark = theme === "dark";
   return (
-    <section className="platform-page-hero" aria-labelledby="platform-page-hero-title">
-      <span className="platform-page-hero__logo" aria-hidden="true" />
-      <span className={`platform-page-hero__kaiz ${typographyStyles["All-Caps/M-BOLD"]}`}>KAIZ</span>
-      <div className="platform-page-hero__main">
-        <h1 id="platform-page-hero-title">{(titleLines ?? [title]).map((line, index) => <span key={`${line}-${index}`}>{line}</span>)}</h1>
-        <span className="platform-page-hero__divider" aria-hidden="true" />
-      </div>
-      <div className="platform-page-hero__meta" aria-label="Template metadata">
-        <span className={typographyStyles["All-Caps/M"]}>V1.0.2</span>
-        <span className={typographyStyles["All-Caps/M"]}>Đìzai® Studio</span>
-        <span className={typographyStyles["All-Caps/M"]}>2026</span>
-      </div>
-    </section>
+    <IconButton appearance="flat" level="primary" aria-label="Dark mode" aria-pressed={dark} icon={dark ? "icon-moon-01-solid" : "icon-sun-solid"} onClick={() => onChange(dark ? "light" : "dark")} />
   );
 }
 
 type PlatformPageTemplateProps = {
   title: string;
+  /** @deprecated The breadcrumbs above the page name its section now (Figma B5); kept so existing pages compile. */
   eyebrow?: string;
   description?: string;
+  /** @deprecated The old cover split the title over lines; the B5 title is one Display/3 line. */
   titleLines?: string[];
   children: ReactNode;
 };
 
-/** Shared foundation/component page frame from the Codebase Platform page. */
-export function PlatformPageTemplate({ title, eyebrow, description, titleLines, children }: PlatformPageTemplateProps) {
+/**
+ * Foundation and component page frame (Figma ◇ Master-Layout B5 · Docs / Learning, 15917:6719): the page's h1 in
+ * Display/3, its Body/Extra/Regular lead in Neutral/Base, then the body, typography-led on the Canvas (no cover).
+ */
+export function PlatformPageTemplate({ title, description, children }: PlatformPageTemplateProps) {
   return (
     <div className="platform-page-template">
-      <PlatformPageHero title={title} eyebrow={eyebrow} titleLines={titleLines} />
-      <div className="platform-page-template__body">
-        {description ? (
-          <section className="platform-page-intro" aria-label={`${title} introduction`}>
-            <p className={typographyStyles["Body/Extra/Regular"]}>{description}</p>
-          </section>
-        ) : null}
-        {children}
-      </div>
+      <Stack as="header" gap="sm" className="platform-page-header">
+        <Heading level={1} textStyle="Display/3">{title}</Heading>
+        {description ? <Text textStyle="Body/Extra/Regular" tone="base">{description}</Text> : null}
+      </Stack>
+      <div className="platform-page-template__body">{children}</div>
     </div>
   );
 }

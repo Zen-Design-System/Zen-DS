@@ -1,5 +1,4 @@
-import { Button } from "../../../components/Button";
-import { Icon } from "../../../components/Icon";
+import { Chip } from "../../../components/Chip";
 import { Menu, type MenuEntry } from "../../../components/Menu";
 import { useStudio } from "../store";
 import { modKey } from "../shell/modKey";
@@ -7,8 +6,8 @@ import { canvasApi, formatZoom, useCanvasZoom, zoomIn, zoomOut } from "./viewpor
 import { zoomToSelection } from "./zoomToSelection";
 import "./canvas.css";
 
-/** The zoom percentage and its menu (the Inspector's tab row, as Figma UI3's; the collapsed Inspector bar). */
-export function ZoomMenu({ align = "end", size = "sm" }: { align?: "start" | "end"; size?: "xs" | "sm" }) {
+/** The zoom percentage and its menu: a small advanced Chip at the canvas's bottom-right (Figma B4, 2026-11-01). */
+export function ZoomMenu({ align = "end" }: { align?: "start" | "end" }) {
   const zoom = useCanvasZoom();
   const hasSelection = useStudio((state) => state.selection !== null);
   const items: MenuEntry[] = [
@@ -26,7 +25,8 @@ export function ZoomMenu({ align = "end", size = "sm" }: { align?: "start" | "en
       aria-label="Zoom"
       align={align}
       items={items}
-      trigger={<Button className="studio-zoom__value" appearance="flat" level="primary" size={size} aria-label={`Zoom ${formatZoom(zoom)}`} endIcon={<Icon name="icon-chevron-down-line" decorative />}>{formatZoom(zoom)}</Button>}
+      // zen-allow-chip-action: the Menu's trigger (Menu wires its click, keys and aria-expanded).
+      trigger={<Chip className="studio-zoom__value" variant="advanced" size="sm" aria-label={`Zoom ${formatZoom(zoom)}`}>{formatZoom(zoom)}</Chip>}
     />
   );
 }

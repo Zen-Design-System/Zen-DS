@@ -1,5 +1,5 @@
-/* Zen Studio chrome: panel headers, corner bars, side panels, Pages panel, preview-modes panel, shortcuts dialog.
-   Neutral-S7 · Studio sizes · Emphasis Light (ChromeScope); the panels float over the canvas (studio.css). */
+/* Zen Studio chrome: the top bar, side panes, Pages panel, preview-modes panel, shortcuts dialog.
+   Neutral-S7 · Studio sizes · Emphasis Light (ChromeScope); the layout is in studio.css (Figma B4). */
 .studio-chrome {
   color: var(--zen-color-content-neutral-strongest, #111);
   font-family: var(--zen-typography-font-family-sans, Inter), ui-sans-serif, system-ui, sans-serif;
@@ -10,66 +10,68 @@
    2026-10-09). Dialogs portal into .studio-chrome-portal, which carries the chrome's modes. */
 :is(.studio-chrome, .studio-chrome-portal) :is(.zen-modal-actions, .zen-modal-actions__main) { gap: var(--zen-spacing-gap-xsmall, 8px); }
 
-/* ── Panel headers (Figma UI3: the left panel's brand row, the right panel's actions row) ── */
-.studio-panel-head {
-  display: flex;
-  min-width: 0;
-  flex: 0 0 auto;
+/* ── Top bar (Figma B4: Header/AppShell's row, compact for a tool) ── */
+/* Across the window on the canvas colour: start (menu, Home › project) · the name, centred on the bar · the actions.
+   Three columns, the sides equal, so the centre stays centred and each side ends in "…" before it overlaps.
+   Its inline padding lines the menu up with the panes' content (edge + the pane's Spacing/Padding/XSmall). */
+.studio-topbar-scope { position: absolute; z-index: 22; top: 0; right: 0; left: 0; }
+.studio-topbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  height: var(--studio-top);
+  box-sizing: border-box;
   align-items: center;
-  gap: var(--zen-spacing-gap-2-xsmall, 4px);
-  padding: var(--zen-spacing-padding-xsmall, 8px);
+  gap: var(--zen-spacing-gap-medium, 16px);
+  padding: 0 var(--zen-spacing-padding-medium, 16px) 0 var(--zen-spacing-padding-xsmall, 8px);
 }
-/* Groups are told apart by space, not rules: 4px inside a group, 8px (Gap/XSmall) between groups. */
-.studio-panel-head__group { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); margin-inline-start: var(--zen-spacing-gap-2-xsmall, 4px); }
-.studio-panel-head__end { display: inline-flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-2-xsmall, 4px); margin-inline-start: auto; }
-.studio-brand .zen-icon { color: var(--zen-color-content-neutral-strongest, #111); }
-/* Role · Undo / Redo · drafts count · Save all is wider than a 320px Inspector (Save all ran out of the panel, user
-   2026-10-15): below 360px, while drafts are listed, the role button keeps its avatar and chevron (its name stays its
+.studio-topbar__start,
+.studio-topbar__end { display: flex; min-width: 0; align-items: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-topbar__end { justify-content: flex-end; }
+/* zen-allow-slot-size: the centred name never takes more than 40% of the bar (it ends in "…"). */
+.studio-topbar__center { display: flex; min-width: 0; max-width: 40vw; align-items: center; justify-content: center; gap: var(--zen-spacing-gap-xsmall, 8px); }
+.studio-topbar__center > .zen-badge { flex: none; }
+/* The trail: the project button ends in "…" first; Home keeps its icon and word. */
+.studio-crumbs { min-width: 0; }
+.studio-crumbs__project { max-width: 240px; }
+/* The name ends in "…" before it pushes anything; a long docs title keeps the actions on screen. */
+.studio-topbar__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Undo · Redo sit closer together than the bar's groups (4px inside a group, 8px between groups). */
+.studio-topbar__group { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); }
+.studio-brand .zen-icon { color: var(--zen-color-content-neutral-base, rgb(0 0 0 / 62%)); }
+/* Role · drafts · Save all · Export can outgrow a 1024–1279px bar: the role keeps its avatar (its name stays its
    accessible name and in its menu). */
-@container studio-right (max-width: 359px) {
-  .studio-panel-head:has(.studio-drafts) .studio-role .zen-badge { display: none; }
+@media (max-width: 1279.98px) {
+  .studio-topbar .studio-role .zen-badge { display: none; }
 }
 .studio-role .zen-badge { pointer-events: none; }
-
-/* ── Corner bars: what stays of a panel that is not docked (narrow window, or hidden with ⌘\) ── */
-.studio-bar-scope { display: contents; }
-.studio-bar {
-  position: absolute;
-  z-index: 22;
-  top: var(--studio-edge);
-  display: flex;
-  align-items: center;
-  gap: var(--zen-spacing-gap-3-xsmall, 2px);
-  padding: var(--zen-spacing-padding-2-xsmall, 4px);
-  border-radius: var(--zen-corner-radius-large, 12px);
-  outline: 1px solid var(--zen-popover-border, rgb(1 1 1 / 11%));
-  background: var(--zen-color-background-surface-default, #fff);
-  box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
+/* A phone: the bar's padding matches the panes' edge. */
+@media (max-width: 599.98px) {
+  .studio-topbar { gap: var(--zen-spacing-gap-xsmall, 8px); padding-inline-end: var(--zen-spacing-padding-xsmall, 8px); }
 }
-.studio-bar--left { left: var(--studio-edge); }
-.studio-bar--right { right: var(--studio-edge); }
 
 /* ── Side panels ── */
-/* The Tabs bar draws its own Pale track line. */
-.studio-left__tabs { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: 0 var(--zen-spacing-padding-xsmall, 8px) var(--zen-spacing-padding-xsmall, 8px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+/* The Tabs bar draws its own Pale track line; B4's Pane-Content padding (Spacing/Padding/XSmall) around it. */
+.studio-left__tabs { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: var(--zen-spacing-gap-2-xsmall, 4px); padding: var(--zen-spacing-padding-xsmall, 8px); border-bottom: 1px solid var(--zen-color-border-neutral-pale-default); }
+/* A document page's drawer: its Close alone, top-right. */
+.studio-left__close { display: flex; flex: 0 0 auto; justify-content: flex-end; padding: var(--zen-spacing-padding-xsmall, 8px); }
 .studio-left__panel { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; overflow: auto; }
 .studio-left__panel[hidden] { display: none; }
 .studio-left__panel:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--zen-color-focus-neutral-solid, #121212); }
 
-/* ── Resize handles (on a docked panel's inner edge) ── */
-/* zen-allow-slot-size: an 8px hit strip centred on the panel's edge (structural, not component spacing). */
+/* ── Resize handles (in the gutter between a docked pane and the canvas) ── */
+/* zen-allow-slot-size: an 8px hit strip, the gutter itself (structural, not component spacing). */
 .studio-resizer {
   position: absolute;
   z-index: 23;
-  top: var(--studio-edge);
+  top: var(--studio-top);
   bottom: var(--studio-edge);
-  width: 8px;
+  width: var(--studio-edge);
   cursor: col-resize;
   touch-action: none;
   outline: none;
 }
-.studio-resizer[data-side="left"] { left: calc(var(--studio-edge) + var(--studio-left-width) - var(--zen-spacing-gap-2-xsmall, 4px)); }
-.studio-resizer[data-side="right"] { right: calc(var(--studio-edge) + var(--studio-right-column) - var(--zen-spacing-gap-2-xsmall, 4px)); }
+.studio-resizer[data-side="left"] { left: calc(var(--studio-edge) + var(--studio-left-width)); }
+.studio-resizer[data-side="right"] { right: calc(var(--studio-edge) + var(--studio-right-column)); }
 .studio-resizer::after {
   position: absolute;
   inset: 0 3px;

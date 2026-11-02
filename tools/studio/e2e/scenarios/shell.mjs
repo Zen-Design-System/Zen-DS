@@ -1,7 +1,7 @@
 // Shell rows: the Studio loads the fixture page, menus open on screen, view commands do what they say; ST-30…32: how a
 // page you made opens (its first view, and the viewport it reopens at).
 import { focusFrame, inViewport, openAssetLibrary, sleep, until } from "../lib/studio.mjs";
-import { seededPage } from "./builder.mjs";
+import { newPage, seededPage } from "./builder.mjs";
 import { pageFromTemplate } from "./starters.mjs";
 
 const CANVAS = ".studio-canvas-area";
@@ -140,19 +140,19 @@ export const rows = [
     },
   },
   {
-    id: "S-02", feature: "Zoom % menu on the Inspector's tab row (Figma UI3) opens on screen", wp: "WP-A",
+    id: "S-02", feature: "Zoom % Chip at the canvas's bottom-right (Figma B4) opens its menu on screen", wp: "WP-A · B4 2026-11-01",
     async run(ctx) {
       const { page } = await ctx.studio();
-      const trigger = page.locator("#studio-right .studio-inspector__tabs .studio-zoom__value").first();
+      const trigger = page.locator(".studio-canvas-area .studio-status .studio-zoom__value").first();
       return menuItemsOnScreen(page, () => trigger.click());
     },
   },
   {
-    // Preview modes change in Play and Present only (user, 2026-10-09): the panel headers have no Modes.
-    id: "S-03", feature: "Modes: none in the panel headers; Present's Modes panel opens on screen", wp: "WP-A",
+    // Preview modes change in Play and Present only (user, 2026-10-09): the top bar has no Modes.
+    id: "S-03", feature: "Modes: none in the top bar; Present's Modes panel opens on screen", wp: "WP-A",
     async run(ctx) {
       const { page } = await ctx.studio();
-      if (await page.locator(".studio-panel-head, .studio-bar").getByRole("button", { name: "Modes", exact: true }).count()) throw new Error("a panel header still has Modes");
+      if (await page.locator(".studio-topbar").getByRole("button", { name: "Modes", exact: true }).count()) throw new Error("the top bar has Modes");
       await focusFrame(page, 3);
       await page.keyboard.press(process.platform === "darwin" ? "Alt+Meta+Enter" : "Control+Alt+Enter");
       const exit = page.getByRole("button", { name: /Exit full screen/i });
@@ -164,7 +164,7 @@ export const rows = [
       await page.keyboard.press("Escape");
       await page.keyboard.press("Escape");
       if (!inViewport(box)) throw new Error(`Modes panel off screen: ${JSON.stringify(box)}`);
-      return "no Modes in the panel headers; Present's panel inside the viewport";
+      return "no Modes in the top bar; Present's panel inside the viewport";
     },
   },
   {
@@ -224,7 +224,7 @@ export const rows = [
     },
   },
   {
-    id: "S-07", feature: "Phone width: the Inspector button is reachable in its corner bar", wp: "WP-A",
+    id: "S-07", feature: "Phone width: the Inspector button is reachable in the top bar", wp: "WP-A",
     async run(ctx) {
       const { page } = await ctx.studio({ viewport: { width: 390, height: 844 } });
       const button = page.getByRole("button", { name: /^Inspector/ }).first();
@@ -257,6 +257,59 @@ export const rows = [
         await until(async () => (await app.getAttribute("data-theme")) === "light", { message: "the chrome light again" });
         if ((await world.getAttribute("data-theme")) !== before) throw new Error("the frames' theme changed on the way back");
         return `chrome light → dark → light · frames stay ${before}`;
+      } finally {
+        await ctx.studio({ fresh: true });
+      }
+    },
+  },
+  {
+    // Figma B4 · Workspace Editor (user, 2026-11-01): a top bar across, two Border panes beside the canvas (not over it),
+    // the canvas between them the Pale field. The bar has no Mode Segmented: it repeated the Inspector's tabs (user).
+    id: "S-10", feature: "B4 chrome: the top bar spans the window over the panes, Pages | Layers and the Inspector sit beside the canvas without covering it and cast no shadow, the canvas is the Pale field, and the bar repeats none of the Inspector's Design · Code tabs", wp: "B4 chrome 2026-11-01",
+    async run(ctx) {
+      const { page } = await ctx.studio();
+      const boxes = await page.evaluate(() => {
+        const rect = (selector) => { const r = document.querySelector(selector)?.getBoundingClientRect(); return r ? { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width } : null; };
+        const shadow = (selector) => { const el = document.querySelector(selector); return el ? getComputedStyle(el).boxShadow : null; };
+        return { bar: rect(".studio-topbar"), left: rect("#studio-left"), right: rect("#studio-right"), canvas: rect(".studio-canvas-area"), width: innerWidth, leftShadow: shadow("#studio-left"), rightShadow: shadow("#studio-right"), viewport: getComputedStyle(document.querySelector(".studio-viewport")).backgroundColor };
+      });
+      const { bar, left, right, canvas } = boxes;
+      if (!bar || !left || !right || !canvas) throw new Error(`missing chrome: ${JSON.stringify(boxes)}`);
+      if (bar.left > 1 || bar.right < boxes.width - 1) throw new Error(`the top bar spans ${Math.round(bar.left)}…${Math.round(bar.right)} of ${boxes.width}`);
+      if (left.top < bar.bottom - 1 || right.top < bar.bottom - 1) throw new Error(`a pane starts above the bar's bottom (${Math.round(bar.bottom)}): left ${Math.round(left.top)}, right ${Math.round(right.top)}`);
+      if (canvas.left < left.right || canvas.right > right.left) throw new Error(`the canvas ${Math.round(canvas.left)}…${Math.round(canvas.right)} runs under a pane (${Math.round(left.right)}, ${Math.round(right.left)})`);
+      if (boxes.leftShadow !== "none" || boxes.rightShadow !== "none") throw new Error(`a docked pane has a shadow: ${boxes.leftShadow} / ${boxes.rightShadow}`);
+      const pale = await page.evaluate(() => { const probe = document.createElement("div"); probe.style.background = "var(--zen-color-background-neutral-pale-default)"; document.querySelector(".studio-canvas-area").append(probe); const value = getComputedStyle(probe).backgroundColor; probe.remove(); return value; });
+      if (boxes.viewport !== pale) throw new Error(`the canvas paints ${boxes.viewport}, not Pale ${pale}`);
+      const topBar = page.locator(".studio-topbar");
+      const repeated = await topBar.getByRole("button", { name: /^(Design|Code|Prototype)$/ }).or(topBar.getByRole("tab")).count();
+      if (repeated) throw new Error(`the top bar repeats ${repeated} of the Inspector's views`);
+      return `bar 0…${Math.round(bar.right)} · panes from y ${Math.round(left.top)} · canvas ${Math.round(canvas.left)}…${Math.round(canvas.right)} between them · no view switch in the bar`;
+    },
+  },
+  {
+    // User 2026-11-01: the page's name centred on the bar, the trail Home › project (avatar, name, switch menu) at its start.
+    id: "S-11", feature: "Top bar trail on a page you made: its name centred on the bar, Home › Drafts at the start; Switch project › Drafts opens Drafts' home, Home opens the projects grid; a docs page reads Home › Docs", wp: "B4 chrome 2026-11-01", timeout: 60_000,
+    async run(ctx) {
+      try {
+        const docs = await ctx.studio();
+        const docsTrail = (await docs.page.locator(".studio-topbar").getByRole("navigation", { name: "Project" }).innerText()).replace(/\s+/g, " ").trim();
+        if (docsTrail !== "Home Docs") throw new Error(`a docs page's trail reads "${docsTrail}"`);
+        const { page } = await newPage(ctx);
+        const bar = page.locator(".studio-topbar");
+        const centred = await page.evaluate(() => {
+          const title = document.querySelector(".studio-topbar__title")?.getBoundingClientRect();
+          return title ? Math.abs(title.left + title.width / 2 - innerWidth / 2) : null;
+        });
+        if (centred === null || centred > 60) throw new Error(`the page name is ${centred} px off the bar's centre`);
+        const trail = bar.getByRole("navigation", { name: "Project" });
+        await trail.getByRole("link", { name: "Home" }).waitFor({ state: "visible", timeout: 4000 });
+        await trail.getByRole("button", { name: "Project: Drafts" }).click();
+        await page.getByRole("menu", { name: "Switch project" }).getByRole("menuitem", { name: "Drafts", exact: true }).click();
+        await until(async () => (await page.locator(".studio-app").getAttribute("data-space")) === "studio" && !(await page.locator("[data-studio-frame]").count()), { message: "Drafts' home (no page open)" });
+        await bar.getByRole("navigation", { name: "Project" }).getByRole("link", { name: "Home" }).click();
+        await page.locator(".studio-canvas-area .studio-projects__grid").waitFor({ state: "visible", timeout: 4000 });
+        return `docs: Home › Docs · name ${Math.round(centred)} px off centre · Switch project › Drafts → its home · Home → Projects grid`;
       } finally {
         await ctx.studio({ fresh: true });
       }

@@ -1,5 +1,5 @@
-/* Zen Agent's panel (agent/AgentPanel.tsx): a floating panel on the canvas beside Pages | Layers, the same surface, edge
-   and shadow as the side panels (studio.css), at the panels' layer (22). It stops above the AI chip at the canvas's
+/* Zen Agent's panel (agent/AgentPanel.tsx): a floating panel at the canvas's top-left, beside Pages | Layers, with a
+   drawer's surface, edge and shadow (it covers frames; studio.css), at the panes' layer (22). It stops above the AI chip at the canvas's
    bottom-left (mcp.css), which keeps its Stop. */
 .studio-agent {
   /* zen-allow-slot-size: the panel's width, as the side panels' own (--studio-left-width), not component spacing. */
@@ -8,9 +8,9 @@
   z-index: 22;
   top: var(--studio-edge);
   bottom: calc(2 * var(--zen-spacing-padding-medium, 16px) + var(--zen-element-size-popular-xlarge, 36px));
-  left: calc(var(--studio-inset-left, 0px) + var(--studio-edge));
+  left: var(--studio-edge);
   display: flex;
-  width: min(var(--studio-agent-width), calc(100% - var(--studio-inset-left, 0px) - var(--studio-inset-right, 0px) - 2 * var(--studio-edge)));
+  width: min(var(--studio-agent-width), calc(100% - 2 * var(--studio-edge)));
   min-height: 0;
   box-sizing: border-box;
   flex-direction: column;
@@ -21,8 +21,6 @@
   box-shadow: var(--zen-style-effect-popover-shadow-unclipped);
 }
 .studio-canvas-area[data-world-fullscreen="true"] > .studio-agent { visibility: hidden; }
-/* Below 1280px Pages | Layers is a drawer and its bar floats at the top-left (shell.css): the panel starts under it. */
-.studio-app[data-left="drawer"] .studio-agent { top: calc(var(--zen-spacing-padding-4-xlarge, 48px) + 2 * var(--studio-edge)); }
 
 .studio-agent__header {
   display: flex;

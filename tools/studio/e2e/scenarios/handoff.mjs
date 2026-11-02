@@ -294,17 +294,9 @@ const compareShots = (view, a, b, { width, height, tolerance = 24 }) => view.eva
 /** A PNG's width and height (its IHDR). */
 const pngSize = (bytes) => { const view = Buffer.from(bytes); return { width: view.readUInt32BE(16), height: view.readUInt32BE(20) }; };
 
-/** Opens the Export panel from the page's Inspector panel (nothing selected). */
+/** Opens the Export panel from the top bar's Export (B4, 2026-11-01: the one Export of a page you made). */
 async function openExport(page) {
-  await page.locator("#studio-right").getByRole("tab", { name: "Design" }).click().catch(() => {});
-  const button = page.locator("#studio-right").getByRole("button", { name: "Export…" });
-  // Escape walks the selection up to nothing selected: the page's own panel, with Export….
-  for (let i = 0; i < 8 && !(await button.isVisible().catch(() => false)); i += 1) {
-    await page.locator(".studio-viewport").focus();
-    await page.keyboard.press("Escape");
-    await sleep(120);
-  }
-  await button.click();
+  await page.locator(".studio-topbar").getByRole("button", { name: "Export", exact: true }).click();
   const panel = page.locator(".studio-export");
   await panel.waitFor({ state: "visible", timeout: 5000 });
   return panel;

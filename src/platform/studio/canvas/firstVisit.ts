@@ -1,6 +1,6 @@
 import { getStudioFrames } from "../board/frames";
 import type { StudioViewport } from "../types";
-import { FIRST_VIEW_MARGIN, firstViewOf, readsFromTop, type ViewFrame } from "./firstView";
+import { FIRST_VIEW_MARGIN, firstViewOf, readsFromTop, type ViewFrame, type ViewRect } from "./firstView";
 import { getSafeBox, toWorldRect, viewportFitting, viewportReading } from "./viewport";
 
 /*
@@ -16,14 +16,28 @@ const BUILDER_FRAME = /^(?:screen|overlay|section|slice):/;
 /** How long the board gets to draw its frames before the provisional view stays (a page in the Trash, an empty one). */
 const DEADLINE = 8000;
 
-/** The viewport for the first view in the visible canvas: `fit` whole and centred; a frame whole and centred, or read
- *  from its top when it is much taller than wide for the canvas. */
-export function firstVisitViewport(frames: readonly ViewFrame[]): StudioViewport | null {
+/** The viewport for the first view in the visible canvas: `fit` whole, or a frame whole, or read from its top when it
+ *  is much taller than wide for the canvas. With height to spare the view starts at the board's title block (`title`,
+ *  above the frames) at the margin, instead of centring the frames under an empty band (user 2026-11-01, B4 chrome:
+ *  "bị trống phía trên" — the narrower canvas between the panes fits a desktop Screen by its width). */
+export function firstVisitViewport(frames: readonly ViewFrame[], title: ViewRect | null = null): StudioViewport | null {
   const box = getSafeBox();
   const view = firstViewOf(frames, box);
   if (!view) return null;
   if (view.kind === "frame" && readsFromTop(view.rect, box, FIRST_VIEW_MARGIN)) return viewportReading(view.rect, FIRST_VIEW_MARGIN, 1);
-  return viewportFitting(view.rect, FIRST_VIEW_MARGIN, 1);
+  const fit = viewportFitting(view.rect, FIRST_VIEW_MARGIN, 1);
+  const top = title ? Math.min(title.y, view.rect.y) : view.rect.y;
+  const bottom = view.rect.y + view.rect.height;
+  if ((bottom - top) * fit.zoom + FIRST_VIEW_MARGIN * 2 > box.height) return fit;
+  return { ...fit, y: box.y + FIRST_VIEW_MARGIN - top * fit.zoom };
+}
+
+/** The board's title block (the page's name above its frames) in world px, when it is drawn. */
+function titleRect(world: HTMLElement): ViewRect | null {
+  const title = world.querySelector<HTMLElement>(".studio-board__title");
+  if (!title) return null;
+  const rect = toWorldRect(title.getBoundingClientRect());
+  return rect.width > 0 && rect.height > 0 ? rect : null;
 }
 
 /** The board's builder frames as drawn now, or null while any is still unplaced or unmeasured (or none is there). */
@@ -52,7 +66,7 @@ export function watchFirstVisit(world: HTMLElement, apply: (viewport: StudioView
     frame = 0;
     const frames = drawnFrames(world);
     if (frames) {
-      const viewport = firstVisitViewport(frames);
+      const viewport = firstVisitViewport(frames, titleRect(world));
       if (viewport) apply(viewport);
       return;
     }

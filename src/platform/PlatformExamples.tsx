@@ -57,7 +57,7 @@ import { collections } from "../foundations/collections";
 import { PlatformPageTemplate, PlatformTypographyContext } from "./PlatformTemplate";
 import { PlatformCode } from "./PlatformCode";
 import { ComponentGuidelines } from "./PlatformGuidelines";
-import { ComponentApi, ComponentKeyboard, ComponentProps, PlatformOnThisPage, PlatformSection } from "./PlatformReference";
+import { ComponentApi, ComponentKeyboard, ComponentProps, PlatformSection } from "./PlatformReference";
 import { VoicePlayground } from "./PlatformVoicePlayground";
 import { CalendarPlayground, SchedulePlayground, TimelinePlayground } from "./PlatformCalendarPlayground";
 import { SheetTablePlayground } from "./PlatformSheetTablePlayground";
@@ -79,11 +79,10 @@ export type PlatformPage = "overviews" | "installation" | "design-tokens" | "typ
 
 /**
  * Figma Component-Page-Template (Codebase Platform 14260:96953): the content column (Playground, Examples,
- * Keyboard, API, Guidelines) with the sticky "On this page" bookmarks beside it.
+ * Keyboard, API, Guidelines); the shell lists the sections in its "On this page" pane.
  */
 // zen-studio-chrome: docs chrome, not a selectable layer in Zen Studio (tools/studio skips its JSX).
 function ExamplePage({ eyebrow, title, description, titleLines, page, children }: { eyebrow: string; title: string; description: string; titleLines?: string[]; page?: PlatformPage; children: ReactNode }) {
-  const contentRef = useRef<HTMLDivElement>(null);
   const studio = useStudioBridge();
   // Zen Studio (the canvas tool) lays a component page out as frames: playground, examples, docs.
   if (studio && page) return <>{studio.renderComponentPage({ page, eyebrow, title, description, playground: children })}</>;
@@ -91,7 +90,7 @@ function ExamplePage({ eyebrow, title, description, titleLines, page, children }
     <PlatformPageTemplate title={title} eyebrow={eyebrow} titleLines={titleLines} description={description}>
       {page ? (
         <div className="platform-example-page platform-component-page">
-          <div ref={contentRef} className="platform-component-page__content">
+          <div className="platform-component-page__content">
             <PlatformSection id="playground" label="Playground">{children}</PlatformSection>
             <PlatformSection id="examples" label={examplesLabel(page)}><ComponentExamples page={page} /></PlatformSection>
             <ComponentKeyboard page={page} />
@@ -99,7 +98,6 @@ function ExamplePage({ eyebrow, title, description, titleLines, page, children }
             <ComponentProps page={page} />
             <PlatformSection id="guidelines" label="Guidelines"><ComponentGuidelines page={page} /></PlatformSection>
           </div>
-          <PlatformOnThisPage scope={contentRef} />
         </div>
       ) : <div className="platform-example-page">{children}</div>}
     </PlatformPageTemplate>
