@@ -1,5 +1,7 @@
-/* App Shell examples. First the Figma page ◇ Master-Layout · Example (15902:109717) screen by screen, sections A–F in
-   ./app-shell/* (user, 2026-10-19: "Các example Appshell nên build như trong Figma ◇ Master-Layout · Example"). Then the
+/* App Shell examples. First the Figma page ◇ Master-Layout · Example (15902:109717): section A (the four compositions,
+   ./app-shell/a-compositions) here; sections B–G have a page each since 2026-11-02 (examples/appShellLayouts.ts, user:
+   "cân nhắc tách example appshell ra page riêng cho đỡ nặng"). Built screen by screen (user, 2026-10-19: "Các example
+   Appshell nên build như trong Figma ◇ Master-Layout · Example"). Then the
    shell's behaviours with Đìzai Studio's own apps, signed in as Alex Duong, Wednesday Sep 30, 2026, 10:30 am: the
    toggle in the Sidebar beside a Master crumb, the docked task panel, the sticky selection bar, the banner, the narrow
    window (drawer) and the studio app on an iPad held upright. */
@@ -45,18 +47,6 @@ import {
 import type { ExampleDef } from "../types";
 import { keepOnHotUpdate } from "../../hotData";
 import { examples as compositions } from "./app-shell/a-compositions";
-import { examples as desktop1 } from "./app-shell/b-desktop-1";
-import { examples as desktop2 } from "./app-shell/b-desktop-2";
-import { examples as mobile1 } from "./app-shell/c-mobile-1";
-import { examples as mobile2 } from "./app-shell/c-mobile-2";
-import { examples as expressive1 } from "./app-shell/d-expressive-1";
-import { examples as expressive2 } from "./app-shell/d-expressive-2";
-import { examples as consumer1 } from "./app-shell/e-consumer-1";
-import { examples as consumer2 } from "./app-shell/e-consumer-2";
-import { examples as smartHome1 } from "./app-shell/f-smart-home-1";
-import { examples as smartHome2 } from "./app-shell/f-smart-home-2";
-import { examples as smartHome3 } from "./app-shell/f-smart-home-3";
-import { examples as grid } from "./app-shell/g-grid";
 
 export const page: PlatformPage = "app-shell";
 
@@ -597,10 +587,9 @@ function TabletPortraitApp() {
   );
 }
 
-/** The screens of Figma ◇ Master-Layout · Example (15902:109717), section by section: A background compositions, B desktop
- *  structures, C mobile structures, D expressive mobile, E consumer apps from references, F the smart-home concept on every
- *  device (user, 2026-10-19: "Các example Appshell nên build như trong Figma ◇ Master-Layout · Example"). */
-const figmaExamples: ExampleDef[] = [...compositions, ...desktop1, ...desktop2, ...mobile1, ...mobile2, ...expressive1, ...expressive2, ...consumer1, ...consumer2, ...smartHome1, ...smartHome2, ...smartHome3, ...grid];
+/** Section A of Figma ◇ Master-Layout · Example (15902:109717), the background compositions. Sections B–G (desktop,
+ *  mobile, expressive, consumer, smart home, grid) are on their own pages (examples/appShellLayouts.ts). */
+const figmaExamples: ExampleDef[] = compositions;
 
 /** What the shell does beyond the Figma screens: the toggle in the Sidebar, the docked panel, the narrow window, the banner. */
 const behaviourExamples: ExampleDef[] = [
