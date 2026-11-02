@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { Box, Stack } from "../components/Layout";
+import { Link } from "../components/Link";
 import { SheetCode, SheetKeys, SheetTable } from "../components/SheetTable";
 import { TableText } from "../components/Table";
-import { Tooltip } from "../components/Tooltip";
+import { Text } from "../components/Text";
 import { typographyStyles } from "../tokens/typography.generated";
 import apiReference from "./api.generated.json";
 import guidelines from "./guidelines.generated.json";
@@ -104,32 +106,56 @@ export function ComponentProps({ page, only }: { page: PlatformPage; only?: stri
 /** Focus inside these keeps ↑/↓ (the examples and playgrounds own their keys: menu triggers, lists, custom widgets). */
 const ARROW_KEY_OWNERS = "input, textarea, select, [contenteditable]:not([contenteditable=false]), [role=listbox], [role=menu], [role=menubar], [role=tablist], [role=tab], [role=slider], [role=spinbutton], [role=combobox], [role=radiogroup], [role=radio], [role=grid], [role=tree], [role=option], .zen-table, .zen-date-picker, .zen-popover, .platform-code, pre, dialog, [aria-modal=true], [aria-haspopup]:not([aria-haspopup=false]), .pe-card__stage, .platform-example-panel";
 
+export type PageSection = { id: string; label: string };
+
+/** Headings inside these belong to a preview (an example card, a guideline visual, a dialog), not to the page. Only pages without
+ *  `[data-toc-label]` sections read h2s, so a guide's step panels (.platform-example-panel) count as sections. */
+const PREVIEW_HEADINGS = ".pe-card, .platform-guideline-visual, .pg-example__stage, [role=dialog], [data-typography]:not(.official-platform)";
+const slug = (text: string) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
 /**
- * Figma Component-Page-Template "Sticky" (Codebase Platform 14366:142238): a 28px rail beside the content with one
- * 4×20 pill per section (radius full, gap 4, padding 0 12); the section in view is Background/Active/Neutral/Solid,
- * the rest Background/Neutral/Subtle. Each pill is a link named by its section (aria-label + a left Tooltip), with a
- * 28×24 hit area. Items come from the rendered `[data-toc-label]` sections; the one in view is marked `aria-current`.
+ * The page's sections for "On this page": the rendered `[data-toc-label]` sections (component pages), else the page's
+ * own h2 headings (guides and foundations), which get an id from their text when they have none. Sections that
+ * rendered nothing are skipped; the list follows the page as it changes.
  */
-export function PlatformOnThisPage({ scope }: { scope: RefObject<HTMLElement | null> }) {
-  const [items, setItems] = useState<{ id: string; label: string }[]>([]);
-  const [active, setActive] = useState<string>("");
-  const clickedRef = useRef(0);
+export function usePageSections(scope: RefObject<HTMLElement | null>): PageSection[] {
+  const [items, setItems] = useState<PageSection[]>([]);
   useEffect(() => {
     const root = scope.current;
     if (!root) return undefined;
-    // Sections that rendered nothing (e.g. a page without examples) are skipped.
-    const collect = () => setItems([...root.querySelectorAll<HTMLElement>(":scope [data-toc-label]")].filter((el) => el.childElementCount > 0).map((el) => ({ id: el.id, label: el.dataset.tocLabel ?? el.id })));
+    const collect = () => {
+      const labelled = [...root.querySelectorAll<HTMLElement>("[data-toc-label]")].filter((el) => el.childElementCount > 0);
+      const next = labelled.length
+        ? labelled.map((el) => ({ id: el.id, label: el.dataset.tocLabel ?? el.id }))
+        : [...root.querySelectorAll<HTMLElement>("h2")].filter((el) => !el.parentElement?.closest(PREVIEW_HEADINGS) && el.textContent?.trim()).map((el) => {
+          if (!el.id) el.id = `section-${slug(el.textContent ?? "")}`;
+          return { id: el.id, label: el.textContent!.trim() };
+        });
+      setItems((current) => (current.length === next.length && current.every((item, index) => item.id === next[index].id && item.label === next[index].label) ? current : next));
+    };
     collect();
     const mutation = new MutationObserver(collect);
     mutation.observe(root, { childList: true, subtree: true });
     return () => mutation.disconnect();
   }, [scope]);
+  return items;
+}
+
+/**
+ * Figma B5 "On this page" (◇ Master-Layout 15917:6719, Trailing-Pane): an All-Caps/S Light label, then one Body/Small
+ * link per section, the section in view Body/Small/Medium Strongest and the rest Regular Light (aria-current). A link
+ * scrolls its section under the sticky header, keeps the #hash shareable and focuses the section's heading; ↑ / ↓ jump
+ * to the previous / next section unless a control, an open overlay or a text field owns the key.
+ */
+export function PlatformOnThisPage({ items }: { items: PageSection[] }) {
+  const [active, setActive] = useState<string>("");
+  const clickedRef = useRef(0);
   useEffect(() => {
-    const root = scope.current;
-    if (!root || !items.length) return undefined;
+    if (!items.length) return undefined;
     const update = () => {
       if (Date.now() - clickedRef.current < 600) return; // keep the clicked item while the smooth scroll settles
-      const line = 120; // just under the sticky topbar
+      // The line just under the sticky header (its height changes with the window and the density).
+      const line = (document.querySelector(".zen-app-shell__header")?.getBoundingClientRect().bottom ?? 64) + 48;
       let current = items[0]?.id ?? "";
       for (const item of items) { const el = document.getElementById(item.id); if (el && el.getBoundingClientRect().top <= line) current = item.id; }
       if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) current = items[items.length - 1].id;
@@ -139,8 +165,8 @@ export function PlatformOnThisPage({ scope }: { scope: RefObject<HTMLElement | n
     window.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update);
     return () => { window.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
-  }, [items, scope]);
-  /** Scroll a section under the topbar, mark it current, keep the #hash shareable and move focus to its heading. */
+  }, [items]);
+  /** Scroll a section under the header, mark it current, keep the #hash shareable and move focus to its heading. */
   const go = (id: string) => {
     clickedRef.current = Date.now();
     setActive(id);
@@ -149,7 +175,7 @@ export function PlatformOnThisPage({ scope }: { scope: RefObject<HTMLElement | n
     target?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
     // Keep the page URL shareable without adding a history entry per jump.
     window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${id}`);
-    const heading = target?.querySelector<HTMLElement>("h2, h3");
+    const heading = target?.matches("h2, h3") ? target : target?.querySelector<HTMLElement>("h2, h3");
     heading?.setAttribute("tabindex", "-1");
     heading?.focus({ preventScroll: true });
   };
@@ -171,24 +197,17 @@ export function PlatformOnThisPage({ scope }: { scope: RefObject<HTMLElement | n
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [items, active]);
-  if (items.length < 2) return null;
   return (
-    <nav className="platform-toc" aria-label="On this page" aria-keyshortcuts="ArrowUp ArrowDown" style={{ "--platform-toc-height": `${items.length * 24}px` } as CSSProperties}>
-      <ul>
+    <Stack gap="sm" className="platform-toc">
+      <Box padding="xs"><Text textStyle="All-Caps/S" tone="light">On this page</Text></Box>
+      <Stack as="nav" gap="sm" aria-label="On this page" aria-keyshortcuts="ArrowUp ArrowDown">
         {items.map((item) => (
-          <li key={item.id}>
-            <Tooltip content={item.label} placement="left" delay={150}>
-            <a
-              className="platform-toc__link"
-              href={`#${item.id}`}
-              aria-label={item.label}
-              aria-current={active === item.id ? "location" : undefined}
-              onClick={(event) => { event.preventDefault(); go(item.id); }}
-            />
-            </Tooltip>
-          </li>
+          // zen-allow-link-underline: Figma "On this page" is a list of plain Body/Small rows; the nav landmark says they are links.
+          <Text key={item.id} textStyle={item.id === active ? "Body/Small/Medium" : "Body/Small/Regular"} tone={item.id === active ? "strongest" : "light"}>
+            <Link href={`#${item.id}`} tone="inherit" underline="hover" aria-current={item.id === active ? "location" : undefined} onClick={(event) => { event.preventDefault(); go(item.id); }}>{item.label}</Link>
+          </Text>
         ))}
-      </ul>
-    </nav>
+      </Stack>
+    </Stack>
   );
 }

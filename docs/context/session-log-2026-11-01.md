@@ -34,6 +34,39 @@ Branch zen/fix/studio-radius-tiles-20261101 (walk session).
 - Gate `--isolated`: PASS, Studio E2E 451 works · 0 broken. Two runs in between failed on timeouts only: the Mac slept
   on battery (pmset log 19:18–19:40); `--failed` re-runs passed.
 
+## Docs platform chrome → Figma B5 (tier L; user 2026-11-01: "Giao diện document nên làm lại cho đơn giản hơn giống example B5")
+
+Branch claude/docs-chrome-b5-020c25 (worktree). Spec card: B5 node 15917:6719 = Pattern/AppShell/Desktop Layout=Docs.
+- `PlatformApp.tsx`: the library `AppShell pattern="docs" canvas="flat"` (`layout` from a 1024px media query, so the
+  panes and the drawer agree): `AppShellHeader` (brand link + version Badge, centre Search with the old nav-search
+  behaviour, actions Appearance · colour mode · Feedback · Download Figma · AccountMenu); `leadingPane` an
+  `AppShellPane theme="canvas"` with `SidebarSubMenu` (no icons; first section "Getting started"); `trailingPane`
+  "On this page" + "Was this page helpful?" from 1280px when the page has ≥ 2 sections; under 1024px a flat Sidebar
+  in the drawer (search, rows, Figma / Feedback footer), header icons search · appearance · mode · account, brand mark
+  only under 744. Breadcrumbs Docs › [Design Tokens | Foundations] › page open the column (none on Overviews). The
+  settings' data-* stay on the `.official-platform` root (now a div: AppShell owns `<main>`).
+- `PlatformTemplate.tsx`: `PlatformTopbar` and the chips removed; `PlatformAppearancePanel` (SidePanel standard small,
+  six SelectFields, docked by AppShell `sidePanel`, modal when it cannot dock); `PlatformColorModeButton` (aria-pressed,
+  name "Dark mode" as the QA scripts click); `PlatformPageTemplate` drops the 400px cover for Display/3 + Body/Extra lead.
+- `PlatformReference.tsx`: the 28px pill rail became `PlatformOnThisPage` text links (B5) fed by `usePageSections`
+  (`[data-toc-label]`, else the page's h2s); `ExamplePage` no longer renders the rail.
+- `platform.css`: old sidebar/topbar/drawer/hero/rail rules removed; shell rules for the brand, header line, wide pages
+  (`data-page-width`), breadcrumbs gap, sticky offset from `--zen-app-shell-header-height`. Tools: `audit.mjs` skips
+  contrast in `.official-nav-pane`; `shoot.mjs` pins the AppShell header and panes.
+- Harness found and fixed: the drawer Sidebar on Canvas/Flat needed `background="flat"` `shadow={false}`.
+- User follow-up ("phần playground props để dưới component thay vì bên phải"): `.platform-example-panel--stack` is one
+  column at every width (title · preview · properties · code); `.platform-playground-controls` is a grid of
+  `minmax(min(100%, 280px), 1fr)` columns with a Pale line above (the old ≤ 1024 / ≤ 620 overrides removed).
+- Gate `qa --all --isolated` (4792s): ✗ 195 audit errors, nearly all at 320, plus density at 1512. Causes: (1) the
+  ≤ 374px rule still took 32px off `.official-page` inside the AppShell Body's own 24px padding (examples got 240
+  instead of 272) → the 16px gutter is now the Body's side padding; (2) "On this page" plus Comfortable's 260px panes
+  left component previews ~928px at 1512 → on component pages the pane shows from 1600px (text/foundation pages from
+  1280), so a 1512 window keeps ~1216px as before. Also fixed: Link playground's Caption text style used tone Base
+  (now Light). Re-run on the 35 pages: audit 0 · dark 0 · behaviour 1 warning (Popover Search focus = Figma, question
+  in BACKLOG-user-and-later). Studio E2E 451 works · 0 broken. Chrome walk (Playwright, isolated): Appearance docks,
+  Escape closes it and focus returns; ⌘K → "tog" → Enter opens Toggle; drawer Escape; the header search icon focuses
+  the drawer search; dark mode; no console errors. The drawer Sidebar got the brand (its header was empty).
+
 ## Studio chrome → Figma B4 · Workspace Editor (tier L, branch `claude/studio-chrome-b4-59548a`)
 
 User 2026-11-01: "Giao diện Studio thì làm lại kiểu B4" — replaces the 2026-10-15 UI3 floating panels (PR #63).

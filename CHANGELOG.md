@@ -14,6 +14,14 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Docs platform (user 2026-11-01, Figma B5 · Docs / Learning): simpler chrome on the library AppShell `pattern="docs"`,
+  Canvas/Flat. A header across (Zen mark + version, Search docs ⌘K in the centre, Feedback, Download Figma), the
+  navigation as plain rows in a Canvas pane (no box, no icons), breadcrumbs + a Display/3 title instead of the page
+  cover, and "On this page" links with "Was this page helpful?" on the right (from 1280px). The component previews'
+  modes moved from the topbar chips into an **Appearance** side panel (component pages); under 1024px the navigation
+  is a drawer with its search and the Figma / Feedback links.
+- Docs platform playgrounds (user 2026-11-01): "Playground properties" sit under the preview instead of beside it, in as
+  many columns as fit (one on a phone), then the code.
 - Zen Studio's chrome follows Figma B4 · Workspace Editor: a compact top bar across (Zen menu and the trail Home ›
   project with its avatar and a Switch project menu; the page name with a Saved / Unsaved badge in the centre; undo/redo,
   role, Present / Play, Open on phone, Save all or Export), Pages | Layers and the Inspector in two hairline Border panes beside the canvas (no shadow, no longer over

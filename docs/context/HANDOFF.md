@@ -19,6 +19,10 @@ Last updated: 2026-11-01.
 
 ## State in short
 
+- **Docs platform chrome → Figma B5 (2026-11-01, user):** branch `claude/docs-chrome-b5-020c25`. The docs site runs on
+  the library `AppShell pattern="docs" canvas="flat"` (header Search ⌘K, Canvas nav pane, "On this page" pane, drawer
+  under 1024); the previews' modes live in the Appearance side panel (`PlatformAppearancePanel`), no topbar chips, no
+  page cover. Studio's chrome (B4) is a separate session/branch. Detail: session log 2026-11-01.
 - **Studio chrome = Figma B4 · Workspace Editor (2026-11-01, user):** branch `claude/studio-chrome-b4-59548a`, replaces
   the UI3 floating panels (#63). Top bar (`shell/PanelHeaders.tsx` `TopBar`: menu "Z", trail Home › project ▾ (`shell/ProjectCrumbs.tsx`; the
   Pages panel's ProjectBar is gone), page name + Saved/Unsaved centred, undo/redo, role, Present/Play, Open on phone, Save all/Export), Border panes beside the
