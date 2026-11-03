@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a component clicked in Assets into a frame without auto layout keeps its Figma width too, as its drop
+  (user 2026-11-04): a Text field 312, a Line chart 297 (before: the widget width), placed beside the last layer with
+  the page gap; a Button or an Icon button keeps its own width. One ⌘Z takes the insert back.
 - Search `variant="popover"` (in Popover, Sidebar): focusing the field now shows Search's 3px focus ring. Figma's
   Popover-Search border is transparent, so the caret was the only sign of focus (user 2026-11-02).
 - Zen Studio: a component dropped into a frame without auto layout also keeps its Figma width (user 2026-11-02): a

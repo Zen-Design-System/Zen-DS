@@ -1,4 +1,4 @@
-import { announceEditStatus, applyEdit, parseSrc, squashEdits, studioApi } from "../../api";
+import { announceEditStatus, applyEdit, parseSrc, studioApi } from "../../api";
 import { canvasApi, getViewport, getViewportBox } from "../../canvas/viewport";
 import { multiSelection } from "../../select/multiSelection";
 import { expectRender, renderedNow } from "../../select/remap";
@@ -9,7 +9,7 @@ import { insertTarget } from "../../builder/library/target";
 import { builderCode, type PaletteContext, type PaletteItem } from "../../slots/palette";
 import type { ContentSlot } from "../../slots/registry";
 import { canEdit, flushStudioStore, studioStore } from "../../store";
-import { dropOnBoard, fillsLayer } from "../../builder/boardPaste";
+import { dropOnBoard } from "../../builder/boardPaste";
 import { boardPlaceAt } from "../../builder/frameMove";
 import type { FramePlace } from "../../builder/render/framePlace";
 import { pageFile } from "../../builder/store/pageStore";
@@ -19,6 +19,7 @@ import { insertCode, notRecommended } from "../clipboard";
 import { dropTargetAt, kidsOf, publishDragView, type DropContext } from "../drag";
 import { floatingCode } from "../autoLayoutPlan";
 import { freeBlock, layerBoxesIn, localTo, screenOfBlock } from "../freeBlock";
+import { fitFreeBox } from "../freeFit";
 import { needsWidth, widgetWidthIn } from "../insertPlace";
 import { snapBox, SNAP_PX, type FrameBox } from "../../builder/render/framePlace";
 import { annotatedAt, findBySrc, fiberOf, frameOf, hitOf, instanceOf, nameOf, panelOf, rectOf as rectOfHosts, selectHit, srcOf, type FiberHit } from "../../select/picker";
@@ -85,8 +86,8 @@ export type Insertable = {
   /** A component of the project (`<Use>`): with a Table Cell selected, or dropped on one, it goes into the cell's Content
    *  slot (the column's cells, table/cellInstance.ts) instead of beside it. */
   use?: CellComponent;
-  /** Figma's width of it dropped on the empty canvas or into a Frame without auto layout (figmaWidths.generated.ts);
-   *  none: it hugs its content there. */
+  /** Figma's width of it dropped on the empty canvas, or dropped or clicked into a Frame without auto layout
+   *  (figmaWidths.generated.ts); none: it hugs its content there. */
   figmaWidth?: number;
 };
 
@@ -237,7 +238,7 @@ export function insertItem(item: Insertable) {
   if (code === null) { fail(item.refusal); return; }
   const inside = item.refuseIn?.(target.src);
   if (inside) { fail(inside); return; }
-  void insertCode(target, code, stateFor(item, file), varsFor(item, file));
+  void insertCode(target, code, stateFor(item, file), varsFor(item, file), item.figmaWidth);
 }
 
 /** A palette item, as insertItem. */
@@ -274,7 +275,7 @@ export function refusalFor(target: DropTarget): string | null {
 }
 
 /** Adds `item` where a drag or the toolbar's placement points (one edit; the new layer selected). `free`: the px it goes
- *  to in a Frame without auto layout (placed there, floating; `fit`: the width it then takes if it fills, fitFreeDrop),
+ *  to in a Frame without auto layout (placed there, floating; `fit`: the width it then takes if it fills, freeFit.ts),
  *  else it joins the layout's flow. */
 export async function dropAsset(item: Insertable, target: DropTarget, free?: { x: number; y: number; width?: number; fit?: number } | null) {
   const at = parseSrc(target.parentSrc);
@@ -307,35 +308,7 @@ export async function dropAsset(item: Insertable, target: DropTarget, free?: { x
   expectRender(next, before, () => undefined, 1500);
   studioStore.setState({ selection: next });
   flushStudioStore();
-  if (free?.fit && next.name === "Box") await fitFreeDrop(response.file, response.inserted.loc, free.fit, `Add ${item.label}`, response.before, before);
-}
-
-/**
- * A component that fills its container in code (a Top Navigation, an Input) dropped into a Frame without auto layout
- * hugs its content in the Box that floats it: once it has rendered, that Box takes `width`, its Figma variant's (user
- * 2026-11-02: "áp dụng luôn cho thả vào frame không có auto layout", as on the empty canvas, builder/boardPaste.ts
- * dropOnBoard), in a second write that joins the drop (one ⌘Z). One that hugs in code (a Button) keeps its own width.
- */
-async function fitFreeDrop(file: string, loc: string, width: number, label: string, text: string, before: WeakSet<Element>) {
-  const added = studioStore.getState().undo.at(-1);
-  const box = await renderedAfter(`${file}:${loc}`, before);
-  if (!box || !fillsLayer(box)) return;
-  const element = await studioApi.element(file, loc).catch(() => null);
-  if (!element || element.name !== "Box") return;
-  const response = await applyEdit({ file, loc, name: element.name, ops: [{ op: "setProp", name: "width", value: { kind: "number", value: Math.round(width) } }], hash: element.hash }, label);
-  // One step only while the fit sits right on the drop (a ⌘Z in between took the drop back: nothing to join).
-  if (response.ok && studioStore.getState().undo.at(-2) === added) squashEdits(2, label, text, response.after);
-}
-
-/** What `src` draws once the canvas shows the write (an element not in `before`, drawn before it), or null after `timeout`. */
-async function renderedAfter(src: string, before: WeakSet<Element>, timeout = 3000): Promise<HTMLElement | null> {
-  const until = Date.now() + timeout;
-  while (Date.now() < until) {
-    const host = findBySrc(canvasApi.getWorldElement() ?? document.body, src)[0]?.hosts[0];
-    if (host instanceof HTMLElement && !before.has(host) && host.offsetWidth && host.offsetHeight) return host;
-    await new Promise((resolve) => requestAnimationFrame(resolve));
-  }
-  return null;
+  if (free?.fit && next.name === "Box") await fitFreeBox(response.file, response.inserted.loc, free.fit, `Add ${item.label}`, response.before, before);
 }
 
 /**
@@ -469,7 +442,7 @@ function freeDropAt<T extends DropTarget & { into: { x: number; y: number; w: nu
   });
   // A component with no width of its own (a chart card) floats at its Figma width (figmaWidths.generated.ts), else at
   // the widget width, as a click puts it (insertPlace.ts). Any other with a Figma width takes it once it renders, if it
-  // fills its Box (fitFreeDrop).
+  // fills its Box (freeFit.ts fitFreeBox).
   const width = needsWidth(root) ? figmaWidth ?? widgetWidthIn(block.clientWidth, screenOfBlock(block)?.dataset.device) : undefined;
   const fit = !needsWidth(root) && !/^(Stack|Grid|Box|Shape)$/.test(root) ? figmaWidth : undefined;
   return { x, y, width, fit, target: into, guides };

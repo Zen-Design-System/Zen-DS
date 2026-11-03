@@ -17,6 +17,7 @@ import type { NodeSelection } from "./arrange";
 import { floatingCode } from "./autoLayoutPlan";
 import { dropTargetAt, isDropContainer, type DropContext } from "./drag";
 import { boxIn, FLOATS, floats, freeBlock, layerBoxesIn, localTo, screenOfBlock, topClearIn } from "./freeBlock";
+import { fitFreeBox } from "./freeFit";
 import { freeInsertAt, needsWidth, pageMarginFor, widgetWidthIn } from "./insertPlace";
 import { codeOfLayers, removeLayers, statesRead } from "./multi";
 import { textEditSession } from "./textEdit";
@@ -253,8 +254,9 @@ async function sourceParent(spot: Spot): Promise<Spot> {
   return spot;
 }
 
-/** Selects the layer a paste created once the canvas shows it; its undo goes back to `from` (the selection pasted at). */
-function follow(response: { file: string; after: string }, loc: string, name: string, spot: Spot, before: WeakSet<Element>, from: StudioSelection | null, wrapped = false) {
+/** Selects the layer a paste created once the canvas shows it; its undo goes back to `from` (the selection pasted at).
+ *  The selection it made. */
+function follow(response: { file: string; after: string }, loc: string, name: string, spot: Spot, before: WeakSet<Element>, from: StudioSelection | null, wrapped = false): StudioSelection {
   const at: NodeSelection = { kind: "node", src: `${response.file}:${loc}`, name, frameId: spot.frameId, panelId: spot.panelId, instance: 0 };
   // A wrapped component pasted with its wrap Stack: the component inside it is selected (the Stack when none is found).
   const next: StudioSelection = wrapped ? insideWrap(at, response.file, response.after, loc) : at;
@@ -263,6 +265,7 @@ function follow(response: { file: string; after: string }, loc: string, name: st
   studioStore.setState({ selection: next });
   flushStudioStore();
   rememberInsert(response.file, response.after, from, next, Boolean(spot.replace));
+  return next;
 }
 
 /** Plain text pasted as a layer: a <Text> (builder/boardPaste.ts too). */
@@ -270,8 +273,9 @@ export const textLayer = (text: string) => `<Text>{${JSON.stringify(text.trim())
 
 let pasting = false;
 
-/** Pastes `code` (the clipboard's text; null: the Studio's own clip) next to / into / instead of the selection. */
-async function pasteAt(selection: NodeSelection, text: string | null, replace: boolean, state?: readonly StateDecl[], vars?: PageVarStarts): Promise<boolean> {
+/** Pastes `code` (the clipboard's text; null: the Studio's own clip) next to / into / instead of the selection;
+ *  `figmaWidth`: an Assets item's, which it takes in a Frame without auto layout (floatPaste). */
+async function pasteAt(selection: NodeSelection, text: string | null, replace: boolean, state?: readonly StateDecl[], vars?: PageVarStarts, figmaWidth?: number): Promise<boolean> {
   if (pasting) return false;
   const check = canStructurallyEdit(selection);
   if (!check.ok) { fail(check.reason); return false; }
@@ -310,7 +314,7 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
     }
     // In a frame without auto layout the paste floats (floatPaste): the code as it lands, and whether a Box of its own
     // holds the component (then the component is selected inside it, as inside a wrap Stack).
-    const floated = replace ? null : floatPaste(spot, code, own);
+    const floated = replace ? null : floatPaste(spot, code, own, figmaWidth);
     const landing = floated?.code ?? code;
     const verb = replace ? "Paste to replace" : "Paste";
     // The host rules an insert from the picker follows (a control in a clickable card…): the paste goes in all the same.
@@ -340,12 +344,16 @@ async function pasteAt(selection: NodeSelection, text: string | null, replace: b
     if (spot.replace) op.replace = parseSrc(spot.replace)?.loc;
     if (spot.at) op.at = spot.at;
     const name = own?.wrapped ? own.name : /^<([\w.]+)/.exec(code)?.[1] ?? "layer";
-    const response = await applyEdit({ file: at.file, loc: at.loc, name: parent.name, ops: [op], hash: parent.hash }, `${verb} ${name}`);
+    const label = `${verb} ${name}`;
+    const response = await applyEdit({ file: at.file, loc: at.loc, name: parent.name, ops: [op], hash: parent.hash }, label);
     if (response.ok) notRecommended(warning);
     if (response.ok && response.inserted) {
       // A component floated in a Box of its own: the component inside it is selected (Figma selects the instance).
       const inside = floated?.wrapped ? wrappedChildLoc(response.after, response.inserted.loc) : null;
-      follow(response, inside ?? response.inserted.loc, inside ? selectedName(name) : floated?.wrapped ? "Box" : selectedName(name), spot, before, selection, Boolean(own?.wrapped));
+      const next = follow(response, inside ?? response.inserted.loc, inside ? selectedName(name) : floated?.wrapped ? "Box" : selectedName(name), spot, before, selection, Boolean(own?.wrapped));
+      // Its Box takes the Figma width once it shows that the component fills it; undo still goes back to `selection`.
+      const fitted = floated?.fit ? await fitFreeBox(response.file, response.inserted.loc, floated.fit, label, response.before, before) : null;
+      if (fitted) rememberInsert(response.file, fitted, selection, next);
     }
     return response.ok;
   } finally {
@@ -362,11 +370,14 @@ const NO_DRAG: DropContext = { hosts: [], frame: undefined, parentHost: null, or
 /**
  * A paste into a frame without auto layout floats (Figma's): the Studio's own floating layer at its offsets (as ⌘V
  * with nothing selected, spotInView); anything else (an Assets item, code) beside the layer it pastes after at its own
- * size with the page gap (edit/insertPlace.ts; UX review 2026-10-27 §2.4, the user's decision A). `code` comes back
- * floating (position, insets, a width for a component with none of its own), with the layer it is wrapped in when a
- * Box of its own holds it; null: the frame is a layout, the paste joins its flow.
+ * size with the page gap (edit/insertPlace.ts; UX review 2026-10-27 §2.4, the user's decision A). An Assets item's own
+ * size is its Figma variant's width (`figmaWidth`; user 2026-11-04: "áp dụng luôn cho bấm chèn từ Assets", as its drop):
+ * a component with no width of its own (a chart) floats at it, else at the widget width; one that fills its container
+ * (an Input) gets it as `fit`, written once it renders (freeFit.ts fitFreeBox). `code` comes back floating (position,
+ * insets, a width for a component with none of its own), with the layer it is wrapped in when a Box of its own holds it;
+ * null: the frame is a layout, the paste joins its flow.
  */
-function floatPaste(spot: Spot, code: string, own: Clip | null): { code: string; wrapped: boolean } | null {
+function floatPaste(spot: Spot, code: string, own: Clip | null, figmaWidth?: number): { code: string; wrapped: boolean; fit?: number } | null {
   const block = freeBlock(spot.parent.hosts[0]);
   if (!block) return null;
   const world = canvasApi.getWorldElement();
@@ -383,9 +394,10 @@ function floatPaste(spot: Spot, code: string, own: Clip | null): { code: string;
   const beside = afterRect && afterRect.width > 0 ? boxIn(block, afterRect) : null;
   const tag = /^<([\w.]+)/.exec(code)?.[1] ?? "Box";
   const root = tag.slice(tag.lastIndexOf(".") + 1);
-  const width = needsWidth(root) ? widgetWidthIn(block.clientWidth, device) : null;
-  const at = freeInsertAt({ width: block.clientWidth }, layerBoxesIn(block), beside, width, { margin: pageMarginFor(device), top: topClearIn(block) });
-  return { code: floatingCode(code, root, at.x, at.y, width ?? undefined), wrapped: !FLOATS.has(root) };
+  const width = needsWidth(root) ? figmaWidth ?? widgetWidthIn(block.clientWidth, device) : null;
+  const fit = !needsWidth(root) && !FLOATS.has(root) ? figmaWidth : undefined;
+  const at = freeInsertAt({ width: block.clientWidth }, layerBoxesIn(block), beside, width ?? fit ?? null, { margin: pageMarginFor(device), top: topClearIn(block) });
+  return { code: floatingCode(code, root, at.x, at.y, width ?? undefined), wrapped: !FLOATS.has(root), fit };
 }
 
 /** Paste here: the layout under the pointer (where a drop would go), at the pointer in a frame without auto layout. */
@@ -507,8 +519,9 @@ export function notRecommended(reason: string | null) {
 }
 
 /** Inserts `code` (one JSX element) into the selected layout, else right after the selected layer (Assets click); `vars`:
- *  the prototype variables it reads on a builder page (declared with it when the page lacks them). */
-export const insertCode = (selection: NodeSelection, code: string, state?: readonly StateDecl[], vars?: PageVarStarts) => pasteAt(selection, code, false, state, vars);
+ *  the prototype variables it reads on a builder page (declared with it when the page lacks them); `figmaWidth`: the
+ *  item's Figma width, which it takes in a Frame without auto layout. */
+export const insertCode = (selection: NodeSelection, code: string, state?: readonly StateDecl[], vars?: PageVarStarts, figmaWidth?: number) => pasteAt(selection, code, false, state, vars, figmaWidth);
 
 /** The canvas names a `Layout.Stack` layer "Stack". */
 const selectedName = (name: string) => name.slice(name.lastIndexOf(".") + 1);

@@ -1,6 +1,7 @@
 import type { MenuItemData } from "../../../components/Menu";
 import { announceEditStatus, squashEdits } from "../api";
 import { CLIPBOARD_BLOCKED, copiedLayers, readClipboardText, textLayer } from "../edit/clipboard";
+import { fillsLayer } from "../edit/freeFit";
 import { canEdit, studioStore } from "../store";
 import { loadEngine } from "./engine";
 import { copyFrame, setFrameBoxes } from "./frameEdit";
@@ -139,18 +140,6 @@ async function renderedLayer(frameId: string, timeout = 3000): Promise<HTMLEleme
     await nextFrame();
   }
   return null;
-}
-
-/** Whether what floating `layer` holds widens with it (it fills its container: a Top Navigation), not its own width (a
- *  Button); a drop into a Frame without auto layout asks it too (edit/assets/assets.ts fitFreeDrop). */
-export function fillsLayer(layer: HTMLElement): boolean {
-  const kids = Array.from(layer.children).filter((kid): kid is HTMLElement => kid instanceof HTMLElement);
-  const widths = kids.map((kid) => kid.offsetWidth);
-  const own = layer.style.width;
-  layer.style.width = `${layer.offsetWidth + 40}px`;
-  const wider = kids.some((kid, index) => kid.offsetWidth > widths[index]);
-  layer.style.width = own;
-  return wider;
 }
 
 /**
