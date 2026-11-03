@@ -19,8 +19,9 @@ export const WIDGET_MIN_WIDTH = 320;
 export type PlaceBox = { x: number; y: number; width: number; height: number };
 
 /** Components with no width of their own: a chart's plot is `minmax(0, 1fr)`, a bar or a line fills its row; in a
- *  shrink-to-fit box they collapse, so their floating Box gets the widget width (widgetWidthIn). Everything else hugs
- *  its content (a Metric card its label and value, a Table its columns, a Button its label). */
+ *  shrink-to-fit box they collapse, so their floating Box gets their Figma width (edit/assets/figmaWidths.generated.ts),
+ *  else the widget width (widgetWidthIn). Everything else hugs its content (a Metric card its label and value, a Table
+ *  its columns, a Button its label), or takes its Figma width when it fills its Box (edit/freeFit.ts). */
 const WIDTHLESS = new Set(["ChartCard", "LineChart", "AreaChart", "BarChart", "StackBarChart", "GroupedBarChart", "ComboChart", "HeatmapChart", "DonutChart", "RadialChart", "GaugeChart", "FunnelChart", "BarList", "BulletChart", "Divider", "ProgressBar", "Slider", "SliderField", "AlertBanner", "InlineMessage", "SkeletonText", "SkeletonHeading"]);
 export const needsWidth = (root: string) => WIDTHLESS.has(root);
 

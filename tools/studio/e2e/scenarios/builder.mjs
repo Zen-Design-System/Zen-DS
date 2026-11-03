@@ -1756,6 +1756,50 @@ export const rows = [
     },
   },
   {
+    id: "B-62", feature: "A component clicked in Assets into a Frame without auto layout (an Empty page's Screen) floats beside the last at its Figma width, as its drop (B-61): a Line chart 297 (not the widget width), an Icon button its own 40, a Text field 312 once it renders, one ⌘Z for the insert and its width, the Icon button selected again (user 2026-11-04: áp dụng luôn cho bấm chèn từ Assets)", wp: "bug 2026-11-04", timeout: 90_000,
+    async run(ctx) {
+      const { page, id } = await emptyPage(ctx);
+      const done = [];
+      for (const [index, [label, tag, width]] of [["Line chart", "LineChart", 297], ["Icon button", "IconButton", null], ["Text field", "InputField", 312]].entries()) {
+        const before = (await pageText(page, id)) ?? "";
+        await insertFromAssets(page, id, label, tag);
+        const float = new RegExp(`<Box position="absolute" insetLeft=\\{(\\d+)\\} insetTop=\\{(\\d+)\\}( width=\\{(\\d+)\\})?>\\s*<${tag}\\b`);
+        let match = null;
+        await until(async () => {
+          match = float.exec((await pageText(page, id)) ?? "");
+          return Boolean(match && (width === null || match[4]));
+        }, { timeout: 6000, message: `the ${label} floating in the Screen at its Figma width` }).catch(async (error) => { throw new Error(`${error.message}: ${float.exec((await pageText(page, id)) ?? "")?.[0]?.replace(/\s+/g, " ") ?? "no floating Box"}`); });
+        if (width === null) {
+          await sleep(1200);
+          match = float.exec((await pageText(page, id)) ?? "");
+          if (match?.[4]) throw new Error(`the ${label} hugs its content in code but its Box took width ${match[4]}`);
+        } else if (Number(match[4]) !== width) throw new Error(`the ${label}'s Box is ${match[4]} wide, not its Figma ${width}`);
+        await sleep(300);
+        const drawn = await floatingLayers(page);
+        const layer = drawn.layers[index];
+        if (!layer || layer.name !== tag) throw new Error(`the Screen's floating layer ${index + 1} is ${JSON.stringify(layer)}, not the ${label}`);
+        if (width !== null && Math.abs(layer.width - width) > 1) throw new Error(`the ${label} draws ${layer.width} wide in its ${width} Box`);
+        // Each beside the last with the page gap, the first at the page margin (B-50's row).
+        const last = drawn.layers[index - 1];
+        if (last ? layer.x !== last.x + last.width + 16 || layer.y !== last.y : layer.x !== 24 || layer.y !== 24) throw new Error(`the ${label} is at (${layer.x}, ${layer.y}), after ${JSON.stringify(last ?? "nothing")}`);
+        if (tag === "InputField") {
+          // One ⌘Z takes the insert and the width written after it back together; the Icon button is selected again.
+          await page.evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : undefined));
+          await page.keyboard.press("ControlOrMeta+z");
+          const back = await until(async () => ((await pageText(page, id)) ?? "") === before, { timeout: 4000 }).then(() => true, () => false);
+          if (!back) {
+            const now = (await pageText(page, id)) ?? "";
+            throw new Error(`one ⌘Z did not take the ${label} and its width back (${now.includes(`<${tag}`) ? `the ${tag} stays${float.exec(now)?.[4] ? `, ${float.exec(now)[4]} wide` : ", no width"}` : `no ${tag} left, the text differs`})`);
+          }
+          const icon = locOfTag(before, "IconButton");
+          await until(async () => ((await selectedSrc(page))[0] ?? "").endsWith(`:${icon}`), { timeout: 3000, message: `the Icon button (${icon}) selected after ⌘Z` }).catch(async (error) => { throw new Error(`${error.message}, not ${(await selectedSrc(page))[0] ?? "nothing"}`); });
+        }
+        done.push(`${label} ${width ?? `hugs (${layer.width})`} at ${layer.x}`);
+      }
+      return `${done.join(" · ")} · one ⌘Z, Icon button selected`;
+    },
+  },
+  {
     id: "B-57", feature: "An App shell over the empty canvas is refused and says why (a whole page goes on an empty Screen); nothing is written", wp: "bug 2026-10-28",
     async run(ctx) {
       const { page, id } = await emptyPage(ctx);

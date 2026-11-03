@@ -89,9 +89,9 @@ const planCases = cases;
 /* ── 2. every Assets item in a frame, through the page edit ─────────────────────────────────────────────────────── */
 
 const base = newPageText({ title: "Auto layout", device: "phone", chrome: true });
-/** The page with `frame` as the body's last layer, and that layer. */
-function framed(frame) {
-  const text = grow(base, "Stack", frame);
+/** The page with `frame` as the body's last layer, and that layer; `vars`: the variables the item in it reads. */
+function framed(frame, vars) {
+  const text = grow(base, "Stack", frame, 0, vars);
   const body = parsePage(text, { components }).board.children[0].children[0];
   const node = body.children.filter((child) => child.kind === "element").at(-1);
   return { text, node };
@@ -122,7 +122,7 @@ for (const item of items.filter((one) => one.code)) {
   // A: floating in a Frame (as a drop at the pointer writes it), with a Text under it → Add auto layout (a column).
   {
     cases += 1;
-    const { text, node } = framed(`<Box width={360} height={260}>\n${floatingCode(item.code, rootName, 16, 16)}\n${floatingCode(TEXT, "Text", 16, 180)}\n</Box>`);
+    const { text, node } = framed(`<Box width={360} height={260}>\n${floatingCode(item.code, rootName, 16, 16)}\n${floatingCode(TEXT, "Text", 16, 180)}\n</Box>`, item.vars);
     const layers = kids(node).map((kid, index) => ({ box: index ? { x: 16, y: 180, w: 120, h: 20 } : { x: 16, y: 16, w: 200, h: 120 }, name: kid.name, floatWrapper: kid.name === "Box" && !FLOATS.has(rootName) || (kid.name === "Box" && index === 1) }));
     const { plan } = addPlan(layers, keyOf, false);
     const out = relayout(text, node, plan);
@@ -150,7 +150,7 @@ for (const item of items.filter((one) => one.code)) {
   // B: in flow in a Frame → Add auto layout.
   {
     cases += 1;
-    const { text, node } = framed(`<Box>\n${item.code}\n${TEXT}\n</Box>`);
+    const { text, node } = framed(`<Box>\n${item.code}\n${TEXT}\n</Box>`, item.vars);
     const { plan } = addPlan(kids(node).map((kid, index) => ({ box: index ? { x: 0, y: 130, w: 120, h: 20 } : { x: 0, y: 0, w: 200, h: 120 }, name: kid.name, floatWrapper: false })), keyOf, false);
     const out = relayout(text, node, plan);
     if (out.error) fail("add-flow-refused", `${item.id}: ${out.error}`);
@@ -166,7 +166,7 @@ for (const item of items.filter((one) => one.code)) {
   // C: in a painted Frame → Add auto layout makes it one Stack that keeps its fill and corners (decision 2, 2026-10-18).
   {
     cases += 1;
-    const { text, node } = framed(`<Box surface="surface" radius="md" width={360} height={260}>\n${floatingCode(item.code, rootName, 24, 24)}\n</Box>`);
+    const { text, node } = framed(`<Box surface="surface" radius="md" width={360} height={260}>\n${floatingCode(item.code, rootName, 24, 24)}\n</Box>`, item.vars);
     const { plan } = addPlan(kids(node).map((kid) => ({ box: { x: 24, y: 24, w: 200, h: 120 }, name: kid.name, floatWrapper: kid.name === "Box" && !FLOATS.has(rootName) })), keyOf);
     const out = relayout(text, node, plan);
     if (out.error) fail("add-painted-refused", `${item.id}: ${out.error}`);
@@ -180,7 +180,7 @@ for (const item of items.filter((one) => one.code)) {
   // D + E: in a Stack → Remove auto layout (every layer floats where it showed), then Add it back: the same Stack.
   {
     cases += 2;
-    const { text, node } = framed(`<Stack gap="sm" padding="md">\n${item.code}\n${TEXT}\n</Stack>`);
+    const { text, node } = framed(`<Stack gap="sm" padding="md">\n${item.code}\n${TEXT}\n</Stack>`, item.vars);
     const boxes = [{ x: 16, y: 16, w: 200, h: 120 }, { x: 16, y: 148, w: 120, h: 20 }];
     // The item stretched across the Stack's content (326 = 358 − 2 × 16), the caption at its own width.
     const measured = [{ ...boxes[0], w: 326 }, boxes[1]];

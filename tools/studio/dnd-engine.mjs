@@ -76,19 +76,21 @@ export const items = PALETTE.map((item) => {
   } catch (error) {
     return { id: item.id, label: item.label, group: item.group, root: item.root, code: null, crash: String(error) };
   }
-  return { id: item.id, label: item.label, group: item.group, root: item.root, code };
+  // `vars`: what a builder page declares with it (edit/assets/assets.ts varsFor; the required-field Form, W-58).
+  return { id: item.id, label: item.label, group: item.group, root: item.root, code, vars: item.vars };
 });
 
 /* ── seed pages ─────────────────────────────────────────────────────────────────────────────────────────────────── */
 
 export const FILE = "local:dnd-matrix.zen.tsx";
-/** Inserts `code` as the last child of the first element named `name` (the seed builds itself through the engine). */
-export function grow(text, name, code, nth = 0) {
+/** Inserts `code` as the last child of the first element named `name` (the seed builds itself through the engine);
+ *  `vars`: the prototype variables it reads, declared with it (an Assets item's, op insertChild `vars`). */
+export function grow(text, name, code, nth = 0, vars) {
   const found = [];
   eachElement(parsePage(text, { components }).board, (node) => { if (node.name === name) found.push(node); });
   const host = found[nth];
   if (!host) throw new Error(`seed: no <${name}> #${nth}`);
-  const result = edit(text, FILE, { loc: host.loc, name, ops: [{ op: "insertChild", code }] });
+  const result = edit(text, FILE, { loc: host.loc, name, ops: [{ op: "insertChild", code, ...(vars ? { vars } : {}) }] });
   if (!result.text) throw new Error(`seed: ${code.slice(0, 40)} into ${name}: ${result.error ?? result.crash}`);
   return result.text;
 }

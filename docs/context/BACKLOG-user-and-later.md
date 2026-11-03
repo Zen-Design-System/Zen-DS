@@ -36,6 +36,12 @@ unchanged from `BACKLOG.md` unless a line says otherwise. Questions for the desi
   sheet for More, so in Play it goes nowhere (DEMO-MEET: Quản lý task sits under it). Needs a new BottomNavigation API
   (e.g. a `more` sheet of the other rows); waits for the user's OK. `tools/studio/responsive-header.mjs` BOTTOM_ROOTS.
 
+- **P2 · E2E DND-05 broken since W-12: how does a long phone page grow now? (2026-11-04, session Bug):** the 2026-10-17
+  story (empty phone page: Top navigation → bar, List box, 8 blocks past the phone, Play scrolls) expects the List box in
+  the Screen's flow; since W-12 a drop on an empty Screen floats (Figma's free frame), so the row fails on main as well.
+  To answer: build that story with drops that float (the Screen grows to floating layers past the phone), or with ⇧A on
+  the content first (an auto layout body)? The opt-in campaign `npm run studio:e2e -- --only=dnd`: the other 7 rows work.
+
 ## Later phase (Giai đoạn sau)
 - **Code view in other languages — on hold (user, 2026-10-08: "tạm lưu backlog, sẽ làm giai đoạn sau"):** order chosen:
   HTML/CSS → Vue → Swift → Flutter → Svelte. Plan `docs/research/code-languages-plan-2026-10-03.md`, phases P1–P9, each

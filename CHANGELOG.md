@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: a component clicked in Assets into a frame without auto layout keeps its Figma width too, as its drop
+  (user 2026-11-04): a Text field 312, a Line chart 297 (before: the widget width), placed beside the last layer with
+  the page gap; a Button or an Icon button keeps its own width. One ⌘Z takes the insert back.
 - Docs platform: the App Shell's Layout examples moved to five pages under App Shell in the navigation (Desktop,
   Mobile, Expressive, Consumer, Smart home layouts, one per Figma Master-Layout section). The App Shell page keeps the
   four compositions and the shell's behaviours, and has half the DOM it had (user 2026-11-02).
