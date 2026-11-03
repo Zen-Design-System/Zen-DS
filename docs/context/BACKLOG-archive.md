@@ -2,6 +2,14 @@
 
 Done, closed and duplicate entries moved out of `BACKLOG.md` (text unchanged), newest batch first.
 
+## Archived 2026-11-02 (Studio prototype walk 2026-10-29, all nine §4 fixes merged)
+
+- **P0/P1 · Studio prototype walk 2026-10-29: pick which fixes to build:** hands-on walk (4 pages, ~50 findings: 2 P0, 19
+  P1) in `docs/research/studio-prototype-walk-2026-10-29.md`; §4 lists 9 fixes in order (W-47 Play status-bar band is a
+  #345 regression; W-14 ⇧A on floating layers; W-35/36/41 Back + Dialog actions). Nothing built until approved.
+  Done 2026-10-31: W-47 #350, W-14 #349, W-35/36/41 #351, W-12/28/18 #354, W-32/33 #353; W-48/49/50/57 #356, W-44/45
+  #355 + #357; W-52 #363–#367 (+ W-51a #368, W-58 #369); P2/P3 #358, #359, #362, #370.
+
 ## Archived 2026-10-27 (Studio UX review §7.5, 9, 10, session panels-small)
 
 - **P1/P3 · Prototype Flow list at 320/280, phone tool rail, §2.10 small things, library Tabs `aria-controls` (§7.5, 9,

@@ -17,6 +17,9 @@ How to maintain it:
 - Zen Studio: a component dropped into a frame without auto layout also keeps its Figma width (user 2026-11-02): a
   Text field 312, a Line chart 297 (before: the widget width, 477 on desktop), where it fills its container in code; one
   that hugs (a Button, an Icon button) keeps its own width. One ⌘Z takes the drop back.
+- Zen Studio loads lighter: Find (⌘F) and the picture exports no longer pull the edit engine, its parser and the React
+  compiler into the Studio's first load (they load on first use again). QA: `npm run studio:build-check` is green again;
+  its engine budget is 200 KB gzip (the user's choice, 2026-11-02; 185.2 measured).
 - AppShell: the header's collapse (and menu) toggle draws its icon at 20px, Figma's Element-Size/Popular/Base, instead
   of the Small button's 16 (user 2026-11-02: too small in every AppShell).
 - Docs platform (user 2026-11-01, Figma B5 · Docs / Learning): simpler chrome on the library AppShell `pattern="docs"`,
