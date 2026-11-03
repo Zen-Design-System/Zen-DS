@@ -12,7 +12,9 @@
 /* Figma Search/Popover (1604:27401): Field-Only Small with Corner-Radius/Input/Medium and no outer focus ring
    (live file, re-read 2026-10-03). Default and Inputted keep Input/Border/Default at 1px INSIDE; Hover is Field-Only's
    2px Input/Border/Hover (input.css); Focused and Typing take Input/Border/Popover-Search at 1px, transparent in every
-   Component Theme except Neutral-S7 (Color/Focus/Neutral/Subtle). */
+   Component Theme except Neutral-S7 (Color/Focus/Neutral/Subtle). Code adds Search/Default's 3px OUTSIDE ring
+   (Color/Focus/Neutral/Subtle) on top: with the transparent border, the caret was the only sign of focus
+   (WCAG 2.4.7; user 2026-11-02). */
 .zen-search.zen-search--popover[data-size] > .zen-input__control { border-radius: var(--zen-corner-radius-input-medium, 12px); }
 /* Figma Search/Default Shape=Rounded (2026-10-17): the Field-Only instance and its Container on Corner-Radius/Rounded,
    a pill at every size; the inside stroke, the inset shadow and the focus ring follow through border-radius: inherit
@@ -22,7 +24,7 @@
 /* Specificity 0,7,0: must beat input.css's focus rule
    `.zen-input-field:is([data-state…]) .zen-input__control:focus-within:not(:has(.zen-input-leading-trailing__picker :focus))` (0,6,0). */
 .zen-search.zen-search--popover[data-size]:is([data-state="focused"], [data-state="typing"]) > .zen-input__control:not(:has(.zen-input-leading-trailing__picker :focus)),
-.zen-search.zen-search--popover[data-size] > .zen-input__control:focus-within:not(:has(.zen-input-leading-trailing__picker :focus)) { --zen-input-field-stroke: 1px; --zen-input-field-border: var(--zen-input-border-popover-search, #ffffff00); box-shadow: none; }
+.zen-search.zen-search--popover[data-size] > .zen-input__control:focus-within:not(:has(.zen-input-leading-trailing__picker :focus)) { --zen-input-field-stroke: 1px; --zen-input-field-border: var(--zen-input-border-popover-search, #ffffff00); box-shadow: 0 0 0 3px var(--zen-color-focus-neutral-subtle, #0000001a); }
 /* Figma Search/Filter-Dropdown in Side-Bar Small-Density (5974:25698): Leading-Trailing Label + command icon,
    Elements gap 3XSmall, Trailing padding-right 2XSmall, Body/Base/Medium in Content/Neutral/Light. */
 .zen-search__shortcut { display: inline-flex; align-items: center; gap: var(--zen-spacing-gap-3-xsmall, 2px); padding-right: var(--zen-spacing-padding-2-xsmall, 4px); color: var(--zen-color-content-neutral-light, rgb(0 0 0 / 49%)); font: var(--zen-emphasis-font-weight-medium, 500) var(--zen-typography-font-size-body-base, 14px)/var(--zen-typography-line-height-body-base, 20px) var(--zen-typography-font-family-sans, Inter), sans-serif; letter-spacing: var(--zen-typography-letter-spacing-body-base, -.14px); white-space: nowrap; }
