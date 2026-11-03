@@ -46,6 +46,10 @@ describe("AppShell collapse", () => {
     const toggle = screen.getByRole("button", { name: "Collapse sidebar" });
     await expect.element(toggle).toHaveAttribute("aria-expanded", "true");
     expect(toggle.element().closest(".zen-app-shell-header__top")).toBeTruthy();
+    // Figma's Collapse (16243:290464): a 32 Button/Icon-Flat Small whose glyph is Element-Size/Popular/Base 20, not 16.
+    const box = toggle.element().getBoundingClientRect();
+    const glyph = toggle.element().querySelector(".zen-button__icon")!.getBoundingClientRect();
+    expect([box.width, box.height, glyph.width, glyph.height]).toEqual([32, 32, 20, 20]);
     const controls = toggle.element().getAttribute("aria-controls");
     expect(controls && document.getElementById(controls)?.querySelector(".zen-sidebar")).toBeTruthy();
     await toggle.click();

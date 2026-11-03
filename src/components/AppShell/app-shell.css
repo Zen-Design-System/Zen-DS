@@ -132,9 +132,13 @@
 /* A Search keeps to Figma's 400px Center-Slots instead of stretching across a wide screen. */
 .zen-app-shell-header:not([data-stacked="true"]) .zen-app-shell-header__leading > .zen-search { max-width: 400px; }
 /* Collapse Button: a Button/Icon-Flat Small (32) centred in an Element-Size/Popular/Base (20) wrapper, so the glyph lines
-   up like Figma's 20px icon while the hit area stays 32. */
+   up like Figma's 20px icon while the hit area stays 32. Its Leading-Icon is Element-Size/Popular/Base too (16243:290464,
+   every Header/AppShell variant), not the Small button's Button/Icon-Size/Small 16 (the user, 2026-11-02: the collapse
+   icon was too small in every AppShell). */
 .zen-app-shell-header__toggle { --zen-app-shell-toggle-bleed: calc((var(--zen-element-size-popular-base, 20px) - var(--zen-button-size-small, 32px)) / 2); display: inline-flex; width: var(--zen-element-size-popular-base, 20px); height: var(--zen-element-size-popular-base, 20px); flex: 0 0 auto; align-items: center; justify-content: center; }
 .zen-app-shell-header__toggle > .zen-button { flex: 0 0 auto; margin: var(--zen-app-shell-toggle-bleed); }
+/* Above the button's own `.zen-button--icon-only[data-size="sm"]` size, whichever stylesheet loads last. */
+.zen-app-shell-header__toggle > .zen-button.zen-button--icon-only { --zen-button-icon-size: var(--zen-element-size-popular-base, 20px); }
 /* When the leading content does not fit on one row beside the toggle and the actions, it takes a row of its own. */
 .zen-app-shell-header[data-stacked="true"] .zen-app-shell-header__top { flex-wrap: wrap; row-gap: var(--zen-spacing-gap-xsmall, 8px); }
 .zen-app-shell-header[data-stacked="true"] .zen-app-shell-header__bar { display: contents; }
