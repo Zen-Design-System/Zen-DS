@@ -19,5 +19,7 @@ User: "áp dụng luôn cho bấm chèn từ Assets" (after #378, which did it f
   required-field Form reads `vars`, and `dnd-engine.mjs` items dropped the palette item's `vars`). Fixed at the owner:
   `items` carry `vars`, `grow(…, nth, vars)` declares them with the insert (op insertChild `vars`, as the Studio does).
   Now: dnd-matrix 25055 cases · 0 findings; autolayout-matrix 12654 cases · 0 findings.
+- Opt-in drag-drop campaign (`--only=dnd`): DND-01…03 700 drops, DND-04, 06, 07 (260), 08 work; DND-05 fails on main too
+  (since W-12, a drop on an empty Screen floats; the story expects the page flow): question in BACKLOG-user-and-later.md.
 - QA: E2E B-62, B-61, B-50, B-51, B-52, B-58, FW-261, FW-262, FW-264 work; a probe showed FW-264's phone Text field
   also gets width 312 and still undoes in one ⌘Z. `npm run studio:selftest` ✓.
