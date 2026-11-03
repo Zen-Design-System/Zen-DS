@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { ZenProvider, type ZenBrand } from "../../../../components/Provider";
 import resetCss from "../../../../styles/reset.css?inline";
-import { componentName } from "../../../../../tools/studio/browser-compile.mjs";
+import { componentName } from "../../../../../tools/studio/component-name.mjs";
 import { zipFiles, type ZipInput } from "../../../../../tools/studio/zip.mjs";
 import packageJson from "../../../../../package.json";
 import { componentSlug } from "../../inspector/propSchema";
@@ -25,7 +25,8 @@ import { libraryOf } from "../../project/projectLibrary";
  * tokens and their modes, `.zen-*` rules, the @font-face and @keyframes they name) after the library's reset. Library
  * photos and the font files go in the zip (`assets/`, `fonts/`). Static markup: what opens, switches or takes input needs
  * the React export. The handoff package (prepareHandoff) adds the React code, the design file, handoff.md and a PNG of each
- * frame from the same render. Loaded with the HTML and Handoff tabs (its own chunk).
+ * frame from the same render. In the Studio's first load (Copy as PNG, Export, Slice and the MCP's pictures import it),
+ * so it never imports the compiler: componentName comes from its own light module, compileReact through loadCompile.
  */
 
 export type HtmlScreen = { frame: string; title: string; file: string; kind: PageFrame["kind"]; device: PageDevice; width: number };
