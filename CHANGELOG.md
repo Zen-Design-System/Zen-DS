@@ -14,6 +14,9 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Docs platform: the App Shell's Layout examples moved to five pages under App Shell in the navigation (Desktop,
+  Mobile, Expressive, Consumer, Smart home layouts, one per Figma Master-Layout section). The App Shell page keeps the
+  four compositions and the shell's behaviours, and has half the DOM it had (user 2026-11-02).
 - Search `variant="popover"` (in Popover, Sidebar): focusing the field now shows Search's 3px focus ring. Figma's
   Popover-Search border is transparent, so the caret was the only sign of focus (user 2026-11-02).
 - Zen Studio: a component dropped into a frame without auto layout also keeps its Figma width (user 2026-11-02): a

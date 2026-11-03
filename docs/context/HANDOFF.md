@@ -136,7 +136,7 @@ Last updated: 2026-11-01.
   slot (rows under the main row, code AppShell sections); status bars have Style Default · Black Overlay · White Overlay.
   Since 2026-10-26 (branch `zen/feat/appshell-placeholder-20261026`) the AppShell everywhere in code and Studio (playground,
   Main component sets, Assets item, new page, Screen parts) is Figma's placeholder from `tools/studio/appshell-placeholder.mjs`;
-  real apps are the App Shell page's "Layout examples".
+  real apps are the Layout examples: section A on the App Shell page, B–G on its Layout pages (since 2026-11-02).
   Templates rebuilt on it (user: archive the old screens, leave Ecommerce and Logistic): HR-Platform 22, Performance 21,
   Finance 10 and Social 17 done (originals in each page's "Archive · before AppShell" section). Empty-State has Size Medium (240) | Small (200) in Figma and code (EmptyState sm, Studio Size, push/pull). Studio phase 1 + device simulator and the floating bottom-nav fit: branch zen/feat/appshell-frames-20261018 (QA PASS, PR next). Detail
   in session-log-2026-10-18.
@@ -145,8 +145,10 @@ Last updated: 2026-11-01.
   - New API: `pattern`, `collapse`, AppShellHeader, AppShellPane, the mobile pattern; no aliases. Spec:
     `docs/research/appshell-rebuild-2026-10-19.md`.
   - Templates, HR, appLayer, the harness and Studio are migrated (all studio:selftest steps pass).
-  - The platform page `app-shell` is Figma ◇ Master-Layout · Example sections A–F (41 screens, Figma's own photos) in
-    `src/platform/examples/pages/app-shell/*`, plus six behaviour examples.
+  - Figma ◇ Master-Layout · Example sections A–G (43 screens, Figma's own photos) live in
+    `src/platform/examples/pages/app-shell/*`. Since 2026-11-02 the `app-shell` page shows A plus six behaviour examples;
+    B–G are on five Layout pages under App Shell (`examples/appShellLayouts.ts`: desktop, mobile, expressive, consumer,
+    smart home).
   - Phase 3 is done: the screen and phone app examples on all 32 platform pages run on the new shell. On a phone, a
     trail turns into Back (`_shared/trail-back.tsx`).
   - The audit and harness follow the user's 2026-10-19 rules: APCA contrast, h1 ≥ Heading/1 (Display allowed), and

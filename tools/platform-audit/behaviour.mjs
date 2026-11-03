@@ -78,8 +78,10 @@ const BUDGET = Number(arg("budget", 90)) * 1000;
  *  (templates, bottom-sheet, chat: ~40s alone, 90s+ under load): they get twice the budget instead of a `timeout`.
  *  app-shell holds Figma's 41 Master-Layout screens (since 2026-10-19) and timed out at twice in every gate run, so
  *  its later screens were never checked (2026-10-21): it gets six times. templates timed out at twice in the 2026-10-21
- *  AppShell sync gate (its screens migrated to the new shell): three times. */
-const HEAVY_PAGES = new Map([["templates", 3], ["bottom-sheet", 2], ["chat", 2], ["app-shell", 6]]);
+ *  AppShell sync gate (its screens migrated to the new shell): three times. Since 2026-11-02 the Master-Layout screens
+ *  are spread over App Shell's Layout pages (examples/appShellLayouts.ts): app-shell keeps 10 examples, the desktop
+ *  page has the 8 desktop screens and smart home 12 phones, so each gets twice. */
+const HEAVY_PAGES = new Map([["templates", 3], ["bottom-sheet", 2], ["chat", 2], ["app-shell", 2], ["app-shell-desktop", 2], ["app-shell-smart-home", 2]]);
 const budgetOf = (id) => (HEAVY_PAGES.get(id) ?? 1) * BUDGET;
 const VERBOSE = Boolean(arg("verbose", false));
 const BASELINE = path.join(root, "tools/platform-audit/behaviour-baseline.json");

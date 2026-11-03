@@ -55,6 +55,8 @@ export function allPages(root) {
   const ids = [...nav.matchAll(/id:\s*"([\w-]+)"/g)].map((m) => m[1]);
   let layer = "";
   try { layer = fs.readFileSync(path.join(root, "src/platform/appLayer/types.ts"), "utf8").match(/appLayerPageIds\s*=\s*\[([^\]]*)\]/)?.[1] ?? ""; } catch { /* older checkout */ }
+  // App Shell's Layout pages (one per Figma Master-Layout section) sit under App Shell, not in componentNavigation.
+  try { layer += fs.readFileSync(path.join(root, "src/platform/examples/appShellLayouts.ts"), "utf8").match(/appShellLayoutPageIds\s*=\s*\[([^\]]*)\]/)?.[1] ?? ""; } catch { /* older checkout */ }
   return ["overviews", "installation", "design-tokens", ...collectionPages(root), "typography", "iconography", ...new Set([...ids, ...[...layer.matchAll(/"([\w-]+)"/g)].map((m) => m[1])])];
 }
 /** One page per token collection (Design Tokens › <collection>): the id carries the query, so `?page=${id}` opens it. */
@@ -203,6 +205,13 @@ export function pagesForEdit(root, rel, snippets = [], pages = allPages(root)) {
   // An example page file and its stylesheet (examples/pages/<page>.tsx / .css) render on that page.
   const own = rel.match(/^src\/platform\/examples\/pages\/([\w-]+)\.(?:tsx|css)$/)?.[1];
   if (own && pages.includes(own)) return { pages: [own], notes };
+  // A part file (examples/pages/<folder>/<file>.tsx, the App Shell's Figma screens) renders on the pages that import it.
+  const part = rel.match(/^src\/platform\/examples\/pages\/([\w-]+\/[\w-]+)\.tsx$/)?.[1];
+  if (part) {
+    const dir = path.join(root, "src/platform/examples/pages");
+    const users = fs.readdirSync(dir).filter((file) => file.endsWith(".tsx") && fs.readFileSync(path.join(dir, file), "utf8").includes(`"./${part}"`)).map((file) => file.replace(/\.tsx$/, ""));
+    if (users.some((page) => pages.includes(page))) return { pages: users.filter((page) => pages.includes(page)), notes };
+  }
   const base = path.basename(rel).replace(/\.\w+$/, "");
   if (FOUNDATION_PAGE[base]) return { pages: foundationPages(root, base), notes };
   const abs = path.join(root, rel);
