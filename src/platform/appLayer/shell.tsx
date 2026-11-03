@@ -563,7 +563,7 @@ export const pages: Partial<Record<AppLayerPage, AppLayerPageMeta>> = keepOnHotU
     label: "App Shell",
     eyebrow: "Components / App Shell",
     title: "App Shell",
-    description: "The app's frame, as Figma's Pattern/AppShell components (◇ Master-Layout) draw it: a placeholder to design on, with \"Label\" rows, Master › Child, \"Heading Text\", an Empty State and \"Replace Component Here\" in every pane. Pick the desktop Layout (Sidebar, List-Detail, Top-Bar, Workspace, Docs, Focus, Grid) and where the Sidebar's toggle sits, then the mobile parts (Top Bar, Band, Band-Sheet or Media; Bottom Tab-Bar, Floating or Actions), and replace each placeholder with your page's components. The Layout examples below are finished apps built on it.",
+    description: "The app's frame, as Figma's Pattern/AppShell components (◇ Master-Layout) draw it: a placeholder to design on, with \"Label\" rows, Master › Child, \"Heading Text\", an Empty State and \"Replace Component Here\" in every pane. Pick the desktop Layout (Sidebar, List-Detail, Top-Bar, Workspace, Docs, Focus, Grid) and where the Sidebar's toggle sits, then the mobile parts (Top Bar, Band, Band-Sheet or Media; Bottom Tab-Bar, Floating or Actions), and replace each placeholder with your page's components. The Layout examples below and the Layout pages under App Shell (Desktop, Mobile, Expressive, Consumer, Smart home) are finished apps built on it.",
     playground: AppShellPlayground,
   },
   "page-header": {

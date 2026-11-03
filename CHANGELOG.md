@@ -17,6 +17,9 @@ How to maintain it:
 - Zen Studio: a component clicked in Assets into a frame without auto layout keeps its Figma width too, as its drop
   (user 2026-11-04): a Text field 312, a Line chart 297 (before: the widget width), placed beside the last layer with
   the page gap; a Button or an Icon button keeps its own width. One ⌘Z takes the insert back.
+- Docs platform: the App Shell's Layout examples moved to five pages under App Shell in the navigation (Desktop,
+  Mobile, Expressive, Consumer, Smart home layouts, one per Figma Master-Layout section). The App Shell page keeps the
+  four compositions and the shell's behaviours, and has half the DOM it had (user 2026-11-02).
 - Search `variant="popover"` (in Popover, Sidebar): focusing the field now shows Search's 3px focus ring. Figma's
   Popover-Search border is transparent, so the caret was the only sign of focus (user 2026-11-02).
 - Zen Studio: a component dropped into a frame without auto layout also keeps its Figma width (user 2026-11-02): a

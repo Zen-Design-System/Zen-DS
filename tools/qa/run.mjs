@@ -606,15 +606,27 @@ const titledEntries = (body, entries) => {
     entries.push({ title: t[2], text: chunk });
   }
 };
+/** The examples array of a page file, following its spreads (`...grid` of a part file's `examples`, or a local list such
+ *  as `const figmaExamples = compositions;`), as the App Shell and its Layout pages compose theirs. */
+function ownEntries(file, entries, name = "examples", depth = 0) {
+  if (depth > 4 || !fs.existsSync(file)) return;
+  const src = fs.readFileSync(file, "utf8");
+  const m = new RegExp(`\\n(?:export )?const ${name}\\b[^=]*=\\s*(?:keepOnHotUpdate\\([^,]+,\\s*"examples",\\s*)?(\\[|(\\w+);)`).exec(src);
+  if (!m) return;
+  const list = m[1] === "[" ? arrayAt(src, m.index + m[0].length - 1) : `[...${m[2]}]`;
+  titledEntries(list, entries);
+  for (const spread of list.matchAll(/\.\.\.(\w+)\b/g)) {
+    const from = new RegExp(`import \\{[^}]*\\bexamples as ${spread[1]}\\b[^}]*\\} from "(\\.[^"]+)"`).exec(src)?.[1];
+    if (from) ownEntries(path.join(path.dirname(file), `${from}.tsx`), entries, "examples", depth + 1);
+    else if (spread[1] !== name) ownEntries(file, entries, spread[1], depth + 1);
+  }
+}
 for (const page of P) {
   const entries = [];
   // A page with its own examples/pages/<page>.tsx shows only that file's `examples` array (examples/registry.ts).
   const own = path.join(root, `src/platform/examples/pages/${page}.tsx`);
-  if (fs.existsSync(own)) {
-    const src = fs.readFileSync(own, "utf8");
-    const m = /\nexport const examples\b[^=]*=\s*(?:keepOnHotUpdate\([^,]+,\s*"examples",\s*)?\[/.exec(src);
-    if (m) titledEntries(arrayAt(src, m.index + m[0].length - 1), entries);
-  } else sources.forEach((src) => {
+  if (fs.existsSync(own)) ownEntries(own, entries);
+  else sources.forEach((src) => {
     const start = src.search(/\n(export )?const \w*[eE]xamples\w*\s*(:[^=]+)?=\s*\{/); if (start < 0) return;
     const m = new RegExp(`\\n {2}"?${page}"?:\\s*\\[`).exec(src.slice(start)); if (!m) return;
     titledEntries(arrayAt(src, start + m.index + m[0].length - 1), entries);

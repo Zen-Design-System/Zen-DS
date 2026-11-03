@@ -134,7 +134,7 @@ function collectionPages() {
   return source.collections.map((collection) => `design-tokens&collection=${collection.slug}`);
 }
 
-/** Every page id the platform routes to (component nav + app-layer pages + foundations). */
+/** Every page id the platform routes to (component nav + app-layer pages + App Shell's Layout pages + foundations). */
 function allPages() {
   const src = fs.readFileSync(path.join(root, "src/platform/PlatformApp.tsx"), "utf8");
   const nav = src.slice(src.indexOf("const componentNavigation"), src.indexOf("];", src.indexOf("const componentNavigation")));
@@ -142,7 +142,10 @@ function allPages() {
   // App-layer pages (Layout, Text, Form, Templates…) are registered from src/platform/appLayer, not componentNavigation.
   const appLayer = fs.readFileSync(path.join(root, "src/platform/appLayer/types.ts"), "utf8").match(/appLayerPageIds\s*=\s*\[([^\]]*)\]/)?.[1] ?? "";
   const layerIds = [...appLayer.matchAll(/"([\w-]+)"/g)].map((m) => m[1]);
-  return ["overviews", "installation", "design-tokens", ...collectionPages(), "typography", "iconography", ...[...new Set([...ids, ...layerIds])].sort()];
+  // App Shell's Layout pages (one per Figma Master-Layout section) sit under App Shell, not in componentNavigation.
+  const layouts = fs.readFileSync(path.join(root, "src/platform/examples/appShellLayouts.ts"), "utf8").match(/appShellLayoutPageIds\s*=\s*\[([^\]]*)\]/)?.[1] ?? "";
+  const layoutIds = [...layouts.matchAll(/"([\w-]+)"/g)].map((m) => m[1]);
+  return ["overviews", "installation", "design-tokens", ...collectionPages(), "typography", "iconography", ...[...new Set([...ids, ...layerIds, ...layoutIds])].sort()];
 }
 const PAGES = arg("pages", null) ? String(arg("pages")).split(",") : allPages();
 

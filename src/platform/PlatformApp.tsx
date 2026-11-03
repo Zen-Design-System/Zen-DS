@@ -18,6 +18,7 @@ import { collections } from "../foundations/collections";
 import { PlatformComponentPage, type PlatformPage } from "./PlatformExamples";
 import { appLayerPages } from "./PlatformAppLayer";
 import { appLayerPageIds, type AppLayerPage } from "./appLayer/types";
+import { appShellLayoutPageIds, appShellLayoutPages, type AppShellLayoutPage } from "./examples/appShellLayouts";
 import { PlatformAppearancePanel, PlatformColorModeButton, PlatformTypographyContext, type PlatformShellSettings } from "./PlatformTemplate";
 import { PlatformOnThisPage, usePageSections } from "./PlatformReference";
 import { AccountMenu } from "./auth/AuthGate";
@@ -91,7 +92,8 @@ export const componentNavigation: Array<{ id: PlatformPage; label: string }> = [
   // Phase-2 app layer (src/platform/appLayer/*): each page appears once its group module defines it.
   ...Object.entries(appLayerPages).map(([id, meta]) => ({ id: id as PlatformPage, label: meta!.label })),
 ];
-const componentPageIds = componentNavigation.map((item) => item.id);
+// App Shell's Layout pages (examples/appShellLayouts.ts) render components too: they take the component pages' rules.
+const componentPageIds: PlatformPage[] = [...componentNavigation.map((item) => item.id), ...appShellLayoutPageIds];
 
 /** The docs navigation (Figma B5 Leading-Pane): section labels and plain rows, no icons; the current page is selected. */
 function getSidebarSections(activePage: PlatformPage, activeCollection: string | null): SidebarSection[] {
@@ -106,8 +108,11 @@ function getSidebarSections(activePage: PlatformPage, activeCollection: string |
       { id: "iconography", label: "Iconography", active: activePage === "iconography" },
     ] },
     // Components are listed A–Z by their label (new pages land in order automatically).
+    // App Shell lists its Layout pages under its row, in Figma's section order.
     { label: "Components", items: componentNavigation
-      .map(({ id, label }) => ({ id, label, active: activePage === id }))
+      .map(({ id, label }): SidebarItem => id === "app-shell"
+        ? { id, label, active: activePage === id, dropdown: true, children: appShellLayoutPageIds.map((child) => ({ id: child, label: appShellLayoutPages[child].title, active: activePage === child })) }
+        : { id, label, active: activePage === id })
       .sort((left, right) => left.label.localeCompare(right.label)) },
   ];
 }
@@ -245,6 +250,7 @@ export const pageLabels: Record<PlatformPage, string> = {
   chat: "Chat",
   "top-navigation": "Top Navigation",
   ...(Object.fromEntries(appLayerPageIds.map((id) => [id, appLayerPages[id]?.label ?? id])) as Record<AppLayerPage, string>),
+  ...(Object.fromEntries(appShellLayoutPageIds.map((id) => [id, appShellLayoutPages[id].title])) as Record<AppShellLayoutPage, string>),
 };
 
 /** Figma B5 breadcrumb row: Docs (the Master crumb, home icon) › the section when it has a page › the current page. */
@@ -256,6 +262,7 @@ function getBreadcrumbs(activePage: PlatformPage, activeCollection: string | nul
   if (activePage === "typography" || activePage === "iconography") {
     return [docs, { id: "design-tokens", label: "Foundations", href: "?page=design-tokens" }, { id: activePage, label: pageLabels[activePage] }];
   }
+  if (activePage in appShellLayoutPages) return [docs, { id: "app-shell", label: pageLabels["app-shell"], href: "?page=app-shell" }, { id: activePage, label: pageLabels[activePage] }];
   return [docs, { id: activePage, label: pageLabels[activePage] }];
 }
 

@@ -28,7 +28,7 @@ const [command, ...positional] = argv.filter((a) => !a.startsWith("--"));
 const slug = (s) => s.replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase().slice(0, 60) || "card";
 const sha = (buffer) => crypto.createHash("sha1").update(buffer).digest("hex");
 
-/** Same page list as audit.mjs: fixed pages, componentNavigation and the app-layer pages. */
+/** Same page list as audit.mjs: fixed pages, componentNavigation, the app-layer pages and App Shell's Layout pages. */
 function allPages() {
   const src = fs.readFileSync(path.join(root, "src/platform/PlatformApp.tsx"), "utf8");
   const nav = src.slice(src.indexOf("const componentNavigation"), src.indexOf("];", src.indexOf("const componentNavigation")));
@@ -36,7 +36,10 @@ function allPages() {
   const typesFile = path.join(root, "src/platform/appLayer/types.ts");
   const appLayer = fs.existsSync(typesFile) ? fs.readFileSync(typesFile, "utf8").match(/appLayerPageIds\s*=\s*\[([^\]]*)\]/)?.[1] ?? "" : "";
   const layerIds = [...appLayer.matchAll(/"([\w-]+)"/g)].map((m) => m[1]);
-  return ["overviews", "installation", "design-tokens", "typography", "iconography", ...[...new Set([...ids, ...layerIds])].sort()];
+  const layoutsFile = path.join(root, "src/platform/examples/appShellLayouts.ts");
+  const layouts = fs.existsSync(layoutsFile) ? fs.readFileSync(layoutsFile, "utf8").match(/appShellLayoutPageIds\s*=\s*\[([^\]]*)\]/)?.[1] ?? "" : "";
+  const layoutIds = [...layouts.matchAll(/"([\w-]+)"/g)].map((m) => m[1]);
+  return ["overviews", "installation", "design-tokens", "typography", "iconography", ...[...new Set([...ids, ...layerIds, ...layoutIds])].sort()];
 }
 
 const FREEZE_CSS = `*, *::before, *::after { animation-duration: 0s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important;
