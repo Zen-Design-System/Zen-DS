@@ -9,6 +9,7 @@
   OUTSIDE ring, Color/Focus/Neutral/Subtle (was `box-shadow: none`). It fits the Popover's 4px padding (the Popover
   clips with overflow hidden) and the Sidebar's 8px.
 - Removed the question from `BACKLOG-user-and-later.md`.
+
 ## Session "Fix studio:build-check" · `npm run studio:build-check` green again (tier M; user 2026-11-02)
 
 - Ask: the BACKLOG P2 from the B4 chrome session — build-check failed 8 steps on main (last green 2026-10-11, 23 ok).
