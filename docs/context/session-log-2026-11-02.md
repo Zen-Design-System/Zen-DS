@@ -53,3 +53,10 @@
 - Click-insert from Assets (clipboard.ts floatPaste) is unchanged: it still uses the widget width for charts.
 - E2E: B-61 (Line chart 297, Icon button hugs, Text field 312 + one ⌘Z); dnd campaign's free-Box place checks a written
   width is the Figma width and settles on the second write; DND-07 waits for it before ⇧A.
+- B-61 first failed in the test, not the product: the drag typed in Assets' search field, which then took the ⌘Z
+  (the row now blurs it first).
+- The opt-in dnd campaign had two stale places, failing for every item (a Button too), fixed here: an Empty page's
+  Screen now floats a drop in a Box (W-12, 10-29) where the campaign expected it in the Screen's flow; the "board"
+  point 60px right of the frames fell on the B4 Inspector pane (11-01), now the gap between the fitted phones.
+- QA (2026-11-03, after the lid-closed night): dnd campaign in full, DND-01/02/03 700 drops right, DND-07 260 auto layout
+  changes right; `npm run qa -- --isolated` PASS, Studio E2E 454 works · 0 broken; B-61 recorded in the baseline.

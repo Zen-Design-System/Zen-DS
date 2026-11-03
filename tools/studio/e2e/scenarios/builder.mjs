@@ -1739,9 +1739,16 @@ export const rows = [
         const drawn = await page.locator('[data-studio-frame^="screen:"] .studio-builder-screen [data-position="absolute"]').nth(index).evaluate((box) => box.firstElementChild?.offsetWidth ?? 0);
         if (width !== null && Math.abs(drawn - width) > 1) throw new Error(`the ${label} draws ${drawn} wide in its ${width} Box`);
         if (tag === "InputField") {
-          // One ⌘Z takes the drop and the width written after it back together.
+          // One ⌘Z takes the drop and the width written after it back together (Assets' search field, which the drag
+          // typed in, would take the ⌘Z itself).
+          await page.evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : undefined));
           await page.keyboard.press("ControlOrMeta+z");
-          await until(async () => ((await pageText(page, id)) ?? "") === before, { timeout: 4000, message: `one ⌘Z taking the ${label} and its width back` });
+          const back = await until(async () => ((await pageText(page, id)) ?? "") === before, { timeout: 4000 }).then(() => true, () => false);
+          if (!back) {
+            const now = (await pageText(page, id)) ?? "";
+            const at = [...now].findIndex((char, i) => char !== before[i]);
+            throw new Error(`one ⌘Z did not take the ${label} and its width back (${now.includes(`<${tag}`) ? `the ${tag} stays${float.exec(now)?.[2] ? `, ${float.exec(now)[2]} wide` : ", no width"}` : `no ${tag} left`}): the page reads "${now.slice(Math.max(0, at - 40), at + 120).replace(/\s+/g, " ")}" where it read "${before.slice(Math.max(0, at - 40), at + 80).replace(/\s+/g, " ")}"`);
+          }
         }
         done.push(`${label} ${width ?? `hugs (${drawn})`}`);
       }
