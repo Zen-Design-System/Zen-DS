@@ -17,6 +17,8 @@ How to maintain it:
 - Zen Studio: a component dropped into a frame without auto layout also keeps its Figma width (user 2026-11-02): a
   Text field 312, a Line chart 297 (before: the widget width, 477 on desktop), where it fills its container in code; one
   that hugs (a Button, an Icon button) keeps its own width. One ⌘Z takes the drop back.
+- AppShell: the header's collapse (and menu) toggle draws its icon at 20px, Figma's Element-Size/Popular/Base, instead
+  of the Small button's 16 (user 2026-11-02: too small in every AppShell).
 - Docs platform (user 2026-11-01, Figma B5 · Docs / Learning): simpler chrome on the library AppShell `pattern="docs"`,
   Canvas/Flat. A header across (Zen mark + version, Search docs ⌘K in the centre, Feedback, Download Figma), the
   navigation as plain rows in a Canvas pane (no box, no icons), breadcrumbs + a Display/3 title instead of the page
