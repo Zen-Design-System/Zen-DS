@@ -24,5 +24,10 @@
   the locator it waited for.
 - Result: `npm run studio:build-check` 23 ok · 1 skipped (the Chromium OPFS reload, as before) · 0 failed, engine 185.2 KB
   gzip (report `.qa/studio-e2e/build-check-2026-11-02T07-13-11.json`); tsc clean, compile selftest 91 ok.
+- Gate `npm run qa -- --isolated --files=` (htmlExport, FindPanel, compile.mjs, component-name.mjs): static gates,
+  TypeScript and Studio self-tests pass; Studio E2E 285 works · 0 broken, but the Mac slept with its lid shut (12:42–14:05,
+  14:39–17:59, Giám sát's pmset log), so shard 4/5 hung to its limit and 77 rows of shard 5 did not run. Re-run on
+  2026-11-03 (Giám sát's GO 15:13): shard 4/5 91 works · 0 broken, the 77 rows 77 works · 0 broken. Every row green; the
+  gate's own ledger still says FAIL (only a full `npm run qa` writes PASS).
 - BACKLOG P2 line removed; two stale lines closed too (asked by session "Kiểm tra tiến độ"): Open items had PR #334 "in
   review" (merged 10-27), and the 10-29 prototype walk entry moved to `BACKLOG-archive.md` (all fixes merged, #349–#370).
