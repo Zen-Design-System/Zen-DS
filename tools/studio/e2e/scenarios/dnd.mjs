@@ -144,18 +144,35 @@ async function fits(page, id, loc, screen) {
 
 /* ── the places ─────────────────────────────────────────────────────────────────────────────────────────────────── */
 
+/** Why the width written on a floating drop is not the item's Figma width where it has one (user 2026-11-02), or null. */
+function widthWrong(node, item) {
+  const floating = node.node.props.position ? node.node : node.parents.at(-1);
+  const width = floating?.props.width?.value;
+  return width === undefined || !FIGMA_WIDTHS[item.id] || width === FIGMA_WIDTHS[item.id] ? null : `${width} wide, not its Figma width (${FIGMA_WIDTHS[item.id]})`;
+}
+
+/** A component that fills takes its Figma width in a second write that joins the drop: wait for it before judging or ⌘Z. */
+const settleWidth = (page, id, after, item) => (FIGMA_WIDTHS[item.id] ? changed(page, id, after, 2000).then((next) => next ?? after) : after);
+
 /**
  * Where each drop goes, what it must write, and how to tell. `expect(before, after, item)` returns null when right, else
- * why not; a bar item (Top / Bottom Navigation) goes to its bar wherever it is dropped on a phone Screen.
+ * why not; a bar item (Top / Bottom Navigation) goes to its bar wherever it is dropped on a phone Screen. `across: false`:
+ * the drop floats where it falls, so it may run past the phone's edge as in Figma (the frame clips): no across-the-phone
+ * check.
  */
 const PLACES = [
   {
-    key: "empty Screen (no frame, no Stack)", screen: "screen-2",
+    // An Empty page's Screen has no layout root: a frame without auto layout, so the drop floats where it falls (walk
+    // W-12, 2026-10-29), in a Box of its own unless it floats itself; an App shell becomes the Screen's page.
+    key: "empty Screen (no frame, no Stack)", screen: "screen-2", across: false,
     at: async (page) => center(await frameBox(page, "screen-2")),
+    settle: settleWidth,
     expect(before, after, item) {
       if (BAR[item.root]) return barText(after, "screen-2", BAR[item.root]) ? null : `no ${BAR[item.root]} on the empty Screen`;
       const node = added(before, after, item.root);
-      return node?.chain === `Board>Screen#screen-2>${item.root}` ? null : `landed at ${node?.chain ?? "nowhere"}`;
+      if (node?.chain === "Board>Screen#screen-2>AppShell" && item.root === "AppShell") return null;
+      const floats = node && (node.chain === `Board>Screen#screen-2>${item.root}` ? node.node.props.position : node.chain === `Board>Screen#screen-2>Box>${item.root}` && node.parents.at(-1)?.props.position);
+      return floats ? widthWrong(node, item) : `landed at ${node?.chain ?? "nowhere"}${node ? " (not floating)" : ""}`;
     },
   },
   {
@@ -190,15 +207,18 @@ const PLACES = [
   },
   {
     // A Frame without auto layout (its one layer floats): the drop lands where the pointer is, floating (Figma's), so
-    // it may run past the phone's edge as in Figma (the frame clips): no across-the-phone check.
+    // it may run past the phone's edge as in Figma (the frame clips): no across-the-phone check. A width written on it is
+    // the item's Figma width where it has one (user 2026-11-02), for one that fills in a second write joining the first.
     key: "into the free Box (frame)", screen: null,
     at: async (page, id) => { const box = await boxOf(page, id, "Box"); return box && { x: box.x + box.width * 0.3, y: box.y + box.height * 0.6 }; },
+    settle: settleWidth,
     expect(before, after, item) {
       if (BAR[item.root]) return barText(after, "screen-1", BAR[item.root]) !== barText(before, "screen-1", BAR[item.root]) ? null : `${BAR[item.root]} not replaced`;
       const node = added(before, after, item.root);
       const floats = (text) => (text.match(/position="absolute" insetLeft=\{\d+\} insetTop=\{\d+\}/g) ?? []).length;
       if (!node?.chain.startsWith("Board>Screen#screen-1>Stack>Box>")) return `landed at ${node?.chain ?? "nowhere"}`;
-      return floats(after) === floats(before) + 1 ? null : "not placed where it was dropped (no new position / insets)";
+      if (floats(after) !== floats(before) + 1) return "not placed where it was dropped (no new position / insets)";
+      return widthWrong(node, item);
     },
   },
   {
@@ -206,7 +226,18 @@ const PLACES = [
     // (Figma's loose instance; user 2026-10-28 "kéo component ra canvas trống như figma"); an App shell stays refused
     // (a whole page goes on a Screen). A width written on it is the item's Figma width (user 2026-10-29).
     key: "on the board, outside every frame", screen: null, every: 4,
-    at: async (page) => { const box = await frameBox(page, "screen-2"); return box && { x: box.x + box.width + 60, y: box.y + 40 }; },
+    // Empty canvas inside the canvas area: the gap between two frames side by side, else beside, under, left of or above
+    // them (B4 chrome, 2026-11-01: the Inspector pane sits beside the canvas, and two fitted phones leave ~48px at the
+    // sides, so 60px right of a Screen can be the pane).
+    at: (page) => page.evaluate(() => {
+      const area = document.querySelector(".studio-canvas-area")?.getBoundingClientRect();
+      const frames = [...document.querySelectorAll(".studio-builder-board__frames > [data-studio-frame]")].map((frame) => frame.getBoundingClientRect()).sort((a, b) => a.left - b.left);
+      if (!area || !frames.length) return null;
+      const [left, top, right, bottom] = [frames[0].left, Math.min(...frames.map((f) => f.top)), Math.max(...frames.map((f) => f.right)), Math.max(...frames.map((f) => f.bottom))];
+      const gaps = frames.slice(1).map((frame, index) => ({ from: frames[index].right, to: frame.left })).filter((gap) => gap.to - gap.from >= 32);
+      const spots = [...gaps.map((gap) => ({ x: (gap.from + gap.to) / 2, y: top + 40 })), { x: right + 60, y: top + 40 }, { x: left + 40, y: bottom + 60 }, { x: left - 60, y: top + 40 }, { x: left + 40, y: top - 60 }];
+      return spots.find((spot) => spot.x > area.left + 24 && spot.x < area.right - 24 && spot.y > area.top + 24 && spot.y < area.bottom - 120) ?? null;
+    }),
     // The frame fits what it holds in a second write that joins the first: wait for it before judging or ⌘Z.
     settle: (page, id, after) => changed(page, id, after, 2000).then((next) => next ?? after),
     expect(before, after, item) {
@@ -260,12 +291,12 @@ async function campaign(ctx, all, label) {
         else if (!refused.test(shown.label)) why = `label "${shown.label}" (expected ${refused})`;
       } else {
         let after = await changed(page, id, seed);
-        if (after && place.settle) after = await place.settle(page, id, after);
+        if (after && place.settle) after = await place.settle(page, id, after, item);
         if (!after) why = `nothing written (label "${shown.label}", ${shown.tone ?? "no tone"})`;
         else {
           why = place.expect(seed, after, item);
           const node = !why && !BAR[item.root] ? added(seed, after, item.root) : null;
-          if (node && place.screen) {
+          if (node && place.screen && place.across !== false) {
             await sleep(150);
             const fit = await fits(page, id, node.node.loc, place.screen);
             if (!fit.ok) why = `fits badly: ${fit.why}`;
@@ -532,7 +563,9 @@ async function autoLayoutItems(ctx, all) {
       // Dropped at the Frame's top left (16, 16 in its px; the canvas zoom scales it).
       const zoom = frame.width / 358;
       await dragTo(page, center(tile), { x: frame.x + 16 * zoom + 2, y: frame.y + 16 * zoom + 2 });
-      const dropped = await next(page, id, seed, `${item.id} dropped`);
+      let dropped = await next(page, id, seed, `${item.id} dropped`);
+      // A component that fills takes its Figma width in a second write that joins the drop: wait for it before ⇧A.
+      if (FIGMA_WIDTHS[item.id]) dropped = (await changed(page, id, dropped, 1500)) ?? dropped;
       const placed = layersOf(frameIn(dropped));
       if (placed.length !== 2 || !placed.every((layer) => layer.props.position?.value === "absolute")) throw new Error(`${item.id}: the drop did not float in the Frame (${placed.map((layer) => layer.name).join(", ")})`);
       // The Frame selected from its Layers row, then ⇧A. Layers names a Box "Frame N" (Figma's word), so the row is found

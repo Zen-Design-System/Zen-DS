@@ -16,6 +16,9 @@ How to maintain it:
 
 - Search `variant="popover"` (in Popover, Sidebar): focusing the field now shows Search's 3px focus ring. Figma's
   Popover-Search border is transparent, so the caret was the only sign of focus (user 2026-11-02).
+- Zen Studio: a component dropped into a frame without auto layout also keeps its Figma width (user 2026-11-02): a
+  Text field 312, a Line chart 297 (before: the widget width, 477 on desktop), where it fills its container in code; one
+  that hugs (a Button, an Icon button) keeps its own width. One ⌘Z takes the drop back.
 - Zen Studio loads lighter: Find (⌘F) and the picture exports no longer pull the edit engine, its parser and the React
   compiler into the Studio's first load (they load on first use again). QA: `npm run studio:build-check` is green again;
   its engine budget is 200 KB gzip (the user's choice, 2026-11-02; 185.2 measured).

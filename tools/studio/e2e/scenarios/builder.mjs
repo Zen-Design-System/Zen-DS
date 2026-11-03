@@ -429,12 +429,6 @@ async function selectTableCell(page, key) {
 /** Drags Assets › Components › `label` onto the board's empty space right of the first frame; the drag's label just
  *  before the drop (B-55…B-57). */
 async function dragAssetToBoard(page, label) {
-  await openAssetLibrary(page, "Components");
-  const assets = page.locator("#studio-left-panel-assets");
-  await assets.getByLabel("Search components").fill(label);
-  const tile = assets.locator('.studio-assets__section[aria-label="Results"] [data-asset]').filter({ hasText: new RegExp(`^${label}`) }).first();
-  await tile.waitFor({ state: "visible", timeout: 5000 });
-  const from = await tile.boundingBox();
   const frame = await page.locator('[data-studio-frame^="screen:"]').first().boundingBox();
   // Empty canvas beside the Screen, inside the canvas area (B4, 2026-11-01: the Inspector pane is beside the canvas, so
   // 80px right of a Screen fitted to the view can be the pane); else below the Screen, above the tools.
@@ -442,6 +436,17 @@ async function dragAssetToBoard(page, label) {
   const to = frame.x + frame.width + 80 < canvas.x + canvas.width - 24
     ? { x: frame.x + frame.width + 80, y: frame.y + 40 }
     : { x: frame.x + 40, y: Math.min(frame.y + frame.height + 80, canvas.y + canvas.height - 120) };
+  return dragAssetTo(page, label, to);
+}
+
+/** Drags the Components tile `label` from Assets to the client point `to`; returns what the drag's label said there. */
+async function dragAssetTo(page, label, to) {
+  await openAssetLibrary(page, "Components");
+  const assets = page.locator("#studio-left-panel-assets");
+  await assets.getByLabel("Search components").fill(label);
+  const tile = assets.locator('.studio-assets__section[aria-label="Results"] [data-asset]').filter({ hasText: new RegExp(`^${label}`) }).first();
+  await tile.waitFor({ state: "visible", timeout: 5000 });
+  const from = await tile.boundingBox();
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
   await page.mouse.down();
   for (let step = 1; step <= 12; step += 1) {
@@ -1706,6 +1711,46 @@ export const rows = [
         const drawn = await page.locator(`[data-studio-frame="screen:${added.id}"] .studio-builder-screen [data-position="absolute"] > *`).first().evaluate((element) => element.offsetWidth);
         if (Math.abs(drawn - width) > 1) throw new Error(`the ${label} draws ${drawn} wide in its ${width} Box`);
         done.push(`${label} ${added.width} × ${added.height}`);
+      }
+      return done.join(" · ");
+    },
+  },
+  {
+    id: "B-61", feature: "A component dropped into a Frame without auto layout (an Empty page's Screen) floats where it falls at its Figma width when it fills its container (a Text field 312, a Line chart 297), one ⌘Z for the drop and its width; one that hugs in code (an Icon button) keeps its own width (user 2026-11-02: áp dụng luôn cho thả vào frame không có auto layout)", wp: "bug 2026-11-02", timeout: 90_000,
+    async run(ctx) {
+      const { page, id } = await emptyPage(ctx);
+      const done = [];
+      for (const [index, [label, tag, width]] of [["Line chart", "LineChart", 297], ["Icon button", "IconButton", null], ["Text field", "InputField", 312]].entries()) {
+        const before = (await pageText(page, id)) ?? "";
+        const frame = await page.locator('[data-studio-frame^="screen:"]').first().boundingBox();
+        const shown = await dragAssetTo(page, label, { x: frame.x + frame.width * 0.15, y: frame.y + frame.height * (0.2 + index * 0.25) });
+        const float = new RegExp(`<Box position="absolute" insetLeft=\\{\\d+\\} insetTop=\\{\\d+\\}( width=\\{(\\d+)\\})?>\\s*<${tag}\\b`);
+        let match = null;
+        await until(async () => {
+          match = float.exec((await pageText(page, id)) ?? "");
+          return Boolean(match && (width === null || match[2]));
+        }, { timeout: 6000, message: `the ${label} floating in the Screen (the drag said "${shown}")` });
+        if (width === null) {
+          await sleep(1200);
+          match = float.exec((await pageText(page, id)) ?? "");
+          if (match?.[2]) throw new Error(`the ${label} hugs its content in code but its Box took width ${match[2]}`);
+        } else if (Number(match[2]) !== width) throw new Error(`the ${label}'s Box is ${match[2]} wide, not its Figma ${width}`);
+        // Each drop is the Screen's next floating Box; what it holds draws at the Box's width (or its own).
+        const drawn = await page.locator('[data-studio-frame^="screen:"] .studio-builder-screen [data-position="absolute"]').nth(index).evaluate((box) => box.firstElementChild?.offsetWidth ?? 0);
+        if (width !== null && Math.abs(drawn - width) > 1) throw new Error(`the ${label} draws ${drawn} wide in its ${width} Box`);
+        if (tag === "InputField") {
+          // One ⌘Z takes the drop and the width written after it back together (Assets' search field, which the drag
+          // typed in, would take the ⌘Z itself).
+          await page.evaluate(() => (document.activeElement instanceof HTMLElement ? document.activeElement.blur() : undefined));
+          await page.keyboard.press("ControlOrMeta+z");
+          const back = await until(async () => ((await pageText(page, id)) ?? "") === before, { timeout: 4000 }).then(() => true, () => false);
+          if (!back) {
+            const now = (await pageText(page, id)) ?? "";
+            const at = [...now].findIndex((char, i) => char !== before[i]);
+            throw new Error(`one ⌘Z did not take the ${label} and its width back (${now.includes(`<${tag}`) ? `the ${tag} stays${float.exec(now)?.[2] ? `, ${float.exec(now)[2]} wide` : ", no width"}` : `no ${tag} left`}): the page reads "${now.slice(Math.max(0, at - 40), at + 120).replace(/\s+/g, " ")}" where it read "${before.slice(Math.max(0, at - 40), at + 80).replace(/\s+/g, " ")}"`);
+          }
+        }
+        done.push(`${label} ${width ?? `hugs (${drawn})`}`);
       }
       return done.join(" · ");
     },
