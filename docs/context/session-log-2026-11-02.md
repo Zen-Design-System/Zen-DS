@@ -42,3 +42,21 @@
 - Fix: `app-shell.css` sets `--zen-button-icon-size: var(--zen-element-size-popular-base)` on the toggle's button (menu
   toggle too: same wrapper). Test: tests/interaction/app-shell.test.tsx checks 32×32 button, 20×20 glyph.
 - The user's other ask, AppShell examples on a page of their own, went to session "Docs platform chrome → Figma B5".
+
+## Figma widths for drops into a frame without auto layout (session Bug, tier S)
+
+- User: "áp dụng luôn cho thả vào frame không có auto layout" (after #347: the empty canvas keeps Figma widths).
+- `assets.ts` freeDropAt: a component with no width of its own (needsWidth: charts, Divider, Slider…) floats at its
+  Figma width (FIGMA_WIDTHS) instead of the widget width; any other item with a Figma width is fitted after it renders
+  (fitFreeDrop): if what its floating Box holds widens with the Box (boardPaste.ts fillsLayer, now exported), the Box
+  takes the width in a second write squashed into the drop (one ⌘Z). Hugging items (Button, Icon button 40) keep no width.
+- Click-insert from Assets (clipboard.ts floatPaste) is unchanged: it still uses the widget width for charts.
+- E2E: B-61 (Line chart 297, Icon button hugs, Text field 312 + one ⌘Z); dnd campaign's free-Box place checks a written
+  width is the Figma width and settles on the second write; DND-07 waits for it before ⇧A.
+- B-61 first failed in the test, not the product: the drag typed in Assets' search field, which then took the ⌘Z
+  (the row now blurs it first).
+- The opt-in dnd campaign had two stale places, failing for every item (a Button too), fixed here: an Empty page's
+  Screen now floats a drop in a Box (W-12, 10-29) where the campaign expected it in the Screen's flow; the "board"
+  point 60px right of the frames fell on the B4 Inspector pane (11-01), now the gap between the fitted phones.
+- QA (2026-11-03, after the lid-closed night): dnd campaign in full, DND-01/02/03 700 drops right, DND-07 260 auto layout
+  changes right; `npm run qa -- --isolated` PASS, Studio E2E 454 works · 0 broken; B-61 recorded in the baseline.

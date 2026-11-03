@@ -141,8 +141,9 @@ async function renderedLayer(frameId: string, timeout = 3000): Promise<HTMLEleme
   return null;
 }
 
-/** Whether what floating `layer` holds widens with it (it fills its container: a Top Navigation), not its own width (a Button). */
-function fillsLayer(layer: HTMLElement): boolean {
+/** Whether what floating `layer` holds widens with it (it fills its container: a Top Navigation), not its own width (a
+ *  Button); a drop into a Frame without auto layout asks it too (edit/assets/assets.ts fitFreeDrop). */
+export function fillsLayer(layer: HTMLElement): boolean {
   const kids = Array.from(layer.children).filter((kid): kid is HTMLElement => kid instanceof HTMLElement);
   const widths = kids.map((kid) => kid.offsetWidth);
   const own = layer.style.width;
