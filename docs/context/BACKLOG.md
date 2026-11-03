@@ -11,16 +11,8 @@ that wait on the user and items for the next phase live in [`BACKLOG-user-and-la
 questions for the designer in [`QUESTIONS.md`](QUESTIONS.md). Code keeps its current behaviour until each is answered.
 
 ## Open items
-Studio UI/UX review 2026-10-27 (`docs/research/studio-ux-review-2026-10-27.md` §7, approved by the user 2026-10-27:
-§2.4 inserts keep their own size, §2.9 Dark mode changes the UI only), each in its own worktree session from main.
-P0 (#337), P2 (#338) and the panels session (#335) are merged; P1 `claude/studio-first-view-insert-20261027-2f7881`
-is PR #334 (in review). Nothing else open.
+Nothing open. (The Studio UI/UX review 2026-10-27 sessions are merged: P0 #337, P1 #334, P2 #338, panels #335.)
 
 ## Backlog (plan before opening sessions)
 The 2026-10-24 triage's entries are done and archived (`BACKLOG-archive.md`, "Archived 2026-10-24" and "2026-10-25")
 or moved to `BACKLOG-user-and-later.md`.
-
-- **P2 · `npm run studio:build-check` fails 8 steps on main ac227b26 (found 2026-11-01, B4 chrome session):** @babel/parser
-  lands in `jsx-source-*.js` and the compiler in `browser-compile-*.js` (chunk budget checks), then insert / Inspector edit /
-  Swap / reload / Prototype time out and the handoff zip's PNG check fails. Same result on a clean origin/main worktree, so
-  not the chrome change; the gate does not run build-check. Report `.qa/studio-e2e/build-check-2026-11-01T15-43-46.json`.

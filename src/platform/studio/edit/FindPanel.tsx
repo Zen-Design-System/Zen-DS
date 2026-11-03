@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Button, IconButton } from "../../../components/Button";
 import { typographyStyles } from "../../../tokens/typography.generated";
-import { parsePage } from "../../../../tools/studio/browser-engine.mjs";
 import { announceEditStatus, applyEdit, studioApi } from "../api";
+import { engineNow, loadEngine } from "../builder/engine";
 import { pageFile, usePage } from "../builder/store/pageStore";
 import { canvasApi, getViewport } from "../canvas/viewport";
 import { findBySrc, selectHit } from "../select/picker";
@@ -73,11 +73,14 @@ export function FindPanel() {
   const [replacement, setReplacement] = useState("");
   const [at, setAt] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
+  // The engine is a lazy chunk (builder/engine.ts): Find asks for it when it opens, never with the Studio's first load.
+  const [engine, setEngine] = useState(engineNow);
+  useEffect(() => { if (shown && !engine) void loadEngine().then(setEngine); }, [shown, engine]);
   const hits = useMemo(() => {
-    if (!page || !query.trim()) return [];
-    const { board } = parsePage(page.text);
+    if (!engine || !page || !query.trim()) return [];
+    const { board } = engine.parsePage(page.text);
     return board ? findTexts(board, query) : [];
-  }, [page, query]);
+  }, [engine, page, query]);
   useEffect(() => { setAt(-1); }, [query]);
   useEffect(() => { if (shown) inputRef.current?.select(); }, [shown]);
   // Another page: Find closes (its results were that page's).

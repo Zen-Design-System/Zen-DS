@@ -17,6 +17,9 @@ How to maintain it:
 - Docs platform: the App Shell's Layout examples moved to five pages under App Shell in the navigation (Desktop,
   Mobile, Expressive, Consumer, Smart home layouts, one per Figma Master-Layout section). The App Shell page keeps the
   four compositions and the shell's behaviours, and has half the DOM it had (user 2026-11-02).
+- Zen Studio loads lighter: Find (⌘F) and the picture exports no longer pull the edit engine, its parser and the React
+  compiler into the Studio's first load (they load on first use again). QA: `npm run studio:build-check` is green again;
+  its engine budget is 200 KB gzip (the user's choice, 2026-11-02; 185.2 measured).
 - AppShell: the header's collapse (and menu) toggle draws its icon at 20px, Figma's Element-Size/Popular/Base, instead
   of the Small button's 16 (user 2026-11-02: too small in every AppShell).
 - Docs platform (user 2026-11-01, Figma B5 · Docs / Learning): simpler chrome on the library AppShell `pattern="docs"`,

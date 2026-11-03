@@ -26,6 +26,9 @@ import { literalProp, objectFields, opensItself, requiredFunctions, standInKind 
 import { INSTANCE_LOOK_PROPS, instanceLookCode, instanceLookStyle, takesInstanceLook } from "./instance-look.mjs";
 import { pruneHidden } from "./visibility.mjs";
 import { operandCode, varsIn } from "./proto-vars.mjs";
+import { componentName } from "./component-name.mjs";
+
+export { componentName };
 
 const UNIT = "  ";
 const WIDTH = 110;
@@ -36,13 +39,6 @@ const MEDIA = /^zen-(media|asset):([\w.-]+)$/;
 
 const json = (value) => JSON.stringify(value).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 const literalOf = (node, name) => (node.props[name]?.kind === "literal" ? node.props[name].value : undefined);
-
-/** "Checkout · Pay" → "CheckoutPay" (ASCII letters and digits, a letter first). */
-export function componentName(title) {
-  const words = String(title ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").split(/[^A-Za-z0-9]+/).filter(Boolean);
-  const name = words.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join("");
-  return /^[A-Za-z]/.test(name) ? name : `Studio${name}`;
-}
 
 /**
  * A TypeScript type for a JSON-like value (lists: the union of their items' shapes, fields missing in some optional).

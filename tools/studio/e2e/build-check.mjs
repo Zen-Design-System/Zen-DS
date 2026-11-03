@@ -25,8 +25,9 @@ const args = process.argv.slice(2);
 const has = (name) => args.includes(`--${name}`);
 /** The engine chunk's budget (gzip KB). The spec said 130 on a guess of the parser's size; the user set 140 on
  *  2026-10-06 after M4 measured it (parser 77 + engine 58), then 160 on 2026-10-11 after nested overrides + core rebuild
- *  M2 reached 153.5 (rather than splitting the engine). Over it fails the check. */
-const ENGINE_BUDGET_KB = 160;
+ *  M2 reached 153.5 (rather than splitting the engine), then 200 on 2026-11-02 at 185.2: Find (⌘F) had imported the
+ *  engine statically since 2026-10-19, so this check measured only its leftovers while it grew. Over it fails the check. */
+const ENGINE_BUDGET_KB = 200;
 const FOLDER = "linked-pages";
 
 const steps = [];
@@ -41,7 +42,10 @@ async function step(name, fn) {
     console.log(`  ${skipped ? "–" : "✓"} ${name}${evidence ? `  · ${evidence}` : ""}`);
     return true;
   } catch (error) {
-    const message = String(error?.message ?? error).split("\n")[0];
+    // Playwright's first line says only "Timeout …"; its call log names the locator it waited for.
+    const lines = String(error?.message ?? error).split("\n");
+    const waited = lines.find((line) => /^\s*- waiting for /.test(line))?.trim().replace(/^- /, "");
+    const message = waited ? `${lines[0]} (${waited})` : lines[0];
     steps.push({ name, ok: false, ms: Date.now() - t0, evidence: message });
     failures.push(name);
     console.log(`  ✗ ${name}  · ${message}`);
@@ -85,6 +89,8 @@ const engineFile = engineKey ? manifest[engineKey].file : null;
 
 await step(`engine chunk ≤ ${ENGINE_BUDGET_KB} KB gzip`, async () => {
   if (!engineFile) throw new Error("no chunk for tools/studio/browser-engine.mjs");
+  // A static import of the engine puts it in the first load, and the sum above would count only its leftovers.
+  if (before.has(engineKey)) throw new Error("the engine is in the Studio's first load (a static import of tools/studio/browser-engine.mjs)");
   const text = `${engineKb.toFixed(1)} KB gzip (${engineChunks.join(", ")})`;
   if (engineKb > ENGINE_BUDGET_KB) throw new Error(`${text}: over the budget`);
   return text;
@@ -239,9 +245,14 @@ try {
   await step("New page opens a phone page", async () => {
     await openStudioSpace(page);
     await page.locator("#studio-left").getByRole("button", { name: "New page", exact: true }).click();
-    // The dialog has nothing to fill in since 2026-10-09 (an "Untitled page" on a desktop Screen): the page is named in
-    // the Inspector's Page section and set to a phone in its Screen's panel, as the E2E's newPage does (scenarios/builder.mjs).
+    // An "Untitled page" (no title to fill in since 2026-10-09), named in the Inspector's Page section. The dialog puts the
+    // device first (walk W-02) and starts from Empty page (2026-10-18): the iPhone with its App shell is a phone's Top and
+    // Bottom Navigation around an empty Stack, so the Button inserted below is the page's only one.
     const dialog = page.getByRole("dialog", { name: "New page" });
+    await dialog.waitFor({ state: "visible", timeout: 5000 });
+    await dialog.getByRole("button", { name: /^Screen\b/ }).click();
+    await page.getByRole("option", { name: /^iPhone(?! Duo)/ }).first().click();
+    await dialog.getByText("Page with App shell", { exact: true }).click();
     await dialog.getByRole("button", { name: "Create page" }).click();
     await until(async () => /page=local%3A|page=local:/.test(page.url()) && (await page.locator('[data-studio-frame^="screen:"]').count()) > 0, { timeout: 20_000, message: "the page on the canvas" });
     id = decodeURIComponent(new URL(page.url()).searchParams.get("page")).replace(/^local:/, "");
@@ -252,10 +263,9 @@ try {
     await field.fill(title);
     await field.press("Enter");
     await until(async () => (await page.locator("#studio-left .studio-pages__name").allInnerTexts()).some((text) => text.trim() === title), { message: "the page named" });
-    await showLeftTab(page, "layers");
-    await page.locator('[data-layer-id^="frame:screen:"]').first().click();
-    await page.locator("#studio-right").getByRole("button", { name: /^Phone,/ }).click();
-    await until(async () => /<Screen [^>]*device="phone"/.test((await storedText(page, id)) ?? ""), { timeout: 10_000, message: "the Screen on a phone" });
+    const text = (await storedText(page, id)) ?? "";
+    if (!/<Screen [^>]*device="phone"/.test(text)) throw new Error("the Screen is not on a phone");
+    if (/<(AppShell|Button)\b/.test(text)) throw new Error("the phone page holds an AppShell or a Button already");
     await page.locator(".studio-viewport").focus();
     await page.keyboard.press("Escape");
     return `${id} · named, on a phone`;
@@ -270,8 +280,11 @@ try {
     await page.locator(".studio-viewport").focus();
     await page.keyboard.press("Shift+Digit2");
     await sleep(400);
-    await clickNamed(page, id, "Text");
-    await page.keyboard.press("Escape");
+    // The Screen's content Stack is empty: the canvas gives it a box to click (walk W-56), as the E2E's selectStack does.
+    const stack = page.locator(`:is(.studio-builder-screen__content, .studio-builder-screen__shell-body) > [data-zen-src^="local:${id}.zen.tsx:"][data-zen-name="Stack"]`).first();
+    await stack.waitFor({ state: "attached", timeout: 10_000 });
+    await selectAt(page, await stack.boundingBox());
+    await sleep(500);
     await until(async () => (await page.locator("#studio-right h2").first().innerText({ timeout: 1000 }).catch(() => "")).trim() === "Frame", { message: "the Stack selected (heading Frame)" });
     await openAssetLibrary(page, "Components");
     await page.locator("#studio-left-panel-assets").getByLabel("Search components").fill("Button");
@@ -287,7 +300,8 @@ try {
     await pick(page, "level", "Primary");
     await until(async () => /<Button level="primary"/.test((await storedText(page, id)) ?? ""), { message: 'level="primary"' });
     await page.locator("#studio-right").getByRole("button", { name: "Reset all changes" }).click();
-    await until(async () => /<Button onClick/.test((await storedText(page, id)) ?? ""), { message: "Reset all overrides removed level" });
+    // The Button as Assets inserted it: no level (and no onClick until the Prototype step gives it one).
+    await until(async () => { const text = (await storedText(page, id)) ?? ""; return /<Button\b/.test(text) && !/<Button\b[^>]*\blevel=/.test(text); }, { message: "Reset all overrides removed level" });
     await page.locator(".studio-viewport").focus();
     await page.keyboard.press("ControlOrMeta+KeyZ");
     await until(async () => /<Button level="primary"/.test((await storedText(page, id)) ?? ""), { message: "⌘Z brings level back" });
@@ -550,8 +564,9 @@ try {
     const code = [...files.keys()].find((file) => /^\w+Page\.tsx$/.test(file));
     if (!code || !pictures.length || !/## Accessibility/.test(markdown) || ![...files.keys()].some((file) => file.startsWith("html/"))) throw new Error(`incomplete package: ${[...files.keys()].join(", ")}`);
     const sizes = pictures.map((file) => { const bytes = Buffer.from(files.get(file)); return { file, width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20), kb: Math.round(bytes.length / 1024) }; });
-    // A phone frame is 390 px wide, an overlay frame 720: its picture twice that; an empty picture compresses to almost nothing.
-    const bad = sizes.filter((size) => size.width !== (/overlay-/.test(size.file) ? 1440 : 780) || size.kb < 8);
+    // Mobile list is a phone page: each frame is 390 px wide, its Overlays too (as wide as the page's device since walk
+    // W-39; 720 only on a desktop page), the picture twice that; an empty picture compresses to almost nothing.
+    const bad = sizes.filter((size) => size.width !== 780 || size.kb < 8);
     if (bad.length) throw new Error(`pictures: ${bad.map((size) => `${size.file} ${size.width}×${size.height} ${size.kb} KB`).join(", ")}`);
     await page.keyboard.press("Escape");
     return `${files.size} files: ${code}, ${sizes.map((size) => `${size.file} ${size.width}×${size.height} (${size.kb} KB)`).join(", ")}`;

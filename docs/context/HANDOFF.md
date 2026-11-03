@@ -379,7 +379,8 @@ Last updated: 2026-11-01.
   keeps its `.zen.tsx` text as written and a JSON document with stable element ids beside it in IndexedDB
   (`tools/studio/doc.mjs`, `PageRecord.doc`; the user's choice "cách 2"); `localApi` edits through `editDoc` (the engine
   twice: shown text + id print). `studio:build-check` fixed (out of date with main + a Chromium OPFS crash): only the
-  engine budget is now 160 KB gzip (the user's choice, 2026-10-11; 153.6 measured), so build-check is green.
+  engine budget is now 200 KB gzip (the user's choice, 2026-11-02; 185.2 measured: Find ⌘F had loaded the engine
+  statically since 10-19, hiding its growth), so build-check is green again (session log 2026-11-02).
   M2 pushed (c670fc5). M3 (same branch): the selection follows its element by id through edits, undo and redo
   (`locs` on each write, `remap.ts mapSrc`; `api.ts writeInFlight`), double-click goes into nested instances one level at
   a time (`parts.ts outerNestedAt`/`drillNested`), Layers names nested instances by their Figma layer; E2E NO-06…09.
