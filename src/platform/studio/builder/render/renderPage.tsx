@@ -1,4 +1,4 @@
-import { createElement, Fragment, isValidElement, type ReactNode } from "react";
+import { createElement, Fragment, isValidElement, type ReactElement, type ReactNode } from "react";
 import { screenLayout } from "../../../../../tools/studio/screen-chrome.mjs";
 import { requiredFunctions, standInKind } from "../../../../../tools/studio/standins.mjs";
 import { HIDDEN_PROP, HIDDEN_SLOTS_PROP, STUDIO_ONLY_PROPS, bindsVars, hiddenOn, hiddenSlotsOf } from "../../../../../tools/studio/visibility.mjs";
@@ -11,7 +11,8 @@ import { typographyStyles } from "../../../../tokens/typography.generated";
 import { NestedContext, overridesAt } from "../../../../components/_shared/nested";
 import { resolveMediaDeep } from "../library/media";
 import { filterRows, stepperOf } from "../proto/protoModel";
-import { Board, eventElement, Overlay, protoHandler, Screen, Section, Slice, type PlayLive, type ProtoActions } from "../proto/runtime";
+import { Board, eventElement, Overlay, PlayMoreTab, protoHandler, Screen, Section, Slice, type PlayLive, type ProtoActions } from "../proto/runtime";
+import { engineNow } from "../engine";
 
 /*
  * The builder page renderer (spec docs/research/studio-builder-pages-spec-2026-10-06.md §3 2b): the neutral tree of
@@ -639,6 +640,12 @@ function renderFresh(node: PageNode, scope: Scope, ctx: RenderContext, key?: str
   if (lookStyle) props.style = lookStyle;
   prototypeProps(node, props, ctx);
   livePlayProps(node, props, ctx);
+  // Play's More (user 2026-11-04): a phone tab bar's More that leads nowhere of its own opens the sheet of the Sidebar's
+  // rows past the fourth, drawn from the Screen's AppShell (tools/studio/responsive-header.mjs); the page holds no sheet.
+  if (node.name === "Screen" && ctx.play && isValidElement(props.bottomNavigation)) {
+    const sheet = engineNow()?.playMoreSheet(node, { mock: ctx.mock }) as PageNode | null | undefined;
+    if (sheet) props.bottomNavigation = createElement(PlayMoreTab, { bar: props.bottomNavigation as ReactElement<{ onValueChange?: (id: string) => void }>, sheet: (open, onOpenChange) => renderNode(sheet, scope, ctx, "more-sheet", { open, onOpenChange }) });
+  }
   const live = liveControlProps(node, props, scope, ctx);
   withStandIns(node.name, props);
   if (bound && typeof bound.swap === "string" && node.name === "Icon" && typeof ctx.values?.[bound.swap] === "string") props.name = ctx.values[bound.swap];

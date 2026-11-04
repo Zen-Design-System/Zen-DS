@@ -41,3 +41,26 @@ edge down for room; Play grows the Screen to its floating layers and scrolls (si
 - QA: DND-05 works (10 drops, the Screen's edge dragged 2× to 2216 px, Play scrolled 598 px, bar at 0 px).
 - `--only=dnd`: 8 works, 0 broken (DND-01…03 drops, 04, 06, 07, 08, 05; 1495 s). `npm run qa -- --isolated` PASS
   (Studio E2E 455 works, 0 broken; TypeScript ✓; Studio self-tests ✓).
+
+## Phone tab bar: More opens a sheet (session "More tab", tier S; branch claude/busy-gates-882dc2)
+
+BACKLOG-user-and-later P3 (2026-10-25), picked by Giám sát. Figma (9nZv4uW2…, ❖ Bottom-Navigations) has no More
+pattern, only the Document line "More than five → a Sidebar / drawer or a More destination". A temporary A/B draft
+(4 tabs + More; More → action Bottom-Sheet of the rest) on the QA page was shown; the user chose **no library change**
+(Studio draws the sheet itself) and to delete the draft (deleted).
+
+- First build (commits a7442c51…86c45e92) wrote an Overlay `tab-bar-more` onto the board and made the bar's
+  onValueChange `proto.run(navigate, proto.open({ more }))`. The gate's E2E caught 9 regressions (B-14, B-15, B-20,
+  PT-01…03, PT-08, PT-09, PT-36): a new page's Sidebar has 6 placeholder rows, so every new page got the Overlay (frame
+  counts, arrows, a new Screen's place) and the Prototype tab's per-tab ⊕ (one per-item navigate) broke on the run.
+- Rebuilt with Giám sát's agreement, nothing written to the page: `responsive-header.mjs` keeps the bar's
+  onValueChange as the Sidebar's navigate and exports `playMoreSheet(screen)`: the action BottomSheet of the rows past
+  the fourth (`onSelect` = the Sidebar's per-item navigate narrowed to them; the sheet closes after a row), when the Screen's
+  bar (or its AppShell's own) has a More that leads nowhere of its own. `render/renderPage.tsx` wraps a Screen's
+  `bottomNavigation` in Play with `PlayMoreTab` (`proto/runtime.tsx`): More opens that sheet, the other tabs keep
+  their handler. Export (compile.mjs) does not draw the sheet: the exported app's More stays a plain tab.
+- Docs: §17's Sidebar row and the bottom-navigation guideline say how More works in app code.
+- Tests: responsive-header selftest 54 checks (sheet code, More selected, no Overlay on the page, a More with its own
+  target, an AppShell's own bar); E2E PT-63 (id from Giám sát): seven rows, the page holds no sheet, Play More → sheet
+  Tasks · Hiring · Reports → Tasks, More marked → Overview. `docs/ai-ui/catalog.json` rebuilt (the guideline line).
+

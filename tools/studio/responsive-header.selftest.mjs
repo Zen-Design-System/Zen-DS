@@ -4,7 +4,8 @@ import { dataFieldEdit } from "./data-source.mjs";
 import { parsePage } from "./dialect.mjs";
 import { docFromText, editDoc } from "./doc.mjs";
 import { applyOps, sha1 } from "./jsx-source.mjs";
-import { phoneChromeCode, planPhoneSync } from "./responsive-header.mjs";
+import { phoneChromeCode, planPhoneSync, playMoreSheet } from "./responsive-header.mjs";
+import { elementText } from "./doc.mjs";
 
 const failures = [];
 let passed = 0;
@@ -64,6 +65,10 @@ const screenOf = (text) => parsePage(text).board.children.find((child) => child.
   ok("root: the Search is the control bar, folding into the Search action", /controlBar=\{<Search aria-label="Search" placeholder="Search expenses" \/>\} searchAction=\{\{ label: "Search" \}\}/.test(code.topNavigation));
   ok("root: the Sidebar's first 4 rows + More, the selected one, a counter as a dot", /<BottomNavigation value="expenses" showLabels items=\{\[\{ id: "home", label: "Overview"[^\]]*\{ id: "approvals", label: "Approvals", icon: "icon-check-circle-line", dot: true \}[^\]]*\{ id: "more", label: "More", icon: "icon-dots-horizontal-line" \}\]\} \/>/.test(code.bottomNavigation));
   ok("root: notes say what stays or folds", code.notes.some((note) => note.includes("Pro Badge")) && code.notes.some((note) => note.includes("Vendors, Reports go into More")));
+  // More's sheet (Play draws it): the folded rows; they have no targets here, so a row only closes the sheet.
+  check("root: More's sheet, an action BottomSheet of the folded rows", code.moreSheet, '<BottomSheet type="action" title="More" items={[{ id: "vendors", label: "Vendors", icon: "icon-building-02-line" }, { id: "reports", label: "Reports", icon: "icon-pie-chart-01-line" }]} />');
+  const reportsOpen = phoneChromeCode(screenOf(ROOT.replace('selectedId="expenses"', 'selectedId="reports"')));
+  ok("root: a folded row selected selects More", /<BottomNavigation value="more"/.test(reportsOpen.bottomNavigation));
 }
 
 /* ── over budget: More takes the last place ─────────────────────────────────────────────────────────────────────── */
@@ -103,6 +108,17 @@ const screenOf = (text) => parsePage(text).board.children.find((child) => child.
   ok("tabs: onValueChange is the Sidebar's per-item navigate", /<BottomNavigation value="home" onValueChange=\{proto\.navigate\(\{ home: "overview", tasks: "tasks" \}\)\} showLabels/.test(code.bottomNavigation));
   const rowsOwn = phoneChromeCode(screenOf(demo.replace(' onItemClick={proto.navigate({ home: "overview", tasks: "tasks" })}', "").replace('id="home" label="Overview"', 'id="home" label="Overview" onClick={proto.navigate("overview")}').replace('id="people" label="People"', 'id="people" label="People" onClick={proto.navigate("people")}')));
   ok("tabs: without onItemClick, the rows' own navigates as one per-item navigate", /onValueChange=\{proto\.navigate\(\{ home: "overview", people: "people" \}\)\}/.test(rowsOwn.bottomNavigation));
+  check("tabs: five rows or fewer, no More sheet", code.moreSheet, null);
+  // Seven rows (DEMO-MEET: Quản lý task under More): More opens the sheet, whose rows go where their Sidebar rows go.
+  const seven = demo.replace('<SidebarMenuItem id="tasks" label="Tasks" icon="icon-check-square-line" />', "").replace('<SidebarMenuItem id="people" label="People" icon="icon-users-line" />', `<SidebarMenuItem id="people" label="People" icon="icon-users-line" />
+            <SidebarMenuItem id="time" label="Time" icon="icon-clock-line" />
+            <SidebarMenuItem id="pay" label="Payroll" icon="icon-bank-note-01-line" />
+            <SidebarMenuItem id="tasks" label="Tasks" icon="icon-check-square-line" />
+            <SidebarMenuItem id="hiring" label="Hiring" icon="icon-user-plus-line" />
+            <SidebarMenuItem id="reports" label="Reports" icon="icon-bar-chart-square-02-line" />`);
+  const many = phoneChromeCode(screenOf(seven));
+  ok("more tab: the bar keeps the Sidebar's per-item navigate (the Prototype tab's ⊕ per tab edits it)", /<BottomNavigation value="home" onValueChange=\{proto\.navigate\(\{ home: "overview", tasks: "tasks" \}\)\} showLabels/.test(many.bottomNavigation) && /\{ id: "more", label: "More"/.test(many.bottomNavigation));
+  check("more tab: the sheet lists the rows past the fourth, Tasks navigating", many.moreSheet, '<BottomSheet type="action" title="More" items={[{ id: "tasks", label: "Tasks", icon: "icon-check-square-line" }, { id: "hiring", label: "Hiring", icon: "icon-user-plus-line" }, { id: "reports", label: "Reports", icon: "icon-bar-chart-square-02-line" }]} onSelect={proto.navigate({ tasks: "tasks" })} />');
   // A child with tabs: the Search above the tabs, no Search action (a child's bar does not fold).
   const child = phoneChromeCode(screenOf(demo.replace('<PageHeader title="Overview"', '<PageHeader title="Overview" back tabs={<Tabs aria-label="Views" items={[{ id: "a", label: "All" }, { id: "b", label: "Mine" }]} />}')));
   ok("search: a child's Search sits above its tabs", /controlBar=\{<Stack gap="xs"><Search aria-label="Search the workspace"[^>]*\/><Tabs aria-label="Views"/.test(child.topNavigation) && !/searchAction/.test(child.topNavigation));
@@ -169,6 +185,19 @@ function synced(before, text) {
   const custom = ROOT.replace('device="desktop"', 'device="desktop" bottomNavigation={<BottomNavigation value="x" items={[{ id: "x", label: "Mine", icon: "icon-home-03-line" }]} />}');
   const opened = synced(null, custom);
   ok("older page: its own bottom bar stays, the top bar links", /phoneLinked=\{\["topNavigation"\]\}/.test(opened) && /label: "Mine"/.test(opened));
+  check("older page: its own bar has no More, Play opens no sheet", playMoreSheet(screenOf(opened)), null);
+}
+{
+  // Play's More sheet (user 2026-11-04): the page holds none; Play draws it from the Screen's AppShell.
+  const opened = synced(null, ROOT);
+  ok("more sheet: the page stays as it was (no Overlay, no BottomSheet)", parsePage(opened).errors.length === 0 && !/<Overlay|<BottomSheet/.test(opened));
+  const sheet = playMoreSheet(screenOf(opened));
+  ok("more sheet: Play's sheet lists the folded rows", Boolean(sheet) && /items=\{\[\{ id: "vendors"[^\]]*\{ id: "reports", label: "Reports"/.test(elementText(sheet)));
+  const ownMore = opened.replace(/(<BottomNavigation value="expenses")/, '$1 onValueChange={proto.navigate({ more: "screen-1" })}');
+  check("more sheet: a More that leads somewhere of its own opens no sheet", playMoreSheet(screenOf(ownMore)), null);
+  // The drawn bar written into the AppShell (the canvas's Add Bottom Navigation): its More opens the sheet too.
+  const bar = phoneChromeCode(screenOf(ROOT)).bottomNavigation;
+  ok("more sheet: an AppShell's own bar with More opens it", Boolean(playMoreSheet(screenOf(ROOT.replace("        <AppShell\n", `        <AppShell\n          bottomNavigation={${bar}}\n`)))));
 }
 {
   // A linked part redrawn with a component the page does not import (the control bar's Stack) is swapped in, imported.

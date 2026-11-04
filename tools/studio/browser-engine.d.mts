@@ -16,10 +16,13 @@ export function parsePage(text: string, options?: { components?: Set<string> }):
 export function validateDialect(text: string, options?: { components?: Set<string> }): DialectError[];
 /** A Screen's phone parts drawn from its desktop AppShell (responsive-header.mjs, component-usage-rules §17). */
 export const PHONE_LINKED_PROP: "phoneLinked";
-export function phoneChromeCode(screen: unknown, options?: { mock?: Record<string, unknown> }): { kind: "root" | "child" | null; topNavigation: string | null; bottomNavigation: string | null; notes: string[] };
+export function phoneChromeCode(screen: unknown, options?: { mock?: Record<string, unknown> }): { kind: "root" | "child" | "own" | null; topNavigation: string | null; bottomNavigation: string | null; moreSheet: string | null; notes: string[] };
 export function phoneLinkedOf(screen: unknown): Array<"topNavigation" | "bottomNavigation">;
 /** The Screen edits that keep linked phone parts on the desktop header after an edit (`before` null: the page as it opens). */
 export function planPhoneSync(before: string | null, after: string, options?: { components?: Set<string> }): Array<{ loc: string; name: "Screen"; ops: Array<{ op: "setProp"; name: string; value: { kind: "expression"; code: string } } | { op: "removeProp"; name: string } | { op: "insertChild"; prop: string; code: string }>; notes: string[] }>;
+/** The action BottomSheet Play opens for a Screen's tab bar More (the Sidebar rows past the fourth), as a page node; null
+ *  when its bar has no More or More leads somewhere of its own. */
+export function playMoreSheet(screen: unknown, options?: { mock?: Record<string, unknown> }): unknown;
 export function newPageText(options?: { title?: string; device?: string; layout?: string; width?: number; height?: number; chrome?: boolean; empty?: boolean }): string;
 export function pageHeader(text: string): Record<string, unknown> | null;
 export type BoardFrame = { kind: "screen" | "overlay"; id: string; state?: string; title: string; device?: string; x?: number; y?: number; loc: string };

@@ -417,6 +417,17 @@ function withoutMasterLayout(children: ReactNode): ReactNode {
   return nodes.length === 1 && isValidElement<{ children?: ReactNode }>(only) && only.type === AppShell ? <div className="studio-builder-screen__shell-body">{only.props.children}</div> : children;
 }
 
+/**
+ * A phone tab bar in Play whose More opens a sheet of the other destinations (renderPage.tsx, component-usage-rules §17;
+ * user 2026-11-04: BottomNavigation draws no sheet and the page holds none): More opens `sheet`, the other tabs keep the
+ * bar's handler.
+ */
+export function PlayMoreTab({ bar, sheet }: { bar: ReactElement<{ onValueChange?: (id: string) => void }>; sheet: (open: boolean, onOpenChange: (open: boolean) => void) => ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const onValueChange = bar.props.onValueChange;
+  return <>{cloneElement(bar, { onValueChange: (id: string) => (id === "more" ? setOpen(true) : onValueChange?.(id)) })}{sheet(open, setOpen)}</>;
+}
+
 /** An overlay drawn open in its own frame: its portal is a node inside the frame, not the page's. A layer that does not
  *  place itself (a Card, not a Dialog) sits where the Overlay's `position` says, over a dimmed frame with `background`,
  *  as Play shows it; `closeOnOutside` is Play's only. A modal there is a picture of it open (OverlayPreviewContext, as the
