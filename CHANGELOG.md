@@ -14,6 +14,10 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio: the phone tab bar's More works (user 2026-11-04). A Sidebar of more than five rows gives the tab bar four
+  tabs + More and an Overlay "More" on the board holding an action Bottom Sheet of the other rows; in Play, More opens
+  it and each row goes where its Sidebar row goes (DEMO-MEET: Quản lý task). BottomNavigation is unchanged: in app code,
+  More is a tab whose onValueChange opens that sheet (component-usage-rules §17).
 - Zen Studio: a component clicked in Assets into a frame without auto layout keeps its Figma width too, as its drop
   (user 2026-11-04): a Text field 312, a Line chart 297 (before: the widget width), placed beside the last layer with
   the page gap; a Button or an Icon button keeps its own width. One ⌘Z takes the insert back.

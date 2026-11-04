@@ -21,6 +21,11 @@ export const PHONE_PARTS = ["topNavigation", "bottomNavigation"];
 const TRAILING_PLACES = 3;
 /** Destinations a BottomNavigation takes one to one; more → the first 4 + More. */
 const BOTTOM_ROOTS = 5;
+/** The Overlay the tab bar's More opens: a BottomSheet of the rows past the fourth (user 2026-11-04: the library's
+ *  BottomNavigation stays as it is, Studio draws the sheet). One per page, from the first Screen whose bar has More. */
+export const MORE_OVERLAY = "tab-bar-more";
+/** A frame's place on the board (moving the frame is not an edit of what it holds). */
+const PLACE_PROPS = ["x", "y", "width", "height"];
 
 /* ── reading the desktop header ─────────────────────────────────────────────────────────────────────────────────── */
 
@@ -152,13 +157,13 @@ const el = (name, props, children = []) => ({ kind: "element", name, loc: "0:0",
  */
 export function derivePhoneChrome(screen, { mock = {} } = {}) {
   const shell = rootShell(screen);
-  if (!shell) return { kind: null, topNavigation: null, bottomNavigation: null, notes: ["no desktop AppShell to draw the phone header from"] };
+  if (!shell) return { kind: null, topNavigation: null, bottomNavigation: null, moreSheet: null, notes: ["no desktop AppShell to draw the phone header from"] };
   // An AppShell written for the phone (its own Top / Bottom Navigation: a mobile template, walk 2026-10-29 W-48) has its
   // phone parts already: they are the Screen's, as written (its title, Search control bar, tabs), not drawn from a
   // desktop header it does not have (that drew the page's title and dropped the Search and the tabs).
   const ownTop = elementsIn(shell.props.topNavigation).find((node) => node.name === "TopNavigation") ?? null;
   const ownBottom = elementsIn(shell.props.bottomNavigation).find((node) => node.name === "BottomNavigation") ?? null;
-  if (ownTop || ownBottom) return { kind: "own", topNavigation: ownTop, bottomNavigation: ownBottom, notes: [] };
+  if (ownTop || ownBottom) return { kind: "own", topNavigation: ownTop, bottomNavigation: ownBottom, moreSheet: null, notes: [] };
   const scope = { mock };
   const notes = [];
   // Header/AppShell: its top row (leading · center · actions) and its Main row (main, then sections).
@@ -244,29 +249,46 @@ export function derivePhoneChrome(screen, { mock = {} } = {}) {
   const sidebar = elementsIn(shell.props.sidebar).find((node) => node.name === "Sidebar");
   const rows = sidebarRows(sidebar, scope);
   let bottomNavigation = null;
+  let moreSheet = null;
   if (!child && rows.length >= 2) {
-    const shown = rows.length > BOTTOM_ROOTS ? [...rows.slice(0, BOTTOM_ROOTS - 1), { id: "more", label: "More", icon: "icon-dots-horizontal-line", dot: rows.slice(BOTTOM_ROOTS - 1).some((row) => row.dot) }] : rows;
+    const folded = rows.length > BOTTOM_ROOTS ? rows.slice(BOTTOM_ROOTS - 1) : [];
+    const shown = folded.length ? [...rows.slice(0, BOTTOM_ROOTS - 1), { id: "more", label: "More", icon: "icon-dots-horizontal-line", dot: folded.some((row) => row.dot) }] : rows;
     const selected = literalOf(sidebar, "selectedId");
-    const value = shown.some((row) => row.id === selected) ? selected : rows.length > BOTTOM_ROOTS && rows.some((row) => row.id === selected) ? "more" : shown[0].id;
+    const value = shown.some((row) => row.id === selected) ? selected : folded.some((row) => row.id === selected) ? "more" : shown[0].id;
     // A tab goes where its Sidebar row goes: the Sidebar's onItemClick (a per-item navigate keyed by the same ids), else
     // the rows' own navigates as one per-item navigate.
     const rowTargets = Object.fromEntries(rows.map((row) => [row.id, row.onClick?.kind === "proto" && row.onClick.action === "navigate" && typeof row.onClick.args[0] === "string" ? row.onClick.args[0] : null]).filter(([, target]) => target));
-    const onValueChange = sidebar.props.onItemClick ?? (Object.keys(rowTargets).length ? { kind: "proto", action: "navigate", args: [rowTargets] } : undefined);
+    const go = sidebar.props.onItemClick ?? (Object.keys(rowTargets).length ? { kind: "proto", action: "navigate", args: [rowTargets] } : undefined);
+    // More opens the sheet of the folded rows (§17: "the full list in a sheet"), whose rows go where their Sidebar rows go.
+    const openMore = folded.length ? { kind: "proto", action: "open", args: [{ more: MORE_OVERLAY }] } : undefined;
+    const onValueChange = openMore && go?.kind === "proto" ? { kind: "proto", action: "run", args: [go, openMore] } : go ?? openMore;
     bottomNavigation = el("BottomNavigation", {
       value: lit(value),
       onValueChange,
       showLabels: lit(true),
       items: { kind: "array", items: shown.map((row) => obj({ id: lit(row.id), label: lit(row.label), icon: lit(row.icon), dot: row.dot ? lit(true) : undefined })) },
     });
-    if (rows.length > BOTTOM_ROOTS) notes.push(`${rows.slice(BOTTOM_ROOTS - 1).map((row) => row.label).join(", ")} go into More`);
+    if (folded.length) {
+      const targets = targetMap(go);
+      const foldedTargets = targets && Object.fromEntries(folded.filter((row) => typeof targets[row.id] === "string").map((row) => [row.id, targets[row.id]]));
+      // Rows going nowhere close the sheet (no dead rows; the desktop's rows go nowhere either).
+      const onSelect = (!targets ? go : Object.keys(foldedTargets).length ? { kind: "proto", action: go.action, args: [foldedTargets, ...go.args.slice(1)] } : undefined) ?? { kind: "proto", action: "close", args: [] };
+      moreSheet = el("Overlay", { id: lit(MORE_OVERLAY), title: lit("More") }, [el("BottomSheet", {
+        type: lit("action"),
+        title: lit("More"),
+        items: { kind: "array", items: folded.map((row) => obj({ id: lit(row.id), label: lit(row.label), icon: lit(row.icon) })) },
+        onSelect,
+      })]);
+      notes.push(`${folded.map((row) => row.label).join(", ")} go into More (its sheet: the "${MORE_OVERLAY}" Overlay)`);
+    }
   }
-  return { kind: child ? "child" : "root", topNavigation, bottomNavigation, notes };
+  return { kind: child ? "child" : "root", topNavigation, bottomNavigation, moreSheet, notes };
 }
 
 /** The phone parts as JSX (null: none). */
 export function phoneChromeCode(screen, options) {
   const derived = derivePhoneChrome(screen, options);
-  return { kind: derived.kind, topNavigation: derived.topNavigation ? elementText(derived.topNavigation) : null, bottomNavigation: derived.bottomNavigation ? elementText(derived.bottomNavigation) : null, notes: derived.notes };
+  return { kind: derived.kind, topNavigation: derived.topNavigation ? elementText(derived.topNavigation) : null, bottomNavigation: derived.bottomNavigation ? elementText(derived.bottomNavigation) : null, moreSheet: derived.moreSheet ? elementText(derived.moreSheet) : null, notes: derived.notes };
 }
 
 /* ── keeping linked parts in step ───────────────────────────────────────────────────────────────────────────────── */
@@ -336,7 +358,43 @@ export function planPhoneSync(before, after, { components } = {}) {
     if (listChanged) ops.push({ op: "setProp", name: PHONE_LINKED_PROP, value: { kind: "expression", code: JSON.stringify(linked) } });
     if (ops.length) plans.push({ loc: screen.loc, name: "Screen", ops, notes: derived.notes });
   }
-  return plans;
+  if (plans.length) return plans;
+  // The Screens' parts settled: the More sheet their tab bars open follows them.
+  const sheet = planMoreSheet(was, now);
+  return sheet ? [sheet] : [];
+}
+
+/** The More sheet a page's tab bars open (MORE_OVERLAY): drawn from the first root Screen whose bar opens it and has
+ *  More; null when no bar opens it. */
+function wantedSheet(tree) {
+  for (const screen of screensOf(tree)) {
+    if (!rootShell(screen) || !partCode(screen, "bottomNavigation")?.includes(JSON.stringify(MORE_OVERLAY))) continue;
+    const sheet = derivePhoneChrome(screen, { mock: tree.mock ?? {} }).moreSheet;
+    if (sheet) return sheet;
+  }
+  return null;
+}
+
+/** An Overlay's code without its place on the board. */
+const unplacedCode = (node) => elementText({ ...node, props: Object.fromEntries(Object.entries(node.props).filter(([name]) => !PLACE_PROPS.includes(name))) });
+
+/**
+ * The edit that keeps the More sheet with the tab bars: added (last on the Board) when a bar opens it and it is missing,
+ * redrawn in its place when the Sidebar's rows change, removed when no bar opens it. An Overlay that is not the one drawn
+ * before this edit is the person's own (edited, or written by hand) and stays as it is. Null: nothing to do.
+ */
+function planMoreSheet(was, now) {
+  const wanted = wantedSheet(now);
+  const sheet = now.board.children.find((child) => child.kind === "element" && child.name === "Overlay" && literalOf(child, "id") === MORE_OVERLAY) ?? null;
+  const notes = [`the tab bar's More opens the "${MORE_OVERLAY}" Overlay`];
+  if (!sheet) return wanted ? { loc: now.board.loc, name: "Board", ops: [{ op: "insertChild", code: elementText(wanted) }], notes } : null;
+  const code = unplacedCode(sheet);
+  if (wanted && code === elementText(wanted)) return null;
+  const earlier = was?.board && !was.errors.length ? wantedSheet(was) : null;
+  if (!earlier || code !== elementText(earlier)) return null;
+  if (!wanted) return { loc: sheet.loc, name: "Overlay", ops: [{ op: "removeElement" }], notes };
+  const place = Object.fromEntries(PLACE_PROPS.filter((name) => sheet.props[name]).map((name) => [name, sheet.props[name]]));
+  return { loc: sheet.loc, name: "Overlay", ops: [{ op: "replaceElement", code: elementText({ ...wanted, props: { ...wanted.props, ...place } }) }], notes };
 }
 
 /** A Screen's linked phone parts (for the Screen section), from its dialect node. */

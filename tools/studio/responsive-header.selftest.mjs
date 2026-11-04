@@ -18,7 +18,8 @@ const ok = (label, value) => check(label, Boolean(value), true);
 
 const FILE = "local:phone-test.zen.tsx";
 const NAMES = ["AppShell", "AppShellAccount", "AppShellAction", "AppShellHeader", "Badge", "BottomNavigation", "Breadcrumbs", "Button", "Menu", "PageHeader", "Search", "Sidebar", "SidebarMenuItem", "Stack", "Tabs", "Text", "TopNavigation"];
-const componentModules = new Map(NAMES.map((name) => [name, name]));
+// BottomSheet is not imported by the test pages: the More sheet's insert imports it.
+const componentModules = new Map([...NAMES, "BottomSheet"].map((name) => [name, name]));
 const options = (text) => ({ file: FILE, componentModules, requiredChildren: new Set(), requiredProps: new Map(), hash: sha1(text) });
 
 const page = ({ screenProps = "", shellProps, content = '<Stack gap="md"><Text>Rows</Text></Stack>' }) => `// @zen-page {"format":1,"title":"Expenses"}
@@ -62,8 +63,12 @@ const screenOf = (text) => parsePage(text).board.children.find((child) => child.
   ok("root: the account leads the bar, in its Menu", /leading=\{<Menu items=\{\[\]\} trigger=\{<AppShellAccount name="Khoa Dang" \/>\} \/>\}/.test(code.topNavigation));
   ok("root: the Primary as + (its prototype link kept), notifications; the Search action takes the third place", /trailing=\{\[\{ icon: "icon-plus-line", label: "New expense", onClick: proto\.open\("new-expense"\) \}, \{ icon: "icon-bell-01-line", label: "Notifications", dot: true, onClick: proto\.toast\("4 new"\) \}\]\}/.test(code.topNavigation));
   ok("root: the Search is the control bar, folding into the Search action", /controlBar=\{<Search aria-label="Search" placeholder="Search expenses" \/>\} searchAction=\{\{ label: "Search" \}\}/.test(code.topNavigation));
-  ok("root: the Sidebar's first 4 rows + More, the selected one, a counter as a dot", /<BottomNavigation value="expenses" showLabels items=\{\[\{ id: "home", label: "Overview"[^\]]*\{ id: "approvals", label: "Approvals", icon: "icon-check-circle-line", dot: true \}[^\]]*\{ id: "more", label: "More", icon: "icon-dots-horizontal-line" \}\]\} \/>/.test(code.bottomNavigation));
+  ok("root: the Sidebar's first 4 rows + More, the selected one, a counter as a dot", /<BottomNavigation value="expenses" onValueChange=\{proto\.open\(\{ more: "tab-bar-more" \}\)\} showLabels items=\{\[\{ id: "home", label: "Overview"[^\]]*\{ id: "approvals", label: "Approvals", icon: "icon-check-circle-line", dot: true \}[^\]]*\{ id: "more", label: "More", icon: "icon-dots-horizontal-line" \}\]\} \/>/.test(code.bottomNavigation));
   ok("root: notes say what stays or folds", code.notes.some((note) => note.includes("Pro Badge")) && code.notes.some((note) => note.includes("Vendors, Reports go into More")));
+  // More opens a sheet of the folded rows (the rows have no targets here, so the sheet's rows only close it).
+  check("root: More's sheet, an action BottomSheet of the folded rows in an Overlay", code.moreSheet, '<Overlay id="tab-bar-more" title="More">\n  <BottomSheet type="action" title="More" items={[{ id: "vendors", label: "Vendors", icon: "icon-building-02-line" }, { id: "reports", label: "Reports", icon: "icon-pie-chart-01-line" }]} onSelect={proto.close()} />\n</Overlay>');
+  const reportsOpen = phoneChromeCode(screenOf(ROOT.replace('selectedId="expenses"', 'selectedId="reports"')));
+  ok("root: a folded row selected selects More", /<BottomNavigation value="more"/.test(reportsOpen.bottomNavigation));
 }
 
 /* ── over budget: More takes the last place ─────────────────────────────────────────────────────────────────────── */
@@ -103,6 +108,18 @@ const screenOf = (text) => parsePage(text).board.children.find((child) => child.
   ok("tabs: onValueChange is the Sidebar's per-item navigate", /<BottomNavigation value="home" onValueChange=\{proto\.navigate\(\{ home: "overview", tasks: "tasks" \}\)\} showLabels/.test(code.bottomNavigation));
   const rowsOwn = phoneChromeCode(screenOf(demo.replace(' onItemClick={proto.navigate({ home: "overview", tasks: "tasks" })}', "").replace('id="home" label="Overview"', 'id="home" label="Overview" onClick={proto.navigate("overview")}').replace('id="people" label="People"', 'id="people" label="People" onClick={proto.navigate("people")}')));
   ok("tabs: without onItemClick, the rows' own navigates as one per-item navigate", /onValueChange=\{proto\.navigate\(\{ home: "overview", people: "people" \}\)\}/.test(rowsOwn.bottomNavigation));
+  check("tabs: five rows or fewer, no More sheet", code.moreSheet, null);
+  // Seven rows (DEMO-MEET: Quản lý task under More): More opens the sheet, whose rows go where their Sidebar rows go.
+  const seven = demo.replace('<SidebarMenuItem id="tasks" label="Tasks" icon="icon-check-square-line" />', "").replace('<SidebarMenuItem id="people" label="People" icon="icon-users-line" />', `<SidebarMenuItem id="people" label="People" icon="icon-users-line" />
+            <SidebarMenuItem id="time" label="Time" icon="icon-clock-line" />
+            <SidebarMenuItem id="pay" label="Payroll" icon="icon-bank-note-01-line" />
+            <SidebarMenuItem id="tasks" label="Tasks" icon="icon-check-square-line" />
+            <SidebarMenuItem id="hiring" label="Hiring" icon="icon-user-plus-line" />
+            <SidebarMenuItem id="reports" label="Reports" icon="icon-bar-chart-square-02-line" />`);
+  const many = phoneChromeCode(screenOf(seven));
+  ok("more tab: the Sidebar's navigate, then More opens the sheet", /<BottomNavigation value="home" onValueChange=\{proto\.run\(proto\.navigate\(\{ home: "overview", tasks: "tasks" \}\), proto\.open\(\{ more: "tab-bar-more" \}\)\)\} showLabels/.test(many.bottomNavigation));
+  check("more tab: the sheet lists the rows past the fourth, Tasks navigating", many.moreSheet, '<Overlay id="tab-bar-more" title="More">\n  <BottomSheet type="action" title="More" items={[{ id: "tasks", label: "Tasks", icon: "icon-check-square-line" }, { id: "hiring", label: "Hiring", icon: "icon-user-plus-line" }, { id: "reports", label: "Reports", icon: "icon-bar-chart-square-02-line" }]} onSelect={proto.navigate({ tasks: "tasks" })} />\n</Overlay>');
+  check("more tab: the page with its sheet stays valid", parsePage(seven.replace("    </Board>", `${many.moreSheet}\n    </Board>`).replace("Badge, BottomNavigation", "Badge, BottomNavigation, BottomSheet").replace("{ Board, Screen, proto }", "{ Board, Overlay, Screen, proto }")).errors, []);
   // A child with tabs: the Search above the tabs, no Search action (a child's bar does not fold).
   const child = phoneChromeCode(screenOf(demo.replace('<PageHeader title="Overview"', '<PageHeader title="Overview" back tabs={<Tabs aria-label="Views" items={[{ id: "a", label: "All" }, { id: "b", label: "Mine" }]} />}')));
   ok("search: a child's Search sits above its tabs", /controlBar=\{<Stack gap="xs"><Search aria-label="Search the workspace"[^>]*\/><Tabs aria-label="Views"/.test(child.topNavigation) && !/searchAction/.test(child.topNavigation));
@@ -169,6 +186,25 @@ function synced(before, text) {
   const custom = ROOT.replace('device="desktop"', 'device="desktop" bottomNavigation={<BottomNavigation value="x" items={[{ id: "x", label: "Mine", icon: "icon-home-03-line" }]} />}');
   const opened = synced(null, custom);
   ok("older page: its own bottom bar stays, the top bar links", /phoneLinked=\{\["topNavigation"\]\}/.test(opened) && /label: "Mine"/.test(opened));
+  check("older page: its own bar opens no More sheet", /tab-bar-more/.test(opened), false);
+}
+{
+  // The More sheet follows the tab bars (user 2026-11-04): added, imported, as the page opens; left alone when moved;
+  // redrawn in its place when a folded row changes; gone with More.
+  const opened = synced(null, ROOT);
+  check("more sheet: the page stays valid", parsePage(opened).errors, []);
+  ok("more sheet: added last on the Board, the BottomSheet imported", /<\/Screen>\s*<Overlay id="tab-bar-more" title="More">\s*<BottomSheet type="action" title="More"/.test(opened) && /import \{[^}]*\bBottomSheet\b[^}]*\} from "@zen-ds\/react"/.test(opened));
+  check("more sheet: nothing left to do", planPhoneSync(null, opened), []);
+  const moved = opened.replace('<Overlay id="tab-bar-more" title="More"', '<Overlay id="tab-bar-more" title="More" x={2400} y={0}');
+  check("more sheet: moving it is not an edit of it", planPhoneSync(opened, moved), []);
+  const renamed = synced(moved, moved.replace('id="reports" label="Reports"', 'id="reports" label="Analytics"'));
+  ok("more sheet: a folded row renamed, the sheet redrawn where it was", /<Overlay id="tab-bar-more" title="More" x=\{2400\} y=\{0\}>/.test(renamed) && /\{ id: "reports", label: "Analytics"/.test(renamed) && renamed.match(/<Overlay /g).length === 1);
+  const five = synced(renamed, renamed.replace(/\n\s*<SidebarMenuItem id="reports"[^\n]*\/>/, ""));
+  ok("more sheet: five rows, no More, the sheet goes", parsePage(five).errors.length === 0 && !/tab-bar-more/.test(five) && !/id: "more"/.test(five));
+  // The person's own sheet (edited in the canvas): it stays as they made it.
+  const own = opened.replace('<BottomSheet type="action" title="More"', '<BottomSheet type="action" title="All sections"');
+  const kept = synced(own, own.replace('id="reports" label="Reports"', 'id="reports" label="Analytics"'));
+  ok("more sheet: an edited sheet is the person's own", /title="All sections"/.test(kept) && /label: "Reports"/.test(kept.slice(kept.indexOf("<Overlay"))));
 }
 {
   // A linked part redrawn with a component the page does not import (the control bar's Stack) is swapped in, imported.

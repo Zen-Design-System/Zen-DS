@@ -604,6 +604,46 @@ ${shell("tasks", "Tasks", `          <Stack padding="lg">
 `;
 };
 
+/** Two phone Screens whose master layout's Sidebar has seven rows (PT-63; DEMO-MEET's Quản lý task sat under More, a tab
+ *  that did nothing): the tab bar takes the first four + More, Tasks is folded into More's sheet. */
+const moreTabPage = (title) => {
+  const shell = (selected, heading) => `        <AppShell
+          sidebar={<Sidebar aria-label="Main" selectedId="${selected}" onItemClick={proto.navigate({ home: "overview", tasks: "tasks" })}>
+            <SidebarMenuItem id="home" label="Overview" icon="icon-home-03-line" />
+            <SidebarMenuItem id="people" label="People" icon="icon-users-line" />
+            <SidebarMenuItem id="time" label="Time" icon="icon-clock-line" />
+            <SidebarMenuItem id="pay" label="Payroll" icon="icon-bank-note-01-line" />
+            <SidebarMenuItem id="tasks" label="Tasks" icon="icon-check-square-line" />
+            <SidebarMenuItem id="hiring" label="Hiring" icon="icon-user-plus-line" />
+            <SidebarMenuItem id="reports" label="Reports" icon="icon-bar-chart-square-02-line" />
+          </Sidebar>}
+          header={<AppShellHeader main={<PageHeader title="${heading}" />} />}
+        >
+          <Stack padding="lg">
+            <Text>${heading} body</Text>
+          </Stack>
+        </AppShell>`;
+  return `// @zen-page ${JSON.stringify({ format: 1, title })}
+import { Board, Screen, proto } from "@zen-ds/react/builder";
+import { AppShell, AppShellHeader, PageHeader, Sidebar, SidebarMenuItem, Stack, Text } from "@zen-ds/react";
+
+export const mock = {};
+
+export default function Page() {
+  return (
+    <Board>
+      <Screen id="overview" title="Overview" device="phone">
+${shell("home", "Overview")}
+      </Screen>
+      <Screen id="tasks" title="Tasks" device="phone">
+${shell("tasks", "Tasks")}
+      </Screen>
+    </Board>
+  );
+}
+`;
+};
+
 /** Seeds the phone chrome page and waits for both Screens' phone parts drawn from the desktop header, linked. */
 async function phoneChromeSeeded(ctx) {
   const seeded = await seededPage(ctx, phoneChromePage, /<Screen id="tasks"/);
@@ -2522,6 +2562,40 @@ export const rows = [
       await until(async () => (await playing(page).getByText("Enter an email", { exact: true }).count()) === 0, { message: "the error goes" });
       await page.keyboard.press("Escape");
       return "dropped with vars email, emailError · Play: empty → Enter an email, stays · ana@zen.dev → Invites sent";
+    },
+  },
+  {
+    id: "PT-63", feature: "The phone tab bar's More (BACKLOG P3, user 2026-11-04: the library stays, Studio draws the sheet): a Sidebar of seven rows gives four tabs + More and an Overlay tab-bar-more holding an action BottomSheet of the other rows; in phone Play More opens it, Tasks in it opens Tasks with More marked, Overview's tab comes back", wp: "phone tab bar More 2026-11-04", timeout: 40_000,
+    async run(ctx) {
+      const seeded = await seededPage(ctx, moreTabPage, /<Screen id="tasks"/);
+      const { page } = seeded;
+      await until(async () => {
+        const code = await seeded.text();
+        return (code.match(/phoneLinked=\{\["topNavigation", ?"bottomNavigation"\]\}/g) ?? []).length === 2 && code.includes('proto.open({ more: "tab-bar-more" })') && /<Overlay id="tab-bar-more" title="More">\s*<BottomSheet type="action" title="More"/.test(code);
+      }, { message: "both Screens' tab bars linked, More opening the drawn tab-bar-more sheet" }).catch(async (error) => { throw new Error(`${error.message} (${(await seeded.text()).match(/bottomNavigation=\{.{0,300}/)?.[0] ?? "no bottomNavigation"})`); });
+      const code = await seeded.text();
+      if (!code.includes('onSelect={proto.navigate({ tasks: "tasks" })}')) throw new Error("the More sheet's rows do not go where the Sidebar's rows go");
+      await page.locator(".studio-viewport").focus();
+      await page.keyboard.press("Escape");
+      await page.keyboard.press("ControlOrMeta+Alt+Enter");
+      await playing(page).waitFor({ state: "visible", timeout: 5000 });
+      await until(async () => (await playScreen(page)) === "overview", { message: "Play starts on Overview" });
+      const tab = (name) => playing(page).locator(".zen-bottom-nav__item", { hasText: name });
+      const tabs = await playing(page).locator(".zen-bottom-nav__item").allInnerTexts();
+      if (tabs.map((name) => name.trim()).join() !== "Overview,People,Time,Payroll,More") throw new Error(`the tab bar shows ${tabs.join(", ")}`);
+      const sheet = page.getByRole("dialog", { name: "More" });
+      await step("press the More tab", () => tab("More").click());
+      await sheet.waitFor({ state: "visible", timeout: 3000 });
+      const rows = (await sheet.locator(".zen-bottom-sheet__item").allInnerTexts()).map((name) => name.trim()).join();
+      if (rows !== "Tasks,Hiring,Reports") throw new Error(`the More sheet lists ${rows}`);
+      await step("press Tasks in the sheet", () => sheet.getByText("Tasks", { exact: true }).click());
+      await until(async () => (await playScreen(page)) === "tasks", { message: "Tasks in the sheet → Tasks" });
+      await until(async () => (await sheet.count()) === 0, { message: "the sheet closes" });
+      await until(async () => (await tab("More").getAttribute("aria-current")) === "page", { message: "Tasks' bar marks More (Tasks is folded into it)" });
+      await step("press the Overview tab", () => tab("Overview").click());
+      await until(async () => (await playScreen(page)) === "overview", { message: "the Overview tab → Overview" });
+      await page.keyboard.press("Escape");
+      return `tabs ${tabs.map((name) => name.trim()).join(" · ")} · Play: More → sheet ${rows} → Tasks → tasks (More marked) → Overview tab → overview`;
     },
   },
 ];

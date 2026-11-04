@@ -41,3 +41,23 @@ edge down for room; Play grows the Screen to its floating layers and scrolls (si
 - QA: DND-05 works (10 drops, the Screen's edge dragged 2× to 2216 px, Play scrolled 598 px, bar at 0 px).
 - `--only=dnd`: 8 works, 0 broken (DND-01…03 drops, 04, 06, 07, 08, 05; 1495 s). `npm run qa -- --isolated` PASS
   (Studio E2E 455 works, 0 broken; TypeScript ✓; Studio self-tests ✓).
+
+## Phone tab bar: More opens a sheet (session "More tab", tier S; branch claude/busy-gates-882dc2)
+
+BACKLOG-user-and-later P3 (2026-10-25), picked by Giám sát. Figma (9nZv4uW2…, ❖ Bottom-Navigations) has no More
+pattern, only the Document line "More than five → a Sidebar / drawer or a More destination". A temporary A/B draft
+(4 tabs + More; More → action Bottom-Sheet of the rest) on the QA page was shown; the user chose **no library change**
+(Studio draws the sheet itself) and to delete the draft (deleted).
+
+- `tools/studio/responsive-header.mjs`: with more than five rows the derived bar's `onValueChange` is
+  `proto.run(<the Sidebar's navigate>, proto.open({ more: "tab-bar-more" }))` (just the open without one), and
+  `derivePhoneChrome` returns `moreSheet`: `<Overlay id="tab-bar-more" title="More">` holding `<BottomSheet
+  type="action">` of the rows past the fourth, `onSelect` = the Sidebar's per-item navigate narrowed to them (else
+  `proto.close()`, no dead rows). `planPhoneSync`, once the Screens' parts are settled, keeps that Overlay with the bars
+  that open it: added last on the Board (BottomSheet imported), redrawn in its place (x/y kept; moving it is no edit)
+  when the rows change, removed with More; one that is not the sheet drawn before the edit is the person's own and
+  stays. One per page, from the first root Screen whose bar opens it. `browser-engine.d.mts` types follow.
+- Docs: §17's Sidebar row and the bottom-navigation guideline say how More works in app code.
+- Tests: responsive-header selftest 58 checks (sheet code, More selected, sync add / move / redraw / remove / own);
+  E2E PT-63 (id from Giám sát): seven rows, Play More → sheet Tasks · Hiring · Reports → Tasks, More marked → Overview.
+

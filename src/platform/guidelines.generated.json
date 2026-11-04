@@ -7433,7 +7433,7 @@
       ]
     ],
     "do": [
-      "Keep 3–5 destinations (harness: bottom-navigation/destinations).",
+      "Keep 3–5 destinations (harness: bottom-navigation/destinations). Past five, make the fifth tab More (id \"more\", icon-dots-horizontal-line; its value while the screen is one of the rest): its onValueChange opens a BottomSheet type=\"action\" listing the rest, each row navigating (component-usage-rules §17). The bar draws no sheet itself.",
       "Use a solid glyph for the selected state (selectedIcon) and keep the label as the accessible name.",
       "Use Floating Glass over imagery: idle icons are Neutral/Strongest and the selection defaults to Subtle; switch to Solid only for extra emphasis.",
       "Tapping the current destination again scrolls its root screen back to the top (the large title opens again): onValueChange also fires for the current id, so compare and scroll.",
