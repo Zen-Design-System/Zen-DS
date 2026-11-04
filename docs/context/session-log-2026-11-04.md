@@ -23,3 +23,21 @@ User: "áp dụng luôn cho bấm chèn từ Assets" (after #378, which did it f
   (since W-12, a drop on an empty Screen floats; the story expects the page flow): question in BACKLOG-user-and-later.md.
 - QA: E2E B-62, B-61, B-50, B-51, B-52, B-58, FW-261, FW-262, FW-264 work; a probe showed FW-264's phone Text field
   also gets width 312 and still undoes in one ⌘Z. `npm run studio:selftest` ✓.
+
+## DND-05 rebuilt the Figma way (session Bug, tier S; branch zen/fix/studio-dnd05-floating-story-20261104)
+
+User's answer to the BACKLOG P2 question (through Giám sát: option A, floating drops; then, asked which reading, "Như
+Figma"): the canvas keeps clipping a Screen at its height as a Figma frame does; the person drags the Screen's bottom
+edge down for room; Play grows the Screen to its floating layers and scrolls (since #345). Test only, no product change.
+
+- `tools/studio/e2e/scenarios/dnd.mjs` `story`: Top navigation onto the top → the Screen's bar; a List box under the bar
+  and 8 blocks each 16 px under the last, every one a floating layer of the Screen (checked in the page text); when fewer
+  than 520 px are left under the next drop point, the Screen is selected by its name and its `s` handle dragged down
+  (`height` written). Canvas: every block whole in the Screen, in order, no overlap, the bar on top. Play: scrolled to
+  the end, the bar at 0, the last block whole, nothing sideways.
+- The canvas's tool bar sits over the middle of a Screen's foot after ⇧1: the edge is grabbed near its left end, two
+  zoom steps out, and the row says what covers it if anything does.
+- BACKLOG-user-and-later.md: the DND-05 P2 line closed.
+- QA: DND-05 works (10 drops, the Screen's edge dragged 2× to 2216 px, Play scrolled 598 px, bar at 0 px).
+- `--only=dnd`: 8 works, 0 broken (DND-01…03 drops, 04, 06, 07, 08, 05; 1495 s). `npm run qa -- --isolated` PASS
+  (Studio E2E 455 works, 0 broken; TypeScript ✓; Studio self-tests ✓).
