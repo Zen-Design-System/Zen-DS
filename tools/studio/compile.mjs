@@ -12,6 +12,8 @@
 //   Screen state's target ("orders:filtered") navigates to the Screen and names the state to pass; Filter table and
 //   Change step (Play drives the Table and Stepper) become TODO(dev) handlers: the app owns that state.
 // - Each Overlay frame's overlay renders with open={overlay === "x"} and onOpenChange.
+// - A phone tab bar's More that leads nowhere of its own opens a `moreOpen` BottomSheet of the Sidebar's rows past the
+//   fourth, as Studio's Play does (responsive-header.mjs playMoreSheet, component-usage-rules §17).
 // - The mock becomes `export const mock` with a type inferred from it; `{mock.x}` reads the `data` prop (default: mock).
 // - Prototype variables (W-52 B) become `export const startVars` and a `vars` state: `{vars.x}` reads it, proto.set
 //   updates it, proto.if branches on it, proto.run runs its actions in order, and a value control bound to `vars.x`
@@ -27,6 +29,7 @@ import { INSTANCE_LOOK_PROPS, instanceLookCode, instanceLookStyle, takesInstance
 import { pruneHidden } from "./visibility.mjs";
 import { operandCode, varsIn } from "./proto-vars.mjs";
 import { componentName } from "./component-name.mjs";
+import { playMoreSheet } from "./responsive-header.mjs";
 
 export { componentName };
 
@@ -539,6 +542,24 @@ function elementCode(node, ctx, indent, extra = []) {
   return `${open}>\n${kids.map((kid) => `${inner}${kid}`).join("\n")}\n${indent}</${node.name}>`;
 }
 
+/**
+ * A Screen's tab bar (a `bottomNavigation` value) whose More leads nowhere of its own, as Studio's Play draws it
+ * (responsive-header.mjs playMoreSheet): its onValueChange opens the page's `moreOpen` sheet for More and runs the bar's
+ * own handler for the other tabs; the sheet is kept for the page's root (ctx.moreSheets). Any other value as it is.
+ */
+function withMoreSheet(screen, bar, ctx) {
+  if (bar?.kind !== "element" || bar.node.name !== "BottomNavigation") return bar;
+  const sheet = playMoreSheet(screen, { mock: ctx.mock });
+  if (!sheet) return bar;
+  ctx.uses.add("more");
+  const id = String(literalOf(screen, "id"));
+  if (!ctx.moreSheets.has(id)) ctx.moreSheets.set(id, sheet);
+  const handler = bar.node.props.onValueChange;
+  const others = handler ? valueCode(handler, ctx, "", "<BottomNavigation> onValueChange") : null;
+  const code = others ? `(choice: string) => { if (choice === "more") { setMoreOpen(true); return; } const tabs: (choice: string) => void = ${others}; tabs(choice); }` : '(choice: string) => { if (choice === "more") setMoreOpen(true); }';
+  return { kind: "element", node: { ...bar.node, props: { ...bar.node.props, onValueChange: { kind: "code", code } } } };
+}
+
 /** A Screen's content as one expression (several children in a fragment). */
 function screenContent(screen, ctx, indent) {
   const part = (prop) => (screen.props[prop]?.kind === "element" ? screen.props[prop].node : null);
@@ -552,6 +573,7 @@ function screenContent(screen, ctx, indent) {
   if (shell) {
     const props = { ...shell.props };
     for (const prop of ["topNavigation", "bottomNavigation"]) if (!props[prop] && part(prop)) props[prop] = screen.props[prop];
+    if (props.bottomNavigation) props.bottomNavigation = withMoreSheet(screen, props.bottomNavigation, ctx);
     return elementCode({ ...shell, props }, ctx, indent);
   }
   // The master layout (a root AppShell, screen-frame.mjs) is the desktop layout's: a phone shows its content only.
@@ -577,7 +599,7 @@ function screenContent(screen, ctx, indent) {
     return [open, ...(header ? [`${inner}${elementCode(header, ctx, inner)}`] : []), ...content, `${indent}</AppShell>`].join("\n");
   }
   const top = part("topNavigation");
-  const bottom = part("bottomNavigation");
+  const bottom = withMoreSheet(screen, screen.props.bottomNavigation, ctx)?.node ?? null;
   return ["<>", ...(top ? [`${inner}${elementCode(top, ctx, inner)}`] : []), ...content, ...(bottom ? [`${inner}${elementCode(bottom, ctx, inner)}`] : []), `${indent}</>`].join("\n");
 }
 
@@ -596,6 +618,7 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   const overlays = frames.filter((node) => node.name === "Overlay");
   if (!screens.length) return { error: "The page has no Screen" };
   const ctx = createContext(mediaFile, page.mock ?? {});
+  ctx.moreSheets = new Map();
   // Page-local components: one function each, named from the component's name (a name a layer of the page already uses
   // takes "Block"; a repeat takes a number).
   const taken = new Set([name]);
@@ -712,6 +735,18 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
     return [comment, `${body}{screen === ${json(branch.id)} && (\n${inner}${branchCode(branch, inner)}\n${body})}`];
   });
 
+  // The tab bars' More sheets (withMoreSheet): one per sheet, on the screens whose bar opens it.
+  const bySheet = new Map();
+  for (const [id, sheet] of ctx.moreSheets) {
+    ctx.frame = `screen:${id}`;
+    const code = elementCode(sheet, ctx, many ? body + UNIT : body, [["open", "moreOpen"], ["onOpenChange", "setMoreOpen"]]);
+    bySheet.set(code, [...(bySheet.get(code) ?? []), id]);
+  }
+  const moreLines = [...bySheet].flatMap(([code, on]) => [
+    `${body}{/* More: the tab bar's other destinations (component-usage-rules §17) */}`,
+    many ? `${body}{(${on.map((id) => `screen === ${json(id)}`).join(" || ")}) && (\n${body}${UNIT}${code}\n${body})}` : `${body}${code}`,
+  ]);
+
   // Each main component the page draws, as a function (its layers once; every instance calls it). A main can hold
   // instances of another: until no new one shows up.
   const localLines = [];
@@ -778,7 +813,7 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   }
 
   const hasVars = Object.keys(page.vars ?? {}).length > 0 && (ctx.uses.has("varsRead") || ctx.uses.has("varsSet"));
-  const usesState = many || overlays.length > 0 || ctx.uses.has("overlay") || ctx.uses.has("navigate") || ctx.uses.has("back") || hasVars;
+  const usesState = many || overlays.length > 0 || ctx.uses.has("overlay") || ctx.uses.has("navigate") || ctx.uses.has("back") || ctx.uses.has("more") || hasVars;
   const screenType = `${name}Screen`;
   const overlayType = `${name}Overlay`;
   const propsType = `${name}${suffix}Props`;
@@ -843,6 +878,7 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   }
   if (overlayState) lines.push(`  const [${readsOverlay ? "overlay" : ""}, setOverlay] = useState<${overlays.length ? overlayType : "string"} | null>(null);`);
   if (hasVars) lines.push(`  const [${ctx.uses.has("varsRead") ? "vars" : ""}${ctx.uses.has("varsSet") ? ", setVars" : ""}] = useState(startVars);`);
+  if (ctx.uses.has("more")) lines.push("  const [moreOpen, setMoreOpen] = useState(false);");
   if (ctx.uses.has("toast")) lines.push("  const { toast } = useToast();");
   if (ctx.uses.has("navigate")) {
     lines.push(`  const navigate = (next: ${screenType}) => {`, ...(overlayState ? ["    setOverlay(null);"] : []), "    setHistory((stack) => [...stack, next]);", "    onNavigate?.(next);", "  };");
@@ -857,6 +893,7 @@ export function compileReact(text, { file, mediaFile = defaultMediaFile, suffix 
   lines.push("  return (");
   lines.push("    <>");
   lines.push(...screenLines);
+  lines.push(...moreLines);
   lines.push(...overlayCode);
   lines.push("    </>");
   lines.push("  );");

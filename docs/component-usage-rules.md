@@ -505,7 +505,7 @@ a **modal or form** screen has Close and its Primary in an ActionBar footer.
 
 | Desktop part | On the phone |
 | --- | --- |
-| Sidebar items | BottomNavigation from the top-level rows in order (group titles and sub-rows skipped): up to 5 map one to one; more than 5 → the first 4 + More (the full list in a sheet): More is a plain tab (`id: "more"`, selected while the screen is one of its rows) whose `onValueChange` opens a `BottomSheet type="action"` of the other rows, each going where its Sidebar row goes (BottomNavigation draws no sheet itself; Studio's Play opens that sheet on its own, nothing is written to the page) |
+| Sidebar items | BottomNavigation from the top-level rows in order (group titles and sub-rows skipped): up to 5 map one to one; more than 5 → the first 4 + More (the full list in a sheet): More is a plain tab (`id: "more"`, selected while the screen is one of its rows) whose `onValueChange` opens a `BottomSheet type="action"` of the other rows, each going where its Sidebar row goes (BottomNavigation draws no sheet itself; Studio's Play opens that sheet on its own, nothing is written to the page, and Studio's Export writes it into the app) |
 | Sidebar brand, footer rows (Settings), collapse toggle | the account sheet or More, never the bar |
 | Breadcrumbs | root: none · child: Back chevron to the parent crumb (§10). AppShellHeader's top row and PageHeader do this themselves under 744 (the drawer layout, or a mobile breakpoint) |
 | PageHeader `title` | root: `largeTitle` and `title` (the folded bar) · child: `title` |

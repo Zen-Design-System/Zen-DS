@@ -237,8 +237,38 @@ ok("vars: a visibility a variable holds is a condition", varsCode.includes("    
 ok("vars: Set variable, Conditional and several actions", varsCode.includes('setVars((vars) => ({ ...vars, dateRange: range }))') && varsCode.includes("if (vars.signedIn && vars.count > 0)") && varsCode.includes("setVars((vars) => ({ ...vars, count: vars.count + 1 }))") && varsCode.includes("setOverlay(null)"));
 ok("vars: a bound Toggle writes its variable back", varsCode.includes("onCheckedChange={(next) => setVars((vars) => ({ ...vars, signedIn: next }))}"));
 
+// A phone tab bar's More (component-usage-rules §17, user 2026-11-05): the export opens the sheet Studio's Play draws, an
+// action BottomSheet of the Sidebar's rows past the fourth, each going where its row goes.
+const moreShell = (selected) => [
+  "  <AppShell",
+  `    sidebar={<Sidebar aria-label="Main" selectedId="${selected}" onItemClick={proto.navigate({ home: "overview", tasks: "tasks" })}>`,
+  ...[["home", "Overview", "icon-home-03-line"], ["people", "People", "icon-users-line"], ["time", "Time", "icon-clock-line"], ["pay", "Payroll", "icon-bank-note-01-line"], ["tasks", "Tasks", "icon-check-square-line"], ["hiring", "Hiring", "icon-user-plus-line"], ["reports", "Reports", "icon-bar-chart-square-02-line"]].map(([id, label, icon]) => `      <SidebarMenuItem id="${id}" label="${label}" icon="${icon}" />`),
+  "    </Sidebar>}",
+  "  >",
+  "    <Text>Body</Text>",
+  "  </AppShell>",
+];
+const moreBar = (value) => `bottomNavigation={<BottomNavigation value="${value}" onValueChange={proto.navigate({ home: "overview", tasks: "tasks" })} showLabels items={[{ id: "home", label: "Overview", icon: "icon-home-03-line" }, { id: "people", label: "People", icon: "icon-users-line" }, { id: "time", label: "Time", icon: "icon-clock-line" }, { id: "pay", label: "Payroll", icon: "icon-bank-note-01-line" }, { id: "more", label: "More", icon: "icon-dots-horizontal-line" }]} />}`;
+const more = compileReact(page("More tab", "AppShell, BottomNavigation, Sidebar, SidebarMenuItem, Text", [
+  `<Screen id="overview" title="Overview" device="phone" ${moreBar("home")}>`, ...moreShell("home"), "</Screen>",
+  `<Screen id="tasks" title="Tasks" device="phone" ${moreBar("more")}>`, ...moreShell("tasks"), "</Screen>",
+]), { file: "more-tab.zen.tsx" });
+const moreCode = more.code ?? more.error ?? "";
+ok("more: the sheet's open state", moreCode.includes("const [moreOpen, setMoreOpen] = useState(false);"));
+ok("more: More opens the sheet, the other tabs keep the Sidebar's navigate", moreCode.includes('onValueChange={(choice: string) => { if (choice === "more") { setMoreOpen(true); return; } const tabs: (choice: string) => void = (choice: unknown) => {') && (moreCode.match(/setMoreOpen\(true\)/g) ?? []).length === 2);
+{
+  const sheet = /\{\(screen === "overview" \|\| screen === "tasks"\) && \(\n\s*(<BottomSheet\b[^]*?\/>)\n\s*\)\}/.exec(moreCode)?.[1] ?? "";
+  ok("more: one sheet for both screens, open while moreOpen", (moreCode.match(/<BottomSheet\s/g) ?? []).length === 1 && sheet.includes("open={moreOpen}") && sheet.includes("onOpenChange={setMoreOpen}") && sheet.includes('type="action"') && sheet.includes('title="More"'));
+  ok("more: the rows past the fourth, Tasks going where its Sidebar row goes", /id: "tasks", label: "Tasks"[^]*id: "hiring", label: "Hiring"[^]*id: "reports", label: "Reports"/.test(sheet) && !/id: "people"/.test(sheet) && sheet.includes('onSelect={(choice: unknown) => { const to = ({ tasks: "tasks" } as'));
+}
+ok("more: BottomSheet imported", /import \{[^}]*\bBottomSheet\b[^}]*\} from "@zen-ds\/react";/.test(moreCode));
+const moreOwn = compileReact(page("Own more", "AppShell, BottomNavigation, Sidebar, SidebarMenuItem, Text", [
+  `<Screen id="overview" title="Overview" device="phone" ${moreBar("home").replace('proto.navigate({ home: "overview", tasks: "tasks" })', 'proto.navigate({ home: "overview", more: "overview" })')}>`, ...moreShell("home"), "</Screen>",
+]), { file: "own-more.zen.tsx" }).code ?? "";
+ok("more: a More that leads somewhere of its own exports as written", !/moreOpen|BottomSheet/.test(moreOwn));
+
 // The outputs as app code: the usage harness (consumer mode) and TypeScript with the repo's settings.
-const outputs = { "Checkout.tsx": blank.code, "Team.tsx": code, "Orders.tsx": requiredCode, "Crew.tsx": crewCode, "Tabs.tsx": tabsCode, "Splash.tsx": splashCode, "Filters.tsx": varsCode };
+const outputs = { "Checkout.tsx": blank.code, "Team.tsx": code, "Orders.tsx": requiredCode, "Crew.tsx": crewCode, "Tabs.tsx": tabsCode, "Splash.tsx": splashCode, "Filters.tsx": varsCode, "MoreTab.tsx": moreCode };
 {
   const { rules } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/check-usage.mjs")).href);
   const { createChecker } = await import(pathToFileURL(path.join(repo, "tools/usage-guard/engine.mjs")).href);
