@@ -14,6 +14,8 @@ How to maintain it:
 
 ## [0.4.0] — Unreleased
 
+- Zen Studio Export: the phone tab bar's More works in the exported React page too (user 2026-11-05): More opens an
+  action Bottom Sheet of the other Sidebar rows (`moreOpen` state), each going where its row goes, as in Play.
 - Zen Studio: the phone tab bar's More works in Play (user 2026-11-04). A Sidebar of more than five rows gives the tab
   bar four tabs + More; pressing More in Play opens an action Bottom Sheet of the other rows, each going where its
   Sidebar row goes (DEMO-MEET: Quản lý task). Nothing is added to the page. BottomNavigation is unchanged: in app code,

@@ -281,7 +281,7 @@ export function derivePhoneChrome(screen, { mock = {} } = {}) {
     });
     if (folded.length) {
       moreSheet = moreSheetOf(folded, go);
-      notes.push(`${folded.map((row) => row.label).join(", ")} go into More (its sheet opens in Play)`);
+      notes.push(`${folded.map((row) => row.label).join(", ")} go into More (its sheet opens in Play and in the export)`);
     }
   }
   return { kind: child ? "child" : "root", topNavigation, bottomNavigation, moreSheet, notes };
